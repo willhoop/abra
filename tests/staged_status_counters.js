@@ -435,9 +435,21 @@ function runOne(sc, src, armId) {
   const boards = [];
   const r = G.playGame(a, b, 'directed', 'status:' + sc.id, {
     script: sc.script, arm,
-    /* PP IS HELD — see `PP_HOLD_WHY` in tests/staged_board.js, which this file already treats as its
-     * library. One reason, one place; every pass/fail instrument holds the field and prints why. */
-    ppHold: true,
+    /* ---- THE PP HOLD IS LIFTED HERE, 2026-08-11 (ROADMAP #206/#207) -----------------------------
+     *
+     * ROADMAP #206's defect families are closed and this instrument was RE-RUN WITH PP COMPARED
+     * before the line was deleted. It went from three scenarios parting on PP alone --
+     * `pivot-then-the-slot-is-hit` pp.charm, `allyswitch-follows-the-slot` pp.crunch,
+     * `roar-drags-whoever-is-standing-there` pp.roar, every one of them off by one in the same
+     * direction -- to CLEAN. All three were ONE defect and it is the second half of the target-class
+     * work: Pressure was priced off the body the click NAMED instead of the body standing in the slot
+     * when the move ran, which is what `getMoveTargets` inside `useMoveInner` answers. The engine
+     * already re-aimed the EFFECT through `reaimToSlot`; it now prices the PP off the same call.
+     *
+     * SO THIS FILE NOW ASKS, and `board_state.js` no longer stamps `pp_comparable.held_by_the_caller`
+     * on its snapshots -- which is the whole difference between a run that compared PP and one that
+     * did not. `tests/roster.js` still holds it, for a reason written at its own call site.
+     */
     onBoundary: (snap, turnIdx) => {
       boards.push({ turn: turnIdx, compared: snap.leaves_compared,
                     diffs: snap.diffs.map(d => BS.locate(d, snap)) });

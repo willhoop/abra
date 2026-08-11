@@ -13,32 +13,29 @@ it does not compete on them.
 
 ```
 MEASURE — can we believe a number
-  leaf calibration: live in-game leaf is WORSE than a coin on Brier (paired +0.0502, 95% CI 0.0371 to 0.0628; negative is better). When it says 90-100% it wins 54% (n=56). Names the winner on 51.0% of 1314 decisive calls, 95% CI 48.3-53.7%. ECE 0.1811. See reliability_curve.
-    n=1378 games, 200 rollouts each   (2026-08-04 03:09)
-    when it says 90-100% it wins 54% (n=56); when it says 0-10% it wins 54% (n=52)  — ECE 0.1811
-    powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
-    PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/engine-data.js, data/abra-tags.js
-    (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  engine correctness -> leaf: WITHHELD — engine/provenance.js calls data/leaf-engine-contrast.json UNSAFE.
-    older than its input engine-data.js
-    CORPUS DRIFT — declares 8,887 games; 11,309 are clean open-sheet now, so 21.4% of the corpus it describes is not in it. Re-run engine/leaf_engine_contrast.js.
-    (+6 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 24 unsafe, 1 void (declared), 80 possibly stale, 85 ok, 0 missing
-  click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — engine/fit_policy.js was 37df17935c16 at read time, is 2edef2cfb95a now
-    COMPUTED FROM DIFFERENT CONTENT — engine/board.js was 5bdaa3923958 at read time, is a55f8271e101 now
-    (+4 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/click_census.js
+  leaf calibration: QUARANTINED — the figure is withheld, not annotated.
+    data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
+  engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
+    data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
+  provenance: 24 unsafe, 1 void (declared), 84 possibly stale, 81 ok, 0 missing
+  click censoring: QUARANTINED — the figure is withheld, not annotated.
+    data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
+  the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED:   Measure what it touches before deciding — how many corpus games contain a changed species — |   then refit (node engine/fit_policy.js, then node engine/fit_joint.js) if it reaches the fit, |   or restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-11 10:20
+    moved after the fit: engine/medicham2-browser.js  2026-08-11 12:01
     moved after the fit: engine/board.js  2026-08-10 20:33
     moved after the fit: data/engine-data.js  2026-08-10 18:59
-    moved after the fit: data/abra-tags.js  2026-08-11 07:48
+    moved after the fit: data/abra-tags.js  2026-08-11 11:35
 ```
 
-_stamped 2026-08-11 10:53_
+_stamped 2026-08-11 12:10_
 
 <!-- /GENERATED -->
 

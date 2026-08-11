@@ -791,6 +791,12 @@ const MEDFAILS = { encoreAction: 0,
    * offender. Must read 0: data/tags.json carries a `pp` row for all 500 moves in this format, and a
    * non-zero here means the artifact predates the derivation rather than that the engine is wrong. */
   ppUnknownMove: 0, ppUnknownMoveFirst: '',
+  /* ROADMAP #206 -- a move the `targetClass` artifact has no row for. `target` is a field on all 500
+   * moves in this format so the tag is a TOTAL function and this must read 0; a non-zero means the
+   * artifact predates the derivation. The fallback is the pre-#206 behaviour (aim at whatever the
+   * action named), which is right for the 370-move `aimed` majority and wrong for the 59 that are
+   * priced over the whole foe side -- so it is a LOUD fallback and names its first offender. */
+  ppTargetClassUnknown: 0, ppTargetClassUnknownFirst: '',
   /* ROADMAP #144 -- every slot is empty and the engine could not build the one action the authority
    * offers. Falling through would hand back a click that cannot be paid for and the execution gate
    * would eat the turn silently, so it counts itself. Must read 0. */
@@ -2012,6 +2018,65 @@ function ppPressureExtra(targets,user){
     if(p&&+p.extra>0){ extra+=+p.extra; MEDSEEN.ppPressureCharged++; }
   }
   return extra;
+}
+/* ROADMAP #206 -- WHICH BODIES A PRESSURE-CLASS ABILITY MAY CHARGE FOR THIS CLICK.
+ *
+ * `ppPressureExtra` above was always computed over a LIST and that was right. What was wrong is that
+ * the list was built from `a.target` and the spread table, and BOTH are silent about a move that
+ * names no target -- so Haze, Trick Room, Stealth Rock, Spikes, Toxic Spikes and Imprison were handed
+ * an EMPTY list and charged nothing. Measured against the authority with two Pressure foes on the
+ * field, showdown/ours: Haze 3/1, Trick Room 3/1, Stealth Rock 3/1, Imprison 3/2.
+ *
+ * THE SCOPE IS READ OFF THE MOVE'S OWN TAG, never off a name and never off `a.target`. `targetClass`
+ * carries Showdown's own `target` word, the `mustpressure` flag and the scope the two of them imply,
+ * derived in tag_dex by replaying `getMoveTargets` (sim/pokemon.ts:794-860). Three answers:
+ *
+ *   'foes'   every living foe is an apparent target -- `all`, `allAdjacent`, `allAdjacentFoes`, and
+ *            ANY move carrying `mustpressure` whatever its target word (Imprison is `self`).
+ *   'aimed'  only the body the click named -- the switch's `default:` branch, 370 of 500 moves.
+ *   'none'   the list reaches no foe at all -- `self`, `allySide`, `allyTeam`, `allies`, and
+ *            `foeSide` WITHOUT the flag, which is the override that makes Sticky Web free while
+ *            Stealth Rock costs 3 off the identical target word.
+ *
+ * WHY NOT REUSE `SPREAD`. It is the DAMAGE-spread table (x0.75, hits-my-ally) and its membership is
+ * `spreadFoes` + `spreadAll`, which excludes every fieldwide status move and every hazard -- the six
+ * moves this defect was made of. Two questions, two tables; collapsing them is what produced the bug.
+ *
+ * ONE KNOWN AND UNMODELLED EDGE, NAMED RATHER THAN LEFT TO BE FOUND. For `target: 'all'` the authority
+ * resolves `foes(true)`, which keeps a foe that fainted EARLIER THIS TURN and has not been replaced
+ * yet; every other branch uses the living list. This engine charges living foes in all three scopes,
+ * so a fieldwide move used in the same turn a Pressure foe died can be one PP cheaper here. */
+let _PSCOPE=null;
+function pressureScopeOf(id){
+  if(!_PSCOPE){
+    _PSCOPE=new Map();
+    try{
+      for(const mid of (TAGS.withTag?TAGS.withTag('move','targetClass'):[])){
+        const p=TAGS.param('move',mid,'targetClass');
+        if(p&&p.pressureScope) _PSCOPE.set(mid,p.pressureScope);
+      }
+    }catch(e){}
+  }
+  return _PSCOPE.get(String(id).toLowerCase().replace(/[^a-z0-9]/g,''))||null;
+}
+function pressureTargetsOf(id,act,user,foes,aimed){
+  const s=pressureScopeOf(id);
+  /* `_live` and not `live`: this file has three living-filters and only `_live` is a module-level
+   * one. It is declared below this point and read at TURN time, never at load time. */
+  if(s==='none') return [];
+  if(s==='foes') return _live(foes||[]);
+  /* `aimed` IS THE BODY STANDING IN THE SLOT, NOT THE ONE THE CLICK NAMED. The authority resolves
+   * `getMoveTargets` inside `useMoveInner` -- after redirection and after any mid-turn switch -- so a
+   * Pressure body that pivoted out, or was Ally Switched out, charges NOTHING and whoever replaced it
+   * charges its own. This engine already re-aims the EFFECT (`reaimToSlot`, WIRE 139) and was pricing
+   * the PP off the raw request: measured on three staged boards, all off by one the same way --
+   * Charm 1/2, Crunch 1/2, Roar 3/4 (showdown/ours). The caller resolves it; this function must not
+   * fall back to `act.target`, because a silent fallback here IS the defect. */
+  if(s==='aimed') return aimed?[aimed]:[];
+  /* NO ROW. Loud, named, and it keeps the pre-#206 answer rather than inventing a new one. */
+  MEDFAILS.ppTargetClassUnknown++;
+  if(!MEDFAILS.ppTargetClassUnknownFirst) MEDFAILS.ppTargetClassUnknownFirst=String(id);
+  return (act&&act.target&&!SPREAD.has(id))?[act.target]:(SPREAD.has(id)?_live(foes||[]):(act&&act.target?[act.target]:[]));
 }
 /* ---- WIRE 152: THE LAYER FAMILY, WHICH IS THE DURATION FAMILY'S OPPOSITE NUMBER --------------------
  *
@@ -11024,11 +11089,31 @@ function battleTurn(S,rng,actsForA,actsForB){
        * is inherited rather than restated.
        *
        * FOUR EXEMPTIONS, EACH BECAUSE THE AUTHORITY EXEMPTS IT:
-       *   - a LOCKED move (`getLockedMove`) pays nothing. In this engine that is `_lock` with a
-       *     FINITE `_lockT` -- the rampage/Uproar lock. A Choice lock is `_lockT === Infinity` and is
-       *     NOT `getLockedMove` in the authority either, so a Choice holder pays every turn.
+       *   - a LOCKED move (`getLockedMove`) pays nothing, and ROADMAP #206 FAMILY 2 is the cost of
+       *     getting the FIELD wrong: this clause used to read `_lock` with a finite `_lockT` and
+       *     called that "the rampage/Uproar lock" in its own comment. It is not. `_lock` is the
+       *     CHOICE and ENCORE field (`lockMenuMove`, which says so); the rampage lives on `_mtLock`
+       *     and is the one `selectableMoves` answers with `getMoves(lockedMove)`. So a three-turn
+       *     Outrage cost 3 PP here against the authority's 1. Traced in a real battle, the user's own
+       *     slot: 12 -> 11 on the click turn, 11 -> 11 on the locked turn, menu reduced to
+       *     ["outrage"] in between.
+       *     A CHOICE LOCK IS STILL NOT THIS. `_lockT === Infinity` is `onDisableMove`, not
+       *     `onLockMove`, so a Choice holder pays every turn -- and Encore is the same shape, which
+       *     is why `_lock` is left out of the exemption entirely rather than narrowed.
+       *     ROADMAP #206 FAMILY 3 IS THE SECOND HALF OF THE SAME CLAUSE. `twoturnmove` carries
+       *     `onLockMove` too, so the RELEASE turn of a charge move is a locked turn and the whole
+       *     two-turn action costs 1 PP. This engine billed both turns: Electro Shot 2 against the
+       *     authority's 1, traced turn by turn out of rain and in it.
        *   - STRUGGLE pays nothing (`move.id !== 'struggle'` is written into the guard itself).
-       *   - a SWITCH, a PASS and the struggle kind are not move actions at all.
+       *   - a BARE switch, a BARE pass and the struggle kind are not move actions at all, and the
+       *     test for that is that they CARRY NO MOVE ID -- not that they are named `switch` or
+       *     `pass`. ROADMAP #206 FAMILY 4 is what the name test cost: `playerAction` builds EIGHT
+       *     real moves under those two kinds -- chillyreception and partingshot as `switch`,
+       *     fairylock/healbell/roleplay/spite/teatime/transform as `pass` -- and every one of them
+       *     was FREE FOREVER, 1/0 against the authority on a single click. Enumerated over all 500
+       *     legal moves before the clause was dropped, and the same walk is what makes dropping it
+       *     safe: NO bare action carries a move id, so `actionMoveId` returns null for a real switch
+       *     and a real pass and the `_ppId &&` clause refuses them one term earlier.
        *   - a body with no PP row for the move pays nothing and says so through `MEDFAILS`.
        *
        * PRESSURE IS CHARGED ON THE SAME LINE and is deliberately not deferred to the resolution
@@ -11038,8 +11123,16 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the living bodies the action actually aims at. */
       {
         const _ppId=actionMoveId(a);
-        const _locked=!!(m._lock&&m._lockT!==Infinity&&m._lock===_ppId);
-        if(_ppId&&_ppId!=='struggle'&&!_locked&&a.kind!=='switch'&&a.kind!=='pass'&&a.kind!=='struggle'
+        /* `getLockedMove()` in this engine's own vocabulary, and it is TWO fields because the
+         * authority has TWO volatiles carrying `onLockMove`: the rampage/Uproar lock (`lockedmove`,
+         * here `_mtLock`) and the two-turn wind-up (`twoturnmove`, here `_charging`). Read the
+         * `_mtLock` half the same way `selectableMoves` reads it, so the menu and the price cannot
+         * come apart. The `_charging` half is true on the RELEASE turn only -- the charge branch far
+         * below this line clears it as the move fires -- so the wind-up turn pays and the release
+         * turn does not, which is the authority's split exactly. */
+        const _locked=!!(m._mtLock&&m._mtLock.left>0&&m._mtLock.move===_ppId)
+                    ||m._charging===_ppId;
+        if(_ppId&&_ppId!=='struggle'&&!_locked&&a.kind!=='struggle'
            &&ppLeft(m,_ppId)!=null){
           if(ppDeduct(m,_ppId,1)<=0){
             /* `|cant|POKEMON|nopp|MOVE` -- the authority's own line, and it is reachable from here
@@ -11050,11 +11143,15 @@ function battleTurn(S,rng,actsForA,actsForB){
             m._mvRes=false; if(TR)TR.cant(m,'nopp',_ppId);
             continue;
           }
-          /* THE TARGET LIST FOR PRESSURE IS THE ONE THE CLICK AIMS AT, not "the foes". A single-target
-           * move charges one body; a spread move charges each living foe it reaches. */
+          /* THE TARGET LIST FOR PRESSURE IS THE MOVE'S APPARENT-TARGET LIST, and ROADMAP #206 is what
+           * happens when it is guessed from `a.target` instead: a move that names no target -- every
+           * fieldwide status move, every hazard, Imprison -- fell to an EMPTY list and was charged
+           * nothing. `pressureTargetsOf` reads the move's own `targetClass` tag. See its header. */
           const _pFoes=it.side==='A'?actB:actA;
-          const _pt=(a.target&&!SPREAD.has(_ppId))?[a.target]
-                   :(SPREAD.has(_ppId)?live(_pFoes):(a.target?[a.target]:[]));
+          /* `quiet` -- the re-aim COUNTERS belong to the effect branch, which asks the same question
+           * a few hundred lines below. Counting it twice would make one re-aim look like two. */
+          const _aim=reaimToSlot(a.target,it,actA,actB,_ppId,true);
+          const _pt=pressureTargetsOf(_ppId,a,m,_pFoes,_aim);
           const _ex=ppPressureExtra(_pt,m);
           if(_ex>0) ppDeduct(m,_ppId,_ex);
         }

@@ -1659,6 +1659,62 @@ const MOVE_TAGS = [
       if (!new RegExp('disableMove\\(\\s*["\']' + m.id + '["\']').test(src)) return null;
       return { menuDisable: true, whileActiveMoveActions: '>0' };
     } },
+  /* ROADMAP #206 -- THE MOVE'S OWN TARGET CLASS, AND IT IS THE LIST PRESSURE IS PRICED OFF.
+   *
+   * WHAT WAS BROKEN. `ppPressureExtra` is computed over a target LIST, which is right -- Showdown
+   * charges once per APPARENT TARGET (`pressureTargets`, sim/battle-actions.ts:476). medicham2 built
+   * that list from `a.target` and its spread table, and BOTH are silent about a move that names no
+   * target at all: a `target: 'all'` move (Haze, Trick Room), a `foeSide` hazard (Stealth Rock), a
+   * `self` move flagged `mustpressure` (Imprison). Those fell to an EMPTY list and were charged
+   * nothing. Measured against the authority with two Pressure foes standing there, showdown/ours:
+   * Haze 3/1, Trick Room 3/1, Stealth Rock 3/1, Imprison 3/2 -- and the correct answers are NOT a
+   * blanket "charge every foe", because Sticky Web (`foeSide`, no flag) and Tailwind (`allySide`)
+   * both cost exactly 1 into the same two Pressure bodies.
+   *
+   * WHY IT IS A TAG AND NOT A LIST IN THE ENGINE. `target` is a field on every move and the class
+   * names are Showdown's own vocabulary, so this is a total function over the dex with nothing
+   * hand-listed -- docs/TAGS.md invariant 3. A class that arrives next regulation arrives tagged.
+   *
+   * `pressureScope` IS DERIVED BY REPLAYING `getMoveTargets` (sim/pokemon.ts:791-860), which is one
+   * switch followed by two overrides, and the overrides are the whole reason a naive reading of
+   * `target` is wrong:
+   *     pressureTargets = targets;
+   *     if (move.target === 'foeSide') pressureTargets = [];        // Sticky Web pays nothing
+   *     if (move.flags['mustpressure']) pressureTargets = this.foes();   // Imprison pays for both
+   * Only FOES can charge (`onDeductPP` opens `if (target.isAlly(source)) return;`), so the three
+   * scopes an engine actually needs are: every living foe, only the body aimed at, or nobody.
+   *
+   * MEMBERSHIP PRINTED BEFORE A LINE OF IT WAS WIRED -- 500 of 500 legal moves, which is the point of
+   * a total function, and the split that matters is:
+   *     foes   58 = all 17 + allAdjacent 16 + allAdjacentFoes 22 + foeSide+mustpressure 3
+   *                 (haze, trickroom, earthquake, blizzard, stealthrock, spikes, toxicspikes ...)
+   *            +1  = imprison, `self` AND `mustpressure` -- the row that proves this cannot be read
+   *                  off `target` alone
+   *     aimed 366 = normal 339 + any 16 + randomNormal 6 + scripted 4 + adjacentAlly 4 +
+   *                 adjacentAllyOrSelf 1   (an ally in that list charges nothing, which the engine's
+   *                 own ally test already handles)
+   *     none   70 = self 59 + allySide 8 + allies 2 + allyTeam 1 + foeSide-without-the-flag 1
+   *                 (stickyweb -- the one-substitution control against stealthrock) */
+  { tag: 'targetClass', param: 'the move\'s own `target` word plus the `mustpressure` flag, and the '
+       + 'APPARENT-TARGET scope Pressure is priced over: foes / aimed / none',
+    probe: 'ppPressureExtra',
+    why: 'medicham2 priced Pressure off an EMPTY list for every move that names no target -- Haze, '
+       + 'Trick Room, Stealth Rock and Imprison all read 1 where the authority reads 3. `target` is '
+       + 'a field on all 500 moves, so nothing here is hand-listed',
+    of: m => {
+      if (!m.target) return null;
+      const must = !!(m.flags && m.flags.mustpressure);
+      /* sim/pokemon.ts:794-860, in the authority's own order. */
+      let scope;
+      if (must) scope = 'foes';                                     // the second override, and it wins
+      else if (m.target === 'foeSide') scope = 'none';              // the first override
+      else if (m.target === 'all' || m.target === 'allAdjacent'
+               || m.target === 'allAdjacentFoes') scope = 'foes';
+      else if (m.target === 'allySide' || m.target === 'allyTeam' || m.target === 'allies'
+               || m.target === 'self') scope = 'none';              // reaches no foe, so charges none
+      else scope = 'aimed';                                         // the switch's `default:` branch
+      return { target: m.target, mustPressure: must, pressureScope: scope };
+    } },
   { tag: 'spreadFoes', param: 'x0.75, hits BOTH ENEMIES, ally is safe', probe: 'allAdjacentFoes',
     why: 'Heat Wave, Hyper Voice, Dazzling Gleam, Blizzard, Make It Rain. Free to click beside a partner',
     of: m => m.target === 'allAdjacentFoes' ? { target: m.target, hitsAlly: false } : null },

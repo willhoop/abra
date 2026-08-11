@@ -758,32 +758,46 @@ function play(sc, src, armId) {
   let Sref = null;
   const r = G.playGame(a, b, 'directed', 'roster:' + sc.id, {
     script: sc.script, arm: ARM || undefined,
-    /* ---- PP IS COMPARED BY board_state.js AND IS HELD HERE, ON 2026-08-11, WITH A MEASURED REASON --
+    /* ---- THE PP HOLD, LIFTED AND PUT BACK ON 2026-08-11, WITH THE MEASUREMENT WRITTEN DOWN --------
      *
-     * PP became a compared board leaf today (it had been in NOT_COMPARED on the claim that "medicham2
-     * does not track PP at all", which stopped being true at ROADMAP #144 and nobody noticed). It is
-     * proved by two planted divergences in engine/game_differential.js and it is LIVE in that
-     * instrument, which is not gated.
+     * ROADMAP #206's FOUR DEFECT FAMILIES ARE ALL CLOSED, each with a census probe that was shown RED
+     * before the engine moved:
+     *   1  Pressure was priced off an EMPTY list for any move naming no target -- fixed by the new
+     *      `targetClass` move tag, derived from `target` + `mustpressure` over all 500 legal moves.
+     *      Probe `move/targetClass`: Stealth Rock costs 3 and Sticky Web 1 off the IDENTICAL
+     *      `target: foeSide`, so the class is read rather than the word.
+     *   2  a rampage lock charged every turn -- the gate tested `_lock`, which is Choice/Encore; the
+     *      rampage lives on `_mtLock`. Probe `move/locksIntoMove`.
+     *   3  a charge move charged twice -- `twoturnmove` carries `onLockMove` too, so the RELEASE turn
+     *      is free. Probe `move/chargeTurn`.
+     *   4  eight moves built under `kind: 'switch'`/`'pass'` paid nothing, because the gate excluded
+     *      the KIND NAME instead of asking whether the action carried a move id. Probe `move/pp`.
      *
-     * IT IS HELD HERE BECAUSE THIS FILE'S VERDICT HOLDS THE MEDICHAM GATE, AND THE MEASUREMENT IS NOT
-     * A CLEAN ONE. Measured on the full moves stage the day it was wired:
-     *     COULD-NOT-STAGE 64 -> 11   (44 moves that were "inert" now move a leaf — a real coverage gain)
-     *     FIRED-AND-BOARDS-DIFFER 0 -> 26
-     * The 26 are REAL and at least four separate engine defects sit under them, reproduced by hand:
-     *   - PRESSURE CHARGES NOTHING FOR A MOVE WITH NO EXPLICIT TARGET. Showdown resolves `target: all`
-     *     to allies AND foes and uses that list as `pressureTargets` (sim/pokemon.ts:794-860), so a
-     *     terrain, a weather, Trick Room, Gravity or Haze costs 2 PP into one Pressure body. Ours
-     *     hands `ppPressureExtra` an empty list. Reproduced with a two-body control: the SAME Haze
-     *     fixture reads 1/1 against Scrappy and 1/2 against Pressure, one substitution apart.
-     *   - a LOCKED move (Outrage, Thrash) spends PP on every turn of the lock here and once there;
-     *   - a CHARGE move (Electro Shot, Phantom Force) likewise;
-     *   - Parting Shot spends nothing here and 1 there; Triple Axel is short by one.
-     * Fixing the first needs a move TARGET CLASS that `data/tags.json` does not carry — a tag_dex
-     * change with its own membership print, which is a separate batch with its own probe.
+     * SO THE HOLD WAS LIFTED AND THE STAGE RE-RUN. MEASURED, BOTH WAYS, TODAY:
+     *     hold ON    428 MATCH   0 DIFFER   64 COULD-NOT-STAGE
+     *     hold OFF   472 MATCH   7 DIFFER   11 COULD-NOT-STAGE
+     * The four fixes took the differ count from the 26 this comment used to predict down to 7, and
+     * bought 44 rows that could not be staged at all. The clause still FLIPS, so the hold goes back --
+     * an open gate beats a coverage gain, and that is the standing rule rather than a preference.
+     *
+     * BUT SIX OF THE SEVEN ARE NOT PP DEFECTS, AND THAT IS THE FINDING THIS COMMENT EXISTS TO CARRY.
+     * A row is COULD-NOT-STAGE when the REFERENCE engine's board is identical with and without the
+     * entity. A move that FAILS in Showdown moves no HP -- so it read inert, and its row was never
+     * compared. Comparing PP gives the authority's failed click an observable (it still spends 1 PP),
+     * the row becomes stageable, and OUR engine's behaviour on it is then visible for the first time:
+     *     Burn Up       Showdown 1240/1240, ours 1195   -- the authority REFUSES it off a non-Fire user
+     *     Last Resort   Showdown 1240/1240, ours 1209   -- refused until every other slot has been used
+     *     Poltergeist   Showdown 1240/1240, ours 1198   -- refused when the target holds no item
+     *     Future Sight  Showdown 1240/1240, ours 1219   -- lands two turns LATER, not now
+     *     Safeguard     Showdown has no side condition, ours has 4 turns of one
+     *     Transform     the weak generic residue arm
+     *     Mirror Coat   showdown 2 PP, ours 1           -- the only PP row of the seven
+     * Those six are engine defects the INERT verdict was masking, and putting the hold back masks
+     * them again. They are named here so that is a recorded cost rather than a silent one.
      *
      * THIS IS A HOLD ON ONE FIELD IN ONE CONSUMER, NOT A SHELF ON AN ENTITY: no row is excused, the
-     * count above is published, and taking the hold off is deleting this one line. It is NOT a claim
-     * that PP agrees — `board_state.js` stamps `pp_comparable.held_by_the_caller` on every snapshot
+     * counts above are published, and taking the hold off is deleting this one line. It is NOT a claim
+     * that PP agrees -- `board_state.js` stamps `pp_comparable.held_by_the_caller` on every snapshot
      * this call produces precisely so the two cannot be confused. */
     ppHold: true,
     onBoundary: (snap, turnIdx, Slive) => {
@@ -8859,11 +8873,22 @@ function main() {
    * with the number it is worth, on every single run. */
   console.log('\n  ONE FIELD IS HELD OUT OF THIS STAGE\'S VERDICT — declared, dated, and worth a number:');
   console.log('    PP   compared by board_state.js since 2026-08-11 and HELD HERE (`ppHold: true` in '
-    + 'stage()). Measured on the moves stage the day it was wired: COULD-NOT-STAGE 64 -> 11 and '
-    + 'FIRED-AND-BOARDS-DIFFER 0 -> 26. The 26 are real — at least four engine defects sit under them, '
-    + 'the largest being that Pressure charges no extra PP for a move with no explicit target '
-    + '(Showdown resolves `target: all` to allies AND foes and prices Pressure off that list). '
-    + 'THIS IS NOT A CLAIM THAT PP AGREES. It is a claim that this stage did not ask.');
+    + 'stage()). The four ROADMAP #206 defect families are now CLOSED, each with a census probe shown '
+    + 'RED first, and the hold was lifted and the moves stage re-run to measure what that is worth. '
+    + 'MEASURED BOTH WAYS on 2026-08-11:  hold ON 428 MATCH / 0 DIFFER / 64 COULD-NOT-STAGE   ->   '
+    + 'hold OFF 472 MATCH / 7 DIFFER / 11 COULD-NOT-STAGE. The four fixes took the differ count from '
+    + '26 to 7 and bought 44 rows that could not be staged at all; the clause still flips, so the hold '
+    + 'went back — an open gate beats a coverage gain.');
+  console.log('         AND SIX OF THOSE SEVEN ARE NOT PP DEFECTS. A row reads COULD-NOT-STAGE when '
+    + 'the REFERENCE board is identical with and without the entity, and a move the AUTHORITY REFUSES '
+    + 'moves no HP — so it read inert and was never compared. PP gives the refused click an '
+    + 'observable, the row stages, and our engine is seen for the first time:  Burn Up 1240/1240 vs '
+    + 'ours 1195 (refused off a non-Fire user),  Last Resort 1240 vs 1209,  Poltergeist 1240 vs 1198 '
+    + '(refused with no item on the target),  Future Sight 1240 vs 1219 (it lands two turns later),  '
+    + 'Safeguard absent upstream and 4 turns here,  Transform (the weak generic arm),  and Mirror '
+    + 'Coat 2 PP vs 1 — the only PP row of the seven. Putting the hold back masks those six again, '
+    + 'which is a recorded cost and not a silent one.');
+  console.log('         THIS IS NOT A CLAIM THAT PP AGREES. It is a claim that this stage did not ask.');
   console.log('\n  THE DECLARED DIVERGENCES — quietened, counted, and printed every run:');
   DECLARED.forEach((x, i) => {
     console.log('    ' + (DECLARED_HITS[i] ? String(DECLARED_HITS[i]).padStart(4) + ' leaves' : '   0 leaves — STALE')

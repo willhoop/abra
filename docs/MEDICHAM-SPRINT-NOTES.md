@@ -5425,3 +5425,75 @@ collapse and keep meaning; 27 of 27 state plants CAUGHT+LOCALISED.
   the roster's `item/pp-restore` rule REFUSES moves staged rows and therefore moves the gate.
 - **NOT REACHED THIS PASS:** `quickfeet`, `poisonheal`, the `eelevate` KO-boost arm, the ~44 inert
   abilities and 57 inert moves, `magmaarmor`, the stale `recycle` deferral, and Rivalry.
+
+---
+
+## ROADMAP #206 — ALL FOUR PP DEFECT FAMILIES CLOSED, PLUS A FIFTH THE FIX EXPOSED. 2026-08-11 (sixth pass).
+
+Census **480 live / 0 missing → 485 live / 0 missing**; 5 arrived, 0 broke. All five MEASURED gate
+clauses still pass; the gate stays CLOSED only on the register clause naming #206 itself, which is a
+row I cannot close from here.
+
+| # | what was wrong | probe, shown RED first | the number |
+|---|---|---|---|
+| 1 | **Pressure was priced off an EMPTY list for any move that names no target.** `_pt` was guessed from `a.target` and the damage-spread table, and both are silent about `target: all`, a hazard and `mustpressure`. Fixed by a new `targetClass` move tag — Showdown's own `target` word plus the `mustpressure` flag plus the scope the two imply, derived in `tag_dex` by replaying `getMoveTargets` (sim/pokemon.ts:794-860). **Membership printed before a line was wired: 500 of 500 legal moves — foes 59, aimed 370, none 71.** | `move/targetClass` | Haze 1→3, Trick Room 1→3, Stealth Rock 1→3, Imprison 2→3 against two Pressure foes |
+| 2 | **A rampage lock charged PP every turn.** The gate tested `_lock`, which is the CHOICE/Encore field; the rampage lives on `_mtLock`. The exemption's own comment called `_lock` "the rampage lock" and was wrong. | `move/locksIntoMove` | a two-turn Outrage 2→1 |
+| 3 | **A charge move was billed twice.** `twoturnmove` carries `onLockMove` exactly as `lockedmove` does, so the RELEASE turn is a locked turn. | `move/chargeTurn` | Electro Shot over two turns 2→1, and still 2 in rain where its own `chargeSkippedByWeather` param skips the wind-up |
+| 4 | **Eight moves paid nothing at all**, because the gate excluded the action KIND NAME (`switch`, `pass`) instead of asking whether the action carried a move id. Enumerated over all 500 legal moves before the clause was dropped: `chillyreception`/`partingshot` build as `switch`, `fairylock`/`healbell`/`roleplay`/`spite`/`teatime`/`transform` as `pass`, and NO bare action carries a move id. | `move/pp` | all eight 0→1; Heal Bell now runs out on the ninth click |
+| 5 | **Pressure was charged for the body the click NAMED, not the body standing in the slot when the move RAN.** Found by lifting the hold, not predicted. The authority resolves the list inside `useMoveInner`, after any mid-turn switch; this engine already re-aimed the EFFECT through `reaimToSlot` and priced the PP off the raw request. | `ability/deductsExtraPP` (second probe) | Charm 2→1, Crunch 2→1, Roar 4→3 on three `staged_board` scenarios |
+
+**The loud fallback never fires, measured rather than assumed.** All 500 legal moves were played
+through a real `battleTurn`: `MEDFAILS.ppTargetClassUnknown = 0`, `ppUnknownMove = 0`,
+`ppDeducted = 981`, `ppPressureCharged = 482`.
+
+### THE HOLD: TWO SITES LIFTED, ONE PUT BACK, AND THE COST OF PUTTING IT BACK IS NAMED
+
+`tests/staged_board.js` **24 of 24 clean with PP compared** and `tests/staged_status_counters.js`
+clean, so both holds are **deleted** — those files now ask about PP and answer for it.
+
+`tests/roster.js` **keeps its hold**, and here is the measurement:
+
+```
+hold ON    428 MATCH   0 DIFFER   64 COULD-NOT-STAGE
+hold OFF   472 MATCH   7 DIFFER   11 COULD-NOT-STAGE
+```
+
+The four fixes took the differ count from the 26 the old comment predicted down to **7**, and bought
+**44 rows that could not be staged at all**. The clause still flips, so the hold went back — an open
+gate beats a coverage gain.
+
+**SIX OF THOSE SEVEN ARE NOT PP DEFECTS, AND THAT IS THE FINDING.** A row reads COULD-NOT-STAGE when
+the REFERENCE board is identical with and without the entity — and a move the AUTHORITY REFUSES moves
+no HP, so it read inert and was never compared at all. Comparing PP gives the refused click an
+observable (it still costs 1), the row stages, and OUR engine is seen on it for the first time:
+
+| row | Showdown | ours | what it means |
+|---|---|---|---|
+| Burn Up | 1240/1240 | 1195 | the authority REFUSES it off a non-Fire user |
+| Last Resort | 1240/1240 | 1209 | refused until every other slot has been used |
+| Poltergeist | 1240/1240 | 1198 | refused when the target holds no item |
+| Future Sight | 1240/1240 | 1219 | it lands two turns LATER, not now |
+| Safeguard | no side condition | 4 turns of one | the re-click refreshed a clock that has no `onSideRestart` |
+| Transform | — | — | the weak generic residue arm |
+| Mirror Coat | 2 PP | 1 PP | the only PP row of the seven, and not the re-aim defect |
+
+Putting the hold back masks those six again. That is a recorded cost, printed at the call site and on
+every run, not a silent one.
+
+### WHAT WAS FOUND AND DELIBERATELY NOT FIXED, NAMED RATHER THAN ABSORBED
+
+- **The six rows above.** Each is a separate mechanic and each needs its own probe; batching them
+  behind one hold-lift would make a bad result unattributable.
+- **`ppMax('tackle')` returning `null` IS NOT A DEFECT, and the earlier note here was too generous to
+  the fixture.** Derived rather than recalled: `Dex.forFormat('gen9championsvgc2026regmb')` reports
+  Tackle `isNonstandard: 'Past'` — it is not one of this format's 500 moves, so having no `pp` row is
+  the artifact being correct. `board_state.js:262` already records that the proof caught the FIXTURE.
+  Nothing to fix; the row can be struck.
+- **The stale `recycle` deferral (#202) is already gone.** Measured: the moves stage's
+  DEFERRED-BY-OWNER list is Axe Kick, Copycat, Corrosive Gas, Electrify, Flying Press, Stuff Cheeks,
+  Syrup Bomb, Teatime — no Recycle, and the stage stands at 428. The register row can be closed.
+- **`MEDFAILS.traceBodyOffField = 9`** in the 120-game run (217 last pass). Not mine, still non-zero.
+- **`tests/staged_status_counters.js` `release THREW` on all 11 rows** — its pinned BEFORE arm is a
+  release frozen before `natureL50` was exported. Unchanged by this pass; the live arm is IDENTICAL.
+- **NOT REACHED THIS PASS:** `quickfeet`, `poisonheal`, the `eelevate` KO-boost arm, the inert
+  ability/move residue, `magmaarmor`, and Rivalry.

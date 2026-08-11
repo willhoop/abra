@@ -935,43 +935,34 @@ function auditProof() {
 }
 
 /* ---- ONE RUN OF ONE SCENARIO -------------------------------------------------------------------- */
-/* ---- THE PP HOLD, WRITTEN ONCE AND SHARED --------------------------------------------------------
+/* ---- THE PP HOLD IS GONE FROM THIS FILE, AND HERE IS WHAT IT COST TO REMOVE ----------------------
  *
- * PP became a compared board leaf on 2026-08-11. It had been in `board_state.js`'s NOT_COMPARED on the
- * claim that "medicham2 does not track PP at all", which stopped being true at ROADMAP #144 — the
- * declaration outlived what it described, and while it stood PP could have been wrong in every game
- * with nothing in the repository able to see it. It is proved by two planted divergences in
- * engine/game_differential.js: one on a slot the body has already used, one on a slot NOTHING has
- * touched (the blind spot our LAZY `_pp` table makes possible), both CAUGHT and LOCALISED.
+ * PP became a compared board leaf on 2026-08-11 (it had been in `board_state.js`'s NOT_COMPARED on the
+ * claim that "medicham2 does not track PP at all", which stopped being true at ROADMAP #144 -- the
+ * declaration outlived what it described). It was held out of this file's VERDICT for one day because
+ * it was WRONG, measured against the authority on this file's own scenarios:
+ *     Trick Room  showdown 3 / ours 1     Stealth Rock  3/1     Haze  2/1
+ *     Charm       showdown 1 / ours 2     Crunch        1/2     Roar  3/4
  *
- * IT IS WRONG, AND THE MEASUREMENT IS WHY THIS HOLD EXISTS RATHER THAN A GREEN. Measured the day it
- * was wired, on this file's own scenarios, all against the authority:
- *     Trick Room     showdown 3   ours 1        Stealth Rock  showdown 3   ours 1
- *     Haze           showdown 2   ours 1        Charm         showdown 1   ours 2
- *     Crunch         showdown 1   ours 2        Roar          showdown 2   ours 4
- * and on the deliberate roster's moves stage, COULD-NOT-STAGE 64 -> 11 with FIRED-AND-BOARDS-DIFFER
- * 0 -> 26. At least four separate defects sit under that, one of which is reproduced by hand with a
- * one-substitution control: the SAME Haze fixture reads 1/1 against Scrappy and 1/2 against PRESSURE,
- * because Showdown resolves `target: all` to allies AND foes and prices Pressure off that list
- * (sim/pokemon.ts:794-860) while ours hands `ppPressureExtra` an empty list.
+ * ALL OF IT IS FIXED AND THIS FILE IS 24 of 24 CLEAN WITH PP COMPARED. Two defects, not six:
+ *   - the first three are ROADMAP #206 FAMILY 1. Pressure was priced off an EMPTY list for any move
+ *     that names no target, because the list was guessed from `a.target` and the spread table. It is
+ *     now read off the move's own `targetClass` tag, derived in tag_dex from `target` plus the
+ *     `mustpressure` flag by replaying `getMoveTargets` (sim/pokemon.ts:794-860).
+ *   - the last three are ONE defect and it is the same function's other half: Pressure was charged
+ *     for the body the click NAMED rather than the body standing in the slot when the move RAN. The
+ *     authority resolves that list inside `useMoveInner`, after any mid-turn switch; this engine
+ *     already re-aimed the EFFECT through `reaimToSlot` and now prices the PP off the same call.
  *
- * WHY IT IS HELD IN EVERY PASS/FAIL INSTRUMENT AND NOWHERE ELSE. `engine/game_differential.js`
- * REPORTS rates and compares PP in full — that is where the finding is published, per arm, in
- * `data/game-differential.json`. This file, `tests/test-volatile-duration.js` (which runs through
- * `runOne`), `tests/staged_status_counters.js` and `tests/roster.js` all return a VERDICT, and the
- * roster's verdict holds the MEDICHAM gate. Turning six green scenarios red on a defect that needs a
- * move TARGET CLASS `data/tags.json` does not yet carry — a tag_dex change with its own membership
- * print and its own census probe — would be filing a known failure, which is the one thing this
- * repository forbids by name.
- *
- * IT IS NOT A CLAIM THAT PP AGREES. `board_state.js` stamps `pp_comparable.held_by_the_caller` on
- * every snapshot taken under it, so a run that never asked can never be read as a run that agreed.
- * Lifting it is deleting one line per call site. */
-const PP_HOLD_WHY = 'PP is COMPARED by board_state.js and HELD out of this instrument\'s verdict since '
-  + '2026-08-11. It is wrong — measured against the authority: Trick Room 3/1, Stealth Rock 3/1, '
-  + 'Haze 2/1, Charm 1/2, Crunch 1/2, Roar 2/4 (showdown/ours) — and the largest single cause is that '
-  + 'Pressure charges no extra PP here for a move with no explicit target. The finding is published '
-  + 'per arm in data/game-differential.json. THIS IS NOT A CLAIM THAT PP AGREES.';
+ * SO THIS FILE ASKS ABOUT PP AND ANSWERS FOR IT. `tests/roster.js` still holds it -- its verdict is a
+ * MEDICHAM gate clause and lifting it there still flips one, for six reasons that are NOT PP defects.
+ * The reason is written at that call site with the seven rows named, and ROADMAP #207 tracks it. */
+const PP_HOLD_WHY = 'PP is COMPARED by board_state.js and is IN this instrument\'s verdict since '
+  + '2026-08-11 -- the hold that stood here for one day is gone. It was lifted only after the '
+  + 'scenarios that parted on it were fixed: Trick Room 3/1, Stealth Rock 3/1, Haze 2/1 (Pressure '
+  + 'priced off an empty target list) and Charm 1/2, Crunch 1/2, Roar 3/4 (Pressure charged for the '
+  + 'body the click NAMED rather than the one standing in the slot when it ran). All 24 scenarios are '
+  + 'board-identical with PP compared.';
 
 function runOne(sc, patchedSrc) {
   const G = harness(patchedSrc);
@@ -987,11 +978,21 @@ function runOne(sc, patchedSrc) {
   if (G.resetScriptCounters) G.resetScriptCounters();
   const r = G.playGame(a, b, 'directed', 'staged:' + sc.id, {
     script: sc.script,
-    /* PP IS HELD OUT OF THIS INSTRUMENT'S VERDICT — see PP_HOLD_WHY below for the whole reason and the
-     * number it is worth. It is COMPARED by board_state.js and LIVE in engine/game_differential.js,
-     * which reports rates rather than passing or failing; every pass/fail instrument holds it until
-     * the registered PP defects close, and each says so on its own run. */
-    ppHold: true,
+    /* ---- THE PP HOLD IS LIFTED HERE, 2026-08-11 (ROADMAP #206/#207) -----------------------------
+     *
+     * ROADMAP #206's defect families are closed and this instrument was RE-RUN WITH PP COMPARED
+     * before the line was deleted. It went from three scenarios parting on PP alone --
+     * `pivot-then-the-slot-is-hit` pp.charm, `allyswitch-follows-the-slot` pp.crunch,
+     * `roar-drags-whoever-is-standing-there` pp.roar, every one of them off by one in the same
+     * direction -- to CLEAN. All three were ONE defect and it is the second half of the target-class
+     * work: Pressure was priced off the body the click NAMED instead of the body standing in the slot
+     * when the move ran, which is what `getMoveTargets` inside `useMoveInner` answers. The engine
+     * already re-aimed the EFFECT through `reaimToSlot`; it now prices the PP off the same call.
+     *
+     * SO THIS FILE NOW ASKS, and `board_state.js` no longer stamps `pp_comparable.held_by_the_caller`
+     * on its snapshots -- which is the whole difference between a run that compared PP and one that
+     * did not. `tests/roster.js` still holds it, for a reason written at its own call site.
+     */
     onBoundary: (snap, turnIdx) => {
       boards.push({ turn: turnIdx, compared: snap.leaves_compared,
                     diffs: snap.diffs.map(d => BS.locate(d, snap)) });
@@ -1275,7 +1276,7 @@ function main() {
     + chosen.filter(s => s.extra).length + ' beyond it' + (REDS ? ', each also played under its declared break' : ''));
   /* THE HELD FIELD, ON THE SCREEN, BEFORE ANY VERDICT. A hold that lives only in a source comment is
    * the caveat-that-gets-skimmed this repository has paid for repeatedly. */
-  console.log('  ONE FIELD IS HELD OUT OF EVERY VERDICT BELOW: ' + PP_HOLD_WHY.replace(/\s+/g, ' '));
+  console.log('  PP IS IN EVERY VERDICT BELOW: ' + PP_HOLD_WHY.replace(/\s+/g, ' '));
 
   let bad0 = 0;
   const fx = fixtureAudit(chosen);

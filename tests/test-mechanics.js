@@ -13619,9 +13619,16 @@ probe('move', 'noExtraHit', 'a move flagged noExtraHit takes NO second hit from 
  * returns a per-arm reader rather than one number for the same reason -- an immunity, a damage
  * multiplier, a crit block, a flinch refusal and a secondary filter have five different observables,
  * and collapsing them into "damage" is how a probe comes to agree with itself. */
-const ppRun = (moveId, turns, stage, chooseAfter) => {
+/* `foe2Move` added 2026-08-11 with ROADMAP #206's Pressure-re-aim row, declared HERE with its reason
+ * exactly as the direct-call paragraph requires. The foes normally pass; this hands the SECOND foe a
+ * real click, which is the only way to move a body between slots inside one turn without a bench. */
+const ppRun = (moveId, turns, stage, chooseAfter, thenMove, foe2Move) => {
   const B = board('incineroar', 'farigiraf', 'garchomp', 'farigiraf');
-  B.me.moves = [moveId];
+  /* `thenMove` added 2026-08-11 with ROADMAP #206 FAMILY 2. A multi-turn LOCK is only observable as a
+   * lock if the caller ASKS FOR SOMETHING ELSE on the second turn and does not get it -- clicking the
+   * same move twice cannot tell a lock from a compliant engine, which is the varied-knob rule. So the
+   * body carries two moves and turn 2 onward requests the second one. */
+  B.me.moves = thenMove ? [moveId, thenMove] : [moveId];
   /* Nothing may faint: a KO ends the sequence early and the two arms would then differ because
    * somebody died rather than because a move ran out. */
   for (const b of [B.me, B.ally, B.f1, B.f2]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 60 }); b.curHP = b.st.hp; }
@@ -13630,9 +13637,14 @@ const ppRun = (moveId, turns, stage, chooseAfter) => {
   const drive = turns - (chooseAfter || 0);
   for (let i = 0; i < turns; i++) {
     if (i < drive) {
+      const want = (thenMove && i > 0) ? thenMove : moveId;
+      const foeActs = foe2Move
+        ? new Map([[B.f1, { kind: 'pass' }],
+                   [B.f2, M.playerAction(B.f2, foe2Move, B.me, B.S.field)]])
+        : PASS2(B.f1, B.f2);
       M.battleTurn(B.S, rng5,
-        new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
-        PASS2(B.f1, B.f2));
+        new Map([[B.me, M.playerAction(B.me, want, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+        foeActs);
     } else {
       M.battleTurn(B.S, rng5, undefined, undefined);
     }
@@ -13641,7 +13653,13 @@ const ppRun = (moveId, turns, stage, chooseAfter) => {
   const tally = {}; for (const x of mv) tally[x] = (tally[x] || 0) + 1;
   return { clicks: mv.length, byMove: tally,
            noPP: trace.filter(l => /^\|cant\|p1a[^|]*\|nopp/.test(l)).length,
-           left: B.me._pp ? Object.assign({}, B.me._pp) : null };
+           left: B.me._pp ? Object.assign({}, B.me._pp) : null,
+           /* THE ENGINE'S OWN ANSWER TO "HOW MUCH HAS THIS BODY SPENT", not a subtraction done here.
+            * `ppSpentMap` is the exported FACT (CLAUDE.md) and is the same quantity the differential
+            * comparator asks for, so a probe and the comparator cannot come to disagree about what
+            * our side even claims. An absent slot reads 0, which is what an untouched move is. */
+           spent: (M.ppSpentMap(B.me) || {})[String(moveId).toLowerCase().replace(/[^a-z0-9]/g, '')],
+           spentAll: M.ppSpentMap(B.me) || {} };
 };
 
 probe('move', 'pp', 'an 8-PP move runs out: the ninth click FAILS', () => {
@@ -13658,6 +13676,105 @@ probe('move', 'pp', 'an 8-PP move runs out: the ninth click FAILS', () => {
                  + five.clicks + ' lines, ' + five.noPP + ' refusals, leaving '
                  + JSON.stringify(five.left) + '. maxpp 8 is READ off a constructed battle in the '
                  + 'format, never computed -- the mainline pp*8/5 rule is wrong on 415 of 500 moves' };
+});
+
+/* ROADMAP #206 FAMILY 3 -- A TWO-TURN MOVE IS ONE USE, AND THIS ENGINE BILLED IT TWICE.
+ *
+ * SAME MECHANISM AS FAMILY 2, ARRIVING FROM THE OTHER END. Showdown's `twoturnmove` volatile carries
+ * `onLockMove` exactly as the rampage volatile does (data/conditions.ts), so the release turn is a
+ * LOCKED turn and `runMove` skips the deduction. medicham2 holds that state on `_charging` and the PP
+ * gate never asked. Traced in a real Champions battle, the user's own slot over two turns:
+ *     no rain   |move| [still] + |-prepare|, then |move| ... [from] lockedmove + damage   -> 1 PP
+ *     in rain   |move| [still] + |-prepare| + damage, TWICE                               -> 2 PP
+ *
+ * THE CONTROL IS THE SAME MOVE UNDER A DIFFERENT SKY, which is the tightest knob available: Electro
+ * Shot's own `chargeSkippedByWeather` param says `skipsIn: rain`, so in rain it is a one-turn move and
+ * two clicks cost two, and out of rain the same two turns are one use and cost one. A probe that ran
+ * only the charge turn would read 1 and pass against a broken engine -- the defect is only visible on
+ * the RELEASE turn, so both arms have to spend two turns. */
+probe('move', 'chargeTurn', 'a charge and its release are ONE use: the release turn is free', () => {
+  const rain = (B) => { B.S.field.weather = M.weatherId('rain'); B.S.field.weatherT = 5; };
+  const clear = ppRun('electroshot', 2);
+  const wet = ppRun('electroshot', 2, rain);
+  return { works: clear.clicks === 2 && clear.spent === 1 && wet.clicks === 2 && wet.spent === 2,
+           arms: { control: [wet.clicks, wet.spent], test: [clear.clicks, clear.spent] },
+           detail: 'Electro Shot asked twice with no weather: ' + clear.clicks + ' |move| lines and '
+                 + clear.spent + ' PP — the wind-up and the release are one use. The same two clicks '
+                 + 'IN RAIN, where its own `chargeSkippedByWeather` param says the charge is skipped: '
+                 + wet.clicks + ' lines and ' + wet.spent + ' PP, because each turn is a whole use. '
+                 + 'The authority reads 1 and 2 on the same two boards' };
+});
+
+/* ROADMAP #206 FAMILY 2 -- A LOCKED TURN IS FREE, AND THIS ENGINE CHARGED FOR EVERY ONE OF THEM.
+ *
+ * `runMove` (sim/battle-actions.ts:282) deducts PP only `if (!lockedMove)`, and the rampage volatile
+ * is a lock: `lockedmove.onLockMove` returns the move (data/conditions.ts), so `getLockedMove()` is
+ * truthy on every turn after the first and the whole rampage costs 1 PP. Traced in a real Champions
+ * battle before this was written -- Bronzong clicking Outrage, its own slot turn by turn:
+ *     turn 1  12 -> 11   menu ["outrage","recover","gyroball","rest"]
+ *     turn 2  11 -> 11   menu ["outrage"]                <- locked, and FREE
+ *     turn 4  11 -> 10   menu back to four
+ * medicham2 carries the same lock on `_mtLock` and the PP gate tested only `_lock`, which is the
+ * CHOICE/Encore field -- so a three-turn Outrage cost 3.
+ *
+ * THE FIRST VERSION OF THIS MEASUREMENT WAS WRONG AND SAID SO. Run against a Dragapult the rampage
+ * read 2 PP over two turns, which looks exactly like the authority charging every turn; the target had
+ * fainted and taken the lock with it. The trace above is against a body that survives. A probe will be
+ * wrong before the engine is.
+ *
+ * THE CONTROL IS THE SAME BOARD WITH THE LOCK ABSENT, and the knob is which move goes first. Both arms
+ * ask for Crunch on turn 2. The Outrage arm does not get it -- the lock overrides the menu -- and pays
+ * 1 for two Outrages; the control arm gets it and pays 1 + 1. Asking for the same move twice could not
+ * tell a lock from a compliant engine, which is why `thenMove` exists. */
+probe('move', 'locksIntoMove', 'a rampage pays ONE PP for the whole lock, not one a turn', () => {
+  const lock = ppRun('outrage', 2, null, 0, 'crunch');
+  const ctrl = ppRun('crunch', 2, null, 0, 'outrage');
+  return { works: lock.byMove.outrage === 2 && !lock.byMove.crunch
+                  && lock.spentAll.outrage === 1 && !lock.spentAll.crunch
+                  && ctrl.byMove.crunch === 1 && ctrl.byMove.outrage === 1
+                  && ctrl.spentAll.crunch === 1 && ctrl.spentAll.outrage === 1,
+           arms: { control: [ctrl.byMove, ctrl.spentAll], test: [lock.byMove, lock.spentAll] },
+           detail: 'Outrage then a REQUEST for Crunch: the moves that actually landed were '
+                 + JSON.stringify(lock.byMove) + ' and the PP spent ' + JSON.stringify(lock.spentAll)
+                 + ' -- the lock overrode the menu and the second Outrage was free. Crunch first, '
+                 + 'then a request for Outrage: landed ' + JSON.stringify(ctrl.byMove) + ', spent '
+                 + JSON.stringify(ctrl.spentAll) + ' -- no lock, so both clicks are paid for' };
+});
+
+/* ROADMAP #206 FAMILY 4 -- A MOVE ACTION THIS ENGINE BUILDS UNDER A NON-ATTACK KIND PAID NO PP.
+ *
+ * The PP gate excluded `a.kind === 'switch'` and `a.kind === 'pass'`, which is right for a BARE
+ * switch and a BARE pass -- neither is a move and neither should pay. It is wrong for the eight moves
+ * `playerAction` happens to BUILD under those two kinds, and they carry a move id exactly like every
+ * other move action does:
+ *
+ *   kind 'switch'  chillyreception, partingshot
+ *   kind 'pass'    fairylock, healbell, roleplay, spite, teatime, transform
+ *
+ * ENUMERATED OVER ALL 500 LEGAL MOVES BEFORE THE GUARD CHANGED, and the same walk is what says the
+ * exclusion is safe to drop: NO bare action carries a move id, so `actionMoveId` already returns null
+ * for a real switch and a real pass and they are refused one clause earlier. Measured against the
+ * authority, one click each, showdown/ours: 1/0 on all eight. Spite is the sharpest of them -- a move
+ * whose whole job is taking PP off somebody else was free to its own user forever.
+ *
+ * THE OBSERVABLE IS EXHAUSTION, NOT A SPEND COUNT, because a spend count of 1 is what BOTH arms read
+ * after the fix and an arms-agree probe is not coverage. Heal Bell is maxpp 8 in this format (read off
+ * a constructed battle, never the mainline pp*8/5), so nine clicks must land eight times and be
+ * refused once. An engine that charges it nothing lands all nine. */
+probe('move', 'pp', 'a move built under a non-attack action kind still spends PP', () => {
+  const spent1 = (mv) => ppRun(mv, 1).spent;
+  const EIGHT = ['chillyreception', 'partingshot', 'fairylock', 'healbell', 'roleplay', 'spite',
+                 'teatime', 'transform'];
+  const each = {}; for (const mv of EIGHT) each[mv] = spent1(mv);
+  const nine = ppRun('healbell', 9), five = ppRun('healbell', 5);
+  return { works: EIGHT.every(mv => each[mv] === 1)
+                  && nine.clicks === 8 && nine.noPP === 1 && five.clicks === 5 && five.noPP === 0,
+           arms: { control: [five.clicks, five.noPP], test: [nine.clicks, nine.noPP] },
+           detail: 'Heal Bell (maxpp 8, built as kind `pass`) asked 9 times -> ' + nine.clicks
+                 + ' |move| lines and ' + nine.noPP + ' |cant|nopp; asked 5 -> ' + five.clicks
+                 + ' and ' + five.noPP + '. One click of each of the eight spends '
+                 + EIGHT.map(mv => mv + ' ' + each[mv]).join(', ') + ' (the authority spends 1 on '
+                 + 'every one). A bare switch and a bare pass carry NO move id and still pay nothing' };
 });
 
 probe('ability', 'deductsExtraPP', 'Pressure halves how often a foe-aimed move can be clicked', () => {
@@ -13682,6 +13799,79 @@ probe('ability', 'deductsExtraPP', 'Pressure halves how often a foe-aimed move c
                  + 'against 1. Protect (self-targeting) leaves ' + selfPress.left.protect
                  + ' against ' + selfCtrl.left.protect + ': Pressure charges it NOTHING, which is '
                  + 'the pressureTargets rule and the arm a blanket doubling fails' };
+});
+
+/* ROADMAP #206 FAMILY 1 -- PRESSURE IS PRICED OVER THE MOVE'S TARGET CLASS, AND THE LIST WAS EMPTY.
+ *
+ * THE TWO ARMS ARE TWO MOVES THAT DECLARE THE SAME `target` AND COST DIFFERENT AMOUNTS, which is the
+ * only shape that can prove the engine reads the class rather than guessing off the word:
+ *
+ *   Stealth Rock  target: 'foeSide'  flags.mustpressure  ->  3 PP into two Pressure foes
+ *   Sticky Web    target: 'foeSide'  (no flag)           ->  1 PP into the same two bodies
+ *   Imprison      target: 'self'     flags.mustpressure  ->  3
+ *   Protect       target: 'self'     (no flag)           ->  1
+ *
+ * Every number above is MEASURED off a real Champions battle, never recalled -- `getMoveTargets`
+ * (sim/pokemon.ts:794-860) resolves the list and then overrides it twice, `foeSide -> []` and
+ * `mustpressure -> this.foes()`, and those two overrides are exactly what the four rows separate.
+ * An engine that charges "every foe for a fieldwide move" passes Stealth Rock and FAILS Sticky Web;
+ * one that charges "nothing for a self move" passes Protect and FAILS Imprison; one that reads only
+ * `a.target` -- which is what medicham2 did -- fails all four the same way, at 1/1/2/1.
+ *
+ * THE PRESSURE ARM IS NOT THE ONLY CONTROL. Each move is also run into a real non-Pressure ability,
+ * so a row reading 1 is shown to be 1 BECAUSE nobody charged rather than because the move is cheap. */
+probe('move', 'targetClass', 'Pressure is priced off the move\'s TARGET CLASS, not off a named target', () => {
+  const set = (ab) => (B) => { B.f1.ability = ab; B.f2.ability = ab; };
+  const spent = (mv, ab) => ppRun(mv, 1, set(ab)).spent;
+  const press = { stealthrock: spent('stealthrock', 'pressure'), stickyweb: spent('stickyweb', 'pressure'),
+                  imprison: spent('imprison', 'pressure'), protect: spent('protect', 'pressure'),
+                  haze: spent('haze', 'pressure'), tailwind: spent('tailwind', 'pressure') };
+  const ctrl = { stealthrock: spent('stealthrock', 'levitate'), stickyweb: spent('stickyweb', 'levitate'),
+                 imprison: spent('imprison', 'levitate'), protect: spent('protect', 'levitate'),
+                 haze: spent('haze', 'levitate'), tailwind: spent('tailwind', 'levitate') };
+  const want = { stealthrock: 3, stickyweb: 1, imprison: 3, protect: 1, haze: 3, tailwind: 1 };
+  const ok = Object.keys(want).every(k => press[k] === want[k] && ctrl[k] === 1);
+  return { works: ok, arms: { control: ctrl, test: press },
+           detail: 'one click into TWO Pressure foes, spent PP: '
+                 + Object.keys(want).map(k => k + ' ' + press[k] + '/' + want[k]).join(', ')
+                 + ' (ours/authority); the same clicks into Levitate: '
+                 + Object.keys(want).map(k => k + ' ' + ctrl[k]).join(', ')
+                 + '. Stealth Rock and Sticky Web are BOTH `target: foeSide` and cost 3 and 1; '
+                 + 'Imprison and Protect are BOTH `target: self` and cost 3 and 1' };
+});
+
+/* ROADMAP #206 -- PRESSURE IS PRICED OFF THE BODY STANDING IN THE SLOT, NOT THE ONE THAT WAS AIMED AT.
+ *
+ * The other half of the target-class defect, and it is a different question: the first is WHICH SLOTS
+ * are apparent targets, this is WHO IS IN THEM WHEN THE MOVE RUNS. Showdown calls `getMoveTargets`
+ * inside `useMoveInner` -- after redirection and after any mid-turn switch -- so `pressureTargets`
+ * holds whoever is standing there at EXECUTION. medicham2 already re-aims the EFFECT through
+ * `reaimToSlot` (WIRE 139) and was pricing the PP off the raw `a.target`, so the click landed on the
+ * right body and was billed for the wrong one's ability.
+ *
+ * MEASURED ON THREE tests/staged_board.js SCENARIOS AGAINST THE AUTHORITY, all off by one in the same
+ * direction: `pivot-then-the-slot-is-hit` Charm 1/2, `allyswitch-follows-the-slot` Crunch 1/2,
+ * `roar-drags-whoever-is-standing-there` Roar 3/4 (showdown/ours).
+ *
+ * THE KNOB IS WHETHER THE SWAP HAPPENS, on one board with one substitution. Ally Switch is +2 priority
+ * so it resolves first; the Pressure body starts in the aimed slot and is moved out of it. Both arms
+ * aim at the same slot, both land, and only the price may differ. */
+probe('ability', 'deductsExtraPP', 'Pressure is charged for whoever is IN the slot when the move runs', () => {
+  /* The Pressure body is the one that gets moved OUT of the aimed slot; its partner, which does the
+   * moving, carries a real non-Pressure ability so the arms differ by position and not by ability. */
+  const set = (B) => { B.f1.ability = 'pressure'; B.f2.ability = 'levitate';
+                       B.f2.moves = ['allyswitch', 'protect']; };
+  const swapped = ppRun('crunch', 1, set, 0, null, 'allyswitch');
+  const stayed = ppRun('crunch', 1, set, 0, null, 'protect');
+  return { works: swapped.spent === 1 && stayed.spent === 2
+                  && swapped.clicks === 1 && stayed.clicks === 1,
+           arms: { control: stayed.spent, test: swapped.spent },
+           detail: 'Crunch aimed at the slot holding the Pressure body. With ALLY SWITCH clicked '
+                 + '(+2 priority, so the swap happens first and a Levitate body is standing there by '
+                 + 'the time Crunch runs) it costs ' + swapped.spent + ' PP; with the partner '
+                 + 'clicking Protect instead and nobody moving it costs ' + stayed.spent + '. The '
+                 + 'authority reads 1 and 2. Both arms landed ' + swapped.clicks + ' and '
+                 + stayed.clicks + ' click, so the difference is the PRICE and not the move' };
 });
 
 probe('move', 'setsOwnTypeAlways', 'every slot empty: the engine Struggles', () => {

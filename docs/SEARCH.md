@@ -12,24 +12,23 @@ mid-run silently invalidates the run, and the run still prints a result.
 
 ```
 SEARCH — does MILTANK choose better than MAG
-  R1 leaf accuracy: WITHHELD — engine/provenance.js calls data/rollout-r1-explore1.json UNSAFE.
-    pinned to engine release 3932186b59ef — engine/medicham2-browser.js matches the frozen copy; live is 7b1d1c1f22b4 now (a PRE-CHANGE measurement of that release, not corruption)
-    pinned to engine release 3932186b59ef — engine/board.js matches the frozen copy; live is a55f8271e101 now (a PRE-CHANGE measurement of that release, not corruption)
-    (+10 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/rollout_r1_artifact.js
-  R2 leaf cost       477 boards over 200 games   (2026-08-03 04:22)
-    STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit 05248f23d306; HIGH — written 25s before the commit that carried it
-      explore: NOT RECORDED AND NOT PASSED.
-      maxTurns: NOT RECORDED AND NOT PASSED.
-      games: The artifact's `games` field is the GAMES environment CAP, not a count of games traversed.
-      machine: A duration is a fact about a machine under a load.
-  R3 divergence: WITHHELD — engine/provenance.js calls data/rollout-r3.meta.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — engine/rollout_leaf.js was a0749e081402 at read time, is fa318c1022ff now
-    COMPUTED FROM DIFFERENT CONTENT — engine/medicham2-browser.js was 0710a325219e at read time, is 7b1d1c1f22b4 now
-    (+6 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/run_stamp.js
-  R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 04:43)
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-11 10:20):
+  R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r1-explore1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js
+  R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js
+  R3 divergence: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js
+  R4 does it win: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-11 12:01):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-03 22:36
     PRE-CHANGE games.r4.jsonl  2026-08-03 22:33
@@ -37,7 +36,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-03 20:45
 ```
 
-_stamped 2026-08-11 10:53_
+_stamped 2026-08-11 12:10_
 
 <!-- /GENERATED -->
 

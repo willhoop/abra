@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T14:38:40.814Z",
+  "generated": "2026-08-11T16:05:32.556Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 480,
-  "live": 480,
+  "probed": 485,
+  "live": 485,
   "missing": 0,
-  "armed": 480,
+  "armed": 485,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2786,7 +2786,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.8% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 25.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4422,11 +4422,61 @@
       "directCall": false
     },
     {
+      "kind": "move",
+      "tag": "chargeTurn",
+      "label": "a charge and its release are ONE use: the release turn is free",
+      "live": true,
+      "detail": "Electro Shot asked twice with no weather: 2 |move| lines and 1 PP — the wind-up and the release are one use. The same two clicks IN RAIN, where its own `chargeSkippedByWeather` param says the charge is skipped: 2 lines and 2 PP, because each turn is a whole use. The authority reads 1 and 2 on the same two boards",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "locksIntoMove",
+      "label": "a rampage pays ONE PP for the whole lock, not one a turn",
+      "live": true,
+      "detail": "Outrage then a REQUEST for Crunch: the moves that actually landed were {\"outrage\":2} and the PP spent {\"outrage\":1,\"crunch\":0} -- the lock overrode the menu and the second Outrage was free. Crunch first, then a request for Outrage: landed {\"crunch\":1,\"outrage\":1}, spent {\"crunch\":1,\"outrage\":1} -- no lock, so both clicks are paid for",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "pp",
+      "label": "a move built under a non-attack action kind still spends PP",
+      "live": true,
+      "detail": "Heal Bell (maxpp 8, built as kind `pass`) asked 9 times -> 8 |move| lines and 1 |cant|nopp; asked 5 -> 5 and 0. One click of each of the eight spends chillyreception 1, partingshot 1, fairylock 1, healbell 1, roleplay 1, spite 1, teatime 1, transform 1 (the authority spends 1 on every one). A bare switch and a bare pass carry NO move id and still pay nothing",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "ability",
       "tag": "deductsExtraPP",
       "label": "Pressure halves how often a foe-aimed move can be clicked",
       "live": true,
       "detail": "Close Combat (maxpp 8, aimed at a foe): 4 clicks into a Pressure foe against 8 into a Levitate one -- 2 PP a click against 1. Protect (self-targeting) leaves 3 against 3: Pressure charges it NOTHING, which is the pressureTargets rule and the arm a blanket doubling fails",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "targetClass",
+      "label": "Pressure is priced off the move's TARGET CLASS, not off a named target",
+      "live": true,
+      "detail": "one click into TWO Pressure foes, spent PP: stealthrock 3/3, stickyweb 1/1, imprison 3/3, protect 1/1, haze 3/3, tailwind 1/1 (ours/authority); the same clicks into Levitate: stealthrock 1, stickyweb 1, imprison 1, protect 1, haze 1, tailwind 1. Stealth Rock and Sticky Web are BOTH `target: foeSide` and cost 3 and 1; Imprison and Protect are BOTH `target: self` and cost 3 and 1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "deductsExtraPP",
+      "label": "Pressure is charged for whoever is IN the slot when the move runs",
+      "live": true,
+      "detail": "Crunch aimed at the slot holding the Pressure body. With ALLY SWITCH clicked (+2 priority, so the swap happens first and a Levitate body is standing there by the time Crunch runs) it costs 1 PP; with the partner clicking Protect instead and nobody moving it costs 2. The authority reads 1 and 2. Both arms landed 1 and 1 click, so the difference is the PRICE and not the move",
       "hollow": false,
       "armed": true,
       "directCall": false

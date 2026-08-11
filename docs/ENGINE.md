@@ -33,12 +33,12 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  480/480 probed mechanics live, 0 missing   (census 2026-08-11 10:38)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-11 10:16)
+  485/485 probed mechanics live, 0 missing   (census 2026-08-11 12:05)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-11 12:06)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 10:01)
+  interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 12:09)
     2250 of 7103 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 7103
       489 inert      not scored — the reference engine behaves identically with and without the reactor
       111 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
@@ -46,15 +46,52 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 61093ca98f64 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 98150c87f4af now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 248/267 probed, 19 unprobed
+  tag coverage: 249/268 probed, 19 unprobed
 ```
 
-_stamped 2026-08-11 10:53_
+_stamped 2026-08-11 12:10_
 
 <!-- /GENERATED -->
+
+## ROADMAP #206 — ALL FOUR PP DEFECT FAMILIES CLOSED, AND A FIFTH THE FIX EXPOSED. 2026-08-11 (sixth pass).
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md` (living docs are paused for the sprint by Will's
+decision). For this ledger:
+
+- **Census 480 live / 0 missing -> 485 live / 0 missing.** Five arrived, none broke. Every probe was
+  shown RED before the engine moved.
+- **Five defects, five probes:** `move/targetClass` (Pressure priced off an EMPTY list for any move
+  naming no target — a new tag derived from `target` + `mustpressure` over all 500 legal moves,
+  membership printed first: foes 59, aimed 370, none 71), `move/locksIntoMove` (a rampage charged
+  every turn; the gate tested `_lock`, the rampage is `_mtLock`), `move/chargeTurn` (the release turn
+  of a two-turn move is a LOCKED turn and is free), `move/pp` (eight moves built under
+  `kind: 'switch'`/`'pass'` paid nothing — the gate excluded the KIND NAME instead of asking for a
+  move id), and a second `ability/deductsExtraPP` (Pressure charged for the body the click NAMED
+  rather than the one standing in the slot when it RAN).
+- **The loud fallback never fires, measured:** all 500 legal moves played through a real `battleTurn`
+  read `MEDFAILS.ppTargetClassUnknown = 0` and `ppUnknownMove = 0`.
+- **The PP hold is off two of its three verdict sites.** `tests/staged_board.js` is 24/24 clean and
+  `tests/staged_status_counters.js` clean WITH PP COMPARED, so both holds are deleted.
+  `tests/roster.js` keeps its hold and the measurement is written at the call site and printed on
+  every run: hold ON 428 MATCH / 0 DIFFER / 64 COULD-NOT-STAGE, hold OFF 472 / 7 / 11.
+- **All five MEASURED gate clauses still pass**, with the differential re-run at n=6000 seed 20260804
+  against the new bytes: 0/6000 at both corners.
+
+### THE HAND LIST LOSES TWO LINES
+
+- **the stale `recycle` deferral** — measured gone: the moves stage's DEFERRED-BY-OWNER list is Axe
+  Kick, Copycat, Corrosive Gas, Electrify, Flying Press, Stuff Cheeks, Syrup Bomb, Teatime, and the
+  stage stands at 428.
+- **`ppMax('tackle')` returning `null`** — NOT a defect. Derived rather than recalled: Tackle is
+  `isNonstandard: 'Past'` in this format, so an artifact covering the format's 500 moves is correct to
+  have no row for it. The fixture that went red on it was already fixed at `board_state.js:262`.
+
+What remains by hand is **Rivalry**, plus the items named as deliberately not fixed in the sprint
+notes — chiefly the six NON-PP rows the roster hold masks again (Burn Up, Last Resort, Poltergeist,
+Future Sight, Safeguard, Transform) and the one PP row under it (Mirror Coat).
 
 ## ROADMAP #197 — THE THREE ABILITIES THAT DID NOTHING ARE WIRED, AND A TENTH INSTRUMENT FOUND A FOURTH. 2026-08-11 (fifth pass).
 
