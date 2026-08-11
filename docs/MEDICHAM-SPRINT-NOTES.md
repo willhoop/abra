@@ -2972,3 +2972,104 @@ where the search believes it is being clever.
   reported the absence as fact and started a duplicate. **A failed search is not evidence of absence**,
   and a second running list is the "two files that both decide one fact" failure this document warns
   about in three other places. The duplicate was deleted; this file is the only one.
+
+---
+
+## THE DIVERGENCE LIST CLOSED — 32 OF 34, AND THE ROOT CAUSES WERE THREE, NOT TWO. 2026-08-10.
+
+Will: *"OKAY WORK THROUGH THE WHOLE LIST DONT STOP AND WAIT FOR ME."*
+
+**125 → 93 diverging move rows. Census 416 → 421 live / 421 probed / 0 missing / 0 unarmed.**
+`test-engine-diff --n 20000` = 0 disagreements before, between and after. Release `debbbe33ce6d`.
+
+### THE CRIT CLASS WAS BIGGER THAN CRITS
+
+`getDamage`'s four early returns — `move.ohko`, `damageCallback`, `damage === 'level'`, `damage` —
+sit **above both** the crit die and the type chart. Thirteen moves emitted a `-crit` AND a `-resisted`
+or `-supereffective` they cannot have. **Not cosmetic:** the crit set `R.crit`, which Anger Point,
+Sniper and Shell Armor read.
+
+One predicate, `damageIsComputed(moveId)`, inside `critChance` so every caller shares it — the FACTS
+ARE GLOBAL rule. **Membership was checked against the format rather than listed**: `ohko ||
+damageCallback || damage` is exactly the `fixedDamage` tag's 13 entries. It also closed `sheercold`
+and `metalburst`, which diverged on `-resisted` instead of `-crit` — same predicate seen from the
+other side, and neither was on the original list.
+
+### THE MULTI-HIT ROWS WERE AN EVENT SHAPE. THE HIT COUNT WAS NEVER WRONG.
+
+Confirmed, and this is the correction that mattered most: `game_differential.js` pins the die over
+both engines, **both rolled 2**, and the exact-2× ratio was our aggregate against Showdown's FIRST
+PACKET. **This is NOT a regression of ROADMAP #103** and must not be reported as one.
+
+The volley now applies per packet — effectiveness, crit and damage per arrival, stopping at a KO on
+the authority's own loop guard, closing with `|-hitcount|`. **Two real mechanics fell out, and both
+were already declared open in the source rather than newly discovered:**
+- a **Focus Sash now answers the first packet** for the 2–5 family (WIRE 12's stated divergence);
+- a volley stopped early by per-hit accuracy **was being priced at the 3.1-hit expectation**, because
+  `if (_hitsThisUse > 1)` left the count unset and sent `hitPlanOf` to `expectedHitsOf`.
+
+### STANCE CHANGE DID NOT EXIST, AND ADDING IT EXPOSED A FOURTH DEFECT
+
+Eight rows, one absent ability, derived as `formeOnMoveCategory` by handler shape with carriers
+printed before wiring. Then: **`formeSwap` threw the body's SP spread away** and adopted the new
+species' aggregated row. Five Aegislash moves landed **1.31× too hard** and Gyro Ball went the other
+way — **the signature of a stat, not a formula**, which is how it was found. Showdown provably
+preserves the spread across a forme change (Palafin 90→180 and 122→212, delta 90 both).
+
+One existing probe's expected number moved 233 → 244, and **the engine is what moved** — the
+two-spread measurement is written into the probe so the number cannot drift back silently.
+
+### BEAT UP NEEDED NO CHANGE, AND THAT WAS MEASURED RATHER THAN READ
+
+`-hitcount` **4/4/3/3** on both engines across (clean, burned user, burned teammate, both) on a
+brought four. Will's catch on the party size was right — it is the four brought, not the six — and the
+implementation already matched it. The user always participates, per-hit power is the ally's **base**
+Attack while the attack stat is the **user's**, and there is no contact flag.
+
+### THREE ROWS ARE FILED AND NAMED, NOT FIXED
+
+- **`finalgambit`** — the crit is gone and it moved onto `|faint|` vs our `-damage 0 fnt`: the self-KO
+  faint-order family, shared with explosion, selfdestruct, memento, mistyexplosion.
+- **`steelbeam`** — damage now agrees to the point (405/810 both); only `[from] Recoil` vs
+  `[from] steelbeam` differs. Same family as the seven `-damage field 4` trapping rows.
+- **`belch` / `lastresort` / `upperhand`** — the unenforced `onTry` use-conditions, untouched.
+
+### THE REGISTER GATE NOW READS COMMIT MESSAGES, AND CAUGHT A REAL ORPHAN IMMEDIATELY
+
+`tests/test-roadmap-register.js` checked DIVISION LEDGERS only, which is why two commits could cite
+`#145` and `#146` against a register that stopped at #143. Widened to the last 40 commit messages, it
+failed on its first run — **`#114`, cited by `247d26b` and registered nowhere**: `MEDI_SPREAD`
+assigned to `root` and never to `module.exports`, so `M.MEDI_SPREAD ? … : false` always took the false
+branch and **the 0.75× spread multiplier was never applied to a staged span**. Already fixed in code
+(38 moves, Earthquake present); now registered as closed.
+
+Scope is the last 40 commits **deliberately** — a gate that fails on retired numbering schemes gets
+ignored, which is this repository's named disease. Absent git is SKIPPED and said out loud, never
+counted as a pass, because a check that evaporates silently is a capability that cannot prove it ran.
+
+### `status.js` STAMPED UTC WHILE EVERY DATED ARTIFACT USES LOCAL
+
+`day()` used `toISOString()`. Measured 20:43 EDT: `medicham2-browser.js` mtime `2026-08-10 20:41:29
+-0400`, rendered `2026-08-11 00:40`. **Any run after 20:00 EDT stamped tomorrow**, and a CHANGELOG
+entry written that session was stamped a day ahead and corrected by hand. The same class as the reason
+`provenance.js` stopped comparing mtimes: an artifact that looks newer than it is, feeding a staleness
+comparison that then reads backwards.
+
+### TWO TESTS ARE RED. SAID, NOT FILED.
+
+`tests/test-effective-identity.js` (1,147 raw reads against a 234 baseline) and
+`tests/test-no-silent-failure.js` (52 new silent catches against 220).
+
+**Attribution was measured rather than assumed, and the two agents disagreed about it.** SEARCH
+reported every named offender as ENGINE's uncommitted work. ENGINE then measured file by file:
+**13 of 14 and 11 of 12 named files are byte-identical to HEAD.** So this is not tonight's engine
+edits — it is instrument files created across the sprint and never baselined, with `tests/roster.js`
+alone carrying **247 of the 912** raw-read delta.
+
+**NEITHER WAS RE-BASELINED.** Re-baselining a red gate is precisely how a real defect gets laundered,
+and the whole reason `--update` exists is for exceptions that are argued in the code first. The two
+silent catches in `engine/sheet_usage.js` were mine and are fixed: both now speak to stderr and record
+the failure where a later reader can see it, rather than returning a quiet null.
+
+**These remain RED at the end of this batch.** That is a statement, not a status — they are owed a
+dedicated pass, and no number resting on them should be quoted until they are green.

@@ -175,6 +175,48 @@ const SCENARIOS = [
     [{ a: [{ m: 'moonblast', t: 0 }, { m: 'rockslide', mega: true }], b: [{ m: 'thunderbolt', t: 0 }, { m: 'scald', t: 0 }] },
      { a: [{ m: 'moonblast', t: 0 }, { m: 'crunch', t: 0 }], b: [{ m: 'thunderbolt', t: 0 }, { m: 'scald', t: 0 }] },
      { a: null, b: null }, { a: null, b: null }, { a: null, b: null }]],
+
+  /* ROADMAP #151 — THE MULTI-HIT VOLLEY, CLICKED ON PURPOSE, and it is the same reason the Lum Berry
+   * scenario three blocks up exists: none of the twenty games above clicks a move that hits more than
+   * once, so `|-hitcount|` — claimed in TRACE_EVENTS the moment the volley became a sequence of real
+   * arrivals — could not fire, and part 1 of this file caught exactly that on its first run.
+   *
+   * THREE PLAN SHAPES IN ONE GAME, so a `-hitcount` that only works for one of them cannot pass:
+   * Bullet Seed is the 2-5 family (a drawn count off the authority's twenty-element table), Triple
+   * Axel is a fixed count with a per-hit accuracy re-roll, and Beat Up has no `multiHit` row at all —
+   * its count is the eligible PARTY, which is `move.multihit = move.allies.length` in the authority.
+   * Nobody Protects on the turns the volleys are thrown, because a blocked volley emits nothing. */
+  ['multi-hit: a 2-5 volley, a per-hit-accuracy volley, and Beat Up\'s ally plan',
+    () => [mon('abomasnow', ['bulletseed', 'protect', 'icebeam', 'energyball'], 'snowwarning', ''),
+           mon('empoleon', ['tripleaxel', 'protect', 'surf', 'flashcannon'], 'torrent', ''),
+           mon('annihilape', ['beatup', 'protect', 'drainpunch', 'shadowclaw'], 'defiant', '')],
+    () => [mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', 'leftovers'),
+           mon('milotic', ['scald', 'protect', 'icywind', 'haze'], 'marvelscale', ''),
+           mon('garchomp', ['earthquake', 'protect', 'dragonclaw', 'rockslide'], 'roughskin', '')],
+    [{ a: [{ m: 'bulletseed', t: 0 }, { m: 'tripleaxel', t: 1 }], b: [{ m: 'yawn', t: 0 }, { m: 'icywind' }] },
+     { a: [{ m: 'bulletseed', t: 1 }, { m: 'protect' }], b: [{ m: 'bodyslam', t: 0 }, { m: 'scald', t: 0 }] },
+     { a: [{ sw: 'annihilape' }, { m: 'tripleaxel', t: 0 }], b: [{ m: 'bodyslam', t: 1 }, { m: 'scald', t: 1 }] },
+     { a: [{ m: 'beatup', t: 0 }, { m: 'tripleaxel', t: 1 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'scald', t: 0 }] },
+     { a: null, b: null }, { a: null, b: null }]],
+
+  /* ROADMAP #151 — STANCE CHANGE, for the same reason the volley above is here: `|-formechange|` is
+   * the NON-PERMANENT forme line, it had no carrier in this engine at all until Stance Change was
+   * wired, and no scenario above brings an Aegislash. The four clicks are in the order the mechanic
+   * needs — an attack draws the sword, a Status move that is not King's Shield leaves it drawn, and
+   * King's Shield alone puts it back — so a line emitted on the wrong trigger cannot pass by firing
+   * at all. Nothing on side B Protects while the Aegislash is attacking. */
+  ['stance change: the forme follows the click, and a Status move is a no-op rather than a revert',
+    () => [mon('aegislash', ['ironhead', 'kingsshield', 'swordsdance', 'shadowball'], 'stancechange', ''),
+           mon('clefable', ['moonblast', 'protect', 'followme', 'helpinghand'], 'unaware', ''),
+           mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', 'leftovers')],
+    () => [mon('milotic', ['scald', 'protect', 'icywind', 'haze'], 'marvelscale', ''),
+           mon('garchomp', ['earthquake', 'protect', 'dragonclaw', 'rockslide'], 'roughskin', ''),
+           mon('toxapex', ['scald', 'recover', 'protect', 'toxic'], 'regenerator', '')],
+    [{ a: [{ m: 'ironhead', t: 0 }, { m: 'moonblast', t: 0 }], b: [{ m: 'icywind' }, { m: 'dragonclaw', t: 0 }] },
+     { a: [{ m: 'swordsdance' }, { m: 'moonblast', t: 0 }], b: [{ m: 'scald', t: 0 }, { m: 'dragonclaw', t: 0 }] },
+     { a: [{ m: 'kingsshield' }, { m: 'moonblast', t: 0 }], b: [{ m: 'scald', t: 0 }, { m: 'dragonclaw', t: 0 }] },
+     { a: [{ m: 'ironhead', t: 1 }, { m: 'moonblast', t: 0 }], b: [{ m: 'scald', t: 0 }, { m: 'dragonclaw', t: 0 }] },
+     { a: null, b: null }, { a: null, b: null }]],
 ];
 
 const seen = {};

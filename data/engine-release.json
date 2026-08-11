@@ -1,10 +1,10 @@
 {
-  "current": "7bf3a1e19ce5",
-  "cut": "2026-08-10T23:10:20.443Z",
-  "why": "gate OPEN: all five clauses pass, mega movesets from 44k sheet observations",
+  "current": "debbbe33ce6d",
+  "cut": "2026-08-11T00:43:36.507Z",
+  "why": "ROADMAP #147 -- crit predicate, per-hit volley, stance change, spread-preserving formeSwap",
   "cuts": 1,
-  "latest_cut": "2026-08-10T23:10:20.443Z",
-  "latest_why": "gate OPEN: all five clauses pass, mega movesets from 44k sheet observations",
-  "pointer_written": "2026-08-10T23:10:20.446Z",
+  "latest_cut": "2026-08-11T00:43:36.507Z",
+  "latest_why": "ROADMAP #147 -- crit predicate, per-hit volley, stance change, spread-preserving formeSwap",
+  "pointer_written": "2026-08-11T00:43:36.511Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

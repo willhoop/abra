@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-11T00:50:58.214Z",
+  "generated": "2026-08-11T00:58:26.077Z",
   "by": "engine/sheet_usage.js",
   "what": "How often each ability and item is BROUGHT, counted from declared open team sheets across both human stores. The first honest store-derived ability usage this project has had.",
   "supersedes": "engine/click_counts.js's header claim that no honest ability usage exists. That was measured against games.ladder.jsonl alone, before games.bo3.jsonl (99.9% open sheets) was being read.",

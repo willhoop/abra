@@ -151,5 +151,58 @@ r.registered.size >= 10
   ? ok('the register is populated (' + r.registered.size + ' items)')
   : bad('the register names only ' + r.registered.size + ' item(s) — that is a heading, not a register');
 
+/* ---- ROADMAP #149 — A NUMBER IN A COMMIT MESSAGE IS NOT A REGISTERED NUMBER ------------------
+ *
+ * The check above reads DIVISION LEDGERS. On 2026-08-10 two shipped commits cited numbers that had
+ * never been registered anywhere: `0a28580` (4.1.0) says "ROADMAP #145" for the grounded axis and
+ * `e7d672a` (4.2.0) says "ROADMAP #146" for the sixth gate clause, while HEAD's §5 stopped at #143.
+ * A later agent then correctly took #145 and #146 as the next free numbers for unrelated PP work, so
+ * **those two numbers now mean two different things depending on which file you read.**
+ *
+ * This gate did not fail and was not wrong to pass — it was never pointed at commit messages. So it
+ * is pointed at them now. A commit is as durable a citation as a ledger and a good deal harder to
+ * correct afterwards: the message cannot be rewritten once pushed, which is why #147/#148 had to be
+ * minted rather than the history fixed.
+ *
+ * SCOPE IS THE LAST 40 COMMITS, DELIBERATELY. The whole history contains numbers from long-retired
+ * numbering schemes, and a gate that fails on ancient history gets ignored — which is the disease
+ * this repository names "one of the two known failures". Recent enough to catch the mistake while it
+ * is still correctable, short enough to stay green.
+ *
+ * ABSENT GIT IS NOT A PASS OR A FAIL — it is SKIPPED and said out loud, because a check that silently
+ * evaporates outside a git checkout is a capability that cannot prove it ran. */
+(() => {
+  let log = null;
+  try {
+    log = require('child_process')
+      .execSync('git log -40 --format=%s%n%b', { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch (e) { log = null; }
+  if (log === null) {
+    console.log('  skip commit-message citations — git log unavailable here (not a pass: nothing was checked)');
+    return;
+  }
+  const cited = new Map();
+  /* Only "ROADMAP #n" counts. A bare "#n" in a commit body is as often a PR or an issue, and a gate
+   * that fires on those trains people to phrase around it. */
+  for (const m of log.matchAll(/ROADMAP\s+#(\d{1,3})/gi)) {
+    const n = m[1];
+    if (!cited.has(n)) cited.set(n, 0);
+    cited.set(n, cited.get(n) + 1);
+  }
+  const missing = [...cited.keys()].filter(n => !r.registered.has(n) && !DECLARED[n]).sort((a, b) => a - b);
+  if (!cited.size) {
+    ok('no ROADMAP citation in the last 40 commit messages to check');
+  } else if (missing.length) {
+    bad(missing.length + ' ROADMAP number(s) cited by a recent COMMIT MESSAGE that §5 does not name — '
+      + 'the citation is permanent and the number is free for someone else to take: #' + missing.join(', #'));
+    console.log('         Register it in docs/ROADMAP.md §5, or — if the number has already been reused —');
+    console.log('         mint a NEW row for the finding and record the collision. Do not renumber the');
+    console.log('         other row and do not rewrite the commit.');
+  } else {
+    ok('every ROADMAP number cited by the last 40 commit messages is named in the register ('
+      + cited.size + ' distinct)');
+  }
+})();
+
 console.log('\nROADMAP REGISTER: ' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

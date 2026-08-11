@@ -140,8 +140,14 @@ async function main() {
     notCountable = megaOnlyAbilities(Dex.forFormat(CS.FORMAT));
   } catch (e) {
     /* A DEX THAT WILL NOT LOAD MUST NOT SILENTLY PRODUCE AN EMPTY LIST — an empty `not_countable`
-     * reads as "every zero is real", which is the exact conflation this file exists to prevent. */
+     * reads as "every zero is real", which is the exact conflation this file exists to prevent.
+     * IT SPEAKS THREE WAYS rather than one: to stderr now, into the artifact as
+     * `not_countable_failed` for any later reader, and by leaving `not_countable` NULL rather than
+     * `[]` so `teamsFor()` cannot hand back a confident zero for a mega-only ability. */
     notCountable = null;
+    console.error('  WARNING: the format dex would not load (' + (e && e.message ? e.message : e)
+                + ') — the mega-only ability list is UNKNOWN, so every zero in this artifact is '
+                + 'unverified rather than evidence of non-use.');
   }
   const art = {
     generated: new Date().toISOString(),
@@ -190,7 +196,23 @@ async function main() {
   console.log('\n  wrote ' + path.relative(ROOT, OUT).replace(/\\/g, '/'));
 }
 
-function load() { try { return JSON.parse(fs.readFileSync(OUT, 'utf8')); } catch (e) { return null; } }
+/* THE LOAD FAILURE SPEAKS. A silently-null artifact is how a caller ends up treating "never built"
+ * as "measured zero" — the conflation this whole file exists to prevent, one layer up. Absent is
+ * quiet because absent is the normal state before the first run; UNREADABLE is loud, because a
+ * corrupt or half-written artifact is a real fault and null would hide it. */
+let LOAD_FAILURE = null;
+function load() {
+  try { return JSON.parse(fs.readFileSync(OUT, 'utf8')); }
+  catch (e) {
+    if (e && e.code === 'ENOENT') { LOAD_FAILURE = 'not built yet — run: node engine/sheet_usage.js'; return null; }
+    LOAD_FAILURE = (e && e.message) ? e.message : String(e);
+    console.error('  WARNING: ' + path.relative(ROOT, OUT).replace(/\\/g, '/') + ' exists and could not '
+                + 'be read (' + LOAD_FAILURE + '). Every usage lookup will return null; a caller must '
+                + 'treat that as CANNOT DEFER, never as zero usage.');
+    return null;
+  }
+}
+function loadFailure() { return LOAD_FAILURE; }
 /* Returns null when the artifact is absent OR when the entity is mega-only, and the caller must treat
  * null as "cannot defer", never as zero. */
 function teamsFor(kind, key) {
@@ -200,5 +222,5 @@ function teamsFor(kind, key) {
   const row = (a[kind] || {})[id(key)];
   return row ? row.teams : 0;
 }
-module.exports = { load, teamsFor, OUT_PATH: OUT };
+module.exports = { load, loadFailure, teamsFor, OUT_PATH: OUT };
 if (require.main === module) main().catch(e => { console.error(e); process.exit(1); });

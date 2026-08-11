@@ -1,9 +1,9 @@
 {
-  "generated": "2026-08-10 06:33:21",
+  "generated": "2026-08-11 00:36:33",
   "source": "engine/derive_protocol_events.js",
   "source_digests": {
-    "engine/derive_protocol_events.js": "88cd86d74429",
-    "engine/medicham2-browser.js": "304f1136d649"
+    "engine/derive_protocol_events.js": "cecf2505dcb8",
+    "engine/medicham2-browser.js": "efe0d43c72d8"
   },
   "showdown_pinned_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "derivedFrom": {
@@ -30,7 +30,7 @@
     "note": "the champions mod OVERRIDES two of the core emits (-supereffective, -resisted); its arity wins."
   },
   "showdownEvents": 91,
-  "emittedCount": 38,
+  "emittedCount": 40,
   "emitted": [
     "-ability",
     "-activate",
@@ -46,7 +46,9 @@
     "-fieldactivate",
     "-fieldend",
     "-fieldstart",
+    "-formechange",
     "-heal",
+    "-hitcount",
     "-immune",
     "-item",
     "-mega",
@@ -71,7 +73,7 @@
     "turn",
     "upkeep"
   ],
-  "notEmittedCount": 56,
+  "notEmittedCount": 54,
   "notEmitted": [
     {
       "event": "-anim",
@@ -126,16 +128,8 @@
       "reason": "EMITTED — see emitted[]."
     },
     {
-      "event": "-formechange",
-      "reason": "the only other forme change this engine models is Zero to Hero, which rewrites the body silently in bringIn(). Mega evolution is a PERMANENT forme change and emits `detailschange`, which is what Showdown does; `-formechange` is the non-permanent shape and has no carrier here."
-    },
-    {
       "event": "-hint",
       "reason": "client hint text; carries no rule."
-    },
-    {
-      "event": "-hitcount",
-      "reason": "multi-hit damage is ONE packet for most of the family in this engine (WIRE 20, declared) and the HP still moves once, so emitting a count beside a single `-damage` line would be an invented number. The reaction COUNT is right (WIRE 84) and the DRAWN hit count is right (ROADMAP #103); WIRE 147 made the DAMAGE per-hit for the two moves whose base power is a function of the hit index (Triple Axel, Beat Up) and left the rest summed. Dragon Darts would emit nothing here in any case: `if (move.multihit && typeof move.smartTarget !== 'boolean')` skips every smartTarget move (sim/battle-actions.ts:977)."
     },
     {
       "event": "-invertboost",
@@ -739,7 +733,7 @@
         "SIM-PROTOCOL.md"
       ],
       "champions": true,
-      "medicham": "declared"
+      "medicham": "emitted"
     },
     {
       "name": "-heal",
@@ -787,7 +781,7 @@
         "SIM-PROTOCOL.md"
       ],
       "champions": true,
-      "medicham": "declared"
+      "medicham": "emitted"
     },
     {
       "name": "-immune",

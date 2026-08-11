@@ -15,27 +15,27 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 5 gate clauses fail (deliberate roster / moves)
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 5 gate clauses fail (deliberate roster / moves)
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 21 unsafe, 1 void (declared), 80 possibly stale, 65 ok, 0 missing
+  provenance: 22 unsafe, 1 void (declared), 78 possibly stale, 73 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 5 gate clauses fail (deliberate roster / moves)
+    MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 04:00
     feature_fixture --check FAILED:   Measure what it touches before deciding — how many corpus games contain a changed species — |   then refit (node engine/fit_policy.js, then node engine/fit_joint.js) if it reaches the fit, |   or restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-10 22:53
-    moved after the fit: engine/board.js  2026-08-05 19:44
+    moved after the fit: engine/medicham2-browser.js  2026-08-11 00:49
+    moved after the fit: engine/board.js  2026-08-11 00:33
     moved after the fit: data/engine-data.js  2026-08-10 22:59
-    moved after the fit: data/abra-tags.js  2026-08-10 22:40
+    moved after the fit: data/abra-tags.js  2026-08-11 00:33
 ```
 
-_stamped 2026-08-10 22:59_
+_stamped 2026-08-11 00:52_
 
 <!-- /GENERATED -->
 

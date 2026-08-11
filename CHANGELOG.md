@@ -10,6 +10,77 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [4.6.0] — 2026-08-10
+
+### Fixed
+- **32 OF THE 34 CONSTRUCTED-GAME DIVERGENCE ROWS NOW AGREE.** The run went **125 → 93** diverging
+  move rows; the census went **416 → 421 live / 421 probed / 0 missing / 0 unarmed**. The 148 rows
+  turned out to rest on **three** root causes, not the two the list named.
+- **A move whose damage is not COMPUTED cannot crit — and cannot announce effectiveness either
+  (13 rows).** `getDamage`'s four early returns (`move.ohko`, `damageCallback`, `damage === 'level'`,
+  `damage`) sit **above both** the crit die and the type chart, and we emitted both lines for all
+  thirteen. Not cosmetic: the crit set `R.crit`, which Anger Point, Sniper and Shell Armor read. One
+  predicate, `damageIsComputed(moveId)`, placed inside `critChance` so every caller shares it, with
+  membership checked against the format — `ohko || damageCallback || damage` is **exactly** the
+  `fixedDamage` tag's 13 entries. It also closed `sheercold` and `metalburst`, which diverged on
+  `-resisted` rather than `-crit`: same predicate, other side.
+- **The multi-hit volley was one aggregated `-damage` (10 rows), and the hit COUNT was never wrong.**
+  `game_differential.js` pins the die over both engines, both rolled 2, and the exact-2× ratio was our
+  aggregate against Showdown's **first packet**. **Not a ROADMAP #103 regression** — do not report it
+  as one. The volley now applies per packet, emits effectiveness/crit/damage per arrival, stops at a
+  KO, and closes with `|-hitcount|`. Two real mechanics fell out, **both previously declared open in
+  the source**: a **Focus Sash now answers the first packet** for the 2–5 family, and a volley stopped
+  early by per-hit accuracy **was being priced at the 3.1-hit expectation** because `if (_hitsThisUse
+  > 1)` left the count unset and sent `hitPlanOf` to `expectedHitsOf`.
+- **Stance Change did not exist (8 rows), and a fourth defect fell out of adding it.** Derived as
+  `formeOnMoveCategory` by handler shape, carriers printed before wiring. `formeSwap` **threw the
+  body's SP spread away** and adopted the new species' aggregated row: five Aegislash moves landed
+  **1.31× too hard** and Gyro Ball went the other way — the signature of a stat, not a formula.
+  Showdown provably preserves the spread (Palafin 90→180 and 122→212, delta 90 both). One existing
+  probe's expected number moved 233 → 244 and **the engine is what moved**.
+- **`MEDI_SPREAD` was published to nobody (#114) — registered, and it was already fixed.**
+  `medicham2-browser.js` assigned `root.MEDI_SPREAD` and never `module.exports`, so
+  `M.MEDI_SPREAD ? … : false` in `game_differential.js:2816` always took the false branch and **the
+  0.75× spread multiplier was never applied to a staged span.** Verified on 2026-08-10: on
+  `module.exports`, 38 moves, Earthquake present.
+
+### Added
+- **`tests/test-roadmap-register.js` now reads COMMIT MESSAGES (#149).** It checked division ledgers
+  only, which is why two commits could cite `#145` and `#146` against a register that stopped at #143.
+  **It caught a real orphan on its first run — `#114`, cited by `247d26b` and registered nowhere** —
+  which is exactly the class it was built for. Scope is the last 40 commits deliberately: a gate that
+  fails on ancient numbering schemes gets ignored, which is the disease this repo calls "one of the two
+  known failures". Absent git is SKIPPED and said out loud, never counted as a pass.
+
+### Changed
+- **`engine/status.js` stamps LOCAL time, not UTC (#150).** `day()` used `toISOString()`, so any run
+  after 20:00 EDT printed tomorrow's date beside a file whose mtime was today.
+
+### Notes
+- **Beat Up needed no change, and that was confirmed by measurement rather than reading.**
+  `-hitcount` 4/4/3/3 on both engines across (clean, burned user, burned teammate, both) on a brought
+  four. The user always participates, the party is the four brought, per-hit power is the ally's
+  **base** Attack while the attack stat is the **user's**, and there is no contact flag. Will's catch
+  on the party size was right and the implementation already matched it.
+- **THREE ROWS ARE FILED, NOT FIXED, AND ARE NAMED.** `finalgambit` lost its crit and now diverges on
+  `|faint|` vs our `-damage 0 fnt` — the self-KO faint-order family, shared with explosion,
+  selfdestruct, memento and mistyexplosion. `steelbeam` agrees to the point (405/810 both) and differs
+  only on `[from] Recoil` vs `[from] steelbeam`, the same family as the seven trapping rows. And
+  `belch` / `lastresort` / `upperhand` — the unenforced `onTry` use-conditions — are untouched.
+- **`tests/test-effective-identity.js` and `tests/test-no-silent-failure.js` ARE RED.** Said, not
+  filed. Measured attribution: of the files each names, **13 of 14 and 11 of 12 are byte-identical to
+  HEAD** — so this is not tonight's engine edits. `tests/roster.js` alone carries 247 of the 912 raw-read
+  delta. **Neither was re-baselined**, because re-baselining is how a real defect gets laundered. The
+  two new silent catches in `engine/sheet_usage.js` were mine and are fixed: both now speak to stderr
+  and record the failure where a later reader can see it.
+- **`data/all-mechanics-fire.json` predates the harness's attribution change** and must be re-run
+  before its row counts are quoted again.
+- **GATE: CLOSED, 1 of 6, on 8 open register rows.** `test-engine-diff --n 20000` = 0 disagreements
+  before, between and after. All three roster stages 0 FIRED-AND-BOARDS-DIFFER / 0 DID-NOT-FIRE.
+  Frozen release for the final numbers: `debbbe33ce6d`.
+
+---
+
 ## [4.5.0] — 2026-08-10
 
 ### Fixed

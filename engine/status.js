@@ -61,7 +61,28 @@ const logUnreadable = (where, e) => {
 };
 const j = p => { try { return JSON.parse(fs.readFileSync(D('data', p), 'utf8')); } catch (e) { return logUnreadable(`data/${p}`, e); } };
 const mtime = p => { try { return fs.statSync(D(p)).mtime; } catch (e) { return logUnreadable(`mtime ${p}`, e); } };
-const day = d => d ? d.toISOString().slice(0, 16).replace('T', ' ') : '—';
+/* ROADMAP #150 — LOCAL, NOT UTC, AND THIS WAS WRONG FOR THE LIFE OF THE FILE.
+ *
+ * `toISOString()` renders UTC. Every other dated thing in this repository is LOCAL: `CHANGELOG.md`
+ * headings, ROADMAP "CLOSED <date>" stamps, the dates in these notes. Running at 20:41 EDT therefore
+ * printed a file's mtime as `2026-08-11 00:40` — **any run after 20:00 EDT stamps tomorrow.**
+ *
+ * MEASURED 2026-08-10 20:43 EDT: `engine/medicham2-browser.js` had mtime `2026-08-10 20:41:29 -0400`
+ * and `docs/SEARCH.md`'s generated block rendered it `2026-08-11 00:40`. A CHANGELOG entry written in
+ * the same session was stamped `[4.4.0] — 2026-08-11` against a real date of the 10th, and had to be
+ * corrected by hand.
+ *
+ * Small, and exactly the class this repository keeps paying for: **an artifact that looks newer than
+ * it is**, feeding a staleness comparison that then reads backwards. It is the same reason
+ * `engine/provenance.js` had to stop comparing mtimes and start comparing content — a date that is
+ * four hours ahead makes a stale input look fresh, and nothing raises a hand.
+ *
+ * FACTS ARE GLOBAL applies to the clock too: one function, called by everything that stamps. */
+const day = (d) => {
+  if (!d) return '—';
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+};
 /* ONE implementation of "how to hash a file" — engine/engine_release.js owns it. CLAUDE.md: FACTS
  * ARE GLOBAL, and the local copies of this returned null on an unreadable file, so two nulls
  * compared EQUAL and a stamp could certify itself. */

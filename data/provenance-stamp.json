@@ -1,12 +1,13 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 133,
+  "mtime_only": 139,
   "mtime_only_files": [
     "ab-batch-effect.json",
     "ability-blocks.json",
     "abra-meta.js",
     "abra-tags.js",
+    "all-mechanics-fire.json",
     "archetypes.json",
     "board-browser-baseline.json",
     "board-data.js",
@@ -36,6 +37,7 @@
     "exploitability-mag.json",
     "exploitability.json",
     "feature-audit.json",
+    "format-audit.json",
     "game-diff.json",
     "guru-matchups.json",
     "guru.js",
@@ -54,6 +56,7 @@
     "mechanics-census.json",
     "mechanics-rank.json",
     "mechanics-surface.json",
+    "medicham-bench.json",
     "medicham-coverage.json",
     "mega-dex-official.json",
     "mega-dex.json",
@@ -83,6 +86,7 @@
     "porygon2.json",
     "porygon2c-dist.json",
     "porygon2c.json",
+    "pp-board-probe.json",
     "provenance-stamp.json",
     "recall-at-k.json",
     "redirect-audit.json",
@@ -108,8 +112,10 @@
     "roster.moves.prev.json",
     "roster.moves.staging-trial.json",
     "rulebook-collision.json",
+    "scenario-catalogue.json",
     "scoreboard.js",
     "scoreboard.json",
+    "sheet-usage.json",
     "silent-catch-baseline.json",
     "site-data-orphans.json",
     "slowking-eval.json",
@@ -140,12 +146,13 @@
   "void_files": [
     "exploitability.json"
   ],
-  "verified": 4,
+  "verified": 3,
   "graph_files": [
     "ab-batch-effect.json",
     "ability-blocks.json",
     "abra-meta.js",
     "abra-tags.js",
+    "all-mechanics-fire.json",
     "archetypes.json",
     "board-browser-baseline.json",
     "board-data.js",
@@ -184,6 +191,7 @@
     "exploitability.json",
     "feature-audit.json",
     "feature-engine-contrast.json",
+    "format-audit.json",
     "game-diff.json",
     "game-differential.json",
     "guru-matchups.json",
@@ -205,6 +213,7 @@
     "mechanics-census.json",
     "mechanics-rank.json",
     "mechanics-surface.json",
+    "medicham-bench.json",
     "medicham-coverage.json",
     "mega-decision.json",
     "mega-dex-official.json",
@@ -239,12 +248,14 @@
     "porygon2.json",
     "porygon2c-dist.json",
     "porygon2c.json",
+    "pp-board-probe.json",
     "protocol-events.json",
     "provenance-stamp.json",
     "quarantine-stamp.json",
     "recall-at-k.json",
     "redirect-audit.json",
     "regulation-usage.json",
+    "replay-differential-bo3.json",
     "replay-differential-freezes.json",
     "replay-differential-sheets.json",
     "replay-differential.json",
@@ -276,9 +287,11 @@
     "roster.moves.prev.json",
     "roster.moves.staging-trial.json",
     "rulebook-collision.json",
+    "scenario-catalogue.json",
     "scoreboard.js",
     "scoreboard.json",
     "sheet-channel-value.json",
+    "sheet-usage.json",
     "silent-catch-baseline.json",
     "site-data-orphans.json",
     "slowking-eval.json",
@@ -328,6 +341,7 @@
     "policy-weights-presheet.json",
     "raw-log-census.json",
     "regulations.json",
+    "replay-differential-bo3-freezes.json",
     "replay-differential-sheets-freezes.json"
   ],
   "discoveries": [
@@ -418,7 +432,49 @@
         "click-counts.json",
         "mega-usage.json"
       ]
+    },
+    {
+      "when": "2026-08-10T23:35:46.997Z",
+      "reason": "the writer scan learned to see tests/, computed output paths and artifact-declared writers; the artifact graph grew and these files became visible unstamped",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 167,
+      "graph_after": 170,
+      "files": [
+        "medicham-bench.json",
+        "scenario-catalogue.json"
+      ]
+    },
+    {
+      "when": "2026-08-11T00:00:13.019Z",
+      "reason": "the writer scan learned to see tests/, computed output paths and artifact-declared writers; the artifact graph grew and these files became visible unstamped",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 170,
+      "graph_after": 172,
+      "files": [
+        "all-mechanics-fire.json",
+        "format-audit.json"
+      ]
+    },
+    {
+      "when": "2026-08-11T00:40:49.849Z",
+      "reason": "the writer scan learned to see tests/, computed output paths and artifact-declared writers; the artifact graph grew and these files became visible unstamped",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 172,
+      "graph_after": 173,
+      "files": [
+        "pp-board-probe.json"
+      ]
+    },
+    {
+      "when": "2026-08-11T00:51:59.372Z",
+      "reason": "the writer scan learned to see tests/, computed output paths and artifact-declared writers; the artifact graph grew and these files became visible unstamped",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 173,
+      "graph_after": 174,
+      "files": [
+        "sheet-usage.json"
+      ]
     }
   ],
-  "generated": "2026-08-10T22:59:42.249Z"
+  "generated": "2026-08-11T00:52:23.927Z"
 }

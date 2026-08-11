@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-10T22:56:28.122Z",
+  "generated": "2026-08-11T00:43:29.904Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 408,
-  "live": 408,
+  "probed": 421,
+  "live": 421,
   "missing": 0,
-  "armed": 408,
+  "armed": 421,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -456,7 +456,7 @@
       "tag": "formeChange",
       "label": "Zero to Hero upgrades Palafin on return",
       "live": true,
-      "detail": "first entry from bench: palafin 154 Atk (must stay base)  |  out and back: palafin-hero 233 Atk",
+      "detail": "first entry from bench: palafin 154 Atk (must stay base)  |  out and back: palafin-hero 244 Atk",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2636,7 +2636,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.2% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3446,7 +3446,7 @@
       "tag": "switchInForme",
       "label": "Zero to Hero transforms Palafin as it LEAVES, not on the return",
       "live": true,
-      "detail": "[who is in slot 0 after the pivot, what the BENCHED body is, its Attack] — ability blanked clefable,palafin,154; Zero to Hero clefable,palafin-hero,233. Read off the BENCH on purpose: an engine that transforms on the return is green on a probe that waits for it",
+      "detail": "[who is in slot 0 after the pivot, what the BENCHED body is, its Attack] — ability blanked clefable,palafin,154; Zero to Hero clefable,palafin-hero,244. Read off the BENCH on purpose: an engine that transforms on the return is green on a probe that waits for it. The Attack must be the SAME BODY'S line plus the two base lines' difference (90, measured in the authority at two spreads) — the spread survives a forme change",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4053,6 +4053,56 @@
     },
     {
       "kind": "move",
+      "tag": "fixedDamage",
+      "label": "Seismic Toss rolls no crit — a fixed number has no multiplier to apply",
+      "live": true,
+      "detail": "[|-crit| lines at the bottom rng corner] — Seismic Toss 0 (dealt 50, which must be the level, 50); CONTROL, Body Slam off the same Machamp into the same Feraligatr at the same corner, 1 crit line (dealt 81) — so the die is thrown and this move is exempt from it, not the engine crit-free",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "ohko",
+      "label": "Sheer Cold announces no type effectiveness — an OHKO never reaches the type chart",
+      "live": true,
+      "detail": "[[-resisted/-supereffective lines, -crit lines] at the bottom corner] — Sheer Cold [0,0] for 1280 damage; CONTROL, Ice Beam off the same Abomasnow into the same Water body, [1,1] for 66 — the resist line is emitted when the type chart is reached and the OHKO never reaches it",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "multiHit",
+      "label": "each hit of a multi-hit move arrives as its own damage packet, as Showdown emits it",
+      "live": true,
+      "detail": "[|-damage| lines from one click at the bottom corner] — Bullet Seed 2 lines leaving [1236,1192] HP, total 88, with 1 |-hitcount| line; CONTROL, Energy Ball off the same Abomasnow into the same body, 1 line for 266. Showdown at this pin prints two -damage lines and |-hitcount|...|2",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "survivesFromFull",
+      "label": "a Focus Sash answers the packet that arrives, so two half-lethal hits still kill",
+      "live": true,
+      "detail": "[HP left, item left] — a Feraligatr on 66 HP (the volley deals 88, so each of the two packets falls short and the pair does not) holding a FOCUS SASH ends on [0,\"focussash\"]; CONTROL, the same body with no item, [0,\"\"]. The Sash may not fire: hit one takes it off full HP and hit two meets onlyFromFullHP false",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "formeOnMoveCategory",
+      "label": "Stance Change draws the sword on an attack, and a status click does not sheathe it",
+      "live": true,
+      "detail": "[forme, HP the foe lost] over Iron Head / Swords Dance / Iron Head / King's Shield / Iron Head — STANCE CHANGE [[\"aegislash-blade\",63],[\"aegislash-blade\",0],[\"aegislash-blade\",126],[\"aegislash\",0],[\"aegislash-blade\",126]] with 3 |-formechange| lines; CONTROL, the same body with the ability blanked, [[\"aegislash\",38],[\"aegislash\",0],[\"aegislash\",75],[\"aegislash\",0],[\"aegislash\",75]] with 0. The forme after the SWORDS DANCE click must still read aegislash-blade — a Status click is a no-op, not a revert — and only King's Shield may put it back",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "trapsTarget",
       "label": "Block holds the target in its slot, and a Shed Shell walks out of it",
       "live": true,
@@ -4087,6 +4137,86 @@
       "label": "a move flagged noExtraHit takes NO second hit from Parental Bond",
       "live": true,
       "detail": "[HP an unfaintable Farigiraf loses over the two turns of the move] — PHANTOM FORCE (charge flag, so `noExtraHit`): 44 without Parental Bond and 44 with — IDENTICAL, which is the claim. CONTROL, Zen Headbutt off the same body with the same two abilities: 104 then 128, so the ability is demonstrably live on the same board. 17 moves carry this tag and Phantom Force alone is 1,606 stored clicks",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "pp",
+      "label": "an 8-PP move runs out: the ninth click FAILS",
+      "live": true,
+      "detail": "Protect asked 9 times -> 8 |move| lines and 1 |cant|nopp, leaving {\"protect\":0}. Asked 5 times -> 5 lines, 0 refusals, leaving {\"protect\":3}. maxpp 8 is READ off a constructed battle in the format, never computed -- the mainline pp*8/5 rule is wrong on 415 of 500 moves",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "deductsExtraPP",
+      "label": "Pressure halves how often a foe-aimed move can be clicked",
+      "live": true,
+      "detail": "Close Combat (maxpp 8, aimed at a foe): 4 clicks into a Pressure foe against 8 into a Levitate one -- 2 PP a click against 1. Protect (self-targeting) leaves 3 against 3: Pressure charges it NOTHING, which is the pressureTargets rule and the arm a blanket doubling fails",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "setsOwnTypeAlways",
+      "label": "every slot empty: the engine Struggles",
+      "live": true,
+      "detail": "after 8 Close Combats the slot is empty and the chooser clicks 3 Struggles; after only 4 it clicks 0 and reaches for closecombat/flareblitz instead. Struggle is typeless (???), so mcEff answers x1 against every defender rather than 0 against a Ghost",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "breakable",
+      "label": "Mold Breaker breaks a BREAKABLE ability and leaves a non-breakable one alone",
+      "live": true,
+      "detail": "INNER FOCUS (breakable): the victim strikes back for 167 under a plain attacker and 0 under Mold Breaker -- it flinched. STEADFAST (NOT breakable): +1 Speed plain, +1 under Mold Breaker, unchanged, which is the arm a suppress-everything engine fails. ROUGH SKIN (NOT breakable): the attacker loses 195 either way, against 0 with no ability at all",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresDefenderAbility",
+      "label": "Mold Breaker breaks four DIFFERENT KINDS of breakable ability",
+      "live": true,
+      "detail": "LEVITATE (immunity) 0 -> 167; FILTER (x0.75 on a 4x hit) 191 -> 254; SHELL ARMOR (refuses Frost Breath's certain crit) 172 -> 258; SHIELD DUST (filters a 100% secondary) \"none\" -> \"par\", against \"par\" with no ability at all. Every left-hand number is a plain attacker into the SAME ability, which is the control that says the ability is live rather than absent",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statChange",
+      "label": "a secondary STAT DROP fires at the FORMAT's chance, not gen 9's",
+      "live": true,
+      "detail": "Moonblast drops Special Attack on 10.4% of 4,000 real turns — the format's 10, against the 30 data/move-effects.js states. CONTROLS, both 100% in both rulebooks: Snarl 95.3%, Icy Wind 95.3% (95-accurate moves, so a miss applies nothing). engine/format_audit.js sweeps all 500 moves and reports every remaining row with whether the engine reads it",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "restoresPP",
+      "label": "Leppa Berry puts a spent move back on the menu",
+      "live": true,
+      "detail": "Protect (maxpp 8) asked 9 times: with a LEPPA BERRY 9 clicks land, 0 refusals, the berry is spent and the slot reads 7. CONTROL no item 8 clicks and 1 |cant|nopp; CONTROL Sitrus Berry 8 and 1 — a berry that is HELD and does not restore PP, so the knob is the item's tag and not the slot",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "removesPP",
+      "label": "Eerie Spell takes 3 PP off the move the target just used",
+      "live": true,
+      "detail": "the target's Earthquake (maxpp 12) reads 8 after EERIE SPELL and 11 after PSYCHIC — the same body, the same turn order, the same one PP the victim spends on its own click, and 3 more taken off the slot it last used",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -58,6 +58,54 @@ if (!process.env.SHOWDOWN_PATH) { console.error('set SHOWDOWN_PATH'); process.ex
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
 
+/* ---- MAX PP, READ OFF A CONSTRUCTED BATTLE IN THE FORMAT ---------------------------------------
+ *
+ * ROADMAP #144. Will: *"CHAMPIONS STANDARDIZED IT AND LOWERED SOME PP OF MOVES LIKE PROTECT TO 8"*.
+ *
+ * THE NUMBER IS NOT COMPUTED HERE AND THAT IS THE WHOLE POINT. Every value below fits
+ * `maxpp = floor(base * 0.8 + 4)` — measured, 500 of 500 rows — and that observation is deliberately
+ * NOT the implementation, because the moment the mod changes the rule a hardcoded formula is
+ * silently wrong and nothing in this repository would notice. What is written down instead is the
+ * OBSERVATION PROCEDURE: build a real `Battle` in `gen9championsvgc2026regmb`, hand it the move, and
+ * read `moveSlots[].maxpp` back off the Pokemon the format actually constructed.
+ *
+ * THE MAINLINE RULE IS `pp * 8 / 5` AND IT IS WRONG HERE ON 415 OF 500 MOVES (measured on the same
+ * pass). Protect is the one that matters: base 5 in this format, `maxpp` 8, against 16 in standard
+ * gen 9. Anyone taking PP from mainline gets the most-clicked move in the format wrong by a factor
+ * of two, which is the exact defect `data/move-effects.js` already carries one field over.
+ *
+ * ONE PLACE DECIDES PP (CLAUDE.md, FACTS ARE GLOBAL). This map is the only derivation; the engine
+ * reads the `pp` tag and nothing else computes a PP anywhere.
+ *
+ * The species is irrelevant — `maxpp` is a property of the MOVE and the format's mod, not of the
+ * body — so a chunk of throwaway Dittos is used to carry 24 moves per battle. */
+const MAXPP = (function () {
+  /* `showdown_path.js` has already resolved SHOWDOWN_PATH into the environment, and the guard above
+   * refuses to run without it, so this is the same checkout `CS.sim()` opened. */
+  const { Battle } = require(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim', 'battle'));
+  const ids = dex.moves.all().filter(m => m && m.exists && !m.isNonstandard).map(m => m.id);
+  const out = Object.create(null);
+  for (let i = 0; i < ids.length; i += 24) {
+    const chunk = ids.slice(i, i + 24);
+    const team = [];
+    for (let j = 0; j < chunk.length; j += 4) {
+      team.push({ name: 'M' + j, species: 'Ditto', ability: 'Limber', level: 50,
+                  moves: chunk.slice(j, j + 4), item: '', evs: {}, ivs: {} });
+    }
+    const b = new Battle({ formatid: CS.FORMAT, seed: [1, 2, 3, 4] });
+    b.setPlayer('p1', { name: 'a', team });
+    b.setPlayer('p2', { name: 'b', team });
+    for (const p of b.p1.pokemon) for (const s of p.moveSlots) out[s.id] = s.maxpp;
+    b.destroy();
+  }
+  /* A move the procedure could not read is LOUD rather than absent: an undefined maxpp reaching the
+   * engine would make that one move free forever, which is the silent default this repo is built to
+   * catch. */
+  const missed = ids.filter(id => !(id in out));
+  if (missed.length) console.error(`  MAXPP: ${missed.length} format move(s) produced no moveSlot: ${missed.slice(0, 10).join(' ')}`);
+  return out;
+})();
+
 /* The two files that would have to read a parameter for it to reach a decision. */
 const BOARD = fs.readFileSync(D('engine', 'board.js'), 'utf8');
 const DMG = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
@@ -508,6 +556,62 @@ function hazardCap(cond) {
 }
 
 const MOVE_TAGS = [
+  /* ROADMAP #144 -- HOW MANY TIMES THIS MOVE CAN BE CLICKED, and until 2026-08-11 the engine had no
+   * such number at all: zero mentions of PP in medicham2-browser.js and no `pp` field on a built
+   * body. Will: *"WE NEED PP BRO"*.
+   *
+   * IT IS A MECHANIC AND NOT BOOKKEEPING. Protect is `maxpp` 8 in this format and 95,774 corpus
+   * clicks; an engine that believes it is infinite makes every stalling rollout a game that cannot
+   * happen, and makes Struggle, Leppa Berry, Pressure, Spite and Eerie Spell structurally
+   * untestable — nothing can ever run out.
+   *
+   * THE VALUE IS READ, NOT COMPUTED. See MAXPP at the top of this file for the procedure and for the
+   * measurement that says the mainline `pp * 8/5` rule is wrong on 415 of these 500 moves. */
+  { tag: 'pp', param: 'the FORMAT\'s maxpp for this move, read off a constructed battle', probe: 'ppLeft',
+    why: 'Champions compresses PP. Protect is 8 here and 16 in mainline gen 9 -- 95,774 clicks of the '
+       + 'most-clicked move in the format, and the engine treated every move as infinite',
+    of: m => (MAXPP[m.id] != null) ? { max: MAXPP[m.id], base: m.pp, noPPBoosts: !!m.noPPBoosts } : null },
+  /* ROADMAP #144 -- THE MOVE THAT SPENDS SOMEBODY ELSE'S PP, and it is a mechanic only once PP is a
+   * resource. Both members read the TARGET'S LAST MOVE and take a fixed amount off that one slot:
+   * Spite 4 (data/moves.ts:17647, 10 corpus clicks), Eerie Spell 3 (:4476, 57). The predicate is the
+   * `deductPP(move.id, N)` idiom against a `target.lastMove` read, so it is the handler's own shape
+   * and not a name -- G-Max Depletion writes the identical idiom and is `isNonstandard: 'Past'`, so
+   * it never reaches this table.
+   *
+   * THE MOVE FAILS OUTRIGHT when nothing was deducted (`if (!ppDeducted) return false`), which is why
+   * `failsIfNothingDeducted` is a param rather than left to a consumer to guess. */
+  /* ROADMAP #144 -- A MOVE THAT REWRITES ITS OWN TYPE UNCONDITIONALLY. Struggle is `Normal` in the
+   * dex and its `onModifyMove` is one line, `move.type = '???'` -- the typeless pseudo-type, which
+   * `mcEff` answers x1 for every defender because the chart has no row for it. Without this the
+   * engine's Struggle would deal LITERAL ZERO to a Ghost, which is the one thing Struggle is famous
+   * for not doing.
+   *
+   * THE PREDICATE IS "ONE LITERAL WRITE AND NO CONDITION", and the membership was printed over the
+   * whole format before it was wired, because a bare `move.type =` match OVER-MATCHES BADLY: Aura
+   * Wheel (forme), Raging Bull (forme), Terrain Pulse (terrain) and Weather Ball (sky) all write it
+   * too and all four are already handled elsewhere by their own conditional tags. Requiring the
+   * handler to carry no `if` at all leaves exactly ONE member: struggle. */
+  { tag: 'setsOwnTypeAlways', param: 'the move overwrites its own type, with no condition', probe: 'setsOwnTypeAlways',
+    why: 'Struggle is typeless (`???`). Unreachable until PP existed, and wrong against a Ghost the '
+       + 'moment it became reachable',
+    of: m => {
+      const src = String(m.onModifyMove || '');
+      if (/\bif\s*\(/.test(src)) return null;
+      const w = src.match(/move\.type\s*=\s*['"]([^'"]+)['"]/g) || [];
+      if (w.length !== 1) return null;
+      return { type: /['"]([^'"]+)['"]/.exec(w[0])[1] };
+    } },
+  { tag: 'removesPP', param: 'PP taken off the TARGET\'s last move', probe: 'removesPP',
+    why: 'Spite (4) and Eerie Spell (3). Untestable and unmodellable until PP existed at all',
+    of: m => {
+      const src = String(m.onHit || '') + String(m.secondary && m.secondary.onHit || '')
+               + (m.secondaries || []).map(s => String(s && s.onHit || '')).join('');
+      if (!/lastMove/.test(src)) return null;
+      const d = src.match(/deductPP\(\s*move\.id\s*,\s*(\d+)\s*\)/);
+      if (!d) return null;
+      return { amount: +d[1], of: 'targetLastMove',
+               failsIfNothingDeducted: /!ppDeducted/.test(src) };
+    } },
   /* NEW 2026-08-08 -- THE MOVE THAT SPENDS THE USER'S OWN ITEM, and it is the mirror image of
    * `removesItem` rather than a member of it: Knock Off takes what the TARGET holds, this throws what
    * the USER holds. One shared question underneath — can this item leave this body right now — asked
@@ -3142,6 +3246,21 @@ const MOVE_TAGS = [
 ];
 
 const ITEM_TAGS = [
+  /* ROADMAP #144 -- THE BERRY THAT GIVES PP BACK, and it could not have a tag before PP existed
+   * because there was nothing for it to restore. Derived from the `onEat` handler's own arithmetic
+   * (`moveSlot.pp = Math.min(moveSlot.pp + addedPP, moveSlot.maxpp)`, data/items.ts:3367), including
+   * the Ripen doubling and the "first EMPTY slot, else the first below max" choice, which are both
+   * mechanic and neither is guessable from the name. Membership over the format: Leppa Berry. */
+  { tag: 'restoresPP', param: 'PP put back into one move slot when eaten', probe: 'restoresPP',
+    why: 'Leppa Berry. One of the three things PP made testable at all (the others are Struggle and Last Resort)',
+    of: i => {
+      const src = String(i.onEat || '');
+      if (!/moveSlot\.pp\s*=/.test(src)) return null;
+      const n = src.match(/\?\s*(\d+)\s*:\s*(\d+)/);
+      return { amount: n ? +n[2] : 10, ripenAmount: n ? +n[1] : null,
+               prefersEmptySlot: /move\.pp\s*===\s*0/.test(src),
+               eatsWhenASlotEmpties: /move\.pp\s*===\s*0/.test(String(i.onUpdate || '')) };
+    } },
   /* ROADMAP #139 -- SHED SHELL, AND AN OVER-REFUSAL IS A DEFECT EXACTLY AS AN UNDER-REFUSAL IS.
    * medicham2's ability-trapping branch already carried a comment admitting this gap by name ("SHED
    * SHELL IS NOT HONOURED ON THIS BRANCH and that is a stated gap"). The mega agent's Shadow Tag
@@ -3683,9 +3802,81 @@ const ABILITY_TAGS = [
    * boolean on the attacker that gates a class this file has already enumerated: typeImmunity,
    * damageReduce, blocksMove, preventsCrit and survivesFromFull(Sturdy) all stop applying. No
    * per-ability logic, and it stays correct when a new ability lands. 127 uses, so it is real. */
-  { tag: 'ignoresDefenderAbility', param: 'suppress every defender-side ability tag for this move', probe: 'breaksProtect',
-    why: 'Mold Breaker, Turboblaze, Teravolt. Gates typeImmunity, damageReduce, blocksMove, preventsCrit and Sturdy in one flag',
-    of: a => (a.breaksProtect || /moldbreaker|turboblaze|teravolt/.test(norm(a.name))) ? { ignoresDefAbility: true } : null },
+  /* ROADMAP #141 -- DERIVED FROM THE HANDLER, AND THE OLD PREDICATE WAS A NAME LIST WEARING A PROBE.
+   *
+   * It read `a.breaksProtect || /moldbreaker|turboblaze|teravolt/`. `breaksProtect` is **undefined on
+   * all four carriers** in this format (measured), so the regex was doing 100% of the work -- and it
+   * MISSED MYCELIUM MIGHT, which sets the same flag for status moves only. The mechanism is one line
+   * of the authority and it is a shape:
+   *
+   *     onModifyMove(move) { move.ignoreAbility = true; }                       Mold Breaker
+   *     onModifyMove(move) { if (move.category === "Status") move.ignoreAbility = true; }
+   *                                                                            Mycelium Might
+   *
+   * MEMBERSHIP PRINTED BEFORE THIS WAS WIRED, over the whole format: moldbreaker, myceliummight,
+   * teravolt, turboblaze -- exactly four, and exactly the four the mechanism names. Legal carriers in
+   * Reg M-B: Mold Breaker only (Pinsir, Gyarados-Mega, Ampharos-Mega, Rampardos, Emboar-Mega,
+   * Excadrill, Pangoro, Hawlucha, Basculegion, Basculegion-F, Tinkaton). The other three carry no
+   * legal body here and are tagged anyway, because a tag is a fact about the format's rulebook and
+   * not about this month's usage.
+   *
+   * `onlyCategory` IS A PARAM AND NOT A SECOND TAG, because it is the same mechanic with a gate. A
+   * reader that ignores it would let Mycelium Might break Levitate. */
+  { tag: 'ignoresDefenderAbility', param: 'suppress the defender\'s BREAKABLE abilities for this move', probe: 'ignoresDefenderAbility',
+    why: 'Mold Breaker, Mycelium Might, Turboblaze, Teravolt. Gates typeImmunity, damageReduce, blocksMove, preventsCrit and Sturdy in one flag',
+    of: a => {
+      const src = String(a.onModifyMove || '');
+      if (!/\bignoreAbility\s*=\s*true/.test(src)) return null;
+      const cat = src.match(/move\.category\s*===\s*["']([A-Za-z]+)["']/);
+      return { ignoresDefAbility: true, onlyCategory: cat ? cat[1] : null };
+    } },
+  /* ROADMAP #141 -- WHICH ABILITIES MOLD BREAKER CAN ACTUALLY BREAK, and this had no representation
+   * at all: the engine suppressed EVERY defender-side ability, so a Mold Breaker Fake Out was
+   * (wrongly) stopping Steadfast's Speed boost right beside (wrongly) failing to punch through Inner
+   * Focus's flinch refusal.
+   *
+   * `ability.isBreakable` IS A TRAP AND IS CHECKED HERE RATHER THAN TRUSTED: it is `undefined` on
+   * every ability in this format, so a naive lookup concludes Mold Breaker breaks NOTHING and passes
+   * its own test. The live field is `flags.breakable`, which is what the authority itself reads --
+   * `effect.flags['breakable'] && this.suppressingAbility(effectHolder)` (sim/battle.ts:837).
+   *
+   * 84 abilities carry it in this format. The pair that makes it sharp, and the reason a name-matched
+   * implementation gets this wrong: INNER FOCUS is breakable and STEADFAST is not (`flags: {}`), so
+   * two abilities that look like siblings behave oppositely under the same click. */
+  /* ROADMAP #141 -- SHIELD DUST, AND THE ENGINE READ IT BY NAME. The literal `tgAb === 'shielddust'`
+   * was the ONLY reader of a fact nothing in the artifact stated, so a second carrier arriving in a
+   * later regulation would have been invisible -- and, worse, the raw name read meant a Mold Breaker
+   * could not punch through it while it punched through Levitate in the same turn.
+   *
+   * `keepsSelfEntries` IS THE MECHANIC AND NOT A DETAIL: the handler is
+   * `secondaries.filter(effect => !!effect.self)`, so a secondary that boosts the USER survives and
+   * the target-side ones are dropped. An implementation that deleted all of them would zero Fire
+   * Fang's own effects too. Membership over the format: exactly one ability, Shield Dust. */
+  { tag: 'refusesSecondaries', param: 'secondaries aimed at this body are filtered out', probe: 'refusesSecondaries',
+    why: 'Shield Dust. Read by NAME in the engine until 2026-08-11, which is why a Mold Breaker could '
+       + 'not break it',
+    of: a => {
+      const src = String(a.onModifySecondaries || '');
+      if (!a.onModifySecondaries) return null;
+      return { keepsSelfEntries: /effect\.self/.test(src) };
+    } },
+  { tag: 'breakable', param: 'this ability is suppressed by a Mold Breaker-class attacker', probe: 'breakable',
+    why: 'Not `isBreakable` (undefined on every ability here) -- `flags.breakable`, the field the '
+       + 'authority itself reads. Inner Focus carries it; Steadfast does not',
+    of: a => (a.flags && a.flags.breakable) ? { breakable: true } : null },
+  /* ROADMAP #144 -- PRESSURE. Will: *"PRESSURE DOUBLES PP USAGE"*. Derived from `onDeductPP`, which
+   * is the event the authority raises once per apparent target of the move
+   * (sim/battle-actions.ts:476). The handler returns the EXTRA amount and refuses for an ally
+   * (`if (target.isAlly(source)) return;`), so both halves are params rather than assumptions.
+   * Membership over the format: exactly one ability, Pressure, on 7 legal carriers / 201 uses. */
+  { tag: 'deductsExtraPP', param: 'a foe aiming a move AT this body pays extra PP for it', probe: 'deductsExtraPP',
+    why: 'Pressure. Meaningless until PP existed; with an 8-PP Protect it halves how long a stall lasts',
+    of: a => {
+      const src = String(a.onDeductPP || '');
+      if (!a.onDeductPP) return null;
+      const n = src.match(/return\s+(\d+)\s*;/);
+      return { extra: n ? +n[1] : 1, alliesExempt: /isAlly\(/.test(src) };
+    } },
   { tag: 'critDamageUp', param: 'the CRIT MULTIPLIER itself, not its probability', probe: 'sniper',
     why: 'Sniper (Will raised it). Three separate crit parameters exist and the taxonomy had only two: '
        + 'probability (Scope Lens, Flower Trick), prevention (Shell Armor) and now the multiplier. '
@@ -4448,6 +4639,61 @@ const ABILITY_TAGS = [
                sameStats: JSON.stringify(s1.baseStats) === JSON.stringify(s2.baseStats),
                sameTypes: JSON.stringify(s1.types) === JSON.stringify(s2.types),
                stopsWhenTerastallized: /terastallized/.test(src) };
+    } },
+  /* NEW 2026-08-11, ROADMAP #151 -- THE FORME THAT FLIPS ON THE MOVE THE HOLDER IS ABOUT TO USE, and
+   * it is none of the three forme tags above. Stance Change was `untagged` on 270 corpus uses while
+   * `formeChange` appears ZERO times against Aegislash anywhere in the engine, so every Aegislash
+   * attack in this project has been computed at the SHIELD forme's 50 base Attack instead of the
+   * BLADE forme's 140. Measured in the authority under the differential's own pin: Iron Head off an
+   * Aegislash deals 45 there and 21 here, Head Smash 114 against 51 -- eight of the constructed-game
+   * run's divergence rows are this one ability, and every one of them is a damage number.
+   *
+   * THE SHAPE IS THE `onModifyMove` THAT BRANCHES ON THE MOVE'S CATEGORY, which is what separates it
+   * from the other three: `switchInForme` fires on entry, `formeOnHit` on being damaged and
+   * `formeCycleResidual` on a clock, and none of them can express "it depends what you clicked".
+   *
+   *     if (move.category === 'Status' && move.id !== 'kingsshield') return;
+   *     const targetForme = (move.id === 'kingsshield' ? 'Aegislash' : 'Aegislash-Blade');
+   *     if (attacker.species.name !== targetForme) attacker.formeChange(targetForme);
+   *
+   * THE WIDE PREDICATE WAS MEASURED FIRST, exactly as `formeOnHit` and `formeCycleResidual` above
+   * both record having to: `formeChange(` inside ANY `onModifyMove` matches ONE ability in this
+   * format and it is Stance Change. The narrower conjunction below (a `move.category` test AND a
+   * named revert move AND both formes resolving in the dex) is kept anyway, because the point of a
+   * shape rule is that a member added later is picked up and a member that is a DIFFERENT mechanic is
+   * not -- and the count that made the rule safe today is not a guarantee about tomorrow.
+   *
+   * `revertOn` IS A MOVE ID AND `attackForme` IS A SPECIES, both read out of the handler and then
+   * resolved against the dex rather than trusted as strings. `sameStats` is FALSE here -- the whole
+   * mechanic is that the stats move -- which is exactly why the consumer must REBUILD the body from
+   * `data/engine-data.js` rather than rename it, and why this param is carried at all: the other two
+   * forme tags carry it for the same reader.
+   *
+   * `revertsOnStatus` RECORDS THE HALF AN IMPLEMENTATION GETS WRONG. A Status move is NOT a revert --
+   * it is a NO-OP. Swords Dance off a Blade forme leaves it in Blade, measured in the authority:
+   * only King's Shield flips it back. An engine that reverted on "not an attacking move" would put
+   * the sword away every time Aegislash set up. */
+  { tag: 'formeOnMoveCategory', param: 'the forme depends on the move about to be used',
+    probe: 'formeOnMoveCategory',
+    why: 'Stance Change, 270 uses, tagged `untagged` until 2026-08-11. Aegislash attacks at 140 base '
+       + 'Attack and defends at 140 base Defence, and this engine gave it 50 for every attack it '
+       + 'has ever thrown',
+    of: (a) => {
+      const src = String(a.onModifyMove || '');
+      if (!/formeChange\(/.test(src)) return null;
+      /* the CATEGORY test is what makes this the move-shaped member rather than any other */
+      if (!/move\.category/.test(src)) return null;
+      const m = src.match(/move\.id\s*===?\s*["'](\w+)["']\s*\?\s*["']([^"']+)["']\s*:\s*["']([^"']+)["']/);
+      if (!m) return null;
+      const revertOn = m[1], restForme = m[2], attackForme = m[3];
+      const sRest = dex.species.get(restForme), sAtk = dex.species.get(attackForme);
+      const mvRevert = dex.moves.get(revertOn);
+      if (!sRest || !sRest.exists || !sAtk || !sAtk.exists || !mvRevert || !mvRevert.exists) return null;
+      const gm = src.match(/baseSpecies\s*!==?\s*["']([^"']+)["']/);
+      return { onlyBaseSpecies: gm ? gm[1] : null, restForme: sRest.name, attackForme: sAtk.name,
+               revertOn: mvRevert.id, revertsOnStatus: false,
+               sameStats: JSON.stringify(sRest.baseStats) === JSON.stringify(sAtk.baseStats),
+               sameTypes: JSON.stringify(sRest.types) === JSON.stringify(sAtk.types) };
     } },
   { tag: 'blocksBerries', param: 'their berries cannot be eaten', probe: 'unnerve',
     why: 'Unnerve, 2.03%. Turns off Sitrus (10.8% of items) and every resist berry on the other side',

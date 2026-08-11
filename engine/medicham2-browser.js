@@ -88,6 +88,20 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* ROADMAP #144 -- PP. Five counters because five different things can be true and only one of them
+   * is "PP is working": `ppDeducted` is the base spend, `ppPressureCharged` the extra one an ability
+   * takes, `ppRefusedAtSelection` the chooser declining an empty slot, `ppRefusedAtExecution` the
+   * authority's `|cant|nopp` on a caller-supplied click, and `struggleUsed` the end of the road. A
+   * zero in the last three is not automatically a defect -- most games never run a move out -- but a
+   * zero in `ppDeducted` means the whole wire is inert, which is the state this engine was in until
+   * 2026-08-11. */
+  ppDeducted: 0, ppPressureCharged: 0, ppRefusedAtSelection: 0, ppRefusedAtExecution: 0,
+  struggleUsed: 0, ppRestoredByItem: 0, ppRemovedByMove: 0,
+  /* ROADMAP #141 -- a defender ability actually SUPPRESSED by a Mold Breaker-class attacker. It is
+   * counted rather than assumed because the fix that added the `breakable` gate could equally have
+   * turned the mechanic OFF everywhere, and a zero here would be indistinguishable from the gate
+   * working if nobody looked. */
+  abilityBrokenByMoldBreaker: 0,
   /* ROADMAP #139 -- the max-HP recoil family (Steel Beam, Struggle). Counted apart from ordinary
    * recoil because the two are different currencies off different artifact fields, and a zero here
    * with a healthy `rc` recoil is exactly the state this engine was in: one paid, the other free. */
@@ -265,6 +279,21 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * this cluster was: it looks identical to a working feature and is wrong by up to three hits.
    * multiHitAccuracyStopped counts the per-hit accuracy break (Triple Axel, Population Bomb). */
   multiHitRolledCount: 0, multiHitAccuracyStopped: 0,
+  /* ROADMAP #151 -- the three halves of the constructed-game run's two biggest divergence families,
+   * each named so a ZERO is readable rather than reassuring.
+   * fixedDamageNoCrit:      `critChance` refused to roll for a move whose damage is not computed. A
+   *                         zero on a run that clicked Seismic Toss means the predicate is unwired.
+   * multiHitPacketsDealt:   how many SEPARATE arrivals a multi-hit click actually landed. A one means
+   *                         the volley collapsed back into a single packet.
+   * multiHitPacketsCollapsed: a volley whose total was rewritten between pricing and application (a
+   *                         Focus Sash, an Endure, a busted Disguise, a hit through Protect), so the
+   *                         packet shape could not be trusted and ONE line was emitted. This is the
+   *                         declared, narrow remainder of the WIRE 12 divergence -- LOUD on purpose. */
+  fixedDamageNoCrit: 0, multiHitPacketsDealt: 0, multiHitPacketsCollapsed: 0,
+  /* ROADMAP #151 -- an Aegislash flipped forme on the move it was about to use. A zero on a run that
+   * clicked an attack off a Stance Change body means the ability is unwired, which is what it was
+   * until 2026-08-11 -- `stancechange` appeared nowhere in this file at all. */
+  stanceChanged: 0,
   /* WIRE 147 -- the four halves of the per-hit damage loop, each named so a ZERO is readable.
    * perHitDamageLoop: dmgRange priced a move ONE HIT AT A TIME (Triple Axel, Beat Up).
    * perHitBasePower:  a hit's base power came from its own index rather than from the move's.
@@ -474,6 +503,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * come unwired and Howl is back to boosting the partner only. */
   boostAlliesSideWide: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* ROADMAP #144 -- a move the PP artifact has no row for. `ppLeft` returns null and the move becomes
+   * FREE, which is exactly the silent default this file keeps finding, so the fallback names its first
+   * offender. Must read 0: data/tags.json carries a `pp` row for all 500 moves in this format, and a
+   * non-zero here means the artifact predates the derivation rather than that the engine is wrong. */
+  ppUnknownMove: 0, ppUnknownMoveFirst: '',
+  /* ROADMAP #144 -- every slot is empty and the engine could not build the one action the authority
+   * offers. Falling through would hand back a click that cannot be paid for and the execution gate
+   * would eat the turn silently, so it counts itself. Must read 0. */
+  struggleUnbuilt: 0,
+  /* ROADMAP #144 -- a Ripen holder ate a berry whose effect Ripen doubles, and this engine applied the
+   * single amount. Declared at berryPPUpdate. Legal carriers: Flapple, Appletun -- 0 corpus uses. */
+  ripenBerryBoostUnmodelled: 0,
+  /* ROADMAP #141 -- a CATEGORY-GATED breaker (Mycelium Might) asked of a caller that could not say
+   * which category the move is. The suppression is DECLINED, which is the conservative direction, and
+   * it is counted because declining silently is exactly how a half-wired mechanic looks like a
+   * working one. Must read 0 in this format: Mycelium Might has no legal carrier in Reg M-B. */
+  categoryGatedBreakerNoCategory: 0,
   /* 2026-08-10 -- a hazard was laid and its tag carried no `maxLayers`, so `layHazard` fell back to
    * the pre-fix UNCAPPED behaviour. That fallback is deliberate and it is counted rather than quiet:
    * guessing a cap of 1 would silently delete the second and third layer of Spikes, which is real
@@ -546,6 +592,10 @@ const MEDFAILS = { encoreAction: 0,
    *                              here is a bug report about this file, not about the format. */
   switchOutTriggerUnhandled: 0, switchOutTriggerUnhandledFirst: '',
   formeSwapNoRow: 0, formeSwapNoRowFirst: '',
+  /* ROADMAP #151 -- a forme swap that could not carry the body's SP investment across, because one of
+   * the two species rows has no base-stat block to rebase against. The body keeps the built line,
+   * which is a stranger's spread; counted so it can never be mistaken for a correct rebase. */
+  formeSwapNoBaseStats: 0, formeSwapNoBaseStatsFirst: '',
   formeSwapLateOnReturn: 0, formeSwapLateOnReturnFirst: '',
   /* WIRE 133 -- a `punishesBoostedTarget` member whose effect this engine cannot land. Alluring Voice
    * is the one: its punishment is CONFUSION and this engine holds no confusion volatile at all. The
@@ -597,6 +647,10 @@ const MEDFAILS = { encoreAction: 0,
    * arriving -- and its two engines DISAGREE under the pin, which is why it must be visible.
    * multiHitNoCount: a `multiHit` row with neither a range nor a `hits`. One hit is dealt and said
    * out loud, because a silent 1 here is exactly the defect WIRE 20 fixed. */
+  /* ROADMAP #151 -- the packet split did not sum to the total it was splitting, which can only mean
+   * `dmg` came from a price the packet vector did not. Counted with its move rather than smeared
+   * across the packets, because a silently-adjusted split is a number nobody can check. */
+  packetSplitRemainder: 0, packetSplitRemainderFirst: '',
   multiHitRangeNot2To5: 0, multiHitRangeNot2To5First: '',
   multiHitNoCount: 0, multiHitNoCountFirst: '',
   /* WIRE 147 -- the two ways the per-hit loop can be asked a question the artifact cannot answer.
@@ -911,6 +965,23 @@ const TRACE=(function(){
     eff(m,mult){ if(mult>1)this.push(['-supereffective',ident(m),Math.min(Math.round(Math.log2(mult)),2)]);
                  else if(mult>0&&mult<1)this.push(['-resisted',ident(m),Math.min(Math.round(-Math.log2(mult)),2)]); },
     crit(m){ this.push(['-crit',ident(m)]); },
+    /* ROADMAP #151 -- `this.battle.add('-hitcount', targets[0], hit - 1)`
+     * (data/mods/champions/scripts.ts:550). It closes a multi-hit volley and carries HOW MANY
+     * arrivals actually landed, which is only a number this engine can honestly print now that the
+     * volley IS a sequence of arrivals -- the reason `data/protocol-events.json` gave for declaring
+     * it un-emitted ("emitting a count beside a single `-damage` line would be an invented number")
+     * was exactly right and has stopped being true. */
+    hitcount(m,n){ this.push(['-hitcount',ident(m),n]); },
+    /* ROADMAP #151 -- THE NON-PERMANENT FORME LINE, and it carries a FOURTH FIELD THAT IS EMPTY.
+     * `sim/pokemon.ts`'s formeChange takes the else branch when `isPermanent` is falsy and writes
+     * `add('-formechange', this, species.name, message)` with `message` undefined, which reaches the
+     * log as a trailing separator:
+     *     |-formechange|p1a: Aegislash|Aegislash-Blade|
+     * read verbatim off a real Champions battle. `push()` DROPS an empty field -- correct for every
+     * other emitter here and wrong for this one, because a differ aligning two streams field by field
+     * would then see a three-field line against the authority's four. So the line is built rather
+     * than assembled, and the trailing pipe is deliberate. */
+    formechange(m,species){ this.out.push('|-formechange|'+ident(m)+'|'+species+'|'); },
     imm(m,from){ this.push(['-immune',ident(m),from]); },
     dmg(m,from,of){ this.push(['-damage',ident(m),health(m),from,of?'[of] '+ident(of):'']); },
     heal(m,from,of){ this.push(['-heal',ident(m),health(m),from,of?'[of] '+ident(of):'']); },
@@ -988,7 +1059,7 @@ const TRACE_EVENTS=['turn','upkeep','move','cant','switch','drag','faint','detai
   '-damage','-heal','-status','-curestatus','-boost','-unboost','-clearallboost','-clearnegativeboost',
   '-ability','-item','-enditem','-weather','-fieldstart','-fieldend','-fieldactivate',
   '-sidestart','-sideend','-start','-end','-activate','-singleturn','-fail','-miss',
-  '-crit','-supereffective','-resisted','-immune','-prepare','-mustrecharge'];
+  '-crit','-supereffective','-resisted','-immune','-prepare','-mustrecharge','-hitcount','-formechange'];
 /* ARM / DISARM. Returns the previous sink so a nested call restores rather than clobbers. */
 function traceBind(S){
   const t=S&&S._trace;
@@ -1347,6 +1418,99 @@ function endDurationVolatile(m,vol){
   if(vol==='disable') m._sealed=null;
   if(vol==='encore'){ m._encoreMove=null; if(m._lockT!==Infinity){ m._lock=null; m._lockT=0; } }
   if(TR) TR.vend(m,'move: '+vol);
+}
+/* ---- ROADMAP #144: PP, AND IT DID NOT EXIST -------------------------------------------------------
+ *
+ * Zero mentions of PP in this file before 2026-08-11 and no `pp` field on any body a builder
+ * produced. Will: *"WE NEED PP BRO THAT SHOULD BE TRIVIALLY EASY TO ADD"*.
+ *
+ * WHY IT IS A MECHANIC AND NOT BOOKKEEPING. Protect is `maxpp` 8 in this format and 95,774 corpus
+ * clicks. An engine with no PP believes it is infinite, so every rollout that stalls is imagining a
+ * game that cannot happen and the search over-values stalling lines for exactly that reason. It also
+ * makes three things structurally untestable: Leppa Berry restores PP, Last Resort requires every
+ * other move to have been used, and STRUGGLE CAN NEVER FIRE because nothing can ever run out.
+ *
+ * THE NUMBER COMES OFF THE ARTIFACT, WHICH READ IT OFF A CONSTRUCTED BATTLE IN THE FORMAT. See the
+ * `pp` tag in engine/tag_dex.js: `maxpp` is READ from `moveSlots[].maxpp`, never computed. Champions
+ * COMPRESSES PP -- the mainline `pp * 8/5` rule is wrong on 415 of the 500 moves in this format, and
+ * Protect is the worst of them (8 here, 16 mainline). One place decides PP.
+ *
+ * WHY THE TABLE IS LAZY AND PER-SLOT RATHER THAN STAMPED IN buildMon. Three builders reach this
+ * engine and only two of them are ENGINE's: `buildMon`, `buildMonFromSet`, and `board.js`'s `dmgMon`,
+ * which builds through buildMon and then OVERWRITES `b.moves` with the open sheet's four. A table
+ * stamped at build time would be keyed to the moves the body had before that overwrite, and every
+ * rollout body would carry PP for the wrong four moves -- silently, which is this project's
+ * signature failure. Deriving each slot on first touch is correct for every builder including ones
+ * that do not exist yet, and it costs one property lookup per click.
+ *
+ * DOES PP HAVE TO SURVIVE A ROLLOUT? NO, AND THAT IS WHY THIS IS CHEAP. `engine/rollout_leaf.js`
+ * builds FRESH bodies for every playout ("MEDICHAM mutates the mons it is handed", its own comment)
+ * and nothing anywhere clones a battle state. So PP is initialised per body and mutated in place --
+ * no copy, no carry. The cost is one lazy init per (body, move) and one decrement per click, which
+ * is per-CLICK rather than per-turn or per-damage-call.
+ *
+ * WHAT IS NOT CLAIMED: a rollout STARTS at full PP, because `board.js` does not track PP and is not
+ * ENGINE's to change. So a stall priced 8 turns deep inside a rollout is 8 turns from NOW, not 8 from
+ * the start of the game. That is a real remaining gap and it is named here rather than left to be
+ * discovered. */
+function ppMax(id){
+  if(!id) return null;
+  const p=TAGS.param('move',String(id).toLowerCase().replace(/[^a-z0-9]/g,''),'pp');
+  if(p&&+p.max>0) return +p.max;
+  /* A move with no `pp` row would be FREE FOREVER, which is exactly the silent default this file
+   * keeps finding. Counted, with the first offender named. Must read 0: the artifact carries a `pp`
+   * row for all 500 moves in this format. */
+  MEDFAILS.ppUnknownMove++;
+  if(!MEDFAILS.ppUnknownMoveFirst) MEDFAILS.ppUnknownMoveFirst=String(id);
+  return null;
+}
+/* HOW MANY CLICKS ARE LEFT, deriving the slot on first touch. `null` means "this engine has no PP
+ * number for that move" and is deliberately distinct from 0 -- the caller must not treat an unknown
+ * as empty, or a tagger gap would silently Struggle the whole team. */
+function ppLeft(m,id){
+  if(!m||!id) return null;
+  const k=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
+  const t=(m._pp||(m._pp={}));
+  if(!(k in t)){ const mx=ppMax(k); if(mx==null) return null; t[k]=mx; }
+  return t[k];
+}
+/* Showdown's `deductPP`: subtract, clamp at zero, and return HOW MUCH WAS ACTUALLY TAKEN (0 if the
+ * slot was already empty). Spite and Eerie Spell both branch on that return value, so the clamp
+ * cannot be left to the caller. */
+function ppDeduct(m,id,amount){
+  if(ppLeft(m,id)==null) return 0;
+  const k=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
+  let amt=(amount==null?1:+amount);
+  const before=m._pp[k];
+  m._pp[k]=before-amt;
+  if(m._pp[k]<0){ amt+=m._pp[k]; m._pp[k]=0; }
+  if(amt>0) MEDSEEN.ppDeducted+=amt;
+  return amt;
+}
+/* IS EVERY MOVE ON THIS BODY OUT? -- the Struggle condition, and it asks the body's OWN move list so
+ * a four-move sheet and a one-move probe body both answer correctly. A body carrying no PP number at
+ * all (a tagger gap) answers false, because "unknown" must never be read as "empty". */
+function ppAllOut(m){
+  const mv=(m&&m.moves)||[];
+  if(!mv.length) return false;
+  let known=0;
+  for(const id of mv){ const l=ppLeft(m,id); if(l==null) return false; known++; if(l>0) return false; }
+  return known>0;
+}
+/* THE EXTRA PP A FOE'S ABILITY TAKES, and the two clauses are the handler's own: it fires once per
+ * APPARENT TARGET of the move (`pressureTargets`, sim/battle-actions.ts:476) and an ALLY never
+ * charges it (`if (target.isAlly(source)) return`). So a spread move into two Pressure bodies costs
+ * three PP, not two -- which is the whole reason this is computed over a target LIST rather than
+ * off a boolean. */
+function ppPressureExtra(targets,user){
+  let extra=0;
+  for(const t of (targets||[])){
+    if(!t||t===user||t.fainted||t.curHP<=0) continue;
+    if(t._sf&&user&&user._sf&&t._sf===user._sf) continue;      // an ally charges nothing
+    const p=TAGS.param('ability',suppressedAbility(user,t),'deductsExtraPP');
+    if(p&&+p.extra>0){ extra+=+p.extra; MEDSEEN.ppPressureCharged++; }
+  }
+  return extra;
 }
 /* ---- WIRE 152: THE LAYER FAMILY, WHICH IS THE DURATION FAMILY'S OPPOSITE NUMBER --------------------
  *
@@ -2852,10 +3016,38 @@ function mvMakesContact(id){
  * the artifact means one stage up. Move and ITEM (Scope Lens) stack; the two ABILITY carriers are
  * refused and counted -- see MEDFAILS.critRatioAbility. */
 const CRIT_BY_STAGE=[1/24,1/8,1/2,1];
+/* ROADMAP #151 -- IS THIS MOVE'S DAMAGE COMPUTED AT ALL? ONE PREDICATE, TWO READERS, NO NAME LIST.
+ *
+ * `sim/battle-actions.ts:getDamage` has FOUR early returns and every one of them is above both the
+ * crit die and the type chart:
+ *     if (move.ohko)            return target.maxhp;
+ *     if (move.damageCallback)  return move.damageCallback.call(...);
+ *     if (move.damage==='level')return source.level;
+ *     if (move.damage)          return move.damage;
+ *     ... thirty lines later:   moveHit.crit = randomChance(1, critMult[critRatio])
+ *     ... and in the champions mod's own modifyDamage: add('-supereffective'/'-resisted'/'-crit')
+ * So a move whose damage is a CONSTANT, a CALLBACK or the target's whole HP bar neither rolls a crit
+ * nor announces effectiveness -- there is no multiplier for either to apply to. This engine rolled
+ * both for all thirteen of them, which the constructed-game run caught as eleven separate rows.
+ *
+ * THE MEMBERSHIP IS THE `fixedDamage` TAG AND IT WAS CHECKED RATHER THAN ASSUMED: enumerating
+ * `Dex.forFormat('gen9championsvgc2026regmb').moves.all()` for `ohko || damageCallback || damage`
+ * yields exactly the thirteen the artifact tags -- comeuppance, counter, endeavor, finalgambit,
+ * fissure, guillotine, horndrill, metalburst, mirrorcoat, nightshade, seismictoss, sheercold,
+ * superfang -- so a member added later is picked up without editing this file.
+ *
+ * `-immune` IS NOT IN THIS SET AND MUST NOT BE. `runImmunity` sits ABOVE all four early returns, so
+ * Seismic Toss still does nothing to a Ghost and still says so. */
+function damageIsComputed(moveId){ return !(moveId&&TAGS.has('move',moveId,'fixedDamage')); }
 function critChance(moveId,att,defAbility){
   /* THE DEFENDER ARRIVES AS AN ABILITY STRING, NOT A BODY, so a Mold Breaker attacker can hand in the
    * SUPPRESSED ability (WIRE 37) without this function having to know what suppression is. */
   if(defAbility&&TAGS.param('ability',defAbility,'preventsCrit'))return 0;
+  /* ROADMAP #151 -- THE RATE IS ZERO WHEN THERE IS NO DAMAGE FORMULA TO CRIT. Placed here rather than
+   * at the two call sites because a crit is ONE fact: the battle loop's rolled die, `dmgRangeOneHit`'s
+   * `critChance(...) === 1` certain-crit door and every hypothetical price all read this function, and
+   * two copies of the predicate is the shape that let the hit count and the hit damage disagree. */
+  if(!damageIsComputed(moveId)){MEDSEEN.fixedDamageNoCrit++;return 0;}
   const _ac=TAGS.param('move',moveId,'alwaysCrit');
   if(_ac&&+_ac.pCrit===1)return 1;
   let stage=0;
@@ -3115,6 +3307,53 @@ function berryPinchUpdate(m,foes){
   m.curHP=Math.min(m.st.hp,m.curHP+_amt);m.item='';
   if(TR){TR.enditem(m,_it,'[eat]');TR.heal(m,'[from] item: '+_it);}
 }
+/* ROADMAP #144 -- THE BERRY THAT GIVES PP BACK, AND IT COULD NOT EXIST BEFORE PP DID.
+ *
+ * `onUpdate(pokemon) { if (pokemon.moveSlots.some(m => m.pp === 0)) pokemon.eatItem(); }` and then
+ * `onEat`: the FIRST EMPTY slot, else the first below max, +10 (+20 under Ripen), clamped at maxpp
+ * (data/items.ts:3356-3369). Every one of those clauses is a param on the `restoresPP` tag rather
+ * than a constant here, because the amount, the doubling and the slot CHOICE are all mechanic.
+ *
+ * IT SITS WITH THE OTHER TWO BERRY `onUpdate`s AND IS CALLED FROM THE SAME TWO PLACES, so a Leppa
+ * cannot fire on a different clock from a Sitrus. Unnerve stops the other side eating at all, which
+ * is why that gate wraps the whole block and not only the restore -- identical to berryPinchUpdate,
+ * and for the identical reason: an unnerved berry is still THERE afterwards.
+ *
+ * `_ppMaxOf` re-reads the artifact rather than caching a max on the body, because `ppLeft` derives a
+ * slot lazily and a body may legitimately have no entry for a move it has not clicked yet. */
+function berryPPUpdate(m,foes){
+  if(!m||m.fainted||m.curHP<=0)return;
+  const _rp=TAGS.param('item',m.item,'restoresPP');
+  if(!_rp||!(+_rp.amount>0))return;
+  const mv=(m.moves||[]);
+  if(!mv.length)return;
+  if(foes&&foes.some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksBerries')))return;
+  /* THE TRIGGER IS AN EMPTY SLOT, and it is read off the tag (`eatsWhenASlotEmpties`) rather than
+   * assumed -- a berry that ate whenever ANY slot was below max would be gone on turn two. */
+  let pick=null;
+  if(_rp.eatsWhenASlotEmpties){ for(const id of mv){ if(ppLeft(m,id)===0){pick=id;break;} } }
+  if(!pick)return;
+  /* `onEat` prefers an EMPTY slot and falls back to the first below max -- the fallback matters for
+   * the paths that eat a Leppa for another reason (Bug Bite, Fling, Natural Gift), which this engine
+   * does not route here today. Written from the handler anyway so the reader is complete. */
+  if(!_rp.prefersEmptySlot){ for(const id of mv){ const l=ppLeft(m,id); const mx=ppMax(id);
+    if(l!=null&&mx!=null&&l<mx){pick=id;break;} } }
+  const mx=ppMax(pick); if(mx==null)return;
+  /* RIPEN IS NOT MODELLED, AND IT IS DECLARED RATHER THAN QUIETLY FLATTENED. The handler doubles the
+   * restore (`hasAbility('ripen') ? 20 : 10`), the tag carries `ripenAmount: 20`, and this engine has
+   * no `doublesBerryEffect` tag for ANY of Ripen's effects -- so a branch reading one here would be a
+   * lookup that can never return, which is exactly the silent default this file counts everywhere
+   * else. Legal carriers in Reg M-B: Flapple and Appletun, 0 corpus uses between them. It is a real
+   * gap and it belongs to whoever wires Ripen's other halves, not to a Leppa reader. */
+  const amt=+_rp.amount;
+  if(+_rp.ripenAmount>0&&TAGS.has('ability',m.ability,'damageReduce')&&String(m.ability||'')==='ripen')
+    MEDFAILS.ripenBerryBoostUnmodelled++;
+  const _it=m.item;
+  m._pp[String(pick).toLowerCase().replace(/[^a-z0-9]/g,'')]=Math.min(mx,ppLeft(m,pick)+amt);
+  m.item='';
+  MEDSEEN.ppRestoredByItem++;
+  if(TR){TR.enditem(m,_it,'[eat]');TR.act(m,'item: '+_it);}
+}
 /* WHAT GOES THROUGH A SUBSTITUTE. Showdown's flag is `bypasssub` and NO artifact this engine reads
  * carries it -- data/move-effects.js has no flags block and data/abra-tags.js has no tag for it. So
  * it is a SET here, derived once over MC.moves against the format at the pinned commit and re-derived
@@ -3308,6 +3547,13 @@ function spendChargeOnMove(m,mvId,mv,field){
 }
 function effMoveType(mv,moveId,field,att){
   let t=mv?mv.t:'';
+  /* ROADMAP #144 -- AN UNCONDITIONAL SELF-REWRITE WINS OVER EVERYTHING, AND IT IS FIRST FOR A REASON.
+   * Struggle's `onModifyMove` sets `move.type = '???'` before any other type machinery could run, and
+   * `???` has no row in the chart -- so `mcEff` answers x1 against every defender, which is what
+   * typeless means. Placed above the ability conversion because a Pixilate Struggle is still typeless
+   * in the authority: the move's own handler runs and there is nothing Normal left to convert. */
+  {const _st=moveId&&TAGS.param('move',moveId,'setsOwnTypeAlways');
+   if(_st&&_st.type) return _st.type;}
   const _cm=convertsMoveTypeTo(mv,moveId,att,t);
   if(_cm)t=_cm.into;
   const w=moveId&&TAGS.param('move',moveId,'weatherScaled');
@@ -3956,7 +4202,13 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * The DEFENDER's own body is untouched -- types, stats and boosts all still apply -- because Mold
    * Breaker ignores the ABILITY and nothing else. Levitate is the sharpest case and the probe uses it:
    * a hard zero becomes a number, which no partial implementation can fake. */
-  const defAb=TAGS.param('ability',attAb,'ignoresDefenderAbility')?'none':def.ability;
+  /* ROADMAP #141 -- THROUGH THE ONE READER. This line spelled the suppression out by hand
+   * (`TAGS.param(...)?'none':def.ability`) and so did the battle loop's `suppressedAbility`, which is
+   * two implementations of one fact -- and when the `breakable` gate arrived, a hand-spelled copy
+   * here would have kept blanking Rough Skin and Steadfast while the loop stopped. The category is
+   * derived from the move so a category-gated breaker (Mycelium Might) is answered rather than
+   * guessed; dmgRange is only ever handed a damaging move, so it is never 'Status' here. */
+  const defAb=suppressedAbility(att,def,mv&&mv.bp>0?(mv.c==='P'?'Physical':'Special'):'Status');
   const _critHere=!!isCrit||!!(mv.id&&critChance(mv.id,null,defAb)===1);
   /* WIRE 94 -- UNAWARE (294 uses), the ABILITY half of `ignoresStatStages`. The MOVE half (Sacred
    * Sword, Darkest Lariat) has been live all along under the `ignoresBoosts` tag read two lines
@@ -3966,8 +4218,10 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * ignores the attacker's offensive stages; attacking, it ignores the defender's defensive stages.
    * A Mold Breaker attacker ignores the defender's Unaware, through the same suppression the other
    * defender-ability reads use. */
-  const _uaDef=!TAGS.param('ability',att.ability,'ignoresDefenderAbility')
-    &&TAGS.param('ability',def.ability,'ignoresStatStages');
+  /* ROADMAP #141 -- and this one asked the SAME question a third way. `defAb` one screen up is
+   * already "the ability this defender effectively has", so Unaware is read off that: it IS breakable,
+   * so a Mold Breaker still ignores it, and now for the artifact's reason rather than by coincidence. */
+  const _uaDef=TAGS.param('ability',defAb,'ignoresStatStages');
   const _uaAtt=TAGS.param('ability',att.ability,'ignoresStatStages');
   /* ROADMAP #81 WIRE 11 -- A CRIT IGNORES *ONE SIGN* OF EACH STAGE, AND THE SIGN IS THE WHOLE RULE.
    *
@@ -4771,11 +5025,44 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
  * caller has drawn one and only falls back to `expectedHitsOf` for a PRICE, and the weight vector it
  * builds for the price sums to exactly that expectation (checked, and a mismatch is counted rather
  * than absorbed). */
+/* ROADMAP #151 -- AND THE PACKETS ARE HANDED BACK, because the BATTLE LOOP is the only thing that can
+ * apply them and it had no way to ask. `wantFirst` (ROADMAP #139) hands back ONE packet because a
+ * Focus Sash is a question about one arrival; `wantPackets` hands back ALL of them because Showdown
+ * runs `spreadMoveHit` once per hit and emits effectiveness, the crit and `-damage` inside each pass.
+ *
+ * THE FLAT PATH'S PACKETS ARE DERIVED, NOT RE-PRICED, and the arithmetic is exact rather than close:
+ * `dmgRangeOneHit` returns `floor(roll(85) * n)` and `roll()` is an integer, so for an integer count
+ * the range divides by `n` with no remainder and each packet is `min/n .. max/n`. A count that does
+ * NOT divide is a PRICE (`expectedHitsOf`'s 3.1, which no real turn hands in) and hands back nothing
+ * rather than an invented split.
+ *
+ * `hitcountable` IS SHOWDOWN'S OWN CONDITION, asked of the plan rather than of a name list:
+ * `if (move.multihit && typeof move.smartTarget !== 'boolean' && !(move.hit === 1 && parentalbond))`
+ * (data/mods/champions/scripts.ts:547). `move.multihit` is set by the `multiHit` tag, by Beat Up's
+ * own `onModifyMove` (`move.multihit = move.allies.length`) and by Parental Bond's -- all three of
+ * which are plan shapes here. The smartTarget half is the BATTLE LOOP's, because only it knows how
+ * many bodies survived to take a dart. Measured in the authority: Beat Up prints `|-hitcount|...|4`
+ * and a Parental Bond Body Slam prints `|-hitcount|...|2`. */
 function dmgRange(att,def,mv,field,spread,isCrit,hit){
   const _plan=hitPlanOf(att,mv,hit,spread);
   if(hit&&+hit.hits>0)MEDSEEN.multiHitRolledCount++;
-  if(!_plan.perHitPower)return dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,1,_plan.total);
+  if(hit&&hit.wantPackets){
+    hit.packets=null;
+    hit.hitcountable=!!(_plan.alliesPlan||_plan.bondPlan||(mv&&mv.id&&TAGS.has('move',mv.id,'multiHit')));
+  }
+  if(!_plan.perHitPower){
+    const _flat=dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,1,_plan.total);
+    if(hit&&hit.wantPackets){
+      const _n=Math.round(_plan.total);
+      if(_n>1&&Math.abs(_plan.total-_n)<1e-9&&_flat.max>0&&_flat.min%_n===0&&_flat.max%_n===0){
+        hit.packets=[];
+        for(let i=0;i<_n;i++)hit.packets.push({min:_flat.min/_n,max:_flat.max/_n});
+      }
+    }
+    return _flat;
+  }
   MEDSEEN.perHitDamageLoop++;
+  if(hit&&hit.wantPackets)hit.packets=[];
   const _wantRolls=!!(hit&&Array.isArray(hit.rolls));
   const _acc=_wantRolls?new Array(16).fill(0):null;
   let _mn=0,_mx=0,_eff=1;
@@ -4798,6 +5085,13 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
      * Written onto the caller's hit context only when it asked (`wantFirst`), so every other caller
      * draws exactly what it drew before. */
     if(h===1&&hit&&hit.wantFirst){hit.firstMin=_r.min;hit.firstMax=_r.max;}
+    /* ROADMAP #151 -- the whole vector, for the caller that has to APPLY them one at a time. Only the
+     * unweighted packets are real arrivals: a `w` below 1 is a PROBABILITY of the hit happening at all
+     * (the price path's `hitWeightsOf`), and a fractional packet is not something a turn can deal. */
+    if(hit&&Array.isArray(hit.packets)){
+      if(_w===1)hit.packets.push({min:_r.min,max:_r.max});
+      else hit.packets=null;
+    }
     _eff=_r.eff;_mn+=_w*_r.min;_mx+=_w*_r.max;
     if(_wantRolls&&_sub.rolls.length===16)for(let i=0;i<16;i++)_acc[i]+=_w*_sub.rolls[i];
   }
@@ -4841,7 +5135,9 @@ function hitPlanOf(att,mv,hit,spread){
   const _vp=id&&TAGS.param('move',id,'variablePower');
   if(_vp&&_vp.kind==='alliesBaseAtk'&&_vp.perAlly){
     const n=Math.max(1,beatUpAllies(att,_vp).length);
-    return {n,w:new Array(n).fill(1),total:n,perHitPower:true};
+    /* ROADMAP #151 -- `alliesPlan` is the authority's `move.multihit = move.allies.length`, named on
+     * the plan so `dmgRange` can answer the `-hitcount` question without re-deriving it from the tag. */
+    return {n,w:new Array(n).fill(1),total:n,perHitPower:true,alliesPlan:true};
   }
   const perHitPower=!!(_vp&&_vp.kind==='perHitEscalates'&&+_vp.per>0);
   const rolled=(hit&&+hit.hits>0)?Math.floor(+hit.hits):0;
@@ -4864,7 +5160,7 @@ function hitPlanOf(att,mv,hit,spread){
    * later in the turn. */
   {
     const _bm=bondMultFor(att,id,spread,rolled,perHitPower);
-    if(_bm!=null){MEDSEEN.parentalBondPlanned++;return {n:2,w:[1,1],total:2,perHitPower:true,perHit:{bondMult:_bm}};}
+    if(_bm!=null){MEDSEEN.parentalBondPlanned++;return {n:2,w:[1,1],total:2,perHitPower:true,bondPlan:true,perHit:{bondMult:_bm}};}
   }
   if(rolled>0)return {n:rolled,w:new Array(rolled).fill(1),total:rolled,perHitPower};
   const total=expectedHitsOf(id);
@@ -5376,10 +5672,38 @@ function illegalMoveNow(me,id){
   if(me._noSound>0&&TAGS.has('move',id,'sound'))return true;
   if(me._noRepeat===id)return true;
   if(volatileForbidsMove(me,id)){ MEDSEEN.tauntRefusedAtSelection++; return true; }
+  /* ROADMAP #144 -- AN EMPTY SLOT IS NOT ON THE MENU. Showdown never OFFERS a 0-PP move
+   * (`Pokemon#getMoves` marks it disabled, and `Side#choose` rejects it), so the `|cant|nopp` path at
+   * execution is only reachable through a caller that supplies the click itself. This is the menu
+   * half, and it sits with Taunt and Disable because it is the same question: may this body select
+   * this move right now. An unknown PP (null) is NOT a refusal -- see ppLeft. */
+  {const _l=ppLeft(me,id); if(_l!=null&&_l<=0){ MEDSEEN.ppRefusedAtSelection++; return true; }}
   return false;
 }
 function chooseAction(me,foes,ally,field,side,rng){
   const _illegal=id=>illegalMoveNow(me,id);
+  /* ROADMAP #144 -- STRUGGLE, AND IT IS THE MENU AND NOT A FALLBACK. `Pokemon#getMoveRequestData`
+   * (sim/pokemon.ts:1109): `else if (!moves.length) { moves = [{move:'Struggle', ...}]; lockedMove =
+   * 'struggle'; }`. So Struggle is not something the engine reaches for when it is confused -- it is
+   * literally the only button on the screen once every slot is empty, which is why this is asked
+   * ABOVE the illegal-move filter rather than inside its `if (_keep.length)` branch.
+   *
+   * `ppAllOut` asks the PP question ONLY. A body whose moves are all Taunted or Disabled has a
+   * different remedy in the authority (Disable cannot cover every slot; Taunt leaves the attacks) and
+   * inventing a Struggle for it would be a new wrong behaviour, so the condition is deliberately
+   * narrow and the existing filter below still owns those cases. */
+  if(ppAllOut(me)){
+    const _sl=(foes||[]).filter(f=>f&&!f.fainted&&f.curHP>0);
+    if(_sl.length){
+      const _st=_sl[Math.floor(rng()*_sl.length)%_sl.length];
+      let _sa=null;
+      try{ _sa=playerAction(me,'struggle',_st,field); }catch(e){ MEDFAILS.struggleUnbuilt++; }
+      if(_sa&&_sa.kind==='attack'){ MEDSEEN.struggleUsed++; return _sa; }
+      /* Falling through would hand back a click the body cannot pay for, which the execution gate
+       * then refuses -- a silent no-op turn dressed as a decision. Counted instead. */
+      MEDFAILS.struggleUnbuilt++;
+    }
+  }
   if(me&&me.moves&&me.moves.length>1&&me.moves.some(_illegal)){
     const _save=me.moves;
     const _keep=_save.filter(id=>!_illegal(id));
@@ -5914,9 +6238,58 @@ const POWDER=new Set(['spore','sleeppowder','stunspore','poisonpowder','cottonsp
  * `att` IS OPTIONAL AND THE ABSENCE IS NOT A SILENT DEFAULT -- a caller with no attacker (a chooser
  * scoring a hypothetical, board.js pricing a click) genuinely has nobody to suppress with, and
  * returning the raw ability is the right answer for that question rather than a fallback. */
-function suppressedAbility(att,def){
+/* ROADMAP #141 -- MOLD BREAKER ONLY BREAKS WHAT IS BREAKABLE, AND THIS FUNCTION USED TO BREAK
+ * EVERYTHING. Will: *"DOES TINKATON MOLD BREAKER FAKE OUT FLINCH A MON WITH INNER FOCUS? IDK WHAT THE
+ * ANSWER SHOULD BE"*. The answer is yes -- and the same click into STEADFAST must still grant the +1
+ * Speed, because Steadfast is not breakable. Two abilities that look like siblings, opposite answers.
+ *
+ * THE AUTHORITY'S OWN CLAUSE, and it is one line (sim/battle.ts:837, and again at :602 for SwitchIn):
+ *
+ *     if (effect.effectType === 'Ability' && effect.flags['breakable'] &&
+ *         this.suppressingAbility(effectHolder as Pokemon)) { ... continue; }
+ *
+ * `flags.breakable` -- NOT `isBreakable`, which is `undefined` on every ability in this format, so a
+ * lookup through it concludes Mold Breaker suppresses nothing and passes its own test. 82 abilities
+ * carry the flag here (data/tags.json, derived in engine/tag_dex.js).
+ *
+ * TWO MORE CLAUSES OFF `suppressingAbility` ITSELF (sim/battle.ts:365), both real and both cheap:
+ *   - `this.activePokemon !== target` for gen >= 8: a Mold Breaker body does NOT suppress its OWN
+ *     ability. Without this, asking `suppressedAbility(m, m)` -- which the engine does whenever an
+ *     attacker is also the subject -- would blank a Mold Breaker's own Sturdy.
+ *   - `!target.hasItem('Ability Shield')`: the item refuses the whole mechanism.
+ *
+ * `onlyCategory` IS HONOURED because Mycelium Might sets `ignoreAbility` for STATUS moves only. It has
+ * no legal carrier in Reg M-B today, so the branch is written from the handler and counted rather than
+ * trusted: a caller that cannot say which category the move is gets NO suppression from a
+ * category-gated breaker, and says so.
+ *
+ * WHAT THIS CHANGES, SAID PLAINLY: before this, a Mold Breaker attacker blanked Rough Skin, Static,
+ * Flame Body, Steadfast, Cursed Body, Weak Armor, Anger Point and the Ruin abilities -- none of which
+ * are breakable and all of which apply in the real game. */
+function abilityIsBreakable(ab){ return !!TAGS.param('ability',ab,'breakable'); }
+/* ROADMAP #141 -- "DOES THIS ABILITY REFUSE A FLINCH", ASKED OF THE ARTIFACT. Three separate sites in
+ * the secondary loop (the move's own flinch, King's Rock, Fling) each carried the literal
+ * `tgAb === 'innerfocus'`, which is the same fact written three times and never derived. It is
+ * `refusesVolatile.refuses` including 'flinch' -- the identical tag applyConfusion already reads for
+ * Own Tempo, so the two roads cannot disagree. Membership over the format: exactly one ability,
+ * Inner Focus. Handed the EFFECTIVE ability, so a Mold Breaker deletes the refusal. */
+function refusesFlinch(ab){
+  const rv=TAGS.param('ability',ab,'refusesVolatile');
+  return !!(rv&&Array.isArray(rv.refuses)&&rv.refuses.indexOf('flinch')>=0&&!rv.requiresForme);
+}
+function suppressedAbility(att,def,mvCategory){
   if(!def)return 'none';
-  return (att&&TAGS.param('ability',att.ability,'ignoresDefenderAbility'))?'none':def.ability;
+  if(!att||att===def)return def.ability;
+  const _b=TAGS.param('ability',att.ability,'ignoresDefenderAbility');
+  if(!_b)return def.ability;
+  if(_b.onlyCategory){
+    if(!mvCategory){ MEDFAILS.categoryGatedBreakerNoCategory++; return def.ability; }
+    if(String(mvCategory)!==String(_b.onlyCategory))return def.ability;
+  }
+  if(!abilityIsBreakable(def.ability))return def.ability;
+  if(String(def.item||'').replace(/[^a-z0-9]/g,'')==='abilityshield')return def.ability;
+  MEDSEEN.abilityBrokenByMoldBreaker++;
+  return 'none';
 }
 /* WIRE 128 -- ONE ANSWER TO "HOW EFFECTIVE IS THIS MOVE AGAINST THIS BODY", AND IT TAKES THE ATTACKER.
  *
@@ -7143,10 +7516,43 @@ function formeSwap(mon,becomes,why){
    * Palafin and Palafin-Hero are both 100 base HP, so a proportional rescale here would round a body
    * off its own total for no reason at all -- and Showdown's formeChange does not touch `hp` either.
    * The rescale survives for the member whose total DOES move, and it says which case it is for. */
+  /* ROADMAP #151 -- THE SPREAD SURVIVES THE FORME, AND IT DID NOT. `buildMon(key,{})` returns the NEW
+   * species carrying the SP investment the DATASET stores for it, so this line used to throw away
+   * whatever spread the body in play actually had and adopt a stranger's. Showdown's `formeChange`
+   * changes the SPECIES and recomputes from the SAME EVs, IVs and nature -- the investment is a
+   * property of the trainer's set, not of the forme.
+   *
+   * MEASURED, and it is what made Stance Change land 31% too hard on its first wire: the
+   * constructed-game run builds a 0-SP Aegislash under `Serious`, and the Blade body arrived with the
+   * usage table's spread instead. Iron Head read 59 here against the authority's 45, Head Smash 150
+   * against 114 -- the same 1.31x on five different moves, which is the signature of a stat and not
+   * of a formula. Gyro Ball went the OTHER way (33 against 36) because its power falls with the
+   * user's Speed, which is the same wrong spread seen from the other end.
+   *
+   * THE TRANSFORM IS `buildMon`'S OWN, one function up: take the SP the stored line implies (the
+   * body's stat minus its CURRENT species' level-50 base line) and re-apply it to the new species'
+   * base line. That is exactly what the mega branch of `buildMon` does and for exactly this reason,
+   * so the two roads cannot disagree. A row without base stats cannot be rebased and falls back to
+   * the built line -- COUNTED, never silent. */
+  let _st=nu.st;
+  {
+    const _old=monRow(mon.name), _new=monRow(key);
+    if(_old&&_old.bs&&_new&&_new.bs){
+      const _ob=l50(_old.bs), _nb=l50(_new.bs);
+      _st={hp:_nb.hp+(mon.st.hp-_ob.hp), at:_nb.at+(mon.st.at-_ob.at), df:_nb.df+(mon.st.df-_ob.df),
+           sa:_nb.sa+(mon.st.sa-_ob.sa), sd:_nb.sd+(mon.st.sd-_ob.sd), sp:_nb.sp+(mon.st.sp-_ob.sp)};
+    } else {
+      MEDFAILS.formeSwapNoBaseStats++;
+      if(!MEDFAILS.formeSwapNoBaseStatsFirst)MEDFAILS.formeSwapNoBaseStatsFirst=mon.name+' -> '+key;
+    }
+  }
   const frac=mon.curHP/mon.st.hp;
-  const sameHP=nu.st.hp===mon.st.hp;
-  mon.name=nu.name; mon.types=nu.types; mon.st=nu.st;
-  mon.curHP=sameHP?Math.min(mon.curHP,nu.st.hp):Math.max(1,Math.round(nu.st.hp*frac));
+  const sameHP=_st.hp===mon.st.hp;
+  mon.name=nu.name; mon.types=nu.types; mon.st=_st;
+  /* WIRE 83's field follows the species standing on the field, for the same reason the stats do:
+   * Beat Up asks the BASE Attack of the body throwing the punch. */
+  {const _nr=monRow(key); if(_nr&&_nr.bs&&_nr.bs.atk)mon._bsAtk=_nr.bs.atk;}
+  mon.curHP=sameHP?Math.min(mon.curHP,_st.hp):Math.max(1,Math.round(_st.hp*frac));
   MEDSEEN.formeSwapped++;
   if(TR)TR.detailschange(mon);
   return key;
@@ -8304,7 +8710,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       for(const x of actB)if(x&&!x.fainted&&x.curHP>0)_all.push({m:x,s:'B'});
       for(const e of _all)e.spe=effSpeed(e.m,field,e.s);
       _all.sort((p,q)=>q.spe-p.spe);
-      for(const e of _all){berryCureUpdate(e.m);berryPinchUpdate(e.m,e.s==='A'?actB:actA);}
+      for(const e of _all){berryCureUpdate(e.m);berryPinchUpdate(e.m,e.s==='A'?actB:actA);berryPPUpdate(e.m,e.s==='A'?actB:actA);}
       /* ROADMAP #81 WIRE 11 -- `onAnyAfterMove` AND `onAnySwitchIn` FOR THE MID-TURN CASES, both of
        * White Herb's remaining triggers, landed on the pass that already runs after every action.
        * This is where the Unburden half becomes real: `_updateAll` runs BEFORE each action and the
@@ -8665,6 +9071,62 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(TR)TR.cant(m,'move: '+_traceForbidder(m),_fid);
           continue; }
       }
+      /* ROADMAP #144 -- PP IS SPENT HERE, AND THE POSITION IS THE MECHANIC EXACTLY AS THE MOVE LINE'S
+       * IS. `sim/battle-actions.ts:282`, inside `runMove`:
+       *
+       *     if (!externalMove) {
+       *       const lockedMove = pokemon.getLockedMove();
+       *       if (!lockedMove) {
+       *         if (!pokemon.deductPP(baseMove, null, target) && (move.id !== 'struggle')) {
+       *           this.battle.add('cant', pokemon, 'nopp', move);
+       *           ... return;
+       *         }
+       *       }
+       *       pokemon.moveUsed(move, targetLoc);
+       *     }
+       *
+       * so it is BELOW every BeforeMove refusal -- a body that is asleep, frozen, flinched, confused
+       * out, paralysed, recharging, silenced by Throat Chop or refused by Taunt spends NO PP -- and
+       * ABOVE the `|move|` announcement, which is emitted inside `useMoveInner` one call further in.
+       * Every one of those refusals sits above this line already and `continue`s out, so the ordering
+       * is inherited rather than restated.
+       *
+       * FOUR EXEMPTIONS, EACH BECAUSE THE AUTHORITY EXEMPTS IT:
+       *   - a LOCKED move (`getLockedMove`) pays nothing. In this engine that is `_lock` with a
+       *     FINITE `_lockT` -- the rampage/Uproar lock. A Choice lock is `_lockT === Infinity` and is
+       *     NOT `getLockedMove` in the authority either, so a Choice holder pays every turn.
+       *   - STRUGGLE pays nothing (`move.id !== 'struggle'` is written into the guard itself).
+       *   - a SWITCH, a PASS and the struggle kind are not move actions at all.
+       *   - a body with no PP row for the move pays nothing and says so through `MEDFAILS`.
+       *
+       * PRESSURE IS CHARGED ON THE SAME LINE and is deliberately not deferred to the resolution
+       * branches. The authority charges it a few statements later (inside `useMoveInner`, after the
+       * targets are resolved), and the only observable difference would be a move that resolves to no
+       * target at all -- which this engine's own `_pt` list already answers, since it is built from
+       * the living bodies the action actually aims at. */
+      {
+        const _ppId=actionMoveId(a);
+        const _locked=!!(m._lock&&m._lockT!==Infinity&&m._lock===_ppId);
+        if(_ppId&&_ppId!=='struggle'&&!_locked&&a.kind!=='switch'&&a.kind!=='pass'&&a.kind!=='struggle'
+           &&ppLeft(m,_ppId)!=null){
+          if(ppDeduct(m,_ppId,1)<=0){
+            /* `|cant|POKEMON|nopp|MOVE` -- the authority's own line, and it is reachable from here
+             * only through a CALLER-SUPPLIED click, because the chooser refuses an empty slot one
+             * level up. Counted apart from the selection refusal for exactly that reason: the two
+             * numbers say which road the engine took. */
+            MEDSEEN.ppRefusedAtExecution++;
+            m._mvRes=false; if(TR)TR.cant(m,'nopp',_ppId);
+            continue;
+          }
+          /* THE TARGET LIST FOR PRESSURE IS THE ONE THE CLICK AIMS AT, not "the foes". A single-target
+           * move charges one body; a spread move charges each living foe it reaches. */
+          const _pFoes=it.side==='A'?actB:actA;
+          const _pt=(a.target&&!SPREAD.has(_ppId))?[a.target]
+                   :(SPREAD.has(_ppId)?live(_pFoes):(a.target?[a.target]:[]));
+          const _ex=ppPressureExtra(_pt,m);
+          if(_ex>0) ppDeduct(m,_ppId,_ex);
+        }
+      }
       /* ROADMAP #68 -- `|move|USER|MOVE|TARGET`, AND ITS POSITION IS THE MECHANIC.
        *
        * Showdown emits the move line inside `useMoveInner` (sim/battle-actions.ts:453) AFTER the
@@ -8678,6 +9140,55 @@ function battleTurn(S,rng,actsForA,actsForB){
        * A bare switch carries no move and emits none. Showdown names the USER as the target of a
        * self-targeting move (`|move|p1b: Whimsicott|Tailwind|p1b: Whimsicott`), which is why the
        * fallback is `m` rather than an empty field. */
+      /* ================= ROADMAP #151 -- STANCE CHANGE, AND ITS POSITION IS THE MECHANIC ===========
+       *
+       * `stancechange.onModifyMovePriority: 1` and `onModifyMove` run when the move is SET UP, so the
+       * authority emits `|-formechange|p1a: Aegislash|Aegislash-Blade|` BEFORE the `|move|` line and
+       * the damage is then computed off the NEW body. Measured turn by turn in a real Champions
+       * battle: Swords Dance leaves the forme alone, Iron Head flips it to Blade, King's Shield flips
+       * it back, and a second Iron Head flips it to Blade again.
+       *
+       * THIS IS EIGHT OF THE CONSTRUCTED-GAME RUN'S DIVERGENCE ROWS AND ONE ABILITY. `stancechange`
+       * appeared ZERO times in this file, so every Aegislash attack was priced at the Shield forme's
+       * 50 base Attack against the Blade forme's 140 -- Iron Head 21 here against the authority's 45.
+       *
+       * THE THREE TRAPS, EACH READ OFF THE HANDLER RATHER THAN REMEMBERED:
+       *   1. A STATUS MOVE IS A NO-OP, NOT A REVERT. `if (move.category === 'Status' && move.id !==
+       *      'kingsshield') return` -- a Blade-forme Aegislash that clicks Swords Dance STAYS in
+       *      Blade. An engine that reverted on "not an attack" would sheathe the sword on every setup
+       *      turn, and the tag carries `revertsOnStatus: false` so that is stated rather than assumed.
+       *   2. THE REVERT IS ONE NAMED MOVE, and it arrives as `revertOn` from the handler's own
+       *      ternary rather than as the string 'kingsshield' typed here.
+       *   3. THE BODY IS REBUILT, NOT RENAMED. `sameStats` is false -- the stats moving IS the
+       *      mechanic -- so this goes through `formeSwap`, which builds the Blade row out of
+       *      `data/engine-data.js` (that file HAS an `aegislash-blade` row; a member without one is
+       *      counted by formeSwap rather than silently left in the wrong forme).
+       *
+       * THE ANNOUNCEMENT IS `-formechange`, NOT `detailschange`. `formeChange()` with no `isPermanent`
+       * takes the else branch of `sim/pokemon.ts` and writes `-formechange`; `detailschange` is the
+       * PERMANENT shape and is what a mega evolution emits. `formeSwap` writes the permanent line, so
+       * this call site suppresses it and writes its own -- the two lines mean different things to a
+       * client and to a differ, and emitting the wrong one is a false agreement. */
+      {
+        const _scP=TAGS.param('ability',m.ability,'formeOnMoveCategory');
+        const _scMv=_scP&&actionMoveId(a);
+        if(_scP&&_scMv&&(!_scP.onlyBaseSpecies||String(m.name||'').indexOf(pasteKey(_scP.onlyBaseSpecies))===0)){
+          const _scCat=(a.move&&a.move.mv&&a.move.mv.c)||'';
+          const _isRevert=(_scMv===_scP.revertOn);
+          /* A status click that is not the revert move changes NOTHING -- trap 1. `c` is 'P'/'S' for
+           * the two damaging categories and anything else is Status in this table. */
+          if(_isRevert||_scCat==='P'||_scCat==='S'){
+            const _want=_isRevert?_scP.restForme:_scP.attackForme;
+            const _wantKey=pasteKey(_want);
+            if(_wantKey&&m.name!==_wantKey){
+              const _prevTR=TR;TR=null;                 // formeSwap's `detailschange` is the wrong line here
+              const _got=formeSwap(m,_want,'stanceChange');
+              TR=_prevTR;
+              if(_got){MEDSEEN.stanceChanged++;if(TR)TR.formechange(m,_want,m.ability);}
+            }
+          }
+        }
+      }
       {
         /* ROADMAP #81 WIRE 6 -- THE GATE IS "IS THERE A MOVE", AND IT USED TO BE "IS THERE A MOVE AND
          * IS THE KIND ONE I LIKE". `a.kind!=='pass'` stood here because a `pass` action carried no id
@@ -11360,7 +11871,18 @@ function battleTurn(S,rng,actsForA,actsForB){
            * landed instead of the 3.1 it prices a hypothetical one with. Only ever set above 1 for a
            * move the artifact calls multi-hit; every other caller of dmgRange leaves it absent and
            * keeps the expectation, which is the right object for a price. */
-          if(_hitsThisUse>1)c.hits=_hitsThisUse;
+          /* ROADMAP #151 -- AND A COUNT OF *ONE* IS ALSO A DRAWN COUNT. `> 1` left `hit.hits` unset
+           * whenever the per-hit accuracy roll stopped a volley at its first hit, and an unset count
+           * sends `hitPlanOf` to `expectedHitsOf` -- the PRICE. So a Triple Axel whose second hit
+           * missed was dealt 1 + 0.9 + 0.81 hits of escalating damage instead of the one hit that
+           * landed. The guard is now "the artifact calls this move multi-hit", which is the same test
+           * the old `> 1` was standing in for and does not accidentally exclude the drawn 1. */
+          if(_hitsThisUse>1||(_hitsThisUse===1&&TAGS.param('move',a.move.id,'multiHit')))c.hits=_hitsThisUse;
+          /* ROADMAP #151 -- ASK dmgRange FOR THE WHOLE PACKET VECTOR. Costs nothing for a single-packet
+           * click (the field is simply never written) and it is what the per-hit application below
+           * reads. `wantFirst` above is the same road for one packet and stays, because a plan that
+           * cannot be split (a fractional weight vector) still owes the Focus Sash its first arrival. */
+          c.wantPackets=true;
           /* ROADMAP #139 -- ASK dmgRange TO HAND BACK THE FIRST PACKET. It costs nothing for a move
            * with one packet (the field is simply never written) and it is what the Focus Sash reads. */
           c.wantFirst=true;
@@ -11429,7 +11951,21 @@ function battleTurn(S,rng,actsForA,actsForB){
           * scope. Same expression the trace emits, so the reaction and the `|-crit|` line cannot
           * disagree about whether it happened. */
          R.crit=(_cc>=1)||(_cc>0&&_cc<1&&_cr<_cc);
-         if(TR){TR.eff(tg,d.eff);if(_cc>=1||(_cc>0&&_cc<1&&_cr<_cc))TR.crit(tg);}}
+         /* ROADMAP #151 -- THE TWO ANNOUNCEMENTS, AND WHICH STEP OWNS THEM.
+          *
+          * `R.effShow` is 0 for the fixed-damage family: `getDamage`'s four early returns are above
+          * the type chart AND above the crit die, so Seismic Toss, Super Fang and the OHKO moves
+          * announce neither. `damageIsComputed` is the one predicate, read here and in `critChance`.
+          *
+          * A SINGLE-PACKET CLICK STILL EMITS FROM THIS STEP, and that placement is not incidental:
+          * for a SPREAD move Showdown prices every target inside `getSpreadDamage` -- emitting each
+          * body's effectiveness and crit -- before `spreadDamage` moves any HP, which is exactly the
+          * step-outside/target-inside order this loop already has. A MULTI-PACKET click is the other
+          * shape: `spreadMoveHit` runs once per HIT, so the three lines repeat per arrival, and they
+          * are handed to the apply step to emit beside the damage they belong to. */
+         const _multiPk=Array.isArray(_hitCtx.packets)&&_hitCtx.packets.length>1;
+         R.effShow=damageIsComputed(a.move.id)?d.eff:0;
+         if(TR&&!_multiPk){TR.eff(tg,R.effShow);if(R.crit)TR.crit(tg);}}
         /* WIRE 4 -- `modifyDamage` spends this one through `modify` too (battle-actions.ts:1821),
          * and x0.25 is NOT a value where a truncation and a round-half-up agree. */
         if(tg.protect&&!_thruProtect)dmg=md4096(dmg,0.25);   // Piercing Drill: contact hits through Protect for 25%
@@ -11442,6 +11978,41 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _fr=Math.min(_roll,Math.max(0,_hitCtx.firstMax-_hitCtx.firstMin));
           R.first=Math.min(dmg,_hitCtx.firstMin+_fr);
         }
+        /* ROADMAP #151 -- THE VOLLEY, SPLIT INTO THE ARRIVALS IT IS MADE OF.
+         *
+         * `dmg` is one number drawn off the SUMMED range: `d.min + _roll`. The packets are handed
+         * back as ranges, so the split gives each packet its own minimum and then spends the SAME
+         * `_roll` across them in order, each capped by its own span. That is exact rather than
+         * proportional, and it reproduces both pinned corners by construction -- at the bottom
+         * `_roll` is 0 and every packet is its minimum, at the top `_roll` is the whole summed span
+         * and every packet saturates. The sum is asserted, not assumed: a remainder means the total
+         * came from a range the packets did not, and it is COUNTED rather than smeared.
+         *
+         * WHAT THIS DOES NOT REPRODUCE, stated: Showdown draws a randomizer PER HIT, so its interior
+         * rolls differ between packets while this spends one index across them. That is the same
+         * range-versus-sample divergence `dmgRange`'s own header already declares for the summed
+         * form, unchanged by making the packets visible. */
+        if(Array.isArray(_hitCtx.packets)&&_hitCtx.packets.length>1){
+          const _pk=_hitCtx.packets.map(p=>p.min);
+          let _left=dmg-_pk.reduce((x,y)=>x+y,0);
+          for(let i=0;i<_pk.length&&_left>0;i++){
+            const _span=Math.max(0,_hitCtx.packets[i].max-_hitCtx.packets[i].min);
+            const _take=Math.min(_span,_left);_pk[i]+=_take;_left-=_take;
+          }
+          if(_left!==0){
+            MEDFAILS.packetSplitRemainder++;
+            if(!MEDFAILS.packetSplitRemainderFirst)
+              MEDFAILS.packetSplitRemainderFirst=String(a.move.id)+' left '+_left+' of '+dmg;
+          }else{
+            R.pk=_pk;
+            /* THE FIRST ARRIVAL, FOR THE PLANS THAT NEVER HAD ONE. `wantFirst` is written only by the
+             * per-hit loop, so the 2-5 family handed back nothing and a Focus Sash met the whole
+             * volley at full HP -- the divergence WIRE 12 declared in this file and ROADMAP #139
+             * narrowed. It is closed here for every plan that can be split. */
+            if(R.first==null)R.first=_pk[0];
+          }
+        }
+        R.hitcount=!!(_hitCtx.hitcountable&&!_smartTarget);
         R.d=d;R.dmg=dmg;
       };
       /* STEP 7b -- spreadDamage (battle-actions.ts:1079): the HP actually moves, for every target,
@@ -11593,11 +12164,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          *     is off full HP by the time the second arrives (`onlyFromFullHP`);
          *   - a first packet that DOES reach 0 leaves the survivor on 1 and the remainder still lands.
          *
-         * WHAT IT DOES NOT CLAIM. The 2-5 family (Bullet Seed, Icicle Spear) is priced by this engine
-         * as ONE packet with a weighted expectation, so it hands back no first-packet figure and a
-         * Sash still eats the whole volley — the divergence the WIRE 12 comment above already
-         * declares. This wire narrows that gap to the plans that actually run the per-hit loop rather
-         * than closing it, and saying which is which is the point. */
+         * WHAT IT DID NOT CLAIM, AND WHAT ROADMAP #151 CHANGED. This paragraph used to end: "The 2-5 family
+         * (Bullet Seed, Icicle Spear) is priced by this engine as ONE packet with a weighted
+         * expectation, so it hands back no first-packet figure and a Sash still eats the whole volley."
+         * That is no longer true. `_stepDamage` splits the summed range into the arrivals it is made
+         * of, so `R.first` is the FIRST PACKET for every plan that can be split -- the 2-5 family
+         * included -- and a Sash meets one arrival exactly as `onDamage` does. The remainder is
+         * narrower and is COUNTED: a click whose total was rewritten between the price and here
+         * collapses to a single packet and ticks `MEDSEEN.multiHitPacketsCollapsed`. */
         /* ROADMAP #139 -- ENDURE, AND IT IS NOT A PROTECT. The hit LANDS: the damage is dealt, every
          * secondary rolls, every contact punish is paid, and only the HP floors. The roster's receipt
          * is a body that should have been left on 1 and fainted instead -- the volatile was written by
@@ -11636,7 +12210,40 @@ function battleTurn(S,rng,actsForA,actsForB){
          * flag exists for -- Scald, Matcha Gotcha. Cleared BEFORE the damage lands so the thawed
          * target acts normally next turn. */
         if(tg.status==='frz'&&(effMoveType(mv,a.move.id,field,m)==='Fire'||TAGS.has('move',a.move.id,'thawsTarget'))){tg.status='';if(TR)TR.cure(tg,'frz');}
-        tg.curHP-=dmg;
+        /* ================= ROADMAP #151 -- THE HP MOVES ONCE PER ARRIVAL =============================
+         *
+         * `tg.curHP -= dmg` was the whole of a Bullet Seed: one subtraction, one `|-damage|` line, and
+         * the constructed-game run caught it on ten moves at once as "an expected -damage event is
+         * MISSING". Showdown runs `spreadMoveHit` once per hit, so it emits effectiveness, the crit
+         * and `-damage` for EVERY arrival and closes with `|-hitcount|`. Measured under the same pin:
+         * Bullet Seed prints two damage lines and `|-hitcount|p2a: Feraligatr|2`; Beat Up prints four
+         * and `|4`; a Parental Bond Body Slam prints two and `|2`.
+         *
+         * THE VOLLEY STOPS AT A KO, which is the authority's own loop guard
+         * (`if (targets.every(target => !target?.hp)) break`, scripts.ts:464) and is the reason
+         * `-hitcount` reports `hit - 1` rather than the drawn count. Population Bomb into a body it
+         * kills on hit eight reports EIGHT in Showdown, and now here.
+         *
+         * THE TOTAL IS NOT RE-DERIVED FROM THE PACKETS. `dmg` may have been rewritten between the
+         * price and here -- by a Focus Sash, an Endure, a busted Disguise or a hit through Protect --
+         * and in that case the packet shape no longer describes the number being dealt. Rather than
+         * scaling a split that would then be an invention, the volley collapses back to one packet and
+         * the collapse is COUNTED. That is the narrow, declared remainder of the WIRE 12 divergence.
+         * A Sash no longer eats the whole volley for the ordinary case: `R.first` is the FIRST packet
+         * now for every splittable plan, so the item meets one arrival exactly as the authority's
+         * `onDamage` does, and the rewrite path below only runs once it has already fired. */
+        const _packets=(R.pk&&R.pk.length>1&&dmg===R.dmg)?R.pk:null;
+        if(!_packets&&R.pk&&R.pk.length>1)MEDSEEN.multiHitPacketsCollapsed++;
+        if(_packets){
+          let _landed=0;
+          for(let i=0;i<_packets.length;i++){
+            if(tg.curHP<=0)break;
+            if(TR){TR.eff(tg,R.effShow);if(R.crit)TR.crit(tg);}
+            tg.curHP-=_packets[i];_landed++;MEDSEEN.multiHitPacketsDealt++;
+            if(TR)TR.dmg(tg);
+          }
+          if(TR&&R.hitcount&&_landed>0)TR.hitcount(tg,_landed);
+        }else{ tg.curHP-=dmg; if(TR)TR.dmg(tg); }
         /* WIRE 135 -- WHO HIT ME THIS TURN, recorded on the one line every move's damage passes
          * through. `_hitBy` is a SET OF BODIES rather than a flag because Avalanche asks whether THE
          * TARGET damaged it -- a boolean would double off the partner's Earthquake, which is a
@@ -11664,7 +12271,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            * DAMAGED ME, and neither existing field can answer that. Recorded on the same line, so the
            * amount and the source cannot come apart. */
           tg._took.by=m;}
-        if(TR)TR.dmg(tg);
+        /* ROADMAP #151 -- THE `|-damage|` LINE MOVED UP, INTO THE BRANCH THAT MOVED THE HP. It used to
+         * stand here, below the `_took` bookkeeping, which was free while there was exactly one
+         * subtraction to announce. A volley has N, and each has to be announced beside the HP it
+         * produced -- so both branches emit their own line and this site keeps only the state. */
         /* ROADMAP #81 WIRE 11 -- DID THIS PACKET ACTUALLY KILL IT. Read here, once, off the HP that
          * has already moved -- not off `dmg`, which is the number before the Focus Sash and the
          * Disguise above got at it. `tg.fainted` is not set until the bottom of this step (WIRE 10
@@ -12025,7 +12635,14 @@ function battleTurn(S,rng,actsForA,actsForB){
            * damage, and only on a target still standing. Previously ONLY Fake Out could flinch and
            * no attacking move could ever inflict a status, so Rock Slide, Iron Head, Scald, Nuzzle
            * and 207 others were inert. Shield Dust and Sheer Force suppress secondaries entirely. */
-          const tgAb=(tg.ability||'').replace(/[^a-z0-9]/g,'');
+          /* ROADMAP #141 -- THE EFFECTIVE ABILITY, NOT THE RAW ONE, AND THE RAW READ WAS A LIVE BUG.
+           * Every consumer below this line (`dustBlocked`, and the three Inner Focus flinch gates)
+           * asked `tg.ability` directly, so a MOLD BREAKER attacker punched through Levitate in the
+           * damage calc -- which reads `defAb` -- and was refused by Inner Focus and Shield Dust two
+           * hundred lines later, in the same turn, off the same body. Both abilities are `breakable`,
+           * so both must fall. One reader, and it is the same one dmgRange and the phaze branch use.
+           * Measured before it moved: Mold Breaker Fake Out into Inner Focus dealt no flinch at all. */
+          const tgAb=(suppressedAbility(m,tg,a.move&&a.move.mv&&a.move.mv.bp>0?(a.move.mv.c==='P'?'Physical':'Special'):'Status')||'').replace(/[^a-z0-9]/g,'');
           const mAb=(m.ability||'').replace(/[^a-z0-9]/g,'');
           const fx=moveFx(a.move.id);
           /* WIRE 97 -- Sheer Force's suppression half reads its own tag (`removesOwnSecondaries`);
@@ -12041,7 +12658,12 @@ function battleTurn(S,rng,actsForA,actsForB){
            * Shield Dust spe+1, Compound Eyes control spe+1. `suppressed` is kept for the two effects
            * bolted on from outside the move (King's Rock, the procedural status set), where both
            * abilities really do stop the same thing. */
-          const dustBlocked = tgAb==='shielddust';
+          /* ROADMAP #141 -- ASKED OF THE TAG, NOT OF THE NAME. `refusesSecondaries` is what Shield
+           * Dust's `onModifySecondaries` derives to; the literal `'shielddust'` was the only reader
+           * of a fact the artifact already carried, so a second carrier would have been invisible.
+           * `tgAb` is the EFFECTIVE ability, so a Mold Breaker deletes the refusal -- Shield Dust is
+           * breakable. */
+          const dustBlocked = !!TAGS.param('ability',tgAb,'refusesSecondaries');
           const sheerForce  = !!TAGS.param('ability',mAb,'removesOwnSecondaries');
           const suppressed  = dustBlocked || sheerForce;
           /* WIRE 89 -- THE SECONDARY CHANCE IS A FACT ABOUT THIS FORMAT, AND THE RULEBOOK THIS BLOCK
@@ -12063,7 +12685,33 @@ function battleTurn(S,rng,actsForA,actsForB){
            * format, and every disagreement is COUNTED so a third one cannot arrive silently. */
           if(fx&&fx.secondary&&!sheerForce){
             const _si=TAGS.param('move',a.move.id,'statusInflict');
+            /* ROADMAP #132 -- AND THE SECOND KIND OF SECONDARY, WHICH THIS READER COULD NOT SEE.
+             *
+             * WIRE 89 covered a secondary that inflicts a STATUS or a VOLATILE, off `statusInflict`.
+             * A secondary that DROPS A STAT lives under a different tag (`statChange.target[]`), so
+             * `_fmtChance` returned null for it and the GENERIC gen-9 number was used unchallenged.
+             * MOONBLAST is the expensive case: `data/move-effects.js` says 30% SpA -1, the format says
+             * 10%, and it is 25,080 corpus clicks -- so this engine dropped Special Attack three times
+             * too often on one of the most-clicked moves in the regulation.
+             *
+             * FOUND BY SWEEPING `data/move-effects.js` AGAINST THE FORMAT (engine/format_audit.js,
+             * added the same day): every wrong value in that file is EXACTLY the mainline gen-9 value,
+             * because its generator reads `play.pokemonshowdown.com/data/moves.json` -- the generic
+             * client dex -- instead of `Dex.forFormat('gen9championsvgc2026regmb')`. Correcting the
+             * generator is not ENGINE's (the file is generated from CHOMP), so the FORMAT-derived
+             * artifact wins here exactly as it already does for the status half, and the drift is
+             * counted so a new row cannot arrive silently.
+             *
+             * MATCHED ON THE STATS, NOT ON POSITION. Triple Arrows carries TWO secondaries (a 50%
+             * Defence drop and a 30% flinch) and they are different KINDS, so an index-matched read
+             * would price one with the other's chance. */
+            const _sc=TAGS.param('move',a.move.id,'statChange');
             const _fmtChance=(s)=>{
+              if(s&&s.targetBoosts&&_sc&&Array.isArray(_sc.target)){
+                const _keys=Object.keys(s.targetBoosts).sort().join(',');
+                const _r=_sc.target.find(e=>e&&e.boosts&&Object.keys(e.boosts).sort().join(',')===_keys);
+                return _r&&_r.chance!=null?+_r.chance:null;
+              }
               if(!_si||!Array.isArray(_si.effects))return null;
               const _k=s.status?['status',s.status]:s.volatile?['volatile',s.volatile]:null;
               if(!_k)return null;
@@ -12146,7 +12794,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                  * "never fired" and "always blocked by Inner Focus" and "the target had already
                  * moved" are three different states and only the first is a defect. */
                 if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
-                else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
+                else if(refusesFlinch(tgAb)) MEDSEEN.flinchBlockedByInnerFocus++;
                 else { tg._flinch=true; MEDSEEN.flinch++; }
               }
               /* ROADMAP #139 -- THE SECONDARY THAT IS AN ORDINARY VOLATILE, and this loop had a branch
@@ -12220,7 +12868,7 @@ function battleTurn(S,rng,actsForA,actsForB){
               &&!(fx&&fx.secondary&&fx.secondary.some(s=>s&&s.volatile==='flinch'))
               &&rng()<+_kr.pFlinch){
              if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
-             else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
+             else if(refusesFlinch(tgAb)) MEDSEEN.flinchBlockedByInnerFocus++;
              else { tg._flinch=true; MEDSEEN.flinch++; }
            }}
           /* WIRE 141 -- FLING'S SECONDARY IS NOT IN THE RULEBOOK, BECAUSE IT COMES OUT OF THE ITEM.
@@ -12237,7 +12885,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              if(_ff.status)applyStatus(tg,_ff.status,m);
              else if(_ff.volatile==='flinch'){
                if(!unresolved.has(tg))MEDSEEN.flinchTooLate++;
-               else if(tgAb==='innerfocus')MEDSEEN.flinchBlockedByInnerFocus++;
+               else if(refusesFlinch(tgAb)) MEDSEEN.flinchBlockedByInnerFocus++;
                else { tg._flinch=true; MEDSEEN.flinch++; }
              } else if(_ff.volatile){
                MEDFAILS.flingEffectUnmodelled++;
@@ -12251,6 +12899,31 @@ function battleTurn(S,rng,actsForA,actsForB){
            * which is what `each` (0.1 of 0.3, 0.067 of 0.2) says. applyStatus enforces the immunities,
            * so a Tri Attack cannot freeze an Ice type. Suppressed by Shield Dust / Sheer Force with
            * the other secondaries, because that is what these are. */
+          /* ROADMAP #144 -- THE SECONDARY THAT SPENDS SOMEBODY ELSE'S PP, and it is here for exactly
+           * the reason the procedural-status block below is: `data/move-effects.js` records Eerie
+           * Spell's secondary as `{chance:100}` with no status, no volatile and no boosts, so it fell
+           * out of every branch of the loop above and did nothing at all. The rulebook cannot express
+           * an effect whose SUBJECT is a move slot; the tag can.
+           *
+           * `removesPP` is derived from the handler's own `target.deductPP(move.id, N)` against a
+           * `target.lastMove` read -- Eerie Spell 3, Spite 4. IT TAKES FROM THE TARGET'S LAST MOVE,
+           * not from the slot it was aimed at and not from a random one, and `deductPP` returns HOW
+           * MUCH WAS ACTUALLY TAKEN so a slot already at 1 gives up 1 and not 3.
+           *
+           * INSIDE `!suppressed` because it IS a secondary: Shield Dust filters it on the target and
+           * Sheer Force deletes it on the user, exactly as they do to a flinch or a burn.
+           *
+           * SPITE IS NOT REACHED FROM HERE AND THAT IS STATED RATHER THAN LEFT TO BE FOUND: it is a
+           * STATUS move and `playerAction` resolves it to `{kind:'pass'}` today -- one of the 32 moves
+           * ROADMAP #125 counts as a whole no-op turn. The tag serves both members; only the damaging
+           * one has a road into the engine at present. */
+          {const _rp=TAGS.param('move',a.move.id,'removesPP');
+           if(_rp&&+_rp.amount>0&&_rp.of==='targetLastMove'&&!suppressed&&!tg.fainted&&tg.curHP>0){
+             const _lm=tg._lastMove;
+             const _took=_lm?ppDeduct(tg,_lm,+_rp.amount):0;
+             if(_took>0){ MEDSEEN.ppRemovedByMove+=_took;
+               if(TR)TR.act(tg,'move: '+(MC.moves[a.move.id]?a.move.id:a.move.id)); }
+           }}
           {const _ps=TAGS.param('move',a.move.id,'proceduralStatus');
            if(_ps&&_ps.p&&Array.isArray(_ps.oneOf)&&_ps.oneOf.length&&!suppressed&&rng()<+_ps.p){
              const _i=Math.min(_ps.oneOf.length-1,Math.floor(rng()*_ps.oneOf.length));
@@ -13193,6 +13866,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * rather than only the HP line, exactly as Heal Block's does. The side is found by identity
        * because this residual loop walks both sides in one pass. */
       berryPinchUpdate(m,(actA.indexOf(m)>=0?actB:actA));   // ROADMAP #81 WIRE 7 -- one implementation
+      berryPPUpdate(m,(actA.indexOf(m)>=0?actB:actA));      // ROADMAP #144 -- Leppa, on the same clock
       /* WIRE 8 -- the drain lands here, with the residuals. The amount divides the VICTIM's max HP
        * (seeding a tank returns more than seeding a pixie -- that is the tag's per, not a constant)
        * and the same number is handed to the seeder, capped at full. If the seeder is down the chip

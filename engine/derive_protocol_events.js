@@ -168,10 +168,15 @@ const NOT_EMITTED = {
    * megaEvolveNow() performs the evolution inside the turn and emits both lines in Showdown's own
    * order. They are in TRACE_EVENTS now, so leaving them here would double-count. */
   '-transform': 'Imposter/Transform is not modelled; `formeChange` carriers are listed unconsumed.',
-  '-formechange': 'the only other forme change this engine models is Zero to Hero, which rewrites the '
-    + 'body silently in bringIn(). Mega evolution is a PERMANENT forme change and emits '
-    + '`detailschange`, which is what Showdown does; `-formechange` is the non-permanent shape and has '
-    + 'no carrier here.',
+  /* ROADMAP #151, 2026-08-11 -- `-formechange` HAS A CARRIER NOW AND ITS REASON IS DELETED RATHER
+   * THAN REWORDED. What it said was true and is worth keeping once: "the only other forme change this
+   * engine models is Zero to Hero, which rewrites the body silently in bringIn(). Mega evolution is a
+   * PERMANENT forme change and emits `detailschange` ... `-formechange` is the non-permanent shape
+   * and has no carrier here." Stance Change is that carrier. It calls `formeChange()` with no
+   * `isPermanent`, so the authority takes the else branch and writes the non-permanent line, and this
+   * engine now writes the same one -- including its empty fourth field, which is what Showdown's
+   * undefined `message` argument reaches the log as. Zero to Hero is still silent and is still an
+   * announcement this engine owes; it is a different tag with a different trigger. */
   replace: 'Illusion is not modelled (ROADMAP #67), so nothing is ever revealed.',
   swap: 'Ally Switch is not modelled.',
   '-swapsideconditions': 'Court Change is not modelled.',
@@ -204,13 +209,15 @@ const NOT_EMITTED = {
   '-sethp': 'Pain Split is not modelled.',
   '-endability': 'ability SUPPRESSION (Gastro Acid, Neutralizing Gas) is not modelled; Mummy and '
     + 'Wandering Spirit REWRITE the ability and emit `-ability` instead, which is what Showdown does.',
-  '-hitcount': 'multi-hit damage is ONE packet for most of the family in this engine (WIRE 20, '
-    + 'declared) and the HP still moves once, so emitting a count beside a single `-damage` line '
-    + 'would be an invented number. The reaction COUNT is right (WIRE 84) and the DRAWN hit count is '
-    + 'right (ROADMAP #103); WIRE 147 made the DAMAGE per-hit for the two moves whose base power is a '
-    + 'function of the hit index (Triple Axel, Beat Up) and left the rest summed. Dragon Darts would '
-    + 'emit nothing here in any case: `if (move.multihit && typeof move.smartTarget !== \'boolean\')` '
-    + 'skips every smartTarget move (sim/battle-actions.ts:977).',
+  /* ROADMAP #151, 2026-08-11 -- `-hitcount` HAS MOVED INTO TRACE_EVENTS AND ITS REASON IS DELETED
+   * RATHER THAN REWORDED. The reason it gave was correct at the time and is worth recording once:
+   * "multi-hit damage is ONE packet for most of the family in this engine (WIRE 20, declared) and the
+   * HP still moves once, so emitting a count beside a single `-damage` line would be an invented
+   * number." That premise is gone -- the volley IS a sequence of arrivals now, each with its own
+   * `|-damage|`, so the count is READ off how many landed rather than invented. Dragon Darts still
+   * emits none, and for the authority's own reason rather than ours:
+   * `if (move.multihit && typeof move.smartTarget !== 'boolean')` skips every smartTarget move
+   * (data/mods/champions/scripts.ts:547), which the battle loop asks before it emits. */
   '-anim': 'animation only; carries no rule. WIRE 147 -- Dragon Darts writes one at its SECOND dart '
     + '(`addMove(\'-anim\', pokemon, move.name, target)`, battle-actions.ts:906); the darts really do '
     + 'split across two bodies here now, but the line is animation and carries no rule.',

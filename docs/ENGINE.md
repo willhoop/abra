@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  408/408 probed mechanics live, 0 missing   (census 2026-08-10 22:56)
-  0/20000 differential comparisons disagree with Showdown   (2026-08-10 22:57)
+  421/421 probed mechanics live, 0 missing   (census 2026-08-11 00:43)
+  0/20000 differential comparisons disagree with Showdown   (2026-08-11 00:44)
     seed 20260804, requested 20000, 850 not comparable (multihit 630, non-finite 0, threw 220)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 21:50)
@@ -54,12 +54,247 @@ ENGINE — does the simulator do what Pokémon does
     whole-game agreement 7/1997 -> 134/1997; first-divergence line, mean 14.78 -> 33.98
     paired against the baseline: 1295 games part later, 116 EARLIER, 586 unchanged
     the baseline ran first and last and reproduced exactly; comparability: every arm cleared
-  tag coverage: 201/214 probed, 13 unprobed
+  tag coverage: 208/222 probed, 14 unprobed
 ```
 
-_stamped 2026-08-10 22:59_
+_stamped 2026-08-11 00:52_
 
 <!-- /GENERATED -->
+
+## ROADMAP #151 — THE CONSTRUCTED-GAME RUN'S TWO BIGGEST FAMILIES, AND THE ABILITY UNDER EIGHT MORE ROWS. 2026-08-10.
+
+**Census 416 → 421 live / 421 probed / 0 missing / 0 threw / 0 hollow / 0 unarmed / 0 direct-call.**
+`engine/all_mechanics_fire.js` **125 → 93 diverging move rows**; **32 of the 34 rows I was handed now
+agree**, and the two that remain moved onto different defects, named below. `tests/test-engine-diff.js
+--n 20000` held at **0 disagreements** before, between and after every batch. All three deliberate-roster
+stages were re-run against the new bytes: **0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE** on items,
+abilities and moves. `tests/test-game-diff.js` agrees on every turn of all five scripted games. Every
+probe was watched RED first. Receipts:
+[_outbox/multihit-and-crit-notes.md](_outbox/multihit-and-crit-notes.md).
+
+### A MOVE WHOSE DAMAGE IS NOT COMPUTED CANNOT CRIT, AND CANNOT ANNOUNCE EFFECTIVENESS EITHER
+
+Thirteen rows, one predicate. `getDamage`'s four early returns — `move.ohko`, `move.damageCallback`,
+`move.damage === 'level'`, `move.damage` — sit **above both the crit die and the type chart**, so the
+authority prints neither line for Seismic Toss, Night Shade, Counter, Mirror Coat, Metal Burst,
+Comeuppance, Endeavor, Final Gambit, Super Fang, Fissure, Guillotine, Horn Drill or Sheer Cold. This
+engine printed **both, for all thirteen** — and the crit was not cosmetic: it set `R.crit`, which Anger
+Point, Sniper and Shell Armor all read.
+
+**THE MEMBERSHIP WAS CHECKED, NOT ASSUMED.** Enumerating `Dex.forFormat(...)` for
+`ohko || damageCallback || damage` returns **exactly the thirteen the `fixedDamage` tag already
+carries — 13 of 13**, so the predicate is the tag and a member added later is covered. `-immune` is
+deliberately NOT in the set: `runImmunity` is above all four returns.
+
+### A MULTI-HIT VOLLEY WAS ONE PACKET, AND THE COUNT WAS NEVER THE PROBLEM
+
+**Ten rows, and the hit COUNT is not a regression of ROADMAP #103.** `game_differential.js` installs the
+same pinned die over BOTH engines (`pinRandom`, `random(m,n) -> m`), so both took the low branch and both
+hit **twice**; every affected row's exact-2x ratio was our AGGREGATE against Showdown's **first packet**.
+Stated because it decides whether those rows are evidence at all.
+
+The bug is the **event shape**, and it is not an announcement bug: Showdown runs `spreadMoveHit` once per
+hit, so effectiveness, the crit and `-damage` repeat per arrival and the volley closes with
+`|-hitcount|`. The HP now moves once per packet, the volley **stops at a KO** the way the authority's own
+loop guard does (`targets.every(t => !t?.hp)`), and `-hitcount` is emitted and claimed in `TRACE_EVENTS` —
+its `data/protocol-events.json` reason is deleted rather than reworded, because the premise it rested on
+("emitting a count beside a single `-damage` line would be an invented number") has stopped being true.
+
+**TWO REAL MECHANICS FELL OUT OF THE SPLIT, both of which the file's own comments had declared open:**
+
+- **A Focus Sash answers the FIRST PACKET for the 2-5 family now.** WIRE 12 said in the source: *"This
+  engine rolls multi-hit as one packet, so a sash here also eats Bullet Seed."* Two half-lethal hits now
+  KILL a Sash holder, because hit one takes it off full HP and hit two meets `onlyFromFullHP` false.
+- **A multi-hit move whose per-hit accuracy stopped it at ONE hit was priced at the EXPECTATION.** The
+  battle loop only handed the drawn count down when it was above 1, so `hitPlanOf` fell back to
+  `expectedHitsOf` — a Triple Axel that missed hits two and three dealt 1 + 0.9 + 0.81 hits of escalating
+  damage instead of the one that landed.
+
+### STANCE CHANGE DID NOT EXIST, AND IT WAS WORTH EIGHT ROWS ON ONE POKÉMON
+
+`stancechange` appeared **zero times** in `medicham2-browser.js` and `data/tags.json` read `untagged` on
+**270 uses**, so every Aegislash attack in this project was computed at the Shield forme's **50** base
+Attack instead of the Blade forme's **140**. Derived as `formeOnMoveCategory` from the handler SHAPE — an
+`onModifyMove` that calls `formeChange` and branches on `move.category` — with the membership printed
+before it was wired: **one ability**. The trap the tag records is that a **Status move is a NO-OP, not a
+revert**: only King's Shield sheathes it, measured in the authority.
+
+**AND `formeSwap` THREW THE BODY'S SPREAD AWAY, which is a fourth defect and the reason the first wire
+overshot.** It adopted whatever SP investment `data/engine-data.js` aggregates for the NEW species —
+a stranger's spread. Measured: five Aegislash moves all landed **1.31x** too hard and Gyro Ball went the
+other way, which is the signature of a stat and not of a formula. Showdown's `formeChange` provably
+preserves the spread (Palafin 90 → 180 and 122 → 212, **delta 90 at both**), so the swap now re-applies
+the body's own investment to the new base line — `buildMon`'s own mega transform, so the two roads cannot
+disagree. The `switchInForme` probe's expected Attack moved 233 → 244 and **the engine is what moved**:
+233 was `data/engine-data.js`'s hero row carrying a different investment from its base row.
+
+### THE TWO ROWS I DID NOT CLOSE — BOTH MOVED ONTO A DIFFERENT DEFECT
+
+- **Final Gambit** no longer emits the phantom crit; what remains is the **user-faint emission shape** —
+  we write `|-damage|p1a: Lucario|0 fnt` where the authority writes `|faint|p1a: Lucario`. Shared with
+  Explosion, Self-Destruct, Memento and Misty Explosion, so it is one family and not one move.
+- **Steel Beam**'s damage now agrees **to the point** (405/810 on both sides). Only the attribution
+  differs: `[from] Recoil` here against `[from] steelbeam` there. Same shape as the seven
+  `-damage field 4` trapping rows.
+
+### THE HAND LIST IS UNCHANGED
+
+Nothing on it was any of this. The re-applied-volatile row and Rivalry both stay.
+
+## ROADMAP #144 + #141 — PP BECOMES A RESOURCE, AND MOLD BREAKER LEARNS WHAT IT MAY BREAK. 2026-08-11.
+
+**Census 408 → 416 live / 416 probed / 0 missing / 0 threw / 0 hollow / 0 unarmed / 0 direct-call.**
+`tests/test-engine-diff.js --n 20000` held at **0 disagreements** before, between and after. All three
+deliberate-roster stages were re-run against the new bytes TWICE: **0 FIRED-AND-BOARDS-DIFFER and 0
+DID-NOT-FIRE** on items, abilities and moves. Every probe was watched RED against release
+`7bf3a1e19ce5` — the pre-session engine — before a byte moved. Receipts:
+[_outbox/pp-and-moldbreaker-notes.md](_outbox/pp-and-moldbreaker-notes.md).
+
+### PP DID NOT EXIST — ZERO MENTIONS, NO FIELD ON A BUILT BODY
+
+Eight new probes. Protect is **`maxpp` 8 in this format**, so the ninth click emits `|cant|nopp`; a
+foe-aimed 8-PP move into a **Pressure** body runs out in FOUR; once every slot is empty the chooser
+reaches for **Struggle**, which is typeless (`???`) and pays a quarter of its user's maximum; a
+**Leppa Berry** buys the ninth Protect back, where a held Sitrus does not; and **Eerie Spell** takes 3
+PP off the move its target just used, where a Psychic on the same turn takes none.
+
+**THE NUMBER IS READ, NEVER COMPUTED.** `engine/tag_dex.js` builds real `Battle`s in
+`gen9championsvgc2026regmb` and reads `moveSlots[].maxpp` back off them. Every value happens to fit
+`floor(base * 0.8 + 4)` — 500 of 500 — and that observation is deliberately not the implementation.
+**The mainline `pp * 8/5` rule is wrong on 415 of these 500 moves.**
+
+**PP DOES NOT HAVE TO SURVIVE A ROLLOUT, AND THAT WAS THE SIZING QUESTION.** `rollout_leaf.js` builds
+fresh bodies per playout and nothing in the project clones a battle state, so PP is one lazily-derived
+field mutated in place. Measured on `tests/bench-medicham.js`: baseline **0.4614 ms/turn**, four runs
+after the wire **0.4035 / 0.4509 / 0.4556 / 0.4201** — inside run-to-run spread, so **no measurable
+cost** rather than a claimed speedup.
+
+**THE TABLE IS PER-SLOT AND LAZY, and the reason is `board.js`.** `dmgMon` builds through `buildMon`
+and then OVERWRITES `b.moves` with the open sheet's four. A table stamped at build time would be keyed
+to the moves the body held before that overwrite — silently, for every rollout body.
+
+### MOLD BREAKER BROKE EVERYTHING, INCLUDING WHAT IT MAY NOT
+
+`suppressedAbility` returned `'none'` for **every** defender ability. So a Mold Breaker attacker was
+blanking Rough Skin, Static, Steadfast, Cursed Body, Weak Armor and the Ruin abilities — none of which
+are breakable. And in the other direction the flinch and Shield Dust gates read `tg.ability` **raw**
+two hundred lines from a damage calc that had used the suppressed one since WIRE 37, so the same turn
+punched through Levitate and was refused by Inner Focus.
+
+`ability.isBreakable` is **undefined on every ability in this format** — the obvious lookup concludes
+Mold Breaker suppresses nothing and passes its own test. The live field is `flags.breakable`
+(**82 abilities here**), which is what `sim/battle.ts:837` itself reads. The derivation also moved off
+a **name regex** (`/moldbreaker|turboblaze|teravolt/`, whose `a.breaksProtect` half is undefined on all
+four carriers) onto the handler shape, which picks up **Mycelium Might** and its Status-only gate.
+
+Will's question — *"DOES TINKATON MOLD BREAKER FAKE OUT FLINCH A MON WITH INNER FOCUS?"* — **yes**,
+measured in the official engine, and the same click into **Steadfast** still hands over the +1 Speed.
+
+### THREE NAME-MATCHED HARDCODES REPLACED BY THE TAG THEY WERE STANDING IN FOR
+
+`tgAb === 'shielddust'` and three copies of `tgAb === 'innerfocus'` were the only readers of facts the
+artifact did not state. They are `refusesSecondaries` and `refusesVolatile` now — the second being the
+identical tag `applyConfusion` already reads, so the two roads cannot disagree.
+
+### A GENERATED FILE THAT IS MAINLINE GEN 9, AND THE CHECK THAT NAMES IT
+
+`engine/format_audit.js` (new) sweeps **7,653 constants** in `data/move-effects.js`,
+`data/engine-data.js` and `data/tags.json` against the FORMAT. **21 disagree and every one equals the
+mainline gen-9 value** — one root cause, not drift: `CHOMP/build/build_move_effects.js` fetches
+`play.pokemonshowdown.com/data/moves.json`. **0 are LIVE** after this batch; Moonblast's secondary
+chance (30 where the format says 10, 9,470 clicks) was the last one that reached a decision and is now
+taken from the format-derived tag, as the status half already was.
+
+**THE GATE COULD NEVER HAVE CAUGHT THAT**, and the reason belongs beside its green: the roster and the
+matrix compare OUR TWO ENGINES, so **a shared wrong constant produces perfect agreement**.
+
+### THE HAND LIST LOSES ONE LINE
+
+**PP is off it** — it is eight probes now. The re-applied-volatile row and Rivalry both stay.
+
+### A RED THAT IS NOT MINE, AND A GATE CLAUSE THAT IS NOT MINE EITHER
+
+`tests/test-tag-consumed.js` is RED on **`piercesProtect`**, a tag added after its baseline
+(`data/tag-consumption.json`, 194 tags, stamped 2026-08-10 05:49; the artifact now holds 226). It is
+not this batch's — my two new unconsumed tags, `removesPP` and `restoresPP`, were wired inside this
+session rather than filed.
+
+**The MEDICHAM gate is CLOSED and this batch did not close it.** The five clauses stand at PASS with
+every roster stage re-run. A **sixth clause was added to `engine/quarantine.js` mid-session**
+(mtime 19:55) and it reads OPEN ROADMAP rows. One of the seven it names — **#119, Struggle is not
+implemented** — is done and probed by this batch; `docs/ROADMAP.md` is not ENGINE's to edit and
+another agent had it open twenty minutes earlier, so it is reported rather than closed.
+
+## ROADMAP #143 — BUILD THE GAMES FROM THE MECHANIC LIST. A TENTH INSTRUMENT. 2026-08-10.
+
+Will: *"WE HAVE TO CREATE THE GAMES OURSELVES AND TEST IT ON SHOWDOWN … SET UP SCENARIOS WHERE ALL
+MOVES CAN BE USED SUCCESSFULLY … I DONT CARE IF THEY ARE GOOD PLAYS, JUST HAVE THE MOVES SUCEED."*
+
+`engine/all_mechanics_fire.js`, artifact `data/all-mechanics-fire.json`, release `7bf3a1e19ce5`,
+arm `bottom-tie-first`, 1,415 games. Full receipts:
+[_outbox/all-moves-fire-notes.md](_outbox/all-moves-fire-notes.md).
+
+**484 of the format's 500 moves now RESOLVE inside a real Showdown game** — executed and producing a
+consequence in the AUTHORITY's own log, never merely clicked. **125 of those games diverge, over 105
+distinct causes.** The differential that guards the gate stayed at 0/20,000 throughout; it plays teams
+a bot would bring, and all 105 sit in the coverage hole that leaves.
+
+| | this | roster (staged turn) | BOTH | only here | only roster | **NEITHER** |
+|---|---|---|---|---|---|---|
+| moves | **484** | 427 | 421 | **63** | 6 | **10** |
+| abilities | 59 | 94 | 35 | 24 | 59 | **198** |
+| items | 12 | 139 | 9 | 3 | 130 | **6** |
+
+**The two instruments are complementary and the shape is now measured rather than assumed**: a real
+game is much better at MOVES, a staged board is much better at ITEMS and ABILITIES. The output that
+matters is the last column. Moves nothing has ever made fire: `attract healbell lastresort
+magneticflux powershift quash recycle soak struggle upperhand`.
+
+**WHAT IT ADDS THAT THE OTHER NINE CANNOT:** the TEAM IS DERIVED FROM THE MECHANIC, and **Showdown's
+own `TeamValidator` accepts every one of them.** That authority immediately said three things nothing
+in this repo knew — it refuses a four-body team outright, it objects to a 0-SP body under `Serious`
+specifically, and **`Incineroar can't learn Knock Off` in this format**, which is the set the
+`knock-off order` directed scenario in `game_differential.js` has been staging. Battles do not
+validate, so nothing caught it. FILED, not fixed here.
+
+**THIRTEEN ABILITIES READ `SHOWDOWN-ONLY`** — the authority's game moved and ours did not — of which
+five have a quiet control and are the ones to look at: `forewarn`, `moldbreaker`, `quickdraw`,
+`supremeoverlord`, `trace`. `quickdraw` is independently confirmed by a protocol divergence
+(`|-activate|p1a: Slowbro|ability: Quick Draw` missing). The other eight inherit the roster's own
+`CONTROL-NOT-QUIET` hazard and a third arm would be needed to attribute them.
+
+**NEW DEFECTS THE PROTOCOL COMPARISON NAMED**, largest first: fixed-damage and OHKO moves CRIT in this
+engine and cannot in Showdown (`seismictoss`, `nightshade`, `superfang`, `endeavor`, `finalgambit`,
+`counter`, `mirrorcoat`, `comeuppance`, `fissure`, `guillotine`, `horndrill` — 11 rows); Endure
+announces `-start` where Showdown says `-singleturn`; the self-KO moves faint in the wrong order
+(`explosion`, `selfdestruct`, `memento`, `mistyexplosion`); Stockpile boosts before it announces;
+Beat Up's damage is 30 short on equal party sizes; Bind's `[from]` field omits the move; Illusion does
+not disguise the lead; Belly Drum boosts where Showdown does nothing; Beak Blast emits no
+`-singleturn`.
+
+**THE INSTRUMENT WAS NON-DETERMINISTIC AND SHIPPED A WRONG NUMBER BEFORE IT WAS CAUGHT.** Showdown's
+log carries `|t:|<unix seconds>`; the ability A/B compared raw logs, so two identical runs minutes
+apart returned 23 and then 16 `SHOWDOWN-ONLY`. It now compares through the driver's own `sdStream` and
+a FIFTH red plant asks the same A/B twice and asserts the same verdict — none of the other four could
+have caught it, because they each run once.
+
+**FOUR FIXTURE DEFECTS MADE A CORRECT ENGINE LOOK BROKEN**, and all four were found by chasing a
+reason line instead of accepting a zero: allies clicking Endure parted every game at line 6; the
+receiver's Waterfall flinched the actor every turn (the bottom arm fires every secondary) and cost six
+moves; the receiver's Facade was `-immune` against a Ghost actor so Counter correctly failed; and the
+carrier's own ability sabotaged its own row (Abomasnow's Snow Warning vs Snowscape, Zoroark-Hisui's
+Illusion vs the verdict's own body identifier). The last is now derived from the ability's tags.
+
+**NOT DONE, NAMED:** items and abilities are undermeasured and the fix is derivable —
+`resistBerry` and `damageMultType` both name their type in `data/tags.json`, so the incoming hit and
+the holder's click can be chosen from the tag. No third control arm. Attract, Rivalry and Cute Charm
+are structurally unreachable because gender `N` is a declared CONTROL of the shared `buildPair`.
+`tests/test-mechanics.js` and `status.js --write` were NOT run: another agent was editing
+`medicham2-browser.js` throughout (mtime 23:34) and both stamp shared artifacts over a moving engine.
+No mechanic was added, so the census cannot have moved.
+
+`engine/game_differential.js` took three additive changes only: `lastSdLog()` exported,
+`buildPair(sheet, {max})` (default 4, unchanged), and the matching `picked.length < cap` guard.
 
 ## ROADMAP #139 — THE MOVES CLAUSE, AND SEVEN THINGS HANDED OVER WHILE IT RAN. 2026-08-11.
 
@@ -140,11 +375,8 @@ On, both found by a roster row rather than by survey:
   fix is a real generalisation and needs its own batch with the membership printed first — a blanket
   no-restart rule catches Protect, Follow Me, Rage Powder and Helping Hand, all of which must be
   re-settable.
-- **PP does not exist in this engine at all, and Champions changed the numbers.** 42 moves differ from
-  standard gen 9 over 136,299 clicks, led by **Protect at 5, not 10**. It is a mechanic and not
-  bookkeeping: an engine that believes Protect is infinite makes every stalling rollout a game that
-  cannot happen. Sized and filed in the outbox notes; it belongs AFTER the eleven, because it is the
-  first item in this queue whose consumers live outside ENGINE.
+- ~~**PP does not exist in this engine at all, and Champions changed the numbers.**~~ **OFF the hand
+  list 2026-08-11 — it is a probe now.** See ROADMAP #144 / #141 below.
 
 ## WIRE 157 — AN ABILITY THAT READS AN EVENT AND DOES NOT ACT ON IT. 2026-08-10.
 

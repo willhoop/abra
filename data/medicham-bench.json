@@ -1,0 +1,20 @@
+{
+  "recorded": "2026-08-10T23:24:02.271Z",
+  "ms_per_turn": 0.4614,
+  "turns": 450,
+  "games": 120,
+  "turn_cap": 12,
+  "reps": 5,
+  "roster": [
+    "incineroar",
+    "garchomp",
+    "dragapult",
+    "torterra",
+    "farigiraf",
+    "amoonguss"
+  ],
+  "calibration_spin_ms": 16,
+  "node": "v24.15.0",
+  "cpus": 16,
+  "note": "Best-of-N on a pinned fixture. NOT a correctness test — pair every optimization with the 500-move whole-board digest sweep and tests/test-damage-stages.js."
+}

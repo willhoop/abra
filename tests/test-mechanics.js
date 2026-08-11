@@ -303,7 +303,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * `battleInit` and spends an arbitrary number of real turns through `battleTurn`, reading every body
  * on every turn — the whole move queue it serves is made of facts carried ACROSS a turn boundary or
  * paid on a body other than the one aimed at, and no single-turn probe can see either. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -9945,7 +9945,23 @@ probe('ability', 'condStatMult', 'Marvel Scale raises Defence only while the bod
  *    so a Palafin sitting on the bench was still the weak forme in both engines' party reads, and
  *    the staged board comparison parts there. A probe that only asked "is it palafin-hero when it
  *    comes back" would be GREEN on the wrong moment, which is exactly the defect. So the body is
- *    read WHILE IT IS ON THE BENCH. */
+ *    read WHILE IT IS ON THE BENCH.
+ *
+ *    THE EXPECTED ATTACK CHANGED FROM 233 TO 244 ON 2026-08-11 (ROADMAP #151) AND THE ENGINE IS WHAT
+ *    MOVED, not the standard. `formeSwap` used to adopt the NEW species' stored line wholesale, so
+ *    Palafin-Hero arrived carrying whatever SP investment `data/engine-data.js` aggregates for the
+ *    HERO row — a stranger's spread — rather than the one the body in play actually had. Showdown's
+ *    `formeChange` calls `setSpecies`, which recomputes from the SAME evs/ivs/nature, so the swap
+ *    adds exactly the two base lines' difference and nothing else. Measured in the authority rather
+ *    than argued, at two spreads so the claim is about the DELTA and not about one number:
+ *
+ *        SP(atk)=0    Palafin  90  ->  Palafin-Hero 180    delta 90
+ *        SP(atk)=32   Palafin 122  ->  Palafin-Hero 212    delta 90
+ *
+ *    This dataset's Palafin line is 154, so its Hero line must be 154 + 90 = 244. The old 233 was
+ *    `data/engine-data.js`'s own hero row, which carries a different investment from its base row —
+ *    an inconsistency between two aggregated rows that the engine was faithfully reproducing. The
+ *    arms still separate by 90, which is the whole claim. */
 probe('ability', 'switchInForme', 'Zero to Hero transforms Palafin as it LEAVES, not on the return', () => {
   const run = (ab) => {
     const me = bare('palafin'), ally = bare('corviknight');
@@ -9962,11 +9978,13 @@ probe('ability', 'switchInForme', 'Zero to Hero transforms Palafin as it LEAVES,
   };
   const control = run('none'), test = run('zerotohero');
   return { works: control[0] === 'clefable' && control[1] === 'palafin' && control[2] === 154
-                  && test[0] === 'clefable' && test[1] === 'palafin-hero' && test[2] === 233,
+                  && test[0] === 'clefable' && test[1] === 'palafin-hero' && test[2] === 154 + 90,
            arms: { control, test },
            detail: `[who is in slot 0 after the pivot, what the BENCHED body is, its Attack] — `
                  + `ability blanked ${control}; Zero to Hero ${test}. Read off the BENCH on purpose: `
-                 + `an engine that transforms on the return is green on a probe that waits for it` };
+                 + `an engine that transforms on the return is green on a probe that waits for it. `
+                 + `The Attack must be the SAME BODY'S line plus the two base lines' difference (90, `
+                 + `measured in the authority at two spreads) — the spread survives a forme change` };
 });
 
 /* 4. switchOutTrigger — THE CLASS, AND NATURAL CURE IS THE MEMBER THAT WAS ABSENT ENTIRELY.
@@ -11844,6 +11862,217 @@ probe('move', 'fixedDamage', 'Metal Burst answers the body that just hit it, and
                  + `target `+'`scripted`'+` only names at execution` };
 });
 
+/* ================= ROADMAP #151 -- THE STREAM A SINGLE CLICK PRODUCES ============================
+ *
+ * `hitStream(` is declared in REALTURN above with its reason, exactly as the paragraph there requires.
+ * It stages a real doubles board through `battleInit` and spends a real turn through `battleTurn`, and
+ * it reads the EMITTED STREAM rather than HP because both defects it serves are invisible in state:
+ *   - a `-crit` on a fixed-damage move changes NO number at all. `dmgRange` returns min === max for
+ *     the whole family, so `_price(true)` and `_price(false)` are the same range and an HP-reading
+ *     probe is structurally blind to whether the die was even thrown -- yet the flag it sets is read
+ *     by Anger Point, Shell Armor and Sniper, so it is not cosmetic;
+ *   - a multi-hit that arrives as ONE aggregated packet ends on exactly the HP that N packets end on.
+ * The aimed foe's HP loss is returned beside the lines, so "no line" can never come to mean "the move
+ * stopped landing". The foe is made unfaintable first for the same reason every damage probe here
+ * does it -- a KO clamps the loss and would make two different volleys print the same number. */
+const hitStream = (userSp, moveId, foeSp, r, stage) => {
+  const B = board(userSp, 'incineroar', foeSp, 'garchomp');
+  unfaintable(B.f1);
+  const trace = []; B.S._trace = trace;
+  if (stage) stage(B);
+  const before = B.f1.curHP;
+  M.battleTurn(B.S, r || rng5,
+    new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  const at = (ev) => trace.filter(l => l.startsWith('|' + ev + '|p2a')).length;
+  /* THE HP LEFT ON THE BODY AFTER EACH `-damage` LINE, in order, so a probe can assert that N lines
+   * really carried N separate arrivals rather than one number printed N times. */
+  const steps = trace.filter(l => /^\|-damage\|p2a/.test(l))
+    .map(l => Number(String(l.split('|')[3]).split('/')[0]) || 0);
+  return { dealt: before - B.f1.curHP, crits: at('-crit'), dmg: at('-damage'),
+           eff: at('-resisted') + at('-supereffective'), hitcount: at('-hitcount'), steps,
+           lines: trace.filter(l => /^\|-(damage|crit|resisted|supereffective|hitcount)\|/.test(l)) };
+};
+/* THE PIN THE WHOLE FAMILY IS READ AT. `rng() === 0` is `game_differential`'s `bottom-tie-first`
+ * corner expressed as this engine's single scalar: every accuracy check HITS, every crit die passes
+ * (`0 < 1/24`), every per-hit accuracy re-roll passes (`0 >= 0.9` is false) and the damage index is
+ * the bottom of the range. It is the arm the constructed-game run was measured under, so a probe
+ * written at it is asking the authority's own question. */
+const rngBottom = () => 0;
+
+/* ROADMAP #151 -- A FIXED-DAMAGE MOVE CANNOT CRIT, BECAUSE THERE IS NO MULTIPLIER TO APPLY.
+ *
+ * `sim/battle-actions.ts:getDamage` returns BEFORE the crit die is ever thrown -- `if (move.ohko)`,
+ * `if (move.damageCallback)`, `if (move.damage === 'level')`, `if (move.damage)` are four early
+ * returns and the `randomChance(1, critMult[critRatio])` that sets `moveHit.crit` is thirty lines
+ * below them. So Showdown emits no `|-crit|` for any of the thirteen, and this engine emitted one for
+ * every one of them at the differential's own bottom corner.
+ *
+ * THE PREDICATE IS THE TAG, NOT A NAME LIST. `fixedDamage` in data/tags.json is EXACTLY Showdown's
+ * early-return set in this format -- 13 of 13, checked move by move against
+ * `Dex.forFormat(...).moves.all()` -- so a member added later is covered without editing this engine.
+ *
+ * THE CONTROL IS THE SAME ATTACKER, THE SAME TARGET AND THE SAME CORNER with an ordinary damaging
+ * move, which MUST crit here. Without it "no crit line" is also what an engine with no crits at all
+ * prints, and this file has shipped that mistake before. */
+probe('move', 'fixedDamage', 'Seismic Toss rolls no crit — a fixed number has no multiplier to apply', () => {
+  const test = hitStream('machamp', 'seismictoss', 'feraligatr', rngBottom);
+  const control = hitStream('machamp', 'bodyslam', 'feraligatr', rngBottom);
+  return { works: control.crits === 1 && control.dealt > 0 && test.crits === 0 && test.dealt === 50,
+           arms: { control: control.crits, test: test.crits },
+           detail: `[|-crit| lines at the bottom rng corner] — Seismic Toss ${test.crits} (dealt `
+                 + `${test.dealt}, which must be the level, 50); CONTROL, Body Slam off the same `
+                 + `Machamp into the same Feraligatr at the same corner, ${control.crits} crit line `
+                 + `(dealt ${control.dealt}) — so the die is thrown and this move is exempt from it, `
+                 + `not the engine crit-free` };
+});
+
+/* ROADMAP #151 -- AND THE SAME EARLY RETURN SKIPS THE TYPE CHART'S ANNOUNCEMENT.
+ *
+ * The `-supereffective` / `-resisted` adds are at `data/mods/champions/scripts.ts:271,278`, INSIDE
+ * `getDamage` and below the same four early returns. Measured in the authority: Sheer Cold into a
+ * Water body prints `|-damage|p2a: Feraligatr|0 fnt` and nothing else, while Ice Beam off the same
+ * body prints `|-resisted|` first. This engine printed the resist for both.
+ *
+ * IT IS NOT COSMETIC. An OHKO move IGNORES the type chart entirely -- it returns `target.maxhp` --
+ * so an engine that announces a resist beside full-HP damage is describing a rule it did not apply.
+ * `-immune` still fires, and must: `runImmunity` is ABOVE the early returns. */
+probe('move', 'ohko', 'Sheer Cold announces no type effectiveness — an OHKO never reaches the type chart', () => {
+  const test = hitStream('abomasnow', 'sheercold', 'feraligatr', rngBottom);
+  const control = hitStream('abomasnow', 'icebeam', 'feraligatr', rngBottom);
+  return { works: control.eff === 1 && control.crits === 1 && control.dealt > 0
+             && test.eff === 0 && test.crits === 0 && test.dealt > control.dealt,
+           arms: { control: [control.eff, control.crits], test: [test.eff, test.crits] },
+           detail: `[[-resisted/-supereffective lines, -crit lines] at the bottom corner] — Sheer Cold `
+                 + `${JSON.stringify([test.eff, test.crits])} for ${test.dealt} damage; CONTROL, Ice `
+                 + `Beam off the same Abomasnow into the same Water body, `
+                 + `${JSON.stringify([control.eff, control.crits])} for ${control.dealt} — the resist `
+                 + `line is emitted when the type chart is reached and the OHKO never reaches it` };
+});
+
+/* ROADMAP #151 -- EACH HIT OF A MULTI-HIT MOVE IS ITS OWN ARRIVAL.
+ *
+ * `spreadMoveHit` runs ONCE PER HIT inside `hitStepMoveHitLoop` (data/mods/champions/scripts.ts:461),
+ * so the authority emits effectiveness, crit and `-damage` for every hit and closes with
+ * `|-hitcount|`. Measured under the same pin this probe uses: Bullet Seed prints two `-damage` lines
+ * and `|-hitcount|p2a: Feraligatr|2`. This engine printed ONE line carrying the summed total.
+ *
+ * IT IS NOT AN ANNOUNCEMENT BUG. A Focus Sash, Sturdy, a substitute break and every `onDamagingHit`
+ * reactor answer the PACKET that arrives; an aggregated packet gets all of them wrong, and the WIRE 12
+ * comment in medicham2 declared exactly that divergence for this family.
+ *
+ * THE CONTROL IS THE SAME BOARD AND THE SAME CORNER with a single-hit Grass move, which must print
+ * exactly one line -- otherwise "two lines" would also be what an engine that prints a line per
+ * anything prints. The steps are asserted as well as the count: two arrivals must leave the body on
+ * two DIFFERENT HP readings that step down by equal packets, so one number printed twice cannot
+ * pass. */
+probe('move', 'multiHit', 'each hit of a multi-hit move arrives as its own damage packet, as Showdown emits it', () => {
+  const test = hitStream('abomasnow', 'bulletseed', 'feraligatr', rngBottom);
+  const control = hitStream('abomasnow', 'energyball', 'feraligatr', rngBottom);
+  const packets = test.steps.length === 2 ? [test.steps[0], test.steps[1]] : [];
+  const even = packets.length === 2 && (test.steps[0] - test.steps[1]) > 0
+    && (test.dealt - (test.steps[0] - test.steps[1])) === (test.steps[0] - test.steps[1]);
+  return { works: control.dmg === 1 && control.dealt > 0 && test.dmg === 2 && even
+             && test.hitcount === 1,
+           arms: { control: control.dmg, test: test.dmg },
+           detail: `[|-damage| lines from one click at the bottom corner] — Bullet Seed ${test.dmg} `
+                 + `lines leaving ${JSON.stringify(test.steps)} HP, total ${test.dealt}, with `
+                 + `${test.hitcount} |-hitcount| line; CONTROL, Energy Ball off the same Abomasnow into `
+                 + `the same body, ${control.dmg} line for ${control.dealt}. Showdown at this pin `
+                 + `prints two -damage lines and |-hitcount|...|2` };
+});
+
+/* ROADMAP #151 -- AND THE PACKET IS WHAT THE FOCUS SASH ANSWERS, WHICH THE 2-5 FAMILY NEVER HAD.
+ *
+ * medicham2's WIRE 12 comment stated the divergence in full: "This engine rolls multi-hit as one
+ * packet, so a sash here also eats Bullet Seed -- the one divergence from the real rule, stated
+ * rather than hidden." ROADMAP #139 closed it for the plans that run the per-hit loop (Parental Bond,
+ * Beat Up, Triple Axel) and said so; the 2-5 family handed back no first-packet figure at all.
+ *
+ * THE OUTCOME IS BINARY AND NO MULTIPLIER CAN TUNE IT. Two real hits that each fall short of the
+ * body's HP but together exceed it KILL a Sash holder: hit one takes it off full HP, so hit two meets
+ * `onlyFromFullHP` false and the item never fires. One aggregated packet meets the Sash at full HP
+ * and leaves the body alive on 1. The control is the SAME BOARD with the item blanked, which must die
+ * either way -- so "it died" is not the claim; "it died WITH a Sash on" is. */
+probe('item', 'survivesFromFull', 'a Focus Sash answers the packet that arrives, so two half-lethal hits still kill', () => {
+  const run = (item) => {
+    const B = board('abomasnow', 'incineroar', 'feraligatr', 'garchomp');
+    B.f1.item = item;
+    /* HP SET SO THAT NEITHER PACKET KILLS AND THE PAIR DOES. Read off the volley this staging
+     * actually deals rather than guessed: the probe measures the total first and then halves it. */
+    const total = hitStream('abomasnow', 'bulletseed', 'feraligatr', rngBottom).dealt;
+    const hp = Math.floor(total * 0.75);
+    B.f1.st = Object.assign({}, B.f1.st, { hp }); B.f1.curHP = hp;
+    M.battleTurn(B.S, rngBottom,
+      new Map([[B.me, M.playerAction(B.me, 'bulletseed', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { hp: Math.max(0, B.f1.curHP), item: B.f1.item, total, staged: hp };
+  };
+  const test = run('focussash'), control = run('');
+  return { works: control.hp === 0 && test.hp === 0,
+           arms: { control: [control.hp, control.item], test: [test.hp, test.item] },
+           detail: `[HP left, item left] — a Feraligatr on ${test.staged} HP (the volley deals `
+                 + `${test.total}, so each of the two packets falls short and the pair does not) `
+                 + `holding a FOCUS SASH ends on ${JSON.stringify([test.hp, test.item])}; CONTROL, the `
+                 + `same body with no item, ${JSON.stringify([control.hp, control.item])}. The Sash may `
+                 + `not fire: hit one takes it off full HP and hit two meets onlyFromFullHP false` };
+});
+
+/* ROADMAP #151 — STANCE CHANGE, AND THE STATUS CLICK IS THE ARM THAT SEPARATES IT FROM A GUESS.
+ *
+ * `stancechange` appeared ZERO times in medicham2-browser.js and `data/tags.json` said `untagged` on
+ * 270 corpus uses, so every Aegislash attack this project has ever thrown was computed at the SHIELD
+ * forme's 50 base Attack instead of the BLADE forme's 140. The constructed-game run caught it eight
+ * times over — Iron Head, Flash Cannon, Gyro Ball, Head Smash, Reversal, Sacred Sword, Steel Beam and
+ * Double Hit all off the same carrier — and every one of those rows is a damage number.
+ *
+ * FIVE CLICKS IN ONE SEQUENCE, AND THE ORDER IS THE PROBE:
+ *   Iron Head     an attacking click flips to Blade BEFORE the damage, so it deals more.
+ *   Swords Dance  a Status move that is NOT the revert move does NOTHING — the body STAYS in Blade.
+ *                 This is the half an implementation gets wrong: "revert when it is not an attack"
+ *                 sheathes the sword on every setup turn, and the authority does not. It has to be
+ *                 clicked FROM Blade to be readable at all, which is why it is second and not first.
+ *   Iron Head     still Blade, now +2.
+ *   King's Shield the one named revert.
+ *   Iron Head     and it flips again, so the mechanic is a state machine rather than a one-shot.
+ *
+ * THE CONTROL IS THE SAME BODY WITH THE ABILITY BLANKED, which must stay in Shield for all five
+ * clicks — and that arm IS the engine as it stood before this wire, on every Aegislash in the format.
+ * Without it "the damage went up" is also what a Blade-statted `data/engine-data.js` row would print. */
+probe('ability', 'formeOnMoveCategory', 'Stance Change draws the sword on an attack, and a status click does not sheathe it', () => {
+  const run = (ability) => {
+    const B = board('aegislash', 'incineroar', 'feraligatr', 'garchomp');
+    B.me.ability = ability;
+    unfaintable(B.f1);
+    const trace = []; B.S._trace = trace;
+    const seq = [];
+    for (const mv of ['ironhead', 'swordsdance', 'ironhead', 'kingsshield', 'ironhead']) {
+      const before = B.f1.curHP;
+      const at = (mv === 'ironhead') ? B.f1 : B.me;
+      M.battleTurn(B.S, rngBottom,
+        new Map([[B.me, M.playerAction(B.me, mv, at, B.S.field)], [B.ally, { kind: 'pass' }]]),
+        PASS2(B.f1, B.f2));
+      seq.push([B.me.name, before - B.f1.curHP]);
+    }
+    return { seq, lines: trace.filter(l => /^\|-formechange\|/.test(l)).length };
+  };
+  const test = run('stancechange'), control = run('none');
+  const tBlade = test.seq[0][0] === 'aegislash-blade' && test.seq[4][0] === 'aegislash-blade';
+  const tStaysBlade = test.seq[1][0] === 'aegislash-blade';   // the Status click did NOT sheathe it
+  const tReverted = test.seq[3][0] === 'aegislash';           // King's Shield DID
+  const cShield = control.seq.every(s => s[0] === 'aegislash');
+  return { works: tBlade && tStaysBlade && tReverted && cShield
+             && test.seq[0][1] > control.seq[0][1] && test.seq[4][1] > control.seq[4][1]
+             && test.lines === 3 && control.lines === 0,
+           arms: { control: control.seq, test: test.seq },
+           detail: `[forme, HP the foe lost] over Iron Head / Swords Dance / Iron Head / King's Shield `
+                 + `/ Iron Head — STANCE CHANGE ${JSON.stringify(test.seq)} with ${test.lines} `
+                 + `|-formechange| lines; CONTROL, the same body with the ability blanked, `
+                 + `${JSON.stringify(control.seq)} with ${control.lines}. The forme after the SWORDS `
+                 + `DANCE click must still read aegislash-blade — a Status click is a no-op, not a `
+                 + `revert — and only King's Shield may put it back` };
+});
+
 /* BLOCK AND MEAN LOOK — Will: "block really shouldnt be that hard, its just shadow tag". The tagger
  * was the gap: neither move carried any trapping tag at all. */
 probe('move', 'trapsTarget', 'Block holds the target in its slot, and a Shed Shell walks out of it', () => {
@@ -11965,6 +12194,322 @@ probe('move', 'noExtraHit', 'a move flagged noExtraHit takes NO second hit from 
                  + `demonstrably live on the same board. 17 moves carry this tag and Phantom Force `
                  + `alone is 1,606 stored clicks` };
 });
+
+/* ---- ROADMAP #144 / #141: PP, AND MOLD BREAKER --------------------------------------------------
+ *
+ * `ppRun(` and `mbRun(` added 2026-08-11, declared HERE with their reasons exactly as the direct-call
+ * paragraph at the top of this file requires. Both stage a real doubles board through `battleInit`.
+ *
+ * `ppRun(` spends AN ARBITRARY NUMBER of real turns through `battleTurn`, and it has to spend more
+ * than one for a reason no single-turn probe can work around: PP is a resource carried ACROSS turn
+ * boundaries, and the only observable of a PP system is what happens on the click AFTER the last one
+ * it could pay for. It reads the emitted `|move|` and `|cant|` stream rather than HP, because the
+ * mechanic has no HP in it at all -- a refused Protect and a landed Protect leave every body on the
+ * same hit points -- and it optionally hands the LAST few turns to the engine's own chooser, which is
+ * the only road Struggle can arrive by (Showdown REPLACES the whole menu with it).
+ *
+ * `mbRun(` spends ONE real turn but needs a board a pure `dmgRange` call cannot express in three of
+ * its five arms: the flinch arms need the victim to CLICK something so the lost turn is visible, the
+ * Shield Dust arm needs a secondary to resolve, and the Rough Skin arm reads the ATTACKER's HP. It
+ * returns a per-arm reader rather than one number for the same reason -- an immunity, a damage
+ * multiplier, a crit block, a flinch refusal and a secondary filter have five different observables,
+ * and collapsing them into "damage" is how a probe comes to agree with itself. */
+const ppRun = (moveId, turns, stage, chooseAfter) => {
+  const B = board('incineroar', 'farigiraf', 'garchomp', 'farigiraf');
+  B.me.moves = [moveId];
+  /* Nothing may faint: a KO ends the sequence early and the two arms would then differ because
+   * somebody died rather than because a move ran out. */
+  for (const b of [B.me, B.ally, B.f1, B.f2]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 60 }); b.curHP = b.st.hp; }
+  const trace = []; B.S._trace = trace;
+  if (stage) stage(B);
+  const drive = turns - (chooseAfter || 0);
+  for (let i = 0; i < turns; i++) {
+    if (i < drive) {
+      M.battleTurn(B.S, rng5,
+        new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+        PASS2(B.f1, B.f2));
+    } else {
+      M.battleTurn(B.S, rng5, undefined, undefined);
+    }
+  }
+  const mv = trace.filter(l => /^\|move\|p1a/.test(l)).map(l => l.split('|')[3]);
+  const tally = {}; for (const x of mv) tally[x] = (tally[x] || 0) + 1;
+  return { clicks: mv.length, byMove: tally,
+           noPP: trace.filter(l => /^\|cant\|p1a[^|]*\|nopp/.test(l)).length,
+           left: B.me._pp ? Object.assign({}, B.me._pp) : null };
+};
+
+probe('move', 'pp', 'an 8-PP move runs out: the ninth click FAILS', () => {
+  /* Protect is `maxpp` 8 in this format (base 5) against 16 in mainline gen 9, so an engine taking PP
+   * from mainline would pass a bare "does it run out" test and still be wrong by a factor of two on
+   * the most-clicked move in the format. The arms are 9 clicks against 5, and the number that matters
+   * is the CLICKS THAT LANDED rather than the clicks that were asked for. */
+  const nine = ppRun('protect', 9), five = ppRun('protect', 5);
+  return { works: nine.clicks === 8 && nine.noPP === 1 && five.clicks === 5 && five.noPP === 0
+                  && nine.left && nine.left.protect === 0 && five.left && five.left.protect === 3,
+           arms: { control: [five.clicks, five.noPP], test: [nine.clicks, nine.noPP] },
+           detail: 'Protect asked 9 times -> ' + nine.clicks + ' |move| lines and ' + nine.noPP
+                 + ' |cant|nopp, leaving ' + JSON.stringify(nine.left) + '. Asked 5 times -> '
+                 + five.clicks + ' lines, ' + five.noPP + ' refusals, leaving '
+                 + JSON.stringify(five.left) + '. maxpp 8 is READ off a constructed battle in the '
+                 + 'format, never computed -- the mainline pp*8/5 rule is wrong on 415 of 500 moves' };
+});
+
+probe('ability', 'deductsExtraPP', 'Pressure halves how often a foe-aimed move can be clicked', () => {
+  /* THE CONTROL IS ANOTHER REAL ABILITY, not "no ability", so the arms differ by WHICH ability the
+   * foe has rather than by whether it has one. Close Combat is maxpp 8 and is aimed at a foe.
+   *
+   * THE SECOND PAIR IS WHAT STOPS A FALSE PASS. Pressure charges once per APPARENT TARGET, so a
+   * SELF-targeting move costs it nothing -- measured in the official engine before this was wired:
+   * Protect goes 8 -> 3 over five clicks with two Pressure foes standing there, and 8 -> 3 without.
+   * An engine that simply doubled every deduction under Pressure passes the first pair and fails
+   * this one. */
+  const set = (ab) => (B) => { B.f1.ability = ab; B.f2.ability = ab; };
+  const press = ppRun('closecombat', 9, set('pressure'));
+  const ctrl = ppRun('closecombat', 9, set('levitate'));
+  const selfPress = ppRun('protect', 5, set('pressure'));
+  const selfCtrl = ppRun('protect', 5, set('levitate'));
+  return { works: press.clicks === 4 && ctrl.clicks === 8
+                  && selfPress.left.protect === 3 && selfCtrl.left.protect === 3,
+           arms: { control: [ctrl.clicks, selfCtrl.left.protect], test: [press.clicks, selfPress.left.protect] },
+           detail: 'Close Combat (maxpp 8, aimed at a foe): ' + press.clicks + ' clicks into a '
+                 + 'Pressure foe against ' + ctrl.clicks + ' into a Levitate one -- 2 PP a click '
+                 + 'against 1. Protect (self-targeting) leaves ' + selfPress.left.protect
+                 + ' against ' + selfCtrl.left.protect + ': Pressure charges it NOTHING, which is '
+                 + 'the pressureTargets rule and the arm a blanket doubling fails' };
+});
+
+probe('move', 'setsOwnTypeAlways', 'every slot empty: the engine Struggles', () => {
+  /* THE ONLY ROAD STRUGGLE CAN ARRIVE BY IS THE CHOOSER. Showdown does not offer it as a fallback --
+   * `getMoveRequestData` REPLACES the whole menu with it once no slot has PP -- so this drains the
+   * body's one move with ordinary caller-supplied clicks and then hands three turns to the engine
+   * itself. The control drains only half, so a slot is still live and the same three turns must
+   * produce anything BUT Struggle. */
+  const drained = ppRun('closecombat', 11, null, 3);
+  const half = ppRun('closecombat', 7, null, 3);
+  return { works: (drained.byMove.struggle || 0) === 3 && !(half.byMove.struggle || 0),
+           arms: { control: half.byMove.struggle || 0, test: drained.byMove.struggle || 0 },
+           detail: 'after 8 Close Combats the slot is empty and the chooser clicks '
+                 + (drained.byMove.struggle || 0) + ' Struggles; after only 4 it clicks '
+                 + (half.byMove.struggle || 0) + ' and reaches for '
+                 + Object.keys(half.byMove).join('/') + ' instead. Struggle is typeless (???), so '
+                 + 'mcEff answers x1 against every defender rather than 0 against a Ghost' };
+});
+
+const mbRun = (attAb, defAb, arm) => {
+  const SP = { levitate: ['garchomp', 'incineroar'], filter: ['farigiraf', 'garchomp'],
+               shellarmor: ['farigiraf', 'garchomp'], shielddust: ['farigiraf', 'incineroar'],
+               roughskin: ['farigiraf', 'garchomp'], flinch: ['incineroar', 'garchomp'] };
+  const MV = { levitate: 'earthquake', filter: 'icebeam', shellarmor: 'frostbreath',
+               shielddust: 'nuzzle', roughskin: 'closecombat' };
+  const kind = (arm === 'innerfocus' || arm === 'steadfast') ? 'flinch' : arm;
+  const pair = SP[kind];
+  const B = board(pair[0], 'farigiraf', pair[1], 'farigiraf');
+  B.me.ability = attAb; B.f1.ability = defAb;
+  unfaintable(B.f1); unfaintable(B.me);
+  if (kind === 'flinch') {
+    B.me.st = Object.assign({}, B.me.st, { sp: 200 });
+    B.f1.st = Object.assign({}, B.f1.st, { sp: 10 });
+    const hp0 = B.me.curHP, sp0 = B.f1.boosts.sp;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'fakeout', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, M.playerAction(B.f1, 'earthquake', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    return { struckBack: hp0 - B.me.curHP, boost: B.f1.boosts.sp - sp0 };
+  }
+  const hp0 = B.me.curHP, foe0 = B.f1.curHP;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, MV[kind], B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  if (kind === 'roughskin') return hp0 - B.me.curHP;
+  if (kind === 'shielddust') return B.f1.status || 'none';
+  return foe0 - B.f1.curHP;
+};
+
+probe('ability', 'breakable', 'Mold Breaker breaks a BREAKABLE ability and leaves a non-breakable one alone', () => {
+  /* Will: "DOES TINKATON MOLD BREAKER FAKE OUT FLINCH A MON WITH INNER FOCUS? IDK WHAT THE ANSWER
+   * SHOULD BE". It does -- measured in the official engine -- and the same click into STEADFAST must
+   * still hand over the +1 Speed, because Inner Focus carries `flags.breakable` and Steadfast does
+   * not. That pair is the whole probe: two abilities that look like siblings, opposite answers, and
+   * an engine that ignores EVERY defender ability passes the first arm and fails the second.
+   *
+   * `ability.isBreakable` IS UNDEFINED ON EVERY ABILITY IN THIS FORMAT, so a lookup through it says
+   * Mold Breaker breaks nothing and goes green on its own test. The tag is derived from
+   * `flags.breakable`, which is the field the authority itself reads. */
+  const ifPlain = mbRun('none', 'innerfocus', 'innerfocus');
+  const ifMold = mbRun('moldbreaker', 'innerfocus', 'innerfocus');
+  const stPlain = mbRun('none', 'steadfast', 'steadfast');
+  const stMold = mbRun('moldbreaker', 'steadfast', 'steadfast');
+  const rsPlain = mbRun('none', 'roughskin', 'roughskin');
+  const rsMold = mbRun('moldbreaker', 'roughskin', 'roughskin');
+  const rsNone = mbRun('none', 'none', 'roughskin');
+  return { works: ifPlain.struckBack > 0 && ifMold.struckBack === 0
+                  && stPlain.boost === 1 && stMold.boost === 1
+                  && rsPlain === rsMold && rsPlain > 0 && rsNone === 0,
+           arms: { control: [ifPlain.struckBack, stPlain.boost, rsPlain],
+                   test: [ifMold.struckBack, stMold.boost, rsMold] },
+           detail: 'INNER FOCUS (breakable): the victim strikes back for ' + ifPlain.struckBack
+                 + ' under a plain attacker and ' + ifMold.struckBack + ' under Mold Breaker -- it '
+                 + 'flinched. STEADFAST (NOT breakable): +' + stPlain.boost + ' Speed plain, +'
+                 + stMold.boost + ' under Mold Breaker, unchanged, which is the arm a '
+                 + 'suppress-everything engine fails. ROUGH SKIN (NOT breakable): the attacker loses '
+                 + rsPlain + ' either way, against ' + rsNone + ' with no ability at all' };
+});
+
+probe('ability', 'ignoresDefenderAbility', 'Mold Breaker breaks four DIFFERENT KINDS of breakable ability', () => {
+  /* ONE KIND WORKING DOES NOT IMPLY FOUR. An immunity, a damage reducer, a crit blocker and a
+   * secondary filter are four separate reads of "which ability does this defender effectively have",
+   * and this engine genuinely had two right and two wrong at the same time: `dmgRange` shadowed the
+   * suppressed ability at the top of the calc (so Levitate and Filter fell) while the battle loop's
+   * secondary block read `tg.ability` RAW two hundred lines later (so Shield Dust and Inner Focus
+   * stood) -- same body, same turn. */
+  const lev = [mbRun('none', 'levitate', 'levitate'), mbRun('moldbreaker', 'levitate', 'levitate')];
+  const fil = [mbRun('none', 'filter', 'filter'), mbRun('moldbreaker', 'filter', 'filter')];
+  const shl = [mbRun('none', 'shellarmor', 'shellarmor'), mbRun('moldbreaker', 'shellarmor', 'shellarmor')];
+  const dst = [mbRun('none', 'shielddust', 'shielddust'), mbRun('moldbreaker', 'shielddust', 'shielddust')];
+  const dstNone = mbRun('none', 'none', 'shielddust');
+  return { works: lev[0] === 0 && lev[1] > 0 && fil[1] > fil[0] && shl[1] > shl[0]
+                  && dst[0] === 'none' && dst[1] === 'par' && dstNone === 'par',
+           arms: { control: [lev[0], fil[0], shl[0], dst[0]], test: [lev[1], fil[1], shl[1], dst[1]] },
+           detail: 'LEVITATE (immunity) ' + lev[0] + ' -> ' + lev[1] + '; FILTER (x0.75 on a 4x hit) '
+                 + fil[0] + ' -> ' + fil[1] + '; SHELL ARMOR (refuses Frost Breath\'s certain crit) '
+                 + shl[0] + ' -> ' + shl[1] + '; SHIELD DUST (filters a 100% secondary) "' + dst[0]
+                 + '" -> "' + dst[1] + '", against "' + dstNone + '" with no ability at all. Every '
+                 + 'left-hand number is a plain attacker into the SAME ability, which is the control '
+                 + 'that says the ability is live rather than absent' };
+});
+
+
+/* ---- ROADMAP #132: THE SECONDARY CHANCE IS A FACT ABOUT THE FORMAT ------------------------------
+ *
+ * `secRate(` added 2026-08-11, declared HERE with its reason exactly as the direct-call paragraph at
+ * the top of this file requires. It stages a real doubles board through `battleInit` and spends a real
+ * turn through `battleTurn`, four thousand times, each with its own seeded stream.
+ *
+ * IT IS THE ONE HELPER IN THIS FILE THAT DELIBERATELY DOES NOT USE `rng5`, and that is the mechanic
+ * rather than a convenience: the claim is a PROBABILITY, and a deterministic 0.5 answers "does the
+ * branch exist" while saying nothing at all about the number in front of it. An engine reading 30
+ * where the format says 10 fires on a 0.5 roll exactly as an engine reading 10 does. So the die has
+ * to be rolled, and the only honest reader is a rate.
+ *
+ * FOUR THOUSAND TURNS PUTS THE 2-SIGMA BAND AT ABOUT +/-1 POINT ON A 10% RATE, which is a fifth of
+ * the gap between the two rulebooks (10 against 30) and is what makes the assertion a band rather
+ * than a hope. */
+const secRate = (moveId, stat, n) => {
+  let hits = 0;
+  for (let i = 0; i < n; i++) {
+    let s = (i * 2654435761) >>> 0;
+    const rng = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return (s % 100000) / 100000; };
+    const B = board('farigiraf', 'farigiraf', 'incineroar', 'farigiraf');
+    unfaintable(B.f1);
+    M.battleTurn(B.S, rng,
+      new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    if (B.f1.boosts[stat] < 0) hits++;
+  }
+  return Math.round(1000 * hits / n) / 10;
+};
+
+probe('move', 'statChange', 'a secondary STAT DROP fires at the FORMAT\'s chance, not gen 9\'s', () => {
+  /* MOONBLAST IS 10% IN CHAMPIONS AND 30% IN MAINLINE GEN 9, and `data/move-effects.js` — which the
+   * secondary loop reads — says 30, because its generator fetches
+   * `play.pokemonshowdown.com/data/moves.json` instead of asking the FORMAT. 9,470 corpus clicks.
+   *
+   * WIRE 89 ALREADY FIXED THIS FOR A STATUS OR A VOLATILE, off `statusInflict`. A secondary that
+   * drops a STAT lives under a different tag, so the format-derived reader returned null for it and
+   * the generic number was used unchallenged — the same defect, one tag over, for two months.
+   *
+   * THE CONTROL IS A 100% DROP OF THE SAME SHAPE off the same board. Snarl and Icy Wind agree between
+   * the two rulebooks, so they must NOT move: an engine that simply divided every secondary chance by
+   * three would pass the Moonblast arm and fail these. They read ~95 rather than 100 because both
+   * moves are 95-accurate in this format and a miss applies nothing, which is the staging working. */
+  const moon = secRate('moonblast', 'sa', 4000);
+  const snarl = secRate('snarl', 'sa', 400);
+  const icy = secRate('icywind', 'sp', 400);
+  return { works: moon >= 8 && moon <= 12 && snarl > 90 && icy > 90,
+           arms: { control: [snarl, icy], test: [moon, moon] },
+           detail: 'Moonblast drops Special Attack on ' + moon + '% of 4,000 real turns — the '
+                 + 'format\'s 10, against the 30 data/move-effects.js states. CONTROLS, both 100% in '
+                 + 'both rulebooks: Snarl ' + snarl + '%, Icy Wind ' + icy + '% (95-accurate moves, '
+                 + 'so a miss applies nothing). engine/format_audit.js sweeps all 500 moves and '
+                 + 'reports every remaining row with whether the engine reads it' };
+});
+
+
+/* `leppaRun(` and `spiteRun(` added 2026-08-11 with the PP wire, declared HERE with their reasons.
+ * Both stage a real doubles board through `battleInit`. `leppaRun(` spends NINE real turns through
+ * `battleTurn`, and it has to spend all nine: the berry's whole mechanic is what happens on the click
+ * AFTER the slot empties, so a probe that stops at eight sees a berry that never fired and a probe
+ * that reads only the PP number cannot tell "restored" from "never spent". `spiteRun(` spends ONE
+ * turn but needs the ORDER inside it — the victim has to move FIRST so that it has a `lastMove` for
+ * the effect to have a subject at all, which is a property of the turn and not of any call below it. */
+const leppaRun = (item, turns) => {
+  const B = board('incineroar', 'farigiraf', 'garchomp', 'farigiraf');
+  B.me.moves = ['protect']; B.me.item = item;
+  for (const b of [B.me, B.ally, B.f1, B.f2]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 60 }); b.curHP = b.st.hp; }
+  const trace = []; B.S._trace = trace;
+  for (let i = 0; i < turns; i++) {
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'protect', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+  }
+  return { clicks: trace.filter(l => /^\|move\|p1a/.test(l)).length,
+           noPP: trace.filter(l => /nopp/.test(l)).length,
+           left: B.me._pp ? B.me._pp.protect : null, item: B.me.item };
+};
+
+probe('item', 'restoresPP', 'Leppa Berry puts a spent move back on the menu', () => {
+  /* TWO CONTROLS, AND THE SECOND ONE IS THE POINT. "No item" says the berry did something; SITRUS —
+   * a berry, held, on the same body, through the same `onUpdate` pass — says the something was
+   * RESTORES PP rather than "holding any berry helps". Protect is maxpp 8, so nine clicks is exactly
+   * one past the end and the berry is worth exactly one more turn of stall. */
+  const leppa = leppaRun('leppaberry', 9);
+  const none = leppaRun('', 9);
+  const sitrus = leppaRun('sitrusberry', 9);
+  return { works: leppa.clicks === 9 && leppa.noPP === 0 && leppa.item === ''
+                  && none.clicks === 8 && none.noPP === 1
+                  && sitrus.clicks === 8 && sitrus.noPP === 1,
+           arms: { control: [none.clicks, sitrus.clicks], test: [leppa.clicks, leppa.clicks] },
+           detail: 'Protect (maxpp 8) asked 9 times: with a LEPPA BERRY ' + leppa.clicks
+                 + ' clicks land, 0 refusals, the berry is spent and the slot reads ' + leppa.left
+                 + '. CONTROL no item ' + none.clicks + ' clicks and ' + none.noPP + ' |cant|nopp; '
+                 + 'CONTROL Sitrus Berry ' + sitrus.clicks + ' and ' + sitrus.noPP + ' — a berry that '
+                 + 'is HELD and does not restore PP, so the knob is the item\'s tag and not the slot' };
+});
+
+const spiteRun = (mv) => {
+  const B = board('farigiraf', 'farigiraf', 'garchomp', 'farigiraf');
+  B.f1.moves = ['earthquake'];
+  for (const b of [B.me, B.ally, B.f1, B.f2]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 60 }); b.curHP = b.st.hp; }
+  /* THE VICTIM MOVES FIRST, deliberately: `removesPP` takes from the target's LAST move, and a body
+   * that has not moved yet this turn has none — the authority's own handler returns without doing
+   * anything. Staging it the other way round would read 0 on both arms and look like a null result. */
+  B.me.st = Object.assign({}, B.me.st, { sp: 10 });
+  B.f1.st = Object.assign({}, B.f1.st, { sp: 200 });
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    new Map([[B.f1, M.playerAction(B.f1, 'earthquake', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+  return B.f1._pp ? B.f1._pp.earthquake : null;
+};
+
+probe('move', 'removesPP', 'Eerie Spell takes 3 PP off the move the target just used', () => {
+  /* THE CONTROL IS ANOTHER PSYCHIC SPECIAL MOVE aimed at the same body on the same turn, so the arms
+   * differ by WHICH move was clicked and by nothing else — not by type, not by target, not by whether
+   * anything connected. Earthquake is maxpp 12; the victim spends one on its own click, so the
+   * control must read 11 and the test 8.
+   *
+   * SPITE CARRIES THE SAME TAG AND IS NOT PROBED HERE, DELIBERATELY: `playerAction` resolves it to
+   * `{kind:\'pass\'}` — it is one of the 32 moves ROADMAP #125 counts as a whole no-op turn — so the
+   * reader is live for it and the ROAD into the reader is not. Probing it would mean asserting a
+   * result the engine reaches by accident. */
+  const eerie = spiteRun('eeriespell');
+  const ctrl = spiteRun('psychic');
+  return { works: eerie === 8 && ctrl === 11,
+           arms: { control: ctrl, test: eerie },
+           detail: 'the target\'s Earthquake (maxpp 12) reads ' + eerie + ' after EERIE SPELL and '
+                 + ctrl + ' after PSYCHIC — the same body, the same turn order, the same one PP the '
+                 + 'victim spends on its own click, and 3 more taken off the slot it last used' };
+});
+
 
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);

@@ -1305,9 +1305,16 @@ function flatL50(bs, nature) { return M.natureL50(bs, nature || 'Serious'); }
 function buildPair(sheet, opts) {
   const hpx = (opts && opts.hpBoost) || 1;
   const strip = !!(opts && opts.stripStones);
+  /* HOW MANY BODIES THE PAIR KEEPS. FOUR is the number every caller before 2026-08-10 wanted and it
+   * stays the default, so nothing that reads this function changes. `max: 6` exists for ROADMAP #143,
+   * where Showdown's own `TeamValidator` is the acceptance authority and it refuses a four-body team
+   * outright — *"You must bring at least 6 Pokemon (your team has 4)"* — so a team that is only ever
+   * four bodies long cannot be validated at all, whatever is on it. The battle still brings four
+   * (`team 1234`); the other two sit on the sheet so the AUTHORITY can pass judgement on it. */
+  const cap = (opts && opts.max) || 4;
   const picked = [];
   for (const p of sheet) {
-    if (picked.length >= 4) break;
+    if (picked.length >= cap) break;
     if (!p || !p.species) continue;
     /* ONE UNRESOLVABLE SPECIES OUT OF 7,635 TEAMS KILLED THE WHOLE RUN, and the bug is that this line
      * assumed a return where the contract is a THROW. `mcKey` is deliberately strict — engine/mc_key.js
@@ -1388,7 +1395,7 @@ function buildPair(sheet, opts) {
       ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 },
     } });
   }
-  if (picked.length < 4) { TEAMS_UNBUILDABLE++; return null; }
+  if (picked.length < cap) { TEAMS_UNBUILDABLE++; return null; }
   return picked;
 }
 
@@ -2931,7 +2938,15 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                     * into a boosted one and read the two credits. */
                    witnessFor, creditTurn, COV_CREDIT, COV_ATTEMPT, CREDIT_KIND, COV_TOUCHED,
                    driverSnap, driverRestore, driverReset, covWant, CREDIT_POLICY,
-                   BOARD_FAMILY, changedFamilies };
+                   BOARD_FAMILY, changedFamilies,
+                   /* 2026-08-10, ROADMAP #143 — THE AUTHORITY'S OWN LOG OF THE GAME JUST PLAYED.
+                    * `playGame` already returns `mediTrace`; the Showdown half was kept module-local
+                    * behind `gLogOf` because only `knockOffArms` needed it. `all_mechanics_fire.js`
+                    * decides whether a MOVE RESOLVED, and that verdict has to be read off the
+                    * AUTHORITY's stream — a resolution judged from medicham2's own narration would
+                    * be the engine grading its own homework. Returned as a COPY so a caller cannot
+                    * mutate the buffer the next game overwrites. */
+                   lastSdLog: () => _lastSdLog.slice() };
 
 if (require.main !== module) return;
 
