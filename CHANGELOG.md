@@ -10,6 +10,73 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.7.0] — 2026-08-11
+
+### Fixed
+- **THE INTERACTION MATRIX IS AT 1,640 / 1,640 — 100.0%, ZERO PARTING ROWS.** All five live
+  disagreements (ROADMAP #161) closed one at a time, each measured alone: `--full --write` matrix,
+  `replay_differential --games 400`, and `quarantine.js` after every one. `live` stayed 1,640 and `ran`
+  stayed 2,253 across all five, **so the rate moved because the engine moved, not because the instrument
+  shrank** — which is the failure that hid here four days ago.
+- **`throatchop -> shielddust` (3,739 uses)** — the sound lock was applied BELOW the secondary loop, so
+  it stood outside that loop's Shield Dust and Sheer Force gate. Now a branch inside it. The volatile
+  lives in `secondary.onHit`, a CLOSURE (`data/moves.ts:19420`), which is why no field-reading
+  derivation ever saw it and why #139's wire closed Salt Cure, Psychic Noise and Syrup Bomb but not this.
+- **`psychicnoise -> shielddust` (262)** — **my diagnosis did not cover it and the truth was worse.** The
+  gated road wrote `_vol.healblock`, which nothing reads and nothing ticks; an ungated block below wrote
+  `_healBlock`, which every consumer reads. **Two implementations of one fact**, which is the rule this
+  file's instructions state and the defect that keeps arriving anyway.
+- **`instruct -> goodasgold` (190)** — the Instruct branch is the only road to a second action in a turn
+  and it asked NONE of the ordinary refusals.
+- **`psyshieldbash -> aftermath` (24)** — **not the `!m.fainted` guard I sent the agent at.**
+  `_stepEffects` opened `if(!R.hit)return;` and `R.hit` means *the target survived*, so a KO discarded
+  the whole effects step — including the secondary that boosts the ATTACKER. Three hundred lines earlier
+  than my hypothesis.
+- **`rockwrecker -> bulletproof` (8) — and WIRE 43's COMMENT WAS FICTION.** It asserted *"a blocked or
+  missed Hyper Beam still recharges in the real game"*. Four staged turns with an explicit control:
+  Hyper Beam into Protect `[]`/`[]`; Rock Wrecker into Bulletproof `[]` vs ours `["mustrecharge"]`;
+  Rock Wrecker into nothing `["mustrecharge"]`/`["mustrecharge"]`; and **Hyper Beam into a GHOST — `[]`
+  vs ours `["mustrecharge"]`**. The Protect row is why the wrong sentence survived: we already left the
+  branch on a shield, so the only wrong family is the one a shield never covers. **The 8-use row found a
+  defect that lives on a far commoner board.** Comment rewritten with the measurement in it.
+- **RESIDUALS NOW RUN IN SPEED ORDER (ROADMAP #115).** Will: *"pokemon faint in speed order"*, *"in trick
+  room do they faint in reverse speed order?"*, *"sandstorm damage, etc"*. All DERIVED —
+  `battle.ts:2811` runs `updateSpeed()` at the head of the residual step, `pokemon.ts:557` sets
+  `speed = getActionSpeed()`, and that inverts under Trick Room. `medicham2-browser.js:14890` iterated
+  `[...actA,...actB]` in SLOT order; it now sorts through `compareTurnOrder`, so Trick Room comes free.
+  **Scoped by measurement**: the mega step (`:9313`) and the switch-in step (`:8827`) already sorted, so
+  Intimidate and mega ordering were correct all along. **Not cosmetic** — `battle.ts:2604` awards a
+  simultaneous double-KO to the side of the LAST faint off the queue, not a tie.
+
+### Added
+- **Every new capability carries a counter, each demonstrated non-zero on a staged turn**:
+  `soundLockApplied`, `healBlockApplied`, `instructRefusedByAbility` (with `instructRepeat` 0 in the same
+  arm), `rechargeSkippedNoTarget`, `volRefusedOnFainted`. A capability that cannot prove it ran is
+  assumed broken.
+- **`tests/test-assert-mode.js` — REGISTERED RED, AND THE RED IS THE POINT.** The roster files 14
+  abilities `NO CONTROL` because every legal carrier has the ability as its only one; Will dissolved
+  that — *"if a status move targets gholdengo, it fails. no status move can ever succeed"* — because the
+  effects are ABSOLUTE and need no second arm. **And the harness already existed**: `staged_board.js`
+  compares US against SHOWDOWN on one board, never two of our arms. **All 12 rows pass. They also pass
+  with Good as Gold and Levitate deleted from the engine.** The mutation applies (anchors at 2, 12 and 1
+  occurrences); the scenarios simply do not exercise the refusal. **Twelve green rows would have been
+  reported as coverage of 5,769 teams.** The file says so, exits non-zero, and lists what to debug.
+
+### Notes
+- **THREE RED TESTS THAT ARE NOT FROM THIS WORK, measured rather than assumed.**
+  `tests/test-tag-consumed.js` (23 tags newly with no consumer) and `tests/test-tag-wire.js` (10 dead
+  wires, including *"contact into a SURVIVING Aftermath body costs nothing"*) are **byte-identically red
+  with `medicham2-browser.js` restored to committed HEAD** — same assertions, same HP figures.
+  `test-effective-identity.js` was red on arrival. Stated, owned, not filed.
+- **`status.js` opens with a FEATURE SEMANTICS failure** — the damage table went 318 → 317 species under
+  `data/policy-weights.json`. That is MEASURE's refit trigger and **#26 is OWNED BY WILL**; it stays red
+  rather than being restamped, because a restamp makes the warning vanish without making it untrue.
+- **An artifact was weakened and restored**: running `tests/test-engine-diff.js` standalone rewrote
+  `data/engine-diff.json` at its 150 default over a published 20,000-game figure. Restored, and it reads
+  0 disagreements at 20,000.
+
+---
+
 ## [5.6.0] — 2026-08-11
 
 ### Fixed

@@ -24,21 +24,21 @@ MEASURE — can we believe a number
     CORPUS DRIFT — declares 8,887 games; 11,309 are clean open-sheet now, so 21.4% of the corpus it describes is not in it. Re-run engine/leaf_engine_contrast.js.
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 21 unsafe, 1 void (declared), 73 possibly stale, 85 ok, 0 missing
+  provenance: 22 unsafe, 1 void (declared), 70 possibly stale, 88 ok, 0 missing
   click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
+    COMPUTED FROM DIFFERENT CONTENT — engine/fit_policy.js was 37df17935c16 at read time, is 2edef2cfb95a now
     COMPUTED FROM DIFFERENT CONTENT — engine/board.js was 5bdaa3923958 at read time, is a55f8271e101 now
-    COMPUTED FROM DIFFERENT CONTENT — engine/durable-ingest.js was b4a7ee95693c at read time, is c323fc12bae4 now
-    (+3 more — node engine/provenance.js)
+    (+4 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/click_census.js
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED:   Measure what it touches before deciding — how many corpus games contain a changed species — |   then refit (node engine/fit_policy.js, then node engine/fit_joint.js) if it reaches the fit, |   or restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-11 00:03
+    moved after the fit: engine/medicham2-browser.js  2026-08-11 01:54
     moved after the fit: engine/board.js  2026-08-10 20:33
     moved after the fit: data/engine-data.js  2026-08-10 18:59
     moved after the fit: data/abra-tags.js  2026-08-11 00:02
 ```
 
-_stamped 2026-08-11 00:14_
+_stamped 2026-08-11 01:58_
 
 <!-- /GENERATED -->
 

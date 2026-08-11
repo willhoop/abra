@@ -63,6 +63,9 @@ const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('data', 'engine-data.js'));
 const M = require(D('engine', 'medicham2-browser.js'));
 const CS = require(D('engine', 'champions_sim.js'));
+/* "does this move carry this linkage key" — the same predicate `engine/tag_dex.js` builds
+ * `linkage.<key>.carrierMoves` with. This file used to ask the usage-gated ARTIFACT instead. */
+const { carriesLinkageKey, CATEGORY_KEYS } = require(D('engine', 'linkage_carrier.js'));
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
 const tags = JSON.parse(fs.readFileSync(D('data', 'tags.json'), 'utf8'));
@@ -713,13 +716,56 @@ function axisFlag(depth, log) {
   return cases;
 }
 
-/* The control carrier for a reactor-MOVE case: same category, same user, WITHOUT the flag. */
+/* The control carrier for a reactor-MOVE case: same category, same user, WITHOUT the flag.
+ *
+ * "WITHOUT THE FLAG" WAS ASKED OF THE WRONG THING FOR AS LONG AS THIS FUNCTION HAS EXISTED. 2026-08-11.
+ * --------------------------------------------------------------------------------------------------
+ * `flagged` below is `LINKAGE[key].carrierMoves`, and tag_dex builds that behind a USAGE GATE — it is
+ * the list of flagged moves PEOPLE CLICK, sorted by uses, which is the right thing for ranking and a
+ * membership test that is wrong by fifteen moves on `contact` alone. Flail carries `flags.contact`,
+ * has zero usage, is therefore not in the list, and was selected here as a "flagless" control for
+ * Blastoise. Both arms then made contact, Spiky Shield / Baneful Bunker / King's Shield / Beak Blast
+ * punished BOTH, the reference engine's two arms came out identical, and 57 pairs reported INERT.
+ *
+ * INERT is the one verdict this instrument cannot self-diagnose, and it is not scored — so the harness
+ * quietly stopped exercising the whole protect family and the agreement rate went UP (98.8% -> 99.7%)
+ * while covering LESS. A capability silently absent with everything reporting success.
+ *
+ * It stayed hidden because the control it previously chose was DIVE, which also makes contact but is a
+ * two-turn charge move that never lands on turn 1 — so it never touched anything and the case passed
+ * for the wrong reason. Dive earned nonzero usage, entered `carrierMoves`, stopped being eligible as a
+ * control, and Flail took its place. The defect did not arrive with that; it was uncovered by it.
+ *
+ * The membership question now goes to `engine/linkage_carrier.js`, which reads the move's own flags,
+ * priority and category — the same predicate tag_dex uses to BUILD the list. One implementation. */
 function controlCarrier(flagKey, mv, user, log, label, who) {
+  /* A KEY WHOSE CARRIERS ARE A WHOLE CATEGORY HAS NO SAME-CATEGORY CONTROL, and pretending otherwise
+   * is how `statusMove x taunt` staged Guard Split against Disable — Taunt blocks both, so all six
+   * Taunt pairs and six of Sucker Punch's and six of Upper Hand's read INERT with the reactor firing
+   * perfectly in both arms. The requirement "same category" and the requirement "without the key"
+   * contradict here, and the pair is refused with that said rather than staged and mislabelled.
+   *
+   * THIS IS A REAL COVERAGE GAP AND IT IS NAMED, NOT PAPERED OVER: it costs Taunt its only cases. The
+   * fix is not a cleverer control carrier — it is for a reactor MOVE to be controlled by varying the
+   * HOLDER'S ACTION (click a state-neutral filler instead of the reactor), which is a design change to
+   * the two-arm staging and is filed rather than smuggled in here. */
+  if (CATEGORY_KEYS.has(flagKey))
+    return log.add('control-impossible-for-this-key: every move of the carrier\'s own category carries '
+      + 'this key by construction, so a control that is same-category AND flagless cannot exist — the '
+      + 'reactor treats the control exactly like the carrier and the pair would report INERT', label, 1, who);
+  /* NO SILENT DEFAULT ON A KEY WE CANNOT ANSWER. `carriesLinkageKey` returns null for a key with no
+   * move-carrier rule (`emptyItemSlot`, `targetBoosted`, `moveType`) and for a supplemental key. A
+   * `false` there would let every candidate through unchecked, which is the bug above wearing a
+   * different hat, so the pair is dropped under its own printed reason instead. */
+  if (carriesLinkageKey(mv, flagKey) === null)
+    return log.add('control-key-has-no-move-carrier-rule: engine/linkage_carrier.js cannot say whether '
+      + 'a move carries "' + flagKey + '", so no candidate can be PROVED flagless', label, 1, who);
   const flagged = new Set((LINKAGE[flagKey].carrierMoves || []).map(x => x.id));
   const cand = Object.keys(tags.moves).filter(id => {
     if (flagged.has(id)) return false;
     const m = dex.moves.get(id);
     if (!m.exists || m.category !== mv.category) return false;
+    if (carriesLinkageKey(m, flagKey) !== false) return false;   /* the move's own flags, not the index */
     if (moveIsDeterministic(m)) return false;
     if (!NEEDS_FOE.has(m.target)) return false;
     return learns(user, id);

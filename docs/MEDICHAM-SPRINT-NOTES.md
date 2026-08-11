@@ -3813,3 +3813,41 @@ megaing into weather setters resolve to the SLOWER one's sky. That path is alrea
 
 Registered as ROADMAP #115 — which until tonight existed only in a session task list and had **no
 register row at all**, which is exactly what `engine/open_work.js` was built to stop.
+
+---
+
+## THE MATRIX IS 1,640 / 1,640 — 100.0%, ZERO PARTING ROWS
+
+All five of ROADMAP #161 closed, one wire at a time, each measured alone per #81. **`live` stayed 1,640
+and `ran` stayed 2,253 across all five, so the rate moved because the ENGINE moved and not because the
+instrument shrank** — which is precisely the failure that hid here on 2026-08-06, when 57 protect-family
+pairs quietly stopped being exercised and the agreement rate went UP.
+
+| uses | row | root cause |
+|---|---|---|
+| 3,739 | `throatchop -> shielddust` | the sound lock was applied BELOW the secondary loop, so it stood outside that loop's Shield Dust gate. Its volatile lives in `secondary.onHit`, a **closure** — which is why no field-reading derivation ever saw it, and why #139's wire closed Salt Cure, Psychic Noise and Syrup Bomb but not this |
+| 262 | `psychicnoise -> shielddust` | **my diagnosis did not cover it and the truth was worse**: the gated road wrote `_vol.healblock`, which nothing reads and nothing ticks, while an ungated block below wrote `_healBlock`, which every consumer reads. **Two implementations of one fact** |
+| 190 | `instruct -> goodasgold` | the Instruct branch is the only road to a second action in a turn, and it asked NONE of the ordinary refusals |
+| 24 | `psyshieldbash -> aftermath` | **not the `!m.fainted` guard I sent the agent at.** `_stepEffects` opened `if(!R.hit)return;` and `R.hit` means *the target survived*, so a KO discarded the whole effects step — including the secondary that boosts the ATTACKER. Three hundred lines earlier than my hypothesis |
+| 8 | `rockwrecker -> bulletproof` | the recharge was armed for a move that reached no body at all |
+
+### THE ENGINE COMMENT THAT WAS FICTION, AND WHY IT SURVIVED
+
+WIRE 43 asserted *"a blocked or missed Hyper Beam still recharges in the real game"*. It was belief, and
+four staged turns with an explicit control settle it:
+
+    hyper beam  -> Protect        []            []              agree
+    rock wrecker-> Bulletproof    []            ["mustrecharge"]  PART
+    rock wrecker-> nothing        ["mustrecharge"] ["mustrecharge"]  agree (control)
+    hyper beam  -> a GHOST        []            ["mustrecharge"]  PART
+
+**The Protect row is why the wrong sentence survived** — we already left the branch on a shield, so the
+only wrong family is the one a shield never covers. **An 8-use row found a defect that lives on a far
+commoner board.** That is the argument for working the small rows.
+
+### WHAT I GOT WRONG, KEPT BECAUSE IT IS THE PATTERN
+
+Two of the five diagnoses I handed the agent were wrong, and both were wrong the same way: **I reasoned
+from where the symptom appears rather than measuring where the control flow leaves.** Psyshield Bash was
+not a guard on the boost, it was a return three hundred lines up. Psychic Noise was not a missing gate,
+it was two fields with the same meaning. The agent found both by printing the staged board.

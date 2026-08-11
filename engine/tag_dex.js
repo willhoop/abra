@@ -49,6 +49,9 @@ require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checko
 const fs = require('fs');
 const path = require('path');
 const CS = require('./champions_sim.js');
+/* "does this move carry this linkage key" — one implementation, shared with the interaction-matrix
+ * generator, which used to ask the usage-gated ARTIFACT this question instead. See the file. */
+const { carriesLinkageKey } = require('./linkage_carrier.js');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -6313,17 +6316,17 @@ for (const [kind, tbl, dexAll] of [['abilities', abils.entries, dex.abilities.al
 for (const m of dex.moves.all()) {
   if (!m || !m.exists || m.isNonstandard) continue;
   const id = norm(m.id);
+  /* THE USAGE GATE IS A RANKING DECISION AND IT IS RIGHT HERE — `carrierMoves` is "what people
+   * actually click", and its `uses` field is what everything downstream sorts by. It is WRONG as a
+   * membership test, and `tests/interaction_matrix.js` was using it as one: fifteen moves carrying
+   * `flags.contact` are absent from this list purely for having zero usage, and one of them (Flail)
+   * was picked as the "flagless" CONTROL against Spiky Shield. Both arms made contact, both got
+   * chipped, and 57 pairs reported INERT. The membership question now has one implementation,
+   * `engine/linkage_carrier.js`, which both this builder and that generator call. */
   const u = U.move[id] || 0;
   if (!u) continue;
-  const f = m.flags || {};
   for (const K of KEYS) {
-    let hit = false;
-    if (['contact','sound','punch','bullet','powder','wind','slicing','bite','heal'].includes(K.key)) hit = !!f[K.key];
-    else if (K.key === 'priorityMove') hit = m.priority > 0;
-    else if (K.key === 'statusMove')   hit = m.category === 'Status';
-    else if (K.key === 'physicalMove') hit = m.category === 'Physical';
-    else if (K.key === 'specialMove')  hit = m.category === 'Special';
-    if (hit) linkage[K.key].carrierMoves.push({ id, name: m.name, uses: u });
+    if (carriesLinkageKey(m, K.key) === true) linkage[K.key].carrierMoves.push({ id, name: m.name, uses: u });
     /* THE REACTOR SIDE OF THE MOVE TABLE, by the same handler probe the abilities and items use.
      * Spiky Shield's condition tests checkMoveMakesContact; Quick Guard's tests move.priority. A move
      * can be both -- Beak Blast CARRIES nothing and REACTS to contact during its charge turn. */

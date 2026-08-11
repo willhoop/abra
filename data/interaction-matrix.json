@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-11T04:39:41.217Z",
+  "generated": "2026-08-11T05:51:53.831Z",
   "by": "tests/test-interaction-matrix.js",
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "depth": "full",
@@ -9,22 +9,22 @@
     "field": 156,
     "total": 9405
   },
-  "emitted": 2281,
-  "ran": 2281,
+  "emitted": 2253,
+  "ran": 2253,
   "by_axis": {
-    "flag": 1812,
+    "flag": 1784,
     "type": 313,
     "field": 156
   },
   "by_layer": {
-    "secondary": 1431,
+    "secondary": 1421,
     "damage": 354,
     "immunity": 96,
-    "legality": 393,
+    "legality": 375,
     "targeting": 7
   },
   "by_evaluator": {
-    "state": 1771,
+    "state": 1743,
     "damage": 354,
     "field": 156
   },
@@ -42,7 +42,7 @@
     "holder-immune-by-chart: every candidate body already takes zero from this move type": 73,
     "layer-unclassified: the reactor is tagged, but no tag maps to a resolution stage": 14,
     "reactor-not-in-format: no species in this format has the ability at all": 29,
-    "no-control-carrier: the user has no flagless move of the same category": 268,
+    "no-control-carrier: the user has no flagless move of the same category": 104,
     "no-holder: no species in MC.mons learns the reactor move on a body this carrier can reach": 46,
     "reactor-not-in-format: no species in this format learns the reactor move": 1,
     "carrier-does-not-aim-at-a-foe: target=all": 115,
@@ -52,6 +52,7 @@
     "carrier-does-not-aim-at-a-foe: target=allySide": 62,
     "carrier-does-not-aim-at-a-foe: target=foeSide": 28,
     "carrier-does-not-aim-at-a-foe: target=adjacentAllyOrSelf": 7,
+    "control-impossible-for-this-key: every move of the carrier's own category carries this key by construction, so a control that is same-category AND flagless cannot exist — the reactor treats the control exactly like the carrier and the pair would report INERT": 192,
     "reactor-also-moves-accuracy: a damage RATIO would be measuring a miss, not a multiplier": 1,
     "carrier-reaches-this-key-only-through-a-roll: a 30% secondary, and the pinned median die does not fire it": 41,
     "carrier-reaches-this-key-only-through-a-roll: a 20% secondary, and the pinned median die does not fire it": 24,
@@ -66,12 +67,12 @@
     "field-setter-self-switches: the case would be about the replacement, not the field": 1,
     "field-not-in-projection: persists, but neither engine projection carries it": 4
   },
-  "live": 1593,
-  "agree": 1588,
-  "part": 5,
-  "agreement_pct": 99.7,
-  "staged_pct_of_theoretical": 24.3,
-  "inert": 566,
+  "live": 1640,
+  "agree": 1640,
+  "part": 0,
+  "agreement_pct": 100,
+  "staged_pct_of_theoretical": 24,
+  "inert": 491,
   "saturated": 112,
   "ko_timing": 8,
   "threw": 2,
@@ -98,45 +99,6 @@
       "reactor": "aftermath",
       "reactor_kind": "ability",
       "holder": "Garbodor",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "fakeout",
-      "carrier_uses": 17324,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "fakeout",
-      "carrier_uses": 17324,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "fakeout",
-      "carrier_uses": 17324,
-      "user": "Blastoise",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
       "side": "def",
       "evaluator": "state"
     },
@@ -176,32 +138,6 @@
       "reactor": "aftermath",
       "reactor_kind": "ability",
       "holder": "Garbodor",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "closecombat",
-      "carrier_uses": 12712,
-      "user": "Arcanine",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "closecombat",
-      "carrier_uses": 12712,
-      "user": "Arcanine",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
       "side": "def",
       "evaluator": "state"
     },
@@ -306,58 +242,6 @@
       "reactor": "aftermath",
       "reactor_kind": "ability",
       "holder": "Garbodor",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "ironhead",
-      "carrier_uses": 9423,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "ironhead",
-      "carrier_uses": 9423,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "ironhead",
-      "carrier_uses": 9423,
-      "user": "Blastoise",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "ironhead",
-      "carrier_uses": 9423,
-      "user": "Blastoise",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
       "side": "def",
       "evaluator": "state"
     },
@@ -479,58 +363,6 @@
       "evaluator": "state"
     },
     {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "wavecrash",
-      "carrier_uses": 7960,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "wavecrash",
-      "carrier_uses": 7960,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "wavecrash",
-      "carrier_uses": 7960,
-      "user": "Blastoise",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "wavecrash",
-      "carrier_uses": 7960,
-      "user": "Blastoise",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
       "axis": "type",
       "key": "moveType:Water",
       "layer": "damage",
@@ -618,58 +450,6 @@
       "reactor": "aftermath",
       "reactor_kind": "ability",
       "holder": "Garbodor",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "aquajet",
-      "carrier_uses": 6285,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "aquajet",
-      "carrier_uses": 6285,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "aquajet",
-      "carrier_uses": 6285,
-      "user": "Blastoise",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "aquajet",
-      "carrier_uses": 6285,
-      "user": "Blastoise",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
       "side": "def",
       "evaluator": "state"
     },
@@ -895,45 +675,6 @@
       "evaluator": "state"
     },
     {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "flipturn",
-      "carrier_uses": 3317,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "flipturn",
-      "carrier_uses": 3317,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "flipturn",
-      "carrier_uses": 3317,
-      "user": "Blastoise",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
       "axis": "type",
       "key": "moveType:Water",
       "layer": "damage",
@@ -1008,58 +749,6 @@
       "reactor": "aftermath",
       "reactor_kind": "ability",
       "holder": "Garbodor",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "icepunch",
-      "carrier_uses": 2916,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "icepunch",
-      "carrier_uses": 2916,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "icepunch",
-      "carrier_uses": 2916,
-      "user": "Blastoise",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "icepunch",
-      "carrier_uses": 2916,
-      "user": "Blastoise",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
       "side": "def",
       "evaluator": "state"
     },
@@ -1236,19 +925,6 @@
       "axis": "flag",
       "key": "statusMove",
       "layer": "legality",
-      "carrier": "taunt",
-      "carrier_uses": 1869,
-      "user": "Alakazam",
-      "reactor": "taunt",
-      "reactor_kind": "move",
-      "holder": "Alakazam",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
       "carrier": "sleeppowder",
       "carrier_uses": 1823,
       "user": "Venusaur",
@@ -1320,45 +996,6 @@
       "reactor": "aftermath",
       "reactor_kind": "ability",
       "holder": "Garbodor",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "extremespeed",
-      "carrier_uses": 1693,
-      "user": "Arcanine",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "extremespeed",
-      "carrier_uses": 1693,
-      "user": "Arcanine",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "extremespeed",
-      "carrier_uses": 1693,
-      "user": "Arcanine",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
       "side": "def",
       "evaluator": "state"
     },
@@ -1509,45 +1146,6 @@
       "axis": "flag",
       "key": "contact",
       "layer": "secondary",
-      "carrier": "bodypress",
-      "carrier_uses": 1225,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "bodypress",
-      "carrier_uses": 1225,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "bodypress",
-      "carrier_uses": 1225,
-      "user": "Blastoise",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
       "carrier": "drainpunch",
       "carrier_uses": 1200,
       "user": "Raichu",
@@ -1681,35 +1279,9 @@
       "carrier": "headsmash",
       "carrier_uses": 1062,
       "user": "Steelix",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "headsmash",
-      "carrier_uses": 1062,
-      "user": "Steelix",
       "reactor": "banefulbunker",
       "reactor_kind": "move",
       "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "headsmash",
-      "carrier_uses": 1062,
-      "user": "Steelix",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
       "side": "def",
       "evaluator": "state"
     },
@@ -1723,58 +1295,6 @@
       "reactor": "aftermath",
       "reactor_kind": "ability",
       "holder": "Garbodor",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "liquidation",
-      "carrier_uses": 1061,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "liquidation",
-      "carrier_uses": 1061,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "liquidation",
-      "carrier_uses": 1061,
-      "user": "Blastoise",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "liquidation",
-      "carrier_uses": 1061,
-      "user": "Blastoise",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
       "side": "def",
       "evaluator": "state"
     },
@@ -1814,58 +1334,6 @@
       "reactor": "aftermath",
       "reactor_kind": "ability",
       "holder": "Garbodor",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "foulplay",
-      "carrier_uses": 987,
-      "user": "Ninetales",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "foulplay",
-      "carrier_uses": 987,
-      "user": "Ninetales",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "foulplay",
-      "carrier_uses": 987,
-      "user": "Ninetales",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "foulplay",
-      "carrier_uses": 987,
-      "user": "Ninetales",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
       "side": "def",
       "evaluator": "state"
     },
@@ -2469,58 +1937,6 @@
     },
     {
       "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "waterfall",
-      "carrier_uses": 400,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "waterfall",
-      "carrier_uses": 400,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "waterfall",
-      "carrier_uses": 400,
-      "user": "Blastoise",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "waterfall",
-      "carrier_uses": 400,
-      "user": "Blastoise",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
       "key": "physicalMove",
       "layer": "secondary",
       "carrier": "poltergeist",
@@ -3106,19 +2522,6 @@
     },
     {
       "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
-      "carrier": "quash",
-      "carrier_uses": 201,
-      "user": "Sableye",
-      "reactor": "taunt",
-      "reactor_kind": "move",
-      "holder": "Alakazam",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
       "key": "sound",
       "layer": "damage",
       "carrier": "alluringvoice",
@@ -3368,58 +2771,6 @@
       "axis": "flag",
       "key": "contact",
       "layer": "secondary",
-      "carrier": "zenheadbutt",
-      "carrier_uses": 154,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "zenheadbutt",
-      "carrier_uses": 154,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "zenheadbutt",
-      "carrier_uses": 154,
-      "user": "Blastoise",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "zenheadbutt",
-      "carrier_uses": 154,
-      "user": "Blastoise",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
       "carrier": "shadowclaw",
       "carrier_uses": 152,
       "user": "Charizard",
@@ -3628,58 +2979,6 @@
       "axis": "flag",
       "key": "contact",
       "layer": "secondary",
-      "carrier": "icespinner",
-      "carrier_uses": 108,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "icespinner",
-      "carrier_uses": 108,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "icespinner",
-      "carrier_uses": 108,
-      "user": "Blastoise",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "icespinner",
-      "carrier_uses": 108,
-      "user": "Blastoise",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
       "carrier": "dragontail",
       "carrier_uses": 107,
       "user": "Charizard",
@@ -3725,45 +3024,6 @@
       "reactor": "aftermath",
       "reactor_kind": "ability",
       "holder": "Garbodor",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "supercellslam",
-      "carrier_uses": 101,
-      "user": "Snorlax",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "supercellslam",
-      "carrier_uses": 101,
-      "user": "Snorlax",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "supercellslam",
-      "carrier_uses": 101,
-      "user": "Snorlax",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
       "side": "def",
       "evaluator": "state"
     },
@@ -4200,19 +3460,6 @@
       "axis": "flag",
       "key": "statusMove",
       "layer": "legality",
-      "carrier": "entrainment",
-      "carrier_uses": 72,
-      "user": "Lopunny",
-      "reactor": "taunt",
-      "reactor_kind": "move",
-      "holder": "Alakazam",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
       "carrier": "swagger",
       "carrier_uses": 71,
       "user": "Sableye",
@@ -4479,58 +3726,6 @@
       "reactor": "aftermath",
       "reactor_kind": "ability",
       "holder": "Garbodor",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "gyroball",
-      "carrier_uses": 50,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "gyroball",
-      "carrier_uses": 50,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "gyroball",
-      "carrier_uses": 50,
-      "user": "Blastoise",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "gyroball",
-      "carrier_uses": 50,
-      "user": "Blastoise",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
       "side": "def",
       "evaluator": "state"
     },
@@ -4939,45 +4134,6 @@
     },
     {
       "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
-      "carrier": "roleplay",
-      "carrier_uses": 35,
-      "user": "Alakazam",
-      "reactor": "suckerpunch",
-      "reactor_kind": "move",
-      "holder": "Arbok",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
-      "carrier": "roleplay",
-      "carrier_uses": 35,
-      "user": "Alakazam",
-      "reactor": "taunt",
-      "reactor_kind": "move",
-      "holder": "Alakazam",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
-      "carrier": "roleplay",
-      "carrier_uses": 35,
-      "user": "Alakazam",
-      "reactor": "upperhand",
-      "reactor_kind": "move",
-      "holder": "Pikachu",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
       "key": "moveSecondary",
       "layer": "secondary",
       "carrier": "aurawheel",
@@ -5147,58 +4303,6 @@
     },
     {
       "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "aquatail",
-      "carrier_uses": 25,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "aquatail",
-      "carrier_uses": 25,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "aquatail",
-      "carrier_uses": 25,
-      "user": "Blastoise",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "aquatail",
-      "carrier_uses": 25,
-      "user": "Blastoise",
-      "reactor": "beakblast",
-      "reactor_kind": "move",
-      "holder": "Toucannon",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
       "key": "moveSecondary",
       "layer": "secondary",
       "carrier": "psyshieldbash",
@@ -5298,45 +4402,6 @@
       "reactor": "aftermath",
       "reactor_kind": "ability",
       "holder": "Garbodor",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "avalanche",
-      "carrier_uses": 20,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "avalanche",
-      "carrier_uses": 20,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "avalanche",
-      "carrier_uses": 20,
-      "user": "Blastoise",
-      "reactor": "kingsshield",
-      "reactor_kind": "move",
-      "holder": "Aegislash",
       "side": "def",
       "evaluator": "state"
     },
@@ -5706,32 +4771,6 @@
     },
     {
       "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "rapidspin",
-      "carrier_uses": 14,
-      "user": "Blastoise",
-      "reactor": "spikyshield",
-      "reactor_kind": "move",
-      "holder": "Chesnaught",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "rapidspin",
-      "carrier_uses": 14,
-      "user": "Blastoise",
-      "reactor": "banefulbunker",
-      "reactor_kind": "move",
-      "holder": "Toxapex",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
       "key": "physicalMove",
       "layer": "secondary",
       "carrier": "rapidspin",
@@ -5806,45 +4845,6 @@
       "reactor_kind": "item",
       "holder": "Venusaur",
       "side": "atk",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
-      "carrier": "speedswap",
-      "carrier_uses": 12,
-      "user": "Alakazam",
-      "reactor": "suckerpunch",
-      "reactor_kind": "move",
-      "holder": "Arbok",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
-      "carrier": "speedswap",
-      "carrier_uses": 12,
-      "user": "Alakazam",
-      "reactor": "taunt",
-      "reactor_kind": "move",
-      "holder": "Alakazam",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
-      "carrier": "speedswap",
-      "carrier_uses": 12,
-      "user": "Alakazam",
-      "reactor": "upperhand",
-      "reactor_kind": "move",
-      "holder": "Pikachu",
-      "side": "def",
       "evaluator": "state"
     },
     {
@@ -6114,9 +5114,35 @@
       "carrier": "steelroller",
       "carrier_uses": 9,
       "user": "Forretress",
+      "reactor": "spikyshield",
+      "reactor_kind": "move",
+      "holder": "Chesnaught",
+      "side": "def",
+      "evaluator": "state"
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "steelroller",
+      "carrier_uses": 9,
+      "user": "Forretress",
       "reactor": "banefulbunker",
       "reactor_kind": "move",
       "holder": "Toxapex",
+      "side": "def",
+      "evaluator": "state"
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "steelroller",
+      "carrier_uses": 9,
+      "user": "Forretress",
+      "reactor": "kingsshield",
+      "reactor_kind": "move",
+      "holder": "Aegislash",
       "side": "def",
       "evaluator": "state"
     },
@@ -7201,45 +6227,6 @@
     },
     {
       "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
-      "carrier": "guardswap",
-      "carrier_uses": 2,
-      "user": "Alakazam",
-      "reactor": "suckerpunch",
-      "reactor_kind": "move",
-      "holder": "Arbok",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
-      "carrier": "guardswap",
-      "carrier_uses": 2,
-      "user": "Alakazam",
-      "reactor": "taunt",
-      "reactor_kind": "move",
-      "holder": "Alakazam",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
-      "carrier": "guardswap",
-      "carrier_uses": 2,
-      "user": "Alakazam",
-      "reactor": "upperhand",
-      "reactor_kind": "move",
-      "holder": "Pikachu",
-      "side": "def",
-      "evaluator": "state"
-    },
-    {
-      "axis": "flag",
       "key": "contact",
       "layer": "secondary",
       "carrier": "dive",
@@ -7300,6 +6287,45 @@
       "reactor": "aftermath",
       "reactor_kind": "ability",
       "holder": "Garbodor",
+      "side": "def",
+      "evaluator": "state"
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "dive",
+      "carrier_uses": 1,
+      "user": "Blastoise",
+      "reactor": "spikyshield",
+      "reactor_kind": "move",
+      "holder": "Chesnaught",
+      "side": "def",
+      "evaluator": "state"
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "dive",
+      "carrier_uses": 1,
+      "user": "Blastoise",
+      "reactor": "banefulbunker",
+      "reactor_kind": "move",
+      "holder": "Toxapex",
+      "side": "def",
+      "evaluator": "state"
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "dive",
+      "carrier_uses": 1,
+      "user": "Blastoise",
+      "reactor": "kingsshield",
+      "reactor_kind": "move",
+      "holder": "Aegislash",
       "side": "def",
       "evaluator": "state"
     },
@@ -7447,148 +6473,22 @@
       "evaluator": "damage"
     }
   ],
-  "parting": [
-    {
-      "axis": "flag",
-      "key": "contact",
-      "layer": "secondary",
-      "carrier": "psyshieldbash",
-      "reactor": "aftermath",
-      "kind": "ability",
-      "side": "def",
-      "uses": 24,
-      "evaluator": "state",
-      "medi_witness": [
-        ".A.active[0].hurt"
-      ],
-      "sd_witness": [
-        ".A.active[0].hurt"
-      ],
-      "turn": null,
-      "diffs": [
-        [
-          ".A.active[0].boosts.def",
-          "0",
-          "1"
-        ]
-      ],
-      "detail": null
-    },
-    {
-      "axis": "flag",
-      "key": "bullet",
-      "layer": "immunity",
-      "carrier": "rockwrecker",
-      "reactor": "bulletproof",
-      "kind": "ability",
-      "side": "def",
-      "uses": 8,
-      "evaluator": "state",
-      "medi_witness": [
-        ".B.active[0].hurt"
-      ],
-      "sd_witness": [
-        ".A.active[0].vol",
-        ".B.active[0].hurt"
-      ],
-      "turn": null,
-      "diffs": [
-        [
-          ".A.active[0].vol",
-          "[\"mustrecharge\"]",
-          "[]"
-        ]
-      ],
-      "detail": null
-    },
-    {
-      "axis": "flag",
-      "key": "statusMove",
-      "layer": "legality",
-      "carrier": "instruct",
-      "reactor": "goodasgold",
-      "kind": "ability",
-      "side": "def",
-      "uses": 190,
-      "evaluator": "state",
-      "medi_witness": [],
-      "sd_witness": [
-        ".B.active[0].boosts.spa"
-      ],
-      "turn": null,
-      "diffs": [
-        [
-          ".B.active[0].boosts.spa",
-          "4",
-          "2"
-        ]
-      ],
-      "detail": null
-    },
-    {
-      "axis": "flag",
-      "key": "moveSecondary",
-      "layer": "secondary",
-      "carrier": "throatchop",
-      "reactor": "shielddust",
-      "kind": "ability",
-      "side": "def",
-      "uses": 3739,
-      "evaluator": "state",
-      "medi_witness": [],
-      "sd_witness": [
-        ".B.active[0].vol"
-      ],
-      "turn": null,
-      "diffs": [
-        [
-          ".B.active[0].vol",
-          "[\"throatchop\"]",
-          "[]"
-        ]
-      ],
-      "detail": null
-    },
-    {
-      "axis": "flag",
-      "key": "moveSecondary",
-      "layer": "secondary",
-      "carrier": "psychicnoise",
-      "reactor": "shielddust",
-      "kind": "ability",
-      "side": "def",
-      "uses": 262,
-      "evaluator": "state",
-      "medi_witness": [],
-      "sd_witness": [
-        ".B.active[0].vol"
-      ],
-      "turn": null,
-      "diffs": [
-        [
-          ".B.active[0].vol",
-          "[\"healblock\"]",
-          "[]"
-        ]
-      ],
-      "detail": null
-    }
-  ],
+  "parting": [],
   "threw_rows": [
     {
       "key": "statusMove",
       "carrier": "curse",
       "reactor": "goodasgold",
-      "why": "1245/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
+      "why": "1235/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
     },
     {
       "key": "statusMove",
       "carrier": "curse",
       "reactor": "quickclaw",
-      "why": "1371/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
+      "why": "1361/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
     }
   ],
-  "off_gate": 33,
+  "off_gate": 30,
   "off_gate_rows": [
     {
       "key": "contact",
@@ -7792,36 +6692,6 @@
           "path": ".A.active[0].status",
           "medi": "\"psn\"",
           "sd": "\"\""
-        }
-      ]
-    },
-    {
-      "key": "contact",
-      "bucket": "inert",
-      "carrier": "foulplay",
-      "reactor": "beakblast",
-      "kind": "move",
-      "uses": 987,
-      "diffs": [
-        {
-          "path": ".A.active[0].species",
-          "medi": "\"incineroar\"",
-          "sd": "\"ninetales\""
-        },
-        {
-          "path": ".A.active[0].hurt",
-          "medi": "false",
-          "sd": "true"
-        },
-        {
-          "path": ".A.active[0].types",
-          "medi": "[\"Dark\",\"Fire\"]",
-          "sd": "[\"Fire\"]"
-        },
-        {
-          "path": ".A.benched",
-          "medi": "[\"garchomp\"]",
-          "sd": "[\"garchomp\",\"incineroar\"]"
         }
       ]
     },
@@ -8209,11 +7079,6 @@
       "uses": 33,
       "diffs": [
         {
-          "path": ".A.active[0].boosts.spe",
-          "medi": "0",
-          "sd": "1"
-        },
-        {
           "path": ".B.active[0].species",
           "medi": "\"corviknight\"",
           "sd": "\"skarmory\""
@@ -8227,6 +7092,11 @@
           "path": ".B.active[0].boosts.def",
           "medi": "0",
           "sd": "1"
+        },
+        {
+          "path": ".B.active[0].boosts.spe",
+          "medi": "0",
+          "sd": "2"
         }
       ]
     },
@@ -8289,43 +7159,6 @@
           "sd": "false"
         }
       ]
-    },
-    {
-      "key": "moveSecondary",
-      "bucket": "inert",
-      "carrier": "torchsong",
-      "reactor": "shielddust",
-      "kind": "ability",
-      "uses": 46,
-      "diffs": [
-        {
-          "path": ".A.active[0].boosts.spa",
-          "medi": "0",
-          "sd": "1"
-        }
-      ]
-    },
-    {
-      "key": "moveSecondary",
-      "bucket": "inert",
-      "carrier": "aurawheel",
-      "reactor": "shielddust",
-      "kind": "ability",
-      "uses": 33,
-      "diffs": [
-        {
-          "path": ".A.active[0].boosts.spe",
-          "medi": "0",
-          "sd": "1"
-        }
-      ]
     }
-  ],
-  "shrink_declared": {
-    "from": 1643,
-    "to": 1593,
-    "depth": "full",
-    "reason": "MEASURING THE SHRINK — see the diff written beside this run; this publish is the measurement, not a claim",
-    "note": "A shrink was accepted deliberately. This block is the record of that judgement; without it the drop from 1643 to 1593 is indistinguishable from a shallow run overwriting a deep one."
-  }
+  ]
 }

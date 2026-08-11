@@ -156,6 +156,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * Syrup Bomb, Sparkling Aria). The loop had a branch for every other kind of secondary, so a zero
    * here is the whole family falling out of the bottom of it, which is where it was. */
   secondaryVolatileApplied: 0,
+  /* ROADMAP #161 -- Throat Chop's sound lock, applied THROUGH the secondary loop so Shield Dust and
+   * Sheer Force can reach it. A zero means the move landed 80 base power and left nothing behind,
+   * which is where it was before WIRE 45. `secondaryEffectless` is its receipt of the other kind: an
+   * effect-less secondary entry that matched no tag, so a fourteenth member of that family arriving
+   * in the rulebook reads as an unhandled count rather than as silence. */
+  soundLockApplied: 0, secondaryEffectless: 0,
+  /* ROADMAP #161 -- Psychic Noise's heal block, applied by its ONE owner. A zero means the move is
+   * back to landing 75 base power and nothing else, which is what WIRE 30 was written to fix. */
+  healBlockApplied: 0,
+  /* ROADMAP #161 -- a volatile refused because the body it was aimed at is already dead
+   * (sim/pokemon.ts:1980). Reachable only since the effects step stopped abandoning a KO'd target. */
+  volRefusedOnFainted: 0,
+  /* ROADMAP #161 -- a recharge move that reached NO body, so it owes no recharge (selfDrops skips a
+   * `false` target, sim/battle-actions.ts:1322). Non-zero is the Bulletproof/Ghost case actually
+   * happening; a zero beside a live Hyper Beam means the new clause never fires and the old
+   * unconditional behaviour is back. */
+  rechargeSkippedNoTarget: 0,
   /* ROADMAP #139 -- Parental Bond, at BOTH of its moments, because "the plan was built" and "the
    * second packet took the quarter" are two facts and only the pair says the ability works. A plan
    * built with a second packet that never takes the modifier is a x2 Kangaskhan. */
@@ -465,6 +482,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * silently vanishing counter is worse than a visibly retired one. */
   statusReaimedToSlot: 0,
   moodyRolled: 0, punishBurned: 0, punishConfused: 0, instructRepeat: 0, dualPurposeHeal: 0,
+  /* ROADMAP #161 -- an Instruct refused because its target's ability refuses status moves. A zero
+   * beside a non-zero `instructRepeat` is the state this engine was in: the second action was handed
+   * out and the one ability that stops it was never asked. */
+  instructRefusedByAbility: 0,
   sideBuffRefused: 0, itemRoomHidden: 0, wonderRoomSwap: 0, powerDoubledOnRead: 0,
   /* WIRE 141 -- the TRANSFORM, counted apart from `formeSwapped` because it is a different mechanic
    * wearing the same word: a forme swap becomes a KNOWN row and a transform becomes an ARBITRARY
@@ -581,6 +602,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   berryConsumed: 0, cheekPouchHealed: 0, ripenDoubled: 0, gluttonyRaisedThreshold: 0,
   cudChewArmed: 0, cudChewReEaten: 0, harvestRestored: 0, pickupTook: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* ROADMAP #161 -- a heal block whose CARRIER declared no duration. The number is the move's
+   * (data/moves.ts:8290 returns 2 for Psychic Noise and 5 otherwise), so a carrier with no
+   * `blocksHealing.turns` has no honest number to use and the block is REFUSED rather than given a
+   * guessed one. Non-zero means a second carrier reached this and did nothing. */
+  healBlockNoDuration: 0,
   /* ROADMAP #125 -- THE TERMINAL FALL-THROUGH OF THE CLASSIFIER, AND IT HAD NO COUNTER AT ALL.
    *
    * `playerActionPrimary` ends in `return {kind:'pass',mv:id}` -- "this engine models no effect for
@@ -7558,6 +7584,12 @@ function applyConfusion(t,src,field,viaSecondary){
  * outstanding actions, which only the turn loop holds. */
 function applyMoveVolatile(who,vol,src,mvId,field,opts){
   if(!who||!vol)return false;
+  /* ROADMAP #161 -- A FAINTED BODY TAKES NO VOLATILE. `Pokemon#addVolatile` opens with
+     `if (!this.hp && !status.affectsFainted) return false` (sim/pokemon.ts:1980), and no member of
+     this family declares `affectsFainted`. It sat unwritten while the effects step refused to run at
+     all on a KO'd target; now that the step runs (see _stepEffects), the refusal has to be where the
+     authority keeps it -- in the applier, so every caller inherits it. */
+  if(who.fainted||who.curHP<=0){ MEDSEEN.volRefusedOnFainted++; return false; }
   /* WIRE 69 -- A MOVE-SEALING VOLATILE FAILS AGAINST A TARGET WITH NO LAST MOVE, and this
      guard has to come BEFORE the volatile is written. The first version sat two lines lower,
      after the assignment, so it skipped the bookkeeping and left the volatile on -- the pair
@@ -7603,6 +7635,11 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
    * duplicate. Refused at the OWNER, exactly as Substitute and Confusion are, so the caller stays a
    * plain read of the artifact. */
   if(vol==='partiallytrapped'){ MEDSEEN.volRefusedOwnedElsewhere++; return false; }
+  /* ROADMAP #161 -- `healblock` IS OWNED TOO, and the reason is the same one: this generic path
+   * would write `_vol.healblock`, which nothing reads and nothing ticks, while the field every
+   * consumer asks about (`_healBlock`) was being written by a block BELOW the secondary loop and
+   * therefore outside its Shield Dust / Sheer Force gate. One road, one field: see applyHealBlock. */
+  if(vol==='healblock'){ return applyHealBlock(who,mvId); }
   /* ROADMAP #92 -- CONFUSION IS OWNED TOO, for exactly the reason Substitute is. This
    * generic path writes a bare turn count and knows nothing about Own Tempo, Safeguard, a
    * body that is already confused, a Lum Berry or the self-hit -- and what it wrote was
@@ -7654,28 +7691,61 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
        boundary. Two clocks for one effect is how a lock outlives the volatile that made it. */
     if(who._lastMove&&who._lockT!==Infinity){who._lock=who._lastMove;who._lockT=_tn;}
   }
-  /* WIRE 62 -- MENTAL HERB, 684 sheets, and it undoes the whole point of the click that
-   * just landed -- so any value a search assigns to landing a Taunt or an Encore is wrong
-   * against a holder. Applied HERE, the instant the volatile is set, because the real item
-   * is an onUpdate: it never spends a turn taunted.
-   * THE SET IS THE ARTIFACT'S. The param was `{oneShot:true}`, which named the shape and
-   * not WHICH volatiles -- and the set is the mechanic: the herb frees Taunt, Encore,
-   * Disable, Attract, Torment and Heal Block and does NOT touch confusion, a Leech Seed or
-   * a partial trap. A consumer reading the boolean would have built a universal eraser.
-   * It clears the ENGINE-SIDE state each volatile owns as well as the volatile itself,
-   * because `_sealed` and the Encore `_lock` are separate fields (WIRE 26) and leaving
-   * either behind would free the name and keep the effect. */
-  {
-    const _mh=TAGS.param('item',who.item,'curesVolatile');
-    if(_mh&&Array.isArray(_mh.cures)&&_mh.cures.indexOf(vol)>=0){
-      delete who._vol[vol];
-      if(vol==='disable')who._sealed=null;
-      if(vol==='encore'){who._encoreMove=null;if(who._lockT!==Infinity){who._lock=null;who._lockT=0;}}
-      if(vol==='healblock')who._healBlock=0;
-      if(TR){TR.vend(who,'move: '+vol);TR.enditem(who,who.item);}
-      who.item='';
-    }
-  }
+  mentalHerbCures(who,vol);
+  return true;
+}
+/* WIRE 62 -- MENTAL HERB, 684 sheets, and it undoes the whole point of the click that
+ * just landed -- so any value a search assigns to landing a Taunt or an Encore is wrong
+ * against a holder. Applied the INSTANT the volatile is set, because the real item is an
+ * onUpdate: it never spends a turn taunted.
+ * THE SET IS THE ARTIFACT'S. The param was `{oneShot:true}`, which named the shape and
+ * not WHICH volatiles -- and the set is the mechanic: the herb frees Taunt, Encore,
+ * Disable, Attract, Torment and Heal Block and does NOT touch confusion, a Leech Seed or
+ * a partial trap. A consumer reading the boolean would have built a universal eraser.
+ * It clears the ENGINE-SIDE state each volatile owns as well as the volatile itself,
+ * because `_sealed` and the Encore `_lock` are separate fields (WIRE 26) and leaving
+ * either behind would free the name and keep the effect.
+ *
+ * ROADMAP #161 -- LIFTED OUT OF applyMoveVolatile UNCHANGED, because a SECOND caller now exists.
+ * Heal Block's clock is `_healBlock` and its owner (applyHealBlock, below) is reached before the
+ * generic body runs, so leaving the herb inline would have freed a Taunt and not a Heal Block --
+ * and re-typing the eight lines there is the duplication CLAUDE.md's "FACTS ARE GLOBAL" rule
+ * forbids. Nothing in the move was added, removed or reordered. */
+function mentalHerbCures(who,vol){
+  if(!who||!who.item)return false;
+  const _mh=TAGS.param('item',who.item,'curesVolatile');
+  if(!(_mh&&Array.isArray(_mh.cures)&&_mh.cures.indexOf(vol)>=0))return false;
+  if(who._vol)delete who._vol[vol];
+  if(vol==='disable')who._sealed=null;
+  if(vol==='encore'){who._encoreMove=null;if(who._lockT!==Infinity){who._lock=null;who._lockT=0;}}
+  if(vol==='healblock')who._healBlock=0;
+  if(TR){TR.vend(who,'move: '+vol);TR.enditem(who,who.item);}
+  who.item='';
+  return true;
+}
+/* ROADMAP #161 -- HEAL BLOCK, AND THE FIELD THE ENGINE ACTUALLY READS.
+ *
+ * `healBlocked` (one reader, ~:2534) asks `_healBlock > 0`; the residual ticks `_healBlock`; the
+ * switch-out carry list carries `_healBlock`. `_vol.healblock` is read by NOTHING, is in no tick
+ * table (`durationVolatiles()` is built from `sealsMoves`, which Psychic Noise does not carry) and
+ * so would sit on the body forever at a count nobody set deliberately. So this is the owner, in the
+ * same idiom Substitute, Confusion and the partial trap already use, and applyMoveVolatile refuses
+ * the name rather than writing a second copy of the same effect.
+ *
+ * THE DURATION IS THE MOVE'S, NOT THE VOLATILE'S -- `data/moves.ts:8289-8292`, healblock's
+ * durationCallback: `if (effect?.name === "Psychic Noise") return 2;` against a bare 5 otherwise.
+ * That is why the number comes off the CARRIER's `blocksHealing` tag and never off a table keyed by
+ * the volatile. The +1 is the tick convention this engine uses for every clock: the residual fires
+ * on the application turn too. */
+function applyHealBlock(who,mvId){
+  if(!who||who.fainted)return false;
+  const _bh=TAGS.param('move',mvId,'blocksHealing');
+  if(!_bh||!(+_bh.turns>0)){ MEDFAILS.healBlockNoDuration++; return false; }
+  const _h0=who._healBlock;
+  who._healBlock=+_bh.turns+1;
+  if(TR&&!(_h0>0))TR.vstart(who,'move: Heal Block');
+  MEDSEEN.healBlockApplied++;
+  mentalHerbCures(who,'healblock');
   return true;
 }
 /* THE TICK, AND IT IS WHERE SHOWDOWN PUTS IT: `onBeforeMove`, at the TOP of the attempt, BEFORE the
@@ -10869,6 +10939,26 @@ function battleTurn(S,rng,actsForA,actsForB){
         m._lastMove=a.mv;
         const _ip=TAGS.param('move',a.mv,'instructsTarget')||{};
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        /* ROADMAP #161 -- AND INSTRUCT IS A STATUS MOVE, SO GOOD AS GOLD REFUSES IT.
+         *
+         * `data/moves.ts` instruct: `category: "Status"`, `target: "normal"` -- it may be aimed at a
+         * FOE, and `data/abilities.ts:1621` refuses any status move from another body outright
+         * (`if (move.category === 'Status' && target !== source) ... return null`). This branch was
+         * the one road to a second action in a turn and it asked none of the ordinary refusals, so a
+         * Gholdengo could be made to click its last move again: the matrix read
+         * `instruct -> goodasgold  .B.active[0].boosts.spa medi=4 sd=2` -- a Nasty Plot resolved
+         * TWICE against the one ability in the format built to stop exactly this. 190 corpus uses.
+         *
+         * The reader is the shared `refusesStatusMoves`, which is checked at fifteen other sites in
+         * this file and matches EXACTLY ONE ability today (printed before this wire: goodasgold, and
+         * nothing else -- the tag caught Telepathy and Wonder Guard in an earlier life and no longer
+         * does). `t!==m` is Showdown's `target !== source` clause, kept so a self-aimed status move
+         * is not refused by its own holder's ability. */
+        if(t&&t!==m&&TAGS.has('ability',t.ability,'refusesStatusMoves')){
+          if(TR)TR.imm(t,'[from] ability: '+t.ability);
+          MEDSEEN.instructRefusedByAbility++;
+          continue;
+        }
         const _mid=t&&t._lastMove;
         const _refused=_mid&&(_ip.refuses||[]).indexOf(_mid)>=0;
         if(!t||!_mid||_refused||t._charging||t._recharge){mvFail(m);continue;}
@@ -13348,7 +13438,30 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* STEP 7c -- runMoveEffects / selfDrops / secondaries (battle-actions.ts:1086-1101): everything
        * a connecting hit leaves behind, for every target, AFTER every target's damage. */
       const _stepEffects=(R)=>{const tg=R.tg;const _react=R.react;
-        if(!R.hit)return;
+        /* ROADMAP #161 -- A TARGET THAT DIED TO THIS HIT STILL RUNS THE HIT'S EFFECTS, AND THE ONES
+         * THAT LAND ON THE ATTACKER STILL LAND.
+         *
+         * `R.hit` is set only in the else of the faint (~:13421), so this read "the target survived"
+         * and threw away the whole step on a KO. Showdown's secondaries step skips exactly one thing
+         * -- `if (target === false) continue;` (sim/battle-actions.ts:1339), a slot that was never
+         * hit at all -- and it runs at battle-actions.ts:1099, BEFORE the `DamagingHit` event on
+         * :1121 that Aftermath and Rough Skin hang off. So the order in the authority is
+         * damage -> secondaries -> the contact punishes -> faintMessages.
+         *
+         * MEASURED: `psyshieldbash -> aftermath` read `.A.active[0].boosts.def medi=0 sd=1` on the
+         * interaction matrix. Psyshield Bash is `secondary: {chance:100, self:{boosts:{def:1}}}`
+         * (data/moves.ts) -- the boost is on the ATTACKER -- and the Garbodor it killed took the
+         * whole step down with it. The diagnosis handed to this wire was the `!m.fainted` guard on
+         * the selfBoosts branch; it is not that guard. The attacker is alive in both engines (its
+         * only witness is `hurt`), and the effect was never reached at all.
+         *
+         * A DEAD TARGET STILL REFUSES WHAT A DEAD TARGET REFUSES, and those refusals belong to the
+         * effects rather than to the step: `boost()` bails on `if (!target?.hp) return 0`
+         * (sim/battle.ts:2026), `addVolatile` on `if (!this.hp && !status.affectsFainted) return
+         * false` (sim/pokemon.ts:1980), and `canTakeStatus` in this file already refuses a fainted
+         * body on its first line. The two boost sites below and applyMoveVolatile carry the first
+         * two; that is where the authority puts them. */
+        if(!R.hit&&!R.fainted)return;
         {
           /* WIRE 4 of N -- buffsHolderOnHit and punishesAttacker, ONE dispatch through the `contact`
            * linkage key. Both were entirely absent from this engine.
@@ -13420,7 +13533,10 @@ function battleTurn(S,rng,actsForA,actsForB){
                 MEDFAILS.buffOnHitVolatileUnwiredFirst=String(tg.ability)+'/'+String(_buff.gainsVolatile);
             }
           }
-          if(_buff&&_bw===true&&_buff.boosts&&tg.boosts){
+          /* ROADMAP #161 -- `!tg.fainted` IS THE AUTHORITY'S OWN FIRST LINE, sim/battle.ts:2026
+             (`if (!target?.hp) return 0`). It could not matter until this step began running for a
+             target that died to the hit; a Stamina body that faints does not get its Defence. */
+          if(_buff&&_bw===true&&_buff.boosts&&tg.boosts&&!tg.fainted){
             /* The tag names the stats and the sizes, read from the handler's own this.boost({...}).
              * Showdown spells them atk/def/spa/spd/spe; this engine uses at/df/sa/sd/sp. That map is
              * a naming convention, not a mechanic, so it lives here rather than in the artifact.
@@ -13549,7 +13665,9 @@ function battleTurn(S,rng,actsForA,actsForB){
                * fullmetalbody triple, so Hyper Cutter took Breaking Swipe's -1 Attack and Big Pecks
                * took Crunch's -1 Defense, both of which Showdown's onTryBoost deletes. `true` is the
                * SECONDARY flag: the block still happens, the `-fail` line does not. */
-              else if(s.targetBoosts&&tg.boosts){
+              /* ROADMAP #161 -- and the same `!tg.fainted`, sim/battle.ts:2026. Icy Wind's Speed drop
+                 does not land on a body the same click just killed. */
+              else if(s.targetBoosts&&tg.boosts&&!tg.fainted){
                 for(const k in s.targetBoosts){
                   const _st=SD2ENG[k];
                   if(_st&&tg.boosts[_st]!=null&&s.targetBoosts[k]<0){
@@ -13621,6 +13739,46 @@ function battleTurn(S,rng,actsForA,actsForB){
               else if(s.volatile){
                 if(applyMoveVolatile(tg,s.volatile,m,a.move.id,field,{alreadyMoved:!unresolved.has(tg)}))
                   MEDSEEN.secondaryVolatileApplied++;
+              }
+              /* ROADMAP #161 -- THE SECONDARY WHOSE EFFECT IS A CLOSURE, WHICH NO DERIVATION CAN SEE.
+               *
+               * ROADMAP #139 (the branch above) closed "the secondary that is an ordinary volatile"
+               * and it closed it off a DECLARED field -- Salt Cure and Psychic Noise both say
+               * `volatileStatus` in `data/moves.ts`. THROAT CHOP DOES NOT. Its lock is applied by a
+               * function inside the secondary:
+               *     data/moves.ts:19420   secondary: { chance: 100, onHit(target) {
+               *     data/moves.ts:19425                 target.addVolatile('throatchop'); } }
+               * so every generator that reads fields produces `{"chance":100}` with nothing in it --
+               * which is exactly what `data/move-effects.js` holds for it -- and the effect had to
+               * reach the body by some other road. It did: a block below the loop wrote `_noSound`
+               * unconditionally, and therefore through NO gate. Shield Dust filters SECONDARIES
+               * (`data/abilities.ts:4220` keeps only `effect.self`) and Sheer Force deletes them
+               * outright (`data/abilities.ts:4194  delete move.secondaries`), so a Vivillon took the
+               * two turns of silence in this engine and none in the authority -- 3,739 corpus uses,
+               * the largest row on the interaction matrix's parting list.
+               *
+               * THE FIX IS THE ROAD, NOT A SECOND GATE. Adding a Shield Dust test beside the old
+               * write would have been a second implementation of one fact (CLAUDE.md), and it would
+               * have said nothing about Sheer Force. The effect is a secondary upstream, so it is
+               * applied HERE, under the suppression, the chance roll and the rulebook-drift check
+               * every other secondary already passes.
+               *
+               * THE MEMBERSHIP WAS PRINTED BEFORE THE WIRE (LESSONS §4). THIRTEEN moves in the whole
+               * rulebook carry an effect-less secondary entry -- alluringvoice, anchorshot,
+               * burningjealousy, ceaselessedge, clangoroussoulblaze, diamondstorm, direclaw,
+               * eeriespell, genesissupernova, spiritshackle, stoneaxe, throatchop, triattack -- so
+               * the entry alone is far too wide a key. It is the TAG that selects: exactly ONE move
+               * in the format carries `blocksSoundMoves`, and a fourteenth effect-less secondary
+               * arriving tomorrow reaches `secondaryEffectless` and is COUNTED, not silently done. */
+              else if(!s.status&&!s.volatile&&!s.targetBoosts&&!s.selfBoosts){
+                const _bs=TAGS.param('move',a.move.id,'blocksSoundMoves');
+                if(_bs&&_bs.turns&&tg&&!tg.fainted){
+                  /* The duration and the +1 are WIRE 45's, unchanged: the end-of-turn tick fires on
+                     the application turn too, the same convention as Heal Block and Encore. */
+                  const _n0=tg._noSound; tg._noSound=+_bs.turns+1;
+                  if(TR&&!(_n0>0))TR.vstart(tg,'move: Throat Chop');
+                  MEDSEEN.soundLockApplied++;
+                } else MEDSEEN.secondaryEffectless++;
               }
             }
           }
@@ -13783,18 +13941,22 @@ function battleTurn(S,rng,actsForA,actsForB){
            *
            * ON A CONNECTING HIT AND ON A LIVE TARGET, per target -- a spread move blocks each body it
            * actually reached. Turns come from the tag (+1 for the end-of-turn tick that fires on this
-           * turn too), not from a 2 typed here. */
-          {const _bh=TAGS.param('move',a.move.id,'blocksHealing');
-           if(_bh&&_bh.turns&&tg&&!tg.fainted){const _h0=tg._healBlock;tg._healBlock=+_bh.turns+1;
-             if(TR&&!(_h0>0))TR.vstart(tg,'move: Heal Block');}}
+           * turn too), not from a 2 typed here.
+           *
+           * ROADMAP #161 -- THE APPLICATION IS GONE FROM HERE AND LIVES IN applyHealBlock, reached
+           * from the secondary loop above. Psychic Noise's heal block IS a secondary
+           * (`data/moves.ts:14091  secondary: { chance: 100, volatileStatus: 'healblock' }`), so
+           * Shield Dust deletes it (`data/abilities.ts:4220`) and this write, standing below the
+           * loop, never asked. 262 corpus uses, and it read `vol medi=["healblock"] sd=[]` on the
+           * interaction matrix. The duration, the +1 and the `-start` line are unchanged. */
           /* WIRE 45 -- THROAT CHOP LEAVES THE SILENCE BEHIND. 2,845 corpus clicks and the largest
            * single unwired mechanic left: the move landed 80 base power and the two turns it exists
-           * for did nothing at all. The duration comes from `blocksSoundMoves.turns`, which the
-           * derivation now reads off the condition, and carries the same +1 as Heal Block and Encore
-           * because the end-of-turn tick fires on the application turn too. */
-          {const _bs=TAGS.param('move',a.move.id,'blocksSoundMoves');
-           if(_bs&&_bs.turns&&!tg.fainted){const _n0=tg._noSound;tg._noSound=+_bs.turns+1;
-             if(TR&&!(_n0>0))TR.vstart(tg,'move: Throat Chop');}}
+           * for did nothing at all.
+           *
+           * ROADMAP #161 -- THE APPLICATION MOVED INTO THE SECONDARY LOOP ABOVE AND IS NOT REPEATED
+           * HERE. Standing outside the loop it stood outside the loop's GATE, so Shield Dust and
+           * Sheer Force could not reach it. The duration, the +1 and the `-start` line are unchanged
+           * and now live in the `blocksSoundMoves` branch at the bottom of the secondary chain. */
           /* WIRE 51 -- THE PARTIAL TRAP. Infestation (761 uses) landed its 8 damage and then chipped
            * NOTHING -- the whole move is the four-to-five turns after it. The fraction is the tag's
            * `chipPerTurn`; the duration is the tag's `turns` string ("4-5"), and the LOW end is taken
@@ -14220,10 +14382,35 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_uf&&_uf.faints&&(_uf.faints==='always'||dealt>0)&&!m.fainted){m.curHP=0;m.fainted=true;
           if(TR){TR.dmg(m);TR.faint(m);}}
       }
-      /* WIRE 43 -- ARM THE RECHARGE. Set only when the move actually resolved (a blocked or missed
-         Hyper Beam still recharges in the real game, but this line sits after every `continue` that
-         means "the move did not happen at all", which is the conservative half). */
-      if(!m.fainted&&TAGS.has('move',a.move.id,'recharge')){m._recharge=true;if(TR)TR.recharge(m);}
+      /* WIRE 43 -- ARM THE RECHARGE.
+       *
+       * ROADMAP #161 -- THE SENTENCE THAT USED TO BE HERE WAS BELIEF, AND IT WAS WRONG. It read "a
+       * blocked or missed Hyper Beam still recharges in the real game". The authority says the
+       * opposite, and it says it structurally: the recharge is `self: {volatileStatus:
+       * 'mustrecharge'}` on the move (data/moves.ts rockwrecker/hyperbeam), self effects are applied
+       * by `selfDrops`, and `selfDrops` opens with `for (const target of targets) { if (target ===
+       * false) continue; ... }` (sim/battle-actions.ts:1321-1322). A target removed by an immunity,
+       * by an absorbing ability or by the accuracy step IS false, so the loop never runs and the
+       * volatile is never written.
+       *
+       * MEASURED, not read — four staged turns against the pinned engine, with a control that clears
+       * the knob explicitly:
+       *     hyper beam INTO PROTECT              showdown []              ours []
+       *     rock wrecker INTO BULLETPROOF        showdown []              ours ["mustrecharge"]
+       *     rock wrecker INTO NOTHING (control)  showdown [mustrecharge]  ours ["mustrecharge"]
+       *     hyper beam INTO A GHOST              showdown []              ours ["mustrecharge"]
+       * The Protect row is why the old line looked right: this engine already `continue`d out of the
+       * branch on a shield, so the ONLY family that was wrong was the one the shield never covers --
+       * an immunity. `rockwrecker -> bulletproof` is 8 corpus uses and was the row on the interaction
+       * matrix; Hyper Beam and Giga Impact into a Ghost is the same defect on a far commoner board.
+       *
+       * `_reached` is this engine's count of bodies past every gate, incremented at the top of
+       * `_stepDamage` -- which is exactly "targets[i] !== false at the point selfDrops runs", since
+       * invulnerability, type immunity, an absorbing ability and the accuracy roll all sit above it
+       * in the step list. A MISS is therefore covered by the same clause; only the immunity arms are
+       * measured above, because the harness pins the dice and cannot stage a miss. */
+      if(!m.fainted&&_reached>0&&TAGS.has('move',a.move.id,'recharge')){m._recharge=true;if(TR)TR.recharge(m);}
+      else if(!m.fainted&&TAGS.has('move',a.move.id,'recharge'))MEDSEEN.rechargeSkippedNoTarget++;
       /* WIRE 144 -- ARM THE LOCK-IN, and it is WIRE 43's neighbour because it is WIRE 43's mirror
        * image: both are `self: { volatileStatus: ... }` on the move, one spends the NEXT turn and this
        * one sells the next TWO.

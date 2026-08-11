@@ -33,33 +33,177 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  444/444 probed mechanics live, 0 missing   (census 2026-08-11 00:08)
-  0/20000 differential comparisons disagree with Showdown   (2026-08-11 00:09)
+  444/444 probed mechanics live, 0 missing   (census 2026-08-11 01:52)
+  0/20000 differential comparisons disagree with Showdown   (2026-08-11 01:57)
     seed 20260804, requested 20000, 850 not comparable (multihit 630, non-finite 0, threw 220)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 17:50)
-    2300 of 8795 theoretical pairs staged — agreement is a claim about the 2300 that ran, not about the 8795
-      530 inert      not scored — the reference engine behaves identically with and without the reactor
-      109 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
-       16 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
+  interaction matrix: 1640/1640 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 01:51)
+    2253 of 9405 theoretical pairs staged — agreement is a claim about the 2253 that ran, not about the 9405
+      491 inert      not scored — the reference engine behaves identically with and without the reactor
+      112 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
+        8 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
-    DISAGREES  stoneaxe -> roughskin  (secondary, 63 uses)
-    DISAGREES  stoneaxe -> wanderingspirit  (secondary, 63 uses)
-    DISAGREES  stoneaxe -> mummy  (secondary, 63 uses)
-    DISAGREES  stoneaxe -> gooey  (secondary, 63 uses)
-    DISAGREES  gigaimpact -> spikyshield  (secondary, 38 uses)
-    DISAGREES  supercellslam -> kingsshield  (secondary, 85 uses)
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 6beac040d40e now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is b1ecca71a3ed now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 220/257 probed, 37 unprobed
 ```
 
-_stamped 2026-08-11 00:14_
+_stamped 2026-08-11 01:58_
 
 <!-- /GENERATED -->
+
+## ROADMAP #161 — THE WIRE QUEUE. FIVE ROWS, FIVE CLOSED, AND THE MATRIX IS AT 1640/1640. 2026-08-11.
+
+**Interaction matrix `--full`: 1,635/1,640 (99.7%) → 1,640/1,640 (100.0%), parting 5 → 0.** `live`
+held at 1,640 and `ran` at 2,253 through all five wires, so the rate moved because the ENGINE moved
+and not because the instrument covered less — the trap the section below this one is about. Census
+**444 live / 444 probed / 0 missing** before and after: no probe was lost and none was added, because
+the failing instrument here is the matrix and its rows are generated. `engine/quarantine.js` stayed
+**OPEN 6/6** after every wire; `engine/replay_differential.js --games 400` held at **5.29%** (125 of
+2,364 turns) across all five; `tests/test-engine-diff.js --n 20000` is **0 disagreements**.
+
+Each wire was landed alone and measured alone, per ROADMAP #81.
+
+| wire | row | uses | root cause | the line that settled it |
+|---|---|---|---|---|
+| 1 | `throatchop -> shielddust` | 3,739 | the lock was applied BELOW the secondary loop, so it stood outside the loop's Shield Dust / Sheer Force gate | `data/moves.ts:19420` — the volatile is inside `secondary.onHit`, a closure, so no field-reading derivation can see it |
+| 2 | `psychicnoise -> shielddust` | 262 | the same shape, one field over: the gated road wrote `_vol.healblock` (read by nothing, ticked by nothing) while the UNGATED block below wrote `_healBlock`, which every consumer reads | `data/moves.ts:14091` — it IS a declared secondary; `data/moves.ts:8290` — the 2 turns are the CARRIER's, not the volatile's |
+| 3 | `instruct -> goodasgold` | 190 | the Instruct branch — the only road to a second action in a turn — asked none of the ordinary refusals | `data/abilities.ts:1621` blocks any status move from another body; `data/moves.ts` instruct is `category: "Status"`, `target: "normal"` |
+| 4 | `psyshieldbash -> aftermath` | 24 | `_stepEffects` opened `if(!R.hit)return;` and `R.hit` means *the target survived*, so a KO threw away the whole effects step — including the secondary that boosts the ATTACKER | `sim/battle-actions.ts:1339` skips only `target === false`; :1099 runs secondaries BEFORE :1121's `DamagingHit`, which is where Aftermath hangs |
+| 5 | `rockwrecker -> bulletproof` | 8 | the recharge was armed for a move that reached no body at all | `sim/battle-actions.ts:1321-1322` — `selfDrops` skips a `false` target, and `mustrecharge` is a `self:` volatile |
+
+### TWO OF THE FIVE DIAGNOSES I WAS HANDED WERE WRONG, AND SAYING SO IS THE POINT
+
+**WIRE FOUR was not the `!m.fainted` guard on the selfBoosts branch.** That was the hypothesis, and the
+attacker is ALIVE in both engines — its only witness in the projection is `hurt`. The effect was
+never reached at all, three hundred lines earlier. A guard that looks guilty is not evidence.
+
+**WIRE FIVE's comment was belief, and it is corrected in place.** WIRE 43 asserted *"a blocked or missed
+Hyper Beam still recharges in the real game"*. It does not. Four staged turns against the pinned
+engine, with a control that clears the knob explicitly:
+
+| staged turn | showdown | ours, before |
+|---|---|---|
+| hyper beam INTO PROTECT | `[]` | `[]` |
+| rock wrecker INTO BULLETPROOF | `[]` | `["mustrecharge"]` |
+| rock wrecker INTO NOTHING — the control | `["mustrecharge"]` | `["mustrecharge"]` |
+| hyper beam INTO A GHOST | `[]` | `["mustrecharge"]` |
+
+The Protect row is why the wrong sentence survived: this engine already left the branch on a shield,
+so the only family that was ever wrong is the one a shield never covers — an IMMUNITY. **Hyper Beam
+and Giga Impact into a Ghost is the same defect on a far commoner board than the 8-use row that
+found it.**
+
+### WHAT ELSE CAME OUT OF WIRE FOUR, BECAUSE THE STEP NOW RUNS WHERE IT DID NOT
+
+Letting the effects step run for a target that died to the hit means the refusals a dead body owns
+have to exist, and they belong to the EFFECTS, where the authority keeps them — not to the step:
+
+- `applyMoveVolatile` now opens with the fainted check (`sim/pokemon.ts:1980`), so every caller
+  inherits it. Proven firing: Salt Cure at 4× into a Vivillon KOs it and NEITHER engine leaves a
+  `saltcure` volatile behind (`MEDSEEN.volRefusedOnFainted` 1).
+- the two boost sites inside the step carry `!tg.fainted` (`sim/battle.ts:2026`).
+
+### ONE EXTRACTION, NO NEW COPIES OF A FACT
+
+Heal Block's clock has ONE owner now (`applyHealBlock`), reached from the secondary loop, and
+`applyMoveVolatile` refuses the name in the same idiom Substitute, Confusion and the partial trap
+already use. The Mental Herb block was LIFTED unchanged into `mentalHerbCures` rather than re-typed,
+because the new owner needs it too — re-typing those eight lines is exactly what
+"FACTS ARE GLOBAL" forbids.
+
+Every new capability carries a counter and each was demonstrated non-zero on a staged turn:
+`soundLockApplied` 1 with `dustBlockedSecondary` 2 beside it (the dust arm went through the gate),
+`healBlockApplied` 1, `instructRefusedByAbility` 1 with `instructRepeat` 0 in the same arm,
+`rechargeSkippedNoTarget` 1, `volRefusedOnFainted` 1. `secondaryEffectless` and
+`MEDFAILS.healBlockNoDuration` are the receipts for a member arriving that no tag selects.
+
+### THE HAND LIST IS UNCHANGED
+
+Nothing on it was any of this — it has been empty except for Rivalry, and these five were rows on a
+GENERATED list, which is the difference the working rule above is about.
+
+### THREE REDS THAT ARE NOT MINE, MEASURED RATHER THAN ASSUMED
+
+`tests/test-tag-consumed.js` (23 tags newly with no consumer) and `tests/test-tag-wire.js` (10 dead
+wires, incl. `contact into a SURVIVING Aftermath body costs nothing`) are red with my changes and
+**byte-identically red with `engine/medicham2-browser.js` restored to committed HEAD** — same
+assertions, same HP figures. Neither reads a file that is dirty in this tree apart from the engine
+itself. `tests/test-effective-identity.js` was handed to me already red and I did not touch it.
+Reported, not filed, and not mine to close: they are red at the COMMIT, not at my edit.
+
+`engine/status.js` also opens with a FEATURE SEMANTICS failure — the damage table went 318 species →
+317 under `data/policy-weights.json`. That is `data/engine-data.js`, which this division may not
+edit; it is MEASURE's refit trigger.
+
+## THE MATRIX STOPPED EXERCISING THE WHOLE PROTECT FAMILY AND THE AGREEMENT RATE WENT UP. 2026-08-11.
+
+Two `--full` runs, five days apart:
+
+| | 2026-08-06 | 2026-08-11, before | after this fix |
+|---|---|---|---|
+| live | 1,643 | **1,593** | **1,640** |
+| inert | 530 | **566** | 491 |
+| agreement | 98.8% | **99.7%** | 99.7% |
+
+**The rate improved because the instrument covered less.** An INERT pair is not scored, is not in the
+parting list and is not in the denominator, so a staging regression cannot make the headline look
+worse — it can only make it look better. That is this project's signature failure with the sign
+flipped, and it is the reason `inert_rows` is written out at all.
+
+**57 of the 80 pairs that went LIVE → INERT had a PROTECT-FAMILY reactor** — Spiky Shield 16, Baneful
+Bunker 16, King's Shield 13, Beak Blast 12 — against contact carriers. Spiky Shield versus a contact
+move is *never* inert. That is the chip damage.
+
+### THE CAUSE: "WITHOUT THE FLAG" WAS ASKED OF A USAGE-RANKED INDEX
+
+A reactor MOVE cannot be removed — it is clicked — so `controlCarrier()` varies the CARRIER instead:
+the same body clicks a move of the same category that does **not** carry the flag. It decided *carries
+the flag* by looking the candidate up in `LINKAGE[key].carrierMoves`, and `tag_dex` builds that list
+behind a usage gate (`const u = U.move[id] || 0; if (!u) continue;`). It is *flagged moves people
+click*, and it is a **membership test that is wrong by fifteen moves on `contact` alone**: crushclaw,
+axekick, bind, bounce, comeuppance, covet, doublehit, **flail**, pluck, pound, seismictoss, struggle,
+tailslap, thrash, wrap all carry `flags.contact` and are absent from it.
+
+Blastoise's control became **Flail**. Both arms made contact, the shield punished both, the reference
+engine's two arms came out identical, and the pair reported INERT. Measured before the change: **101
+of 464 reactor-move cases had a control that carries the very key under test** (83 `contact`, 18
+`statusMove`); after, **0 of 436**.
+
+**The defect did not arrive on 2026-08-10 — it was UNCOVERED then.** The control previously chosen was
+`dive`, which also makes contact but is a two-turn charge move that never lands on turn 1, so it never
+touched anything and the case passed for the wrong reason. Dive earned nonzero usage, entered
+`carrierMoves`, stopped being eligible as a control, and Flail took its place. A staged board printed
+in both arms is what settled this; four rounds of reading the code got it wrong.
+
+The fix is CLAUDE.md's own rule — **a FACT gets one implementation**. `engine/linkage_carrier.js`
+answers "does this move carry this linkage key" off the move's own flags, priority and category, and
+both `tag_dex.js` (which BUILDS the list) and `interaction_matrix.js` (which must not be fooled by it)
+call it. Proven equivalent to the inline rule it replaces over 500 moves x 16 keys, 0 mismatches, so
+`data/tags.json` is byte-unchanged and was **not** regenerated.
+
+### AND A SECOND, HONEST LOSS THAT IS NAMED RATHER THAN PAPERED OVER
+
+For `statusMove` — Taunt, and Sucker Punch and Upper Hand reached through that key — the two
+requirements *same category* and *without the key* **contradict**: every status move carries
+`statusMove`, so Taunt blocks the control exactly as it blocks the carrier. Eighteen pairs were staged
+that way and all eighteen read INERT with the reactor firing perfectly in both arms. They are now
+dropped under `control-impossible-for-this-key`, printed on every run. **This costs Taunt every case
+it had.** The fix is not a cleverer control carrier: it is for a reactor MOVE to be controlled by
+varying the HOLDER'S ACTION — the holder clicks a state-neutral filler instead of the reactor — which
+is a change to the two-arm staging and is open work, not smuggled in here.
+
+### WHAT IS STILL NOT BACK, STATED
+
+1,640 against 1,643, and the two are **not** the same population: the generator emits 2,253 now
+against 2,300 then. Eight of the recovered pairs correctly turned INERT rather than LIVE —
+`fly`/`dive` (charge moves, no contact on turn 1) and `steelroller` (fails with no terrain up) cannot
+express contact inside a one-turn script, and used to read LIVE only because the *control* was the
+thing making contact. **A carrier that cannot land inside the script should be a named DROP, not an
+INERT row.** Open.
 
 ## THE 117 INERT ROWS: 64 HAD A STAGING RULE, NOW 113 DO — AND CLOSING THE GAP FOUND FIVE ENGINE DEFECTS. 2026-08-11.
 

@@ -1,16 +1,16 @@
 {
-  "generated": "2026-08-11T04:47:08.736Z",
+  "generated": "2026-08-11T06:00:23.706Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 127,
-    "open": 90,
-    "closed": 37,
+    "register_rows": 131,
+    "open": 93,
+    "closed": 38,
     "open_asserting_breakage": 1,
-    "measured_disagreements": 5,
-    "unregistered": 5
+    "measured_disagreements": 0,
+    "unregistered": 0
   },
   "open": [
     {
@@ -19,7 +19,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "record which GARY ran | nothing below is interpretable without it"
+      "title": "record which GARY ran | nothing below is interpretable without it",
+      "full": "record which gary ran | nothing below is interpretable without it"
     },
     {
       "n": 32,
@@ -27,7 +28,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "flip `uniform` → `prior`, measured | free, and it gates whether a better GARY is worth building"
+      "title": "flip `uniform` → `prior`, measured | free, and it gates whether a better GARY is worth building",
+      "full": "flip `uniform` → `prior`, measured | free, and it gates whether a better gary is worth building"
     },
     {
       "n": 38,
@@ -35,7 +37,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "set the horizon from the measured 6 | every cost estimate downstream depends on it"
+      "title": "set the horizon from the measured 6 | every cost estimate downstream depends on it",
+      "full": "set the horizon from the measured 6 | every cost estimate downstream depends on it"
     },
     {
       "n": 37,
@@ -43,7 +46,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "prune with MAG's scores, not the coin | §4b's \"the real work\"; one MAG pass per turn"
+      "title": "prune with MAG's scores, not the coin | §4b's \"the real work\"; one MAG pass per turn",
+      "full": "prune with mag's scores, not the coin | §4b's \"the real work\"; one mag pass per turn"
     },
     {
       "n": 39,
@@ -51,7 +55,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "measure the board↔MEDICHAM translation | decides whether MAG-as-GARY is possible at all"
+      "title": "measure the board↔MEDICHAM translation | decides whether MAG-as-GARY is possible at all",
+      "full": "measure the board↔medicham translation | decides whether mag-as-gary is possible at all"
     },
     {
       "n": 40,
@@ -59,7 +64,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "DUSK size gate | decides whether the tablebase is a weekend or a year"
+      "title": "DUSK size gate | decides whether the tablebase is a weekend or a year",
+      "full": "dusk size gate | decides whether the tablebase is a weekend or a year"
     },
     {
       "n": 41,
@@ -67,7 +73,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "reach the solver from JS, via #40 | the equilibrium answer exists and cannot play"
+      "title": "reach the solver from JS, via #40 | the equilibrium answer exists and cannot play",
+      "full": "reach the solver from js, via #40 | the equilibrium answer exists and cannot play"
     },
     {
       "n": 42,
@@ -75,7 +82,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "arm the census | stops an inflated number being quoted again"
+      "title": "arm the census | stops an inflated number being quoted again",
+      "full": "arm the census | stops an inflated number being quoted again"
     },
     {
       "n": 43,
@@ -83,7 +91,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "speed from resolution order — and Foul Play goes further, running the damage calc BACKWARDS: it simulates rolls against "
+      "title": "speed from resolution order — and Foul Play goes further, running the damage calc BACKWARDS: it simulates rolls against ",
+      "full": "speed from resolution order — and foul play goes further, running the damage calc backwards: it simulates rolls against the damage actually observed to infer the opponent's real stats, and reads items from behaviour (outspeeds you repeatedly with the same move → choice scarf). we infer nothing from either channel (#74) | free information on the one variable open sheets still hide"
     },
     {
       "n": 62,
@@ -91,7 +100,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "GATE, AND IT COMES FIRST: play MILTANK untimed against MILTANK on the clock. R6 measured 31.6% of move decisions deferre"
+      "title": "GATE, AND IT COMES FIRST: play MILTANK untimed against MILTANK on the clock. R6 measured 31.6% of move decisions deferre",
+      "full": "gate, and it comes first: play miltank untimed against miltank on the clock. r6 measured 31.6% of move decisions deferred — handed back to mag unsearched, consuming 30.5% of the spend. `defer` fires both when the clock runs out *and* when the search cannot separate its options, and only the first is fixable with compute. this decides whether #25/#37/#61 are worth doing at all — and, since 3.59.0, whether the whole engine programme was worth doing. vgc-bench used real showdown through poke-env and carried no engine-correctness debt, because behaviour cloning and ppo do not need a fast simulator. we wrote one so per-turn re-solving is affordable, so the engine work is justified if and only if search pays"
     },
     {
       "n": 45,
@@ -99,7 +109,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "the gate itself: 99%-of-usage coverage, enforced not remembered"
+      "title": "the gate itself: 99%-of-usage coverage, enforced not remembered",
+      "full": "the gate itself: 99%-of-usage coverage, enforced not remembered"
     },
     {
       "n": 42,
@@ -107,7 +118,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "ratchet on DIRECT-CALL probes, not on `unarmed` — 37 left of 47"
+      "title": "ratchet on DIRECT-CALL probes, not on `unarmed` — 37 left of 47",
+      "full": "ratchet on direct-call probes, not on `unarmed` — 37 left of 47"
     },
     {
       "n": 51,
@@ -115,7 +127,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "23 tags with real usage and no probe at all; accuracy modification is the top"
+      "title": "23 tags with real usage and no probe at all; accuracy modification is the top",
+      "full": "23 tags with real usage and no probe at all; accuracy modification is the top"
     },
     {
       "n": 27,
@@ -123,7 +136,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "the represented-clicks number — what % of real clicks the engine can even perform. Last measured 15.3% failing when it h"
+      "title": "the represented-clicks number — what % of real clicks the engine can even perform. Last measured 15.3% failing when it h",
+      "full": "the represented-clicks number — what % of real clicks the engine can even perform. last measured 15.3% failing when it handled 4 action kinds; it now handles 12"
     },
     {
       "n": 49,
@@ -131,7 +145,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "delete the 77 hand-typed mega abilities; the derived path exists and is proven equal"
+      "title": "delete the 77 hand-typed mega abilities; the derived path exists and is proven equal",
+      "full": "delete the 77 hand-typed mega abilities; the derived path exists and is proven equal"
     },
     {
       "n": 9,
@@ -139,7 +154,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "harden `pranksterBlocked` to check the move's target"
+      "title": "harden `pranksterBlocked` to check the move's target",
+      "full": "harden `pranksterblocked` to check the move's target"
     },
     {
       "n": 71,
@@ -147,7 +163,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "seven moves share one tag signature — Pain Split, Recycle, Copycat resolve identically"
+      "title": "seven moves share one tag signature — Pain Split, Recycle, Copycat resolve identically",
+      "full": "seven moves share one tag signature — pain split, recycle, copycat resolve identically"
     },
     {
       "n": 72,
@@ -155,7 +172,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "hazard SETTING by an attacking move, and ALL hazard removal"
+      "title": "hazard SETTING by an attacking move, and ALL hazard removal",
+      "full": "hazard setting by an attacking move, and all hazard removal"
     },
     {
       "n": 81,
@@ -163,7 +181,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "THE WIRE QUEUE. The whole-game differential's divergences, ranked and verified against Showdown's source. ONE at a time,"
+      "title": "THE WIRE QUEUE. The whole-game differential's divergences, ranked and verified against Showdown's source. ONE at a time,",
+      "full": "the wire queue. the whole-game differential's divergences, ranked and verified against showdown's source. one at a time, re-run between each (will, 2026-08-06). wire 1 (protect is not an immunity, and a shielded high jump kick still crashes) landed in 3.61.1"
     },
     {
       "n": 84,
@@ -171,7 +190,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "\"my move didn't happen\" is TWO states in Showdown — `false` counts as a failure for Stomping Tantrum, `null` does not, a"
+      "title": "\"my move didn't happen\" is TWO states in Showdown — `false` counts as a failure for Stomping Tantrum, `null` does not, a",
+      "full": "\"my move didn't happen\" is two states in showdown — `false` counts as a failure for stomping tantrum, `null` does not, and flinch returns `false`. get faked out, and your stomping tantrum doubles"
     },
     {
       "n": 88,
@@ -179,7 +199,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "ONE PIN IS ONE CORNER. Every die is pinned one way, so a game runs once and is deterministic — no noise, but the tie alw"
+      "title": "ONE PIN IS ONE CORNER. Every die is pinned one way, so a game runs once and is deterministic — no noise, but the tie alw",
+      "full": "one pin is one corner. every die is pinned one way, so a game runs once and is deterministic — no noise, but the tie always resolves to input order, every sub-100 move misses on both sides, and damage is always the max roll. agreement is therefore by construction on the ~91% of matchups that are speed ties (compounds with #86). the crit's wrong position, found by the stage audit, is the first confirmed defect this hid: 46.5% wrong at the bottom roll, invisible at the top one we always use. fix is four pinned arms, not repetition-and-average, which would throw away the tolerance-zero this instrument exists for"
     },
     {
       "n": 89,
@@ -187,15 +208,8 @@
       "closed": false,
       "saysBroken": true,
       "uses": 0,
-      "title": "the engine justified its Disguise model against `battle.update()`, a Showdown method that does not exist. The model is C"
-    },
-    {
-      "n": 90,
-      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "prove the Perish Song KO actually fires (Will, 2026-08-07). The counter half landed in 3.71.0 — it was KO'ing a turn ear"
+      "title": "the engine justified its Disguise model against `battle.update()`, a Showdown method that does not exist. The model is C",
+      "full": "the engine justified its disguise model against `battle.update()`, a showdown method that does not exist. the model is correct (both engines end at 114/130) — a right answer resting on a false reason, which is worse than a wrong one, because the next reader re-derives from the reason"
     },
     {
       "n": 91,
@@ -203,7 +217,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "A CLICK IS NOT A TEST. `creditClick` credits the CLICK, so Haze into a board with no boosts on it marks Haze covered and"
+      "title": "A CLICK IS NOT A TEST. `creditClick` credits the CLICK, so Haze into a board with no boosts on it marks Haze covered and",
+      "full": "a click is not a test. `creditclick` credits the click, so haze into a board with no boosts on it marks haze covered and the steering stops selecting it. the census's own probes are behavioural and sound (0 hollow, 0 direct-call); this is the differential's coverage steering only. credit must move to the observed effect, with the precondition derived from the tag's params — not a hand-written scenario per mechanic"
     },
     {
       "n": 160,
@@ -211,7 +226,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "ILLUSION IS IN THE CLOSET, AND THE CLOSET IS LABELLED — DECLARED 2026-08-11. Will: *\"at some point we are going to have "
+      "title": "ILLUSION IS IN THE CLOSET, AND THE CLOSET IS LABELLED — DECLARED 2026-08-11. Will: *\"at some point we are going to have ",
+      "full": "illusion is in the closet, and the closet is labelled — declared 2026-08-11. will: *\"at some point we are going to have to have zoroark in our engine but to start we can just put those in the closet.\"* zoroark enters disguised as the last living body on its bench and the protocol names the disguise, not the mover — so every click it makes is filed against a pokemon that never moved, manufacturing false set evidence for the impersonated body and hiding the real one. measured: 386/12,314 bo3 raw (3.13%), 1,731/52,840 ladder (3.28%), and 384 games rejected out of the clean fit corpus (8,543 -> 8,159). `fit_policy.js` counts and names the rejection beside `partial_bring`, because a filter that cannot say how much it removed is indistinguishable from one that is not running. temporary by decision. the real fix is to model illusion; then re-admit with `illusion_in=1` and refit, because a corpus that changes size changes answers"
     },
     {
       "n": 161,
@@ -219,7 +235,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 2946,
-      "title": "THE FIVE LIVE MATRIX DISAGREEMENTS, REGISTERED SO THEY STOP BEING INVISIBLE. Measured 2026-08-11 at `--full`: `throatcho"
+      "title": "THE FIVE LIVE MATRIX DISAGREEMENTS, REGISTERED SO THEY STOP BEING INVISIBLE. Measured 2026-08-11 at `--full`: `throatcho",
+      "full": "the five live matrix disagreements, registered so they stop being invisible. measured 2026-08-11 at `--full`: `throatchop -> shielddust` (2,946 uses — the volatile lives in `secondary.onhit`, not `volatilestatus`, so it never enters the loop the shield dust gate sits on, and #139's wire closed the other three of that family); `psychicnoise -> shielddust` (223 — does declare `volatilestatus`, so that diagnosis does not cover it); `instruct -> goodasgold` (the boost lands twice, once in showdown — good as gold must refuse instruct); `rockwrecker -> bulletproof` (recharge armed on a fully-blocked move — wire 43's comment asserts the opposite of what showdown does and was written from belief); `psyshieldbash -> aftermath` (the self-boost is skipped, suspected `!m.fainted` ordering). three carry the harness's own verdict: *the knob is unwired, not miscalculated*. a register cannot audit itself — these were measured for four days with no row behind them, which is what `engine/open_work.js` now prints"
     },
     {
       "n": 162,
@@ -227,7 +244,17 @@
       "closed": false,
       "saysBroken": false,
       "uses": 105709,
-      "title": "SPLIT THE COLLAPSED TAGS — WILL'S CALL 2026-08-11: *\"we need to split the tags, they require very different things\"*. #5"
+      "title": "SPLIT THE COLLAPSED TAGS — WILL'S CALL 2026-08-11: *\"we need to split the tags, they require very different things\"*. #5",
+      "full": "split the collapsed tags — will's call 2026-08-11: *\"we need to split the tags, they require very different things\"*. #59 (the protection counter has three behaviours and our tags carry two) and #60 (upper hand and sucker punch share one signature: sucker punch needs the target attacking, upper hand needs the target using priority) are the same defect — one tag standing for two rules, so one of them is always wrong. #71 and #127 are the same shape at larger scale (105,709 uses). the shape decision was the blocker and it is now made; deriving the conditions is mechanical"
+    },
+    {
+      "n": 115,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "RESIDUALS RUN IN SPEED ORDER AND OURS RUN IN SLOT ORDER — CONFIRMED 2026-08-11, AND IT DECIDES GAMES. Will: *\"pokemon fa",
+      "full": "residuals run in speed order and ours run in slot order — confirmed 2026-08-11, and it decides games. will: *\"pokemon faint in speed order\"*, *\"in trick room do they faint in reverse speed order?\"*, *\"sandstorm damage, etc\"*. all derived: `battle.ts:2811` runs `updatespeed()` at the head of the residual step, `pokemon.ts:557` sets `speed = getactionspeed()`, and that returns `10000 - speed` under trick room — the residual sort is already inverted before anything resolves. `medicham2-browser.js:14890` is `for(const x of [...acta,...actb])` — pure slot order, no sort. the whole residual family rides on it, not just perish song: sandstorm and hail chip, burn and poison, leftovers, salt cure, yawn, heal block. scoped by measurement: the mega step (`:9313`) and the switch-in step (`:8827`) do speed-sort, so intimidate and mega ordering are correct and are not the bug. not cosmetic — `battle.ts:2604` awards a simultaneous double-ko to `faintdata.target.side`, the side of the last faint off the queue, not a tie; so in a mutual-perish endgame the residual order picks the winner and we pick it by slot position, and the rollout scores wins. fix the sort, then stage an endgame fixture: a four-actives-with-benches scenario cannot see it — one was written and it passed against a deliberately reversed loop"
     },
     {
       "n": 83,
@@ -235,7 +262,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "the mirror-symmetry gate false-alarms ~1 run in 20 by construction — n=300 gives a ±5.6 point half-width"
+      "title": "the mirror-symmetry gate false-alarms ~1 run in 20 by construction — n=300 gives a ±5.6 point half-width",
+      "full": "the mirror-symmetry gate false-alarms ~1 run in 20 by construction — n=300 gives a ±5.6 point half-width"
     },
     {
       "n": 82,
@@ -243,7 +271,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "the differential's BRING is a run parameter, not the accident of sheet order"
+      "title": "the differential's BRING is a run parameter, not the accident of sheet order",
+      "full": "the differential's bring is a run parameter, not the accident of sheet order"
     },
     {
       "n": 80,
@@ -251,7 +280,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "Knock Off records the wrong DISPOSITION for a self-eaten berry — `[eat]` vs move-attribution, which Harvest/Recycle/Belc"
+      "title": "Knock Off records the wrong DISPOSITION for a self-eaten berry — `[eat]` vs move-attribution, which Harvest/Recycle/Belc",
+      "full": "knock off records the wrong disposition for a self-eaten berry — `[eat]` vs move-attribution, which harvest/recycle/belch/cud chew/unburden read. the damage claim originally filed here was measured false and is retracted; colbur fires correctly for us"
     },
     {
       "n": 21,
@@ -259,7 +289,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "AXIS 4 — DENIAL: a move that costs a turn also denies a field effect"
+      "title": "AXIS 4 — DENIAL: a move that costs a turn also denies a field effect",
+      "full": "axis 4 — denial: a move that costs a turn also denies a field effect"
     },
     {
       "n": 28,
@@ -267,7 +298,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "resist berries: the one staged pair is physically impossible"
+      "title": "resist berries: the one staged pair is physically impossible",
+      "full": "resist berries: the one staged pair is physically impossible"
     },
     {
       "n": 7,
@@ -275,7 +307,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "Coverage Layer 2 — the mutation harness"
+      "title": "Coverage Layer 2 — the mutation harness",
+      "full": "coverage layer 2 — the mutation harness"
     },
     {
       "n": 59,
@@ -283,7 +316,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "the protection counter has three behaviours and our tags carry two. Protect *checks* the shared 1/X counter; Wide Guard "
+      "title": "the protection counter has three behaviours and our tags carry two. Protect *checks* the shared 1/X counter; Wide Guard ",
+      "full": "the protection counter has three behaviours and our tags carry two. protect *checks* the shared 1/x counter; wide guard *feeds it and never checks*; ally switch has its own private one and carries neither tag. the engine implements none of it — `grep allyswitch` and `grep stalling` both come back empty"
     },
     {
       "n": 60,
@@ -291,7 +325,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "Upper Hand and Sucker Punch share a tag and have different conditions — Sucker Punch needs the target attacking, Upper H"
+      "title": "Upper Hand and Sucker Punch share a tag and have different conditions — Sucker Punch needs the target attacking, Upper H",
+      "full": "upper hand and sucker punch share a tag and have different conditions — sucker punch needs the target attacking, upper hand needs it attacking *with priority*. modelled the broad way, the bot thinks upper hand beats an ordinary earthquake"
     },
     {
       "n": 33,
@@ -299,7 +334,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "every artifact records which GARY ran — `rollout_r1.js` done, 3 callers left"
+      "title": "every artifact records which GARY ran — `rollout_r1.js` done, 3 callers left",
+      "full": "every artifact records which gary ran — `rollout_r1.js` done, 3 callers left"
     },
     {
       "n": 32,
@@ -307,7 +343,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "flip `uniform` → `prior` and measure it"
+      "title": "flip `uniform` → `prior` and measure it",
+      "full": "flip `uniform` → `prior` and measure it"
     },
     {
       "n": 34,
@@ -315,7 +352,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "the flag steers my side too — split it"
+      "title": "the flag steers my side too — split it",
+      "full": "the flag steers my side too — split it"
     },
     {
       "n": 35,
@@ -323,7 +361,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "targeting is drawn uniformly in both modes. Foul Play weights its chance nodes by likelihood — a 90/10 accuracy move bec"
+      "title": "targeting is drawn uniformly in both modes. Foul Play weights its chance nodes by likelihood — a 90/10 accuracy move bec",
+      "full": "targeting is drawn uniformly in both modes. foul play weights its chance nodes by likelihood — a 90/10 accuracy move becomes two children selected by probability. it does correctly what #32/#35 have open as a defect (#74)"
     },
     {
       "n": 36,
@@ -331,7 +370,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "GARY has two seats and they disagree"
+      "title": "GARY has two seats and they disagree",
+      "full": "gary has two seats and they disagree"
     },
     {
       "n": 55,
@@ -339,7 +379,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "GARY does not coordinate either — the imagined opponent picks its two Pokémon independently, so it never focus-fires, ne"
+      "title": "GARY does not coordinate either — the imagined opponent picks its two Pokémon independently, so it never focus-fires, ne",
+      "full": "gary does not coordinate either — the imagined opponent picks its two pokémon independently, so it never focus-fires, never protects while its partner kills, never redirects. doduo *is* gary, pointed at the other side"
     },
     {
       "n": 37,
@@ -347,7 +388,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "prune with MAG's scores, not with the coin"
+      "title": "prune with MAG's scores, not with the coin",
+      "full": "prune with mag's scores, not with the coin"
     },
     {
       "n": 25,
@@ -355,7 +397,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "prune by PAIR score, not single-move"
+      "title": "prune by PAIR score, not single-move",
+      "full": "prune by pair score, not single-move"
     },
     {
       "n": 53,
@@ -363,7 +406,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "DODUO — the pair model is fitted, better, and the search never reads it"
+      "title": "DODUO — the pair model is fitted, better, and the search never reads it",
+      "full": "doduo — the pair model is fitted, better, and the search never reads it"
     },
     {
       "n": 56,
@@ -371,7 +415,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "extract what MAG actually prunes that DODUO wants — the truncation misses *are* the catalogue, and reading them out beat"
+      "title": "extract what MAG actually prunes that DODUO wants — the truncation misses *are* the catalogue, and reading them out beat",
+      "full": "extract what mag actually prunes that doduo wants — the truncation misses *are* the catalogue, and reading them out beats reasoning from examples"
     },
     {
       "n": 24,
@@ -379,7 +424,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "replace MILTANK's leaf with PORYGON2 + a MAG-sampled opponent, and add Foul Play's damage-roll grouping as a third arm —"
+      "title": "replace MILTANK's leaf with PORYGON2 + a MAG-sampled opponent, and add Foul Play's damage-roll grouping as a third arm —",
+      "full": "replace miltank's leaf with porygon2 + a mag-sampled opponent, and add foul play's damage-roll grouping as a third arm — group outcomes by whether they cause a faint, average the damage inside each group, sum the likelihoods. keeps the only distinction the decision turns on and collapses the rest; cheaper and lower-variance without being dumber, which is the exact pair of properties this task is short of (#74)"
     },
     {
       "n": 38,
@@ -387,7 +433,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "the rollout cap is 60 turns; real games end at 6"
+      "title": "the rollout cap is 60 turns; real games end at 6",
+      "full": "the rollout cap is 60 turns; real games end at 6"
     },
     {
       "n": 39,
@@ -395,7 +442,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "measure the `board.js` ↔ MEDICHAM translation cost"
+      "title": "measure the `board.js` ↔ MEDICHAM translation cost",
+      "full": "measure the `board.js` ↔ medicham translation cost"
     },
     {
       "n": 61,
@@ -403,7 +451,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "MEDICHAM measures 1,606 battles/sec against the 3,401 on record — 47%. On the measured figure the 200-rollout x 64-pair "
+      "title": "MEDICHAM measures 1,606 battles/sec against the 3,401 on record — 47%. On the measured figure the 200-rollout x 64-pair ",
+      "full": "medicham measures 1,606 battles/sec against the 3,401 on record — 47%. on the measured figure the 200-rollout x 64-pair search needs 26 s against a 20 s budget and does not fit. nothing ratchets speed, which is why a 2x regression went unseen"
     },
     {
       "n": 62,
@@ -411,7 +460,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "MOVED TO §5.0 IN 3.59.0 — it is the project gate, not a search-redesign item. Everything in this table is phase 3 and do"
+      "title": "MOVED TO §5.0 IN 3.59.0 — it is the project gate, not a search-redesign item. Everything in this table is phase 3 and do",
+      "full": "moved to §5.0 in 3.59.0 — it is the project gate, not a search-redesign item. everything in this table is phase 3 and does not start until #62 answers"
     },
     {
       "n": 63,
@@ -419,7 +469,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "the rollout never switches. The engine *can*, and the search can offer a switch as a root candidate — but the playout ha"
+      "title": "the rollout never switches. The engine *can*, and the search can offer a switch as a root candidate — but the playout ha",
+      "full": "the rollout never switches. the engine *can*, and the search can offer a switch as a root candidate — but the playout has no switch branch at all, so every imagined future is a game where nobody ever leaves. misprices preserving a pokémon, punishing a switch, and the *switch out of a predicted attack* pattern the engine models priority order for"
     },
     {
       "n": 64,
@@ -427,7 +478,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 5663,
-      "title": "DECISION: `ability|auraBoost` (5,663 uses) needs a roster `dmgRange` does not have. Not a missing branch — a *representa"
+      "title": "DECISION: `ability|auraBoost` (5,663 uses) needs a roster `dmgRange` does not have. Not a missing branch — a *representa",
+      "full": "decision: `ability|auraboost` (5,663 uses) needs a roster `dmgrange` does not have. not a missing branch — a *representational* limit: the multiplier is field-wide over every body, and `dmgrange` is handed two bodies and a field with no occupants. engine measured it before proposing anything (79 damage with fairy aura on attacker, ally, foe and nobody — identical, as expected) and routed rather than patched, because widening the signature is a `board.js`-facing input change. the call: does `dmgrange` take a roster, or does the caller pre-compute a scalar? the second is cheaper; the first is the honest shape and pays off for every other field-wide ability"
     },
     {
       "n": 65,
@@ -435,7 +487,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "`data/tags.json` is FROZEN — regenerating it silently deletes five entities, and the cause is my own corpus change. Foun"
+      "title": "`data/tags.json` is FROZEN — regenerating it silently deletes five entities, and the cause is my own corpus change. Foun",
+      "full": "`data/tags.json` is frozen — regenerating it silently deletes five entities, and the cause is my own corpus change. found by *diffing* a regeneration instead of accepting it: tag membership and every param come out identical (0 diffs across 500/262/146), but `sheet_entries` falls 110,760 → 78,480 and serene grace, tinted lens, curious medicine, steely spirit and leppa berry drop out of the engine's knowledge. `fit_policy.js:304` was narrowed to `['games.bo3.jsonl']` on the open-sheet directive — right for the fit, and `tag_dex.js` reads the same `loadcorpus()`. a corpus decision is not local to the model it was made for. fix (a): give `tag_dex.js` its own reader over the full store. fix (b): give `loadcorpus` an explicit scope argument so every caller states what it wants instead of inheriting someone else's decision — (b) is the shape that stops this recurring"
     },
     {
       "n": 68,
@@ -443,7 +496,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "THE GATE THAT DECIDES MEDICHAM — replay real stored games through both engines, 1,000+ distinct teams. Will: *\"we would "
+      "title": "THE GATE THAT DECIDES MEDICHAM — replay real stored games through both engines, 1,000+ distinct teams. Will: *\"we would ",
+      "full": "the gate that decides medicham — replay real stored games through both engines, 1,000+ distinct teams. will: *\"we would want to play n games with like a thousand different teams to really test every single mechanic in the game.\"* every part is proven and nothing proves the whole. the census (235 armed, 0 unarmed) says each mechanic fires. the damage differential says 149/150 — but on staged pairs with a 12% midpoint tolerance, and since both engines produce a pinned 16-roll range, roll variance explains none of it; a correct engine scores 0.000, the slack is free, and the artifact publishes only `worst` so nobody knows if the 149 sat at 0.000 or 0.119. `game-diff.json` is five hand-written scenarios whose `not_compared` list excludes hp amounts, misses, secondaries, crits and any pair where one engine kos and the other does not. teams come from the store (46,612 real games), first divergence only, tolerance zero, and the run measures its own mechanic coverage — a run that never triggers illusion has not tested illusion and must say so"
     },
     {
       "n": 74,
@@ -451,7 +505,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "PRIOR ART: Foul Play (pmariglia) — a singles MCTS bot at top-100, and it has four things we have as open defects. It mov"
+      "title": "PRIOR ART: Foul Play (pmariglia) — a singles MCTS bot at top-100, and it has four things we have as open defects. It mov",
+      "full": "prior art: foul play (pmariglia) — a singles mcts bot at top-100, and it has four things we have as open defects. it moved from expectiminimax (every possibility, ~5 turns, ran out of clock) to mcts (promising branches ~10+ turns, unpromising ones minimally) — which is the question #62 exists to answer, already answered by someone who shipped. its four techniques land on #24 (roll grouping), #32/#35 (likelihood-weighted chance nodes), xatu/slowking (hidden info as a filtered possibility set, not a point estimate — it keeps candidate sets per opposing pokémon and narrows them as the battle reveals things; we pick one most-likely set) and #43 (reverse damage-calc inference). positioning stays clean — singles, species clause, and the source says outright *\"specifically in singles, it's not vgc\"* — same inputs as our store, different game. and its fairness critique lands on us: a ladder bot is argued unfair rather than merely strong, because a human cannot process branches at that rate under a timer. the paper should meet that deliberately; note the premise is not yet true of us, since miltank needs 26s against a 20s budget (#61). everything here is a video narrator's paraphrase and must be verified against the source before it is cited"
     },
     {
       "n": 31,
@@ -459,7 +514,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "the mega must be a strategic decision, not \"the lead keeps it\""
+      "title": "the mega must be a strategic decision, not \"the lead keeps it\"",
+      "full": "the mega must be a strategic decision, not \"the lead keeps it\""
     },
     {
       "n": 6,
@@ -467,7 +523,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "AXIS-4 reparameterisation, then WOBBUFFET in it"
+      "title": "AXIS-4 reparameterisation, then WOBBUFFET in it",
+      "full": "axis-4 reparameterisation, then wobbuffet in it"
     },
     {
       "n": 47,
@@ -475,7 +532,35 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "solve exactly whenever switching is off the table — 1v1 is 16 cells, 2v1 is 96, 2v2 is ~1,296"
+      "title": "solve exactly whenever switching is off the table — 1v1 is 16 cells, 2v1 is 96, 2v2 is ~1,296",
+      "full": "solve exactly whenever switching is off the table — 1v1 is 16 cells, 2v1 is 96, 2v2 is ~1,296"
+    },
+    {
+      "n": 163,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE BLUEPRINT + LIVE RE-SOLVE ARCHITECTURE — WILL, 2026-08-11. *\"you know how poker solvers have charts for every scenar",
+      "full": "the blueprint + live re-solve architecture — will, 2026-08-11. *\"you know how poker solvers have charts for every scenario that people try and memorize, i want that for us, so we can try searching for the most similar scenario from a repository as well as live rollout\"*, alongside *\"i dont want to behavior clone first i want to try our searching and poker like simulation\"*. this is the architecture that beat humans at nlhe — libratus and pluribus do not play off charts, they compute a coarse blueprint offline and do real-time subgame re-solving at the table. blueprint + live search is exactly what he described, and it is a far better fit here than behaviour cloning: vgc-bench trains offline so inference is cheap, whereas search pays per turn on a clock. the endgame half is already scoped and small — #47 measures 1v1 at 16 cells, 2v1 at 96, 2v2 at ~1,296, with 2v1 alone reachable in 45.9% of games; retrograde analysis builds up from there (#30, #40, #41). the early game is the research problem and it is the abstraction, not the retrieval. poker charts work on isomorphism — a(s)k(s) and a(h)k(h) are one hand — and pokemon has no isomorphism that clean, because which species is on the field is the information content. so the repository needs a learned similarity metric. we have a candidate and it has been tested in the wrong direction: #23 gated porygon2 on whether it can separate positions two turns apart; retrieval needs the inverse, that genuinely similar positions land close. same encoder, opposite test, never run. the honest dependency: the re-solve half needs a fast simulator, which loops back to #62 and to the poke-env benchmark nobody has ever taken"
+    },
+    {
+      "n": 164,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE END GOAL, STATED SO PRIORITIES CAN BE ARGUED AGAINST IT — WILL, 2026-08-11: *\"the end goal is to beat closed team sh",
+      "full": "the end goal, stated so priorities can be argued against it — will, 2026-08-11: *\"the end goal is to beat closed team sheets and get to number 1 on the ladder but we are far off\"*. it had never been written down, so every ordering argument in this register was being made against a target nobody had stated. it is a curriculum, not a mismatch — will corrected this the same day: *\"once we solve open team sheets, we can think about the more difficult closed team sheets and adapt our models accordingly\"*. i first filed the open-sheet corpus against a closed-sheet target as a violation of this file's *fitting environment must match playing environment* rule. that was an over-application. the rule governs fitting and playing in the same deployment; deliberately solving the fully-observable version first and adapting afterwards is staging, and staging is how you get a measurable baseline at all. what survives is narrower and still worth holding: a model fitted where every set is known must be able to accept uncertainty about sets later, and that is an architecture question better answered before everything is built assuming certainty — the same lesson as the focus sash drag, where replacing a hedge with a certainty inherited responsibility for every event that staled it. and it flips the poker argument the right way. open sheets strip out most hidden information and make our game easier than poker in the dimension poker is hardest; closed sheets put it back — unknown items, spreads, the fourth move, which four of six they brought — so information sets become the game and #163's blueprint+re-solve becomes the right primitive rather than a flourish. two things already built for other reasons are the closed-sheet machinery: #52 hypno (rate the opponent, decide how hard to exploit — deferred by will) and the prefer observed over declared rule with its knock off / trick / consumed-berry tracking, which is exactly the inference a closed-sheet bot needs. will's own farigiraf/cud chew read is the same idea from the player side: a bluff that exists only because sheets are closed, and that open sheets delete. \"far off\" is accurate — #62 unanswered, ~26 open rows in the medicham block, no search redesign started"
+    },
+    {
+      "n": 165,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "ARGMAX IS UNSOUND IN A SIMULTANEOUS-MOVE GAME, AND OPEN TEAM SHEETS DO NOT RESCUE IT — CITED, 2026-08-11. Bosansky, Lisy",
+      "full": "argmax is unsound in a simultaneous-move game, and open team sheets do not rescue it — cited, 2026-08-11. bosansky, lisy, lanctot, cermak & winands, *algorithms for computing strategies in two-player simultaneous move games*, artificial intelligence 237 (2016) 1-40: agents *\"may need to use randomized (or mixed) strategies in order to play optimally ... even though the only information that is hidden is each player's action as they play it\"*. simultaneity alone forces mixing. i had told will the opposite — that open sheets make our game easier than poker in poker's hardest dimension. on this axis they do not. what medicham is: `miltank.js:1315` is `if (v > bestval) { bestval = v; bestpair = [ia, ib]; }` and `:1384` clicks it — a plain argmax, deterministic by construction, answerable for free by anyone who knows the scorer. magnemite underneath it does sample (`magnemite.js:954`, `:1154`, a softmax its own header calls *\"the single biggest measured lever\"* and which argues *\"taking the argmax would be the obvious thing and it is wrong here\"*), so the bot gets less mixed as it gets smarter — the 31.6% of turns miltank defers are the only ones that come out mixed, which inverts #62: more compute means fewer deferrals means more predictable. duct is not the fix — i had it in the fix list and the paper reports it *\"also might not converge to a nash equilibrium\"*, even the mixed variant; uct's failure is shown on biased rock-paper-scissors (shafiei, sturtevant & schaeffer, giga 2009). what is sound, three tiers from that paper: exact backward induction solving the matrix game per node, which *\"outputs a subgame perfect ne\"*; sm-oos, which *\"guarantee[s] to closely approximate the optimal strategies given enough time\"*; and sm-mcts-rm (regret matching at simultaneous nodes) as the practical middle. so roadmap #41's python equilibrium solver is the textbook-correct primitive for this game class, currently filed as *\"the equilibrium answer exists and cannot play\"*. and unlike pluribus we are 1v1 zero-sum, so the *\"equilibrium is not the right goal\"* retreat does not apply to us — equilibrium is the target here. phase 3, not now: medicham is phase 1 and a correct simulator is a prerequisite under every version of this. registered so it is not rediscovered"
     },
     {
       "n": 47,
@@ -483,7 +568,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "retrograde analysis (Will): with 2v2 solved, a 3v2 reduces to *which solved 2v2 do I steer into*"
+      "title": "retrograde analysis (Will): with 2v2 solved, a 3v2 reduces to *which solved 2v2 do I steer into*",
+      "full": "retrograde analysis (will): with 2v2 solved, a 3v2 reduces to *which solved 2v2 do i steer into*"
     },
     {
       "n": 29,
@@ -491,7 +577,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "THE SACK — a planned sacrifice is invisible to a material-weighted leaf"
+      "title": "THE SACK — a planned sacrifice is invisible to a material-weighted leaf",
+      "full": "the sack — a planned sacrifice is invisible to a material-weighted leaf"
     },
     {
       "n": 41,
@@ -499,7 +586,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "reach the Python equilibrium solver from the JavaScript bot"
+      "title": "reach the Python equilibrium solver from the JavaScript bot",
+      "full": "reach the python equilibrium solver from the javascript bot"
     },
     {
       "n": 30,
@@ -507,7 +595,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "DUSK as a goal — nothing in the project represents a goal, only positions and actions"
+      "title": "DUSK as a goal — nothing in the project represents a goal, only positions and actions",
+      "full": "dusk as a goal — nothing in the project represents a goal, only positions and actions"
     },
     {
       "n": 26,
@@ -515,7 +604,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "refit MAG on bo3 only — the corpus change is in code and unrun. OWNED BY WILL 2026-08-11: he is reworking the weights hi"
+      "title": "refit MAG on bo3 only — the corpus change is in code and unrun. OWNED BY WILL 2026-08-11: he is reworking the weights hi",
+      "full": "refit mag on bo3 only — the corpus change is in code and unrun. owned by will 2026-08-11: he is reworking the weights himself, so nothing here refits or restamps on the way past. the feature-semantics check on `data/policy-weights.json` is failing (damage table regenerated under the fit, 318→317 species, `405c836793d1`→`1b66b563c229`) and stays failing until then — a restamp would make the warning vanish without making it untrue. #79 (the 58 features were never designed) and the fit-vs-play environment question land inside this rework, not beside it. see `docs/medicham-sprint-notes.md`"
     },
     {
       "n": 50,
@@ -523,7 +613,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "WIRE 124 moved a position feature; models fitted on it predate the correct number"
+      "title": "WIRE 124 moved a position feature; models fitted on it predate the correct number",
+      "full": "wire 124 moved a position feature; models fitted on it predate the correct number"
     },
     {
       "n": 48,
@@ -531,7 +622,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "27 of 28 Python generators could write a file JavaScript cannot read — closed, gated"
+      "title": "27 of 28 Python generators could write a file JavaScript cannot read — closed, gated",
+      "full": "27 of 28 python generators could write a file javascript cannot read — closed, gated"
     },
     {
       "n": 27,
@@ -539,7 +631,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "three instruments built that had never written an artifact — truncation curve now run, two left"
+      "title": "three instruments built that had never written an artifact — truncation curve now run, two left",
+      "full": "three instruments built that had never written an artifact — truncation curve now run, two left"
     },
     {
       "n": 44,
@@ -547,7 +640,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "a move that provably does nothing is a weighted preference, not a rule — needs a refit"
+      "title": "a move that provably does nothing is a weighted preference, not a rule — needs a refit",
+      "full": "a move that provably does nothing is a weighted preference, not a rule — needs a refit"
     },
     {
       "n": 57,
@@ -555,7 +649,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "every rollout-derived number predates a correct engine — the leaf's 51.0%, R1's 69.84%, R4's 55.5%. Enumerate the re-run"
+      "title": "every rollout-derived number predates a correct engine — the leaf's 51.0%, R1's 69.84%, R4's 55.5%. Enumerate the re-run",
+      "full": "every rollout-derived number predates a correct engine — the leaf's 51.0%, r1's 69.84%, r4's 55.5%. enumerate the re-run list from the release stamps; prioritise by whether the verdict could flip, not by age"
     },
     {
       "n": 108,
@@ -563,7 +658,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "TWO REGISTERED GATES ASK DIFFERENT QUESTIONS AND NEITHER CONSULTS THE OTHER. `engine/status.js` prints figures out of ar"
+      "title": "TWO REGISTERED GATES ASK DIFFERENT QUESTIONS AND NEITHER CONSULTS THE OTHER. `engine/status.js` prints figures out of ar",
+      "full": "two registered gates ask different questions and neither consults the other. `engine/status.js` prints figures out of artifacts `engine/provenance.js` calls unsafe — the release-ladder block at `status.js:353` reads `data/wire-ladder.json`, which provenance flags unsafe for computing from a `games.bo3.jsonl` that has since moved. both are gates in `tests/run-all.js` and both are green about their own question. #105 removed the excuse: every artifact `status.js` reads now has a row, so the two can be asked the same question about the same file. needs a decision on the shape first — withhold like the quarantine, or caption — and claude.md is explicit that a caption is not a quarantine"
     },
     {
       "n": 58,
@@ -571,7 +667,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "two `moveAccuracy` implementations disagreed for 78 moves and nothing compared them. `board.js` read the dex and was rig"
+      "title": "two `moveAccuracy` implementations disagreed for 78 moves and nothing compared them. `board.js` read the dex and was rig",
+      "full": "two `moveaccuracy` implementations disagreed for 78 moves and nothing compared them. `board.js` read the dex and was right; `medicham2` read a hand-typed list and was wrong. make it one function and assert it"
     },
     {
       "n": 110,
@@ -579,7 +676,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 6102,
-      "title": "THE MOVES QUEUE — the roster's moves stage, measured for the first time at 3.79.0 and worked down since. 52 → 40 → 32 → "
+      "title": "THE MOVES QUEUE — the roster's moves stage, measured for the first time at 3.79.0 and worked down since. 52 → 40 → 32 → ",
+      "full": "the moves queue — the roster's moves stage, measured for the first time at 3.79.0 and worked down since. 52 → 40 → 32 → 25 → 23 fired-and-boards-differ, plus 24 did-not-fire and 91 could-not-stage, against 362 matching. 3.94.0 closed clanging scales and scale shot: showdown keeps the user's own stat change in two fields (`self.boosts` and `selfboost.boosts`) and the builder read one — the six moves using `self` all read match, which is exactly why it looked closed. 3.93.0 closed the partial-trap family — seven rows on one fact. bind, fire spin, infestation, sand tomb, snap trap, whirlpool and wrap each read `showdown 4 / ours 3` then `3 / 2`; identical deltas across seven independent rows is one fact, not seven bugs. `partialtrap: {turns:'4-5'}` was typed by hand and is the felt duration, while the compared quantity is showdown's `partiallytrapped` counter, which starts at 5 and is decremented in the residual of the turn the trap lands. the volatile-duration defect a third time (perish song, then #111's family) — it survived both because this counter lives in `_trap` and not `_vol`. now derived from the condition itself (duration, the `random(5,7)` range, the grip claw branch, `onstart`'s `bounddivisor`) and failing closed. red shown on the frozen pre-fix release. whole-game differential unmoved at 65/107. remaining clusters by corpus weight, which is not the order they look biggest in — `encore` alone is 6,102 uses, 55% of what is left, while the whole lock-in family is 101: 13 `move/plain-attack` (of which outrage/petaldance/ragingfury/thrash/uproar are one lock-in family), 4 remaining `move/volatile`, 9 `move/generic-status`, 6 `move/boosts-target`, 3 `move/multihit` (triple axel, scale shot, dragon darts — three different mechanics), 3 `move/fixed-damage`"
     },
     {
       "n": 70,
@@ -587,7 +685,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "TWO USAGE COUNTS EXIST AND NEITHER KNOWS ABOUT THE OTHER — but the engine queue is NOT where it bites. `data/meta-usage."
+      "title": "TWO USAGE COUNTS EXIST AND NEITHER KNOWS ABOUT THE OTHER — but the engine queue is NOT where it bites. `data/meta-usage.",
+      "full": "two usage counts exist and neither knows about the other — but the engine queue is not where it bites. `data/meta-usage.json` (what chomp reads) filters hard: collected 39,792 → after_bot_filter 13,263 → behavioural bots 10,480 → forfeits → min turns → full bring → 7,123 clean. `data/tags.json` (which every \"n uses\" in this project is quoted from) reads `loadcorpus({scope:'all'})` across `games.bo3` + `games.ots` + `games.ladder` — 11,429 games, 137,148 sheet entries, no bot filter and no quality filter. corrected 2026-08-10 by will, and the correction is the important half: *\"it doesnt really matter because its not like bots can break the rules, the moves, mons, and items they use we still need to have in medicham right\"*. exactly right. a bot cannot click an illegal move, so every entity it uses is one medicham must handle anyway — and the medicham gate demands zero differ and zero did-not-fire, so the count changes the order of work and never the destination. the unfiltered count is arguably the correct one for an engine queue: it measures exposure. where it does still bite is the opponent model — what a human will bring and click — which is what the bot filter exists for and what chomp consumes. so this is a measure item about `meta-usage.json`, not an engine item about the queue. *(an earlier draft of this row claimed three sources disagreeing 13x, citing a scan of `games.ladder.jsonl` alone that found 15 iron ball rows against tags.json's 139. that scan was wrong — ladder alone carries sheets on 1.7% of sides because the sheets live in the bo3 and ots files. the 139 is sound. retracted.)*"
     },
     {
       "n": 116,
@@ -595,7 +694,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "`new Battle()` VALIDATES NOTHING — a probe could measure a mechanic this format does not contain. Will: *\"why dont we us"
+      "title": "`new Battle()` VALIDATES NOTHING — a probe could measure a mechanic this format does not contain. Will: *\"why dont we us",
+      "full": "`new battle()` validates nothing — a probe could measure a mechanic this format does not contain. will: *\"why dont we use showdowns teams validator that is universal truth\"*. now it does. `engine/champions_sim.checklegal` asks the `teamvalidator` — the authority adr-002 names, through the instance `packteam` already builds — and splits its complaints into banned (the format does not contain this; always fatal) and pairing (this species cannot hold this; a legitimate isolation, declarable in writing). it catches strictly more than an `isnonstandard` check: *\"meganium can't learn flamethrower\"* is a legal move on a species that cannot have it, and that set was hand-staged on 2026-08-08. caught two defects in its own harness on the first run — `tackle` is `past` and every inert slot carried it, and the padding species were named from memory and included one not in the format. the sweep that followed (3.92.0) settled the blast radius: the `.item`/`.ability` assignment surface across 238 files is clean (one hit, `noability`, the blank sentinel), so the hazard this item was written about never actually fired — but move literals hit five sites, two of them defects. `test-priority-block.js` silenced three slots with splash, which has no `mc.moves` row at all, so the silencing worked through absence rather than through the move doing nothing; and `test-dead-volatile.js` guarded on `.exists`, which is true for a banned move, so the guard could never fire and the case always ran on thousand arrows. tightening that guard would have moved the hole rather than closing it, so the subject is derived from the format (smack down). still open: `staged_board.js` and `game_differential.js` (`buildpair`)"
     },
     {
       "n": 122,
@@ -603,7 +703,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "THE ROSTER SCRIPT LANGUAGE HAS NO SWITCH ACTION, AND `board_state.js` DOES NOT COMPARE TRAPPING AT ALL. Will, 2026-08-10"
+      "title": "THE ROSTER SCRIPT LANGUAGE HAS NO SWITCH ACTION, AND `board_state.js` DOES NOT COMPARE TRAPPING AT ALL. Will, 2026-08-10",
+      "full": "the roster script language has no switch action, and `board_state.js` does not compare trapping at all. will, 2026-08-10: *\"we need to test the switch blocking like shadow tag, block, and the trapping moves, so we need to be able to switch in the test\"*. the roster says it in its own source at `tests/roster.js:1814`. two layers, and they must not be confused: the engine switches fine — measured, `{kind:'switch', to: body}` through `battleturn`, and a partial trap correctly refused it while the untrapped control left freely — but the roster drives through the differential's script language, which cannot express the action, and even if it could the comparator has no field for trapping. that is why `block` reads inert: nobody ever tried to leave. covers the hard-trap moves (block, mean look, spider web, anchor shot, thousand waves), the partial-trap family's switch-prevention half (chip damage was closed at 3.93.0; the trapping half has never been compared), and the trapping abilities"
     },
     {
       "n": 124,
@@ -611,7 +712,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "THE WEATHER-CONDITIONAL MOVE FAMILY, SWEPT. Nine moves in this format change behaviour with the sky. Verified CORRECT an"
+      "title": "THE WEATHER-CONDITIONAL MOVE FAMILY, SWEPT. Nine moves in this format change behaviour with the sky. Verified CORRECT an",
+      "full": "the weather-conditional move family, swept. nine moves in this format change behaviour with the sky. verified correct and now on record rather than assumed: thunder and hurricane are never-miss in rain and 50 in sun; blizzard is never-miss in snow and untouched by sun; solar beam and solar blade closed under the precondition layer. broken: `growth` does not double in sun (sd +2/+2, ours +1/+1) — it read match for months and went red the moment its precondition was real, which is the sharpest argument for the precondition work there is. open: only growth. a later sweep at release `f727f7fdee4f` closed the rest and this line is corrected rather than left standing: `weatherscaled` has eleven members and five payload shapes, growth is the sole member carrying a `boosts` payload, weather ball now reads match (#96's fix took), and the other nine — including electro shot, which this item wrongly called untested — are all green under `move/needs-the-sky-it-names`. the remaining untested weather surface is on the ability side: `solarpower`, `raindish` and `icebody` all read control-not-quiet. `dig` appears in a naive weather scan and is a false positive — its weather mention is `onimmunity` (underground bodies take no sandstorm or hail chip), a different mechanic, recorded here so the next sweep does not re-find it as a bug"
     },
     {
       "n": 127,
@@ -619,7 +721,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 105709,
-      "title": "FIVE TAG SIGNATURES ARE CARRIED BY MOVES THE ENGINE TREATS DIFFERENTLY — so something other than the tag is deciding, an"
+      "title": "FIVE TAG SIGNATURES ARE CARRIED BY MOVES THE ENGINE TREATS DIFFERENTLY — so something other than the tag is deciding, an",
+      "full": "five tag signatures are carried by moves the engine treats differently — so something other than the tag is deciding, and 105,709 uses sit on those signatures. generalised from #126 rather than left as one anecdote: every move in `data/tags.json` was resolved through `playeraction` on the frozen release and grouped by its sorted tag list. five groups split on the resolved kind, and a split can only mean a name match (forbidden here) or a tag missing the param that should separate them (#71). ranked: 96,406 `protect`+`detect` -> `protect` but `endure` -> `affect`, the highest-usage signature in the format carrying three behaviours — and `protectmoves` is an exported name list, which is the mechanism; 4,924 `wideguard` -> a branch, `quickguard` -> nothing (#126); 3,721 `roost`/`recover`/`slackoff`/`softboiled` -> `heal` while `wish` and `rest` -> nothing, because the tag says *heals self* and cannot express delayed or also-sleeps; 524 `beatup`/`hex`/`storedpower` -> `attack`, `spitup` -> nothing; 134 `bellydrum`/`tidyup` -> `statcode`, `acupressure` -> nothing. the last three overlap #125's dead list and groups a/b of the 13-row diagnosis, so the fix is shared. the check itself is the deliverable — it is cheap, it is derived, and it should be a gate: a signature whose members resolve to different kinds is either a name match or an under-specified tag, and both are defects by this repo's own rules"
     },
     {
       "n": 129,
@@ -627,7 +730,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "'GOOD ENOUGH' IS A USAGE-WEIGHTED THRESHOLD, NOT A ROW COUNT — and by that measure the engine is already at 99.24%. Will"
+      "title": "'GOOD ENOUGH' IS A USAGE-WEIGHTED THRESHOLD, NOT A ROW COUNT — and by that measure the engine is already at 99.24%. Will",
+      "full": "'good enough' is a usage-weighted threshold, not a row count — and by that measure the engine is already at 99.24%. will, 2026-08-10: *'we do have to ask ourelves at what point is the engine good enough and has enough used features that it can perform its end goal'*. measured against the corpus rather than argued: 553,910 total move clicks; 781 (0.14%) land on a move that resolves to a whole no-op turn; 3,888 (0.70%) land on a move the roster says disagrees with the authority; the union is 4,208 = 0.76%. so 99.24% of real clicks land on a move with no known defect, and the game differential is 150/150 clean on real replayed games. the gate is a coverage standard and has been read as a sufficiency standard. its 45 open move rows are deliberately-staged edge cases, which is precisely why they survived — they barely occur. the honest test of sufficiency is roadmap #68: scale the differential from 150 games to 1,000+ real stored games. if it stays clean there, the remaining rows are polish and can run beside search work rather than blocking it, and the #99 quarantine can lift on a measured condition instead of a feeling. note the standing counter-evidence, which cuts the same way: `docs/measure.md` §0 carries a tight null at n=8,883 on the hypothesis that correctness fixes move the leaf at all"
     },
     {
       "n": 130,
@@ -635,7 +739,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "THE OPTIMIZATION PASS — hand MEDICHAM to Fable 5 and say make it faster, but only behind a correctness gate a stopwatch "
+      "title": "THE OPTIMIZATION PASS — hand MEDICHAM to Fable 5 and say make it faster, but only behind a correctness gate a stopwatch ",
+      "full": "the optimization pass — hand medicham to fable 5 and say make it faster, but only behind a correctness gate a stopwatch cannot fake. will, 2026-08-10: *'once we think medicham is good enough i plan to run some optimization programs to speed it up'* / *'handing it over to feeble 5 and saying make this go faster'*. dispatchable directly — the model is selectable per agent. the hazard is that 'faster' and 'different' are indistinguishable to a benchmark. an optimizer that shaves 30% by skipping a branch produces a beautiful number and a broken engine, and every existing test can still pass because those tests cover mechanics the branch never touches. so the pass runs three instruments, not one: `tests/bench-medicham.js` for the score (built 2026-08-10, pinned fixture, best-of-5, refuses to record a baseline under load — first reading 0.4341 ms/turn); the 500-move x 4-turn whole-board digest sweep for the verdict (2,000 cells; wire 147 used it to show only 11 moved, and that is the shape every optimization must reproduce at zero); and `tests/test-damage-stages.js` at 1728/1728 exact so arithmetic shortcuts cannot drift. sequencing, which decides how much work this is: the classifier cascade is both the most likely optimization target and the thing the remaining ~20 wires append to. restructure it first and the queued fixes land in the restructured version; do the wires first and the optimizer rewrites code that was just written"
     },
     {
       "n": 131,
@@ -643,7 +748,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "THE COST OF A FEATURE DEPENDS ENTIRELY ON WHICH PATH IT SITS IN, and the first measurement of that was taken 2026-08-10."
+      "title": "THE COST OF A FEATURE DEPENDS ENTIRELY ON WHICH PATH IT SITS IN, and the first measurement of that was taken 2026-08-10.",
+      "full": "the cost of a feature depends entirely on which path it sits in, and the first measurement of that was taken 2026-08-10. will: *'how many of these features will slow down the engine? cause if it costs nothing to have harvest in there, then sure we can, but if there is a time cost to it then maybe we otta reconsider'* — the right question, and the answer splits cleanly. hot path — runs on every click of every rollout: the damage chain and the ~40-branch classifier cascade. tonight's five wires cost +6.2% (0.776 -> 0.825 ms/turn, interleaved a/b across frozen releases under load), and the per-hit damage loop is almost certainly all of it, being the only wire that touched damage. cold path — fires once per turn on a trigger, and is effectively free: harvest, cud chew, cheek pouch, quick guard, the heal family. so harvest specifically: yes, free. the thing to actually guard is compounding — 6% per five wires, twenty more wires, and the engine is ~25% slower to serve 0.76% of clicks. that trade stops being worth it well before the queue empties, which is the argument for #76's ratchet firing on every wire rather than at the end"
     },
     {
       "n": 132,
@@ -651,7 +757,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "THE SECONDARY-EFFECT CHANCES, CHECKED AGAINST THE AUTHORITY IN TWO SECONDS AND NO GAMES. Will proposed running a few mil"
+      "title": "THE SECONDARY-EFFECT CHANCES, CHECKED AGAINST THE AUTHORITY IN TWO SECONDS AND NO GAMES. Will proposed running a few mil",
+      "full": "the secondary-effect chances, checked against the authority in two seconds and no games. will proposed running a few million self-play games to see whether our accuracy and secondary rates are right. self-play cannot answer that — it samples our declared number, so a tag saying 30% where showdown says 10% would produce a beautiful, confident, wrong 30%. the authority states the chance, so it is a derivation check rather than a statistical one. measured 2026-08-10 over the 128 moves in this format carrying a secondary: 93 match exactly, 1 mismatches, 34 carry no chance at all. the mismatch is triple arrows — the authority has two secondaries, a 50% defence drop and a 30% flinch, and we carry only the first. the 34 without a recorded chance are mostly 100% secondaries which may be modelled as certainties elsewhere; that needs checking, not assuming, because 'modelled as a certainty' is how the focus sash drag became a hard 1.0 (claude.md). do this before #133"
     },
     {
       "n": 133,
@@ -659,7 +766,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "A FEW MILLION SELF-PLAY GAMES TO PROVE THE SAMPLER FIRES AT THE RATE WE DECLARED — Will's idea, and the right tool for t"
+      "title": "A FEW MILLION SELF-PLAY GAMES TO PROVE THE SAMPLER FIRES AT THE RATE WE DECLARED — Will's idea, and the right tool for t",
+      "full": "a few million self-play games to prove the sampler fires at the rate we declared — will's idea, and the right tool for the question it actually answers. *'once we feel our engine is good we can have it play a few million games and then determine if our rate for accuracy and secondary effects is right'*, then, on the distinction: *'correct run the million games after we determine'*. so: #132 first (is the declared number right — free, exact), then this (does the code fire at it — statistical). this catches the failure a probe structurally cannot: a probe forces the outcome to test the mechanic, so a secondary declared at 30% that a bug makes fire at 0% or 100% passes every probe and every roster row. that is claude.md's founding failure — a capability absent while everything reports success — in the one place the existing instruments are blind. cost is not a constraint: at the measured 0.4341 ms/turn and a mean 3.6-turn rollout, a million games is roughly half an hour. compare observed firing rates against the declared chances with a confidence interval per move, and expect the answer to be boring — the value is the one that is not"
     },
     {
       "n": 134,
@@ -667,7 +775,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "THE STORE REACHES FOUR FACTS AND THROWS THEM AWAY — and #68 needs every one of them. Will, reading the replay design: *'"
+      "title": "THE STORE REACHES FOUR FACTS AND THROWS THEM AWAY — and #68 needs every one of them. Will, reading the replay design: *'",
+      "full": "the store reaches four facts and throws them away — and #68 needs every one of them. will, reading the replay design: *'i think multi hit moves say how many times they hit in the chat'*, *'life orb in the chat too'*, *'same with focus sash'*. all correct. `engine/durable-ingest.js` parses 30 protocol lines and drops these four: `|-hitcount|` (never read — so the differential skips 630 multi-hit rows as incomparable when the real hit count was on the wire); `|cant|` (never read — a flinched, paralysed, asleep, frozen or recharging body is simply an absent `m` event, indistinguishable from each other, 0 games in 52,089 carry a flinch marker); the `[from]` clause on chip damage — the parser tests for it to decide the damage is residual and then discards the text, so burn, sandstorm, life orb and rocky helmet all land as a bare `{t:'hp'}` with no source, and its own comment names them; `|-enditem|`, read only to infer what item a body held, never emitted as a turn event, so 'the focus sash triggered this turn' is gone. the store's event vocabulary is `b f fs hp m mega s w x`. this contradicts the project's founding principle — *store raw, analyze on top, every fact we might ever want* — at the parser. four regex arms; the raw replays can be re-pulled so no history is lost. ops work, touches no engine, and it makes #68 able to attribute a divergence instead of reporting an unexplained hp drop"
     },
     {
       "n": 141,
@@ -675,7 +784,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "MOLD BREAKER SUPPRESSES 82 ABILITIES IN THIS FORMAT, AND WE DO NOT KNOW WHETHER OUR ENGINE READS IT AT ALL. Will, 2026-0"
+      "title": "MOLD BREAKER SUPPRESSES 82 ABILITIES IN THIS FORMAT, AND WE DO NOT KNOW WHETHER OUR ENGINE READS IT AT ALL. Will, 2026-0",
+      "full": "mold breaker suppresses 82 abilities in this format, and we do not know whether our engine reads it at all. will, 2026-08-10: *\"does tinkaton mold breaker fake out flinch a mon with inner focus? idk what the answer should be\"*. measured against the format: yes it does. inner focus carries `flags: {breakable: 1}`, mold breaker sets `move.ignoreability = true`, and tinkaton carries mold breaker legally. the surface is 82 abilities — disguise, sturdy, levitate, filter, shell armor, shield dust, solid rock, multiscale, thick fat, wonder guard, suction cups, volt absorb, water absorb and the whole immunity family. steadfast is not breakable (`flags: {}`), so a mold breaker fake out into steadfast flinches and grants the +1 speed, while the same click into inner focus flinches and grants nothing. two abilities that look like siblings behave oppositely, which is exactly the kind of pair a name-matched implementation gets wrong. and the obvious lookup is a trap: `ability.isbreakable` reads `undefined` on every ability in this format, so a naive check concludes mold breaker suppresses nothing and passes its own test. the live flag is `flags.breakable`. nothing in `data/tags.json` or the engine is known to read `ignoreability`; that is the first thing to measure, before any wiring"
     },
     {
       "n": 143,
@@ -683,7 +793,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "THE SCENARIO CATALOGUE — one test SHAPE per mechanic, covering every move, ability, item and species. 920 entities carry"
+      "title": "THE SCENARIO CATALOGUE — one test SHAPE per mechanic, covering every move, ability, item and species. 920 entities carry",
+      "full": "the scenario catalogue — one test shape per mechanic, covering every move, ability, item and species. 920 entities carry 217 distinct tags, so 217 shapes cover all of them and an entity added tomorrow inherits its shape without an edit; plus 357 legal species as one `structural` shape that needs no battle, only a comparison against the format. ten archetypes, and the archetype decides which instrument can ask the question — `chance` tags are marked so nobody builds a one-board test for a coin. two fields make it work and both are will's: `faces`, the adversary's action as distinct from the subject's precondition (*\"wide guard needs a spread move against it, its pointless to test if it doesnt face that\"*), without which a shape passes by doing nothing — and it explains the could-not-stage pile; and a property tested through its reactor (*\"have contact hit rough skin to check\"*), which resolves the `contact` flag's 166 moves in one shape. built by `engine/scenario_catalogue.js`, written to `data/scenario-catalogue.json`"
     },
     {
       "n": 146,
@@ -691,7 +802,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "THE PP FACT HAS TWO READERS UNTIL ENGINE ADOPTS THE SHARED ONE. `medicham2-browser.js`'s `ppMax` / `ppLeft` / `ppDeduct`"
+      "title": "THE PP FACT HAS TWO READERS UNTIL ENGINE ADOPTS THE SHARED ONE. `medicham2-browser.js`'s `ppMax` / `ppLeft` / `ppDeduct`",
+      "full": "the pp fact has two readers until engine adopts the shared one. `medicham2-browser.js`'s `ppmax` / `ppleft` / `ppdeduct` / `ppallout` / `pppressureextra` are file-local — on neither `module.exports` nor `root` — so `board.js` cannot call them, and #145 had to put the fact in `engine/pp.js` rather than copy it. that is claude.md's *\"two files that both decide choice scarf is x1.5\"* hazard, live. it is guarded rather than declared: `tests/test-pp-fact.js` plays real turns and asserts that the number medicham writes into its own `_pp` equals the number `pp.js` gives, across every maxpp tier in the format. the ask is one edit in engine's file — have those five delegate to `engine/pp.js`, or export them and let `pp.js` become a thin adapter — so that one implementation remains. two further items found while wiring. `board.js` writes `b._pp` by name, which ought to be an engine-supplied setter rather than a string literal in a consumer. and `docs/_outbox/pp-and-moldbreaker-notes.md` states that `floor(base*0.8)+4` fits 500 of 500 rows: it fits 499, because struggle carries `noppboosts` and stays at 1/1 where the formula gives 4. nothing downstream is wrong — the number is read, never computed — but the claim would have to break before the artifact did"
     },
     {
       "n": 149,
@@ -699,7 +811,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "TWO SHIPPED COMMITS CITE ROADMAP NUMBERS THAT WERE NEVER REGISTERED, AND A LATER AGENT REUSED THEM. Commits `0a28580` (4"
+      "title": "TWO SHIPPED COMMITS CITE ROADMAP NUMBERS THAT WERE NEVER REGISTERED, AND A LATER AGENT REUSED THEM. Commits `0a28580` (4",
+      "full": "two shipped commits cite roadmap numbers that were never registered, and a later agent reused them. commits `0a28580` (4.1.0) and `e7d672a` (4.2.0) name \"roadmap #145\" and \"roadmap #146\" in their messages and in `docs/medicham-sprint-notes.md`. neither number existed in §5 — head's register stopped at #143. the search agent then correctly took #145 and #146 as the next free numbers for the pp work, so those two numbers now mean two different things depending on whether you read a commit message or the register. the findings are re-registered here as #147 (grounded axis) and #148 (sixth gate clause); the commit messages cannot be rewritten and are left alone, which is why this row exists. `tests/test-roadmap-register.js` did not catch it and is not wrong to have missed it — it checks that every item a division ledger schedules is named in §5, and these citations were in a commit message and the sprint notes, neither of which it reads. widening it to those two sources is the fix; until then a number in a commit message is not a registered number"
     },
     {
       "n": 150,
@@ -707,7 +820,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "`status.js` STAMPS UTC WHILE EVERY DATED ARTIFACT USES LOCAL, SO ANY RUN AFTER 20:00 EDT IS DATED TOMORROW. Measured 202"
+      "title": "`status.js` STAMPS UTC WHILE EVERY DATED ARTIFACT USES LOCAL, SO ANY RUN AFTER 20:00 EDT IS DATED TOMORROW. Measured 202",
+      "full": "`status.js` stamps utc while every dated artifact uses local, so any run after 20:00 edt is dated tomorrow. measured 2026-08-10 20:43 edt: `engine/medicham2-browser.js` has mtime `2026-08-10 20:41:29 -0400` and `docs/search.md`'s generated block renders it as `2026-08-11 00:40`. a changelog entry written in the same session was stamped `[4.4.0] — 2026-08-11` against a real date of the 10th and had to be corrected by hand. this is small and it is exactly the class this repository keeps paying for: an artifact that looks newer than it is, feeding a staleness comparison that then reads backwards. `engine/provenance.js` already had to stop comparing mtimes for this family of reason. fix: one date function, local, called by everything that stamps — the facts are global rule applied to the clock"
     },
     {
       "n": 154,
@@ -715,7 +829,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "`data/status.js`'s GRAPH ROW NAMES THE WRONG BUILDER, WHICH IS WHY #153 WAS INVISIBLE. `engine/provenance.js` attributes"
+      "title": "`data/status.js`'s GRAPH ROW NAMES THE WRONG BUILDER, WHICH IS WHY #153 WAS INVISIBLE. `engine/provenance.js` attributes",
+      "full": "`data/status.js`'s graph row names the wrong builder, which is why #153 was invisible. `engine/provenance.js` attributes it to `engine/build-status.js`, which reads `policy-eval.json` and friends and is clear. the file's own header says it is generated by `build/build_status.js`, which reads two withheld artifacts — so the row that would have made `data/status.js` quarantined was never computed. two builders with almost the same name, one stale, and the graph followed the stale one. neither file may be deleted on this reasoning alone and web may not touch either; what is owed is a decision about which builder is live and a re-classification. related: `data/games.h2h-joint-trained.jsonl` and `data/games.h2h-tags2.jsonl` have no row at all, so doduo's and mew's evidence lines resolve to *unclassified* — the site withholds them on the ground that unclassified is not cleared, and that withholding expires by itself the day either file gets a row that clears."
     },
     {
       "n": 52,
@@ -723,7 +838,8 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "HYPNO — rates the opponent, sets how hard to exploit"
+      "title": "HYPNO — rates the opponent, sets how hard to exploit",
+      "full": "hypno — rates the opponent, sets how hard to exploit"
     },
     {
       "n": 54,
@@ -731,55 +847,15 @@
       "closed": false,
       "saysBroken": false,
       "uses": 0,
-      "title": "position against THREE comparables, because the field is not empty and none of them is playing our game. VGC-Bench (AAMA"
+      "title": "position against THREE comparables, because the field is not empty and none of them is playing our game. VGC-Bench (AAMA",
+      "full": "position against three comparables, because the field is not empty and none of them is playing our game. vgc-bench (aamas 2026) — whose archive we already consume, and dropped from the fit for staleness (four days, mid-june, seven weeks old); `engine/corpus_shift.js` exists to measure the metagame distance and has never written an artifact. future sight ai — closed-source showdown bot, reportedly top 5% of the most popular format, matches revealed attributes to the most common set, ships a win-probability browser extension; also settles a naming question, since \"future sight\" is taken and this project names everything after pokémon. the pokeagent challenge (arxiv 2603.15563, neurips 2025, 100+ teams, two tracks) — by far the strongest reference of the three and not yet read. add sarantinos (arxiv 2212.13338, cambridge) as the closest published method: gen 7 random battles singles, peaked 33rd in the world, regret-minimisation opponent prediction, fills unknown properties from usage statistics, and explicitly rejects monte carlo sampling as too sample-inefficient — which is what miltank's leaf does. it also names our #29 independently: its first \"biggest challenge\" is keeping the team balanced, with a worked example that is the sack, and it asserts *\"an ai agent cannot achieve this just by looking ahead with minmax or monte carlo tree search.\"* finally, its elo caveat is load-bearing for will's stated goal: comparing human and ai ratings is invalid unless they played each other — laddering with alakazam is exactly that, so the plan is sound and should say why"
     }
   ],
-  "unregistered": [
-    {
-      "subject": "psyshieldbash -> aftermath",
-      "uses": 24,
-      "instrument": "data/interaction-matrix.json",
-      "generated": "2026-08-11T04:39:41.217Z",
-      "detail": ".A.active[0].boosts.def medi=0 sd=1",
-      "registered": false
-    },
-    {
-      "subject": "rockwrecker -> bulletproof",
-      "uses": 8,
-      "instrument": "data/interaction-matrix.json",
-      "generated": "2026-08-11T04:39:41.217Z",
-      "detail": ".A.active[0].vol medi=[\"mustrecharge\"] sd=[]",
-      "registered": false
-    },
-    {
-      "subject": "instruct -> goodasgold",
-      "uses": 190,
-      "instrument": "data/interaction-matrix.json",
-      "generated": "2026-08-11T04:39:41.217Z",
-      "detail": ".B.active[0].boosts.spa medi=4 sd=2",
-      "registered": false
-    },
-    {
-      "subject": "throatchop -> shielddust",
-      "uses": 3739,
-      "instrument": "data/interaction-matrix.json",
-      "generated": "2026-08-11T04:39:41.217Z",
-      "detail": ".B.active[0].vol medi=[\"throatchop\"] sd=[]",
-      "registered": false
-    },
-    {
-      "subject": "psychicnoise -> shielddust",
-      "uses": 262,
-      "instrument": "data/interaction-matrix.json",
-      "generated": "2026-08-11T04:39:41.217Z",
-      "detail": ".B.active[0].vol medi=[\"healblock\"] sd=[]",
-      "registered": false
-    }
-  ],
+  "unregistered": [],
   "instruments": [
     {
       "artifact": "data/interaction-matrix.json",
-      "generated": "2026-08-11T04:39:41.217Z",
+      "generated": "2026-08-11T05:51:53.831Z",
       "age_days": 0
     }
   ]
