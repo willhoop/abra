@@ -32,6 +32,26 @@ const ok = (c, m) => { console.log((c ? '  ok    ' : '  FAIL  ') + m); c ? pass+
 
 const FIELD = { terrain: '', weather: '', twA: 0, twB: 0 };
 
+/* AN IDLE OPPONENT, SAID OUT LOUD — ROADMAP #172.
+ *
+ * Half the fixtures below want a punching bag: a body that stands there while the thing under test
+ * happens to it. They used to get one by handing it `moves = ['protect']` and RELYING ON THE CHOOSER
+ * NEVER CLICKING IT — the body had no damaging move, the scorer produced nothing, and the engine fell
+ * through to Struggle. That was an engine defect (a 50 BP recoil attack the authority would never have
+ * offered), it is fixed, and every fixture resting on it went red the moment it was: the Protect now
+ * actually protects, and the punching bag started blocking the punch.
+ *
+ * WHAT WAS ACTUALLY WRONG WITH THOSE FIXTURES IS NOT THE PROTECT — it is that they never SAID what
+ * the opponent does. An assertion about Icy Wind's secondary should not be able to change its answer
+ * because a chooser heuristic moved. `{kind:'pass'}` is the engine's own terminal do-nothing action,
+ * handed in as a forced action, so the opponent's turn is now part of the fixture rather than an
+ * inference from it.
+ *
+ * NOT A WEAKENING. Every assertion below is untouched; the two that DEPENDED on the opponent doing
+ * something (Earthquake into a partner that Protected; the Choice lock's foe) still stage that
+ * something explicitly. */
+const IDLE = (...bodies) => new Map(bodies.filter(Boolean).map(b => [b, { kind: 'pass' }]));
+
 /* Max damage of `attacker` holding `item` into `defender` with `moveId`. Max, not min, because it
  * is a single deterministic roll and avoids floor() noise at the bottom of the range. */
 function dmg(attacker, defender, moveId, item) {
@@ -222,6 +242,19 @@ console.log('\nwire 6 — punishesAttacker complete');
     a.moves = [atkMove]; a.item = '';
     h.moves = [holderMove]; h.item = ''; h.ability = holderAbility;
     h.st = Object.assign({}, h.st, { hp: holderHP }); h.curHP = holderHP;
+    /* ROADMAP #168 / #169 — NEITHER BODY MAY RUN OUT OF PP, AND THIS IS WHAT THE COMMENT ABOVE ALREADY
+     * PROMISED: "every HP point and boost stage the attacker loses is the punishment and nothing else".
+     * That was true when this fixture was written and stopped being true when PP became a resource
+     * (#144). Iron Head is 16 PP against a 20-turn battle, so from turn 17 BOTH bodies hit an empty
+     * menu, `mustStruggle` fires correctly, and Struggle charges its own 1/4-max recoil to each of
+     * them — 64 HP off the attacker in the surviving-Aftermath arm, which was registered as Aftermath
+     * charging a survivor. IT WAS NOT. Measured with the PP restored: attacker 173/173, holder
+     * untouched, `punishesAttacker` never fires on a body that lives. The Gulp Missile arm below was
+     * red for the identical reason and the forme gate was never over-firing either.
+     * It also makes the Gooey arm mean what it says: 20 turns of IRON HEAD contact, not 16 plus 4
+     * Struggles. */
+    a._pp = { [atkMove]: 9999 };
+    h._pp = { [holderMove]: 9999 };
     /* The behaviour clone samples what the SPECIES really clicks, ignoring me.moves -- correct in
      * play, fatal in a controlled experiment. Silence the priors for these two species so the only
      * moves in the battle are the two this test chose, then put them back. */
@@ -369,6 +402,22 @@ console.log('\nwire 8 — perTurnHP');
     s.moves = ['leechseed']; s.item = '';
     v.moves = ['earthquake']; v.item = '';
     v.st = Object.assign({}, v.st, { hp: 99999 }); v.curHP = 99999;
+    /* ROADMAP #171 — THE VICTIM IS GIVEN UNLIMITED PP, AND THAT IS THE FIXTURE'S OWN CLAIM MADE TRUE.
+     * The comment below says "every HP point that moves is the seed". It stopped being true when PP
+     * became a resource (#144): the victim's Earthquake is immune into a Flying seeder, so the battle
+     * runs long, Earthquake empties, `mustStruggle` fires — legitimately, this is the real mechanic —
+     * and STRUGGLE'S OWN 1/4-max RECOIL takes 25,000 off the victim. The Grass arm then read "25000
+     * lost" and was registered as Leech Seed landing on a Grass type. It never landed: `_seededBy` is
+     * false in that arm, which is why the assertion below now says so out loud beside the HP.
+     *
+     * BOTH bodies, not just the victim. Leech Seed is 12 PP against a 20-turn battle, so the SEEDER
+     * empties too and struggles into the victim for 35 — the same contamination with the sign
+     * reversed. With neither body able to run out, no Struggle is reachable in this fixture at all and
+     * the claim "every HP point that moves is the seed" is true again by construction rather than by
+     * luck. It does not weaken the arm that matters: the non-Grass victim still dies to the seed alone
+     * (8 drains of 1/8 against a 20-turn cap) and is now provably never hit by anything. */
+    v._pp = { earthquake: 9999 };
+    s._pp = { leechseed: 9999 };
     /* The seeder starts at 1 HP with a max too high to cap: whatever it ends with, minus the 1,
      * is exactly what the seed handed over. Conservation IS the amount check. */
     s.st = Object.assign({}, s.st, { hp: 200000 }); s.curHP = 1;
@@ -386,8 +435,9 @@ console.log('\nwire 8 — perTurnHP');
   ok(sb && gained === lost,
     `every drained point reaches the seeder: victim -${lost}, seeder +${gained} (drain, not just chip)`);
   const gb = seedBattle('whimsicott');
-  ok(gb && gb.v.curHP === 99999,
-    `a ${pLS.immuneType}-type victim is immune, from the move's own onTryImmunity (${gb && (99999 - gb.v.curHP)} lost)`);
+  ok(gb && gb.v.curHP === 99999 && !gb.v._seededBy,
+    `a ${pLS.immuneType}-type victim is immune, from the move's own onTryImmunity `
+    + `(${gb && (99999 - gb.v.curHP)} lost, seeded ${gb && !!gb.v._seededBy})`);
 }
 
 /* ---- WIRE 9: the death counter — Last Respects live, Supreme Overlord frozen ----------------- */
@@ -515,7 +565,8 @@ console.log('\nwire 11 — typeImmunity');
   const savedP = MC.priors.pelipper; MC.priors.pelipper = null;
   const savedG = MC.priors[sd.name]; MC.priors[sd.name] = null;
   S2.actA[0].moves = ['hydropump']; sd.moves = ['protect'];
-  try { M.battleTurn(S2, () => 0.5, new Map([[S2.actA[0], M.playerAction(S2.actA[0], 'hydropump', sd, S2.field)]])); }
+  try { M.battleTurn(S2, () => 0.5, new Map([[S2.actA[0], M.playerAction(S2.actA[0], 'hydropump', sd, S2.field)]]),
+                     IDLE(S2.actB[0])); }
   finally { MC.priors.pelipper = savedP; MC.priors[sd.name] = savedG; }
   ok(sd.boosts.sa === 1 && sd.curHP === sd.st.hp,
     `Storm Drain banks +1 SpA off the absorbed Hydro Pump (sa ${sd.boosts.sa}, untouched HP)`);
@@ -539,7 +590,8 @@ console.log('\nwire 12 — survivesFromFull');
     const sA = MC.priors[a.name], sH = MC.priors[h.name];
     MC.priors[a.name] = null; MC.priors[h.name] = null;
     const S = M.battleInit([a], [h]);
-    try { M.battleTurn(S, () => 0.5, new Map([[S.actA[0], M.playerAction(S.actA[0], 'earthquake', h, S.field)]])); }
+    try { M.battleTurn(S, () => 0.5, new Map([[S.actA[0], M.playerAction(S.actA[0], 'earthquake', h, S.field)]]),
+                       IDLE(S.actB[0])); }
     finally { MC.priors[a.name] = sA; MC.priors[h.name] = sH; }
     return h;
   };
@@ -685,7 +737,8 @@ console.log('\nwire 16 — secondary stat drops');
     const sA = MC.priors[a.name], sD = MC.priors[d.name];
     MC.priors[a.name] = null; MC.priors[d.name] = null;
     const S = M.battleInit([a], [d]);
-    try { M.battleTurn(S, () => 0.9, new Map([[S.actA[0], M.playerAction(S.actA[0], moveId, d, S.field)]])); }
+    try { M.battleTurn(S, () => 0.9, new Map([[S.actA[0], M.playerAction(S.actA[0], moveId, d, S.field)]]),
+                       IDLE(S.actB[0])); }
     finally { MC.priors[a.name] = sA; MC.priors[d.name] = sD; }
     return d;
   };
@@ -709,7 +762,8 @@ console.log('\nwires 17+18 — thawsTarget / choiceLock');
   const sA = MC.priors[a.name], sD = MC.priors[d.name];
   MC.priors[a.name] = null; MC.priors[d.name] = null;
   const S = M.battleInit([a], [d]);
-  try { M.battleTurn(S, () => 0.9, new Map([[S.actA[0], M.playerAction(S.actA[0], 'flareblitz', d, S.field)]])); }
+  try { M.battleTurn(S, () => 0.9, new Map([[S.actA[0], M.playerAction(S.actA[0], 'flareblitz', d, S.field)]]),
+                     IDLE(S.actB[0])); }
   finally { MC.priors[a.name] = sA; MC.priors[d.name] = sD; }
   ok(d.status === '' && d.curHP < 9999, `a Fire hit thaws the frozen target (status '${d.status}', took damage)`);
 
@@ -722,12 +776,14 @@ console.log('\nwires 17+18 — thawsTarget / choiceLock');
   MC.priors[c.name] = null; MC.priors[foe.name] = null;
   const S2 = M.battleInit([c], [foe]);
   try {
-    M.battleTurn(S2, () => 0.9, new Map([[S2.actA[0], M.playerAction(S2.actA[0], 'ironhead', foe, S2.field)]]));
+    M.battleTurn(S2, () => 0.9, new Map([[S2.actA[0], M.playerAction(S2.actA[0], 'ironhead', foe, S2.field)]]),
+                 IDLE(S2.actB[0]));
     ok(c._lock === 'ironhead', `the lock engaged on the committed move (${c._lock})`);
     /* now let the ENGINE choose for it: with EQ immune vs corviknight it would love to re-pick —
-     * the lock must hold it to Iron Head */
+     * the lock must hold it to Iron Head. Only SIDE A is left to the engine; the foe is idled, because
+     * the assertion is "damage landed" and a foe left to Roost heals more than the Iron Head takes. */
     const hp1 = foe.curHP;
-    M.battleTurn(S2, () => 0.9);
+    M.battleTurn(S2, () => 0.9, null, IDLE(S2.actB[0]));
     ok(foe.curHP < hp1, 'turn 2, engine-chosen: the locked Iron Head fired again (damage landed)');
     ok(c._lock === 'ironhead', 'and the lock is still ironhead — no quiet re-picking');
   } finally { MC.priors[c.name] = sC; MC.priors[foe.name] = sF; }
@@ -804,8 +860,17 @@ console.log('\nfake out — legal to click only when legal to land');
     ok(t1 && t1.move === 'fakeout', `turn 1 Fake Out is clickable (${t1 && t1.move})`);
     M.battleTurn(S, () => 0.9);                    // turn 2: the only move is now ILLEGAL to pick
     const t2 = (S.lastActs || []).find(x => x.side === 'A');
-    ok(t2 && t2.kind === 'struggle',
-      `turn 2 the illegal Fake Out is refused at pick time (${t2 && t2.kind}) — not a fake click`);
+    /* IT ASKS `move`, NOT `kind`, AND THAT IS NOT A RELAXATION — ROADMAP #119 MOVED THE ANSWER.
+     * This line asserted `kind === 'struggle'` and was written when Struggle was the `{kind:'struggle'}`
+     * SENTINEL, i.e. an action that matched no branch in the dispatch loop and voided the whole turn.
+     * #119 deleted that: `struggleAction` now builds a REAL action through `playerAction`, so its kind
+     * is `attack` — correctly, Struggle is a 50 BP attack — and its identity lives on `move`. The old
+     * assertion could therefore only pass while the engine was voiding the turn, and it read `attack`
+     * for two reasons that look identical and are opposite: the chooser offering the illegal Fake Out,
+     * and the chooser correctly refusing it and Struggling. Naming the MOVE tells them apart, which is
+     * the whole point of the row: the menu was empty, so Fake Out was never offered. */
+    ok(t2 && t2.move === 'struggle' && t2.move !== 'fakeout',
+      `turn 2 the illegal Fake Out is refused at pick time (clicked ${t2 && t2.move}) — not a fake click`);
   } finally { MC.priors[a.name] = sA; MC.priors[d.name] = sD; }
 }
 

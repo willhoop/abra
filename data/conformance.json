@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-11T07:00:35.613Z",
+ "generated": "2026-08-11T07:57:24.377Z",
  "by": "engine/conformance.js",
- "files": 371,
+ "files": 372,
  "findings": [
   {
    "std": "S12",
@@ -760,12 +760,6 @@
    "file": "data/rollout-r1-withdrawn-join.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/roster.all.prev.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
   },
   {
    "std": "S13",

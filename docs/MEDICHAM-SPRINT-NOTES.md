@@ -21,6 +21,121 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE OTHER SIX: THREE MORE FIXTURES, THREE REAL WIRES, AND A NAME THAT HAD BEEN CARRYING A RULE ON ITS OWN. 2026-08-11 (ENGINE).
+
+**#171, #168, #169 — ALL THREE ARE THE FIXTURE, AND ALL THREE ARE THE SAME FIXTURE BUG.** ROADMAP #144
+made PP a resource. Three `test-tag-wire` fixtures pit a body against something it cannot hurt and let
+the battle run to the 20-turn cap, so the moves empty, `mustStruggle` fires **correctly**, and Struggle's
+1/4-max recoil contaminates the very number the assertion reads:
+
+| row | registered as | measured |
+|---|---|---|
+| #171 | *"Leech Seed lands on a Grass type"* — 25,000 lost | `_seededBy` is **false**. 25,000 is 99,999/4 — the victim's own Struggle recoil once Earthquake emptied. |
+| #168 | *"Aftermath charges a survivor nothing"* — 109/173 | with PP restored the attacker ends **173/173**. `punishesAttacker` never fires on a body that lives. |
+| #169 | *"a base-forme Gulp Missile body punishes nobody"* | same shared `one()` helper, same Struggle chip. The forme gate was never over-firing. |
+
+Each fixture now gives both bodies unlimited PP, which is the claim those fixtures already made in
+prose — *"every HP point and boost stage the attacker loses is the punishment and nothing else"* — made
+true by construction. **Shown RED against a deliberately broken engine before being trusted**: deleting
+the `immuneType` clause gives *"99999 lost, seeded true"*; deleting `onFaintOnly` and `requiresForme`
+turns the survivor arm to *"HP 0/173"* and Gulp Missile back on.
+
+**#173 FAKE OUT — A REAL WIRE, AND THE COMMENT ABOVE THE BUG SAID WHY IT EXISTED.** `firstTurnOnlyRefused`
+was `id==='fakeout'`, justified in place by *"the authority expresses it as `onTry` on the move ... so
+there is no upstream flag and no tag to derive from"*. **That was read off mainline.**
+`data/mods/champions/moves.ts:331` inherits Fake Out and adds `onDisableMove(pokemon) { if
+(pokemon.activeMoveActions) pokemon.disableMove('fakeout'); }`, desc *"This move cannot be selected
+unless it is the user's first turn on the field."* In Champions it is a **menu disable**, which is
+exactly what the assertion demanded and exactly what is derivable. New tag `firstTurnOnly`, membership
+**printed before wiring: 2 — `fakeout` (16,871 uses) and `firstimpression`**, and First Impression is
+legal here and the name check never covered it at all. Answered in `moveDisabledBy`, beside Taunt /
+Disable / empty PP, so every caller of `illegalMoveNow` inherits it. Name kept as a **counted** fallback;
+`firstTurnOnlyByNameOnly` reads **0**, so the tag is carrying it. The assertion also had to move from
+`kind` to `move`: ROADMAP #119 turned Struggle from a turn-voiding sentinel into a real `attack` action,
+so `kind==='struggle'` could only have passed while the engine was broken.
+
+**#180 SUCKER PUNCH — THE THIRD CLAUSE OF ONE `if`.** `data/moves.ts:18400` also fails on
+`target.volatiles['mustrecharge']`. A recharging body is queued with a move action and is *attacking* by
+every test the existing block makes, so Sucker Punch landed anyway — a free 70 BP priority hit the turn
+after any Hyper Beam. `refusesRechargingTarget` is derived from the handler text and **discriminates**:
+`suckerpunch` carries it, `upperhand` does not, which is correct.
+
+**#179 RECYCLE — `{kind:'pass'}`, THE TERMINAL DO-NOTHING BRANCH.** New tag `restoresOwnLastItem`,
+**membership 1, printed**, carrying all three of the handler's clauses (`onUser`, `refusesIfHolding`,
+`spendsLastItem`). New action kind `itemback`. It needed no new state: `_lastItem` has existed since
+Harvest, and one fact with three consumers is the point.
+
+**#175 — RE-MEASURED FIRST, AS THE ROW ASKS. THE COUNT DID NOT MOVE AND NEITHER DID THE MEMBERSHIP:
+still exactly the 23 the row names.** One is now closed. `ignoresRedirection` (Stalwart / Propeller
+Tail): `sim/pokemon.ts:829` gates the whole `RedirectTarget` event on `move.tracksTarget`, so a Stalwart
+body is not drawn by Follow Me, Rage Powder, Lightning Rod or Storm Drain. **Legal carriers derived from
+the format, not recalled: Archaludon and Skarmory-Mega** — Archaludon is a real member of this metagame.
+**AND THE FIX FOUND A SILENT NAME FALLBACK CARRYING A LIVE RULE**: `tracksTargetOf` looks for an
+ability-side `tracksTarget` tag **that does not exist in the artifact**, so `ab==='stalwart'||
+ab==='propellertail'` had been the entire mechanism, uncounted — ROADMAP #181's shape, one function
+over. It now reads the param, honours the handler's own `exceptScripted` clause, and counts the name
+path (`tracksTargetByNameOnly` reads **0**). The redirection site never asked at all and now asks the
+same predicate the slot re-aim uses. **22 tags remain unconsumed; 21 of them were not touched and each
+is still a separate decision.**
+
+**NUMBERS. Census 448 live / 0 missing → 451 live / 0 missing — 3 arrived, 0 broke, net +3**
+(`failsIfTargetNotAttacking`'s recharge clause, `restoresOwnLastItem`, `ignoresRedirection`), still 0
+hollow, 0 unarmed, 0 direct-call, 0 threw. `test-tag-wire` **10 FAIL → 0 FAIL, 104 checks passed**.
+`test-tag-consumed` **23 → 22**. Differential re-run at `--n 20000`: **20000 agreed, 0 disagreed**.
+`test-wiring` green, every capability proved it ran. Gate unchanged at CLOSED 1 of 6 — the failing clause
+is the register clause, which lifts when the rows are struck, not when the engine is fixed.
+
+**EVERY ONE OF THE FIVE NEW OR CHANGED PROBES WAS SHOWN RED ON A DELIBERATE ENGINE BREAK BEFORE BEING
+TRUSTED**, and in each case both arms collapsed to the SAME number — #178's signature that a knob is
+unwired, rather than a count that merely failed to rise.
+
+---
+
+## FOUR OF THE ELEVEN DEFECTS WERE ONE DEFECT, AND IT WAS THE CHOOSER CLICKING STRUGGLE PAST A LEGAL BUTTON. 2026-08-11 (ENGINE).
+
+**ROADMAP #166, #167, #170, #172 — CLOSED BY ONE ENGINE CHANGE.** Every one of them was registered off a
+`test-tag-wire` assertion, each assertion was quoted verbatim, and **every one of the four diagnoses in the
+register is wrong.** Focus Sash does save. Sitrus reads its threshold. Storm Drain banks the boost. Heat
+Wave does not touch your partner — `spreadFoes` and `spreadAll` were never collapsed.
+
+**WHAT WAS ACTUALLY HAPPENING.** `_chooseAction`'s last fallback (ROADMAP #152) reached `struggleAction`
+whenever the damage scanner found no option and the priors sampler produced nothing usable. Its own comment
+said the quiet part out loud — *"A real Struggle is not what Showdown would click here — a body with legal
+status moves left is not on Struggle — and that mismatch is stated rather than hidden"* — and filed the
+wrong click as the lesser evil against the void it was replacing. It is not the lesser evil. **Struggle is
+a 50 BP typeless attack with 1/4-max recoil**, so every fixture body holding a single Protect or Roost spent
+its turn hitting the thing under test and paying a quarter of its own HP for it:
+
+| row | what the register said | what the trace said |
+|---|---|---|
+| #172 | *"Heat Wave hits your own partner"* | `\|move\|p2b: whimsicott\|struggle\|p1b: kingambit` — **both foes struggled into the partner.** Heat Wave reached p2a and p2b only. Ally damage 7 + 14 = 21, and Heat Wave into that body prices at 46–56. |
+| #166 | *"Focus Sash does not save"* (HP 0) | the Sash **did** save at 1, and then Struggle's own 1/4 recoil killed the survivor. |
+| #167 | *"fires on the WRONG SIDE of its own threshold, BOTH directions"* | struggle chip pushed the body under the threshold in the 80% arm and past the expected total in the 40% arm. The berry was eating correctly in both. |
+| #170 | *"absorbs and does not bank the boost"* | the absorber was the struggling body; the boost was never the question. |
+
+**THE FIX IS THE MENU, WHICH THIS FILE ALREADY COMPUTES.** `getMoveRequestData` puts Struggle on screen only
+when `getMoves` comes back empty, and that predicate is `mustStruggle` at the top of `chooseAction`. Below it
+a legal button always exists, so the fallback was reaching past one. It now takes a uniform pick over
+`selectableMoves(me)` and builds it through `playerAction`. **Exactly one `rng()` draw**, deliberately —
+`struggleAction` drew one for its uniform target, so every seeded probe downstream sees an identical stream.
+Counted as `MEDSEEN.menuFallbackClick`, with `MEDFAILS.menuFallbackUnbuilt` naming its first offender if
+`playerAction` ever cannot build the click; the Struggle sentinel stays underneath, still counted.
+
+**FIVE PREVIOUSLY-GREEN ASSERTIONS WENT RED ON THE FIX, AND THAT IS THE EVIDENCE.** Icy Wind's drop, Snarl's
+drop, the Scald thaw and the Choice lock's second turn were all passing **because the punching bag was
+struggling instead of Protecting**. The moment it clicked its legal button the punching bag started blocking
+the punch and the Choice-lock foe started Roosting back more than the Iron Head took. No assertion was
+changed. What changed is that those fixtures now **say** what the opponent does — `IDLE(...)`, a forced
+`{kind:'pass'}` handed in as side B's action — instead of inferring it from a chooser heuristic.
+
+**NUMBERS. `test-tag-wire` 10 FAIL → 4 FAIL** (remaining: #168 Aftermath, #169 Gulp Missile, #171 Leech Seed,
+#173 Fake Out). Census **448 live / 0 missing before, 448 live / 0 missing after — 0 arrived, 0 broke, net 0**,
+which is the correct reading: the census never probed the chooser. Differential re-run at `--n 20000`:
+**20000 compared, 20000 agreed, 0 disagreed.** Gate unchanged at CLOSED 1 of 6, with all five passing clauses
+still passing.
+
+---
+
 ## THE GATE OPENING RELEASED 33 STALE FIGURES ONTO THE SITE. THE WITHHOLDER HAD TWO STATES AND NEEDED THREE. 2026-08-11 (WEB).
 
 `tests/test-web-quarantine.js` was RED and the recorded reason — *"the board payload was built while the

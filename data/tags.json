@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-11T06:39:38.099Z",
+ "generated": "2026-08-11T08:03:50.457Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -569,6 +569,33 @@
    ]
   },
   {
+   "tag": "restoresOwnLastItem",
+   "kind": "move",
+   "param": "gives the user back the item it consumed, and only if its hands are empty",
+   "why": "Recycle (3 uses) resolved to {kind:'pass'} — a spent turn dressed as a decision",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 3,
+   "examples": [
+    "Recycle"
+   ]
+  },
+  {
+   "tag": "firstTurnOnly",
+   "kind": "move",
+   "param": "selectable ONLY on the turn the user entered — a menu disable, not an execution failure",
+   "why": "Fake Out (16,871 uses, the format's biggest lead) and First Impression. Champions turns mainline's onTry into onDisableMove, so the refusal is at PICK TIME",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 16879,
+   "examples": [
+    "Fake Out",
+    "First Impression"
+   ]
+  },
+  {
    "tag": "spreadFoes",
    "kind": "move",
    "param": "x0.75, hits BOTH ENEMIES, ally is safe",
@@ -936,8 +963,8 @@
    "kind": "move",
    "param": "decays on consecutive use, on a counter of its OWN",
    "why": "Ally Switch. Same decay shape as Protect and deliberately NOT the same counter, so an engine that shared one would let a Protect shrink an Ally Switch",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "privateStallCounter",
+   "used": true,
    "n": 1,
    "uses": 224,
    "examples": [
@@ -9203,6 +9230,7 @@
    "name": "Fake Out",
    "tags": [
     "pp",
+    "firstTurnOnly",
     "priority",
     "contact",
     "statusInflict",
@@ -9214,6 +9242,10 @@
      "max": 12,
      "base": 10,
      "noPPBoosts": false
+    },
+    "firstTurnOnly": {
+     "menuDisable": true,
+     "whileActiveMoveActions": ">0"
     },
     "priority": {
      "readFrom": "m.priority",
@@ -9278,6 +9310,7 @@
    "name": "First Impression",
    "tags": [
     "pp",
+    "firstTurnOnly",
     "priority",
     "contact"
    ],
@@ -9287,6 +9320,10 @@
      "max": 12,
      "base": 10,
      "noPPBoosts": false
+    },
+    "firstTurnOnly": {
+     "menuDisable": true,
+     "whileActiveMoveActions": ">0"
     },
     "priority": {
      "readFrom": "m.priority",
@@ -20581,6 +20618,7 @@
    "name": "Recycle",
    "tags": [
     "pp",
+    "restoresOwnLastItem",
     "neverMisses",
     "statusCategory"
    ],
@@ -20590,6 +20628,11 @@
      "max": 12,
      "base": 10,
      "noPPBoosts": false
+    },
+    "restoresOwnLastItem": {
+     "onUser": true,
+     "refusesIfHolding": true,
+     "spendsLastItem": true
     },
     "neverMisses": {
      "pHit": 1,
@@ -23209,7 +23252,8 @@
     },
     "failsIfTargetNotAttacking": {
      "fails": true,
-     "refusesStatusTarget": true
+     "refusesStatusTarget": true,
+     "refusesRechargingTarget": true
     }
    }
   },

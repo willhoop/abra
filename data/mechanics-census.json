@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T07:09:31.509Z",
+  "generated": "2026-08-11T08:18:26.121Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 448,
-  "live": 448,
+  "probed": 451,
+  "live": 451,
   "missing": 0,
-  "armed": 448,
+  "armed": 451,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -1202,6 +1202,16 @@
       "directCall": false
     },
     {
+      "kind": "ability",
+      "tag": "ignoresRedirection",
+      "label": "Stalwart is not drawn by Follow Me or by Storm Drain",
+      "live": true,
+      "detail": "Follow Me — without Stalwart the aimed foe takes 0 (drawn away, the partner took 56); WITH Stalwart the aimed foe takes 99 (must be > 0). Storm Drain — without Stalwart 0, with Stalwart 35. Equal arms on either redirector would mean the gate is unread",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "move",
       "tag": "powder",
       "label": "Sleep Powder fails into a Grass type",
@@ -1347,6 +1357,16 @@
       "label": "Sucker Punch fails against a target that is not attacking",
       "live": true,
       "detail": "foe attacking: 70, foe idle: 0 (must be 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "failsIfTargetNotAttacking",
+      "label": "Sucker Punch ALSO fails into a target that owes a recharge (the clause beside the other two)",
+      "live": true,
+      "detail": "after Giga Impact the target owes a recharge (true) and Sucker Punch deals 0 (must be 0); after Dragon Claw it owes nothing (false) and the SAME click deals 86 — equal arms would mean the recharge clause is unread",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2736,7 +2756,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3146,7 +3166,7 @@
       "tag": "statusCategory",
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
-      "detail": "40/40 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "detail": "41/41 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4487,6 +4507,16 @@
       "label": "Encore reaches a move kind that never recorded itself — the room comes DOWN",
       "live": true,
       "detail": "Trick Room goes up (4 turns). Left alone the victim clicks Scald and the room ticks to 3; ENCORED it re-clicks Trick Room and the room reads 0 — a second Trick Room ends it. `trickroom` is one of the thirteen kinds that recorded no last move, so the seal could not have landed at all",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "restoresOwnLastItem",
+      "label": "Recycle hands back the item the body spent — and only then",
+      "live": true,
+      "detail": "the Sitrus fires on its own (slot now \"\"). Knocked back to 45% and Recycled, the berry comes back AND is eaten again — hp 118 from 76, slot \"\". SPEND: with the returned berry forced out of its hands, a second Recycle finds the memory gone — slot \"\" (must be empty). REFUSE: a body still holding Leftovers keeps \"leftovers\" and is given no second item",
       "hollow": false,
       "armed": true,
       "directCall": false

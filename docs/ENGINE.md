@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  448/448 probed mechanics live, 0 missing   (census 2026-08-11 03:05)
-  0/20000 differential comparisons disagree with Showdown   (2026-08-11 03:06)
+  451/451 probed mechanics live, 0 missing   (census 2026-08-11 04:14)
+  0/20000 differential comparisons disagree with Showdown   (2026-08-11 04:14)
     seed 20260804, requested 20000, 850 not comparable (multihit 630, non-finite 0, threw 220)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 02:49)
@@ -45,15 +45,59 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 465e6c99cb46 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is d7b15359b2d6 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 226/263 probed, 37 unprobed
+  tag coverage: 228/265 probed, 37 unprobed
 ```
 
-_stamped 2026-08-11 03:09_
+_stamped 2026-08-11 04:16_
 
 <!-- /GENERATED -->
+
+## THE ELEVEN GATE DEFECTS — TEN CLOSED, AND FOUR OF THEM WERE ONE BUG WITH FOUR NAMES. 2026-08-11.
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md` (living docs are paused for the sprint by Will's
+decision). The short of it, for this ledger:
+
+**Census 448 → 451 — 3 arrived, 0 broke, net +3**, `missing` 0 → 0, still 0 hollow, 0 unarmed, 0
+direct-call, 0 threw. `test-tag-wire` **10 FAIL → 0 FAIL (104 checks)**. `test-tag-consumed` 23 → 22.
+Differential re-run at `--n 20000`: **20000 agreed, 0 disagreed**. Gate CLOSED 1 of 6, unchanged — the
+one failing clause is the REGISTER clause and lifts when the rows are struck, not when the engine is.
+
+**SEVEN OF THE ELEVEN ROWS DIAGNOSED THE WRONG THING, AND THAT IS THE FINDING.** Four (#166 Focus Sash,
+#167 Sitrus, #170 Storm Drain, #172 Heat Wave) were ONE engine defect: `_chooseAction`'s last fallback
+clicked **Struggle** — a 50 BP attack with 1/4-max recoil — past a legal button, so every fixture body
+holding a single Protect or Roost was hitting the thing under test and paying for it. Three more (#171
+Leech Seed, #168 Aftermath, #169 Gulp Missile) were fixtures that predate PP being a resource (#144) and
+were reading the same Struggle recoil as the mechanic's own number. **Focus Sash, Sitrus, Storm Drain,
+the ally-safe spread split, the Leech Seed Grass immunity, Aftermath's faint gate and Gulp Missile's
+forme gate were all correct the whole time.**
+
+Three were real wires: **#173** Fake Out (Champions turns mainline's `onTry` into an `onDisableMove`, so
+it is a MENU disable here — new `firstTurnOnly` tag, 2 members printed, and `firstimpression` was never
+covered by the name check at all), **#180** Sucker Punch's `mustrecharge` clause, **#179** Recycle's
+`{kind:'pass'}`.
+
+### THE HAND LIST LOSES BOTH OF ITS ENTRIES
+
+The `ROADMAP #162` section below ends with two items *"found and deliberately not fixed"* — **Recycle
+resolving to `{kind:'pass'}`** and **Sucker Punch's second refusal**. Both are now closed and both carry
+a census probe (`restoresOwnLastItem`; `failsIfTargetNotAttacking`'s recharge row), so the census carries
+them and they leave the list. What remains by hand is Rivalry, as before.
+
+### WHAT WAS FOUND AND DELIBERATELY NOT FIXED, NAMED RATHER THAN ABSORBED
+
+- **#175 is 22, not 23, and 21 of them were not touched.** Re-measured first as the row asks: the count
+  and the membership were both unchanged by the tag split. `ignoresRedirection` is wired and closed; every
+  other one is still its own decision and must not be batched.
+- **`tracksTargetOf` still carries a name fallback for Snipe Shot** (`===\'snipeshot\'`), uncounted. It is
+  the same shape as ROADMAP #181 and is left because `snipeshot` has no row in `data/tags.json` at all,
+  so removing it would be a silent downgrade rather than a fix. The ABILITY arm beside it — which had been
+  carrying Stalwart on its own, uncounted — is fixed and counted.
+- **`test-quality.js` went red on the live tree and is not ENGINE\'s**: the store grew 20,688 → 52,840
+  games and `data/quality-filter.json`\'s recorded clean share is stale (22.1% now vs 17.3% recorded).
+  It passes on a clean `HEAD` checkout only because the store is gitignored and therefore absent there.
 
 ## ROADMAP #162 — THE COLLAPSED TAGS ARE SPLIT, AND ONE NUMBER COULD NOT SEE THE REGRESSION. 2026-08-11.
 

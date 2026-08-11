@@ -115,6 +115,28 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * in the dispatch loop and voided the whole turn. They are counted apart from `struggleFromEmptyMenu`
    * because a hot number here is a BUG REPORT, not evidence that Struggle works. */
   struggleFromLockUnbuilt: 0, struggleFromNoOption: 0,
+  /* ROADMAP #172 -- the LEGAL button that was there all along. The scanner found no damaging option
+   * and the priors sampler produced nothing usable, but `selectableMoves` is non-empty (a status-only
+   * body: Protect, Roost, Tailwind). Struggle was clicked instead, which is a 50 BP recoil attack the
+   * authority would never have offered. A hot number here is not a bug -- it is the support bodies
+   * playing support -- but a ZERO beside a live `struggleFromNoOption` would mean this road is unwired. */
+  menuFallbackClick: 0,
+  /* ROADMAP #173 -- Fake Out / First Impression refused by the MENU rather than failed at execution,
+   * which is what the Champions mod actually does. A zero across a run with any Fake Out lead in it
+   * would mean the tag stopped matching and the name fallback is carrying the rule. */
+  firstTurnOnlyRefusedAtSelection: 0,
+  /* ROADMAP #179 -- Recycle handed a body back the item it spent. The move reached the terminal
+   * `{kind:'pass'}` branch before this, so a zero here with a Recycle in the game means the tag
+   * stopped matching and the move is a wasted turn again. */
+  itemRecycled: 0,
+  /* ROADMAP #175 -- an attacker whose ability made it track its own target, decided from the
+   * `ignoresRedirection` PARAM rather than from its name. A zero beside a live
+   * `tracksTargetByNameOnly` means the artifact stopped carrying the tag. */
+  tracksTargetFromTag: 0,
+  /* ROADMAP #180 -- Sucker Punch refused because the target owes a recharge. The other two clauses of
+   * that handler have been modelled since #60; this is the one that let a Hyper Beam turn hand out a
+   * free 70 BP priority hit. Zero in a game with no recharge move in it is fine. */
+  suckerRefusedRechargingTarget: 0,
   /* ROADMAP #141 -- a defender ability actually SUPPRESSED by a Mold Breaker-class attacker. It is
    * counted rather than assumed because the fix that added the `breakable` gate could equally have
    * turned the mechanic OFF everywhere, and a zero here would be indistinguishable from the gate
@@ -644,6 +666,20 @@ const MEDFAILS = { encoreAction: 0,
    * offers. Falling through would hand back a click that cannot be paid for and the execution gate
    * would eat the turn silently, so it counts itself. Must read 0. */
   struggleUnbuilt: 0,
+  /* ROADMAP #172 -- the menu had a legal button and `playerAction` could not turn it into an action.
+   * The body then falls through to the Struggle sentinel, which is the pre-fix behaviour arriving back
+   * through a fallback -- the exact silent-default shape this file keeps finding -- so it names its
+   * first offender. Must read 0. */
+  menuFallbackUnbuilt: 0, menuFallbackUnbuiltFirst: '',
+  /* ROADMAP #173 -- the first-turn-only rule enforced from the NAME because the artifact carried no
+   * `firstTurnOnly` row. Fake Out is 16,871 corpus uses, so a silent downgrade to "legal every turn"
+   * would be invisible and expensive; the name is kept as a backstop and counts itself. Must read 0. */
+  firstTurnOnlyByNameOnly: 0,
+  /* ROADMAP #175 -- Stalwart / Propeller Tail recognised by NAME because the artifact carried no
+   * usable tag. This is what was silently carrying the whole rule before `ignoresRedirection` was
+   * read: `TAGS.has('ability',ab,'tracksTarget')` matched nothing and the name below matched
+   * everything. Must read 0. */
+  tracksTargetByNameOnly: 0, tracksTargetByNameOnlyFirst: '',
   /* ROADMAP #144 -- a Ripen holder ate a berry whose effect Ripen doubles, and this engine applied the
    * single amount. Declared at berryPPUpdate. Legal carriers: Flapple, Appletun -- 0 corpus uses. */
   ripenBerryBoostUnmodelled: 0,
@@ -2217,10 +2253,30 @@ function guardMoveAimedAtFoes(id){
 /* WIRE 149 -- FAKE OUT'S "ONLY ON THE TURN YOU ENTER" RULE, ASKED IN ONE PLACE. It was written out by
  * name at three sites (`bestMoveVs`, `targetForMove`, and the execution branch that fails the move)
  * and this wire needed a fourth reader, which is how a rule ends up with four copies and three of
- * them right. The authority expresses it as `onTry` on the move rather than as a flag, so there is no
- * upstream flag and no tag to derive from -- the NAME is currently the only source, and having it
- * once is the difference this can make. */
-function firstTurnOnlyRefused(mon,id){ return id==='fakeout' && !!(mon && mon._turnsOut>0); }
+ * them right.
+ *
+ * ROADMAP #173 -- AND THE SENTENCE THAT STOOD HERE WAS READ OFF MAINLINE. It said "the authority
+ * expresses it as `onTry` on the move rather than as a flag, so there is no upstream flag and no tag
+ * to derive from -- the NAME is currently the only source". `data/mods/champions/moves.ts:331`
+ * inherits Fake Out and adds `onDisableMove(pokemon){ if (pokemon.activeMoveActions) {
+ * pokemon.disableMove('fakeout'); } }`, desc *"This move cannot be selected unless it is the user's
+ * first turn on the field."* THE MOD TURNS IT INTO A MENU DISABLE, which is derivable, and the
+ * derivation finds a SECOND member the name check never covered: `firstimpression`, legal in this
+ * format, which this engine has been happily offering on turn two forever.
+ *
+ * SO IT IS ANSWERED AT PICK TIME, in `moveDisabledBy`, beside Taunt / Disable / empty PP -- the same
+ * question, one implementation, and every existing caller of `illegalMoveNow` inherits it for free.
+ * This predicate stays as the per-site reader the three execution sites already use.
+ *
+ * THE NAME IS KEPT AS A LOUD, COUNTED FALLBACK rather than deleted: if the artifact ever stops
+ * carrying the tag, Fake Out is 16,871 corpus uses and a silent downgrade to "legal every turn" is
+ * exactly the failure this file keeps finding. It names itself when it fires. */
+function firstTurnOnlyRefused(mon,id){
+  if(!(mon&&mon._turnsOut>0)) return false;
+  if(TAGS.has('move',id,'firstTurnOnly')) return true;
+  if(id==='fakeout'){ MEDFAILS.firstTurnOnlyByNameOnly++; return true; }
+  return false;
+}
 /* Does any LIVE foe hold a move that this guard would refuse, AND is it worth a whole turn to stop?
  * `mine` is my own live side, because the second half is a question about what I stand to lose. */
 function foeThreatensGuardClass(gid, live, mine, field){
@@ -6047,6 +6103,13 @@ function moveDisabledBy(me,id){
    * half, and it sits with Taunt and Disable because it is the same question: may this body select
    * this move right now. An unknown PP (null) is NOT a refusal -- see ppLeft. */
   {const _l=ppLeft(me,id); if(_l!=null&&_l<=0){ MEDSEEN.ppRefusedAtSelection++; return 'nopp'; }}
+  /* ROADMAP #173 -- FIRST-TURN-ONLY IS A DISABLED SLOT IN THIS FORMAT, not a move that fails when you
+   * click it. The Champions mod's own desc: "This move cannot be selected unless it is the user's
+   * first turn on the field." It belongs here for the same reason 0 PP does -- this is the one place
+   * that answers "may this body select this move right now", and every caller of `illegalMoveNow`
+   * (the move-list filter, the priors sampler's ban, `mustStruggle`) is a caller of this. Placed LAST
+   * so the existing sources keep naming themselves first on a body that is refused twice over. */
+  if(firstTurnOnlyRefused(me,id)){ MEDSEEN.firstTurnOnlyRefusedAtSelection++; return 'firstturnonly'; }
   return null;
 }
 /* WHICH MOVE THE LOCK LEAVES ON THE MENU, or null for a free body.
@@ -6302,13 +6365,45 @@ function _chooseAction(me,foes,ally,field,side,rng){
     }}
   // 4) fallback: best available attack
   if(bestAtk)return{kind:'attack',move:bestAtk,target:tgt};
-  /* ROADMAP #152 -- SENTINEL THREE, AND IT WAS THE WORST OF THEM: the body has no damaging option the
-   * scanner would take, the priors sampler produced nothing usable, and the turn was simply thrown
-   * away with no `|move|` line. A real Struggle is not what Showdown would click here -- a body with
-   * legal status moves left is not on Struggle -- and that mismatch is stated rather than hidden. What
-   * it fixes is the VOID: an action nothing in the dispatch loop matches. It is counted under
-   * `struggleUsed` with `_fallback`, so if this road is ever hot the counter says so instead of the
-   * turn vanishing. */
+  /* ROADMAP #172 -- AND THE MISMATCH #152 STATED IS NOW CLOSED, BECAUSE IT WAS NOT COSMETIC.
+   *
+   * #152 wrote, correctly and in this very comment, that "a body with legal status moves left is not
+   * on Struggle" and then Struggled it anyway, on the grounds that the VOID was the bug and the wrong
+   * click was the lesser evil. It is not the lesser evil. Struggle is a 50 BP typeless ATTACK with
+   * recoil, so a Whimsicott holding nothing but Protect spent every rollout turn hitting a body it
+   * could not legally hit and paying a quarter of its own HP for it. **THAT IS HOW #172 WAS
+   * MISDIAGNOSED**: `test-tag-wire`'s ally-safe fixture read its own partner losing HP beside a Heat
+   * Wave and concluded the spread family was collapsed. It is not -- the trace names the two foes
+   * struggling INTO the partner, and Heat Wave reached only p2a and p2b. The engine's spread split was
+   * right the whole time and this was the thing under it.
+   *
+   * SHOWDOWN'S RULE IS THE MENU, and this file already computes the menu: `getMoveRequestData` puts
+   * Struggle on the screen only when `getMoves` comes back EMPTY, which is `mustStruggle` at the top
+   * of chooseAction. Below that predicate a legal button always exists, so reaching for Struggle here
+   * was reaching past one.
+   *
+   * ONE rng() DRAW, DELIBERATELY, because `struggleAction` drew exactly one for its uniform target and
+   * every seeded probe downstream is written against that stream. A uniform pick over the live menu
+   * keeps the consumption identical and is also the honest policy: the scorer has no opinion about
+   * these moves, so inventing an order here would be a preference dressed as a rule.
+   *
+   * THE SENTINEL STAYS BENEATH IT and stays counted -- a body that truly cannot build any click still
+   * must not return an action the dispatch loop matches no branch for. */
+  {const _sel=selectableMoves(me);
+   if(_sel.length){
+     const _mv=_sel[Math.floor(rng()*_sel.length)%_sel.length];
+     const _ch=targetForMove(me,_mv,live,field);          // a damaging move aims itself, as everywhere else
+     let _a=null,_why='';
+     /* THE REASON IS KEPT. A catch that discards `e` here would hide the one thing that makes this
+        road debuggable -- which move `playerAction` could not build and why -- and the body would
+        quietly fall through to Struggle looking exactly like a body that had no menu. */
+     try{ _a=playerAction(me,_mv,(_ch&&_ch.target)||live[0]||null,field); }
+     catch(e){ _a=null; _why=(e&&e.message)||String(e); }
+     if(_a&&_a.kind!=='struggle'){ MEDSEEN.menuFallbackClick++; return _a; }
+     MEDFAILS.menuFallbackUnbuilt++;
+     if(!MEDFAILS.menuFallbackUnbuiltFirst)
+       MEDFAILS.menuFallbackUnbuiltFirst=String(_mv)+(_why?' threw: '+_why:' built '+(_a&&_a.kind));
+   }}
   {const _sa=struggleAction(me,live,field,rng,'fallback'); if(_sa)return _sa;}
   return{kind:'struggle'};
 }
@@ -8993,7 +9088,23 @@ function battleOver(S){
  * which is what both existing sites already did. It is COUNTED (`MEDSEEN.reaimSlotEmpty`) rather
  * than left as a silent default, and it is filed rather than fixed here: it is a different rule with
  * a different negative and it must not ride along with this one. */
-function tracksTargetOf(mvId,user){
+/* ROADMAP #175 -- AND THE ABILITY ARM OF THIS WAS THE NAME ALL ALONG.
+ *
+ * The paragraph below says "tag first, name second ... they stop being consulted the moment the
+ * artifact carries the tag". Measured: `data/tags.json` gives Stalwart and Propeller Tail exactly one
+ * tag, `ignoresRedirection`, and NOTHING anywhere carries an ability-side `tracksTarget`. So
+ * `TAGS.has('ability',ab,'tracksTarget')` has never once matched and the final `return
+ * ab==='stalwart'||ab==='propellertail'` has been the whole mechanism -- silently, and uncounted,
+ * which is the fallback-hiding-its-own-failure shape ROADMAP #181 names one function over.
+ *
+ * `ignoresRedirection` was on the twenty-three-tags-with-no-consumer list (#175) for the same reason,
+ * from the other side: the fact was derived and nothing read it. One question, one reader.
+ *
+ * `exceptScripted` IS THE HANDLER'S OWN CLAUSE and is honoured rather than dropped:
+ * `onModifyMove(move) { move.tracksTarget = move.target !== 'scripted'; }` -- so Counter, Mirror Coat,
+ * Metal Burst and Comeuppance are NOT protected from redirection by these abilities. The caller says
+ * whether the click is a scripted one, because only the caller knows. */
+function tracksTargetOf(mvId,user,scripted){
   /* Tag first, name second. `tracksTarget` is derived by tag_dex.js as of 2026-08-08 (from the dex
    * row's own `tracksTarget` for a move, and from a handler that WRITES `move.tracksTarget` for an
    * ability); the names below are the pre-regeneration bridge, exactly as WIRE 3's INTIM_ONLY_BRIDGE
@@ -9001,9 +9112,21 @@ function tracksTargetOf(mvId,user){
    * carries the tag. */
   if(mvId&&TAGS.has('move',mvId,'tracksTarget'))return true;
   const ab=user?String(user.ability||'').replace(/[^a-z0-9]/g,''):'';
-  if(ab&&TAGS.has('ability',ab,'tracksTarget'))return true;
+  if(ab){
+    const _ir=TAGS.param('ability',ab,'ignoresRedirection');
+    if(_ir&&_ir.ignoresRedirection){
+      if(scripted&&_ir.exceptScripted)return false;
+      MEDSEEN.tracksTargetFromTag++;return true;
+    }
+    if(TAGS.has('ability',ab,'tracksTarget'))return true;
+  }
   if(mvId&&String(mvId).replace(/[^a-z0-9]/g,'')==='snipeshot')return true;
-  return ab==='stalwart'||ab==='propellertail';
+  if(ab==='stalwart'||ab==='propellertail'){
+    MEDFAILS.tracksTargetByNameOnly++;
+    if(!MEDFAILS.tracksTargetByNameOnlyFirst)MEDFAILS.tracksTargetByNameOnlyFirst=ab;
+    return true;
+  }
+  return false;
 }
 /* `quiet` is passed by the TRACE site only, which asks the same question to decide whom to NAME on
  * the `|move|` line. Counting there as well would double every figure below and make a counter that
@@ -11625,6 +11748,31 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         m._lastMove=a.mv;continue;
       }
+      /* ROADMAP #179 -- RECYCLE. Every clause comes off `restoresOwnLastItem`, which read them off the
+       * handler: it acts on the USER (`onUser`), it FAILS outright if the user still holds something
+       * (`refusesIfHolding` -- the handler's `if (pokemon.item || !pokemon.lastItem) return false`),
+       * and it SPENDS the memory (`spendsLastItem`), so a second Recycle cannot conjure a second copy
+       * of the same berry. A failed click is a real `|-fail|` and a spent turn, which is what the
+       * authority does, rather than the silent no-op this move used to be.
+       *
+       * `_lastItem` IS ALREADY THE RIGHT FIELD and is deliberately not cleared by the per-turn reset
+       * (see the `_usedItemThisTurn` comment at the top of the turn) precisely because Harvest and Cud
+       * Chew need it to survive. One state, three consumers, no second copy of "what did this body
+       * spend" -- which is CLAUDE.md's FACTS ARE GLOBAL rule and the reason this was cheap. */
+      if(a.kind==='itemback'){
+        const _rb=TAGS.param('move',a.mv,'restoresOwnLastItem');
+        m._lastMove=a.mv;
+        if(_rb&&(!_rb.refusesIfHolding||!m.item)&&m._lastItem){
+          const _it=m._lastItem;
+          if(_rb.spendsLastItem)m._lastItem='';
+          m.item=_it;
+          MEDSEEN.itemRecycled++;
+          if(TR)TR.item(m,_it,'[from] move: '+a.mv);
+        }else{
+          if(TR)TR.fail(m);
+        }
+        continue;
+      }
       /* HEAL. The fraction is the move's own (Roost/Recover 1/2, Life Dew 1/4), and 'allies' spreads
        * it across the user's side while 'self' does not — Life Dew healing only its user would make
        * the most-clicked doubles restore look like a worse Recover. Capped at max HP, and a fainted
@@ -12115,6 +12263,25 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _their=_tgt?acts.find(x=>x.mon===_tgt):null;
         const _attacking=!!(_their&&_their.a&&_their.a.kind==='attack');
         if(!_attacking){{if(TR)TR.attrStill();mvFail(m);}continue;}
+        /* ROADMAP #180 -- THE THIRD CLAUSE OF SUCKER PUNCH'S OWN `if`, AND WE MODELLED TWO.
+         *
+         *     if (!move || (move.category === 'Status' && move.id !== 'mefirst')
+         *         || target.volatiles['mustrecharge']) return false;      data/moves.ts:18400
+         *
+         * A body that owes a recharge is STILL QUEUED WITH A MOVE ACTION -- `chooseAction` gave it one
+         * and the recharge refusal does not fire until its own turn comes up -- so `_attacking` above
+         * is true and every other test in this block passes. Sucker Punch landed on it anyway, which
+         * is the free 70 BP priority hit this whole block exists to take away, arriving one turn later
+         * through a different door: click Hyper Beam, then eat a Sucker Punch that cannot legally land.
+         *
+         * FROM THE PARAM, NOT THE NAME. `refusesRechargingTarget` is derived from the handler text, so
+         * Upper Hand -- the other member of this tag, whose handler has no such clause -- correctly
+         * does NOT get it, and a third member printed later carries whichever clauses it actually has.
+         * The engine's `_recharge` is the same flag its own `|cant|recharge` refusal reads. */
+        {const _fa=TAGS.param('move',a.move.id,'failsIfTargetNotAttacking');
+         if(_fa&&_fa.refusesRechargingTarget&&_tgt&&_tgt._recharge){
+           MEDSEEN.suckerRefusedRechargingTarget++;
+           {if(TR)TR.attrStill();mvFail(m);}continue;}}
         const _np=TAGS.param('move',a.move.id,'failsIfTargetMoveNotPriority');
         if(_np){
           const _theirId=_their.a.mv||(_their.a.move&&_their.a.move.id)||null;
@@ -12180,7 +12347,21 @@ function battleTurn(S,rng,actsForA,actsForB){
        * so the immunity is asked of the same helper Sleep Powder uses rather than restated. Follow Me
        * is not a powder and draws regardless. Getting this half-right — drawing everything, always —
        * would silently make every Amoonguss immune matchup wrong in the same direction. */
-      if(!a.move.spread&&targets.length){
+      /* ROADMAP #175 -- AND STALWART TURNS THE WHOLE DRAW OFF, WHICH THIS SITE NEVER ASKED.
+       *
+       * `Pokemon#getMoveTargets` (sim/pokemon.ts:829): `if (this.battle.activePerHalf > 1 &&
+       * !move.tracksTarget) { ... priorityEvent('RedirectTarget', ...) }` -- the redirection event is
+       * GATED on tracksTarget, so an attacker whose ability sets it is not redirected at all, by Follow
+       * Me, Rage Powder, Lightning Rod or Storm Drain alike. Stalwart's legal carriers here are
+       * **Archaludon and Skarmory-Mega**, derived from the format rather than recalled, and Archaludon
+       * is a real member of this metagame -- so every rollout in which an Amoonguss drew an Archaludon's
+       * click was a turn that cannot happen.
+       *
+       * THE SAME PREDICATE THE SLOT RE-AIM USES, thirty lines up in this file, because "does this
+       * attacker track its target" is ONE fact about the game (CLAUDE.md) and this site having its own
+       * answer is how the two drift. `a.rescript` is the scripted flag the ability's own handler
+       * excludes. */
+      if(!a.move.spread&&targets.length&&!tracksTargetOf(a.move.id,m,!!a.rescript)){
         const drawer=live(foes).find(f=>f&&f._redirect);
         if(drawer&&drawer!==targets[0]&&!powderBlocked(m,drawer._redirect)){
           /* Showdown REWRITES the target field of the move line it already emitted
@@ -15701,6 +15882,11 @@ function playerActionPrimary(me,moveId,target,field){
    * below. Letting it become a `heal` would trade one missing half for the other -- and the Attack
    * drop is the half that decides where the move is played (WIRE 79). Its heal is landed inside that
    * branch instead, where the target is in hand. The test is on the recipe, not on the move id. */
+  /* ROADMAP #179 -- RECYCLE, WHICH REACHED `{kind:'pass'}`. It is ABOVE the heal branch only because
+   * it is a self-targeting status move with no heal recipe and would otherwise keep falling all the
+   * way through the cascade, exactly as it has been. The state it needs (`_lastItem`) has existed
+   * since Harvest was wired; nothing had ever asked a MOVE to read it. */
+  if(TAGS.has('move',id,'restoresOwnLastItem'))return {kind:'itemback',mv:id};
   {const _h0=healParam(id); if(_h0&&!_h0.fromTargetStat)return {kind:'heal',mv:id};}
   /* WIRE 154 -- THE FOUR HEALS `healParam` CANNOT SIZE, AND EVERY ONE OF THEM WAS A WASTED TURN.
    *

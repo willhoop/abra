@@ -317,7 +317,13 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * spends an arbitrary number of real turns through `battleTurn`, and it has to: three of the family
  * (Harvest, Cud Chew, Pickup) fire at the RESIDUAL, and two of those are facts carried across a turn
  * boundary, so nothing below the turn loop can see them even in principle. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(/;
+/* `recycleRun(` added 2026-08-11 with ROADMAP #179, declared HERE and with its reason at the helper
+ * itself, exactly as the paragraph above requires -- the ratchet caught it as a direct call on its
+ * first run, which is the guard working. It stages a real doubles board through `battleInit` and
+ * spends up to three real turns through `battleTurn`, and it has to: the whole mechanic is a fact
+ * carried ACROSS a turn boundary -- what the body CONSUMED on an earlier turn -- and the berry that
+ * creates that fact fires at the residual, so nothing below the turn loop can see either end of it. */
+const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -4144,6 +4150,57 @@ probe('move', 'redirects', 'Follow Me pulls the attack onto the partner', () => 
                  + '   |   Follow Me: aimed ' + test.aimed + ' / partner ' + test.guard };
 });
 
+/* ROADMAP #175 -- `ignoresRedirection` WAS ON THE TWENTY-THREE-TAGS-WITH-NO-CONSUMER LIST, AND THE
+ * NAME UNDERNEATH IT WAS DOING HALF THE JOB SILENTLY.
+ *
+ * sim/pokemon.ts:829 -- `if (this.battle.activePerHalf > 1 && !move.tracksTarget) { ...
+ * priorityEvent('RedirectTarget', ...) }`. The redirect event is GATED on `tracksTarget`, and
+ * Stalwart / Propeller Tail set it (`onModifyMove(move) { move.tracksTarget = move.target !==
+ * 'scripted'; }`). So a Stalwart body is not drawn by Follow Me, Rage Powder, Lightning Rod or Storm
+ * Drain at all. **LEGAL CARRIERS, DERIVED FROM THE FORMAT AND NOT RECALLED: Archaludon and
+ * Skarmory-Mega** -- and Archaludon is a real member of this metagame, so every rollout in which an
+ * Amoonguss drew its click was a turn that cannot happen.
+ *
+ * medicham2 consulted this at ONE of the two sites that need it -- the slot re-aim -- and reached the
+ * answer through `ab==='stalwart'||ab==='propellertail'`, because the ability-side `tracksTarget` tag
+ * that function looks for does not exist in the artifact. The redirection site never asked at all.
+ *
+ * THE CONTROL IS THE SAME BODY WITH A DIFFERENT ABILITY, not a different body: identical board,
+ * identical click, identical roll, and the only varied thing is whether the attacker has Stalwart.
+ * Two redirectors, because they are two different mechanisms in this engine (a `_redirect` volatile
+ * from Follow Me, and an ability-typed draw from Storm Drain) and a wire that catches one and not the
+ * other would read exactly like a working one on either probe alone. */
+probe('ability', 'ignoresRedirection', 'Stalwart is not drawn by Follow Me or by Storm Drain', () => {
+  const run = (ability, redirector) => {
+    /* Milotic is pure Water and takes Dragon neutrally — the note on the probe above explains why
+     * that matters, and this probe would have inherited the same trap. */
+    const { me, ally, f1, f2, S } = board('archaludon', 'incineroar', 'garchomp', 'milotic');
+    me.ability = ability;
+    const bAimed = f1.curHP, bDrawer = f2.curHP;
+    if (redirector === 'stormdrain') f2.ability = 'stormdrain';
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, redirector === 'stormdrain' ? 'liquidation' : 'dragonclaw', f1, S.field)],
+               [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }],
+               [f2, redirector === 'followme' ? M.playerAction(f2, 'followme', null, S.field)
+                                             : { kind: 'pass' }]]));
+    return { aimed: bAimed - f1.curHP, drawer: bDrawer - f2.curHP };
+  };
+  /* THE STORM DRAIN ARM IS LIQUIDATION AND NOT SURF, AND THE FIRST DRAFT GOT THIS WRONG IN A WAY THE
+   * PROBE ITSELF CAUGHT. Surf is `spreadAll` — it hits everything, so there is nothing to redirect,
+   * and both arms read the identical 56. Redirection only applies to a SINGLE-target click, which is
+   * the same trap the Follow Me probe above records falling into with Rock Slide. */
+  const fmOff = run('pressure', 'followme'), fmOn = run('stalwart', 'followme');
+  const sdOff = run('pressure', 'stormdrain'), sdOn = run('stalwart', 'stormdrain');
+  return { works: fmOff.aimed === 0 && fmOn.aimed > 0 && sdOff.aimed === 0 && sdOn.aimed > 0,
+           arms: { control: fmOff.aimed, test: fmOn.aimed },
+           detail: 'Follow Me — without Stalwart the aimed foe takes ' + fmOff.aimed
+                 + ' (drawn away, the partner took ' + fmOff.drawer + '); WITH Stalwart the aimed foe '
+                 + 'takes ' + fmOn.aimed + ' (must be > 0). Storm Drain — without Stalwart '
+                 + sdOff.aimed + ', with Stalwart ' + sdOn.aimed
+                 + '. Equal arms on either redirector would mean the gate is unread' };
+});
+
 /* ARMS DECLARED, 2026-08-06 (#42/#45 part 3). ON THE CARVE-OUT LIST: a refusal or a redirection
  * turns a certainty into a failure whatever its usage, so tests/test-medicham-coverage.js
  * requires it to carry a machine-checked control. Both arms were already computed here; what was
@@ -4514,6 +4571,48 @@ probe('move', 'failsIfTargetNotAttacking', 'Sucker Punch fails against a target 
   const attacking = run(true), idle = run(false);
   return { works: attacking > 0 && idle === 0, arms: { control: attacking, test: idle },
            detail: 'foe attacking: ' + attacking + ', foe idle: ' + idle + ' (must be 0)' };
+});
+
+/* ROADMAP #180 -- THE THIRD CLAUSE OF THAT SAME `if`, AND IT NEEDED ITS OWN ROW.
+ *
+ * data/moves.ts:18400:
+ *     if (!move || (move.category === 'Status' && move.id !== 'mefirst')
+ *         || target.volatiles['mustrecharge']) return false;
+ *
+ * The probe above varies whether the target ATTACKS and cannot see this: a body that owes a recharge
+ * is queued with a move action and is attacking by every test that probe makes, so it passes both of
+ * the first two clauses and Sucker Punch used to land anyway. Free 70 BP priority damage on the turn
+ * after any Hyper Beam class click.
+ *
+ * TWO REAL TURNS, BECAUSE THE FACT IS CARRIED ACROSS A TURN BOUNDARY. Turn 1 the target clicks the
+ * recharge move and connects; turn 2 it owes the recharge and Sucker Punch is thrown at it.
+ *
+ * BOTH ARMS SPEND THE SAME TWO TURNS AND BOTH TURN-1 CLICKS ARE DAMAGING ATTACKS -- Giga Impact
+ * against Dragon Claw -- so the ONLY thing that differs is whether a recharge is owed on turn 2. An
+ * arm where the target idled would pass against the broad rule too, which is exactly how the missing
+ * clause survived beside a green probe. */
+probe('move', 'failsIfTargetNotAttacking',
+      'Sucker Punch ALSO fails into a target that owes a recharge (the clause beside the other two)', () => {
+  const run = (turn1) => {
+    const { me, ally, f1, f2, S } = board('kingambit', 'corviknight', 'garchomp', 'garchomp');
+    unfaintable(me); unfaintable(f1);
+    /* turn 1: my side does nothing; the target commits the move that decides whether it recharges. */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, turn1, me, S.field)], [f2, { kind: 'pass' }]]));
+    const owes = !!f1._recharge, before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'suckerpunch', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, turn1, me, S.field)], [f2, { kind: 'pass' }]]));
+    return { owes, dealt: before - f1.curHP };
+  };
+  const rech = run('gigaimpact');       // turn 2 the target owes a recharge -> Sucker Punch must FAIL
+  const ctrl = run('dragonclaw');       // turn 2 it is an ordinary attacker  -> Sucker Punch must LAND
+  return { works: rech.owes === true && rech.dealt === 0 && ctrl.owes === false && ctrl.dealt > 0,
+           arms: { control: ctrl.dealt, test: rech.dealt },
+           detail: 'after Giga Impact the target owes a recharge (' + rech.owes + ') and Sucker Punch '
+                 + 'deals ' + rech.dealt + ' (must be 0); after Dragon Claw it owes nothing ('
+                 + ctrl.owes + ') and the SAME click deals ' + ctrl.dealt
+                 + ' — equal arms would mean the recharge clause is unread' };
 });
 
 /* =================================================================================================
@@ -13428,6 +13527,74 @@ probe('move', 'sealsMoves', 'Encore reaches a move kind that never recorded itse
                  + 'the room ticks to ' + control.after + '; ENCORED it re-clicks Trick Room and the room '
                  + 'reads ' + test.after + ' — a second Trick Room ends it. `trickroom` is one of the '
                  + 'thirteen kinds that recorded no last move, so the seal could not have landed at all' };
+});
+
+/* ROADMAP #179 -- RECYCLE, WHICH REACHED `{kind:'pass'}` -- THE TERMINAL DO-NOTHING BRANCH.
+ *
+ * Found while closing #71's seven-move signature: Pain Split reached `sharehp` and Copycat reached
+ * `callmove`, and Recycle reached the branch that spends the turn and changes nothing. 3 corpus uses,
+ * registered anyway because #44's rule holds -- a move that provably does nothing is a WEIGHTED
+ * PREFERENCE rather than a rule, and a search will take a free click every time it is offered.
+ *
+ * THREE ARMS, BECAUSE THE HANDLER HAS THREE CLAUSES (data/moves.ts:14825, no Champions override):
+ *   RESTORE  -- the body ate its Sitrus, so `item` is empty and `lastItem` is set: Recycle gives it
+ *               back, and the returned berry is then EATEN AGAIN, which is the outcome rather than a
+ *               field read;
+ *   REFUSE   -- `if (pokemon.item || ...) return false`: a body still holding something gets nothing.
+ *               This is the arm that separates "Recycle works" from "the engine hands out items";
+ *   SPEND    -- `pokemon.lastItem = ''`: a SECOND Recycle cannot conjure a second copy of the same
+ *               berry, which is what an implementation that merely remembered would do.
+ *
+ * The board is `berryRun`'s: the holder starts at 45% HP, under the Sitrus line, so the berry fires
+ * on its own on turn 1 without anybody clicking anything. */
+const recycleRun = (item, turns, between) => {
+  const B = board('garchomp', 'skeledirge', 'incineroar', 'farigiraf');
+  B.f1.item = item;
+  B.f1.curHP = Math.floor(B.f1.st.hp * 0.45);
+  const log = [];
+  for (let t = 0; t < turns; t++) {
+    if (between) between(t, B.f1);
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, t === 0 ? { kind: 'pass' } : M.playerAction(B.f1, 'recycle', null, B.S.field)],
+               [B.f2, { kind: 'pass' }]]));
+    log.push({ hp: B.f1.curHP, item: B.f1.item, last: B.f1._lastItem });
+  }
+  return { max: B.f1.st.hp, log };
+};
+probe('move', 'restoresOwnLastItem', 'Recycle hands back the item the body spent — and only then', () => {
+  /* THE HP IS DRIVEN BACK UNDER THE THRESHOLD BETWEEN TURNS, and that is what makes this an outcome
+   * rather than a field read. A Sitrus eaten at 45% leaves the body at 69%, ABOVE its own threshold,
+   * so a returned berry just sits there and "the slot is full" is all a probe could see. Knocked back
+   * down first, the recycled berry FIRES — so the arm reads HP, which nothing but a real item in a
+   * real slot can move. */
+  const low = (m) => { m.curHP = Math.floor(m.st.hp * 0.45); };
+  const eaten = recycleRun('sitrusberry', 2, (t, m) => low(m));
+  const t0 = eaten.log[0], t1 = eaten.log[1];
+  const gaveBack = t0.item === '' && t1.hp > Math.floor(eaten.max * 0.45) && t1.item === '';
+  /* SPEND: the recycled berry is taken out of its hands by force before the SECOND Recycle — a Knock
+   * Off, in effect — and `lastItem` was emptied when the move paid out, so there is nothing left to
+   * hand back. An implementation that merely REMEMBERS the item instead of spending it passes every
+   * other arm here and fails this one.
+   *
+   * THE HP IS LEFT HIGH ON THIS ARM, DELIBERATELY, AND THE FIRST DRAFT OF THIS PROBE GOT IT WRONG.
+   * Driving the body back under the threshold makes the returned berry get EATEN, and eating it
+   * writes `lastItem` again — correctly, that is what Showdown does — so a third Recycle really would
+   * hand back a second one and the arm was measuring the refill rather than the spend. Above the
+   * threshold the berry stays in the slot, `lastItem` stays empty, and the clause is isolated. */
+  const spentRun = recycleRun('sitrusberry', 3, (t, m) => { if (t === 0) low(m); if (t === 2) m.item = ''; });
+  const spent = spentRun.log[2].item === '';
+  /* REFUSE: Leftovers is never consumed, so the hands are full and `lastItem` is empty. Recycle must
+   * do nothing at all. Read on the ITEM, because Leftovers ticks and the HP moves either way. */
+  const held = recycleRun('leftovers', 2, (t, m) => low(m));
+  const refused = held.log[1].item === 'leftovers';
+  return { works: gaveBack && spent && refused,
+           arms: { control: spentRun.log[2].item, test: t1.hp - Math.floor(eaten.max * 0.45) },
+           detail: 'the Sitrus fires on its own (slot now "' + t0.item + '"). Knocked back to 45% and '
+                 + 'Recycled, the berry comes back AND is eaten again — hp ' + t1.hp + ' from '
+                 + Math.floor(eaten.max * 0.45) + ', slot "' + t1.item + '". SPEND: with the returned '
+                 + 'berry forced out of its hands, a second Recycle finds the memory gone — slot "'
+                 + spentRun.log[2].item + '" (must be empty). REFUSE: a body still holding Leftovers keeps "'
+                 + held.log[1].item + '" and is given no second item' };
 });
 
 const works = results.filter(r => r.works);

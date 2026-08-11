@@ -1579,6 +1579,34 @@ const MOVE_TAGS = [
     why: 'Infestation (450 uses), Fire Spin, Sand Tomb, Whirlpool. Trapping changes what they can '
        + 'legally do, which nothing represents, and the chip is residual damage nothing counts',
     of: m => m.volatileStatus === 'partiallytrapped' ? partialTrapShape() : null },
+  /* ROADMAP #179 -- RECYCLE REACHED `{kind:'pass'}`, THE TERMINAL DO-NOTHING BRANCH.
+   *
+   * data/moves.ts:14825 (no Champions override):
+   *     onHit(pokemon, source, move) {
+   *       if (pokemon.item || !pokemon.lastItem) return false;
+   *       const item = pokemon.lastItem; pokemon.lastItem = '';
+   *       this.add('-item', pokemon, this.dex.items.get(item), '[from] move: Recycle');
+   *       pokemon.setItem(item, source, move); }
+   *
+   * Three facts, all of them in the handler and none of them in a name: it acts on the USER, it
+   * refuses a user that is still holding something, and it SPENDS `lastItem` (so it cannot be clicked
+   * twice for two items). The engine already keeps `_lastItem` -- Harvest and Pickup read it -- so the
+   * state exists and nothing consumed it from a move.
+   *
+   * PRINTED BEFORE WIRING, over the 500 legal moves in this format: **1 member, `recycle`** (3 corpus
+   * uses). Registered anyway because #44's rule holds -- a move that provably does nothing is a
+   * WEIGHTED PREFERENCE rather than a rule, and the search will happily spend turns on a free click. */
+  { tag: 'restoresOwnLastItem', param: 'gives the user back the item it consumed, and only if its '
+       + 'hands are empty', probe: 'onHit reads pokemon.lastItem and calls setItem on the user',
+    why: 'Recycle (3 uses) resolved to {kind:\'pass\'} — a spent turn dressed as a decision',
+    of: m => {
+      const src = String(m.onHit || '');
+      if (!/lastItem/.test(src) || !/setItem\(/.test(src)) return null;
+      if (m.target !== 'self') return null;
+      return { onUser: true,
+               refusesIfHolding: /\.item\s*\|\|/.test(src) || /if\s*\(\s*\w+\.item\b/.test(src),
+               spendsLastItem: /lastItem\s*=\s*['"]{2}/.test(src) };
+    } },
   { tag: 'fixedDamage', param: 'damage is a constant, not a formula', probe: 'move.damage',
     why: 'Seismic Toss and Night Shade ignore stats entirely',
     of: m => m.damage ? { damage: m.damage } : null },
@@ -1586,6 +1614,34 @@ const MOVE_TAGS = [
    * my enemies, or both my enemies and my side too". Right, and the single tag hid the distinction
    * that matters most. Both take x0.75. Only allAdjacent touches your own partner -- which is the
    * entire Bellibolt/Discharge case, where the damage was fine and the ally was the problem. */
+  /* ROADMAP #173 -- "ONLY ON THE TURN YOU ENTER", AND IT IS A MENU DISABLE IN THIS FORMAT.
+   *
+   * medicham2's `firstTurnOnlyRefused` is `id==='fakeout'`, and the comment above it explains why:
+   * *"The authority expresses it as `onTry` on the move rather than as a flag, so there is no upstream
+   * flag and no tag to derive from -- the NAME is currently the only source"*. **That was read off
+   * MAINLINE.** `data/mods/champions/moves.ts:331` inherits Fake Out and adds
+   *
+   *     onDisableMove(pokemon) { if (pokemon.activeMoveActions) { pokemon.disableMove("fakeout"); } }
+   *
+   * with the desc *"This move cannot be selected unless it is the user's first turn on the field."* So
+   * in Champions it is not an execution failure at all -- the button is GONE, which is exactly what the
+   * `test-tag-wire` assertion demands ("refused at PICK TIME ... not a fake click"). CLAUDE.md's rule
+   * about the mod overriding eight files, costing a name-matched hardcode and a whole missing move.
+   *
+   * THE SHAPE IS THE HANDLER, NOT THE NAME: an `onDisableMove` that reads `activeMoveActions` and
+   * disables ITSELF. PRINTED BEFORE WIRING, over the 500 legal moves in this format: **2 members,
+   * `fakeout` (16,871 uses) and `firstimpression`** -- and First Impression is legal here and was not
+   * covered by the name check at all, so the engine has been offering an illegal click on it forever. */
+  { tag: 'firstTurnOnly', param: 'selectable ONLY on the turn the user entered — a menu disable, not '
+       + 'an execution failure', probe: 'onDisableMove reads activeMoveActions and disables itself',
+    why: 'Fake Out (16,871 uses, the format\'s biggest lead) and First Impression. Champions turns '
+       + 'mainline\'s onTry into onDisableMove, so the refusal is at PICK TIME',
+    of: m => {
+      const src = String(m.onDisableMove || '');
+      if (!/activeMoveActions/.test(src)) return null;
+      if (!new RegExp('disableMove\\(\\s*["\']' + m.id + '["\']').test(src)) return null;
+      return { menuDisable: true, whileActiveMoveActions: '>0' };
+    } },
   { tag: 'spreadFoes', param: 'x0.75, hits BOTH ENEMIES, ally is safe', probe: 'allAdjacentFoes',
     why: 'Heat Wave, Hyper Voice, Dazzling Gleam, Blizzard, Make It Rain. Free to click beside a partner',
     of: m => m.target === 'allAdjacentFoes' ? { target: m.target, hitsAlly: false } : null },
@@ -3318,6 +3374,18 @@ const MOVE_TAGS = [
       /* The status refusal is the OTHER half and both members declare it, so it is stated rather than
        * assumed by a consumer: a Status move never satisfies either move. */
       if (/category\s*===\s*['"]Status['"]/.test(src)) out.refusesStatusTarget = true;
+      /* ROADMAP #180 -- THE THIRD CLAUSE OF THE SAME `if`, AND IT WAS UNREAD. `data/moves.ts:18400`:
+       *
+       *     if (!move || (move.category === 'Status' && move.id !== 'mefirst')
+       *         || target.volatiles['mustrecharge']) return false;
+       *
+       * A body that must recharge (the turn after Hyper Beam / Giga Impact / Eternabeam) IS queued
+       * with a move action and IS attacking by every other test, so the two clauses above pass and
+       * Sucker Punch still fails. #60 closed the priority half and this one was named rather than
+       * absorbed. DERIVED and therefore DISCRIMINATING: of this format's two members, `suckerpunch`
+       * carries it and `upperhand` does not -- which is correct, Upper Hand's handler has no such
+       * clause -- so a consumer keyed on the param cannot flatten them. */
+      if (/volatiles\[\s*['"]mustrecharge['"]\s*\]/.test(src)) out.refusesRechargingTarget = true;
       return out;
     } },
   /* ROADMAP #162 -- AND THE PARAM ABOVE WAS NOT ENOUGH, WHICH IS THE WHOLE POINT OF THE SPLIT.

@@ -1,13 +1,15 @@
 {
   "note": "RATCHET. citation_sites may SHRINK and may never grow while the MEDICHAM quarantine is closed. A new entry means a withheld figure was just published somewhere.",
   "source_digests": {
-    "engine/quarantine.js": "78cf7bea6d0a",
+    "engine/quarantine.js": "25bc33c1905e",
     "engine/provenance.js": "b312a874a012",
     "note": "Content, not mtime. A checkout moves an mtime without moving code."
   },
   "not_store_derived": "it records which artifacts are downstream of the simulator and where they are still cited. No game is counted anywhere in it, so the quality filter has no bearing.",
-  "gate_open": true,
-  "failing_clauses": [],
+  "gate_open": false,
+  "failing_clauses": [
+    "no open, known engine defect"
+  ],
   "quarantined": [
     "ab-batch-effect.json",
     "all-mechanics-fire.json",
@@ -65,5 +67,5 @@
     "web/build-status.js",
     "web/publish-rule.js"
   ],
-  "generated": "2026-08-11T06:59:20.911Z"
+  "generated": "2026-08-11T07:51:35.588Z"
 }

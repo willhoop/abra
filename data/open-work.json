@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-11T07:18:04.122Z",
+  "generated": "2026-08-11T08:19:22.951Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
     "register_rows": 148,
-    "open": 103,
-    "closed": 45,
-    "open_asserting_breakage": 12,
+    "open": 97,
+    "closed": 51,
+    "open_asserting_breakage": 2,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -521,73 +521,37 @@
       "n": 166,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
-      "saysBroken": true,
+      "saysBroken": false,
       "uses": 0,
       "title": "FOCUS SASH DOES NOT SAVE, AND STURDY DOES NOT EITHER. `test-tag-wire`: *\"full-HP sash body survives the lethal hit at ex",
-      "full": "focus sash does not save, and sturdy does not either. `test-tag-wire`: *\"full-hp sash body survives the lethal hit at exactly 1, sash spent\"* reads hp 0, item `''`; *\"sturdy survives the same way and is not consumed\"* fails beside it. the artifact is right and the wire is missing — the same test passes *\"focus sash: full-hp gate, move-only, leaves 1, spent — all from the handler (was a name check)\"* and *\"sturdy: the same idiom minus the consumption\"*, and the full-hp gate itself is proven live (*\"the same hit kills at 90% hp\"*). so the tag carries the fact and nothing consumes it. focus sash is legal in this format and sturdy is a common lead ability; both change whether a ko happens, which is the class of error that changes a game rather than a rating"
+      "full": "focus sash does not save, and sturdy does not either. `test-tag-wire`: *\"full-hp sash body survives the lethal hit at exactly 1, sash spent\"* reads hp 0, item `''`; *\"sturdy survives the same way and is not consumed\"* fails beside it. the artifact is right and the wire is missing — the same test passes *\"focus sash: full-hp gate, move-only, leaves 1, spent — all from the handler (was a name check)\"* and *\"sturdy: the same idiom minus the consumption\"*, and the full-hp gate itself is proven live (*\"the same hit kills at 90% hp\"*). so the tag carries the fact and nothing consumes it. focus sash is legal in this format and sturdy is a common lead ability; both change whether a ko happens, which is the class of error that changes a game rather than a rating | closed 2026-08-11 — the engine was never broken and this row misdiagnosed it. one defect explains all four: `_chooseaction`'s last fallback clicked struggle past a legal button (the #152 block, whose own comment stated the bug in place — *\"a body with legal status moves left is not on struggle\"* — and filed it as the lesser evil). struggle is a 50 bp attack with 1/4-max recoil, so every fixture body holding a single protect or roost was hitting the thing under test and paying for it. heat wave never touched the partner: the trace reads `|move|p2b: whimsicott|struggle"
     },
     {
       "n": 167,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
-      "saysBroken": true,
+      "saysBroken": false,
       "uses": 0,
       "title": "SITRUS BERRY FIRES ON THE WRONG SIDE OF ITS OWN THRESHOLD, BOTH DIRECTIONS. `test-tag-wire`: *\"at 40% it eats the berry ",
-      "full": "sitrus berry fires on the wrong side of its own threshold, both directions. `test-tag-wire`: *\"at 40% it eats the berry and heals exactly 1/4\"* fails at 18/170 with item `''`, and *\"at 80% the berry stays in the pocket — the threshold is the tag's, not a vibe\"* fails too. failing in both directions means the threshold is not being read at all rather than being read wrongly. the artifact is proven correct in the same run (*\"sitrus declares its own threshold and restore (was a name check in the residual loop)\"*), so this is a consumer gap. note for whoever takes it: the berry work closed earlier in this sprint reported `sitrus 118`, so a live counter may be firing while this fixture is not — establish which is wrong before editing the engine, because a broken probe has already cost this project a session (`docs/lessons.md` §5)"
-    },
-    {
-      "n": 168,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "AFTERMATH CHARGES A SURVIVOR NOTHING, AND THE KILL PATH IS FINE. `test-tag-wire`: *\"contact into a SURVIVING Aftermath b",
-      "full": "aftermath charges a survivor nothing, and the kill path is fine. `test-tag-wire`: *\"contact into a surviving aftermath body costs nothing\"* (hp 109/173) fails while *\"killing it costs 1/4 of max hp (paid 43)\"* passes. that split is the whole diagnosis — the tag now declares `contact + onfaintonly` (asserted green in the same run) and the consumer is applying the faint-only branch to every contact hit. ordinary contact into a living aftermath body must cost nothing, so confirm the assertion is the correct expectation before changing the engine: this may be a wrong fixture rather than a wrong engine"
-    },
-    {
-      "n": 169,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "A BASE-FORME GULP MISSILE BODY PUNISHES NOBODY. `test-tag-wire`: *\"a base-forme Gulp Missile body punishes nobody\"* fail",
-      "full": "a base-forme gulp missile body punishes nobody. `test-tag-wire`: *\"a base-forme gulp missile body punishes nobody\"* fails, immediately after *\"gulp missile carries its forme gate, so the engine skips it whole\"* passes. read together those two say the forme gate is doing more than gating — it is skipping the mechanic even in the state where it should apply. cramorant only; low usage, and it is on the list because a forme gate that over-fires is a shape this engine has been bitten by elsewhere, not because cramorant matters"
+      "full": "sitrus berry fires on the wrong side of its own threshold, both directions. `test-tag-wire`: *\"at 40% it eats the berry and heals exactly 1/4\"* fails at 18/170 with item `''`, and *\"at 80% the berry stays in the pocket — the threshold is the tag's, not a vibe\"* fails too. failing in both directions means the threshold is not being read at all rather than being read wrongly. the artifact is proven correct in the same run (*\"sitrus declares its own threshold and restore (was a name check in the residual loop)\"*), so this is a consumer gap. note for whoever takes it: the berry work closed earlier in this sprint reported `sitrus 118`, so a live counter may be firing while this fixture is not — establish which is wrong before editing the engine, because a broken probe has already cost this project a session (`docs/lessons.md` §5) | closed 2026-08-11 — the engine was never broken and this row misdiagnosed it. one defect explains all four: `_chooseaction`'s last fallback clicked struggle past a legal button (the #152 block, whose own comment stated the bug in place — *\"a body with legal status moves left is not on struggle\"* — and filed it as the lesser evil). struggle is a 50 bp attack with 1/4-max recoil, so every fixture body holding a single protect or roost was hitting the thing under test and paying for it. heat wave never touched the partner: the trace reads `|move|p2b: whimsicott|struggle"
     },
     {
       "n": 170,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
-      "saysBroken": true,
+      "saysBroken": false,
       "uses": 0,
       "title": "STORM DRAIN ABSORBS AND DOES NOT BANK THE BOOST. `test-tag-wire`: *\"Storm Drain banks +1 SpA off the absorbed Hydro Pump",
-      "full": "storm drain absorbs and does not bank the boost. `test-tag-wire`: *\"storm drain banks +1 spa off the absorbed hydro pump\"* fails at `sa 1, untouched hp` — the immunity half works (hp untouched) and the special attack half does not. the neighbouring absorb assertions all pass, including *\"the absorbed hit heals the absorber 1/4\"*, so the absorb family's healing branch is wired and its boosting branch is not. directly relevant to redirection reads: a storm drain body the bot does not know gains spa is a body it will keep attacking into"
-    },
-    {
-      "n": 171,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "LEECH SEED LANDS ON A GRASS TYPE. `test-tag-wire`: *\"a Grass-type victim is immune, from the move's own onTryImmunity\"* ",
-      "full": "leech seed lands on a grass type. `test-tag-wire`: *\"a grass-type victim is immune, from the move's own ontryimmunity\"* fails, losing 25000. the immunity is written on the move itself in the authority, and the rest of the leech seed wire is proven in the same run — the drain, the fraction, the direction, and *\"the seed alone kills a victim that was never hit by an attack\"*. so the engine seeds grass types, which no legal game allows, and every rollout in which it does is scoring a click that cannot happen"
+      "full": "storm drain absorbs and does not bank the boost. `test-tag-wire`: *\"storm drain banks +1 spa off the absorbed hydro pump\"* fails at `sa 1, untouched hp` — the immunity half works (hp untouched) and the special attack half does not. the neighbouring absorb assertions all pass, including *\"the absorbed hit heals the absorber 1/4\"*, so the absorb family's healing branch is wired and its boosting branch is not. directly relevant to redirection reads: a storm drain body the bot does not know gains spa is a body it will keep attacking into | closed 2026-08-11 — the engine was never broken and this row misdiagnosed it. one defect explains all four: `_chooseaction`'s last fallback clicked struggle past a legal button (the #152 block, whose own comment stated the bug in place — *\"a body with legal status moves left is not on struggle\"* — and filed it as the lesser evil). struggle is a 50 bp attack with 1/4-max recoil, so every fixture body holding a single protect or roost was hitting the thing under test and paying for it. heat wave never touched the partner: the trace reads `|move|p2b: whimsicott|struggle"
     },
     {
       "n": 172,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
-      "saysBroken": true,
+      "saysBroken": false,
       "uses": 0,
       "title": "HEAT WAVE HITS YOUR OWN PARTNER. `test-tag-wire`: *\"Heat Wave leaves the partner untouched — the ally-safe family stays ",
-      "full": "heat wave hits your own partner. `test-tag-wire`: *\"heat wave leaves the partner untouched — the ally-safe family stays safe\"* fails, while both membership assertions pass — *\"spreadfoes (22) is the ally-safe family — heat wave in, earthquake out\"* and *\"spreadall (16) hits the partner\"*. the artifact separates the two families correctly and the consumer is collapsing them. this is the one on the list with the largest effect on play: the whole point of the ally-safe spread moves is that you can click them beside your own body, and an engine that charges you for it will refuse a line that is actually free"
-    },
-    {
-      "n": 173,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "FAKE OUT IS STILL CLICKABLE ON TURN TWO. `test-tag-wire`: *\"turn 2 the illegal Fake Out is refused at pick time (attack)",
-      "full": "fake out is still clickable on turn two. `test-tag-wire`: *\"turn 2 the illegal fake out is refused at pick time (attack) — not a fake click\"* fails. turn 1 is proven legal in the line above it. the assertion's own wording is the requirement — the refusal must happen at pick time, so the chooser never offers it, rather than the move being offered and then failing. an illegal action in the candidate set is worse than a wrong one: it wastes rollout budget on a branch that cannot exist, and fake out is one of the highest-usage leads in the format"
+      "full": "heat wave hits your own partner. `test-tag-wire`: *\"heat wave leaves the partner untouched — the ally-safe family stays safe\"* fails, while both membership assertions pass — *\"spreadfoes (22) is the ally-safe family — heat wave in, earthquake out\"* and *\"spreadall (16) hits the partner\"*. the artifact separates the two families correctly and the consumer is collapsing them. this is the one on the list with the largest effect on play: the whole point of the ally-safe spread moves is that you can click them beside your own body, and an engine that charges you for it will refuse a line that is actually free | closed 2026-08-11 — the engine was never broken and this row misdiagnosed it. one defect explains all four: `_chooseaction`'s last fallback clicked struggle past a legal button (the #152 block, whose own comment stated the bug in place — *\"a body with legal status moves left is not on struggle\"* — and filed it as the lesser evil). struggle is a 50 bp attack with 1/4-max recoil, so every fixture body holding a single protect or roost was hitting the thing under test and paying for it. heat wave never touched the partner: the trace reads `|move|p2b: whimsicott|struggle"
     },
     {
       "n": 174,
@@ -605,7 +569,7 @@
       "saysBroken": true,
       "uses": 0,
       "title": "TWENTY-THREE TAGS HAVE NO CONSUMER — WE DERIVED THE FACT AND NEVER TAUGHT THE ENGINE TO USE IT. `test-tag-consumed` name",
-      "full": "twenty-three tags have no consumer — we derived the fact and never taught the engine to use it. `test-tag-consumed` names them: `stealsitem`, `announcesonentry`, `reflectsstatustosource`, `refusesindirectdamage`, `clearsscreensonentry`, `nameimplementedbysim`, `passesitemtoally`, `multihitalwaysmax`, `ignoresredirection`, `boostsathpthreshold`, `curesstatusresidual`, `healsfromownstatus`, `addsownsecondary`, `formefollowsweather`, `secondarychancemult`, `typefollowsterrain`, `removesownmoveflag`, `inheritsallyability`, `boostsnotveryeffective`, `boostsallieswithability`, `allybasepowerboost`, `suppressesownitem`, `guaranteesnextmove`. the test also prints a longer dead list headed by `ignoresredirection` (47 uses, propeller tail / stalwart). each one is a decision, not a batch: wire it, or delete the tag and say why. a derived tag nothing reads is indistinguishable from a tag that is wrong. expect this count to move when the tag split lands — re-measure before working it"
+      "full": "twenty-three tags have no consumer — we derived the fact and never taught the engine to use it. `test-tag-consumed` names them: `stealsitem`, `announcesonentry`, `reflectsstatustosource`, `refusesindirectdamage`, `clearsscreensonentry`, `nameimplementedbysim`, `passesitemtoally`, `multihitalwaysmax`, `ignoresredirection`, `boostsathpthreshold`, `curesstatusresidual`, `healsfromownstatus`, `addsownsecondary`, `formefollowsweather`, `secondarychancemult`, `typefollowsterrain`, `removesownmoveflag`, `inheritsallyability`, `boostsnotveryeffective`, `boostsallieswithability`, `allybasepowerboost`, `suppressesownitem`, `guaranteesnextmove`. the test also prints a longer dead list headed by `ignoresredirection` (47 uses, propeller tail / stalwart). each one is a decision, not a batch: wire it, or delete the tag and say why. a derived tag nothing reads is indistinguishable from a tag that is wrong. expect this count to move when the tag split lands — re-measure before working it | open — engine defect. 23 -> 22 on 2026-08-11: `ignoresredirection` wired and closed, 21 rows untouched because each is a decision and batching them is the failure mode. that one fix found a live bug of #181's exact shape one function over: `trackstargetof` looked for an ability-side `trackstarget` tag that does not exist in the artifact, so `ab==='stalwart'|"
     },
     {
       "n": 176,
@@ -624,24 +588,6 @@
       "uses": 0,
       "title": "A GREEN CENSUS COUNT CANNOT DETECT AN OVER-MATCH, AND THE WORKING RULE WOULD HAVE PASSED ONE — 2026-08-11. While splitti",
       "full": "a green census count cannot detect an over-match, and the working rule would have passed one — 2026-08-11. while splitting the protection counter the first shield dispatch matched on `stallcounterchecks`, and endure is a `stallingmove` that rolls the same die and blocks nothing. it became a shield and broke both endure probes. `live` read 444 before and 444 after — two probes broke and two arrived, and the count is a net. only `missing` moving 0 -> 2 caught it. the working practice \"confirm `live` went up\" is therefore not a check at all against this failure mode, and it is the practice most often used, because it is the number printed largest. fixed with a sixth tag, `shieldsuser`, derived from `checkmovebypassesprotect` on the volatile\\'s own condition — 5 members, endure correctly absent. the row is the rule change, not the bug: a census movement must be reported as arrived/broke/net, never as a net alone, and `missing` must be read beside `live` every time"
-    },
-    {
-      "n": 179,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "RECYCLE CARRIES NO MECHANIC TAG AND RESOLVES TO A SPENT TURN. Found while closing #71\\'s seven-move signature 2026-08-11",
-      "full": "recycle carries no mechanic tag and resolves to a spent turn. found while closing #71\\'s seven-move signature 2026-08-11. pain split reached `sharehp` and copycat reached `callmove`; recycle (3 uses) reaches `{kind:\\'pass\\'}`, which is the terminal do-nothing branch. low usage, and registered anyway because a move that provably does nothing is a weighted preference rather than a rule — the same shape as #44 — and because the seven-move signature cannot be called closed while a member of it is unmodelled"
-    },
-    {
-      "n": 180,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "SUCKER PUNCH HAS A SECOND REFUSAL AND WE MODEL ONE. `data/moves.ts:18400` — the move also fails when the target carries ",
-      "full": "sucker punch has a second refusal and we model one. `data/moves.ts:18400` — the move also fails when the target carries `volatiles[\\'mustrecharge\\']`, i.e. the turn after a hyper beam class move. #60 closed the priority-versus-attacking half and this is the other clause of the same handler, named here rather than absorbed into a row that is now marked closed"
     },
     {
       "n": 181,
@@ -946,7 +892,7 @@
     {
       "artifact": "data/interaction-matrix.json",
       "generated": "2026-08-11T06:49:30.092Z",
-      "age_days": 0
+      "age_days": 0.1
     }
   ]
 }
