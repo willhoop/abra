@@ -212,8 +212,12 @@ add({
  * nothing in this project had ever read:
  *
  *     par   randomChance(1, 8)      = 12.5%, not the 25% I wrote
- *     slp   sample([2, 3, 3])       = 2 or 3 turns, 1/3 chance of 2 — it can NEVER last one turn
- *     frz   startTime = 3           = a FIXED three-turn timer, not a 20% per-turn thaw roll
+ *     slp   sample([2,3,3]) startTime, and mainline's onBeforeMove decrements BEFORE acting, so
+ *           the holder MISSES 1 or 2 turns — 1/3 chance of 1. Will: "i thought champions is either
+ *           1 or 2 turns of sleep". Right. I reported the internal COUNTER as if it were turns.
+ *     frz   BOTH a 25% thaw roll every turn AND a hard 3-turn ceiling. Will: "freeze has a chance
+ *           to dethaw each turn double check". Right again — I stopped reading at line 45 and the
+ *           frz block's onBeforeMove starts at 46. Mainline is 20%; Champions is 25%.
  *
  * Paralysis is HALF what this file claimed. Freeze is not a die at all. Every one of these would
  * have failed a correct engine, or — far worse — passed a wrong one that happened to match mainline.
@@ -227,11 +231,11 @@ add({
 /* ---- 8. STATUS DURATIONS AND SELF-HARM ------------------------------------------------------------
  * Every one of these is a die the pin freezes, and each has a denominator that is easy to get wrong.
  * Confusion in particular is a rate per ATTEMPTED move while confused, not per turn. */
-add({ family: 'duration', subject: 'slp', kind: 'status', expect: '2 or 3 turns, 1/3 chance of 2', unit: 'turns',
+add({ family: 'duration', subject: 'slp', kind: 'status', expect: '1 or 2 turns asleep, 1/3 chance of 1', unit: 'turns',
       what: 'sleep length', clicks: null,
       denominator: 'bodies that FELL asleep and were not woken early by Wake-Up Slap, Uproar or an '
                  + 'ability. Early Bird halves it and needs its own arm.' });
-add({ family: 'duration', subject: 'frz', kind: 'status', expect: 'a FIXED 3-turn timer', unit: 'turns',
+add({ family: 'duration', subject: 'frz', kind: 'status', expect: '25% thaw per turn, AND a hard 3-turn ceiling', unit: '% per turn + cap',
       what: 'thaw chance', clicks: null,
       denominator: 'frozen upkeeps. A Fire-type move or Scald thaws outright and is NOT a sample of '
                  + 'the 20%.' });

@@ -1,0 +1,1286 @@
+{
+  "generated": "2026-08-11T03:50:41.113Z",
+  "by": "engine/mod_audit.js",
+  "what": "Every value the Champions mod changes from mainline gen 9, across every field of every legal move, ability, item, species and overridden condition — plus the scripts.ts methods a value diff cannot verify.",
+  "why": "Three status rates, four secondary chances, two move TYPES and Unseen Fist were all found by Will asking, one at a time, after the gate had already opened. The question \"did Champions change this?\" had no answer anybody could run. Now it does.",
+  "cannot_verify": "scripts.ts overrides FUNCTIONS. A value diff names them and stops. Reading them is human work and is registered, not implied.",
+  "mod_dir": "C:\\Users\\willj\\Projects\\Pokemon\\pokemon-showdown\\data\\mods\\champions",
+  "mod_files": [
+    "abilities.ts",
+    "conditions.ts",
+    "formats-data.ts",
+    "items.ts",
+    "learnsets.ts",
+    "moves.ts",
+    "rulesets.ts",
+    "scripts.ts"
+  ],
+  "mod_files_note": "read from disk, so a file added tomorrow appears without an edit here",
+  "counts": {
+    "moves_changed": 71,
+    "abilities_changed": 7,
+    "items_changed": 1,
+    "species_changed": 0,
+    "conditions_changed": 3,
+    "scripts_methods_UNVERIFIED": 11,
+    "move_fields": {
+      "basePower": 12,
+      "pp": 42,
+      "onDisableMove": 4,
+      "accuracy": 4,
+      "flags": 6,
+      "secondary": 4,
+      "secondaries": 4,
+      "type": 2,
+      "baseMoveType": 2,
+      "self": 1,
+      "boosts": 1
+    }
+  },
+  "moves": [
+    {
+      "id": "appleacid",
+      "name": "Apple Acid",
+      "diffs": [
+        {
+          "field": "basePower",
+          "kind": "VALUE",
+          "mainline": 80,
+          "champions": 90
+        }
+      ]
+    },
+    {
+      "id": "banefulbunker",
+      "name": "Baneful Bunker",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 10,
+          "champions": 5
+        }
+      ]
+    },
+    {
+      "id": "beakblast",
+      "name": "Beak Blast",
+      "diffs": [
+        {
+          "field": "basePower",
+          "kind": "VALUE",
+          "mainline": 100,
+          "champions": 120
+        },
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 15,
+          "champions": 5
+        }
+      ]
+    },
+    {
+      "id": "belch",
+      "name": "Belch",
+      "diffs": [
+        {
+          "field": "onDisableMove",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "absent",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    },
+    {
+      "id": "bonerush",
+      "name": "Bone Rush",
+      "diffs": [
+        {
+          "field": "basePower",
+          "kind": "VALUE",
+          "mainline": 25,
+          "champions": 30
+        }
+      ]
+    },
+    {
+      "id": "clangoroussoul",
+      "name": "Clangorous Soul",
+      "diffs": [
+        {
+          "field": "accuracy",
+          "kind": "VALUE",
+          "mainline": 100,
+          "champions": true
+        }
+      ]
+    },
+    {
+      "id": "corrosivegas",
+      "name": "Corrosive Gas",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 40,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "crabhammer",
+      "name": "Crabhammer",
+      "diffs": [
+        {
+          "field": "accuracy",
+          "kind": "VALUE",
+          "mainline": 90,
+          "champions": 95
+        }
+      ]
+    },
+    {
+      "id": "crushclaw",
+      "name": "Crush Claw",
+      "diffs": [
+        {
+          "field": "flags",
+          "kind": "VALUE",
+          "mainline": {
+            "contact": 1,
+            "protect": 1,
+            "mirror": 1,
+            "metronome": 1
+          },
+          "champions": {
+            "contact": 1,
+            "protect": 1,
+            "mirror": 1,
+            "metronome": 1,
+            "slicing": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "direclaw",
+      "name": "Dire Claw",
+      "diffs": [
+        {
+          "field": "secondary",
+          "kind": "VALUE",
+          "mainline": {
+            "chance": 50
+          },
+          "champions": {
+            "chance": 30
+          }
+        },
+        {
+          "field": "secondaries",
+          "kind": "VALUE",
+          "mainline": [
+            {
+              "chance": 50
+            }
+          ],
+          "champions": [
+            {
+              "chance": 30
+            }
+          ]
+        },
+        {
+          "field": "flags",
+          "kind": "VALUE",
+          "mainline": {
+            "contact": 1,
+            "protect": 1,
+            "mirror": 1,
+            "metronome": 1
+          },
+          "champions": {
+            "contact": 1,
+            "protect": 1,
+            "mirror": 1,
+            "metronome": 1,
+            "slicing": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "dragoncheer",
+      "name": "Dragon Cheer",
+      "diffs": [
+        {
+          "field": "flags",
+          "kind": "VALUE",
+          "mainline": {
+            "bypasssub": 1,
+            "allyanim": 1,
+            "metronome": 1
+          },
+          "champions": {
+            "bypasssub": 1,
+            "allyanim": 1,
+            "metronome": 1,
+            "sound": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "dragonclaw",
+      "name": "Dragon Claw",
+      "diffs": [
+        {
+          "field": "flags",
+          "kind": "VALUE",
+          "mainline": {
+            "contact": 1,
+            "protect": 1,
+            "mirror": 1,
+            "metronome": 1
+          },
+          "champions": {
+            "contact": 1,
+            "protect": 1,
+            "mirror": 1,
+            "metronome": 1,
+            "slicing": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "fakeout",
+      "name": "Fake Out",
+      "diffs": [
+        {
+          "field": "onDisableMove",
+          "kind": "HANDLER",
+          "mainline": "absent",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    },
+    {
+      "id": "firelash",
+      "name": "Fire Lash",
+      "diffs": [
+        {
+          "field": "basePower",
+          "kind": "VALUE",
+          "mainline": 80,
+          "champions": 90
+        }
+      ]
+    },
+    {
+      "id": "firstimpression",
+      "name": "First Impression",
+      "diffs": [
+        {
+          "field": "basePower",
+          "kind": "VALUE",
+          "mainline": 90,
+          "champions": 100
+        },
+        {
+          "field": "onDisableMove",
+          "kind": "HANDLER",
+          "mainline": "absent",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    },
+    {
+      "id": "freezedry",
+      "name": "Freeze-Dry",
+      "diffs": [
+        {
+          "field": "secondary",
+          "kind": "VALUE",
+          "mainline": {
+            "chance": 10,
+            "status": "frz"
+          },
+          "champions": null
+        },
+        {
+          "field": "secondaries",
+          "kind": "VALUE",
+          "mainline": [
+            {
+              "chance": 10,
+              "status": "frz"
+            }
+          ],
+          "champions": null
+        }
+      ]
+    },
+    {
+      "id": "gravapple",
+      "name": "Grav Apple",
+      "diffs": [
+        {
+          "field": "basePower",
+          "kind": "VALUE",
+          "mainline": 80,
+          "champions": 90
+        }
+      ]
+    },
+    {
+      "id": "growth",
+      "name": "Growth",
+      "diffs": [
+        {
+          "field": "type",
+          "kind": "VALUE",
+          "mainline": "Normal",
+          "champions": "Grass"
+        },
+        {
+          "field": "baseMoveType",
+          "kind": "VALUE",
+          "mainline": "Normal",
+          "champions": "Grass"
+        }
+      ]
+    },
+    {
+      "id": "howl",
+      "name": "Howl",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 40,
+          "champions": 20
+        },
+        {
+          "field": "flags",
+          "kind": "VALUE",
+          "mainline": {
+            "snatch": 1,
+            "sound": 1,
+            "metronome": 1
+          },
+          "champions": {
+            "snatch": 1,
+            "sound": 1,
+            "bypasssub": 1,
+            "metronome": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "infernalparade",
+      "name": "Infernal Parade",
+      "diffs": [
+        {
+          "field": "basePower",
+          "kind": "VALUE",
+          "mainline": 60,
+          "champions": 65
+        }
+      ]
+    },
+    {
+      "id": "ironhead",
+      "name": "Iron Head",
+      "diffs": [
+        {
+          "field": "secondary",
+          "kind": "VALUE",
+          "mainline": {
+            "chance": 30,
+            "volatileStatus": "flinch"
+          },
+          "champions": {
+            "chance": 20,
+            "volatileStatus": "flinch"
+          }
+        },
+        {
+          "field": "secondaries",
+          "kind": "VALUE",
+          "mainline": [
+            {
+              "chance": 30,
+              "volatileStatus": "flinch"
+            }
+          ],
+          "champions": [
+            {
+              "chance": 20,
+              "volatileStatus": "flinch"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kingsshield",
+      "name": "King's Shield",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 10,
+          "champions": 5
+        }
+      ]
+    },
+    {
+      "id": "makeitrain",
+      "name": "Make It Rain",
+      "diffs": [
+        {
+          "field": "accuracy",
+          "kind": "VALUE",
+          "mainline": 100,
+          "champions": 95
+        },
+        {
+          "field": "self",
+          "kind": "VALUE",
+          "mainline": {
+            "boosts": {
+              "spa": -1
+            }
+          },
+          "champions": {
+            "boosts": {
+              "spa": -2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "moonblast",
+      "name": "Moonblast",
+      "diffs": [
+        {
+          "field": "secondary",
+          "kind": "VALUE",
+          "mainline": {
+            "chance": 30,
+            "boosts": {
+              "spa": -1
+            }
+          },
+          "champions": {
+            "chance": 10,
+            "boosts": {
+              "spa": -1
+            }
+          }
+        },
+        {
+          "field": "secondaries",
+          "kind": "VALUE",
+          "mainline": [
+            {
+              "chance": 30,
+              "boosts": {
+                "spa": -1
+              }
+            }
+          ],
+          "champions": [
+            {
+              "chance": 10,
+              "boosts": {
+                "spa": -1
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mountaingale",
+      "name": "Mountain Gale",
+      "diffs": [
+        {
+          "field": "basePower",
+          "kind": "VALUE",
+          "mainline": 100,
+          "champions": 120
+        }
+      ]
+    },
+    {
+      "id": "nightdaze",
+      "name": "Night Daze",
+      "diffs": [
+        {
+          "field": "basePower",
+          "kind": "VALUE",
+          "mainline": 85,
+          "champions": 90
+        }
+      ]
+    },
+    {
+      "id": "nightslash",
+      "name": "Night Slash",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 15,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "protect",
+      "name": "Protect",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 10,
+          "champions": 5
+        }
+      ]
+    },
+    {
+      "id": "psyshieldbash",
+      "name": "Psyshield Bash",
+      "diffs": [
+        {
+          "field": "basePower",
+          "kind": "VALUE",
+          "mainline": 70,
+          "champions": 90
+        }
+      ]
+    },
+    {
+      "id": "sandstorm",
+      "name": "Sandstorm",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 10,
+          "champions": 5
+        }
+      ]
+    },
+    {
+      "id": "shadowclaw",
+      "name": "Shadow Claw",
+      "diffs": [
+        {
+          "field": "flags",
+          "kind": "VALUE",
+          "mainline": {
+            "contact": 1,
+            "protect": 1,
+            "mirror": 1,
+            "metronome": 1
+          },
+          "champions": {
+            "contact": 1,
+            "protect": 1,
+            "mirror": 1,
+            "metronome": 1,
+            "slicing": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "snaptrap",
+      "name": "Snap Trap",
+      "diffs": [
+        {
+          "field": "type",
+          "kind": "VALUE",
+          "mainline": "Grass",
+          "champions": "Steel"
+        },
+        {
+          "field": "baseMoveType",
+          "kind": "VALUE",
+          "mainline": "Grass",
+          "champions": "Steel"
+        }
+      ]
+    },
+    {
+      "id": "snowscape",
+      "name": "Snowscape",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 10,
+          "champions": 5
+        }
+      ]
+    },
+    {
+      "id": "spikyshield",
+      "name": "Spiky Shield",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 10,
+          "champions": 5
+        }
+      ]
+    },
+    {
+      "id": "spiritshackle",
+      "name": "Spirit Shackle",
+      "diffs": [
+        {
+          "field": "basePower",
+          "kind": "VALUE",
+          "mainline": 80,
+          "champions": 90
+        }
+      ]
+    },
+    {
+      "id": "stuffcheeks",
+      "name": "Stuff Cheeks",
+      "diffs": [
+        {
+          "field": "onDisableMove",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "absent",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    },
+    {
+      "id": "syrupbomb",
+      "name": "Syrup Bomb",
+      "diffs": [
+        {
+          "field": "accuracy",
+          "kind": "VALUE",
+          "mainline": 85,
+          "champions": 90
+        }
+      ]
+    },
+    {
+      "id": "toxicthread",
+      "name": "Toxic Thread",
+      "diffs": [
+        {
+          "field": "boosts",
+          "kind": "VALUE",
+          "mainline": {
+            "spe": -1
+          },
+          "champions": {
+            "spe": -2
+          }
+        }
+      ]
+    },
+    {
+      "id": "tropkick",
+      "name": "Trop Kick",
+      "diffs": [
+        {
+          "field": "basePower",
+          "kind": "VALUE",
+          "mainline": 70,
+          "champions": 85
+        }
+      ]
+    },
+    {
+      "id": "acupressure",
+      "name": "Acupressure",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "agility",
+      "name": "Agility",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "aircutter",
+      "name": "Air Cutter",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 25,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "babydolleyes",
+      "name": "Baby-Doll Eyes",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "batonpass",
+      "name": "Baton Pass",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 40,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "bite",
+      "name": "Bite",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 25,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "bulletpunch",
+      "name": "Bullet Punch",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "bulletseed",
+      "name": "Bullet Seed",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "cottonspore",
+      "name": "Cotton Spore",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 40,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "covet",
+      "name": "Covet",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 25,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "fellstinger",
+      "name": "Fell Stinger",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 25,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "focusenergy",
+      "name": "Focus Energy",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "glare",
+      "name": "Glare",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "haze",
+      "name": "Haze",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "iceshard",
+      "name": "Ice Shard",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "iciclespear",
+      "name": "Icicle Spear",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "lightscreen",
+      "name": "Light Screen",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "machpunch",
+      "name": "Mach Punch",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "metalsound",
+      "name": "Metal Sound",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 40,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "nobleroar",
+      "name": "Noble Roar",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "poisonpowder",
+      "name": "Poison Powder",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 35,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "pound",
+      "name": "Pound",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 35,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "quickattack",
+      "name": "Quick Attack",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "rapidspin",
+      "name": "Rapid Spin",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 40,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "safeguard",
+      "name": "Safeguard",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 25,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "screech",
+      "name": "Screech",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 40,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "shadowsneak",
+      "name": "Shadow Sneak",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "steelwing",
+      "name": "Steel Wing",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 25,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "stringshot",
+      "name": "String Shot",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 40,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "stunspore",
+      "name": "Stun Spore",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "thief",
+      "name": "Thief",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 25,
+          "champions": 20
+        }
+      ]
+    },
+    {
+      "id": "vacuumwave",
+      "name": "Vacuum Wave",
+      "diffs": [
+        {
+          "field": "pp",
+          "kind": "VALUE",
+          "mainline": 30,
+          "champions": 20
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "angershell",
+      "name": "Anger Shell",
+      "diffs": [
+        {
+          "field": "onDamage",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    },
+    {
+      "id": "berserk",
+      "name": "Berserk",
+      "diffs": [
+        {
+          "field": "onDamage",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    },
+    {
+      "id": "disguise",
+      "name": "Disguise",
+      "diffs": [
+        {
+          "field": "onEffectiveness",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    },
+    {
+      "id": "healer",
+      "name": "Healer",
+      "diffs": [
+        {
+          "field": "onResidual",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    },
+    {
+      "id": "naturalcure",
+      "name": "Natural Cure",
+      "diffs": [
+        {
+          "field": "onCheckShow",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "absent",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        },
+        {
+          "field": "onSwitchOut",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    },
+    {
+      "id": "regenerator",
+      "name": "Regenerator",
+      "diffs": [
+        {
+          "field": "onSwitchOut",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    },
+    {
+      "id": "unseenfist",
+      "name": "Unseen Fist",
+      "diffs": [
+        {
+          "field": "onModifyMove",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "absent",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        },
+        {
+          "field": "onHitProtect",
+          "kind": "HANDLER",
+          "mainline": "absent",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    }
+  ],
+  "items": [
+    {
+      "id": "whiteherb",
+      "name": "White Herb",
+      "diffs": [
+        {
+          "field": "onAnyAfterMove",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        },
+        {
+          "field": "onWhiteHerb",
+          "kind": "HANDLER",
+          "mainline": "absent",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    }
+  ],
+  "species": [],
+  "conditions": [
+    {
+      "id": "par",
+      "diffs": [
+        {
+          "field": "onBeforeMove",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    },
+    {
+      "id": "slp",
+      "diffs": [
+        {
+          "field": "onStart",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    },
+    {
+      "id": "frz",
+      "diffs": [
+        {
+          "field": "onStart",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        },
+        {
+          "field": "onBeforeMove",
+          "kind": "HANDLER",
+          "mainline": "present",
+          "champions": "present",
+          "note": "a rewritten handler — this file cannot say WHAT it does"
+        }
+      ]
+    }
+  ],
+  "scripts_overridden_UNVERIFIED": [
+    "init",
+    "statModify",
+    "calculatePP",
+    "getActionSpeed",
+    "formeChange",
+    "clearVolatile",
+    "canTerastallize",
+    "canMegaEvo",
+    "modifyDamage",
+    "spreadMoveHit",
+    "hitStepMoveHitLoop"
+  ]
+}

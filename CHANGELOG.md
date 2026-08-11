@@ -10,6 +10,48 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.2.0] — 2026-08-10
+
+### Added
+- **`engine/mod_audit.js` — everything the Champions mod changes, all eight files, every field.**
+  Will: *"where else might mainline data have snuck in aside from the champions mod?"*, then *"well read
+  the mod bro"*, then *"yeah bro read everything no skipping."* Until tonight the question **"did
+  Champions change this?" had no answer anybody could run** — every discovery came from Will asking, one
+  at a time, after the gate had already opened.
+
+### Fixed
+- **71 moves, 7 abilities, 1 item and 3 conditions differ from mainline, and almost none was known.**
+  - **2 moves have a different TYPE** — Growth is Grass (mainline Normal) and **Snap Trap is STEEL**
+    (mainline Grass). A whole effectiveness column, never checked.
+  - **42 PP values, 12 base powers, 4 accuracies** — Baneful Bunker 10→5, King's Shield 10→5,
+    Beak Blast 15→5 and 100→120 BP, Apple Acid 80→90, **Make It Rain 100→95 accuracy and SpA −1 → −2**.
+  - **4 secondaries** — Dire Claw 50→30, Iron Head 30→20, Moonblast 30→10, and **Freeze-Dry's freeze
+    chance removed entirely**.
+  - **7 abilities** — Anger Shell, Berserk, Disguise, Healer, Natural Cure, **Regenerator**, Unseen Fist.
+    Regenerator's `onSwitchOut` is overridden and switching was added to the rollout the same evening;
+    **Berserk** is one of the 22 untagged abilities that was about to have its rule derived from mainline.
+- **The three status conditions, corrected twice each after Will pushed back.** Paralysis is
+  `randomChance(1,8)` = **12.5%**, not 25%. Sleep's `sample([2,3,3])` is a *startTime*, and mainline's
+  `onBeforeMove` decrements before acting — so the holder misses **1 or 2 turns**, ⅓ chance of 1, which
+  is what Will said and not what I first reported. Freeze is **both** a **25% thaw roll every turn**
+  *and* a hard 3-turn ceiling — I had stopped reading at line 45 and its `onBeforeMove` starts at 46.
+- **Paralysis speed is 50% and Champions does NOT change it** — checked rather than assumed.
+
+### Notes
+- **`scripts.ts` is NAMED, NOT VERIFIED, and that is the honest half.** Eleven overridden methods —
+  `modifyDamage`, `statModify`, `calculatePP`, `getActionSpeed`, `formeChange`, `clearVolatile`,
+  `canMegaEvo`, `canTerastallize`, `spreadMoveHit`, `hitStepMoveHitLoop`, `init`. **A value diff cannot
+  say what a rewritten function does.** Every mechanic debugged tonight has an implementation in that
+  file, including the multi-hit loop an agent rewrote from mainline. Registered as human work.
+- **357 species "differ" and none of it matters** — `tier`, `doublesTier`, `natDexTier` on every legal
+  body, because Champions reclassifies the dex. **Zero differ in baseStats or types**, checked before
+  excluding. A diff that reports everything reports nothing.
+- **The pattern across the whole night, stated once**: everything DERIVED from `Dex.forFormat` was
+  right; everything TYPED FROM MEMORY was wrong. `par`, `slp`, `frz` were the three I hand-wrote and all
+  three were wrong. The generator that reads the format had Dire Claw at 30% already.
+
+---
+
 ## [5.1.0] — 2026-08-10
 
 ### Fixed

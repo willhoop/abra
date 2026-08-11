@@ -3606,3 +3606,38 @@ file away from data that IS overridden.
 *(I nearly reported a catastrophe here twice in three minutes — first by reading a key that did not
 exist, then by testing `isNonstandard` when every gen-9 mega is `Past` by definition. Both were my
 probe, not the data. Measure, then measure the measurement.)*
+
+---
+
+## THE MOD AUDIT — "READ EVERYTHING NO SKIPPING". 2026-08-10.
+
+Will said it after catching me three times running on values I had typed from memory. `engine/mod_audit.js`
+now answers "did Champions change this?" for every legal move, ability, item, species and overridden
+condition, across every field, by comparing the format dex to `Dex.forGen(9)`.
+
+    71  moves differ        42 pp, 12 basePower, 6 flags, 4 accuracy, 4 secondary, 2 TYPE, 1 self
+     7  abilities differ    Anger Shell, Berserk, Disguise, Healer, Natural Cure, Regenerator, Unseen Fist
+     1  item differs        White Herb
+     3  conditions differ   par, slp, frz
+     0  species differ      (357 tier labels excluded; ZERO baseStats or type changes, checked first)
+    11  scripts.ts methods  NAMED, NOT VERIFIED
+
+**Snap Trap is STEEL in this format and Grass in mainline.** Growth is Grass, not Normal. Make It Rain
+is 95% accurate and drops SpA by TWO. Freeze-Dry has no freeze chance at all here. **Regenerator has an
+overridden `onSwitchOut`** and switching went into the rollout the same evening. **Berserk** is one of
+the 22 untagged abilities whose rule was about to be derived from mainline.
+
+### WHAT IT CANNOT DO, AND THIS IS THE HALF THAT MATTERS
+
+`scripts.ts` overrides ELEVEN methods: `modifyDamage`, `statModify`, `calculatePP`, `getActionSpeed`,
+`formeChange`, `clearVolatile`, `canMegaEvo`, `canTerastallize`, `spreadMoveHit`, `hitStepMoveHitLoop`,
+`init`. **A value diff cannot say what a rewritten function does.** They are named and marked
+UNVERIFIED rather than counted as covered. Every mechanic debugged tonight has an implementation in
+that file — including the multi-hit loop an agent rewrote, from mainline, hours ago.
+
+### AND THE PATTERN, STATED ONCE
+
+**Everything DERIVED from `Dex.forFormat` was right. Everything TYPED FROM MEMORY was wrong.** `par`,
+`slp` and `frz` were the three rows I hand-wrote into the million-game list, and all three were wrong —
+two of them twice, because my first correction was also from memory. The generator that reads the
+format already had Dire Claw at 30%.
