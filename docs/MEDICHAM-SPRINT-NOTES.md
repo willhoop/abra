@@ -3403,3 +3403,37 @@ change" specifically; it is **assert the outcome directly instead of comparing t
 did the Ground move deal zero? Mummy: is the attacker's ability now Mummy? Innards Out: did the KOer
 lose HP equal to what the holder had? Piercing Drill: did it go through the Protect? None needs a
 control, and none is harder than the A/B it replaces.
+
+---
+
+## THE MOVE ADVERSARIES — 29 OF 54, AND THE OTHER 25 NEED A DIFFERENT WORD. 2026-08-10.
+
+`MOVE_FACES` in `engine/faces.js`, 13 entries. The move stage hands the subject a click and lets the
+receiver attack back — which reaches any move whose effect is DAMAGE and misses every move whose
+effect is ABOUT the adversary. **Will named two of these before the measurement existed**: *"WIDE
+GUARD NEEDS A SPREAD MOVE AGAINST IT"* and *"HAVE CONTACT HIT ROUGH SKIN TO CHECK"*.
+
+The four biggest tag buckets among the inert moves — `pp`, `statusCategory`, `neverMisses`,
+`moveClass` — get NO entry, deliberately. They are PROPERTIES, not triggers: nothing follows from
+"this is a status move" about what must happen for it to be observable. **A property is tested through
+its REACTOR**, which is what the `contact` / `sound` / `powder` entries are.
+
+### AND THE REMAINING 25 NEED A CONSEQUENCE, NOT AN ADVERSARY
+
+    attract burnup destinybond entrainment fairylock gastroacid guardsplit haze helpinghand lockon
+    magicroom magneticflux magnetrise poltergeist powershift powersplit powertrick safeguard simple …
+
+None of these is failing for want of something to face. **They set a STATE, and the board is identical
+because nothing downstream ever reads it.** Haze resets stat stages — something has to have BOOSTED
+first. Magnet Rise grants a Ground immunity — a Ground move has to come AFTER. Safeguard blocks
+status — a status move has to follow. Poltergeist needs the target to be HOLDING something. Helping
+Hand needs the ally to attack afterwards. Lock-On needs a sub-100 move next.
+
+So the staging vocabulary is TWO things and we only had one:
+
+    faces        what the subject must be UP AGAINST   — Will's addition, now built for both stages
+    thenWhat     what must happen AFTERWARDS to read the state the subject just set
+
+Forcing the second into the first would have produced entries that look like adversaries and are not,
+which is the kind of thing that passes review and then quietly means nothing. It is built as its own
+concept next.

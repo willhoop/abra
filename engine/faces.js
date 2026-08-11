@@ -126,4 +126,74 @@ function facesFor(tags) {
 }
 
 
-module.exports = { FACES, facesFor };
+/* ---- AND THE SAME FOR MOVES. 54 of them are inert for the identical reason. -----------------------
+ *
+ * The move stage hands the subject a click and lets the receiver attack back. That reaches any move
+ * whose whole effect is damage, and misses every move whose effect is ABOUT the adversary. Will named
+ * two of these himself before the measurement existed: *"IE WIDE GUARD NEEDS A SPREAD MOVE AGAINST
+ * IT, ITS POINTLESS TO TEST IF IT DOESNT FACE THAT"*, and *"HAVE CONTACT HIT ROUGH SKIN TO CHECK"*.
+ *
+ * `pp`, `statusCategory`, `neverMisses` and `moveClass` are the four biggest tag buckets among the
+ * inert moves and NONE of them appears below, deliberately: they are PROPERTIES, not triggers.
+ * Nothing follows from "this is a status move" about what must happen for it to be observable. A
+ * property is tested through its REACTOR, which is what the `contact`, `sound` and `powder` entries
+ * below actually are.
+ */
+const MOVE_FACES = {
+  semiInvulnerable: { recvAttacks: ['Earthquake', 'Gust', 'Surf'], onTheChargeTurn: true,
+    why: 'Dig, Dive, Fly, Bounce and Phantom Force are only observable if something SWINGS at them '
+       + 'while they are gone. Will: Earthquake does DOUBLE to a digging target — and the PIERCE list '
+       + 'and the DOUBLE list are not the same set, so five moves reach a flying target for normal '
+       + 'damage. An engine implementing "pierces implies doubles" is wrong on all five' },
+  oneTurnGuard:     { recvAttacks: ['Rock Slide', 'Heat Wave', 'Aqua Jet'],
+    why: 'Wide Guard needs a SPREAD move and Quick Guard needs a PRIORITY one. They share a tag and '
+       + 'need different adversaries, which is exactly why one arm cannot cover both' },
+  redirects:        { allyIsTargeted: true,
+    why: 'Follow Me and Rage Powder are only visible when a SINGLE-TARGET move aimed at the ALLY '
+       + 'arrives somewhere else. A spread move is never redirected — my own Rage Powder finding was '
+       + 'retracted for exactly that reason' },
+  reordersTurn:     { partnerHasAMove: true,
+    why: 'After You, Instruct and Quash act on somebody ELSE\'s turn. Will: a fast Lopunny clicks '
+       + 'After You so a slow Torkoal moves first. With no partner move to reorder there is nothing '
+       + 'to observe' },
+  changesTargetType:{ followUp: ['Thunderbolt', 'Earthquake', 'Vine Whip'],
+    why: 'Soak, Forest\'s Curse and Trick-or-Treat change a TYPE, and a type is only observable '
+       + 'through effectiveness. The follow-up must be a move whose damage MOVES when the type does — '
+       + 'otherwise the board is identical and the row reads inert' },
+  chargeTurn:       { turns: 2,
+    why: 'a two-turn move needs its SECOND turn; one staged turn only ever watches it charge' },
+  needsTargetToAttack: { recvAttacks: ['Aqua Tail', 'Facade'],
+    why: 'Mirror Coat and Upper Hand FAIL unless the target is attacking. The bare board gives them '
+       + 'nothing to answer, so they fail for the fixture\'s reason rather than the engine\'s' },
+  contact:          { recvAbility: 'Rough Skin',
+    why: 'Will: HAVE CONTACT HIT ROUGH SKIN TO CHECK. A property flag is tested through its reactor, '
+       + 'never by asserting the flag is set on the move' },
+  sound:            { recvAbility: 'Soundproof',
+    why: 'the reactor for sound — same rule as contact' },
+  powder:           { recvType: 'Grass',
+    why: 'a Grass body REFUSES powder and the refusal is the test. Will\'s Stun Spore case is sharper '
+       + 'still: it is powder AND paralysis, so Grass refuses it before resolution and Electric '
+       + 'refuses it at application. An engine missing exactly one of the two gates still passes' },
+  flinches:         { movesFirst: true,
+    why: 'a flinch only lands if the flincher moves FIRST; moving second makes it a silent no-op' },
+  sealsMoves:       { recvRepeatsAMove: true,
+    why: 'Torment and Gravity seal an OPTION — the adversary has to want the sealed move for the seal '
+       + 'to change any board' },
+  ignoresProtect:   { recvProtects: true,
+    why: 'the same fixture as piercesProtect on the ability side' },
+};
+/* Same union rule as the ability side: a move carrying several tags must face all of them, or one arm
+ * silently covers for another and the row passes for the wrong reason. */
+function movesFacesFor(tags) {
+  const out = { why: [] };
+  for (const t of (tags || [])) {
+    const f = MOVE_FACES[t];
+    if (!f) continue;
+    for (const k of Object.keys(f)) if (k !== 'why' && out[k] === undefined) out[k] = f[k];
+    out.why.push(t + ': ' + f.why);
+  }
+  return out.why.length ? out : null;
+}
+
+module.exports = { FACES, facesFor, MOVE_FACES, movesFacesFor };
+

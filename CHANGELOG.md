@@ -10,6 +10,32 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [4.12.0] — 2026-08-10
+
+### Added
+- **`MOVE_FACES` — adversaries for the inert moves, 13 entries covering 29 of 54.** The move stage
+  hands the subject a click and lets the receiver attack back, which reaches any move whose effect is
+  DAMAGE and misses every move whose effect is about the adversary. Two of these Will named before the
+  measurement existed: Wide Guard needs a spread move, contact needs Rough Skin. The
+  `semiInvulnerable` five (Dig, Dive, Fly, Bounce, Phantom Force) now get SWUNG AT while they are
+  gone — and the entry records that the PIERCE list and the DOUBLE list are different sets, so an
+  engine implementing "pierces implies doubles" is wrong on five moves.
+- **`pp`, `statusCategory`, `neverMisses` and `moveClass` get no entry, deliberately.** They are the
+  four biggest tag buckets among the inert moves and they are PROPERTIES, not triggers — nothing
+  follows from "this is a status move" about what must happen for it to be observable. A property is
+  tested through its REACTOR, which is what the contact / sound / powder entries are.
+
+### Notes
+- **The remaining 25 need a CONSEQUENCE, not an adversary, and that is a second concept.** Haze,
+  Magnet Rise, Safeguard, Poltergeist, Helping Hand, Lock-On and the stat-swap family are not failing
+  for want of something to face — **they set a STATE and nothing downstream reads it.** Haze needs
+  something to have boosted first; Magnet Rise needs a Ground move after; Safeguard needs a status
+  move to follow. So the vocabulary is two things — `faces` (what you are up against) and `thenWhat`
+  (what must happen next) — and forcing the second into the first would have produced entries that
+  look like adversaries and mean nothing.
+
+---
+
 ## [4.11.0] — 2026-08-10
 
 ### Added
