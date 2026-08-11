@@ -6134,3 +6134,105 @@ Census **511 -> 514 live, 0 missing, 0 hollow, 0 unarmed, 0 direct-call, 0 threw
 (was 479), abilities 120, items 139, **0 DIFFER and 0 DID-NOT-FIRE everywhere**. The closet lost two
 rows — tangledfeet and minus — and both left because they were wrong to be there, not because they
 were waived.
+
+---
+
+## ROADMAP #218 — THE GAME DIFFERENTIAL: RESIDUAL ORDER CLOSED, PROTECT IS A PIN ARTEFACT (2026-08-11, twelfth pass)
+
+A different instrument from the one this sprint has lived in. `engine/game_differential.js` plays one
+team pair through both engines with real sheets and real natures, pins every die identically, and
+records the FIRST divergence. **It is not the damage differential**: `engine-diff.json` reads 0/6000
+and always has, because it compares a NUMBER and this compares a SEQUENCE. Both are true.
+
+### TARGET ONE — RESIDUAL WEATHER ORDER. CLOSED, 80 GAMES -> 4.
+
+**THE AUTHORITY, READ RATHER THAN INFERRED FROM THE TRACES.** The sand chip is not part of the clock
+pass at all:
+
+```
+sandstorm.onFieldResidualOrder: 1
+sandstorm.onFieldResidual() { this.add('-weather','Sandstorm','[upkeep]');
+                              if (this.field.isWeather('sandstorm')) this.eachEvent('Weather'); }
+battle.ts:465  eachEvent()  { const actives = this.getAllActive();
+                              this.speedSort(actives, (a, b) => b.speed - a.speed); ... }
+```
+
+Descending `pokemon.speed`, which is `getActionSpeed()` — and that returns `10000 - speed` under Trick
+Room, so **the inversion is already inside the number both passes sort on** and neither needs a second
+branch.
+
+**THIS ENGINE HAD IT RIGHT IN ONE PASS AND NOT THE OTHER, WHICH IS WHY NOBODY SAW IT.** ROADMAP #115
+speed-sorted the CLOCK loop — perish, yawn, status chip, Leftovers — when Will asked whether bodies
+faint in speed order. The WEATHER loop one screen above it kept iterating `[...actA, ...actB]`, slot
+order. Every body takes the same 1/16, so every total agreed and the damage differential could not
+see it; only the SEQUENCE differed, and that is 17% of all divergences.
+
+**ONE FUNCTION, BOTH CALLERS.** `residualOrder(actA, actB, field)` is new and the three lines #115
+wrote inline are gone. Re-sorting the weather loop in place would have left the same fact written
+twice with the same chance of drifting again — which is exactly how this arose.
+
+Probe `move/weatherSetter`, two arms: four bodies at Speed 205 / 101 / 80 chip fastest-first, and
+**Trick Room reverses the list exactly**. An engine sorting by raw speed and ignoring the field passes
+the first arm and fails the second; one in slot order fails both. Garchomp is on the board and takes
+no chip in either arm — Ground is immune — which is the control that says this is the sand.
+
+**MEASURED: the sandstorm-versus-sandstorm family went from 80 games across 6 causes to 4 games across
+3.** The run rate moved 480/1213 (39.6%) to 408/982 (41.5%), and **the rate is not the measurement
+here** — the swarm re-selects between runs, so the attributable number is the cause family, which fell
+by 95%.
+
+**A SECOND FAMILY SURFACED UNDERNEATH IT AND IS NOT FIXED: sand versus Leftovers, 11 games.**
+
+```
+|-damage|p1b|H/H|[from]sandstorm  <>  |-heal|p1a|H/H|[from]leftovers
+```
+
+Showdown runs residuals as ONE sorted list of HANDLERS keyed `(residualOrder, residualSubOrder,
+speed)` — sandstorm is `onFieldResidualOrder: 1`, Leftovers is `onResidualOrder: 5,
+onResidualSubOrder: 4` — so it chips EVERY body, then heals EVERY body. This engine runs one loop PER
+BODY doing all of that body's effects, which interleaves them: chip(fast), heal(fast), chip(slow).
+Same events, same amounts, wrong interleaving. **The repair is a real restructure** — collect handlers
+with their order keys, sort once, then run — and it was NOT attempted, because it touches every
+end-of-turn effect at once and could not be gated inside this pass. Named rather than started.
+
+### TARGET TWO — PROTECT IS A PIN ARTEFACT, NOT AN ENGINE DEFECT
+
+32 games and 94,313 corpus clicks, scattered across four classes. **The instrument documents the cause
+in its own `PINS` block, written before anyone read the causes:**
+
+> `medicham2_has_one_scalar_die`: "accuracy, the crit, every secondary, **the stall counter** and the
+> damage roll all read the same `rng()`, so there are TWO corners and not four independent knobs."
+
+Mode A `top-tie-first` pins that die to the corner where every sub-100 move MISSES — a high value —
+and the stall check is `rng() < 1/counter`. **A high pin therefore forces every consecutive-Protect
+roll to FAIL.** Showdown draws its stall check from a separate PRNG call the pin does not force the
+same way, so it succeeds. That is precisely the observed shape: `|-singleturn|p2a|protect <>
+|-fail|p2a`, Showdown succeeded and we failed.
+
+**MEASURED, BOTH CORNERS, THREE CONSECUTIVE TURNS:**
+
+| pin | turn 1 | turn 2 | turn 3 |
+|---|---|---|---|
+| HIGH (0.99, the mode-A top corner) | protect **true** | **false** | true |
+| LOW (0.01, the other corner) | protect **true** | **true** | true |
+
+**The FIRST Protect succeeds under both**, which is the arm that would have exposed a real bug: the
+counter short-circuits at `_ctr <= 1` and draws no die. Only the consecutive roll moves with the pin.
+
+**SO THE REPAIR IS AT THE INSTRUMENT AND NOT AT PROTECT.** Changing the stall probability to make this
+family go green would be reaching for a rate explanation for a rule-mode divergence — the one thing
+the brief warns against — and would break the mechanic on every unpinned run. Two honest options,
+both belonging to whoever owns the differential: give the stall counter its own die so the damage
+corner does not drag it, or record the Protect family as a known pin coupling and exclude it from
+mode A. **`engine/game_differential.js` was not edited.**
+
+The `|cant|p2b|nopp|protect` line is consistent with the same root and is NOT independently
+established: once our Protect fails where Showdown's holds, the two games take different actions and
+consume different PP, so a later `nopp` is a cascade rather than a second defect. Saying which would
+need a run with the stall die decoupled.
+
+### THE STATE
+
+Census **514 -> 515 live, 0 missing**. Damage differential **0/6000 at all three points**. Roster
+re-run against release `96361d523e20`: abilities 120, moves 480, items 139, **0 DIFFER and 0
+DID-NOT-FIRE everywhere**. Game differential 408 of 982 (41.5%), 0 threw, planted proof caught.

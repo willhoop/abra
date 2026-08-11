@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  514/514 probed mechanics live, 0 missing   (census 2026-08-11 19:06)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-11 19:04)
+  515/515 probed mechanics live, 0 missing   (census 2026-08-11 19:12)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-11 19:16)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -46,15 +46,49 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 4ee208fc7816 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 58910fdf1276 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 260/279 probed, 19 unprobed
 ```
 
-_stamped 2026-08-11 19:07_
+_stamped 2026-08-11 19:18_
 
 <!-- /GENERATED -->
+
+## ROADMAP #218 — THE GAME DIFFERENTIAL: RESIDUAL ORDER CLOSED, PROTECT IS A PIN ARTEFACT. 2026-08-11 (twelfth pass).
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md`. For this ledger:
+
+- **Census 514 live / 0 missing -> 515 live / 0 missing.** A DIFFERENT INSTRUMENT: the game
+  differential compares SEQUENCES, where `engine-diff.json` compares NUMBERS. The damage differential
+  reads 0/6000 and always has; both are true and they answer different questions.
+- **RESIDUAL WEATHER ORDER — the largest single mechanism, 17% of all divergences, CLOSED.** The sand
+  chip is `sandstorm.onFieldResidual -> eachEvent('Weather')`, and `eachEvent` speed-sorts
+  `getAllActive()` descending. **This engine had it right in ONE pass and not the other:** #115
+  speed-sorted the CLOCK loop when Will asked whether bodies faint in speed order, and the WEATHER
+  loop one screen above it kept iterating slot order. Every body takes the same 1/16 so every TOTAL
+  agreed — only the sequence differed, which a damage differential structurally cannot see.
+  **`residualOrder()` is now one function both passes ask**, and #115's three inline lines are gone:
+  re-sorting the weather loop in place would have left the same fact written twice.
+  **The family went 80 games across 6 causes to 4 games across 3.** Probe `move/weatherSetter`, with a
+  Trick Room arm that reverses the list exactly.
+- **THE RATE IS NOT THE MEASUREMENT HERE.** 480/1213 (39.6%) -> 408/982 (41.5%); the swarm re-selects
+  between runs, so the attributable number is the cause family, which fell 95%.
+- **A SECOND FAMILY SURFACED AND IS NOT FIXED — sand versus Leftovers, 11 games.** Showdown runs
+  residuals as ONE handler list keyed `(residualOrder, residualSubOrder, speed)`, so it chips every
+  body THEN heals every body; this engine runs one loop per body and interleaves them. The repair is a
+  real restructure of every end-of-turn effect at once and could not be gated inside this pass. Named,
+  not started.
+- **PROTECT IS A PIN ARTEFACT AND MUST NOT BE "FIXED".** The instrument's own `PINS` block says
+  `medicham2_has_one_scalar_die` — accuracy, crits, secondaries, the damage roll **and the stall
+  counter** all read one `rng()`. Mode A's top corner pins that die high so every sub-100 move misses,
+  which necessarily forces every consecutive-Protect roll to FAIL; Showdown draws its stall check
+  separately. Measured at both corners: the **first** Protect succeeds under both (the counter
+  short-circuits and draws no die) and only the consecutive roll moves with the pin. **The repair is
+  at the instrument — give the stall counter its own die, or record the family as a known pin
+  coupling — and `engine/game_differential.js` was not edited.** The `nopp` line is consistent with the
+  same root and is not independently established.
 
 ## ROADMAP #217 — FOUR STALE REASONS, EACH READING LIKE A MEASUREMENT. 2026-08-11 (eleventh pass).
 
