@@ -10,6 +10,36 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [4.10.0] — 2026-08-10
+
+### Added
+- **`engine/faces.js` — what the ADVERSARY must be doing, 27 entries keyed on the tag (ROADMAP #98).**
+  One script ran at every ability — get hit physically, get hit specially, switch out — and against
+  that, **63 legal abilities produce a board byte-identical to not having them.** The roster filed each
+  `COULD-NOT-STAGE — THE STAGING IS INERT`, which reads as a limitation of the game and is a limitation
+  of the fixture: Analytic acts only when the holder moves LAST, Levitate only against a GROUND move,
+  Shield Dust only against a move carrying a SECONDARY. **A test that cannot fail is not evidence, and
+  63 of them were counted as coverage.** Now **35 of 63 have a stated adversary**; 2 are excluded as
+  crit RATE (million games); 26 carry no usable tag, so no adversary can be derived until the rule is
+  written.
+
+### Notes
+- **One fixed target cannot proc everything, and Will asked exactly that.** *"DO WE WANT JUST A FIXED
+  TARGET LIKE FERALIGATR OR MORE VARIED?"* Three different blindnesses: its **moves** (Flower Trick is
+  Meowscarada's alone), its **type** (pure Water blocks nothing by accident — the right default, the
+  wrong universal), and its **ability** (Torrent, so Trace, Receiver, Mummy and Wandering Spirit would
+  be measured against one value forever and pass). **But varying it blindly would be worse than fixing
+  it** — a random adversary makes a green mean something different each run, which is how the roster's
+  control arm came to measure the control instead of the subject (#100). The target varies by TAG;
+  Feraligatr remains the default.
+- **A table must be importable without starting an instrument.** The table was first written inside
+  `all_mechanics_fire.js` with a `module.exports` bolted on. That file RUNS on require, so the probe
+  written to count coverage **began playing games** — it printed the harness banner before it printed
+  an answer. Moved to a data-only module. The same shape as everything else here: the thing that looked
+  like a read was a write.
+
+---
+
 ## [4.9.0] — 2026-08-10
 
 ### Added

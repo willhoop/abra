@@ -3313,3 +3313,45 @@ would be the exact mistake this file's header warns about.
 A self-play corpus in which nobody switches yields **zero** samples for Intimidate-on-entry, hazard
 chip and Regenerator however many games it runs. **Coverage is a property of the ACTION SET, not of
 N** — which is why ROADMAP #63 had to land before this run rather than after.
+
+---
+
+## THE ADVERSARY TABLE — WHY 63 ABILITIES READ AS FINE. ROADMAP #98, 2026-08-10.
+
+**ONE SCRIPT RAN AT EVERY ABILITY**: get hit physically, get hit specially, switch out. Against that,
+**63 legal abilities produce a board byte-identical to not having them**, and the roster files each
+`COULD-NOT-STAGE — THE STAGING IS INERT`. That verdict reads as a limitation of the game. It is a
+limitation of the FIXTURE: Analytic only acts if the holder moves LAST, Levitate only against a GROUND
+move, Shield Dust only against a move carrying a SECONDARY. **A test that cannot fail is not evidence,
+and 63 of them were being counted as coverage.**
+
+`engine/faces.js` is Will's `faces` applied where the boards are built — *"IE WIDE GUARD NEEDS A
+SPREAD MOVE AGAINST IT, ITS POINTLESS TO TEST IF IT DOESNT FACE THAT."* 27 entries, keyed on the TAG so
+an ability added tomorrow inherits its adversary for free.
+
+    35 of 63   now have a stated adversary
+     2         merciless, superluck — a crit RATE, excluded on purpose -> million games
+    26         carry no usable tag, so no adversary can be derived until the rule is written
+
+### WILL'S QUESTION, AND IT IS THE RIGHT ONE
+
+*"DO WE WANT JUST A FIXED TARGET LIKE FERALIGATR OR MORE VARIED? WILL IT PROC EVERYTHING?"*
+
+**It will not**, and the three reasons are three different blindnesses:
+- **its MOVES** — Flower Trick is Meowscarada's alone; Storm Throw, Frost Breath, Spore, Fake Out and
+  Earthquake are not one body's set;
+- **its TYPE** — pure Water was chosen because it has NO immunity and blocks nothing by accident, which
+  is the right DEFAULT and the wrong universal: a Ground immunity needs Ground thrown at it;
+- **its ABILITY** — Torrent, so Trace, Receiver, Mummy and Wandering Spirit would be measured against
+  Torrent every single time and pass while exercising one value.
+
+**But varying it BLINDLY would be worse than fixing it.** A random adversary makes a green mean
+something different every run — which is how the roster's control arm came to measure the CONTROL
+instead of the subject (ROADMAP #100). So the target varies by TAG and Feraligatr stays the default.
+
+### AND A MISTAKE WORTH RECORDING: A TABLE MUST BE IMPORTABLE WITHOUT STARTING AN INSTRUMENT
+
+I first wrote the table INSIDE `all_mechanics_fire.js` and added a `module.exports`. That file RUNS on
+require — so the probe I wrote to count coverage **began playing games**, printing the harness banner
+before it printed an answer. Moved to `engine/faces.js`, data only, no side effects. Small, and the
+same shape as everything else here: the thing that looked like a read was a write.

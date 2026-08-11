@@ -873,6 +873,13 @@ function abControlFor(species, ability) {
  * Everything a tag names is reached by one of these or is reported DID-NOT-FIRE, and DID-NOT-FIRE is a
  * gap in THIS instrument rather than a pass. Every click is read off the built body by `clickOf`. */
 const GAUNTLET_ACTOR_MOVES = ['Facade', 'Endure', 'Rest', 'Substitute'];
+
+/* The adversary table lives in its own module — see engine/faces.js. It is required rather
+ * than defined here because THIS FILE RUNS ON REQUIRE: a probe that merely wanted to read the table
+ * kicked off a whole sweep the first time I tried it. A table is data and must be importable without
+ * starting an instrument. */
+const { FACES, facesFor } = require('./faces.js');
+
 function gauntletScript(bodies, beats) {
   const { actor, ally, receiver, foeAlly } = bodies;
   const hit = clickOf(actor, ['Facade', 'Body Slam', 'Round', 'Protect']);
