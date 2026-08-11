@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T17:18:09.836Z",
+  "generated": "2026-08-11T21:26:38.329Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 491,
-  "live": 491,
+  "probed": 504,
+  "live": 504,
   "missing": 0,
-  "armed": 491,
+  "armed": 504,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -747,6 +747,16 @@
       "label": "Chlorophyll doubles Speed in sun",
       "live": true,
       "detail": "[own Speed, damage taken from a 130-Speed foe on 1 HP] — Chlorophyll no sun 90,96, Chlorophyll in sun 180,0; NO ability in sun 90,96 (must still be hit, or the sun itself is doing it)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "speedCond",
+      "label": "Quick Feet is hastened by a burn the OPPONENT applied, and the order decides the board",
+      "live": true,
+      "detail": "Dragapult (Speed 205) burns a Jolteon with Will-O-Wisp, then both bodies fight on 1 HP. With no ability the Jolteon is \"brn\" at Speed 192, moves SECOND and never fires (foe fainted: false). With QUICK FEET it is still \"brn\" — the ability does not cure anything — at Speed 288, moves FIRST and the foe faints (true). The Jolteon dies to its own burn at end of turn in both arms, which is why the reading is the FOE",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2786,7 +2796,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2997,6 +3007,16 @@
       "label": "a KO raises the killer's highest stat by one",
       "live": true,
       "detail": "total stages after the KO -- ability none 0, Eelevate 1 (+1 to its highest stat)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsOnKO",
+      "label": "Eelevate reads the HIGHEST stat: a Mild 32-SpA body boosts Sp. Atk, not Attack",
+      "live": true,
+      "detail": "[atk stage, spa stage] after a KO on an Eelektross-Mega built SpA 205 / Atk 165 (Mild, 32 SP into Sp. Atk) -- no ability 0,0; EELEVATE 0,1 (highest); MOXIE 1,0 (named). An engine that hardcodes Attack reads 1,0 on the Eelevate arm and fails; the same engine makes the two abilities AGREE, which they must not. The spread itself is asserted (true) so a build change cannot silently return this to an Attack-highest body",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4917,6 +4937,116 @@
       "label": "Future Sight books the hit and lands it TWO turns later",
       "live": true,
       "detail": "[HP off the target, per turn, clicking Future Sight every turn] [0,0,145,0] — must be 0, 0, a hit, 0.  The click turn moves NOTHING; the later clicks FAIL because the slot already holds one; and only the third turn pays out, which is the end of the SECOND turn after the booking",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "buffsHolderOnHit",
+      "label": "Anger Point takes a guaranteed crit to +6 Attack",
+      "live": true,
+      "detail": "Attack stage on the Tauros after ONE Flower Trick (willCrit, so the crit is not a roll) -- no ability 0, ANGER POINT 6 (the handler asks for 12 and the cap is 6). No other stage moved: 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsStatDrop",
+      "label": "Keen Eye refuses Mud-Slap's guaranteed accuracy drop",
+      "live": true,
+      "detail": "[accuracy stage, HP lost] on a ROCK Lycanroc hit by Mud-Slap (Ground, so it connects; four Keen Eye carriers are Flying and would have made both arms agree) -- no ability -1,16; KEEN EYE 0,16. The equal damage is the control that says the move still landed",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "speedCond",
+      "label": "Slush Rush doubles Beartic in snow, and the order decides who lives",
+      "live": true,
+      "detail": "Beartic and a Watchog (Speed 129) both on 1 HP, both clicking a lethal move. NO WEATHER: Beartic is Speed 70, moves second and dies (foe fainted false). SNOW: Speed 140, moves first and survives (foe fainted true). Snow does not chip, so nothing but the order can kill a 1 HP body here",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "priority",
+      "label": "a priority bracket lets a SLOWER body kill first — three brackets, 1 HP each side",
+      "live": true,
+      "detail": "dragonite (Speed 125) against a Garchomp pinned to 140, both on 1 HP: dragonclaw (bracket 0) leaves the foe alive and the subject dead [false/true], extremespeed kills first [true/false]   ;   weavile (Speed 187) against a Garchomp pinned to 202, both on 1 HP: knockoff (bracket 0) leaves the foe alive and the subject dead [false/true], iceshard kills first [true/false]   ;   palafin (Speed 145) against a Garchomp pinned to 160, both on 1 HP: waterfall (bracket 0) leaves the foe alive and the subject dead [false/true], jetpunch kills first [true/false]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsStatDrop",
+      "label": "Flower Veil shields the GRASS ally from Intimidate and leaves its Fairy holder exposed",
+      "live": true,
+      "detail": "[Fairy holder atk stage, GRASS ally atk stage] after an Incineroar switches in and Intimidates -- Florges on SYMBIOSIS -1,-1 (both take it, so the Intimidate demonstrably fired); on FLOWER VEIL -1,0. The holder MUST still drop: Showdown gates the handler on the target having the Grass type and Florges is Fairy",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "protectsAllyFromStatus",
+      "label": "Flower Veil refuses a burn on the GRASS ally and takes one itself",
+      "live": true,
+      "detail": "Will-O-Wisp is target:normal, so this is three separate clicks. At the GRASS Sinistcha with the holder on Symbiosis: \"brn\". At the same Sinistcha with FLOWER VEIL up: \"\". At the FAIRY Florges carrying it: \"brn\" — it does not cover itself. Both typings are burnable, so the middle reading is the ability and nothing else",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesItemLoss",
+      "label": "Sticky Hold keeps the item through Knock Off and Trick, and lets a Sticky Barb go",
+      "live": true,
+      "detail": "Knock Off into a Milotic holding a Life Orb -- no ability leaves it \"\" for 115 damage; STICKY HOLD leaves it \"lifeorb\" for 115 (the damage MUST be equal: Showdown prices Knock Off's x1.5 off the ITEM handler, which the ability never sees). A STICKY BARB still goes: \"\". Trick swaps \"choicescarf\"/\"lifeorb\" with no ability and refuses to move anything with it: \"lifeorb\"/\"choicescarf\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "damageByMoveTrait",
+      "label": "Fluffy halves contact, doubles Fire, and leaves a contact Fire move UNCHANGED",
+      "live": true,
+      "detail": "[HP off a pure-Ghost Houndstone, so no type multiplier is inside these numbers] Dragon Claw (CONTACT, not Fire) 52 -> 26 (halved); Heat Wave (FIRE, not contact) 34 -> 68 (doubled); Flare Blitz (BOTH) 115 -> 115. The third pair being EQUAL is the correct answer and is the arm a one-clause engine fails; the first two are what prove the ability is live on this board at all",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "protectsAllyFromStatus",
+      "label": "Aroma Veil refuses Taunt and Encore for the holder AND the ally, and refuses no status",
+      "live": true,
+      "detail": "[taunt counter on the holder, taunt on the ally, encore on the ally, holder status] -- no ability 2,2,2,brn; AROMA VEIL 0,0,0,brn. The burn MUST still land: this ability names six VOLATILES and no status, and reading its empty status list as \"all\" would have made it a better ability than the real one",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "damageByGender",
+      "label": "Rivalry boosts into the SAME gender, weakens into the opposite, and does nothing genderless",
+      "live": true,
+      "detail": "[HP off an unfaintable Milotic from one Wild Charge] no ability 235 (and 235 across genders, so the gender alone moves nothing); RIVALRY male-into-male 294, male-into-female 177, GENDERLESS 235. The third arm is the fixture this repo has always built — the ability is correctly inert there, which is not the same as absent, and reading it as \"untestable\" was ROADMAP #205's error",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "copiesFoeBoosts",
+      "label": "Opportunist takes the boost the FOE just gained — the right stat, never a drop, never its own",
+      "live": true,
+      "detail": "[Espathra atk stage, spa stage] while a foe boosts and Espathra clicks NOTHING -- no ability after the foe's Swords Dance 0,0 (the foe reached 2,0, so the boost demonstrably happened); OPPORTUNIST after Swords Dance 2,0; after NASTY PLOT 0,2 — the two must differ in WHICH stat or the stat is hardcoded. A foe DROPPING its own Sp. Atk to -2 gives the holder 0 (positive boosts only). Two Opportunists: holder 2, booster 2 — the booster must NOT copy the copy of its own boost",
       "hollow": false,
       "armed": true,
       "directCall": false

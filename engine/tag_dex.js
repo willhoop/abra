@@ -4824,19 +4824,38 @@ const ABILITY_TAGS = [
        + 'or as nothing; the ally half -- the reason either is played -- reached no code',
     of: a => {
       const src = String(a.onAllySetStatus || '').replace(/\s+/g, ' ');
-      if (!src) return null;
+      /* ROADMAP #212 -- A VOLATILE-ONLY MEMBER IS STILL A MEMBER, AND AROMA VEIL IS ONE.
+       *
+       * The gate here was `if (!src) return null`, which requires an `onAllySetStatus`. Aroma Veil has
+       * ONLY `onAllyTryAddVolatile` — it blocks Attract, Disable, Encore, Heal Block, Taunt and
+       * Torment for its whole side and touches no major status at all — so it fell out of the family
+       * it belongs to and carried nothing but `breakable`. Measured before this changed: a Taunt
+       * landed on an Aroma Veil body in both arms.
+       *
+       * `statuses` MUST BE THE EMPTY LIST HERE, NOT 'all'. 'all' is the EXCLUDE shape (Flower Veil:
+       * every status except one), and handing it to a body whose handler names no status at all would
+       * turn Aroma Veil into a blanket status immunity — a strictly better ability than the real one,
+       * which is the exact failure this tag's own header warns about. */
+      const volSrc = String(a.onAllyTryAddVolatile || '').replace(/\s+/g, ' ');
+      if (!src && !volSrc) return null;
       /* The statuses come out of the handler's own equality test or its `includes([...])`. A handler
        * that names none is the EXCLUDE shape (Flower Veil: everything except yawn), and that is
        * recorded as 'all' rather than guessed at -- the two are opposite consumers. */
       const eq = [...new Set([...src.matchAll(/status\.id\s*===?\s*["']([a-z]+)["']/g)].map(m => m[1]))];
       const inc = [...new Set([...src.matchAll(/\[\s*((?:["'][a-z]+["']\s*,\s*)*["'][a-z]+["'])\s*\]\s*\.includes\(\s*status\.id/g)]
         .flatMap(m => m[1].split(',').map(s => s.trim().replace(/["']/g, ''))))];
-      const statuses = eq.length ? eq : (inc.length ? inc : 'all');
+      const statuses = !src ? [] : (eq.length ? eq : (inc.length ? inc : 'all'));
       /* Flower Veil's exclusion, read as an exclusion. `effect.id !== 'yawn'` is a MAJOR-status
        * handler declining one source; it is not a status this ability blocks. */
       const except = [...new Set([...src.matchAll(/effect\.id\s*!==?\s*["']([a-z]+)["']/g)].map(m => m[1]))];
-      const vol = [...new Set([...String(a.onAllyTryAddVolatile || '').replace(/\s+/g, ' ')
-        .matchAll(/status\.id\s*===?\s*["']([a-z]+)["']/g)].map(m => m[1]))];
+      /* BOTH SHAPES, because the two carriers write the list differently: Flower Veil tests
+       * `status.id === 'yawn'` and Aroma Veil tests `[...].includes(status.id)`. Reading only the
+       * first gave Aroma Veil an EMPTY volatile list, which is the same as no ability. */
+      const vol = [...new Set([
+        ...[...volSrc.matchAll(/status\.id\s*===?\s*["']([a-z]+)["']/g)].map(m => m[1]),
+        ...[...volSrc.matchAll(/\[\s*((?:["'][a-z]+["']\s*,\s*)*["'][a-z]+["'])\s*\]\s*\.includes\(\s*status\.id/g)]
+          .flatMap(m => m[1].split(',').map(s => s.trim().replace(/["']/g, ''))),
+      ])];
       return { statuses, except: except.length ? except : null,
                volatiles: vol.length ? vol : null,
                onlyGrassTypes: /hasType\("Grass"\)/.test(src) || null,
@@ -5194,6 +5213,34 @@ const ABILITY_TAGS = [
    * status) and Wonder Guard (tests Status and bare-returns to ALLOW it) -- the exact pair the
    * refusesStatusMoves derivation was already tightened against (LESSONS §4). Survivor:
    * refusesStatusMoves. */
+  /* ROADMAP #212 -- THE EXACT INVERSE OF THE TAG BELOW, AND THAT IS WHY IT IS DERIVED THE SAME WAY.
+   *
+   * `speedOnItemLoss` was tightened to `addVolatile` inside `onTakeItem` precisely because a loose
+   * match caught STICKY HOLD, whose handler exists to REFUSE the loss. That fixed the false positive
+   * and left the real ability with no tag at all: Sticky Hold carried only `breakable`, nothing read
+   * it, and a Knock Off took a Leftovers straight off it — measured before this row existed, both
+   * arms came back with no item.
+   *
+   * The two rules are complementary and both are read off the same handler: `addVolatile` = react to
+   * the loss (Unburden, 5 carriers); `return false` = refuse it (Sticky Hold, 1 carrier). Membership
+   * printed before wiring: those are the only two `onTakeItem` abilities in this format.
+   *
+   * The two exceptions are the handler's own and are carried as params rather than typed into the
+   * engine: a Sticky Barb is still takeable, and the holder spending its OWN item is not a "loss".
+   * Knock Off is named explicitly by the handler as an exception to the source test — it refuses even
+   * when the holder is somehow the source — so `alwaysRefusesKnockOff` records that rather than
+   * letting the engine infer it. */
+  { tag: 'refusesItemLoss', param: 'the holder cannot be stripped of its item', probe: 'onTakeItem',
+    why: 'Sticky Hold. Knock Off is 3,013 corpus clicks and every one of them took the item off a '
+       + 'body that should have kept it, which changes the damage and speed for the rest of the game',
+    of: a => {
+      const src = String(a.onTakeItem || '');
+      if (!src || !/return false/.test(src)) return null;
+      return { refuses: true,
+               exceptItem: (src.match(/pokemon\.item === ['"](\w+)['"]/) || [])[1] || null,
+               exceptOwnUse: /source !== pokemon/.test(src),
+               alwaysRefusesKnockOff: /activeMove\.id === ['"]knockoff['"]/.test(src) };
+    } },
   { tag: 'speedOnItemLoss', param: 'speed x2 once its item is gone', probe: 'unburden',
     why: 'Unburden, 2.23%. A consumed Sash or berry doubles their speed, which flips the order '
        + 'mid-battle and the item tracking now makes observable',
@@ -5574,12 +5621,39 @@ const ABILITY_TAGS = [
       const m = a.onStart && String(a.onStart).match(/setTerrain\(\s*["'](\w+)["']/);
       return m ? { terrain: m[1].replace(/terrain$/, '') } : null;
     } },
+  /* THE CONDITION IS DERIVED, NOT JUST THE MULTIPLIER — ROADMAP #211.
+   *
+   * `inWeather` alone was a boolean in a fraction's clothing: Quick Feet and Surge Surfer came out
+   * `inWeather: []` with a live `speedMult`, and the engine could only refuse them (MEDFAILS
+   * .speedCondUnconditional) because applying the bare multiplier would be Quick Feet x1.5 FOREVER.
+   * A refusal is the right failure and it is still a mechanic that does not work.
+   *
+   * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over every legal onModifySpe carrier in Reg M-B:
+   *   chlorophyll  effectiveWeather() in [sunnyday, desolateland]  -> inWeather, unchanged
+   *   swiftswim    effectiveWeather() in [raindance, primordialsea] -> inWeather, unchanged
+   *   sandrush     isWeather("sandstorm")                           -> inWeather, unchanged
+   *   slushrush    isWeather([hail, snowscape])                     -> inWeather, unchanged
+   *   surgesurfer  isTerrain("electricterrain")                     -> inTerrain ['electric']  NEW
+   *   quickfeet    if (pokemon.status)                              -> whenStatus true          NEW
+   *   slowstart    if (this.effectState.counter)                    -> STILL unconditional, and
+   *                that is correct: it is a turn clock, not a field state, and it has NO legal
+   *                carrier in this format. The engine keeps counting it rather than guessing.
+   * `pokemon.status` matched exactly one ability and no other clause moved — the over-match check
+   * LESSONS §4 demands, run before a line of the engine changed.
+   *
+   * `inTerrain` is stored the way `terrainSetter` stores it (the `terrain` suffix stripped), so both
+   * land on the engine's own `terrainId` words rather than on the board's spelling. */
   { tag: 'speedCond', param: 'speed x2 under a condition', probe: 'onModifySpe',
     why: 'Chlorophyll, Swift Swim, Sand Rush, Slush Rush, Unburden, Quick Feet. Already probed for the speed order',
     of: a => {
       if (!a.onModifySpe) return null;
       const src = String(a.onModifySpe);
-      return { inWeather: weatherIn(src), speedMult: multiplierIn(src) };
+      const ter = [...src.matchAll(/isTerrain\(\s*["'](\w+)["']/g)].map(m => m[1].replace(/terrain$/, ''));
+      return { inWeather: weatherIn(src), inTerrain: ter,
+               /* ANY status, not a named one — the handler tests the field's truthiness. A handler
+                * that named one (`status === 'brn'`) would need its own param and is absent here. */
+               whenStatus: /\.status\b/.test(src) && !/\.status\s*===/.test(src),
+               speedMult: multiplierIn(src) };
     } },
   /* TIGHTENED. `onImmunity` also covers immunity to WEATHER CHIP -- which is why Sand Veil (135
    * uses) and Snow Cloak (219) were being reported as type-immunity abilities when they are evasion
@@ -5769,6 +5843,104 @@ const ABILITY_TAGS = [
         else if (/contact/.test(src)) when = 'contact';
       }
       return { damageMult: mult, onlyWhen: when };
+    } },
+  /* ROADMAP #212 -- FLUFFY, WHICH HAS TWO CLAUSES AND SO FITS NO SINGLE-MULTIPLIER TAG.
+   *
+   * `damageReduce` above requires one multiplier BELOW 1 and one condition. Fluffy's handler builds a
+   * running `mod`: x2 if the move is Fire, x0.5 if it makes contact, and BOTH may apply to the same
+   * move — nine moves in this format do it (Flare Blitz, Fire Punch, Fire Lash, Blaze Kick, Bitter
+   * Blade, Fire Fang, Flame Charge, Heat Crash, Fire Spin's contact-less cousins aside). So the
+   * tag has to be a LIST, and the engine has to multiply rather than pick.
+   *
+   * WHY THAT MATTERS AND WHY THE THIRD ARM IS THE PROBE'S WHOLE POINT: an engine implementing only
+   * one clause is RIGHT on a pure-contact hit and RIGHT on a contact-less Fire hit, and WRONG only on
+   * the one that is both — where the true answer is NET x1. Will named it: "have houndstone get hit
+   * by a fire move and other contact moves and check the damage".
+   *
+   * A CONDITION THIS RULE CANNOT EXPRESS EMITS NOTHING AT ALL, rather than a partial clause list. A
+   * half-read Fluffy is a different and better ability, which is the failure mode `damageReduce`'s
+   * own header describes. Membership printed before wiring: over every legal ability in Reg M-B this
+   * matches ONLY fluffy — every other `onSourceModifyDamage` carrier uses a single guarded
+   * `chainModify` and no `mod` accumulator. */
+  /* ROADMAP #212 -- RIVALRY, AND IT NEEDS BOTH BRANCHES OR IT IS A DIFFERENT ABILITY.
+   *
+   * `damageBoost` carries ONE multiplier and one condition, so it can only ever hold the x1.25 half.
+   * Rivalry's handler has an `else`: same gender x1.25, OPPOSITE gender x0.75, and genderless x1
+   * because the guard `attacker.gender && defender.gender` fails. An engine wired to the boost alone
+   * would be strictly better than the real ability against half the field.
+   *
+   * IT IS NOT UNREACHABLE, WHICH IS A CORRECTION. ROADMAP #205 registered gender-keyed mechanics as
+   * untestable because every fixture in the repo declares `gender: 'N'` — but that is a CHOICE the
+   * harness made, not a property of the format. `genderOf()` already exists in the engine (Attract
+   * and Cute Charm read it), so a probe that declares two genders can reach this.
+   *
+   * Legal carriers, derived: Luxray (M/F 50-50) and Pyroar (M/F 12.5/87.5). Both take a declared
+   * gender. The genderless arm is the CURRENT fixture, which is exactly why the row read inert — the
+   * ability was correctly doing nothing. */
+  /* ROADMAP #212 -- OPPORTUNIST, AND IT IS THE TAG-SPLIT LESSON AGAIN.
+   *
+   * The ability already carried `boostsEachTurn {perTurn: true}`, derived from its `onResidual`. That
+   * derivation is not wrong, it is HALF: `onResidual` is one of FIVE places the ability PAYS OUT
+   * (`onAnySwitchIn`, `onAnyAfterMega`, `onAnyAfterTerastallization`, `onAnyAfterMove`, `onResidual`),
+   * and every one of them reads `this.effectState.boosts`. The half that fills that object is
+   * `onFoeAfterBoost`, and nothing described it — so one label stood for two rules and the engine
+   * consumed the one that cannot fire on its own. A `boostsEachTurn` consumer looking for `boosts`
+   * finds none and correctly does nothing, forever.
+   *
+   * SO IT IS A NEW TAG, NOT A WIDENED ONE. `boostsEachTurn` genuinely means Speed Boost's "a stat
+   * rises every turn with no action spent"; Opportunist's stat does not rise every turn, it rises
+   * when the FOE's does.
+   *
+   * MEMBERSHIP PRINTED FIRST, over the whole dex and not only the legal slice: exactly ONE ability
+   * carries `onFoeAfterBoost` (Opportunist, carrier Espathra) and exactly one ITEM does (Mirror Herb,
+   * `isNonstandard: 'Past'` — banned here). Identical handlers; the item twin is named so that a
+   * regulation restoring it needs no new rule, only an items-side derivation.
+   *
+   * THE THREE GUARDS ARE THE HANDLER'S OWN. Only POSITIVE boosts are collected (`if (boost[i] > 0)`);
+   * a boost sourced from Opportunist or Mirror Herb is ignored, which is what stops two of them
+   * feeding each other forever; and the payout is `this.boost(...)` on the holder, so it is an
+   * ordinary boost from there on and everything that answers an ordinary boost still answers it. */
+  { tag: 'copiesFoeBoosts', param: 'the holder banks whatever POSITIVE boost a foe gained, and takes it itself', probe: 'onFoeAfterBoost',
+    why: 'Opportunist. A stat rises on a body that clicked nothing, which no other tag in this family '
+       + 'can express - boostsEachTurn describes the PAYOUT half and cannot fire on its own',
+    of: a => {
+      const src = String(a.onFoeAfterBoost || '').replace(/\s+/g, ' ');
+      if (!src) return null;
+      const ignores = [...new Set([...src.matchAll(/effect\?\.name === ["']([^"']+)["']/g)].map(m => m[1]))];
+      return { positiveOnly: /boost\[i\]!? > 0/.test(src),
+               ignoresSources: ignores.length ? ignores : null,
+               /* WHERE it pays out, read off the handler list rather than assumed to be end-of-turn:
+                * the same object is drained by onAnyAfterMove, so the copy lands in the SAME turn. */
+               paysOutAfterMove: !!a.onAnyAfterMove,
+               paysOutOnResidual: !!a.onResidual };
+    } },
+  { tag: 'damageByGender', param: 'base power scaled by whether the two genders match', probe: 'onBasePower',
+    why: 'Rivalry. Two carriers, and the row read INERT because every fixture in this repo is genderless '
+       + '- which is the ability correctly doing nothing, not the ability being absent',
+    of: a => {
+      const src = String(a.onBasePower || '').replace(/\s+/g, ' ');
+      if (!/attacker\.gender/.test(src) || !/defender\.gender/.test(src)) return null;
+      const m = src.match(/attacker\.gender === defender\.gender.*?chainModify\(([\d.]+)\).*?else.*?chainModify\(([\d.]+)\)/);
+      if (!m) return null;
+      return { sameMult: +m[1], oppositeMult: +m[2], genderlessMult: 1 };
+    } },
+  { tag: 'damageByMoveTrait', param: 'damage taken scaled by properties of the incoming MOVE, multiplicatively', probe: 'onSourceModifyDamage',
+    why: 'Fluffy. Two clauses that can both fire on one move, so a single-multiplier tag cannot hold it',
+    of: a => {
+      const src = String(a.onSourceModifyDamage || '').replace(/\s+/g, ' ');
+      if (!src || !/\bmod\b/.test(src)) return null;
+      const clauses = [];
+      const re = /if\s*\(([^)]+)\)\s*mod\s*([*/])=\s*([\d.]+)/g;
+      let m;
+      while ((m = re.exec(src))) {
+        const mult = m[2] === '*' ? +m[3] : 1 / (+m[3]);
+        const ty = m[1].match(/move\.type\s*===\s*["'](\w+)["']/);
+        const fl = m[1].match(/move\.flags\[["'](\w+)["']\]/);
+        if (ty) clauses.push({ moveType: ty[1], mult });
+        else if (fl) clauses.push({ moveFlag: fl[1], mult });
+        else return null;                    /* unreadable condition -> no tag, not a partial one */
+      }
+      return clauses.length ? { clauses, multiplicative: true } : null;
     } },
   { tag: 'boostsMoveClass', param: 'x1.2-1.5 on moves carrying ONE FLAG', probe: 'boostsMoveClass',
     why: 'Tough Claws (contact, 272 uses), Sharpness (slicing, 155), Iron Fist (punch), Mega '

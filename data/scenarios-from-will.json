@@ -61,7 +61,10 @@
       "click": "opponent uses Toxic",
       "observable": "Gliscor HEALS at end of turn instead of taking poison damage",
       "gotcha": "TOXIC ORB IS BANNED IN THIS FORMAT, so the usual self-inflicting fixture is impossible. Will: 'gliscor is in the game its just useless without its toxic orb'. The poison must come from the opponent.",
-      "from": "WILL 2026-08-11"
+      "gotcha_headroom": "WILL 2026-08-11: 'we need gliscor to be hurt a little so the poison heal actually heals'. THE BODY MUST BE DAMAGED FIRST. At full HP the heal is clamped at max, the board comes back identical, and the row reads FIRED-AND-BOARDS-MATCH off an arm that could not move — the same shape as two arms agreeing when they had no way to differ. The control arm is the same damaged, poisoned body WITHOUT Poison Heal, whose HP must go DOWN: up versus down, never up versus unchanged.",
+      "generalisation": "THIS IS NOT A GLISCOR QUIRK. Every healing, draining or regenerating mechanic needs headroom before the heal is observable — Leftovers, Leech Seed, Aqua Ring, Ingrain, Shell Bell, Regenerator, Rest, Wish, Grassy Terrain's tick, Black Sludge, Cheek Pouch, Ripen's heal berries. A heal at full HP is invisible in exactly the way a refused move was invisible before PP was compared. Any handler-to-board mapping built from onResidual must carry a LEAVE HEADROOM step, not just a trigger.",
+      "from": "WILL 2026-08-11",
+      "engine_status_2026_08_11": "WIRED. tests/test-mechanics.js probe ability/healsFromOwnStatus already stages it exactly this way: Gliscor placed at half HP, Glimmora clicks Toxic from the other side, and the two arms read GAINS 18 then 18 against LOSES 9 then 18. Sableye was rejected as the caster because getLearnsetData('sableye').toxic is false in this format."
     },
     {
       "id": "megasol-weatherball-is-always-fire",
@@ -179,6 +182,125 @@
       "bonus": "Vivillon carries Shield Dust / COMPOUND EYES / Friend Guard. Compound Eyes was on the list of abilities needing a human-designed board, and it sits on this same body — so its control arm is an ability swap on a fixture that already exists.",
       "gotcha": "Kangaskhan's abilities are Early Bird / Scrappy / INNER FOCUS. Inner Focus prevents flinching. On the ATTACKER it is harmless, but anyone mirroring this board would silently lose the observable. Pin the attacker's ability explicitly rather than taking slot 0.",
       "from": "WILL 2026-08-11"
+    },
+    {
+      "id": "priority-brackets-at-1-hp",
+      "tests": [
+        "extremespeed",
+        "iceshard",
+        "jetpunch"
+      ],
+      "board": "BOTH bodies on 1 HP. The subject clicks the priority move; a FASTER opponent clicks an ordinary damaging move it can legally learn.",
+      "click": "the priority move (Extreme Speed +2, Ice Shard +1, Jet Punch +1)",
+      "observable": "WHO IS ALIVE at the end of the turn. With the bracket the subject moves first and the opponent faints; with a priority-0 move on the same body the faster opponent moves first and the SUBJECT faints.",
+      "why_it_discriminates": "WILL 2026-08-11: 'i mean cant you have mons at 1 hp and then have them ko each other with the prio moves to test it'. The rows read COULD-NOT-STAGE because a bracket is only observable if the ORDER decides the final board. At 1 HP it always does, BY CONSTRUCTION, and no damage number is tuned - so the row cannot quietly stop discriminating when a base power moves. Two bodies, opposite outcomes: neither arm can read identical, one of them is a corpse.",
+      "gotcha": "Focus Sash and Sturdy must not be on either body; no residual damage of any kind (poison, burn, hazards, sandstorm, Leech Seed) or the row measures the weather instead of the order; verify the speed order in BOTH arms explicitly and print it.",
+      "generalisation": "1 HP IS THE UNIVERSAL WAY TO MAKE TURN ORDER DECIDE A BOARD. Anything blocked on \"the order does not change the outcome\" - Stall, Quick Draw, Quick Claw, After You, Quash, Trick Room - can use it.",
+      "from": "WILL 2026-08-11",
+      "engine_status_2026_08_11": "WIRED. Probe move/priority runs all three: Dragonite/Extreme Speed, Weavile/Ice Shard, Palafin/Jet Punch, each against a Garchomp pinned 15 Speed above it. fixture_preflight REFUSED the first target - Dragapult is Ghost and IMMUNE to Normal, so Extreme Speed into it would have made both arms agree."
+    },
+    {
+      "id": "angerpoint-takes-a-guaranteed-crit",
+      "tests": [
+        "angerpoint"
+      ],
+      "board": "Meowscarada (the only legal Flower Trick learner) fires Flower Trick into an Anger Point body. Prefer a NEUTRAL carrier: Tauros (Normal), Tauros-Paldea-Combat (Fighting) or Camerupt (Fire/Ground).",
+      "click": "Flower Trick",
+      "observable": "Attack goes to +6. The handler asks for TWELVE stages and the cap is six.",
+      "why_it_discriminates": "WILL 2026-08-11: 'yeah have flower trick go into anger point'. Flower Trick is willCrit, so the crit is guaranteed and no die is involved - the same escape the crit-immunity board uses.",
+      "gotcha": "Tauros-Paldea-Blaze RESISTS Grass; Tauros-Paldea-Aqua and Krookodile take double. The handler says \"not its substitute\", so nothing may put a Substitute up.",
+      "from": "WILL 2026-08-11",
+      "engine_status_2026_08_11": "WIRED, probe ability/buffsHolderOnHit."
+    },
+    {
+      "id": "keeneye-mudslap-on-a-non-flying-carrier",
+      "tests": [
+        "keeneye"
+      ],
+      "board": "Any Mud-Slap user into a NON-FLYING Keen Eye carrier: Sableye, Watchog, Meowstic, Meowstic-F, Lycanroc, Lycanroc-Midnight.",
+      "click": "Mud-Slap",
+      "observable": "the target accuracy stage stays at 0 where a non-Keen-Eye control drops to -1, and the DAMAGE is identical in both arms so the move demonstrably landed.",
+      "why_it_discriminates": "WILL 2026-08-11: 'have someone use mud slap to test keen eye', then 'its gonna have to be on a non flying type tho'. Mud-Slap drop is secondaries [{chance: 100, boosts: {accuracy: -1}}] - a certainty, no die.",
+      "gotcha": "MUD-SLAP IS GROUND and four of the ten Keen Eye carriers are FLYING and immune - Pidgeot, Skarmory, Pelipper, Toucannon. On any of those both arms read identical for a reason that has nothing to do with the ability. This is the SECOND time this exact pairing nearly produced false coverage; the first was Shield Dust on a Bug/Flying Vivillon.",
+      "from": "WILL 2026-08-11",
+      "engine_status_2026_08_11": "WAS BROKEN, NOW WIRED. preventsStatDrop carried blocks accuracy and the engine had no row mapping that to a stat, so Keen Eye and Illuminate refused nothing. Probe ability/preventsStatDrop."
+    },
+    {
+      "id": "slushrush-beartic-in-snow",
+      "tests": [
+        "slushrush"
+      ],
+      "board": "Beartic (the only carrier) with snow up, against an opponent faster than 70 and slower than 140, both bodies on 1 HP.",
+      "click": "a lethal move on each side",
+      "observable": "who is alive. With snow Beartic moves first and survives; without it moves second and faints.",
+      "why_it_discriminates": "WILL 2026-08-11: 'have beartic in the snow and see if its speed is doubled'. Snowscape and Chilly Reception are both legal, so the weather needs no second live ability on the board.",
+      "gotcha": "Snow does not chip in this generation, which is what makes a 1 HP body safe here. Sand would have killed both bodies before the question was asked.",
+      "from": "WILL 2026-08-11",
+      "engine_status_2026_08_11": "WIRED, probe ability/speedCond."
+    },
+    {
+      "id": "fluffy-three-arms",
+      "tests": [
+        "fluffy"
+      ],
+      "board": "Houndstone (the only carrier, pure GHOST so Fire and Dragon are both neutral into it) takes three different hits.",
+      "click": "arm 1 contact and NOT Fire (Dragon Claw); arm 2 Fire and NOT contact (Heat Wave); arm 3 BOTH (Flare Blitz)",
+      "observable": "HALVED, DOUBLED, and NET UNCHANGED respectively.",
+      "why_it_discriminates": "WILL 2026-08-11: 'have houndstone get hit by a fire move and other contact moves and check the damage'. The handler is mod = 1, Fire x2, contact /2. An engine implementing ONE clause is right on arms 1 and 2 and wrong only on arm 3, so a two-arm probe passes a half-built ability.",
+      "from": "WILL 2026-08-11",
+      "engine_status_2026_08_11": "WAS BROKEN, NOW WIRED. Fluffy carried only breakable - damageReduce requires ONE multiplier below 1 and cannot hold a two-clause handler. New tag damageByMoveTrait carries the clause LIST. Probe ability/damageByMoveTrait."
+    },
+    {
+      "id": "rivalry-with-real-genders",
+      "tests": [
+        "rivalry"
+      ],
+      "board": "Luxray (M/F 50-50) or Pyroar attacks a target whose gender is DECLARED. Three arms: same gender, opposite gender, genderless.",
+      "click": "any damaging move",
+      "observable": "x1.25 same, x0.75 opposite, x1.0 genderless.",
+      "why_it_discriminates": "WILL 2026-08-11: 'i mean rivalry is stupid but it should be easy to check against other genders'. The genderless arm is the CURRENT fixture, which is why the row read inert - the ability was correctly doing nothing. An engine that ignores gender passes arm 3 and fails 1 and 2.",
+      "gotcha": "ROADMAP #205 called gender-keyed mechanics untestable by construction because every fixture declares gender N. That is a CHOICE THE HARNESS MADE, not a constraint - RETRACTED. Giving fixtures a gender also unblocks Cute Charm and Attract.",
+      "from": "WILL 2026-08-11",
+      "engine_status_2026_08_11": "WAS UNWIRED, NOW WIRED. New tag damageByGender carries BOTH branches; damageBoost holds one multiplier and cannot express the else. Probe ability/damageByGender."
+    },
+    {
+      "id": "flowerveil-the-holder-is-the-discriminator",
+      "tests": [
+        "flowerveil"
+      ],
+      "board": "Florges (FAIRY) and Sinistcha (Grass/Ghost) out together. Board 3: Incineroar switches in and Intimidates. Board 4: Incineroar clicks Will-O-Wisp, at each body separately.",
+      "click": "Intimidate on entry; then Will-O-Wisp",
+      "observable": "the GRASS ally is untouched and the FAIRY holder is NOT - Attack -1 on Florges and unmoved on Sinistcha, and the burn lands on Florges and is refused on Sinistcha.",
+      "why_it_discriminates": "FLORGES IS FAIRY. IT DOES NOT PROTECT ITSELF - the handler is gated on target.hasType Grass. One field kills three wrong implementations at once: protects-the-side, protects-the-holder, and protects-nothing.",
+      "gotcha": "Sinistcha own slots are Hospitality and Heatproof, neither of which touches Intimidate or a burn, so the attribution is clean. Both typings are burnable, so a no-burn reading can only be the ability.",
+      "from": "WILL 2026-08-11",
+      "engine_status_2026_08_11": "THE STAT HALF WAS BROKEN AND IS NOW WIRED - preventsStatDrop.protectsAllies had one carrier and NO reader, while the status and volatile halves of the same ability had been wired months earlier. Probes ability/preventsStatDrop and ability/protectsAllyFromStatus."
+    },
+    {
+      "id": "magmaarmor-is-a-rate-row",
+      "tests": [
+        "magmaarmor"
+      ],
+      "board": "Throw Blizzards at Camerupt in the RATE RUNNER, not on the roster.",
+      "click": "Blizzard",
+      "observable": "ZERO freezes on the Magma Armor arm, and a rate consistent with 7% on the Solid Rock arm. A zero on BOTH arms is a failed instrument, not a pass.",
+      "why_it_discriminates": "WILL 2026-08-11: 'magma armor is a rate run where we throw blizzards at camerupt and make sure it never freezes'. Camerupt is the SOLE carrier, so the control arm is the same body on a different slot - Solid Rock or Anger Point.",
+      "gotcha": "FIRE TYPES ARE NOT FREEZE-IMMUNE - getImmunity(frz, Fire) is true; only ICE blocks freeze, Fire blocks BURN. So the control arm can actually freeze. Effective proc is 0.70 accuracy x 0.10 secondary = 7%, NOT 10% - derive the trial count off 0.07 or the run is underpowered.",
+      "from": "WILL 2026-08-11",
+      "engine_status_2026_08_11": "NOT DONE - it belongs to the staged rate arm (#196), not to ENGINE this pass."
+    },
+    {
+      "id": "opportunist-copies-the-foes-boost",
+      "tests": [
+        "opportunist"
+      ],
+      "board": "A foe clicks a boosting move in front of Espathra (the only carrier).",
+      "click": "Swords Dance (atk +2), then in a second arm Nasty Plot (spa +2)",
+      "observable": "a stat rises on a body that CLICKED NOTHING - +2 Attack in the first arm and +2 Sp. Atk in the second.",
+      "why_it_discriminates": "WILL 2026-08-11: 'have a mon use swords dance or something in front of espathra and see if it copies it'. TWO arms that differ in STAT, because an engine that copies the right amount to the wrong stat passes a one-arm version.",
+      "gotcha": "The handler explicitly ignores boosts sourced from Opportunist or Mirror Herb so it cannot feed itself. Mirror Herb is the same mechanic but is BANNED here (isNonstandard Past), so Opportunist is the only carrier of the shape.",
+      "from": "WILL 2026-08-11",
+      "engine_status_2026_08_11": "STILL BROKEN AND NOT FIXED THIS PASS. Measured: Espathra copies nothing. Its tag is boostsEachTurn perTurn with no boosts - that derivation reads its onResidual, which is only the PAYOUT half; the collection half is onFoeAfterBoost and no tag describes it. Needs a new tag plus a same-turn payout, which is a delayed-effect ordering question, so it was not attempted beside a green gate."
     }
   ],
   "rejected_scenarios_kept_as_warnings": [

@@ -577,8 +577,13 @@ function resolveKey(raw) {
      * expected; a THROW means the key builder itself broke, which is not. */
     key = null; bump(EXCEPTIONS, 'resolveKey/mcKey threw: ' + String(e.message).slice(0, 120));
   }
-  if (key && MC.mons[key]) return { key, how: 'mc_key' };
-  if (MC.mons[id(raw)]) return { key: id(raw), how: 'raw id' };
+  /* MEMBERSHIP AND THE RAW-ID FALLBACK BOTH GO THROUGH `mcKey.row`. They used to index `MC.mons`
+   * directly, which tests/test-mc-key.js bans — and the second line was a genuine second doorway,
+   * not merely a membership test: `id(raw)` is this file's own normaliser answering the question
+   * `mcKey` is the single answer to. */
+  const MAY = { mayMiss: 'a stored game may name a forme MC.mons has no row for' };
+  if (key && mcKey.row(key, MAY)) return { key, how: 'mc_key' };
+  if (mcKey.row(id(raw), MAY)) return { key: id(raw), how: 'raw id' };
   /* DEHYPHENATED EXACT MATCH. `MC.mons` keys `charizard-mega-y` and the store normalises to
    * `charizardmegay`; `mcKey` bridges that through Showdown's dex, WHICH IS NOT INSTALLED ON EVERY
    * MACHINE — it prints "cosmetic-forme aliases unavailable" and returns null. That is a silent
@@ -630,7 +635,7 @@ function bodyFor(species, sets, opts) {
   b._replayFlags = flags;
   b._replaySpecies = raw;
   b._replayKey = key;
-  b._replayBS = (MC.mons[key] && MC.mons[key].bs) || null;
+  b._replayBS = ((mcKey.row(key, { mayMiss: 'the record may name a forme the table has no row for' }) || {}).bs) || null;
   b._replayNature = (opts && opts.nature) || null;
   return b;
 }
@@ -1546,10 +1551,12 @@ function speedCorner(body, side, which) {
 /* THE SUBSTITUTE POOL IS DERIVED FROM THE TABLE, NOT TYPED. Slowest first; megas and regional formes
  * are excluded because a mega event in the record would overwrite the substitution one line later. */
 const SLOW_POOL = (() => {
-  const ks = Object.keys(MC.mons || {}).filter(k => !/-/.test(k) && MC.mons[k] && MC.mons[k].bs
-                                                    && typeof MC.mons[k].bs.spe === 'number');
-  ks.sort((a, b) => MC.mons[a].bs.spe - MC.mons[b].bs.spe);
-  return ks.slice(0, 60);
+  /* Enumerated through `mcKey.all()`, which hands back ENTRIES — so the pool is built from rows we
+   * were given rather than from keys we then index the raw table with. */
+  const rows = (mcKey.all({ mayMiss: 'the substitute pool needs the whole table' }) || [])
+    .filter(([k, row]) => !/-/.test(k) && row && row.bs && typeof row.bs.spe === 'number');
+  rows.sort((a, b) => a[1].bs.spe - b[1].bs.spe);
+  return rows.slice(0, 60).map(([k]) => k);
 })();
 const priorityCarrier = (b) => !!b && (PRIORITY_MOD.has('abilities:' + id(b.ability || ''))
                                     || PRIORITY_MOD.has('items:' + id(b.item || '')));

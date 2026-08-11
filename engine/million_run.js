@@ -714,8 +714,11 @@ function dumpStatusTrial(key, expect, fired, b, T, tid, r, def, att, half, st) {
 }
 
 /* ---- ONE GAME ------------------------------------------------------------------------------------ */
-const SPECIES = Object.keys(MC.mons);
-const WEIGHTS = SPECIES.map(s => Math.max(1, +(MC.mons[s].wt || 1)));
+/* ENUMERATION THROUGH THE RESOLVER, not `Object.keys(MC.mons)` — `mcKey.all()` hands back ENTRIES
+ * precisely so a caller holding a list of keys cannot go back to indexing the raw table. */
+const ROWS = REL.require('engine/mc_key.js').mcKey.all({ mayMiss: 'the weighted sampler needs the whole table' }) || [];
+const SPECIES = ROWS.map(([k]) => k);
+const WEIGHTS = ROWS.map(([, row]) => Math.max(1, +((row && row.wt) || 1)));
 const WSUM = WEIGHTS.reduce((a, b) => a + b, 0);
 function pickSpecies(rng) {
   let r = rng() * WSUM;
@@ -1641,11 +1644,14 @@ function stagedDex() {
    * not cover the whole format — Quick Draw's single legal carrier has no row in it, which is why
    * that row comes out COULD-NOT-STAGE with a derived reason rather than a zero. */
   const rowKey = (sp) => {
+    const MAY = { mayMiss: 'a staged fixture skips a species the engine has no row for' };
     let k = null;
-    try { k = mcKey(sp.id, { mayMiss: 'a staged fixture skips a species the engine has no row for' }); }
-    catch (e) { k = null; }
+    try { k = mcKey(sp.id, MAY); } catch (e) { k = null; }
     k = k || sp.id;
-    return MC.mons[k] ? k : null;
+    /* MEMBERSHIP THROUGH THE RESOLVER. This used to read `MC.mons[k] ? k : null`, which is the one
+     * doorway tests/test-mc-key.js bans — and the ban is right even here, where `k` came from
+     * `mcKey`: the regex cannot tell this from `MC.mons[norm(x)]` and must not try. */
+    return mcKey.row(k, MAY) ? k : null;
   };
   /* THE QUIET ABILITIES — every legal ability registering NO handler at all, minus the five that act
    * anyway through a field the engine reads directly. Same derivation and same exclusions as

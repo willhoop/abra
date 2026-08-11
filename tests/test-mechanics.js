@@ -2968,6 +2968,66 @@ probe('ability', 'speedCond', 'Chlorophyll doubles Speed in sun', () => {
                  + `be hit, or the sun itself is doing it)` };
 });
 
+/* WILL'S BOARD — data/scenarios-from-will.json "quickfeet-needs-a-non-paralysis-status", AND IT WAS
+ * DEAD IN THIS ENGINE. ROADMAP #211.
+ *
+ * `speedCond` could only evaluate ONE kind of condition, `inWeather`. Quick Feet's condition is a
+ * STATUS, so the artifact carried `inWeather: []` with a live `speedMult: 1.5` and the engine refused
+ * it into MEDFAILS.speedCondUnconditional — the honest failure, and still an ability that did
+ * nothing. Shown red before a line moved: this exact board read Speed 192 in BOTH arms.
+ *
+ * THE OPPONENT APPLIES THE STATUS, AND IT MUST BE A BURN. Will: "jolteon cant be paralyzed we have to
+ * burn it or something. Also: the status move belongs on the OPPONENT, not on the subject."
+ * `fixture_preflight` agrees for a derived reason — Jolteon is Electric, so par can never land, and a
+ * self-inflicted status would be a second mechanic inside the fixture.
+ *
+ * Authority: data/abilities.ts:3738 — `onModifySpe(spe, pokemon) { if (pokemon.status) return
+ * this.chainModify(1.5); }`. No Champions override (checked in data/mods/champions/abilities.ts).
+ *
+ * THE OBSERVABLE IS A SPEED ORDER, NOT A LEAF, and it is read as WHO IS ALIVE using Will's 1 HP
+ * idiom: "cant you have mons at 1 hp and then have them ko each other". Dragapult is genuinely
+ * faster than this Jolteon (205 against 192) and slower than a hastened one (288), so the bracket of
+ * the fight is decided by the ability and nothing else. Both speeds are asserted, so a dataset change
+ * that removed the gap fails this row instead of quietly making both arms agree again.
+ *
+ * WHY `foeDied` AND NOT `meDied`: at 1 HP the burn residual kills the Jolteon at the END of the turn
+ * in BOTH arms, which is correct behaviour and says nothing about order. What separates them is
+ * whether the Thunderbolt ever happened. Neither body holds Focus Sash or Sturdy — `bare` blanks the
+ * item and the ability — and no weather, hazard or Leech Seed is on the board, so nothing else can
+ * chip a 1 HP body before the question is asked. */
+probe('ability', 'speedCond', 'Quick Feet is hastened by a burn the OPPONENT applied, and the order decides the board', () => {
+  const run = (ab) => {
+    const me = bare('jolteon'); me.ability = ab;
+    const ally = bare('farigiraf');
+    const f1 = bare('dragapult'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    /* turn 1: the burn comes from the other side. Every other body clicks nothing (the noise rule). */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'willowisp', me, S.field)], [f2, { kind: 'pass' }]]));
+    const st = me.status;
+    const speMe = M.effSpeed(me, S.field, 'A'), speFoe = M.effSpeed(f1, S.field, 'B');
+    /* turn 2: both on 1 HP, so whoever moves first wins outright. */
+    me.curHP = 1; f1.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'thunderbolt', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'breakingswipe', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { st, speMe, speFoe, foeDied: f1.fainted };
+  };
+  const off = run('none'), on = run('quickfeet');
+  return { works: off.st === 'brn' && on.st === 'brn'          /* the burn landed in BOTH arms */
+                  && off.speMe === 192 && off.speFoe === 205   /* unhastened, the foe is faster */
+                  && on.speMe === 288                          /* 192 x 1.5, the artifact's own mult */
+                  && off.foeDied === false && on.foeDied === true,
+           arms: { control: [off.speMe, off.foeDied], test: [on.speMe, on.foeDied] },
+           detail: 'Dragapult (Speed ' + off.speFoe + ') burns a Jolteon with Will-O-Wisp, then both '
+                 + 'bodies fight on 1 HP. With no ability the Jolteon is "' + off.st + '" at Speed '
+                 + off.speMe + ', moves SECOND and never fires (foe fainted: ' + off.foeDied
+                 + '). With QUICK FEET it is still "' + on.st + '" — the ability does not cure '
+                 + 'anything — at Speed ' + on.speMe + ', moves FIRST and the foe faints ('
+                 + on.foeDied + '). The Jolteon dies to its own burn at end of turn in both arms, '
+                 + 'which is why the reading is the FOE' };
+});
+
 /* ONE-ARMED UNTIL 2026-08-04, AND FOUND BY THE IDENTICAL-ARMS SCAN AT THE BOTTOM OF THIS FILE. It read
  * `target atk stage after Charm: 0 (0 = refused)` — and 0 is also what an engine that never applied
  * Charm at all would print. The control is the same board with the ability off, and it must show the
@@ -8736,7 +8796,10 @@ probe('item', 'addsFlinch', "King's Rock flinches on its 10%, and Sheer Force de
  * would have been green throughout the defect's whole life. */
 probe('ability', 'formeChangeKeepsNature', 'a mid-battle forme change re-applies the spread under the body\'s own nature', () => {
   const line = (key, nature) => {
-    const row = (global.MC && global.MC.mons && global.MC.mons[key]) || null;
+    /* Through the resolver, not `MC.mons[key]` — tests/test-mc-key.js bans the second doorway even
+     * when the caller holds a literal, because the regex cannot tell a literal from a normalised
+     * guess and a regex that tried would let the guess through. */
+    const row = require(D('engine', 'mc_key.js')).mcKey.row(key, { mayMiss: 'the probe asserts on a row it expects to exist' });
     if (!row || !row.bs) throw new Error('no base stats for ' + key);
     return M.natureL50(row.bs, nature);
   };
@@ -8987,6 +9050,78 @@ probe('ability', 'boostsOnKO', 'a KO raises the killer\'s highest stat by one', 
   return { works: off === 0 && on === 1,
            arms: { control: off, test: on },
            detail: `total stages after the KO -- ability none ${off}, Eelevate ${on} (+1 to its highest stat)` };
+});
+
+/* WILL'S BOARD — data/scenarios-from-will.json "eelevate-boosts-highest-stat-on-ko", AND THE PROBE
+ * DIRECTLY ABOVE COULD NOT SHOW IT.
+ *
+ * That one sums EVERY stage on a Garchomp, whose highest raw stat is Attack. An engine that ignored
+ * `{stat:'highest'}` and hardcoded Attack scores 1 there and passes. Will's spread is the arm that
+ * separates them, and he had to correct my first reading of it: 32 SP + Gentle gives SpD 156 against
+ * Atk 165 and does NOT discriminate, from which I wrongly generalised that no non-attack stat can win
+ * on this carrier. Sp. ATTACK does.
+ *
+ * DERIVED, NOT RECALLED. `Dex.forFormat('gen9championsvgc2026regmb').species.get('eelektross-mega')`
+ * has baseStats atk 145 / spa 135, so at L50 with auto-31 IVs the bare stats are 165 and 155; 32 SP
+ * into Sp. Atk with a Mild nature (+SpA/-Def) reads floor((155+32)*1.1) = 205 against an untouched
+ * 165 — a 40-point gap the wrong engine cannot fake. The build is asserted below rather than
+ * described, so a change to the paste path or the nature chart fails this row loudly instead of
+ * quietly restoring an Attack-highest body and turning the probe back into the weak one.
+ *
+ * Eelevate is the ONLY legal member of `boostsOnKO` carrying `stat: 'highest'` (Moxie names `atk`;
+ * Beast Boost's own carriers are not in this format), so this is the one board in Reg M-B where the
+ * read-the-best-stat branch is reachable at all.
+ *
+ * SHOWN RED FIRST, through the artifact rather than the source: with
+ * `abilities.eelevate.params.boostsOnKO.stat` forced to 'atk' via TAGS.__setDB the same board returns
+ * at 1 / sa 0 and this assertion fails. The arms therefore cannot agree by accident.
+ *
+ * NOISE RULE: the ally and both foes click nothing, and the second Milotic is made unfaintable so a
+ * spread of any kind could not turn this into a double KO and a second boost. */
+probe('ability', 'boostsOnKO', 'Eelevate reads the HIGHEST stat: a Mild 32-SpA body boosts Sp. Atk, not Attack', () => {
+  const SET = 'Eelektross @ Eelektrossite\nAbility: Levitate\nMild Nature\nEVs: 32 SpA\n'
+            + '- Thunderbolt\n- Protect\n';
+  const run = (ab) => {
+    const me = M.buildMonFromSet(M.parsePaste(SET)[0]);
+    me.ability = ab;
+    const ally = bare('corviknight');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    f1.curHP = 1;                       /* the KO is certain, so the trigger is not a damage roll */
+    unfaintable(f2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'thunderbolt', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { at: me.boosts.at, sa: me.boosts.sa,
+             other: me.boosts.df + me.boosts.sd + me.boosts.sp,
+             died: f1.fainted, stAt: me.st.at, stSa: me.st.sa };
+  };
+  const off = run('none'), on = run('eelevate');
+  /* THE THIRD ARM IS FREE AND IT IS THE STRONGEST ONE. Will: "moxie is like beast boost but attack".
+   * Moxie and Eelevate hook the SAME event with different payouts — measured, not described:
+   *     moxie      onSourceAfterFaint ... this.boost({atk: length}, source)
+   *     eelevate   onSourceAfterFaint ... const bestStat = source.getBestStat(true, true) ...
+   * (byte-identical to beastboost's, which has NO legal carrier in Reg M-B — so Eelektross-Mega is
+   * the only body in this format that can reach the read-the-best-stat branch at all; Grim Neigh and
+   * Chilling Neigh, the `spa`/`atk` named pair, have no legal carrier either.)
+   * On THIS spread the two are REQUIRED to disagree: highest says Sp. Atk, named says Attack. If both
+   * come back Attack the engine is hardcoding the stat and neither row was ever tested. The ability
+   * is assigned to the body directly, exactly as the probe above assigns Eelevate to a Garchomp —
+   * the claim under test is the tag's `stat` field, not who may legally carry what. */
+  const mox = run('moxie');
+  const spreadHeld = on.stSa === 205 && on.stAt === 165 && on.stSa > on.stAt;
+  return { works: spreadHeld && on.died && off.died && mox.died
+                  && off.at === 0 && off.sa === 0
+                  && on.sa === 1 && on.at === 0 && on.other === 0
+                  && mox.at === 1 && mox.sa === 0 && mox.other === 0,
+           arms: { control: [off.at, off.sa], test: [on.at, on.sa] },
+           detail: '[atk stage, spa stage] after a KO on an Eelektross-Mega built SpA ' + on.stSa
+                 + ' / Atk ' + on.stAt + ' (Mild, 32 SP into Sp. Atk) -- no ability ' + off.at + ','
+                 + off.sa + '; EELEVATE ' + on.at + ',' + on.sa + ' (highest); MOXIE ' + mox.at + ','
+                 + mox.sa + ' (named). An engine that hardcodes Attack reads 1,0 on the Eelevate arm '
+                 + 'and fails; the same engine makes the two abilities AGREE, which they must not. '
+                 + 'The spread itself is asserted (' + spreadHeld + ') so a build change cannot '
+                 + 'silently return this to an Attack-highest body' };
 });
 
 /* ROADMAP #156 -- MOXIE, 103 SHEET FIELDS, AND THE TAG RULE WAS THE WHOLE BUG. `boostsOnKO`'s
@@ -15637,6 +15772,523 @@ probe('move', 'delayedHit', 'Future Sight books the hit and lands it TWO turns l
                  + `${JSON.stringify(seq)} — must be 0, 0, a hit, 0.  The click turn moves NOTHING; `
                  + 'the later clicks FAIL because the slot already holds one; and only the third turn '
                  + 'pays out, which is the end of the SECOND turn after the booking' };
+});
+
+/* ================================================================================================
+ * ROADMAP #212 — THE ROWS WHOSE CONTROL ARM WAS ITSELF A LIVE ABILITY
+ * ================================================================================================
+ * `tests/roster.js` tests an ability by REMOVING it, and on sixteen rows every alternative the
+ * carrier legally has is also live — so the "without" arm is never quiet and the row counts in
+ * neither column. That is an INSTRUMENT limit, not a fixture problem, and the answer is the
+ * absolute-assertion shape `tests/test-forme-assert.js` already uses: no ability-swap control,
+ * assert the observable directly. The boards below are Will's, each chosen so the trigger is a
+ * CERTAINTY rather than a chance — the roster's driver pins every die, so a rate can never be seen
+ * on it whatever fixture you build (which is why Super Luck is NOT here: it moves a crit RATIO and
+ * belongs to the staged rate arm).
+ *
+ * Each still prints two arms, because this file's own hollow-detector is right to demand them; what
+ * changed is that the second arm is a DIFFERENT CLICK or a DIFFERENT FIELD rather than the same
+ * board with the ability deleted.
+ */
+
+/* ANGER POINT — Will: "yeah have flower trick go into anger point".
+ *
+ * Flower Trick carries `willCrit: true` (artifact: `alwaysCrit {pCrit: 1}`), so the crit is
+ * guaranteed and no die is rolled — the same escape the Battle Armor board uses. Anger Point's own
+ * text raises Attack TWELVE stages, which clamps to +6: impossible to misread and impossible to
+ * confuse with an ordinary boost.
+ *
+ * THE CARRIER IS CHOSEN BY TYPE, DERIVED: Grass into Tauros (Normal) is NEUTRAL. Tauros-Paldea-Blaze
+ * resists it and Tauros-Paldea-Aqua and Krookodile take double — none of those changes the boost, but
+ * a resisted hit on a faintable body would have introduced a KO into a board about a stat. Meowscarada
+ * is Flower Trick's only legal learner. The target is made unfaintable so the +6 cannot be a corpse's.
+ * Nothing puts up a Substitute — the handler says "not its substitute" and would refuse. */
+probe('ability', 'buffsHolderOnHit', 'Anger Point takes a guaranteed crit to +6 Attack', () => {
+  const run = (ab) => {
+    const me = bare('meowscarada');
+    const ally = bare('farigiraf');
+    const f1 = bare('tauros'), f2 = bare('milotic');
+    f1.ability = ab; unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'flowertrick', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { at: f1.boosts.at, other: f1.boosts.df + f1.boosts.sa + f1.boosts.sd + f1.boosts.sp };
+  };
+  const off = run('none'), on = run('angerpoint');
+  return { works: off.at === 0 && on.at === 6 && on.other === 0,
+           arms: { control: off.at, test: on.at },
+           detail: 'Attack stage on the Tauros after ONE Flower Trick (willCrit, so the crit is not a '
+                 + 'roll) -- no ability ' + off.at + ', ANGER POINT ' + on.at + ' (the handler asks for '
+                 + '12 and the cap is 6). No other stage moved: ' + on.other };
+});
+
+/* KEEN EYE — Will: "have someone use mud slap to test keen eye", then "its gonna have to be on a non
+ * flying type tho". He is right and it is the same trap that killed the Shield Dust board this
+ * morning: MUD-SLAP IS GROUND, and four of the ten Keen Eye carriers are Flying and immune —
+ * Pidgeot, Skarmory, Pelipper, Toucannon. On any of those both arms read identical for a reason that
+ * has nothing to do with the ability. Lycanroc is ROCK; `fixture_preflight` clears it.
+ *
+ * The drop is `secondaries: [{chance: 100, boosts: {accuracy: -1}}]` — a certainty, not a chance, and
+ * the Champions mod does not override Mud-Slap at all. THE DAMAGE IS READ ALONGSIDE THE STAGE so
+ * that "the drop was refused" cannot be confused with "the move never happened": both arms take the
+ * same 16.
+ *
+ * This was RED before ROADMAP #212 — both arms read acc -1, because `blocks: 'accuracy'` mapped to
+ * no engine stat. */
+probe('ability', 'preventsStatDrop', 'Keen Eye refuses Mud-Slap\'s guaranteed accuracy drop', () => {
+  const run = (ab) => {
+    const me = bare('watchog'); me.moves = ['mudslap', 'protect'];
+    const ally = bare('farigiraf');
+    const f1 = bare('lycanroc'), f2 = bare('milotic');
+    f1.ability = ab; unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'mudslap', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { acc: f1.boosts.acc, hp: h - f1.curHP };
+  };
+  const off = run('none'), on = run('keeneye');
+  return { works: off.acc === -1 && on.acc === 0 && off.hp > 0 && on.hp === off.hp,
+           arms: { control: [off.acc, off.hp], test: [on.acc, on.hp] },
+           detail: '[accuracy stage, HP lost] on a ROCK Lycanroc hit by Mud-Slap (Ground, so it '
+                 + 'connects; four Keen Eye carriers are Flying and would have made both arms agree) '
+                 + '-- no ability ' + off.acc + ',' + off.hp + '; KEEN EYE ' + on.acc + ',' + on.hp
+                 + '. The equal damage is the control that says the move still landed' };
+});
+
+/* SLUSH RUSH — Will: "have beartic in the snow and see if its speed is doubled", read through his
+ * 1 HP idiom so the observable is a BOARD and not a number this file computes.
+ *
+ * Beartic is the only carrier in Reg M-B. Watchog sits at Speed 129: above Beartic's 70 and below its
+ * doubled 140, so the snow decides the bracket and nothing else does. Snow is set on the field
+ * directly rather than by a second ability, because a Snow Warning body would put a live ability on
+ * the board next to the one under test.
+ *
+ * NO RESIDUAL MAY TOUCH A 1 HP BODY: snow does not chip in this generation (only sand does), and
+ * neither body carries an item, a status or a hazard. If it did, the row would be measuring the
+ * weather instead of the order. */
+probe('ability', 'speedCond', 'Slush Rush doubles Beartic in snow, and the order decides who lives', () => {
+  const run = (weather) => {
+    const me = bare('beartic'); me.ability = 'slushrush';
+    const ally = bare('farigiraf');
+    const f1 = bare('watchog'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    S.field.weather = weather;
+    const speMe = M.effSpeed(me, S.field, 'A'), speFoe = M.effSpeed(f1, S.field, 'B');
+    me.curHP = 1; f1.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'iciclecrash', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'crunch', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { speMe, speFoe, foeDied: f1.fainted, meDied: me.fainted };
+  };
+  const off = run(''), on = run('snow');
+  return { works: off.speMe === 70 && on.speMe === 140 && off.speFoe === on.speFoe
+                  && off.foeDied === false && off.meDied === true
+                  && on.foeDied === true && on.meDied === false,
+           arms: { control: [off.speMe, off.foeDied], test: [on.speMe, on.foeDied] },
+           detail: 'Beartic and a Watchog (Speed ' + off.speFoe + ') both on 1 HP, both clicking a '
+                 + 'lethal move. NO WEATHER: Beartic is Speed ' + off.speMe + ', moves second and dies '
+                 + '(foe fainted ' + off.foeDied + '). SNOW: Speed ' + on.speMe + ', moves first and '
+                 + 'survives (foe fainted ' + on.foeDied + '). Snow does not chip, so nothing but the '
+                 + 'order can kill a 1 HP body here' };
+});
+
+/* THE THREE PRIORITY BRACKETS — Will: "cant you have mons at 1 hp and then have them ko each other
+ * with the prio moves to test it".
+ *
+ * The roster reads these COULD-NOT-STAGE because "a bracket is only observable if the ORDER decides
+ * the final board", and among the bodies it builds, moving first never changed the outcome. AT 1 HP
+ * IT ALWAYS DOES, by construction, and no damage number needs tuning — which also means the row
+ * cannot quietly stop discriminating when a base power moves.
+ *
+ * THE CONTROL IS A PRIORITY-0 MOVE ON THE SAME BODY, not the same move with the bracket removed, so
+ * both arms are real clicks. The foe's Speed is pinned 15 above the subject's in BOTH arms and both
+ * speeds are asserted — if the foe were not genuinely faster the control would prove nothing.
+ *
+ * THE TARGET WAS CHOSEN BY `fixture_preflight`, WHICH REFUSED THE FIRST ONE: Dragapult is Ghost and
+ * IMMUNE to Normal, so Extreme Speed into it does nothing and both arms would have agreed. Garchomp
+ * (Dragon/Ground) takes Normal, Ice and Water, and its Dragon Claw hits all three subjects. */
+probe('move', 'priority', 'a priority bracket lets a SLOWER body kill first — three brackets, 1 HP each side', () => {
+  const run = (sp, mv) => {
+    const me = bare(sp); me.moves = [mv, 'protect'];
+    const ally = bare('farigiraf');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    f1.st = Object.assign({}, f1.st, { sp: me.st.sp + 15 });   /* the foe is FASTER in both arms */
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const speMe = M.effSpeed(me, S.field, 'A'), speFoe = M.effSpeed(f1, S.field, 'B');
+    me.curHP = 1; f1.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'dragonclaw', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { speMe, speFoe, foeDied: f1.fainted, meDied: me.fainted };
+  };
+  const ROWS = [['dragonite', 'extremespeed', 'dragonclaw', 2],
+                ['weavile', 'iceshard', 'knockoff', 1],
+                ['palafin', 'jetpunch', 'waterfall', 1]];
+  const out = ROWS.map(([sp, prio, ctrl]) => ({ sp, prio, ctrl, off: run(sp, ctrl), on: run(sp, prio) }));
+  const ok = out.every(r => r.off.speFoe > r.off.speMe && r.on.speFoe > r.on.speMe
+                            && r.off.foeDied === false && r.off.meDied === true
+                            && r.on.foeDied === true && r.on.meDied === false);
+  return { works: ok,
+           arms: { control: out.map(r => r.off.foeDied), test: out.map(r => r.on.foeDied) },
+           detail: out.map(r => r.sp + ' (Speed ' + r.on.speMe + ') against a Garchomp pinned to '
+                 + r.on.speFoe + ', both on 1 HP: ' + r.ctrl + ' (bracket 0) leaves the foe alive and '
+                 + 'the subject dead [' + r.off.foeDied + '/' + r.off.meDied + '], ' + r.prio
+                 + ' kills first [' + r.on.foeDied + '/' + r.on.meDied + ']').join('   ;   ') };
+});
+
+/* FLOWER VEIL — WILL'S BOARD, AND THE DISCRIMINATOR IS THE HOLDER ITSELF.
+ *
+ * Two carriers in Reg M-B, Florges and Floette-Eternal, and FLORGES IS FAIRY. Showdown's guard is
+ * `!target.hasType('Grass')` on the ALLY event, so the ability does not protect the body carrying it
+ * — it protects whichever adjacent body is Grass. Standing a Grass/Ghost Sinistcha next to a Fairy
+ * Florges therefore gives one field with a protected body and an unprotected one, and kills three
+ * wrong implementations at once: "protects the whole side" and "protects the holder" both fail on
+ * the Florges, "protects nothing" fails on the Sinistcha.
+ *
+ * ARM 1, THE STAT DROP, WAS RED BEFORE ROADMAP #212: both bodies took the Intimidate. The tag's
+ * `protectsAllies` had exactly one carrier and no reader — the status and volatile halves of the same
+ * ability had been wired months earlier and the stat half never was. Intimidate is the heaviest
+ * entry ability in this format, so this is the expensive half.
+ *
+ * ARM 2, THE STATUS, was already live and is asserted here anyway because it is what makes the
+ * holder/ally split unambiguous: Will-O-Wisp is `target: normal`, so it is two separate clicks, and
+ * BOTH typings are burnable (`getImmunity('brn')` is true for Grass/Ghost and for Fairy) — a "no
+ * burn" on the Sinistcha can only be the ability.
+ *
+ * The Sinistcha's own slots are Hospitality and Heatproof, neither of which touches Intimidate or a
+ * burn, so nothing on that body can be credited for either reading. */
+probe('ability', 'preventsStatDrop', 'Flower Veil shields the GRASS ally from Intimidate and leaves its Fairy holder exposed', () => {
+  const run = (ab) => {
+    const me = bare('florges'); me.ability = ab;
+    const ally = bare('sinistcha');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    const inc = bare('incineroar'); inc.ability = 'intimidate';
+    const S = M.battleInit([me, ally], [f1, f2, inc], { seeded: true });
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, { kind: 'switch', to: inc }], [f2, { kind: 'pass' }]]));
+    return { holder: me.boosts.at, grassAlly: ally.boosts.at, arrived: S.actB[0] && S.actB[0].name };
+  };
+  const off = run('symbiosis'), on = run('flowerveil');
+  return { works: off.arrived === 'incineroar' && on.arrived === 'incineroar'
+                  && off.holder === -1 && off.grassAlly === -1
+                  && on.holder === -1 && on.grassAlly === 0,
+           arms: { control: [off.holder, off.grassAlly], test: [on.holder, on.grassAlly] },
+           detail: '[Fairy holder atk stage, GRASS ally atk stage] after an Incineroar switches in and '
+                 + 'Intimidates -- Florges on SYMBIOSIS ' + off.holder + ',' + off.grassAlly
+                 + ' (both take it, so the Intimidate demonstrably fired); on FLOWER VEIL '
+                 + on.holder + ',' + on.grassAlly + '. The holder MUST still drop: Showdown gates the '
+                 + 'handler on the target having the Grass type and Florges is Fairy' };
+});
+
+probe('ability', 'protectsAllyFromStatus', 'Flower Veil refuses a burn on the GRASS ally and takes one itself', () => {
+  const run = (ab, atAlly) => {
+    const me = bare('florges'); me.ability = ab;
+    const ally = bare('sinistcha');
+    const f1 = bare('skeledirge'), f2 = bare('milotic');
+    f1.moves = ['willowisp', 'protect'];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'willowisp', atAlly ? ally : me, S.field)], [f2, { kind: 'pass' }]]));
+    return { holder: me.status, grassAlly: ally.status };
+  };
+  const ctlAlly = run('symbiosis', true).grassAlly;      /* the burn lands with a different ability */
+  const veilAlly = run('flowerveil', true).grassAlly;    /* and is refused with this one */
+  const veilSelf = run('flowerveil', false).holder;      /* and is NOT refused on the Fairy holder */
+  return { works: ctlAlly === 'brn' && veilAlly === '' && veilSelf === 'brn',
+           arms: { control: ctlAlly, test: veilAlly },
+           detail: 'Will-O-Wisp is target:normal, so this is three separate clicks. At the GRASS '
+                 + 'Sinistcha with the holder on Symbiosis: "' + ctlAlly + '". At the same Sinistcha '
+                 + 'with FLOWER VEIL up: "' + veilAlly + '". At the FAIRY Florges carrying it: "'
+                 + veilSelf + '" — it does not cover itself. Both typings are burnable, so the middle '
+                 + 'reading is the ability and nothing else' };
+});
+
+/* STICKY HOLD — ROADMAP #212, AND IT HAD NO TAG AT ALL.
+ *
+ * The ability carried only `breakable`. The reason is on record and is the interesting part: the
+ * `speedOnItemLoss` derivation was TIGHTENED away from a bare `onTakeItem` match precisely because
+ * that match caught Sticky Hold, whose handler exists to refuse the loss — so fixing Unburden's false
+ * positive left the real ability with nothing to be read from. `refusesItemLoss` is the exact inverse
+ * rule off the same handler (`return false` rather than `addVolatile`), and those two are the only
+ * `onTakeItem` abilities in this format.
+ *
+ * RED BEFORE THE FIX: a Knock Off took the item in BOTH arms.
+ *
+ * THREE ARMS, and the third is the handler's own exception. Sticky Barb is still takeable
+ * (`pokemon.item === 'stickybarb'` returns early), so an engine that read the tag as a blanket
+ * immunity passes the first two and fails the third. The Trick arm is here because the swap is a
+ * SECOND code path in this engine and the two had already come apart once.
+ *
+ * WHAT DELIBERATELY DID NOT CHANGE: Knock Off's x1.5. Showdown prices that with `singleEvent` on the
+ * ITEM's handler, so the ability never sees it — the first cut of this fix put Sticky Hold inside
+ * `itemRefusesTake`, which Fling and the Knock Off boost also ask, and Knock Off promptly came back
+ * dealing zero. The damage is asserted as UNCHANGED here for that reason. */
+probe('ability', 'refusesItemLoss', 'Sticky Hold keeps the item through Knock Off and Trick, and lets a Sticky Barb go', () => {
+  const run = (ab, mv, tgItem, myItem) => {
+    const me = bare('weavile'); me.moves = ['knockoff', 'trick', 'iceshard', 'protect'];
+    me.item = myItem || '';
+    const ally = bare('farigiraf');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    f1.ability = ab; f1.item = tgItem; unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { tgItem: f1.item, dmg: h - f1.curHP, myItem: me.item };
+  };
+  const koOff = run('none', 'knockoff', 'lifeorb');
+  const koOn = run('stickyhold', 'knockoff', 'lifeorb');
+  const barb = run('stickyhold', 'knockoff', 'stickybarb');
+  const trOff = run('none', 'trick', 'lifeorb', 'choicescarf');
+  const trOn = run('stickyhold', 'trick', 'lifeorb', 'choicescarf');
+  return { works: koOff.tgItem === '' && koOn.tgItem === 'lifeorb'
+                  && koOff.dmg > 0 && koOn.dmg === koOff.dmg      /* the hit is unchanged */
+                  && barb.tgItem === ''                            /* the handler's own exception */
+                  && trOff.tgItem === 'choicescarf' && trOff.myItem === 'lifeorb'
+                  && trOn.tgItem === 'lifeorb' && trOn.myItem === 'choicescarf',
+           arms: { control: [koOff.tgItem, koOff.dmg], test: [koOn.tgItem, koOn.dmg] },
+           detail: 'Knock Off into a Milotic holding a Life Orb -- no ability leaves it "' + koOff.tgItem
+                 + '" for ' + koOff.dmg + ' damage; STICKY HOLD leaves it "' + koOn.tgItem + '" for '
+                 + koOn.dmg + ' (the damage MUST be equal: Showdown prices Knock Off\'s x1.5 off the '
+                 + 'ITEM handler, which the ability never sees). A STICKY BARB still goes: "'
+                 + barb.tgItem + '". Trick swaps "' + trOff.tgItem + '"/"' + trOff.myItem
+                 + '" with no ability and refuses to move anything with it: "' + trOn.tgItem + '"/"'
+                 + trOn.myItem + '"' };
+});
+
+/* FLUFFY — WILL'S BOARD: "have houndstone get hit by a fire move and other contact moves and check
+ * the damage". THREE ARMS, AND THE THIRD IS THE ENTIRE POINT.
+ *
+ * The handler is `mod = 1; if (move.type === 'Fire') mod *= 2; if (move.flags['contact']) mod /= 2;`
+ * — two clauses that can BOTH fire on one move, and nine moves in this format do (Flare Blitz, Fire
+ * Punch, Fire Lash, Blaze Kick, Bitter Blade, Fire Fang, Flame Charge, Heat Crash...). An engine that
+ * implemented only one clause is RIGHT on arms 1 and 2 and WRONG on arm 3, so a two-arm probe passes
+ * a half-built ability.
+ *
+ * ARM 3 IS THE ONE PLACE IN THIS FILE WHERE THE TWO NUMBERS BEING EQUAL IS THE CORRECT ANSWER, and it
+ * is only readable because arms 1 and 2 prove on the same board that the ability is live. Stated
+ * rather than left for the identical-arms scan to flag.
+ *
+ * HOUNDSTONE IS PURE GHOST — the only Fluffy carrier, and Fire and Dragon are both NEUTRAL into it,
+ * so no type-chart multiplier sits inside the numbers. RED before ROADMAP #212: all three arms
+ * identical, because Fluffy carried only `breakable` and `damageReduce`'s single-multiplier rule
+ * cannot hold a two-clause handler. */
+probe('ability', 'damageByMoveTrait', 'Fluffy halves contact, doubles Fire, and leaves a contact Fire move UNCHANGED', () => {
+  const run = (ab, mv) => {
+    const me = bare('incineroar'); me.moves = ['dragonclaw', 'heatwave', 'flareblitz', 'protect'];
+    const ally = bare('farigiraf');
+    const f1 = bare('houndstone'), f2 = bare('milotic');
+    f1.ability = ab; unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return h - f1.curHP;
+  };
+  const cOff = run('none', 'dragonclaw'), cOn = run('fluffy', 'dragonclaw');   /* contact, not Fire */
+  const fOff = run('none', 'heatwave'), fOn = run('fluffy', 'heatwave');       /* Fire, not contact */
+  const bOff = run('none', 'flareblitz'), bOn = run('fluffy', 'flareblitz');   /* both */
+  const near = (a, b) => Math.abs(a - b) <= 1;                                  /* integer flooring */
+  return { works: cOff > 0 && fOff > 0 && bOff > 0
+                  && near(cOn, Math.floor(cOff / 2)) && near(fOn, fOff * 2) && bOn === bOff,
+           arms: { control: [cOff, fOff, bOff], test: [cOn, fOn, bOn] },
+           detail: '[HP off a pure-Ghost Houndstone, so no type multiplier is inside these numbers] '
+                 + 'Dragon Claw (CONTACT, not Fire) ' + cOff + ' -> ' + cOn + ' (halved); Heat Wave '
+                 + '(FIRE, not contact) ' + fOff + ' -> ' + fOn + ' (doubled); Flare Blitz (BOTH) '
+                 + bOff + ' -> ' + bOn + '. The third pair being EQUAL is the correct answer and is '
+                 + 'the arm a one-clause engine fails; the first two are what prove the ability is '
+                 + 'live on this board at all' };
+});
+
+/* AROMA VEIL — ROADMAP #212. IT WAS NOT IN ITS OWN TAG FAMILY.
+ *
+ * `protectsAllyFromStatus` is derived from `onAllySetStatus`, and Aroma Veil has none: it carries
+ * ONLY `onAllyTryAddVolatile`, blocking Attract, Disable, Encore, Heal Block, Taunt and Torment for
+ * its whole side. So the family it belongs to skipped it, it carried nothing but `breakable`, and the
+ * one function that could have served it (`allyRefusesVolatile`) had exactly one caller — the yawn
+ * branch. RED before the fix: a Taunt landed on the holder in both arms.
+ *
+ * FOUR READINGS, and the fourth is what stops this being a blanket immunity:
+ *   Taunt at the HOLDER   -> refused (Showdown's onAlly* events cover the holder itself)
+ *   Taunt at the ALLY     -> refused (this is the half the ability is played for)
+ *   Encore at the ALLY    -> refused (a second volatile off the same derived list, so the reading is
+ *                           the LIST and not one hardcoded name)
+ *   Will-O-Wisp at the holder -> STILL BURNS. The tag's `statuses` is the EMPTY LIST for this
+ *                           ability, deliberately: 'all' is Flower Veil's exclude shape, and handing
+ *                           it here would have turned Aroma Veil into a status immunity it does not
+ *                           have — a strictly better ability than the real one.
+ *
+ * `_lastMove` is stamped on both bodies because Encore and Disable are refused outright against a
+ * target that has not moved (WIRE 69), which would have made the Encore arms agree for a reason that
+ * has nothing to do with the veil. */
+probe('ability', 'protectsAllyFromStatus', 'Aroma Veil refuses Taunt and Encore for the holder AND the ally, and refuses no status', () => {
+  const vol = (ab, mv, atAlly) => {
+    const me = bare('milotic'); me.ability = ab;
+    const ally = bare('farigiraf');
+    const f1 = bare('gholdengo'), f2 = bare('milotic');
+    f1.moves = ['taunt', 'encore', 'protect', 'makeitrain'];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    me._lastMove = 'scald'; ally._lastMove = 'twinbeam';
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, mv, atAlly ? ally : me, S.field)], [f2, { kind: 'pass' }]]));
+    const body = atAlly ? ally : me;
+    return (body._vol && body._vol[mv]) || 0;
+  };
+  const burn = (ab) => {
+    const me = bare('milotic'); me.ability = ab;
+    const ally = bare('farigiraf');
+    const f1 = bare('skeledirge'), f2 = bare('milotic');
+    f1.moves = ['willowisp', 'protect'];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'willowisp', me, S.field)], [f2, { kind: 'pass' }]]));
+    return me.status;
+  };
+  const tSelfOff = vol('none', 'taunt', false), tSelfOn = vol('aromaveil', 'taunt', false);
+  const tAllyOff = vol('none', 'taunt', true), tAllyOn = vol('aromaveil', 'taunt', true);
+  const eAllyOff = vol('none', 'encore', true), eAllyOn = vol('aromaveil', 'encore', true);
+  const bOff = burn('none'), bOn = burn('aromaveil');
+  return { works: tSelfOff > 0 && tSelfOn === 0 && tAllyOff > 0 && tAllyOn === 0
+                  && eAllyOff > 0 && eAllyOn === 0 && bOff === 'brn' && bOn === 'brn',
+           arms: { control: [tSelfOff, tAllyOff, eAllyOff, bOff],
+                   test: [tSelfOn, tAllyOn, eAllyOn, bOn] },
+           detail: '[taunt counter on the holder, taunt on the ally, encore on the ally, holder status] '
+                 + '-- no ability ' + [tSelfOff, tAllyOff, eAllyOff, bOff].join(',') + '; AROMA VEIL '
+                 + [tSelfOn, tAllyOn, eAllyOn, bOn].join(',') + '. The burn MUST still land: this '
+                 + 'ability names six VOLATILES and no status, and reading its empty status list as '
+                 + '"all" would have made it a better ability than the real one' };
+});
+
+/* RIVALRY — ROADMAP #212, AND ROADMAP #205'S "UNTESTABLE BY CONSTRUCTION" WAS WRONG.
+ *
+ * Will: "rivalry is stupid but it should be easy to check against other genders". He is right. #205
+ * registered gender-keyed mechanics as unreachable because every fixture in this repository declares
+ * `gender: 'N'` — but that is a CHOICE THE HARNESS MADE, not a property of the format. `genderOf()`
+ * has been in the engine since Attract was wired; a probe that declares two genders reaches it.
+ *
+ * THE ROW READ INERT BECAUSE THE ABILITY WAS CORRECTLY DOING NOTHING. Showdown's guard is
+ * `attacker.gender && defender.gender`, so on a genderless board Rivalry is x1 — an "identical
+ * boards" verdict that says nothing at all about whether the mechanic exists. That is the third arm
+ * here, and it is the one the old fixture was accidentally measuring.
+ *
+ * BOTH BRANCHES OR IT IS A DIFFERENT ABILITY: same gender x1.25, OPPOSITE x0.75. An engine wired to
+ * the boost alone passes arm 1, fails arm 2, and is strictly better than the real ability against
+ * half the field. `damageBoost` carries one multiplier and cannot express an `else`, which is why
+ * this gets its own tag rather than a widened one.
+ *
+ * Legal carriers derived from the format: Luxray (M/F 50-50) and Pyroar. The target is made
+ * unfaintable so all three arms are read as damage rather than as a KO clamp. */
+probe('ability', 'damageByGender', 'Rivalry boosts into the SAME gender, weakens into the opposite, and does nothing genderless', () => {
+  const run = (ab, ga, gd) => {
+    const me = bare('luxray'); me.ability = ab; me.gender = ga;
+    me.moves = ['wildcharge', 'protect'];
+    const ally = bare('farigiraf');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    f1.gender = gd; unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'wildcharge', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return h - f1.curHP;
+  };
+  const base = run('none', 'M', 'M');
+  const same = run('rivalry', 'M', 'M');
+  const opp = run('rivalry', 'M', 'F');
+  const none = run('rivalry', 'N', 'N');
+  const nb = run('none', 'M', 'F');
+  return { works: base > 0 && nb === base            /* with no ability the gender changes nothing */
+                  && same > base && opp < base && none === base,
+           arms: { control: [base, nb], test: [same, opp, none] },
+           detail: '[HP off an unfaintable Milotic from one Wild Charge] no ability ' + base
+                 + ' (and ' + nb + ' across genders, so the gender alone moves nothing); RIVALRY '
+                 + 'male-into-male ' + same + ', male-into-female ' + opp + ', GENDERLESS ' + none
+                 + '. The third arm is the fixture this repo has always built — the ability is '
+                 + 'correctly inert there, which is not the same as absent, and reading it as '
+                 + '"untestable" was ROADMAP #205\'s error' };
+});
+
+/* OPPORTUNIST — ROADMAP #212, AND IT IS THE TAG-SPLIT LESSON WEARING NEW CLOTHES.
+ *
+ * Will's board: "have a mon use swords dance or something in front of espathra and see if it copies
+ * it." RED before the fix — Espathra gained nothing at all.
+ *
+ * WHY IT WAS INVISIBLE. The ability carried `boostsEachTurn {perTurn: true}`, derived from its
+ * `onResidual`. That is not wrong, it is HALF: `onResidual` is one of five places the ability PAYS
+ * OUT, and all five read `this.effectState.boosts`. The half that FILLS that object is
+ * `onFoeAfterBoost`, and no tag described it — so one label stood for two rules, and the consumer
+ * looked for a `boosts` field, found none, and correctly did nothing forever. `copiesFoeBoosts` is a
+ * new tag rather than a widened one, because Speed Boost's "a stat rises every turn" and
+ * Opportunist's "a stat rises when the FOE's does" are different mechanics.
+ *
+ * TWO ARMS THAT DIFFER IN STAT, which is Will's design and not decoration: Swords Dance must give
+ * +2 ATTACK and Nasty Plot +2 SPECIAL ATTACK on the same board. An engine that copies the right
+ * amount to a hardcoded stat passes one arm and fails the other.
+ *
+ * THE THIRD READING IS THE HANDLER'S OWN GUARD. Make It Rain LOWERS the user's Sp. Atk by two, and a
+ * drop must NOT be copied (`if (boost[i] > 0)`); an engine that mirrored every delta would hand the
+ * Espathra a −2 and look superficially alive.
+ *
+ * THE FOURTH IS THE ONE THAT CAUGHT MY OWN FIRST DRAFT. Two Espathra facing each other: the booster
+ * must end at +2, not +4. Reading and writing in one pass let the second holder copy the first
+ * holder's payout — exactly what Showdown's `effect?.name === 'Opportunist'` early return prevents.
+ * Espathra is the only carrier in this format; Mirror Herb is the same handler on an item and is
+ * `isNonstandard: 'Past'` here. */
+probe('ability', 'copiesFoeBoosts', 'Opportunist takes the boost the FOE just gained — the right stat, never a drop, never its own', () => {
+  const run = (ab, mv) => {
+    const me = bare('espathra'); me.ability = ab;
+    const ally = bare('farigiraf');
+    const f1 = bare('beartic'), f2 = bare('milotic');
+    f1.moves = [mv, 'protect'];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, mv, null, S.field)], [f2, { kind: 'pass' }]]));
+    return { me: [me.boosts.at, me.boosts.sa], foe: [f1.boosts.at, f1.boosts.sa] };
+  };
+  /* the foe LOWERS its own Sp. Atk — a delta that must not be mirrored */
+  const drop = (() => {
+    const me = bare('espathra'); me.ability = 'opportunist';
+    const ally = bare('farigiraf');
+    const f1 = bare('gholdengo'), f2 = bare('milotic');
+    f1.moves = ['makeitrain', 'protect'];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'makeitrain', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { me: me.boosts.sa, foe: f1.boosts.sa };
+  })();
+  /* two holders, and the BOOSTER must not copy the copy of its own boost */
+  const mirror = (() => {
+    const me = bare('espathra'); me.ability = 'opportunist';
+    const ally = bare('farigiraf');
+    const f1 = bare('espathra'); f1.ability = 'opportunist'; f1.moves = ['swordsdance', 'protect'];
+    const f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'swordsdance', null, S.field)], [f2, { kind: 'pass' }]]));
+    return { holder: me.boosts.at, booster: f1.boosts.at };
+  })();
+  const off = run('none', 'swordsdance');
+  const sd = run('opportunist', 'swordsdance');
+  const np = run('opportunist', 'nastyplot');
+  return { works: off.foe[0] === 2 && off.me[0] === 0 && off.me[1] === 0
+                  && sd.me[0] === 2 && sd.me[1] === 0
+                  && np.me[1] === 2 && np.me[0] === 0
+                  && drop.foe === -2 && drop.me === 0
+                  && mirror.holder === 2 && mirror.booster === 2,
+           arms: { control: off.me, test: [sd.me, np.me] },
+           detail: '[Espathra atk stage, spa stage] while a foe boosts and Espathra clicks NOTHING -- '
+                 + 'no ability after the foe\'s Swords Dance ' + off.me.join(',') + ' (the foe reached '
+                 + off.foe.join(',') + ', so the boost demonstrably happened); OPPORTUNIST after Swords '
+                 + 'Dance ' + sd.me.join(',') + '; after NASTY PLOT ' + np.me.join(',') + ' — the two '
+                 + 'must differ in WHICH stat or the stat is hardcoded. A foe DROPPING its own Sp. Atk '
+                 + 'to ' + drop.foe + ' gives the holder ' + drop.me + ' (positive boosts only). Two '
+                 + 'Opportunists: holder ' + mirror.holder + ', booster ' + mirror.booster
+                 + ' — the booster must NOT copy the copy of its own boost' };
 });
 
 const works = results.filter(r => r.works);

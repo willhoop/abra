@@ -196,6 +196,31 @@
     return flat(row && row.base ? row.base : k);
   };
 
+  /* THE ROW ITSELF, because handing back a KEY sends every caller straight to `MC.mons[k]`.
+   *
+   * Same missing-verb finding as `mcKey.all` one block down, arrived at from the other direction.
+   * `mcKey` answers "what is this species called in here" and stops there — so a caller that wants
+   * the actual entry must index the raw table with the answer, which is the one line this whole file
+   * exists to ban. Four callers had written it (`million_run.js`, `replay_differential.js`,
+   * `test-mechanics.js`, and the membership test inside each), and `tests/test-mc-key.js` failed
+   * all four at once. Correctly: the regex cannot tell `MC.mons[mcKey(x)]` from `MC.mons[norm(x)]`,
+   * and it SHOULD NOT TRY — a regex clever enough to allow the first is clever enough to let the
+   * second through, which is the header's whole argument.
+   *
+   * So the fix is a verb rather than an exception, exactly as `.all` was.
+   *
+   * A MISS RETURNS null RATHER THAN THROWING, and that is deliberate: "this table has no row for
+   * that species" is a legitimate answer — `MC.mons` does not cover the whole format, which is why
+   * a staged fixture can come out COULD-NOT-STAGE with a reason instead of a zero. It is still
+   * DECLARED through `miss`, so a caller that has not written down that it expects one still gets
+   * the throw. Membership is then `!!mcKey.row(x, {mayMiss: '...'})` and nobody indexes anything. */
+  mcKey.row = (name, opts) => {
+    const k = mcKey(name, opts);
+    if (!k) return null;
+    const row = root.MC && root.MC.mons && root.MC.mons[k];
+    return row || miss(null, k, opts, 'resolved to ' + k + ', which MC.mons has no row for');
+  };
+
   /* THE WHOLE MAP AT ONCE, for a caller that cannot call into JavaScript per name.
    *
    * `engine/train_value.py` is Python and walks ~95,000 events per run; a subprocess per name is

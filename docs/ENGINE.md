@@ -33,12 +33,12 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  491/491 probed mechanics live, 0 missing   (census 2026-08-11 13:14)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-11 13:16)
+  504/504 probed mechanics live, 0 missing   (census 2026-08-11 17:26)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-11 17:27)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1642/1642 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 13:15)
+  interaction matrix: 1642/1642 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 17:31)
     2250 of 7103 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 7103
       489 inert      not scored — the reference engine behaves identically with and without the reactor
       111 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
@@ -46,15 +46,103 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is ca17e1d021b8 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 1686b96e96df now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 253/272 probed, 19 unprobed
+  tag coverage: 257/276 probed, 19 unprobed
 ```
 
-_stamped 2026-08-11 13:17_
+_stamped 2026-08-11 17:32_
 
 <!-- /GENERATED -->
+
+## ROADMAP #212 — THE ROWS WHOSE CONTROL ARM WAS ITSELF A LIVE ABILITY. 2026-08-11 (eighth pass).
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md` (living docs are paused for the sprint by Will's
+decision). For this ledger:
+
+- **Census 491 live / 0 missing -> 504 live / 0 missing.** Thirteen arrived, none broke. 0 hollow, 0
+  unarmed, 0 direct-call, 0 threw. Every probe was shown RED before the engine moved.
+- **THE FIRST FIVE GATE RUNS OF THIS PASS MEASURED NOTHING, AND THAT IS THE MOST IMPORTANT LINE HERE.**
+  The gate's three roster clauses READ `data/roster.*.json`, and those artifacts were four hours stale
+  — `data/roster.abilities.json` still declared `release b089ac3b32d0, generated 17:15Z`, the
+  pre-change run. Five PASSes were five re-reads of the same pre-change JSON. (The RELEASE itself was
+  current: `game_differential.js` cuts one whenever `--release` is absent, and the newest held
+  byte-identical engine and tag files. It was the roster ARTIFACT, not the release, that was stale.)
+  **A green clause computed from an artifact nobody re-generated is indistinguishable from one that
+  is.** Re-cut and re-ran all three stages: abilities **117 -> 120 tested**, CONTROL-NOT-QUIET
+  **16 -> 13** (`aromaveil`, `flowerveil` and `fluffy` became FIRED-AND-BOARDS-MATCH); items and moves
+  unchanged at 139 and 479; **0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE at every stage on the new
+  bytes.** `keeneye`, `stickyhold` and `rivalry` stay CONTROL-NOT-QUIET because every alternative
+  ability on their carriers is itself live — an instrument limit the census probes exist to cover, not
+  a statement about the fixes.
+- **A cut does NOT trigger the refit.** `engine_release.js cut` freezes bytes and the weights are IN
+  the frozen set, so it photographs `policy-weights.json` rather than refitting it. Believing
+  otherwise is what cost this pass its verification the first time round.
+- **Six real defects, each with its own probe.** `ability/speedCond` (QUICK FEET did nothing:
+  `speedCond` could only evaluate a WEATHER condition, so a status condition and a terrain condition
+  were refused into a counter — an honest failure and still an ability worth nothing);
+  `ability/preventsStatDrop` (KEEN EYE and ILLUMINATE refused nothing, because `blocks: 'accuracy'`
+  mapped to no engine stat — and the comment above the map said accuracy was a stage this engine did
+  not have, which was retracted by reading `hitChance`, where it multiplies by `accStageMul`);
+  `ability/preventsStatDrop` again (FLOWER VEIL's ally half — `protectsAllies` had exactly one carrier
+  and NO reader, while the status and volatile halves of the same ability were wired months ago);
+  `ability/protectsAllyFromStatus` (AROMA VEIL was not in its own tag family: the derivation required
+  an `onAllySetStatus` and Aroma Veil has only `onAllyTryAddVolatile`); `ability/refusesItemLoss`
+  (STICKY HOLD had no tag at all — a Knock Off took the item every time); `ability/damageByMoveTrait`
+  (FLUFFY carried only `breakable`, because `damageReduce` holds ONE multiplier below 1 and Fluffy's
+  handler has two clauses that can both fire on one move).
+- **Two rows that were reported unreachable and were not.** RIVALRY was registered under #205 as
+  untestable "by construction" because every fixture in this repo declares `gender: 'N'`. That is a
+  choice the harness made, not a property of the format — `genderOf()` has been in the engine since
+  Attract, and a probe that declares two genders reaches it. **Retracted.** The row read INERT because
+  the ability was CORRECTLY DOING NOTHING on a genderless board, which is not the same as absent. And
+  the `eelevate` KO-boost arm was already probed by a Garchomp that sums every stage — an engine
+  hardcoding Attack passes that; Will's Mild 32-SpA spread (SpA 205 against Atk 165, both asserted)
+  is the arm that separates them, with MOXIE on the same body as a third arm that is REQUIRED to
+  disagree.
+- **`poisonheal` was already landed and the open list was stale.** The probe has staged it Will's way
+  since #175 — Gliscor placed at half HP so the heal has somewhere to go, Toxic clicked from the other
+  side because Toxic Orb is banned here. Confirmed live, not re-done.
+- **Three rows sit at the wrong instrument and no board will fix them.** `superluck` moves a crit
+  RATIO and `magmaarmor` answers a 7% freeze (0.70 accuracy x 0.10 secondary, derived); both belong to
+  the staged rate arm, which uses free-running dice. `moxie` is covered by the shared KO board above.
+- **OPPORTUNIST — CLOSED on the second batch.** The diagnosis held: `boostsEachTurn` was derived from
+  the ability's `onResidual`, which is one of FIVE places it PAYS OUT, and the half that FILLS
+  `effectState.boosts` is `onFoeAfterBoost`, which no tag described. New tag `copiesFoeBoosts`, not a
+  widened one. The collection is a BEFORE/AFTER diff across one action, which is the authority's own
+  schedule (collect during the move, drain at `onAnyAfterMove`) rather than an approximation of it —
+  and it cannot miss one of this engine's six boost-writing sites, because it does not know where they
+  are. **My first draft was wrong and the fourth arm caught it**: two Espathra facing each other read
+  +2 and **+4**, because reading and writing in one pass let the second holder copy the first holder's
+  payout — exactly what `effect?.name === 'Opportunist'` guards upstream. Probe
+  `ability/copiesFoeBoosts`: Swords Dance gives +2 ATTACK, Nasty Plot +2 SP. ATK (a hardcoded stat
+  passes one arm and fails the other), a foe dropping its own Sp. Atk gives the holder nothing, and
+  the two-holder board reads 2 and 2.
+- **THE INERT RESIDUE IS NINE ROWS, NOT A HUNDRED — measured, and posted before anything was wired.**
+  The standing figure was "46 abilities and 54 moves". Off the live artifacts it is **39 abilities and
+  ONE move** (`upperhand`); the moves stage reached 479/500 in #210, so the old 54 describes an
+  instrument that no longer exists. Of the 39, **30 are NAMED in a live census probe** — the roster
+  fixture is blind and the mechanic is already proved — **9 only share a TAG** with a probe that may
+  prove a different carrier, and **0 have no probe on any tag**. The nine, by usage: `compoundeyes`
+  (560), `telepathy` (223), `leafguard` (101), `illuminate` (45), `heavymetal` (22), `analytic` (21),
+  `merciless` (7), `tangledfeet` (5), `lightmetal` (4). Two of those belong elsewhere by construction
+  (`merciless` is a crit RATIO, `tangledfeet` needs a confusion volatile this engine does not have),
+  and `illuminate` is the twin of the Keen Eye fix landed this pass — a probe, not a fix. Full table
+  with handler names in the sprint notes.
+
+### THE HAND LIST
+
+Leaving, because the census carries them now, one probe each: **Quick Feet**, **the Eelevate KO-boost
+arm**, **Poison Heal** (it was already there), **Keen Eye**, **Anger Point**, **Slush Rush**, **Flower
+Veil** (both halves), **Aroma Veil**, **Sticky Hold**, **Fluffy**, **Rivalry**, and the three
+**priority brackets** (Extreme Speed, Ice Shard, Jet Punch).
+
+**Opportunist** leaves too — it was closed on the second batch of this pass.
+
+What remains by hand: **`magmaarmor`** and **`superluck`** (both rate rows, #196 owns them), and the
+**nine** measured inert rows named above. That is the whole list; it is derived from the artifacts
+rather than carried in prose, and `node tests/roster.js --stage abilities` regenerates it.
 
 ## ROADMAP #210 — THE SIX MOVES WE RESOLVED THAT THE AUTHORITY REFUSES OR DELAYS. 2026-08-11 (seventh pass).
 
@@ -102,7 +190,8 @@ decision). For this ledger:
 Burn Up, Last Resort, Poltergeist, Future Sight, Safeguard, Transform and Mirror Coat all leave — the
 census carries them now, one probe each. What remains by hand is **Rivalry**, `magmaarmor`, Will's
 three unreached boards (`quickfeet`, `poisonheal`, the `eelevate` KO-boost arm) and the inert
-ability/move residue. None of those was touched this pass.
+ability/move residue. None of those was touched this pass. *(SUPERSEDED by #212 above — Rivalry,
+Quick Feet, Poison Heal and the Eelevate KO-boost arm have all left the hand list since.)*
 
 ## ROADMAP #206 — ALL FOUR PP DEFECT FAMILIES CLOSED, AND A FIFTH THE FIX EXPOSED. 2026-08-11 (sixth pass).
 

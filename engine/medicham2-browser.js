@@ -607,6 +607,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * out and the one ability that stops it was never asked. */
   instructRefusedByAbility: 0,
   sideBuffRefused: 0, itemRoomHidden: 0, wonderRoomSwap: 0, powerDoubledOnRead: 0,
+  /* ROADMAP #212 -- a strip refused by the holder's own ability (`refusesItemLoss`; Sticky Hold is
+     the format's only carrier). Counted so the capability can prove it ran. */
+  itemLossRefused: 0,
+  /* ROADMAP #212 -- Rivalry's base-power modifier actually applied (`damageByGender`). Zero on a
+     genderless board, which is every fixture in this repo until one declares a gender. */
+  damageByGender: 0,
+  /* ROADMAP #212 -- an Opportunist copy actually paid out (`copiesFoeBoosts`). Zero unless a foe
+     boosted in front of an Espathra, which is the only carrier in this format. */
+  foeBoostCopied: 0,
   /* WIRE 141 -- the TRANSFORM, counted apart from `formeSwapped` because it is a different mechanic
    * wearing the same word: a forme swap becomes a KNOWN row and a transform becomes an ARBITRARY
    * opposing body. `transformedOnEntry` is the copy landing; `transformRefusedNoBody` is the entry
@@ -1217,6 +1226,10 @@ const MEDFAILS = { encoreAction: 0,
      multiplier would be Quick Feet x1.5 forever, so they are refused and counted. The enrichment
      (deriving the condition kind out of the handler) is STAGED in tag_dex. */
   speedCondUnconditional: 0, speedCondUnconditionalFirst: '',
+  /* ROADMAP #212 -- a `preventsStatDrop.blocks` value with no engine stat behind it. Zero today
+     (`accuracy` was the one that had none, and it cost Keen Eye and Illuminate entirely); anything
+     the artifact learns to derive later arrives here rather than silently refusing nothing. */
+  statDropBlockUnmapped: 0, statDropBlockUnmappedFirst: '',
   /* WIRE 93 -- a `priorityMod` whose `condition` prose this engine cannot evaluate. The only value in
      the artifact today is Gale Wings' 'only at full HP', which IS evaluated; anything else fails
      closed (no shift) and is counted, because a silently applied conditional shift is a wrong number
@@ -2254,6 +2267,81 @@ function flushAfterMoveSpends(bodies){
     if(!m||!m._spendAfter) continue;
     const vol=m._spendAfter; m._spendAfter=null;
     releaseLayeredVolatile(m,vol);
+  }
+}
+/* ---- ROADMAP #212 -- OPPORTUNIST, AND WHY IT IS A SNAPSHOT RATHER THAN A HOOK ------------------
+ *
+ * `copiesFoeBoosts` banks every POSITIVE boost a FOE gained and then takes it. The obvious wiring is
+ * a call at each place a boost is written -- and this engine writes boosts in at least six places
+ * (the `statcode` branch, the secondary `statChange.user` loop, the ally-boost path, Contrary's
+ * inversion, the White Herb restore, `applyStatDrop`'s retaliation). Six call sites is six chances
+ * to miss one, and the one that gets missed reads exactly like an ability that correctly did
+ * nothing -- which is how this ability was broken in the first place.
+ *
+ * SO THE COLLECTION IS A BEFORE/AFTER DIFF ACROSS ONE ACTION, WHICH IS NOT AN APPROXIMATION OF THE
+ * AUTHORITY -- IT IS ITS SCHEDULE. Showdown collects in `onFoeAfterBoost` during the move and drains
+ * the same object at `onAnyAfterMove`, so everything banked by one move is paid out when that move
+ * finishes. A diff taken across exactly that window sees the identical set, and it cannot miss a
+ * boost site because it does not know where they are.
+ *
+ * THE ONE THING IT DOES NOT REPRODUCE, said out loud: Showdown ALSO drains at `onAnySwitchIn`,
+ * `onAnyAfterMega` and `onAnyAfterTerastallization`. Those matter only if a boost lands and a switch
+ * or a mega happens before the move that caused it finishes, which cannot occur in this engine's
+ * turn -- switches and the mega phase both resolve before any move does. Terastallization does not
+ * exist in this format. Recorded rather than silently equated.
+ *
+ * `ignoresSources` IS WHAT STOPS IT FEEDING ITSELF: the payout is a boost on the holder, and the
+ * holder is a foe of the other side's Opportunist. The copy is written with `_oppCopy` set, and the
+ * snapshot is retaken AFTER a payout, so a copy is never itself collected. */
+const OPP_STATS=['at','df','sa','sd','sp','acc','eva'];
+function opportunistSnapshot(actA,actB){
+  const snap=new Map();
+  for(const side of [actA,actB])for(const m of (side||[])){
+    if(!m)continue;
+    const o={};for(const k of OPP_STATS)o[k]=(m.boosts&&m.boosts[k])||0;
+    snap.set(m,o);
+  }
+  return snap;
+}
+/* IT IS TWO PHASES, AND THE FIRST DRAFT WAS ONE, AND THE BOARD CAUGHT IT WITHIN A MINUTE.
+ *
+ * Reading and writing in the same pass means the SECOND holder processed sees the FIRST holder's
+ * payout sitting on the board and copies it: two Espathra facing each other read +2 and +4 instead of
+ * +2 and +2. That is exactly the case `ignoresSources` exists for — Showdown's handler returns early
+ * when the boost's own effect is Opportunist or Mirror Herb — and computing every gain against the
+ * frozen snapshot before applying any of them IS that rule, expressed once, rather than an effect
+ * name compared in a place this engine does not carry one. */
+function opportunistSettle(actA,actB,snap){
+  if(!snap)return;
+  const pending=[];
+  /* WHO HOLDS IT, and the foes are the OTHER side's actives -- read off the two arrays this engine
+   * already keeps, never off a stored side letter, because a body may have switched in mid-turn. */
+  for(const [holders,foes] of [[actA,actB],[actB,actA]]){
+    for(const h of (holders||[])){
+      if(!h||h.fainted||h.curHP<=0||!h.boosts)continue;
+      const p=TAGS.param('ability',(h.ability||'').replace(/[^a-z0-9]/g,''),'copiesFoeBoosts');
+      if(!p)continue;
+      const gain={};let any=false;
+      for(const f of (foes||[])){
+        if(!f||!snap.has(f))continue;
+        const before=snap.get(f);
+        for(const k of OPP_STATS){
+          const d=((f.boosts&&f.boosts[k])||0)-before[k];
+          /* POSITIVE ONLY, off the handler's own `if (boost[i] > 0)`. A foe's Intimidate drop is not
+           * a gift and must not be copied. */
+          if(d>0&&(p.positiveOnly!==false)){gain[k]=(gain[k]||0)+d;any=true;}
+        }
+      }
+      if(any)pending.push({h,gain});
+    }
+  }
+  for(const {h,gain} of pending){
+    for(const k in gain){
+      const b0=h.boosts[k]||0;
+      h.boosts[k]=clamp(b0+gain[k],-6,6);
+      if(TR&&h.boosts[k]!==b0)TR.bst(h,k,h.boosts[k]-b0,'[from] ability: '+h.ability);
+    }
+    MEDSEEN.foeBoostCopied++;
   }
 }
 /* WIRE 119 -- THREE ACTION KINDS CARRY NO MOVE ID, and every one of them is a status move: the
@@ -3427,6 +3515,30 @@ function flingBasePower(att){
   if(itemRefusesTake(att))return 0;
   const p=TAGS.param('item',att.item,'flingable');
   return (p&&+p.basePower)||0;
+}
+/* ROADMAP #212 -- THE HOLDER'S ABILITY REFUSES THE STRIP, AND IT IS DELIBERATELY *NOT* PART OF
+ * `itemRefusesTake`.
+ *
+ * The first cut of this put Sticky Hold inside that predicate, because it is the one choke point
+ * every strip goes through. It is also asked by TWO OTHER QUESTIONS that Sticky Hold has nothing to
+ * do with, and the measurement said so immediately: Knock Off came back dealing ZERO damage against
+ * a Sticky Hold body. The comment at the Knock Off boost site already had the reading —
+ * Showdown prices that x1.5 with `singleEvent` on the ITEM's handler, so the ABILITY never sees it,
+ * and Fling's price asks the same predicate. Sticky Hold refuses the strip and changes neither
+ * number.
+ *
+ * So this is its own reader, called only where an item is actually being taken BY SOMEBODY ELSE.
+ * `exceptItem` (a Sticky Barb is still takeable) and `exceptOwnUse` are the handler's own, carried as
+ * params rather than typed here. */
+function abilityRefusesItemLoss(m,by){
+  if(!m||!m.item)return false;
+  if(by&&by===m)return false;                       // the holder spending its own item is not a strip
+  const _ril=TAGS.param('ability',(m.ability||'').replace(/[^a-z0-9]/g,''),'refusesItemLoss');
+  if(!_ril||!_ril.refuses)return false;
+  const _ex=String(_ril.exceptItem||'').replace(/[^a-z0-9]/g,'');
+  if(_ex&&String(m.item||'').toLowerCase().replace(/[^a-z0-9]/g,'')===_ex)return false;
+  MEDSEEN.itemLossRefused++;
+  return true;
 }
 function itemRefusesTake(m){
   if(!m||!m.item||!holdsMegaStone(m.item))return false;
@@ -5546,6 +5658,27 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
         else if(_dw){BPCH(exact4096(attAb,+_dbm.mult));MEDSEEN.damageBoostMoveCond++;}
       }
     }
+    /* ROADMAP #212 -- RIVALRY, BOTH BRANCHES AND THE GENDERLESS ONE.
+     *
+     * `damageBoost` cannot hold this: it carries one multiplier, and Rivalry's handler has an ELSE.
+     * Same gender x1.25, opposite x0.75, and x1 when either body is genderless because the
+     * authority's guard is `attacker.gender && defender.gender`. Wiring only the boost would make the
+     * ability strictly better than it is against half the field.
+     *
+     * `genderOf` is the engine's ONE reader of this fact -- Attract and Cute Charm already ask it --
+     * and it returns 'N' for a body with no declared gender, which is every body this repo's harnesses
+     * build. So the default behaviour is unchanged and a fixture that declares two genders is what
+     * makes the ability visible. That is why the row read INERT: the ability was correctly doing
+     * nothing, which ROADMAP #205 mistook for it being untestable. */
+    {
+      const _rg=TAGS.param('ability',attAb,'damageByGender');
+      if(_rg){
+        const _ga=genderOf(att),_gd=genderOf(def);
+        const _m=(_ga==='N'||_gd==='N')?+_rg.genderlessMult
+                :(_ga===_gd)?+_rg.sameMult:+_rg.oppositeMult;
+        if(_m>0&&_m!==1){BPCH(exact4096(attAb,_m));MEDSEEN.damageByGender++;}
+      }
+    }
     /* MUSCLE BAND / WISE GLASSES, `[4505,4096]`. Name-wired because both are `untagged` in the
      * artifact; the value is the authority's pair rather than the 1.1 that used to be typed here. */
     if(att.item==='muscleband'&&phys)BPCH([4505,4096]);
@@ -5772,6 +5905,28 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
       if(_ok===null){MEDFAILS.damageReduceUnknown++;
         if(!MEDFAILS.damageReduceUnknownFirst)MEDFAILS.damageReduceUnknownFirst=String(defAb)+'/'+String(_w);}
       else if(_ok)MODMUL(_dr.damageMult);
+    }
+  }
+  /* ROADMAP #212 -- FLUFFY, THE ONLY MULTI-CLAUSE MEMBER, AND EVERY CLAUSE IS APPLIED.
+   *
+   * `damageByMoveTrait` carries a LIST because Fluffy's handler accumulates: Fire x2, contact x0.5,
+   * and a Flare Blitz is BOTH, for a net x1. An engine that picked one clause would be right on the
+   * two single-property moves and wrong on the nine in this format that carry both -- which is
+   * exactly why the probe asserts the net-unchanged arm rather than inferring it. Membership is one
+   * ability (Houndstone's Fluffy); anything the rule matches later arrives here with no edit. */
+  {
+    const _dt=TAGS.param('ability',defAb,'damageByMoveTrait');
+    if(_dt&&Array.isArray(_dt.clauses)){
+      for(const c of _dt.clauses){
+        if(!c||!(+c.mult>0))continue;
+        const _hit=c.moveType?(String(mv.t||'').toLowerCase()===String(c.moveType).toLowerCase())
+                 :c.moveFlag?!!(mv.id&&TAGS.has('move',mv.id,c.moveFlag))
+                 :null;
+        if(_hit===null){MEDFAILS.damageReduceUnknown++;
+          if(!MEDFAILS.damageReduceUnknownFirst)MEDFAILS.damageReduceUnknownFirst=String(defAb)+'/damageByMoveTrait';
+          continue;}
+        if(_hit)MODMUL(+c.mult);
+      }
     }
   }
   if(att.ability==='neuroforce'&&eff>1)MODMUL(1.25);
@@ -7055,9 +7210,35 @@ if((side==='A'?field.twA:field.twB)>0)s*=2;
     * through weatherId so 'hail' and 'heavy rain' land on the engine's words. */
    const _scp=TAGS.param('ability',m.ability,'speedCond');
    if(_scp&&_scp.speedMult){
+     /* ROADMAP #211 -- THE CONDITION IS READ, NOT ASSUMED ABSENT. `inWeather` was the only clause
+      * this engine could evaluate, so Quick Feet (a STATUS condition) and Surge Surfer (a TERRAIN)
+      * fell to the refusal below and did nothing at all: Will's own board -- an opponent burning a
+      * Jolteon -- read speed 192 in both arms, the two-arms-agree tell. tag_dex now derives
+      * `whenStatus` and `inTerrain` from the same handler text the multiplier comes from, and the
+      * membership was printed before this line existed (exactly one status carrier, exactly one
+      * terrain carrier, and Slow Start's turn clock deliberately still unreadable).
+      *
+      * A carrier may in principle name more than one; each clause is tested independently and the
+      * multiplier applies ONCE, because Showdown's handler has a single `chainModify` behind one
+      * `if`. */
+     let _hit=false;
      if(Array.isArray(_scp.inWeather)&&_scp.inWeather.length){
-       if(_w&&_scp.inWeather.some(x=>weatherId(x)===_w||x===_w))s*=+_scp.speedMult;
-     }else{
+       if(_w&&_scp.inWeather.some(x=>weatherId(x)===_w||x===_w))_hit=true;
+     }
+     if(!_hit&&Array.isArray(_scp.inTerrain)&&_scp.inTerrain.length){
+       const _t=field&&terrainId(field.terrain);
+       if(_t&&_scp.inTerrain.some(x=>terrainId(x)===_t||x===_t))_hit=true;
+     }
+     /* QUICK FEET TAKES ANY STATUS, and the burn's Attack drop is NOT cancelled by it -- that is a
+      * different handler and stays where it is. */
+     if(!_hit&&_scp.whenStatus&&m.status)_hit=true;
+     if(_hit)s*=+_scp.speedMult;
+     else if(!(Array.isArray(_scp.inWeather)&&_scp.inWeather.length)
+             &&!(Array.isArray(_scp.inTerrain)&&_scp.inTerrain.length)
+             &&!_scp.whenStatus){
+       /* STILL COUNTED, and it must stay loud: the only member that reaches here is Slow Start's
+        * turn clock, which has no legal carrier in this format. A silent default here would be the
+        * boolean-in-a-fraction's-clothing defect all over again. */
        MEDFAILS.speedCondUnconditional++;
        if(!MEDFAILS.speedCondUnconditionalFirst)MEDFAILS.speedCondUnconditionalFirst=m.ability;
      }
@@ -7733,14 +7914,24 @@ function canTakeStatus(t,st,ignoreTypeImmunity){
  * artifact yet -- tag_dex now derives `onlyFrom` and this reads it first; the name list below is the
  * pre-regeneration bridge, exactly as WIRE 113's Simple/Defiant numbers are.
  *
- * ACCURACY IS A STAGE THIS ENGINE HAS NO SLOT FOR, so an accuracy-only blocker refuses NOTHING here.
- * That is the right answer rather than a skipped one, and it is why the map below has no entry for it.
+ * ~~ACCURACY IS A STAGE THIS ENGINE HAS NO SLOT FOR~~ — RETRACTED 2026-08-11, ROADMAP #212. It has
+ * one: `buildMon` gives every body `boosts.acc` and `boosts.eva`, `hitChance` multiplies by
+ * `accStageMul` on both (:4349), and Mud-Slap's `-1` accuracy landed on this engine every time. What
+ * was missing was only the ROW BELOW — `blocks: 'accuracy'` mapped to no engine stat, so the guard
+ * `SD_BLOCK2ENG[blocks] !== engStat` was false for every stat and Keen Eye and Illuminate refused
+ * NOTHING. Will's board: Mud-Slap into a Lycanroc read acc -1 with and without Keen Eye, the two-arms-
+ * agree tell. The drop is a 100% secondary (`secondaries: [{chance: 100, boosts: {accuracy: -1}}]`,
+ * unchanged by the Champions mod), so no die is involved and the reading is absolute.
+ *
+ * AN UNMAPPED `blocks` IS NOW COUNTED. It used to fall through to "no refusal", which is a silent
+ * default wearing a working feature's clothes — precisely how this one survived. Membership printed
+ * before the row was added: `accuracy` is carried by Illuminate and Keen Eye and by nothing else.
  *
  * THE MESSAGE IS SUPPRESSED FOR A MOVE'S SECONDARY and for Octolock (`!effect.secondaries` in every
  * one of these handlers); the BLOCK is not. Backwards, that would fire a `-fail` on every Icy Wind
  * and part the two streams in a new place instead of an old one. */
 const STAT_LABEL={at:'Attack',df:'Defense',sa:'Special Attack',sd:'Special Defense',sp:'Speed'};
-const SD_BLOCK2ENG={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp'};
+const SD_BLOCK2ENG={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp',accuracy:'acc',evasion:'eva'};
 /* STAGED tag_dex enrichment (`preventsStatDrop.onlyFrom`). Read the tag first; this list is only
  * consulted for an artifact generated before that field existed. */
 const INTIM_ONLY_BRIDGE=['innerfocus','oblivious','owntempo','scrappy','guarddog'];
@@ -7780,7 +7971,50 @@ function reflectStatDrop(holder,src,engStat,amount){
  * say who caused the drop or how big it was keeps exactly the pre-wire behaviour -- the drop is
  * blocked and nothing bounces -- because inventing either would be a silent default in the one place
  * that decides whether an ability does anything at all. */
+/* ROADMAP #212 -- THE ALLY HALF, WHICH WAS MISSING AND IS THE HALF FLOWER VEIL IS PLAYED FOR.
+ *
+ * `preventsStatDrop.protectsAllies` has exactly ONE carrier in this format (printed before this was
+ * written: Flower Veil, 1,465 sheet fields) and NOTHING read it. The sibling family two screens up --
+ * `allyRefusesStatus` / `allyRefusesVolatile` -- was already built for the same ability's status and
+ * volatile handlers, so the stat half was the one of the three that never got wired. Measured on
+ * Will's board before the fix: Incineroar switches in beside a Florges, and the Grass Sinistcha next
+ * to it took the Intimidate anyway.
+ *
+ * THE HOLDER IS NOT AUTOMATICALLY COVERED, and that is the whole reason this board discriminates:
+ * Showdown's guard is `!target.hasType('Grass')`, so a FAIRY Florges does not protect ITSELF. The
+ * grass gate is therefore applied to the TARGET, never to the holder -- the same shape
+ * `allyRefusesStatus` uses. */
+function allyRefusesStatDrop(target,engStat,effectName){
+  if(!target)return null;
+  const sf=target._sf,S=sf&&sf._S;
+  if(!S)return null;
+  const side=sf.side==='A'?S.actA:S.actB;
+  for(const h of (side||[])){
+    if(!h||h===target||h.fainted||h.curHP<=0)continue;
+    const ab=(h.ability||'').replace(/[^a-z0-9]/g,'');
+    const p=TAGS.param('ability',ab,'preventsStatDrop');
+    if(!p||!p.protectsAllies)continue;
+    if(p.onlyGrassTypes&&!(target.types||[]).some(t=>String(t).toLowerCase()==='grass'))continue;
+    const _eid=String(effectName||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(p.onlyFrom&&String(p.onlyFrom).toLowerCase().replace(/[^a-z0-9]/g,'')!==_eid)continue;
+    const blocks=String(p.blocks||'');
+    if(blocks!=='all stats'&&SD_BLOCK2ENG[blocks]!==engStat)continue;
+    return {ab,label:blocks==='all stats'?'':(STAT_LABEL[engStat]||''),announce:false};
+  }
+  return null;
+}
+/* THE BODY'S OWN REFUSAL AND THE SIDE'S ARE ASKED IN THAT ORDER, and the fallback is at the OUTER
+ * level rather than inside the first `if`: a Grass body carrying Big Pecks standing beside a Florges
+ * has a `preventsStatDrop` of its own that does not cover an Attack drop, and an ally check nested
+ * under "the target has no ability of its own" would never run for it. */
 function statDropRefusal(target,engStat,effectName,isSecondary,src,amount){
+  const own=ownStatDropRefusal(target,engStat,effectName,isSecondary,src,amount);
+  if(own)return own;
+  const al=target?allyRefusesStatDrop(target,engStat,effectName):null;
+  if(al){MEDSEEN.statDropRefused++;return al;}
+  return null;
+}
+function ownStatDropRefusal(target,engStat,effectName,isSecondary,src,amount){
   if(!target)return null;
   const ab=(target.ability||'').replace(/[^a-z0-9]/g,'');
   const p=TAGS.param('ability',ab,'preventsStatDrop');
@@ -7794,6 +8028,14 @@ function statDropRefusal(target,engStat,effectName,isSecondary,src,amount){
   const only=p.onlyFrom||(INTIM_ONLY_BRIDGE.indexOf(ab)>=0?'Intimidate':null);
   if(only&&String(only).toLowerCase().replace(/[^a-z0-9]/g,'')!==_eid)return null;
   const blocks=String(p.blocks||'');
+  if(blocks!=='all stats'&&!SD_BLOCK2ENG[blocks]){
+    /* LOUD, NOT SILENT. A `blocks` value this engine cannot map used to read as "refuses nothing",
+     * which is indistinguishable from an ability that correctly does nothing — the shape that hid
+     * Keen Eye. Anything new upstream lands here instead of on the floor. */
+    MEDFAILS.statDropBlockUnmapped++;
+    if(!MEDFAILS.statDropBlockUnmappedFirst)MEDFAILS.statDropBlockUnmappedFirst=ab+':'+blocks;
+    return null;
+  }
   if(blocks!=='all stats'&&SD_BLOCK2ENG[blocks]!==engStat)return null;
   /* WIRE 157 -- THE REFLECTOR'S THREE GUARDS, ALL THREE OFF THE HANDLER AND ALL THREE CARRIED BY THE
    * TAG rather than typed here.
@@ -8467,6 +8709,24 @@ function attractBeforeMove(m,rng,active){
 }
 function applyMoveVolatile(who,vol,src,mvId,field,opts){
   if(!who||!vol)return false;
+  /* ROADMAP #212 -- THE SIDE'S VOLATILE VEIL, ASKED FIRST, AND AROMA VEIL IS WHY.
+   *
+   * `allyRefusesVolatile` existed and had exactly ONE caller: the yawn branch. So Flower Veil's yawn
+   * clause worked and Aroma Veil -- which blocks Attract, Disable, Encore, Heal Block, Taunt and
+   * Torment for its whole side -- did nothing, because it was not even in the tag family (see
+   * tag_dex: the derivation required an `onAllySetStatus` and Aroma Veil has none).
+   *
+   * IT SITS ABOVE THE ATTRACT BRANCH ON PURPOSE. Attract is applied by its own owner two lines down,
+   * so a check placed after it would refuse five of the six and silently let the sixth through --
+   * the shape of a half-wired ability that reports success. It also sits above the fainted guard for
+   * the same reason the ally status veil does: a volatile refused by the body standing next to you
+   * never reaches your own table at all. */
+  {const _av=allyRefusesVolatile(who,vol);
+   if(_av){MEDSEEN.allyVeilRefused++;
+     /* Showdown writes `-block|TARGET|ability: Aroma Veil|[of] HOLDER`, and `-block` is not in
+      * TRACE_EVENTS -- counted rather than papered over with a `-fail`, exactly as applyStatus does. */
+     MEDFAILS.blockLineUnannounced++;
+     return false;}}
   /* ROADMAP #197 -- ATTRACT IS OWNED, exactly as substitute, confusion, partiallytrapped and
    * healblock are, and for the same reason: the generic write below would put a bare `_vol.attract`
    * on a body of ANY gender, which the authority refuses outright, and it would not record WHO the
@@ -10435,6 +10695,9 @@ function battleTurn(S,rng,actsForA,actsForB){
      * once-a-turn sync alone would leave the type one whole turn behind the sky it follows. */
     syncFieldTypes(field,[...actA,...actB]);
     const acts=[];
+    /* ROADMAP #212 -- Opportunist's ledger for the action about to run. Null between actions, so a
+     * settle with nothing banked is a no-op rather than a guess. */
+    let _oppSnap=null;
     /* actsForB exists for the Tower's LOWER floors: a floor-3 guardian clicks random legal moves,
      * so the caller hands the weak actions in rather than this engine growing a "play badly" mode. */
     const mk=(mon,side,foes,ally)=>{if(!mon||mon.fainted||mon.curHP<=0)return;
@@ -10885,8 +11148,14 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* WIRE 152 -- the AfterMove debt from the PREVIOUS action, settled before the Update event
          exactly as the authority orders them. See flushAfterMoveSpends. */
       flushAfterMoveSpends([...actA,...actB]);
+      /* ROADMAP #212 -- OPPORTUNIST PAYS OUT AT `onAnyAfterMove`, SO IT SETTLES HERE, beside the
+       * other previous-action debt and for the identical reason: the loop body carries ~30
+       * `continue`s and a call at the bottom would be skipped by every one of them. The snapshot it
+       * compares against is taken below, immediately before the action runs. */
+      opportunistSettle(actA,actB,_oppSnap); _oppSnap=null;
       receiverSweep([...actA,...actB]);   // ROADMAP #175 -- the previous action's faint, answered
       _updateAll();
+      _oppSnap=opportunistSnapshot(actA,actB);
       const it=acts[actIdx];const m=it.mon;
       /* Marked BEFORE the body runs, so a move cannot flinch the Pokemon using it. */
       unresolved.delete(m);
@@ -12486,11 +12755,12 @@ function battleTurn(S,rng,actsForA,actsForB){
         m._lastMove=a.mv;continue;
       }
       /* WIRE 107 -- TRICK / SWITCHEROO swap the two items; CORROSIVE GAS deletes the target's. The
-         same status-move gates as the boost branch above. What is NOT modelled and is stated: Sticky
-         Hold (no tag describes it -- its handler REFUSES the loss, the exact over-match the
-         speedOnItemLoss derivation was tightened against) and the can't-trick-a-mega-stone-onto-
-         its-own-species rule; the coarse half of the latter IS read: an item carrying `megaStone`
-         does not move, which is the artifact's own shape. */
+         same status-move gates as the boost branch above. ROADMAP #212 -- STICKY HOLD IS NOW READ
+         HERE: the paragraph that stood here said it was "not modelled" because no tag described it,
+         and `refusesItemLoss` is that tag, derived from the same handler by the rule that is the
+         exact inverse of the one `speedOnItemLoss` was tightened to. What is still NOT modelled is
+         the can't-trick-a-mega-stone-onto-its-own-species rule; the coarse half of that IS read: an
+         item carrying `megaStone` does not move, which is the artifact's own shape. */
       if(a.kind==='trickitem'){
         m._lastMove=a.mv;
         const _ti=TAGS.param('move',a.mv,'takesTargetItem')||{};
@@ -12499,7 +12769,8 @@ function battleTurn(S,rng,actsForA,actsForB){
            &&!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
            &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
            &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv)
-           &&!TAGS.has('item',m.item,'megaStone')&&!TAGS.has('item',t.item,'megaStone')){
+           &&!TAGS.has('item',m.item,'megaStone')&&!TAGS.has('item',t.item,'megaStone')
+           &&!abilityRefusesItemLoss(t,m)){
           if(_ti.swaps){const _mi=m.item;m.item=t.item;t.item=_mi;
             if(TR){TR.act(m,'move: '+a.mv);
                    if(t.item)TR.item(t,t.item,'[from] move: '+a.mv);
@@ -15472,7 +15743,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          *     the body could no longer mega for the rest of the battle. */
         {
           const _ri=TAGS.param('move',a.move.id,'removesItem');
-          if(_ri&&tg.item&&!itemRefusesTake(tg)){
+          if(_ri&&tg.item&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){
             const _taken=tg.item; tg.item='';
             if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);
             if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}
@@ -16757,6 +17028,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          the whole of the ability's offensive half. */
     }
     flushAfterMoveSpends([...actA,...actB]);   // WIRE 152 -- the LAST action's debt, same reason
+    opportunistSettle(actA,actB,_oppSnap); _oppSnap=null;   // ROADMAP #212 -- and the LAST action's copy
     receiverSweep([...actA,...actB]);          // ROADMAP #175 -- and the LAST action's faint
     _updateAll();   // ROADMAP #81 WIRE 7 -- after the LAST action, the half the loop-top call cannot reach
     /* Flinch expires at the END of the turn it was applied. It used to be cleared only when the

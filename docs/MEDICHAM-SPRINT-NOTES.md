@@ -5573,3 +5573,197 @@ the differential were all green on this.
 
 `quickfeet`, `poisonheal`, the `eelevate` KO-boost arm, the inert ability/move residue,
 `magmaarmor`, and Rivalry. None of them was touched.
+
+---
+
+## ROADMAP #212 — THE SIXTEEN WHOSE CONTROL ARM WAS ITSELF A LIVE ABILITY (2026-08-11, eighth pass)
+
+`tests/roster.js` tests an ability by REMOVING it. On sixteen rows every alternative the carrier
+legally has is ALSO live, so the "without" arm is never quiet and the row counts in neither column.
+That is an INSTRUMENT limit, not a fixture problem. The answer is the absolute-assertion shape
+`tests/test-forme-assert.js` already uses: no ability-swap control, assert the observable directly —
+and every board below was chosen so the trigger is a CERTAINTY rather than a chance, because the
+roster's driver pins every die and a rate can never be read on it whatever fixture you build.
+
+Census **491 -> 503 live, 0 missing, 0 hollow, 0 unarmed, 0 direct-call, 0 threw**. Twelve arrived,
+none broke. Gate re-run after every engine change — differential at n=6000, seed 20260804, BOTH
+corners — and it read OPEN six of six every time.
+
+| mechanic | what was wrong | authority, cited | probe |
+|---|---|---|---|
+| **Quick Feet** | `speedCond` could evaluate only `inWeather`, so a STATUS condition was refused into `MEDFAILS.speedCondUnconditional` and the ability did nothing | `onModifySpe(spe, pokemon) if (pokemon.status) chainModify(1.5)` — `data/abilities.ts:3738`, no Champions override | `ability/speedCond` — Dragapult burns a Jolteon, then both fight on 1 HP: Speed 192 and the foe lives, against Speed 288 and the foe faints |
+| **Eelevate KO boost** | the existing probe summed every stage on a GARCHOMP, whose highest stat is Attack, so a hardcoded-Attack engine passed it | `onSourceAfterFaint ... getBestStat(true, true)`, byte-identical to Beast Boost | `ability/boostsOnKO` — Eelektross-Mega built SpA 205 / Atk 165 reads 0,1 on Eelevate and 1,0 on MOXIE, two abilities required to disagree on one body |
+| **Keen Eye / Illuminate** | `preventsStatDrop.blocks = 'accuracy'` mapped to no engine stat, so the guard was false for every stat and both abilities refused nothing | Mud-Slap `secondaries [{chance: 100, boosts: {accuracy: -1}}]`, no Champions override | `ability/preventsStatDrop` — a ROCK Lycanroc reads acc -1 with 16 damage, and acc 0 with the SAME 16 damage |
+| **Flower Veil, ally half** | `preventsStatDrop.protectsAllies` had exactly one carrier and NO reader; the status and volatile halves of the same ability were wired months ago | `onAllyTryBoost ... !target.hasType('Grass') return` | `ability/preventsStatDrop` — Incineroar Intimidates: the FAIRY holder still drops to -1 and the GRASS ally stays at 0 |
+| **Aroma Veil** | it was not in its own tag family — the derivation required an `onAllySetStatus` and Aroma Veil has only `onAllyTryAddVolatile` | the six volatiles are its own list: attract, disable, encore, healblock, taunt, torment | `ability/protectsAllyFromStatus` — Taunt refused on holder AND ally, Encore refused on the ally, and Will-O-Wisp STILL BURNS |
+| **Sticky Hold** | no tag at all, so a Knock Off took the item every time | `onTakeItem ... return false`, with `pokemon.item === 'stickybarb'` returning early | `ability/refusesItemLoss` — item kept through Knock Off and Trick, a Sticky Barb still goes, and the damage is UNCHANGED |
+| **Fluffy** | carried only `breakable`; `damageReduce` needs ONE multiplier below 1 and this handler has two clauses | `mod = 1; Fire mod *= 2; contact mod /= 2` | `ability/damageByMoveTrait` — Dragon Claw 52 to 26, Heat Wave 34 to 68, Flare Blitz 115 to 115 |
+| **Rivalry** | `damageBoost` holds one multiplier and cannot express an `else`, so the whole ability was refused and counted | `if (attacker.gender && defender.gender) same 1.25 else 0.75` | `ability/damageByGender` — 235 base, 294 same gender, 177 opposite, 235 genderless |
+| **Anger Point** | nothing wrong — never probed | Flower Trick `willCrit: true`; the handler asks for TWELVE stages | `ability/buffsHolderOnHit` — 0 against +6 on one guaranteed crit |
+| **Slush Rush** | nothing wrong — never probed as a BOARD | `isWeather(["hail","snowscape"])` | `ability/speedCond` — Beartic 70 and dead, against 140 and alive, on 1 HP each side |
+| **Extreme Speed, Ice Shard, Jet Punch** | the roster reads them COULD-NOT-STAGE: a bracket is only observable if the ORDER decides the board | move priority 2, 1, 1 | `move/priority` — three subjects on 1 HP against a Garchomp pinned 15 Speed above each: the priority-0 control dies, the bracket kills first |
+
+### THE TWO THINGS THAT WERE REPORTED UNREACHABLE AND WERE NOT
+
+**RIVALRY, and ROADMAP #205 was wrong in a way worth naming.** #205 registered gender-keyed
+mechanics as untestable "by construction" because every fixture in this repo declares `gender: 'N'`.
+That is a CHOICE THE HARNESS MADE, not a property of the format: `genderOf()` has been in the engine
+since Attract was wired, and a probe that declares two genders reaches it in one line. The row read
+INERT because **the ability was correctly doing nothing** — Showdown's own guard is
+`attacker.gender && defender.gender`, so on a genderless board Rivalry is x1. "Identical boards" and
+"the mechanic is absent" are different claims and the instrument could not tell them apart.
+
+**THE EELEVATE KO-BOOST ARM was already probed, and the probe could not fail for the reason it
+claimed.** It sums every stage on a Garchomp whose highest raw stat IS Attack. Will's spread is the
+correction, and he had to make it twice: 32 SP + Gentle gives SpD 156 against Atk 165 and does NOT
+discriminate, from which I wrongly generalised that no non-attack stat can win on that carrier.
+Sp. Atk does — 205 against 165, both asserted in the probe so a build change fails the row loudly
+instead of quietly restoring an Attack-highest body.
+
+### WHAT THE FIRST CUT OF THE STICKY HOLD FIX GOT WRONG, MEASURED WITHIN A MINUTE
+
+`itemRefusesTake` is the one choke point every strip goes through, so the ability guard went in
+there. Knock Off immediately came back dealing **zero damage** against a Sticky Hold body. That
+predicate is also asked by **Fling's price** and by **Knock Off's x1.5**, and the comment at the
+second of those already had the reading: Showdown prices that boost with `singleEvent` on the ITEM's
+handler, so the ABILITY never sees it. Sticky Hold refuses the strip and changes neither number.
+`abilityRefusesItemLoss` is now its own reader, called only where an item is being taken BY SOMEBODY
+ELSE, and the probe asserts the damage is EQUAL across both arms for exactly this reason.
+
+### WHAT IS STILL BROKEN, NAMED RATHER THAN ABSORBED
+
+- **OPPORTUNIST.** Measured red and NOT fixed: a foe clicks Swords Dance in front of Espathra and
+  Espathra gains nothing. Its tag is `boostsEachTurn {perTurn: true}` with no boosts, derived from
+  its `onResidual` — which is only the PAYOUT half. The COLLECTION half is `onFoeAfterBoost` and no
+  tag describes it, so the shape has to be added upstream first. Showdown pays out at
+  `onAnyAfterMove` (same turn), so a naive end-of-turn copy would be a timing divergence rather than
+  a fix. Not attempted beside a green gate. Mirror Herb is the same mechanic and is BANNED here
+  (`isNonstandard: 'Past'`), so Opportunist is the only carrier of the shape.
+- **`magmaarmor` and `superluck` are RATE ROWS and no board will ever fix them.** Super Luck moves a
+  crit RATIO; Magma Armor answers a **7%** freeze — `0.70` accuracy x `0.10` secondary, derived, NOT
+  the 10% the secondary declares — and the roster's driver pins every die. Both belong to the staged
+  rate arm (#196). Camerupt is Magma Armor's sole carrier, and the control arm is real: **Fire types
+  are NOT freeze-immune** (`getImmunity('frz', 'Fire')` is true; only Ice blocks freeze, Fire blocks
+  burn), so a zero on the Magma Armor arm means something and a zero on BOTH arms is a failed
+  instrument rather than a pass.
+
+### THE ROWS THAT NEEDED NO WORK, AND SAYING SO IS THE POINT
+
+`stalwart`, `damp`, `justified` and `aftermath` are all four already LIVE in the census under their
+own probes (`ignoresRedirection`, `blocksExplosion`, `buffsHolderOnHit`, `punishesAttacker`), and all
+four were re-measured on fresh boards this pass and behaved. They read as uncounted on the ROSTER for
+the instrument reason at the top of this section, not because anything is missing. Adding a second
+probe for each would have raised the census number and proved nothing, so it was not done. `moxie` is
+covered by the shared KO board above.
+
+### THE INERT ABILITY AND MOVE RESIDUE — NOT REACHED
+
+The 39-ability / 4-move inert block was not started. The 16 control-arm rows above turned out to hold
+six real engine defects, which is where the pass went. The handler-name-to-board mapping is still the
+right approach for the residue and is unwritten.
+
+### THE GATE WAS NOT MEASURING THE WORK, AND FIVE GREEN RUNS SAID NOTHING (added on the coordinator's correction)
+
+`tests/roster.js:123` opens `ER.open(ARG('--release') || null)` — the NEWEST release. Two separate
+things were true and only one of them was the problem:
+
+- **The RELEASE was current.** `game_differential.js` cuts one whenever `--release` is absent, so each
+  of the five differential runs froze the then-live tree. Verified byte-for-byte: release
+  `e33345432538` held `engine/medicham2-browser.js` and `data/tags.json` IDENTICAL to the working
+  copy, `damageByGender` and `abilityRefusesItemLoss` included.
+- **The ROSTER ARTIFACTS were four hours stale.** `data/roster.abilities.json` still declared
+  `release b089ac3b32d0, generated 2026-08-11T17:15:47Z` — the pre-change run. The gate's three
+  roster clauses READ THOSE FILES. Five gate runs re-read the same pre-change JSON five times and
+  reported PASS five times.
+
+**A green clause computed from an artifact nobody re-generated is not evidence, and it is
+indistinguishable from one that is.** That is the same shape as the fourteen stale handoffs, arriving
+through a gate instead of through prose.
+
+Re-cut (`9b9fc1aa0fcb`, then `60784c7a63a6` after Opportunist) and re-ran all three stages against it:
+
+| stage | before (17:15Z) | after | moved |
+|---|---|---|---|
+| items | 139 tested, 0 DIFFER | 139 tested, 0 DIFFER | — |
+| abilities | 117 tested, 16 CONTROL-NOT-QUIET | **120 tested, 13 CONTROL-NOT-QUIET** | `aromaveil`, `flowerveil`, `fluffy` became FIRED-AND-BOARDS-MATCH |
+| moves | 479 tested, 0 DIFFER | 479 tested, 0 DIFFER | — |
+
+0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE at every stage, on the new bytes.
+
+**`keeneye`, `stickyhold` and `rivalry` did NOT move, and that is the instrument rather than the fix.**
+Their per-row reason is the two-control intersection being empty — *"NOTHING SURVIVES BOTH CONTROLS...
+The delta against Weak Armor is 20 leaves and against Sturdy it is 0, and they share none."* Every
+alternative ability on those carriers is itself live, so the roster structurally cannot attribute the
+delta whatever the engine does. The census probes carry them; the roster never will.
+
+**A cut does NOT trigger the refit** — `engine_release.js cut` freezes bytes and the weights are IN
+the frozen set, so it photographs `policy-weights.json` rather than refitting it. Holding off on that
+mistaken belief is what cost the previous pass its verification.
+
+### OPPORTUNIST — CLOSED, AND MY OWN FIRST DRAFT WAS WRONG
+
+`copiesFoeBoosts`, a NEW tag rather than a widened one. `boostsEachTurn` was derived from the
+ability's `onResidual` — one of FIVE places it PAYS OUT, all reading `this.effectState.boosts`. The
+half that FILLS that object is `onFoeAfterBoost`, and nothing described it, so one label stood for two
+rules and the engine consumed the half that cannot fire alone. Membership printed over the whole dex
+before wiring: exactly one ability carries `onFoeAfterBoost` (Opportunist, carrier Espathra) and
+exactly one item does (Mirror Herb, `isNonstandard: 'Past'` — banned here).
+
+**IT IS A BEFORE/AFTER DIFF ACROSS ONE ACTION, WHICH IS THE AUTHORITY'S SCHEDULE AND NOT AN
+APPROXIMATION OF IT.** Showdown collects in `onFoeAfterBoost` during the move and drains the same
+object at `onAnyAfterMove`. This engine writes boosts in at least six places; a hook at each is six
+chances to miss one, and the one that gets missed reads exactly like an ability correctly doing
+nothing. A diff taken across exactly that window sees the identical set and cannot miss a site,
+because it does not know where they are. What it does not reproduce is stated: Showdown also drains at
+`onAnySwitchIn` and `onAnyAfterMega`, which cannot occur mid-move here — switches and the mega phase
+both resolve before any move does.
+
+**THE FOURTH ARM CAUGHT MY OWN BUG WITHIN A MINUTE OF WRITING IT.** Two Espathra facing each other
+read holder +2 and booster **+4**: reading and writing in one pass let the second holder copy the
+first holder's payout. That is precisely what `effect?.name === 'Opportunist'` guards in the
+authority. Computing every gain against the frozen snapshot and applying afterwards IS that rule,
+expressed once. Probe `ability/copiesFoeBoosts` — Swords Dance gives +2 ATTACK, Nasty Plot +2 SP. ATK
+(a hardcoded stat passes one and fails the other), a foe DROPPING its own Sp. Atk to -2 gives the
+holder 0, and the two-holder board reads 2 and 2.
+
+Census **503 -> 504 live, 0 missing**. Differential re-run 0/6000 at both corners; roster re-run
+against the release that contains it; gate OPEN six of six.
+
+### THE INERT RESIDUE, MEASURED AND PRINTED BEFORE ANYTHING IS WIRED
+
+The standing count was "46 abilities and 54 moves". **Measured off the live artifacts it is 39
+abilities and ONE move**, and the move stage is the reason: it reached 479/500 in #210, so the old
+54 is a figure about an instrument that no longer exists. The one inert move is `upperhand`. The other
+ten COULD-NOT-STAGE moves each carry a different, specific reason, and three of them — Extreme Speed,
+Ice Shard, Jet Punch — were closed by census probes in this pass.
+
+The 39, split by whether anything already proves them. The split is a STRING MATCH of the ability's
+display name against every live census probe's label and detail — a heuristic, flagged as one, and
+the reason column C is the load-bearing one:
+
+**A. NAMED BY A LIVE CENSUS PROBE — proved; the roster fixture is simply blind (30).** Not open work.
+unaware(393) protean(357) trace(268) magician(262) cloudnine(235) pressure(197) frisk(138)
+naturalcure(114) magicguard(112) synchronize(109) pickpocket(95) supremeoverlord(90)
+screencleaner(66) noguard(60) sniper(58) symbiosis(53) steadfast(45) berserk(33) earlybird(25)
+cudchew(19) gluttony(15) skilllink(13) cheekpouch(9) poisonheal(9) plus(6) quickfeet(4) hydration(3)
+longreach(2) receiver(2) klutz(1)
+
+**B. ONLY SHARES A TAG with a live probe — NOT proved, because the probe may prove a different
+carrier under the same tag (9). THIS IS THE OPEN LIST.**
+
+| ability | uses | carriers | handler(s) — which name the board | note |
+|---|---|---|---|---|
+| `compoundeyes` | 560 | 20 | `onSourceModifyAccuracy` | the board already exists — Will's Shield Dust scenario puts it on the same Vivillon as an ability swap |
+| `telepathy` | 223 | 5 | `onTryHit` | its only tag is `breakable`; the refusal itself has no tag, so this needs a derivation first |
+| `leafguard` | 101 | 3 | `onSetStatus onTryAddVolatile` | sun-gated status immunity; the sun is the arm |
+| `illuminate` | 45 | 2 | `onModifyMove onTryBoost` | the TWIN of the Keen Eye fix landed this pass — same tag, same wire, so this is a probe and not a fix |
+| `heavymetal` | 22 | 1 | `onModifyWeight` | needs a weight-reading move (Low Kick, Heat Crash) as the observable |
+| `analytic` | 21 | 2 | `onBasePower` | `damageBoost` with a condition the engine REFUSES and counts — a real gap, not a fixture one |
+| `merciless` | 7 | 1 | `onModifyCritRatio` | a crit RATIO — belongs to the rate arm, not to a board |
+| `tangledfeet` | 5 | 2 | `onModifyAccuracy` | needs a confusion volatile, which this engine does not have (already declared in the accuracy conformance table) |
+| `lightmetal` | 4 | 2 | `onModifyWeight` | same board as heavymetal, opposite sign |
+
+**C. NO LIVE PROBE ON ANY OF ITS TAGS: ZERO.**
+
+So the residue is **nine rows, not a hundred**, and two of them (`merciless`, `tangledfeet`) are
+already known to belong elsewhere. Nothing here was wired; the list is posted first, as asked.

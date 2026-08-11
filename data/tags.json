@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-11T17:03:27.820Z",
+ "generated": "2026-08-11T21:23:55.104Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -330,8 +330,8 @@
    "kind": "move",
    "param": "the move books damage on a SLOT and lands turns later",
    "why": "Future Sight resolved immediately here, which is a different move: the authority does nothing at all on the click turn and hits at the end of the SECOND turn after it",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "delayedHit",
+   "used": true,
    "n": 1,
    "uses": 11,
    "examples": [
@@ -2895,9 +2895,10 @@
    "why": "Sweet Veil (29 uses) and Flower Veil (1,465 sheets). Both were modelled as SELF immunities or as nothing; the ally half -- the reason either is played -- reached no code",
    "consumedBy": "protectsAllyFromStatus",
    "used": true,
-   "n": 2,
-   "uses": 3610,
+   "n": 3,
+   "uses": 3671,
    "examples": [
+    "Aroma Veil",
     "Flower Veil",
     "Sweet Veil"
    ]
@@ -3084,6 +3085,17 @@
    "why": "Mega Sol reaches 139 fields. Solar Beam becomes one turn, Weather Ball becomes Fire, and every weather-conditional tag reads the FIELD -- which reports no weather at all",
    "consumedBy": null,
    "used": false,
+   "n": 1,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "refusesItemLoss",
+   "kind": "ability",
+   "param": "the holder cannot be stripped of its item",
+   "why": "Sticky Hold. Knock Off is 3,013 corpus clicks and every one of them took the item off a body that should have kept it, which changes the damage and speed for the rest of the game",
+   "consumedBy": "onTakeItem",
+   "used": true,
    "n": 1,
    "uses": 0,
    "examples": []
@@ -3461,6 +3473,45 @@
    "examples": [
     "Multiscale",
     "Solid Rock"
+   ]
+  },
+  {
+   "tag": "copiesFoeBoosts",
+   "kind": "ability",
+   "param": "the holder banks whatever POSITIVE boost a foe gained, and takes it itself",
+   "why": "Opportunist. A stat rises on a body that clicked nothing, which no other tag in this family can express - boostsEachTurn describes the PAYOUT half and cannot fire on its own",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 3,
+   "examples": [
+    "Opportunist"
+   ]
+  },
+  {
+   "tag": "damageByGender",
+   "kind": "ability",
+   "param": "base power scaled by whether the two genders match",
+   "why": "Rivalry. Two carriers, and the row read INERT because every fixture in this repo is genderless - which is the ability correctly doing nothing, not the ability being absent",
+   "consumedBy": "onBasePower",
+   "used": true,
+   "n": 1,
+   "uses": 44,
+   "examples": [
+    "Rivalry"
+   ]
+  },
+  {
+   "tag": "damageByMoveTrait",
+   "kind": "ability",
+   "param": "damage taken scaled by properties of the incoming MOVE, multiplicatively",
+   "why": "Fluffy. Two clauses that can both fire on one move, so a single-multiplier tag cannot hold it",
+   "consumedBy": "onSourceModifyDamage",
+   "used": true,
+   "n": 1,
+   "uses": 13,
+   "examples": [
+    "Fluffy"
    ]
   },
   {
@@ -34199,12 +34250,29 @@
   "aromaveil": {
    "name": "Aroma Veil",
    "tags": [
-    "breakable"
+    "breakable",
+    "protectsAllyFromStatus"
    ],
    "uses": 61,
    "params": {
     "breakable": {
      "breakable": true
+    },
+    "protectsAllyFromStatus": {
+     "statuses": [],
+     "except": null,
+     "volatiles": [
+      "attract",
+      "disable",
+      "encore",
+      "healblock",
+      "taunt",
+      "torment"
+     ],
+     "onlyGrassTypes": null,
+     "needsSource": null,
+     "notFromSelf": null,
+     "coversSelf": true
     }
    }
   },
@@ -34338,6 +34406,8 @@
       "sun",
       "harsh sun"
      ],
+     "inTerrain": [],
+     "whenStatus": false,
      "speedMult": 2
     }
    }
@@ -34853,12 +34923,26 @@
   "fluffy": {
    "name": "Fluffy",
    "tags": [
-    "breakable"
+    "breakable",
+    "damageByMoveTrait"
    ],
    "uses": 13,
    "params": {
     "breakable": {
      "breakable": true
+    },
+    "damageByMoveTrait": {
+     "clauses": [
+      {
+       "moveType": "Fire",
+       "mult": 2
+      },
+      {
+       "moveFlag": "contact",
+       "mult": 0.5
+      }
+     ],
+     "multiplicative": true
     }
    }
   },
@@ -35982,10 +36066,20 @@
   "opportunist": {
    "name": "Opportunist",
    "tags": [
+    "copiesFoeBoosts",
     "boostsEachTurn"
    ],
    "uses": 3,
    "params": {
+    "copiesFoeBoosts": {
+     "positiveOnly": true,
+     "ignoresSources": [
+      "Opportunist",
+      "Mirror Herb"
+     ],
+     "paysOutAfterMove": true,
+     "paysOutOnResidual": true
+    },
     "boostsEachTurn": {
      "perTurn": true
     }
@@ -36335,6 +36429,8 @@
    "params": {
     "speedCond": {
      "inWeather": [],
+     "inTerrain": [],
+     "whenStatus": true,
      "speedMult": 1.5
     }
    }
@@ -36452,10 +36548,16 @@
   "rivalry": {
    "name": "Rivalry",
    "tags": [
+    "damageByGender",
     "damageBoost"
    ],
    "uses": 44,
    "params": {
+    "damageByGender": {
+     "sameMult": 1.25,
+     "oppositeMult": 0.75,
+     "genderlessMult": 1
+    },
     "damageBoost": {
      "mult": 1.25,
      "onType": null,
@@ -36538,6 +36640,8 @@
      "inWeather": [
       "sand"
      ],
+     "inTerrain": [],
+     "whenStatus": false,
      "speedMult": 2
     },
     "weatherChipImmune": {
@@ -36807,6 +36911,8 @@
       "hail",
       "snow"
      ],
+     "inTerrain": [],
+     "whenStatus": false,
      "speedMult": 2
     }
    }
@@ -37080,12 +37186,19 @@
   "stickyhold": {
    "name": "Sticky Hold",
    "tags": [
-    "breakable"
+    "breakable",
+    "refusesItemLoss"
    ],
    "uses": 0,
    "params": {
     "breakable": {
      "breakable": true
+    },
+    "refusesItemLoss": {
+     "refuses": true,
+     "exceptItem": "stickybarb",
+     "exceptOwnUse": true,
+     "alwaysRefusesKnockOff": true
     }
    }
   },
@@ -37207,6 +37320,10 @@
    "params": {
     "speedCond": {
      "inWeather": [],
+     "inTerrain": [
+      "electric"
+     ],
+     "whenStatus": false,
      "speedMult": 2
     }
    }
@@ -37273,6 +37390,8 @@
       "rain",
       "heavy rain"
      ],
+     "inTerrain": [],
+     "whenStatus": false,
      "speedMult": 2
     }
    }
