@@ -616,6 +616,24 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #212 -- an Opportunist copy actually paid out (`copiesFoeBoosts`). Zero unless a foe
      boosted in front of an Espathra, which is the only carrier in this format. */
   foeBoostCopied: 0,
+  /* ROADMAP #213 -- a weight actually modified by Heavy Metal or Light Metal (`modifiesWeight`).
+     Zero unless a weight-reading move meets one of the three carriers in this format. */
+  weightModified: 0,
+  /* ROADMAP #213 -- a status refused by a WEATHER-gated immunity (`statusImmune.inWeather`; Leaf
+     Guard is the only member). Zero unless the sun is up over one of its three carriers. */
+  statusRefusedByWeather: 0,
+  /* ROADMAP #213 -- a damaging move from the holder's OWN PARTNER refused (`refusesAllyDamage`;
+     Telepathy is the only carrier). Zero unless an ally clicks a spread move over its own side. */
+  allyDamageRefused: 0,
+  /* ROADMAP #213 -- a POSITIVE evasion stage cancelled by the attacker's own ability
+     (`ignoresEvasion`; Keen Eye and Illuminate). Zero unless one of them clicks into a boosted
+     target -- a negative evasion stage is left alone, because the ability ignores evasion rather
+     than helping it. */
+  evasionIgnored: 0,
+  /* ROADMAP #213 -- a crit made CERTAIN by the attacker's ability (`critRatioUp.guaranteed`;
+     Merciless into a poisoned target is the only member). Zero unless a Toxapex hits something it
+     has poisoned. */
+  critGuaranteedByAbility: 0,
   /* WIRE 141 -- the TRANSFORM, counted apart from `formeSwapped` because it is a different mechanic
    * wearing the same word: a forme swap becomes a KNOWN row and a transform becomes an ARBITRARY
    * opposing body. `transformedOnEntry` is the copy landing; `transformRefusedNoBody` is the entry
@@ -1230,6 +1248,14 @@ const MEDFAILS = { encoreAction: 0,
      (`accuracy` was the one that had none, and it cost Keen Eye and Illuminate entirely); anything
      the artifact learns to derive later arrives here rather than silently refusing nothing. */
   statDropBlockUnmapped: 0, statDropBlockUnmappedFirst: '',
+  /* ROADMAP #213 -- a weather-gated status immunity asked on a body with no side stamp, so the field
+     could not be read. Defaulting to "no weather" would turn Leaf Guard OFF in exactly the case a
+     bare unit-test call makes, which is the silent-default shape; it is counted instead. */
+  statusImmuneWeatherUnknown: 0, statusImmuneWeatherUnknownFirst: '',
+  /* ROADMAP #213 -- an ally-refusal asked about two bodies with no side stamp, so "are these two on
+     the same side" could not be answered. A pure dmgRange call is exactly this case; guessing either
+     way would be a silent default, so the refusal is skipped and counted. */
+  allySideUnknown: 0, allySideUnknownFirst: '',
   /* WIRE 93 -- a `priorityMod` whose `condition` prose this engine cannot evaluate. The only value in
      the artifact today is Gale Wings' 'only at full HP', which IS evaluated; anything else fails
      closed (no shift) and is counted, because a silently applied conditional shift is a wrong number
@@ -3109,6 +3135,28 @@ const exact4096=(id,m)=>CH_EXACT[id]||m;
 function condHolds(w,self,hit){
   if(w==null)return true;
   if(typeof w!=='object')return null;
+  /* ROADMAP #213 -- ANALYTIC. A fact about the TURN QUEUE rather than about the body or the click,
+   * which is why it fell out of `hpGateIn` and the `moveFlag` shape and came through as `onlyWhen:
+   * null` — read by the consumer as "unconditional" and then refused for an unrelated reason. The
+   * 1.3x never fired and `damageBoostUnknownCond` never counted it.
+   *
+   * The authority walks `getAllActive()` and breaks on `queue.willMove(target)`. This engine already
+   * writes `_acted` on every body at the top of its action (WIRE 135, added for Payback), so the
+   * question is answerable without a queue object: every OTHER live active must have `_acted`.
+   *
+   * A BODY WITH NO SIDE STAMP CANNOT ANSWER IT AND RETURNS null, WHICH IS A REFUSAL AND NOT A FALSE.
+   * A pure `dmgRange` call has two bodies and a field and no battle, so it genuinely does not know
+   * whether the turn is over; `null` routes it to the caller's existing unknown-condition counter,
+   * which is the difference between failing closed and failing silently. */
+  if(w.cond==='allOtherActivesHaveMoved'){
+    const S=self&&self._sf&&self._sf._S;
+    if(!S||!S.actA||!S.actB)return null;
+    for(const b of [...S.actA,...S.actB]){
+      if(!b||b===self||b.fainted||b.curHP<=0)continue;
+      if(!b._acted)return false;
+    }
+    return true;
+  }
   if(w.cond==='hpFraction'&&w.of==='self'
      &&Number.isInteger(w.num)&&Number.isInteger(w.den)&&w.den>0&&w.num>0
      &&self&&self.st&&self.st.hp>0&&self.curHP!=null){
@@ -3540,6 +3588,25 @@ function abilityRefusesItemLoss(m,by){
   MEDSEEN.itemLossRefused++;
   return true;
 }
+/* ROADMAP #213 -- HOW HEAVY IS THIS BODY, asked in ONE place.
+ *
+ * The species weight is a constant on the body (`m.wt`, kilograms). Two abilities change it and this
+ * engine read straight past both, so Low Kick into an Aggron and into a Heavy Metal Aggron were the
+ * same number. `modifiesWeight` carries the multiplier AND whether the authority truncates: Heavy
+ * Metal is `weighthg * 2` and Light Metal is `trunc(weighthg / 2)`, and the truncation is on
+ * HECTOGRAMS, not kilograms — so it is applied at hectogram scale here and converted back, or a 118 kg
+ * Scizor would round differently from the authority's 1180 hg.
+ *
+ * A body with no weight row returns null unchanged, so a caller that already guards on `m.wt` keeps
+ * exactly its old behaviour. */
+function effWeight(m){
+  if(!m||!m.wt)return m&&m.wt;
+  const p=TAGS.param('ability',(m.ability||'').replace(/[^a-z0-9]/g,''),'modifiesWeight');
+  if(!p||!(+p.mult>0))return m.wt;
+  const hg=m.wt*10*(+p.mult);
+  MEDSEEN.weightModified++;
+  return (p.truncates?Math.trunc(hg):hg)/10;
+}
 function itemRefusesTake(m){
   if(!m||!m.item||!holdsMegaStone(m.item))return false;
   const K=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
@@ -3907,7 +3974,7 @@ const CRIT_BY_STAGE=[1/24,1/8,1/2,1];
  * `-immune` IS NOT IN THIS SET AND MUST NOT BE. `runImmunity` sits ABOVE all four early returns, so
  * Seismic Toss still does nothing to a Ghost and still says so. */
 function damageIsComputed(moveId){ return !(moveId&&TAGS.has('move',moveId,'fixedDamage')); }
-function critChance(moveId,att,defAbility){
+function critChance(moveId,att,defAbility,defBody){
   /* THE DEFENDER ARRIVES AS AN ABILITY STRING, NOT A BODY, so a Mold Breaker attacker can hand in the
    * SUPPRESSED ability (WIRE 37) without this function having to know what suppression is. */
   if(defAbility&&TAGS.param('ability',defAbility,'preventsCrit'))return 0;
@@ -3924,7 +3991,32 @@ function critChance(moveId,att,defAbility){
   if(att){
     const _it=TAGS.param('item',att.item,'critRatioUp');
     if(_it&&+_it.critRatio>1)stage+=(+_it.critRatio-1);
-    if(TAGS.param('ability',att.ability,'critRatioUp'))MEDFAILS.critRatioAbility++;
+    /* ROADMAP #213 -- THE ABILITY HALF, WHICH THIS ENGINE REFUSED FOR A GOOD REASON AND CAN NOW READ.
+     *
+     * The refusal recorded at MEDFAILS.critRatioAbility was correct while the artifact gave both
+     * carriers a flat `critRatio: 2`: Super Luck really is +1 stage always, and MERCILESS IS NOT A
+     * RATE AT ALL. Its handler returns 5 against a poisoned target, `sim/battle-actions.ts:1629`
+     * clamps that to 4 for gen 9, and `critMult[4]` is 1 — so `randomChance(1, 1)` is always true and
+     * the hit is a GUARANTEED crit. Reading that as a stage bump would have given Toxapex a 1/8 it
+     * never has, in both directions: too low against a poisoned target and far too high otherwise.
+     *
+     * The tag now separates `delta` (a stage) from `setsTo` + `when` (a ratio under a condition), and
+     * the condition is asked of the DEFENDER'S BODY. A caller that cannot supply one keeps exactly the
+     * old behaviour and is COUNTED, because a conditional certainty applied unconditionally is the
+     * worst of the three possible answers. */
+    const _ab=TAGS.param('ability',att.ability,'critRatioUp');
+    if(_ab){
+      if(_ab.when&&_ab.when.cond==='targetStatus'){
+        if(!defBody){MEDFAILS.critRatioAbility++;}
+        else if(Array.isArray(_ab.when.is)&&_ab.when.is.indexOf(String(defBody.status||''))>=0){
+          MEDSEEN.critGuaranteedByAbility++;
+          if(_ab.guaranteed)return 1;
+          stage+=Math.max(0,(+_ab.critRatio||1)-1);
+        }
+      }
+      else if(+_ab.delta>0)stage+=(+_ab.delta);
+      else MEDFAILS.critRatioAbility++;
+    }
   }
   return CRIT_BY_STAGE[Math.min(stage,CRIT_BY_STAGE.length-1)];
 }
@@ -4456,10 +4548,19 @@ function hitChance(att,def,id,field,ctx){
   if(raw===true)return Infinity;
   let acc=+raw;
   if(!(acc>0))return Infinity;
-  /* Stages. `ignoreAccuracy`/`ignoreEvasion` are not modelled here and neither is in this format's
-   * corpus; a move that carried one would read as an ordinary move and is not silently special-cased. */
+  /* Stages. ~~`ignoreAccuracy`/`ignoreEvasion` are not modelled here and neither is in this format's
+   * corpus~~ — HALF RETRACTED, ROADMAP #213. `ignoreEvasion` IS in this format and on two abilities
+   * that are played: Keen Eye (63 sheet fields) and Illuminate (45) both set it from `onModifyMove`,
+   * and it is the SECOND half of each — the accuracy-drop half was wired in #212, so probing only
+   * that would have marked both abilities measured with half of each untested.
+   *
+   * IT IS THE ATTACKER'S ABILITY THAT CANCELS THE DEFENDER'S EVASION, which is why this reads `att`
+   * and divides by nothing rather than reading `def`. `ignoreAccuracy` still has no carrier in this
+   * format and is still not modelled; that half of the old sentence stands. */
   const _ab=(att&&att.boosts&&att.boosts.acc)||0;
-  const _eb=(def&&def.boosts&&def.boosts.eva)||0;
+  let _eb=(def&&def.boosts&&def.boosts.eva)||0;
+  if(_eb>0){const _ie=TAGS.param('ability',att&&att.ability,'ignoresEvasion');
+    if(_ie&&_ie.ignoresEvasion){_eb=0;MEDSEEN.evasionIgnored++;}}
   if(_ab)acc*=accStageMul(_ab);
   if(_eb)acc/=accStageMul(_eb);
   const _mv=(typeof MC!=='undefined'&&MC&&MC.moves&&MC.moves[id])||null;
@@ -4921,8 +5022,12 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * tests `_vp.kind === '...'` for itself, so opening the gate changes nothing for the members that
    * have one. */
   if(_vp){
-    if(_vp.kind==='targetWeightKg'&&def.wt){for(const _b of _vp.brackets){if(def.wt>=_b[0]){mvBP=_b[1];break;}}}
-    else if(_vp.kind==='weightRatio'&&att.wt&&def.wt){const _r=att.wt/def.wt;for(const _b of _vp.brackets){if(_r>=_b[0]){mvBP=_b[1];break;}}}
+    /* ROADMAP #213 -- BOTH WEIGHT SITES ASK ONE FUNCTION, which is the FACTS-ARE-GLOBAL rule and the
+     * reason this is `effWeight` rather than a multiplier written into each branch: Low Kick reads the
+     * TARGET's weight off a bracket table and Heat Crash reads the RATIO of both, so a second copy of
+     * "how heavy is this body" would have to be kept in step forever. Same shape as `effSpeed`. */
+    if(_vp.kind==='targetWeightKg'&&def.wt){const _w=effWeight(def);for(const _b of _vp.brackets){if(_w>=_b[0]){mvBP=_b[1];break;}}}
+    else if(_vp.kind==='weightRatio'&&att.wt&&def.wt){const _r=effWeight(att)/effWeight(def);for(const _b of _vp.brackets){if(_r>=_b[0]){mvBP=_b[1];break;}}}
     else if(_vp.kind==='userHPFrac'&&att.st&&att.curHP!=null)mvBP=Math.max(1,Math.floor(mvBP*att.curHP/att.st.hp));
     else if(_vp.kind==='targetStatused'&&def.status)mvBP=mvBP*_vp.mult;
     else if(_vp.kind==='userNoItem'&&!att.item)mvBP=mvBP*_vp.mult;
@@ -5264,7 +5369,7 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * derived from the move so a category-gated breaker (Mycelium Might) is answered rather than
    * guessed; dmgRange is only ever handed a damaging move, so it is never 'Status' here. */
   const defAb=suppressedAbility(att,def,mv&&mv.bp>0?(mv.c==='P'?'Physical':'Special'):'Status');
-  const _critHere=!!isCrit||!!(mv.id&&critChance(mv.id,null,defAb)===1);
+  const _critHere=!!isCrit||!!(mv.id&&critChance(mv.id,att,defAb,def)===1);
   /* WIRE 94 -- UNAWARE (294 uses), the ABILITY half of `ignoresStatStages`. The MOVE half (Sacred
    * Sword, Darkest Lariat) has been live all along under the `ignoresBoosts` tag read two lines
    * down, which makes the move-side `ignoresStatStages` a REDUNDANT second spelling of one fact --
@@ -7789,6 +7894,37 @@ function typeEffAgainst(att,def,mv,mvT){
  * mirroring the reference engine's own `isGrounded`, which hard-names the identical pair. */
 function absorbedBy(att,def,mvT,mvCategory){
   const _sa=suppressedAbility(att,def);
+  /* ROADMAP #213 -- TELEPATHY, AND IT BELONGS HERE RATHER THAN AT THE TWO CALL SITES.
+   *
+   * Will: "use surf on a telepathy mon". Surf is `allAdjacent`, so it hits both foes AND the partner,
+   * and the holder must take ZERO while the two foes take real damage — the same click supplies the
+   * effect and its own control.
+   *
+   * `absorbedBy` is the one function both the damage PREVIEW (dmgRange) and the real ATTACK path ask,
+   * and the pair had already come apart once over Mold Breaker (WIRE 128). Putting the ally refusal
+   * anywhere else would reopen that seam, so it goes through the same reader and inherits the
+   * suppression rule for free — Telepathy carries `breakable`, so a Mold Breaker partner punches
+   * through it, which `suppressedAbility` above already decides.
+   *
+   * THE CATEGORY GUARD IS THE ARTIFACT'S, NOT AN ASSUMPTION. `exceptCategory: 'Status'` comes off the
+   * handler's own `move.category !== 'Status'`: an ally-targeting STATUS move — Helping Hand, Heal
+   * Pulse, Ally Switch — still lands on a Telepathy body, and reading this as "immune to allies"
+   * would break three moves that are played on purpose.
+   *
+   * ALLY-NESS IS THE SIDE OBJECT, and a body with no side stamp CANNOT ANSWER IT. A pure `dmgRange`
+   * call gets two bodies and a field and no sides; guessing either way there would be a silent
+   * default, so it is counted and the refusal is skipped. */
+  {const _tp=TAGS.param('ability',_sa,'refusesAllyDamage');
+   if(_tp&&_tp.refuses&&att&&def&&att!==def){
+     if(_tp.exceptCategory&&mvCategory===_tp.exceptCategory){/* a status move still lands */}
+     else if(!att._sf||!def._sf){
+       MEDFAILS.allySideUnknown++;
+       if(!MEDFAILS.allySideUnknownFirst)MEDFAILS.allySideUnknownFirst=String(_sa);
+     }else if(att._sf===def._sf){
+       MEDSEEN.allyDamageRefused++;
+       return {immune:true,viaAlly:true};
+     }
+   }}
   const _imm=TAGS.param('ability',_sa,'typeImmunity');
   if(!(_imm&&_imm.type===mvT))return null;
   if(mvT==='Ground'&&AIRBORNE_ABIL.has(String(_sa||'').toLowerCase().replace(/[^a-z0-9]/g,''))){
@@ -7857,7 +7993,7 @@ function pranksterBlocked(attacker,target,moveId){
  * would have been the wrong body. The ABILITY refusals below are deliberately NOT bypassed: the
  * authority's clause guards `runStatusImmunity`, which is the TYPE chart, and an Immunity body still
  * refuses a Corrosion Toxic. */
-function canTakeStatus(t,st,ignoreTypeImmunity){
+function canTakeStatus(t,st,ignoreTypeImmunity,src){
   if(!t||t.fainted||t.curHP<=0) return false;
   if(t.status) return false;                                  // one major status at a time
   const ab=(t.ability||'').replace(/[^a-z0-9]/g,'');
@@ -7877,6 +8013,43 @@ function canTakeStatus(t,st,ignoreTypeImmunity){
   if(!ignoreTypeImmunity&&(t.types||[]).some(ty=>byType.includes(ty))) return false;
   if(STATUS_IMMUNE_ABIL_ANY.includes(ab)) return false;        // WIRE 114 -- refuses every status
   if((STATUS_IMMUNE_ABIL[st]||[]).includes(ab)) return false;
+  /* ROADMAP #213 -- LEAF GUARD, THE WEATHER-GATED MEMBER, AND THE ENRICHMENT THE BLOCK ABOVE ASKED
+   * FOR. The name lists cannot express "only while the sun is up", which is why Leaf Guard is in none
+   * of them and why the roster read it INERT: a burn landed on a Meganium in sun exactly as it does
+   * out of it. `statusImmune.inWeather` is now derived, membership ONE, and the lists are untouched.
+   *
+   * THE FIELD IS READ OFF THE BODY'S OWN SIDE (`t._sf._S.field`) rather than threaded through twelve
+   * call sites — `applyStatus` and `canTakeStatus` take no field and `allyRefusesStatus` already
+   * reaches the battle state this way. A body with no side stamp cannot answer, and that is COUNTED
+   * rather than defaulted: silently reading "no weather" would turn the ability off in exactly the
+   * case a bare unit-test call makes, which is the silent-default shape.
+   *
+   * SUPPRESSION APPLIES, the same read `effSpeed` makes: an Air Lock or Cloud Nine on the field means
+   * `effectiveWeather()` is none, so the sun that is nominally up does not guard anybody. */
+  {const _si=TAGS.param('ability',ab,'statusImmune');
+   if(_si&&Array.isArray(_si.inWeather)&&_si.inWeather.length){
+     const _S=t._sf&&t._sf._S, _f=_S&&_S.field;
+     if(!_f){MEDFAILS.statusImmuneWeatherUnknown++;
+       if(!MEDFAILS.statusImmuneWeatherUnknownFirst)MEDFAILS.statusImmuneWeatherUnknownFirst=ab;}
+     else{
+       /* AND IT IS `effectiveWeather()`, NOT `field.weather`, WHICH IS THE WHOLE OF WILL'S MEGA SOL
+        * LESSON ARRIVING IN A SECOND MECHANIC. The authority is `sim/pokemon.ts:2195`:
+        *
+        *     if (this.battle.activePokemon?.hasAbility('megasol') && sourceEffect &&
+        *         (sourceEffect.id === 'megasol' || sourceEffect.effectType === 'Move' || ...))
+        *       return 'sunnyday';
+        *
+        * THE GUARD IS ON `activePokemon` — THE BODY CURRENTLY ACTING — NOT ON THE TARGET AND NOT ON
+        * ITS ALLY. So a Mega Sol body STANDING BESIDE the Leaf Guard holder changes nothing, and a
+        * Mega Sol body ATTACKING it turns the holder's immunity ON with no sun anywhere on the field.
+        * That reading is the correction: the first design of this arm put Mega Sol on the ally, where
+        * the authority says it cannot reach. `effWeatherOf` already asks exactly this question for
+        * damage — one implementation, both callers, which is why the attacker is threaded in rather
+        * than the weather being re-derived here. */
+       const _w=src?effWeatherOf(_f,src,t):((_f.wSup||suppressesWeather(t))?'':_f.weather);
+       if(_w&&_si.inWeather.some(x=>weatherId(x)===_w||x===_w)){MEDSEEN.statusRefusedByWeather++;return false;}
+     }
+   }}
   return true;
 }
 /* INTIMIDATE. This used to be an unconditional `boosts.at - 1` on every foe, which is wrong three
@@ -8505,7 +8678,7 @@ function applyStatus(t,st,src){
   {const _nis=src?TAGS.param('ability',src.ability,'nameImplementedBySim'):null;
    if(_nis&&Array.isArray(_nis.ignoresStatusImmunityFor)&&_nis.ignoresStatusImmunityFor.indexOf(st)>=0){
      _ignTypeImm=true;MEDSEEN.statusImmunityIgnoredByAbility++;}}
-  if(!canTakeStatus(t,st,_ignTypeImm))return false;t.status=st;
+  if(!canTakeStatus(t,st,_ignTypeImm,src))return false;t.status=st;
   if(TR)TR.sta(t,st);
   if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;
   /* ROADMAP #175 -- SYNCHRONIZE, and it is `onAfterSetStatus` so it belongs at the BOTTOM of this
@@ -14992,7 +15165,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * that have nothing to do with crits.
          * A rate of exactly 1 is skipped because dmgRange has ALREADY applied that 1.5 to the range;
          * multiplying again here would price Flower Trick at 2.25x. */
-        {const _cc=critChance(a.move.id,m,suppressedAbility(m,tg)),_cr=rng();   // WIRE 128 -- one owner
+        {const _cc=critChance(a.move.id,m,suppressedAbility(m,tg),tg),_cr=rng();   // WIRE 128 -- one owner
          if(_cc>0&&_cc<1&&_cr<_cc){
            /* ROADMAP #81 WIRE 11 -- AND THE ROLLED CRIT IS RE-PRICED, not merely multiplied. A crit
             * ignores the attacker's negative offensive stages, the defender's positive defensive

@@ -13,7 +13,7 @@ mid-run silently invalidates the run, and the run still prints a result.
 ```
 SEARCH — does MILTANK choose better than MAG
   R1 leaf accuracy: WITHHELD — engine/provenance.js calls data/rollout-r1-explore1.json UNSAFE.
-    pinned to engine release 3932186b59ef — engine/medicham2-browser.js matches the frozen copy; live is 2cb1f1d39778 now (a PRE-CHANGE measurement of that release, not corruption)
+    pinned to engine release 3932186b59ef — engine/medicham2-browser.js matches the frozen copy; live is c86d64123aa3 now (a PRE-CHANGE measurement of that release, not corruption)
     pinned to engine release 3932186b59ef — engine/board.js matches the frozen copy; live is a55f8271e101 now (a PRE-CHANGE measurement of that release, not corruption)
     (+11 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/rollout_r1_artifact.js
@@ -25,11 +25,11 @@ SEARCH — does MILTANK choose better than MAG
       machine: A duration is a fact about a machine under a load.
   R3 divergence: WITHHELD — engine/provenance.js calls data/rollout-r3.meta.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — engine/rollout_leaf.js was a0749e081402 at read time, is fa318c1022ff now
-    COMPUTED FROM DIFFERENT CONTENT — engine/medicham2-browser.js was 0710a325219e at read time, is 2cb1f1d39778 now
+    COMPUTED FROM DIFFERENT CONTENT — engine/medicham2-browser.js was 0710a325219e at read time, is c86d64123aa3 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/run_stamp.js
   R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 04:43)
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-11 17:25):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-11 17:57):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-03 22:36
     PRE-CHANGE games.r4.jsonl  2026-08-03 22:33
@@ -37,7 +37,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-03 20:45
 ```
 
-_stamped 2026-08-11 17:32_
+_stamped 2026-08-11 18:02_
 
 <!-- /GENERATED -->
 

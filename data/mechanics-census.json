@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T21:26:38.329Z",
+  "generated": "2026-08-11T22:03:03.460Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 504,
-  "live": 504,
+  "probed": 510,
+  "live": 510,
   "missing": 0,
-  "armed": 504,
+  "armed": 510,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2796,7 +2796,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.7% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4954,9 +4954,9 @@
     {
       "kind": "ability",
       "tag": "preventsStatDrop",
-      "label": "Keen Eye refuses Mud-Slap's guaranteed accuracy drop",
+      "label": "Keen Eye AND Illuminate refuse Mud-Slap's guaranteed accuracy drop",
       "live": true,
-      "detail": "[accuracy stage, HP lost] on a ROCK Lycanroc hit by Mud-Slap (Ground, so it connects; four Keen Eye carriers are Flying and would have made both arms agree) -- no ability -1,16; KEEN EYE 0,16. The equal damage is the control that says the move still landed",
+      "detail": "[accuracy stage, HP lost] Mud-Slap (Ground, so it connects) -- a ROCK Lycanroc reads -1,37 with no ability and 0,37 with KEEN EYE; a Water/Psychic Starmie reads -1,16 and 0,16 with ILLUMINATE. Four of the ten Keen Eye carriers are FLYING and immune to Ground, which would have made both arms agree; the equal damage in each pair is the control that says the move still landed",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5047,6 +5047,66 @@
       "label": "Opportunist takes the boost the FOE just gained — the right stat, never a drop, never its own",
       "live": true,
       "detail": "[Espathra atk stage, spa stage] while a foe boosts and Espathra clicks NOTHING -- no ability after the foe's Swords Dance 0,0 (the foe reached 2,0, so the boost demonstrably happened); OPPORTUNIST after Swords Dance 2,0; after NASTY PLOT 0,2 — the two must differ in WHICH stat or the stat is hardcoded. A foe DROPPING its own Sp. Atk to -2 gives the holder 0 (positive boosts only). Two Opportunists: holder 2, booster 2 — the booster must NOT copy the copy of its own boost",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "modifiesWeight",
+      "label": "Heavy Metal and Light Metal move a weight-read base power in OPPOSITE directions",
+      "live": true,
+      "detail": "Aggron (360 kg) Heavy Slams a Meganium (100.5 kg), whose base power comes from the weight RATIO -- no ability 74, HEAVY METAL 112 (ratio 3.58 -> 7.16, two brackets up), LIGHT METAL 38 (-> 1.79, two brackets down). Iron Head, which reads no weight, is 74 and 74 -- the control that says nothing else on the body changed. And on the legal Light Metal carrier as a TARGET: Low Kick into a Scizor 103 -> 83",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "statusImmune",
+      "label": "Leaf Guard refuses status in sun only — and a MEGA SOL attacker switches it on with no sun",
+      "live": true,
+      "detail": "Will-O-Wisp at a Meganium — SUN + LEAF GUARD \"\"; SUN + OVERGROW (its other legal slot) \"brn\"; NO SUN + LEAF GUARD \"brn\" (the arm that separates this from an unconditional immunity). Then Body Slam with NO sun on the field: from a MEGA SOL attacker into Leaf Guard \"\", the same attacker into Overgrow \"par\", and a non-Mega-Sol attacker into Leaf Guard \"par\" — the guard is on the body ACTING, so an engine reading field.weather passes the first three and fails this",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesAllyDamage",
+      "label": "Telepathy takes NOTHING from its own partner's Surf, and still takes a Helping Hand",
+      "live": true,
+      "detail": "[HP off the holder, off foe 1, off foe 2] from ONE partner Surf (allAdjacent, so it hits the partner too) -- no ability 53,67,95; TELEPATHY 0,67,95. The two FOE numbers must be unchanged: that is what says the move resolved rather than fizzling, and it comes free from the same click. A partner HELPING HAND still lands on the holder (true, against true with no ability) — the handler exempts Status, and reading this as \"immune to allies\" would be a better ability than the real one",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "damageBoost",
+      "label": "Analytic pays only when it moves LAST, and the queue is the condition",
+      "live": true,
+      "detail": "[HP off an unfaintable Garchomp from one Psychic] with every body on the field clicking a move -- Starmie pinned to Speed 1 so it acts LAST: no ability 58, ANALYTIC 74. Pinned to Speed 999 so it acts FIRST: no ability 58, ANALYTIC 58. The two no-ability readings must be EQUAL — that is what says the Speed pin alone moves nothing and the condition really is the queue",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresEvasion",
+      "label": "Keen Eye and Illuminate ignore a target's evasion, and do not help against a lowered one",
+      "live": true,
+      "detail": "[HP off the target] Crunch (100 printed accuracy) at the LOSING roll into a target on +2 evasion -- no ability 0 (it misses), KEEN EYE 67, ILLUMINATE 67. The same click into a target on NO evasion boost is 67, which is the control that says the miss was the evasion and not the move. The two abilities must agree: their handlers are byte-identical",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "critRatioUp",
+      "label": "Merciless is a GUARANTEED crit into a poisoned target, not a raised rate",
+      "live": true,
+      "detail": "[crit line, HP lost] Liquidation at the LOSING roll, where an ordinary 1/24 never crits -- into a POISONED target with no ability false,191; with MERCILESS true,202; with MERCILESS into a CLEAN target false,21. The damage is only compared within the poisoned pair, because a poisoned body also takes residual chip on the same turn and reading across the two would be measuring the poison",
       "hollow": false,
       "armed": true,
       "directCall": false

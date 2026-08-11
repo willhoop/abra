@@ -33,12 +33,12 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  504/504 probed mechanics live, 0 missing   (census 2026-08-11 17:26)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-11 17:27)
+  510/510 probed mechanics live, 0 missing   (census 2026-08-11 17:58)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-11 17:58)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1642/1642 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 17:31)
+  interaction matrix: 1642/1642 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 18:00)
     2250 of 7103 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 7103
       489 inert      not scored — the reference engine behaves identically with and without the reactor
       111 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
@@ -46,15 +46,61 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 1686b96e96df now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is e1b35f3fd3a5 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 257/276 probed, 19 unprobed
+  tag coverage: 260/279 probed, 19 unprobed
 ```
 
-_stamped 2026-08-11 17:32_
+_stamped 2026-08-11 18:02_
 
 <!-- /GENERATED -->
+
+## ROADMAP #213 — THE NINE INERT ROWS, CLOSED OR ROUTED. 2026-08-11 (ninth pass).
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md`. For this ledger:
+
+- **Census 504 live / 0 missing -> 510 live / 0 missing.** Six arrived, none broke. The residue
+  measured in #212 was nine rows and all nine are resolved: **six wired and probed, one to the rate
+  runner, one closeted by Will, one that was not the row it was filed as.** Differential re-run at
+  n=6000 on every engine change (clean at both corners each time), the roster ARTIFACTS regenerated
+  against a release containing each change, and the interaction matrix re-run full — **1642/1642,
+  100.0%, 0 part**, off-gate unchanged at 12. Gate OPEN six of six throughout.
+- **Six wired:** `modifiesWeight` (Heavy Metal and Light Metal — `weightBased`'s own header had
+  recorded them as "RECORDED NOT BUILT" since 2026-08), `statusImmune.inWeather` (Leaf Guard, the
+  enrichment `medicham2-browser.js:7554` had asked for by name), `refusesAllyDamage` (Telepathy, whose
+  only tag was `breakable` — a word that says nothing about what an ability does), `damageBoost`'s
+  queue condition (Analytic), `ignoresEvasion` (the SECOND half of Keen Eye and Illuminate), and
+  `critRatioUp` split into `delta` versus `setsTo`+`when` (Merciless).
+- **MERCILESS IS NOT A RATE ROW, AND THAT IS THE FINDING.** Derived: its handler returns 5,
+  `battle-actions.ts:1629` clamps gen 9 to 4, `critMult[4]` is 1, and `randomChance(1, 1)` is always
+  true — a GUARANTEED crit into a poisoned target, so it needs a board and not free dice. **The engine
+  was right to refuse it and the ARTIFACT was wrong**: one flat `critRatio: 2` could not tell Super
+  Luck's permanent stage from Merciless's conditional certainty, which
+  `medicham2-browser.js:1216` had already said in as many words. `MEDFAILS.critRatioAbility` is now 0.
+- **THE MEGA SOL ARM KEYS ON THE ACTING BODY, NOT THE ALLY.** `sim/pokemon.ts:2195` guards on
+  `this.battle.activePokemon?.hasAbility('megasol')`, so a Mega Sol body standing BESIDE the Leaf
+  Guard holder cannot reach it and one ATTACKING it can — turning the holder's immunity on with no sun
+  on the field. An engine reading `field.weather` rather than `effectiveWeather()` passes the other
+  three arms and fails that one.
+- **`ignoreEvasion` was going to be left implied**, and was caught in review: both abilities carry two
+  handlers, #212 wired one, and a probe of that half alone would have marked both measured. The
+  engine's "not modelled here and not in this format's corpus" comment is now half retracted —
+  `ignoreEvasion` is on 108 sheet fields; `ignoreAccuracy` still has no carrier and stands.
+- **`tangledfeet` is CLOSETED** (Will, 2026-08-11: *"closet the tangled feet"*), recorded in
+  `engine/quarantine.js` beside Illusion and Stall with the reason, the cost and the way back. Its
+  rate row stays live in `data/million-targets.json` at 0.5 **on purpose**, so the run reports it
+  UNREACHABLE rather than omitting it.
+- **`compoundeyes` is a rate row and already targeted** (`expect 1.30005`, DERIVED). No board built.
+- **The roster's 39 INERT and 13 CONTROL-NOT-QUIET will not move, and that is correct.** Both are
+  statements about the ROSTER'S fixture, not about the engine: 30 of the 39 are named in a live census
+  probe, and the three remaining control-arm rows sit on carriers whose every alternative ability is
+  itself live.
+
+### THE HAND LIST IS EMPTY
+
+Nothing remains on it. `magmaarmor` and `superluck` belong to the rate arm (#196), `tangledfeet` is in
+the closet, `compoundeyes` is targeted, and every other row named in #212 has a probe.
 
 ## ROADMAP #212 — THE ROWS WHOSE CONTROL ARM WAS ITSELF A LIVE ABILITY. 2026-08-11 (eighth pass).
 
@@ -140,9 +186,9 @@ Veil** (both halves), **Aroma Veil**, **Sticky Hold**, **Fluffy**, **Rivalry**, 
 
 **Opportunist** leaves too — it was closed on the second batch of this pass.
 
-What remains by hand: **`magmaarmor`** and **`superluck`** (both rate rows, #196 owns them), and the
-**nine** measured inert rows named above. That is the whole list; it is derived from the artifacts
-rather than carried in prose, and `node tests/roster.js --stage abilities` regenerates it.
+What remained by hand: **`magmaarmor`** and **`superluck`** (both rate rows, #196 owns them), and the
+**nine** measured inert rows named above. *(SUPERSEDED by #213 above — all nine are closed or routed,
+and the hand list is now empty.)*
 
 ## ROADMAP #210 — THE SIX MOVES WE RESOLVED THAT THE AUTHORITY REFUSES OR DELAYS. 2026-08-11 (seventh pass).
 

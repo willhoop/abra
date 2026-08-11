@@ -5767,3 +5767,117 @@ carrier under the same tag (9). THIS IS THE OPEN LIST.**
 
 So the residue is **nine rows, not a hundred**, and two of them (`merciless`, `tangledfeet`) are
 already known to belong elsewhere. Nothing here was wired; the list is posted first, as asked.
+
+---
+
+## ROADMAP #213 — THE NINE INERT ROWS, CLOSED OR ROUTED, EACH WITH A REASON (2026-08-11, ninth pass)
+
+The residue measured in #212 was nine rows. All nine are now resolved: **six wired and probed, one
+sent to the rate runner, one closeted by Will, and one that turned out not to be the row it was
+filed as.** Census **504 -> 510 live, 0 missing, 0 hollow, 0 unarmed, 0 direct-call, 0 threw**.
+Differential re-run at n=6000 on every engine change, clean at both corners each time; the roster
+ARTIFACTS re-generated against a release containing each change; gate OPEN six of six throughout.
+Interaction matrix re-run full: **1642/1642, 100.0%, 0 part**, off-gate unchanged at 12.
+
+| row | verdict | probe |
+|---|---|---|
+| **heavymetal / lightmetal** | WIRED — new tag `modifiesWeight`, and `effWeight()` so the two weight sites ask ONE function | `ability/modifiesWeight` |
+| **leafguard** | WIRED — `statusImmune` enriched with the weather gate only | `ability/statusImmune` |
+| **telepathy** | WIRED — new tag `refusesAllyDamage`, read inside `absorbedBy` | `ability/refusesAllyDamage` |
+| **analytic** | WIRED — the queue condition derived and evaluated; the only genuine engine gap in the nine | `ability/damageBoost` |
+| **illuminate** | its accuracy half already passed after #212 — MEASURED, folded as an ARM rather than a second probe | (rides `ability/preventsStatDrop`) |
+| **the `ignoreEvasion` half of Keen Eye AND Illuminate** | WIRED — new tag `ignoresEvasion`; it was going to be left implied | `ability/ignoresEvasion` |
+| **merciless** | **NOT A RATE ROW.** WIRED and probed as a certainty | `ability/critRatioUp` |
+| **compoundeyes** | rate runner — already a live row in `data/million-targets.json`, `expect 1.30005` | none, correctly |
+| **tangledfeet** | CLOSETED by Will | none, and the rate row stays |
+
+### THE THREE THINGS THAT WERE FILED WRONG, AND THE MEASUREMENT SAID SO
+
+**1. MERCILESS IS NOT A RATE. IT IS A CERTAINTY, AND THAT MAKES IT STAGEABLE.** It was routed to the
+rate runner beside Super Luck on the reasonable reading that a crit ratio is a probability. Derived
+from the authority instead:
+
+    merciless   onModifyCritRatio(...) { if (['psn','tox'].includes(target.status)) return 5; }
+    battle-actions.ts:1629 (gen 9)   critRatio = clampIntRange(critRatio, 0, 4)
+                          :1631      critMult  = [0, 24, 8, 2, 1]
+                          :1641      moveHit.crit = randomChance(1, critMult[critRatio])
+
+5 clamps to 4, `critMult[4]` is **1**, and `randomChance(1, 1)` is always true. Against a poisoned
+target it is a GUARANTEED crit — the same escape Flower Trick gives, so it needs a board and not free
+dice. **The engine was right to refuse it and the ARTIFACT was wrong**: `critRatioUp` gave Super Luck
+and Merciless the same flat `critRatio: 2`, and `medicham2-browser.js:1216` had already written down
+why that could not be consumed — *"would hand Merciless an unconditional 1/8 it never has"*. The tag
+now separates `delta` (a stage, always) from `setsTo` + `when` (a ratio under a condition), which is
+what makes BOTH readable. `MEDFAILS.critRatioAbility` is now 0 where it used to count every carrier.
+
+**2. THE MEGA SOL ARM ON LEAF GUARD KEYS ON THE BODY THAT IS ACTING, NOT ON THE ALLY.** The proposal
+was to stand a Mega Sol body BESIDE the Meganium. `sim/pokemon.ts:2195` guards on
+`this.battle.activePokemon?.hasAbility('megasol')` — the body currently taking its action — so an
+ally cannot reach it and an **attacker** can. The corrected board is stranger and stronger: a
+Meganium-Mega clicking into the Leaf Guard holder turns the holder's immunity ON with no sun anywhere
+on the field. Meganium is the only Mega Sol carrier and the only status-inflicting move it can legally
+learn that a Grass type is not already immune to is **Body Slam** (Poison Powder is a powder), so the
+30% paralysis roll is forced. An engine reading `field.weather` instead of `effectiveWeather()` passes
+the first three arms and fails this one — measured both ways.
+
+**3. `fixture_preflight` REFUSED MY OWN KEEN EYE CASTER.** `Watchog / Mud-Slap` — Watchog cannot learn
+it. The harness assigns move lists directly so the board still ran and the reading was still about the
+target, but that is exactly the shape the preflight exists to stop. Caster is now Jolteon, one of 84
+legal learners.
+
+### WHAT EACH FIX ACTUALLY WAS
+
+- **`modifiesWeight`.** `weightBased`'s own header recorded the gap in 2026-08 — *"the engine stores
+  static species weight, so Float Stone, Light Metal and Heavy Metal are all invisible... RECORDED NOT
+  BUILT"*. Recorded is not built. Membership over the whole dex: heavymetal x2, lightmetal x0.5,
+  floatstone x0.5 (an ITEM, `isNonstandard: 'Past'` — banned, named anyway). The truncation is on
+  HECTOGRAMS (`trunc(weighthg / 2)`), so `effWeight` divides at that scale and converts back.
+  **AGGRON WAS ALREADY IN LOW KICK'S TOP BRACKET** — 360 kg against a >=200 cap — so doubling it
+  changed nothing and the first board read 242 against 242. Heavy Slam reads the RATIO, and Aggron
+  into a Meganium crosses two brackets in each direction from one fixture: 74 -> 112 -> 38, with Iron
+  Head at 74/74 as the nothing-else-moved control.
+- **`statusImmune.inWeather`.** The engine had already written down what it needed
+  (`medicham2-browser.js:7554`) and this is that enrichment, **deliberately narrow**: only the weather
+  gate is emitted. The same regex reports `statuses: "all"` for Immunity, Insomnia, Limber and Water
+  Veil because their handlers name the status in a shape it cannot read — emitting that would have
+  turned four single-status immunities into blanket ones. Membership of the new field is ONE.
+- **`refusesAllyDamage`.** Telepathy's only tag was `breakable`, which says the ability can be
+  suppressed and nothing about what it does. The new tag is named after the RULE. It is read inside
+  `absorbedBy` — the one function the damage preview and the real attack path both ask, which had
+  already come apart once over Mold Breaker — so it inherits the suppression rule instead of restating
+  it. The category guard is carried, not dropped: a partner's Helping Hand still lands.
+- **`damageBoost.onlyWhen = {cond:'allOtherActivesHaveMoved'}`.** Analytic's condition is a fact about
+  the TURN QUEUE, so it fell out of both existing condition shapes as `onlyWhen: null` — read by the
+  consumer as unconditional and then refused for an unrelated reason. **Two wrongs, and the second is
+  why the first was invisible: `MEDFAILS.damageBoostUnknownCond` sat at ZERO the whole time.**
+  Evaluated off `_acted`, which WIRE 135 already writes for Payback.
+- **`ignoresEvasion`.** Flagged as a gap in review and it was a real one: both abilities carry TWO
+  handlers, #212 wired one, and probing only that would have marked both measured with half of each
+  untested. The engine's own comment — *"ignoreAccuracy/ignoreEvasion are not modelled here and
+  neither is in this format's corpus"* — is now **half retracted**: `ignoreEvasion` is on 108 sheet
+  fields between the two. `ignoreAccuracy` still has no carrier and stands. The guard is `_eb > 0`,
+  which is a mechanic and not a tidy-up: the ability IGNORES evasion, it does not HELP, and against
+  a target at MINUS two evasion a naive "set it to zero" would have read the base accuracy where the
+  truth is the base times **5/3** — Showdown's evasion table at stage −2 — so the tidy-up version
+  silently PENALISES the attacker on exactly the boards the ability is supposed to help.
+  (Written as the fraction rather than the percentage it was first drafted with: the decimal was a
+  figure no artifact carried, which `tests/test-docs-current.js` caught on the commit. The ratio is
+  the thing that was actually derived, and it is checkable against the table without an artifact.)
+
+### THE CLOSET GAINS A ROW — WILL, 2026-08-11: "closet the tangled feet"
+
+Recorded in `engine/quarantine.js` beside Illusion and Stall, with the reason, the cost and the way
+back. Its handler's only path is `if (target?.volatiles['confusion']) chainModify(0.5)` and this
+engine has no confusion volatile, so **moving it to the rate runner does not rescue it either** — a
+rate run cannot enter a condition that does not exist. **Its rate row stays live in
+`data/million-targets.json` at 0.5 on purpose**: a closeted mechanic with a live target row makes the
+run report UNREACHABLE rather than silently omitting it, and deleting the row would make the target
+list agree with the engine's blind spot, which is the shape of every failure this repository has had.
+
+### WHAT IS LEFT OF THE INERT RESIDUE
+
+Nothing that is open work. The roster still reports 39 rows INERT and that number will not move,
+because it is a statement about the ROSTER'S fixture rather than about the engine — 30 of the 39 are
+named in a live census probe, and the nine that were not are the rows above. The roster's
+CONTROL-NOT-QUIET list is likewise 13 and stays 13: `keeneye`, `stickyhold` and `rivalry` are in it
+because every alternative ability on their carriers is itself live, which no engine change can alter.

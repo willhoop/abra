@@ -201,17 +201,222 @@ for (const kind of ['abilities', 'items', 'moves']) {
   const box = TAGS[kind] || {};
   for (const [key, row] of Object.entries(box)) {
     if (!(row.tags || []).includes('critRatioUp')) continue;
+    /* AN ABSOLUTE STAGE AND A RELATIVE ONE ARE DIFFERENT CLAIMS, AND "above 4.167%" WAS HIDING THAT.
+     *
+     * Super Luck is `return critRatio + 1` — relative, so the absolute rate depends on what the move
+     * and item already contributed and only "it moves" is assertable. MERCILESS IS `return 5` against
+     * a poisoned target: `clampIntRange(..., 0, 4)` pins it to 4, `critMult[4] === 1`, and
+     * `randomChance(1, 1)` is ALWAYS TRUE. That is not a rate at all — it is a guaranteed crit, and
+     * publishing it as "above 4.167%" is true, useless, and unfalsifiable. ENGINE reached the same
+     * place from the other side this pass: one flat `critRatio: 2` could not separate Super Luck's
+     * permanent stage from Merciless's conditional certainty, and the engine had been right to refuse
+     * it. A row that cannot fail is not a target. */
+    const src = Object.entries(kind === 'abilities' ? D.abilities.get(key) : kind === 'items' ? D.items.get(key) : D.moves.get(key))
+      .filter(([k, v]) => /^onModifyCritRatio/.test(k) && typeof v === 'function')
+      .map(([, v]) => String(v)).join(' ');
+    /* A HIGH-CRIT MOVE DECLARES ITS STAGE AS DATA, NOT AS A HANDLER, AND FOURTEEN ROWS WERE READING
+     * "above 4.167%" WHEN THEY COULD HAVE READ 12.5%. `dex-moves.ts:486` is `critRatio =
+     * Number(data.critRatio) || 1`, so Stone Edge and the rest carry `critRatio: 2` on the move
+     * itself and the absolute rate is fully determined. "Above the base" is nearly unfalsifiable —
+     * a run that measured 4.2% would pass it — and an exact number is the whole point of a target. */
+    const declared = kind === 'moves' ? +(D.moves.get(key).critRatio || 1) : null;
+    const abs = src.match(/return\s+(\d+)\s*;/);
+    const stage = abs ? Math.max(0, Math.min(4, +abs[1]))
+                : (declared && declared > 1) ? Math.max(0, Math.min(4, declared))
+                : null;
+    const cond = /status\s*===\s*['"](psn|tox)['"]/.test(src) ? ' against a POISONED target'
+               : /volatiles\[['"](\w+)['"]\]/.test(src) ? ' while the holder has that volatile' : '';
     add({
       family: 'crit', subject: key, kind: kind.replace(/ies$/, 'y').replace(/s$/, ''),
-      expect: 'above ' + CRIT_BASE + '%', unit: '% of hits that crit', what: 'raises the crit stage',
-      from: 'READ:sim/battle-actions.ts:1633 critMult=[0,24,8,2,1] + dex-moves.ts:486 base critRatio=1',
+      expect: stage !== null ? +(100 / CRIT_MULT[stage]).toFixed(3) : 'above ' + CRIT_BASE + '%',
+      unit: '% of hits that crit',
+      what: stage !== null
+        ? 'pins the crit stage to ' + stage + cond + (stage === 4 ? ' — a CERTAINTY, not a rate' : '')
+        : 'raises the crit stage',
+      from: abs
+        ? "DERIVED:the handler returns " + abs[1] + ", clamped to " + stage
+          + " by clampIntRange(...,0,4); critMult[" + stage + "]=" + CRIT_MULT[stage]
+        : stage !== null
+        ? "DERIVED:D.moves.get('" + key + "').critRatio=" + declared
+          + "; critMult[" + stage + "]=" + CRIT_MULT[stage]
+        : 'READ:sim/battle-actions.ts:1633 critMult=[0,24,8,2,1] + dex-moves.ts:486 base critRatio=1',
       note: 'Showdown ladder — ' + CRIT_LADDER,
       denominator: 'HITS delivered while the effect is active, against a target WITHOUT Battle Armor '
-                 + 'or Shell Armor. Compare to the same carrier without it — the claim is that the '
-                 + 'rate MOVES, not that it hits a particular number, because stages compose.',
+                 + 'or Shell Armor. '
+                 + (stage === 4
+                    ? 'AT STAGE 4 THIS IS NOT A PROPORTION — every qualifying hit crits, so the run '
+                      + 'either observes 100% or has found a defect, and the CONDITION' + cond
+                      + ' is what has to be staged rather than sampled.'
+                    : 'Compare to the same carrier without it — the claim is that the '
+                      + 'rate MOVES, not that it hits a particular number, because stages compose.'),
       clicks: CLICKS && kind === 'moves' ? (CLICKS[key] || 0) : null,
     });
   }
+}
+
+/* ---- 5b. THE "NEVER HAPPENS" CLAIMS, AND THE MODIFIERS THAT MOVE A RATE WITHOUT ROLLING A DIE ------
+ *
+ * WILL, 2026-08-11, GIVING MAGMA ARMOR ITS BOARD: *"magma armor is a rate run where we throw blizzards
+ * at camerupt and make sure it never freezes"*. That is a rate claim of a shape the other five families
+ * cannot express — the expected value is ZERO, and a zero is the one reading that a broken instrument
+ * and a working one produce identically.
+ *
+ * SO EVERY ROW HERE CARRIES ITS CONTROL IN THE DENOMINATOR, AND THE CONTROL IS THE ASSERTION.
+ * A run that reads 0% on the Magma Armor arm has proved nothing unless the SAME board without the
+ * ability reads the base rate. That is the both-arms-agree-for-the-wrong-reason failure this project
+ * caught five times in one night, and at expect:0 it is not a risk, it is the default outcome.
+ *
+ * DERIVED FROM THE HANDLER, NEVER FROM A LIST OF NAMES. Whichever abilities happen to refuse a status
+ * is an answer, not an input — a hand-typed list of four is exactly what CLAUDE.md opens with.
+ *
+ * AND THE FIRST VERSION OF THIS WALK LOOKED AT `onImmunity` ALONE, WHICH FOUND MAGMA ARMOR AND
+ * NOTHING ELSE. I had written in this very comment that it would also pick up Limber, Insomnia and
+ * Immunity. It does not: those are implemented as `onSetStatus` + `onUpdate`, and `onImmunity` is the
+ * OLDER shape that only Magma Armor still uses here. **One ability came out and the family looked
+ * complete, because a family of one does not look truncated.** Reading all four handler shapes gives
+ * SEVEN: immunity(psn/tox), insomnia(slp), limber(par), magmaarmor(frz), sweetveil(slp),
+ * vitalspirit(slp), waterbubble(brn). The claim in the sentence above was typed, not measured, and it
+ * survived one full rebuild before being checked — which is the rule this repo has about exactly that.
+ *
+ * FILTERED TO REAL CARRIERS. An ability with no legal body in this regulation is not a rate the run
+ * can measure, and publishing a row for one puts a number in the artifact that nothing can ever fill.
+ * `.all()` is the National Dex until it is filtered. */
+const legalSpecies = D.species.all().filter(s => s.exists && !s.isNonstandard && s.tier !== 'Illegal');
+const carriersOf = (abId) => legalSpecies
+  .filter(s => Object.values(s.abilities).some(n => D.toID(n) === abId))
+  .map(s => s.name);
+
+const STATUS_NAME = { frz: 'freeze', par: 'paralysis', slp: 'sleep', psn: 'poison', tox: 'bad poison', brn: 'burn' };
+const REFUSAL_HANDLERS = ['onSetStatus', 'onAllySetStatus', 'onUpdate', 'onImmunity'];
+for (const a of D.abilities.all()) {
+  if (!a.exists || a.isNonstandard) continue;
+  const shapes = REFUSAL_HANDLERS.filter(h => typeof a[h] === 'function');
+  if (!shapes.length) continue;
+  const carriers = carriersOf(a.id);
+  if (!carriers.length) continue;
+  const src = shapes.map(h => String(a[h])).join(' ');
+  const ally = shapes.includes('onAllySetStatus') && !shapes.includes('onSetStatus');
+  /* Only the non-volatile statuses — these handlers also carry powder, weather-chip and volatile
+   * immunities, and those are not a rate this run can put a denominator under. */
+  /* BOTH QUOTE STYLES, because the handler is read off the COMPILED `dist/sim` and TypeScript's
+   * emitter rewrites `'frz'` as `"frz"`. The first version of this line matched single quotes only
+   * and the whole family came out EMPTY — a silent zero rows, which is precisely the shape of failure
+   * that reads as "there was nothing to find". Caught because Magma Armor is known to be in here. */
+  const refused = [...new Set([...src.matchAll(/['"](frz|par|slp|psn|tox|brn)['"]/g)].map(m => m[1]))];
+  if (!refused.length) continue;
+  for (const st of refused) {
+    add({
+      family: 'refusal', subject: a.id, kind: 'ability',
+      expect: 0, unit: '% of connecting hits that inflict ' + (STATUS_NAME[st] || st),
+      what: 'refuses ' + (STATUS_NAME[st] || st) + (ally ? ' anywhere on its own side' : ''),
+      from: "DERIVED:D.abilities.get('" + a.id + "')." + shapes.join('/') + " names '" + st + "'",
+      note: 'carriers legal in this regulation (' + carriers.length + '): ' + carriers.join(', ')
+          + (ally ? '. SIDE-SCOPED, WHICH COVERS THE HOLDER TOO — `onAlly*` fires for this Pokemon\'s '
+                  + 'whole side and the holder is on it, so BOTH SLOTS are arms of the same claim '
+                  + '(Will, 2026-08-11: "sweet veil protects itself and its partner"). This row said '
+                  + 'the opposite for one build, generalised from Flower Veil, WHICH IS NOT THE SAME '
+                  + 'CASE: Florges goes unprotected because the handler checks `hasType(\'Grass\')` '
+                  + 'and Florges is Fairy — a condition inside the handler, not the ally scope. Two '
+                  + 'different reasons that read identically on a one-slot board, which is why the '
+                  + 'scope has to be read off the handler rather than inferred from a sibling.' : ''),
+      denominator: 'HITS that CONNECTED and carried a ' + st + ' roll, against a carrier that is not '
+                 + 'type-immune to ' + st + ' anyway — a type immunity and an ability immunity produce '
+                 + 'the same zero. THE CONTROL ARM IS THE ASSERTION: the identical board with a '
+                 + 'different ability on the same body must show the base rate. A zero on BOTH arms is '
+                 + 'a failed instrument, not a pass, and at expect:0 that is the default outcome.',
+      clicks: null,
+    });
+  }
+}
+
+/* ACCURACY MODIFIERS, read as a fraction rather than typed as a decimal. Compound Eyes is
+ * `chainModify([5325, 4096])` = 1.30005, not 1.3 — a difference that does not matter for a 70-accuracy
+ * move and would matter for a comparison against Showdown's own arithmetic, which is the only reason
+ * this run exists. `onSourceModifyAccuracy` fires when the holder is the SOURCE (it sharpens its own
+ * moves); `onModifyAccuracy` fires when the holder is the TARGET (it blurs incoming ones). Both are
+ * collected, and the row says which, because they need opposite boards. */
+const chainOf = (fn) => {
+  const s = String(fn);
+  const pair = s.match(/chainModify\(\[\s*(\d+)\s*,\s*(\d+)\s*\]\)/);
+  if (pair) return { mul: +pair[1] / +pair[2], expr: 'chainModify([' + pair[1] + ', ' + pair[2] + '])' };
+  const one = s.match(/chainModify\(([\d.]+)\)/);
+  if (one) return { mul: +one[1], expr: 'chainModify(' + one[1] + ')' };
+  return null;
+};
+for (const a of D.abilities.all()) {
+  if (!a.exists || a.isNonstandard) continue;
+  const asSource = typeof a.onSourceModifyAccuracy === 'function';
+  const asTarget = typeof a.onModifyAccuracy === 'function';
+  if (!asSource && !asTarget) continue;
+  const carriers = carriersOf(a.id);
+  if (!carriers.length) continue;
+  const fn = asSource ? a.onSourceModifyAccuracy : a.onModifyAccuracy;
+  const c = chainOf(fn);
+  if (!c) continue;                       /* a conditional blur (weather-gated) — family 2 territory */
+  /* THE GUARD IS PART OF THE CLAIM, AND LEAVING IT OFF IS A DENOMINATOR BUG RATHER THAN A MISSING
+   * NOTE. Hustle is `if (move.category === 'Physical')` — a special attack from the same body is
+   * untouched, so an attempt pool that mixes the two dilutes 0.80005 toward 1.0 and the row reads as
+   * a near miss instead of an exact hit. Same for the weather and volatile guards. (Will, 2026-08-11:
+   * *"hustle would be a rate run thing too"* — it already was; the condition was what was missing.) */
+  const gsrc = String(fn);
+  const guards = [];
+  const cat = gsrc.match(/move\.category\s*===\s*['"](Physical|Special|Status)['"]/);
+  if (cat) guards.push(cat[1] + ' moves only');
+  const vol = gsrc.match(/volatiles\[['"](\w+)['"]\]/);
+  if (vol) guards.push('only while the holder has the ' + vol[1] + ' volatile');
+  const wx = [...gsrc.matchAll(/['"](sunnyday|raindance|sandstorm|hail|snowscape|desolateland|primordialsea)['"]/g)]
+    .map(m => m[1]);
+  if (wx.length) guards.push('only in ' + [...new Set(wx)].join('/'));
+  add({
+    family: 'accuracy-mod', subject: a.id, kind: 'ability',
+    expect: +(c.mul).toFixed(5), unit: 'x multiplier on the move\'s accuracy',
+    /* DIRECTION READ OFF THE MULTIPLIER, NOT OFF THE HANDLER NAME. The first version called every
+     * `onSourceModifyAccuracy` a sharpener and published "Hustle sharpens the holder's own moves" —
+     * Hustle is 0.8, it TRADES accuracy for Attack. The handler says whose moves; only the number
+     * says which way. */
+    what: (c.mul >= 1 ? 'sharpens' : 'blurs')
+        + (asSource ? ' the holder\'s own moves' : ' moves aimed at the holder')
+        + (guards.length ? ' — ' + guards.join(', ') : ''),
+    from: "DERIVED:D.abilities.get('" + a.id + "')." + (asSource ? 'onSourceModifyAccuracy' : 'onModifyAccuracy')
+        + ' ' + c.expr,
+    note: 'carriers legal in this regulation (' + carriers.length + '): ' + carriers.join(', '),
+    denominator: 'ATTEMPTS with a numeric accuracy — a never-miss move returns early on the '
+               + '`typeof accuracy !== "number"` guard and is outside the denominator entirely. '
+               + (guards.length ? 'AND NARROWED BY THE HANDLER\'S OWN GUARD (' + guards.join('; ')
+                                + ') — attempts outside it are untouched, so pooling them dilutes the '
+                                + 'multiplier toward 1.0 and an exact rate reads as a near miss. ' : '')
+               + 'Measured as a CONNECT RATE against the same board without the ability, because the '
+               + 'multiplier is not directly observable; a 70-accuracy move should read near '
+               + Math.min(100, Math.round(70 * c.mul)) + '% with it and near 70% without.',
+    clicks: null,
+  });
+}
+
+/* CRIT DAMAGE, which is not a rate at all and is here because nothing else can reach it.
+ * Sniper multiplies damage ON A CRIT, so the observation is conditional on an event this run does not
+ * control — Will named the reason it cannot be staged: *"the mons with sniper dont get flower trick"*,
+ * and Flower Trick is how every other crit board forces the crit. Enough hits and the crits arrive. */
+for (const a of D.abilities.all()) {
+  if (!a.exists || a.isNonstandard || typeof a.onModifyDamage !== 'function') continue;
+  const s = String(a.onModifyDamage);
+  if (!/\.crit\b/.test(s)) continue;
+  const c = chainOf(a.onModifyDamage);
+  if (!c) continue;
+  const carriers = carriersOf(a.id);
+  if (!carriers.length) continue;
+  add({
+    family: 'crit-damage', subject: a.id, kind: 'ability',
+    expect: +(c.mul).toFixed(5), unit: 'x damage on a hit that crit',
+    what: 'multiplies damage when the hit crits',
+    from: "DERIVED:D.abilities.get('" + a.id + "').onModifyDamage " + c.expr + ' under a .crit guard',
+    note: 'carriers legal in this regulation (' + carriers.length + '): ' + carriers.join(', '),
+    denominator: 'HITS THAT CRIT, which is the whole difficulty — this is a conditional observation, '
+               + 'not a proportion, so the stopping rule is "enough crits observed", not "enough hits '
+               + 'thrown". Non-crit hits must read 1.0x against the control or the row is measuring '
+               + 'something else. Damage rolls make each observation a RANGE: compare the ratio of '
+               + 'medians across arms, never two single numbers.',
+    clicks: null,
+  });
 }
 
 /* ---- 6. ABILITY AND ITEM PROC RATES ---------------------------------------------------------------

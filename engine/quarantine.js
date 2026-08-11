@@ -1062,6 +1062,17 @@ if (require.main === module) {
     for (const l of closet) console.log(l);
     console.log('    ' + pad2('illusion', 12) + 'ROADMAP #160 — Zoroark, 384 games excluded from the fit corpus; ILLUSION_IN=1 re-admits');
     console.log('    ' + pad2('stall', 12) + 'ROADMAP #195 — zero corpus uses, one carrier; reopens if a Sableye ever appears');
+    /* ROADMAP #213 — WILL, 2026-08-11: "closet the tangled feet". A DECISION with an owner, recorded
+     * here rather than left as a coverage gap, because the two are not the same thing.
+     *
+     * The handler's only path is `if (target?.volatiles['confusion']) chainModify(0.5)` and this
+     * engine has no confusion volatile, so the condition cannot be ENTERED — which is why moving it
+     * to the rate runner does not rescue it either. Its rate row stays live in
+     * data/million-targets.json at 0.5 ON PURPOSE: a closeted mechanic with a live target row is the
+     * honest state, because the run then reports UNREACHABLE rather than silently omitting it.
+     * Deleting the row would make the target list agree with the engine's blind spot, which is the
+     * shape of every failure this repository has had. */
+    console.log('    ' + pad2('tangledfeet', 12) + 'ROADMAP #213 — Will, 2026-08-11 "closet the tangled feet": its only path needs a confusion volatile this engine does not have, so no board and no rate run can reach it. 5 corpus uses, two carriers (Pidgeot, Mr. Rime). It comes free the day confusion exists for any other mechanic; its rate row stays in data/million-targets.json at 0.5 so the run reports it UNREACHABLE rather than absent.');
     console.log('    Nothing here is a coverage gap. Each is a choice, and each names the way back.');
   }
   console.log('');

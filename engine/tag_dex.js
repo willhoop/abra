@@ -4501,9 +4501,48 @@ const ABILITY_TAGS = [
                movesOnly: /effectType\s*===\s*"Move"/.test(src),
                consumesItem: /useItem\(\)/.test(src) };
     } },
-  { tag: 'critRatioUp', param: 'P(crit) raised', probe: 'onModifyCritRatio',
-    why: 'Super Luck and Merciless. Same parameter as Scope Lens and Flower Trick',
-    of: a => a.onModifyCritRatio ? { critRatio: 2 } : null },
+  /* ROADMAP #213 -- THE PARAM WAS A CONSTANT `2` FOR BOTH MEMBERS AND ONE OF THEM IS NOT A RATE AT
+   * ALL, WHICH IS WHY THE ENGINE COULD NOT READ EITHER.
+   *
+   * `medicham2-browser.js:1216` records the refusal and its reason exactly: *"The tag's only param is
+   * `critRatio: 2`, which cannot express Merciless's condition — it is a GUARANTEED crit into a
+   * poisoned target, not a permanent stage bump — and Super Luck, which genuinely is a permanent
+   * bump, is indistinguishable from it in the artifact."* Both were counted into
+   * `MEDFAILS.critRatioAbility` and neither fired. The engine was right and the ARTIFACT was wrong.
+   *
+   * DERIVED FROM THE AUTHORITY, and the arithmetic is the whole point:
+   *     superluck   onModifyCritRatio(critRatio) { return critRatio + 1; }
+   *     merciless   onModifyCritRatio(critRatio, source, target) {
+   *                   if (target && ['psn','tox'].includes(target.status)) return 5; }
+   * and `sim/battle-actions.ts:1629` for gen 9 is `clampIntRange(critRatio, 0, 4)` with
+   * `critMult = [0, 24, 8, 2, 1]`, so a returned 5 clamps to 4 and `randomChance(1, critMult[4])` is
+   * `randomChance(1, 1)` — ALWAYS TRUE. Merciless is a CERTAINTY against a poisoned target, not a
+   * raised rate, which also means it is stageable on a board like Flower Trick rather than needing
+   * the rate runner.
+   *
+   * `delta` and `setsTo` are separate fields on purpose: one is "+1 stage on everything", the other is
+   * "this exact ratio when a condition holds". Collapsing them is what produced the constant 2. */
+  { tag: 'critRatioUp', param: 'P(crit) raised — by a STAGE, or SET to a ratio when a condition holds', probe: 'onModifyCritRatio',
+    why: 'Super Luck and Merciless, and they are not the same mechanic: one is +1 stage always, the '
+       + 'other is a GUARANTEED crit into a poisoned target (a returned 5 clamps to 4, and critMult[4] '
+       + 'is 1). One constant param could not tell them apart, so the engine refused both',
+    of: a => {
+      const src = String(a.onModifyCritRatio || '').replace(/\s+/g, ' ');
+      if (!src) return null;
+      const plus = src.match(/return\s+critRatio\s*\+\s*(\d+)/);
+      if (plus) return { critRatio: 1 + (+plus[1]), delta: +plus[1], setsTo: null, when: null };
+      const set = src.match(/return\s+(\d+)\s*;/);
+      if (set) {
+        /* WHICH condition, off the same handler. Merciless names the two poison statuses. */
+        const st = [...new Set([...src.matchAll(/["'](psn|tox|brn|par|slp|frz)["']/g)].map(m => m[1]))];
+        return { critRatio: +set[1], delta: null, setsTo: +set[1],
+                 when: st.length ? { cond: 'targetStatus', is: st } : null,
+                 /* Gen 9 clamps at 4 and critMult[4] is 1, so anything >= 4 is a guaranteed crit.
+                  * Stated as a derived fact so a consumer does not re-derive the clamp. */
+                 guaranteed: +set[1] >= 4 };
+      }
+      return { critRatio: 2, delta: 1, setsTo: null, when: null, idiomUnread: true };
+    } },
   /* Will: "MOLD BREAKER IS PROBABLY HARD TO MODEL HOW DO YOU PLAN ON DOING THAT". As a special
    * case it would be a branch everywhere a defender ability is consulted. As a PARAMETER it is one
    * boolean on the attacker that gates a class this file has already enumerated: typeImmunity,
@@ -5900,6 +5939,95 @@ const ABILITY_TAGS = [
    * a boost sourced from Opportunist or Mirror Herb is ignored, which is what stops two of them
    * feeding each other forever; and the payout is `this.boost(...)` on the holder, so it is an
    * ordinary boost from there on and everything that answers an ordinary boost still answers it. */
+  /* ROADMAP #213 -- WEIGHT IS A MODIFIABLE NUMBER, AND THIS ENGINE TREATED IT AS A CONSTANT.
+   *
+   * `weightBased`'s own header said so in 2026-08: "the engine stores static species weight, so Float
+   * Stone, Light Metal and Heavy Metal are all invisible -- 8 sheets total, below the floor, so
+   * recorded not built". Recorded is not built, and the roster read both abilities INERT ever since.
+   *
+   * MEMBERSHIP PRINTED OVER THE WHOLE DEX FIRST, not the legal slice, so the ITEM twin is visible:
+   *   heavymetal   weighthg * 2          -> 2      (Aggron, the only carrier)
+   *   lightmetal   trunc(weighthg / 2)   -> 0.5    (Scizor, Metagross)
+   *   floatstone   trunc(weighthg / 2)   -> an ITEM, and `isNonstandard: 'Past'` -- BANNED here.
+   * Three handlers, one rule, and the item is named so a regulation restoring it needs an items-side
+   * derivation and no new engine branch.
+   *
+   * THE SIGN IS READ, NOT ASSUMED. `* 2` and `/ 2` are the same shape with opposite meaning, and an
+   * engine that applied one multiplier to both would be right on Aggron and exactly wrong on Scizor --
+   * which is why the probe asserts BOTH directions on one board. */
+  /* ROADMAP #213 -- LEAF GUARD, AND THE ENGINE HAD ALREADY WRITTEN DOWN WHY IT COULD NOT READ IT.
+   *
+   * `medicham2-browser.js:7554` says it in as many words: *"The artifact's `statusImmune` param is a
+   * bare `{immune:true}` on all twelve carriers -- it does not say WHICH status -- so consuming it by
+   * shape would make LEAF GUARD (sun only) and PASTEL VEIL (poison only) block everything always...
+   * an enrichment reading onSetStatus is future tag_dex work."* This is that enrichment, and it is
+   * DELIBERATELY NARROW.
+   *
+   * ONLY THE WEATHER GATE IS EMITTED. The obvious move is to derive `statuses` too, and the printed
+   * membership is exactly why not: the regex reports `statuses: "all"` for `immunity`, `insomnia`,
+   * `limber`, `waterveil` and `thermalexchange`, because their handlers name the status in a shape it
+   * does not read. Emitting that would turn five single-status immunities into blanket ones — the
+   * ability-becomes-strictly-better failure this file keeps catching. The engine's existing per-status
+   * NAME lists remain the authority for those; this adds the one fact they cannot express.
+   *
+   * MEMBERSHIP PRINTED FIRST over every `onSetStatus` carrier in the format: exactly ONE names a
+   * weather (leafguard, `['sunnyday','desolateland']`). Every other carrier's `inWeather` is empty and
+   * its behaviour is unchanged. */
+  /* ROADMAP #213 -- TELEPATHY, AND THE TAG IS NAMED AFTER WHAT IT DOES, NOT AFTER THE ABILITY.
+   *
+   * Its only tag was `breakable`, which describes NOTHING — it says the ability can be suppressed by
+   * Mold Breaker and not one word about what it is. So 223 sheet fields of an ability sat with no
+   * readable behaviour at all, and the roster called it inert because its fixture never had an ALLY
+   * attack anybody.
+   *
+   * MEMBERSHIP PRINTED OVER THE WHOLE DEX FIRST: exactly one ability's `onTryHit` tests `isAlly`
+   * (telepathy). The rule is derived from that test rather than from the name, so a second one
+   * arriving upstream is picked up with no edit here.
+   *
+   * THE CATEGORY GUARD IS PART OF THE RULE AND IS CARRIED, NOT DROPPED. `move.category !== 'Status'`
+   * means an ally-targeting STATUS move still goes through — Helping Hand, Heal Pulse, Ally Switch all
+   * work normally on a Telepathy body. Wiring this as "immune to allies" would be a strictly better
+   * ability and would break three moves that are played on purpose. */
+  /* ROADMAP #213 -- THE SECOND HALF OF KEEN EYE AND ILLUMINATE, WHICH A PROBE OF THE FIRST HALF
+   * WOULD HAVE LEFT IMPLIED.
+   *
+   * Both abilities carry TWO independent rules: `onTryBoost` deletes a negative accuracy boost (the
+   * half wired in #212) and `onModifyMove` sets `move.ignoreEvasion` — the holder's OWN clicks stop
+   * caring about the target's evasion stages. Landing the first half and probing only that would have
+   * marked both abilities measured in the census while half of each was untested, which is the
+   * hollow-coverage shape this file exists to prevent.
+   *
+   * MEMBERSHIP PRINTED OVER THE WHOLE DEX: three abilities set it — Illuminate, Keen Eye and Mind's
+   * Eye. Mind's Eye also grants two type immunities to itself (`ignoreImmunity` for Fighting and
+   * Normal); that is a DIFFERENT rule and is deliberately not folded in here, because one tag standing
+   * for two rules is exactly what left Opportunist dead for a month. */
+  { tag: 'ignoresEvasion', param: 'the holder\'s own moves ignore the target\'s evasion stages', probe: 'onModifyMove',
+    why: 'Keen Eye, Illuminate. The SECOND half of two abilities whose first half was wired in #212 - '
+       + 'probing only the accuracy-drop half would mark both measured with half of each untested',
+    of: a => /ignoreEvasion\s*=\s*true/.test(String(a.onModifyMove || '')) ? { ignoresEvasion: true } : null },
+  { tag: 'refusesAllyDamage', param: 'the holder takes NOTHING from a damaging move its own partner used', probe: 'onTryHit',
+    why: 'Telepathy, 223 sheet fields. Its only tag was `breakable`, which says nothing about what it '
+       + 'does, so a partner Surf or Earthquake hit it like any other body',
+    of: a => {
+      const src = String(a.onTryHit || '').replace(/\s+/g, ' ');
+      if (!/isAlly\(/.test(src)) return null;
+      return { refuses: true,
+               /* the two halves of the handler's own condition, each stated */
+               exceptCategory: /category !== ["']Status["']/.test(src) ? 'Status' : null,
+               notSelf: /target !== source/.test(src) };
+    } },
+  { tag: 'modifiesWeight', param: 'the holder weighs more or less than its species does', probe: 'onModifyWeight',
+    why: 'Heavy Metal and Light Metal. Low Kick reads the target weight off a bracket table and Heat '
+       + 'Crash reads the RATIO, so this moves a base power - it is a damage number, not a rate',
+    of: a => {
+      const src = String(a.onModifyWeight || '').replace(/\s+/g, ' ');
+      if (!src) return null;
+      const mul = src.match(/weighthg\s*\*\s*([\d.]+)/);
+      const div = src.match(/weighthg\s*\/\s*([\d.]+)/);
+      if (mul) return { mult: +mul[1], truncates: false };
+      if (div) return { mult: 1 / (+div[1]), truncates: /trunc/.test(src) };
+      return null;
+    } },
   { tag: 'copiesFoeBoosts', param: 'the holder banks whatever POSITIVE boost a foe gained, and takes it itself', probe: 'onFoeAfterBoost',
     why: 'Opportunist. A stat rises on a body that clicked nothing, which no other tag in this family '
        + 'can express - boostsEachTurn describes the PAYOUT half and cannot fire on its own',
@@ -6013,8 +6141,27 @@ const ABILITY_TAGS = [
        * ONE. Carriers in Reg M-B: Staraptor, Rhyperior, Emboar. */
       const rec = /move\.recoil/.test(src), crash = /hasCrashDamage/.test(src);
       const flags = [rec ? 'recoil' : null, crash ? 'crashOnMiss' : null].filter(Boolean);
+      /* ROADMAP #213 -- ANALYTIC, THE LAST `damageBoost` MEMBER WITH A CONDITION NOBODY COULD READ.
+       *
+       * Its handler walks `this.getAllActive()` and breaks on `this.queue.willMove(target)`, so the
+       * boost applies only when EVERY OTHER ACTIVE BODY HAS ALREADY MOVED. That is a fact about the
+       * turn queue, not about the body or the click, so neither `hpGateIn` nor the `moveFlag` shape
+       * could express it and `onlyWhen` came out null — which the consumer reads as "unconditional"
+       * and then refuses for an unrelated reason (no `onType`). Two wrongs again, and the second kept
+       * the first invisible: `MEDFAILS.damageBoostUnknownCond` stayed at ZERO while a 1.3x on 21 sheet
+       * fields never fired and was never counted.
+       *
+       * MEMBERSHIP PRINTED BEFORE WIRING, over every ability the format defines: `onBasePower`
+       * testing `willMove` matches exactly ONE, Analytic (carriers Starmie and Watchog). Three MOVES
+       * ask the same question — Payback, and Bolt Beak / Fishious Rend which are `isNonstandard: 'Past'`
+       * here — and Payback already has its own reader (`_nt.when === 'targetHasNotMovedYet'`), so this
+       * shape is deliberately scoped to the ability family and does not disturb it. */
+      const lastOut = /willMove\(/.test(src) && /getAllActive\(/.test(src);
       return { mult: multiplierIn(src), onType: ty, inWeather: w.length ? w : null,
-               onlyWhen: flags.length ? { cond: 'moveFlag', is: flags } : hpGateIn(src),
+               onlyWhen: flags.length ? { cond: 'moveFlag', is: flags }
+                       : lastOut ? { cond: 'allOtherActivesHaveMoved',
+                                     says: 'every other active body has already taken its action' }
+                       : hpGateIn(src),
                /* WHERE the multiplier is spent, because the family is split across two stages and the
                 * consumer has to know which chain to fold into: Reckless/Analytic/Sand Force are
                 * `onBasePower`, Steelworker/Transistor/Hustle/Gorilla Tactics are `onModifyAtk`. The
@@ -6241,7 +6388,14 @@ const ABILITY_TAGS = [
   { tag: 'statusImmune', param: 'a status cannot land', probe: 'statusImmune',
     why: 'Limber, Immunity, Insomnia, Vital Spirit, Water Veil, Magma Armor. onSetStatus only -- '
        + 'onImmunity also means weather-chip immunity and was over-capturing',
-    of: a => a.onSetStatus ? { immune: true } : null },
+    /* ROADMAP #213 -- plus the WEATHER gate, and only that. See the long note above `modifiesWeight`
+     * for why `statuses` is deliberately NOT derived here. `weatherIn` is the same reader the speed
+     * and damage families use, so 'sunnyday' and 'desolateland' land on the engine's own words. */
+    of: a => {
+      if (!a.onSetStatus) return null;
+      const w = weatherIn(String(a.onSetStatus));
+      return w.length ? { immune: true, inWeather: w } : { immune: true };
+    } },
   /* NEW 2026-08-05 (STAGED) -- the CONDITIONAL DEFENSIVE STAT MULTIPLIER, which is the census's
    * Marvel Scale row: an onModifyDef/onModifySpD gated on `pokemon.status`. The census called this
    * "blocked on the derivation -- no derivation describes a conditional stat multiplier", and the

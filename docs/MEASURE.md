@@ -32,13 +32,13 @@ MEASURE — can we believe a number
     it becomes quotable again when this is re-run: node engine/click_census.js
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED:   Measure what it touches before deciding — how many corpus games contain a changed species — |   then refit (node engine/fit_policy.js, then node engine/fit_joint.js) if it reaches the fit, |   or restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-11 17:25
+    moved after the fit: engine/medicham2-browser.js  2026-08-11 17:57
     moved after the fit: engine/board.js  2026-08-10 20:33
     moved after the fit: data/engine-data.js  2026-08-10 18:59
     moved after the fit: data/abra-tags.js  2026-08-11 17:05
 ```
 
-_stamped 2026-08-11 17:32_
+_stamped 2026-08-11 18:02_
 
 <!-- /GENERATED -->
 

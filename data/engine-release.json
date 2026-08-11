@@ -1,10 +1,10 @@
 {
-  "current": "60784c7a63a6",
-  "cut": "2026-08-11T21:27:04.224Z",
+  "current": "01cda0b829cd",
+  "cut": "2026-08-11T21:58:53.000Z",
   "why": "\"ROADMAP",
   "cuts": 1,
-  "latest_cut": "2026-08-11T21:27:04.224Z",
+  "latest_cut": "2026-08-11T21:58:53.000Z",
   "latest_why": "\"ROADMAP",
-  "pointer_written": "2026-08-11T21:27:04.227Z",
+  "pointer_written": "2026-08-11T21:58:53.003Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

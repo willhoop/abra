@@ -15836,11 +15836,21 @@ probe('ability', 'buffsHolderOnHit', 'Anger Point takes a guaranteed crit to +6 
  *
  * This was RED before ROADMAP #212 — both arms read acc -1, because `blocks: 'accuracy'` mapped to
  * no engine stat. */
-probe('ability', 'preventsStatDrop', 'Keen Eye refuses Mud-Slap\'s guaranteed accuracy drop', () => {
-  const run = (ab) => {
-    const me = bare('watchog'); me.moves = ['mudslap', 'protect'];
+/* THE CASTER IS A LEGAL MUD-SLAP LEARNER, AND THE FIRST DRAFT'S WAS NOT. `fixture_preflight` refused
+ * `Watchog / Mud-Slap`: this harness assigns a move list directly, so the board still RAN and the
+ * reading was still about the target — but staging a move on a body that cannot learn it is the exact
+ * shape this repo built the preflight to stop. Jolteon is one of 84 legal learners.
+ *
+ * ILLUMINATE RIDES THIS SAME PROBE RATHER THAN GETTING ITS OWN. It is the byte-identical rule on a
+ * different carrier (`onTryBoost` deleting a negative `boost.accuracy`) and it goes through the one
+ * wire the Keen Eye fix added, so a second probe would raise the census count and prove nothing new.
+ * It is an ARM here instead: same click, different body, and the residue list can be marked measured
+ * rather than assumed. */
+probe('ability', 'preventsStatDrop', 'Keen Eye AND Illuminate refuse Mud-Slap\'s guaranteed accuracy drop', () => {
+  const run = (target, ab) => {
+    const me = bare('jolteon'); me.moves = ['mudslap', 'protect'];
     const ally = bare('farigiraf');
-    const f1 = bare('lycanroc'), f2 = bare('milotic');
+    const f1 = bare(target), f2 = bare('milotic');
     f1.ability = ab; unfaintable(f1);
     const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
     const h = f1.curHP;
@@ -15849,13 +15859,17 @@ probe('ability', 'preventsStatDrop', 'Keen Eye refuses Mud-Slap\'s guaranteed ac
       PASS2(f1, f2));
     return { acc: f1.boosts.acc, hp: h - f1.curHP };
   };
-  const off = run('none'), on = run('keeneye');
-  return { works: off.acc === -1 && on.acc === 0 && off.hp > 0 && on.hp === off.hp,
+  const off = run('lycanroc', 'none'), on = run('lycanroc', 'keeneye');
+  const iOff = run('starmie', 'none'), iOn = run('starmie', 'illuminate');
+  return { works: off.acc === -1 && on.acc === 0 && off.hp > 0 && on.hp === off.hp
+                  && iOff.acc === -1 && iOn.acc === 0 && iOff.hp > 0 && iOn.hp === iOff.hp,
            arms: { control: [off.acc, off.hp], test: [on.acc, on.hp] },
-           detail: '[accuracy stage, HP lost] on a ROCK Lycanroc hit by Mud-Slap (Ground, so it '
-                 + 'connects; four Keen Eye carriers are Flying and would have made both arms agree) '
-                 + '-- no ability ' + off.acc + ',' + off.hp + '; KEEN EYE ' + on.acc + ',' + on.hp
-                 + '. The equal damage is the control that says the move still landed' };
+           detail: '[accuracy stage, HP lost] Mud-Slap (Ground, so it connects) -- a ROCK Lycanroc '
+                 + 'reads ' + off.acc + ',' + off.hp + ' with no ability and ' + on.acc + ',' + on.hp
+                 + ' with KEEN EYE; a Water/Psychic Starmie reads ' + iOff.acc + ',' + iOff.hp
+                 + ' and ' + iOn.acc + ',' + iOn.hp + ' with ILLUMINATE. Four of the ten Keen Eye '
+                 + 'carriers are FLYING and immune to Ground, which would have made both arms agree; '
+                 + 'the equal damage in each pair is the control that says the move still landed' };
 });
 
 /* SLUSH RUSH — Will: "have beartic in the snow and see if its speed is doubled", read through his
@@ -16289,6 +16303,370 @@ probe('ability', 'copiesFoeBoosts', 'Opportunist takes the boost the FOE just ga
                  + 'to ' + drop.foe + ' gives the holder ' + drop.me + ' (positive boosts only). Two '
                  + 'Opportunists: holder ' + mirror.holder + ', booster ' + mirror.booster
                  + ' — the booster must NOT copy the copy of its own boost' };
+});
+
+/* HEAVY METAL AND LIGHT METAL — ROADMAP #213, ONE BOARD AND BOTH DIRECTIONS ON IT.
+ *
+ * `weightBased`'s own header recorded the gap in 2026-08: "the engine stores static species weight,
+ * so Float Stone, Light Metal and Heavy Metal are all invisible — 8 sheets total, below the floor, so
+ * RECORDED NOT BUILT". Recorded is not built, and both abilities sat INERT on the roster ever since.
+ * Measured red before the fix: Low Kick into a Scizor read 103 with and without Light Metal.
+ *
+ * THE OBSERVABLE IS A DAMAGE NUMBER, NOT A RATE — Low Kick reads the TARGET's weight off a bracket
+ * table and Heavy Slam reads the RATIO of the two, so a modified weight moves base power.
+ *
+ * BOTH SIGNS ON ONE FIXTURE, which is the point: an engine that ignores weight entirely gives three
+ * identical numbers, and an engine that applied ONE multiplier to both abilities would be right on
+ * Heavy Metal and exactly wrong on Light Metal. Aggron's Heavy Slam into a Meganium is the board —
+ * 360 kg against 100.5 kg is a ratio of 3.58 (bracket >=3, 80 BP); doubled it is 7.16 (>=5, 120) and
+ * halved it is 1.79 (below 2, 40). Three brackets from one board.
+ *
+ * WHY NOT LOW KICK FOR THE HEAVY ARM, since that was the obvious first try: AGGRON IS ALREADY IN THE
+ * TOP BRACKET. Low Kick caps at >=200 kg and Aggron is 360, so doubling it changes nothing — the
+ * measurement came back 242 against 242 and would have read as a dead fix. Aggron is the ONLY Heavy
+ * Metal carrier in this format, so there is no heavier-but-not-capped body to swap in; the ratio move
+ * is the only route to the observable. A fourth arm keeps the legal Light Metal carrier honest
+ * anyway: Scizor as the TARGET of Low Kick, 118 kg crossing the >=100 bracket down to >=50.
+ *
+ * THE TRUNCATION IS THE AUTHORITY'S AND IT IS ON HECTOGRAMS. `lightmetal` is `trunc(weighthg / 2)`,
+ * not `weightkg / 2`, so `effWeight` divides at hectogram scale and converts back — a 118 kg Scizor
+ * would round differently otherwise. */
+probe('ability', 'modifiesWeight', 'Heavy Metal and Light Metal move a weight-read base power in OPPOSITE directions', () => {
+  const ratio = (ab, mv) => {
+    const me = bare('aggron'); me.ability = ab;
+    me.moves = ['heavyslam', 'ironhead', 'protect', 'earthquake'];
+    const ally = bare('farigiraf');
+    const f1 = bare('meganium'), f2 = bare('milotic');
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return h - f1.curHP;
+  };
+  const bracket = (ab) => {                       /* the TARGET's own weight, legal carrier */
+    const me = bare('machamp'); me.moves = ['lowkick', 'protect', 'closecombat', 'knockoff'];
+    const ally = bare('farigiraf');
+    const f1 = bare('scizor'), f2 = bare('milotic');
+    f1.ability = ab; unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'lowkick', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return h - f1.curHP;
+  };
+  const off = ratio('none', 'heavyslam');
+  const hv = ratio('heavymetal', 'heavyslam');
+  const lt = ratio('lightmetal', 'heavyslam');
+  const noWeightOff = ratio('none', 'ironhead');      /* a move that reads no weight */
+  const noWeightOn = ratio('heavymetal', 'ironhead');
+  const scOff = bracket('none'), scOn = bracket('lightmetal');
+  return { works: off > 0 && hv > off && lt < off              /* opposite directions, same board */
+                  && noWeightOff === noWeightOn                 /* and nothing else moved */
+                  && scOff > 0 && scOn < scOff,
+           arms: { control: [off, noWeightOff], test: [hv, lt, noWeightOn] },
+           detail: 'Aggron (360 kg) Heavy Slams a Meganium (100.5 kg), whose base power comes from the '
+                 + 'weight RATIO -- no ability ' + off + ', HEAVY METAL ' + hv + ' (ratio 3.58 -> 7.16, '
+                 + 'two brackets up), LIGHT METAL ' + lt + ' (-> 1.79, two brackets down). Iron Head, '
+                 + 'which reads no weight, is ' + noWeightOff + ' and ' + noWeightOn + ' -- the control '
+                 + 'that says nothing else on the body changed. And on the legal Light Metal carrier '
+                 + 'as a TARGET: Low Kick into a Scizor ' + scOff + ' -> ' + scOn };
+});
+
+/* LEAF GUARD — WILL'S BOARD: "have the sun be up and have someone try to will o wisp meganium".
+ * ROADMAP #213, and the engine had already written down why it could not read this ability.
+ *
+ * `medicham2-browser.js` says it in as many words at the status-immunity table: the artifact's
+ * `statusImmune` is a bare `{immune:true}` on every carrier and does not say WHICH status, so
+ * consuming it by shape would make Leaf Guard (sun only) and Pastel Veil (poison only) block
+ * everything always — "an enrichment reading onSetStatus is future tag_dex work". This is that
+ * enrichment, and it emits ONLY the weather gate: the same regex reports `statuses: "all"` for
+ * Immunity, Insomnia, Limber and Water Veil, which would have turned four single-status immunities
+ * into blanket ones. Membership of the new field is ONE ability.
+ *
+ * IT IS NOT A BURN RULE. `onSetStatus` returns false for EVERY status while the sun is up, so the
+ * fourth arm below uses paralysis rather than a burn and must be refused just the same.
+ *
+ * THE CONTROL IS AN ABILITY THE CARRIER REALLY HAS: Meganium is `{0: Overgrow, H: Leaf Guard}`, so
+ * the two arms are one legal body with its two legal slots. All three carriers (Meganium, Leafeon,
+ * Tsareena) are pure Grass, which is why the click is Will-O-Wisp and not a powder move — Grass is
+ * immune to those by TYPE and the reading would have been a type immunity wearing an ability's name.
+ *
+ * ARM 3 IS THE ONE THAT MATTERS: no sun, Leaf Guard, and the burn MUST land. An engine that refuses
+ * status unconditionally passes arms 1 and 2 and is a completely different ability.
+ *
+ * ARM 4 IS WILL'S MEGA SOL LESSON ARRIVING INSIDE A SECOND MECHANIC, AND THE FIRST DESIGN OF IT WAS
+ * WRONG. The proposal was to stand a Mega Sol body BESIDE the Meganium. The authority
+ * (`sim/pokemon.ts:2195`) guards on `this.battle.activePokemon?.hasAbility('megasol')` — THE BODY
+ * CURRENTLY ACTING — so an ally cannot reach it and an ATTACKER can: a Meganium-Mega clicking into
+ * the Leaf Guard holder turns the holder's immunity ON with no sun anywhere on the field. Meganium is
+ * the only Mega Sol carrier and the only status move it can legally learn that a Grass type is not
+ * already immune to is BODY SLAM (Poison Powder is a powder), so the roll is forced low to land its
+ * 30% paralysis. An engine reading `field.weather` instead of `effectiveWeather()` passes the first
+ * three arms and fails this one. */
+probe('ability', 'statusImmune', 'Leaf Guard refuses status in sun only — and a MEGA SOL attacker switches it on with no sun', () => {
+  const burn = (ab, weather) => {
+    const me = bare('meganium'); me.ability = ab;
+    const ally = bare('farigiraf');
+    const f1 = bare('skeledirge'), f2 = bare('milotic');
+    f1.moves = ['willowisp', 'protect'];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    S.field.weather = weather;
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'willowisp', me, S.field)], [f2, { kind: 'pass' }]]));
+    return me.status;
+  };
+  /* THE ATTACKER carries Mega Sol; the field carries nothing. Body Slam's paralysis is a 30%
+   * secondary, so the roll is forced rather than hoped for. */
+  const bySol = (ab, attAb) => {
+    const me = bare('meganium'); me.ability = ab;
+    const ally = bare('farigiraf');
+    const f1 = M.buildMon('meganium-mega', {}); f1.item = ''; f1.ability = attAb;
+    f1.moves = ['bodyslam', 'protect'];
+    const f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, () => 0.05, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'bodyslam', me, S.field)], [f2, { kind: 'pass' }]]));
+    return me.status;
+  };
+  const sunLG = burn('leafguard', 'sun');
+  const sunCtl = burn('overgrow', 'sun');
+  const noSunLG = burn('leafguard', '');
+  const solLG = bySol('leafguard', 'megasol');       /* no sun on the field at all */
+  const solCtl = bySol('overgrow', 'megasol');       /* same attacker, other slot on the target */
+  const plainLG = bySol('leafguard', 'overgrow');    /* same target, attacker without Mega Sol */
+  return { works: sunLG === '' && sunCtl === 'brn' && noSunLG === 'brn'
+                  && solLG === '' && solCtl === 'par' && plainLG === 'par',
+           arms: { control: [sunCtl, noSunLG, plainLG], test: [sunLG, solLG] },
+           detail: 'Will-O-Wisp at a Meganium — SUN + LEAF GUARD "' + sunLG + '"; SUN + OVERGROW (its '
+                 + 'other legal slot) "' + sunCtl + '"; NO SUN + LEAF GUARD "' + noSunLG + '" (the arm '
+                 + 'that separates this from an unconditional immunity). Then Body Slam with NO sun on '
+                 + 'the field: from a MEGA SOL attacker into Leaf Guard "' + solLG + '", the same '
+                 + 'attacker into Overgrow "' + solCtl + '", and a non-Mega-Sol attacker into Leaf '
+                 + 'Guard "' + plainLG + '" — the guard is on the body ACTING, so an engine reading '
+                 + 'field.weather passes the first three and fails this' };
+});
+
+/* TELEPATHY — WILL'S BOARD: "use surf on a telepathy mon". ROADMAP #213.
+ *
+ * ITS ONLY TAG WAS `breakable`, WHICH DESCRIBES NOTHING. That word says the ability can be suppressed
+ * by Mold Breaker and not one syllable about what it does, so 223 sheet fields sat with no readable
+ * behaviour and the roster called it inert — its fixture never had an ALLY attack anybody. The new
+ * tag is named after the rule (`refusesAllyDamage`), not after the ability, and its membership over
+ * the whole dex is one: exactly one `onTryHit` tests `isAlly`.
+ *
+ * SURF IS `allAdjacent`, SO THE CLICK CARRIES ITS OWN CONTROL. One move hits both foes AND the
+ * partner: the holder must take ZERO while the two foes take real damage. That third fact is free and
+ * it is the one that separates "the ability refused it" from "the move fizzled" — without it, an
+ * engine that simply failed to resolve Surf would read identically.
+ *
+ * THE STATUS ARM IS THE OTHER HALF OF THE HANDLER AND IT MUST NOT BE OVER-WIRED. The guard is
+ * `move.category !== 'Status'`, so an ally-targeting status move still lands: Helping Hand from the
+ * partner sets the flag on a Telepathy body exactly as it does on any other. Reading this ability as
+ * "immune to allies" would be strictly better than the real one and would break three moves that are
+ * played on purpose (Helping Hand, Heal Pulse, Ally Switch).
+ *
+ * The wire lives in `absorbedBy`, which is the ONE function the damage preview and the real attack
+ * path both ask — the pair had already come apart once over Mold Breaker (WIRE 128), and Telepathy
+ * carries `breakable`, so routing it through the same reader inherits the suppression rule instead of
+ * restating it. */
+probe('ability', 'refusesAllyDamage', 'Telepathy takes NOTHING from its own partner\'s Surf, and still takes a Helping Hand', () => {
+  const surf = (ab) => {
+    const me = bare('gardevoir'); me.ability = ab;
+    const ally = bare('milotic'); ally.moves = ['surf', 'protect'];
+    const f1 = bare('garchomp'), f2 = bare('incineroar');
+    unfaintable(me); unfaintable(f1); unfaintable(f2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = me.curHP, h1 = f1.curHP, h2 = f2.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[ally, M.playerAction(ally, 'surf', null, S.field)], [me, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { holder: h - me.curHP, foe1: h1 - f1.curHP, foe2: h2 - f2.curHP };
+  };
+  const help = (ab) => {
+    const me = bare('gardevoir'); me.ability = ab;
+    const ally = bare('farigiraf'); ally.moves = ['helpinghand', 'protect'];
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[ally, M.playerAction(ally, 'helpinghand', me, S.field)], [me, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return me._helpingHand === true;
+  };
+  const off = surf('none'), on = surf('telepathy');
+  const hOff = help('none'), hOn = help('telepathy');
+  return { works: off.holder > 0 && on.holder === 0
+                  && off.foe1 > 0 && off.foe2 > 0
+                  && on.foe1 === off.foe1 && on.foe2 === off.foe2   /* the move still resolved */
+                  && hOff === true && hOn === true,                 /* a STATUS move still lands */
+           arms: { control: [off.holder, off.foe1, off.foe2], test: [on.holder, on.foe1, on.foe2] },
+           detail: '[HP off the holder, off foe 1, off foe 2] from ONE partner Surf (allAdjacent, so '
+                 + 'it hits the partner too) -- no ability ' + [off.holder, off.foe1, off.foe2].join(',')
+                 + '; TELEPATHY ' + [on.holder, on.foe1, on.foe2].join(',') + '. The two FOE numbers '
+                 + 'must be unchanged: that is what says the move resolved rather than fizzling, and '
+                 + 'it comes free from the same click. A partner HELPING HAND still lands on the '
+                 + 'holder (' + hOn + ', against ' + hOff + ' with no ability) — the handler exempts '
+                 + 'Status, and reading this as "immune to allies" would be a better ability than the '
+                 + 'real one' };
+});
+
+/* ANALYTIC — ROADMAP #213, AND IT WAS THE ONLY GENUINE ENGINE GAP IN THE NINE.
+ *
+ * `damageBoost` carries a multiplier and a condition. Analytic's condition is a fact about the TURN
+ * QUEUE — the handler walks `getAllActive()` and breaks on `queue.willMove(target)`, so the 1.3x
+ * applies only when every other active body has already acted. Neither `hpGateIn` nor the `moveFlag`
+ * shape could express that, so `onlyWhen` came through as null, which the consumer reads as
+ * UNCONDITIONAL and then refuses for an unrelated reason (no `onType`).
+ *
+ * TWO WRONGS, AND THE SECOND IS WHY THE FIRST WAS INVISIBLE: `MEDFAILS.damageBoostUnknownCond` sat at
+ * ZERO the whole time, because the refusal happened before the counter. A 1.3x on 21 sheet fields
+ * never fired and nothing said so — the exact shape of a capability that cannot prove it ran.
+ *
+ * THE ARMS ARE THE SAME BODY AT TWO SPEEDS, not two abilities. Starmie's own Speed is pinned to 1 and
+ * then to 999 on an otherwise identical board where all four bodies click a move: at Speed 1 it acts
+ * last and the boost applies, at 999 it acts first and it must not. THE NO-ABILITY CONTROL IS RUN AT
+ * BOTH SPEEDS and must be equal — without it, "damage changed when I changed the Speed" would be
+ * satisfied by any speed-sensitive engine bug.
+ *
+ * Every body is made unfaintable: the first draft read 0 on the slow arm because the Starmie was
+ * killed before it ever acted, which is a KO measuring itself rather than the ability. */
+probe('ability', 'damageBoost', 'Analytic pays only when it moves LAST, and the queue is the condition', () => {
+  const run = (ab, mySpe) => {
+    const me = bare('starmie'); me.ability = ab;
+    me.moves = ['surf', 'protect', 'psychic', 'icebeam'];
+    me.st = Object.assign({}, me.st, { sp: mySpe });
+    const ally = bare('farigiraf'); ally.moves = ['twinbeam', 'protect'];
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    f1.moves = ['dragonclaw', 'protect']; f2.moves = ['scald', 'protect'];
+    unfaintable(me); unfaintable(f1); unfaintable(f2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'psychic', f1, S.field)],
+               [ally, M.playerAction(ally, 'twinbeam', f2, S.field)]]),
+      new Map([[f1, M.playerAction(f1, 'dragonclaw', me, S.field)],
+               [f2, M.playerAction(f2, 'scald', me, S.field)]]));
+    return h - f1.curHP;
+  };
+  const slowOff = run('none', 1), slowOn = run('analytic', 1);
+  const fastOff = run('none', 999), fastOn = run('analytic', 999);
+  return { works: slowOff > 0 && slowOff === fastOff        /* speed alone changes nothing */
+                  && slowOn > slowOff                        /* last -> the boost pays */
+                  && fastOn === fastOff,                     /* first -> it must not */
+           arms: { control: [slowOff, fastOff], test: [slowOn, fastOn] },
+           detail: '[HP off an unfaintable Garchomp from one Psychic] with every body on the field '
+                 + 'clicking a move -- Starmie pinned to Speed 1 so it acts LAST: no ability '
+                 + slowOff + ', ANALYTIC ' + slowOn + '. Pinned to Speed 999 so it acts FIRST: no '
+                 + 'ability ' + fastOff + ', ANALYTIC ' + fastOn + '. The two no-ability readings must '
+                 + 'be EQUAL — that is what says the Speed pin alone moves nothing and the condition '
+                 + 'really is the queue' };
+});
+
+/* THE SECOND HALF OF KEEN EYE AND ILLUMINATE — ROADMAP #213, AND IT WOULD HAVE BEEN LEFT IMPLIED.
+ *
+ * #212 wired the accuracy-DROP half of both abilities and probed it. Both carry a SECOND, independent
+ * rule — `onModifyMove(move) { move.ignoreEvasion = true; }` — so a probe of the first half alone
+ * would have marked two abilities measured in the census with half of each untested. That is the
+ * hollow shape this file exists to catch, arriving through an ability with two handlers instead of
+ * through a bad assertion.
+ *
+ * THE ENGINE'S OWN COMMENT SAID IT WAS OUT OF SCOPE AND HALF OF THAT IS NOW RETRACTED: "ignoreAccuracy
+ * / ignoreEvasion are not modelled here and neither is in this format's corpus". `ignoreEvasion` IS in
+ * this format, on 63 and 45 sheet fields. `ignoreAccuracy` still has no carrier and is still not
+ * modelled — that half of the sentence stands.
+ *
+ * FOUR REAL TURNS, at the losing roll (0.99), so the reading is a LANDED HIT and not a computed
+ * number — this file ratchets direct calls at zero. Arm D is the control that says the miss in arm A
+ * is the evasion and not the move.
+ *
+ * THE GUARD IS `_eb > 0`, AND THAT IS A MECHANIC RATHER THAN A TIDY-UP. The ability IGNORES evasion;
+ * it does not HELP. Against a target at MINUS two evasion, cancelling the stage would make the target
+ * harder to hit than it really is — measured directly on `hitChance`: −2 evasion reads 166.7 with the
+ * ability and 166.7 without, where a naive "set evasion to zero" would read 100 and quietly hand the
+ * attacker a penalty. */
+probe('ability', 'ignoresEvasion', 'Keen Eye and Illuminate ignore a target\'s evasion, and do not help against a lowered one', () => {
+  const run = (ab, eva) => {
+    const me = bare('lycanroc'); me.ability = ab; me.moves = ['crunch', 'protect'];
+    const ally = bare('farigiraf');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    unfaintable(f1); f1.boosts.eva = eva;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = f1.curHP;
+    M.battleTurn(S, rngLose,
+      new Map([[me, M.playerAction(me, 'crunch', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return h - f1.curHP;
+  };
+  const evaOff = run('none', 2);
+  const keen = run('keeneye', 2);
+  const illum = run('illuminate', 2);
+  const flat = run('none', 0);
+  return { works: evaOff === 0 && keen > 0 && illum > 0 && keen === illum
+                  && flat > 0 && keen === flat,
+           arms: { control: [evaOff, flat], test: [keen, illum] },
+           detail: '[HP off the target] Crunch (100 printed accuracy) at the LOSING roll into a target '
+                 + 'on +2 evasion -- no ability ' + evaOff + ' (it misses), KEEN EYE ' + keen
+                 + ', ILLUMINATE ' + illum + '. The same click into a target on NO evasion boost is '
+                 + flat + ', which is the control that says the miss was the evasion and not the move. '
+                 + 'The two abilities must agree: their handlers are byte-identical' };
+});
+
+/* MERCILESS — ROADMAP #213, AND IT IS NOT A RATE ROW. THAT IS THE FINDING.
+ *
+ * It was routed to the rate runner beside Super Luck and Magma Armor, on the reasonable reading that
+ * a crit RATIO is a probability. The authority says otherwise, and the arithmetic is the whole
+ * argument:
+ *     merciless   onModifyCritRatio(...) { if (['psn','tox'].includes(target.status)) return 5; }
+ *     sim/battle-actions.ts:1629 (gen 9)   critRatio = clampIntRange(critRatio, 0, 4)
+ *                                :1631     critMult  = [0, 24, 8, 2, 1]
+ *                                :1641     moveHit.crit = randomChance(1, critMult[critRatio])
+ * 5 clamps to 4, `critMult[4]` is 1, and `randomChance(1, 1)` is ALWAYS TRUE. Against a poisoned
+ * target Merciless is a CERTAINTY, not a raised rate — so it is stageable on a board exactly like
+ * Flower Trick's `willCrit`, and it does not need free-running dice at all.
+ *
+ * THE ENGINE WAS RIGHT TO REFUSE IT AND THE ARTIFACT WAS WRONG. `MEDFAILS.critRatioAbility` counted
+ * every carrier, because the tag gave Super Luck and Merciless the same flat `critRatio: 2` and the
+ * engine's own note says a consumer reading that "would hand Merciless an unconditional 1/8 it never
+ * has". The tag now separates `delta` (Super Luck, +1 stage always) from `setsTo` + `when`
+ * (Merciless, a ratio under a condition), which is what makes both readable.
+ *
+ * THE DIE IS SET TO LOSE (0.99) SO A CRIT CANNOT BE LUCK. At that roll an ordinary 1/24 never crits;
+ * only a certainty does. The third arm is the same body against a CLEAN target, which must not crit —
+ * without it, an engine that simply always crits passes.
+ *
+ * THE DAMAGE IS COMPARED ONLY WITHIN THE SAME STATUS, and that is deliberate: a poisoned target also
+ * takes residual chip on the same turn, so the poisoned and clean totals are not comparable and
+ * reading across them would be measuring the poison. The crit LINE off the trace is the primary
+ * observable; the damage is the corroboration. */
+probe('ability', 'critRatioUp', 'Merciless is a GUARANTEED crit into a poisoned target, not a raised rate', () => {
+  const run = (ab, status) => {
+    const me = bare('toxapex'); me.ability = ab;
+    me.moves = ['liquidation', 'protect', 'poisonjab', 'surf'];
+    const ally = bare('farigiraf');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    unfaintable(f1); f1.status = status;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    const h = f1.curHP;
+    M.battleTurn(S, rngLose,
+      new Map([[me, M.playerAction(me, 'liquidation', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { dmg: h - f1.curHP, crit: trace.some(l => /-crit/.test(l)) };
+  };
+  const psnOff = run('none', 'psn');
+  const psnOn = run('merciless', 'psn');
+  const cleanOn = run('merciless', '');
+  return { works: psnOff.crit === false && psnOn.crit === true && cleanOn.crit === false
+                  && psnOn.dmg > psnOff.dmg,
+           arms: { control: [psnOff.crit, cleanOn.crit], test: [psnOn.crit] },
+           detail: '[crit line, HP lost] Liquidation at the LOSING roll, where an ordinary 1/24 never '
+                 + 'crits -- into a POISONED target with no ability ' + psnOff.crit + ',' + psnOff.dmg
+                 + '; with MERCILESS ' + psnOn.crit + ',' + psnOn.dmg + '; with MERCILESS into a CLEAN '
+                 + 'target ' + cleanOn.crit + ',' + cleanOn.dmg + '. The damage is only compared '
+                 + 'within the poisoned pair, because a poisoned body also takes residual chip on the '
+                 + 'same turn and reading across the two would be measuring the poison' };
 });
 
 const works = results.filter(r => r.works);
