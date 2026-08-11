@@ -1,0 +1,2410 @@
+{
+  "generated": "2026-08-11T02:03:08.158Z",
+  "by": "engine/million_targets.js",
+  "what": "Every mechanic a single staged board cannot settle, with the rate it must show and the denominator it must be measured over. The work list for the million-game run.",
+  "the_line": "A RULE is settled by one board and belongs in the scenario catalogue. A DIE needs this run. A deterministic mechanic that only shows up wrong here means the catalogue has a hole, and fixing it here is the slow, late way round.",
+  "why_not_the_differential": "engine/replay_differential.js pins every die identically over both engines. That is correct for finding a wrong RULE and fatal for a wrong RATE: pinning the outcome to what was observed makes a wrong probability agree with itself. Its --rates arm is designed and deferred for want of exactly this corpus.",
+  "denominator_warning": "A rate over the wrong denominator is worse than no rate, because it looks like an answer. Every row states its own.",
+  "corpus_warning": "A self-play corpus where nobody switches yields ZERO samples for Intimidate on entry, hazard chip and Regenerator however many games it runs. Coverage is a property of the action set, not of N.",
+  "not_here": "preventsCrit (Battle Armor, Shell Armor, Disguise, Ice Face) is deliberately EXCLUDED: Storm Throw, Flower Trick and Frost Breath always crit, so one staged board settles those four without a die.",
+  "counts": {
+    "rows": 237,
+    "by_family": {
+      "chance": 4,
+      "secondary": 76,
+      "accuracy": 112,
+      "multihit": 8,
+      "proc": 12,
+      "crit": 17,
+      "ohko": 4,
+      "random-choice": 1,
+      "duration": 3
+    }
+  },
+  "rows": [
+    {
+      "family": "chance",
+      "subject": "protect-chain",
+      "kind": "move",
+      "expect": "1/3 then 1/9 then 1/27",
+      "unit": "success rate by consecutive use",
+      "what": "consecutive protect succeeds",
+      "clicks": 147242,
+      "denominator": "CONSECUTIVE uses only — the counter resets the moment any other action succeeds, and Baneful Bunker / Spiky Shield / Silk Trap share one counter with Protect."
+    },
+    {
+      "family": "secondary",
+      "subject": "rockslide",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where rockslide CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 35763
+    },
+    {
+      "family": "accuracy",
+      "subject": "rockslide",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 35763
+    },
+    {
+      "family": "secondary",
+      "subject": "heatwave",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts brn",
+      "denominator": "turns where heatwave CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 35535
+    },
+    {
+      "family": "accuracy",
+      "subject": "heatwave",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 35535
+    },
+    {
+      "family": "secondary",
+      "subject": "moonblast",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "moves spa",
+      "denominator": "turns where moonblast CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 25080
+    },
+    {
+      "family": "secondary",
+      "subject": "flareblitz",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts brn",
+      "denominator": "turns where flareblitz CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 22639
+    },
+    {
+      "family": "secondary",
+      "subject": "psychic",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "moves spd",
+      "denominator": "turns where psychic CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 17514
+    },
+    {
+      "family": "secondary",
+      "subject": "matchagotcha",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "inflicts brn",
+      "denominator": "turns where matchagotcha CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 17207
+    },
+    {
+      "family": "accuracy",
+      "subject": "matchagotcha",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 17207
+    },
+    {
+      "family": "secondary",
+      "subject": "shadowball",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "moves spd",
+      "denominator": "turns where shadowball CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 15950
+    },
+    {
+      "family": "secondary",
+      "subject": "hurricane",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "applies confusion",
+      "denominator": "turns where hurricane CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 14113
+    },
+    {
+      "family": "accuracy",
+      "subject": "hurricane",
+      "kind": "move",
+      "expect": 70,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 14113
+    },
+    {
+      "family": "secondary",
+      "subject": "ironhead",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where ironhead CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 14022
+    },
+    {
+      "family": "secondary",
+      "subject": "earthpower",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "moves spd",
+      "denominator": "turns where earthpower CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 13418
+    },
+    {
+      "family": "secondary",
+      "subject": "thunderbolt",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts par",
+      "denominator": "turns where thunderbolt CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 11477
+    },
+    {
+      "family": "secondary",
+      "subject": "sludgebomb",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "inflicts psn",
+      "denominator": "turns where sludgebomb CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 11113
+    },
+    {
+      "family": "secondary",
+      "subject": "blizzard",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts frz",
+      "denominator": "turns where blizzard CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 10663
+    },
+    {
+      "family": "accuracy",
+      "subject": "blizzard",
+      "kind": "move",
+      "expect": 70,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 10663
+    },
+    {
+      "family": "accuracy",
+      "subject": "makeitrain",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 8150
+    },
+    {
+      "family": "secondary",
+      "subject": "flashcannon",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "moves spd",
+      "denominator": "turns where flashcannon CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 7978
+    },
+    {
+      "family": "accuracy",
+      "subject": "highhorsepower",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 7525
+    },
+    {
+      "family": "accuracy",
+      "subject": "dualwingbeat",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 7517
+    },
+    {
+      "family": "accuracy",
+      "subject": "zapcannon",
+      "kind": "move",
+      "expect": 50,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 7047
+    },
+    {
+      "family": "secondary",
+      "subject": "scald",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "inflicts brn",
+      "denominator": "turns where scald CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 6845
+    },
+    {
+      "family": "secondary",
+      "subject": "direclaw",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "a secondary",
+      "denominator": "turns where direclaw CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 6504
+    },
+    {
+      "family": "secondary",
+      "subject": "darkpulse",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where darkpulse CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 5977
+    },
+    {
+      "family": "accuracy",
+      "subject": "sleeppowder",
+      "kind": "move",
+      "expect": 75,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 5477
+    },
+    {
+      "family": "secondary",
+      "subject": "icepunch",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts frz",
+      "denominator": "turns where icepunch CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 5285
+    },
+    {
+      "family": "accuracy",
+      "subject": "willowisp",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 5135
+    },
+    {
+      "family": "accuracy",
+      "subject": "hyperbeam",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 5059
+    },
+    {
+      "family": "secondary",
+      "subject": "muddywater",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "moves accuracy",
+      "denominator": "turns where muddywater CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 4834
+    },
+    {
+      "family": "accuracy",
+      "subject": "muddywater",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 4834
+    },
+    {
+      "family": "accuracy",
+      "subject": "icywind",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 4744
+    },
+    {
+      "family": "accuracy",
+      "subject": "toxic",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 4701
+    },
+    {
+      "family": "secondary",
+      "subject": "poisonjab",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "inflicts psn",
+      "denominator": "turns where poisonjab CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 4197
+    },
+    {
+      "family": "secondary",
+      "subject": "playrough",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "moves atk",
+      "denominator": "turns where playrough CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 4187
+    },
+    {
+      "family": "accuracy",
+      "subject": "playrough",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 4187
+    },
+    {
+      "family": "secondary",
+      "subject": "focusblast",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "moves spd",
+      "denominator": "turns where focusblast CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 3930
+    },
+    {
+      "family": "accuracy",
+      "subject": "focusblast",
+      "kind": "move",
+      "expect": 70,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 3930
+    },
+    {
+      "family": "accuracy",
+      "subject": "dracometeor",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 3819
+    },
+    {
+      "family": "secondary",
+      "subject": "icebeam",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts frz",
+      "denominator": "turns where icebeam CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 3632
+    },
+    {
+      "family": "accuracy",
+      "subject": "hydropump",
+      "kind": "move",
+      "expect": 80,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 3325
+    },
+    {
+      "family": "secondary",
+      "subject": "liquidation",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "moves def",
+      "denominator": "turns where liquidation CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 3155
+    },
+    {
+      "family": "accuracy",
+      "subject": "overheat",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 2882
+    },
+    {
+      "family": "accuracy",
+      "subject": "superfang",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 2764
+    },
+    {
+      "family": "secondary",
+      "subject": "energyball",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "moves spd",
+      "denominator": "turns where energyball CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 2731
+    },
+    {
+      "family": "accuracy",
+      "subject": "hypnosis",
+      "kind": "move",
+      "expect": 60,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 2719
+    },
+    {
+      "family": "secondary",
+      "subject": "discharge",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "inflicts par",
+      "denominator": "turns where discharge CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 2705
+    },
+    {
+      "family": "accuracy",
+      "subject": "lightofruin",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 2685
+    },
+    {
+      "family": "secondary",
+      "subject": "thunder",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "inflicts par",
+      "denominator": "turns where thunder CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 2564
+    },
+    {
+      "family": "accuracy",
+      "subject": "thunder",
+      "kind": "move",
+      "expect": 70,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 2564
+    },
+    {
+      "family": "accuracy",
+      "subject": "rockblast",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 2444
+    },
+    {
+      "family": "multihit",
+      "subject": "rockblast",
+      "kind": "move",
+      "expect": "2:35 3:35 4:15 5:15",
+      "unit": "% per hit count",
+      "what": "hit-count distribution",
+      "denominator": "uses that CONNECTED at least once, split into a separate arm for Loaded Dice (4-5) and Skill Link (always 5). Pooling those with the bare case hides both.",
+      "clicks": 2444
+    },
+    {
+      "family": "secondary",
+      "subject": "flamethrower",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts brn",
+      "denominator": "turns where flamethrower CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 2339
+    },
+    {
+      "family": "accuracy",
+      "subject": "leafstorm",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 2312
+    },
+    {
+      "family": "proc",
+      "subject": "cursedbody",
+      "kind": "ability",
+      "expect": 30,
+      "unit": "% of eligible triggers",
+      "what": "disables the move that hit it",
+      "denominator": "occasions the trigger was actually REACHED — a contact ability needs a contact move that connected, Focus Band needs a hit that would otherwise have been lethal from full-ish HP, Quick Claw needs a turn where moving first would change the board.",
+      "clicks": null,
+      "sheet_teams": 2177
+    },
+    {
+      "family": "accuracy",
+      "subject": "snarl",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 2099
+    },
+    {
+      "family": "accuracy",
+      "subject": "tripleaxel",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 2014
+    },
+    {
+      "family": "proc",
+      "subject": "poisontouch",
+      "kind": "ability",
+      "expect": 30,
+      "unit": "% of eligible triggers",
+      "what": "poisons what it touches",
+      "denominator": "occasions the trigger was actually REACHED — a contact ability needs a contact move that connected, Focus Band needs a hit that would otherwise have been lethal from full-ish HP, Quick Claw needs a turn where moving first would change the board.",
+      "clicks": null,
+      "sheet_teams": 1915
+    },
+    {
+      "family": "accuracy",
+      "subject": "populationbomb",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 1873
+    },
+    {
+      "family": "secondary",
+      "subject": "crunch",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "moves def",
+      "denominator": "turns where crunch CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 1649
+    },
+    {
+      "family": "secondary",
+      "subject": "waterfall",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where waterfall CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 1598
+    },
+    {
+      "family": "accuracy",
+      "subject": "headsmash",
+      "kind": "move",
+      "expect": 80,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 1573
+    },
+    {
+      "family": "accuracy",
+      "subject": "rocktomb",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 1552
+    },
+    {
+      "family": "accuracy",
+      "subject": "leechseed",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 1446
+    },
+    {
+      "family": "accuracy",
+      "subject": "poltergeist",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 1383
+    },
+    {
+      "family": "accuracy",
+      "subject": "electroweb",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 1344
+    },
+    {
+      "family": "accuracy",
+      "subject": "thunderwave",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 1269
+    },
+    {
+      "family": "crit",
+      "subject": "psychocut",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 1199
+    },
+    {
+      "family": "secondary",
+      "subject": "airslash",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where airslash CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 1047
+    },
+    {
+      "family": "accuracy",
+      "subject": "airslash",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 1047
+    },
+    {
+      "family": "secondary",
+      "subject": "ancientpower",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "boosts the user",
+      "denominator": "turns where ancientpower CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 947
+    },
+    {
+      "family": "secondary",
+      "subject": "volttackle",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts par",
+      "denominator": "turns where volttackle CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 947
+    },
+    {
+      "family": "secondary",
+      "subject": "gunkshot",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "inflicts psn",
+      "denominator": "turns where gunkshot CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 895
+    },
+    {
+      "family": "accuracy",
+      "subject": "gunkshot",
+      "kind": "move",
+      "expect": 80,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 895
+    },
+    {
+      "family": "secondary",
+      "subject": "icefang",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts frz",
+      "denominator": "turns where icefang CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 881
+    },
+    {
+      "family": "secondary",
+      "subject": "icefang",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where icefang CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 881
+    },
+    {
+      "family": "accuracy",
+      "subject": "icefang",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 881
+    },
+    {
+      "family": "crit",
+      "subject": "leafblade",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 778
+    },
+    {
+      "family": "secondary",
+      "subject": "barbbarrage",
+      "kind": "move",
+      "expect": 50,
+      "unit": "% of connecting hits",
+      "what": "inflicts psn",
+      "denominator": "turns where barbbarrage CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 769
+    },
+    {
+      "family": "secondary",
+      "subject": "thunderpunch",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts par",
+      "denominator": "turns where thunderpunch CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 727
+    },
+    {
+      "family": "secondary",
+      "subject": "bodyslam",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "inflicts par",
+      "denominator": "turns where bodyslam CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 714
+    },
+    {
+      "family": "secondary",
+      "subject": "meteormash",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "boosts the user",
+      "denominator": "turns where meteormash CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 701
+    },
+    {
+      "family": "accuracy",
+      "subject": "meteormash",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 701
+    },
+    {
+      "family": "accuracy",
+      "subject": "powerwhip",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 686
+    },
+    {
+      "family": "secondary",
+      "subject": "iciclecrash",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where iciclecrash CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 636
+    },
+    {
+      "family": "accuracy",
+      "subject": "iciclecrash",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 636
+    },
+    {
+      "family": "accuracy",
+      "subject": "fissure",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 608
+    },
+    {
+      "family": "ohko",
+      "subject": "fissure",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% at equal level",
+      "what": "connects",
+      "denominator": "attempts against a target of EQUAL level that is not immune (Sturdy refuses it outright, and an Ice-type refuses Sheer Cold). The rate is level-dependent by formula; at Level 50 mirror it is 30.",
+      "clicks": 608
+    },
+    {
+      "family": "crit",
+      "subject": "shadowclaw",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 585
+    },
+    {
+      "family": "accuracy",
+      "subject": "stoneaxe",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 578
+    },
+    {
+      "family": "accuracy",
+      "subject": "scaleshot",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 543
+    },
+    {
+      "family": "multihit",
+      "subject": "scaleshot",
+      "kind": "move",
+      "expect": "2:35 3:35 4:15 5:15",
+      "unit": "% per hit count",
+      "what": "hit-count distribution",
+      "denominator": "uses that CONNECTED at least once, split into a separate arm for Loaded Dice (4-5) and Skill Link (always 5). Pooling those with the bare case hides both.",
+      "clicks": 543
+    },
+    {
+      "family": "secondary",
+      "subject": "triplearrows",
+      "kind": "move",
+      "expect": 50,
+      "unit": "% of connecting hits",
+      "what": "moves def",
+      "denominator": "turns where triplearrows CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 538
+    },
+    {
+      "family": "secondary",
+      "subject": "triplearrows",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where triplearrows CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 538
+    },
+    {
+      "family": "crit",
+      "subject": "triplearrows",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 538
+    },
+    {
+      "family": "secondary",
+      "subject": "sludgewave",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts psn",
+      "denominator": "turns where sludgewave CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 521
+    },
+    {
+      "family": "accuracy",
+      "subject": "stoneedge",
+      "kind": "move",
+      "expect": 80,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 505
+    },
+    {
+      "family": "crit",
+      "subject": "stoneedge",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 505
+    },
+    {
+      "family": "accuracy",
+      "subject": "highjumpkick",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 493
+    },
+    {
+      "family": "secondary",
+      "subject": "waterpulse",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "applies confusion",
+      "denominator": "turns where waterpulse CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 487
+    },
+    {
+      "family": "secondary",
+      "subject": "zenheadbutt",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where zenheadbutt CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 449
+    },
+    {
+      "family": "accuracy",
+      "subject": "zenheadbutt",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 449
+    },
+    {
+      "family": "accuracy",
+      "subject": "icehammer",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 442
+    },
+    {
+      "family": "secondary",
+      "subject": "scorchingsands",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "inflicts brn",
+      "denominator": "turns where scorchingsands CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 389
+    },
+    {
+      "family": "crit",
+      "subject": "nightslash",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 380
+    },
+    {
+      "family": "accuracy",
+      "subject": "swagger",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 371
+    },
+    {
+      "family": "random-choice",
+      "subject": "trace",
+      "kind": "ability",
+      "expect": "uniform over eligible adjacent foes",
+      "unit": "% per foe",
+      "what": "copies a random eligible foe",
+      "denominator": "entries with TWO eligible adjacent foes — the only case where the choice is observable. Eligible means the foe's ability lacks flags.notrace; 34 legal abilities are ineligible in this format.",
+      "clicks": null,
+      "sheet_teams": 371,
+      "note": "ineligible: asoneglastrier asonespectrier battlebond comatose commander disguise embodyaspectcornerstone embodyaspecthearthflame embodyaspectteal embodyaspectwellspring flowergift forecast hungerswitch iceface illusion imposter multitype neutralizinggas poisonpuppeteer powerconstruct powerofalchemy protosynthesis quarkdrive receiver rkssystem schooling shieldsdown stancechange teraformzero terashell terashift trace zenmode zerotohero"
+    },
+    {
+      "family": "proc",
+      "subject": "flamebody",
+      "kind": "ability",
+      "expect": 30,
+      "unit": "% of eligible triggers",
+      "what": "burns on contact",
+      "denominator": "occasions the trigger was actually REACHED — a contact ability needs a contact move that connected, Focus Band needs a hit that would otherwise have been lethal from full-ish HP, Quick Claw needs a turn where moving first would change the board.",
+      "clicks": null,
+      "sheet_teams": 362
+    },
+    {
+      "family": "accuracy",
+      "subject": "hammerarm",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 360
+    },
+    {
+      "family": "accuracy",
+      "subject": "frostbreath",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 345
+    },
+    {
+      "family": "secondary",
+      "subject": "firepunch",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts brn",
+      "denominator": "turns where firepunch CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 319
+    },
+    {
+      "family": "accuracy",
+      "subject": "ceaselessedge",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 303
+    },
+    {
+      "family": "secondary",
+      "subject": "fierydance",
+      "kind": "move",
+      "expect": 50,
+      "unit": "% of connecting hits",
+      "what": "boosts the user",
+      "denominator": "turns where fierydance CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 299
+    },
+    {
+      "family": "accuracy",
+      "subject": "drillrun",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 279
+    },
+    {
+      "family": "crit",
+      "subject": "drillrun",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 279
+    },
+    {
+      "family": "crit",
+      "subject": "aquacutter",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 265
+    },
+    {
+      "family": "secondary",
+      "subject": "fireblast",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts brn",
+      "denominator": "turns where fireblast CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 260
+    },
+    {
+      "family": "accuracy",
+      "subject": "fireblast",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 260
+    },
+    {
+      "family": "accuracy",
+      "subject": "firespin",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 241
+    },
+    {
+      "family": "accuracy",
+      "subject": "sheercold",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 241
+    },
+    {
+      "family": "ohko",
+      "subject": "sheercold",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% at equal level",
+      "what": "connects",
+      "denominator": "attempts against a target of EQUAL level that is not immune (Sturdy refuses it outright, and an Ice-type refuses Sheer Cold). The rate is level-dependent by formula; at Level 50 mirror it is 30.",
+      "clicks": 241
+    },
+    {
+      "family": "secondary",
+      "subject": "blazekick",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts brn",
+      "denominator": "turns where blazekick CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 237
+    },
+    {
+      "family": "accuracy",
+      "subject": "blazekick",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 237
+    },
+    {
+      "family": "crit",
+      "subject": "blazekick",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 237
+    },
+    {
+      "family": "accuracy",
+      "subject": "dragontail",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 236
+    },
+    {
+      "family": "accuracy",
+      "subject": "supercellslam",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 220
+    },
+    {
+      "family": "accuracy",
+      "subject": "pinmissile",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 199
+    },
+    {
+      "family": "multihit",
+      "subject": "pinmissile",
+      "kind": "move",
+      "expect": "2:35 3:35 4:15 5:15",
+      "unit": "% per hit count",
+      "what": "hit-count distribution",
+      "denominator": "uses that CONNECTED at least once, split into a separate arm for Loaded Dice (4-5) and Skill Link (always 5). Pooling those with the bare case hides both.",
+      "clicks": 199
+    },
+    {
+      "family": "accuracy",
+      "subject": "psyshieldbash",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 187
+    },
+    {
+      "family": "secondary",
+      "subject": "bugbuzz",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "moves spd",
+      "denominator": "turns where bugbuzz CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 185
+    },
+    {
+      "family": "accuracy",
+      "subject": "dynamicpunch",
+      "kind": "move",
+      "expect": 50,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 170
+    },
+    {
+      "family": "multihit",
+      "subject": "bulletseed",
+      "kind": "move",
+      "expect": "2:35 3:35 4:15 5:15",
+      "unit": "% per hit count",
+      "what": "hit-count distribution",
+      "denominator": "uses that CONNECTED at least once, split into a separate arm for Loaded Dice (4-5) and Skill Link (always 5). Pooling those with the bare case hides both.",
+      "clicks": 170
+    },
+    {
+      "family": "proc",
+      "subject": "quickclaw",
+      "kind": "item",
+      "expect": 20,
+      "unit": "% of eligible triggers",
+      "what": "moves first",
+      "denominator": "occasions the trigger was actually REACHED — a contact ability needs a contact move that connected, Focus Band needs a hit that would otherwise have been lethal from full-ish HP, Quick Claw needs a turn where moving first would change the board.",
+      "clicks": null,
+      "sheet_teams": 155
+    },
+    {
+      "family": "multihit",
+      "subject": "watershuriken",
+      "kind": "move",
+      "expect": "2:35 3:35 4:15 5:15",
+      "unit": "% per hit count",
+      "what": "hit-count distribution",
+      "denominator": "uses that CONNECTED at least once, split into a separate arm for Loaded Dice (4-5) and Skill Link (always 5). Pooling those with the bare case hides both.",
+      "clicks": 141
+    },
+    {
+      "family": "secondary",
+      "subject": "extrasensory",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where extrasensory CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 140
+    },
+    {
+      "family": "accuracy",
+      "subject": "whirlpool",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 132
+    },
+    {
+      "family": "secondary",
+      "subject": "dragonrush",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where dragonrush CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 124
+    },
+    {
+      "family": "accuracy",
+      "subject": "dragonrush",
+      "kind": "move",
+      "expect": 75,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 124
+    },
+    {
+      "family": "proc",
+      "subject": "cutecharm",
+      "kind": "ability",
+      "expect": 30,
+      "unit": "% of eligible triggers",
+      "what": "infatuates on contact",
+      "denominator": "occasions the trigger was actually REACHED — a contact ability needs a contact move that connected, Focus Band needs a hit that would otherwise have been lethal from full-ish HP, Quick Claw needs a turn where moving first would change the board.",
+      "clicks": null,
+      "sheet_teams": 122
+    },
+    {
+      "family": "proc",
+      "subject": "kingsrock",
+      "kind": "item",
+      "expect": 10,
+      "unit": "% of eligible triggers",
+      "what": "flinches",
+      "denominator": "occasions the trigger was actually REACHED — a contact ability needs a contact move that connected, Focus Band needs a hit that would otherwise have been lethal from full-ish HP, Quick Claw needs a turn where moving first would change the board.",
+      "clicks": null,
+      "sheet_teams": 115
+    },
+    {
+      "family": "accuracy",
+      "subject": "horndrill",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 108
+    },
+    {
+      "family": "ohko",
+      "subject": "horndrill",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% at equal level",
+      "what": "connects",
+      "denominator": "attempts against a target of EQUAL level that is not immune (Sturdy refuses it outright, and an Ice-type refuses Sheer Cold). The rate is level-dependent by formula; at Level 50 mirror it is 30.",
+      "clicks": 108
+    },
+    {
+      "family": "secondary",
+      "subject": "shellsidearm",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "inflicts psn",
+      "denominator": "turns where shellsidearm CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 101
+    },
+    {
+      "family": "accuracy",
+      "subject": "steelbeam",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 100
+    },
+    {
+      "family": "secondary",
+      "subject": "bite",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where bite CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 93
+    },
+    {
+      "family": "proc",
+      "subject": "poisonpoint",
+      "kind": "ability",
+      "expect": 30,
+      "unit": "% of eligible triggers",
+      "what": "poisons on contact",
+      "denominator": "occasions the trigger was actually REACHED — a contact ability needs a contact move that connected, Focus Band needs a hit that would otherwise have been lethal from full-ish HP, Quick Claw needs a turn where moving first would change the board.",
+      "clicks": null,
+      "sheet_teams": 81
+    },
+    {
+      "family": "accuracy",
+      "subject": "crosschop",
+      "kind": "move",
+      "expect": 80,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 76
+    },
+    {
+      "family": "crit",
+      "subject": "crosschop",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 76
+    },
+    {
+      "family": "accuracy",
+      "subject": "aquatail",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 75
+    },
+    {
+      "family": "secondary",
+      "subject": "mountaingale",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where mountaingale CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 69
+    },
+    {
+      "family": "accuracy",
+      "subject": "mountaingale",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 69
+    },
+    {
+      "family": "accuracy",
+      "subject": "sandtomb",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 68
+    },
+    {
+      "family": "secondary",
+      "subject": "firefang",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts brn",
+      "denominator": "turns where firefang CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 67
+    },
+    {
+      "family": "secondary",
+      "subject": "firefang",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where firefang CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 67
+    },
+    {
+      "family": "accuracy",
+      "subject": "firefang",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 67
+    },
+    {
+      "family": "secondary",
+      "subject": "irontail",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "moves def",
+      "denominator": "turns where irontail CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 64
+    },
+    {
+      "family": "accuracy",
+      "subject": "aircutter",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 64
+    },
+    {
+      "family": "accuracy",
+      "subject": "irontail",
+      "kind": "move",
+      "expect": 75,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 64
+    },
+    {
+      "family": "crit",
+      "subject": "aircutter",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 64
+    },
+    {
+      "family": "accuracy",
+      "subject": "fly",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 62
+    },
+    {
+      "family": "accuracy",
+      "subject": "megahorn",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 58
+    },
+    {
+      "family": "accuracy",
+      "subject": "gigaimpact",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 56
+    },
+    {
+      "family": "accuracy",
+      "subject": "mudshot",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 56
+    },
+    {
+      "family": "secondary",
+      "subject": "razorshell",
+      "kind": "move",
+      "expect": 50,
+      "unit": "% of connecting hits",
+      "what": "moves def",
+      "denominator": "turns where razorshell CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 55
+    },
+    {
+      "family": "accuracy",
+      "subject": "razorshell",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 55
+    },
+    {
+      "family": "accuracy",
+      "subject": "screech",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 55
+    },
+    {
+      "family": "secondary",
+      "subject": "nightdaze",
+      "kind": "move",
+      "expect": 40,
+      "unit": "% of connecting hits",
+      "what": "moves accuracy",
+      "denominator": "turns where nightdaze CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 54
+    },
+    {
+      "family": "secondary",
+      "subject": "thunderfang",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts par",
+      "denominator": "turns where thunderfang CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 54
+    },
+    {
+      "family": "secondary",
+      "subject": "thunderfang",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where thunderfang CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 54
+    },
+    {
+      "family": "accuracy",
+      "subject": "nightdaze",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 54
+    },
+    {
+      "family": "accuracy",
+      "subject": "thunderfang",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 54
+    },
+    {
+      "family": "proc",
+      "subject": "healer",
+      "kind": "ability",
+      "expect": 30,
+      "unit": "% of eligible triggers",
+      "what": "cures an ally's status",
+      "denominator": "occasions the trigger was actually REACHED — a contact ability needs a contact move that connected, Focus Band needs a hit that would otherwise have been lethal from full-ish HP, Quick Claw needs a turn where moving first would change the board.",
+      "clicks": null,
+      "sheet_teams": 54
+    },
+    {
+      "family": "secondary",
+      "subject": "chargebeam",
+      "kind": "move",
+      "expect": 70,
+      "unit": "% of connecting hits",
+      "what": "boosts the user",
+      "denominator": "turns where chargebeam CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 53
+    },
+    {
+      "family": "accuracy",
+      "subject": "chargebeam",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 53
+    },
+    {
+      "family": "accuracy",
+      "subject": "hydrocannon",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 53
+    },
+    {
+      "family": "multihit",
+      "subject": "iciclespear",
+      "kind": "move",
+      "expect": "2:35 3:35 4:15 5:15",
+      "unit": "% per hit count",
+      "what": "hit-count distribution",
+      "denominator": "uses that CONNECTED at least once, split into a separate arm for Loaded Dice (4-5) and Skill Link (always 5). Pooling those with the bare case hides both.",
+      "clicks": 53
+    },
+    {
+      "family": "secondary",
+      "subject": "lavaplume",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "inflicts brn",
+      "denominator": "turns where lavaplume CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 46
+    },
+    {
+      "family": "accuracy",
+      "subject": "stringshot",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 46
+    },
+    {
+      "family": "proc",
+      "subject": "effectspore",
+      "kind": "ability",
+      "expect": 30,
+      "unit": "% of eligible triggers",
+      "what": "poison/paralysis/sleep on contact",
+      "denominator": "occasions the trigger was actually REACHED — a contact ability needs a contact move that connected, Focus Band needs a hit that would otherwise have been lethal from full-ish HP, Quick Claw needs a turn where moving first would change the board.",
+      "clicks": null,
+      "sheet_teams": 44
+    },
+    {
+      "family": "accuracy",
+      "subject": "crabhammer",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 39
+    },
+    {
+      "family": "crit",
+      "subject": "crabhammer",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 39
+    },
+    {
+      "family": "accuracy",
+      "subject": "stunspore",
+      "kind": "move",
+      "expect": 75,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 37
+    },
+    {
+      "family": "secondary",
+      "subject": "steelwing",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "boosts the user",
+      "denominator": "turns where steelwing CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 35
+    },
+    {
+      "family": "accuracy",
+      "subject": "steelwing",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 35
+    },
+    {
+      "family": "accuracy",
+      "subject": "guillotine",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 33
+    },
+    {
+      "family": "accuracy",
+      "subject": "sing",
+      "kind": "move",
+      "expect": 55,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 33
+    },
+    {
+      "family": "accuracy",
+      "subject": "skittersmack",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 33
+    },
+    {
+      "family": "ohko",
+      "subject": "guillotine",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% at equal level",
+      "what": "connects",
+      "denominator": "attempts against a target of EQUAL level that is not immune (Sturdy refuses it outright, and an Ice-type refuses Sheer Cold). The rate is level-dependent by formula; at Level 50 mirror it is 30.",
+      "clicks": 33
+    },
+    {
+      "family": "secondary",
+      "subject": "crosspoison",
+      "kind": "move",
+      "expect": 10,
+      "unit": "% of connecting hits",
+      "what": "inflicts psn",
+      "denominator": "turns where crosspoison CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 32
+    },
+    {
+      "family": "crit",
+      "subject": "crosspoison",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 32
+    },
+    {
+      "family": "proc",
+      "subject": "harvest",
+      "kind": "ability",
+      "expect": 50,
+      "unit": "% of eligible triggers",
+      "what": "restores its berry",
+      "denominator": "occasions the trigger was actually REACHED — a contact ability needs a contact move that connected, Focus Band needs a hit that would otherwise have been lethal from full-ish HP, Quick Claw needs a turn where moving first would change the board.",
+      "clicks": null,
+      "sheet_teams": 32
+    },
+    {
+      "family": "secondary",
+      "subject": "infernalparade",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "inflicts brn",
+      "denominator": "turns where infernalparade CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 31
+    },
+    {
+      "family": "accuracy",
+      "subject": "circlethrow",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 25
+    },
+    {
+      "family": "accuracy",
+      "subject": "blastburn",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 22
+    },
+    {
+      "family": "accuracy",
+      "subject": "flyingpress",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 21
+    },
+    {
+      "family": "accuracy",
+      "subject": "metalsound",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 20
+    },
+    {
+      "family": "secondary",
+      "subject": "skyattack",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where skyattack CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 19
+    },
+    {
+      "family": "accuracy",
+      "subject": "skyattack",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 19
+    },
+    {
+      "family": "crit",
+      "subject": "skyattack",
+      "kind": "move",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": 19
+    },
+    {
+      "family": "proc",
+      "subject": "quickdraw",
+      "kind": "ability",
+      "expect": 30,
+      "unit": "% of eligible triggers",
+      "what": "moves first within its bracket",
+      "denominator": "occasions the trigger was actually REACHED — a contact ability needs a contact move that connected, Focus Band needs a hit that would otherwise have been lethal from full-ish HP, Quick Claw needs a turn where moving first would change the board.",
+      "clicks": null,
+      "sheet_teams": 19
+    },
+    {
+      "family": "accuracy",
+      "subject": "syrupbomb",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 18
+    },
+    {
+      "family": "accuracy",
+      "subject": "meteorbeam",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 16
+    },
+    {
+      "family": "accuracy",
+      "subject": "megakick",
+      "kind": "move",
+      "expect": 75,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 15
+    },
+    {
+      "family": "proc",
+      "subject": "focusband",
+      "kind": "item",
+      "expect": 10,
+      "unit": "% of eligible triggers",
+      "what": "survives on 1 HP",
+      "denominator": "occasions the trigger was actually REACHED — a contact ability needs a contact move that connected, Focus Band needs a hit that would otherwise have been lethal from full-ish HP, Quick Claw needs a turn where moving first would change the board.",
+      "clicks": null,
+      "sheet_teams": 15
+    },
+    {
+      "family": "secondary",
+      "subject": "poisonfang",
+      "kind": "move",
+      "expect": 50,
+      "unit": "% of connecting hits",
+      "what": "inflicts tox",
+      "denominator": "turns where poisonfang CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 14
+    },
+    {
+      "family": "accuracy",
+      "subject": "frenzyplant",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 13
+    },
+    {
+      "family": "accuracy",
+      "subject": "poisonpowder",
+      "kind": "move",
+      "expect": 75,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 9
+    },
+    {
+      "family": "secondary",
+      "subject": "triattack",
+      "kind": "move",
+      "expect": 20,
+      "unit": "% of connecting hits",
+      "what": "a secondary",
+      "denominator": "turns where triattack CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 8
+    },
+    {
+      "family": "accuracy",
+      "subject": "bonerush",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 6
+    },
+    {
+      "family": "accuracy",
+      "subject": "inferno",
+      "kind": "move",
+      "expect": 50,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 6
+    },
+    {
+      "family": "accuracy",
+      "subject": "wrap",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 6
+    },
+    {
+      "family": "multihit",
+      "subject": "bonerush",
+      "kind": "move",
+      "expect": "2:35 3:35 4:15 5:15",
+      "unit": "% per hit count",
+      "what": "hit-count distribution",
+      "denominator": "uses that CONNECTED at least once, split into a separate arm for Loaded Dice (4-5) and Skill Link (always 5). Pooling those with the bare case hides both.",
+      "clicks": 6
+    },
+    {
+      "family": "accuracy",
+      "subject": "doublehit",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 5
+    },
+    {
+      "family": "accuracy",
+      "subject": "rockwrecker",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 5
+    },
+    {
+      "family": "secondary",
+      "subject": "snore",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "applies flinch",
+      "denominator": "turns where snore CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 3
+    },
+    {
+      "family": "secondary",
+      "subject": "axekick",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "applies confusion",
+      "denominator": "turns where axekick CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 2
+    },
+    {
+      "family": "secondary",
+      "subject": "bounce",
+      "kind": "move",
+      "expect": 30,
+      "unit": "% of connecting hits",
+      "what": "inflicts par",
+      "denominator": "turns where bounce CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 2
+    },
+    {
+      "family": "accuracy",
+      "subject": "belch",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 2
+    },
+    {
+      "family": "accuracy",
+      "subject": "axekick",
+      "kind": "move",
+      "expect": 90,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 2
+    },
+    {
+      "family": "accuracy",
+      "subject": "bounce",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 2
+    },
+    {
+      "family": "secondary",
+      "subject": "crushclaw",
+      "kind": "move",
+      "expect": 50,
+      "unit": "% of connecting hits",
+      "what": "moves def",
+      "denominator": "turns where crushclaw CONNECTED with a target that could receive it — not turns where it was clicked. A miss, a Protect, a Substitute and an immunity are all outside the denominator, and Shield Dust / Covert Cloak suppress the roll itself.",
+      "clicks": 0
+    },
+    {
+      "family": "accuracy",
+      "subject": "crushclaw",
+      "kind": "move",
+      "expect": 95,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 0
+    },
+    {
+      "family": "accuracy",
+      "subject": "bind",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 0
+    },
+    {
+      "family": "accuracy",
+      "subject": "sweetkiss",
+      "kind": "move",
+      "expect": 75,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 0
+    },
+    {
+      "family": "accuracy",
+      "subject": "tailslap",
+      "kind": "move",
+      "expect": 85,
+      "unit": "% of attempts that connect",
+      "what": "lands",
+      "denominator": "attempts against a target that was not immune, protected or semi-invulnerable. Compound Eyes, Hustle, Victory Star, Tailwind-independent accuracy stages and Gravity all move the true rate, so those turns need their own bucket rather than pooling.",
+      "clicks": 0
+    },
+    {
+      "family": "multihit",
+      "subject": "tailslap",
+      "kind": "move",
+      "expect": "2:35 3:35 4:15 5:15",
+      "unit": "% per hit count",
+      "what": "hit-count distribution",
+      "denominator": "uses that CONNECTED at least once, split into a separate arm for Loaded Dice (4-5) and Skill Link (always 5). Pooling those with the bare case hides both.",
+      "clicks": 0
+    },
+    {
+      "family": "crit",
+      "subject": "merciless",
+      "kind": "ability",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": null
+    },
+    {
+      "family": "crit",
+      "subject": "superluck",
+      "kind": "ability",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": null
+    },
+    {
+      "family": "crit",
+      "subject": "scopelens",
+      "kind": "item",
+      "expect": "above 4.167%",
+      "unit": "% of hits that crit",
+      "what": "raises the crit stage",
+      "denominator": "HITS delivered while the effect is active, against a target WITHOUT Battle Armor or Shell Armor. Compare to the same carrier without it — the claim is that the rate MOVES, not that it hits a particular number, because stages compose.",
+      "clicks": null
+    },
+    {
+      "family": "duration",
+      "subject": "slp",
+      "kind": "status",
+      "expect": "1-3 turns, uniform",
+      "unit": "turns",
+      "what": "sleep length",
+      "clicks": null,
+      "denominator": "bodies that FELL asleep and were not woken early by Wake-Up Slap, Uproar or an ability. Early Bird halves it and needs its own arm."
+    },
+    {
+      "family": "duration",
+      "subject": "frz",
+      "kind": "status",
+      "expect": 20,
+      "unit": "% thaw per turn",
+      "what": "thaw chance",
+      "clicks": null,
+      "denominator": "frozen upkeeps. A Fire-type move or Scald thaws outright and is NOT a sample of the 20%."
+    },
+    {
+      "family": "chance",
+      "subject": "par",
+      "kind": "status",
+      "expect": 25,
+      "unit": "% full paralysis",
+      "what": "fails to move",
+      "clicks": null,
+      "denominator": "attempted moves while paralysed."
+    },
+    {
+      "family": "chance",
+      "subject": "confusion",
+      "kind": "volatile",
+      "expect": 33,
+      "unit": "% self-hit",
+      "what": "hits itself",
+      "clicks": null,
+      "denominator": "attempted moves while confused — per ATTEMPT, not per turn, and the 1-4 turn duration is a second die needing its own row."
+    },
+    {
+      "family": "duration",
+      "subject": "confusion-length",
+      "kind": "volatile",
+      "expect": "2-5 turns",
+      "unit": "turns",
+      "what": "confusion length",
+      "clicks": null,
+      "denominator": "bodies that became confused and were not cured early."
+    },
+    {
+      "family": "chance",
+      "subject": "attract",
+      "kind": "volatile",
+      "expect": 50,
+      "unit": "% immobilised",
+      "what": "fails to move",
+      "clicks": null,
+      "denominator": "attempted moves while infatuated."
+    }
+  ]
+}

@@ -519,8 +519,52 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * `allies` (user AND partner, `Pokemon#alliesAndSelf`). Howl is the only member that reaches the
    * boost branch; Life Dew is the other `allies` move and is a heal. Zero means the target read has
    * come unwired and Howl is back to boosting the partner only. */
-  boostAlliesSideWide: 0 };
+  boostAlliesSideWide: 0,
+  /* ROADMAP #147 -- THE GROUNDED AXIS, FIVE COUNTERS, because five separate things can be true and
+   * only one of them is "the axis works". Every one is silent by construction: grounding changes a
+   * predicate, and a predicate leaves no trace in the log.
+   *   gravitySet              a Gravity click actually moved the field. Zero = the classifier is still
+   *                           routing it down the sealsMoves road and nothing happened.
+   *   gravityGroundedCharge   Gravity brought a Fly/Bounce/Dig back down mid-charge.
+   *   roostTypeDropped        a type was deleted for the turn. Zero = Roost is a plain heal again and
+   *                           an Earthquake into a Roosting Corviknight is still doing nothing.
+   *   roostTypeRestored       and it came BACK. A drop without a restore is a permanently retyped
+   *                           Pokemon, which is worse than the bug being fixed, so the pair is counted
+   *                           rather than the drop alone.
+   *   groundedByVolatile      Ingrain or Smack Down put a body on the floor that was not on it. */
+  gravitySet: 0, gravityGroundedCharge: 0, roostTypeDropped: 0, roostTypeRestored: 0,
+  groundedByVolatile: 0,
+  /* ROADMAP #147 -- a damaging move's PRIMARY volatile landing (Smack Down), and the generic refusal
+   * that keeps the partial-trap family out of `_vol`. Both are silent by construction. */
+  primaryVolatileApplied: 0, volRefusedOwnedElsewhere: 0,
+  /* ROADMAP #123 -- SEMI-INVULNERABILITY'S TWO EXCEPTION LISTS, counted APART, because they are two
+   * different lists and an engine that treats them as one is wrong on five moves.
+   *   invulnPierced   a move got THROUGH an underground/underwater/airborne body (Earthquake into Dig,
+   *                   Thunder into Fly). Zero means the exception is unwired and the counter-play is
+   *                   still impossible.
+   *   invulnDoubled   and of those, the ones that also DOUBLE. It must be <= invulnPierced and is
+   *                   strictly less over a mixed sample: Thunder, Hurricane, Sky Uppercut, Smack Down
+   *                   and Thousand Arrows pierce Fly for NORMAL damage. Equal counts over a varied
+   *                   sample is the signature of "pierces => doubles", which is the wrong rule. */
+  invulnPierced: 0, invulnDoubled: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* ROADMAP #125 -- THE TERMINAL FALL-THROUGH OF THE CLASSIFIER, AND IT HAD NO COUNTER AT ALL.
+   *
+   * `playerActionPrimary` ends in `return {kind:'pass',mv:id}` -- "this engine models no effect for
+   * that click" -- and that line was silent, so a move nobody had branched for cost a WHOLE NO-OP TURN
+   * and nothing anywhere said so. Nine of the thirteen rows the precondition layer exposed on
+   * 2026-08-10 arrived through this one line and only ONE was named by any counter. That is CLAUDE.md's
+   * founding failure -- a capability absent and everything reporting success -- sitting in the exact
+   * place built to catch it.
+   *
+   * THE ID IS RECORDED, NOT JUST A TALLY, and that is the whole point of the row: `healProceduralFirst`
+   * naming `swallow` is what made that one findable. `unmodelledClickBy` is a per-move histogram, so a
+   * run says WHICH moves it threw away rather than how many times it threw something away.
+   *
+   * IT IS A FAILURE COUNTER RATHER THAN A SEEN COUNTER because a non-zero is bad news: every count is
+   * a turn this engine deleted. It is NOT expected to read 0 today -- 15 moves in this format still
+   * land here -- so the number is a QUEUE LENGTH that must fall, and the histogram is the queue. */
+  unmodelledClick: 0, unmodelledClickFirst: '', unmodelledClickBy: {},
   /* ROADMAP #144 -- a move the PP artifact has no row for. `ppLeft` returns null and the move becomes
    * FREE, which is exactly the silent default this file keeps finding, so the fallback names its first
    * offender. Must read 0: data/tags.json carries a `pp` row for all 500 moves in this format, and a
@@ -1736,17 +1780,30 @@ function _traceForbidder(me){
  *   Telekinesis      would ground                             isNonstandard 'Past' -- BANNED. NOT wired,
  *                                                             and this HONOURS the declaration at the
  *                                                             hazard block rather than contradicting it
- *   Magnet Rise      would float                              legal, 1 corpus use, a VOLATILE this engine
- *                                                             does not carry. NOT wired, declared
- *   Gravity          grounds EVERYTHING                       legal, 79 corpus uses, a pseudo-weather
- *                                                             this engine has no field slot for. NOT
- *                                                             wired, declared -- the largest live gap here
- *   Smack Down       grounds                                  legal, 10 uses, a volatile. NOT wired
- *   Ingrain          grounds                                  legal, 0 uses. NOT wired
- *   Roost            grounds the user for the turn            legal, 2,109 uses -- but the grounding is
- *                                                             a one-turn TYPE deletion and this engine
- *                                                             holds no per-turn type override. NOT wired,
- *                                                             declared, and it is the second-largest gap
+ *   Magnet Rise      would float                              legal, 1 corpus use. WIRED (#147)
+ *   Gravity          grounds EVERYTHING                       legal, 79 corpus uses. WIRED (#147)
+ *   Smack Down       grounds                                  legal, 10 uses. WIRED (#147)
+ *   Ingrain          grounds                                  legal, 0 uses. WIRED (#147)
+ *   Roost            grounds the user for the turn            legal, 2,808 clicks. WIRED (#147) --
+ *                                                             through the TYPE deletion, which is how
+ *                                                             the authority does it, so no clause here
+ *
+ * ROADMAP #147 -- THE FIVE THAT WERE DECLARED MISSING ABOVE ARE NOW READ, AND THE ORDER IS THE
+ * AUTHORITY'S OWN because the clauses disagree. `Pokemon#isGrounded` puts Gravity, Ingrain, Smack Down
+ * and Iron Ball ABOVE the Flying test and Magnet Rise BELOW it, so a Flying body under Gravity is on
+ * the floor while a Flying body with Magnet Rise was never off it. Written in the reference engine's
+ * sequence rather than in the order they were added, so the precedence is inherited rather than
+ * reinvented.
+ *
+ * ROOST DELIBERATELY HAS NO CLAUSE HERE, and that is the point rather than an omission. The authority
+ * grounds a Roosting body by DELETING Flying from `getTypes()`, so the Flying clause below simply
+ * stops matching -- one mechanism, and it also makes Earthquake, Stealth Rock and the Ground immunity
+ * agree for free. A `roost` clause in this function would have grounded the body and left it still
+ * resisting Ground, which is two different answers to the same question.
+ *
+ * TELEKINESIS is the one remaining member and it is `isNonstandard: 'Past'` -- BANNED in this format,
+ * measured through `Dex.forFormat`. Stated rather than dropped, and not wired, exactly as Air Balloon
+ * is stated and not reachable.
  *
  * THE ABILITY SET IS A NAME AND THAT IS THE STANDING DECLARATION HONOURED, NOT AN EXCEPTION TO IT.
  * The tempting shape is `typeImmunity {type:'Ground'}`, and its membership was PRINTED before being
@@ -1773,10 +1830,30 @@ function _traceForbidder(me){
  * not ENGINE's file to fix (a board.js signature change is a refit, which MEASURE owns), and a silent
  * default there would look exactly like a working feature. */
 const AIRBORNE_ABIL=new Set(['levitate','eelevate']);
+/* ROADMAP #147 -- THE VOLATILE HALF, AS TWO SETS RATHER THAN FIVE `_vol.x>0` TESTS SCATTERED THROUGH
+ * the function. They are hard-named for the reason the header states: `Pokemon#isGrounded` names them
+ * itself, and mirroring the reference engine's own implementation is what AIRBORNE_ABIL already does.
+ * `telekinesis` is in the float set and is unreachable in this format (isNonstandard 'Past'); leaving
+ * it out would have been a silent narrowing of a rule, so it is in and says so. */
+const GROUNDING_VOL=['ingrain','smackdown'];
+const FLOATING_VOL=['magnetrise','telekinesis'];
+/* THE FIELD, FROM THE BODY. Every active body carries `_sf` (its side object) and battleInit puts the
+ * whole battle state on it as `_S`, so Gravity -- a FIELD fact -- is reachable without changing this
+ * function's signature or the seven call sites that would each have had to be found and fed. A body
+ * that is not in a battle (a probe body, a board.js feature read) has no `_sf` and therefore no
+ * Gravity, which is the correct answer rather than a default: there is no field for it to be on. */
+function fieldOfBody(mon){ const sf=mon&&mon._sf; const S=sf&&sf._S; return (S&&S.field)||null; }
 function isGrounded(mon){
   if(!mon) return true;
   const g=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
   const it=g(mon.item);
+  const vol=mon._vol||{};
+  /* Showdown's order, clause for clause (sim/pokemon.ts:2153). The four below the Flying test are
+   * what make a Flying body grounded; Magnet Rise sits ABOVE the item test and BELOW Flying, so it
+   * cannot lift a body Gravity has already pinned. */
+  const fld=fieldOfBody(mon);
+  if(fld&&fld.gravity>0) return true;
+  for(const v of GROUNDING_VOL) if(vol[v]>0) return true;
   if(it==='ironball') return true;                       // beats every airborne clause, as it does upstream
   if(!mon.types){                                        // a partial body -- see the loud-counter note above
     MEDFAILS.groundedBodyIncomplete++;
@@ -1784,6 +1861,7 @@ function isGrounded(mon){
   }
   if((mon.types||[]).indexOf('Flying')>=0) return false;
   if(AIRBORNE_ABIL.has(g(mon.ability))) return false;
+  for(const v of FLOATING_VOL) if(vol[v]>0) return false;
   return it!=='airballoon';
 }
 /* `aimedAt` IS OPTIONAL AND THE TWO ARMS ARE NOT THE SAME QUESTION. The ability bar is a SIDE fact --
@@ -6486,6 +6564,34 @@ function typeEffAgainst(att,def,mv,mvT){
      &&String(_iti.movesOfType).split('/').indexOf(mvT)>=0
      &&def.types.indexOf(_iti.nowHits)>=0)
     eff=mcEff(mvT,def.types.filter(t=>t!==_iti.nowHits));
+  /* ROADMAP #147 -- THE GROUND IMMUNITY IS `isGrounded()`, NOT THE TYPE CHART, AND THAT IS THE WHOLE
+   * REASON THE GROUNDED AXIS PAYS. It is the authority's own split and it is easy to miss because the
+   * two agree on the common case:
+   *
+   *     sim/pokemon.ts:2254   const notImmune = type === 'Ground' ? this.isGrounded(negateImmunity)
+   *                                                               : ... getImmunity(type, this);
+   *
+   * Ground is the ONE type whose immunity does not come off the chart. `getEffectiveness` scores the
+   * Flying row as ZERO STEPS -- neutral, not immune -- so once a body is on the floor, Earthquake into
+   * a Talonflame is 2x off the Fire half and the Flying half contributes nothing either way. An engine
+   * that reads the chart gets `x0` and refuses the click, which is what this one did: Gravity, Iron
+   * Ball on a Flying body, Smack Down, Ingrain and Roost were all wired into `isGrounded` above and
+   * NONE of them could change a damage number, because the number never asked.
+   *
+   * MEASURED BEFORE AND AFTER, Garchomp Earthquake into Corviknight with Gravity up: 0 -> 149.
+   *
+   * THE IMMUNE ENTRIES ARE DROPPED FROM THE PRODUCT, not forced to 1, which is the same shape the
+   * Scrappy clause four lines up already uses and matters for the same reason: on a dual type the
+   * OTHER half must still count. `x0` then comes back from the airborne test alone, so there is exactly
+   * one place that decides a Ground move misses. */
+  /* NO `is the chart already zero` GUARD, and that was the first version's bug. A Magnet Rise on an
+   * Incineroar makes a body the CHART calls perfectly hittable immune to Earthquake, and a clause that
+   * only fired when the chart said 0 could never see it: measured 167 damage with `grounded=false`
+   * sitting right beside it. The test is the airborne one, always, exactly as the authority's ternary
+   * has no such guard either. */
+  if(mvT==='Ground'&&def.types&&(MC.C&&MC.C.Ground)){
+    eff=isGrounded(def)?mcEff('Ground',def.types.filter(t=>MC.C.Ground[t]!==0)):0;
+  }
   return eff;
 }
 /* WIRE 11 -- typeImmunity, from the artifact instead of a 12-name table. The tag carries the
@@ -7278,6 +7384,13 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
      DECLARED volatile name is the same read the encore and disable branches two lines above
      already make: the tag supplies the effect, the name says which handler owns it. */
   if(vol==='substitute') return false;
+  /* ROADMAP #147 -- `partiallytrapped` IS OWNED TOO, by the `partialTrap` block in the attack path,
+   * which holds the chip fraction, the duration and the TRAPPER identity in `_trap` rather than in
+   * `_vol`. A generic write here would put a second, consumer-less copy of the same volatile on the
+   * body -- and the roster compares `_vol`, so it would read as a divergence that is really a
+   * duplicate. Refused at the OWNER, exactly as Substitute and Confusion are, so the caller stays a
+   * plain read of the artifact. */
+  if(vol==='partiallytrapped'){ MEDSEEN.volRefusedOwnedElsewhere++; return false; }
   /* ROADMAP #92 -- CONFUSION IS OWNED TOO, for exactly the reason Substitute is. This
    * generic path writes a bare turn count and knows nothing about Own Tempo, Safeguard, a
    * body that is already confused, a Lum Berry or the self-hit -- and what it wrote was
@@ -8335,7 +8448,11 @@ function battleInit(teamA,teamB,opts){
    * of what it guarded against. `sgA`/`sgB` are maps of `guard move id -> true`, one entry per guard
    * raised on that side this turn; the CLASS it refuses is re-derived from `oneTurnGuard.blocks` at
    * every read, so the field cannot hold a stale copy of a fact the artifact owns. */
-  const S={field:{weather:null,weatherT:0,terrain:'',terrainT:0,twA:0,twB:0,tr:0,sgA:{},sgB:{}},
+  /* ROADMAP #147 -- `gravity` IS DECLARED HERE AT 0 rather than left to spring into existence on the
+   * first click. `isGrounded` reads it through the body's side object on every hazard, every terrain
+   * and every Ground move, so an undeclared slot would be `undefined > 0` -- which is false and works,
+   * right up until somebody writes `field.gravity--` somewhere and gets NaN with no error. */
+  const S={field:{weather:null,weatherT:0,terrain:'',terrainT:0,twA:0,twB:0,tr:0,gravity:0,sgA:{},sgB:{}},
     /* one shared death counter per side, handed to every mon by reference */
     /* `side` is stamped here so a body can answer "which Tailwind is mine" without being handed a
        side argument -- WIRE 83's speed ratio is computed inside dmgRange, which is given two bodies
@@ -10276,6 +10393,32 @@ function battleTurn(S,rng,actsForA,actsForB){
         _t.curHP=Math.min(_t.st.hp,_t.curHP+Math.floor(_t.st.hp*a.frac));
         if(_t.curHP>_h0){MEDSEEN.dualPurposeHeal++;if(TR)TR.heal(_t);}
         else if(TR)TR.fail(_t,'heal');
+        m._lastMove=a.mv;continue;
+      }
+      /* ROADMAP #147 -- GRAVITY. Beside the rooms because it is the same `pseudoWeather` family, and
+       * NOT on their toggle rule because the authority's lifetimes differ: `addPseudoWeather` returns
+       * false when the condition is already up and the effect declares no `onFieldRestart`, and gravity
+       * declares none -- so a second Gravity FAILS where a second Trick Room ends the room. Writing it
+       * into the room branch would have made Gravity switchable off, which is a real strategic
+       * difference and the reason this is four lines rather than one more `||`.
+       *
+       * FIVE TURNS, OF WHICH THE MOVER'S OWN IS ONE. `turns` comes off the tag (the condition's own
+       * `duration`), and the end-of-turn decrement leaves four behind -- the same arithmetic Tailwind
+       * and Trick Room already use two branches up.
+       *
+       * IT CANCELS A SEMI-INVULNERABLE CHARGE, which is in `onFieldStart` and is not decoration: it is
+       * the interaction between the two mechanics this batch landed together, so a Fly that goes up on
+       * the same turn Gravity does comes straight back down and its turn is spent. */
+      if(a.kind==='gravity'){
+        if(field.gravity>0){m._lastMove=a.mv;mvFail(m);continue;}
+        field.gravity=+a.turns||5;
+        MEDSEEN.gravitySet++;
+        if(TR)TR.fstart('Gravity',m);
+        for(const _b of [...actA,...actB]){
+          if(!_b||!_b._charging)continue;
+          if(!TAGS.has('move',_b._charging,'semiInvulnerable'))continue;
+          _b._charging=null;_b._invuln=false;MEDSEEN.gravityGroundedCharge++;
+        }
         m._lastMove=a.mv;continue;
       }
       if(a.kind==='room'){
@@ -13207,6 +13350,35 @@ function battleTurn(S,rng,actsForA,actsForB){
              tg._trap={frac:+_pt2.chipPerTurn,turns:+_pt2.duration,by:m};
              if(TR)TR.actOf(tg,'move: '+a.move.id,m);
            }}
+          /* ROADMAP #147 -- A DAMAGING MOVE'S OWN VOLATILE, WHICH REACHED NOTHING AT ALL.
+           *
+           * The secondary loop applies a volatile carried as a SECONDARY (`fx.secondary[].volatile`).
+           * A move whose volatile is its PRIMARY effect -- dex `volatileStatus` on a move with base
+           * power -- is not in that list and had no other road, so `smackdown` landed 50 damage and
+           * left the target flying. That is the whole reason Smack Down could not be wired into
+           * `isGrounded`: the volatile the predicate reads was never written.
+           *
+           * THE POPULATION WAS PRINTED BEFORE THIS WAS WIRED (LESSONS §4). Over the whole 500-move
+           * table, EIGHT damaging moves carry a `statusInflict` target volatile that reaches no
+           * secondary: `smackdown`, and seven members of the partial-trap family, which `_trap` two
+           * lines above already owns. So `partiallytrapped` is refused inside `applyMoveVolatile`
+           * beside `substitute` and `confusion` -- at the OWNER, not by a condition here -- and this
+           * block stays a generic read of the artifact rather than a Smack Down special case.
+           *
+           * CHANCE IS HONOURED rather than assumed 100: the artifact carries it and a future member
+           * with a real roll must not become guaranteed by arriving through this door. */
+          {const _pv=TAGS.param('move',a.move.id,'statusInflict');
+           if(_pv&&Array.isArray(_pv.effects)&&tg&&!tg.fainted){
+             const _secVol=new Set((fx.secondary||[]).map(s=>s&&s.volatile).filter(Boolean));
+             for(const _e of _pv.effects){
+               if(!_e||!_e.volatile)continue;
+               if(_e.to!=null&&_e.to!=='target')continue;
+               if(_secVol.has(_e.volatile))continue;
+               if(rng()*100>=(_e.chance==null?100:+_e.chance))continue;
+               if(applyMoveVolatile(tg,_e.volatile,m,a.move.id,field,{alreadyMoved:!unresolved.has(tg)}))
+                 MEDSEEN.primaryVolatileApplied++;
+             }
+           }}
           /* WIRE 52 -- CURSED BODY, 1,342 sheets. It seals the move that just hit it, which is
            * Disable arriving from the defending side, and the engine already has everywhere it needs
            * to land: `_sealed` plus `_vol.disable` are what WIRE 26 built for Disable itself, and
@@ -13702,6 +13874,9 @@ function battleTurn(S,rng,actsForA,actsForB){
     if(field.twA>0){if(--field.twA<=0&&TR)TR.sendSide('p1','Tailwind');}
     if(field.twB>0){if(--field.twB<=0&&TR)TR.sendSide('p2','Tailwind');}
     if(field.tr>0){if(--field.tr<=0&&TR)TR.fend('Trick Room');}
+    /* ROADMAP #147 -- GRAVITY TICKS WITH THE ROOMS. One clock, in the one place every other field
+     * timer already lives, so it cannot become the field slot that never comes down. */
+    if(field.gravity>0){if(--field.gravity<=0&&TR)TR.fend('Gravity');}
     /* WIRE 133 -- THE OTHER TWO ROOMS TICK BESIDE TRICK ROOM, for the reason the screens tick beside
      * the field timers: three clocks with one lifetime rule in one place cannot drift apart.
      * MAGIC ROOM GIVES THE ITEMS BACK ON THE TURN IT ENDS, and that restore is the half that would
@@ -14978,6 +15153,15 @@ function playerActionPrimary(me,moveId,target,field){
       return {kind:'affect',mv:id,target:_opTgt||(_opSelf?me:null),sc:null,si:null,op:_sc3.op};
     }
   }
+  /* ROADMAP #147 -- GRAVITY, AND IT MUST BE CLAIMED ABOVE `sealsMoves` OR NOTHING CHANGES.
+   *
+   * Gravity carries BOTH tags: `groundsField` (what it is for) and `sealsMoves` (it seals Fly, Bounce
+   * and High Jump Kick through `onDisableMove`). `sealsMoves` sits one line below and was matching
+   * first, so a Gravity click was routed down the Encore/Taunt road and the field never moved -- the
+   * two things Gravity is actually clicked for reached no branch at all. The ORDER is the fix and it is
+   * stated here rather than being an accident of where the line was pasted. */
+  {const _gf=TAGS.param('move',id,'groundsField');
+   if(_gf)return {kind:'gravity',mv:id,turns:+_gf.turns||5};}
   if(TAGS.has('move',id,'sealsMoves'))return {kind:'status',mv:id,target};   // Encore rides the status path
   /* WIRE 42 -- SUBSTITUTE. Last, so anything with a modelled effect has already claimed the click.
      Today that leaves exactly Substitute: a quarter of max HP for a body that then eats damage.
@@ -15008,6 +15192,15 @@ function playerActionPrimary(me,moveId,target,field){
    *   - the costsUserHP charge: NO move that lands here carries that tag (checked over the whole of
    *     MC.moves against data/tags.json, 2026-08-07). If one ever does it would pay HP for an effect
    *     the engine does not grant, which is WIRE 130's exact shape -- so it is named here. */
+  /* ROADMAP #125 -- THE COUNTER, AND IT GOES IN BEFORE THE FIXES SO THEY HAVE A NUMBER TO MOVE.
+   * See MEDFAILS.unmodelledClick. `id` is falsy only when a caller built a bare pass by hand, which is
+   * a different and legitimate thing (the idle ally in ~200 probes, game_differential's empty slot) --
+   * counting those would drown the signal in exactly the way a counter nobody reads is born. */
+  if(id){
+    MEDFAILS.unmodelledClick++;
+    if(!MEDFAILS.unmodelledClickFirst) MEDFAILS.unmodelledClickFirst=id;
+    MEDFAILS.unmodelledClickBy[id]=(MEDFAILS.unmodelledClickBy[id]||0)+1;
+  }
   return {kind:'pass',mv:id};
 }
 function winProb2(nA,nB,N,ov){

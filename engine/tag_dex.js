@@ -2896,8 +2896,89 @@ const MOVE_TAGS = [
      * is the STRONGEST form of it: no move gets through at all, where Fly's handler still lets Gust
      * and Thunder in. Truthy-testing the property dropped exactly the one move that dodges hardest,
      * and the tag then covered four of five while looking complete. */
-    of: m => (m.flags && m.flags.charge && m.condition && ('onInvulnerability' in m.condition))
-      ? { untargetable: true } : null },
+    /* ROADMAP #123 -- AND THE EXCEPTION LIST IS PART OF THE FACT, NOT A FOOTNOTE.
+     *
+     * The engine held `untargetable: true` and nothing else, so Earthquake MISSED a digging body where
+     * the authority hits it for DOUBLE. The counter-play to a semi-invulnerable turn was impossible
+     * rather than free -- the opposite sign to the defect the row was first filed under.
+     *
+     * IT IS TWO LISTS AND THEY ARE NOT THE SAME LIST. `onInvulnerability` names who gets THROUGH;
+     * `onSourceModifyDamage` / `onSourceBasePower` names who gets DOUBLED, and Fly's second list is
+     * two of its first list's seven. An engine implementing "pierces => doubles" is wrong on Thunder,
+     * Hurricane, Sky Uppercut, Smack Down and Thousand Arrows -- five moves that hit a flying target
+     * for NORMAL damage. Both are read separately and carried separately.
+     *
+     * AND THE DOUBLING IS NOT ONE HANDLER EITHER. Fly doubles through `onSourceModifyDamage` (final
+     * damage) and Bounce through `onSourceBasePower` (base power), off the same two moves. `via` says
+     * which, so a consumer applies it where the authority applies it instead of flattening the pair.
+     *
+     * `pierces: []` IS MEANINGFUL AND IS NOT null. Phantom Force declares `onInvulnerability: false` --
+     * a flat false, nothing gets through at all -- and an empty list is exactly that statement. */
+    of: m => {
+      if (!(m.flags && m.flags.charge && m.condition && ('onInvulnerability' in m.condition))) return null;
+      const ids = src => {
+        const out = new Set();
+        const arr = String(src).match(/\[([^\]]*)\]\s*\.includes\(\s*move\.id\s*\)/);
+        if (arr) for (const q of (arr[1].match(/"([a-z0-9]+)"|'([a-z0-9]+)'/g) || [])) out.add(q.replace(/['"]/g, ''));
+        for (const q of (String(src).match(/move\.id\s*===\s*["']([a-z0-9]+)["']/g) || []))
+          out.add(q.replace(/.*["']([a-z0-9]+)["']/, '$1'));
+        return [...out];
+      };
+      const inv = m.condition.onInvulnerability;
+      const pierces = (typeof inv === 'function') ? ids(inv) : [];
+      const dmg = String(m.condition.onSourceModifyDamage || '');
+      const bp  = String(m.condition.onSourceBasePower || '');
+      const doubles = dmg ? { via: 'damage', mult: 2, moves: ids(dmg) }
+                    : bp  ? { via: 'basePower', mult: 2, moves: ids(bp) } : null;
+      return { untargetable: true, pierces, doubles };
+    } },
+  /* ROADMAP #147 -- GRAVITY IS A GROUNDING FACT AND IT WAS TAGGED AS A MOVE-SEALER.
+   *
+   * `sealsMoves` matched Gravity's `onDisableMove` (it seals Fly, Bounce, High Jump Kick...) and that
+   * was the ONLY tag describing it, so the engine routed a Gravity click through the Encore/Taunt path
+   * and the two things Gravity is actually clicked for -- everything comes down, everything hits --
+   * reached no branch at all. Seven readers consult `isGrounded()`, so one missing input is wrong
+   * seven ways.
+   *
+   * NAMED HERE AND NOWHERE ELSE, and that is the standing rule rather than an exception to it. The
+   * grounding does NOT live in Gravity's own handlers: `Pokemon#isGrounded` (sim/pokemon.ts:2153)
+   * hard-names the pseudo-weather, exactly as it hard-names `levitate`/`eelevate`, and
+   * `medicham2-browser.js`'s AIRBORNE_ABIL already mirrors that reference implementation for the same
+   * stated reason. `reversesSpeed`, `swapsDefences` and `suppressesItems` are three more pseudo-weather
+   * tags derived the same way, one file over. The ENGINE still reads a tag and never a name.
+   *
+   * THE ACCURACY MULTIPLIER IS READ, NOT TYPED -- 6840/4096 out of the condition's own chainModify. */
+  { tag: 'groundsField', param: 'a pseudo-weather that puts every Pokemon on the ground', probe: 'groundsField',
+    why: 'Gravity, 79 corpus uses. It is the largest single input to isGrounded() -- Spikes, Toxic '
+       + 'Spikes, Sticky Web, all four terrains and the Ground immunity all change answer under it',
+    of: m => {
+      if (!(m.pseudoWeather && /gravity/.test(norm(m.id)))) return null;
+      const c = m.condition || {};
+      const mm = String(c.onModifyAccuracy || '').match(/chainModify\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]/);
+      return { pseudoWeather: m.pseudoWeather, turns: +c.duration || 5,
+               accuracyMult: mm ? (+mm[1] / +mm[2]) : null };
+    } },
+  /* ROADMAP #147 -- ROOST, AND THE ENGINE HAD NO WAY TO SAY "NOT THIS TYPE, THIS TURN".
+   *
+   * Will: *"ROOST ALSO CAUSES THE MON TO LOSE FLYING TYPE FOR THE TURN."* Nothing in this simulator
+   * removed a type for a turn, so a Roosting Corviknight ate a full Earthquake here and takes ZERO in
+   * the real game -- and the same deletion is what GROUNDS it, so the loss lands twice.
+   *
+   * DERIVED FROM THE MOVE'S OWN `condition.onType`, which is exactly one move in this format today
+   * (measured, not assumed). The type it strips comes out of the filter's own comparison rather than
+   * being typed here, so a second member arrives with a regenerated artifact and no edit. */
+  { tag: 'typeRemovedForTurn', param: 'a type the user loses until the end of the turn', probe: 'typeRemovedForTurn',
+    why: 'Roost, 2,808 clicks. Losing Flying for the turn is what makes Earthquake and Stealth Rock '
+       + 'land on a Roosting body, and it is a second input to isGrounded()',
+    of: m => {
+      const c = m.condition || {};
+      const src = String(c.onType || '');
+      if (!src) return null;
+      const removes = [...new Set((src.match(/type\s*!==\s*["']([A-Za-z?]+)["']/g) || [])
+        .map(s => s.replace(/.*["']([A-Za-z?]+)["'].*/, '$1')))];
+      if (!removes.length) return null;
+      return { removes, duration: +c.duration || 1 };
+    } },
   /* ONE SPEC EVERY ENGINE CAN READ, so this never has to be done a mechanic at a time.
    *
    * Will's point, and it is the right one: patching MEDICHAM per move means the next engine -- CHOMP,

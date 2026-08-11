@@ -10,6 +10,41 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [4.9.0] — 2026-08-10
+
+### Added
+- **The million-game target list — 237 rows, derived rather than typed** (`engine/million_targets.js`
+  → `data/million-targets.json`). Will: *"START A LIST OF ALL THE THINGS WE WANT TO TEST IN THE MILLION
+  GAMES RUN."* Every row carries **its own denominator**, which is the part that is easy to get wrong:
+  Rock Slide's 30% is over turns it CONNECTED with a target that could flinch, not turns it was
+  clicked. A rate over the wrong denominator is worse than no rate because it looks like an answer.
+- **112 of the 237 are ACCURACY, and accuracy has never been observed once.** The differential pins
+  every sub-100% move to MISS on both engines, so they agree perfectly and prove nothing. The single
+  busiest row is **Protect at 147,242 clicks** — the ⅓ / ⅑ / ¹⁄₂₇ chain-failure rate, the most-clicked
+  mechanic in the format, never measured.
+
+### Notes
+- **THE LINE THE FILE DRAWS, and two of Will's own three examples fall on the far side of it.** Upper
+  Hand blocking priority and Terrain Pulse doubling on Electric Terrain are RULES — one board each.
+  Rock Slide's flinch is a DIE. **A deterministic mechanic that only shows up wrong at a million games
+  means the scenario catalogue has a hole**, and both rule examples prove it: Terrain Pulse was broken
+  and one fixture fixed it at 4.0.0; Upper Hand is broken now and one fixture would catch it.
+- **Scenarios BEFORE the million games, and the reason is diagnostic.** (Will: *"BEFORE THE MILLION
+  GAMES LETS TEST ALL OUR STAGING SCENARIOS AND COMPARE THEM TO SHOWDOWN RIGHT?"*) A rate test can only
+  measure a mechanic that already works — if flinch reads 0%, a rate run cannot say whether the chance
+  is wrong or the flinch is unwired. Reversed, every rule bug arrives disguised as a rate bug.
+- **`preventsCrit` is deliberately EXCLUDED**, and Will's question is why. *"WHAT HAPPENS IF FLOWER
+  TRICK HITS A BATTLE ARMOR MON?"* — `battle-actions.ts:1637-1646`: the guaranteed crit is set, the roll
+  is SKIPPED because `willCrit` is defined, then `runEvent('CriticalHit')` cancels it. **It hits for
+  normal damage and emits no `-crit`.** That is a three-arm deterministic fixture off one move —
+  ordinary body, Battle Armor, then a Mold Breaker user — settling `preventsCrit`, `alwaysCrit` and
+  `moldbreaker` with no die at all.
+- **A coverage warning N cannot fix**: a self-play corpus where nobody switches yields ZERO samples for
+  Intimidate-on-entry, hazard chip and Regenerator however many games it runs. Coverage is a property
+  of the ACTION SET, not of N — which is why ROADMAP #63 had to land before this run, not after.
+
+---
+
 ## [4.8.0] — 2026-08-10
 
 ### Added

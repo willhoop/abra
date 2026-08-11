@@ -3191,3 +3191,125 @@ fitted model takes those counts as a feature rather than as a threshold.
 The gate read `0 of 150 comparisons` where it had been `0 of 20,000` — an agent ran it small and the
 artifact it left behind is what the clause reads. **A gate passing on a 133x smaller sample is a
 weaker claim wearing the same word.** Re-run at 20,000: still 0.
+
+---
+
+## THE FORME-CHANGE STAGING TABLE — WILL'S DESIGN, 2026-08-10.
+
+Will, on the seven abilities the A/B roster cannot stage: *"THE FORM CHANGE ONES SHOULD BE EASY, DID
+THE FORM CHANGE? (AND DID THE UNDERLYING STATS CHANGE WITH IT)"*, then *"MAKE SURE TO SET UP THE
+CONDITION FOR THE FORM CHANGE, SO KINGS SHIELD AND THEN ATTACK FOR AEGISLASH, SWITCHING IN AND OUT FOR
+PALAFIN, ETC"*.
+
+**THIS REPLACES THE A/B METHOD FOR THIS FAMILY, AND IT HAD TO.** The roster proves an ability by
+staging it, staging a control WITHOUT it, and comparing. Every body here has the forme-changer as its
+ONLY ability, so the control cannot be built — Showdown says so itself with
+`flags: {failroleplay, noreceiver, noentrain, notrace, failskillswap, cantsuppress}`. **We do not need
+to invent a "SUPPRESS-tier" category; the format already labels it.** The assertion becomes ABSOLUTE
+instead of differential.
+
+**AND THE SECOND HALF OF WILL'S TEST IS THE ONE THAT WAS ALREADY BROKEN.** `formeSwap` threw the
+body's SP spread away and adopted the new species' aggregated row — five Aegislash moves landed 1.31x
+too hard, Gyro Ball went the other way. "Did the stats change WITH it" is exactly that defect, and it
+was found by damage ratios rather than by a forme test, which is the long way round.
+
+### THE ASSERTION, THREE PARTS, THE THIRD BEING THE ONE THAT FAILS
+
+1. the forme changed — species id is the new one;
+2. the stats are the NEW forme's base stats;
+3. **the body's own SP spread survived the change** — Showdown provably preserves it
+   (Palafin 90 → 180 and 122 → 212, delta 90 both).
+
+### THE TRIGGERS, ONE PER ABILITY, ALL NINE LEGAL IN THIS FORMAT
+
+| ability | carrier | the condition that must be staged |
+|---|---|---|
+| Stance Change | Aegislash | click an ATTACKING move → Blade. Then **King's Shield → back to Shield.** Both directions, Will's own script |
+| Zero to Hero | Palafin | **switch OUT and back IN** → Hero. Nothing else does it; the entry is the trigger |
+| Disguise | Mimikyu | take a DAMAGING hit → Busted, and the holder loses 1/8 max HP |
+| Hunger Switch | Morpeko | end of turn, unprompted — it alternates Full Belly ↔ Hangry every turn |
+| Forecast | Castform | set WEATHER → Sunny / Rainy / Snowy, one arm per weather |
+| Mimicry | Stunfisk-Galar | set TERRAIN → its type follows the terrain |
+| Ice Face | Eiscue | take a PHYSICAL hit → Noice; snow restores it |
+| Shields Down | Minior | drop to **≤ 50% HP** at end of turn → Core |
+| Illusion | Zoroark | switch in behind a teammate, then take a DAMAGING hit to break it (ROADMAP #67) |
+
+**NONE OF THESE IS REACHED BY THE GENERIC GAUNTLET**, which hits the body twice and switches out. Only
+Zero to Hero and Illusion get near their trigger by accident, and Illusion's whole defect is that the
+wrong body is on the field to begin with.
+
+**READ THE MEMBERSHIP FROM THE FORMAT, NOT FROM THIS TABLE.** Schooling, Power Construct, Protosynthesis
+and Quark Drive have NO legal carrier in Reg M-B and are correctly absent; that is a fact about the
+regulation and it changes when the regulation does.
+
+---
+
+## THE MILLION-GAME TARGET LIST — 237 ROWS, AND THE LINE IT DRAWS. 2026-08-10.
+
+Will: *"START A LIST OF ALL THE THINGS WE WANT TO TEST IN THE MILLION GAMES RUN."* Built as
+`engine/million_targets.js` → `data/million-targets.json`, DERIVED from the format and our tags so it
+cannot go stale.
+
+### THE LINE, AND TWO OF WILL'S OWN THREE EXAMPLES FALL ON THE OTHER SIDE OF IT
+
+    Upper Hand blocks priority         a RULE.  one board settles it.   n = 1
+    Terrain Pulse doubles on Electric  a RULE.  one board, two asserts. n = 1
+    Rock Slide flinches 30%            a DIE.   no board settles it.    n = large
+
+**A DETERMINISTIC MECHANIC THAT ONLY SHOWS UP WRONG AT A MILLION GAMES MEANS THE SCENARIO CATALOGUE
+HAS A HOLE.** Both rule examples prove it: Terrain Pulse WAS broken and one fixture fixed it at 4.0.0;
+Upper Hand is broken RIGHT NOW — Showdown refuses it, we execute it — and one fixture would catch it.
+
+### AND THE ORDER MATTERS, WHICH WILL CALLED BEFORE I DID
+
+*"BEFORE THE MILLION GAMES LETS TEST ALL OUR STAGING SCENARIOS AND COMPARE THEM TO SHOWDOWN RIGHT?"*
+Yes, and the reason is diagnostic rather than economic: **a rate test can only measure a mechanic that
+already works.** If flinch reads 0%, a rate run cannot say whether the CHANCE is wrong or the flinch
+is unwired. Scenarios answer "does it work"; the million games answers "at what rate". Reversed, every
+rule bug arrives disguised as a rate bug.
+
+### THE 237
+
+    112  accuracy       every sub-100 move. THE PIN MAKES ALL OF THEM MISS ON BOTH SIDES, so accuracy
+                        has never been observed once — the two engines agree perfectly and prove nothing
+     76  secondary      flinch / burn / stat-drop chances, read from the FORMAT not mainline
+     17  crit rate      Focus Energy, Dragon Cheer, Scope Lens, Super Luck, Merciless + 12 moves
+     12  proc           Flame Body, Effect Spore, Poison Point, Quick Claw, King's Rock, Focus Band…
+      8  multihit       the 2-5 distribution, never seen free-running (both engines pinned to 2)
+      4  chance         paralysis 25%, confusion self-hit 33%, Attract 50%
+      4  ohko           30% at equal level, by formula rather than constant
+      3  duration       sleep 1-3, freeze thaw 20%, confusion length
+      1  random-choice  Trace's uniform pick among eligible foes
+
+**The single busiest row is Protect at 147,242 clicks** — the ⅓ / ⅑ / ¹⁄₂₇ chain-failure rate. The
+most-clicked mechanic in the format and its failure rate has never been measured.
+
+### THE DENOMINATOR IS THE HARD PART AND EVERY ROW CARRIES ITS OWN
+
+Rock Slide's 30% is over turns it CONNECTED with a target that could flinch — not turns it was
+clicked. A miss, a Protect, a Substitute, an immunity, Shield Dust and Covert Cloak are all outside
+it. **A rate over the wrong denominator is worse than no rate, because it looks like an answer.**
+
+### WHAT IS DELIBERATELY *NOT* IN THE LIST, AND WILL'S QUESTION IS WHY
+
+*"WHAT HAPPENS IF FLOWER TRICK HITS A BATTLE ARMOR MON?"* Measured at
+`sim/battle-actions.ts:1637-1646`: `moveHit.crit = move.willCrit || false`, the roll is SKIPPED because
+`willCrit` is defined, and then `if (moveHit.crit) moveHit.crit = runEvent('CriticalHit', ...)` — which
+Battle Armor answers `false`. **The move hits for normal damage and emits no `-crit`.**
+
+That question designed a three-arm deterministic fixture off one move:
+
+    Flower Trick -> ordinary body                  crits
+    Flower Trick -> Battle Armor                   NO crit, normal damage
+    Flower Trick from a MOLD BREAKER -> Battle Armor  crits again (flags: {breakable: 1})
+
+No die anywhere. It settles `preventsCrit` (Battle Armor, Shell Armor, Disguise, Ice Face),
+`alwaysCrit` (Storm Throw, Flower Trick, Frost Breath) and **`moldbreaker`**, which is itself sitting
+in the inert list. So `preventsCrit` is EXCLUDED from the million games on purpose — keeping it there
+would be the exact mistake this file's header warns about.
+
+### A COVERAGE WARNING THAT N CANNOT FIX
+
+A self-play corpus in which nobody switches yields **zero** samples for Intimidate-on-entry, hazard
+chip and Regenerator however many games it runs. **Coverage is a property of the ACTION SET, not of
+N** — which is why ROADMAP #63 had to land before this run rather than after.
