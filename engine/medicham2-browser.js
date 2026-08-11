@@ -254,6 +254,22 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * counted by whichever class it declares and nobody types a name. A zero on either after self-play
    * means the chooser cannot reach that class, which is exactly the state this wire found. */
   sideGuardChosenVsPriority: 0, sideGuardChosenVsSpread: 0,
+  /* WIRE 158 / ROADMAP #155 -- A RAISED SHIELD WALKED THROUGH BY `piercesProtect`. Counted at the
+   * one site that removes the target from the blocked list, so an Excadrill-Mega on a board where
+   * nobody clicked Protect adds nothing. A ZERO after games containing both a pierce carrier and a
+   * Protect means the tag is unread again, which is the exact state this wire found it in. */
+  protectPierced: 0,
+  /* WIRE 159 / ROADMAP #157 -- the two families that used to resolve to `{kind:'pass'}`. A zero on
+   * either after games containing Entrainment, Simple Beam, Worry Seed, Guard Split, Power Split or
+   * Speed Swap means the routing is unread again and the turn is being spent on nothing, which is the
+   * state these 939 + 100 clicks were in until 2026-08-11. */
+  abilityRewritten: 0, statRewired: 0,
+  /* WIRE 160 -- TRACE. `traceCopied` is the mechanic; `traceFoundNothing` is a legitimate board (every
+   * foe carries an untraceable ability); `traceAmbiguousChoice` is THE HONEST SIZE OF WHAT IS GUESSED --
+   * Showdown samples uniformly among the eligible foes and this engine takes the first in slot order,
+   * so every increment there is a board where the copy may be the wrong one. A zero on the first means
+   * 274 sheet fields of ability are dead again. */
+  traceCopied: 0, traceFoundNothing: 0, traceAmbiguousChoice: 0,
   /* ROADMAP #92 -- CONFUSION, which did not exist in this engine at all until this pass, so every
    * one of these was structurally zero and there was nothing to notice. Each is a different event and
    * a zero on each says a different thing:
@@ -661,6 +677,11 @@ const MEDFAILS = { encoreAction: 0,
    * for, so the guard was raised and refused nothing. Zero today: the only two members are "spread
    * moves" and "priority moves" and both are wired. Crafty Shield and Mat Block would land here. */
   guardClassUnknown: 0, guardClassUnknownFirst: '',
+  /* WIRE 158 -- `piercesProtect.onlyMoveFlag` named a flag no move in the artifact carries, so the
+   * pierce silently applied to NOTHING. Zero today: both entries say `contact` and 245 moves carry
+   * that tag. A fallback that quietly disables a mechanic is exactly the shape CLAUDE.md opens with,
+   * so it is loud rather than assumed. */
+  pierceFlagUnknown: 0, pierceFlagUnknownFirst: '',
   /* WIRE 149 -- a move whose `target` is neither in this engine's foe-facing set nor its own-side set,
    * so the chooser could not tell whether it is a threat worth guarding against. Zero today: the two
    * sets cover all 14 target strings across the 500 moves in the table. And a family whose tag records
@@ -8123,6 +8144,63 @@ function imposterCopy(m,foes,slot){
   MEDSEEN.transformedOnEntry++;
   return true;
 }
+/* WIRE 160 / ROADMAP #159 -- TRACE, 274 SHEET FIELDS, AND IT DID NOTHING AT ALL.
+ *
+ * It sits beside `imposterCopy` because it is the same shape one notch smaller: an ENTRY ability that
+ * rewrites the holder out of the body opposite it. Imposter takes everything; Trace takes the ability
+ * and nothing else. It was invisible until 2026-08-11 for two reasons at once, and both had to be
+ * fixed before the third could be seen: `data/tags.json` said `untagged` with `params: {}` (ROADMAP
+ * #156), and the fixture's receiver carried TORRENT, which is inert by construction in that harness --
+ * so even a wired Trace would have copied an ability that does nothing and read as a pass. With
+ * `copiesFoeAbility` derived and `FACES` giving the row an OBSERVABLE ability to copy,
+ * `all_mechanics_fire.js` reported it SHOWDOWN-ONLY: the authority's game moved and ours did not.
+ *
+ * WHAT THE AUTHORITY DOES, clause by clause (data/abilities.ts, `trace`):
+ *   `pokemon.adjacentFoes()`                     the two bodies opposite, not the whole team
+ *   `.filter(t => !t.getAbility().flags['notrace'])`   the REFUSAL is a flag on the target ability,
+ *                                                never a list. Trace, Forecast, Receiver, Zero to
+ *                                                Hero and every forme-changer carry it
+ *   `this.sample(possibleTargets)`               a DIE when more than one is eligible
+ *   `pokemon.setAbility(ability)`                and the copied ability's own Start handler then runs
+ *
+ * THE DIE IS NOT MATCHED AND IT IS DECLARED, NOT HIDDEN. Showdown samples uniformly among the eligible
+ * foes and this engine has no access to that draw, so it takes the FIRST eligible foe in slot order
+ * and counts `traceAmbiguousChoice` every time there was more than one to choose between. That is a
+ * knowingly incomplete model and it is strictly better than the previous one: before this wire Trace
+ * was wrong on 100% of the boards where it matters; now it is right whenever exactly one foe is
+ * eligible, and a coin otherwise. **A zero on `traceCopied` means the wire is dead again; a hot
+ * `traceAmbiguousChoice` is the honest size of what is still guessed.**
+ *
+ * THE COPIED ABILITY'S ENTRY EFFECT IS RUN, because the caller runs `applyEntryEffects` immediately
+ * after this -- the same ordering `imposterCopy` relies on and for the same reason. A Trace that
+ * copied Intimidate and did not drop Attack would be a second, quieter bug. */
+function traceCopy(m,foes){
+  if(!m||m.fainted||m.curHP<=0)return false;
+  const p=TAGS.param('ability',m.ability,'copiesFoeAbility');
+  if(!p)return false;
+  const eligible=[];
+  for(const t of (foes||[])){
+    if(!t||t.fainted||t.curHP<=0)continue;
+    const ab=String(t.ability||'');
+    if(!ab||ab==='none')continue;
+    /* THE REFUSAL IS SHOWDOWN'S OWN FLAG, asked of the format's ability table rather than listed. An
+     * ability the artifact does not carry is treated as COPYABLE, which is the authority's default,
+     * and counted so a systematic lookup failure cannot masquerade as a copy. */
+    const _rc=TAGS.param('ability',ab,'refusesCopy');
+    if(_rc&&_rc.notrace)continue;
+    eligible.push(t);
+  }
+  if(!eligible.length){MEDSEEN.traceFoundNothing++;return false;}
+  if(eligible.length>1)MEDSEEN.traceAmbiguousChoice++;
+  const t=eligible[0];
+  m.ability=String(t.ability);
+  MEDSEEN.traceCopied++;
+  /* Showdown writes `|-ability|HOLDER|Intimidate|[from] ability: Trace|[of] FOE`. This trace sink
+   * carries four fields, so the `[of]` is not emitted and the shape is PARTIAL rather than absent --
+   * declared here rather than left to be found in a divergence report. */
+  if(TR)TR.ab(m,m.ability,'[from] ability: trace');
+  return true;
+}
 /* ROADMAP #95 / #139 -- AND IT COMES BACK AS ITSELF. `Pokemon#clearVolatile` calls
  * `this.setSpecies(this.baseSpecies)` on the way out and drops `transformed`, so a Ditto that copied a
  * Milotic and pivoted is a Ditto again when it returns -- with Ditto's stats, Ditto's types, Ditto's
@@ -8345,7 +8423,11 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry){
   /* WIRE 141 -- BEFORE the entry-effect pass, because the transform REPLACES the ability and the
    * replacement's own Start handler is what that pass runs. Doing it afterwards would fire Imposter's
    * (nothing) instead of the copied body's. */
+  /* WIRE 160 -- TRACE, BEFORE the entry-effect pass and for the identical reason Imposter is: the
+   * copy REPLACES the ability, and the replacement's own Start handler is what that pass runs. A
+   * Trace that copied Intimidate after the pass would drop nothing. */
   imposterCopy(nx,foes,i);
+  traceCopy(nx,_live(foes));
   applyEntryEffects(nx,field,act[1-i]);
   applyEntryDrops(nx,_live(foes));   // WIRE 100a -- membership from `onSwitchInDrop`, not a name
   return nx;
@@ -8755,6 +8837,7 @@ function battleInit(teamA,teamB,opts){
        * Ditto that leads copies whatever the diagonal foe looks like at the moment its own handler
        * comes up in the order, boosts included. */
       imposterCopy(e.mon,e.foes,e.slot);
+      traceCopy(e.mon,_live(e.foes));   // WIRE 160 -- a LEAD can Trace too, in the same speed-sorted pass
       applyEntryEffects(e.mon,S.field,e.ally);
       applyEntryDrops(e.mon,_live(e.foes));   // WIRE 100a -- membership from `onSwitchInDrop`
     }
@@ -10821,6 +10904,63 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         continue;
       }
+      /* WIRE 159 -- THE ONE-ENDED ABILITY REWRITE. Same refusal chain as `abilityswap` above, because
+       * these are status moves aimed at a foe and every gate that stops Skill Swap stops them:
+       * Protect, a status-refusing ability, a move class the target is immune to, Prankster into a
+       * Dark type. The refusal the SWAP does not have is Showdown's own per-ability guard, which
+       * travels on the action as `refused`. */
+      if(a.kind==='abilitywrite'){
+        m._lastMove=a.mv;
+        const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        if(t&&t!==m){
+          const _isFoe=m._sf&&t._sf!==m._sf;
+          const _ok=!_isFoe||(!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+            &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
+            &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv));
+          const _want=a.becomes==='the user\'s own ability'?m.ability:a.becomes;
+          /* THE AUTHORITY FAILS RATHER THAN NO-OPS when the target already holds it, and Stomping
+           * Tantrum reads that failure -- so it is a `mvFail`, not a silent skip. */
+          const _blocked=!_ok||!_want||_want==='none'
+            ||(a.refused||[]).indexOf(String(t.ability||''))>=0
+            ||String(t.ability||'')===String(_want);
+          if(_blocked){mvFail(m);}
+          else{
+            t.ability=_want;
+            MEDSEEN.abilityRewritten++;
+            if(TR)TR.ab(t,t.ability,'[from] move: '+a.mv);
+            /* Worry Seed's own second clause: writing Insomnia over a sleeping body wakes it. Read
+             * off the param rather than the move name. */
+            if(a.curesSleep&&t.status==='slp'){t.status='';t.slp=0;if(TR)TR.cure(t,'slp');}
+          }
+        } else mvFail(m);
+        continue;
+      }
+      /* WIRE 159 -- THE STORED-STAT REWIRE. `m.st` is this engine's stored (pre-stage) stat block,
+       * which is exactly what Showdown calls `storedStats`, so the write lands in the same place the
+       * damage formula and the speed order both read. Nothing in `boosts` is touched, deliberately:
+       * these moves do not create a stage and an engine that expressed them as one would be undone by
+       * a Haze. */
+      if(a.kind==='statrewire'){
+        m._lastMove=a.mv;
+        const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        const _isFoe=t&&m._sf&&t._sf!==m._sf;
+        const _ok=t&&t!==m&&m.st&&t.st&&(!_isFoe
+          ||(!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+             &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
+             &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv)));
+        if(!_ok){mvFail(m);continue;}
+        for(const k of a.stats){
+          const _k=SD2ENG[k]||k;
+          if(m.st[_k]==null||t.st[_k]==null)continue;
+          if(a.how==='swap'){const _x=t.st[_k];t.st[_k]=m.st[_k];m.st[_k]=_x;}
+          else{const _n=Math.floor((t.st[_k]+m.st[_k])/2);t.st[_k]=_n;m.st[_k]=_n;}
+          MEDSEEN.statRewired++;
+        }
+        /* `|-activate|p1a: X|move: Speed Swap|[of] p2a: Y` — the authority announces it on the USER
+         * with the target as attribution, which is the `actOf` shape rather than the bare `act` one. */
+        if(TR)TR.actOf(m,'move: '+a.mv,t);
+        continue;
+      }
       if(a.kind==='fixeddmg'){
         const t=a.target;
         if(t&&!t.fainted&&!t.protect&&t.curHP>0){
@@ -12119,6 +12259,48 @@ function battleTurn(S,rng,actsForA,actsForB){
          because it is a property of the MOVE, and used at BOTH the block and the Piercing Drill
          quarter below -- a move that ignores Protect deals FULL damage, not a quarter of it. */
       const _thruProtect=TAGS.has('move',a.move.id,'ignoresProtect');
+      /* WIRE 158 -- PIERCES PROTECT, READ OFF THE TAG INSTEAD OF OFF AN ABILITY NAME. ROADMAP #155.
+       *
+       * `piercesProtect` has been derived with correct params since the tag dex was written and was
+       * READ BY NOTHING. What stood here instead was `m.ability==='piercingdrill' && mv.c==='P'` --
+       * a name match and a CATEGORY test -- and it is wrong in both directions at once. Measured on
+       * a bare board before the change, an Incineroar clicking into a Protecting Garchomp:
+       *
+       *     ability          move          damage through Protect      should be
+       *     none             Close Combat            0                     0   ok
+       *     Piercing Drill   Close Combat           20                    20   ok
+       *     Piercing Drill   Stone Edge              8                     0   LEAKS  (physical, NOT contact)
+       *     Unseen Fist      Close Combat            0                    20   MISSES (not named here)
+       *
+       * THE AUTHORITY IS THE CHAMPIONS MOD, NOT MAINLINE, and reading mainline is how this stayed
+       * half-wired. `/data/abilities.ts` gives Unseen Fist an `onModifyMove` that DELETES the
+       * `protect` flag at FULL damage; `/data/mods/champions/abilities.ts` overrides it --
+       * `onModifyMove: undefined`, then the SAME `onHitProtect` Piercing Drill has, and the same
+       * shortDesc: *"contact moves ignore a target's protection and deal 1/4 the usual damage."*
+       * ONE mechanism, ONE tag, and the tag was already correct on both entries:
+       *   {bypassesProtect:true, onlyMoveFlag:'contact', appliesOnlyWhenBlocked:true, damageMult:0.25}
+       *
+       * THE GATE IS `flags.contact`, NOT `category === 'Physical'`. Showdown's handler is
+       * `if (move.flags['contact'])` and nothing else, so Stone Edge and Rock Slide (physical, no
+       * contact) are STOPPED and Draining Kiss, Infestation and Grass Knot (special, contact) go
+       * THROUGH. A category test gets both families backwards.
+       *
+       * `onlyMoveFlag` IS RESOLVED AS A MOVE TAG AND A MISS IS COUNTED, LOUDLY. Our move-side tag for
+       * `flags.contact` is literally `contact` (see `mvMakesContact`), so the param resolves without a
+       * translation table -- but a param naming a flag no move carries would silently pierce nothing,
+       * which is the silent default this project keeps paying for. `pierceFlagUnknown` is the receipt. */
+      const _pierceP=(function(){
+        const p=TAGS.param('ability',m.ability,'piercesProtect');
+        if(!p||!p.bypassesProtect)return null;
+        const flag=p.onlyMoveFlag;
+        if(!flag)return p;
+        if(!TAGS.withTag||TAGS.withTag('move',flag).length===0){
+          MEDFAILS.pierceFlagUnknown++;
+          if(!MEDFAILS.pierceFlagUnknownFirst)MEDFAILS.pierceFlagUnknownFirst=m.ability+':'+flag;
+          return null;
+        }
+        return TAGS.has('move',a.move.id,flag)?p:null;
+      })();
       /* ROADMAP #81 WIRE 1 -- THE CRASH IS AN onMoveFail, NOT AN onMiss, and that is not a rename.
        *
        * `crashOnMiss` was consumed at exactly one site: the accuracy roll. Showdown fires it from
@@ -12162,7 +12344,12 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _through=[];
         for(const tg of targets){
           if(!tg||tg.fainted){_through.push(tg);continue;}
-          if(!(tg.protect&&!_thruProtect&&!(m.ability==='piercingdrill'&&mv.c==='P'))){_through.push(tg);continue;}
+          if(!(tg.protect&&!_thruProtect&&!_pierceP)){
+            /* WIRE 158 -- COUNTED HERE AND ONLY HERE, because this is the site where a shield that
+             * would otherwise have refused the move is actually walked through. A pierce ability on a
+             * board with no Protect on it must not inflate the number. */
+            if(tg&&tg.protect&&!tg.fainted&&_pierceP&&!_thruProtect)MEDSEEN.protectPierced++;
+            _through.push(tg);continue;}
           /* WIRE 61 -- THE SHIELD BITES BACK, 1,867 corpus clicks. Spiky Shield, Baneful Bunker and
            * King's Shield blocked correctly and punished nothing, so all three were simply Protect --
            * and the reason to click one over Protect is the entire punish.
@@ -12565,7 +12752,26 @@ function battleTurn(S,rng,actsForA,actsForB){
          if(TR&&!_multiPk){TR.eff(tg,R.effShow);if(R.crit)TR.crit(tg);}}
         /* WIRE 4 -- `modifyDamage` spends this one through `modify` too (battle-actions.ts:1821),
          * and x0.25 is NOT a value where a truncation and a round-half-up agree. */
-        if(tg.protect&&!_thruProtect)dmg=md4096(dmg,0.25);   // Piercing Drill: contact hits through Protect for 25%
+        /* WIRE 158 -- THE QUARTER IS THE TAG'S `damageMult`, and the pierce PREDICATE gates it. It
+         * used to be a bare `tg.protect && !_thruProtect`, which was only ever right because the one
+         * ability that could reach this line with a raised shield was hardcoded above. With the gate
+         * derived, the multiplier has to be derived with it or a move that legitimately reaches a
+         * protected body for another reason would be quartered for nothing.
+         * `modify(baseDamage, 0.25)` in champions/scripts.ts -- so md4096, not a truncation. */
+        if(tg.protect&&!_thruProtect&&_pierceP){
+          dmg=md4096(dmg,+_pierceP.damageMult||0.25);
+          /* AND THE AUTHORITY ANNOUNCES IT, ON THE ATTACKER, AT EXACTLY THIS POINT. From a real
+           * champions battle, Golurk-Mega's Draining Kiss into a Protecting Garchomp:
+           *     |-supereffective|p2a: B|1
+           *     |-ability|p1a: A|Unseen Fist
+           *     |-zbroken|p2a: B
+           *     |-damage|p2a: B|174/183
+           * `-ability` is a CLAIMED trace event, so an engine that pierces silently parts the two
+           * streams on the very line that proves it pierced. `-zbroken` is NOT claimed
+           * (`derive_protocol_events.js` declares it dropped) and is not emitted here. Emitted after
+           * the effectiveness and crit lines above, which is the order the authority prints. */
+          if(TR)TR.ab(m,m.ability);
+        }
         /* ROADMAP #139 -- HOW MUCH OF THAT TOTAL ARRIVED AS THE FIRST PACKET. `dmgRange` writes it
          * back on the hit context for any plan that ran its per-hit loop -- Parental Bond, Beat Up,
          * Triple Axel -- and the same roll INDEX is read off it, so the split cannot exceed the total
@@ -15316,6 +15522,37 @@ function playerActionPrimary(me,moveId,target,field){
   {
     const _sw3=TAGS.param('move',id,'swapsAbilities');
     if(_sw3&&_sw3.swaps)return {kind:'abilityswap',mv:id,target};
+  }
+  /* WIRE 159 / ROADMAP #157 -- THE ONE-ENDED ABILITY REWRITERS, and the reason they were a whole
+   * no-op turn is that the artifact had nothing to route on. Entrainment (342 clicks), Simple Beam
+   * (380) and Worry Seed (217) read `[pp, moveClass, statusCategory]` -- a PP count, a reflectable
+   * flag and a category -- so `playerAction` fell through every branch and returned `{kind:'pass'}`,
+   * spending the turn and changing nothing. 939 clicks of doing literally nothing.
+   *
+   * IT IS NOT `abilityswap` WITH ONE SIDE DELETED. Skill Swap EXCHANGES, so both bodies end holding
+   * something new; these three OVERWRITE the target and leave the user alone, and an engine that
+   * reused the swap branch would strip the user's ability every time somebody clicked Worry Seed.
+   *
+   * WHAT IT BECOMES IS THE PARAM, never a name: `becomes` is either a literal ability id read out of
+   * the handler's `setAbility("simple")` or the string for "the user's own", which is Entrainment.
+   * The refusal is Showdown's own `cantsuppress` flag, and the abilities the handler names by hand
+   * (`truant`, `insomnia`, `simple`) travel as `refusedAbilities` -- so a member added later refuses
+   * the right things without this line changing. */
+  {
+    const _ra=TAGS.param('move',id,'rewritesTargetAbility');
+    if(_ra&&_ra.becomes)return {kind:'abilitywrite',mv:id,target,
+      becomes:_ra.becomes,refused:(_ra.refusedAbilities||[]),curesSleep:!!_ra.alsoCuresSleep};
+  }
+  /* WIRE 159 / ROADMAP #157 -- THE STORED-STAT REWIRERS, the same shape of hole. Guard Split, Power
+   * Split and Speed Swap read `[pp, neverMisses, statusCategory]` and resolved to a pass. They move
+   * `storedStats`, which is NOT a stat stage: nothing in `boosts` moves, so even a board comparator
+   * would have seen nothing. `how` decides average vs exchange and it is the param rather than a
+   * branch per move -- an engine that averaged where the authority swaps gets the right stat and two
+   * wrong numbers. */
+  {
+    const _rs=TAGS.param('move',id,'rewritesStoredStats');
+    if(_rs&&_rs.stats&&_rs.stats.length)
+      return {kind:'statrewire',mv:id,target,stats:_rs.stats,how:_rs.how||'average'};
   }
   /* WIRE 39 -- HAZE (552 uses) and Clear Smog. `clearsBoosts` resolved to `kind: pass`, so the one
      move in the format that answers a Belly Drum or a Dragon Dance was a wasted turn in every

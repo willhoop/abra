@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 144,
+  "mtime_only": 145,
   "mtime_only_files": [
     "ab-batch-effect.json",
     "ability-blocks.json",
@@ -65,6 +65,7 @@
     "meta-usage.json",
     "mew.js",
     "million-targets.json",
+    "mod-audit.json",
     "move-effects.js",
     "move-priors.json",
     "nmf-rank-selection.json",
@@ -228,6 +229,7 @@
     "meta-usage.json",
     "mew.js",
     "million-targets.json",
+    "mod-audit.json",
     "move-effects.js",
     "move-priors.json",
     "mutation-coverage.json",
@@ -525,7 +527,17 @@
         "million-targets.json",
         "unmodelled-clicks.json"
       ]
+    },
+    {
+      "when": "2026-08-11T04:06:31.945Z",
+      "reason": "the writer scan learned to see tests/, computed output paths and artifact-declared writers; the artifact graph grew and these files became visible unstamped",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 179,
+      "graph_after": 180,
+      "files": [
+        "mod-audit.json"
+      ]
     }
   ],
-  "generated": "2026-08-11T03:09:54.694Z"
+  "generated": "2026-08-11T04:14:35.014Z"
 }

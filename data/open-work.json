@@ -1,0 +1,786 @@
+{
+  "generated": "2026-08-11T04:39:53.840Z",
+  "by": "engine/open_work.js",
+  "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
+  "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
+  "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
+  "counts": {
+    "register_rows": 127,
+    "open": 90,
+    "closed": 37,
+    "open_asserting_breakage": 1,
+    "measured_disagreements": 5,
+    "unregistered": 5
+  },
+  "open": [
+    {
+      "n": 33,
+      "section": "The order, and why each is where it is",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "record which GARY ran | nothing below is interpretable without it"
+    },
+    {
+      "n": 32,
+      "section": "The order, and why each is where it is",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "flip `uniform` → `prior`, measured | free, and it gates whether a better GARY is worth building"
+    },
+    {
+      "n": 38,
+      "section": "The order, and why each is where it is",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "set the horizon from the measured 6 | every cost estimate downstream depends on it"
+    },
+    {
+      "n": 37,
+      "section": "The order, and why each is where it is",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "prune with MAG's scores, not the coin | §4b's \"the real work\"; one MAG pass per turn"
+    },
+    {
+      "n": 39,
+      "section": "The order, and why each is where it is",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "measure the board↔MEDICHAM translation | decides whether MAG-as-GARY is possible at all"
+    },
+    {
+      "n": 40,
+      "section": "The order, and why each is where it is",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "DUSK size gate | decides whether the tablebase is a weekend or a year"
+    },
+    {
+      "n": 41,
+      "section": "The order, and why each is where it is",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "reach the solver from JS, via #40 | the equilibrium answer exists and cannot play"
+    },
+    {
+      "n": 42,
+      "section": "The order, and why each is where it is",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "arm the census | stops an inflated number being quoted again"
+    },
+    {
+      "n": 43,
+      "section": "The order, and why each is where it is",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "speed from resolution order — and Foul Play goes further, running the damage calc BACKWARDS: it simulates rolls against "
+    },
+    {
+      "n": 62,
+      "section": "THE FOUR PHASES — the ordering this register is arranged in (3.59.0, ADR-003)",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "GATE, AND IT COMES FIRST: play MILTANK untimed against MILTANK on the clock. R6 measured 31.6% of move decisions deferre"
+    },
+    {
+      "n": 45,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "the gate itself: 99%-of-usage coverage, enforced not remembered"
+    },
+    {
+      "n": 42,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "ratchet on DIRECT-CALL probes, not on `unarmed` — 37 left of 47"
+    },
+    {
+      "n": 51,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "23 tags with real usage and no probe at all; accuracy modification is the top"
+    },
+    {
+      "n": 27,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "the represented-clicks number — what % of real clicks the engine can even perform. Last measured 15.3% failing when it h"
+    },
+    {
+      "n": 49,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "delete the 77 hand-typed mega abilities; the derived path exists and is proven equal"
+    },
+    {
+      "n": 9,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "harden `pranksterBlocked` to check the move's target"
+    },
+    {
+      "n": 71,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "seven moves share one tag signature — Pain Split, Recycle, Copycat resolve identically"
+    },
+    {
+      "n": 72,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "hazard SETTING by an attacking move, and ALL hazard removal"
+    },
+    {
+      "n": 81,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE WIRE QUEUE. The whole-game differential's divergences, ranked and verified against Showdown's source. ONE at a time,"
+    },
+    {
+      "n": 84,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "\"my move didn't happen\" is TWO states in Showdown — `false` counts as a failure for Stomping Tantrum, `null` does not, a"
+    },
+    {
+      "n": 88,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "ONE PIN IS ONE CORNER. Every die is pinned one way, so a game runs once and is deterministic — no noise, but the tie alw"
+    },
+    {
+      "n": 89,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "the engine justified its Disguise model against `battle.update()`, a Showdown method that does not exist. The model is C"
+    },
+    {
+      "n": 90,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "prove the Perish Song KO actually fires (Will, 2026-08-07). The counter half landed in 3.71.0 — it was KO'ing a turn ear"
+    },
+    {
+      "n": 91,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "A CLICK IS NOT A TEST. `creditClick` credits the CLICK, so Haze into a board with no boosts on it marks Haze covered and"
+    },
+    {
+      "n": 160,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "ILLUSION IS IN THE CLOSET, AND THE CLOSET IS LABELLED — DECLARED 2026-08-11. Will: *\"at some point we are going to have "
+    },
+    {
+      "n": 161,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 2946,
+      "title": "THE FIVE LIVE MATRIX DISAGREEMENTS, REGISTERED SO THEY STOP BEING INVISIBLE. Measured 2026-08-11 at `--full`: `throatcho"
+    },
+    {
+      "n": 162,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 105709,
+      "title": "SPLIT THE COLLAPSED TAGS — WILL'S CALL 2026-08-11: *\"we need to split the tags, they require very different things\"*. #5"
+    },
+    {
+      "n": 83,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "the mirror-symmetry gate false-alarms ~1 run in 20 by construction — n=300 gives a ±5.6 point half-width"
+    },
+    {
+      "n": 82,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "the differential's BRING is a run parameter, not the accident of sheet order"
+    },
+    {
+      "n": 80,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "Knock Off records the wrong DISPOSITION for a self-eaten berry — `[eat]` vs move-attribution, which Harvest/Recycle/Belc"
+    },
+    {
+      "n": 21,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "AXIS 4 — DENIAL: a move that costs a turn also denies a field effect"
+    },
+    {
+      "n": 28,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "resist berries: the one staged pair is physically impossible"
+    },
+    {
+      "n": 7,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "Coverage Layer 2 — the mutation harness"
+    },
+    {
+      "n": 59,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "the protection counter has three behaviours and our tags carry two. Protect *checks* the shared 1/X counter; Wide Guard "
+    },
+    {
+      "n": 60,
+      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "Upper Hand and Sucker Punch share a tag and have different conditions — Sucker Punch needs the target attacking, Upper H"
+    },
+    {
+      "n": 33,
+      "section": "GARY — the opponent inside the search, named 2026-08-06",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "every artifact records which GARY ran — `rollout_r1.js` done, 3 callers left"
+    },
+    {
+      "n": 32,
+      "section": "GARY — the opponent inside the search, named 2026-08-06",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "flip `uniform` → `prior` and measure it"
+    },
+    {
+      "n": 34,
+      "section": "GARY — the opponent inside the search, named 2026-08-06",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "the flag steers my side too — split it"
+    },
+    {
+      "n": 35,
+      "section": "GARY — the opponent inside the search, named 2026-08-06",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "targeting is drawn uniformly in both modes. Foul Play weights its chance nodes by likelihood — a 90/10 accuracy move bec"
+    },
+    {
+      "n": 36,
+      "section": "GARY — the opponent inside the search, named 2026-08-06",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "GARY has two seats and they disagree"
+    },
+    {
+      "n": 55,
+      "section": "GARY — the opponent inside the search, named 2026-08-06",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "GARY does not coordinate either — the imagined opponent picks its two Pokémon independently, so it never focus-fires, ne"
+    },
+    {
+      "n": 37,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "prune with MAG's scores, not with the coin"
+    },
+    {
+      "n": 25,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "prune by PAIR score, not single-move"
+    },
+    {
+      "n": 53,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "DODUO — the pair model is fitted, better, and the search never reads it"
+    },
+    {
+      "n": 56,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "extract what MAG actually prunes that DODUO wants — the truncation misses *are* the catalogue, and reading them out beat"
+    },
+    {
+      "n": 24,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "replace MILTANK's leaf with PORYGON2 + a MAG-sampled opponent, and add Foul Play's damage-roll grouping as a third arm —"
+    },
+    {
+      "n": 38,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "the rollout cap is 60 turns; real games end at 6"
+    },
+    {
+      "n": 39,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "measure the `board.js` ↔ MEDICHAM translation cost"
+    },
+    {
+      "n": 61,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "MEDICHAM measures 1,606 battles/sec against the 3,401 on record — 47%. On the measured figure the 200-rollout x 64-pair "
+    },
+    {
+      "n": 62,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "MOVED TO §5.0 IN 3.59.0 — it is the project gate, not a search-redesign item. Everything in this table is phase 3 and do"
+    },
+    {
+      "n": 63,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "the rollout never switches. The engine *can*, and the search can offer a switch as a root candidate — but the playout ha"
+    },
+    {
+      "n": 64,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 5663,
+      "title": "DECISION: `ability|auraBoost` (5,663 uses) needs a roster `dmgRange` does not have. Not a missing branch — a *representa"
+    },
+    {
+      "n": 65,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "`data/tags.json` is FROZEN — regenerating it silently deletes five entities, and the cause is my own corpus change. Foun"
+    },
+    {
+      "n": 68,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE GATE THAT DECIDES MEDICHAM — replay real stored games through both engines, 1,000+ distinct teams. Will: *\"we would "
+    },
+    {
+      "n": 74,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "PRIOR ART: Foul Play (pmariglia) — a singles MCTS bot at top-100, and it has four things we have as open defects. It mov"
+    },
+    {
+      "n": 31,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "the mega must be a strategic decision, not \"the lead keeps it\""
+    },
+    {
+      "n": 6,
+      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "AXIS-4 reparameterisation, then WOBBUFFET in it"
+    },
+    {
+      "n": 47,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "solve exactly whenever switching is off the table — 1v1 is 16 cells, 2v1 is 96, 2v2 is ~1,296"
+    },
+    {
+      "n": 47,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "retrograde analysis (Will): with 2v2 solved, a 3v2 reduces to *which solved 2v2 do I steer into*"
+    },
+    {
+      "n": 29,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE SACK — a planned sacrifice is invisible to a material-weighted leaf"
+    },
+    {
+      "n": 41,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "reach the Python equilibrium solver from the JavaScript bot"
+    },
+    {
+      "n": 30,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "DUSK as a goal — nothing in the project represents a goal, only positions and actions"
+    },
+    {
+      "n": 26,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "refit MAG on bo3 only — the corpus change is in code and unrun. OWNED BY WILL 2026-08-11: he is reworking the weights hi"
+    },
+    {
+      "n": 50,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "WIRE 124 moved a position feature; models fitted on it predate the correct number"
+    },
+    {
+      "n": 48,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "27 of 28 Python generators could write a file JavaScript cannot read — closed, gated"
+    },
+    {
+      "n": 27,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "three instruments built that had never written an artifact — truncation curve now run, two left"
+    },
+    {
+      "n": 44,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "a move that provably does nothing is a weighted preference, not a rule — needs a refit"
+    },
+    {
+      "n": 57,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "every rollout-derived number predates a correct engine — the leaf's 51.0%, R1's 69.84%, R4's 55.5%. Enumerate the re-run"
+    },
+    {
+      "n": 108,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "TWO REGISTERED GATES ASK DIFFERENT QUESTIONS AND NEITHER CONSULTS THE OTHER. `engine/status.js` prints figures out of ar"
+    },
+    {
+      "n": 58,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "two `moveAccuracy` implementations disagreed for 78 moves and nothing compared them. `board.js` read the dex and was rig"
+    },
+    {
+      "n": 110,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 6102,
+      "title": "THE MOVES QUEUE — the roster's moves stage, measured for the first time at 3.79.0 and worked down since. 52 → 40 → 32 → "
+    },
+    {
+      "n": 70,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "TWO USAGE COUNTS EXIST AND NEITHER KNOWS ABOUT THE OTHER — but the engine queue is NOT where it bites. `data/meta-usage."
+    },
+    {
+      "n": 116,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "`new Battle()` VALIDATES NOTHING — a probe could measure a mechanic this format does not contain. Will: *\"why dont we us"
+    },
+    {
+      "n": 122,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE ROSTER SCRIPT LANGUAGE HAS NO SWITCH ACTION, AND `board_state.js` DOES NOT COMPARE TRAPPING AT ALL. Will, 2026-08-10"
+    },
+    {
+      "n": 124,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE WEATHER-CONDITIONAL MOVE FAMILY, SWEPT. Nine moves in this format change behaviour with the sky. Verified CORRECT an"
+    },
+    {
+      "n": 127,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 105709,
+      "title": "FIVE TAG SIGNATURES ARE CARRIED BY MOVES THE ENGINE TREATS DIFFERENTLY — so something other than the tag is deciding, an"
+    },
+    {
+      "n": 129,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "'GOOD ENOUGH' IS A USAGE-WEIGHTED THRESHOLD, NOT A ROW COUNT — and by that measure the engine is already at 99.24%. Will"
+    },
+    {
+      "n": 130,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE OPTIMIZATION PASS — hand MEDICHAM to Fable 5 and say make it faster, but only behind a correctness gate a stopwatch "
+    },
+    {
+      "n": 131,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE COST OF A FEATURE DEPENDS ENTIRELY ON WHICH PATH IT SITS IN, and the first measurement of that was taken 2026-08-10."
+    },
+    {
+      "n": 132,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE SECONDARY-EFFECT CHANCES, CHECKED AGAINST THE AUTHORITY IN TWO SECONDS AND NO GAMES. Will proposed running a few mil"
+    },
+    {
+      "n": 133,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "A FEW MILLION SELF-PLAY GAMES TO PROVE THE SAMPLER FIRES AT THE RATE WE DECLARED — Will's idea, and the right tool for t"
+    },
+    {
+      "n": 134,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE STORE REACHES FOUR FACTS AND THROWS THEM AWAY — and #68 needs every one of them. Will, reading the replay design: *'"
+    },
+    {
+      "n": 141,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "MOLD BREAKER SUPPRESSES 82 ABILITIES IN THIS FORMAT, AND WE DO NOT KNOW WHETHER OUR ENGINE READS IT AT ALL. Will, 2026-0"
+    },
+    {
+      "n": 143,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE SCENARIO CATALOGUE — one test SHAPE per mechanic, covering every move, ability, item and species. 920 entities carry"
+    },
+    {
+      "n": 146,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE PP FACT HAS TWO READERS UNTIL ENGINE ADOPTS THE SHARED ONE. `medicham2-browser.js`'s `ppMax` / `ppLeft` / `ppDeduct`"
+    },
+    {
+      "n": 149,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "TWO SHIPPED COMMITS CITE ROADMAP NUMBERS THAT WERE NEVER REGISTERED, AND A LATER AGENT REUSED THEM. Commits `0a28580` (4"
+    },
+    {
+      "n": 150,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "`status.js` STAMPS UTC WHILE EVERY DATED ARTIFACT USES LOCAL, SO ANY RUN AFTER 20:00 EDT IS DATED TOMORROW. Measured 202"
+    },
+    {
+      "n": 154,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "`data/status.js`'s GRAPH ROW NAMES THE WRONG BUILDER, WHICH IS WHY #153 WAS INVISIBLE. `engine/provenance.js` attributes"
+    },
+    {
+      "n": 52,
+      "section": "Deferred by decision — not dropped",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "HYPNO — rates the opponent, sets how hard to exploit"
+    },
+    {
+      "n": 54,
+      "section": "The paper",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "position against THREE comparables, because the field is not empty and none of them is playing our game. VGC-Bench (AAMA"
+    }
+  ],
+  "unregistered": [
+    {
+      "subject": "psyshieldbash -> aftermath",
+      "uses": 24,
+      "instrument": "data/interaction-matrix.json",
+      "generated": "2026-08-11T04:39:41.217Z",
+      "detail": ".A.active[0].boosts.def medi=0 sd=1",
+      "registered": false
+    },
+    {
+      "subject": "rockwrecker -> bulletproof",
+      "uses": 8,
+      "instrument": "data/interaction-matrix.json",
+      "generated": "2026-08-11T04:39:41.217Z",
+      "detail": ".A.active[0].vol medi=[\"mustrecharge\"] sd=[]",
+      "registered": false
+    },
+    {
+      "subject": "instruct -> goodasgold",
+      "uses": 190,
+      "instrument": "data/interaction-matrix.json",
+      "generated": "2026-08-11T04:39:41.217Z",
+      "detail": ".B.active[0].boosts.spa medi=4 sd=2",
+      "registered": false
+    },
+    {
+      "subject": "throatchop -> shielddust",
+      "uses": 3739,
+      "instrument": "data/interaction-matrix.json",
+      "generated": "2026-08-11T04:39:41.217Z",
+      "detail": ".B.active[0].vol medi=[\"throatchop\"] sd=[]",
+      "registered": false
+    },
+    {
+      "subject": "psychicnoise -> shielddust",
+      "uses": 262,
+      "instrument": "data/interaction-matrix.json",
+      "generated": "2026-08-11T04:39:41.217Z",
+      "detail": ".B.active[0].vol medi=[\"healblock\"] sd=[]",
+      "registered": false
+    }
+  ],
+  "instruments": [
+    {
+      "artifact": "data/interaction-matrix.json",
+      "generated": "2026-08-11T04:39:41.217Z",
+      "age_days": 0
+    }
+  ]
+}

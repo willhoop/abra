@@ -15,6 +15,27 @@ there are fourteen of them, each was typed by hand at the end of a session, and 
 a day. The 2026-08-04 handoff says "172 tags, 118 unprobed" against a `tags.json` holding 176 unique
 tags with 123 unprobed. Nobody mistyped anything; prose cannot track a corpus. They are history now.
 
+**AND NEVER TYPE A LIST OF WHAT IS OPEN. PRINT IT.**
+
+```bash
+node engine/open_work.js          # every unclosed register row + every defect an instrument measures
+```
+
+*(Will, 2026-08-11: **"i feel like we already talked about and fixed most of these."** He was right. I
+had just read out ~30 open defects: **eight had been closed for days, four had never had a register row
+at all.** It was the SECOND stale list I quoted in one hour — the first was `data/interaction-matrix.json`,
+**4.3 days and 52 simulator commits old**, whose "19 disagreements" are really 5.)*
+
+Neither was carelessness, and calling it carelessness is how it repeats. **Nothing printed the open
+work.** `quarantine.js` computes a GATE — "is there an open row that asserts breakage?" — deliberately
+narrow, because an over-firing gate is the one people learn to ignore (#148). It is correct, it is not a
+work list, and #80, #84, #59 and #60 are all open without tripping it. So the only list that existed was
+a typed one, which is what this file's first paragraph is about.
+
+`open_work.js` prints both halves and shares its closed-detector with the gate, so the two can never
+disagree. It also prints **UNREGISTERED** — a defect a live instrument is measuring with no roadmap row
+— because a register cannot audit itself, and it stamps the AGE of every artifact it reads.
+
 Work is divided five ways — ENGINE, MEASURE, SEARCH, OPS, WEB — cut on the invalidation graph so
 that a change in one does not silently invalidate the others. Read [docs/DIVISIONS.md](docs/DIVISIONS.md)
 for the map, the routing rule for a new bug, and the frozen-engine-release rule. Each division's
@@ -298,6 +319,40 @@ ability because the dex's slot 0 says Limber and every Ditto that matters runs I
 
 Enforced by `engine/artifact_audit.js`, registered as a GATE in `tests/run-all.js`, because this was
 invisible for exactly as long as nobody ran it.
+
+**NO POKÉMON VALUE MAY BE TYPED FROM MEMORY. DERIVE IT, OR CITE THE LINE YOU READ IT ON.**
+(Will, 2026-08-10, after the fifth correction in one evening: *"stop typing from memory make that a rule."*)
+
+The pattern held without a single exception. Everything DERIVED from `Dex.forFormat` was right;
+everything typed from recall was wrong:
+
+| typed | Champions actually | caught by |
+|---|---|---|
+| paralysis 25% | **12.5%** — `randomChance(1,8)` | reading `conditions.ts` |
+| sleep "2 or 3 turns" | **1 or 2** — I reported the internal counter as turns | Will |
+| freeze "a fixed 3-turn timer" | **25% thaw per turn AND a 3-turn cap** | Will: *"double check"* |
+| Unseen Fist "full damage through Protect" | **1/4 damage** | Will: *"no unseen is also 25%"* |
+| Healer 30% | **50%** — `randomChance(1,2)` | the derivation, once it existed |
+| Sheer Cold 30% | **20% for a non-Ice user** | reading the line to cite it |
+
+**The mod overrides EIGHT files** — `abilities`, `moves`, `items`, `conditions`, `learnsets`,
+`rulesets`, `formats-data`, `scripts` — and they live in `/data/mods/champions/`. Reading
+`/data/abilities.ts` is reading MAINLINE. `node engine/mod_audit.js` answers "did Champions change
+this?" for every legal entity. **Read the WHOLE block**: the freeze error was a `sed -n '1,45p'` on a
+block that ends at 55.
+
+**This was already written down and it did not work.** It is in `memory/`, and `mod_audit.js` existed
+to answer it — and `healer` still sat at mainline's 30% inside a generated artifact, because **a value
+typed next to a name looks exactly as authoritative as a value that was read.** Nothing could tell them
+apart. That is the same shape as the fourteen stale handoffs and the ban list of four: prose outliving
+what it described.
+
+So it is a CHECK. Every row of `data/million-targets.json` carries `from`, one of:
+`DERIVED:<expr>` (read from the format on that run — self-correcting), `READ:<file>:<line>` (cited to a
+source line — not self-correcting, so it is second best), or `HAND`. `million_targets.js`'s `add()`
+THROWS without it and `tests/test-target-provenance.js` FAILS on any `HAND`, on a citation naming a file
+that does not exist, and on one claim published with two numbers. Shown red on a deliberate break before
+being trusted. Prefer DERIVED everywhere it is possible; the run prints the split.
 
 **Fitting environment and playing environment must match.** MAG's weights were fitted WITH the
 sheet visible and the bot played WITHOUT it. MACHAMP's champion was trained under broken mega. Same

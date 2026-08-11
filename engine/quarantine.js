@@ -303,6 +303,30 @@ function coverageClause() {
  * IT IS NOT A USAGE THRESHOLD. A defect is a defect; the shelf that exists for the roster is about
  * which rows are worth STAGING, not about which broken mechanics are acceptable. Usage is reported so
  * the queue can be ordered, and it does not excuse anything. */
+/* THE TWO PREDICATES BELOW WERE INLINE IN THE CLAUSE, AND THAT IS WHY NOBODY COULD ASK THE REGISTER A
+ * QUESTION. This gate answers exactly one: "is there an open row that ASSERTS BREAKAGE?" — narrow on
+ * purpose, because an over-firing gate is the one people learn to ignore (#148). Correct, and it is
+ * NOT a work list: #80, #84, #59 and #60 are all open and none of them trips `saysBroken`.
+ *
+ * On 2026-08-11 I read a hand-typed list of ~30 open defects to Will while this gate sat GREEN two
+ * lines away. Eight of the rows I named had been closed for days; four had never had a register row at
+ * all. Will: *"i feel like we already talked about and fixed most of these."* He was right, and it was
+ * the SECOND time in one hour I had quoted a stale list — the first was the interaction matrix.
+ *
+ * The cause was structural, not carelessness: **nothing in this repo printed the open work.** The gate
+ * printed a verdict, so the only list that existed was one somebody typed. `engine/open_work.js`
+ * prints it now, and it imports these two so the work list and the gate can never disagree about
+ * whether a row is closed. */
+function roadmapRowIsClosed(l) {
+  /* the row's STATUS CELL first — see #148's prescription below — then the prose scan, kept because
+   * a row that says it is done in its title and forgets the cell should still drop out. */
+  if (/\|\s*(closed|done|page closed)\b[^|]*\|\s*$/i.test(l)) return true;
+  return /—\s*DONE|DONE,|RETRACTED|closed 20\d\d|GUARDED,/.test(l.slice(0, 600));
+}
+function roadmapRowSaysBroken(l) {
+  return /NEVER FIRED|NEVER FIRES|NOT IMPLEMENTED|DOES NOT WORK|DOES NOT ARM|DOES NOT FIRE|UNIMPLEMENTED|silent no-op|IS ABSENT|is not implemented|does not exist|never records|never record|resolve[sd]? to `\{kind:'pass'\}`|HAS NEVER FIRED|IS DEAD/i.test(l);
+}
+
 function openDefectClause() {
   let lines;
   try { lines = fs.readFileSync(D('docs', 'ROADMAP.md'), 'utf8').split(/\r?\n/); }
@@ -339,9 +363,7 @@ function openDefectClause() {
      * The prose scan is KEPT as well, not replaced: a row that says it is done in its title and forgets
      * the cell should still drop out, and removing a working clause in the same pass as adding one is
      * how a fix eats a guard. */
-    const statusCell = /\|\s*(closed|done|page closed)\b[^|]*\|\s*$/i.test(l);
-    if (statusCell) continue;
-    if (/—\s*DONE|DONE,|RETRACTED|closed 20\d\d|GUARDED,/.test(l.slice(0, 600))) continue;
+    if (roadmapRowIsClosed(l)) continue;   /* both clauses, extracted above and shared with open_work.js */
     /* THE ROW MUST ASSERT BREAKAGE, NOT MERELY BE FILED TO ENGINE.
      *
      * The first version also counted any row filed to `docs/ENGINE.md`, and that was too loose: it
@@ -357,8 +379,7 @@ function openDefectClause() {
      *
      * It still errs shut rather than open: a row whose wording is ambiguous keeps the gate closed until
      * somebody states plainly whether the thing is broken, which is the correct direction. */
-    const saysBroken = /NEVER FIRED|NEVER FIRES|NOT IMPLEMENTED|DOES NOT WORK|DOES NOT ARM|DOES NOT FIRE|UNIMPLEMENTED|silent no-op|IS ABSENT|is not implemented|does not exist|never records|never record|resolve[sd]? to `\{kind:'pass'\}`|HAS NEVER FIRED|IS DEAD/i.test(l);
-    if (!saysBroken) continue;
+    if (!roadmapRowSaysBroken(l)) continue;   /* extracted above and shared with open_work.js */
     const uses = +((l.match(/([\d,]{3,})\s*(uses|clicks)/) || [, '0'])[1].replace(/,/g, '')) || 0;
     open.push({ n: +m[1], uses, title: m[2].replace(/\s+/g, ' ').slice(0, 84) });
   }
@@ -741,7 +762,12 @@ function state() {
 }
 
 module.exports = { medichamIsCorrect, classify, state, withholder, playLayer, sources, requiresOf,
-                   MEASURES_THE_ENGINE, ROSTER_STAGES, rosterStage, SIMULATOR };
+                   MEASURES_THE_ENGINE, ROSTER_STAGES, rosterStage, SIMULATOR,
+                   /* EXPORTED FOR engine/open_work.js SO THERE IS ONE CLOSED-DETECTOR, NOT TWO.
+                    * CLAUDE.md: two files that both decide a fact will disagree eventually, and the
+                    * disagreement will be invisible because both keep working. This gate and the work
+                    * list must never differ on whether a row is closed. */
+                   roadmapRowIsClosed, roadmapRowSaysBroken, openDefectClause };
 
 /* ================================================================================================
  * 3. CLI — report, derivation, gate, selftest

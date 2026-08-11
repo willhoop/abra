@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  437/437 probed mechanics live, 0 missing   (census 2026-08-10 23:09)
-  0/20000 differential comparisons disagree with Showdown   (2026-08-10 23:05)
+  444/444 probed mechanics live, 0 missing   (census 2026-08-11 00:08)
+  0/20000 differential comparisons disagree with Showdown   (2026-08-11 00:09)
     seed 20260804, requested 20000, 850 not comparable (multihit 630, non-finite 0, threw 220)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1624/1643 live carrier x reactor pairs agree with the official engine (98.8%)   (2026-08-06 17:50)
@@ -51,15 +51,139 @@ ENGINE — does the simulator do what Pokémon does
     DISAGREES  supercellslam -> kingsshield  (secondary, 85 uses)
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is c7830b1368ea now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 6beac040d40e now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 216/230 probed, 14 unprobed
+  tag coverage: 220/257 probed, 37 unprobed
 ```
 
-_stamped 2026-08-10 23:09_
+_stamped 2026-08-11 00:14_
 
 <!-- /GENERATED -->
+
+## THE 117 INERT ROWS: 64 HAD A STAGING RULE, NOW 113 DO — AND CLOSING THE GAP FOUND FIVE ENGINE DEFECTS. 2026-08-11.
+
+ROADMAP #155–#160. The gate read OPEN with the roster's ability stage at **94 TESTED of 202 IN SCOPE**.
+The other 108 read `COULD-NOT-STAGE`, which sounds like a limit of the game and was mostly a limit of
+the FIXTURE: one script ran at every ability — get hit physically, get hit specially, switch out — and
+**63 abilities produced a board byte-identical to not having them.** A test that cannot fail is not
+evidence, and 63 of them were being counted as coverage.
+
+### THE THING THAT BLOCKED THE FIX WAS NOT THE FIXTURE. IT WAS THAT THE ARTIFACT SAID NOTHING.
+
+`engine/faces.js` keys its adversary table **on the TAG**, which is the right design and is why it
+cost nothing to extend. It also means **a scenario cannot be derived from an entity whose record says
+`untagged` with `params: {}`** — there is nothing to key on. Thirty abilities were in that state,
+including `trace` (274 sheet fields), `magician` (265), `frisk` (141), `synchronize` (135),
+`magicguard` (114), `pickpocket` (104) and `moxie` (103); so were five moves, on the same grounds
+(`[pp, neverMisses, statusCategory]` is three PROPERTIES and no mechanic).
+
+So the order was forced: **write the rules, then build the consequence table, then watch what falls
+out.** Twenty-nine new shape rules in `tag_dex.js`, every predicate's membership printed before it was
+wired, and **two of the drafts over-matched and were narrowed on the evidence rather than on review**:
+
+| draft | what it caught | what it should catch |
+|---|---|---|
+| `announcesOnEntry` = "an `onStart` that adds a line and changes no state" | **20** — Mold Breaker, Pressure, Unnerve, Supreme Overlord, all four Ruin abilities | 3. They all *announce* on entry and then work through a SECOND handler. Narrowed to "`onStart` is the ability's ONLY handler" |
+| `boostsOnFoeFaint`, a NEW tag beside `boostsOnKO` | Eelevate and Beast Boost, **which already carry `boostsOnKO`** | nothing — two tags for one mechanic is FACTS-ARE-GLOBAL broken inside the artifact. The existing rule was WIDENED instead |
+
+That second one was the whole Moxie bug and it is worth stating plainly: `boostsOnKO` required the
+handler to call `getBestStat`, which is **Beast Boost's implementation detail rather than the
+mechanic**. Moxie, Chilling Neigh, Grim Neigh and As One hook the identical event and boost a NAMED
+stat. The engine's consumer one wire over had *already* been written to read a named stat — so **103
+sheet fields of ability went live with no engine change whatsoever**, purely by fixing the derivation.
+
+`data/tags.json` was regenerated, which is the operation ROADMAP #65 records as having EATEN Serene
+Grace and Tinted Lens. **It was diffed BY NAME, per section, before and after** — 0 removed, 0 params
+shrank, 22 entities added, 56 tag lists changed, **abilities `untagged` 30 → 0**. A count would not
+have shown any of that.
+
+### `thenWhat` — THE HALF OF THE STAGING VOCABULARY THAT DID NOT EXIST
+
+`faces` says what the subject must be **UP AGAINST**. Twenty-five of the 54 inert MOVE rows are not
+failing for want of an adversary at all: **they set a STATE and nothing downstream reads it.** Haze
+resets stat stages, so something must have BOOSTED first. Magnet Rise grants a Ground immunity, so a
+Ground move must come AFTER. Safeguard blocks status; Poltergeist needs the target HOLDING something;
+Helping Hand (5,014 uses, the most-clicked move in the set) multiplies a move that has not been
+clicked yet.
+
+Forcing those into `MOVE_FACES` would have produced **entries that look like adversaries and are
+not** — an adversary is a body and a click on the SAME turn, a consequence is a turn that has not
+happened — and a harness handed the two as one concept cannot tell whether to add a body or add a
+turn. So `THEN_WHAT` is its own table: 23 keys, plus `VOLATILE_THEN_WHAT` (7, keyed on the volatile a
+move's own `statusInflict` params declare, because that tag is far too broad to key on and a move NAME
+is the hand list docs/TAGS.md forbids), plus one shared `BERRY_FIXTURE` for the Cheek Pouch / Cud Chew
+/ Gluttony family. Every entry carries prose for a reader **and** an executable `stage` verb;
+`gauntletScript` runs sixteen verbs and **counts what it staged — a zero, or a verb the table names
+and the harness cannot execute, sets a non-zero exit.**
+
+    inert rows with a derived staging rule      BEFORE      AFTER
+    moves       (29 faces)                      29 of 54    54 of 54
+    abilities   (43 faces + 12 thenWhat + 4 declared)  35 of 63    59 of 63
+
+The four abilities left are DECLARED, not missing: two crit RATES that belong to the million-game run,
+owner-shelved Pickup, and zero-usage Battle Bond.
+
+### AND THEN FIVE ENGINE DEFECTS FELL OUT, WHICH IS THE POINT OF THE WHOLE EXERCISE
+
+**`piercesProtect` was derived with correct params and READ BY NOTHING** (#155). What stood in its
+place was `m.ability==='piercingdrill' && mv.c==='P'` — a NAME match and a CATEGORY test — wrong in
+both directions at once, measured before the change into one Protect:
+
+    ability          move                        was    should be
+    Piercing Drill   Close Combat (contact)       20        20     ok
+    Piercing Drill   Stone Edge  (NO contact)      8         0     LEAKED
+    Unseen Fist      Close Combat (contact)        0        20     MISSED
+
+**Reading mainline is why it stayed half-wired.** `/data/abilities.ts` gives Unseen Fist an
+`onModifyMove` that deletes the `protect` flag at FULL damage; `/data/mods/champions/abilities.ts`
+overrides it with the SAME `onHitProtect` Piercing Drill has. **One mechanism, one tag, and the tag
+was already correct.** Confirmed in a real champions battle rather than read: Golurk-Mega's Close
+Combat *and its Draining Kiss* (special, contact) both go through for a quarter; Stone Edge is refused.
+
+**Two whole families resolved to `{kind:'pass'}`** (#157). Entrainment, Simple Beam and Worry Seed —
+**939 stored clicks** — were legal, spent the turn and did nothing, because `playerAction` is a
+first-match cascade and none of `pp`/`moveClass`/`statusCategory` names an effect. Guard Split, Power
+Split and Speed Swap the same, on `storedStats`, which is **not a stat stage — so no board comparator
+would have caught it either.**
+
+**And the coverage clause CLOSED THE GATE the moment the tags landed, which is the finding rather than
+an inconvenience.** With the tags absent it passed *vacuously* on `pp` and `statusCategory` being
+probed; with them present it named 4 moves above 25 clicks (1,039 clicks) measured by NOTHING.
+
+**Trace** (#159/#160) was invisible for TWO reasons at once, and both had to go before the third could
+be seen: the artifact said `untagged`, and the fixture's receiver carried **Torrent**, which is inert
+by construction there — so even a wired Trace would have copied an ability that does nothing and read
+as a pass. With both fixed, `all_mechanics_fire.js` reported it **SHOWDOWN-ONLY**, and it is now
+implemented beside `imposterCopy`, before the entry-effect pass, so a copied Intimidate actually
+drops the foe. **What is not matched is declared and counted**: the authority SAMPLES uniformly among
+eligible foes and this engine takes the first in slot order, so `traceAmbiguousChoice` is the honest
+size of what is still guessed.
+
+### AND ONE DECLARATION THAT HAD QUIETLY BECOME FALSE
+
+`derive_protocol_events.js` declared `-zbroken` unemitted because *"Z-moves do not exist in this
+format"*. True about Z-moves; false about that line — the champions mod re-uses it for **every pierced
+Protect**, which happens in ordinary play. The reason is corrected; the line stays unclaimed because
+it carries no state and the `-ability` line beside it (which IS claimed, and which the engine now
+emits) is what the comparison reads.
+
+### THE NUMBERS
+
+    census                437/437 live -> 444/444 live, 0 missing
+    differential          0 of 20,000 before and after (seed 20260804), against a release cut from THIS tree
+    roster items          139 TESTED of 148 IN SCOPE   0 DIFFER / 0 DID-NOT-FIRE
+    roster abilities       94 TESTED of 202 IN SCOPE   0 DIFFER / 0 DID-NOT-FIRE
+    roster moves          427 TESTED of 500 IN SCOPE   0 DIFFER / 0 DID-NOT-FIRE
+    abilities `untagged`  30 -> 0        moves with no mechanic tag  5 -> 0
+    MEDICHAM gate         OPEN, six of six, release abe83bf4fd3b
+
+**THE ROSTER'S OWN 94/202 HAS NOT MOVED, AND SAYING SO IS THE HONEST PART.** The derivation, the
+adversaries and the consequences are all in place and are READ by `all_mechanics_fire.js`; wiring them
+into `tests/roster.js`'s shape rules — the instrument that produces that ratio — is the next pass, and
+until it happens **the 94 is still the true coverage number and must not be quoted as anything else.**
+
+---
 
 ## THE EIGHT ROWS THAT HELD THE MEDICHAM GATE — ALL EIGHT CLOSED, AND THE GATE IS OPEN. 2026-08-11.
 

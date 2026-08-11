@@ -108,6 +108,55 @@ const FACES = {
   damageBoost:         { movesLast: true,
                          why: 'Analytic multiplies only when the holder moves LAST, and the gauntlet has it '
                             + 'moving first every turn' },
+  /* ---- THE ADVERSARIES FOR THE TAGS ROADMAP #156 CREATED ----------------------------------------
+   * Twenty-five abilities were inert AND carried no tag but `untagged`, so no adversary could be
+   * derived for any of them: a table keyed on a tag cannot key on nothing. These entries exist
+   * because those tags now exist, and each one names the adversary the gauntlet was missing. */
+  refusesIndirectDamage: { setsWeather: 'Sandstorm', statusFirst: 'Toxic',
+                         why: 'Magic Guard (114 fields) refuses HP loss from anything that is not a MOVE '
+                            + '— and the gauntlet inflicts NO indirect damage at all, so there is nothing '
+                            + 'to refuse. Sand and a poison are two different sources of it, and an engine '
+                            + 'wired for one is not wired for the other' },
+  healsFromOwnStatus:  { statusFirst: 'Toxic',
+                         why: 'Poison Heal turns ONE named status into a heal. On an unpoisoned body it is '
+                            + 'byte-identical to having no ability' },
+  curesStatusResidual: { statusFirst: 'Thunder Wave', setsWeather: 'Rain Dance',
+                         why: 'Healer, Shed Skin and Hydration all cure a status that has to exist first; '
+                            + 'Hydration additionally needs the SKY, and a fixture that stages only the '
+                            + 'status silently tests two of the three' },
+  reflectsStatusToSource: { recv: ['Will-O-Wisp', 'Thunder Wave', 'Toxic'],
+                         why: 'Synchronize (135 fields) hands the status BACK to whoever threw it, so the '
+                            + 'adversary has to throw one. The bare gauntlet throws attacks' },
+  removesOwnMoveFlag:  { recvAbility: 'Rough Skin',
+                         why: 'Long Reach deletes `contact` from its own moves, and `contact` is only '
+                            + 'observable through a REACTOR — the same rule the move stage applies to the '
+                            + 'flag itself. Against a body that punishes nothing, deleting the flag deletes '
+                            + 'nothing' },
+  copiesFoeAbility:    { recvAbility: 'Intimidate',
+                         why: 'Trace (274 fields, the largest untagged row in the artifact) copies the '
+                            + 'FOE\'S ability — and the gauntlet\'s receiver carries Torrent, which is inert '
+                            + 'by construction in this fixture. Tracing an inert ability is indistinguishable '
+                            + 'from not tracing at all' },
+  multihitAlwaysMax:   { actor: ['Bullet Seed', 'Icicle Spear', 'Rock Blast'],
+                         why: 'Skill Link collapses a 2-5 distribution to 5. The subject must CLICK a '
+                            + 'multi-hit move; on a single-hit attack there is no distribution to collapse' },
+  /* ---- FOUR ABILITIES WHOSE ONLY TAG IS A PROPERTY, AND A PROPERTY IS NOT A TRIGGER -------------
+   * `breakable` says Mold Breaker can switch it off. It says NOTHING about what has to happen for the
+   * ability to do anything, which is exactly the `pp` / `statusCategory` mistake the MOVE_FACES header
+   * refuses to make. So the adversary is derived from what each one actually reads. */
+  breakable:           { recv: ['Grass Knot', 'Low Kick', 'Ice Beam', 'Heat Wave'], allyIsTargeted: true,
+                         why: 'the residue of `breakable`-only rows, and the union is deliberate because '
+                            + 'four different mechanics share the tag: Heavy Metal and Light Metal move '
+                            + 'the holder\'s WEIGHT (only a weight-based move reads it), Magma Armor '
+                            + 'refuses FREEZE (only an Ice move can try), and Telepathy dodges the '
+                            + 'ALLY\'S spread move (only an ally-reaching attack can be dodged). A body '
+                            + 'carrying one of them faces all four rather than the fixture guessing '
+                            + 'which — a wrong guess reads as inert, which is the failure this whole '
+                            + 'table exists to remove' },
+  boostsAtHPThreshold: { koTheHolder: false, movesLast: false,
+                         why: 'Berserk pays on CROSSING half, so the bar must travel across the line in one '
+                            + 'hit — which needs the REAL hp pool, not the safe x6 one the gauntlet uses to '
+                            + 'stop anything fainting. This is the one entry whose adversary is the POOL' },
 };
 /* The adversary is chosen by TAG, and an ability carrying several gets the union — a body that both
  * resists a status and rewrites on contact must face both, or one arm silently covers for the other. */
@@ -195,5 +244,210 @@ function movesFacesFor(tags) {
   return out.why.length ? out : null;
 }
 
-module.exports = { FACES, facesFor, MOVE_FACES, movesFacesFor };
+/* ---- AND THE OTHER 25. `thenWhat` — WHAT MUST HAPPEN AFTERWARDS. ROADMAP #158. ------------------
+ *
+ * THE STAGING VOCABULARY IS TWO THINGS AND THE TABLES ABOVE ARE ONLY ONE OF THEM.
+ *
+ *     faces      what the subject must be UP AGAINST     — an ADVERSARY
+ *     thenWhat   what must happen AFTERWARDS to read the state the subject just set — a CONSEQUENCE
+ *
+ * None of the 25 rows below is failing for want of an adversary. **They set a STATE, and the board is
+ * identical because nothing downstream ever reads it.** Haze resets stat stages, so something must
+ * have BOOSTED first and the boosts must be read after. Magnet Rise grants a Ground immunity, so a
+ * Ground move has to come AFTER. Safeguard blocks status, so a status move has to follow. Poltergeist
+ * needs the target to be HOLDING something. Helping Hand needs the ally to attack afterwards. Lock-On
+ * needs a sub-100 move next.
+ *
+ * FORCING THESE INTO `MOVE_FACES` WOULD HAVE PRODUCED ENTRIES THAT LOOK LIKE ADVERSARIES AND ARE NOT,
+ * which is the kind of thing that passes review and then quietly means nothing. An adversary is a
+ * body and a click on the SAME turn; a consequence is a turn that has not happened yet. A harness
+ * given the two as one concept cannot know whether to add a body or add a turn.
+ *
+ * KEYED ON THE TAG, exactly as `FACES` is, so a move added tomorrow inherits its consequence for
+ * free. FIVE OF THE KEYS BELOW DID NOT EXIST WHEN THIS TABLE WAS DESIGNED and that is the whole
+ * reason ROADMAP #157 came first: Guard Split, Power Split, Speed Swap, Lock-On and Magnetic Flux
+ * carried `[pp, neverMisses, statusCategory]` — three PROPERTIES and nothing about their mechanic —
+ * so there was literally nothing to key on. **A scenario cannot be derived from nothing.**
+ *
+ * WHAT EACH FIELD MEANS TO A HARNESS:
+ *   before        turns to play BEFORE the click, described by what they must achieve
+ *   after         turns to play AFTER the click — the ones that read the state
+ *   readsOff      whose board the consequence lands on, because a harness comparing the SUBJECT'S
+ *                 slot cannot see a consequence that lands on the target or the ally
+ *   needs         a fixture precondition that is not a turn at all (an item in a hand, an ability on
+ *                 the partner). Distinguished from `before` on purpose: one is a click, the other is
+ *                 how the body was BUILT, and they are staged at different times.
+ */
+const THEN_WHAT = {
+  clearsBoosts: { stage: { boostFirst: true }, before: ['the subject BOOSTS a stat'], after: [], readsOff: 'self',
+    why: 'Haze (654 uses) resets stat stages. On a board where nothing has boosted it resets nothing '
+       + 'and the two arms are byte-identical — the fixture measuring its own emptiness' },
+  rewritesStoredStats: { stage: { attacksAfter: 'both' }, before: [], after: ['the subject ATTACKS', 'the target ATTACKS'],
+    readsOff: 'both', why: 'Guard Split, Power Split and Speed Swap move `storedStats`, which is NOT '
+       + 'a stat stage — a board comparator reading `boosts` sees nothing whatsoever. The change is '
+       + 'only observable as a DAMAGE number or a move ORDER on a later turn, from BOTH bodies, '
+       + 'because an average moves one up and the other down' },
+  guaranteesNextMove: { stage: { subjectClicksAfter: ['Hydro Pump', 'Focus Blast', 'Thunder'] }, after: ['the subject clicks a SUB-100 accuracy move at the same target'],
+    readsOff: 'target', why: 'Lock-On does nothing at all on the turn it is used. Its `neverMisses` '
+       + 'tag is about LOCK-ON ITSELF, not about the move it makes certain, which is the opposite end '
+       + 'of the mechanic' },
+  boostsAlliesWithAbility: { stage: { allyAbility: true, attacksAfter: 'both' }, needs: ['the PARTNER carries one of the named abilities'],
+    after: ['the partner is HIT'], readsOff: 'ally',
+    why: 'Magnetic Flux FAILS OUTRIGHT with no eligible ally — the handler returns false — so a '
+       + 'scenario staged without one measures the failure and reports it as inert' },
+  rewritesTargetAbility: { stage: { attacksAfter: 'both' }, after: ['the target is made to USE the ability it now has'],
+    readsOff: 'target', why: 'Entrainment, Simple Beam and Worry Seed replace an ability. Nothing on '
+       + 'the board says which ability a body holds, so the change is only visible when the NEW '
+       + 'ability does something the old one would not' },
+  swapsAbilities: { stage: { attacksAfter: 'both' }, after: ['BOTH bodies are made to use the ability they now hold'], readsOff: 'both',
+    why: 'Skill Swap is the two-ended version of the row above, and reading only one end passes on '
+       + 'an engine that copied instead of exchanging' },
+  swapsDefences: { stage: { attacksAfter: 'subject', bothCategories: true }, after: ['the subject clicks a PHYSICAL move', 'the subject clicks a SPECIAL move'],
+    readsOff: 'target', why: 'Wonder Room exchanges Defence and Sp. Def. One category alone cannot '
+       + 'tell the swap from a flat defensive drop — the two must move in OPPOSITE directions' },
+  suppressesItems: { stage: { itemsOnBoth: 'Sitrus Berry', attacksAfter: 'both' }, needs: ['both bodies HOLD an item whose effect is observable'],
+    after: ['the item would have fired'], readsOff: 'both',
+    why: 'Magic Room switches items off. With empty hands it switches nothing off' },
+  setsRoom: { stage: { switchAfter: true }, after: ['a SWITCH is attempted'], readsOff: 'both',
+    why: 'Fairy Lock stops anybody leaving on the FOLLOWING turn, so the click turn shows nothing and '
+       + 'the refusal is the whole mechanic' },
+  sideBuff: { stage: { foeClicksAfter: ['Thunder Wave', 'Will-O-Wisp', 'Toxic'] }, after: ['a STATUS move is thrown at the protected side'], readsOff: 'self',
+    why: 'Safeguard blocks status for five turns. With nothing thrown at it, it blocks nothing — and '
+       + 'this key covers every side condition whose param says `blocksStatus`, not Safeguard by name' },
+  readsTargetItem: { stage: { itemsOnBoth: 'Sitrus Berry' }, needs: ['the TARGET holds an item'], after: [], readsOff: 'target',
+    why: 'Poltergeist FAILS against an empty-handed body, and the gauntlet\'s receiver holds nothing' },
+  thawsTarget: { stage: { foeClicksAfter: ['Surf', 'Hydro Pump'] }, after: ['the subject\'s own TYPE is read, and a move of the lost type is thrown at it'],
+    readsOff: 'self', why: 'Burn Up removes the user\'s FIRE type. The damage it deals is ordinary; '
+       + 'the mechanic is what the user has become, which only a later effectiveness reads' },
+  removesPP: { stage: { warmup: true, countsPP: true }, before: ['the target USES a move, so it has a last move to be spited'],
+    after: ['the target\'s PP is read'], readsOff: 'target',
+    why: 'Spite takes PP off the move the target LAST used. Against a body that has not moved it '
+       + 'fails, and PP is not a leaf most board comparators read at all' },
+  callsAnotherMove: { stage: { asleep: true }, before: ['the subject is put ASLEEP'], readsOff: 'self',
+    why: 'Sleep Talk and Snore are the only two moves in the format that REQUIRE their user to be '
+       + 'asleep. Will: "YOU GOTTA BE ASLEEP FOR SLEEP TALK AND SNORE"' },
+  failsIfVolatile: { stage: { foeClicksAfter: ['Earthquake', 'High Horsepower', 'Bulldoze'] }, after: ['a GROUND move is thrown at the subject'], readsOff: 'self',
+    why: 'Magnet Rise grants a Ground immunity and nothing else. Its own turn is empty' },
+
+  /* ---- THE CONSEQUENCES FOR THE ABILITY TAGS ROADMAP #156 CREATED ------------------------------
+   * The same split holds on the ability side. Some of the twenty-five needed an ADVERSARY and are in
+   * `FACES` above; these needed a turn that had not happened yet. */
+  suppressesOwnItem: { stage: { itemsOnBoth: 'Sitrus Berry', attacksAfter: 'both' }, needs: ['the HOLDER holds an item whose effect is observable'],
+    after: ['the item would have fired'], readsOff: 'self',
+    why: 'Klutz switches the holder\'s own item off. On an empty-handed body it switches nothing off, '
+       + 'and every item consumer in this project reads the SLOT rather than asking whether it works' },
+  stealsItem: { stage: { itemsOnBoth: 'Sitrus Berry', attacksAfter: 'both' }, needs: ['the OTHER body holds an item'],
+    after: ['the item is read on BOTH bodies'], readsOff: 'both',
+    why: 'Magician (265 fields) and Pickpocket (104) move an item between two hands. With one hand '
+       + 'empty nothing moves — and reading only the thief\'s slot passes on an engine that DUPLICATES '
+       + 'the item instead of taking it' },
+  passesItemToAlly: { stage: { itemsOnBoth: 'Sitrus Berry', allyAttacksAfter: true }, needs: ['the HOLDER holds an item', 'the PARTNER holds a consumable item'],
+    before: ['the partner CONSUMES its item'], after: ['both item slots are read'], readsOff: 'ally',
+    why: 'Symbiosis fires on the ALLY spending something, which the gauntlet never makes happen' },
+  inheritsAllyAbility: { stage: { alliesFaint: true, attacksAfter: 'subject' }, before: ['the PARTNER is knocked out'],
+    after: ['the subject is made to use the ability it inherited'], readsOff: 'self',
+    why: 'Receiver copies from a body that has to DIE first, and the gauntlet is built so nothing faints' },
+  clearsScreensOnEntry: { stage: { screensFirst: ['Reflect', 'Light Screen'], attacksAfter: 'both', bothCategories: true }, before: ['a SCREEN is raised — on the subject\'s own side as well as the foe\'s'],
+    after: ['a move of each category is thrown at BOTH sides'], readsOff: 'both',
+    why: 'Screen Cleaner deletes screens on ENTRY, and it deletes its OWN side\'s too. A fixture that '
+       + 'raises only the foe\'s screen cannot catch an engine that spares the friendly one' },
+  fractionalPriority: { stage: { attacksAfter: 'both' }, after: ['both bodies act in a turn where the ORDER decides the board'],
+    readsOff: 'both', why: 'Quick Draw and Stall nudge priority INSIDE a bracket. On a board where the '
+       + 'same body wins the turn either way, the nudge changes no leaf at all' },
+  nameImplementedBySim: { stage: { asleep: true, extraTurns: 2 }, before: ['the subject is put ASLEEP'],
+    after: ['the sleep counter is read on each of the next two turns'], readsOff: 'self',
+    why: 'Early Bird halves a sleep that has to exist first, and Corrosion needs a Steel or Poison '
+       + 'target to poison. Both are irreducible in the artifact and neither is inert in the game' },
+  announcesOnEntry: { stage: null, unobservable: true, readsOff: 'nothing',
+    why: 'DECLARED UNOBSERVABLE, and that is the point of the entry rather than an omission. '
+       + 'Anticipation, Forewarn and Frisk emit a message and move no state, so NO consequence can '
+       + 'make them visible to a board comparator. The roster already defers them; this says WHY in '
+       + 'the same vocabulary as everything else, so the deferral rests on a derived fact' },
+};
+
+/* A VOLATILE IS A CONSEQUENCE KEY TOO, AND FOR SEVEN ROWS IT IS THE ONLY ONE THERE IS.
+ *
+ * Attract, Destiny Bond, Helping Hand, Gastro Acid, Power Trick, Power Shift and Magnet Rise all
+ * carry `statusInflict` — a tag SO broad it covers a third of the move list — and their mechanic is
+ * entirely in WHICH volatile they set. Keying the table on `statusInflict` would hand the same
+ * consequence to every status move in the format; keying it on the move NAME is the hand list
+ * docs/TAGS.md forbids. The volatile id is neither: it is a PARAM the artifact already derives
+ * (`statusInflict.effects[].volatile`), so this table is still read out of the tag record and a move
+ * that sets one of these volatiles tomorrow inherits its consequence.
+ */
+const VOLATILE_THEN_WHAT = {
+  attract:      { stage: { attacksAfter: 'both' }, after: ['the infatuated body tries to MOVE'], readsOff: 'target',
+    why: 'infatuation costs a turn half the time and costs nothing on the turn it lands' },
+  destinybond:  { stage: { koTheHolder: true }, after: ['the SUBJECT is knocked out'], readsOff: 'both',
+    why: 'Destiny Bond does nothing unless its user dies, and the gauntlet is built so nothing faints' },
+  helpinghand:  { stage: { allyAttacksAfter: true }, after: ['the ALLY attacks'], readsOff: 'ally',
+    why: 'Helping Hand (5,014 uses — the most-clicked move in this whole table) multiplies a move '
+       + 'that has not been clicked yet. On its own turn it is a no-op' },
+  gastroacid:   { stage: { attacksAfter: 'both' }, after: ['the target is made to use the ability that is now suppressed'],
+    readsOff: 'target', why: 'suppressing an ability is invisible until the ability would have fired' },
+  powertrick:   { stage: { attacksAfter: 'subject' }, after: ['the subject clicks a PHYSICAL move'], readsOff: 'target',
+    why: 'Power Trick exchanges the user\'s own Attack and Defence; only its damage output shows it' },
+  powershift:   { stage: { attacksAfter: 'both' }, after: ['the subject clicks a move', 'the subject is HIT'], readsOff: 'both',
+    why: 'Power Shift exchanges offence with defence in both directions, so one arm cannot see it' },
+  magnetrise:   { stage: { foeClicksAfter: ['Earthquake', 'High Horsepower', 'Bulldoze'] }, after: ['a GROUND move is thrown at the subject'], readsOff: 'self',
+    why: 'the same consequence as the `failsIfVolatile` key above, reached from the other end' },
+};
+
+/* THE BERRY PRECONDITION — `thenWhat` POINTED ONE TURN EARLIER, and it is the same concept.
+ *
+ * Cheek Pouch, Cud Chew and Gluttony do not need a consequence AFTER; they need an ANTECEDENT: a
+ * berry that was actually EATEN. All three share ONE fixture — hold a Sitrus, take the HP past the
+ * threshold, look — which is why they are one table rather than three entries, and why Will's
+ * usage-times-fixture-cost rule put them on the BUILD side of the line while Pickup went to the
+ * shelf: three mechanics off one staging.
+ *
+ * KEYED ON THE TAG, like everything else here. The tags are the ones `tag_dex.js` already derives for
+ * the berry family, so a fourth berry ability inherits the fixture.
+ */
+const BERRY_FIXTURE = {
+  needs: ['the subject HOLDS a berry whose effect is observable (a Sitrus, which heals a quarter)',
+          'the HP pool is the REAL one — x1, not the safe x6 — or no fraction can be crossed'],
+  before: ['the subject is taken BELOW the berry\'s own threshold'],
+  after: ['the item slot and the HP are read on the turn AFTER the eat, because two of the three act '
+        + 'later than the eat itself'],
+  readsOff: 'self',
+  why: 'all three are inert on a full-HP body holding nothing, and all three are reached by one '
+     + 'staging. Cheek Pouch heals ON the eat, Cud Chew eats the SAME berry again a turn later, and '
+     + 'Gluttony moves the threshold that decides WHETHER to eat — so the fixture has to cross the '
+     + 'line AND run a turn past it, or one of the three is measured and the other two are not',
+};
+const BERRY_TAGS = ['healsOnBerryEaten', 'reEatsBerry', 'lowersBerryThreshold', 'doublesBerryEffect',
+                    'restoresBerryAtResidual'];
+
+/* Same union rule as both tables above: a move carrying several consequence keys must satisfy all of
+ * them. `params` is the entity's own tag params, so the volatile keys resolve without any caller
+ * knowing which volatile a move sets. Returns null when nothing applies — a move whose whole effect
+ * is damage needs no consequence and must not be given a fabricated one. */
+/* `stages` IS THE EXECUTABLE HALF AND IT IS A LIST RATHER THAN A MERGED OBJECT, deliberately. A
+ * merge here would silently drop the second entry's value for a verb the first also names, and the
+ * caller is the only thing that knows which of its own verbs it can actually run — so the merge, and
+ * the LOUD counter for a verb it cannot execute, live at the caller. A `null` in the list is a
+ * DECLARED unstageable key (`announcesOnEntry`), not a missing one, and is passed through as null so
+ * the caller can count it apart from a gap. */
+function thenWhatFor(tags, params) {
+  const out = { before: [], after: [], needs: [], readsOff: [], why: [], stages: [] };
+  const take = (key, t) => {
+    if (!t) return;
+    for (const k of ['before', 'after', 'needs'])
+      for (const s of (t[k] || [])) if (!out[k].includes(s)) out[k].push(s);
+    if (t.readsOff && !out.readsOff.includes(t.readsOff)) out.readsOff.push(t.readsOff);
+    if ('stage' in t) out.stages.push(t.stage);
+    out.why.push(key + ': ' + t.why);
+  };
+  for (const t of (tags || [])) take(t, THEN_WHAT[t]);
+  /* the volatile keys, resolved out of the entity's OWN params rather than from its name */
+  const eff = ((params || {}).statusInflict || {}).effects || [];
+  for (const e of eff) if (e.volatile) take('volatile:' + e.volatile, VOLATILE_THEN_WHAT[e.volatile]);
+  /* the berry antecedent, which is one shared fixture across the whole berry-ability family */
+  for (const t of (tags || [])) if (BERRY_TAGS.includes(t)) { take('berry:' + t, BERRY_FIXTURE); break; }
+  return out.why.length ? out : null;
+}
+
+module.exports = { FACES, facesFor, MOVE_FACES, movesFacesFor,
+                   THEN_WHAT, VOLATILE_THEN_WHAT, BERRY_FIXTURE, BERRY_TAGS, thenWhatFor };
 

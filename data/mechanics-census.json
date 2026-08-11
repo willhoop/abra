@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T03:09:29.830Z",
+  "generated": "2026-08-11T04:08:18.921Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 437,
-  "live": 437,
+  "probed": 444,
+  "live": 444,
   "missing": 0,
-  "armed": 437,
+  "armed": 444,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -597,6 +597,66 @@
       "label": "Feint goes through Quick Guard; a flagged priority move does not",
       "live": true,
       "detail": "behind one Quick Guard — Bullet Punch (+1, carries flags.protect) dealt 0 (must be 0), Feint (+2, no protect flag) dealt 29 (must be > 0 and equal to the 29 it deals with no guard up at all)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "copiesFoeAbility",
+      "label": "Trace copies a foe ability AND the copy fires; `notrace` refuses it",
+      "live": true,
+      "detail": "[the holder's ability, the FOE's Attack stage] on the lead turn — no ability \"none\",0 (the foe must be at 0: nothing dropped it, and my own -1 proves its Intimidate is live); TRACE \"intimidate\",-1 (the copy must be \"intimidate\" AND the foe must be at -1, which only happens if the COPIED ability's own entry handler ran); TRACE into ILLUSION (carries Showdown's `notrace` flag) \"trace\",0 (must still be trace); TRACE into Rough Skin \"roughskin\". traceCopied 0 -> 2",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "rewritesTargetAbility",
+      "label": "Worry Seed / Simple Beam / Entrainment overwrite the TARGET only",
+      "live": true,
+      "detail": "the target's ability then a Spore at it — NO click \"roughskin\", slept true (must be true, or the consequence proves nothing); WORRY SEED \"insomnia\", slept false (must be false — Insomnia refuses it); SIMPLE BEAM \"simple\"; ENTRAINMENT \"trace\" (the user's own). The USER's ability across all three: trace/trace/trace — it must stay \"trace\", which is what separates these from Skill Swap",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "rewritesStoredStats",
+      "label": "Speed Swap exchanges Speed and Guard Split averages Defence",
+      "live": true,
+      "detail": "Speed before/after — NO click 125,161 -> 125,161 (must not move); SPEED SWAP 125,161 -> 161,125 (must be EXCHANGED, and the stat STAGES must still read 0 = 0, because this is not a boost). Defence — no click 85,115 -> 85,115; GUARD SPLIT 85,115 -> 100,100 (must both be the floor of the mean)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "rewritesStoredStats",
+      "label": "the two WIRE 159 counters are non-zero",
+      "live": true,
+      "detail": "abilityRewritten 3 -> 4, statRewired 3 -> 4 over one Worry Seed and one Speed Swap (both must rise; a zero means the click is back to being a no-op turn)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "piercesProtect",
+      "label": "Piercing Drill AND Unseen Fist go through Protect on CONTACT only",
+      "live": true,
+      "detail": "into one Protect — no ability + Close Combat 0 (must be 0); Piercing Drill + Close Combat 20 (>0); Piercing Drill + Stone Edge (physical, NO contact) 0 (must be 0); Unseen Fist + Close Combat 20 (>0); Unseen Fist + Draining Kiss (SPECIAL contact) 9 (>0); the same Close Combat with no shield deals 80, so the pierced hit is 0.250 of it (must be ~0.25)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "piercesProtect",
+      "label": "the pierce counter is non-zero and the flag lookup never fell back",
+      "live": true,
+      "detail": "protectPierced 3 -> 4 across one pierced Protect; pierceFlagUnknown 0 (must be 0)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2636,7 +2696,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.3% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2807,6 +2867,16 @@
       "label": "a KO raises the killer's highest stat by one",
       "live": true,
       "detail": "total stages after the KO -- ability none 0, Eelevate 1 (+1 to its highest stat)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsOnKO",
+      "label": "Moxie boosts the NAMED stat, and Grim Neigh a different one",
+      "live": true,
+      "detail": "[atk stage, spa stage] after a KO -- no ability 0,0; MOXIE 1,0 (must be 1,0 and nothing else moved: 0); GRIM NEIGH 0,1 (must be 0,1 — the same shape, a different named stat, which is what a \"highest stat\" engine cannot produce on this body); and Moxie on a turn with NO KO (the foe at full HP survived: true) raises 0 (must be 0 — the trigger is the KO, not the click)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3036,7 +3106,7 @@
       "tag": "statusCategory",
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
-      "detail": "38/38 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "detail": "40/40 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -3324,6 +3324,99 @@ const MOVE_TAGS = [
       if (/prioritizeAction/.test(onHit)) out.thenMovesNext = true;
       return out;
     } },
+
+  /* ================================================================================================
+   *  ROADMAP #157 — FIVE MOVES WHOSE TAGS SAID NOTHING THEIR SCENARIO COULD USE
+   *
+   *  These five read `[pp, neverMisses, statusCategory]` and nothing else. All three are PROPERTIES
+   *  — how many clicks it has, whether it can miss, which category it is — and NOTHING FOLLOWS FROM
+   *  A PROPERTY about what has to happen for the move to be observable. The deliberate roster
+   *  therefore staged the bare board for all five and reported `THE STAGING IS INERT`, which was
+   *  true and useless.
+   *
+   *  THIS IS THE MOVE SIDE OF THE SAME HOLE ROADMAP #156 CLOSED ON ABILITIES, and it had to be closed
+   *  first: the `thenWhat` table in `engine/faces.js` is keyed on the TAG, so a move whose record
+   *  carries no tag describing its mechanic cannot be given a consequence to read — there is nothing
+   *  to key on. Membership printed for each rule below before it was wired.
+   * ============================================================================================= */
+
+  /* THE STAT REWIRERS. Guard Split and Power Split AVERAGE two bodies' stored stats; Speed Swap
+   * EXCHANGES them. Same hook, same field, and the DIRECTION is the param — an engine that averaged
+   * where the authority swaps would be right about which stat moved and wrong about both values.
+   * `storedStats` is the authority's own word for the pre-stage stat, which is exactly why this is
+   * invisible to a board comparator that reads boosts: nothing here is a stage. */
+  { tag: 'rewritesStoredStats', param: 'two bodies\' stored stats are averaged or exchanged — which stats, and how',
+    probe: 'rewritesStoredStats',
+    why: 'Guard Split, Power Split and Speed Swap all read [pp, neverMisses, statusCategory] and '
+       + 'nothing else, so no scenario could be derived for any of them. The effect is only visible '
+       + 'in a DAMAGE or SPEED number on a LATER turn, which is what `thenWhat` is for',
+    of: m => {
+      const src = String((m.onHit) || '').replace(/\s+/g, ' ');
+      if (!/storedStats\./.test(src)) return null;
+      const stats = [...new Set([...src.matchAll(/storedStats\.(\w+)\s*=/g)].map(x => x[1]))];
+      if (!stats.length) return null;
+      const avg = /Math\.floor\(\s*\(\s*\w+\.storedStats\.\w+\s*\+\s*\w+\.storedStats\.\w+\s*\)\s*\/\s*2\s*\)/.test(src);
+      return { stats, how: avg ? 'average' : 'swap',
+               between: 'the user and the target',
+               /* NOT a stat STAGE — a consumer reading `boosts` will see nothing at all */
+               movesStages: false };
+    } },
+
+  /* MAGNETIC FLUX — a side buff that lands ONLY on allies carrying one of two named abilities, which
+   * is a shape no other move in the format has: the ABILITY is the eligibility test. Read out of the
+   * `hasAbility([...])` filter rather than named, and the boost off the move's own `boosts` field. */
+  { tag: 'boostsAlliesWithAbility', param: 'boosts only the allies whose ABILITY is on a named list',
+    probe: 'boostsAlliesWithAbility',
+    why: 'Magnetic Flux read [pp, neverMisses, statusCategory]. It fails outright unless an ally '
+       + 'carries Plus or Minus, so a scenario staged without one measures the failure and calls it '
+       + 'inert',
+    of: m => {
+      const src = String(m.onHitSide || '').replace(/\s+/g, ' ');
+      const f = src.match(/hasAbility\(\s*\[([^\]]*)\]\s*\)/);
+      if (!f) return null;
+      const abs = [...f[1].matchAll(/["'](\w+)["']/g)].map(x => x[1]);
+      if (!abs.length) return null;
+      return { requiresAllyAbility: abs, boosts: m.boosts || null,
+               failsWithNoEligibleAlly: /if\s*\(!targets\.length\)\s*return false/.test(src) };
+    } },
+
+  /* LOCK-ON — the USER gets a volatile that makes its NEXT move certain. Everything about it is in
+   * the following turn, and on the bare board there is no following turn, so it is the purest
+   * `thenWhat` row in the format. Derived from an `onHit` that adds a volatile TO THE SOURCE naming
+   * the target. */
+  { tag: 'guaranteesNextMove', param: 'the user\'s NEXT move against that target cannot miss',
+    probe: 'guaranteesNextMove',
+    why: 'Lock-On read [pp, neverMisses, statusCategory] — and `neverMisses` is about LOCK-ON, not '
+       + 'about the move it makes certain, which is the opposite end of the mechanic',
+    of: m => {
+      const src = String(m.onHit || '').replace(/\s+/g, ' ');
+      const v = src.match(/source\.addVolatile\(\s*["'](\w+)["']\s*,\s*target\s*\)/);
+      if (!v) return null;
+      return { volatile: v[1], on: 'the user', against: 'the target it was aimed at',
+               refusesIfAlreadyUp: /volatiles\[["']\w+["']\]\s*\)\s*return false/.test(String(m.onTryHit || '')) };
+    } },
+
+  /* THE ABILITY REWRITERS. Entrainment copies the USER'S ability onto the target; Simple Beam and
+   * Worry Seed write a FIXED one. Skill Swap already carries `swapsAbilities` and is deliberately not
+   * folded in — an exchange leaves both bodies changed and these leave one. What the target's ability
+   * BECOMES is read out of the `setAbility` call, and the refusal is read off Showdown's own
+   * `cantsuppress` flag rather than a list of untouchable abilities. */
+  { tag: 'rewritesTargetAbility', param: 'the target\'s ability is REPLACED — with what, and what refuses it',
+    probe: 'rewritesTargetAbility',
+    why: 'Entrainment (72 uses), Worry Seed (69) and Simple Beam (17) all read [pp, moveClass, '
+       + 'statusCategory]. The whole effect is that a LATER event resolves against a different '
+       + 'ability, which no single staged turn can see',
+    of: m => {
+      const src = String(m.onHit || '').replace(/\s+/g, ' ');
+      const s = src.match(/target\.setAbility\(\s*(?:["'](\w+)["']|(\w+)\.ability)/);
+      if (!s) return null;
+      const guard = String(m.onTryHit || '') + String(m.onTryImmunity || '');
+      return { becomes: s[1] || 'the user\'s own ability',
+               refusedBy: /cantsuppress/.test(guard) ? 'cantsuppress' : null,
+               refusedAbilities: [...new Set([...guard.matchAll(/ability\s*===\s*["'](\w+)["']/g)]
+                 .map(x => x[1]))],
+               alsoCuresSleep: /cureStatus\(\)/.test(src) };
+    } },
 ];
 
 const ITEM_TAGS = [
@@ -4487,11 +4580,31 @@ const ABILITY_TAGS = [
    * Exactly that, and it is the linkage argument once more -- a composition of two keys that
    * already exist, not a new mechanic. It was sitting `untagged` on 259 fields. Beast Boost itself
    * was not in the table at all, since nothing on a sheet carries it. */
-  { tag: 'boostsOnKO', param: 'highest stat +1 every time it takes something down', probe: 'onSourceAfterFaint',
-    why: 'Beast Boost and Eelevate (259 fields). It compounds across a game and nothing recomputes '
-       + 'the speed order or damage after a kill, so the second kill is priced like the first',
-    of: a => (a.onSourceAfterFaint && /getBestStat|bestStat/.test(String(a.onSourceAfterFaint)))
-             ? { stat: 'highest', stages: 1, trigger: 'on KO' } : null },
+  /* ROADMAP #156, 2026-08-11 -- WIDENED FROM `getBestStat` TO THE SHAPE, AND THAT IS WHY MOXIE WAS
+   * `untagged` ON 103 FIELDS. The rule required the handler to call `getBestStat`, which is Beast
+   * Boost's implementation detail rather than the mechanic: Moxie, Chilling Neigh, Grim Neigh and As
+   * One all hook the identical `onSourceAfterFaint` and boost a NAMED stat instead of the best one.
+   * The draft fix added a SECOND tag beside this one and the membership print caught it immediately —
+   * it matched Eelevate and Beast Boost, which already carry this. Two tags for one mechanic is
+   * FACTS-ARE-GLOBAL broken inside the artifact, so the existing tag is widened and the STAT becomes
+   * a param read out of the boost call. Membership printed after: 7, and every one is a KO boost.
+   * Battle Bond hooks the same event and does NOT match, because its handler changes a forme and
+   * boosts nothing. */
+  { tag: 'boostsOnKO', param: 'a stat +1 every time it takes something down — WHICH stat is the param',
+    probe: 'onSourceAfterFaint',
+    why: 'Beast Boost and Eelevate (259 fields) and MOXIE (103, `untagged` until 2026-08-11). It '
+       + 'compounds across a game and nothing recomputes the speed order or damage after a kill, so '
+       + 'the second kill is priced like the first',
+    of: a => {
+      const src = String(a.onSourceAfterFaint || '').replace(/\s+/g, ' ');
+      if (!src || !/this\.boost\(/.test(src)) return null;
+      /* `this.boost({ atk: length })` names a stat; `this.boost({ [bestStat]: length })` does not */
+      const m = src.match(/this\.boost\(\s*\{\s*\[?\s*(\w+)\s*\]?\s*:\s*length/);
+      if (!m) return null;
+      const stat = /bestStat/.test(m[1]) ? 'highest' : m[1];
+      return { stat, stages: 1, trigger: 'on KO',
+               requiresMoveKO: /effectType\s*===\s*["']Move["']/.test(src) };
+    } },
   /* Will: "sheer force removes secondary effects idk." It does, and that is the half that was
    * missing -- it was tagged damageBoost alone.
    *
@@ -5538,6 +5651,501 @@ const ABILITY_TAGS = [
                 * the four carry. It is the same fact `field.wSup` already answers at the consumer, so
                 * it travels as a flag rather than as a second implementation. */
                needsEffectiveWeather: /effectiveWeather\(\)\s*!==?/.test(src) || null };
+    } },
+
+  /* ================================================================================================
+   *  ROADMAP #156 — THE THIRTY ABILITIES THIS FILE STATED NOTHING ABOUT
+   *
+   *  `trace` (274 sheet fields), `magician` (265), `frisk` (141), `synchronize` (135), `magicguard`
+   *  (114), `pickpocket` (104), `moxie` (103) and twenty-three more carried the `untagged` marker with
+   *  `params: {}`. **A SCENARIO CANNOT BE DERIVED FROM NOTHING** — the deliberate roster's ability
+   *  stage stages a subject against a control and compares boards, and it has no way to choose an
+   *  adversary, a precondition or an assertion for an entity whose record says only "we have no rule
+   *  for this". Every one of them read COULD-NOT-STAGE, and a COULD-NOT-STAGE that is really "the
+   *  artifact says nothing" is indistinguishable in the report from one that is a genuine limit of
+   *  the game.
+   *
+   *  EVERY PREDICATE BELOW HAD ITS MEMBERSHIP PRINTED BEFORE IT WAS WIRED (LESSONS §4), over every
+   *  non-Past ability the format defines, and TWO of the first drafts over-matched and were narrowed
+   *  on the evidence rather than on review:
+   *
+   *    `announcesOnEntry`   first draft was "an onStart that calls this.add and changes no state" and
+   *                         it caught TWENTY — Mold Breaker, Pressure, Unnerve, Supreme Overlord, the
+   *                         four Ruin abilities. All of them announce on entry and all of them then
+   *                         DO something through another handler. Narrowed to "onStart is the ability's
+   *                         ONLY handler", which is exactly the message-and-nothing-else class: 3.
+   *    `boostsOnKO`         is NOT a new tag. The draft added `boostsOnFoeFaint` beside it and the
+   *                         print showed it catching Eelevate and Beast Boost, which already carry
+   *                         `boostsOnKO`. Two tags for one mechanic is the FACTS-ARE-GLOBAL rule
+   *                         broken in the artifact itself, so the EXISTING rule is widened instead —
+   *                         see it above, three rules up from `removesOwnSecondaries`.
+   *
+   *  WHAT THESE TAGS DO **NOT** CLAIM. A tag is a FACT about the format; it is not a claim that the
+   *  engine reads it. `consumedBy` is grepped out of board.js and medicham2-browser.js and will read
+   *  NOT READ for most of these on the pass that adds them, which is the honest state and is the
+   *  whole reason the third column exists.
+   * ============================================================================================= */
+
+  /* MAGIC GUARD — 114 fields. `onDamage` returning false for anything whose `effectType` is not a
+   * Move. That is the entire mechanic and it is enormous in scope: sand, poison, burn, Life Orb,
+   * Leech Seed, spikes, recoil-by-item and every residual in the game stop existing for this body.
+   * The predicate is the handler's own two clauses and nothing else; one member. */
+  { tag: 'refusesIndirectDamage', param: 'HP loss from anything that is not a MOVE is refused outright',
+    probe: 'refusesIndirectDamage',
+    why: 'Magic Guard, 114 fields, `untagged` until 2026-08-11. Sand, poison, burn, Life Orb, Leech '
+       + 'Seed and every residual in the game are zero on this body, and nothing in the artifact said so',
+    of: a => {
+      const src = String(a.onDamage || '').replace(/\s+/g, ' ');
+      if (!/effect\.effectType\s*!==\s*["']Move["']/.test(src) || !/return false/.test(src)) return null;
+      return { movesOnly: true,
+               /* the handler ANNOUNCES the blocked source when it is an ability, which is a protocol
+                * line a consumer has to emit or part the streams on */
+               announcesBlockedAbility: /this\.add\(\s*["']-activate["']/.test(src) };
+    } },
+
+  /* POISON HEAL — the same hook, the opposite sign, and it is a SEPARATE tag rather than a param on
+   * the one above: Magic Guard refuses a class, Poison Heal converts ONE named status into a heal and
+   * leaves everything else alone. Folding them would make a consumer read a boolean to decide which
+   * of two opposite things to do. The statuses and the denominator are read out of the handler. */
+  { tag: 'healsFromOwnStatus', param: 'a named status HEALS instead of hurting', probe: 'healsFromOwnStatus',
+    why: 'Poison Heal, 9 fields. Its holder gains 1/8 every turn it is poisoned, and this engine '
+       + 'charged it 1/8 instead — a 2/8 swing per turn on a body built to be poisoned',
+    of: a => {
+      const src = String(a.onDamage || '').replace(/\s+/g, ' ');
+      if (!/this\.heal\(/.test(src) || !/return false/.test(src)) return null;
+      const st = [...new Set([...src.matchAll(/effect\.id\s*===\s*["'](psn|tox|brn|par|frz|slp)["']/g)]
+        .map(m => m[1]))];
+      if (!st.length) return null;
+      const f = src.match(/this\.heal\([^)]*(?:base)?[Mm]axhp\s*\/\s*(\d+)/);
+      return { statuses: st, fraction: f ? 1 / +f[1] : null, refusesTheDamage: true };
+    } },
+
+  /* BERSERK / ANGER SHELL — a boost paid for CROSSING a fraction of max HP, which is a different
+   * trigger from every threshold tag already here: `onDamage` records that the hit was a move,
+   * `onAfterMoveSecondary` fires only when the bar went from ABOVE the line to AT-or-BELOW it. A
+   * consumer that reads "hp <= half" alone boosts every turn the body stays low; the authority pays
+   * once per crossing. Both halves are carried. Two members, both printed. */
+  { tag: 'boostsAtHPThreshold', param: 'a boost paid for CROSSING a fraction of max HP, once per crossing',
+    probe: 'boostsAtHPThreshold',
+    why: 'Berserk, 44 fields, and Anger Shell. The crossing rule is the whole mechanic — an engine '
+       + 'that reads the HP LEVEL boosts every turn the body stays low',
+    of: a => {
+      const src = String(a.onAfterMoveSecondary || '').replace(/\s+/g, ' ');
+      const m = src.match(/hp\s*<=\s*\w+\.maxhp\s*\/\s*(\d+)/);
+      if (!m || !/this\.boost\(/.test(src)) return null;
+      /* the boost object is read out of the call, so a member with a different stat is right for free */
+      const b = src.match(/this\.boost\(\s*\{([^}]*)\}/);
+      const boosts = {};
+      if (b) for (const p of b[1].matchAll(/(\w+)\s*:\s*(-?\d+)/g)) boosts[p[1]] = +p[2];
+      return { threshold: 1 / +m[1], boosts: Object.keys(boosts).length ? boosts : null,
+               onCrossingOnly: /hp\s*\+\s*damage\s*>/.test(src),
+               /* both carry an `onTryEatItem` that REFUSES a healing berry until the crossing has been
+                * checked, so the berry cannot pre-empt the boost. Recorded because an engine that eats
+                * the Sitrus first never crosses the line at all. */
+               defersHealingBerry: !!a.onTryEatItem };
+    } },
+
+  /* THE RESIDUAL CURE, ONE TAG WITH THREE PARAM SHAPES rather than three tags. Healer cures the
+   * PARTNER at 1/2, Shed Skin cures ITSELF at 33/100, Hydration cures itself with certainty but only
+   * under a named sky. Same hook, same effect, same consumer; what differs is scope, chance and gate,
+   * and all three are read out of the handler. Three members, printed. */
+  { tag: 'curesStatusResidual', param: 'a status cured at the end of turn — whose, how often, and under what sky',
+    probe: 'curesStatusResidual',
+    why: 'Healer (32 fields), Shed Skin (8) and Hydration (3) all `untagged`. A status this engine '
+       + 'believes is permanent is a burn it keeps charging and a sleep it keeps counting',
+    of: a => {
+      const src = String(a.onResidual || '').replace(/\s+/g, ' ');
+      if (!/cureStatus\(\)/.test(src)) return null;
+      const ally = /adjacentAllies\(\)/.test(src);
+      const c = src.match(/randomChance\((\d+),\s*(\d+)\)/);
+      const sky = [...new Set([...src.matchAll(/["'](raindance|primordialsea|sunnyday|desolateland|sandstorm|hail|snowscape)["']/g)]
+        .map(m => ({ raindance: 'rain', primordialsea: 'rain', sunnyday: 'sun', desolateland: 'sun',
+                     sandstorm: 'sand', hail: 'snow', snowscape: 'snow' })[m[1]]))];
+      return { scope: ally ? 'adjacentAllies' : 'self', chance: c ? +c[1] / +c[2] : 1,
+               weathers: sky.length ? sky : null };
+    } },
+
+  /* THE ITEM THIEVES, AND THE TWO DIRECTIONS ARE THE PARAM. Magician takes the TARGET'S item after
+   * its own damaging move lands; Pickpocket takes the ATTACKER'S after being hit by a CONTACT move.
+   * Same effect on the board, opposite trigger, and a consumer that got the direction wrong would
+   * hand the item to the wrong body — so `when` is derived from WHICH hook carries the `takeItem`
+   * rather than from the ability's name. Two members. */
+  { tag: 'stealsItem', param: 'an item taken off another body, and on whose turn', probe: 'stealsItem',
+    why: 'Magician (265 fields) and Pickpocket (104), both `untagged`. An item that has changed hands '
+       + 'and is still being priced on the old holder is CLAUDE.md\'s Knock Off lesson exactly',
+    of: a => {
+      const own = String(a.onAfterMoveSecondarySelf || '').replace(/\s+/g, ' ');
+      const hit = String(a.onAfterMoveSecondary || '').replace(/\s+/g, ' ');
+      const src = /takeItem\(/.test(own) ? own : (/takeItem\(/.test(hit) ? hit : null);
+      if (!src) return null;
+      const onOwnMove = src === own;
+      return { when: onOwnMove ? 'after its own damaging move hits' : 'after being hit',
+               takesFrom: onOwnMove ? 'target' : 'attacker',
+               requiresEmptyHand: /!?\s*\w+\.item\b/.test(src),
+               onlyMoveFlag: /flags\[["']contact["']\]/.test(src) ? 'contact' : null,
+               excludesStatus: /category\s*===\s*["']Status["']/.test(src) };
+    } },
+
+  /* QUICK DRAW / MYCELIUM MIGHT — a FRACTIONAL priority bump inside the same bracket, which is not
+   * the `priority` field and is not modelled anywhere by a speed comparison. Read out of the handler
+   * including its SIGN: Quick Draw returns +0.1 (it moves first), Mycelium Might returns -0.1. Two
+   * members; Mycelium Might already carries `ignoresDefenderAbility` and this is its other half. */
+  { tag: 'fractionalPriority', param: 'a sub-bracket priority nudge, with a chance and a sign',
+    probe: 'fractionalPriority',
+    why: 'Quick Draw, 15 fields, `untagged`. A 30% chance to move first inside the same bracket is '
+       + 'invisible to every speed comparison in this project',
+    of: a => {
+      /* THE HOOK IS NOT ALWAYS A FUNCTION, and the first draft missed a member because of it. Stall
+       * declares `onFractionalPriority: -0.1` — a bare NUMBER — so a predicate that tested
+       * `typeof === 'function'` derived nothing from the one ability whose whole effect this is.
+       * The unconditional form is a certainty with no clause to read, which is exactly what the
+       * params then say. */
+      if (a.onFractionalPriority == null) return null;
+      if (typeof a.onFractionalPriority === 'number')
+        return { chance: 1, bracket: a.onFractionalPriority, excludesStatus: false,
+                 unconditional: true };
+      const src = String(a.onFractionalPriority).replace(/\s+/g, ' ');
+      if (!src) return null;
+      const c = src.match(/randomChance\((\d+),\s*(\d+)\)/);
+      const r = src.match(/return\s*(-?\d*\.\d+)/);
+      return { chance: c ? +c[1] / +c[2] : 1, bracket: r ? +r[1] : null, unconditional: false,
+               excludesStatus: /category\s*!==\s*["']Status["']/.test(src),
+               onlyStatus: /category\s*===\s*["']Status["']/.test(src) };
+    } },
+
+  /* SCREEN CLEANER — an entry that removes screens from BOTH sides, which is why the sides are read
+   * out of the handler rather than assumed: an implementation that cleared only the foe's would be a
+   * strict improvement over the real ability. One member. */
+  { tag: 'clearsScreensOnEntry', param: 'screens removed on switch-in, and from WHICH sides',
+    probe: 'clearsScreensOnEntry',
+    why: 'Screen Cleaner, 78 fields, `untagged`. It deletes its OWN side\'s Reflect too, so an engine '
+       + 'that clears only the foe\'s makes the ability strictly better than it is',
+    of: a => {
+      const src = String(a.onStart || '').replace(/\s+/g, ' ');
+      if (!/removeSideCondition\(/.test(src)) return null;
+      const conds = [...new Set([...src.matchAll(/["'](reflect|lightscreen|auroraveil)["']/g)].map(m => m[1]))];
+      if (!conds.length) return null;
+      return { conditions: conds,
+               sides: /foeSidesWithConditions|foeSide/.test(src) && /pokemon\.side\b/.test(src)
+                 ? 'both' : (/foeSide/.test(src) ? 'foe' : 'own') };
+    } },
+
+  /* SKILL LINK — the multi-hit distribution collapses to its maximum, and the per-hit accuracy check
+   * is deleted with it. BOTH halves matter and the second is the one an implementation forgets: a
+   * 2-5 move under Skill Link is five hits AND cannot stop early on a missed hit. One member. */
+  { tag: 'multihitAlwaysMax', param: 'a 2-5 move always hits the maximum, and per-hit accuracy is off',
+    probe: 'multihitAlwaysMax',
+    why: 'Skill Link, 50 fields, `untagged`. Bullet Seed at a flat 5 hits instead of a 3.1 expectation '
+       + 'is a 60% damage error on every click, and the multiaccuracy half is the one that gets missed',
+    of: a => {
+      const src = String(a.onModifyMove || '').replace(/\s+/g, ' ');
+      if (!/move\.multihit\s*=\s*move\.multihit\[/.test(src)) return null;
+      const i = src.match(/move\.multihit\[(\d+)\]/);
+      return { takesIndex: i ? +i[1] : null, meaning: 'the TOP of the [min,max] pair',
+               removesMultiaccuracy: /delete move\.multiaccuracy/.test(src) };
+    } },
+
+  /* STALWART / PROPELLER TAIL — `move.tracksTarget`, which is Showdown's own word for "redirection
+   * does not apply to this body's moves". It is the exact inverse of the `redirects` tag already in
+   * this artifact, so it is derived from the same vocabulary rather than from an ability list. Two
+   * members. The `!== 'scripted'` guard is carried because it is what stops the flag applying to a
+   * counter-move, whose target is decided by what hit it. */
+  { tag: 'ignoresRedirection', param: 'its moves cannot be pulled by Follow Me, Rage Powder or a draw ability',
+    probe: 'ignoresRedirection',
+    why: 'Stalwart, 47 fields, `untagged`. Follow Me and Rage Powder are both live in this engine, so '
+       + 'the body that is supposed to ignore them was being pulled by them',
+    of: a => {
+      const src = String(a.onModifyMove || '').replace(/\s+/g, ' ');
+      if (!/tracksTarget/.test(src)) return null;
+      return { ignoresRedirection: true, exceptScripted: /!==\s*["']scripted["']/.test(src) };
+    } },
+
+  /* STENCH — it ADDS a secondary that the move does not have, which is the mirror of Sheer Force's
+   * `removesOwnSecondaries` and needed its own tag for the same reason: the damage distribution reads
+   * the FINAL secondary list, and a writer that appends is not the same consumer as one that clears.
+   * The chance and the volatile are read out of the pushed object. One member. */
+  { tag: 'addsOwnSecondary', param: 'a secondary APPENDED to every damaging move the holder uses',
+    probe: 'addsOwnSecondary',
+    why: 'Stench, 9 fields, `untagged`. It is the mirror of Sheer Force and the artifact recorded one '
+       + 'direction of the pair only',
+    of: a => {
+      const src = String(a.onModifyMove || '').replace(/\s+/g, ' ');
+      const m = src.match(/secondaries\.push\(\s*\{([^}]*)\}/);
+      if (!m) return null;
+      const ch = m[1].match(/chance\s*:\s*(\d+)/);
+      const vol = m[1].match(/volatileStatus\s*:\s*["'](\w+)["']/);
+      const st = m[1].match(/status\s*:\s*["'](\w+)["']/);
+      return { chance: ch ? +ch[1] / 100 : null, volatile: vol ? vol[1] : null,
+               status: st ? st[1] : null,
+               excludesStatus: /category\s*!==\s*["']Status["']/.test(src),
+               dedupes: /return;/.test(src) };
+    } },
+
+  /* LONG REACH — it DELETES a move flag on its own moves, and the flag is read rather than assumed.
+   * That matters because `contact` is a linkage key in this artifact: Rough Skin, Rocky Helmet, Static,
+   * Flame Body, Poison Point, Mummy, Wandering Spirit and Pickpocket all subscribe to it, and a body
+   * with Long Reach subscribes to NONE of them. One member. */
+  { tag: 'removesOwnMoveFlag', param: 'a FLAG deleted from the holder\'s own moves — a linkage key turned off',
+    probe: 'removesOwnMoveFlag',
+    why: 'Long Reach, 2 fields, `untagged`. `contact` is a linkage key with eight reactors on the far '
+       + 'side of it, and this ability unsubscribes from every one of them at once',
+    of: a => {
+      const src = String(a.onModifyMove || '').replace(/\s+/g, ' ');
+      const m = src.match(/delete move\.flags\[["'](\w+)["']\]/);
+      return m ? { flag: m[1], appliesTo: 'the holder\'s own moves' } : null;
+    } },
+
+  /* SYMBIOSIS — the partner spends an item and this body hands over its own. It is the only ability
+   * in the format that MOVES AN ITEM BETWEEN TWO BODIES ON THE SAME SIDE, so an item model that
+   * tracks a holder cannot express it without being told. One member. */
+  { tag: 'passesItemToAlly', param: 'its own item is handed to the PARTNER the moment the partner spends one',
+    probe: 'passesItemToAlly',
+    why: 'Symbiosis, 58 fields, `untagged`. Two Sitrus Berries out of one slot, and every damage number '
+       + 'downstream is computed against an item that has moved',
+    of: a => a.onAllyAfterUseItem ? { trigger: 'ally used an item', gives: 'own held item' } : null },
+
+  /* SYNCHRONIZE — the status is passed BACK to whoever inflicted it, minus the two the handler
+   * exempts. The exemptions are read out of the source because they are the whole subtlety: sleep and
+   * freeze do NOT come back, and neither does a hazard-applied poison. One member. */
+  { tag: 'reflectsStatusToSource', param: 'a status inflicted on the holder is applied back to its source',
+    probe: 'reflectsStatusToSource',
+    why: 'Synchronize, 135 fields, `untagged`. A Will-O-Wisp at a Synchronize body burns the THROWER, '
+       + 'and this engine burned nobody',
+    of: a => {
+      const src = String(a.onAfterSetStatus || '').replace(/\s+/g, ' ');
+      if (!/trySetStatus\(/.test(src)) return null;
+      const ex = [...new Set([...src.matchAll(/status\.id\s*===\s*["'](\w+)["']/g)].map(m => m[1]))];
+      return { excludes: ex.length ? ex : null,
+               excludesHazards: /toxicspikes/.test(src),
+               notSelfInflicted: /source\s*===\s*target/.test(src) };
+    } },
+
+  /* KLUTZ — the holder's own item is switched off for as long as it is on the field. Derived from the
+   * `singleEvent('End', item)` shape rather than the name, and the reason it needs a tag at all is
+   * that every item consumer in this project reads the item SLOT: a Klutz body holding a Choice Scarf
+   * is priced 1.5x faster than it is. One member. */
+  { tag: 'suppressesOwnItem', param: 'the holder\'s own item does nothing while it is on the field',
+    probe: 'suppressesOwnItem',
+    why: 'Klutz, 1 field, `untagged`. Every item consumer here reads the SLOT, so a Klutz body is '
+       + 'priced with an item that is switched off',
+    of: a => (a.onStart && /singleEvent\(\s*["']End["']\s*,\s*\w+\.getItem\(\)/.test(String(a.onStart).replace(/\s+/g, ' ')))
+      ? { suppresses: 'the holder\'s own item', whileActive: true } : null },
+
+  /* TRACE — 274 fields, the biggest `untagged` row in the artifact. It REWRITES THE HOLDER'S OWN
+   * ABILITY on entry, which means every other tag this file derives is looked up against the wrong
+   * key for a Traced body. `onUpdate` as well as `onStart` is carried because the copy retries every
+   * turn until it succeeds — a Trace that arrives opposite two untraceable abilities keeps trying.
+   * One member, and the two INHERIT abilities below are deliberately a separate tag: they copy from a
+   * FAINTED ALLY, not from a foe, and the difference decides which body a consumer has to look at. */
+  { tag: 'copiesFoeAbility', param: 'the holder\'s ability is REPLACED by a foe\'s, on entry and on retry',
+    probe: 'copiesFoeAbility',
+    why: 'Trace, 274 fields, `untagged` — the largest untagged row in this artifact. Every ability tag '
+       + 'in this file is looked up against the wrong key for a Traced body',
+    of: a => {
+      const src = (String(a.onStart || '') + ' ' + String(a.onUpdate || '')).replace(/\s+/g, ' ');
+      if (!/setAbility\(/.test(src)) return null;
+      if (!/foes\(\)|adjacentFoes\(\)/.test(src)) return null;
+      return { from: 'a random adjacent foe', retriesEveryTurn: !!a.onUpdate,
+               /* Showdown marks what CANNOT be copied on the ability itself; the copier reads the
+                * flag rather than a list, and so does this. */
+               refusedBy: 'the target ability\'s own `notrace` flag' };
+    } },
+  { tag: 'inheritsAllyAbility', param: 'the holder takes the ability of an ALLY that just fainted',
+    probe: 'inheritsAllyAbility',
+    why: 'Receiver, 2 fields, and Power of Alchemy, both `untagged`. Same rewrite as Trace with a '
+       + 'different trigger, and a consumer has to look at a different body to resolve it',
+    of: a => (a.onAllyFaint && /setAbility\(/.test(String(a.onAllyFaint)))
+      ? { from: 'the ally that fainted', refusedBy: 'the source ability\'s own `noreceiver` flag' } : null },
+
+  /* MIMICRY — the holder's TYPE follows the terrain, so its own weaknesses move under it. Derived
+   * from `setType` inside `onTerrainChange`; one member. The terrain -> type map is read out of the
+   * handler so a new terrain is picked up without editing this. */
+  { tag: 'typeFollowsTerrain', param: 'the holder\'s type is rewritten by whatever terrain is up',
+    probe: 'typeFollowsTerrain',
+    why: 'Mimicry, 4 fields, `untagged`. Under Electric Terrain a Stunfisk-Galar stops being Ground '
+       + 'and every effectiveness number against it moves',
+    of: a => {
+      const src = String(a.onTerrainChange || '').replace(/\s+/g, ' ');
+      if (!/setType\(/.test(src)) return null;
+      const map = {};
+      for (const m of src.matchAll(/["'](electricterrain|grassyterrain|mistyterrain|psychicterrain)["'][\s\S]{0,80}?["'](Electric|Grass|Fairy|Psychic)["']/g))
+        map[m[1]] = m[2];
+      return { follows: 'terrain', types: Object.keys(map).length ? map : null,
+               revertsWithoutTerrain: /clearType|setType\(\s*\w+\.species\.types/.test(src) };
+    } },
+
+  /* FORECAST — the holder's FORME follows the weather. It is not `switchInForme` (entry),
+   * `formeOnHit` (damage), `formeCycleResidual` (a clock) or `formeOnMoveCategory` (the click); it is
+   * the fifth trigger and the artifact had no word for it. Membership printed: three — Forecast,
+   * Flower Gift and Ice Face — and the last two already carry other forme tags, which is correct
+   * rather than duplication: Ice Face's `formeOnHit` is how it BREAKS and this is how snow gives it
+   * back. Only Forecast has a legal carrier in this regulation. */
+  { tag: 'formeFollowsWeather', param: 'the forme is rewritten whenever the sky changes',
+    probe: 'formeFollowsWeather',
+    why: 'Forecast, 8 fields, `untagged`. A Castform under sun is a different TYPE with different '
+       + 'base stats, and this engine kept the Normal one on every board',
+    of: a => {
+      const src = String(a.onWeatherChange || '').replace(/\s+/g, ' ');
+      if (!/formeChange\(/.test(src)) return null;
+      /* TWO SHAPES, AND THE FIRST DRAFT ONLY READ ONE — which is why FORECAST, the only member with a
+       * legal carrier, stayed `untagged` through the pass that added this rule.
+       *   Ice Face / Flower Gift   `formeChange("Eiscue")` — the forme is a LITERAL in the call
+       *   Forecast                 `switch (effectiveWeather()) { case "sunnyday": forme = "Castform-Sunny"
+       *                            ... } formeChange(forme)` — the call takes a VARIABLE and the map is
+       *                            in the switch above it
+       * Both are read, and the SKY->FORME map is the more useful artifact, so it is derived where the
+       * source carries it. Every forme is resolved against the dex before it is recorded. */
+      const SKY = { raindance: 'rain', primordialsea: 'rain', sunnyday: 'sun', desolateland: 'sun',
+                    sandstorm: 'sand', hail: 'snow', snowscape: 'snow' };
+      const ok = f => { const s = dex.species.get(f); return s && s.exists ? s.name : null; };
+      const byWeather = {};
+      /* a run of `case "x": case "y": if (...) forme = "Z";` — every case label before the assignment
+       * shares that forme */
+      for (const m of src.matchAll(/((?:case\s*["'][a-z]+["']\s*:\s*)+)[^]*?forme\s*=\s*["']([^"']+)["']/g)) {
+        const nm = ok(m[2]); if (!nm) continue;
+        for (const c of m[1].matchAll(/["']([a-z]+)["']/g)) if (SKY[c[1]]) byWeather[SKY[c[1]]] = nm;
+      }
+      const literal = [...new Set([...src.matchAll(/formeChange\(\s*["']([^"']+)["']/g)].map(m => ok(m[1])))]
+        .filter(Boolean);
+      const formes = [...new Set(Object.values(byWeather).concat(literal))];
+      if (!formes.length) return null;
+      return { formes, byWeather: Object.keys(byWeather).length ? byWeather : null,
+               /* a single literal with no map is a RESTORE (Ice Face coming back in snow), not a
+                * weather-driven forme table — a consumer has to tell those apart */
+               restoresRatherThanChanges: !Object.keys(byWeather).length && formes.length === 1,
+               /* whether the new forme is a different BODY or only a rename — the same field the
+                * other four forme tags carry, for the same reader */
+               sameStats: formes.length > 1 ? formes.every(f =>
+                 JSON.stringify(dex.species.get(f).baseStats)
+                 === JSON.stringify(dex.species.get(formes[0]).baseStats)) : null,
+               sameTypes: formes.length > 1 ? formes.every(f =>
+                 JSON.stringify(dex.species.get(f).types)
+                 === JSON.stringify(dex.species.get(formes[0]).types)) : null };
+    } },
+
+  /* THE MESSAGE-ONLY ENTRY ABILITIES, AND THIS IS THE PREDICATE THAT OVER-MATCHED FIRST. "an onStart
+   * that calls this.add and changes no state" caught TWENTY, because Mold Breaker, Pressure, Unnerve,
+   * Supreme Overlord and the four Ruin abilities all announce themselves on entry and then work
+   * through a second handler. The narrow rule is that `onStart` is the ability's ONLY handler — which
+   * is precisely the class whose whole effect is a line in the log: three members, and all three are
+   * already DEFERRED by the roster's owner for exactly this reason (no board leaf can carry a
+   * message). The tag exists so the deferral rests on a derived FACT instead of on three names. */
+  { tag: 'announcesOnEntry', param: 'the entire effect is a message on switch-in — no board state moves',
+    probe: 'announcesOnEntry',
+    why: 'Anticipation, Forewarn and Frisk (141 fields between them), all `untagged`. Their whole '
+       + 'effect is information, which is why a BOARD comparator can never see them — and that is a '
+       + 'derived fact now rather than three names in a deferral table',
+    of: a => {
+      const hooks = Object.keys(a).filter(k => /^on/.test(k) && typeof a[k] === 'function');
+      if (hooks.length !== 1 || hooks[0] !== 'onStart') return null;
+      const src = String(a.onStart || '').replace(/\s+/g, ' ');
+      if (!/this\.add\(/.test(src)) return null;
+      if (/setAbility|formeChange|boost\(|setItem|takeItem|removeSideCondition|cureStatus|singleEvent|heal\(|damage\(|addVolatile|setStatus|setWeather|setTerrain|clearBoost/.test(src))
+        return null;
+      return { effect: 'information only',
+               reveals: /getItem\(\)/.test(src) ? 'the foes\' items'
+                      : /moves/.test(src) ? 'a foe move' : 'a warning',
+               visibleOnABoard: false };
+    } },
+
+  /* THE ALLY BASE-POWER BOOSTERS. `onAllyBasePower` is a hook nothing else in this file reads, and a
+   * boost that lands on the PARTNER'S damage is the shape a per-body model gets wrong by construction
+   * (the same hole `friendGuard` sits in, one direction over). Three members, none with a legal
+   * carrier in Reg M-B — which is a fact about the regulation, recorded rather than used as a reason
+   * to skip the rule. */
+  { tag: 'allyBasePowerBoost', param: 'the PARTNER\'S base power is multiplied, optionally only for one type',
+    probe: 'allyBasePowerBoost',
+    why: 'Steely Spirit, Battery and Power Spot, all `untagged`. The boost lands on another body\'s '
+       + 'damage, which is the shape a per-body damage model cannot express without being told',
+    of: a => {
+      const src = String(a.onAllyBasePower || '').replace(/\s+/g, ' ');
+      if (!src) return null;
+      const t = src.match(/move\.type\s*===\s*["'](\w+)["']/);
+      const m = src.match(/chainModify\(\s*\[?\s*(\d+)\s*,?\s*(\d+)?/);
+      return { onlyType: t ? t[1] : null,
+               mult: m ? (m[2] ? +m[1] / +m[2] : +m[1]) : null,
+               includesSelf: /source\s*===\s*\w+/.test(src) ? false : null };
+    } },
+
+  /* SERENE GRACE AND TINTED LENS — the two ROADMAP #65 named as having been EATEN by a regeneration
+   * of this artifact. Neither has a legal carrier in Reg M-B today, and both have sat `untagged` ever
+   * since. They are derived here anyway, and deliberately: a tag costs nothing, and the alternative
+   * is that the day a carrier appears the artifact says nothing about a mechanic that doubles every
+   * secondary in the game. One member each, printed. */
+  { tag: 'secondaryChanceMult', param: 'every secondary chance on the holder\'s moves is multiplied',
+    probe: 'secondaryChanceMult',
+    why: 'Serene Grace, `untagged` since it lost its carrier. It doubles every flinch, burn and stat '
+       + 'drop the taxonomy records — the exact inverse of Sheer Force, which IS tagged',
+    of: a => {
+      const src = String(a.onModifyMove || '').replace(/\s+/g, ' ');
+      const m = src.match(/secondary\.chance\s*\*=\s*(\d+)/);
+      return m ? { mult: +m[1], appliesTo: 'every secondary on the holder\'s own moves',
+                   alsoSelfBoosts: /self\.\w*[Cc]hance/.test(src) } : null;
+    } },
+  { tag: 'boostsNotVeryEffective', param: 'damage against a RESISTANT target is multiplied back up',
+    probe: 'boostsNotVeryEffective',
+    why: 'Tinted Lens, `untagged` since it lost its carrier. It is a damage multiplier that keys on '
+       + 'the TYPE CHART RESULT, which no other tag in this artifact can express',
+    of: a => {
+      const src = String(a.onModifyDamage || '').replace(/\s+/g, ' ');
+      if (!/typeMod\s*<\s*0/.test(src)) return null;
+      const m = src.match(/chainModify\(\s*(\d+)/);
+      return { mult: m ? +m[1] : null, appliesWhen: 'the type chart returned not-very-effective' };
+    } },
+
+  /* WHICH ABILITIES REFUSE TO BE COPIED, TAKEN FROM SHOWDOWN'S OWN LABELS — ROADMAP #159.
+   *
+   * **DO NOT INVENT A CATEGORY: THE FORMAT ALREADY LABELS THIS SET.** Trace, Skill Swap, Entrainment,
+   * Role Play and Receiver each have their own refusal, and Showdown writes all five on the ABILITY as
+   * flags: `notrace`, `failskillswap`, `noentrain`, `failroleplay`, `noreceiver` (plus `cantsuppress`,
+   * which is Gastro Acid's). A consumer that hand-listed "the untraceable abilities" would be the
+   * ban-list-of-four failure at ability scale, and it would be wrong the day a forme-changer is added.
+   *
+   * ONE TAG WITH THE FLAGS AS PARAMS RATHER THAN FIVE TAGS, because it is one FACT about the ability
+   * ("who may not take this") read five different ways by five different mechanics. `breakable` is
+   * deliberately not folded in: that is about Mold Breaker SUPPRESSING an ability, which is a
+   * different question from COPYING it. */
+  { tag: 'refusesCopy', param: 'which of the five copy mechanics this ability refuses — Showdown\'s own flags',
+    probe: 'refusesCopy',
+    why: 'Trace (274 fields) has to know what it may not copy, and nothing in this artifact said. The '
+       + 'set is not a judgement — the format writes it on each ability as `notrace`, `noentrain`, '
+       + '`noreceiver`, `failroleplay`, `failskillswap`',
+    of: a => {
+      const f = a.flags || {};
+      const KEYS = ['notrace', 'noentrain', 'noreceiver', 'failroleplay', 'failskillswap',
+                    'cantsuppress', 'noreceiver'];
+      const on = [...new Set(KEYS.filter(k => f[k]))];
+      if (!on.length) return null;
+      return { refuses: on,
+               notrace: !!f.notrace, noentrain: !!f.noentrain, noreceiver: !!f.noreceiver,
+               failroleplay: !!f.failroleplay, failskillswap: !!f.failskillswap,
+               cantsuppress: !!f.cantsuppress };
+    } },
+
+  /* CORROSION AND EARLY BIRD — NO HANDLERS AT ALL, and this is the same honest exception the
+   * `typeImmunity` rule already declares for Levitate: the simulator special-cases both by name in
+   * its own logic (`setStatus` consults `hasAbility('corrosion')`; the sleep counter halves for
+   * `earlybird`), so there is no handler to probe and a name test is the ONLY available truth rather
+   * than a hardcode. It is written as a NAME LIST OF TWO with that reason stated, because the
+   * alternative — leaving them `untagged` — is the state that made them invisible.
+   *
+   * THE MEMBERSHIP TEST IS STILL DERIVED: an ability that declares NO handler and is not one of the
+   * two is not matched, so a third name-implemented ability arriving later shows up as untagged
+   * rather than being silently absorbed. */
+  { tag: 'nameImplementedBySim', param: 'a real mechanic the simulator implements BY NAME, with no handler to probe',
+    probe: 'nameImplementedBySim',
+    why: 'Corrosion (35 fields) and Early Bird (26) expose no handler whatsoever — Showdown consults '
+       + 'them by name inside setStatus and the sleep counter. Left `untagged` they read as "nothing '
+       + 'known"; this says "known, and irreducible", which is a different claim',
+    of: a => {
+      const hooks = Object.keys(a).filter(k => /^on/.test(k) && typeof a[k] === 'function');
+      if (hooks.length) return null;
+      const WHAT = { corrosion: 'it may poison Steel and Poison types — the immunity check in '
+                              + '`setStatus` consults the ATTACKER\'s ability by name',
+                     earlybird: 'sleep counts down twice as fast — the `slp` condition\'s own duration '
+                              + 'is halved by name' };
+      const w = WHAT[norm(a.name)];
+      return w ? { irreducible: true, what: w, via: 'not derivable — the ability has no handler' } : null;
     } },
 ];
 

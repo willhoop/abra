@@ -159,7 +159,19 @@ const NOT_EMITTED = {
 
   /* ---- mechanics medicham2 does not model AT ALL ---- */
   '-terastallize': 'Terastal is not in Champions Reg M-B and this engine has no tera state.',
-  '-zpower': 'Z-moves do not exist in this format.', '-zbroken': 'Z-moves do not exist in this format.',
+  '-zpower': 'Z-moves do not exist in this format.',
+  /* ROADMAP #155, 2026-08-11 -- THE REASON WAS WRONG, AND ONLY THE REASON. `-zbroken` said "Z-moves
+   * do not exist in this format", which is true about Z-moves and false about this line: the champions
+   * mod emits `-zbroken` on the TARGET every time `bypassProtect` is set, and `piercesProtect`
+   * (Piercing Drill, Unseen Fist) sets it on contact moves in ordinary play. Observed live:
+   *     |-ability|p1a: A|Unseen Fist  |-zbroken|p2a: B  |-damage|p2a: B|164/183
+   * It stays UNCLAIMED — this engine models the pierce and the quarter and announces the `-ability`
+   * half, which is the line the comparison reads; `-zbroken` is a leftover Z-move display artefact
+   * that carries no state. A declaration whose reason has quietly become false is the thing this
+   * table exists to stop, so the reason is corrected rather than left standing. */
+  '-zbroken': 'a Z-move display leftover the champions mod re-uses for a pierced Protect. This engine '
+            + 'models the pierce (WIRE 158) and announces the `-ability` line beside it; this line '
+            + 'carries no state and is not emitted.',
   '-burst': 'Ultra Burst does not exist in this format.',
   '-primal': 'Primal Reversion does not exist in this format.',
   /* `-mega` and `detailschange` MOVED OUT OF THIS LIST, 2026-08-07 (ROADMAP #31). They used to read

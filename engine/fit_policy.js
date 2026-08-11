@@ -215,6 +215,31 @@ function speciesShares(corpus) {
   return { ratio, openGames: O.n, closedGames: C.n };
 }
 
+/* THE ILLUSION CLOSET — one predicate, one label, both used everywhere so the exclusion cannot be
+ * applied in one place and reported in another. CLAUDE.md: one implementation, everyone calls it.
+ *
+ * SPECIES, NOT ABILITY. A sheet may declare Illusion and never bring the Zoroark; a sheet we cannot
+ * read still corrupts the game. Only two lines carry Illusion in this format and both are tested by
+ * name-stem, so a forme added later (Zoroark-Hisui already exists) is caught without an edit. */
+const ILLUSION_SPECIES = /zoroark|zorua/i;
+const ILLUSION_KEY = 'illusion_closeted (Zoroark/Zorua present — the protocol names the disguise, not '
+                   + 'the mover, so every click is mis-attributed). TEMPORARY, ROADMAP #67: model '
+                   + 'Illusion, then re-admit with ILLUSION_IN=1 and REFIT.';
+function hasIllusionSpecies(g) {
+  if (!g) return false;
+  for (const side of ['p1', 'p2']) {
+    const sheet = g.sheets && g.sheets[side];
+    if (!sheet) continue;
+    /* the sheet's shape has moved before, so test whatever it is rather than assuming an array of
+     * objects — a structural assumption here would fail SILENTLY and closet nothing. */
+    if (ILLUSION_SPECIES.test(typeof sheet === 'string' ? sheet : JSON.stringify(sheet))) return true;
+  }
+  /* the brought team is not always in the sheet (a bo3 game carries three), so the whole record is
+   * the fallback. Broad on purpose: a false positive costs one game, a false negative costs the
+   * corpus a mis-attributed one, and those are not symmetric. */
+  return ILLUSION_SPECIES.test(JSON.stringify(g));
+}
+
 function loadCorpus(opts) {
   const cfg = Q.config();
   /* THE BEHAVIOURAL BOT SET, WHICH THIS USED TO PASS AS `null`.
@@ -248,10 +273,46 @@ function loadCorpus(opts) {
    * the result on the opposite side of the same battles as the build fitted without it, and the
    * head-to-head answers which. Nothing else changes between the two fits. */
   const NO_FORFEITS = !!process.env.NO_FORFEITS;
+  /* DEFAULT ON, and the escape hatch exists so the re-admit measurement can be taken WITHOUT editing
+   * this file — ROADMAP #67 has to compare both corpora, and a gap you must edit code to close is a
+   * gap nobody closes. `ILLUSION_IN=1` puts them back. */
+  const EXCLUDE_ILLUSION = process.env.ILLUSION_IN !== '1';
   const add = (g) => {
     if (!g || !g.openSheet || !g.sheets || !g.sheets.p1 || !g.sheets.p2) return;
     if (g.id && seen.has(g.id)) return;
     if (NO_FORFEITS && g.forfeit) { rejected.forfeit_excluded_by_flag = (rejected.forfeit_excluded_by_flag || 0) + 1; return; }
+    /* ============ ZOROARK IS IN THE CLOSET, AND THE CLOSET HAS A LABEL ON IT ======================
+     *
+     * Will, 2026-08-11: *"if there is a zoroark in the game lets just set those games aside if we
+     * truly cannot handle its presence"*, then: *"at some point we are going to have to have zoroark
+     * in our engine but to start we can just put those in the closet."*
+     *
+     * WHAT ILLUSION DOES TO A CORPUS. Zoroark enters disguised as the LAST living Pokemon on its
+     * bench, and the protocol names the disguise, not the Zoroark. So every move it clicks is filed
+     * against a Pokemon that never moved. That is not noise we can average out — it manufactures
+     * FALSE SET EVIDENCE for the impersonated body and hides the real one, and it flows straight into
+     * `meta-usage.json`, into the set priors, and into XATU.
+     *
+     * MEASURED, NOT ESTIMATED: 386 of 12,314 bo3 games (3.13%) and 1,731 of 52,840 ladder games
+     * (3.28%) contain a Zoroark or Zorua. Three percent is a cheap price for removing a source of
+     * confidently-wrong data.
+     *
+     * THIS IS A DECLARED GAP, WHICH IS THE ONLY KIND THIS PROJECT ALLOWS — the same shape as
+     * `RAW-STORE-OK` on Ditto's ability. It is COUNTED and it PRINTS: a filter that cannot say how
+     * much it removed is indistinguishable from a filter that is not running, and this repo's
+     * signature failure is a capability that is silently absent.
+     *
+     * IT IS TEMPORARY BY DECISION, NOT BY HOPE. ROADMAP #67 owns the real fix — model Illusion, then
+     * re-admit these games and REFIT, because a corpus that changes size is a corpus that changes
+     * answers. Until then the exclusion is stated everywhere the corpus is reported.
+     *
+     * NOT A NAME MATCH ON THE ABILITY. The sheet may declare Illusion, but a Zoroark that never
+     * switched in still corrupts nothing — and one whose sheet we cannot read still corrupts
+     * everything. The species is the reliable signal, so the species is what is tested. */
+    if (EXCLUDE_ILLUSION && hasIllusionSpecies(g)) {
+      rejected[ILLUSION_KEY] = (rejected[ILLUSION_KEY] || 0) + 1;
+      return;
+    }
     const why = Q.reasons(g, cfg, bots);
     if (why.length) { for (const r of why) rejected[r] = (rejected[r] || 0) + 1; return; }
     if (g.id) seen.add(g.id);

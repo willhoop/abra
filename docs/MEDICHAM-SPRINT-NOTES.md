@@ -21,6 +21,72 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE STAGING VOCABULARY IS TWO WORDS, AND WE ONLY HAD ONE. 2026-08-11.
+
+ROADMAP #155–#160. Recorded here because it settles a question this file asked and left open on
+2026-08-10: *"the remaining 25 need a CONSEQUENCE, not an adversary … it is built as its own concept
+next."* It is built.
+
+    faces        what the subject must be UP AGAINST     25 abilities + 29 moves   (was already built)
+    thenWhat     what must happen AFTERWARDS             23 keys + 7 volatiles + 1 berry fixture
+    tags         entities the artifact stated NOTHING about   30 abilities + 5 moves -> 0
+
+**THE ORDER WAS FORCED AND IT IS THE LESSON.** `faces` and `thenWhat` are both keyed on the TAG, which
+is what makes them cheap to extend — and it is exactly why they could not be extended to the thirty
+abilities and five moves whose record read `untagged` with `params: {}`. **A scenario cannot be
+derived from nothing.** So the tags came first, the tables second, and the engine defects third.
+
+### THE TWO PREDICATES THAT OVER-MATCHED, PRINTED BEFORE THEY WERE WIRED
+
+`announcesOnEntry` caught **20** on its first draft — Mold Breaker, Pressure, Unnerve, Supreme
+Overlord and the four Ruin abilities all announce on entry and then do their work through a second
+handler. Narrowed to "`onStart` is the ability's ONLY handler": **3**, and all three are already
+owner-deferred for precisely that reason.
+
+The draft `boostsOnFoeFaint` caught Eelevate and Beast Boost, **which already carry `boostsOnKO`**.
+Two tags for one mechanic is the FACTS-ARE-GLOBAL rule broken inside the artifact itself. The existing
+rule was widened instead — and that widening WAS the Moxie bug: it required `getBestStat`, which is
+Beast Boost's implementation rather than the mechanic. **103 sheet fields went live with no engine
+change at all.**
+
+### THE FORME-CHANGE ASSERT MODE IS STILL OWED, AND SO IS THE ROSTER WIRING
+
+Two things this pass did NOT do, stated so nobody reads the census movement as coverage movement:
+
+1. **The absolute-assertion mode for the 37 abilities with no control body is not built.** The
+   membership is now derivable — `refusesCopy` carries Showdown's own `notrace`/`noentrain`/
+   `noreceiver`/`failroleplay`/`failskillswap`/`cantsuppress` flags off each ability, printed at 34 —
+   so the class no longer has to be invented, but the three-part assertion (the forme changed, the
+   stats are the new forme's, **the body's own SP spread survived**) has no harness yet.
+2. **`tests/roster.js` does not read `faces` or `thenWhat`.** `all_mechanics_fire.js` does. The roster
+   is the instrument behind the gate's `94 TESTED of 202 IN SCOPE`, so **that ratio has not moved and
+   must not be quoted as though it had.**
+
+### ONE BASELINE I MOVED, SAID OUT LOUD BECAUSE MOVING A BASELINE IS A JUDGEMENT
+
+`tests/test-docs-current.js` went RED at clause 3b(b) while this entry was being written, and I ran
+`--update`. **It adopted exactly ONE entry and I did not write the prose it points at:**
+
+    known.citation_mismatches  ADDED  docs/MEDICHAM-SPRINT-NOTES.md|317|data/policy-weights.json
+
+That is the figure **317** in this file’s existing paragraph about `engine/status.js`’s feature-semantics
+failure (*“318 species -> 317”*) — a SPECIES COUNT quoted from a status message, sitting near a mention
+of `data/policy-weights.json`, which of course does not contain it. It is a false citation match on
+prose rather than a figure anybody sourced from that artifact. **Nothing else in the baseline moved**
+(diffed field by field; only `generated` and that one string). Recorded here rather than left in a
+JSON diff, because “the gate went green after somebody re-stamped it” is the shape this project has
+already been bitten by.
+
+### WHAT THE NEW FIXTURES EXPOSED
+
+Five engine defects, every one of them pre-existing and invisible until something could stage it:
+`piercesProtect` read by nothing (a name match plus a category test, wrong in both directions);
+Entrainment/Simple Beam/Worry Seed and Guard Split/Power Split/Speed Swap resolving to whole no-op
+turns; Trace SHOWDOWN-ONLY on 274 sheet fields. Census **437 → 444 live, 0 missing**; differential
+**0 of 20,000**; gate **OPEN, six of six**, against release `abe83bf4fd3b` cut from this tree.
+
+---
+
 ## THE GATE, at sprint start (release `13bda114d649` + the flat-heal cut)
 
 ```
@@ -3641,3 +3707,35 @@ that file — including the multi-hit loop an agent rewrote, from mainline, hour
 `slp` and `frz` were the three rows I hand-wrote into the million-game list, and all three were wrong —
 two of them twice, because my first correction was also from memory. The generator that reads the
 format already had Dire Claw at 30%.
+
+---
+
+## WILL IS REWORKING MAG'S WEIGHTS. DO NOT REFIT ON THE WAY PAST.
+
+**Will, 2026-08-11: *"IM PLANNING ON RE WORKING MAGS WEIGHTS SO JUST MAKE NOTE OF THAT WHEN THE TIME
+COMES."*** Recorded as an OWNER DECISION, not a pending task.
+
+`engine/status.js` opens with a FEATURE SEMANTICS CHECK FAILURE on `data/policy-weights.json`: the
+damage table the weights were fitted against was regenerated underneath them (**318 species -> 317,
+digest `405c836793d1` -> `1b66b563c229`**). The check's own advice is "measure what it touches, then
+refit (`fit_policy.js`, then `fit_joint.js`), or restamp".
+
+**Take neither branch.** A refit run now would be thrown away, and a restamp would silently assert the
+old fit is still valid — which is the worse of the two, because it makes the warning disappear without
+making it untrue.
+
+Three things that must be true BEFORE the rework, so it is done once:
+
+1. **The engine must have stopped.** Every weight is fitted through `board.js`, which sits directly
+   downstream of MEDICHAM. Refitting against a simulator still under repair buys a vector that expires
+   with the next wire. This is the same reason the 47 artifacts are re-RUNNABLE rather than current.
+2. **The corpus question is still open** — ROADMAP #26 (bo3 only; the change is in code and unrun) and
+   #79 (the 58 features were never designed, reconsidered on Will's invitation). Both land inside the
+   rework rather than beside it.
+3. **The fitting environment must match the playing environment.** CLAUDE.md's own entry: MAG was
+   fitted with the sheet visible and played without it. Whatever is true at fit time has to be true at
+   play time, and that is a decision to make deliberately this round.
+
+Until then the failing check STAYS FAILING and stays reported. It is not a known failure and it is not
+filed — it is a red gate with a named owner and a stated reason, which is the only third state
+CLAUDE.md allows.

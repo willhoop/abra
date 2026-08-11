@@ -527,8 +527,8 @@ The harness no longer uses Protect for this. It uses any move that the Pokémon 
 that does not block. If no such move exists, the test is not built, and the reason is recorded. A
 check stops the run if a Pokémon is given a Protect for this purpose.
 
-From `data/interaction-matrix.json`: 1,643 of the 2,300 tests can occur, and the matrix agrees with
-the official engine on 1,624 of these. The artifact also records 53 more disagreements in buckets the
+From `data/interaction-matrix.json`: 1,593 of the 2,281 tests can occur, and the matrix agrees with
+the official engine on 1,588 of these. The artifact also records 53 more disagreements in buckets the
 gate discards. These are real. Read `off_gate` and `off_gate_rows`, not the agreement rate alone.
 
 Many tests that showed no result now show one. The count of these is in `CHANGELOG.md`. Three new

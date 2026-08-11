@@ -878,11 +878,42 @@ const GAUNTLET_ACTOR_MOVES = ['Facade', 'Endure', 'Rest', 'Substitute'];
  * than defined here because THIS FILE RUNS ON REQUIRE: a probe that merely wanted to read the table
  * kicked off a whole sweep the first time I tried it. A table is data and must be importable without
  * starting an instrument. */
-const { FACES, facesFor } = require('./faces.js');
+const { FACES, facesFor, thenWhatFor } = require('./faces.js');
 
-function gauntletScript(bodies, beats, faces) {
+/* ROADMAP #158 -- `thenWhat`, AND IT IS COUNTED BECAUSE A CAPABILITY THAT CANNOT PROVE IT RAN IS
+ * ASSUMED BROKEN. `THEN_WHAT_SEEN` counts the rows that were handed a CONSEQUENCE and the turns those
+ * consequences actually added; a zero on either after a run over the abilities means the whole table
+ * is unread and the rows are inert for the reason they were already inert for.
+ *
+ * `unstageable` is the honest third column: `announcesOnEntry` declares `stage: null` on purpose --
+ * Anticipation, Forewarn and Frisk emit a MESSAGE and move no state, so no turn can make them visible
+ * to a board comparator. That is a DECLARED gap, which is a different thing from a gap. */
+const THEN_WHAT_SEEN = { rows: 0, turnsAdded: 0, unstageable: 0, verbsUnknown: 0, verbsUnknownFirst: '' };
+
+function gauntletScript(bodies, beats, faces, thenWhat) {
   const { actor, ally, receiver, foeAlly } = bodies;
   const F_ = faces || {};
+  /* THE CONSEQUENCE'S EXECUTABLE HALF. `thenWhatFor` returns prose for a human AND a `stage` verb per
+   * key for a harness; the prose is what makes an inert row readable, the verbs are what make it stop
+   * being inert. They are merged into ONE object here, so a subject carrying several consequence keys
+   * gets all of their turns rather than the first one that matched. */
+  const TW = {};
+  if (thenWhat) {
+    THEN_WHAT_SEEN.rows++;
+    for (const s of (thenWhat.stages || [])) {
+      if (!s) { THEN_WHAT_SEEN.unstageable++; continue; }
+      for (const k of Object.keys(s)) {
+        if (!KNOWN_STAGE_VERBS.has(k)) {
+          /* LOUD. A verb the table names and this file cannot execute would otherwise stage nothing
+           * and look exactly like a consequence that did not help. */
+          THEN_WHAT_SEEN.verbsUnknown++;
+          if (!THEN_WHAT_SEEN.verbsUnknownFirst) THEN_WHAT_SEEN.verbsUnknownFirst = k;
+          continue;
+        }
+        if (TW[k] === undefined) TW[k] = s[k];
+      }
+    }
+  }
   /* THE ADVERSARY'S CLICKS COME FIRST IN THE PREFERENCE LIST, NOT INSTEAD OF THE OLD ONES.
    * `clickOf` walks the list and takes the first move the body actually has, so a stated adversary is
    * used WHEN THE CARRIER CAN LEARN IT and the bare gauntlet is the fallback otherwise. That matters:
@@ -938,8 +969,62 @@ function gauntletScript(bodies, beats, faces) {
   /* THE SWITCH IS THE LAST TURN AND IT IS AN ASK, not a hope: `{sw}` names the bench body by the
    * same `_switchKey` both engines stamp, so a switch-out trigger has an actual switch to fire on. */
   turns.push({ p1: [{ sw: id(bodies.benchKey) }, A], p2: [{ m: inert }, F] });
+  /* ---- ROADMAP #158 -- THE CONSEQUENCE TURNS, AFTER THE GAUNTLET RATHER THAN INSIDE IT ------------
+   *
+   * A `faces` entry changes what happens ON the beating turns; a `thenWhat` entry adds turns AFTER
+   * the state has been set, and that ordering is the whole distinction between the two tables. They
+   * are appended here, past the switch, because the switch is itself one of the states a consequence
+   * may need to read (Fairy Lock refuses the NEXT one) and because a consequence inserted earlier
+   * would change the board every existing row is measured on.
+   *
+   * EVERY VERB IS EXECUTED THROUGH `clickOf`, so a body that cannot learn the named move degrades to
+   * the bare click instead of throwing — the same rule the adversary table already follows. */
+  const before = turns.length;
+  if (TW.boostFirst) {
+    /* Haze resets stat stages. On a board where nothing boosted it resets nothing, which is a fixture
+     * measuring its own emptiness. The boost goes FIRST, so it is on the board when the click lands. */
+    turns.unshift({ p1: [{ m: clickOf(actor, ['Swords Dance', 'Nasty Plot', 'Agility']), t: 0 }, A],
+                    p2: [{ m: inert }, F] });
+  }
+  if (TW.screensFirst) {
+    for (const sc of TW.screensFirst)
+      turns.unshift({ p1: [{ m: clickOf(actor, [sc, 'Protect']) }, A], p2: [{ m: inert }, F] });
+  }
+  if (TW.warmup) turns.unshift({ p1: [{ m: hit, t: 0 }, A], p2: [{ m: phys, t: 0 }, F] });
+  if (TW.foeClicksAfter)
+    turns.push({ p1: [{ m: clickOf(actor, ['Protect', 'Endure']) }, A],
+                 p2: [{ m: clickOf(receiver, [].concat(TW.foeClicksAfter, ['Aqua Tail'])), t: 0 }, F] });
+  if (TW.subjectClicksAfter)
+    turns.push({ p1: [{ m: clickOf(actor, [].concat(TW.subjectClicksAfter, ['Facade'])), t: 0 }, A],
+                 p2: [{ m: inert }, F] });
+  if (TW.attacksAfter === 'both' || TW.attacksAfter === 'subject')
+    turns.push({ p1: [{ m: hit, t: 0 }, A],
+                 p2: [{ m: TW.attacksAfter === 'both' ? phys : inert, t: 0 }, F] });
+  if (TW.bothCategories)
+    /* Wonder Room exchanges Defence and Sp. Def, so ONE category cannot tell a swap from a flat drop:
+     * the two must move in OPPOSITE directions and both have to be thrown. */
+    turns.push({ p1: [{ m: clickOf(actor, ['Round', 'Hydro Pump', 'Facade']), t: 0 }, A],
+                 p2: [{ m: spec, t: 0 }, F] });
+  if (TW.allyAttacksAfter)
+    /* Helping Hand multiplies a move that has not been clicked yet — 5,014 uses, the most-clicked
+     * move anywhere in this table, and a no-op on its own turn. */
+    turns.push({ p1: [{ m: clickOf(actor, ['Protect', 'Endure']) },
+                      { m: clickOf(ally, ['Facade', 'Body Slam', 'Round']), t: 0 }],
+                 p2: [{ m: inert }, F] });
+  if (TW.switchAfter)
+    turns.push({ p1: [{ sw: id(bodies.benchKey) }, A], p2: [{ m: inert }, F] });
+  for (let k = 0; k < (+TW.extraTurns || 0); k++)
+    turns.push({ p1: [{ m: clickOf(actor, ['Protect', 'Endure']) }, A], p2: [{ m: inert }, F] });
+  THEN_WHAT_SEEN.turnsAdded += turns.length - before;
   return turns;
 }
+/* THE VERBS THIS FILE CAN EXECUTE. Anything the table names that is not here is COUNTED rather than
+ * ignored — see `THEN_WHAT_SEEN.verbsUnknown`. `itemsOnBoth` and `allyAbility` are deliberately in
+ * the set and handled OUTSIDE this function, because they are properties of how a body was BUILT
+ * rather than turns to play; `runAbilities` reads them off the same object when it builds the pair. */
+const KNOWN_STAGE_VERBS = new Set(['boostFirst', 'screensFirst', 'warmup', 'foeClicksAfter',
+  'subjectClicksAfter', 'attacksAfter', 'bothCategories', 'allyAttacksAfter', 'switchAfter',
+  'extraTurns', 'itemsOnBoth', 'allyAbility', 'asleep', 'countsPP', 'koTheHolder', 'alliesFaint']);
 /* THE TWO RUNGS EVERY ABILITY AND ITEM ROW IS TRIED ON. Rung 1 is the safe board — nothing faints, so
  * no forced switch can manufacture a divergence. Rung 2 is the REAL pool and a longer beating, which
  * is the only board a fractional threshold can be crossed on; it can end in a faint, and that is the
@@ -948,13 +1033,13 @@ const AB_RUNGS = [
   { id: 'safe-pool', hpBoost: HP_BOOST, beats: 1 },
   { id: 'real-pool', hpBoost: 1, beats: 3 },
 ];
-function abLadder(kind, key, name, carrier, control, mkOn, mkOff, receiver, faces) {
+function abLadder(kind, key, name, carrier, control, mkOn, mkOff, receiver, faces, thenWhat) {
   let best = null;
   for (const rung of AB_RUNGS) {
     const onB = stageBodies(mkOn(), receiver), offB = stageBodies(mkOff(), receiver);
-    const on = playScenario(Object.assign({ script: gauntletScript(onB, rung.beats, faces), hpBoost: rung.hpBoost,
+    const on = playScenario(Object.assign({ script: gauntletScript(onB, rung.beats, faces, thenWhat), hpBoost: rung.hpBoost,
                                             tag: kind + '/' + key + '/on/' + rung.id }, onB));
-    const off = playScenario(Object.assign({ script: gauntletScript(offB, rung.beats, faces), hpBoost: rung.hpBoost,
+    const off = playScenario(Object.assign({ script: gauntletScript(offB, rung.beats, faces, thenWhat), hpBoost: rung.hpBoost,
                                              tag: kind + '/' + key + '/off/' + rung.id }, offB));
     const row = abRow(kind, key, name, carrier, control, on, off);
     row.rung = rung.id;
@@ -983,12 +1068,25 @@ function runAbilities(list) {
       continue;
     }
     const mkActor = (which) => bodyOf(c, which, '', GAUNTLET_ACTOR_MOVES);
+    /* ROADMAP #158 -- the same body WITH the consequence's required item. The item is IDENTICAL in
+     * both arms, so the A/B still differs in the ability and in nothing else. */
+    const mkActorI = (which, item) => bodyOf(c, which, item || '', GAUNTLET_ACTOR_MOVES);
     /* THE RECEIVER IS BUILT TO CARRY WHAT THIS ABILITY MUST FACE (engine/faces.js). Feraligatr
      * remains the body — it has no immunity and so blocks nothing by accident — but its MOVES are
      * chosen for the tag under test. A fixed four-move set is why 63 abilities produced a board
      * identical to not having them: Levitate never saw Ground, Shield Dust never saw a secondary. */
     const faces = facesFor((TAGS.abilities[ab] || {}).tags || []);
-    const receiver = bodyOf(RECEIVER.species, RECEIVER.ability, RECEIVER.item,
+    /* ROADMAP #158 -- AND WHAT MUST HAPPEN AFTERWARDS. Read off the SAME tag record as the adversary,
+     * so an ability needing both gets both. `thenWhatFor` also resolves the VOLATILE keys out of the
+     * entity's own `statusInflict` params, which is how rows whose only tag is `statusInflict` get a
+     * consequence without anybody writing a move name down. */
+    const _ar = TAGS.abilities[ab] || {};
+    const tw = thenWhatFor(_ar.tags || [], _ar.params || {});
+    /* `itemsOnBoth` IS A PROPERTY OF THE BUILD, NOT A TURN, so it is applied where the bodies are made
+     * rather than in the script. Klutz, Magician, Pickpocket and Symbiosis are inert on an
+     * empty-handed board and no number of turns fixes that. */
+    const twItem = (tw && (tw.stages || []).map(x => x && x.itemsOnBoth).find(Boolean)) || '';
+    const receiver = bodyOf(RECEIVER.species, RECEIVER.ability, twItem || RECEIVER.item,
                             [].concat((faces && faces.recv) || [], RECEIVER_MOVES));
     const a1 = mkActor(da.name), a2 = mkActor(ctrl);
     if (!a1 || !a2 || !receiver) {
@@ -1006,11 +1104,15 @@ function runAbilities(list) {
       continue;
     }
     const row = abLadder('ability', ab, da.name, c, ctrl,
-                         () => mkActor(da.name), () => mkActor(ctrl), receiver, faces);
+                         () => mkActorI(da.name, twItem), () => mkActorI(ctrl, twItem), receiver, faces, tw);
     /* WHAT THE ROW WAS MADE TO FACE IS RECORDED ON IT. An inert verdict is only readable if the
      * reader can see what the subject was up against — otherwise 'nothing happened' cannot be told
      * apart from 'nothing was tried'. */
     if (row && faces) { row.faced = faces.recv; row.faced_why = faces.why; }
+    /* WHAT THE ROW WAS MADE TO DO NEXT, recorded beside what it was made to face, for the same
+     * reason: an inert verdict is only readable if the reader can see what was tried. */
+    if (row && tw) { row.then_what = tw.why; row.then_what_needs = tw.needs;
+                     row.then_what_after = tw.after; row.then_what_item = twItem || null; }
     rows.push(row);
   }
   /* THE CONTROL ARM IS ITSELF AN ABILITY, AND WHEN IT IS A LIVE ONE THE PAIR CANNOT SAY WHICH OF THE
@@ -1346,6 +1448,28 @@ if (KIND === 'abilities' || KIND === 'all') {
     control_not_quiet: rows.filter(r => r.control_not_quiet).length,
     diverged: rows.filter(r => r.diverged).length, seconds: +((Date.now() - t0) / 1000).toFixed(1) };
   console.log('    ' + JSON.stringify(report.summary.abilities));
+  /* ROADMAP #158 -- THE CONSEQUENCE LAYER'S OWN RECEIPT. A capability that cannot prove it ran is
+   * assumed broken, and this one is silent by construction: a `thenWhat` that reached nothing looks
+   * exactly like the inert row it was written to fix. `rows` is how many entities were handed a
+   * consequence, `turnsAdded` is how many turns those consequences actually put on the board, and a
+   * ZERO on either means the table is unread. `verbsUnknown` is the loud half of the fallback.
+   * `unstageable` is the DECLARED gap — `announcesOnEntry` sets `stage: null` because a message
+   * cannot be made visible to a board comparator by any number of turns. */
+  report.summary.then_what = Object.assign({}, THEN_WHAT_SEEN);
+  report.summary.then_what_rows_with_a_consequence = rows.filter(r => r.then_what).length;
+  console.log('    THEN-WHAT (ROADMAP #158): ' + JSON.stringify(report.summary.then_what)
+            + '   rows carrying a consequence: ' + report.summary.then_what_rows_with_a_consequence);
+  if (!THEN_WHAT_SEEN.rows || !THEN_WHAT_SEEN.turnsAdded) {
+    console.log('    THE CONSEQUENCE LAYER ADDED NOTHING. Either no entity in this population carries a '
+              + '`thenWhat` key, or the table is not being read. A zero here is not a pass.');
+    process.exitCode = 1;
+  }
+  if (THEN_WHAT_SEEN.verbsUnknown) {
+    console.log('    ' + THEN_WHAT_SEEN.verbsUnknown + ' stage verb(s) the table names and this file '
+              + 'cannot execute (first: ' + THEN_WHAT_SEEN.verbsUnknownFirst + '). Those rows staged '
+              + 'NOTHING for that key, which is indistinguishable from a consequence that did not help.');
+    process.exitCode = 1;
+  }
   const so = rows.filter(r => r.verdict === 'SHOWDOWN-ONLY');
   console.log('    SHOWDOWN-ONLY — the authority\'s game moved and ours did not. Each is a candidate ENGINE GAP:');
   for (const r of so) console.log('      ' + r.id.padEnd(18) + ' carrier ' + String(r.carrier).padEnd(15)

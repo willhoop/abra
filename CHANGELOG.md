@@ -10,6 +10,83 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.3.0] — 2026-08-11
+
+### Added
+- **`engine/open_work.js` — what is open, PRINTED, never typed.** Will: *"i feel like we already talked
+  about and fixed most of these."* He was right. I had just read out ~30 open defects: **eight had been
+  closed for days and four had never had a register row at all.** It was the SECOND stale list I quoted
+  inside an hour — the first was `data/interaction-matrix.json`, **4.3 days and 52 simulator commits
+  old**, whose "19 disagreements" are really 5. Neither was carelessness: **nothing in this repo printed
+  the open work.** `quarantine.js` computes a GATE — "is there an open row that ASSERTS BREAKAGE?" —
+  narrow on purpose because an over-firing gate is the one people learn to ignore (#148). It is correct,
+  it is not a work list, and #80/#84/#59/#60 are all open without tripping it. So the only list that
+  existed was one somebody typed. The new tool prints all 127 register rows by status, every defect a
+  live instrument is measuring with **no register row behind it**, and the AGE of every artifact it
+  reads. Its closed-detector is **imported** from `quarantine.js`, not copied, so the gate and the work
+  list can never disagree.
+- **`tests/test-target-provenance.js` and a required `from` on every million-game target.** Will, after
+  the fifth memory-typed value in one evening: *"stop typing from memory make that a rule."* A rule that
+  is prose is a preference — this file says so three separate times and was right each time. `add()` now
+  THROWS without `from`; the gate FAILS on any `HAND` value, on a citation naming a file that does not
+  exist, and on one claim published with two numbers. **205 DERIVED, 28 READ, 0 HAND.** Shown red on a
+  deliberate break before being trusted.
+- **`docs/_outbox/assert-mode-spec.md`** — Will's fixture designs for the 14 abilities with no control
+  arm, the one thing I had said I could not do.
+
+### Fixed
+- **Deriving instead of typing found four more wrong values in the target list.** **Healer 30% → 50%**
+  (`randomChance(1,2)`; 30 is mainline's and I typed it). **Sheer Cold 30% → 20% for a non-Ice user** —
+  `battle-actions.ts:701` overrides it and the row claimed a flat 30 for every OHKO move. **Effect Spore
+  is 11/10/9, not a flat 30** — a `this.random(100)` threshold ladder, so sleep is deliberately likeliest.
+  **Confusion was the sleep error a second time**: `random(2,6)` seeds a counter of 2-5 and `onBeforeMove`
+  DECREMENTS BEFORE ROLLING, so the observable is **1-4 attempted moves at risk**. Will caught that shape
+  on sleep; I had shipped it one row down. The twelve proc rates are now READ OUT OF THE HANDLER SOURCE —
+  `randomChance(a,b)`, `random(100)` ladders and pushed `{chance}` secondaries — so the mod re-rolling any
+  of them tomorrow is followed without an edit.
+- **An OHKO move's `accuracy` field is a lie and the generator was publishing it.** Sheer Cold appeared at
+  30% in the accuracy family AND 20% in the ohko family — one subject, two numbers for the run to chase.
+- **THE ILLUSION CLOSET, DECLARED (ROADMAP #160).** Will: *"if there is a zoroark in the game lets just
+  set those games aside"*, then *"at some point we are going to have to have zoroark in our engine."*
+  Zoroark enters disguised as the last living body on its bench and **the protocol names the DISGUISE,
+  not the mover**, so every click it makes is filed against a Pokémon that never moved — manufacturing
+  false set evidence for the impersonated body and hiding the real one. Measured: 386/12,314 bo3 raw
+  (3.13%), 1,731/52,840 ladder (3.28%), **384 games out of the clean fit corpus (8,543 → 8,159)**. The
+  rejection is COUNTED and NAMED beside `partial_bring`, because a filter that cannot say how much it
+  removed is indistinguishable from one that is not running. `ILLUSION_IN=1` re-admits them for the refit.
+
+### Notes
+- **MEASURED: the interaction matrix's shrink is a FIXTURE REGRESSION, not a reclassification.** My
+  hypothesis — "the 29 new tag rules re-sorted them" — was wrong. Live 1,643 → 1,593; **80 pairs went
+  LIVE → INERT and 44 came back**, and **57 of the 80 have a protect-family reactor** (Spiky Shield 16,
+  Baneful Bunker 16, King's Shield 13, Beak Blast 12) against contact moves. INERT means *the reference
+  engine behaves identically with and without the reactor* — which for Spiky Shield versus a contact move
+  is never true. **The harness has stopped exercising 57 pairs and reports agreement for them.**
+- **The five live matrix disagreements, registered as #161** so they stop being invisible: `throatchop`
+  and `psychicnoise` into Shield Dust, `instruct -> goodasgold`, `rockwrecker -> bulletproof`,
+  `psyshieldbash -> aftermath`. Fourteen of the old nineteen closed days ago, including Fake Out at
+  13,292 uses (`bbd4cd5`).
+- **Throat Chop diagnosed**: its volatile lives in `secondary.onHit`, not `volatileStatus`, so it never
+  enters the loop the Shield Dust gate sits on — which is why #139's wire closed Salt Cure, Psychic Noise
+  and Syrup Bomb and missed it. **A derivation that reads declared fields is blind to behaviour expressed
+  as code** — the same reason `scripts.ts`'s eleven overrides are still UNVERIFIED.
+- **One of those eleven is now verified**: Champions copies the multi-hit sampler verbatim
+  (`scripts.ts:441` = `battle-actions.ts:869`), so the 35/35/15/15 hit-count distribution is confirmed
+  identical rather than assumed.
+- **Three of the six form-change abilities would PASS A BROKEN ENGINE under "did the stats change".**
+  Morpeko and Morpeko-Hangry are both `58/95/58/70/58/97`; all four Castform formes are `70/70/70/70/70/70`;
+  Stunfisk-Galar has no forme at all. Their observable is the TYPE — Aura Wheel flipping Electric/Dark,
+  Castform's Normal/Fire/Water/Ice, Mimicry's four terrains (Misty gives **Fairy**). And Forecast is FIVE
+  states, not three: sand and expiring weather both fall to the `default` revert branch.
+- **Anger Shell has ZERO legal carriers in Reg M-B**; Berserk has two (Drampa, Drampa-Mega, 56 sheet teams).
+  Champions drops the Sheer Force clause from both `onDamage` guards while `afterMoveSecondaryEvent` keeps
+  its Sheer Force skip — so a Sheer Force hit on a Berserk holder leaves the held berry stuck.
+- **`#26` OWNED BY WILL 2026-08-11** — he is reworking MAG's weights himself. The feature-semantics check
+  on `data/policy-weights.json` stays RED until then (damage table regenerated under the fit, 318 → 317
+  species). Not filed, not restamped: a restamp would make the warning vanish without making it untrue.
+
+---
+
 ## [5.2.0] — 2026-08-10
 
 ### Added

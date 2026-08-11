@@ -2412,6 +2412,244 @@ probe('move', 'ignoresProtect', 'Feint goes through Quick Guard; a flagged prior
                  + `the ${feintOpen} it deals with no guard up at all)` };
 });
 
+/* ROADMAP #159 -- TRACE, 274 SHEET FIELDS, AND IT DID NOTHING AT ALL UNTIL 2026-08-11.
+ *
+ * It was invisible for TWO reasons at once and both had to go first. `data/tags.json` said `untagged`
+ * with `params: {}`, so nothing in the engine could route on it; and the constructed-game fixture's
+ * receiver carried TORRENT, which is inert by construction there — so even a wired Trace would have
+ * copied an ability that does nothing and read as a pass. With `copiesFoeAbility` derived and the
+ * adversary table giving the row an OBSERVABLE ability to copy, the instrument reported it
+ * SHOWDOWN-ONLY: the authority's game moved and ours did not.
+ *
+ * THE PROBE ASSERTS THE COPIED ABILITY FIRING, NOT THE STRING. Reading `me.ability` back would pass on
+ * an engine that writes a name nothing consults. Intimidate is the arm that matters: after the copy,
+ * the FOE'S Attack must be at -1, which can only happen if the copied ability's own entry handler ran.
+ *
+ * AND THE REFUSAL IS THE SECOND ARM, because a Trace that copies EVERYTHING is as wrong as one that
+ * copies nothing. Showdown marks what may not be taken with a `notrace` flag on the ability itself —
+ * 34 of them in this format — and Illusion is one; the holder must still be Trace afterwards. */
+probe('ability', 'copiesFoeAbility', 'Trace copies a foe ability AND the copy fires; `notrace` refuses it', () => {
+  const lead = (ab, foeAb) => {
+    const me = bare('gardevoir'), ally = bare('corviknight');
+    const f1 = bare('incineroar'), f2 = bare('milotic');
+    me.ability = ab; f1.ability = foeAb; f2.ability = 'none';
+    /* NOT `seeded: true` — that skips the entry pass, which is the only moment Trace exists. */
+    M.battleInit([me, ally], [f1, f2], {});
+    return { holder: me.ability, foeAtk: f1.boosts.at, myAtk: me.boosts.at };
+  };
+  const c0 = M.seen.traceCopied;
+  const control = lead('none', 'intimidate');
+  const traced = lead('trace', 'intimidate');
+  const refused = lead('trace', 'illusion');
+  const plain = lead('trace', 'roughskin');
+  const c1 = M.seen.traceCopied;
+  return { works: control.holder === 'none' && control.foeAtk === 0 && control.myAtk === -1
+                  && traced.holder === 'intimidate' && traced.foeAtk === -1
+                  && refused.holder === 'trace' && refused.foeAtk === 0
+                  && plain.holder === 'roughskin' && c1 > c0,
+           arms: { control: control.holder + '/' + control.foeAtk, test: traced.holder + '/' + traced.foeAtk },
+           detail: '[the holder\'s ability, the FOE\'s Attack stage] on the lead turn — no ability "'
+                 + control.holder + '",' + control.foeAtk + ' (the foe must be at 0: nothing dropped '
+                 + 'it, and my own -' + Math.abs(control.myAtk) + ' proves its Intimidate is live); '
+                 + 'TRACE "' + traced.holder + '",' + traced.foeAtk + ' (the copy must be "intimidate" '
+                 + 'AND the foe must be at -1, which only happens if the COPIED ability\'s own entry '
+                 + 'handler ran); TRACE into ILLUSION (carries Showdown\'s `notrace` flag) "'
+                 + refused.holder + '",' + refused.foeAtk + ' (must still be trace); TRACE into Rough '
+                 + 'Skin "' + plain.holder + '". traceCopied ' + c0 + ' -> ' + c1 };
+});
+
+/* ROADMAP #157 -- THREE MOVES THAT SPENT THE TURN AND DID NOTHING, 939 STORED CLICKS.
+ *
+ * Entrainment (342), Simple Beam (380) and Worry Seed (217) carried `[pp, moveClass, statusCategory]`
+ * — a PP count, a reflectable flag and a category. Not one of those describes an EFFECT, so
+ * `playerAction` fell through every branch in the file and returned `{kind:'pass'}`. The click was
+ * legal, the turn was spent, and nothing happened.
+ *
+ * THE PROBE ASSERTS THE CONSEQUENCE, NOT THE FIELD. Reading `f1.ability` back would pass on an engine
+ * that writes a string nothing downstream consults — which is precisely how a mechanic comes to look
+ * wired while being inert. Worry Seed writes INSOMNIA, so the test is that the target then REFUSES
+ * SLEEP; the control is the same Spore into the same body with no Worry Seed thrown, which must land.
+ *
+ * AND THE THIRD ARM IS THE ONE THAT SEPARATES THIS FROM SKILL SWAP. These moves OVERWRITE the target
+ * and leave the USER alone; an implementation that reused the swap branch would strip the user's
+ * ability every time. So the user's ability is read on both arms and must not move. */
+probe('move', 'rewritesTargetAbility', 'Worry Seed / Simple Beam / Entrainment overwrite the TARGET only', () => {
+  const write = (mv) => {
+    const { me, ally, f1, f2, S } = board('gardevoir', 'corviknight', 'garchomp', 'milotic');
+    me.ability = 'trace'; f1.ability = 'roughskin';
+    if (mv) M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    /* the CONSEQUENCE: a sleep move at the rewritten body. Insomnia must refuse it. */
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'spore', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { target: f1.ability, user: me.ability, slept: f1.status === 'slp' };
+  };
+  const none = write(null), worry = write('worryseed');
+  const simple = write('simplebeam'), entrain = write('entrainment');
+  return { works: none.target === 'roughskin' && none.slept === true
+                  && worry.target === 'insomnia' && worry.slept === false && worry.user === 'trace'
+                  && simple.target === 'simple' && simple.user === 'trace'
+                  && entrain.target === 'trace' && entrain.user === 'trace',
+           arms: { control: none.slept, test: worry.slept },
+           detail: 'the target\'s ability then a Spore at it — NO click "' + none.target + '", slept '
+                 + none.slept + ' (must be true, or the consequence proves nothing); WORRY SEED "'
+                 + worry.target + '", slept ' + worry.slept + ' (must be false — Insomnia refuses it);'
+                 + ' SIMPLE BEAM "' + simple.target + '"; ENTRAINMENT "' + entrain.target
+                 + '" (the user\'s own). The USER\'s ability across all three: ' + worry.user + '/'
+                 + simple.user + '/' + entrain.user + ' — it must stay "trace", which is what '
+                 + 'separates these from Skill Swap' };
+});
+
+/* ROADMAP #157 -- AND THE STORED-STAT REWIRERS, the same hole. Guard Split, Power Split and Speed
+ * Swap read `[pp, neverMisses, statusCategory]` and also resolved to a whole no-op turn.
+ *
+ * THEY MOVE `storedStats`, NOT A STAT STAGE, which is why no board comparator would have caught it
+ * either: `boosts` is untouched on both arms. The consequence therefore has to be read off something
+ * that CONSUMES a stat — the turn ORDER for Speed Swap, and a damage number for Guard Split — and
+ * both directions are asserted, because an average moves one body up and the other DOWN. */
+probe('move', 'rewritesStoredStats', 'Speed Swap exchanges Speed and Guard Split averages Defence', () => {
+  const spe = (mv) => {
+    const { me, ally, f1, f2, S } = board('gardevoir', 'corviknight', 'garchomp', 'milotic');
+    const before = [me.st.sp, f1.st.sp];
+    if (mv) M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { before, after: [me.st.sp, f1.st.sp], boosts: me.boosts.sp + f1.boosts.sp };
+  };
+  const def = (mv) => {
+    const { me, ally, f1, f2, S } = board('gardevoir', 'corviknight', 'garchomp', 'milotic');
+    const before = [me.st.df, f1.st.df];
+    if (mv) M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { before, after: [me.st.df, f1.st.df] };
+  };
+  const none = spe(null), swap = spe('speedswap'), split = def('guardsplit'), dnone = def(null);
+  const exchanged = swap.after[0] === swap.before[1] && swap.after[1] === swap.before[0]
+                    && swap.before[0] !== swap.before[1];
+  const averaged = split.after[0] === split.after[1]
+                   && split.after[0] === Math.floor((split.before[0] + split.before[1]) / 2)
+                   && split.before[0] !== split.before[1];
+  return { works: none.after[0] === none.before[0] && none.after[1] === none.before[1]
+                  && dnone.after[0] === dnone.before[0] && exchanged && averaged
+                  && swap.boosts === 0,
+           arms: { control: none.after.join('/'), test: swap.after.join('/') },
+           detail: 'Speed before/after — NO click ' + none.before.join(',') + ' -> ' + none.after.join(',')
+                 + ' (must not move); SPEED SWAP ' + swap.before.join(',') + ' -> ' + swap.after.join(',')
+                 + ' (must be EXCHANGED, and the stat STAGES must still read ' + swap.boosts
+                 + ' = 0, because this is not a boost). Defence — no click ' + dnone.before.join(',')
+                 + ' -> ' + dnone.after.join(',') + '; GUARD SPLIT ' + split.before.join(',') + ' -> '
+                 + split.after.join(',') + ' (must both be the floor of the mean)' };
+});
+
+/* AND BOTH CAPABILITIES MUST PROVE THEY RAN. Each used to be `{kind:'pass'}`, which is the exact
+ * shape of "a capability was absent and everything reported success" — the turn was legal, the game
+ * continued, and no counter anywhere moved. */
+probe('move', 'rewritesStoredStats', 'the two WIRE 159 counters are non-zero', () => {
+  const c0 = { a: M.seen.abilityRewritten, s: M.seen.statRewired };
+  for (const mv of ['worryseed', 'speedswap']) {
+    const { me, ally, f1, f2, S } = board('gardevoir', 'corviknight', 'garchomp', 'milotic');
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  }
+  const c1 = { a: M.seen.abilityRewritten, s: M.seen.statRewired };
+  return { works: c1.a > c0.a && c1.s > c0.s,
+           arms: { control: c0.a + '/' + c0.s, test: c1.a + '/' + c1.s },
+           detail: 'abilityRewritten ' + c0.a + ' -> ' + c1.a + ', statRewired ' + c0.s + ' -> ' + c1.s
+                 + ' over one Worry Seed and one Speed Swap (both must rise; a zero means the click is '
+                 + 'back to being a no-op turn)' };
+});
+
+/* ROADMAP #155 -- `piercesProtect` WAS DERIVED WITH CORRECT PARAMS AND READ BY NOTHING, and what
+ * stood in its place was a name match plus a CATEGORY test. Will's own fixture: *"HAVE THE PIERCING
+ * DRILL ATTACK MONS WHO ARE PROTECTING WITH CONTACT MOVES AND SEE WHAT HAPPENS"*.
+ *
+ * FOUR ARMS ON ONE BOARD, and the two that were RED are the two a one-armed probe misses. The whole
+ * point is that the knob is varied in BOTH directions — the carrier AND the move — because the old
+ * code was wrong in both and either arm alone would have read as a pass:
+ *
+ *   ability          move                  before   after   the authority
+ *   none             Close Combat (contact)     0       0    blocked          <- the control
+ *   Piercing Drill   Close Combat (contact)    20      20    pierces
+ *   Piercing Drill   Stone Edge (NO contact)    8       0    blocked          <- LEAKED
+ *   Unseen Fist      Close Combat (contact)     0      20    pierces          <- MISSED
+ *
+ * MEASURED IN A REAL CHAMPIONS BATTLE, not read off mainline — that is the error that kept this
+ * half-wired. `/data/abilities.ts` gives Unseen Fist an `onModifyMove` that deletes the `protect`
+ * flag at FULL damage; `/data/mods/champions/abilities.ts` overrides it with the SAME `onHitProtect`
+ * Piercing Drill has. One mechanism, one tag, and both entries already carried
+ * `{onlyMoveFlag:'contact', damageMult:0.25}`.
+ *
+ * THE GATE IS `flags.contact` AND NOT `category === 'Physical'`, which is why a special contact move
+ * is the fourth arm: Draining Kiss goes THROUGH in the authority's own log and a category test
+ * refuses it. Stone Edge is the mirror — physical, no contact, and it must be stopped. */
+probe('ability', 'piercesProtect', 'Piercing Drill AND Unseen Fist go through Protect on CONTACT only', () => {
+  const hit = (ab, mv) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'garchomp');
+    me.ability = ab;
+    unfaintable(f1);
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'protect', null, S.field)], [f2, { kind: 'pass' }]]));
+    return before - f1.curHP;
+  };
+  if (!MC.moves['closecombat'] || !MC.moves['stoneedge'] || !MC.moves['drainingkiss'])
+    return { works: false, detail: 'a fixture move is absent from MC.moves' };
+  const control   = hit('none', 'closecombat');            // must be 0 — the shield works at all
+  const pdContact = hit('piercingdrill', 'closecombat');   // must be > 0
+  const pdNone    = hit('piercingdrill', 'stoneedge');     // must be 0 — physical, NOT contact
+  const ufContact = hit('unseenfist', 'closecombat');      // must be > 0 — the missing half
+  const ufSpecial = hit('unseenfist', 'drainingkiss');     // must be > 0 — SPECIAL contact
+  /* AND THE QUARTER, asserted rather than assumed: the same click with no shield up must be about
+   * four times the pierced one. `modify(baseDamage, 0.25)` rounds at 4096, so this is a band. */
+  const open = (() => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'garchomp');
+    me.ability = 'unseenfist'; unfaintable(f1);
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'closecombat', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return before - f1.curHP;
+  })();
+  const quarterOk = open > 0 && ufContact > 0 && Math.abs(ufContact / open - 0.25) < 0.06;
+  return { works: control === 0 && pdContact > 0 && pdNone === 0 && ufContact > 0
+                  && ufSpecial > 0 && quarterOk,
+           arms: { control, test: ufContact },
+           detail: 'into one Protect — no ability + Close Combat ' + control + ' (must be 0); '
+                 + 'Piercing Drill + Close Combat ' + pdContact + ' (>0); '
+                 + 'Piercing Drill + Stone Edge (physical, NO contact) ' + pdNone + ' (must be 0); '
+                 + 'Unseen Fist + Close Combat ' + ufContact + ' (>0); '
+                 + 'Unseen Fist + Draining Kiss (SPECIAL contact) ' + ufSpecial + ' (>0); '
+                 + 'the same Close Combat with no shield deals ' + open + ', so the pierced hit is '
+                 + (open ? (ufContact / open).toFixed(3) : 'n/a') + ' of it (must be ~0.25)' };
+});
+
+/* AND THE CAPABILITY MUST PROVE IT RAN. `protectPierced` is the counter the wire emits at the one
+ * site that walks a raised shield; a zero here would mean the branch above never executed and the
+ * damage numbers came from somewhere else. `pierceFlagUnknown` is the loud half of the fallback — a
+ * non-zero says `onlyMoveFlag` named a flag no move carries and the pierce quietly applied to
+ * nothing, which is the silent default this project keeps paying for. */
+probe('ability', 'piercesProtect', 'the pierce counter is non-zero and the flag lookup never fell back', () => {
+  const c0 = M.seen ? M.seen.protectPierced : null;
+  const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'garchomp');
+  me.ability = 'piercingdrill'; unfaintable(f1);
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'closecombat', f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, 'protect', null, S.field)], [f2, { kind: 'pass' }]]));
+  const c1 = M.seen ? M.seen.protectPierced : null;
+  const unknown = M.fails ? M.fails.pierceFlagUnknown : null;
+  return { works: c0 !== null && c1 > c0 && unknown === 0,
+           arms: { control: c0, test: c1 },
+           detail: 'protectPierced ' + c0 + ' -> ' + c1 + ' across one pierced Protect; '
+                 + 'pierceFlagUnknown ' + unknown + ' (must be 0'
+                 + (M.fails && M.fails.pierceFlagUnknownFirst ? ', first ' + M.fails.pierceFlagUnknownFirst : '')
+                 + ')' };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THE OLD STAGING VARIED EVERYTHING. It fired
  * at a WHIMSICOTT and then at an ARCHALUDON -- different Defence, different types, different weight --
  * and asked only whether the two numbers differed, which they would have on an engine that read no
@@ -8026,6 +8264,58 @@ probe('ability', 'boostsOnKO', 'a KO raises the killer\'s highest stat by one', 
   return { works: off === 0 && on === 1,
            arms: { control: off, test: on },
            detail: `total stages after the KO -- ability none ${off}, Eelevate ${on} (+1 to its highest stat)` };
+});
+
+/* ROADMAP #156 -- MOXIE, 103 SHEET FIELDS, AND THE TAG RULE WAS THE WHOLE BUG. `boostsOnKO`'s
+ * predicate required the handler to call `getBestStat`, which is BEAST BOOST'S IMPLEMENTATION rather
+ * than the mechanic: Moxie, Chilling Neigh, Grim Neigh and As One hook the identical
+ * `onSourceAfterFaint` and boost a NAMED stat. So Moxie read `untagged` with `params: {}` while the
+ * engine's consumer, one wire over, had ALREADY been written to handle a named stat
+ * (`SD2ENG[_bk.stat]`, WIRE 104). Nothing in the engine changed for this row; widening the rule was
+ * the fix, and that is the shape of the whole ROADMAP #156 pass.
+ *
+ * THE STAT IS ASSERTED, NOT THE TOTAL. The Eelevate probe above sums every stage, which cannot tell
+ * Attack from Special Attack — and Grim Neigh, the same shape with `spa`, sits in the same tag. So
+ * this one reads the ATTACK stage specifically and asserts every other stage is still zero. The
+ * carrier is a Garchomp whose highest raw stat is ATTACK, so a `highest`-only engine would pass on
+ * the Attack arm alone; GRIM NEIGH is the third arm that separates them — same body, same KO, and
+ * the boost must land on Special Attack instead. */
+probe('ability', 'boostsOnKO', 'Moxie boosts the NAMED stat, and Grim Neigh a different one', () => {
+  const run = (ab) => {
+    const me = bare('garchomp'); me.ability = ab;
+    const ally = bare('corviknight');
+    const f1 = bare('weavile'), f2 = bare('milotic');
+    f1.curHP = 5;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'earthquake', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { at: me.boosts.at, sa: me.boosts.sa,
+             other: me.boosts.df + me.boosts.sd + me.boosts.sp };
+  };
+  /* A KO IS REQUIRED, so the control must be a turn in which the SAME body survives — otherwise
+   * "no boost" is satisfied by an engine that never scored the kill at all. */
+  const noKO = (() => {
+    const me = bare('garchomp'); me.ability = 'moxie';
+    const ally = bare('corviknight');
+    const f1 = bare('weavile'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'earthquake', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { fainted: f1.fainted, at: me.boosts.at };
+  })();
+  const off = run('none'), moxie = run('moxie'), grim = run('grimneigh');
+  return { works: off.at === 0 && off.sa === 0
+                  && moxie.at === 1 && moxie.sa === 0 && moxie.other === 0
+                  && grim.sa === 1 && grim.at === 0
+                  && noKO.fainted === false && noKO.at === 0,
+           arms: { control: off.at, test: moxie.at },
+           detail: '[atk stage, spa stage] after a KO -- no ability ' + off.at + ',' + off.sa
+                 + '; MOXIE ' + moxie.at + ',' + moxie.sa + ' (must be 1,0 and nothing else moved: '
+                 + moxie.other + '); GRIM NEIGH ' + grim.at + ',' + grim.sa
+                 + ' (must be 0,1 — the same shape, a different named stat, which is what a '
+                 + '"highest stat" engine cannot produce on this body); and Moxie on a turn with NO '
+                 + 'KO (the foe at full HP survived: ' + !noKO.fainted + ') raises ' + noKO.at
+                 + ' (must be 0 — the trigger is the KO, not the click)' };
 });
 
 /* WIRE 99 -- Mega Sol's private sun (Meganium's Champions mega; sheets read 0 by Lesson 3). */
