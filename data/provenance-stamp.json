@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 146,
+  "mtime_only": 148,
   "mtime_only_files": [
     "ab-batch-effect.json",
     "ability-blocks.json",
@@ -32,6 +32,7 @@
     "effective-identity-baseline.json",
     "engine-data.js",
     "engine-diff.json",
+    "engine-release.json",
     "eval-report.json",
     "exploitability-machamp.json",
     "exploitability-mag.json",
@@ -111,6 +112,7 @@
     "roster.abilities.pre-shape-rules.json",
     "roster.abilities.prev.json",
     "roster.all.json",
+    "roster.all.prev.json",
     "roster.items.json",
     "roster.items.prev.json",
     "roster.json",
@@ -190,6 +192,7 @@
     "effective-identity-baseline.json",
     "engine-data.js",
     "engine-diff.json",
+    "engine-release.json",
     "eval-report.json",
     "exploit-step-probe-reparam.json",
     "exploit-step-probe.json",
@@ -293,6 +296,7 @@
     "roster.abilities.pre-shape-rules.json",
     "roster.abilities.prev.json",
     "roster.all.json",
+    "roster.all.prev.json",
     "roster.items.json",
     "roster.items.prev.json",
     "roster.json",
@@ -341,7 +345,6 @@
     "artifact-accessors.json",
     "battle-formes.json",
     "conditional-audit.json",
-    "engine-release.json",
     "exploitability-holdout.json",
     "leaf-comparison.json",
     "meta-nash.json",
@@ -353,6 +356,7 @@
     "policy-weights-nopop.json",
     "policy-weights-pre-censoring.json",
     "policy-weights-presheet.json",
+    "quality-filter.json",
     "raw-log-census.json",
     "regulations.json",
     "replay-differential-bo3-freezes.json",
@@ -549,7 +553,27 @@
       "files": [
         "open-work.json"
       ]
+    },
+    {
+      "when": "2026-08-11T06:41:15.632Z",
+      "reason": "the writer scan learned to see tests/, computed output paths and artifact-declared writers; the artifact graph grew and these files became visible unstamped",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 181,
+      "graph_after": 182,
+      "files": [
+        "engine-release.json"
+      ]
+    },
+    {
+      "when": "2026-08-11T06:51:29.381Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 path template roster.<*>.prev.json",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 182,
+      "graph_after": 183,
+      "files": [
+        "roster.all.prev.json"
+      ]
     }
   ],
-  "generated": "2026-08-11T06:07:25.875Z"
+  "generated": "2026-08-11T07:11:42.086Z"
 }

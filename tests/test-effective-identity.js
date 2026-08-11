@@ -524,6 +524,17 @@ const DECLARED = {
     'A census of behavioural probes. 45 of its 48 matches are ASSIGNMENTS — a probe setting the '
     + 'ability it is about to test on a body it just built. The 3 reads are the two mega-ability '
     + 'probes reading back the field under test.',
+  'tests/test-tag-signature.js':
+    'ONE MATCH, AND IT IS AN ASSIGNMENT — the blanking line in the same `bare()` fixture '
+    + 'test-mechanics.js is declared for two entries up. (Written without the literal field name on '
+    + 'purpose: the scanner is a grep over source text, so quoting the line here would itself count '
+    + 'as a raw read and the declaration would inflate the number it declares.) This file never reads '
+    + 'that field back: it '
+    + 'resolves every move through playerAction on one fixed body and compares the resulting action '
+    + 'KIND, and the whole reason the body is blanked is so no ability can supply anything silently. '
+    + 'It also builds no mega and holds no stone, so there is no pre/post-mega value for effAbility '
+    + 'to resolve. Declared 2026-08-11 with the file (ROADMAP #162/#127) rather than left to grow the '
+    + 'undeclared count, which is what re-baselining would have laundered.',
   'tests/test-engine-diff.js':
     'CONTROL FIX 5 assigns the dex slot-0 ability onto BOTH engines so the input is held equal; '
     + 'every later read is of the value this file itself just wrote, and it is the effective one '

@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-11T06:00:23.706Z",
+  "generated": "2026-08-11T07:18:04.122Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 131,
-    "open": 93,
-    "closed": 38,
-    "open_asserting_breakage": 1,
+    "register_rows": 148,
+    "open": 103,
+    "closed": 45,
+    "open_asserting_breakage": 12,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -230,15 +230,6 @@
       "full": "illusion is in the closet, and the closet is labelled — declared 2026-08-11. will: *\"at some point we are going to have to have zoroark in our engine but to start we can just put those in the closet.\"* zoroark enters disguised as the last living body on its bench and the protocol names the disguise, not the mover — so every click it makes is filed against a pokemon that never moved, manufacturing false set evidence for the impersonated body and hiding the real one. measured: 386/12,314 bo3 raw (3.13%), 1,731/52,840 ladder (3.28%), and 384 games rejected out of the clean fit corpus (8,543 -> 8,159). `fit_policy.js` counts and names the rejection beside `partial_bring`, because a filter that cannot say how much it removed is indistinguishable from one that is not running. temporary by decision. the real fix is to model illusion; then re-admit with `illusion_in=1` and refit, because a corpus that changes size changes answers"
     },
     {
-      "n": 161,
-      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 2946,
-      "title": "THE FIVE LIVE MATRIX DISAGREEMENTS, REGISTERED SO THEY STOP BEING INVISIBLE. Measured 2026-08-11 at `--full`: `throatcho",
-      "full": "the five live matrix disagreements, registered so they stop being invisible. measured 2026-08-11 at `--full`: `throatchop -> shielddust` (2,946 uses — the volatile lives in `secondary.onhit`, not `volatilestatus`, so it never enters the loop the shield dust gate sits on, and #139's wire closed the other three of that family); `psychicnoise -> shielddust` (223 — does declare `volatilestatus`, so that diagnosis does not cover it); `instruct -> goodasgold` (the boost lands twice, once in showdown — good as gold must refuse instruct); `rockwrecker -> bulletproof` (recharge armed on a fully-blocked move — wire 43's comment asserts the opposite of what showdown does and was written from belief); `psyshieldbash -> aftermath` (the self-boost is skipped, suspected `!m.fainted` ordering). three carry the harness's own verdict: *the knob is unwired, not miscalculated*. a register cannot audit itself — these were measured for four days with no row behind them, which is what `engine/open_work.js` now prints"
-    },
-    {
       "n": 162,
       "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
       "closed": false,
@@ -246,15 +237,6 @@
       "uses": 105709,
       "title": "SPLIT THE COLLAPSED TAGS — WILL'S CALL 2026-08-11: *\"we need to split the tags, they require very different things\"*. #5",
       "full": "split the collapsed tags — will's call 2026-08-11: *\"we need to split the tags, they require very different things\"*. #59 (the protection counter has three behaviours and our tags carry two) and #60 (upper hand and sucker punch share one signature: sucker punch needs the target attacking, upper hand needs the target using priority) are the same defect — one tag standing for two rules, so one of them is always wrong. #71 and #127 are the same shape at larger scale (105,709 uses). the shape decision was the blocker and it is now made; deriving the conditions is mechanical"
-    },
-    {
-      "n": 115,
-      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "RESIDUALS RUN IN SPEED ORDER AND OURS RUN IN SLOT ORDER — CONFIRMED 2026-08-11, AND IT DECIDES GAMES. Will: *\"pokemon fa",
-      "full": "residuals run in speed order and ours run in slot order — confirmed 2026-08-11, and it decides games. will: *\"pokemon faint in speed order\"*, *\"in trick room do they faint in reverse speed order?\"*, *\"sandstorm damage, etc\"*. all derived: `battle.ts:2811` runs `updatespeed()` at the head of the residual step, `pokemon.ts:557` sets `speed = getactionspeed()`, and that returns `10000 - speed` under trick room — the residual sort is already inverted before anything resolves. `medicham2-browser.js:14890` is `for(const x of [...acta,...actb])` — pure slot order, no sort. the whole residual family rides on it, not just perish song: sandstorm and hail chip, burn and poison, leftovers, salt cure, yawn, heal block. scoped by measurement: the mega step (`:9313`) and the switch-in step (`:8827`) do speed-sort, so intimidate and mega ordering are correct and are not the bug. not cosmetic — `battle.ts:2604` awards a simultaneous double-ko to `faintdata.target.side`, the side of the last faint off the queue, not a tie; so in a mutual-perish endgame the residual order picks the winner and we pick it by slot position, and the rollout scores wins. fix the sort, then stage an endgame fixture: a four-actives-with-benches scenario cannot see it — one was written and it passed against a deliberately reversed loop"
     },
     {
       "n": 83,
@@ -309,24 +291,6 @@
       "uses": 0,
       "title": "Coverage Layer 2 — the mutation harness",
       "full": "coverage layer 2 — the mutation harness"
-    },
-    {
-      "n": 59,
-      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "the protection counter has three behaviours and our tags carry two. Protect *checks* the shared 1/X counter; Wide Guard ",
-      "full": "the protection counter has three behaviours and our tags carry two. protect *checks* the shared 1/x counter; wide guard *feeds it and never checks*; ally switch has its own private one and carries neither tag. the engine implements none of it — `grep allyswitch` and `grep stalling` both come back empty"
-    },
-    {
-      "n": 60,
-      "section": "MEDICHAM completeness — PHASE 1, and everything below waits on it",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "Upper Hand and Sucker Punch share a tag and have different conditions — Sucker Punch needs the target attacking, Upper H",
-      "full": "upper hand and sucker punch share a tag and have different conditions — sucker punch needs the target attacking, upper hand needs it attacking *with priority*. modelled the broad way, the bot thinks upper hand beats an ordinary earthquake"
     },
     {
       "n": 33,
@@ -482,15 +446,6 @@
       "full": "decision: `ability|auraboost` (5,663 uses) needs a roster `dmgrange` does not have. not a missing branch — a *representational* limit: the multiplier is field-wide over every body, and `dmgrange` is handed two bodies and a field with no occupants. engine measured it before proposing anything (79 damage with fairy aura on attacker, ally, foe and nobody — identical, as expected) and routed rather than patched, because widening the signature is a `board.js`-facing input change. the call: does `dmgrange` take a roster, or does the caller pre-compute a scalar? the second is cheaper; the first is the honest shape and pays off for every other field-wide ability"
     },
     {
-      "n": 65,
-      "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "`data/tags.json` is FROZEN — regenerating it silently deletes five entities, and the cause is my own corpus change. Foun",
-      "full": "`data/tags.json` is frozen — regenerating it silently deletes five entities, and the cause is my own corpus change. found by *diffing* a regeneration instead of accepting it: tag membership and every param come out identical (0 diffs across 500/262/146), but `sheet_entries` falls 110,760 → 78,480 and serene grace, tinted lens, curious medicine, steely spirit and leppa berry drop out of the engine's knowledge. `fit_policy.js:304` was narrowed to `['games.bo3.jsonl']` on the open-sheet directive — right for the fit, and `tag_dex.js` reads the same `loadcorpus()`. a corpus decision is not local to the model it was made for. fix (a): give `tag_dex.js` its own reader over the full store. fix (b): give `loadcorpus` an explicit scope argument so every caller states what it wants instead of inheriting someone else's decision — (b) is the shape that stops this recurring"
-    },
-    {
       "n": 68,
       "section": "The search redesign — PHASE 3, and none of it starts until #62 answers",
       "closed": false,
@@ -561,6 +516,141 @@
       "uses": 0,
       "title": "ARGMAX IS UNSOUND IN A SIMULTANEOUS-MOVE GAME, AND OPEN TEAM SHEETS DO NOT RESCUE IT — CITED, 2026-08-11. Bosansky, Lisy",
       "full": "argmax is unsound in a simultaneous-move game, and open team sheets do not rescue it — cited, 2026-08-11. bosansky, lisy, lanctot, cermak & winands, *algorithms for computing strategies in two-player simultaneous move games*, artificial intelligence 237 (2016) 1-40: agents *\"may need to use randomized (or mixed) strategies in order to play optimally ... even though the only information that is hidden is each player's action as they play it\"*. simultaneity alone forces mixing. i had told will the opposite — that open sheets make our game easier than poker in poker's hardest dimension. on this axis they do not. what medicham is: `miltank.js:1315` is `if (v > bestval) { bestval = v; bestpair = [ia, ib]; }` and `:1384` clicks it — a plain argmax, deterministic by construction, answerable for free by anyone who knows the scorer. magnemite underneath it does sample (`magnemite.js:954`, `:1154`, a softmax its own header calls *\"the single biggest measured lever\"* and which argues *\"taking the argmax would be the obvious thing and it is wrong here\"*), so the bot gets less mixed as it gets smarter — the 31.6% of turns miltank defers are the only ones that come out mixed, which inverts #62: more compute means fewer deferrals means more predictable. duct is not the fix — i had it in the fix list and the paper reports it *\"also might not converge to a nash equilibrium\"*, even the mixed variant; uct's failure is shown on biased rock-paper-scissors (shafiei, sturtevant & schaeffer, giga 2009). what is sound, three tiers from that paper: exact backward induction solving the matrix game per node, which *\"outputs a subgame perfect ne\"*; sm-oos, which *\"guarantee[s] to closely approximate the optimal strategies given enough time\"*; and sm-mcts-rm (regret matching at simultaneous nodes) as the practical middle. so roadmap #41's python equilibrium solver is the textbook-correct primitive for this game class, currently filed as *\"the equilibrium answer exists and cannot play\"*. and unlike pluribus we are 1v1 zero-sum, so the *\"equilibrium is not the right goal\"* retreat does not apply to us — equilibrium is the target here. phase 3, not now: medicham is phase 1 and a correct simulator is a prerequisite under every version of this. registered so it is not rediscovered"
+    },
+    {
+      "n": 166,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "FOCUS SASH DOES NOT SAVE, AND STURDY DOES NOT EITHER. `test-tag-wire`: *\"full-HP sash body survives the lethal hit at ex",
+      "full": "focus sash does not save, and sturdy does not either. `test-tag-wire`: *\"full-hp sash body survives the lethal hit at exactly 1, sash spent\"* reads hp 0, item `''`; *\"sturdy survives the same way and is not consumed\"* fails beside it. the artifact is right and the wire is missing — the same test passes *\"focus sash: full-hp gate, move-only, leaves 1, spent — all from the handler (was a name check)\"* and *\"sturdy: the same idiom minus the consumption\"*, and the full-hp gate itself is proven live (*\"the same hit kills at 90% hp\"*). so the tag carries the fact and nothing consumes it. focus sash is legal in this format and sturdy is a common lead ability; both change whether a ko happens, which is the class of error that changes a game rather than a rating"
+    },
+    {
+      "n": 167,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "SITRUS BERRY FIRES ON THE WRONG SIDE OF ITS OWN THRESHOLD, BOTH DIRECTIONS. `test-tag-wire`: *\"at 40% it eats the berry ",
+      "full": "sitrus berry fires on the wrong side of its own threshold, both directions. `test-tag-wire`: *\"at 40% it eats the berry and heals exactly 1/4\"* fails at 18/170 with item `''`, and *\"at 80% the berry stays in the pocket — the threshold is the tag's, not a vibe\"* fails too. failing in both directions means the threshold is not being read at all rather than being read wrongly. the artifact is proven correct in the same run (*\"sitrus declares its own threshold and restore (was a name check in the residual loop)\"*), so this is a consumer gap. note for whoever takes it: the berry work closed earlier in this sprint reported `sitrus 118`, so a live counter may be firing while this fixture is not — establish which is wrong before editing the engine, because a broken probe has already cost this project a session (`docs/lessons.md` §5)"
+    },
+    {
+      "n": 168,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "AFTERMATH CHARGES A SURVIVOR NOTHING, AND THE KILL PATH IS FINE. `test-tag-wire`: *\"contact into a SURVIVING Aftermath b",
+      "full": "aftermath charges a survivor nothing, and the kill path is fine. `test-tag-wire`: *\"contact into a surviving aftermath body costs nothing\"* (hp 109/173) fails while *\"killing it costs 1/4 of max hp (paid 43)\"* passes. that split is the whole diagnosis — the tag now declares `contact + onfaintonly` (asserted green in the same run) and the consumer is applying the faint-only branch to every contact hit. ordinary contact into a living aftermath body must cost nothing, so confirm the assertion is the correct expectation before changing the engine: this may be a wrong fixture rather than a wrong engine"
+    },
+    {
+      "n": 169,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "A BASE-FORME GULP MISSILE BODY PUNISHES NOBODY. `test-tag-wire`: *\"a base-forme Gulp Missile body punishes nobody\"* fail",
+      "full": "a base-forme gulp missile body punishes nobody. `test-tag-wire`: *\"a base-forme gulp missile body punishes nobody\"* fails, immediately after *\"gulp missile carries its forme gate, so the engine skips it whole\"* passes. read together those two say the forme gate is doing more than gating — it is skipping the mechanic even in the state where it should apply. cramorant only; low usage, and it is on the list because a forme gate that over-fires is a shape this engine has been bitten by elsewhere, not because cramorant matters"
+    },
+    {
+      "n": 170,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "STORM DRAIN ABSORBS AND DOES NOT BANK THE BOOST. `test-tag-wire`: *\"Storm Drain banks +1 SpA off the absorbed Hydro Pump",
+      "full": "storm drain absorbs and does not bank the boost. `test-tag-wire`: *\"storm drain banks +1 spa off the absorbed hydro pump\"* fails at `sa 1, untouched hp` — the immunity half works (hp untouched) and the special attack half does not. the neighbouring absorb assertions all pass, including *\"the absorbed hit heals the absorber 1/4\"*, so the absorb family's healing branch is wired and its boosting branch is not. directly relevant to redirection reads: a storm drain body the bot does not know gains spa is a body it will keep attacking into"
+    },
+    {
+      "n": 171,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "LEECH SEED LANDS ON A GRASS TYPE. `test-tag-wire`: *\"a Grass-type victim is immune, from the move's own onTryImmunity\"* ",
+      "full": "leech seed lands on a grass type. `test-tag-wire`: *\"a grass-type victim is immune, from the move's own ontryimmunity\"* fails, losing 25000. the immunity is written on the move itself in the authority, and the rest of the leech seed wire is proven in the same run — the drain, the fraction, the direction, and *\"the seed alone kills a victim that was never hit by an attack\"*. so the engine seeds grass types, which no legal game allows, and every rollout in which it does is scoring a click that cannot happen"
+    },
+    {
+      "n": 172,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "HEAT WAVE HITS YOUR OWN PARTNER. `test-tag-wire`: *\"Heat Wave leaves the partner untouched — the ally-safe family stays ",
+      "full": "heat wave hits your own partner. `test-tag-wire`: *\"heat wave leaves the partner untouched — the ally-safe family stays safe\"* fails, while both membership assertions pass — *\"spreadfoes (22) is the ally-safe family — heat wave in, earthquake out\"* and *\"spreadall (16) hits the partner\"*. the artifact separates the two families correctly and the consumer is collapsing them. this is the one on the list with the largest effect on play: the whole point of the ally-safe spread moves is that you can click them beside your own body, and an engine that charges you for it will refuse a line that is actually free"
+    },
+    {
+      "n": 173,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "FAKE OUT IS STILL CLICKABLE ON TURN TWO. `test-tag-wire`: *\"turn 2 the illegal Fake Out is refused at pick time (attack)",
+      "full": "fake out is still clickable on turn two. `test-tag-wire`: *\"turn 2 the illegal fake out is refused at pick time (attack) — not a fake click\"* fails. turn 1 is proven legal in the line above it. the assertion's own wording is the requirement — the refusal must happen at pick time, so the chooser never offers it, rather than the move being offered and then failing. an illegal action in the candidate set is worse than a wrong one: it wastes rollout budget on a branch that cannot exist, and fake out is one of the highest-usage leads in the format"
+    },
+    {
+      "n": 174,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "`test-assert-mode` IS RED ON PURPOSE AND THE SCENARIOS ARE THE DEFECT. All twelve rows pass — Good as Gold refuses Corro",
+      "full": "`test-assert-mode` is red on purpose and the scenarios are the defect. all twelve rows pass — good as gold refuses corrosive gas / dragon cheer / electrify / encore / howl / toxic thread, levitate refuses bulldoze / earth power / earthquake / headlong rush / mud-slap / scorching sands — and they pass identically with both abilities deleted from the engine (`--break`). the test says so itself: *\"all 12 rows agree — and that currently proves nothing.\"* the fix is scenarios in which the refusal has an observable consequence, not more rows. left green it would have published 5,769 teams of false coverage"
+    },
+    {
+      "n": 175,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "TWENTY-THREE TAGS HAVE NO CONSUMER — WE DERIVED THE FACT AND NEVER TAUGHT THE ENGINE TO USE IT. `test-tag-consumed` name",
+      "full": "twenty-three tags have no consumer — we derived the fact and never taught the engine to use it. `test-tag-consumed` names them: `stealsitem`, `announcesonentry`, `reflectsstatustosource`, `refusesindirectdamage`, `clearsscreensonentry`, `nameimplementedbysim`, `passesitemtoally`, `multihitalwaysmax`, `ignoresredirection`, `boostsathpthreshold`, `curesstatusresidual`, `healsfromownstatus`, `addsownsecondary`, `formefollowsweather`, `secondarychancemult`, `typefollowsterrain`, `removesownmoveflag`, `inheritsallyability`, `boostsnotveryeffective`, `boostsallieswithability`, `allybasepowerboost`, `suppressesownitem`, `guaranteesnextmove`. the test also prints a longer dead list headed by `ignoresredirection` (47 uses, propeller tail / stalwart). each one is a decision, not a batch: wire it, or delete the tag and say why. a derived tag nothing reads is indistinguishable from a tag that is wrong. expect this count to move when the tag split lands — re-measure before working it"
+    },
+    {
+      "n": 176,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "`test-effective-identity`'s BASELINE IS STALE AND THE RATCHET IS UNREADABLE. It counts raw reads of a field that changes",
+      "full": "`test-effective-identity`'s baseline is stale and the ratchet is unreadable. it counts raw reads of a field that changes on mega evolution — declared ability versus the one on the field — against a baseline dated 2026-08-02 holding 234. it now counts 1,195, and thirty files are already declared as legitimate with written reasons. most of the gap is files written after the baseline, which count as new by default. it went red in part because a measuring file was written while an engine agent held the tree, which claude.md already names as a routing failure rather than a code one. do not restamp it — a re-stamp makes the number look fine without anyone having read a line, which is the exact move this project has been burned by. walk the undeclared reads, route the ones that want the live value and declare the ones that legitimately want the declaration, then re-baseline with the walk cited"
+    },
+    {
+      "n": 178,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "A GREEN CENSUS COUNT CANNOT DETECT AN OVER-MATCH, AND THE WORKING RULE WOULD HAVE PASSED ONE — 2026-08-11. While splitti",
+      "full": "a green census count cannot detect an over-match, and the working rule would have passed one — 2026-08-11. while splitting the protection counter the first shield dispatch matched on `stallcounterchecks`, and endure is a `stallingmove` that rolls the same die and blocks nothing. it became a shield and broke both endure probes. `live` read 444 before and 444 after — two probes broke and two arrived, and the count is a net. only `missing` moving 0 -> 2 caught it. the working practice \"confirm `live` went up\" is therefore not a check at all against this failure mode, and it is the practice most often used, because it is the number printed largest. fixed with a sixth tag, `shieldsuser`, derived from `checkmovebypassesprotect` on the volatile\\'s own condition — 5 members, endure correctly absent. the row is the rule change, not the bug: a census movement must be reported as arrived/broke/net, never as a net alone, and `missing` must be read beside `live` every time"
+    },
+    {
+      "n": 179,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "RECYCLE CARRIES NO MECHANIC TAG AND RESOLVES TO A SPENT TURN. Found while closing #71\\'s seven-move signature 2026-08-11",
+      "full": "recycle carries no mechanic tag and resolves to a spent turn. found while closing #71\\'s seven-move signature 2026-08-11. pain split reached `sharehp` and copycat reached `callmove`; recycle (3 uses) reaches `{kind:\\'pass\\'}`, which is the terminal do-nothing branch. low usage, and registered anyway because a move that provably does nothing is a weighted preference rather than a rule — the same shape as #44 — and because the seven-move signature cannot be called closed while a member of it is unmodelled"
+    },
+    {
+      "n": 180,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "SUCKER PUNCH HAS A SECOND REFUSAL AND WE MODEL ONE. `data/moves.ts:18400` — the move also fails when the target carries ",
+      "full": "sucker punch has a second refusal and we model one. `data/moves.ts:18400` — the move also fails when the target carries `volatiles[\\'mustrecharge\\']`, i.e. the turn after a hyper beam class move. #60 closed the priority-versus-attacking half and this is the other clause of the same handler, named here rather than absorbed into a row that is now marked closed"
+    },
+    {
+      "n": 181,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "`playerAction` STILL CARRIES A NAME FALLBACK FOR ALLY SWITCH, BESIDE THE DERIVED TEST. `|| id === \\'allyswitch\\'` sits n",
+      "full": "`playeraction` still carries a name fallback for ally switch, beside the derived test. `|| id === \\'allyswitch\\'` sits next to the `swapsslots` tag test. it is silent and uncounted, so if the tag ever stops matching, the name catches it and nothing reports that the derived path failed — a fallback that hides the failure of the thing it is backing up. this is the mechanism #127 indicts, surviving inside the fix for #127"
     },
     {
       "n": 47,
@@ -855,7 +945,7 @@
   "instruments": [
     {
       "artifact": "data/interaction-matrix.json",
-      "generated": "2026-08-11T05:51:53.831Z",
+      "generated": "2026-08-11T06:49:30.092Z",
       "age_days": 0
     }
   ]

@@ -33,27 +33,61 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  444/444 probed mechanics live, 0 missing   (census 2026-08-11 01:52)
-  0/20000 differential comparisons disagree with Showdown   (2026-08-11 01:57)
+  448/448 probed mechanics live, 0 missing   (census 2026-08-11 03:05)
+  0/20000 differential comparisons disagree with Showdown   (2026-08-11 03:06)
     seed 20260804, requested 20000, 850 not comparable (multihit 630, non-finite 0, threw 220)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1640/1640 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 01:51)
-    2253 of 9405 theoretical pairs staged — agreement is a claim about the 2253 that ran, not about the 9405
-      491 inert      not scored — the reference engine behaves identically with and without the reactor
-      112 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
-        8 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
+  interaction matrix: 1641/1641 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 02:49)
+    2250 of 9376 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 9376
+      489 inert      not scored — the reference engine behaves identically with and without the reactor
+      111 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
+        7 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is b1ecca71a3ed now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 465e6c99cb46 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 220/257 probed, 37 unprobed
+  tag coverage: 226/263 probed, 37 unprobed
 ```
 
-_stamped 2026-08-11 02:07_
+_stamped 2026-08-11 03:09_
 
 <!-- /GENERATED -->
+
+## ROADMAP #162 — THE COLLAPSED TAGS ARE SPLIT, AND ONE NUMBER COULD NOT SEE THE REGRESSION. 2026-08-11.
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md` (living docs are paused for the sprint by Will's
+decision). The short of it, for this ledger:
+
+**Census 444 → 448.** Six new derived tags, every membership printed over all 500 legal moves before
+anything read it: `stallCounterChecks` 6, `shieldsUser` 5, `stallCounterFeeds` 2, `failsIfMovesLast`
+8, `privateStallCounter` 1, `failsIfTargetMoveNotPriority` 1. Four new probes, each shown red for its
+own reason first. `engine/quarantine.js` OPEN 6/6 after every family, with all three roster stages,
+the 20,000-comparison differential and the interaction matrix re-run against this engine rather than
+quoted: matrix **1,640/1,640 → 1,641/1,641 (100.0%)**, off-gate disagreements 30 → 24, differential 0.
+
+### THE ONE NUMBER THIS DIVISION IS JUDGED ON IS INVARIANT TO A SWAP
+
+The first shield dispatch used `stallCounterChecks`, which is the COUNTER behaviour and not the
+BLOCKING one — **Endure is a `stallingMove`, rolls the same die, and blocks nothing.** It became a
+shield and took both Endure probes down. `live` read **444 before and 444 after**: two probes broke
+and two arrived in the same run. `missing` going 0 → 2 is the only thing that caught it. A census
+count cannot see a substitution, and the working rule "confirm `live` went up" would have passed this.
+
+### THE HAND LIST IS UNCHANGED
+
+It has been empty except for Rivalry. Everything here was a ROADMAP row — #162, #59, #60, #71, #127 —
+which is a GENERATED list, and that is the difference the working rule is about.
+
+### ONE THING FOUND AND DELIBERATELY NOT FIXED, NAMED RATHER THAN ABSORBED
+
+**RECYCLE (3 corpus uses) carries no mechanic tag at all** — `neverMisses+pp+statusCategory` — and
+resolves to `{kind:'pass'}`, a spent turn. ROADMAP #71 lists it beside Pain Split and Copycat, both of
+which now resolve properly (`sharehp`, `callmove`). It is a new tag plus an engine branch on three
+uses, and it was left rather than smuggled into a pass about something else. **Sucker Punch's second
+refusal is also unmodelled**: `target.volatiles['mustrecharge']` (data/moves.ts:18400) makes it fail
+into a recharging body, and this engine only checks that the target is attacking.
 
 ## ROADMAP #161 — THE WIRE QUEUE. FIVE ROWS, FIVE CLOSED, AND THE MATRIX IS AT 1640/1640. 2026-08-11.
 

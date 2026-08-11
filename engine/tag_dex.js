@@ -56,6 +56,10 @@ const { carriesLinkageKey } = require('./linkage_carrier.js');
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+/* A HANDLER'S SOURCE, WHITESPACE-FLATTENED. Every rule below that reads a handler was writing its
+ * own `String(h).replace(/\s+/g,' ')`, and the ones that forgot the replace could not match a
+ * predicate spanning a line break -- which is a rule that silently matches NOTHING. One reader. */
+const fnsrc = h => String(h == null ? '' : h).replace(/\s+/g, ' ');
 
 if (!process.env.SHOWDOWN_PATH) { console.error('set SHOWDOWN_PATH'); process.exit(2); }
 const { Dex } = CS.sim();
@@ -1854,6 +1858,108 @@ const MOVE_TAGS = [
   { tag: 'stalling', param: 'is a Protect-family move', probe: 'stallingMove',
     why: 'protectThreatened and deadStall both hang off it',
     of: m => m.stallingMove ? { stalling: true } : null },
+  /* =============================================================================================
+   * ROADMAP #162 / #59 -- THE PROTECTION COUNTER IS THREE BEHAVIOURS AND `stalling` CARRIES ONE.
+   *
+   * Will, 2026-08-11: *"we need to split the tags, they require very different things"*.
+   *
+   * `stalling` is exactly `m.stallingMove`, which is Showdown's marker for the SIX moves that CHECK
+   * the shared counter. It is a correct family marker and it stays (position_features and
+   * diff_swarm read it). What it cannot express is that two OTHER groups touch the same mechanic
+   * from completely different directions, and the engine was therefore wrong about both:
+   *
+   *   CHECKS   `stallingMove: true`, and `onPrepareHit` fires `runEvent('StallMove')`, which is the
+   *            ONLY thing that reaches data/conditions.ts `stall.onStallMove` -- the randomChance
+   *            that can refuse the shield and, on a refusal, DELETES the volatile.
+   *   FEEDS    Wide Guard and Quick Guard have NO `stallingMove` and raise NO StallMove event, so
+   *            they never roll a die. Their `onHitSide` calls `source.addVolatile('stall')`, which
+   *            lands on `stall.onRestart` and TRIPLES the counter. A Wide Guard therefore makes the
+   *            NEXT Protect 1/3, and this engine was resetting the counter to zero on one.
+   *   PRIVATE  Ally Switch keeps its own counter on its own volatile (`condition.counterMax` with
+   *            the randomChance in `onRestart`) -- deliberately NOT the `stall` volatile, so a
+   *            Protect the turn before must not shrink an Ally Switch and vice versa.
+   *
+   * ONE MECHANIC, THREE ROLES, AND MODELLING THEM WITH ONE TAG MAKES TWO OF THEM WRONG. Membership
+   * was printed over all 500 legal moves before any of this was wired: 6 / 2 / 1, with no
+   * over-match -- the `stall` STRING appears in five further moves (burnup, magicpowder,
+   * reflecttype, roost, soak) and none of them matches these shapes.
+   *
+   * The counter's own numbers are read off `Dex.conditions.get('stall')` rather than typed: it
+   * carries `duration: 2`, `counterMax: 729`, `onStart` sets 3 and `onRestart` multiplies by 3. */
+  { tag: 'stallCounterChecks', param: 'rolls the shared stall counter and can be refused by it',
+    probe: 'stallCounterChecks',
+    why: 'the six shields. The roll is 1/counter, a failure DELETES the counter (so the next shield '
+       + 'is 100% again), and the engine dispatched this family off an exported NAME LIST',
+    of: m => {
+      if (!(m.stallingMove === true && /runEvent\(\s*["']StallMove["']/.test(fnsrc(m.onPrepareHit)))) return null;
+      const st = (dex.conditions && dex.conditions.get('stall')) || {};
+      const s0 = fnsrc(st.onStart), sr = fnsrc(st.onRestart), sm = fnsrc(st.onStallMove);
+      const first = +(s0.match(/counter\s*=\s*(\d+)/) || [0, 0])[1] || null;
+      const grow = +(sr.match(/counter\s*\*=\s*(\d+)/) || [0, 0])[1] || null;
+      return { counter: 'stall', firstCounter: first, growsBy: grow,
+               counterMax: st.counterMax != null ? +st.counterMax : null,
+               duration: st.duration != null ? +st.duration : null,
+               deletesOnFailure: /delete pokemon\.volatiles/.test(sm) };
+    } },
+  /* AND THE THIRD CUT, WHICH THE CENSUS FORCED. `stallCounterChecks` is the COUNTER behaviour and it
+   * is NOT the BLOCKING behaviour: ENDURE rolls the same die off the same counter and does not stop
+   * the move at all -- the hit lands, every secondary and every contact punish happens, and only the
+   * HP floors at 1 (`survivesAnyHit`). Dispatching the shield action off `stallCounterChecks` broke
+   * both Endure probes on the first run, which is precisely the over-match docs/LESSONS.md is about.
+   *
+   * The block is read off the condition the move's volatile actually installs, which is why DETECT is
+   * a member with no `condition` of its own: it sets `volatileStatus: 'protect'` and inherits that
+   * one. Membership printed over all 500 legal moves: exactly 5 -- the format's five shields, Endure
+   * correctly absent. Wide Guard and Quick Guard carry the identical `checkMoveBypassesProtect`
+   * shape and are excluded by `stallingMove`, because a SIDE condition is a different mechanic and
+   * already has `oneTurnGuard`. */
+  { tag: 'shieldsUser', param: 'blocks moves aimed at the user for the turn', probe: 'shieldsUser',
+    why: 'the five shields. The engine dispatched this action off an exported NAME LIST of eight ids '
+       + '(ROADMAP #127, 96,406 uses), and the tag that looked like the right replacement -- '
+       + 'stallCounterChecks -- also holds Endure, which blocks nothing',
+    of: m => {
+      if (m.stallingMove !== true) return null;
+      let c = (m.condition && m.condition.onTryHit) ? m.condition : null;
+      if (!c && m.volatileStatus) { const v = dex.conditions.get(m.volatileStatus); if (v && v.onTryHit) c = v; }
+      if (!c || !/checkMoveBypassesProtect/.test(fnsrc(c.onTryHit))) return null;
+      return { volatile: m.volatileStatus || null, duration: c.duration != null ? +c.duration : null,
+               bypassable: true };
+    } },
+  { tag: 'stallCounterFeeds', param: 'advances the shared stall counter and never reads it',
+    probe: 'stallCounterFeeds',
+    why: 'Wide Guard (2,065) and Quick Guard (356). They cannot fail to a die themselves, and they '
+       + 'make the NEXT Protect 1/3 -- this engine reset the counter on one, so a Wide Guard was a '
+       + 'free way to refresh a shield',
+    of: m => {
+      if (m.stallingMove) return null;
+      const src = fnsrc(m.onHit) + fnsrc(m.onHitSide) + fnsrc(m.onPrepareHit) + fnsrc(m.onTry);
+      if (!/addVolatile\(\s*["']stall["']\s*\)/.test(src)) return null;
+      return { counter: 'stall', rolls: false };
+    } },
+  { tag: 'privateStallCounter', param: 'decays on consecutive use, on a counter of its OWN',
+    probe: 'privateStallCounter',
+    why: 'Ally Switch. Same decay shape as Protect and deliberately NOT the same counter, so an '
+       + 'engine that shared one would let a Protect shrink an Ally Switch',
+    of: m => {
+      const c = m.condition || {};
+      const sr = fnsrc(c.onRestart);
+      if (!(c.counterMax && /randomChance\(\s*1\s*,\s*counter\s*\)/.test(sr))) return null;
+      return { volatile: norm(m.id), firstCounter: +(fnsrc(c.onStart).match(/counter\s*=\s*(\d+)/) || [0, 0])[1] || null,
+               growsBy: +(sr.match(/counter\s*\*=\s*(\d+)/) || [0, 0])[1] || null,
+               counterMax: +c.counterMax, duration: c.duration != null ? +c.duration : null,
+               deletesOnFailure: /delete pokemon\.volatiles/.test(sr) };
+    } },
+  /* THE OTHER HALF OF THE SPLIT, AND IT CUTS ACROSS THE THREE ABOVE. `!!this.queue.willAct()` is a
+   * SEPARATE refusal from the counter: it short-circuits BEFORE the die is drawn, so a shield whose
+   * user holds the last action of the turn fails without touching the counter at all. The engine had
+   * it for Protect and not for the Guards -- and Ally Switch, which has no such gate, must not
+   * acquire one. Membership printed: 8 moves, the six checkers plus the two feeders, Ally Switch
+   * correctly absent. */
+  { tag: 'failsIfMovesLast', param: 'fails outright if nothing is left to act behind the user',
+    probe: 'failsIfMovesLast',
+    why: 'Showdown short-circuits `!!this.queue.willAct()` ahead of the stall roll. Wide Guard and '
+       + 'Quick Guard carry it and this engine only had it on the shields',
+    of: m => /queue\.willAct\(\)/.test(fnsrc(m.onTry) + fnsrc(m.onPrepareHit)) ? { checksQueue: true } : null },
   /* WIRE 140 -- SWAPS THE TWO BODIES BETWEEN SLOTS. Ally Switch, 202 uses, and the engine had no
    * word for it at all: it resolved as `{kind:'pass'}`, a wasted turn, while the real move moves two
    * Pokemon between positions and therefore moves `species`, `hp`, `maxhp` and every boost on both
@@ -3213,6 +3319,35 @@ const MOVE_TAGS = [
        * assumed by a consumer: a Status move never satisfies either move. */
       if (/category\s*===\s*['"]Status['"]/.test(src)) out.refusesStatusTarget = true;
       return out;
+    } },
+  /* ROADMAP #162 -- AND THE PARAM ABOVE WAS NOT ENOUGH, WHICH IS THE WHOLE POINT OF THE SPLIT.
+   *
+   * `needsPriority`/`minPriority` have been correct in the artifact since #60 was written, and the
+   * engine ignored them for as long as they existed: `failsIfTargetNotAttacking` was tested with
+   * `TAGS.has(...)` and the params were never read. That is what a collapsed tag costs -- a consumer
+   * that matches the tag gets the BROAD rule, and the narrow member is silently wrong.
+   *
+   * So the narrow condition is its OWN tag with its OWN membership. A consumer now has to ask for
+   * "the target's move must be priority" by name-free tag shape; it cannot arrive at it by accident,
+   * and it cannot miss it by matching the broad one. Membership over all 500 legal moves: exactly 1,
+   * and a wider sweep for `move.priority` anywhere in onTry/onPrepareHit/onTryHit also returns only
+   * Upper Hand -- printed before this was wired.
+   *
+   * The threshold is READ, not typed: `move.priority <= 0.1` is Showdown's own comparison, and the
+   * 0.1 is there because Prankster and Gale Wings add fractional priority. */
+  { tag: 'failsIfTargetMoveNotPriority',
+    param: 'the target must be committing a move ABOVE a stated priority, not merely attacking',
+    probe: 'failsIfTargetMoveNotPriority',
+    why: 'Upper Hand. Modelled through the broad tag, the bot believed a 65 BP +3 Fighting move beat '
+       + 'an ordinary Earthquake with no drawback',
+    of: m => {
+      const src = fnsrc(m.onTry);
+      if (!/willMove\(\s*target\s*\)/.test(src)) return null;
+      const pri = src.match(/move\.priority\s*(<=?)\s*([0-9.]+)/);
+      if (!pri) return null;
+      /* `<=` means the move FAILS at or below the number, so the requirement is strictly above it;
+       * `<` would make the number itself acceptable. Both are carried rather than collapsed. */
+      return { minPriority: +pri[2], strictlyAbove: pri[1] === '<=' };
     } },
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',

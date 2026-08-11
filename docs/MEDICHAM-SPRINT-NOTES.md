@@ -21,6 +21,193 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #162 — THE COLLAPSED TAGS ARE SPLIT. CENSUS 444 → 448, MATRIX 1,640 → 1,641. 2026-08-11 (ENGINE).
+
+Will, 2026-08-11: *"we need to split the tags, they require very different things"*, and again:
+*"yes split them i already made that decision"*. Four families were queued; **two needed splitting and
+two turned out to be already split by earlier work**, which is stated here rather than counted as
+work done. Each landed alone with the gate re-run between them (ROADMAP #81).
+
+| # | family | what was wrong | the probe that proves it |
+|---|---|---|---|
+| 1 | **the protection counter** (#59, #127's 96,406-use signature) | one tag, `stalling`, for THREE behaviours. Wide Guard **cleared** the shared counter where Showdown **triples** it, so a Wide Guard was a free way to refresh a decaying Protect; the Guards had no `willAct()` refusal; and the shield ACTION was dispatched off `PROTECTMOVES`, an exported name list | `move/stallCounterFeeds` — turn-1 Wide Guard then Protect at roll 0.99: **182** damage taken, against **0** after an ordinary click. `move/failsIfMovesLast` — the same turn-1 guard at Speed 200 vs Speed 1: **182** vs **0** |
+| 2 | **Upper Hand vs Sucker Punch** (#60) | `failsIfTargetNotAttacking` carried `needsPriority`/`minPriority` correctly **and the engine never read them**, so a 65 BP +3 Fighting move beat an ordinary Earthquake with no drawback | `move/failsIfTargetMoveNotPriority` — target on Extreme Speed (+2) **44** damage, target on Earthquake (+0) **0**. It was red at **44 / 44** — identical arms across a varied knob |
+| 3 | **Ally Switch's private counter** (#59's third behaviour) | implemented since WIRE 140 and **never probed**, and its four numbers (3, ×3, 729, duration 2) were literals beside the identical four in the shield branch | `move/privateStallCounter` — two Ally Switches at roll 0.99 leave slot 0 unchanged; a PROTECT the turn before does **not** arm it, so the second one swaps |
+| 4 | **heal (`wish`/`rest`) and `statChangeInCode` (`spitup`/`acupressure`)** | **already closed.** `healDescriptor` resolves Wish and Rest to `healdesc`; Acupressure resolves to `affect` and moves a real stage (+2 SpD measured). #127's snapshot is stale on both | the new signature gate, below, reports neither as a split |
+
+**FIVE NEW DERIVED TAGS, EVERY MEMBERSHIP PRINTED OVER ALL 500 LEGAL MOVES BEFORE ANYTHING READ IT:**
+`stallCounterChecks` 6, `shieldsUser` 5, `stallCounterFeeds` 2, `failsIfMovesLast` 8,
+`privateStallCounter` 1, `failsIfTargetMoveNotPriority` 1. No over-match: the string `stall` appears
+in five further moves (burnup, magicpowder, reflecttype, roost, soak) and none matches these shapes.
+
+### THE OVER-MATCH HAPPENED ANYWAY, AND THE HEADLINE COUNT DID NOT SHOW IT
+
+The first dispatch used `stallCounterChecks`, which looked like the right tag and is not: **ENDURE is
+a `stallingMove`, rolls the same die off the same counter, and blocks nothing** — the hit lands and
+only the HP floors at 1. It became a shield and took both Endure probes down.
+
+**`live` read 444 before and 444 after.** Two probes broke and two arrived in the same run. `missing`
+is what caught it, going 0 → 2. The one number this division is judged on is invariant to a swap, and
+that is worth knowing about it. The fix is a sixth tag, `shieldsUser`, read off the condition the
+move's volatile actually installs (`checkMoveBypassesProtect`) — 5 members, Endure correctly absent.
+
+### `PROTECTMOVES` IS NO LONGER THE DISPATCH, AND IT IS NOT DELETED EITHER
+
+Three of its eight ids (burningbulwark, silktrap, maxguard) are `isNonstandard` here and carry no
+artifact record, so a tag-only test would silently downgrade them to `{kind:'pass'}` in any other
+format. The name set is kept as a **counted** fallback (`MEDFAILS.shieldByNameOnly`, 0 today) rather
+than as a silent one, and the export stays so `mag_bot.js` and `medicham_coverage.js` are untouched.
+
+### FOUR LITERAL SETS BECAME TAG READS (FACTS ARE GLOBAL)
+
+`3 / ×3 / 729 / duration 2` appeared **twice** — once for `stall`, once for `allyswitch` — as eight
+hardcoded numbers for one shape. Both now read their own tag's params, each with a counted fallback
+(`stallCounterUntagged`, `privateCounterUntagged`, both 0). The shield's odds also stop compounding
+`Math.pow(1/3, n)`, which is 1 ulp low from n = 3; the authority draws `randomChance(1, counter)` on
+an integer. The window that changes is ~1e-17 wide — a correctness point, stated, not claimed as a fix.
+
+### THE #127 CHECK IS NOW A GATE — `tests/test-tag-signature.js`
+
+#127 says outright that the check is the deliverable. It resolves all 500 moves through `playerAction`
+on one fixed board, groups by sorted tag list, and **fails when two members with an IDENTICAL param
+record resolve to different kinds** — because nothing in the artifact could have told them apart, so a
+name did. Param-separated splits are printed and ranked, not failed: Crunch and Meteor Mash sharing a
+signature and resolving differently is *correct*, and failing it would fail correct behaviour.
+
+Reading now: **295 signatures, 0 name-decided, 1 param-separated split** (`statChangeInCode`, 131
+uses, acupressure vs bellydrum/tidyup — measured working in both branches). Of #127's five ranked
+splits, **four no longer exist** and the fifth is the correct one.
+
+**SHOWN RED BEFORE IT WAS TRUSTED:** a deliberate `if (id === 'detect') return {kind:'pass'}` inserted
+above the tag test makes it print `protect / pass` for two moves with byte-identical records and exit 1.
+
+**AND ITS FIRST VERSION WAS WRONG BEFORE THE ENGINE WAS.** It ran with `buildMon('Medicham')`, which
+returns null — the species id is lowercase — so every damaging move fell out of the attack branch and
+it reported SIX splits, five of them artefacts of its own fixture. The bodies are asserted now.
+
+### MEASURED, EVERY NUMBER RE-RUN AGAINST THIS ENGINE RATHER THAN QUOTED
+
+| | before | after |
+|---|---|---|
+| census | 444 live / 444 probed / 0 missing | **448 live / 448 probed / 0 missing** |
+| `tests/test-engine-diff.js --n 20000` | 0 disagreements | **0 disagreements** |
+| interaction matrix `--full` | 1,640 / 1,640 (100.0%), parting 0 | **1,641 / 1,641 (100.0%), parting 0** |
+| matrix off-gate disagreements | 30 | **24** (`upperhand -> roughskin` among them — #60 was visible there) |
+| `engine/quarantine.js` | OPEN 6/6 | **OPEN 6/6**, all three roster stages re-run at 0 differ / 0 did-not-fire |
+| `tests/test-tag-consumed.js` | 23 dead tags | **23** — all six new tags are consumed |
+
+`ran` fell 2,253 → 2,250 and `theoretical` 9,405 → 9,376 because `carrierMoves` is usage-gated and the
+corpus moved (below), not because the instrument covered less.
+
+### THE CORPUS MOVED UNDER THIS, AND IT IS NOT #65
+
+`data/tags.json` was regenerated four times. **ROADMAP #65's fix (b) is already in the tree** —
+`fit_policy.loadCorpus` takes an explicit `scope` and `tag_dex.js` asks for `'all'` — so the five
+entities #65 names (Serene Grace, Tinted Lens, Curious Medicine, Steely Spirit, Leppa Berry) are all
+**present**, and the regeneration diffed **0 removed, 0 added, 0 params moved, 10 tag lists changed**,
+every one of them expected.
+
+`sheet_entries` did fall, **142,884 → 139,644**, and the cause was isolated rather than assumed: the
+committed `tag_dex.js` over the current store produces 139,644 too, and `ILLUSION_IN=1` produces
+exactly 142,884. It is the **Zoroark exclusion** (Will's own 2026-08-11 decision) landing in
+`loadCorpus` after the committed artifact was generated. Nothing to do with the fit's scope.
+
+### A DEBT THIS PASS CREATED AND WAS NOT ALLOWED TO PAY, RECORDED SO IT IS NOT LOST
+
+Moving the matrix to **1,641 of 2,250** staled four figures in **`docs/ABRA-technical-docs.md:530`**,
+which still reads *"1,640 of the 2,253 tests can occur"* (and 1,638 / 32 in the same sentence).
+`tests/test-docs-current.js` attributes them exactly: with the committed matrix artifact the "figures
+a cited artifact does not contain" ratchet reads **68**, with this one it reads **72**, so **four of
+the five new entries are this pass's** and all four are one sentence.
+
+**IT IS NOT FIXED HERE, BY INSTRUCTION** — the living-docs pass is deferred and the technical docs are
+explicitly out of scope for the sprint. It is a NUMBER RESTATEMENT of a quoted artifact, not a claim,
+and it should go in the batch that closes the sprint.
+
+**IT DOES NOT CHANGE WHETHER THE TREE COMMITS.** `tests/test-docs-current.js` was already red on both
+clauses before this pass (ratchet 68 against a baseline of 67, and 44 untraceable figures), so the
+pre-commit hook was already blocking and still is. The untraceable count went **44 → 43**. Stated
+because "my change broke the hook" and "the hook was already broken and my change made one ratchet
+worse" are different reports, and only the second one is true.
+
+## TWENTY ARTIFACTS WERE NEITHER CLEARED NOR WITHHELD, AND THE SENTENCE EXPLAINING WHY HAD BEEN FALSE FOR TWO DAYS. 2026-08-11 (MEASURE).
+
+`engine/quarantine.js` printed, of twenty files in `data/`: *"provenance.js finds a writer only in
+engine/ and build/, so anything written by tests/ or through an unfollowed path variable is invisible
+to this test."* **`GEN_DIRS` has read `tests/` since 2026-08-09 (ROADMAP #105), and not one of the
+twenty was unknown for the reason given.** The sentence was typed once, was correct once, and outlived
+what it described — the fourteen handoffs and the ban list of four, in the tool built to stop that.
+
+It survived because the set was produced by **SUBTRACTION**: `quarantine.js` listed `data/`, removed
+everything `provenance.js` had a row for, and attached its own explanation to the remainder. A
+subtraction returns the same list whatever the cause, so nothing could contradict the caption.
+
+**THE FIX IS THAT AN UNKNOWN IS A ROW.** `provenance.js` now emits a first-class row for every file in
+`data/` — `unknown: true`, `by: null`, and a **derived** reason per file. `--graph --json` carries
+them, and `quarantine.js` reads that set instead of computing its own. An artifact missing from the
+report was the bug; an artifact present and marked unknown is the fix. The five reasons the source can
+actually support, in descending order of what they tell you: the artifact **declared** an origin that
+resolves to no script; a template matched and was **revoked** on key shape; **nothing** in
+engine/build/tests names the file at all; only a **comment** names it; **code** names it but never
+beside a write. The last is the honest answer for CONFIG — `regulations.json` and `quality-filter.json`
+are read by 16 and 9 files and written by none, which is a fact this scan can state rather than a
+category somebody has to remember to except.
+
+**ONE OF THE TWENTY WAS A REAL MISS, AND IT WAS THE RELEASE POINTER.** `data/engine-release.json` — the
+file every frozen measurement resolves through — is written by `engine/engine_release.js` and had no
+row, because the write goes through a helper defined in the same file and then through an object
+property:
+
+    const POINTER = D('data', 'engine-release.json');
+    function paths(s) { if (!s) return { releases: RELEASES, pointer: POINTER }; ... }
+    function writeJsonAtomic(file, obj) { fs.writeFileSync(tmp, ...); fs.renameSync(tmp, file); }
+    writeJsonAtomic(S.pointer, { current: id, ... });
+
+Two arms close it, both derived and both bounded. A **same-file function whose FIRST parameter reaches
+a verb that lands bytes at a path** counts as a write verb for that source — note the parameter never
+reaches `writeFileSync` here, only `renameSync`, so an atomic writer reads as a non-writer unless the
+rename counts. And **exactly one** hop of property indirection: a literal `pointer: POINTER` links the
+binding to `S.pointer`. One hop, because this file's four recorded false attributions all came from an
+arm reaching one step further than it could justify.
+
+**SHOWN RED THREE TIMES BEFORE BEING BELIEVED.**
+
+| planted | what it produced |
+|---|---|
+| `tests/test-provenance-discovery.js` run against the old code | 3 of 5 FAIL — 20 artifacts with no row, the two tools naming different sets, the pointer unattributed |
+| `rootedIn` forced to `true` (the scratch-tree guard removed) | `engine-release.json` is attributed to **`tests/test-miltank-release.js`**, which writes that basename into a temp dir as a fixture |
+| `provenance.js` blinded to `quality-filter.json` | `quarantine.js` **still names it**, with `NO REASON RECORDED — provenance.js did not examine this file at all`, instead of the file vanishing |
+
+The second is the one worth keeping: the new helper arm is only safe because the `rootedIn` guard
+holds, and a guard that has never been watched to fail is not a guard.
+
+**AND THE SAME FAILURE WAS LIVE IN A THIRD PLACE — it would have been introduced BY this fix.**
+`quarantine.js` classifies every row it gets from the graph. Feeding the new unknown rows straight into
+that loop clears them: `by` is `null`, so no clause fires, so `quarantined` comes out **false**, and
+`web/build-quarantine.js` asks only whether a row exists. Twenty artifacts would have moved from
+`unclassified` to `clear` on the site, in the permissive direction, through a change to the thing that
+refuses to default. They are split out and reported as unknowns.
+
+**Two more stale-prose bugs found on the way, one fixed and one filed.** Fixed: `provenance.js`'s
+ratchet recorded every future coverage growth under the typed reason *"the writer scan learned to see
+tests/…"* — the cause of the 2026-08-09 event, filed in as the cause of all of them, permanently, in
+the record that exists so growth cannot be laundered. It now states which files became visible and how
+each writer was found. Filed, already on MEASURE's list: `engine/conformance.js`'s S13 still decides
+"no generator writes it" with `allSrc.includes(file)` over source text. The derived answer now exists
+with a reason attached and S13 should ask for it.
+
+**NO PROVENANCE VERDICT IS PUBLISHED WITH THIS.** An ENGINE agent was rewriting `tag_dex.js`,
+`tags.json` and `medicham2-browser.js` while it ran, and a release was cut at 05:51. The classification
+of the twenty is a statement about the SOURCE TREE and stands; the staleness verdicts computed beside
+it are against a moving tree and must be re-run once ENGINE lands. `data/quarantine-stamp.json` is
+UNSAFE by construction — it content-digests both files edited here — and `node engine/quarantine.js
+--check` was **deliberately not run**: it rewrites `citation_sites` from the currently-open gate, so a
+gate that closes again would flag every existing citation as new.
+
+Registered as ROADMAP #163.
+
+---
+
 ## THE STAGING VOCABULARY IS TWO WORDS, AND WE ONLY HAD ONE. 2026-08-11.
 
 ROADMAP #155–#160. Recorded here because it settles a question this file asked and left open on

@@ -808,7 +808,7 @@ probe('move', 'neverMisses', 'a move the artifact does NOT tag neverMisses can s
  *     turn 3  counter 9        0.2 < 1/9?  -> FAILS, ctr GONE   HIT   <- the decay half
  *     turn 4  counter absent   guaranteed                       blocked   <- the reset half
  * The old engine reads turn 4 as 1/27 at the same roll and takes the hit again. */
-probe('move', 'stalling', 'consecutive Protect decays, and a FAILED Protect resets the counter to fresh', () => {
+probe('move', 'stallCounterChecks', 'consecutive Protect decays, and a FAILED Protect resets the counter to fresh', () => {
   /* RE-DERIVING THE RULE IS NOT TESTING IT. The first version computed (1/3)^n here and asserted its
    * own arithmetic -- it would have passed with the engine deleted. This spends real turns and asks
    * whether the shield actually stops blocking, and then whether it starts again. */
@@ -887,7 +887,7 @@ probe('move', 'stalling', 'Protect FAILS outright when its user holds the LAST a
  *     shield down  |-miss|p1a|p2a                 and no toll
  * THE ROLL IS THE LOSING ONE IN BOTH ARMS -- that is the whole probe. At a winning roll the block
  * happens either way and an engine with the order wrong passes. */
-probe('move', 'stalling', 'a shield answers before the accuracy roll, so a MISSING die is still blocked', () => {
+probe('move', 'shieldsUser', 'a shield answers before the accuracy roll, so a MISSING die is still blocked', () => {
   const run = (shield) => {
     const me = bare('incineroar'), ally = bare('corviknight');
     const f1 = bare('garchomp'), f2 = bare('garchomp');
@@ -910,6 +910,93 @@ probe('move', 'stalling', 'a shield answers before the accuracy roll, so a MISSI
            detail: 'a 90% move at roll 0.99 — no shield: line ' + control.line + ', user lost '
                  + control.lost + '; Spiky Shield up: line ' + test.line + ', user lost ' + test.lost
                  + ' (the difference must be the shield\'s 1/8 = ' + test.eighth + ')' };
+});
+
+/* =================================================================================================
+ * ROADMAP #162 / #59 -- THE PROTECTION COUNTER IS THREE BEHAVIOURS AND THE ENGINE MODELLED ONE.
+ *
+ * The three probes above are all `stalling`, which is `m.stallingMove` -- Showdown's marker for the
+ * six moves that CHECK the shared counter. The two probes below are the two behaviours that tag
+ * cannot express, and both were wrong in this engine:
+ *
+ *   stallCounterFeeds   Wide Guard and Quick Guard have no `stallingMove` and raise no StallMove
+ *                       event, so they never roll. Their `onHitSide` calls `addVolatile('stall')`,
+ *                       which lands on `stall.onRestart` and TRIPLES the counter. This engine wrote
+ *                       `tookProtectTurns = 0` on one, so a Wide Guard REFRESHED a decaying shield --
+ *                       exactly backwards, and it made a Protect free forever behind one.
+ *   failsIfMovesLast    `onTry() { return !!this.queue.willAct(); }` is on the Guards as well as on
+ *                       the shields. This engine had it only on the shields.
+ *
+ * BOTH ARE ASSERTED ON HP, NOT ON A COUNTER FIELD. A probe that reads `me.tookProtectTurns` proves
+ * the bookkeeping and not the game, and the bookkeeping is what was already there. */
+probe('move', 'stallCounterFeeds', 'a Wide Guard ADVANCES the shared stall counter, so the next Protect is 1/3', () => {
+  /* The knob is turn 1's click and nothing else. Both arms then click the SAME Protect on turn 2 at
+   * the SAME losing roll into the SAME Earthquake, so any difference is the counter. */
+  const run = (turn1) => {
+    const me = bare('incineroar'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(me); unfaintable(ally);
+    /* turn 1 -- the varied click. `ally` and both foes hold actions behind it, so neither arm can be
+     * refused for holding the last action of the turn (that is the OTHER probe). */
+    M.battleTurn(S, rng5,
+      new Map([[me, turn1 ? M.playerAction(me, turn1, null, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    /* turn 2 -- Protect at 0.99. A fresh counter blocks; a counter of 3 rolls 1/3 and fails. */
+    const before = me.curHP;
+    M.battleTurn(S, rngLose,
+      new Map([[me, M.playerAction(me, 'protect', null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    return before - me.curHP;
+  };
+  const control = run(null);          // turn 1 is an ordinary click: the counter is never armed
+  const test = run('wideguard');      // turn 1 is a FEEDER: the counter must be at 3
+  return { works: control === 0 && test > 0,
+           arms: { control, test },
+           detail: `damage taken on turn 2 behind a Protect at roll 0.99 — turn 1 an ordinary click `
+                 + `${control} (counter unarmed, shield holds); turn 1 a WIDE GUARD ${test} `
+                 + `(counter fed to 3, the 1/3 roll fails and the shield does not go up)` };
+});
+
+/* THE SAME `!!this.queue.willAct()` refusal the Protect probe above measures, on the family that did
+ * not have it. ASSERTED ON THE NEXT TURN, for the identical reason that probe gives: a Wide Guard
+ * that fails when nothing is left to act blanks nothing either way, so the only observable is that a
+ * REFUSED guard never reaches its own `onHitSide` and therefore never feeds the counter.
+ *
+ * IT IS DELIBERATELY RED FOR TWO SEPARATE REASONS, which is why it is a second probe and not a third
+ * arm of the first. Against the engine before this pair, the CONTROL fails (a Wide Guard reset the
+ * counter, so turn 2's Protect held). Against an engine with only the feeding half wired, the TEST
+ * fails (a refused guard fed the counter anyway). Both were shown red in that order.
+ *
+ * The knob is the user's Speed and nothing else. All four bodies click a +3 guard on turn 1, so the
+ * bracket is pure Speed and the ONLY thing that moves is whether `me` sits at the end of the queue. */
+probe('move', 'failsIfMovesLast', 'a Wide Guard whose user holds the LAST action of the turn fails outright', () => {
+  const run = (meSpe) => {
+    const me = bare('incineroar'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(me); unfaintable(ally);
+    me.st = Object.assign({}, me.st, { sp: meSpe });
+    ally.st = Object.assign({}, ally.st, { sp: 100 });
+    f1.st = Object.assign({}, f1.st, { sp: 100 });
+    f2.st = Object.assign({}, f2.st, { sp: 100 });
+    const G = (b) => M.playerAction(b, 'wideguard', null, S.field);
+    M.battleTurn(S, rng5, new Map([[me, G(me)], [ally, G(ally)]]), new Map([[f1, G(f1)], [f2, G(f2)]]));
+    /* turn 2 -- Protect at a losing roll, with a real attack behind it so THIS shield is not last. */
+    const before = me.curHP;
+    M.battleTurn(S, rngLose,
+      new Map([[me, M.playerAction(me, 'protect', null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    return before - me.curHP;
+  };
+  const control = run(200);   // fastest of the four guards: three are still queued behind it
+  const test = run(1);        // slowest of the four: `me` holds the last action of the turn
+  return { works: control > 0 && test === 0,
+           arms: { control, test },
+           detail: `damage taken on turn 2 behind a Protect at roll 0.99 — turn-1 Wide Guard at Speed `
+                 + `200, three guards queued behind it ${control} (it resolved and fed the counter, so `
+                 + `the 1/3 roll fails); at Speed 1, holding the last action ${test} (the guard was `
+                 + `refused before its onHitSide, so the counter is still unarmed and the shield holds)` };
 });
 
 /* ARMS DECLARED, 2026-08-06 (#42/#45 part 3), AND THESE TEN WERE PICKED BY A NUMBER RATHER THAN BY
@@ -3940,6 +4027,56 @@ probe('move', 'swapsSlots', 'Ally Switch swaps the two bodies between slots', ()
                  + 'the positive half on its own' };
 });
 
+/* =================================================================================================
+ * ROADMAP #162 / #59 -- ALLY SWITCH KEEPS ITS OWN COUNTER, AND NOTHING HAD EVER PROBED IT.
+ *
+ * #59 records the protection counter as THREE behaviours: Protect CHECKS the shared one, Wide Guard
+ * FEEDS it, and Ally Switch has a PRIVATE one. The third is the one nothing measured -- the swap was
+ * probed (above) and the decay was not, so the branch could have been deleted and the census would
+ * have read the same. It is a real mechanic in this format: a 1/3 chance is what stops Ally Switch
+ * being clicked every turn against a slow attacker.
+ *
+ * IT IS NOT THE PROTECT COUNTER, and that is the reason it is a separate tag rather than a param on
+ * the shared one. data/moves.ts allyswitch carries its own `condition` with `counterMax: 729` and its
+ * own `randomChance(1, counter)` in `onRestart`, against data/conditions.ts `stall`, which is what
+ * the shields roll. An engine that shared one would let a Protect the turn before shrink an Ally
+ * Switch, and vice versa -- so the CONTROL here is a turn-1 PROTECT, not a turn-1 nothing. That arm
+ * is what makes the probe say `privateStallCounter` rather than merely `some counter`.
+ *
+ * THE OBSERVABLE IS WHO STANDS IN SLOT 0, READ AFTER EACH TURN, and both readings are needed. Slot 0
+ * holds snorlax at the end of the test arm because the SECOND switch was refused, and at the end of
+ * the control arm because the second switch SUCCEEDED — the same letter for opposite reasons. Only
+ * the pair of readings tells them apart, and the first version of this probe returned one and could
+ * not.
+ *
+ * THE SAME BODY CLICKS BOTH TIMES, which is the other thing the first version got wrong: it handed
+ * turn 2 to `actA[0]`, and after a successful swap that is the PARTNER — a body with no counter on
+ * it, so the arm passed as a first use and the probe reported the engine broken. The counter is a
+ * volatile on the Pokemon, not a property of the slot. */
+probe('move', 'privateStallCounter', 'consecutive Ally Switch decays on its OWN counter, which Protect does not touch', () => {
+  const run = (turn1) => {
+    const B = board('corviknight', 'snorlax', 'garchomp', 'clefable');
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, turn1, null, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    const t1 = B.S.actA[0] && B.S.actA[0].name;
+    M.battleTurn(B.S, rngLose,
+      new Map([[B.me, M.playerAction(B.me, 'allyswitch', null, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { t1, t2: B.S.actA[0] && B.S.actA[0].name };
+  };
+  const test = run('allyswitch');   // consecutive use: the 1/3 roll is lost and the second swap fails
+  const control = run('protect');   // a shield the turn before must NOT arm this counter
+  return { works: test.t1 === 'snorlax' && test.t2 === 'snorlax'
+                  && control.t1 === 'corviknight' && control.t2 === 'snorlax',
+           arms: { control: control.t1 + '->' + control.t2, test: test.t1 + '->' + test.t2 },
+           detail: 'who stands in slot 0 after turn 1, then after turn 2 — turn 1 ALLY SWITCH then a '
+                 + 'second one at roll 0.99: ' + test.t1 + ' then ' + test.t2 + ' (unchanged, so the '
+                 + 'second switch was refused); turn 1 PROTECT then Ally Switch at the SAME 0.99: '
+                 + control.t1 + ' then ' + control.t2 + ' (it swapped, so the shield did not feed '
+                 + 'this counter — the two counters are separate)' };
+});
+
 /* WIRE 139, 2026-08-08. A MOVE TARGETS A SLOT, NOT A POKEMON. Will: *"we gotta target slots, not
  * mons"*. Showdown resolves a move's target from its `targetLoc` at EXECUTION time
  * (`Battle#getTarget`, sim/battle.ts:2434), so a body that pivots out between the choice and the
@@ -4377,6 +4514,49 @@ probe('move', 'failsIfTargetNotAttacking', 'Sucker Punch fails against a target 
   const attacking = run(true), idle = run(false);
   return { works: attacking > 0 && idle === 0, arms: { control: attacking, test: idle },
            detail: 'foe attacking: ' + attacking + ', foe idle: ' + idle + ' (must be 0)' };
+});
+
+/* =================================================================================================
+ * ROADMAP #162 / #60 -- UPPER HAND AND SUCKER PUNCH SHARED ONE CONDITION AND DO NOT SHARE IT.
+ *
+ * Will, 2026-08-11: *"we need to split the tags, they require very different things"*.
+ *
+ * data/moves.ts:20190 -- Upper Hand's own onTry:
+ *     const action = this.queue.willMove(target);
+ *     const move = action?.choice === 'move' ? action.move : null;
+ *     if (!move || move.priority <= 0.1 || move.category === 'Status') return false;
+ * against data/moves.ts:18399 -- Sucker Punch's:
+ *     if (!move || (move.category === 'Status' && move.id !== 'mefirst')
+ *         || target.volatiles['mustrecharge']) return false;
+ *
+ * The `move.priority <= 0.1` clause is Upper Hand's ALONE, and modelled the broad way this engine
+ * believed Upper Hand beat an ordinary Earthquake -- a 65 BP +3 Fighting move with no drawback,
+ * which is not a move that exists. `failsIfTargetMoveNotPriority` is its own tag with its own
+ * membership (1 of 500, printed), so a consumer has to ask for the narrow rule rather than inherit
+ * it from the broad one.
+ *
+ * THE PROBE VARIES ONLY THE FOE'S CLICK, AND BOTH ARMS ARE ATTACKS. An arm where the foe does
+ * nothing would pass against the BROAD rule too, which is exactly how this survived: the control is
+ * Fake Out (+3, a priority move, Upper Hand connects) against Earthquake (+0, Upper Hand fails).
+ * Same user, same target, same roll. */
+probe('move', 'failsIfTargetMoveNotPriority', 'Upper Hand needs the target on a PRIORITY move, not merely attacking', () => {
+  const run = (foeMove) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'garchomp');
+    unfaintable(f1); unfaintable(me);
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'upperhand', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, foeMove, me, S.field)], [f2, { kind: 'pass' }]]));
+    return before - f1.curHP;
+  };
+  /* Both foes are Garchomp and both clicks are damaging attacks, so nothing about the board or the
+   * turn differs except the PRIORITY of what the target committed to. */
+  const control = run('extremespeed');   // +2: a priority move, Upper Hand must connect
+  const test = run('earthquake');        // +0: attacking, and Upper Hand must still FAIL
+  return { works: control > 0 && test === 0, arms: { control, test },
+           detail: 'Upper Hand damage — target clicked Extreme Speed (+2, a priority move) ' + control
+                 + '; target clicked Earthquake (+0, attacking but NOT priority) ' + test
+                 + ' (must be 0 — the broad "is the target attacking" rule lets this one through)' };
 });
 
 probe('item', 'choiceLock', 'Choice Scarf locks the holder into its first move', () => {

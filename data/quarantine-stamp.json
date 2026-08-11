@@ -1,8 +1,8 @@
 {
   "note": "RATCHET. citation_sites may SHRINK and may never grow while the MEDICHAM quarantine is closed. A new entry means a withheld figure was just published somewhere.",
   "source_digests": {
-    "engine/quarantine.js": "a0bf42a0fe8a",
-    "engine/provenance.js": "758976049f89",
+    "engine/quarantine.js": "78cf7bea6d0a",
+    "engine/provenance.js": "b312a874a012",
     "note": "Content, not mtime. A checkout moves an mtime without moving code."
   },
   "not_store_derived": "it records which artifacts are downstream of the simulator and where they are still cited. No game is counted anywhere in it, so the quality filter has no bearing.",
@@ -30,6 +30,7 @@
     "lookahead-cost.json",
     "mag.js",
     "mew.js",
+    "open-work.json",
     "opponent-calibration.json",
     "opponent-recall.json",
     "partial-label-em.json",
@@ -58,7 +59,11 @@
     "winrate-backtest.json"
   ],
   "citation_sites": [
-    "docs/ENGINE.md"
+    "docs/ENGINE.md",
+    "docs/MEASURE.md",
+    "docs/SEARCH.md",
+    "web/build-status.js",
+    "web/publish-rule.js"
   ],
-  "generated": "2026-08-11T02:56:45.350Z"
+  "generated": "2026-08-11T06:59:20.911Z"
 }

@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-11T02:55:44.997Z",
+ "generated": "2026-08-11T07:00:35.613Z",
  "by": "engine/conformance.js",
- "files": 362,
+ "files": 371,
  "findings": [
   {
    "std": "S12",
@@ -74,6 +74,15 @@
     "move:ragepowder",
     "move:tailwind",
     "move:trickroom"
+   ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/faces.js",
+   "what": "names 1 Pokemon thing(s) in code: move:helpinghand",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:helpinghand"
    ]
   },
   {
@@ -712,15 +721,9 @@
   },
   {
    "std": "S13",
-   "file": "data/raw-log-census.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
    "file": "data/replay-differential-bo3-freezes.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
   },
   {
    "std": "S13",
@@ -757,6 +760,12 @@
    "file": "data/rollout-r1-withdrawn-join.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/roster.all.prev.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
   },
   {
    "std": "S13",

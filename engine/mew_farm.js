@@ -66,7 +66,17 @@ const D = (...p) => path.join(ROOT, ...p);
  * from quality.js via the pool builder, which is why the run log reports "distinct clean teams".
  * engine/selftest.js greps for the filename anywhere in a file, so this safety guard was being counted
  * as a violation of the very rule it protects. */
-const LADDER = D('data', 'games.ladder.jsonl');
+/* THE GUARD WAS ONE FILE WIDE AND THERE ARE THREE HUMAN STORES. Found 2026-08-11 by OPS while
+ * diagnosing whether the million-game run could start. `--out data/games.bo3.jsonl` was ACCEPTED,
+ * and that store is the one that actually matters: it is the continuously-collected open-sheet
+ * corpus (the Bo3 ruleset carries Force Open Team Sheets), it is what `fit_policy.js` reads, and
+ * `games.ots.jsonl` is a completed external import that could never be re-pulled if it were lost.
+ * Naming only the ladder store protected the least valuable of the three. */
+const HUMAN_STORES = [
+  D('data', 'games.ladder.jsonl'),
+  D('data', 'games.bo3.jsonl'),
+  D('data', 'games.ots.jsonl'),
+];
 
 function arg(name, dflt) {
   const i = process.argv.indexOf('--' + name);
@@ -104,8 +114,26 @@ const KEEP = process.argv.includes('--keep-shards');
 /* Mirrors mew.js: the log sidecar sits beside the record file under the same stem. */
 const RAW_OUT = OUT.replace(/\.jsonl$/, '') + '.raw-logs.jsonl';
 
-if (path.resolve(OUT) === path.resolve(LADDER)) {
-  console.error('REFUSING: --out is the ladder store. Self-play must never enter it.');
+if (HUMAN_STORES.some(s => path.resolve(OUT) === path.resolve(s))) {
+  console.error('REFUSING: --out is a human game store. Self-play must never enter one.');
+  process.exit(1);
+}
+
+/* THE MERGE TRUNCATES ITS OUTPUT, AND THE OUTPUT HAS A DEFAULT. Found 2026-08-11 by OPS.
+ * The shard merge below opens OUT with `flags: 'w'`, so a plain `node engine/mew_farm.js` with no
+ * --out DESTROYS an existing data/games.selfplay.jsonl rather than appending to it. Nothing said
+ * so, nothing failed, and the corpus would simply have been shorter afterwards -- this project's
+ * signature failure mode, arriving through a door no rule covered.
+ *
+ * REFUSED AT THE START, NOT AT THE MERGE. Checking here costs nothing; checking at the merge would
+ * discover the problem after the compute has already been spent, which is the worst possible time
+ * to learn it. Truncation stays POSSIBLE because a re-run over a junk shard set is legitimate --
+ * it just has to be asked for. */
+if (!process.argv.includes('--overwrite') && fs.existsSync(OUT) && fs.statSync(OUT).size > 0) {
+  console.error('REFUSING: ' + path.relative(ROOT, OUT) + ' already holds ' +
+    fs.statSync(OUT).size.toLocaleString() + ' bytes, and the shard merge TRUNCATES its output.');
+  console.error('  Running would destroy that corpus, not append to it.');
+  console.error('  Pass --out <a fresh path> to keep it, or --overwrite to discard it deliberately.');
   process.exit(1);
 }
 if (!process.env.SHOWDOWN_PATH) {

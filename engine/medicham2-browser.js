@@ -246,6 +246,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* WIRE 140 -- Ally Switch actually swapping two bodies, and the consecutive-use roll refusing one.
    * A zero on the first after real games means the branch is not on the path (202 corpus uses). */
   allySwitchSwapped: 0, allySwitchStalled: 0,
+  /* ROADMAP #162 / #59 -- the two behaviours `stalling` could not express.
+   *   stallCounterFed            a Wide Guard or Quick Guard ADVANCED the shared counter, which this
+   *                              engine used to clear. A zero after real games means no side guard
+   *                              was ever clicked, not that the branch is absent.
+   *   sideGuardRefusedMovesLast  a side guard was refused because its user held the last action of
+   *                              the turn -- `!!this.queue.willAct()`, the gate the shields already
+   *                              had and the Guards did not. */
+  stallCounterFed: 0, sideGuardRefusedMovesLast: 0,
+  /* ROADMAP #162 / #60 -- Upper Hand refused because the target's committed move was not priority.
+   * A zero after real games means nobody clicked it (89 corpus uses), not that the branch is absent. */
+  priorityConditionRefused: 0,
   /* 2026-08-10 -- a STATUS move resolved against more than one body. The whole defect was that this
    * was structurally impossible: the `affect` branch held a single `_t`, so Cotton Spore, String Shot,
    * Sweet Scent and Teeter Dance moved slot 0 and nothing else. A zero after real games means the
@@ -703,6 +714,28 @@ const MEDFAILS = { encoreAction: 0,
    * for, so the guard was raised and refused nothing. Zero today: the only two members are "spread
    * moves" and "priority moves" and both are wired. Crafty Shield and Mat Block would land here. */
   guardClassUnknown: 0, guardClassUnknownFirst: '',
+  /* ROADMAP #162 / #59 -- a side guard the artifact does NOT call a `stallCounterFeeds` member. Both
+   * of this format's two side guards are feeders, so this is 0 by derivation; a non-zero names the
+   * first arrival with no rule instead of quietly clearing the counter, which is what the branch did
+   * for every member before the split. */
+  sideGuardNotAFeeder: 0, sideGuardNotAFeederFirst: '',
+  /* ROADMAP #162 / #127 -- a shield that resolved through the legacy `PROTECTMOVES` NAME SET because
+   * the artifact gave it no `stallCounterChecks` record. Expected 0 in this format: all six legal
+   * shields carry the tag, and the three that do not (burningbulwark, silktrap, maxguard) are
+   * isNonstandard and cannot be clicked. A non-zero means the derivation lost a member. */
+  shieldByNameOnly: 0, shieldByNameOnlyFirst: '',
+  /* ROADMAP #162 / #60 -- a `failsIfTargetMoveNotPriority` carrier whose target committed an attack
+   * this engine could not name, so the priority comparison had nothing to read. Expected 0: every
+   * `{kind:'attack'}` action carries its move id. A non-zero means the condition is being skipped. */
+  priorityConditionUnreadable: 0, priorityConditionUnreadableFirst: '',
+  /* ROADMAP #162 / #59 -- a slot-swap move with no `privateStallCounter` record, so its decay fell
+   * back on the literals this branch used to hold. Expected 0: Ally Switch is the only member and it
+   * carries the tag. A non-zero means the derivation lost it and the numbers are hardcoded again. */
+  privateCounterUntagged: 0, privateCounterUntaggedFirst: '',
+  /* ROADMAP #162 / #59 -- a shield with no `stallCounterChecks` record, so its decay fell back on the
+   * literals this branch used to hold. Expected 0 for the five legal shields; the three isNonstandard
+   * members of the legacy name set would land here if this engine were pointed at another format. */
+  stallCounterUntagged: 0, stallCounterUntaggedFirst: '',
   /* WIRE 158 -- `piercesProtect.onlyMoveFlag` named a flag no move in the artifact carries, so the
    * pierce silently applied to NOTHING. Zero today: both entries say `contact` and 245 moves carry
    * that tag. A fallback that quietly disables a mechanic is exactly the shape CLAUDE.md opens with,
@@ -9258,21 +9291,76 @@ function battleTurn(S,rng,actsForA,actsForB){
     for(let i=0;i<acts.length;i++){
       const it=acts[i];
       if(it.a.kind==='protect'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){
+        /* ROADMAP #162 / #59 -- THE THREE NUMBERS COME OFF `stallCounterChecks` NOW.
+         *
+         * `1/3`, `6` and the implicit 729 were literals, and they are the same shape the Ally Switch
+         * branch used to hold four of: two copies of one mechanic that agree until they do not.
+         * `stallCounterChecks` reads them off data/conditions.ts `stall` itself -- `counter = 3` in
+         * onStart, `counter *= 3` in onRestart, `counterMax: 729` -- so the decay is derived rather
+         * than typed. The cap follows from those three (3 * 3^(n-1) reaches 729 at n = 6) instead of
+         * being a fourth independent literal that has to be kept consistent with them by hand.
+         *
+         * AND THE ARITHMETIC IS NOW THE AUTHORITY'S. Showdown draws `randomChance(1, counter)` on an
+         * INTEGER counter, so the exact probability is 1/27; `Math.pow(1/3, 3)` compounds a rounding
+         * error and is 1 ulp low from n = 3 onward. The window that changes is ~1e-17 wide and no
+         * die in this repository can land in it -- it is a correctness point, not a measured one,
+         * and it is stated rather than claimed as a fix. */
         if(i+1>=acts.length){it.mon.protect=false;it.mon.tookProtectTurns=0;}   // willAct() === null
         else{
-          const _ok=(it.mon.tookProtectTurns===0||rng()<Math.pow(1/3,it.mon.tookProtectTurns));
+          const _sc=TAGS.param('move',actionMoveId(it.a),'stallCounterChecks');
+          if(!_sc){MEDFAILS.stallCounterUntagged++;
+            if(!MEDFAILS.stallCounterUntaggedFirst)MEDFAILS.stallCounterUntaggedFirst=String(actionMoveId(it.a));}
+          const _f=(_sc&&_sc.firstCounter)||3,_g=(_sc&&_sc.growsBy)||3,_mx=(_sc&&_sc.counterMax)||729;
+          const _n=it.mon.tookProtectTurns;
+          const _cap=1+Math.round(Math.log(_mx/_f)/Math.log(_g));
+          const _ctr=_n===0?1:Math.min(_mx,_f*Math.pow(_g,_n-1));
+          const _ok=(_ctr<=1||rng()<1/_ctr);
           it.mon.protect=_ok;
-          it.mon.tookProtectTurns=_ok?Math.min(6,it.mon.tookProtectTurns+1):0;
+          it.mon.tookProtectTurns=_ok?Math.min(_cap,_n+1):0;
         }
         it.mon._lastMove=it.a.mv||'protect';it.mon._protectMove=it.a.mv||null;
       }
       /* ROADMAP #126 -- THE GUARD RAISED IS RECORDED BY ITS MOVE ID, not by a boolean whose name is
-       * the mechanic. `tookProtectTurns=0` is left exactly as it was: see the ROADMAP #59 note at
-       * sideGuardRefuses -- the authority ADVANCES the stall counter here and this engine resets it,
-       * which is a separate pre-existing gap and not this wire's to change silently. */
+       * the mechanic.
+       *
+       * ROADMAP #162 / #59 -- AND IT FEEDS THE COUNTER RATHER THAN CLEARING IT. The line here read
+       * `it.mon.tookProtectTurns=0`, which is the OPPOSITE of the rule, and the comment that used to
+       * sit in its place said so and left it. Showdown, data/moves.ts wideguard/quickguard:
+       *
+       *     onTry()                  { return !!this.queue.willAct(); }
+       *     onHitSide(side, source)  { source.addVolatile('stall'); }
+       *
+       * Neither move is a `stallingMove` and neither raises `StallMove`, so no die is ever drawn for
+       * the Guard itself -- but `addVolatile('stall')` lands on `stall.onRestart`
+       * (data/conditions.ts) and TRIPLES the counter. A Wide Guard therefore makes the NEXT Protect
+       * 1/3; this engine made it a free 100%, so a Wide Guard was a way to refresh a decaying shield.
+       *
+       * BOTH HALVES ARE READ OFF THE TAG, NOT OFF THE KIND. `wideguard` is an ACTION KIND, and the
+       * two behaviours are separate tags with separate membership -- `stallCounterFeeds` (2 moves)
+       * and `failsIfMovesLast` (8 moves: these 2 plus the 6 shields). Anything the artifact later
+       * gives one and not the other is picked up without editing this branch. */
       else if(it.a.kind==='wideguard'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){
         const _g=actionMoveId(it.a)||'wideguard';
-        (it.side==='A'?field.sgA:field.sgB)[_g]=true;it.mon.tookProtectTurns=0;}
+        /* THE QUEUE GATE SHORT-CIRCUITS AHEAD OF THE HIT, so a guard refused here never reaches its
+         * own onHitSide and never feeds anything -- the same shape, and the same `i+1>=acts.length`
+         * reading, the shield branch above already uses. */
+        if(TAGS.has('move',_g,'failsIfMovesLast')&&i+1>=acts.length){
+          /* NO PROTOCOL LINE, and that matches what the shield branch does one block up rather than
+           * being an oversight: this pre-pass runs before any move line has been opened, so
+           * `TR.attrStill()` would have nothing to attach to. The refusal is a STATE fact here and
+           * the announcement half belongs to ROADMAP #68's stream comparison. */
+          it.mon.tookProtectTurns=0;MEDSEEN.sideGuardRefusedMovesLast++;
+        }else{
+          (it.side==='A'?field.sgA:field.sgB)[_g]=true;
+          if(TAGS.has('move',_g,'stallCounterFeeds')){
+            it.mon.tookProtectTurns=Math.min(6,it.mon.tookProtectTurns+1);MEDSEEN.stallCounterFed++;
+          }else{
+            /* A side guard the artifact does NOT call a feeder. Nothing in this format is one, so a
+             * non-zero here names a member that arrived with no rule -- loud, not silent. */
+            it.mon.tookProtectTurns=0;MEDFAILS.sideGuardNotAFeeder++;
+            if(!MEDFAILS.sideGuardNotAFeederFirst)MEDFAILS.sideGuardNotAFeederFirst=String(_g);
+          }
+        }}
       else it.mon.tookProtectTurns=0;
     }
     /* WIRE 118 -- "HAS THIS BODY ALREADY ACTED?" IS NOW "HAS IT RESOLVED?", AND THAT IS THE POINT.
@@ -11208,12 +11296,29 @@ function battleTurn(S,rng,actsForA,actsForB){
         const own=it.side==='A'?actA:actB;
         const me=own.indexOf(m), other=me===0?1:0;
         const partner=me>=0?own[other]:null;
+        /* ROADMAP #162 / #59 -- THE FOUR NUMBERS COME OFF THE TAG NOW, NOT OUT OF THIS LINE.
+         *
+         * `3`, `729`, `*3` and `2` were four literals here, and they are the same four values
+         * data/conditions.ts `stall` carries for the OTHER counter -- which is exactly the situation
+         * CLAUDE.md's FACTS-ARE-GLOBAL rule is about: two copies of one shape that will agree until
+         * the day one of them does not. `privateStallCounter` reads them off allyswitch's own
+         * `condition` (counterMax, the `counter = 3` in onStart, the `counter *= 3` in onRestart,
+         * and duration), so the mechanic is derived per member rather than typed once here.
+         *
+         * THE FALLBACKS ARE THE OLD LITERALS AND THEY ARE LOUD. A member whose params the derivation
+         * could not read would otherwise get a silently different decay -- a fallback that looks
+         * exactly like the mechanic working, which is what this file's opening comment is about. */
+        const _pc=TAGS.param('move',a.mv,'privateStallCounter');
+        if(!_pc){MEDFAILS.privateCounterUntagged++;
+          if(!MEDFAILS.privateCounterUntaggedFirst)MEDFAILS.privateCounterUntaggedFirst=String(a.mv);}
+        const _first=(_pc&&_pc.firstCounter)||3, _grow=(_pc&&_pc.growsBy)||3;
+        const _max=(_pc&&_pc.counterMax)||729, _dur=(_pc&&_pc.duration)||2;
         if(m._aswDur>0){
           const c=m._aswCount||1;
           if(rng()*c>=1){ m._aswDur=0; m._aswCount=0; mvFail(m); MEDSEEN.allySwitchStalled++; continue; }
-          if(m._aswCount<729)m._aswCount=(m._aswCount||3)*3;
-          m._aswDur=2;
-        } else { m._aswCount=3; m._aswDur=2; }
+          if(m._aswCount<_max)m._aswCount=(m._aswCount||_first)*_grow;
+          m._aswDur=_dur;
+        } else { m._aswCount=_first; m._aswDur=_dur; }
         if(me<0||!partner||partner.fainted||partner.curHP<=0){ mvFail(m); continue; }
         own[me]=partner; own[other]=m;
         MEDSEEN.allySwitchSwapped++;
@@ -11991,11 +12096,41 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_md==='failsIfHit'&&_wasHit){if(TR)TR.cant(m,a.move.id,a.move.id);continue;}
         if(_md==='failsUnlessHit'&&!_wasHit){if(TR)TR.cant(m,a.move.id,a.move.id);continue;}
       }
+      /* ROADMAP #162 / #60 -- AND THE SECOND CONDITION, WHICH IS UPPER HAND'S ALONE.
+       *
+       * The block above is the rule BOTH members share: the target must be committing a damaging
+       * move. Upper Hand adds `move.priority <= 0.1` (data/moves.ts:20192) and this engine applied
+       * only the broad half, so it played a 65 BP +3 Fighting move with no drawback into an ordinary
+       * Earthquake -- the same shape of over-valuation the Sucker Punch fix above was written for,
+       * one move over, and invisible because both moves passed the tag they shared.
+       *
+       * `failsIfTargetMoveNotPriority` is a SEPARATE tag with a membership of one, so this branch
+       * cannot fire on Sucker Punch by inheritance and a third member added later gets the condition
+       * without an edit here. The threshold and the comparison come off the tag; the target's own
+       * priority comes from `movePriority`, the same reader the turn sort uses -- so a Prankster or
+       * Gale Wings boost that Showdown counts is counted here too, which is exactly why the
+       * authority's constant is 0.1 rather than 0. */
       if(TAGS.has('move',a.move.id,'failsIfTargetNotAttacking')){
         const _tgt=a.target;
         const _their=_tgt?acts.find(x=>x.mon===_tgt):null;
         const _attacking=!!(_their&&_their.a&&_their.a.kind==='attack');
         if(!_attacking){{if(TR)TR.attrStill();mvFail(m);}continue;}
+        const _np=TAGS.param('move',a.move.id,'failsIfTargetMoveNotPriority');
+        if(_np){
+          const _theirId=_their.a.mv||(_their.a.move&&_their.a.move.id)||null;
+          if(!_theirId){
+            /* An attack with no move id would make this condition unanswerable, and answering it
+             * either way would be a silent default. It is counted and the move is allowed through --
+             * the pre-split behaviour -- so the fallback cannot be mistaken for the mechanic. */
+            MEDFAILS.priorityConditionUnreadable++;
+            if(!MEDFAILS.priorityConditionUnreadableFirst)MEDFAILS.priorityConditionUnreadableFirst=String(a.move.id);
+          }else{
+            const _tp=movePriority(_theirId,field);
+            const _ok=_np.strictlyAbove?(_tp>_np.minPriority):(_tp>=_np.minPriority);
+            if(!_ok){MEDSEEN.priorityConditionRefused++;
+              {if(TR)TR.attrStill();mvFail(m);}continue;}
+          }
+        }
       }
       /* BLOCKED PRIORITY FAILS OUTRIGHT. The sort above puts a priority move at the front of the
        * turn and, until now, let it connect regardless of Armor Tail, Queenly Majesty, Dazzling or
@@ -15385,7 +15520,33 @@ function playerActionPrimary(me,moveId,target,field){
    * did not have a Trick Room row -- so the one action kind nobody had listed announced nothing. The
    * id belongs on the action, at the one place that knows it, and the map stays only as the backstop
    * for a bare action a CALLER built. */
-  if(PROTECTMOVES.has(id))return {kind:'protect',mv:id};   // mv, so WIRE 61 knows which shield blocked
+  /* ROADMAP #162 / #127 -- THE HIGHEST-USAGE DISPATCH IN THE FORMAT WAS A NAME LIST.
+   *
+   * `PROTECTMOVES` is a literal set of eight ids, and #127 measured 96,406 uses resolving through it.
+   * docs/TAGS.md forbids exactly this: match on tag SHAPE, so a member added later is picked up
+   * without editing the engine. The shape is `stallCounterChecks` -- `stallingMove: true` with an
+   * `onPrepareHit` that fires `runEvent('StallMove')` -- and it selects 6 of this format's 500 legal
+   * moves, printed before it was wired.
+   *
+   * AND `stallCounterChecks` IS NOT THE TAG. It was the first thing tried and the census caught it
+   * inside one run: ENDURE is a `stallingMove`, rolls the same die off the same counter, and BLOCKS
+   * NOTHING -- the hit lands and only the HP floors at 1. Dispatching `{kind:'protect'}` off the
+   * counter tag turned Endure into a shield and took two live probes down with it. The tag that
+   * means "the move does not reach me" is `shieldsUser`, read off the condition the move's volatile
+   * installs (`checkMoveBypassesProtect`), and its membership is the five legal shields.
+   *
+   * THE HEADLINE COUNT DID NOT MOVE WHEN THAT HAPPENED. Two probes broke and two arrived in the same
+   * run, so `live` read 444 both times; `missing` is what caught it. Worth knowing about the census.
+   *
+   * THE NAME SET IS KEPT AS A LOUD FALLBACK, NOT DELETED. Three of its eight entries
+   * (burningbulwark, silktrap, maxguard) are `isNonstandard` here and therefore carry no artifact
+   * record at all, so a tag-only test would silently downgrade them to `{kind:'pass'}` if this
+   * engine were ever pointed at another format. A silent default looks exactly like a working
+   * feature; this one counts itself and names the move. */
+  if(TAGS.has('move',id,'shieldsUser'))return {kind:'protect',mv:id};   // mv, so WIRE 61 knows which shield blocked
+  if(PROTECTMOVES.has(id)){MEDFAILS.shieldByNameOnly++;
+    if(!MEDFAILS.shieldByNameOnlyFirst)MEDFAILS.shieldByNameOnlyFirst=id;
+    return {kind:'protect',mv:id};}
   /* ROADMAP #126 -- THE ONE LINE THAT MADE QUICK GUARD A WASTED TURN. `id==='wideguard'` matched one
    * of the two moves that carry `oneTurnGuard`; the other fell through the entire cascade below and
    * came out `{kind:'pass'}` on 927 corpus clicks. `kind:'wideguard'` is kept as the NAME OF THE

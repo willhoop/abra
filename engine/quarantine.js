@@ -323,7 +323,35 @@ function roadmapRowIsClosed(l) {
   if (/\|\s*(closed|done|page closed)\b[^|]*\|\s*$/i.test(l)) return true;
   return /—\s*DONE|DONE,|RETRACTED|closed 20\d\d|GUARDED,/.test(l.slice(0, 600));
 }
+/* THE BREAKAGE CLAIM IS DECLARED IN THE STATUS CELL FIRST, AND ONLY THEN GUESSED FROM PROSE.
+ *
+ * #148's own words, quoted in the block below: *"a defect register whose enforcement depends on word
+ * choice is a structural weakness"*. That lesson was cashed in for the CLOSED half — `roadmapRowIsClosed`
+ * reads the status cell above — and the BROKEN half was left on a vocabulary list. It cost immediately.
+ *
+ * MEASURED 2026-08-11, before this was wired: ten engine defects were registered off `test-tag-wire`'s
+ * own assertions and the clause matched ZERO of them, because the assertions say "does not save",
+ * "lands on a Grass type", "hits your own partner", "punishes nobody", "charges a survivor nothing"
+ * and "still clickable on turn two". Every one is a mechanic behaving wrongly in a real game. None is
+ * in the list. The gate read `clean: the roadmap registers no open row describing a live engine defect`
+ * with Focus Sash failing to save at 1 HP sitting in the register two screens above it.
+ *
+ * So a row now SAYS it is a defect: the token `DEFECT` in its status cell. That cannot drift with
+ * phrasing, it is visible to a human reading the table, and it is the same shape as the fix above.
+ *
+ * THE PROSE SCAN IS KEPT, NOT REPLACED. Every row already carrying the old vocabulary keeps counting
+ * with no edit, and a row whose author states breakage plainly in the title but forgets the cell still
+ * holds the gate shut. Removing a working clause in the same pass as adding one is how a fix eats a
+ * guard — the file says so about `roadmapRowIsClosed` and it is no less true here.
+ *
+ * IT STILL ERRS SHUT. A row that might be a wrong FIXTURE rather than a wrong ENGINE is marked anyway;
+ * the gate reopens when somebody states plainly which it was, which is the correct direction. */
+function roadmapRowStatusCell(l) {
+  const m = l.match(/\|\s*([^|]*)\|\s*$/);
+  return m ? m[1] : '';
+}
 function roadmapRowSaysBroken(l) {
+  if (/\bDEFECT\b/.test(roadmapRowStatusCell(l))) return true;
   return /NEVER FIRED|NEVER FIRES|NOT IMPLEMENTED|DOES NOT WORK|DOES NOT ARM|DOES NOT FIRE|UNIMPLEMENTED|silent no-op|IS ABSENT|is not implemented|does not exist|never records|never record|resolve[sd]? to `\{kind:'pass'\}`|HAS NEVER FIRED|IS DEAD/i.test(l);
 }
 
@@ -660,8 +688,20 @@ function classify(opts = {}) {
     return hits;
   };
 
+  /* AN UNKNOWN ROW MAY NOT ENTER THE CLASSIFICATION, AND THIS IS THE WHOLE POINT OF THE CHANGE.
+   *
+   * provenance.js now emits a row for every file in data/, including the ones it cannot name a writer
+   * for (`unknown: true`, `by: null`). That is what stops the set being invisible. It is also, if it
+   * were fed straight into the loop below, exactly how the set would be silently CLEARED: `by` is
+   * null, so `play.has(null)` is false, so no clause fires, so `quarantined` comes out false and the
+   * artifact reads as examined-and-fine. `web/build-quarantine.js` asks only whether a row exists, so
+   * that page would have gone from "unclassified" to "clear" for twenty artifacts on this change
+   * alone — a default in the permissive direction, arriving through a fix to the thing that refuses
+   * to default. They are split out here and reported as unknowns, which is what they are. */
+  const known = g.filter(a => !a.unknown);
+  const unknownRows = g.filter(a => a.unknown);
   const rows = new Map();
-  for (const a of g) {
+  for (const a of known) {
     const consumes = play.has(a.by) && !exempt.has(a.by);
     const reads = (a.from || []).filter(f => products.has(f) || products.has(f.replace(/^data\//, '')));
     const dumps = reads.length ? [] : namesProduct(a.by);
@@ -687,31 +727,46 @@ function classify(opts = {}) {
     }
     if (!grew) break;
   }
-  return { rows, play, exempt, staleExemptions, products };
+  return { rows, play, exempt, staleExemptions, products, unknownRows };
 }
 
 /* THE ONE ENTRY POINT EVERY CALLER USES. status.js asks two questions — is the gate open, and is this
  * artifact in the set — and must never grow its own answer to either. */
-/* ARTIFACTS THE GRAPH CANNOT SEE AT ALL, reported rather than guessed at.
+/* ARTIFACTS THE GRAPH CANNOT NAME A WRITER FOR, reported rather than guessed at.
  *
- * `provenance.js` derives the graph by finding a WRITER in engine/ or build/. An artifact written by
- * `tests/` — the census, the differential, the interaction matrix, the deliberate roster — has no row,
- * and neither does one whose writer resolves its output path through a variable this repository's
- * detectors do not follow (`data/rollout-r1-explore1.json`, the arm MILTANK actually runs).
+ * THEY ARE NOT DEFAULTED EITHER WAY, and that is deliberate. The set holds both instruments (the
+ * census) and consumers (`exploitability-holdout.json`, seven `policy-weights-*.json` variants), so
+ * defaulting to CLEAN hides a withheld figure and defaulting to HELD withholds the instrument that
+ * says when the quarantine lifts. An unknown that is silently resolved either way is the failure this
+ * whole file exists to stop, so it is printed as an unknown.
  *
- * THEY ARE NOT DEFAULTED EITHER WAY, and that is deliberate. The unclassified set holds both
- * instruments (the census) and consumers (`exploitability-mag.json`, seven `policy-weights-*.json`
- * variants), so defaulting to CLEAN hides a withheld figure and defaulting to HELD withholds the
- * instrument that says when the quarantine lifts. An unknown that is silently resolved either way is
- * the failure this whole file exists to stop, so it is printed as an unknown. */
-function unclassified(rows) {
-  const out = [];
+ * IT IS READ FROM provenance.js NOW, NOT SUBTRACTED FROM A DIRECTORY LISTING.
+ *
+ * This function used to list `data/` and remove everything the graph had a row for. That is a second
+ * derivation of provenance.js's own answer, living in the caller, and it came with its own
+ * explanation of WHY the graph could not see those files — a sentence saying the writer scan reads
+ * "engine/ and build/" only, which stopped being true on 2026-08-09 when it learned to read tests/.
+ * Twenty artifacts were being explained by a reason that no longer applied to any of them, and
+ * nothing could tell, because the subtraction produces the same list whatever the cause. provenance.js
+ * now emits an explicit unknown row carrying a DERIVED reason per file, and this reads it.
+ *
+ * THE SUBTRACTION SURVIVES AS A CROSS-CHECK AND NOTHING MORE. If a file on disk appears in neither
+ * set, that is a hole in provenance.js's own scan rather than an unknown artifact, and the two are
+ * different bugs. It is reported under its own heading instead of being folded in — folding it in is
+ * how the last explanation came to cover a set it did not describe. */
+function unclassified(rows, unknownRows) {
+  const out = (unknownRows || []).map(r => r.file);
   let disk = []; try { disk = fs.readdirSync(D('data')); } catch (e) { SWALLOWED.push('scan data/ for unclassified artifacts' + ': ' + why(e)); return out; }
   for (const f of disk) {
     if (!/\.(json|js)$/.test(f) || /^games\./.test(f) || /\.meta\.json$/.test(f)) continue;
-    if (!rows || !rows.has(f)) out.push(f);
+    if ((rows && rows.has(f)) || out.includes(f)) continue;
+    /* NOT pushed onto SWALLOWED: that channel means "a read this gate is allowed to miss", and this
+     * is not a read that failed — it is an artifact provenance.js never examined, which is a hole in
+     * the scan rather than a permitted gap. It joins the unknown set with NO reason attached, and the
+     * printer says exactly that, so the two cannot be confused by a reader. */
+    out.push(f);
   }
-  return out;
+  return out.sort();
 }
 
 /* WITHHOLD is the question a caller actually has, and it is deliberately ONE function rather than two
@@ -754,7 +809,8 @@ function state() {
   CACHE = {
     ok: gate.ok, gate, rows: c.rows, error: c.error, play: c.play,
     staleExemptions: c.staleExemptions || [],
-    unclassified: unclassified(c.rows),
+    unclassified: unclassified(c.rows, c.unknownRows),
+    unknownRows: c.unknownRows || [],
     withhold,
     set: withhold.set,
   };
@@ -928,13 +984,28 @@ if (require.main === module) {
     console.log('');
     console.log('  Re-running is not optional once the gate opens. A quarantined number does not become');
     console.log('  true when MEDICHAM becomes correct; it becomes re-runnable. ROADMAP #57.');
+    /* THE REASON IS READ, NOT RECITED. This block used to carry one typed sentence — "provenance.js
+     * finds a writer only in engine/ and build/" — as the explanation for all twenty files. That was
+     * true until 2026-08-09 and false afterwards, and it applied to none of the twenty by the time
+     * anybody acted on it: the scan reads tests/ now, and these files are unknown for five different
+     * reasons, one of which is that they are CONFIG and correctly have no generator at all. Each row
+     * carries its own derived reason and this prints that. */
     if (S.unclassified.length) {
+      const whyOf = new Map((S.unknownRows || []).map(r => [r.file, r.why]));
       console.log('');
-      console.log(`  ${S.unclassified.length} artifact(s) on disk have NO ROW IN THE GRAPH and are neither cleared`);
-      console.log('  nor withheld — provenance.js finds a writer only in engine/ and build/, so anything');
-      console.log('  written by tests/ or through an unfollowed path variable is invisible to this test.');
-      console.log('  The set holds instruments AND consumers, so it cannot be defaulted either way:');
-      for (const f of S.unclassified) console.log('    ' + f);
+      console.log(`  ${S.unclassified.length} artifact(s) on disk have NO DISCOVERABLE WRITER and are neither`);
+      console.log('  cleared nor withheld. The set holds instruments AND consumers, so it cannot be');
+      console.log('  defaulted either way. Reasons are derived per file by engine/provenance.js:');
+      for (const f of S.unclassified) {
+        console.log('    ' + f);
+        const w = whyOf.get(f) || 'NO REASON RECORDED — engine/provenance.js did not examine this file at all.';
+        let cur = '';
+        for (const word of String(w).split(/\s+/)) {
+          if ((cur + ' ' + word).trim().length > 92) { console.log('        ' + cur.trim()); cur = word; }
+          else cur += ' ' + word;
+        }
+        if (cur.trim()) console.log('        ' + cur.trim());
+      }
     }
   }
   console.log('');
