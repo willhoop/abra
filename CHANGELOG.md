@@ -10,6 +10,17 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.4.0] — 2026-08-11
+
+### Added
+- **`tests/test-perish-song.js` — the KO is proven, and the old guard was green against a mutant that never killed anything.** ROADMAP #90, Will 2026-08-07: the counter half landed in 3.71.0 and *"the counter being right is not evidence the faint happens"*. He was right, and it is now demonstrated rather than argued: with the perish KO deleted and the clock left intact, `tests/test-volatile-duration.js` still passes. **1,141 corpus uses rested on a step nothing had ever watched.** Three clauses, all Will’s: the faint fires on turn 4 (turns 1-3 are the negative, so a turn-early KO is caught); it fires on BOTH SIDES at once, including the singer’s own partner, because `perishsong.target` is `all`; and **a body that leaves the field survives**. Shown RED on `--break-the-faint` before being trusted.
+
+### Notes
+- **The switch clause was staged with a PIVOT, not declared impossible.** `staged_board.js` exclusion D says the script language has no voluntary switch (#122) — and its own text says *"every switch in this file is driven by a PIVOT MOVE"*. U-turn leaves the field and the volatile is cleared by leaving, not by the manner of leaving. **A COULD-NOT-STAGE VERDICT IS A CLAIM ABOUT THE FIXTURE, NEVER ABOUT THE MECHANIC** — Will has taught this twice. What the pivot does NOT answer is stated in the file: a pivot is not a voluntary switch, so "does a TRAPPED body escape the count" stays with #122.
+- **Two of my own errors, kept because they are the lesson.** The first fixture used **Amoonguss, which is `isNonstandard: Past` in this format** — a body typed from memory on the night this repo gained a check against exactly that; `buildPair` returned null and the row read NOT-STAGED. And the first red demonstration was INVALID: I rebuilt the scenario by hand in a throwaway, both the clean and broken runs returned `SHORT`, and the check only asked "is the verdict not IDENTICAL" — reporting a guard firing when nothing had been shown. The mutation now lives inside the file that owns the scenarios.
+
+---
+
 ## [5.3.0] — 2026-08-11
 
 ### Added

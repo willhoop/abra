@@ -1,10 +1,10 @@
 {
-  "current": "abe83bf4fd3b",
-  "cut": "2026-08-11T04:03:58.971Z",
-  "why": "ROADMAP #155-160: piercesProtect; 30 abilities + 8 moves tagged; thenWhat; ability-rewrite and stat-rewire wires; Trace",
-  "cuts": 5,
-  "latest_cut": "2026-08-11T04:08:32.056Z",
+  "current": "ed1848ecfe69",
+  "cut": "2026-08-11T04:52:46.786Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 1,
+  "latest_cut": "2026-08-11T04:52:46.786Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-11T04:08:32.059Z",
+  "pointer_written": "2026-08-11T04:52:46.789Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

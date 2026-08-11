@@ -3739,3 +3739,42 @@ Three things that must be true BEFORE the rework, so it is done once:
 Until then the failing check STAYS FAILING and stays reported. It is not a known failure and it is not
 filed — it is a red gate with a named owner and a stated reason, which is the only third state
 CLAUDE.md allows.
+
+---
+
+## THE PERISH SONG KO IS PROVEN, AND THE OLD GUARD PASSED AN ENGINE THAT KILLED NOTHING
+
+ROADMAP #90. Will, 2026-08-07: *"the counter being right is not evidence the faint happens."* Tonight
+that stopped being an argument and became a measurement.
+
+**Delete the perish KO, leave the clock ticking, and `tests/test-volatile-duration.js` is still GREEN.**
+It runs three turns and watches the number fall; the count never reaches zero, so `onEnd`'s
+`target.faint()` — the thing **1,141 corpus uses** actually rest on — had never once been executed by
+anything in this repository.
+
+`tests/test-perish-song.js` asserts all three of Will's clauses:
+
+| clause | how it is staged |
+|---|---|
+| the faint fires | four turns, not three. Turns 1-3 are the negative — nobody may die early, which is the 3.71.0 bug this guards against regressing |
+| **both sides at once** | `perishsong.target` is `all`, so the singer's OWN PARTNER must die too. A one-sided test cannot see an engine that applies it to the foes only |
+| a body that switches out survives | Scizor U-turns out on turn 2 and is alive on turn 4 while the three that stayed are dead |
+
+**The switch clause was staged with a PIVOT rather than declared impossible.** `staged_board.js`
+exclusion D says the script language has no voluntary switch (#122) — and its own text says *"every
+switch in this file is driven by a PIVOT MOVE"*. The volatile is cleared by LEAVING the field, not by
+the manner of leaving. What a pivot does NOT answer is written into the file: a pivot is not a
+voluntary switch, so "does a TRAPPED body escape the count" stays with #122.
+
+### TWO OF MY OWN ERRORS, KEPT BECAUSE THEY ARE THE LESSON
+
+**The first fixture used Amoonguss, which is `isNonstandard: 'Past'` in this format.** A body typed from
+memory of what is common in VGC — on the same night this repo gained `tests/test-target-provenance.js`,
+whose entire purpose is that no Pokémon value may be typed from memory. `buildPair` returned null and
+the row read NOT-STAGED. The fixture audit caught what I did not.
+
+**The first red demonstration was invalid and I nearly reported it as working.** I rebuilt the scenario
+by hand in a throwaway script; **both the clean and the broken run returned `SHORT`**, and my check only
+asked "is the verdict not IDENTICAL" — so it printed that the guard had fired when nothing had been
+demonstrated at all. A mutation test whose control also fails proves nothing. `--break-the-faint` now
+lives inside the file that owns the scenarios, where the clean run is known to pass.
