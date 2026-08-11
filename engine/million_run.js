@@ -1783,7 +1783,39 @@ function stagedMon(speciesKey, ability, item, moves, opts) {
   if (o.atk != null) m.st.at = o.atk;
   if (o.hpFrac) m.curHP = Math.max(1, Math.floor(m.st.hp * o.hpFrac));
   if (o.status) m.status = o.status;
+  /* A GENDER, BECAUSE A GENDERLESS BOARD IS NOT A NEUTRAL ONE — IT SILENCES TWO MECHANICS.
+   *
+   * (Will, 2026-08-11: *"well lets add gender into the battles and see cute charm proc"*.)
+   *
+   * The engine is RIGHT and this harness was wrong. `genderOf` is medicham2's one reader of the fact
+   * and it returns 'N' for a body with no declared gender — which was every fixture in this repo. The
+   * authority gates Cute Charm on `pokemon.gender === 'M' && source.gender === 'F'` (or the mirror)
+   * and Rivalry on `attacker.gender && defender.gender`, so on a genderless board BOTH abilities
+   * correctly do nothing. The rate runner then read Cute Charm as 0 fires in 4,166 trials and called
+   * it ABSENT — an instrument reporting a mechanic missing when what was missing was the fixture.
+   *
+   * DECLARING A GENDER CANNOT DISTURB A MECHANIC THAT DOES NOT READ ONE, which is why this is a
+   * default rather than an opt-in for two rows. Every other staged board is unchanged by construction.
+   *
+   * DERIVED FROM THE SPECIES' OWN RATIO, never typed: a body the format says is genderless stays 'N',
+   * because forcing a gender onto one would be inventing a Pokemon this regulation does not contain. */
+  m.gender = o.gender || speciesGender(speciesKey);
   return m;
+}
+
+/* The declared ratio, read off the format. `genderRatio` is {M, F}; `gender` is set outright for the
+ * fixed ones ('N' for genderless, 'M'/'F' for the single-sex species). Ties break to 'F' so the value
+ * is deterministic across runs — a fixture that changed sex between runs would put a wobble into
+ * every gender-reading rate at once. */
+function speciesGender(speciesKey) {
+  try {
+    const sp = FMT.D.species.get(speciesKey);
+    if (!sp || !sp.exists) return 'N';
+    if (sp.gender) return sp.gender;                        /* 'N', 'M' or 'F', declared outright */
+    const r = sp.genderRatio;
+    if (!r) return 'F';                                     /* the 50/50 default carries no ratio */
+    return (r.M > r.F) ? 'M' : 'F';
+  } catch (e) { return 'N'; }
 }
 
 /* ---- ONE TRIAL ---------------------------------------------------------------------------------- */
@@ -1924,9 +1956,20 @@ function stagedFixtures(SD) {
         + 'to show.',
       build(mode) {
         const mv = mode === 'control' ? miss : hit;
-        const A = [stagedMon(SD.rowKey(att), quietOf(att), '', [mv.id], { hpx: 4 }),
+        /* OPPOSITE GENDERS ON THE TWO EXPERIMENTAL BODIES, because for a gender-gated punisher a
+         * SAME-gender pair is exactly as silent as a genderless one — and silent for a reason the
+         * artifact could not distinguish from the ability being absent. Forced rather than drawn from
+         * the two species' ratios: a Sylveon is male 7 times in 8, so leaving it to the declared
+         * ratio would make the denominator depend on a coin the experiment is not measuring, and a
+         * row would drift between runs for no reason a reader could see.
+         *
+         * NOT A CUTE CHARM BRANCH. It is set on every contact-punisher board, and a punisher that
+         * reads no gender is unaffected — which is the whole reason this can be a default. The
+         * SAME-gender arm belongs here too and is registered rather than built tonight: it is the
+         * arm that separates "the roll fired" from "the gate was honoured". */
+        const A = [stagedMon(SD.rowKey(att), quietOf(att), '', [mv.id], { hpx: 4, gender: 'M' }),
                    stagedMon(SD.rowKey(f1), quietOf(f1), '', [SD.weakestOwn(f1)], { hpx: 4 })];
-        const B = [stagedMon(SD.rowKey(car), subject, '', [SD.weakestOwn(car)], { hpx: 4 }),
+        const B = [stagedMon(SD.rowKey(car), subject, '', [SD.weakestOwn(car)], { hpx: 4, gender: 'F' }),
                    stagedMon(SD.rowKey(f2), quietOf(f2), '', [SD.weakestOwn(f2)], { hpx: 4 })];
         if (A.some(x => !x) || B.some(x => !x)) return null;
         return { A, B, contact: mode !== 'control',
@@ -2193,7 +2236,15 @@ function stagedFixtures(SD) {
     const hit = delivery(attSp, tgtSp, true) || delivery(attSp, tgtSp, false);
     if (!hit) return cannot('proc:' + subject, 'proc', subject, 'item', 'no boring move connects the two derived bodies');
     const used = new Set([attSp.id, tgtSp.id]); const [f1, f2] = fillerPair(used);
-    const decl = stagedDeclaration(subject, 'item', null);
+    /* THE ROW WAS TALLIED AND NOT SCORED BECAUSE THIS ARGUMENT WAS null, AND THE CAPTION IT PRINTED
+     * SAID "the FROZEN tag artifact carries no such param" — TRUE WHEN IT WAS WRITTEN AND A LIE THE
+     * MOMENT #216 LANDED. `stagedDeclaration` needs a path (`if (row && row.params && tagPath)`), so a
+     * null one is indistinguishable from a genuinely absent param. Reading `survivesFromFull.chance`
+     * out of the frozen artifact corroborates the 10 against `million-targets.json`'s independent
+     * `DERIVED:randomChance(1,10)` — two surfaces, one number, which is what makes the row scorable
+     * rather than merely counted. */
+    const decl = stagedDeclaration(subject, 'item',
+      { param: 'survivesFromFull', name: 'chance', pick: p => p.chance });
     add({
       id: 'proc:' + subject, family: 'proc', subject, kind: 'item', carrier: tgtSp.name, stageable: true,
       detail: 'survives a lethal hit on 1 HP', hasControl: true,

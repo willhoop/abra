@@ -634,6 +634,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      Merciless into a poisoned target is the only member). Zero unless a Toxapex hits something it
      has poisoned. */
   critGuaranteedByAbility: 0,
+  /* ROADMAP #216 -- a lethal hit survived on a CHANCE rather than from full HP (`survivesFromFull`
+     with a `chance`; Focus Band, 1/10, is the only member). Separate from sashAnsweredOnePacket so
+     the certain and the rolled saves can never be read as one number. */
+  chanceSurvivalFired: 0,
+  /* ROADMAP #217 -- an ALLY-GATED attacking-stat multiplier applied (`damageBoost` with
+     `onlyWhen.cond === 'allyHasAbility'`; Plus and Minus). Zero unless a qualifying partner stands
+     beside the attacker. */
+  allyGatedBoost: 0,
+  /* ROADMAP #217 -- a second attacking type folded into the chart (`overridesEffectiveness.addsType`;
+     Flying Press is the only member). Zero unless Hawlucha clicks it. */
+  effTypeAdded: 0,
   /* WIRE 141 -- the TRANSFORM, counted apart from `formeSwapped` because it is a different mechanic
    * wearing the same word: a forme swap becomes a KNOWN row and a transform becomes an ARBITRARY
    * opposing body. `transformedOnEntry` is the copy landing; `transformRefusedNoBody` is the entry
@@ -1256,6 +1267,9 @@ const MEDFAILS = { encoreAction: 0,
      the same side" could not be answered. A pure dmgRange call is exactly this case; guessing either
      way would be a silent default, so the refusal is skipped and counted. */
   allySideUnknown: 0, allySideUnknownFirst: '',
+  /* ROADMAP #217 -- an `addsType` naming a type the chart table does not carry. Zero; loud if a
+     regulation ever adds a type this engine's MC.C does not know. */
+  effAddTypeUnknown: 0, effAddTypeUnknownFirst: '',
   /* WIRE 93 -- a `priorityMod` whose `condition` prose this engine cannot evaluate. The only value in
      the artifact today is Gale Wings' 'only at full HP', which IS evaluated; anything else fails
      closed (no shift) and is counted, because a silently applied conditional shift is a wrong number
@@ -3148,6 +3162,22 @@ function condHolds(w,self,hit){
    * A pure `dmgRange` call has two bodies and a field and no battle, so it genuinely does not know
    * whether the turn is over; `null` routes it to the caller's existing unknown-condition counter,
    * which is the difference between failing closed and failing silently. */
+  /* ROADMAP #217 -- PLUS AND MINUS. The gate is on the PARTNER, which is why the "no type, no HP
+   * gate" rule below mistook them for unconditional multipliers and refused them for a third reason
+   * entirely. `hasAbility(['minus','plus'])` is symmetric, so PLUS BESIDE PLUS satisfies it -- an
+   * engine that hardcoded "Plus needs Minus" would be wrong about the commonest pairing. The list is
+   * the artifact's, read off the handler. A body with no side stamp returns null, a refusal rather
+   * than a false, exactly as the queue condition above does. */
+  if(w.cond==='allyHasAbility'){
+    const S=self&&self._sf&&self._sf._S;
+    if(!S||!S.actA||!S.actB||!Array.isArray(w.is))return null;
+    const side=(self._sf.side==='A')?S.actA:S.actB;
+    for(const b of (side||[])){
+      if(!b||b===self||b.fainted||b.curHP<=0)continue;
+      if(w.is.indexOf(String(b.ability||'').replace(/[^a-z0-9]/g,''))>=0)return true;
+    }
+    return false;
+  }
   if(w.cond==='allOtherActivesHaveMoved'){
     const S=self&&self._sf&&self._sf._S;
     if(!S||!S.actA||!S.actB)return null;
@@ -3599,6 +3629,34 @@ function abilityRefusesItemLoss(m,by){
  *
  * A body with no weight row returns null unchanged, so a caller that already guards on `m.wt` keeps
  * exactly its old behaviour. */
+/* ---- ROADMAP #218 -- THE ORDER THE END-OF-TURN RESIDUALS RUN IN, ASKED ONCE ---------------------
+ *
+ * Showdown resolves BOTH end-of-turn passes in speed order. The weather chip is
+ * `sandstorm.onFieldResidual -> this.eachEvent('Weather')`, and `eachEvent` (battle.ts:465) does
+ * `this.speedSort(actives, (a, b) => b.speed - a.speed)` over `getAllActive()`; the clock pass is
+ * `fieldEvent('Residual')`, which `speedSort`s its handlers by the same `pokemon.speed`. And
+ * `pokemon.speed` is `getActionSpeed()`, which returns `10000 - speed` while Trick Room is up — so the
+ * inversion is already inside the number both passes sort on, and neither needs a second branch.
+ *
+ * THIS ENGINE HAD IT IN ONE PASS AND NOT THE OTHER. ROADMAP #115 speed-sorted the CLOCK loop (perish,
+ * yawn, status chip, Leftovers) after Will asked whether bodies faint in speed order. The WEATHER loop
+ * one screen above it kept iterating `[...actA, ...actB]` — SLOT ORDER — and nothing noticed, because
+ * every body takes the same 1/16 and the totals agree. Only the SEQUENCE differed, which is invisible
+ * to a damage differential and is 80 games of the game differential: six causes with identical shape,
+ * differing solely in which body is chipped first.
+ *
+ * SO IT IS ONE FUNCTION AND BOTH LOOPS ASK IT. Two copies of "what order do end-of-turn effects run
+ * in" is the FACTS-ARE-GLOBAL breach that produced this, and re-sorting the weather loop in place
+ * would have left the same fact written twice with the same chance of drifting again. */
+function residualOrder(actA,actB,field){
+  const list=[...actA,...actB].filter(Boolean);
+  for(const x of list)x._resSpe=effSpeed(x,field,actA.indexOf(x)>=0?'A':'B');
+  /* `compareTurnOrder` reads the field, so Trick Room comes free — the same call the mega step and
+   * the switch-in step already make. A speed TIE is a coin flip in Showdown and a stable order here,
+   * which is the approximation those two sites already declare. */
+  list.sort((x,y)=>compareTurnOrder({spe:x._resSpe},{spe:y._resSpe},field));
+  return list;
+}
 function effWeight(m){
   if(!m||!m.wt)return m&&m.wt;
   const p=TAGS.param('ability',(m.ability||'').replace(/[^a-z0-9]/g,''),'modifiesWeight');
@@ -4107,6 +4165,47 @@ const accStageMul=(n)=>ACC_STAGE[clamp(Math.round(+n||0),-6,6)+6];
  * tests/test-engine-diff.js re-derives every accuracy-touching ability and item out of the live
  * format dex and FAILS on a row this table has wrong, missing or invented -- the same treatment
  * ACC_FIX gets, and the only thing that makes a table different in kind from a literal. */
+/* ---- EVERY ROW AUDITED 2026-08-11, ROADMAP #217 -------------------------------------------------
+ *
+ * One expired `off:` reason means the whole class is suspect, so every row here was RE-DERIVED from
+ * `Dex.forFormat` rather than re-read. A reason that sounds plausible is exactly how the Tangled Feet
+ * one survived; none below is trusted because it reads well.
+ *
+ *   row            legal  carriers  has an accuracy handler   verdict
+ *   widelens       yes    item      yes                       LIVE, unconditional
+ *   zoomlens       yes    item      yes                       LIVE, `targetAlreadyMoved` is wired at
+ *                                                             all four call sites off `unresolved`
+ *   brightpowder   yes    item      yes                       LIVE, unconditional
+ *   laxincense     NO     item      yes                       DEAD ROW, harmless: isNonstandard
+ *                                                             'Past' -- BANNED here, so it can never
+ *                                                             be held. Left in place; the
+ *                                                             differential already annotates it
+ *   compoundeyes   yes    20        yes                       LIVE
+ *   hustle         yes    1         yes                       LIVE, `physical` gate
+ *   sandveil       yes    6         yes                       LIVE, `sand` gate
+ *   snowcloak      yes    5         yes                       LIVE, `snow` gate
+ *   wonderskin     yes    ZERO      yes                       DEAD ROW, harmless: no legal carrier in
+ *                                                             Reg M-B, so the setTo:50 can never fire
+ *   noguard        yes    6         yes                       LIVE, `never` both directions
+ *   tangledfeet    yes    2         yes                       **FIXED THIS PASS.** Its `off:` said
+ *                                                             "no confusion volatile exists in this
+ *                                                             engine"; confusion has been implemented
+ *                                                             since the confusion wire. Now
+ *                                                             `when: 'holderConfused'`
+ *   skilllink      yes    2         **NO**                    OFF, AND THE REASON HOLDS: its only
+ *                                                             handler is onModifyMove touching
+ *                                                             multihit/multiaccuracy. The tag is a
+ *                                                             genuine false positive; the ability
+ *                                                             itself is live under multihitAlwaysMax
+ *   victorystar    yes    ZERO      yes                       OFF, REASON CORRECTED: the old string
+ *                                                             blamed "hitChance has no side", which
+ *                                                             stopped being true when #213 used _sf
+ *                                                             for ally-ness. The real blocker is that
+ *                                                             Victini is not in this format
+ *
+ * TWO ROWS ARE DEAD-BUT-ON (laxincense, wonderskin) and that is not a defect: an entity that cannot
+ * appear cannot be applied, and switching them off would only move the same fact to a different
+ * column. They are named here so the next reader does not have to re-derive them. */
 const ACCMOD={
   'item:widelens':      {side:'att',mult:1.1},
   'item:zoomlens':      {side:'att',mult:1.2,when:'targetAlreadyMoved'},
@@ -4118,19 +4217,42 @@ const ACCMOD={
   'ability:snowcloak':   {side:'def',mult:0.8,when:'snow'},
   'ability:wonderskin':  {side:'def',setTo:50,when:'status'},
   'ability:noguard':     {side:'both',never:true},
-  /* DECLARED NO-OPS, so they are not counted as untabled and not silently applied either.
-   * `tangledfeet` needs the CONFUSION volatile and this engine has no confusion at all -- there is
-   * no state for it to read, so it is off rather than half-on (4 corpus uses).
-   * `skilllink` is a FALSE POSITIVE in the artifact: tag_dex's writesAccuracy probe matches /accuracy/
-   * and Skill Link's onModifyMove says `delete move.multiaccuracy`. It writes multihit, not accuracy. */
-  'ability:tangledfeet': {side:'def',mult:0.5,off:'no confusion volatile exists in this engine'},
-  'ability:skilllink':   {side:'att',off:'artifact false positive — it writes multihit, not accuracy'},
-  /* Victory Star's hook is onAnyModifyAccuracy and its guard is `source.isAlly(...)` -- it boosts the
-   * WHOLE SIDE's accuracy, its partner's as well as its own. hitChance sees one attacker and one
-   * defender and has no side in its hands, so wiring it as a self-only 1.1x would be half the
-   * mechanic. Victini has no usage in this regulation, so the honest state is off-with-a-reason
-   * rather than half-on: a tag consumed half-right is how the 20-mechanic batch went wrong. */
-  'ability:victorystar': {side:'att',mult:1.1,off:'its onAnyModifyAccuracy boosts the whole SIDE and hitChance has no side'},
+  /* ROADMAP #217 -- TANGLED FEET IS ON, AND ITS `off:` REASON HAD EXPIRED.
+   *
+   * It read *"no confusion volatile exists in this engine"*. **That was true when it was written and
+   * false when it was quoted.** Confusion is fully implemented eight hundred lines below this table:
+   * `applyConfusion` at :8768 writes `_vol.confusion = CONFUSION_TURNS_MIN`, with the self-hit roll,
+   * the expiry, Safeguard's refusal, the ability refusals, `confusionAlreadyOn` and Persim's cure --
+   * and there are live rate-run targets for the 33% self-hit and the 1-4 turn duration. Twenty
+   * entities carry `inflictsConfusion`.
+   *
+   * **A STALE REASON IS WORSE THAN NO REASON**, because it reads as a measurement and gets quoted as
+   * one: this string was repeated to Will as fact and he closeted the ability on the strength of it.
+   * Nothing was needed to fix it but reading the volatile that was already there.
+   *
+   * The condition is the HOLDER's own confusion -- the authority's `onModifyAccuracy(accuracy, target)`
+   * fires on the body being aimed at, which is the carrier.
+   *
+   * `skilllink` STAYS OFF AND ITS REASON STILL HOLDS, MEASURED THIS PASS: its only handler is
+   * `onModifyMove` and it touches `move.multihit` and `move.multiaccuracy` -- it writes no accuracy
+   * modifier at all. The tag is a genuine false positive (`writesAccuracy` matches /accuracy/ and
+   * catches `multiaccuracy`). Skill Link itself is live and probed under `multihitAlwaysMax`; what is
+   * off here is an accuracy row it never had. */
+  'ability:tangledfeet': {side:'def',mult:0.5,when:'holderConfused'},
+  'ability:skilllink':   {side:'att',off:'artifact false positive — it writes multihit, not accuracy (re-measured 2026-08-11: its only handler is onModifyMove, touching move.multihit and move.multiaccuracy; Skill Link itself is live under multihitAlwaysMax)'},
+  /* VICTORY STAR STAYS OFF AND ITS REASON IS CORRECTED, ROADMAP #217 -- HALF OF IT HAD EXPIRED TOO.
+   *
+   * The old string gave two blockers. Re-measured, one is gone and the other was never stated:
+   *   1. "its onAnyModifyAccuracy boosts the whole SIDE" -- STILL TRUE. Its guard is
+   *      `source.isAlly(this.effectState.target)`, so it lifts the partner's accuracy as well as its
+   *      own, and a self-only 1.1x would be half the mechanic.
+   *   2. "hitChance has no side" -- NO LONGER TRUE. Every body carries `_sf`, and #213 used exactly
+   *      that to answer ally-ness for Telepathy (`att._sf === def._sf`). The side IS reachable here.
+   *   3. THE ACTUAL BLOCKER, which the old reason never mentioned: **Victory Star has ZERO legal
+   *      carriers in Reg M-B** -- Victini is not in this format. Wiring it would be unreachable code
+   *      that no probe could stage, so it stays off. This is the honest blocker and the other two are
+   *      not; if a regulation ever restores Victini, only the carrier check has to change. */
+  'ability:victorystar': {side:'att',mult:1.1,off:'ZERO legal carriers in Reg M-B (Victini is not in this format), so nothing could stage it. Its side-wide scope is real but no longer a blocker: _sf makes the side reachable since ROADMAP #213'},
 };
 /* A CARRIER WITH NO ROW IS LOUD. A silent default here looks exactly like a working feature, which is
  * this project's signature failure -- and the tag set is generated, so a new Gen-10 evasion ability
@@ -4156,8 +4278,11 @@ const _neverMissAb=(mon)=>{
 /* THE ONE PLACE A CONDITION ON A MODIFIER IS EVALUATED. Each `when` is a real gate in the reference
  * engine, and getting one wrong is invisible -- Sand Veil outside sand is a 20% evasion bonus that
  * never appears in a log. */
-function _accWhen(w,ctx){
+function _accWhen(w,ctx,holder){
   if(!w)return true;
+  /* ROADMAP #217 -- the HOLDER's own confusion (Tangled Feet). Read off the volatile the engine has
+   * carried since the confusion wire, which is what the expired `off:` reason above denied existed. */
+  if(w==='holderConfused')return !!(holder&&holder._vol&&holder._vol.confusion>0);
   if(w==='sand')return ctx.weather==='sand';
   if(w==='snow')return ctx.weather==='snow';
   if(w==='physical')return ctx.cat==='Physical';
@@ -4581,7 +4706,7 @@ function hitChance(att,def,id,field,ctx){
       const r=accModRow(kind,kind==='ability'?mon.ability:mon.item);
       if(!r||r.never)continue;
       if(r.side!=='both'&&r.side!==who)continue;
-      if(!_accWhen(r.when,cond))continue;
+      if(!_accWhen(r.when,cond,mon))continue;
       /* Wonder Skin RETURNS 50 rather than scaling -- `return 50`, not a chainModify -- so a hard set
        * is what the reference does and Math.min would be a second, quieter rule. */
       if(r.setTo!=null)acc=r.setTo;
@@ -5536,6 +5661,27 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
   {
     const _db=TAGS.param('ability',attAb,'damageBoost');
     const _rec=_db&&TAGS.tagsFor&&TAGS.tagsFor('ability',attAb);
+    /* ROADMAP #217 -- AN ALLY-GATED MULTIPLIER NAMES NO TYPE, AND THE `onType` REQUIREMENT BELOW IS
+     * WHAT KEPT PLUS AND MINUS DEAD. The narrowed shape ("a multiplier, a TYPE, no weather, no
+     * condition") is right for the always-on family it was written for; Plus and Minus are the same
+     * stage with a CONDITION instead of a type, so they get the same treatment the basePower site
+     * gives Reckless and Analytic — the condition is evaluated, and a condition this engine cannot
+     * read still fails closed and counts. */
+    if(_db&&_db.mult&&!_db.onType&&!_db.inWeather&&_db.stage==='attackStat'
+       &&_db.onlyWhen&&_db.onlyWhen.cond==='allyHasAbility'
+       &&_rec&&_rec.tags&&_rec.tags.length===1){
+      /* AND ONLY ON THE STAT THE HANDLER NAMES. Plus and Minus are `onModifySpA` ONLY; applying this
+       * to the attacking stat whatever the category gave an Ampharos a 1.5x IRON TAIL — measured at
+       * 18 -> 27 on the board that caught it. `onStat` is derived from the handler name; a member
+       * that names neither fails closed and is counted rather than applied to both. */
+      const _st=_db.onStat;
+      const _stOK=(_st==='atk'&&phys)||(_st==='spa'&&!phys);
+      const _aw=(!_st)?null:(_stOK?condHolds(_db.onlyWhen,att):false);
+      if(_aw===null){MEDFAILS.damageBoostUnknownCond++;
+        if(!MEDFAILS.damageBoostUnknownCondFirst)
+          MEDFAILS.damageBoostUnknownCondFirst=String(attAb)+'/'+JSON.stringify(_db.onlyWhen);}
+      else if(_aw){ACH(exact4096(attAb,+_db.mult));MEDSEEN.allyGatedBoost++;}
+    }
     if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&_db.onType===mvT
        &&_rec&&_rec.tags&&_rec.tags.length===1){
       const _dbw=condHolds(_db.onlyWhen,att);
@@ -7829,6 +7975,32 @@ function typeEffAgainst(att,def,mv,mvT){
     }
     if(_hit)eff=_e2;
   }
+  /* ROADMAP #217 -- FLYING PRESS: A SECOND ATTACKING TYPE, MULTIPLIED IN ACROSS THE WHOLE CHART.
+   *
+   * Will: "we need flying press in the game hawlucha gets some play what does it do". It was shelved
+   * on USAGE — 21 clicks against a floor of 25 — which is a threshold call and not a measurement, and
+   * 21-against-25 is inside the noise of wherever the line was drawn. His read that Hawlucha sees play
+   * beats the threshold; the floor is a heuristic and this is the second time tonight one has been
+   * overruled by somebody who actually plays the format.
+   *
+   * `onEffectiveness(typeMod, target, type, move) { return typeMod + getEffectiveness('Flying', type); }`
+   * — the chart's answer for the move's OWN type PLUS the chart's answer for Flying, per defending
+   * type, and the two MULTIPLY. Fighting into Grass is neutral and Flying into Grass is 2x, so a Grass
+   * body takes 2x; Grass/Dark takes 4x. This is the same FAMILY as Freeze-Dry (the chart lookup is
+   * modified) and a different RULE (that one overrides one defending type; this one adds an attacking
+   * type across all of them), so it is a second PARAM on one tag rather than a second tag.
+   *
+   * The added type is read from `addsType`; it composes with the perType branch above rather than
+   * replacing it, so a future move that did both needs no edit here. */
+  {const _add=_oe&&_oe.addsType;
+   if(_add){
+     const r=MC.C[_add];
+     if(!r){MEDFAILS.effAddTypeUnknown++;
+       if(!MEDFAILS.effAddTypeUnknownFirst)MEDFAILS.effAddTypeUnknownFirst=String(_add);}
+     else{let _m=1;
+       for(const t of def.types)_m*=(r[t]!=null)?r[t]:1;
+       eff*=_m;MEDSEEN.effTypeAdded++;}
+   }}
   const _iti=att&&TAGS.param('ability',att.ability,'ignoresTypeImmunity');
   if(_iti&&_iti.nowHits&&_iti.movesOfType
      &&String(_iti.movesOfType).split('/').indexOf(mvT)>=0
@@ -15472,14 +15644,34 @@ function battleTurn(S,rng,actsForA,actsForB){
            if(dmg>=tg.curHP){dmg=tg.curHP-(+_p.leavesHP||1);MEDSEEN.enduredLethalHit++;if(TR)TR.act(tg,'move: '+_v);}
          }}
         const _arrive=(R.first!=null?R.first:dmg);
-        if(_arrive>=tg.curHP&&tg.curHP===tg.st.hp){
+        /* ROADMAP #216 -- THE FULL-HP TEST WAS THE OUTER GATE, WHICH IS WHY FOCUS BAND COULD NEVER FIRE.
+         *
+         * `tg.curHP === tg.st.hp` sat on the LINE BELOW, above the tag read, so the artifact's
+         * `onlyFromFullHP` was checked one line later against a condition that was already guaranteed
+         * — dead code guarding a param that could never be false. Focus Band has no full-HP clause
+         * (`randomChance(1,10) && damage >= target.hp`), so a body holding it died exactly as if it
+         * held nothing, on 15 sheet teams. The gate is now the TAG'S, which is what a param is for.
+         *
+         * #166 SAID THE SURVIVAL PATH ITSELF WAS BROKEN AND IT IS NOT — MEASURED BEFORE THIS CHANGED:
+         * a full-HP Focus Sash body took a lethal Close Combat and read hp 1, item spent; Sturdy read
+         * hp 1, ability intact; and both correctly died from half HP. So this is a MISSING TAG and not
+         * a broken path, and the two are different repairs.
+         *
+         * THE ROLL IS TAKEN ONLY WHEN THE SAVE WOULD OTHERWISE BE GRANTED. Showdown evaluates
+         * `randomChance(1,10)` FIRST in its `&&` chain, so it consumes a number on every damage event
+         * to a Focus Band holder including non-lethal ones. This engine does not reproduce Showdown's
+         * RNG stream — it takes an injected `rng()` — so aligning the draw would buy nothing and would
+         * perturb every unrelated board that shares the callback. Stated rather than silently equated. */
+        if(_arrive>=tg.curHP){
           const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull');
-          if(_sv&&(!_sv.onlyFromFullHP||tg.curHP===tg.st.hp)){
+          if(_sv&&(!_sv.onlyFromFullHP||tg.curHP===tg.st.hp)
+             &&(_sv.chance==null||rng()<+_sv.chance)){
             /* The survivor is left on `leavesHP` BY THE FIRST PACKET, and whatever the rest of the
              * click was still owed is added back on top -- which is what kills it. */
             const _rest=Math.max(0,dmg-_arrive);
             dmg=tg.curHP-(_sv.leavesHP||1)+_rest;
             MEDSEEN.sashAnsweredOnePacket++;
+            if(_sv.chance!=null)MEDSEEN.chanceSurvivalFired++;
             /* Showdown emits the `|-enditem|` BEFORE the `|-damage|` that the Sash survived -- read
              * off a real battle.log, where `-enditem Focus Sash` precedes `-damage 1/135`. */
             /* ROADMAP #175 -- a spent Focus Sash is an `AfterUseItem` too, and it is the one non-berry
@@ -17306,7 +17498,10 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(--_r.turns<=0)_r.due=true;
       }
     }
-    for(const m of [...actA,...actB]){if(!m||m.fainted||m.curHP<=0)continue;
+    /* ROADMAP #218 -- SPEED ORDER, NOT SLOT ORDER. This loop carries the sandstorm chip, the weather
+     * heals, the status chips, Leftovers and the berries, and it ran `[...actA, ...actB]` while the
+     * clock loop below had been speed-sorted since #115. See residualOrder() for the authority. */
+    for(const m of residualOrder(actA,actB,field)){if(!m||m.fainted||m.curHP<=0)continue;
       /* WIRE 55 -- THE STATUS BERRIES, FIRST IN THE RESIDUAL ORDER on purpose: Lum and its family
        * cure the MOMENT the status lands, so a body that was just burned must not also take the burn
        * chip this turn. WHICH status is the artifact's now -- the param used to be a bare
@@ -17931,9 +18126,10 @@ function battleTurn(S,rng,actsForA,actsForB){
      *
      * A SPEED TIE IS A COIN FLIP IN SHOWDOWN and a stable order here, the same approximation the
      * switch-in site at :8827 already declares and for the same reason. */
-    const _res=[...actA,...actB].filter(Boolean);
-    for(const x of _res)x._resSpe=effSpeed(x,field,actA.includes(x)?'A':'B');
-    _res.sort((x,y)=>compareTurnOrder({spe:x._resSpe},{spe:y._resSpe},field));
+    /* ROADMAP #218 -- the same one function the weather pass asks. The three lines that stood here
+     * were #115's own and were correct; they are gone because being correct TWICE is the thing that
+     * let the other pass drift. */
+    const _res=residualOrder(actA,actB,field);
     for(const x of _res){
       if(!x||x.fainted)continue;
       /* ROADMAP #81 WIRE 12 -- the tick is unchanged and the number it ticks FROM is not (see the

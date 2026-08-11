@@ -2025,15 +2025,33 @@ const MOVE_TAGS = [
      * contribution: Freeze-Dry returns 1 for Water, i.e. one step super-effective instead of the
      * chart's one step resisted, which is the whole 4x. `perType` maps the type name to the returned
      * modifier; a member whose handler this cannot parse gets a null and stays visibly unwired.
-     * Flying Press is the second member and it ADDS a type rather than overriding one -- its handler
-     * calls `runEffectiveness` with a second type -- so it parses to nothing, which is correct. */
+     * ~~Flying Press is the second member and it ADDS a type rather than overriding one, so it parses
+     * to nothing, which is correct.~~ **ROADMAP #217 -- "parses to nothing" WAS the gap, not a
+     * description of one.** The comment was accurate about the mechanism and wrong that emitting
+     * nothing was correct: `{overrides: true, perType: null}` tells a consumer the chart is wrong and
+     * never says how, which is worth exactly what the paragraph above says it is worth.
+     *
+     * THE TWO MEMBERS ARE ONE FAMILY AND TWO RULES, so they get two PARAMS and not two tags:
+     *     Freeze-Dry     `if (type === 'Water') return 1`            -> perType {Water: 1}
+     *                    OVERRIDES the chart for ONE defending type.
+     *     Flying Press   `typeMod + getEffectiveness('Flying', type)` -> addsType 'Flying'
+     *                    ADDS a second attacking type's effectiveness across the WHOLE chart.
+     * Collapsing them into one label would be the trap this file keeps recording; splitting the tag
+     * when the params already distinguish them is the same mistake facing the other way.
+     *
+     * MEMBERSHIP: exactly TWO legal moves in this format carry `onEffectiveness` — these two. */
     of: m => {
       if (!m.onEffectiveness) return null;
       const h = String(m.onEffectiveness).replace(/\s+/g, ' ');
       const perType = {};
       for (const mm of h.matchAll(/type\s*===\s*["']([A-Za-z]+)["']\s*\)\s*return\s+(-?\d+)/g))
         perType[mm[1]] = +mm[2];
-      return Object.keys(perType).length ? { overrides: true, perType } : { overrides: true, perType: null };
+      /* `typeMod + this.dex.getEffectiveness('Flying', type)` — the ADDED type is the string argument
+       * to getEffectiveness, read off the handler rather than named here. */
+      const add = h.match(/getEffectiveness\(\s*["']([A-Za-z]+)["']/);
+      return { overrides: true,
+               perType: Object.keys(perType).length ? perType : null,
+               addsType: add ? add[1] : null };
     } },
   { tag: 'sound', param: 'bypasses Substitute, blocked by Soundproof', probe: 'flags.sound',
     why: 'also the trigger for Throat Spray',
@@ -3981,15 +3999,43 @@ const ITEM_TAGS = [
   { tag: 'megaStone', param: 'the holder becomes another species', probe: 'megaStone',
     why: 'different stats, typing and ability from turn one',
     of: it => it.megaStone ? { into: it.megaStone } : null },
-  { tag: 'survivesFromFull', param: 'a lethal MOVE from full HP leaves 1; the sash is spent doing it', probe: 'survivesFromFull',
-    why: 'Focus Sash, the most-held item in the format. Broken by multi-hit moves and by any prior chip',
+  /* ROADMAP #216 -- FOCUS BAND, AND THE GATE THAT EXCLUDED IT WAS THE FULL-HP TEST ITSELF.
+   *
+   * Will: "focus band is 10 percent i think". He is right -- `randomChance(1, 10)`, no Champions
+   * override -- and checking it exposed the real problem: Focus Band's whole tag was `flingable`, so a
+   * body holding it died exactly as if it held nothing. 15 sheet teams.
+   *
+   * THE PREDICATE REQUIRED `hp === maxhp` AS A GATE, so the one member without a full-HP clause could
+   * never match. That is the shape of the bug: a param written as a gate silently defines the
+   * membership instead of describing it.
+   *
+   * IT IS NOT A NEW TAG, AND IT IS NOT A SHARED LABEL EITHER. Three of Focus Sash's four params
+   * differ for Focus Band (any HP, 10%, kept not consumed) -- but they differ in their VALUES, not in
+   * their meaning, which is exactly what a param is for. `onlyFromFullHP` and `consumesItem` already
+   * existed as booleans; `chance` is the one genuinely new field. Collapsing them into one label with
+   * hardcoded values is the #162 trap; splitting a tag whose params already distinguish the members
+   * is the same mistake facing the other way.
+   *
+   * MEMBERSHIP PRINTED OVER THE WHOLE DEX BEFORE A LINE WAS WIRED, items and abilities together, with
+   * the relaxed rule (an `onDamage` testing `damage >= hp` and returning `hp - 1`):
+   *     focussash   fullHP=true   chance=none          useItem=true
+   *     sturdy      fullHP=true   chance=none          useItem=false   (9 legal carriers)
+   *     focusband   fullHP=FALSE  chance=1/10          useItem=false
+   * THREE, and the relaxation adds exactly Focus Band and nothing else. No over-match. */
+  { tag: 'survivesFromFull', param: 'a lethal MOVE leaves 1 HP -- from full only, or on a chance', probe: 'survivesFromFull',
+    why: 'Focus Sash (the most-held item in the format) and Focus Band. Broken by multi-hit moves and, '
+       + 'for the sash, by any prior chip',
     /* Was a name check — the exact defect this file exists to kill. The handler states everything:
-     * the full-HP gate, the Move-only gate (sash does not stop burn chip), the survive-at-1, and
-     * useItem() marks the one-shot. Sturdy matches the same idiom minus the consumption. */
+     * the full-HP clause, the Move-only gate (sash does not stop burn chip), the survive-at-1, the
+     * chance, and useItem() marking the one-shot. Sturdy matches the same idiom minus the consumption
+     * and Focus Band minus the full-HP clause. */
     of: it => {
       const src = String(it.onDamage || '');
-      if (!/hp\s*===\s*\w+\.maxhp/.test(src) || !/damage\s*>=\s*\w+\.hp/.test(src) || !/hp\s*-\s*1/.test(src)) return null;
-      return { leavesHP: 1, onlyFromFullHP: true,
+      if (!/damage\s*>=\s*\w+\.hp/.test(src) || !/hp\s*-\s*1/.test(src)) return null;
+      const rc = src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+      return { leavesHP: 1,
+               onlyFromFullHP: /hp\s*===\s*\w+\.maxhp/.test(src),
+               chance: rc ? (+rc[1]) / (+rc[2]) : null,
                movesOnly: /effectType\s*===\s*"Move"/.test(src),
                consumesItem: /useItem\(\)/.test(src) };
     } },
@@ -4491,13 +4537,19 @@ const ABILITY_TAGS = [
       const branch = src.slice(m2.index, src.indexOf('}', m2.index) + 1);
       return /return (null|false)/.test(branch) ? { refuses: true } : null;
     } },
-  { tag: 'survivesFromFull', param: 'a lethal MOVE from full HP leaves 1', probe: 'sturdy',
+  /* ROADMAP #216 -- the ABILITY side of the same relaxation. Sturdy is unchanged by it (it has the
+   * full-HP clause and no chance); the two derivations are kept in step so that a future member
+   * landing on an ability rather than an item is read identically. */
+  { tag: 'survivesFromFull', param: 'a lethal MOVE leaves 1 HP -- from full only, or on a chance', probe: 'sturdy',
     why: 'Sturdy. Identical to Focus Sash minus the consumption -- and was a name check, same as '
        + 'the sash: both now read the onDamage idiom itself',
     of: a => {
       const src = String(a.onDamage || '');
-      if (!/hp\s*===\s*\w+\.maxhp/.test(src) || !/damage\s*>=\s*\w+\.hp/.test(src) || !/hp\s*-\s*1/.test(src)) return null;
-      return { leavesHP: 1, onlyFromFullHP: true,
+      if (!/damage\s*>=\s*\w+\.hp/.test(src) || !/hp\s*-\s*1/.test(src)) return null;
+      const rc = src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+      return { leavesHP: 1,
+               onlyFromFullHP: /hp\s*===\s*\w+\.maxhp/.test(src),
+               chance: rc ? (+rc[1]) / (+rc[2]) : null,
                movesOnly: /effectType\s*===\s*"Move"/.test(src),
                consumesItem: /useItem\(\)/.test(src) };
     } },
@@ -6157,8 +6209,30 @@ const ABILITY_TAGS = [
        * here — and Payback already has its own reader (`_nt.when === 'targetHasNotMovedYet'`), so this
        * shape is deliberately scoped to the ability family and does not disturb it. */
       const lastOut = /willMove\(/.test(src) && /getAllActive\(/.test(src);
+      /* ROADMAP #217 -- PLUS AND MINUS, WHOSE GATE IS ON THE PARTNER AND NOT ON THE HOLDER.
+       *
+       * Both handlers are BYTE-IDENTICAL: `for (const allyActive of pokemon.allies()) if
+       * (allyActive.hasAbility(['minus','plus'])) return this.chainModify(1.5)`. They carried
+       * `onlyWhen: null` -- "unconditional" -- and the consumer then refused them for an unrelated
+       * reason (no `onType`), so a 1.5x on eight sheet fields never fired and was never counted. The
+       * same two-wrongs shape as Analytic, one screen up.
+       *
+       * THE LIST IS READ OFF THE HANDLER, NOT TYPED. `hasAbility(['minus','plus'])` means PLUS BESIDE
+       * PLUS SATISFIES IT — Ampharos next to Dedenne is a legal board that exists today, and an
+       * engine that hardcoded "Plus needs Minus" would be wrong about the commonest pairing.
+       *
+       * MEMBERSHIP PRINTED OVER THE WHOLE DEX BEFORE WIRING: exactly THREE abilities gate a stat or
+       * damage handler on an ally — friendguard (already live under `reducesAllyDamage`), plus, and
+       * minus. This shape adds the two that were dead and touches nothing else. */
+      const allyAb = src.match(/hasAbility\(\s*\[\s*((?:["'][a-z]+["']\s*,\s*)*["'][a-z]+["'])\s*\]/);
+      const allyGate = /allies\(\)|adjacentAllies\(/.test(src) && allyAb
+        ? { cond: 'allyHasAbility',
+            is: allyAb[1].split(',').map(x => x.trim().replace(/["']/g, '')),
+            says: 'a partner carrying one of those abilities is on the field' }
+        : null;
       return { mult: multiplierIn(src), onType: ty, inWeather: w.length ? w : null,
                onlyWhen: flags.length ? { cond: 'moveFlag', is: flags }
+                       : allyGate ? allyGate
                        : lastOut ? { cond: 'allOtherActivesHaveMoved',
                                      says: 'every other active body has already taken its action' }
                        : hpGateIn(src),
@@ -6171,6 +6245,12 @@ const ABILITY_TAGS = [
                 * holds no second copy of that split. */
                stage: a.onBasePower ? 'basePower'
                     : (a.onModifyAtk || a.onModifySpA) ? 'attackStat' : null,
+               /* ROADMAP #217 -- WHICH attacking stat, off the handler NAME. `stage: 'attackStat'`
+                * says the multiplier folds into the stat chain and NOT which chain: Plus and Minus
+                * are `onModifySpA` ONLY, so an engine multiplying the attacking stat whatever the
+                * category hands an Ampharos a 1.5x Iron Tail it does not have. Measured on exactly
+                * that board before this field existed — physical 18 -> 27, which is wrong. */
+               onStat: a.onModifyAtk ? 'atk' : a.onModifySpA ? 'spa' : null,
                costsPerTurn: chip ? '1/' + chip + ' max HP' : null };
     } },
   { tag: 'blocksMove', param: 'WHICH class of move fails', probe: 'onFoeTryMove',

@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  510/510 probed mechanics live, 0 missing   (census 2026-08-11 17:58)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-11 17:58)
+  514/514 probed mechanics live, 0 missing   (census 2026-08-11 19:06)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-11 19:04)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -46,15 +46,91 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is e1b35f3fd3a5 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 4ee208fc7816 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 260/279 probed, 19 unprobed
 ```
 
-_stamped 2026-08-11 18:02_
+_stamped 2026-08-11 19:07_
 
 <!-- /GENERATED -->
+
+## ROADMAP #217 — FOUR STALE REASONS, EACH READING LIKE A MEASUREMENT. 2026-08-11 (eleventh pass).
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md`. For this ledger:
+
+- **Census 511 live / 0 missing -> 514 live / 0 missing.** Will caught three of these in ten minutes.
+  **The numbers in this repo keep holding up under checking; the PROSE attached to them does not** —
+  every item was a sentence true when written, quoted later as if it were a measurement.
+- **TANGLED FEET was switched off with `off: 'no confusion volatile exists in this engine'`. False.**
+  Confusion has been fully implemented for a long time — `applyConfusion`, `_vol.confusion`, the
+  self-hit roll, the expiry, every refusal — and the rate runner already had targets for it. **That
+  string was repeated to Will as fact and he closeted the ability on it.** Probe `ability/accuracyMod`,
+  a 2x2 where three cells must be equal. Out of the closet; the entry is kept as a comment saying it
+  was never a decision.
+- **EVERY `off:` AND `when:` ROW RE-DERIVED, not re-read**, and the table is now a comment above
+  `ACCMOD`. `skilllink` stays off and its reason HOLDS (re-measured: it has no accuracy handler at
+  all). `victorystar` stays off but its reason was CORRECTED — "hitChance has no side" stopped being
+  true when #213 used `_sf` for ally-ness; the real blocker, never stated, is that Victini is not in
+  this format. `laxincense` and `wonderskin` are dead-but-on rows (banned, and zero carriers) and are
+  named rather than left to be re-derived.
+- **PLUS WAS MISCLASSIFIED AND MINUS WAS SHELVED, and underneath both the mechanic was DEAD** (all
+  five cells read 121). The roster filed Plus under "onModifySpA with NO type and NO HP gate" — and
+  Plus is gated, **on the ALLY**. The fixture never places a partner, so the ability correctly did
+  nothing and the instrument printed its own blindness as *"the honest coverage limit, not a pass"*.
+  **Fixed at the RULE, not the row.** Membership over the whole dex: exactly three abilities gate a
+  stat handler on an ally — Friend Guard, Plus, Minus. `hasAbility(['minus','plus'])` is SYMMETRIC, so
+  Plus beside Plus counts and the shelf reason had that wrong too. Minus is off the closet and it was
+  never a rarity call. The physical arm caught my own first cut giving Ampharos a 1.5x Iron Tail.
+- **FLYING PRESS came off the usage shelf on Will's domain call** — 21 clicks against a floor of 25,
+  which is a threshold and not a measurement. Its one sibling was checked first and the mechanism
+  already existed: `addsType` is a second PARAM on Freeze-Dry's tag, the fifth time this sprint the
+  answer was a param rather than a branch. Three chart-derived targets, and **on Aggron the 100 BP
+  move does LESS than the 75 BP one** (46 against 136) — the arm that fails an engine ignoring the
+  added type or hardcoding a flat x2. **It left the shelf by being CORRECT**, not by being exempted:
+  moves 479 -> 480 tested. The floor was not lowered; what is recorded is that a shelf entry is a
+  prompt to ask somebody.
+
+## ROADMAP #216 — FOCUS BAND COULD NOT SAVE ANYTHING, AND #166 WAS STALE. 2026-08-11 (tenth pass).
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md`. For this ledger:
+
+- **Census 510 live / 0 missing -> 511 live / 0 missing.** Found by Will asking what Focus Band's rate
+  was: `data/tags.json` gave it `tags: ["flingable"]` and nothing else, so a body holding it died
+  exactly as if it held nothing. **15 sheet teams.**
+- **AN "UNREACHABLE" VERDICT IS A CLAIM ABOUT THE INSTRUMENT, AND THIS ONE POINTED AT THE ENGINE.** The
+  rate runner said *"the FROZEN tag artifact carries no such param"* — which reads like a missing
+  declaration and was a missing mechanic. A reachability failure and an absence look identical from
+  the instrument's side.
+- **#166 IS STALE AND THAT WAS MEASURED, NOT ASSUMED.** It claims Focus Sash and Sturdy do not save.
+  Both do: a lethal Close Combat into a full-HP Sash body leaves **hp 1 with the item spent**, Sturdy
+  leaves **hp 1 with the ability intact**, and both correctly die from half HP. So this was **path
+  works, tag missing** — one row, one fix, Focus Band alone. Eighth register row this sprint found
+  describing an engine that has since been repaired.
+- **THE GATE WAS THE FULL-HP TEST ITSELF, in both the engine and the derivation.**
+  `tg.curHP === tg.st.hp` sat on the OUTER line above the tag read, so the artifact's own
+  `onlyFromFullHP` was dead code checked one line later against something already guaranteed. **A param
+  written as a gate silently DEFINES the membership instead of describing it.**
+- **The parameterisation is the deliverable, not a branch.** `chance` added and `onlyFromFullHP`
+  allowed to be false, both DERIVED from the handler; **no name appears in the engine**, so a fourth
+  member needs no edit. Will's split is what the artifact already said — *"sturdy is more like focus
+  sash than focus band"*: Sash and Sturdy keep sharing `survivesFromFull` (full HP, always, and that
+  grouping is correct), Focus Band differs on all three axes in its param VALUES. Membership printed
+  over the whole dex first: focussash, sturdy, focusband — three, no over-match.
+- **THE PROOF, on the only staged row that had never produced a number:** `proc:focusband`
+  **UNREACHABLE -> 195 fires / 2000 trials = 9.75%** against an authority of 10%, on a freshly cut
+  release. Every other row unchanged and MET (16 MET, 0 SHORT); all three red-proof arms still CAUGHT.
+- **The caption beside it is now stale and the fix is NOT mine.** `million_run.js:2237` passes
+  `tagPath: null` to `stagedDeclaration`, correct when there was no param to point at; one argument
+  (`{param:'survivesFromFull', name:'chance', pick: p => p.chance}`) would read 10 from the frozen
+  artifact against the 10 already in `data/million-targets.json` and score the row. That file belongs
+  to the coordinator and was not touched.
+- **CUTE CHARM: the engine is RIGHT and the fixture is genderless.** Staged with genders declared,
+  every arm is correct — opposite genders inside the 30% infatuates the ATTACKER, same gender 0,
+  genderless 0, outside the roll 0, no ability 0. The run's 0/4,166 is the runner's `gender: 'N'`
+  bodies, the identical limitation that made Rivalry read inert in #212. **No second probe added** —
+  `ability/punishesAttacker` already carries this board and is LIVE.
 
 ## ROADMAP #213 — THE NINE INERT ROWS, CLOSED OR ROUTED. 2026-08-11 (ninth pass).
 

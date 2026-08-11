@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T22:03:03.460Z",
+  "generated": "2026-08-11T23:12:59.120Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 510,
-  "live": 510,
+  "probed": 515,
+  "live": 515,
   "missing": 0,
-  "armed": 510,
+  "armed": 515,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2796,7 +2796,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.7% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.3% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5107,6 +5107,56 @@
       "label": "Merciless is a GUARANTEED crit into a poisoned target, not a raised rate",
       "live": true,
       "detail": "[crit line, HP lost] Liquidation at the LOSING roll, where an ordinary 1/24 never crits -- into a POISONED target with no ability false,191; with MERCILESS true,202; with MERCILESS into a CLEAN target false,21. The damage is only compared within the poisoned pair, because a poisoned body also takes residual chip on the same turn and reading across the two would be measuring the poison",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "survivesFromFull",
+      "label": "Focus Band saves from ANY HP on its 10%, keeps the item, and Sash and Sturdy are untouched",
+      "live": true,
+      "detail": "A lethal Close Combat into a 60 HP body. Holding NOTHING at full HP: died true. FOCUS SASH at full: hp 1, item \"\" (spent); at HALF: died true. STURDY at full: hp 1. FOCUS BAND at HALF HP with the roll INSIDE its 10%: hp 1, item \"focusband\" — it must be KEPT, the handler has no useItem; with the roll OUTSIDE: died true. The Sash and Sturdy readings are the control that says relaxing the full-HP gate did not loosen the certain members",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "accuracyMod",
+      "label": "Tangled Feet halves accuracy ONLY while its holder is actually confused",
+      "live": true,
+      "detail": "[HP off a Pidgeot] Stone Edge (80 printed) at a pinned 0.6 roll, after a REAL Confuse Ray. CONFUSED + TANGLED FEET 0 (it misses); confused, no ability 176; TANGLED FEET, not confused 176; neither 176. Three of the four cells must be EQUAL — the ability alone and the confusion alone each do nothing, and only the pair halves the accuracy. The ACCMOD row was switched off with the reason \"no confusion volatile exists in this engine\", which had stopped being true",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "damageBoost",
+      "label": "Plus and Minus need a PARTNER, either of the two, and only on the special side",
+      "live": true,
+      "detail": "[HP off an unfaintable Milotic] Ampharos clicks Thunderbolt beside a Dedenne. No abilities 121; PLUS with NO qualifying partner 121 (equal — the gate is on the ALLY, which is what the roster mistook for the ability being inert); PLUS beside PLUS 183; PLUS beside MINUS 183; MINUS beside PLUS 183. hasAbility([minus,plus]) is symmetric, so all three pairings must agree. IRON TAIL, physical, on the same pair: 18 and 18 — EQUAL, because both handlers are onModifySpA only",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "overridesEffectiveness",
+      "label": "Flying Press multiplies Fighting BY Flying, and on a Flying-resistant body it does LESS",
+      "live": true,
+      "detail": "machamp (Fighting): Flying Press 222 vs Brick Break 83 = x2.67, chart predicts x2.67 (base-power ratio 1.33 times Flying's own x2)   ;   beedrill (Bug/Poison): Flying Press 92 vs Brick Break 34 = x2.71, chart predicts x2.67 (base-power ratio 1.33 times Flying's own x2)   ;   aggron (Steel/Rock): Flying Press 46 vs Brick Break 136 = x0.34, chart predicts x0.33 (base-power ratio 1.33 times Flying's own x0.25).  On Aggron the 100 BP move does LESS than the 75 BP one, which is the arm an engine ignoring the added type — or hardcoding a flat x2 — fails",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "weatherSetter",
+      "label": "the sandstorm chip runs fastest-first, and Trick Room reverses it",
+      "live": true,
+      "detail": "four bodies in sand at Speed p2a 205, p1a 101, p1b 80 (p2b is Garchomp, GROUND, and takes no chip in either arm: false). Chip order with no Trick Room p2a -> p1a -> p1b (fastest first); under TRICK ROOM p1b -> p1a -> p2a (exactly reversed). An engine sorting by raw speed and ignoring the field passes the first arm and fails the second; one still in slot order fails both",
       "hollow": false,
       "armed": true,
       "directCall": false

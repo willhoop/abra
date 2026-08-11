@@ -16669,6 +16669,313 @@ probe('ability', 'critRatioUp', 'Merciless is a GUARANTEED crit into a poisoned 
                  + 'same turn and reading across the two would be measuring the poison' };
 });
 
+/* FOCUS BAND — ROADMAP #216. WILL ASKED WHAT ITS RATE WAS AND THE ANSWER WAS THAT IT HAD NONE.
+ *
+ * Will: "focus band is 10 percent i think". Correct — `randomChance(1, 10)`, no Champions override —
+ * and checking it exposed the real problem: `data/tags.json` gave Focus Band `tags: ["flingable"]`
+ * and nothing else, so a body holding it died exactly as if it held nothing. 15 sheet teams. The rate
+ * runner reported `proc:focusband` UNREACHABLE with the reason "the frozen tag artifact carries no
+ * such param", which READS like a missing declaration and WAS a missing mechanic.
+ *
+ * #166 CLAIMED THE SURVIVAL PATH ITSELF WAS BROKEN. IT IS NOT, AND THAT WAS MEASURED BEFORE ANYTHING
+ * MOVED: a full-HP Focus Sash body took a lethal Close Combat and read hp 1 with the item spent;
+ * Sturdy read hp 1 with the ability intact; both correctly died from half HP. So this was a MISSING
+ * TAG and not a broken path — different repairs, and the register should not carry the guess.
+ *
+ * THE GATE WAS THE FULL-HP TEST ITSELF. `tg.curHP === tg.st.hp` sat on the OUTER line, above the tag
+ * read, so the artifact's own `onlyFromFullHP` was checked one line later against something already
+ * guaranteed — dead code guarding a param that could never be false. A param written as a gate
+ * silently DEFINES the membership instead of describing it.
+ *
+ * NOT A NEW TAG AND NOT A SHARED LABEL. Three of Focus Sash's four params differ for Focus Band — any
+ * HP, 10%, kept rather than consumed — but they differ in their VALUES, which is what a param is for.
+ * `onlyFromFullHP` and `consumesItem` were already booleans; `chance` is the one new field. Membership
+ * printed over the whole dex with the relaxed rule before wiring: focussash, sturdy, focusband. Three,
+ * and the relaxation adds exactly Focus Band.
+ *
+ * FIVE ARMS, and the last two are the ones a half-fix fails. The roll is forced in both directions,
+ * so nothing here depends on luck: INSIDE the 10% it must survive AND KEEP THE ITEM (Showdown's
+ * handler has no `useItem` — an engine that copied the Sash's consumption would pass the survival and
+ * silently disarm the next hit), and OUTSIDE it the same body at the same HP must die. */
+probe('item', 'survivesFromFull', 'Focus Band saves from ANY HP on its 10%, keeps the item, and Sash and Sturdy are untouched', () => {
+  const run = (item, ability, hpFrac, rngV) => {
+    const me = bare('machamp'); me.moves = ['closecombat', 'protect', 'knockoff', 'lowkick'];
+    const ally = bare('farigiraf');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    f1.item = item; f1.ability = ability;
+    f1.st = Object.assign({}, f1.st, { hp: 60 });      /* one Close Combat is lethal at any fraction */
+    f1.curHP = Math.max(1, Math.floor(60 * hpFrac));
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, () => rngV,
+      new Map([[me, M.playerAction(me, 'closecombat', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { hp: f1.curHP, died: f1.fainted, item: f1.item };
+  };
+  const bare60 = run('', 'none', 1.0, 0.5);              /* nothing held: it dies from full */
+  const sash = run('focussash', 'none', 1.0, 0.5);       /* the certain member, unchanged */
+  const sturdy = run('', 'sturdy', 1.0, 0.5);            /* the ability member, unchanged */
+  const sashHalf = run('focussash', 'none', 0.5, 0.5);   /* and it must NOT save from half */
+  const bandIn = run('focusband', 'none', 0.5, 0.05);    /* HALF HP, inside the 10% */
+  const bandOut = run('focusband', 'none', 0.5, 0.5);    /* same board, outside it */
+  return { works: bare60.died === true
+                  && sash.hp === 1 && sash.died === false && sash.item === ''
+                  && sturdy.hp === 1 && sturdy.died === false
+                  && sashHalf.died === true
+                  && bandIn.hp === 1 && bandIn.died === false && bandIn.item === 'focusband'
+                  && bandOut.died === true,
+           arms: { control: [bare60.died, bandOut.died], test: [bandIn.hp, bandIn.item] },
+           detail: 'A lethal Close Combat into a 60 HP body. Holding NOTHING at full HP: died '
+                 + bare60.died + '. FOCUS SASH at full: hp ' + sash.hp + ', item "' + sash.item
+                 + '" (spent); at HALF: died ' + sashHalf.died + '. STURDY at full: hp ' + sturdy.hp
+                 + '. FOCUS BAND at HALF HP with the roll INSIDE its 10%: hp ' + bandIn.hp
+                 + ', item "' + bandIn.item + '" — it must be KEPT, the handler has no useItem; with '
+                 + 'the roll OUTSIDE: died ' + bandOut.died + '. The Sash and Sturdy readings are the '
+                 + 'control that says relaxing the full-HP gate did not loosen the certain members' };
+});
+
+/* TANGLED FEET — ROADMAP #217, AND THE BUG WAS A SENTENCE.
+ *
+ * `ACCMOD` switched it off with `off: 'no confusion volatile exists in this engine'`. **That was true
+ * when it was written and false when it was quoted.** Confusion is fully implemented eight hundred
+ * lines below that table: `applyConfusion` writes `_vol.confusion`, with the self-hit roll, the
+ * expiry, Safeguard's refusal, the ability refusals and Persim's cure — and the rate runner already
+ * carries targets for the 33% self-hit and the 1-4 turn duration.
+ *
+ * A STALE REASON IS WORSE THAN NO REASON, because it reads as a measurement and gets quoted as one:
+ * this string was repeated to Will as fact and the ability was CLOSETED on the strength of it. Not one
+ * line of new machinery was needed — only reading the volatile that was already there.
+ *
+ * THE BOARD IS A 2x2 AND IT HAS TO BE, because three of the four cells must be identical. The ability
+ * alone does nothing; the confusion alone does nothing; only together do they halve the accuracy. A
+ * one-arm probe would pass an engine that halved accuracy for ANY Tangled Feet body, which is a
+ * strictly better ability than the real one.
+ *
+ * THE CONFUSION COMES FROM A REAL CONFUSE RAY, not from a field poked onto the body, so the fixture
+ * exercises the same volatile the game writes. The roll is pinned at 0.6 — between the halved 40 and
+ * the printed 80 — so the miss can only be the modifier. Pidgeot is one of the two legal carriers and
+ * Stone Edge's 80 printed accuracy is what makes a 0.6 roll a discriminator at all. */
+probe('ability', 'accuracyMod', 'Tangled Feet halves accuracy ONLY while its holder is actually confused', () => {
+  const run = (ab, confuse) => {
+    const me = bare('machamp'); me.moves = ['stoneedge', 'protect', 'closecombat', 'knockoff'];
+    const ally = bare('gardevoir'); ally.moves = ['confuseray', 'protect'];
+    const f1 = bare('pidgeot'), f2 = bare('milotic');
+    f1.ability = ab; unfaintable(f1); unfaintable(me); unfaintable(ally);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, () => 0.2,
+      new Map([[ally, confuse ? M.playerAction(ally, 'confuseray', f1, S.field) : { kind: 'pass' }],
+               [me, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const conf = (f1._vol && f1._vol.confusion) || 0;
+    const h = f1.curHP;
+    M.battleTurn(S, () => 0.6,          /* 60: above the halved 40, below the printed 80 */
+      new Map([[me, M.playerAction(me, 'stoneedge', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { confusion: conf, dmg: h - f1.curHP };
+  };
+  const both = run('tangledfeet', true);
+  const confOnly = run('none', true);
+  const abOnly = run('tangledfeet', false);
+  const neither = run('none', false);
+  return { works: both.confusion === 2 && confOnly.confusion === 2
+                  && abOnly.confusion === 0 && neither.confusion === 0
+                  && both.dmg === 0                                    /* the only miss */
+                  && confOnly.dmg > 0 && abOnly.dmg > 0 && neither.dmg > 0
+                  && confOnly.dmg === neither.dmg && abOnly.dmg === neither.dmg,
+           arms: { control: [confOnly.dmg, abOnly.dmg, neither.dmg], test: [both.dmg] },
+           detail: '[HP off a Pidgeot] Stone Edge (80 printed) at a pinned 0.6 roll, after a REAL '
+                 + 'Confuse Ray. CONFUSED + TANGLED FEET ' + both.dmg + ' (it misses); confused, no '
+                 + 'ability ' + confOnly.dmg + '; TANGLED FEET, not confused ' + abOnly.dmg + '; '
+                 + 'neither ' + neither.dmg + '. Three of the four cells must be EQUAL — the ability '
+                 + 'alone and the confusion alone each do nothing, and only the pair halves the '
+                 + 'accuracy. The ACCMOD row was switched off with the reason "no confusion volatile '
+                 + 'exists in this engine", which had stopped being true' };
+});
+
+/* PLUS AND MINUS — ROADMAP #217. NOT A COVERAGE LIMIT, A MISCLASSIFICATION, AND THEN A DEAD MECHANIC.
+ *
+ * Will: "why isnt plus in the closet lmao", then "u somehow staged plus but couldnt do minus, now im
+ * very suspect of your work". He had the direction reversed and the substance exactly right: NEITHER
+ * was measured, and the two were filed two different ways — `minus` DEFERRED-BY-OWNER, `plus`
+ * COULD-NOT-STAGE with the reason "THE STAGING IS INERT... This is the honest coverage limit, not a
+ * pass."
+ *
+ * IT WAS NOT A COVERAGE LIMIT. The roster filed Plus under `unconditional-stat-multiplier`
+ * — "onModifySpA with NO type and NO HP gate" — and Plus IS gated, just not on either thing that rule
+ * checks. THE GATE IS ON THE ALLY. The board never placed a qualifying partner, so the ability
+ * correctly did nothing, and the instrument read its own blindness as a fact about the world. That is
+ * the standing rule: a COULD-NOT-STAGE verdict is a claim about the FIXTURE and never about the
+ * mechanic.
+ *
+ * AND UNDERNEATH IT THE MECHANIC WAS DEAD ANYWAY — measured before anything moved, all five cells of
+ * this board read 121. `damageBoost` carried `onlyWhen: null`, and the consumer then refused it for a
+ * third reason entirely (no `onType`), uncounted. The same two-wrongs shape as Analytic.
+ *
+ * `hasAbility(['minus','plus'])` IS SYMMETRIC, which is the arm that matters most: PLUS BESIDE PLUS
+ * SATISFIES IT. Ampharos next to Dedenne is a legal board that exists today, and an engine that
+ * hardcoded "Plus needs Minus" would be wrong about the commonest pairing. Membership over the whole
+ * dex: exactly three abilities gate a stat or damage handler on an ally — Friend Guard (already live
+ * under `reducesAllyDamage`), Plus and Minus.
+ *
+ * THE PHYSICAL ARM IS NOT DECORATION. Both handlers are `onModifySpA` ONLY, and the first cut of the
+ * fix multiplied the attacking stat whatever the category — an Ampharos got a 1.5x IRON TAIL, 18 to
+ * 27, caught on this board. `onStat` is now derived from the handler name. */
+probe('ability', 'damageBoost', 'Plus and Minus need a PARTNER, either of the two, and only on the special side', () => {
+  const run = (meAb, allyAb, mv) => {
+    const me = bare('ampharos'); me.ability = meAb;
+    me.moves = ['thunderbolt', 'protect', 'irontail'];
+    const ally = bare('dedenne'); ally.ability = allyAb;
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv || 'thunderbolt', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return h - f1.curHP;
+  };
+  const flat = run('none', 'none');
+  const alone = run('plus', 'none');          /* the ability with NO qualifying partner */
+  const plusPlus = run('plus', 'plus');       /* symmetric — the commonest legal pairing */
+  const plusMinus = run('plus', 'minus');
+  const minusPlus = run('minus', 'plus');
+  const physOff = run('none', 'none', 'irontail');
+  const physOn = run('plus', 'plus', 'irontail');
+  return { works: flat > 0 && alone === flat                 /* no partner: it does nothing */
+                  && plusPlus > flat && plusMinus === plusPlus && minusPlus === plusPlus
+                  && physOff > 0 && physOn === physOff,      /* onModifySpA ONLY */
+           arms: { control: [flat, alone, physOff], test: [plusPlus, plusMinus, minusPlus, physOn] },
+           detail: '[HP off an unfaintable Milotic] Ampharos clicks Thunderbolt beside a Dedenne. No '
+                 + 'abilities ' + flat + '; PLUS with NO qualifying partner ' + alone + ' (equal — the '
+                 + 'gate is on the ALLY, which is what the roster mistook for the ability being inert); '
+                 + 'PLUS beside PLUS ' + plusPlus + '; PLUS beside MINUS ' + plusMinus + '; MINUS '
+                 + 'beside PLUS ' + minusPlus + '. hasAbility([minus,plus]) is symmetric, so all three '
+                 + 'pairings must agree. IRON TAIL, physical, on the same pair: ' + physOff + ' and '
+                 + physOn + ' — EQUAL, because both handlers are onModifySpA only' };
+});
+
+/* FLYING PRESS — ROADMAP #217, OFF THE SHELF ON WILL'S DOMAIN CALL.
+ *
+ * Will: "we need flying press in the game hawlucha gets some play what does it do". It was shelved
+ * SHELVED ON USAGE at 21 clicks against a floor of 25 — a threshold call, not a measurement, and
+ * 21-against-25 is inside the noise of wherever the line was drawn. His read that Hawlucha sees play
+ * beats the threshold. That is the second time in one night a usage heuristic has been overruled by
+ * somebody who plays the format.
+ *
+ * `onEffectiveness(typeMod, target, type, move) { return typeMod + getEffectiveness('Flying', type); }`
+ * — the chart's answer for Fighting PLUS the chart's answer for Flying, per defending type, and the
+ * two MULTIPLY.
+ *
+ * ITS ONE SIBLING WAS CHECKED FIRST AND THE MECHANISM ALREADY EXISTED. Only two legal moves in this
+ * format carry `onEffectiveness`: Freeze-Dry and this. Freeze-Dry's `overridesEffectiveness.perType`
+ * was built this session — so this is a second PARAM on that tag (`addsType`), not a new tag and not
+ * a name branch. THE TWO RULES GENUINELY DIFFER: Freeze-Dry OVERRIDES the chart for ONE defending
+ * type; Flying Press ADDS an attacking type across the WHOLE chart. Same family, different
+ * arithmetic, so params rather than one collapsed label.
+ *
+ * THREE TARGETS, DERIVED FROM THE CHART RATHER THAN CHOSEN, and the third is the one that matters:
+ *   Machamp  (Fighting)     Fighting x1    Flying x2     -> x2   — Flying alone is super-effective
+ *   Beedrill (Bug/Poison)   Fighting x0.25 Flying x2     -> x0.5 — the two DISAGREE
+ *   Aggron   (Steel/Rock)   Fighting x4    Flying x0.25  -> x1   — Flying is RESISTED
+ * On Aggron, Flying Press does LESS than a weaker Fighting move. An engine that ignores the added
+ * type reads the BP ratio flat on all three and fails every one; an engine that hardcodes a x2 for
+ * "Flying" passes the first two and fails Aggron.
+ *
+ * BRICK BREAK IS THE CONTROL — a Fighting move that is NOT Flying Press, on the same body into the
+ * same targets, so the typing itself is shown not to have moved. The assertion is the RATIO against
+ * the chart's own prediction (base-power ratio times Flying's contribution, both read from the
+ * engine's type table), never a raw damage number.
+ *
+ * Hawlucha and Hawlucha-Mega are the only legal learners, so the move and the body are one decision;
+ * the ability is pinned to Limber so that Unburden and Mold Breaker cannot enter the reading. */
+probe('move', 'overridesEffectiveness', 'Flying Press multiplies Fighting BY Flying, and on a Flying-resistant body it does LESS', () => {
+  const run = (target, mv) => {
+    const me = bare('hawlucha'); me.ability = 'limber';
+    me.moves = ['flyingpress', 'brickbreak', 'protect'];
+    const ally = bare('farigiraf');
+    const f1 = bare(target), f2 = bare('milotic');
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return h - f1.curHP;
+  };
+  /* Flying's own contribution against a typing, read out of the engine's chart — not typed here. */
+  const flyMult = (types) => types.reduce((m, t) => {
+    const r = (typeof MC !== 'undefined' && MC.C && MC.C.Flying) || {};
+    return m * (r[t] != null ? r[t] : 1);
+  }, 1);
+  const bpRatio = 100 / 75;                        /* Flying Press 100, Brick Break 75 */
+  const rows = ['machamp', 'beedrill', 'aggron'].map((sp) => {
+    const body = bare(sp);
+    const fp = run(sp, 'flyingpress'), bb = run(sp, 'brickbreak');
+    const want = bpRatio * flyMult(body.types);
+    return { sp, types: body.types.join('/'), fp, bb, got: fp / bb, want };
+  });
+  const ok = rows.every(r => r.bb > 0 && r.fp > 0 && Math.abs(r.got - r.want) / r.want < 0.06);
+  const resisted = rows.find(r => r.sp === 'aggron');
+  return { works: ok && resisted.fp < resisted.bb,   /* the higher-BP move does LESS */
+           arms: { control: rows.map(r => r.bb), test: rows.map(r => r.fp) },
+           detail: rows.map(r => r.sp + ' (' + r.types + '): Flying Press ' + r.fp + ' vs Brick Break '
+                 + r.bb + ' = x' + r.got.toFixed(2) + ', chart predicts x' + r.want.toFixed(2)
+                 + ' (base-power ratio 1.33 times Flying\'s own x' + flyMult(bare(r.sp).types) + ')')
+                 .join('   ;   ') + '.  On Aggron the 100 BP move does LESS than the 75 BP one, which '
+                 + 'is the arm an engine ignoring the added type — or hardcoding a flat x2 — fails' };
+});
+
+/* THE END-OF-TURN RESIDUALS RUN IN SPEED ORDER — BOTH PASSES. ROADMAP #218.
+ *
+ * Found by the GAME differential, not by the damage one, and that distinction is the finding. Every
+ * body takes the same 1/16 from sand, so the totals agree and `engine-diff.json` reads 0/6000 — but
+ * the SEQUENCE differed, and the game differential recorded it as six causes with identical shape
+ * differing only in which body is chipped first. **80 games, 17% of all divergences, the single
+ * largest mechanism.**
+ *
+ * THIS ENGINE HAD IT RIGHT IN ONE PASS AND NOT THE OTHER. ROADMAP #115 speed-sorted the CLOCK loop
+ * (perish, yawn, status chip, Leftovers) when Will asked whether bodies faint in speed order. The
+ * WEATHER loop one screen above it kept iterating `[...actA, ...actB]` — slot order — and nothing
+ * caught it, because a damage differential structurally cannot see an ordering.
+ *
+ * THE AUTHORITY, READ RATHER THAN INFERRED FROM THE TRACES: the chip is
+ * `sandstorm.onFieldResidual -> this.eachEvent('Weather')`, and `eachEvent` (battle.ts:465) does
+ * `speedSort(actives, (a, b) => b.speed - a.speed)`. `pokemon.speed` is `getActionSpeed()`, which
+ * returns `10000 - speed` under Trick Room, so the inversion is inside the number both passes sort on.
+ *
+ * TWO ARMS, AND THE TRICK ROOM ONE IS NOT DECORATION: it is the same list in the opposite order, so an
+ * engine that sorted by raw speed and ignored the field passes the first arm and fails the second, and
+ * an engine still in slot order fails both. The speeds are asserted, so the row cannot quietly stop
+ * discriminating if the dataset moves. Garchomp is on the board and correctly takes NO chip — Ground
+ * is immune — which is the control that says this is the sand and not a generic tick. */
+probe('move', 'weatherSetter', 'the sandstorm chip runs fastest-first, and Trick Room reverses it', () => {
+  const run = (tr) => {
+    const me = bare('milotic'), ally = bare('incineroar');
+    const f1 = bare('dragapult'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    S.field.weather = 'sand'; S.field.weatherT = 5;
+    if (tr) S.field.tr = 5;
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    return { order: trace.filter(l => /\[from\] Sandstorm/.test(l))
+                          .map(l => l.split('|')[2].split(':')[0]),
+             spe: { p1a: me.st.sp, p1b: ally.st.sp, p2a: f1.st.sp, p2b: f2.st.sp },
+             chompHit: trace.some(l => /garchomp/.test(l) && /Sandstorm/.test(l)) };
+  };
+  const norm = run(false), inv = run(true);
+  const fast = ['p2a', 'p1a', 'p1b'];          /* 205, 101, 80 — Garchomp is Ground and exempt */
+  return { works: norm.spe.p2a === 205 && norm.spe.p1a === 101 && norm.spe.p1b === 80
+                  && norm.order.join(',') === fast.join(',')
+                  && inv.order.join(',') === fast.slice().reverse().join(',')
+                  && norm.chompHit === false && inv.chompHit === false,
+           arms: { control: norm.order, test: inv.order },
+           detail: 'four bodies in sand at Speed p2a ' + norm.spe.p2a + ', p1a ' + norm.spe.p1a
+                 + ', p1b ' + norm.spe.p1b + ' (p2b is Garchomp, GROUND, and takes no chip in either '
+                 + 'arm: ' + norm.chompHit + '). Chip order with no Trick Room ' + norm.order.join(' -> ')
+                 + ' (fastest first); under TRICK ROOM ' + inv.order.join(' -> ') + ' (exactly '
+                 + 'reversed). An engine sorting by raw speed and ignoring the field passes the first '
+                 + 'arm and fails the second; one still in slot order fails both' };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');

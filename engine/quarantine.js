@@ -1062,17 +1062,17 @@ if (require.main === module) {
     for (const l of closet) console.log(l);
     console.log('    ' + pad2('illusion', 12) + 'ROADMAP #160 — Zoroark, 384 games excluded from the fit corpus; ILLUSION_IN=1 re-admits');
     console.log('    ' + pad2('stall', 12) + 'ROADMAP #195 — zero corpus uses, one carrier; reopens if a Sableye ever appears');
-    /* ROADMAP #213 — WILL, 2026-08-11: "closet the tangled feet". A DECISION with an owner, recorded
-     * here rather than left as a coverage gap, because the two are not the same thing.
+    /* ~~ROADMAP #213 — tangledfeet, closeted on Will's call.~~ **OFF THE SHELF, ROADMAP #217, AND THE
+     * REASON IT WAS SHELVED WAS NEVER TRUE.**
      *
-     * The handler's only path is `if (target?.volatiles['confusion']) chainModify(0.5)` and this
-     * engine has no confusion volatile, so the condition cannot be ENTERED — which is why moving it
-     * to the rate runner does not rescue it either. Its rate row stays live in
-     * data/million-targets.json at 0.5 ON PURPOSE: a closeted mechanic with a live target row is the
-     * honest state, because the run then reports UNREACHABLE rather than silently omitting it.
-     * Deleting the row would make the target list agree with the engine's blind spot, which is the
-     * shape of every failure this repository has had. */
-    console.log('    ' + pad2('tangledfeet', 12) + 'ROADMAP #213 — Will, 2026-08-11 "closet the tangled feet": its only path needs a confusion volatile this engine does not have, so no board and no rate run can reach it. 5 corpus uses, two carriers (Pidgeot, Mr. Rime). It comes free the day confusion exists for any other mechanic; its rate row stays in data/million-targets.json at 0.5 so the run reports it UNREACHABLE rather than absent.');
+     * The closet entry said its condition "cannot be ENTERED" because this engine has no confusion
+     * volatile. That came from an `off:` string in `medicham2-browser.js`'s ACCMOD table which was
+     * accurate when written and had been overtaken: `applyConfusion` writes `_vol.confusion` with the
+     * self-hit roll, the expiry and every refusal, and the rate runner already carries targets for it.
+     * The closet is for a DECISION WITH AN OWNER, and this row was never a decision — it was a stale
+     * sentence quoted as a measurement, which is the failure this whole file exists to make visible.
+     * Wired and probed in #217 (`ability/accuracyMod`, a 2x2 where three cells must agree). Left here
+     * as a comment rather than deleted, because a closet that silently loses rows teaches nobody. */
     console.log('    Nothing here is a coverage gap. Each is a choice, and each names the way back.');
   }
   console.log('');

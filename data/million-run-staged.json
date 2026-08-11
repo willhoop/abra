@@ -30,7 +30,7 @@
     "data/move-priors.json": "a64314db056b",
     "engine/pp.js": "30b12a4ef623"
   },
-  "generated": "2026-08-11T22:10:26.966Z",
+  "generated": "2026-08-11T22:47:54.216Z",
   "by": "engine/million_run.js --staged",
   "what": "THE STAGED ARM. Constructed boards, FREE dice, and a denominator known BY CONSTRUCTION rather than inferred from a trace. This is the arm the proc family was waiting for: FAMILY_SUPPORT.proc in this same file marks the whole family observable:false because \"the trace does not say whether the trigger was reached, only whether it fired, so the denominator would be invented. Needs a staged arm, not a bigger corpus.\" On a board this file built the trigger is reached by construction and VERIFIED per trial, and a trigger-control arm proves the verification is a trigger test rather than a click count.",
   "rng": "FREE-RUNNING (mulberry32, a fresh stream per fixture-trial, seeded from 20260811). NOT the differential drivers pin — ROADMAP #88 pins every die to one corner, which is why these rows read COULD-NOT-STAGE in tests/roster.js and are measurable here. Both pinned corners are run as red proofs and both must be flagged.",
@@ -73,7 +73,7 @@
     "file": "data/million-targets.json",
     "digest": "bf5abe436236",
     "generated": "2026-08-11T22:05:20.996Z",
-    "age_hours": 0.07,
+    "age_hours": 0.7,
     "rows": 247
   },
   "declaration_gate": {
@@ -109,41 +109,32 @@
       "focusband"
     ]
   },
-  "absent_mechanics": [
-    {
-      "id": "proc:cutecharm",
-      "trials": 4166,
-      "fired": 0,
-      "declared_pct": 30,
-      "upper_bound_95_pct": 0.092,
-      "what_it_means": "zero fires in 4166 trials on a board where the trigger was reached and verified every time. At a declared 30% the expected count was 1250. This is a mechanic that is not implemented, not a rate that is off — and which of the two it is, is exactly what a staged board can say and a self-play corpus cannot."
-    }
-  ],
+  "absent_mechanics": [],
   "pooled": {
     "what": "Every scored staged trial, each row at its own declared rate, Poisson-binomial. |z| > 3 diverges. Unlike the self-play arm this pool is over CONSTRUCTED denominators, so a divergence here cannot be a denominator artefact of the corpus.",
     "all": {
       "trials": 54503,
-      "fired": 16396,
+      "fired": 17684,
       "expected_fires": 17429.61,
-      "z": -9.738,
-      "observed_pct": 30.083,
+      "z": 2.397,
+      "observed_pct": 32.446,
       "expected_pct": 31.979
     },
     "excluding_absent_mechanics": {
-      "trials": 50337,
-      "fired": 16396,
-      "expected_fires": 16179.81,
-      "z": 2.121,
-      "observed_pct": 32.572,
-      "expected_pct": 32.143
+      "trials": 54503,
+      "fired": 17684,
+      "expected_fires": 17429.61,
+      "z": 2.397,
+      "observed_pct": 32.446,
+      "expected_pct": 31.979
     },
     "by_family": {
       "proc": {
         "trials": 54503,
-        "fired": 16396,
+        "fired": 17684,
         "expected_fires": 17429.61,
-        "z": -9.738,
-        "observed_pct": 30.083,
+        "z": 2.397,
+        "observed_pct": 32.446,
         "expected_pct": 31.979
       }
     }
@@ -185,12 +176,12 @@
     "note": "the split-half spread on each row is the noise floor for that row (LESSONS 9): an effect smaller than the spread between two halves of one arm is not an effect. Band rows share their parent denominator and carry no split-half of their own."
   },
   "cost": {
-    "elapsed_ms": 47487,
+    "elapsed_ms": 44894,
     "fixtures": 17,
     "stageable": 17,
     "arms_per_fixture": 4,
     "staged_battles_played": 134299,
-    "ms_per_battle": 0.3536,
+    "ms_per_battle": 0.3343,
     "what_a_battle_is": "one freshly built four-body board played for one or two scripted turns. It is not comparable to a self-play game, which runs to a 20-turn cap — so this number must never be quoted beside the self-play arm ms/game.",
     "note": "four arms are played per stageable fixture — subject (which runs to its own power target), trigger control, pinned high, pinned low. COVERAGE HERE IS THE FIXTURE SET, NOT N: past its power target another million trials adds precision to a row that already has enough and reaches no mechanic that has no fixture. That is the same finding the 50,000-game self-play run made from the other direction."
   },
@@ -715,18 +706,20 @@
       "subject_arm": {
         "attempts": 4166,
         "n": 4166,
-        "k": 0,
+        "k": 1288,
         "refused": {},
         "bands": {},
-        "extra": {},
+        "extra": {
+          "raw_fires": 1288
+        },
         "halves": [
           {
             "n": 2083,
-            "k": 0
+            "k": 663
           },
           {
             "n": 2083,
-            "k": 0
+            "k": 625
           }
         ],
         "refused_total": 0,
@@ -778,7 +771,7 @@
       },
       "pinned_low": {
         "trials": 2000,
-        "fired": 0
+        "fired": 2000
       }
     },
     {
@@ -2159,21 +2152,21 @@
       "subject": "cutecharm",
       "detail": "contact punisher",
       "declared_pct": 30,
-      "observed_pct": 0,
+      "observed_pct": 30.917,
       "trials": 4166,
-      "fired": 0,
+      "fired": 1288,
       "ci95_pct": [
-        0,
-        0.092
+        29.532,
+        32.337
       ],
-      "half_width_pts": 0.046,
+      "half_width_pts": 1.403,
       "scored": true,
-      "diverges_at_95": true,
-      "diverges_bonferroni": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
       "split_half": {
-        "a": 0,
-        "b": 0,
-        "spread_pts": 0
+        "a": 31.83,
+        "b": 30,
+        "spread_pts": 1.82
       },
       "denominator_clean": "exact",
       "power": {

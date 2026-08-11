@@ -1065,12 +1065,19 @@ const DEFERRED = {
        + 'that the carrier was rare (it is not, 189 teams), then that it was a rejected choice '
        + '(it is not a live choice at all). Deliberately not built. Underlying: COULD-NOT-STAGE.',
   },
-  minus: {
-    by: 'Will', on: '2026-08-10',
-    why: 'ZERO of 26,232 declared-sheet teams, on a body that IS played — Manectric is on 70 teams, but its other abilities are Static and Lightning Rod and its mega is Intimidate, so nobody picks Minus. It is also HALF OF A PAIR — Minus only does '
-       + 'anything beside an ally holding Plus, so the fixture is two specific bodies side by side, and '
-       + 'Plus itself is on 4 teams. Deliberately not built. Underlying verdict: COULD-NOT-STAGE.',
-  },
+  /* ~~minus, shelved 2026-08-10 on rarity.~~ **OFF THE SHELF, ROADMAP #217.** Will: "u somehow staged
+   * plus but couldnt do minus, now im very suspect of your work" — and he was right to be. The two
+   * halves of ONE mechanic were filed two different ways: `minus` DEFERRED here, `plus`
+   * COULD-NOT-STAGE with a reason calling its own blindness "the honest coverage limit". Neither was
+   * measured, and underneath both the mechanic was DEAD in the engine (all five cells of the board
+   * read 121 before #217).
+   *
+   * THE SHELF REASON WAS ALSO WRONG ON THE FIXTURE. It says "Minus only does anything beside an ally
+   * holding Plus". The handler is `hasAbility(['minus','plus'])` — SYMMETRIC — so Plus beside Plus
+   * satisfies it too, and Ampharos next to Dedenne is a board that exists today. Wired and probed in
+   * #217 (`ability/damageBoost`, seven cells including the physical arm). Left as a comment rather
+   * than deleted: a closet that silently loses rows teaches nobody, and this one was never a rarity
+   * call — it was a misclassification. */
   stall: {
     by: 'Will', on: '2026-08-10',
     why: 'ZERO of 26,232 declared-sheet teams, AND IT IS NOT RARE — IT IS BAD. Will: \u0027why would you ever want this\u0027. Stall makes the holder move LAST within its bracket, and its ONE legal carrier is Sableye, which is on 758 teams (2.9% of the format) and also has PRANKSTER — one of the strongest abilities in the game — plus a mega that overwrites the slot with Magic Bounce. Nobody chooses to move last when that is the alternative. The zero is a judgement the whole ladder has already made. Observing it would need a constructed speed pair where the order decides the board, and it carries no tag at all, so the rule would have to be written first. It moves the holder LAST within its bracket, '
@@ -1492,6 +1499,21 @@ function trapExceptionArms(e, src, arm) {
  *
  * A PASS IS NEVER SHELVED, and a missing artifact means CANNOT DEFER rather than zero clicks — a shelf
  * that opens when its evidence disappears is not a shelf. */
+/* ROADMAP #217 -- THE FLOOR IS A HEURISTIC, AND IT HAS NOW BEEN OVERRULED TWICE IN ONE NIGHT BY
+ * SOMEBODY WHO PLAYS THE FORMAT.
+ *
+ * FLYING PRESS came off this shelf on Will's domain call: "we need flying press in the game hawlucha
+ * gets some play what does it do". It sat at **21 clicks against a floor of 25** — and 21-against-25
+ * is inside the noise of wherever the line was drawn. A threshold is not a measurement; the shelf's
+ * own header already says these rows are "NOT MEASURED CLEAN", and that wording is doing real work.
+ * Wired and probed in #217 (`move/overridesEffectiveness`, three chart-derived targets), so its
+ * verdict is now FIRED-AND-BOARDS-MATCH and the shelf no longer applies to it at all — the row leaves
+ * by being CORRECT rather than by being exempted, which is the only exit that means anything.
+ *
+ * KEPT AS A NUMBER RATHER THAN RAISED. Lowering the floor to catch the next Flying Press would be
+ * fitting a threshold to one example. What this records instead is that a shelf entry is a PROMPT to
+ * ask somebody, not a verdict: the two overrules tonight were both domain calls the store could not
+ * make, and both were right. */
 const USAGE_SHELF_BELOW = 25;
 function usageShelf(r) {
   if (STAGE !== 'moves' || !r || !CLICKS) return r;
@@ -4887,6 +4909,21 @@ const RULES = [
     if (typesNamed(e, keys).length) return null;                    // the scoped families sit above
     if (/hp\s*<=\s*\w+\.maxhp/.test(src)) return null;              // the pinch family sits above
     if (weatherNamed(e, keys).length) return null;                  // the weather family sits above
+    /* ROADMAP #217 -- AN ALLY-GATED MULTIPLIER IS A DIFFERENT SHAPE, AND CALLING IT UNCONDITIONAL IS
+     * WHAT MADE PLUS READ INERT.
+     *
+     * This rule's own name is "NO type and NO HP gate", and Plus satisfies both of those while being
+     * thoroughly gated — on the PARTNER: `for (const allyActive of pokemon.allies()) if
+     * (allyActive.hasAbility(['minus','plus']))`. The staging never places a qualifying partner, so
+     * the ability correctly did nothing and the row printed a confident sentence calling that "the
+     * honest coverage limit, not a pass". IT WAS NOT A COVERAGE LIMIT. A COULD-NOT-STAGE verdict is a
+     * claim about the FIXTURE and never about the mechanic.
+     *
+     * MEMBERSHIP OVER THE WHOLE DEX: exactly THREE abilities gate a stat or damage handler on an ally
+     * — friendguard (which has its own rule and its own tag), plus, and minus. So this exclusion moves
+     * two rows and invents nothing. They are covered by the census probe `ability/damageBoost`, which
+     * stages the partner this rule structurally cannot. */
+    if (/allies\(\)|adjacentAllies\(|isAlly\(/.test(src)) return null;
     const needStatus = /\.status\b/.test(src);
     const off = keys.includes('onModifyAtk') ? 'Physical'
               : (keys.includes('onModifySpA') ? 'Special' : null);

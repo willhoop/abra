@@ -5881,3 +5881,256 @@ because it is a statement about the ROSTER'S fixture rather than about the engin
 named in a live census probe, and the nine that were not are the rows above. The roster's
 CONTROL-NOT-QUIET list is likewise 13 and stays 13: `keeneye`, `stickyhold` and `rivalry` are in it
 because every alternative ability on their carriers is itself live, which no engine change can alter.
+
+---
+
+## ROADMAP #216 — FOCUS BAND COULD NOT SAVE ANYTHING, AND #166 WAS STALE (2026-08-11, tenth pass)
+
+Will: *"focus band is 10 percent i think"*. Correct — `randomChance(1, 10)`, no Champions override —
+and the question exposed the mechanic. `data/tags.json` gave Focus Band `tags: ["flingable"]` and
+nothing else, so a body holding it died exactly as if it held nothing, on **15 sheet teams**.
+
+**AN "UNREACHABLE" VERDICT IS A CLAIM ABOUT THE INSTRUMENT, AND THIS ONE WAS POINTING AT THE ENGINE.**
+The rate runner reported `proc:focusband` UNREACHABLE because *"the FROZEN tag artifact carries no such
+param"* — which reads like a missing declaration and was a missing mechanic. Worth keeping as a shape:
+a reachability failure and an absence are indistinguishable from the instrument's side.
+
+### WHICH OF THE TWO WORLDS — MEASURED FIRST, NOT ASSUMED
+
+#166 says *"FOCUS SASH DOES NOT SAVE, AND STURDY DOES NOT EITHER"*. **It is stale.** Measured on the
+live engine before a line moved, a lethal Close Combat into a 60 HP body:
+
+| body | at FULL HP | at HALF HP |
+|---|---|---|
+| holding nothing | died | died |
+| **Focus Sash** | **hp 1, item spent** | died (correct) |
+| **Sturdy** | **hp 1, ability intact** | died (correct) |
+| **Focus Band** | **died** | **died** |
+
+So: **the path WORKS and the tag was missing.** One row, one fix, Focus Band alone — and it is the
+tidier of the two stories, which is exactly why it was measured rather than assumed. That is the
+eighth register row this sprint to be found describing an engine that has since been repaired.
+
+### THE GATE WAS THE FULL-HP TEST ITSELF
+
+```
+        if(_arrive>=tg.curHP&&tg.curHP===tg.st.hp){          <- the outer gate
+          const _sv=TAGS.param(...,'survivesFromFull');
+          if(_sv&&(!_sv.onlyFromFullHP||tg.curHP===tg.st.hp)){   <- dead code, one line later
+```
+
+`tg.curHP === tg.st.hp` sat ABOVE the tag read, so the artifact's own `onlyFromFullHP` was checked
+against a condition already guaranteed. **A param written as a gate silently DEFINES the membership
+instead of describing it** — and the one member without a full-HP clause could never match. The same
+shape was in the derivation, where `if (!/hp === maxhp/) return null` excluded Focus Band before any
+param was read.
+
+### THE PARAMETERISATION IS THE DELIVERABLE, NOT THE BRANCH
+
+`chance` added and `onlyFromFullHP` allowed to be false, both DERIVED from the handler. **No name
+appears anywhere in the engine**, so a fourth member is picked up with no engine edit.
+
+**WILL SPLIT IT MORE SHARPLY THAN THE FIRST READING DID AND THE ARTIFACT AGREES WITH HIM** — *"sturdy
+is more like focus sash than focus band"*:
+
+| | when | certainty | the item |
+|---|---|---|---|
+| Focus Sash | full HP only | always | consumed |
+| Sturdy | full HP only | always | n/a, an ability |
+| **Focus Band** | **ANY HP** | **10%** | **KEPT** |
+
+Sash and Sturdy genuinely share `survivesFromFull` and that grouping is correct and untouched. Focus
+Band differs on three axes — but in its param VALUES, not in their meaning, which is what a param is
+for. Splitting a tag whose params already distinguish its members is the #162 collapsed-label trap
+facing the other way.
+
+**MEMBERSHIP PRINTED OVER THE WHOLE DEX BEFORE A LINE WAS WIRED**, items and abilities together, with
+the relaxed rule (an `onDamage` testing `damage >= hp` and returning `hp - 1`):
+
+```
+  focussash   fullHP=true    chance=none   useItem=true
+  sturdy      fullHP=true    chance=none   useItem=false   (9 legal carriers)
+  focusband   fullHP=FALSE   chance=1/10   useItem=false
+```
+
+Three. The relaxation adds exactly Focus Band and over-matches nothing.
+
+**THE ROLL IS TAKEN ONLY WHEN THE SAVE WOULD OTHERWISE BE GRANTED, and that is a stated divergence.**
+Showdown evaluates `randomChance(1,10)` FIRST in its `&&` chain, so it draws on every damage event to
+a Focus Band holder including non-lethal ones. This engine takes an injected `rng()` and does not
+reproduce Showdown's stream, so aligning the draw would buy nothing and would perturb every unrelated
+board sharing the callback.
+
+Probe `item/survivesFromFull`, five arms: nothing held dies; Sash saves from full and is spent; Sturdy
+saves from full; Sash does NOT save from half; **Focus Band at HALF HP inside its 10% survives at 1 AND
+KEEPS THE ITEM** — the handler has no `useItem`, and an engine that copied the Sash's consumption
+would pass the survival and silently disarm the next hit — and outside the roll the same board dies.
+
+### THE PROOF, ON THE ROW THAT HAD NEVER PRODUCED A NUMBER
+
+`engine/million_run.js --staged --trials 2000` against a freshly cut release (`5a557b07821c`, verified
+byte-identical to the tree):
+
+```
+    proc:focusband          2000/—      fired    195    9.75%
+```
+
+**UNREACHABLE -> 9.75% against an authority of 10%.** Every other row unchanged and MET (16 MET, 0
+SHORT), and all three red-proof arms still CAUGHT.
+
+**THE CAPTION BESIDE IT IS NOW STALE AND THE FIX IS NOT MINE.** `million_run.js:2237` calls
+`stagedDeclaration(subject, 'item', null)` — a null `tagPath`, which was correct when there was no
+param to point at. `stagedDeclaration` requires one (`if (row && row.params && tagPath)`), so it still
+reports "carries no such param" and leaves the row `scored: false`. One argument closes it:
+
+```js
+const decl = stagedDeclaration(subject, 'item',
+  { param: 'survivesFromFull', name: 'chance', pick: p => p.chance });
+```
+
+That would read `tag_pct` 10 from the frozen artifact against `list_pct` 10 already in
+`data/million-targets.json` (`DERIVED:randomChance(1,10) in the handler`), corroborate on two
+surfaces, and score the row. **`million_run.js` belongs to the coordinator and was not touched.**
+
+### CUTE CHARM — THE ENGINE IS RIGHT, THE FIXTURE IS GENDERLESS
+
+91 uses, 122 sheet teams, and the run read 0 fires in 4,166 trials. Staged with genders declared on
+both bodies, the engine is correct on every arm:
+
+| board | result |
+|---|---|
+| opposite genders, roll inside the 30% | **attract lands on the ATTACKER** |
+| same board, no ability | nothing |
+| **same gender** | **nothing** — the authority's own rule |
+| **genderless (the rate runner's fixture)** | **nothing** |
+| opposite genders, roll outside the 30% | nothing |
+
+So the row was the FIXTURE. Every body the rate runner builds declares `gender: 'N'`, and Showdown
+refuses attract between genderless bodies, so the roll is never reached — the identical limitation
+that made Rivalry read inert in #212. The repair belongs to the runner's fixture (declare a gender on
+the four carriers: Clefable 25M/75F, Milotic 50/50, Lopunny 50/50, Sylveon 87.5M/12.5F), not to the
+engine.
+
+**NO SECOND PROBE WAS ADDED.** `ability/punishesAttacker` already carries this board and is LIVE, with
+all five arms — *"Cute Charm attracts the contact attacker on its 30%, and only across opposite
+genders"*. Adding another would raise the census count and prove nothing.
+
+---
+
+## ROADMAP #217 — FOUR STALE REASONS, AND EVERY ONE READ LIKE A MEASUREMENT (2026-08-11, eleventh pass)
+
+Will caught three of these in ten minutes and a fourth an hour later. **The numbers in this repo keep
+holding up under checking; the PROSE attached to them does not.** Every item below was a sentence that
+was true when written, was quoted afterwards as if it were a measurement, and was wrong by the time it
+mattered. Census **511 -> 514 live, 0 missing**.
+
+### 1. TANGLED FEET WAS SWITCHED OFF WITH AN EXCUSE THAT HAD EXPIRED
+
+```js
+'ability:tangledfeet': {side:'def', mult:0.5, off:'no confusion volatile exists in this engine'},
+```
+
+**False.** Confusion is fully implemented eight hundred lines below that table: `applyConfusion`
+writes `_vol.confusion`, with the self-hit roll, the expiry, Safeguard's refusal, the ability
+refusals, `confusionAlreadyOn` and Persim's cure — and the rate runner already carries targets for the
+33% self-hit and the 1-4 turn duration. **I repeated that string to Will as fact and he closeted the
+ability on the strength of it.** No new machinery was needed: read the volatile that was already
+there.
+
+Probe `ability/accuracyMod`, a **2x2 where three of the four cells must be EQUAL** — the ability alone
+does nothing, the confusion alone does nothing, only the pair halves the accuracy. The confusion comes
+from a real Confuse Ray click, and the roll is pinned at 0.6, between the halved 40 and Stone Edge's
+printed 80. Out of the closet in `quarantine.js`, with the entry kept as a comment saying why: **it
+was never a decision, it was a stale sentence.**
+
+### 2. EVERY `off:` AND `when:` ROW RE-DERIVED, NOT RE-READ
+
+One expired reason means the class is suspect. The full table is now a comment above `ACCMOD`; the
+verdicts:
+
+| row | verdict |
+|---|---|
+| widelens, brightpowder, compoundeyes, noguard | LIVE, unconditional |
+| zoomlens | LIVE — `targetAlreadyMoved` is wired at all four call sites off `unresolved` |
+| hustle, sandveil, snowcloak | LIVE, gates hold |
+| **tangledfeet** | **FIXED — reason had expired** |
+| **skilllink** | **OFF, AND THE REASON HOLDS.** Re-measured: it has NO accuracy handler at all — its only handler is `onModifyMove` touching `multihit`/`multiaccuracy`. The tag is a genuine false positive; the ability itself is live under `multihitAlwaysMax` |
+| **victorystar** | **OFF, REASON CORRECTED.** The old string blamed "hitChance has no side" — which stopped being true when #213 used `_sf` to answer ally-ness for Telepathy. The REAL blocker was never stated: **Victini is not in this format, zero legal carriers** |
+| **laxincense** | DEAD ROW, harmless — `isNonstandard: 'Past'`, banned here |
+| **wonderskin** | DEAD ROW, harmless — **zero legal carriers** |
+
+Two rows are dead-but-on and that is not a defect: an entity that cannot appear cannot be applied.
+They are named so the next reader does not re-derive them.
+
+### 3. PLUS WAS MISCLASSIFIED, MINUS WAS SHELVED, AND UNDERNEATH BOTH THE MECHANIC WAS DEAD
+
+Will: *"why isnt plus in the closet lmao"*, then *"u somehow staged plus but couldnt do minus, now im
+very suspect of your work"*. Direction reversed, substance exactly right — **neither was measured, and
+the two halves of ONE mechanic were filed two different ways**: `minus` DEFERRED-BY-OWNER on rarity,
+`plus` COULD-NOT-STAGE with a reason calling its own blindness *"the honest coverage limit, not a
+pass"*.
+
+**IT WAS NOT A COVERAGE LIMIT.** The roster filed Plus under `unconditional-stat-multiplier` —
+*"onModifySpA with NO type and NO HP gate"* — and Plus satisfies both of those while being thoroughly
+gated **on the ALLY**. The fixture never places a qualifying partner, so the ability correctly did
+nothing and the instrument read its own blindness as a fact about the world.
+
+**AND THE MECHANIC WAS DEAD ANYWAY.** Measured before anything moved, all five cells read 121:
+`damageBoost` carried `onlyWhen: null`, and the consumer then refused it for a third reason entirely
+(no `onType`), uncounted — the same two-wrongs shape as Analytic in #213.
+
+Fixed at the RULE, not the row: `unconditional-stat-multiplier` now excludes ally-gated handlers, and
+`onlyWhen: {cond:'allyHasAbility', is:[...]}` is derived from the handler. **Membership over the whole
+dex: exactly THREE abilities gate a stat or damage handler on an ally** — Friend Guard (already live
+under `reducesAllyDamage`), Plus, Minus. So the exclusion moves two rows and invents nothing.
+
+**`hasAbility(['minus','plus'])` IS SYMMETRIC** — Plus beside Plus satisfies it, and Ampharos next to
+Dedenne is a board that exists today. The shelf reason had that wrong too ("Minus only does anything
+beside an ally holding Plus"). **Minus is off the closet, and it was never a rarity call.**
+
+**THE PHYSICAL ARM IS NOT DECORATION.** Both handlers are `onModifySpA` ONLY, and the first cut
+multiplied the attacking stat whatever the category — an Ampharos got a 1.5x IRON TAIL, 18 to 27,
+caught on this board. `onStat` is now derived from the handler name.
+
+Probe `ability/damageBoost`, seven cells: no ability 121, PLUS with no partner 121, the three pairings
+183, and Iron Tail equal in both arms.
+
+### 4. FLYING PRESS CAME OFF THE USAGE SHELF, AND IT LEFT BY BEING CORRECT
+
+Will: *"we need flying press in the game hawlucha gets some play what does it do"*. It sat at **21
+clicks against a floor of 25** — a threshold call, not a measurement, and 21-against-25 is inside the
+noise of wherever the line was drawn.
+
+**ITS ONE SIBLING WAS CHECKED FIRST AND THE MECHANISM ALREADY EXISTED.** Only two legal moves in this
+format carry `onEffectiveness`. Freeze-Dry's `overridesEffectiveness.perType` was built this session,
+so this is a second PARAM on that tag (`addsType`), not a new tag and not a name branch — **the fifth
+time this sprint the answer was a param.** The two rules genuinely differ and both are derived:
+Freeze-Dry OVERRIDES the chart for one defending type; Flying Press ADDS an attacking type across the
+whole chart.
+
+**THREE TARGETS, DERIVED FROM THE CHART RATHER THAN CHOSEN:**
+
+| target | Fighting | Flying | product | Flying Press vs Brick Break | chart predicts |
+|---|---|---|---|---|---|
+| Machamp (Fighting) | x1 | x2 | **x2** | 222 vs 83 = x2.67 | x2.67 |
+| Beedrill (Bug/Poison) | x0.25 | x2 | **x0.5** | 92 vs 34 = x2.71 | x2.67 |
+| **Aggron (Steel/Rock)** | x4 | **x0.25** | **x1** | **46 vs 136 = x0.34** | x0.33 |
+
+**On Aggron the 100 BP move does LESS than the 75 BP one.** An engine ignoring the added type reads
+the flat base-power ratio on all three; an engine hardcoding "Flying means x2" passes the first two
+and fails Aggron. Brick Break is the control that says the typing itself did not move.
+
+**IT LEFT THE SHELF BY BEING CORRECT, NOT BY BEING EXEMPTED** — its roster verdict is now
+FIRED-AND-BOARDS-MATCH, so the shelf no longer applies to it at all. Moves went **479 -> 480 tested**,
+DEFERRED-BY-OWNER 10 -> 9. The floor was NOT lowered: fitting a threshold to one example is worse than
+keeping it. What is recorded beside `USAGE_SHELF_BELOW` is that **a shelf entry is a prompt to ask
+somebody, not a verdict** — two overrules tonight, both domain calls the store could not make, both
+right.
+
+### THE STATE
+
+Census **511 -> 514 live, 0 missing, 0 hollow, 0 unarmed, 0 direct-call, 0 threw**. Differential
+**0/6000 at all three points**. Roster re-run against release `154356e55c80`: **moves 480 of 500**
+(was 479), abilities 120, items 139, **0 DIFFER and 0 DID-NOT-FIRE everywhere**. The closet lost two
+rows — tangledfeet and minus — and both left because they were wrong to be there, not because they
+were waived.
