@@ -10,6 +10,49 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [4.7.0] — 2026-08-10
+
+### Fixed
+- **THE REPLAYER'S PHAZE GUARD SILENTLY UNDID ITSELF IF THE DEX FAILED TO LOAD.** `PHAZE_MOVES` was
+  built in a `try` that returned **null** on failure, and `turnHasPhaze()` opens with
+  `if (!PHAZE_MOVES) return false` — so a null list meant **no turn was ever recognised as a phaze
+  turn**, and the replayer went straight back to scoring every turn downstream of a Roar, Whirlwind,
+  Dragon Tail or Circle Throw. Those draw the replacement AT RANDOM, so each later turn compares two
+  different boards and charges the difference to the engine. That is 3.99.1 reverting itself with no
+  symptom: the run completes and the numbers look plausible. **Now FATAL** — this file replays stored
+  games *through Showdown*; a dex it cannot load is not a degraded mode, it is no instrument at all.
+- **Twelve more silent catches in `engine/replay_differential.js` now speak**, each with the
+  consequence stated where it happens. The ones that were not cosmetic: `movePriority` throwing left
+  priority at **0**, so a Sucker Punch reordered the turn and the comparator blamed the engine;
+  `effSpeed` throwing fell back to the **raw stat**, discarding Choice Scarf, paralysis and Tailwind;
+  `playerAction` throwing became a **passed turn** (ROADMAP #125's shape) with nothing recording the
+  lost click; `bodyFor` throwing removed exactly the species it could not build from the sample, so
+  the remaining agreement read better than it was; and skipping a weather field in `speedSpan`
+  **narrows** the interval — and `orderVerdict` scores a difference on disjointness, so a narrower
+  interval **manufactures** disagreements rather than hiding them. `test-no-silent-failure` new count
+  **52 → 38**.
+- **An unknown flag was silently ignored.** `--n 8` — `test-engine-diff.js`'s flag, not this file's —
+  ran the **default 100 games** with no warning. The run you ask for was not the run that happened.
+  Unknown flags now refuse to run, with the known set derived from the parse sites rather than typed.
+
+### Notes
+- **RETRACTED IN THE SAME PASS: "a smoke run destroyed a real measurement".** I read the artifact
+  being overwritten by `--n 8` as a destructive smoke run, and built a floor guard against it. It was
+  false — `--n` was being ignored, so every one of those runs was a **full 100-game run** producing an
+  artifact of the same size. Nothing was destroyed. **The guard was removed rather than kept on a
+  better excuse**, because the file already refuses to publish when its red proof cannot be staged
+  (*"An instrument that cannot be shown red is not evidence"*) — a stronger protection, and a second
+  overlapping one is the two-things-deciding-one-fact hazard this repository is built to avoid. What
+  survives is the real defect underneath: the silently-ignored flag that produced the wrong reading.
+- **The wasted work is not the lesson; the SHAPE is.** I asked for eight games, got a hundred, and
+  every available signal said success — the founding failure of this project, reached through the
+  cheapest possible door. Four commands and a false finding is what it cost here. The same slip inside
+  a measurement that matters produces a number computed over the wrong sample with nothing saying so.
+- `data/replay-differential.json` and its freeze file were restored from HEAD after the confusion and
+  are byte-identical to the published measurement. **No figure in them changed.**
+
+---
+
 ## [4.6.0] — 2026-08-10
 
 ### Fixed

@@ -3073,3 +3073,51 @@ the failure where a later reader can see it, rather than returning a quiet null.
 
 **These remain RED at the end of this batch.** That is a statement, not a status — they are owed a
 dedicated pass, and no number resting on them should be quoted until they are green.
+
+---
+
+## THE REPLAYER'S SILENT CATCHES, AND A FINDING I RETRACTED IN THE SAME HOUR. 2026-08-10.
+
+`tests/test-no-silent-failure.js` was RED at 52 new catches. `engine/replay_differential.js` carried
+**15** of them, the largest single file, and no agent held it. Twelve now speak; the count is **38**.
+
+**THE ONE THAT MATTERED MOST WAS AT THE TOP OF THE FILE.** `PHAZE_MOVES` was built in a `try` that
+returned `null`, and `turnHasPhaze()` opens `if (!PHAZE_MOVES) return false`. **A null list means no
+turn is ever a phaze turn**, so the replayer resumes scoring every turn downstream of a Roar,
+Whirlwind, Dragon Tail or Circle Throw — which draw the replacement at random, so each later turn
+compares two different boards and charges the difference to the engine. That is CHANGELOG 3.99.1
+undoing itself, with the run completing and the numbers looking fine. It is now FATAL: this file
+replays stored games THROUGH SHOWDOWN, and a dex it cannot load is not a degraded mode.
+
+The others, with the consequence rather than the pattern:
+- `movePriority` throwing left priority at **0** — a Sucker Punch reorders the turn and the
+  comparator reports a disagreement that is the instrument's, not the engine's.
+- `effSpeed` throwing fell back to the **raw stat**, discarding Scarf, paralysis and Tailwind.
+- `playerAction` throwing became a **passed turn** — ROADMAP #125's shape, with nothing recording it.
+- `bodyFor` throwing removed exactly the species it could not build, so the surviving agreement read
+  better than it was.
+- `speedSpan` skipping a weather field **narrows** the interval, and `orderVerdict` scores on
+  disjointness — so that silence **manufactures** disagreements rather than hiding them. The wrong
+  direction to be quiet in.
+
+### AND THE PART WORTH KEEPING: I FOUND A DEFECT THAT WAS NOT THERE
+
+I ran `--n 8` to check the file still loaded, saw `data/replay-differential.json` overwritten, and
+concluded a smoke run had destroyed a real measurement. I wrote a floor guard, wrote it against a
+field the artifact does not have (`corpus.games_scored` — it is `counts.games_replayed`), fixed that,
+watched it still not fire, and only then printed the values: **the run had scored 96 games, not 8.**
+
+**`--n` is `test-engine-diff.js`'s flag. This file's is `--games`.** The unknown flag was silently
+ignored and every "smoke run" was a full 100-game run. Nothing was destroyed; the artifact was
+legitimately regenerated at the same size, and it has been restored from HEAD regardless.
+
+**The guard was REMOVED rather than kept on a better justification.** The file already refuses to
+publish when its red proof cannot be staged — *"An instrument that cannot be shown red is not
+evidence"* — which is strictly stronger, and a second overlapping protection is the
+two-things-deciding-one-fact hazard. What shipped instead is the defect that actually existed:
+**an unrecognised flag now refuses to run**, with the known set derived from the parse sites.
+
+**The lesson is not the wasted commands.** I asked for eight games, got a hundred, and every signal
+said success — this project's founding failure reached through the cheapest possible door, checking
+that code runs. Here it cost four commands and a false finding. In a measurement that mattered it
+would produce a number computed over the wrong sample with nothing anywhere saying so.

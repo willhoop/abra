@@ -155,6 +155,38 @@ const argv = process.argv.slice(2);
 const flag = (name, dflt) => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] ? argv[i + 1] : dflt; };
 const has = (name) => argv.indexOf(name) >= 0;
 
+/* AN UNKNOWN FLAG IS SILENTLY IGNORED, AND IT COST ME FOUR COMMANDS AND A FALSE FINDING.
+ *
+ * 2026-08-10: I ran `--n 8` to smoke-test an edit — `--n` is `test-engine-diff.js`'s flag; this file's
+ * is `--games`. Nothing warned. The run quietly used the DEFAULT of 100 games, took 8 seconds instead
+ * of 1, wrote a full artifact, and I read the resulting overwrite as "a smoke run just destroyed a
+ * real measurement". I then built a guard against a defect that does not exist, and only found out
+ * when a debug print showed the run had scored 96 games rather than 8.
+ *
+ * The wasted work is not the point. The point is the SHAPE: I asked for eight games, got a hundred,
+ * and every signal available said success. That is this project's founding failure verbatim — a
+ * capability absent while everything reports success — reached through the cheapest possible door.
+ * The same slip in a measurement that matters would produce a number computed over the wrong sample
+ * with nothing anywhere saying so.
+ *
+ * The names are derived from the parse sites rather than typed, so a flag added below is accepted
+ * here without an edit and a flag DELETED below starts failing on its old callers, which is correct. */
+(() => {
+  const KNOWN = new Set(['--games', '--skip', '--store', '--out', '--freeze-out', '--freeze-cap',
+    '--release', '--turn1-only', '--selftest', '--quiet', '--rates', '--sheets-only', '--blind-sheets',
+    '--phaze-through', '--force-write', '--all', '--help']);
+  const unknown = argv.filter(a => a.startsWith('--') && !KNOWN.has(a));
+  if (!unknown.length) return;
+  console.error('');
+  console.error('  UNKNOWN FLAG: ' + unknown.join(', '));
+  console.error('  Refusing to run rather than silently using the defaults — an unrecognised flag here');
+  console.error('  means the run you asked for is NOT the run that would happen. (`--n` is');
+  console.error('  test-engine-diff.js\'s flag; this file limits the sample with `--games`.)');
+  console.error('  Known: ' + [...KNOWN].sort().join(' '));
+  console.error('');
+  process.exit(2);
+})();
+
 const N_GAMES = +flag('--games', 100);
 const SKIP_GAMES = +flag('--skip', 0);
 const STORE = flag('--store', D('data', 'games.ladder.jsonl'));
@@ -202,7 +234,28 @@ const PHAZE_MOVES = (() => {
     const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
     return new Set(Dex.forFormat(CSx.FORMAT).moves.all()
       .filter(m => !m.isNonstandard && m.forceSwitch).map(m => m.id));
-  } catch (e) { return null; }
+  } catch (e) {
+    /* THIS USED TO `return null`, AND A NULL HERE SILENTLY UNDOES 3.99.1.
+     *
+     * `turnHasPhaze()` opens with `if (!PHAZE_MOVES) return false`, so a null list means NO turn is
+     * ever recognised as a phaze turn — and the replayer goes straight back to scoring every turn
+     * downstream of a Roar, Whirlwind, Dragon Tail or Circle Throw. Those draw the replacement AT
+     * RANDOM: if the record drew Corviknight and we draw Venusaur, every later turn compares two
+     * different boards and each difference is charged to the engine. That is scoring a die, which
+     * this instrument's turn-order comparator already refuses to do for a speed tie.
+     *
+     * The failure mode was perfect: the run completes, the numbers look plausible, and the guard that
+     * makes them meaningful is simply absent. A capability that cannot prove it ran is assumed broken
+     * — so this one refuses to run instead.
+     *
+     * FATAL rather than counted, and that is the right severity: this file replays stored games
+     * THROUGH SHOWDOWN. A dex it cannot load is not a degraded mode, it is no instrument at all. */
+    throw new Error(
+      'replay_differential: could not build the phaze-move list from the format (' +
+      (e && e.message ? e.message : e) + '). Without it turnHasPhaze() answers false for every turn ' +
+      'and the replayer scores turns downstream of a random forced switch, charging the die to the ' +
+      'engine. Refusing to run. Check SHOWDOWN_PATH.');
+  }
 })();
 function turnHasPhaze(t) {
   if (!PHAZE_MOVES) return false;
@@ -518,7 +571,12 @@ const SPECIES_FALLBACK = new Map();
 function resolveKey(raw) {
   let key = null;
   try { key = mcKey(raw, { mayMiss: 'a stored game may name a forme MC.mons has no row for' }); }
-  catch (e) { key = null; }
+  catch (e) {
+    /* THE FALLBACK PATH BELOW IS COUNTED; THE THROW THAT SENDS US THERE WAS NOT. Those are
+     * different facts — a miss means the store named a forme we have no row for, which is
+     * expected; a THROW means the key builder itself broke, which is not. */
+    key = null; bump(EXCEPTIONS, 'resolveKey/mcKey threw: ' + String(e.message).slice(0, 120));
+  }
   if (key && MC.mons[key]) return { key, how: 'mc_key' };
   if (MC.mons[id(raw)]) return { key: id(raw), how: 'raw id' };
   /* DEHYPHENATED EXACT MATCH. `MC.mons` keys `charizard-mega-y` and the store normalises to
@@ -793,7 +851,12 @@ function orderVerdict(clicks, field) {
   }
   const scored = acting.map((c, i) => {
     let pri = 0;
-    try { pri = M.movePriority(c.mv, field) || 0; } catch (e) { pri = 0; }
+    try { pri = M.movePriority(c.mv, field) || 0; }
+    catch (e) { pri = 0; C.exceptions++;
+      /* PRIORITY SILENTLY 0 IS A WRONG ANSWER WEARING A DEFAULT. A Sucker Punch or Fake Out that
+       * resolves at priority 0 reorders the turn, and the turn-order comparator then reports a
+       * disagreement that is this instrument's, not the engine's. */
+      bump(EXCEPTIONS, "movePriority(" + id(c.mv) + "): " + String(e.message).slice(0, 120)); }
     const bs = c.body._replayBS;
     const env = bs ? statEnvelope(bs, 'sp', c.body._replayNature) : null;
     const save = c.body.st.sp;
@@ -802,7 +865,12 @@ function orderVerdict(clicks, field) {
       if (env) { c.body.st.sp = env.lo; lo = M.effSpeed(c.body, field, c.side === 'p1' ? 'A' : 'B');
                  c.body.st.sp = env.hi; hi = M.effSpeed(c.body, field, c.side === 'p1' ? 'A' : 'B'); }
       else { lo = hi = M.effSpeed(c.body, field, c.side === 'p1' ? 'A' : 'B'); }
-    } catch (e) { lo = hi = save; } finally { c.body.st.sp = save; }
+    } catch (e) { lo = hi = save; C.exceptions++;
+      /* FALLING BACK TO THE RAW STAT DISCARDS EVERY SPEED MULTIPLIER — Choice Scarf, paralysis,
+       * Tailwind — and the comparator then orders the turn on base Speed while Showdown orders it
+       * on the real one. Silently, and in the direction that manufactures disagreements. */
+      bump(EXCEPTIONS, "effSpeed(" + String(c.body._replaySpecies) + "): " + String(e.message).slice(0, 120));
+    } finally { c.body.st.sp = save; }
     return { i, logIdx: c.logIdx, pri, spdLo: lo, spdHi: hi, who: c.body._replaySpecies, mv: c.mv };
   });
   /* The order the record shows. Under Trick Room the comparison inverts, and TR is in the record. */
@@ -911,7 +979,12 @@ function reachableEffects(game, board, clicks, sets, megaHere, natures) {
           if (!click || !click.mv) { m.set(mon, { kind: 'pass' }); return; }
           const tgt = click.tgtSlot ? own.concat(foes).find(z => slotOf.get(z) === click.tgtSlot) : null;
           let pa = null;
-          try { pa = M.playerAction(mon, click.mv, tgt || null, S.field); } catch (e) { pa = null; }
+          try { pa = M.playerAction(mon, click.mv, tgt || null, S.field); }
+          catch (e) { pa = null; C.exceptions++;
+            /* A THROWING playerAction BECOMES A PASSED TURN, which is exactly ROADMAP #125's shape:
+             * the body does nothing, the game continues, and no instrument records that a click was
+             * lost. Counted so the run can say how many turns it invented. */
+            bump(EXCEPTIONS, "playerAction(" + id(click.mv) + "): " + String(e.message).slice(0, 120)); }
           m.set(mon, pa || { kind: 'pass' });
         });
         return m;
@@ -1110,7 +1183,12 @@ function replayGame(game, opt) {
       if (!st) { bodies[s] = null; continue; }
       const sp = megaHere.get(s) || st.sp;
       let b = null;
-      try { b = bodyFor(sp, sets, { nature: natures[id(sp)] || natures[id(st.sp)] || null }); } catch (e) { b = null; }
+      try { b = bodyFor(sp, sets, { nature: natures[id(sp)] || natures[id(st.sp)] || null }); }
+      catch (e) { b = null; C.exceptions++;
+        /* A SLOT WITH NO BODY IS A SLOT THAT IS NEVER COMPARED. Silently, and only for the species
+         * that fails to build — so a systematic builder gap removes exactly the bodies it cannot
+         * handle from the sample and the remaining agreement looks better than it is. */
+        bump(EXCEPTIONS, "bodyFor(" + id(sp) + "): " + String(e.message).slice(0, 120)); }
       if (b) { dressBody(b, st); b._replayMegaed = megaHere.has(s); }
       bodies[s] = b;
     }
@@ -1124,7 +1202,9 @@ function replayGame(game, opt) {
       const st = run.slot[slot];
       if (!st) return null;
       let b = null;
-      try { b = bodyFor(st.sp, sets, { nature: natures[id(st.sp)] || null }); } catch (x) { b = null; }
+      try { b = bodyFor(st.sp, sets, { nature: natures[id(st.sp)] || null }); }
+      catch (x) { b = null; C.exceptions++;
+        bump(EXCEPTIONS, "bodyAt/bodyFor(" + id(st.sp) + "): " + String(x.message).slice(0, 120)); }
       if (!b) return null;
       dressBody(b, st);
       /* THE SIDE'S DEAD, WHICH THE RECORD DOES KNOW. Last Respects and Supreme Overlord read
@@ -1141,7 +1221,11 @@ function replayGame(game, opt) {
       if (e.t !== 'm') { stepEvent(run, e, amb); if (e.t === 'f') faints[e.s.slice(0, 2)]++; continue; }
       const field = fieldFor(run);
       const mvRow0 = MC.moves[id(e.mv)];
-      const fx = (() => { try { return M.moveFx(id(e.mv)); } catch (x) { return null; } })();
+      /* moveFx THROWING MEANS THE MOVE IS NOT RECOGNISED AT ALL, and a null here quietly demotes it out
+ * of whatever this branch was about to decide. Counted rather than swallowed: a reader that throws
+ * on one FAMILY removes that family from the sample and the run reports on the remainder. */
+const fx = (() => { try { return M.moveFx(id(e.mv)); }
+  catch (x) { C.exceptions++; bump(EXCEPTIONS, "moveFx(" + id(e.mv) + "): " + String(x.message).slice(0, 120)); return null; } })();
       /* NOT EVERY MOVE EVENT IS A DAMAGE UNIT, and counting the ones that are not as `unresolved`
        * inflated that rate to 51% on the first run and made the headline unreadable. A Protect, a
        * Tailwind or a Trick Room is not an unresolved damage comparison — it is not a damage
@@ -1365,7 +1449,13 @@ function replayGame(game, opt) {
  * instrument that has never been shown red is not evidence. This corrupts a REAL game in three
  * separate ways and requires the instrument to catch each one. It runs against the same code path the
  * measurement uses — nothing is stubbed. */
-const isSpreadMove = (mv) => { try { const f = M.moveFx(id(mv)); return !!(f && /allAdjacent/.test(String(f.target || ''))); } catch (e) { return false; } };
+/* A SPREAD MOVE MISREAD AS SINGLE-TARGET IS THE 0.75x MULTIPLIER SILENTLY GONE — the same defect
+ * ROADMAP #114 records from the other end, where MEDI_SPREAD was published to nobody and every
+ * staged span was priced as single-target. `false` is the safe DEFAULT and a terrible SILENT one. */
+const isSpreadMove = (mv) => {
+  try { const f = M.moveFx(id(mv)); return !!(f && /allAdjacent/.test(String(f.target || ''))); }
+  catch (e) { C.exceptions++; bump(EXCEPTIONS, "isSpreadMove(" + id(mv) + "): " + String(e.message).slice(0, 120)); return false; }
+};
 
 /* ---- THE GATE IS STATED OVER CLASSES OF DEFECT, NOT OVER ARM NAMES -------------------------------
  *
@@ -1417,7 +1507,13 @@ const SPEED_FIELDS = (() => {
   const out = [NEUTRAL_FIELD];
   const seen = new Set();
   for (const w of ['SunnyDay', 'RainDance', 'Sandstorm', 'Snow']) {
-    let wid = null; try { wid = M.weatherId(w); } catch (e) { wid = null; }
+    /* A WEATHER THAT WILL NOT RESOLVE IS A WEATHER THE SPEED AXIS NEVER TESTS. Losing Sand silently
+     * means Sand Rush is never exercised on this axis and the run reports full coverage anyway.
+     * This runs at module load, before the counters are meaningful, so it speaks to stderr. */
+    let wid = null;
+    try { wid = M.weatherId(w); }
+    catch (e) { wid = null; console.error("  WARNING: weatherId(" + w + ") threw (" +
+      (e && e.message ? e.message : e) + ") — the speed axis will NOT test that weather."); }
     if (!wid || seen.has(wid)) continue; seen.add(wid);
     out.push(Object.assign({}, NEUTRAL_FIELD, { weather: wid, weatherT: 5 }));
   }
@@ -1431,7 +1527,16 @@ function speedCorner(body, side, which) {
   try {
     body.st.sp = env ? (which === 'hi' ? env.hi : env.lo) : save;
     for (const f of SPEED_FIELDS) {
-      let v = null; try { v = M.effSpeed(body, f, side); } catch (e) { continue; }
+      /* SKIPPING A FIELD NARROWS THE SPEED SPAN, AND A NARROWER SPAN IS A STRONGER CLAIM.
+       * `orderVerdict` scores a difference only when NO legal spread could produce the observed
+       * order — a disjointness test. Silently dropping a weather field shrinks the interval, which
+       * makes disjointness EASIER to reach, so this failure manufactures disagreements rather than
+       * hiding them. Exactly the wrong direction to be quiet in. */
+      let v = null;
+      try { v = M.effSpeed(body, f, side); }
+      catch (e) { C.exceptions++;
+        bump(EXCEPTIONS, "speedSpan/effSpeed(" + String(body && body._replaySpecies) + "): " + String(e.message).slice(0, 120));
+        continue; }
       if (v == null) continue;
       best = best === null ? v : (which === 'hi' ? Math.max(best, v) : Math.min(best, v));
     }
@@ -1472,7 +1577,14 @@ function plantSpeciesSwap(cand) {
   /* Equal priority, or priority settles the order and speed is never asked. */
   let pA = 0, pB = 0;
   try { pA = M.movePriority(id(A.mv), NEUTRAL_FIELD) || 0; pB = M.movePriority(id(B.mv), NEUTRAL_FIELD) || 0; }
-  catch (e) { return null; }
+  catch (e) {
+    /* RETURNING null MEANS 'this turn is not comparable', which is a legitimate verdict and an
+     * illegitimate SILENCE: a priority reader that throws on a whole family drops that family from
+     * the speed axis and the axis reports on what is left. Counted so the drop is visible. */
+    C.exceptions++;
+    bump(EXCEPTIONS, "orderVerdict/movePriority(" + id(A.mv) + "," + id(B.mv) + "): " + String(e.message).slice(0, 120));
+    return null;
+  }
   if (pA !== pB) return null;
   const bBody = bodyFor(bSp, g.sets || {}, {});
   if (!bBody) return null;
@@ -1751,7 +1863,11 @@ function secondaryRates(games) {
       const ev = t.ev || [];
       ev.forEach((e, i) => {
         if (e.t !== 'm' || e.miss || e.fail || e.immune) return;
-        const fx = (() => { try { return M.moveFx(id(e.mv)); } catch (x) { return null; } })();
+        /* moveFx THROWING MEANS THE MOVE IS NOT RECOGNISED AT ALL, and a null here quietly demotes it out
+ * of whatever this branch was about to decide. Counted rather than swallowed: a reader that throws
+ * on one FAMILY removes that family from the sample and the run reports on the remainder. */
+const fx = (() => { try { return M.moveFx(id(e.mv)); }
+  catch (x) { C.exceptions++; bump(EXCEPTIONS, "moveFx(" + id(e.mv) + "): " + String(x.message).slice(0, 120)); return null; } })();
         const sec = fx && fx.secondary;
         if (!sec || !sec.length) return;
         for (const s of sec) {
