@@ -1,5 +1,6 @@
 {
   "note": "One readable frozen state per diverging turn. Open one and the mistake should be visible without running anything. `board_after_LOG` is what really happened; `board_after_OURS` is what our engine could reach under any of its pins. `clicks[].reconstruction` says how sure the choice recovery was — a board that differs because the wrong click was fed in is not an engine defect.",
+  "by": "engine/replay_differential.js",
   "engine_release": "30b21c5a335a",
   "generated": "2026-08-10T20:24:12.741Z",
   "total_diverging_turns": 64,

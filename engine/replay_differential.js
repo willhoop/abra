@@ -2142,6 +2142,14 @@ function readGames(file, n, skip) {
         + 'what our engine could reach under any of its pins. `clicks[].reconstruction` says how sure '
         + 'the choice recovery was — a board that differs because the wrong click was fed in is not an '
         + 'engine defect.',
+    /* `by` IS DECLARED BECAUSE NO SCAN CAN DERIVE IT. The freeze path comes from `--freeze-out`, so
+     * every variant of this artifact except the default one has NO literal in any source beside a
+     * write call — engine/provenance.js's four ranked arms all miss it, and the file lands in the
+     * UNKNOWN set where nothing can compare it to its source. The artifact's own declaration is that
+     * file's weakest evidence arm and it is the only one available here; it is checked (the named
+     * script must exist on disk) rather than trusted. This is one line and it closes the
+     * `-bo3-freezes` and `-sheets-freezes` rows. */
+    by: 'engine/replay_differential.js',
     engine_release: REL.id, generated: new Date().toISOString(),
     total_diverging_turns: C.turns_diverged, shown: freezes.length,
     freezes,

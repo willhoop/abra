@@ -87,9 +87,11 @@
  *   node engine/million_run.js --release <id> --declaration-only     # the #132 gate, no games
  *   node engine/million_run.js --release <id> --games 400 --no-write
  *
- * MILLIONRUN_SABOTAGE=flagger exists ONLY to show the red proofs red. It disables the divergence
- * flagger, so the red proofs go UNCAUGHT and the run refuses to write. It can never produce an
- * artifact. Nothing else reads it.
+ * MILLIONRUN_SABOTAGE exists ONLY to show this file's refusals red, and it can never produce an
+ * artifact. Nothing else reads it. Two modes, one per refusal:
+ *   flagger   disables the divergence flagger, so both red proofs go UNCAUGHT.
+ *   refusal   lets the declaration gate's refused (move, effect) pairs through into the tally, so
+ *             the leak check at the end sees a row scored against a declaration the gate rejected.
  */
 'use strict';
 const fs = require('fs');
@@ -190,6 +192,68 @@ const ACC_CONFOUND = new Set(Object.entries(M.ACCMOD || {})
   .filter(([, v]) => !v.off).map(([k]) => k));
 const idOf = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
+/* ---- A SECONDARY STAT DROP THE ENGINE REFUSES IN SILENCE ----------------------------------------
+ *
+ * THIS IS THE LARGEST DENOMINATOR DEFECT IN THE FIRST PUBLISHED RUN AND IT IS THE INSTRUMENT'S, NOT
+ * THE ENGINE'S. medicham2's `statDropRefusal(target, stat, effect, isSecondary, …)` returns
+ * `announce: !isSecondary`, so when a Clear Body / White Smoke / Full Metal Body / Hyper Cutter /
+ * Big Pecks / Mirror Armor body refuses a SECONDARY drop the engine deliberately emits NO `-fail`
+ * line — Showdown does not emit one either. The instrument was reading exactly that absence as "the
+ * die came up short", so every hit onto a refuser sat in the denominator and could never fire. That
+ * biases every targetBoosts row DOWNWARD by the refusers' share of the corpus, uniformly, which is
+ * the shape the 50,000-game run showed (crunch 17.8 against 20, liquidation 18.8 against 20,
+ * shadowball 18.6 against 20, moonblast 8.6 against 10 — all low, all by about a tenth).
+ *
+ * A CLICK IS NOT A TRIAL. A hit that could not have produced the effect never reached the die.
+ *
+ * IT MIRRORS `statDropRefusal` RATHER THAN CALLING IT — the function is not exported, and mirroring
+ * is what the declaration gate does one level up and for the same reason: an independent reading.
+ * Every condition is read from `data/tags.json` in the FROZEN release by tag shape, so an ability
+ * added next regulation is picked up without editing this file. `INTIM_ONLY_BRIDGE` is deliberately
+ * NOT mirrored: the engine's own comment says that list is consulted only for a tag artifact
+ * generated before `preventsStatDrop.onlyFrom` existed, and this release's artifact carries the
+ * field on all five of its members.
+ *
+ * WHAT IT DOES NOT REACH, said rather than hidden: Safeguard and the ally veils (Flower Veil, Pastel
+ * Veil, Sweet Veil) refuse a secondary STATUS just as silently, and this instrument has no side
+ * state to ask. That residual is reported in the artifact, not corrected. */
+const STAT_DROP_REFUSERS = (() => {
+  const out = new Map();          // ability id -> the tag's own params
+  for (const [k, row] of Object.entries(TAGS.abilities || {})) {
+    const p = row.params && row.params.preventsStatDrop;
+    if (p) out.set(k, p);
+  }
+  return out;
+})();
+/* The engine's own `blocks` -> engine stat key map, `SD_BLOCK2ENG`. `accuracy` and `evasion` are
+ * ABSENT from it on purpose-or-otherwise: a `blocks:'accuracy'` carrier (Keen Eye, Illuminate,
+ * Mind's Eye) therefore matches NOTHING and the engine does not refuse the drop. This mirror
+ * reproduces that, because this instrument measures the SAMPLER given the engine's own eligibility —
+ * whether the engine SHOULD refuse an accuracy drop is a question tests/roster.js owns, and it is
+ * reported below rather than silently corrected here. */
+const SD_BLOCK2ENG = { atk: 'at', def: 'df', spa: 'sa', spd: 'sd', spe: 'sp' };
+function dropSilentlyRefused(def, sdStat) {
+  if (!def) return false;
+  const p = STAT_DROP_REFUSERS.get(def.ability);
+  if (!p) return false;
+  if (p.onlyGrassTypes && !(def.types || []).some(t => String(t).toLowerCase() === 'grass')) return false;
+  /* `onlyFrom` names ONE effect (Intimidate, for the five Guard Dog-shaped abilities). A move's
+   * secondary is never that effect, so a scoped refuser does not refuse this drop. */
+  if (p.onlyFrom) return false;
+  /* `blocks` is the ABILITY's stat, `sdStat` is the one being dropped. Comparing the two through the
+   * engine's own map is the whole condition; the first version of this line compared the dropped
+   * stat with itself and refused everything a refuser was carrying. */
+  if (String(p.blocks || '') !== 'all stats' && SD_BLOCK2ENG[String(p.blocks || '')] !== engStat(sdStat)) return false;
+  /* A reflector at the floor takes the drop normally — the engine returns null there. The stage-cap
+   * exclusion above already removes those rows, so this is belt and braces on the same board. */
+  if (p.reflects && def.boosts && def.boosts[engStat(sdStat)] === -6) return false;
+  return true;
+}
+/* CONTRARY TURNS THE DROP INTO A BOOST, so the engine emits `-boost` where this instrument looks for
+ * `-unboost` and a fired die reads as a miss. It is one ability in this format and it is read from
+ * the tag, not named. */
+const BOOST_INVERTERS = new Set(carriersOf('abilities', 'invertsBoosts'));
+
 /* ---- THE FORMAT, AND THE ONE THING IT HAS TO TELL THE TALLY --------------------------------------
  * AN OHKO MOVE'S `accuracy` FIELD IS A LIE, and scoring it in the accuracy family is a mistake this
  * file made and `engine/million_targets.js` had already refused to make — its family-2 loop skips
@@ -267,7 +331,7 @@ const proceduralP = id => {
 
 function declarationGate() {
   const CS = FMT.CS, D = FMT.D;
-  const rows = [], bad = [];
+  const rows = [], bad = [], notCompared = [];
   for (const mv of D.moves.all()) {
     /* LEGALITY IS A MECHANISM. `Dex...all()` walks the whole National Dex; `isNonstandard` is what
      * this format marks a retired entity with, and everything else here would be a claim about a
@@ -277,10 +341,10 @@ function declarationGate() {
     const eng = ((ME[mv.id] || {}).secondary || []).filter(Boolean);
     if (!fmt.length && !eng.length) continue;
     const seen = new Set();
-    const one = (kind, fchance, echance, note) => {
+    const one = (kind, fchance, echance, note, source) => {
       const row = { move: mv.id, kind, format_pct: fchance, engine_pct: echance,
                     uses: (TAGS.moves[mv.id] || {}).uses || 0, note: note || null,
-                    agree: fchance === echance };
+                    source: source || null, agree: fchance === echance };
       rows.push(row);
       if (!row.agree) bad.push(row);
     };
@@ -291,23 +355,44 @@ function declarationGate() {
       const generic = s.chance == null ? 100 : s.chance;
       const tag = tagChance(mv.id, s);
       let eff = tag != null ? tag : generic;
+      let src = tag != null ? 'tag' : 'rulebook';
       let note = tag != null ? 'tag wins over the rulebook (' + generic + ')' : 'rulebook only — no tag covers this effect';
       if (kind === 'none') {
-        /* an effect-less entry: the effect reaches the body through a tag, or through nothing. */
+        /* AN EFFECT-LESS ENTRY IS COUNTED, NOT SKIPPED. ROADMAP #132's row records "34 carry no
+         * chance at all" and the first version of this gate `continue`d past exactly that class,
+         * which turns the open half of #132 into an invisible zero — the shape of the bug the row is
+         * about. The effect reaches the body through the `proceduralStatus` tag (Dire Claw, Tri
+         * Attack: the handler picks the status, so both sides record a chance with nothing in it), or
+         * through a DIFFERENT tag entirely (Ceaseless Edge and Stone Axe set a hazard on hit), or
+         * through nothing. Only the first is comparable; the rest are listed with the reason. */
         const pp = proceduralP(mv.id);
-        if (pp != null) { eff = pp; note = 'proceduralStatus tag p=' + (pp / 100); }
-        else { continue; }        /* Throat Chop / hazard-on-hit shapes: a different tag owns them */
+        if (pp != null) { eff = pp; src = 'proceduralStatus tag'; note = 'proceduralStatus tag p=' + (pp / 100); }
+        else {
+          notCompared.push({ move: mv.id, kind, engine_pct: generic, uses: (TAGS.moves[mv.id] || {}).uses || 0,
+            why: 'the rulebook entry names no status, no volatile and no boost — the effect is a '
+               + 'closure another tag owns (a hazard on hit, a Throat Chop shape). There is no chance '
+               + 'field on either side to compare, so this pair is neither agreed nor refused; it is '
+               + 'outside what a chance comparison can say anything about.' });
+          continue;
+        }
       }
-      one(kind, f ? (f.chance == null ? 100 : f.chance) : null, eff, note);
+      one(kind, f ? (f.chance == null ? 100 : f.chance) : null, eff, note, src);
     }
     for (const q of fmt) {
       const kind = fmtKind(q);
       if (seen.has(kind)) continue;
       if (kind === 'none' && proceduralP(mv.id) != null) {
-        one(kind, q.chance == null ? 100 : q.chance, proceduralP(mv.id), 'proceduralStatus tag');
+        one(kind, q.chance == null ? 100 : q.chance, proceduralP(mv.id), 'proceduralStatus tag', 'proceduralStatus tag');
         continue;
       }
-      one(kind, q.chance == null ? 100 : q.chance, null, 'the engine declares no such secondary');
+      if (kind === 'none') {
+        notCompared.push({ move: mv.id, kind, engine_pct: null, uses: (TAGS.moves[mv.id] || {}).uses || 0,
+          why: 'the FORMAT declares an effect-less secondary (a closure) and no proceduralStatus tag '
+             + 'covers it here. Nothing to compare; whether the effect happens at all is an '
+             + 'eligibility question tests/roster.js owns, not a rate question.' });
+        continue;
+      }
+      one(kind, q.chance == null ? 100 : q.chance, null, 'the engine declares no such secondary', 'format only');
     }
   }
   return {
@@ -323,6 +408,25 @@ function declarationGate() {
     pairs_compared: rows.length,
     agree: rows.length - bad.length,
     disagree: bad.length,
+    /* WHERE EACH AGREED NUMBER CAME FROM. A pair scored off the `rulebook` fallback is the class
+     * Freeze-Dry is in — nothing format-derived is guarding it, so a mainline value can sit there
+     * and agree with the format only by luck. Printed so the exposure is a number rather than a
+     * feeling. */
+    by_source: rows.reduce((a, r) => { a[r.source || 'unknown'] = (a[r.source || 'unknown'] || 0) + 1; return a; }, {}),
+    /* THE OTHER HALF OF #132's ROW: "34 carry no chance at all". A CERTAINTY IS NOT A DIE, and it is
+     * excluded from the RATE run for that reason (million_targets.js excludes chance >= 100 too) —
+     * but it is counted here, because "modelled as a certainty" is exactly how the Focus Sash drag
+     * became a hard 1.0. If a 100% entry is wrong it is wrong in the eligibility instruments, not
+     * this one. */
+    certainties: rows.filter(r => r.engine_pct >= 100).length,
+    certainty_moves: rows.filter(r => r.engine_pct >= 100).map(r => r.move + '|' + r.kind),
+    /* THE EXPOSED CLASS, NAMED. These are the pairs where the engine rolls a number that NOTHING
+     * format-derived is guarding — data/move-effects.js is generated from the generic gen-9 client
+     * dex, so any of these agreeing with Champions does so by luck rather than by construction. The
+     * one disagreement found at this release is in this list, which is the argument for printing it. */
+    rulebook_only: rows.filter(r => r.source === 'rulebook')
+      .map(r => ({ pair: r.move + '|' + r.kind, pct: r.engine_pct, uses: r.uses, agree: r.agree })),
+    not_compared: notCompared,
     refused_for_scoring: bad.map(r => r.move + '|' + r.kind),
     disagreements: bad,
   };
@@ -364,7 +468,14 @@ const FAMILY_SUPPORT = {
        + 'that would otherwise have been lethal, a turn where moving first changes the board). The '
        + 'trace does not say whether the trigger was reached, only whether it fired, so the '
        + 'denominator would be invented. Needs a staged arm, not a bigger corpus.' },
-  ohko: { observable: true,
+  ohko: { observable: 'TALLIED BUT WITHHELD — the denominator does not reconcile',
+    withheld: 'A rule-free count of the same event over 25,000 games — every |-miss| and every '
+            + '|-damage| inside an OHKO move block, no eligibility rule of any kind — reads '
+            + '1,081/3,622 = 29.85% [28.4, 31.4] against the declared 30, so the engine\'s sampler '
+            + 'is right. This instrument reads outside that interval on 7,005 trials, so its '
+            + 'denominator is still losing trials and the family is not scored. It published '
+            + '"z = +8.0 DIVERGES" for one run before that was measured; the number was about this '
+            + 'file, not about the engine.',
     denominator_implemented: 'attempts that reached the roll, exactly as the accuracy family counts '
       + 'them, but scored against 30 (20 for a non-Ice user of Sheer Cold) rather than against the '
       + 'move\'s printed accuracy field — which battle-actions.ts:696 overwrites. Every body in this '
@@ -456,7 +567,14 @@ function resolveBlock(b) {
     else if (ev === 'faint') { get(f[1]).fainted = true; }
     else if (ev === '-crit') { get(f[1]).crit = true; }
     else if (ev === '-hitcount') { get(f[1]).hitcount = +f[2]; }
-    else if (ev === '-status' || ev === '-start' || ev === '-boost' || ev === '-unboost') { get(f[1]).touched = true; }
+    /* `[from]` MARKS A LINE THIS BLOCK DID NOT CAUSE. A residual burn tick, a Speed Boost at the end
+     * of the turn, a Leftovers heal — the engine emits them after the last move of the turn and this
+     * parser closes a block only on an ACTION line, so they land inside it. Reading them as "the move
+     * touched this body" is what turned missed Fissures into connections. The `-damage` arm already
+     * filtered on `[from]`; these three did not. */
+    else if (ev === '-status' || ev === '-start' || ev === '-boost' || ev === '-unboost') {
+      if (!/\[from\]/.test(f[3] || '')) get(f[1]).touched = true;
+    }
     else if (ev === '-activate' && /protect|bunker|spikyshield|spiky shield/i.test(f[2] || '')) { get(f[1]).protect = true; }
   }
   return per;
@@ -574,8 +692,37 @@ function tallyTurn(lines, snap, field, half) {
         for (const [tid, r] of per) {
           if (tid === b.user) continue;
           if (r.immune || r.protect) { excl('accuracy: target immune or protected'); continue; }
-          const connected = r.damaged || r.touched;
-          if (!connected && !r.missed) { excl('accuracy: no miss line and no observable effect'); continue; }
+          /* AN EXPLICIT `-miss` IS AUTHORITATIVE AND OUTRANKS EVERY LATER LINE IN THE BLOCK.
+           *
+           * THIS IS THE WHOLE OF THE OHKO HEADLINE AND IT WAS THE INSTRUMENT. `connected` was
+           * `damaged || touched`, so a body that the engine announced a MISS against and that was
+           * then touched by anything else attributed to the same block came out as a CONNECTION. On
+           * a 90-accuracy move that is invisible — misses are a tenth of the trials. On a 30-accuracy
+           * move misses are SEVEN TENTHS of them, so the leak lands almost entirely on the hit side
+           * and the arm reads high.
+           *
+           * MEASURED, NOT REASONED: a raw probe over 25,000 games that counts nothing but `|-miss|`
+           * and `|-damage|` lines inside an OHKO move block, with no eligibility rule of any kind,
+           * reads 1,081 / 3,622 = 29.85% [28.4, 31.4] — the declared 30. The instrument was reading
+           * 34.40% on 7,005 trials, which is outside that interval, so the two could not both be
+           * describing the sampler. medicham2's roll is `_mvMissed = (_mvAcc < 100 && rng()*100 >
+           * _mvAcc)` at one site with `hitChance` returning exactly 30 for Fissure, and it is right.
+           *
+           * A DIVERGENCE THIS INSTRUMENT WOULD HAVE FILED AGAINST THE ENGINE. That is the failure
+           * mode worth naming: an instrument fault wearing an engine defect's clothes, which is what
+           * `instrument_checks` exists for and what this one was not shaped to catch. */
+          const connected = r.missed ? false : (r.damaged || r.touched);
+          /* THE OHKO FAMILY IS SPLIT OUT OF THIS COUNTER BECAUSE IT IS THE FIRST THING TO CHECK WHEN
+           * AN ACCURACY ARM READS HIGH. A trial that neither connected nor emitted a `-miss` is
+           * dropped, and dropping a MISS raises the observed rate — so a large OHKO count here is
+           * the instrument losing misses, not the engine landing extra hits. Pooled into one
+           * counter, the two are indistinguishable, which is how the 34.4%-against-30% headline sat
+           * unattributed. */
+          if (!connected && !r.missed) {
+            excl(OHKO.has(b.move) ? 'ohko: no miss line and no observable effect — ' + b.move
+                                  : 'accuracy: no miss line and no observable effect');
+            continue;
+          }
           const def = snap.get(tid);
           if (OHKO.has(b.move)) {
             /* Level 50 mirror, so the level term is zero and the base is the whole rate. Sheer Cold
@@ -583,9 +730,40 @@ function tallyTurn(lines, snap, field, half) {
              * and pooling the two hides both. */
             const iceUser = !!(att && (att.types || []).includes('Ice'));
             const expect = (OHKO.get(b.move) === 'Ice' && !iceUser) ? 20 : 30;
-            bump('ohko:' + b.move + (OHKO.get(b.move) === 'Ice' ? (iceUser ? ':ice-user' : ':non-ice-user') : ''),
-                 { family: 'ohko', subject: b.move, detail: 'connects at equal level',
-                   expect, scored: true }, connected, half);
+            /* AND THE SAME CLEAN/MODIFIED SPLIT THE ACCURACY FAMILY HAS. See noAccuracyModifier: the
+             * OHKO arm was pooling every stage, ability, item and gravity into one bare rate, which
+             * is the mistake the accuracy family had already been fixed for. It matters here more,
+             * not less — the authority bypasses modifiers on these moves and this engine does not. */
+            const cleanO = noAccuracyModifier(att, def, field);
+            /* THE OHKO FAMILY IS TALLIED AND NOT SCORED, AND THE REASON IS A MEASUREMENT.
+             *
+             * A RATE THIS INSTRUMENT CANNOT RECONCILE WITH A RULE-FREE COUNT OF ITS OWN EVENT DOES
+             * NOT GET PUBLISHED. Over 25,000 games, counting nothing but `|-miss|` and `|-damage|`
+             * inside an OHKO move block with no eligibility rule at all, the engine connects
+             * 1,081 / 3,622 = 29.85% [28.4, 31.4] — the declared 30, so the SAMPLER IS RIGHT. This
+             * instrument, after the miss-outranks-touch fix above took it from 34.40% to 32.89%,
+             * still reads outside that interval on 7,005 trials. Two readings of one event that do
+             * not overlap mean the denominator is still wrong, and the residual is on this side: the
+             * raw count is the one with no rules in it.
+             *
+             * IT IS STILL TALLIED, because the rows and their split-halves are the evidence somebody
+             * needs to finish this, and a family that vanishes is a family nobody fixes. `scored` is
+             * what keeps it out of the pooled headline and out of the divergence list — the number
+             * is WITHHELD rather than captioned, which is CLAUDE.md's rule and which this file broke
+             * for one run by publishing `ohko z = +8.0 DIVERGES` as though it were about the engine.
+             *
+             * WHAT CLOSES IT: 5,353 OHKO move blocks in that probe produced only 3,622 lines of
+             * either kind, so roughly a third emit neither a hit nor a miss. Identify what those
+             * blocks are (a failure, a target that left, a spread bookkeeping path) and the two
+             * counts will either agree or the disagreement will name itself. */
+            bump('ohko:' + b.move + (OHKO.get(b.move) === 'Ice' ? (iceUser ? ':ice-user' : ':non-ice-user') : '')
+                 + (cleanO ? '' : ':MODIFIED'),
+                 { family: 'ohko', subject: b.move, detail: cleanO ? 'connects at equal level' : 'modified',
+                   expect: cleanO ? expect : null, scored: false,
+                   withheld: 'this family disagrees with a rule-free count of the same event (29.85% '
+                           + 'on 3,622 raw hit-or-miss lines against 30 declared), so the residual is '
+                           + 'this instrument\'s denominator and not the engine\'s sampler' },
+                 connected, half);
             continue;
           }
           const clean = isCleanAccuracy(b.move, fx.accuracy, att, def, field);
@@ -621,7 +799,7 @@ function tallyTurn(lines, snap, field, half) {
            * `data/move-effects.js` measured the engine against a file the engine overrides, which put
            * Moonblast's 9,318-use row on trial at 30% while the tag rolled it at the correct 10 — and
            * that single misdirection was most of a pooled z of -12. */
-          if (PAIR_REFUSED.has(pair)) { excl('secondary: the declaration gate refuses this pair (' + pair + ')'); continue; }
+          if (PAIR_REFUSED.has(pair) && SABOTAGE !== 'refusal') { excl('secondary: the declaration gate refuses this pair (' + pair + ')'); continue; }
           const expect = PAIR_EXPECT.get(pair);
           if (expect == null) { excl('secondary: no format declaration for this (move, effect) pair'); continue; }
           if (expect >= 100) { excl('secondary: a certainty, not a die — million_targets.js excludes chance >= 100'); continue; }
@@ -645,6 +823,14 @@ function tallyTurn(lines, snap, field, half) {
             if (!(r.damaged || r.touched)) { excl('secondary: did not connect with this body'); continue; }
             if (r.fainted) { excl('secondary: target fainted to the hit'); continue; }
             const def = snap.get(tid);
+            /* A BODY THAT WAS NOT ON THE PRE-TURN BOARD CANNOT BE ASKED WHETHER IT WAS ELIGIBLE.
+             * The snapshot is keyed by slot identity (`p2a: <name>`), so a replacement that arrived
+             * after a faint is a different key and carries no ability, no types and no status here.
+             * Scoring it anyway asks `canTakeStatus` with an EMPTY ability and EMPTY types — which
+             * refuses nothing — so a Fire-type replacement would sit in a burn denominator it could
+             * never fire in. Counted, so the size of the hole is on the record rather than assumed
+             * small. */
+            if (!def) { excl('secondary: target was not on the pre-turn board (a mid-turn replacement); its ability and types are unknown so eligibility cannot be asked'); continue; }
             if (def && DEF_AB_CONFOUND.has(def.ability)) { excl('secondary: target refuses secondaries'); continue; }
 
             if (s.status) {
@@ -679,6 +865,12 @@ function tallyTurn(lines, snap, field, half) {
               if ((dir < 0 && cur <= -6) || (dir > 0 && cur >= 6)) { excl('secondary boost: target already at the stage cap'); continue; }
               const refused = b.lines.some(f => f[0] === '-fail' && f[1] === tid && /unboost/.test(f[2] || ''));
               if (refused) { excl('secondary boost: the drop was refused by an ability (announced)'); continue; }
+              /* AND THE REFUSAL THAT IS NEVER ANNOUNCED. See STAT_DROP_REFUSERS above: the engine
+               * suppresses the `-fail` line for a SECONDARY drop by design, so the line above can
+               * only ever catch the direct-move path. Without this the Clear Body class sits in
+               * every targetBoosts denominator unable to fire. */
+              if (dir < 0 && dropSilentlyRefused(def, st)) { excl('secondary boost: the drop was refused SILENTLY (preventsStatDrop carrier; the engine emits no -fail for a secondary)'); continue; }
+              if (def && BOOST_INVERTERS.has(def.ability)) { excl('secondary boost: target inverts boosts, so the drop lands as a boost and the direction of the observation flips'); continue; }
               const fired = b.lines.some(f => f[0] === (dir > 0 ? '-boost' : '-unboost') && f[1] === tid && idOf(f[2]) === idOf(st));
               bump(key, { family: 'secondary', subject: b.move, detail: what, expect, scored: true }, fired, half);
             }
@@ -699,7 +891,12 @@ function tallyTurn(lines, snap, field, half) {
   }
 }
 
-const ENG_STAT = { atk: 'at', def: 'df', spa: 'sa', spd: 'sd', spe: 'sp', hp: 'hp' };
+/* THE ENGINE'S OWN `SD2ENG`, mirrored — including `accuracy` and `evasion`, which this map was
+ * missing. medicham2 stores an accuracy stage under `boosts.acc`; without these two rows the
+ * stage-cap exclusion for Muddy Water's accuracy drop read `boosts.accuracy`, which is always
+ * undefined, so a target already at −6 accuracy stayed in the denominator and could never fire. */
+const ENG_STAT = { atk: 'at', def: 'df', spa: 'sa', spd: 'sd', spe: 'sp', hp: 'hp',
+                   accuracy: 'acc', evasion: 'eva' };
 const engStat = s => ENG_STAT[s] || s;
 
 /* A TRIAL IS CLEAN ONLY IF NOTHING IN THE WORLD MOVED THE NUMBER. The engine's own printedAccuracy
@@ -710,6 +907,18 @@ function isCleanAccuracy(mid, declared, att, def, field) {
     const pa = M.printedAccuracy(mid, field);
     if (pa !== declared) return false;
   } catch (e) { return false; }
+  return noAccuracyModifier(att, def, field);
+}
+/* THE MODIFIER HALF ON ITS OWN, because the OHKO family needs it and cannot use the half above.
+ * An OHKO move's printed accuracy is 30 while the rate it is scored against is 30 OR 20 (Sheer Cold
+ * from a non-Ice body), so `printedAccuracy === declared` is the wrong question there — but "did a
+ * stage, an ability, an item or gravity move the number" is exactly the same question, and the OHKO
+ * arm was asking nobody. That matters more than it looks: Showdown's OHKO moves BYPASS accuracy
+ * modifiers entirely (`battle-actions.ts:696`) and medicham2's `hitChance` applies the attacker's
+ * accuracy stage, the defender's evasion stage and every ACCMOD row to them like any other move. So
+ * a MODIFIED bucket that is not empty is itself the evidence, and pooling it into the bare arm both
+ * hides the defect and corrupts the clean rate. */
+function noAccuracyModifier(att, def, field) {
   if (field && field.gravity > 0) return false;
   if (att) {
     if (ACC_CONFOUND.has('ability:' + att.ability) || ACC_CONFOUND.has('item:' + att.item)) return false;
@@ -803,6 +1012,14 @@ const gate = declarationGate();
 console.log('\n  DECLARATION GATE (ROADMAP #132) — the format against the frozen engine rulebook');
 console.log('    ' + gate.pairs_compared + ' (move, effect) pairs on either side');
 console.log('    ' + gate.agree + ' agree, ' + gate.disagree + ' DISAGREE');
+console.log('    chance read from: ' + Object.entries(gate.by_source).map(([k, v]) => v + ' ' + k).join(', '));
+console.log('    ' + gate.certainties + ' are CERTAINTIES (>=100%) and are not dice — excluded from the rate run');
+console.log('    ' + gate.not_compared.length + ' pairs carry NO chance on either side (a closure another tag owns): '
+            + gate.not_compared.map(r => r.move).join(', '));
+console.log('    ' + gate.rulebook_only.length + ' pairs roll a number NO format-derived tag guards:');
+for (const r of gate.rulebook_only)
+  console.log('        ' + r.pair.padEnd(34) + String(r.pct).padStart(5) + '%   uses '
+              + String(r.uses).padStart(6) + (r.agree ? '   agrees with the format' : '   DISAGREES'));
 for (const d of gate.disagreements)
   console.log('      ' + d.move.padEnd(18) + d.kind.padEnd(22) + 'format '
               + String(d.format_pct).padStart(5) + '   engine ' + String(d.engine_pct).padStart(5)
@@ -812,11 +1029,14 @@ if (DECL_ONLY) {
   process.exit(gate.disagree ? 1 : 0);
 }
 
+/* THE REFUSAL IS PER (MOVE, EFFECT) PAIR, NEVER PER MOVE. Triple Arrows carries a 50% Defence drop
+ * AND a 30% flinch; refusing the whole move because one of the two disagrees throws away a clean arm,
+ * and refusing the move that a SIBLING effect broke is how a wrong denominator gets built one level
+ * up. `PAIR_REFUSED` is consulted inside the tally (see the secondary block) so a refused pair is
+ * never counted at all, rather than counted and marked afterwards. */
 for (const r of gate.disagreements) PAIR_REFUSED.add(r.move + '|' + r.kind);
-for (const r of gate.disagreements.concat([])) void r;
-for (const r of (gate.disagree === 0 ? [] : [])) void r;
 { /* every AGREEING pair carries the format's chance forward as the expectation */
-  const CS = FMT.CS, D = FMT.D;
+  const D = FMT.D;
   for (const mv of D.moves.all()) {
     if (mv.isNonstandard) continue;
     for (const q of [].concat(mv.secondaries || (mv.secondary ? [mv.secondary] : [])).filter(Boolean)) {
@@ -824,7 +1044,13 @@ for (const r of (gate.disagree === 0 ? [] : [])) void r;
       if (!PAIR_REFUSED.has(pair)) PAIR_EXPECT.set(pair, q.chance == null ? 100 : q.chance);
     }
   }
-  void CS;
+  /* THE SABOTAGE, AND WHY IT HAS TO REACH IN HERE. There are TWO independent guards on a refused
+   * pair — the tally skips it, AND it never gets an expectation — so disabling one alone leaves the
+   * leak check unable to fire, and a check that cannot be shown red is a check nobody has seen work.
+   * `refusal` disables both: the refused pair is given the ENGINE's own number as its expectation,
+   * which is precisely the mistake (scoring the sampler against the declaration the gate rejected). */
+  if (SABOTAGE === 'refusal')
+    for (const d of gate.disagreements) PAIR_EXPECT.set(d.move + '|' + d.kind, d.engine_pct);
 }
 
 console.log('\n  playing ' + GAMES + ' games, team ' + TEAM + ', turn cap ' + TURN_CAP
@@ -938,7 +1164,19 @@ const shiftCaught = shiftPooled.trials >= 50 && pooledDiverges(shiftPooled)
 
 const scored = scoreRows(freeRows, Z95, zBonf)
   .sort((a, b) => (b.trials - a.trials));
-for (const r of scored) if (REFUSED.has(r.subject)) { r.scored = false; r.refused = 'the declaration gate refuses this move: the frozen engine and the format disagree about its secondary chance'; }
+/* THE REFUSAL IS ENFORCED AT THE TALLY, AND THIS ASSERTS IT RATHER THAN REPEATING IT. A refused pair
+ * is dropped inside the secondary block, so it never becomes a row and never enters the POOLED sum —
+ * which is the whole point, because marking a row afterwards leaves it inside the pooled statistic.
+ * If one is here anyway, the two paths have drifted and the pooled headline is contaminated, so this
+ * refuses to write instead of publishing a number over a declaration the gate rejected. */
+const leaked = scored.filter(r => r.family === 'secondary'
+  && PAIR_REFUSED.has(r.subject + '|' + String(r.key).split(':').slice(2).join(':')));
+if (leaked.length) {
+  console.error('\n  REFUSING TO WRITE AN ARTIFACT. ' + leaked.length + ' row(s) the declaration gate '
+    + 'refused reached the tally: ' + leaked.map(r => r.key).join(', ') + '. The gate and the tally '
+    + 'disagree about what is scorable, so the pooled figure is over a declaration we rejected.');
+  process.exit(1);
+}
 
 /* ---- COVERAGE, OFF THE TARGET LIST ITSELF -------------------------------------------------------- */
 const observedSubjects = new Set(scored.filter(r => r.trials > 0).map(r => r.family + ':' + r.subject));

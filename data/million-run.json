@@ -1,10 +1,10 @@
 {
-  "engine_release": "f65caf5625fe",
-  "engine_release_cut": "2026-08-11T08:24:21.138Z",
+  "engine_release": "7c6dca70ae09",
+  "engine_release_cut": "2026-08-11T09:22:24.784Z",
   "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "31b0ac87a34e",
+    "engine/medicham2-browser.js": "ca39694ccbe3",
     "engine/board.js": "a55f8271e101",
     "engine/rollout_leaf.js": "fa318c1022ff",
     "engine/position_features.js": "7927ccb7f5af",
@@ -29,7 +29,7 @@
     "data/move-priors.json": "a64314db056b",
     "engine/pp.js": "30b12a4ef623"
   },
-  "generated": "2026-08-11T09:01:55.171Z",
+  "generated": "2026-08-11T10:13:55.227Z",
   "by": "engine/million_run.js",
   "what": "Observed rates from free-running MEDICHAM self-play, against the rates data/million-targets.json declares. ROADMAP #133, gated on #132.",
   "rng": "FREE-RUNNING (mulberry32, seed 20260811). NOT the differential drivers' pin — ROADMAP #88 pins every die to one corner, which makes a wrong RATE agree with itself. The red proof below runs the same games pinned and requires the instrument to catch it.",
@@ -38,183 +38,309 @@
     "file": "data/million-targets.json",
     "digest": "7f57e34e8b18",
     "generated": "2026-08-11T04:05:40.164Z",
-    "age_hours": 4.86,
+    "age_hours": 6.05,
     "rows": 233
   },
   "declaration_gate": {
-    "what": "ROADMAP #132. Every secondary chance the format declares, against what the frozen engine samples with (data/move-effects.js). A disagreement means the million games would be checking our sampler against our own mistake.",
+    "what": "ROADMAP #132. Every secondary the FORMAT declares, against the chance the frozen engine ACTUALLY ROLLS WITH — the tag where a tag carries one, the rulebook otherwise, the proceduralStatus tag for a closure effect. A disagreement means the million games would be checking our sampler against our own mistake, so those (move, effect) pairs are refused for scoring rather than measured.",
     "format": "gen9championsvgc2026regmb",
-    "moves_with_a_secondary": 121,
-    "agree": 115,
-    "disagree": 6,
-    "refused_for_scoring": [
-      "direclaw",
-      "freezedry",
-      "ironhead",
-      "moonblast",
-      "ceaselessedge",
-      "stoneaxe"
+    "surfaces": "data/tags.json (format-derived, wins) > data/move-effects.js (the rulebook fallback). Comparing the rulebook ALONE reports six disagreements and five of them are not real, because a tag overrides them before the die is thrown.",
+    "pairs_compared": 118,
+    "agree": 117,
+    "disagree": 1,
+    "by_source": {
+      "tag": 103,
+      "proceduralStatus tag": 2,
+      "rulebook": 13
+    },
+    "certainties": 41,
+    "certainty_moves": [
+      "appleacid|targetBoosts:spd",
+      "fakeout|volatile:flinch",
+      "firelash|targetBoosts:def",
+      "gravapple|targetBoosts:def",
+      "psyshieldbash|selfBoosts",
+      "saltcure|volatile:saltcure",
+      "syrupbomb|volatile:syrupbomb",
+      "tropkick|targetBoosts:atk",
+      "acidspray|targetBoosts:spd",
+      "aquastep|selfBoosts",
+      "aurawheel|selfBoosts",
+      "bittermalice|targetBoosts:atk",
+      "breakingswipe|targetBoosts:atk",
+      "bulldoze|targetBoosts:spe",
+      "chillingwater|targetBoosts:atk",
+      "dynamicpunch|volatile:confusion",
+      "electroweb|targetBoosts:spe",
+      "flamecharge|selfBoosts",
+      "icywind|targetBoosts:spe",
+      "inferno|status:brn",
+      "lowsweep|targetBoosts:spe",
+      "luminacrash|targetBoosts:spd",
+      "lunge|targetBoosts:atk",
+      "mortalspin|status:psn",
+      "mudshot|targetBoosts:spe",
+      "mudslap|targetBoosts:accuracy",
+      "mysticalfire|targetBoosts:spa",
+      "nuzzle|status:par",
+      "pounce|targetBoosts:spe",
+      "psychicnoise|volatile:healblock",
+      "rapidspin|selfBoosts",
+      "rocktomb|targetBoosts:spe",
+      "skittersmack|targetBoosts:spa",
+      "snarl|targetBoosts:spa",
+      "sparklingaria|volatile:sparklingaria",
+      "spiritbreak|targetBoosts:spa",
+      "strugglebug|targetBoosts:spa",
+      "torchsong|selfBoosts",
+      "trailblaze|selfBoosts",
+      "upperhand|volatile:flinch",
+      "zapcannon|status:par"
     ],
-    "disagreements": [
+    "rulebook_only": [
       {
-        "move": "direclaw",
-        "format": [
-          30
-        ],
-        "engine": [
-          50
-        ],
-        "agree": false,
-        "verdict": "DIFFERENT CHANCE"
+        "pair": "freezedry|status:frz",
+        "pct": 10,
+        "uses": 1656,
+        "agree": false
       },
       {
-        "move": "freezedry",
-        "format": [],
-        "engine": [
-          10
-        ],
-        "agree": false,
-        "verdict": "DIFFERENT NUMBER OF SECONDARIES"
+        "pair": "psyshieldbash|selfBoosts",
+        "pct": 100,
+        "uses": 24,
+        "agree": true
       },
       {
-        "move": "ironhead",
-        "format": [
-          20
-        ],
-        "engine": [
-          30
-        ],
-        "agree": false,
-        "verdict": "DIFFERENT CHANCE"
+        "pair": "ancientpower|selfBoosts",
+        "pct": 10,
+        "uses": 773,
+        "agree": true
       },
       {
-        "move": "moonblast",
-        "format": [
-          10
-        ],
-        "engine": [
-          30
-        ],
-        "agree": false,
-        "verdict": "DIFFERENT CHANCE"
+        "pair": "aquastep|selfBoosts",
+        "pct": 100,
+        "uses": 47,
+        "agree": true
+      },
+      {
+        "pair": "aurawheel|selfBoosts",
+        "pct": 100,
+        "uses": 33,
+        "agree": true
+      },
+      {
+        "pair": "chargebeam|selfBoosts",
+        "pct": 70,
+        "uses": 5,
+        "agree": true
+      },
+      {
+        "pair": "fierydance|selfBoosts",
+        "pct": 50,
+        "uses": 65,
+        "agree": true
+      },
+      {
+        "pair": "flamecharge|selfBoosts",
+        "pct": 100,
+        "uses": 16,
+        "agree": true
+      },
+      {
+        "pair": "meteormash|selfBoosts",
+        "pct": 20,
+        "uses": 429,
+        "agree": true
+      },
+      {
+        "pair": "rapidspin|selfBoosts",
+        "pct": 100,
+        "uses": 14,
+        "agree": true
+      },
+      {
+        "pair": "steelwing|selfBoosts",
+        "pct": 10,
+        "uses": 19,
+        "agree": true
+      },
+      {
+        "pair": "torchsong|selfBoosts",
+        "pct": 100,
+        "uses": 45,
+        "agree": true
+      },
+      {
+        "pair": "trailblaze|selfBoosts",
+        "pct": 100,
+        "uses": 72,
+        "agree": true
+      }
+    ],
+    "not_compared": [
+      {
+        "move": "spiritshackle",
+        "kind": "none",
+        "engine_pct": 100,
+        "uses": 3,
+        "why": "the rulebook entry names no status, no volatile and no boost — the effect is a closure another tag owns (a hazard on hit, a Throat Chop shape). There is no chance field on either side to compare, so this pair is neither agreed nor refused; it is outside what a chance comparison can say anything about."
+      },
+      {
+        "move": "alluringvoice",
+        "kind": "none",
+        "engine_pct": 100,
+        "uses": 195,
+        "why": "the rulebook entry names no status, no volatile and no boost — the effect is a closure another tag owns (a hazard on hit, a Throat Chop shape). There is no chance field on either side to compare, so this pair is neither agreed nor refused; it is outside what a chance comparison can say anything about."
+      },
+      {
+        "move": "burningjealousy",
+        "kind": "none",
+        "engine_pct": 100,
+        "uses": 74,
+        "why": "the rulebook entry names no status, no volatile and no boost — the effect is a closure another tag owns (a hazard on hit, a Throat Chop shape). There is no chance field on either side to compare, so this pair is neither agreed nor refused; it is outside what a chance comparison can say anything about."
       },
       {
         "move": "ceaselessedge",
-        "format": [],
-        "engine": [
-          100
-        ],
-        "agree": false,
-        "verdict": "DIFFERENT NUMBER OF SECONDARIES"
+        "kind": "none",
+        "engine_pct": 100,
+        "uses": 56,
+        "why": "the rulebook entry names no status, no volatile and no boost — the effect is a closure another tag owns (a hazard on hit, a Throat Chop shape). There is no chance field on either side to compare, so this pair is neither agreed nor refused; it is outside what a chance comparison can say anything about."
+      },
+      {
+        "move": "eeriespell",
+        "kind": "none",
+        "engine_pct": 100,
+        "uses": 3,
+        "why": "the rulebook entry names no status, no volatile and no boost — the effect is a closure another tag owns (a hazard on hit, a Throat Chop shape). There is no chance field on either side to compare, so this pair is neither agreed nor refused; it is outside what a chance comparison can say anything about."
       },
       {
         "move": "stoneaxe",
-        "format": [],
-        "engine": [
-          100
-        ],
-        "agree": false,
-        "verdict": "DIFFERENT NUMBER OF SECONDARIES"
+        "kind": "none",
+        "engine_pct": 100,
+        "uses": 82,
+        "why": "the rulebook entry names no status, no volatile and no boost — the effect is a closure another tag owns (a hazard on hit, a Throat Chop shape). There is no chance field on either side to compare, so this pair is neither agreed nor refused; it is outside what a chance comparison can say anything about."
+      },
+      {
+        "move": "throatchop",
+        "kind": "none",
+        "engine_pct": 100,
+        "uses": 3654,
+        "why": "the rulebook entry names no status, no volatile and no boost — the effect is a closure another tag owns (a hazard on hit, a Throat Chop shape). There is no chance field on either side to compare, so this pair is neither agreed nor refused; it is outside what a chance comparison can say anything about."
+      }
+    ],
+    "refused_for_scoring": [
+      "freezedry|status:frz"
+    ],
+    "disagreements": [
+      {
+        "move": "freezedry",
+        "kind": "status:frz",
+        "format_pct": null,
+        "engine_pct": 10,
+        "uses": 1656,
+        "note": "rulebook only — no tag covers this effect",
+        "source": "rulebook",
+        "agree": false
       }
     ]
   },
   "corpus": {
     "games": 50000,
-    "turns": 333604,
-    "move_blocks": 1046203,
+    "turns": 333070,
+    "move_blocks": 1043090,
     "team_size": 4,
     "turn_cap": 20,
     "seed": 20260811
   },
   "structural": {
-    "switch_events_observed": 182214,
-    "replacement_switches": 181588,
-    "voluntary_switches": 626,
-    "faints": 295907,
+    "switch_events_observed": 182196,
+    "replacement_switches": 181624,
+    "voluntary_switches": 572,
+    "faints": 296187,
     "note": "COVERAGE IS A PROPERTY OF THE ACTION SET, NOT OF N. medicham2's chooseAction() returns moves and only moves (ROADMAP #63), so a body only ever leaves the field by FAINTING. Read `voluntary_switches`: if it is 0, no rollout in this corpus ever chose to pivot, and every mechanic whose trigger is a DECISION to switch — a pivot into Intimidate, a Regenerator pivot, U-turn/Volt Switch bookkeeping, Trace with two eligible foes on entry — has ZERO samples at any N. Ten million games do not buy one of those. What IS reached is the REPLACEMENT half: a body brought in after a faint runs its entry ability, so entry effects and hazard chip get samples at the replacement rate and NOT at the rate real play produces them. A rate measured over replacements only is not a rate over entries."
   },
   "pooled": {
     "what": "The headline at this corpus size. Every scored trial, each row at its OWN declared rate; expected fires summed, variance summed (Poisson-binomial). |z| > 3 is a divergence. A rulebook wrong in one direction across many moves shows up here long before any single row has enough trials to say so.",
     "all": {
-      "trials": 182307,
-      "fired": 101003,
-      "expected_fires": 101897.28,
-      "z": -6.155,
-      "observed_pct": 55.403,
-      "expected_pct": 55.893
+      "trials": 171722,
+      "fired": 98203,
+      "expected_fires": 98521.5,
+      "z": -2.32,
+      "observed_pct": 57.187,
+      "expected_pct": 57.373
     },
     "by_family": {
       "secondary": {
-        "trials": 78051,
-        "fired": 13011,
-        "expected_fires": 14277.9,
-        "z": -12.075,
-        "observed_pct": 16.67,
-        "expected_pct": 18.293
+        "trials": 75002,
+        "fired": 12763,
+        "expected_fires": 13230,
+        "z": -4.597,
+        "observed_pct": 17.017,
+        "expected_pct": 17.64
       },
       "accuracy": {
-        "trials": 94888,
-        "fired": 85185,
-        "expected_fires": 85164.75,
-        "z": 0.222,
-        "observed_pct": 89.774,
-        "expected_pct": 89.753
+        "trials": 94728,
+        "fired": 85181,
+        "expected_fires": 85042.5,
+        "z": 1.519,
+        "observed_pct": 89.922,
+        "expected_pct": 89.775
       },
       "ohko": {
-        "trials": 7335,
-        "fired": 2528,
-        "expected_fires": 2200.5,
-        "z": 8.345,
-        "observed_pct": 34.465,
-        "expected_pct": 30
+        "trials": 0,
+        "fired": 0,
+        "expected_fires": 0,
+        "z": null,
+        "observed_pct": null,
+        "expected_pct": null
       },
       "chance": {
-        "trials": 2033,
-        "fired": 279,
-        "expected_fires": 254.13,
-        "z": 1.668,
-        "observed_pct": 13.724,
+        "trials": 1992,
+        "fired": 259,
+        "expected_fires": 249,
+        "z": 0.677,
+        "observed_pct": 13.002,
         "expected_pct": 12.5
       }
     },
     "diverges": {
       "secondary": true,
       "accuracy": false,
-      "ohko": true,
+      "ohko": false,
       "chance": false
     },
     "secondary_by_effect": {
       "status": {
-        "trials": 31545,
-        "fired": 4710,
-        "expected_fires": 5028.4,
-        "z": -5.06,
-        "observed_pct": 14.931,
-        "expected_pct": 15.94
+        "trials": 30052,
+        "fired": 4589,
+        "expected_fires": 4910.3,
+        "z": -5.183,
+        "observed_pct": 15.27,
+        "expected_pct": 16.339
       },
       "volatile:flinch": {
-        "trials": 14062,
-        "fired": 3395,
-        "expected_fires": 3771.9,
-        "z": -7.224,
-        "observed_pct": 24.143,
-        "expected_pct": 26.823
+        "trials": 14050,
+        "fired": 3514,
+        "expected_fires": 3421.9,
+        "z": 1.825,
+        "observed_pct": 25.011,
+        "expected_pct": 24.355
       },
       "targetBoosts": {
-        "trials": 29541,
-        "fired": 4468,
-        "expected_fires": 4985.6,
-        "z": -8.222,
-        "observed_pct": 15.125,
-        "expected_pct": 16.877
+        "trials": 28003,
+        "fired": 4233,
+        "expected_fires": 4418.7,
+        "z": -3.107,
+        "observed_pct": 15.116,
+        "expected_pct": 15.779
       },
       "selfBoosts": {
-        "trials": 2212,
-        "fired": 263,
-        "expected_fires": 293.6,
-        "z": -2.054,
-        "observed_pct": 11.89,
-        "expected_pct": 13.273
+        "trials": 2194,
+        "fired": 249,
+        "expected_fires": 277.6,
+        "z": -1.942,
+        "observed_pct": 11.349,
+        "expected_pct": 12.653
       }
     }
   },
@@ -225,19 +351,19 @@
       "arms": [
         {
           "arm": "accuracy",
-          "trials": 575,
-          "fired": 5,
-          "expected_fires": 521.1,
-          "z": -75.281,
+          "trials": 572,
+          "fired": 3,
+          "expected_fires": 518.75,
+          "z": -75.607,
           "flagged": true,
           "enough_trials": true
         },
         {
           "arm": "secondary",
-          "trials": 289,
+          "trials": 276,
           "fired": 0,
-          "expected_fires": 47.6,
-          "z": -7.748,
+          "expected_fires": 43.2,
+          "z": -7.321,
           "flagged": true,
           "enough_trials": true
         }
@@ -249,18 +375,18 @@
     },
     "wrong_declaration": {
       "pooled": {
-        "trials": 182307,
-        "fired": 101003,
-        "expected_fires": 63693.9,
-        "z": 243.884,
-        "observed_pct": 55.403,
-        "expected_pct": 34.938
+        "trials": 171722,
+        "fired": 98203,
+        "expected_fires": 63000.28,
+        "z": 233.202,
+        "observed_pct": 57.187,
+        "expected_pct": 36.687
       },
-      "rows": 107,
+      "rows": 105,
       "caught": true,
       "not_separable_at_this_n": [],
       "per_row_synthetic": {
-        "rows": 110,
+        "rows": 108,
         "missed": [],
         "what": "every scored row with 20+ trials, its real n against a maximally wrong outcome (0 fires where the declaration is >= 50%, all fires where it is below). Decidable at every n; a miss here means the row-level flagger is blind."
       },
@@ -270,177 +396,195 @@
   },
   "scoring": {
     "interval": "Wilson 95%",
-    "bonferroni_z": 3.5315,
-    "scored_rows": 121,
+    "bonferroni_z": 3.5248,
+    "scored_rows": 118,
     "note": "divergence at 95% over ~100 rows produces ~5 false flags by construction; the Bonferroni column is the honest headline and the 95% column is the reading list."
   },
   "instrument_checks": [
     {
       "check": "flinch",
-      "engine_counter": 7662,
-      "parsed_numerator": 3395,
+      "engine_counter": 7805,
+      "parsed_numerator": 3514,
       "ok": true,
       "why": "MEDSEEN.flinch counts flinches SET on a body that had not yet acted; the trace says |cant|X|flinch| when that body comes up. They are not equal — a body that faints first, or a King's Rock / Fling flinch this instrument excludes, breaks the identity — but a zero against a non-zero cannot happen."
     },
     {
       "check": "secondary status",
-      "engine_counter": 1180,
-      "parsed_numerator": 8280,
+      "engine_counter": 1176,
+      "parsed_numerator": 8281,
       "ok": true,
       "why": "the engine counts a secondary volatile applied; the trace announces it."
     }
   ],
   "engine_counters": {
-    "flinch": 7662,
-    "flinchBlockedByInnerFocus": 461,
-    "flinchTooLate": 5374,
-    "ppDeducted": 1038718,
-    "ppRefusedAtSelection": 4191,
-    "ppRefusedAtExecution": 452,
-    "struggleUsed": 8131,
-    "struggleFromEmptyMenu": 267,
-    "struggleFromDisabled": 267,
-    "choiceLockArmed": 17508,
-    "choiceLockArmedOnStatus": 1842,
-    "choiceLockDroppedWithItem": 102,
-    "struggleFromLockUnbuilt": 36,
-    "struggleFromNoOption": 7828,
-    "menuFallbackClick": 1424,
-    "firstTurnOnlyRefusedAtSelection": 64118,
-    "tracksTargetFromTag": 1470,
-    "suckerRefusedRechargingTarget": 2,
-    "abilityBrokenByMoldBreaker": 233834,
-    "maxHPRecoilPaid": 6302,
-    "perTurnVolatileChip": 2310,
-    "sashAnsweredOnePacket": 16279,
-    "parentalBondReactedTwice": 1587,
-    "secondaryVolatileApplied": 1180,
-    "soundLockApplied": 889,
-    "secondaryEffectless": 2025,
-    "healBlockApplied": 223,
-    "volRefusedOnFainted": 200,
-    "rechargeSkippedNoTarget": 112,
-    "parentalBondPlanned": 32408,
-    "parentalBondSecondHit": 32408,
-    "chargeBanked": 2177,
-    "chargeSpentBP": 6281,
-    "chargeCleared": 1460,
-    "weatherHealed": 27,
-    "weatherAbilityChip": 41,
-    "statDropReflected": 146,
-    "entryDropOncePerBattle": 1280,
-    "healDescriptorNow": 27,
-    "auraApplied": 47841,
-    "perTurnBoostGatedOnEntry": 18,
-    "reaimedToSlot": 656,
-    "targetTracksBody": 496,
-    "stallCounterFed": 9127,
-    "sideGuardRefusedMovesLast": 114,
-    "sideGuardBlocked": 2336,
-    "sideGuardChosenVsSpread": 9239,
-    "protectPierced": 1872,
-    "abilityRewritten": 63,
-    "traceCopied": 1420,
-    "traceFoundNothing": 18,
-    "traceAmbiguousChoice": 1228,
-    "confusionSet": 2240,
-    "confusionMinDuration": 2240,
-    "confusionSelfHit": 570,
-    "confusionExpired": 908,
-    "confusionAlreadyOn": 7,
-    "confusionRefusedByAbility": 8,
-    "bpChainSpent": 1490843,
-    "bpChainMembers": 1509783,
-    "statChainSpent": 461611,
-    "damageBoostStat": 33189,
-    "damageBoostMoveCond": 20872,
-    "critInRange": 62562,
-    "multiHitRolledCount": 5754,
-    "multiHitAccuracyStopped": 124,
-    "fixedDamageNoCrit": 199112,
-    "multiHitPacketsDealt": 13308,
-    "multiHitPacketsCollapsed": 37,
-    "stanceChanged": 576,
-    "perHitDamageLoop": 60038,
-    "perHitBasePower": 82728,
-    "smartTargetSplit": 232,
-    "conditionalPowerRolled": 706,
-    "conditionalPowerPriced": 16459,
+    "flinch": 7805,
+    "flinchBlockedByInnerFocus": 499,
+    "flinchTooLate": 5513,
+    "ppDeducted": 1035674,
+    "ppRefusedAtSelection": 4362,
+    "ppRefusedAtExecution": 457,
+    "struggleUsed": 8022,
+    "struggleFromEmptyMenu": 245,
+    "struggleFromDisabled": 245,
+    "choiceLockArmed": 17538,
+    "choiceLockArmedOnStatus": 1904,
+    "choiceLockDroppedWithItem": 86,
+    "struggleFromLockUnbuilt": 27,
+    "struggleFromNoOption": 7750,
+    "menuFallbackClick": 1388,
+    "firstTurnOnlyRefusedAtSelection": 63407,
+    "tracksTargetFromTag": 1457,
+    "suckerRefusedRechargingTarget": 5,
+    "abilityBrokenByMoldBreaker": 234888,
+    "maxHPRecoilPaid": 6253,
+    "indirectDamageRefused": 98,
+    "itemStolenByAbility": 148,
+    "statusReflected": 6,
+    "hpThresholdBoosted": 2460,
+    "multiHitPinnedToMax": 158,
+    "statusCuredByResidual": 12,
+    "perTurnVolatileChip": 2383,
+    "sashAnsweredOnePacket": 16162,
+    "parentalBondReactedTwice": 1600,
+    "secondaryVolatileApplied": 1176,
+    "soundLockApplied": 873,
+    "secondaryEffectless": 2131,
+    "healBlockApplied": 204,
+    "volRefusedOnFainted": 211,
+    "rechargeSkippedNoTarget": 99,
+    "parentalBondPlanned": 33006,
+    "parentalBondSecondHit": 33006,
+    "chargeBanked": 2051,
+    "chargeSpentBP": 5935,
+    "chargeCleared": 1378,
+    "weatherHealed": 16,
+    "weatherAbilityChip": 43,
+    "allyVeilRefused": 1,
+    "statDropReflected": 158,
+    "entryDropOncePerBattle": 1279,
+    "healDescriptorNow": 34,
+    "auraApplied": 47270,
+    "perTurnBoostGatedOnEntry": 20,
+    "reaimedToSlot": 632,
+    "targetTracksBody": 491,
+    "stallCounterFed": 9171,
+    "sideGuardRefusedMovesLast": 130,
+    "sideGuardBlocked": 2458,
+    "sideGuardChosenVsSpread": 9300,
+    "protectPierced": 1826,
+    "abilityRewritten": 60,
+    "traceCopied": 1422,
+    "traceFoundNothing": 22,
+    "traceAmbiguousChoice": 1207,
+    "confusionSet": 2227,
+    "confusionMinDuration": 2227,
+    "confusionSelfHit": 560,
+    "confusionExpired": 868,
+    "confusionAlreadyOn": 6,
+    "confusionRefusedByAbility": 9,
+    "bpChainSpent": 1486980,
+    "bpChainMembers": 1507211,
+    "statChainSpent": 461142,
+    "damageBoostStat": 33930,
+    "damageBoostMoveCond": 21339,
+    "critInRange": 62927,
+    "multiHitRolledCount": 5521,
+    "multiHitAccuracyStopped": 125,
+    "fixedDamageNoCrit": 200521,
+    "multiHitPacketsDealt": 12940,
+    "multiHitPacketsCollapsed": 30,
+    "stanceChanged": 558,
+    "perHitDamageLoop": 60316,
+    "perHitBasePower": 81750,
+    "smartTargetSplit": 266,
+    "conditionalPowerRolled": 690,
+    "conditionalPowerPriced": 16357,
+    "perishTicked": 8,
+    "perishKO": 2,
     "megaKeyFromSuffixFirst": 0,
     "megaMovesFromBaseFirst": 0,
     "megaAbilityFromSiblingFirst": 0,
-    "accSpreadNoDefender": 81496,
-    "randomTargetClickWithoutNamedTarget": 1276,
-    "randomTargetRerolled": 8198,
-    "lockedIntoMove": 1276,
-    "lockExpired": 1959,
-    "lockExpiredConfused": 1954,
+    "accSpreadNoDefender": 81371,
+    "randomTargetClickWithoutNamedTarget": 1259,
+    "randomTargetRerolled": 8233,
+    "lockedIntoMove": 1259,
+    "lockExpired": 1932,
+    "lockExpiredConfused": 1925,
     "lockBrokenBySleep": 2,
-    "powerDoubledAfterFailure": 89,
-    "hazardResolvedOnEntry": 442,
-    "statsRestoredByItem": 527,
-    "statDropRefused": 5215,
+    "powerDoubledAfterFailure": 118,
+    "hazardResolvedOnEntry": 458,
+    "statsRestoredByItem": 484,
+    "statDropRefused": 5219,
     "megaCapableBuilt": 114170,
-    "megaEvolved": 15375,
-    "megaEvolvedSlotB": 7541,
-    "megaEvolvedAuto": 15375,
-    "speedTieResolved": 45457,
+    "megaEvolved": 15370,
+    "megaEvolvedSlotB": 7535,
+    "megaEvolvedAuto": 15370,
+    "speedTieResolved": 45388,
     "speedTieLargestGroup": 4,
-    "switchOutTrigger": 235,
-    "formeSwapped": 782,
-    "formeAnnouncedOnReturn": 161,
-    "formeRenamedNoRow": 91,
-    "moodyRolled": 6427,
-    "punishConfused": 1,
-    "powerDoubledOnRead": 691,
-    "transformedOnEntry": 61,
+    "switchOutTrigger": 198,
+    "formeSwapped": 731,
+    "formeAnnouncedOnReturn": 136,
+    "formeRenamedNoRow": 94,
+    "moodyRolled": 6610,
+    "punishBurned": 1,
+    "punishConfused": 6,
+    "powerDoubledOnRead": 724,
+    "transformedOnEntry": 62,
     "transformRefusedNoBody": 7,
-    "formeCycled": 82,
-    "volDurationApplied": 388,
-    "volDurationTicked": 766,
-    "volDurationExpired": 98,
-    "volRestartRefused": 14,
-    "volSealNoLastMove": 32,
-    "encoreOverrodeAtExecution": 19,
-    "lockedIntoStatusMove": 5271,
-    "composedRiderBuilt": 13,
-    "composedRiderWeather": 2,
-    "gravitySet": 59,
-    "volRefusedOwnedElsewhere": 200,
-    "invulnPierced": 35,
-    "invulnDoubled": 123,
-    "berryConsumed": 10337,
-    "harvestRestored": 370,
+    "formeCycled": 86,
+    "volDurationApplied": 425,
+    "volDurationTicked": 870,
+    "volDurationExpired": 106,
+    "volRestartRefused": 16,
+    "volSealNoLastMove": 41,
+    "encoreOverrodeAtExecution": 25,
+    "lockedIntoStatusMove": 5331,
+    "composedRiderBuilt": 20,
+    "composedRiderWeather": 3,
+    "gravitySet": 54,
+    "volRefusedOwnedElsewhere": 182,
+    "invulnPierced": 30,
+    "invulnDoubled": 99,
+    "berryConsumed": 10292,
+    "harvestRestored": 426,
     "retaliateWhenLowered": null
   },
   "diagnostics": {
-    "blocks": 1046203,
-    "turns": 333604,
+    "blocks": 1043090,
+    "turns": 333070,
     "games": 50000,
-    "switch_events": 182214,
-    "replacement_switches": 181588,
-    "voluntary_switches": 626,
-    "faints": 295907,
-    "cant_lines": 7788,
-    "hits": 588341,
-    "crits": 25524,
-    "misses": 16662,
-    "immune": 13667,
-    "protect": 195121,
+    "switch_events": 182196,
+    "replacement_switches": 181624,
+    "voluntary_switches": 572,
+    "faints": 296187,
+    "cant_lines": 7845,
+    "hits": 587944,
+    "crits": 25802,
+    "misses": 16424,
+    "immune": 13763,
+    "protect": 193716,
     "excluded": {
-      "secondary: target fainted to the hit": 89634,
-      "accuracy: target immune or protected": 39354,
-      "secondary: did not connect with this body": 71726,
-      "flinch: target had already acted this turn": 13476,
-      "secondary: attacker rewrites the chance (Serene Grace / Sheer Force / Stench / King's Rock)": 8011,
-      "secondary status: target ineligible (engine canTakeStatus)": 4233,
-      "accuracy: no miss line and no observable effect": 4549,
+      "secondary: target fainted to the hit": 88356,
+      "accuracy: target immune or protected": 39221,
+      "secondary: did not connect with this body": 70342,
+      "flinch: target had already acted this turn": 13214,
+      "secondary: a certainty, not a die — million_targets.js excludes chance >= 100": 25215,
+      "secondary: attacker rewrites the chance (Serene Grace / Sheer Force / Stench / King's Rock)": 7828,
+      "secondary status: target ineligible (engine canTakeStatus)": 4206,
+      "accuracy: no miss line and no observable effect": 4234,
       "flinch: target never reached its action this turn (fainted later, or the turn ended)": 1700,
-      "selfBoost secondary: the move did not connect": 743,
-      "flinch: target refuses the volatile": 858,
-      "par: the body never reached its action this turn": 801,
-      "secondary: the rulebook entry names no effect (procedural — Dire Claw / Tri Attack shape)": 243,
-      "multihit: Loaded Dice / Skill Link carrier": 157
+      "selfBoost secondary: the move did not connect": 808,
+      "secondary: the declaration gate refuses this pair (freezedry|status:frz)": 3730,
+      "flinch: target refuses the volatile": 930,
+      "secondary: the rulebook entry names no effect (procedural — Dire Claw / Tri Attack shape, or a closure the tag owns)": 4145,
+      "secondary boost: the drop was refused SILENTLY (preventsStatDrop carrier; the engine emits no -fail for a secondary)": 1081,
+      "par: the body never reached its action this turn": 790,
+      "secondary: target was not on the pre-turn board (a mid-turn replacement); its ability and types are unknown so eligibility cannot be asked": 122,
+      "secondary boost: target inverts boosts, so the drop lands as a boost and the direction of the observation flips": 136,
+      "ohko: no miss line and no observable effect — fissure": 517,
+      "multihit: Loaded Dice / Skill Link carrier": 141,
+      "secondary boost: target already at the stage cap": 3,
+      "ohko: no miss line and no observable effect — sheercold": 4
     }
   },
   "family_support": {
@@ -469,7 +613,8 @@
       "why": "an ability/item proc needs the trigger to be REACHED (a contact move that connected, a hit that would otherwise have been lethal, a turn where moving first changes the board). The trace does not say whether the trigger was reached, only whether it fired, so the denominator would be invented. Needs a staged arm, not a bigger corpus."
     },
     "ohko": {
-      "observable": true,
+      "observable": "TALLIED BUT WITHHELD — the denominator does not reconcile",
+      "withheld": "A rule-free count of the same event over 25,000 games — every |-miss| and every |-damage| inside an OHKO move block, no eligibility rule of any kind — reads 1,081/3,622 = 29.85% [28.4, 31.4] against the declared 30, so the engine's sampler is right. This instrument reads outside that interval on 7,005 trials, so its denominator is still losing trials and the family is not scored. It published \"z = +8.0 DIVERGES\" for one run before that was measured; the number was about this file, not about the engine.",
       "denominator_implemented": "attempts that reached the roll, exactly as the accuracy family counts them, but scored against 30 (20 for a non-Ice user of Sheer Cold) rather than against the move's printed accuracy field — which battle-actions.ts:696 overwrites. Every body in this corpus is Level 50, so the level term is zero. A Sturdy target refuses the move outright and leaves the denominator as an immunity."
     },
     "duration": {
@@ -497,7 +642,7 @@
       },
       "accuracy": {
         "rows": 108,
-        "observed": 63,
+        "observed": 64,
         "observable": true,
         "why": null
       },
@@ -522,7 +667,7 @@
       "ohko": {
         "rows": 4,
         "observed": 2,
-        "observable": true,
+        "observable": "TALLIED BUT WITHHELD — the denominator does not reconcile",
         "why": null
       },
       "random-choice": {
@@ -675,11 +820,6 @@
         "observable": true
       },
       {
-        "family": "accuracy",
-        "subject": "dragonrush",
-        "observable": true
-      },
-      {
         "family": "proc",
         "subject": "cutecharm",
         "observable": false
@@ -692,7 +832,7 @@
       {
         "family": "ohko",
         "subject": "horndrill",
-        "observable": true
+        "observable": "TALLIED BUT WITHHELD — the denominator does not reconcile"
       },
       {
         "family": "accuracy",
@@ -862,7 +1002,7 @@
       {
         "family": "ohko",
         "subject": "guillotine",
-        "observable": true
+        "observable": "TALLIED BUT WITHHELD — the denominator does not reconcile"
       },
       {
         "family": "crit",
@@ -1077,10 +1217,10 @@
     ]
   },
   "projection": {
-    "measured_ms_per_turn": 0.7795,
-    "measured_turns_per_game": 6.67,
-    "ms_per_game": 5.201,
-    "one_million_games_hours": 1.44,
+    "measured_ms_per_turn": 0.9441,
+    "measured_turns_per_game": 6.66,
+    "ms_per_game": 6.289,
+    "one_million_games_hours": 1.75,
     "taken_under_load": true,
     "note": "This throughput was taken while another division was working on this machine, so it is an UPPER bound on the time and must not be recorded as a benchmark. tests/bench-medicham.js is the canonical instrument and correctly REFUSES to record under load. The parse and tally cost is INSIDE this figure — it is the cost of a rate-measuring game, not of a bare rollout."
   },
@@ -1091,21 +1231,21 @@
       "subject": "highhorsepower",
       "detail": "clean",
       "declared_pct": 95,
-      "observed_pct": 94.973,
-      "trials": 20867,
-      "fired": 19818,
+      "observed_pct": 95.226,
+      "trials": 20987,
+      "fired": 19985,
       "ci95_pct": [
-        94.668,
-        95.261
+        94.929,
+        95.506
       ],
-      "half_width_pts": 0.297,
+      "half_width_pts": 0.289,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 94.86,
-        "b": 95.09,
-        "spread_pts": 0.23
+        "a": 95.03,
+        "b": 95.43,
+        "spread_pts": 0.4
       }
     },
     {
@@ -1114,21 +1254,21 @@
       "subject": "rockslide",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 90.18,
-      "trials": 18076,
-      "fired": 16301,
+      "observed_pct": 89.903,
+      "trials": 18105,
+      "fired": 16277,
       "ci95_pct": [
-        89.738,
-        90.606
+        89.456,
+        90.334
       ],
-      "half_width_pts": 0.434,
+      "half_width_pts": 0.439,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 89.74,
-        "b": 90.62,
-        "spread_pts": 0.88
+        "a": 90.26,
+        "b": 89.53,
+        "spread_pts": 0.73
       }
     },
     {
@@ -1137,21 +1277,21 @@
       "subject": "heatwave",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 89.322,
-      "trials": 10657,
-      "fired": 9519,
+      "observed_pct": 89.689,
+      "trials": 10542,
+      "fired": 9455,
       "ci95_pct": [
-        88.721,
-        89.894
+        89.094,
+        90.255
       ],
-      "half_width_pts": 0.586,
+      "half_width_pts": 0.581,
       "scored": true,
-      "diverges_at_95": true,
+      "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 89.18,
-        "b": 89.46,
-        "spread_pts": 0.28
+        "a": 89.5,
+        "b": 89.88,
+        "spread_pts": 0.37
       }
     },
     {
@@ -1160,14 +1300,14 @@
       "subject": "blizzard",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 99.562,
-      "trials": 8445,
-      "fired": 8408,
+      "observed_pct": 99.532,
+      "trials": 8113,
+      "fired": 8075,
       "ci95_pct": [
-        99.397,
-        99.682
+        99.358,
+        99.659
       ],
-      "half_width_pts": 0.143,
+      "half_width_pts": 0.15,
       "scored": false
     },
     {
@@ -1176,21 +1316,21 @@
       "subject": "earthpower",
       "detail": "targetBoosts:spd",
       "declared_pct": 10,
-      "observed_pct": 9.271,
-      "trials": 7842,
-      "fired": 727,
+      "observed_pct": 9.199,
+      "trials": 7338,
+      "fired": 675,
       "ci95_pct": [
-        8.648,
-        9.933
+        8.559,
+        9.881
       ],
-      "half_width_pts": 0.642,
+      "half_width_pts": 0.661,
       "scored": true,
       "diverges_at_95": true,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 9.25,
-        "b": 9.29,
-        "spread_pts": 0.04
+        "a": 8.83,
+        "b": 9.56,
+        "spread_pts": 0.72
       }
     },
     {
@@ -1199,22 +1339,15 @@
       "subject": "fissure",
       "detail": "connects at equal level",
       "declared_pct": 30,
-      "observed_pct": 34.519,
-      "trials": 7086,
-      "fired": 2446,
+      "observed_pct": 32.891,
+      "trials": 7005,
+      "fired": 2304,
       "ci95_pct": [
-        33.42,
-        35.634
+        31.8,
+        34
       ],
-      "half_width_pts": 1.107,
-      "scored": true,
-      "diverges_at_95": true,
-      "diverges_bonferroni": true,
-      "split_half": {
-        "a": 33.61,
-        "b": 35.54,
-        "spread_pts": 1.93
-      }
+      "half_width_pts": 1.1,
+      "scored": false
     },
     {
       "key": "secondary:rockslide:volatile:flinch",
@@ -1222,21 +1355,21 @@
       "subject": "rockslide",
       "detail": "volatile:flinch",
       "declared_pct": 30,
-      "observed_pct": 29.575,
-      "trials": 5721,
-      "fired": 1692,
+      "observed_pct": 30.256,
+      "trials": 5708,
+      "fired": 1727,
       "ci95_pct": [
-        28.407,
-        30.771
+        29.078,
+        31.46
       ],
-      "half_width_pts": 1.182,
+      "half_width_pts": 1.191,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 28.62,
-        "b": 30.51,
-        "spread_pts": 1.89
+        "a": 30.11,
+        "b": 30.41,
+        "spread_pts": 0.29
       }
     },
     {
@@ -1245,21 +1378,21 @@
       "subject": "heatwave",
       "detail": "status:brn",
       "declared_pct": 10,
-      "observed_pct": 10.547,
-      "trials": 5243,
-      "fired": 553,
+      "observed_pct": 10.176,
+      "trials": 5179,
+      "fired": 527,
       "ci95_pct": [
-        9.745,
-        11.408
+        9.382,
+        11.029
       ],
-      "half_width_pts": 0.832,
+      "half_width_pts": 0.824,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 9.78,
-        "b": 11.3,
-        "spread_pts": 1.52
+        "a": 10.67,
+        "b": 9.68,
+        "spread_pts": 0.98
       }
     },
     {
@@ -1268,21 +1401,21 @@
       "subject": "muddywater",
       "detail": "clean",
       "declared_pct": 85,
-      "observed_pct": 85.46,
-      "trials": 4938,
-      "fired": 4220,
+      "observed_pct": 85.164,
+      "trials": 4907,
+      "fired": 4179,
       "ci95_pct": [
-        84.449,
-        86.415
+        84.142,
+        86.131
       ],
-      "half_width_pts": 0.983,
+      "half_width_pts": 0.995,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 85.75,
-        "b": 85.18,
-        "spread_pts": 0.57
+        "a": 85.72,
+        "b": 84.63,
+        "spread_pts": 1.09
       }
     },
     {
@@ -1291,44 +1424,21 @@
       "subject": "blizzard",
       "detail": "status:frz",
       "declared_pct": 10,
-      "observed_pct": 9.311,
-      "trials": 4865,
-      "fired": 453,
+      "observed_pct": 9.795,
+      "trials": 4584,
+      "fired": 449,
       "ci95_pct": [
-        8.527,
-        10.16
+        8.968,
+        10.689
       ],
-      "half_width_pts": 0.817,
+      "half_width_pts": 0.861,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 9.17,
-        "b": 9.45,
-        "spread_pts": 0.28
-      }
-    },
-    {
-      "key": "secondary:psychic:targetBoosts:spd",
-      "family": "secondary",
-      "subject": "psychic",
-      "detail": "targetBoosts:spd",
-      "declared_pct": 10,
-      "observed_pct": 9.635,
-      "trials": 4494,
-      "fired": 433,
-      "ci95_pct": [
-        8.807,
-        10.533
-      ],
-      "half_width_pts": 0.863,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 8.33,
-        "b": 11.03,
-        "spread_pts": 2.7
+        "a": 9.58,
+        "b": 10.02,
+        "spread_pts": 0.44
       }
     },
     {
@@ -1337,21 +1447,44 @@
       "subject": "dracometeor",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 90.14,
-      "trials": 4351,
-      "fired": 3922,
+      "observed_pct": 90.209,
+      "trials": 4392,
+      "fired": 3962,
       "ci95_pct": [
-        89.219,
-        90.991
+        89.295,
+        91.054
       ],
-      "half_width_pts": 0.886,
+      "half_width_pts": 0.879,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 90.08,
-        "b": 90.21,
-        "spread_pts": 0.13
+        "a": 90.12,
+        "b": 90.29,
+        "spread_pts": 0.17
+      }
+    },
+    {
+      "key": "secondary:psychic:targetBoosts:spd",
+      "family": "secondary",
+      "subject": "psychic",
+      "detail": "targetBoosts:spd",
+      "declared_pct": 10,
+      "observed_pct": 10.244,
+      "trials": 4256,
+      "fired": 436,
+      "ci95_pct": [
+        9.369,
+        11.192
+      ],
+      "half_width_pts": 0.911,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 9.66,
+        "b": 10.85,
+        "spread_pts": 1.19
       }
     },
     {
@@ -1360,21 +1493,21 @@
       "subject": "crunch",
       "detail": "targetBoosts:def",
       "declared_pct": 20,
-      "observed_pct": 19.138,
-      "trials": 4013,
-      "fired": 768,
+      "observed_pct": 18.88,
+      "trials": 3697,
+      "fired": 698,
       "ci95_pct": [
-        17.95,
-        20.384
+        17.651,
+        20.174
       ],
-      "half_width_pts": 1.217,
+      "half_width_pts": 1.261,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 18.96,
-        "b": 19.32,
-        "spread_pts": 0.37
+        "a": 19.35,
+        "b": 18.42,
+        "spread_pts": 0.93
       }
     },
     {
@@ -1382,24 +1515,23 @@
       "family": "secondary",
       "subject": "ironhead",
       "detail": "volatile:flinch",
-      "declared_pct": 30,
-      "observed_pct": 20.074,
-      "trials": 3507,
-      "fired": 704,
+      "declared_pct": 20,
+      "observed_pct": 20.409,
+      "trials": 3567,
+      "fired": 728,
       "ci95_pct": [
-        18.782,
-        21.432
+        19.119,
+        21.763
       ],
-      "half_width_pts": 1.325,
-      "scored": false,
-      "diverges_at_95": true,
-      "diverges_bonferroni": true,
+      "half_width_pts": 1.322,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
       "split_half": {
-        "a": 18.8,
-        "b": 21.39,
-        "spread_pts": 2.59
-      },
-      "refused": "the declaration gate refuses this move: the frozen engine and the format disagree about its secondary chance"
+        "a": 21.45,
+        "b": 19.36,
+        "spread_pts": 2.09
+      }
     },
     {
       "key": "accuracy:poltergeist",
@@ -1407,21 +1539,21 @@
       "subject": "poltergeist",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 90.61,
-      "trials": 3440,
-      "fired": 3117,
+      "observed_pct": 90.205,
+      "trials": 3318,
+      "fired": 2993,
       "ci95_pct": [
-        89.59,
-        91.54
+        89.147,
+        91.17
       ],
-      "half_width_pts": 0.975,
+      "half_width_pts": 1.012,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 90.72,
-        "b": 90.5,
-        "spread_pts": 0.23
+        "a": 89.58,
+        "b": 90.83,
+        "spread_pts": 1.25
       }
     },
     {
@@ -1430,44 +1562,21 @@
       "subject": "muddywater",
       "detail": "targetBoosts:accuracy",
       "declared_pct": 30,
-      "observed_pct": 28.355,
-      "trials": 3435,
-      "fired": 974,
+      "observed_pct": 29.352,
+      "trials": 3257,
+      "fired": 956,
       "ci95_pct": [
-        26.873,
-        29.886
+        27.813,
+        30.94
       ],
-      "half_width_pts": 1.507,
-      "scored": true,
-      "diverges_at_95": true,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 28.31,
-        "b": 28.4,
-        "spread_pts": 0.09
-      }
-    },
-    {
-      "key": "accuracy:snarl",
-      "family": "accuracy",
-      "subject": "snarl",
-      "detail": "clean",
-      "declared_pct": 95,
-      "observed_pct": 94.87,
-      "trials": 3275,
-      "fired": 3107,
-      "ci95_pct": [
-        94.061,
-        95.575
-      ],
-      "half_width_pts": 0.757,
+      "half_width_pts": 1.563,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 94.76,
-        "b": 94.99,
-        "spread_pts": 0.23
+        "a": 29.05,
+        "b": 29.66,
+        "spread_pts": 0.61
       }
     },
     {
@@ -1476,21 +1585,44 @@
       "subject": "shadowball",
       "detail": "targetBoosts:spd",
       "declared_pct": 20,
-      "observed_pct": 19.065,
-      "trials": 3210,
-      "fired": 612,
+      "observed_pct": 18.91,
+      "trials": 3194,
+      "fired": 604,
       "ci95_pct": [
-        17.744,
-        20.461
+        17.59,
+        20.306
       ],
-      "half_width_pts": 1.359,
+      "half_width_pts": 1.358,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 18.65,
-        "b": 19.5,
-        "spread_pts": 0.85
+        "a": 20.09,
+        "b": 17.74,
+        "spread_pts": 2.35
+      }
+    },
+    {
+      "key": "accuracy:snarl",
+      "family": "accuracy",
+      "subject": "snarl",
+      "detail": "clean",
+      "declared_pct": 95,
+      "observed_pct": 94.937,
+      "trials": 3180,
+      "fired": 3019,
+      "ci95_pct": [
+        94.119,
+        95.646
+      ],
+      "half_width_pts": 0.763,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 95.4,
+        "b": 94.46,
+        "spread_pts": 0.95
       }
     },
     {
@@ -1499,21 +1631,21 @@
       "subject": "overheat",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 90.535,
-      "trials": 2937,
-      "fired": 2659,
+      "observed_pct": 90.757,
+      "trials": 3040,
+      "fired": 2759,
       "ci95_pct": [
-        89.422,
-        91.541
+        89.675,
+        91.735
       ],
-      "half_width_pts": 1.059,
+      "half_width_pts": 1.03,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 89.95,
-        "b": 91.07,
-        "spread_pts": 1.12
+        "a": 90.67,
+        "b": 90.84,
+        "spread_pts": 0.17
       }
     },
     {
@@ -1522,21 +1654,21 @@
       "subject": "flamethrower",
       "detail": "status:brn",
       "declared_pct": 10,
-      "observed_pct": 10.015,
-      "trials": 2696,
-      "fired": 270,
+      "observed_pct": 9.273,
+      "trials": 2545,
+      "fired": 236,
       "ci95_pct": [
-        8.938,
-        11.206
+        8.207,
+        10.462
       ],
-      "half_width_pts": 1.134,
+      "half_width_pts": 1.128,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 9.94,
-        "b": 10.1,
-        "spread_pts": 0.16
+        "a": 9.85,
+        "b": 8.69,
+        "spread_pts": 1.16
       }
     },
     {
@@ -1545,21 +1677,21 @@
       "subject": "flareblitz",
       "detail": "status:brn",
       "declared_pct": 10,
-      "observed_pct": 8.676,
-      "trials": 2409,
-      "fired": 209,
+      "observed_pct": 8.284,
+      "trials": 2342,
+      "fired": 194,
       "ci95_pct": [
-        7.617,
-        9.867
+        7.234,
+        9.469
       ],
-      "half_width_pts": 1.125,
+      "half_width_pts": 1.117,
       "scored": true,
       "diverges_at_95": true,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 8.44,
-        "b": 8.92,
-        "spread_pts": 0.48
+        "a": 7.77,
+        "b": 8.81,
+        "spread_pts": 1.04
       }
     },
     {
@@ -1568,44 +1700,21 @@
       "subject": "liquidation",
       "detail": "targetBoosts:def",
       "declared_pct": 20,
-      "observed_pct": 19.932,
-      "trials": 2358,
-      "fired": 470,
+      "observed_pct": 19.69,
+      "trials": 2255,
+      "fired": 444,
       "ci95_pct": [
-        18.369,
-        21.593
+        18.1,
+        21.382
       ],
-      "half_width_pts": 1.612,
+      "half_width_pts": 1.641,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 19.6,
-        "b": 20.28,
-        "spread_pts": 0.68
-      }
-    },
-    {
-      "key": "secondary:waterfall:volatile:flinch",
-      "family": "secondary",
-      "subject": "waterfall",
-      "detail": "volatile:flinch",
-      "declared_pct": 20,
-      "observed_pct": 19.162,
-      "trials": 2291,
-      "fired": 439,
-      "ci95_pct": [
-        17.602,
-        20.825
-      ],
-      "half_width_pts": 1.611,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 19.11,
-        "b": 19.21,
-        "spread_pts": 0.1
+        "a": 19.84,
+        "b": 19.53,
+        "spread_pts": 0.31
       }
     },
     {
@@ -1614,21 +1723,67 @@
       "subject": "sludgebomb",
       "detail": "status:psn",
       "declared_pct": 30,
-      "observed_pct": 27.775,
-      "trials": 2171,
-      "fired": 603,
+      "observed_pct": 27.067,
+      "trials": 2250,
+      "fired": 609,
       "ci95_pct": [
-        25.932,
-        29.697
+        25.271,
+        28.94
       ],
-      "half_width_pts": 1.883,
+      "half_width_pts": 1.835,
       "scored": true,
       "diverges_at_95": true,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 26.9,
-        "b": 28.66,
-        "spread_pts": 1.77
+        "a": 26.32,
+        "b": 27.73,
+        "spread_pts": 1.41
+      }
+    },
+    {
+      "key": "secondary:waterfall:volatile:flinch",
+      "family": "secondary",
+      "subject": "waterfall",
+      "detail": "volatile:flinch",
+      "declared_pct": 20,
+      "observed_pct": 21.259,
+      "trials": 2192,
+      "fired": 466,
+      "ci95_pct": [
+        19.597,
+        23.021
+      ],
+      "half_width_pts": 1.712,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 20.23,
+        "b": 22.33,
+        "spread_pts": 2.09
+      }
+    },
+    {
+      "key": "secondary:ancientpower:selfBoosts",
+      "family": "secondary",
+      "subject": "ancientpower",
+      "detail": "selfBoosts",
+      "declared_pct": 10,
+      "observed_pct": 8.536,
+      "trials": 2015,
+      "fired": 172,
+      "ci95_pct": [
+        7.393,
+        9.836
+      ],
+      "half_width_pts": 1.221,
+      "scored": true,
+      "diverges_at_95": true,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 8.83,
+        "b": 8.23,
+        "spread_pts": 0.59
       }
     },
     {
@@ -1637,67 +1792,21 @@
       "subject": "par",
       "detail": "full paralysis",
       "declared_pct": 12.5,
-      "observed_pct": 13.724,
-      "trials": 2033,
-      "fired": 279,
+      "observed_pct": 13.002,
+      "trials": 1992,
+      "fired": 259,
       "ci95_pct": [
-        12.296,
-        15.288
+        11.596,
+        14.55
       ],
-      "half_width_pts": 1.496,
+      "half_width_pts": 1.477,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 14.56,
-        "b": 12.92,
-        "spread_pts": 1.64
-      }
-    },
-    {
-      "key": "secondary:ancientpower:selfBoosts:atk/def/spa/spd/spe",
-      "family": "secondary",
-      "subject": "ancientpower",
-      "detail": "selfBoosts:atk/def/spa/spd/spe",
-      "declared_pct": 10,
-      "observed_pct": 8.495,
-      "trials": 2013,
-      "fired": 171,
-      "ci95_pct": [
-        7.354,
-        9.793
-      ],
-      "half_width_pts": 1.219,
-      "scored": true,
-      "diverges_at_95": true,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 8.89,
-        "b": 8.09,
-        "spread_pts": 0.8
-      }
-    },
-    {
-      "key": "accuracy:icehammer",
-      "family": "accuracy",
-      "subject": "icehammer",
-      "detail": "clean",
-      "declared_pct": 90,
-      "observed_pct": 90.423,
-      "trials": 1963,
-      "fired": 1775,
-      "ci95_pct": [
-        89.041,
-        91.647
-      ],
-      "half_width_pts": 1.303,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 91.39,
-        "b": 89.56,
-        "spread_pts": 1.83
+        "a": 12.29,
+        "b": 13.66,
+        "spread_pts": 1.37
       }
     },
     {
@@ -1706,21 +1815,21 @@
       "subject": "poisonjab",
       "detail": "status:psn",
       "declared_pct": 30,
-      "observed_pct": 30.813,
-      "trials": 1944,
-      "fired": 599,
+      "observed_pct": 29.543,
+      "trials": 1970,
+      "fired": 582,
       "ci95_pct": [
-        28.8,
-        32.901
+        27.57,
+        31.596
       ],
-      "half_width_pts": 2.051,
+      "half_width_pts": 2.013,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 33.02,
-        "b": 28.6,
-        "spread_pts": 4.42
+        "a": 29.57,
+        "b": 29.51,
+        "spread_pts": 0.06
       }
     },
     {
@@ -1729,21 +1838,44 @@
       "subject": "icepunch",
       "detail": "status:frz",
       "declared_pct": 10,
-      "observed_pct": 10.897,
-      "trials": 1918,
-      "fired": 209,
+      "observed_pct": 10.55,
+      "trials": 1962,
+      "fired": 207,
       "ci95_pct": [
-        9.58,
-        12.37
+        9.267,
+        11.988
       ],
-      "half_width_pts": 1.395,
+      "half_width_pts": 1.36,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 10.18,
-        "b": 11.59,
-        "spread_pts": 1.41
+        "a": 10.1,
+        "b": 11.01,
+        "spread_pts": 0.91
+      }
+    },
+    {
+      "key": "accuracy:icehammer",
+      "family": "accuracy",
+      "subject": "icehammer",
+      "detail": "clean",
+      "declared_pct": 90,
+      "observed_pct": 89.995,
+      "trials": 1929,
+      "fired": 1736,
+      "ci95_pct": [
+        88.575,
+        91.255
+      ],
+      "half_width_pts": 1.34,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 89.04,
+        "b": 90.92,
+        "spread_pts": 1.88
       }
     },
     {
@@ -1752,14 +1884,14 @@
       "subject": "mountaingale",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 93.587,
-      "trials": 1918,
-      "fired": 1795,
+      "observed_pct": 92.846,
+      "trials": 1915,
+      "fired": 1778,
       "ci95_pct": [
-        92.401,
-        94.599
+        91.604,
+        93.917
       ],
-      "half_width_pts": 1.099,
+      "half_width_pts": 1.156,
       "scored": false
     },
     {
@@ -1768,21 +1900,21 @@
       "subject": "scald",
       "detail": "status:brn",
       "declared_pct": 30,
-      "observed_pct": 23.208,
-      "trials": 1758,
-      "fired": 408,
+      "observed_pct": 23.872,
+      "trials": 1818,
+      "fired": 434,
       "ci95_pct": [
-        21.294,
-        25.239
+        21.969,
+        25.886
       ],
-      "half_width_pts": 1.972,
+      "half_width_pts": 1.958,
       "scored": true,
       "diverges_at_95": true,
       "diverges_bonferroni": true,
       "split_half": {
-        "a": 23.89,
-        "b": 22.56,
-        "spread_pts": 1.34
+        "a": 24.77,
+        "b": 23.06,
+        "spread_pts": 1.71
       }
     },
     {
@@ -1790,69 +1922,22 @@
       "family": "secondary",
       "subject": "moonblast",
       "detail": "targetBoosts:spa",
-      "declared_pct": 30,
-      "observed_pct": 10,
-      "trials": 1680,
-      "fired": 168,
+      "declared_pct": 10,
+      "observed_pct": 8.818,
+      "trials": 1565,
+      "fired": 138,
       "ci95_pct": [
-        8.655,
-        11.527
+        7.512,
+        10.325
       ],
-      "half_width_pts": 1.436,
-      "scored": false,
-      "diverges_at_95": true,
-      "diverges_bonferroni": true,
-      "split_half": {
-        "a": 9.55,
-        "b": 10.43,
-        "spread_pts": 0.88
-      },
-      "refused": "the declaration gate refuses this move: the frozen engine and the format disagree about its secondary chance"
-    },
-    {
-      "key": "accuracy:psyshieldbash",
-      "family": "accuracy",
-      "subject": "psyshieldbash",
-      "detail": "clean",
-      "declared_pct": 90,
-      "observed_pct": 90.081,
-      "trials": 1603,
-      "fired": 1444,
-      "ci95_pct": [
-        88.521,
-        91.45
-      ],
-      "half_width_pts": 1.465,
+      "half_width_pts": 1.407,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 89.9,
-        "b": 90.25,
-        "spread_pts": 0.36
-      }
-    },
-    {
-      "key": "secondary:bodyslam:status:par",
-      "family": "secondary",
-      "subject": "bodyslam",
-      "detail": "status:par",
-      "declared_pct": 30,
-      "observed_pct": 26.711,
-      "trials": 1505,
-      "fired": 402,
-      "ci95_pct": [
-        24.537,
-        29.004
-      ],
-      "half_width_pts": 2.233,
-      "scored": true,
-      "diverges_at_95": true,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 25.69,
-        "b": 27.64,
-        "spread_pts": 1.95
+        "a": 9.69,
+        "b": 7.96,
+        "spread_pts": 1.73
       }
     },
     {
@@ -1861,37 +1946,37 @@
       "subject": "rockslide",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 94.6,
-      "trials": 1500,
-      "fired": 1419,
+      "observed_pct": 94.575,
+      "trials": 1530,
+      "fired": 1447,
       "ci95_pct": [
-        93.338,
-        95.634
+        93.324,
+        95.603
       ],
-      "half_width_pts": 1.148,
+      "half_width_pts": 1.139,
       "scored": false
     },
     {
-      "key": "accuracy:blizzard",
+      "key": "accuracy:psyshieldbash",
       "family": "accuracy",
-      "subject": "blizzard",
+      "subject": "psyshieldbash",
       "detail": "clean",
-      "declared_pct": 70,
-      "observed_pct": 69.634,
-      "trials": 1449,
-      "fired": 1009,
+      "declared_pct": 90,
+      "observed_pct": 89.737,
+      "trials": 1520,
+      "fired": 1364,
       "ci95_pct": [
-        67.217,
-        71.947
+        88.11,
+        91.164
       ],
-      "half_width_pts": 2.365,
+      "half_width_pts": 1.527,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 68.71,
-        "b": 70.59,
-        "spread_pts": 1.88
+        "a": 88.31,
+        "b": 90.86,
+        "spread_pts": 2.55
       }
     },
     {
@@ -1900,44 +1985,44 @@
       "subject": "willowisp",
       "detail": "clean",
       "declared_pct": 85,
-      "observed_pct": 83.95,
-      "trials": 1433,
-      "fired": 1203,
+      "observed_pct": 84.083,
+      "trials": 1445,
+      "fired": 1215,
       "ci95_pct": [
-        81.959,
-        85.759
+        82.107,
+        85.879
       ],
-      "half_width_pts": 1.9,
+      "half_width_pts": 1.886,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 83.56,
-        "b": 84.37,
-        "spread_pts": 0.81
+        "a": 82.73,
+        "b": 85.33,
+        "spread_pts": 2.6
       }
     },
     {
-      "key": "accuracy:supercellslam",
-      "family": "accuracy",
-      "subject": "supercellslam",
-      "detail": "clean",
-      "declared_pct": 95,
-      "observed_pct": 95.994,
-      "trials": 1373,
-      "fired": 1318,
+      "key": "secondary:bodyslam:status:par",
+      "family": "secondary",
+      "subject": "bodyslam",
+      "detail": "status:par",
+      "declared_pct": 30,
+      "observed_pct": 25.121,
+      "trials": 1441,
+      "fired": 362,
       "ci95_pct": [
-        94.822,
-        96.91
+        22.95,
+        27.425
       ],
-      "half_width_pts": 1.044,
+      "half_width_pts": 2.237,
       "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
+      "diverges_at_95": true,
+      "diverges_bonferroni": true,
       "split_half": {
-        "a": 96.57,
-        "b": 95.39,
-        "spread_pts": 1.18
+        "a": 24.93,
+        "b": 25.31,
+        "spread_pts": 0.38
       }
     },
     {
@@ -1946,21 +2031,44 @@
       "subject": "sludgewave",
       "detail": "status:psn",
       "declared_pct": 10,
-      "observed_pct": 9.802,
-      "trials": 1367,
-      "fired": 134,
+      "observed_pct": 8.788,
+      "trials": 1411,
+      "fired": 124,
       "ci95_pct": [
-        8.337,
-        11.493
+        7.42,
+        10.379
       ],
-      "half_width_pts": 1.578,
+      "half_width_pts": 1.479,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 9.12,
-        "b": 10.53,
-        "spread_pts": 1.41
+        "a": 9.18,
+        "b": 8.39,
+        "spread_pts": 0.79
+      }
+    },
+    {
+      "key": "accuracy:blizzard",
+      "family": "accuracy",
+      "subject": "blizzard",
+      "detail": "clean",
+      "declared_pct": 70,
+      "observed_pct": 70.036,
+      "trials": 1405,
+      "fired": 984,
+      "ci95_pct": [
+        67.588,
+        72.374
+      ],
+      "half_width_pts": 2.393,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 70.7,
+        "b": 69.43,
+        "spread_pts": 1.27
       }
     },
     {
@@ -1969,21 +2077,21 @@
       "subject": "thunderbolt",
       "detail": "status:par",
       "declared_pct": 10,
-      "observed_pct": 7.202,
-      "trials": 1333,
-      "fired": 96,
+      "observed_pct": 9.482,
+      "trials": 1371,
+      "fired": 130,
       "ci95_pct": [
-        5.934,
-        8.716
+        8.043,
+        11.148
       ],
-      "half_width_pts": 1.391,
+      "half_width_pts": 1.553,
       "scored": true,
-      "diverges_at_95": true,
+      "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 7.08,
-        "b": 7.33,
-        "spread_pts": 0.25
+        "a": 10.51,
+        "b": 8.4,
+        "spread_pts": 2.12
       }
     },
     {
@@ -1992,21 +2100,44 @@
       "subject": "discharge",
       "detail": "status:par",
       "declared_pct": 30,
-      "observed_pct": 28.571,
-      "trials": 1330,
-      "fired": 380,
+      "observed_pct": 31.41,
+      "trials": 1369,
+      "fired": 430,
       "ci95_pct": [
-        26.208,
-        31.058
+        29.006,
+        33.918
       ],
-      "half_width_pts": 2.425,
+      "half_width_pts": 2.456,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 28.28,
-        "b": 28.93,
-        "spread_pts": 0.65
+        "a": 30.73,
+        "b": 32.19,
+        "spread_pts": 1.46
+      }
+    },
+    {
+      "key": "accuracy:supercellslam",
+      "family": "accuracy",
+      "subject": "supercellslam",
+      "detail": "clean",
+      "declared_pct": 95,
+      "observed_pct": 95.94,
+      "trials": 1330,
+      "fired": 1276,
+      "ci95_pct": [
+        94.74,
+        96.875
+      ],
+      "half_width_pts": 1.067,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 96.84,
+        "b": 95.04,
+        "spread_pts": 1.8
       }
     },
     {
@@ -2015,44 +2146,21 @@
       "subject": "dualwingbeat",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 89.736,
-      "trials": 1325,
-      "fired": 1189,
+      "observed_pct": 90.779,
+      "trials": 1323,
+      "fired": 1201,
       "ci95_pct": [
-        87.985,
-        91.257
+        89.099,
+        92.222
       ],
-      "half_width_pts": 1.636,
+      "half_width_pts": 1.561,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 89.17,
-        "b": 90.34,
-        "spread_pts": 1.18
-      }
-    },
-    {
-      "key": "secondary:darkpulse:volatile:flinch",
-      "family": "secondary",
-      "subject": "darkpulse",
-      "detail": "volatile:flinch",
-      "declared_pct": 20,
-      "observed_pct": 20.936,
-      "trials": 1304,
-      "fired": 273,
-      "ci95_pct": [
-        18.814,
-        23.228
-      ],
-      "half_width_pts": 2.207,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 19.2,
-        "b": 22.81,
-        "spread_pts": 3.6
+        "a": 90.82,
+        "b": 90.74,
+        "spread_pts": 0.08
       }
     },
     {
@@ -2061,38 +2169,45 @@
       "subject": "playrough",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 89.984,
-      "trials": 1278,
-      "fired": 1150,
+      "observed_pct": 90.487,
+      "trials": 1314,
+      "fired": 1189,
       "ci95_pct": [
-        88.217,
-        91.512
+        88.781,
+        91.957
       ],
-      "half_width_pts": 1.648,
+      "half_width_pts": 1.588,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 89.97,
-        "b": 90,
-        "spread_pts": 0.03
+        "a": 90.48,
+        "b": 90.5,
+        "spread_pts": 0.02
       }
     },
     {
-      "key": "accuracy:hurricane:MODIFIED",
-      "family": "accuracy",
-      "subject": "hurricane",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 98.208,
-      "trials": 1172,
-      "fired": 1151,
+      "key": "secondary:darkpulse:volatile:flinch",
+      "family": "secondary",
+      "subject": "darkpulse",
+      "detail": "volatile:flinch",
+      "declared_pct": 20,
+      "observed_pct": 21.061,
+      "trials": 1301,
+      "fired": 274,
       "ci95_pct": [
-        97.276,
-        98.825
+        18.932,
+        23.36
       ],
-      "half_width_pts": 0.774,
-      "scored": false
+      "half_width_pts": 2.214,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 18.36,
+        "b": 23.83,
+        "spread_pts": 5.47
+      }
     },
     {
       "key": "accuracy:focusblast",
@@ -2100,21 +2215,21 @@
       "subject": "focusblast",
       "detail": "clean",
       "declared_pct": 70,
-      "observed_pct": 71.021,
-      "trials": 1156,
-      "fired": 821,
+      "observed_pct": 73.044,
+      "trials": 1176,
+      "fired": 859,
       "ci95_pct": [
-        68.339,
-        73.563
+        70.436,
+        75.502
       ],
-      "half_width_pts": 2.612,
+      "half_width_pts": 2.533,
       "scored": true,
-      "diverges_at_95": false,
+      "diverges_at_95": true,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 70.52,
-        "b": 71.53,
-        "spread_pts": 1.01
+        "a": 72.85,
+        "b": 73.23,
+        "spread_pts": 0.38
       }
     },
     {
@@ -2123,39 +2238,31 @@
       "subject": "leafstorm",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 98.505,
-      "trials": 1137,
-      "fired": 1120,
+      "observed_pct": 98.667,
+      "trials": 1125,
+      "fired": 1110,
       "ci95_pct": [
-        97.619,
-        99.064
+        97.812,
+        99.19
       ],
-      "half_width_pts": 0.723,
+      "half_width_pts": 0.689,
       "scored": false
     },
     {
-      "key": "secondary:freezedry:status:frz",
-      "family": "secondary",
-      "subject": "freezedry",
-      "detail": "status:frz",
-      "declared_pct": 10,
-      "observed_pct": 8.482,
-      "trials": 1120,
-      "fired": 95,
+      "key": "accuracy:hurricane:MODIFIED",
+      "family": "accuracy",
+      "subject": "hurricane",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 98.219,
+      "trials": 1123,
+      "fired": 1103,
       "ci95_pct": [
-        6.989,
-        10.259
+        97.265,
+        98.844
       ],
-      "half_width_pts": 1.635,
-      "scored": false,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 7.89,
-        "b": 9.04,
-        "spread_pts": 1.15
-      },
-      "refused": "the declaration gate refuses this move: the frozen engine and the format disagree about its secondary chance"
+      "half_width_pts": 0.79,
+      "scored": false
     },
     {
       "key": "accuracy:iciclecrash",
@@ -2163,21 +2270,21 @@
       "subject": "iciclecrash",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 90.396,
-      "trials": 1010,
+      "observed_pct": 90.217,
+      "trials": 1012,
       "fired": 913,
       "ci95_pct": [
-        88.423,
-        92.063
+        88.232,
+        91.898
       ],
-      "half_width_pts": 1.82,
+      "half_width_pts": 1.833,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 91.84,
-        "b": 88.89,
-        "spread_pts": 2.96
+        "a": 89.62,
+        "b": 90.85,
+        "spread_pts": 1.24
       }
     },
     {
@@ -2186,21 +2293,21 @@
       "subject": "headsmash",
       "detail": "clean",
       "declared_pct": 80,
-      "observed_pct": 79.584,
-      "trials": 1009,
-      "fired": 803,
+      "observed_pct": 80.857,
+      "trials": 1003,
+      "fired": 811,
       "ci95_pct": [
-        76.987,
-        81.957
+        78.307,
+        83.173
       ],
-      "half_width_pts": 2.485,
+      "half_width_pts": 2.433,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 79.3,
-        "b": 79.85,
-        "spread_pts": 0.55
+        "a": 81.75,
+        "b": 79.96,
+        "spread_pts": 1.79
       }
     },
     {
@@ -2209,44 +2316,21 @@
       "subject": "hammerarm",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 87.307,
-      "trials": 969,
-      "fired": 846,
+      "observed_pct": 90.501,
+      "trials": 979,
+      "fired": 886,
       "ci95_pct": [
-        85.062,
-        89.256
+        88.502,
+        92.182
       ],
-      "half_width_pts": 2.097,
-      "scored": true,
-      "diverges_at_95": true,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 89.22,
-        "b": 85.54,
-        "spread_pts": 3.68
-      }
-    },
-    {
-      "key": "accuracy:stoneedge",
-      "family": "accuracy",
-      "subject": "stoneedge",
-      "detail": "clean",
-      "declared_pct": 80,
-      "observed_pct": 80,
-      "trials": 925,
-      "fired": 740,
-      "ci95_pct": [
-        77.301,
-        82.451
-      ],
-      "half_width_pts": 2.575,
+      "half_width_pts": 1.84,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 82.92,
-        "b": 76.77,
-        "spread_pts": 6.16
+        "a": 91.33,
+        "b": 89.72,
+        "spread_pts": 1.61
       }
     },
     {
@@ -2255,21 +2339,21 @@
       "subject": "icefang",
       "detail": "clean",
       "declared_pct": 95,
-      "observed_pct": 93.902,
-      "trials": 902,
-      "fired": 847,
+      "observed_pct": 95.143,
+      "trials": 906,
+      "fired": 862,
       "ci95_pct": [
-        92.147,
-        95.286
+        93.543,
+        96.363
       ],
-      "half_width_pts": 1.569,
+      "half_width_pts": 1.41,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 93.7,
-        "b": 94.12,
-        "spread_pts": 0.42
+        "a": 95.08,
+        "b": 95.21,
+        "spread_pts": 0.13
       }
     },
     {
@@ -2278,67 +2362,44 @@
       "subject": "icywind",
       "detail": "clean",
       "declared_pct": 95,
-      "observed_pct": 96.207,
-      "trials": 870,
-      "fired": 837,
+      "observed_pct": 94.327,
+      "trials": 899,
+      "fired": 848,
       "ci95_pct": [
-        94.721,
-        97.287
+        92.618,
+        95.659
       ],
-      "half_width_pts": 1.283,
+      "half_width_pts": 1.521,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 97.38,
-        "b": 94.9,
-        "spread_pts": 2.48
+        "a": 94.8,
+        "b": 93.91,
+        "spread_pts": 0.89
       }
     },
     {
-      "key": "secondary:flashcannon:targetBoosts:spd",
-      "family": "secondary",
-      "subject": "flashcannon",
-      "detail": "targetBoosts:spd",
-      "declared_pct": 10,
-      "observed_pct": 12.062,
-      "trials": 771,
-      "fired": 93,
-      "ci95_pct": [
-        9.949,
-        14.551
-      ],
-      "half_width_pts": 2.301,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 12.01,
-        "b": 12.11,
-        "spread_pts": 0.1
-      }
-    },
-    {
-      "key": "accuracy:megahorn",
+      "key": "accuracy:stoneedge",
       "family": "accuracy",
-      "subject": "megahorn",
+      "subject": "stoneedge",
       "detail": "clean",
-      "declared_pct": 85,
-      "observed_pct": 83.81,
-      "trials": 735,
-      "fired": 616,
+      "declared_pct": 80,
+      "observed_pct": 82.135,
+      "trials": 862,
+      "fired": 708,
       "ci95_pct": [
-        80.972,
-        86.296
+        79.437,
+        84.547
       ],
-      "half_width_pts": 2.662,
+      "half_width_pts": 2.555,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 84.72,
-        "b": 82.87,
-        "spread_pts": 1.85
+        "a": 81.46,
+        "b": 82.8,
+        "spread_pts": 1.34
       }
     },
     {
@@ -2347,44 +2408,67 @@
       "subject": "airslash",
       "detail": "clean",
       "declared_pct": 95,
-      "observed_pct": 94.64,
-      "trials": 709,
-      "fired": 671,
+      "observed_pct": 95.407,
+      "trials": 762,
+      "fired": 727,
       "ci95_pct": [
-        92.729,
-        96.071
+        93.679,
+        96.679
       ],
-      "half_width_pts": 1.671,
+      "half_width_pts": 1.5,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 95.71,
-        "b": 93.59,
-        "spread_pts": 2.12
+        "a": 93.55,
+        "b": 97.18,
+        "spread_pts": 3.63
       }
     },
     {
-      "key": "accuracy:hyperbeam",
-      "family": "accuracy",
-      "subject": "hyperbeam",
-      "detail": "clean",
-      "declared_pct": 90,
-      "observed_pct": 90.85,
-      "trials": 612,
-      "fired": 556,
+      "key": "secondary:flashcannon:targetBoosts:spd",
+      "family": "secondary",
+      "subject": "flashcannon",
+      "detail": "targetBoosts:spd",
+      "declared_pct": 10,
+      "observed_pct": 8.516,
+      "trials": 728,
+      "fired": 62,
       "ci95_pct": [
-        88.303,
-        92.886
+        6.7,
+        10.768
       ],
-      "half_width_pts": 2.291,
+      "half_width_pts": 2.034,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 90.55,
-        "b": 91.2,
-        "spread_pts": 0.65
+        "a": 8.08,
+        "b": 8.94,
+        "spread_pts": 0.87
+      }
+    },
+    {
+      "key": "accuracy:megahorn",
+      "family": "accuracy",
+      "subject": "megahorn",
+      "detail": "clean",
+      "declared_pct": 85,
+      "observed_pct": 85.614,
+      "trials": 709,
+      "fired": 607,
+      "ci95_pct": [
+        82.838,
+        88.005
+      ],
+      "half_width_pts": 2.583,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 88.14,
+        "b": 82.84,
+        "spread_pts": 5.3
       }
     },
     {
@@ -2393,21 +2477,21 @@
       "subject": "playrough",
       "detail": "targetBoosts:atk",
       "declared_pct": 10,
-      "observed_pct": 9.72,
-      "trials": 607,
-      "fired": 59,
+      "observed_pct": 10.749,
+      "trials": 614,
+      "fired": 66,
       "ci95_pct": [
-        7.61,
-        12.336
+        8.539,
+        13.448
       ],
-      "half_width_pts": 2.363,
+      "half_width_pts": 2.454,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 8.7,
-        "b": 10.71,
-        "spread_pts": 2.02
+        "a": 11.01,
+        "b": 10.47,
+        "spread_pts": 0.53
       }
     },
     {
@@ -2416,67 +2500,21 @@
       "subject": "hurricane",
       "detail": "volatile:confusion",
       "declared_pct": 30,
-      "observed_pct": 27.076,
-      "trials": 602,
+      "observed_pct": 26.765,
+      "trials": 609,
       "fired": 163,
       "ci95_pct": [
-        23.68,
-        30.763
+        23.403,
+        30.419
       ],
-      "half_width_pts": 3.541,
+      "half_width_pts": 3.508,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 24.66,
-        "b": 29.35,
-        "spread_pts": 4.7
-      }
-    },
-    {
-      "key": "secondary:energyball:targetBoosts:spd",
-      "family": "secondary",
-      "subject": "energyball",
-      "detail": "targetBoosts:spd",
-      "declared_pct": 10,
-      "observed_pct": 9.817,
-      "trials": 601,
-      "fired": 59,
-      "ci95_pct": [
-        7.687,
-        12.457
-      ],
-      "half_width_pts": 2.385,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 9.93,
-        "b": 9.71,
-        "spread_pts": 0.22
-      }
-    },
-    {
-      "key": "accuracy:zenheadbutt",
-      "family": "accuracy",
-      "subject": "zenheadbutt",
-      "detail": "clean",
-      "declared_pct": 90,
-      "observed_pct": 88.427,
-      "trials": 553,
-      "fired": 489,
-      "ci95_pct": [
-        85.491,
-        90.832
-      ],
-      "half_width_pts": 2.67,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 88.56,
-        "b": 88.3,
-        "spread_pts": 0.26
+        "a": 28.48,
+        "b": 25.08,
+        "spread_pts": 3.4
       }
     },
     {
@@ -2485,45 +2523,21 @@
       "subject": "stoneaxe",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 89.174,
-      "trials": 545,
-      "fired": 486,
+      "observed_pct": 91.972,
+      "trials": 573,
+      "fired": 527,
       "ci95_pct": [
-        86.286,
-        91.514
+        89.458,
+        93.928
       ],
-      "half_width_pts": 2.614,
-      "scored": false,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 88.08,
-        "b": 90.18,
-        "spread_pts": 2.1
-      },
-      "refused": "the declaration gate refuses this move: the frozen engine and the format disagree about its secondary chance"
-    },
-    {
-      "key": "accuracy:rockblast",
-      "family": "accuracy",
-      "subject": "rockblast",
-      "detail": "clean",
-      "declared_pct": 90,
-      "observed_pct": 90.203,
-      "trials": 541,
-      "fired": 488,
-      "ci95_pct": [
-        87.408,
-        92.432
-      ],
-      "half_width_pts": 2.512,
+      "half_width_pts": 2.235,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 90.18,
-        "b": 90.23,
-        "spread_pts": 0.06
+        "a": 91.38,
+        "b": 92.58,
+        "spread_pts": 1.2
       }
     },
     {
@@ -2532,76 +2546,90 @@
       "subject": "tripleaxel",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 89.513,
-      "trials": 534,
-      "fired": 478,
+      "observed_pct": 88.636,
+      "trials": 572,
+      "fired": 507,
       "ci95_pct": [
-        86.626,
-        91.836
+        85.774,
+        90.984
       ],
       "half_width_pts": 2.605,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 88.33,
-        "b": 90.48,
-        "spread_pts": 2.14
+        "a": 90.04,
+        "b": 87.46,
+        "spread_pts": 2.58
       }
     },
     {
-      "key": "accuracy:heatwave:MODIFIED",
+      "key": "accuracy:hyperbeam",
       "family": "accuracy",
-      "subject": "heatwave",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 96.234,
-      "trials": 531,
-      "fired": 511,
+      "subject": "hyperbeam",
+      "detail": "clean",
+      "declared_pct": 90,
+      "observed_pct": 91.935,
+      "trials": 558,
+      "fired": 513,
       "ci95_pct": [
-        94.254,
-        97.549
+        89.379,
+        93.918
       ],
-      "half_width_pts": 1.647,
-      "scored": false
-    },
-    {
-      "key": "accuracy:highhorsepower:MODIFIED",
-      "family": "accuracy",
-      "subject": "highhorsepower",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 96.311,
-      "trials": 515,
-      "fired": 496,
-      "ci95_pct": [
-        94.31,
-        97.626
-      ],
-      "half_width_pts": 1.658,
-      "scored": false
-    },
-    {
-      "key": "secondary:icefang:status:frz",
-      "family": "secondary",
-      "subject": "icefang",
-      "detail": "status:frz",
-      "declared_pct": 10,
-      "observed_pct": 11.134,
-      "trials": 494,
-      "fired": 55,
-      "ci95_pct": [
-        8.654,
-        14.213
-      ],
-      "half_width_pts": 2.779,
+      "half_width_pts": 2.27,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 10.7,
-        "b": 11.55,
-        "spread_pts": 0.85
+        "a": 91.45,
+        "b": 92.39,
+        "spread_pts": 0.94
+      }
+    },
+    {
+      "key": "accuracy:zenheadbutt",
+      "family": "accuracy",
+      "subject": "zenheadbutt",
+      "detail": "clean",
+      "declared_pct": 90,
+      "observed_pct": 90.416,
+      "trials": 553,
+      "fired": 500,
+      "ci95_pct": [
+        87.676,
+        92.598
+      ],
+      "half_width_pts": 2.461,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 91.7,
+        "b": 89.24,
+        "spread_pts": 2.46
+      }
+    },
+    {
+      "key": "secondary:energyball:targetBoosts:spd",
+      "family": "secondary",
+      "subject": "energyball",
+      "detail": "targetBoosts:spd",
+      "declared_pct": 10,
+      "observed_pct": 10.545,
+      "trials": 550,
+      "fired": 58,
+      "ci95_pct": [
+        8.247,
+        13.392
+      ],
+      "half_width_pts": 2.573,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 10.73,
+        "b": 10.38,
+        "spread_pts": 0.35
       }
     },
     {
@@ -2610,23 +2638,100 @@
       "subject": "ceaselessedge",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 87.919,
-      "trials": 447,
-      "fired": 393,
+      "observed_pct": 87.14,
+      "trials": 521,
+      "fired": 454,
       "ci95_pct": [
-        84.571,
-        90.622
+        83.991,
+        89.745
       ],
-      "half_width_pts": 3.026,
-      "scored": false,
+      "half_width_pts": 2.877,
+      "scored": true,
+      "diverges_at_95": true,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 88.33,
+        "b": 86.12,
+        "spread_pts": 2.21
+      }
+    },
+    {
+      "key": "accuracy:rockblast",
+      "family": "accuracy",
+      "subject": "rockblast",
+      "detail": "clean",
+      "declared_pct": 90,
+      "observed_pct": 87.645,
+      "trials": 518,
+      "fired": 454,
+      "ci95_pct": [
+        84.531,
+        90.205
+      ],
+      "half_width_pts": 2.837,
+      "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 88.94,
-        "b": 87.03,
-        "spread_pts": 1.91
-      },
-      "refused": "the declaration gate refuses this move: the frozen engine and the format disagree about its secondary chance"
+        "a": 86.82,
+        "b": 88.46,
+        "spread_pts": 1.64
+      }
+    },
+    {
+      "key": "accuracy:highhorsepower:MODIFIED",
+      "family": "accuracy",
+      "subject": "highhorsepower",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 97.07,
+      "trials": 512,
+      "fired": 497,
+      "ci95_pct": [
+        95.223,
+        98.217
+      ],
+      "half_width_pts": 1.497,
+      "scored": false
+    },
+    {
+      "key": "accuracy:heatwave:MODIFIED",
+      "family": "accuracy",
+      "subject": "heatwave",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 95.547,
+      "trials": 494,
+      "fired": 472,
+      "ci95_pct": [
+        93.349,
+        97.041
+      ],
+      "half_width_pts": 1.846,
+      "scored": false
+    },
+    {
+      "key": "secondary:icefang:status:frz",
+      "family": "secondary",
+      "subject": "icefang",
+      "detail": "status:frz",
+      "declared_pct": 10,
+      "observed_pct": 11.9,
+      "trials": 479,
+      "fired": 57,
+      "ci95_pct": [
+        9.299,
+        15.107
+      ],
+      "half_width_pts": 2.904,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 11.86,
+        "b": 11.93,
+        "spread_pts": 0.07
+      }
     },
     {
       "key": "accuracy:hurricane",
@@ -2634,21 +2739,67 @@
       "subject": "hurricane",
       "detail": "clean",
       "declared_pct": 70,
-      "observed_pct": 72.955,
-      "trials": 440,
-      "fired": 321,
+      "observed_pct": 72.222,
+      "trials": 450,
+      "fired": 325,
       "ci95_pct": [
-        68.619,
-        76.893
+        67.909,
+        76.159
       ],
-      "half_width_pts": 4.137,
+      "half_width_pts": 4.125,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 70,
-        "b": 76.19,
-        "spread_pts": 6.19
+        "a": 72.52,
+        "b": 71.93,
+        "spread_pts": 0.59
+      }
+    },
+    {
+      "key": "secondary:airslash:volatile:flinch",
+      "family": "secondary",
+      "subject": "airslash",
+      "detail": "volatile:flinch",
+      "declared_pct": 30,
+      "observed_pct": 29.762,
+      "trials": 420,
+      "fired": 125,
+      "ci95_pct": [
+        25.589,
+        34.302
+      ],
+      "half_width_pts": 4.357,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 24.39,
+        "b": 34.88,
+        "spread_pts": 10.49
+      }
+    },
+    {
+      "key": "accuracy:thunder",
+      "family": "accuracy",
+      "subject": "thunder",
+      "detail": "clean",
+      "declared_pct": 70,
+      "observed_pct": 70.488,
+      "trials": 410,
+      "fired": 289,
+      "ci95_pct": [
+        65.899,
+        74.696
+      ],
+      "half_width_pts": 4.398,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 72.04,
+        "b": 68.84,
+        "spread_pts": 3.19
       }
     },
     {
@@ -2657,21 +2808,21 @@
       "subject": "drillrun",
       "detail": "clean",
       "declared_pct": 95,
-      "observed_pct": 92.184,
-      "trials": 435,
-      "fired": 401,
+      "observed_pct": 96.822,
+      "trials": 409,
+      "fired": 396,
       "ci95_pct": [
-        89.276,
-        94.353
+        94.638,
+        98.133
       ],
-      "half_width_pts": 2.538,
+      "half_width_pts": 1.747,
       "scored": true,
-      "diverges_at_95": true,
+      "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 92.7,
-        "b": 91.58,
-        "spread_pts": 1.12
+        "a": 97.17,
+        "b": 96.45,
+        "spread_pts": 0.72
       }
     },
     {
@@ -2680,21 +2831,21 @@
       "subject": "icebeam",
       "detail": "status:frz",
       "declared_pct": 10,
-      "observed_pct": 6.938,
-      "trials": 418,
-      "fired": 29,
+      "observed_pct": 9.184,
+      "trials": 392,
+      "fired": 36,
       "ci95_pct": [
-        4.874,
-        9.786
+        6.707,
+        12.452
       ],
-      "half_width_pts": 2.456,
+      "half_width_pts": 2.872,
       "scored": true,
-      "diverges_at_95": true,
+      "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 6.17,
-        "b": 7.85,
-        "spread_pts": 1.69
+        "a": 9.29,
+        "b": 9.09,
+        "spread_pts": 0.2
       }
     },
     {
@@ -2704,59 +2855,36 @@
       "detail": "volleys",
       "declared_pct": null,
       "observed_pct": 100,
-      "trials": 415,
-      "fired": 415,
+      "trials": 391,
+      "fired": 391,
       "ci95_pct": [
-        99.083,
+        99.027,
         100
       ],
-      "half_width_pts": 0.459,
+      "half_width_pts": 0.486,
       "scored": false
     },
     {
-      "key": "accuracy:thunder",
+      "key": "accuracy:hypnosis",
       "family": "accuracy",
-      "subject": "thunder",
+      "subject": "hypnosis",
       "detail": "clean",
-      "declared_pct": 70,
-      "observed_pct": 72.304,
-      "trials": 408,
-      "fired": 295,
+      "declared_pct": 60,
+      "observed_pct": 62.916,
+      "trials": 391,
+      "fired": 246,
       "ci95_pct": [
-        67.769,
-        76.423
+        58.024,
+        67.556
       ],
-      "half_width_pts": 4.327,
+      "half_width_pts": 4.766,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 69.23,
-        "b": 75.5,
-        "spread_pts": 6.27
-      }
-    },
-    {
-      "key": "secondary:airslash:volatile:flinch",
-      "family": "secondary",
-      "subject": "airslash",
-      "detail": "volatile:flinch",
-      "declared_pct": 30,
-      "observed_pct": 33.827,
-      "trials": 405,
-      "fired": 137,
-      "ci95_pct": [
-        29.391,
-        38.568
-      ],
-      "half_width_pts": 4.589,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 36.73,
-        "b": 31.1,
-        "spread_pts": 5.63
+        "a": 61.5,
+        "b": 64.61,
+        "spread_pts": 3.1
       }
     },
     {
@@ -2765,67 +2893,21 @@
       "subject": "focusblast",
       "detail": "targetBoosts:spd",
       "declared_pct": 10,
-      "observed_pct": 10.468,
-      "trials": 363,
-      "fired": 38,
+      "observed_pct": 9.711,
+      "trials": 381,
+      "fired": 37,
       "ci95_pct": [
-        7.722,
-        14.042
+        7.128,
+        13.099
       ],
-      "half_width_pts": 3.16,
+      "half_width_pts": 2.986,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 13.22,
-        "b": 7.94,
-        "spread_pts": 5.28
-      }
-    },
-    {
-      "key": "accuracy:hypnosis",
-      "family": "accuracy",
-      "subject": "hypnosis",
-      "detail": "clean",
-      "declared_pct": 60,
-      "observed_pct": 59.889,
-      "trials": 359,
-      "fired": 215,
-      "ci95_pct": [
-        54.74,
-        64.828
-      ],
-      "half_width_pts": 5.044,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 60.34,
-        "b": 59.44,
-        "spread_pts": 0.89
-      }
-    },
-    {
-      "key": "accuracy:dynamicpunch",
-      "family": "accuracy",
-      "subject": "dynamicpunch",
-      "detail": "clean",
-      "declared_pct": 50,
-      "observed_pct": 50,
-      "trials": 352,
-      "fired": 176,
-      "ci95_pct": [
-        44.805,
-        55.195
-      ],
-      "half_width_pts": 5.195,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 50.31,
-        "b": 49.74,
-        "spread_pts": 0.57
+        "a": 7.07,
+        "b": 12.18,
+        "spread_pts": 5.12
       }
     },
     {
@@ -2834,21 +2916,44 @@
       "subject": "icefang",
       "detail": "volatile:flinch",
       "declared_pct": 10,
-      "observed_pct": 8.48,
-      "trials": 342,
-      "fired": 29,
+      "observed_pct": 10.942,
+      "trials": 329,
+      "fired": 36,
       "ci95_pct": [
-        5.969,
-        11.913
+        8.009,
+        14.777
       ],
-      "half_width_pts": 2.972,
+      "half_width_pts": 3.384,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 8.07,
-        "b": 8.84,
-        "spread_pts": 0.77
+        "a": 12.82,
+        "b": 9.25,
+        "spread_pts": 3.57
+      }
+    },
+    {
+      "key": "accuracy:dynamicpunch",
+      "family": "accuracy",
+      "subject": "dynamicpunch",
+      "detail": "clean",
+      "declared_pct": 50,
+      "observed_pct": 51.064,
+      "trials": 329,
+      "fired": 168,
+      "ci95_pct": [
+        45.681,
+        56.422
+      ],
+      "half_width_pts": 5.37,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 49.38,
+        "b": 52.66,
+        "spread_pts": 3.29
       }
     },
     {
@@ -2858,36 +2963,36 @@
       "detail": "volleys",
       "declared_pct": null,
       "observed_pct": 100,
-      "trials": 326,
-      "fired": 326,
+      "trials": 318,
+      "fired": 318,
       "ci95_pct": [
-        98.835,
+        98.806,
         100
       ],
-      "half_width_pts": 0.582,
+      "half_width_pts": 0.597,
       "scored": false
     },
     {
-      "key": "accuracy:pinmissile",
-      "family": "accuracy",
-      "subject": "pinmissile",
-      "detail": "clean",
-      "declared_pct": 95,
-      "observed_pct": 95.318,
-      "trials": 299,
-      "fired": 285,
+      "key": "secondary:shellsidearm:status:psn",
+      "family": "secondary",
+      "subject": "shellsidearm",
+      "detail": "status:psn",
+      "declared_pct": 20,
+      "observed_pct": 19.203,
+      "trials": 276,
+      "fired": 53,
       "ci95_pct": [
-        92.295,
-        97.191
+        14.991,
+        24.26
       ],
-      "half_width_pts": 2.448,
+      "half_width_pts": 4.634,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 95.04,
-        "b": 95.57,
-        "spread_pts": 0.53
+        "a": 17.07,
+        "b": 20.92,
+        "spread_pts": 3.84
       }
     },
     {
@@ -2896,44 +3001,44 @@
       "subject": "zapcannon",
       "detail": "clean",
       "declared_pct": 50,
-      "observed_pct": 57.193,
-      "trials": 285,
-      "fired": 163,
+      "observed_pct": 52.045,
+      "trials": 269,
+      "fired": 140,
       "ci95_pct": [
-        51.39,
-        62.804
+        46.088,
+        57.944
       ],
-      "half_width_pts": 5.707,
-      "scored": true,
-      "diverges_at_95": true,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 57.97,
-        "b": 56.46,
-        "spread_pts": 1.51
-      }
-    },
-    {
-      "key": "secondary:shellsidearm:status:psn",
-      "family": "secondary",
-      "subject": "shellsidearm",
-      "detail": "status:psn",
-      "declared_pct": 20,
-      "observed_pct": 19.767,
-      "trials": 258,
-      "fired": 51,
-      "ci95_pct": [
-        15.367,
-        25.055
-      ],
-      "half_width_pts": 4.844,
+      "half_width_pts": 5.928,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 17.89,
-        "b": 21.48,
-        "spread_pts": 3.6
+        "a": 50,
+        "b": 53.46,
+        "spread_pts": 3.46
+      }
+    },
+    {
+      "key": "accuracy:pinmissile",
+      "family": "accuracy",
+      "subject": "pinmissile",
+      "detail": "clean",
+      "declared_pct": 95,
+      "observed_pct": 93.585,
+      "trials": 265,
+      "fired": 248,
+      "ci95_pct": [
+        89.968,
+        95.957
+      ],
+      "half_width_pts": 2.994,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 91.91,
+        "b": 95.35,
+        "spread_pts": 3.44
       }
     },
     {
@@ -2942,14 +3047,30 @@
       "subject": "focusblast",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 92.218,
-      "trials": 257,
-      "fired": 237,
+      "observed_pct": 94.231,
+      "trials": 260,
+      "fired": 245,
       "ci95_pct": [
-        88.286,
-        94.906
+        90.701,
+        96.473
       ],
-      "half_width_pts": 3.31,
+      "half_width_pts": 2.886,
+      "scored": false
+    },
+    {
+      "key": "ohko:sheercold:ice-user",
+      "family": "ohko",
+      "subject": "sheercold",
+      "detail": "connects at equal level",
+      "declared_pct": 30,
+      "observed_pct": 28.794,
+      "trials": 257,
+      "fired": 74,
+      "ci95_pct": [
+        23.602,
+        34.61
+      ],
+      "half_width_pts": 5.504,
       "scored": false
     },
     {
@@ -2958,45 +3079,38 @@
       "subject": "sleeppowder",
       "detail": "clean",
       "declared_pct": 75,
-      "observed_pct": 79.921,
-      "trials": 254,
-      "fired": 203,
+      "observed_pct": 77.193,
+      "trials": 228,
+      "fired": 176,
       "ci95_pct": [
-        74.566,
-        84.385
+        71.323,
+        82.162
       ],
-      "half_width_pts": 4.91,
+      "half_width_pts": 5.42,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 79.53,
-        "b": 80.31,
-        "spread_pts": 0.79
+        "a": 74.58,
+        "b": 80,
+        "spread_pts": 5.42
       }
     },
     {
-      "key": "ohko:sheercold:ice-user",
-      "family": "ohko",
-      "subject": "sheercold",
-      "detail": "connects at equal level",
-      "declared_pct": 30,
-      "observed_pct": 32.932,
-      "trials": 249,
-      "fired": 82,
+      "key": "accuracy:muddywater:MODIFIED",
+      "family": "accuracy",
+      "subject": "muddywater",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 88.546,
+      "trials": 227,
+      "fired": 201,
       "ci95_pct": [
-        27.392,
-        38.99
+        83.747,
+        92.063
       ],
-      "half_width_pts": 5.799,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 31.79,
-        "b": 34.69,
-        "spread_pts": 2.91
-      }
+      "half_width_pts": 4.158,
+      "scored": false
     },
     {
       "key": "accuracy:hydrocannon",
@@ -3004,21 +3118,21 @@
       "subject": "hydrocannon",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 91.701,
-      "trials": 241,
-      "fired": 221,
+      "observed_pct": 89.732,
+      "trials": 224,
+      "fired": 201,
       "ci95_pct": [
-        87.53,
-        94.564
+        85.064,
+        93.06
       ],
-      "half_width_pts": 3.517,
+      "half_width_pts": 3.998,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 92.37,
+        "a": 88.6,
         "b": 90.91,
-        "spread_pts": 1.46
+        "spread_pts": 2.31
       }
     },
     {
@@ -3027,31 +3141,38 @@
       "subject": "dualwingbeat",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 90.129,
-      "trials": 233,
-      "fired": 210,
+      "observed_pct": 92.891,
+      "trials": 211,
+      "fired": 196,
       "ci95_pct": [
-        85.624,
-        93.332
+        88.603,
+        95.645
       ],
-      "half_width_pts": 3.854,
+      "half_width_pts": 3.521,
       "scored": false
     },
     {
-      "key": "accuracy:muddywater:MODIFIED",
+      "key": "accuracy:frostbreath",
       "family": "accuracy",
-      "subject": "muddywater",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 87.879,
-      "trials": 231,
-      "fired": 203,
+      "subject": "frostbreath",
+      "detail": "clean",
+      "declared_pct": 90,
+      "observed_pct": 84.211,
+      "trials": 209,
+      "fired": 176,
       "ci95_pct": [
-        83.039,
-        91.479
+        78.656,
+        88.531
       ],
-      "half_width_pts": 4.22,
-      "scored": false
+      "half_width_pts": 4.938,
+      "scored": true,
+      "diverges_at_95": true,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 85.05,
+        "b": 83.33,
+        "spread_pts": 1.71
+      }
     },
     {
       "key": "accuracy:zapcannon:MODIFIED",
@@ -3059,14 +3180,14 @@
       "subject": "zapcannon",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 99.024,
-      "trials": 205,
-      "fired": 203,
+      "observed_pct": 98.895,
+      "trials": 181,
+      "fired": 179,
       "ci95_pct": [
-        96.513,
-        99.732
+        96.061,
+        99.696
       ],
-      "half_width_pts": 1.609,
+      "half_width_pts": 1.818,
       "scored": false
     },
     {
@@ -3076,91 +3197,13 @@
       "detail": "volleys",
       "declared_pct": null,
       "observed_pct": 100,
-      "trials": 193,
-      "fired": 193,
+      "trials": 169,
+      "fired": 169,
       "ci95_pct": [
-        98.048,
+        97.777,
         100
       ],
-      "half_width_pts": 0.976,
-      "scored": false
-    },
-    {
-      "key": "accuracy:frostbreath",
-      "family": "accuracy",
-      "subject": "frostbreath",
-      "detail": "clean",
-      "declared_pct": 90,
-      "observed_pct": 88.71,
-      "trials": 186,
-      "fired": 165,
-      "ci95_pct": [
-        83.357,
-        92.496
-      ],
-      "half_width_pts": 4.569,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 87.23,
-        "b": 90.22,
-        "spread_pts": 2.98
-      }
-    },
-    {
-      "key": "secondary:volttackle:status:par",
-      "family": "secondary",
-      "subject": "volttackle",
-      "detail": "status:par",
-      "declared_pct": 10,
-      "observed_pct": 5.495,
-      "trials": 182,
-      "fired": 10,
-      "ci95_pct": [
-        3.012,
-        9.817
-      ],
-      "half_width_pts": 3.403,
-      "scored": true,
-      "diverges_at_95": true,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 4.26,
-        "b": 6.82,
-        "spread_pts": 2.56
-      }
-    },
-    {
-      "key": "accuracy:sleeppowder:MODIFIED",
-      "family": "accuracy",
-      "subject": "sleeppowder",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 96.429,
-      "trials": 168,
-      "fired": 162,
-      "ci95_pct": [
-        92.428,
-        98.353
-      ],
-      "half_width_pts": 2.962,
-      "scored": false
-    },
-    {
-      "key": "multihit:rockblast:2",
-      "family": "multihit",
-      "subject": "rockblast",
-      "detail": "hits=2",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 161,
-      "fired": 161,
-      "ci95_pct": [
-        97.67,
-        100
-      ],
-      "half_width_pts": 1.165,
+      "half_width_pts": 1.111,
       "scored": false
     },
     {
@@ -3169,21 +3212,60 @@
       "subject": "iciclecrash",
       "detail": "volatile:flinch",
       "declared_pct": 30,
-      "observed_pct": 28.947,
-      "trials": 152,
-      "fired": 44,
+      "observed_pct": 35.714,
+      "trials": 168,
+      "fired": 60,
       "ci95_pct": [
-        22.327,
-        36.606
+        28.862,
+        43.205
       ],
-      "half_width_pts": 7.139,
+      "half_width_pts": 7.171,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 27.06,
-        "b": 31.34,
-        "spread_pts": 4.28
+        "a": 40,
+        "b": 30.77,
+        "spread_pts": 9.23
+      }
+    },
+    {
+      "key": "accuracy:sleeppowder:MODIFIED",
+      "family": "accuracy",
+      "subject": "sleeppowder",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 98.16,
+      "trials": 163,
+      "fired": 160,
+      "ci95_pct": [
+        94.729,
+        99.372
+      ],
+      "half_width_pts": 2.321,
+      "scored": false
+    },
+    {
+      "key": "secondary:zenheadbutt:volatile:flinch",
+      "family": "secondary",
+      "subject": "zenheadbutt",
+      "detail": "volatile:flinch",
+      "declared_pct": 20,
+      "observed_pct": 24.224,
+      "trials": 161,
+      "fired": 39,
+      "ci95_pct": [
+        18.256,
+        31.392
+      ],
+      "half_width_pts": 6.568,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 26.83,
+        "b": 21.52,
+        "spread_pts": 5.31
       }
     },
     {
@@ -3193,59 +3275,52 @@
       "detail": "volleys",
       "declared_pct": null,
       "observed_pct": 100,
-      "trials": 146,
-      "fired": 146,
+      "trials": 156,
+      "fired": 156,
       "ci95_pct": [
-        97.436,
+        97.597,
         100
       ],
-      "half_width_pts": 1.282,
+      "half_width_pts": 1.202,
       "scored": false
     },
     {
-      "key": "secondary:scorchingsands:status:brn",
-      "family": "secondary",
-      "subject": "scorchingsands",
-      "detail": "status:brn",
-      "declared_pct": 30,
-      "observed_pct": 33.333,
-      "trials": 144,
-      "fired": 48,
+      "key": "multihit:rockblast:2",
+      "family": "multihit",
+      "subject": "rockblast",
+      "detail": "hits=2",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 154,
+      "fired": 154,
       "ci95_pct": [
-        26.155,
-        41.378
+        97.566,
+        100
       ],
-      "half_width_pts": 7.611,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 31.51,
-        "b": 35.21,
-        "spread_pts": 3.7
-      }
+      "half_width_pts": 1.217,
+      "scored": false
     },
     {
-      "key": "secondary:zenheadbutt:volatile:flinch",
+      "key": "secondary:volttackle:status:par",
       "family": "secondary",
-      "subject": "zenheadbutt",
-      "detail": "volatile:flinch",
-      "declared_pct": 20,
-      "observed_pct": 15.942,
-      "trials": 138,
-      "fired": 22,
+      "subject": "volttackle",
+      "detail": "status:par",
+      "declared_pct": 10,
+      "observed_pct": 4.636,
+      "trials": 151,
+      "fired": 7,
       "ci95_pct": [
-        10.77,
-        22.959
+        2.263,
+        9.259
       ],
-      "half_width_pts": 6.095,
+      "half_width_pts": 3.498,
       "scored": true,
-      "diverges_at_95": false,
+      "diverges_at_95": true,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 16.13,
-        "b": 15.79,
-        "spread_pts": 0.34
+        "a": 4.35,
+        "b": 4.88,
+        "spread_pts": 0.53
       }
     },
     {
@@ -3254,138 +3329,14 @@
       "subject": "dracometeor",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 95.62,
-      "trials": 137,
-      "fired": 131,
+      "observed_pct": 89.933,
+      "trials": 149,
+      "fired": 134,
       "ci95_pct": [
-        90.775,
-        97.978
+        84.055,
+        93.804
       ],
-      "half_width_pts": 3.601,
-      "scored": false
-    },
-    {
-      "key": "accuracy:superfang",
-      "family": "accuracy",
-      "subject": "superfang",
-      "detail": "clean",
-      "declared_pct": 90,
-      "observed_pct": 89.63,
-      "trials": 135,
-      "fired": 121,
-      "ci95_pct": [
-        83.345,
-        93.722
-      ],
-      "half_width_pts": 5.188,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 87.88,
-        "b": 91.3,
-        "spread_pts": 3.43
-      }
-    },
-    {
-      "key": "multihit:rockblast:3",
-      "family": "multihit",
-      "subject": "rockblast",
-      "detail": "hits=3",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 127,
-      "fired": 127,
-      "ci95_pct": [
-        97.064,
-        100
-      ],
-      "half_width_pts": 1.468,
-      "scored": false
-    },
-    {
-      "key": "secondary:triplearrows:targetBoosts:def",
-      "family": "secondary",
-      "subject": "triplearrows",
-      "detail": "targetBoosts:def",
-      "declared_pct": 50,
-      "observed_pct": 49.206,
-      "trials": 126,
-      "fired": 62,
-      "ci95_pct": [
-        40.631,
-        57.829
-      ],
-      "half_width_pts": 8.599,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 45.16,
-        "b": 53.13,
-        "spread_pts": 7.96
-      }
-    },
-    {
-      "key": "accuracy:hydropump",
-      "family": "accuracy",
-      "subject": "hydropump",
-      "detail": "clean",
-      "declared_pct": 80,
-      "observed_pct": 82.4,
-      "trials": 125,
-      "fired": 103,
-      "ci95_pct": [
-        74.788,
-        88.08
-      ],
-      "half_width_pts": 6.646,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 81.13,
-        "b": 83.33,
-        "spread_pts": 2.2
-      }
-    },
-    {
-      "key": "secondary:thunder:status:par",
-      "family": "secondary",
-      "subject": "thunder",
-      "detail": "status:par",
-      "declared_pct": 30,
-      "observed_pct": 22.4,
-      "trials": 125,
-      "fired": 28,
-      "ci95_pct": [
-        15.977,
-        30.469
-      ],
-      "half_width_pts": 7.246,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 21.21,
-        "b": 23.73,
-        "spread_pts": 2.52
-      }
-    },
-    {
-      "key": "multihit:bulletseed",
-      "family": "multihit",
-      "subject": "bulletseed",
-      "detail": "volleys",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 123,
-      "fired": 123,
-      "ci95_pct": [
-        96.971,
-        100
-      ],
-      "half_width_pts": 1.514,
+      "half_width_pts": 4.875,
       "scored": false
     },
     {
@@ -3395,37 +3346,14 @@
       "detail": "hits=2",
       "declared_pct": null,
       "observed_pct": 100,
-      "trials": 121,
-      "fired": 121,
+      "trials": 141,
+      "fired": 141,
       "ci95_pct": [
-        96.923,
+        97.348,
         100
       ],
-      "half_width_pts": 1.539,
+      "half_width_pts": 1.326,
       "scored": false
-    },
-    {
-      "key": "accuracy:gunkshot",
-      "family": "accuracy",
-      "subject": "gunkshot",
-      "detail": "clean",
-      "declared_pct": 80,
-      "observed_pct": 76.923,
-      "trials": 117,
-      "fired": 90,
-      "ci95_pct": [
-        68.507,
-        83.628
-      ],
-      "half_width_pts": 7.561,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 77.94,
-        "b": 75.51,
-        "spread_pts": 2.43
-      }
     },
     {
       "key": "accuracy:leafstorm",
@@ -3433,22 +3361,208 @@
       "subject": "leafstorm",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 92.308,
-      "trials": 117,
-      "fired": 108,
+      "observed_pct": 87.143,
+      "trials": 140,
+      "fired": 122,
       "ci95_pct": [
-        86.025,
-        95.9
+        80.592,
+        91.71
       ],
-      "half_width_pts": 4.938,
+      "half_width_pts": 5.559,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 91.94,
-        "b": 92.73,
-        "spread_pts": 0.79
+        "a": 89.39,
+        "b": 85.14,
+        "spread_pts": 4.26
       }
+    },
+    {
+      "key": "accuracy:gunkshot",
+      "family": "accuracy",
+      "subject": "gunkshot",
+      "detail": "clean",
+      "declared_pct": 80,
+      "observed_pct": 81.752,
+      "trials": 137,
+      "fired": 112,
+      "ci95_pct": [
+        74.448,
+        87.323
+      ],
+      "half_width_pts": 6.437,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 77.78,
+        "b": 86.15,
+        "spread_pts": 8.38
+      }
+    },
+    {
+      "key": "secondary:scorchingsands:status:brn",
+      "family": "secondary",
+      "subject": "scorchingsands",
+      "detail": "status:brn",
+      "declared_pct": 30,
+      "observed_pct": 21.642,
+      "trials": 134,
+      "fired": 29,
+      "ci95_pct": [
+        15.512,
+        29.352
+      ],
+      "half_width_pts": 6.92,
+      "scored": true,
+      "diverges_at_95": true,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 20.97,
+        "b": 22.22,
+        "spread_pts": 1.25
+      }
+    },
+    {
+      "key": "secondary:triplearrows:targetBoosts:def",
+      "family": "secondary",
+      "subject": "triplearrows",
+      "detail": "targetBoosts:def",
+      "declared_pct": 50,
+      "observed_pct": 42.748,
+      "trials": 131,
+      "fired": 56,
+      "ci95_pct": [
+        34.602,
+        51.307
+      ],
+      "half_width_pts": 8.353,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 37.1,
+        "b": 47.83,
+        "spread_pts": 10.73
+      }
+    },
+    {
+      "key": "multihit:rockblast:3",
+      "family": "multihit",
+      "subject": "rockblast",
+      "detail": "hits=3",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 130,
+      "fired": 130,
+      "ci95_pct": [
+        97.13,
+        100
+      ],
+      "half_width_pts": 1.435,
+      "scored": false
+    },
+    {
+      "key": "accuracy:superfang",
+      "family": "accuracy",
+      "subject": "superfang",
+      "detail": "clean",
+      "declared_pct": 90,
+      "observed_pct": 88.462,
+      "trials": 130,
+      "fired": 115,
+      "ci95_pct": [
+        81.834,
+        92.882
+      ],
+      "half_width_pts": 5.524,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 88.33,
+        "b": 88.57,
+        "spread_pts": 0.24
+      }
+    },
+    {
+      "key": "accuracy:hydropump",
+      "family": "accuracy",
+      "subject": "hydropump",
+      "detail": "clean",
+      "declared_pct": 80,
+      "observed_pct": 78.448,
+      "trials": 116,
+      "fired": 91,
+      "ci95_pct": [
+        70.118,
+        84.954
+      ],
+      "half_width_pts": 7.418,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 81.48,
+        "b": 75.81,
+        "spread_pts": 5.68
+      }
+    },
+    {
+      "key": "secondary:thunder:status:par",
+      "family": "secondary",
+      "subject": "thunder",
+      "detail": "status:par",
+      "declared_pct": 30,
+      "observed_pct": 31.579,
+      "trials": 114,
+      "fired": 36,
+      "ci95_pct": [
+        23.765,
+        40.593
+      ],
+      "half_width_pts": 8.414,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 29.03,
+        "b": 34.62,
+        "spread_pts": 5.58
+      }
+    },
+    {
+      "key": "ohko:fissure:MODIFIED",
+      "family": "ohko",
+      "subject": "fissure",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 36.364,
+      "trials": 110,
+      "fired": 40,
+      "ci95_pct": [
+        27.975,
+        45.672
+      ],
+      "half_width_pts": 8.849,
+      "scored": false
+    },
+    {
+      "key": "accuracy:overheat:MODIFIED",
+      "family": "accuracy",
+      "subject": "overheat",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 95.238,
+      "trials": 105,
+      "fired": 100,
+      "ci95_pct": [
+        89.334,
+        97.949
+      ],
+      "half_width_pts": 4.308,
+      "scored": false
     },
     {
       "key": "secondary:mountaingale:volatile:flinch",
@@ -3456,21 +3570,76 @@
       "subject": "mountaingale",
       "detail": "volatile:flinch",
       "declared_pct": 30,
-      "observed_pct": 33.028,
-      "trials": 109,
-      "fired": 36,
+      "observed_pct": 26.923,
+      "trials": 104,
+      "fired": 28,
       "ci95_pct": [
-        24.908,
-        42.302
+        19.333,
+        36.157
       ],
-      "half_width_pts": 8.697,
+      "half_width_pts": 8.412,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 35.09,
-        "b": 30.77,
-        "spread_pts": 4.32
+        "a": 25.93,
+        "b": 28,
+        "spread_pts": 2.07
+      }
+    },
+    {
+      "key": "accuracy:tripleaxel:MODIFIED",
+      "family": "accuracy",
+      "subject": "tripleaxel",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 97.087,
+      "trials": 103,
+      "fired": 100,
+      "ci95_pct": [
+        91.784,
+        99.005
+      ],
+      "half_width_pts": 3.61,
+      "scored": false
+    },
+    {
+      "key": "accuracy:icywind:MODIFIED",
+      "family": "accuracy",
+      "subject": "icywind",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 100,
+      "fired": 100,
+      "ci95_pct": [
+        96.301,
+        100
+      ],
+      "half_width_pts": 1.85,
+      "scored": false
+    },
+    {
+      "key": "accuracy:thunderwave",
+      "family": "accuracy",
+      "subject": "thunderwave",
+      "detail": "clean",
+      "declared_pct": 90,
+      "observed_pct": 86.598,
+      "trials": 97,
+      "fired": 84,
+      "ci95_pct": [
+        78.41,
+        91.998
+      ],
+      "half_width_pts": 6.794,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 87.23,
+        "b": 86,
+        "spread_pts": 1.23
       }
     },
     {
@@ -3480,84 +3649,36 @@
       "detail": "hits=3",
       "declared_pct": null,
       "observed_pct": 100,
-      "trials": 106,
-      "fired": 106,
+      "trials": 97,
+      "fired": 97,
       "ci95_pct": [
-        96.503,
+        96.191,
         100
       ],
-      "half_width_pts": 1.749,
+      "half_width_pts": 1.905,
       "scored": false
     },
     {
-      "key": "accuracy:tripleaxel:MODIFIED",
-      "family": "accuracy",
-      "subject": "tripleaxel",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 99.048,
-      "trials": 105,
-      "fired": 104,
+      "key": "secondary:barbbarrage:status:psn",
+      "family": "secondary",
+      "subject": "barbbarrage",
+      "detail": "status:psn",
+      "declared_pct": 50,
+      "observed_pct": 55.789,
+      "trials": 95,
+      "fired": 53,
       "ci95_pct": [
-        94.801,
-        99.832
+        45.771,
+        65.358
       ],
-      "half_width_pts": 2.515,
-      "scored": false
-    },
-    {
-      "key": "accuracy:icywind:MODIFIED",
-      "family": "accuracy",
-      "subject": "icywind",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 98.095,
-      "trials": 105,
-      "fired": 103,
-      "ci95_pct": [
-        93.319,
-        99.476
-      ],
-      "half_width_pts": 3.078,
-      "scored": false
-    },
-    {
-      "key": "accuracy:overheat:MODIFIED",
-      "family": "accuracy",
-      "subject": "overheat",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 91.262,
-      "trials": 103,
-      "fired": 94,
-      "ci95_pct": [
-        84.222,
-        95.335
-      ],
-      "half_width_pts": 5.556,
-      "scored": false
-    },
-    {
-      "key": "accuracy:thunderwave",
-      "family": "accuracy",
-      "subject": "thunderwave",
-      "detail": "clean",
-      "declared_pct": 90,
-      "observed_pct": 87.778,
-      "trials": 90,
-      "fired": 79,
-      "ci95_pct": [
-        79.426,
-        93.036
-      ],
-      "half_width_pts": 6.805,
+      "half_width_pts": 9.793,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 81.82,
-        "b": 93.48,
-        "spread_pts": 11.66
+        "a": 57.41,
+        "b": 53.66,
+        "spread_pts": 3.75
       }
     },
     {
@@ -3566,37 +3687,37 @@
       "subject": "waterpulse",
       "detail": "volatile:confusion",
       "declared_pct": 20,
-      "observed_pct": 13.483,
-      "trials": 89,
-      "fired": 12,
+      "observed_pct": 15.957,
+      "trials": 94,
+      "fired": 15,
       "ci95_pct": [
-        7.884,
-        22.104
+        9.916,
+        24.672
       ],
-      "half_width_pts": 7.11,
+      "half_width_pts": 7.378,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 16.36,
-        "b": 8.82,
-        "spread_pts": 7.54
+        "a": 16.07,
+        "b": 15.79,
+        "spread_pts": 0.28
       }
     },
     {
-      "key": "accuracy:powerwhip:MODIFIED",
-      "family": "accuracy",
-      "subject": "powerwhip",
-      "detail": "modified",
+      "key": "multihit:bulletseed",
+      "family": "multihit",
+      "subject": "bulletseed",
+      "detail": "volleys",
       "declared_pct": null,
-      "observed_pct": 93.75,
-      "trials": 80,
-      "fired": 75,
+      "observed_pct": 100,
+      "trials": 91,
+      "fired": 91,
       "ci95_pct": [
-        86.19,
-        97.301
+        95.95,
+        100
       ],
-      "half_width_pts": 5.556,
+      "half_width_pts": 2.025,
       "scored": false
     },
     {
@@ -3605,61 +3726,22 @@
       "subject": "fireblast",
       "detail": "clean",
       "declared_pct": 85,
-      "observed_pct": 85.714,
-      "trials": 77,
-      "fired": 66,
+      "observed_pct": 89.888,
+      "trials": 89,
+      "fired": 80,
       "ci95_pct": [
-        76.203,
-        91.832
+        81.886,
+        94.588
       ],
-      "half_width_pts": 7.814,
+      "half_width_pts": 6.351,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 84.85,
-        "b": 86.36,
-        "spread_pts": 1.52
+        "a": 90.7,
+        "b": 89.13,
+        "spread_pts": 1.57
       }
-    },
-    {
-      "key": "secondary:barbbarrage:status:psn",
-      "family": "secondary",
-      "subject": "barbbarrage",
-      "detail": "status:psn",
-      "declared_pct": 50,
-      "observed_pct": 48.684,
-      "trials": 76,
-      "fired": 37,
-      "ci95_pct": [
-        37.784,
-        59.711
-      ],
-      "half_width_pts": 10.964,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 51.35,
-        "b": 46.15,
-        "spread_pts": 5.2
-      }
-    },
-    {
-      "key": "multihit:pinmissile:2",
-      "family": "multihit",
-      "subject": "pinmissile",
-      "detail": "hits=2",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 76,
-      "fired": 76,
-      "ci95_pct": [
-        95.189,
-        100
-      ],
-      "half_width_pts": 2.406,
-      "scored": false
     },
     {
       "key": "accuracy:meteormash",
@@ -3667,21 +3749,21 @@
       "subject": "meteormash",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 94.595,
-      "trials": 74,
-      "fired": 70,
+      "observed_pct": 89.773,
+      "trials": 88,
+      "fired": 79,
       "ci95_pct": [
-        86.91,
-        97.878
+        81.693,
+        94.526
       ],
-      "half_width_pts": 5.484,
+      "half_width_pts": 6.416,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 91.89,
-        "b": 97.3,
-        "spread_pts": 5.41
+        "a": 92.86,
+        "b": 86.96,
+        "spread_pts": 5.9
       }
     },
     {
@@ -3690,106 +3772,67 @@
       "subject": "toxic",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 82.432,
-      "trials": 74,
-      "fired": 61,
+      "observed_pct": 92.771,
+      "trials": 83,
+      "fired": 77,
       "ci95_pct": [
-        72.228,
-        89.436
+        85.113,
+        96.645
       ],
-      "half_width_pts": 8.604,
-      "scored": true,
-      "diverges_at_95": true,
-      "diverges_bonferroni": false,
-      "split_half": {
-        "a": 91.67,
-        "b": 73.68,
-        "spread_pts": 17.98
-      }
-    },
-    {
-      "key": "accuracy:highjumpkick:MODIFIED",
-      "family": "accuracy",
-      "subject": "highjumpkick",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 97.297,
-      "trials": 74,
-      "fired": 72,
-      "ci95_pct": [
-        90.671,
-        99.256
-      ],
-      "half_width_pts": 4.292,
-      "scored": false
-    },
-    {
-      "key": "accuracy:chargebeam",
-      "family": "accuracy",
-      "subject": "chargebeam",
-      "detail": "clean",
-      "declared_pct": 90,
-      "observed_pct": 94.366,
-      "trials": 71,
-      "fired": 67,
-      "ci95_pct": [
-        86.39,
-        97.788
-      ],
-      "half_width_pts": 5.699,
+      "half_width_pts": 5.766,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 89.74,
-        "b": 100,
-        "spread_pts": 10.26
+        "a": 85.71,
+        "b": 97.92,
+        "spread_pts": 12.2
       }
     },
     {
-      "key": "secondary:meteormash:selfBoosts:atk",
+      "key": "secondary:meteormash:selfBoosts",
       "family": "secondary",
       "subject": "meteormash",
-      "detail": "selfBoosts:atk",
+      "detail": "selfBoosts",
       "declared_pct": 20,
-      "observed_pct": 15.714,
-      "trials": 70,
-      "fired": 11,
+      "observed_pct": 17.5,
+      "trials": 80,
+      "fired": 14,
       "ci95_pct": [
-        9.008,
-        25.988
+        10.721,
+        27.258
       ],
-      "half_width_pts": 8.49,
+      "half_width_pts": 8.268,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 14.71,
-        "b": 16.67,
-        "spread_pts": 1.96
+        "a": 17.95,
+        "b": 17.07,
+        "spread_pts": 0.88
       }
     },
     {
-      "key": "secondary:chargebeam:selfBoosts:spa",
+      "key": "secondary:gunkshot:status:psn",
       "family": "secondary",
-      "subject": "chargebeam",
-      "detail": "selfBoosts:spa",
-      "declared_pct": 70,
-      "observed_pct": 72.464,
-      "trials": 69,
-      "fired": 50,
+      "subject": "gunkshot",
+      "detail": "status:psn",
+      "declared_pct": 30,
+      "observed_pct": 26.667,
+      "trials": 75,
+      "fired": 20,
       "ci95_pct": [
-        60.953,
-        81.605
+        17.976,
+        37.631
       ],
-      "half_width_pts": 10.326,
+      "half_width_pts": 9.827,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 65.71,
-        "b": 79.41,
-        "spread_pts": 13.7
+        "a": 26.32,
+        "b": 27.03,
+        "spread_pts": 0.71
       }
     },
     {
@@ -3798,88 +3841,85 @@
       "subject": "triplearrows",
       "detail": "volatile:flinch",
       "declared_pct": 30,
-      "observed_pct": 23.529,
-      "trials": 68,
-      "fired": 16,
+      "observed_pct": 33.784,
+      "trials": 74,
+      "fired": 25,
       "ci95_pct": [
-        15.034,
-        34.855
+        24.047,
+        45.121
       ],
-      "half_width_pts": 9.91,
+      "half_width_pts": 10.537,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": {
-        "a": 22.58,
-        "b": 24.32,
-        "spread_pts": 1.74
+        "a": 35.29,
+        "b": 32.5,
+        "spread_pts": 2.79
       }
     },
     {
-      "key": "accuracy:snarl:MODIFIED",
+      "key": "accuracy:powerwhip:MODIFIED",
       "family": "accuracy",
-      "subject": "snarl",
+      "subject": "powerwhip",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 92.424,
-      "trials": 66,
-      "fired": 61,
+      "observed_pct": 94.286,
+      "trials": 70,
+      "fired": 66,
       "ci95_pct": [
-        83.461,
-        96.721
+        86.208,
+        97.756
       ],
-      "half_width_pts": 6.63,
+      "half_width_pts": 5.774,
       "scored": false
     },
     {
-      "key": "secondary:gunkshot:status:psn",
-      "family": "secondary",
-      "subject": "gunkshot",
-      "detail": "status:psn",
-      "declared_pct": 30,
-      "observed_pct": 42.857,
-      "trials": 63,
-      "fired": 27,
-      "ci95_pct": [
-        31.397,
-        55.138
-      ],
-      "half_width_pts": 11.871,
-      "scored": true,
-      "diverges_at_95": true,
-      "diverges_bonferroni": false,
-      "split_half": null
-    },
-    {
-      "key": "accuracy:poltergeist:MODIFIED",
+      "key": "accuracy:highjumpkick:MODIFIED",
       "family": "accuracy",
-      "subject": "poltergeist",
+      "subject": "highjumpkick",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 93.548,
-      "trials": 62,
-      "fired": 58,
+      "observed_pct": 100,
+      "trials": 67,
+      "fired": 67,
       "ci95_pct": [
-        84.552,
-        97.463
+        94.577,
+        100
       ],
-      "half_width_pts": 6.455,
+      "half_width_pts": 2.711,
       "scored": false
     },
     {
-      "key": "secondary:fierydance:selfBoosts:spa",
-      "family": "secondary",
-      "subject": "fierydance",
-      "detail": "selfBoosts:spa",
-      "declared_pct": 50,
-      "observed_pct": 51.667,
-      "trials": 60,
-      "fired": 31,
+      "key": "multihit:pinmissile:2",
+      "family": "multihit",
+      "subject": "pinmissile",
+      "detail": "hits=2",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 65,
+      "fired": 65,
       "ci95_pct": [
-        39.308,
-        63.825
+        94.42,
+        100
       ],
-      "half_width_pts": 12.259,
+      "half_width_pts": 2.79,
+      "scored": false
+    },
+    {
+      "key": "accuracy:chargebeam",
+      "family": "accuracy",
+      "subject": "chargebeam",
+      "detail": "clean",
+      "declared_pct": 90,
+      "observed_pct": 87.931,
+      "trials": 58,
+      "fired": 51,
+      "ci95_pct": [
+        77.121,
+        94.029
+      ],
+      "half_width_pts": 8.454,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
@@ -3892,13 +3932,29 @@
       "detail": "hits=2",
       "declared_pct": null,
       "observed_pct": 100,
-      "trials": 60,
-      "fired": 60,
+      "trials": 57,
+      "fired": 57,
       "ci95_pct": [
-        93.983,
+        93.686,
         100
       ],
-      "half_width_pts": 3.009,
+      "half_width_pts": 3.157,
+      "scored": false
+    },
+    {
+      "key": "accuracy:hypnosis:MODIFIED",
+      "family": "accuracy",
+      "subject": "hypnosis",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 80,
+      "trials": 55,
+      "fired": 44,
+      "ci95_pct": [
+        67.635,
+        88.448
+      ],
+      "half_width_pts": 10.406,
       "scored": false
     },
     {
@@ -3908,33 +3964,14 @@
       "detail": "hits=3",
       "declared_pct": null,
       "observed_pct": 100,
-      "trials": 58,
-      "fired": 58,
+      "trials": 53,
+      "fired": 53,
       "ci95_pct": [
-        93.788,
+        93.242,
         100
       ],
-      "half_width_pts": 3.106,
+      "half_width_pts": 3.379,
       "scored": false
-    },
-    {
-      "key": "accuracy:gigaimpact",
-      "family": "accuracy",
-      "subject": "gigaimpact",
-      "detail": "clean",
-      "declared_pct": 90,
-      "observed_pct": 87.719,
-      "trials": 57,
-      "fired": 50,
-      "ci95_pct": [
-        76.754,
-        93.922
-      ],
-      "half_width_pts": 8.584,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": null
     },
     {
       "key": "accuracy:icehammer:MODIFIED",
@@ -3942,30 +3979,49 @@
       "subject": "icehammer",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 92.857,
-      "trials": 56,
-      "fired": 52,
+      "observed_pct": 96.226,
+      "trials": 53,
+      "fired": 51,
       "ci95_pct": [
-        83.025,
-        97.187
+        87.246,
+        98.959
       ],
-      "half_width_pts": 7.081,
+      "half_width_pts": 5.857,
       "scored": false
     },
     {
-      "key": "multihit:watershuriken:1",
-      "family": "multihit",
-      "subject": "watershuriken",
-      "detail": "hits=1",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 52,
-      "fired": 52,
+      "key": "secondary:chargebeam:selfBoosts",
+      "family": "secondary",
+      "subject": "chargebeam",
+      "detail": "selfBoosts",
+      "declared_pct": 70,
+      "observed_pct": 75.472,
+      "trials": 53,
+      "fired": 40,
       "ci95_pct": [
-        93.121,
-        100
+        62.433,
+        85.067
       ],
-      "half_width_pts": 3.44,
+      "half_width_pts": 11.317,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": null
+    },
+    {
+      "key": "accuracy:poltergeist:MODIFIED",
+      "family": "accuracy",
+      "subject": "poltergeist",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 90.385,
+      "trials": 52,
+      "fired": 47,
+      "ci95_pct": [
+        79.39,
+        95.823
+      ],
+      "half_width_pts": 8.216,
       "scored": false
     },
     {
@@ -3974,234 +4030,33 @@
       "subject": "firespin",
       "detail": "clean",
       "declared_pct": 85,
-      "observed_pct": 88.462,
-      "trials": 52,
-      "fired": 46,
-      "ci95_pct": [
-        77.028,
-        94.603
-      ],
-      "half_width_pts": 8.787,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": null
-    },
-    {
-      "key": "multihit:bulletseed:2",
-      "family": "multihit",
-      "subject": "bulletseed",
-      "detail": "hits=2",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 51,
-      "fired": 51,
-      "ci95_pct": [
-        92.995,
-        100
-      ],
-      "half_width_pts": 3.502,
-      "scored": false
-    },
-    {
-      "key": "multihit:rockblast:4",
-      "family": "multihit",
-      "subject": "rockblast",
-      "detail": "hits=4",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 50,
-      "fired": 50,
-      "ci95_pct": [
-        92.865,
-        100
-      ],
-      "half_width_pts": 3.567,
-      "scored": false
-    },
-    {
-      "key": "accuracy:bounce",
-      "family": "accuracy",
-      "subject": "bounce",
-      "detail": "clean",
-      "declared_pct": 85,
-      "observed_pct": 91.837,
+      "observed_pct": 77.551,
       "trials": 49,
-      "fired": 45,
-      "ci95_pct": [
-        80.811,
-        96.78
-      ],
-      "half_width_pts": 7.984,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": null
-    },
-    {
-      "key": "accuracy:headsmash:MODIFIED",
-      "family": "accuracy",
-      "subject": "headsmash",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 79.167,
-      "trials": 48,
       "fired": 38,
       "ci95_pct": [
-        65.741,
-        88.27
+        64.121,
+        86.975
       ],
-      "half_width_pts": 11.264,
-      "scored": false
-    },
-    {
-      "key": "accuracy:hypnosis:MODIFIED",
-      "family": "accuracy",
-      "subject": "hypnosis",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 76.087,
-      "trials": 46,
-      "fired": 35,
-      "ci95_pct": [
-        62.065,
-        86.088
-      ],
-      "half_width_pts": 12.011,
-      "scored": false
-    },
-    {
-      "key": "accuracy:willowisp:MODIFIED",
-      "family": "accuracy",
-      "subject": "willowisp",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 86.957,
-      "trials": 46,
-      "fired": 40,
-      "ci95_pct": [
-        74.334,
-        93.882
-      ],
-      "half_width_pts": 9.774,
-      "scored": false
-    },
-    {
-      "key": "multihit:rockblast:1",
-      "family": "multihit",
-      "subject": "rockblast",
-      "detail": "hits=1",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 45,
-      "fired": 45,
-      "ci95_pct": [
-        92.135,
-        100
-      ],
-      "half_width_pts": 3.933,
-      "scored": false
-    },
-    {
-      "key": "accuracy:stoneedge:MODIFIED",
-      "family": "accuracy",
-      "subject": "stoneedge",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 91.111,
-      "trials": 45,
-      "fired": 41,
-      "ci95_pct": [
-        79.266,
-        96.489
-      ],
-      "half_width_pts": 8.611,
-      "scored": false
-    },
-    {
-      "key": "accuracy:iciclecrash:MODIFIED",
-      "family": "accuracy",
-      "subject": "iciclecrash",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 90.244,
-      "trials": 41,
-      "fired": 37,
-      "ci95_pct": [
-        77.452,
-        96.14
-      ],
-      "half_width_pts": 9.344,
-      "scored": false
-    },
-    {
-      "key": "secondary:bugbuzz:targetBoosts:spd",
-      "family": "secondary",
-      "subject": "bugbuzz",
-      "detail": "targetBoosts:spd",
-      "declared_pct": 10,
-      "observed_pct": 12.195,
-      "trials": 41,
-      "fired": 5,
-      "ci95_pct": [
-        5.323,
-        25.544
-      ],
-      "half_width_pts": 10.11,
+      "half_width_pts": 11.427,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": null
     },
     {
-      "key": "secondary:thunderpunch:status:par",
+      "key": "secondary:fierydance:selfBoosts",
       "family": "secondary",
-      "subject": "thunderpunch",
-      "detail": "status:par",
-      "declared_pct": 10,
-      "observed_pct": 10,
-      "trials": 40,
-      "fired": 4,
+      "subject": "fierydance",
+      "detail": "selfBoosts",
+      "declared_pct": 50,
+      "observed_pct": 50,
+      "trials": 46,
+      "fired": 23,
       "ci95_pct": [
-        3.958,
-        23.052
+        36.119,
+        63.881
       ],
-      "half_width_pts": 9.547,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": null
-    },
-    {
-      "key": "accuracy:hammerarm:MODIFIED",
-      "family": "accuracy",
-      "subject": "hammerarm",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 87.179,
-      "trials": 39,
-      "fired": 34,
-      "ci95_pct": [
-        73.294,
-        94.397
-      ],
-      "half_width_pts": 10.551,
-      "scored": false
-    },
-    {
-      "key": "secondary:bounce:status:par",
-      "family": "secondary",
-      "subject": "bounce",
-      "detail": "status:par",
-      "declared_pct": 30,
-      "observed_pct": 17.949,
-      "trials": 39,
-      "fired": 7,
-      "ci95_pct": [
-        8.977,
-        32.668
-      ],
-      "half_width_pts": 11.845,
+      "half_width_pts": 13.881,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
@@ -4214,6 +4069,156 @@
       "detail": "hits=3",
       "declared_pct": null,
       "observed_pct": 100,
+      "trials": 46,
+      "fired": 46,
+      "ci95_pct": [
+        92.293,
+        100
+      ],
+      "half_width_pts": 3.854,
+      "scored": false
+    },
+    {
+      "key": "accuracy:willowisp:MODIFIED",
+      "family": "accuracy",
+      "subject": "willowisp",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 88.889,
+      "trials": 45,
+      "fired": 40,
+      "ci95_pct": [
+        76.501,
+        95.16
+      ],
+      "half_width_pts": 9.329,
+      "scored": false
+    },
+    {
+      "key": "accuracy:stoneedge:MODIFIED",
+      "family": "accuracy",
+      "subject": "stoneedge",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 88.889,
+      "trials": 45,
+      "fired": 40,
+      "ci95_pct": [
+        76.501,
+        95.16
+      ],
+      "half_width_pts": 9.329,
+      "scored": false
+    },
+    {
+      "key": "accuracy:gigaimpact",
+      "family": "accuracy",
+      "subject": "gigaimpact",
+      "detail": "clean",
+      "declared_pct": 90,
+      "observed_pct": 95.455,
+      "trials": 44,
+      "fired": 42,
+      "ci95_pct": [
+        84.865,
+        98.744
+      ],
+      "half_width_pts": 6.94,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": null
+    },
+    {
+      "key": "multihit:rockblast:4",
+      "family": "multihit",
+      "subject": "rockblast",
+      "detail": "hits=4",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 42,
+      "fired": 42,
+      "ci95_pct": [
+        91.62,
+        100
+      ],
+      "half_width_pts": 4.19,
+      "scored": false
+    },
+    {
+      "key": "accuracy:snarl:MODIFIED",
+      "family": "accuracy",
+      "subject": "snarl",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 87.5,
+      "trials": 40,
+      "fired": 35,
+      "ci95_pct": [
+        73.888,
+        94.54
+      ],
+      "half_width_pts": 10.326,
+      "scored": false
+    },
+    {
+      "key": "accuracy:electroweb",
+      "family": "accuracy",
+      "subject": "electroweb",
+      "detail": "clean",
+      "declared_pct": 95,
+      "observed_pct": 97.5,
+      "trials": 40,
+      "fired": 39,
+      "ci95_pct": [
+        87.119,
+        99.557
+      ],
+      "half_width_pts": 6.219,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": null
+    },
+    {
+      "key": "accuracy:hammerarm:MODIFIED",
+      "family": "accuracy",
+      "subject": "hammerarm",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 89.744,
+      "trials": 39,
+      "fired": 35,
+      "ci95_pct": [
+        76.421,
+        95.939
+      ],
+      "half_width_pts": 9.759,
+      "scored": false
+    },
+    {
+      "key": "accuracy:iciclecrash:MODIFIED",
+      "family": "accuracy",
+      "subject": "iciclecrash",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 94.872,
+      "trials": 39,
+      "fired": 37,
+      "ci95_pct": [
+        83.114,
+        98.582
+      ],
+      "half_width_pts": 7.734,
+      "scored": false
+    },
+    {
+      "key": "multihit:rockblast:1",
+      "family": "multihit",
+      "subject": "rockblast",
+      "detail": "hits=1",
+      "declared_pct": null,
+      "observed_pct": 100,
       "trials": 38,
       "fired": 38,
       "ci95_pct": [
@@ -4224,51 +4229,223 @@
       "scored": false
     },
     {
+      "key": "multihit:bulletseed:2",
+      "family": "multihit",
+      "subject": "bulletseed",
+      "detail": "hits=2",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 38,
+      "fired": 38,
+      "ci95_pct": [
+        90.819,
+        100
+      ],
+      "half_width_pts": 4.59,
+      "scored": false
+    },
+    {
+      "key": "multihit:watershuriken:1",
+      "family": "multihit",
+      "subject": "watershuriken",
+      "detail": "hits=1",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 37,
+      "fired": 37,
+      "ci95_pct": [
+        90.594,
+        100
+      ],
+      "half_width_pts": 4.703,
+      "scored": false
+    },
+    {
+      "key": "accuracy:bounce",
+      "family": "accuracy",
+      "subject": "bounce",
+      "detail": "clean",
+      "declared_pct": 85,
+      "observed_pct": 83.784,
+      "trials": 37,
+      "fired": 31,
+      "ci95_pct": [
+        68.864,
+        92.349
+      ],
+      "half_width_pts": 11.743,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": null
+    },
+    {
+      "key": "secondary:bugbuzz:targetBoosts:spd",
+      "family": "secondary",
+      "subject": "bugbuzz",
+      "detail": "targetBoosts:spd",
+      "declared_pct": 10,
+      "observed_pct": 8.108,
+      "trials": 37,
+      "fired": 3,
+      "ci95_pct": [
+        2.796,
+        21.301
+      ],
+      "half_width_pts": 9.252,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": null
+    },
+    {
+      "key": "accuracy:playrough:MODIFIED",
+      "family": "accuracy",
+      "subject": "playrough",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 94.595,
+      "trials": 37,
+      "fired": 35,
+      "ci95_pct": [
+        82.295,
+        98.505
+      ],
+      "half_width_pts": 8.105,
+      "scored": false
+    },
+    {
+      "key": "secondary:thunderpunch:status:par",
+      "family": "secondary",
+      "subject": "thunderpunch",
+      "detail": "status:par",
+      "declared_pct": 10,
+      "observed_pct": 11.429,
+      "trials": 35,
+      "fired": 4,
+      "ci95_pct": [
+        4.535,
+        25.951
+      ],
+      "half_width_pts": 10.708,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": null
+    },
+    {
+      "key": "accuracy:headsmash:MODIFIED",
+      "family": "accuracy",
+      "subject": "headsmash",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 94.286,
+      "trials": 35,
+      "fired": 33,
+      "ci95_pct": [
+        81.393,
+        98.419
+      ],
+      "half_width_pts": 8.513,
+      "scored": false
+    },
+    {
+      "key": "accuracy:psyshieldbash:MODIFIED",
+      "family": "accuracy",
+      "subject": "psyshieldbash",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 81.25,
+      "trials": 32,
+      "fired": 26,
+      "ci95_pct": [
+        64.691,
+        91.11
+      ],
+      "half_width_pts": 13.21,
+      "scored": false
+    },
+    {
+      "key": "multihit:iciclespear:1",
+      "family": "multihit",
+      "subject": "iciclespear",
+      "detail": "hits=1",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 31,
+      "fired": 31,
+      "ci95_pct": [
+        88.974,
+        100
+      ],
+      "half_width_pts": 5.513,
+      "scored": false
+    },
+    {
       "key": "multihit:bulletseed:3",
       "family": "multihit",
       "subject": "bulletseed",
       "detail": "hits=3",
       "declared_pct": null,
       "observed_pct": 100,
-      "trials": 35,
-      "fired": 35,
+      "trials": 31,
+      "fired": 31,
       "ci95_pct": [
-        90.11,
+        88.974,
         100
       ],
-      "half_width_pts": 4.945,
+      "half_width_pts": 5.513,
       "scored": false
     },
     {
-      "key": "accuracy:icefang:MODIFIED",
+      "key": "accuracy:supercellslam:MODIFIED",
       "family": "accuracy",
-      "subject": "icefang",
+      "subject": "supercellslam",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 94.118,
-      "trials": 34,
-      "fired": 32,
+      "observed_pct": 100,
+      "trials": 30,
+      "fired": 30,
       "ci95_pct": [
-        80.906,
-        98.372
+        88.649,
+        100
       ],
-      "half_width_pts": 8.733,
+      "half_width_pts": 5.676,
       "scored": false
     },
     {
-      "key": "multihit:rockblast:5",
-      "family": "multihit",
-      "subject": "rockblast",
-      "detail": "hits=5",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 32,
-      "fired": 32,
+      "key": "accuracy:aquatail",
+      "family": "accuracy",
+      "subject": "aquatail",
+      "detail": "clean",
+      "declared_pct": 90,
+      "observed_pct": 96.667,
+      "trials": 30,
+      "fired": 29,
       "ci95_pct": [
-        89.282,
-        100
+        83.33,
+        99.409
       ],
-      "half_width_pts": 5.359,
+      "half_width_pts": 8.04,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": null
+    },
+    {
+      "key": "accuracy:megahorn:MODIFIED",
+      "family": "accuracy",
+      "subject": "megahorn",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 89.655,
+      "trials": 29,
+      "fired": 26,
+      "ci95_pct": [
+        73.615,
+        96.419
+      ],
+      "half_width_pts": 11.402,
       "scored": false
     },
     {
@@ -4278,103 +4455,39 @@
       "detail": "hits=4",
       "declared_pct": null,
       "observed_pct": 100,
-      "trials": 32,
-      "fired": 32,
-      "ci95_pct": [
-        89.282,
-        100
-      ],
-      "half_width_pts": 5.359,
-      "scored": false
-    },
-    {
-      "key": "accuracy:playrough:MODIFIED",
-      "family": "accuracy",
-      "subject": "playrough",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 32,
-      "fired": 32,
-      "ci95_pct": [
-        89.282,
-        100
-      ],
-      "half_width_pts": 5.359,
-      "scored": false
-    },
-    {
-      "key": "accuracy:megahorn:MODIFIED",
-      "family": "accuracy",
-      "subject": "megahorn",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 86.207,
-      "trials": 29,
-      "fired": 25,
-      "ci95_pct": [
-        69.441,
-        94.503
-      ],
-      "half_width_pts": 12.531,
-      "scored": false
-    },
-    {
-      "key": "accuracy:supercellslam:MODIFIED",
-      "family": "accuracy",
-      "subject": "supercellslam",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 96.552,
-      "trials": 29,
+      "trials": 28,
       "fired": 28,
       "ci95_pct": [
-        82.824,
-        99.389
+        87.936,
+        100
       ],
-      "half_width_pts": 8.282,
+      "half_width_pts": 6.032,
       "scored": false
     },
     {
-      "key": "accuracy:psyshieldbash:MODIFIED",
+      "key": "accuracy:matchagotcha",
       "family": "accuracy",
-      "subject": "psyshieldbash",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 92.857,
-      "trials": 28,
-      "fired": 26,
-      "ci95_pct": [
-        77.355,
-        98.019
-      ],
-      "half_width_pts": 10.332,
-      "scored": false
-    },
-    {
-      "key": "accuracy:aquatail",
-      "family": "accuracy",
-      "subject": "aquatail",
+      "subject": "matchagotcha",
       "detail": "clean",
       "declared_pct": 90,
-      "observed_pct": 88.889,
-      "trials": 27,
-      "fired": 24,
+      "observed_pct": 71.429,
+      "trials": 28,
+      "fired": 20,
       "ci95_pct": [
-        71.942,
-        96.148
+        52.941,
+        84.746
       ],
-      "half_width_pts": 12.103,
+      "half_width_pts": 15.903,
       "scored": true,
-      "diverges_at_95": false,
+      "diverges_at_95": true,
       "diverges_bonferroni": false,
       "split_half": null
     },
     {
-      "key": "accuracy:populationbomb:MODIFIED",
-      "family": "accuracy",
-      "subject": "populationbomb",
-      "detail": "modified",
+      "key": "multihit:rockblast:5",
+      "family": "multihit",
+      "subject": "rockblast",
+      "detail": "hits=5",
       "declared_pct": null,
       "observed_pct": 100,
       "trials": 27,
@@ -4387,23 +4500,39 @@
       "scored": false
     },
     {
-      "key": "accuracy:matchagotcha",
-      "family": "accuracy",
-      "subject": "matchagotcha",
-      "detail": "clean",
-      "declared_pct": 90,
-      "observed_pct": 88.889,
-      "trials": 27,
-      "fired": 24,
+      "key": "secondary:extrasensory:volatile:flinch",
+      "family": "secondary",
+      "subject": "extrasensory",
+      "detail": "volatile:flinch",
+      "declared_pct": 10,
+      "observed_pct": 23.077,
+      "trials": 26,
+      "fired": 6,
       "ci95_pct": [
-        71.942,
-        96.148
+        11.034,
+        42.052
       ],
-      "half_width_pts": 12.103,
+      "half_width_pts": 15.509,
       "scored": true,
-      "diverges_at_95": false,
+      "diverges_at_95": true,
       "diverges_bonferroni": false,
       "split_half": null
+    },
+    {
+      "key": "accuracy:icefang:MODIFIED",
+      "family": "accuracy",
+      "subject": "icefang",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 91.667,
+      "trials": 24,
+      "fired": 22,
+      "ci95_pct": [
+        74.151,
+        97.684
+      ],
+      "half_width_pts": 11.766,
+      "scored": false
     },
     {
       "key": "accuracy:thunder:MODIFIED",
@@ -4411,65 +4540,14 @@
       "subject": "thunder",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 88.889,
-      "trials": 27,
-      "fired": 24,
+      "observed_pct": 72.727,
+      "trials": 22,
+      "fired": 16,
       "ci95_pct": [
-        71.942,
-        96.148
+        51.848,
+        86.849
       ],
-      "half_width_pts": 12.103,
-      "scored": false
-    },
-    {
-      "key": "multihit:iciclespear:1",
-      "family": "multihit",
-      "subject": "iciclespear",
-      "detail": "hits=1",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 26,
-      "fired": 26,
-      "ci95_pct": [
-        87.127,
-        100
-      ],
-      "half_width_pts": 6.436,
-      "scored": false
-    },
-    {
-      "key": "secondary:extrasensory:volatile:flinch",
-      "family": "secondary",
-      "subject": "extrasensory",
-      "detail": "volatile:flinch",
-      "declared_pct": 10,
-      "observed_pct": 12,
-      "trials": 25,
-      "fired": 3,
-      "ci95_pct": [
-        4.167,
-        29.956
-      ],
-      "half_width_pts": 12.894,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": null
-    },
-    {
-      "key": "multihit:pinmissile:4",
-      "family": "multihit",
-      "subject": "pinmissile",
-      "detail": "hits=4",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 23,
-      "fired": 23,
-      "ci95_pct": [
-        85.688,
-        100
-      ],
-      "half_width_pts": 7.156,
+      "half_width_pts": 17.5,
       "scored": false
     },
     {
@@ -4489,36 +4567,51 @@
       "scored": false
     },
     {
-      "key": "accuracy:stoneaxe:MODIFIED",
+      "key": "accuracy:airslash:MODIFIED",
       "family": "accuracy",
-      "subject": "stoneaxe",
+      "subject": "airslash",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 100,
+      "observed_pct": 85.714,
       "trials": 21,
-      "fired": 21,
+      "fired": 18,
       "ci95_pct": [
-        84.536,
-        100
+        65.364,
+        95.019
       ],
-      "half_width_pts": 7.732,
-      "scored": false,
-      "refused": "the declaration gate refuses this move: the frozen engine and the format disagree about its secondary chance"
+      "half_width_pts": 14.828,
+      "scored": false
     },
     {
-      "key": "secondary:matchagotcha:status:brn",
-      "family": "secondary",
-      "subject": "matchagotcha",
-      "detail": "status:brn",
-      "declared_pct": 20,
-      "observed_pct": 5.263,
-      "trials": 19,
-      "fired": 1,
+      "key": "accuracy:populationbomb:MODIFIED",
+      "family": "accuracy",
+      "subject": "populationbomb",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 95,
+      "trials": 20,
+      "fired": 19,
       "ci95_pct": [
-        0.935,
-        24.639
+        76.387,
+        99.112
       ],
-      "half_width_pts": 11.852,
+      "half_width_pts": 11.362,
+      "scored": false
+    },
+    {
+      "key": "secondary:bounce:status:par",
+      "family": "secondary",
+      "subject": "bounce",
+      "detail": "status:par",
+      "declared_pct": 30,
+      "observed_pct": 15,
+      "trials": 20,
+      "fired": 3,
+      "ci95_pct": [
+        5.237,
+        36.042
+      ],
+      "half_width_pts": 15.403,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
@@ -4530,14 +4623,14 @@
       "subject": "superfang",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 16,
-      "fired": 16,
+      "observed_pct": 94.737,
+      "trials": 19,
+      "fired": 18,
       "ci95_pct": [
-        80.639,
-        100
+        75.361,
+        99.065
       ],
-      "half_width_pts": 9.68,
+      "half_width_pts": 11.852,
       "scored": false
     },
     {
@@ -4546,33 +4639,33 @@
       "subject": "fireblast",
       "detail": "status:brn",
       "declared_pct": 10,
-      "observed_pct": 0,
-      "trials": 16,
-      "fired": 0,
+      "observed_pct": 15.789,
+      "trials": 19,
+      "fired": 3,
       "ci95_pct": [
-        0,
-        19.361
+        5.52,
+        37.565
       ],
-      "half_width_pts": 9.68,
+      "half_width_pts": 16.023,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": null
     },
     {
-      "key": "accuracy:airslash:MODIFIED",
-      "family": "accuracy",
-      "subject": "airslash",
-      "detail": "modified",
+      "key": "multihit:pinmissile:4",
+      "family": "multihit",
+      "subject": "pinmissile",
+      "detail": "hits=4",
       "declared_pct": null,
-      "observed_pct": 81.25,
-      "trials": 16,
-      "fired": 13,
+      "observed_pct": 100,
+      "trials": 18,
+      "fired": 18,
       "ci95_pct": [
-        56.991,
-        93.408
+        82.412,
+        100
       ],
-      "half_width_pts": 18.209,
+      "half_width_pts": 8.794,
       "scored": false
     },
     {
@@ -4592,43 +4685,27 @@
       "scored": false
     },
     {
-      "key": "multihit:bulletseed:4",
-      "family": "multihit",
-      "subject": "bulletseed",
-      "detail": "hits=4",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 15,
-      "fired": 15,
-      "ci95_pct": [
-        79.612,
-        100
-      ],
-      "half_width_pts": 10.194,
-      "scored": false
-    },
-    {
-      "key": "multihit:bulletseed:5",
-      "family": "multihit",
-      "subject": "bulletseed",
-      "detail": "hits=5",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 14,
-      "fired": 14,
-      "ci95_pct": [
-        78.469,
-        100
-      ],
-      "half_width_pts": 10.766,
-      "scored": false
-    },
-    {
-      "key": "accuracy:flyingpress",
+      "key": "accuracy:hyperbeam:MODIFIED",
       "family": "accuracy",
-      "subject": "flyingpress",
+      "subject": "hyperbeam",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 85.714,
+      "trials": 14,
+      "fired": 12,
+      "ci95_pct": [
+        60.059,
+        95.991
+      ],
+      "half_width_pts": 17.966,
+      "scored": false
+    },
+    {
+      "key": "accuracy:highjumpkick",
+      "family": "accuracy",
+      "subject": "highjumpkick",
       "detail": "clean",
-      "declared_pct": 95,
+      "declared_pct": 90,
       "observed_pct": 100,
       "trials": 14,
       "fired": 14,
@@ -4643,42 +4720,26 @@
       "split_half": null
     },
     {
-      "key": "accuracy:hyperbeam:MODIFIED",
+      "key": "accuracy:zenheadbutt:MODIFIED",
       "family": "accuracy",
-      "subject": "hyperbeam",
+      "subject": "zenheadbutt",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 78.571,
-      "trials": 14,
-      "fired": 11,
+      "observed_pct": 76.923,
+      "trials": 13,
+      "fired": 10,
       "ci95_pct": [
-        52.411,
-        92.429
+        49.744,
+        91.82
       ],
-      "half_width_pts": 20.009,
+      "half_width_pts": 21.038,
       "scored": false
     },
     {
-      "key": "multihit:pinmissile:5",
-      "family": "multihit",
-      "subject": "pinmissile",
-      "detail": "hits=5",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 14,
-      "fired": 14,
-      "ci95_pct": [
-        78.469,
-        100
-      ],
-      "half_width_pts": 10.766,
-      "scored": false
-    },
-    {
-      "key": "multihit:iciclespear:4",
+      "key": "multihit:iciclespear:5",
       "family": "multihit",
       "subject": "iciclespear",
-      "detail": "hits=4",
+      "detail": "hits=5",
       "declared_pct": null,
       "observed_pct": 100,
       "trials": 13,
@@ -4691,59 +4752,39 @@
       "scored": false
     },
     {
-      "key": "secondary:crosspoison:status:psn",
+      "key": "secondary:matchagotcha:status:brn",
       "family": "secondary",
-      "subject": "crosspoison",
-      "detail": "status:psn",
-      "declared_pct": 10,
-      "observed_pct": 16.667,
-      "trials": 12,
-      "fired": 2,
+      "subject": "matchagotcha",
+      "detail": "status:brn",
+      "declared_pct": 20,
+      "observed_pct": 23.077,
+      "trials": 13,
+      "fired": 3,
       "ci95_pct": [
-        4.697,
-        44.803
+        8.18,
+        50.256
       ],
-      "half_width_pts": 20.053,
+      "half_width_pts": 21.038,
       "scored": true,
       "diverges_at_95": false,
       "diverges_bonferroni": false,
       "split_half": null
     },
     {
-      "key": "accuracy:electroweb",
+      "key": "accuracy:stoneaxe:MODIFIED",
       "family": "accuracy",
-      "subject": "electroweb",
-      "detail": "clean",
-      "declared_pct": 95,
-      "observed_pct": 83.333,
-      "trials": 12,
-      "fired": 10,
-      "ci95_pct": [
-        55.197,
-        95.303
-      ],
-      "half_width_pts": 20.053,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": null
-    },
-    {
-      "key": "accuracy:ceaselessedge:MODIFIED",
-      "family": "accuracy",
-      "subject": "ceaselessedge",
+      "subject": "stoneaxe",
       "detail": "modified",
       "declared_pct": null,
-      "observed_pct": 90,
-      "trials": 10,
-      "fired": 9,
+      "observed_pct": 100,
+      "trials": 12,
+      "fired": 12,
       "ci95_pct": [
-        59.585,
-        98.212
+        75.751,
+        100
       ],
-      "half_width_pts": 19.314,
-      "scored": false,
-      "refused": "the declaration gate refuses this move: the frozen engine and the format disagree about its secondary chance"
+      "half_width_pts": 12.125,
+      "scored": false
     },
     {
       "key": "accuracy:fly",
@@ -4751,23 +4792,55 @@
       "subject": "fly",
       "detail": "clean",
       "declared_pct": 95,
-      "observed_pct": 100,
-      "trials": 10,
-      "fired": 10,
+      "observed_pct": 81.818,
+      "trials": 11,
+      "fired": 9,
       "ci95_pct": [
-        72.247,
-        100
+        52.302,
+        94.863
       ],
-      "half_width_pts": 13.877,
+      "half_width_pts": 21.281,
       "scored": true,
-      "diverges_at_95": false,
+      "diverges_at_95": true,
       "diverges_bonferroni": false,
       "split_half": null
     },
     {
-      "key": "multihit:iciclespear:5",
+      "key": "multihit:pinmissile:5",
       "family": "multihit",
-      "subject": "iciclespear",
+      "subject": "pinmissile",
+      "detail": "hits=5",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 11,
+      "fired": 11,
+      "ci95_pct": [
+        74.117,
+        100
+      ],
+      "half_width_pts": 12.942,
+      "scored": false
+    },
+    {
+      "key": "multihit:bulletseed:4",
+      "family": "multihit",
+      "subject": "bulletseed",
+      "detail": "hits=4",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 9,
+      "fired": 9,
+      "ci95_pct": [
+        70.085,
+        100
+      ],
+      "half_width_pts": 14.957,
+      "scored": false
+    },
+    {
+      "key": "multihit:bulletseed:5",
+      "family": "multihit",
+      "subject": "bulletseed",
       "detail": "hits=5",
       "declared_pct": null,
       "observed_pct": 100,
@@ -4781,86 +4854,35 @@
       "scored": false
     },
     {
-      "key": "accuracy:zenheadbutt:MODIFIED",
-      "family": "accuracy",
-      "subject": "zenheadbutt",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 62.5,
-      "trials": 8,
-      "fired": 5,
-      "ci95_pct": [
-        30.574,
-        86.316
-      ],
-      "half_width_pts": 27.871,
-      "scored": false
-    },
-    {
-      "key": "accuracy:drillrun:MODIFIED",
-      "family": "accuracy",
-      "subject": "drillrun",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 8,
-      "fired": 8,
-      "ci95_pct": [
-        67.559,
-        100
-      ],
-      "half_width_pts": 16.22,
-      "scored": false
-    },
-    {
-      "key": "accuracy:pinmissile:MODIFIED",
-      "family": "accuracy",
-      "subject": "pinmissile",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 8,
-      "fired": 8,
-      "ci95_pct": [
-        67.559,
-        100
-      ],
-      "half_width_pts": 16.22,
-      "scored": false
-    },
-    {
-      "key": "accuracy:rocktomb",
-      "family": "accuracy",
-      "subject": "rocktomb",
-      "detail": "clean",
-      "declared_pct": 95,
-      "observed_pct": 87.5,
-      "trials": 8,
-      "fired": 7,
-      "ci95_pct": [
-        52.911,
-        97.758
-      ],
-      "half_width_pts": 22.424,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": null
-    },
-    {
-      "key": "multihit:bulletseed:1",
+      "key": "multihit:iciclespear:4",
       "family": "multihit",
-      "subject": "bulletseed",
-      "detail": "hits=1",
+      "subject": "iciclespear",
+      "detail": "hits=4",
       "declared_pct": null,
       "observed_pct": 100,
-      "trials": 8,
-      "fired": 8,
+      "trials": 9,
+      "fired": 9,
       "ci95_pct": [
-        67.559,
+        70.085,
         100
       ],
-      "half_width_pts": 16.22,
+      "half_width_pts": 14.957,
+      "scored": false
+    },
+    {
+      "key": "ohko:sheercold:ice-user:MODIFIED",
+      "family": "ohko",
+      "subject": "sheercold",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 50,
+      "trials": 8,
+      "fired": 4,
+      "ci95_pct": [
+        21.522,
+        78.478
+      ],
+      "half_width_pts": 28.478,
       "scored": false
     },
     {
@@ -4870,14 +4892,116 @@
       "detail": "modified",
       "declared_pct": null,
       "observed_pct": 100,
-      "trials": 5,
-      "fired": 5,
+      "trials": 8,
+      "fired": 8,
       "ci95_pct": [
-        56.552,
+        67.559,
         100
       ],
-      "half_width_pts": 21.724,
+      "half_width_pts": 16.22,
       "scored": false
+    },
+    {
+      "key": "accuracy:drillrun:MODIFIED",
+      "family": "accuracy",
+      "subject": "drillrun",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 85.714,
+      "trials": 7,
+      "fired": 6,
+      "ci95_pct": [
+        48.687,
+        97.432
+      ],
+      "half_width_pts": 24.372,
+      "scored": false
+    },
+    {
+      "key": "secondary:crosspoison:status:psn",
+      "family": "secondary",
+      "subject": "crosspoison",
+      "detail": "status:psn",
+      "declared_pct": 10,
+      "observed_pct": 14.286,
+      "trials": 7,
+      "fired": 1,
+      "ci95_pct": [
+        2.568,
+        51.313
+      ],
+      "half_width_pts": 24.372,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": null
+    },
+    {
+      "key": "accuracy:hydrocannon:MODIFIED",
+      "family": "accuracy",
+      "subject": "hydrocannon",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 7,
+      "fired": 7,
+      "ci95_pct": [
+        64.567,
+        100
+      ],
+      "half_width_pts": 17.717,
+      "scored": false
+    },
+    {
+      "key": "accuracy:fireblast:MODIFIED",
+      "family": "accuracy",
+      "subject": "fireblast",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 71.429,
+      "trials": 7,
+      "fired": 5,
+      "ci95_pct": [
+        35.893,
+        91.778
+      ],
+      "half_width_pts": 27.942,
+      "scored": false
+    },
+    {
+      "key": "accuracy:ceaselessedge:MODIFIED",
+      "family": "accuracy",
+      "subject": "ceaselessedge",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 66.667,
+      "trials": 6,
+      "fired": 4,
+      "ci95_pct": [
+        29.999,
+        90.323
+      ],
+      "half_width_pts": 30.162,
+      "scored": false
+    },
+    {
+      "key": "accuracy:flyingpress",
+      "family": "accuracy",
+      "subject": "flyingpress",
+      "detail": "clean",
+      "declared_pct": 95,
+      "observed_pct": 100,
+      "trials": 6,
+      "fired": 6,
+      "ci95_pct": [
+        60.967,
+        100
+      ],
+      "half_width_pts": 19.517,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": null
     },
     {
       "key": "accuracy:dynamicpunch:MODIFIED",
@@ -4896,9 +5020,9 @@
       "scored": false
     },
     {
-      "key": "accuracy:hydrocannon:MODIFIED",
+      "key": "accuracy:frostbreath:MODIFIED",
       "family": "accuracy",
-      "subject": "hydrocannon",
+      "subject": "frostbreath",
       "detail": "modified",
       "declared_pct": null,
       "observed_pct": 100,
@@ -4912,48 +5036,26 @@
       "scored": false
     },
     {
-      "key": "accuracy:highjumpkick",
+      "key": "accuracy:pinmissile:MODIFIED",
       "family": "accuracy",
-      "subject": "highjumpkick",
-      "detail": "clean",
-      "declared_pct": 90,
-      "observed_pct": 75,
-      "trials": 4,
-      "fired": 3,
-      "ci95_pct": [
-        30.064,
-        95.441
-      ],
-      "half_width_pts": 32.689,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": null
-    },
-    {
-      "key": "accuracy:lightofruin",
-      "family": "accuracy",
-      "subject": "lightofruin",
-      "detail": "clean",
-      "declared_pct": 90,
+      "subject": "pinmissile",
+      "detail": "modified",
+      "declared_pct": null,
       "observed_pct": 100,
-      "trials": 4,
-      "fired": 4,
+      "trials": 5,
+      "fired": 5,
       "ci95_pct": [
-        51.011,
+        56.552,
         100
       ],
-      "half_width_pts": 24.495,
-      "scored": true,
-      "diverges_at_95": false,
-      "diverges_bonferroni": false,
-      "split_half": null
+      "half_width_pts": 21.724,
+      "scored": false
     },
     {
-      "key": "accuracy:fireblast:MODIFIED",
-      "family": "accuracy",
-      "subject": "fireblast",
-      "detail": "modified",
+      "key": "multihit:bulletseed:1",
+      "family": "multihit",
+      "subject": "bulletseed",
+      "detail": "hits=1",
       "declared_pct": null,
       "observed_pct": 100,
       "trials": 4,
@@ -4963,54 +5065,6 @@
         100
       ],
       "half_width_pts": 24.495,
-      "scored": false
-    },
-    {
-      "key": "accuracy:frostbreath:MODIFIED",
-      "family": "accuracy",
-      "subject": "frostbreath",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 4,
-      "fired": 4,
-      "ci95_pct": [
-        51.011,
-        100
-      ],
-      "half_width_pts": 24.495,
-      "scored": false
-    },
-    {
-      "key": "accuracy:toxic:MODIFIED",
-      "family": "accuracy",
-      "subject": "toxic",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 3,
-      "fired": 3,
-      "ci95_pct": [
-        43.85,
-        100
-      ],
-      "half_width_pts": 28.075,
-      "scored": false
-    },
-    {
-      "key": "accuracy:hydropump:MODIFIED",
-      "family": "accuracy",
-      "subject": "hydropump",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 100,
-      "trials": 3,
-      "fired": 3,
-      "ci95_pct": [
-        43.85,
-        100
-      ],
-      "half_width_pts": 28.075,
       "scored": false
     },
     {
@@ -5030,25 +5084,44 @@
       "scored": false
     },
     {
-      "key": "accuracy:gunkshot:MODIFIED",
-      "family": "accuracy",
-      "subject": "gunkshot",
-      "detail": "modified",
-      "declared_pct": null,
-      "observed_pct": 33.333,
-      "trials": 3,
-      "fired": 1,
-      "ci95_pct": [
-        6.149,
-        79.234
-      ],
-      "half_width_pts": 36.542,
-      "scored": false
-    },
-    {
       "key": "accuracy:electroweb:MODIFIED",
       "family": "accuracy",
       "subject": "electroweb",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 3,
+      "fired": 3,
+      "ci95_pct": [
+        43.85,
+        100
+      ],
+      "half_width_pts": 28.075,
+      "scored": false
+    },
+    {
+      "key": "accuracy:rocktomb",
+      "family": "accuracy",
+      "subject": "rocktomb",
+      "detail": "clean",
+      "declared_pct": 95,
+      "observed_pct": 100,
+      "trials": 3,
+      "fired": 3,
+      "ci95_pct": [
+        43.85,
+        100
+      ],
+      "half_width_pts": 28.075,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": null
+    },
+    {
+      "key": "accuracy:gunkshot:MODIFIED",
+      "family": "accuracy",
+      "subject": "gunkshot",
       "detail": "modified",
       "declared_pct": null,
       "observed_pct": 50,
@@ -5062,11 +5135,27 @@
       "scored": false
     },
     {
-      "key": "accuracy:mountaingale",
+      "key": "accuracy:firespin:MODIFIED",
       "family": "accuracy",
-      "subject": "mountaingale",
+      "subject": "firespin",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 50,
+      "trials": 2,
+      "fired": 1,
+      "ci95_pct": [
+        9.453,
+        90.547
+      ],
+      "half_width_pts": 40.547,
+      "scored": false
+    },
+    {
+      "key": "accuracy:lightofruin",
+      "family": "accuracy",
+      "subject": "lightofruin",
       "detail": "clean",
-      "declared_pct": 85,
+      "declared_pct": 90,
       "observed_pct": 100,
       "trials": 2,
       "fired": 2,
@@ -5100,6 +5189,38 @@
       "split_half": null
     },
     {
+      "key": "accuracy:toxic:MODIFIED",
+      "family": "accuracy",
+      "subject": "toxic",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 1,
+      "fired": 1,
+      "ci95_pct": [
+        20.655,
+        100
+      ],
+      "half_width_pts": 39.673,
+      "scored": false
+    },
+    {
+      "key": "accuracy:aquatail:MODIFIED",
+      "family": "accuracy",
+      "subject": "aquatail",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 1,
+      "fired": 1,
+      "ci95_pct": [
+        20.655,
+        100
+      ],
+      "half_width_pts": 39.673,
+      "scored": false
+    },
+    {
       "key": "accuracy:chargebeam:MODIFIED",
       "family": "accuracy",
       "subject": "chargebeam",
@@ -5114,6 +5235,41 @@
       ],
       "half_width_pts": 39.673,
       "scored": false
+    },
+    {
+      "key": "accuracy:gigaimpact:MODIFIED",
+      "family": "accuracy",
+      "subject": "gigaimpact",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 1,
+      "fired": 1,
+      "ci95_pct": [
+        20.655,
+        100
+      ],
+      "half_width_pts": 39.673,
+      "scored": false
+    },
+    {
+      "key": "accuracy:mountaingale",
+      "family": "accuracy",
+      "subject": "mountaingale",
+      "detail": "clean",
+      "declared_pct": 85,
+      "observed_pct": 100,
+      "trials": 1,
+      "fired": 1,
+      "ci95_pct": [
+        20.655,
+        100
+      ],
+      "half_width_pts": 39.673,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": null
     },
     {
       "key": "accuracy:fly:MODIFIED",
@@ -5132,9 +5288,41 @@
       "scored": false
     },
     {
-      "key": "accuracy:bounce:MODIFIED",
+      "key": "accuracy:dragonrush:MODIFIED",
       "family": "accuracy",
-      "subject": "bounce",
+      "subject": "dragonrush",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 0,
+      "trials": 1,
+      "fired": 0,
+      "ci95_pct": [
+        0,
+        79.345
+      ],
+      "half_width_pts": 39.673,
+      "scored": false
+    },
+    {
+      "key": "accuracy:meteormash:MODIFIED",
+      "family": "accuracy",
+      "subject": "meteormash",
+      "detail": "modified",
+      "declared_pct": null,
+      "observed_pct": 100,
+      "trials": 1,
+      "fired": 1,
+      "ci95_pct": [
+        20.655,
+        100
+      ],
+      "half_width_pts": 39.673,
+      "scored": false
+    },
+    {
+      "key": "accuracy:matchagotcha:MODIFIED",
+      "family": "accuracy",
+      "subject": "matchagotcha",
       "detail": "modified",
       "declared_pct": null,
       "observed_pct": 100,

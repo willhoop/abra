@@ -31,6 +31,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -204,8 +205,41 @@ function checkAsserted(f, src) {
  * Two shapes: a data file nobody generates, and a generated file that does not say so.
  * ------------------------------------------------------------------------------------------- */
 const unreadable = [];
-function checkGeneratedFiles(srcs) {
-  const allSrc = srcs.map(s => read(s.full)).join('\n');
+/* WHO WRITES THIS FILE IS ASKED, NOT GUESSED — engine/provenance.js --graph --json.
+ *
+ * This check used to answer it with `allSrc.includes(file)`: a substring search for the file's NAME
+ * anywhere in the concatenated source of the repository. That is a second, worse implementation of a
+ * derivation that already exists, and it is wrong in both directions. It says YES to a name that
+ * appears only in a comment or in a sentence about the file, and it says NO to every artifact whose
+ * path is computed — `'roster.' + STAGE + '.json'`, `` `exploitability-${TAG}.json` ``, an
+ * `OUT_WEIGHTS` environment variable. provenance.js has four ranked arms for exactly this and reports
+ * HOW it found each writer; parsing its human table would be the same mistake one level up, so this
+ * takes the `--json` shape it publishes for callers. status.js and quarantine.js already do.
+ *
+ * `data/roster.moves.prev.json` is the row that made this worth doing: a `.prev.json` sidecar written
+ * beside a rewritten artifact, flagged for weeks as "no generator writes it" because no source names
+ * that string.
+ *
+ * IF THE SUBPROCESS FAILS THIS CHECK GOES SILENT AND SAYS SO. Falling back to the substring search
+ * would republish the answer this change exists to retire, wearing the new check's name. */
+function writerIndex() {
+  try {
+    const rows = JSON.parse(execFileSync(process.execPath,
+      [D('engine', 'provenance.js'), '--graph', '--json'], { encoding: 'utf8', maxBuffer: 1 << 26 }));
+    const m = new Map();
+    for (const r of rows) m.set(String(r.file), r);
+    return { ok: true, rows: m };
+  } catch (e) {
+    return { ok: false, why: String((e && e.message) || e).split('\n')[0] };
+  }
+}
+function checkGeneratedFiles() {
+  const idx = writerIndex();
+  if (!idx.ok) {
+    unreadable.push('engine/provenance.js --graph --json did not answer (' + idx.why + ') — S13 is '
+      + 'UNRUN this pass rather than answered by the substring search it replaced');
+    return;
+  }
   let files; try { files = fs.readdirSync(D('data')); } catch (e) { return; }
   for (const file of files) {
     if (!/\.(json|js)$/.test(file)) continue;
@@ -215,7 +249,8 @@ function checkGeneratedFiles(srcs) {
      * version and purpose fields. Flagging them as "generated but does not say so" was the checker
      * misreading the direction of the dependency. */
     if (/^(quality-filter|regulations)\.json$/.test(file)) continue;
-    const generated = allSrc.includes(file);
+    const row = idx.rows.get(file);
+    const generated = !!(row && row.by && !row.unknown);
     const body = read(D('data', file)).slice(0, 400);
     /* AN ARTIFACT WE DID NOT GET THE BYTES OF IS NOT AN ARTIFACT WITHOUT A HEADER.
      *
@@ -228,7 +263,15 @@ function checkGeneratedFiles(srcs) {
     if (!body.trim()) { unreadable.push(file); continue; }
     const saysGenerated = /GENERATED|generated|do not hand-edit|provenance/i.test(body);
     if (!generated && !/quality-filter|regulations/.test(file)) {
-      flag('S13', 'data/' + file, 'no generator writes it', 'a file nobody generates is a file that will lie');
+      /* THE REASON TRAVELS AS `detail`, NEVER IN `what`. provenance.js states why it found no
+       * writer and that is worth printing — but `what` is the finding's IDENTITY for the ratchet
+       * (see fingerprint()), and `detail` is the variable part that is deliberately excluded.
+       * Appending the reason to `what` was the first version of this line and it retired 20
+       * baselined findings and re-raised them under new names in one run: a rewording that reads as
+       * "20 fixed, 20 new" is precisely the laundering the ratchet exists to prevent. */
+      flag('S13', 'data/' + file, 'no generator writes it',
+           'a file nobody generates is a file that will lie',
+           [row && row.why ? row.why : 'engine/provenance.js has no row for it at all']);
     } else if (generated && !saysGenerated) {
       flag('S13', 'data/' + file, 'generated but does not say so', 'generated files carry a GENERATED header');
     }
@@ -289,7 +332,7 @@ for (const f of srcs) {
   checkHardcodes(f, src);
   checkAsserted(f, src);
 }
-checkGeneratedFiles(srcs);
+checkGeneratedFiles();
 checkOrphans(srcs);
 
 const byStd = {};

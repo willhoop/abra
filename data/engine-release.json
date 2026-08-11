@@ -1,10 +1,10 @@
 {
-  "current": "f65caf5625fe",
-  "cut": "2026-08-11T08:24:21.138Z",
-  "why": "overnight 2026-08-11: after the tag split, the eleven-defect pass and the identity restamp; frozen so MEASURE can build the rate runner while ENGINE keeps working",
-  "cuts": 1,
-  "latest_cut": "2026-08-11T08:24:21.138Z",
-  "latest_why": "overnight 2026-08-11: after the tag split, the eleven-defect pass and the identity restamp; frozen so MEASURE can build the rate runner while ENGINE keeps working",
-  "pointer_written": "2026-08-11T08:24:21.142Z",
+  "current": "b838c0d12daa",
+  "cut": "2026-08-11T10:10:33.353Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 43,
+  "latest_cut": "2026-08-11T10:13:22.201Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-11T10:13:22.203Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

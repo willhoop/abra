@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-11T10:14:31.814Z",
+  "generated": "2026-08-11T10:20:07.335Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 152,
-    "open": 97,
-    "closed": 55,
-    "open_asserting_breakage": 2,
+    "register_rows": 155,
+    "open": 99,
+    "closed": 56,
+    "open_asserting_breakage": 3,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -599,6 +599,33 @@
       "full": "levitate is gated twice and the two gates agree only by luck — 2026-08-11. `absorbedby`/`typeimmunity` and `isgrounded`/`airborne_abil` are independent implementations of one fact, which is facts-are-global broken inside the engine. found because breaking either one alone left the assert-mode probe green at 0/85 — the duplication is what made the test unfalsifiable. they agree today. one implementation, everyone calls it"
     },
     {
+      "n": 187,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "FREEZE-DRY ROLLS A 10% FREEZE THAT THIS FORMAT DELETED — 1,656 corpus uses. `data/move-effects.js` carries MAINLINE's se",
+      "full": "freeze-dry rolls a 10% freeze that this format deleted — 1,656 corpus uses. `data/move-effects.js` carries mainline's secondary; `pokemon-showdown/data/mods/champions/moves.ts:394-399` sets `secondary: undefined, // no inherit`. no tag covers a removed secondary, so the rulebook fallback is unchallenged and the engine freezes people with a move that cannot freeze in champions. found by `million_run.js --declaration-only` — the one real disagreement of 118 pairs. the pair is refused for scoring so the published run is unaffected. this is the shape the whole mod-override rule exists for: reading `/data/moves.ts` is reading mainline, and here the mainline value reached an artifact"
+    },
+    {
+      "n": 188,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE `--strict` CONFORMANCE RATCHET HAS NO REGRESSION-vs-DISCOVERY SPLIT, SO A CHECKER THAT GETS BETTER BREAKS THE GATE. ",
+      "full": "the `--strict` conformance ratchet has no regression-vs-discovery split, so a checker that gets better breaks the gate. `node engine/conformance.js --strict` is red: 19 new findings at head before anything was touched (verified by running `git show head:engine/conformance.js`), 27 after s13 was improved to ask `provenance.js --graph --json` instead of hand-rolling `allsrc.includes(file)`. the +8 are true positives the substring search concealed, and rewriting the baseline would have buried the other 19. `data/provenance-stamp.json` already has exactly the split this needs — copy it. a near-miss is recorded with it: the first version of the s13 change put provenance's reason into the finding's `what` field, which retired 20 baselined findings and re-raised them as new — the exact laundering the ratchet exists to stop. caught, moved to `detail`"
+    },
+    {
+      "n": 189,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE RUNNER'S LOUDEST NUMBER WAS ITS OWN BUG, AND THAT IS THE ROW. The OHKO arm read 34.40% against a declared 30 on 7,00",
+      "full": "the runner's loudest number was its own bug, and that is the row. the ohko arm read 34.40% against a declared 30 on 7,005 trials, z = +8.0 — bonferroni-surviving, and a clean false accusation against the engine. a raw probe over 25,000 games counting only `|-miss|` and `|-damage|` inside an ohko block, with no eligibility rules at all, reads 1,081/3,622 = 29.85% [28.4, 31.4], and `hitchance` returns exactly 30 for fissure. the family is now tallied and not scored — withheld rather than captioned, per claude.md. three further instrument denominator defects were found and fixed as controlled before/afters (same seed, same release, one change each): silently-refused secondary stat drops (z −6.157 -> −4.60), `[from]` residual lines counting as connections, and an explicit miss being overridden (accuracy z +2.53 -> +1.52, ohko 34.40 -> 32.89). two hypotheses were measured and rejected before becoming prose — ally veils/safeguard (`allyveilrefused=1`, `sidebuffrefused=0`) and mid-turn replacements (moved z by 0.000). owed: the ohko denominator must be reconciled with the rule-free count before that arm is scored again"
+    },
+    {
       "n": 47,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
@@ -786,15 +813,6 @@
       "uses": 0,
       "title": "THE COST OF A FEATURE DEPENDS ENTIRELY ON WHICH PATH IT SITS IN, and the first measurement of that was taken 2026-08-10.",
       "full": "the cost of a feature depends entirely on which path it sits in, and the first measurement of that was taken 2026-08-10. will: *'how many of these features will slow down the engine? cause if it costs nothing to have harvest in there, then sure we can, but if there is a time cost to it then maybe we otta reconsider'* — the right question, and the answer splits cleanly. hot path — runs on every click of every rollout: the damage chain and the ~40-branch classifier cascade. tonight's five wires cost +6.2% (0.776 -> 0.825 ms/turn, interleaved a/b across frozen releases under load), and the per-hit damage loop is almost certainly all of it, being the only wire that touched damage. cold path — fires once per turn on a trigger, and is effectively free: harvest, cud chew, cheek pouch, quick guard, the heal family. so harvest specifically: yes, free. the thing to actually guard is compounding — 6% per five wires, twenty more wires, and the engine is ~25% slower to serve 0.76% of clicks. that trade stops being worth it well before the queue empties, which is the argument for #76's ratchet firing on every wire rather than at the end"
-    },
-    {
-      "n": 132,
-      "section": "Measurement integrity",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "THE SECONDARY-EFFECT CHANCES, CHECKED AGAINST THE AUTHORITY IN TWO SECONDS AND NO GAMES. Will proposed running a few mil",
-      "full": "the secondary-effect chances, checked against the authority in two seconds and no games. will proposed running a few million self-play games to see whether our accuracy and secondary rates are right. self-play cannot answer that — it samples our declared number, so a tag saying 30% where showdown says 10% would produce a beautiful, confident, wrong 30%. the authority states the chance, so it is a derivation check rather than a statistical one. measured 2026-08-10 over the 128 moves in this format carrying a secondary: 93 match exactly, 1 mismatches, 34 carry no chance at all. the mismatch is triple arrows — the authority has two secondaries, a 50% defence drop and a 30% flinch, and we carry only the first. the 34 without a recorded chance are mostly 100% secondaries which may be modelled as certainties elsewhere; that needs checking, not assuming, because 'modelled as a certainty' is how the focus sash drag became a hard 1.0 (claude.md). do this before #133"
     },
     {
       "n": 133,

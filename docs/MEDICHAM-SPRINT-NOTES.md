@@ -4426,3 +4426,196 @@ is now read in a census probe rather than assumed.
 COUNTED and its comment argues the case (the `variablePower` param carries no condition, and matching
 the broader shape would double Last Respects and Rage Fist — six times the usage). It is #181's shape
 with a stated reason; left as-is.
+
+## THE RATE RUNNER IS FINISHED, AND THE HEADLINE IT NEARLY PUBLISHED WAS ITS OWN BUG — 2026-08-11 (MEASURE, overnight)
+
+`engine/million_run.js` → `data/million-run.json`. ROADMAP #133, gated on #132. Everything below is
+read against the frozen release **`7c6dca70ae09`** (cut 09:22Z), never HEAD, because an ENGINE agent
+and a WEB agent were working beside this. `data/million-targets.json` is the ruler and is NOT in the
+release — it is what the engine is measured against — so it is read live and stamped in the artifact
+by digest and age (233 rows, digest `7f57e34e8b18`, 5.4 h old at the run).
+
+### 1. THE DECLARATION IS CLOSED, AND THE REAL SURFACE IS NOT `data/move-effects.js`
+
+ROADMAP #132's row says do it before #133 and it was open at **"1 mismatch, 34 moves with no chance
+recorded"**. That count was taken against the wrong surface, and the mismatch it names is fixed.
+
+**THE ENGINE PREFERS THE TAG'S CHANCE OVER THE RULEBOOK'S.** medicham2's secondary loop is
+`if (rng()*100 >= (_fmt != null ? _fmt : _generic)) continue;` — `_fmt` is `_fmtChance(s)`, read from
+`data/tags.json` (format-derived), and `_generic` is `data/move-effects.js` (generated from the
+generic gen-9 client dex). **The tag wins; the rulebook is the fallback.** So comparing the RULEBOOK
+alone reports six disagreements and five of them are not real — a tag overrides them before the die
+is thrown. The gate mirrors `_fmtChance` rather than calling it, deliberately, so that it is an
+independent reading; it sits directly under the source it mirrors.
+
+Asked of the frozen release, **118 (move, effect) pairs, 117 agree, 1 DISAGREES**:
+
+| where the chance the engine rolls with comes from | pairs |
+|---|---|
+| the format-derived **tag** | 103 |
+| the `proceduralStatus` tag (a closure effect: Dire Claw, Tri Attack) | 2 |
+| the **rulebook alone — nothing format-derived guards these** | 13 |
+| CERTAINTIES (>= 100%) — not dice, excluded from the rate run | 41 |
+| no chance on either side (a closure another tag owns) | 7 |
+
+**TRIPLE ARROWS IS NOT THE MISMATCH ANY MORE.** The format declares two secondaries (50% Defence
+drop, 30% flinch) and the frozen engine declares both, with the tag carrying both chances
+(`statChange.target[].chance = 50`, `statusInflict.effects[].chance = 30`). ENGINE closed it; #132's
+row is stale on that point.
+
+**THE ONE REAL DISAGREEMENT IS FREEZE-DRY, AND IT IS AN ENGINE ROW.** `data/move-effects.js` gives it
+a 10% freeze; **Champions deletes the secondary outright** — `pokemon-showdown/data/mods/champions/moves.ts`
+lines 394–399, `secondary: undefined, // no inherit`. No tag covers a REMOVED secondary, so the
+rulebook fallback is unchallenged and the engine rolls a freeze this format does not have, on 1,656
+corpus uses. **Not fixed here — ENGINE is live and this is its file.** The pair is refused for
+scoring (3,730 trials excluded by name), so the rate run proceeds without it.
+
+**AND THE "34 WITH NO CHANCE" ARE TWO DIFFERENT THINGS, NOW SEPARATED.** 41 are certainties, which are
+excluded because a certainty is not a die. 7 carry no chance on either side because the effect is a
+closure another tag owns (Ceaseless Edge and Stone Axe set a hazard on hit; Throat Chop, Spirit
+Shackle, Alluring Voice, Burning Jealousy, Eerie Spell). The first version of the gate `continue`d
+past that class silently, which turns the open half of #132 into an invisible zero.
+
+**The 13 "rulebook only" pairs are the exposed class and are printed every run.** Twelve are
+self-boosts (no tag carries a chance for those) and all twelve agree with the format. The thirteenth
+is Freeze-Dry. Agreement there is luck, not construction.
+
+### 2. THE RUNNER, AND THE THREE THINGS NOTHING ELSE HERE DOES
+
+It opens a frozen release by id; it supplies its **own free-running stream** (mulberry32, seeded) and
+never touches `engine/steering.js` or the differential drivers, because ROADMAP #88 pins every die in
+those to one corner — correct for finding a wrong RULE, fatal for a wrong RATE; and it takes its
+denominators from the target row's own `denominator` sentence rather than from clicks.
+
+**BOTH RED PROOFS RUN ON EVERY PUBLISHED RUN AND THE ARTIFACT REFUSES TO EXIST WITHOUT THEM.** The
+pinned arm replays the same teams with every die at one corner and the instrument must flag the
+collapse (accuracy 3 fires against 518.75 expected, z = −75.6; secondary 0 against 43.2, z = −7.3 —
+both FLAGGED). The wrong-declaration arm re-scores the real tallies against a declaration moved 25
+points down (pooled z = 233) plus a per-row synthetic that is decidable at every n (108/108 flagged).
+**Shown red twice, deliberately:** `MILLIONRUN_SABOTAGE=flagger` disables the flagger and the run
+exits 1 writing nothing; `MILLIONRUN_SABOTAGE=refusal` lets a gate-refused pair into the tally and
+the leak check exits 1 naming `secondary:freezedry:status:frz`. The second mode had to disable BOTH
+guards on a refused pair — the tally skip AND the missing expectation — because with one still
+standing the leak check could not be shown red at all, and a check nobody has seen work is not a
+check.
+
+**COVERAGE IS A PROPERTY OF THE ACTION SET, NOT OF N, AND THE ARTIFACT COUNTS IT RATHER THAN SAYING
+IT.** 50,000 games: **182,196 switch events, 181,624 replacements, 572 voluntary** — `chooseAction()`
+returns moves and only moves (ROADMAP #63), so the handful of voluntary ones are not a decision to
+pivot. **106 of the 233 target rows got ZERO trials.** Four families are declared not observable with
+the reason: `crit` (needs a paired arm), `proc` (the trace says whether a trigger FIRED, never
+whether it was REACHED, so the denominator would be invented), `duration` (censored observations need
+survival analysis, not a ratio), `random-choice` (needs an entry with two eligible foes, which needs
+a switch). Ten million games buy none of those.
+
+### 3. WHAT THE 50,000 GAMES SAY
+
+**Every accuracy family and full paralysis are RIGHT. The status secondaries are not, and the OHKO
+family is WITHHELD because it is this instrument's fault.**
+
+| pooled arm | trials | observed | declared | z |
+|---|---|---|---|---|
+| accuracy | 94,728 | 89.92% | 89.78% | **+1.52** |
+| chance — full paralysis | 1,992 | 13.00% | 12.5% | **+0.68** |
+| secondary | 75,002 | 17.02% | 17.64% | **−4.60 DIVERGES** |
+| OHKO | 7,262 | — | — | **WITHHELD, see below** |
+
+Split by what the effect is — the single pooled z was hiding this:
+
+| secondary sub-arm | trials | observed | expected | z |
+|---|---|---|---|---|
+| flinch | 14,050 | 25.01% | 24.36% | +1.83 |
+| self-boost | 2,194 | 11.35% | 12.65% | −1.94 |
+| target stat drop | 28,003 | 15.12% | 15.78% | −3.11 |
+| **major status** | **30,052** | **15.27%** | **16.34%** | **−5.18** |
+
+**Two rows survive Bonferroni across 118 scored rows, and both are 30% status secondaries:**
+`scald → brn` **23.87% on 1,818 trials** and `bodyslam → par` **25.12% on 1,441**. The split-half
+spreads on those rows are **1.71 and 0.38 points** against gaps of 6.1 and 4.9, so this is above the
+noise floor rather than at it. `scorchingsands → brn` (21.6% of 134) and `volttackle → par` (4.6% of
+151) point the same way at 95%. **NOT ATTRIBUTED between engine and instrument** — the same 30%
+status secondary is correct on `poisonjab → psn` (29.54% of 1,970) and `rockslide → flinch` (30.26%
+of 5,708), which no single explanation on either side covers yet.
+
+**TWO DENOMINATOR DEFECTS WERE FOUND AND FIXED ON THE WAY, EACH MEASURED AS A CONTROLLED BEFORE AND
+AFTER — same seed, same release, one change.**
+
+**A stat drop the engine refuses in SILENCE.** `statDropRefusal(..., isSecondary, ...)` returns
+`announce: !isSecondary`, so when a Clear Body / White Smoke / Full Metal Body / Hyper Cutter / Big
+Pecks / Mirror Armor body refuses a **secondary** drop the engine emits no `-fail` — Showdown does
+not either. The instrument read that absence as "the die came up short", so every hit onto a refuser
+sat in the denominator unable to fire. Excluding them (1,081 trials, derived from `preventsStatDrop`
+by tag shape, mirroring the engine's own three conditions) moved the secondary arm
+**z = −6.157 → −4.60** and took Crunch 17.84 → 18.88, Liquidation 18.75 → 19.69, Muddy Water 28.41 →
+29.35 — all three off the divergence list.
+
+**A missed body counted as a connection.** `connected` was `damaged || touched`, and `touched` was set
+by any `-status` / `-start` / `-boost` / `-unboost` line in the block **including one carrying
+`[from]`** — a residual tick, an end-of-turn Speed Boost, a Leftovers heal, all of which land inside
+the last move block because this parser closes a block only on an action line. An explicit `|-miss|`
+is authoritative now and outranks every later line. Accuracy **z = +2.53 → +1.52**.
+
+**AND THE HEADLINE THAT WAS NEARLY FILED AGAINST THE ENGINE.** The OHKO arm read **34.40% against a
+declared 30 on 7,005 Fissure trials, z = +8.0, DIVERGES** — a clean, Bonferroni-surviving, entirely
+false accusation. A raw probe over 25,000 games that counts nothing but `|-miss|` and `|-damage|`
+inside an OHKO move block, with no eligibility rule of any kind, reads **1,081 / 3,622 = 29.85%
+[28.4, 31.4]** — the declared 30. medicham2's roll is right: `hitChance` returns exactly 30 for
+Fissure and Sheer Cold, and the site is `_mvMissed = (_mvAcc < 100 && rng()*100 > _mvAcc)`. The miss
+fix took the arm to 32.89%, still outside the raw interval, **so the family is now TALLIED AND NOT
+SCORED** — the rows and their split-halves stay in the artifact, and the number is out of the pooled
+headline and out of the divergence list. **A rate this instrument cannot reconcile with a rule-free
+count of its own event is withheld, not captioned.** What closes it: 5,353 OHKO blocks in that probe
+produced only 3,622 lines of either kind, so about a third emit neither a hit nor a miss; name what
+those blocks are and the two counts either agree or the disagreement names itself.
+
+**Two hypotheses were measured and REJECTED before they became prose.** Safeguard and the ally veils
+refuse a secondary status silently too — but `MEDSEEN.allyVeilRefused = 1` and `sideBuffRefused = 0`
+in this corpus, so they explain nothing. And a target that was not on the pre-turn board (a
+replacement, whose ability and types the snapshot cannot supply) is now excluded on principle, and it
+moves the arm by 96 trials in 75,000: **z = −4.597 → −4.597**.
+
+### 4. WHAT A FULL RUN COSTS, AND WHY IT IS NOT WORTH IT YET
+
+**5.85–6.29 ms per rate-measuring game under load → 1,000,000 games is 1.63–1.75 hours**, single
+process, on a machine running two other agents at BelowNormal. That figure includes the parse and the
+tally; it is an UPPER bound on the time and **must not be recorded as an engine benchmark** —
+`tests/bench-medicham.js` is the instrument for that and correctly refuses under load.
+
+**But 20x the games buys almost nothing here.** At 50,000 games the busiest scored row already has
+20,987 trials and the pooled arms have 75,000–95,000. What is left is not sampling error: the
+`secondary` arm's −4.60 is a structure question, the OHKO arm is a denominator question, and 106 of
+233 target rows are at zero because the action set has no switch in it. **A million games moves none
+of the three.** Run it when the residual is attributed, not before.
+
+### 5. TWO PROVENANCE FOLLOW-UPS, AND ONE GATE THAT IS RED AND WAS RED BEFORE
+
+**`engine/conformance.js` S13 asks `provenance.js --graph --json` now instead of `allSrc.includes(file)`.**
+That substring search was a second, worse implementation of a derivation that already exists: it says
+YES to a name that appears only in a comment and NO to every artifact whose path is computed. Nine
+files change classification, all in the same direction — files the substring search called generated
+and which nothing can be shown to write: `artifact-accessors`, `battle-formes`, `conditional-audit`,
+`exploitability-holdout`, `meta-nash`, `policy-weights-nopop`, `policy-weights-pre-censoring`,
+`raw-log-census`, `replay-differential-bo3-freezes`. Each now carries provenance's own reason as the
+finding's `detail`.
+
+**THE REASON GOES IN `detail`, NEVER IN `what`, AND GETTING THAT WRONG FIRST IS WORTH RECORDING.**
+`what` is the finding's identity for the ratchet; appending the reason to it retired 20 baselined
+findings and re-raised them under new names in one run — a rewording that reads as "20 fixed, 20 new"
+is exactly the laundering the ratchet exists to prevent.
+
+**`node engine/conformance.js --strict` IS RED, AND IT WAS RED BEFORE THIS CHANGE — 19 new findings
+at HEAD, 27 after.** Measured, not assumed: `git show HEAD:engine/conformance.js` run against the same
+tree exits 1 with 19. Ten of the 19 are S12 rows in other divisions' new files (`all_mechanics_fire`,
+`faces`, `pp_board_probe`, `replay_differential`, `rollout_switch_probe`, `scenario_catalogue`,
+`million_targets`, `million_run`, and two tests hardcoding the format id) and the rest are artifacts
+written tonight that have no baseline row. **The +8 are mine and they are true positives the old
+check was concealing.** Baselining them would bury the other 19 with them, so the baseline is NOT
+rewritten here and this is stated rather than filed: it needs a REGRESSION-vs-DISCOVERY split like the
+one `data/provenance-stamp.json` already has, and that is a decision for whoever owns the baseline.
+
+**`engine/replay_differential.js`'s freeze payload declares `by` now.** The path comes from
+`--freeze-out`, so every variant except the default has no literal beside a write call and all four of
+provenance's ranked arms miss it. The two orphans also had `by` added to the bytes on disk **without
+regenerating** — a declaration of authorship is not a measured figure, and their top-level key shape is
+identical to `replay-differential-freezes.json`, which provenance already attributes to that script by
+`path variable`. Artifacts with no writer: **19 → 17**.
