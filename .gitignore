@@ -126,3 +126,9 @@ data/diff-team-pool.json
 # artifact or an arm table names are unaffected. When a NEW release becomes evidence for a published
 # number, add it deliberately:  git add -f data/releases/<id>
 data/releases/
+
+# The frozen team pool is a LOCAL measurement pin, not repo content — the live stores it
+# copies (data/games.*.jsonl) are ignored a few lines above for the same reason, and one of
+# them is 104 MB, over GitHub's hard limit. FROZEN.md IS tracked: it carries the line counts
+# and sha256 of both files, which is what makes the pin checkable rather than assumed.
+data/team-pool-frozen/*.jsonl
