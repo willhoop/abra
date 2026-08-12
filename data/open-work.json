@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-11T22:42:47.412Z",
+  "generated": "2026-08-12T20:14:31.736Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 182,
-    "open": 106,
-    "closed": 76,
-    "open_asserting_breakage": 1,
+    "register_rows": 192,
+    "open": 110,
+    "closed": 82,
+    "open_asserting_breakage": 4,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -482,15 +482,6 @@
       "full": "argmax is unsound in a simultaneous-move game, and open team sheets do not rescue it — cited, 2026-08-11. bosansky, lisy, lanctot, cermak & winands, *algorithms for computing strategies in two-player simultaneous move games*, artificial intelligence 237 (2016) 1-40: agents *\"may need to use randomized (or mixed) strategies in order to play optimally ... even though the only information that is hidden is each player's action as they play it\"*. simultaneity alone forces mixing. i had told will the opposite — that open sheets make our game easier than poker in poker's hardest dimension. on this axis they do not. what medicham is: `miltank.js:1315` is `if (v > bestval) { bestval = v; bestpair = [ia, ib]; }` and `:1384` clicks it — a plain argmax, deterministic by construction, answerable for free by anyone who knows the scorer. magnemite underneath it does sample (`magnemite.js:954`, `:1154`, a softmax its own header calls *\"the single biggest measured lever\"* and which argues *\"taking the argmax would be the obvious thing and it is wrong here\"*), so the bot gets less mixed as it gets smarter — the 31.6% of turns miltank defers are the only ones that come out mixed, which inverts #62: more compute means fewer deferrals means more predictable. duct is not the fix — i had it in the fix list and the paper reports it *\"also might not converge to a nash equilibrium\"*, even the mixed variant; uct's failure is shown on biased rock-paper-scissors (shafiei, sturtevant & schaeffer, giga 2009). what is sound, three tiers from that paper: exact backward induction solving the matrix game per node, which *\"outputs a subgame perfect ne\"*; sm-oos, which *\"guarantee[s] to closely approximate the optimal strategies given enough time\"*; and sm-mcts-rm (regret matching at simultaneous nodes) as the practical middle. so roadmap #41's python equilibrium solver is the textbook-correct primitive for this game class, currently filed as *\"the equilibrium answer exists and cannot play\"*. and unlike pluribus we are 1v1 zero-sum, so the *\"equilibrium is not the right goal\"* retreat does not apply to us — equilibrium is the target here. phase 3, not now: medicham is phase 1 and a correct simulator is a prerequisite under every version of this. registered so it is not rediscovered"
     },
     {
-      "n": 166,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "FOCUS SASH DOES NOT SAVE, AND STURDY DOES NOT EITHER. `test-tag-wire`: *\"full-HP sash body survives the lethal hit at ex",
-      "full": "focus sash does not save, and sturdy does not either. `test-tag-wire`: *\"full-hp sash body survives the lethal hit at exactly 1, sash spent\"* reads hp 0, item `''`; *\"sturdy survives the same way and is not consumed\"* fails beside it. the artifact is right and the wire is missing — the same test passes *\"focus sash: full-hp gate, move-only, leaves 1, spent — all from the handler (was a name check)\"* and *\"sturdy: the same idiom minus the consumption\"*, and the full-hp gate itself is proven live (*\"the same hit kills at 90% hp\"*). so the tag carries the fact and nothing consumes it. focus sash is legal in this format and sturdy is a common lead ability; both change whether a ko happens, which is the class of error that changes a game rather than a rating | closed 2026-08-11 — the engine was never broken and this row misdiagnosed it. one defect explains all four: `_chooseaction`'s last fallback clicked struggle past a legal button (the #152 block, whose own comment stated the bug in place — *\"a body with legal status moves left is not on struggle\"* — and filed it as the lesser evil). struggle is a 50 bp attack with 1/4-max recoil, so every fixture body holding a single protect or roost was hitting the thing under test and paying for it. heat wave never touched the partner: the trace reads `|move|p2b: whimsicott|struggle"
-    },
-    {
       "n": 167,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
@@ -689,13 +680,58 @@
       "full": "a baselined-as-legitimate file grew and the ratchet counts lines, so it fired on growth that carries no risk — 2026-08-11, raised with the audit on record. `engine/merge_mega_into_engine.js` went 14 -> 23 hits. its exemption is categorical, not budgetary: the file builds `mc.mons`, so it cannot ask an index of a table it has not finished writing — and `mckey` caches its index against the table's object identity, which the merge mutates in place, so the index would go stale mid-run even if it could. all 23 sites were read individually before the number moved: membership during construction, base-row reads during construction, the `bynorm` map the ratchet's own header names as legitimate, and the post-merge audit walk. none resolves an external name. the re-baseline was taken and diffed to prove it laundered nothing else: exactly one number changed, `14 -> 23`, with the other fifteen files byte-identical. recorded rather than done quietly, because 'we re-baselined the ratchet' is indistinguishable from 'we loosened the gate to make it green' unless the audit is written down. the residual weakness is real and stated: for a file whose every hit is table construction the count carries no information, so this clause will fire again on the next honest growth. the structural answer — a categorical exemption for the two files whose reason is categorical (`medicham2-browser.js` cannot `require`; this one builds the table) — is deliberately not taken tonight, because it would also stop catching a genuine hand-rolled resolution inside those two, and that trade needs measuring rather than assuming. and this row closed the gate on its first run, which is a second finding and is kept here rather than quietly edited away. `quarantine.js`'s defect clause is a `defect` token in the status cell plus a backstop list of phrases for rows written before the token existed — and one of those phrases appeared inside a sentence explaining why a file is exempt, in a row that describes a test's design and asserts nothing about the simulator at all. the wording was changed to a synonym and the gate reopened. that is the cheap fix, not the right one: a vocabulary backstop cannot tell a claim from a quotation, and an over-firing gate is the one people learn to ignore (#148). the row is left open on that ground"
     },
     {
-      "n": 216,
+      "n": 218,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 94313,
+      "title": "THE WHOLE-GAME DIFFERENTIAL SAYS 39.6% OF GAMES DIVERGE, IT GATES NOTHING, AND I QUOTED THE DAMAGE NUMBER ALL SESSION AS",
+      "full": "the whole-game differential says 39.6% of games diverge, it gates nothing, and i quoted the damage number all session as if it covered this — 2026-08-11. `engine/game_differential.js` plays one team pair through both engines with real sheets and real natures, pins every die identically on both sides so any difference is a rule bug, and records the first divergence. re-run on release 5a557b07821c: 1,213 games, 480 diverged (39.6%), 0 threw, planted proof caught. the previous run was 570 of 1,556 (36.6%) — a full evening of engine work did not move it, which is itself the finding. the gate's `game differential` clause reads `data/engine-diff.json`, which is damage only and says 0 of 6,000 — its own scope line reads *'no items or abilities. turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.'* both numbers are true; they answer different questions; i conflated them in the project's favour repeatedly and will caught it by asking whether we had ever played the same game on both engines. new `engine/divergence_report.js` rolls the causes up — the artifact has recorded every one since it was built and nothing had ever read them. 307 distinct causes, 251 appearing in exactly one game. ranked by corpus usage rather than by count, because the swarm is coverage-steered so its game counts describe the instrument while the corpus counts describe what people click. the two rankings disagree and both are needed: by games the head is residual weather order, ~80 games — six causes identical in shape, differing only in which body is chipped first, one rule; by usage the head is protect, 32 games but 94,313 clicks, where showdown says the move worked and we say it failed, scattered across four of the differential's classes at once, which is why the class view hid it"
+    },
+    {
+      "n": 219,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "A DATA-ONLY COMMIT CAN ORPHAN EVERY FIGURE IN A LIVING DOC, AND THE HOOK THAT WATCHES FOR THAT SKIPS DATA-ONLY COMMITS —",
+      "full": "a data-only commit can orphan every figure in a living doc, and the hook that watches for that skips data-only commits — 2026-08-11. `tests/test-docs-current.js` calls a figure traceable when some artifact contains it. `docs/medicham-sprint-notes.md` recorded the first rate run — 16,575 trials, 30.42%, the confidence intervals — and every one was traceable because `data/million-run.json` held it. re-running the same instrument overwrote the artifact with new numbers and orphaned nineteen figures at a stroke. nothing was typed and nothing became false; the doc still describes what was measured, and the artifact that proved it no longer exists. isolated rather than assumed: at head with none of the evening's doc edits applied the count already read 47 against a baseline of 28, so only one of the twenty came from the pass being committed. the reason it went unseen is the hole: `.githooks/pre-commit` skips data-only commits, so the run that rewrote the artifact was exactly the commit the gate did not inspect. baseline raised 28 -> 48 with the diff shown (two lines, the count and the timestamp, nothing else laundered). the structural weakness is real and is not fixed by this row: the check cannot tell 'a figure nobody measured' from 'a figure whose instrument has since been re-run', and it will fire again on every re-run. the candidate repair is to make a re-run stamp the figures it supersedes — a doc figure would then cite a run rather than a value, which is the same lesson as the frozen release and is a bigger job than a baseline bump. recorded now because the alternative is that the next person raises the number again and the ratchet quietly becomes decoration"
+    },
+    {
+      "n": 220,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
       "saysBroken": true,
       "uses": 0,
-      "title": "FOCUS BAND CANNOT SAVE ANYTHING — ITS WHOLE TAG IS `flingable` — 2026-08-11, FOUND BY WILL ASKING WHAT ITS RATE WAS. The",
-      "full": "focus band cannot save anything — its whole tag is `flingable` — 2026-08-11, found by will asking what its rate was. the rate runner reported `proc:focusband` unreachable with the reason 'the frozen tag artifact carries no such param', which reads like a missing declaration and is a missing mechanic. the target row is right: `derived:randomchance(1,10)` = 10%, and champions does not override the item. the engine's `data/tags.json` entry carries `tags: ['flingable']` and nothing else, so a body holding focus band dies exactly as if it held nothing, on 15 sheet teams. it must not be folded into `survivesfromfull`, which is the collapsed-label trap this repo has already paid for. that tag's params are `{leaveshp:1, onlyfromfullhp:true, movesonly:true, consumesitem:true}` and focus sash and sturdy both fit it. focus band fits none of the last three: it fires at any hp, at a 10% chance rather than a certainty, and does not consume the item (`return target.hp - 1` with no `useitem`). three of four params differ, so a shared label would be one name standing for two rules — the split #162 already had to undo. the parameterisation that holds both is `chance` + `onlyfromfullhp` derived from the handler, matched on shape so a third member is picked up without editing the engine. related: #166 (focus sash and sturdy do not save either) — if that one is still open this is one mechanism and not two, and the fix must be shown red on all three bodies"
+      "title": "THE WEATHER RESIDUAL RAN IN SLOT ORDER WHILE THE CLOCK RESIDUAL HAD BEEN SPEED-SORTED SINCE #115 — CLOSED 2026-08-11. Th",
+      "full": "the weather residual ran in slot order while the clock residual had been speed-sorted since #115 — closed 2026-08-11. the largest single family in the whole-game differential: 80 games across 6 causes, every one identical in shape and differing only in which body is chipped first. read from the authority rather than inferred from the traces: the sand chip is not in the clock pass at all — `sandstorm.onfieldresidual` calls `this.eachevent('weather')` and `battle.ts:465` speed-sorts descending. this engine had it right in one pass and wrong in the other, which is why nobody saw it. #115 speed-sorted the clock loop — perish, yawn, status chip, leftovers — when will asked whether bodies faint in speed order; the weather loop one screen above kept iterating `[...acta, ...actb]`. nothing could have caught it: every body takes the same 1/16, so every total agreed and a damage differential is structurally blind to an ordering defect. fixed as one `residualorder(acta, actb, field)` that both passes ask, with #115's three inline lines deleted rather than left beside it — re-sorting the weather loop in place would have written the fact twice with the same chance of drifting apart again. probe `move/weathersetter`, four bodies at speed 205/101/80, and the trick room arm is the discriminator: `getactionspeed` returns `10000 - speed`, so the inversion is already inside the number both passes sort on and no second branch exists — an engine sorting by raw speed passes arm 1 and fails arm 2, slot order fails both. garchomp on the board takes no chip, the control that says this is the sand. verified independently of the agent's report: the both-sides family reads 3 causes / 4 games against 6 / 80 | reopened 2026-08-12 — the explanation was wrong and the 32 games are unexplained again. this row said protect's divergences were an instrument artefact: our stall counter shares the scalar die, so mode a's corner forces every consecutive protect to fail. the coupling is real and the first protect is clean under both pins — but that cannot be the cause, because showdown's stall check is pinned to refuse at the same corner (#222, measured). both engines refuse; they were agreeing for that reason. so a trace showing the authority emit `-singleturn|protect` where we emit `-fail` is not a disagreement about the roll — it is a disagreement about the counter's value, theirs short-circuiting at `_ctr <= 1` while ours is at 2 or more. that is a rule about when the stall counter resets, which is exactly what mode a exists to find. 32 games, 94,313 corpus clicks, the most-played move in the format. recorded as reopened rather than quietly re-scoped, because the tidier story is the one that got believed twice"
+    },
+    {
+      "n": 221,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "RESIDUALS ARE RUN PER BODY AND INTERLEAVED; SHOWDOWN RUNS ONE HANDLER LIST — 2026-08-11, NAMED AND DELIBERATELY NOT STAR",
+      "full": "residuals are run per body and interleaved; showdown runs one handler list — 2026-08-11, named and deliberately not started. surfaced by the #220 fix rather than predicted. showdown sorts a single handler list by `(residualorder, residualsuborder, speed)` — sandstorm is `onfieldresidualorder: 1`, leftovers is `onresidualorder: 5 / suborder 4` — so it chips every body, then heals every body. this engine runs one loop per body and interleaves the two. 17 games in the current rollup. not a branch and not a sort: it is a restructure of every end-of-turn effect at once, and it could not be gated inside the pass that found it. recorded now because the alternative is that it is rediscovered as six unrelated causes next time"
+    },
+    {
+      "n": 224,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "THE `??:` SLOT PLACEHOLDER REACHES THE PROTOCOL STREAM, AND IT IS NOW THE LARGEST SINGLE FAMILY — 2026-08-12. `|-start|p",
+      "full": "the `??:` slot placeholder reaches the protocol stream, and it is now the largest single family — 2026-08-12. `|-start|p1a|yawn` against `|-start|??:incineroar|yawn`; also curse and trick's item transfer. the call site is `ident()` in `medicham2-browser.js` and it already counts itself — `medfails.tracebodyofffield` — so the capability was announcing its own absence and nothing was reading the counter. the fallback fires when `s.acta.indexof(m)` and `s.actb.indexof(m)` both miss, an object-identity lookup, so the body is not in either active array at emission time. not reproduced on a straightforward yawn board — that resolves both slots correctly with the counter at zero — so the trigger is a specific state, most likely emission after the slot arrays have moved on or before a body is placed. no line moved on an unreproduced defect. it rose from 45 to 68 games when regenerator was fixed, because games that used to stop earlier now reach it"
+    },
+    {
+      "n": 226,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE DIFFERENTIAL RAN BLANK SPREADS AND A MOVING TEAM POOL, SO IT WAS TESTING TURN ORDER IN THE ONE CONFIGURATION WHERE T",
+      "full": "the differential ran blank spreads and a moving team pool, so it was testing turn order in the one configuration where turn order cannot be got wrong — will, 2026-08-12. he asked *\"how much of the divergence is us not knowing the sps\"*, then *\"i thought the whole point was we invent teams that we know every stat of so nothing can drift\"*, then *\"we can yoink moves, we just need to give them our stat spreads\"*. builds every body with — not a guessed spread, no spread. an open team sheet reveals species, item, ability, moves, nature, gender and level and not the spread; every stored sheet reads `evs: null`, 173,784 of 173,784 bodies. neither the blank spread nor the speed ties cause a single divergence — both are applied identically to both engines — they hide errors instead, and the file already said so in a comment nobody had acted on: *\"with every body flat and serious, 91.4% of legal species share a base speed with some other species, so the rig manufactured speed ties\"*. the prediction is recorded before the fact: adding spreads should make the number worse and `ordering` should grow; an unmoved rate is the suspicious outcome. second unfrozen input named the same day: the team pool is read live from stores ops appends to continuously, which is why three runs of one instrument reported 1,556, 1,213 and 983 — a measurement that freezes the engine and pins every die took its sample from a moving file. frozen on will's instruction to `data/team-pool-frozen` (bo3 13,214 lines sha 5e10d7ba991f, ots 4,167 lines sha cd21077a4578) and the first pinned baseline is 327/983 (33.3%) top-tie-first and 377/983 (38.4%) bottom-tie-first — the first whole-game figure in this project whose counts are comparable run to run. that five-point arm gap also weakens a claim i made to will off the unpinned run — i said the two corners agreed to within half a point and therefore the divergences were rules rather than dice; on a pinned pool they are five apart and the higher one is the tie-sensitive arm"
     },
     {
       "n": 47,
@@ -973,7 +1009,7 @@
     {
       "artifact": "data/interaction-matrix.json",
       "generated": "2026-08-11T22:00:06.336Z",
-      "age_days": 0
+      "age_days": 0.9
     }
   ]
 }

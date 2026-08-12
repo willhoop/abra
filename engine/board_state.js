@@ -504,9 +504,9 @@ function sdBody(p, id) {
                   : (p.status === 'slp' ? sleptTurns(p.statusState)
                   : (p.status === 'frz' ? frozenTurns(p.statusState) : 0)),
     item: id(p.item || ''),
-    /* ROADMAP #225 -- the authority's side of the same two leaves.  is the METHOD, not
+    /* ROADMAP #225 -- the authority's side of the same two leaves. `getTypes()` is the METHOD, not
      * the species default: it answers what the body is RIGHT NOW, after a mega, a Protean or a Soak,
-     * which is exactly the question.  is the live slot, so Skill Swap and Trace show. */
+     * which is exactly the question. `ability` is the live slot, so Skill Swap and Trace show. */
     types: (typeof p.getTypes === 'function' ? p.getTypes() : (p.types || [])).map(t => id(t)).sort().join('/'),
     ability: id((p.ability && p.ability.id) || p.ability || ''),
     boosts: sdBoosts(p),

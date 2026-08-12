@@ -6455,3 +6455,26 @@ instrument had no rule at all, and the count in every published figure was picke
 swarm already steers by coverage and already counts what it reached, so the rule is loop-until-dry —
 keep playing while new rows are credited, stop after several barren batches, and name the rows still
 unexercised rather than reporting a count that reads as complete.
+
+### THE TWO NEW LEAVES, PROVEN RATHER THAN READ
+
+`types` and `ability` now sit in both walkers. Three things had to hold and only the first was about
+the code compiling: both walkers emit them; the two engines agree on an untouched board, or every game
+would part on line one; and a real change gets **reported**, because a leaf that is present and never
+differs is decoration.
+
+All three pass. Forcing a Soak-style type change and an ability swap on one side produces exactly the
+two rows it should. **So the board comparison can now see the wrong-body defect** — an hour ago it
+could not, and the end-of-battle measurement would have called the most serious defect in the register
+cosmetic.
+
+The Showdown side reads typing through `getTypes()`, the method rather than the species default, so it
+reports what the body is *now* after a mega, a Protean or a Soak. Both sides are normalised and sorted,
+because a pure ordering difference on a dual-typed body is not a rule disagreement.
+
+**Both failures on the way there were the probe, not the code.** The first run never took the Showdown
+battle through team preview, so it read an empty board and every leaf came back null — which looks
+exactly like the leaves being broken. The second gave the two sides different abilities and read a
+`.diffs` property off an array that does not have one, which reads as "nothing differed". That is the
+fifth time in this sprint the probe was wrong before the engine was, and each one would have been filed
+as a real defect by anyone who stopped at the first red.
