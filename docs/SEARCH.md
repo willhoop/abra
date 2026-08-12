@@ -28,7 +28,7 @@ SEARCH — does MILTANK choose better than MAG
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
     MEDICHAM is not correct — 1 of 6 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-11 20:17):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-12 01:39):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-03 22:36
     PRE-CHANGE games.r4.jsonl  2026-08-03 22:33
@@ -36,7 +36,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-03 20:45
 ```
 
-_stamped 2026-08-11 20:27_
+_stamped 2026-08-12 01:43_
 
 <!-- /GENERATED -->
 

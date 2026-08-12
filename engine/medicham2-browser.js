@@ -645,6 +645,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #217 -- a second attacking type folded into the chart (`overridesEffectiveness.addsType`;
      Flying Press is the only member). Zero unless Hawlucha clicks it. */
   effTypeAdded: 0,
+  /* ROADMAP #223 -- a switch-out heal applied with NO protocol line, which is what the authority
+     does (Regenerator calls the silent `Pokemon#heal`). Counted so the capability still proves it
+     ran now that it no longer announces itself. */
+  switchOutHealSilent: 0,
   /* WIRE 141 -- the TRANSFORM, counted apart from `formeSwapped` because it is a different mechanic
    * wearing the same word: a forme swap becomes a KNOWN row and a transform becomes an ARBITRARY
    * opposing body. `transformedOnEntry` is the copy landing; `transformRefusedNoBody` is the entry
@@ -10584,10 +10588,31 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * NOT GATED ON blocksHealing. Heal Block is a volatile on a Pokemon that is standing there; this
    * fires as the body leaves, and leaving is what ends the volatile. Stated rather than assumed,
    * because the natural instinct is to gate every heal in the file at once. */
+  /* ROADMAP #223 -- AND IT HEALS SILENTLY. THE AUTHORITY EMITS NO LINE FOR THIS.
+   *
+   * Found by the GAME differential, 36 games and 31 causes, all naming Regenerator:
+   *
+   *     |switch|p1a|kommoo,l50|H/H   <>   |-heal|p1a|H/H|[from]regenerator
+   *
+   * Showdown emits ONLY the switch line. The reason is one word in the handler and it is decidable
+   * from the source rather than by taste: Regenerator calls `pokemon.heal(...)` -- `Pokemon#heal`,
+   * sim/pokemon.ts:1646, which trims the number, mutates `this.hp` and RETURNS THE DELTA. It adds
+   * nothing to the log. `Battle#heal` is the one that emits `-heal`, and the ability does not call it.
+   * The body is also on its way to the bench, so there is no active slot to announce it for.
+   *
+   * THE HP WAS ALWAYS RIGHT, WHICH IS WHY NOTHING CAUGHT IT. `tests/roster.js` read
+   * FIRED-AND-BOARDS-MATCH and was CORRECT -- a board comparison is structurally blind to an emission
+   * difference, the same blindness that hid the weather residual, where every total agreed and only
+   * the sequence differed.
+   *
+   * NOT FIXED BY DECLARING `-heal` NOT-EMITTED. That list in data/protocol-events.json is about event
+   * TYPES, and this engine emits `-heal` correctly for Leftovers, for drain and for Wish. Suppressing
+   * the type would hide three right lines to remove one wrong one; the emission is dropped at the ONE
+   * call site whose authority is silent. `undeclared_drops` stays 0. */
   {const _hs=TAGS.param('ability',out.ability,'healsOnSwitchOut');
    if(_hs&&_hs.heal&&out.st&&out.curHP>0){
      out.curHP=Math.min(out.st.hp,out.curHP+Math.floor(out.st.hp*_hs.heal));
-     if(TR)TR.heal(out,'[from] ability: '+out.ability);}}
+     MEDSEEN.switchOutHealSilent++;}}
   /* WIRE 133 -- THE SWITCH-OUT TRIGGER, AND IT IS A CLASS RATHER THAN THREE ABILITIES.
    *
    * Will, 2026-08-07: *"ALL THE SWITCH OUT ABILITIES ACTIVATE ON SWITCH OUT LIKE REGENERATOR OR

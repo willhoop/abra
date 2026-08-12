@@ -6342,3 +6342,26 @@ volatile lapsing, a failed roll deleting it, and switching out, plus the `willAc
 failure condition rather than a reset. This engine matches on all of them — including the two that
 could only be settled by measurement, the gap turn and the turn after a failed roll. Nothing was fixed
 on an unconfirmed direction.
+
+### REGENERATOR: EIGHTY GAMES FROM ONE EMISSION FIX
+
+Decided from the source rather than by taste, and the deciding detail is one word. The ability calls
+`pokemon.heal()`. `Pokemon#heal` trims, mutates the HP and returns the delta — **it adds nothing to the
+log**. `Battle#heal` is what emits `-heal`. So the authority is silent by construction, and this engine
+was producing a line it never makes. Fixed at that one call site: the HP still moves, the switch line
+is intact, and a counter records the silent heal so the capability still proves it ran.
+
+**Not solved by declaring the event type not-emitted.** That list is about event *types*, and this
+engine emits `-heal` correctly for Leftovers, drain and Wish — suppressing the type would have hidden
+three right lines to remove one wrong one.
+
+**The category movement needs its caveat, and it was nearly reported as progress on rules.** The
+differential records only the FIRST divergence per game, so fixing an early one lets a game run further
+and hit a later one. EMISSION and RULE both fell as expected — but UNPARSED went UP, because games that
+used to stop at the Regenerator line now reach a slot-placeholder or different-body disagreement
+instead. **The drop in diverging games is real; the redistribution across shapes is partly
+re-attribution, and the shapes are not independent counts.**
+
+The `??:` placeholder is now the largest single family. Its call site already counts itself, so the
+capability had been announcing its own absence and nothing was reading the counter. It was not
+reproduced on a straightforward board, so no line moved.
