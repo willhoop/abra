@@ -6307,3 +6307,38 @@ the coordinator's call whether to re-baseline; the two runs are demonstrably ide
 A release frozen before #222 has no `rngStreams`. The differential THROWS naming the release rather
 than falling back to the scalar, because a silent fallback would reproduce the exact coupling this
 change exists to remove while the run looked clean.
+
+### THE WHOLE-GAME DIVERGENCES ARE TWO QUESTIONS ADDED TOGETHER
+
+`engine/divergence_report.js` clusters the differential's causes by what the two protocol lines
+actually disagree ABOUT, rather than by the differential's own bucket names. Those names had two
+proofs of being the wrong grouping: the weather residual was six causes reading as separate rows and
+one rule, and Protect is fifteen causes spread across four classes at once.
+
+The clustering answers the question the pass existed for. **EMISSION is the largest shape and RULE is
+second**, and they are not the same question: one is the engine narrating the game differently, the
+other is the engine playing it differently. A single blended percentage had been reported for both —
+the identical merged-number failure as quoting the damage differential for whole games.
+
+**The largest family is Regenerator, and every cause in it names that ability.** Showdown emits only
+the switch line: the departing body is healed on the bench, where there is no active slot to announce
+it for, so the authority emits nothing and this engine emits a `-heal` line it never produces. **The
+roster's `FIRED-AND-BOARDS-MATCH` was correct** — the HP is right and the board is right. A board
+comparison is structurally blind to an emission difference, which is the same blindness that hid the
+weather residual, where every total agreed and only the sequence differed. Regenerator had been
+checked an hour earlier and pronounced fine on exactly that verdict.
+
+The UNPARSED bucket is not different bodies, which is how it was first read. It is this engine's own
+emitter failing to resolve a slot and leaking a `??:` placeholder into the stream — `|-start|p1a|yawn`
+against `|-start|??:incineroar|yawn`. A `??:` in a protocol stream is an absent capability announcing
+itself.
+
+Causes naming a mechanic that reads a pinned die are marked **suspect and never excluded**. The
+Protect case proves a coupling suspect can still be a real disagreement, and a cause dropped for
+smelling like an artefact is a defect nobody looks at again.
+
+**The stall counter is eliminated as Protect's cause.** The authority's reset triggers are the
+volatile lapsing, a failed roll deleting it, and switching out, plus the `willAct()` guard, which is a
+failure condition rather than a reset. This engine matches on all of them — including the two that
+could only be settled by measurement, the gap turn and the turn after a failed roll. Nothing was fixed
+on an unconfirmed direction.

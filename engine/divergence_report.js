@@ -83,6 +83,63 @@ const live = rows.filter(r => !r.impossible);
 const dead = rows.filter(r => r.impossible);
 live.sort((a, b) => (b.uses - a.uses) || (b.games - a.games));
 
+/* ---- THE SHAPE CLUSTER --------------------------------------------------------------------------
+ *
+ * THE DIFFERENTIAL'S OWN CLASS NAMES ARE THE WRONG GROUPING AND THERE ARE NOW TWO PROOFS.
+ *
+ * The weather-residual defect was SIX causes that read as separate rows and turned out to be one
+ * rule. Protect is FIFTEEN causes spread across FOUR of those classes at once — `ordering`,
+ * `unrelated event mismatch`, `event missing` and `extra event` simultaneously — which is exactly why
+ * the class view hid it for as long as anyone had been reading class names.
+ *
+ * So `300 causes, 251 of them appearing in exactly one game` is not a claim that there are 251 bugs.
+ * It is a claim about SURFACE TEXT: two lines that name different slots or different bodies read as
+ * different causes even when the same rule produced both.
+ *
+ * THIS GROUPS BY WHAT THE TWO LINES ACTUALLY DISAGREE ABOUT, which is a property of the pair and not
+ * of a bucket somebody named:
+ *
+ *   ORDERING  same event, different slot   — the two engines did the same thing in a different order.
+ *                                            This is the shape the weather residual had.
+ *   RULE      same slot, different event   — they disagree about what happened to that body.
+ *   FIELD     same event and slot, a field differs — they agree on the event and not on its value.
+ *   EMISSION  one side has a line the other does not.
+ *
+ * A pair that is ordering-shaped is a scheduling question; a pair that is rule-shaped is a mechanic.
+ * Those want different people and different fixes, and the differential's classes cut across both.
+ *
+ * AND THE PIN FLAG IS `suspect`, NOT `artefact`. Mode A pins five dice, and a cause naming a mechanic
+ * that reads one of them MIGHT be an instrument coupling rather than a defect — that is how Protect
+ * cost a wasted brief. But the Protect case then proved the opposite half: a coupling suspect can
+ * still be a real disagreement, because the authority was pinned the same way and the divergence
+ * survived anyway. So this marks and never excludes. A cause dropped for smelling like an artefact is
+ * a defect nobody will look at again.
+ */
+const LINE = (s) => {
+  const t = String(s || '').trim();
+  if (!t.startsWith('|')) return null;
+  const parts = t.split('|').slice(1);
+  return { event: parts[0] || '', slot: (parts[1] || '').split(':')[0], rest: parts.slice(2).join('|') };
+};
+const PINNED = /accuracy|acc\b|crit|secondar|damage|protect|stall|miss|-fail/i;
+
+function shapeOf(cause) {
+  const body = String(cause).replace(/^[^:]*:: /, '');
+  const half = body.split(' <> ');
+  const a = LINE(half[0]), b = LINE(half[1]);
+  if (!a || !b) return { shape: 'UNPARSED', key: body.slice(0, 40) };
+  if (a.event === b.event && a.slot !== b.slot) return { shape: 'ORDERING', key: a.event };
+  if (a.slot === b.slot && a.event !== b.event) return { shape: 'RULE', key: a.event + ' vs ' + b.event };
+  if (a.event === b.event && a.slot === b.slot) return { shape: 'FIELD', key: a.event };
+  return { shape: 'EMISSION', key: a.event + ' vs ' + b.event };
+}
+
+for (const r of rows) {
+  const s = shapeOf(r.cause);
+  r.shape = s.shape; r.shapeKey = s.key;
+  r.pinSuspect = PINNED.test(r.cause);
+}
+
 /* ---- THE ENTITY ROLLUP -------------------------------------------------------------------------
  * The same move can appear in causes spread across four classes, and a per-cause list hides that.
  * An entity named in eleven distinct causes is one suspect, not eleven. */
@@ -140,6 +197,31 @@ if (dead.length) {
   console.log('    exactly like this, and binning them quietly is how that goes unnoticed.');
   for (const r of dead.slice(0, 6)) console.log('      ' + pad(r.cls, 26) + r.cause.slice(0, 96));
 }
+
+/* THE ANSWER THE PASS EXISTS FOR: does 251 singletons collapse, and into how many things. */
+console.log('\n  BY SHAPE — what the two lines actually disagree ABOUT, not which bucket they landed in');
+const byShape = new Map();
+for (const r of live) {
+  const k = r.shape + ' :: ' + r.shapeKey;
+  const e = byShape.get(k) || { shape: r.shape, key: r.shapeKey, causes: 0, games: 0, uses: 0, pin: 0 };
+  e.causes++; e.games += r.games; e.uses = Math.max(e.uses, r.uses); if (r.pinSuspect) e.pin++;
+  byShape.set(k, e);
+}
+const fams = [...byShape.values()].sort((a, b) => (b.games - a.games) || (b.uses - a.uses));
+console.log('    ' + pad('games', 7) + pad('causes', 8) + pad('uses', 9) + pad('shape', 10) + 'what disagrees');
+for (const f of fams.slice(0, 22)) {
+  console.log('    ' + num(f.games, 5) + '  ' + num(f.causes, 4) + '    ' + pad(f.uses.toLocaleString(), 9)
+              + pad(f.shape, 10) + f.key + (f.pin ? '   [' + f.pin + ' pin-suspect]' : ''));
+}
+const tot = {};
+for (const r of live) { tot[r.shape] = (tot[r.shape] || 0) + 1; }
+console.log('\n    ' + live.length + ' causes collapse to ' + fams.length + ' families.  '
+            + Object.entries(tot).map(([k, v]) => k + ' ' + v).join(', '));
+const singles = live.filter(r => r.games === 1);
+const singleFams = new Set(singles.map(r => r.shape + ' :: ' + r.shapeKey));
+console.log('    ' + singles.length + ' single-game causes collapse to ' + singleFams.size + ' families.');
+console.log('    ' + live.filter(r => r.pinSuspect).length + ' cause(s) name a mechanic that reads a '
+            + 'pinned die — SUSPECT, never excluded (the Protect case proves a suspect can be real).');
 
 console.log('\n  THE SUSPECTS — one entity across every cause that names it');
 console.log('    ' + pad('uses', 9) + pad('causes', 8) + pad('entity', 26) + 'classes it appears in');
