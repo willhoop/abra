@@ -97,6 +97,102 @@ function immuneToStatus(sp, status, abilityId) {
 }
 
 /** check({species, ability, move, target, targetAbility}) -> {ok, why[]} */
+/* ---- THE TRIGGER CLAUSES — WILL, 2026-08-12: "so fix the instrument" -----------------------------
+ *
+ * THE FIVE CLAUSES ABOVE ALL ASK "IS THIS LEGAL". NONE OF THEM ASKS "CAN THE TRIGGER FIRE", AND THAT
+ * IS THE OTHER HALF OF THE SAME FAILURE.
+ *
+ * On 2026-08-12 the probe was wrong before the engine SIX TIMES, and three of those were a fixture
+ * that was entirely legal and structurally incapable of firing its own trigger:
+ *
+ *   NATURAL CURE  A probe switched a burned carrier out and printed "THE MECHANIC IS DEAD — 114
+ *                 corpus uses". `battleInit` SLICES ITS OWN BENCH at `teamA.slice(2)`, so the
+ *                 two-body team had an EMPTY bench, the "bench" Pokemon was standing on the field as
+ *                 the partner, and the switch silently did nothing. Every arm read identical, which
+ *                 is exactly what a dead mechanic looks like.
+ *   CUTE CHARM    0 fires in 4,166 trials against a declared 30%. Every fixture in the repo declared
+ *                 `gender: 'N'` and the authority gates the mechanic on two real genders, so the
+ *                 ability was correctly doing nothing. Filed as ABSENT until Will said to add gender.
+ *   RIVALRY       Same cause. Its guard is `attacker.gender && defender.gender`, so a genderless
+ *                 board is arm three of a three-arm probe — the arm where the answer is 1.0x.
+ *
+ * A LEGAL BOARD THAT CANNOT FIRE ITS TRIGGER IS INDISTINGUISHABLE FROM A DEAD MECHANIC. That is the
+ * inverse the header above says has no name, and these clauses are the name.
+ *
+ * DERIVED FROM THE HANDLER, NEVER FROM A LIST. Each clause reads what the ability's own source
+ * requires and asks whether the scenario supplies it. A hand-list of awkward cases is what went stale
+ * in the first place — that is this file's opening argument and it applies to its own new clauses. */
+function triggerClauses(sc, sp, why, note) {
+  const ab = sc.ability ? D.abilities.get(sc.ability) : null;
+  const src = ab && ab.exists
+    ? Object.entries(ab).filter(([k, v]) => /^on/.test(k) && typeof v === 'function')
+        .map(([, v]) => String(v)).join(' ')
+    : '';
+
+  /* 1. A SWITCH NEEDS A BENCH, and the engine's own slicing is the trap. */
+  if (sc.switchesOut || /onSwitchOut/.test(src)) {
+    const team = +sc.teamSize || 0;
+    if (team && team < 3) {
+      why.push('THE TRIGGER IS A SWITCH AND THIS TEAM HAS NO BENCH — `battleInit` slices its bench at '
+        + '`teamA.slice(2)`, so a team of ' + team + ' puts every body on the field and the switch '
+        + 'silently does nothing. Give it at least 3.');
+    } else if (!team) {
+      note.push('the trigger is a switch — the team needs 3+ bodies or `battleInit` leaves an empty '
+        + 'bench and the switch is a no-op (declare `teamSize` and this becomes a refusal)');
+    }
+  }
+
+  /* 2. A GENDER-GATED MECHANIC NEEDS TWO DECLARED GENDERS — AND THE GATE MAY BE ONE HOP DOWN.
+   *
+   * The first version of this clause tested `/\.gender/` against the ability's own handlers and let
+   * CUTE CHARM straight through, which is the very case it was written for. Cute Charm does not read
+   * gender: it calls `addVolatile('attract')`, and ATTRACT'S OWN CONDITION is what refuses a
+   * genderless body. Rivalry reads `.gender` directly, so the naive test caught that one and created
+   * exactly the false confidence this file exists to prevent — a guard that passes its own worked
+   * example while missing its sibling.
+   *
+   * Found by running the clause RED on the three boards that actually fooled somebody, which is the
+   * repo's rule and which is the only reason this is not shipping half-broken. So: follow the
+   * volatile the handler applies and read ITS source too. Still derived, one hop deeper. */
+  /* BOTH QUOTE STYLES. The handler is read off the COMPILED `dist/sim` and TypeScript rewrites
+   * `'attract'` as `"attract"` — the SAME trap that made the refusal family come out EMPTY in
+   * million_targets.js earlier today, repeated here within the hour. */
+  const viaVolatile = [...src.matchAll(/addVolatile\(\s*['"]([a-z]+)['"]/g)].map(m => m[1]);
+  let reach = src;
+  for (const v of viaVolatile) {
+    const cond = D.conditions.get(v);
+    if (cond && cond.exists) {
+      reach += ' ' + Object.entries(cond).filter(([k, f]) => /^on/.test(k) && typeof f === 'function')
+        .map(([, f]) => String(f)).join(' ');
+    }
+  }
+  if (/\.gender/.test(reach)) {
+    const mine = String(sc.gender || '').toUpperCase();
+    const theirs = String(sc.targetGender || '').toUpperCase();
+    const ok = (g) => g === 'M' || g === 'F';
+    if (!ok(mine) || !ok(theirs)) {
+      why.push('"' + (ab.name || sc.ability) + '" READS `.gender` and this board declares '
+        + (mine || 'none') + ' against ' + (theirs || 'none') + ' — the authority\'s own guard fails '
+        + 'on a genderless body, so the ability correctly does nothing and the board cannot tell that '
+        + 'apart from a dead mechanic. Declare both.');
+    }
+  }
+
+  /* 3. A MECHANIC THAT READS OR CURES A STATUS NEEDS ONE PRESENT. */
+  if (/cureStatus|\.status\b/.test(src) && sc.targetStatus === undefined && sc.status === undefined) {
+    note.push('"' + (ab.name || sc.ability) + '" reads a status — a board whose bodies are healthy '
+      + 'shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical '
+      + 'leaves for exactly this reason)');
+  }
+
+  /* 4. A WEATHER- OR TERRAIN-GATED MECHANIC NEEDS THE SKY SET. */
+  const wx = (src.match(/'(sunnyday|raindance|sandstorm|hail|snowscape|desolateland|primordialsea)'/g) || []);
+  if (wx.length && !sc.weather) {
+    note.push('"' + (ab.name || sc.ability) + '" is gated on ' + [...new Set(wx.map(w => w.replace(/'/g, '')))].join('/')
+      + ' — declare `weather` or the arm is measuring an ability that is switched off');
+  }
+}
+
 function check(sc) {
   const why = [];   /* reasons the scenario CANNOT show anything */
   const note = [];  /* things worth knowing that do not block it */
@@ -171,6 +267,10 @@ function check(sc) {
       }
     }
   }
+  /* THE TRIGGER CLAUSES RUN LAST, so a scenario that is illegal fails on the illegality first —
+   * "this body cannot carry that ability" is a more useful sentence than "declare a gender". */
+  triggerClauses(sc, sp, why, note);
+
 
   return { ok: why.length === 0, why, note };
 }

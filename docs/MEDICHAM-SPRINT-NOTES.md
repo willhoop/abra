@@ -6478,3 +6478,34 @@ exactly like the leaves being broken. The second gave the two sides different ab
 `.diffs` property off an array that does not have one, which reads as "nothing differed". That is the
 fifth time in this sprint the probe was wrong before the engine was, and each one would have been filed
 as a real defect by anyone who stopped at the first red.
+
+### THE PREFLIGHT NEVER ASKED WHETHER THE TRIGGER COULD FIRE
+
+Will: *"so fix the instrument."*
+
+Six times in one day the probe was wrong before the engine was, and three of those were a board that
+was entirely **legal** and structurally incapable of firing its own trigger. Natural Cure printed
+"the mechanic is dead" because the team had no bench, so the switch silently did nothing and every arm
+read identical — which is exactly what a dead mechanic looks like. Cute Charm read zero fires against
+a declared thirty percent because every fixture was genderless and the authority gates the mechanic on
+two real genders. Rivalry, the same cause.
+
+**A legal board that cannot fire its trigger is indistinguishable from a dead mechanic.** That is the
+inverse the preflight's own header says has no name.
+
+Four clauses added, each derived from the handler rather than from a list: a switch trigger checked
+against the team size, a gender-gated mechanic against two declared genders, a status-reading mechanic
+against a declared status, a weather-gated one against a declared sky.
+
+**Shown red on the three boards that actually fooled somebody**, plus the fixed version of each, plus
+two regressions — eight cases, all behaving.
+
+**And running it red caught two errors of mine that would otherwise have shipped.** The gender clause
+first tested whether the ability's own handler mentions gender; Rivalry does, so it passed its worked
+example, while Cute Charm does not read gender at all — it applies a volatile, and *that* condition is
+the gate. The clause now follows the volatile one hop down. Then the chase matched single quotes only,
+and the compiled source uses double — **the identical bug that made an entire family come out empty in
+the rate-run targets earlier the same day**, repeated within the hour.
+
+A guard that had only ever been green would have passed Rivalry, missed Cute Charm, and looked
+finished.
