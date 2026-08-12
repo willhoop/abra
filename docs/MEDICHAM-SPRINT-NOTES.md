@@ -6365,3 +6365,36 @@ re-attribution, and the shapes are not independent counts.**
 The `??:` placeholder is now the largest single family. Its call site already counts itself, so the
 capability had been announcing its own absence and nothing was reading the counter. It was not
 reproduced on a straightforward board, so no line moved.
+
+### THE WHOLE-GAME COMPARISON IS A GATE CLAUSE NOW
+
+Will, 2026-08-12: *"add the whole game comparison to the medicham its part of it and we need to focus
+on getting that lining up."*
+
+It was measuring and gating nothing, which is how a whole-game divergence rate sat beside a clean
+damage differential for months without anybody noticing they were different questions. The damage
+clause is damage only and says so in its own scope line — *"no items or abilities. Turn order, status
+duration and switching need a different harness and are not attempted here rather than attempted
+badly."* The game differential is that other harness: one team pair, real sheets, real natures, both
+engines, every die pinned identically, first divergence recorded. The gate goes from six clauses to
+seven.
+
+**The bar is a ratchet and not zero, and that is a choice against the obvious one.** Zero is correct
+in principle — mode A makes the two engines deterministic functions of one input, so any difference is
+a bug. But a clause that reads red for weeks is one people learn to skip, and this repo has the
+receipt: a docs gate sat red for two days reported as "one of the two known failures" until the rule
+it guarded broke. So the clause fails on a **rise**, the rate may only go down, and it prints the
+absolute figure on every run with the words **NOT ZERO, AND THE RATCHET IS NOT A PASS**.
+
+**The tolerance is derived rather than picked.** The swarm re-selects teams between runs, so two raw
+counts are not comparable — the same instrument reports different denominators. The rate is a binomial
+proportion, so the band is two standard errors computed from the run's own sample size.
+
+It prints emission and rule separately, because a blended percentage is the same merged-number failure
+as the midpoint residual that hid a range wrong at both ends.
+
+**Shown red three ways before being trusted.** No baseline fails by design, rather than seeding itself
+from whatever the last run produced — a ratchet that stamps itself is not a bar somebody chose. A
+planted better baseline fails on the rise. And the stamp refuses a worse number without an explicit
+force, because a baseline may only ratchet down, and raising one quietly is how a gate becomes
+decoration. A run whose planted-divergence proof did not fire is refused outright.

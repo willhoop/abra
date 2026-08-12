@@ -417,6 +417,92 @@ function roadmapRowSaysBroken(l) {
   return /NEVER FIRED|NEVER FIRES|NOT IMPLEMENTED|DOES NOT WORK|DOES NOT ARM|DOES NOT FIRE|UNIMPLEMENTED|silent no-op|IS ABSENT|is not implemented|does not exist|never records|never record|resolve[sd]? to `\{kind:'pass'\}`|HAS NEVER FIRED|IS DEAD/i.test(l);
 }
 
+/* ---- THE WHOLE-GAME CLAUSE — WILL, 2026-08-12: "add the whole game comparison to the medicham its
+ * part of it and we need to focus on getting that lining up" ---------------------------------------
+ *
+ * IT WAS MEASURING AND GATING NOTHING, AND THAT IS HOW A 39.6% SAT BESIDE A 0-OF-6000 FOR MONTHS.
+ * `data/engine-diff.json` — the clause above — is DAMAGE ONLY, and says so in its own scope line:
+ * "no items or abilities. Turn order, status duration and switching need a different harness and are
+ * not attempted here rather than attempted badly." `engine/game_differential.js` is that different
+ * harness: one team pair, real sheets, real natures, played through BOTH engines with every die pinned
+ * identically, first divergence recorded. Nothing read it. I quoted the damage figure for whole games
+ * repeatedly until Will asked whether we had ever played the same game on both.
+ *
+ * THE BAR IS A RATCHET, NOT ZERO, AND THAT IS A DELIBERATE CHOICE AGAINST THE OBVIOUS ONE.
+ *
+ * Zero is the CORRECT bar in principle — mode A pins every die on both sides, so the two engines are
+ * deterministic functions of one input and any difference is a bug, tolerance zero, no statistics. But
+ * a clause that will read red for weeks is a clause people learn to skip, and this repo has the
+ * receipt: a docs gate sat red for two days and was reported as "one of the two known failures" until
+ * the rule it guarded broke. A gate nobody acts on is not a gate.
+ *
+ * So the clause fails on a RISE. The rate may only go down, the baseline moves with it, and the
+ * absolute figure is printed on every run so nobody can mistake a ratchet for a pass.
+ *
+ * THE TOLERANCE IS DERIVED, NOT PICKED. The swarm re-selects teams between runs, so the denominator
+ * moves and two raw counts are not comparable — 408/982 and 570/1556 are the same instrument saying
+ * different things. The RATE is comparable and it is a binomial proportion: at n≈1000 and p≈0.33 one
+ * standard error is about 1.5 points, so the band is 2 SE computed from the run's own n, and a
+ * regression smaller than noise is not a regression. A jump above it is real and holds the gate.
+ *
+ * AND IT PRINTS EMISSION AND RULE SEPARATELY, because they are two questions added together (#223):
+ * one is the engine NARRATING the game differently, the other is it PLAYING the game differently. A
+ * single blended percentage is the merged-number failure this file already learned once, when the
+ * midpoint residual hid a range wrong at both ends. */
+function wholeGameClause(artifact) {
+  const NAME = 'whole-game differential / the same game on both engines';
+  const j = artifact === undefined ? readJson(D('data', 'game-differential.json')) : artifact;
+  if (!j) {
+    return { name: NAME, ok: false, missing: true,
+      why: 'NO ARTIFACT — data/game-differential.json is absent. A clause that cannot be computed '
+         + 'FAILS. Run: SHOWDOWN_PATH=... node engine/game_differential.js --release <id> '
+         + '--games 1200 --write' };
+  }
+  const games = +j.games || 0, div = +j.diverged || 0;
+  if (!games) {
+    return { name: NAME, ok: false, generated: j.generated || null,
+      why: 'THE ARTIFACT RECORDS ZERO GAMES, which is not the same as zero divergences.' };
+  }
+  /* A PLANTED PROOF THAT DID NOT FIRE INVALIDATES THE RUN. An instrument that cannot see a divergence
+   * it planted itself cannot be believed about the ones it did not plant. */
+  if (j.planted_divergence_proof_ok !== true) {
+    return { name: NAME, ok: false, generated: j.generated || null,
+      why: 'THE PLANTED-DIVERGENCE PROOF DID NOT FIRE, so this run cannot be believed at all. An '
+         + 'instrument blind to a divergence it planted itself says nothing about ' + div + '.' };
+  }
+  const rate = div / games;
+  const base = readJson(D('data', 'whole-game-baseline.json'));
+  const se = Math.sqrt(Math.max(rate, 1e-9) * (1 - rate) / games);
+  const band = 2 * se;                                   /* derived from this run's own n */
+  const shapes = (() => {
+    const r = readJson(D('data', 'divergence-report.json'));
+    if (!r || !Array.isArray(r.worklist)) return null;
+    const g = {};
+    for (const x of r.worklist) { g[x.shape] = (g[x.shape] || 0) + (x.games || 0); }
+    return Object.entries(g).sort((a, b) => b[1] - a[1]);
+  })();
+  const pct = (100 * rate).toFixed(1);
+  const shapeLine = shapes ? '  [' + shapes.map(([k, v]) => k.toLowerCase() + ' ' + v).join(', ') + ']' : '';
+  if (!base || typeof base.rate !== 'number') {
+    return { name: NAME, ok: false, generated: j.generated || null, rate,
+      why: `NO BASELINE — data/whole-game-baseline.json is absent, so nothing can say whether ${div} `
+         + `of ${games} (${pct}%) is better or worse than yesterday. THE FIRST RUN FAILS BY DESIGN: `
+         + 'stamp it deliberately (node engine/quarantine.js --stamp-whole-game) so the number that '
+         + 'becomes the bar is one somebody chose.' + shapeLine };
+  }
+  const rose = rate > base.rate + band;
+  return {
+    name: NAME, ok: !rose, generated: j.generated || null, rate, baseline: base.rate,
+    why: rose
+      ? `WORSE THAN THE BASELINE: ${div} of ${games} = ${pct}% against ${(100 * base.rate).toFixed(1)}%`
+        + ` (band ±${(100 * band).toFixed(1)} pts, 2 SE at n=${games}). The rate may only go DOWN.`
+        + shapeLine
+      : `${div} of ${games} = ${pct}% against a baseline of ${(100 * base.rate).toFixed(1)}%`
+        + ` — NOT ZERO, AND THE RATCHET IS NOT A PASS. Mode A pins every die on both sides, so every`
+        + ` one of these ${div} is a rule the two engines disagree about.` + shapeLine,
+  };
+}
+
 function openDefectClause() {
   let lines;
   try { lines = fs.readFileSync(D('docs', 'ROADMAP.md'), 'utf8').split(/\r?\n/); }
@@ -490,7 +576,7 @@ function medichamIsCorrect() {
   const clauses = [differentialClause(), ...ROSTER_STAGES.map(s => {
     const r = rosterStage(s);
     return { ...r, name: `deliberate roster / ${s}` };
-  }), coverageClause(), openDefectClause()];
+  }), coverageClause(), wholeGameClause(), openDefectClause()];
   return { ok: clauses.every(c => c.ok), clauses, failing: clauses.filter(c => !c.ok) };
 }
 
@@ -893,6 +979,48 @@ module.exports = { medichamIsCorrect, classify, state, withholder, playLayer, so
 if (require.main === module) {
   const ARG = process.argv.slice(2);
   const has = f => ARG.includes(f);
+
+  /* STAMPING THE WHOLE-GAME BAR IS AN EXPLICIT ACT, NEVER A SIDE EFFECT OF A RUN.
+   *
+   * `wholeGameClause` fails when no baseline exists, and that is deliberate: a ratchet that seeds
+   * itself from whatever the last run happened to produce is not a bar somebody chose, it is a number
+   * that arrived. Every other ratchet in this repo learned the same thing the same way — the mc-key
+   * baseline and the docs-currency census both require `--update` and both record what moved.
+   *
+   * IT REFUSES TO STAMP A WORSE NUMBER. A baseline may only ratchet DOWN; raising one is how a gate
+   * quietly becomes decoration, and the only two files that have raised a baseline tonight did it with
+   * the audit written into the register beside the diff. */
+  if (has('--stamp-whole-game')) {
+    const j = readJson(D('data', 'game-differential.json'));
+    if (!j || !j.games) { console.error('NO RUN TO STAMP — data/game-differential.json is absent or empty.'); process.exit(2); }
+    if (j.planted_divergence_proof_ok !== true) {
+      console.error('REFUSING — the planted-divergence proof did not fire in that run, so its rate is not a bar.');
+      process.exit(2);
+    }
+    const rate = j.diverged / j.games;
+    const prev = readJson(D('data', 'whole-game-baseline.json'));
+    if (prev && typeof prev.rate === 'number' && rate > prev.rate && !has('--force')) {
+      console.error('REFUSING — ' + (100 * rate).toFixed(1) + '% is WORSE than the standing '
+        + (100 * prev.rate).toFixed(1) + '%. A baseline may only ratchet down. Pass --force with a '
+        + 'register row saying why, the way every other raised baseline in this repo is recorded.');
+      process.exit(2);
+    }
+    fs.writeFileSync(D('data', 'whole-game-baseline.json'), JSON.stringify({
+      what: 'THE BAR FOR engine/game_differential.js — the same game played through BOTH engines with '
+          + 'real sheets and real natures, every die pinned identically on both sides. NOT ZERO, and '
+          + 'the clause says so on every run: mode A makes any difference a rule bug, so the honest '
+          + 'target is 0 and this is a ratchet toward it rather than a definition of correct.',
+      rate, games: j.games, diverged: j.diverged,
+      engine_release: j.engine_release || null,
+      mode: j.mode || null,
+      stamped: new Date().toISOString(),
+      by: 'engine/quarantine.js --stamp-whole-game',
+    }, null, 2) + '\n');
+    console.log('stamped whole-game baseline: ' + j.diverged + ' of ' + j.games
+                + ' = ' + (100 * rate).toFixed(1) + '%'
+                + (prev ? '   (was ' + (100 * prev.rate).toFixed(1) + '%)' : '   (first bar)'));
+    process.exit(0);
+  }
 
   /* ---- SELFTEST: shown RED on a deliberately-quarantined figure before it is trusted -------------
    * `.githooks/pre-commit` was demonstrated red on a deliberate break before it was armed, and
