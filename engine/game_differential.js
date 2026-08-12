@@ -1414,6 +1414,21 @@ function flatL50(bs, nature) { return M.natureL50(bs, nature || 'Serious'); }
  * used to carry its own copy of the stat formula and its buildPair header records having stopped;
  * a second copy is the two-files-one-fact breach CLAUDE.md names. */
 function spreadL50(bs, sp, nature) { return M.spreadL50(bs, sp || null, nature || 'Serious'); }
+/* A RELEASE FROZEN BEFORE THE SPREAD WORK HAS NO `spreadL50`, AND IT MUST FAIL BY NAME.
+ *
+ * Without this the run dies with a bare `TypeError: M.spreadL50 is not a function` four frames deep
+ * inside `freshBodies` — which sends the next reader into the ENGINE looking for a missing function,
+ * when the actual answer is that they named an older release id. That cost a pass. Same treatment as
+ * the `rngStreams` guard above and for the same reason: the failure should say what to do.
+ *
+ * NOT a silent fallback to `natureL50`. That would run every body blank again while the artifact
+ * claimed a spread, which is the exact silent-default failure this file is built around. */
+if (typeof M.spreadL50 !== 'function') {
+  throw new Error('The frozen engine in release ' + REL.id + ' predates the SP spread work (no '
+    + 'spreadL50 export), so every body would be built blank while this file believes it filled a '
+    + 'spread. Cut a release from a tree that has it — `node engine/engine_release.js cut "why"` — '
+    + 'and pass that id to --release.');
+}
 
 function buildPair(sheet, opts) {
   const hpx = (opts && opts.hpBoost) || 1;

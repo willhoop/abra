@@ -6424,3 +6424,34 @@ correctly on the authority and short here. The budget goes to Sp. Def instead, a
 the engine with the differential asking for it rather than keeping a second copy.
 
 **The useful conclusion is the negative one:** speed ties were not what was hiding the divergences.
+
+### THE BOARD COMPARISON CANNOT SEE TYPING OR ABILITY
+
+Will: *"our board state analysis needs to be comprehensive"*, arriving in the middle of a plan to
+settle "how much of this is just wording" by playing both battles to the end and comparing boards.
+
+Read what `board_state.js` actually walks, per body: species, hp, maxhp, fainted, status, a status
+counter, item, boosts, and eight volatiles — substitute, taunt, encore, disable, leech seed, confusion,
+perish, trapped-by-move — plus screens, tailwind, hazards, party and PP.
+
+**No typing. No ability.**
+
+So the end-of-battle comparison as briefed **could not have seen the wrong-body defect at all**: a Soak
+that changes the wrong Pokémon's type leaves every compared leaf identical. Nor Skill Swap, Trace,
+Mummy, Simple Beam, or an ability overwritten by a mega evolution. A board comparison is only as good
+as what is in the board, and this one would have reported the most serious defect of the sprint as
+cosmetic. It is the same blindness that let Regenerator, the weather residual and Focus Band pass
+every check in the project.
+
+**And a stale release now fails by name.** Wiring the spread made this file require an engine release
+newer than the export; against an older one it died with a bare `TypeError` four frames deep, which
+sends the reader into the engine to look for a missing function when the answer is that they named an
+old release. Shown red before being trusted. Not a silent fallback — falling back would run every body
+blank while the artifact claimed a spread.
+
+**The run length is being made a stopping rule rather than a number somebody chose.** Will: *"run
+until each mechanic has been exercised."* The rate runner derives its trials from power; this
+instrument had no rule at all, and the count in every published figure was picked arbitrarily. The
+swarm already steers by coverage and already counts what it reached, so the rule is loop-until-dry —
+keep playing while new rows are credited, stop after several barren batches, and name the rows still
+unexercised rather than reporting a count that reads as complete.

@@ -459,6 +459,25 @@ function mediBody(m, id) {
                   : (m.status === 'slp' ? num(m.slpTurns)
                   : (m.status === 'frz' ? num(m.frzTurns) : 0)),
     item: id(m.item || ''),
+    /* ---- ROADMAP #225 -- TYPING AND ABILITY, AND THEIR ABSENCE MADE THE COMPARISON UNABLE TO SEE
+     * THE WORST DEFECT WE HAVE FOUND. ------------------------------------------------------------
+     *
+     * Will: 'our board state analysis needs to be comprehensive'. This walker compared species, hp,
+     * status, item, boosts and eight volatiles -- and NOT the type list, and NOT the ability. So a
+     * Soak that changes the WRONG Pokemon's typing (ROADMAP #224, 31 of 31 landing off-target) leaves
+     * every compared leaf identical, and an end-of-battle board comparison would have returned
+     * 'cosmetic' for the most serious defect in the register. Same for Skill Swap, Trace, Mummy,
+     * Simple Beam, Protean, and an ability overwritten by mega evolution.
+     *
+     * A BOARD COMPARISON IS ONLY AS GOOD AS WHAT IS IN THE BOARD. That is the whole reason 'just
+     * compare the boards' was never already the answer.
+     *
+     * BOTH ARE NORMALISED AND SORTED. The two engines spell typing differently -- medicham2 holds
+     *  as a live array it rewrites on a mega, a forme change and Protean; Showdown answers
+     * . Sorting removes a pure ORDER difference, which is not a rule disagreement and
+     * would otherwise part every dual-typed body on line one. */
+    types: (m.types || []).map(t => id(t)).sort().join('/'),
+    ability: id(m.ability || ''),
     boosts: mediBoosts(m),
     vol: {
       substitute: num(m._sub),
@@ -485,6 +504,11 @@ function sdBody(p, id) {
                   : (p.status === 'slp' ? sleptTurns(p.statusState)
                   : (p.status === 'frz' ? frozenTurns(p.statusState) : 0)),
     item: id(p.item || ''),
+    /* ROADMAP #225 -- the authority's side of the same two leaves.  is the METHOD, not
+     * the species default: it answers what the body is RIGHT NOW, after a mega, a Protean or a Soak,
+     * which is exactly the question.  is the live slot, so Skill Swap and Trace show. */
+    types: (typeof p.getTypes === 'function' ? p.getTypes() : (p.types || [])).map(t => id(t)).sort().join('/'),
+    ability: id((p.ability && p.ability.id) || p.ability || ''),
     boosts: sdBoosts(p),
     vol: {
       substitute: v.substitute ? num(v.substitute.hp) : 0,
