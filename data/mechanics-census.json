@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-11T23:12:59.120Z",
+  "generated": "2026-08-12T00:26:14.599Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 515,
-  "live": 515,
+  "probed": 516,
+  "live": 516,
   "missing": 0,
-  "armed": 515,
+  "armed": 516,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2796,7 +2796,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.3% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5157,6 +5157,16 @@
       "label": "the sandstorm chip runs fastest-first, and Trick Room reverses it",
       "live": true,
       "detail": "four bodies in sand at Speed p2a 205, p1a 101, p1b 80 (p2b is Garchomp, GROUND, and takes no chip in either arm: false). Chip order with no Trick Room p2a -> p1a -> p1b (fastest first); under TRICK ROOM p1b -> p1a -> p2a (exactly reversed). An engine sorting by raw speed and ignoring the field passes the first arm and fails the second; one still in slot order fails both",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "stallCounterChecks",
+      "label": "the stall counter has its OWN die — pinning accuracy no longer fails a Protect",
+      "live": true,
+      "detail": "two consecutive Protects with accuracy pinned to the mode-A top corner — ONE welded die [true,false] (the stall roll reads the accuracy pin and turn 2 fails); FIVE SPLIT dice [true,true] (both hold). Same seed reproduces: true; a different seed differs: true; acc and crit are independent streams: true; and a PLAIN FUNCTION still aliases every stream so nothing else in this file moved: true",
       "hollow": false,
       "armed": true,
       "directCall": false

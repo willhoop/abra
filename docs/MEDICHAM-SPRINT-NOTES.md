@@ -6236,3 +6236,74 @@ need a run with the stall die decoupled.
 Census **514 -> 515 live, 0 missing**. Damage differential **0/6000 at all three points**. Roster
 re-run against release `96361d523e20`: abilities 120, moves 480, items 139, **0 DIFFER and 0
 DID-NOT-FIRE everywhere**. Game differential 408 of 982 (41.5%), 0 threw, planted proof caught.
+
+---
+
+## ROADMAP #222 — FIVE DICE, NOT ONE. THE COUPLING WAS REAL AND IT WAS NOT THE EXPLANATION (2026-08-11)
+
+**THE HYPOTHESIS WAS THAT SPLITTING THE DIE WOULD DROP THE DIVERGENCE COUNT. IT ROSE.** Measured:
+408 of 982 (41.5%) with the streams welded, **460 of 982 (46.8%)** with the stall counter freed. The
+brief asked to be told if that happened, so: **the coupling was not behind the Protect divergences.**
+
+### THE ENGINE-SIDE SPLIT IS REAL, CORRECT, AND KEPT
+
+`medicham2` genuinely welded five mechanics onto one scalar — the differential's own PINS block said
+so and nobody had read it. `rngStreams()` now derives five named streams — `acc`, `crit`, `sec`,
+`dmg`, `stall` — from one seed, each an LCG seeded by the master mixed with the stream's own NAME so
+adding a sixth cannot shift the five that exist.
+
+**A PLAIN FUNCTION KEEPS EXACTLY TODAY'S BEHAVIOUR.** Every stream aliases the one function, so all
+516 census probes, the rate runner and every scripted harness are bit-for-bit unchanged. That is the
+whole back-compatibility guarantee and it is asserted in the probe rather than described.
+
+Probe `move/stallCounterChecks`: at the mode-A top corner one welded die reads `[true, false]` and
+five split dice read `[true, true]` — the exact demonstration the brief specified. Plus determinism
+(same seed replays), seed-sensitivity, stream independence, and the aliasing arm.
+
+**Turn 3 is deliberately not asserted.** The counter really does grow 1, 3, 9, so a third consecutive
+Protect is a 1/9 its own stream is entitled to lose; asserting it would be asserting a die.
+
+### WHY FREEING IT MADE THE INSTRUMENT WORSE, FROM THE PIN ARITHMETIC IN THAT SAME FILE
+
+```
+chance(num, den) = random(den) < num        random(den) = top ? den - 1 : 0
+```
+
+Under the TOP corner Showdown's own `randomChance(1, counter)` is `counter - 1 < 1`, **FALSE for any
+counter above 1 — so the authority's consecutive Protect fails under this pin too.** The two engines
+were already agreeing BECAUSE both were pinned the same way. Replacing our pinned refusal with a free
+coin desynchronised it from a pinned one, and two independent streams disagree on a 1/3 roll about
+two thirds of the time. That is the 52 extra games, and it is arithmetic rather than a guess.
+
+**SO THE DIFFERENTIAL ARM PINS ALL FIVE TO THE CORNER, exactly as before.** Reverted, and the count
+returns to **408 of 982 (41.5%)** — bit-identical, which is the evidence the revert is exact. The
+freed stream is still built and deliberately unused so the next reader can see what was tried.
+
+### WHAT THIS MEANS FOR THE PROTECT FAMILY, RETRACTED PROPERLY
+
+#218 called Protect a pin artefact. **That is now only half right.** The coupling exists and the
+first Protect is clean, but the divergences cannot be explained by our stall die reading the accuracy
+pin, because Showdown's is pinned to refuse as well. The 32 games are unexplained again and the
+register should say so rather than carry the tidier story.
+
+### THE RATE RUNNER HELD, AND IT WAS CHECKED RATHER THAN ASSUMED
+
+Staged arm before and after, 2,000 trials: **16 of 17 rows identical to the digit** — static 30.75,
+flamebody 30.75, poisonpoint 30.34, effectspore 31.90, cutecharm 30.92, cursedbody 30.22, poisontouch
+29.12, stench 10.56, kingsrock 9.32, quickclaw 19.98, quickdraw 30.58, shedskin 33.29, healer 50.84,
+harvest 50.27, rawstberry 100, aspearberry 100. Only `proc:focusband` moved, 9.75% to 9.70%, both
+inside noise of its declared 10%. **17 MET, 0 SHORT, 0 UNREACHABLE.**
+
+### THE PIN DIGEST MOVED, AND WHY, SO NOBODY RE-BASELINES BY ACCIDENT
+
+`adb146050fff` -> `ef342837b791`. **The behaviour did not change** — 408/982 before and after — and
+the digest moved only because a CLAIM was added: this arm now asserts that all five streams are on the
+corner, which is the assertion whose absence let the Protect story stand. `arms_comparable.js` will
+refuse a pre-#222 run against a post-#222 one. **That is conservative rather than correct** and it is
+the coordinator's call whether to re-baseline; the two runs are demonstrably identical in behaviour.
+
+### A LOUD GUARD, NOT A SILENT FALLBACK
+
+A release frozen before #222 has no `rngStreams`. The differential THROWS naming the release rather
+than falling back to the scalar, because a silent fallback would reproduce the exact coupling this
+change exists to remove while the run looked clean.

@@ -16976,6 +16976,67 @@ probe('move', 'weatherSetter', 'the sandstorm chip runs fastest-first, and Trick
                  + 'arm and fails the second; one still in slot order fails both' };
 });
 
+/* FIVE DICE, NOT ONE — ROADMAP #222, AND THE INSTRUMENT HAD CONFESSED IT IN WRITING.
+ *
+ * `game_differential.js`'s own PINS block: *"accuracy, the crit, every secondary, the stall counter
+ * and the damage roll all read the same `rng()`, so there are TWO corners and not four independent
+ * knobs."* That is not a pinning detail — it is a COUPLING the authority does not have. Showdown draws
+ * each separately, so pinning "the die" high did not mean "every sub-100 move misses"; it meant every
+ * move misses AND no secondary fires AND no crit lands AND damage is maximal AND every consecutive
+ * Protect fails, welded into one event that cannot occur in the real game. The Protect family was 41
+ * games of apparent defect that was really this.
+ *
+ * THE DEMONSTRATION IS EXACT AND IT IS THE WHOLE PROBE. At the mode-A top corner — accuracy pinned so
+ * every sub-100 move misses — the stall counter used to read that same pin and fail. With the streams
+ * split it cannot: turn 1 AND turn 2 must both hold. Before the split this board reads [true, false].
+ *
+ * TURN 3 IS ALLOWED TO FAIL AND IS NOT ASSERTED. The counter really does grow (1, 3, 9), so a third
+ * consecutive Protect is a 1/9 that its own stream is entitled to lose. Asserting it would be
+ * asserting a die.
+ *
+ * THE BACK-COMPATIBILITY ARM IS THE OTHER HALF, and it is what makes this refactor safe: a caller
+ * that hands in a PLAIN FUNCTION must see every stream alias it, so all 515 probes in this file, the
+ * rate runner and every scripted harness are bit-for-bit unchanged. `split` is false on that path and
+ * true on the seeded one, and both are read here rather than described. */
+probe('move', 'stallCounterChecks', 'the stall counter has its OWN die — pinning accuracy no longer fails a Protect', () => {
+  const run = (rngArg) => {
+    const me = bare('garchomp'); me.moves = ['protect', 'earthquake'];
+    const ally = bare('farigiraf');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const out = [];
+    for (let t = 0; t < 2; t++) {
+      M.battleTurn(S, rngArg,
+        new Map([[me, M.playerAction(me, 'protect', null, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, M.playerAction(f1, 'scald', me, S.field)], [f2, { kind: 'pass' }]]));
+      out.push(me.protect);
+    }
+    return out;
+  };
+  const welded = run(() => 0.99);                    /* one function: today's coupling, on purpose */
+  const split = M.rngStreams({ seed: 20260804 });
+  split.acc = () => 0.99; split.crit = () => 0.99; split.sec = () => 0.99; split.dmg = () => 0;
+  const freed = run(split);
+  /* determinism: the same seed must give the same stream, or nothing can be replayed or bisected */
+  const s1 = M.rngStreams({ seed: 7 }), s2 = M.rngStreams({ seed: 7 }), s3 = M.rngStreams({ seed: 8 });
+  const take = (o, k) => [o[k](), o[k](), o[k]()].join(',');
+  const repeatable = take(s1, 'acc') === take(s2, 'acc');
+  const seedMatters = take(M.rngStreams({ seed: 7 }), 'acc') !== take(s3, 'acc');
+  const independent = take(M.rngStreams({ seed: 7 }), 'acc') !== take(M.rngStreams({ seed: 7 }), 'crit');
+  const plain = M.rngStreams(() => 0.42);
+  const aliased = M.RNG_STREAMS.every(k => plain[k]() === 0.42) && plain.split === false;
+  return { works: welded[0] === true && welded[1] === false     /* the coupling, still reproducible */
+                  && freed[0] === true && freed[1] === true      /* the split, and this is the proof */
+                  && repeatable && seedMatters && independent && aliased && split.split === true,
+           arms: { control: welded, test: freed },
+           detail: 'two consecutive Protects with accuracy pinned to the mode-A top corner — ONE '
+                 + 'welded die ' + JSON.stringify(welded) + ' (the stall roll reads the accuracy pin '
+                 + 'and turn 2 fails); FIVE SPLIT dice ' + JSON.stringify(freed) + ' (both hold). '
+                 + 'Same seed reproduces: ' + repeatable + '; a different seed differs: ' + seedMatters
+                 + '; acc and crit are independent streams: ' + independent + '; and a PLAIN FUNCTION '
+                 + 'still aliases every stream so nothing else in this file moved: ' + aliased };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');

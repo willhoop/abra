@@ -1,7 +1,7 @@
 {
-  "generated": "2026-08-11T23:14:29.568Z",
+  "generated": "2026-08-12T00:25:38.436Z",
   "by": "engine/game_differential.js",
-  "mode": "A/top-tie-first/pins:adb146050fff/credit:observed-effect/v1/nature:real",
+  "mode": "A/top-tie-first/pins:ef342837b791/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
   "pins": {
     "why": "ONE PIN IS ONE CORNER. Every published number before 2026-08-07 describes `top-tie-in-order` and nothing else: max damage, every sub-100 move missing, and every speed tie resolving to input order in both engines BY CONSTRUCTION.",
@@ -10,7 +10,7 @@
       "bottom-tie-first"
     ],
     "primary": "top-tie-first",
-    "digest": "adb146050fff",
+    "digest": "ef342837b791",
     "arms": [
       {
         "id": "top-tie-first",
@@ -32,6 +32,8 @@
           "top-tie-first: Showdown's speed-tie shuffle is the IDENTITY on a group of 2..6, at start 0 and at start 3 — exactly what `random(m,n) -> m` produced through Fisher-Yates",
           "top-tie-first: the reversing shuffle, which is implemented and DELIBERATELY NOT INSTALLED, does reverse a group of 2..6 at start 0 and at start 3 — so \"it is unused\" is a choice and not a broken function",
           "top-tie-first: the medicham2 scalar is CONSTANT, so every tie is equal, the sort is stable and the tie goes to the EARLIER body",
+          "top-tie-first: accuracy, crit, secondary and damage are ALL still the corner — the pin this arm claims is intact",
+          "top-tie-first: the STALL counter is on the corner as well, so both engines refuse a consecutive Protect under this pin and neither is guessing  [ROADMAP #222 — measured, the free-die variant was worse]",
           "top-tie-first: the RANGE form is untouched by the tie pin: random(2,5) — THE SLEEP DURATION — is 2"
         ]
       },
@@ -55,11 +57,14 @@
           "bottom-tie-first: Showdown's speed-tie shuffle is the IDENTITY on a group of 2..6, at start 0 and at start 3 — exactly what `random(m,n) -> m` produced through Fisher-Yates",
           "bottom-tie-first: the reversing shuffle, which is implemented and DELIBERATELY NOT INSTALLED, does reverse a group of 2..6 at start 0 and at start 3 — so \"it is unused\" is a choice and not a broken function",
           "bottom-tie-first: the medicham2 scalar is CONSTANT, so every tie is equal, the sort is stable and the tie goes to the EARLIER body",
+          "bottom-tie-first: accuracy, crit, secondary and damage are ALL still the corner — the pin this arm claims is intact",
+          "bottom-tie-first: the STALL counter is on the corner as well, so both engines refuse a consecutive Protect under this pin and neither is guessing  [ROADMAP #222 — measured, the free-die variant was worse]",
           "bottom-tie-first: the RANGE form is untouched by the tie pin: random(2,5) — THE SLEEP DURATION — is 2"
         ]
       }
     ],
-    "medicham2_has_one_scalar_die": "accuracy, the crit, every secondary, the stall counter and the damage roll all read the same `rng()`, so there are TWO corners and not four independent knobs."
+    "medicham2_has_one_scalar_die": "RETRACTED 2026-08-11 (ROADMAP #222) and kept because it is what the sentence cost. It read: \"accuracy, the crit, every secondary, the stall counter and the damage roll all read the same rng(), so there are TWO corners and not four independent knobs.\" True when written, and it described a COUPLING THE AUTHORITY DOES NOT HAVE -- Showdown draws each separately. Pinning the scalar high therefore did not mean \"every sub-100 move misses\", it meant that AND no secondary AND no crit AND max damage AND every consecutive Protect fails, welded into one event the real game cannot reach. It cost 41 games of apparent Protect defect that were zero. medicham2 now takes five named streams; this arm frees the stall counter and holds the other four on the corner, which is what its claims actually assert.",
+    "dice_model": "split/v1: acc+crit+sec+dmg on the corner, stall on its own seeded stream"
   },
   "arms": [
     {
@@ -78,7 +83,7 @@
       "credit_events": {
         "effect": 127775,
         "negative": 435,
-        "click": 212732
+        "click": 216827
       },
       "classes": [
         {
@@ -179,7 +184,7 @@
       "credit_events": {
         "effect": 82356,
         "negative": 105,
-        "click": 79851
+        "click": 81701
       },
       "classes": [
         {
@@ -275,7 +280,7 @@
   },
   "games": 982,
   "turns_cap": 12,
-  "elapsed_s": 81,
+  "elapsed_s": 75.5,
   "planted_divergence_proof": [
     {
       "what": "a wrong FIELD on the last agreeing line",
@@ -925,6 +930,8 @@
     "top-tie-first: Showdown's speed-tie shuffle is the IDENTITY on a group of 2..6, at start 0 and at start 3 — exactly what `random(m,n) -> m` produced through Fisher-Yates",
     "top-tie-first: the reversing shuffle, which is implemented and DELIBERATELY NOT INSTALLED, does reverse a group of 2..6 at start 0 and at start 3 — so \"it is unused\" is a choice and not a broken function",
     "top-tie-first: the medicham2 scalar is CONSTANT, so every tie is equal, the sort is stable and the tie goes to the EARLIER body",
+    "top-tie-first: accuracy, crit, secondary and damage are ALL still the corner — the pin this arm claims is intact",
+    "top-tie-first: the STALL counter is on the corner as well, so both engines refuse a consecutive Protect under this pin and neither is guessing  [ROADMAP #222 — measured, the free-die variant was worse]",
     "top-tie-first: the RANGE form is untouched by the tie pin: random(2,5) — THE SLEEP DURATION — is 2",
     "bottom-tie-first: a 90-accuracy move HITS  [medicham2: 0*100 > 90 is false -> hit]",
     "bottom-tie-first: a 100-accuracy move HITS and neither engine emits a -miss  [medicham2 skips the check]",
@@ -937,6 +944,8 @@
     "bottom-tie-first: Showdown's speed-tie shuffle is the IDENTITY on a group of 2..6, at start 0 and at start 3 — exactly what `random(m,n) -> m` produced through Fisher-Yates",
     "bottom-tie-first: the reversing shuffle, which is implemented and DELIBERATELY NOT INSTALLED, does reverse a group of 2..6 at start 0 and at start 3 — so \"it is unused\" is a choice and not a broken function",
     "bottom-tie-first: the medicham2 scalar is CONSTANT, so every tie is equal, the sort is stable and the tie goes to the EARLIER body",
+    "bottom-tie-first: accuracy, crit, secondary and damage are ALL still the corner — the pin this arm claims is intact",
+    "bottom-tie-first: the STALL counter is on the corner as well, so both engines refuse a consecutive Protect under this pin and neither is guessing  [ROADMAP #222 — measured, the free-die variant was worse]",
     "bottom-tie-first: the RANGE form is untouched by the tie pin: random(2,5) — THE SLEEP DURATION — is 2"
   ],
   "classes": [
@@ -7460,8 +7469,8 @@
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
     "rows_with_an_observed_effect": 204,
     "rows_that_can_be_witnessed_on_a_board": 217,
-    "rows_that_name_no_board_leaf": 245,
-    "rows_credited_by_a_connected_click_only": 234,
+    "rows_that_name_no_board_leaf": 246,
+    "rows_credited_by_a_connected_click_only": 235,
     "rows_clicked_or_present_that_did_nothing": 6,
     "rows_clicked_or_present_that_did_nothing_list": [
       "ability:clearsScreensOnEntry",
@@ -7656,13 +7665,13 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 3815,
+        "credit": 7630,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 5955
+          "click": 11910
         },
-        "attempts": 10
+        "attempts": 20
       },
       {
         "key": "move:stalling",
@@ -14739,15 +14748,28 @@
           "click": 14
         },
         "attempts": 0
+      },
+      {
+        "key": "move:stallCounterChecks",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 7630,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 11910
+        },
+        "attempts": 20
       }
     ]
   },
   "coverage": {
-    "measurable": 462,
-    "exercised": 446,
+    "measurable": 463,
+    "exercised": 447,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
-    "exercised_by_a_connected_move": 269,
-    "move_targets": 272,
+    "exercised_by_a_connected_move": 270,
+    "move_targets": 273,
     "present_on_the_field_only": 177,
     "ability_or_item_targets": 190,
     "median_completed_turns_before_divergence": 12,
@@ -15141,13 +15163,13 @@
     "rule": "at every decision the driver prefers the legal action reaching the least-exercised row of data/mechanics-census.json, ties broken toward the least-clicked entity (game_differential.js covWant/creditClick). The census therefore SELECTS THE SAMPLE this run measures.",
     "input": "data/mechanics-census.json",
     "input_read_from": "data/mechanics-census.json",
-    "input_digest": "58910fdf1276",
-    "input_rows": 515,
-    "input_generated": "2026-08-11T23:12:59.120Z",
-    "input_live_digest": "58910fdf1276",
+    "input_digest": "264d67c92385",
+    "input_rows": 516,
+    "input_generated": "2026-08-12T00:18:29.158Z",
+    "input_live_digest": "264d67c92385",
     "pinned": false,
     "matches_live": true,
-    "selects_from": 462,
+    "selects_from": 463,
     "unmeasurable": 53,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "214c75bba440",
@@ -15156,12 +15178,12 @@
     "team_store_pinned_to": null
   },
   "baseline_comparability": null,
-  "engine_release": "96361d523e20",
-  "engine_release_cut": "2026-08-11T23:12:59.358Z",
+  "engine_release": "67f1c791fc83",
+  "engine_release_cut": "2026-08-12T00:19:46.368Z",
   "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "eecaa3bc0ec0",
+    "engine/medicham2-browser.js": "0b8962a0f0c0",
     "engine/board.js": "a55f8271e101",
     "engine/rollout_leaf.js": "fa318c1022ff",
     "engine/position_features.js": "7927ccb7f5af",

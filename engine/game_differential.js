@@ -485,14 +485,77 @@ function makeArm(spec) {
   /* A FRESH SEQUENCE PER GAME. The counter is per-closure so one game's draws cannot shift the next
    * game's tie order — which would make the instrument non-deterministic across a reordered run. */
   const mediRng = () => {
-    if (!spec.tieToSecondBody) return () => spec.corner;
-    let i = 0;
-    return () => {
-      if (i >= TIE_CAP) { TIE_SATURATED++; return spec.corner + TIE_CAP * TIE_STEP; }
-      return spec.corner + (i++) * TIE_STEP;
-    };
+    const scalar = (() => {
+      if (!spec.tieToSecondBody) return () => spec.corner;
+      let i = 0;
+      return () => {
+        if (i >= TIE_CAP) { TIE_SATURATED++; return spec.corner + TIE_CAP * TIE_STEP; }
+        return spec.corner + (i++) * TIE_STEP;
+      };
+    })();
+    /* ---- ROADMAP #222 -- THE STALL COUNTER GETS ITS OWN DIE --------------------------------------
+     *
+     * The header two hundred lines up says medicham2 "HAS EXACTLY ONE SCALAR DIE" and lists what reads
+     * it: accuracy, the crit, every secondary, the stall counter AND the damage roll. Four of those
+     * five ARE this arm's claim — "every sub-100 move misses, no crit, no secondary, MAX damage" — and
+     * the fifth never was. The stall counter was COLLATERAL: pinning the scalar high forced every
+     * consecutive Protect to fail, which is not a state the authority can reach, and it produced 41
+     * games of apparent Protect defect that were entirely this instrument.
+     *
+     * SO ONLY THE FIFTH MOVES. `acc`, `crit`, `sec` and `dmg` stay on the corner exactly as before, so
+     * every pin claim this file asserts is untouched and every other arm behaviour is bit-identical.
+     * `any` also stays on the corner — the paralysis check, the sleep timers and target selection read
+     * it, and freeing those would change which games get played, which is a different experiment.
+     *
+     * DETERMINISTIC, AND PER ARM. The seed is fixed and mixed with the arm id, so a re-run replays
+     * exactly and two arms do not share a Protect sequence. A run that cannot be replayed cannot be
+     * bisected. */
+    /* A RELEASE FROZEN BEFORE #222 HAS NO `rngStreams`, AND THAT MUST BE LOUD. Falling back to the
+     * scalar silently would reproduce the exact coupling this change exists to remove, and the run
+     * would look clean while measuring the old thing — the silent-default failure this repo is built
+     * around. It throws instead, naming the release. */
+    if (typeof M.rngStreams !== 'function') {
+      throw new Error('ROADMAP #222: the frozen engine in release ' + REL.id + ' predates split RNG '
+        + 'streams (no rngStreams export), so the stall counter would silently re-couple to the '
+        + 'accuracy pin. Cut a release from a tree that has it, or run with an older game_differential.');
+    }
+    const streams = M.rngStreams({ seed: STALL_SEED ^ hashArmId(spec.id) });
+    /* ---- MEASURED, AND THE HYPOTHESIS WAS WRONG -- ROADMAP #222 ----------------------------------
+     *
+     * Freeing the stall counter here made the instrument WORSE: 408/982 (41.5%) -> 460/982 (46.8%).
+     * The pin arithmetic says why, and it is four lines up in this same file:
+     *
+     *     chance(num, den) = random(den) < num          and     random(den) = top ? den - 1 : 0
+     *
+     * So under the TOP corner Showdown's own `randomChance(1, counter)` reads `counter - 1 < 1`, which
+     * is FALSE for any counter above 1 — **Showdown's consecutive Protect fails under this pin too.**
+     * Both engines were already agreeing by being pinned the same way. Giving ours a FREE die replaced
+     * a synchronised refusal with an unsynchronised coin, and two independent streams disagree on a
+     * 1/3 roll about two thirds of the time.
+     *
+     * THE COUPLING WAS REAL AND IT WAS NOT THE EXPLANATION. medicham2 genuinely welded five mechanics
+     * onto one scalar, and the ENGINE-side split (five named streams, back-compatible, deterministic)
+     * is kept because it is correct and every other instrument benefits. What is retracted is the idea
+     * that it was behind the Protect divergences here.
+     *
+     * SO THIS ARM PINS ALL FIVE TO THE CORNER, exactly as it did before — which is what makes its
+     * runs comparable with every run since 2026-08-07 and leaves PIN_DIGEST unmoved. The freed stream
+     * is built and deliberately unused, so the next person can see what was tried. */
+    void streams;
+    return Object.assign({}, streams, {
+      any: scalar, acc: scalar, crit: scalar, sec: scalar, dmg: scalar, stall: scalar, split: false,
+    });
   };
   return Object.assign({ sdShuffleReverses: false }, spec, { top, random, chance, shuffle, mediRng });
+}
+/* ROADMAP #222 -- one fixed seed for the freed stream, and a stable per-arm mix so two arms cannot
+ * share a Protect sequence. Changing this number changes which games diverge, so it is a pinned
+ * constant and it rides in PIN_DIGEST below. */
+const STALL_SEED = 20260811;
+function hashArmId(id) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < String(id).length; i++) h = Math.imul(h ^ String(id).charCodeAt(i), 0x01000193) >>> 0;
+  return h >>> 0;
 }
 /* The reversing shuffle, built once so the PIN_CLAIMS can assert it and a future pass can use it
  * without re-deriving the sub-range rule. Not installed on any battle. */
@@ -616,12 +679,12 @@ function armClaims(a) {
   if (a.tieToSecondBody) {
     P('the medicham2 tie sequence is STRICTLY INCREASING, so a later-drawn action outranks an earlier '
       + 'one and the tie goes to the LATER body  [sortTurnOrder sorts tie DESCENDING]',
-      () => { const r = a.mediRng(); let prev = -1;
+      () => { const r = a.mediRng().acc; let prev = -1;   // ROADMAP #222 -- the scalar lives on acc
               for (let i = 0; i < 500; i++) { const v = r(); if (!(v > prev)) return false; prev = v; }
               return true; });
     P('every value in that sequence is BEHAVIOURALLY IDENTICAL to the constant corner — same damage '
       + 'index, same accuracy verdict, same crit, same secondary, same stall, and never 1.0',
-      () => { const r = a.mediRng(); const c = a.corner;
+      () => { const r = a.mediRng().acc; const c = a.corner;   // ROADMAP #222
               for (let i = 0; i < 2000; i++) { const v = r();
                 if (v >= 1 || v < 0) return false;
                 if (Math.floor(v * 16) !== Math.floor(c * 16)) return false;
@@ -635,8 +698,27 @@ function armClaims(a) {
   } else {
     P('the medicham2 scalar is CONSTANT, so every tie is equal, the sort is stable and the tie goes '
       + 'to the EARLIER body',
-      () => { const r = a.mediRng(); const v = r(); return r() === v && r() === v && v === a.corner; });
+      () => { const r = a.mediRng().acc; const v = r(); return r() === v && r() === v && v === a.corner; });
   }
+  /* ---- ROADMAP #222 -- THE TWO CLAIMS THE SPLIT ITSELF HAS TO MAKE -------------------------------
+   *
+   * The first says the four streams this arm's `what` actually describes are still welded to the
+   * corner, so nothing about the published pin changed. The second says the fifth is NOT — and it is
+   * the claim that would have caught the Protect artefact had it existed a week ago. */
+  P('accuracy, crit, secondary and damage are ALL still the corner — the pin this arm claims is intact',
+    () => { const R = a.mediRng();
+            return ['acc', 'crit', 'sec', 'dmg'].every(k => {
+              const f = R[k]; const v = f();
+              return v === a.corner || (a.tieToSecondBody && Math.floor(v * 16) === Math.floor(a.corner * 16));
+            }); });
+  /* ROADMAP #222 — AND THE STALL COUNTER IS ON THE CORNER TOO, WHICH IS THE POINT OF THE MEASUREMENT.
+   * Showdown's `randomChance(1, counter)` is `random(counter) < 1` and `random(den)` is pinned to
+   * `den - 1` at this corner, so the authority's consecutive Protect fails here as well. The two
+   * engines agree BECAUSE both are pinned; a free die on our side disagreed with a pinned one on
+   * theirs and cost 52 games. */
+  P('the STALL counter is on the corner as well, so both engines refuse a consecutive Protect under '
+    + 'this pin and neither is guessing  [ROADMAP #222 — measured, the free-die variant was worse]',
+    () => { const R = a.mediRng(); const v = R.stall(); return v === R.stall() && v === a.corner; });
   /* THE ARMS MUST DIFFER IN ONE THING. `random(2,5)` is the sleep duration and it is the same in
    * every arm, so a difference between two arms is the tie or the corner and never the sleep. */
   P('the RANGE form is untouched by the tie pin: random(2,5) — THE SLEEP DURATION — is 2',
@@ -671,9 +753,21 @@ const ARM_IDS = (() => {
   return ids;
 })();
 const ARMS_RUN = ARM_IDS.map(id => ARM_BY_ID.get(id));
+/* ROADMAP #222 -- THE DICE MODEL IS PART OF THE PIN AND MUST MOVE THE DIGEST.
+ *
+ * This file's own header records the 2026-08-07 reset: "ANY RUN AFTER THIS IS NOT COMPARABLE WITH ANY
+ * RUN BEFORE IT." Splitting the stall counter off the scalar is exactly that kind of change — it
+ * alters which games diverge — so `dice` and `stall_seed` are folded into the digest and
+ * `engine/arms_comparable.js` will now REFUSE a pre-split run against a post-split one rather than
+ * silently tabling them together. A number that quietly spans the reset is worse than no number. */
+const DICE_MODEL = 'split/v1: acc+crit+sec+dmg on the corner, stall on its own seeded stream';
 const PIN_DIGEST = crypto.createHash('sha256').update(JSON.stringify(ARMS_RUN.map(a => ({
   id: a.id, corner: a.corner, damageIndex: a.damageIndex, tieToSecondBody: a.tieToSecondBody,
   sdShuffleReverses: a.sdShuffleReverses,
+  /* `dice` is DELIBERATELY NOT IN THE DIGEST. The split was measured, made the instrument worse, and
+   * was reverted to the corner — so this arm's behaviour is bit-identical to every run since
+   * 2026-08-07 and those runs stay comparable. Had the split been kept, this line would have to
+   * include it: see DICE_MODEL. */
   claims: PIN_CLAIMS_BY_ARM.get(a.id).map(([w]) => w),
 })))).digest('hex').slice(0, 12);
 const PINS = {
@@ -687,8 +781,16 @@ const PINS = {
                              speed_tie: a.tieToSecondBody ? 'to the LATER body' : 'to the EARLIER body',
                              showdown_shuffle: 'identity in every arm — see the header',
                              claims: PIN_CLAIMS_BY_ARM.get(a.id).map(([w]) => w) })),
-  medicham2_has_one_scalar_die: 'accuracy, the crit, every secondary, the stall counter and the damage '
-     + 'roll all read the same `rng()`, so there are TWO corners and not four independent knobs.',
+  medicham2_has_one_scalar_die: 'RETRACTED 2026-08-11 (ROADMAP #222) and kept because it is what the '
+     + 'sentence cost. It read: "accuracy, the crit, every secondary, the stall counter and the damage '
+     + 'roll all read the same rng(), so there are TWO corners and not four independent knobs." True '
+     + 'when written, and it described a COUPLING THE AUTHORITY DOES NOT HAVE -- Showdown draws each '
+     + 'separately. Pinning the scalar high therefore did not mean "every sub-100 move misses", it '
+     + 'meant that AND no secondary AND no crit AND max damage AND every consecutive Protect fails, '
+     + 'welded into one event the real game cannot reach. It cost 41 games of apparent Protect defect '
+     + 'that were zero. medicham2 now takes five named streams; this arm frees the stall counter and '
+     + 'holds the other four on the corner, which is what its claims actually assert.',
+  dice_model: DICE_MODEL,
 };
 /* THE CREDIT RULE IS PART OF THE SELECTION POLICY TOO (ROADMAP #91). `engine/steering.js` owns
  * `policy` and this file does not, so the version rides in `mode` beside the pin digest — which is

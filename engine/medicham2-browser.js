@@ -10958,7 +10958,64 @@ function scriptedAimOf(m,mvId){
   if(fd.excludesAlly&&m._sf&&by._sf===m._sf)return null;
   return by;
 }
+/* ---- ROADMAP #222 -- FIVE DICE, NOT ONE ---------------------------------------------------------
+ *
+ * `game_differential.js` said it in its own PINS block long before anyone read it:
+ *
+ *     medicham2_has_one_scalar_die: "accuracy, the crit, every secondary, the stall counter and the
+ *     damage roll all read the same rng(), so there are TWO corners and not four independent knobs."
+ *
+ * THAT IS NOT A PINNING DETAIL, IT IS A COUPLING THE AUTHORITY DOES NOT HAVE. Showdown draws each of
+ * these separately. So pinning "the die" high did not mean "every sub-100 move misses" -- it meant
+ * every sub-100 move misses AND no secondary fires AND no crit lands AND damage is maximal AND every
+ * consecutive Protect fails, welded into one event that CANNOT OCCUR in the real game. The Protect
+ * family was 41 games of apparent defect that was really this, and nothing told us how many of the
+ * rest were the same artefact.
+ *
+ * A PLAIN FUNCTION KEEPS EXACTLY TODAY'S BEHAVIOUR, and that is the whole back-compatibility
+ * guarantee: every stream aliases the one function, so all 515 census probes, the rate runner and
+ * every scripted harness are bit-for-bit unchanged. Only a caller that ASKS for a split gets one.
+ *
+ * THE STREAMS ARE DERIVED FROM ONE SEED, DETERMINISTICALLY. Same seed, same game -- a run that cannot
+ * be replayed cannot be bisected, and every instrument here assumes it can. Each stream is its own
+ * LCG seeded by mixing the master seed with the stream's NAME, so adding a sixth stream later cannot
+ * shift the five that exist.
+ *
+ * WHAT IS DELIBERATELY *NOT* SPLIT: target selection, the chooser's own coins, sleep/freeze/paralysis
+ * timers, Ally Switch's stall and the forme cycles all keep reading the generic stream. The brief
+ * named five knobs; inventing more would be manufacturing independence the authority may not have,
+ * which is the same error in the other direction. They stay on `any`. */
+const RNG_STREAMS = ['acc', 'crit', 'sec', 'dmg', 'stall'];
+function rngStreams(src) {
+  /* ALREADY A STRUCT: pass it through, but fill any missing stream from `any` so a partial struct
+   * degrades to today's behaviour rather than to undefined. */
+  if (src && typeof src === 'object' && typeof src.any === 'function') {
+    const o = { any: src.any, split: !!src.split, seed: src.seed };
+    for (const k of RNG_STREAMS) o[k] = (typeof src[k] === 'function') ? src[k] : src.any;
+    return o;
+  }
+  if (src && typeof src === 'object' && typeof src.seed === 'number') {
+    /* ONE SEED IN, FIVE INDEPENDENT STREAMS OUT. A 32-bit LCG per stream; the per-stream seed is the
+     * master mixed with a hash of the stream's own name, so the set is stable under addition. */
+    const mix = (a, b) => { let h = (a ^ 0x9e3779b9) >>> 0;
+      for (let i = 0; i < b.length; i++) { h = Math.imul(h ^ b.charCodeAt(i), 0x01000193) >>> 0; }
+      return h >>> 0; };
+    const lcg = (seed) => { let st = (seed >>> 0) || 1;
+      return () => { st = (Math.imul(st, 1664525) + 1013904223) >>> 0; return st / 4294967296; }; };
+    const o = { split: true, seed: src.seed, any: lcg(mix(src.seed, 'any')) };
+    for (const k of RNG_STREAMS) o[k] = lcg(mix(src.seed, k));
+    return o;
+  }
+  /* THE BACK-COMPATIBLE PATH. One function, every stream is it. */
+  const f = (typeof src === 'function') ? src : (() => 0.5);
+  const o = { any: f, split: false, seed: null };
+  for (const k of RNG_STREAMS) o[k] = f;
+  return o;
+}
 function battleTurn(S,rng,actsForA,actsForB){
+  /* ROADMAP #222 -- the five named dice. `rng` below remains the GENERIC stream, so every call
+   * site not named in RNG_STREAMS is untouched and a plain-function caller sees no change at all. */
+  const _R=rngStreams(rng); rng=_R.any;
   rng=rng||Math.random;
   if(battleOver(S))return S;
   /* ROADMAP #68 -- bound at entry and released at every exit, so a nested rollout that shares this
@@ -11310,7 +11367,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _n=it.mon.tookProtectTurns;
           const _cap=1+Math.round(Math.log(_mx/_f)/Math.log(_g));
           const _ctr=_n===0?1:Math.min(_mx,_f*Math.pow(_g,_n-1));
-          const _ok=(_ctr<=1||rng()<1/_ctr);
+          const _ok=(_ctr<=1||_R.stall()<1/_ctr);   // ROADMAP #222 -- its own die
           it.mon.protect=_ok;
           it.mon.tookProtectTurns=_ok?Math.min(_cap,_n+1):0;
         }
@@ -12283,7 +12340,7 @@ function battleTurn(S,rng,actsForA,actsForB){
               if(!MEDFAILS.composedRiderNoTargetFirst)MEDFAILS.composedRiderNoTargetFirst=String(a.mv)+' -> '+String(_e.volatile||_e.status);
               continue;
             }
-            if(_e.chance<100&&rng()*100>=_e.chance) continue;
+            if(_e.chance<100&&_R.sec()*100>=_e.chance) continue;   // ROADMAP #222
             if(_e.status) applyStatus(_who,_e.status,m);
             if(_e.volatile&&applyMoveVolatile(_who,_e.volatile,m,a.mv,field,
                  {alreadyMoved:!unresolved.has(_who)&&acts.some(x=>x.mon===_who)}))
@@ -12478,7 +12535,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* WIRE 129 -- hitChance, not moveAccuracy: a Minimize'd target dodges a Will-O-Wisp exactly
            * as it dodges an Ice Beam, and No Guard lands one exactly as it lands a Stone Edge. */
           const _acc=hitChance(m,_t,a.mv,field,{targetAlreadyMoved:!unresolved.has(_t)});
-          if(_acc<100&&rng()*100>_acc){if(TR)TR.miss(m,_t);continue;}
+          if(_acc<100&&_R.acc()*100>_acc){if(TR)TR.miss(m,_t);continue;}   // ROADMAP #222
           /* ROADMAP #102 -- STRENGTH SAP'S HEAL, WHICH WIRE 79 FILED AS UNREACHABLE AND NO LONGER IS.
            *
            * The note left here said "the heal scales off the TARGET's Attack and no artifact this engine
@@ -12511,7 +12568,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* Stat changes. Contrary flips them and Clear Body refuses drops, both already modelled for
            * Intimidate -- asked here the same way so one ability does not behave differently by route. */
           for(const _e of ((a.sc&&a.sc.target)||[])){
-            if(_e.chance<100&&rng()*100>=_e.chance) continue;
+            if(_e.chance<100&&_R.sec()*100>=_e.chance) continue;   // ROADMAP #222
             const _sg=invSign(_t);         // WIRE 100b
             /* WIRE 3 -- the refusal is ONE gate now, and it is asked per STAT while the ANNOUNCEMENT
              * is once per boost table: Showdown's onTryBoost deletes each blocked key inside a single
@@ -12560,7 +12617,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                and this line can never fire. */
             if(_e.to==='user'&&_landed>0) continue;
             if(!_who||_who.fainted) continue;
-            if(_e.chance<100&&rng()*100>=_e.chance) continue;
+            if(_e.chance<100&&_R.sec()*100>=_e.chance) continue;   // ROADMAP #222
             if(_e.status) applyStatus(_who,_e.status);
             /* WIRE 26 -- sealsMoves, and it is where the tag actually resolves.
              *
@@ -14189,7 +14246,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              &&!(_pt.immuneType&&t.types.includes(_pt.immuneType))
              &&!pranksterBlocked(m,t,a.mv)&&!subBlocks(m,t,a.mv)){
             const acc=hitChance(m,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
-            if(rng()*100<=acc){t._seededBy={by:m,per:_pt.per};if(TR)TR.vstart(t,'move: Leech Seed');}
+            if(_R.acc()*100<=acc){t._seededBy={by:m,per:_pt.per};if(TR)TR.vstart(t,'move: Leech Seed');}   // ROADMAP #222
             else if(TR)TR.miss(m,t);
           }
           /* WIRE 20's sealsMoves consumer USED TO BE HERE AND WAS UNREACHABLE. Encore, Disable and
@@ -14205,7 +14262,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(powderBlocked(t,a.mv)){if(TR)TR.imm(t);continue;}     // Grass / Overcoat / Safety Goggles
         if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;} // Prankster does not touch Dark types
         const acc=hitChance(m,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
-        if(rng()*100>acc){if(TR)TR.miss(m,t);continue;}          // status moves miss (T-Wave 90, W-o-W 85)
+        if(_R.acc()*100>acc){if(TR)TR.miss(m,t);continue;}          // status moves miss (T-Wave 90, W-o-W 85); ROADMAP #222
         /* applyStatus emits the `|-status|` itself; a REFUSED status (an immunity, an existing
          * status) returns false and emits `|-fail|`, which is what Showdown does. */
         /* WIRE 133 -- THE SOURCE TRAVELS WITH THE STATUS, and it has to: Safeguard refuses what the
@@ -15210,7 +15267,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(a.move.spread)MEDSEEN.accSpreadNoDefender++;
           const _mvAcc=hitChance(m,_accDef,a.move.id,field,
                                  {targetAlreadyMoved:!!(_accDef&&!unresolved.has(_accDef))});
-          _mvMissed=(_mvAcc<100&&rng()*100>_mvAcc);
+          _mvMissed=(_mvAcc<100&&_R.acc()*100>_mvAcc);   // ROADMAP #222
         }
         if(!_mvMissed)return;
         /* ROADMAP #81 WIRE 9 -- ONE `|-miss|` PER TARGET, AND EACH ONE NAMES THE BODY IT MISSED.
@@ -15327,7 +15384,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * result to the old arithmetic (the two ranges are equal), and only a crit that actually
          * ignores a stage or a screen moves. Clamped, because the two ranges need not be the same
          * length once A or D has changed. */
-        const _roll=Math.floor(rng()*(d.max-d.min+1));
+        const _roll=Math.floor(_R.dmg()*(d.max-d.min+1));   // ROADMAP #222 -- its own die
         let dmg=d.min+_roll;
         /* WIRE 35 -- THE CRIT ROLL READS A RATE. It was a flat `rng()<1/24` for every move and every
          * defender: Night Slash and Psycho Cut got no more crits than Tackle, a Scope Lens did
@@ -15337,7 +15394,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * that have nothing to do with crits.
          * A rate of exactly 1 is skipped because dmgRange has ALREADY applied that 1.5 to the range;
          * multiplying again here would price Flower Trick at 2.25x. */
-        {const _cc=critChance(a.move.id,m,suppressedAbility(m,tg),tg),_cr=rng();   // WIRE 128 -- one owner
+        {const _cc=critChance(a.move.id,m,suppressedAbility(m,tg),tg),_cr=_R.crit();   // WIRE 128 -- one owner; ROADMAP #222 -- its own die
          if(_cc>0&&_cc<1&&_cr<_cc){
            /* ROADMAP #81 WIRE 11 -- AND THE ROLLED CRIT IS RE-PRICED, not merely multiplied. A crit
             * ignores the attacker's negative offensive stages, the defender's positive defensive
@@ -19195,13 +19252,13 @@ root.compareTurnOrder=compareTurnOrder; root.turnOrderKey=turnOrderKey; root.sor
    reason compareTurnOrder is: the browser reaches this engine through the global object. */
 root.traceCounts=traceCounts; root.traceCanon=traceCanon; root.TRACE_EVENTS=TRACE_EVENTS;
 root.punishExposure=punishExposure; root.clickFragility=clickFragility;
-root.battleInit=battleInit; root.battleTurn=battleTurn; root.battleOver=battleOver; root.battleResult=battleResult; root.playerAction=playerAction;
+root.battleInit=battleInit; root.battleTurn=battleTurn; root.rngStreams=rngStreams; root.RNG_STREAMS=RNG_STREAMS; root.battleOver=battleOver; root.battleResult=battleResult; root.playerAction=playerAction;
 root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet; root.weatherId=weatherId; root.terrainId=terrainId;
 root.megaTargetFor=megaTargetFor; root.canMegaNow=canMegaNow; root.megaEvolveNow=megaEvolveNow;
 root.natureShift=natureShift; root.natureStat=natureStat; root.natureL50=natureL50;
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
-if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
+if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,rngStreams,RNG_STREAMS,
   punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,battleInit,battleTurn,battleOver,battleResult,playerAction,parsePaste,buildMonFromSet,
   moveFx,movePriority,priorityRefusedAbove,isGrounded,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
   /* ROADMAP #81 WIRE 12 -- the aura roster read; see the root export above. */

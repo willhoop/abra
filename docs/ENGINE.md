@@ -33,8 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  515/515 probed mechanics live, 0 missing   (census 2026-08-11 19:12)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-11 19:16)
+  516/516 probed mechanics live, 0 missing   (census 2026-08-11 20:26)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-11 20:26)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -46,15 +46,44 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f1b9c29625f0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 58910fdf1276 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 2b15d8775610 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 260/279 probed, 19 unprobed
 ```
 
-_stamped 2026-08-11 19:18_
+_stamped 2026-08-11 20:27_
 
 <!-- /GENERATED -->
+
+## ROADMAP #222 — FIVE DICE, NOT ONE. THE COUPLING WAS REAL AND IT WAS NOT THE EXPLANATION. 2026-08-11.
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md`. For this ledger:
+
+- **Census 515 live / 0 missing -> 516 live / 0 missing.**
+- **THE HYPOTHESIS WAS THAT SPLITTING THE DIE WOULD DROP THE DIVERGENCE COUNT. IT ROSE**: 408 of 982
+  (41.5%) welded, **460 of 982 (46.8%)** with the stall counter freed. Reported as asked.
+- **The engine split is real, correct and KEPT.** `rngStreams()` derives five named streams — `acc`,
+  `crit`, `sec`, `dmg`, `stall` — from one seed, each seeded by the master mixed with the stream's own
+  NAME. **A plain function makes every stream alias it**, so all 516 probes, the rate runner and every
+  harness are bit-for-bit unchanged. Probe `move/stallCounterChecks`: one welded die reads
+  `[true, false]` at the mode-A top corner and five split dice read `[true, true]`.
+- **WHY FREEING IT MADE THE INSTRUMENT WORSE, from the pin arithmetic in the differential itself:**
+  `chance(num, den) = random(den) < num` and `random(den) = top ? den - 1 : 0`, so Showdown's own
+  `randomChance(1, counter)` is `counter - 1 < 1` — **FALSE, the authority's consecutive Protect fails
+  under this pin too.** Both engines were agreeing BECAUSE both were pinned. A free coin against a
+  pinned one disagrees about two thirds of the time on a 1/3 roll; that is the 52 extra games.
+- **Reverted to the corner; the count returns to 408 of 982, bit-identical**, which is the evidence the
+  revert is exact. The freed stream is built and deliberately unused so the attempt stays visible.
+- **#218's "Protect is a pin artefact" is now HALF RETRACTED.** The coupling exists and the first
+  Protect is clean, but the divergences cannot be explained by it. Those 32 games are unexplained
+  again and the register should say so rather than keep the tidier story.
+- **The rate runner held and was checked, not assumed:** 16 of 17 staged rows identical to the digit;
+  only `proc:focusband` moved 9.75% -> 9.70%, both inside noise of 10%. 17 MET, 0 SHORT, 0 UNREACHABLE.
+- **PIN_DIGEST moved `adb146050fff` -> `ef342837b791` with NO behaviour change**, because a CLAIM was
+  added — the arm now asserts all five streams are on the corner, the assertion whose absence let the
+  Protect story stand. `arms_comparable.js` will refuse a pre/post pair; that is conservative rather
+  than correct, and re-baselining is the coordinator's call.
 
 ## ROADMAP #218 — THE GAME DIFFERENTIAL: RESIDUAL ORDER CLOSED, PROTECT IS A PIN ARTEFACT. 2026-08-11 (twelfth pass).
 

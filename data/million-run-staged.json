@@ -1,11 +1,11 @@
 {
   "note": "GENERATED — do not hand-edit. Written by engine/million_run.js --staged. ROADMAP #196.",
-  "engine_release": "84f466e7e0d2",
-  "engine_release_cut": "2026-08-11T22:09:08.196Z",
+  "engine_release": "67f1c791fc83",
+  "engine_release_cut": "2026-08-12T00:19:46.368Z",
   "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "c86d64123aa3",
+    "engine/medicham2-browser.js": "0b8962a0f0c0",
     "engine/board.js": "a55f8271e101",
     "engine/rollout_leaf.js": "fa318c1022ff",
     "engine/position_features.js": "7927ccb7f5af",
@@ -23,14 +23,14 @@
     "data/regulations.json": "6c1995e9a9fb",
     "data/quality-filter.json": "e675d10477c8",
     "data/engine-data.js": "c6bdc5c54d70",
-    "data/abra-tags.js": "e44ac0b07c7e",
-    "data/tags.json": "4cf855c10537",
+    "data/abra-tags.js": "4d3c4c90449a",
+    "data/tags.json": "4409d8e1ff9c",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "a64314db056b",
     "engine/pp.js": "30b12a4ef623"
   },
-  "generated": "2026-08-11T22:47:54.216Z",
+  "generated": "2026-08-12T00:20:30.626Z",
   "by": "engine/million_run.js --staged",
   "what": "THE STAGED ARM. Constructed boards, FREE dice, and a denominator known BY CONSTRUCTION rather than inferred from a trace. This is the arm the proc family was waiting for: FAMILY_SUPPORT.proc in this same file marks the whole family observable:false because \"the trace does not say whether the trigger was reached, only whether it fired, so the denominator would be invented. Needs a staged arm, not a bigger corpus.\" On a board this file built the trigger is reached by construction and VERIFIED per trial, and a trigger-control arm proves the verification is a trigger test rather than a click count.",
   "rng": "FREE-RUNNING (mulberry32, a fresh stream per fixture-trial, seeded from 20260811). NOT the differential drivers pin — ROADMAP #88 pins every die to one corner, which is why these rows read COULD-NOT-STAGE in tests/roster.js and are measurable here. Both pinned corners are run as red proofs and both must be flagged.",
@@ -52,6 +52,7 @@
       "proc:kingsrock",
       "proc:quickclaw",
       "proc:quickdraw",
+      "proc:focusband",
       "proc:shedskin",
       "proc:healer",
       "proc:harvest",
@@ -59,21 +60,16 @@
       "proc:aspearberry"
     ],
     "rows_short": [],
-    "rows_unreachable": [
-      {
-        "id": "proc:focusband",
-        "why": "UNREACHABLE FOR POWER — no declared rate to power against; the FROZEN tag artifact carries no such param for focusband, so the engine has nothing to roll here. The row is tallied and NOT scored: a rate is the wrong question about a mechanic that is absent, and tests/roster.js owns absence."
-      }
-    ],
+    "rows_unreachable": [],
     "all_scoreable_rows_powered": true,
-    "staged_battles_played": 134299
+    "staged_battles_played": 134155
   },
   "trials_per_control_and_pin_arm": 2000,
   "target_list": {
     "file": "data/million-targets.json",
     "digest": "bf5abe436236",
     "generated": "2026-08-11T22:05:20.996Z",
-    "age_hours": 0.7,
+    "age_hours": 2.24,
     "rows": 247
   },
   "declaration_gate": {
@@ -93,6 +89,7 @@
       "kingsrock",
       "quickclaw",
       "quickdraw",
+      "focusband",
       "healer",
       "harvest"
     ],
@@ -105,37 +102,35 @@
       "aspearberry"
     ],
     "disagreeing": [],
-    "no_tag_param": [
-      "focusband"
-    ]
+    "no_tag_param": []
   },
   "absent_mechanics": [],
   "pooled": {
     "what": "Every scored staged trial, each row at its own declared rate, Poisson-binomial. |z| > 3 diverges. Unlike the self-play arm this pool is over CONSTRUCTED denominators, so a divergence here cannot be a denominator artefact of the corpus.",
     "all": {
-      "trials": 54503,
-      "fired": 17684,
-      "expected_fires": 17429.61,
-      "z": 2.397,
-      "observed_pct": 32.446,
-      "expected_pct": 31.979
+      "trials": 56359,
+      "fired": 17864,
+      "expected_fires": 17615.21,
+      "z": 2.327,
+      "observed_pct": 31.697,
+      "expected_pct": 31.255
     },
     "excluding_absent_mechanics": {
-      "trials": 54503,
-      "fired": 17684,
-      "expected_fires": 17429.61,
-      "z": 2.397,
-      "observed_pct": 32.446,
-      "expected_pct": 31.979
+      "trials": 56359,
+      "fired": 17864,
+      "expected_fires": 17615.21,
+      "z": 2.327,
+      "observed_pct": 31.697,
+      "expected_pct": 31.255
     },
     "by_family": {
       "proc": {
-        "trials": 54503,
-        "fired": 17684,
-        "expected_fires": 17429.61,
-        "z": 2.397,
-        "observed_pct": 32.446,
-        "expected_pct": 31.979
+        "trials": 56359,
+        "fired": 17864,
+        "expected_fires": 17615.21,
+        "z": 2.327,
+        "observed_pct": 31.697,
+        "expected_pct": 31.255
       }
     }
   },
@@ -150,20 +145,20 @@
     "pinned_corners": {
       "high": {
         "corner": "every die 0.99 — no proc may fire, and every scored row must be FLAGGED",
-        "rows_with_20_plus": 14,
+        "rows_with_20_plus": 15,
         "missed": [],
         "caught": true
       },
       "low": {
         "corner": "every die ~0 — every proc must fire, and every scored row must be FLAGGED",
-        "rows_with_20_plus": 14,
+        "rows_with_20_plus": 15,
         "missed": [],
         "caught": true
       },
       "caught": true
     },
     "per_row_synthetic": {
-      "rows": 16,
+      "rows": 17,
       "missed": [],
       "caught": true,
       "what": "every scored row with 20+ trials, its real n against a maximally wrong outcome. Decidable at every n; a miss means the row-level flagger is blind."
@@ -172,16 +167,16 @@
   },
   "scoring": {
     "interval": "Wilson 95%",
-    "scored_rows": 16,
+    "scored_rows": 17,
     "note": "the split-half spread on each row is the noise floor for that row (LESSONS 9): an effect smaller than the spread between two halves of one arm is not an effect. Band rows share their parent denominator and carry no split-half of their own."
   },
   "cost": {
-    "elapsed_ms": 44894,
+    "elapsed_ms": 35580,
     "fixtures": 17,
     "stageable": 17,
     "arms_per_fixture": 4,
-    "staged_battles_played": 134299,
-    "ms_per_battle": 0.3343,
+    "staged_battles_played": 134155,
+    "ms_per_battle": 0.2652,
     "what_a_battle_is": "one freshly built four-body board played for one or two scripted turns. It is not comparable to a self-play game, which runs to a 20-turn cap — so this number must never be quoted beside the self-play arm ms/game.",
     "note": "four arms are played per stageable fixture — subject (which runs to its own power target), trigger control, pinned high, pinned low. COVERAGE HERE IS THE FIXTURE SET, NOT N: past its power target another million trials adds precision to a row that already has enough and reaches no mechanic that has no fixture. That is the same finding the 50,000-game self-play run made from the other direction."
   },
@@ -1403,13 +1398,13 @@
       "stageable": true,
       "why_not": null,
       "declaration": {
-        "tag_pct": null,
-        "tag_from": null,
+        "tag_pct": 10,
+        "tag_from": "data/tags.json (frozen release) focusband.survivesFromFull.chance",
         "list_pct": 10,
         "list_from": "DERIVED:randomChance(1,10) in the handler",
         "list_expect_raw": 10,
-        "corroborated": null,
-        "why": "the FROZEN tag artifact carries no such param for focusband, so the engine has nothing to roll here. The row is tallied and NOT scored: a rate is the wrong question about a mechanic that is absent, and tests/roster.js owns absence."
+        "corroborated": true,
+        "why": "the frozen tag and the format-derived target row agree"
       },
       "denominator": "ONE TRIAL = ONE FRESHLY BUILT BOARD on which the incoming hit WAS LETHAL, verified as the holder either fainting or standing on exactly 1 HP. A hit that left it on anything else was not lethal and is refused.",
       "preflight": {
@@ -1420,28 +1415,30 @@
       "board": "Samurott holds focusband with its max HP SET to 20 while Kangaskhan has its Attack SET to 400 and clicks Assurance, so the hit is lethal several times over on every roll and at every crit state.",
       "power": {
         "detect_points": 2,
-        "required_trials": null,
+        "required_trials": 1856,
         "from": "one-sample proportion test against the DECLARED rate, two-sided alpha 0.05, power 0.80, larger of the two alternatives (p0 +/- detect)",
-        "achieved_trials": 2000,
-        "attempts_spent": 2000,
-        "met": null,
-        "verdict": "UNREACHABLE FOR POWER — no declared rate to power against; the FROZEN tag artifact carries no such param for focusband, so the engine has nothing to roll here. The row is tallied and NOT scored: a rate is the wrong question about a mechanic that is absent, and tests/roster.js owns absence."
+        "achieved_trials": 1856,
+        "attempts_spent": 1856,
+        "met": true,
+        "verdict": "MET"
       },
       "subject_arm": {
-        "attempts": 2000,
-        "n": 2000,
-        "k": 0,
+        "attempts": 1856,
+        "n": 1856,
+        "k": 180,
         "refused": {},
         "bands": {},
-        "extra": {},
+        "extra": {
+          "raw_fires": 180
+        },
         "halves": [
           {
-            "n": 1000,
-            "k": 0
+            "n": 928,
+            "k": 88
           },
           {
-            "n": 1000,
-            "k": 0
+            "n": 928,
+            "k": 92
           }
         ],
         "refused_total": 0,
@@ -1493,7 +1490,7 @@
       },
       "pinned_low": {
         "trials": 2000,
-        "fired": 0
+        "fired": 2000
       }
     },
     {
@@ -2368,24 +2365,31 @@
       "family": "proc",
       "subject": "focusband",
       "detail": "survives a lethal hit on 1 HP",
-      "declared_pct": null,
-      "observed_pct": 0,
-      "trials": 2000,
-      "fired": 0,
+      "declared_pct": 10,
+      "observed_pct": 9.698,
+      "trials": 1856,
+      "fired": 180,
       "ci95_pct": [
-        0,
-        0.192
+        8.434,
+        11.129
       ],
-      "half_width_pts": 0.096,
-      "scored": false,
+      "half_width_pts": 1.348,
+      "scored": true,
+      "diverges_at_95": false,
+      "diverges_bonferroni": false,
+      "split_half": {
+        "a": 9.48,
+        "b": 9.91,
+        "spread_pts": 0.43
+      },
       "denominator_clean": "exact",
       "power": {
         "detect_points": 2,
-        "required_trials": null,
-        "achieved_trials": 2000,
-        "verdict": "UNREACHABLE FOR POWER — no declared rate to power against; the FROZEN tag artifact carries no such param for focusband, so the engine has nothing to roll here. The row is tallied and NOT scored: a rate is the wrong question about a mechanic that is absent, and tests/roster.js owns absence."
+        "required_trials": 1856,
+        "achieved_trials": 1856,
+        "verdict": "MET"
       },
-      "certain": false
+      "certain": true
     },
     {
       "key": "proc:shedskin",
