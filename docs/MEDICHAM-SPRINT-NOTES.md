@@ -6545,3 +6545,80 @@ a free attack.
 The protocol test's counter assertion was real and **vacuous**: its scripted scenarios contain three
 switches between them, and the defect needs deliberate switching to appear. It now plays real games,
 asserts the run was **shown** to have switched, and only then asserts the counter is zero.
+
+### FOUR ORDERING DEFECTS OFF FIVE BATTLES WILL READ, AND THE TWO CHEAPEST WERE NOT ORDERING
+
+Census 525 → 531 live, 0 missing. Whole-game differential, same frozen pool and the SAME steering at
+both ends: 254/815 → **224/815** on the top corner, 289/815 → **246/815** on the bottom.
+
+**The faint line is not emitted when HP reaches zero.** It comes out of `faintMessages`, after the
+hit loop and before recoil — so the announcement splits a move in two, and a drain or a self-drop is
+paid ABOVE it while recoil and Life Orb are paid below. Two of Will's five cards were this one defect.
+One new step in the list, not a special case per move.
+
+**The brief named the wrong speed for the replacement order, and confirming it before fixing is why
+the fix is right.** It is the DEPARTING body's, not the arriving one's. And the entry effects are
+ordered the other way — one speed-sorted field event over the arrivals — so fixing only the
+announcement would have dragged the entry pass with it and turned a half that was accidentally right
+into a half that was wrong. Both halves, one change.
+
+**The first fixture said the knob did nothing.** Six cells, all identical. The dying bodies' speeds
+had been written onto stored stats and the faint restores them, so both actions read the same number
+and the sort shuffled a pure tie. Identical results across a varied knob meant the knob was unwired,
+not that it did not matter.
+
+**Fake Out was refused on every body that had switched in — which is when it is clicked.** 36,879
+corpus clicks. Champions OVERRIDES the move and the override is the selection half, so both halves had
+to be read; the count is MOVE ACTIONS since arriving, and a switch is not one. The engine was asking
+how many turns the body had been standing there.
+
+**Ally Switch was borrowing Protect's `-singleturn`.** Decided against the derived event table, not by
+taste. Its stall counter was already split from Protect's and needed nothing.
+
+**The instrument then condemned itself, and it was right to.** Three defects in the planted-divergence
+proof, all reproduced on the frozen pre-change engine before anything was touched: an index in the
+wrong unit on a branch that had never run, a plant the semantic normaliser could erase, and a plant
+aimed at `|upkeep`, which has no field to bend. The reporting hole is the one that cost the diagnosis —
+"the plant was never placed" and "the comparator cannot see a divergence" were the same row, and only
+the second condemns a run. **One tightening was wrong and is kept written down:** making an
+out-of-range aim throw broke all three plants, because the aligner runs every turn and the first call
+legitimately cannot place a plant at line 92.
+
+### THE SECOND BATCH: FIVE MORE LANDED, AND THE COUNT DID NOT MOVE
+
+Census 531 → 533 live, 0 missing. Five fixes, every one verified against the authority on staged turns
+before an engine line changed.
+
+**The hook order was the general one.** A damage reaction is `onDamagingHit` and an item strip is
+`onAfterHit`, and the authority raises the first above the second — so Stamina, Weak Armor, Justified
+and Rough Skin all resolve above Knock Off's and Thief's `-enditem`. Matching the hook rather than the
+pair is what makes the twelfth member arrive with no edit.
+
+**And the first attempt at it killed the whole buff family silently.** The per-hit reaction count was
+assigned inside the block being moved, so deferring the call left it undefined and Stamina, Weak Armor,
+Justified and Anger Point stopped firing altogether — no error, no counter. The only thing that caught
+it was the probe's second control, which asserts that a move which strips nothing still fires the
+reaction. A control that looked like belt-and-braces was the whole detector.
+
+**The one handed over as a possible regression from the slot work was not one.** Taken first, as
+asked. The first staging did not reproduce it at all; it reproduces only when the move is aimed at the
+body that died earlier in the same turn, and the authority retargets where we failed. The engine's own
+counter had already filed that gap — and never fired, because the common road is not an empty slot but
+an occupied one holding a corpse.
+
+**A declared reason that has stopped being true is worse than no reason.** `-sethp` was on the
+not-emitted list as *"Pain Split is not modelled"*, and Pain Split has been modelled for days; only the
+vocabulary was wrong. The entry was deleted rather than reworded. The protocol test then went red
+because nothing in it clicks Pain Split — the guard working — so the scenario was added rather than the
+claim withdrawn.
+
+**THE COUNT DID NOT MOVE: 225 and 249 against 224 and 246.** Said plainly. Five correct fixes and the
+whole-game rate is flat or a shade worse, because the differential records a game's FIRST divergence:
+repairing an early one lets the game run on to a later one it never used to reach. The five are right
+individually and the headline is not evidence that they are.
+
+**Three items from the last message are outstanding and one of them is the serious one.** A type
+immunity being skipped — a full-health body killed by a move it cannot be hit by — does NOT reproduce
+on nine stagings, so the verdict is about the fixture and not the mechanic, and it is not closed.
+Raging Bull is confirmed broken and is not an engine fix at all: no tag carries the forme-keyed type,
+so it needs a derivation before a consumer can exist.

@@ -2147,6 +2147,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
     });
   };
 
+  let comparedWalked = 0;
   const alignAndCheck = () => {
     /* `opts.plant` corrupts the MEDICHAM side and only the medicham side. It exists for the
      * planted-divergence proof and is undefined on every real run — a comparator that finds nothing
@@ -2156,7 +2157,13 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
     const raw = opts.plant ? opts.plant(trace.slice()) : trace;
     const A = reduce(sdRawAll), B = reduce(raw);
     const a = A.lines, b = B.lines;
-    for (let i = 0; i < Math.min(a.length, b.length); i++) {
+    /* HOW FAR THE TWO STREAMS WERE ACTUALLY WALKED, kept because a game that never parts has no
+     * `div.index` and the planted-divergence proof needs somewhere INSIDE THE COMPARED REGION to
+     * plant. See plantedProof: it used `trace.length`, which is the RAW medicham line count, and the
+     * compared region is shorter at both ends -- `reduce` drops lines, and the loop below stops at
+     * the SHORTER of the two reduced streams. */
+    comparedWalked = Math.min(a.length, b.length);
+    for (let i = 0; i < comparedWalked; i++) {
       if (a[i] !== b[i]) {
         return { index: i, sd: a[i], me: b[i],
                  /* THE RAW LINES, so a report shows what the engines EMITTED and not what the
@@ -2436,6 +2443,9 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
   const megaSd = battle.log.filter(l => /^\|-mega\|/.test(String(l)));
   const capable = [pairA, pairB].filter(p => p.some(x => isStone(x.spec.item))).length;
   return { config: cfgId, seed: seedTag, arm: ARM.id, turns, lines: trace.length, err, div: firstDiv, mediTrace: trace,
+           /* the number of REDUCED line pairs the aligner actually walked. `lines` above is the RAW
+            * medicham count and is not a substitute: see plantedProof. */
+           comparedWalked,
            /* THE STATE RESULT, beside the protocol one so the two can be read against each other on the
             * same game rather than across two runs. `stateDiv === null` with `boundaries > 1` is a game
             * whose boards never parted. */
@@ -2696,17 +2706,76 @@ function classify(d) {
  * index table rather than assuming the two are the same array — which they stopped being the moment
  * the semantic layer landed. It mutates FIELD 2, the body identifier, because no equivalence rule
  * drops that field: a plant a normaliser can erase proves the opposite of what it is for. */
-function plantsFor(k) {
+/* THE BEND IS CHECKED AGAINST THE NORMALISER, NOT ASSUMED TO SURVIVE IT. 2026-08-12, and the comment
+ * directly above already said why: *"a plant a normaliser can erase proves the opposite of what it is
+ * for"*. It bent field 2 by APPENDING, and field 2 is a body identifier whose canonical form is the
+ * SLOT -- `p1a: Snorlax` reduces to `p1a` -- so `p1a: SnorlaxXX` reduces to `p1a` too on every line
+ * whose identifier carries a name. MEASURED: on the proof pair this run picked, the FIELD plant
+ * reported `applied: 1, caught: false` -- placed, then erased, and described in words that read exactly
+ * like a comparator that cannot see a divergence.
+ *
+ * THE APPEND IS STILL TRIED FIRST, so every pair on which this proof already passed is byte-identical.
+ * A line NO candidate can bend past the normaliser returns null: `|upkeep` has no field 2 at all, and
+ * it is a very common last-agreeing line. `bendableBefore` below is what handles that, rather than a
+ * plant that pretends. */
+function bendField2(line) {
+  const base = semantic(line);
+  const alt = (f) => { const p = String(line).split('|'); if (p.length <= 2) return null; p[2] = f(p[2]); return p.join('|'); };
+  for (const c of [alt(x => x + 'XX'), alt(x => 'XX' + x), alt(() => 'p9z: PLANTED')]) {
+    if (c === null) continue;
+    const t = semantic(c);
+    if (t !== null && t !== base) return c;
+  }
+  return null;
+}
+/* THE LAST AGREEING LINE AT OR BEFORE `k-1` THAT A FIELD PLANT CAN ACTUALLY LAND ON, walked backwards
+ * over the CLEAN stream. `|upkeep` carries no body identifier, so "bend a field on the last agreeing
+ * line" is not always a sentence that can be obeyed; obeying it as far as it goes and REPORTING THE
+ * INDEX USED is honest, while aiming at a line that cannot carry the plant reports a working
+ * comparator as a broken one. Returns -1 when no line in the prefix can carry it. */
+function bendableBefore(rawStream, k) {
+  const m = reduce(rawStream).rawIdx;
+  for (let j = Math.min(k - 1, m.length - 1); j >= 0; j--) if (bendField2(rawStream[m[j]]) !== null) return j;
+  return -1;
+}
+function plantsFor(k, fieldK) {
+  /* AN OUT-OF-RANGE AIM IS NORMAL AND MUST STAY A NO-OP, AND A PLANT THAT NEVER LANDED AT ALL IS A
+   * BROKEN INSTRUMENT. 2026-08-12, and the two were indistinguishable until today.
+   *
+   * `alignAndCheck` runs at EVERY turn boundary and the plant is applied on each call, so on the first
+   * call -- the leads, before turn 1 -- the stream is about five lines long and an aim at line 92
+   * cannot be placed. That is not a fault: the plant simply lands later, once the stream has grown.
+   * Making it throw looked like a tightening and broke all three plants outright, which is how this
+   * comment came to be written.
+   *
+   * SO IT IS COUNTED INSTEAD. `applied` is bumped every time a plant actually mutates the stream, and
+   * a plant that finishes the game with `applied === 0` reports THAT as its cause rather than arriving
+   * as a bare NOT CAUGHT. "The plant was never placed" and "the comparator cannot see a planted
+   * divergence" are the same row otherwise, and only the second condemns the run. */
   const at = (s, j) => { const m = reduce(s).rawIdx; return j >= 0 && j < m.length ? m[j] : -1; };
-  const bend = (line) => { const p = line.split('|'); if (p.length > 2) p[2] += 'XX'; return p.join('|'); };
+  /* THE BEND IS CHECKED AGAINST THE NORMALISER, NOT ASSUMED TO SURVIVE IT. 2026-08-12, and this file's
+   * own comment eight lines up already said why: *"a plant a normaliser can erase proves the opposite
+   * of what it is for"*. It bent field 2 by APPENDING, and field 2 is a body identifier whose canonical
+   * form is the slot -- `p1a: Snorlax` reduces to `p1a` -- so `p1a: SnorlaxXX` reduces to `p1a` TOO on
+   * every line whose identifier carries a name. MEASURED: on the proof pair this run picked, the FIELD
+   * plant reported `applied: 1, caught: false` -- placed, then erased, and reported in words that read
+   * exactly like a comparator that cannot see a divergence.
+   *
+   * THE APPEND IS STILL TRIED FIRST so every pair on which the proof already passed is byte-identical.
+   * A line no candidate can bend past the normaliser returns null, and the plant then reports NOT
+   * PLACED rather than pretending. */
+  const st = [{ applied: 0 }, { applied: 0 }, { applied: 0 }];
   return [
-    ['a wrong FIELD on the last agreeing line', k - 1,
-      s => { const i = at(s, k - 1); if (i < 0) return s; const t = s.slice(); t[i] = bend(t[i]); return t; }],
+    ['a wrong FIELD on the last agreeing line', fieldK,
+      s => { const i = at(s, fieldK); if (i < 0) return s;
+             const bent = bendField2(s[i]); if (bent === null) return s; st[0].applied++;
+             const t = s.slice(); t[i] = bent; return t; }, st[0]],
     ['a MISSING event — the last agreeing line deleted', k - 1,
-      s => { const i = at(s, k - 1); if (i < 0) return s; const t = s.slice(); t.splice(i, 1); return t; }],
+      s => { const i = at(s, k - 1); if (i < 0) return s; st[1].applied++;
+             const t = s.slice(); t.splice(i, 1); return t; }, st[1]],
     ['two agreeing events SWAPPED — the ordering class must fire', k - 2,
-      s => { const i = at(s, k - 1), j = at(s, k - 2); if (i < 0 || j < 0) return s;
-             const t = s.slice(); const x = t[j]; t[j] = t[i]; t[i] = x; return t; }],
+      s => { const i = at(s, k - 1), j = at(s, k - 2); if (i < 0 || j < 0) return s; st[2].applied++;
+             const t = s.slice(); const x = t[j]; t[j] = t[i]; t[i] = x; return t; }, st[2]],
   ];
 }
 /* THE FOUR ARMS OF THE PROOF MUST BE THE SAME GAME, and they were not. The driver is COVERAGE-SEEKING
@@ -2733,16 +2802,35 @@ function withFrozenDriver(fn) {
 }
 function plantedProof(pairA, pairB) {
   const clean = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'proof/clean'));
-  const k = clean.div ? clean.div.index : clean.lines;
+  /* THE NO-DIVERGENCE BRANCH READ `clean.lines` AND THAT IS THE WRONG UNIT. 2026-08-12. `k` is an
+   * index into the REDUCED stream -- `plantsFor`'s `at()` maps it through `reduce().rawIdx` -- and
+   * `lines` is `trace.length`, the RAW medicham count. The compared region is shorter at both ends:
+   * `reduce` drops declared-not-emitted lines, and the aligner stops at the SHORTER of the two
+   * reduced streams. So on a pair whose clean arm agrees all the way, `k-1` landed PAST the last line
+   * the two engines ever compared, the FIELD and MISSING plants bent a line nobody looked at, and both
+   * reported NOT CAUGHT -- an instrument declaring itself broken because its aim was out of range.
+   *
+   * THIS WAS NOT AN ENGINE REGRESSION AND WAS CHECKED RATHER THAN ASSUMED: the identical three rows
+   * come out of `--release a81663f17c0c`, the frozen pre-change engine, on the same pair. The branch
+   * had simply never been reached before -- every earlier proof pair's clean arm diverged, so `k` came
+   * from `div.index`, which has always been in the right unit. That path is untouched here. */
+  const k = clean.div ? clean.div.index : clean.comparedWalked;
   const cleanRow = { what: 'the CLEAN arm of the same game', caught: !!clean.div,
                      at: clean.div ? clean.div.index : null, agreeing_prefix: k,
                      cls: clean.div ? classify(clean.div).cls : null };
   if (k < 3) return [{ what: 'CANNOT PLANT — the clean game parts after only ' + k + ' lines, so there '
                              + 'is no agreeing prefix to plant inside', caught: false, at: null }, cleanRow];
-  return plantsFor(k).map(([what, expectAt, plant]) => {
+  /* The FIELD plant gets its OWN aim, because not every line can carry it. See bendableBefore. */
+  const fieldK = bendableBefore(clean.mediTrace, k);
+  return plantsFor(k, fieldK).map(([what, expectAt, plant, st]) => {
     const r = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'proof/' + what.slice(0, 12), { plant }));
     return { what, caught: !!r.div, at: r.div ? r.div.index : null, expected_at: expectAt,
              earlier_than_clean: !!r.div && r.div.index < k,
+             /* CARRIED ONTO THE ROW so a plant that was never placed names itself instead of arriving
+              * as a bare NOT CAUGHT, and so a plant that was placed but not seen cannot hide behind
+              * the same words. See plantsFor. */
+             applied: st.applied,
+             err: r.err || null,
              cls: r.div ? classify(r.div).cls : null };
   }).concat([cleanRow]);
 }
@@ -3478,7 +3566,10 @@ for (const p of PROOF) console.log('    ' + (p.what === 'the CLEAN arm of the sa
   : (p.caught && p.at === p.expected_at && p.earlier_than_clean
        ? 'CAUGHT at line ' + String(p.at).padEnd(5) + 'exactly where planted: ' + p.what
        : (p.caught ? 'CAUGHT at ' + p.at + ' but PLANTED at ' + p.expected_at + ' — ' + p.what
-                   : 'NOT CAUGHT — ' + p.what))));
+                   : 'NOT CAUGHT — ' + p.what
+                     + (p.applied === 0 ? '   [THE PLANT WAS NEVER PLACED — aimed at reduced line '
+                                          + p.expected_at + ', which no call could reach]' : '')
+                     + (p.err ? '   [' + p.err + ']' : '')))));
 if (!PROOF_OK) console.log('    THE COMPARATOR FAILED ITS OWN PROOF — everything below is worthless.');
 
 /* ---- THE STATE COMPARATOR PROVES ITSELF, BEFORE ANY BOARD IS SCORED ----------------------------- */

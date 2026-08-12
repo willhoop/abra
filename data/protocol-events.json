@@ -1,9 +1,9 @@
 {
-  "generated": "2026-08-11 00:36:33",
+  "generated": "2026-08-12 23:07:43",
   "source": "engine/derive_protocol_events.js",
   "source_digests": {
-    "engine/derive_protocol_events.js": "cecf2505dcb8",
-    "engine/medicham2-browser.js": "efe0d43c72d8"
+    "engine/derive_protocol_events.js": "4c744fc074d2",
+    "engine/medicham2-browser.js": "669872d33753"
   },
   "showdown_pinned_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "derivedFrom": {
@@ -30,7 +30,7 @@
     "note": "the champions mod OVERRIDES two of the core emits (-supereffective, -resisted); its arity wins."
   },
   "showdownEvents": 91,
-  "emittedCount": 40,
+  "emittedCount": 41,
   "emitted": [
     "-ability",
     "-activate",
@@ -56,6 +56,7 @@
     "-mustrecharge",
     "-prepare",
     "-resisted",
+    "-sethp",
     "-sideend",
     "-sidestart",
     "-singleturn",
@@ -73,7 +74,7 @@
     "turn",
     "upkeep"
   ],
-  "notEmittedCount": 54,
+  "notEmittedCount": 53,
   "notEmitted": [
     {
       "event": "-anim",
@@ -160,10 +161,6 @@
       "reason": "no move in this engine SETS a stage; Belly Drum adds +12 half-stages through statChangeInCode and is emitted as `-boost`, which is what Showdown's gen-9 bellydrum does too."
     },
     {
-      "event": "-sethp",
-      "reason": "Pain Split is not modelled."
-    },
-    {
       "event": "-singlemove",
       "reason": "Destiny Bond / Grudge are not modelled."
     },
@@ -189,7 +186,7 @@
     },
     {
       "event": "-zbroken",
-      "reason": "Z-moves do not exist in this format."
+      "reason": "a Z-move display leftover the champions mod re-uses for a pierced Protect. This engine models the pierce (WIRE 158) and announces the `-ability` line beside it; this line carries no state and is not emitted."
     },
     {
       "event": "-zpower",
@@ -992,7 +989,7 @@
         "SIM-PROTOCOL.md"
       ],
       "champions": false,
-      "medicham": "declared"
+      "medicham": "emitted"
     },
     {
       "name": "-sideend",

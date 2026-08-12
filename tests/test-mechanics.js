@@ -201,6 +201,22 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * reads HP, `stepShape(` and `spreadFaintOrder(` read the emitted stream — and each of the two stream
  * probes asserts HP beside the order, so "the right order" cannot come to mean "the move stopped
  * hitting somebody". */
+/* `koPayOrder(` added 2026-08-12, declared HERE and with its reason at the helper — same family as
+ * `spreadFaintOrder(` and for the same reason: WHEN the `|faint|` line is emitted is a property of the
+ * turn loop and has no shape below it. It stages a real doubles board and spends a real turn, and its
+ * control arm makes the target unfaintable so that "the payment did not print after the faint" cannot
+ * be satisfied by a payment that never printed. */
+/* `koReplaceOrder(` added 2026-08-12, declared HERE and with its reason at the helper. It stages a
+ * FOUR-body board through `battleInit` — deliberately, because `battleInit` does `teamA.slice(2)` and
+ * a two-body team has an empty bench, so a replacement probe built the usual way would watch a switch
+ * that never happened — kills both slot-A bodies in one real turn through `battleTurn`, and reads the
+ * emitted `|switch|` order and the resulting sky together. Each of its two probes uses the other's
+ * knob as its control. */
+/* `allySwitchLines(` and `fakeOutAfter(` added 2026-08-12, declared HERE and with their reasons at the
+ * helpers. Both stage a real doubles board through `battleInit` and spend real turns through
+ * `battleTurn`: one watches an EMITTED line, which has no existence below the turn loop, and the other
+ * watches a legality that is a function of what the body did on EARLIER turns — `fakeOutAfter(` stages
+ * three bodies a side precisely so the pivot arm has a bench to switch to. */
 /* `gleamAt(`, `herbIntim(`, `herbMixed(`, `herbUnburden(`, `aftermathHit(`, `punishOrder(`,
  * `critIntim(`, `critDef(`, `critScreen(` and `critBurn(` added 2026-08-07 with ROADMAP #81 WIRE 11,
  * declared HERE and with their reasons, exactly as the paragraph above requires — the ratchet caught
@@ -403,7 +419,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * spends up to three real turns through `battleTurn`, and it has to: the whole mechanic is a fact
  * carried ACROSS a turn boundary -- what the body CONSUMED on an earlier turn -- and the berry that
  * creates that fact fires at the residual, so nothing below the turn loop can see either end of it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -10690,6 +10706,383 @@ probe('move', 'spreadFoes', 'a target that faints to a spread hit does not inter
            detail: `Dazzling Gleam into a 1 HP Milotic beside a healthy one — [${kill.shape}], the `
                  + `survivor taking ${kill.b}; with both healthy [${live.shape}], the same body `
                  + `taking ${live.b}` };
+});
+
+/* 4. AND THE ONE THE WHOLE-GAME DIFFERENTIAL KEPT PARTING ON: A KO IS ANNOUNCED AFTER EVERYTHING
+ *    ELSE THE MOVE PAYS, NOT WHEN THE HP HITS ZERO.
+ *
+ * `Pokemon#faint()` sets `faintQueued` and pushes onto `battle.faintQueue`; the LINE comes out of
+ * `faintMessages`, which `hitStepMoveHitLoop` calls at sim/battle-actions.ts:848 — after the whole
+ * hit loop and BEFORE `applyRecoilDamage`. Everything paid inside `spreadMoveHit` therefore prints
+ * ABOVE the `|faint|`, and everything paid after the loop prints below it.
+ *
+ * MEASURED IN THE AUTHORITY rather than reasoned from the source, one staged doubles turn per row,
+ * the target pinned to 1 HP and the user given 999 Speed so nothing else is in the way:
+ *
+ *     Giga Drain KO          -damage(foe 0 fnt), -heal [from] drain, |faint|
+ *     Close Combat KO        -damage(foe 0 fnt), -unboost def, -unboost spd, |faint|
+ *     Wave Crash KO          -damage, Rough Skin, |faint|, -damage [from] Recoil
+ *     Liquidation KO + Orb   -damage, |faint|, -damage [from] item: Life Orb
+ *
+ * The last two already agreed — the contact punish is inside the hit loop and the recoil and the Orb
+ * are `AfterMoveSecondarySelf`, below it. The first two did not: this engine paid the drain and the
+ * self-drop from the block BELOW the step list, so the KO was announced first. Two of the five
+ * divergences Will read off the rendered whole-game differential are this one defect, and it reorders
+ * every KO where the same move also drains, drops the user's stats, or is answered by a Sash.
+ *
+ * THE CONTROL IS THE SAME CLICK WITH THE TARGET UNFAINTABLE. It has to be: "the drain did not print
+ * after the faint" is satisfied just as well by a drain that never printed at all, which is exactly
+ * the shape of a probe that passes on a broken engine. The control asserts the payment IS in the
+ * stream and that the shape loses the faint and NOTHING else. */
+const koPayOrder = (userSp, moveId, killIt) => {
+  const me = bare(userSp), ally = bare('milotic');
+  const f1 = bare('milotic'), f2 = bare('milotic');
+  /* the user moves first, so no foe action can land between the payment and the announcement */
+  me.st = Object.assign({}, me.st, { sp: 999 });
+  me.curHP = Math.floor(me.st.hp / 2);      // room for a drain to be visible at all
+  if (killIt) f1.curHP = 1; else unfaintable(f1);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  const tagOf = (l) => /^\|faint\|p2a/.test(l) ? 'faint'
+                     : /^\|-heal\|p1a.*\[from\] drain/.test(l) ? 'drain'
+                     : /^\|-unboost\|p1a/.test(l) ? 'drop'
+                     : /^\|-damage\|p2a/.test(l) ? 'dmg' : null;
+  return { shape: trace.map(tagOf).filter(Boolean).join(','), dead: !!f1.fainted,
+           healed: me.curHP - Math.floor(me.st.hp / 2) };
+};
+probe('move', 'drain', 'the drain heal is paid BEFORE the KO it scored is announced', () => {
+  const kill = koPayOrder('venusaur', 'gigadrain', true);
+  const live = koPayOrder('venusaur', 'gigadrain', false);
+  return { works: kill.shape === 'dmg,drain,faint' && live.shape === 'dmg,drain'
+                  && kill.dead && !live.dead && kill.healed > 0 && live.healed > 0,
+           arms: { control: live.shape, test: kill.shape },
+           detail: `Giga Drain into a 1 HP Milotic — [${kill.shape}], user healed ${kill.healed}, `
+                 + `target fainted ${kill.dead}; the same click into an unfaintable one `
+                 + `[${live.shape}], healed ${live.healed}. Showdown prints the drain ABOVE the `
+                 + `|faint| (battle-actions.ts:848 — faintMessages runs after the hit loop)` };
+});
+probe('move', 'lowersUser', 'the user\'s own stat drop is paid BEFORE the KO it scored is announced', () => {
+  const kill = koPayOrder('incineroar', 'closecombat', true);
+  const live = koPayOrder('incineroar', 'closecombat', false);
+  return { works: kill.shape === 'dmg,drop,drop,faint' && live.shape === 'dmg,drop,drop'
+                  && kill.dead && !live.dead,
+           arms: { control: live.shape, test: kill.shape },
+           detail: `Close Combat into a 1 HP Milotic — [${kill.shape}], target fainted ${kill.dead}; `
+                 + `the same click into an unfaintable one [${live.shape}]. Showdown pays `
+                 + `selfDrops (battle-actions.ts:1117) inside spreadMoveHit, above the |faint|` };
+});
+
+/* ---- TWO SIMULTANEOUS KO REPLACEMENTS ARE TWO ORDERS, NOT ONE, AND THEY DISAGREE WITH EACH OTHER --
+ *
+ * Both were side-order in this engine (`refill(actA…)` then `refill(actB…)`), and the authority uses
+ * a different speed for each half. DERIVED FROM THE QUEUE rather than inferred from one trace, then
+ * MEASURED on staged battles because the queue alone does not say which body's speed is on the action:
+ *
+ *   THE `|switch|` LINE       `Side#chooseSwitch` builds `{choice:'instaswitch', pokemon: the FAINTED
+ *                             active, target: the bench body}` (sim/side.ts). `commitChoices` calls
+ *                             `queue.sort()` -> `speedSort` -> `comparePriority`, whose speed key is
+ *                             `action.speed`, set by `getActionSpeed` to `action.pokemon
+ *                             .getActionSpeed()` (sim/battle.ts:2179) — THE DEPARTING BODY'S. Printed
+ *                             from a live queue: `instaswitch p1:Aerodactyl spd=150 -> Snorlax |
+ *                             instaswitch p2:Snorlax spd=50 -> Aerodactyl`.
+ *   THE ENTRY EFFECTS         `switchIn` only queues `{choice:'runSwitch'}`; `runSwitch` then DRAINS
+ *                             every consecutive runSwitch into one list and fires ONE
+ *                             `fieldEvent('SwitchIn', switchersIn)` (sim/battle-actions.ts:186),
+ *                             which speed-sorts its handlers — THE ARRIVING BODIES'.
+ *
+ * MEASURED IN THE AUTHORITY, four staged doubles battles, both slot-A bodies pinned to 1 HP and each
+ * side's slot B killing the other's with Knock Off, so both sides replace on the same request:
+ *     dying aero130/snor30, arriving Pelipper 200 / Torkoal  50   ["Pelipper","Torkoal"]  sun
+ *     dying snor30/aero130, arriving Pelipper 200 / Torkoal  50   ["Torkoal","Pelipper"]  sun
+ *     dying aero130/snor30, arriving Pelipper  50 / Torkoal 200   ["Pelipper","Torkoal"]  rain
+ * Row 2 moves the LINES and not the sky; row 3 moves the sky and not the lines. Two knobs, two
+ * outcomes, and each is the control for the other — which is the only reason the pair can be told
+ * apart at all. (The sky is the SLOWER arrival's because `applyEntryEffects` overwrites, so the last
+ * setter to resolve owns the field — WIRE 118's rule, here extended to a replacement.) */
+const koReplaceOrder = (dieA, dieB, speArriveA, speArriveB) => {
+  const a0 = bare(dieA), a1 = bare('incineroar'), a2 = bare('pelipper'), a3 = bare('milotic');
+  const b0 = bare(dieB), b1 = bare('incineroar'), b2 = bare('torkoal'), b3 = bare('milotic');
+  a2.ability = 'drizzle'; b2.ability = 'drought';
+  a2.st = Object.assign({}, a2.st, { sp: speArriveA });
+  b2.st = Object.assign({}, b2.st, { sp: speArriveB });
+  a0.curHP = 1; b0.curHP = 1;
+  const S = M.battleInit([a0, a1, a2, a3], [b0, b1, b2, b3], { seeded: true });
+  const trace = []; S._trace = trace;
+  M.battleTurn(S, rng5,
+    new Map([[a0, { kind: 'pass' }], [a1, M.playerAction(a1, 'knockoff', b0, S.field)]]),
+    new Map([[b0, { kind: 'pass' }], [b1, M.playerAction(b1, 'knockoff', a0, S.field)]]));
+  return { order: trace.filter(l => /^\|switch\|/.test(l)).map(l => l.split('|')[2].split(': ')[1]),
+           sky: S.field.weather, dead: a0.fainted && b0.fainted,
+           /* THE SWITCH IS ASSERTED TO HAVE HAPPENED, by slot occupant. battleInit does
+            * `teamA.slice(2)`, so a short team has an EMPTY bench and refill is a silent no-op — a
+            * probe staged that way reads "the order did not change" for a reason that is entirely
+            * the fixture's. */
+           inSlot: [S.actA[0] && S.actA[0].name, S.actB[0] && S.actB[0].name] };
+};
+probe('ability', 'weatherSetter', 'two KO replacements are ANNOUNCED in the departing bodies\' speed order', () => {
+  /* the arriving pair is held FIXED across both arms, so the only thing that moves is which side's
+   * body died faster. The sky is read beside the order as the control: it must NOT move, because it
+   * is decided by the ARRIVING speeds and this knob does not touch them. */
+  const fastA = koReplaceOrder('aerodactyl', 'snorlax', 200, 50);
+  const fastB = koReplaceOrder('snorlax', 'aerodactyl', 200, 50);
+  const ok = (r, first, second) => r.dead && r.order.length === 2 && r.order[0] === first
+                                   && r.order[1] === second
+                                   && r.inSlot[0] === 'pelipper' && r.inSlot[1] === 'torkoal';
+  return { works: ok(fastA, 'pelipper', 'torkoal') && ok(fastB, 'torkoal', 'pelipper')
+                  && fastA.sky === 'sun' && fastB.sky === 'sun',
+           arms: { control: fastA.order.join(',') + '/' + fastA.sky,
+                   test: fastB.order.join(',') + '/' + fastB.sky },
+           detail: `both slot-A bodies die on the same turn. Dying p1 FAST (aerodactyl 130 v snorlax `
+                 + `30): [${fastA.order}] sky ${fastA.sky}. Dying p1 SLOW (snorlax 30 v aerodactyl `
+                 + `130): [${fastB.order}] sky ${fastB.sky}. The order must REVERSE (the queue sorts `
+                 + `instaswitch on the FAINTED body's speed) and the sky must NOT (it follows the `
+                 + `arriving speeds, held equal here). Slots after: ${fastA.inSlot} / ${fastB.inSlot}` };
+});
+probe('ability', 'weatherSetter', 'a KO replacement\'s entry effect resolves in the ARRIVING bodies\' speed order', () => {
+  /* the dying pair is held FIXED, so the only thing that moves is which replacement is faster. The
+   * `|switch|` order is read beside the sky as the control: it must NOT move. */
+  const pelFast = koReplaceOrder('aerodactyl', 'snorlax', 200, 50);
+  const torFast = koReplaceOrder('aerodactyl', 'snorlax', 50, 200);
+  return { works: pelFast.sky === 'sun' && torFast.sky === 'rain'
+                  && pelFast.order.join(',') === 'pelipper,torkoal'
+                  && torFast.order.join(',') === 'pelipper,torkoal'
+                  && pelFast.dead && torFast.dead,
+           arms: { control: pelFast.sky + '/' + pelFast.order.join(','),
+                   test: torFast.sky + '/' + torFast.order.join(',') },
+           detail: `the same two bodies die; only the replacements' Speed moves. Pelipper 200 / `
+                 + `Torkoal 50: sky ${pelFast.sky} (the SLOWER Torkoal resolves last and owns the `
+                 + `field), lines [${pelFast.order}]. Pelipper 50 / Torkoal 200: sky ${torFast.sky}, `
+                 + `lines [${torFast.order}]. The sky must flip and the lines must not — Showdown `
+                 + `runs ONE speed-sorted fieldEvent('SwitchIn') over both arrivals` };
+});
+
+/* ---- LEAVING THE FIELD REBUILDS THE BODY, AND A REWRITTEN TYPE DOES NOT SURVIVE THE BENCH -------
+ *
+ * THIS IS THE CARD WHERE A FULL-HEALTH POKEMON DIED THROUGH AN IMMUNITY, and it took a reproduction
+ * from a real game to find because nine hand-built stagings all behaved correctly. A Meowscarada that
+ * had been SOAKED stayed Water through a switch out and back, so a Psychic move killed it from full
+ * through the Dark immunity: `|-immune|` on the authority against `|-damage|p2a: Meowscarada|0 fnt`
+ * and a faint here. It is not the switch-in, not the re-aim, not an ability and not the type chart.
+ *
+ * DERIVED, read in full rather than inferred: `switchIn` calls `oldActive.clearVolatile()`
+ * (sim/battle-actions.ts), whose LAST line is `this.setSpecies(this.baseSpecies)`, and `setSpecies` is
+ * `this.setType(species.types, true)` (sim/pokemon.ts). `faintMessages` calls the same
+ * `clearVolatile(false)`. So the authority restores the species' own types every time a body leaves
+ * the field, by one road for a switch and for a faint.
+ *
+ * THE PROBE IS A REAL OUTCOME AND NOT A FIELD READ. Types are compared, but the arm that decides is
+ * the DAMAGE: a Psychic move into the returning body must deal ZERO. Reading `mon.types` alone would
+ * pass on an engine that restored the field and priced off something else.
+ *
+ * TWO CONTROLS, and each closes a different hole. SOAK WITHOUT THE SWITCH must leave the body Water
+ * and the Psychic move must LAND — otherwise "it is Grass/Dark afterwards" is satisfied by a Soak that
+ * never worked. NEVER SOAKED must be immune — otherwise it is satisfied by an engine where nothing
+ * ever moves the types at all. */
+const typeRestoreOnSwitch = (soak, pivot) => {
+  const me = bare('metagross'), ally = bare('milotic');
+  const f1 = bare('meowscarada'), f2 = bare('milotic'), fb = bare('snorlax'), f4 = bare('milotic');
+  me.st = Object.assign({}, me.st, { sp: 999 });
+  unfaintable(f1);
+  const S = M.battleInit([me, ally, bare('milotic'), bare('milotic')], [f1, f2, fb, f4], { seeded: true });
+  const turn = (mine, theirs) => M.battleTurn(S, rng5,
+    new Map([[me, mine || { kind: 'pass' }], [S.actA[1], { kind: 'pass' }]]),
+    new Map([[S.actB[0], theirs || { kind: 'pass' }], [S.actB[1], { kind: 'pass' }]]));
+  if (soak) turn(M.playerAction(me, 'soak', f1, S.field), null);
+  const afterSoak = f1.types.join('/');
+  if (pivot) { turn(null, { kind: 'switch', to: fb }); turn(null, { kind: 'switch', to: f1 }); }
+  /* THE PIVOT IS ASSERTED BY SLOT OCCUPANT: a short bench makes a scripted switch a silent no-op and
+   * the probe would then be watching a body that never left. */
+  const backIn = S.actB[0] && S.actB[0].name;
+  const before = f1.curHP;
+  turn(M.playerAction(me, 'psychicfangs', f1, S.field), null);
+  return { afterSoak, now: f1.types.join('/'), backIn, dealt: before - f1.curHP };
+};
+probe('move', 'changesTargetType', 'a rewritten type does NOT survive the bench — leaving the field rebuilds the body', () => {
+  const test = typeRestoreOnSwitch(true, true);
+  const stayed = typeRestoreOnSwitch(true, false);
+  const clean = typeRestoreOnSwitch(false, true);
+  return { works: test.afterSoak === 'Water' && test.now === 'Grass/Dark' && test.dealt === 0
+                  && test.backIn === 'meowscarada'
+                  && stayed.now === 'Water' && stayed.dealt > 0
+                  && clean.now === 'Grass/Dark' && clean.dealt === 0 && clean.backIn === 'meowscarada',
+           arms: { control: stayed.now + ':' + stayed.dealt, test: test.now + ':' + test.dealt },
+           detail: `SOAK then PIVOT OUT AND BACK — the Meowscarada is ${test.afterSoak} after the Soak `
+                 + `and ${test.now} after returning, and a Psychic Fangs into it deals ${test.dealt} `
+                 + `(must be 0: Dark is immune). CONTROLS: soaked and NEVER pivoted stays ${stayed.now} `
+                 + `and takes ${stayed.dealt} (the Soak demonstrably worked); never soaked at all is `
+                 + `${clean.now} taking ${clean.dealt}. Showdown restores the species' types in `
+                 + `clearVolatile's closing setSpecies, on the switch AND on the faint` };
+});
+
+/* ---- A DAMAGE REACTION IS `onDamagingHit` AND AN ITEM STRIP IS `onAfterHit`, AND THE AUTHORITY
+ *      RAISES THE FIRST ABOVE THE SECOND. -------------------------------------------------------
+ *
+ * Will, off a real battle: *"the stamina boosts come after the attack, knock off ordering we need to
+ * follow showdown"*. `Showdown: Archaludon +1 def THEN lost its Leftovers; ours: lost Leftovers THEN
+ * +1 def`.
+ *
+ * IT IS THE HOOK, NOT THE PAIR. `runEvent('DamagingHit')` is battle-actions.ts:951 and the `AfterHit`
+ * singleEvent is :954, so this is every damage-reaction ability against every after-hit move effect.
+ * MEASURED IN THE AUTHORITY, one staged turn each, the user pinned fastest:
+ *     Knock Off into STAMINA      -damage, -ability Stamina, -boost def, -enditem Leftovers
+ *     Knock Off into WEAK ARMOR   -damage, -ability, -unboost def, -boost spe, -enditem
+ *     Knock Off into JUSTIFIED    -damage, -ability, -boost atk, -enditem
+ *     Knock Off into ROUGH SKIN   -damage, -damage [from] Rough Skin, -enditem
+ *     Thief     into STAMINA      -damage, -ability, -boost def, -enditem, -item
+ *
+ * THE ENGINE HAD THE ONE FAMILY IN TWO PLACES and only one of them was wrong, which is exactly why no
+ * board comparison could see it: `punishesAttacker` already preceded the strip and `buffsHolderOnHit`
+ * followed it. So there are two probes and each names its own half.
+ *
+ * TWO CONTROLS, both learned the expensive way. The same click into a body with NO reactor must still
+ * emit the `-enditem` — otherwise "the reaction came first" is satisfied by a strip that never
+ * happened. And a NON-stripping move into the same reactor must still fire it — otherwise it is
+ * satisfied by a reaction that never happened, which is precisely what a first attempt at this fix
+ * produced: deferring the reactor left `R.react` undefined and Stamina stopped firing ENTIRELY, with
+ * no error and no counter. */
+const hookOrder = (foeSp, foeAb, moveId) => {
+  const me = bare('incineroar'), ally = bare('milotic');
+  const f1 = bare(foeSp), f2 = bare('milotic');
+  f1.ability = foeAb; f1.item = 'leftovers';
+  unfaintable(f1); unfaintable(me);
+  me.st = Object.assign({}, me.st, { sp: 999 });   // the user acts first, so nothing else is in the way
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  const tagOf = (l) => /^\|-enditem\|p2a/.test(l) ? 'strip'
+                     : /^\|-(un)?boost\|p2a/.test(l) ? 'react'
+                     : /^\|-damage\|p1a.*ability/.test(l) ? 'react'
+                     : /^\|-damage\|p2a/.test(l) ? 'dmg' : null;
+  return { shape: trace.map(tagOf).filter(Boolean).join(','), item: f1.item, def: f1.boosts.df };
+};
+probe('ability', 'buffsHolderOnHit', 'a damage-reaction BOOST is paid before an after-hit item strip', () => {
+  const test = hookOrder('archaludon', 'stamina', 'knockoff');
+  const noReactor = hookOrder('archaludon', 'none', 'knockoff');      // the strip must still happen
+  const noStrip = hookOrder('archaludon', 'stamina', 'bodyslam');     // the reaction must still happen
+  return { works: test.shape === 'dmg,react,strip' && test.def === 1 && test.item === ''
+                  && noReactor.shape === 'dmg,strip' && noReactor.def === 0 && noReactor.item === ''
+                  && noStrip.shape === 'dmg,react' && noStrip.def === 1 && noStrip.item === 'leftovers',
+           arms: { control: noReactor.shape + '/' + noStrip.shape, test: test.shape },
+           detail: `Knock Off into a Leftovers STAMINA body — [${test.shape}], def stage ${test.def}, `
+                 + `item "${test.item}". Showdown raises DamagingHit at battle-actions.ts:951 and `
+                 + `AfterHit at :954, so the boost is ABOVE the strip. CONTROLS: the same click with `
+                 + `no ability [${noReactor.shape}] (the strip must still land, or "boost first" is `
+                 + `satisfied by no strip at all), and BODY SLAM into Stamina [${noStrip.shape}] `
+                 + `def ${noStrip.def} (the boost must still fire — deferring the reactor once left `
+                 + `its per-hit count undefined and killed the whole family silently)` };
+});
+probe('ability', 'punishesAttacker', 'a contact punish is paid before an after-hit item strip', () => {
+  const test = hookOrder('garchomp', 'roughskin', 'knockoff');
+  const noReactor = hookOrder('garchomp', 'none', 'knockoff');
+  const noStrip = hookOrder('garchomp', 'roughskin', 'bodyslam');
+  const hurt = (r) => /react/.test(r.shape);
+  return { works: test.shape === 'dmg,react,strip' && test.item === ''
+                  && noReactor.shape === 'dmg,strip' && !hurt(noReactor) && noReactor.item === ''
+                  && noStrip.shape === 'dmg,react' && noStrip.item === 'leftovers',
+           arms: { control: noReactor.shape + '/' + noStrip.shape, test: test.shape },
+           detail: `Knock Off into a Leftovers ROUGH SKIN body — [${test.shape}], item "${test.item}". `
+                 + `CONTROLS: no ability [${noReactor.shape}] (the strip still lands), Body Slam into `
+                 + `Rough Skin [${noStrip.shape}] item "${noStrip.item}" (the toll still fires and `
+                 + `nothing is stripped). Same hook pair as the boost family — one rule, two carriers` };
+});
+
+/* ---- ALLY SWITCH ANNOUNCES NOTHING, AND `-singleturn` IS PROTECT'S LINE ------------------------
+ *
+ * data/moves.ts `allyswitch`: `onPrepareHit(pokemon) { return pokemon.addVolatile('allyswitch'); }`
+ * and the condition it adds has `duration`, `counterMax`, `onStart` and `onRestart` and NOT ONE
+ * `this.add`. Measured on a staged doubles turn, the whole of what the authority emits is
+ *     |move|p1a: Farigiraf|Ally Switch|p1a: Farigiraf
+ *     |swap|p1a: Farigiraf|1|[from] move: Ally Switch
+ * and `|swap|` is already DECLARED not-emitted in data/protocol-events.json, so it is dropped from the
+ * Showdown side before alignment. The `-singleturn` this engine wrote had no counterpart at all.
+ *
+ * THE CONTROL IS A PROTECT CLICK, and it is not decoration: `-singleturn` is a real line this engine
+ * must keep emitting (28 call sites in the authority), so "the wrong line is gone" has to be told
+ * apart from "the emitter is broken". */
+const allySwitchLines = (mv) => {
+  const me = bare('farigiraf'), ally = bare('milotic');
+  const f1 = bare('milotic'), f2 = bare('milotic');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  M.battleTurn(S, rng5,
+    new Map([[me, mv === 'protect' ? { kind: 'protect', mv: 'protect' }
+                                   : M.playerAction(me, mv, null, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { lines: trace.filter(l => /^\|(move|-singleturn|-fail)\|/.test(l)).map(M.traceCanon),
+           slots: S.actA.map(x => x && x.name).join(',') };
+};
+probe('move', 'swapsSlots', 'Ally Switch swaps the slots and announces NOTHING — `-singleturn` is Protect\'s line', () => {
+  const asw = allySwitchLines('allyswitch'), prot = allySwitchLines('protect');
+  const singles = (r) => r.lines.filter(l => /^\|-singleturn\|/.test(l)).length;
+  return { works: asw.slots === 'milotic,farigiraf' && singles(asw) === 0
+                  && /^\|move\|/.test(asw.lines[0]) && singles(prot) === 1,
+           arms: { control: prot.lines.join(' '), test: asw.lines.join(' ') },
+           detail: `ALLY SWITCH emitted [${asw.lines.join(' ')}] and the slots became ${asw.slots} — `
+                 + `the swap must have happened AND no -singleturn may be in it. PROTECT on the same `
+                 + `body emitted [${prot.lines.join(' ')}], which must still carry exactly one `
+                 + `-singleturn (that is the line Ally Switch was borrowing)` };
+});
+
+/* ---- FAKE OUT IS "HAVE YOU MOVED SINCE YOU ARRIVED", NOT "HAVE YOU BEEN HERE A TURN" -----------
+ *
+ * 36,879 corpus clicks, the second most-clicked move in the format, and this engine refused it on
+ * every body that had SWITCHED IN — which is when it is actually clicked.
+ *
+ * CHAMPIONS OVERRIDES FAKE OUT and the override is the selection half, so both halves have to be
+ * read (`/data/mods/champions/moves.js:348`, on top of the inherited mainline entry):
+ *     onDisableMove(pokemon) { if (pokemon.activeMoveActions) pokemon.disableMove('fakeout'); }
+ *     onTry(source)          { if (source.activeMoveActions > 1) return false; }
+ * `activeMoveActions` is zeroed in `switchIn` (battle-actions.ts:138) and incremented on the FIRST
+ * LINE of `runMove` (:203). It counts MOVE ACTIONS since the body arrived — a switch is not one — so
+ * a Pokemon that pivoted in last turn has 0 and its Fake Out is legal.
+ *
+ * `_turnsOut` is a different question and answers it wrong: it is incremented for every active body
+ * at the foot of every turn, so a body that switched in on turn 3 reads 1 on turn 4 and was refused.
+ *
+ * MEASURED IN THE AUTHORITY, one battle, three turns:
+ *     turn 1  Sneasler switches in            activeMoveActions 0, fakeout NOT disabled
+ *     turn 2  Sneasler clicks Fake Out        it LANDS, |cant|p2a: Ninetales|flinch; count -> 1
+ *     turn 3  Sneasler clicks Fake Out        "Can't move: Sneasler's Fake Out is disabled"
+ * The target was Ninetales, pure Fire — this is not a Ghost immunity, and the authority landing it is
+ * what says the move was legal. */
+const fakeOutAfter = (pivot, twice) => {
+  const me = bare('milotic'), ally = bare('milotic'), fb = bare('sneasler');
+  const f1 = bare('ninetales'), f2 = bare('milotic');
+  unfaintable(f1);
+  const S = M.battleInit([me, ally, fb], [f1, f2], { seeded: true });
+  if (pivot) M.battleTurn(S, rng5,
+    new Map([[me, { kind: 'switch', to: fb }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+  const click = () => {
+    const actor = S.actA[0], before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[actor, M.playerAction(actor, 'fakeout', f1, S.field)], [S.actA[1], { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { who: actor.name, dealt: before - f1.curHP };
+  };
+  const first = click();
+  return twice ? Object.assign({ first }, click()) : Object.assign({ first }, first);
+};
+probe('move', 'firstTurnOnly', 'Fake Out is legal on the first MOVE after arriving, including after a switch', () => {
+  /* THE SWITCH IS ASSERTED BY SLOT OCCUPANT in the test arm — `battleInit` slices its own bench at
+   * teamA.slice(2), so a two-body side has nothing to switch to and the probe would silently be
+   * watching the LEAD click Fake Out on turn 2. `who` is read on every arm for that reason. */
+  const lead = fakeOutAfter(false, false);
+  const pivoted = fakeOutAfter(true, false);
+  const again = fakeOutAfter(true, true);
+  return { works: lead.who === 'milotic' && lead.dealt > 0
+                  && pivoted.who === 'sneasler' && pivoted.dealt > 0
+                  && again.who === 'sneasler' && again.first.dealt > 0 && again.dealt === 0,
+           arms: { control: lead.who + ':' + lead.dealt, test: pivoted.who + ':' + pivoted.dealt },
+           detail: `[who clicked : HP off an unfaintable Ninetales]. LEAD on turn 1 ${lead.who}:`
+                 + `${lead.dealt}. SWITCHED IN on turn 1, clicking on turn 2 ${pivoted.who}:`
+                 + `${pivoted.dealt} — it must LAND (activeMoveActions is 0; a switch is not a move `
+                 + `action). The SAME body clicking again on turn 3 ${again.who}:${again.dealt}, `
+                 + `which must be 0 — that is the arm separating this from "Fake Out always works"` };
 });
 
 /* ---- ROADMAP #84 — SHOWDOWN SPLITS "MY MOVE DID NOT HAPPEN" IN TWO, AND THIS ENGINE HAD NEITHER ---

@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-12T21:10:41.228Z",
+  "generated": "2026-08-12T23:23:01.259Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 525,
-  "live": 525,
+  "probed": 534,
+  "live": 534,
   "missing": 0,
-  "armed": 525,
+  "armed": 534,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2796,7 +2796,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.3% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3477,6 +3477,96 @@
       "label": "a target that faints to a spread hit does not interrupt the other target",
       "live": true,
       "detail": "Dazzling Gleam into a 1 HP Milotic beside a healthy one — [dmg,dmg,faint], the survivor taking 30; with both healthy [dmg,dmg], the same body taking 30",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "drain",
+      "label": "the drain heal is paid BEFORE the KO it scored is announced",
+      "live": true,
+      "detail": "Giga Drain into a 1 HP Milotic — [dmg,drain,faint], user healed 1, target fainted true; the same click into an unfaintable one [dmg,drain], healed 48. Showdown prints the drain ABOVE the |faint| (battle-actions.ts:848 — faintMessages runs after the hit loop)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "lowersUser",
+      "label": "the user's own stat drop is paid BEFORE the KO it scored is announced",
+      "live": true,
+      "detail": "Close Combat into a 1 HP Milotic — [dmg,drop,drop,faint], target fainted true; the same click into an unfaintable one [dmg,drop,drop]. Showdown pays selfDrops (battle-actions.ts:1117) inside spreadMoveHit, above the |faint|",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "weatherSetter",
+      "label": "two KO replacements are ANNOUNCED in the departing bodies' speed order",
+      "live": true,
+      "detail": "both slot-A bodies die on the same turn. Dying p1 FAST (aerodactyl 130 v snorlax 30): [pelipper,torkoal] sky sun. Dying p1 SLOW (snorlax 30 v aerodactyl 130): [torkoal,pelipper] sky sun. The order must REVERSE (the queue sorts instaswitch on the FAINTED body's speed) and the sky must NOT (it follows the arriving speeds, held equal here). Slots after: pelipper,torkoal / pelipper,torkoal",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "weatherSetter",
+      "label": "a KO replacement's entry effect resolves in the ARRIVING bodies' speed order",
+      "live": true,
+      "detail": "the same two bodies die; only the replacements' Speed moves. Pelipper 200 / Torkoal 50: sky sun (the SLOWER Torkoal resolves last and owns the field), lines [pelipper,torkoal]. Pelipper 50 / Torkoal 200: sky rain, lines [pelipper,torkoal]. The sky must flip and the lines must not — Showdown runs ONE speed-sorted fieldEvent('SwitchIn') over both arrivals",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "changesTargetType",
+      "label": "a rewritten type does NOT survive the bench — leaving the field rebuilds the body",
+      "live": true,
+      "detail": "SOAK then PIVOT OUT AND BACK — the Meowscarada is Water after the Soak and Grass/Dark after returning, and a Psychic Fangs into it deals 0 (must be 0: Dark is immune). CONTROLS: soaked and NEVER pivoted stays Water and takes 120 (the Soak demonstrably worked); never soaked at all is Grass/Dark taking 0. Showdown restores the species' types in clearVolatile's closing setSpecies, on the switch AND on the faint",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "buffsHolderOnHit",
+      "label": "a damage-reaction BOOST is paid before an after-hit item strip",
+      "live": true,
+      "detail": "Knock Off into a Leftovers STAMINA body — [dmg,react,strip], def stage 1, item \"\". Showdown raises DamagingHit at battle-actions.ts:951 and AfterHit at :954, so the boost is ABOVE the strip. CONTROLS: the same click with no ability [dmg,strip] (the strip must still land, or \"boost first\" is satisfied by no strip at all), and BODY SLAM into Stamina [dmg,react] def 1 (the boost must still fire — deferring the reactor once left its per-hit count undefined and killed the whole family silently)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "a contact punish is paid before an after-hit item strip",
+      "live": true,
+      "detail": "Knock Off into a Leftovers ROUGH SKIN body — [dmg,react,strip], item \"\". CONTROLS: no ability [dmg,strip] (the strip still lands), Body Slam into Rough Skin [dmg,react] item \"leftovers\" (the toll still fires and nothing is stripped). Same hook pair as the boost family — one rule, two carriers",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "swapsSlots",
+      "label": "Ally Switch swaps the slots and announces NOTHING — `-singleturn` is Protect's line",
+      "live": true,
+      "detail": "ALLY SWITCH emitted [|move|p1a:farigiraf|allyswitch|p1a:farigiraf] and the slots became milotic,farigiraf — the swap must have happened AND no -singleturn may be in it. PROTECT on the same body emitted [|move|p1a:farigiraf|protect|p1a:farigiraf |-singleturn|p1a:farigiraf|protect], which must still carry exactly one -singleturn (that is the line Ally Switch was borrowing)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "firstTurnOnly",
+      "label": "Fake Out is legal on the first MOVE after arriving, including after a switch",
+      "live": true,
+      "detail": "[who clicked : HP off an unfaintable Ninetales]. LEAD on turn 1 milotic:14. SWITCHED IN on turn 1, clicking on turn 2 sneasler:39 — it must LAND (activeMoveActions is 0; a switch is not a move action). The SAME body clicking again on turn 3 sneasler:0, which must be 0 — that is the arm separating this from \"Fake Out always works\"",
       "hollow": false,
       "armed": true,
       "directCall": false

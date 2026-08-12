@@ -338,6 +338,18 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* WIRE 140 -- Ally Switch actually swapping two bodies, and the consecutive-use roll refusing one.
    * A zero on the first after real games means the branch is not on the path (202 corpus uses). */
   allySwitchSwapped: 0, allySwitchStalled: 0,
+  /* 2026-08-12 -- a body left the field carrying a REWRITTEN type (Soak, Burn Up, Reflect Type) and
+     the species' own types were restored, which is `clearVolatile`'s closing `setSpecies`. A zero
+     after real games means the rebuild is not on the path. */
+  typesRestoredOnSwitchOut: 0,
+  /* 2026-08-12 -- the aimed FOE had fainted earlier in the same turn and the move was re-aimed onto
+     the surviving one, which is `getTarget`'s fall-through to `getRandomTarget`. `reaimNoLiveFoe` is
+     the other half: nothing left to hit, so the move finds nobody. */
+  reaimedOffFaintedFoe: 0, reaimNoLiveFoe: 0,
+  /* 2026-08-12 -- an Encore/Disable that refused because the target has never moved AND said so.
+     The authority emits `-fail` at the user; this engine refused silently. A zero after real games
+     means the announcement is back to being owed. */
+  sealFailAnnounced: 0,
   /* ROADMAP #162 / #59 -- the two behaviours `stalling` could not express.
    *   stallCounterFed            a Wide Guard or Quick Guard ADVANCED the shared counter, which this
    *                              engine used to clear. A zero after real games means no side guard
@@ -1334,6 +1346,11 @@ const MEDFAILS = { encoreAction: 0,
      Non-zero is not a bug — it is the share of battle starts whose entry-ability order this engine
      could not decide, and for two Drizzle bodies on the same speed it decides the weather. */
   entryOrderTie: 0,
+  /* 2026-08-12. The other half of the same approximation, one step later in the battle: two bodies
+     replacing a faint on the same request whose DEPARTING speeds are equal. Showdown shuffles the
+     instaswitch pair; this engine keeps side order and counts the event, because drawing a number
+     here would move the RNG stream of every seeded run in the repo. */
+  replaceOrderTie: 0,
   /* ROADMAP #68. A trace emit asked for the slot of a body that is in neither active array. The line
      is still emitted, with `??` where the identifier goes, because a HOLE in the stream is worse than
      a wrong label -- a missing line reads to the differ as a missing MECHANIC. Must read 0. */
@@ -1502,6 +1519,9 @@ const TRACE=(function(){
     formechange(m,species){ this.out.push('|-formechange|'+ident(m)+'|'+species+'|'); },
     imm(m,from){ this.push(['-immune',ident(m),from]); },
     dmg(m,from,of){ this.push(['-damage',ident(m),health(m),from,of?'[of] '+ident(of):'']); },
+    /* `-sethp` -- a SET rather than a delta, and the authority's only producer is Pain Split. The
+     * `[silent]` field is the handler's own on the TARGET's line and absent on the user's. */
+    sethp(m,from,silent){ this.push(['-sethp',ident(m),health(m),from,silent?'[silent]':'']); },
     heal(m,from,of){ this.push(['-heal',ident(m),health(m),from,of?'[of] '+ident(of):'']); },
     faint(m){ if(m._traceFainted)return; m._traceFainted=true; this.push(['faint',ident(m)]); },
     /* --- stages, status, volatiles --- */
@@ -1573,7 +1593,7 @@ const TRACE=(function(){
  *
  * `tests/test-protocol-trace.js` plays real games and FAILS if any name here NEVER fires. A trace
  * that claims an event and cannot produce one is CLAUDE.md's "capability that cannot prove it ran". */
-const TRACE_EVENTS=['turn','upkeep','move','cant','switch','drag','faint','detailschange','-mega',
+const TRACE_EVENTS=['turn','upkeep','move','cant','switch','drag','faint','detailschange','-mega','-sethp',
   '-damage','-heal','-status','-curestatus','-boost','-unboost','-clearallboost','-clearnegativeboost',
   '-ability','-item','-enditem','-weather','-fieldstart','-fieldend','-fieldactivate',
   '-sidestart','-sideend','-start','-end','-activate','-singleturn','-fail','-miss',
@@ -2823,8 +2843,32 @@ function guardMoveAimedAtFoes(id){
  * THE NAME IS KEPT AS A LOUD, COUNTED FALLBACK rather than deleted: if the artifact ever stops
  * carrying the tag, Fake Out is 16,871 corpus uses and a silent downgrade to "legal every turn" is
  * exactly the failure this file keeps finding. It names itself when it fires. */
-function firstTurnOnlyRefused(mon,id){
-  if(!(mon&&mon._turnsOut>0)) return false;
+/* 2026-08-12 -- AND THE GATE WAS THE WRONG QUESTION. `_turnsOut > 0` stood here and the authority
+ * counts MOVE ACTIONS, not turns:
+ *     onDisableMove(pokemon) { if (pokemon.activeMoveActions) pokemon.disableMove('fakeout'); }
+ *     onTry(source)          { if (source.activeMoveActions > 1) return false; }
+ * `activeMoveActions` is zeroed in `switchIn` (sim/battle-actions.ts:138) and incremented on the FIRST
+ * LINE of `runMove` (:203). A SWITCH IS NOT A MOVE ACTION, so a body that pivoted in last turn still
+ * reads 0 and its Fake Out is legal -- which is when the move is actually clicked. `_turnsOut` is
+ * incremented for every active body at the foot of every turn, so that same body read 1 and this
+ * engine refused the second most-clicked move in the format (36,879 corpus clicks) on every pivot.
+ *
+ * MEASURED IN THE AUTHORITY, one battle, three turns: Sneasler switches in (count 0, not disabled);
+ * clicks Fake Out on turn 2 and it LANDS, `|cant|p2a: Ninetales|flinch` (count -> 1); clicks it on
+ * turn 3 and the choice is rejected outright, *"Sneasler's Fake Out is disabled"*.
+ *
+ * TWO THRESHOLDS, BECAUSE THE AUTHORITY HAS TWO HANDLERS, and collapsing them would be wrong by one
+ * in whichever direction it was collapsed. At SELECTION the count is the actions already taken and
+ * anything above zero disables; at EXECUTION the in-flight action has already been counted (the
+ * increment is runMove's first line) so the test is `> 1`. `atExecution` says which question is being
+ * asked; nothing else about the predicate moved.
+ *
+ * THE NAME IS KEPT AS A LOUD, COUNTED FALLBACK rather than deleted: if the artifact ever stops
+ * carrying the tag, a silent downgrade to "legal every turn" is exactly the failure this file keeps
+ * finding. It names itself when it fires. */
+function firstTurnOnlyRefused(mon,id,atExecution){
+  if(!mon) return false;
+  if(!(((mon._mvActs)|0) > (atExecution?1:0))) return false;
   if(TAGS.has('move',id,'firstTurnOnly')) return true;
   if(id==='fakeout'){ MEDFAILS.firstTurnOnlyByNameOnly++; return true; }
   return false;
@@ -3859,7 +3903,7 @@ function buildMon(name,ov){ const m=monRow(name); if(!m)return null;
   if(_canMega){ MEDSEEN.megaCapableBuilt++; }
   return {name,types,st,item,wt:m.wt||null,_bsAtk,_ident:name,
     ability:normAb(_canMega?(_rowAb||''):megaAbility(name,item,_rowAb||'')),baseAbility:normAb(_rowAb||''),moves:megaRowMoves(name,m).slice(),
-    curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,
+    curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_mvActs:0,_flinch:false,_seededBy:null,
     /* THE DEATH COUNTER (Will: "the supreme overlord needs a count of the dead like last
      * respects"). _sf is a per-SIDE live counter shared by reference — Last Respects reads it at
      * each use. _fallenStuck is the SNAPSHOT taken when this mon entered — Supreme Overlord's
@@ -3971,7 +4015,7 @@ function buildMonFromSet(set){
     ability:(becameMega&&rowAb)?rowAb:(declaredAb||rowAb),baseAbility:normAb(m.ab||''),
     moves:usable,droppedMoves:ids.filter(id=>usable.indexOf(id)<0),
     curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0},status:'',slp:0,fainted:false,protect:false,
-    tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,_sf:null,_fallenStuck:0};
+    tookProtectTurns:0,_turnsOut:0,_mvActs:0,_flinch:false,_seededBy:null,_sf:null,_fallenStuck:0};
 }
 
 /* Does this move make contact? Read from the move's own flag via the tag artifact, which is the
@@ -9126,7 +9170,16 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
      `onStart` does the same), and `data/roster.moves.json` measured the cost: on the turn
      before its target had ever moved, `vol.disable` read showdown=0 ours=4. The membership
      is now derived -- see volNeedsLastMove -- so a third sealer arriving is covered. */
-  if(volNeedsLastMove(vol)&&!who._lastMove){ MEDSEEN.volSealNoLastMove++; return false; }
+  /* 2026-08-12 -- AND THE REFUSAL IS REPORTED, because the AUTHORITY ANNOUNCES IT AND WE DID NOT.
+     Showdown's encore `condition.onStart` is `let move = target.lastMove; if (!move) return false;`,
+     which makes `addVolatile` false, which makes the move's `onHit` false, which is an EXPLICIT
+     failure -- `|move|p1a: Whimsicott|Encore||[still]` then `|-fail|p1a: Whimsicott`, measured on a
+     staged turn against a Staraptor that had not moved yet. Both engines correctly refuse the
+     volatile; only one of them says so. `opts.why` is filled rather than a module-level flag being
+     set, so the caller that asked is the only caller that can read it. */
+  if(volNeedsLastMove(vol)&&!who._lastMove){ MEDSEEN.volSealNoLastMove++;
+    if(opts&&opts.why)opts.why.reason='nolastmove';
+    return false; }
   /* WIRE 152 -- A LAYERED VOLATILE IS OWNED, and the guard has to come ABOVE the no-restart rule
      three lines below, not below it. That rule is written for a DURATION -- a Taunt re-clicked on
      turn 2 must not refresh its clock -- and a layer counter is the exact opposite: being re-applied
@@ -9715,7 +9768,16 @@ function formeSwap(mon,becomes,why){
   {const _nr=monRow(key); if(_nr&&_nr.bs&&_nr.bs.atk)mon._bsAtk=_nr.bs.atk;}
   mon.curHP=sameHP?Math.min(mon.curHP,_st.hp):Math.max(1,Math.round(_st.hp*frac));
   MEDSEEN.formeSwapped++;
-  if(TR)TR.detailschange(mon);
+  /* 2026-08-12 -- TEMPORARY OR PERMANENT, AND THE TWO ARE DIFFERENT EVENTS. `Pokemon#formeChange`
+   * takes an `isPermanent` flag and branches on it:
+   *     isPermanent   this.battle.add('detailschange', this, ...)      a new IDENTITY
+   *     otherwise     this.battle.add('-formechange', this, species.name, message)   in-battle only
+   * Zero to Hero passes `true` (`formeChange('Palafin-Hero', this.effect, true)`) and so does
+   * Disguise; HUNGER SWITCH passes nothing, so Morpeko's flip is the temporary one. Measured off a
+   * real battle: `|-formechange|p2b: Morpeko|Morpeko-Hangry|` against our
+   * `|detailschange|p2b: Morpeko|morpeko-hangry, L50`, which is the wrong EVENT and carries a level
+   * the authority does not write. `why` already says which caller this is, so no new argument. */
+  if(TR){ if(why==='formeCycleResidual')TR.formechange(mon,mon.name); else TR.detailschange(mon); }
   return key;
 }
 /* WIRE 133 -- MAGIC ROOM, AND IT IS IMPLEMENTED AS A SWAP OF THE ITEM SLOT RATHER THAN AS A GATE.
@@ -10266,7 +10328,7 @@ function sweepField(rm,user,ownSf,foeSf,field,acts){
    and the honest first version reuses the existing one rather than inventing a matchup heuristic
    here -- the engine's job is to make the switch possible, and choosing well is the searcher's.
    Stated because "it picks the first healthy body" is a real limitation, not a detail. */
-function bringIn(act,i,bench,foes,sf,field,wanted,carry){
+function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry){
   /* WHICH mon, when the caller knows. live(bench)[0] is the right default for a FAINT replacement --
      nobody chose it -- but a voluntary switch is a choice, and a search that cannot say WHO it is
      bringing in is not evaluating a switch, it is evaluating "leave". Will: switching is
@@ -10312,7 +10374,10 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry){
     }
   }
   bench.splice(bench.indexOf(nx),1);
-  nx._turnsOut=0; nx._fallenStuck=sf.fainted; act[i]=nx;
+  /* `_mvActs` IS `activeMoveActions` AND IT IS ZEROED HERE, which is where `switchIn` zeroes it
+     (sim/battle-actions.ts:138) -- the body that just arrived has taken no move action, whatever it
+     did before it left. Fake Out and First Impression are the readers; see firstTurnOnlyRefused. */
+  nx._turnsOut=0; nx._mvActs=0; nx._fallenStuck=sf.fainted; act[i]=nx;
   /* WIRE 135 -- Payback refuses its double against a body that arrived this turn (`newlySwitched`),
    * so the arrival has to be recorded. Cleared at the top of the next turn with the rest of the
    * per-turn facts. */
@@ -10434,11 +10499,32 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry){
   /* WIRE 160 -- TRACE, BEFORE the entry-effect pass and for the identical reason Imposter is: the
    * copy REPLACES the ability, and the replacement's own Start handler is what that pass runs. A
    * Trace that copied Intimidate after the pass would drop nothing. */
+  /* 2026-08-12 -- THE PASS CAN BE DEFERRED, AND ONLY ONE CALLER DOES IT. Showdown's `switchIn` emits
+   * the `|switch|` line and merely QUEUES `{choice:'runSwitch'}`; `runSwitch` drains every consecutive
+   * runSwitch into one list and fires a SINGLE speed-sorted `fieldEvent('SwitchIn', switchersIn)`
+   * (sim/battle-actions.ts:186). So when two bodies arrive together the LINES come out in one order
+   * and the HANDLERS run in another. `deferEntry`, when a caller passes an array, collects the entrant
+   * instead of running its pass and hands the ordering decision to that caller -- which is exactly
+   * `refill`, the only place in this engine where two bodies can arrive at the same instant off a
+   * faint. Every other caller passes nothing and is byte-for-byte unchanged. */
+  if(deferEntry){deferEntry.push({nx,foes,act,i});return nx;}
+  runEntryPass(nx,foes,act,i,field);
+  return nx;
+}
+/* THE FOUR CALLS THAT MAKE UP ONE BODY'S SWITCH-IN PASS, lifted out of bringIn() unchanged so that
+ * `refill` can run them in a different ORDER from the one the bodies were placed in. Nothing about
+ * WHAT they do moved; only who decides WHEN. */
+function runEntryPass(nx,foes,act,i,field){
+  /* WIRE 141 -- BEFORE the entry-effect pass, because the transform REPLACES the ability and the
+   * replacement's own Start handler is what that pass runs. Doing it afterwards would fire Imposter's
+   * (nothing) instead of the copied body's. */
+  /* WIRE 160 -- TRACE, BEFORE the entry-effect pass and for the identical reason Imposter is: the
+   * copy REPLACES the ability, and the replacement's own Start handler is what that pass runs. A
+   * Trace that copied Intimidate after the pass would drop nothing. */
   imposterCopy(nx,foes,i);
   traceCopy(nx,_live(foes));
   applyEntryEffects(nx,field,act[1-i]);
   applyEntryDrops(nx,_live(foes));   // WIRE 100a -- membership from `onSwitchInDrop`, not a name
-  return nx;
 }
 /* ---- ROADMAP #81 WIRE 12 -- WHAT A BATON PASS ACTUALLY HANDS OVER --------------------------------
  *
@@ -10694,6 +10780,40 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
        if(!MEDFAILS.switchOutTriggerUnhandledFirst)
          MEDFAILS.switchOutTriggerUnhandledFirst=out.ability+' does='+_sot.does;
      }
+   }}
+  /* 2026-08-12 -- A REWRITTEN TYPE DOES NOT SURVIVE THE BENCH, AND THIS IS THE `-immune` CARD.
+   *
+   * REPRODUCED, after nine stagings that did not: a Meowscarada that had been SOAKED stayed Water
+   * through a switch out and back, so a Psychic Fangs killed it from full through the Dark immunity --
+   * `|-immune|` on the authority against `|-damage|p2a: Meowscarada|0 fnt` and a faint here. It is not
+   * the switch-in, not the re-aim, not an ability and not the chart: it is that LEAVING THE FIELD DID
+   * NOT REBUILD THE BODY.
+   *
+   * DERIVED, read in full rather than inferred: `switchIn` calls `oldActive.clearVolatile()`
+   * (sim/battle-actions.ts), whose LAST line is `this.setSpecies(this.baseSpecies)`, and `setSpecies`
+   * is `this.setType(species.types, true)` (sim/pokemon.ts). `faintMessages` calls the same
+   * `clearVolatile(false)`. So the authority restores the species' own types every time a body leaves
+   * the field, by the same road for a switch and for a faint.
+   *
+   * THE SOURCE IS THE BODY'S CURRENT FORME, NOT ITS ORIGINAL ONE, and that is the authority's too: a
+   * PERMANENT formeChange rewrites `baseSpecies`, so a mega restores to the MEGA's types. `mon.name`
+   * is the paste key and `formeSwap` keeps it in step with `mon.types`, so reading the row back is
+   * exactly `setSpecies(baseSpecies)`.
+   *
+   * IT COVERS EVERY TYPE REWRITE AT ONCE and that is why it is here rather than in Soak: Burn Up's
+   * `spendsOwnType` comment asserts *"IT IS PERMANENT FOR THE REST OF THE BODY'S TIME ON THE FIELD ...
+   * Switching out rebuilds the body"* -- an assumption that was simply not true of this engine, so a
+   * Burn Up user stayed `???`-typed for the rest of the battle. Same for Reflect Type and Soak.
+   *
+   * COUNTED, because a restore that silently stops is invisible: every leaf that reads types keeps
+   * working either way and only the CHART moves. */
+  /* `t` IS THE ROW'S FIELD NAME, not `types`. The first version of this read `_row.types`, which is
+   * undefined on every row in MC.mons -- so the restore was a no-op that incremented nothing and
+   * looked exactly like the mechanic working. It was caught only because the counter stayed 0 on a
+   * staging that had just been shown to need it. */
+  {const _row=monRow(out.name);
+   if(_row&&Array.isArray(_row.t)&&out.types&&out.types.join('/')!==_row.t.join('/')){
+     out.types=_row.t.slice(); MEDSEEN.typesRestoredOnSwitchOut++;
    }}
   out._healBlock=0;
   /* WIRE 133 -- THE BODY TAKES ITS ITEM WITH IT. Magic Room suppresses the item of a body ON THE
@@ -10996,8 +11116,36 @@ function reaimToSlot(t,it,actA,actB,mvId,quiet){
   if(t&&tracksTargetOf(mvId,it.mon)&&(actA.indexOf(t)>=0||actB.indexOf(t)>=0)){
     if(!quiet)MEDSEEN.targetTracksBody++;return t;}
   const foes=it.side==='A'?actB:actA;
-  const now=foes[it.tgtSlot]||null;
+  let now=foes[it.tgtSlot]||null;
   if(now!==t&&!quiet){ if(now)MEDSEEN.reaimedToSlot++; else MEDSEEN.reaimSlotEmpty++; }
+  /* 2026-08-12 -- A FAINTED FOE IS RETARGETED, NOT FAILED, AND THAT GAP WAS ALREADY FILED IN THE
+   * COUNTER ABOVE. `reaimSlotEmpty`'s own note says "Showdown retargets instead; this is the FILED
+   * gap" -- and the commoner road to it is not an EMPTY slot at all but an OCCUPIED one holding a
+   * body that died earlier in the same turn, so the counter never even fired.
+   *
+   * DERIVED FROM `Battle#getTarget` (sim/battle.ts:2434), read in full rather than inferred:
+   *     if (target?.fainted) {
+   *       if (this.gameType === 'freeforall') return target;
+   *       if (target.isAlly(pokemon)) { ...return target; }
+   *     }
+   *     if (target && !target.fainted) return target;
+   *     return this.getRandomTarget(pokemon, move);
+   * A fainted FOE matches neither special case and falls through to `getRandomTarget`. A fainted ALLY
+   * is returned as-is, which is why this is on the foe axis only -- the ally branch above returns its
+   * occupant untouched and stays that way.
+   *
+   * IT DRAWS NO DIE, AND IT CANNOT NEED TO. The aimed foe is fainted, so at most ONE foe is left on a
+   * doubles side and `getRandomTarget` has a single candidate; when there is none the move finds
+   * nobody and fails, which is what returning null already means to every caller. A member that could
+   * see two live foes here cannot exist -- the one that was aimed at is dead.
+   *
+   * STALWART AND PROPELLER TAIL ARE ABOVE THIS LINE and keep their body, which is the authority's
+   * order too: `tracksTarget` returns before the fainted test. */
+  if(now&&now.fainted){
+    const _alt=foes.find(x=>x&&x!==now&&!x.fainted&&x.curHP>0)||null;
+    if(!quiet){ if(_alt)MEDSEEN.reaimedOffFaintedFoe++; else MEDSEEN.reaimNoLiveFoe++; }
+    now=_alt;
+  }
   return now;
 }
 /* ROADMAP #210 -- WHO A `scripted` MOVE IS REALLY AIMED AT, AS ONE FUNCTION.
@@ -11646,7 +11794,15 @@ function battleTurn(S,rng,actsForA,actsForB){
        * handed two bodies and a field and nothing else -- it has no queue to ask. Written here, on the
        * one line that already answers the question, so the two cannot come apart. */
       m._acted=true;
+      /* `activeMoveActions`, AND IT IS INCREMENTED HERE BECAUSE THAT IS WHERE THE AUTHORITY DOES IT:
+         the first line of `runMove` (sim/battle-actions.ts:203), ABOVE every BeforeMove gate -- so a
+         body that is asleep, flinched or fully paralysed has still SPENT its move action and its Fake
+         Out is gone. A SWITCH AND A PASS ARE NOT MOVE ACTIONS (`runAction` routes them elsewhere and
+         never reaches runMove), which is the whole of the Fake-Out-after-a-pivot case. The fainted
+         guard below is `runAction`'s own `if (action.pokemon.fainted) return false`, which sits ABOVE
+         runMove -- so a body that died before its turn came up does not spend one either. */
       if(m.fainted||m.curHP<=0)continue;
+      if(it.a&&it.a.kind!=='switch'&&it.a.kind!=='pass')m._mvActs=((m._mvActs)|0)+1;
       /* WIRE 144 -- did the Encore override below rewrite this action? The randomTarget re-roll after
        * it must not draw a second time for one rule; see its own comment. */
       let _ovr=false;
@@ -12625,6 +12781,11 @@ function battleTurn(S,rng,actsForA,actsForB){
            move every target refused reads 0 and is a move that did nothing -- which is what the old
            straight-line branch expressed by skipping the tail with a `continue`. */
         let _landed=0;
+        /* 2026-08-12 -- THE TWO HALVES OF "DID THE SEALER LAND", kept apart from `_landed` on purpose.
+           `_landed` counts BODIES THE MOVE REACHED and is read by Memento and by the `to:'user'`
+           once-per-move rule; it is 1 for an Encore that reached a body and did nothing, which is the
+           right answer to its own question and the wrong one to this one. */
+        let _volApplied=false, _sealNoLastMove=false;
         for(const _t of _tl){
           /* A body that has left or died since the list was built. Nothing in this branch can faint a
              TARGET today -- Memento kills its user -- so this is a guard rather than a live path, and
@@ -12766,8 +12927,13 @@ function battleTurn(S,rng,actsForA,actsForB){
                has to apply a volatile for a move some OTHER branch claimed -- and a hand-written
                second copy of Mental Herb, the no-restart rule and Encore's lock is what CLAUDE.md's
                "FACTS ARE GLOBAL" rule exists to stop. */
-            if(_e.volatile)applyMoveVolatile(_who,_e.volatile,m,a.mv,field,
-              {alreadyMoved:!unresolved.has(_who)&&acts.some(x=>x.mon===_who)});
+            if(_e.volatile){
+              const _vw={};
+              const _vok=applyMoveVolatile(_who,_e.volatile,m,a.mv,field,
+                {alreadyMoved:!unresolved.has(_who)&&acts.some(x=>x.mon===_who),why:_vw});
+              if(_vok)_volApplied=true;
+              else if(_vw.reason==='nolastmove')_sealNoLastMove=true;
+            }
           }
           _landed++;
         }
@@ -12796,6 +12962,22 @@ function battleTurn(S,rng,actsForA,actsForB){
              nothing -- the same claim, made by a number instead of by control flow. */
           if(_landed&&_ufa&&_ufa.faints&&!m.fainted){m.curHP=0;m.fainted=true;if(TR){TR.dmg(m);TR.faint(m);}}
         }
+        /* 2026-08-12 -- AND THE MOVE SAYS SO WHEN THE SEALER WAS THE WHOLE MOVE AND IT REFUSED.
+         *
+         * Will read it off a real battle: a Staraptor that had mega-evolved and then been Fake Out
+         * flinched has NO `lastMove` at all, so Encore's `onStart` bails on `if (!move) return false`.
+         * Both engines correctly refuse it and only the authority announces the refusal.
+         *
+         * THE GATE IS DELIBERATELY NARROW AND THE NARROWNESS IS THE POINT. Showdown emits `-fail` on
+         * `moveResult === false`, an EXPLICIT failure -- and a Protect returns `NOT_FAIL`, which is
+         * falsy and is NOT false, so a blocked status move is silent. A blanket `if (!_landed) fail`
+         * here would emit `-fail` on every Protect, Magic Bounce and Good as Gold in the branch, which
+         * is the SAME defect in the opposite direction and is exactly what this sweep is about. So it
+         * fires only when the refusal this engine can name as explicit actually happened, nothing else
+         * on the move landed, and the move carries no stat payload that could have succeeded on its
+         * own. A move mixing a sealer with another effect is NOT covered, and that is stated rather
+         * than assumed absent -- no member of this format's `sealsMoves` family carries one. */
+        if(_sealNoLastMove&&!_volApplied&&!a.sc){ mvFail(m); MEDSEEN.sealFailAnnounced++; }
         continue;
       }
       /* WIRE 39 -- HAZE. BOTH SIDES, including the user's own, which is the whole shape of the move:
@@ -12828,7 +13010,16 @@ function battleTurn(S,rng,actsForA,actsForB){
          if(_min&&!_avg)_avg=_min;
          t.curHP=Math.min(t.st.hp,_avg); m.curHP=Math.min(m.st.hp,_avg);
          MEDSEEN.hpShared++;
-         if(TR){TR.dmg(t,'[from] move: '+a.mv);TR.dmg(m,'[from] move: '+a.mv);}
+         /* 2026-08-12 -- `-sethp`, NOT `-damage`, AND THE TARGET'S IS `[silent]`. The averaging was
+          * always right (147/170 and 125/125 measured identical in both engines) and the VOCABULARY
+          * was wrong. data/moves.ts painsplit.onHit, both lines, in this order:
+          *     this.add('-sethp', target,  target.getHealth,  '[from] move: Pain Split', '[silent]');
+          *     this.add('-sethp', pokemon, pokemon.getHealth, '[from] move: Pain Split');
+          * `-sethp` is a SET and not a delta, which is why a Substitute does not absorb it -- the note
+          * two lines up already says so, and the emitter contradicted it. It was on the declared
+          * not-emitted list with the reason *"Pain Split is not modelled"*, which stopped being true
+          * when the move was wired; see engine/derive_protocol_events.js. */
+         if(TR){TR.sethp(t,'[from] move: '+a.mv,true);TR.sethp(m,'[from] move: '+a.mv,false);}
          if(t.curHP<=0){t.curHP=0;t.fainted=true;if(TR)TR.faint(t);}
          if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
         continue;
@@ -13667,7 +13858,16 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(me<0||!partner||partner.fainted||partner.curHP<=0){ mvFail(m); continue; }
         own[me]=partner; own[other]=m;
         MEDSEEN.allySwitchSwapped++;
-        if(TR)TR.st1(m,'move: '+a.mv);
+        /* 2026-08-12 -- AND IT ANNOUNCES NOTHING. A `TR.st1` stood here and `-singleturn` is
+         * PROTECT'S line: `allyswitch` adds its volatile from `onPrepareHit`, and the condition it
+         * adds carries `duration`, `counterMax`, `onStart` and `onRestart` and NOT ONE `this.add`
+         * (data/moves.ts:302). Measured on a staged doubles turn, the authority's whole output is
+         *     |move|p1a: Farigiraf|Ally Switch|p1a: Farigiraf
+         *     |swap|p1a: Farigiraf|1|[from] move: Ally Switch
+         * and `|swap|` is already DECLARED not-emitted in data/protocol-events.json, so the differ
+         * drops it from the Showdown side. Same shape as Regenerator's spurious `-heal`, and decided
+         * the same way -- against the derived event table, not by taste. The MECHANIC is untouched:
+         * the two bodies still exchange slots on the line above. */
         continue;
       }
       /* VOLUNTARY SWITCH. The slot is found by identity rather than passed in, because the action
@@ -14507,7 +14707,10 @@ function battleTurn(S,rng,actsForA,actsForB){
        * too; the assignment is kept here only because removing fifty identical writes in the same
        * pass as a behaviour change is how a refactor eats a fix. */
       m._lastMove=a.move.id;
-      if(firstTurnOnlyRefused(m,a.move.id)){{if(TR)TR.attrStill();mvFail(m);}continue;}   // Fake Out only works the turn you enter
+      /* `true` = ASK THE EXECUTION QUESTION. This action's own move-action count was incremented at
+         the top of the loop, exactly as `runMove` does on its first line, so the threshold here is
+         the authority's `activeMoveActions > 1` and not the selection sites' `>= 1`. */
+      if(firstTurnOnlyRefused(m,a.move.id,true)){{if(TR)TR.attrStill();mvFail(m);}continue;}   // Fake Out only works before you have moved
       /* WIRE 44 -- GIGATON HAMMER (197 uses) cannot be clicked twice in a row. `_noRepeat` is armed
          when the move lands and disarmed by the end-of-turn tick, so the block covers exactly the
          following turn -- and it binds a CALLER-SUPPLIED action as well as a chosen one, the WIRE 24
@@ -15955,56 +16158,20 @@ function battleTurn(S,rng,actsForA,actsForB){
          * keeps the announcement for its own step), so this local is the only honest reading
          * available between the two. */
         _koThisHit=tg.curHP<=0;
-        _damagingHit();   /* ROADMAP #81 WIRE 11 -- the reactors, AFTER the damage */
-        /* ROADMAP #81 WIRE 11 -- THE CONTACT PUNISH IS PAID *AFTER* THE DAMAGE, AND THE WHOLE BLOCK
-         * BELOW USED TO SIT ABOVE THIS LINE.
-         *
-         * Showdown numbers the two: `spreadDamage` is step 2 of `spreadMoveHit`
-         * (battle-actions.ts:1079, where the HP actually moves) and `runEvent('DamagingHit')` is four
-         * numbered steps later (:1117), after runMoveEffects, the self drops and the secondaries.
-         * Observed live: Tyranitar Knock Offs a Garchomp and the authority writes
-         * `|-damage|Garchomp|78/183` and THEN Rough Skin's recoil onto Tyranitar; this engine wrote
-         * the recoil first, with no speed tie anywhere near it (106 against 161). WIRE 10 filed this
-         * and did not fix it because it changes the SINGLE-TARGET order, which is the one thing that
-         * rung's control held constant.
-         *
-         * IT IS NOT COSMETIC, AND THE STATE HALF IS THE `onFaintOnly` GATE. Aftermath's own condition
-         * is `if (!target.hp && ...)` -- the HP AFTER the packet landed. Read before the damage, the
-         * gate had to compare the RAW `dmg` against `tg.curHP`, which is the number BEFORE a Focus
-         * Sash or a busted Disguise has cut it down. So an Aftermath body holding a Focus Sash
-         * survived at 1 and detonated anyway, costing the attacker a quarter of its maximum HP for a
-         * kill that did not happen. `_koThisHit` below is the post-damage reading, and it is the whole
-         * of that fix.
-         *
-         * THE OTHER DIRECTION IS A STREAM CLAIM ONLY, and it is said rather than counted as a win: a
-         * DEAD attacker takes no further toll (`Battle#spreadDamage` returns 0 and emits nothing when
-         * `!target.hp`, sim/battle.ts:2140) and this engine had no `!m.fainted` guard, so a second
-         * reactor could write a second `-damage` onto a body already at 0. curHP is clamped either
-         * way, so nothing moves on STATE; the guard is added because the LINE does.
-         *
-         * WHAT DID *NOT* MOVE, checked rather than assumed: the punish is still paid whether or not
-         * the TARGET survived. `runEvent` skips a handler whose holder is `fainted` (sim/battle.ts:512)
-         * and `Pokemon#faint` explicitly does not set that flag -- "actually setting of this.fainted
-         * comes later when the faint queue is resolved" -- so a Rough Skin holder that just dropped to
-         * 0 still tolls its killer. */
-        /* A HOISTED FUNCTION DECLARATION, DELIBERATELY, AND THE REASON IS TESTABILITY. The whole
-         * reactor block is one unit that Showdown runs at ONE numbered step; making it a named
-         * function means its POSITION is a single call line rather than 150 lines of context, so
-         * `tests/probe_red_demo.js` can revert this wire by moving the call and nothing else. A
-         * `const` arrow would not survive that, because the revert calls it above its own
-         * declaration; a function declaration is hoisted to the top of `_stepApply` and does. */
-        function _damagingHit(){
-        /* WIRE 5 -- punishesAttacker, all of it. Rough Skin (3,762 sheets) and its family were
-         * ABSENT: the engine had no concept that touching something can cost you. Unlike
-         * buffsHolderOnHit this does NOT compound -- it is a flat toll, so the right play is to
-         * keep attacking without contact rather than to stop. Paid whether or not the target
-         * survived the hit, which is why it sits outside the survivor branch below.
-         *
-         * THE TRIGGER COMES FROM THE TAG, not from an assumption. The first cut of this wire
-         * assumed contact-per-hit for every member, so Aftermath (whose handler fires only when
-         * the HOLDER DIES to contact) chipped attackers 25% on every touch. requiresForme members
-         * are skipped whole: this engine carries no forme state, and a base-forme Cramorant that
-         * never Surfed punishing anyone would be a new wrong number, not a wired mechanic. */
+        /* ROADMAP #81 WIRE 11 -- the reactors, AFTER the damage. DEFERRED TO `_stepDamagingHit`
+         * 2026-08-12: the authority raises `DamagingHit` at spreadMoveHit:951, which is BELOW
+         * runMoveEffects, selfDrops and secondaries and ABOVE `AfterHit`. Storing the closure rather
+         * than calling it keeps every per-row local this block reads -- `dmg`, `d`, `_koThisHit`,
+         * `_subAte` -- exactly as it found them, and the CALL becomes a position in `_STEPS` the way
+         * WIRE 11's own comment asked for. */
+        /* THE REACTION COUNT IS COMPUTED HERE, IN THE DAMAGE STEP, AND NOT INSIDE THE DEFERRED
+         * REACTOR. 2026-08-12. `R.react` is read by `_stepEffects` one step later, and moving the
+         * reactor CALL below that step left the field undefined -- so the buff family's per-hit
+         * loop ran zero times and Stamina, Weak Armor, Justified and Anger Point stopped firing
+         * ENTIRELY, with no error and no counter. Caught by the same five staged turns that found
+         * the hook order, which is the only reason it is not in the tree: a boost that silently
+         * stops is invisible to every board comparison that does not stage the ability.
+         * `_damagingHit` reads `_react` off this scope, exactly as it did when it owned it. */
         /* WIRE 84 -- A MULTI-HIT MOVE SETS OFF A REACTOR ONCE PER HIT, AND THIS ENGINE SET IT OFF
          * ONCE. Showdown runs every `onDamagingHit` per hit, so Bullet Seed into Weak Armor is
          * def -3 / spe +6 and this engine gave -1 / +2; into Toxic Debris it lays TWO layers (the
@@ -16059,6 +16226,56 @@ function battleTurn(S,rng,actsForA,actsForB){
           return 1;
         })();
         R.react=_react;   // WIRE 10 -- the effects step reads the same count, one step later
+        R._dh=_damagingHit;
+        /* ROADMAP #81 WIRE 11 -- THE CONTACT PUNISH IS PAID *AFTER* THE DAMAGE, AND THE WHOLE BLOCK
+         * BELOW USED TO SIT ABOVE THIS LINE.
+         *
+         * Showdown numbers the two: `spreadDamage` is step 2 of `spreadMoveHit`
+         * (battle-actions.ts:1079, where the HP actually moves) and `runEvent('DamagingHit')` is four
+         * numbered steps later (:1117), after runMoveEffects, the self drops and the secondaries.
+         * Observed live: Tyranitar Knock Offs a Garchomp and the authority writes
+         * `|-damage|Garchomp|78/183` and THEN Rough Skin's recoil onto Tyranitar; this engine wrote
+         * the recoil first, with no speed tie anywhere near it (106 against 161). WIRE 10 filed this
+         * and did not fix it because it changes the SINGLE-TARGET order, which is the one thing that
+         * rung's control held constant.
+         *
+         * IT IS NOT COSMETIC, AND THE STATE HALF IS THE `onFaintOnly` GATE. Aftermath's own condition
+         * is `if (!target.hp && ...)` -- the HP AFTER the packet landed. Read before the damage, the
+         * gate had to compare the RAW `dmg` against `tg.curHP`, which is the number BEFORE a Focus
+         * Sash or a busted Disguise has cut it down. So an Aftermath body holding a Focus Sash
+         * survived at 1 and detonated anyway, costing the attacker a quarter of its maximum HP for a
+         * kill that did not happen. `_koThisHit` below is the post-damage reading, and it is the whole
+         * of that fix.
+         *
+         * THE OTHER DIRECTION IS A STREAM CLAIM ONLY, and it is said rather than counted as a win: a
+         * DEAD attacker takes no further toll (`Battle#spreadDamage` returns 0 and emits nothing when
+         * `!target.hp`, sim/battle.ts:2140) and this engine had no `!m.fainted` guard, so a second
+         * reactor could write a second `-damage` onto a body already at 0. curHP is clamped either
+         * way, so nothing moves on STATE; the guard is added because the LINE does.
+         *
+         * WHAT DID *NOT* MOVE, checked rather than assumed: the punish is still paid whether or not
+         * the TARGET survived. `runEvent` skips a handler whose holder is `fainted` (sim/battle.ts:512)
+         * and `Pokemon#faint` explicitly does not set that flag -- "actually setting of this.fainted
+         * comes later when the faint queue is resolved" -- so a Rough Skin holder that just dropped to
+         * 0 still tolls its killer. */
+        /* A HOISTED FUNCTION DECLARATION, DELIBERATELY, AND THE REASON IS TESTABILITY. The whole
+         * reactor block is one unit that Showdown runs at ONE numbered step; making it a named
+         * function means its POSITION is a single call line rather than 150 lines of context, so
+         * `tests/probe_red_demo.js` can revert this wire by moving the call and nothing else. A
+         * `const` arrow would not survive that, because the revert calls it above its own
+         * declaration; a function declaration is hoisted to the top of `_stepApply` and does. */
+        function _damagingHit(){
+        /* WIRE 5 -- punishesAttacker, all of it. Rough Skin (3,762 sheets) and its family were
+         * ABSENT: the engine had no concept that touching something can cost you. Unlike
+         * buffsHolderOnHit this does NOT compound -- it is a flat toll, so the right play is to
+         * keep attacking without contact rather than to stop. Paid whether or not the target
+         * survived the hit, which is why it sits outside the survivor branch below.
+         *
+         * THE TRIGGER COMES FROM THE TAG, not from an assumption. The first cut of this wire
+         * assumed contact-per-hit for every member, so Aftermath (whose handler fires only when
+         * the HOLDER DIES to contact) chipped attackers 25% on every touch. requiresForme members
+         * are skipped whole: this engine carries no forme state, and a base-forme Cramorant that
+         * never Surfed punishing anyone would be a new wrong number, not a wired mechanic. */
         for(let _hit=0;_hit<_react;_hit++){
         /* WIRE 82, the reacting half -- a hit LANDING ON a body that is holding a pre-turn shield.
          *
@@ -16295,14 +16512,10 @@ function battleTurn(S,rng,actsForA,actsForB){
          *     format has exactly 75 items with an `onTakeItem` and every one is a mega stone. This
          *     engine knocked a Gengarite off a Gengar, which is a STATE bug and not a stream one --
          *     the body could no longer mega for the rest of the battle. */
-        {
-          const _ri=TAGS.param('move',a.move.id,'removesItem');
-          if(_ri&&tg.item&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){
-            const _taken=tg.item; tg.item='';
-            if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);
-            if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}
-          }
-        }
+        /* 2026-08-12 -- AND THE STRIP ITSELF NOW LIVES IN `_stepAfterHit`. Everything above about
+         * WHAT it takes and from whom is unchanged; what moved is WHEN, because Knock Off's removal is
+         * `onAfterHit` and every damage reaction is `onDamagingHit`, which the authority raises first.
+         * See the step for the measurement. */
         /* ROADMAP #81 WIRE 10 -- THE FAINT IS RECORDED HERE AND ANNOUNCED IN ITS OWN STEP.
          * `Battle#spreadDamage` only queues the faint; the `|faint|` line and everything hanging off
          * it come out of `faintMessages`, which `hitStepMoveHitLoop` calls after the ENTIRE hit loop
@@ -17044,6 +17257,149 @@ function battleTurn(S,rng,actsForA,actsForB){
            if(TR)TR.bst(m,_key,m.boosts[_key]-_b0,'[from] ability: '+m.ability);
          }}
       };
+      /* STEP 7e -- `runEvent('DamagingHit')`, sim/battle-actions.ts:951, AND STEP 7f -- the `AfterHit`
+       * singleEvent on the NEXT LINE, :954. Two hooks, two steps, in that order. 2026-08-12.
+       *
+       * Will, off a real battle: *"the stamina boosts come after the attack, knock off ordering we
+       * need to follow showdown"*.
+       *
+       *     Showdown:  Archaludon +1 def          THEN  Archaludon lost its Leftovers
+       *     ours:      Archaludon lost Leftovers  THEN  +1 def
+       *
+       * THIS IS NOT A KNOCK OFF FIX AND IT IS NOT A PAIR. Stamina is `onDamagingHit`; Knock Off's
+       * removal is `onAfterHit`; the authority raises the first four lines above the second. So the
+       * rule is every damage-reaction ability against every after-hit move effect -- Stamina, Weak
+       * Armor, Justified, Berserk, Anger Point, Water Compaction, Rough Skin, Iron Barbs, Aftermath
+       * against Knock Off, Thief, Bug Bite, Smack Down. Matching the HOOK rather than the pair is what
+       * makes the twelfth member arrive with no edit here.
+       *
+       * MEASURED IN THE AUTHORITY, one staged doubles turn each, the user pinned fastest:
+       *     Knock Off into STAMINA      -damage, -ability Stamina, -boost def,  -enditem Leftovers
+       *     Knock Off into WEAK ARMOR   -damage, -ability, -unboost def, -boost spe, -enditem
+       *     Knock Off into JUSTIFIED    -damage, -ability, -boost atk,   -enditem
+       *     Knock Off into ROUGH SKIN   -damage, -damage [from] Rough Skin,      -enditem
+       *     Thief     into STAMINA      -damage, -ability, -boost def,   -enditem, -item
+       * The reaction is above the strip in all five, whichever family the reaction belongs to.
+       *
+       * THIS ENGINE HAD ONE `onDamagingHit` FAMILY LIVING IN TWO PLACES, and only one of them was
+       * wrong, which is why nothing caught it: `punishesAttacker` (Rough Skin) ran inside `_stepApply`
+       * and already preceded the strip, while `buffsHolderOnHit` (Stamina) ran in `_stepEffects` and
+       * followed it. Measured before the change, same five turns: Rough Skin above the `-enditem`,
+       * Stamina and Weak Armor below it.
+       *
+       * AND MOVING THE CALL CLOSES §5a AS A SIDE EFFECT, which was reported as a residual on the
+       * previous pass. `DamagingHit` is BELOW selfDrops and secondaries in the authority, and this
+       * engine ran the contact punish inside `_stepApply`, above both -- so a Close Combat into a
+       * Rough Skin body printed the toll above its own two `-unboost` lines. It now prints below
+       * them. `engine/game_differential.js` prints that scenario every run.
+       *
+       * WHAT IS STILL OUT OF ORDER, SAID PLAINLY: `buffsHolderOnHit` is left inside `_stepEffects`,
+       * which runs it ABOVE that step's secondaries where the authority runs it below. It is
+       * unobservable against `punishesAttacker` -- a body has ONE ability, so the two can never both
+       * fire on it -- but it IS observable against a secondary on the same body (Icy Wind's Speed drop
+       * into Stamina). Measured and named rather than assumed absent. */
+      const _stepDamagingHit=(R)=>{ if(!R._dh)return; const _f=R._dh; R._dh=null; _f(); };
+      /* `AfterHit` -- `if (moveData.onAfterHit && pokemon.hp)` at battle-actions.ts:953. The item
+       * strip, moved out of `_stepApply` unchanged. Its own header there records WHAT it takes and the
+       * three refusals; nothing about that moved. */
+      const _stepAfterHit=(R)=>{const tg=R.tg;
+        const _ri=TAGS.param('move',a.move.id,'removesItem');
+        if(_ri&&tg.item&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){
+          const _taken=tg.item; tg.item='';
+          if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);
+          if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}
+        }
+      };
+      /* STEP 7d -- THE TWO THINGS THE MOVE PAYS ITS OWN USER *INSIDE* `spreadMoveHit`, AND THEREFORE
+       * ABOVE THE `|faint|` LINE. 2026-08-12.
+       *
+       * Showdown does NOT emit `|faint|` when HP reaches zero. `Pokemon#faint()` sets `faintQueued`
+       * and pushes onto `battle.faintQueue`; the line comes out of `faintMessages`, called by
+       * `hitStepMoveHitLoop` at sim/battle-actions.ts:848 -- after the whole hit loop and BEFORE
+       * `applyRecoilDamage`. So the announcement splits the move in two, and which side a payment
+       * falls on is decided by where the authority pays it:
+       *
+       *   ABOVE the faint   the drain (`spreadDamage`, sim/battle.ts:1795) and the user's own stat
+       *                     change (`selfDrops`, sim/battle-actions.ts:1117 -- called from
+       *                     `spreadMoveHit` at :936, inside the loop)
+       *   BELOW the faint   recoil (`applyRecoilDamage`, :851), and everything on
+       *                     `AfterMoveSecondarySelf` -- Life Orb, Shell Bell, Magician
+       *
+       * MEASURED IN THE AUTHORITY, one staged doubles turn each, target pinned to 1 HP:
+       *     Giga Drain KO       -damage 0 fnt, -heal [from] drain, |faint|
+       *     Close Combat KO     -damage 0 fnt, -unboost def, -unboost spd, |faint|
+       *     Wave Crash KO       -damage 0 fnt, Rough Skin, |faint|, -damage [from] Recoil
+       *     Liquidation KO+Orb  -damage 0 fnt, |faint|, -damage [from] item: Life Orb
+       * The last two already agreed here; the first two did not, because both payments were made
+       * from the block far BELOW the step list, which is below `_stepFaint`. That is two of the five
+       * diverging battles Will read off the rendered whole-game differential, and it reorders every
+       * KO where the same move also drains or drops the user.
+       *
+       * ONCE FOR THE MOVE, NOT ONCE PER TARGET, and that is the authority's own guard rather than a
+       * convenience: `if (moveData.self && !move.selfDropped) this.selfDrops(...)`. Both payments
+       * read `dealt`, which is already the SUM ACROSS TARGETS, so a per-row call would pay a spread
+       * drain twice. The flag is set on entry so the shape is the same whether one row or four
+       * reach this step.
+       *
+       * IT SITS BETWEEN `_stepApply` AND `_stepEffects` BECAUSE THAT IS WHERE THE AUTHORITY PUTS IT:
+       * `selfDrops` is called at battle-actions.ts:936 and `secondaries` on the NEXT line, :937. Both
+       * payments read `dealt` and `connected`, which are complete at the end of `_stepApply` (they are
+       * written at :15656 and :15665, inside it) -- the driver runs a whole step across every row
+       * before the next step, so a per-move payment placed here sees the finished sum.
+       *
+       * WHAT IS STILL OUT OF ORDER HERE, SAID PLAINLY RATHER THAN LEFT TO BE REDISCOVERED: this engine
+       * runs the `DamagingHit` reactions (Rough Skin, Iron Barbs, Aftermath) INSIDE `_stepApply`, and
+       * the authority runs them at :951, BELOW both selfDrops and secondaries. So a Close Combat into
+       * a Rough Skin body still prints the toll above the two `-unboost` lines where Showdown prints
+       * it below them. That is a SEPARATE defect of the reaction loop's home, it predates this change,
+       * and `engine/game_differential.js` prints it every run as the §5a scenario.
+       *
+       * IT IS A STEP RATHER THAN A LINE ABOVE `_stepFaint` so that the driver below is untouched --
+       * `tests/probe_red_demo.js` patches that exact line to revert WIRE 10's loop order, and a
+       * second driver would silently stop that demonstration working. */
+      let _selfPaid=false;
+      const _stepSelfPay=()=>{
+        if(_selfPaid)return; _selfPaid=true;
+        {
+          const _dr=TAGS.param('move',a.move.id,'drain');
+          /* Heal Block takes the HEAL and leaves the DAMAGE, which is the rule and is also the only
+           * version worth modelling: a Drain Punch under Heal Block is still a Drain Punch. */
+          if(_dr&&_dr.fraction&&dealt>0&&!m.fainted&&m.st&&!healBlocked(m)){
+            /* WIRE 87 -- CLAMPED AGAINST THE HP THE USER HAD BEFORE ANY REACTION, not against the HP
+             * it has now. Showdown drains inside the move and pays the contact toll afterwards, so a
+             * full-HP Draining Kiss into Rough Skin gains NOTHING from the drain and still pays the
+             * eighth. Adding the heal to the post-toll HP healed the toll straight back. */
+            /* ROADMAP #81 WIRE 4 -- THE DRAIN IS ROUNDED, NOT FLOORED. `sim/battle.ts:2168` is
+             * `Math.round(targetDamage * effect.drain[0] / effect.drain[1])` from gen 5 on (gen <= 4
+             * is the floor, and that branch is not this format). Same root as recoil, opposite sign:
+             * flooring cost the user half a point of health on average on 8,553 corpus clicks. */
+            /* BIG ROOT, 53 uses — a roster DID-NOT-FIRE row and it had no tag at all until now.
+             * `onTryHeal` multiplies a heal by 5324/4096 (x1.2998) but ONLY when the effect that
+             * produced it is on its own list — drain, Leech Seed, Ingrain, Aqua Ring, Strength Sap.
+             * The SOURCE LIST IS PART OF THE FACT and is carried in the tag: this does not boost
+             * Recover, a berry or Leftovers, and an item that boosted all healing would be a
+             * different item. Applied INSIDE the rounding, because Showdown modifies the heal before
+             * it rounds. */
+            const _br=TAGS.param('item',m.item,'healMultBySource');
+            const _brM=(_br&&_br.mult&&Array.isArray(_br.from)&&_br.from.includes('drain'))?+_br.mult:1;
+            const _gain=Math.min(m.st.hp,_hpPreReact+Math.round(dealt*_dr.fraction*_brM))-_hpPreReact;
+            if(_gain>0){m.curHP=Math.min(m.st.hp,m.curHP+_gain);if(TR)TR.heal(m,'[from] drain');}
+          }
+        }
+        /* WIRE 65 -- A MOVE THAT REACHED NOTHING PAYS NOTHING. Found by tests/test-game-diff.js's
+           GENERATED pair matrix on its first run, six pairs at once: Close Combat into a Protect read
+           `medi def -1 / spd -1` against Showdown's `0 / 0`. The self-drop applied unconditionally, so
+           a blocked Close Combat, a Draco Meteor into a Fairy and an Overheat into a Flash Fire all
+           cost the user its stats for nothing -- and the searcher saw that cost on every one of them.
+           `connected` is set only where a body actually took the hit, which is after Protect, after
+           the type immunity, after the absorb ability and after the invulnerability check. */
+        // self stat changes from mv.self (dex-generated); Contrary flips drops into boosts
+        const sdrop=connected?(a.move.mv&&a.move.mv.self):null;
+        if(sdrop){const sgn=invSign(m);   // WIRE 100b
+          for(const k in sdrop){const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null){const _b0=m.boosts[_st];
+            m.boosts[_st]=clamp(m.boosts[_st]+sdrop[k]*sgn,-6,6);
+            if(TR)TR.bst(m,_st,m.boosts[_st]-_b0);}}}
+      };
       /* ---- THE STEP LIST, IN SHOWDOWN'S ORDER, AND THE DRIVER UNDER IT ----------------------------
        *
        * `moveSteps` is DATA in the authority and it is data here, which is the only reason the blocks
@@ -17056,7 +17412,8 @@ function battleTurn(S,rng,actsForA,actsForB){
        * and it is why a single-target hit is untouched by this restructure while a spread hit is
        * re-shaped completely. */
       const _STEPS=[_stepInvuln,_stepTryHit,_stepTypeImm,_stepTryImm,_stepAccuracy,
-                    _stepDamage,_stepApply,_stepEffects,_stepFaint];
+                    _stepDamage,_stepApply,_stepSelfPay,_stepEffects,
+                    _stepDamagingHit,_stepAfterHit,_stepFaint];
       for(const _step of _STEPS)for(const R of _rows){if(R.out)continue;_step(R);}
       /* ROADMAP #81 WIRE 1 -- NOTHING GOT THROUGH, so the move FAILED and the crash is paid. This is
          the immunity half of the same rule the shield half above pays: measured in the authority, a
@@ -17275,31 +17632,10 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(TR)TR.vstart(m,'typechange',m.types.join('/'));
         }
       }
-      {
-        const _dr=TAGS.param('move',a.move.id,'drain');
-        /* Heal Block takes the HEAL and leaves the DAMAGE, which is the rule and is also the only
-         * version worth modelling: a Drain Punch under Heal Block is still a Drain Punch. */
-        if(_dr&&_dr.fraction&&dealt>0&&!m.fainted&&m.st&&!healBlocked(m)){
-          /* WIRE 87 -- CLAMPED AGAINST THE HP THE USER HAD BEFORE ANY REACTION, not against the HP
-           * it has now. Showdown drains inside the move and pays the contact toll afterwards, so a
-           * full-HP Draining Kiss into Rough Skin gains NOTHING from the drain and still pays the
-           * eighth. Adding the heal to the post-toll HP healed the toll straight back. */
-          /* ROADMAP #81 WIRE 4 -- THE DRAIN IS ROUNDED, NOT FLOORED. `sim/battle.ts:2168` is
-           * `Math.round(targetDamage * effect.drain[0] / effect.drain[1])` from gen 5 on (gen <= 4
-           * is the floor, and that branch is not this format). Same root as recoil, opposite sign:
-           * flooring cost the user half a point of health on average on 8,553 corpus clicks. */
-          /* BIG ROOT, 53 uses — a roster DID-NOT-FIRE row and it had no tag at all until now.
-           * `onTryHeal` multiplies a heal by 5324/4096 (x1.2998) but ONLY when the effect that
-           * produced it is on its own list — drain, Leech Seed, Ingrain, Aqua Ring, Strength Sap. The
-           * SOURCE LIST IS PART OF THE FACT and is carried in the tag: this does not boost Recover, a
-           * berry or Leftovers, and an item that boosted all healing would be a different item.
-           * Applied INSIDE the rounding, because Showdown modifies the heal before it rounds. */
-          const _br=TAGS.param('item',m.item,'healMultBySource');
-          const _brM=(_br&&_br.mult&&Array.isArray(_br.from)&&_br.from.includes('drain'))?+_br.mult:1;
-          const _gain=Math.min(m.st.hp,_hpPreReact+Math.round(dealt*_dr.fraction*_brM))-_hpPreReact;
-          if(_gain>0){m.curHP=Math.min(m.st.hp,m.curHP+_gain);if(TR)TR.heal(m,'[from] drain');}
-        }
-      }
+      /* THE DRAIN USED TO BE HERE AND IT IS NOW `_stepSelfPay`, ABOVE THE STEP LIST. It is paid
+       * inside `spreadDamage` in the authority, which is above `faintMessages` -- so a Giga Drain
+       * that scores a KO prints its `-heal` BEFORE the `|faint|`, and paying it from this block
+       * printed it after. See the step's own header for the measurement. */
       /* SHELL BELL, 44 uses — a roster DID-NOT-FIRE row, and it sits here for the same reason recoil
        * does: both are a fraction of the damage the move ACTUALLY dealt.
        *     onAfterMoveSecondarySelf: if (move.totalDamage && !forceSwitchFlag) heal(totalDamage / 8)
@@ -17322,19 +17658,10 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(TR&&m.curHP>_b4)TR.heal(m,'[from] item: '+m.item);
         }
       }
-      /* WIRE 65 -- A MOVE THAT REACHED NOTHING PAYS NOTHING. Found by tests/test-game-diff.js's
-         GENERATED pair matrix on its first run, six pairs at once: Close Combat into a Protect read
-         `medi def -1 / spd -1` against Showdown's `0 / 0`. The self-drop applied unconditionally, so
-         a blocked Close Combat, a Draco Meteor into a Fairy and an Overheat into a Flash Fire all
-         cost the user its stats for nothing -- and the searcher saw that cost on every one of them.
-         `connected` is set only where a body actually took the hit, which is after Protect, after the
-         type immunity, after the absorb ability and after the invulnerability check. */
-      // self stat changes from mv.self (dex-generated); Contrary flips drops into boosts
-      const sdrop=connected?a.move.mv.self:null;
-      if(sdrop){const sgn=invSign(m);   // WIRE 100b
-        for(const k in sdrop){const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null){const _b0=m.boosts[_st];
-          m.boosts[_st]=clamp(m.boosts[_st]+sdrop[k]*sgn,-6,6);
-          if(TR)TR.bst(m,_st,m.boosts[_st]-_b0);}}}
+      /* THE SELF-DROP USED TO BE HERE AND IT IS NOW `_stepSelfPay`, ABOVE THE STEP LIST. WIRE 65's
+       * `connected` gate travelled with it unchanged; what moved is only WHEN it is paid, because
+       * `selfDrops` runs inside `spreadMoveHit` and therefore above `faintMessages`. See the step's
+       * own header. */
       /* WIRE 97 -- a Sheer Force-boosted move pays NO Life Orb recoil (the real interaction, and the
          reason the pairing is played). Boosted means: the ability removes secondaries AND this move
          had one to remove -- the same two reads the damage half makes. */
@@ -17815,7 +18142,8 @@ function battleTurn(S,rng,actsForA,actsForB){
              m.name=_to;
              MEDSEEN.formeRenamedNoRow++;
              MEDSEEN.formeCycled++;
-             if(TR)TR.detailschange(m);
+             /* the RENAME branch of the same temporary flip -- see formeSwap's note. */
+             if(TR)TR.formechange(m,_to);
            } else if(monRow(_to)){
              formeSwap(m,_toName,'formeCycleResidual');
              MEDSEEN.formeCycled++;
@@ -18456,15 +18784,64 @@ function battleTurn(S,rng,actsForA,actsForB){
     /* THE POST-KO REPLACEMENT IS A DECISION TOO, and it was a coin flip: whoever happened to be first
        on the bench walked into whatever just got a kill. In doubles that is frequently the whole game.
        S.replaceWith lets a caller name the replacement per side; absent, the old behaviour stands. */
-    const refill=(act,bench,foes,sf,side)=>{
-      for(let i=0;i<act.length;i++){
-        if(!act[i]||!act[i].fainted)continue;
-        const want=S.replaceWith&&S.replaceWith[side];
-        const nx=bringIn(act,i,bench,foes,sf,field,want);
+    /* 2026-08-12 -- TWO SIMULTANEOUS REPLACEMENTS ARE TWO ORDERS, AND THIS WAS SIDE ORDER FOR BOTH.
+     * It ran `refill(actA…)` then `refill(actB…)`, so my side always arrived first and always acted
+     * first. The authority splits the question in half and uses a DIFFERENT SPEED for each half:
+     *
+     *   THE `|switch|` LINE       `Side#chooseSwitch` builds `{choice:'instaswitch', pokemon: the
+     *                             FAINTED active, target: the bench body}`; `commitChoices` calls
+     *                             `queue.sort()` -> `speedSort` -> `comparePriority`, whose speed key
+     *                             is `action.speed` = `action.pokemon.getActionSpeed()`
+     *                             (sim/battle.ts:2179). That is THE DEPARTING BODY'S speed.
+     *   THE ENTRY PASS            `switchIn` only queues `{choice:'runSwitch'}`; `runSwitch` drains
+     *                             every consecutive runSwitch into one list and fires ONE
+     *                             `fieldEvent('SwitchIn', switchersIn)` (battle-actions.ts:186),
+     *                             which speed-sorts its handlers. That is THE ARRIVING BODIES'.
+     *
+     * MEASURED, four staged battles with both slot-A bodies on 1 HP and each side's slot B killing
+     * the other's, so both sides replace on the same request:
+     *     dying aero130/snor30, arriving Pelipper 200 / Torkoal  50   ["Pelipper","Torkoal"]  sun
+     *     dying snor30/aero130, arriving Pelipper 200 / Torkoal  50   ["Torkoal","Pelipper"]  sun
+     *     dying aero130/snor30, arriving Pelipper  50 / Torkoal 200   ["Pelipper","Torkoal"]  rain
+     * Row 2 moves the LINES and not the sky; row 3 moves the sky and not the lines. Fixing only the
+     * announcement would have dragged the entry pass with it and made a half that was accidentally
+     * right into a half that was wrong, which is why both are here in one change.
+     *
+     * ONE IMPLEMENTATION OF "WHO IS FASTER" -- `effSpeed` for the number and `compareTurnOrder` for
+     * the rule, the same pair `battleInit`'s lead pass uses. Trick Room comes free with it, and it is
+     * the authority's too: `getActionSpeed()` returns `10000 - speed` under Trick Room, so both of
+     * these orders invert together.
+     *
+     * A SPEED TIE IS A COIN FLIP IN SHOWDOWN (speedSort's Fischer-Yates) AND A STABLE ARRAY ORDER
+     * HERE, exactly as `battleInit`'s lead pass, and for the same reason -- drawing a number here
+     * would move the RNG stream of every seeded run in the repo. Counted rather than silent. */
+    const _refills=[];
+    for(const _r of [{act:actA,bench:benchA,foes:actB,sf:sfA,side:'A'},
+                     {act:actB,bench:benchB,foes:actA,sf:sfB,side:'B'}])
+      for(let i=0;i<_r.act.length;i++)
+        if(_r.act[i]&&_r.act[i].fainted)
+          _refills.push(Object.assign({i,spe:effSpeed(_r.act[i],field,_r.side)},_r));
+    _refills.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field));
+    for(let k=1;k<_refills.length;k++)
+      if(_refills[k].spe===_refills[k-1].spe)MEDFAILS.replaceOrderTie++;
+    const refill=()=>{
+      const _arrived=[];
+      for(const r of _refills){
+        const want=S.replaceWith&&S.replaceWith[r.side];
+        const nx=bringIn(r.act,r.i,r.bench,r.foes,r.sf,field,want,undefined,_arrived);
         /* Consumed once. A standing preference would silently apply to every later faint in the game,
            which is a different and much stronger claim than the caller made. */
-        if(nx&&want&&nx===want&&S.replaceWith)S.replaceWith[side]=null;
+        if(nx&&want&&nx===want&&S.replaceWith)S.replaceWith[r.side]=null;
       }
+      /* THE SECOND ORDER. Sorted on the ARRIVING body, because that is what `fieldEvent('SwitchIn')`
+       * speed-sorts. Read AFTER placement so the number is the body's speed on the field it actually
+       * walked onto -- a Tailwind or a Trick Room that is already up counts, which is what
+       * `getActionSpeed()` reads too. */
+      for(const e of _arrived)e.spe=effSpeed(e.nx,field,e.act===actA?'A':'B');
+      _arrived.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field));
+      for(let k=1;k<_arrived.length;k++)
+        if(_arrived[k].spe===_arrived[k-1].spe)MEDFAILS.entryOrderTie++;
+      for(const e of _arrived)runEntryPass(e.nx,e.foes,e.act,e.i,field);
     };
     /* `|upkeep|` CLOSES the residual and the faint replacements follow it -- Showdown's own order,
      * where the switch request resolves between `|upkeep|` and the next `|turn|`. */
@@ -18473,7 +18850,7 @@ function battleTurn(S,rng,actsForA,actsForB){
      * puts a new body in the dead one's slot, so a sweep placed one line lower would find the corpse
      * gone and every residual faint would inherit nothing. */
     receiverSweep([...actA,...actB]);
-    refill(actA,benchA,actB,sfA,'A');refill(actB,benchB,actA,sfB,'B');
+    refill();
   }
   S.turn++;
   traceRelease(_trPrev);

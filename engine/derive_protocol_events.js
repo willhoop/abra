@@ -218,7 +218,12 @@ const NOT_EMITTED = {
     + 'statChangeInCode and is emitted as `-boost`, which is what Showdown\'s gen-9 bellydrum does too.',
   '-clearpositiveboost': 'Spectral Thief is not modelled.',
   '-cureteam': 'Heal Bell / Aromatherapy are not modelled.',
-  '-sethp': 'Pain Split is not modelled.',
+  /* '-sethp' HAS MOVED INTO TRACE_EVENTS AND ITS REASON IS DELETED RATHER THAN EDITED, 2026-08-12.
+   * It read "Pain Split is not modelled." and the move HAS been modelled since ROADMAP #139 -- the
+   * averaging was measured identical in both engines. Only the vocabulary was wrong: medicham2 emitted
+   * two `-damage` lines where the authority emits two `-sethp`, one of them `[silent]`. A declared
+   * not-emitted reason that has stopped being true is the same failure as a stale handoff -- it reads
+   * as a measurement -- so the entry goes rather than gets reworded. */
   '-endability': 'ability SUPPRESSION (Gastro Acid, Neutralizing Gas) is not modelled; Mummy and '
     + 'Wandering Spirit REWRITE the ability and emit `-ability` instead, which is what Showdown does.',
   /* ROADMAP #151, 2026-08-11 -- `-hitcount` HAS MOVED INTO TRACE_EVENTS AND ITS REASON IS DELETED

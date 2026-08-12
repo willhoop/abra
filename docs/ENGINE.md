@@ -36,7 +36,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  525/525 probed mechanics live, 0 missing   (census 2026-08-12 17:10)
+  533/533 probed mechanics live, 0 missing   (census 2026-08-12 19:14)
   0/6000 differential comparisons disagree with Showdown   (2026-08-12 17:05)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -48,16 +48,325 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 5e10d7ba991f now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 0876a38f4d37 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 00d6e260a25e now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is a9322b296569 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 260/279 probed, 19 unprobed
+  tag coverage: 261/279 probed, 18 unprobed
 ```
 
-_stamped 2026-08-12 17:11_
+_stamped 2026-08-12 19:15_
 
 <!-- /GENERATED -->
+
+## SECOND BATCH OFF WILL'S READ — FIVE LANDED, AND THE ONE CALLED A POSSIBLE REGRESSION WAS NOT ONE. 2026-08-12.
+
+**Census 531 → 533 live / 0 missing.** Two new probes, both shown RED against a deliberate break that
+puts the item strip back at its pre-fix position. This entry covers a batch that arrived in three
+messages; **what is NOT done is listed at the bottom by name, with what was measured about each.**
+
+### THE HEADLINE DID NOT MOVE, AND SAYING SO IS THE POINT
+
+Controlled the same way as the first batch — the frozen pre-batch release replayed under the CURRENT
+census, so both ends see the same 815 games and the same steering:
+
+| | top-tie-first | bottom-tie-first |
+|---|---|---|
+| control — release `795f20af0c26`, pre-batch-2 | 224 / 815  27.5% | 246 / 815  30.2% |
+| after these five fixes | **225 / 815  27.6%** | **249 / 815  30.6%** |
+
+**Five fixes verified against the authority one at a time, and the whole-game count is flat on one arm
+and three worse on the other.** The control reads 224/246 under BOTH the 531-row and the 533-row
+census, so the steering change is not the cause and the comparison is clean.
+
+Two of the five are BEHAVIOUR changes rather than narration and are the only candidates: the fainted-foe
+retarget moves damage onto a different body, and the Encore `-fail` emits a line where the engine used
+to be silent — a gate that is broader than the authority's anywhere would manufacture first divergences
+in games that previously agreed for twelve turns. **That is a suspicion and not a finding**; the cheap
+attribution is to replay with each of the two reverted in turn, which is one run each.
+
+**A correct fix is not required to move this number and this number is not evidence the fixes are
+wrong.** The differential records a game's FIRST divergence, so repairing an early one lets a game run
+on to a later one it never used to reach.
+
+### 1. `onDamagingHit` IS RAISED ABOVE `onAfterHit`, AND IT IS THE HOOK AND NOT THE PAIR
+
+Will: *"the stamina boosts come after the attack, knock off ordering we need to follow showdown"*.
+`runEvent('DamagingHit')` is battle-actions.ts:951; the `AfterHit` singleEvent is :954. Measured, five
+staged turns: the reaction is above the strip for Stamina, Weak Armor, Justified and Rough Skin,
+against Knock Off and against Thief.
+
+**THIS ENGINE HAD ONE `onDamagingHit` FAMILY IN TWO PLACES AND ONLY ONE WAS WRONG**, which is exactly
+why nothing caught it: `punishesAttacker` ran inside `_stepApply` and already preceded the strip, while
+`buffsHolderOnHit` ran in `_stepEffects` and followed it. The reactor call and the strip are now two
+steps — `_stepDamagingHit` and `_stepAfterHit` — in the authority's order. **That also closes §5a**,
+the residual reported on the previous pass: the contact toll now prints below the user's own
+`-unboost` lines instead of above them.
+
+**AND THE FIRST ATTEMPT KILLED THE WHOLE BUFF FAMILY SILENTLY.** `R.react` — the per-hit reaction
+count `_stepEffects` reads — was assigned INSIDE the deferred reactor, so moving the call left it
+undefined, the per-hit loop ran zero times, and Stamina, Weak Armor, Justified and Anger Point stopped
+firing entirely with no error and no counter. Caught only because the probe's second control asserts a
+NON-stripping move still fires the reaction. The count is computed in the damage step now.
+
+### 2. ENCORE REFUSES CORRECTLY AND THE AUTHORITY ANNOUNCES THE REFUSAL
+
+A body that mega-evolved and was then Fake Out flinched has no `lastMove`, so encore's `onStart` bails
+on `if (!move) return false`. Measured: `|move|p1a: Whimsicott|Encore||[still]` then
+`|-fail|p1a: Whimsicott`. Both engines refuse; only one says so.
+
+**THE GATE IS DELIBERATELY NARROW.** Showdown emits `-fail` on `moveResult === false`, an EXPLICIT
+failure — and Protect returns `NOT_FAIL`, which is falsy and is NOT false, so a blocked status move is
+silent. A blanket "nothing landed, so fail" would emit `-fail` on every Protect, Magic Bounce and Good
+as Gold in the branch: the same defect in the opposite direction, which is what this sweep is about.
+`applyMoveVolatile` fills a caller-supplied `why` rather than setting a module flag.
+
+### 3. PAIN SPLIT IS `-sethp`, NOT `-damage`, AND ITS DECLARED REASON HAD EXPIRED
+
+Two `add` calls in `painsplit.onHit`, the target's carrying `[silent]`. The arithmetic was always right
+and only the vocabulary was wrong. `-sethp` sat on the declared not-emitted list reading **"Pain Split
+is not modelled."** — false since ROADMAP #139. The entry is **deleted rather than reworded**: a
+declared reason that has stopped being true reads as a measurement, which is the stale-handoff failure
+one layer down. `gates.invented` and `gates.undeclared` both still empty.
+
+`tests/test-protocol-trace.js` then went RED — *"`|-sethp|` is CLAIMED in TRACE_EVENTS and NEVER FIRED
+in 32 games"* — which is the guard working. A Pain Split scenario was added rather than the claim
+removed, and it damages its user first on purpose, because a split between two full-health bodies emits
+both lines and proves nothing.
+
+### 4. MORPEKO — `-formechange` IS TEMPORARY, `detailschange` IS PERMANENT
+
+`Pokemon#formeChange` branches on `isPermanent`. Zero to Hero and Disguise pass `true`; **Hunger Switch
+passes nothing**, so Morpeko's flip is the temporary event. We wrote `detailschange` with a `, L50` the
+authority does not write. `why` already told `formeSwap` which caller it was, so no new argument.
+
+### 5. A FAINTED FOE IS RETARGETED, NOT FAILED — AND IT IS NOT A REGRESSION
+
+Handed over as *"possible regression from the slot binding, take it early"*. **It is not.** Taken
+early, and the first staging **did not reproduce it**: with the Taunt aimed at the SURVIVING slot it
+lands in both arms, before and after. It reproduces when the aim is at the body that DIED earlier in
+the same turn. Derived from `Battle#getTarget` read in full: a fainted target matches neither the
+free-for-all case nor the ally case and falls through to `getRandomTarget`. A fainted ALLY is returned
+as-is, which is why this is on the foe axis only.
+
+The engine's own `reaimSlotEmpty` counter had **already filed** *"Showdown retargets instead"* — and the
+commoner road is not an empty slot at all but an occupied one holding a corpse, so that counter never
+fired. **It draws no die and cannot need to**: the aimed foe is dead, so at most one foe remains.
+
+### WHAT IS NOT DONE, BY NAME, WITH WHAT WAS MEASURED
+
+- **A TYPE IMMUNITY SKIPPED (Psychic Fangs killing a Grass/Dark Meowscarada) — DOES NOT REPRODUCE, and
+  that is a claim about the FIXTURE.** Nine stagings all emit `|-immune|` correctly: plain; through the
+  slot re-aim after the aimed body switched out; with the attacker holding Mold Breaker, Teravolt or
+  Scrappy; under Gravity; with screens up; against a Substitute; under Aurora Veil. The control that
+  the chart is fine is in the same run — a Soaked Meowscarada takes 72. **The missing variable is in
+  the card**; the seed, the teams and the turn are needed to stage it. It is the highest-severity item
+  outstanding and it is NOT closed.
+- **FAIRY AURA — HALF MEASURED, half not.** The holder's own Fairy move IS boosted (86 → 113 ≈ x1.31,
+  the authority's 5325/4096). The card is a MEGA evolving mid-turn, and the `onAny` half — a Fairy move
+  used by ANY body, including the foe's — is untested here. Do not read the holder result as the
+  ability working.
+- **RAGING BULL — CONFIRMED BROKEN AND NOT AN ENGINE FIX.** All four Tauros formes deal Normal damage
+  and are resisted by Kingambit; Combat should be Fighting, which is 4x into Dark/Steel. `onModifyType`
+  switches on `pokemon.species.name`. **The artifact carries NOTHING for it** — `ragingbull`'s tags are
+  `pp, clearsScreens, targetClass, contact, formatSecondaryCount` and there is no forme-typed-move row
+  at all. So this is a `tag_dex` derivation plus a consumer, not a line in the engine, and `aurawheel`
+  is its twin.
+- **Not started:** Clangorous Soul's boost-before-cost ordering; Gravity's x1.67 accuracy and the
+  derived `ACCMOD` sweep; the residual-order restructure; the spread-move faint path; Frisk's second
+  side; the volatile-expiry rule; Yawn's `-fail`; residual damage attribution; the Illusion exclusion.
+
+## WILL READ FIVE BATTLES AND SAID "ITS MOSTLY ORDERING OF EVENTS". FOUR DEFECTS, AND THE TWO CHEAPEST WERE NOT ORDERING AT ALL. 2026-08-12.
+
+**Census 525 live / 0 missing -> 531 live / 0 missing.** Six new probes, every one shown RED before
+the engine moved. 0 hollow, 0 unarmed, 0 direct-call, 0 threw.
+
+### THE BAR AND WHAT MOVED
+
+Measured against the FROZEN release the bar was set on (`--release a81663f17c0c`), same frozen team
+pool, same census steering, so the two arms are the same 815 games:
+
+| | top-tie-first | bottom-tie-first |
+|---|---|---|
+| control — release `a81663f17c0c`, pre-change | 254 / 815  **31.2%** | 289 / 815  **35.5%** |
+| + the faint announcement | 252 / 815  30.9% | 288 / 815  35.3% |
+| + the replacement order | 251 / 815  30.8% | 280 / 815  34.4% |
+| + Ally Switch's line and Fake Out | **224 / 815  27.5%** | **246 / 815  30.2%** |
+
+**THE PUBLISHED 303/983 AND 327/983 ARE NOT IN THIS TABLE AND MUST NOT BE COMPARED WITH IT.** That
+run steered from a 525-ROW census; this file added six rows, the run stops on COVERAGE rather than on
+a game count, and it therefore stopped at 815 games instead of 983. Those bytes are gone and cannot be
+reproduced, so the control was re-measured against the frozen engine under the NEW steering rather
+than differenced against a number taken under the old one. Same instrument, same sample, both ends.
+
+### 1. THE `|faint|` LINE IS NOT EMITTED WHEN HP REACHES ZERO
+
+`Pokemon#faint()` only sets `faintQueued` and pushes onto `battle.faintQueue`; the LINE comes out of
+`faintMessages`, which `hitStepMoveHitLoop` calls at sim/battle-actions.ts:848 — after the whole hit
+loop and BEFORE `applyRecoilDamage`. **So the announcement splits a move in two**, and which side a
+payment lands on is decided by where the authority pays it. Measured, one staged doubles turn each:
+
+```
+Giga Drain KO        -damage 0 fnt, -heal [from] drain,  |faint|
+Close Combat KO      -damage 0 fnt, -unboost, -unboost,  |faint|
+Wave Crash KO        -damage 0 fnt, Rough Skin, |faint|, -damage [from] Recoil
+Liquidation KO + Orb -damage 0 fnt, |faint|,             -damage [from] item: Life Orb
+```
+
+The last two already agreed. The first two did not: both payments were made from the block far below
+the step list. **The fix is one new step in `_STEPS`, not a special case per move** — `_stepSelfPay`
+sits between `_stepApply` and `_stepEffects`, which is `selfDrops` at battle-actions.ts:936 and
+`secondaries` on the next line, and it runs ONCE for the move because both payments read `dealt`,
+which is already the sum across targets. That guard is the authority's own `!move.selfDropped`.
+
+**WHAT IS STILL OUT OF ORDER, SAID PLAINLY:** this engine runs the `DamagingHit` reactions (Rough
+Skin, Iron Barbs, Aftermath) inside `_stepApply`, and the authority runs them at :951, below both
+selfDrops and secondaries. A Close Combat into a Rough Skin body still prints the toll above the two
+`-unboost` lines. It predates this change and `game_differential.js` prints it every run as §5a.
+
+### 2. TWO SIMULTANEOUS KO REPLACEMENTS ARE TWO ORDERS, AND THE BRIEF NAMED THE WRONG SPEED
+
+The hypothesis handed over was "the authority orders replacements by speed" with Lycanroc 112 and
+Slowking 30 — the ARRIVING pair. **It is the DEPARTING body's speed**, and confirming that before
+fixing it is the whole reason the fix is right. Derived from the queue, then measured, because the
+queue alone does not say whose speed is on the action: `Side#chooseSwitch` builds
+`{choice:'instaswitch', pokemon: the FAINTED active, target: the bench body}`, and `getActionSpeed`
+sets `action.speed = action.pokemon.getActionSpeed()` (sim/battle.ts:2179). Printed off a live queue:
+`instaswitch p1:Aerodactyl spd=150 -> Snorlax | instaswitch p2:Snorlax spd=50 -> Aerodactyl`.
+
+**THE FIRST FIXTURE SAID THE KNOB DID NOTHING, AND THE FIXTURE WAS WRONG.** Six cells, all p1-first.
+The dying bodies' speeds had been set by hand on `storedStats`, and `faintMessages` calls
+`clearVolatile`, which restores them — both actions read 101, a pure tie, and `speedSort` shuffled it.
+Identical results across a varied knob meant the knob was unwired. Re-staged with SPECIES whose
+natural speeds differ and the order tracks perfectly.
+
+**AND THE ENTRY EFFECTS ARE ORDERED THE OTHER WAY.** `switchIn` only queues `{choice:'runSwitch'}`;
+`runSwitch` drains every consecutive one into a single list and fires ONE
+`fieldEvent('SwitchIn', switchersIn)` (battle-actions.ts:186), which speed-sorts its handlers — the
+ARRIVING bodies. Measured, and each knob is the other's control:
+
+```
+dying aero130/snor30, arriving Pelipper 200 / Torkoal  50   ["Pelipper","Torkoal"]  sun
+dying snor30/aero130, arriving Pelipper 200 / Torkoal  50   ["Torkoal","Pelipper"]  sun
+dying aero130/snor30, arriving Pelipper  50 / Torkoal 200   ["Pelipper","Torkoal"]  rain
+```
+
+**Fixing only the announcement would have dragged the entry pass with it** and turned a half that was
+accidentally right into a half that was wrong, invisibly — `refill` was side-order for both. So
+`bringIn` gained a `deferEntry` collector, its last four calls became `runEntryPass`, and `refill`
+sorts twice: departing speed for placement and the line, arriving speed for the pass. One
+implementation of "who is faster" (`effSpeed` + `compareTurnOrder`), so Trick Room inverts both
+together, which is the authority's too (`getActionSpeed` returns `10000 - speed` under it). A tie
+keeps side order and is counted in `MEDFAILS.replaceOrderTie`, exactly as `entryOrderTie`.
+
+### 3. ALLY SWITCH ANNOUNCES NOTHING. THE COUNTER WAS ALREADY SPLIT.
+
+`-singleturn` is Protect's line. `allyswitch` adds its volatile from `onPrepareHit` and the condition
+carries `duration`, `counterMax`, `onStart`, `onRestart` and not one `this.add`. The authority's whole
+output is `|move|` plus `|swap|`, and `|swap|` is already DECLARED not-emitted in
+`data/protocol-events.json` — so it is dropped from the Showdown side and only our extra line was
+left. Decided against the derived event table, not by taste. The mechanic is untouched.
+
+**The brief asked whether Protect's counter and Ally Switch's are two copies of one rule. They are
+not** — ROADMAP #162 already split them: `privateStallCounter` reads `counterMax`, the `counter = 3`,
+the `counter *= 3` and the duration off allyswitch's OWN condition, with the four old literals kept as
+a loud counted fallback. Nothing to do.
+
+### 4. FAKE OUT IS "HAVE YOU MOVED SINCE YOU ARRIVED", AND THIS ENGINE ASKED "HAVE YOU BEEN HERE"
+
+36,879 corpus clicks, and it was refused on every body that had SWITCHED IN — which is when it is
+actually clicked. **Champions overrides Fake Out**, and the override is the selection half, so both
+halves have to be read:
+
+```
+/data/mods/champions/moves.js:348   onDisableMove(pokemon) { if (pokemon.activeMoveActions) pokemon.disableMove('fakeout'); }
+inherited mainline                  onTry(source)          { if (source.activeMoveActions > 1) return false; }
+```
+
+`activeMoveActions` is zeroed in `switchIn` (battle-actions.ts:138) and incremented on the FIRST LINE
+of `runMove` (:203). **A switch is not a move action**, so a body that pivoted in last turn reads 0
+and its Fake Out is legal. `_turnsOut` is incremented for every active body at the foot of every turn
+and answered a different question. Measured, one battle: Sneasler switches in (count 0, not disabled);
+clicks Fake Out on turn 2 and it LANDS with `|cant|p2a: Ninetales|flinch`; clicks on turn 3 and the
+choice is rejected outright.
+
+`_mvActs` is the counter, zeroed beside `_turnsOut` in `bringIn` and incremented at the top of the
+action loop where `_acted` is set — the same line, for the same reason, above every BeforeMove gate,
+so a body that is asleep or flinched has still spent its move action. **Two thresholds, because the
+authority has two handlers**: `>= 1` at the four selection sites, `> 1` at the execution site where
+the in-flight action has already been counted. Collapsing them would be wrong by one either way.
+
+### THE PROBES, AND WHAT EACH ONE'S CONTROL IS FOR
+
+| probe | tag | the control that makes it mean something |
+|---|---|---|
+| the drain heal is paid BEFORE the KO it scored is announced | `move drain` | the same click into an UNFAINTABLE target — "no drain after the faint" is satisfied just as well by a drain that never printed |
+| the user's own stat drop is paid BEFORE the KO | `move lowersUser` | same |
+| two KO replacements are ANNOUNCED in the departing bodies' speed order | `ability weatherSetter` | the SKY, read beside the order: it must NOT move, because it follows the arriving speeds and this knob does not touch them |
+| a KO replacement's entry effect resolves in the ARRIVING bodies' speed order | `ability weatherSetter` | the `\|switch\|` order, read beside the sky: it must NOT move |
+| Ally Switch swaps the slots and announces NOTHING | `move swapsSlots` | a PROTECT click on the same body, which must still carry exactly one `-singleturn` — otherwise "the wrong line is gone" cannot be told from "the emitter is broken" |
+| Fake Out is legal on the first MOVE after arriving, including after a switch | `move firstTurnOnly` | the same body clicking again on turn 3, which must deal 0 — that is the arm separating this from "Fake Out always works" |
+
+Every replacement and pivot probe asserts the SWITCH ACTUALLY HAPPENED by slot occupant, because
+`battleInit` slices its own bench at `teamA.slice(2)` and a short side makes the switch a silent no-op.
+
+### THE INSTRUMENT CONDEMNED ITSELF AND IT WAS RIGHT TO — THREE DEFECTS IN THE PLANTED-DIVERGENCE PROOF
+
+`engine/game_differential.js`, not `medicham2-browser.js`, and **checked rather than assumed: all
+three reproduce on `--release a81663f17c0c`, the frozen pre-change engine, on the same pair.** The
+proof pair moved when the census gained six rows, and the branch it moved into had never run.
+
+1. **`k` WAS IN THE WRONG UNIT ON THE NO-DIVERGENCE BRANCH.** `k` indexes the REDUCED stream; the
+   fallback read `clean.lines`, which is `trace.length` — the RAW medicham count. `playGame` now
+   returns `comparedWalked`, the number of reduced pairs the aligner actually walked. The
+   `clean.div.index` path is untouched, and `--proof` mode still prints 153/153/152 byte-identical.
+2. **THE BEND WAS ERASABLE BY THE NORMALISER.** The plant appended `XX` to field 2, the body
+   identifier, whose canonical form is the SLOT — so `p1a: Snorlax` and `p1a: SnorlaxXX` both reduce
+   to `p1a`. It read `applied: 1, caught: false`: **placed, erased, and reported in words that read
+   exactly like a comparator that cannot see a divergence.** The file's own comment already said *"a
+   plant a normaliser can erase proves the opposite of what it is for"*. `bendField2` now CHECKS its
+   candidates against `semantic()` and tries the append first, so every pair that already passed is
+   unchanged.
+3. **`|upkeep` HAS NO FIELD 2**, and it is a very common last-agreeing line, so "bend a field on the
+   last agreeing line" is not always a sentence that can be obeyed. `bendableBefore` walks back to the
+   last line that can carry the plant and the row REPORTS THE INDEX IT USED.
+
+Beside them, **the reporting hole that made this cost a diagnosis**: "the plant was never placed" and
+"the comparator cannot see a planted divergence" were the same row — a bare NOT CAUGHT. Only the second
+condemns a run. Each plant now counts its own applications and a zero names itself.
+
+**AND THE ONE TIGHTENING THAT WAS WRONG, KEPT HERE BECAUSE IT LOOKED RIGHT.** Making an out-of-range
+aim THROW broke all three plants at once: `alignAndCheck` runs at every turn boundary, so the first
+call sees a five-line stream and an aim at line 92 legitimately cannot be placed yet. The no-op is
+load-bearing. It was the counter, not the throw, that was missing.
+
+**The proof now reads CAUGHT / CAUGHT / CAUGHT at exactly the planted lines, and the diverged counts
+did not move across any of the four instrument iterations — 224/246 every time**, which is what says
+these were changes to the proof and not to the measurement.
+
+### ONE RED THAT IS NOT MINE, WITH THE ATTRIBUTION RATHER THAN THE WORD "KNOWN"
+
+**`tests/test-end-state.js` PART 3 FAILS: 2 failures, "the planted item difference did not reach the
+end state — verdict SAME-END-STATE".** Its control game now reads DIFFERENT-END-STATE on its own, so
+the plant is landing on a fixture whose behaviour has moved out from under it.
+
+**Attributed, not asserted:** `engine/medicham2-browser.js` AND `engine/game_differential.js` were both
+restored to their HEAD bytes and the test produces the identical two failures, same verdicts, same
+turn and board counts. It is stale from the pass that built it on 2026-08-12 and it needs a re-staged
+fixture from that pass's owner. It does not gate anything here — the whole-game differential's own
+planted proof is green and is what `engine/status.js` reads.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty. All four briefed items are census rows now.
+
+### WHAT THE DOWNSTREAM OWNER NEEDS TO KNOW
+
+Four behaviour changes in the turn loop and the emitter, so every whole-game number measured before
+today is stale. `data/game-differential.json` is re-run here and carries a fresh release. The residual
+ordering families the run still prints, none of them touched by this pass: the sandstorm-residual vs
+Leftovers pair, the `-singleturn|protect <> -fail` pair, `-formechange <> detailschange` on Morpeko,
+Illusion (`switch: a different body` is 17 games and every one is a Zoroark), and §5a's contact punish.
 
 ## ROADMAP #223 — A MOVE TARGETS A SLOT. THIRTEEN CALL SITES HAD THE RULE AND THIRTY BRANCHES DID NOT. 2026-08-12.
 

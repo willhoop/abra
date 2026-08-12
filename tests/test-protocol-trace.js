@@ -242,6 +242,27 @@ const SCENARIOS = [
     [{ a: [{ m: 'protect' }, { m: 'protect' }], b: [{ m: 'curse' }, { m: 'swordsdance' }] },
      { a: [{ m: 'haze' }, { m: 'moonblast', t: 0 }], b: [{ m: 'protect' }, { m: 'protect' }] },
      { a: null, b: null }, { a: null, b: null }]],
+
+  /* 2026-08-12 — PAIN SPLIT, CLICKED ON PURPOSE, and it is here for exactly the reason the Haze
+   * scenario one block up is: `|-sethp|` moved into TRACE_EVENTS today and no scenario in this file
+   * produces it. `-sethp` has ONE producer in the whole authority (`painsplit.onHit`, two `add` calls,
+   * one of them `[silent]`), so a claim with no scenario behind it can only ever read zero.
+   *
+   * THE USER IS DAMAGED FIRST, ON PURPOSE. Pain Split on two full-health bodies is a no-op that still
+   * emits its two lines, which would satisfy this file and prove nothing — so the Snorlax takes a
+   * Scald and a Body Slam on turn 1 and splits on turn 2, where the levelling is visible in the HP the
+   * two `-sethp` lines carry. THE FOE DOES NOT PROTECT: Pain Split IS refused by a shield, and a
+   * scenario whose click is blocked is the coverage gap wearing the fix's clothes. */
+  ['Pain Split: the user is hurt first, then the two bodies are levelled',
+    () => [mon('snorlax', ['painsplit', 'bodyslam', 'protect', 'yawn'], 'thickfat', ''),
+           mon('clefable', ['moonblast', 'protect', 'followme', 'helpinghand'], 'unaware', ''),
+           mon('milotic', ['scald', 'recover', 'protect', 'icywind'], 'marvelscale', '')],
+    () => [mon('garchomp', ['earthquake', 'dragonclaw', 'protect', 'rockslide'], 'roughskin', ''),
+           mon('toxapex', ['scald', 'recover', 'protect', 'toxic'], 'regenerator', ''),
+           mon('milotic', ['scald', 'recover', 'protect', 'icywind'], 'marvelscale', '')],
+    [{ a: [{ m: 'protect' }, { m: 'protect' }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'scald', t: 0 }] },
+     { a: [{ m: 'painsplit', t: 0 }, { m: 'helpinghand' }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'scald', t: 0 }] },
+     { a: null, b: null }, { a: null, b: null }]],
 ];
 
 const seen = {};

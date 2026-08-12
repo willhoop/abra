@@ -14,21 +14,21 @@ mid-run silently invalidates the run, and the run still prints a result.
 SEARCH — does MILTANK choose better than MAG
   R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r1-explore1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 2 of 7 gate clauses fail (whole-game differential / the same game on both engines; no open, known engine defect)
+    MEDICHAM is not correct — 1 of 7 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js
   R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 7 gate clauses fail (whole-game differential / the same game on both engines; no open, known engine defect)
+    MEDICHAM is not correct — 1 of 7 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js
   R3 divergence: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 7 gate clauses fail (whole-game differential / the same game on both engines; no open, known engine defect)
+    MEDICHAM is not correct — 1 of 7 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js
   R4 does it win: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 2 of 7 gate clauses fail (whole-game differential / the same game on both engines; no open, known engine defect)
+    MEDICHAM is not correct — 1 of 7 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-12 17:10):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-12 19:07):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-03 22:36
     PRE-CHANGE games.r4.jsonl  2026-08-03 22:33
@@ -36,7 +36,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-03 20:45
 ```
 
-_stamped 2026-08-12 17:11_
+_stamped 2026-08-12 19:15_
 
 <!-- /GENERATED -->
 
