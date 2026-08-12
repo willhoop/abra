@@ -74,11 +74,70 @@ const BASELINE = flag('--baseline', null);
  * same board anyway" cannot even be asked. With it a game runs to `--turns` or to its first BOARD
  * divergence, whichever comes first; the first protocol divergence is still recorded at exactly the
  * line it was found, so the protocol numbers are the same measurement they always were. */
-const STATE = has('--state');
+/* `--end-state` — THE THIRD STOP RULE (Will, 2026-08-12: *"how much is just medicham being
+ * semantic"*). Of the games whose PROTOCOL parted, how many end with the two engines holding the SAME
+ * board? Neither existing stop rule can answer it: protocol mode stops at the first mismatched LINE
+ * and `--state` stops at the first mismatched BOARD, so the END of a diverged game was never reached.
+ *
+ *   protocol      stop at the first divergent LINE
+ *   --state       stop at the first divergent BOARD
+ *   --end-state   DO NOT STOP. Play to the turn cap or to the end of the battle whatever either
+ *                 comparator has already found, and compare the LAST board both engines produced.
+ *
+ * IT IS AN END-STATE COMPARISON AND NOT A CLAIM THAT EVERY LINE AFTER THE MISMATCH AGREED. Once two
+ * battles part they may take entirely different actions; what is measured is where they arrive.
+ *
+ * IT IMPLIES `--state`, because the board comparison is the measurement. Said out loud rather than
+ * silently defaulted, and asserted by tests/test-end-state.js.
+ *
+ * A RUN WITH IT IS NOT THE SAME SAMPLE AS A RUN WITHOUT IT. Games last longer, so the coverage credit
+ * that STEERS the driver accumulates differently and later clicks differ. Its protocol counts are its
+ * own bar and must not be read against a protocol-mode run's. */
+const END_STATE = has('--end-state');
+const STATE = has('--state') || END_STATE;
+/* ---- `--until-covered` — THE STOPPING RULE (Will, 2026-08-12) ------------------------------------
+ *
+ * He asked how the game count was chosen. THE HONEST ANSWER WAS THAT IT WAS PICKED ARBITRARILY — 45,
+ * then 90, then 1,200, then 983 — while `tests/rate_runner.js` next door derives its trials from
+ * statistical power. His instruction: *"run until each mechanic has been exercised."*
+ *
+ * So: play in batches, keep going while new census rows are still being CREDITED, and stop after K
+ * consecutive batches credit nothing new. The stall is the answer; a game budget and an exhausted team
+ * pool are TRUNCATIONS and are reported as such, loudly, because a truncated sweep that reads as a
+ * complete one is the failure this sprint keeps correcting.
+ *
+ *   --until-covered            the batched loop instead of a fixed count
+ *   --batch <n>     (100)      games per batch, primary arm
+ *   --stall <k>     (3)        consecutive batches crediting nothing new before stopping
+ *   --max-games <n> (4000)     the backstop. Hitting it is NOT a coverage answer.
+ *
+ * THE ORDER IS ROUND-ROBIN ACROSS CONFIGURATIONS in this mode, not config-major. A batch has to sample
+ * the whole swarm or the stall detector would measure "the baseline configuration ran out of new rows"
+ * and stop before `pair-speedctrl` had played a game. The fixed-count path is untouched and still
+ * config-major, so no existing run changes by a byte.
+ *
+ * THE OTHER ARMS REPLAY EXACTLY THE GAMES THE PRIMARY ARM PLAYED. Coverage growth is measured on one
+ * arm; letting each arm stop at its own batch would leave the arms with different denominators, and
+ * two arms that played different numbers of games cannot be read against each other. */
+const UNTIL_COVERED = has('--until-covered');
+const BATCH = Math.max(1, +flag('--batch', 100));
+const STALL_K = Math.max(1, +flag('--stall', 3));
+const MAX_GAMES = Math.max(1, +flag('--max-games', 4000));
 /* `--team-store <dir>` PINS THE OTHER HALF OF THE SAMPLE. The census is pinnable (WIRE 5); the team
  * store was not, and `engine/diff_swarm.js` reads it LIVE from a file OPS appends to. See that file's
  * `loadTeams` header for what it cost. Absent, the live store is read exactly as before. */
 const TEAM_STORE = flag('--team-store', null);
+/* HOW MANY DIVERGING GAMES TO WRITE OUT IN FULL, with the lines either side of the split.
+ *
+ * Will, 2026-08-12: *"can you show me the turns where they differed? and dont do it with a bunch of
+ * illegible text like you did before"*. `alignAndCheck` has ALWAYS captured the context — four lines
+ * before and six after on each side, raw and reduced — and `first_divergences` threw all of it away,
+ * keeping only the two mismatched lines. So the artifact could tell you WHAT differed and never what
+ * was happening around it, which is the difference between a cause list and something a person can
+ * read. This writes the context to its own file rather than growing the main artifact, because it is
+ * a debugging view and not a measurement. */
+const DUMP_GAMES = +flag('--dump-games', 0);
+const DUMP_OUT = flag('--dump-out', 'data/divergence-turns.json');
 /* `--out <file>` writes the artifact somewhere other than data/game-differential.json. It exists so
  * the steering test can take two arms WITHOUT clobbering the published artifact — a test that
  * overwrites the run everybody quotes is a worse bug than the one it checks. */
@@ -164,6 +223,11 @@ const STEERING = require('./steering.js');
  * can be measured under the current comparator. Freezing it would mean each rung was scored by its own
  * contemporaneous reader, which is the one thing a ladder must not do. */
 const BS = require('./board_state.js');
+/* THE SHAPE OF A DIVERGENCE — ONE IMPLEMENTATION, AND IT IS NOT HERE. `engine/divergence_report.js`
+ * clusters causes by what the two protocol lines disagree ABOUT; the end-state cross-tab needs the
+ * same rule per game. Two copies would have agreed the day they were written. Part of the INSTRUMENT,
+ * so it is not loaded from the release, for the same reason `steering.js` and `board_state.js` are not. */
+const SHAPE = require('./divergence_shape.js');
 const id = N.id;
 /* THE READER'S CONTEXT. `weatherId`/`terrainId` are THE ENGINE'S OWN exported translators, taken from
  * the frozen release rather than restated here — a second copy of "sandstorm means sand" is exactly the
@@ -1994,6 +2058,11 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * discipline the protocol side uses, because "parted at turn 1" and "parted at turn 9" are different
    * events and a last-write-wins field would erase the distinction. */
   let boundaries = 0, boundariesAgreed = 0, firstStateDiv = null, stateShape = null;
+  /* ---- THE END STATE (2026-08-12) ---------------------------------------------------------------
+   * `lastBoard` is the last comparison this game took — see stateCheck. `endReason` is WHY the loop
+   * stopped, recorded at the exit itself rather than inferred afterwards, because "ran out of turns"
+   * and "one engine ended the battle" are different facts and an inferred one would be a guess. */
+  let lastBoard = null, endReason = null;
   /* THE EARLY BOARDS, KEPT IN FULL AND NOT ONLY AS A FLAG. The whole-game rate answers "did these two
    * engines ever part"; the turn-1 rate answers "is the board the search plans from correct", and only
    * the second one is bounded, has a target of 100%, and cannot be blinded by a bimodal distribution
@@ -2037,6 +2106,19 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
                                leaves_compared: snap.leaves_compared, active_species: act,
                                diffs: snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap)) };
     }
+    /* ---- THE LAST BOARD, OVERWRITTEN EVERY BOUNDARY -----------------------------------------------
+     * The FIRST divergent board is kept and never overwritten because "parted at turn 1" and "parted
+     * at turn 9" are different events. THE END STATE IS THE OPPOSITE QUESTION and needs the opposite
+     * discipline: the last board this game ever produced, whatever happened before it. Kept in the
+     * SAME located form as the early boards — the same `BS.locate` machinery, not a second reader —
+     * so the end-state families can be aggregated exactly as the turn-1 ones are.
+     *
+     * KEPT AT EVERY BOUNDARY AND NOT ONLY AT THE END, because there is no single place the game stops:
+     * it can run out of turns, end in either engine, stop being asked for a move, or throw. Recording
+     * it here means the last board is whatever the last comparison actually was, rather than a board
+     * some exit path forgot to take. */
+    lastBoard = { turn: turnIdx, identical: snap.identical, leaves_compared: snap.leaves_compared,
+                  diffs: snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap)) };
     if (snap.identical) { boundariesAgreed++; return null; }
     if (!firstStateDiv) firstStateDiv = { turn: turnIdx, diffs: snap.diffs };
     return firstStateDiv;
@@ -2104,10 +2186,21 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
      *                  telling different stories and every later line is downstream of the first.
      *   state mode     stop at the first divergent BOARD — same argument one level up, and NOT at the
      *                  first divergent line, because whether a parted narration reaches the same board
-     *                  is the whole question. */
-    for (let t = 0; t < MAXTURNS && (STATE ? !firstStateDiv : !firstDiv); t++) {
-      if (battle.ended || M.battleOver(S)) break;
-      if (battle.requestState !== 'move') break;
+     *                  is the whole question.
+     *   end-state mode DO NOT STOP AT EITHER. The question is where the two engines ARRIVE, and a run
+     *                  that halts at the first disagreement can only ever report that they disagreed.
+     *                  See the `--end-state` header. */
+    for (let t = 0; t < MAXTURNS && (END_STATE ? true : (STATE ? !firstStateDiv : !firstDiv)); t++) {
+      /* WHICH ENGINE ENDED IS RECORDED SEPARATELY, and that is the whole point of splitting this
+       * condition in two. `battle.ended || M.battleOver(S)` stopped the loop either way and threw the
+       * distinction away; "both engines agree the battle is over" and "ONE of them thinks it is" are
+       * a cosmetic non-event and a serious disagreement respectively. */
+      if (battle.ended || M.battleOver(S)) {
+        endReason = battle.ended && M.battleOver(S) ? 'both engines ended the battle'
+                  : (battle.ended ? 'ONLY showdown ended the battle' : 'ONLY medicham2 ended the battle');
+        break;
+      }
+      if (battle.requestState !== 'move') { endReason = 'showdown stopped asking for a move'; break; }
       /* ROADMAP #81 WIRE 7 — A DIRECTED SCENARIO ENDS WHEN ITS SCRIPT DOES.
        *
        * Every entry in DIRECTED carries a ONE-turn script, and the loop only ever ran one turn because
@@ -2116,7 +2209,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
        * whole choice — `Can't pass: Your Incineroar must make a move (or switch)`. The scenario then
        * reported as THREW, which reads exactly like a broken harness and was in fact a FIXED ENGINE.
        * A scripted game is over when the script is over; that is not a failure and it is not a pass. */
-      if (opts.script && !opts.script[t]) break;
+      if (opts.script && !opts.script[t]) { endReason = 'the script ran out'; break; }
       const chosen = { p1: [], p2: [] };
       for (const sd of ['p1', 'p2']) {
         const side = sd === 'p1' ? battle.p1 : battle.p2;
@@ -2144,7 +2237,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
           chosen[sd].push(a);
         });
       }
-      if (!chosen.p1 || !chosen.p2) break;
+      if (!chosen.p1 || !chosen.p2) { endReason = 'neither side was asked for an action'; break; }
 
       /* ROADMAP #31 — THE MEGA CHOICE, MADE ONCE AND ISSUED TO BOTH ENGINES.
        *
@@ -2316,7 +2409,20 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
       }
       stateCheck(t + 1, play);
     }
-  } catch (e) { err = String((e && e.message) || e).slice(0, 160); }
+    /* THE LOOP RAN OUT RATHER THAN BREAKING. In end-state mode that is the turn cap; in the other two
+     * it is whichever comparator's stop rule fired, and saying which one is not optional — "the boards
+     * agreed at the end" means something entirely different when the end was the first mismatch. */
+    if (!endReason) endReason = END_STATE ? 'the turn cap (' + MAXTURNS + ')'
+                              : (STATE ? (firstStateDiv ? 'the first divergent BOARD' : 'the turn cap (' + MAXTURNS + ')')
+                                       : (firstDiv ? 'the first divergent LINE' : 'the turn cap (' + MAXTURNS + ')'));
+  } catch (e) { err = String((e && e.message) || e).slice(0, 160); if (!endReason) endReason = 'THREW'; }
+  /* ASKED OF BOTH ENGINES AFTER THE FACT, not remembered from the exit test, because a game can also
+   * leave the loop by throwing or by running out of turns and the two flags still have to be right.
+   * `endedMedi !== endedSd` is the THIRD ANSWER the end-state measurement must never fold into an
+   * agreement: one engine has stopped the battle and the other has not. */
+  const endedSd = !!battle.ended;
+  let endedMedi = false;
+  try { endedMedi = !!M.battleOver(S); } catch (e) { endedMedi = false; STATE_FAILS.battle_over_threw = (STATE_FAILS.battle_over_threw || 0) + 1; }
 
   _lastSdLog = battle.log.slice();
   harvest(trace, S);
@@ -2335,6 +2441,10 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
             * whose boards never parted. */
            boundaries, boundariesAgreed, stateDiv: firstStateDiv, stateShape, divTurn,
            earlyBoards, earlyClicks,
+           /* THE END STATE (2026-08-12). `finalBoard` is the LAST board compared — null when no
+            * boundary was ever taken, which is a third answer and not a zero. `endedMedi`/`endedSd`
+            * are each engine's own verdict on whether the battle is over, kept apart on purpose. */
+           finalBoard: lastBoard, endReason, endedMedi, endedSd,
            megaMedi: megaMedi.length, megaSd: megaSd.length, megaCapableSides: capable, megaChoices,
            megaSlotA: megaMedi.filter(l => /\|p[12]a:/.test(l)).length,
            megaSlotB: megaMedi.filter(l => /\|p[12]b:/.test(l)).length,
@@ -2736,6 +2846,32 @@ const STATE_PLANTS = [
    S => bumpVol(S.actA[0], 'confusion', volOf(S.actA[0], 'confusion') + 2)],
   ['a Perish count off by one', 'active[1].vol.perish',
    S => !!S.actB[1] && ((S.actB[1]._perish = (S.actB[1]._perish == null ? 0 : S.actB[1]._perish) + 2), true)],
+  /* ---- THE 2026-08-12 SWEEP: ONE PLANT PER LEAF ADDED, OR THE LEAF IS UNPROVEN ------------------
+   * Nine volatiles joined the compared set on this pass. A leaf with no plant behind it is a leaf
+   * nobody has ever seen catch anything, which is the whole reason this proof exists — so each one
+   * gets its own, written into the LIVE medicham board and expected to be localised to its own path.
+   * They flip rather than set, so a body that already carries one is still moved. */
+  ['an AQUA RING that is not there', 'vol.aquaring',
+   S => bumpVol(S.actA[0], 'aquaring', volOf(S.actA[0], 'aquaring') ? 0 : 1)],
+  ['an INGRAIN that is not there', 'vol.ingrain',
+   S => bumpVol(S.actA[1], 'ingrain', volOf(S.actA[1], 'ingrain') ? 0 : 1)],
+  ['a MAGNET RISE that is not there', 'vol.magnetrise',
+   S => bumpVol(S.actB[0], 'magnetrise', volOf(S.actB[0], 'magnetrise') ? 0 : 1)],
+  ['a FOCUS ENERGY that is not there', 'vol.focusenergy',
+   S => bumpVol(S.actB[1], 'focusenergy', volOf(S.actB[1], 'focusenergy') ? 0 : 1)],
+  ['a TORMENT that is not there', 'vol.torment',
+   S => bumpVol(S.actA[0], 'torment', volOf(S.actA[0], 'torment') ? 0 : 1)],
+  ['an IMPRISON that is not there', 'vol.imprison',
+   S => bumpVol(S.actA[1], 'imprison', volOf(S.actA[1], 'imprison') ? 0 : 1)],
+  ['a SALT CURE that is not there', 'vol.saltcure',
+   S => bumpVol(S.actB[0], 'saltcure', volOf(S.actB[0], 'saltcure') ? 0 : 1)],
+  ['a SYRUP BOMB that is not there', 'vol.syrupbomb',
+   S => bumpVol(S.actB[1], 'syrupbomb', volOf(S.actB[1], 'syrupbomb') ? 0 : 1)],
+  /* THE CHARGE LOCK IS NOT IN `_vol` — it is its own field, so the plant writes the field the reader
+   * actually reads. A plant aimed at the wrong storage would report NOT CAUGHT and read as a broken
+   * comparator when it was a broken plant. */
+  ['a TWO-TURN CHARGE LOCK that is not there', 'vol.charging',
+   S => { const m = living(S.actA); if (!m) return false; m._charging = m._charging ? null : 'solarbeam'; return true; }],
   ['a MOVE TRAP counter off by one', 'active[0].vol.trapped_by_move',
    S => !!S.actA[0] && ((S.actA[0]._trap = { turns: ((S.actA[0]._trap && S.actA[0]._trap.turns) || 0) + 3,
                                              frac: 1 / 8, by: S.actB[0] }), true)],
@@ -3142,7 +3278,12 @@ function oneHitDamage(pairA, pairB, script, opt) {
 }
 
 /* ---- RUN ----------------------------------------------------------------------------------------- */
-const SW = SWARM.buildSwarm(Math.max(GAMES * 2, 18), TEAM_STORE ? { storeDir: TEAM_STORE } : null);
+/* THE POOL IS SIZED BY THE BUDGET, NOT BY THE STOPPING RULE. A coverage run cannot know in advance how
+ * many games it will want, so it asks for its BACKSTOP up front; running out of pool before the stall
+ * fires is a truncation and is reported as one. Sizing the pool from `--games` in this mode would cap
+ * the sweep at the arbitrary number the whole rule exists to replace. */
+const SW = SWARM.buildSwarm(Math.max((UNTIL_COVERED ? MAX_GAMES : GAMES) * 2, 18),
+                            TEAM_STORE ? { storeDir: TEAM_STORE } : null);
 
 /* THE SECOND STEERING INPUT, AND IT IS NOT FROZEN EITHER (ROADMAP #81 WIRE 5).
  *
@@ -3195,7 +3336,78 @@ function pairsFor(cfgId) {
   return out;
 }
 
+/* ---- THE END-STATE VERDICT (2026-08-12) ----------------------------------------------------------
+ *
+ * Will: *"how much is just medicham being semantic"*. One game in, one of five words out. It is a pure
+ * function of the record `playGame` returns so `tests/test-end-state.js` can exercise every branch on
+ * fabricated rows — including the two branches a real run may never happen to produce, which is
+ * exactly where a classifier rots.
+ *
+ * THREE OF THE FIVE ARE NOT "AGREED" AND MUST NEVER BE FOLDED INTO IT:
+ *
+ *   THREW                 the harness could not finish the game. It is a fact about the instrument and
+ *                         belongs in neither column; counting it either way would be a fallback that
+ *                         looks like a measurement.
+ *   ENDED-APART           one engine says the battle is over and the other does not. The boards may
+ *                         even read identical at that instant — that is not agreement, it is the most
+ *                         serious kind of disagreement wearing an identical face, which is why the
+ *                         board check is not consulted at all in this branch.
+ *   NO-COMPARABLE-BOARD   no boundary was ever compared (the run was not in state mode, or the game
+ *                         ended before the leads were read). "No answer" is a third answer.
+ *
+ * AND THE TWO THAT ARE THE MEASUREMENT:
+ *
+ *   SAME-END-STATE        the last board both engines produced is identical on every compared leaf.
+ *                         If the protocol also parted, that divergence was WORDING.
+ *   DIFFERENT-END-STATE   they arrived somewhere else. The divergence was REAL.
+ *
+ * "SAME-END-STATE" IS A CLAIM ABOUT WHERE THE TWO ENGINES ARRIVED AND ABOUT NOTHING ELSE. It does not
+ * say the turns in between agreed; once two battles part they may take entirely different actions. It
+ * is also only as strong as what `board_state.js` compares — a leaf that file does not read cannot
+ * make a board differ here, which is why its NOT_COMPARED list is published with every run. */
+/* ---- THE STOPPING DECISION (2026-08-12) ----------------------------------------------------------
+ *
+ * One batch history in, one decision out. Pure, so `tests/test-coverage-stop.js` can exercise every
+ * branch — including the two a real run may not happen to hit — and so the rule is readable in one
+ * screen rather than tangled through the scheduler.
+ *
+ * THREE WAYS TO STOP AND ONLY ONE OF THEM IS AN ANSWER:
+ *   coverage-stalled       K consecutive batches credited nothing new. THIS is "run until each
+ *                          mechanic has been exercised" reaching its end.
+ *   game-budget            `--max-games` was spent. A TRUNCATION.
+ *   team-pool-exhausted    the swarm ran out of distinct team pairs. Also a TRUNCATION.
+ *
+ * THE TRUNCATIONS WIN WHEN THEY COINCIDE WITH A STALL, and that ordering is the whole point. A run
+ * that both stalled and ran out of games could be reported either way; reporting the flattering half
+ * would turn "we stopped looking" into "there was nothing left to find". */
+function coverageStop(x) {
+  const poolLeft = x.poolLeft == null ? Infinity : x.poolLeft;
+  if (x.games >= x.maxGames) return { stop: true, reason: 'game-budget', on_budget: true };
+  if (poolLeft <= 0) return { stop: true, reason: 'team-pool-exhausted', on_budget: true };
+  if (x.quietBatches >= x.stallK) return { stop: true, reason: 'coverage-stalled', on_budget: false };
+  return { stop: false, reason: null, on_budget: false };
+}
+
+const END_STATE_VERDICTS = ['SAME-END-STATE', 'DIFFERENT-END-STATE', 'ENDED-APART',
+                            'NO-COMPARABLE-BOARD', 'THREW'];
+function endStateVerdict(r) {
+  if (!r) return 'NO-COMPARABLE-BOARD';
+  if (r.err) return 'THREW';
+  if (!!r.endedMedi !== !!r.endedSd) return 'ENDED-APART';
+  if (!r.finalBoard) return 'NO-COMPARABLE-BOARD';
+  return r.finalBoard.identical ? 'SAME-END-STATE' : 'DIFFERENT-END-STATE';
+}
+
 module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CHANCE, sdStream, chooseAction,
+                   /* 2026-08-12 — the end-state measurement. `endStateVerdict` is the classifier,
+                    * `shapeOfCause` is THE SHAPE MODULE'S function re-exported rather than a second
+                    * copy, and the two flags let a test assert the driver actually read the argument
+                    * it is being measured under. */
+                   endStateVerdict, END_STATE_VERDICTS, shapeOfCause: SHAPE.shapeOf,
+                   END_STATE, STATE_ON: STATE,
+                   /* 2026-08-12 — the stopping rule, exported as a pure decision so its branches can
+                    * be tested without playing 4,000 games to reach one of them. */
+                   coverageStop,
                    /* 2026-08-08 — the nature. `flatL50` and `freshBodies` are exported so
                     * tests/test-nature-differential.js can check the MEDICHAM line against the
                     * authority directly instead of inferring it from a game that agreed; the counters
@@ -3311,9 +3523,131 @@ let PAIRING_BROKEN = 0;
  * would produce a number that describes neither. */
 const ARM_RUNS = [];
 const t0 = Date.now();
+/* ---- THE COVERAGE STOPPING RULE'S BOOKKEEPING (2026-08-12) ---------------------------------------
+ * Filled by the batched scheduler and published as `coverage_stop`. `null` on a fixed-count run,
+ * which is a different claim from "coverage was reached". */
+let COVERAGE_STOP = null;
 if (!has('--proof')) {
   const live = SW.out.filter(c => !ONLY || c.config === ONLY);
   const perConfig = Math.max(1, Math.floor(GAMES / live.length));
+  /* BUILT ONCE PER CONFIGURATION AND REUSED BY EVERY ARM. `pairsFor` calls `buildPair` four times per
+   * pair and the batched scheduler asks for the same list repeatedly; rebuilding it per arm was
+   * affordable at 133 pairs and is not at a few thousand. The list is deterministic, so the cache
+   * cannot change what gets played. */
+  const PAIR_CACHE = new Map();
+  const pairsCached = (c) => { if (!PAIR_CACHE.has(c)) PAIR_CACHE.set(c, pairsFor(c)); return PAIR_CACHE.get(c); };
+  /* ONE GAME, PLAYED THE SAME WAY BY BOTH SCHEDULERS. Extracted rather than duplicated: the fixed-count
+   * path and the coverage path must differ ONLY in which pairs they hand over and when they stop, or
+   * the stopping rule would be a second instrument wearing the same name. */
+  const playOne = (arm, cfgId, pr, isPrimary, armResults, armControl) => {
+    /* THE STONE CONTROL RUNS UNDER THE PRIMARY PIN ONLY. It is a paired measurement that DOUBLES
+     * the games, and four arms times two would be eight runs of the swarm to answer a question
+     * that is about stones and not about dice. Declared rather than quietly dropped. */
+    let c = null;
+    if (isPrimary) {
+      const s0 = driverSnap();
+      c = playGame(pr.aN, pr.bN, cfgId, pr.tag + ' [stones removed]', { arm });
+      driverRestore(s0);
+    }
+    const r = playGame(pr.a, pr.b, cfgId, pr.tag, { arm });
+    r.stones = pr.stones;
+    if (c) {
+      c.stones = 0;
+      if (!pr.stones) {
+        const same = (!!r.div === !!c.div) && (!r.div || r.div.index === c.div.index) && r.turns === c.turns;
+        if (!same) PAIRING_BROKEN++;
+      }
+      armControl.push(c);
+    }
+    armResults.push(r);
+    /* SUMMED OVER THE PRIMARY MEASURED ARM ONLY, and that is not fussiness. `playGame` is also
+     * called by the planted-divergence proof (four extra games on the baseline pair) and by the
+     * directed scenarios, so a module-level counter incremented inside it would count offers from
+     * games whose EVOLUTIONS are not in `results` — and the report would then show 44 choices
+     * against 40 evolutions and look like a lost choice. It did, on the first run of this. */
+    if (isPrimary) {
+      MEGA_CHOICES += r.megaChoices;
+      MEGA_MEDI += r.megaMedi; MEGA_SD += r.megaSd;
+      MEGA_SIDES_CAPABLE += r.megaCapableSides; MEGA_SIDES_EVOLVED += r.megaSidesEvolved;
+      MEGA_SLOT_A += r.megaSlotA; MEGA_SLOT_B += r.megaSlotB;
+    }
+    if (VERBOSE) console.log('   ' + arm.id.padEnd(22) + String(cfgId).padEnd(24) + (r.err ? 'THREW ' + r.err
+      : r.div ? 'DIVERGES at line ' + r.div.index + '  ' + classify(r.div).cls : 'agrees, ' + r.turns + ' turns'));
+    return r;
+  };
+  /* WHICH CENSUS ROWS HAVE ANY CREDIT AT ALL, right now. ANY credit, not only an observed effect: a row
+   * whose tag names no board leaf can never earn one, and requiring an effect from it would make the
+   * stall detector wait for evidence that cannot exist. Stopping LATER is the safe direction. */
+  const creditedNow = () => { const s = new Set(); for (const [k, v] of COV_CREDIT) if (v > 0) s.add(k); return s; };
+
+  /* ================= THE COVERAGE-STEERED SCHEDULER =============================================== */
+  if (UNTIL_COVERED) {
+    /* ROUND-ROBIN, so every batch samples every configuration. See the `--until-covered` header. */
+    const WORK = [];
+    for (let k = 0; ; k++) {
+      let any = false;
+      for (const cfg of live) {
+        const q = pairsCached(cfg.config);
+        if (q[k]) { WORK.push({ cfg: cfg.config, pr: q[k] }); any = true; }
+      }
+      if (!any) break;
+    }
+    console.log('');
+    console.log('  THE STOPPING RULE — "run until each mechanic has been exercised" (Will, 2026-08-12).');
+    console.log('    batches of ' + BATCH + ' games, stop after ' + STALL_K + ' consecutive batches that');
+    console.log('    credit no new census row. Backstop ' + MAX_GAMES + ' games; the team pool holds '
+      + WORK.length + ' distinct pairs.');
+    if (WORK.length < MAX_GAMES) console.log('    THE POOL IS SMALLER THAN THE BACKSTOP — this run can be '
+      + 'truncated by the corpus before its budget, and either way that is a truncation and not an answer.');
+    const batches = [];
+    let played = 0, quiet = 0, stop = { stop: false, reason: null, on_budget: false };
+    const primaryResults = [], primaryControl = [];
+    driverReset();
+    let seen = creditedNow();
+    while (!stop.stop) {
+      const from = played, to = Math.min(WORK.length, played + BATCH, MAX_GAMES);
+      if (to <= from) {
+        stop = coverageStop({ quietBatches: quiet, stallK: STALL_K, games: played,
+                              maxGames: MAX_GAMES, poolLeft: WORK.length - played });
+        break;
+      }
+      for (let i = from; i < to; i++) playOne(PRIMARY_ARM, WORK[i].cfg, WORK[i].pr, true, primaryResults, primaryControl);
+      played = to;
+      const now = creditedNow();
+      const fresh = [...now].filter(k => !seen.has(k));
+      seen = now;
+      quiet = fresh.length ? 0 : quiet + 1;
+      batches.push({ batch: batches.length + 1, games_after: played, newly_credited: fresh.length,
+                     newly_credited_rows: fresh, quiet_batches_in_a_row: quiet,
+                     rows_with_any_credit: now.size });
+      console.log('    batch ' + String(batches.length).padStart(3) + '  games ' + String(played).padStart(5)
+        + '  new rows ' + String(fresh.length).padStart(3) + '  total credited ' + String(now.size).padStart(4)
+        + (fresh.length ? '   ' + fresh.slice(0, 4).join(', ') + (fresh.length > 4 ? ' ...' : '')
+                        : '   (nothing new - quiet ' + quiet + '/' + STALL_K + ')'));
+      stop = coverageStop({ quietBatches: quiet, stallK: STALL_K, games: played,
+                            maxGames: MAX_GAMES, poolLeft: WORK.length - played });
+    }
+    COVERAGE_STOP = { policy: 'play while new census rows are still credited; stop after K consecutive '
+                        + 'batches credit nothing new. A game budget or an exhausted team pool is a '
+                        + 'TRUNCATION, never a coverage answer.',
+                      batch_size: BATCH, stall_k: STALL_K, max_games: MAX_GAMES,
+                      pool_pairs_available: WORK.length,
+                      games_played: played, batches,
+                      stopped_because: stop.reason, stopped_on_budget: !!stop.on_budget };
+    ARM_RUNS.push({ arm: PRIMARY_ARM, results: primaryResults, control: primaryControl,
+                    credit: new Map(COV_CREDIT), kinds: new Map(CREDIT_KIND), touched: new Set(COV_TOUCHED) });
+    results = primaryResults; control = primaryControl;
+    /* EVERY OTHER ARM REPLAYS EXACTLY THE SAME GAMES. Same pairs, same order, same starting driver
+     * state — so the arms share a denominator and a difference between two rows is the DIE. */
+    for (const arm of ARMS_RUN) {
+      if (arm.id === PRIMARY_ARM.id) continue;
+      driverReset();
+      const armResults = [], armControl = [];
+      for (let i = 0; i < played; i++) playOne(arm, WORK[i].cfg, WORK[i].pr, false, armResults, armControl);
+      ARM_RUNS.push({ arm, results: armResults, control: armControl,
+                      credit: new Map(COV_CREDIT), kinds: new Map(CREDIT_KIND), touched: new Set(COV_TOUCHED) });
+    }
+  } else
   for (const arm of ARMS_RUN) {
     /* EVERY ARM STARTS FROM THE SAME DRIVER STATE, or it is not the same experiment. The driver is
      * stateful on purpose (`CLICKS`, the credit maps) so the swarm keeps reaching new mechanics; left
@@ -3324,41 +3658,10 @@ if (!has('--proof')) {
     const isPrimary = arm.id === PRIMARY_ARM.id;
     for (const cfg of live) {
       let made = 0;
-      for (const pr of pairsFor(cfg.config)) {
+      for (const pr of pairsCached(cfg.config)) {
         if (made >= perConfig) break;
-        /* THE STONE CONTROL RUNS UNDER THE PRIMARY PIN ONLY. It is a paired measurement that DOUBLES
-         * the games, and four arms times two would be eight runs of the swarm to answer a question
-         * that is about stones and not about dice. Declared rather than quietly dropped. */
-        let c = null;
-        if (isPrimary) {
-          const s0 = driverSnap();
-          c = playGame(pr.aN, pr.bN, cfg.config, pr.tag + ' [stones removed]', { arm });
-          driverRestore(s0);
-        }
-        const r = playGame(pr.a, pr.b, cfg.config, pr.tag, { arm });
-        r.stones = pr.stones;
-        if (c) {
-          c.stones = 0;
-          if (!pr.stones) {
-            const same = (!!r.div === !!c.div) && (!r.div || r.div.index === c.div.index) && r.turns === c.turns;
-            if (!same) PAIRING_BROKEN++;
-          }
-          armControl.push(c);
-        }
-        armResults.push(r); made++;
-        /* SUMMED OVER THE PRIMARY MEASURED ARM ONLY, and that is not fussiness. `playGame` is also
-         * called by the planted-divergence proof (four extra games on the baseline pair) and by the
-         * directed scenarios, so a module-level counter incremented inside it would count offers from
-         * games whose EVOLUTIONS are not in `results` — and the report would then show 44 choices
-         * against 40 evolutions and look like a lost choice. It did, on the first run of this. */
-        if (isPrimary) {
-          MEGA_CHOICES += r.megaChoices;
-          MEGA_MEDI += r.megaMedi; MEGA_SD += r.megaSd;
-          MEGA_SIDES_CAPABLE += r.megaCapableSides; MEGA_SIDES_EVOLVED += r.megaSidesEvolved;
-          MEGA_SLOT_A += r.megaSlotA; MEGA_SLOT_B += r.megaSlotB;
-        }
-        if (VERBOSE) console.log('   ' + arm.id.padEnd(22) + cfg.config.padEnd(24) + (r.err ? 'THREW ' + r.err
-          : r.div ? 'DIVERGES at line ' + r.div.index + '  ' + classify(r.div).cls : 'agrees, ' + r.turns + ' turns'));
+        playOne(arm, cfg.config, pr, isPrimary, armResults, armControl);
+        made++;
       }
     }
     ARM_RUNS.push({ arm, results: armResults, control: armControl,
@@ -3430,8 +3733,89 @@ const creditedByClickOnly = COV_TARGETS.filter(t => kindOf(t.key).click > 0
 const witnessable = COV_TARGETS.filter(t => t.witness.kind !== 'no-board-leaf');
 const noBoardLeaf = COV_TARGETS.filter(t => t.witness.kind === 'no-board-leaf');
 const touchedNotCredited = COV_TARGETS.filter(t => COV_TOUCHED.has(t.key) && !(COV_CREDIT.get(t.key) > 0));
+/* ---- THE ROWS THIS RUN DID NOT EXERCISE, BY NAME (2026-08-12) ------------------------------------
+ * Will's instruction was "run until each mechanic has been exercised", and the honest end of that
+ * sentence is the list of the ones that were not. A COUNT is not a worklist: 30 uncovered rows and a
+ * number tells nobody which mechanic to go and stage. Split by what evidence was even available —
+ * a row whose tag names a board leaf could have been witnessed and was not, and a row that names none
+ * could only ever have been credited by a connected click. */
+const neverCredited = COV_TARGETS.filter(t => !(COV_CREDIT.get(t.key) > 0));
+const neverWitnessed = neverCredited.filter(t => t.witness.kind !== 'no-board-leaf');
+const neverClicked = neverCredited.filter(t => t.witness.kind === 'no-board-leaf');
 const TURNS = results.map(r => r.turns).sort((a, b) => a - b);
 const medianTurns = TURNS.length ? TURNS[Math.floor(TURNS.length / 2)] : 0;
+
+/* ---- THE END-STATE MEASUREMENT (2026-08-12) ------------------------------------------------------
+ *
+ * Will: *"how much is just medicham being semantic"*. Of the games whose PROTOCOL parted, how many end
+ * with the two engines holding the same board (the mismatch was WORDING) and how many genuinely played
+ * a different battle (it was REAL)?
+ *
+ * COMPUTED PER ARM AND NEVER POOLED, exactly as every other rate in this file is: the arms differ in
+ * which body wins a speed tie and where the damage roll sits, so "how much is cosmetic" has a
+ * different answer in each and an average would describe neither.
+ *
+ * CROSSED WITH THE SHAPE, because "EMISSION is mostly cosmetic" has been said to Will without evidence
+ * and has already been wrong once — the `??:` family was filed as an emission problem and was the most
+ * serious defect of the sprint, while Regenerator looked serious and was pure wording. The shape comes
+ * out of `engine/divergence_shape.js`, which `divergence_report.js` also reads; there is one rule.
+ *
+ * AND IT ONLY MEANS ANYTHING IN `--end-state` MODE. Under the other two stop rules the game halts at
+ * the first disagreement, so "the final board" is the board at the moment we stopped looking. `null`
+ * rather than a flattering number. */
+function endStateSummary(rows) {
+  if (!END_STATE) return null;
+  const V = new Map(END_STATE_VERDICTS.map(v => [v, 0]));
+  const rowsWith = rows.map(r => ({ r, v: endStateVerdict(r),
+                                    cls: r.div ? classify(r.div) : null }));
+  for (const x of rowsWith) V.set(x.v, V.get(x.v) + 1);
+  const parted = rowsWith.filter(x => x.r.divTurn != null);
+  const agreedAllAlong = rowsWith.filter(x => x.r.divTurn == null);
+  const tally = (list) => Object.fromEntries(END_STATE_VERDICTS.map(v => [v, list.filter(x => x.v === v).length]));
+  /* THE CROSS-TAB. One row per shape, one column per verdict, over the games whose protocol parted. */
+  const byShape = new Map();
+  for (const x of parted) {
+    const s = SHAPE.shapeOf(x.cls.cause);
+    const e = byShape.get(s.shape) || { shape: s.shape, games: 0, verdicts: Object.fromEntries(END_STATE_VERDICTS.map(v => [v, 0])) };
+    e.games++; e.verdicts[x.v]++;
+    byShape.set(s.shape, e);
+  }
+  /* WHAT ACTUALLY DIFFERS AT THE END — the families of the last board, for the games that really did
+   * play a different battle. This is the worklist the whole measurement is for: a defect that survives
+   * to the end of the game is one that changes what a search would plan from. */
+  const fam = new Map();
+  for (const x of rowsWith) {
+    if (x.v !== 'DIFFERENT-END-STATE') continue;
+    for (const f of new Set((x.r.finalBoard.diffs || []).map(d => BS.family(d.path)))) fam.set(f, (fam.get(f) || 0) + 1);
+  }
+  const endReasons = new Map();
+  for (const x of rowsWith) endReasons.set(x.r.endReason || '(none)', (endReasons.get(x.r.endReason || '(none)') || 0) + 1);
+  const pctOf = (n, d) => (d ? +(n / d).toFixed(4) : null);
+  const comparable = parted.filter(x => x.v === 'SAME-END-STATE' || x.v === 'DIFFERENT-END-STATE');
+  return {
+    games: rows.length,
+    verdicts: Object.fromEntries(V),
+    protocol_parted: parted.length,
+    protocol_never_parted: agreedAllAlong.length,
+    of_the_games_whose_protocol_parted: tally(parted),
+    of_the_games_whose_protocol_never_parted: tally(agreedAllAlong),
+    /* TWO DENOMINATORS, THE SAME DISCIPLINE `identicalAtEndOfTurn` USES AND FOR THE SAME REASON.
+     * `rate_of_all_parted_games` counts a thrown game and a battle only one engine ended AGAINST the
+     * cosmetic claim — that is the honest headline. The conditional one is strictly larger and is the
+     * rate among games where a final board could actually be compared. Printing one silently is how a
+     * rate flatters itself. */
+    wording_rate_of_all_parted_games: pctOf(tally(parted)['SAME-END-STATE'], parted.length),
+    wording_rate_of_parted_games_with_a_comparable_end: pctOf(tally(parted)['SAME-END-STATE'], comparable.length),
+    parted_games_with_a_comparable_end: comparable.length,
+    by_shape: [...byShape.values()].sort((a, b) => b.games - a.games),
+    end_state_families: [...fam.entries()].sort((a, b) => b[1] - a[1]).map(([family, games]) => ({ family, games })),
+    end_reasons: [...endReasons.entries()].sort((a, b) => b[1] - a[1]).map(([reason, games]) => ({ reason, games })),
+    caveat: 'SAME-END-STATE says the two engines ARRIVED at the same board on every leaf '
+          + 'board_state.js compares. It does NOT say the turns in between agreed, and it is bounded '
+          + 'by that file\'s NOT_COMPARED list, published with this artifact.',
+  };
+}
+const END_STATE_BY_ARM = ARM_RUNS.map(a => ({ arm: a.arm.id, summary: endStateSummary(a.results) }));
 
 console.log('\nWHOLE-GAME DIFFERENTIAL — MODE A (pinned, tolerance zero)   ' + REL.id);
 console.log('  ' + results.length + ' games in the primary arm, ' + ARM_RUNS.length + ' arm(s), '
@@ -3809,6 +4193,61 @@ if (STATE_SUMMARY) {
   console.log('    reader failures (must be empty): ' + JSON.stringify(S2.reader_failures));
   console.log('');
 }
+
+/* ---- THE END-STATE MEASUREMENT, PER ARM ---------------------------------------------------------- */
+if (END_STATE) {
+  const pcs = (a, b) => (b ? (100 * a / b).toFixed(1) + '%' : 'n/a');
+  console.log('  HOW MUCH OF THE DIVERGENCE IS JUST WORDING — the END STATE, per arm, never pooled');
+  console.log('  (Will: "how much is just medicham being semantic"). The game is played to the turn cap');
+  console.log('  or to the end of the battle WHATEVER either comparator already found, and the LAST');
+  console.log('  board both engines produced is compared. It is a claim about where they ARRIVED and');
+  console.log('  not that every line after the mismatch agreed.');
+  console.log('');
+  for (const e of END_STATE_BY_ARM) {
+    const s = e.summary; if (!s) continue;
+    const p = s.of_the_games_whose_protocol_parted;
+    console.log('    ARM ' + e.arm + '   ' + s.games + ' games, ' + s.protocol_parted + ' whose protocol parted');
+    console.log('      of those ' + s.protocol_parted + ':');
+    console.log('        ' + String(p['SAME-END-STATE']).padStart(5) + '  SAME END STATE — the mismatch was WORDING            '
+      + pcs(p['SAME-END-STATE'], s.protocol_parted) + ' of all parted, '
+      + pcs(p['SAME-END-STATE'], s.parted_games_with_a_comparable_end) + ' of those with a comparable end');
+    console.log('        ' + String(p['DIFFERENT-END-STATE']).padStart(5) + '  DIFFERENT END STATE — they played a different battle  '
+      + pcs(p['DIFFERENT-END-STATE'], s.protocol_parted));
+    console.log('        ' + String(p['ENDED-APART']).padStart(5) + '  ENDED APART — ONE engine ended the battle and the other did not.');
+    console.log('               THIS IS NOT COSMETIC AND IT IS NOT COUNTED EITHER WAY. A game with no');
+    console.log('               comparable final board is a THIRD answer, not a rounding decision.');
+    console.log('        ' + String(p['NO-COMPARABLE-BOARD']).padStart(5) + '  NO COMPARABLE BOARD — no boundary was ever taken');
+    console.log('        ' + String(p['THREW']).padStart(5) + '  THREW — the harness could not finish the game');
+    const np = s.of_the_games_whose_protocol_never_parted;
+    console.log('      the ' + s.protocol_never_parted + ' games whose protocol NEVER parted, as a control: '
+      + Object.entries(np).filter(([, n]) => n).map(([k, n]) => n + ' ' + k).join(', '));
+    console.log('');
+    console.log('      CROSSED WITH THE SHAPE — "EMISSION is mostly cosmetic" has been asserted without');
+    console.log('      evidence and was wrong once already (the ??: family). Here it is measured:');
+    console.log('        shape      games   same-end   different   ended-apart   threw');
+    for (const b of s.by_shape) console.log('        ' + b.shape.padEnd(10) + String(b.games).padStart(5)
+      + String(b.verdicts['SAME-END-STATE']).padStart(11) + String(b.verdicts['DIFFERENT-END-STATE']).padStart(12)
+      + String(b.verdicts['ENDED-APART']).padStart(14) + String(b.verdicts['THREW']).padStart(8)
+      + '   ' + pcs(b.verdicts['SAME-END-STATE'], b.games) + ' wording');
+    console.log('');
+    if (s.end_state_families.length) {
+      console.log('      WHAT STILL DIFFERS AT THE END — the worklist, because a defect that survives to');
+      console.log('      the last board is one a search would plan from:');
+      for (const f of s.end_state_families.slice(0, 14))
+        console.log('        ' + String(f.games).padStart(5) + ' games  ' + f.family);
+    } else {
+      console.log('      NOTHING DIFFERS AT THE END in this arm — read that against the ENDED-APART and');
+      console.log('      THREW counts above before calling it agreement.');
+    }
+    console.log('');
+    console.log('      how the games stopped: ' + s.end_reasons.map(x => x.games + ' ' + x.reason).join('; '));
+    console.log('');
+  }
+  console.log('    BOUNDED BY WHAT board_state.js COMPARES. A leaf it does not read cannot make a board');
+  console.log('    differ here, so SAME-END-STATE is exactly as strong as that file\'s comparison set;');
+  console.log('    its NOT_COMPARED list is published with this artifact for that reason.');
+  console.log('');
+}
 /* ROADMAP #31 — THE TWO RATES, PUBLISHED APART. One number over a mixed population would let the mega
  * games and the non-mega games absorb each other, and the whole reason the stones came back is to see
  * what they cost. Same teams, same seeds, same driver state; the ONLY difference is the stone. */
@@ -3984,9 +4423,48 @@ console.log('    ' + COV_UNMEASURABLE.length + ' of the ' + CENSUS.results.lengt
   + ' census rows name an INTERACTION rather than a taggable entity and cannot be measured by this');
 console.log('      instrument at all. They are NOT counted as uncovered — a zero on them would read as');
 console.log('      a failure of the run instead of a limit of the measurement.');
-console.log('    clicked but ALWAYS MISSED (the Mode A pin misses every sub-100-accuracy move): '
+/* THE TWO MISS NUMBERS, AND WHY THE FIRST ONE ALONE OVER-CLAIMED. See the artifact block: the top arm
+ * misses every sub-100 move and the bottom arm hits it, and both fill the same map. */
+console.log('    clicked and MISSED at least once (the top arm\'s pin misses every sub-100-accuracy move): '
   + CLICKED_BUT_MISSED.size + ' moves');
+{
+  const neverConn = [...CLICKED_BUT_MISSED.keys()].filter(m => !OBSERVED.moves.has(m)).sort();
+  console.log('    clicked and NEVER ONCE CONNECTED, in any arm — THIS is the unexercised list: '
+    + neverConn.length + ' moves');
+  if (neverConn.length) console.log('      ' + neverConn.join(', '));
+}
 console.log('');
+
+/* ---- THE STOPPING RULE, REPORTED WHERE THE COVERAGE IS ------------------------------------------- */
+if (COVERAGE_STOP) {
+  const C = COVERAGE_STOP;
+  console.log('  HOW THIS RUN DECIDED TO STOP — the rule, not a number somebody picked:');
+  console.log('    ' + C.games_played + ' games in ' + C.batches.length + ' batches of ' + C.batch_size
+    + ', stall threshold ' + C.stall_k + ' quiet batches, backstop ' + C.max_games);
+  console.log('    rows with any credit: ' + credited.length + ' of ' + COV_TARGETS.length
+    + ' measurable   (' + creditedByEffect.length + ' of ' + witnessable.length + ' by an OBSERVED EFFECT)');
+  if (C.stopped_on_budget) {
+    console.log('');
+    console.log('    *** THIS RUN DID NOT STOP ON COVERAGE. IT STOPPED ON A BUDGET: ' + C.stopped_because);
+    console.log('    *** NEW ROWS WERE STILL ARRIVING, OR THE POOL RAN OUT BEFORE THE STALL COULD FIRE.');
+    console.log('    *** THE SWEEP IS TRUNCATED. Nothing below is a claim that the census was covered;');
+    console.log('    *** raise --max-games, or widen the team pool, and run it again.');
+    console.log('');
+  } else {
+    console.log('    STOPPED ON COVERAGE: ' + C.stall_k + ' consecutive batches credited no new row.');
+  }
+  console.log('    ROWS STILL NOT EXERCISED, BY NAME — a count is not a worklist:');
+  console.log('      ' + neverWitnessed.length + ' rows a board could have witnessed and did not:');
+  for (let i = 0; i < neverWitnessed.length; i += 4)
+    console.log('        ' + neverWitnessed.slice(i, i + 4).map(t => t.key).join('   '));
+  console.log('      ' + neverClicked.length + ' rows that name NO board leaf, so only a connected click '
+    + 'could have credited them:');
+  for (let i = 0; i < neverClicked.length; i += 4)
+    console.log('        ' + neverClicked.slice(i, i + 4).map(t => t.key).join('   '));
+  console.log('      ' + COV_UNMEASURABLE.length + ' further census rows name an INTERACTION rather than a '
+    + 'taggable entity and this instrument cannot reach them at all.');
+  console.log('');
+}
 console.log('  THE DRIVER AND THE SWARM COVER DIFFERENT SPACES (§3.3) and are reported apart:');
 console.log('    driver / mechanic space :  ' + OBSERVED.moves.size + ' distinct moves connected, '
   + OBSERVED.abilities.size + ' abilities, ' + OBSERVED.items.size + ' items, ' + OBSERVED.species.size + ' species');
@@ -4193,6 +4671,12 @@ if (WRITE) {
      * not asked for it, which is a different claim from zero. */
     state: STATE_SUMMARY,
     state_mode: STATE,
+    /* THE END-STATE MEASUREMENT, PER ARM. `null` when the run was not asked for `--end-state`, which
+     * is a different claim from "nothing was cosmetic": under the other stop rules the game halts at
+     * the first disagreement and the last board is the board we stopped looking at. */
+    end_state_mode: END_STATE,
+    end_state: END_STATE ? END_STATE_BY_ARM : null,
+    end_state_not_compared: END_STATE ? BS.NOT_COMPARED.map(x => x.field) : null,
     pin: PIN_CLAIMS.map(([w]) => w),
     /* EVERY CAUSE CARRIES ITS FORMAT STANDING. See annotateCause() -- three separate times on
      * 2026-08-06/07 a WIRE was justified by a mechanic that CANNOT OCCUR in Champions (Blunder Policy,
@@ -4249,10 +4733,40 @@ if (WRITE) {
       median_completed_turns_before_divergence: medianTurns,
       unmeasurable_by_this_instrument: COV_UNMEASURABLE.map(t => ({ key: t.key, why: t.why })),
       not_exercised: uncovered.map(t => t.key),
+      /* ---- THE MISSES LIST DID NOT MEAN WHAT ITS NAME SAID (2026-08-12) --------------------------
+       * `clicked_but_always_missed` was `[...CLICKED_BUT_MISSED.keys()]` — every move that missed AT
+       * LEAST ONCE, across every arm. Under the Mode A pin the TOP arm misses every sub-100 move and
+       * the BOTTOM arm hits it, and both arms fill the same module-level map, so a move that connected
+       * perfectly well in the bottom arm was still published as "always missed". The name asserted the
+       * intersection and the value was the union.
+       *
+       * BOTH ARE PUBLISHED NOW, and the old key keeps its old value so nothing downstream silently
+       * changes meaning — it is the honest one that is new. `clicked_but_never_connected` is the
+       * intersection the name claimed: clicked, missed, and never once connected in ANY arm. That is
+       * the list of moves this run genuinely did not exercise. */
       clicked_but_always_missed: [...CLICKED_BUT_MISSED.keys()].sort(),
+      clicked_but_always_missed_note: 'MISLEADING NAME, KEPT FOR CONTINUITY: this is every move that '
+        + 'missed at least once in any arm, which includes moves that connected in the other arm. Read '
+        + 'clicked_but_never_connected for the claim the name makes.',
+      clicked_and_missed_at_least_once: [...CLICKED_BUT_MISSED.keys()].sort(),
+      clicked_but_never_connected: [...CLICKED_BUT_MISSED.keys()].filter(m => !OBSERVED.moves.has(m)).sort(),
       distinct_moves_connected: OBSERVED.moves.size, distinct_abilities: OBSERVED.abilities.size,
       distinct_items: OBSERVED.items.size, distinct_species: OBSERVED.species.size,
     },
+    /* ---- THE STOPPING RULE'S RECEIPT (2026-08-12) -------------------------------------------------
+     * `null` on a fixed-count run. That is a DIFFERENT CLAIM from "coverage was reached", and the
+     * distinction is the whole reason this block exists: every run before today stopped on a number
+     * somebody picked, and nothing in the artifact said so. */
+    coverage_stop: COVERAGE_STOP ? Object.assign({}, COVERAGE_STOP, {
+      rows_measurable: COV_TARGETS.length,
+      rows_with_any_credit: credited.length,
+      rows_with_an_observed_effect: creditedByEffect.length,
+      /* BY NAME, NEVER AS A COUNT. A number here is not a worklist. */
+      rows_never_credited: neverCredited.map(t => t.key).sort(),
+      rows_never_credited_a_board_could_have_witnessed: neverWitnessed.map(t => t.key).sort(),
+      rows_never_credited_that_name_no_board_leaf: neverClicked.map(t => t.key).sort(),
+      moves_clicked_but_never_connected: [...CLICKED_BUT_MISSED.keys()].filter(m => !OBSERVED.moves.has(m)).sort(),
+    }) : null,
     swarm: SW.out.map(c => ({ config: c.config, available: c.available, picked: c.picked,
                               games: results.filter(r => r.config === c.config).length })),
     declared_gaps: {
@@ -4294,5 +4808,39 @@ if (WRITE) {
   }, REL.stamp());
   const outPath = OUT ? path.resolve(OUT) : D('data', 'game-differential.json');
   fs.writeFileSync(outPath, JSON.stringify(artifact, null, 2) + '\n');
+
+/* THE READABLE DUMP — the same diverging games with the lines either side of the split.
+ *
+ * Will, 2026-08-12: "can you show me the turns where they differed? and dont do it with a bunch of
+ * illegible text like you did before". `alignAndCheck` has ALWAYS captured this context — four lines
+ * before and six after on each side, raw and reduced — and `first_divergences` threw all of it away,
+ * keeping only the two mismatched lines. So the artifact could say WHAT differed and never what was
+ * happening around it, which is the difference between a cause list and something a person can read.
+ * Its own file, because it is a DEBUGGING VIEW and not a measurement; the numbers stay in
+ * data/game-differential.json. */
+if (DUMP_GAMES && diverged.length) {
+  const cut = diverged.slice(0, DUMP_GAMES).map(r => ({
+    config: r.config, seed: r.seed,
+    agreed_lines: r.div.agreedLines, cls: r._cls.cls, cause: r._cls.cause,
+    /* BOTH FORMS. The reduced line is what DECIDED; the raw line is what the engines actually emitted
+     * and is what a person has to go and fix. Keeping only one has bitten before. */
+    at: { showdown_raw: r.div.sdRaw, medicham_raw: r.div.meRaw,
+          showdown: r.div.sd, medicham: r.div.me },
+    before: r.div.before || [],
+    after: { showdown: r.div.sdAfterRaw || r.div.sdAfter || [],
+             medicham: r.div.meAfterRaw || r.div.meAfter || [] },
+  }));
+  fs.writeFileSync(D(DUMP_OUT), JSON.stringify({
+    what: 'DIVERGING GAMES WITH THE LINES EITHER SIDE OF THE SPLIT. A debugging view, not a '
+        + 'measurement. Both the RAW emitted line and the REDUCED line the comparator decides on are '
+        + 'kept: the reduced form is what decided, the raw form is what has to be fixed.',
+    generated: new Date().toISOString(),
+    engine_release: REL.id, team_store_pinned_to: TEAM_STORE || null,
+    games: cut.length, of_diverged: diverged.length,
+    divergences: cut,
+  }, null, 2) + '\n');
+  console.log('  wrote ' + DUMP_OUT + '  (' + cut.length + ' of ' + diverged.length
+    + ' diverging games, with context)');
+}
   console.log('  -> ' + (OUT ? outPath : 'data/game-differential.json'));
 }

@@ -329,6 +329,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                     original body. A zero is expected on most runs (44 uses in the corpus) and
    *                     says only that nobody brought one. */
   reaimedToSlot: 0, reaimSlotEmpty: 0, targetTracksBody: 0,
+  /* ROADMAP #223 -- the same two figures on the ALLY axis, kept APART from the foe pair rather than
+   * pooled into it. The two axes were wired at different times and by different rules; a single
+   * counter could not have shown that the foe half was live while the ally half did nothing, which is
+   * exactly the state this engine was in. `reaimedAtDispatch` is the choke point's own figure: how
+   * many executing actions had their aim MOVED before the kind dispatch read it. */
+  reaimedToAllySlot: 0, reaimAllySlotEmpty: 0, reaimedAtDispatch: 0,
   /* WIRE 140 -- Ally Switch actually swapping two bodies, and the consecutive-use roll refusing one.
    * A zero on the first after real games means the branch is not on the path (202 corpus uses). */
   allySwitchSwapped: 0, allySwitchStalled: 0,
@@ -525,6 +531,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * is being played as a spin, which is a real defect and not a quiet one. */
   hazardSwept: 0, sideConditionSwept: 0, terrainSweptByMove: 0,
   leechSeedSwept: 0, partialTrapSwept: 0, substituteSwept: 0,
+  /* ROADMAP #223 -- the residual drain paid a body OTHER than the one that clicked, because the seeder
+   * had left and somebody else is standing in its slot. A zero after games with switching in them
+   * means the slot lookup is not on the path, not that the case is rare. */
+  leechSeedDrainReaimed: 0,
   /* ROADMAP #175 -- the two halves of `nameImplementedBySim`, which had no consumer at all until
    * 2026-08-11. `statusImmunityIgnoredByAbility` fires when a Corrosion body's Toxic walks past the
    * type chart; `sleepTickAccelerated` fires on every turn an Early Bird body spends asleep. Both are
@@ -1328,6 +1338,10 @@ const MEDFAILS = { encoreAction: 0,
      is still emitted, with `??` where the identifier goes, because a HOLE in the stream is worse than
      a wrong label -- a missing line reads to the differ as a missing MECHANIC. Must read 0. */
   traceBodyOffField: 0, traceBodyOffFieldFirst: '',
+  /* ROADMAP #223 -- a `_seededBy` record with no slot on it. Written before the slot half of the
+   * volatile existed, or stamped by hand; the drain falls back to the captured BODY, which is the
+   * pre-#223 behaviour and is wrong the moment the seeder pivots. Loud rather than silent. */
+  leechSeedDrainNoSlot: 0,
   /* WIRE 146 -- a move carries an effect CLASS the composer has no applier for (a stat table, a
    * terrain) under a kind that does not apply it. Zero over the whole 500-move tag corpus today; a
    * non-zero names the first member, because "the composer covers everything" is exactly the kind of
@@ -10962,9 +10976,23 @@ function tracksTargetOf(mvId,user,scripted){
  * the `|move|` line. Counting there as well would double every figure below and make a counter that
  * exists to be read a counter that cannot be. */
 function reaimToSlot(t,it,actA,actB,mvId,quiet){
-  /* -1 means the action named no FOE slot: a self-target, an ally-target or a spread move. Those are
-   * resolved elsewhere and must not be dragged onto the foe side by this function. */
-  if(!it||it.tgtSlot<0)return t;
+  /* ROADMAP #223 -- THE ALLY AXIS, WHICH THIS FUNCTION USED TO HAND BACK UNTOUCHED.
+   * `tgtSlot<0` means the action named no FOE slot, and that covers three DIFFERENT cases which were
+   * all treated as one: a spread move (nothing to re-aim), a SELF-aim (must not be re-aimed -- see
+   * `allySlot`'s note at the collection site), and an ALLY-aim, which is a slot exactly like a foe
+   * slot. Showdown reads both directions out of one signed `targetLoc` through `getAtLoc`
+   * (sim/pokemon.ts:770), so this is the authority's own single rule rather than a second one.
+   * `tracksTarget` is not consulted on this axis: Stalwart and Propeller Tail turn off REDIRECTION
+   * (`getMoveTargets`'s `RedirectTarget` event, sim/pokemon.ts:829), which only ever pulls a click
+   * onto the other side. */
+  if(!it)return t;
+  if(it.tgtSlot<0){
+    if(!(it.allySlot>=0))return t;
+    const own=it.side==='A'?actA:actB;
+    const nowA=own[it.allySlot]||null;
+    if(nowA!==t&&!quiet){ if(nowA)MEDSEEN.reaimedToAllySlot++; else MEDSEEN.reaimAllySlotEmpty++; }
+    return nowA;
+  }
   if(t&&tracksTargetOf(mvId,it.mon)&&(actA.indexOf(t)>=0||actB.indexOf(t)>=0)){
     if(!quiet)MEDSEEN.targetTracksBody++;return t;}
   const foes=it.side==='A'?actB:actA;
@@ -11270,7 +11298,18 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* `_selMv` rides along so `actionPriority` can read the SELECTED move rather than the locked
        * one — see the block above. It is null whenever nothing was overridden, and the priority
        * function falls back to the executed move in that case, so every ordinary action is unchanged. */
-      acts.push({mon,side,a:_a,_selMv,tgtSlot:_a&&_a.target?foes.indexOf(_a.target):-1});};
+      /* ROADMAP #223 -- AND THE ALLY AXIS IS A SLOT TOO. `tgtSlot` above is the FOE array's index and
+         is -1 for anything aimed at my own side, so `reaimToSlot` handed those straight back and an
+         ally that pivoted was followed BY OBJECT. Showdown does not have two rules here: `getTarget`
+         (sim/battle.ts:2434) resolves ONE signed `targetLoc` through `pokemon.getAtLoc` for both
+         directions, and `getAtLoc` (sim/pokemon.ts:770) picks the side off the SIGN and then indexes
+         `side.active`. So the ally axis is recorded the same way and read by the same function.
+         THE USER ITSELF IS DELIBERATELY NOT RECORDED (`_a.target!==mon`). A self-aimed move must stay
+         bound to its user: this side's slots can be exchanged mid-turn by Ally Switch, and a self-aim
+         re-resolved through a slot index would then land on the PARTNER. Showdown avoids the same trap
+         by recomputing `pokemon.getLocOf(pokemon)` at execution rather than by remembering a slot. */
+      acts.push({mon,side,a:_a,_selMv,tgtSlot:_a&&_a.target?foes.indexOf(_a.target):-1,
+        allySlot:(_a&&_a.target&&_a.target!==mon)?(side==='A'?actA:actB).indexOf(_a.target):-1});};
     mk(actA[0],'A',actB,actA[1]);mk(actA[1],'A',actB,actA[0]);mk(actB[0],'B',actA,actB[1]);mk(actB[1],'B',actA,actB[0]);
     /* what was actually clicked this turn, both sides, for observers (the Tower's local game
      * record). A summary, not the live objects -- nothing outside can mutate the turn. */
@@ -11721,9 +11760,47 @@ function battleTurn(S,rng,actsForA,actsForB){
            * that fails leaves the click exactly as it was and says so. */
           let _ra=null;
           try{ _ra=playerAction(m,it.a.move.id,_rt,field); }catch(e){ MEDFAILS.randomTargetUnbuilt++; }
-          if(_ra&&_ra.kind==='attack'){ it.a=_ra; it.tgtSlot=_rfoes.indexOf(_rt); }
+          /* ROADMAP #223 -- `allySlot` is cleared with it. The re-roll is `side.randomFoe()`, so the
+           * new aim is a FOE by construction and any ally slot the discarded action carried is stale. */
+          if(_ra&&_ra.kind==='attack'){ it.a=_ra; it.tgtSlot=_rfoes.indexOf(_rt); it.allySlot=-1; }
           else MEDFAILS.randomTargetUnbuilt++;
         }
+      }
+      /* ROADMAP #223 -- A MOVE TARGETS A SLOT, AND THE SLOT IS READ HERE, ONCE, FOR EVERY ACTION.
+       *
+       * Will, three times: *"moves target slots not mons"*, *"well bro its gotta target a slot"*,
+       * *"non negotiable"*. `reaimToSlot` has expressed that rule correctly since WIRE 139 and had
+       * THIRTEEN callers -- the attack branch, the PP charge, Haze, the phaze, the transform, the
+       * status branch and a handful more. Every OTHER branch of the kind dispatch read `a.target`
+       * raw, so the effect landed on the body the chooser pointed at whatever had happened since.
+       *
+       * MEASURED BEFORE THIS LINE EXISTED, 600 constructed games with a real bench and a 25% per-body
+       * switch rate: 907 emitted identifiers could not be placed on the field. The families were
+       * Yawn's drowse, Soak's typechange, Trick's item, Skill Swap / Worry Seed / Entrainment's
+       * ability write, Instruct's second action and Leech Seed's drain. Nothing else in the repository
+       * could see any of it -- the effect lands on an object nobody reads again, so the INTENDED
+       * target is untouched, its HP never moves, and the roster, the census and every board comparison
+       * pass. It is the same invisibility as Regenerator, the weather residual and Focus Band.
+       *
+       * ONE CHOKE POINT RATHER THAN THIRTY EDITS, and that is the point rather than the economy: a
+       * per-branch fix is thirty places for the thirty-first branch to be forgotten, which is exactly
+       * how this survived WIRE 139's consolidation. Every one of the thirteen existing calls stays and
+       * is now IDEMPOTENT -- `reaimToSlot(reaimToSlot(t))` is `reaimToSlot(t)`, because the second call
+       * asks the same slot -- so no branch loses the rule if this line is ever moved.
+       *
+       * POSITIONED AT THE AUTHORITY'S POSITION. `runMove` resolves its target on its first line, above
+       * `OverrideAction` and far above the five BeforeMove gates (sim/battle-actions.ts), which is the
+       * same reason the randomTarget draw one block up sits here. Nothing switches between here and the
+       * kind dispatch, so the board is the same either way; it is written here so it cannot drift below
+       * a gate that reads a target.
+       *
+       * IT MUTATES `it.a.target` RATHER THAN THREADING A LOCAL. Thirty branches read the field, and a
+       * local would have to be passed to each of them -- which is the thirty-edit shape again.
+       * `S.lastActs` is snapshotted before the queue runs and therefore still records what was CHOSEN,
+       * which is the right thing for an observer to see. */
+      if(it.a&&it.a.target){
+        const _aimed=reaimToSlot(it.a.target,it,actA,actB,actionMoveId(it.a));
+        if(_aimed!==it.a.target){ MEDSEEN.reaimedAtDispatch++; it.a.target=_aimed; }
       }
       /* ROADMAP #68 -- `|cant|POKEMON|REASON`, and the REASON strings are Showdown's own, read off the
        * add() calls in data/conditions.ts (par :42, slp :76, frz :103, flinch :203, recharge :369) and
@@ -13319,7 +13396,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          * is the subject and the instructor is the attribution, which is the opposite way round from
          * most `[of]` lines. */
         if(TR)TR.st1(t,'move: Instruct',m);
+        /* ROADMAP #223 -- the inserted action carries BOTH slot axes, like every action the collection
+         * loop builds. It is spliced in at `actIdx+1` and can therefore be separated from this instant
+         * by another body's pivot, so the second click has to re-resolve its aim exactly as a first
+         * one does; the choke point above the kind dispatch reads these two fields and nothing else. */
+        const _own=_side==='A'?actA:actB;
         const _entry={mon:t,side:_side,a:_na,tgtSlot:_na.target?_foes.indexOf(_na.target):-1,
+          allySlot:(_na.target&&_na.target!==t)?_own.indexOf(_na.target):-1,
           _order:TURN_ORDER.next,_pri:actionPriority({mon:t,side:_side,a:_na},field),_qc:0,_instructed:true};
         acts.splice(actIdx+1,0,_entry);
         MEDSEEN.instructRepeat++;
@@ -14287,7 +14370,15 @@ function battleTurn(S,rng,actsForA,actsForB){
              &&!(_pt.immuneType&&t.types.includes(_pt.immuneType))
              &&!pranksterBlocked(m,t,a.mv)&&!subBlocks(m,t,a.mv)){
             const acc=hitChance(m,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
-            if(_R.acc()*100<=acc){t._seededBy={by:m,per:_pt.per};if(TR)TR.vstart(t,'move: Leech Seed');}   // ROADMAP #222
+            /* ROADMAP #223 -- THE DRAIN GOES TO A SLOT, NOT TO THE SEEDER'S BODY, and the authority
+             * says so in one line: `const target = this.getAtSlot(pokemon.volatiles['leechseed']
+             * .sourceSlot)` (data/moves.ts:10221). `by` is kept beside the slot because two other
+             * readers already hold it -- the transform copy at `wants('leechseed')` and Rapid Spin's
+             * sweep -- and because the slot can go EMPTY, in which case the authority heals nobody. */
+            if(_R.acc()*100<=acc){
+              const _sown=it.side==='A'?actA:actB;
+              t._seededBy={by:m,per:_pt.per,side:it.side,slot:_sown.indexOf(m)};
+              if(TR)TR.vstart(t,'move: Leech Seed');}   // ROADMAP #222
             else if(TR)TR.miss(m,t);
           }
           /* WIRE 20's sealsMoves consumer USED TO BE HERE AND WAS UNREACHABLE. Encore, Disable and
@@ -18129,7 +18220,19 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _d=Math.min(Math.floor(m.st.hp/m._seededBy.per),m.curHP);
         m.curHP-=_d;
         if(TR)TR.dmg(m,'[from] Leech Seed');
-        const _s=m._seededBy.by;
+        /* ROADMAP #223 -- WHO GETS THE HP IS A SLOT LOOKUP, resolved NOW, at the residual. This read
+         * `m._seededBy.by` -- the body that clicked, captured turns earlier -- so a seeder that pivoted
+         * was healed on the BENCH and the replacement standing in its slot got nothing. Showdown's own
+         * line is `this.getAtSlot(pokemon.volatiles['leechseed'].sourceSlot)` (data/moves.ts:10221).
+         * `by` is the fallback for a volatile written before this wire (a transform copy, or a probe
+         * that stamps `_seededBy` by hand), and it is COUNTED rather than silent -- a fallback that
+         * looks like a feature is this project's signature defect. An EMPTY slot heals nobody, which is
+         * what `getAtSlot` returning nothing does. */
+        let _s;
+        if(m._seededBy.slot>=0&&m._seededBy.side){
+          _s=(m._seededBy.side==='A'?actA:actB)[m._seededBy.slot]||null;
+          if(_s!==m._seededBy.by)MEDSEEN.leechSeedDrainReaimed++;
+        } else { _s=m._seededBy.by; if(_s)MEDFAILS.leechSeedDrainNoSlot++; }
         /* The seed keeps CHIPPING under Heal Block and only the seeder's return is stopped, which is
          * the same split as the drain: the damage is not healing. */
         if(_s&&!_s.fainted&&_s.curHP>0&&!healBlocked(_s)){const _h0=_s.curHP;

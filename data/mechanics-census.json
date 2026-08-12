@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-12T05:40:09.453Z",
+  "generated": "2026-08-12T21:10:41.228Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 516,
-  "live": 516,
+  "probed": 525,
+  "live": 525,
   "missing": 0,
-  "armed": 516,
+  "armed": 525,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2796,7 +2796,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5167,6 +5167,96 @@
       "label": "the stall counter has its OWN die — pinning accuracy no longer fails a Protect",
       "live": true,
       "detail": "two consecutive Protects with accuracy pinned to the mode-A top corner — ONE welded die [true,false] (the stall roll reads the accuracy pin and turn 2 fails); FIVE SPLIT dice [true,true] (both hold). Same seed reproduces: true; a different seed differs: true; acc and crit are independent streams: true; and a PLAIN FUNCTION still aliases every stream so nothing else in this file moved: true",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "delayedSleep",
+      "label": "Yawn drowses whoever is STANDING IN the aimed slot, not the body that left it",
+      "live": true,
+      "detail": "aimed at the Garchomp in foe slot A. CONTROL (nobody moves) — the slot still holds garchomp, drowse garchomp=1 snorlax=undefined. SWITCH — the slot holds snorlax, drowse garchomp=null snorlax=1: the counter followed the SLOT",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "changesTargetType",
+      "label": "Soak rewrites the type of whoever is standing in the aimed slot",
+      "live": true,
+      "detail": "CONTROL — garchomp Water, the benched snorlax Normal. SWITCH — garchomp is back to Dragon/Ground untouched and the snorlax that walked into the slot is Water",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "takesTargetItem",
+      "label": "Trick swaps items with whoever is standing in the aimed slot",
+      "live": true,
+      "detail": "the user starts on lumberry, the garchomp on leftovers, the bench snorlax on sitrusberry. CONTROL — user leftovers, garchomp lumberry, snorlax sitrusberry. SWITCH — user sitrusberry, garchomp leftovers (untouched), snorlax lumberry: the swap is with the SLOT",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "swapsAbilities",
+      "label": "Skill Swap exchanges abilities with whoever is standing in the aimed slot",
+      "live": true,
+      "detail": "user regenerator, garchomp marvelscale, bench snorlax thickfat. CONTROL — user marvelscale, garchomp regenerator. SWITCH — user thickfat (it took the SNORLAX's), garchomp marvelscale (untouched), snorlax regenerator",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "rewritesTargetAbility",
+      "label": "Worry Seed writes onto whoever is standing in the aimed slot",
+      "live": true,
+      "detail": "CONTROL — garchomp insomnia, benched snorlax thickfat. SWITCH — garchomp marvelscale (untouched), snorlax insomnia",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "boostsTarget",
+      "label": "Decorate boosts whoever is standing in the aimed slot",
+      "live": true,
+      "detail": "CONTROL — garchomp atk +2, benched snorlax +0. SWITCH — garchomp +0, snorlax +2",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "healsAlly",
+      "label": "Heal Pulse heals whoever is standing in the aimed ALLY slot",
+      "live": true,
+      "detail": "both the partner and the bench body start on 1 HP. CONTROL — the slot holds garchomp, garchomp 93, snorlax 1. SWITCH — the slot holds snorlax, garchomp 1 (it left and got nothing), snorlax 119",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perTurnHP",
+      "label": "the Leech Seed drain pays whoever is standing in the SEEDER's slot",
+      "live": true,
+      "detail": "the whimsicott seeds on turn 1 and is paid to 23; the bench snorlax sits on 1. CONTROL (it stays) — turn 2 pays it to 45, snorlax 1. PIVOT — the slot holds snorlax, the whimsicott stays on 23 off the field and the snorlax standing in its slot is paid to 23",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "instructsTarget",
+      "label": "Instruct repeats the move of whoever is standing in the aimed slot — and a fresh body has none",
+      "live": true,
+      "detail": "turn 1 the snorlax Body Slams so it has a move to repeat. CONTROL — the slot still holds snorlax and turn 2 costs my side 130 HP (the Body Slam AND its repeat). PIVOT — the slot holds garchomp, which has not moved at all, so the Instruct finds no last move and my side loses 0: the benched snorlax gets no free action",
       "hollow": false,
       "armed": true,
       "directCall": false

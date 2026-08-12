@@ -8,9 +8,10 @@
 `tests/test-protocol-trace.js`, `engine/derive_protocol_events.js`, `data/protocol-events.json`,
 `tests/roster.js`, `data/roster.{items,abilities,moves,all}.json` (+ `data/roster.json`, a convenience
 copy of whatever stage ran last — **it is not the roster**), `tests/test-nature-differential.js`,
-`tests/test-volatile-duration.js`
+`tests/test-volatile-duration.js`, `engine/divergence_shape.js`, `tests/test-end-state.js`,
+`tests/test-coverage-stop.js`, `tests/probe_volatile_leaves.js`
 
-**Nine instruments, and none substitutes for another:**
+**Eleven instruments, and none substitutes for another:**
 
 | file | asks | structurally cannot see |
 |---|---|---|
@@ -22,6 +23,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 | `mutation_harness.js` | does the handler MATTER, or does it only FIRE — change the FACT, watch the BEHAVIOUR | a fact derived WRONG upstream (it is propagated and consumed faithfully and scores LIVE); anything outside `medicham2-browser.js`; a branch no scripted turn reaches, which it counts rather than hides |
 | `roster.js` | does EVERY LEGAL ENTITY IN THE FORMAT do anything, and does it do the same thing the authority does — staged from the entity's own upstream data, with a CONTROL arm that removes only it | anything the pin refuses (a sub-100% chance, a crit), anything `board_state.js` does not compare (PP, ability trapping), and anything no shape rule matches — each named, per entity, with its reason |
 | `test-volatile-duration.js` | does a duration-bearing volatile carry the number Showdown carries, at every turn boundary — applied, re-applied, and left alone. Plays the LIVE tree by default, so it fails on bytes an author just wrote; `--engine release` plays a snapshot's | anything outside the duration family, and the HP consequences of a lock the engine holds but does not ENFORCE on a caller-supplied action — Encore's remaining row |
+| `test-end-state.js` | can the differential say whether a diverged game ENDS in the same board — every branch of the verdict, the stop rule really moving, and a plant that survives to the last board against a cleared control | whether a SAME-END-STATE is right; it is exactly as strong as what `board_state.js` compares, and it says nothing about the turns between the mismatch and the end |
+| `test-coverage-stop.js` | does the run stop on COVERAGE rather than on a number somebody picked, and does a truncation announce itself | whether the coverage that was reached is enough; a stall is the rule firing, not proof the census is covered |
 | `test-nature-differential.js` | is the two engines' Pokemon the SAME Pokemon — chart, arithmetic, the sheet's declared nature reaching both sides, and the line surviving a mega mid-turn | whether either engine plays the game right; it compares BODIES, not turns. The SPREADS, permanently — an open team sheet does not show them |
 
 **Its one number:** mechanics live. **It must never go down.**
@@ -33,8 +36,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  516/516 probed mechanics live, 0 missing   (census 2026-08-12 01:40)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-11 20:26)
+  525/525 probed mechanics live, 0 missing   (census 2026-08-12 17:10)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-12 17:05)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -45,16 +48,238 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 4f2b340d210c now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 3dc37ec2cbfa now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 5e10d7ba991f now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 0876a38f4d37 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 260/279 probed, 19 unprobed
 ```
 
-_stamped 2026-08-12 01:43_
+_stamped 2026-08-12 17:11_
 
 <!-- /GENERATED -->
+
+## ROADMAP #223 — A MOVE TARGETS A SLOT. THIRTEEN CALL SITES HAD THE RULE AND THIRTY BRANCHES DID NOT. 2026-08-12.
+
+**Census 516 live / 0 missing -> 525 live / 0 missing.** Nine new probes, and all nine were shown RED
+on a deliberate break — the choke point disabled, the ally axis disabled, the Leech Seed slot lookup
+reverted — before the fix was trusted: `516 live, 9 missing, 525 probed`. 0 hollow, 0 unarmed,
+0 direct-call.
+
+Will, three times: *"moves target slots not mons"*, *"well bro its gotta target a slot"*,
+*"non negotiable"*.
+
+### THE RULE WAS ALREADY WRITTEN AND ALREADY CORRECT. NOTHING ASKED IT.
+
+`reaimToSlot` has expressed the rule since WIRE 139 and had **thirteen callers** — the attack branch,
+the PP charge, Haze, the phaze, the transform, the status branch, a handful more. **Every other branch
+of the kind dispatch read `a.target` raw**, so the effect landed on the body the chooser had pointed at
+whatever had happened since. Yawn, Soak, Trick, Skill Swap, Worry Seed, Entrainment, Decorate,
+Instruct, Heal Pulse and the Leech Seed drain were all bound to a Pokemon **object**.
+
+**MEASURED, 600 constructed games, four bodies a side, 25% per-body switch rate: 907 emitted
+identifiers could not be placed on the field.** The families, by event: `-start` (Yawn's drowse, Soak's
+typechange), `-item` (Trick), `-ability` (Skill Swap, Worry Seed, Entrainment), `-singleturn`
+(Instruct), `-heal` (the Leech Seed drain), plus ~50 `|move|` lines emitted by a body **executing an
+action while off the field** — Instruct's inserted queue entry, which is the same root cause one step
+downstream rather than a second defect.
+
+### WHY NOTHING IN THIS REPOSITORY COULD SEE IT
+
+The effect lands on an object nobody reads again. **The intended target is untouched and its HP never
+moves**, so the roster, the census, the interaction matrix and every board comparison pass. Fourth
+defect this sprint invisible for exactly that reason, after Regenerator, the weather residual and Focus
+Band. The only detector that existed was `MEDFAILS.traceBodyOffField`, and it needs a **deliberate
+switch** to fire at all: 400 games of pure clicking give 0; 400 with a bench and faints but no
+switches give 0.
+
+### THE FIX IS ONE CHOKE POINT, NOT THIRTY EDITS, AND THAT IS THE POINT RATHER THAN THE ECONOMY
+
+The aim is re-resolved **once per executing action**, above the kind dispatch, at the authority's own
+position (`runMove` resolves its target on its first line, above `OverrideAction` and far above the
+five BeforeMove gates). A per-branch fix is thirty places for the thirty-first branch to be forgotten,
+which is exactly how this survived WIRE 139's consolidation. **All thirteen existing calls stay** and
+are idempotent, so no branch loses the rule if the choke point is ever moved.
+
+Three further bindings, each a slot the engine was not recording:
+
+- **The ally axis did not exist.** `tgtSlot` is an index into the FOE array and reads -1 for anything
+  aimed at my own side, so `reaimToSlot` handed those straight back. Showdown does not have two rules:
+  `getTarget` (sim/battle.ts:2434) resolves ONE signed `targetLoc` through `pokemon.getAtLoc`
+  (sim/pokemon.ts:770), which picks the side off the SIGN. `allySlot` is recorded the same way and read
+  by the same function. **The user itself is deliberately NOT recorded** — this side's slots can be
+  exchanged mid-turn by Ally Switch, and a self-aim re-resolved through a slot index would land on the
+  partner; Showdown avoids the same trap by recomputing `getLocOf(pokemon)` rather than remembering.
+- **Instruct's inserted action** carries both axes now, like every action the collection loop builds.
+- **Leech Seed's drain paid a captured BODY.** The authority is one line —
+  `this.getAtSlot(pokemon.volatiles['leechseed'].sourceSlot)`, data/moves.ts:10221 — so a seeder that
+  pivoted was healed on the bench and the replacement standing in its slot got nothing.
+
+### THE PROBES, AND THE TWO CONTROLS THAT EACH ONE CARRIES
+
+`delayedSleep` (Yawn), `changesTargetType` (Soak), `takesTargetItem` (Trick), `swapsAbilities` (Skill
+Swap), `rewritesTargetAbility` (Worry Seed), `boostsTarget` (Decorate), `healsAlly` (Heal Pulse — the
+ally axis), `perTurnHP` (the Leech Seed drain, two turns, a slot remembered across a turn boundary),
+`instructsTarget` (Instruct, whose outcome is DAMAGE — the branch splices a second action into the
+queue, so the pre-fix engine handed a BENCHED Pokemon a free attack: 130 HP off my side in the control
+arm against 0 when the slot pivots, because a replacement has no last move to repeat).
+
+**"The `??` stopped appearing" is not the claim** and would be satisfied by an emitter that got
+cleverer about naming a body it should never have been handed. Each probe reads WHERE THE EFFECT WENT,
+on both bodies, and carries two controls learned the expensive way:
+
+1. **The switch is asserted to have happened, by slot occupant name, in both arms.** `battleInit` does
+   `teamA.slice(2)`, so a two-body team has an EMPTY bench and a scripted switch is a silent no-op — a
+   probe staged that way reads "the effect stayed on the original body" and scores the engine wrong for
+   a reason that is entirely the fixture's.
+2. **The control arm asserts the effect LANDED.** "It did not land on the wrong body" is satisfied just
+   as well by a click that did nothing.
+
+### `test-protocol-trace.js` PART 6 WAS A REAL ASSERTION AND A VACUOUS ONE
+
+It has always been a `fail()`. It read 0 for months and proved nothing, because PART 1's eight scripted
+scenarios contain three switches between them. It now plays the reproduction — 200 games, four bodies a
+side, 25% switch rate — and asserts **both** halves apart: that the run actually switched (2,967
+switches; an empty bench on any game fails the run outright) and that the counter then stayed 0. On the
+deliberate break the same block reports **325**.
+
+**`ident()` WAS DELIBERATELY NOT TOUCHED.** Making the emitter resolve a label for whatever body it is
+handed would have deleted every `??` and left every wrong-target effect in place, silently. The
+placeholder is the detector.
+
+### ONE RED FIXED THAT WAS NOT MINE TO FIND, AND TWO THAT ARE NOT MINE AT ALL
+
+- **FIXED — `|-clearallboost|` was CLAIMED in TRACE_EVENTS and fired in none of the 28 games.** A
+  coverage gap, not a wiring one: scenario 2 holds a Haze, but on a Slowking that is on the BENCH when
+  the script clicks it. A dedicated scenario now clicks it. The first version of that scenario had the
+  foes attack and **a +2 Earthquake killed the Milotic before it moved**, so the event still did not
+  fire — the foes Protect instead, and Haze is not refused by a Protect.
+- **NOT MINE — `tests/test-nature-differential.js`, 2 failures.** It loads the simulator through
+  `G.REL.require` (the FROZEN release) and `engine/game_differential.js`, which is being edited
+  concurrently. My bytes cannot reach it.
+- **NOT MINE — `tests/roster.js --moves` refuses to report: "the inert click focusenergy moves NO board
+  leaf in either engine".** `engine/board_state.js` gained nine per-body volatile leaves on this same
+  pass, `focusenergy` among them, and medicham2 has no Focus Energy volatile. **Verified by
+  attribution, not asserted**: the identical failure reproduces with my change reverted.
+
+### THE HAND LIST IS UNCHANGED
+
+Empty, and this pass adds nothing to it. What it does add to the OPEN work is `focusenergy` and the
+other new per-body volatile leaves — an ENGINE gap surfaced by a file this division may not edit.
+
+### WHAT THE DOWNSTREAM OWNER NEEDS TO KNOW
+
+**This is a behaviour change in the turn loop, so `data/game-differential.json` and every whole-game
+number are stale.** They are not re-run here: `engine/game_differential.js` is being edited
+concurrently and measures against a frozen release by design.
+
+## THE END STATE, AND A STOPPING RULE INSTEAD OF A NUMBER SOMEBODY PICKED. 2026-08-12.
+
+Two instrument changes, no engine change. **The census did not move because of anything here** — it
+reads 524 live / 0 missing, and nothing in this pass touches `medicham2-browser.js`.
+
+### 1. `--end-state`: how much of the divergence is just wording
+
+Will: *"how much is just medicham being semantic"*. The driver stopped at the first mismatched LINE
+(protocol) or the first mismatched BOARD (`--state`), so the END of a diverged game had never been
+reached and the question could not be asked. `--end-state` is a THIRD stop rule: play to the turn cap
+or to the end of the battle whatever either comparator already found, and compare the LAST board both
+engines produced. It reuses `identicalAtEndOfTurn`'s machinery and `board_state.js`; there is no
+second comparator.
+
+**MEASURED, release `6155acc0fb26` — the same release as the standing 31.9% / 36.6% bar —
+2,300 games per arm, frozen team pool, `data/game-differential-endstate.json`:**
+
+| arm | protocol parted | SAME end state (WORDING) | DIFFERENT (REAL) | ENDED APART | threw |
+|---|---|---|---|---|---|
+| top-tie-first | 673 | **423 — 62.9%** | 247 — 36.7% | 3 | 0 |
+| bottom-tie-first | 717 | **434 — 60.5%** | 275 — 38.4% | 8 | 0 |
+
+**"EMISSION IS MOSTLY COSMETIC" IS REFUTED, AND IT IS THE LEAST COSMETIC SHAPE THERE IS.** The
+assumption had been repeated without evidence. Percentage of parted games reaching the same end state,
+by shape (top / bottom): **ORDERING 82.0 / 79.4, RULE 70.8 / 64.1, UNPARSED 59.5 / 56.2, FIELD 60.0 /
+50.0, EMISSION 53.9 / 53.1.** The two shapes that read as "serious" are the ones that most often end
+nowhere, and the emission family — 295 and 273 games, the largest — is the one that most often does
+not.
+
+**AND THE PROTOCOL INSTRUMENT IS BLIND IN THE OTHER DIRECTION: 28 games (top) and 20 (bottom) whose
+narration NEVER parted ended on DIFFERENT boards.** A first-divergence-line instrument cannot see
+those at all.
+
+**ENDED-APART IS A THIRD ANSWER AND IS NOT COUNTED EITHER WAY** — one engine had ended the battle and
+the other had not, on 3 and 8 games. The board can read identical at that instant; that is not
+agreement, and folding it in would have flattered the wording rate.
+
+**THE END-STATE WORKLIST — what still differs on the last board** (top arm, games): `active[].hp` 179,
+`party.hp` 144, `active[].ability` 112, `active[].types` 78, `active[].item` 76, `active[].species` 74,
+`active[].maxhp` 69, `pp[].protect` 49, `active[].boosts.atk` 47.
+
+Probe: `tests/test-end-state.js` — every branch of the verdict on fabricated rows (including the two a
+real run may never produce), the stop rule proven to have MOVED (a game that parts on turn 1 must still
+be playing on turn 2), and a planted item difference that survives to the last board, **localised, with
+the same pair and seed run clean as an explicit control**. Shown red on all eight assertions first.
+
+### 2. `--until-covered`: the run stops on coverage, not on a count
+
+The game count had been picked arbitrarily — 45, 90, 1,200, 983 — while the rate runner next door
+derives its trials from power. Will: *"run until each mechanic has been exercised."* The run now plays
+in batches, keeps going while new census rows are still credited, and stops after K consecutive quiet
+batches. **A game budget or an exhausted team pool is a TRUNCATION, reported as one, loudly.**
+
+**IT STOPPED ON COVERAGE: 23 batches of 100 = 2,300 games, three consecutive batches crediting nothing
+new, backstop 6,000 never reached.** 441 of 463 measurable rows credited (206 of 217 by an OBSERVED
+EFFECT). Rows were still trickling in as late as batch 20, so **K is a knob and a larger K would credit
+a few more** — the rule fired 300 games after the last new row.
+
+**THE 22 ROWS STILL NOT EXERCISED, BY NAME**, because a count is not a worklist —
+witnessable and never witnessed: `ability:clearsAllyBoostsOnEntry`, `ability:addsOwnSecondary`,
+`ability:preventsSwitch`, `move:boostsAlliesWithAbility`, `move:survivesAnyHit`,
+`ability:doublesBerryEffect`, `ability:picksUpUsedItem`, `move:restoresOwnLastItem`,
+`ability:suppressesOwnItem`, `ability:refusesItemLoss`, `ability:copiesFoeBoosts`; naming no board leaf
+at all, so only a connected click could credit them: `ability:transformsOnEntry`,
+`move:failsWithoutTerrain`, `move:guaranteesNextMove`, `ability:typeFollowsTerrain`,
+`ability:inheritsAllyAbility`, `move:spendsVolatile`, `ability:refusesForcedSwitch`,
+`move:setsOwnTypeAlways`, `item:restoresPP`, `ability:removesOwnMoveFlag`.
+
+**`clicked_but_always_missed` DID NOT MEAN WHAT ITS NAME SAID, AND THE ERROR WAS 14x.** It published
+every move that missed AT LEAST ONCE in ANY arm — but the top arm misses every sub-100 move and the
+bottom arm hits it, and both fill the same map. Measured here: **56–58 moves missed at least once, and
+exactly 4 never connected in either arm — `ceaselessedge`, `hyperbeam`, `icehammer`, `scald`.** The old
+key keeps its old value so nothing downstream changes meaning silently; `clicked_but_never_connected`
+is the honest one.
+
+Probe: `tests/test-coverage-stop.js` — every branch of the decision, that a truncation outranks a stall
+when both are true, and an end-to-end run on a deliberately too-small budget that must SHOUT. Shown red
+first.
+
+### 3. The board grew nine leaves, and each was printed before it was wired
+
+`tests/probe_volatile_leaves.js` stages each candidate volatile with a carrier **derived from the
+format's own learnsets** and prints what BOTH engines hold. Wired (both engines hold it):
+**aqua ring, ingrain, magnet rise, focus energy, torment, imprison, salt cure, syrup bomb, and the
+two-turn charge lock** — as PRESENCE, since medicham2 writes a bare 1 where Showdown carries a clock.
+Each has its own plant; `tests/test-state-differential.js` reports **36/36 applied, caught at the
+planted boundary and localised**.
+
+**DECLARED, NOT SILENTLY OMITTED** (in `board_state.js`'s `NOT_COMPARED`): yawn, attract, curse and
+heal block — **NEITHER engine produced them in the probe's fixture, which is a claim about the FIXTURE
+and not about the mechanic**; destiny bond — **one-sided and therefore a SUSPECT, not a leaf**:
+medicham2 still held `_vol.destinybond` after its user had moved again where Showdown had cleared it,
+which wants a probe of its own before it is wired; and the DURATIONS on magnet rise and syrup bomb,
+which medicham2 does not carry at all.
+
+**THE SWEEP PAID, AND IT NAMES A DEFECT NOTHING COULD SEE BEFORE.** Of the nine leaves, seven never
+parted a board in 4,600 games — and **the two-turn charge lock parted 11**, where it is the FIRST
+divergent board leaf, and still differs at the END of 8 games in the top arm and 7 in the bottom.
+`active[].vol.torment` parted 1. The two engines disagree about whether a body is committed to a
+charge; that is an open question for the next pass, and until this sweep no instrument in the repo
+compared it. It sits beside `active[].vol.encore`, `substitute`, `disable` and `perish`, which the
+board already carried.
+
+**THE SECOND RUN IS NOT A CLEAN BEFORE/AFTER AND MUST NOT BE READ AS ONE.**
+`data/game-differential-endstate-v2.json` (release `a81663f17c0c`, 63.4% / 60.8%) has the nine leaves
+in — and **another division edited `medicham2-browser.js` between the two runs**, so the two arms differ
+in the board AND in the engine. The headline above is the run on `6155acc0fb26`.
 
 ## ROADMAP #222 — FIVE DICE, NOT ONE. THE COUPLING WAS REAL AND IT WAS NOT THE EXPLANATION. 2026-08-11.
 

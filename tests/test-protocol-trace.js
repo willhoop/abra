@@ -217,6 +217,31 @@ const SCENARIOS = [
      { a: [{ m: 'kingsshield' }, { m: 'moonblast', t: 0 }], b: [{ m: 'scald', t: 0 }, { m: 'dragonclaw', t: 0 }] },
      { a: [{ m: 'ironhead', t: 1 }, { m: 'moonblast', t: 0 }], b: [{ m: 'scald', t: 0 }, { m: 'dragonclaw', t: 0 }] },
      { a: null, b: null }, { a: null, b: null }]],
+
+  /* ROADMAP #223 — HAZE, CLICKED ON PURPOSE, for the same reason the Lum Berry and the multi-hit
+   * volley two blocks up are here. `|-clearallboost|` was CLAIMED in TRACE_EVENTS and fired in none of
+   * the 28 games above, and this file was reporting that as a failure: scenario 2 does hold a Haze,
+   * but it belongs to a Slowking on the BENCH, and by the turn the script clicks it the body standing
+   * in that slot has changed — so the click never reached the branch. The mechanic itself was never
+   * broken, which is exactly why a coverage gap must be closed with a scenario and not with a claim
+   * removed from TRACE_EVENTS.
+   *
+   * BOTH FOES BOOST ON TURN 1, so the line cannot be produced by a click that fizzled: the stages are
+   * visibly up in the stream and visibly gone after. THE FOES THEN PROTECT ON THE HAZE TURN, and that
+   * is measured rather than tidy — the first version of this scenario had them attack and the +2
+   * Earthquake KILLED THE MILOTIC BEFORE IT MOVED, so the Haze never happened and the event still did
+   * not fire. Haze is not refused by a Protect (it clears the field, it does not target a body), so
+   * the shield costs the scenario nothing. */
+  ['Haze: both foes boost, then the whole field is cleared',
+    () => [mon('milotic', ['haze', 'scald', 'icywind', 'protect'], 'marvelscale', ''),
+           mon('clefable', ['moonblast', 'protect', 'followme', 'helpinghand'], 'unaware', ''),
+           mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
+    () => [mon('snorlax', ['curse', 'bodyslam', 'protect', 'yawn'], 'thickfat', ''),
+           mon('garchomp', ['swordsdance', 'earthquake', 'protect', 'rockslide'], 'roughskin', ''),
+           mon('toxapex', ['scald', 'recover', 'protect', 'toxic'], 'regenerator', '')],
+    [{ a: [{ m: 'protect' }, { m: 'protect' }], b: [{ m: 'curse' }, { m: 'swordsdance' }] },
+     { a: [{ m: 'haze' }, { m: 'moonblast', t: 0 }], b: [{ m: 'protect' }, { m: 'protect' }] },
+     { a: null, b: null }, { a: null, b: null }]],
 ];
 
 const seen = {};
@@ -393,12 +418,100 @@ console.log('\nPART 4 — counts are derived from the stream, not kept beside it
   else pass('traceCanon canonicalises per field and is idempotent');
 }
 
-/* ================= PART 6 — NO IDENTIFIER FELL BACK ============================================= */
+/* ================= PART 6 — NO IDENTIFIER FELL BACK =============================================
+ *
+ * ROADMAP #223 — THIS ASSERTION WAS REAL AND VACUOUS, WHICH IS WORSE THAN ABSENT.
+ *
+ * The line below has always been a `fail()`. It read 0 for months and proved nothing, because the
+ * eight scenarios in PART 1 above are SCRIPTED games in which exactly three switches occur. The
+ * defect it exists to catch — an effect bound to a Pokemon OBJECT rather than to the slot it was
+ * aimed at — is reachable only when the aimed slot CHANGES HANDS between the choice and the effect,
+ * and that is a switch. Measured while this block was being written:
+ *     400 games of pure clicking, no switches at all ............... 0
+ *     400 with a bench and faints but no deliberate switches ....... 0
+ *     600 with a real bench and a 25% per-body switch rate ........ 907
+ * So the counter is now read AFTER a run built to reach it, and the two halves are asserted apart:
+ * the run must be shown to have SWITCHED (or it is the 400-game arm again, reporting a pass it has
+ * not earned), and it must then be shown to have placed every identifier.
+ *
+ * FOUR BODIES A SIDE, AND THAT IS A CORRECTNESS CONDITION RATHER THAN A GENEROSITY. `battleInit`
+ * does `teamA.slice(2)`, so a two-body or three-body team has a bench of at most one and a scripted
+ * switch is frequently a silent no-op. A harness built that way reports zero switches, zero orphans
+ * and a green PART 6 — which is the exact shape of a capability that cannot prove it ran.
+ *
+ * IT DOES NOT FIX `ident()`. Making the emitter resolve a label for whatever body it is handed would
+ * delete every `??` and leave every wrong-target effect in place, silently. The placeholder is the
+ * detector; what is asserted is that nothing is ever handed an off-field body. */
 console.log('\nPART 6 — every identifier resolved to a real slot');
+{
+  const POOL = [
+    ['slowking',   ['skillswap', 'yawn', 'scald', 'trickroom'],           'regenerator', 'leftovers'],
+    ['clefable',   ['soak', 'healpulse', 'followme', 'moonblast'],        'unaware',     'leftovers'],
+    ['oranguru',   ['instruct', 'afteryou', 'psychic', 'trickroom'],      'telepathy',   'sitrusberry'],
+    ['whimsicott', ['leechseed', 'worryseed', 'taunt', 'moonblast'],      'prankster',   'focussash'],
+    ['sableye',    ['entrainment', 'quash', 'knockoff', 'willowisp'],     'prankster',   'leftovers'],
+    ['grimmsnarl', ['lightscreen', 'spiritbreak', 'trick', 'thunderwave'], 'prankster',  'lightclay'],
+    ['farigiraf',  ['guardswap', 'powerswap', 'psychic', 'trickroom'],    'armortail',   'leftovers'],
+    ['milotic',    ['scald', 'icywind', 'haze', 'protect'],               'marvelscale', ''],
+    ['snorlax',    ['bodyslam', 'yawn', 'curse', 'protect'],              'thickfat',    'lumberry'],
+    ['garchomp',   ['earthquake', 'dragonclaw', 'rockslide', 'protect'],  'roughskin',   'focussash'],
+    ['incineroar', ['fakeout', 'knockoff', 'flareblitz', 'protect'],      'intimidate',  'sitrusberry'],
+    ['toxapex',    ['toxic', 'recover', 'scald', 'protect'],              'regenerator', 'blacksludge'],
+  ];
+  const N = 200, SWRATE = 0.25;
+  const before = M.fails.traceBodyOffField;
+  let switches = 0, lines = 0, benchEmpty = 0;
+  const orphans = [];
+  for (let g = 0; g < N; g++) {
+    const rng = mkRng(1000 + g * 7919);
+    const pick = () => { const out = [], used = new Set();
+      while (out.length < 4) { const i = Math.floor(rng() * POOL.length); if (used.has(i)) continue; used.add(i);
+        const r = POOL[i], b = M.buildMon(r[0], {});
+        if (!b) throw new Error('no MC row for ' + r[0]);
+        b.moves = r[1].slice(); b.ability = r[2]; b.item = r[3] || ''; out.push(b); }
+      return out; };
+    const trace = [];
+    const S = M.battleInit(pick(), pick(), { trace });
+    if (!S.benchA.length || !S.benchB.length) benchEmpty++;
+    for (let t = 0; t < 20 && !M.battleOver(S); t++) {
+      const mk = (own, foes, bench) => {
+        const map = new Map();
+        own.forEach((mm) => {
+          if (!mm || mm.fainted) return;
+          if (rng() < SWRATE) {
+            const cand = bench.filter(x => x && !x.fainted && own.indexOf(x) < 0);
+            if (cand.length) { map.set(mm, { kind: 'switch', to: cand[Math.floor(rng() * cand.length)] }); switches++; return; }
+          }
+          const mv = mm.moves[Math.floor(rng() * mm.moves.length)];
+          const liveFoes = foes.filter(x => x && !x.fainted);
+          map.set(mm, M.playerAction(mm, mv, liveFoes.length ? liveFoes[Math.floor(rng() * liveFoes.length)] : null, S.field));
+        });
+        return map;
+      };
+      M.battleTurn(S, rng, mk(S.actA, S.actB, S.benchA), mk(S.actB, S.actA, S.benchB));
+    }
+    lines += trace.length;
+    for (const l of trace) if (l.indexOf('??:') >= 0 && orphans.length < 8) orphans.push(l);
+  }
+  const grew = M.fails.traceBodyOffField - before;
+  console.log('  ' + N + ' constructed games, 4 bodies a side, ' + SWRATE * 100 + '% per-body switch rate: '
+    + switches + ' switches, ' + lines + ' trace lines');
+  /* THE FLOOR ON THE HARNESS ITSELF, and it is the half that stops this from going quietly vacuous
+   * again. A run with no switches in it cannot have exercised the rule whatever the counter says. */
+  if (benchEmpty) fail(benchEmpty + '/' + N + ' games were staged with an EMPTY bench — battleInit '
+    + 'slices at index 2, so a switch in those games is a silent no-op and PART 6 is testing nothing');
+  else if (switches < N) fail('only ' + switches + ' switches across ' + N + ' games — the reproduction '
+    + 'needs switching to reach the defect at all, and a low-switch run reports a pass it has not earned');
+  else pass(switches + ' switches actually happened, across ' + N + ' games with a real bench on both sides');
+  if (grew) fail('MEDFAILS.traceBodyOffField grew by ' + grew + ' over the reproduction (first: '
+    + M.fails.traceBodyOffFieldFirst + ') — an effect was bound to a Pokemon OBJECT and the body had '
+    + 'left the field by the time it landed. First ' + orphans.length + ':\n      ' + orphans.join('\n      '));
+  else pass('traceBodyOffField stayed 0 across the reproduction: every effect resolved to a live slot');
+}
 if (M.fails.traceBodyOffField)
   fail('MEDFAILS.traceBodyOffField = ' + M.fails.traceBodyOffField
     + ' (first: ' + M.fails.traceBodyOffFieldFirst + ') — a `??` identifier reached the stream');
-else pass('traceBodyOffField = 0 across every game above');
+else pass('traceBodyOffField = 0 across every game in this file');
 
 /* ================= PART 5 — THE ACCEPTANCE TEST ================================================= */
 /* ROADMAP #81 WIRE 11, 2026-08-07 -- THIS TEST HAS BEEN REWRITTEN, AND IT TOLD US TO. Its medicham

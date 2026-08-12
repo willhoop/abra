@@ -114,25 +114,12 @@ live.sort((a, b) => (b.uses - a.uses) || (b.games - a.games));
  * still be a real disagreement, because the authority was pinned the same way and the divergence
  * survived anyway. So this marks and never excludes. A cause dropped for smelling like an artefact is
  * a defect nobody will look at again.
- */
-const LINE = (s) => {
-  const t = String(s || '').trim();
-  if (!t.startsWith('|')) return null;
-  const parts = t.split('|').slice(1);
-  return { event: parts[0] || '', slot: (parts[1] || '').split(':')[0], rest: parts.slice(2).join('|') };
-};
-const PINNED = /accuracy|acc\b|crit|secondar|damage|protect|stall|miss|-fail/i;
-
-function shapeOf(cause) {
-  const body = String(cause).replace(/^[^:]*:: /, '');
-  const half = body.split(' <> ');
-  const a = LINE(half[0]), b = LINE(half[1]);
-  if (!a || !b) return { shape: 'UNPARSED', key: body.slice(0, 40) };
-  if (a.event === b.event && a.slot !== b.slot) return { shape: 'ORDERING', key: a.event };
-  if (a.slot === b.slot && a.event !== b.event) return { shape: 'RULE', key: a.event + ' vs ' + b.event };
-  if (a.event === b.event && a.slot === b.slot) return { shape: 'FIELD', key: a.event };
-  return { shape: 'EMISSION', key: a.event + ' vs ' + b.event };
-}
+ *
+ * IT LIVES IN `engine/divergence_shape.js` AND NOT HERE, since 2026-08-12. The rule above is now read
+ * by TWO callers — this rollup and `engine/game_differential.js`, which cross-tabs the end-state
+ * verdict against the shape — and two copies of it would have agreed on the day they were written and
+ * disagreed the first time either was tuned. */
+const { shapeOf, PINNED } = require('./divergence_shape.js');
 
 for (const r of rows) {
   const s = shapeOf(r.cause);

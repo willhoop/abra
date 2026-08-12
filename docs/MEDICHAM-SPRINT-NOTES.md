@@ -6509,3 +6509,39 @@ the rate-run targets earlier the same day**, repeated within the hour.
 
 A guard that had only ever been green would have passed Rivalry, missed Cute Charm, and looked
 finished.
+
+### EFFECTS BIND A SLOT NOW, NOT A BODY
+
+Will, three times and finally flatly: *"moves target slots not mons"*, *"well bro its gotta target a
+slot"*, *"non negotiable"*.
+
+The re-aim function had the rule and had thirteen callers. **Every other branch of the kind dispatch
+read the target raw.** The fix is one choke point above the dispatch — the target re-resolved once per
+executing action, at the position the authority uses — plus three slot bindings the engine was never
+recording. A per-branch fix would have been thirty places for the thirty-first to be forgotten, which
+is how this survived the wire that introduced the re-aim in the first place.
+
+**Verified with the hunter that found it, not with a report: 1,400 games, zero placeholder lines,
+down from fifty-six.** Census 516 → 525 live, 0 missing.
+
+**The emitter was deliberately left alone.** Resolving a slot label for whatever body it is handed
+would have deleted fifty-six visible markers and left fifty-six silent wrong-target effects. The
+placeholder disappeared because nothing is ever handed an off-field body.
+
+Nine probes, all shown red on a deliberate break first. The load-bearing arm is **where the effect
+went, read on both bodies** — not that the placeholder stopped appearing.
+
+**The ally axis did not exist.** The recorded slot was a foe-array index and minus one for own-side
+aims, so an ally that pivoted was followed by object. The authority has one rule: a single signed
+target location resolved through one function, which picks the side off the sign. The user itself is
+deliberately not recorded, because this side's slots can be exchanged mid-turn and a self-aim through
+a slot index would land on the partner.
+
+**And the brief was slightly wrong, said plainly by the division.** The healing orphans are not the
+same bug: everything else is an execution-time aim, while Leech Seed is a volatile carrying a slot
+across turns. Two fixes, not one. Instruct alone accounted for about fifty — a benched Pokémon getting
+a free attack.
+
+The protocol test's counter assertion was real and **vacuous**: its scripted scenarios contain three
+switches between them, and the defect needs deliberate switching to appear. It now plays real games,
+asserts the run was **shown** to have switched, and only then asserts the counter is zero.

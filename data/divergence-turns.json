@@ -1,0 +1,862 @@
+{
+  "what": "DIVERGING GAMES WITH THE LINES EITHER SIDE OF THE SPLIT. A debugging view, not a measurement. Both the RAW emitted line and the REDUCED line the comparator decides on are kept: the reduced form is what decided, the raw form is what has to be fixed.",
+  "generated": "2026-08-12T21:10:38.861Z",
+  "engine_release": "6155acc0fb26",
+  "team_store_pinned_to": "data/team-pool-frozen",
+  "games": 25,
+  "of_diverged": 93,
+  "divergences": [
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2653923955 vs gen9championsvgc2026regmbbo3-2653751339",
+      "agreed_lines": 120,
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-damage|p2b|H/H <> |-fail|p1b",
+      "at": {
+        "showdown_raw": "|-damage|p2b: Ninetales|7/148",
+        "medicham_raw": "|-fail|p1b: Sneasler",
+        "showdown": "|-damage|p2b:ninetales|7/148",
+        "medicham": "|-fail|p1b:sneasler"
+      },
+      "before": [
+        "|-sideend|p2:|auroraveil",
+        "|upkeep",
+        "|turn|9",
+        "|move|p1b:sneasler|fakeout"
+      ],
+      "after": {
+        "showdown": [
+          "|-damage|p2b: Ninetales|7/148",
+          "|move|p1a: Froslass|Shadow Ball|p2b: Ninetales",
+          "|-damage|p2b: Ninetales|0 fnt",
+          "|faint|p2b: Ninetales"
+        ],
+        "medicham": [
+          "|-fail|p1b: Sneasler",
+          "|move|p1a: Froslass|shadowball|p2b: Ninetales",
+          "|-damage|p2b: Ninetales|0 fnt",
+          "|faint|p2b: Ninetales",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2654208127 vs gen9championsvgc2026regmbbo3-2654334507",
+      "agreed_lines": 47,
+      "cls": "ordering",
+      "cause": "ordering :: |-heal|p2a|H/H|[from]drain <> |faint|p1a",
+      "at": {
+        "showdown_raw": "|-heal|p2a: Venusaur|85/155|[from] drain|[of] p1a: Froslass",
+        "medicham_raw": "|faint|p1a: Froslass",
+        "showdown": "|-heal|p2a:venusaur|85/155|[from]drain",
+        "medicham": "|faint|p1a:froslass"
+      },
+      "before": [
+        "|move|p1b:tsareena|tripleaxel",
+        "|-miss|p1b:tsareena|p2a:venusaur",
+        "|move|p2a:venusaur|gigadrain",
+        "|-damage|p1a:froslass|0fnt"
+      ],
+      "after": {
+        "showdown": [
+          "|-heal|p2a: Venusaur|85/155|[from] drain|[of] p1a: Froslass",
+          "|faint|p1a: Froslass",
+          "|-weather|Snowscape|[upkeep]",
+          "|upkeep",
+          "|switch|p1a: Ninetales|Ninetales-Alola, L50|148/148",
+          "|turn|4"
+        ],
+        "medicham": [
+          "|faint|p1a: Froslass",
+          "|-heal|p2a: Venusaur|85/155|[from] drain",
+          "|-weather|snowscape|[upkeep]",
+          "|upkeep",
+          "|switch|p1a: Ninetales|ninetales-alola, L50|148/148"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2654612503 vs gen9championsvgc2026regmbbo3-2654867419",
+      "agreed_lines": 34,
+      "cls": "ordering",
+      "cause": "ordering :: |switch|p2a|lycanrocdusk,l50|H/H <> |switch|p1a|slowkinggalar,l50|H/H",
+      "at": {
+        "showdown_raw": "|switch|p2a: Lycanroc|Lycanroc-Dusk, L50|150/150",
+        "medicham_raw": "|switch|p1a: Slowking|slowking-galar, L50|170/170",
+        "showdown": "|switch|p2a:lycanroc|lycanrocdusk,l50|150/150",
+        "medicham": "|switch|p1a:slowking|slowkinggalar,l50|170/170"
+      },
+      "before": [
+        "|move|p2b:sableye|knockoff",
+        "|-supereffective|p1b:metagross|1",
+        "|-damage|p1b:metagross|77/155",
+        "|upkeep"
+      ],
+      "after": {
+        "showdown": [
+          "|switch|p2a: Lycanroc|Lycanroc-Dusk, L50|150/150",
+          "|switch|p1a: Slowking|Slowking-Galar, L50|170/170",
+          "|turn|3"
+        ],
+        "medicham": [
+          "|switch|p1a: Slowking|slowking-galar, L50|170/170",
+          "|switch|p2a: Lycanroc|lycanroc-dusk, L50|150/150"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2655267261 vs gen9championsvgc2026regmbbo3-2655495090",
+      "agreed_lines": 25,
+      "cls": "ordering",
+      "cause": "ordering :: |-boost|p2a|def|1 <> |faint|p1a",
+      "at": {
+        "showdown_raw": "|-boost|p2a: Staraptor|def|1",
+        "medicham_raw": "|faint|p1a: Tyranitar",
+        "showdown": "|-boost|p2a:staraptor|def|1",
+        "medicham": "|faint|p1a:tyranitar"
+      },
+      "before": [
+        "|-mega|p1b:garchomp|garchomp|garchompite",
+        "|move|p2a:staraptor|closecombat",
+        "|-supereffective|p1a:tyranitar|2",
+        "|-damage|p1a:tyranitar|0fnt"
+      ],
+      "after": {
+        "showdown": [
+          "|-boost|p2a: Staraptor|def|1",
+          "|-boost|p2a: Staraptor|spd|1",
+          "|faint|p1a: Tyranitar",
+          "|move|p2b: Arcanine|Flare Blitz|p1b: Garchomp",
+          "|-resisted|p1b: Garchomp|1",
+          "|-damage|p1b: Garchomp|129/183"
+        ],
+        "medicham": [
+          "|faint|p1a: Tyranitar",
+          "|-boost|p2a: Staraptor|def|1",
+          "|-boost|p2a: Staraptor|spd|1",
+          "|move|p2b: Arcanine|flareblitz|p1a: Tyranitar",
+          "|-resisted|p1b: Garchomp|1",
+          "|-damage|p1b: Garchomp|129/183"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2655773551 vs gen9championsvgc2026regmbbo3-2656132378",
+      "agreed_lines": 12,
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |move|p2a|dualwingbeat <> |-singleturn|p1b|allyswitch",
+      "at": {
+        "showdown_raw": "|move|p2a: Staraptor|Dual Wingbeat|p1a: Drampa|[miss]",
+        "medicham_raw": "|-singleturn|p1b: Alakazam|move: allyswitch",
+        "showdown": "|move|p2a:staraptor|dualwingbeat",
+        "medicham": "|-singleturn|p1b:alakazam|allyswitch"
+      },
+      "before": [
+        "|-mega|p2a:staraptor|staraptor|staraptite",
+        "|detailschange|p1b:drampa|drampamega,l50",
+        "|-mega|p1b:drampa|drampa|drampanite",
+        "|move|p1a:alakazam|allyswitch"
+      ],
+      "after": {
+        "showdown": [
+          "|move|p2a: Staraptor|Dual Wingbeat|p1a: Drampa|[miss]",
+          "|-miss|p2a: Staraptor|p1a: Drampa",
+          "|move|p2b: Gholdengo|Shadow Ball|p1a: Drampa",
+          "|-immune|p1a: Drampa",
+          "|move|p1a: Drampa|Earth Power|p2a: Staraptor",
+          "|-immune|p2a: Staraptor"
+        ],
+        "medicham": [
+          "|-singleturn|p1b: Alakazam|move: allyswitch",
+          "|move|p2a: Staraptor|dualwingbeat|p1a: Drampa",
+          "|-miss|p2a: Staraptor|p1a: Drampa",
+          "|move|p2b: Gholdengo|shadowball|p1a: Drampa",
+          "|-immune|p1a: Drampa",
+          "|move|p1a: Drampa|earthpower|p2a: Staraptor"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2656286094 vs gen9championsvgc2026regmbbo3-2656657401",
+      "agreed_lines": 13,
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |move|p1a|poisonjab <> |-singleturn|p2a|roost",
+      "at": {
+        "showdown_raw": "|move|p1a: Scolipede|Poison Jab|p2a: Staraptor",
+        "medicham_raw": "|-singleturn|p2a: Staraptor|move: roost",
+        "showdown": "|move|p1a:scolipede|poisonjab",
+        "medicham": "|-singleturn|p2a:staraptor|roost"
+      },
+      "before": [
+        "|detailschange|p1a:scolipede|scolipedemega,l50",
+        "|-mega|p1a:scolipede|scolipede|scolipite",
+        "|move|p2a:staraptor|roost",
+        "|-fail|p2a:staraptor|heal"
+      ],
+      "after": {
+        "showdown": [
+          "|move|p1a: Scolipede|Poison Jab|p2a: Staraptor",
+          "|-damage|p2a: Staraptor|96/160",
+          "|move|p2b: Farigiraf|Thunderbolt|p1a: Scolipede",
+          "|-damage|p1a: Scolipede|80/135",
+          "|move|p1b: Hatterene|Magic Powder|p2a: Staraptor",
+          "|-start|p2a: Staraptor|typechange|Psychic"
+        ],
+        "medicham": [
+          "|-singleturn|p2a: Staraptor|move: roost",
+          "|move|p1a: Scolipede|poisonjab|p2a: Staraptor",
+          "|-damage|p2a: Staraptor|96/160",
+          "|move|p2b: Farigiraf|thunderbolt|p1a: Scolipede",
+          "|-damage|p1a: Scolipede|80/135",
+          "|move|p1b: Hatterene|magicpowder|p2a: Staraptor"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2656808520 vs gen9championsvgc2026regmbbo3-2657146988",
+      "agreed_lines": 19,
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |-end|p1a|substitute <> |-activate|p1a|substitute|[damage]",
+      "at": {
+        "showdown_raw": "|-end|p1a: Gengar|Substitute",
+        "medicham_raw": "|-activate|p1a: Gengar|move: Substitute|[damage]",
+        "showdown": "|-end|p1a:gengar|substitute",
+        "medicham": "|-activate|p1a:gengar|substitute|[damage]"
+      },
+      "before": [
+        "|move|p2a:meowscarada|flowertrick",
+        "|-start|p2a:meowscarada|typechange|grass|[from]protean",
+        "|-resisted|p1a:gengar|1",
+        "|-crit|p1a:gengar"
+      ],
+      "after": {
+        "showdown": [
+          "|-end|p1a: Gengar|Substitute",
+          "|move|p1b: Incineroar|Parting Shot|p2a: Meowscarada",
+          "|-unboost|p2a: Meowscarada|atk|1",
+          "|-unboost|p2a: Meowscarada|spa|1",
+          "|switch|p1b: Kingambit|Kingambit, L50|175/175|[from] Parting Shot",
+          "|upkeep"
+        ],
+        "medicham": [
+          "|-activate|p1a: Gengar|move: Substitute|[damage]",
+          "|-end|p1a: Gengar|Substitute",
+          "|move|p1b: Incineroar|partingshot|p2a: Meowscarada",
+          "|-unboost|p2a: Meowscarada|atk|1",
+          "|-unboost|p2a: Meowscarada|spa|1",
+          "|switch|p1b: Kingambit|kingambit, L50|175/175"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2657278350 vs gen9championsvgc2026regmbbo3-2657663213",
+      "agreed_lines": 26,
+      "cls": "-damage field 3",
+      "cause": "-damage field 3 :: |-damage|p1a|H/H <> |-damage|p1a|H/H  [values differ: |-damage|p1a:charizard|104/153 vs |-damage|p1a:charizard|114/153]",
+      "at": {
+        "showdown_raw": "|-damage|p1a: Charizard|104/153",
+        "medicham_raw": "|-damage|p1a: Charizard|114/153",
+        "showdown": "|-damage|p1a:charizard|104/153",
+        "medicham": "|-damage|p1a:charizard|114/153"
+      },
+      "before": [
+        "|-miss|p1a:charizard|p2a:tyranitar",
+        "|-miss|p1a:charizard|p2b:excadrill",
+        "|move|p2a:tyranitar|lowkick",
+        "|-resisted|p1a:charizard|1"
+      ],
+      "after": {
+        "showdown": [
+          "|-damage|p1a: Charizard|104/153",
+          "|-weather|Sandstorm|[upkeep]",
+          "|-damage|p1a: Charizard|95/153|[from] Sandstorm",
+          "|upkeep",
+          "|turn|2"
+        ],
+        "medicham": [
+          "|-damage|p1a: Charizard|114/153",
+          "|-weather|sandstorm|[upkeep]",
+          "|-damage|p1a: Charizard|105/153|[from] Sandstorm",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2657963367 vs gen9championsvgc2026regmbbo3-2658217289",
+      "agreed_lines": 21,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-miss|p2b|p1a <> |move|p1b|roar",
+      "at": {
+        "showdown_raw": "|-miss|p2b: Aerodactyl|p1a: Dragapult",
+        "medicham_raw": "|move|p1b: Jolteon|roar|p2a: Sableye",
+        "showdown": "|-miss|p2b:aerodactyl|p1a:dragapult",
+        "medicham": "|move|p1b:jolteon|roar"
+      },
+      "before": [
+        "|-miss|p2a:sableye|p1a:dragapult",
+        "|move|p1a:dragapult|phantomforce",
+        "|-prepare|p1a:dragapult|phantomforce",
+        "|move|p2b:aerodactyl|taunt"
+      ],
+      "after": {
+        "showdown": [
+          "|-miss|p2b: Aerodactyl|p1a: Dragapult",
+          "|move|p1b: Jolteon|Roar|p2a: Sableye",
+          "|drag|p2a: Sylveon|Sylveon, L50|170/170",
+          "|upkeep",
+          "|turn|3"
+        ],
+        "medicham": [
+          "|move|p1b: Jolteon|roar|p2a: Sableye",
+          "|drag|p2a: Sylveon|sylveon, L50|170/170",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2658617107 vs gen9championsvgc2026regmbbo3-2658854183",
+      "agreed_lines": 49,
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |faint|p2a <> |-hitcount|p2a|1",
+      "at": {
+        "showdown_raw": "|faint|p2a: Lopunny",
+        "medicham_raw": "|-hitcount|p2a: Lopunny|1",
+        "showdown": "|faint|p2a:lopunny",
+        "medicham": "|-hitcount|p2a:lopunny|1"
+      },
+      "before": [
+        "|-mega|p1a:kangaskhan|kangaskhan|kangaskhanite",
+        "|move|p1a:kangaskhan|drainpunch",
+        "|-supereffective|p2a:lopunny|1",
+        "|-damage|p2a:lopunny|0fnt"
+      ],
+      "after": {
+        "showdown": [
+          "|faint|p2a: Lopunny",
+          "|move|p1b: Archaludon|Thunderbolt|p2b: Incineroar",
+          "|-damage|p2b: Incineroar|47/170",
+          "|-enditem|p2b: Incineroar|Sitrus Berry|[eat]",
+          "|-heal|p2b: Incineroar|89/170|[from] item: Sitrus Berry",
+          "|move|p2b: Incineroar|Flare Blitz|p1a: Kangaskhan"
+        ],
+        "medicham": [
+          "|-hitcount|p2a: Lopunny|1",
+          "|faint|p2a: Lopunny",
+          "|move|p1b: Archaludon|thunderbolt|p2a: Lopunny",
+          "|-damage|p2b: Incineroar|47/170",
+          "|-enditem|p2b: Incineroar|sitrusberry|[eat]",
+          "|-heal|p2b: Incineroar|89/170|[from] item: sitrusberry"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2659285823 vs gen9championsvgc2026regmbbo3-2659582318",
+      "agreed_lines": 13,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-fail|p1b <> |-weather|sandstorm|[upkeep]",
+      "at": {
+        "showdown_raw": "|-fail|p1b: Whimsicott",
+        "medicham_raw": "|-weather|sandstorm|[upkeep]",
+        "showdown": "|-fail|p1b:whimsicott",
+        "medicham": "|-weather|sandstorm|[upkeep]"
+      },
+      "before": [
+        "|-mega|p1a:glimmora|glimmora|glimmoranite",
+        "|move|p1a:glimmora|spikyshield",
+        "|-singleturn|p1a:glimmora|protect",
+        "|move|p1b:whimsicott|encore"
+      ],
+      "after": {
+        "showdown": [
+          "|-fail|p1b: Whimsicott",
+          "|-weather|Sandstorm|[upkeep]",
+          "|-damage|p1b: Whimsicott|127/135|[from] Sandstorm",
+          "|-damage|p2a: Floette|140/149|[from] Sandstorm",
+          "|upkeep",
+          "|turn|2"
+        ],
+        "medicham": [
+          "|-weather|sandstorm|[upkeep]",
+          "|-damage|p1b: Whimsicott|127/135|[from] Sandstorm",
+          "|-damage|p2a: Floette|140/149|[from] Sandstorm",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2659968447 vs gen9championsvgc2026regmbbo3-2660240519",
+      "agreed_lines": 18,
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |-miss|p1b|p2b <> |-miss|p1b|p2a",
+      "at": {
+        "showdown_raw": "|-miss|p1b: Chandelure|p2b: Sinistcha",
+        "medicham_raw": "|-miss|p1b: Chandelure|p2a: Raichu",
+        "showdown": "|-miss|p1b:chandelure|p2b:sinistcha",
+        "medicham": "|-miss|p1b:chandelure|p2a:raichu"
+      },
+      "before": [
+        "|-resisted|p1a:whimsicott|1",
+        "|-damage|p1a:whimsicott|61/135",
+        "|-status|p1a:whimsicott|par",
+        "|move|p1b:chandelure|heatwave"
+      ],
+      "after": {
+        "showdown": [
+          "|-miss|p1b: Chandelure|p2b: Sinistcha",
+          "|-damage|p2a: Raichu|0 fnt",
+          "|faint|p2a: Raichu",
+          "|-weather|SunnyDay|[upkeep]",
+          "|upkeep",
+          "|switch|p2a: Incineroar|Incineroar, L50|170/170"
+        ],
+        "medicham": [
+          "|-miss|p1b: Chandelure|p2a: Raichu",
+          "|-miss|p1b: Chandelure|p2b: Sinistcha",
+          "|-weather|sunnyday|[upkeep]",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2660506226 vs gen9championsvgc2026regmbbo3-2660840929",
+      "agreed_lines": 3,
+      "cls": "switch: a different body",
+      "cause": "switch: a different body :: |switch|p2b|mrrime,l50|H/H <> |switch|p2b|zoroark,l50|H/H",
+      "at": {
+        "showdown_raw": "|switch|p2b: Mr. Rime|Mr. Rime, L50|135/135",
+        "medicham_raw": "|switch|p2b: Zoroark|zoroark, L50|135/135",
+        "showdown": "|switch|p2b:mrrime|mrrime,l50|135/135",
+        "medicham": "|switch|p2b:zoroark|zoroark,l50|135/135"
+      },
+      "before": [
+        "|switch|p1a:tyranitar|tyranitar,l50|175/175",
+        "|switch|p1b:hippowdon|hippowdon,l50|183/183",
+        "|switch|p2a:slowbro|slowbro,l50|170/170"
+      ],
+      "after": {
+        "showdown": [
+          "|switch|p2b: Mr. Rime|Mr. Rime, L50|135/135",
+          "|-weather|Sandstorm|[from] ability: Sand Stream|[of] p1a: Tyranitar",
+          "|turn|1"
+        ],
+        "medicham": [
+          "|switch|p2b: Zoroark|zoroark, L50|135/135",
+          "|-weather|sandstorm|[from] ability: sandstream|[of] p1a: Tyranitar"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2661149577 vs gen9championsvgc2026regmbbo3-2661522263",
+      "agreed_lines": 39,
+      "cls": "ordering",
+      "cause": "ordering :: |switch|p2b|floetteeternal,l50|H/H <> |switch|p2a|sinistcha,l50|H/H",
+      "at": {
+        "showdown_raw": "|switch|p2b: Floette|Floette-Eternal, L50|149/149",
+        "medicham_raw": "|switch|p2a: Sinistcha|sinistcha, L50|146/146",
+        "showdown": "|switch|p2b:floette|floetteeternal,l50|149/149",
+        "medicham": "|switch|p2a:sinistcha|sinistcha,l50|146/146"
+      },
+      "before": [
+        "|move|p1a:garchomp|outrage",
+        "|-damage|p2b:sneasler|0fnt",
+        "|faint|p2b:sneasler",
+        "|upkeep"
+      ],
+      "after": {
+        "showdown": [
+          "|switch|p2b: Floette|Floette-Eternal, L50|149/149",
+          "|switch|p2a: Sinistcha|Sinistcha, L50|146/146",
+          "|turn|4"
+        ],
+        "medicham": [
+          "|switch|p2a: Sinistcha|sinistcha, L50|146/146",
+          "|switch|p2b: Floette|floette-eternal, L50|149/149"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2661756203 vs gen9championsvgc2026regmbbo3-2662283565",
+      "agreed_lines": 19,
+      "cls": "-boost: a different body",
+      "cause": "-boost: a different body :: |-boost|p1a|atk|1 <> |-boost|??:kingambit|atk|1",
+      "at": {
+        "showdown_raw": "|-boost|p1a: Dragonite|atk|1",
+        "medicham_raw": "|-boost|??: kingambit|atk|1",
+        "showdown": "|-boost|p1a:dragonite|atk|1",
+        "medicham": "|-boost|??:kingambit|atk|1"
+      },
+      "before": [
+        "|switch|p1a:dragonite|dragonite,l50|166/166",
+        "|move|p2b:farigiraf|imprison",
+        "|-start|p2b:farigiraf|imprison",
+        "|move|p1b:sneasler|coaching"
+      ],
+      "after": {
+        "showdown": [
+          "|-boost|p1a: Dragonite|atk|1",
+          "|-boost|p1a: Dragonite|def|1",
+          "|-weather|Snowscape|[upkeep]",
+          "|upkeep",
+          "|turn|3"
+        ],
+        "medicham": [
+          "|-boost|??: kingambit|atk|1",
+          "|-boost|??: kingambit|def|1",
+          "|-weather|snowscape|[upkeep]",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2662468182 vs gen9championsvgc2026regmbbo3-2662817525",
+      "agreed_lines": 56,
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |upkeep <> |-activate|p1a|cudchew",
+      "at": {
+        "showdown_raw": "|upkeep",
+        "medicham_raw": "|-activate|p1a: Farigiraf|ability: cudchew",
+        "showdown": "|upkeep",
+        "medicham": "|-activate|p1a:farigiraf|cudchew"
+      },
+      "before": [
+        "|-resisted|p2a:hydreigon|1",
+        "|-damage|p2a:hydreigon|68/167",
+        "|-damage|p1b:incineroar|38/170|[from]recoil",
+        "|-weather|sunnyday|[upkeep]"
+      ],
+      "after": {
+        "showdown": [
+          "|upkeep",
+          "|turn|5"
+        ],
+        "medicham": [
+          "|-activate|p1a: Farigiraf|ability: cudchew",
+          "|-enditem|p1a: Farigiraf|sitrusberry|[eat]",
+          "|-heal|p1a: Farigiraf|182/195|[from] item: sitrusberry",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmb-2634518563 vs gen9championsvgc2026regmbbo3-2635090894",
+      "agreed_lines": 60,
+      "cls": "ordering",
+      "cause": "ordering :: |-enditem|p2b|shucaberry|[eat] <> |-supereffective|p1b|2",
+      "at": {
+        "showdown_raw": "|-enditem|p2b: Tinkaton|Shuca Berry|[eat]",
+        "medicham_raw": "|-supereffective|p1b: Glimmora|2",
+        "showdown": "|-enditem|p2b:tinkaton|shucaberry|[eat]",
+        "medicham": "|-supereffective|p1b:glimmora|2"
+      },
+      "before": [
+        "|move|p2b:tinkaton|feint",
+        "|-damage|p1a:maushold|127/149",
+        "|move|p2a:swampert|earthquake",
+        "|-supereffective|p2b:tinkaton|1"
+      ],
+      "after": {
+        "showdown": [
+          "|-enditem|p2b: Tinkaton|Shuca Berry|[eat]",
+          "|-enditem|p2b: Tinkaton|Shuca Berry|[weaken]",
+          "|-supereffective|p1b: Glimmora|2",
+          "|-damage|p2b: Tinkaton|46/160",
+          "|-damage|p1a: Maushold|4/149",
+          "|-enditem|p1b: Glimmora|Focus Sash"
+        ],
+        "medicham": [
+          "|-supereffective|p1b: Glimmora|2",
+          "|-enditem|p2b: Tinkaton|shucaberry|[eat]",
+          "|-enditem|p2b: Tinkaton|shucaberry|[weaken]",
+          "|-damage|p2b: Tinkaton|46/160",
+          "|-damage|p1a: Maushold|4/149",
+          "|-enditem|p1b: Glimmora|focussash"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2634535224 vs gen9championsvgc2026regmbbo3-2634521488",
+      "agreed_lines": 13,
+      "cls": "-damage field 3",
+      "cause": "-damage field 3 :: |-damage|p1a|0fnt <> |-damage|p1a|H/H",
+      "at": {
+        "showdown_raw": "|-damage|p1a: Basculegion|0 fnt",
+        "medicham_raw": "|-damage|p1a: Basculegion|61/195",
+        "showdown": "|-damage|p1a:basculegion|0fnt",
+        "medicham": "|-damage|p1a:basculegion|61/195"
+      },
+      "before": [
+        "|move|p2b:maushold|superfang",
+        "|-immune|p1a:basculegion",
+        "|move|p2a:annihilape|ragefist",
+        "|-supereffective|p1a:basculegion|1"
+      ],
+      "after": {
+        "showdown": [
+          "|-damage|p1a: Basculegion|0 fnt",
+          "|faint|p1a: Basculegion",
+          "|-heal|p2a: Annihilape|82/185|[from] item: Leftovers",
+          "|upkeep",
+          "|switch|p1a: Kingambit|Kingambit, L50|175/175",
+          "|turn|2"
+        ],
+        "medicham": [
+          "|-damage|p1a: Basculegion|61/195",
+          "|-heal|p2a: Annihilape|82/185|[from] item: leftovers",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2635957252 vs gen9championsvgc2026regmbbo3-2635333183",
+      "agreed_lines": 21,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p2a|encore",
+      "at": {
+        "showdown_raw": "|-fail|p1a: Whimsicott",
+        "medicham_raw": "|move|p2a: Whimsicott|encore|p1a: Whimsicott",
+        "showdown": "|-fail|p1a:whimsicott",
+        "medicham": "|move|p2a:whimsicott|encore"
+      },
+      "before": [
+        "|-unboost|p1b:kingambit|atk|1",
+        "|-boost|p1b:kingambit|atk|2",
+        "|switch|p1b:delphox|delphox,l50|150/150",
+        "|move|p1a:whimsicott|encore"
+      ],
+      "after": {
+        "showdown": [
+          "|-fail|p1a: Whimsicott",
+          "|move|p2a: Whimsicott|Encore||[still]",
+          "|-fail|p2a: Whimsicott",
+          "|upkeep",
+          "|turn|3"
+        ],
+        "medicham": [
+          "|move|p2a: Whimsicott|encore|p1a: Whimsicott",
+          "|-start|p1a: Whimsicott|move: encore",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "omit-protect",
+      "seed": "gen9championsvgc2026regmbbo3-2654054830 vs gen9championsvgc2026regmbbo3-2654493789",
+      "agreed_lines": 48,
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-immune|p2a <> |-unboost|p2a|atk|1",
+      "at": {
+        "showdown_raw": "|-immune|p2a: Incineroar",
+        "medicham_raw": "|-unboost|p2a: Incineroar|atk|1",
+        "showdown": "|-immune|p2a:incineroar",
+        "medicham": "|-unboost|p2a:incineroar|atk|1"
+      },
+      "before": [
+        "|turn|4",
+        "|switch|p1a:whimsicott|whimsicott,l50|135/135",
+        "|switch|p2b:hawlucha|hawlucha,l50|153/153",
+        "|move|p1b:grimmsnarl|partingshot"
+      ],
+      "after": {
+        "showdown": [
+          "|-immune|p2a: Incineroar",
+          "|move|p2a: Incineroar|Flare Blitz|p1a: Whimsicott",
+          "|-supereffective|p1a: Whimsicott|1",
+          "|-enditem|p1a: Whimsicott|Focus Sash",
+          "|-damage|p1a: Whimsicott|1/135",
+          "|-damage|p2a: Incineroar|48/170|[from] Recoil"
+        ],
+        "medicham": [
+          "|-unboost|p2a: Incineroar|atk|1",
+          "|-unboost|p2a: Incineroar|spa|1",
+          "|switch|p1b: Raichu|raichu, L50|5/135",
+          "|move|p2a: Incineroar|flareblitz|p1a: Whimsicott",
+          "|-supereffective|p1a: Whimsicott|1",
+          "|-damage|p1a: Whimsicott|7/135"
+        ]
+      }
+    },
+    {
+      "config": "omit-protect",
+      "seed": "gen9championsvgc2026regmbbo3-2654469023 vs gen9championsvgc2026regmbbo3-2654679618",
+      "agreed_lines": 24,
+      "cls": "-heal field 5",
+      "cause": "-heal field 5 :: |-heal|p2a|H/H|[from]wish|[wisher]floette <> |-heal|p2a|H/H|[from]wish",
+      "at": {
+        "showdown_raw": "|-heal|p2a: Floette|85/149|[from] move: Wish|[wisher] Floette",
+        "medicham_raw": "|-heal|p2a: Floette|85/149|[from] move: wish",
+        "showdown": "|-heal|p2a:floette|85/149|[from]wish|[wisher]floette",
+        "medicham": "|-heal|p2a:floette|85/149|[from]wish"
+      },
+      "before": [
+        "|-miss|p2b:samurott|p1a:arcanine",
+        "|move|p1b:sinistcha|matchagotcha",
+        "|-miss|p1b:sinistcha|p2a:floette",
+        "|-miss|p1b:sinistcha|p2b:samurott"
+      ],
+      "after": {
+        "showdown": [
+          "|-heal|p2a: Floette|85/149|[from] move: Wish|[wisher] Floette",
+          "|upkeep",
+          "|turn|3"
+        ],
+        "medicham": [
+          "|-heal|p2a: Floette|85/149|[from] move: wish",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "omit-protect",
+      "seed": "gen9championsvgc2026regmbbo3-2655711409 vs gen9championsvgc2026regmbbo3-2655994658",
+      "agreed_lines": 13,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-damage|p1a|H/H|[from]lifeorb <> |-heal|p2a|H/H|[from]leftovers",
+      "at": {
+        "showdown_raw": "|-damage|p1a: Incineroar|125/170|[from] item: Life Orb",
+        "medicham_raw": "|-heal|p2a: Araquanid|65/143|[from] item: leftovers",
+        "showdown": "|-damage|p1a:incineroar|125/170|[from]lifeorb",
+        "medicham": "|-heal|p2a:araquanid|65/143|[from]leftovers"
+      },
+      "before": [
+        "|switch|p1b:gallade|gallade,l50|143/143",
+        "|move|p1a:incineroar|flareblitz",
+        "|-damage|p2a:araquanid|57/143",
+        "|-damage|p1a:incineroar|142/170|[from]recoil"
+      ],
+      "after": {
+        "showdown": [
+          "|-damage|p1a: Incineroar|125/170|[from] item: Life Orb",
+          "|-heal|p2a: Araquanid|65/143|[from] item: Leftovers",
+          "|upkeep",
+          "|turn|2"
+        ],
+        "medicham": [
+          "|-heal|p2a: Araquanid|65/143|[from] item: leftovers",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "omit-protect",
+      "seed": "gen9championsvgc2026regmbbo3-2656316595 vs gen9championsvgc2026regmbbo3-2656306216",
+      "agreed_lines": 13,
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |-boost|p2a|evasion|2 <> |-start|p2a|minimize",
+      "at": {
+        "showdown_raw": "|-boost|p2a: Starmie|evasion|2",
+        "medicham_raw": "|-start|p2a: Starmie|move: minimize",
+        "showdown": "|-boost|p2a:starmie|evasion|2",
+        "medicham": "|-start|p2a:starmie|minimize"
+      },
+      "before": [
+        "|move|p1b:starmie|scald",
+        "|-resisted|p2a:starmie|1",
+        "|-damage|p2a:starmie|99/135",
+        "|move|p2a:starmie|minimize"
+      ],
+      "after": {
+        "showdown": [
+          "|-boost|p2a: Starmie|evasion|2",
+          "|upkeep",
+          "|turn|2"
+        ],
+        "medicham": [
+          "|-start|p2a: Starmie|move: minimize",
+          "|-boost|p2a: Starmie|evasion|2",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "omit-protect",
+      "seed": "gen9championsvgc2026regmbbo3-2656624602 vs gen9championsvgc2026regmbbo3-2657333637",
+      "agreed_lines": 11,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-start|p1a|yawn <> |-weather|sandstorm|[upkeep]",
+      "at": {
+        "showdown_raw": "|-start|p1a: Gengar|move: Yawn|[of] p2a: Hippowdon",
+        "medicham_raw": "|-weather|sandstorm|[upkeep]",
+        "showdown": "|-start|p1a:gengar|yawn",
+        "medicham": "|-weather|sandstorm|[upkeep]"
+      },
+      "before": [
+        "|switch|p1a:gengar|gengar,l50|135/135",
+        "|move|p1b:ceruledge|nightslash",
+        "|-damage|p2a:hippowdon|142/183",
+        "|move|p2a:hippowdon|yawn"
+      ],
+      "after": {
+        "showdown": [
+          "|-start|p1a: Gengar|move: Yawn|[of] p2a: Hippowdon",
+          "|-weather|Sandstorm|[upkeep]",
+          "|-damage|p2b: Kangaskhan|169/180|[from] Sandstorm",
+          "|-damage|p1a: Gengar|127/135|[from] Sandstorm",
+          "|-damage|p1b: Ceruledge|141/150|[from] Sandstorm",
+          "|-heal|p1b: Ceruledge|150/150|[from] item: Leftovers"
+        ],
+        "medicham": [
+          "|-weather|sandstorm|[upkeep]",
+          "|-damage|p2b: Kangaskhan|169/180|[from] Sandstorm",
+          "|-damage|p1a: Gengar|127/135|[from] Sandstorm",
+          "|-damage|p1b: Ceruledge|141/150|[from] Sandstorm",
+          "|-heal|p1b: Ceruledge|150/150|[from] item: leftovers",
+          "|-heal|p2a: Hippowdon|153/183|[from] item: leftovers"
+        ]
+      }
+    },
+    {
+      "config": "omit-protect",
+      "seed": "gen9championsvgc2026regmbbo3-2658356295 vs gen9championsvgc2026regmbbo3-2658531212",
+      "agreed_lines": 12,
+      "cls": "-start: a different body",
+      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:swampert|yawn",
+      "at": {
+        "showdown_raw": "|-start|p1a: Aggron|move: Yawn|[of] p2b: Hippowdon",
+        "medicham_raw": "|-start|??: swampert|move: Yawn",
+        "showdown": "|-start|p1a:aggron|yawn",
+        "medicham": "|-start|??:swampert|yawn"
+      },
+      "before": [
+        "|-unboost|p1a:swampert|atk|1",
+        "|-unboost|p1b:beedrill|atk|1",
+        "|switch|p1a:aggron|aggron,l50|145/145",
+        "|move|p2b:hippowdon|yawn"
+      ],
+      "after": {
+        "showdown": [
+          "|-start|p1a: Aggron|move: Yawn|[of] p2b: Hippowdon",
+          "|-weather|Sandstorm|[upkeep]",
+          "|-damage|p2a: Staraptor|150/160|[from] Sandstorm",
+          "|-damage|p1b: Beedrill|132/140|[from] Sandstorm",
+          "|upkeep",
+          "|turn|2"
+        ],
+        "medicham": [
+          "|-start|??: swampert|move: Yawn",
+          "|-weather|sandstorm|[upkeep]",
+          "|-damage|p2a: Staraptor|150/160|[from] Sandstorm",
+          "|-damage|p1b: Beedrill|132/140|[from] Sandstorm",
+          "|upkeep"
+        ]
+      }
+    }
+  ]
+}

@@ -94,6 +94,35 @@ const NOT_COMPARED = [
    * described, which is this repository's most expensive recurring failure, and while it stood PP
    * could have been wrong in every game with nothing to notice. See the `pp-is-what-has-been-spent`
    * mapping for the lazy/eager difference, which is real and is declared rather than collapsed. */
+  /* ---- THE 2026-08-12 SWEEP'S LEFTOVERS. NAMED, BECAUSE AN UNLISTED OMISSION READS AS AGREEMENT --
+   * Nine per-body volatiles were added on this pass (aquaring, ingrain, magnetrise, focusenergy,
+   * torment, imprison, saltcure, syrupbomb and the two-turn charge lock). These are the candidates
+   * from the same sweep that were NOT wired, each with the reason it was not, because "we looked and
+   * did not add it" and "we never looked" are different sentences and only one of them is honest. */
+  { field: 'yawn, attract, curse (the Ghost form) and heal block',
+    why: 'NOT A JUDGEMENT ABOUT THE ENGINES — a claim about the FIXTURE, which is a different thing '
+       + '(Will has taught this twice). tests/probe_volatile_leaves.js staged each with a legal carrier '
+       + 'and NEITHER engine produced the volatile: Yawn and Psychic Noise were aimed at a body whose '
+       + 'ability or status refused them, Attract needs opposite genders that the staged pair did not '
+       + 'have, and Curse writes no volatile at all on a non-Ghost user. medicham2 demonstrably HOLDS '
+       + 'yawn (`_yawn`, `_vol.yawn`), attract (`_vol.attract`) and healblock (`_vol.healblock`), so '
+       + 'the leaf is almost certainly comparable — it is left out because wiring a leaf whose two '
+       + 'shapes have never been SEEN is how a comparator starts manufacturing divergences.',
+    next: 'give probe_volatile_leaves.js a fixture that actually lands each one, then wire it' },
+  { field: 'destiny bond',
+    why: 'ONE-SIDED IN THE PROBE AND THEREFORE A SUSPECT, NOT A LEAF. At the last boundary of a '
+       + 'two-turn script medicham2 still held `_vol.destinybond = 1` after its user had moved again '
+       + 'and Showdown held nothing — Showdown clears the volatile when the user next moves. Wiring it '
+       + 'now would part every board carrying a Destiny Bond and present a possible ENGINE DEFECT as a '
+       + 'comparison leaf. It is named here so it gets a probe of its own.',
+    next: 'a directed scenario: click Destiny Bond, then move again, and compare the two engines' },
+  { field: 'the DURATIONS on magnet rise and syrup bomb, and WHICH move a charge is committed to',
+    why: 'the presence of all three IS compared. Showdown carries a clock on magnetrise and syrupbomb '
+       + 'and medicham2 writes a bare 1, so comparing the numbers would part every board carrying one '
+       + 'on the READER\'S representation rather than on a rule. The missing clock is a real gap in '
+       + 'medicham2 and is stated here rather than absorbed into a `!!`. Likewise the two-turn lock: '
+       + 'medicham2 names the move in `_charging` and Showdown in a separate volatile keyed by the '
+       + 'move id, and a mismatch there would be a reader question.' },
   { field: 'the stall counter behind consecutive Protect',
     why: 'medicham2 holds `tookProtectTurns` (a count UP of consecutive successful shields) and '
        + 'Showdown holds a `stall` volatile with a `counter` that is a DENOMINATOR (3, 9, 27). They '
@@ -488,6 +517,31 @@ function mediBody(m, id) {
       confusion: num(vol.confusion),
       perish: m._perish == null ? 0 : num(m._perish),
       trapped_by_move: m._trap ? num(m._trap.turns) : 0,
+      /* ---- THE SWEEP OF 2026-08-12, AND EVERY ROW OF IT WAS PRINTED BEFORE IT WAS WIRED ---------
+       * `tests/probe_volatile_leaves.js` stages each of these with a LEGAL carrier derived from the
+       * format's own learnsets and prints what BOTH engines hold. Only the rows that came back BOTH
+       * are here; the rest are declared in NOT_COMPARED with the reason and the probe named. An
+       * unlisted omission reads exactly like "compared and equal", which is how typing survived
+       * uncompared until ROADMAP #225.
+       *
+       * COMPARED AS PRESENCE, NOT AS A CLOCK, AND THAT IS A NARROWING SAID OUT LOUD. medicham2 writes
+       * a bare 1 for all of these; Showdown carries a duration on `magnetrise` (5) and `syrupbomb` (3)
+       * and none on the others. Comparing a 1 against a 3 would part every board carrying one and
+       * would be the comparator's representation, not a rule disagreement. The MISSING CLOCK is a real
+       * gap and it is named in NOT_COMPARED rather than hidden inside a `!!`. */
+      aquaring: vol.aquaring ? 1 : 0,
+      ingrain: vol.ingrain ? 1 : 0,
+      magnetrise: vol.magnetrise ? 1 : 0,
+      focusenergy: vol.focusenergy ? 1 : 0,
+      torment: vol.torment ? 1 : 0,
+      imprison: vol.imprison ? 1 : 0,
+      saltcure: vol.saltcure ? 1 : 0,
+      syrupbomb: vol.syrupbomb ? 1 : 0,
+      /* THE TWO-TURN LOCK. medicham2 holds the move id in `_charging` and Showdown a `twoturnmove`
+       * volatile; both answer "is this body committed to a charge". WHICH move is not compared — see
+       * NOT_COMPARED — because the two engines name it in different places and a mismatch there would
+       * be a reader question rather than a rule one. */
+      charging: m._charging ? 1 : 0,
     },
   };
 }
@@ -519,6 +573,17 @@ function sdBody(p, id) {
       confusion: v.confusion ? num(v.confusion.time) : 0,
       perish: v.perishsong ? num(v.perishsong.duration) : 0,
       trapped_by_move: dur(v.partiallytrapped),
+      /* THE AUTHORITY'S SIDE OF THE 2026-08-12 SWEEP. Presence only, for the reason given on the
+       * medicham side: three of these carry a duration here and none of them does there. */
+      aquaring: v.aquaring ? 1 : 0,
+      ingrain: v.ingrain ? 1 : 0,
+      magnetrise: v.magnetrise ? 1 : 0,
+      focusenergy: v.focusenergy ? 1 : 0,
+      torment: v.torment ? 1 : 0,
+      imprison: v.imprison ? 1 : 0,
+      saltcure: v.saltcure ? 1 : 0,
+      syrupbomb: v.syrupbomb ? 1 : 0,
+      charging: v.twoturnmove ? 1 : 0,
     },
   };
 }

@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 154,
+  "mtime_only": 156,
   "mtime_only_files": [
     "ab-batch-effect.json",
     "ability-blocks.json",
@@ -27,6 +27,7 @@
     "damage-validation.json",
     "degradation-budgets.json",
     "divergence-report.json",
+    "divergence-turns.json",
     "docs-currency-baseline.json",
     "double-protect.json",
     "dynamics.json",
@@ -150,6 +151,7 @@
     "vocab-usage.json",
     "war.json",
     "weight-multiplicity.json",
+    "whole-game-baseline.json",
     "winrate-backtest.json",
     "wire-ladder-census.pin.json",
     "xatu-belief.json",
@@ -192,6 +194,7 @@
     "diff-swarm.json",
     "diff-team-pool.json",
     "divergence-report.json",
+    "divergence-turns.json",
     "docs-currency-baseline.json",
     "double-protect.json",
     "dusk-size-gate.json",
@@ -212,6 +215,8 @@
     "format-audit.json",
     "forme-assert.json",
     "game-diff.json",
+    "game-differential-endstate-v2.json",
+    "game-differential-endstate.json",
     "game-differential.json",
     "guru-matchups.json",
     "guru.js",
@@ -347,6 +352,7 @@
     "vocab-usage.json",
     "war.json",
     "weight-multiplicity.json",
+    "whole-game-baseline.json",
     "winrate-backtest.json",
     "wire-ladder-census.pin.json",
     "wire-ladder.json",
@@ -638,7 +644,27 @@
       "files": [
         "divergence-report.json"
       ]
+    },
+    {
+      "when": "2026-08-12T20:46:28.818Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 write line",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 192,
+      "graph_after": 193,
+      "files": [
+        "whole-game-baseline.json"
+      ]
+    },
+    {
+      "when": "2026-08-12T21:11:26.253Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 path variable",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 195,
+      "graph_after": 196,
+      "files": [
+        "divergence-turns.json"
+      ]
     }
   ],
-  "generated": "2026-08-12T05:43:16.640Z"
+  "generated": "2026-08-12T21:11:26.253Z"
 }

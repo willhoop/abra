@@ -403,7 +403,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * spends up to three real turns through `battleTurn`, and it has to: the whole mechanic is a fact
  * carried ACROSS a turn boundary -- what the body CONSUMED on an earlier turn -- and the berry that
  * creates that fact fires at the residual, so nothing below the turn loop can see either end of it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -17035,6 +17035,253 @@ probe('move', 'stallCounterChecks', 'the stall counter has its OWN die — pinni
                  + 'Same seed reproduces: ' + repeatable + '; a different seed differs: ' + seedMatters
                  + '; acc and crit are independent streams: ' + independent + '; and a PLAIN FUNCTION '
                  + 'still aliases every stream so nothing else in this file moved: ' + aliased };
+});
+
+/* ================================================================================================
+ * ROADMAP #223 — A MOVE TARGETS A SLOT, AND THE EFFECT LANDS ON WHOEVER IS STANDING IN IT.
+ *
+ * Will, three times: *"moves target slots not mons"*, *"well bro its gotta target a slot"*,
+ * *"non negotiable"*. The engine had the rule and applied it in THIRTEEN places (`reaimToSlot`, WIRE
+ * 139) — the attack branch, the PP charge, Haze, the phaze, the transform, the status branch. Every
+ * other branch of the kind dispatch read `a.target` raw, so Yawn, Soak, Trick, Skill Swap, Worry
+ * Seed, Entrainment, Decorate, Instruct and Heal Pulse all landed on the body the chooser had
+ * pointed at, wherever it had got to since.
+ *
+ * WHY NOTHING IN THIS FILE COULD SEE IT, WHICH IS THE POINT OF THESE NINE PROBES.
+ * The effect lands on an object nobody reads again. The INTENDED target is untouched, so its HP never
+ * moves, and the roster, the interaction matrix and every board comparison pass — the same
+ * invisibility as Regenerator, the weather residual and Focus Band. The ONLY existing detector was
+ * `MEDFAILS.traceBodyOffField`, a protocol-trace counter, and it only fires when a game actually
+ * SWITCHES: 400 games of pure clicking produce zero, and 600 with a real bench and a 25% per-body
+ * switch rate produced 907.
+ *
+ * SO EVERY PROBE HERE VARIES ONE THING — WHETHER THE AIMED SLOT CHANGED HANDS — AND READS WHERE THE
+ * EFFECT WENT, on BOTH bodies. "The `??` stopped appearing" is not the claim and would be satisfied
+ * by an emitter that got cleverer about naming a body it should never have been handed.
+ *
+ * TWO CONTROLS, BOTH LOAD-BEARING AND BOTH LEARNED THE EXPENSIVE WAY:
+ *   1. THE SWITCH MUST BE SHOWN TO HAVE HAPPENED. `battleInit` does `teamA.slice(2)`, so a two-body
+ *      team has an EMPTY bench and a scripted switch silently does nothing — a probe staged that way
+ *      would read "the effect stayed on the original body" and score the engine WRONG for a reason
+ *      that is entirely the fixture's. Every probe asserts the slot's occupant by NAME in both arms.
+ *   2. THE CONTROL ARM MUST SHOW THE EFFECT LANDING AT ALL. "It did not land on the wrong body" is
+ *      satisfied just as well by a click that did nothing, so the no-switch arm asserts the effect on
+ *      the originally named body and the switch arm asserts it on the replacement AND its absence on
+ *      the body that left. */
+const slotFoe = (o) => {
+  const me = bare(o.user || 'slowking'), ally = bare(o.ally || 'clefable');
+  const f1 = bare(o.foe || 'garchomp'), f2 = bare('milotic'), fb = bare(o.repl || 'snorlax');
+  if (o.userItem !== undefined) me.item = o.userItem;
+  if (o.foeItem !== undefined) f1.item = o.foeItem;
+  if (o.replItem !== undefined) fb.item = o.replItem;
+  if (o.userAb) me.ability = o.userAb;
+  if (o.foeAb) f1.ability = o.foeAb;
+  if (o.replAb) fb.ability = o.replAb;
+  const S = M.battleInit([me, ally], [f1, f2, fb], { seeded: true });
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, o.mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, o.sw ? { kind: 'switch', to: fb } : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { me, f1, fb, slot0: (S.actB[0] && S.actB[0].name) || '-' };
+};
+/* THE ALLY AXIS IS A SEPARATE CODE PATH AND THEREFORE A SEPARATE PROBE. `tgtSlot` is an index into
+ * the FOE array and is -1 for anything aimed at my own side, so the foe-axis fix does not touch it;
+ * `allySlot` is the second half and this is what holds it. */
+const slotAlly = (o) => {
+  const me = bare(o.user || 'slowking'), ally = bare(o.ally || 'garchomp'), fb = bare(o.repl || 'snorlax');
+  const f1 = bare('milotic'), f2 = bare('toxapex');
+  const S = M.battleInit([me, ally, fb], [f1, f2], { seeded: true });
+  if (o.allyHP != null) ally.curHP = o.allyHP;
+  if (o.replHP != null) fb.curHP = o.replHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, o.mv, ally, S.field)],
+             [ally, o.sw ? { kind: 'switch', to: fb } : { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { me, ally, fb, slot1: (S.actA[1] && S.actA[1].name) || '-' };
+};
+/* AND THE THIRD SHAPE: a slot remembered ACROSS a turn boundary rather than within one. Leech Seed's
+ * volatile carries who to pay, and Showdown carries a SLOT — `this.getAtSlot(pokemon.volatiles
+ * ['leechseed'].sourceSlot)`, data/moves.ts:10221. Two turns, because the seeder has to click and
+ * then leave, and the payment is a residual. */
+const seedPivot = (sw) => {
+  const me = bare('whimsicott'), ally = bare('clefable'), fb = bare('snorlax');
+  const f1 = bare('garchomp'), f2 = bare('milotic');
+  const S = M.battleInit([me, ally, fb], [f1, f2], { seeded: true });
+  me.curHP = 1; fb.curHP = 1; ally.curHP = 1;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'leechseed', f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  const t1 = { seeder: me.curHP, repl: fb.curHP, seeded: !!f1._seededBy };
+  M.battleTurn(S, rng5,
+    new Map([[me, sw ? { kind: 'switch', to: fb } : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { t1, seeder: me.curHP, repl: fb.curHP, foe: f1.curHP, slot0: (S.actA[0] && S.actA[0].name) || '-' };
+};
+
+/* YAWN — 1,124 corpus uses, and the drowse counter is the whole move. A Yawn aimed into a pivot
+ * landed on the body that LEFT, which cannot fall asleep on the bench and never ticks, so the click
+ * was silently free and the replacement walked in clean. */
+probe('move', 'delayedSleep', 'Yawn drowses whoever is STANDING IN the aimed slot, not the body that left it', () => {
+  const ctrl = slotFoe({ mv: 'yawn', sw: false });
+  const test = slotFoe({ mv: 'yawn', sw: true });
+  return { works: ctrl.slot0 === 'garchomp' && test.slot0 === 'snorlax'
+             && ctrl.f1._yawn > 0 && ctrl.fb._yawn == null
+             && test.fb._yawn > 0 && test.f1._yawn == null,
+           arms: { control: [ctrl.slot0, ctrl.f1._yawn || 0, ctrl.fb._yawn || 0],
+                   test: [test.slot0, test.f1._yawn || 0, test.fb._yawn || 0] },
+           detail: `aimed at the Garchomp in foe slot A. CONTROL (nobody moves) — the slot still holds `
+                 + `${ctrl.slot0}, drowse garchomp=${ctrl.f1._yawn} snorlax=${ctrl.fb._yawn}. `
+                 + `SWITCH — the slot holds ${test.slot0}, drowse garchomp=${test.f1._yawn} `
+                 + `snorlax=${test.fb._yawn}: the counter followed the SLOT` };
+});
+
+/* SOAK — 146 uses. The type rewrite is the reason to click it, and a Soak that rewrote a benched
+ * Pokemon left the incoming body on its own types with the click spent. */
+probe('move', 'changesTargetType', 'Soak rewrites the type of whoever is standing in the aimed slot', () => {
+  const ctrl = slotFoe({ mv: 'soak', sw: false });
+  const test = slotFoe({ mv: 'soak', sw: true });
+  const ty = (x) => x.types.join('/');
+  return { works: ctrl.slot0 === 'garchomp' && test.slot0 === 'snorlax'
+             && ty(ctrl.f1) === 'Water' && ty(ctrl.fb) === 'Normal'
+             && ty(test.fb) === 'Water' && ty(test.f1) === 'Dragon/Ground',
+           arms: { control: [ty(ctrl.f1), ty(ctrl.fb)], test: [ty(test.f1), ty(test.fb)] },
+           detail: `CONTROL — garchomp ${ty(ctrl.f1)}, the benched snorlax ${ty(ctrl.fb)}. SWITCH — `
+                 + `garchomp is back to ${ty(test.f1)} untouched and the snorlax that walked into the `
+                 + `slot is ${ty(test.fb)}` };
+});
+
+/* TRICK — 414 uses, and it is the loudest of the family because BOTH ends move. A Trick into a pivot
+ * swapped items with a body on the bench: the user came away holding the wrong item AND the body
+ * standing in front of it kept its own. */
+probe('move', 'takesTargetItem', 'Trick swaps items with whoever is standing in the aimed slot', () => {
+  const o = { mv: 'trick', userItem: 'lumberry', foeItem: 'leftovers', replItem: 'sitrusberry' };
+  const ctrl = slotFoe(Object.assign({ sw: false }, o));
+  const test = slotFoe(Object.assign({ sw: true }, o));
+  return { works: ctrl.slot0 === 'garchomp' && test.slot0 === 'snorlax'
+             && ctrl.f1.item === 'lumberry' && ctrl.me.item === 'leftovers' && ctrl.fb.item === 'sitrusberry'
+             && test.fb.item === 'lumberry' && test.me.item === 'sitrusberry' && test.f1.item === 'leftovers',
+           arms: { control: [ctrl.me.item, ctrl.f1.item, ctrl.fb.item],
+                   test: [test.me.item, test.f1.item, test.fb.item] },
+           detail: `the user starts on lumberry, the garchomp on leftovers, the bench snorlax on `
+                 + `sitrusberry. CONTROL — user ${ctrl.me.item}, garchomp ${ctrl.f1.item}, snorlax `
+                 + `${ctrl.fb.item}. SWITCH — user ${test.me.item}, garchomp ${test.f1.item} `
+                 + `(untouched), snorlax ${test.fb.item}: the swap is with the SLOT` };
+});
+
+/* SKILL SWAP — 131 uses, and it is the `-ability` family the trace measurement widened the blast
+ * radius with: Skill Swap, Trace, Mummy and Entrainment all write through that path. Both ends move
+ * here too, so a swap with a benched body corrupts the USER's ability as well. */
+probe('move', 'swapsAbilities', 'Skill Swap exchanges abilities with whoever is standing in the aimed slot', () => {
+  const o = { mv: 'skillswap', userAb: 'regenerator', foeAb: 'marvelscale', replAb: 'thickfat' };
+  const ctrl = slotFoe(Object.assign({ sw: false }, o));
+  const test = slotFoe(Object.assign({ sw: true }, o));
+  return { works: ctrl.slot0 === 'garchomp' && test.slot0 === 'snorlax'
+             && ctrl.me.ability === 'marvelscale' && ctrl.f1.ability === 'regenerator' && ctrl.fb.ability === 'thickfat'
+             && test.me.ability === 'thickfat' && test.fb.ability === 'regenerator' && test.f1.ability === 'marvelscale',
+           arms: { control: [ctrl.me.ability, ctrl.f1.ability, ctrl.fb.ability],
+                   test: [test.me.ability, test.f1.ability, test.fb.ability] },
+           detail: `user regenerator, garchomp marvelscale, bench snorlax thickfat. CONTROL — user `
+                 + `${ctrl.me.ability}, garchomp ${ctrl.f1.ability}. SWITCH — user ${test.me.ability} `
+                 + `(it took the SNORLAX's), garchomp ${test.f1.ability} (untouched), snorlax `
+                 + `${test.fb.ability}` };
+});
+
+/* WORRY SEED / ENTRAINMENT — the one-ended ability write, 132 uses between them. A Worry Seed into a
+ * pivot wrote Insomnia onto a benched body, which is worse than a wasted turn: the replacement is now
+ * holding an ability the player believes has been overwritten. */
+probe('move', 'rewritesTargetAbility', 'Worry Seed writes onto whoever is standing in the aimed slot', () => {
+  const o = { mv: 'worryseed', userAb: 'regenerator', foeAb: 'marvelscale', replAb: 'thickfat' };
+  const ctrl = slotFoe(Object.assign({ sw: false }, o));
+  const test = slotFoe(Object.assign({ sw: true }, o));
+  return { works: ctrl.slot0 === 'garchomp' && test.slot0 === 'snorlax'
+             && ctrl.f1.ability === 'insomnia' && ctrl.fb.ability === 'thickfat'
+             && test.fb.ability === 'insomnia' && test.f1.ability === 'marvelscale',
+           arms: { control: [ctrl.f1.ability, ctrl.fb.ability], test: [test.f1.ability, test.fb.ability] },
+           detail: `CONTROL — garchomp ${ctrl.f1.ability}, benched snorlax ${ctrl.fb.ability}. SWITCH — `
+                 + `garchomp ${test.f1.ability} (untouched), snorlax ${test.fb.ability}` };
+});
+
+/* DECORATE — the `-boost` arm of the same defect, and a foe-aimed Decorate is the one that hurts:
+ * +2/+2 handed to a Pokemon on the bench is a boost the player paid for and cannot see. */
+probe('move', 'boostsTarget', 'Decorate boosts whoever is standing in the aimed slot', () => {
+  const ctrl = slotFoe({ mv: 'decorate', sw: false });
+  const test = slotFoe({ mv: 'decorate', sw: true });
+  return { works: ctrl.slot0 === 'garchomp' && test.slot0 === 'snorlax'
+             && ctrl.f1.boosts.at === 2 && ctrl.fb.boosts.at === 0
+             && test.fb.boosts.at === 2 && test.f1.boosts.at === 0,
+           arms: { control: [ctrl.f1.boosts.at, ctrl.fb.boosts.at], test: [test.f1.boosts.at, test.fb.boosts.at] },
+           detail: `CONTROL — garchomp atk +${ctrl.f1.boosts.at}, benched snorlax +${ctrl.fb.boosts.at}. `
+                 + `SWITCH — garchomp +${test.f1.boosts.at}, snorlax +${test.fb.boosts.at}` };
+});
+
+/* THE ALLY AXIS. `tgtSlot` is an index into the FOE array and reads -1 for anything aimed at my own
+ * side, so the foe-axis rule could not reach this at all — a Heal Pulse at a pivoting partner healed
+ * the body walking OUT and the one walking in stayed on 1 HP. */
+probe('move', 'healsAlly', 'Heal Pulse heals whoever is standing in the aimed ALLY slot', () => {
+  const ctrl = slotAlly({ mv: 'healpulse', allyHP: 1, replHP: 1, sw: false });
+  const test = slotAlly({ mv: 'healpulse', allyHP: 1, replHP: 1, sw: true });
+  return { works: ctrl.slot1 === 'garchomp' && test.slot1 === 'snorlax'
+             && ctrl.ally.curHP > 1 && ctrl.fb.curHP === 1
+             && test.fb.curHP > 1 && test.ally.curHP === 1,
+           arms: { control: [ctrl.ally.curHP, ctrl.fb.curHP], test: [test.ally.curHP, test.fb.curHP] },
+           detail: `both the partner and the bench body start on 1 HP. CONTROL — the slot holds `
+                 + `${ctrl.slot1}, garchomp ${ctrl.ally.curHP}, snorlax ${ctrl.fb.curHP}. SWITCH — the `
+                 + `slot holds ${test.slot1}, garchomp ${test.ally.curHP} (it left and got nothing), `
+                 + `snorlax ${test.fb.curHP}` };
+});
+
+/* LEECH SEED — 427 uses, and the slot here is remembered ACROSS turns rather than within one. The
+ * volatile stored the seeder's BODY, so a seeder that pivoted was healed on the bench while the
+ * replacement standing in its slot got nothing. */
+probe('move', 'perTurnHP', 'the Leech Seed drain pays whoever is standing in the SEEDER\'s slot', () => {
+  const ctrl = seedPivot(false);
+  const test = seedPivot(true);
+  return { works: ctrl.t1.seeded && test.t1.seeded
+             && ctrl.slot0 === 'whimsicott' && test.slot0 === 'snorlax'
+             && ctrl.seeder > ctrl.t1.seeder && ctrl.repl === 1
+             && test.repl > 1 && test.seeder === test.t1.seeder,
+           arms: { control: [ctrl.slot0, ctrl.seeder, ctrl.repl], test: [test.slot0, test.seeder, test.repl] },
+           detail: `the whimsicott seeds on turn 1 and is paid to ${ctrl.t1.seeder}; the bench snorlax `
+                 + `sits on 1. CONTROL (it stays) — turn 2 pays it to ${ctrl.seeder}, snorlax `
+                 + `${ctrl.repl}. PIVOT — the slot holds ${test.slot0}, the whimsicott stays on `
+                 + `${test.seeder} off the field and the snorlax standing in its slot is paid to `
+                 + `${test.repl}` };
+});
+
+/* INSTRUCT — 187 uses, and the `-singleturn` family was the largest orphan block after Trick in the
+ * 600-game reproduction. It is also the one whose consequence escapes the effect itself: the branch
+ * SPLICES A SECOND ACTION into the queue for the body it resolved, so an Instruct aimed into a pivot
+ * gave a BENCHED Pokemon a free attack — which is how ~50 `|move|` lines came to be emitted by bodies
+ * that were not on the field.
+ *
+ * THE OUTCOME IS DAMAGE, not a volatile, which is what makes this probe worth its two turns. Turn 1
+ * the foe Body Slams so it has something to repeat; turn 2 the Instruct lands. With nobody moving, the
+ * Body Slam happens twice and my side takes it twice. With the slot pivoting, the body standing there
+ * is a replacement that has not moved at all, so the authority's own condition — `target.lastMove` —
+ * finds nothing and the move FAILS. An engine bound to the object instead hands the bench a free hit. */
+const instructPivot = (sw) => {
+  const me = bare('oranguru'), ally = bare('clefable');
+  const f1 = bare('snorlax'), f2 = bare('milotic'), fb = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2, fb], { seeded: true });
+  M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, 'bodyslam', me, S.field)], [f2, { kind: 'pass' }]]));
+  const t1 = me.curHP + ally.curHP;
+  M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'instruct', f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, sw ? { kind: 'switch', to: fb } : M.playerAction(f1, 'bodyslam', me, S.field)],
+             [f2, { kind: 'pass' }]]));
+  return { t1, after: me.curHP + ally.curHP, slot0: (S.actB[0] && S.actB[0].name) || '-' };
+};
+probe('move', 'instructsTarget', 'Instruct repeats the move of whoever is standing in the aimed slot — and a fresh body has none', () => {
+  const ctrl = instructPivot(false);
+  const test = instructPivot(true);
+  return { works: ctrl.slot0 === 'snorlax' && test.slot0 === 'garchomp'
+             && ctrl.after < ctrl.t1              /* the repeat landed */
+             && test.after === test.t1,           /* the replacement had no last move: nothing repeated */
+           arms: { control: [ctrl.slot0, ctrl.t1 - ctrl.after], test: [test.slot0, test.t1 - test.after] },
+           detail: `turn 1 the snorlax Body Slams so it has a move to repeat. CONTROL — the slot still `
+                 + `holds ${ctrl.slot0} and turn 2 costs my side ${ctrl.t1 - ctrl.after} HP (the Body `
+                 + `Slam AND its repeat). PIVOT — the slot holds ${test.slot0}, which has not moved at `
+                 + `all, so the Instruct finds no last move and my side loses `
+                 + `${test.t1 - test.after}: the benched snorlax gets no free action` };
 });
 
 const works = results.filter(r => r.works);
