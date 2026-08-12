@@ -1,24 +1,24 @@
 {
   "what": "THE ROLLUP OF engine/game_differential.js — every divergence cause ranked by the corpus usage of the entities it names, rather than by how often the coverage-steered swarm happened to stage it. Reads only; recomputes nothing the differential already published.",
-  "generated": "2026-08-12T05:44:02.494Z",
+  "generated": "2026-08-12T19:57:27.665Z",
   "source": "data/game-differential.json",
-  "source_release": "2f47c11fd0e6",
-  "source_generated": "2026-08-12T05:42:06.376Z",
+  "source_release": "6155acc0fb26",
+  "source_generated": "2026-08-12T19:56:53.339Z",
   "run": {
     "games": 983,
-    "diverged": 328,
+    "diverged": 314,
     "threw": 0,
     "mode": "A/top-tie-first/pins:ef342837b791/credit:observed-effect/v1/nature:real",
     "planted_divergence_proof_ok": true
   },
-  "causes_half_the_usage": 13,
-  "causes_total": 242,
-  "causes_impossible_in_format": 0,
+  "causes_half_the_usage": 11,
+  "causes_total": 229,
+  "causes_impossible_in_format": 1,
   "worklist": [
     {
       "cls": "unrelated event mismatch",
       "cause": "unrelated event mismatch :: |-singleturn|p2b|protect <> |-fail|p2b",
-      "games": 7,
+      "games": 8,
       "uses": 94313,
       "impossible": false,
       "mentions": [
@@ -33,46 +33,6 @@
       ],
       "shape": "RULE",
       "shapeKey": "-singleturn vs -fail",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-singleturn|p1a|protect <> |-fail|p1a",
-      "games": 6,
-      "uses": 94313,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "protect",
-          "uses": 94313,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "RULE",
-      "shapeKey": "-singleturn vs -fail",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-activate|p1a|protect <> |-fail|p2b",
-      "games": 5,
-      "uses": 94313,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "protect",
-          "uses": 94313,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "-activate vs -fail",
       "pinSuspect": true
     },
     {
@@ -97,7 +57,7 @@
     },
     {
       "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-activate|p2a|protect <> |-fail|p1a",
+      "cause": "unrelated event mismatch :: |-activate|p1a|protect <> |-fail|p2b",
       "games": 4,
       "uses": 94313,
       "impossible": false,
@@ -117,8 +77,28 @@
     },
     {
       "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-singleturn|p1b|protect <> |-fail|p1b",
-      "games": 3,
+      "cause": "unrelated event mismatch :: |-activate|p1a|protect <> |-fail|p2a",
+      "games": 4,
+      "uses": 94313,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "protect",
+          "uses": 94313,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-activate vs -fail",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-singleturn|p1a|protect <> |-fail|p1a",
+      "games": 2,
       "uses": 94313,
       "impossible": false,
       "mentions": [
@@ -138,7 +118,7 @@
     {
       "cls": "unrelated event mismatch",
       "cause": "unrelated event mismatch :: |-activate|p2a|protect <> |-fail|p1b",
-      "games": 3,
+      "games": 2,
       "uses": 94313,
       "impossible": false,
       "mentions": [
@@ -157,8 +137,8 @@
     },
     {
       "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-activate|p1a|protect <> |-fail|p2a",
-      "games": 3,
+      "cause": "unrelated event mismatch :: |-activate|p2a|protect <> |-fail|p1a",
+      "games": 2,
       "uses": 94313,
       "impossible": false,
       "mentions": [
@@ -176,8 +156,68 @@
       "pinSuspect": true
     },
     {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-activate|p2a|protect <> |move|p1b|psychup",
+      "cls": "ordering",
+      "cause": "ordering :: |move|p2a|protect <> |move|p1a|protect",
+      "games": 1,
+      "uses": 94313,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "protect",
+          "uses": 94313,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "ORDERING",
+      "shapeKey": "move",
+      "pinSuspect": true
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |-miss|p2b|p1b <> |-activate|p1a|protect",
+      "games": 1,
+      "uses": 94313,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "protect",
+          "uses": 94313,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-miss vs -activate",
+      "pinSuspect": true
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |move|p1b|protect <> |move|p1a|protect",
+      "games": 1,
+      "uses": 94313,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "protect",
+          "uses": 94313,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "ORDERING",
+      "shapeKey": "move",
+      "pinSuspect": true
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |move|p1a|protect <> |move|p2a|detect",
       "games": 1,
       "uses": 94313,
       "impossible": false,
@@ -192,68 +232,20 @@
         },
         {
           "kind": "moves",
-          "id": "psychup",
-          "uses": 61,
+          "id": "detect",
+          "uses": 3062,
           "legal": true,
           "reachable": true,
           "carriers": null
         }
       ],
-      "shape": "EMISSION",
-      "shapeKey": "-activate vs move",
+      "shape": "ORDERING",
+      "shapeKey": "move",
       "pinSuspect": true
     },
     {
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |switch|p2b|torkoal,l50|H/H <> |move|p2a|protect",
-      "games": 1,
-      "uses": 94313,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "torkoal",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "moves",
-          "id": "protect",
-          "uses": 94313,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "switch vs move",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-activate|p2a|protect <> |upkeep",
-      "games": 1,
-      "uses": 94313,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "protect",
-          "uses": 94313,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "-activate vs upkeep",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-start|p1b|typechange|normal|[from]protean <> |-singleturn|p1b|protect",
+      "cause": "event missing from medicham2 :: |-start|p1a|typechange|normal|[from]protean <> |-singleturn|p1a|protect",
       "games": 1,
       "uses": 94313,
       "impossible": false,
@@ -365,7 +357,7 @@
     },
     {
       "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-activate|p2b|protect <> |-fail|p1b",
+      "cause": "unrelated event mismatch :: |-singleturn|p1b|protect <> |-fail|p1b",
       "games": 1,
       "uses": 94313,
       "impossible": false,
@@ -379,116 +371,8 @@
           "carriers": null
         }
       ],
-      "shape": "EMISSION",
-      "shapeKey": "-activate vs -fail",
-      "pinSuspect": true
-    },
-    {
-      "cls": "ordering",
-      "cause": "ordering :: |move|p2a|protect <> |move|p1a|protect",
-      "games": 1,
-      "uses": 94313,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "protect",
-          "uses": 94313,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "ORDERING",
-      "shapeKey": "move",
-      "pinSuspect": true
-    },
-    {
-      "cls": "ordering",
-      "cause": "ordering :: |-miss|p2b|p1b <> |-activate|p1a|protect",
-      "games": 1,
-      "uses": 94313,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "protect",
-          "uses": 94313,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "-miss vs -activate",
-      "pinSuspect": true
-    },
-    {
-      "cls": "ordering",
-      "cause": "ordering :: |move|p1b|protect <> |move|p1a|protect",
-      "games": 1,
-      "uses": 94313,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "protect",
-          "uses": 94313,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "ORDERING",
-      "shapeKey": "move",
-      "pinSuspect": true
-    },
-    {
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |move|p1b|feint <> |cant|p2b|nopp|protect",
-      "games": 1,
-      "uses": 94313,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "feint",
-          "uses": 544,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "moves",
-          "id": "protect",
-          "uses": 94313,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "move vs cant",
-      "pinSuspect": true
-    },
-    {
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |move|p1b|protect <> |cant|p2a|nopp|protect",
-      "games": 1,
-      "uses": 94313,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "protect",
-          "uses": 94313,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "move vs cant",
+      "shape": "RULE",
+      "shapeKey": "-singleturn vs -fail",
       "pinSuspect": true
     },
     {
@@ -521,35 +405,7 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |-damage|p1b|H/H|[from]sandstorm <> |-enditem|p2b|sitrusberry|[eat]",
-      "games": 1,
-      "uses": 15396,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "sandstorm",
-          "uses": 19,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "items",
-          "id": "sitrusberry",
-          "uses": 15396,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "-damage vs -enditem",
-      "pinSuspect": true
-    },
-    {
-      "cls": "ordering",
-      "cause": "ordering :: |-enditem|p2a|sitrusberry|[eat] <> |-damage|p1b|H/H|[from]lifeorb",
+      "cause": "ordering :: |-enditem|p1a|sitrusberry|[eat] <> |-damage|p2a|H/H|[from]recoil",
       "games": 1,
       "uses": 15396,
       "impossible": false,
@@ -558,14 +414,6 @@
           "kind": "items",
           "id": "sitrusberry",
           "uses": 15396,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "items",
-          "id": "lifeorb",
-          "uses": 14359,
           "legal": true,
           "reachable": true,
           "carriers": null
@@ -577,7 +425,7 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |-enditem|p2a|sitrusberry|[eat] <> |-resisted|p2a|1",
+      "cause": "ordering :: |-enditem|p1a|sitrusberry|[eat] <> |-damage|p2b|H/H|[from]recoil",
       "games": 1,
       "uses": 15396,
       "impossible": false,
@@ -591,9 +439,9 @@
           "carriers": null
         }
       ],
-      "shape": "RULE",
-      "shapeKey": "-enditem vs -resisted",
-      "pinSuspect": false
+      "shape": "EMISSION",
+      "shapeKey": "-enditem vs -damage",
+      "pinSuspect": true
     },
     {
       "cls": "ordering",
@@ -645,6 +493,54 @@
     },
     {
       "cls": "ordering",
+      "cause": "ordering :: |-enditem|p2a|sitrusberry|[eat] <> |-damage|p1a|H/H|[from]lifeorb",
+      "games": 1,
+      "uses": 15396,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "items",
+          "id": "sitrusberry",
+          "uses": 15396,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "items",
+          "id": "lifeorb",
+          "uses": 14359,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-enditem vs -damage",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-unboost|p1b|atk|0 <> |move|p1b|tailwind",
+      "games": 4,
+      "uses": 15011,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "tailwind",
+          "uses": 15011,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-unboost vs move",
+      "pinSuspect": true
+    },
+    {
+      "cls": "ordering",
       "cause": "ordering :: |-damage|p2b|H/H|[from]sandstorm <> |-sideend|p2:|tailwind",
       "games": 3,
       "uses": 15011,
@@ -673,8 +569,8 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |-sideend|p2:|tailwind <> |-sideend|p1:|tailwind",
-      "games": 2,
+      "cause": "ordering :: |move|p1a|tailwind <> |move|p2a|tailwind",
+      "games": 3,
       "uses": 15011,
       "impossible": false,
       "mentions": [
@@ -688,7 +584,7 @@
         }
       ],
       "shape": "ORDERING",
-      "shapeKey": "-sideend",
+      "shapeKey": "move",
       "pinSuspect": false
     },
     {
@@ -713,8 +609,8 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |move|p1a|tailwind <> |move|p2a|tailwind",
-      "games": 2,
+      "cause": "ordering :: |-sideend|p2:|tailwind <> |-sideend|p1:|tailwind",
+      "games": 1,
       "uses": 15011,
       "impossible": false,
       "mentions": [
@@ -728,48 +624,8 @@
         }
       ],
       "shape": "ORDERING",
-      "shapeKey": "move",
+      "shapeKey": "-sideend",
       "pinSuspect": false
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-unboost|p2b|atk|0 <> |move|p2b|tailwind",
-      "games": 1,
-      "uses": 15011,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "tailwind",
-          "uses": 15011,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "RULE",
-      "shapeKey": "-unboost vs move",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-unboost|p1b|atk|0 <> |move|p1b|tailwind",
-      "games": 1,
-      "uses": 15011,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "tailwind",
-          "uses": 15011,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "RULE",
-      "shapeKey": "-unboost vs move",
-      "pinSuspect": true
     },
     {
       "cls": "ordering",
@@ -841,6 +697,34 @@
     },
     {
       "cls": "ordering",
+      "cause": "ordering :: |-damage|p2a|H/H|[from]sandstorm <> |-sideend|p2:|tailwind",
+      "games": 1,
+      "uses": 15011,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "sandstorm",
+          "uses": 19,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "moves",
+          "id": "tailwind",
+          "uses": 15011,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-damage vs -sideend",
+      "pinSuspect": true
+    },
+    {
+      "cls": "ordering",
       "cause": "ordering :: |-damage|p2b|H/H|[from]sandstorm <> |-sideend|p1:|tailwind",
       "games": 1,
       "uses": 15011,
@@ -869,18 +753,18 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |-damage|p1a|H/H|[from]sandstorm <> |-sideend|p1:|tailwind",
+      "cause": "ordering :: |-damage|p1b|H/H|[from]solarpower <> |-sideend|p2:|tailwind",
       "games": 1,
       "uses": 15011,
       "impossible": false,
       "mentions": [
         {
-          "kind": "moves",
-          "id": "sandstorm",
-          "uses": 19,
+          "kind": "abilities",
+          "id": "solarpower",
+          "uses": 844,
           "legal": true,
           "reachable": true,
-          "carriers": null
+          "carriers": 3
         },
         {
           "kind": "moves",
@@ -925,11 +809,95 @@
     },
     {
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p2a|heatwave",
+      "cause": "event missing from medicham2 :: |-unboost|p2b|atk|0 <> |move|p2b|tailwind",
       "games": 1,
-      "uses": 9444,
+      "uses": 15011,
       "impossible": false,
       "mentions": [
+        {
+          "kind": "moves",
+          "id": "tailwind",
+          "uses": 15011,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-unboost vs move",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-damage|p1a|H/H|[from]lifeorb <> |upkeep",
+      "games": 1,
+      "uses": 14359,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "items",
+          "id": "lifeorb",
+          "uses": 14359,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-damage vs upkeep",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-activate|p2a|symbiosis|lifeorb <> |switch|p2a|rhyperior,l50|H/H",
+      "games": 1,
+      "uses": 14359,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "abilities",
+          "id": "symbiosis",
+          "uses": 53,
+          "legal": true,
+          "reachable": true,
+          "carriers": 3
+        },
+        {
+          "kind": "items",
+          "id": "lifeorb",
+          "uses": 14359,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "rhyperior",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-activate vs switch",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-damage|p2b|H/H|[from]lifeorb <> |move|p2a|heatwave",
+      "games": 1,
+      "uses": 14359,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "items",
+          "id": "lifeorb",
+          "uses": 14359,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
         {
           "kind": "moves",
           "id": "heatwave",
@@ -940,36 +908,56 @@
         }
       ],
       "shape": "EMISSION",
-      "shapeKey": "-fail vs move",
+      "shapeKey": "-damage vs move",
       "pinSuspect": true
     },
     {
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |move|p2b|weatherball <> |-singleturn|p1b|roost",
+      "cls": "ordering",
+      "cause": "ordering :: |-damage|p1b|0fnt|[from]psn <> |-fieldend|trickroom",
       "games": 1,
-      "uses": 9357,
+      "uses": 9559,
       "impossible": false,
       "mentions": [
         {
           "kind": "moves",
-          "id": "weatherball",
-          "uses": 9357,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "moves",
-          "id": "roost",
-          "uses": 2655,
+          "id": "trickroom",
+          "uses": 9559,
           "legal": true,
           "reachable": true,
           "carriers": null
         }
       ],
       "shape": "EMISSION",
-      "shapeKey": "move vs -singleturn",
-      "pinSuspect": false
+      "shapeKey": "-damage vs -fieldend",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |cant|p1b|armortail|suckerpunch <> |-fail|p2b",
+      "games": 1,
+      "uses": 9330,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "abilities",
+          "id": "armortail",
+          "uses": 3870,
+          "legal": true,
+          "reachable": true,
+          "carriers": 1
+        },
+        {
+          "kind": "moves",
+          "id": "suckerpunch",
+          "uses": 9330,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "cant vs -fail",
+      "pinSuspect": true
     },
     {
       "cls": "unrelated event mismatch",
@@ -1001,7 +989,7 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |-damage|p2b|H/H|[from]sandstorm <> |-heal|p1a|H/H|[from]leftovers",
+      "cause": "ordering :: |-damage|p2b|H/H|[from]sandstorm <> |-heal|p2a|H/H|[from]leftovers",
       "games": 3,
       "uses": 8578,
       "impossible": false,
@@ -1029,8 +1017,8 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |-damage|p1a|H/H|[from]sandstorm <> |-heal|p2a|H/H|[from]leftovers",
-      "games": 2,
+      "cause": "ordering :: |-damage|p2b|H/H|[from]sandstorm <> |-heal|p1a|H/H|[from]leftovers",
+      "games": 3,
       "uses": 8578,
       "impossible": false,
       "mentions": [
@@ -1084,8 +1072,36 @@
       "pinSuspect": true
     },
     {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-heal|p1b|H/Hpsn|[from]leftovers <> |-damage|p1b|H/Hpsn|[from]psn",
+      "cls": "ordering",
+      "cause": "ordering :: |-boost|p2a|def|1 <> |-enditem|p2a|leftovers|[from]knockoff",
+      "games": 1,
+      "uses": 8578,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "items",
+          "id": "leftovers",
+          "uses": 8578,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "moves",
+          "id": "knockoff",
+          "uses": 3834,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-boost vs -enditem",
+      "pinSuspect": false
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |-heal|p1b|H/H|[from]leftovers <> |-damage|p1a|H/Hpsn|[from]psn",
       "games": 1,
       "uses": 8578,
       "impossible": false,
@@ -1099,13 +1115,41 @@
           "carriers": null
         }
       ],
-      "shape": "RULE",
+      "shape": "EMISSION",
       "shapeKey": "-heal vs -damage",
       "pinSuspect": true
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |-damage|p2a|H/H|[from]sandstorm <> |-heal|p1b|H/H|[from]leftovers",
+      "cause": "ordering :: |-damage|p2a|H/H|[from]sandstorm <> |-heal|p2b|H/H|[from]leftovers",
+      "games": 1,
+      "uses": 8578,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "sandstorm",
+          "uses": 19,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "items",
+          "id": "leftovers",
+          "uses": 8578,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-damage vs -heal",
+      "pinSuspect": true
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |-damage|p1a|H/H|[from]sandstorm <> |-heal|p1b|H/H|[from]leftovers",
       "games": 1,
       "uses": 8578,
       "impossible": false,
@@ -1161,7 +1205,75 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |-status|p1a|psn <> |-damage|p2a|H/H|[from]roughskin",
+      "cause": "ordering :: |-damage|p1b|H/H|[from]sandstorm <> |-heal|p2a|H/H|[from]leftovers",
+      "games": 1,
+      "uses": 8578,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "sandstorm",
+          "uses": 19,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "items",
+          "id": "leftovers",
+          "uses": 8578,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-damage vs -heal",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-heal|p1b|H/Hpsn|[from]leftovers <> |-damage|p1b|H/Hpsn|[from]psn",
+      "games": 1,
+      "uses": 8578,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "items",
+          "id": "leftovers",
+          "uses": 8578,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-heal vs -damage",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-miss|p2b|p1a <> |move|p2a|kowtowcleave",
+      "games": 1,
+      "uses": 7739,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "kowtowcleave",
+          "uses": 7739,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-miss vs move",
+      "pinSuspect": true
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |-status|p1a|psn <> |-damage|p2b|H/H|[from]roughskin",
       "games": 1,
       "uses": 7694,
       "impossible": false,
@@ -1180,88 +1292,24 @@
       "pinSuspect": true
     },
     {
-      "cls": "-activate field 4",
-      "cause": "-activate field 4 :: |-activate|p2a|skillswap|adaptability|speedboost <> |-activate|p2a|skillswap",
-      "games": 1,
-      "uses": 5799,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "skillswap",
-          "uses": 131,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "abilities",
-          "id": "adaptability",
-          "uses": 5799,
-          "legal": true,
-          "reachable": true,
-          "carriers": 6
-        },
-        {
-          "kind": "abilities",
-          "id": "speedboost",
-          "uses": 976,
-          "legal": true,
-          "reachable": true,
-          "carriers": 5
-        }
-      ],
-      "shape": "FIELD",
-      "shapeKey": "-activate",
-      "pinSuspect": false
-    },
-    {
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-miss|p2b|p1a <> |move|p2a|lowkick",
+      "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p1b|lastrespects",
       "games": 1,
-      "uses": 5044,
+      "uses": 6118,
       "impossible": false,
       "mentions": [
         {
           "kind": "moves",
-          "id": "lowkick",
-          "uses": 5044,
+          "id": "lastrespects",
+          "uses": 6118,
           "legal": true,
           "reachable": true,
           "carriers": null
         }
       ],
       "shape": "EMISSION",
-      "shapeKey": "-miss vs move",
+      "shapeKey": "-fail vs move",
       "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-immune|p2a|[from]goodasgold <> |-singleturn|p2a|helpinghand",
-      "games": 1,
-      "uses": 4927,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "abilities",
-          "id": "goodasgold",
-          "uses": 2904,
-          "legal": true,
-          "reachable": true,
-          "carriers": 1
-        },
-        {
-          "kind": "moves",
-          "id": "helpinghand",
-          "uses": 4927,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "RULE",
-      "shapeKey": "-immune vs -singleturn",
-      "pinSuspect": false
     },
     {
       "cls": "ordering",
@@ -1292,20 +1340,72 @@
       "pinSuspect": false
     },
     {
-      "cls": "-start field 4",
-      "cause": "-start field 4 :: |-start|p2a|disable|hurricane <> |-start|p2a|disable",
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-fail|p1b <> |-singleturn|p1a|helpinghand",
       "games": 1,
-      "uses": 4070,
+      "uses": 4927,
       "impossible": false,
       "mentions": [
         {
           "kind": "moves",
-          "id": "disable",
-          "uses": 868,
+          "id": "helpinghand",
+          "uses": 4927,
           "legal": true,
           "reachable": true,
           "carriers": null
-        },
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-fail vs -singleturn",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-fail|p2a <> |move|p1a|bravebird",
+      "games": 1,
+      "uses": 4736,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "bravebird",
+          "uses": 4736,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-fail vs move",
+      "pinSuspect": true
+    },
+    {
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |-immune|p2a <> |-sideend|p2:|lightscreen",
+      "games": 1,
+      "uses": 4230,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "lightscreen",
+          "uses": 4230,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-immune vs -sideend",
+      "pinSuspect": false
+    },
+    {
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |move|p2a|hurricane <> |-singleturn|p1b|roost",
+      "games": 1,
+      "uses": 4070,
+      "impossible": false,
+      "mentions": [
         {
           "kind": "moves",
           "id": "hurricane",
@@ -1313,10 +1413,18 @@
           "legal": true,
           "reachable": true,
           "carriers": null
+        },
+        {
+          "kind": "moves",
+          "id": "roost",
+          "uses": 2655,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
         }
       ],
-      "shape": "FIELD",
-      "shapeKey": "-start",
+      "shape": "EMISSION",
+      "shapeKey": "move vs -singleturn",
       "pinSuspect": false
     },
     {
@@ -1348,8 +1456,36 @@
       "pinSuspect": true
     },
     {
+      "cls": "ordering",
+      "cause": "ordering :: |-unboost|p1a|atk|1 <> |-weather|raindance|[from]drizzle",
+      "games": 1,
+      "uses": 3827,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "raindance",
+          "uses": 1074,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "abilities",
+          "id": "drizzle",
+          "uses": 3827,
+          "legal": true,
+          "reachable": true,
+          "carriers": 2
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-unboost vs -weather",
+      "pinSuspect": false
+    },
+    {
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-end|p1a|throatchop <> |upkeep",
+      "cause": "event missing from medicham2 :: |-end|p2a|throatchop <> |upkeep",
       "games": 1,
       "uses": 3654,
       "impossible": false,
@@ -1368,52 +1504,68 @@
       "pinSuspect": true
     },
     {
-      "cls": "ordering",
-      "cause": "ordering :: |-enditem|p2b|whiteherb <> |turn|4",
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-immune|p1a|[from]goodasgold <> |-fail|p2a",
       "games": 1,
-      "uses": 2720,
+      "uses": 2904,
       "impossible": false,
       "mentions": [
         {
-          "kind": "items",
-          "id": "whiteherb",
-          "uses": 2720,
+          "kind": "abilities",
+          "id": "goodasgold",
+          "uses": 2904,
+          "legal": true,
+          "reachable": true,
+          "carriers": 1
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-immune vs -fail",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-immune|p1a|[from]goodasgold <> |-activate|p2a|skillswap",
+      "games": 1,
+      "uses": 2904,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "abilities",
+          "id": "goodasgold",
+          "uses": 2904,
+          "legal": true,
+          "reachable": true,
+          "carriers": 1
+        },
+        {
+          "kind": "moves",
+          "id": "skillswap",
+          "uses": 131,
           "legal": true,
           "reachable": true,
           "carriers": null
         }
       ],
       "shape": "EMISSION",
-      "shapeKey": "-enditem vs turn",
+      "shapeKey": "-immune vs -activate",
       "pinSuspect": false
     },
     {
       "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |move|p2a|zapcannon <> |-fail|p1a",
-      "games": 1,
-      "uses": 2693,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "zapcannon",
-          "uses": 2693,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "move vs -fail",
-      "pinSuspect": true
-    },
-    {
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |upkeep <> |-singleturn|p1b|roost",
+      "cause": "extra event emitted by medicham2 :: |move|p2b|psychicnoise <> |-singleturn|p1b|roost",
       "games": 1,
       "uses": 2655,
       "impossible": false,
       "mentions": [
+        {
+          "kind": "moves",
+          "id": "psychicnoise",
+          "uses": 242,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
         {
           "kind": "moves",
           "id": "roost",
@@ -1424,60 +1576,32 @@
         }
       ],
       "shape": "EMISSION",
-      "shapeKey": "upkeep vs -singleturn",
+      "shapeKey": "move vs -singleturn",
       "pinSuspect": false
-    },
-    {
-      "cls": "ordering",
-      "cause": "ordering :: |move|p1b|rapidspin <> |move|p2b|calmmind",
-      "games": 1,
-      "uses": 2648,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "rapidspin",
-          "uses": 14,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "moves",
-          "id": "calmmind",
-          "uses": 2648,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "ORDERING",
-      "shapeKey": "move",
-      "pinSuspect": false
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fail|p1b|unboost|[from]clearbody <> |-unboost|p1b|atk|1",
-      "games": 1,
-      "uses": 2015,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "abilities",
-          "id": "clearbody",
-          "uses": 2015,
-          "legal": true,
-          "reachable": true,
-          "carriers": 3
-        }
-      ],
-      "shape": "RULE",
-      "shapeKey": "-fail vs -unboost",
-      "pinSuspect": true
     },
     {
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-start|p2a|taunt <> |upkeep",
+      "cause": "event missing from medicham2 :: |-boost|p1b|spa|0 <> |move|p2b|spiritbreak",
+      "games": 1,
+      "uses": 1867,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "spiritbreak",
+          "uses": 1867,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-boost vs move",
+      "pinSuspect": true
+    },
+    {
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |upkeep <> |-end|p1a|taunt",
       "games": 1,
       "uses": 1715,
       "impossible": false,
@@ -1492,35 +1616,27 @@
         }
       ],
       "shape": "EMISSION",
-      "shapeKey": "-start vs upkeep",
-      "pinSuspect": true
+      "shapeKey": "upkeep vs -end",
+      "pinSuspect": false
     },
     {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-activate|p2a|toxicdebris <> |-sidestart|p1:|toxicspikes",
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-start|p1b|taunt <> |-fail|p2a",
       "games": 1,
-      "uses": 1370,
+      "uses": 1715,
       "impossible": false,
       "mentions": [
         {
-          "kind": "abilities",
-          "id": "toxicdebris",
-          "uses": 1370,
-          "legal": true,
-          "reachable": true,
-          "carriers": 1
-        },
-        {
           "kind": "moves",
-          "id": "toxicspikes",
-          "uses": 34,
+          "id": "taunt",
+          "uses": 1715,
           "legal": true,
           "reachable": true,
           "carriers": null
         }
       ],
       "shape": "EMISSION",
-      "shapeKey": "-activate vs -sidestart",
+      "shapeKey": "-start vs -fail",
       "pinSuspect": true
     },
     {
@@ -1552,112 +1668,28 @@
       "pinSuspect": true
     },
     {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-heal|p1a|H/H|[from]regenerator <> |switch|p1a|krookodile,l50|H/H",
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |move|p2a|toxic <> |-miss|p1a|p2a",
       "games": 1,
-      "uses": 1257,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "abilities",
-          "id": "regenerator",
-          "uses": 1257,
-          "legal": true,
-          "reachable": true,
-          "carriers": 9
-        },
-        {
-          "kind": "species",
-          "id": "krookodile",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "RULE",
-      "shapeKey": "-heal vs switch",
-      "pinSuspect": true
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:rotomwash|yawn",
-      "games": 2,
-      "uses": 1124,
+      "uses": 1132,
       "impossible": false,
       "mentions": [
         {
           "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "rotomwash",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:charizard|yawn",
-      "games": 2,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "charizard",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-start|p1a|yawn <> |upkeep",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
+          "id": "toxic",
+          "uses": 1132,
           "legal": true,
           "reachable": true,
           "carriers": null
         }
       ],
       "shape": "EMISSION",
-      "shapeKey": "-start vs upkeep",
+      "shapeKey": "move vs -miss",
       "pinSuspect": true
     },
     {
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-fail|p2b <> |-end|p1a|yawn",
+      "cause": "event missing from medicham2 :: |-fail|p1a <> |-end|p2a|yawn",
       "games": 1,
       "uses": 1124,
       "impossible": false,
@@ -1677,7 +1709,7 @@
     },
     {
       "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:camerupt|yawn",
+      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:kingambit|yawn",
       "games": 1,
       "uses": 1124,
       "impossible": false,
@@ -1692,567 +1724,7 @@
         },
         {
           "kind": "species",
-          "id": "camerupt",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:sinistcha|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "sinistcha",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p2a|yawn <> |-start|??:blaziken|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "blaziken",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p2a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p2a|yawn <> |-start|??:swampert|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "swampert",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p2a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p2a|yawn <> |-start|??:toxicroak|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "toxicroak",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p2a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:glimmora|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "glimmora",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:aggron|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "aggron",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:delphox|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "delphox",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p2a|yawn <> |-start|??:grimmsnarl|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "grimmsnarl",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p2a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:houndstone|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "houndstone",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:jolteon|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "jolteon",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:sableye|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "sableye",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p2a|yawn <> |-start|??:aurorus|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "aurorus",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p2a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:ampharos|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "ampharos",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p2a|yawn <> |-start|??:sinistcha|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "sinistcha",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p2a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:swampert|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "swampert",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p2a|yawn <> |-start|??:basculegion|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "basculegion",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p2a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:politoed|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "politoed",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:araquanid|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "araquanid",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p2a|yawn <> |-start|??:qwilfish|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "qwilfish",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p2a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|yawn <> |-start|??:chesnaught|yawn",
-      "games": 1,
-      "uses": 1124,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "yawn",
-          "uses": 1124,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "chesnaught",
+          "id": "kingambit",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -2266,7 +1738,7 @@
     {
       "cls": "event missing from medicham2",
       "cause": "event missing from medicham2 :: |-weather|raindance|[upkeep] <> |upkeep",
-      "games": 3,
+      "games": 2,
       "uses": 1074,
       "impossible": false,
       "mentions": [
@@ -2302,74 +1774,6 @@
       "shape": "EMISSION",
       "shapeKey": "-boost vs -weather",
       "pinSuspect": true
-    },
-    {
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |-weather|raindance|[upkeep] <> |-fail|p1b",
-      "games": 1,
-      "uses": 1074,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "raindance",
-          "uses": 1074,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "-weather vs -fail",
-      "pinSuspect": true
-    },
-    {
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |-weather|raindance|[upkeep] <> |switch|p2b|maushold,l50|H/H",
-      "games": 1,
-      "uses": 1074,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "raindance",
-          "uses": 1074,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "maushold",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "-weather vs switch",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-weather: a different body",
-      "cause": "-weather: a different body :: |-weather|raindance|[upkeep] <> |-weather|none",
-      "games": 1,
-      "uses": 1074,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "raindance",
-          "uses": 1074,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-weather: a different body :: |-weather|",
-      "pinSuspect": false
     },
     {
       "cls": "-damage field 4",
@@ -2413,42 +1817,22 @@
     },
     {
       "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fail|p2b <> |-start|p1a|disable",
+      "cause": "unrelated event mismatch :: |-damage|p1a|H/H <> |-activate|p1a|quickguard",
       "games": 1,
-      "uses": 868,
+      "uses": 946,
       "impossible": false,
       "mentions": [
         {
           "kind": "moves",
-          "id": "disable",
-          "uses": 868,
+          "id": "quickguard",
+          "uses": 946,
           "legal": true,
           "reachable": true,
           "carriers": null
         }
       ],
-      "shape": "EMISSION",
-      "shapeKey": "-fail vs -start",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-weather|sunnyday|[upkeep] <> |upkeep",
-      "games": 1,
-      "uses": 707,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "sunnyday",
-          "uses": 707,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "-weather vs upkeep",
+      "shape": "RULE",
+      "shapeKey": "-damage vs -activate",
       "pinSuspect": true
     },
     {
@@ -2473,7 +1857,7 @@
     },
     {
       "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-status|p2a|slp|[from]hypnosis <> |-miss|p1a|p2a",
+      "cause": "unrelated event mismatch :: |-status|p1a|slp|[from]hypnosis <> |-miss|p2a|p1a",
       "games": 1,
       "uses": 672,
       "impossible": false,
@@ -2490,6 +1874,34 @@
       "shape": "EMISSION",
       "shapeKey": "-status vs -miss",
       "pinSuspect": true
+    },
+    {
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |move|p2b|brickbreak <> |-singleturn|p2a|allyswitch",
+      "games": 1,
+      "uses": 565,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "brickbreak",
+          "uses": 565,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "moves",
+          "id": "allyswitch",
+          "uses": 224,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "move vs -singleturn",
+      "pinSuspect": false
     },
     {
       "cls": "event missing from medicham2",
@@ -2510,6 +1922,34 @@
       "shape": "RULE",
       "shapeKey": "-activate vs -damage",
       "pinSuspect": true
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |move|p2b|phantomforce <> |move|p1a|psychup",
+      "games": 1,
+      "uses": 552,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "phantomforce",
+          "uses": 552,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "moves",
+          "id": "psychup",
+          "uses": 61,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "ORDERING",
+      "shapeKey": "move",
+      "pinSuspect": false
     },
     {
       "cls": "event missing from medicham2",
@@ -2553,8 +1993,28 @@
     },
     {
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-activate|p2a|feint <> |-damage|p2a|H/H",
-      "games": 6,
+      "cause": "event missing from medicham2 :: |-activate|p2a|phantomforce|[broken] <> |-damage|p2a|0fnt",
+      "games": 1,
+      "uses": 552,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "phantomforce",
+          "uses": 552,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-activate vs -damage",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-activate|p1a|feint <> |-damage|p1a|H/H",
+      "games": 8,
       "uses": 544,
       "impossible": false,
       "mentions": [
@@ -2573,7 +2033,7 @@
     },
     {
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-activate|p1a|feint <> |-damage|p1a|H/H",
+      "cause": "event missing from medicham2 :: |-activate|p2a|feint <> |-damage|p2a|H/H",
       "games": 6,
       "uses": 544,
       "impossible": false,
@@ -2653,22 +2113,38 @@
     },
     {
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-unboost|p2a|atk|0 <> |move|p2b|populationbomb",
+      "cause": "event missing from medicham2 :: |-item|p2a|chimechite|[from]frisk <> |-item|p1a|gardevoirite|[from]frisk",
       "games": 1,
-      "uses": 449,
+      "uses": 432,
       "impossible": false,
       "mentions": [
         {
-          "kind": "moves",
-          "id": "populationbomb",
-          "uses": 449,
+          "kind": "items",
+          "id": "chimechite",
+          "uses": 23,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "abilities",
+          "id": "frisk",
+          "uses": 138,
+          "legal": true,
+          "reachable": true,
+          "carriers": 11
+        },
+        {
+          "kind": "items",
+          "id": "gardevoirite",
+          "uses": 432,
           "legal": true,
           "reachable": true,
           "carriers": null
         }
       ],
-      "shape": "EMISSION",
-      "shapeKey": "-unboost vs move",
+      "shape": "ORDERING",
+      "shapeKey": "-item",
       "pinSuspect": true
     },
     {
@@ -2701,34 +2177,6 @@
     },
     {
       "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |-weather|snowscape|[upkeep] <> |-singleturn|p1a|allyswitch",
-      "games": 1,
-      "uses": 224,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "snowscape",
-          "uses": 16,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "moves",
-          "id": "allyswitch",
-          "uses": 224,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "-weather vs -singleturn",
-      "pinSuspect": false
-    },
-    {
-      "cls": "extra event emitted by medicham2",
       "cause": "extra event emitted by medicham2 :: |-boost|p1a|spe|1 <> |-singleturn|p1b|allyswitch",
       "games": 1,
       "uses": 224,
@@ -2745,6 +2193,26 @@
       ],
       "shape": "EMISSION",
       "shapeKey": "-boost vs -singleturn",
+      "pinSuspect": false
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-activate|p2a|telepathy <> |-immune|p2a|[from]telepathy",
+      "games": 1,
+      "uses": 223,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "abilities",
+          "id": "telepathy",
+          "uses": 223,
+          "legal": true,
+          "reachable": true,
+          "carriers": 5
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-activate vs -immune",
       "pinSuspect": false
     },
     {
@@ -2776,12 +2244,48 @@
       "pinSuspect": true
     },
     {
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |move|p1b|bodyslam <> |-damage|p2a|H/H|[from]painsplit",
+      "games": 1,
+      "uses": 156,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "bodyslam",
+          "uses": 156,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "moves",
+          "id": "painsplit",
+          "uses": 51,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "move vs -damage",
+      "pinSuspect": true
+    },
+    {
       "cls": "ordering",
-      "cause": "ordering :: |-damage|p2a|0fnt|[from]psn <> |-damage|p1a|H/H|[from]curse",
+      "cause": "ordering :: |-damage|p2b|H/H|[from]sandstorm <> |-damage|p1a|H/H|[from]curse",
       "games": 1,
       "uses": 149,
       "impossible": false,
       "mentions": [
+        {
+          "kind": "moves",
+          "id": "sandstorm",
+          "uses": 19,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
         {
           "kind": "moves",
           "id": "curse",
@@ -2796,8 +2300,8 @@
       "pinSuspect": true
     },
     {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|curse <> |-start|??:blaziken|curse",
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p1a|curse",
       "games": 1,
       "uses": 149,
       "impossible": false,
@@ -2806,26 +2310,18 @@
           "kind": "moves",
           "id": "curse",
           "uses": 149,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "blaziken",
-          "uses": 0,
           "legal": true,
           "reachable": true,
           "carriers": null
         }
       ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
-      "pinSuspect": false
+      "shape": "EMISSION",
+      "shapeKey": "-fail vs move",
+      "pinSuspect": true
     },
     {
       "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|curse <> |-start|??:floettemega|curse",
+      "cause": "-start: a different body :: |-start|p1a|curse <> |-start|??:floetteeternal|curse",
       "games": 1,
       "uses": 149,
       "impossible": false,
@@ -2840,7 +2336,7 @@
         },
         {
           "kind": "species",
-          "id": "floettemega",
+          "id": "floetteeternal",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -2909,7 +2405,7 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |-supereffective|p1a|1 <> |-enditem|p2b|ironball|[from]fling",
+      "cause": "ordering :: |-damage|p2a|H/H <> |-enditem|p1b|ironball|[from]fling",
       "games": 1,
       "uses": 138,
       "impossible": false,
@@ -2932,12 +2428,12 @@
         }
       ],
       "shape": "EMISSION",
-      "shapeKey": "-supereffective vs -enditem",
-      "pinSuspect": false
+      "shapeKey": "-damage vs -enditem",
+      "pinSuspect": true
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |-boost|p1a|atk|1 <> |-start|p1a|noretreat",
+      "cause": "ordering :: |-boost|p2b|atk|1 <> |-start|p2b|noretreat",
       "games": 1,
       "uses": 89,
       "impossible": false,
@@ -2976,34 +2472,6 @@
       "pinSuspect": false
     },
     {
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |-weather|sandstorm|[upkeep] <> |-damage|p2a|H/H|[from]painsplit",
-      "games": 1,
-      "uses": 51,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "sandstorm",
-          "uses": 19,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "moves",
-          "id": "painsplit",
-          "uses": 51,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "-weather vs -damage",
-      "pinSuspect": true
-    },
-    {
       "cls": "-start field 5",
       "cause": "-start field 5 :: |-start|p2a|typechange|???/rock|[from]burnup <> |-start|p2a|typechange|???/rock",
       "games": 1,
@@ -3024,29 +2492,9 @@
       "pinSuspect": false
     },
     {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-weather|sandstorm|[upkeep] <> |upkeep",
-      "games": 1,
-      "uses": 19,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "sandstorm",
-          "uses": 19,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "EMISSION",
-      "shapeKey": "-weather vs upkeep",
-      "pinSuspect": true
-    },
-    {
       "cls": "ordering",
-      "cause": "ordering :: |-damage|p2b|H/H|[from]sandstorm <> |-boost|p2b|spe|2",
-      "games": 1,
+      "cause": "ordering :: |-damage|p1b|H/H|[from]sandstorm <> |-boost|p1b|spe|2",
+      "games": 2,
       "uses": 19,
       "impossible": false,
       "mentions": [
@@ -3061,6 +2509,26 @@
       ],
       "shape": "RULE",
       "shapeKey": "-damage vs -boost",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-weather|sandstorm|[upkeep] <> |upkeep",
+      "games": 2,
+      "uses": 19,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "sandstorm",
+          "uses": 19,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-weather vs upkeep",
       "pinSuspect": true
     },
     {
@@ -3085,7 +2553,27 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |-damage|p1b|H/H|[from]sandstorm <> |-boost|p1b|spe|2",
+      "cause": "ordering :: |-damage|p2b|H/H|[from]sandstorm <> |-damage|p1a|H/H|[from]sandstorm",
+      "games": 1,
+      "uses": 19,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "sandstorm",
+          "uses": 19,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "ORDERING",
+      "shapeKey": "-damage",
+      "pinSuspect": true
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |-damage|p1a|H/H|[from]sandstorm <> |-boost|p1a|spe|2",
       "games": 1,
       "uses": 19,
       "impossible": false,
@@ -3254,26 +2742,6 @@
     {
       "cls": "event missing from medicham2",
       "cause": "event missing from medicham2 :: |-singleturn|p1a|focuspunch <> |move|p1a|focuspunch",
-      "games": 2,
-      "uses": 14,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "moves",
-          "id": "focuspunch",
-          "uses": 14,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "RULE",
-      "shapeKey": "-singleturn vs move",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-singleturn|p2a|focuspunch <> |move|p2a|focuspunch",
       "games": 1,
       "uses": 14,
       "impossible": false,
@@ -3293,7 +2761,55 @@
     },
     {
       "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-singleturn|p2a|focuspunch <> |move|p2b|futuresight",
+      "games": 1,
+      "uses": 14,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "focuspunch",
+          "uses": 14,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "moves",
+          "id": "futuresight",
+          "uses": 11,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-singleturn vs move",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
       "cause": "event missing from medicham2 :: |-singleturn|p1b|focuspunch <> |move|p1b|focuspunch",
+      "games": 1,
+      "uses": 14,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "focuspunch",
+          "uses": 14,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-singleturn vs move",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-singleturn|p2a|focuspunch <> |move|p2a|focuspunch",
       "games": 1,
       "uses": 14,
       "impossible": false,
@@ -3390,7 +2906,27 @@
     {
       "cls": "event missing from medicham2",
       "cause": "event missing from medicham2 :: |-singleturn|p2b|beakblast <> |move|p2b|beakblast",
-      "games": 2,
+      "games": 1,
+      "uses": 7,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "moves",
+          "id": "beakblast",
+          "uses": 7,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-singleturn vs move",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-singleturn|p1b|beakblast <> |move|p1b|beakblast",
+      "games": 1,
       "uses": 7,
       "impossible": false,
       "mentions": [
@@ -3409,7 +2945,7 @@
     },
     {
       "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fail|p1b <> |-start|p1b|endure",
+      "cause": "unrelated event mismatch :: |-fail|p2b <> |-start|p2b|endure",
       "games": 1,
       "uses": 5,
       "impossible": false,
@@ -3449,8 +2985,8 @@
     },
     {
       "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-damage|p2a|H/H <> |-fail|p1b",
-      "games": 6,
+      "cause": "unrelated event mismatch :: |-damage|p2a|H/H <> |-fail|p1a",
+      "games": 7,
       "uses": 0,
       "impossible": false,
       "mentions": [],
@@ -3461,7 +2997,7 @@
     {
       "cls": "unrelated event mismatch",
       "cause": "unrelated event mismatch :: |-damage|p1a|H/H <> |-fail|p2a",
-      "games": 5,
+      "games": 6,
       "uses": 0,
       "impossible": false,
       "mentions": [],
@@ -3471,7 +3007,29 @@
     },
     {
       "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-formechange|p1a|morpekohangry| <> |detailschange|p1a|morpekohangry,l50",
+      "cause": "unrelated event mismatch :: |-damage|p2a|H/H <> |-fail|p1b",
+      "games": 5,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-damage vs -fail",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-unboost|p1a|atk|0 <> |-unboost|p1b|atk|1",
+      "games": 4,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "ORDERING",
+      "shapeKey": "-unboost",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-formechange|p2a|morpekohangry| <> |detailschange|p2a|morpekohangry,l50",
       "games": 4,
       "uses": 0,
       "impossible": false,
@@ -3491,47 +3049,23 @@
     },
     {
       "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-damage|p2a|H/H <> |-fail|p1a",
-      "games": 4,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-damage vs -fail",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-damage|p1a|H/H <> |-fail|p2b",
-      "games": 4,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-damage vs -fail",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-unboost|p1a|atk|0 <> |-unboost|p1b|atk|1",
+      "cause": "unrelated event mismatch :: |-formechange|p1a|morpekohangry| <> |detailschange|p1a|morpekohangry,l50",
       "games": 3,
       "uses": 0,
       "impossible": false,
-      "mentions": [],
-      "shape": "ORDERING",
-      "shapeKey": "-unboost",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-unboost|p2a|atk|0 <> |-unboost|p2b|atk|1",
-      "games": 3,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "ORDERING",
-      "shapeKey": "-unboost",
-      "pinSuspect": true
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "morpekohangry",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-formechange vs detailschange",
+      "pinSuspect": false
     },
     {
       "cls": "unrelated event mismatch",
@@ -3545,15 +3079,26 @@
       "pinSuspect": true
     },
     {
-      "cls": "ordering",
-      "cause": "ordering :: |-unboost|p1a|atk|1 <> |-unboost|p2a|atk|1",
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-damage|p1a|H/H <> |-fail|p2b",
       "games": 3,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-damage vs -fail",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-unboost|p2a|atk|1 <> |-unboost|p1a|atk|1",
+      "games": 2,
       "uses": 0,
       "impossible": false,
       "mentions": [],
       "shape": "ORDERING",
       "shapeKey": "-unboost",
-      "pinSuspect": false
+      "pinSuspect": true
     },
     {
       "cls": "event missing from medicham2",
@@ -3578,35 +3123,32 @@
       "pinSuspect": true
     },
     {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-formechange|p2a|morpekohangry| <> |detailschange|p2a|morpekohangry,l50",
+      "cls": "switch: a different body",
+      "cause": "switch: a different body :: |switch|p2a|dragonite,l50|H/H <> |switch|p2a|zoroarkhisui,l50|H/H",
       "games": 2,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
           "kind": "species",
-          "id": "morpekohangry",
+          "id": "dragonite",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "zoroarkhisui",
           "uses": 0,
           "legal": true,
           "reachable": true,
           "carriers": null
         }
       ],
-      "shape": "RULE",
-      "shapeKey": "-formechange vs detailschange",
+      "shape": "UNPARSED",
+      "shapeKey": "switch: a different body :: |switch|p2a|",
       "pinSuspect": false
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-immune|p1a <> |-fail|p2a",
-      "games": 2,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-immune vs -fail",
-      "pinSuspect": true
     },
     {
       "cls": "switch: a different body",
@@ -3637,207 +3179,20 @@
       "pinSuspect": false
     },
     {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-damage|p2a|H/H <> |detailschange|p2a|mimikyubusted,l50",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "mimikyubusted",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "RULE",
-      "shapeKey": "-damage vs detailschange",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-supereffective|p2a|1 <> |-damage|p2a|0fnt",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "RULE",
-      "shapeKey": "-supereffective vs -damage",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-end|p1b|fallenundefined <> |switch|p1b|grimmsnarl,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "grimmsnarl",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "RULE",
-      "shapeKey": "-end vs switch",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-unboost|p2b|atk|0 <> |upkeep",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-unboost vs upkeep",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-unboost|p2a|atk|1 <> |-unboost|p1a|atk|1",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "ORDERING",
-      "shapeKey": "-unboost",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-fail|p2a <> |upkeep",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-fail vs upkeep",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-unboost|p2a|atk|0 <> |-boost|p2b|spe|1",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-unboost vs -boost",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-immune|p1b <> |cant|p2a|flinch",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-immune vs cant",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |switch|p2b|garchomp,l50|H/H <> |switch|p1b|incineroar,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "garchomp",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "incineroar",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "ORDERING",
-      "shapeKey": "switch",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-unboost|p1a|atk|1 <> |turn|1",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-unboost vs turn",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-unboost|p1a|atk|0 <> |upkeep",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-unboost vs upkeep",
-      "pinSuspect": true
-    },
-    {
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-end|p1b|fallenundefined <> |switch|p1b|gengar,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "gengar",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "RULE",
-      "shapeKey": "-end vs switch",
-      "pinSuspect": true
-    },
-    {
       "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-immune|p1a <> |-unboost|p1a|atk|1",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "RULE",
-      "shapeKey": "-immune vs -unboost",
-      "pinSuspect": false
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-immune|p2b <> |-fail|p1a",
-      "games": 1,
+      "cause": "unrelated event mismatch :: |-immune|p1a <> |-miss|p2a|p1a",
+      "games": 2,
       "uses": 0,
       "impossible": false,
       "mentions": [],
       "shape": "EMISSION",
-      "shapeKey": "-immune vs -fail",
+      "shapeKey": "-immune vs -miss",
       "pinSuspect": true
     },
     {
       "cls": "unrelated event mismatch",
       "cause": "unrelated event mismatch :: |-status|p1a|tox <> |-miss|p2b|p1a",
-      "games": 1,
+      "games": 2,
       "uses": 0,
       "impossible": false,
       "mentions": [],
@@ -3846,160 +3201,8 @@
       "pinSuspect": true
     },
     {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-damage|p1a|H/H <> |-miss|p2a|p1a",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-damage vs -miss",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-miss|p1a|p2a <> |-boost|p2a|atk|2",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-miss vs -boost",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-formechange|p1b|morpekohangry| <> |detailschange|p1b|morpekohangry,l50",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "morpekohangry",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "RULE",
-      "shapeKey": "-formechange vs detailschange",
-      "pinSuspect": false
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-miss|p2b|p1a <> |-fail|p2b",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "RULE",
-      "shapeKey": "-miss vs -fail",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fail|p2b <> |-supereffective|p1b|1",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-fail vs -supereffective",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fail|p2a <> |-resisted|p1a|1",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-fail vs -resisted",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-immune|p2a <> |-fail|p1b",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-immune vs -fail",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fail|p1a <> |-damage|p2a|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-fail vs -damage",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fail|p1b <> |-supereffective|p2b|1",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-fail vs -supereffective",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fail|p1b <> |-supereffective|p2a|1",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-fail vs -supereffective",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fail|p2a <> |-resisted|p1b|1",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-fail vs -resisted",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-immune|p2a <> |-fail|p1a",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-immune vs -fail",
-      "pinSuspect": true
-    },
-    {
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-resisted|p1a|1 <> |-fail|p2a",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-resisted vs -fail",
-      "pinSuspect": true
-    },
-    {
       "cls": "ordering",
-      "cause": "ordering :: |-unboost|p1b|def|1 <> |faint|p2a",
+      "cause": "ordering :: |-unboost|p1a|def|1 <> |faint|p2a",
       "games": 1,
       "uses": 0,
       "impossible": false,
@@ -4010,14 +3213,14 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |switch|p2a|farigiraf,l50|H/H <> |switch|p1a|whimsicott,l50|H/H",
+      "cause": "ordering :: |switch|p2a|staraptor,l50|H/H <> |switch|p1a|sinistcha,l50|H/H",
       "games": 1,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
           "kind": "species",
-          "id": "farigiraf",
+          "id": "staraptor",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4025,7 +3228,7 @@
         },
         {
           "kind": "species",
-          "id": "whimsicott",
+          "id": "sinistcha",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4034,6 +3237,17 @@
       ],
       "shape": "ORDERING",
       "shapeKey": "switch",
+      "pinSuspect": false
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |-unboost|p2a|def|1 <> |faint|p1b",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-unboost vs faint",
       "pinSuspect": false
     },
     {
@@ -4049,18 +3263,7 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |-mustrecharge|p2b <> |-boost|p1a|def|1",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-mustrecharge vs -boost",
-      "pinSuspect": false
-    },
-    {
-      "cls": "ordering",
-      "cause": "ordering :: |-unboost|p1b|def|1 <> |faint|p2b",
+      "cause": "ordering :: |-unboost|p1b|def|1 <> |faint|p2a",
       "games": 1,
       "uses": 0,
       "impossible": false,
@@ -4071,14 +3274,14 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |switch|p2b|whimsicott,l50|H/H <> |switch|p1a|metagross,l50|H/H",
+      "cause": "ordering :: |switch|p2b|quaquaval,l50|H/H <> |switch|p2a|aggron,l50|H/H",
       "games": 1,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
           "kind": "species",
-          "id": "whimsicott",
+          "id": "quaquaval",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4086,7 +3289,91 @@
         },
         {
           "kind": "species",
-          "id": "metagross",
+          "id": "aggron",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "ORDERING",
+      "shapeKey": "switch",
+      "pinSuspect": false
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |switch|p1b|basculegion,l50|H/H <> |switch|p2b|aerodactyl,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "basculegion",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "aerodactyl",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "ORDERING",
+      "shapeKey": "switch",
+      "pinSuspect": false
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |switch|p1b|garchomp,l50|H/H <> |switch|p2b|basculegion,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "garchomp",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "basculegion",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "ORDERING",
+      "shapeKey": "switch",
+      "pinSuspect": false
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |switch|p2a|torkoal,l50|H/H <> |switch|p2b|farigiraf,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "torkoal",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "farigiraf",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4110,98 +3397,14 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |switch|p2a|banette,l50|H/H <> |switch|p1a|froslass,l50|H/H",
+      "cause": "ordering :: |switch|p2a|swampert,l50|H/H <> |switch|p1b|pelipper,l50|H/H",
       "games": 1,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
           "kind": "species",
-          "id": "banette",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "froslass",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "ORDERING",
-      "shapeKey": "switch",
-      "pinSuspect": false
-    },
-    {
-      "cls": "ordering",
-      "cause": "ordering :: |switch|p2b|garchomp,l50|H/H <> |switch|p1a|dragonite,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "garchomp",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "dragonite",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "ORDERING",
-      "shapeKey": "switch",
-      "pinSuspect": false
-    },
-    {
-      "cls": "ordering",
-      "cause": "ordering :: |switch|p2a|pyroar,l50|H/H <> |switch|p1a|torkoal,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "pyroar",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "torkoal",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "ORDERING",
-      "shapeKey": "switch",
-      "pinSuspect": false
-    },
-    {
-      "cls": "ordering",
-      "cause": "ordering :: |switch|p1a|ninetalesalola,l50|H/H <> |switch|p2b|pelipper,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "ninetalesalola",
+          "id": "swampert",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4210,6 +3413,90 @@
         {
           "kind": "species",
           "id": "pelipper",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "ORDERING",
+      "shapeKey": "switch",
+      "pinSuspect": false
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |switch|p1a|clefable,l50|H/H <> |switch|p1b|metagross,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "clefable",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "metagross",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "ORDERING",
+      "shapeKey": "switch",
+      "pinSuspect": false
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |switch|p2b|whimsicott,l50|H/H <> |switch|p2a|basculegion,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "whimsicott",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "basculegion",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "ORDERING",
+      "shapeKey": "switch",
+      "pinSuspect": false
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |switch|p2a|ceruledge,l50|H/H <> |switch|p2b|milotic,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "ceruledge",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "milotic",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4250,14 +3537,14 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |switch|p1b|incineroar,l50|H/H <> |switch|p2a|mawile,l50|H/H",
+      "cause": "ordering :: |switch|p2a|basculegion,l50|H/H <> |switch|p2b|garchomp,l50|H/H",
       "games": 1,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
           "kind": "species",
-          "id": "incineroar",
+          "id": "basculegion",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4265,7 +3552,7 @@
         },
         {
           "kind": "species",
-          "id": "mawile",
+          "id": "garchomp",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4278,14 +3565,14 @@
     },
     {
       "cls": "ordering",
-      "cause": "ordering :: |switch|p2a|annihilape,l50|H/H <> |switch|p1a|hatterene,l50|H/H",
+      "cause": "ordering :: |switch|p2a|kangaskhan,l50|H/H <> |switch|p1a|raichu,l50|H/H",
       "games": 1,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
           "kind": "species",
-          "id": "annihilape",
+          "id": "kangaskhan",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4293,7 +3580,7 @@
         },
         {
           "kind": "species",
-          "id": "hatterene",
+          "id": "raichu",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4302,6 +3589,294 @@
       ],
       "shape": "ORDERING",
       "shapeKey": "switch",
+      "pinSuspect": false
+    },
+    {
+      "cls": "ordering",
+      "cause": "ordering :: |detailschange|p1a|mawilemega,l50 <> |detailschange|p2a|mawilemega,l50",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "mawilemega",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "ORDERING",
+      "shapeKey": "detailschange",
+      "pinSuspect": false
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-unboost|p1a|atk|1 <> |switch|p1a|delphox,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "delphox",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-unboost vs switch",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-end|p2b|fallenundefined <> |switch|p2b|sneasler,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "sneasler",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-end vs switch",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-end|p1b|fallenundefined <> |switch|p1b|sinistcha,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "sinistcha",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-end vs switch",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-unboost|p2b|atk|0 <> |upkeep",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-unboost vs upkeep",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-fail|p2a <> |upkeep",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-fail vs upkeep",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-unboost|p2a|atk|0 <> |-boost|p2b|spe|1",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-unboost vs -boost",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-unboost|p2a|atk|0 <> |-unboost|p2b|atk|1",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "ORDERING",
+      "shapeKey": "-unboost",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-immune|p1b <> |cant|p2a|flinch",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-immune vs cant",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-activate|p1a|megasol <> |-resisted|p2a|2",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "abilities",
+          "id": "megasol",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": 1
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-activate vs -resisted",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-end|p1b|fallenundefined <> |switch|p1b|gengar,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "gengar",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-end vs switch",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-unboost|p2b|atk|0 <> |switch|p1a|metagross,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "metagross",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-unboost vs switch",
+      "pinSuspect": true
+    },
+    {
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-unboost|p2b|atk|0 <> |switch|p1b|gengar,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "gengar",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-unboost vs switch",
+      "pinSuspect": true
+    },
+    {
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |faint|p2a <> |-damage|p2a|0fnt",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "RULE",
+      "shapeKey": "faint vs -damage",
+      "pinSuspect": true
+    },
+    {
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |-boost|p2a|spe|2 <> |detailschange|p1a|morpekohangry,l50",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "morpekohangry",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "EMISSION",
+      "shapeKey": "-boost vs detailschange",
+      "pinSuspect": false
+    },
+    {
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-unboost|p2a|atk|1",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "ORDERING",
+      "shapeKey": "-unboost",
+      "pinSuspect": false
+    },
+    {
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |-immune|p1a <> |-fail|p2b",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-immune vs -fail",
+      "pinSuspect": true
+    },
+    {
+      "cls": "-start: a different body",
+      "cause": "-start: a different body :: |-start|p1a|typechange|water <> |-start|??:altaria|typechange|water",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "altaria",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "UNPARSED",
+      "shapeKey": "-start: a different body :: |-start|p1a|",
       "pinSuspect": false
     },
     {
@@ -4334,14 +3909,42 @@
     },
     {
       "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p2a|corviknight,l50|H/H <> |switch|p2a|zoroarkhisui,l50|H/H",
+      "cause": "switch: a different body :: |switch|p1b|raichualola,l50|H/H <> |switch|p1b|zoroarkhisui,l50|H/H",
       "games": 1,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
           "kind": "species",
-          "id": "corviknight",
+          "id": "raichualola",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "zoroarkhisui",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "UNPARSED",
+      "shapeKey": "switch: a different body :: |switch|p1b|",
+      "pinSuspect": false
+    },
+    {
+      "cls": "switch: a different body",
+      "cause": "switch: a different body :: |switch|p2a|sinistcha,l50|H/H <> |switch|p2a|zoroarkhisui,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "sinistcha",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4362,14 +3965,42 @@
     },
     {
       "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p1a|sableye,l50|H/H <> |switch|p1a|zoroark,l50|H/H",
+      "cause": "switch: a different body :: |switch|p2b|heliolisk,l50|H/H <> |switch|p2b|zoroark,l50|H/H",
       "games": 1,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
           "kind": "species",
-          "id": "sableye",
+          "id": "heliolisk",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "zoroark",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "UNPARSED",
+      "shapeKey": "switch: a different body :: |switch|p2b|",
+      "pinSuspect": false
+    },
+    {
+      "cls": "switch: a different body",
+      "cause": "switch: a different body :: |switch|p1a|sylveon,l50|H/H <> |switch|p1a|zoroark,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "sylveon",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4390,7 +4021,63 @@
     },
     {
       "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p1b|whimsicott,l50|H/H <> |switch|p1b|zoroarkhisui,l50|H/H",
+      "cause": "switch: a different body :: |switch|p2b|kingambit,l50|H/H <> |switch|p2b|zoroarkhisui,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "kingambit",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "zoroarkhisui",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "UNPARSED",
+      "shapeKey": "switch: a different body :: |switch|p2b|",
+      "pinSuspect": false
+    },
+    {
+      "cls": "switch: a different body",
+      "cause": "switch: a different body :: |switch|p2b|toxapex,l50|H/H <> |switch|p2b|zoroarkhisui,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "toxapex",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "zoroarkhisui",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "UNPARSED",
+      "shapeKey": "switch: a different body :: |switch|p2b|",
+      "pinSuspect": false
+    },
+    {
+      "cls": "switch: a different body",
+      "cause": "switch: a different body :: |switch|p2a|whimsicott,l50|H/H <> |switch|p2a|zoroarkhisui,l50|H/H",
       "games": 1,
       "uses": 0,
       "impossible": false,
@@ -4413,19 +4100,19 @@
         }
       ],
       "shape": "UNPARSED",
-      "shapeKey": "switch: a different body :: |switch|p1b|",
+      "shapeKey": "switch: a different body :: |switch|p2a|",
       "pinSuspect": false
     },
     {
       "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p1a|staraptor,l50|H/H <> |switch|p1a|zoroarkhisui,l50|H/H",
+      "cause": "switch: a different body :: |switch|p2a|kangaskhan,l50|H/H <> |switch|p2a|zoroarkhisui,l50|H/H",
       "games": 1,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
           "kind": "species",
-          "id": "staraptor",
+          "id": "kangaskhan",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4441,40 +4128,12 @@
         }
       ],
       "shape": "UNPARSED",
-      "shapeKey": "switch: a different body :: |switch|p1a|",
+      "shapeKey": "switch: a different body :: |switch|p2a|",
       "pinSuspect": false
     },
     {
       "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p2b|umbreon,l50|H/H <> |switch|p2b|zoroarkhisui,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "umbreon",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "zoroarkhisui",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "switch: a different body :: |switch|p2b|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p1a|tinkaton,l50|H/H <> |switch|p1a|zoroark,l50|H/H",
+      "cause": "switch: a different body :: |switch|p2a|tinkaton,l50|H/H <> |switch|p2a|zoroark,l50|H/H",
       "games": 1,
       "uses": 0,
       "impossible": false,
@@ -4482,202 +4141,6 @@
         {
           "kind": "species",
           "id": "tinkaton",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "zoroark",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "switch: a different body :: |switch|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p1a|maushold,l50|H/H <> |switch|p1a|zoroarkhisui,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "maushold",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "zoroarkhisui",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "switch: a different body :: |switch|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p1a|diggersby,l50|H/H <> |switch|p1a|zoroarkhisui,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "diggersby",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "zoroarkhisui",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "switch: a different body :: |switch|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p2a|scovillain,l50|H/H <> |switch|p2a|zoroarkhisui,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "scovillain",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "zoroarkhisui",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "switch: a different body :: |switch|p2a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p1a|charizard,l50|H/H <> |switch|p1a|zoroarkhisui,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "charizard",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "zoroarkhisui",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "switch: a different body :: |switch|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p1a|venusaur,l50|H/H <> |switch|p1a|zoroarkhisui,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "venusaur",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "zoroarkhisui",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "switch: a different body :: |switch|p1a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p2a|runerigus,l50|H/H <> |switch|p2a|zoroark,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "runerigus",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "zoroark",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "switch: a different body :: |switch|p2a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p2a|sableye,l50|H/H <> |switch|p2a|zoroark,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "sableye",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4866,6 +4329,34 @@
     },
     {
       "cls": "switch: a different body",
+      "cause": "switch: a different body :: |switch|p2a|swampert,l50|H/H <> |switch|p2a|zoroarkhisui,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "swampert",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "zoroarkhisui",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "UNPARSED",
+      "shapeKey": "switch: a different body :: |switch|p2a|",
+      "pinSuspect": false
+    },
+    {
+      "cls": "switch: a different body",
       "cause": "switch: a different body :: |switch|p1b|staraptor,l50|H/H <> |switch|p1b|zoroarkhisui,l50|H/H",
       "games": 1,
       "uses": 0,
@@ -4894,14 +4385,14 @@
     },
     {
       "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p2a|dragonite,l50|H/H <> |switch|p2a|zoroarkhisui,l50|H/H",
+      "cause": "switch: a different body :: |switch|p2a|ninetalesalola,l50|H/H <> |switch|p2a|zoroarkhisui,l50|H/H",
       "games": 1,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
           "kind": "species",
-          "id": "dragonite",
+          "id": "ninetalesalola",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -4949,78 +4440,15 @@
       "pinSuspect": false
     },
     {
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |upkeep <> |-fail|p2a",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "upkeep vs -fail",
-      "pinSuspect": true
-    },
-    {
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |faint|p2a <> |-damage|p2a|0fnt",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "RULE",
-      "shapeKey": "faint vs -damage",
-      "pinSuspect": true
-    },
-    {
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |-start|p2a|perish0 <> |-damage|p1b|0fnt",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "EMISSION",
-      "shapeKey": "-start vs -damage",
-      "pinSuspect": true
-    },
-    {
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |-unboost|p1a|atk|1 <> |-unboost|p2a|atk|1",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "ORDERING",
-      "shapeKey": "-unboost",
-      "pinSuspect": false
-    },
-    {
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |faint|p1a <> |-hitcount|p1a|1",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [],
-      "shape": "RULE",
-      "shapeKey": "faint vs -hitcount",
-      "pinSuspect": false
-    },
-    {
-      "cls": "drag: a different body",
-      "cause": "drag: a different body :: |drag|p2a|hydreigon,l50|H/H <> |drag|p2a|annihilape,l50|H/Hpar",
+      "cls": "-boost: a different body",
+      "cause": "-boost: a different body :: |-boost|p2a|atk|2 <> |-boost|??:luxray|atk|2",
       "games": 1,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
           "kind": "species",
-          "id": "hydreigon",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "annihilape",
+          "id": "luxray",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -5028,8 +4456,264 @@
         }
       ],
       "shape": "UNPARSED",
-      "shapeKey": "drag: a different body :: |drag|p2a|hydr",
+      "shapeKey": "-boost: a different body :: |-boost|p2a|",
       "pinSuspect": false
+    },
+    {
+      "cls": "-boost: a different body",
+      "cause": "-boost: a different body :: |-boost|p2a|atk|2 <> |-boost|??:medicham|atk|2",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "medicham",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "UNPARSED",
+      "shapeKey": "-boost: a different body :: |-boost|p2a|",
+      "pinSuspect": false
+    },
+    {
+      "cls": "-boost: a different body",
+      "cause": "-boost: a different body :: |-boost|p2a|atk|2 <> |-boost|??:incineroar|atk|2",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "incineroar",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "UNPARSED",
+      "shapeKey": "-boost: a different body :: |-boost|p2a|",
+      "pinSuspect": false
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-formechange|p2b|morpekohangry| <> |detailschange|p2b|morpekohangry,l50",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "morpekohangry",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-formechange vs detailschange",
+      "pinSuspect": false
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-immune|p2a <> |-damage|p2a|0fnt",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "RULE",
+      "shapeKey": "-immune vs -damage",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-damage|p2a|0fnt <> |-resisted|p2a|1",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "RULE",
+      "shapeKey": "-damage vs -resisted",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-fail|p2b <> |-immune|p1a",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-fail vs -immune",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-miss|p1a|p2a <> |-boost|p2a|atk|2",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-miss vs -boost",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-formechange|p1b|morpekohangry| <> |detailschange|p1b|morpekohangry,l50",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "morpekohangry",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "RULE",
+      "shapeKey": "-formechange vs detailschange",
+      "pinSuspect": false
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-fail|p2b <> |-supereffective|p1b|1",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-fail vs -supereffective",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-fail|p2a <> |-resisted|p1a|1",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-fail vs -resisted",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-immune|p2a <> |-fail|p1b",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-immune vs -fail",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-fail|p1a <> |-damage|p2a|0fnt",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-fail vs -damage",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-immune|p1a <> |-fail|p2a",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-immune vs -fail",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-fail|p1b <> |-supereffective|p2b|1",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-fail vs -supereffective",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-fail|p1b <> |-resisted|p2a|1",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-fail vs -resisted",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-fail|p2a <> |-resisted|p1b|1",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-fail vs -resisted",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-resisted|p1a|1 <> |-fail|p2a",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-resisted vs -fail",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-immune|p2a <> |-fail|p1a",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-immune vs -fail",
+      "pinSuspect": true
+    },
+    {
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-resisted|p1a|1 <> |-fail|p2b",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "EMISSION",
+      "shapeKey": "-resisted vs -fail",
+      "pinSuspect": true
+    },
+    {
+      "cls": "-damage field 3",
+      "cause": "-damage field 3 :: |-damage|p1a|0fnt <> |-damage|p1a|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [],
+      "shape": "FIELD",
+      "shapeKey": "-damage",
+      "pinSuspect": true
     },
     {
       "cls": "drag: a different body",
@@ -5113,34 +4797,6 @@
       ],
       "shape": "UNPARSED",
       "shapeKey": "drag: a different body :: |drag|p2a|garc",
-      "pinSuspect": false
-    },
-    {
-      "cls": "drag: a different body",
-      "cause": "drag: a different body :: |drag|p2a|sinistcha,l50|H/H <> |drag|p2a|grimmsnarl,l50|H/H",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "sinistcha",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        },
-        {
-          "kind": "species",
-          "id": "grimmsnarl",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "drag: a different body :: |drag|p2a|sini",
       "pinSuspect": false
     },
     {
@@ -5229,6 +4885,34 @@
     },
     {
       "cls": "drag: a different body",
+      "cause": "drag: a different body :: |drag|p2a|wyrdeer,l50|H/H <> |drag|p2a|aromatisse,l50|H/H",
+      "games": 1,
+      "uses": 0,
+      "impossible": false,
+      "mentions": [
+        {
+          "kind": "species",
+          "id": "wyrdeer",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        },
+        {
+          "kind": "species",
+          "id": "aromatisse",
+          "uses": 0,
+          "legal": true,
+          "reachable": true,
+          "carriers": null
+        }
+      ],
+      "shape": "UNPARSED",
+      "shapeKey": "drag: a different body :: |drag|p2a|wyrd",
+      "pinSuspect": false
+    },
+    {
+      "cls": "drag: a different body",
       "cause": "drag: a different body :: |drag|p2a|farigiraf,l50|H/H <> |drag|p2a|torkoal,l50|H/H",
       "games": 1,
       "uses": 0,
@@ -5257,14 +4941,14 @@
     },
     {
       "cls": "drag: a different body",
-      "cause": "drag: a different body :: |drag|p2a|oranguru,l50|H/H <> |drag|p2a|eelektross,l50|H/H",
+      "cause": "drag: a different body :: |drag|p1a|ninetalesalola,l50|H/H <> |drag|p1a|armarouge,l50|H/H",
       "games": 1,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
           "kind": "species",
-          "id": "oranguru",
+          "id": "ninetalesalola",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -5272,7 +4956,7 @@
         },
         {
           "kind": "species",
-          "id": "eelektross",
+          "id": "armarouge",
           "uses": 0,
           "legal": true,
           "reachable": true,
@@ -5280,104 +4964,64 @@
         }
       ],
       "shape": "UNPARSED",
-      "shapeKey": "drag: a different body :: |drag|p2a|oran",
+      "shapeKey": "drag: a different body :: |drag|p1a|nine",
       "pinSuspect": false
     },
     {
-      "cls": "-start: a different body",
-      "cause": "-start: a different body :: |-start|p1a|typechange|water <> |-start|??:charizard|typechange|water",
+      "cls": "-status field 4",
+      "cause": "-status field 4 :: |-status|p1b|brn|[from]spicyspray <> |-status|p1b|brn",
       "games": 1,
       "uses": 0,
       "impossible": false,
       "mentions": [
         {
-          "kind": "species",
-          "id": "charizard",
+          "kind": "abilities",
+          "id": "spicyspray",
           "uses": 0,
           "legal": true,
           "reachable": true,
-          "carriers": null
+          "carriers": 1
         }
       ],
-      "shape": "UNPARSED",
-      "shapeKey": "-start: a different body :: |-start|p1a|",
+      "shape": "FIELD",
+      "shapeKey": "-status",
       "pinSuspect": false
-    },
+    }
+  ],
+  "impossible": [
     {
-      "cls": "-damage field 3",
-      "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:swampert|37/175 vs |-damage|p2a:swampert|83/175]",
+      "cls": "-start field 4",
+      "cause": "-start field 4 :: |-start|p1b|confusion|[fatigue] <> |-start|p1b|confusion",
       "games": 1,
       "uses": 0,
-      "impossible": false,
+      "impossible": true,
       "mentions": [
         {
-          "kind": "species",
-          "id": "swampert",
+          "kind": "moves",
+          "id": "confusion",
           "uses": 0,
-          "legal": true,
-          "reachable": true,
+          "legal": false,
+          "reachable": false,
           "carriers": null
         }
       ],
       "shape": "FIELD",
-      "shapeKey": "-damage",
-      "pinSuspect": true
-    },
-    {
-      "cls": "-boost: a different body",
-      "cause": "-boost: a different body :: |-boost|p2a|atk|2 <> |-boost|??:medicham|atk|2",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "medicham",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-boost: a different body :: |-boost|p2a|",
-      "pinSuspect": false
-    },
-    {
-      "cls": "-boost: a different body",
-      "cause": "-boost: a different body :: |-boost|p2a|atk|2 <> |-boost|??:incineroar|atk|2",
-      "games": 1,
-      "uses": 0,
-      "impossible": false,
-      "mentions": [
-        {
-          "kind": "species",
-          "id": "incineroar",
-          "uses": 0,
-          "legal": true,
-          "reachable": true,
-          "carriers": null
-        }
-      ],
-      "shape": "UNPARSED",
-      "shapeKey": "-boost: a different body :: |-boost|p2a|",
+      "shapeKey": "-start",
       "pinSuspect": false
     }
   ],
-  "impossible": [],
   "suspects": [
     {
       "key": "moves/protect",
       "kind": "moves",
       "id": "protect",
       "uses": 94313,
-      "causes": 21,
-      "games": 48,
+      "causes": 16,
+      "games": 35,
       "classes": [
         "unrelated event mismatch",
-        "event missing from medicham2",
         "ordering",
-        "extra event emitted by medicham2"
+        "event missing from medicham2"
       ]
     },
     {
@@ -5407,11 +5051,11 @@
       "kind": "moves",
       "id": "tailwind",
       "uses": 15011,
-      "causes": 12,
-      "games": 17,
+      "causes": 13,
+      "games": 21,
       "classes": [
-        "ordering",
-        "event missing from medicham2"
+        "event missing from medicham2",
+        "ordering"
       ]
     },
     {
@@ -5419,6 +5063,18 @@
       "kind": "items",
       "id": "lifeorb",
       "uses": 14359,
+      "causes": 4,
+      "games": 4,
+      "classes": [
+        "ordering",
+        "event missing from medicham2"
+      ]
+    },
+    {
+      "key": "moves/trickroom",
+      "kind": "moves",
+      "id": "trickroom",
+      "uses": 9559,
       "causes": 1,
       "games": 1,
       "classes": [
@@ -5437,23 +5093,12 @@
       ]
     },
     {
-      "key": "moves/weatherball",
-      "kind": "moves",
-      "id": "weatherball",
-      "uses": 9357,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "extra event emitted by medicham2"
-      ]
-    },
-    {
       "key": "moves/suckerpunch",
       "kind": "moves",
       "id": "suckerpunch",
       "uses": 9330,
-      "causes": 1,
-      "games": 1,
+      "causes": 2,
+      "games": 2,
       "classes": [
         "unrelated event mismatch"
       ]
@@ -5463,11 +5108,22 @@
       "kind": "items",
       "id": "leftovers",
       "uses": 8578,
-      "causes": 6,
-      "games": 10,
+      "causes": 10,
+      "games": 15,
       "classes": [
         "ordering",
         "unrelated event mismatch"
+      ]
+    },
+    {
+      "key": "moves/kowtowcleave",
+      "kind": "moves",
+      "id": "kowtowcleave",
+      "uses": 7739,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "event missing from medicham2"
       ]
     },
     {
@@ -5482,21 +5138,10 @@
       ]
     },
     {
-      "key": "abilities/adaptability",
-      "kind": "abilities",
-      "id": "adaptability",
-      "uses": 5799,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-activate field 4"
-      ]
-    },
-    {
-      "key": "moves/lowkick",
+      "key": "moves/lastrespects",
       "kind": "moves",
-      "id": "lowkick",
-      "uses": 5044,
+      "id": "lastrespects",
+      "uses": 6118,
       "causes": 1,
       "games": 1,
       "classes": [
@@ -5511,8 +5156,30 @@
       "causes": 2,
       "games": 2,
       "classes": [
-        "unrelated event mismatch",
-        "ordering"
+        "ordering",
+        "unrelated event mismatch"
+      ]
+    },
+    {
+      "key": "moves/bravebird",
+      "kind": "moves",
+      "id": "bravebird",
+      "uses": 4736,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "event missing from medicham2"
+      ]
+    },
+    {
+      "key": "moves/lightscreen",
+      "kind": "moves",
+      "id": "lightscreen",
+      "uses": 4230,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "extra event emitted by medicham2"
       ]
     },
     {
@@ -5523,7 +5190,7 @@
       "causes": 1,
       "games": 1,
       "classes": [
-        "-start field 4"
+        "extra event emitted by medicham2"
       ]
     },
     {
@@ -5531,10 +5198,32 @@
       "kind": "abilities",
       "id": "armortail",
       "uses": 3870,
-      "causes": 2,
-      "games": 2,
+      "causes": 3,
+      "games": 3,
       "classes": [
         "unrelated event mismatch"
+      ]
+    },
+    {
+      "key": "moves/knockoff",
+      "kind": "moves",
+      "id": "knockoff",
+      "uses": 3834,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "ordering"
+      ]
+    },
+    {
+      "key": "abilities/drizzle",
+      "kind": "abilities",
+      "id": "drizzle",
+      "uses": 3827,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "ordering"
       ]
     },
     {
@@ -5549,21 +5238,10 @@
       ]
     },
     {
-      "key": "abilities/goodasgold",
-      "kind": "abilities",
-      "id": "goodasgold",
-      "uses": 2904,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "unrelated event mismatch"
-      ]
-    },
-    {
-      "key": "items/whiteherb",
-      "kind": "items",
-      "id": "whiteherb",
-      "uses": 2720,
+      "key": "moves/detect",
+      "kind": "moves",
+      "id": "detect",
+      "uses": 3062,
       "causes": 1,
       "games": 1,
       "classes": [
@@ -5571,14 +5249,14 @@
       ]
     },
     {
-      "key": "moves/zapcannon",
-      "kind": "moves",
-      "id": "zapcannon",
-      "uses": 2693,
-      "causes": 1,
-      "games": 1,
+      "key": "abilities/goodasgold",
+      "kind": "abilities",
+      "id": "goodasgold",
+      "uses": 2904,
+      "causes": 2,
+      "games": 2,
       "classes": [
-        "extra event emitted by medicham2"
+        "unrelated event mismatch"
       ]
     },
     {
@@ -5593,25 +5271,14 @@
       ]
     },
     {
-      "key": "moves/calmmind",
+      "key": "moves/spiritbreak",
       "kind": "moves",
-      "id": "calmmind",
-      "uses": 2648,
+      "id": "spiritbreak",
+      "uses": 1867,
       "causes": 1,
       "games": 1,
       "classes": [
-        "ordering"
-      ]
-    },
-    {
-      "key": "abilities/clearbody",
-      "kind": "abilities",
-      "id": "clearbody",
-      "uses": 2015,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "unrelated event mismatch"
+        "event missing from medicham2"
       ]
     },
     {
@@ -5619,10 +5286,11 @@
       "kind": "moves",
       "id": "taunt",
       "uses": 1715,
-      "causes": 1,
-      "games": 1,
+      "causes": 2,
+      "games": 2,
       "classes": [
-        "event missing from medicham2"
+        "extra event emitted by medicham2",
+        "unrelated event mismatch"
       ]
     },
     {
@@ -5630,17 +5298,6 @@
       "kind": "abilities",
       "id": "toxicdebris",
       "uses": 1370,
-      "causes": 2,
-      "games": 2,
-      "classes": [
-        "event missing from medicham2"
-      ]
-    },
-    {
-      "key": "abilities/regenerator",
-      "kind": "abilities",
-      "id": "regenerator",
-      "uses": 1257,
       "causes": 1,
       "games": 1,
       "classes": [
@@ -5648,15 +5305,26 @@
       ]
     },
     {
+      "key": "moves/toxic",
+      "kind": "moves",
+      "id": "toxic",
+      "uses": 1132,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "unrelated event mismatch"
+      ]
+    },
+    {
       "key": "moves/yawn",
       "kind": "moves",
       "id": "yawn",
       "uses": 1124,
-      "causes": 25,
-      "games": 27,
+      "causes": 2,
+      "games": 2,
       "classes": [
-        "-start: a different body",
-        "event missing from medicham2"
+        "event missing from medicham2",
+        "-start: a different body"
       ]
     },
     {
@@ -5664,12 +5332,11 @@
       "kind": "moves",
       "id": "raindance",
       "uses": 1074,
-      "causes": 5,
-      "games": 7,
+      "causes": 3,
+      "games": 4,
       "classes": [
-        "event missing from medicham2",
-        "extra event emitted by medicham2",
-        "-weather: a different body"
+        "ordering",
+        "event missing from medicham2"
       ]
     },
     {
@@ -5684,37 +5351,25 @@
       ]
     },
     {
-      "key": "abilities/speedboost",
-      "kind": "abilities",
-      "id": "speedboost",
-      "uses": 976,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-activate field 4"
-      ]
-    },
-    {
       "key": "moves/quickguard",
       "kind": "moves",
       "id": "quickguard",
       "uses": 946,
-      "causes": 1,
-      "games": 1,
+      "causes": 2,
+      "games": 2,
       "classes": [
         "unrelated event mismatch"
       ]
     },
     {
-      "key": "moves/disable",
-      "kind": "moves",
-      "id": "disable",
-      "uses": 868,
-      "causes": 2,
-      "games": 2,
+      "key": "abilities/solarpower",
+      "kind": "abilities",
+      "id": "solarpower",
+      "uses": 844,
+      "causes": 1,
+      "games": 1,
       "classes": [
-        "-start field 4",
-        "unrelated event mismatch"
+        "ordering"
       ]
     },
     {
@@ -5722,8 +5377,8 @@
       "kind": "moves",
       "id": "sunnyday",
       "uses": 707,
-      "causes": 2,
-      "games": 2,
+      "causes": 1,
+      "games": 1,
       "classes": [
         "event missing from medicham2"
       ]
@@ -5740,14 +5395,26 @@
       ]
     },
     {
+      "key": "moves/brickbreak",
+      "kind": "moves",
+      "id": "brickbreak",
+      "uses": 565,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "extra event emitted by medicham2"
+      ]
+    },
+    {
       "key": "moves/phantomforce",
       "kind": "moves",
       "id": "phantomforce",
       "uses": 552,
-      "causes": 3,
-      "games": 5,
+      "causes": 5,
+      "games": 7,
       "classes": [
-        "event missing from medicham2"
+        "event missing from medicham2",
+        "ordering"
       ]
     },
     {
@@ -5755,10 +5422,9 @@
       "kind": "moves",
       "id": "feint",
       "uses": 544,
-      "causes": 6,
-      "games": 16,
+      "causes": 5,
+      "games": 17,
       "classes": [
-        "extra event emitted by medicham2",
         "event missing from medicham2"
       ]
     },
@@ -5774,10 +5440,10 @@
       ]
     },
     {
-      "key": "moves/populationbomb",
-      "kind": "moves",
-      "id": "populationbomb",
-      "uses": 449,
+      "key": "items/gardevoirite",
+      "kind": "items",
+      "id": "gardevoirite",
+      "uses": 432,
       "causes": 1,
       "games": 1,
       "classes": [
@@ -5793,6 +5459,17 @@
       "games": 1,
       "classes": [
         "event missing from medicham2"
+      ]
+    },
+    {
+      "key": "moves/psychicnoise",
+      "kind": "moves",
+      "id": "psychicnoise",
+      "uses": 242,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "extra event emitted by medicham2"
       ]
     },
     {
@@ -5818,6 +5495,17 @@
       ]
     },
     {
+      "key": "abilities/telepathy",
+      "kind": "abilities",
+      "id": "telepathy",
+      "uses": 223,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "unrelated event mismatch"
+      ]
+    },
+    {
       "key": "moves/quash",
       "kind": "moves",
       "id": "quash",
@@ -5840,6 +5528,17 @@
       ]
     },
     {
+      "key": "moves/bodyslam",
+      "kind": "moves",
+      "id": "bodyslam",
+      "uses": 156,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "extra event emitted by medicham2"
+      ]
+    },
+    {
       "key": "moves/curse",
       "kind": "moves",
       "id": "curse",
@@ -5848,7 +5547,19 @@
       "games": 5,
       "classes": [
         "ordering",
+        "event missing from medicham2",
         "-start: a different body"
+      ]
+    },
+    {
+      "key": "abilities/frisk",
+      "kind": "abilities",
+      "id": "frisk",
+      "uses": 138,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "event missing from medicham2"
       ]
     },
     {
@@ -5870,7 +5581,7 @@
       "causes": 1,
       "games": 1,
       "classes": [
-        "-activate field 4"
+        "unrelated event mismatch"
       ]
     },
     {
@@ -5900,6 +5611,17 @@
       "kind": "moves",
       "id": "psychup",
       "uses": 61,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "ordering"
+      ]
+    },
+    {
+      "key": "abilities/symbiosis",
+      "kind": "abilities",
+      "id": "symbiosis",
+      "uses": 53,
       "causes": 1,
       "games": 1,
       "classes": [
@@ -5933,8 +5655,8 @@
       "kind": "moves",
       "id": "toxicspikes",
       "uses": 34,
-      "causes": 2,
-      "games": 2,
+      "causes": 1,
+      "games": 1,
       "classes": [
         "event missing from medicham2"
       ]
@@ -5951,16 +5673,27 @@
       ]
     },
     {
+      "key": "items/chimechite",
+      "kind": "items",
+      "id": "chimechite",
+      "uses": 23,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "event missing from medicham2"
+      ]
+    },
+    {
       "key": "moves/sandstorm",
       "kind": "moves",
       "id": "sandstorm",
       "uses": 19,
-      "causes": 21,
-      "games": 27,
+      "causes": 23,
+      "games": 32,
       "classes": [
         "ordering",
-        "extra event emitted by medicham2",
-        "event missing from medicham2"
+        "event missing from medicham2",
+        "extra event emitted by medicham2"
       ]
     },
     {
@@ -5968,10 +5701,9 @@
       "kind": "moves",
       "id": "snowscape",
       "uses": 16,
-      "causes": 3,
-      "games": 3,
+      "causes": 2,
+      "games": 2,
       "classes": [
-        "extra event emitted by medicham2",
         "event missing from medicham2"
       ]
     },
@@ -5980,21 +5712,21 @@
       "kind": "moves",
       "id": "focuspunch",
       "uses": 14,
-      "causes": 7,
+      "causes": 8,
       "games": 8,
       "classes": [
         "event missing from medicham2"
       ]
     },
     {
-      "key": "moves/rapidspin",
+      "key": "moves/futuresight",
       "kind": "moves",
-      "id": "rapidspin",
-      "uses": 14,
+      "id": "futuresight",
+      "uses": 11,
       "causes": 1,
       "games": 1,
       "classes": [
-        "ordering"
+        "event missing from medicham2"
       ]
     },
     {
@@ -6035,7 +5767,7 @@
       "kind": "moves",
       "id": "beakblast",
       "uses": 7,
-      "causes": 1,
+      "causes": 2,
       "games": 2,
       "classes": [
         "event missing from medicham2"
@@ -6057,7 +5789,7 @@
       "kind": "species",
       "id": "zoroarkhisui",
       "uses": 0,
-      "causes": 19,
+      "causes": 18,
       "games": 20,
       "classes": [
         "switch: a different body"
@@ -6068,8 +5800,8 @@
       "kind": "species",
       "id": "morpekohangry",
       "uses": 0,
-      "causes": 4,
-      "games": 8,
+      "causes": 6,
+      "games": 11,
       "classes": [
         "extra event emitted by medicham2",
         "unrelated event mismatch"
@@ -6080,8 +5812,8 @@
       "kind": "species",
       "id": "whimsicott",
       "uses": 0,
-      "causes": 5,
-      "games": 6,
+      "causes": 4,
+      "games": 5,
       "classes": [
         "switch: a different body",
         "ordering"
@@ -6095,9 +5827,19 @@
       "causes": 5,
       "games": 5,
       "classes": [
-        "event missing from medicham2",
         "ordering",
         "drag: a different body"
+      ]
+    },
+    {
+      "key": "species/basculegion",
+      "kind": "species",
+      "id": "basculegion",
+      "uses": 0,
+      "causes": 4,
+      "games": 4,
+      "classes": [
+        "ordering"
       ]
     },
     {
@@ -6105,73 +5847,10 @@
       "kind": "species",
       "id": "zoroark",
       "uses": 0,
-      "causes": 5,
-      "games": 5,
+      "causes": 4,
+      "games": 4,
       "classes": [
         "switch: a different body"
-      ]
-    },
-    {
-      "key": "species/torkoal",
-      "kind": "species",
-      "id": "torkoal",
-      "uses": 0,
-      "causes": 4,
-      "games": 4,
-      "classes": [
-        "event missing from medicham2",
-        "ordering",
-        "drag: a different body"
-      ]
-    },
-    {
-      "key": "species/grimmsnarl",
-      "kind": "species",
-      "id": "grimmsnarl",
-      "uses": 0,
-      "causes": 4,
-      "games": 4,
-      "classes": [
-        "event missing from medicham2",
-        "-start: a different body",
-        "drag: a different body"
-      ]
-    },
-    {
-      "key": "species/charizard",
-      "kind": "species",
-      "id": "charizard",
-      "uses": 0,
-      "causes": 3,
-      "games": 4,
-      "classes": [
-        "-start: a different body",
-        "switch: a different body"
-      ]
-    },
-    {
-      "key": "species/sableye",
-      "kind": "species",
-      "id": "sableye",
-      "uses": 0,
-      "causes": 4,
-      "games": 4,
-      "classes": [
-        "-start: a different body",
-        "switch: a different body",
-        "drag: a different body"
-      ]
-    },
-    {
-      "key": "species/rotomwash",
-      "kind": "species",
-      "id": "rotomwash",
-      "uses": 0,
-      "causes": 2,
-      "games": 3,
-      "classes": [
-        "-start: a different body",
-        "event missing from medicham2"
       ]
     },
     {
@@ -6182,33 +5861,21 @@
       "causes": 3,
       "games": 3,
       "classes": [
-        "-start: a different body",
-        "drag: a different body"
-      ]
-    },
-    {
-      "key": "species/swampert",
-      "kind": "species",
-      "id": "swampert",
-      "uses": 0,
-      "causes": 3,
-      "games": 3,
-      "classes": [
-        "-start: a different body",
-        "-damage field 3"
-      ]
-    },
-    {
-      "key": "species/incineroar",
-      "kind": "species",
-      "id": "incineroar",
-      "uses": 0,
-      "causes": 3,
-      "games": 3,
-      "classes": [
-        "event missing from medicham2",
         "ordering",
-        "-boost: a different body"
+        "event missing from medicham2",
+        "switch: a different body"
+      ]
+    },
+    {
+      "key": "species/torkoal",
+      "kind": "species",
+      "id": "torkoal",
+      "uses": 0,
+      "causes": 3,
+      "games": 3,
+      "classes": [
+        "ordering",
+        "drag: a different body"
       ]
     },
     {
@@ -6224,25 +5891,27 @@
       ]
     },
     {
-      "key": "species/blaziken",
+      "key": "species/metagross",
       "kind": "species",
-      "id": "blaziken",
+      "id": "metagross",
       "uses": 0,
-      "causes": 2,
-      "games": 2,
+      "causes": 3,
+      "games": 3,
       "classes": [
-        "-start: a different body"
+        "ordering",
+        "event missing from medicham2",
+        "switch: a different body"
       ]
     },
     {
-      "key": "species/maushold",
+      "key": "species/kingambit",
       "kind": "species",
-      "id": "maushold",
+      "id": "kingambit",
       "uses": 0,
       "causes": 2,
       "games": 2,
       "classes": [
-        "extra event emitted by medicham2",
+        "-start: a different body",
         "switch: a different body"
       ]
     },
@@ -6259,9 +5928,9 @@
       ]
     },
     {
-      "key": "species/corviknight",
+      "key": "species/floetteeternal",
       "kind": "species",
-      "id": "corviknight",
+      "id": "floetteeternal",
       "uses": 0,
       "causes": 2,
       "games": 2,
@@ -6271,51 +5940,14 @@
       ]
     },
     {
-      "key": "species/metagross",
-      "kind": "species",
-      "id": "metagross",
-      "uses": 0,
-      "causes": 2,
-      "games": 2,
-      "classes": [
-        "ordering",
-        "switch: a different body"
-      ]
-    },
-    {
       "key": "species/dragonite",
       "kind": "species",
       "id": "dragonite",
       "uses": 0,
-      "causes": 2,
+      "causes": 1,
       "games": 2,
       "classes": [
-        "ordering",
         "switch: a different body"
-      ]
-    },
-    {
-      "key": "species/mawile",
-      "kind": "species",
-      "id": "mawile",
-      "uses": 0,
-      "causes": 2,
-      "games": 2,
-      "classes": [
-        "ordering",
-        "drag: a different body"
-      ]
-    },
-    {
-      "key": "species/annihilape",
-      "kind": "species",
-      "id": "annihilape",
-      "uses": 0,
-      "causes": 2,
-      "games": 2,
-      "classes": [
-        "ordering",
-        "drag: a different body"
       ]
     },
     {
@@ -6326,19 +5958,89 @@
       "causes": 2,
       "games": 2,
       "classes": [
+        "ordering",
         "switch: a different body"
       ]
     },
     {
-      "key": "species/hydreigon",
+      "key": "species/aerodactyl",
       "kind": "species",
-      "id": "hydreigon",
+      "id": "aerodactyl",
+      "uses": 0,
+      "causes": 2,
+      "games": 2,
+      "classes": [
+        "ordering",
+        "drag: a different body"
+      ]
+    },
+    {
+      "key": "species/swampert",
+      "kind": "species",
+      "id": "swampert",
+      "uses": 0,
+      "causes": 2,
+      "games": 2,
+      "classes": [
+        "ordering",
+        "switch: a different body"
+      ]
+    },
+    {
+      "key": "species/kangaskhan",
+      "kind": "species",
+      "id": "kangaskhan",
+      "uses": 0,
+      "causes": 2,
+      "games": 2,
+      "classes": [
+        "ordering",
+        "switch: a different body"
+      ]
+    },
+    {
+      "key": "species/gengar",
+      "kind": "species",
+      "id": "gengar",
+      "uses": 0,
+      "causes": 2,
+      "games": 2,
+      "classes": [
+        "event missing from medicham2"
+      ]
+    },
+    {
+      "key": "species/ninetalesalola",
+      "kind": "species",
+      "id": "ninetalesalola",
       "uses": 0,
       "causes": 2,
       "games": 2,
       "classes": [
         "switch: a different body",
         "drag: a different body"
+      ]
+    },
+    {
+      "key": "species/grimmsnarl",
+      "kind": "species",
+      "id": "grimmsnarl",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "event missing from medicham2"
+      ]
+    },
+    {
+      "key": "species/rhyperior",
+      "kind": "species",
+      "id": "rhyperior",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "event missing from medicham2"
       ]
     },
     {
@@ -6353,185 +6055,20 @@
       ]
     },
     {
-      "key": "species/krookodile",
-      "kind": "species",
-      "id": "krookodile",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "event missing from medicham2"
-      ]
-    },
-    {
-      "key": "species/camerupt",
-      "kind": "species",
-      "id": "camerupt",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/toxicroak",
-      "kind": "species",
-      "id": "toxicroak",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/glimmora",
-      "kind": "species",
-      "id": "glimmora",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/aggron",
-      "kind": "species",
-      "id": "aggron",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/delphox",
-      "kind": "species",
-      "id": "delphox",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/houndstone",
-      "kind": "species",
-      "id": "houndstone",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/jolteon",
-      "kind": "species",
-      "id": "jolteon",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/aurorus",
-      "kind": "species",
-      "id": "aurorus",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/ampharos",
-      "kind": "species",
-      "id": "ampharos",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/basculegion",
-      "kind": "species",
-      "id": "basculegion",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/politoed",
-      "kind": "species",
-      "id": "politoed",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/araquanid",
-      "kind": "species",
-      "id": "araquanid",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/qwilfish",
-      "kind": "species",
-      "id": "qwilfish",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/chesnaught",
-      "kind": "species",
-      "id": "chesnaught",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
-      "key": "species/floettemega",
-      "kind": "species",
-      "id": "floettemega",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "-start: a different body"
-      ]
-    },
-    {
       "key": "species/feraligatr",
       "kind": "species",
       "id": "feraligatr",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "-start: a different body"
+      ]
+    },
+    {
+      "key": "species/corviknight",
+      "kind": "species",
+      "id": "corviknight",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6551,9 +6088,9 @@
       ]
     },
     {
-      "key": "species/mimikyubusted",
+      "key": "species/rotomwash",
       "kind": "species",
-      "id": "mimikyubusted",
+      "id": "rotomwash",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6562,20 +6099,9 @@
       ]
     },
     {
-      "key": "species/gengar",
+      "key": "species/quaquaval",
       "kind": "species",
-      "id": "gengar",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "event missing from medicham2"
-      ]
-    },
-    {
-      "key": "species/banette",
-      "kind": "species",
-      "id": "banette",
+      "id": "quaquaval",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6584,9 +6110,9 @@
       ]
     },
     {
-      "key": "species/froslass",
+      "key": "species/aggron",
       "kind": "species",
-      "id": "froslass",
+      "id": "aggron",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6595,9 +6121,9 @@
       ]
     },
     {
-      "key": "species/pyroar",
+      "key": "species/clefable",
       "kind": "species",
-      "id": "pyroar",
+      "id": "clefable",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6606,9 +6132,20 @@
       ]
     },
     {
-      "key": "species/ninetalesalola",
+      "key": "species/ceruledge",
       "kind": "species",
-      "id": "ninetalesalola",
+      "id": "ceruledge",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "ordering"
+      ]
+    },
+    {
+      "key": "species/milotic",
+      "kind": "species",
+      "id": "milotic",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6628,9 +6165,9 @@
       ]
     },
     {
-      "key": "species/hatterene",
+      "key": "species/raichu",
       "kind": "species",
-      "id": "hatterene",
+      "id": "raichu",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6639,9 +6176,64 @@
       ]
     },
     {
-      "key": "species/floetteeternal",
+      "key": "species/mawilemega",
       "kind": "species",
-      "id": "floetteeternal",
+      "id": "mawilemega",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "ordering"
+      ]
+    },
+    {
+      "key": "species/delphox",
+      "kind": "species",
+      "id": "delphox",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "event missing from medicham2"
+      ]
+    },
+    {
+      "key": "species/sneasler",
+      "kind": "species",
+      "id": "sneasler",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "event missing from medicham2"
+      ]
+    },
+    {
+      "key": "abilities/megasol",
+      "kind": "abilities",
+      "id": "megasol",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "event missing from medicham2"
+      ]
+    },
+    {
+      "key": "species/altaria",
+      "kind": "species",
+      "id": "altaria",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "-start: a different body"
+      ]
+    },
+    {
+      "key": "species/raichualola",
+      "kind": "species",
+      "id": "raichualola",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6650,9 +6242,31 @@
       ]
     },
     {
-      "key": "species/umbreon",
+      "key": "species/heliolisk",
       "kind": "species",
-      "id": "umbreon",
+      "id": "heliolisk",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "switch: a different body"
+      ]
+    },
+    {
+      "key": "species/sylveon",
+      "kind": "species",
+      "id": "sylveon",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "switch: a different body"
+      ]
+    },
+    {
+      "key": "species/toxapex",
+      "kind": "species",
+      "id": "toxapex",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6672,42 +6286,9 @@
       ]
     },
     {
-      "key": "species/diggersby",
+      "key": "species/hydreigon",
       "kind": "species",
-      "id": "diggersby",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "switch: a different body"
-      ]
-    },
-    {
-      "key": "species/scovillain",
-      "kind": "species",
-      "id": "scovillain",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "switch: a different body"
-      ]
-    },
-    {
-      "key": "species/venusaur",
-      "kind": "species",
-      "id": "venusaur",
-      "uses": 0,
-      "causes": 1,
-      "games": 1,
-      "classes": [
-        "switch: a different body"
-      ]
-    },
-    {
-      "key": "species/runerigus",
-      "kind": "species",
-      "id": "runerigus",
+      "id": "hydreigon",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6771,6 +6352,39 @@
       ]
     },
     {
+      "key": "species/luxray",
+      "kind": "species",
+      "id": "luxray",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "-boost: a different body"
+      ]
+    },
+    {
+      "key": "species/medicham",
+      "kind": "species",
+      "id": "medicham",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "-boost: a different body"
+      ]
+    },
+    {
+      "key": "species/incineroar",
+      "kind": "species",
+      "id": "incineroar",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "-boost: a different body"
+      ]
+    },
+    {
       "key": "species/talonflame",
       "kind": "species",
       "id": "talonflame",
@@ -6793,9 +6407,9 @@
       ]
     },
     {
-      "key": "species/aerodactyl",
+      "key": "species/charizardmegay",
       "kind": "species",
-      "id": "aerodactyl",
+      "id": "charizardmegay",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6804,9 +6418,9 @@
       ]
     },
     {
-      "key": "species/charizardmegay",
+      "key": "species/mawile",
       "kind": "species",
-      "id": "charizardmegay",
+      "id": "mawile",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6826,9 +6440,9 @@
       ]
     },
     {
-      "key": "species/oranguru",
+      "key": "species/sableye",
       "kind": "species",
-      "id": "oranguru",
+      "id": "sableye",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6837,9 +6451,9 @@
       ]
     },
     {
-      "key": "species/eelektross",
+      "key": "species/wyrdeer",
       "kind": "species",
-      "id": "eelektross",
+      "id": "wyrdeer",
       "uses": 0,
       "causes": 1,
       "games": 1,
@@ -6848,14 +6462,36 @@
       ]
     },
     {
-      "key": "species/medicham",
+      "key": "species/aromatisse",
       "kind": "species",
-      "id": "medicham",
+      "id": "aromatisse",
       "uses": 0,
       "causes": 1,
       "games": 1,
       "classes": [
-        "-boost: a different body"
+        "drag: a different body"
+      ]
+    },
+    {
+      "key": "species/armarouge",
+      "kind": "species",
+      "id": "armarouge",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "drag: a different body"
+      ]
+    },
+    {
+      "key": "abilities/spicyspray",
+      "kind": "abilities",
+      "id": "spicyspray",
+      "uses": 0,
+      "causes": 1,
+      "games": 1,
+      "classes": [
+        "-status field 4"
       ]
     }
   ]

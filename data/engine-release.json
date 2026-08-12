@@ -1,10 +1,10 @@
 {
-  "current": "2f47c11fd0e6",
-  "cut": "2026-08-12T05:40:09.703Z",
-  "why": "\"ROADMAP",
+  "current": "6155acc0fb26",
+  "cut": "2026-08-12T19:54:49.023Z",
+  "why": "spreadL50 exported — the differential fills the spread instead of running every body blank",
   "cuts": 1,
-  "latest_cut": "2026-08-12T05:40:09.703Z",
-  "latest_why": "\"ROADMAP",
-  "pointer_written": "2026-08-12T05:40:09.707Z",
+  "latest_cut": "2026-08-12T19:54:49.023Z",
+  "latest_why": "spreadL50 exported — the differential fills the spread instead of running every body blank",
+  "pointer_written": "2026-08-12T19:54:49.026Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

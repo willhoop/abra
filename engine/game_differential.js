@@ -1410,6 +1410,10 @@ function natureFor(p) {
  * Showdown's side, which computes from the SET and knows nothing about this line — that is the
  * disagreement `alignStats` exists to catch, and it is why ALIGN_MOVED must still read 0. */
 function flatL50(bs, nature) { return M.natureL50(bs, nature || 'Serious'); }
+/* THE SAME LINE WITH THE SPREAD ON IT, out of the FROZEN release and never re-typed here. This file
+ * used to carry its own copy of the stat formula and its buildPair header records having stopped;
+ * a second copy is the two-files-one-fact breach CLAUDE.md names. */
+function spreadL50(bs, sp, nature) { return M.spreadL50(bs, sp || null, nature || 'Serious'); }
 
 function buildPair(sheet, opts) {
   const hpx = (opts && opts.hpBoost) || 1;
@@ -1490,8 +1494,16 @@ function buildPair(sheet, opts) {
      * two resolutions of "what nature is this" is how one side ends up Serious and the other Modest
      * while every counter reads healthy. */
     const nature = natureFor(p);
+    /* THE SPREAD IS RESOLVED ONCE AND CARRIED TO BOTH SIDES, exactly as the nature is and for the
+     * identical reason: two resolutions of "what spread is this" is how one engine ends up with a
+     * different Pokemon from the other while every counter reads healthy. `evs` below and `spTeam`
+     * on the medicham spec are the SAME OBJECT'S numbers, mapped once here — the key-name translation
+     * lives at this one site because a translation table in two files is the same breach one level
+     * down. */
+    const evs = spreadFor(picked.length, sp);
+    const spTeam = { at: evs.atk, df: evs.def, sa: evs.spa, sd: evs.spd, sp: evs.spe };
     picked.push({ medi: b, spec: { key, moves: b.moves.slice(), item, ability, hpx, bs: sp.baseStats,
-                                   nature, ident: sp.baseSpecies || sp.name }, sd: {
+                                   nature, sp: spTeam, ident: sp.baseSpecies || sp.name }, sd: {
       name: sp.name, species: sp.name,
       /* GENDER IS 'N' ON BOTH SIDES. Showdown writes the gender into the `|switch|` details field
        * (`Incineroar, L50, F`) and medicham2 has no gender at all, so a declared gender would part
@@ -1500,13 +1512,95 @@ function buildPair(sheet, opts) {
       gender: 'N', level: 50, item: item ? dex.items.get(item).name : '',
       ability: ability ? dex.abilities.get(ability).name : '',
       moves: moves.map(m2 => m2.name), nature,
-      evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+      evs,
       ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 },
     } });
   }
   if (picked.length < cap) { TEAMS_UNBUILDABLE++; return null; }
   return picked;
 }
+
+/* ---- THE SPREAD — WILL, 2026-08-12 -------------------------------------------------------------
+ *
+ * *"i thought the whole point was we invent teams that we know every stat of so nothing can drift"*,
+ * then *"we can yoink moves, we just need to give them our stat spreads"*.
+ *
+ * THIS FILE RAN EVERY BODY AT `evs: {0,0,0,0,0,0}` — not a guessed spread, NO spread. An open team
+ * sheet reveals species, item, ability, moves, nature, gender and level and NOT the spread; every
+ * stored sheet reads `evs: null`, 173,784 of 173,784 bodies. So the field was filled with zeros and
+ * the declared gap said it always would be.
+ *
+ * THAT DOES NOT CAUSE A SINGLE DIVERGENCE — both engines get the same zeros — IT HIDES THEM. The
+ * comment above this function has said so since 2026-08-08 and nobody acted on it: *"with every body
+ * flat AND Serious, 91.4% of legal species share a base Speed with some other species, so THE RIG
+ * MANUFACTURED SPEED TIES and almost never exercised a real speed differential. The instrument was
+ * testing turn order in the one configuration where turn order is hardest to get wrong."*
+ *
+ * Will's fix keeps everything the sheet actually declares and supplies only the field it does not.
+ *
+ * THE ARITHMETIC IS THE AUTHORITY'S AND IT WAS DERIVED RATHER THAN TAKEN FROM OUR OWN DOCS.
+ * Champions overrides `statModify` (`data/mods/champions/scripts.ts:10`) with two branches, and
+ * `getRuleTable('gen9championsvgc2026regmb').has('levelclausemod')` is FALSE — the format carries
+ * `adjustlevel` — so Reg M-B takes the else branch: `hp -> stat + evs + 75`, everything else
+ * `stat + evs + 20`, with the nature multiply applied AFTERWARDS. That is flat stat points, which is
+ * exactly medicham2's SP model, so one spread means the same thing to both engines and
+ * `align_had_to_move_a_stat` must stay 0.
+ *
+ * ASSERTED, NOT ASSUMED — `assertSpreadSemantics()` below. The mainline branch is live code one rule
+ * away, and a regulation that adds `levelclausemod` would silently reinterpret every spread as
+ * mainline EVs: same field, different arithmetic, no error anywhere. That is the shape this project
+ * keeps paying for, so it fails loudly instead.
+ *
+ * DETERMINISTIC FROM THE BODY'S INDEX, so the same pool replays to the same stats. Not random, not
+ * per-species — the index is what makes it reproducible AND what spaces the Speeds apart. */
+const SP_BUDGET = 66, SP_CAP = 32;
+/* Four descending Speed investments, one per slot on a side. The gaps are wide because the point is
+ * to break ties: two bodies sharing a base Speed now differ by at least 10 stat points, which no
+ * in-battle multiplier can close back to exactly equal. The remainder goes to the offensive stat the
+ * body is actually built around, so the spread is not merely legal but plausible. */
+const SPE_LADDER = [SP_CAP, 22, 11, 0];
+function spreadFor(index, sp) {
+  const spe = SPE_LADDER[index % SPE_LADDER.length];
+  const left = SP_BUDGET - spe;
+  const bs = sp.baseStats || {};
+  /* The higher attacking stat takes the rest, capped; anything over the cap falls to bulk. A body
+   * with no meaningful attack still spends its points, because an unspent budget is a third silent
+   * assumption and this change exists to remove those. */
+  const physical = (bs.atk || 0) >= (bs.spa || 0);
+  const main = Math.min(SP_CAP, left);
+  const rest = left - main;
+  /* NOTHING GOES INTO HP, AND THAT IS MEASURED RATHER THAN STYLISTIC. Champions' else-branch is
+   * `if (statName === 'hp') return stat + evs + 75`, so Showdown DOES add HP investment — while
+   * medicham2's level-50 line has no HP term at all: `hp: floor((2*bs.hp+31)*50/100) + 50 + 10`.
+   * Staged both ways before this line was written: a Garchomp given 34 HP points reads 217 on the
+   * authority and 183 here, a silent 34-point divergence on every body, on the one stat that decides
+   * whether anything dies. Every OTHER stat agrees to the digit — Adamant + 32 Atk reads +35 on both,
+   * which is also the proof the nature multiply lands AFTER the addition. So the budget goes to Sp.
+   * Def instead, and the day medicham2's line grows an HP term this comment is the reason to revisit. */
+  const e = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe };
+  e[physical ? 'atk' : 'spa'] = main;
+  e.spd = rest;
+  return e;
+}
+/* THE BRANCH GUARD. Called once at startup; a format that changes underneath this stops the run
+ * rather than producing two engines' worth of nearly-right stats. */
+function assertSpreadSemantics() {
+  let rt = null;
+  try { rt = dex.formats.getRuleTable(dex.formats.get(CS.FORMAT)); } catch (e) { rt = null; }
+  if (!rt) {
+    console.error('CANNOT VERIFY THE SPREAD SEMANTICS — the rule table for ' + CS.FORMAT
+      + ' could not be read. A spread whose arithmetic cannot be checked is not a spread.');
+    process.exit(2);
+  }
+  if (rt.has('levelclausemod')) {
+    console.error('THE FORMAT NOW CARRIES `levelclausemod`, so Champions\' statModify takes the '
+      + 'MAINLINE branch and `evs` mean EV points rather than flat stat points. Every spread this '
+      + 'file writes would be reinterpreted silently. Fix spreadFor() against the new branch before '
+      + 'running — do not delete this check.');
+    process.exit(2);
+  }
+}
+assertSpreadSemantics();
 
 /* ONE PLACE THAT TURNS A PAIR SPEC BACK INTO LIVE MEDICHAM BODIES. `battleInit` takes the team BY
  * REFERENCE and the battle then damages it, boosts it, eats its item and reverts its mega, so every
@@ -1527,7 +1621,7 @@ function freshBodies(pair) {
      * anchors from base stats, so it has to apply the same shift; without this the mega lands short by
      * (mul - 1) x (mega - base) on exactly the stat the nature moved, mid-turn, with no seam left to
      * re-align in. tests/test-nature-differential.js PART 4 is that case, staged. */
-    if (x.spec.bs) { b._nature = x.spec.nature || 'Serious'; b.st = flatL50(x.spec.bs, b._nature); b.curHP = b.st.hp; }
+    if (x.spec.bs) { b._nature = x.spec.nature || 'Serious'; b.st = spreadL50(x.spec.bs, x.spec.sp || null, b._nature); b.curHP = b.st.hp; }
     /* THE PROTOCOL IDENTIFIER IS SHOWDOWN'S NICKNAME, AND SHOWDOWN DEFAULTS IT TO `baseSpecies`.
      *
      * A set whose name equals its species is renamed to the BASE species when the battle loads it, so

@@ -3765,6 +3765,22 @@ function l50(bs,sp,nature){ const S=(b,v,k)=>natureStat(Math.floor((Math.floor((
 /* The flat level-50 line under a NAMED nature, no SP. Exported because engine/game_differential.js
  * needs exactly this and used to write its own copy of the formula; see its buildPair header. */
 function natureL50(bs,nature){ return l50(bs,null,nature); }
+/* THE SAME LINE WITH AN SP SPREAD ON IT, exported for the one caller that needs it.
+ *
+ * `engine/game_differential.js` built every body at ZERO SP because an open team sheet does not reveal
+ * a spread — and that manufactured speed ties on 91.4% of the format, so the instrument was testing
+ * turn order in the one configuration where turn order cannot be got wrong (Will, 2026-08-12). Filling
+ * the spread means BOTH engines must apply it, and the alternative was that file re-typing
+ * `natureStat(floor((2b+31)*50/100)+5+sp)` — a second copy of the stat formula, which is the
+ * two-files-one-fact breach CLAUDE.md names and which that file's own header records having stopped
+ * doing once already.
+ *
+ * `sp` takes this engine's key names (`at/df/sa/sd/sp`), NOT Showdown's — the caller does the mapping,
+ * because a translation table living in two places is the same breach one level down. HP takes no SP
+ * here and that is deliberate and measured: Champions' `statModify` adds `evs` to HP and this line has
+ * no HP term, so a spread that invests in HP diverges by exactly the investment. The caller is told
+ * not to; this is where it would have to change if that ever stops being true. */
+function spreadL50(bs,sp,nature){ return l50(bs,sp||null,nature); }
 /* ONE DOORWAY INTO MC.mons FROM THIS FILE, and it is a ratchet rather than a preference.
  * tests/test-mc-key.js bans a computed index into the species table because four separate callers
  * wrote their own and two of them were silently broken for 8.17% of the metagame. This file is
@@ -19280,12 +19296,12 @@ root.punishExposure=punishExposure; root.clickFragility=clickFragility;
 root.battleInit=battleInit; root.battleTurn=battleTurn; root.rngStreams=rngStreams; root.RNG_STREAMS=RNG_STREAMS; root.battleOver=battleOver; root.battleResult=battleResult; root.playerAction=playerAction;
 root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet; root.weatherId=weatherId; root.terrainId=terrainId;
 root.megaTargetFor=megaTargetFor; root.canMegaNow=canMegaNow; root.megaEvolveNow=megaEvolveNow;
-root.natureShift=natureShift; root.natureStat=natureStat; root.natureL50=natureL50;
+root.natureShift=natureShift; root.natureStat=natureStat; root.natureL50=natureL50; root.spreadL50=spreadL50;
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,rngStreams,RNG_STREAMS,
   punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,battleInit,battleTurn,battleOver,battleResult,playerAction,parsePaste,buildMonFromSet,
-  moveFx,movePriority,priorityRefusedAbove,isGrounded,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
+  spreadL50,moveFx,movePriority,priorityRefusedAbove,isGrounded,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
   /* ROADMAP #81 WIRE 12 -- the aura roster read; see the root export above. */
   auraStateOf,
   /* ROADMAP #198 -- THE STATUS VOCABULARY, EXPORTED RATHER THAN RE-TYPED. The tag artifact speaks

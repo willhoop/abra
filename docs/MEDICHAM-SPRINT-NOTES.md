@@ -6398,3 +6398,29 @@ from whatever the last run produced — a ratchet that stamps itself is not a ba
 planted better baseline fails on the rise. And the stamp refuses a worse number without an explicit
 force, because a baseline may only ratchet down, and raising one quietly is how a gate becomes
 decoration. A run whose planted-divergence proof did not fire is refused outright.
+
+### THE SPREADS WENT IN, AND THE PREDICTION WAS WRONG
+
+Will: *"we can yoink moves, we just need to give them our stat spreads."* The differential built every
+body at zero investment — not a guessed spread, no spread — because an open team sheet does not reveal
+one. Both engines got the same zeros, so it never caused a divergence; it hid them, and it manufactured
+speed ties across most of the format.
+
+**The prediction was recorded before the run and it was wrong.** The file expected the number to get
+worse; it got better on both arms, on the same frozen pool and the same game count. `ordering` did grow,
+which was the other half of the prediction, so the improvement came from somewhere else entirely — the
+slot-placeholder family fell, meaning fewer games now reach the wrong-body defect first.
+
+**The tie assertion in the brief was unachievable and that was my error.** Ties fell by more than a
+third but cannot reach zero: three of the four `speedSort` call sites sort HANDLERS rather than
+Pokémon, and no stat spread separates two item handlers that share a priority. The instruction was
+written without accounting for what had already been established about those call sites.
+
+**What did verify cleanly.** With real spreads on both sides, `align_had_to_move_a_stat` stays 0 — the
+two engines still agree on every stat. That was measured first across every nature and a set of
+deliberately awkward spreads, and it caught a bug before it shipped: **HP takes no investment here.**
+Champions adds it and this engine's level-50 line has no HP term, so a body given HP points reads
+correctly on the authority and short here. The budget goes to Sp. Def instead, and the formula lives in
+the engine with the differential asking for it rather than keeping a second copy.
+
+**The useful conclusion is the negative one:** speed ties were not what was hiding the divergences.
