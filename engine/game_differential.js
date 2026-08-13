@@ -2233,7 +2233,25 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
   };
 
   let comparedWalked = 0;
-  const alignAndCheck = () => {
+  /* `final` IS THE FIX FOR THE ONE PLANT THIS COMPARATOR COULD NOT CATCH — 2026-08-12.
+   *
+   * The MISSING-event plant deletes the LAST agreeing line and was reported `applied: 1, caught:
+   * false`: placed, and genuinely not detected. The loop below stops at the SHORTER of the two
+   * streams, so a medicham2 stream that is a strict PREFIX of Showdown's agrees all the way to its
+   * own end. **Our engine going quiet is indistinguishable from our engine being right.**
+   *
+   * That is not a corner case. `event missing from medicham2` is the largest class in BOTH arms (96
+   * and 88 games), and the end-state work hit the same wall from the other side — at a 40-turn cap,
+   * 937 games came back "ONLY medicham2 ended the battle". The instrument was blind to precisely its
+   * own biggest category, and it said so in `planted_divergence_proof_ok: false` while the divergence
+   * counts beside it were quoted all evening. Including by me.
+   *
+   * WHY A FLAG RATHER THAN ALWAYS. `alignAndCheck` is called after every turn, and mid-game one
+   * stream is legitimately ahead of the other — a length difference there is pacing, not disagreement.
+   * It only becomes a divergence once nothing more is coming. So the length test runs once, after the
+   * loop. `reduce()` has already dropped the lines we declare we do not emit, so what is left is a
+   * line the authority produced and we never did. */
+  const alignAndCheck = (final, oneEngineEnded) => {
     /* `opts.plant` corrupts the MEDICHAM side and only the medicham side. It exists for the
      * planted-divergence proof and is undefined on every real run — a comparator that finds nothing
      * must first prove it can find something, and a plant applied to a shared normaliser would land
@@ -2241,7 +2259,8 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
     const sdRawAll = sdStream(battle.log);
     const raw = opts.plant ? opts.plant(trace.slice()) : trace;
     const A = reduce(sdRawAll), B = reduce(raw);
-    const a = A.lines, b = B.lines;
+    /* `let`, not `const`: the final pass trims both streams to the last turn they share. */
+    let a = A.lines, b = B.lines;
     /* HOW FAR THE TWO STREAMS WERE ACTUALLY WALKED, kept because a game that never parts has no
      * `div.index` and the planted-divergence proof needs somewhere INSIDE THE COMPARED REGION to
      * plant. See plantedProof: it used `trace.length`, which is the RAW medicham line count, and the
@@ -2262,6 +2281,59 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
                  meAfterRaw: B.rawIdx.slice(i, i + 6).map(j => raw[j]),
                  agreedLines: i };
       }
+    }
+    /* THE TRUNCATION TEST. Everything walked agreed; if one stream still has lines, the other stopped
+     * talking, and that is a divergence at the first line it failed to produce. Reported with the same
+     * shape as any other divergence so the classifier, the report and the cards all read it without a
+     * special case — the absent side is named rather than left undefined, because a blank there would
+     * render as an empty card and look like nothing happened, which is the bug one level up. */
+    /* MEASURED BEFORE IT WAS BELIEVED, AND THE FIRST VERSION OF THIS TEST WAS WRONG.
+     *
+     * Without the trim below it fired on 9 of 9 games, and the unmatched line was `|turn|13` — the
+     * authority announcing a turn the HARNESS stopped before playing. That is the turn cap, not a
+     * defect, and shipping it would have made every capped game a divergence: an instrument that
+     * reports its own stop rule as an engine bug, which is worse than the blindness it replaced.
+     *
+     * So the streams are trimmed to the last turn BOTH engines actually started, and only then
+     * compared for length. Complete turns against complete turns.
+     *
+     * THE ONE CASE THAT IS NOT TRIMMED is a battle one engine ended and the other did not. There the
+     * extra turns are the disagreement rather than an artefact of where we cut, and folding them away
+     * would re-hide exactly what this fix exists to expose. `endReason` already distinguishes it. */
+    const lastTurnNo = s => { for (let i = s.length - 1; i >= 0; i--) {
+                                const m = /^\|turn\|(\d+)/.exec(String(s[i])); if (m) return +m[1]; }
+                              return null; };
+    const cutAfterTurn = (s, n) => { if (n == null) return s;
+                                     const i = s.findIndex(l => { const m = /^\|turn\|(\d+)/.exec(String(l));
+                                                                  return m && +m[1] > n; });
+                                     return i < 0 ? s : s.slice(0, i); };
+    if (final && !oneEngineEnded) {
+      const ta = lastTurnNo(a), tb = lastTurnNo(b);
+      if (ta != null && tb != null && ta !== tb) {
+        const keep = Math.min(ta, tb);
+        a = cutAfterTurn(a, keep); b = cutAfterTurn(b, keep);
+        comparedWalked = Math.min(a.length, b.length);
+      }
+    }
+    if (final && a.length !== b.length) {
+      const i = comparedWalked;
+      const sdLonger = a.length > b.length;
+      const GONE = sdLonger ? '(medicham2 emitted nothing further)' : '(showdown emitted nothing further)';
+      return { index: i,
+               sd: sdLonger ? a[i] : GONE,
+               me: sdLonger ? GONE : b[i],
+               sdRaw: sdLonger ? sdRawAll[A.rawIdx[i]] : GONE,
+               meRaw: sdLonger ? GONE : raw[B.rawIdx[i]],
+               meRawIndex: sdLonger ? null : B.rawIdx[i],
+               before: b.slice(Math.max(0, i - 4), i),
+               sdAfter: a.slice(i, i + 6), meAfter: b.slice(i, i + 6),
+               sdAfterRaw: A.rawIdx.slice(i, i + 6).map(j => sdRawAll[j]),
+               meAfterRaw: B.rawIdx.slice(i, i + 6).map(j => raw[j]),
+               agreedLines: i,
+               /* named so a reader can tell "we said something different" from "we stopped", which
+                * are the same index and completely different bugs */
+               truncated: sdLonger ? 'medicham2' : 'showdown',
+               lengths: { showdown: a.length, medicham: b.length } };
     }
     return null;
   };
@@ -2504,6 +2576,11 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
     /* THE LOOP RAN OUT RATHER THAN BREAKING. In end-state mode that is the turn cap; in the other two
      * it is whichever comparator's stop rule fired, and saying which one is not optional — "the boards
      * agreed at the end" means something entirely different when the end was the first mismatch. */
+    /* THE FINAL PASS — the only place the length test is allowed to fire. Guarded on `!firstDiv`
+     * because a game that already parted has a first divergence and this must never overwrite it with
+     * a later one; the whole instrument is FIRST-divergence. */
+    if (!firstDiv) { const tail = alignAndCheck(true, /^ONLY /.test(endReason || ''));
+                     if (tail) { firstDiv = tail; divTurn = turns; } }
     if (!endReason) endReason = END_STATE ? 'the turn cap (' + MAXTURNS + ')'
                               : (STATE ? (firstStateDiv ? 'the first divergent BOARD' : 'the turn cap (' + MAXTURNS + ')')
                                        : (firstDiv ? 'the first divergent LINE' : 'the turn cap (' + MAXTURNS + ')'));
@@ -2739,6 +2816,23 @@ function chooseAction(battle, side, i, act, axis, claimed) {
 const LOOKAHEAD = 10;
 function classify(d) {
   const sdAt = d.sdAfter, meAt = d.meAfter;
+  /* A TRUNCATION HAS NO SECOND LINE TO COMPARE, AND IT IS ITS OWN CLASS.
+   *
+   * One side stopped emitting. There is no pair of heads to diff, so every test below would throw on
+   * an empty slice — and folding it into `event missing from medicham2` would be wrong anyway: that
+   * class means we skipped a line and carried on, this one means we stopped. Same index, different
+   * bug, and the second is worse, because everything the authority did afterwards is unmeasured
+   * rather than merely different. Named separately so it cannot hide inside the largest class. */
+  if (d.truncated) {
+    const alive = d.truncated === 'medicham2' ? sdAt[0] : meAt[0];
+    const ev = String(alive || '').split('|')[1] || '?';
+    const cls = d.truncated === 'medicham2'
+      ? 'medicham2 stopped emitting while showdown continued'
+      : 'showdown stopped emitting while medicham2 continued';
+    return { cls, detail: 'first unmatched: ' + ev + '   lengths sd=' + d.lengths.showdown
+                        + ' medi=' + d.lengths.medicham,
+             cause: cls + ' :: ' + String(alive || '').replace(/(p[12][ab]):[^|]*/g, '$1').replace(/\d+\/\d+/g, 'H/H') };
+  }
   const sdHead = sdAt[0], meHead = meAt[0];
   const sdEv = sdHead.split('|')[1], meEv = meHead.split('|')[1];
   const sdLater = meAt.indexOf(sdHead) > 0;    // showdown's line turns up later on our side

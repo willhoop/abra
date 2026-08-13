@@ -6742,3 +6742,46 @@ its own probe rather than a bigger sample. `tests/test-ohko-accuracy.js` derives
 from the format on each run, and was shown RED first — with the branch disabled it fails 8 of 11.
 
 Damage differential re-run after the change: agreed 6000, disagreed 0, all conformance clauses 0.
+
+### THE COMPARATOR WAS BLIND TO ITS OWN LARGEST CLASS, AND IT SAID SO WHILE I QUOTED IT
+
+The aligner walked `Math.min(a.length, b.length)` and stopped, so a medicham2 stream that is a strict
+PREFIX of Showdown's agreed all the way to its own end. **Our engine going quiet was indistinguishable
+from our engine being right.** The MISSING-event plant recorded `applied: 1, caught: false` — placed
+and genuinely undetected — and `planted_divergence_proof_ok: false` sat in the artifact beside the
+divergence counts I read out all evening. The file's own code prints *THE COMPARATOR FAILED ITS OWN
+PROOF — everything below is worthless*. That is the caption-is-not-a-quarantine rule broken by the
+session that had just re-read it.
+
+**The first fix was wrong and measuring caught it.** A bare length test fired on 9 of 9 games, and the
+unmatched line was `|turn|13` — the authority announcing a turn the HARNESS stopped before playing.
+Shipping that would have reported our own stop rule as an engine bug. The streams are now trimmed to
+the last turn BOTH engines started, EXCEPT when one engine ended the battle and the other did not,
+where the extra turns ARE the disagreement.
+
+Two new classes, deliberately not folded into `event missing from medicham2`: *stopped emitting* means
+we halted, *missing* means we skipped a line and carried on. Same index, different bug, and the first
+is worse because everything after it is unmeasured rather than merely different.
+
+**THE HONEST NUMBER, on a run whose own proof passes:** top-tie-first 230/815 = 28.2%, bottom-tie-first
+263/815 = 32.3%, 0 threw, all three plants CAUGHT at exactly the line planted. The newly visible class
+is 16 games top and 13 bottom. **This is not attributable to the truncation fix alone** — the OHKO
+branch landed between this run and the last proof-passing one, so two changes moved together.
+
+### THE RESIDUAL ORDER TABLE, DERIVED — THE FOUNDATION #221 NEEDED
+
+`engine/residual_order.js` reads every residual handler in the format with the authority's own
+`onResidualOrder` and subOrder: **33 effects, 14 distinct order values, 5 groups where SPEED decides
+between effects, 6 that expire inside the walk.**
+
+It proves the shape of #221 rather than asserting it. **Leftovers is order 5 and poison is order 9** —
+different orders, so every Leftovers heal on the field resolves before any poison chip on either side,
+regardless of speed. A body-major loop cannot produce that sequence: ours heals and poisons body A
+before touching body B. It is not a tie-break subtlety, it is a different GROUPING of the same events.
+
+It also corrects #221's own title. The key is `order, priority, SPEED, subOrder, effectOrder` — speed
+sorts BEFORE subOrder, not after. A restructure written from the title would have sorted Leftovers
+against Shed Skin by category when the authority sorts them by who is faster.
+
+Published on its own, ahead of the loop change, so a wrong result can be attributed to the loop or to
+the table but never to both at once.
