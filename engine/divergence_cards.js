@@ -84,16 +84,37 @@ const VERB = {
   cant: "can't move", upkeep: 'end of turn', turn: 'turn',
 };
 
+/* WHO WAS IN THAT SLOT BEFORE — WILL, 2026-08-13: *"and include the clear switch ins"*.
+ *
+ * A bare `sends in Greninja` hides the half that matters. Which body LEFT decides whether the switch
+ * was a pivot, a forced replacement after a faint, or a lead arriving — and those read identically in
+ * the protocol. The occupant table is rebuilt per card by walking the lead-in in order, so it reflects
+ * that card's own history rather than a global guess. */
+const occupant = {};
+function resetSlots() { for (const k of Object.keys(occupant)) delete occupant[k]; }
+function noteSlot(f) {
+  const ev = f[0];
+  if (ev !== 'switch' && ev !== 'drag' && ev !== 'replace') return null;
+  const w = who(f[1]);
+  if (!w) return null;
+  const key = w.side + w.slot;
+  const left = occupant[key] || null;
+  occupant[key] = w.name;
+  return left;
+}
+
 function renderLine(line) {
   const raw = String(line || '').replace(/^\|/, '');
   if (!raw.trim()) return '';
   const f = raw.split('|').map(x => x.trim());
   const ev = f[0];
+  const leaving = noteSlot(f);
   const isMega = ev === '-mega' || ev === 'detailschange' || ev === '-formechange';
   const parts = [];
   const subject = who(f[1]);
   if (subject) parts.push('<span class="mon ' + subject.side + '">' + esc(subject.label) + '</span>');
   parts.push('<span class="verb' + (isMega ? ' mega' : '') + '">' + esc(VERB[ev] || ev) + '</span>');
+  if (leaving) parts.push('<span class="swap">replacing <b>' + esc(leaving) + '</b></span>');
 
   for (let i = subject ? 2 : 1; i < f.length; i++) {
     const t = f[i];
@@ -117,19 +138,34 @@ function renderLine(line) {
 }
 
 const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+const armTally = {}; for (const x of all) if (x.arm) armTally[x.arm] = (armTally[x.arm] || 0) + 1;
+const ARMS_PRESENT = Object.keys(armTally).sort();
+const TOTAL_DIVERGED = d.of_diverged || all.length;
+const ARM_LINE = ARMS_PRESENT.length > 1 ? ', drawn evenly from both pinned corners' : '';
+/* THE RATE IS THE ARTIFACT'S, NOT THIS FILE'S. `diverged_in_arm` is the population each corner
+ * actually produced; the dump is a sample of it and must never be mistaken for it. */
+const RATE_LINE = (() => {
+  const by = (d.arms_in_dump && d.arms_in_dump.diverged_in_arm) || null;
+  if (!by) return esc(TOTAL_DIVERGED + ' diverging games');
+  return Object.keys(by).sort().map(k => esc(k + ' ' + by[k])).join(' &nbsp;·&nbsp; ') + ' diverged';
+})();
 const classes = [...new Set(all.map(x => x.cls || 'unclassified'))].sort();
 const tally = {}; for (const x of all) tally[x.cls || 'unclassified'] = (tally[x.cls || 'unclassified'] || 0) + 1;
 
 const cards = all.map((g, i) => {
+  resetSlots();
   const lead = (g.before_raw && g.before_raw.length ? g.before_raw : g.before) || [];
   const sdAfter = ((g.after && g.after.showdown) || []).slice(1);
   const meAfter = ((g.after && g.after.medicham) || []).slice(1);
   const nothing = '<div class="line none">— nothing further —</div>';
   return `
-  <article class="card" data-cls="${esc(slug(g.cls || 'unclassified'))}">
+  <article class="card" data-cls="${esc(slug(g.cls || 'unclassified'))}" data-arm="${esc(slug(g.arm || ''))}">
     <header class="card-h">
       <span class="num">${i + 1}</span>
       <span class="chip">${esc(g.cls || 'unclassified')}</span>
+      <span class="arm arm-${esc(String(g.arm || '').replace(/[^a-z0-9]+/gi, '-'))}">${esc(g.arm || '')}</span>
+      ${g.end_reason && g.end_reason !== 'the first divergent LINE'
+        ? `<span class="why">${esc(g.end_reason)}</span>` : ''}
       <span class="agreed">agreed for ${g.agreed_lines} lines</span>
     </header>
     ${lead.length ? `<div class="both"><div class="lbl">the turn so far — both engines identical</div>
@@ -167,7 +203,9 @@ h1{font-size:clamp(24px,3.4vw,34px);margin:0 0 6px;letter-spacing:-.02em;text-wr
  font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
 .key{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 22px;font-size:12.5px;color:var(--ink-2)}
 .key b{font-weight:600}
-.legend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px;padding:0;list-style:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px;padding:0;list-style:none}
+.legend.arms{margin:0 0 26px}
+.legend.arms button{border-style:dashed}
 .legend button{font:inherit;font-size:12.5px;cursor:pointer;border:1px solid var(--rule);background:var(--card);
  color:var(--ink-2);border-radius:999px;padding:5px 11px;display:inline-flex;gap:7px;align-items:center}
 .legend button[aria-pressed="true"]{border-color:var(--ink-2);color:var(--ink);background:var(--chip)}
@@ -200,6 +238,15 @@ h1{font-size:clamp(24px,3.4vw,34px);margin:0 0 6px;letter-spacing:-.02em;text-wr
 .arrow{color:var(--muted)}
 .fld{color:var(--ink);font-weight:500}
 .from{color:var(--muted);font-style:italic;font-size:12.5px}
+/* only shown when the game stopped for a reason OTHER than the split itself — a card that ended
+ * because one engine went quiet is a different kind of evidence from one that ended on a mismatch,
+ * and without the label the two are indistinguishable on the page. */
+.why{font-size:11.5px;color:var(--me);border:1px solid var(--me);border-radius:999px;padding:2px 8px}
+.swap{color:var(--muted);font-size:12.5px}
+.swap b{color:var(--ink-2);font-weight:600}
+.arm{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--rule);color:var(--muted);white-space:nowrap}
+.arm-bottom-tie-first{border-color:var(--me);color:var(--me)}
+.arm-top-tie-first{border-color:var(--sd);color:var(--sd)}
 .none{color:var(--muted);font-style:italic}
 .hp{display:inline-flex;align-items:center;gap:7px}
 .bar{width:64px;height:7px;border-radius:4px;background:var(--bar);overflow:hidden;display:inline-block}
@@ -213,10 +260,10 @@ footer.foot{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);co
 </style>
 <div class="wrap">
   <h1>Where MEDICHAM and Showdown part</h1>
-  <p class="sub">Sixty diverging games out of 209. Every die is pinned identically on both sides, so each
+  <p class="sub">${all.length} diverging games out of ${TOTAL_DIVERGED}${ARM_LINE}. Every die is pinned identically on both sides, so each
   of these is a <strong>rule the two engines disagree about</strong>. The turn so far is shown greyed;
   the two coloured panels are the moment they split.</p>
-  <p class="meta">${esc(d.generated || '')} &nbsp;·&nbsp; 209 / 815 diverged &nbsp;·&nbsp; frozen team pool</p>
+  <p class="meta">${esc(d.generated || '')} &nbsp;·&nbsp; ${esc(d.engine_release || '')} &nbsp;·&nbsp; ${RATE_LINE} &nbsp;·&nbsp; frozen team pool</p>
   <div class="key">
     <span><b class="mon p1" style="color:var(--yours)">green</b> = p1's side</span>
     <span><b class="mon p2" style="color:var(--theirs)">purple</b> = p2's side</span>
@@ -227,17 +274,29 @@ footer.foot{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);co
     <li><button type="button" data-f="all" aria-pressed="true">all <span class="n">${all.length}</span></button></li>
     ${classes.map(c => `<li><button type="button" data-f="${esc(slug(c))}" aria-pressed="false">${esc(c)} <span class="n">${tally[c]}</span></button></li>`).join('')}
   </ul>
+  <ul class="legend arms">
+    <li><button type="button" data-a="all" aria-pressed="true">both corners <span class="n">${all.length}</span></button></li>
+    ${ARMS_PRESENT.map(a => `<li><button type="button" data-a="${esc(slug(a))}" aria-pressed="false">${esc(a)} <span class="n">${armTally[a]}</span></button></li>`).join('')}
+  </ul>
   <div class="cards">${cards}</div>
   <footer class="foot">Read the two coloured panels first — everything above them is agreement. If the
   two sides describe the same board in different words, that's narration. If they describe different
   boards, that's a defect.</footer>
 </div>
 <script>
-(function(){var b=[].slice.call(document.querySelectorAll('.legend button')),
- c=[].slice.call(document.querySelectorAll('.card'));
- b.forEach(function(x){x.addEventListener('click',function(){var f=x.getAttribute('data-f');
-  b.forEach(function(o){o.setAttribute('aria-pressed',String(o===x))});
-  c.forEach(function(k){k.hidden=(f!=='all'&&k.getAttribute('data-cls')!==f)})})})})();
+(function(){
+ var c=[].slice.call(document.querySelectorAll('.card')), cls='all', arm='all';
+ function apply(){c.forEach(function(k){
+   k.hidden=(cls!=='all'&&k.getAttribute('data-cls')!==cls)||(arm!=='all'&&k.getAttribute('data-arm')!==arm);
+ });}
+ function group(sel,attr,set){var b=[].slice.call(document.querySelectorAll(sel));
+  b.forEach(function(x){x.addEventListener('click',function(){
+    b.forEach(function(o){o.setAttribute('aria-pressed',String(o===x))});
+    set(x.getAttribute(attr)); apply();
+  })});}
+ group('.legend:not(.arms) button','data-f',function(v){cls=v});
+ group('.legend.arms button','data-a',function(v){arm=v});
+})();
 </script>`;
 
 fs.writeFileSync(OUT, html);

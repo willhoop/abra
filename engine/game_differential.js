@@ -2655,6 +2655,28 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
   let endedMedi = false;
   try { endedMedi = !!M.battleOver(S); } catch (e) { endedMedi = false; STATE_FAILS.battle_over_threw = (STATE_FAILS.battle_over_threw || 0) + 1; }
 
+  /* ---- THE ROSTER BOTH ENGINES ARE HOLDING WHEN THE GAME STOPS (2026-08-13) ---------------------
+   * A DEBUGGING FIELD, carried into the dump only. The `showdown stopped emitting while medicham2
+   * continued` class is unreadable without it: the card shows us switching a body in and shows the
+   * authority silent, and there is no way to tell from the two streams whether the authority thinks
+   * that body is dead, absent, or on a side it has already declared beaten. Both engines are asked
+   * the SAME question — every body, is it fainted, at what hp — and Showdown is additionally asked
+   * `pokemonLeft`, which is the number `checkWin` actually reads (sim/battle.js:2133). */
+  const rosterSnapshot = () => {
+    const mediSide = (acts, bench) => [...acts, ...bench].filter(Boolean).map(m =>
+      ({ name: id(m.name), key: m._switchKey || null, hp: m.curHP, fainted: !!m.fainted,
+         where: acts.indexOf(m) >= 0 ? 'active' : 'bench' }));
+    const sdSide = side => ({ pokemonLeft: side.pokemonLeft, teamSize: side.pokemon.length,
+      mons: side.pokemon.map(p => ({ name: id(p.species.id), hp: p.hp, fainted: !!p.fainted,
+                                     where: p.isActive ? 'active' : 'bench' })) });
+    try {
+      return { medicham: { p1: mediSide(S.actA, S.benchA), p2: mediSide(S.actB, S.benchB) },
+               showdown: { p1: sdSide(battle.p1), p2: sdSide(battle.p2),
+                           winner: battle.winner == null ? null : String(battle.winner) } };
+    } catch (e) { return { failed: String((e && e.message) || e).slice(0, 120) }; }
+  };
+  const finalRoster = rosterSnapshot();
+
   _lastSdLog = battle.log.slice();
   /* THE RULER FOR BAND 3, GATHERED FROM THE AUTHORITY'S OWN NARRATION OF THIS GAME. Collected only in
    * end-state mode, because it is only that mode's threshold and a protocol-mode run would pay for an
@@ -2686,7 +2708,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
            /* THE END STATE (2026-08-12). `finalBoard` is the LAST board compared — null when no
             * boundary was ever taken, which is a third answer and not a zero. `endedMedi`/`endedSd`
             * are each engine's own verdict on whether the battle is over, kept apart on purpose. */
-           finalBoard: lastBoard, endReason, endedMedi, endedSd, sdHitFracs, sdHitFails,
+           finalBoard: lastBoard, endReason, endedMedi, endedSd, finalRoster, sdHitFracs, sdHitFails,
            megaMedi: megaMedi.length, megaSd: megaSd.length, megaCapableSides: capable, megaChoices,
            megaSlotA: megaMedi.filter(l => /\|p[12]a:/.test(l)).length,
            megaSlotB: megaMedi.filter(l => /\|p[12]b:/.test(l)).length,
@@ -3619,6 +3641,41 @@ function oneHitDamage(pairA, pairB, script, opt) {
  * many games it will want, so it asks for its BACKSTOP up front; running out of pool before the stall
  * fires is a truncation and is reported as one. Sizing the pool from `--games` in this mode would cap
  * the sweep at the arbitrary number the whole rule exists to replace. */
+/* THE CLOSET IS OURS AND IT WAS NEVER APPLIED TO THE SAMPLE — WILL, 2026-08-13: *"we are still having
+ * zoroarks thats banned remember"*. He is right, and the ban is not the format's: Showdown says
+ * `zoroark isNonstandard: null, tier: UU`, so it is perfectly legal to bring. **WE** shelved it —
+ * ROADMAP #160, Illusion in the closet, and Will earlier the same night: *"we banned zoroark remember
+ * for 5. its too confusing for our simple engine"*.
+ *
+ * The decision was recorded and never enforced. The dump taken minutes before this line carries **42
+ * Zoroark appearances**, and every divergence they cause is a body pretending to be another body —
+ * unreadable as a rule defect, which is the entire reason it was shelved.
+ *
+ * DERIVED FROM THE ABILITY, NOT FROM A NAME. `illusion` is the mechanic; Zoroark and Zoroark-Hisui are
+ * merely who carries it today. A name list would miss a carrier added next regulation, which is the
+ * hand-maintained-list failure this repo has a standing rule about.
+ *
+ * IT IS A DECLARED GAP, NOT A SILENT ONE. The count is stamped into the artifact so a reader can see
+ * the sample was narrowed and by how much — an exclusion nobody can see is indistinguishable from a
+ * mechanic that never came up. */
+const CLOSET_ABILITY = 'illusion';
+const CLOSET_SPECIES = (() => {
+  const legal = s => s.exists && !s.isNonstandard && s.tier !== 'Illegal';
+  const out = new Set();
+  for (const s of dex.species.all()) {
+    if (!legal(s)) continue;
+    if (Object.values(s.abilities).some(a => dex.toID(a) === CLOSET_ABILITY)) out.add(dex.toID(s.name));
+  }
+  return out;
+})();
+let CLOSET_DROPPED = 0;
+function closetRejects(team) {
+  return (team || []).some(m => {
+    const id = dex.toID((m && (m.spec ? m.spec.species || m.spec.name : m.species || m.name)) || '');
+    return CLOSET_SPECIES.has(id);
+  });
+}
+
 const SW = SWARM.buildSwarm(Math.max((UNTIL_COVERED ? MAX_GAMES : GAMES) * 2, 18),
                             TEAM_STORE ? { storeDir: TEAM_STORE } : null);
 
@@ -3660,7 +3717,15 @@ baselineGuard();
 function pairsFor(cfgId) {
   const cfg = SW.out.find(c => c.config === cfgId);
   const out = [];
-  const pool = (cfg && cfg.picked_teams) || [];
+  /* DROP THE CLOSET BEFORE PAIRING, NOT AFTER. Filtering pairs would silently halve the sample every
+   * time one shelved body met a clean one; filtering TEAMS keeps the pairing dense and makes the cost
+   * exactly the number of teams removed. */
+  const rawPool = (cfg && cfg.picked_teams) || [];
+  const pool = rawPool.filter(t => {
+    if (!closetRejects(t.team)) return true;
+    CLOSET_DROPPED++;
+    return false;
+  });
   for (let i = 0; i + 1 < pool.length; i += 2) {
     const a = buildPair(pool[i].team), b = buildPair(pool[i + 1].team);
     if (!a || !b) continue;
@@ -5389,6 +5454,8 @@ if (WRITE) {
   }, REL.stamp());
   const outPath = OUT ? path.resolve(OUT) : D('data', 'game-differential.json');
   fs.writeFileSync(outPath, JSON.stringify(artifact, null, 2) + '\n');
+  console.log('  -> ' + (OUT ? outPath : 'data/game-differential.json'));
+}
 
 /* THE READABLE DUMP — the same diverging games with the lines either side of the split.
  *
@@ -5398,11 +5465,58 @@ if (WRITE) {
  * keeping only the two mismatched lines. So the artifact could say WHAT differed and never what was
  * happening around it, which is the difference between a cause list and something a person can read.
  * Its own file, because it is a DEBUGGING VIEW and not a measurement; the numbers stay in
- * data/game-differential.json. */
-if (DUMP_GAMES && diverged.length) {
-  const cut = diverged.slice(0, DUMP_GAMES).map(r => ({
+ * data/game-differential.json.
+ *
+ * AND IT IS NO LONGER GATED ON `--write` (2026-08-13). It sat inside the `if (WRITE)` block, so the
+ * only way to look at a diverging game was to ALSO overwrite data/game-differential.json — i.e. to
+ * publish a measurement in order to debug. That is backwards, and it is why a diagnosis run had to
+ * either clobber the standing artifact or go without evidence. `--dump-games` defaults to 0, so a
+ * run that does not ask for the dump is unchanged. */
+/* BOTH ARMS IN THE DUMP, INTERLEAVED — 2026-08-13.
+ *
+ * `results` holds the PRIMARY arm alone, so every dump so far has been top-tie-first: the corner where
+ * every sub-100 move MISSES and no secondary fires. Will asked for the bottom arm too, for the right
+ * reason — that corner is where everything LANDS, so it reaches interactions the top arm cannot
+ * produce at all. Magic Bounce is the clean example: in the top arm the Hypnosis misses, so there is
+ * nothing to bounce and the mechanic is untestable by construction.
+ *
+ * Taken ALTERNATELY rather than top-then-bottom, so a reader who stops halfway has seen both corners
+ * instead of one. Each card carries its arm, because a divergence that only appears in one corner is a
+ * different claim from one that appears in both. */
+const DUMP_POOL = (() => {
+  const byArm = (ARM_RUNS || []).map(a => ({
+    arm: (a.arm && a.arm.id) || a.id || '?',
+    rows: (a.results || []).filter(r => r.div),
+  })).filter(x => x.rows.length);
+  if (!byArm.length) return diverged.map(r => ({ arm: (ARM && ARM.id) || 'primary', r }));
+  const out = [];
+  for (let i = 0; out.length < DUMP_GAMES * 2 && i < 10000; i++) {
+    let any = false;
+    for (const a of byArm) {
+      const r = a.rows[i];
+      if (!r) continue;
+      /* `_cls` is stamped by the report loop above, which walks the PRIMARY arm only — the class tally
+       * is a claim about the headline arm and stays that way. A non-primary row reaching the dump has
+       * never been classified, so classify it HERE, through the same function, rather than letting the
+       * card fall back to "unclassified" and quietly imply the classifier had no opinion. */
+      if (!r._cls) r._cls = classify(r.div);
+      out.push({ arm: a.arm, r });
+      any = true;
+    }
+    if (!any) break;
+  }
+  return out;
+})();
+
+if (DUMP_GAMES && DUMP_POOL.length) {
+  const cut = DUMP_POOL.slice(0, DUMP_GAMES).map(({ arm, r }) => ({
+    arm,
     config: r.config, seed: r.seed,
     agreed_lines: r.div.agreedLines, cls: r._cls.cls, cause: r._cls.cause,
+    /* WHY THE GAME STOPPED AND WHAT EACH ENGINE WAS HOLDING WHEN IT DID. Without these the
+     * truncation classes are guesswork — see the rosterSnapshot header in playGame. */
+    end_reason: r.endReason || null, ended_showdown: !!r.endedSd, ended_medicham: !!r.endedMedi,
+    final_roster: r.finalRoster || null,
     /* BOTH FORMS. The reduced line is what DECIDED; the raw line is what the engines actually emitted
      * and is what a person has to go and fix. Keeping only one has bitten before. */
     at: { showdown_raw: r.div.sdRaw, medicham_raw: r.div.meRaw,
@@ -5418,11 +5532,44 @@ if (DUMP_GAMES && diverged.length) {
         + 'kept: the reduced form is what decided, the raw form is what has to be fixed.',
     generated: new Date().toISOString(),
     engine_release: REL.id, team_store_pinned_to: TEAM_STORE || null,
-    games: cut.length, of_diverged: diverged.length,
+    /* THE EXCLUSION IS DECLARED, NEVER SILENT. A narrowed sample that does not say it was narrowed is
+     * indistinguishable from a mechanic that simply never came up — which is the failure mode this
+     * whole project is organised against. */
+    closet: {
+      ability: CLOSET_ABILITY,
+      species: [...CLOSET_SPECIES].sort(),
+      teams_dropped: CLOSET_DROPPED,
+      why: 'OUR shelf, not the format\'s: zoroark is isNonstandard:null and legal to bring. '
+         + 'ROADMAP #160 — Illusion is in the closet because a body pretending to be another body '
+         + 'makes every divergence it causes unreadable as a rule defect. Derived from the ABILITY '
+         + 'so a carrier added next regulation is covered without an edit.',
+    },
+    /* `of_diverged` IS THE POPULATION, NOT THE POOL. DUMP_POOL is capped at twice the dump size, so
+     * reporting its length here would have the page say "80 of 160" for a run that diverged on 655 —
+     * a sample announcing itself as the whole thing. */
+    games: cut.length,
+    of_diverged: (ARM_RUNS || []).reduce((n, a) => n + (a.results || []).filter(r => r.div).length, 0),
+    pool_considered: DUMP_POOL.length,
+    /* PER ARM, because "224 diverging games" from one corner and the same count from both corners are
+     * different facts. A reader who cannot see the split cannot tell a mechanic that is wrong
+     * everywhere from one that is only wrong where every move lands. */
+    arms_in_dump: (() => {
+      const c = {}; for (const x of cut) c[x.arm] = (c[x.arm] || 0) + 1;
+      /* COUNTED OFF THE ARM, NOT OFF THE POOL. The pool is capped at twice the dump size, so tallying
+       * it would report "available: 60" for an arm that diverged on 76 — a cap wearing the name of a
+       * population, which is the same class of quiet over-claim this instrument exists to catch. */
+      const t = {};
+      for (const a of (ARM_RUNS || [])) {
+        const id = (a.arm && a.arm.id) || a.id || '?';
+        t[id] = (a.results || []).filter(r => r.div).length;
+      }
+      return { shown: c, diverged_in_arm: t };
+    })(),
     divergences: cut,
   }, null, 2) + '\n');
-  console.log('  wrote ' + DUMP_OUT + '  (' + cut.length + ' of ' + diverged.length
-    + ' diverging games, with context)');
-}
-  console.log('  -> ' + (OUT ? outPath : 'data/game-differential.json'));
+  /* THE CONSOLE SAYS THE POPULATION TOO. It said "80 of 160" while the run diverged on 655 — the same
+   * cap-as-population slip the artifact carried, and the console is where it gets read first. */
+  const dumpPop = (ARM_RUNS || []).reduce((n, a) => n + (a.results || []).filter(r => r.div).length, 0);
+  console.log('  wrote ' + DUMP_OUT + '  (' + cut.length + ' of ' + dumpPop
+    + ' diverging games across ' + new Set(DUMP_POOL.map(x => x.arm)).size + ' arm(s), with context)');
 }

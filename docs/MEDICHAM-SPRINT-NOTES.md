@@ -7460,3 +7460,56 @@ extra `|switch|`. With sixteen it reads: both of p2's active bodies faint, the a
 battle, and **we send in a replacement**. That is either a bench that should not exist or a lost count
 of who has fainted, and it sits in the class that only became visible tonight — before the truncation
 fix it counted as agreement.
+
+### THE DUMP WAS ONE CORNER, AND THE VIEWER'S OWN HEADER WAS TYPED. 2026-08-13
+
+Two things Will asked for, and the first is a hole in the instrument rather than a preference about the
+page.
+
+**The dump had only ever shown `top-tie-first`.** `if (DUMP_GAMES && diverged.length)` reads
+`diverged = results.filter(r => r.div)`, and `results` is the PRIMARY arm — the corner where every
+sub-100-accuracy move MISSES and no secondary fires. Will: *"can we also include ones from the bottom
+where everything hits and it doesnt line up? that would provide more interactions for possible failure
+that i can see."*
+
+He is right about the reason, and it is stronger than "more variety". That corner makes a whole class of
+mechanic **untestable by construction**. Magic Bounce cannot be wrong about a Hypnosis that missed. No
+secondary can be mistimed if none fired. No berry can race a recoil that never landed. Every one of
+those is reachable only in `bottom-tie-first`, which the dump had never once sampled. The arms are
+interleaved now, so a reader who stops halfway has seen both, and each card carries its arm because a
+defect in one corner is a narrower claim than a defect in both.
+
+| arm | diverged | of 1,539 |
+|---|---|---|
+| top-tie-first | 309 | 20.1% |
+| bottom-tie-first | 346 | 22.5% |
+
+**A switch now names what it replaced.** Will: *"and include the clear switch ins"*, and earlier,
+reading a card, *"when we switch in a mon like it did with greninja it should say what it swapped for"*.
+A bare `sends in Greninja` hides the half that decides what the switch MEANT — a pivot, a forced
+replacement after a faint, and a lead arriving are the same line in the protocol. Slot occupancy is
+tracked through each card's own lead-in; 207 switches across the 80 published cards now say who left.
+
+**AND THE VIEWER WAS CARRYING THREE FALSE NUMBERS, IN THE TOOL BUILT TO CATCH THAT.** The section above
+says it computes nothing, which is true and is exactly why nobody audited it. It *rendered* three:
+
+| the page said | true | why |
+|---|---|---|
+| "Sixty diverging games out of 209" | 80 of 655 | typed into the template |
+| "209 / 815 diverged" | 309 and 346 of 1,539 | typed into the template |
+| "80 of 160" — after the first fix | 80 of 655 | `of_diverged` tallied the POOL, capped at 2× the dump |
+
+The third survived a fix, and that is the one worth keeping. Deriving a number is not enough when the
+field you derive it from is a cap wearing a population's name. Same error as the coverage credit before
+ROADMAP #91: a figure SMALLER than the truth still misleads, because it is read as the truth.
+
+**A page that renders a measurement is part of the measurement**, and gets an artifact's treatment —
+every number derived, every narrowing declared, the sample never allowed to wear the population's name.
+
+Also fixed: a card from a non-primary arm reached the renderer with no `_cls`, because the loop that
+stamps it walks the primary arm only. It would have rendered as `unclassified` — the classifier
+appearing to have no opinion when it had never been asked.
+
+*(One flag note in the section above is now stale and is corrected here rather than rewritten: the dump
+no longer requires `--write`. ENGINE removed that gate on the same night, for the right reason — it
+forced publishing a measurement in order to debug one.)*

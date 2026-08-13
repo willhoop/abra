@@ -10,6 +10,50 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.9.0] — 2026-08-13
+
+### Added
+- **THE DIVERGENCE DUMP NOW DRAWS FROM BOTH PINNED CORNERS, NOT ONE.** Will: *"can we also include
+  ones from the bottom where everything hits and it doesnt line up? that would provide more
+  interactions for possible failure that i can see."* Every dump written before this took its games
+  from `results`, which is the PRIMARY arm alone — `top-tie-first`, the corner where every
+  sub-100-accuracy move MISSES and no secondary fires. That is not a stylistic narrowing. It makes a
+  whole class of mechanic **untestable by construction**: Magic Bounce cannot be wrong about a
+  Hypnosis that missed, and no secondary can be mistimed if none fired. `bottom-tie-first` is where
+  every one of those lands. The two arms are now interleaved so a reader who stops halfway has seen
+  both corners, and each card carries its arm — a defect present in one corner only is a narrower
+  claim than one present in both, and the page lets you isolate either.
+  Measured on 1,539 games per arm: **top 309 diverged (20.1%), bottom 346 (22.5%)**.
+- **A SWITCH NOW SAYS WHO IT REPLACED.** Will: *"and include the clear switch ins"*, and earlier,
+  reading a card, *"when we switch in a mon like it did with greninja it should say what it swapped
+  for"*. A bare `sends in Greninja` hides the half that decides what the switch MEANT — a pivot, a
+  forced replacement after a faint, and a lead arriving all read identically in the protocol. The
+  renderer tracks slot occupancy through each card's own lead-in and prints `replacing <body>`.
+  207 switches across the 80 published cards now name what left.
+
+### Fixed
+- **THE VIEWER'S OWN HEADER WAS TYPED, AND IT HAD GONE STALE — the failure this repo is built
+  against, inside the tool built to expose it.** `divergence_cards.js` opened with the literals
+  "Sixty diverging games out of 209" and "209 / 815 diverged". The run behind the page is 1,539 games
+  per arm; the page would have introduced its reader to the sample with two confident wrong numbers.
+  Every figure in the header is now read out of the artifact. The renderer still AUTHORS nothing —
+  reading a count is not computing one.
+- **`of_diverged` REPORTED A CAP AS A POPULATION.** The dump pool is capped at twice the dump size,
+  and the artifact tallied the pool: the page said "80 of 160" for a run that diverged on **655**
+  games. Both `of_diverged` and the per-arm counts are now taken off the arms themselves, with the
+  cap kept separately as `pool_considered`. Same shape as the credit over-claim ROADMAP #91 fixed —
+  a number that is smaller than the truth still misleads when it wears the truth's name.
+- A dumped game from a non-primary arm reached the renderer with no `_cls`, because the report loop
+  that stamps it walks the primary arm only. It now classifies through the same function rather than
+  falling back to `unclassified`, which would have implied the classifier had no opinion.
+
+### Notes
+- The published sample changed shape twice tonight and neither is a regression: the Illusion closet
+  exclusion dropped 13 teams, and the pool cache rebuilt against a moved store. Both are stamped in
+  `data/divergence-turns.json`.
+
+---
+
 ## [5.8.0] — 2026-08-12
 
 ### Fixed

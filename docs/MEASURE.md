@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 24 unsafe, 1 void (declared), 90 possibly stale, 86 ok, 0 missing
+  provenance: 24 unsafe, 1 void (declared), 87 possibly stale, 89 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
@@ -29,13 +29,13 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED:   Measure what it touches before deciding — how many corpus games contain a changed species — |   then refit (node engine/fit_policy.js, then node engine/fit_joint.js) if it reaches the fit, |   or restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-13 00:39
+    moved after the fit: engine/medicham2-browser.js  2026-08-13 01:08
     moved after the fit: engine/board.js  2026-08-10 20:33
     moved after the fit: data/engine-data.js  2026-08-10 18:59
     moved after the fit: data/abra-tags.js  2026-08-12 19:40
 ```
 
-_stamped 2026-08-13 00:41_
+_stamped 2026-08-13 01:20_
 
 <!-- /GENERATED -->
 
@@ -3291,6 +3291,31 @@ introduced. ENGINE's.
 **What the ladder still cannot see**, restated rather than implied: an uncommitted edit inside
 `SHOWDOWN_PATH`. The other two blind spots `arms_comparable.js` declares — the driver itself and
 `data/protocol-events.json` — are digested before and after every arm and recorded in the artifact.
+
+
+### 21. THE VIEWER WAS AN INSTRUMENT AND NOBODY HAD AUDITED IT. 2026-08-13
+
+`engine/divergence_cards.js` renders diverging games for a human to read. It computes nothing by
+design, which is exactly why it was never checked — and it carried three claims that were false.
+
+| what the page said | what was true | why |
+|---|---|---|
+| "Sixty diverging games out of 209" | 80 of 655 | typed into the template weeks ago |
+| "209 / 815 diverged" | top 309 / 1,539, bottom 346 / 1,539 | same |
+| "80 of 160" (after the first fix) | 80 of 655 | `of_diverged` tallied the POOL, which is capped at 2× the dump |
+
+The third is the interesting one, because it survived a fix. Deriving a number is not enough if the
+field you derive it from is itself a cap wearing a population's name. It is the same error as the
+coverage credit before ROADMAP #91: a figure that is SMALLER than the truth still misleads, because
+it is read as the truth.
+
+**And the sample itself was one corner.** The dump drew from the primary arm alone, so the page
+answered "where do the engines part when every sub-100 move misses" while presenting itself as
+"where do the engines part". Both arms now feed it, interleaved and labelled.
+
+**Rule this leaves behind: a page that renders a measurement is part of the measurement.** It gets
+the same treatment as an artifact — every number derived, every narrowing declared, and the
+population distinguished from the sample by name.
 
 ## Running the release ladder
 
