@@ -165,7 +165,7 @@
   "void_files": [
     "exploitability.json"
   ],
-  "verified": 2,
+  "verified": 3,
   "graph_files": [
     "ab-batch-effect.json",
     "ability-blocks.json",
@@ -374,6 +374,7 @@
     "battle-formes.json",
     "conditional-audit.json",
     "exploitability-holdout.json",
+    "fixture-learnset-baseline.json",
     "leaf-comparison.json",
     "meta-nash.json",
     "miltank-timing-r6.json",
@@ -693,5 +694,5 @@
       ]
     }
   ],
-  "generated": "2026-08-13T03:05:41.682Z"
+  "generated": "2026-08-13T03:57:17.009Z"
 }

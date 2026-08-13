@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-13T02:47:41.334Z",
+  "generated": "2026-08-13T03:57:10.571Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 542,
-  "live": 542,
+  "probed": 552,
+  "live": 552,
   "missing": 0,
-  "armed": 542,
+  "armed": 552,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2806,7 +2806,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5427,6 +5427,106 @@
       "label": "Instruct repeats the move of whoever is standing in the aimed slot — and a fresh body has none",
       "live": true,
       "detail": "turn 1 the snorlax Body Slams so it has a move to repeat. CONTROL — the slot still holds snorlax and turn 2 costs my side 130 HP (the Body Slam AND its repeat). PIVOT — the slot holds garchomp, which has not moved at all, so the Instruct finds no last move and my side loses 0: the benched snorlax gets no free action",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "a `-status` names the MOVE that caused it where the authority does, and stays bare where it does not",
+      "live": true,
+      "detail": "the same Vileplume on the same board — Sleep Powder [\"|-status|p2a:snorlax|slp|[from]move:sleeppowder\"]; Toxic [\"|-status|p2a:snorlax|tox\"]. Only the sleep condition takes a move name (data/mods/champions/conditions.ts:17); every other status writes the bare line, so an engine that attributes both fails this",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "a status an ABILITY inflicts names the ability AND the holder; the same status from a move is bare",
+      "live": true,
+      "detail": "the same paralysed Snorlax both ways — Static answering a Heavy Slam [\"|-status|p2a:snorlax|par|[from]ability:static|[of]p1a:ampharos\"]; a Thunder Wave from the same Ampharos [\"|-status|p2a:snorlax|par\"] (conditions.ts:25 names the ability and the holder, :27 writes the bare line)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "poisonsOnMyContact",
+      "label": "Poison Touch names ITS OWN ability on the status it writes, not the move that carried it",
+      "live": true,
+      "detail": "the same Aqua Tail into the same Snorlax — Poison Touch [\"|-status|p2a:snorlax|psn|[from]ability:poisontouch|[of]p1a:dragalge\"]; the same body with no ability []. The [of] is the ATTACKER holding the ability, which is the opposite slot from Static's",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "partialTrap",
+      "label": "the trap chip names the MOVE that bound the body, not the condition",
+      "live": true,
+      "detail": "two turns of chip each — Infestation [\"|-damage|p2a:snorlax|193/235|[from]move:infestation|[partiallytrapped]\",\"|-damage|p2a:snorlax|151/235|[from]move:infestation|[partiallytrapped]\"]; Fire Spin [\"|-damage|p2a:snorlax|184/235|[from]move:firespin|[partiallytrapped]\",\"|-damage|p2a:snorlax|133/235|[from]move:firespin|[partiallytrapped]\"]. The two must NAME DIFFERENT MOVES: sim/battle.ts:2141 reads the volatile's own sourceEffect, so an engine writing the literal \"[from] partiallytrapped\" prints the same string for both",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "healsSelf",
+      "label": "a heal caused by a MOVE is bare; a heal caused by an ITEM names the item",
+      "live": true,
+      "detail": "Strength Sap [\"|-heal|p1a:polteageist|137/137\"]; Leftovers [\"|-heal|p1a:snorlax|64/235|[from]item:leftovers\"]. sim/battle.ts:2290 emits a MOVE-caused heal with no tag at all and :2294 names any other effect — this engine wrote \"[from] move: strengthsap|[of] ...\" on the first",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "changesType",
+      "label": "a type change names the move where the authority does (Forest's Curse) and stays bare where it does not (Soak)",
+      "live": true,
+      "detail": "Forest's Curse [\"|-start|p2a:snorlax|typeadd|grass|[from]move:forestscurse\"]; Soak [\"|-start|p2a:snorlax|typechange|water\"]. Both write a type onto the same Snorlax and only one of the two handlers passes a [from] — so an engine that attributes every type change fails the control",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "delayedHeal",
+      "label": "the Wish payout names the move AND the wisher",
+      "live": true,
+      "detail": "the Wish payout [\"|-heal|p1a:aromatisse|89/176|[from]move:wish|[wisher]aromatisse\"]; the same body healing off Leftovers instead [\"|-heal|p1a:aromatisse|12/176|[from]item:leftovers\",\"|-heal|p1a:aromatisse|23/176|[from]item:leftovers\"]. Wish is the one heal in the game that carries a SECOND attribution field naming who cast it (data/moves.ts wish onEnd)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "recoil",
+      "label": "a half-HP recoil names the MOVE as its own condition; ordinary recoil names `recoil`",
+      "live": true,
+      "detail": "Steel Beam [\"|-damage|p1a:aegislash|67/135|[from]steelbeam\"]; Wave Crash [\"|-damage|p1a:garchomp|156/183|[from]recoil\"]. battle-actions.ts:1391 hands mindBlownRecoil the MOVE as a condition and every other recoil the string \"recoil\" — this engine printed \"[from] Recoil\" for both",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "cures",
+      "label": "a cure the game ANNOUNCES carries [msg]; a cure it hides carries [silent]",
+      "live": true,
+      "detail": "a frozen Snorlax thawing [\"|-curestatus|p1a:snorlax|frz|[msg]\"]; a Natural Cure body switching out [\"|-curestatus|p1a:milotic|psn|[from]ability:naturalcure|[silent]\"]. sim/pokemon.ts:1682 writes [msg] on every cure the player is told about and [silent] on the rest — the tag is the whole difference",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "buffsHolderOnHit",
+      "label": "Electromorphosis names the move that hit it and its own ability on the Charge it raises",
+      "live": true,
+      "detail": "the same Heavy Slam into the same Bellibolt — Electromorphosis [\"|-start|p1a:bellibolt|charge|heavyslam|[from]ability:electromorphosis\"]; no ability []. data/moves.ts charge onStart names the ACTIVE MOVE in field 4 and the ability in field 5 when an ability raised it",
       "hollow": false,
       "armed": true,
       "directCall": false

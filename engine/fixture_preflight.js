@@ -245,8 +245,346 @@ function triggerClauses(sc, sp, why, note, cl) {
       cl.push({ clause: 'weather', blocking: false, need: { weather: weathers }, got: { weather: id(sc.weather) } });
     }
   }
+
+  /* 5. A HANDLER GATED ON A MOVE PROPERTY NEEDS THAT MOVE THROWN, AND BY THE RIGHT SIDE.
+   *
+   * The clause the abilities arm was missing entirely. `all_mechanics_fire.js` threw Facade, Endure,
+   * Rest and Substitute at all 316 abilities, so Justified's `move.type === "Dark"` could not be reached
+   * on any board — and the row read DID-NOT-FIRE, which is indistinguishable from a dead mechanic.
+   *
+   * ADVISORY, NEVER BLOCKING, and that is the same distinction clause 3 makes. A blocking clause says
+   * the board can show nothing at all; this says a PRECONDITION the handler reads was not put on the
+   * board, which explains a row that did not fire and says nothing about a row that did. `labelRow` in
+   * the caller only applies an advisory clause to a row that came back inert, so a subject that fires
+   * for some other reason is never argued with.
+   *
+   * `stagedMoves` is what the fixture PROVABLY clicks, read back off the built bodies — not what it
+   * intends to. That distinction is the whole value of asking: the `faces.setsWeather` intent silently
+   * failed to reach the board for the entire life of that table. */
+  if (sc.stagedMoves) {
+    const nd = moveNeeds((ab && ab.exists && ab) || (itemE && itemE.exists && itemE) || null);
+    const tg = sc.target ? D.species.get(sc.target) : null;
+    const myT = (sp && sp.types) || [];
+    const thT = (tg && tg.types) || [];
+    const A = (sc.stagedMoves.actor || []).map(id);
+    const R = (sc.stagedMoves.receiver || []).map(id);
+    for (const n of nd.needs) {
+      const tries = n.by === 'actor' ? [[A, myT, thT]]
+                  : n.by === 'receiver' ? [[R, thT, myT]]
+                  : [[A, myT, thT], [R, thT, myT]];
+      const met = tries.some(([list, u, t]) =>
+        list.some(m => satisfiesNeed(m, n, { userTypes: u, targetTypes: t })));
+      if (met) continue;
+      const what = n.kind + (n.values.length ? ' (' + n.values.join(' or ') + ')' : '');
+      note.push('"' + subj + '" is gated on ' + what + ' in `' + n.handler + '`, and the '
+        + n.by + ' throws nothing that supplies it — the trigger cannot be reached on this board, '
+        + 'which reads exactly like a dead mechanic');
+      cl.push({ clause: 'trigger-move', blocking: false,
+                need: { by: n.by, kind: n.kind, values: n.values, handler: n.handler },
+                got: { actor: A, receiver: R } });
+    }
+  }
 }
 
+/* ================= WHAT MOVE THE TRIGGER NEEDS, AND WHICH SIDE MUST CLICK IT =======================
+ *
+ * WILL, 2026-08-12: **"but we are staging it so a dark move hits a justified mon right? thats the
+ * whole point"**. It was not. `all_mechanics_fire.js` threw the SAME four moves — Facade, Endure, Rest,
+ * Substitute — at all 316 abilities, and none of them is Dark, so Justified could not fire on any board
+ * this repository has ever built. The MOVES arm derives a team per move; the ABILITIES arm was a shared
+ * gauntlet. Two standards in one runner.
+ *
+ * THE HANDLER SAYS WHAT IT NEEDS:
+ *
+ *     onDamagingHit(damage, target, source, move) { if (move.type === "Dark") this.boost({atk:1}); }
+ *
+ * — a Dark move, thrown BY THE OTHER SIDE. Both halves of that sentence are derivable and neither was
+ * derived. This block derives both.
+ *
+ * ---- WHICH SIDE, AND WHY IT IS NOT A GUESS ------------------------------------------------------
+ * Showdown's handler names carry the direction already. `onX` means the holder IS the event's target;
+ * `onSourceX` and `onFoeX` mean it is the other participant; `onAllyX` means the ALLY is; `onAnyX`
+ * means either. What that resolves to depends on WHOSE EVENT it is, and that is a property of the
+ * SIMULATOR rather than of Pokemon: `BasePower` is raised on the ATTACKER, `TryHit` on the DEFENDER.
+ * So one table of event->role, and an event missing from it falls to `either` LOUDLY (both sides are
+ * handed the move and the need records `undetermined: true`) rather than silently picking a side.
+ *
+ * Worked through, which is the only way to know the table is the right way round:
+ *   Iron Fist       onBasePower           attacker + no prefix  -> the HOLDER punches
+ *   Thick Fat       onSourceModifyAtk     attacker + Source     -> the OTHER body throws Ice/Fire
+ *   Justified       onDamagingHit         defender + no prefix  -> the OTHER body throws Dark
+ *   Compound Eyes   onSourceModifyAccuracy defender + Source    -> the HOLDER throws a sub-100 move
+ *   Queenly Majesty onFoeTryMove          attacker + Foe        -> the OTHER body throws priority
+ *   Flower Veil     onAllyTryBoost        defender + Ally       -> the OTHER body drops a stat
+ *
+ * ---- WHAT IS DELIBERATELY NOT DERIVED, BECAUSE THE POLARITY IS NOT READABLE ----------------------
+ * `move.category === "Status"` and `move.ohko` are recorded as UNDETERMINED CUES and never turned into
+ * a need. Telepathy's guard is `if (!target.isAlly(source) || move.category === "Status") return;` —
+ * the literal names Status and the requirement is the OPPOSITE of it. A derivation that cannot read
+ * the sign of its own match must not pretend to; the cue is reported so the gap is visible.
+ * This is the `refusesStatusMoves` lesson (docs/ENGINE.md) applied before rather than after. */
+
+/* THE EVENT'S TARGET. `attacker` = the event is raised on the body USING the move; `defender` = on the
+ * body it is aimed at. Read off the simulator's own `runEvent` call sites, not off a mechanic. */
+const EVENT_ROLE = {
+  basepower: 'attacker', modifyatk: 'attacker', modifyspa: 'attacker', modifymove: 'attacker',
+  modifytype: 'attacker', modifydamage: 'attacker', modifystab: 'attacker', preparehit: 'attacker',
+  trymove: 'attacker', aftermovesecondaryself: 'attacker', fractionalpriority: 'attacker',
+  modifypriority: 'attacker', hitprotect: 'attacker',
+  tryhit: 'defender', tryhitside: 'defender', tryprimaryhit: 'defender', damaginghit: 'defender',
+  afterdamage: 'defender', aftermovesecondary: 'defender', criticalhit: 'defender',
+  effectiveness: 'defender', modifyaccuracy: 'defender', accuracy: 'defender',
+  invulnerability: 'defender', modifysecondaries: 'defender', flinch: 'defender',
+  tryboost: 'defender', changeboost: 'defender', aftereachboost: 'defender', afterboost: 'defender',
+};
+/* The events whose very NAME is the requirement — no literal in the body to read. */
+const EVENT_CUE = {
+  modifystab: 'stab', modifyaccuracy: 'subaccuracy', accuracy: 'subaccuracy',
+  modifysecondaries: 'secondary', flinch: 'flinch',
+  tryboost: 'statDrop', changeboost: 'statDrop', aftereachboost: 'statDrop', afterboost: 'statDrop',
+};
+function splitHandler(name) {
+  const m = /^on(Ally|Foe|Source|Any)?([A-Z][A-Za-z]*)$/.exec(name);
+  if (!m) return null;
+  return { prefix: m[1] || '', base: m[2].toLowerCase() };
+}
+/* Who has to CLICK the move. See the worked table above. */
+function whoClicks(prefix, role) {
+  if (!role || prefix === 'Any') return 'either';
+  if (prefix === 'Ally') return role === 'defender' ? 'receiver' : 'ally';
+  const flip = prefix === 'Source' || prefix === 'Foe';
+  const holderIsUser = role === 'attacker' ? !flip : flip;
+  return holderIsUser ? 'actor' : 'receiver';
+}
+/* ---- POLARITY, AND THE FIRST DRAFT OF THIS FUNCTION GOT IT WRONG ON SIX ABILITIES ---------------
+ *
+ * A literal naming a flag is not the same as a flag being REQUIRED, and the naive version of this
+ * derivation over-matched exactly the way docs/ENGINE.md says a new predicate always does. What it
+ * printed before it was wired:
+ *
+ *     Cursed Body     receiver:flag=futuremove          `!move.flags["futuremove"]` — must be ABSENT
+ *     Protean/Libero  actor:flag=futuremove             same, in a bare-return guard
+ *     Parental Bond   actor:flag=noparentalbond|charge|futuremove   THREE exclusions in one guard
+ *     Lightning Rod   either:flag=pledgecombo           an exclusion beside the real Electric need
+ *     Ice Face        receiver:flag=bypasssub           a substitute check, not a requirement
+ *
+ * Six rows would have been handed a Future Sight or a Pledge to stage a trigger that refuses both.
+ *
+ * THE POLARITY IS STRUCTURAL AND IS READ RATHER THAN LISTED. Every one of those is a GUARD whose
+ * consequent is a bare `return;`, and every genuine requirement is either negated inside such a guard
+ * (Magic Bounce: `!move.flags["reflectable"] ... return`) or positive inside a guard that DOES
+ * something (Bulletproof: `move.flags["bullet"] -> this.add(...); return null`). So:
+ *
+ *     required  =  negated  ==  the guard's consequent is a bare return
+ *
+ * THIS WAS WRITTEN AS AN XOR FIRST AND THE PRINT-BEFORE-WIRING CAUGHT IT: with the sign flipped the
+ * derivation went from 38 type needs to ZERO — Justified, Sap Sipper, Thick Fat, Volt Absorb, Iron Fist
+ * and Sharpness all silently disappeared, which is the under-match that looks exactly like "no ability
+ * needs a move". It was visible only because the matches were printed rather than trusted.
+ *
+ * and an occurrence outside any guard is required only when it is positive. Naming `futuremove` and
+ * `pledgecombo` in an exclusion list would have worked today and rotted the first time an ability was
+ * added — the same argument this file's opening paragraph makes about hand lists. */
+function guardsOf(src) {
+  const out = [];
+  for (let i = 0; i < src.length; i++) {
+    if (!/^if\s*\(/.test(src.slice(i, i + 5))) continue;
+    const j = src.indexOf('(', i);
+    let depth = 0, k = j;
+    for (; k < src.length; k++) { if (src[k] === '(') depth++; else if (src[k] === ')') { depth--; if (!depth) break; } }
+    const cond = src.slice(j + 1, k);
+    const after = src.slice(k + 1).replace(/^\s*/, '');
+    const body = after[0] === '{' ? after.slice(1, 300) : after.slice(0, 200);
+    out.push({ cond, bare: /^\s*return\s*(;|\})/.test(body) });
+    i = k;
+  }
+  return out;
+}
+/* Is this literal REQUIRED on the board? `re` must capture nothing; it is used only to locate. */
+function polarity(src, guards, re) {
+  let required = false, seen = false;
+  const check = (text, bare) => {
+    for (const m of text.matchAll(re)) {
+      seen = true;
+      const before = text.slice(Math.max(0, m.index - 3), m.index);
+      const negated = /!\s*$/.test(before) || /!\s*\(\s*$/.test(text.slice(Math.max(0, m.index - 4), m.index))
+                   || /!==/.test(m[0]);
+      if (bare === null) { if (!negated) required = true; }
+      else if (negated === bare) required = true;
+    }
+  };
+  let covered = '';
+  for (const g of guards) { check(g.cond, g.bare); covered += g.cond + '\u0000'; }
+  /* whatever is not inside a guard condition */
+  check(src.split(/if\s*\(/).map((s, i) => i ? s.slice(s.indexOf(')') + 1) : s).join(' '), null);
+  void covered;
+  return { seen, required };
+}
+/* BOTH QUOTE STYLES, EVERY TIME. The handler is read off the COMPILED `dist/sim`, where TypeScript has
+ * rewritten `'Dark'` as `"Dark"`. A single-quote regex here finds NOTHING — the bug this file's weather
+ * clause carried for its whole life and that the gender clause documents 200 lines up. */
+function cuesOf(base, src) {
+  const out = [], undet = [];
+  const G = guardsOf(src);
+  const need = (kind, re, values) => {
+    const p = polarity(src, G, re);
+    if (p.seen && p.required) out.push({ kind, values: values || [] });
+    return p;
+  };
+  /* TYPES. `===` and `.includes()` are the positive forms, `!==` the negated one — and `!==` inside a
+   * bare-return guard is a REQUIREMENT (Lightning Rod: `if (move.type !== "Electric" ...) return`). */
+  const types = new Set();
+  for (const m of src.matchAll(/move\.type\s*[!=]==\s*["']([A-Za-z?]+)["']/g)) {
+    if (m[1] === '???') continue;
+    const p = polarity(src, G, new RegExp('move\\.type\\s*[!=]==\\s*["\']' + m[1] + '["\']', 'g'));
+    if (p.required) types.add(m[1]);
+  }
+  for (const m of src.matchAll(/\[([^\]]{0,120}?)\]\s*\.includes\(\s*move\.type\s*\)/g)) {
+    const p = polarity(src, G, new RegExp(m[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'));
+    if (p.required) for (const t of m[1].matchAll(/["']([A-Za-z]+)["']/g)) types.add(t[1]);
+  }
+  if (types.size) out.push({ kind: 'type', values: [...types] });
+  /* FLAGS, each judged on its own polarity — Parental Bond names three and requires none. */
+  const flags = new Set();
+  for (const m of src.matchAll(/move\.flags(?:\[\s*["']([a-z]+)["']\s*\]|\.([a-z]+))/g)) {
+    const f = m[1] || m[2];
+    const p = polarity(src, G, new RegExp('move\\.flags(?:\\[\\s*["\']' + f + '["\']\\s*\\]|\\.' + f + ')', 'g'));
+    if (p.required) flags.add(f);
+  }
+  if (flags.size) out.push({ kind: 'flag', values: [...flags] });
+  need('recoil', /move\.recoil|hasCrashDamage/g);
+  need('multihit', /move\.multihit\b/g);
+  need('drain', /move\.drain\b/g);
+  need('secondary', /move\.secondaries\b/g);
+  need('priority', /move\.priority\b/g);
+  need('supereffective', /typeMod\s*>\s*0/g);
+  /* THE BOOST FAMILY. The SIGN decides both the need and which side has to click it: a DROP arrives
+   * from the opposite body, a RAISE the body does to itself. Opportunist reads `boost[i] > 0` and is
+   * the row that proves the two cannot share a rule. A handler gated on `isBerry` (Ripen) is reading an
+   * EFFECT rather than a move and gets no need at all. */
+  if (EVENT_CUE[base] === 'statDrop') {
+    /* GATED ON AN EFFECT RATHER THAN ON A MOVE, and this is a whole family. Oblivious, Own Tempo,
+     * Inner Focus and Scrappy all read `effect.name === "Intimidate"`, and Ripen reads `isBerry` — no
+     * move whatsoever supplies those, so a statDrop need would stage a stat-dropping attack that the
+     * handler then ignores. MEASURED: all four were staged with Breaking Swipe and all four stayed
+     * inert, which is a WRONG trigger recorded as staged — worse than no trigger, because it moves the
+     * row out of the fixture-gap column while explaining nothing. They need an adversary CARRYING the
+     * named effect, which is an engine/faces.js job, so the cue is reported and no need is emitted.
+     * `zpower` is excluded because every `onChangeBoost` guards on it and none is about it. */
+    const eff = [...src.matchAll(/effect\??\.(?:name|id)\s*===\s*["']([A-Za-z ]+)["']/g)]
+      .map(m => m[1]).filter(x => id(x) !== 'zpower');
+    if (/isBerry/.test(src)) undet.push('the boost is gated on isBerry, not on a move');
+    else if (eff.length) undet.push('the boost is gated on effect "' + eff.join('/')
+      + '", not on a move — the ADVERSARY has to carry it');
+    else if (/boost(\[\s*\w+\s*\]|\.\w+)\s*>\s*0/.test(src) && !/boost(\[\s*\w+\s*\]|\.\w+)\s*<\s*0/.test(src))
+      out.push({ kind: 'statRaise', values: [] });
+    else {
+      /* WHICH STAT, when the handler names one. Big Pecks reads `boost.def < 0`, Keen Eye and
+       * Illuminate `boost.accuracy < 0`, Hyper Cutter `boost.atk < 0` — and a generic `boost[i] < 0`
+       * loop (Clear Body, Defiant, White Smoke) names none and takes any. Staging an ATTACK drop
+       * against Big Pecks satisfies "a stat went down" and satisfies nothing the handler is watching. */
+      const stats = [...new Set([...src.matchAll(/boost\.(\w+)\s*<\s*0/g)].map(m => m[1]))];
+      out.push({ kind: 'statDrop', values: stats });
+      /* A GATE THIS DERIVATION CAN SEE AND CANNOT SUPPLY. Flower Veil additionally needs the body it
+       * protects to BE Grass; the need is still real, so it is emitted, and the shortfall is named. */
+      if (/hasType\(/.test(src)) undet.push('the boost handler also gates on the target\'s TYPE '
+        + '(`hasType`) — a stat-dropping move alone does not satisfy it');
+    }
+  } else if (EVENT_CUE[base]) out.push({ kind: EVENT_CUE[base], values: [] });
+  /* THE CUES WHOSE SIGN CANNOT BE READ. Recorded, never acted on — see the header. */
+  if (/move\.category\s*===/.test(src)) undet.push('move.category');
+  if (/move\.ohko/.test(src)) undet.push('move.ohko');
+  if (/move\.willCrit/.test(src)) undet.push('move.willCrit');
+  /* dedupe by kind: a handler naming two types is ONE need with two acceptable values */
+  const seen = new Map();
+  for (const n of out) {
+    if (!seen.has(n.kind)) seen.set(n.kind, n);
+    else for (const v of n.values) if (!seen.get(n.kind).values.includes(v)) seen.get(n.kind).values.push(v);
+  }
+  return { needs: [...seen.values()], undet };
+}
+/** moveNeeds(entity) -> {needs:[{kind,values,by,handler,undetermined}], undetermined:[...]}
+ *  `entity` is a Dex ability or item. Reads its OWN handlers; no list anywhere. */
+function moveNeeds(entity) {
+  const needs = [], undetermined = [];
+  if (!entity || !entity.exists) return { needs, undetermined };
+  for (const [k, v] of Object.entries(entity)) {
+    if (!/^on/.test(k) || typeof v !== 'function') continue;
+    const h = splitHandler(k);
+    if (!h) continue;
+    const role = EVENT_ROLE[h.base];
+    const by = whoClicks(h.prefix, role);
+    const c = cuesOf(h.base, String(v));
+    for (const u of c.undet) undetermined.push({ handler: k, cue: u });
+    for (const n of c.needs) {
+      /* THE BOOST FAMILY DOES NOT TAKE THE ATTACKER/DEFENDER FLIP, and pretending it did put
+       * Opportunist on the wrong side of the field. A boost EVENT names the body whose stats moved; a
+       * DROP is thrown at it by the other side, a RAISE is something it did to itself. */
+      let side = by;
+      if (n.kind === 'statDrop' || n.kind === 'statRaise') {
+        const tgt = h.prefix === '' ? 'actor'
+                  : (h.prefix === 'Foe' || h.prefix === 'Source') ? 'receiver'
+                  : h.prefix === 'Ally' ? 'ally' : 'either';
+        side = n.kind === 'statRaise' ? tgt
+             : tgt === 'actor' ? 'receiver' : tgt === 'receiver' ? 'actor' : 'receiver';
+      }
+      needs.push(Object.assign({}, n, { by: side, handler: k, undetermined: side === 'either' }));
+    }
+  }
+  /* Two handlers asking for the same thing from the same side are one need. */
+  const key = n => n.by + '/' + n.kind + '/' + n.values.slice().sort().join(',');
+  const uniq = new Map();
+  for (const n of needs) if (!uniq.has(key(n))) uniq.set(key(n), n);
+  return { needs: [...uniq.values()], undetermined };
+}
+
+/* DOES THIS MOVE SUPPLY THAT NEED? `ctx` carries the two typings, because STAB is a property of the
+ * USER and super-effectiveness a property of the TARGET — neither is readable off the move alone. */
+function satisfiesNeed(moveId, need, ctx) {
+  const mv = D.moves.get(moveId);
+  if (!mv || !mv.exists) return false;
+  switch (need.kind) {
+    case 'type': return need.values.includes(mv.type);
+    case 'flag': return need.values.some(f => !!(mv.flags || {})[f]);
+    case 'recoil': return !!(mv.recoil || mv.hasCrashDamage);
+    case 'multihit': return Array.isArray(mv.multihit);
+    case 'drain': return !!mv.drain;
+    /* A SECONDARY THAT DOES SOMETHING TO THE TARGET, and the narrower test was measured rather than
+     * assumed. The first version accepted any `secondaries` entry and picked Ancient Power for Shield
+     * Dust — whose only secondary is `{chance:10, self:{boosts:…}}`, and whose handler is
+     * `secondaries.filter(effect => !!effect.self)`, i.e. it KEEPS exactly that one. The staged trigger
+     * was the one move in the pool the mechanic is defined to ignore, and the row read DID-NOT-FIRE
+     * with a trigger recorded as staged — the worst of both labels. */
+    case 'secondary':
+      return [].concat(mv.secondaries || [], mv.secondary ? [mv.secondary] : [])
+        .some(s => s && (s.status || s.volatileStatus || s.boosts || s.dustproof === false));
+    case 'priority': return (mv.priority || 0) > 0;
+    case 'subaccuracy': return mv.accuracy !== true && +mv.accuracy > 0 && +mv.accuracy < 100;
+    case 'stab': return !!(ctx && ctx.userTypes && ctx.userTypes.includes(mv.type));
+    case 'supereffective':
+      return !!(ctx && ctx.targetTypes && mv.category !== 'Status'
+                && D.getEffectiveness(mv.type, ctx.targetTypes) > 0
+                && D.getImmunity(mv.type, ctx.targetTypes));
+    case 'flinch':
+      return (mv.secondaries || []).some(s => s && s.volatileStatus === 'flinch')
+          || (mv.volatileStatus === 'flinch');
+    case 'statDrop': {
+      /* A move that LOWERS a stat ON THE TARGET. `boosts` with a negative value and a target that is
+       * not the user; or a secondary that does the same. `self` boosts are the user's own and would
+       * stage the opposite of what an `onTryBoost` guard is waiting for. */
+      const want = need.values || [];
+      const neg = b => b && Object.entries(b).some(([k, x]) => x < 0 && (!want.length || want.includes(k)));
+      if (neg(mv.boosts) && mv.target !== 'self') return true;
+      return (mv.secondaries || []).some(s => s && !s.self && neg(s.boosts));
+    }
+    case 'statRaise': {
+      const pos = b => b && Object.values(b).some(x => x > 0);
+      if (pos(mv.boosts) && mv.target === 'self') return true;
+      return (mv.secondaries || []).some(s => s && s.self && pos(s.self.boosts));
+    }
+    default: return false;
+  }
+}
 /* THE CLAUSE RECORD — THE SAME VERDICT, SHAPED SO A HARNESS CAN ACT ON IT.
  *
  * `why` and `note` are PROSE, written for a person reading a refusal. A caller that wants to REPAIR the
@@ -350,7 +688,8 @@ function check(sc) {
   return { ok: why.length === 0, why, note, clauses: cl };
 }
 
-module.exports = { check, legal, learnable, statusOf };
+module.exports = { check, legal, learnable, statusOf,
+                   moveNeeds, satisfiesNeed, learnsetOf, EVENT_ROLE };
 
 if (require.main === module) {
   const S = [

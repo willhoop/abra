@@ -419,7 +419,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * spends up to three real turns through `battleTurn`, and it has to: the whole mechanic is a fact
  * carried ACROSS a turn boundary -- what the body CONSUMED on an earlier turn -- and the berry that
  * creates that fact fires at the residual, so nothing below the turn loop can see either end of it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -14726,7 +14726,15 @@ const menuRun = (o) => {
   }
   return {
     played: trace.filter(l => /^\|move\|p1a/.test(l)).map(l => l.split('|')[3]),
-    recoil: trace.filter(l => /^\|-damage\|p1a[^|]*\|[^|]*\|\[from\] Recoil/.test(l)).length,
+    /* CASE-INSENSITIVE SINCE ROADMAP #234, AND THE REASON IS THE AUTHORITY'S OWN INCONSISTENCY. This
+     * read `\[from\] Recoil` exactly. Showdown spells the tag TWO ways: an ordinary recoil move takes
+     * the condition's fullname, which is capitalised (`new Condition({name: 'Recoil'})`,
+     * sim/dex-conditions.ts:699), and STRUGGLE reaches a hardcoded lowercase literal in a different
+     * emitter (`case 'strugglerecoil': add('-damage', target, health, '[from] recoil')`,
+     * sim/battle.ts:2245). The two are the same string to `traceCanon`, which both streams go through,
+     * so the case was never a fact this probe was entitled to assert — and asserting it made this
+     * probe read MISSING the moment the engine started spelling Struggle's the way Struggle does. */
+    recoil: trace.filter(l => /^\|-damage\|p1a[^|]*\|[^|]*\|\[from\] recoil/i.test(l)).length,
     lock: B.me._lock || null,
     lockT: B.me._lockT === Infinity ? 'inf' : (B.me._lockT || 0),
   };
@@ -18086,6 +18094,182 @@ probe('move', 'instructsTarget', 'Instruct repeats the move of whoever is standi
                  + `Slam AND its repeat). PIVOT — the slot holds ${test.slot0}, which has not moved at `
                  + `all, so the Instruct finds no last move and my side loses `
                  + `${test.t1 - test.after}: the benched snorlax gets no free action` };
+});
+
+/* ================= ROADMAP #234 — THE `[from]` ATTRIBUTION FAMILY ================================
+ *
+ * THE AUTHORITY NAMES THE CAUSE OF A LINE AND THIS ENGINE EMITTED THE BARE LINE. It presented as
+ * twenty-five unrelated single-row divergences in `data/all-mechanics-fire.json` across five event
+ * names -- `-status`, `-curestatus`, `-start`, `-heal`, `-damage` -- and it is ONE fact: which effect
+ * caused this line, and what namespace that effect lives in.
+ *
+ * EVERY PROBE BELOW IS A SHAPE PROBE WITH THE CONTROL ON THE OTHER SIDE OF THE AUTHORITY'S OWN
+ * ASYMMETRY, and that is deliberate rather than decorative. The expensive way to "fix" this family is
+ * to staple `[from] <the thing that just happened>` onto every emitter, which turns twenty-five
+ * MISSING tags into a larger number of WRONG ones -- and a wrong tag is worse, because the line now
+ * looks attributed. So each probe pairs a case the authority DOES name against a case it deliberately
+ * does NOT:
+ *
+ *   sleep names its move (champions conditions.ts:17)   |  poison does not (conditions.ts:130)
+ *   Static names its ability and holder (:25)           |  Thunder Wave's paralysis is bare (:27)
+ *   Forest's Curse names its move (moves.ts)            |  Soak's typechange is bare (moves.ts)
+ *   Leftovers names the item (battle.ts:2294)           |  a MOVE-caused heal is bare (battle.ts:2290)
+ *   Steel Beam's recoil names the move as a CONDITION   |  ordinary recoil is `[from] recoil`
+ *   a cure announces `[msg]` (pokemon.ts:1682)          |  Natural Cure's is `[silent]` (:2872)
+ *
+ * An engine that over-attributes fails the control arm; an engine that under-attributes fails the
+ * test arm. Neither half can be passed by accident.
+ *
+ * `attrRun(` is added to REALTURN, declared here with its reason exactly as that block requires: it
+ * stages a real doubles board through `battleInit` and spends real turns through `battleTurn`, and it
+ * has to -- an attribution is a property of the EVENT STREAM, which no direct call produces at all,
+ * and three members of the family (the trap chip, the Wish payout, the frozen body thawing) are paid
+ * at a residual or across a turn boundary. */
+const attrRun = (sps, stage, mine, theirs, turns, rngIn) => {
+  const me = bare(sps[0]), ally = bare(sps[1]), f1 = bare(sps[2]), f2 = bare(sps[3]);
+  const bench = bare(sps[4] || 'clefable');
+  if (stage) stage({ me, ally, f1, f2, bench });
+  const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  const act = (who, spec, tgt) => !spec ? { kind: 'pass' }
+    : spec.sw ? { kind: 'switch', to: bench }
+    : M.playerAction(who, spec.mv, spec.self ? who : tgt, S.field);
+  for (let i = 0; i < (turns || 1); i++) {
+    M.battleTurn(S, rngIn || rng5,
+      new Map([[me, act(me, Array.isArray(mine) ? mine[i] : mine, f1)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, act(f1, Array.isArray(theirs) ? theirs[i] : theirs, me)], [f2, { kind: 'pass' }]]));
+  }
+  return trace;
+};
+/* Canonised through the engine's OWN normaliser, the same one the whole-game differential applies to
+ * both streams -- so a probe here and the differential cannot disagree about what a line says. */
+const attrPick = (trace, ev, re) => trace.filter(l => l.startsWith('|' + ev + '|') && (!re || re.test(l)))
+                                         .map(M.traceCanon);
+
+probe('move', 'statusInflict', 'a `-status` names the MOVE that caused it where the authority does, and stays bare where it does not', () => {
+  const slp = attrPick(attrRun(['vileplume', 'clefable', 'snorlax', 'milotic'], null, { mv: 'sleeppowder' }, null), '-status');
+  const tox = attrPick(attrRun(['vileplume', 'clefable', 'snorlax', 'milotic'], null, { mv: 'toxic' }, null), '-status');
+  return { works: slp.length === 1 && slp[0] === '|-status|p2a:snorlax|slp|[from]move:sleeppowder'
+                  && tox.length === 1 && tox[0] === '|-status|p2a:snorlax|tox',
+           arms: { control: tox, test: slp },
+           detail: `the same Vileplume on the same board — Sleep Powder ${JSON.stringify(slp)}; Toxic `
+                 + `${JSON.stringify(tox)}. Only the sleep condition takes a move name `
+                 + `(data/mods/champions/conditions.ts:17); every other status writes the bare line, `
+                 + `so an engine that attributes both fails this` };
+});
+
+probe('ability', 'punishesAttacker', 'a status an ABILITY inflicts names the ability AND the holder; the same status from a move is bare', () => {
+  const ab = attrPick(attrRun(['ampharos', 'clefable', 'snorlax', 'milotic'],
+    b => { b.me.ability = 'static'; }, null, { mv: 'heavyslam' }, 1, () => 0.05), '-status');
+  const mv = attrPick(attrRun(['ampharos', 'clefable', 'snorlax', 'milotic'], null, { mv: 'thunderwave' }, null), '-status');
+  return { works: ab.length === 1 && ab[0] === '|-status|p2a:snorlax|par|[from]ability:static|[of]p1a:ampharos'
+                  && mv.length === 1 && mv[0] === '|-status|p2a:snorlax|par',
+           arms: { control: mv, test: ab },
+           detail: `the same paralysed Snorlax both ways — Static answering a Heavy Slam `
+                 + `${JSON.stringify(ab)}; a Thunder Wave from the same Ampharos ${JSON.stringify(mv)} `
+                 + `(conditions.ts:25 names the ability and the holder, :27 writes the bare line)` };
+});
+
+probe('ability', 'poisonsOnMyContact', 'Poison Touch names ITS OWN ability on the status it writes, not the move that carried it', () => {
+  const on  = attrPick(attrRun(['dragalge', 'clefable', 'snorlax', 'milotic'],
+    b => { b.me.ability = 'poisontouch'; }, { mv: 'aquatail' }, null, 1, () => 0.05), '-status');
+  const off = attrPick(attrRun(['dragalge', 'clefable', 'snorlax', 'milotic'],
+    b => { b.me.ability = 'none'; }, { mv: 'aquatail' }, null, 1, () => 0.05), '-status');
+  return { works: on.length === 1 && on[0] === '|-status|p2a:snorlax|psn|[from]ability:poisontouch|[of]p1a:dragalge'
+                  && off.length === 0,
+           arms: { control: off, test: on },
+           detail: `the same Aqua Tail into the same Snorlax — Poison Touch ${JSON.stringify(on)}; the `
+                 + `same body with no ability ${JSON.stringify(off)}. The [of] is the ATTACKER `
+                 + `holding the ability, which is the opposite slot from Static's` };
+});
+
+probe('move', 'partialTrap', 'the trap chip names the MOVE that bound the body, not the condition', () => {
+  const inf = attrPick(attrRun(['venusaur', 'clefable', 'snorlax', 'milotic'], null, { mv: 'infestation' }, null, 2), '-damage', /partiallytrapped|\[from\]/);
+  const fir = attrPick(attrRun(['arcanine', 'clefable', 'snorlax', 'milotic'], null, { mv: 'firespin' }, null, 2), '-damage', /partiallytrapped|\[from\]/);
+  const shape = (l) => /^\|-damage\|p2a:snorlax\|\d+\/\d+\|\[from\]move:(\w+)\|\[partiallytrapped\]$/.exec(l);
+  const i0 = inf.map(shape).filter(Boolean), f0 = fir.map(shape).filter(Boolean);
+  return { works: i0.length === 2 && f0.length === 2
+                  && i0.every(m => m[1] === 'infestation') && f0.every(m => m[1] === 'firespin'),
+           arms: { control: fir, test: inf },
+           detail: `two turns of chip each — Infestation ${JSON.stringify(inf)}; Fire Spin `
+                 + `${JSON.stringify(fir)}. The two must NAME DIFFERENT MOVES: sim/battle.ts:2141 reads `
+                 + `the volatile's own sourceEffect, so an engine writing the literal `
+                 + `"[from] partiallytrapped" prints the same string for both` };
+});
+
+probe('move', 'healsSelf', 'a heal caused by a MOVE is bare; a heal caused by an ITEM names the item', () => {
+  const mv = attrPick(attrRun(['polteageist', 'clefable', 'snorlax', 'milotic'],
+    b => { b.me.curHP = 1; }, { mv: 'strengthsap' }, null), '-heal');
+  const it = attrPick(attrRun(['snorlax', 'clefable', 'milotic', 'garchomp'],
+    b => { b.me.item = 'leftovers'; b.me.curHP = 50; }, null, null), '-heal');
+  return { works: mv.length === 1 && /^\|-heal\|p1a:polteageist\|\d+\/\d+$/.test(mv[0])
+                  && it.length === 1 && /\|\[from\]item:leftovers$/.test(it[0]),
+           arms: { control: it, test: mv },
+           detail: `Strength Sap ${JSON.stringify(mv)}; Leftovers ${JSON.stringify(it)}. `
+                 + `sim/battle.ts:2290 emits a MOVE-caused heal with no tag at all and :2294 names any `
+                 + `other effect — this engine wrote "[from] move: strengthsap|[of] ..." on the first` };
+});
+
+probe('move', 'changesType', 'a type change names the move where the authority does (Forest\'s Curse) and stays bare where it does not (Soak)', () => {
+  const fc = attrPick(attrRun(['venusaur', 'clefable', 'snorlax', 'milotic'], null, { mv: 'forestscurse' }, null), '-start');
+  const sk = attrPick(attrRun(['milotic', 'clefable', 'snorlax', 'garchomp'], null, { mv: 'soak' }, null), '-start');
+  return { works: fc.length === 1 && fc[0] === '|-start|p2a:snorlax|typeadd|grass|[from]move:forestscurse'
+                  && sk.length === 1 && sk[0] === '|-start|p2a:snorlax|typechange|water',
+           arms: { control: sk, test: fc },
+           detail: `Forest's Curse ${JSON.stringify(fc)}; Soak ${JSON.stringify(sk)}. Both write a type `
+                 + `onto the same Snorlax and only one of the two handlers passes a [from] — so an `
+                 + `engine that attributes every type change fails the control` };
+});
+
+probe('move', 'delayedHeal', 'the Wish payout names the move AND the wisher', () => {
+  const w = attrPick(attrRun(['aromatisse', 'clefable', 'snorlax', 'milotic'],
+    b => { b.me.curHP = 1; }, [{ mv: 'wish', self: true }, null], null, 2), '-heal');
+  const l = attrPick(attrRun(['aromatisse', 'clefable', 'snorlax', 'milotic'],
+    b => { b.me.curHP = 1; b.me.item = 'leftovers'; }, [null, null], null, 2), '-heal');
+  return { works: w.length === 1 && w[0] === '|-heal|p1a:aromatisse|89/176|[from]move:wish|[wisher]aromatisse'
+                  && l.length === 2 && l.every(x => /\|\[from\]item:leftovers$/.test(x)),
+           arms: { control: l, test: w },
+           detail: `the Wish payout ${JSON.stringify(w)}; the same body healing off Leftovers instead `
+                 + `${JSON.stringify(l)}. Wish is the one heal in the game that carries a SECOND `
+                 + `attribution field naming who cast it (data/moves.ts wish onEnd)` };
+});
+
+probe('move', 'recoil', 'a half-HP recoil names the MOVE as its own condition; ordinary recoil names `recoil`', () => {
+  const sb = attrPick(attrRun(['aegislash', 'clefable', 'snorlax', 'milotic'], null, { mv: 'steelbeam' }, null), '-damage', /p1a:/);
+  const wc = attrPick(attrRun(['garchomp', 'clefable', 'snorlax', 'milotic'], null, { mv: 'wavecrash' }, null), '-damage', /p1a:/);
+  return { works: sb.length === 1 && /\|\[from\]steelbeam$/.test(sb[0])
+                  && wc.length === 1 && /\|\[from\]recoil$/.test(wc[0]),
+           arms: { control: wc, test: sb },
+           detail: `Steel Beam ${JSON.stringify(sb)}; Wave Crash ${JSON.stringify(wc)}. `
+                 + `battle-actions.ts:1391 hands mindBlownRecoil the MOVE as a condition and every `
+                 + `other recoil the string "recoil" — this engine printed "[from] Recoil" for both` };
+});
+
+probe('move', 'cures', 'a cure the game ANNOUNCES carries [msg]; a cure it hides carries [silent]', () => {
+  const thaw = attrPick(attrRun(['snorlax', 'clefable', 'milotic', 'garchomp'],
+    b => { b.me.status = 'frz'; }, { mv: 'heavyslam' }, null, 1, () => 0.05), '-curestatus');
+  const quiet = attrPick(attrRun(['milotic', 'clefable', 'snorlax', 'garchomp'],
+    b => { b.me.ability = 'naturalcure'; b.me.status = 'psn'; }, { sw: true }, null), '-curestatus');
+  return { works: thaw.length === 1 && thaw[0] === '|-curestatus|p1a:snorlax|frz|[msg]'
+                  && quiet.length === 1 && /\|\[silent\]$/.test(quiet[0]),
+           arms: { control: quiet, test: thaw },
+           detail: `a frozen Snorlax thawing ${JSON.stringify(thaw)}; a Natural Cure body switching out `
+                 + `${JSON.stringify(quiet)}. sim/pokemon.ts:1682 writes [msg] on every cure the player `
+                 + `is told about and [silent] on the rest — the tag is the whole difference` };
+});
+
+probe('ability', 'buffsHolderOnHit', 'Electromorphosis names the move that hit it and its own ability on the Charge it raises', () => {
+  const ab = attrPick(attrRun(['bellibolt', 'clefable', 'snorlax', 'milotic'],
+    b => { b.me.ability = 'electromorphosis'; }, null, { mv: 'heavyslam' }), '-start');
+  const off = attrPick(attrRun(['bellibolt', 'clefable', 'snorlax', 'milotic'],
+    b => { b.me.ability = 'none'; }, null, { mv: 'heavyslam' }), '-start');
+  return { works: ab.length === 1
+                  && ab[0] === '|-start|p1a:bellibolt|charge|heavyslam|[from]ability:electromorphosis'
+                  && off.length === 0,
+           arms: { control: off, test: ab },
+           detail: `the same Heavy Slam into the same Bellibolt — Electromorphosis ${JSON.stringify(ab)}; `
+                 + `no ability ${JSON.stringify(off)}. data/moves.ts charge onStart names the ACTIVE `
+                 + `MOVE in field 4 and the ability in field 5 when an ability raised it` };
 });
 
 const works = results.filter(r => r.works);

@@ -36,8 +36,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  542/542 probed mechanics live, 0 missing   (census 2026-08-12 22:47)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-12 22:49)
+  552/552 probed mechanics live, 0 missing   (census 2026-08-12 23:54)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-12 23:50)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,15 +49,299 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 8ef2e3c94062 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 687d671ec569 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is e636c2861994 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 262/280 probed, 18 unprobed
 ```
 
-_stamped 2026-08-12 23:05_
+_stamped 2026-08-12 23:55_
 
 <!-- /GENERATED -->
+
+## THE ABILITIES ARM THREW THE SAME FOUR MOVES AT ALL 316. A DARK MOVE NOW HITS THE JUSTIFIED MON. 2026-08-13.
+
+**Census 552 live / 0 missing -> 552 live / 0 missing. This changed no engine byte and was not meant
+to** — it is an INSTRUMENT change to `engine/all_mechanics_fire.js` and `engine/fixture_preflight.js`,
+and its result is that 29 abilities that read DID-NOT-FIRE now exercise their trigger inside a real
+game against the official engine.
+
+Will, 2026-08-12: *"but we are staging it so a dark move hits a justified mon right? thats the whole
+point"*. It was not.
+
+```
+GAUNTLET_ACTOR_MOVES = ['Facade', 'Endure', 'Rest', 'Substitute']    // all 316 abilities
+RECEIVER_MOVES       = ['Agility', 'Facade', 'Aqua Tail', 'Hydro Pump']
+```
+
+Eight moves, none of them Dark, so `justified.onDamagingHit`'s `move.type === "Dark"` could not be
+reached on any board this repository has ever built. The MOVES arm derives a team per move (484 of 500
+resolved); the ABILITIES arm was a shared gauntlet. **Two standards in one runner.**
+
+### THE 235 WAS FOUR DIFFERENT FINDINGS AND ONLY 76 OF IT WAS ADDRESSABLE
+
+The brief named 235 rows where neither engine moved. Decomposed off the artifact:
+
+| rows | what it actually is |
+|---|---|
+| **129** | **NO LEGAL CARRIER** — no species in Reg M-B has the ability. Unreachable, not untested |
+| 14 | NO CONTROL — every carrier has it as its only ability, so the A/B has nothing to swap |
+| 13 | already a NAMED cannot-fire (gender, status-present) |
+| 3 | could not stage / the carrier body could not be built |
+| **76** | **DID-NOT-FIRE — the addressable set** |
+
+Quoting 235 as the target would have been quoting the format's own dex size as an engine gap.
+
+### THE FIX — THE HANDLER STATES ITS OWN TRIGGER, INCLUDING WHICH SIDE MUST THROW IT
+
+`fixture_preflight.moveNeeds()` reads each ability's own handlers and returns `{by, kind, values}`.
+The direction is not guessed: Showdown's prefixes already carry it (`onX` = the holder is the event's
+target, `onSourceX`/`onFoeX` = the other participant, `onAllyX`, `onAnyX`), and what that resolves to
+depends on whose event it is — `BasePower` is raised on the ATTACKER, `TryHit` on the DEFENDER. One
+table of event->role; an event missing from it falls to `either` **loudly** and the move is offered to
+both sides rather than a side being invented.
+
+```
+Iron Fist       onBasePower            attacker + no prefix   -> the HOLDER punches
+Thick Fat       onSourceModifyAtk      attacker + Source      -> the OTHER body throws Ice/Fire
+Justified       onDamagingHit          defender + no prefix   -> the OTHER body throws Dark
+Compound Eyes   onSourceModifyAccuracy defender + Source      -> the HOLDER throws a sub-100 move
+Queenly Majesty onFoeTryMove           attacker + Foe         -> the OTHER body throws priority
+```
+
+`all_mechanics_fire.js` then resolves each need to a real click out of `getMovePool`, so every staged
+move is one `TeamValidator` accepts, and adds a TRIGGER TURN carrying it.
+
+### THE MEASUREMENT — SMOKE RUN, `--kind abilities`, NOT WRITTEN TO `data/`
+
+```
+                       before        after
+FIRED                      70           98
+SHOWDOWN-ONLY              11           10
+DID-NOT-FIRE               76           46
+CANNOT-FIRE (named)        13           16
+```
+
+**29 abilities moved into FIRED**: adaptability armortail bulletproof clearbody competitive contrary
+defiant eartheater fluffy hypercutter ironfist **justified** liquidvoice mirrorarmor opportunist
+purifyingsalt queenlymajesty reckless sapsipper sharpness sheerforce shielddust skilllink solidrock
+strongjaw thickfat torrent waterabsorb waterbubble.
+
+65 abilities carry a derived need, 69 needs, **59 staged on a legal body, 10 unstaged** — and every
+unstaged one carries the `trigger-move` clause naming the handler and the missing property, instead of
+an unexplained DID-NOT-FIRE. Two identical runs differ on 0 rows.
+
+### THE RED PROOF
+
+`--break-triggers` suppresses the derivation and returns every row to the shared four-move gauntlet.
+Same eight rows, same command otherwise:
+
+```
+RED    {"tried":8,"fired":0,...}   DERIVED TRIGGERS — 0 abilities ... 0 STAGED
+       ZERO. The derivation reached no row at all — that is an unwired capability,
+       not a population with no gated abilities. Not a pass.          exit 1
+GREEN  {"tried":8,"fired":7,...}   DERIVED TRIGGERS — 7 abilities ... 7 STAGED   exit 0
+```
+
+`--break-preflight` could NOT have demonstrated this — it stubs the clauses and never reaches the
+staging — so the switch is separate and the counter exits non-zero on a zero.
+
+### MY OWN DERIVATION WAS WRONG BEFORE THE ENGINE, THREE TIMES — DOCS/LESSONS §5
+
+Each was caught by printing the matches before wiring them, which is the only reason none shipped.
+
+1. **The polarity rule was written as an XOR and is an XNOR.** Type needs went from 38 to **zero** —
+   Justified, Sap Sipper, Thick Fat, Volt Absorb, Iron Fist and Sharpness all silently vanished. An
+   under-match that reads as *"no ability needs a move"*.
+2. **A named flag is not a required flag.** The first draft required `futuremove` for Cursed
+   Body/Protean/Libero/Parental Bond and `pledgecombo` for Lightning Rod/Storm Drain — all EXCLUSION
+   guards. Six rows would have been staged with the one move the mechanic refuses. Fixed by reading the
+   guard's shape (`required = negated == the consequent is a bare return`), not by listing the flags.
+3. **The trigger displaced the board it was added to.** Putting the derived move at the front of the
+   click list cost HUSTLE (staged a SPECIAL sub-100 move; Hustle only touches physical) and LIGHTNING
+   ROD. Alternating recovered Hustle and lost TORRENT. Trading one row for another is not a fix, so the
+   trigger is now a THIRD turn and the two beat turns are byte-identical to what they were — no row can
+   regress by construction rather than by measurement.
+
+Also measured and corrected: `secondary` accepted Ancient Power for SHIELD DUST, whose only secondary
+is a `self` boost — precisely the one its handler `secondaries.filter(e => !!e.self)` KEEPS.
+
+### WHAT STILL NEEDS A HAND-BUILT BOARD, BY NAME
+
+The receiver is a fixed Feraligatr, and four needs are outside its legal pool: **Fire** (heatproof,
+fluffy's second arm), **powder** (overcoat), **Electric** (voltabsorb, lightningrod). **STEADFAST** is
+a fifth and a different reason — Feraligatr has no priority flinch move and is slower than the
+carrier, so the flinch could never land; `faces.js` already states the rule for the move arm
+(`flinches: {movesFirst: true}`) and the ability arm had no equivalent. All five are `trigger-move`
+CANNOT-FIRE rows now, not silent ones.
+
+**A RECEIVER SWAP WAS BUILT AND WITHDRAWN.** Candidates exist for all three types, but the filter for
+"an adversary whose own ability is inert" ranked LEVITATE first — **zero `on*` handlers and a Ground
+immunity**, which is exactly what the receiver must not have. A heuristic that recommends the worst
+case on its first try is not one to ship; the five rows are labelled instead.
+
+### ONE ROW LEFT FIRED, AND IT IS A CORRECTION RATHER THAN A REGRESSION
+
+`lightningrod` FIRED -> CANNOT-FIRE-IN-THIS-FIXTURE. Its old row carried `control_not_quiet: true`
+against a control (Static) whose own row is FIRED, so the old verdict could never say which of the two
+moved the game — and Lightning Rod's `onTryHit` needs an Electric move the receiver cannot throw, so
+the subject provably was not the one that moved it. Stated here rather than buried: it is the one row
+whose headline band went down.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty. This pass added no mechanic probe and moved no census row; it made 29 abilities testable
+by the instrument that measures them.
+
+### THE STAMP IS OWED
+
+`node engine/status.js --write` was NOT run. Another ENGINE agent was mid-edit in
+`engine/medicham2-browser.js` (ROADMAP #234) and the census artifact moved twice during this session,
+so a stamp would have photographed a moving tree. Read-only `status.js` confirms **552/552 live, 0
+missing — unchanged**. The full `--kind abilities --write` re-run and the stamp are owed once the tree
+settles.
+
+## ROADMAP #234 — THE `[from]` ATTRIBUTION FAMILY. TWENTY-FIVE ROWS, ONE FACT, AND TWO OF THEM WERE THE WRONG TAG RATHER THAN A MISSING ONE. 2026-08-13.
+
+**Census 542 live / 0 missing -> 552 live / 0 missing.** Ten probes, every one shown RED before the
+engine was touched, and four of them shown RED a second time against a deliberate OVER-attribution.
+
+### WHAT THE FAMILY ACTUALLY IS, RE-DERIVED FROM THE FRESH ARTIFACT
+
+`data/all-mechanics-fire.json`, release `e7e64db837b1`, re-run 2026-08-13 03:11 — **112 diverging rows
+in total** (moves 76, abilities 33, items 3). Grouped by the SHAPE of what differs rather than by
+mechanic name:
+
+| rows | uses | % of diverging usage | class |
+|---:|---:|---:|---|
+| **25** | **9,332** | **30.2%** | **the `[from]` attribution family** (`-status` 9, `-damage` 8, `-start` 4, `-heal` 2, `-curestatus` 1, `-start` typechange 3) |
+| 15 | 10,209 | 33.0% | `unrelated event mismatch` — a class, not a family: 15 different causes |
+| 29 | 7,938 | 25.7% | `extra event emitted by medicham2` — also a class; its largest coherent sub-family is 11 `-fail` lines we emit for abilities |
+| 22 | 2,461 | 8.0% | `event missing from medicham2` |
+| 11 | 685 | 2.2% | `ordering` |
+
+**It is still the largest single family**, and the brief's own sizing (25 rows / 9,205 uses / 28%) was
+right — the totals moved but the family did not. The two classes above it by usage are grab-bags of
+unrelated first-divergences; this one is twenty-five rows of the same sentence.
+
+### THE SENTENCE
+
+The authority NAMES THE EFFECT that caused a line and this engine emitted the bare line. It presented
+as nine unrelated single-row bugs across five event names because the *symptom* is per-event and the
+*cause* is not.
+
+**And it ran in BOTH directions, which is why "staple a `[from]` on everything" would have been worse
+than doing nothing.** Two of the twenty-five were a WRONG tag:
+
+```
+|-damage|X|827/960|[from] move: Bind|[partiallytrapped]     the authority
+|-damage|X|827/960|[from] partiallytrapped                   us — we named the CONDITION
+|-heal|p1a: Polteageist|810/810                              the authority — a MOVE-caused heal is BARE
+|-heal|p1a: Polteageist|810/810|[from] move: strengthsap|…   us — an attribution the game never writes
+```
+
+Three more were found while reading for the fix and had never had a row: every status-curing ITEM, and
+Healer, wrote `[from] item: X` / `[from] ability: X` onto a `-curestatus` line that Showdown reaches
+through a bare `pokemon.cureStatus()`.
+
+### THE FIX IS ONE DERIVATION, `ATTR`, AND THE NAMESPACE IS THE PART THAT IS EASY TO GET WRONG
+
+`fullname` is per-namespace, not uniform — `move: NAME` (`sim/dex-moves.ts:480`), `item: NAME`
+(`dex-items.ts:109`), `ability: NAME` (`dex-abilities.ts:46`), and **everything else — a status, a
+weather, a bare condition — is the name with no prefix at all** (`dex-data.ts:116`). That is why
+Steel Beam's recoil prints `[from] steelbeam` and not `[from] move: steelbeam`.
+
+Five shaped readers, each read off the authority's own emit site:
+
+| line | source | the clause that stops this becoming a regression |
+|---|---|---|
+| `-status` | `data/conditions.ts` + **`data/mods/champions/conditions.ts`** (the format overrides three of the six) | **SLEEP is the only status that names a move.** Thunder Wave, Toxic and Body Slam's secondary all write the bare line |
+| `-damage` | `sim/battle.ts:2138-2157`, a switch on the effect id | the partial trap reads the volatile's own `sourceEffect`, so the seven trapping moves must print SEVEN DIFFERENT strings |
+| `-heal` | `sim/battle.ts:2286-2295` | `if (effect.effectType === 'Move')` emits with **no tag at all** |
+| `-curestatus` | `sim/pokemon.ts:1682` | every cure carries `[msg]` or `[silent]`; a bare one is a line the authority never writes |
+| `-start` | the handlers' own | Forest's Curse and Trick-or-Treat name their move; **Soak and Magic Powder do not** — and the tag's existing `adds`/`replaces` shape is the discriminator, so no move is named in the engine |
+
+`applyStatus` gains a fourth parameter, and the header says why it is not the third: `src` is the BODY
+(a mechanic input — Safeguard, Synchronize) and `eff` is the CAUSE (a line input). They come apart in
+both directions.
+
+### THE RED PROOF — TWICE, AND THE SECOND ONE IS THE ONE THAT MATTERS
+
+All ten probes MISSING before the engine was touched (`542 live, 10 missing, 552 probed`). Then, with
+the engine fixed, three deliberate breaks that OVER-attribute — name the move on every status, on every
+type write, and put the literal back on the trap chip:
+
+```
+MISSING  statusInflict  … Sleep Powder [… slp|[from]move:sleeppowder]; Toxic [… tox|[from]move:toxic]
+MISSING  punishesAttacker … Static [… |[from]ability:static|[of]p1a:ampharos]; Thunder Wave [… par|[from]move:thunderwave]
+MISSING  partialTrap    … Infestation [… |[from]partiallytrapped…]; Fire Spin [… |[from]partiallytrapped…]
+MISSING  changesType    … Forest's Curse [… |[from]move:forestscurse]; Soak [… |[from]move:soak]
+548 live, 4 missing, 552 probed.
+```
+
+**Every one of those four fails on its CONTROL arm, not its test arm** — which is the failure mode this
+family invites and the reason each probe is paired across the authority's own asymmetry.
+
+### THE COUNTERS
+
+`MEDSEEN.attrAsked / attrNamed / attrBare`, and the pair is the point: `attrBare` must stay non-zero or
+the derivation has silently become "tag everything". Over 537 traced turns of arbitrary battles:
+**63 / 33 / 30**, first tag `[from] Recoil`. `MEDFAILS.trapSourceUnknown` and `typeWriterShapeUnknown`
+both **0**. ATTR is consulted only inside `if(TR)`, so a rollout leaf still pays nothing.
+
+### THE MEASURED MOVE
+
+`engine/all_mechanics_fire.js --kind all`, release `084c86beb8d2`:
+
+| population | before (`e7e64db837b1`) | after |
+|---|---:|---:|
+| moves | 76 | **57** |
+| abilities | 33 | **29** |
+| items | 3 | 3 |
+| **total** | **112** | **89** |
+
+**23 of the 25 family rows closed and no row appeared that was not there before.** The arithmetic is
+exact: 21 move rows minus the two below is −19, and 4 ability rows is −4.
+
+The two that remain were never attribution and are named rather than counted as closed:
+
+- **`disable`** (914 uses) — `|-start|X|Disable|Agility` against our `|-start|X|move: disable`. Field 4
+  there is the DISABLED MOVE, not the cause. Out of batch on purpose.
+- **`afteryou`** (223 uses) — the Static line it used to part on now agrees; its first divergence has
+  moved to `|move|p1a: Ampharos|Facade` vs `|-fail|p1b: Venusaur`, a pre-existing defect this fix
+  exposed rather than caused.
+
+### ONE EXISTING PROBE WAS EDITED, AND IT WAS STALE RATHER THAN INCONVENIENT
+
+`menuRun`'s recoil scrape read `[from] Recoil` case-sensitively. Showdown spells the tag TWO ways —
+the condition's capitalised fullname for an ordinary recoil (`dex-conditions.ts:699`) and a hardcoded
+lowercase literal for Struggle (`sim/battle.ts:2245`) — and both canonicalise to the same string
+through `traceCanon`, which every stream comparison goes through. The case was never a fact that probe
+was entitled to assert; it is now `/i`, with the reason written at the line.
+
+### GATES
+
+`tests/test-engine-diff.js --n 6000`: **agreed 6000, disagreed 0**, all three corners.
+`tests/test-switch-carry.js`: **27/27**. `test-protocol-trace`, `test-charge`, `test-effect-credit`,
+`test-engine-consistency`, `test-wiring`, `test-dead-volatile`, `test-end-state`: pass.
+
+### RE-RUN OWED
+
+`data/all-mechanics-fire.json` (this run deliberately did not `--write`) and
+`data/roster.{items,abilities,moves}.json`, which any engine edit stales.
+
+### NOT IN THIS BATCH, AND NOT BECAUSE THEY ARE SMALL
+
+`reflecttype`'s `-start` carries the `[from]` in the field where the TYPE belongs
+(`add('-start', source, 'typechange', '[from] move: Reflect Type', '[of] TARGET)`) — 4 uses, a
+different shape, and mixing it in would have made the moved divergence unattributable. `charge` the
+MOVE emits `|-start|X|move: charge` where the authority writes `|-start|X|Charge`; that is a LABEL, not
+an attribution. Showdown's charge `onRestart` re-announces and this engine's `!_had` guard suppresses
+the second line — read while fixing the Electromorphosis field and left alone.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty. The four defects named above are open work with no probe yet, not hand-list entries.
 
 ## ROADMAP #232 — PROTECT. THE GATE WAS ASKED AT THE TOP OF THE TURN AND THE QUEUE MOVES UNDER IT. 2026-08-12.
 

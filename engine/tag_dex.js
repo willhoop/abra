@@ -3844,6 +3844,38 @@ const MOVE_TAGS = [
   { tag: 'ignoresAbility', param: 'the defender\'s ability does not apply', probe: 'ignoreAbility',
     why: 'Mold Breaker-style moves walk through Levitate and the damage-reducing abilities',
     of: m => m.ignoreAbility ? { ignoreAbility: true } : null },
+  /* THE MINIMIZE FLAG IS TWO RULES ON ONE FLAG, AND NEITHER WAS DERIVED — WILL, 2026-08-12:
+   * *"body slam always hits a minimized mon and does double, its a weird one"*.
+   *
+   * He is right and the engine had no way to know it. `minimize.condition` carries BOTH halves:
+   *
+   *     onAccuracy(accuracy, target, source, move) { if (move.flags['minimize']) return true; }
+   *     onSourceModifyDamage(damage, source, target, move) { if (move.flags['minimize']) return this.chainModify(2); }
+   *
+   * so a flagged move CANNOT MISS a minimized target and deals DOUBLE damage to it. The flag is on the
+   * attacking move; the handlers live on the target's volatile. Six legal moves carry it — Body Slam,
+   * Dragon Rush, Flying Press, Heat Crash, Heavy Slam, Supercell Slam — for 694 corpus uses between
+   * them, against Minimize's own 20. The family that PUNISHES the setup is ~35x more played than the
+   * setup, which is the usual shape and the reason this is not a curiosity.
+   *
+   * IT IS TAGGED ON THE ATTACKER'S MOVE, not on Minimize, because that is where the flag lives and
+   * because the engine asks "what does this click do" rather than "what is this body carrying". The
+   * MULTIPLIER is read out of the handler rather than typed: a regulation that changes it to 1.5
+   * arrives here without an edit. */
+  { tag: 'punishesMinimize', param: 'never misses a minimized target and doubles against it',
+    probe: 'minimize-flagged move into a minimized body',
+    why: 'two rules on one flag, and the engine had neither — 694 corpus uses',
+    of: m => {
+      if (!m.flags || !m.flags['minimize']) return null;
+      const cond = (dex.moves.get('minimize') || {}).condition || {};
+      const dmg = String(cond.onSourceModifyDamage || '');
+      const acc = String(cond.onAccuracy || '');
+      const mult = (dmg.match(/chainModify\(\s*([\d.]+)/) || [])[1];
+      return { neverMisses: /return\s+true/.test(acc),
+               mult: mult ? +mult : null,
+               /* named so a consumer cannot silently apply one half and not the other */
+               halves: ['neverMisses', 'damageMultiplier'] };
+    } },
   /* `m.ohko` IS NOT A BOOLEAN AND FLATTENING IT TO ONE THREW AWAY BOTH OF ITS RULES.
    *
    * Showdown writes `ohko: true` for Fissure, Guillotine and Horn Drill and `ohko: 'Ice'` for Sheer

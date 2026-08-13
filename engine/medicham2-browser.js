@@ -88,6 +88,18 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* ROADMAP #234 -- THE `[from]` ATTRIBUTION PATH. Four counters, because "attribution ran" and
+   * "attribution named something" are different claims and only the pair of them can tell a working
+   * derivation from a silent no-op.
+   *   attrAsked   every consultation of ATTR, whatever it decided
+   *   attrNamed   a consultation that produced a `[from]`
+   *   attrBare    a consultation that DELIBERATELY produced none -- Soak's typechange, a poisoning,
+   *               a move-caused heal. This must stay non-zero: a zero here on a run that names
+   *               anything means the derivation has become "tag everything", which turns twenty-five
+   *               MISSING tags into a larger number of WRONG ones.
+   *   attrFirst   the first tag produced, so a run that emits nothing at all is identifiable from the
+   *               counter block rather than from a trace somebody has to go and read. */
+  attrAsked: 0, attrNamed: 0, attrBare: 0, attrFirst: '',
   /* ROADMAP #197 -- Stench. The ability pushed a secondary onto the move's own list. A zero over a
    * run containing a carrier means `addsOwnSecondary` is back to doing nothing, which is the state it
    * was in from the day the tag was derived until 2026-08-11. */
@@ -914,6 +926,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * job rather than an error. */
   abilityBoostLifted: 0, abilityBoostNoTarget: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* ROADMAP #234 -- a partial trap whose SOURCE MOVE is unknown, so the chip line falls back to the
+   * old literal `[from] partiallytrapped`. Showdown reads the move off the volatile's own
+   * sourceEffect (sim/battle.ts:2141), so a trap laid by any path that forgets to record it prints a
+   * string the authority never writes. Must stay ZERO. */
+  trapSourceUnknown: 0, trapSourceUnknownFirst: '',
+  /* ROADMAP #234 -- a `changesTargetType` member that is neither `adds` nor `replaces`. The two
+   * `adds` members name their move and the two `replaces` members do not; a third shape has no
+   * derived answer and is counted rather than guessed at. */
+  typeWriterShapeUnknown: 0, typeWriterShapeUnknownFirst: '',
   /* ROADMAP #197 -- a `fractionalPriority` ABILITY whose row states no bracket, so the SIGN of the
    * nudge is unknown and it is treated as the forward one. Non-zero means a carrier arrived that
    * tag_dex could not read a `return <number>` out of; the ITEM derivation states only a chance by
@@ -1590,7 +1611,12 @@ const TRACE=(function(){
      * than assembled, and the trailing pipe is deliberate. */
     formechange(m,species){ this.out.push('|-formechange|'+ident(m)+'|'+species+'|'); },
     imm(m,from){ this.push(['-immune',ident(m),from]); },
-    dmg(m,from,of){ this.push(['-damage',ident(m),health(m),from,of?'[of] '+ident(of):'']); },
+    /* ROADMAP #234 -- `tag` is a FIFTH field that is not `[of]`. The authority's partial-trap chip is
+     * `add('-damage', target, health, '[from] ' + sourceEffect.fullname, '[partiallytrapped]')`
+     * (sim/battle.ts:2141): the slot `[of]` normally occupies carries a bracket tag instead. They are
+     * mutually exclusive on every producer this engine has, so one parameter serves both and a caller
+     * passing both would be describing a line Showdown does not write. */
+    dmg(m,from,of,tag){ this.push(['-damage',ident(m),health(m),from,of?'[of] '+ident(of):(tag||'')]); },
     /* `-sethp` -- a SET rather than a delta, and the authority's only producer is Pain Split. The
      * `[silent]` field is the handler's own on the TARGET's line and absent on the user's. */
     sethp(m,from,silent){ this.push(['-sethp',ident(m),health(m),from,silent?'[silent]':'']); },
@@ -1604,13 +1630,21 @@ const TRACE=(function(){
      * `this.add('-clearnegativeboost', pokemon, '[silent]')` (data/items.ts, whiteherb onUse). This
      * emitter existed and had no caller until the herb gained its three missing triggers. */
     clearNeg(m){ this.push(['-clearnegativeboost',ident(m),'[silent]']); },
-    sta(m,s,from){ this.push(['-status',ident(m),s,from]); },
+    /* ROADMAP #234 -- `of` is the FIFTH field and it is NOT optional decoration: every ability branch
+     * in conditions.ts writes the pair together (`'[from] ability: ' + sourceEffect.name`,
+     * `` `[of] ${source}` ``), and no other branch writes either. The caller never composes these --
+     * ATTR.status() below decides both from the effect that caused the status. */
+    sta(m,s,from,of){ this.push(['-status',ident(m),s,from,of?'[of] '+ident(of):'']); },
     /* WIRE 133 -- `extra` is Natural Cure's `[silent]`, which is the authority's own FIFTH field:
      * `this.add('-curestatus', pokemon, pokemon.status, '[from] ability: Natural Cure', '[silent]')`
      * (data/abilities.ts:2874). Dropping it would part the two streams on a line we do emit. */
     cure(m,s,from,extra){ this.push(['-curestatus',ident(m),s,from,extra]); },
     vstart(m,eff,extra){ this.push(['-start',ident(m),eff,extra]); },
-    vend(m,eff){ this.push(['-end',ident(m),eff]); },
+    /* ROADMAP #234 -- `tag` is the partial trap's `[partiallytrapped]`, the authority's own third
+     * field on a line whose SECOND field is the source MOVE and not the condition:
+     * `add('-end', pokemon, this.effectState.sourceEffect, '[partiallytrapped]')` (data/conditions.ts
+     * partiallytrapped onEnd). Same fact as the chip line above, so it reads the same record. */
+    vend(m,eff,tag){ this.push(['-end',ident(m),eff,tag]); },
     /* --- items and abilities --- */
     item(m,it,from){ this.push(['-item',ident(m),it,from]); },
     enditem(m,it,tag,of){ this.push(['-enditem',ident(m),it,tag,of?'[of] '+ident(of):'']); },
@@ -1654,6 +1688,106 @@ const TRACE=(function(){
     mega(m,apparent,stone){ this.push(['-mega',ident(m),apparent,stone]); },
   };
   return T;
+})();
+/* ================= ROADMAP #234 -- WHICH EFFECT CAUSED THIS LINE. ONE DERIVATION. ================
+ *
+ * THE DEFECT WAS TWENTY-FIVE ROWS AND ONE FACT. `data/all-mechanics-fire.json` on release
+ * `e7e64db837b1` reported twenty-five diverging mechanics -- 9,332 corpus uses, 30.2% of ALL diverging
+ * usage, the largest single family in the artifact -- spread across five event names (`-status`,
+ * `-curestatus`, `-start`, `-heal`, `-damage`) and two populations. They read as nine unrelated
+ * single-row bugs in nine unrelated mechanics. They are one thing: the authority NAMES THE EFFECT
+ * THAT CAUSED A LINE and this engine emitted the bare line.
+ *
+ * IT LIVES HERE BECAUSE IT IS A FACT ABOUT THE GAME, not a formatting choice at five call sites.
+ * CLAUDE.md: "Two files that both decide Choice Scarf multiplies Speed by 1.5 will disagree
+ * eventually, and the disagreement will be invisible because both keep working." Five hand-composed
+ * `'[from] move: '+id` strings is that failure with the volume turned up -- and this engine already
+ * carried the proof, in TWO directions at once: the partial-trap chip wrote a literal
+ * `[from] partiallytrapped` where Showdown names the MOVE, and Strength Sap wrote
+ * `[from] move: strengthsap|[of] ...` where Showdown writes nothing at all.
+ *
+ * THE NAMESPACE IS THE PART THAT IS EASY TO GET WRONG, and a wrong `[from]` is worse than a missing
+ * one because the line then LOOKS attributed. Showdown's `fullname` is per-namespace, not uniform:
+ *
+ *     sim/dex-moves.ts:480       `move: ${name}`
+ *     sim/dex-items.ts:109       `item: ${name}`
+ *     sim/dex-abilities.ts:46    `ability: ${name}`
+ *     sim/dex-data.ts:116        EVERYTHING ELSE -- a status, a weather, a bare condition -- is the
+ *                                name with NO prefix at all (`[from] steelbeam`, `[from] psn`)
+ *
+ * So `fullname()` below is the whole of it, and no caller composes a prefix by hand.
+ *
+ * AND THE SHAPE IS PER-EVENT, WHICH IS WHY THIS IS FIVE FUNCTIONS AND NOT ONE. Each was read off the
+ * authority's own emit site rather than off SIM-PROTOCOL.md, and each has a case where the authority
+ * deliberately says NOTHING -- which is the half a careless fix loses:
+ *
+ *     -status      data/conditions.ts + data/mods/champions/conditions.ts (the format OVERRIDES this
+ *                  file, so mainline is the wrong thing to read). SLEEP is the ONLY status that names
+ *                  a move; brn/par/frz/psn/tox from a move write the bare line. An ability names
+ *                  itself AND its holder. Two items name themselves, by id, and no others.
+ *     -damage      sim/battle.ts:2138-2157, a `switch (effect.id)` over the effect that dealt it.
+ *     -heal        sim/battle.ts:2273-2296 -- and its first default clause is
+ *                  `if (effect.effectType === 'Move') add('-heal', target, health)` with NO tag.
+ *     -curestatus  sim/pokemon.ts:1682 -- `silent ? '[silent]' : '[msg]'`. Every cure carries one of
+ *                  the two; a bare `-curestatus` is a line the authority never writes.
+ *     -start       the handlers' own, and they disagree with each other on purpose: Forest's Curse
+ *                  and Trick-or-Treat name their move, Soak and Magic Powder do not.
+ *
+ * THE COUNTERS ARE THE RECEIPT. `MEDSEEN.attrAsked/attrNamed/attrBare` -- a run that names nothing is
+ * a dead path, and a run that leaves NOTHING bare is the over-matching failure this header is about. */
+const ATTR=(function(){
+  const NS={move:'move: ',item:'item: ',ability:'ability: '};
+  const fullname=e=>(!e||!e.id)?'':((NS[e.kind]||'')+e.id);
+  const NONE={from:'',of:null};
+  function bare(){ MEDSEEN.attrAsked++; MEDSEEN.attrBare++; return NONE; }
+  function named(from,of){ MEDSEEN.attrAsked++; MEDSEEN.attrNamed++;
+    if(!MEDSEEN.attrFirst)MEDSEEN.attrFirst=from; return {from,of:of||null}; }
+  return {
+    /* THE EFFECT DESCRIPTORS. A caller says WHAT caused the thing; it never says how to spell it. */
+    move:id=>id?{kind:'move',id:String(id)}:null,
+    item:id=>id?{kind:'item',id:String(id)}:null,
+    ability:(id,of)=>id?{kind:'ability',id:String(id),of:of||null}:null,
+    cond:id=>id?{kind:'condition',id:String(id)}:null,
+    /* The generic form, for the lines whose rule is simply "name the effect". Returns the STRING,
+     * because its callers put it in a field; the shaped forms below return {from, of}. */
+    from(e){ const f=fullname(e); return f?named('[from] '+f,e&&e.of).from:bare().from; },
+    /* `-status`. data/conditions.ts:5-148 and data/mods/champions/conditions.ts:12-40, read whole --
+     * the format overrides `par`, `slp` and `frz` and inherits the rest, and the emit shapes are
+     * identical across the override, so one table serves both.
+     *
+     * SLEEP IS THE ONLY STATUS THAT NAMES A MOVE (`conditions.ts:54`, champions `:17`). This is the
+     * clause that makes the difference between a fix and a regression: Thunder Wave, Will-O-Wisp,
+     * Toxic and Body Slam's secondary all write `|-status|TARGET|par` with nothing after it, and an
+     * engine that "helpfully" attributed them would print 9,000 corpus uses of a line the authority
+     * has never written. */
+    status(st,e){
+      if(!e||!e.id)return bare();
+      if(e.kind==='item'){
+        /* By ID, because the authority names exactly these two and reaches them by id:
+         * `sourceEffect.id === 'flameorb'` (:7) and `=== 'toxicorb'` (:144). Any other item that
+         * writes a status -- and Fling can make several -- takes the bare line. */
+        if(st==='brn'&&e.id==='flameorb')return named('[from] item: flameorb');
+        if(st==='tox'&&e.id==='toxicorb')return named('[from] item: toxicorb');
+        return bare();
+      }
+      if(e.kind==='ability')return named('[from] ability: '+e.id,e.of);
+      if(e.kind==='move'&&st==='slp')return named('[from] move: '+e.id);
+      return bare();
+    },
+    /* `-curestatus`. sim/pokemon.ts:1682. EVERY cure carries a tag; the only question is which.
+     * `[silent]` is passed by the two handlers that hide the line (Natural Cure's own
+     * `add(..., '[from] ability: Natural Cure', '[silent]')` at data/mods/champions/abilities.ts:69
+     * supplies its own pair and does not come through here). */
+    cured(silent){ return silent?named('[silent]'):named('[msg]'); },
+    /* `-heal`. sim/battle.ts:2286-2295. THE MOVE CLAUSE IS THE ONE THAT SURPRISES: a heal whose
+     * effect is a MOVE is emitted with no tag at all, which is why Strength Sap's line had to LOSE an
+     * attribution rather than gain one. `[of]` appears only when the healer is not the healed. */
+    heal(e,tgt,src){
+      if(!e||!e.id)return bare();
+      if(e.kind==='move')return bare();
+      return named('[from] '+fullname(e),(src&&src!==tgt)?src:null);
+    },
+  };
 })();
 /* WHAT THIS ENGINE CLAIMS IT CAN EMIT. A CLAIM, AND THREE THINGS CHECK IT.
  *
@@ -4791,7 +4925,12 @@ function berryForceEat(m,itemId){
   const _cs=TAGS.param('item',itemId,'curesStatus');
   if(_cs&&m.status&&_cs.statuses
      &&(_cs.statuses==='any'||(Array.isArray(_cs.statuses)&&_cs.statuses.indexOf(m.status)>=0))){
-    if(TR)TR.cure(m,m.status,'[from] item: '+itemId);
+    /* ROADMAP #234 -- AN ITEM-CAUSED CURE DOES NOT NAME THE ITEM. Every status-curing item in
+     * data/items.ts ends in a bare `pokemon.cureStatus()` (twelve call sites, no `-curestatus` of
+     * their own anywhere in the file), and cureStatus writes `silent ? '[silent]' : '[msg]'`
+     * (sim/pokemon.ts:1682). This engine invented "[from] item: X", which is the wrong-tag half of
+     * this family rather than the missing-tag half. */
+    if(TR)TR.cure(m,m.status,ATTR.cured(false).from);
     m.status='';m.toxTurns=0;did=true;
   }
   const _ht=TAGS.param('item',itemId,'healsAtThreshold');
@@ -4814,7 +4953,7 @@ function berryCureUpdate(m){
   const _cs=TAGS.param('item',m.item,'curesStatus');
   if(!(_cs&&m.status&&_cs.statuses))return;
   if(!(_cs.statuses==='any'||(Array.isArray(_cs.statuses)&&_cs.statuses.indexOf(m.status)>=0)))return;
-  if(TR){TR.enditem(m,m.item,'[eat]');TR.cure(m,m.status,'[from] item: '+m.item);}
+  if(TR){TR.enditem(m,m.item,'[eat]');TR.cure(m,m.status,ATTR.cured(false).from);}
   m.status='';m.toxTurns=0;
   consumeBerry(m,m.item);        // ROADMAP #128 -- the one consumption site
 }
@@ -9209,7 +9348,18 @@ function allyRefusesVolatile(t,vol){
   }
   return null;
 }
-function applyStatus(t,st,src){
+/* ROADMAP #234 -- `eff` IS THE CAUSE, AND IT IS NOT THE SAME THING AS `src`.
+ *
+ * `src` is the BODY that wrote the status and is a mechanic input: Safeguard refuses what the other
+ * side writes, Synchronize reflects back at it. `eff` is Showdown's `sourceEffect` -- the move, the
+ * ability or the item -- and it decides only what the `-status` LINE says. They come apart in both
+ * directions: Static's paralysis has an ability for its effect and the HOLDER for its source, while
+ * the Toxic Spikes entry path has a source of nobody and a condition for its effect.
+ *
+ * A CALL THAT PASSES NO `eff` GETS THE BARE LINE, which is the authority's own default and not a
+ * silent fallback -- most of the thirteen call sites here (Yawn, Toxic Spikes, Synchronize's reflect,
+ * Beak Blast's burn) are cases where Showdown genuinely writes nothing after the status. */
+function applyStatus(t,st,src,eff){
   /* WIRE 157 -- ABOVE `canTakeStatus`, WHICH IS THE TARGET'S OWN REFUSAL. This one belongs to the
    * SIDE, and it is asked first for the same reason Uproar's is: a status refused by a body standing
    * next to you never reaches your own immunity table at all. */
@@ -9243,7 +9393,7 @@ function applyStatus(t,st,src){
    if(_nis&&Array.isArray(_nis.ignoresStatusImmunityFor)&&_nis.ignoresStatusImmunityFor.indexOf(st)>=0){
      _ignTypeImm=true;MEDSEEN.statusImmunityIgnoredByAbility++;}}
   if(!canTakeStatus(t,st,_ignTypeImm,src))return false;t.status=st;
-  if(TR)TR.sta(t,st);
+  if(TR){const _a=ATTR.status(st,eff);TR.sta(t,st,_a.from,_a.of);}
   if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;
   /* ROADMAP #175 -- SYNCHRONIZE, and it is `onAfterSetStatus` so it belongs at the BOTTOM of this
    * function rather than at any one call site. data/abilities.ts:4849-4858, no Champions override:
@@ -10650,8 +10800,8 @@ function sweepField(rm,user,ownSf,foeSf,field,acts){
    * names the ATTACKER. A wire that pulled the target's seed would be a different move. */
   if(rm.removesOwnLeechSeed&&user&&user._seededBy){user._seededBy=null;n++;MEDSEEN.leechSeedSwept++;
     if(TR)TR.vend(user,'move: Leech Seed');}
-  if(rm.removesOwnPartialTrap&&user&&user._trap){user._trap=null;n++;MEDSEEN.partialTrapSwept++;
-    if(TR)TR.vend(user,'partiallytrapped');}
+  if(rm.removesOwnPartialTrap&&user&&user._trap){const _tmv=user._trap.mv;user._trap=null;n++;MEDSEEN.partialTrapSwept++;
+    if(TR)TR.vend(user,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');}
   /* `getAllActive()` is EVERY body on the field, its own side included -- read off the iterator by
    * tag_dex rather than assumed, and the probe asserts the foe's doll specifically because a wire
    * that only cleared the user's would still look like it fired. */
@@ -12577,7 +12727,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * PAR MOVING BELOW SLP AND FRZ CHANGES NOTHING TODAY -- a body cannot hold two major statuses --
        * and it moves anyway, because a list that is four fifths of the authority's list is the shape
        * that comes apart the day somebody adds the fifth member. */
-      if(m.status==='frz'){m.frzTurns=(m.frzTurns||0)+1;if(m.frzTurns>=3||rng()<0.25){m.status='';if(TR)TR.cure(m,'frz');}else {m._mvRes=false;if(TR)TR.cant(m,'frz');continue;}}   // Champions: 25%/attempt, guaranteed thaw turn 3
+      if(m.status==='frz'){m.frzTurns=(m.frzTurns||0)+1;if(m.frzTurns>=3||rng()<0.25){m.status='';if(TR)TR.cure(m,'frz',ATTR.cured(false).from);}else {m._mvRes=false;if(TR)TR.cant(m,'frz');continue;}}   // Champions: 25%/attempt, guaranteed thaw turn 3
       /* ROADMAP #175 -- EARLY BIRD IS AN EXTRA TICK, NOT A HALVED DURATION, and the distinction is
        * the whole reason this reads a param instead of a name. `data/conditions.ts:68-70` puts
        * `pokemon.statusState.time--` for the ability IMMEDIATELY ABOVE the ordinary one, so each turn
@@ -12590,7 +12740,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _est=TAGS.param('ability',m.ability,'nameImplementedBySim');
         const _tick=(_est&&_est.extraStatusTicks&&+_est.extraStatusTicks.slp)||0;
         if(_tick)MEDSEEN.sleepTickAccelerated++;
-        if(m.slpTurns>=3-_tick||(m.slpTurns===2-_tick&&rng()<1/3)){m.status='';if(TR)TR.cure(m,'slp');}else {m._mvRes=false;if(TR)TR.cant(m,'slp');continue;}}   // Champions: 33% wake turn 2, 100% turn 3
+        if(m.slpTurns>=3-_tick||(m.slpTurns===2-_tick&&rng()<1/3)){m.status='';if(TR)TR.cure(m,'slp',ATTR.cured(false).from);}else {m._mvRes=false;if(TR)TR.cant(m,'slp');continue;}}   // Champions: 33% wake turn 2, 100% turn 3
       /* `_flinch` is cleared for every active body at the end of the turn (the `forEach` below the
        * action loop), so a flinch that sleep got to first does NOT survive into the next turn -- which
        * is Showdown's `duration: 1` on the volatile, arriving by a different road. */
@@ -13468,7 +13618,11 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_sapHeal!=null&&!m.fainted&&!healBlocked(m)){
             const _sh0=m.curHP;
             m.curHP=Math.min(m.st.hp,m.curHP+_sapHeal);
-            if(TR&&m.curHP>_sh0)TR.heal(m,'[from] move: '+a.mv,_t);
+            /* ROADMAP #234 -- AND IT LOSES AN ATTRIBUTION RATHER THAN GAINING ONE.
+             * sim/battle.ts:2290: `if (effect.effectType === 'Move') add('-heal', target, health)` --
+             * no tag, no `[of]`. This engine wrote "[from] move: strengthsap|[of] TARGET", which is a
+             * line the authority never writes, on 741 corpus uses. */
+            if(TR&&m.curHP>_sh0){const _ha=ATTR.heal(ATTR.move(a.mv),m,_t);TR.heal(m,_ha.from,_ha.of);}
           }
           /* Status and volatiles. applyStatus already enforces the type and ability immunities; a
            * VOLATILE is a different thing and is recorded by name on the mon so a consumer can see
@@ -14112,8 +14266,17 @@ function battleTurn(S,rng,actsForA,actsForB){
            &&!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
            &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
            &&!moveClassBlocked(t,a.mv,m)&&!powderBlocked(t,a.mv)&&!pranksterBlocked(m,t,a.mv)){
-          if(_ct.adds){ if(t.types.indexOf(_ty)<0){t.types=[...t.types,_ty];if(TR)TR.vstart(t,'typeadd',_ty);} }
+          /* ROADMAP #234 -- THE TWO HANDLERS DISAGREE ON PURPOSE AND THE TAG ALREADY SEPARATES THEM.
+           * Forest's Curse and Trick-or-Treat write `add('-start', target, 'typeadd', TYPE,
+           * '[from] move: NAME')`; Soak and Magic Powder write `add('-start', target, 'typechange',
+           * TYPE)` with nothing after it. Both `adds` members name their move, both `replaces` members
+           * do not, so the shape the tag already carries IS the discriminator and no move is named
+           * here. A third shape has no derived answer and is counted rather than guessed. */
+          if(_ct.adds){ if(t.types.indexOf(_ty)<0){t.types=[...t.types,_ty];
+            if(TR)TR.vstart(t,'typeadd',_ty+'|'+ATTR.from(ATTR.move(a.mv)));} }
           else if(_ct.replaces){ t.types=[_ty]; if(TR)TR.vstart(t,'typechange',_ty); }
+          else { MEDFAILS.typeWriterShapeUnknown++;
+            if(!MEDFAILS.typeWriterShapeUnknownFirst)MEDFAILS.typeWriterShapeUnknownFirst=String(a.mv); }
         }
         continue;
       }
@@ -14251,7 +14414,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(TR)TR.ab(t,t.ability,'[from] move: '+a.mv);
             /* Worry Seed's own second clause: writing Insomnia over a sleeping body wakes it. Read
              * off the param rather than the move name. */
-            if(a.curesSleep&&t.status==='slp'){t.status='';t.slp=0;if(TR)TR.cure(t,'slp');}
+            if(a.curesSleep&&t.status==='slp'){t.status='';t.slp=0;if(TR)TR.cure(t,'slp',ATTR.cured(false).from);}
           }
         } else mvFail(m);
         continue;
@@ -15090,11 +15253,11 @@ function battleTurn(S,rng,actsForA,actsForB){
              still refuse, and they still do because the call is the shared one. */
           if(_hd.setsStatus&&_hd.setsStatus.status){
             const _prev=_t.status; _t.status='';
-            if(!applyStatus(_t,_hd.setsStatus.status,m)){_t.status=_prev;mvFail(m);continue;}
+            if(!applyStatus(_t,_hd.setsStatus.status,m,ATTR.move(a.mv))){_t.status=_prev;mvFail(m);continue;}
             MEDSEEN.healDescriptorStatus++;
           } else if(_hd.curesStatus&&_t.status){
             const _s0=_t.status;_t.status='';_t.slpTurns=0;_t.frzTurns=0;_t.toxTurns=0;
-            MEDSEEN.healDescriptorStatus++;if(TR)TR.cure(_t,_s0);
+            MEDSEEN.healDescriptorStatus++;if(TR)TR.cure(_t,_s0,ATTR.cured(false).from);
           }
           _t.curHP=Math.min(_t.st.hp,_t.curHP+_amt);
           MEDSEEN.healDescriptorNow++;
@@ -15116,6 +15279,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            dies still delivers the number it booked. A record that recomputed at resolution would read
            the RECIPIENT's max instead, which is the exact defect this wire was dispatched for. */
         _sc[_slot]={mv:a.mv,when:_hd.when,
+          /* ROADMAP #234 -- WHO CAST IT, booked at click time beside the amount and for the same
+             reason: Showdown's payout line names `effectState.source.name`, which is the NICKNAME the
+             stream identifies a body by (TRACE's identName) and does not follow a forme change. */
+          by:(m._ident||m.name||''),
           hp:(_hd.amount&&_hd.amount.full)?null:healSize(_hd,m,m),
           full:!!(_hd.amount&&_hd.amount.full),cures:!!_hd.curesStatus,
           /* `+1` for the same reason Heal Block's does: the residual at the END OF THIS TURN ticks it
@@ -15211,7 +15378,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * wrote it cannot be gated. This is the direct status-move path -- the one Safeguard exists
          * to answer. `applyStatus` emits its own refusal line, so the `-fail` below is only for the
          * immunity case. */
-        if(!applyStatus(t,st,m)){m._mvRes=false;if(TR&&!sideBuffRefuses(t,m,'blocksStatus'))TR.fail(t);}
+        if(!applyStatus(t,st,m,ATTR.move(a.mv))){m._mvRes=false;if(TR&&!sideBuffRefuses(t,m,'blocksStatus'))TR.fail(t);}
         continue;
       }
       /* ROADMAP #68 -- THE SHIELD'S PROTOCOL EVENT IS EMITTED HERE, WHERE THE ACTION RESOLVES, AND
@@ -16685,7 +16852,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * rule since Gen VI), and the artifact's thawsTarget carries the non-Fire exceptions the
          * flag exists for -- Scald, Matcha Gotcha. Cleared BEFORE the damage lands so the thawed
          * target acts normally next turn. */
-        if(tg.status==='frz'&&(effMoveType(mv,a.move.id,field,m)==='Fire'||TAGS.has('move',a.move.id,'thawsTarget'))){tg.status='';if(TR)TR.cure(tg,'frz');}
+        if(tg.status==='frz'&&(effMoveType(mv,a.move.id,field,m)==='Fire'||TAGS.has('move',a.move.id,'thawsTarget'))){tg.status='';if(TR)TR.cure(tg,'frz',ATTR.cured(false).from);}
         /* ================= ROADMAP #151 -- THE HP MOVES ONCE PER ARRIVAL =============================
          *
          * `tg.curHP -= dmg` was the whole of a Bullet Seed: one subtraction, one `|-damage|` line, and
@@ -16937,7 +17104,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(_pun.inflicts&&!m.fainted){
               const _r=rng();let _cum=0;
               for(const _inf of _pun.inflicts){_cum+=_inf.chance;
-                if(_r<_cum){applyStatus(m,CODE_OF_STATUS[_inf.status]||_inf.status);break;}}
+                if(_r<_cum){applyStatus(m,CODE_OF_STATUS[_inf.status]||_inf.status,null,ATTR.ability(tg.ability,tg));break;}}
             }
             /* `tg` is the HOLDER of the punish ability and `m` is the attacker who set it off, so
              * the rock that extends this sky is the holder's. The first cut of this line read
@@ -17225,7 +17392,12 @@ function battleTurn(S,rng,actsForA,actsForB){
               const _had=_cv.charge>0;
               _cv.charge=1;
               MEDSEEN.chargeBanked++;
-              if(TR&&!_had)TR.vstart(tg,'Charge');
+              /* ROADMAP #234 -- `add('-start', pokemon, 'Charge', this.activeMove.name,
+               * '[from] ability: ' + effect.name)` (data/moves.ts charge condition onStart/onRestart).
+               * The MOVE THAT HIT is field 4 and the ability is field 5; the CHARGE MOVE's own line
+               * is the other branch of that same `if` and stays bare, which is why the two cannot
+               * share an emitter call. */
+              if(TR&&!_had)TR.vstart(tg,'Charge',a.move.id+'|'+ATTR.from(ATTR.ability(tg.ability)));
             } else {
               MEDFAILS.buffOnHitVolatileUnwired++;
               if(!MEDFAILS.buffOnHitVolatileUnwiredFirst)
@@ -17463,7 +17635,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                  it. Showdown's Safeguard suppresses the `-activate` line for a SECONDARY (`!effect
                  .secondaries`), which is why the refusal here is silent and the direct status path's
                  is not. */
-              if(s.status){ applyStatus(tg,s.status,m); }
+              if(s.status){ applyStatus(tg,s.status,m,ATTR.move(a.move.id)); }
               /* WIRE 16 -- secondary STAT DROPS, the third kind of secondary and the one that was
                * silently missing: Icy Wind and Electroweb (100% spe-1, the format's speed control),
                * Snarl (spa-1), Breaking Swipe (atk-1), Crunch's 20% def-1. The rulebook carried
@@ -17612,7 +17784,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           {const _pb=TAGS.param('move',a.move.id,'punishesBoostedTarget');
            if(_pb&&_pb.onlyIfTargetBoostedThisTurn&&!suppressed&&!tg.fainted&&statsRoseThisTurn(tg)){
              if(_pb.effect==='status'&&_pb.status){
-               if(applyStatus(tg,_pb.status,m))MEDSEEN.punishBurned++;
+               if(applyStatus(tg,_pb.status,m,ATTR.move(a.move.id)))MEDSEEN.punishBurned++;
              /* ROADMAP #92 -- ALLURING VOICE'S HALF IS NO LONGER DECLARED-AND-UNMODELLED. The comment
               * above still describes the state this engine was in until confusion existed; the arm is
               * wired now and `MEDFAILS.punishEffectUnmodelled` stays as the receipt for a THIRD member
@@ -17651,7 +17823,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * from outside the move -- and inside the same `suppressed` gate for the same reason. */
           {const _ff=m._flingFx;
            if(_ff&&!suppressed&&!tg.fainted){
-             if(_ff.status)applyStatus(tg,_ff.status,m);
+             if(_ff.status)applyStatus(tg,_ff.status,m,ATTR.move(a.move.id));
              else if(_ff.volatile==='flinch'){
                if(!unresolved.has(tg))MEDSEEN.flinchTooLate++;
                else if(refusesFlinch(tgAb)) MEDSEEN.flinchBlockedByInnerFocus++;
@@ -17696,7 +17868,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           {const _ps=TAGS.param('move',a.move.id,'proceduralStatus');
            if(_ps&&_ps.p&&Array.isArray(_ps.oneOf)&&_ps.oneOf.length&&!suppressed&&rng()<+_ps.p){
              const _i=Math.min(_ps.oneOf.length-1,Math.floor(rng()*_ps.oneOf.length));
-             applyStatus(tg,CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i],m);
+             applyStatus(tg,CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i],m,ATTR.move(a.move.id));
            }}
           /* WIRE 156 -- FAKE OUT'S FLINCH IS A SECONDARY, AND THE HARDCODE THAT USED TO SIT HERE
            * SAID IT WAS NOT.
@@ -17740,7 +17912,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              and 0/40 into Shield Dust. Named here, beside the effect, rather than inside a gate that
              also refuses Will-O-Wisp. */
           {const _pt=TAGS.param('ability',m.ability,'poisonsOnMyContact');
-           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m))&&rng()<(+_pt.p||0.3))applyStatus(tg,'psn',m);}
+           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m))&&rng()<(+_pt.p||0.3))applyStatus(tg,'psn',m,ATTR.ability(m.ability,m));}
           /* WIRE 30 -- blocksHealing. Psychic Noise is a DAMAGING move whose whole point is the two
            * turns of Heal Block it leaves behind, and the engine landed the 75 base power and none of
            * the effect. It is the counter to the entire healing family, so it lands in the same pass
@@ -17786,7 +17958,13 @@ function battleTurn(S,rng,actsForA,actsForB){
               * moment it landed: all seven trapping moves showed `showdown 4 / ours 3` then `3 / 2`.
               * The volatile-duration defect a third time, in the one counter that lives in `_trap`
               * rather than `_vol` and so was outside both previous fixes' reach. */
-             tg._trap={frac:+_pt2.chipPerTurn,turns:+_pt2.duration,by:m};
+             /* ROADMAP #234 -- AND IT KNOWS WHICH MOVE LAID IT. Showdown's chip line is
+              * `add('-damage', target, health, '[from] ' + volatiles.partiallytrapped.sourceEffect.fullname,
+              * '[partiallytrapped]')` (sim/battle.ts:2141) -- the CONDITION is generic and the NAME on the
+              * line is the MOVE. This engine wrote the literal "[from] partiallytrapped", so Bind, Fire
+              * Spin, Infestation, Sand Tomb, Snap Trap, Whirlpool and Wrap all printed the same string
+              * and every one of the seven parted from the authority on it. */
+             tg._trap={frac:+_pt2.chipPerTurn,turns:+_pt2.duration,by:m,mv:a.move.id};
              if(TR)TR.actOf(tg,'move: '+a.move.id,m);
            }}
           /* ROADMAP #147 -- A DAMAGING MOVE'S OWN VOLATILE, WHICH REACHED NOTHING AT ALL.
@@ -18146,7 +18324,12 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `directDamage` one line up (`:1388`) and is NOT -- that is the max-HP block below, which
        * carries its own note. */
       if(_rcF&&dealt>0&&!refusesIndirect(m)){m.curHP-=_rcDmg;
-        if(TR)TR.dmg(m,'[from] Recoil');
+        /* ROADMAP #234 -- `dex.conditions.getByID('recoil')` is `new Condition({name: 'Recoil'})`
+         * (sim/dex-conditions.ts:699), a Condition and not a Move, so its fullname carries NO
+         * namespace prefix -- and the capital is the authority's, which is why the id passed here is
+         * 'Recoil' and not 'recoil'. Struggle's is a different string for a different reason; see the
+         * maxhp block below. Routed through the one derivation rather than spelled here. */
+        if(TR)TR.dmg(m,ATTR.from(ATTR.cond('Recoil')));
         if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
       /* ROADMAP #139 -- THE OTHER RECOIL, AND IT IS A DIFFERENT CURRENCY. The block above reads
        * `mv.rc`, a share of the DAMAGE DEALT. Steel Beam and Struggle pay a share of the USER'S OWN
@@ -18189,7 +18372,17 @@ function battleTurn(S,rng,actsForA,actsForB){
        if(_mr&&_mr.of==='maxhp'&&+_mr.fraction>0&&m.st&&!m.fainted){
          m.curHP-=Math.max(1,Math.round(m.st.hp*+_mr.fraction));
          MEDSEEN.maxHPRecoilPaid++;
-         if(TR)TR.dmg(m,'[from] Recoil');
+         /* ROADMAP #234 -- THE AUTHORITY'S OWN SWITCH, MIRRORED RATHER THAN AVERAGED. The two members
+          * of this family reach two different emitters and print two different names:
+          *   struggleRecoil -> `directDamage(..., {id:'strugglerecoil'})` -> sim/battle.ts:2244, a
+          *     literal `case 'strugglerecoil'` printing `[from] recoil`;
+          *   mindBlownRecoil -> `damage(..., dex.conditions.get(move.name))` (battle-actions.ts:1391)
+          *     -> spreadDamage's default at battle.ts:2153, printing the CONDITION's fullname, which
+          *     for a name with no condition behind it is the bare id: `[from] steelbeam`.
+          * Both ids are read off those two lines. The tag cannot separate them -- `recoil
+          * {fraction, of:'maxhp'}` is identical on both rows -- and the authority separates them with
+          * a switch on the id, so this does the same rather than inventing a third rule. */
+         if(TR)TR.dmg(m,ATTR.from(ATTR.cond(a.move.id==='struggle'?'recoil':a.move.id)));
          if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}}
       /* WIRE 19 -- DRAIN, the exact mirror of the recoil line above and absent entirely. 8,553 corpus
        * clicks: Matcha Gotcha 4,957, Giga Drain 1,255, Drain Punch 916, Draining Kiss 814. The damage
@@ -18238,7 +18431,9 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_st2&&_st2.removes&&connected&&Array.isArray(m.types)&&m.types.includes(_st2.removes)){
           m.types=m.types.map(t=>t===_st2.removes?(_st2.becomes||'???'):t);
           MEDSEEN.ownTypeSpent++;
-          if(TR)TR.vstart(m,'typechange',m.types.join('/'));
+          /* ROADMAP #234 -- `add('-start', pokemon, 'typechange', getTypes().join('/'),
+           * '[from] move: Burn Up')`, the handler's own fifth field. */
+          if(TR)TR.vstart(m,'typechange',m.types.join('/')+'|'+ATTR.from(ATTR.move(a.move.id)));
         }
       }
       /* THE DRAIN USED TO BE HERE AND IT IS NOW `_stepSelfPay`, ABOVE THE STEP LIST. It is paid
@@ -18485,7 +18680,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * derives from that handler, so it is a property of the move rather than of its name. */
         if(_lk&&_lk.wakesSleepers)for(const _b of [...actA,...actB]){
           if(_b&&!_b.fainted&&_b.status==='slp'){_b.status='';_b.slpTurns=0;
-            MEDSEEN.uproarWokeSleeper++; if(TR)TR.cure(_b,'slp');}
+            MEDSEEN.uproarWokeSleeper++; if(TR)TR.cure(_b,'slp',ATTR.cured(false).from);}
         }
       }
       /* WIRE 44 -- ARM THE LOCKOUT. `lockoutTurns + 1` for the end-of-turn tick that fires on this
@@ -18928,7 +19123,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          m.curHP=_r2.full?m.st.hp:Math.min(m.st.hp,m.curHP+(_r2.hp||0));
          delete _sc2[_si2];
          MEDSEEN.healDescriptorSlot++;
-         if(TR&&m.curHP>_h0)TR.heal(m,'[from] move: '+_r2.mv);
+         /* ROADMAP #234 -- THE WISHER. Wish is the one heal in the game whose line carries a SECOND
+          * attribution field: `add('-heal', target, health, '[from] move: Wish', '[wisher] ' +
+          * effectState.source.name)` (data/moves.ts wish onEnd) -- and it is the SLOT's booked wisher,
+          * not whoever is standing there now, which is the same fact the payout amount already reads
+          * off the record. `heal()` itself emits nothing for a wish (sim/battle.ts:2282, `case 'wish':
+          * break;`), so this line is the handler's own and keeps its `move:` prefix. */
+         if(TR&&m.curHP>_h0)TR.heal(m,'[from] move: '+_r2.mv+(_r2.by?'|[wisher] '+_r2.by:''));
        }}
       /* WIRE 73 -- GRASSY TERRAIN HEALS. WIRE 72 made the terrain exist; this is the half that made
        * the terrain WORTH setting, and the two had to land together or the engine would have gained a
@@ -18987,7 +19188,11 @@ function battleTurn(S,rng,actsForA,actsForB){
              if(!_t||_t.fainted||_t.curHP<=0||!_t.status)continue;
              const _was=_t.status; _t.status=''; _t.toxTurns=0; _t.slpTurns=0; _t.frzTurns=0;
              MEDSEEN.statusCuredByResidual++;
-             if(TR){TR.act(m,'ability: '+m.ability);TR.cure(_t,_was,'[from] ability: '+m.ability);}
+             /* ROADMAP #234 -- the ANNOUNCEMENT names the ability and the CURE does not: Healer is
+              * `add('-activate', pokemon, 'ability: Healer'); allyActive.cureStatus();`
+              * (data/mods/champions/abilities.ts healer), so the second line is cureStatus's own
+              * `[msg]`. Natural Cure is the exception and writes its own pair by hand. */
+             if(TR){TR.act(m,'ability: '+m.ability);TR.cure(_t,_was,ATTR.cured(false).from);}
            }
          }
        }}
@@ -19164,8 +19369,15 @@ function battleTurn(S,rng,actsForA,actsForB){
            * onResidual damages and its `duration` is decremented by the volatile machinery either
            * way, so a Magic Guard body is still stuck for the same number of turns. */
           if(!refusesIndirect(m)){m.curHP-=Math.floor(m.st.hp*m._trap.frac);
-            if(TR)TR.dmg(m,'[from] partiallytrapped');}
-          if(--m._trap.turns<=0){m._trap=null;if(TR)TR.vend(m,'partiallytrapped');}
+            if(TR){
+              /* A trap with no recorded move cannot name one, and that is LOUD rather than papered
+               * over with the old literal: the fallback prints a string the authority never writes. */
+              if(!m._trap.mv){MEDFAILS.trapSourceUnknown++;
+                if(!MEDFAILS.trapSourceUnknownFirst)MEDFAILS.trapSourceUnknownFirst=String(m.name||'?');}
+              const _ta=m._trap.mv?ATTR.from(ATTR.move(m._trap.mv)):'[from] partiallytrapped';
+              TR.dmg(m,_ta,null,'[partiallytrapped]');}}
+          if(--m._trap.turns<=0){const _tmv=m._trap.mv;m._trap=null;
+            if(TR)TR.vend(m,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');}
           if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
         }
       }

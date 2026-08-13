@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-13T01:58:13.203Z",
+  "generated": "2026-08-13T03:52:53.428Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 197,
-    "open": 105,
-    "closed": 92,
-    "open_asserting_breakage": 0,
+    "register_rows": 202,
+    "open": 107,
+    "closed": 95,
+    "open_asserting_breakage": 1,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -687,6 +687,24 @@
       "uses": 0,
       "title": "THE DIFFERENTIAL RAN BLANK SPREADS AND A MOVING TEAM POOL, SO IT WAS TESTING TURN ORDER IN THE ONE CONFIGURATION WHERE T",
       "full": "the differential ran blank spreads and a moving team pool, so it was testing turn order in the one configuration where turn order cannot be got wrong — will, 2026-08-12. he asked *\"how much of the divergence is us not knowing the sps\"*, then *\"i thought the whole point was we invent teams that we know every stat of so nothing can drift\"*, then *\"we can yoink moves, we just need to give them our stat spreads\"*. builds every body with — not a guessed spread, no spread. an open team sheet reveals species, item, ability, moves, nature, gender and level and not the spread; every stored sheet reads `evs: null`, 173,784 of 173,784 bodies. neither the blank spread nor the speed ties cause a single divergence — both are applied identically to both engines — they hide errors instead, and the file already said so in a comment nobody had acted on: *\"with every body flat and serious, 91.4% of legal species share a base speed with some other species, so the rig manufactured speed ties\"*. the prediction is recorded before the fact: adding spreads should make the number worse and `ordering` should grow; an unmoved rate is the suspicious outcome. second unfrozen input named the same day: the team pool is read live from stores ops appends to continuously, which is why three runs of one instrument reported 1,556, 1,213 and 983 — a measurement that freezes the engine and pins every die took its sample from a moving file. frozen on will's instruction to `data/team-pool-frozen` (bo3 13,214 lines sha 5e10d7ba991f, ots 4,167 lines sha cd21077a4578) and the first pinned baseline is 327/983 (33.3%) top-tie-first and 377/983 (38.4%) bottom-tie-first — the first whole-game figure in this project whose counts are comparable run to run. that five-point arm gap also weakens a claim i made to will off the unpinned run — i said the two corners agreed to within half a point and therefore the divergences were rules rather than dice; on a pinned pool they are five apart and the higher one is the tie-sensitive arm"
+    },
+    {
+      "n": 233,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "MEDICHAM HAS NO GENDER AT ALL, SO TWO ABILITIES CANNOT BE TESTED AND ONE OF THEM IS A LIVE BLUFF — 2026-08-12. `game_dif",
+      "full": "medicham has no gender at all, so two abilities cannot be tested and one of them is a live bluff — 2026-08-12. `game_differential.js` hard-codes `gender: 'n'` on every body of both sides and its own comment gives the reason: *\"medicham2 has no gender at all, so a declared gender would part the streams on line one of every game.\"* that is a correct decision for the differential and a dead end for the mechanics runner: cute charm and rivalry can never fire in any fixture this harness builds, and no amount of preflight repair changes it — the preflight now labels them cannot-fire-in-this-fixture with the clause named, which is the honest state rather than a fix. cute charm was separately measured at 30.92% once a staged fixture did carry genders, against 0 of 4,166 read as \"absent\" before — so the mechanic works and only this harness cannot reach it. the cost is not theoretical: `rivalry` is one of the 13 roster rows whose control arm is itself a live ability, and it came back fired on a genderless board, which its own guard makes impossible — an over-match that turned out to be control-not-quiet arriving through a new door rather than a broken clause. fixing this needs gender in `medicham2-browser.js` first and then in `game_differential.js`; doing the second without the first is what the hard-coded `n` is protecting against"
+    },
+    {
+      "n": 236,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "A POISON-TYPE'S TOXIC CANNOT MISS AND OURS ROLLS FOR IT — 2026-08-12. Found while auditing what survives a switch, unrel",
+      "full": "a poison-type's toxic cannot miss and ours rolls for it — 2026-08-12. found while auditing what survives a switch, unrelated to switching, and deliberately not folded into that batch. `sim/battle-actions.ts` sets accuracy `true` outright for `move.id === 'toxic' && gen >= 8 && pokemon.hastype('poison')` — it sits in the same condition as `move.alwayshit`, above the `accuracy` event, so nothing downstream can reintroduce a roll. we have no such branch, so a staged poison-type's toxic emitted `|-miss|` where the authority's landed. toxic is printed at 90 accuracy and carries 1209 corpus uses; 20 of the 27 legal poison-type species learn it, so the exempt population is real rather than theoretical. it is deterministic, which is why it is worth more than its usage suggests: this is not a rate that needs a swarm to detect, it is a move that hits every time in the authority and rolls a die here, so a single staged fixture decides it. and the whole-game differential cannot see it: both arms pin accuracy to a corner, so a computed accuracy never decides an outcome — the same structural blindness that hid the ohko branch (#230) until will asked about it directly. it belongs with the never-miss family already answered above the stage arithmetic in `hitchance`, where no guard and lock-on sit, rather than as a special case inside the accuracy pipeline. not started"
     },
     {
       "n": 47,

@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-13T00:22:10.804Z",
+ "generated": "2026-08-13T03:48:14.687Z",
  "by": "engine/conformance.js",
- "files": 384,
+ "files": 390,
  "findings": [
   {
    "std": "S12",
@@ -49,6 +49,12 @@
    "detail": [
     "move:protect"
    ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/derive_switch_carry.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
   {
    "std": "S12",
@@ -222,7 +228,7 @@
   {
    "std": "S12",
    "file": "engine/medicham2-browser.js",
-   "what": "names 15 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:tailwind, move:fakeout, ...",
+   "what": "names 16 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:tailwind, move:fakeout, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
     "ability:intimidate",
@@ -230,6 +236,7 @@
     "ability:lightningrod",
     "ability:prankster",
     "ability:technician",
+    "item:leftovers",
     "item:lifeorb",
     "move:blizzard",
     "move:detect",
@@ -355,6 +362,12 @@
     "move:protect",
     "move:tailwind"
    ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/residual_order.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
   {
    "std": "S12",
@@ -540,6 +553,12 @@
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
   {
+   "std": "S12",
+   "file": "tests/test-ohko-accuracy.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
    "std": "S8",
    "file": "tests/test-prng.js",
    "what": "CHI_LIMIT = 27.877 with no stated derivation",
@@ -547,6 +566,12 @@
    "detail": [
     "27.877"
    ]
+  },
+  {
+   "std": "S12",
+   "file": "tests/test-residual-order-observed.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
   {
    "std": "S12",
@@ -637,6 +662,12 @@
   },
   {
    "std": "S13",
+   "file": "data/artifact-rerunnable-baseline.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
    "file": "data/battle-formes.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie",
@@ -684,6 +715,15 @@
    "why": "a file nobody generates is a file that will lie",
    "detail": [
     "a generator's output PATTERN matched and was REVOKED — exploitability-holdout.json matches engine/exploit.js's output pattern but its keys do not agree with exploitability.json, which that generator writes by name"
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/fixture-learnset-baseline.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named in the CODE of tests/staged_board.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
    ]
   },
   {

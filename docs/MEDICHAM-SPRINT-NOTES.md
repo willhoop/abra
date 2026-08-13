@@ -7307,3 +7307,55 @@ establishes nothing about either. The second staged only .githooks/pre-commit, w
 correctly ignores, so the hook exited 0 without ever reaching its loop and I nearly read that as the
 hook failing to block. **A guard that skips is not a guard that passes**, and telling those apart
 needed reading the output rather than the exit code.
+
+### THE [from] FAMILY: 112 MECHANIC DIVERGENCES DOWN TO 89
+
+Re-derived from tonight's fresh artifact rather than my stale figure: **25 rows, 9,332 uses, 30.2% of
+diverging usage** — still the largest single family, and the two classes above it by usage are
+grab-bags rather than families. Census 542 to **552 live, 0 missing**.
+
+| | before | after |
+|---|---:|---:|
+| moves | 76 | **57** |
+| abilities | 33 | **29** |
+| items | 3 | 3 |
+| total | 112 | **89** |
+
+**`fullname` IS PER-NAMESPACE AND THAT IS THE TRAP.** `move: X` / `item: X` / `ability: X`, and
+everything else is the BARE name — which is why Steel Beam prints `[from] steelbeam` and not
+`[from] move: steelbeam`. Five shaped readers, each read off its own emit site.
+
+**TWO FIXES REMOVE AN ATTRIBUTION RATHER THAN ADD ONE**, which I had not seen. Strength Sap emitted
+`[from] move: strengthsap` where the authority emits the heal BARE, and every status-curing item plus
+Healer wrote an attribution onto a `-curestatus` the authority reaches through a bare `cureStatus()`.
+Three more of that shape had no register row. So the family was never only "missing tags" — it is "the
+attribution does not match", in both directions.
+
+Infestation was the wrong-tag case that WAS predicted: fixed by carrying the move on `_trap`, so the
+seven trapping moves now print seven different strings instead of all saying `partiallytrapped`.
+
+**WILL CHALLENGED THE STRENGTH SAP CHANGE AND IT SURVIVED, BY PLAYING IT.** He pointed out the user has
+to be hurt for the heal to show at all, and that the target's Attack drop is visible too — both true.
+Staged in the real simulator:
+
+    |move|p1a: Vileplume|Strength Sap|p2a: Venusaur
+    |-unboost|p2a: Venusaur|atk|1
+    |-heal|p1a: Vileplume|150/150          <- BARE, no [from]
+
+The causation is carried by the SEQUENCE — the `|move|` line, then the unboost, then the heal — not by
+a tag. At full HP the heal is 0 and prints nothing, exactly as he said, which is why the user had to be
+set to 75/150 first. **My fixture failed twice before it produced that**: first the target was on
+Protect so the move was blocked, then I reached for Tackle, which no legal body in this format learns.
+Both were the fixture, never the mechanic.
+
+**The red proof is the shape that matters**: three deliberate OVER-attribution breaks, and all four
+probes failed on the CONTROL arm. A derivation that simply tagged everything would pass the positive
+arm and fail exactly there. `attrNamed` 33 / `attrBare` 30 over 537 traced turns — a zero on the bare
+half would mean it had become "tag everything".
+
+The two rows left are not attribution: `disable` (field 4 there is the DISABLED MOVE, not a cause) and
+`afteryou`, whose first divergence moved to a pre-existing defect this exposed.
+
+**A DESIGN SMELL FOUND WHILE EXPLAINING 38 RAPID RELEASE CUTS**: `all_mechanics_fire.js` requires
+`game_differential.js`, which cuts a release at MODULE LOAD — so merely IMPORTING the runner mints a
+release. Benign and explained, but requiring a module should not mutate the release store.

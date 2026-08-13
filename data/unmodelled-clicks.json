@@ -1,25 +1,17 @@
 {
- "generated": "2026-08-11T07:49:35.962Z",
+ "generated": "2026-08-13T03:46:43.334Z",
  "by": "tests/test-unmodelled-clicks.js",
  "what": "Every move in gen9championsvgc2026regmb whose click resolves to {kind:\"pass\"} — a whole no-op turn. RATCHETED: the set may shrink and may never grow.",
- "count": 9,
- "clicks": 135,
+ "count": 5,
+ "clicks": 44,
  "moves": [
-  "transform",
   "roleplay",
   "spite",
-  "recycle",
   "fairylock",
-  "magneticflux",
   "healbell",
-  "lockon",
   "teatime"
  ],
  "rows": [
-  {
-   "id": "transform",
-   "uses": 87
-  },
   {
    "id": "roleplay",
    "uses": 35
@@ -29,23 +21,11 @@
    "uses": 8
   },
   {
-   "id": "recycle",
-   "uses": 3
-  },
-  {
    "id": "fairylock",
    "uses": 1
   },
   {
-   "id": "magneticflux",
-   "uses": 1
-  },
-  {
    "id": "healbell",
-   "uses": 0
-  },
-  {
-   "id": "lockon",
    "uses": 0
   },
   {

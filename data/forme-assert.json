@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-11T14:06:49.284Z",
+ "generated": "2026-08-13T03:42:23.659Z",
  "by": "tests/test-forme-assert.js",
  "what": "the forme absolute-assertion mode — three assertions against the authority, no control arm",
  "refuses_copy": [
@@ -112,35 +112,35 @@
    "observed": {
     "neutral": {
      "hp": 135,
-     "at": 160,
+     "at": 192,
      "df": 70,
      "sa": 160,
-     "sd": 70,
-     "sp": 80
+     "sd": 72,
+     "sp": 112
     },
     "neutral_authority": {
      "hp": 135,
-     "at": 160,
+     "at": 192,
      "df": 70,
      "sa": 160,
-     "sd": 70,
-     "sp": 80
+     "sd": 72,
+     "sp": 112
     },
     "natured": {
      "hp": 135,
-     "at": 176,
+     "at": 211,
      "df": 70,
      "sa": 144,
-     "sd": 70,
-     "sp": 80
+     "sd": 72,
+     "sp": 112
     },
     "natured_authority": {
      "hp": 135,
-     "at": 176,
+     "at": 211,
      "df": 70,
      "sa": 144,
-     "sd": 70,
-     "sp": 80
+     "sd": 72,
+     "sp": 112
     },
     "nature": "Adamant"
    },
@@ -158,35 +158,35 @@
    "observed": {
     "neutral": {
      "hp": 175,
-     "at": 180,
+     "at": 212,
      "df": 117,
      "sa": 126,
-     "sd": 107,
-     "sp": 120
+     "sd": 109,
+     "sp": 152
     },
     "neutral_authority": {
      "hp": 175,
-     "at": 180,
+     "at": 212,
      "df": 117,
      "sa": 126,
-     "sd": 107,
-     "sp": 120
+     "sd": 109,
+     "sp": 152
     },
     "natured": {
      "hp": 175,
-     "at": 198,
+     "at": 233,
      "df": 117,
      "sa": 113,
-     "sd": 107,
-     "sp": 120
+     "sd": 109,
+     "sp": 152
     },
     "natured_authority": {
      "hp": 175,
-     "at": 198,
+     "at": 233,
      "df": 117,
      "sa": 113,
-     "sd": 107,
-     "sp": 120
+     "sd": 109,
+     "sp": 152
     },
     "nature": "Adamant"
    },
@@ -204,35 +204,35 @@
    "observed": {
     "neutral": {
      "hp": 165,
-     "at": 152,
+     "at": 184,
      "df": 125,
      "sa": 152,
-     "sd": 125,
-     "sp": 50
+     "sd": 127,
+     "sp": 82
     },
     "neutral_authority": {
      "hp": 165,
-     "at": 152,
+     "at": 184,
      "df": 125,
      "sa": 152,
-     "sd": 125,
-     "sp": 50
+     "sd": 127,
+     "sp": 82
     },
     "natured": {
      "hp": 165,
-     "at": 152,
+     "at": 184,
      "df": 125,
      "sa": 136,
-     "sd": 125,
-     "sp": 55
+     "sd": 127,
+     "sp": 90
     },
     "natured_authority": {
      "hp": 165,
-     "at": 152,
+     "at": 184,
      "df": 125,
      "sa": 136,
-     "sd": 125,
-     "sp": 55
+     "sd": 127,
+     "sp": 90
     },
     "nature": "Jolly"
    },

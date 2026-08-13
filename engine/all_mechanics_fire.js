@@ -174,6 +174,10 @@ const PRE = require('./fixture_preflight.js');
 const BREAK_PREFLIGHT = has('--break-preflight');
 if (BREAK_PREFLIGHT) console.log('  --break-preflight IS ON. The preflight is stubbed to clear everything. '
   + 'Every CANNOT-FIRE row will collapse back into DID-NOT-FIRE. THIS IS THE RED DEMONSTRATION, NOT A RUN.');
+const BREAK_TRIGGERS = has('--break-triggers');
+if (BREAK_TRIGGERS) console.log('  --break-triggers IS ON. The handler-derived move needs are suppressed and '
+  + 'every ability falls back to the shared four-move gauntlet — the state this file was in before '
+  + '2026-08-12. THIS IS THE RED DEMONSTRATION, NOT A RUN.');
 const PREFLIGHT = {
   checked: 0,          /* every call, including the red plants */
   rows_checked: 0,     /* calls made ON A POPULATION ROW — a zero here means the wiring is a no-op */
@@ -184,6 +188,11 @@ const PREFLIGHT = {
   repaired_weather: 0, weather_unrepairable: 0,
   faces_weather_noop: 0, faces_status_noop: 0,
   repairs: [],
+  /* THE DERIVED TRIGGER, COUNTED, because a capability that cannot prove it ran is assumed broken.
+   * `trigger_rows` zero over the abilities means the derivation is unwired; `trigger_unstaged` is the
+   * honest residue — a need this fixture's fixed bodies cannot supply — and every one of those rows
+   * carries the clause that names it. */
+  trigger_rows: 0, trigger_needs: 0, trigger_staged: 0, trigger_unstaged: 0, trigger_examples: [],
 };
 function preflight(sc) {
   if (BREAK_PREFLIGHT) return { ok: true, why: [], note: [], clauses: [], stubbed: true };
@@ -1016,6 +1025,60 @@ function abControlFor(species, ability) {
  * gap in THIS instrument rather than a pass. Every click is read off the built body by `clickOf`. */
 const GAUNTLET_ACTOR_MOVES = ['Facade', 'Endure', 'Rest', 'Substitute'];
 
+/* ---- THE MOVE THAT SUPPLIES A DERIVED NEED, CHOSEN OUT OF THE AUTHORITY'S OWN POOL ----------------
+ *
+ * `fixture_preflight.moveNeeds` says WHAT the handler is gated on and WHICH SIDE has to throw it. This
+ * turns that into a legal click: the first move in the given body's real move pool that satisfies the
+ * need, ranked so the choice does not break the fixture around it.
+ *
+ * THE EXCLUSIONS ARE ABOUT THE HARNESS, NOT ABOUT THE MECHANIC, and each one is a way a staged turn
+ * stops being the turn that was staged. A self-destructing move kills the body the verdict is read
+ * from; a `selfSwitch` or `forceSwitch` move rewrites who is standing there; a two-turn charge or a
+ * recharge move eats the NEXT scripted turn, so every later turn in the script lands on the wrong
+ * board. They are lifted when the need itself asks for one (a recoil need must be allowed a recoil
+ * move), because refusing then would report "unsatisfiable" for a move that exists.
+ *
+ * DETERMINISTIC. The tiebreak is the move id, so a re-run stages the same game — the same requirement
+ * `runMoves` states for its carrier choice, and the reason the A/B verdict can be compared across runs
+ * at all (see the `|t:|` non-determinism plant in `red()`). */
+function pickForNeed(need, pool, ctx) {
+  const harnessBreaking = (m) => !!(m.selfdestruct || m.selfSwitch || m.forceSwitch || m.ohko
+    || (m.flags || {}).charge || (m.flags || {}).recharge || m.isZ || m.isMax);
+  const exempt = need.kind === 'recoil' || need.kind === 'multihit';
+  const cands = [];
+  for (const mid of pool) {
+    const mv = dex.moves.get(mid);
+    if (!mv || !mv.exists || mv.isNonstandard) continue;
+    if (!exempt && harnessBreaking(mv)) continue;
+    if (!PRE.satisfiesNeed(mid, need, ctx)) continue;
+    cands.push(mv);
+  }
+  if (!cands.length) return null;
+  /* A stat need is legitimately a Status move; everything else prefers an ATTACK, because an attack is
+   * what carries a type, a flag, a secondary and a damage number the comparator can see. */
+  const wantDamage = need.kind !== 'statDrop' && need.kind !== 'statRaise';
+  const score = (m) => (wantDamage && m.category === 'Status' ? 1 : 0)
+    + (need.kind === 'subaccuracy' ? 0 : (m.accuracy === true || +m.accuracy >= 100 ? 0 : 1))
+    + (m.recoil && need.kind !== 'recoil' ? 1 : 0)
+    /* A FLINCH ONLY LANDS IF THE FLINCHER MOVES FIRST — engine/faces.js states it for the move arm
+     * (`MOVE_FACES.flinches: {movesFirst: true}`) and the ability arm never had the equivalent. This
+     * fixture cannot reorder the bracket after the fact, so the PRIORITY move wins the rank and the
+     * order is bought rather than hoped for. Same rule as `faces.movesLast`, from the other end. */
+    + (need.kind === 'flinch' && (m.priority || 0) <= 0 ? 2 : 0)
+    /* AND A `secondary` NEED PREFERS A SECONDARY THAT IS NOT A FLINCH, for the same reason from the
+     * other side: a paralysis, a burn or a stat drop is on the board whoever moved first, a flinch is
+     * only on it if the thrower was faster. Shield Dust's need is `secondary` and the pool's first
+     * answer was Bite — a flinch — which made an order problem look like an engine gap. */
+    + (need.kind === 'secondary' && [].concat(m.secondaries || [], m.secondary ? [m.secondary] : [])
+        .every(s => !s || s.volatileStatus === 'flinch' || !!s.self) ? 2 : 0)
+    /* A move the far body is IMMUNE to has not been thrown — `fixture_preflight` clause 5, one level
+     * down. Ranked rather than refused, so a need with only immune answers still stages something and
+     * the row reports what happened instead of nothing. */
+    + (ctx.targetTypes && m.category !== 'Status' && !dex.getImmunity(m.type, ctx.targetTypes) ? 4 : 0);
+  cands.sort((a, b) => score(a) - score(b) || a.id.localeCompare(b.id));
+  return cands[0].id;
+}
+
 /* The adversary table lives in its own module — see engine/faces.js. It is required rather
  * than defined here because THIS FILE RUNS ON REQUIRE: a probe that merely wanted to read the table
  * kicked off a whole sweep the first time I tried it. A table is data and must be importable without
@@ -1063,6 +1126,27 @@ function gauntletScript(bodies, beats, faces, thenWhat) {
    * and the row then reports inert for a reason we can see instead of dying. */
   const want = F_.recv || [];
   const hit = clickOf(actor, [].concat(F_.actor || [], ['Facade', 'Body Slam', 'Round', 'Protect']));
+  /* ---- THE DERIVED TRIGGER TURN. IT IS ADDED, NOT SUBSTITUTED, AND TWO EARLIER SHAPES PROVED WHY ----
+   *
+   * FIRST ATTEMPT — put the derived move at the front of the actor's click list. It DISPLACED the
+   * gauntlet's ordinary attack and cost two rows that already worked:
+   *
+   *   HUSTLE        was FIRED off Facade — physical, so the Atk multiplier showed up as damage. Its
+   *                 handler is `onSourceModifyAccuracy`, so the derivation handed it Air Slash: a
+   *                 SPECIAL sub-100 move, on which Hustle does nothing at all. The new trigger was
+   *                 staged and the old one thrown away in the same edit. FIRED -> DID-NOT-FIRE.
+   *   LIGHTNING ROD `onAnyRedirectTarget` is an `either` need, so Discharge went on the ACTOR — the one
+   *                 body whose Electric move its own redirect ignores.
+   *
+   * SECOND ATTEMPT — alternate: derived click on the first turn of a beat, bare attack on the second.
+   * That recovered Hustle and lost TORRENT, which needs its Water click repeated while the HP bar
+   * travels. Trading one row for another is not a fix, it is a different fixture.
+   *
+   * SO THE TURN IS ADDED. The two beat turns are byte-identical to what they were, and the derived
+   * click is a THIRD turn in front of them — which is the only version in which no row can regress by
+   * construction rather than by measurement. A need is a REQUIREMENT ADDED TO THE BOARD, never a swap. */
+  const dA = ((F_.actorDerived || []).length) ? clickOf(actor, F_.actorDerived) : null;
+  const dR = ((F_.recvDerived || []).length) ? clickOf(receiver, F_.recvDerived) : null;
   const A = { m: clickOf(ally, ['Protect', 'Endure']) };
   const F = { m: clickOf(foeAlly, ['Protect', 'Endure']) };
   const phys = clickOf(receiver, [].concat(want, ['Facade', 'Aqua Tail']));
@@ -1104,6 +1188,9 @@ function gauntletScript(bodies, beats, faces, thenWhat) {
    * THRESHOLD trigger — Sitrus at a half, Focus Sash, Blaze, Berserk, Emergency Exit — needs the HP
    * bar to actually travel, which takes repetition and a real HP pool. */
   for (let k = 0; k < (beats || 1); k++) {
+    /* THE TRIGGER TURN — see the block above. Only pushed when something was actually derived, so a row
+     * with no handler-derived need plays exactly the board it played before. */
+    if (dA || dR) turns.push({ p1: [{ m: dA || hit, t: 0 }, A], p2: [{ m: dR || phys, t: 0 }, F] });
     /* PIERCING DRILL AND UNSEEN FIST ARE ONLY OBSERVABLE AGAINST A PROTECT, and the gauntlet
      * deliberately never clicks one — `fillerFor`'s lesson was that a Protect blocks the very move
      * being staged. Here the Protect IS the thing being faced, so the actor's click is the subject
@@ -1251,6 +1338,89 @@ function runAbilities(list) {
     let actorWants = GAUNTLET_ACTOR_MOVES.slice();
     let facesUsed = faces;
     let weatherStaged = null;
+    /* ---- THE TRIGGER THE ABILITY'S OWN HANDLER ASKS FOR ---------------------------------------------
+     *
+     * WILL, 2026-08-12: "but we are staging it so a dark move hits a justified mon right? thats the
+     * whole point". IT WAS NOT. `GAUNTLET_ACTOR_MOVES` is four moves — Facade, Endure, Rest, Substitute
+     * — and `RECEIVER_MOVES` is four more, and every one of the 316 abilities got the same eight. None
+     * of them is Dark, so `justified.onDamagingHit`'s `move.type === "Dark"` could not be reached on any
+     * board this repository has ever built. The MOVES arm derives a team per move; the ABILITIES arm was
+     * a shared gauntlet. Two standards in one runner.
+     *
+     * `engine/faces.js` is the tag-keyed half of the answer and it stays — it says what an ability must
+     * be UP AGAINST when the tag knows. This is the other half: the ability's OWN handler already states
+     * its requirement and which side has to supply it, so it is READ rather than tabulated, and an
+     * ability added tomorrow is staged without editing either file.
+     *
+     * THE ORDER MATTERS AND IS NOT A PREFERENCE. The derived move goes at the FRONT of the want list, so
+     * `bodyOf` keeps it when the list overflows four slots and `clickOf` picks it over the fallbacks.
+     * `faces` entries stay behind it, because a `faces` row is a tag-level guess about a family and the
+     * handler is the row's own text. */
+    /* THE RED SWITCH FOR THIS DERIVATION. `--break-preflight` stubs the CLAUSES and does not reach the
+     * staging, so it could not have demonstrated that the staging is load-bearing. `--break-triggers`
+     * returns no needs at all — exactly the state this file was in before today — and every row falls
+     * back to the shared Facade/Endure/Rest/Substitute gauntlet. The counter then reads ZERO and the
+     * run exits non-zero, which is the proof that a green here is worth something. */
+    const NEEDS = BREAK_TRIGGERS ? { needs: [], undetermined: [] } : PRE.moveNeeds(da);
+    const derivedActor = [], derivedRecv = [], unmetNeeds = [];
+    if (NEEDS.needs.length) {
+      PREFLIGHT.trigger_rows++;
+      const aTypes = (dex.species.get(c).types) || [];
+      const rTypes = (dex.species.get(RECEIVER.species).types) || [];
+      const recvPoolN = POOL.get(id(RECEIVER.species)) || new Set();
+      for (const n of NEEDS.needs) {
+        PREFLIGHT.trigger_needs++;
+        /* `either` is the LOUD fallback for an event this derivation cannot place (`onAny…`): the move
+         * is offered to BOTH sides rather than a side being guessed. `ally` cannot be staged at all —
+         * both allies click Protect by construction — and says so. */
+        const sides = n.by === 'either' ? ['actor', 'receiver'] : [n.by];
+        let staged = null;
+        for (const side of sides) {
+          const pool = side === 'actor' ? actorPool : recvPoolN;
+          const ctx = side === 'actor' ? { userTypes: aTypes, targetTypes: rTypes }
+                                       : { userTypes: rTypes, targetTypes: aTypes };
+          const m = pickForNeed(n, pool, ctx);
+          if (!m) continue;
+          /* A FLINCH THE THROWER CANNOT DELIVER IS NOT A STAGED TRIGGER. engine/faces.js states the
+           * rule for the move arm — `MOVE_FACES.flinches: {movesFirst: true}`, "moving second makes it
+           * a silent no-op" — and the ability arm had no equivalent, so Steadfast read DID-NOT-FIRE
+           * off a board where the flinch was thrown by the SLOWER body and could never land. Both
+           * bodies are built at 0 SP under a neutral nature (see `NATURE`), so base Speed is the whole
+           * order. Refused HERE rather than staged-and-hoped, which is the difference between a named
+           * fixture limit and an unexplained inert row. */
+          if (n.kind === 'flinch' && (dex.moves.get(m).priority || 0) <= 0) {
+            const mine = dex.species.get(side === 'actor' ? c : id(RECEIVER.species)).baseStats.spe;
+            const theirs = dex.species.get(side === 'actor' ? id(RECEIVER.species) : c).baseStats.spe;
+            if (mine <= theirs) continue;
+          }
+          (side === 'actor' ? derivedActor : derivedRecv).push(m);
+          staged = side + ':' + m;
+          break;
+        }
+        if (staged) { PREFLIGHT.trigger_staged++;
+          if (PREFLIGHT.trigger_examples.length < 40)
+            PREFLIGHT.trigger_examples.push(ab + ' ' + n.kind + (n.values.length ? '=' + n.values.join('|') : '') + ' -> ' + staged);
+        } else { PREFLIGHT.trigger_unstaged++;
+          unmetNeeds.push(n.by + ':' + n.kind + (n.values.length ? '=' + n.values.join('|') : '')); }
+      }
+      if (derivedRecv.length) {
+        recvWants = derivedRecv.map(mvName).concat(recvWants);
+        receiver = bodyOf(RECEIVER.species, RECEIVER.ability, twItem || RECEIVER.item, recvWants);
+      }
+      if (derivedActor.length) actorWants = derivedActor.map(mvName).concat(actorWants);
+      /* THE DERIVED MOVES TRAVEL IN THEIR OWN KEYS, NOT IN `recv`/`actor`. Those two are what the
+       * gauntlet's existing beat turns click, and writing into them is exactly the substitution that
+       * cost Hustle and Torrent — see the block in `gauntletScript`. `actorDerived`/`recvDerived` are
+       * read only by the added trigger turn, so every row's original board survives untouched. */
+      if (derivedActor.length || derivedRecv.length)
+        facesUsed = Object.assign({ recv: [], why: [] }, facesUsed || {}, {
+          actorDerived: derivedActor.map(mvName),
+          recvDerived: derivedRecv.map(mvName),
+          why: ((facesUsed && facesUsed.why) || []).concat(
+            NEEDS.needs.map(n => 'handler ' + n.handler + ': the ' + n.by + ' must supply '
+              + n.kind + (n.values.length ? ' (' + n.values.join(' or ') + ')' : ''))),
+        });
+    }
     if (facesUsed && facesUsed.setsWeather) {
       const wm = id(facesUsed.setsWeather);
       if (actorPool.has(wm)) { actorWants = [mvName(wm)].concat(actorWants); weatherStaged = WEATHER_OF_MOVE.get(wm) || null; }
@@ -1284,6 +1454,14 @@ function runAbilities(list) {
       /* undefined, NOT null — the preflight's status clause tests `=== undefined`, so a null would
        * silently suppress the very clause this row needs. */
       if (st) sc.status = st;
+      /* WHAT THE FIXTURE PROVABLY CLICKS, READ BACK OFF THE BUILT BODIES — not off the want lists.
+       * `bodyOf` silently drops a move the species cannot learn and `clickOf` falls back to slot 1, so
+       * an intent is not a click; declaring the WANT here would let the trigger clause clear a board
+       * that never held the move. This is the same distinction the `faces.setsWeather` no-op counter
+       * exists to make, asked one layer earlier. */
+      const built = bodyOf(c, da.name, twItem || '', actorWants);
+      sc.stagedMoves = { actor: ((built || {}).moves || []).map(id),
+                         receiver: ((receiver || {}).moves || []).map(id) };
       return sc;
     };
     let pre = preflight(scOf(weatherStaged, statusStaged));
@@ -1345,6 +1523,17 @@ function runAbilities(list) {
     labelRow(row, pre, !!(row && row.verdict && row.verdict !== 'DID-NOT-FIRE'));
     if (row) { row.fixture_weather = weatherStaged; row.fixture_status = statusStaged;
                row.fixture_weather_repaired = !!(weatherStaged && (!faces || id(faces.setsWeather || '') !== id((facesUsed && facesUsed.setsWeather) || ''))); }
+    /* WHAT THE HANDLER ASKED FOR AND WHAT THE BOARD SUPPLIED, ON THE ROW. An inert verdict is only
+     * readable if the reader can see what the trigger needed — and a row whose need went UNSTAGED is a
+     * fixture limit rather than an engine gap, which is the whole distinction the preflight exists to
+     * draw. It is also the only field that can falsify this derivation: a row with a staged need that
+     * still reads DID-NOT-FIRE is either an engine defect or a wrong need, and both are findings. */
+    if (row && NEEDS.needs.length) {
+      row.trigger_needs = NEEDS.needs.map(n => ({ by: n.by, kind: n.kind, values: n.values, handler: n.handler }));
+      row.trigger_staged = { actor: derivedActor, receiver: derivedRecv };
+      row.trigger_unstaged = unmetNeeds.length ? unmetNeeds : null;
+    }
+    if (row && NEEDS.undetermined.length) row.trigger_cues_undetermined = NEEDS.undetermined;
     /* WHAT THE ROW WAS MADE TO FACE IS RECORDED ON IT. An inert verdict is only readable if the
      * reader can see what the subject was up against — otherwise 'nothing happened' cannot be told
      * apart from 'nothing was tried'. */
@@ -1821,6 +2010,25 @@ if (PREFLIGHT.faces_weather_noop || PREFLIGHT.faces_status_noop)
             + 'first move when it does not hold the ask, so these staged nothing. The weather half is now '
             + 'repaired; the status half CANNOT be, because the receiver fixture (Feraligatr) has no '
             + 'status-only move in its legal pool at all.');
+/* THE DERIVED TRIGGER, COUNTED ON EVERY RUN. A zero on `trigger_rows` over a population that contains
+ * abilities means the derivation is UNWIRED — which looks exactly like "no ability needs a move", the
+ * silent default this whole block exists to remove. */
+if (KIND === 'abilities' || KIND === 'all') {
+  console.log('    DERIVED TRIGGERS (fixture_preflight.moveNeeds) — ' + PREFLIGHT.trigger_rows
+    + ' abilities carry a handler-derived move need; ' + PREFLIGHT.trigger_needs + ' needs, '
+    + PREFLIGHT.trigger_staged + ' STAGED on a legal body, ' + PREFLIGHT.trigger_unstaged
+    + ' UNSTAGED (the fixed bodies cannot supply it — each such row carries the `trigger-move` clause)');
+  if (PREFLIGHT.trigger_examples.length)
+    console.log('      e.g. ' + PREFLIGHT.trigger_examples.slice(0, 10).join('; '));
+  if (!PREFLIGHT.trigger_rows && !BREAK_PREFLIGHT) {
+    console.log('      ZERO. The derivation reached no row at all — that is an unwired capability, not '
+      + 'a population with no gated abilities. Not a pass.');
+    process.exitCode = 1;
+  }
+  report.summary.preflight.trigger = { rows: PREFLIGHT.trigger_rows, needs: PREFLIGHT.trigger_needs,
+    staged: PREFLIGHT.trigger_staged, unstaged: PREFLIGHT.trigger_unstaged,
+    examples: PREFLIGHT.trigger_examples };
+}
 if (PREFLIGHT.over_matched.length) {
   /* A REFUSED BOARD THAT FIRED ANYWAY. The preflight and the A/B arm cannot both be right, and the
    * split is derived from this run's own rows rather than argued: if the row's CONTROL is itself live,
