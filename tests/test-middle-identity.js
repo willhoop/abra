@@ -321,8 +321,27 @@ console.log('       `this` there is the PRNG: turn, activeMove and activeTarget 
 console.log('       address it builds is `<seed>|undefined|<cat>|-|-|<nth>`. THE ARM CANNOT BE WIRED UNTIL');
 console.log('       that side reads the battle. It is one capture in `midWrapShowdown` and it is not this');
 console.log('       division\'s file to edit.');
-claim(rateP < 5, 'the as-wired-today authority address is DEGENERATE, and this file proves it rather than asserting it',
-  'measured ' + rateP.toFixed(1) + '% — if this ever passes 5% somebody fixed it and this claim should be retired');
+/* RETIRED AND REPLACED 2026-08-13, BY ITS OWN INSTRUCTION.
+ *
+ * The clause here asserted that game_differential.js computes a DEGENERATE address, and said in its
+ * own text: `if this ever passes 5% somebody fixed it and this claim should be retired`. It was fixed
+ * the same night -- `Battle#random` is `return this.prng.random(m,n)`, so `this` inside the installed
+ * override is the PRNG and not the battle; the BattleActions wrapper now captures `this.battle`.
+ *
+ * BUT THE CLAUSE WOULD NEVER HAVE NOTICED, because `rateP` measures a RE-IMPLEMENTATION of that
+ * wiring inside this file rather than the file itself. A check watching a copy of the thing it
+ * guards is the failure this project has found four separate ways today, so the replacement READS
+ * THE REAL FILE. A source check is coarse; a source check on the actual bytes beats a perfect
+ * measurement of a copy. */
+const GD_SRC = require('fs').readFileSync(require('path').join(__dirname, '..', 'engine', 'game_differential.js'), 'utf8');
+claim(/MID_BATTLE\s*=\s*this\.battle/.test(GD_SRC),
+  'game_differential.js CAPTURES the battle in the BattleActions wrapper',
+  'the prng override cannot see the battle -- without this every address it builds is <seed>|undefined|<cat>|-|-|<nth>');
+claim(/midReset\(\);\s*midClearNth\(\)/.test(GD_SRC),
+  'and CLEARS the repeat index per game',
+  'turn is part of the address, so without this turn 1 of game 2 keeps counting from game 1 and every address after the first game is unreachable');
+claim(rateP < 5, 'the in-file re-implementation of the OLD wiring is still degenerate (a control, not a defect)',
+  'measured ' + rateP.toFixed(1) + '% -- this is the pre-fix shape kept as a control so the two can be told apart');
 
 console.log('\n3. THE DIFF — of the events each engine asked about, how many did the other ask about?');
 console.log('     medicham2 asked ' + tot.me + ',  the authority asked ' + tot.sdB + ',  shared ' + tot.both);

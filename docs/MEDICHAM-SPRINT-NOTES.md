@@ -8363,3 +8363,37 @@ rather than as "cheap", per #264.
 * `tests/test-nature-differential.js` is **RED on two natured-mega stat lines** and it is **NOT this
   pass**: re-run against release `011b91b3749b`, cut before any of this work, it fails identically.
   Reported, not filed. `tests/test-volatile-duration.js` is also red and is MEASURE's format sweep.
+
+### A CLAUSE THAT ASKED TO BE RETIRED, AND COULD NEVER HAVE NOTICED IT WAS TIME. 2026-08-13
+
+`tests/test-middle-identity.js` asserted that `game_differential.js` computes a DEGENERATE
+address, and said so in its own text: *"if this ever passes 5% somebody fixed it and this claim should
+be retired"*. It was fixed the same night. **The clause would never have noticed**, because the rate it
+measures comes from a RE-IMPLEMENTATION of that wiring inside the test rather than from the file it
+names.
+
+**That is the fourth distinct shape of one failure found today: a check watching a COPY of the thing it
+guards.**
+
+| | the check | what it was actually watching |
+|---|---|---|
+| earlier | the mega dex against `engine-data.js` | two files nobody compared |
+| #254 | `feature_fixture.verify()` | scenario LABELS, not the bodies inside them |
+| #254 | the semantics guard | a fixture containing no hazard clicks at all |
+| here | the degeneracy clause | a re-implementation of the wiring, not the wiring |
+
+Replaced by two clauses that read the ACTUAL bytes of `engine/game_differential.js` — that it
+captures the battle in the `BattleActions` wrapper, and that it clears the repeat index per game.
+A source check is coarse, and **a coarse check on the real file beats a perfect measurement of a copy.**
+The old re-implementation is kept as a declared CONTROL so the pre-fix and post-fix shapes stay
+distinguishable.
+
+**AND THE BUG IT WAS GUARDING WAS MINE.** `Battle#random` is `return this.prng.random(m, n)`,
+so inside the override installed as `battle.prng.random` the receiver is the PRNG and not the
+battle. Every address read `undefined|-|-` and the arm measured 0.0% identity while looking like it
+worked. My own comment two commits earlier said *"the override runs as a battle method, so turn /
+activeMove / activeTarget are already in scope"* — true of the `BattleActions` wrapper, false of the
+place the address is actually built, and I wrote both.
+
+Fixed, and the identities now agree where it matters: **dmg 99.3%, crit 99.0%, acc 99.7%** from the
+battle hook.

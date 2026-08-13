@@ -696,7 +696,8 @@ function midCtx(parts) {
   return base + '|' + n;
 }
 const midClearNth = () => MID_NTH.clear();
-let MID_CAT = 'any';                  /* which KIND of roll Showdown is making right now */
+let MID_CAT = 'any';
+let MID_BATTLE = null;   /* set by the wrapper above; the prng override cannot see the battle */                  /* which KIND of roll Showdown is making right now */
 const MID_DRAWS = { sd: {}, me: {} }; /* per-category draw counts, per side, for the void check */
 /* THE CONTEXTS THEMSELVES, NOT JUST THE COUNTS. Under hashing a count mismatch is EXPECTED and
  * harmless — that is the whole point — so the void check changes question: of the events BOTH engines
@@ -731,8 +732,16 @@ function midWrapShowdown(BattleActions) {
     if (typeof fn !== 'function') throw new Error('MIDDLE ARM: BattleActions#' + name + ' is not a function — '
       + 'the authority moved and this wrapper is guessing. Fix the name rather than falling back.');
     BattleActions.prototype[name] = function (...a) {
-      const prev = MID_CAT; MID_CAT = cat;
-      try { return fn.apply(this, a); } finally { MID_CAT = prev; }
+      const prev = MID_CAT, prevB = MID_BATTLE;
+      MID_CAT = cat;
+      /* THE BATTLE HAS TO BE CAPTURED HERE, AND ASSUMING OTHERWISE COST THE WHOLE FEATURE.
+       * The address builder is installed as `battle.prng.random`, and `Battle#random` is
+       * `return this.prng.random(m, n)` -- so inside it `this` is the PRNG, not the battle. Every
+       * address computed there read `undefined|-|-` and the arm measured 0.0% identity while
+       * looking like it worked. `BattleActions` carries `.battle`, and this wrapper is the one
+       * place that genuinely runs as a method on it. */
+      MID_BATTLE = this.battle || null;
+      try { return fn.apply(this, a); } finally { MID_CAT = prev; MID_BATTLE = prevB; }
     };
   };
   /* THE BATTLE IS THE CONTEXT AND IT COSTS NOTHING TO READ. The override runs as a method, so the
@@ -773,8 +782,9 @@ function makeArm(spec) {
    * (there is one per game) still gets a stable answer rather than throwing. */
   const midDraw = (cat, battle) => {
     MID_DRAWS.sd[cat] = (MID_DRAWS.sd[cat] || 0) + 1;
-    const mv = battle && battle.activeMove, tg = battle && battle.activeTarget;
-    const ctx = midCtx([MID_SEED, battle ? battle.turn : 0, cat,
+    const b = battle && battle.activeMove !== undefined ? battle : MID_BATTLE;
+    const mv = b && b.activeMove, tg = b && b.activeTarget;
+    const ctx = midCtx([MID_SEED, b ? b.turn : 0, cat,
                         mv ? mv.id : '-', tg ? (tg.side.id + tg.position) : '-']);
     MID_CTX_SEEN.sd.push(ctx);
     return midValue(ctx);
@@ -4245,7 +4255,10 @@ if (!has('--proof')) {
      * of TWO turns -- which is the desync signature, not an engine that is 80% wrong. A game whose
      * per-category draw counts differ between the engines is the INSTRUMENT failing, and it is marked
      * rather than counted. The counts are reset per game, so this is a statement about THIS game. */
-    if (arm.middle) { r._mid_void = midGameVoid(); midReset(); }
+    /* `midReset()` clears COUNTS. The nth map is a separate thing and must clear too: `turn` is
+     * in the address, so without this turn 1 of game 2 keeps counting from game 1 and every
+     * address after the first game is unreachable by the other engine. */
+    if (arm.middle) { r._mid_void = midGameVoid(); midReset(); midClearNth(); }
     armResults.push(r);
     /* SUMMED OVER THE PRIMARY MEASURED ARM ONLY, and that is not fussiness. `playGame` is also
      * called by the planted-divergence proof (four extra games on the baseline pair) and by the
