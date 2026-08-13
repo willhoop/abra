@@ -7282,3 +7282,28 @@ reads as new rather than as pre-existing.
 **Red proof by breaking the RATCHET rather than a fixture**: remove mudsdale|swordsdance from the
 baseline and it fails by name with 0 marked KNOWN; restore it and the file is green with that line
 marked KNOWN. Both restored byte-identical.
+
+### THE RE-RUNNABILITY GUARANTEE IS ARMED, AND IT WAS NOT UNTIL NOW
+
+Will: *“make sure this never happens again”*. I said the pre-commit hook was the guarantee and then
+did not arm it — a check that has to be REMEMBERED is precisely what LESSONS.md exists to stop, so the
+promise was worth nothing while it sat unwired.
+
+	ests/test-artifact-rerunnable.js now runs in the hook beside the docs-currency and roadmap gates,
+under the same scope guard, so a pure artifact regeneration still commits freely.
+
+**Proved by breaking the RATCHET rather than a caller**, which keeps the blast radius to one JSON file:
+
+    BLOCKED by tests/test-artifact-rerunnable.js
+      FAIL  no artifact became unre-runnable since the baseline
+            (NEW: nature-arms.json — lacks rngStreams, spreadL50)
+    exit 1
+
+    ratchet intact -> pre-commit: green, exit 0
+
+**Two false starts, both mine and both worth recording.** The first mutated iles AND stranded
+together, so the count clause passed and masked the set clause — a proof that changes two variables
+establishes nothing about either. The second staged only .githooks/pre-commit, which the scope guard
+correctly ignores, so the hook exited 0 without ever reaching its loop and I nearly read that as the
+hook failing to block. **A guard that skips is not a guard that passes**, and telling those apart
+needed reading the output rather than the exit code.

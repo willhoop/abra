@@ -61,7 +61,20 @@ fi
 echo "pre-commit: living-docs gate (~2s)"
 FAILED=0
 
-for t in tests/test-docs-current.js tests/test-roadmap-register.js; do
+# THE RE-RUNNABILITY CLAUSE — 2026-08-12. Will: "make sure this never happens again."
+#
+# A release freezes the ENGINE and not the READER. Every symbol added to a caller's `need` list
+# retroactively strands every release cut before that symbol existed: the snapshot still verifies,
+# still holds its bytes, and silently stops being openable. It surfaced as ELEVEN scenarios reading
+# `release THREW`, which reads as eleven broken mechanics and was one aged-out baseline.
+#
+# tests/test-artifact-rerunnable.js ratchets it, and a check that has to be REMEMBERED is the thing
+# LESSONS.md exists to stop -- so it runs here. Growing a `need` list now costs a named artifact at
+# the moment the cost is paid, rather than a week later.
+#
+# It is in the same loop as the docs gates and under the same scope guard: it only fires when
+# engine/, tests/ or docs/ move, so a pure artifact regeneration still commits freely.
+for t in tests/test-docs-current.js tests/test-roadmap-register.js tests/test-artifact-rerunnable.js; do
   [ -f "$t" ] || continue
   if ! OUT=$(node "$t" 2>&1); then
     echo ""
