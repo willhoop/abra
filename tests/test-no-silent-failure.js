@@ -155,6 +155,19 @@ const SPEAKS = [
    * `fail(` and `process.stderr.write` above: this can only SHRINK the silent set, which is the one
    * direction a detector change here is allowed to move it. */
   /\.\s*message\b/,
+  /* THE OTHER WAY TO WRITE A COUNTER, AND THE COMMONEST ONE IN THIS REPO. The list recognises `++`
+   * and `+=` and misses `n = (n || 0) + 1`, which is the idiom used wherever the counter lives on an
+   * object that may not have the key yet — `STATE_FAILS.battle_over_threw = (STATE_FAILS.x || 0) + 1`
+   * in engine/game_differential.js is exactly that, and it was reported as a NEW SILENT CATCH while
+   * counting the failure the gate asked it to count.
+   *
+   * Found 2026-08-13 by reading three flagged blocks rather than trusting the count: two of the three
+   * were false positives. **A RATCHET THAT FLAGS CODE FOR DOING WHAT IT ASKED IS HOW A RATCHET GETS
+   * IGNORED**, which is the same argument as `fail(`, `process.stderr.write` and `.message` above and
+   * is now the fourth time this file has been corrected for it. Deliberately narrow — the `|| 0` guard
+   * must be present, so a plain `x = y + 1` assignment does not qualify. Same justification as the
+   * three above: this can only SHRINK the silent set, the one direction a detector change may move it. */
+  /=\s*\(\s*[\w$.[\]]+\s*\|\|\s*0\s*\)\s*\+/,
   /* AND THE LIMIT OF THAT PATTERN, STATED RATHER THAN DISCOVERED LATER: a catch that reads
    * `e.message` only to BRANCH on it and then discards it — `if (e.message === 'x') return null` —
    * still passes this test while being genuinely silent. That case is accepted knowingly. The

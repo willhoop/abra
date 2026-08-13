@@ -7736,3 +7736,48 @@ an hour later. Its NUMBERS were right; only the explanation had outlived the eng
 REPORTED the t=0 defect is now an ASSERTION. Reporting was correct while nobody in that division could
 turn it green — that is the alternative to the banned phrase — but **a report that survives its own fix
 leaves the regression unguarded and goes on printing as though the defect were live.**
+
+### "PRE-EXISTING" IS DOING THE WORK "KNOWN FAILURE" USED TO DO. 2026-08-13
+
+`tests/test-no-silent-failure.js` has been red all week. Three separate agent reports named it and
+moved on, and **each of them was individually correct** — none had caused it, and each said so
+plainly rather than filing it. The sum of three correct observations is a check nobody acts on, which
+this repository has already written down as not being a check at all.
+
+The banned phrase has a synonym now and it is *"pre-existing"*.
+
+**THE INSTRUMENT WAS AUDITED BEFORE THE DEBT**, because the alternative is fixing 78 things to satisfy
+a broken detector. It is sound: the baseline is keyed by a **hash of the catch body**, not by a line
+number, so it survives edits elsewhere in a file. This is real debt, not drift.
+
+| | |
+|---|---|
+| catch blocks | 744 |
+| silent (say nothing) | **296 (40%)** |
+| of those, MANUFACTURE a value | **101** |
+| merely skip / continue | 195 |
+| baselined 2026-08-06 | 220 |
+| fixed since | 2 |
+| **NEW since** | **78** |
+
+**The MANUFACTURE class is the project's named failure mode in its purest form** — a capability
+absent, a made-up value handed downstream, and everything reporting success. It is the same shape as
+the player that had never read a team sheet and the joint layer that fell back on 100% of eligible
+turns.
+
+**READING THREE BLOCKS FOUND TWO FALSE POSITIVES AND THE INFERENCE FROM THAT WAS WRONG.**
+`engine/game_differential.js:2656` counts its failure through `STATE_FAILS.x = (STATE_FAILS.x || 0) + 1`
+and `:1783` sets a null that the very next line reports — both doing exactly what the gate's own
+advice asks. The detector recognised `++` and `+=` and missed the `(x || 0) + 1` idiom, which is the
+form used wherever the counter lives on an object that may not have the key yet. Fixed, and it is the
+**fourth** correction of this kind in that file, each with the same justification: *a ratchet that
+flags code for doing what it asked is how a ratchet gets ignored.*
+
+**AND THEN THE MEASUREMENT CONTRADICTED THE SAMPLE.** Two false positives in three blocks suggested a
+badly over-firing gate. The fix cleared **2 of 80**. A rate inferred from three cases was wrong in
+exactly the direction that would have excused the debt — and if the detector fix had been shipped
+without re-counting, "the gate was over-firing" would have gone into the record as the finding.
+
+**NOT RE-BASELINED.** `--update` exists and would turn a week of debt into the floor in one command.
+Registered as ROADMAP #258 with the numbers attached instead; the unit of work is the MANUFACTURE
+subset, per file, owned by whichever division owns the file.
