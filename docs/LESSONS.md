@@ -188,8 +188,14 @@ future engine that happens to satisfy it.
 **2026-08-12.** Will: *"should i be concerned we suddenly cant run old things"*, then *"make sure this
 never happens again"*.
 
-Measured that evening: **168 of 200 frozen releases could no longer be opened**, and of the artifacts
-on disk naming a release, essentially none could be re-run — including `all-mechanics-fire.json`, which
+**CORRECTED, AND THE FIRST FIGURES WERE MINE AND WRONG.** I reported 168 of 200 releases unopenable
+and essentially no artifact re-runnable, and told Will to be concerned on that basis. Both numbers
+came out of a check I had written badly minutes earlier: it UNIONED every caller's `need` list and
+held every artifact to all 24 symbols, so a release that serves one caller perfectly was reported as
+stranding that caller's own artifact over a symbol it has never read. Judged per PRODUCING caller,
+the real state is **29 re-runnable, 1 stranded, 11 unknown-producer** — and "168" is one caller's
+number wearing the store's name: `game_differential.js` can use 28 of 201 releases where
+`speed_vs_pokeenv.js` can use 196. The underlying lesson stands and the alarm did not — including `all-mechanics-fire.json`, which
 carries the 93 move divergences the whole mechanics programme is built on.
 
 **Nothing broke that day.** The snapshots verify. They hold their bytes. What moved was the HARNESS:
