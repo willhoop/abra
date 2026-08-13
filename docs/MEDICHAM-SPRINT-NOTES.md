@@ -6962,3 +6962,23 @@ in the gate.
 **GATE: CLOSED — 3 of 8.** Whole-game 215 of 815; mechanics stale (93 moves, 20 abilities, 3 items
 diverged, 159 never fired); one open engine defect, #232 Protect at 100,806 named uses. The defect
 clause ranks by corpus usage, so the worst row surfaces without anybody choosing it.
+
+### 93 MOVE DIVERGENCES ARE NOT 93 JOBS — 28% OF THEM ARE ONE
+
+Grouping the mechanics runner’s 116 diverging rows by the SHAPE of what differs rather than by move
+name collapses them to a handful of families. The largest is a single kind of ield 4 mismatch: the
+authority NAMES THE CAUSE of a line and we emit the bare line. **25 rows, 9,205 corpus uses, 28% of all
+diverging usage** — Sleep Powder 1,931, Poison Touch 1,665, Infestation 1,105, Disable 914, Ice Fang
+912, Strength Sap 741, Hypnosis 692, Static 592.
+
+It spans -status, -curestatus, -start, -heal and -damage and crosses moves AND abilities,
+which is exactly why it never looked like one job: it presents as nine unrelated single-row
+divergences in nine different mechanics. Registered as ROADMAP #234.
+
+One sub-case is a WRONG tag rather than a missing one: Infestation reads [from]infestation in the
+authority and [from]partiallytrapped here — we name the CONDITION where Showdown names the MOVE, so
+the fix carries the source move on the volatile rather than adding a literal.
+
+It was already on the parked list as “residual damage attribution” and was parked as cosmetic. It is
+cosmetic per line and it is the biggest family in the mechanics numbers, which is the argument for
+ranking by usage rather than by how often the swarm happened to stage something.
