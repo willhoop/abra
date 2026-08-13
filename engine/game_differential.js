@@ -646,8 +646,62 @@ const DAMAGE_ROLL_SIDES = 16;
  * drift apart in how a seed becomes a sequence. Re-implementing the LCG here would be a second source
  * for a fact the engine already owns, which is the rule this repository breaks most expensively. */
 const MID_CATS = ['acc', 'crit', 'sec', 'dmg', 'stall'];
+
+/* ==================================================================================================
+ * EVENT-ADDRESSED DICE — WHY THE SEQUENCES HAD TO GO
+ * ==================================================================================================
+ *
+ * The first middle arm shared five SEQUENCES, one per category, and it failed twice in a row for the
+ * same underlying reason. Both failures were measured rather than argued, and both are worth keeping
+ * because the second one is invisible to the check that caught the first.
+ *
+ *   1. COARSE. Draw COUNTS differed — `acc sd=11 me=2`, `sec sd=12 me=0` — because medicham2
+ *      short-circuits rolls whose outcome is determined and the authority rolls anyway. 131 of 171
+ *      games void. The count check caught this.
+ *
+ *   2. FINE, AND THE COUNT CHECK IS BLIND TO IT. With counts matching, **29 of 40** surviving games
+ *      diverged on `-damage field 3` — a damage NUMBER — while `test-engine-diff --n 6000` reports
+ *      **0 disagreements** on damage in both corners. The engines agree about damage. What differed
+ *      was the ROLL, because our driver evaluates candidate moves before choosing one and every one of
+ *      those speculative damage calls consumes from the `dmg` sequence. Showdown never speculates, so
+ *      it makes no matching draw — and two sequences can hold the same COUNT while sitting at
+ *      different OFFSETS.
+ *
+ * A sequence is the wrong object. The die must be a pure function of WHAT IS BEING ROLLED FOR, so that
+ * a speculative evaluation and a real one are simply different questions with different answers, and
+ * neither consumes anything the other needed.
+ *
+ *   value = hash(turn, category, move id, attacker slot, target slot, nth) -> [0,1)
+ *
+ * THE `nth` IS NOT OPTIONAL. Measured on the authority over three messy turns: **6 of 20 draws shared
+ * an otherwise-identical context**, worst case 2. A multi-hit move rolls accuracy per hit; a move with
+ * two secondaries rolls twice. Without an index every repeat returns the same value, which is a
+ * different wrong answer rather than a right one. Both engines must count repeats the same way, and
+ * that is the sharpest remaining risk in this design — it is asserted, not assumed. */
+const MID_SEED = 20260813;
+/* FNV-1a. Chosen because it is short enough to reimplement identically on the other side without a
+ * shared module, which matters: medicham2 must not require this file. */
+function midHash(str) {
+  let h = 0x811c9dc5 >>> 0;
+  for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 0x01000193) >>> 0; }
+  return h >>> 0;
+}
+function midValue(ctx) { return midHash(ctx) / 4294967296; }
+/* the repeat index, reset whenever the context changes shape */
+const MID_NTH = new Map();
+function midCtx(parts) {
+  const base = parts.join('|');
+  const n = (MID_NTH.get(base) || 0);
+  MID_NTH.set(base, n + 1);
+  return base + '|' + n;
+}
+const midClearNth = () => MID_NTH.clear();
 let MID_CAT = 'any';                  /* which KIND of roll Showdown is making right now */
 const MID_DRAWS = { sd: {}, me: {} }; /* per-category draw counts, per side, for the void check */
+/* THE CONTEXTS THEMSELVES, NOT JUST THE COUNTS. Under hashing a count mismatch is EXPECTED and
+ * harmless — that is the whole point — so the void check changes question: of the events BOTH engines
+ * asked about, did they compute the same identity? Anything only one side asked is fine. */
+const MID_CTX_SEEN = { sd: [], me: [] };
 const midReset = () => { for (const k of ['sd', 'me']) { MID_DRAWS[k] = {}; for (const c of MID_CATS.concat('any')) MID_DRAWS[k][c] = 0; } };
 midReset();
 let MID_VOID_GAMES = 0, MID_VOID_DETAIL = [];
@@ -681,6 +735,10 @@ function midWrapShowdown(BattleActions) {
       try { return fn.apply(this, a); } finally { MID_CAT = prev; }
     };
   };
+  /* THE BATTLE IS THE CONTEXT AND IT COSTS NOTHING TO READ. The override runs as a method, so the
+   * turn, the active move and the active target are already in scope — the authority needs no call
+   * site changed. Measured on three messy turns: 19 of 20 draws had a move in scope; the one that did
+   * not had no event id either, so it is a single unnameable draw rather than a class of them. */
   around('hitStepAccuracy', 'acc');
   around('secondaries', 'sec');
   around('getDamage', 'dmg');      /* the crit roll lives in here too and is split out below */
@@ -711,15 +769,23 @@ function makeArm(spec) {
    * INSTANCES of the same construction: identical sequences, independently consumed. */
   const midSd = spec.middle ? M.rngStreams({ seed: spec.middleSeed }) : null;
   const midMe = spec.middle ? M.rngStreams({ seed: spec.middleSeed }) : null;
-  const midDraw = (cat) => { MID_DRAWS.sd[cat] = (MID_DRAWS.sd[cat] || 0) + 1;
-                             return (midSd[cat] || midSd.any)(); };
+  /* `battle` is `this` at the override's call site. It is optional so a draw made outside a battle
+   * (there is one per game) still gets a stable answer rather than throwing. */
+  const midDraw = (cat, battle) => {
+    MID_DRAWS.sd[cat] = (MID_DRAWS.sd[cat] || 0) + 1;
+    const mv = battle && battle.activeMove, tg = battle && battle.activeTarget;
+    const ctx = midCtx([MID_SEED, battle ? battle.turn : 0, cat,
+                        mv ? mv.id : '-', tg ? (tg.side.id + tg.position) : '-']);
+    MID_CTX_SEEN.sd.push(ctx);
+    return midValue(ctx);
+  };
   const random = function pinRandom(m, n) {
     /* THE MIDDLE ARM SHORT-CIRCUITS THE CORNER LOGIC ENTIRELY. Inside `getDamage` the one-argument
      * form with m === 16 is the damage roll and the two-argument form is the crit — the only place a
      * denominator IS a reliable discriminator, because the wrapper has already narrowed the caller. */
     if (spec.middle) {
       const cat = (MID_CAT === 'dmg' && n !== undefined) ? 'crit' : MID_CAT;
-      const u = midDraw(cat === 'any' ? 'any' : cat);
+      const u = midDraw(cat === 'any' ? 'any' : cat, this);
       if (n === undefined) {
         if (m === undefined) return u;                       // random() -> float in [0,1)
         return Math.floor(u * m);                            // random(m) -> 0..m-1, damage roll included
@@ -740,7 +806,7 @@ function makeArm(spec) {
   const chance = (num, den) => {
     if (spec.middle) {
       const cat = (MID_CAT === 'dmg') ? 'crit' : MID_CAT;
-      return midDraw(cat === 'any' ? 'any' : cat) < (num / den);
+      return midDraw(cat === 'any' ? 'any' : cat, this) < (num / den);
     }
     return random(den) < num;
   };
@@ -952,37 +1018,28 @@ function armClaims(a) {
    * to flake is a tolerance too wide to catch a broken stream, so it is +/- 5 points on 4,000 draws,
    * which a correct LCG clears by a wide margin and a constant fails immediately. */
   if (a.middle) {
-    const fresh = () => ({ sd: M.rngStreams({ seed: a.middleSeed }), me: M.rngStreams({ seed: a.middleSeed }) });
-    P('BOTH ENGINES DRAW THE SAME SEQUENCE — the claim every other one rests on', () => {
-      const { sd, me } = fresh();
-      for (const c of ['acc', 'crit', 'sec', 'dmg', 'stall']) {
-        for (let i = 0; i < 200; i++) if (sd[c]() !== me[c]()) return false;
-      }
-      return true;
-    });
-    P('the five categories are INDEPENDENT — a shared stream would make them identical', () => {
-      const { sd } = fresh();
-      const first = ['acc', 'crit', 'sec', 'dmg', 'stall'].map(c => sd[c]());
-      return new Set(first).size === first.length;
-    });
+    /* THESE CLAIMS TEST THE HASH, NOT THE SEQUENCES. The arm stopped using rngStreams when the
+     * sequence design was refuted; claims that went on testing rngStreams would pass while asserting
+     * nothing about what the arm actually does -- a green check on a component nobody calls. */
+    P("SAME CONTEXT, SAME VALUE -- the claim every other one rests on",
+      () => { midClearNth(); const x = midValue("a|b|c|0"); return midValue("a|b|c|0") === x; });
+    P("a different context gives a different value",
+      () => midValue("turn1|acc|tackle|0") !== midValue("turn2|acc|tackle|0"));
+    P("the nth index separates repeats -- 6 of 20 authority draws share a context without it",
+      () => { midClearNth();
+              const a1 = midCtx([1, "acc", "rockslide"]), a2 = midCtx([1, "acc", "rockslide"]);
+              return a1 !== a2 && midValue(a1) !== midValue(a2); });
+    P("every value lands inside [0,1)",
+      () => { for (let i = 0; i < 2000; i++) { const v = midValue("x" + i); if (!(v >= 0 && v < 1)) return false; } return true; });
+    P("the hash is UNIFORM enough to price a 90-accuracy move  [2,000 contexts, +/- 5 points]",
+      () => { let hit = 0; for (let i = 0; i < 2000; i++) if (midValue("acc|" + i) < 0.9) hit++;
+              return Math.abs(hit / 2000 - 0.9) < 0.05; });
+    P("and to price a 30% secondary  [2,000 contexts, +/- 5 points]",
+      () => { let n = 0; for (let i = 0; i < 2000; i++) if (midValue("sec|" + i) < 0.3) n++;
+              return Math.abs(n / 2000 - 0.3) < 0.05; });
     P('a certainty is still a certainty: 100 accuracy always hits, 0 never does',
       () => { for (let i = 0; i < 500; i++) { if (a.chance(100, 100) !== true) return false;
                                              if (a.chance(0, 100) !== false) return false; } return true; });
-    P('the die VARIES and stays inside [0,1) — a constant would fail both halves', () => {
-      const { sd } = fresh(); const xs = [];
-      for (let i = 0; i < 500; i++) xs.push(sd.acc());
-      return new Set(xs).size > 400 && xs.every(x => x >= 0 && x < 1);
-    });
-    P('a 90-accuracy move lands near 90% over 4,000 draws  [this seed, +/- 5 points]', () => {
-      const { sd } = fresh(); let hit = 0;
-      for (let i = 0; i < 4000; i++) if (sd.acc() < 0.9) hit++;
-      return Math.abs(hit / 4000 - 0.9) < 0.05;
-    });
-    P('a 30% secondary fires near 30% over 4,000 draws  [this seed, +/- 5 points]', () => {
-      const { sd } = fresh(); let n = 0;
-      for (let i = 0; i < 4000; i++) if (sd.sec() < 0.3) n++;
-      return Math.abs(n / 4000 - 0.3) < 0.05;
-    });
     P('the category wrapper ATTACHED — an unattached one silently buckets every roll as ANY',
       () => MID_WRAP_ERROR === null);
     return C;
@@ -5720,7 +5777,11 @@ if (WRITE) {
 const DUMP_POOL = (() => {
   const byArm = (ARM_RUNS || []).map(a => ({
     arm: (a.arm && a.arm.id) || a.id || '?',
-    rows: (a.results || []).filter(r => r.div),
+    /* A VOID GAME MUST NEVER REACH THE DUMP. Its divergence is the instrument's streams parting,
+     * not the engine, and a reader cannot tell the two apart by looking - which is precisely how an
+     * instrument that manufactures defects wastes a human's evening. The middle arm marks them; every
+     * other arm has a constant die and cannot desynchronise, so the void mark is undefined there. */
+    rows: (a.results || []).filter(r => r.div && !r._mid_void),
   })).filter(x => x.rows.length);
   if (!byArm.length) return diverged.map(r => ({ arm: (ARM && ARM.id) || 'primary', r }));
   const out = [];

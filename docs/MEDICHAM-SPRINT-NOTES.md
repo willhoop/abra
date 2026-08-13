@@ -21,6 +21,60 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #264 — A PRINTED-100 MOVE CAN MISS (IT ALREADY DID); THE DRAW IS WHAT WAS WRONG. 2026-08-13 (ENGINE).
+
+**Census 565 -> 567 live / 0 missing.** Two probes, four deliberate breaks shown RED against the
+shipped code.
+
+**HALF THE ROW WAS ALREADY TRUE, AND MEASURING FIRST IS THE ONLY REASON A FIX WAS NOT WRITTEN FOR IT.**
+Will: *"even if a move is 100 accuracy it could still miss due to evasion, bright powder, sand veil,
+etc"*. Right about the game, not about this engine — `hitChance` has always returned the FINAL accuracy
+and the roll sites have always gated on that number, never on the printed one:
+
+| arm | authority (400 real battles) | this engine (300 seeded games) |
+|---|---|---|
+| Ice Beam (printed 100), +0 evasion | 0.0% miss | 0.0% |
+| into +2 evasion (100 x 3/5 = 60) | 38.8% | 38.3% |
+| into a Bright Powder holder (x0.9 = 90) | 10.3% | 9.7% |
+| Aerial Ace (`accuracy: true`), either | 0.0% | 0.0% |
+
+What was absent was the PROBE, which is what the row actually said. Three arms because the stage route
+(`accStageMul`) and the item route (an `ACCMOD` row) are different code; a RATE rather than a pinned
+roll because 0.99 loses against 60 and against 99 alike.
+
+**THE REAL DEFECT WAS THE DRAW, WRONG IN BOTH DIRECTIONS.** `hitStepAccuracy` draws for every accuracy
+that is not literally `true` — counted by wrapping the method: 1 draw at 100, at 133 (Coil), at 110
+(Wide Lens), at 60, at 90; 0 for `accuracy: true` and for No Guard. The attack and stat-change sites
+gated on `acc < 100` and stopped drawing after a Coil or a Wide Lens; the two STATUS sites drew
+unconditionally, including on the Infinity a Poison-type's Toxic and a Lock-On produce.
+`accMustRoll(acc)` is now one answer for all four and it is `isFinite(acc)`.
+
+**THE AMENDMENT'S CHEAP PREDICATE WAS BUILT AND IS A MEASURED REGRESSION.** Middle-arm VOID out of 171:
+`acc < 100` **131**, the predicate **133** (worse than doing nothing — it took draws away from the
+status sites), the authority's rule **100**; usable games 40 -> 71.
+
+**AND THE SPEED PREMISE DOES NOT SURVIVE MEASUREMENT.** The skip never avoided the pipeline: `hitChance`
+runs unconditionally at every roll site and always did, and the guard sat underneath it saving one LCG
+step against a ~270-microsecond turn. Three interleaved rounds of 6,000 turns — pre-#264
+1635/1627/1676 ms, predicate 1602/1664/1696, shipped 1638/1640/1692 — put the variants inside each
+other's round-to-round spread.
+
+**THE PROBE WAS WRONG BEFORE THE ENGINE WAS.** The cannot-miss control was Swift, and `MC.moves.swift`
+is `undefined`, so `playerAction` returned a pass and the arm read 100% "miss" on a turn where nothing
+was clicked. Aerial Ace now, with a third arm asserting the control LANDS.
+
+**WHAT DID NOT MOVE, AND IT IS THE INSTRUMENT'S REACH RATHER THAN THE ENGINE'S.** Two frozen releases
+differing in exactly one file (`bdf8caedee59` -> `cbb3e287ac8d`, manifest-compared, 25 files each), 200
+games: top-tie-first 53/171 and bottom-tie-first 59/171, identical before and after — the corner pins
+force the accuracy die to a constant. `test-engine-diff.js --n 6000`: 0/6000, both corners.
+
+**REPORTED, NOT EDITED:** `engine/game_differential.js` PIN_CLAIMS say *"a 100-accuracy move HITS"*
+while asserting `chance(100, 100)` — a claim about a FINAL accuracy of 100, not a printed one. Nothing
+is mis-asserted; the wording invites the reading this row was filed on, and the bracketed
+`[medicham2 skips the check at acc >= 100]` is now stale. MEASURE owns the file.
+
+---
+
 ## ROADMAP #254 — HAZARDS LANDED ON THE LAYER. THE FIT IS BIT-IDENTICAL; THE LIVE BOT WAS INVERTED. 2026-08-13 (MEASURE).
 
 Full account in `docs/MEASURE.md`. **No refit was run and no weight file was restamped.**
@@ -8014,3 +8068,52 @@ counts happened to match, which selects for the short and simple ones.
 **And the general lesson is the one the arm was built to serve.** An instrument that cannot tell its own
 failure apart from the engine's will report the engine as broken. This one can, and the first thing it
 did with that ability was say so.
+
+### SEQUENCES WERE THE WRONG OBJECT, AND THE SECOND FAILURE WAS INVISIBLE TO THE CHECK THAT CAUGHT THE FIRST. 2026-08-13
+
+The middle arm's shared-sequence design failed twice. Both measured, and the pair is the interesting
+part — the instrument caught its own coarse failure and then hid a finer one of the same kind.
+
+| | what differed | how it was caught |
+|---|---|---|
+| COARSE | draw COUNTS — `acc sd=11 me=2`, `sec sd=12 me=0` | the void check. 131 of 171 games |
+| FINE | the OFFSET, with counts matching | **nothing** — it took reading what the survivors diverged ON |
+
+The fine one: of the 40 surviving games, **29 diverged on a damage NUMBER** — while
+`test-engine-diff --n 6000` reports **0 disagreements on damage in both corners**. The engines
+agree about damage. What differed was the ROLL. **Our driver evaluates candidate moves before choosing
+one, and every speculative damage call consumes from the `dmg` sequence.** The authority never
+speculates, so it makes no matching draw — and two sequences can hold the same COUNT while sitting at
+different OFFSETS. A count check cannot see that by construction.
+
+**PUBLISHING THOSE 40 WOULD HAVE HANDED WILL 29 CARDS THAT LOOK LIKE ENGINE DEFECTS AND ARE NOT.** He
+asked whether the arm was ready for review; it was not, and the reason was findable only by asking what
+the survivors had in common rather than how many there were.
+
+**THE FIX IS NOT A BETTER SEQUENCE.** The die is now a pure function of what is being rolled for:
+
+    value = hash(turn, category, move id, attacker slot, target slot, nth) -> [0,1)
+
+A speculative evaluation and a real one become different QUESTIONS with different answers, and neither
+consumes anything the other needed. There is no offset to drift.
+
+**THE `nth` IS NOT OPTIONAL AND IT IS THE SHARPEST REMAINING RISK.** Measured on the authority
+over three messy turns: **6 of 20 draws shared an otherwise-identical context**, worst case 2 — a
+multi-hit move rolls accuracy per hit. Both engines must count repeats the same way. That is a harder
+promise than the context itself and it is asserted rather than assumed.
+
+**Showdown's half needed no call-site change**: the override runs as a battle method, so the turn, the
+active move and the active target are already in scope. Measured over three messy turns, **19 of 20
+draws had a move in scope**, and the one that did not had no event id either — a single unnameable
+draw rather than a class of them.
+
+**AND THE STALE CLAIMS WENT WITH THE DESIGN.** Five pin claims still tested the `rngStreams`
+sequences the arm no longer uses — green checks on a component nobody calls, which is the failure this
+file would name in anyone else. Replaced by six that test the hash, all passing: same context same
+value, different context different value, `nth` separates repeats, every value inside [0,1),
+and the distribution prices a 90-accuracy move and a 30% secondary within 5 points over 2,000 contexts.
+
+**The divergence count from the current tree is meaningless and is not quoted anywhere**: the authority
+is on hashes and medicham2 is still on sequences. Our half needs a `CURRENT_EVENT` in
+`medicham2-browser.js` — one write per action, not 49 call-site edits — and that file has a
+live ENGINE agent in it.
