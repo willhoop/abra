@@ -90,6 +90,34 @@ function rowsFor() {
     add('condition', mv.id, mv.name, mv.condition,
         mv.weather ? 'Weather' : mv.terrain ? 'Terrain' : 'Condition');
   }
+  /* WEATHER AND TERRAIN ARE NOT REACHED THROUGH `move.condition`, AND THE FIRST VERSION OF THIS TABLE
+   * MISSED THEM — found within minutes of using it, because five of our residual chunks looked up
+   * `sandstorm`, `icebody`, `raindish` and came back NOT FOUND.
+   *
+   * A move that sets weather carries `weather: 'sandstorm'` and its behaviour lives in a STANDALONE
+   * condition of that name; `mv.condition` is undefined. The sandstorm chip is
+   * `sandstorm.onFieldResidual -> this.eachEvent('Weather')`, which is the single largest end-of-turn
+   * damage source in this format and was absent from a table published as the authority on end-of-turn
+   * order. The ids are collected FROM THE MOVES rather than listed, so a regulation that adds a
+   * weather arrives without an edit here. */
+  const fieldIds = new Set();
+  for (const mv of DEX.moves.all()) {
+    if (!mv.exists || mv.isNonstandard) continue;
+    if (mv.weather) fieldIds.add(String(mv.weather).toLowerCase().replace(/[^a-z0-9]/g, ''));
+    if (mv.terrain) fieldIds.add(String(mv.terrain).toLowerCase().replace(/[^a-z0-9]/g, ''));
+    if (mv.pseudoWeather) fieldIds.add(String(mv.pseudoWeather).toLowerCase().replace(/[^a-z0-9]/g, ''));
+  }
+  /* abilities set weather too, and an ability-only weather would otherwise be invisible */
+  for (const a of DEX.abilities.all()) {
+    if (!a.exists || a.isNonstandard) continue;
+    const m = /setWeather\(\s*['"]([a-z]+)['"]/.exec(String(a.onStart || '') + String(a.onSwitchIn || ''));
+    if (m) fieldIds.add(m[1]);
+  }
+  for (const id of fieldIds) {
+    const c = DEX.conditions.get(id);
+    if (c && c.exists) add('field', id, c.name || id, c,
+                           c.effectType === 'Terrain' ? 'Terrain' : c.effectType === 'Weather' ? 'Weather' : 'Condition');
+  }
   /* The statuses carry the two biggest residuals in the format and are not reachable through a move's
    * `condition`, so they are asked for by name — the ONE hand-written list here, and it is a list of
    * status ids rather than of behaviours, so it cannot drift into a claim about what they do. */
@@ -97,7 +125,11 @@ function rowsFor() {
     const c = DEX.conditions.get(id);
     if (c && c.exists) add('status', id, c.name || id, c, 'Condition');
   }
-  return rows;
+  /* A DUPLICATE HERE WOULD DOUBLE-COUNT AN EFFECT IN THE WALK THE RESTRUCTURE DRIVES, so the four
+   * namespaces are merged on (ns,id) and a collision is reported rather than silently kept. */
+  const seenKey = new Set();
+  return rows.filter(r => { const k = r.ns + ':' + r.id;
+                            if (seenKey.has(k)) return false; seenKey.add(k); return true; });
 }
 
 /* THE AUTHORITY'S KEY, minus the two terms this table cannot carry. `speed` and `effectOrder` belong

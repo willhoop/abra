@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-13T01:06:29.437Z",
+  "generated": "2026-08-13T01:16:22.700Z",
   "by": "engine/residual_order.js",
   "format": "gen9championsvgc2026regmb",
   "what": "Every effect in this format carrying a residual handler, with the authority's own onResidualOrder and subOrder. The table ROADMAP #221's restructure consumes.",
@@ -17,6 +17,90 @@
   },
   "rows": [
     {
+      "ns": "field",
+      "id": "deltastream",
+      "name": "DeltaStream",
+      "hook": "onFieldResidual",
+      "effectType": "Weather",
+      "order": 1,
+      "subOrder": 5,
+      "subOrderSource": "default for effectType Weather",
+      "expiresInWalk": false,
+      "duration": 0
+    },
+    {
+      "ns": "field",
+      "id": "desolateland",
+      "name": "DesolateLand",
+      "hook": "onFieldResidual",
+      "effectType": "Weather",
+      "order": 1,
+      "subOrder": 5,
+      "subOrderSource": "default for effectType Weather",
+      "expiresInWalk": false,
+      "duration": 0
+    },
+    {
+      "ns": "field",
+      "id": "primordialsea",
+      "name": "PrimordialSea",
+      "hook": "onFieldResidual",
+      "effectType": "Weather",
+      "order": 1,
+      "subOrder": 5,
+      "subOrderSource": "default for effectType Weather",
+      "expiresInWalk": false,
+      "duration": 0
+    },
+    {
+      "ns": "field",
+      "id": "raindance",
+      "name": "RainDance",
+      "hook": "onFieldResidual",
+      "effectType": "Weather",
+      "order": 1,
+      "subOrder": 5,
+      "subOrderSource": "default for effectType Weather",
+      "expiresInWalk": true,
+      "duration": 5
+    },
+    {
+      "ns": "field",
+      "id": "sandstorm",
+      "name": "Sandstorm",
+      "hook": "onFieldResidual",
+      "effectType": "Weather",
+      "order": 1,
+      "subOrder": 5,
+      "subOrderSource": "default for effectType Weather",
+      "expiresInWalk": true,
+      "duration": 5
+    },
+    {
+      "ns": "field",
+      "id": "snowscape",
+      "name": "Snowscape",
+      "hook": "onFieldResidual",
+      "effectType": "Weather",
+      "order": 1,
+      "subOrder": 5,
+      "subOrderSource": "default for effectType Weather",
+      "expiresInWalk": true,
+      "duration": 5
+    },
+    {
+      "ns": "field",
+      "id": "sunnyday",
+      "name": "SunnyDay",
+      "hook": "onFieldResidual",
+      "effectType": "Weather",
+      "order": 1,
+      "subOrder": 5,
+      "subOrderSource": "default for effectType Weather",
+      "expiresInWalk": true,
+      "duration": 5
+    },
+    {
       "ns": "condition",
       "id": "wish",
       "name": "Wish",
@@ -30,6 +114,18 @@
     },
     {
       "ns": "condition",
+      "id": "grassyterrain",
+      "name": "Grassy Terrain",
+      "hook": "onResidual",
+      "effectType": "Terrain",
+      "order": 5,
+      "subOrder": 2,
+      "subOrderSource": "declared",
+      "expiresInWalk": true,
+      "duration": 5
+    },
+    {
+      "ns": "field",
       "id": "grassyterrain",
       "name": "Grassy Terrain",
       "hook": "onResidual",

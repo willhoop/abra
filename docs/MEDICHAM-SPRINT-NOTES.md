@@ -6785,3 +6785,42 @@ against Shed Skin by category when the authority sorts them by who is faster.
 
 Published on its own, ahead of the loop change, so a wrong result can be attributed to the loop or to
 the table but never to both at once.
+
+### THE ORDER TABLE WAS INCOMPLETE, AND USING IT IS WHAT FOUND THAT — WITHIN MINUTES
+
+The first cut walked abilities, items and `move.condition`. **Weather and terrain are reached through
+`move.weather` / `move.terrain`, not `move.condition`**, so a standalone condition of that name was
+never seen. Five of our residual chunks looked themselves up and came back NOT FOUND, including the
+sandstorm chip — **the largest single end-of-turn damage source in the format, absent from a table
+published as the authority on end-of-turn order.** The ids are now collected FROM THE MOVES (and from
+any ability that calls `setWeather`), so a regulation that adds a weather arrives without an edit.
+
+33 effects to **41**. And the correction is not cosmetic: **the weathers are order 1** — the first
+thing in the entire residual. This engine runs the sandstorm chip SIXTH, after White Herb, Speed Boost,
+Moody and the forme cycles.
+
+### HOW FAR OUT THE RESIDUAL SEQUENCE ACTUALLY IS
+
+Thirteen of our chunks map to an effect in the table. Against the authority's order, **43 of the 78
+ordered pairs are inverted — 55%.** The sequence is not slightly out, it is close to scrambled.
+
+Three that decide games rather than wording:
+
+- **Leftovers is order 5 and the burn chip is order 10.** We heal AFTER the chip. Whether a body at low
+  HP survives the turn depends on which way round those two go.
+- **White Herb is order 29, the last thing in the walk.** We run it SECOND.
+- **Speed Boost and Moody are order 28.** We run them third and fourth, so a Speed Boost is applied
+  before the chips that might faint the body it is boosting.
+
+**THE CORRECT SEQUENCE, derived:** weather(1) -> Shed Skin/Hydration, Grassy Terrain, Leftovers(5) ->
+Aqua Ring(6) -> Ingrain(7) -> Leech Seed(8) -> psn/tox(9) -> brn(10) -> Curse(12) -> trap and Salt
+Cure(13) -> Encore(16) -> Perish Song(24) -> Speed Boost/Moody(28) -> White Herb and the forme
+cycles(29).
+
+And it is a GROUPING as much as a sequence: each order runs across BOTH sides, speed-sorted, before the
+next begins. A body-major loop cannot express that whatever order its chunks are in.
+
+Five chunks still map to nothing — the pinch berries, Poison Heal, and the weather-fed ability heals
+(Ice Body, Rain Dish, Dry Skin). Those are driven by `eachEvent('Weather')` INSIDE the weather's own
+residual rather than by an `onResidual` of their own, so they belong at order 1 with the weather. Named
+here rather than left as a silent gap in the mapping.
