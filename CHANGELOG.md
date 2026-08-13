@@ -13,6 +13,43 @@ silently rewritten; what changed and why is stated.
 ## [5.15.0] — 2026-08-13
 
 ### Fixed
+- **A PRINTED-100 MOVE TOOK NO ACCURACY DRAW, SO THE `acc` STREAM WALKED OFF THE AUTHORITY'S
+  (ROADMAP #264).** Will: *"even if a move is 100 accuracy it could still miss due to evasion, bright
+  powder, sand veil, etc"*, then *"we gotta roll anyway"*. **Half the row was already true and
+  measuring first is what stopped a fix for a bug that was not there**: `hitChance` has always
+  returned the FINAL accuracy and the roll sites have always gated on it, so a printed-100 Ice Beam
+  into a +2 evasion body missed **38.3%** here against the authority's **38.8%** over 400 real
+  battles, and into a Bright Powder holder **9.7%** against **10.3%**. What was absent was the probe.
+  - **THE REAL DEFECT WAS THE DRAW, AND IT WAS WRONG IN BOTH DIRECTIONS.** `hitStepAccuracy` ends in
+    `if (accuracy !== true && !randomChance(accuracy, 100))`, so the authority draws for EVERY
+    accuracy that is not literally `true` — counted, by wrapping the method and counting `prng.random`
+    inside it: 1 draw at 100, at 133 (a Coil), at 110 (a Wide Lens), at 60 and at 90; **0** for
+    `accuracy: true` and for No Guard. This engine gated the attack and stat-change sites on
+    `acc < 100` (so a Coil or a Wide Lens stopped drawing) and rolled UNCONDITIONALLY at the two
+    status sites (so a Poison-type's Toxic and a Lock-On drew where the authority does not).
+    `accMustRoll(acc)` is now one answer for all four sites and it is `isFinite(acc)`.
+  - **THE CHEAP-PREDICATE VERSION WAS BUILT, MEASURED AND THROWN AWAY.** "Skip the draw when nothing
+    could have moved the accuracy off 100" is a measured REGRESSION: middle-arm VOID (per-category
+    draw counts differ) **131/171 before, 133 with the predicate — worse than doing nothing — and
+    100 with the authority's rule**; usable games **40 -> 71**. It is worse because the status sites
+    already drew and the predicate took those draws away.
+  - **AND THE SPEED PREMISE DOES NOT SURVIVE MEASUREMENT.** The skip never avoided the pipeline —
+    `hitChance` (the artifact read, No Guard, Lock-On, the Toxic exemption, the OHKO tag, the stage
+    arithmetic, Gravity, the att/def x ability/item walk) runs unconditionally at every roll site and
+    always did; the guard sat underneath it, saving one LCG step against a ~270-microsecond turn.
+    Three interleaved rounds of 6,000 scripted turns: pre-#264 1635/1627/1676 ms, predicate
+    1602/1664/1696, shipped 1638/1640/1692 — the within-variant spread exceeds the between-variant
+    spread and a different variant is fastest each round.
+  - **Census 565 -> 567 live / 0 missing**, 0 hollow, 0 unarmed, 0 direct-call. Four deliberate
+    breaks shown RED first. `tests/test-engine-diff.js --n 6000`: 0/6000 disagree, both corners.
+  - **The corner arms cannot see this, and that is now measured rather than suspected.** Two frozen
+    releases differing in **exactly one file** (`bdf8caedee59` -> `cbb3e287ac8d`), 200 games:
+    top-tie-first 53/171 and bottom-tie-first 59/171, **identical before and after** — the pins force
+    the accuracy die to a constant, so an extra draw from it is not observable.
+  - **`engine/game_differential.js` needs a re-wording and did not get one here** (MEASURE owns it):
+    its PIN_CLAIMS say *"a 100-accuracy move HITS"* while asserting `chance(100, 100)`, which is a
+    claim about a FINAL accuracy of 100, not a printed one. Nothing is mis-asserted; the sentence
+    invites the reading this row was filed on.
 - **EVERY HAZARD LANDED ON THE SIDE THAT LAID IT IN THE OFFLINE BOARD, AND THE FIT DID NOT MOVE —
   THE LIVE BOT DID (ROADMAP #254).** `engine/board.js` recorded every side condition on the MOVER's
   side. Derived from `Dex.forFormat` and filtered to legal — never a list of names — **11

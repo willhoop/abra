@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-13T19:46:12.169Z",
+  "generated": "2026-08-13T21:07:08.216Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 565,
-  "live": 565,
+  "probed": 567,
+  "live": 567,
   "missing": 0,
-  "armed": 565,
+  "armed": 567,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -216,7 +216,7 @@
       "tag": "flinches",
       "label": "a secondary flinch fires at ITS OWN probability, not only at p=1",
       "live": true,
-      "detail": "over 4000 seeded turns each, the foe's own Knock Off is the receipt — Knock Off at the user 0.0% (no flinch on the move, must be 0), Fake Out 100.0% (must be 100), Rock Slide 26.6% (0.3 x 90% acc = 27), Iron Head 20.6% (this format's 0.2 x 100% = 20); and Rock Slide with the ATTACKER MOVING SECOND 0.0% (must be 0 — a flinch cannot reach a body that has already acted)",
+      "detail": "over 4000 seeded turns each, the foe's own Knock Off is the receipt — Knock Off at the user 0.0% (no flinch on the move, must be 0), Fake Out 100.0% (must be 100), Rock Slide 26.2% (0.3 x 90% acc = 27), Iron Head 19.4% (this format's 0.2 x 100% = 20); and Rock Slide with the ATTACKER MOVING SECOND 0.0% (must be 0 — a flinch cannot reach a body that has already acted)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -236,7 +236,7 @@
       "tag": "boostsOnFlinch",
       "label": "Steadfast is PAID +1 Speed by every flinch that lands, and by nothing else",
       "live": true,
-      "detail": "Iron Head (this format's 0.2 flinch) at a Machamp over 2000 seeded turns each, the foe's own Knock Off the receipt for the flinch — no ability: flinched 404, Speed raised 0 (must be 0); STEADFAST: flinched 404 (20.2%, declared 20), Speed raised 404 — EQUAL is the claim, so the boost is bound to the event and not to the click; Inner Focus: flinched 0 (must be 0 — it refuses), Speed raised 0 (must be 0 — a refusal is paid nothing); STEADFAST ON A SLEEPING BODY: Speed raised 0 (must be 0 — sleep runs at beforeMove priority 10 against the flinch's 8, so the flinch handler never runs); MEDSEEN.flinchTooLate over the control and test arms 0/0 (must be 0/0 — the attacker holds the turn, so no flinch arrived at a body that had already acted)",
+      "detail": "Iron Head (this format's 0.2 flinch) at a Machamp over 2000 seeded turns each, the foe's own Knock Off the receipt for the flinch — no ability: flinched 378, Speed raised 0 (must be 0); STEADFAST: flinched 378 (18.9%, declared 20), Speed raised 378 — EQUAL is the claim, so the boost is bound to the event and not to the click; Inner Focus: flinched 0 (must be 0 — it refuses), Speed raised 0 (must be 0 — a refusal is paid nothing); STEADFAST ON A SLEEPING BODY: Speed raised 0 (must be 0 — sleep runs at beforeMove priority 10 against the flinch's 8, so the flinch handler never runs); MEDSEEN.flinchTooLate over the control and test arms 0/0 (must be 0/0 — the attacker holds the turn, so no flinch arrived at a body that had already acted)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2896,7 +2896,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2996,7 +2996,7 @@
       "tag": "fractionalPriority",
       "label": "Quick Draw jumps the bracket on its 30%, and never on a Status click",
       "live": true,
-      "detail": "damage the slow holder took before acting -- draw wins the roll 0 (it KOd first: true), draw loses the roll 87, no ability 79; Status click (excludesStatus) ability 106 hp vs control 106 hp -- equal means the roll was refused, 91 would mean the param was ignored",
+      "detail": "damage the slow holder took before acting -- draw wins the roll 0 (it KOd first: true), draw loses the roll 87, no ability 87; Status click (excludesStatus) ability 98 hp vs control 98 hp -- equal means the roll was refused, 91 would mean the param was ignored",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3257,6 +3257,26 @@
       "label": "No Guard makes an 80% move land on a losing roll, in BOTH directions",
       "live": true,
       "detail": "Hydro Pump (80) at roll 0.99 — neither side 0; No Guard on the ATTACKER 120; No Guard on the TARGET 120",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "accuracyMod",
+      "label": "a PRINTED-100 move misses at the evasion-stage rate and at the Bright Powder rate — and a cannot-miss move misses at neither",
+      "live": true,
+      "detail": "Ice Beam (printed 100) miss rate over 300 seeded games — plain 0% (authority 0.0), into +2 evasion 38.3% (authority 39.8, expected 40), into a Bright Powder holder 9.7% (authority 10.0, expected 10). CONTROL, Aerial Ace (accuracy true, and it lands: 0% miss on a plain body): +2 evasion 0%, Bright Powder 0% (authority 0.0 for all three)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "accuracyMod",
+      "label": "the accuracy DRAW happens exactly where the authority draws — a modifier that lands above 100 still costs a roll, and `accuracy: true` still costs none",
+      "live": true,
+      "detail": "acc-stream draws for one Ice Beam — plain 1, attacker +1 accuracy 1, attacker Wide Lens 1, target +2 evasion 1, target Bright Powder 1 (the authority draws exactly 1 for every one of these, counted inside a wrapped hitStepAccuracy). CONTROL: Aerial Ace 0, attacker No Guard 0 (the authority draws 0 for both — an engine that simply always drew would fail here)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4806,7 +4826,7 @@
       "tag": "formatSecondaryCount",
       "label": "a secondary THIS FORMAT REMOVED never rolls",
       "live": true,
-      "detail": "Freeze-Dry froze on 0% of 600 real turns (Champions deletes its secondary outright; must be 0) and the refusal fired 600 times, so it is a refusal and not a mechanic that quietly went missing. CONTROL, same body, same seeds, same Ice special attack: Ice Beam 10.7% (the format keeps its 10% freeze). Before the wire both arms read 11.2%",
+      "detail": "Freeze-Dry froze on 0% of 600 real turns (Champions deletes its secondary outright; must be 0) and the refusal fired 600 times, so it is a refusal and not a mechanic that quietly went missing. CONTROL, same body, same seeds, same Ice special attack: Ice Beam 7.7% (the format keeps its 10% freeze). Before the wire both arms read 11.2%",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4816,7 +4836,7 @@
       "tag": "statChange",
       "label": "a secondary boost on the USER is priced by the FORMAT, not by gen 9",
       "live": true,
-      "detail": "Fiery Dance raises the USER's Special Attack on 50.2% of 600 real turns at the artifact's own 50% (100 accuracy, so no miss is hiding in this). Driven to 0 in data/tags.json it reads 0%, driven to 100 it reads 100% — so the number the engine rolls is the FORMAT's and not data/move-effects.js's. The rulebook says 50 in all three arms, which is why an outcome comparison could not have told them apart; with the branch disabled the three arms read 50 / 50 / 50",
+      "detail": "Fiery Dance raises the USER's Special Attack on 45.3% of 600 real turns at the artifact's own 50% (100 accuracy, so no miss is hiding in this). Driven to 0 in data/tags.json it reads 0%, driven to 100 it reads 100% — so the number the engine rolls is the FORMAT's and not data/move-effects.js's. The rulebook says 50 in all three arms, which is why an outcome comparison could not have told them apart; with the branch disabled the three arms read 50 / 50 / 50",
       "hollow": false,
       "armed": true,
       "directCall": false

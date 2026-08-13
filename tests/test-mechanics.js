@@ -419,7 +419,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * spends up to three real turns through `battleTurn`, and it has to: the whole mechanic is a fact
  * carried ACROSS a turn boundary -- what the body CONSUMED on an earlier turn -- and the berry that
  * creates that fact fires at the residual, so nothing below the turn loop can see either end of it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bMISSRATE\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -10143,12 +10143,18 @@ probe('move', 'partialTrap', 'a partial trap holds a voluntary switch, and Ghost
  * arm so that the varied knob is the accuracy layer rather than the attacker. A probe that swapped
  * species between arms would be WIRE 124's sibling — see the `weightBased` and `needsUntrackedState`
  * corrections above, both of which compared two different Pokemon and called the difference a result. */
+/* ROADMAP #264 -- `roll` MAY NOW BE A STREAM AS WELL AS A CONSTANT, and the reason is a limit of the
+ * constant that only shows up when you ask about a RATE. A pinned roll answers "does this to-hit test
+ * happen at all" and cannot tell 60% from 99% -- both miss at 0.99 and both land at 0.50. The evasion
+ * question is a rate question ("a printed-100 move into a +2 body is a 60% move"), so it needs a real
+ * die. Anything that is not a number is handed to battleTurn untouched, which is how a caller passes
+ * `M.rngStreams({seed})` and gets the five split dice. */
 const hitOnRoll = (sps, roll, moveId, opt) => {
   const o = opt || {};
   const B = board(sps[0], sps[1], sps[2], sps[3]);
   unfaintable(B.f1);
   if (o.stage) o.stage(B);
-  const rng = () => roll;
+  const rng = (typeof roll === 'number') ? () => roll : roll;
   const mine = (mv) => new Map([[B.me, mv ? M.playerAction(B.me, mv, B.f1, B.S.field) : { kind: 'pass' }],
                                 [B.ally, { kind: 'pass' }]]);
   const theirs = (mv) => new Map([[B.f1, mv ? M.playerAction(B.f1, mv, B.me, B.S.field) : { kind: 'pass' }],
@@ -10212,6 +10218,164 @@ probe('ability', 'writesAccuracy', 'No Guard makes an 80% move land on a losing 
            arms: { control, test: [attacker, defender] },
            detail: `Hydro Pump (80) at roll 0.99 — neither side ${control}; No Guard on the ATTACKER `
                  + `${attacker}; No Guard on the TARGET ${defender}` };
+});
+
+/* ==================================================================================================
+ * ROADMAP #264 — A PRINTED-100 MOVE CAN MISS, AND THE PROOF HAS TO BE A RATE
+ * ==================================================================================================
+ *
+ * Will, 2026-08-13: *"even if a move is 100 accuracy it could still miss due to evasion, bright
+ * powder, sand veil, etc"*.
+ *
+ * THE AUTHORITY KEEPS TWO THINGS APART AND IT IS EASY TO COLLAPSE THEM. `move.accuracy === true`
+ * means CANNOT MISS and `hitStepAccuracy` skips the step outright; `move.accuracy === 100` means
+ * ROLLS AT 100 **before** the ModifyAccuracy event, the accuracy stage and the evasion stage. So a
+ * printed-100 move into a +2 evasion body is a 60% move, and a decision to skip the roll may only
+ * ever be taken on the FINAL number.
+ *
+ * MEASURED ON THE OFFICIAL SIMULATOR FIRST, on THESE bodies and THESE moves, 400 real battles per
+ * arm, counting `|-miss|`. `dex.moves.get('icebeam').accuracy` is 100 and
+ * `dex.moves.get('aerialace').accuracy` is `true` — read from the format, not recalled:
+ *
+ *     Ice Beam (printed 100) into +0 evasion         0.0%   miss
+ *     Ice Beam into a +2 evasion body               39.8%   (100 x 3/5 = 60 -> 40% expected)
+ *     Ice Beam into a Bright Powder holder          10.0%   (100 x 0.9 = 90 -> 10% expected)
+ *     Aerial Ace (accuracy `true`) into +0           0.0%
+ *     Aerial Ace into a +2 evasion body              0.0%
+ *     Aerial Ace into a Bright Powder holder         0.0%
+ *
+ * THE CONTROL MOVE IS AERIAL ACE AND NOT SWIFT, AND THE FIRST DRAFT WAS SWIFT. `MC.moves.swift` is
+ * `undefined` — this engine's move table does not carry it — so `playerAction` returned
+ * `{kind:'pass'}` and the control arm read 100% "miss" on a turn where NOTHING WAS CLICKED. That is
+ * a probe reporting a broken engine because the probe staged nothing, which is the failure
+ * docs/LESSONS.md §5 records about twenty-five times. Aerial Ace is in the table, is already this
+ * file's `neverMisses` control, and the authority says its accuracy is `true`.
+ *
+ * THREE ARMS, AND TWO CANNOT DO THE JOB. The +0 arm alone cannot tell a working evasion layer from
+ * an engine that never misses; the +2 arm alone cannot tell the STAGE arithmetic from the ITEM
+ * modifier, because they arrive through completely different code (`accStageMul` on the boost versus
+ * an ACCMOD row on the held item) and an engine can have either one and not the other. The Bright
+ * Powder arm is therefore load-bearing rather than a garnish.
+ *
+ * AND WHY A RATE RATHER THAN A PINNED ROLL. Every other accuracy probe above pins one roll, which
+ * answers "did a to-hit test happen" and nothing more: 0.99 loses against 60 and against 99 alike.
+ * The claim here is about the SIZE of the effect — that a +2 body is a 60% move and a Bright Powder
+ * body is a 90% one — and only a rate can be wrong about that. It is a fixed seed, so it is a
+ * regression check on THIS seed rather than a claim about randomness; +/- 6 points on 300 games is
+ * over two standard deviations at p = 0.4 and a stage table that priced +2 as a stat boost (5/3
+ * instead of 3/5 -> 100 x 0.6 the wrong way, or 2/1) would fail it immediately. */
+/* `MISSRATE(` is DECLARED IN REALTURN at the top of this file, deliberately and with its reason,
+ * exactly as `hitStream(`, `procStages(` and the rest are. It is a loop over `hitOnRoll`, which is
+ * already declared there and which spends a real `battleTurn` on every iteration — so a probe that
+ * calls it is routed through battleInit/battleTurn 300 times, not once, and the direct-call detector
+ * would otherwise flag it for the shape of its NAME rather than for what it does. */
+const MISSRATE = (stage, moveId) => {
+  const N = 300;
+  let miss = 0;
+  for (let s = 1; s <= N; s++) {
+    /* The five split dice, so the accuracy stream varies independently of the damage roll, the crit
+     * and the secondaries — a shared scalar would make "it missed" and "it rolled low damage" the
+     * same event, which is exactly the coupling ROADMAP #222 took out. */
+    if (hitOnRoll(ACCSPS, M.rngStreams({ seed: s * 7919 }), moveId, { stage }) === 0) miss++;
+  }
+  return Math.round(miss / N * 1000) / 10;
+};
+
+probe('item', 'accuracyMod',
+  'a PRINTED-100 move misses at the evasion-stage rate and at the Bright Powder rate — and a '
+  + 'cannot-miss move misses at neither', () => {
+  const plain  = MISSRATE(null, 'icebeam');
+  const eva2   = MISSRATE((B) => { B.f1.boosts.eva = 2; }, 'icebeam');
+  const powder = MISSRATE((B) => { B.f1.item = 'brightpowder'; }, 'icebeam');
+  /* THE CONTROL IS NOT "a move that hits". It is a move the AUTHORITY declares unrollable
+   * (`accuracy === true`), run through the same two staging arms — because the cheapest wrong way to
+   * pass the three arms above is to make every move rollable, and that would silently turn Swift,
+   * Aerial Ace and every self-targeted status move into things that can miss. */
+  const aceEva    = MISSRATE((B) => { B.f1.boosts.eva = 2; }, 'aerialace');
+  const acePowder = MISSRATE((B) => { B.f1.item = 'brightpowder'; }, 'aerialace');
+  /* AND THE CONTROL MOVE MUST BE SHOWN CAPABLE OF LANDING AT ALL, or "it never missed" is
+   * indistinguishable from "it never happened" — which is exactly how the Swift draft passed
+   * everything except the numbers. A move `playerAction` turns into a pass deals 0 on every seed,
+   * so this arm reads 100% and the probe fails loudly rather than crediting the control. */
+  const acePlain  = MISSRATE(null, 'aerialace');
+  const near = (x, want) => Math.abs(x - want) <= 6;
+  return { works: plain === 0 && near(eva2, 40) && near(powder, 10)
+                  && aceEva === 0 && acePowder === 0 && acePlain === 0,
+           arms: { control: [plain, aceEva, acePowder], test: [eva2, powder] },
+           detail: `Ice Beam (printed 100) miss rate over 300 seeded games — plain ${plain}% `
+                 + `(authority 0.0), into +2 evasion ${eva2}% (authority 39.8, expected 40), into a `
+                 + `Bright Powder holder ${powder}% (authority 10.0, expected 10). CONTROL, Aerial `
+                 + `Ace (accuracy true, and it lands: ${acePlain}% miss on a plain body): +2 evasion `
+                 + `${aceEva}%, Bright Powder ${acePowder}% (authority 0.0 for all three)` };
+});
+
+/* ==================================================================================================
+ * ROADMAP #264, THE OTHER HALF — DOES THE ENGINE **DRAW** WHERE THE AUTHORITY DRAWS
+ * ==================================================================================================
+ *
+ * Will, on being shown the pipeline: **"we gotta roll anyway."**
+ *
+ * The probe above is about the OUTCOME and it cannot see this, because the two engines can agree on
+ * every hit and every miss while consuming a different number of random values — and a differential
+ * that shares a seeded stream then walks off it and MANUFACTURES divergences. `game_differential.js`
+ * counts exactly this and voids the game (`acc sd=11 me=2`).
+ *
+ * THE AUTHORITY'S RULE, COUNTED RATHER THAN READ. `hitStepAccuracy` was wrapped and `prng.random`
+ * counted inside it, one real battle per row, on the same bodies this probe stages:
+ *
+ *     Ice Beam (100) plain                     1 draw
+ *     Ice Beam (100) attacker +1 accuracy      1        (final 133 — it draws anyway)
+ *     Ice Beam (100) attacker Wide Lens        1        (final 110 — it draws anyway)
+ *     Ice Beam (100) target +2 evasion         1
+ *     Ice Beam (100) target Bright Powder      1
+ *     Ice Beam, attacker NO GUARD              0
+ *     Aerial Ace (accuracy `true`)             0
+ *     Aerial Ace into +2 evasion               0
+ *
+ * So: EVERY accuracy that is not literally `true` costs one draw, whatever its value, and `true`
+ * costs none. This engine gated the draw on `acc < 100`, so a Coil (+1 accuracy, 645 corpus uses)
+ * or a Wide Lens (938 sheets) silently stopped drawing for every later click by that body; and the
+ * two STATUS roll sites had the opposite half of the same bug, drawing even on the Infinity that a
+ * Poison-type's Toxic and a Lock-On produce.
+ *
+ * A CHEAPER RULE WAS TRIED FIRST AND IS A MEASURED REGRESSION, which is why the plain arm below
+ * asserts 1 and not 0. "Skip the draw when nothing could have moved the accuracy off 100" sounds
+ * strictly better and takes the middle-arm VOID count from 131/171 to 133/171 — WORSE than leaving
+ * the bug alone — because the status sites already drew and it took those draws away. The
+ * authority's own rule takes it to 100/171. See `accMustRoll` in the engine for the three-variant
+ * table and for the timing that says the extra draw costs nothing.
+ *
+ * WHY THIS CANNOT BE A ONE-ARMED PROBE: an engine that never draws and an engine that always draws
+ * both produce a constant, so the arms have to disagree with each other. They do — 1 for every
+ * rollable shape and 0 for both cannot-miss shapes. */
+probe('move', 'accuracyMod',
+  'the accuracy DRAW happens exactly where the authority draws — a modifier that lands above 100 '
+  + 'still costs a roll, and `accuracy: true` still costs none', () => {
+  const draws = (moveId, stage) => {
+    let n = 0;
+    const base = M.rngStreams({ seed: 20260813 });
+    const R = { any: base.any, split: true, seed: 20260813,
+                acc: () => { n++; return base.acc(); },
+                crit: base.crit, sec: base.sec, dmg: base.dmg, stall: base.stall };
+    hitOnRoll(ACCSPS, R, moveId, { stage });
+    return n;
+  };
+  const plain      = draws('icebeam', null);
+  const accStage   = draws('icebeam', (B) => { B.me.boosts.acc = 1; });      /* 133 — used to skip */
+  const wideLens   = draws('icebeam', (B) => { B.me.item = 'widelens'; });   /* 110 — used to skip */
+  const evasion    = draws('icebeam', (B) => { B.f1.boosts.eva = 2; });      /*  60 — always rolled */
+  const powder     = draws('icebeam', (B) => { B.f1.item = 'brightpowder'; });
+  const cannotMiss = draws('aerialace', null);
+  const noGuard    = draws('icebeam', (B) => { B.me.ability = 'noguard'; });
+  return { works: plain === 1 && accStage === 1 && wideLens === 1 && evasion === 1 && powder === 1
+                  && cannotMiss === 0 && noGuard === 0,
+           arms: { control: [cannotMiss, noGuard], test: [accStage, wideLens, evasion, powder, plain] },
+           detail: `acc-stream draws for one Ice Beam — plain ${plain}, attacker +1 accuracy `
+                 + `${accStage}, attacker Wide Lens ${wideLens}, target +2 evasion ${evasion}, `
+                 + `target Bright Powder ${powder} (the authority draws exactly 1 for every one of `
+                 + `these, counted inside a wrapped hitStepAccuracy). CONTROL: Aerial Ace `
+                 + `${cannotMiss}, attacker No Guard ${noGuard} (the authority draws 0 for both — an `
+                 + `engine that simply always drew would fail here)` };
 });
 
 /* ROADMAP #175 — LOCK-ON, AND THE HALF THAT MAKES IT A MECHANIC RATHER THAN A NEVER-MISS FLAG.

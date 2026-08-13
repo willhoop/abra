@@ -8117,3 +8117,31 @@ and the distribution prices a 90-accuracy move and a 30% secondary within 5 poin
 is on hashes and medicham2 is still on sequences. Our half needs a `CURRENT_EVENT` in
 `medicham2-browser.js` — one write per action, not 49 call-site edits — and that file has a
 live ENGINE agent in it.
+
+### THE ROUTER SENT AN AMENDMENT AND IT WAS MEASURED AS WORSE THAN DOING NOTHING. 2026-08-13
+
+Recorded separately from the #264 account above, because that section is the agent’s work and this is
+the coordinator’s error.
+
+Will, on being told a 100-accuracy move must roll: **“unless that massively slows the engine down.”**
+A fair constraint — this engine’s speed is its central claim. I turned it into an instruction: keep the
+fast path, gate it on *nothing can move accuracy off 100* rather than on the printed number.
+
+**BOTH HALVES OF THAT WERE WRONG, AND THE AGENT MEASURED RATHER THAN COMPLIED.**
+
+| middle arm, 171 games | VOID | usable |
+|---|---|---|
+| pre-#264, `acc < 100` | 131 | 40 |
+| **the predicate I asked for** | **133** | **38** |
+| the authority’s rule, shipped | **100** | **71** |
+
+My predicate is worse than doing nothing, because the two status sites already drew and it took those
+draws away. And the premise behind it does not survive either: **the skip never avoided the pipeline.**
+`hitChance` runs unconditionally at every roll site and always did; the guard sat UNDERNEATH it, saving
+one LCG step against a ~270 µs turn. Three interleaved rounds of 6,000 turns put the within-variant
+spread above the between-variant spread, with a different variant fastest each round.
+
+**The lesson is about the instruction, not the code.** A routed constraint is a HYPOTHESIS, and handing
+it down as a design decision converts it into a requirement nobody measured. The right form was *“Will
+is concerned about speed — measure the cost and report it”*, which is what the agent did anyway. It was
+right to; had it complied, we would have shipped a regression to protect a cost that does not exist.

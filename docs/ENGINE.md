@@ -36,8 +36,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  565/565 probed mechanics live, 0 missing   (census 2026-08-13 15:24)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-13 15:25)
+  567/567 probed mechanics live, 0 missing   (census 2026-08-13 17:07)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-13 16:58)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,15 +49,169 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is b1842eb4a7eb now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is f4b5434adff2 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 828e033af6df now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 263/282 probed, 19 unprobed
 ```
 
-_stamped 2026-08-13 15:44_
+_stamped 2026-08-13 17:07_
 
 <!-- /GENERATED -->
+
+## ROADMAP #264 — A 100-ACCURACY MOVE CAN MISS. THE OUTCOME WAS ALREADY RIGHT; THE DIE WAS NOT. 2026-08-13.
+
+**Census 565 live / 0 missing -> 567 live / 0 missing.** Two probes. The first was shown RED under two
+separate deliberate breaks; the second is the one the engine change actually moves, and it was shown
+RED under three.
+
+### THE PART OF THE ROW THAT WAS ALREADY TRUE, SAID FIRST BECAUSE THE ROW ASSUMED OTHERWISE
+
+Will, 2026-08-13: *"even if a move is 100 accuracy it could still miss due to evasion, bright powder,
+sand veil, etc"*. He is right about the game. **He was not right about this engine, and measuring it
+first is what stopped a fix being written for a bug that was not there.** `hitChance` has always
+returned the FINAL accuracy and the roll sites have always gated on that, so a printed-100 move into a
+boosted body already missed, at the right rate:
+
+| arm | the authority, 400 real battles | this engine, 300 seeded games |
+|---|---|---|
+| Ice Beam (printed 100) into +0 evasion | 0.0% miss | 0.0% |
+| into a +2 evasion body (100 x 3/5 = 60) | 38.8% | 38.3% |
+| into a Bright Powder holder (100 x 0.9 = 90) | 10.3% | 9.7% |
+| into a +6 evasion body (100 x 3/9 = 33.3) | 67.5% | 68.0% |
+| Aerial Ace (`accuracy: true`) into either | 0.0% | 0.0% |
+
+**What was missing was the PROBE, and the row says so** — "the mechanism being present is not evidence
+it fires". The three arms now exist because two cannot do the job: the +2 arm and the Bright Powder arm
+arrive through completely different code (`accStageMul` on the boost, an `ACCMOD` row on the item) and
+an engine can have either one without the other.
+
+**AND IT HAD TO BE A RATE.** Every other accuracy probe in the file pins one roll, which answers "did a
+to-hit test happen" and nothing else — 0.99 loses against 60 and against 99 alike. The claim here is
+about the SIZE of the effect, so only a rate can be wrong about it.
+
+### THE REAL DEFECT WAS THE DRAW, AND IT WAS WRONG IN BOTH DIRECTIONS
+
+`hitStepAccuracy` ends in `if (accuracy !== true && !this.battle.randomChance(accuracy, 100))`, and
+`randomChance` is `random(den) < num` — **a draw for every accuracy that is not literally `true`,
+whatever its value.** Counted rather than read, by wrapping `hitStepAccuracy` and counting `prng.random`
+inside it, one real battle per row:
+
+```
+Ice Beam (100) plain                    1 draw
+Ice Beam (100) attacker +1 accuracy     1      (final 133 — it draws anyway)
+Ice Beam (100) attacker Wide Lens       1      (final 110 — it draws anyway)
+Ice Beam (100) target +2 evasion        1
+Ice Beam (100) target Bright Powder     1
+Ice Beam, attacker NO GUARD             0
+Aerial Ace (accuracy `true`)            0
+```
+
+This engine had **two half-bugs in opposite directions**. The attack and stat-change sites gated on
+`acc < 100`, so a Coil (+1 accuracy) or a Wide Lens stopped the stream for every later click by that
+body. The two STATUS sites rolled unconditionally, including on the `Infinity` a Poison-type's Toxic
+and a Lock-On produce, where the authority draws nothing at all. `accMustRoll(acc)` is now the one
+answer for all four sites and it is `isFinite(acc)` — `Infinity` is this engine's `accuracy === true`.
+
+### THE CHEAP-PREDICATE VERSION WAS BUILT, MEASURED AND THROWN AWAY, AND THAT IS THE FINDING
+
+The brief's amendment asked for "skip when nothing can move the accuracy off 100" and forbade "always
+roll", on the ground that always-rolling would cost speed. That version was written: `hitChance` set an
+`_accModified` flag as it walked the stages, items, abilities and Gravity, and the draw was taken only
+when the flag was set or the number was already under 100. **It is a measured regression.**
+
+```
+middle-arm differential, 200 games, VOID (per-category draw counts differ) of 171 played
+    pre-#264, `acc < 100`                  131 VOID    40 usable games
+    the cheap predicate                    133 VOID    38 usable   <- WORSE than doing nothing
+    the authority's rule (shipped)         100 VOID    71 usable
+```
+
+It is worse because the status sites already drew, and the predicate took those draws away on every
+printed-100 status click while adding almost none back — the modifier population is simply not on the
+field in most games.
+
+**AND THE SPEED PREMISE DOES NOT SURVIVE BEING MEASURED. THE SKIP NEVER AVOIDED THE PIPELINE.**
+`hitChance` — the artifact read, No Guard, Lock-On, the Toxic exemption, the OHKO tag, the stage
+arithmetic, the category lookup, Gravity and the att/def x ability/item walk — runs UNCONDITIONALLY at
+every roll site and always did; the guard sat underneath it. The only thing `acc < 100` ever saved was
+one LCG step against a turn that costs ~270 microseconds. Measured anyway, three interleaved rounds of
+6,000 scripted four-click turns:
+
+```
+A  `acc < 100` (pre-#264)   1635 / 1627 / 1676 ms
+B  cheap predicate          1602 / 1664 / 1696 ms
+C  the authority's rule     1638 / 1640 / 1692 ms
+```
+
+The spread WITHIN one variant across rounds is larger than the spread between variants, and a different
+variant is fastest in each round. There is no cost to report.
+
+### THE RED PROOFS, ALL FOUR AGAINST THE SHIPPED CODE
+
+| break | census | what it said |
+|---|---|---|
+| none — as landed | **567 live / 0 missing** | |
+| `accMustRoll` back to `acc < 100` | 566 / 1 | the DRAW probe only — the rate probe stays LIVE, which is what says the outcome was already right |
+| `accMustRoll` returns `true` (draw even on a cannot-miss) | 566 / 1 | the DRAW probe — an engine that simply always drew fails the No Guard and Aerial Ace controls |
+| the attack site decides on the PRINTED accuracy | 563 / 4 | the rate probe, the DRAW probe, and the two pre-existing Minimize / `ignoresEvasion` probes |
+| `hitChance`'s `raw === true` return deleted | 535 / 32 | the rate probe's cannot-miss control, plus 30 never-miss probes across the file |
+
+### THE PROBE WAS WRONG BEFORE THE ENGINE WAS, ONCE, AND IT IS THE FILE'S OWN CLASSIC
+
+The cannot-miss control was **Swift**, and `MC.moves.swift` is `undefined` — this engine's move table
+does not carry it. `playerAction` returned `{kind:'pass'}`, the arm read **100% "miss" on a turn where
+nothing was clicked**, and the probe reported a broken never-miss layer. It is Aerial Ace now, and the
+control carries a third arm asserting it LANDS on a plain body, so "it never missed" can never again be
+indistinguishable from "it never happened".
+
+### WHAT DID NOT MOVE, MEASURED RATHER THAN ASSUMED
+
+**The corner arms cannot see this and now we know that instead of suspecting it.** Two frozen releases
+differing in **exactly one file** (`bdf8caedee59` -> `cbb3e287ac8d`, 25 files each, manifest-compared),
+200 games, both corners:
+
+```
+top-tie-first      53 of 171 diverged   before AND after
+bottom-tie-first   59 of 171 diverged   before AND after
+```
+
+Identical, because the pins force the accuracy die to a constant — an extra draw from a constant-valued
+die is not an observable. That is a fact about the instrument's REACH, and it is exactly why the middle
+arm's draw counts are the load-bearing evidence for this row rather than the corners.
+
+`tests/test-engine-diff.js --n 6000`: **0 of 6000 disagree, both corners** (top 0/6000, bottom 0/6000).
+
+### `game_differential.js` NEEDS A RE-WORDING AND I DID NOT MAKE IT — IT IS OWNED ELSEWHERE
+
+Its PIN_CLAIMS say *"a 100-accuracy move HITS"* on both corners. **The claim is TRUE and the wording is
+not**: what it asserts is `a.chance(100, 100) === true`, which is a statement about a FINAL accuracy of
+100 arriving at `randomChance`, not about a move whose PRINTED accuracy is 100. A printed-100 move into
+a Bright Powder holder arrives at `chance(90, 100)` and misses on the top corner in both engines, so
+nothing is mis-asserted — but a reader takes the sentence at face value and the row was filed on
+exactly that reading. Suggested: *"a to-hit test whose FINAL accuracy is 100 HITS"*, and the bracketed
+justification `[medicham2 skips the check at acc >= 100]` is now stale in both corners — medicham2
+takes the draw and hits.
+
+### THE COUNTER
+
+None added. The draw itself is the observable and `game_differential.js` already counts it per category
+per side; a `MEDSEEN` counter here would be a second, quieter copy of a number the instrument already
+prints on every run.
+
+### RE-RUN OWED
+
+Nothing downstream. This changes WHICH random values a seeded game consumes and no outcome that any
+artifact records — the corners are byte-identical across the two releases above. The middle arm's own
+VOID and usable-game counts are the numbers that moved, and they are an instrument statistic rather
+than a result.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty. This pass took its target from ROADMAP #264 and from a filtered walk of the format
+(3 items, 16 abilities, 14 moves touch accuracy or evasion — a wider population than the row's list,
+which named 3 / 6 / 3 and omitted Victory Star, Supersweet Syrup, Moody, Mind's Eye, Keen Eye,
+Illuminate, No Guard, Unaware, Darkest Lariat, Sacred Sword, Defog and the three weather-scaled moves).
 
 ## ROADMAP #255 — GOOD AS GOLD REFUSED FOES AND ACCEPTED ITS OWN PARTNER'S SUPPORT. 2026-08-13.
 

@@ -5355,6 +5355,58 @@ function hitChance(att,def,id,field,ctx){
   }
   return acc;
 }
+/* ROADMAP #264 -- DOES THIS TO-HIT TEST TAKE A DRAW? ONE ANSWER, FOR ALL FOUR ROLL SITES.
+ *
+ * `hitStepAccuracy` (sim/battle-actions.ts:690) ends in
+ *     if (accuracy !== true && !this.battle.randomChance(accuracy, 100)) { ...miss... }
+ * and `randomChance` is `random(denominator) < numerator` (sim/prng.ts) -- so a draw is taken for
+ * EVERY accuracy that is not literally `true`, whatever its value. `Infinity` is this engine's
+ * `true`: it is what No Guard, Lock-On, a Poison-type Toxic, a self-targeting status move and a
+ * `move.accuracy === true` all return, and only those skip.
+ *
+ * `acc < 100` WAS THE OLD CONDITION AND IT WAS WRONG IN BOTH DIRECTIONS. Wide Lens on a
+ * 100-accuracy move is 110 and Coil's +1 accuracy is 133: the authority rolls for both and this
+ * engine skipped both, so a single Coil desynchronised the `acc` stream for every later click by
+ * that body. The two STATUS sites had the opposite half of the same bug -- they rolled
+ * unconditionally, including on the Infinity that a Poison-type Toxic and a Lock-On produce, where
+ * the authority draws nothing at all.
+ *
+ * ---- THE CHEAP-PREDICATE VERSION WAS BUILT, MEASURED, AND THROWN AWAY. THE NUMBERS ARE WHY. ------
+ *
+ * Will, 2026-08-13: *"we gotta roll anyway"*, then *"unless that massively slows the engine down"*.
+ * The obvious reading of the second half is "skip the draw whenever nothing can move the accuracy
+ * off 100", and that version was written first: `hitChance` set a `_accModified` flag as it walked
+ * the stages, the items, the abilities and Gravity, and the draw was taken only when the flag was
+ * set or the number was already under 100. It is a real design and it is a REGRESSION:
+ *
+ *   middle-arm differential, 200 games, VOID (per-category draw counts differ) out of 171 played
+ *       pre-#264, `acc < 100`                      131 VOID    40 usable games
+ *       the cheap predicate                        133 VOID    38 usable   <- WORSE than doing nothing
+ *       the authority's rule (this function)       100 VOID    71 usable
+ *
+ * It is worse because the two status sites ALREADY drew unconditionally, and the predicate took
+ * those draws away on every printed-100 status click while adding almost none back -- the modifier
+ * population (an evasion stage, a Bright Powder, a Coil) is simply not on the field in most games.
+ *
+ * ---- AND THE SPEED PREMISE DOES NOT SURVIVE BEING MEASURED ---------------------------------------
+ *
+ * THE SKIP NEVER AVOIDED THE PIPELINE. `hitChance` above -- the artifact read, No Guard, Lock-On,
+ * the Toxic exemption, the OHKO tag, the stage arithmetic, the category lookup, Gravity and the
+ * att/def x ability/item walk -- runs UNCONDITIONALLY at every roll site and always did; the guard
+ * sat underneath it. The only thing `acc < 100` ever saved was ONE LCG step
+ * (`st = imul(st,1664525) + 1013904223`) against a turn that costs ~270 microseconds.
+ *
+ * Measured anyway rather than argued, three interleaved rounds of 6,000 scripted four-click turns:
+ *       A  `acc < 100`   (pre-#264)   1635 / 1627 / 1676 ms
+ *       B  cheap predicate            1602 / 1664 / 1696 ms
+ *       C  this function              1638 / 1640 / 1692 ms
+ * The spread WITHIN one variant across rounds is larger than the spread between variants, and the
+ * fastest variant is a different one in each round. There is no cost to report. */
+function accMustRoll(acc){
+  /* Infinity is this engine's `accuracy === true`, and `isFinite` is the whole rule. Anything more
+   * elaborate here is a second accuracy authority, which is what WIRE 124 was. */
+  return isFinite(acc);
+}
 /* ---- WIRE 131 — THE VALUATION PATH ASKED A BODILESS ACCURACY ------------------------------------
  *
  * WIRE 129 converted the five RESOLUTION sites (the to-hit rolls) to hitChance. It did not convert
@@ -14041,7 +14093,8 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* WIRE 129 -- hitChance, not moveAccuracy: a Minimize'd target dodges a Will-O-Wisp exactly
            * as it dodges an Ice Beam, and No Guard lands one exactly as it lands a Stone Edge. */
           const _acc=hitChance(m,_t,a.mv,field,{targetAlreadyMoved:!unresolved.has(_t)});
-          if(_acc<100&&_R.acc()*100>_acc){if(TR)TR.miss(m,_t);continue;}   // ROADMAP #222
+          /* ROADMAP #264 -- accMustRoll, not `_acc<100`. See the function for the authority's line. */
+          if(accMustRoll(_acc)&&_R.acc()*100>_acc){if(TR)TR.miss(m,_t);continue;}   // ROADMAP #222
           /* ROADMAP #102 -- STRENGTH SAP'S HEAL, WHICH WIRE 79 FILED AS UNREACHABLE AND NO LONGER IS.
            *
            * The note left here said "the heal scales off the TARGET's Attack and no artifact this engine
@@ -15966,7 +16019,9 @@ function battleTurn(S,rng,actsForA,actsForB){
              * .sourceSlot)` (data/moves.ts:10221). `by` is kept beside the slot because two other
              * readers already hold it -- the transform copy at `wants('leechseed')` and Rapid Spin's
              * sweep -- and because the slot can go EMPTY, in which case the authority heals nobody. */
-            if(_R.acc()*100<=acc){
+            /* ROADMAP #264 -- the same draw rule as every other roll site. `!accMustRoll` short-
+             * circuits BEFORE `_R.acc()`, so a test the authority does not roll consumes nothing. */
+            if(!accMustRoll(acc)||_R.acc()*100<=acc){
               const _sown=it.side==='A'?actA:actB;
               t._seededBy={by:m,per:_pt.per,side:it.side,slot:_sown.indexOf(m)};
               if(TR)TR.vstart(t,'move: Leech Seed');}   // ROADMAP #222
@@ -15985,7 +16040,10 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(powderBlocked(t,a.mv)){if(TR)TR.imm(t);continue;}     // Grass / Overcoat / Safety Goggles
         if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;} // Prankster does not touch Dark types
         const acc=hitChance(m,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
-        if(_R.acc()*100>acc){if(TR)TR.miss(m,t);continue;}          // status moves miss (T-Wave 90, W-o-W 85); ROADMAP #222
+        /* ROADMAP #264 -- this site used to roll UNCONDITIONALLY, which over-draws in the other
+         * direction: a Poison-type's Toxic, a Lock-On'd status move and anything aimed past No Guard
+         * all return Infinity here, and the authority takes no draw for those at all. */
+        if(accMustRoll(acc)&&_R.acc()*100>acc){if(TR)TR.miss(m,t);continue;}          // status moves miss (T-Wave 90, W-o-W 85); ROADMAP #222
         /* WIRE 133 -- THE SOURCE TRAVELS WITH THE STATUS, and it has to: Safeguard refuses what the
          * OTHER SIDE writes and lets a self-inflicted status through, so a call that cannot say who
          * wrote it cannot be gated. This is the direct status-move path -- the one Safeguard exists
@@ -17031,7 +17089,11 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(a.move.spread)MEDSEEN.accSpreadNoDefender++;
           const _mvAcc=hitChance(m,_accDef,a.move.id,field,
                                  {targetAlreadyMoved:!!(_accDef&&!unresolved.has(_accDef))});
-          _mvMissed=(_mvAcc<100&&_R.acc()*100>_mvAcc);   // ROADMAP #222
+          /* ROADMAP #264 -- accMustRoll, not `_mvAcc<100`. A printed-100 move into a +2 evasion body
+           * already rolled here (hitChance returns 60); what did NOT roll is the same move under a
+           * Wide Lens or a Coil, where the modifier lands the number at or above 100 and the
+           * authority draws anyway. See accMustRoll. */
+          _mvMissed=(accMustRoll(_mvAcc)&&_R.acc()*100>_mvAcc);   // ROADMAP #222
         }
         if(!_mvMissed)return;
         /* ROADMAP #81 WIRE 9 -- ONE `|-miss|` PER TARGET, AND EACH ONE NAMES THE BODY IT MISSED.
