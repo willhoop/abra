@@ -7628,3 +7628,55 @@ instrument or a report rather than a model: they read the format, the store or t
 what they found. Two of them were written on 2026-08-12/13 and went undeclared on the night they were
 built, which is exactly the hole that check exists to find. `residual_order`'s declaration carries its
 own known defect (ROADMAP #242) rather than presenting it as complete.
+
+### THE ROW SAID "ONLY THE LINE IS WRONG" AND A SWEEP SAID TWELVE ROUTES AND TWO DEAD MECHANICS. 2026-08-13
+
+ROADMAP #241 parts (1) and (2), landed. Census **558 → 561 live / 0 missing**, three probes, all three
+shown RED before a byte moved.
+
+**THE SIZING WAS RIGHT AND THE SCOPE WAS NOT, AND THAT DISTINCTION IS THE LESSON.** The row was written
+off a measurement — 21 of 241 distinct causes name `-fail`, Good as Gold the largest at 4 — and that
+part held. What it also said, from reading the code, was that *"the refusal itself is already correct
+and already implemented; only the LINE is wrong."* A sweep over **all 78 legal foe-aimed Status moves ×
+8 bodies, 624 cases**, found:
+
+- **twelve action kinds** route a foe-aimed status move, and they gave **four different wrong answers**
+  — `|-fail|` on the mover, nothing at all, an unattributed `|-immune|`, and a `-fail` on the target
+  *plus* one on the mover;
+- **Lock-On and Heal Pulse had no refusal whatsoever.** A Lock-On at a Gholdengo applied its guarantee.
+  A Heal Pulse healed it. Those are not narration defects at all.
+
+A code read said "one line". An exhaustive stage said "twelve routes and two mechanics that do not
+refuse". **The sweep cost one pass and would have cost a shipped half-fix**, which is the argument for
+enumerating the space rather than grepping the site.
+
+**THE FIX SHARES #239'S READER RATHER THAN COPYING IT.** `announcesWith` comes off `onTryHit` through
+the same `immuneAttrIn()` that #239 built for `onSetStatus`, extracted to the top of
+`engine/tag_dex.js`. Two readers for "which ability announces this refusal, and how" would have
+disagreed eventually and invisibly — FACTS ARE GLOBAL. Membership printed before wiring:
+`refusesStatusMoves` has **exactly one member**, 0 of 7 `statusImmune` rows moved, 1 row in the whole
+artifact changed.
+
+**THE DIFFERENTIAL MOVED BY THREE GAMES AND ONE ARM WENT THE WRONG WAY, AND THAT IS THE HONEST
+HEADLINE.**
+
+| | before | after |
+|---|---|---|
+| top-tie-first | 221 / 1216 | **218** |
+| bottom-tie-first | 237 / 1216 | **244** |
+| `unrelated event mismatch` | 33 games / 30 causes | **27 / 25** |
+| `drag: a different body` | 21 / 21 | 25 / 25 |
+
+All seven target causes vanished BY NAME. Four of the seven were then replaced by a *later* divergence
+in the same game, and three of the four new `drag` causes name Gholdengo — **which is what removing an
+early stop looks like**: the game no longer parts at the refusal, so it runs on and parts somewhere
+else. The class that was supposed to shrink shrank; the total barely moved. 3,043 corpus uses counts
+ENTITIES ON SHEETS, not games, and a narration fix cannot move a board that was already agreeing. No
+strength claim was made and none is available.
+
+**FOUR THINGS LEFT WRITTEN DOWN INSTEAD OF HALF-FIXED** — registered as #255 and #256. The largest:
+**Good as Gold refuses ALLY-aimed status moves in the authority** (`target !== source`, measured on
+Decorate, Coaching, Skill Swap and Heal Pulse) and every branch here is `_isFoe`-gated, so a Gholdengo
+accepts support from its own side that Showdown refuses. That is a REFUSAL defect inside an EMISSION
+pass, and folding it in would have made the three-game move above unattributable. It gets its own
+before/after.

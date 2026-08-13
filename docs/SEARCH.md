@@ -14,21 +14,21 @@ mid-run silently invalidates the run, and the run still prints a result.
 SEARCH — does MILTANK choose better than MAG
   R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r1-explore1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js
   R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js
   R3 divergence: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js
   R4 does it win: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-13 00:39):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-13 02:42):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-03 22:36
     PRE-CHANGE games.r4.jsonl  2026-08-03 22:33
@@ -36,9 +36,182 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-03 20:45
 ```
 
-_stamped 2026-08-13 00:41_
+_stamped 2026-08-13 03:00_
 
 <!-- /GENERATED -->
+
+## R13 — THE ROLLOUT SEED NOW HANDS MEDICHAM THE DEAD. HALF FIXED 2026-08-13; the other half is one line in ENGINE's file.
+
+ROADMAP #244. Gate: **`tests/test-rollout-fallen.js`** (27 assertions, auto-discovered by
+`tests/run-all.js`). Prevalence artifact: **`data/rollout-fallen-prevalence.json`**, written by
+`engine/rollout_fallen_prevalence.js`. ROADMAP **#246, #247, #248, #249, #250 opened**; #245 is
+ENGINE's and was left alone.
+
+### The verdict in one line
+
+**The seed was telling MEDICHAM that nobody had died, on 8.75% of open-sheet decision points, and it
+now tells it the truth from turn two. Turn one is still wrong and SEARCH cannot fix it.**
+
+### The defect, and why the obvious patch was refused
+
+`battleInit` derives **three** things from the **one** array it is handed:
+
+| | |
+|---|---|
+| `actA` | `teamA[0..1]` — the field |
+| `benchA` | `teamA.slice(2)` — who can come in |
+| `sfA.team` | `teamA.filter(Boolean)` — **the roster, and the denominator of `fallenCount`** |
+
+`buildSide` dropped every fainted body, which is right for the first two and deletes the side's dead
+from the third. `fallenCount` is `sf.team.filter(x => x.fainted).length`, so it returned a confident
+**0** — Last Respects at 50 where the position says 150, and a Kingambit whose Supreme Overlord
+snapshot is zero.
+
+**Threading a `fallen` count through `battleInit` would have made the card right and left the seed
+handing MEDICHAM a position that does not exist** — a side of four where the real side has six, two
+of them dead — and it would be a second source for a fact the engine already owns. Will's statement
+of the design is what rules it out: *"miltanks rollout needs to just play the game out on medicham and
+have it match showdown perfectly thats the whole point. miltanks just chooses the actions."*
+
+### The design question, answered
+
+**Yes: `buildSide`'s drop stays right for the ACTIVE and BENCH arrays, and the roster keeps everyone.**
+The corpses are **appended after the living**, which is the only shape that gets both, because the
+roster is not a separate parameter. Three things had to be true and each was checked rather than
+assumed:
+
+1. **A corpse in `benchA` is inert.** Every bench reader in `medicham2-browser.js` goes through
+   `_live` (`bringIn`, `switchOut`, `sideWiped`, the explore draw's `outs` filter) or targets a
+   specific chosen body; `battleResult` sums `max(0, curHP)/st.hp`, which is 0. The only unfiltered
+   walk over a bench in the whole file is `fallenCount`'s own fallback, which is what we want.
+2. **A corpse in `actA` would NOT be inert**, which is why appending matters: it would put a dead body
+   on the field and make the end-of-turn `_refills` issue its replacement a turn late. Appending also
+   leaves every living body's index unmoved, so `oneMegaPerSide`'s first-mega rule, `rolloutAfterActions`'s
+   slot-index click mapping and `bringIn`'s `surv` splice all behave exactly as before.
+3. **The corpses are not only the fainted actives.** `sideTeam` never yielded a Pokemon that died and
+   was replaced — it is gone from `slot()` and excluded from `bench()` — so the drop `buildSide` was
+   making was the *small* half. The list comes from `board.graveyard[side]`, which `board.faint()`
+   writes, deduped against a body still standing dead in its slot (the slot copy is preferred: it is
+   the richer record, so a mega that died still spends the side's mega through `_pre`).
+
+`dmgMon` carries `hp` across and leaves `fainted` alone — it had never been asked for a dead body — so
+`buildSide` stamps `fainted` **and** pins `curHP` to 0. Both: `_live` tests both and `fallenCount`
+tests only `fainted`, so a body with one and not the other is dead to half the engine.
+
+One contract had to move with it. `rolloutWinProb`'s *"a side with nothing standing is not a 0%"*
+guard was `!mine.length`, and the array now legitimately contains bodies that cannot act; it counts
+the **living** now, so a wiped side still returns `null` rather than a confident 0. Verified.
+
+### The proof, red first
+
+`tests/test-rollout-fallen.js` was run before the fix and reported **12 failures**, every one reading
+`fallenCount -> 0`, with the N=0 control green so the file cannot pass by inventing deaths. After the
+fix: **27 passed, 0 failed.**
+
+The observable is Last Respects' base power, and it is **not typed**: `base` and `perFallen` are read
+out of `data/tags.json` at run time (50 and 50), and the power is **inverted** out of a control table
+computed through the engine's own `dmgRange` at every k — 24 / 46 / 68 / 90 / 113 / 135 damage, which
+the test asserts is injective before using it as a lookup.
+
+| allies already dead in the seeded position | before | after |
+|---|---|---|
+| 1 | 50 BP | **100 BP** |
+| 2 | 50 BP | **150 BP** |
+| 3 | 50 BP | **200 BP** |
+| 0 (control) | 50 BP | 50 BP — unchanged, so the fix does not invent deaths |
+
+Adjacent gates run and green: `tests/test-rollout-switch.js` (16/16), `tests/test-pp-fact.js` (33/33),
+`tests/test-forced-switch.js`, `tests/test-miltank-release.js` (25/25), `tests/test-engine-release.js`
+(66/66), `tests/test-provenance-discovery.js`. The first two are the real control — both seed
+zero-dead boards and both assert exact, dice-for-dice win probabilities, which is only possible if the
+living pass is byte-identical to what it was.
+
+### Does it change decisions? YES, and the size is measured rather than asserted
+
+`data/rollout-fallen-prevalence.json`, over **13,592 open-sheet bo3 games / 183,840 decision points**.
+It reads the store and `data/tags.json` and **plays no game** — no `battleInit`, no rollout, no board —
+so it is not downstream of MEDICHAM, is not quarantined, and needed no engine release even with ENGINE
+editing the simulator underneath it. That is why it is the measurement that was taken.
+
+| | |
+|---|---|
+| a death has already happened on the acting side | **50.83%** of decision points |
+| the acting side brought a fallen-count carrier | **16.26%** |
+| **both — the ceiling on what this fix can move** | **8.75%** (16,082 of 183,840) |
+| among carrier decision points | 53.82% |
+| games with a carrier on at least one side | 30.07% |
+
+Conditional on being affected, the mean fallen count is **1.67**, i.e. Last Respects should have been
+priced at **133.5 BP on average and was priced at 50** — a factor of 2.67 on the base power of a move
+whose entire identity is that it grows as your team dies.
+
+**This is a CEILING, and it is stated as one.** It counts positions where the leaf value must change,
+not decisions whose argmax flips. Whether the argmax moves is a paired run against a frozen release and
+it was not taken — see the next section for why.
+
+**The carriers are enumerated, never typed.** `withTag('move','powerFromFallen')` and
+`withTag('ability','boostsFromFallen')` return exactly `lastrespects` and `supremeoverlord`, which are
+the only two things `medicham2-browser.js` reads the count for.
+
+### WHAT IS STILL WRONG, AND IT IS THE TURN THAT DECIDES — ROADMAP #246, HANDED TO ENGINE
+
+`battleInit` writes the literal `sfA:{fainted:0,…}` and the **only** recount is
+`sfA.fainted = fallenCount(...)` in the end-of-turn block. So the roster is now correct and the count
+is still 0 **at t=0**. Measured on the fixture at N=3: **50 BP where the roster says 200.**
+
+**That is the decision-relevant turn.** `rolloutAfterActions` forces the candidate click on turn 1, so
+a Last Respects being *ranked* is priced at its floor; the fix is live from turn two onward, which is
+most of a playout and not the part being chosen.
+
+**The fix is one line, in `engine/medicham2-browser.js`, and SEARCH may not make it** — an ENGINE agent
+is in that file. Derive the initial value where the literal is, after `S.sfA.team` is stamped, exactly
+as the turn-end block already does:
+
+```
+sfA:{fainted:0,…}                        ->   S.sfA.fainted = fallenCount(S.sfA, S.actA, S.benchA);
+                                              S.sfB.fainted = fallenCount(S.sfB, S.actB, S.benchB);
+```
+
+It needs **nothing further from SEARCH**: the roster it would read is now correct, and
+`tests/test-rollout-fallen.js` §4 already prints the gap on every run so the day it closes is visible.
+Same family as #243 (the live count is one action late) and #245 (the guard built for this cannot see
+either, because it fires on an ABSENT roster and this one was pre-filtered — left alone, it is ENGINE's).
+
+### The sweep — four more approximations on the seeding path, FOUND AND NOT FIXED
+
+Will's principle makes every approximation on this path a defect, so they were swept for rather than
+waited for. Each is registered; none was touched, because each changes what MILTANK clicks and owes its
+own arm.
+
+| # | what the seed pretends | why it is not a detail |
+|---|---|---|
+| **#247** | every seeded body enters with `_fallenStuck: 0` | Supreme Overlord's snapshot is stamped in `bringIn`, and a body placed by `battleInit` never goes through it. **#246 does not close this** — the fact is not on the board at all, since `board.js` records who is dead and nothing about when each body entered relative to those deaths |
+| **#248** | a benched Pokemon is at full HP, unstatused, **and carries the dataset's moves rather than its sheet's** | the board keeps no state for a body that is not on the field, and the bench synthesis passes `item`/`nature`/`pp` from the sheet but not `moves`. HP and status are public information in a real battle. **The biggest of the four** |
+| **#249** | no hazards, no screens, no Gravity | `applyField` translates four things (weather, terrain, Tailwind, Trick Room) and `sf.hz`/`sf.sc` start empty, while `board.startSide` has the rest. Chasing it found a **defect underneath**: `board.noteMove` starts every side condition on the MOVER's side, and `stealthrock`/`spikes`/`stickyweb`/`toxicspikes` are all `target: foeSide` (derived from the format, not recalled). The offline board — the fit's board — records every hazard on the wrong side; the live path reads `|-sidestart|` and is right |
+| **#250** | every body can Fake Out | `firstTurnOnlyRefused` gates on `_mvActs`, which is 0 on a built body; `board.js` tracks `turnsActive` and the seed does not pass it. 16,871 corpus uses. Choice lock, Encore, Disable, Taunt, Substitute, Leech Seed and the perish count are unseeded from the same hole, and `protectTurns` is passed for **my** side only |
+
+### Two things that were deliberately NOT done
+
+- **No feature was added.** `board.js FEATURES` is 58 and `data/policy-weights.json` keeps its
+  dimensionality. Nothing MAG scores reads the fallen count; this is a fact inside the playout.
+- **No leaf value was re-measured and no SPRT was prepared off it.** The simulator is being edited by
+  ENGINE right now, so a rollout measurement against the live tree is void by the rule that cost this
+  project 7,100 games, and a release cut mid-edit freezes bytes nobody chose. The prevalence figure
+  above is the number that could honestly be taken today, and it is a store scan by construction. The
+  paired leaf-and-argmax run belongs after #246 lands, because measuring the half-fixed seed would
+  produce a number that describes a build nobody will ship.
+
+### Two gates were already red when this landed, and neither row is this work's
+
+Said plainly rather than filed. `tests/test-stadium-roster.js` fails on six undeclared artifact
+generators (`divergence_report`, `million_run`, `mod_audit`, `open_work`, `residual_order`,
+`speed_vs_pokeenv`) — MEASURE and ENGINE own those files. `tests/test-effective-identity.js` fails at
+1,456 raw reads against a 1,198 baseline, contributed by `all_mechanics_fire`, `board_state`,
+`derive_switch_carry`, `fixture_preflight`, `million_run`, `tests/roster.js`, `test-forme-assert` and
+`test-ohko-accuracy`. **This work added one row to each and removed both** — a `NOT_A_MODEL`
+declaration with a reason, and a `DECLARED` entry stating the construction (the prevalence scan holds
+no live body at all, so a stored sheet's `.ability` is the only thing there is to read). Neither gate
+was made to pass by re-baselining.
 
 ## R12 — PP EXISTS IN THE ROLLOUT NOW. It did not, and every position started full. FIXED 2026-08-11.
 

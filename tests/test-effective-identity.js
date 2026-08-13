@@ -626,6 +626,16 @@ const DECLARED = {
     + 'honouring the channel set. There is no live body anywhere in this file — it exists so the '
     + 'fit and the player read the SAME channel list — and a sheet entry\'s .ability IS the '
     + 'pre-mega one, this test\'s own stated legitimate case.',
+  /* ROADMAP #244, 2026-08-13. One match, and the file is a STORE SCAN. */
+  'engine/rollout_fallen_prevalence.js':
+    'One match: `sh.ability` where `sh` is a STORED SHEET entry (or a `sets` row) out of the game '
+    + 'record, tested for membership of the `boostsFromFallen` tag set. There is no live body '
+    + 'anywhere in this file — it opens no engine, builds no mon and plays no turn, it counts how '
+    + 'often a rollout would be seeded from a position with a dead ally — so there is nothing for '
+    + 'effAbility(mon, dex) to be handed. A sheet entry\'s .ability IS the pre-mega one, which is '
+    + 'this test\'s own stated legitimate case, and it is the RIGHT one here: Supreme Overlord is '
+    + 'the DECLARED ability of the body that was brought, and a mega that overwrote it would remove '
+    + 'the reader rather than add one.',
 };
 
 function walk(dir, out) {

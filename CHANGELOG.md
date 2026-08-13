@@ -10,6 +10,49 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.13.0] — 2026-08-13
+
+### Fixed
+- **TWELVE BRANCHES REFUSED THE SAME MOVE AND GAVE FOUR DIFFERENT ANSWERS (ROADMAP #241, parts 1 and
+  2).** Good as Gold's refusal was already right on nine of twelve routes and its LINE was wrong on
+  all twelve — the authority writes `|-immune|<target>|[from] ability: Good as Gold` and this engine
+  wrote `|-fail|` on the MOVER, or nothing at all, or an unattributed `|-immune|`. It survived
+  eleven named sites and nine passing probes because **every one of those probes reads the BOARD**,
+  and a mechanic that behaves correctly and narrates wrongly is invisible to everything except a
+  person reading a stream. A sweep over all 78 legal foe-aimed Status moves x 8 bodies (624 cases)
+  also found that **Lock-On and Heal Pulse had no refusal at all** — a Lock-On at a Gholdengo applied
+  the guarantee and a Heal Pulse healed it. Fixed as ONE announcer covering only the refusals that
+  resolve at Showdown's `onTryHit` step.
+- **A Ghost refuses a trap SILENTLY and the move then fails on the MOVER** — `tryTrap` calls
+  `runStatusImmunity("trapped")` with no `message` argument (`sim/pokemon.js:1171`), so nothing is
+  announced. This engine wrote `|-immune|` on the target.
+- **A Prankster-boosted status move into a Dark type is a BARE `|-immune|` on the target**
+  (`battle-actions.js:573`), gated on `!isAlly` exactly as the authority gates it. The refusal here
+  was already correct and had collapsed into the same generic `mvFail` as every other reason a branch
+  could decline, so the line named the mover.
+
+### Changed
+- `engine/tag_dex.js` — `refusesStatusMoves` now carries `announcesWith`, **read off `onTryHit`
+  through the same `immuneAttrIn()` reader ROADMAP #239 built for `onSetStatus`** rather than a second
+  derivation of the same fact. 0 of the 7 `statusImmune` rows moved; exactly 1 row in the whole
+  artifact changed. Membership printed before wiring: `refusesStatusMoves` has one member,
+  Gholdengo's Good as Gold, 3,043 corpus uses.
+
+### Notes
+- Census **558 -> 561 live / 0 missing**. Three probes, all shown RED before the engine moved.
+- Whole-game differential on the same pinned pool, releases `718a7333f27b` -> `a2857a1bfd70`:
+  top-tie-first **221 -> 218 of 1216**, bottom-tie-first **237 -> 244**. All seven target causes are
+  gone by name; four of them were replaced by a LATER divergence in the same game, three of the four
+  new `drag: a different body` causes naming Gholdengo. **The headline moved by three games and one
+  arm moved the wrong way** — 3,043 uses counts entities on sheets, not games, and a narration fix
+  cannot move a board that was already agreeing. No strength claim is made or implied.
+- Damage differential at `--n 6000`: 0 disagreements, both corners.
+- STILL OPEN and written down rather than left to be rediscovered: Good as Gold refuses an
+  ALLY-aimed status move in the authority (`target !== source`) and every such branch here is still
+  `_isFoe`-gated; Role Play and Spite reach `kind:'pass'`, which carries no target; Heal Pulse emits a
+  second `|-fail|<mover>` on the ordinary full-HP path; Soundproof and Overcoat announce bare.
+  ROADMAP #241 part (3) and the attribution case are untouched.
+
 ## [5.12.0] — 2026-08-13
 
 ### Added

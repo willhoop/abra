@@ -229,6 +229,36 @@ board was unchanged, because the engine's terrain readers are thin: the priority
 Glide's priority, Hadron Engine and the two `terrainScaled` moves. A rare condition times a thin
 reader is a small number, and reporting it as one is the point.
 
+### 3.8 The seed dropped the dead, so every playout believed nobody had died — half fixed 2026-08-13
+
+Same shape as 3.6 and 3.7 and the third instance of it: a fact the real position holds that never
+reached the engine. `battleInit` derives the field, the bench **and the roster** from one array, and
+`rollout_leaf.buildSide` dropped every fainted body before handing it over — correct for the first
+two, and it deleted the side's dead from `fallenCount`'s denominator. Every playout ran with a fallen
+count of **0**: Last Respects at 50 where the position says 150, on a move whose whole identity is
+that it grows as your team dies.
+
+**The corpses are reconstructed rather than the count being passed in**, which is Will's statement of
+the design and not a style preference: *"miltanks rollout needs to just play the game out on medicham
+and have it match showdown perfectly thats the whole point. miltanks just chooses the actions."* A
+`fallen: 2` field on `battleInit` would have made the number right and left the seed handing MEDICHAM
+a side of four where the real side has six.
+
+They come from `board.graveyard`, not from the fainted actives — a Pokémon that died and was replaced
+was never in `sideTeam` at all — and they are **appended after the living**, so the actives/bench
+split and every living body's index are unmoved.
+
+Measured on 13,592 open-sheet games (`data/rollout-fallen-prevalence.json`): **8.75% of decision
+points** have a death already on the acting side *and* a fallen-count carrier brought, and among those
+the mean fallen count is 1.67 — Last Respects priced at 50 where it should have averaged 133.5.
+
+**It is fixed from turn TWO only.** `battleInit` stamps `fainted: 0` and the recount is at turn end,
+so the turn `rolloutAfterActions` forces the candidate click on still prices the move at its floor.
+That is one line in `medicham2-browser.js`, ROADMAP #246, and it is ENGINE's. Four further seeding
+approximations were swept out beside it and are registered unfixed: #247 (Supreme Overlord's entry
+snapshot), #248 (a benched Pokémon arrives at full HP with the dataset's moves), #249 (no hazards, no
+screens), #250 (every body can Fake Out). Full account in [SEARCH.md](SEARCH.md) R13.
+
 ---
 
 ## 4. Open team sheets are what make the preview search possible

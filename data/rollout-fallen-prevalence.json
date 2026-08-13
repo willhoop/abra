@@ -1,0 +1,43 @@
+{
+  "generated": "2026-08-13T06:39:00.804Z",
+  "store": "data/games.bo3.jsonl",
+  "carriers": {
+    "moves": [
+      "lastrespects"
+    ],
+    "abilities": [
+      "supremeoverlord"
+    ]
+  },
+  "games": 13592,
+  "gamesSkipped": 0,
+  "decisionPoints": 183840,
+  "dpWithADeath": 93448,
+  "dpWithCarrier": 29884,
+  "dpWithADeathAndCarrier": 16082,
+  "deathsHistogram": {
+    "0": 90392,
+    "1": 49037,
+    "2": 29408,
+    "3": 15003
+  },
+  "deathsHistogramCarrier": {
+    "0": 13802,
+    "1": 8009,
+    "2": 5368,
+    "3": 2705
+  },
+  "gamesWithCarrier": 4087,
+  "sidesWithCarrier": 4376,
+  "sides": 27184,
+  "node": "v24.15.0",
+  "rates": {
+    "pctDecisionPointsWithADeath": 50.831,
+    "pctDecisionPointsWithCarrier": 16.255,
+    "pctDecisionPointsAffected": 8.748,
+    "pctAffectedAmongCarrierPoints": 53.815,
+    "pctSidesWithCarrier": 16.098,
+    "pctGamesWithCarrier": 30.069
+  },
+  "elapsedMs": 1404
+}

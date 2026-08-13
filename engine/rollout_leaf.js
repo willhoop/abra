@@ -64,9 +64,73 @@ function sideTeam(board, side, dex) {
   return out;
 }
 
+/* THE DEAD ARE PART OF THE POSITION (ROADMAP #244).
+ *
+ * Will, 2026-08-13: *"miltanks rollout needs to just play the game out on medicham and have it match
+ * showdown perfectly thats the whole point. miltanks just chooses the actions."* So the seed may not
+ * approximate anything the real position knows, and the real position knows who is dead.
+ *
+ * `battleInit` derives THREE things from the ONE array it is handed -- the field (`teamA[0..1]`), the
+ * bench (`teamA.slice(2)`) and THE ROSTER (`sfA.team = teamA.filter(Boolean)`) -- and the roster is
+ * what `fallenCount` counts. So dropping the corpses before the seed did not merely tidy the bench,
+ * it told MEDICHAM nobody had died: Last Respects at 50 where the position says 150, and a Kingambit
+ * entering with a Supreme Overlord snapshot of zero. The deeper into a game the position is, the
+ * wronger it gets, which is exactly the phase both mechanics exist for.
+ *
+ * THE COUNT IS NOT THREADED THROUGH AS AN OPTION, AND THAT IS THE WHOLE DESIGN. A `fallen: 2` field
+ * on `battleInit` would make this card right and would still hand MEDICHAM a side of four where the
+ * real side has six -- and it would be a SECOND SOURCE for a fact the engine already owns, which is
+ * the rule CLAUDE.md says this project breaks most expensively. The seed reconstructs the position;
+ * the engine derives the count, the mega spend and the Beat Up party from it, as it does in a real
+ * battle.
+ *
+ * WHERE THE CORPSES COME FROM. `board.faint()` writes two things: the fainted flag on the body still
+ * standing in its slot, and the species into `board.graveyard[side]`. A body that has already been
+ * replaced is ONLY in the graveyard -- which is the ordinary mid-game case and the one `buildSide`'s
+ * own `if (m.fainted) continue` could never have seen, because `sideTeam` never yielded it at all.
+ * The slot copy is preferred where it exists: it is the richest record the board has of that body
+ * (its real forme, so a mega that died still spends the side's mega), and the graveyard's
+ * base-species entry for the same Pokemon is then skipped rather than duplicated.
+ *
+ * A synthesised corpse goes through the SAME `dmgMon` every other body goes through, exactly as a
+ * benched species does -- one builder, so a corpse and a live body cannot disagree about what a
+ * Pokemon is. */
+function sideFallen(board, side) {
+  const out = [];
+  const seen = new Set();
+  /* ONE BODY, ONE ENTRY. `sideTeam` carries the same guard for the living pass and for the same
+   * reason: both letters can hold the SAME tracked object, and a roster that counted it twice would
+   * report one death as two -- an OVERcount, which is the identical class of error in the opposite
+   * direction and would look exactly like the fix working. */
+  for (const L of ['a', 'b']) {
+    const m = board.slot(side, L);
+    if (!m || !m.fainted || out.includes(m)) continue;
+    out.push(m); seen.add(B.baseSpecies(m.species));
+  }
+  const gy = (board.graveyard && board.graveyard[side]) || null;
+  const sheets = (board.sheet && board.sheet[side]) || {};
+  if (gy) for (const sp of gy) {
+    if (!sp || seen.has(sp)) continue;
+    seen.add(sp);
+    const sh = sheets[sp] || null;
+    out.push({ species: sp, hp: 0, fainted: true, status: '', boosts: {},
+               item: sh ? (sh.item || '') : undefined,
+               nature: sh ? (sh.nature || '') : undefined,
+               pp: (typeof board.ppTable === 'function') ? board.ppTable(side, sp) : undefined });
+  }
+  return out;
+}
+
 /* A tracked Pokemon -> a MEDICHAM body. Nulls are DROPPED and COUNTED, not substituted: dmgMon
  * returns null for an in-battle forme with no usage row (Aegislash-Blade, Palafin-Hero), and quietly
- * replacing it with the base forme would roll out a different Pokemon than the one on the field. */
+ * replacing it with the base forme would roll out a different Pokemon than the one on the field.
+ *
+ * THE DROP IS STILL RIGHT FOR THE FIELD AND THE BENCH, AND ONLY FOR THEM. A corpse in `actA` would
+ * put a dead body on the field and make the engine issue its replacement a turn late; a corpse in the
+ * bench TAIL is inert, because every bench reader in `medicham2-browser.js` goes through `_live`
+ * (`bringIn`, `switchOut`, `sideWiped`, the explore draw) and `battleResult` sums `max(0,curHP)/hp`,
+ * which is 0 for a corpse. So the living pass below is byte-for-byte what it was, and the corpses are
+ * APPENDED -- which is what puts them in `sfA.team` without moving a single living body's index. */
 function buildSide(board, side, dex, stats, protectTurns) {
   const mons = [];
   for (const m of sideTeam(board, side, dex)) {
@@ -88,8 +152,29 @@ function buildSide(board, side, dex, stats, protectTurns) {
     if (pt) b.tookProtectTurns = pt;
     mons.push(b);
   }
+  /* THE ROSTER TAIL. `dmgMon` carries `hp` across and leaves `fainted` alone -- it has never been
+   * asked for a dead body before -- so the flag is stamped here, from the board, and `curHP` is
+   * pinned to 0 beside it. Both, not one: `_live` tests both and `fallenCount` tests only `fainted`,
+   * so a body with one and not the other is dead to half the engine and alive to the other half. */
+  for (const m of sideFallen(board, side)) {
+    let b = null;
+    try { b = B.dmgMon(m, MEDI, dex); } catch (e) { stats.corpseThrew = (stats.corpseThrew || 0) + 1; continue; }
+    /* COUNTED, because an unbuildable corpse is an UNDERCOUNT of the fallen and therefore a Last
+     * Respects that is a step light -- the same silent shortfall this whole row exists to close,
+     * arriving through the one door the fix leaves open. */
+    if (!b) { stats.corpseUnbuildable = (stats.corpseUnbuildable || 0) + 1; continue; }
+    b.fainted = true; b.curHP = 0;
+    stats.corpses = (stats.corpses || 0) + 1;
+    mons.push(b);
+  }
   return mons;
 }
+
+/* How many of an array can still act. The seed now hands `battleInit` an array that deliberately
+ * contains bodies that cannot, so "is there a side here at all" stopped being `arr.length` -- and a
+ * leaf that answered 0% for a wiped side instead of `null` would be a silent contract change for
+ * every caller that treats null as "do not score this". */
+const liveCount = arr => arr.filter(x => x && !x.fainted && x.curHP > 0).length;
 
 /* Wilson, the same interval champions_sim.winProb uses and for the same stated reason: a rollout
  * estimate without one invites reading noise as signal. At N=20 the half-width near 0.5 is ~11
@@ -633,8 +718,10 @@ function rolloutWinProb(board, side, opts) {
     const mine = buildSide(board, side, dex, stats, opts.protectTurns);
     const theirs = buildSide(board, foe, dex, stats);
     /* A side with nothing standing is not a 0% — the caller asked about a position that does not
-     * exist, and returning a confident number for it would be worse than saying so. */
-    if (!mine.length || !theirs.length) return null;
+     * exist, and returning a confident number for it would be worse than saying so. Counted over the
+     * LIVING (ROADMAP #244): the array now carries the roster's corpses too, and `.length` would say
+     * a wiped side is still playable. */
+    if (!liveCount(mine) || !liveCount(theirs)) return null;
     built = mine.length + theirs.length;
   }
 
@@ -661,7 +748,7 @@ function rolloutWinProb(board, side, opts) {
       A = buildSide(board, side, dex, { fainted: 0, unbuildable: 0, threw: 0 }, opts.protectTurns);
       Bt = buildSide(board, foe, dex, { fainted: 0, unbuildable: 0, threw: 0 });
     }
-    if (!A.length || !Bt.length) break;
+    if (!liveCount(A) || !liveCount(Bt)) break;
     /* `bringIn`: EVALUATE A POST-KO REPLACEMENT BY PLAYING IT OUT.
      *
      * Showdown routes a forced replacement to chooseSwitch, never through chooseMove, so the live
@@ -677,7 +764,10 @@ function rolloutWinProb(board, side, opts) {
      * because a bench index that slips brings in the wrong Pokemon. */
     if (opts.bringIn) {
       const key = B.mcKeyFor(opts.bringIn, { mayMiss: 'replacement with no MC row; not offered' });
-      const at = A.findIndex(x => x && x.name === key);
+      /* LIVING ONLY. The array's tail is the roster's corpses now, and a replacement that resolved to
+       * one of them would be spliced onto the field as a dead body. Species clause makes the collision
+       * unreachable today; the guard costs nothing and the alternative failure is silent. */
+      const at = A.findIndex(x => x && !x.fainted && x.name === key);
       /* Unbuildable replacement: say so rather than roll out whoever happened to be at that index. */
       if (!key || at < 0) return null;
       const surv = ['a', 'b'].filter(L => { const m = board.slot(side, L); return m && !m.fainted; }).length;
@@ -741,7 +831,7 @@ function rolloutAfterActions(board, side, opts) {
   for (let i = 0; i < n; i++) {
     const A = buildSide(board, side, dex, zero(), opts.protectTurns);
     const Bt = buildSide(board, foe, dex, zero());
-    if (!A.length || !Bt.length) break;
+    if (!liveCount(A) || !liveCount(Bt)) break;
     const S = MEDI.battleInit(A, Bt, { seeded: true });
     if (opts.maxTurns) S.maxTurns = opts.maxTurns;
     /* Always SEEDED here: rolloutAfterActions only ever steps a real mid-battle board.
@@ -841,7 +931,7 @@ function rolloutAfterActions(board, side, opts) {
  * becomes a playout field, which makes it the one place the board's vocabulary is translated into the
  * engine's -- `tests/test-mechanics.js` probes it directly rather than inferring the translation from
  * a win probability, because a leaf value moving is consistent with several other explanations. */
-module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, buildSide, wilson, runPlayout, applyField, terrainOnBoard,
+module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, sideFallen, buildSide, wilson, runPlayout, applyField, terrainOnBoard,
                    /* ROADMAP #152/#153. `SWITCH_COUNTERS` is the proof-of-firing surface — a run
                     * prints it and `tests/test-rollout-switch.js` fails on a zero. `census()` is the
                     * ONE reader of the store-measured switch rate and horizon, so miltank.js and the
