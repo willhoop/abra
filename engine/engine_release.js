@@ -209,6 +209,61 @@ function requireClosure(sources, rootDir) {
   return { scanned: seen.size, escapes, unresolved };
 }
 
+/* WHAT A SNAPSHOT'S BYTES EXPORT — PARSED, AND THE FIRST VERSION OF THIS READ PROSE AS CODE.
+ *
+ * `provides` (in the manifest below) was added 2026-08-12 so that "can this release still serve this
+ * caller" is a string comparison against a fact captured when the bytes were known good, instead of a
+ * load. Its first parser matched `module\.exports\s*=\s*\{([^}]*)\}` and split the body on commas.
+ *
+ * `medicham2-browser.js` INTERLEAVES BLOCK COMMENTS WITH THE KEYS INSIDE THAT LITERAL, so every
+ * comment glued itself onto the key that followed it and that key then failed the `^\w+$` test.
+ * Measured on the live file: **ELEVEN of 78 exports were lost** — `hitChance`, `fails`, `seen`,
+ * `SUBPASS`, `CODE_OF_STATUS`, `PROTECTMOVES`, `RESIDUAL_GROUPS`, `foeThreatensGuardClass`, `md4096`,
+ * `ppSpentMap`, `weatherTurns` — and a `root\.(\w+)\s*=` arm invented **four more out of prose**, one
+ * of which was the word `deliberately`. A `provides` list containing an English adverb is the exact
+ * failure CLAUDE.md names: a value typed next to a name looks as authoritative as a value that was
+ * read. This is the same hole `provenance.js`'s `writesNear` had, and the same one `callerNeeds()`
+ * below already strips for. **Comments come out first, in every scanner in this repository.**
+ *
+ * THE `root.` ARM IS GONE AND ITS ABSENCE IS THE POINT. `root` is `window`/`globalThis`; `require()`
+ * returns `module.exports`; and `REL.require`'s contract check asks `k in mod`. `MEDI_SPREAD` is the
+ * receipt this file already carries: `root.MEDI_SPREAD=SPREAD` existed for months while
+ * `require(...).MEDI_SPREAD` was undefined. A `provides` built off `root.` would promise symbols the
+ * contract check refuses, and answering YES for a symbol the caller cannot reach is worse than
+ * answering nothing at all.
+ *
+ * IT IS STILL A PARSE, NOT A LOAD, AND `surface()` REMAINS THE AUTHORITY. Cutting must not execute the
+ * engine — `engine/game_differential.js` calls `cut()` at startup and then measures, and loading
+ * medicham2 writes its exports onto the global object. So this stays static and cheap, it is stamped
+ * with `provides_by` so a reader can tell WHICH recorder wrote a given list, and
+ * `tests/test-artifact-rerunnable.js` compares every recorded list against `surface()` on every run.
+ * A derived value is not a fact until something compares it to its source. */
+const PROVIDES_BY = 'engine_release.js exportedNames — static parse of module.exports, comments stripped';
+function exportedNames(src) {
+  const bare = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  const seen = new Set();
+  for (const m of bare.matchAll(/module\.exports\.(\w+)\s*=/g)) seen.add(m[1]);
+  /* Brace-MATCHED rather than `[^}]*`, so a nested value in the literal cannot truncate the list.
+   * The opening brace is found by the assignment itself, never by "the next `{` within N chars" —
+   * a distance guard is a magic number that goes wrong the first time somebody reformats. */
+  for (const m of bare.matchAll(/module\.exports\s*=\s*\{/g)) {
+    const open = m.index + m[0].length - 1;
+    let depth = 0, end = -1;
+    for (let k = open; k < bare.length; k++) {
+      const c = bare[k];
+      if (c === '{') depth++;
+      else if (c === '}') { depth--; if (depth === 0) { end = k; break; } }
+    }
+    if (end < 0) continue;
+    let d = 0;                       /* top-level keys only — a nested value's keys are not exports */
+    for (const part of bare.slice(open + 1, end).split(',')) {
+      if (d === 0) { const k = part.split(':')[0].trim(); if (/^\w+$/.test(k)) seen.add(k); }
+      for (const c of part) { if (c === '{' || c === '[' || c === '(') d++; else if (c === '}' || c === ']' || c === ')') d--; }
+    }
+  }
+  return [...seen].sort();
+}
+
 /* THROWS RATHER THAN RETURNING null. A null digest inside a manifest is the worst possible value:
  * `verify()` would compare null against null and PASS, so a release frozen over an unreadable file
  * would certify itself. A release is the one thing in this repo that must not be approximately right. */
@@ -459,19 +514,26 @@ function cut(why, opts) {
      *
      * IT IS A RECORD, NOT A PROMISE. It says which top-level names this snapshot exported on the day
      * it was frozen; it cannot say whether they still MEAN the same thing. That is the honest limit of
-     * a photograph and it is why this is `provides` rather than `compatible`. */
+     * a photograph and it is why this is `provides` rather than `compatible`.
+     *
+     * AND IT IS THE ONLY THING THAT SURVIVES A PRUNE, which is why it is kept rather than deleted in
+     * favour of `surface()`. Once the bodies are removed `surface()` can answer nothing at all; this
+     * list is then the sole record of what those bytes could serve. See `exportedNames` above for what
+     * the first version of this parser got wrong and how. */
     provides: (() => {
-      try {
-        const src = fs.readFileSync(path.join(dir, 'engine', 'medicham2-browser.js'), 'utf8');
-        const seen = new Set();
-        /* the export surface as WRITTEN, matched three ways because this file uses all three */
-        for (const m of src.matchAll(/module\.exports\s*=\s*\{([^}]*)\}/g))
-          for (const n of m[1].split(',')) { const k = n.split(':')[0].trim(); if (/^\w+$/.test(k)) seen.add(k); }
-        for (const m of src.matchAll(/module\.exports\.(\w+)\s*=/g)) seen.add(m[1]);
-        for (const m of src.matchAll(/\broot\.(\w+)\s*=/g)) seen.add(m[1]);
-        return [...seen].sort();
-      } catch (e) { return null; }   /* null means "not recorded", never "exports nothing" */
+      try { return exportedNames(fs.readFileSync(path.join(dir, 'engine', 'medicham2-browser.js'), 'utf8')); }
+      catch (e) {
+        /* null means "not recorded", never "exports nothing" — and a silent null is indistinguishable
+         * from a release cut before the field existed, so the reason goes where a person can see it. */
+        console.error('  (could not record `provides` for ' + id + ': ' + e.message + ' — the manifest will say null)');
+        return null;
+      }
     })(),
+    /* WHICH RECORDER WROTE THAT LIST. Without this a reader cannot tell a list produced by the parser
+     * that read prose (every manifest before 2026-08-12) from one produced by the corrected parser, so
+     * a check comparing `provides` against the loader could not know whether a disagreement is a live
+     * defect or a known-bad legacy record. */
+    provides_by: PROVIDES_BY,
     note: 'IMMUTABLE. A measurement reads these bytes, not the live tree, so other divisions may keep '
         + 'working while it runs. Re-cutting an identical tree returns this same id and APPENDS to cuts[]; '
         + '`cut` and `why` are the FIRST freeze of these bytes and are never overwritten. The event log is '
@@ -1003,8 +1065,12 @@ function open(id, opts) {
  * read. That is the FACTS ARE GLOBAL rule in CLAUDE.md — how to hash a file is a fact, not a
  * per-model choice, and four implementations of it will disagree eventually while all four keep
  * working. One implementation, everyone calls it. */
+/* `exportedNames` is exported so it can be SHOWN correct against `surface()` rather than assumed —
+ * it is the parser that read prose once already. It is not a substitute for `surface()`: use the
+ * loader wherever the bodies still exist, and this only where they do not. */
 module.exports = { cut, list, verify, drift, open, rerender, surface, compat, sha12, sha12OrNull,
-                   requireClosure, census, callerNeeds, CUT_COUNTERS, SOURCES, POINTER, RELEASES };
+                   requireClosure, census, callerNeeds, exportedNames, PROVIDES_BY,
+                   CUT_COUNTERS, SOURCES, POINTER, RELEASES };
 
 if (require.main === module) {
   const [cmd, arg] = process.argv.slice(2);

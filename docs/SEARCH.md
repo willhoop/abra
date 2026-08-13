@@ -36,7 +36,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-03 20:45
 ```
 
-_stamped 2026-08-12 22:55_
+_stamped 2026-08-12 23:05_
 
 <!-- /GENERATED -->
 

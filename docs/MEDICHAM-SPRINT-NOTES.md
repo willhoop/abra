@@ -7182,3 +7182,52 @@ Census 541 live / 0 missing to **542 live / 0 missing**. Damage differential agr
 (`onTryHit` returns early on `move.category === 'Status'`, so an Encore that lands in Showdown is
 refused here); a Quick Guard announced by a different body; and a flinched or sleeping body still
 raising its shield, which has no failing probe on it yet.
+
+### "168 OF 200 UNOPENABLE" WAS MY OWN BROKEN CHECK, AND I TOLD WILL TO BE CONCERNED ON IT
+
+Will asked *"should i be concerned we suddenly cant run old things"*. I answered yes and said one
+artifact in twenty-six could be reproduced. **Both figures came out of a check I had written badly
+minutes earlier.** The finished check says: **41 artifacts across 21 releases — 29 RE-RUNNABLE, 1
+STRANDED, 11 UNKNOWN-PRODUCER, 0 retired.**
+
+**BUG 1, THE UNION.** I unioned every `need` list in `engine/` into one 24-symbol set and held every
+artifact to it. But `hitChance`, `ACCMOD`, `MEDSEEN` and `MEDFAILS` are demanded by `million_run.js`
+ALONE, and `fails`, `rngStreams`, `spreadL50`, `traceCanon` and `TRACE_EVENTS` by
+`game_differential.js` ALONE. So a release that serves the differential perfectly was reported as
+stranding the differential's own artifact, for a symbol the differential has never read. An artifact
+must be judged against the caller that PRODUCED it.
+
+**AND "168 OF 200" IS ONE CALLER'S NUMBER WEARING THE STORE'S NAME.** Per caller, over 201 releases:
+
+| caller | can serve it |
+|---|---|
+| `game_differential.js` | **28** |
+| `million_run.js` | 97 |
+| `replay_differential.js` | 140 |
+| `speed_vs_pokeenv.js` | **196** |
+
+The union is dominated entirely by the strictest caller, so `data/release-census.json`'s `runnable` is
+a lower bound for every caller but one.
+
+**BUG 2, THE PARSER WAS READING PROSE.** `medicham2-browser.js` interleaves block comments INSIDE its
+`module.exports={...}` literal, so splitting on commas glues each comment to the key after it: **11 of
+78 exports lost**, `hitChance` and `fails` among them, and the `root.` arm **invented four out of prose
+— one of them the word `deliberately`**. The same hole `provenance.js`'s `writesNear` had.
+
+**The `provides` field I added to the manifest had it too**: the one release carrying it recorded 71
+against a true 78, including `Earthquake`, `Snarl` and `deliberately`. Kept — it is the only record of
+a PRUNED release's surface — but now audited against the loader on every run and never rewritten to
+make a check green.
+
+**THE PARSE IS GONE.** `engine_release.js` already answers this by LOADING the frozen module
+(`surface()`), at 18ms across 23 releases, so there was never a cost argument for a second
+implementation. I hand-rolled one anyway. That is the same shape as the mechanics runner existing while
+nothing gated on it, and as `compat` existing while I wrote a scan script.
+
+**The red proof reproduces the actual event**: adding `rngStreams` to `replay_differential.js`'s `need`
+list — exactly what #222 did to the differential — strands its five artifacts BY NAME and moves nothing
+else, which is also the proof that the per-caller scoping works.
+
+`all-mechanics-fire.json`, which carries the 93 move divergences, is **not stranded** — its release
+opens. It is UNKNOWN-PRODUCER because it records no `by`. Stamping one is the whole cost of moving it
+into a judged band.

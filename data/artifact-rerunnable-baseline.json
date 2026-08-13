@@ -1,0 +1,22 @@
+{
+  "stamped": "2026-08-13T03:02:37.734Z",
+  "by": "tests/test-artifact-rerunnable.js --stamp",
+  "stranded": 1,
+  "files": [
+    "nature-arms.json"
+  ],
+  "unknown_producer": [
+    "all-mechanics-fire.json",
+    "divergence-turns.json",
+    "exploit-step-probe-reparam.json",
+    "exploit-step-probe.json",
+    "mutation-coverage.json",
+    "porygon2-separation-gate.json",
+    "replay-differential-freezes.json",
+    "rollout-r1-explore-sweep.json",
+    "rollout-r1-explore1.json",
+    "sheet-channel-value.json",
+    "whole-game-baseline.json"
+  ],
+  "why": "Grandfathered when the check was written. These artifacts name a release that can no longer serve the caller that produced them. They are not recoverable and are not meant to be: re-run them on the current engine, or declare \"rerun\": false with a reason. The count may only FALL. unknown_producer is recorded for visibility and is NOT part of the ratchet — those artifacts name no readable producer, so this check refuses to accuse them."
+}

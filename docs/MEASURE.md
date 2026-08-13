@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 25 unsafe, 1 void (declared), 89 possibly stale, 87 ok, 0 missing
+  provenance: 25 unsafe, 1 void (declared), 89 possibly stale, 86 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
@@ -35,7 +35,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-12 19:40
 ```
 
-_stamped 2026-08-12 22:55_
+_stamped 2026-08-12 23:05_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,85 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 0000000. GROWING A `need` LIST SILENTLY RETIRED OLD MEASUREMENTS. IT NOW COSTS A NAMED ARTIFACT — 2026-08-12
+
+`tests/test-artifact-rerunnable.js` (new) + the `provides` recorder in `engine/engine_release.js`.
+Nothing else was touched.
+
+Will: *"should i be concerned we suddenly cant run old things"* → *"you need to fix it and make it so
+it doesnt happen again i dont know the solution"*.
+
+**A release freezes the ENGINE and not the READER.** Every symbol a caller adds to its `need` list
+retroactively strands every release cut before that symbol existed: the snapshot still verifies, still
+holds its bytes, and simply stops being openable. ROADMAP #222 split the RNG streams and `rngStreams`
+appeared in 30 snapshots; `spreadL50` stranded two more. **Both changes were right. The bug is that
+paying their cost was invisible.**
+
+**THE HEADLINE, AND IT CONTRADICTS THE FIRST READING OF THE SAME FACT. 41 artifacts name a release
+across 21 releases: 29 RE-RUNNABLE, 1 STRANDED, 11 UNKNOWN-PRODUCER, 0 retired.** The first scan
+reported that essentially nothing could be re-run. That scan unioned every `need` list in `engine/`
+into one 24-symbol set and held every artifact to it — so `game_differential.js`'s artifacts were
+failed for lacking `hitChance`, which only `million_run.js` has ever asked for. **An artifact is judged
+against the caller that PRODUCED it**, read from its own `by` field, and the requirement table comes
+from `engine_release.js`'s `callerNeeds()` rather than a second scanner. The one genuine stranding is
+`data/nature-arms.json`, whose release predates `rngStreams` and `spreadL50` that
+`game_differential.js` now needs.
+
+**AND "168 OF 200 RELEASES ARE UNOPENABLE" IS ONE CALLER'S NUMBER WEARING THE STORE'S NAME.** Asked per
+caller over all 201 releases on disk, against `engine/medicham2-browser.js`:
+
+| caller | releases that can serve it | predate an export | pruned / absent / unloadable |
+|---|---|---|---|
+| `engine/game_differential.js` | **28 of 201** | 168 | 5 |
+| `engine/million_run.js` | 97 of 201 | 99 | 5 |
+| `engine/replay_differential.js` | 140 of 201 | 56 | 5 |
+| `engine/speed_vs_pokeenv.js` | **196 of 201** | 0 | 5 |
+| the UNION, which is what `census()` asks | 28 of 201 | 168 | 5 |
+
+The union is the strictest caller and nothing else, so `data/release-census.json`'s `runnable` is a
+lower bound on every caller but one. It is not wrong — its own comment says it asks the hardest
+question any live caller asks — but it must not be read as "the store is 86% dead". **Filed:
+`census()` should report the per-caller column beside the union.**
+
+**UNKNOWN-PRODUCER IS A BAND, NOT A PASS.** Eleven artifacts either record no `by` or name a producer
+with no `REL.require(file,{need})` site — a `.py` script, a driver that shells out, or a caller that
+reaches a snapshot through `REL.read`/`REL.path`. Their requirement cannot be READ, so they are not
+accused; they are still held to the one requirement that needs no guess, that the release opens at
+all. `data/all-mechanics-fire.json` — the 93 move divergences — is in that band, and the cheapest way
+to move it out is for its generator to stamp a `by`.
+
+**THE PARSER WAS DELETED RATHER THAN PATCHED, AND ITS FAILURE IS THE SAME ONE THREE TIMES.** The check
+originally hand-rolled a `module.exports` reader and reported that a release cut MINUTES earlier lacked
+`fails` and `hitChance`. `medicham2-browser.js` interleaves block comments with the keys inside that
+literal, so a comma split glues each comment onto the key after it: **11 of 78 exports lost, and 4 more
+invented out of prose — one of them the word `deliberately`.** That is `provenance.js`'s `writesNear`
+hole and `callerNeeds`'s stripped-comment rule, for the third time. `engine_release.js` already answers
+the question by LOADING the frozen module (`surface()`), at 18ms, so the verdicts use the loader and
+this file contains no parser.
+
+**THE RECORDED `provides` FIELD IS CORRECTED AND IS NOW AUDITED RATHER THAN TRUSTED.** It is kept
+because it is the only thing that survives a prune — once the bodies are gone `surface()` can answer
+nothing. It is stamped `provides_by` so a legacy list is distinguishable from a current one, and the
+check compares every recorded list against the loader on every run. The one manifest written by the
+old recorder is reported, not rewritten: a release record is immutable and is not edited to make a
+check green.
+
+**SHOWN RED BY REPRODUCING THE REAL EVENT.** Adding `rngStreams` to `engine/replay_differential.js`'s
+`need` list — exactly what #222 did to the differential — turned its five artifacts STRANDED and named
+all five as NEW against the ratchet, while every artifact of every other caller stayed put and
+`replay-differential-freezes.json` (no `by`) correctly stayed UNKNOWN-PRODUCER rather than being
+accused. The caller was restored byte-identically (sha256 `a21d2158…`) and the check returned green.
+
+The ratchet is `data/artifact-rerunnable-baseline.json`; it may only fall, and a new stranding fails by
+name.
+
+**Filed, not fixed:** `callerNeeds()` reads `REL.require` sites only, so the file requirements of
+`tests/roster.js` and `tests/mutation_harness.js` — which reach a snapshot through `REL.read` and
+`REL.path` — are invisible to it and their ten artifacts are judged on openability alone. That
+under-reports and never over-reports. `callerNeeds()` also hard-codes an `engine/` prefix on the caller
+name, so a `tests/` scan is mislabelled and the label is repaired at the call site. Both belong in
+`engine_release.js`, in a pass that is not running beside two other divisions.
 
 ### 000000. THE END-STATE COUNT BECAME A SEVERITY LADDER, AND THE WORST BAND IS NINE PERCENT — 2026-08-12
 
