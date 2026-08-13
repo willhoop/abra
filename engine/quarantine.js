@@ -283,6 +283,60 @@ function differentialClause(artifact) {
  * MEASURED THE DAY IT WAS WIRED: 410 moves above the shelf, 402 covered, 8 covered by nothing, across
  * four distinct unprobed tags. 2,022 clicks of 1,004,407. A clause that fails on 0.2% of clicks and
  * names four tags is actionable; one that fails on 42 rows including the top three is noise. */
+/* ---- THE MECHANICS CLAUSE — WILL, 2026-08-12: "we dont care about the games ending, we just care
+ * about the mechanics lining up with showdowns" -----------------------------------------------------
+ *
+ * The whole-game clause counts GAMES, and a game is whatever the coverage-seeking chooser happened to
+ * click. That weights a mechanic by how often a sampler reached it, which is not the question. Will's
+ * question is per-MECHANIC: does each one line up with the authority.
+ *
+ * `engine/all_mechanics_fire.js` already answers it and nothing gated on it. It builds the teams FROM
+ * THE MECHANIC LIST rather than from realistic sets — Will, 2026-08-10: *"WE HAVE TO CREATE THE GAMES
+ * OURSELVES AND TEST IT ON SHOWDOWN"*, *"I DONT CARE IF THEY ARE GOOD PLAYS, JUST HAVE THE MOVES
+ * SUCEED"* — so its coverage is a property of the format, not of what a bot felt like clicking. It
+ * reached 500 of 500 moves where the swarm reaches whatever it reaches.
+ *
+ * IT MUST FAIL WHEN IT IS STALE, AND THAT IS THE POINT RATHER THAN AN INCONVENIENCE. Its artifact
+ * stamps the release it measured. An artifact cut against a different engine is not a weaker answer to
+ * this question, it is an answer to a different question — and this repo has the receipt: a 2026-08-11
+ * run was quoted as current while every fix of 2026-08-12 postdated it. "We have not measured this
+ * engine" is a real failure and must read as one.
+ *
+ * DID-NOT-FIRE IS DELIBERATELY NOT COUNTED AS A DIVERGENCE. A mechanic the fixture could not make
+ * happen is a HARNESS defect; a mechanic that happened and disagreed is an ENGINE defect. Those were
+ * one bucket until the preflight split them, and folding them back together here would undo that. The
+ * unfired count is REPORTED so it cannot be forgotten, and it fails nothing. */
+function mechanicsClause() {
+  const NAME = 'mechanics / each one staged and compared against showdown';
+  const j = readJson(D('data', 'all-mechanics-fire.json'));
+  if (!j) {
+    return { name: NAME, ok: false, missing: true,
+      why: 'NO ARTIFACT — data/all-mechanics-fire.json is absent. A clause that cannot be computed '
+         + 'FAILS. Run: SHOWDOWN_PATH=... node engine/all_mechanics_fire.js --kind all --write' };
+  }
+  const cur = readJson(D('data', 'engine-release.json'));
+  const curId = cur && (cur.id || cur.release || cur.current);
+  const ranOn = j.release || j.engine_release || null;
+  const s = j.summary || {};
+  const div = ['moves', 'abilities', 'items'].reduce((n, k) => n + (+((s[k] || {}).diverged) || 0), 0);
+  const unfired = ['abilities', 'items'].reduce((n, k) => n + (+((s[k] || {}).did_not_fire) || 0), 0);
+  const parts = ['moves', 'abilities', 'items']
+    .filter(k => s[k]).map(k => k + ' ' + ((s[k] || {}).diverged || 0));
+  const tail = `  [${parts.join(', ')};  ${unfired} never fired — a harness gap, not counted here]`;
+
+  if (ranOn && curId && ranOn !== curId) {
+    return { name: NAME, ok: false, generated: j.generated || null, staleAgainst: curId, ranOn,
+      why: `MEASURED AGAINST A DIFFERENT ENGINE — this artifact ran on release ${ranOn} and the tree `
+         + `is ${curId}. That is not a weaker answer, it is an answer about other bytes. Re-run before `
+         + `this clause can say anything.` + tail };
+  }
+  return { name: NAME, ok: div === 0, generated: j.generated || null, diverged: div, unfired,
+    why: div === 0
+      ? `every staged mechanic agrees with the authority.` + tail
+      : `${div} MECHANICS DISAGREE with the authority when staged so they actually resolve. Each is a `
+        + `rule, not a sampling artefact — the teams are built from the mechanic list.` + tail };
+}
+
 function coverageClause() {
   const clicks = readJson(D('data', 'click-counts.json'));
   const census = readJson(D('data', 'mechanics-census.json'));
@@ -619,7 +673,7 @@ function medichamIsCorrect() {
   const clauses = [differentialClause(), ...ROSTER_STAGES.map(s => {
     const r = rosterStage(s);
     return { ...r, name: `deliberate roster / ${s}` };
-  }), coverageClause(), wholeGameClause(), openDefectClause()];
+  }), coverageClause(), wholeGameClause(), mechanicsClause(), openDefectClause()];
   return { ok: clauses.every(c => c.ok), clauses, failing: clauses.filter(c => !c.ok) };
 }
 

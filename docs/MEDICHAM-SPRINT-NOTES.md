@@ -6936,3 +6936,29 @@ sides, and its comment says why: *medicham2 has no gender at all, so a declared 
 streams on line one of every game.* Cute Charm and Rivalry cannot be repaired from the harness; they
 need gender in the simulator. Correctly labelled CANNOT-FIRE with the clause named, which is the honest
 state until that work is done.
+
+### THE GATE NOW ASKS THE QUESTION WILL ACTUALLY ASKS
+
+Will, 2026-08-12: *"we dont care about the games ending, we just care about the mechanics lining up
+with showdowns"*, and *"as long as the mechanics work, miltanks rollout will be accurate"*.
+
+The whole-game clause counts GAMES, and a game is whatever the coverage-seeking chooser happened to
+click — so it weights a mechanic by how often a sampler reached it. `all_mechanics_fire.js` already
+answers the per-mechanic question and **nothing gated on it**: it builds the teams FROM THE MECHANIC
+LIST, so its coverage is a property of the format rather than of a bot's taste. It reaches 500 of 500
+moves where the swarm reaches whatever it reaches.
+
+It is clause 8 now, and it **FAILS WHEN STALE BY DESIGN**. The artifact stamps the release it measured;
+one cut against different bytes is not a weaker answer, it is an answer to a different question. The
+receipt is this evening: a 2026-08-11 run was quoted as current while every fix of 2026-08-12
+postdated it. Today it reads *MEASURED AGAINST A DIFFERENT ENGINE — release debbbe33ce6d, tree
+a68efb1c483d*.
+
+**DID-NOT-FIRE is reported and fails nothing**, deliberately. A mechanic the fixture could not make
+happen is a HARNESS defect and a mechanic that happened and disagreed is an ENGINE defect; those were
+one bucket until this evening's preflight split them, and counting them together here would undo that
+in the gate.
+
+**GATE: CLOSED — 3 of 8.** Whole-game 215 of 815; mechanics stale (93 moves, 20 abilities, 3 items
+diverged, 159 never fired); one open engine defect, #232 Protect at 100,806 named uses. The defect
+clause ranks by corpus usage, so the worst row surfaces without anybody choosing it.
