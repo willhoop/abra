@@ -37,7 +37,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 ```
 ENGINE — does the simulator do what Pokémon does
   537/537 probed mechanics live, 0 missing   (census 2026-08-12 19:56)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-12 17:05)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-12 20:50)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -55,7 +55,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 262/280 probed, 18 unprobed
 ```
 
-_stamped 2026-08-12 20:20_
+_stamped 2026-08-12 20:52_
 
 <!-- /GENERATED -->
 

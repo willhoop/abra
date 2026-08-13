@@ -3844,9 +3844,21 @@ const MOVE_TAGS = [
   { tag: 'ignoresAbility', param: 'the defender\'s ability does not apply', probe: 'ignoreAbility',
     why: 'Mold Breaker-style moves walk through Levitate and the damage-reducing abilities',
     of: m => m.ignoreAbility ? { ignoreAbility: true } : null },
+  /* `m.ohko` IS NOT A BOOLEAN AND FLATTENING IT TO ONE THREW AWAY BOTH OF ITS RULES.
+   *
+   * Showdown writes `ohko: true` for Fissure, Guillotine and Horn Drill and `ohko: 'Ice'` for Sheer
+   * Cold, and `hitStepAccuracy` reads that string TWICE — once for the accuracy (20 rather than 30
+   * when a non-Ice body clicks it) and once for the immunity (`!target.hasType(move.ohko)`, so an
+   * Ice type cannot be Sheer Colded at all). Writing `{ohko: true}` made those two rules
+   * underivable, and the engine consequently had neither.
+   *
+   * The whole class also SKIPS the accuracy pipeline: `hitStepAccuracy` branches on `move.ohko`
+   * before ModifyAccuracy and before the accuracy/evasion stages, so no modifier of any kind
+   * reaches it — the reason the engine needs a flag here and not just a damage source. */
   { tag: 'ohko', param: 'removes the target outright', probe: 'ohko',
-    why: 'a different kill calculation entirely',
-    of: m => m.ohko ? { ohko: true } : null },
+    why: 'a different kill calculation AND a different accuracy path — no modifier reaches it',
+    of: m => m.ohko ? { ohko: m.ohko, typeGate: m.ohko === true ? null : m.ohko,
+                        acc: 30, accIfNotGateType: m.ohko === true ? null : 20 } : null },
   /* THE PRE-TURN CLASS. Will, 2026-08-04: "BEAK BLAST IS LIKE SPICY SPRAY FOCUS PUNCH OR SOMETHING."
    * He is naming a real class and nothing in this artifact named it. Focus Punch, Beak Blast and
    * Shell Trap all act at the START of the turn, before any move resolves, and then react to what

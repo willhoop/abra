@@ -57,6 +57,15 @@ silently rewritten; what changed and why is stated.
   closing two live rows. Only the dated token ignores case. Rows asserting breakage: **4 to 1**, and the one
   left is real.
 
+- **The OHKO class took every accuracy modifier and should take none.** `hitStepAccuracy` branches on
+  `move.ohko` BEFORE the ModifyAccuracy event and before both stage adjustments, so Gravity, Compound
+  Eyes, Wide Lens, an accuracy boost and an evasion boost all reach exactly nothing. `hitChance` had no
+  such branch — every `ohko` mention in the simulator was in the damage path. Half of this was a
+  same-day regression: the evasion half had been wrong for the life of the function, and adding Gravity
+  to `ACCMOD` gave a standing hole a second way to be wrong on the same 141 corpus uses. The `ohko` tag
+  also flattened `m.ohko` to `true`, discarding the string Showdown reads twice — Sheer Cold is 20 from
+  a non-Ice body and refused outright by an Ice one. Both rules were underivable; the engine had neither.
+
 ### Changed
 - **The whole-game comparison is a gate clause now**, at seven clauses rather than six. The bar is a
   ratchet rather than zero, and the clause prints the absolute figure every run with the words

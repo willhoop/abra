@@ -662,6 +662,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      target -- a negative evasion stage is left alone, because the ability ignores evasion rather
      than helping it. */
   evasionIgnored: 0,
+  /* An OHKO move priced through the branch that refuses every accuracy modifier. Zero means the
+     branch is unreachable and Gravity is still boosting Fissure — which is exactly the state this
+     was added to end, so a zero here is a FAILURE and not an absence of Fissures. 141 corpus uses
+     across the four moves, so a game corpus should show these rarely and a staged probe every time. */
+  ohkoAccuracy: 0,
+  /* The gate type refusing the move outright: Sheer Cold into an Ice type. Distinct from the counter
+     above because the immunity and the 20-vs-30 split are two different reads of the same `m.ohko`
+     string, and one can be wired while the other is not. */
+  ohkoImmune: 0,
   /* ROADMAP #213 -- a crit made CERTAIN by the attacker's ability (`critRatioUp.guaranteed`;
      Merciless into a poisoned target is the only member). Zero unless a Toxapex hits something it
      has poisoned. */
@@ -4783,6 +4792,39 @@ function hitChance(att,def,id,field,ctx){
   if(raw===true)return Infinity;
   let acc=+raw;
   if(!(acc>0))return Infinity;
+  /* THE OHKO CLASS TAKES NO MODIFIER OF ANY KIND, AND THIS ENGINE HAD NO BRANCH FOR IT AT ALL.
+   *
+   * Will, 2026-08-12: *"i dont think the ohko moves can ever be boosted by accuracy, only no guard"*.
+   * He is right and `hitStepAccuracy` says so structurally rather than by exception — `if (move.ohko)`
+   * sets the accuracy outright, and the ModifyAccuracy event AND both stage adjustments live in the
+   * `else`. So Gravity, Compound Eyes, Wide Lens, an accuracy boost and an evasion boost all reach
+   * exactly nothing here. Only the `Accuracy` event fires for this class, because it sits BELOW the
+   * branch — and its carriers are No Guard and Lock-On, both already answered above this line.
+   *
+   * HALF OF THIS WAS A REGRESSION I SHIPPED HOURS EARLIER. The evasion-stage half has been wrong for
+   * the life of the function; adding Gravity to ACCMOD gave it a second way to be wrong on the same
+   * 141 corpus uses. Fixing only the half I introduced would have left the older one behind.
+   *
+   * EVERY NUMBER HERE IS READ FROM THE TAG. The 30, the 20 and the immunity type come from
+   * `tag_dex`'s `ohko` param, which now carries `m.ohko` itself instead of flattening it to `true` —
+   * Showdown stores 'Ice' there for Sheer Cold and reads it twice. The level term
+   * (`accuracy += pokemon.level - target.level`) is omitted because Champions is Level 50 throughout,
+   * so it is identically zero; that is a format fact, not an approximation. */
+  {
+    const _oh=TAGS.param('move',id,'ohko');
+    if(_oh&&_oh.ohko){
+      MEDSEEN.ohkoAccuracy++;
+      /* `.types` is the accessor the rest of this file uses — `typeEffAgainst` reads `def.types`
+       * directly — so the OHKO gate asks the same live array and inherits the switch-out rebuild
+       * fixed earlier today. A Soaked body is Water HERE too, and must be. */
+      const _has=(m,t)=>!!(m&&m.types&&m.types.some(x=>String(x).toLowerCase()===String(t).toLowerCase()));
+      /* The gate type is an outright immunity, not a resistance: Showdown emits `-immune [ohko]`
+       * and never rolls. A body that cannot be hit is 0, not a low chance. */
+      if(_oh.typeGate&&_has(def,_oh.typeGate)){MEDSEEN.ohkoImmune++;return 0;}
+      return (_oh.accIfNotGateType!=null&&_oh.typeGate&&!_has(att,_oh.typeGate))
+        ? _oh.accIfNotGateType : _oh.acc;
+    }
+  }
   /* Stages. ~~`ignoreAccuracy`/`ignoreEvasion` are not modelled here and neither is in this format's
    * corpus~~ — HALF RETRACTED, ROADMAP #213. `ignoreEvasion` IS in this format and on two abilities
    * that are played: Keen Eye (63 sheet fields) and Illuminate (45) both set it from `onModifyMove`,

@@ -6717,3 +6717,28 @@ multiplier — Lock-On carries `onSourceAccuracy`, Minimize `onAccuracy`, a seco
 replacement accuracy or a never-miss — and neither is missing: 9 and 13 sites in the simulator, both
 tagged, Lock-On at 0 corpus uses. The real gap is that the conformance check knows only
 `*ModifyAccuracy`, so those two are invisible to it. Corrected in CHANGELOG 5.8.0 in place.
+
+### THE OHKO CLASS TOOK EVERY ACCURACY MODIFIER, AND HALF OF THAT WAS MINE FROM THE SAME DAY
+
+Will: *"i dont think the ohko moves can ever be boosted by accuracy, only no guard"*. He is right, and
+`hitStepAccuracy` says so STRUCTURALLY rather than as an exception — `if (move.ohko)` sets the accuracy
+outright, and the ModifyAccuracy event AND both stage adjustments live in the `else`. Nothing in the
+modifier pipeline is reachable for the class. The `Accuracy` event sits BELOW the branch and does still
+fire, which is exactly why No Guard and Lock-On work on Fissure and nothing else does.
+
+`hitChance` had no `ohko` branch at all. Every `ohko` mention in the simulator was in the DAMAGE path;
+none in the accuracy path. The evasion-stage half has been wrong for the life of the function, and
+adding Gravity to `ACCMOD` hours earlier gave a standing hole a SECOND way to be wrong on the same
+141 corpus uses. **Fixing only the half I introduced would have left the older one behind.**
+
+`tag_dex`'s `ohko` param was `{ohko: true}`, which flattened a value the authority reads twice: it
+stores `ohko: 'Ice'` for Sheer Cold and uses that string for the accuracy (20 rather than 30 when a
+non-Ice body clicks it) AND for an outright immunity. Both rules were underivable and the engine had
+neither. The level term is omitted because Champions is Level 50 throughout — a format fact.
+
+**The whole-game differential cannot see any of this and never will**: both arms pin accuracy to a
+corner, so a computed accuracy never decides an outcome. That is the definition of something needing
+its own probe rather than a bigger sample. `tests/test-ohko-accuracy.js` derives every expected number
+from the format on each run, and was shown RED first — with the branch disabled it fails 8 of 11.
+
+Damage differential re-run after the change: agreed 6000, disagreed 0, all conformance clauses 0.
