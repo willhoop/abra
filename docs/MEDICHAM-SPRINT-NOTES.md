@@ -7231,3 +7231,27 @@ else, which is also the proof that the per-caller scoping works.
 `all-mechanics-fire.json`, which carries the 93 move divergences, is **not stranded** — its release
 opens. It is UNKNOWN-PRODUCER because it records no `by`. Stamping one is the whole cost of moving it
 into a judged band.
+
+### THE MECHANICS RUNNER, RE-RUN ON THE SETTLED ENGINE
+
+Release e7e64db837b1, 1,401 games, 0 threw, red proof green. Against the 2026-08-11 run:
+
+| | 08-11 | today |
+|---|---|---|
+| moves diverged | 93 | **76** |
+| resolution disagreements | 28 | **17** |
+| abilities FIRED | 59 | **70** |
+| abilities diverged | 20 | 33 |
+| items diverged | 3 | 3 |
+
+**Seventeen move divergences gone.** Abilities DIVERGING rose because abilities FIRING rose — a mechanic
+that never happens cannot disagree, so more coverage finds more defects. That is the preflight weather
+repair paying out and it is the right direction, not a regression.
+
+The split that did not exist before: **13 abilities and 6 items read cannot_fire_in_this_fixture** with
+the failing clause named, against 76 and 55 did_not_fire_unexplained. One is a harness defect and the
+other an engine defect; they were one bucket this morning.
+
+The gate clause now states something TRUE rather than refusing on staleness: **112 mechanics disagree
+with the authority when staged so they actually resolve.** That is the number to drive to zero, and it
+is weighted by the format rather than by what a sampler happened to click.
