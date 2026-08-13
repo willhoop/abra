@@ -10,6 +10,44 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.10.0] — 2026-08-13
+
+### Fixed
+- **A MID-TURN SPEED CHANGE REORDERS THE MOVES AND NOT THE SWITCHES (ROADMAP #240).** Found by Will
+  reading a published divergence card. Showdown re-sorts the action queue after every action, but the
+  guard passes only when the NEXT queued action is a move — so between two switches nothing is
+  recomputed and every switch keeps the speed stamped at turn start. On a turn where all four slots
+  switch and Tyranitar arrives with Sand Stream, Excadrill's Sand Rush is live and never read; we
+  recomputed. Implemented as the TRIGGER rather than as a rule about switches or about weather, both
+  of which would look right on that card and be wrong the moment somebody clicks a move. `willAct()`
+  now reads the same action-kind mapping, so ROADMAP #232 and #240 cannot come apart — they are one
+  rule seen from opposite sides, and the probe proves it: breaking this fix to "never re-sort" takes
+  #232's mega probe down with it.
+  Census **557 → 558 live / 0 missing**. Whole-game differential on a 300-game pinned pair, two frozen
+  releases differing in one token: top **98/260 → 97/260**, bottom **93/260 → 91/260**, with exactly
+  one class moving on the primary arm (`ordering`, 16 → 15 games) and every other class unchanged to
+  the instance. Honestly small — the register row's corpus figures are usage of the entities named,
+  not games fixed.
+
+### Changed
+- **Register rows #241 and #242 re-sized against measurement, and #241 was pointing at its rarest
+  case.** Both were opened off single cards Will read. Grouped over all 241 distinct causes in the
+  1,539-game-per-arm run: **21 name `-fail`**, and the largest sub-family is **Good as Gold** — 4
+  causes, one carrier in the regulation (Gholdengo), 3,043 corpus uses — emitting a bare `-fail`
+  where the authority emits `-immune ... [from] ability: Good as Gold`. The refusal itself is already
+  correct; only the line is wrong, which is exactly why nothing caught it. The attribution case the
+  row was opened on does not appear in the top 20.
+  For #242, derived and filtered to the regulation: **49 effects carry a duration and 44 own no
+  residual handler**, so `residual_order.js`'s 42 rows overlap that set in only five. 19 of the 44
+  announce their expiry; the other 25 expire silently and still consume a position in the same walk.
+
+### Notes
+- Two adjacent defects declared without being folded in: `getActionSpeed` re-derives PRIORITY as well
+  as speed on every re-sort — a comment in this repo asserted the opposite and is corrected — and
+  `eachEvent('Update')` sorts on the authority's cached speed where ours recomputes every time.
+
+---
+
 ## [5.9.1] — 2026-08-13
 
 ### Fixed

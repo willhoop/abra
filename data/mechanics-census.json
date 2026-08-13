@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-13T04:42:10.855Z",
+  "generated": "2026-08-13T06:11:10.337Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 556,
-  "live": 556,
+  "probed": 558,
+  "live": 558,
   "missing": 0,
-  "armed": 556,
+  "armed": 558,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -767,6 +767,16 @@
       "label": "Quick Feet is hastened by a burn the OPPONENT applied, and the order decides the board",
       "live": true,
       "detail": "Dragapult (Speed 205) burns a Jolteon with Will-O-Wisp, then both bodies fight on 1 HP. With no ability the Jolteon is \"brn\" at Speed 192, moves SECOND and never fires (foe fainted: false). With QUICK FEET it is still \"brn\" — the ability does not cure anything — at Speed 288, moves FIRST and the foe faints (true). The Jolteon dies to its own burn at end of turn in both arms, which is why the reading is the FOE",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "speedCond",
+      "label": "a mid-turn Speed change reorders the MOVES and not the SWITCHES — the re-sort trigger",
+      "live": true,
+      "detail": "Tyranitar arrives first and sets sand, so Excadrill is at Speed 216 with Sand Rush and 108 without it for the rest of the turn. ALL FOUR SLOTS SWITCH (Torkoal and Pelipper are the contested pair): Sand Rush sun, control sun — the authority ends in sun on BOTH, because a queue whose head is a switch is never re-sorted. TWO SWITCH AND TWO CLICK (Sunny Day against Rain Dance): Sand Rush rain, control sun — the authority ends in rain and sun, because the re-sort fires in front of the first move and Excadrill overtakes. Same board, opposite answers",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2826,7 +2836,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.4% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5567,6 +5577,16 @@
       "label": "Electromorphosis names the move that hit it and its own ability on the Charge it raises",
       "live": true,
       "detail": "the same Heavy Slam into the same Bellibolt — Electromorphosis [\"|-start|p1a:bellibolt|charge|heavyslam|[from]ability:electromorphosis\"]; no ability []. data/moves.ts charge onStart names the ACTIVE MOVE in field 4 and the ability in field 5 when an ability raised it",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "battleEndsOnWipe",
+      "label": "a side wiped mid-turn ends the battle THERE — no later action, no upkeep, no replacement",
+      "live": true,
+      "detail": "[p1 |move| lines, |upkeep| lines, |switch| lines] — side B keeps a bench body [2,1,1] (the turn plays out and a replacement walks in), side B wiped [1,0,0] (the authority's turnLoop returns and emits nothing further). Before the fix the two read [2,1,1] and [2,1,0] — the move and upkeep counts were IDENTICAL across the knob and only the replacement differed, and it differed because there was no body to bring in rather than because a rule fired",
       "hollow": false,
       "armed": true,
       "directCall": false

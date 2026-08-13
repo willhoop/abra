@@ -36,8 +36,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  556/556 probed mechanics live, 0 missing   (census 2026-08-13 00:37)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-13 00:37)
+  558/558 probed mechanics live, 0 missing   (census 2026-08-13 02:03)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-13 02:01)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,15 +49,311 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 695be9f7f8c7 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 65e314fdb069 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is e8c88260e7d5 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 263/282 probed, 19 unprobed
 ```
 
-_stamped 2026-08-13 00:41_
+_stamped 2026-08-13 02:09_
 
 <!-- /GENERATED -->
+
+## ROADMAP #240 — THE QUEUE IS RE-SORTED ONLY WHEN THE NEXT ACTION IS A MOVE. 2026-08-13.
+
+**Census 557 live / 0 missing -> 558 live / 0 missing.** One probe, shown RED twice — once under each
+of the two wrong engines this replaces — before the fix was trusted.
+
+### THE FACT, AND IT IS A TRIGGER RATHER THAN A RULE ABOUT SWITCHES
+
+```js
+if (this.gen >= 8 && (this.queue.peek()?.choice === "move" || this.queue.peek()?.choice === "runDynamax")) {
+  this.updateSpeed();
+  for (const queueAction of this.queue.list) if (queueAction.pokemon) this.getActionSpeed(queueAction);
+  this.queue.sort();
+}                                                       sim/battle.js:2403, the tail of runAction
+```
+
+It runs after EVERY action and the guard passes only when the NEXT QUEUED action is a move. So while
+switches are at the head of the queue nothing is recomputed and every action keeps the Speed it was
+stamped with at turn start; the instant one action is a move, the re-sort fires and everything that
+happened earlier in the turn — a weather turning on an ability, a mega, a boost — is picked up.
+
+**THIS ENGINE RE-SORTED AFTER EVERY ACTION UNCONDITIONALLY.** That is right in front of a move —
+ROADMAP #232 closed on exactly that half — and wrong in front of a switch.
+
+### DERIVED FROM THE AUTHORITY BEFORE A LINE OF THE ENGINE MOVED
+
+`gen9championsvgc2026regmb`, L50 / 0 EV / 31 IV / Hardy. Aerodactyl 150, Volcarona 120, Excadrill 108
+(Sand Rush, 216 in sand), Swampert 80. Aerodactyl's slot switches to Tyranitar, so the sand is up from
+the first action onward. The knob is Excadrill's ability; the control is Mold Breaker, a live ability
+that touches no Speed (ROADMAP #100: Sand Rush was once "broken" against a Fluffy control).
+
+| the turn | Sand Rush | Mold Breaker |
+|---|---|---|
+| **all four slots SWITCH** | Tyranitar, Pelipper, Torkoal, Clefable -> **sun** | **sun** — byte-identical order |
+| **two switch, two CLICK** (Sunny Day vs Rain Dance) | Excadrill moves FIRST -> **rain** | Volcarona first -> **sun** |
+
+The authority itself cannot see Sand Rush on the switch turn, and it decides the move turn with it.
+**Same board, opposite answers, and the only difference is whether anybody clicked a move** — which is
+why neither "switches do not see the weather" nor "weather does not re-sort" is the fix. Each of those
+patches gets one of those two rows wrong.
+
+Will's hypothesis on the diverging card was the mechanism exactly and the direction inverted: the sand
+is the cause, and **it is OURS that applied it.**
+
+### THE FIX — ONE TRIGGER, ONE MAPPING, AND #232 NOW READS THE SAME RULE
+
+`_resortTail(from)` in `battleTurn` is the only place the remaining queue is re-derived. `from` is the
+head of the live queue, i.e. what `peek()` returns, so the guard is the authority's condition and
+nothing else. Both former call sites go through it: the post-action re-sort at the top of the action
+loop, and the mega phase's tail sort — which in the authority is simply the ordinary post-action
+re-sort landing after the last `megaEvo` (order 104) with a move next.
+
+`sdChoiceOf(a)` is the mapping from this engine's action kinds to Showdown's `choice` string, at module
+scope, read by BOTH the trigger and `willAct()`. They were two hand-rolled tests that happened to
+agree, and they are consequences of one fact: **#232 moved a shield's gate to execution BECAUSE the
+authority re-sorts mid-turn; #240 is the other half, that it does NOT re-sort between switches.** A
+bare switch (no `mv`) maps to `'switch'`; a pivot move and everything else maps to `'move'`, including
+`kind:'pass'` — that is #232's finding reused rather than a second guess, and excluding it there took
+two probes from LIVE to MISSING. `runDynamax` cannot occur in gen 9 and is named so the omission is a
+statement.
+
+### THE RED PROOF, TWICE, BECAUSE A ONE-ARMED PROBE PASSES ON TWO DIFFERENT WRONG ENGINES
+
+```
+break A  the trigger disabled (the old unconditional re-sort)
+  MISSING  speedCond  ... ALL FOUR SLOTS SWITCH: Sand Rush rain, control sun ...
+           557 live, 1 missing, 558 probed.
+break B  never re-sort at all
+  MISSING  speedCond  ... TWO SWITCH AND TWO CLICK: Sand Rush sun, control sun ...
+  MISSING  stalling   the LAST action is decided at EXECUTION — a mega mid-turn re-sorts the queue
+           552 live, 6 missing, 558 probed.
+```
+
+Each break makes a DIFFERENT arm of the probe wrong. Break B also takes down ROADMAP #232's own probe
+and four others, which is the two halves reading one rule made visible. Restored byte-identical;
+558 live, 0 missing.
+
+### THE COUNTERS
+
+`queueResorted` / `queueResortHeldNotAMove` / `queueResortChangedOrder`. On the staged fixture: 2 / 6 /
+1 — the six holds are the two four-switch turns, and the one change is Excadrill overtaking in front of
+a move. **`queueResortHeldNotAMove` is the counter that proves #240 does something**: every one of
+those was previously a re-sort the authority does not do.
+
+### THE MEASURED MOVE — 300-GAME PAIR, BOTH ARMS, TWO FROZEN RELEASES
+
+`--team-store data/team-pool-frozen --games 300`, no `--write`. The two releases differ in ONE TOKEN
+(`ed002956d623` is this same tree with the trigger disabled, which is byte-for-byte the previous
+behaviour; `718a7333f27b` is the fix). Both runs caught all three planted divergences.
+
+| arm | before `ed002956d623` | after `718a7333f27b` |
+|---|---|---|
+| top-tie-first | 98 / 260 | **97 / 260** |
+| bottom-tie-first | 93 / 260 | **91 / 260** |
+
+**And it is attributable.** On the primary arm exactly one divergence CLASS moved, and it is the right
+one: `ordering` 16 games / 15 distinct causes -> **15 games / 14 distinct causes**. Every other class
+— `event missing from medicham2` 43, `unrelated event mismatch` 11, `extra event emitted` 9, `drag` 7,
+`-damage field 3` 5 — is unchanged to the instance.
+
+`tests/test-engine-diff.js --n 6000`: **agreed 6000, disagreed 0**, unchanged. It is a single-hit
+damage instrument and cannot see a turn order, so that is the expected reading and not evidence.
+
+### TWO THINGS THE AUDIT FOUND THAT ARE NOT FIXED HERE, BOTH DECLARED AT THEIR SITE
+
+- **`getActionSpeed` RE-DERIVES PRIORITY, NOT ONLY SPEED, AND THIS FILE SAID OTHERWISE.** The comment
+  above `turnOrderKey` claimed the re-sort "re-derives the SPEED only … a Grassy Terrain set halfway
+  through the turn does not retroactively give Grassy Glide priority". `sim/battle.js:2145` runs
+  `singleEvent('ModifyPriority')` and `runEvent('ModifyPriority')` on every re-sort of a move action,
+  so the opposite is true. The comment is corrected; `_pri` is still frozen at turn start and that is
+  now a **declared defect with no probe on it** rather than a design. Filed, not folded in — a
+  differential that moves for two reasons at once is unattributable.
+- **THE `Update` EVENT SORTS ON A CACHED SPEED IN THE AUTHORITY AND A FRESH ONE HERE.**
+  `eachEvent` (sim/battle.js:293) sorts on `pokemon.speed`, refreshed only by `updateSpeed()` — which
+  after #240 happens at the residual, at `commitChoices`, and in front of a move. `_updateAll`
+  recomputes `effSpeed` every time. It can only reorder berry and herb activations between two bodies
+  whose relative Speed moved mid-turn with no move queued next. Written at `_updateAll`, not left
+  silent.
+
+### RE-RUN OWED
+
+`data/roster.{items,abilities,moves}.json` — `engine/status.js` reports them as
+`MEASURED AGAINST A DIFFERENT ENGINE`, which is the consequence of any engine edit.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty. This pass took its target from the ROADMAP row and from a diverging card, not from the
+list.
+
+## ROADMAP #231 — THE AUTHORITY ENDS THE BATTLE AND WE PLAYED ON. 2026-08-13.
+
+**Census 556 live / 0 missing -> 557 live / 0 missing.** One probe, `battleEndsOnWipe`, shown RED on
+a deliberate break before it was trusted. The class it closes was the largest single one in the
+divergence dump.
+
+### WHAT ACTUALLY ENDS THE BATTLE IN THE AUTHORITY — AND THE BRIEF'S QUESTION HAS A CLEAN ANSWER
+
+The brief asked whether Showdown ends the battle because a side has **no bodies left at all** or
+**none left among the four it brought**. It is the second, and the mechanism is exact:
+
+| read | source |
+|---|---|
+| `checkWin` wins when a side's `pokemonLeft` is 0 | `dist/sim/battle.js:2133` |
+| `pokemonLeft` is decremented once per faint | `dist/sim/battle.js:2091` |
+| `pokemonLeft` is set to `side.pokemon.length` at the `start` action | `dist/sim/battle.js:2189` |
+| and `side.pokemon` **is rebuilt to the picked team**: `case "team":` does `side.pokemon = []` on index 0, then pushes only the chosen positions | `dist/sim/battle.js:2262` |
+
+**AND THAT DISTINCTION IS NOT WHAT CAUSED THIS.** `buildPair` caps at four and the driver picks
+`team 1234`, so the picked team IS the whole team and the two readings coincide in every game this
+instrument plays. The defect was **WHEN, not WHO**:
+
+```
+turnLoop      while (action = this.queue.shift()) { this.runAction(action);
+                                                    if (this.requestState || this.ended) return; }
+              this.endTurn();                          <-- never reached once `ended`   (:2419)
+runAction     this.faintMessages(); if (this.ended) return true;                        (:2334)
+case residual this.fieldEvent("Residual"); if (!this.ended) this.add("upkeep");         (:2323)
+residualEvent this.faintMessages(); if (this.ended) return;   // after EVERY handler    (:387)
+```
+
+So a win mid-turn cancels **every remaining action, the whole residual, the `|upkeep|` line, and the
+faint replacements** — the switch request lives past `endTurn`, which never runs. medicham2 played
+all of it out: `battleTurn` had no win check anywhere between its first action and `S.turn++`.
+
+### THE BRIEF'S TWO HYPOTHESES WERE BOTH WRONG, AND THE ROSTER SNAPSHOT IS WHAT SAID SO
+
+*"our bench is larger than the authority's, or we have lost count of who has fainted"* — neither.
+`game_differential.js` now dumps, per diverging game, both engines' full roster and Showdown's
+`pokemonLeft`. On the four games in the class in a 60-game run the two engines hold the SAME four
+bodies with the SAME hp on every one. medicham2's arrays look shorter only because `bringIn`
+overwrites a dead slot rather than keeping the corpse, and the live count is identical either way.
+
+`battleInit`'s `teamA.slice(2)` was also clean here: both sides get four, so both benches are two.
+
+### THE FIX — `sideWiped`, ONE PREDICATE, FOUR STOP SITES, AND A LABEL
+
+`sideWiped(S)` is split out of `battleOver` because the turn loop needs the win condition **without**
+the turn cap: a turn that reaches its own horizon still finishes, and a turn in which somebody's last
+body dies does not. `battleOver` is now `S.turn >= maxTurns || sideWiped(S)`, so no caller changes.
+
+The turn body is labelled `_TURN:` and every stop site does `break _TURN`. A label rather than an
+`if`, because the alternative is re-indenting seven thousand lines.
+
+| site | mirrors | counter |
+|---|---|---|
+| loop top, after the three settles and **before** `_updateAll` | `faintMessages(); if (ended) return true` at the end of the previous action | `turnEndedMidAction` |
+| below the loop, same position relative to the settles | the same check for the LAST action | `turnEndedBeforeResidual` |
+| top of each residual GROUP | `residualEvent`'s per-handler check | `turnEndedInResidual` |
+| after the residual, gating `|upkeep|` and `refill` | `if (!this.ended) this.add("upkeep")` | `turnEndedAtUpkeep` |
+
+Placement is load-bearing at the first two: **above** them are the settles that close out the action
+that just ran (the AfterMove debt, Opportunist's copy, the Faint sweep) — all of which the authority
+runs before or inside `faintMessages`, so cutting above them would drop a debt the killing move had
+already incurred. **Below** them is the Update event, which the authority reaches only past
+`if (this.ended) return true`.
+
+`receiverSweep` deliberately still runs on a decided battle: `faintMessages` fires the `Faint` event
+for every queued faint inside its own while loop and only then calls `checkWin` (`:2093`, `:2127`),
+so Receiver and Power of Alchemy do take the ability off the last body to die. What must not happen
+is the replacement.
+
+**DECLARED APPROXIMATION.** The residual check is at GROUP granularity, not per handler, because the
+walk is effect-major (ROADMAP #221) and a group is the finest boundary it has. Within one group the
+difference is whether a second body on the LOSING side also takes its own chip after the side is
+already dead — which cannot change the outcome and cannot bring anybody in, because both of those
+live below the loop.
+
+### THE RED PROOF
+
+The probe plays one identical turn twice — a Rock Slide takes both of side B's 1 HP actives, with a
+second Garchomp's Liquidation queued behind it — and varies **only whether side B has a third body**.
+It reads `[p1 |move| lines, |upkeep| lines, |switch| lines]` off the emitted stream.
+
+```
+BEFORE THE FIX      bench   [2, 1, 1]      no bench  [2, 1, 0]
+```
+
+The move and upkeep counts are IDENTICAL across the knob, and the replacement differed only because
+there was no body to bring in — an unwired knob wearing the face of a knob that does not matter.
+
+Both mid-turn stop sites then deleted from the engine, `tests/test-mechanics.js` re-run:
+
+```
+MISSING  battleEndsOnWipe   ... side B wiped [2,0,0] ...
+556 live, 1 missing, 557 probed.
+```
+
+Restored byte-identical from a pre-break copy; the file returns to `557 live, 0 missing`.
+
+### THE MEASURED MOVE — 400 GAMES, BOTH ARMS, SAME PINNED POOL
+
+Two runs of `engine/game_differential.js --games 400 --team-store data/team-pool-frozen`, the first
+pinned with `--release 28855a011228` (the pre-fix engine the dump was taken against), the second on
+the tree as it stands. **No `--write`** — `data/game-differential.json` is untouched, so the
+quarantine clause still quotes the pre-fix number until MEASURE re-runs it.
+
+|  | pre `28855a011228` | post `d5ddbedcbc58` |
+|---|---|---|
+| top-tie-first | 156 / 344 | **135 / 344** |
+| bottom-tie-first | 118 / 344 | **102 / 344** |
+| pooled | 274 / 688 | **237 / 688** |
+| `showdown stopped emitting while medicham2 continued` | **38** | **2** |
+
+Every other class is unmoved — ordering 55, extra 20, unrelated 20, drag 14, and the five singletons
+all identical; `event missing from medicham2` went 122 -> 121. Nothing went up.
+
+### THE 38 SHARED ONE CAUSE, WITH ONE EXCEPTION, AND THE EXCEPTION IS THE HARNESS
+
+Grouped by `end_reason` and by each engine's own end verdict:
+
+```
+30   both engines ended the battle          endedSd=true  endedMe=true
+ 7   the first divergent LINE               endedSd=true  endedMe=true
+ 1   showdown stopped asking for a move     endedSd=false endedMe=false
+```
+
+**37 of 38 are one cause** — Showdown had won and we kept talking (20 of them with a bare `|upkeep`,
+10 with another `|move|`, 5 with a weather upkeep, 1 with a `|switch|` bringing a body onto a side
+that had already lost). The 38th is not an engine defect at all and is reported, not folded in.
+
+### TWO REMAIN, AND THEY ARE TWO DIFFERENT THINGS — NEITHER IS THIS ONE
+
+1. **`game_differential.js`'s forced-switch mirror can name one body twice.** The move phase carries a
+   `claimed` set so two slots cannot switch to the same bench member; the mirror loop at the bottom of
+   the turn has none. When a side has two dead actives and one live body, it emits `switch 3, switch 3`,
+   Showdown rejects the whole choice (*"can only switch in once"*), `requestState` stays `switch` and
+   the run reports `showdown stopped asking for a move`. **NOT FIXED IN THIS PASS, deliberately**: it
+   is a second change in the same measurement and would make the differential move above
+   unattributable. Filed with its location.
+2. **A post-KO `-boost` emitted after the faint that ended the game.** One game:
+   `|move|p1b:eelektross|thunder` KOs the last body, then medicham2 emits
+   `|-boost|p1b: Eelektross|atk|1|[from] ability: eelevate` and Showdown emits nothing. Whether that
+   is a moment problem or an ability that should not have fired is a separate question with no probe
+   on it yet.
+
+### AN INSTRUMENT CHANGE THAT CAME WITH IT
+
+- `playGame` now returns `finalRoster` — both engines' full roster, hp, fainted flag and Showdown's
+  `pokemonLeft` and winner — and the dump carries it with `end_reason`, `ended_showdown` and
+  `ended_medicham`. Without it this class is guesswork; with it the diagnosis took one run.
+- **The dump is no longer gated on `--write`.** It sat inside `if (WRITE)`, so the only way to look at
+  a diverging game was to also overwrite `data/game-differential.json` — publish a measurement in
+  order to debug it. `--dump-games` still defaults to 0, so a run that does not ask is unchanged.
+
+### GATES
+
+```
+tests/test-mechanics.js            557 live, 0 missing, 0 threw, 0 hollow, 0 unarmed
+tests/test-switch-carry.js         27 passed, 0 failed
+tests/test-engine-diff.js --n 6000 agreed 6000, disagreed 0
+tests/staged_status_counters.js    11/11 IDENTICAL on both the release and the live arm, exit 0
+```
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty. This pass took its target from `data/divergence-turns.json`, not from the list.
 
 ## THE ABILITIES ARM THREW THE SAME FOUR MOVES AT ALL 316. A DARK MOVE NOW HITS THE JUSTIFIED MON. 2026-08-13.
 

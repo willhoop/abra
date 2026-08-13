@@ -88,6 +88,17 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* ROADMAP #231 -- THE AUTHORITY ENDS THE BATTLE. Four counters, not one, because "the turn stopped"
+   * and "it stopped at the right MOMENT" are different claims and only the split can tell them apart:
+   *   turnEndedSideWiped      the total -- a zero on a run with any KO in it means this is unwired
+   *   turnEndedMidAction      a side was wiped with actions still queued behind it (the loop-top site)
+   *   turnEndedBeforeResidual the LAST action wiped a side, so the residual never opens (the common one)
+   *   turnEndedInResidual     a residual group wiped a side, so the remaining groups never run
+   *   turnEndedAtUpkeep       the residual finished having wiped a side: no `|upkeep|`, no replacement
+   * The four sites are mutually exclusive per turn (each `break _TURN`s), so they SUM to the total,
+   * and any one of them stuck at zero on a long run is a branch nothing reaches. */
+  turnEndedSideWiped: 0, turnEndedMidAction: 0, turnEndedBeforeResidual: 0,
+  turnEndedInResidual: 0, turnEndedAtUpkeep: 0,
   /* ROADMAP #234 -- THE `[from]` ATTRIBUTION PATH. Four counters, because "attribution ran" and
    * "attribution named something" are different claims and only the pair of them can tell a working
    * derivation from a silent no-op.
@@ -403,6 +414,18 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                              THE COUNTER THAT PROVES THE FIX DOES SOMETHING; a zero here with a
    *                              non-zero above means every shield this run held its pre-pass place. */
   shieldGateAtExecution: 0, shieldGateOrderChanged: 0,
+  /* ROADMAP #240 -- THE RE-SORT TRIGGER. `sim/battle.js:2403` runs the re-sort after EVERY action and
+   * the guard passes only when the NEXT QUEUED action is a `move`, so a queue whose head is a switch
+   * keeps the speeds it was stamped with at turn start.
+   *   queueResorted            the speeds were recomputed and the remaining queue re-sorted
+   *   queueResortHeldNotAMove  the trigger REFUSED, because the next action is a bare switch. THIS IS
+   *                            THE COUNTER THAT PROVES #240 DOES SOMETHING: before it, the engine
+   *                            re-sorted unconditionally, so every one of these was a re-sort the
+   *                            authority does not do. A zero after real games means no turn in the run
+   *                            had two switches back to back, not that the branch is absent.
+   *   queueResortChangedOrder  and the re-sort actually MOVED the next body -- a trigger whose sorts
+   *                            are all no-ops is indistinguishable from no trigger at all. */
+  queueResorted: 0, queueResortHeldNotAMove: 0, queueResortChangedOrder: 0,
   /* ROADMAP #162 / #60 -- Upper Hand refused because the target's committed move was not priority.
    * A zero after real games means nobody clicked it (89 corpus uses), not that the branch is absent. */
   priorityConditionRefused: 0,
@@ -8167,9 +8190,22 @@ if((side==='A'?field.twA:field.twB)>0)s*=2;
  * and the re-sort is sim/battle.ts, gated on gen >= 8 and run after every action:
  *     "In gen 8, speed is updated dynamically so update the queue's speed properties and sort it."
  *         this.updateSpeed(); ...getActionSpeed(queueAction)...; this.queue.sort();
- * It re-derives the SPEED only. `order` and `priority` are resolved once when the action is queued,
- * which is why `_pri` is frozen at the top of the turn below rather than recomputed on each re-sort —
- * a Grassy Terrain set halfway through the turn does not retroactively give Grassy Glide priority.
+ * IT DOES NOT RE-DERIVE THE SPEED ONLY, AND THIS PARAGRAPH SAID IT DID — CORRECTED 2026-08-13 WITH
+ * ROADMAP #240, by reading the compiled function the sentence above names rather than assuming what
+ * it must do. `Battle#getActionSpeed` (sim/battle.js:2145) opens with
+ *     if (action.choice === "move") { ... let priority = this.dex.moves.get(move.id).priority;
+ *       priority = this.singleEvent("ModifyPriority", move, null, action.pokemon, target, null, priority);
+ *       priority = this.runEvent("ModifyPriority", action.pokemon, target, move, priority);
+ *       action.priority = priority + action.fractionalPriority; ... }
+ * so PRIORITY is re-derived on every re-sort too, and a Grassy Terrain set halfway through the turn
+ * DOES retroactively give Grassy Glide its +1 — the opposite of the claim that used to be here. Only
+ * `order` (After You / Quash) is genuinely resolved once, at queue time.
+ *
+ * `_pri` IS STILL FROZEN AT THE TOP OF THE TURN BELOW, AND THAT IS NOW A DECLARED DEFECT RATHER THAN
+ * A DESIGN. It has no failing probe on it — every carrier in this format is conditional on something
+ * that rarely moves mid-turn (Gale Wings' full HP, Grassy Glide's terrain, Triage) — so it is filed
+ * with #240 rather than folded into it, because a differential that moves for two reasons at once is
+ * unattributable (docs/LESSONS.md, and CLAUDE.md's batch-size rule).
  *
  * `order` is the field After You and Quash write in Showdown's own data (`action.order = 3` for
  * next, `= 201` for last, against 200 for a plain move action). It is what makes those two survive a
@@ -8362,6 +8398,51 @@ function sortTurnOrder(acts, field, rng){
   }
   return acts;
 }
+
+/* ===== WHAT SHOWDOWN WOULD CALL THIS ACTION ====================================================
+ *
+ * ROADMAP #240. TWO PLACES IN THE TURN LOOP ASK A QUESTION ABOUT AN ACTION'S `choice` STRING, and
+ * before this they answered it with two different hand-rolled tests that happened to agree:
+ *
+ *     the re-sort trigger   `this.queue.peek()?.choice === 'move'`          sim/battle.js:2403
+ *     the willAct scan      `['move','switch','instaswitch','shift'].includes(action.choice)`
+ *                                                                          sim/battle-queue.js:310
+ *
+ * They are consequences of ONE fact -- what Showdown calls the action -- so the mapping lives here,
+ * once, and both call sites read it. Two copies of a fact is what CLAUDE.md names, and this pair has
+ * already contradicted each other once: ROADMAP #232 closed by moving a shield's gate to execution
+ * BECAUSE the authority re-sorts mid-turn, while #240 is the other half -- it does NOT re-sort
+ * between switches. A patch that special-cased switches, or one that special-cased the weather, would
+ * make those two halves permanently inconsistent.
+ *
+ * THE MAPPING, AND THE ONLY LINE IN IT THAT IS A JUDGEMENT:
+ *
+ *   BARE SWITCH -> 'switch'.  `{kind:'switch'}` with no `mv` is a voluntary switch, which Showdown
+ *                  queues at order 103 with choice 'switch'. A PIVOT (`a.mv` present -- Parting Shot,
+ *                  Chilly Reception) is a MOVE that happens to switch its user out afterwards, and
+ *                  Showdown queues it as choice 'move'; WIRE 120 already had to learn that the hard
+ *                  way when both were given priority +6.
+ *
+ *   EVERYTHING ELSE -> 'move', INCLUDING `kind:'pass'`, AND THAT IS ROADMAP #232's FINDING REUSED
+ *                  RATHER THAN A SECOND GUESS. Showdown's `pass` choice may only be issued for an
+ *                  EMPTY SLOT; every body that is on the field holds a `move` action. `{kind:'pass'}`
+ *                  here means something else entirely -- it is this engine's own declaration that it
+ *                  models no effect for a click that WAS still made -- and an empty slot produces no
+ *                  `acts` entry at all, because `mk()` skips it. Excluding it from willAct was tried
+ *                  in #232 and took `stallCounterFeeds` and `swapsSlots` from LIVE to MISSING.
+ *
+ * `runDynamax` is the trigger's other passing choice upstream and CANNOT OCCUR HERE: this is gen 9
+ * and the mechanic does not exist in the format. Named so the omission is a statement rather than a
+ * gap somebody has to notice. */
+function sdChoiceOf(a){
+  if(a&&a.kind==='switch'&&!a.mv)return 'switch';
+  return 'move';
+}
+/* `BattleQueue.willAct()`'s filter, over the mapping above. Every action this engine queues is a
+ * 'move' or a 'switch', so this is TRUE for all of them -- which is exactly why #232's call site is
+ * arithmetically `idx+1 < acts.length`. It is written out anyway so that the day a third choice
+ * appears, the two readers cannot silently disagree about it. */
+const SD_WILL_ACT=new Set(['move','switch','instaswitch','shift']);
 
 /* ---- SECONDARY AND PRIMARY MOVE EFFECTS -------------------------------------------------------
  * Read from the SHARED rulebook (CHOMP/data/move-effects.json, exposed here as window.MOVE_EFFECTS
@@ -11737,8 +11818,32 @@ function battleInit(teamA,teamB,opts){
    two switch pairs forever and never attacked.
    S.maxTurns lets a caller buy a horizon long enough that stalling stops paying. The default is
    unchanged, so every measurement taken before this still means what it meant. */
+/* ROADMAP #231 -- THE AUTHORITY ENDS THE BATTLE AND WE PLAYED ON. 2026-08-13.
+ *
+ * `sideWiped` is the WIN CONDITION on its own, split out of `battleOver` (which is that OR the turn
+ * cap) because the turn loop needs the win condition WITHOUT the cap: a turn that reaches its own
+ * cap still finishes, and a turn in which somebody's last body dies does not. Two questions, and
+ * folding them together is how the caller ends up abandoning a residual because the horizon expired.
+ *
+ * THE RULE, READ FROM THE AUTHORITY RATHER THAN ASSUMED.
+ *   `Battle#checkWin(faintData)`  (dist/sim/battle.js:2133)
+ *       if (this.sides.every(side => !side.pokemonLeft)) { this.win(...); return true; }
+ *       for (const side of this.sides) if (!side.foePokemonLeft()) { this.win(side); return true; }
+ *   `Side#foePokemonLeft()`       (dist/sim/side.js:196)  -> the foe's `pokemonLeft`
+ *   `pokemonLeft` is decremented once per faint in `faintMessages` (battle.js:2091) and is set to
+ *   `side.pokemon.length` at the `start` action (battle.js:2189).
+ *
+ * SO IT IS "NONE LEFT AMONG THE ONES IT BROUGHT", NOT "NONE LEFT AT ALL" -- `runAction`'s `case
+ * "team"` (battle.js:2262) does `side.pokemon = []` and then pushes ONLY the picked positions, so
+ * after Team Preview `side.pokemon` IS the brought team and the two readings coincide from there on.
+ * The distinction is real and it is NOT what caused this defect: the differential packs four bodies
+ * and picks `team 1234`, so both engines hold four either way. What was wrong was WHEN, not WHO. */
+function sideWiped(S){
+  return _live(S.actA).length+_live(S.benchA).length===0
+      || _live(S.actB).length+_live(S.benchB).length===0;
+}
 function battleOver(S){
-  return S.turn>=(S.maxTurns||20)||_live(S.actA).length+_live(S.benchA).length===0||_live(S.actB).length+_live(S.benchB).length===0;
+  return S.turn>=(S.maxTurns||20)||sideWiped(S);
 }
 /* WIRE 139 -- A MOVE TARGETS A SLOT, AND FIVE OF THE SEVEN BRANCHES STILL TARGETED A POKEMON.
  *
@@ -11962,7 +12067,34 @@ function battleTurn(S,rng,actsForA,actsForB){
   /* Showdown prints `|turn|N` at the TOP of the turn it is about to play; S.turn is incremented at
    * the bottom of this function, so the turn about to run is S.turn + 1. */
   if(TR)TR.turn(S.turn+1);
-  {
+  /* ROADMAP #231 -- `_TURN:` IS THE LABEL THE WIN CONDITION BREAKS OUT OF, AND IT IS A LABEL RATHER
+   * THAN AN `if` BECAUSE THE ALTERNATIVE IS RE-INDENTING SEVEN THOUSAND LINES.
+   *
+   * THE AUTHORITY ABANDONS THE REST OF THE TURN THE INSTANT A SIDE IS WIPED, and this engine played
+   * it out. Read, not assumed:
+   *
+   *     turnLoop()  (dist/sim/battle.js:2419)
+   *       while (action = this.queue.shift()) { this.runAction(action);
+   *                                             if (this.requestState || this.ended) return; }
+   *       this.endTurn();                       <-- NEVER REACHED once `ended`
+   *     runAction() (dist/sim/battle.js:2334)
+   *       this.faintMessages();
+   *       if (this.ended) return true;          <-- checked after EVERY action
+   *     case "residual" (dist/sim/battle.js:2323)
+   *       this.fieldEvent("Residual");
+   *       if (!this.ended) this.add("upkeep");  <-- the upkeep line is CONDITIONAL
+   *     residualEvent() (dist/sim/battle.js:387)
+   *       this.faintMessages(); if (this.ended) return;   <-- after every residual handler
+   *
+   * So a win mid-turn cancels: every remaining ACTION, the whole RESIDUAL, the `|upkeep|` line, and
+   * the faint REPLACEMENTS (the switch request lives past `endTurn`, which never runs).
+   *
+   * MEASURED SHAPE OF THE DEFECT. `engine/game_differential.js --games 60`: three of the four games
+   * in the class `showdown stopped emitting while medicham2 continued` are this, and the roster
+   * snapshot proves it -- Showdown reports `p1.pokemonLeft: 0` and a winner while medicham2 goes on
+   * to emit another `|move|`, another `|upkeep|`, and in one case a `|switch|` bringing a body in on
+   * a side that has already lost. */
+  _TURN:{
     /* WIRE 133 -- `_boostSnap`, AND IT IS A SNAPSHOT RATHER THAN TWELVE INSTRUMENTED CALL SITES.
      *
      * Showdown carries `Pokemon#statsRaisedThisTurn`, written inside `boost()` and cleared at the top
@@ -12267,8 +12399,17 @@ function battleTurn(S,rng,actsForA,actsForB){
      *
      * WHICH LEAVES IT ARITHMETICALLY IDENTICAL TO THE `i+1>=acts.length` IT REPLACES. That is the
      * point: the ONLY thing ROADMAP #232 changes is WHEN this is asked, and a function is what makes
-     * the two call sites -- the shield and the side guard -- ask one question instead of two copies. */
-    const _anyActionAfter=(idx)=>idx+1<acts.length;
+     * the two call sites -- the shield and the side guard -- ask one question instead of two copies.
+     *
+     * ROADMAP #240 -- AND THE FILTER IS NOW `sdChoiceOf`, THE SAME MAPPING THE RE-SORT TRIGGER READS.
+     * The two are consequences of one fact and were two hand-rolled tests; see the header on
+     * sdChoiceOf. Still arithmetically `idx+1 < acts.length` today, because every action this engine
+     * queues maps to a choice that willAct counts -- what changes is that it can no longer come apart
+     * from the trigger's reading of the same action. */
+    const _anyActionAfter=(idx)=>{
+      for(let k=idx+1;k<acts.length;k++)if(SD_WILL_ACT.has(sdChoiceOf(acts[k].a)))return true;
+      return false;
+    };
     /* WIRE 119 -- THE SHIELD IS RAISED BEFORE ANY MOVE RESOLVES, so a body Taunted on an EARLIER turn
      * would otherwise still get its Protect up: the gate above the kind dispatch fires too late for
      * this pre-pass. It is asked here as well, and only here, because a body Taunted THIS turn is
@@ -12430,10 +12571,72 @@ function battleTurn(S,rng,actsForA,actsForB){
        * speed), so a herb spent here changes who moves next WITHIN the same turn -- which is the
        * whole mechanic. At the residual the item came off after the order had already been spent.
        *
+       * ROADMAP #240 -- "IMMEDIATELY AFTER IT" IS NOW CONDITIONAL, AND THAT IS THE AUTHORITY'S RULE
+       * RATHER THAN A WEAKENING OF THIS ONE. The re-sort fires only when the next queued action is a
+       * move (`_resortTail`), so a herb spent in front of a SWITCH no longer reorders anything --
+       * which is exactly what `sim/battle.js:2403` does, and the switch it would have reordered
+       * cannot be overtaken there either.
+       *
+       * A RESIDUAL DIVERGENCE IS DECLARED HERE, MEASURED AND NOT FIXED IN THIS BATCH. The SORT ON THE
+       * LINE ABOVE recomputes `effSpeed` every time; the authority's `eachEvent` (sim/battle.js:293)
+       * sorts on the CACHED `pokemon.speed`, which only `updateSpeed()` refreshes -- and after #240
+       * that happens at the residual, at commitChoices, and in front of a move. So on a turn where a
+       * body's Speed changes and the next action is a SWITCH, the authority runs its Update event in
+       * the STALE order and this engine runs it in the fresh one. It can only reorder berry and herb
+       * activations between two bodies whose relative Speed moved mid-turn with no move queued next;
+       * no probe fails on it today, and folding it in would make #240's differential unattributable.
+       *
        * NOT INSIDE THE SORTED LOOP ABOVE on purpose: that loop is `eachEvent('Update')`, a different
        * Showdown event with its own ordering, and the herb is not one of its handlers. Same schedule,
        * separate pass, so a future change to either does not silently move the other. */
       restoreStatsAll(actA,actB);
+    };
+    /* ===== ROADMAP #240 -- THE RE-SORT, AND THE TRIGGER IS THE MECHANIC ==========================
+     *
+     * ONE PLACE. Every caller that wants the remaining queue re-derived comes through here, so the
+     * condition cannot be stated twice and drift.
+     *
+     *     if (this.gen >= 8 && (this.queue.peek()?.choice === "move" ||
+     *                           this.queue.peek()?.choice === "runDynamax")) {
+     *       this.updateSpeed();
+     *       for (const queueAction of this.queue.list)
+     *         if (queueAction.pokemon) this.getActionSpeed(queueAction);
+     *       this.queue.sort();
+     *     }                                          sim/battle.js:2403, the tail of runAction
+     *
+     * IT RUNS AFTER EVERY ACTION AND THE GUARD PASSES ONLY WHEN THE NEXT QUEUED ACTION IS A MOVE.
+     * `from` is that next action's index -- the head of the live queue, the thing `peek()` returns --
+     * so the guard is `sdChoiceOf(acts[from].a) === 'move'` and nothing else. This engine re-sorted
+     * UNCONDITIONALLY, which is right in front of a move and wrong in front of a switch:
+     *
+     *   MEASURED ON THE AUTHORITY, gen9championsvgc2026regmb, four bodies at L50/0EV/31IV/Hardy --
+     *   Aerodactyl 150, Volcarona 120, Excadrill 108 (Sand Rush), Swampert 80. Aerodactyl's slot
+     *   switches to Tyranitar, so SAND IS UP after the first action and Excadrill's live Speed is 216.
+     *     ALL FOUR SLOTS SWITCH  |switch|Tyranitar |switch|Pelipper |switch|Torkoal |switch|Clefable
+     *                            -> the order is turn-start Speed throughout. Sand Rush is never read,
+     *                               and the run with Sand Rush swapped for Mold Breaker is IDENTICAL.
+     *     TWO SWITCH, TWO MOVE   |switch|Tyranitar |switch|Clefable |move|Excadrill |move|Volcarona
+     *                            -> Excadrill (216) now moves BEFORE Volcarona (120), and the Mold
+     *                               Breaker control reverses that pair. The sand IS read.
+     *   Same board, opposite answers, decided purely by whether anybody clicked a move. That is why
+     *   this is the TRIGGER and not a rule about switches or a rule about weather -- either of those
+     *   patches gets one of those two lines wrong, and no test that stages only one would notice.
+     *
+     * WHAT IS RE-DERIVED, AND WHAT IS NOT. `updateSpeed` + `getActionSpeed` recompute SPEED; that is
+     * what `sortTurnOrder` re-reads through `effSpeed` on every key it builds. `order` and `_pri` are
+     * left alone here -- see the note above `turnOrderKey`, and the correction filed with #240 about
+     * `getActionSpeed` re-running ModifyPriority, which is a separate defect with no probe on it yet.
+     *
+     * `runDynamax`, the trigger's other passing choice, cannot occur in gen 9 -- stated at sdChoiceOf.
+     */
+    const _resortTail=(from)=>{
+      if(from<0||from>=acts.length-1)return;          // a one-element tail sorts to itself
+      if(sdChoiceOf(acts[from].a)!=='move'){MEDSEEN.queueResortHeldNotAMove++;return;}
+      const _was=acts[from];
+      const _rest=sortTurnOrder(acts.slice(from),field,rng);
+      for(let _k=0;_k<_rest.length;_k++)acts[from+_k]=_rest[_k];
+      MEDSEEN.queueResorted++;
+      if(acts[from]!==_was)MEDSEEN.queueResortChangedOrder++;
     };
     let _megaPhaseDone=false;
     const _megaPhase=(from)=>{
@@ -12476,8 +12679,14 @@ function battleTurn(S,rng,actsForA,actsForB){
       _run.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field));
       for(const c of _run)if(megaEvolveNow(S,c.mon,!c.want))any=true;
       if(!any)return;
-      const _rest=sortTurnOrder(acts.slice(from),field,rng);
-      for(let _k=0;_k<_rest.length;_k++)acts[from+_k]=_rest[_k];
+      /* ROADMAP #240 -- THROUGH THE ONE TRIGGER, not a second copy of the sort. In the authority the
+       * megaEvo actions sit at order 104 between the switches (103) and the moves (200), so the
+       * re-sort that gives a mega's new Speed the move order is simply the ordinary post-action one:
+       * after the LAST megaEvo, `peek()` is a move and the guard passes. This phase is entered at the
+       * first action with `_pri < 6`, i.e. the first thing that is not a bare switch, so the guard
+       * passes here too -- but it is ASKED rather than assumed, because an assumption that happens to
+       * hold is how the two halves of #232/#240 came apart in the first place. */
+      _resortTail(from);
     };
     /* ROADMAP #232 -- THE SHIELD FAMILY'S GATE, ASKED WHERE THE AUTHORITY ASKS IT.
      *
@@ -12571,10 +12780,10 @@ function battleTurn(S,rng,actsForA,actsForB){
     };
     for(let actIdx=0;actIdx<acts.length;actIdx++){
       if(!_megaPhaseDone&&acts[actIdx]&&(acts[actIdx]._pri||0)<6)_megaPhase(actIdx);
-      if(actIdx>0&&actIdx<acts.length-1){
-        const _rest=sortTurnOrder(acts.slice(actIdx),field,rng);
-        for(let _k=0;_k<_rest.length;_k++)acts[actIdx+_k]=_rest[_k];
-      }
+      /* ROADMAP #240 -- the post-action re-sort, gated on the head of the live queue. `actIdx > 0`
+       * because nothing has happened yet before the first action: the top-of-turn sort IS the
+       * authority's `commitChoices` sort, and `runAction` has not run. See `_resortTail`. */
+      if(actIdx>0)_resortTail(actIdx);
       /* ROADMAP #81 WIRE 7 -- `eachEvent('Update')`, THE THING THAT MAKES A BERRY A BERRY.
        *
        * Showdown runs it after every action (sim/battle.ts:2858, gen >= 5). Running it at the TOP of
@@ -12598,6 +12807,17 @@ function battleTurn(S,rng,actsForA,actsForB){
        * compares against is taken below, immediately before the action runs. */
       opportunistSettle(actA,actB,_oppSnap); _oppSnap=null;
       receiverSweep([...actA,...actB]);   // ROADMAP #175 -- the previous action's faint, answered
+      /* ROADMAP #231 -- `faintMessages(); if (this.ended) return;` AT THE END OF THE PREVIOUS ACTION.
+       *
+       * IT SITS EXACTLY HERE AND NOWHERE ELSE. Above it are the three settles that close out the
+       * action that just ran -- the AfterMove debt, Opportunist's copy and the Faint-event sweep --
+       * all of which the authority runs BEFORE or INSIDE `faintMessages`, so cutting above them
+       * would drop a debt the killing move had already incurred. Below it is `_updateAll`, the
+       * Update event, which the authority reaches only past `if (this.ended) return true`.
+       *
+       * The LAST action's copy of this check is below the loop, for the same reason the settles have
+       * one there: the loop-top schedule cannot see the action that ended it. */
+      if(sideWiped(S)){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedMidAction++;break _TURN;}
       _updateAll();
       _oppSnap=opportunistSnapshot(actA,actB);
       const it=acts[actIdx];const m=it.mon;
@@ -18878,6 +19098,10 @@ function battleTurn(S,rng,actsForA,actsForB){
     flushAfterMoveSpends([...actA,...actB]);   // WIRE 152 -- the LAST action's debt, same reason
     opportunistSettle(actA,actB,_oppSnap); _oppSnap=null;   // ROADMAP #212 -- and the LAST action's copy
     receiverSweep([...actA,...actB]);          // ROADMAP #175 -- and the LAST action's faint
+    /* ROADMAP #231 -- and the LAST action's win check, in the same position relative to the settles
+     * and to `_updateAll` as the loop-top copy. This is the one that fires in the ordinary case: the
+     * body that wipes a side is usually the last one with an action left. */
+    if(sideWiped(S)){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedBeforeResidual++;break _TURN;}
     _updateAll();   // ROADMAP #81 WIRE 7 -- after the LAST action, the half the loop-top call cannot reach
     /* Flinch expires at the END of the turn it was applied. It used to be cleared only when the
      * flinched Pokemon tried to act, so a flinch landed by a SLOWER attacker (impossible to use this
@@ -19014,6 +19238,15 @@ function battleTurn(S,rng,actsForA,actsForB){
      * read `fainted` before the Leech Seed step at order 8... and by the same token a body dropped
      * under half by a chip eats its Sitrus in THAT group rather than next turn. */
     for(let _gi=0;_gi<RESIDUAL_GROUPS.length;_gi++){
+    /* ROADMAP #231 -- `residualEvent` (dist/sim/battle.js:387) runs `this.faintMessages(); if
+     * (this.ended) return;` after EVERY handler, so a chip that takes a side's last body cancels the
+     * rest of the residual, the `|upkeep|` line and the replacements. THE GRANULARITY IS A GROUP AND
+     * NOT A HANDLER, and that is a DECLARED approximation rather than a claim: this walk is
+     * effect-major (ROADMAP #221), so the finest boundary it has is the group. Within one group the
+     * difference is whether a second body on the LOSING side also takes its own chip after the side
+     * is already dead -- which cannot change the outcome and cannot bring anybody in, because both
+     * of those live below this loop. */
+    if(sideWiped(S)){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedInResidual++;break _TURN;}
     const _G=RESIDUAL_HAS[_gi], _Gn=RESIDUAL_GROUPS[_gi].steps.length;
     MEDSEEN.residualGroupsWalked++;
     for(const m of residualOrder(actA,actB,field)){if(!m||m.fainted||m.curHP<=0)continue;
@@ -19887,11 +20120,23 @@ function battleTurn(S,rng,actsForA,actsForB){
     };
     /* `|upkeep|` CLOSES the residual and the faint replacements follow it -- Showdown's own order,
      * where the switch request resolves between `|upkeep|` and the next `|turn|`. */
-    if(TR)TR.upkeep();
+    /* ROADMAP #231 -- AND IT IS CONDITIONAL, which is the authority's own word:
+     *     case "residual": ... this.fieldEvent("Residual"); if (!this.ended) this.add("upkeep");
+     * (dist/sim/battle.js:2323). A residual that takes a side's last body emits the `|faint|` and
+     * then NOTHING -- no upkeep, and no replacement, because the switch request is issued past
+     * `endTurn()` and `turnLoop` has already returned. Measured in the differential: one of the
+     * dumped games had Showdown fall silent and medicham2 answer with a bare `|upkeep`. */
+    const _wipedAtResidual=sideWiped(S);
+    if(!_wipedAtResidual&&TR)TR.upkeep();
     /* ROADMAP #175 -- BEFORE the replacements walk in, and that ordering is the whole of it: `refill`
      * puts a new body in the dead one's slot, so a sweep placed one line lower would find the corpse
      * gone and every residual faint would inherit nothing. */
+    /* IT RUNS EVEN ON A DECIDED BATTLE, and that is deliberate. `faintMessages` fires the `Faint`
+     * event for every queued faint INSIDE its own while loop and only then calls `checkWin`
+     * (dist/sim/battle.js:2093 and :2127), so Receiver and Power of Alchemy do take the ability off
+     * the last body to die. What must not happen is the REPLACEMENT. */
     receiverSweep([...actA,...actB]);
+    if(_wipedAtResidual){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedAtUpkeep++;break _TURN;}
     refill();
   }
   S.turn++;

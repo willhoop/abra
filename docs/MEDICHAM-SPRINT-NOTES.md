@@ -7541,3 +7541,56 @@ with the normalisation stated on the page rather than known only by whoever wrot
 noticing: one night of a human reading rendered games found more than the automated classifier had
 surfaced in a week of runs, because the classifier says what SHAPE a disagreement is and never which
 engine is right.
+
+### THE RE-SORT TRIGGER IS ONE RULE, AND WE HAD IT WRONG IN BOTH DIRECTIONS. 2026-08-13
+
+ROADMAP #240, closed. Will, reading a published card: *"i bet the ttar sandstorm activates excas sand
+rush so its suddenly faster?"* — right about the mechanism, inverted about who does it.
+
+`battle.js` re-sorts the action queue after **every** action, but the guard passes only when the NEXT
+queued action is a `move`:
+
+```js
+if (this.gen >= 8 && (this.queue.peek()?.choice === "move" || this.queue.peek()?.choice === "runDynamax")) {
+  this.updateSpeed();
+  for (const a of this.queue.list) if (a.pokemon) this.getActionSpeed(a);
+  this.queue.sort();
+}
+```
+
+So on a turn where all four slots switch, nothing is ever recomputed and every switch keeps the speed
+stamped at turn start — before Tyranitar arrived, before the sand. Excadrill's Sand Rush is live and
+simply never read. We recomputed.
+
+**THE FIX IS THE TRIGGER, AND THE TWO OBVIOUS PATCHES ARE BOTH WRONG.** "Switches don't see the
+weather" and "weather doesn't change speed mid-turn" each reproduce this card exactly and each fail the
+moment somebody clicks a move, because then the re-sort DOES fire and Sand Rush DOES apply to
+everything still queued. The same board gives opposite answers depending on what else was clicked, so
+only the real condition reproduces it.
+
+**AND IT IS THE SAME RULE AS #232, SEEN FROM THE OTHER SIDE.** That row closed by moving the Protect
+`willAct()` scan to the shield's own action *because* the authority re-sorts mid-turn. This one is the
+half where it does not. `willAct()` and the re-sort now read one action-kind mapping, and the probe
+makes the coupling visible rather than assumed: breaking this fix to "never re-sort" drops the census
+to **552 live / 6 missing**, and the six include #232's own mega probe.
+
+| | |
+|---|---|
+| census | 557 → **558 live / 0 missing** |
+| damage differential | agreed 6000, disagreed 0 — unchanged, and that is the expected reading: a single-hit instrument cannot see a turn order |
+| whole-game, 300-game pinned pair, two releases differing in one token | top **98/260 → 97/260**, bottom **93/260 → 91/260** |
+| attributable | exactly one class moved on the primary arm — `ordering`, 16 → 15 games. Every other class unchanged to the instance |
+
+**Small, and said as small.** The register row's corpus figures are usage of the entities named, not
+games fixed — the same distinction #232 had to correct after reading 100,806 clicks as a count of
+games.
+
+**Two adjacent defects declared and NOT folded in**, because a batch that fixes three things cannot
+attribute a result to any of them: `getActionSpeed` re-derives PRIORITY as well as speed on every
+re-sort — a comment in this repo asserted the opposite, and the comment is corrected — and
+`eachEvent('Update')` sorts on the authority's CACHED speed, refreshed only by `updateSpeed()`, where
+ours recomputes every time.
+
+**WHERE THIS CAME FROM IS THE PART WORTH KEEPING.** Three engine rows came out of one evening of Will
+reading rendered games, and the classifier had surfaced none of them. It can say a disagreement is
+`ordering`; it cannot say which engine is right. That is not a gap a better classifier closes.

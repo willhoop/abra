@@ -3119,6 +3119,91 @@ probe('ability', 'speedCond', 'Quick Feet is hastened by a burn the OPPONENT app
                  + 'which is why the reading is the FOE' };
 });
 
+/* ROADMAP #240 — THE QUEUE IS RE-SORTED ONLY WHEN THE NEXT ACTION IS A MOVE, AND THE SAME BOARD MUST
+ * THEREFORE GIVE OPPOSITE ANSWERS DEPENDING ON WHETHER ANYBODY CLICKED ONE.
+ *
+ *     if (this.gen >= 8 && (this.queue.peek()?.choice === "move" ||
+ *                           this.queue.peek()?.choice === "runDynamax")) {
+ *       this.updateSpeed(); ...getActionSpeed(queueAction)...; this.queue.sort();
+ *     }                                                   sim/battle.js:2403, the tail of runAction
+ *
+ * This engine re-sorted after EVERY action. That is right in front of a move — ROADMAP #232 closed on
+ * exactly that half — and wrong in front of a switch, where the authority leaves every queued action
+ * holding the Speed it was stamped with at turn start.
+ *
+ * NEITHER HALF IS OPTIONAL AND A ONE-ARMED VERSION OF THIS PROBE WOULD PASS ON TWO DIFFERENT WRONG
+ * ENGINES: "never re-sort" gets the switches right and loses ROADMAP #232's mega, and "always
+ * re-sort" is what was here. So both are staged on the SAME four bodies and the SAME arrivals, and
+ * the only difference is whether the last two slots switch or click.
+ *
+ * THE ANSWERS ARE THE AUTHORITY'S, PLAYED BEFORE A LINE OF THE ENGINE MOVED —
+ * gen9championsvgc2026regmb, L50 / 0 EV / 31 IV / Hardy, Aerodactyl 150, Volcarona 120, Excadrill 108
+ * (Sand Rush; 216 once sand is up), Swampert 80. Aerodactyl's slot switches to Tyranitar, so the sand
+ * exists from the first action onward:
+ *
+ *   FOUR SWITCHES  |switch|p1a: Tyranitar  -weather|Sandstorm   |switch|p2a: Pelipper  -weather|RainDance
+ *                  |switch|p1b: Torkoal    -weather|SunnyDay    |switch|p2b: Clefable
+ *                  -> ends in SUN. Turn-start Speed throughout; the Mold Breaker control is IDENTICAL,
+ *                     so the authority itself cannot see Sand Rush on this turn.
+ *   TWO AND TWO    |switch|p1a: Tyranitar  |switch|p2b: Clefable
+ *                  |move|p1b: Excadrill|Sunny Day   |move|p2a: Volcarona|Rain Dance
+ *                  -> ends in RAIN. Excadrill (216) now beats Volcarona (120), and the Mold Breaker
+ *                     control reverses the pair and ends in SUN.
+ *
+ * THE OBSERVABLE IS THE WEATHER LEFT STANDING, which is "which of the two contested actions resolved
+ * LAST" read out of the board rather than out of a trace. The control arm is Mold Breaker — a live
+ * ability that touches no Speed — because a control has to be chosen, not defaulted into (ROADMAP
+ * #100: Sand Rush was once "broken" against a Fluffy control).
+ *
+ * THE CONTROL IS WHAT MAKES THE SWITCH ARM READABLE. `sun` on a turn of four switches is also what an
+ * engine with no Sand Rush at all would print — so the ability is shown to be WIRED by the move arm,
+ * where the identical knob moves the identical observable. Two arms that agree mean an unwired knob;
+ * here the knob moves one arm and must not move the other, and that pattern is the mechanic. */
+probe('ability', 'speedCond', 'a mid-turn Speed change reorders the MOVES and not the SWITCHES — the re-sort trigger', () => {
+  /* The four bodies that are on the field when the turn starts, at the authority's own Speeds. */
+  const SPE = { aerodactyl: 150, volcarona: 120, excadrill: 108, swampert: 80 };
+  const run = (kind, drillAb) => {
+    const W = bare('aerodactyl'), X = bare('excadrill'), Y = bare('volcarona'), Z = bare('swampert');
+    for (const m of [W, X, Y, Z]) m.st = Object.assign({}, m.st, { sp: SPE[m.name] });
+    X.ability = drillAb;
+    const T = bare('tyranitar'); T.ability = 'sandstream';
+    const RX = bare('torkoal'); RX.ability = 'drought';
+    const RY = bare('pelipper'); RY.ability = 'drizzle';
+    const RZ = bare('clefable');
+    const S = M.battleInit([W, X, T, RX], [Y, Z, RY, RZ], { seeded: true });
+    const a = kind === 'switches'
+      ? new Map([[W, { kind: 'switch', to: T }], [X, { kind: 'switch', to: RX }]])
+      : new Map([[W, { kind: 'switch', to: T }], [X, M.playerAction(X, 'sunnyday', null, S.field)]]);
+    const b = kind === 'switches'
+      ? new Map([[Y, { kind: 'switch', to: RY }], [Z, { kind: 'switch', to: RZ }]])
+      : new Map([[Y, M.playerAction(Y, 'raindance', null, S.field)], [Z, { kind: 'switch', to: RZ }]]);
+    M.battleTurn(S, rng5, a, b);
+    return S.field.weather;
+  };
+  const swRush = run('switches', 'sandrush'), swCtl = run('switches', 'moldbreaker');
+  const mvRush = run('moves', 'sandrush'), mvCtl = run('moves', 'moldbreaker');
+  /* The live Speed the sand really buys, asserted so a dataset change that removed the gap fails this
+   * row instead of quietly making the two arms agree for the wrong reason. */
+  const F = { weather: 'sand', terrain: '', twA: 0, twB: 0, tr: 0, sgA: {}, sgB: {} };
+  const drill = bare('excadrill'); drill.st = Object.assign({}, drill.st, { sp: 108 });
+  drill.ability = 'sandrush';
+  const hasted = M.effSpeed(drill, F, 'A');
+  drill.ability = 'moldbreaker';
+  const plain = M.effSpeed(drill, F, 'A');
+  return { works: swRush === 'sun' && swCtl === 'sun'        /* switches: the sand is NOT read */
+                  && mvRush === 'rain' && mvCtl === 'sun'    /* moves: the sand IS read */
+                  && hasted === 216 && plain === 108,
+           arms: { control: [swCtl, mvCtl], test: [swRush, mvRush] },
+           detail: 'Tyranitar arrives first and sets sand, so Excadrill is at Speed ' + hasted
+                 + ' with Sand Rush and ' + plain + ' without it for the rest of the turn. '
+                 + 'ALL FOUR SLOTS SWITCH (Torkoal and Pelipper are the contested pair): Sand Rush '
+                 + swRush + ', control ' + swCtl + ' — the authority ends in sun on BOTH, because a '
+                 + 'queue whose head is a switch is never re-sorted. TWO SWITCH AND TWO CLICK '
+                 + '(Sunny Day against Rain Dance): Sand Rush ' + mvRush + ', control ' + mvCtl
+                 + ' — the authority ends in rain and sun, because the re-sort fires in front of the '
+                 + 'first move and Excadrill overtakes. Same board, opposite answers' };
+});
+
 /* ONE-ARMED UNTIL 2026-08-04, AND FOUND BY THE IDENTICAL-ARMS SCAN AT THE BOTTOM OF THIS FILE. It read
  * `target atk stage after Charm: 0 (0 = refused)` — and 0 is also what an engine that never applied
  * Charm at all would print. The control is the same board with the ability off, and it must show the
@@ -18461,6 +18546,69 @@ probe('ability', 'buffsHolderOnHit', 'Electromorphosis names the move that hit i
            detail: `the same Heavy Slam into the same Bellibolt — Electromorphosis ${JSON.stringify(ab)}; `
                  + `no ability ${JSON.stringify(off)}. data/moves.ts charge onStart names the ACTIVE `
                  + `MOVE in field 4 and the ability in field 5 when an ability raised it` };
+});
+
+/* ================= ROADMAP #231 — THE AUTHORITY ENDS THE BATTLE AND WE PLAYED ON =================
+ *
+ * The largest single class in the 2026-08-13 divergence dump: `showdown stopped emitting while
+ * medicham2 continued`, 14 of 60 dumped games. It only became visible when the comparator stopped
+ * walking `Math.min(a.length, b.length)`.
+ *
+ * WHAT THE AUTHORITY ACTUALLY DOES, read out of dist/sim and cited in the engine beside the fix:
+ *   turnLoop        `while (action = this.queue.shift()) { runAction(action);
+ *                     if (this.requestState || this.ended) return; }` then `this.endTurn()`  (:2419)
+ *   runAction       `this.faintMessages(); if (this.ended) return true;`                     (:2334)
+ *   case residual   `this.fieldEvent("Residual"); if (!this.ended) this.add("upkeep");`       (:2323)
+ *   checkWin        wins when a side's `pokemonLeft` hits 0                                  (:2133)
+ * So a win mid-turn cancels every remaining ACTION, the RESIDUAL, the `|upkeep|` LINE, and the
+ * faint REPLACEMENTS — the switch request lives past `endTurn`, which is never reached.
+ *
+ * THE KNOB IS THE BENCH AND THE OUTCOME IS THE STREAM. Both arms play the IDENTICAL turn: one
+ * Garchomp's Rock Slide kills both of side B's actives, which are pinned to 1 HP, and a second
+ * Garchomp has a Liquidation queued behind it. The only thing varied is whether side B has a third
+ * body. With one, the side survives and the turn plays out; without one, the side is wiped and the
+ * authority would have stopped. Reading the EMITTED LINES rather than a flag, because "the battle is
+ * over" is a state a caller can ask about and the defect was entirely in what happened afterwards.
+ *
+ * MEASURED RED BEFORE THE FIX — both arms returned the identical [2 moves, 1 upkeep], which is this
+ * project's signature reading: an unwired knob looks exactly like a knob that does not matter.
+ *
+ * Garchomp learns both moves — `TeamValidator#checkCanLearn` against gen9championsvgc2026regmb says
+ * LEGAL for rockslide and liquidation, and refuses aquatail on the same body, so the check is real. */
+probe('move', 'battleEndsOnWipe', 'a side wiped mid-turn ends the battle THERE — no later action, no upkeep, no replacement', () => {
+  const run = (benchForB) => {
+    const a1 = bare('garchomp'), a2 = bare('garchomp');
+    const b1 = bare('pelipper'), b2 = bare('incineroar');
+    const teamB = [b1, b2];
+    /* the ONE varied thing. Archaludon is never touched by either arm; its only job is to keep side
+     * B's `pokemonLeft` above zero so the authority would not have called the game. */
+    if (benchForB) teamB.push(bare('archaludon'));
+    a1.st = Object.assign({}, a1.st, { sp: 200 });   // moves first
+    a2.st = Object.assign({}, a2.st, { sp: 100 });   // moves second — the action that must be cancelled
+    b1.st = Object.assign({}, b1.st, { sp: 10 });
+    b2.st = Object.assign({}, b2.st, { sp: 10 });
+    b1.curHP = 1; b2.curHP = 1;                      // one spread move takes the whole side
+    const S = M.battleInit([a1, a2], teamB, { seeded: true });
+    S._trace = [];
+    M.battleTurn(S, rng5,
+      new Map([[a1, M.playerAction(a1, 'rockslide', b1, S.field)],
+               [a2, M.playerAction(a2, 'liquidation', b1, S.field)]]),
+      new Map([[b1, { kind: 'pass' }], [b2, { kind: 'pass' }]]));
+    const t = S._trace.map(String);
+    return [t.filter(l => /^\|move\|p1/.test(l)).length,
+            t.filter(l => l === '|upkeep').length,
+            t.filter(l => /^\|switch\|/.test(l)).length];
+  };
+  const control = run(true), test = run(false);
+  return { works: JSON.stringify(control) === JSON.stringify([2, 1, 1])
+                  && JSON.stringify(test) === JSON.stringify([1, 0, 0]),
+           arms: { control, test },
+           detail: `[p1 |move| lines, |upkeep| lines, |switch| lines] — side B keeps a bench body `
+                 + `${JSON.stringify(control)} (the turn plays out and a replacement walks in), side B `
+                 + `wiped ${JSON.stringify(test)} (the authority's turnLoop returns and emits nothing `
+                 + `further). Before the fix the two read [2,1,1] and [2,1,0] — the move and upkeep `
+                 + `counts were IDENTICAL across the knob and only the replacement differed, and it `
+                 + `differed because there was no body to bring in rather than because a rule fired` };
 });
 
 const works = results.filter(r => r.works);
