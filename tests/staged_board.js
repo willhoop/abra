@@ -882,8 +882,48 @@ const SCENARIOS = [
  * static check can decide that; the red demonstration is what catches it, which is the other reason
  * `--reds` is not decoration. A break that changes no board means the scenario cannot express its
  * own mechanic. */
+/* CAN THIS BODY LEARN THIS MOVE — ASKED OF THE AUTHORITY, NEVER OF A LEARNSET WALK OF OUR OWN.
+ *
+ * `TeamValidator#checkCanLearn` is the same code path that refuses a team on the ladder: it handles
+ * prevo chains, event-only moves and every mod override for free. A hand-rolled walk of
+ * `getLearnsetData().learnset` gets the common case right and the interesting cases wrong, which is
+ * the worst possible split for a check whose entire job is catching the interesting cases.
+ *
+ * It returns a STRING on refusal ("` can't learn Will-O-Wisp.`") and `null` on success, so the reason
+ * printed to a reader is the game's own words. Built once and memoised: the validator is not cheap to
+ * construct and this is called per click per scenario. */
+/* The pairs already in the tree when this clause was written. Keyed (species|move) so the same
+ * illegal pair cannot be re-introduced in a new scenario and read as pre-existing. */
+const _LEARNSET_KNOWN = new Set((() => {
+  try { return require(path.join(__dirname, '..', 'data', 'fixture-learnset-baseline.json')).pairs || []; }
+  catch (e) { return []; }
+})());
+let _validator = null;
+const _canLearnCache = new Map();
+function _canLearn(mv, speciesName) {
+  const key = String(speciesName).toLowerCase() + '|' + mv.id;
+  if (_canLearnCache.has(key)) return _canLearnCache.get(key);
+  let why = null;
+  try {
+    if (!_validator) _validator = new (CS.sim().TeamValidator)(CS.FORMAT);
+    const sp = _dex.species.get(speciesName);
+    /* A SPECIES THIS FORMAT DOES NOT CONTAIN IS A DIFFERENT DEFECT AND IS NOT THIS CLAUSE'S TO REPORT.
+     * Saying "cannot learn" about a body that does not exist would send someone to the learnset. */
+    if (!sp || !sp.exists) why = null;
+    else why = _validator.checkCanLearn(mv, sp) || null;
+  } catch (e) {
+    /* A THROWN VALIDATOR IS NOT A PASS. It is a clause that could not be computed, and this repo's
+     * rule for that is that it FAILS — but loudly and as itself, not disguised as a learnset verdict. */
+    why = ' — the learnset check THREW (' + String(e.message).slice(0, 60) + '), which is not a pass';
+  }
+  _canLearnCache.set(key, why);
+  return why;
+}
+
 function fixtureAudit(list) {
   const bad = [];
+  /* pairs already on the baseline: reported, never failed. See the learnset clause below. */
+  const known = [];
   for (const sc of list) {
     for (const [side, team] of [['p1', sc.A], ['p2', sc.B]]) {
       const carried = team.map(m => new Set((m.moves || []).map(x => _dex.moves.get(x).id)));
@@ -901,6 +941,52 @@ function fixtureAudit(list) {
            * turns may legitimately be answered by a replacement with a different set. */
           if (t === 0 && carried[i] && !carried[i].has(mv.id))
             bad.push(sc.id + ' turn 1 ' + side + '[' + i + ']: ' + mv.name + ' is not on that body');
+          /* CARRIED IS NOT LEGAL, AND THIS AUDIT ONLY EVER ASKED THE FIRST — 2026-08-12.
+           *
+           * The clause above proves the click is on the body's DECLARED move list, and `buildPair`
+           * proves the move EXISTS. Neither asks whether the body could LEARN it, so a fixture can
+           * declare any moveset it likes and pass. **Eight illegal pairs were sitting in
+           * tests/staged_status_counters.js**, in scenarios that were green: Snorlax|Swords Dance in
+           * NINE places, Milotic|Will-O-Wisp, Milotic|Calm Mind, Milotic|Spore twice, Milotic|Nuzzle,
+           * Mudsdale|Swords Dance, Incineroar|Iron Defense, Tinkaton|Iron Defense.
+           *
+           * It was found by an agent sent to repair ONE faint, which ran the authority's own
+           * TeamValidator on the fixture and got *"Milotic can't learn Will-O-Wisp"* back. Nothing in
+           * this repo had asked that question of a staged board.
+           *
+           * IT MATTERS BECAUSE THE WHOLE POINT OF A STAGED FIXTURE IS THAT THE GAME COULD PRODUCE IT.
+           * A board Showdown would refuse at team validation is not a weaker test, it is a test of a
+           * position that cannot occur — the same class as the blank-spread rig testing turn order in
+           * the one configuration where turn order cannot be got wrong.
+           *
+           * `checkCanLearn` is the authority and returns a STRING on refusal, `null` on success — so
+           * the reason the game gives is the reason printed here, rather than a message of our own
+           * invention. Turn 1 only, matching the clause above: later turns may be answered by a
+           * replacement whose set this audit does not hold. */
+          if (t === 0 && carried[i] && carried[i].has(mv.id)) {
+            const body = team[i];
+            const sp = body && (body.species || body.name);
+            if (sp) {
+              const why = _canLearn(mv, sp);
+              if (why) {
+                /* RATCHETED, BECAUSE THE CLAUSE IS NEW AND THE VIOLATIONS ARE NOT.
+                 *
+                 * Turning this on red-lights fixtures that have been green for weeks, and repairing
+                 * eight of them is its own batch — each repair changes what its scenario measures, and
+                 * folding that into the pass that ADDS the check makes both unattributable. So a pair
+                 * already on the baseline is REPORTED and does not fail; a NEW one fails by name.
+                 *
+                 * The key is (species|move) rather than (scenario|slot|turn): the same illegal pair
+                 * appears in nine scenarios, and a ratchet keyed on position would let someone move
+                 * Snorlax|Swords Dance to a tenth scenario and call it new. */
+                const key = String(sp).toLowerCase().replace(/[^a-z0-9]/g, '') + '|' + mv.id;
+                (_LEARNSET_KNOWN.has(key) ? known : bad).push(
+                  sc.id + ' turn 1 ' + side + '[' + i + ']: ' + sp + why
+                  + '  — the fixture declares a moveset the game cannot produce'
+                  + (_LEARNSET_KNOWN.has(key) ? '   [KNOWN — on the baseline, not failing]' : ''));
+              }
+            }
+          }
           /* THE EXEMPTION, AND IT IS NARROW. Where the ACCURACY IS THE MECHANIC — Blizzard in snow,
            * Thunder in rain, a powder into a Grass type, High Jump Kick crashing, Fissure — a losing
            * roll is the arm under test rather than a staging accident, and the click declares
@@ -914,6 +1000,12 @@ function fixtureAudit(list) {
         });
       });
     }
+  }
+  /* Reported, never failed — see the learnset clause. A known violation that stops being printed
+   * is a repair and the baseline may then shrink; one that appears here and is NOT on the baseline
+   * went into ad instead and fails by name. */
+  if (known.length) {
+    for (const k of known) console.log('      ' + k);
   }
   return bad;
 }

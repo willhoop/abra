@@ -7255,3 +7255,30 @@ other an engine defect; they were one bucket this morning.
 The gate clause now states something TRUE rather than refusing on staleness: **112 mechanics disagree
 with the authority when staged so they actually resolve.** That is the number to drive to zero, and it
 is weighted by the format rather than by what a sampler happened to click.
+
+### THE FIXTURE AUDIT PROVED A CLICK WAS CARRIED AND NEVER THAT THE BODY COULD LEARN IT
+
+Three clauses: the slot count, the move EXISTS, the move is on the body DECLARED list. None asked the
+learnset. So a fixture could declare any moveset it liked and pass, and **seven illegal pairs were
+sitting in green scenarios** — Snorlax|Swords Dance in NINE places, Milotic|Will-O-Wisp,
+Milotic|Spore, Milotic|Nuzzle, Mudsdale|Swords Dance, Incineroar|Iron Defense, Tinkaton|Iron Defense.
+
+It matters because the whole point of a staged fixture is that the game could produce it. A board
+Showdown refuses at team validation is not a weaker test, it is a test of a position that cannot
+occur — the same class as the blank-spread rig testing turn order in the one configuration where turn
+order cannot be got wrong.
+
+TeamValidator#checkCanLearn is the authority and is asked directly: it handles prevo chains,
+event-only moves and every mod override for free, and it returns the game own words on refusal. A
+hand-rolled learnset walk gets the common case right and the interesting cases wrong, which is the
+worst split for a check whose whole job is the interesting cases.
+
+**RATCHETED, because the clause is new and the violations are not.** Repairing seven fixtures changes
+what seven scenarios measure; folding that into the pass that ADDS the check makes both
+unattributable. Known pairs are REPORTED and do not fail; a new one fails by name. Keyed
+(species|move) rather than (scenario|slot|turn), so the same illegal pair moved to a tenth scenario
+reads as new rather than as pre-existing.
+
+**Red proof by breaking the RATCHET rather than a fixture**: remove mudsdale|swordsdance from the
+baseline and it fails by name with 0 marked KNOWN; restore it and the file is green with that line
+marked KNOWN. Both restored byte-identical.

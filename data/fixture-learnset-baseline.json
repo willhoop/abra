@@ -1,0 +1,24 @@
+{
+  "stamped": "2026-08-13T03:17:31.336Z",
+  "what": "Body/move pairs already declared in staged fixtures that the authority's TeamValidator refuses. The learnset clause in tests/staged_board.js REPORTS these and fails only on a pair not listed here. Keyed species|move, so the same illegal pair moved to a new scenario is NEW.",
+  "why": "The clause was added 2026-08-12 and these violations predate it. Repairing each one changes what its scenario measures, so they are their own batch — folding eight fixture rewrites into the pass that ADDS the check makes both unattributable. The list may only SHRINK.",
+  "count": 7,
+  "pairs": [
+    "incineroar|irondefense",
+    "milotic|nuzzle",
+    "milotic|spore",
+    "milotic|willowisp",
+    "mudsdale|swordsdance",
+    "snorlax|swordsdance",
+    "tinkaton|irondefense"
+  ],
+  "detail": [
+    "Incineroar | Iron Defensecan't learn Iron Defense.",
+    "Milotic | Nuzzlecan't learn Nuzzle.",
+    "Milotic | Sporecan't learn Spore.",
+    "Milotic | Will-O-Wispcan't learn Will-O-Wisp.",
+    "Mudsdale | Swords Dancecan't learn Swords Dance.",
+    "Snorlax | Swords Dancecan't learn Swords Dance.",
+    "Tinkaton | Iron Defensecan't learn Iron Defense."
+  ]
+}
