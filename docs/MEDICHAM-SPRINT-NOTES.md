@@ -6894,3 +6894,45 @@ anything. A run that gets WORSE is named separately rather than folded into the 
 their merits — damage 0 of 6000 at both corners, the three deliberate rosters clean, coverage clean, no
 open engine defect. Everything downstream of MEDICHAM stays withheld, which is the honest state and was
 the honest state an hour ago too.
+
+### THE PREFLIGHT'S WEATHER CLAUSE WAS DEAD, AND IT IS THE SAME QUOTE BUG FOR THE THIRD TIME TODAY
+
+`fixture_preflight.js` matched `/'(sunnyday|raindance|…)'/` — SINGLE quotes — against handler source
+taken off the compiled `dist/sim`, where TypeScript has rewritten every literal as `"sunnyday"`.
+**It matched ZERO of 187 abilities.** The gender clause thirty lines above it documents this exact trap
+for `addVolatile`. A dead clause is worse than a missing one: it reports *nothing here is
+weather-gated*, which reads like an answer.
+
+**Six abilities were being reported as not firing while the engine was correct** — Chlorophyll, Dry
+Skin, Ice Body, Sand Rush, Snow Cloak, Solar Power. The fixture never set the sky. That is the Cute
+Charm shape again (0 of 4,166 "absent" until the fixtures had genders) and it is the reason the 98
+DID-NOT-FIRE abilities could never be read as an engine number.
+
+Three more silent no-ops surfaced while repairing it:
+
+- **`faces.setsWeather` has NEVER put weather up.** `GAUNTLET_ACTOR_MOVES` is Facade/Endure/Rest/
+  Substitute and `clickOf` falls back to the body's first move when it does not hold the ask, so every
+  `setsWeather` entry was inert.
+- **`faces.statusFirst` is inert too and CANNOT be repaired** — Feraligatr's legal pool holds no
+  status-only move, and every status it can inflict is unsafe under `bottom-tie-first`. Counted and
+  printed rather than faked.
+- **`data/tags.json` cases weather inconsistently** — `sandstorm -> "Sandstorm"`, `raindance ->
+  "RainDance"`, but `snowscape -> "snowscape"`. Sun and snow matched; sand and rain silently missed, so
+  Sand Rush and Swift Swim read "carrier can learn no setter" while Excadrill and Basculegion learn
+  theirs perfectly well.
+
+**The repair over-matched first, exactly as predicted, and the carve-out is derived.** Drizzle, Drought,
+Snow Warning, Sand Stream and Sand Spit name a weather because they SET it; pre-setting their sky makes
+`setWeather` return false and a working ability read DID-NOT-FIRE. The exclusion comes from the handler
+calling `setWeather`, never from those five names.
+
+**DID-NOT-FIRE now splits in two**: `cannot_fire_in_this_fixture` with the failing clause named, against
+`did_not_fire_unexplained`. One is a harness defect and the other is an engine defect, and they were one
+bucket. Labels are additive — every existing field keeps its meaning. Proof for the three existing
+callers: 864 scenarios against the committed version, **`ok` differs 0, `why` differs 0**.
+
+**GENDER IS A STOP-AND-REPORT.** `game_differential.js` hard-codes `gender: 'N'` on every body of both
+sides, and its comment says why: *medicham2 has no gender at all, so a declared gender would part the
+streams on line one of every game.* Cute Charm and Rivalry cannot be repaired from the harness; they
+need gender in the simulator. Correctly labelled CANNOT-FIRE with the clause named, which is the honest
+state until that work is done.

@@ -131,6 +131,130 @@ const id = N.id;
 const VALIDATOR = new TeamValidator(CS.FORMAT);
 const TAGS = JSON.parse(GD.REL.read('data/tags.json') || fs.readFileSync(D('data', 'tags.json'), 'utf8'));
 
+/* ================= THE PREFLIGHT — "DID NOT FIRE" WAS TWO DIFFERENT FINDINGS =======================
+ *
+ * `data/all-mechanics-fire.json` of 2026-08-11 reports 98 abilities and 61 items as DID-NOT-FIRE, and
+ * that bucket conflates the only two things a reader could want to tell apart:
+ *
+ *   THE ENGINE IS BROKEN          the fixture asked the question and medicham2 gave the wrong answer
+ *   THE FIXTURE NEVER ASKED IT    the board was structurally incapable of firing the trigger, so both
+ *                                 arms were identical for a reason that has nothing to do with the engine
+ *
+ * One is an ENGINE defect and the other is a HARNESS defect, and they are fixed by different people in
+ * different files. Merged, the bucket is unusable: every row in it looks like an engine gap, so the
+ * fix list is 159 long and mostly wrong.
+ *
+ * `engine/fixture_preflight.js` answers exactly the second question — CAN THE TRIGGER FIRE ON THIS
+ * BOARD — from the mechanic's OWN handler source rather than from a list. Its measured precedent is
+ * Cute Charm, which read 0 of 4,166 as ABSENT until the fixtures carried genders and then read 30.92%.
+ * This file did not require it; `million_run.js`, `tests/roster.js` and `tests/test-mechanics.js` did.
+ *
+ * WHAT IT ACTUALLY MATCHES HERE WAS PRINTED BEFORE IT WAS WIRED, because a new derived predicate
+ * over-matches (docs/ENGINE.md: `refusesStatusMoves` caught Telepathy and Wonder Guard). Over the 187
+ * legal abilities that have a carrier in this format:
+ *      2 BLOCKING   cutecharm, rivalry — the two known gender-gated ones, and nothing else
+ *     16 advisory   status-reading: guts healer hydration immunity insomnia leafguard limber …
+ *     16 advisory   weather-gated: chlorophyll solarpower swiftswim sandrush icebody dryskin forecast …
+ *      5 advisory   weather SETTERS, which must NOT be handed a sky — see the clause
+ * and over the 73 in-scope items: 6, all status-curing berries. Over the 496 moves with a carrier: 0,
+ * which is honest — the trigger clauses are handler-shaped and a move row's handlers are not read.
+ *
+ * A BLOCKING CLAUSE AND AN UNMET ADVISORY ONE ARE BOTH REPORTED, AND THEY ARE NOT THE SAME CLAIM. A
+ * blocking clause says the board cannot show anything at all. An advisory clause says a precondition
+ * the handler reads was never put on the board — which explains a DID-NOT-FIRE and nothing else, so it
+ * is only applied to a row that did not fire.
+ *
+ * NOTHING IS RENAMED OR REMOVED. `verdict`, `fired`, `did_not_fire` and every other field keep their
+ * meaning for whatever already reads them; `verdict_refined`, `cannot_fire`, `cannot_fire_clause` and
+ * `preflight` are added beside them. */
+const PRE = require('./fixture_preflight.js');
+/* THE RED SWITCH. `--break-preflight` replaces the preflight with a stub that clears everything,
+ * exactly as an unwired preflight would, so the demonstration that the wiring is load-bearing can be
+ * run rather than asserted. It is announced on every run that uses it. */
+const BREAK_PREFLIGHT = has('--break-preflight');
+if (BREAK_PREFLIGHT) console.log('  --break-preflight IS ON. The preflight is stubbed to clear everything. '
+  + 'Every CANNOT-FIRE row will collapse back into DID-NOT-FIRE. THIS IS THE RED DEMONSTRATION, NOT A RUN.');
+const PREFLIGHT = {
+  checked: 0,          /* every call, including the red plants */
+  rows_checked: 0,     /* calls made ON A POPULATION ROW — a zero here means the wiring is a no-op */
+  refused: 0,          /* calls carrying at least one BLOCKING clause */
+  rows_labelled: 0,    /* rows that came out CANNOT-FIRE-IN-THIS-FIXTURE */
+  over_matched: [],    /* a row the preflight BLOCKED that fired anyway — the clause is wrong */
+  by_clause: {},
+  repaired_weather: 0, weather_unrepairable: 0,
+  faces_weather_noop: 0, faces_status_noop: 0,
+  repairs: [],
+};
+function preflight(sc) {
+  if (BREAK_PREFLIGHT) return { ok: true, why: [], note: [], clauses: [], stubbed: true };
+  PREFLIGHT.checked++;
+  const r = PRE.check(sc);
+  if (!r.ok) PREFLIGHT.refused++;
+  for (const c of (r.clauses || [])) {
+    const k = c.clause + (c.blocking ? ' (blocking)' : '');
+    PREFLIGHT.by_clause[k] = (PREFLIGHT.by_clause[k] || 0) + 1;
+  }
+  return r;
+}
+/* THE LABEL. `fired` here means "this row moved a game / resolved a move", which is the only thing that
+ * can falsify a refusal — so a BLOCKED row that fired anyway is recorded as an OVER-MATCH and printed,
+ * never quietly dropped. That is the one direction in which this predicate can be wrong and hide it. */
+function labelRow(row, pre, fired) {
+  if (!row) return row;
+  PREFLIGHT.rows_checked++;
+  row.preflight = { ok: pre.ok, why: pre.why, note: pre.note, clauses: pre.clauses,
+                    stubbed: !!pre.stubbed };
+  const blocking = (pre.clauses || []).filter(c => c.blocking);
+  const advisory = (pre.clauses || []).filter(c => !c.blocking && c.clause !== 'weather-setter');
+  if (blocking.length && fired) {
+    /* TWO INSTRUMENTS DISAGREEING IS A FINDING, AND WHICH ONE IS WRONG IS NOT DECIDED HERE.
+     * MEASURED on the first run that had this wiring: `rivalry` came back FIRED on a genderless board,
+     * which its own guard (`attacker.gender && defender.gender`) makes impossible. The clause is not
+     * over-matching — its CONTROL is Intimidate, and Intimidate moved the game. That is the
+     * CONTROL-NOT-QUIET hazard this file already names, arriving through a new door. The two cases are
+     * separated at report time (an unquiet control explains it; nothing else does) rather than by
+     * asserting one of them here. */
+    row.preflight_over_matched = true;
+    row.preflight_over_match_note = 'the preflight BLOCKED this board on ' + blocking.map(c => c.clause).join(',')
+      + ' and the A/B still moved. Either the clause over-matches, or the CONTROL arm is what moved the '
+      + 'game and the FIRED verdict belongs to it — see `control_not_quiet`.';
+    PREFLIGHT.over_matched.push({ id: row.id, kind: row.kind, clauses: blocking.map(c => c.clause) });
+  }
+  /* A BLOCKING clause condemns the board outright. An ADVISORY one only explains a row that did not
+   * fire — applying it to a row that fired would be the instrument arguing with its own result.
+   *
+   * AND A ROW THAT NEVER PRODUCED A VERDICT IS NOT RELABELLED AT ALL. `could not stage`, `no control`
+   * and `the carrier body could not be built` are the harness failing before the question was asked;
+   * calling those CANNOT-FIRE would hide a staging bug behind a fixture explanation, which is the same
+   * conflation this label exists to undo, one level down. */
+  const gotAVerdict = !!row.verdict || row.kind === 'move';
+  const unmet = (fired || !gotAVerdict) ? [] : (blocking.length ? blocking : advisory);
+  if (unmet.length) {
+    row.cannot_fire = true;
+    row.cannot_fire_clause = unmet.map(c => c.clause).join('+');
+    row.cannot_fire_blocking = blocking.length > 0;
+    row.cannot_fire_why = (blocking.length ? pre.why : pre.note).slice();
+    row.cannot_fire_need = unmet.map(c => c.need || null);
+    row.verdict_refined = 'CANNOT-FIRE-IN-THIS-FIXTURE';
+    PREFLIGHT.rows_labelled++;
+  } else if (row.verdict) row.verdict_refined = row.verdict;
+  else if (row.kind === 'move') row.verdict_refined = row.resolved ? 'RESOLVED' : 'NOT-RESOLVED';
+  return row;
+}
+/* move id -> the weather it sets, and the same map keyed by the AUTHORITY'S weather id. Both are
+ * inverted from `SETS_WEATHER` below, and the second one exists because of a measured miss:
+ *
+ * `data/tags.json` CASES ITS WEATHER VALUES INCONSISTENTLY — `sandstorm -> "Sandstorm"`,
+ * `raindance -> "RainDance"`, `snowscape -> "snowscape"`, `sunnyday -> "sunnyday"` — while the
+ * preflight reads its weather ids off the compiled handler, where they are always lower-case. The
+ * repair below matched sun and snow and silently missed sand and rain, so Sand Rush and Swift Swim
+ * came out `weather_unrepairable` while their carriers (Excadrill, Basculegion) can learn the setter
+ * perfectly well. A silent default looks exactly like a working feature; this one looked like a
+ * carrier limitation. `SETS_WEATHER` itself is NOT re-keyed — `setupFor` matches it against
+ * `failsWithoutWeather.weather` out of the same artifact and is self-consistent. */
+const WEATHER_OF_MOVE = new Map();
+const SETS_WEATHER_ID = new Map();
+
 /* THE ARM. `bottom-tie-first` and not the primary, and this is not a preference — under the primary
  * arm EVERY SUB-100-ACCURACY MOVE MISSES, and a missed move has not resolved. Focus Blast, Hydro Pump,
  * Thunder, Fissure, Hypnosis and 140 others could not be credited under any scenario whatsoever. The
@@ -535,6 +659,10 @@ for (const [mid, row] of Object.entries(TAGS.moves || {})) {
   const w = row.params && row.params.setsWeather && row.params.setsWeather.weather;
   if (w && !SETS_WEATHER.has(w)) SETS_WEATHER.set(w, mid);
 }
+for (const [w, m] of SETS_WEATHER) {
+  if (!WEATHER_OF_MOVE.has(m)) WEATHER_OF_MOVE.set(m, id(w));
+  if (!SETS_WEATHER_ID.has(id(w))) SETS_WEATHER_ID.set(id(w), m);
+}
 const SETS_TERRAIN = new Map();
 for (const [mid, row] of Object.entries(TAGS.moves || {})) {
   const t = row.params && row.params.setsTerrain && row.params.setsTerrain.terrain;
@@ -813,6 +941,20 @@ function runMoves(list) {
       continue;
     }
     const who = 'p1a: ' + (dex.species.get(chosen).baseSpecies || dex.species.get(chosen).name);
+    /* THE MOVE ROW'S PREFLIGHT, AND WHAT IT DELIBERATELY DOES NOT DECLARE. The CARRIER'S ABILITY is
+     * not passed, and that was measured rather than assumed: with it, four move rows — followme,
+     * meteormash, moonlight, teeterdance — came back REFUSED on the gender clause, because the first
+     * legal carrier happens to hold Cute Charm. The row under test is the MOVE; refusing it for a
+     * property of the body's unrelated ability is precisely the over-match docs/ENGINE.md warns about,
+     * and it was visible only because the match was printed before it was wired.
+     *
+     * What is left is the legality half — the species can learn it, something in the format can, the
+     * target is not immune by type or by status. Over 496 move rows that refuses ZERO, which is the
+     * honest answer: this harness already builds its carriers out of the authority's own move pool, so
+     * the preflight is a RECEIPT here rather than a filter. It is still run, and still counted, because
+     * a clause that starts biting must be visible the day it does. */
+    const preMove = preflight({ species: dex.species.get(chosen).name, move: dm.name,
+                                target: dex.species.get(RECEIVER.species).name, teamSize: 4 });
     let best = null;
     for (const rung of RUNGS) {
       const s = Object.assign({}, su, { pre: su.pre.slice() });
@@ -844,7 +986,7 @@ function runMoves(list) {
       best = best || row;
       if (sd.resolved) { best = row; break; }
     }
-    if (best) rows.push(best);
+    if (best) { labelRow(best, preMove, !!best.resolved); rows.push(best); }
     if (VERBOSE && best) console.log('    ' + mv + '  ' + (best.resolved ? 'RESOLVED [' + best.rung + ']' : 'NOT: ' + best.why));
   }
   return rows;
@@ -936,6 +1078,13 @@ function gauntletScript(bodies, beats, faces, thenWhat) {
      * both suppress and hold nothing, and the two boards agree. */
     turns.push({ p1: [{ m: clickOf(actor, [F_.setsWeather, 'Sunny Day', 'Rain Dance']), t: 0 }, A],
                  p2: [{ m: inert }, F] });
+  } else if (F_.setsWeatherByFoe) {
+    /* THE SKY IS A FIELD CONDITION, SO IT DOES NOT MATTER WHO PUTS IT UP. Set by the preflight repair
+     * when the subject's own carrier cannot learn a setter for the weather its ability reads but the
+     * receiver can. The subject spends the turn on a filler, exactly as the receiver does in the arm
+     * above, and both A/B arms get the identical turn. */
+    turns.push({ p1: [{ m: clickOf(actor, ['Protect', 'Endure']) }, A],
+                 p2: [{ m: clickOf(receiver, [F_.setsWeatherByFoe, 'Rain Dance']), t: 0 }, F] });
   }
   if (F_.statusFirst) {
     /* Quick Feet keys on the HOLDER being statused and Natural Cure on curing one at switch-out. The
@@ -1067,10 +1216,6 @@ function runAbilities(list) {
                      + 'has nothing to swap it for. The row is not measurable by this instrument.' });
       continue;
     }
-    const mkActor = (which) => bodyOf(c, which, '', GAUNTLET_ACTOR_MOVES);
-    /* ROADMAP #158 -- the same body WITH the consequence's required item. The item is IDENTICAL in
-     * both arms, so the A/B still differs in the ability and in nothing else. */
-    const mkActorI = (which, item) => bodyOf(c, which, item || '', GAUNTLET_ACTOR_MOVES);
     /* THE RECEIVER IS BUILT TO CARRY WHAT THIS ABILITY MUST FACE (engine/faces.js). Feraligatr
      * remains the body — it has no immunity and so blocks nothing by accident — but its MOVES are
      * chosen for the tag under test. A fixed four-move set is why 63 abilities produced a board
@@ -1086,8 +1231,98 @@ function runAbilities(list) {
      * rather than in the script. Klutz, Magician, Pickpocket and Symbiosis are inert on an
      * empty-handed board and no number of turns fixes that. */
     const twItem = (tw && (tw.stages || []).map(x => x && x.itemsOnBoth).find(Boolean)) || '';
-    const receiver = bodyOf(RECEIVER.species, RECEIVER.ability, twItem || RECEIVER.item,
-                            [].concat((faces && faces.recv) || [], RECEIVER_MOVES));
+    let recvWants = [].concat((faces && faces.recv) || [], RECEIVER_MOVES);
+    let receiver = bodyOf(RECEIVER.species, RECEIVER.ability, twItem || RECEIVER.item, recvWants);
+    /* ---- THE PREFLIGHT RUNS BEFORE THE GAME IS PLAYED, AND IT IS DECLARED WHAT THE FIXTURE PROVABLY
+     * STAGES — NOT WHAT IT INTENDS TO. That distinction is the whole value of asking: an intent that
+     * silently fails to reach the board is exactly the state that produced this instrument's 98
+     * DID-NOT-FIRE abilities. Two of the harness's own intents are measured here and BOTH were no-ops:
+     *
+     *   `faces.setsWeather`  the gauntlet clicks `clickOf(actor, [F_.setsWeather, …])`, and `clickOf`
+     *                        falls back to the body's FIRST MOVE when it does not hold the ask.
+     *                        `GAUNTLET_ACTOR_MOVES` is Facade/Endure/Rest/Substitute — no weather move
+     *                        has ever been on an actor, so no `setsWeather` entry in engine/faces.js
+     *                        has ever put weather up. Counted as `faces_weather_noop` and REPAIRED.
+     *   `faces.statusFirst`  same shape, on the receiver: Feraligatr's legal pool contains no
+     *                        status-only move at all, so `clickOf(receiver, ['Thunder Wave', …])` has
+     *                        always fallen through. Counted as `faces_status_noop` and NOT repaired —
+     *                        see the note where it is counted. */
+    const actorPool = POOL.get(c) || new Set();
+    let actorWants = GAUNTLET_ACTOR_MOVES.slice();
+    let facesUsed = faces;
+    let weatherStaged = null;
+    if (facesUsed && facesUsed.setsWeather) {
+      const wm = id(facesUsed.setsWeather);
+      if (actorPool.has(wm)) { actorWants = [mvName(wm)].concat(actorWants); weatherStaged = WEATHER_OF_MOVE.get(wm) || null; }
+      else PREFLIGHT.faces_weather_noop++;
+    }
+    /* WHICH STATUS THE BOARD ACTUALLY LANDS. Only the two clicks the gauntlet really makes are
+     * considered — `clickOf` resolves them exactly as `gauntletScript` does — and a status is credited
+     * only if the preflight itself says it can land on this carrier. Under `bottom-tie-first` EVERY
+     * SECONDARY FIRES, so a secondary status here is a certainty rather than a 30% hope. */
+    const _want = (facesUsed && facesUsed.recv) || [];
+    const statusStaged = !receiver ? null : (() => {
+      for (const cand of [clickOf(receiver, [].concat(_want, ['Facade', 'Aqua Tail'])),
+                          clickOf(receiver, [].concat(_want, ['Hydro Pump', 'Round']))]) {
+        const dm = dex.moves.get(cand); if (!dm || !dm.exists) continue;
+        const st = PRE.statusOf(dm); if (!st) continue;
+        if (preflight({ species: RECEIVER.species, move: dm.name, target: dex.species.get(c).name }).ok) return st;
+      }
+      return null;
+    })();
+    if (facesUsed && facesUsed.statusFirst && !statusStaged) PREFLIGHT.faces_status_noop++;
+    const scOf = (wx, st) => {
+      const sc = { species: dex.species.get(c).name, ability: ab, target: dex.species.get(RECEIVER.species).name,
+                   /* the sheet is six long and the BATTLE brings four — two active, two on the bench —
+                    * so the switch the gauntlet's last turn asks for has somewhere to go */
+                   teamSize: 4, switchesOut: true,
+                   /* `buildPair` writes `gender: 'N'` on every body of both sides and says why:
+                    * medicham2 has no gender at all, so a declared one parts the streams on line one. */
+                   gender: 'N', targetGender: 'N' };
+      if (twItem) sc.item = twItem;
+      if (wx) sc.weather = wx;
+      /* undefined, NOT null — the preflight's status clause tests `=== undefined`, so a null would
+       * silently suppress the very clause this row needs. */
+      if (st) sc.status = st;
+      return sc;
+    };
+    let pre = preflight(scOf(weatherStaged, statusStaged));
+    /* ---- REPAIR WHERE THE CLAUSE SAYS WHAT IS MISSING, LABEL WHERE IT DOES NOT ---------------------
+     * The weather clause returns the weather ids the handler reads, `SETS_WEATHER` already inverts
+     * "which move sets that weather" out of the tag artifact, and the gauntlet already has a
+     * weather turn. So the repair is: hand the actor a setter it can legally learn and declare the sky.
+     * Identical in both arms, so the A/B still differs in the ability and in nothing else.
+     *
+     * `weather-setter` rows are NOT repaired and the clause says why: Drought under sun sets nothing,
+     * emits nothing, and reads DID-NOT-FIRE — the Abomasnow bug in the carrier block above. */
+    const recvPool = POOL.get(id(RECEIVER.species)) || new Set();
+    for (const cl of (pre.clauses || [])) {
+      if (cl.clause !== 'weather' || weatherStaged) continue;
+      const want = (cl.need && cl.need.weather) || [];
+      /* THE ACTOR FIRST, THE RECEIVER SECOND, AND THE SECOND IS NOT A CONSOLATION PRIZE. Weather is a
+       * FIELD condition: whichever body clicks Rain Dance, the rain is up for everyone, and the
+       * subject's ability reads it identically. Excadrill can learn Sandstorm and Basculegion Rain
+       * Dance, so this arm is rarely needed — but the receiver holds Rain Dance too, and a fixture
+       * that could have set the sky and did not is exactly the defect this whole wiring is about. */
+      let w = want.find(x => SETS_WEATHER_ID.has(x) && actorPool.has(SETS_WEATHER_ID.get(x)));
+      let byFoe = false;
+      if (!w) { w = want.find(x => SETS_WEATHER_ID.has(x) && recvPool.has(SETS_WEATHER_ID.get(x))); byFoe = !!w; }
+      if (!w) { PREFLIGHT.weather_unrepairable++; continue; }
+      const setter = SETS_WEATHER_ID.get(w);
+      if (byFoe) { recvWants = [mvName(setter)].concat(recvWants); receiver = bodyOf(RECEIVER.species, RECEIVER.ability, twItem || RECEIVER.item, recvWants); }
+      else actorWants = [mvName(setter)].concat(actorWants);
+      weatherStaged = w;
+      facesUsed = Object.assign({ recv: [], why: [] }, facesUsed || {},
+                                byFoe ? { setsWeatherByFoe: mvName(setter) } : { setsWeather: mvName(setter) });
+      PREFLIGHT.repaired_weather++;
+      if (PREFLIGHT.repairs.length < 40) PREFLIGHT.repairs.push(ab + ' -> ' + w + ' via ' + setter + (byFoe ? ' (clicked by the receiver)' : ''));
+      pre = preflight(scOf(weatherStaged, statusStaged));   /* the row records the REPAIRED board */
+      break;
+    }
+    const mkActor = (which) => bodyOf(c, which, '', actorWants);
+    /* ROADMAP #158 -- the same body WITH the consequence's required item. The item is IDENTICAL in
+     * both arms, so the A/B still differs in the ability and in nothing else. */
+    const mkActorI = (which, item) => bodyOf(c, which, item || '', actorWants);
     const a1 = mkActor(da.name), a2 = mkActor(ctrl);
     if (!a1 || !a2 || !receiver) {
       rows.push({ kind: 'ability', id: ab, name: da.name, carrier: c, fired: false,
@@ -1104,11 +1339,16 @@ function runAbilities(list) {
       continue;
     }
     const row = abLadder('ability', ab, da.name, c, ctrl,
-                         () => mkActorI(da.name, twItem), () => mkActorI(ctrl, twItem), receiver, faces, tw);
+                         () => mkActorI(da.name, twItem), () => mkActorI(ctrl, twItem), receiver, facesUsed, tw);
+    /* THE PREFLIGHT'S VERDICT IS ATTACHED AFTER THE GAME, AND FALSIFIED BY IT. `fired` is the only
+     * thing that can prove a refusal wrong, so it is passed in rather than assumed. */
+    labelRow(row, pre, !!(row && row.verdict && row.verdict !== 'DID-NOT-FIRE'));
+    if (row) { row.fixture_weather = weatherStaged; row.fixture_status = statusStaged;
+               row.fixture_weather_repaired = !!(weatherStaged && (!faces || id(faces.setsWeather || '') !== id((facesUsed && facesUsed.setsWeather) || ''))); }
     /* WHAT THE ROW WAS MADE TO FACE IS RECORDED ON IT. An inert verdict is only readable if the
      * reader can see what the subject was up against — otherwise 'nothing happened' cannot be told
      * apart from 'nothing was tried'. */
-    if (row && faces) { row.faced = faces.recv; row.faced_why = faces.why; }
+    if (row && facesUsed) { row.faced = facesUsed.recv; row.faced_why = facesUsed.why; }
     /* WHAT THE ROW WAS MADE TO DO NEXT, recorded beside what it was made to face, for the same
      * reason: an inert verdict is only readable if the reader can see what was tried. */
     if (row && tw) { row.then_what = tw.why; row.then_what_needs = tw.needs;
@@ -1156,8 +1396,18 @@ function runItems(list) {
     const c = ITEM_HOLDER;
     const mkActor = (item) => bodyOf(c, '', item, GAUNTLET_ACTOR_MOVES);
     const receiver = bodyOf(RECEIVER.species, RECEIVER.ability, RECEIVER.item, RECEIVER_MOVES);
-    rows.push(abLadder('item', it, di.name, c, '(no item)',
-                       () => mkActor(di.name), () => mkActor(''), receiver));
+    /* THE SAME QUESTION, ASKED OF THE ITEM'S OWN HANDLERS. `fixture_preflight`'s trigger clauses read
+     * only an ABILITY's handlers until 2026-08-12 — the derivation was never ability-specific, the
+     * source it was pointed at was. Over the 73 in-scope items it matches 6, all of them status-curing
+     * berries on a board where nothing is ever statused, which is precisely a DID-NOT-FIRE that is not
+     * an engine gap. */
+    const pre = preflight({ species: dex.species.get(c).name, item: di.name,
+                            target: dex.species.get(RECEIVER.species).name,
+                            teamSize: 4, switchesOut: true, gender: 'N', targetGender: 'N' });
+    const row = abLadder('item', it, di.name, c, '(no item)',
+                         () => mkActor(di.name), () => mkActor(''), receiver);
+    labelRow(row, pre, !!(row && row.verdict && row.verdict !== 'DID-NOT-FIRE'));
+    rows.push(row);
   }
   return rows;
 }
@@ -1282,6 +1532,35 @@ function red() {
    *    logs, and two identical runs minutes apart returned 23 and then 16 SHOWDOWN-ONLY abilities. A
    *    non-deterministic instrument produces findings that cannot be acted on and regressions that
    *    cannot be seen. Nothing in the earlier plants could catch it — they each run once. */
+  /* 5. THE PREFLIGHT MUST REFUSE A BOARD WHOSE TRIGGER CANNOT FIRE, AND MUST CLEAR THE SAME BOARD THE
+   *    MOMENT IT CAN. Both directions on ONE ability, because a detector that says NO to everything is
+   *    not a detector — that is the same argument plant 1b makes for the move verdict.
+   *
+   *    IT RUNS THROUGH THIS FILE'S OWN `preflight()` WRAPPER, not through `PRE.check`, so the plant is
+   *    testing THE WIRING and not the module. `--break-preflight` stubs the wrapper and this plant is
+   *    the thing that goes red.
+   *
+   *    THE GATED ABILITY IS DERIVED FROM THE HANDLER TEXT HERE, deliberately by a DIFFERENT route than
+   *    the clause uses (the clause follows `addVolatile` one hop; this reads `.gender` directly), so
+   *    the plant cannot pass by sharing the clause's own mistake. */
+  {
+    const srcOf = (a) => Object.entries(dex.abilities.get(a) || {})
+      .filter(([k, v]) => /^on/.test(k) && typeof v === 'function').map(([, v]) => String(v)).join(' ');
+    const hasCarrier = (a) => (AB_CARRIERS.get(a) || []).length > 0;
+    const gated = LEGAL_ABILITIES.find(a => hasCarrier(a) && /\.gender/.test(srcOf(a)));
+    const plain = LEGAL_ABILITIES.find(a => hasCarrier(a) && !/\.gender|addVolatile\(\s*["']attract/.test(srcOf(a)));
+    const board = (a, g) => ({ species: dex.species.get((AB_CARRIERS.get(a) || [])[0]).name, ability: a,
+                               target: dex.species.get(RECEIVER.species).name,
+                               teamSize: 4, switchesOut: true, gender: g, targetGender: g });
+    const genderless = gated ? preflight(board(gated, 'N')) : { ok: true };
+    const gendered = gated ? preflight(board(gated, 'M')) : { ok: false };
+    const control = plain ? preflight(board(plain, 'N')) : { ok: false };
+    out.push({ plant: 'the PREFLIGHT must REFUSE a genderless board for a gender-gated mechanic ('
+                    + (gated || 'none found') + '), CLEAR the same board once genders are declared, and '
+                    + 'CLEAR an ungated one (' + (plain || 'none found') + ') — a blanket NO is not a detector',
+               why: (genderless.why || []).join(' ').slice(0, 90) || null,
+               caught: !!gated && !!plain && genderless.ok === false && gendered.ok === true && control.ok === true });
+  }
   {
     const mk = () => stageBodies(bodyOf(ITEM_HOLDER, '', 'Sitrus Berry', GAUNTLET_ACTOR_MOVES), receiver);
     const play = () => { const b = mk();
@@ -1375,6 +1654,27 @@ function reportCauses(rows) {
   return { attributed: mine.map(emit), other_slot: other.map(emit) };
 }
 
+/* THE SPLIT, PRINTED. The number that matters is the LAST one: a row that did not fire and for which
+ * the preflight can name NO unmet precondition. That is the candidate engine gap; everything above it
+ * is this harness's own board being incapable of asking the question. */
+function reportCannotFire(rows) {
+  const cf = rows.filter(r => r.cannot_fire);
+  const dn = rows.filter(r => r.verdict === 'DID-NOT-FIRE' && !r.cannot_fire);
+  const by = new Map();
+  for (const r of cf) {
+    const k = r.cannot_fire_clause + (r.cannot_fire_blocking ? ' (BLOCKING)' : '');
+    if (!by.has(k)) by.set(k, []);
+    by.get(k).push(r.id);
+  }
+  console.log('    CANNOT-FIRE-IN-THIS-FIXTURE — ' + cf.length + ' row(s) the preflight can explain, '
+            + 'against ' + dn.length + ' DID-NOT-FIRE it cannot:');
+  for (const [k, v] of [...by].sort((a, b) => b[1].length - a[1].length))
+    console.log('      ' + String(v.length).padStart(4) + '  ' + k + '   ' + v.slice(0, 20).join(' ')
+              + (v.length > 20 ? ' …' : ''));
+  if (dn.length) console.log('      ' + String(dn.length).padStart(4) + '  UNEXPLAINED — the fixture asked '
+    + 'and neither game moved: ' + dn.map(r => r.id).slice(0, 20).join(' ') + (dn.length > 20 ? ' …' : ''));
+}
+
 /* ================= MAIN =========================================================================== */
 function pick(all) {
   let list = all;
@@ -1413,7 +1713,9 @@ if (KIND === 'moves' || KIND === 'all') {
   const disagree = rows.filter(r => r.attempted && r.resolved !== r.medicham_resolved);
   report.summary.moves = { exist: LEGAL_MOVES.length, attempted: attempted.length, tried: rows.length,
                            resolved: resolved.length, diverged: diverged.length,
-                           resolution_disagreements: disagree.length, seconds: +((Date.now() - t0) / 1000).toFixed(1) };
+                           resolution_disagreements: disagree.length,
+                           cannot_fire_in_this_fixture: rows.filter(r => r.cannot_fire).length,
+                           seconds: +((Date.now() - t0) / 1000).toFixed(1) };
   console.log('    RESOLVED ' + resolved.length + ' of ' + rows.length + ' tried, of ' + LEGAL_MOVES.length + ' that exist'
             + '   (' + ((Date.now() - t0) / 1000).toFixed(1) + 's)');
   /* THE HEADLINE COUNT SPLITS, because a single partner-slot bug used to inflate it by one per row
@@ -1446,8 +1748,13 @@ if (KIND === 'abilities' || KIND === 'all') {
     did_not_fire: rows.filter(r => r.verdict === 'DID-NOT-FIRE').length,
     unreachable: rows.filter(r => r.unreachable).length,
     control_not_quiet: rows.filter(r => r.control_not_quiet).length,
+    /* THE SPLIT OF `did_not_fire`, ADDED BESIDE IT AND NOT INSTEAD OF IT. `did_not_fire` keeps its old
+     * meaning for whatever already reads this artifact; these two partition it. */
+    cannot_fire_in_this_fixture: rows.filter(r => r.cannot_fire).length,
+    did_not_fire_unexplained: rows.filter(r => r.verdict === 'DID-NOT-FIRE' && !r.cannot_fire).length,
     diverged: rows.filter(r => r.diverged).length, seconds: +((Date.now() - t0) / 1000).toFixed(1) };
   console.log('    ' + JSON.stringify(report.summary.abilities));
+  reportCannotFire(rows);
   /* ROADMAP #158 -- THE CONSEQUENCE LAYER'S OWN RECEIPT. A capability that cannot prove it ran is
    * assumed broken, and this one is silent by construction: a `thenWhat` that reached nothing looks
    * exactly like the inert row it was written to fix. `rows` is how many entities were handed a
@@ -1488,9 +1795,60 @@ if (KIND === 'items' || KIND === 'all') {
     medicham_only: rows.filter(r => r.verdict === 'MEDICHAM-ONLY').length,
     did_not_fire: rows.filter(r => r.verdict === 'DID-NOT-FIRE').length,
     out_of_scope: rows.filter(r => r.out_of_scope).length,
+    cannot_fire_in_this_fixture: rows.filter(r => r.cannot_fire).length,
+    did_not_fire_unexplained: rows.filter(r => r.verdict === 'DID-NOT-FIRE' && !r.cannot_fire).length,
     diverged: rows.filter(r => r.diverged).length, seconds: +((Date.now() - t0) / 1000).toFixed(1) };
   console.log('    ' + JSON.stringify(report.summary.items));
+  reportCannotFire(rows);
 }
+
+/* ---- THE PREFLIGHT'S OWN RECEIPT. A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN, and this
+ * one is silent by construction: a preflight that is never called produces exactly the artifact a
+ * preflight that finds nothing produces. `rows_checked` is the counter that separates them, and a ZERO
+ * is a failure rather than a clean bill of health. */
+report.summary.preflight = Object.assign({}, PREFLIGHT);
+console.log('\n  PREFLIGHT (engine/fixture_preflight.js) — ' + PREFLIGHT.rows_checked + ' rows checked, '
+          + PREFLIGHT.checked + ' calls, ' + PREFLIGHT.rows_labelled + ' labelled CANNOT-FIRE');
+console.log('    clauses matched: ' + (Object.keys(PREFLIGHT.by_clause).length
+  ? Object.entries(PREFLIGHT.by_clause).map(([k, v]) => k + ' x' + v).join(', ') : '(none)'));
+if (PREFLIGHT.repaired_weather || PREFLIGHT.weather_unrepairable)
+  console.log('    WEATHER REPAIRED on ' + PREFLIGHT.repaired_weather + ' row(s), unrepairable on '
+            + PREFLIGHT.weather_unrepairable + ' (the carrier can learn no setter for the sky it needs): '
+            + PREFLIGHT.repairs.slice(0, 12).join('; '));
+if (PREFLIGHT.faces_weather_noop || PREFLIGHT.faces_status_noop)
+  console.log('    engine/faces.js INTENTS THAT REACHED NO BOARD: setsWeather x' + PREFLIGHT.faces_weather_noop
+            + ', statusFirst x' + PREFLIGHT.faces_status_noop + ' — `clickOf` falls back to the body\'s '
+            + 'first move when it does not hold the ask, so these staged nothing. The weather half is now '
+            + 'repaired; the status half CANNOT be, because the receiver fixture (Feraligatr) has no '
+            + 'status-only move in its legal pool at all.');
+if (PREFLIGHT.over_matched.length) {
+  /* A REFUSED BOARD THAT FIRED ANYWAY. The preflight and the A/B arm cannot both be right, and the
+   * split is derived from this run's own rows rather than argued: if the row's CONTROL is itself live,
+   * the A/B cannot say which of the two abilities moved the game and the contradiction is explained.
+   * If it is not, the clause is refusing a board that demonstrably works, and that is a defect in the
+   * clause — the one direction in which this predicate can be wrong and hide it. */
+  const find = (o) => ((report.rows[o.kind === 'item' ? 'items' : 'abilities'] || []).find(r => r.id === o.id) || {});
+  const explained = PREFLIGHT.over_matched.filter(o => find(o).control_not_quiet);
+  const unexplained = PREFLIGHT.over_matched.filter(o => !find(o).control_not_quiet);
+  console.log('    THE PREFLIGHT BLOCKED ' + PREFLIGHT.over_matched.length + ' row(s) that fired anyway:');
+  if (explained.length) console.log('      ' + explained.length + ' explained by an UNQUIET CONTROL — the A/B '
+    + 'moved for the control ability, not the subject: ' + explained.map(o => o.id + ' [' + o.clauses + ']').join(', '));
+  if (unexplained.length) {
+    console.log('      ' + unexplained.length + ' UNEXPLAINED — the clause refused a board that works. THE '
+      + 'CLAUSE IS WRONG, not the engine: ' + unexplained.map(o => o.id + ' [' + o.clauses + ']').join(', '));
+    console.log('      (a partial population can produce this too: `control_not_quiet` is derived from the '
+      + 'rows in THIS run, so a control whose own row was not run cannot be seen to be live)');
+    process.exitCode = 1;
+  }
+  report.summary.preflight.over_matched_explained = explained.map(o => o.id);
+  report.summary.preflight.over_matched_unexplained = unexplained.map(o => o.id);
+}
+if (!PREFLIGHT.rows_checked && !BREAK_PREFLIGHT) {
+  console.log('    THE PREFLIGHT NEVER RAN ON A SINGLE ROW. Every DID-NOT-FIRE below is unsplit — an '
+            + 'engine gap and a fixture gap in one bucket. A zero here is not a pass.');
+  process.exitCode = 1;
+}
+if (BREAK_PREFLIGHT) console.log('    (STUBBED by --break-preflight — every row above is unsplit. This is the red arm.)');
 
 report.games_played = GAMES;
 report.games_threw = THREW;
