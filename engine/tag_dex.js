@@ -60,6 +60,27 @@ const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
  * own `String(h).replace(/\s+/g,' ')`, and the ones that forgot the replace could not match a
  * predicate spanning a line break -- which is a rule that silently matches NOTHING. One reader. */
 const fnsrc = h => String(h == null ? '' : h).replace(/\s+/g, ' ');
+/* ROADMAP #239, EXTENDED BY #241 -- WHAT A REFUSAL SAYS ON THE WIRE, READ OUT OF THE HANDLER.
+ *
+ * An ability that refuses something writes its own `-immune` line, and the attribution string in the
+ * source IS the string on the wire:
+ *
+ *     onSetStatus(...) { ... this.add("-immune", target, "[from] ability: Limber"); return false; }
+ *     onTryHit(target, source, move) { ... this.add("-immune", target, "[from] ability: Good as Gold");
+ *                                      return null; }
+ *
+ * #239 read this off `onSetStatus` for `statusImmune`. #241 needs the SAME answer off `onTryHit` for
+ * `refusesStatusMoves`, and CLAUDE.md's facts-are-global rule says that is one reader and not two:
+ * two functions that both decide what Good as Gold announces will disagree eventually, and the
+ * disagreement is invisible because both keep working. A handler that writes no `-immune` returns
+ * null and the caller falls back to the BARE line -- MAGMA ARMOR is why that distinction is not
+ * theoretical (it refuses through `onImmunity` and is announced with no `[from]` at all).
+ *
+ * COMPILED SOURCE USES DOUBLE QUOTES. Both are accepted so this reads the .ts and the dist/ alike. */
+const immuneAttrIn = (h) => {
+  const m = fnsrc(h).match(/add\(\s*["']-immune["']\s*,\s*[\w.]+\s*,\s*["']([^"']+)["']/);
+  return m ? m[1] : null;
+};
 
 if (!process.env.SHOWDOWN_PATH) { console.error('set SHOWDOWN_PATH'); process.exit(2); }
 const { Dex } = CS.sim();
@@ -4750,7 +4771,15 @@ const ABILITY_TAGS = [
       const m2 = /category\s*===\s*["']Status["']/.exec(src);
       if (!m2) return null;
       const branch = src.slice(m2.index, src.indexOf('}', m2.index) + 1);
-      return /return (null|false)/.test(branch) ? { refuses: true } : null;
+      if (!/return (null|false)/.test(branch)) return null;
+      /* ROADMAP #241 -- AND WHAT THE REFUSAL SAYS, through the SAME reader #239 built for
+       * `statusImmune`. The refusal here was already correct and the LINE was not: every route in
+       * medicham2 wrote a bare `|-fail|` on the MOVER, or nothing at all, where the authority writes
+       *     |-immune|<target>|[from] ability: Good as Gold
+       * on the TARGET. That string is read out of the handler rather than composed from the id, for
+       * the reason Magma Armor gave #239: an ability that announces BARE must be told apart from one
+       * that names itself, and only the handler knows which. */
+      return { refuses: true, announcesWith: immuneAttrIn(a.onTryHit) };
     } },
   /* ROADMAP #216 -- the ABILITY side of the same relaxation. Sturdy is unchanged by it (it has the
    * full-HP clause and no chance); the two derivations are kept in step so that a future member
@@ -6705,10 +6734,10 @@ const ABILITY_TAGS = [
      * announced by setStatus with no `[from]`. Derivation printed over the format before wiring. */
     of: a => {
       if (!a.onSetStatus) return null;
-      const src = fnsrc(a.onSetStatus);
       const w = weatherIn(String(a.onSetStatus));
-      const line = src.match(/add\(\s*["']-immune["']\s*,\s*\w+\s*,\s*["']([^"']+)["']/);
-      const out = { immune: true, announcesWith: line ? line[1] : null };
+      /* THE SHARED READER (top of file). #241 needs the same answer off `onTryHit`; a second copy
+       * here is the shape CLAUDE.md's facts-are-global rule forbids. */
+      const out = { immune: true, announcesWith: immuneAttrIn(a.onSetStatus) };
       if (w.length) out.inWeather = w;
       return out;
     } },

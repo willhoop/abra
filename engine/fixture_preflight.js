@@ -471,8 +471,16 @@ function cuesOf(base, src) {
      * row out of the fixture-gap column while explaining nothing. They need an adversary CARRYING the
      * named effect, which is an engine/faces.js job, so the cue is reported and no need is emitted.
      * `zpower` is excluded because every `onChangeBoost` guards on it and none is about it. */
+    /* AND THE EFFECT GATE TAKES THE SAME POLARITY TEST AS THE FLAGS, because the first version did not
+     * and immediately over-corrected: Mirror Armor's `effect.name === "Mirror Armor" ... return` and
+     * Opportunist's `effect?.name === "Opportunist" || … "Mirror Herb"` are self-exclusion guards —
+     * "do not recurse on my own effect" — and reading them as requirements dropped both rows back out
+     * of FIRED. Oblivious's `if (effect.name === "Intimidate" && boost.atk) { delete boost.atk; … }` is
+     * the genuine one and it is not a bare return. Same rule, same helper, one line apart. */
     const eff = [...src.matchAll(/effect\??\.(?:name|id)\s*===\s*["']([A-Za-z ]+)["']/g)]
-      .map(m => m[1]).filter(x => id(x) !== 'zpower');
+      .map(m => m[1]).filter(x => id(x) !== 'zpower')
+      .filter(x => polarity(src, G, new RegExp('effect\\??\\.(?:name|id)\\s*===\\s*["\']'
+        + x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '["\']', 'g')).required);
     if (/isBerry/.test(src)) undet.push('the boost is gated on isBerry, not on a move');
     else if (eff.length) undet.push('the boost is gated on effect "' + eff.join('/')
       + '", not on a move — the ADVERSARY has to carry it');

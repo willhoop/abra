@@ -5548,6 +5548,85 @@ probe('move', 'powerFromFallen', 'Last Respects grows with fallen allies', () =>
                  + `fainted first ${test}` };
 });
 
+/* ROADMAP #243 -- THE PROBE ABOVE KILLS THE ALLY ON A *PREVIOUS* TURN, WHICH IS THE EASY HALF.
+ *
+ * Will asked the hard one directly: "does last respects update mid turn if an ally dies first and then
+ * last respects hits". MEASURED ON THE AUTHORITY FIRST, and it does. Showdown increments
+ * `side.totalFainted` inside `faintMessages()` (dist/sim/battle.js:2092), which `runMove` calls at its
+ * own end (dist/sim/battle-actions.js:301) -- so by the time the NEXT action's `basePowerCallback`
+ * runs inside `getDamage`, the body that died earlier in the turn is already counted. Staged on the
+ * real simulator at seed [1,2,3,4]: a Garchomp Dragon Claws the Milotic ally, then Houndstone's Last
+ * Respects deals **36 with the ally alive and 69 with it dead in the same turn (x1.917)** -- BP 50 to
+ * BP 100, and the `|faint|p1b: Milotic` line precedes the damage line in the log.
+ *
+ * THIS ENGINE RECOUNTED ONLY AT TURN END and its own comment said so, so it read x1.000. The fix moves
+ * the settle to the between-actions boundary where the authority's `faintMessages()` sits.
+ *
+ * THE ORDER IS FORCED, NOT HOPED FOR. The foe is handed 200 Speed and the Houndstone 10, so the kill
+ * is guaranteed to land before the click; a probe that relied on base stats would silently become a
+ * different test the day one of those species changed. The ally's death is read back beside the
+ * damage, so "the ally never died" is distinguishable from "it died and the power did not move". */
+probe('move', 'powerFromFallen', 'Last Respects counts an ally that died EARLIER IN THE SAME TURN', () => {
+  const run = (killAlly) => {
+    const me = bare('houndstone'), ally = bare('milotic');
+    const S = M.battleInit([me, ally, bare('corviknight'), bare('milotic')],
+                           [bare('garchomp'), bare('incineroar')], { seeded: true });
+    const f1 = S.actB[0], f2 = S.actB[1];
+    unfaintable(f1);
+    f1.st = Object.assign({}, f1.st, { sp: 200 });   // the foe resolves FIRST
+    me.st = Object.assign({}, me.st, { sp: 10 });
+    if (killAlly) ally.curHP = 1;                    // the ONLY varied thing
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'lastrespects', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'dragonclaw', ally, S.field)], [f2, { kind: 'pass' }]]));
+    return [ally.fainted ? 1 : 0, before - f1.curHP];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 0 && test[0] === 1 && control[1] > 0
+                  && Math.abs(test[1] - 2 * control[1]) <= 3,
+           arms: { control, test },
+           detail: `[ally dead?, Last Respects damage] — ally survives the same turn ${control}; the `
+                 + `ally is KOd EARLIER IN THE SAME TURN ${test}. The authority prices this at BP 50 `
+                 + `-> BP 100 (measured on Showdown: 36 -> 69, x1.917), so the damage must double` };
+});
+
+/* ROADMAP #246 -- TURN ONE OF A SEEDED BATTLE IS A TURN LIKE ANY OTHER, AND IT WAS A TURN WHERE
+ * NOBODY HAD EVER DIED.
+ *
+ * `battleInit` wrote the literal `sfA:{fainted:0,…}` and the only recount was at turn end, so the
+ * FIRST action of every seeded position priced Last Respects at a flat 50 whatever the roster said.
+ * That is the decision-relevant action: `rolloutAfterActions` forces the candidate click on turn one,
+ * so a Last Respects being RANKED was priced 150 BP light on a board with three bodies down.
+ *
+ * THE KNOB IS VARIED FOUR WAYS AND THE ANSWER MUST TRACK IT. Two arms cannot tell "the count is read"
+ * from "three corpses on the bench happen to be worth something"; a ladder of 0/1/2/3 that prices
+ * 1x/2x/3x/4x can only be `50 + 50n` being read live. The authority has NO cap on this move
+ * (`return 50 + 50 * pokemon.side.totalFainted`, read off the format) -- see the note at the
+ * `powerFromFallen` read site for why this engine's Math.min(...,5) cannot bind in a bring-4 game. */
+probe('move', 'powerFromFallen', 'Last Respects prices the already-fallen on the FIRST action of a seeded battle', () => {
+  const at = (n) => {
+    const me = bare('houndstone'), ally = bare('milotic');
+    const dead = [bare('milotic'), bare('milotic'), bare('milotic')];
+    for (let i = 0; i < n; i++) { dead[i].fainted = true; dead[i].curHP = 0; }
+    const S = M.battleInit([me, ally].concat(dead), [bare('garchomp'), bare('incineroar')], { seeded: true });
+    const f1 = S.actB[0], f2 = S.actB[1];
+    unfaintable(f1);
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'lastrespects', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  const d = [at(0), at(1), at(2), at(3)];
+  const near = (x, k) => Math.abs(x - k * d[0]) <= 3;
+  return { works: d[0] > 0 && near(d[1], 2) && near(d[2], 3) && near(d[3], 4),
+           arms: { control: d[0], test: d.slice(1) },
+           detail: `Last Respects on the FIRST action of a battle seeded with 0/1/2/3 of the roster `
+                 + `already fallen — damage ${d.join('/')}. The authority reads 50 + 50n live, so the `
+                 + `ladder must be 1x/2x/3x/4x of ${d[0]}` };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). THE MOVE'S ENTIRE IDENTITY, and found by the
  * differential test rather than by anyone reading a list. Ice is normally RESISTED by Water;
  * Freeze-Dry is super effective on it. The added arm fires both moves at a NON-Water body, where the
@@ -6702,6 +6781,165 @@ probe('ability', 'refusesStatusMoves', 'Good as Gold refuses Thunder Wave', () =
   const none = run('none'), gold = run('goodasgold');
   return { works: none === 'par' && gold !== 'par', arms: { control: none, test: gold },
            detail: 'no ability -> ' + none + ', Good as Gold -> ' + gold };
+});
+
+/* ================= ROADMAP #241 (1) -- GOOD AS GOLD REFUSED CORRECTLY AND NARRATED WRONGLY ========
+ *
+ * The probe above, and eight more in this file, prove the REFUSAL. Every one of them reads the BOARD,
+ * so not one of them could see that the engine was announcing the refusal as a bare `|-fail|` on the
+ * MOVER, or as nothing at all. A mechanic that behaves correctly and narrates wrongly is invisible to
+ * everything except a person reading the stream -- which is exactly how this survived while Good as
+ * Gold was named at eleven sites in medicham2.
+ *
+ * THE AUTHORITY, DERIVED RATHER THAN TYPED. `onTryHit` is Good as Gold's ONLY handler and its whole
+ * body is:
+ *     onTryHit(target, source, move) {
+ *       if (move.category === "Status" && target !== source) {
+ *         this.add("-immune", target, "[from] ability: Good as Gold");
+ *         return null; } }
+ * so the line names the TARGET and carries the ability. Measured on the authority first, one battle
+ * per route, the target's own action held fixed:
+ *     Roar / Whirlwind / Parting Shot / Yawn / Trick / Skill Swap / Decorate  ->  Gholdengo
+ *       |-immune|p2a: Target|[from] ability: Good as Gold          in every one
+ *
+ * WHAT THIS ENGINE SAID, on the same twelve routes, before the fix:
+ *     phaze, reorder, abilitywrite, statrewire            |-fail|<the MOVER>
+ *     typechange, trickitem, abilityswap, boostally, lockon   (nothing at all)
+ *     the pivot switch (Parting Shot)                     |-immune|<target>   with no attribution
+ *     healdesc (Heal Pulse)                               |-fail|<target>|heal  AND  |-fail|<mover>
+ * Twelve routes, four different wrong answers, because each branch had its own copy of the refusal
+ * and each had made its own decision about what to say.
+ *
+ * BOTH ARMS, AND THE CONTROL IS THE SAME BODY. A one-armed probe -- "does the Good as Gold arm print
+ * `-immune`" -- passes on an engine that prints `-immune` for everything, so the control arm is the
+ * SAME Gholdengo carrying an ability that does nothing to a status move, and it must NOT print the
+ * Good as Gold line. The last route is Thunder Wave, whose status outcome is read as well, so the
+ * probe is not narration alone: if the refusal itself ever stopped working the outcome arm says so. */
+probe('ability', 'refusesStatusMoves',
+      'Good as Gold announces |-immune| on the TARGET on every route, never |-fail| on the user', () => {
+  /* ONE ROUTE PER ACTION KIND in medicham2's turn loop -- phaze, abilitywrite, statrewire, reorder,
+   * trickitem, typechange, abilityswap, boostally, lockon, the pivot switch, healdesc and status. The
+   * kinds are what differ; the ability, the bodies and the dice do not. */
+  const ROUTES = ['roar', 'worryseed', 'speedswap', 'afteryou', 'trick', 'soak',
+                  'skillswap', 'decorate', 'lockon', 'partingshot', 'healpulse', 'thunderwave'];
+  const run = (mv, ab) => {
+    const B = board('raichu', 'incineroar', 'gholdengo', 'garchomp');
+    const trace = []; B.S._trace = trace;
+    B.f1.ability = ab;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { lines: trace.filter(l => /^\|-(fail|immune)\|/.test(l)).map(M.traceCanon),
+             status: B.f1.status || 'none' };
+  };
+  const WANT = M.traceCanon('|-immune|p2a: gholdengo|[from] ability: Good as Gold');
+  const wrong = [], leaked = [];
+  for (const mv of ROUTES) {
+    const gold = run(mv, 'goodasgold'), ctl = run(mv, 'honeygather');
+    if (!(gold.lines.length === 1 && gold.lines[0] === WANT)) {
+      wrong.push(mv + ' -> ' + (gold.lines.join(' ') || '(silent)'));
+    }
+    /* THE CONTROL MUST NOT CARRY THE LINE. This is what fails an engine that answers `-immune` to
+     * everything, and it is the arm the first draft of this probe did not have. */
+    if (ctl.lines.some(l => /goodasgold/.test(l))) leaked.push(mv);
+  }
+  const tw = { gold: run('thunderwave', 'goodasgold').status, ctl: run('thunderwave', 'honeygather').status };
+  return { works: wrong.length === 0 && leaked.length === 0 && tw.ctl === 'par' && tw.gold !== 'par',
+           arms: { control: 'honeygather: ' + tw.ctl + ', 0 Good-as-Gold lines',
+                   test: 'goodasgold: ' + tw.gold + ', ' + (ROUTES.length - wrong.length) + '/'
+                       + ROUTES.length + ' routes announce it' },
+           detail: (ROUTES.length - wrong.length) + '/' + ROUTES.length + ' routes emit exactly `'
+                 + WANT + '`' + (wrong.length ? '; WRONG: ' + wrong.join(' | ') : '')
+                 + (leaked.length ? '; CONTROL LEAKED the Good as Gold line on: ' + leaked.join(' ') : '')
+                 + '; Thunder Wave outcome control ' + tw.ctl + ' / Good as Gold ' + tw.gold };
+});
+
+/* ================= ROADMAP #241 (2) -- THE SAME SHAPE WITH NO ABILITY ON THE LINE =================
+ *
+ * Two more `|-immune| <> |-fail|` pairs came out of the whole-game differential, and they point in
+ * OPPOSITE directions -- which is why one fix could not have covered both and why they get one probe
+ * each. Both witnesses are real games from the pinned pool, quoted here as read:
+ *
+ *   Mean Look -> Chandelure     showdown |-fail|p2a: Farigiraf      ours |-immune|p1a: Chandelure
+ *   Worry Seed -> Incineroar    showdown |-immune|p1a: Incineroar   ours |-fail|p2b: Whimsicott
+ *
+ * A GHOST IS NOT ANNOUNCED AS IMMUNE TO A TRAP, IT MAKES THE MOVE FAIL. Derived: Mean Look and Block
+ * are `onHit(target, source, move) { return target.addVolatile("trapped", source, move, "trapper"); }`
+ * and the trap runs through `Pokemon#tryTrap` (sim/pokemon.js:1171), whose first line is
+ *     if (!this.runStatusImmunity("trapped")) return false;
+ * -- called with NO `message` argument, and `runStatusImmunity(type, message)` only writes `-immune`
+ * when `message` is given. So the refusal is silent, `onHit` returns false, and the move takes the
+ * ordinary generic-failure path, which names the MOVER. `Dex.getImmunity('trapped', ['Ghost'])` reads
+ * false, so the Ghost is the knob and nothing else is.
+ *
+ * THE KNOB IS THE TYPE AND NOTHING ELSE MOVES. Both arms are the same Garchomp with `types` written,
+ * so the species, the stats, the ability and the dice are held: two different bodies would have made
+ * "did the trap land" a claim about two Pokemon rather than about one type. */
+probe('move', 'trapsTarget', 'a Ghost refuses a trap SILENTLY -- the move fails and names the MOVER', () => {
+  const run = (types) => {
+    const B = board('raichu', 'incineroar', 'garchomp', 'snorlax');
+    const trace = []; B.S._trace = trace;
+    B.f1.types = types;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'meanlook', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { lines: trace.filter(l => /^\|-(fail|immune)\|/.test(l)).map(M.traceCanon),
+             trapped: !!B.f1._trapHard };
+  };
+  const ghost = run(['Ghost']), plain = run(['Dragon', 'Ground']);
+  const FAIL = M.traceCanon('|-fail|p1a: raichu');
+  return { works: ghost.trapped === false && plain.trapped === true
+                  && ghost.lines.length === 1 && ghost.lines[0] === FAIL
+                  && plain.lines.length === 0,
+           arms: { control: 'Dragon/Ground: trapped ' + plain.trapped + ', lines ' + (plain.lines.join(' ') || '(none)'),
+                   test: 'Ghost: trapped ' + ghost.trapped + ', lines ' + (ghost.lines.join(' ') || '(none)') },
+           detail: 'the same Garchomp, types written. Ghost -> trapped ' + ghost.trapped + ', '
+                 + (ghost.lines.join(' ') || '(no line)') + ' (must be exactly ' + FAIL
+                 + '); Dragon/Ground -> trapped ' + plain.trapped + ', '
+                 + (plain.lines.join(' ') || '(no line)') + ' (must be no line at all)' };
+});
+
+/* A PRANKSTER-BOOSTED STATUS MOVE INTO A DARK TYPE IS ANNOUNCED ON THE TARGET, BARE.
+ *
+ * Derived from the step list rather than from an ability handler, which is why it carries no `[from]`:
+ * `battle-actions.js:573` in `hitStepTryImmunity` is
+ *     else if (gen >= 7 && move.pranksterBoosted && pokemon.hasAbility("prankster")
+ *              && !targets[i].isAlly(pokemon) && !this.dex.getImmunity("prankster", target)) {
+ *       this.battle.add("-immune", target); hitResults[i] = false; }
+ * and `Dex.getImmunity('prankster', ['Dark'])` reads false. medicham2 already REFUSED this correctly
+ * -- `pranksterBlocked` is asked at a dozen sites -- but on the ability-write, stat-rewire, reorder
+ * and phaze routes the refusal collapsed into the same `mvFail(m)` as every other reason the branch
+ * had for not firing, so the line named the MOVER.
+ *
+ * THREE ARMS, because two cannot tell the Dark from the Prankster: the same body with `types` written
+ * Dark and a Prankster user; the same body NOT Dark; and the Dark body against a user WITHOUT
+ * Prankster, which must go through. */
+probe('ability', 'priorityMod', 'Prankster into a Dark type announces a BARE |-immune| on the target', () => {
+  const run = (types, ab) => {
+    const B = board('raichu', 'incineroar', 'garchomp', 'snorlax');
+    const trace = []; B.S._trace = trace;
+    B.me.ability = ab; B.f1.types = types; B.f1.ability = 'roughskin';
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'worryseed', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { lines: trace.filter(l => /^\|-(fail|immune)\|/.test(l)).map(M.traceCanon),
+             ab: B.f1.ability };
+  };
+  const dark = run(['Dark'], 'prankster');
+  const notDark = run(['Dragon', 'Ground'], 'prankster');
+  const noPrank = run(['Dark'], 'honeygather');
+  const IMM = M.traceCanon('|-immune|p2a: garchomp');
+  return { works: dark.lines.length === 1 && dark.lines[0] === IMM && dark.ab === 'roughskin'
+                  && notDark.ab === 'insomnia' && notDark.lines.length === 0
+                  && noPrank.ab === 'insomnia' && noPrank.lines.length === 0,
+           arms: { control: 'no Prankster into Dark: ability ' + noPrank.ab + ', lines ' + (noPrank.lines.join(' ') || '(none)'),
+                   test: 'Prankster into Dark: ability ' + dark.ab + ', lines ' + (dark.lines.join(' ') || '(none)') },
+           detail: 'Worry Seed, the same Garchomp every arm. Prankster + Dark -> '
+                 + (dark.lines.join(' ') || '(no line)') + ' ability ' + dark.ab + ' (must be exactly '
+                 + IMM + ', bare, and the ability unchanged); Prankster + Dragon/Ground -> '
+                 + (notDark.lines.join(' ') || '(no line)') + ' ability ' + notDark.ab
+                 + '; no Prankster + Dark -> ' + (noPrank.lines.join(' ') || '(no line)')
+                 + ' ability ' + noPrank.ab };
 });
 
 probe('move', 'inflictsToxic', 'Toxic damage grows each turn', () => {
@@ -10414,6 +10652,48 @@ probe('ability', 'boostsFromFallen', 'Supreme Overlord reads the dead at the mom
            detail: `Iron Head from a Kingambit that switched in -- no ability with 3 fallen ${none3}; `
                  + `Supreme Overlord with 0 fallen ${zero}; Supreme Overlord with 3 fallen ${three} `
                  + `(the tag says +10% each, so x1.3)` };
+});
+
+/* ROADMAP #243's CONTROL, AND IT IS THE HALF A FIX CAN BREAK WITHOUT ANYTHING NOTICING.
+ *
+ * The two fallen-count mechanics answer the timing question OPPOSITELY. Last Respects re-reads
+ * `side.totalFainted` at every use, so a body that dies earlier in the turn counts. Supreme Overlord
+ * reads the same field ONCE in `onStart` and freezes it in `effectState.fallen`, and never re-reads --
+ * so an ally dying while Kingambit stands there does NOTHING for it, and only a Kingambit entering
+ * afterwards benefits.
+ *
+ * MEASURED ON THE AUTHORITY, same staging as the #243 probe and the same seed: Iron Head from a
+ * Kingambit already on the field deals **70 with the ally alive and 70 with the ally KOd earlier in
+ * the same turn -- x1.000**, against Last Respects' x1.917 on the identical board.
+ *
+ * SO THIS PROBE ASSERTS THAT NOTHING HAPPENED, which is only meaningful because the OTHER arm proves
+ * the death was real and reached the side's counter -- `S.sfA.fainted` is read back, and a run where
+ * the ally never died would show 0 there and is not the same test. Without this, a fix that made the
+ * live count reach BOTH mechanics would leave every probe in this file green. */
+probe('ability', 'boostsFromFallen', 'Supreme Overlord does NOT see an ally that dies while it stands there', () => {
+  const run = (killAlly) => {
+    const king = bare('kingambit'); king.ability = 'supremeoverlord';
+    const ally = bare('milotic');
+    const S = M.battleInit([king, ally, bare('corviknight'), bare('milotic')],
+                           [bare('garchomp'), bare('incineroar')], { seeded: true });
+    const f1 = S.actB[0], f2 = S.actB[1];
+    unfaintable(f1);
+    f1.st = Object.assign({}, f1.st, { sp: 200 });   // the foe resolves FIRST
+    king.st = Object.assign({}, king.st, { sp: 10 });
+    if (killAlly) ally.curHP = 1;                    // the ONLY varied thing
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[king, M.playerAction(king, 'ironhead', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'dragonclaw', ally, S.field)], [f2, { kind: 'pass' }]]));
+    return [S.sfA.fainted, before - f1.curHP];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 0 && test[0] === 1 && control[1] > 0 && test[1] === control[1],
+           arms: { control, test },
+           detail: `[side fallen count, Iron Head damage] — Kingambit already on the field, ally alive `
+                 + `${control}; the SAME board with the ally KOd earlier in the same turn ${test}. The `
+                 + `death must reach the counter and must NOT reach the damage: the snapshot is frozen `
+                 + `at entry (authority, same staging: 70 -> 70, x1.000, where Last Respects is x1.917)` };
 });
 
 /* ================= ROADMAP #81 WIRE 6 — DOES THE ENGINE ANNOUNCE THE ACTION IT TOOK ===============

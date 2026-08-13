@@ -7680,3 +7680,59 @@ Decorate, Coaching, Skill Swap and Heal Pulse) and every branch here is `_isFoe`
 accepts support from its own side that Showdown refuses. That is a REFUSAL defect inside an EMISSION
 pass, and folding it in would have made the three-game move above unattributable. It gets its own
 before/after.
+
+### THE FALLEN COUNT WAS WRONG AT BOTH ENDS OF THE TURN, AND FIXING IT MOVES NOTHING. 2026-08-13
+
+ROADMAP #243 and #246, closed together because they are one fact at two moments. Census **561 → 564
+live / 0 missing**. Both came out of Will asking whether we had ever tested Supreme Overlord and Last
+Respects — the probes said yes and were right, and the question found three defects underneath them.
+
+**THE AUTHORITY MEASURED FIRST**, on the real simulator, one board, one varied knob:
+
+| lead | ally alive | ally KO'd earlier in the SAME turn | ratio |
+|---|---|---|---|
+| Houndstone, Last Respects | 36 | **69** | **×1.917** |
+| Kingambit already out, Supreme Overlord | 70 | **70** | **×1.000** |
+
+That is the entire design in two rows, and it is why these two mechanics must not share an
+implementation: **Last Respects re-reads at every use; Supreme Overlord freezes its count at entry and
+never re-reads.** `side.totalFainted++` lives in `faintMessages()`, which runs after every move.
+
+**OURS:**
+
+| fixture | before | after |
+|---|---|---|
+| Last Respects, same-turn kill (#243) | 51 → 51, ×1.000 | 51 → **101**, ×1.980 |
+| Last Respects, first action, 0/1/2/3 fallen (#246) | **51 / 51 / 51 / 51** | **51 / 101 / 151 / 201** |
+| Supreme Overlord control, ally dies while it stands there | ×1.000 | ×1.000 |
+
+Four identical numbers across a four-way knob is what an unwired knob looks like — `battleInit`'s
+literal `sfA:{fainted:0}`.
+
+**THE NEGATIVE PROBE HAD TO BE BROKEN ON PURPOSE TO MEAN ANYTHING.** The Supreme Overlord control
+asserts that something did NOT happen, so it passes on the unfixed engine and proves nothing there.
+Shown red under a deliberate break instead — `_fallenStuck` swapped for `_sf.fainted` at the boost
+site gives **563 live / 1 missing naming exactly that row**, while the pre-existing `boostsFromFallen`
+probe stayed green, which is the pair of facts that says the break was specific. Reverted, and the
+engine verified byte-identical to the frozen AFTER release.
+
+**IT MOVES NOTHING IN THE DIFFERENTIAL AND THAT IS THE RESULT.** Two frozen releases verified to differ
+in exactly one file, same pool, 1,219 games, both arms: **220 top and 239 bottom, before and after,
+identical, every class row unchanged to the instance.** Mode A's pins rarely produce a same-turn kill
+followed by a Last Respects from the survivor. **The reason to land it anyway is that the ROLLOUT is
+where it bites** — measured the same night at **8.75% of open-sheet decision points**, mean 1.67 fallen,
+Last Respects owed 133.5 BP and priced at 50 — and the differential is structurally unable to see that.
+An instrument that cannot see a defect is not evidence the defect is small.
+
+**THE CAP, DERIVED RATHER THAN ASSUMED.** `Math.min(att._sf.fainted, 5)` is not the authority's, which
+has no cap at all. Ours first binds at six fallen allies and a bring-4 game tops out at three, so **it
+can never bind.** Left in place — removing a dead guard inside a timing fix breaks attribution — and now
+named in a comment so it stops reading as Supreme Overlord's cap of five, which is real and is a
+different rule.
+
+**AND TWO PIECES OF TIDYING THAT ARE THE SAME LESSON TWICE.** `tests/test-rollout-fallen.js` carried
+the note *"battleInit stamps fainted:0; the recount is at turn end"* — true when SEARCH wrote it, false
+an hour later. Its NUMBERS were right; only the explanation had outlived the engine. And the block that
+REPORTED the t=0 defect is now an ASSERTION. Reporting was correct while nobody in that division could
+turn it green — that is the alternative to the banned phrase — but **a report that survives its own fix
+leaves the regression unguarded and goes on printing as though the defect were live.**

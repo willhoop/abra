@@ -10,6 +10,66 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.14.0] — 2026-08-13
+
+### Fixed
+- **THE FALLEN COUNT WAS RIGHT AT TURN END AND WRONG AT BOTH ENDS OF THE TURN (ROADMAP #243 and
+  #246, taken together).** They are the same field in the same file, and closing one alone leaves the
+  count right at turn end and wrong at turn start.
+  - **#243 — a same-turn kill was seen one action late.** The authority increments
+    `side.totalFainted` inside `faintMessages()` (`dist/sim/battle.js:2092`), which runs at the end of
+    every move (`dist/sim/battle-actions.js:301`), so a body that died earlier in the turn is already
+    counted when the next action's `basePowerCallback` runs. This engine recounted only in the
+    end-of-turn block, whose own comment admitted it. **Measured on the authority first**, seed
+    `[1,2,3,4]`: a Garchomp KOs the Milotic ally and Houndstone's Last Respects then deals **69
+    against 36** with the ally alive — x1.917, BP 50 -> 100. This engine read x1.000 and now reads
+    x1.980.
+  - **#246 — turn one of every seeded battle believed nobody had died.** `battleInit` wrote the
+    literal `sfA:{fainted:0,…}` and the only recount was at turn end, so the first action of a
+    playout priced Last Respects at a flat 50 whatever the roster said — and that is the
+    decision-relevant action, because `rolloutAfterActions` forces the candidate click on turn one.
+    Last Respects on the first action with 0/1/2/3 of the roster already fallen dealt **51/51/51/51**
+    and now deals **51/101/151/201**. Identical results across a varied knob meant the knob was
+    unwired, and it was.
+- **The split between the two fallen-count mechanics survived, and is now asserted rather than
+  assumed.** Last Respects re-reads the side's count at every use; Supreme Overlord reads it once in
+  `onStart` and freezes it, so an ally dying while Kingambit stands there does nothing for it.
+  Measured on the authority on the identical board: Iron Head from a Kingambit already out deals
+  **70 against 70 — x1.000** where Last Respects is x1.917.
+
+### Added
+- Three probes in `tests/test-mechanics.js`. **Census 561 live / 0 missing -> 564 live / 0 missing.**
+  The two Last Respects probes were shown RED on the unfixed engine before a byte moved. The Supreme
+  Overlord probe asserts that NOTHING happened, so it passes on the unfixed engine too and was
+  instead shown RED under a deliberate break (`_fallenStuck` swapped for `_sf.fainted` at the boost
+  site): the census reported **563 live / 1 missing naming exactly that row**, while the pre-existing
+  `boostsFromFallen` probe stayed green — which is why the new one had to exist. The break was
+  reverted and the census re-run clean.
+
+### Changed
+- `engine/medicham2-browser.js` — `fallenSettle(S)` is one function called from four places (at
+  `battleInit` after the roster is stamped, at the top of the action loop above the `sideWiped`
+  break, after the last action, and in the residual) rather than four copies of two lines. The
+  end-of-turn comment claiming the one-action-late approximation is retracted in place.
+
+### Notes
+- **The whole-game differential moves nothing, and that is reported rather than dressed up.** Two
+  frozen releases verified to differ in exactly one file (`a2857a1bfd70` BEFORE, `0c5bb83c5744`
+  AFTER), same pinned pool, 1,219 games, both arms: **220 / 239 diverged in both**, and every class
+  row is identical to the instance. Expected — Mode A pins every die, so the arms rarely produce a
+  same-turn kill followed by a Last Respects from the survivor. **No strength claim is made and none
+  can be made from ENGINE.**
+- The damage differential is **0 of 6,000** at the midpoint and at both corners (seed 20260804), run
+  without `--write`.
+- **The `Math.min(fainted, 5)` at the read site was checked, not assumed.** The authority has no cap
+  on this move at all; ours first binds at six fallen allies, and a bring-4 game tops out at three.
+  It is unreachable, is left in place so the timing movement stays attributable, and is now named in
+  a comment so it stops reading as Supreme Overlord's cap of five, which is real and is a different
+  rule.
+- ROADMAP #245 and #247 were deliberately NOT touched. #245 is a counter change and would make this
+  timing movement unattributable; #247 needs the board to remember the fallen count at each
+  switch-in, which is upstream of ENGINE.
+
 ## [5.13.0] — 2026-08-13
 
 ### Fixed

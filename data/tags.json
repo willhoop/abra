@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-13T04:33:06.489Z",
+ "generated": "2026-08-13T06:35:07.965Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -3875,8 +3875,8 @@
    "kind": "ability",
    "param": "takes no residual damage from the named weathers",
    "why": "Sand Veil, Sand Rush, Sand Force, Overcoat (sandstorm); Ice Body, Snow Cloak, Overcoat (hail). The sandstorm residual is 1/16 a turn and this engine did not have it at all",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "onImmunity",
+   "used": true,
    "n": 6,
    "uses": 2970,
    "examples": [
@@ -35300,7 +35300,8 @@
    "uses": 3043,
    "params": {
     "refusesStatusMoves": {
-     "refuses": true
+     "refuses": true,
+     "announcesWith": "[from] ability: Good as Gold"
     },
     "breakable": {
      "breakable": true

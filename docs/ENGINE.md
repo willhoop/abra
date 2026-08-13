@@ -36,8 +36,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  558/558 probed mechanics live, 0 missing   (census 2026-08-13 02:03)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-13 02:01)
+  564/564 probed mechanics live, 0 missing   (census 2026-08-13 03:16)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-13 03:16)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -48,16 +48,309 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 695be9f7f8c7 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is e8c88260e7d5 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 5275859a4e47 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 2e87be8f4c98 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 263/282 probed, 19 unprobed
 ```
 
-_stamped 2026-08-13 02:09_
+_stamped 2026-08-13 03:29_
 
 <!-- /GENERATED -->
+
+## ROADMAP #243 + #246 — THE FALLEN COUNT WAS RIGHT AT TURN END AND WRONG AT BOTH ENDS OF THE TURN. 2026-08-13.
+
+**Census 561 live / 0 missing -> 564 live / 0 missing.** Three probes. Two were shown RED on the
+unfixed engine before a byte moved; the third asserts that nothing happened, so it was shown RED under
+a deliberate break instead — see below, because a probe that asserts a NEGATIVE cannot be trusted any
+other way.
+
+Both halves are the same field in the same file and they were taken together on purpose: fixing only
+one leaves the count right at turn end and wrong at turn start, which is a state no reader can
+describe in one sentence.
+
+### THE AUTHORITY, MEASURED BEFORE ANYTHING WAS EDITED
+
+`side.totalFainted++` lives inside `faintMessages()` (`dist/sim/battle.js:2092`), and `faintMessages()`
+runs at the END OF EVERY MOVE (`dist/sim/battle-actions.js:301`, again at `:848` inside the multi-hit
+loop) as well as after every action in `runAction`. Last Respects evaluates
+`return 50 + 50 * pokemon.side.totalFainted` inside `getDamage`, at the moment the move hits. So a
+body that died earlier in the turn is ALREADY counted.
+
+Staged on the real simulator, `gen9championsvgc2026regmb`, seed `[1,2,3,4]`, one board, one varied
+knob (the ally's HP), Garchomp Dragon Claws the Milotic ally and the p1a lead then attacks it:
+
+| p1a lead | ally alive | ally KOd EARLIER IN THE SAME TURN | ratio |
+|---|---|---|---|
+| Houndstone, Last Respects | 36 | **69** | **x1.917** (BP 50 -> 100) |
+| Kingambit already out, Supreme Overlord, Iron Head | 70 | **70** | **x1.000** |
+
+`|faint|p1b: Milotic` precedes the Last Respects damage line in the log. **The two mechanics answer
+the timing question OPPOSITELY on the identical board**, which is the fact the fix had to preserve:
+Supreme Overlord reads the field once in `onStart` and freezes it in `effectState.fallen`.
+
+### WHAT THIS ENGINE DID
+
+| fixture | before | after | authority |
+|---|---|---|---|
+| Last Respects, ally KOd earlier in the SAME turn (#243) | 51 -> **51**, x1.000 | 51 -> **101**, x1.980 | x1.917 |
+| Last Respects on the FIRST action of a seeded battle, 0/1/2/3 already fallen (#246) | **51/51/51/51** | **51/101/151/201** | 1x/2x/3x/4x |
+| Supreme Overlord, ally dies while it stands there (the control) | x1.000 | x1.000 | x1.000 |
+
+The middle row is the one that matters to a search: `rolloutAfterActions` forces the candidate click
+on turn one, so a Last Respects being RANKED from a position with three bodies down was priced at 50
+BP against the roster's 200. **The knob was varied four ways and produced one number** — the signature
+of an unwired knob, and it was unwired at `battleInit`, which wrote the literal `sfA:{fainted:0,…}`.
+
+### THE FIX — ONE FUNCTION, FOUR CALL SITES
+
+`fallenSettle(S)` derives both sides' counters through the existing `fallenCount` and is called at each
+of the authority's own moments: at `battleInit` immediately after `S.sfA.team`/`S.sfB.team` are stamped
+(#246), at the top of the action loop where the previous action's faint is already settled beside
+`flushAfterMoveSpends` / `receiverSweep` and ABOVE the `sideWiped` break (#243), after the last action
+for the same reason those settles have a copy there, and once more in the residual so the Supreme
+Overlord snapshot `bringIn` stamps includes whatever the residual killed.
+
+Four copies of two lines would be four things that disagree eventually — the FACTS-ARE-GLOBAL rule
+applied inside one file. The end-of-turn call's old comment (*"a mid-turn kill is seen one action late
+— an approximation, stated"*) is retracted in place rather than deleted.
+
+### THE CAP WAS CHECKED, NOT ASSUMED, AND IT CANNOT BIND
+
+`Math.min(att._sf.fainted, 5)` sits at the `powerFromFallen` read site and is **not the authority's**.
+The move's callback has no cap at all; the only clamp anywhere is `totalFainted < 100` inside
+`faintMessages`. Ours first binds at SIX fallen allies, which needs a side of seven — a bring-4 game
+tops out at three fallen with a body left to click, and even a full six-body side handed straight to
+`battleInit` tops out at five. **It is unreachable, it is left in place, and it is now named in a
+comment** — removing a provably dead guard inside a timing fix would make the timing movement
+unattributable. Supreme Overlord's cap of five IS real (`Math.min(pokemon.side.totalFainted, 5)`) and
+is a different rule three thousand lines away; the comment exists so the two stop reading as one.
+
+### THE NEGATIVE PROBE WAS SHOWN RED THE ONLY WAY IT CAN BE
+
+`ability boostsFromFallen` — *"Supreme Overlord does NOT see an ally that dies while it stands there"* —
+passes on the unfixed engine, because on the unfixed engine NOTHING was live. A green probe proves
+nothing there. So the engine was deliberately broken the other way (`att._fallenStuck` swapped for
+`att._sf.fainted` at the boost site), the census run, and the probe reported **563 live / 1 missing,
+naming exactly that row**. The pre-existing `boostsFromFallen` probe — the entry-snapshot one — stayed
+GREEN under that break, which is precisely why the new one had to exist. The break was reverted and
+the census re-run clean before anything else.
+
+*(The census artifact was backed up before the broken run and the run was followed by a clean one, so
+the deliberate break never stood as the published count.)*
+
+### THE WHOLE-GAME DIFFERENTIAL MOVES NOTHING, AND THAT IS THE HONEST RESULT
+
+Two frozen releases, verified to differ **in exactly one file and in exactly this change** (`a2857a1bfd70`
+BEFORE — the tree with ROADMAP #241 already in it — against `0c5bb83c5744` AFTER; every one of the
+other 24 frozen files compares byte-identical). Same pinned pool, 1,219 games in the primary arm, both
+arms, no `--write`:
+
+```
+     games  diverged  threw   median turns   arm
+     1219       220      0             12    top-tie-first
+     1219       239      0             12    bottom-tie-first
+```
+
+**Identical in both releases.** The two printed reports differ only in the release id and the elapsed
+seconds; every class row — `event missing from medicham2` 105, `ordering` 47, `unrelated event mismatch`
+28, `drag: a different body` 23, `extra event emitted by medicham2` 9 — is unchanged to the instance.
+No class moved, in either direction.
+
+That is expected and it is not a defence. Mode A pins every die, so the arms rarely produce a
+same-turn kill FOLLOWED by a Last Respects from the survivor, and Houndstone is one species in a
+1,219-pair pool. **No strength claim is made here and none can be made from this division.** The
+result that is claimed is the mechanic: three probes, an authority measurement each, and a census that
+went up by three.
+
+### RE-RUN OWED
+
+`data/roster.{items,abilities,moves}.json` — `engine/status.js` reports them as
+`MEASURED AGAINST A DIFFERENT ENGINE`, which is the consequence of any engine edit.
+
+### TWO THINGS OBSERVED AND DELIBERATELY NOT TOUCHED
+
+- `tests/test-rollout-fallen.js` (SEARCH's, closing #244) is 27/27 green and its **note line is now
+  stale**: it prints *"at t=0 Last Respects prices at 200 where the position says 200"* — the measured
+  number is now right — followed by *"battleInit stamps fainted:0; the recount is at turn end"*, which
+  is no longer true. The number is correct, the prose outlived what it described. It is SEARCH's file.
+- `engine/status.js` prints `FEATURE SEMANTICS CHECK FAILED` for `data/policy-weights.json`: the damage
+  table it was fitted against was regenerated (318 species -> 317). Pre-existing, not this pass, and
+  MEASURE's to answer.
+
+### THE TREE WAS NOT STILL WHILE THIS RAN — REPORTED, NOT ACTED ON
+
+`git status` was clean at dispatch; by the first engine edit HEAD had advanced three commits and the
+working tree carried another division's uncommitted work (the ROADMAP #241 changes to this same file,
+plus `engine/tag_dex.js`, `docs/ENGINE.md` and several `data/` artifacts). Nothing was reverted, moved
+or deleted. It is the reason the BEFORE arm is the existing `a2857a1bfd70` photograph rather than a
+fresh cut over a hand-reverted tree: naming a release somebody already took is the only way to get a
+one-file diff out of a tree two divisions are writing to.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty. This pass took its target from ROADMAP #243 and #246, both of which were sized off a
+measurement rather than off the hand list.
+
+## ROADMAP #241 (1)+(2) — TWELVE BRANCHES REFUSED THE SAME MOVE AND GAVE FOUR DIFFERENT ANSWERS. 2026-08-13.
+
+**Census 558 live / 0 missing -> 561 live / 0 missing.** Three probes, all three shown RED before a
+byte of the engine moved, with the authority's own answer measured first. Parts (1) and (2) of the
+row only; the silent-failure group and the attribution case are untouched and stay open.
+
+### THE THING THAT MADE THIS INVISIBLE
+
+Good as Gold is named at eleven sites in `medicham2-browser.js`, it has nine probes in
+`test-mechanics.js`, and every one of them was passing. **They all read the BOARD.** The refusal was
+right on nine of the twelve routes and the LINE was wrong on all twelve — and a mechanic that
+behaves correctly and narrates wrongly is invisible to everything except a person reading a stream.
+
+### THE AUTHORITY, DERIVED
+
+`onTryHit` is Good as Gold's ONLY handler, and its whole body is one branch:
+
+```js
+onTryHit(target, source, move) {
+  if (move.category === "Status" && target !== source) {
+    this.add("-immune", target, "[from] ability: Good as Gold");
+    return null; } }
+```
+
+One carrier in the regulation, **Gholdengo, 3,043 corpus uses**. Membership printed before anything
+was wired: `refusesStatusMoves` has **exactly one member**, and its `announcesWith` reads
+`"[from] ability: Good as Gold"`.
+
+### WHAT THIS ENGINE SAID, MEASURED ROUTE BY ROUTE
+
+A sweep over **all 78 legal foe-aimed Status moves x 8 bodies (624 cases)**, both engines, the same
+staged board. Twelve action kinds route a foe-aimed Status move, and they gave four different answers:
+
+| action kind | the move | what we emitted |
+|---|---|---|
+| `phaze`, `reorder`, `abilitywrite`, `statrewire` | Roar, After You, Worry Seed, Speed Swap | `\|-fail\|` on the **MOVER** |
+| `typechange`, `trickitem`, `abilityswap`, `boostally`, `yawn` | Soak, Trick, Skill Swap, Decorate, Yawn | **nothing at all** |
+| the pivot switch | Parting Shot | `\|-immune\|<target>` with **no attribution** |
+| `healdesc` | Heal Pulse | `\|-fail\|<target>\|heal` **and** `\|-fail\|<mover>` |
+
+Two of those were not emission defects at all: **Lock-On and Heal Pulse had no refusal whatsoever**,
+so a Lock-On at a Gholdengo applied the guarantee and a Heal Pulse at a Gholdengo healed it.
+
+### THE FIX IS ONE READER, NOT TWELVE
+
+`tryHitRefusal(m, t, mv)` + `announceTryHitRefusal(r, t)` in `medicham2-browser.js`. It answers only
+the refusals that resolve at Showdown's **onTryHit step**, and leaves Protect, the move-class
+immunities and the powder rule where each branch already had them — WIRE 122 filed this hoist as
+out of scope precisely because those companion gates differ per branch, and that is still true.
+
+Two members, and they answer differently on the wire:
+
+- `refusesStatusMoves` -> `\|-immune\|<target>\|[from] ability: Good as Gold`, with the attribution
+  **read off the handler** through `announcesWith`. That derivation is #239's, **extended rather than
+  duplicated**: `immuneAttrIn()` at the top of `tag_dex.js` is now the single reader that `statusImmune`
+  (off `onSetStatus`) and `refusesStatusMoves` (off `onTryHit`) both call. Checked: **0 of the 7
+  `statusImmune` rows moved**, and **1 row in the whole artifact changed**.
+- `pranksterBlocked` -> `\|-immune\|<target>` **bare**, because the refusal lives in the step list and
+  not in an ability handler (`battle-actions.js:573`). Gated on the target being a FOE, which is the
+  authority's own `!targets[i].isAlly(pokemon)`: without it, hoisting this into the ally-aimed
+  branches would have invented a refusal of a Prankster user's own partner.
+
+### PART (2) — AND THE TWO CASES POINT IN OPPOSITE DIRECTIONS
+
+Both witnesses are real games from the pinned pool, quoted as read:
+
+```
+Mean Look -> Chandelure     showdown |-fail|p2a: Farigiraf      ours |-immune|p1a: Chandelure
+Worry Seed -> Incineroar    showdown |-immune|p1a: Incineroar   ours |-fail|p2b: Whimsicott
+```
+
+**A Ghost is not announced immune to a trap; it makes the move fail.** Mean Look and Block are
+`onHit(target, source, move) { return target.addVolatile("trapped", ...) }`; the trap runs through
+`Pokemon#tryTrap` (`sim/pokemon.js:1171`), whose first line is
+`if (!this.runStatusImmunity("trapped")) return false;` — called with **no `message` argument**, and
+`runStatusImmunity(type, message)` writes `-immune` only when `message` is given. So the refusal is
+silent, `onHit` returns false, and the move takes the ordinary generic-failure path, which names the
+mover. `Dex.getImmunity('trapped', ['Ghost'])` reads false, so the Ghost is the whole knob.
+
+The second is Prankster into Dark, and the refusal was **already correct** — it had collapsed into the
+same `mvFail(m)` as every other reason `_blocked` could be true, so the line named the mover.
+
+### THE MEASUREMENT
+
+Damage differential `--n 6000`: **0 disagreements**, both corners.
+
+Whole-game differential, the SAME pinned pool (1,539 requested / 1,216 played per arm, 12 turns, four
+pins), two frozen releases:
+
+| | BEFORE `718a7333f27b` | AFTER `a2857a1bfd70` |
+|---|---|---|
+| diverged, top-tie-first | 221 / 1216 | **218 / 1216** |
+| diverged, bottom-tie-first | 237 / 1216 | **244 / 1216** |
+| `unrelated event mismatch` | 33 games, 30 causes | **27 games, 25 causes** |
+| `drag: a different body` | 21 games, 21 causes | 25 games, 25 causes |
+| `ordering` | 42 games, 35 causes | 43 games, 36 causes |
+| every other class | — | **unmoved, all ten of them** |
+
+**Causes that vanished, named:**
+
+```
+-2  |-immune|p2a|[from]goodasgold <> |-fail|p1a
+-1  |-immune|p1a|[from]goodasgold <> |-fail|p2a
+-1  |-immune|p1a|[from]goodasgold <> |-fail|p2b
+-1  |-fail|p2a <> |-immune|p1a            (Mean Look into a Ghost)
+-1  |-immune|p1a <> |-fail|p2b            (a Prankster Worry Seed into a Dark type)
+```
+
+**SAY IT PLAINLY: THE HEADLINE MOVED BY THREE GAMES, AND ONE ARM MOVED THE WRONG WAY.** 3,043 corpus
+uses is a count of ENTITIES on sheets, not of games — and this is a narration fix, so the boards were
+already agreeing. Of the seven causes that disappeared, **four were replaced by a LATER divergence in
+the same game**: three of the four new `drag: a different body` causes name Gholdengo, which is the
+expected shape when an early stop is removed — the game plays on and parts on the pre-existing drag-
+sampling class instead. `bottom-tie-first` rising by 7 is the same effect on the other pin. Nothing
+here is a strength claim and nothing here should be read as one.
+
+### THE THREE PROBES
+
+- `refusesStatusMoves` — *"Good as Gold announces `|-immune|` on the TARGET on every route, never
+  `|-fail|` on the user"*. Twelve routes, one per action kind. RED at **1/12**, with each wrong route
+  named in the detail line. **The control is the same Gholdengo** carrying an ability that does
+  nothing to a status move, and it must not print the Good as Gold line — without that arm the probe
+  passes on an engine that answers `-immune` to everything. Thunder Wave's status outcome is read as
+  a thirteenth arm so the probe is not narration alone.
+- `trapsTarget` — *"a Ghost refuses a trap SILENTLY — the move fails and names the MOVER"*. Both arms
+  are the **same Garchomp with `types` written**, so the species, stats, ability and dice are held.
+- `priorityMod` — *"Prankster into a Dark type announces a BARE `|-immune|` on the target"*. **Three
+  arms**, because two cannot tell the Dark from the Prankster: Prankster+Dark, Prankster+not-Dark,
+  and Dark with no Prankster.
+
+### COUNTERS
+
+`MEDSEEN.tryHitRefused`, `MEDSEEN.ghostRefusedTrap`, and `MEDFAILS.tryHitRefusalUnannounced` — the
+loud fallback for a `refusesStatusMoves` member arriving with no `announcesWith`. Staged: 2 / 1 / **0**.
+
+### WHAT IS STILL WRONG, STATED RATHER THAN LEFT TO BE REDISCOVERED
+
+- **Good as Gold refuses an ALLY-aimed status move and this engine does not.** The handler says
+  `target !== source`, not "a foe". Measured on the authority: Decorate, Coaching, Skill Swap and
+  Heal Pulse aimed at your own Gholdengo all print the line. Every one of those branches is gated on
+  `_isFoe` here and still is. That is a REFUSAL defect, not an emission one, and half-fixing it inside
+  an emission pass would have made the movement above unattributable.
+- **Role Play and Spite reach `kind:'pass'`** — the engine models no effect for either, and `pass`
+  carries no target, so there is nothing to announce a refusal against. 2 of the 624 sweep cases.
+- **Heal Pulse emits a second `|-fail|<mover>`** after `|-fail|<target>|heal` on the ordinary full-HP
+  path; the authority emits only the first. Pre-existing, not this wire's.
+- **Soundproof and Overcoat announce bare** where the authority names them (`|-immune|p2a|[from]overcoat
+  <> |-immune|p2a` is already its own cause). Same family, different tag, deliberately not folded in.
+
+### RE-RUN OWED
+
+`data/roster.{items,abilities,moves}.json` — `engine/status.js` reports them as
+`MEASURED AGAINST A DIFFERENT ENGINE`, which is the consequence of any engine edit.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty. This pass took its target from ROADMAP #241, which was sized off the differential's own
+cause list rather than off the hand list.
 
 ## ROADMAP #240 — THE QUEUE IS RE-SORTED ONLY WHEN THE NEXT ACTION IS A MOVE. 2026-08-13.
 

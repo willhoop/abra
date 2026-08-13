@@ -960,7 +960,16 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #239 -- a direct status move was refused by a TYPE or an ABILITY immunity and was
    * announced `|-immune|` rather than `|-fail|`. Zero on a run containing a Toxic into a Steel body
    * means the reason is not reaching the emitter. */
-  statusRefusedImmune: 0 };
+  statusRefusedImmune: 0,
+  /* ROADMAP #241 -- a foe-aimed move was refused at Showdown's onTryHit step (Good as Gold, or a
+   * Prankster-boosted status move into a Dark type) and the ONE announcer wrote `|-immune|` on the
+   * TARGET. Twelve action kinds route through it; a zero on a run containing a Gholdengo means the
+   * hoist came undone and the branches have gone back to their own private answers. */
+  tryHitRefused: 0,
+  /* ROADMAP #241 -- a Ghost was aimed at by Block or Mean Look and the trap was refused SILENTLY, the
+   * move failing on the mover. Separate from `tryHitRefused` because the authority answers it at a
+   * different step and with a different LINE, which is the whole finding. */
+  ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
   /* ROADMAP #238 -- a shield is up, a Status move is aimed at its holder, and `shieldsUser` carries
    * no readable `blocksStatus` for the move that raised it. The move is REFUSED (the pre-change
@@ -973,6 +982,12 @@ const MEDFAILS = { encoreAction: 0,
    * The three refusals ABOVE `canTakeStatus` -- an ally's veil, Uproar and a side buff -- emit their
    * own lines and are filtered out before this is reached, so a non-zero here is a NEW path. */
   statusRefusalUnlabelled: 0,
+  /* ROADMAP #241 -- a `refusesStatusMoves` member reached `tryHitRefusal` carrying no `announcesWith`,
+   * so the refusal was announced BARE. Today the tag has exactly one member (Good as Gold) and it
+   * does carry one, so this must stay ZERO; a non-zero means either a new member arrived whose
+   * handler announces differently, or tag_dex stopped reading the `this.add("-immune", ...)` line out
+   * of `onTryHit` -- and a bare line for Good as Gold is a divergence the differential WILL see. */
+  tryHitRefusalUnannounced: 0,
   /* ROADMAP #234 -- a partial trap whose SOURCE MOVE is unknown, so the chip line falls back to the
    * old literal `[from] partiallytrapped`. Showdown reads the move off the volatile's own
    * sourceEffect (sim/battle.ts:2141), so a trap laid by any path that forgets to record it prints a
@@ -5798,6 +5813,15 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
   /* WIRE 9 -- the death counter, both freshness rules (Will's split). Last Respects reads the
    * side's LIVE count at each use; Supreme Overlord multiplies by the snapshot FROZEN at this
    * attacker's entry. Both zero when no counter is attached (site calls, unit tests). */
+  /* ROADMAP #243 -- THE `Math.min(...,5)` BELOW IS NOT THE AUTHORITY'S AND IT CANNOT BIND. Checked
+   * rather than assumed, because Supreme Overlord's cap of 5 sits three thousand lines away and the
+   * two are easy to read as one rule. The move's callback is `return 50 + 50 * pokemon.side.totalFainted`
+   * (dist/data/moves.js:10121) with NO cap at all; the only clamp anywhere is `totalFainted < 100` in
+   * faintMessages. This clamp therefore first binds at SIX fallen allies, which needs a side of seven --
+   * a bring-4 game tops out at three fallen with a body left to click, and even a full six-body side
+   * handed straight to battleInit tops out at five. It is left in place, and named here, because
+   * removing a provably unreachable guard inside a TIMING fix would make the timing movement
+   * unattributable; it is a comment, not a defence. */
   const _pf=mv.id&&TAGS.param('move',mv.id,'powerFromFallen');
   if(_pf&&att._sf&&att._sf.fainted)mvBP=_pf.base+_pf.perFallen*Math.min(att._sf.fainted,5);
   /* WIRE 141 -- FLING'S BASE POWER *IS* THE ITEM. The dex ships it at 0 and `onPrepareHit` writes
@@ -8887,6 +8911,63 @@ function pranksterBlocked(attacker,target,moveId){
   if(!fx||fx.category!=='Status') return false;
   return (target.types||[]).includes('Dark');
 }
+/* ================= ROADMAP #241 -- ONE READER, AND IT ANNOUNCES ===================================
+ *
+ * Good as Gold's refusal was ALREADY RIGHT on nine routes and the LINE was wrong on all twelve, and
+ * that is the whole reason it survived: every probe in this repo read the BOARD, and a mechanic that
+ * behaves correctly and narrates wrongly is invisible to everything except a person reading a stream.
+ * Measured against the authority, one battle per route:
+ *
+ *     the authority          |-immune|<TARGET>|[from] ability: Good as Gold      -- every route
+ *     phaze/reorder/abilitywrite/statrewire    |-fail|<the MOVER>
+ *     typechange/trickitem/abilityswap/boostally/lockon    nothing at all
+ *     the pivot switch                         |-immune|<target>, no attribution
+ *     healdesc                                 |-fail|<target>|heal  AND  |-fail|<mover>
+ *
+ * FOUR WRONG ANSWERS FOR ONE FACT, because each branch carried its own copy of the refusal and had
+ * made its own decision about what to say. WIRE 122 saw this coming and filed it: *"a tenth copy is
+ * exactly the shape CLAUDE.md's facts-are-global rule forbids; it is written here anyway rather than
+ * hoisted because each of those nine sits beside a DIFFERENT set of companion gates"*. That is still
+ * true of the companion gates -- so this hoists ONLY the two refusals that answer at Showdown's
+ * onTryHit step, and leaves Protect, the move-class immunities and the powder rule where they are.
+ *
+ * WHAT IT COVERS, AND THE TWO ANSWER DIFFERENTLY ON THE WIRE:
+ *   1. `refusesStatusMoves` -- Good as Gold, the ONLY member in this regulation (membership printed
+ *      before this was wired: 1 ability, 3,043 uses). The attribution is READ OFF THE HANDLER via
+ *      `announcesWith`, never composed from the id -- the same derivation #239 built for the
+ *      `setStatus` route, extended rather than duplicated. A member whose handler writes no `-immune`
+ *      is a member the authority announces BARE, and only the handler knows which.
+ *   2. `pranksterBlocked` -- `battle-actions.js:573`, `this.battle.add("-immune", target)` with no
+ *      attribution at all, because the refusal lives in the step list and not in an ability handler.
+ *      GATED ON THE TARGET BEING A FOE, which is the authority's own `!targets[i].isAlly(pokemon)`
+ *      clause: without it, hoisting this into the ally-aimed branches (Decorate, Coaching, Heal
+ *      Pulse) would have invented a refusal of a Prankster user's own partner.
+ *
+ * WHAT IT DOES NOT COVER, STATED SO THE NEXT READER DOES NOT ASSUME IT DOES: Good as Gold's handler
+ * says `target !== source`, so the authority refuses an ALLY-AIMED status move into your own
+ * Gholdengo as well (measured: Decorate, Coaching, Skill Swap and Heal Pulse at an ally all print the
+ * line). This engine gates those branches on `_isFoe` and still does; that is a refusal defect rather
+ * than an emission one and it is filed, not silently half-fixed here.
+ *
+ * THE FALLBACK IS LOUD. A `refusesStatusMoves` member with no `announcesWith` would be announced bare
+ * and counted, because a silent default looks exactly like a working feature. */
+function tryHitRefusal(m,t,mv){
+  if(!t||t===m) return null;
+  const _rs=TAGS.param('ability',t.ability,'refusesStatusMoves');
+  if(_rs&&_rs.refuses){
+    if(!_rs.announcesWith)MEDFAILS.tryHitRefusalUnannounced++;
+    return {why:'ability',ab:t.ability,attr:_rs.announcesWith||undefined};
+  }
+  /* the authority's `!targets[i].isAlly(pokemon)` -- see the header */
+  if(m._sf&&t._sf!==m._sf&&pranksterBlocked(m,t,mv)) return {why:'prankster',ab:null,attr:undefined};
+  return null;
+}
+/* The line, and the counter, in one place so no caller can emit half of it. */
+function announceTryHitRefusal(r,t){
+  if(!r)return;
+  MEDSEEN.tryHitRefused++;
+  if(TR)TR.imm(t,r.attr);
+}
 /* `ignoreTypeImmunity` -- ROADMAP #175, and it is a property of the ATTACKER rather than of the body
  * being statused, which is why it arrives as an argument instead of being read here. Every other
  * refusal in this function belongs to the target; Corrosion belongs to whoever threw the Toxic
@@ -10384,6 +10465,39 @@ function fallenCount(sf,act,bench){
   MEDFAILS.fallenNoRoster++;
   return [...act,...bench].filter(x=>x&&x.fainted).length;
 }
+/* ROADMAP #243 / #246 -- BOTH SIDES' DEATH COUNTERS, SETTLED AT ONE OF THE AUTHORITY'S OWN MOMENTS.
+ *
+ * WHERE THE AUTHORITY DOES IT. `side.totalFainted++` happens inside `faintMessages()`
+ * (dist/sim/battle.js:2092), and `faintMessages()` is called at the END OF EVERY MOVE
+ * (dist/sim/battle-actions.js:301, and again at :848 inside the multi-hit loop) as well as after every
+ * action in `runAction`. So the count is current before the NEXT action's `basePowerCallback` runs
+ * inside `getDamage` -- an ally that died earlier in the turn is already counted.
+ *
+ * WHAT IT WAS. One call, in the end-of-turn block, whose own comment admitted the gap: "a mid-turn kill
+ * is seen one action late -- an approximation, stated". MEASURED on the authority at seed [1,2,3,4]:
+ * Houndstone's Last Respects after a Garchomp KOs the Milotic ally EARLIER IN THE SAME TURN deals 69
+ * where the same click with the ally alive deals 36 -- x1.917, BP 50 -> 100. This engine read x1.000.
+ *
+ * AND `battleInit` STAMPED THE LITERAL `fainted: 0` (#246), so the FIRST action of every seeded
+ * position was a turn on which nobody had ever died -- which is the decision-relevant action, because
+ * `rolloutAfterActions` forces the candidate click on turn one. A playout seeded from a board with
+ * three bodies down ranked Last Respects at 50 BP against the roster's 200.
+ *
+ * IT IS ONE FUNCTION CALLED FROM FOUR PLACES rather than four copies of two lines, because two copies
+ * of a fact are two things that disagree eventually and the disagreement is invisible -- CLAUDE.md's
+ * FEATURES-ARE-PER-MODEL-FACTS-ARE-GLOBAL rule, applied inside one file.
+ *
+ * THIS DOES NOT MAKE SUPREME OVERLORD LIVE, and that is the half a careless fix breaks. The ability
+ * reads `side.totalFainted` ONCE in `onStart` and freezes it in `effectState.fallen`; the engine's
+ * equivalent is `_fallenStuck`, stamped by `bringIn` and never re-read. Only the SIDE counter is
+ * settled here. Measured on the authority on the identical board: Iron Head from a Kingambit already
+ * out deals 70 with the ally alive and 70 with the ally KOd mid-turn -- x1.000 against Last Respects'
+ * x1.917. `tests/test-mechanics.js` carries that control as its own probe. */
+function fallenSettle(S){
+  if(!S)return;
+  S.sfA.fainted=fallenCount(S.sfA,S.actA,S.benchA);
+  S.sfB.fainted=fallenCount(S.sfB,S.actB,S.benchB);
+}
 /* WIRE 133 -- ONE FORME SWAP, CALLED FROM BOTH MOMENTS.
  *
  * `switchOut` needs it (Zero to Hero fires as the body leaves) and `bringIn` still needs it as a
@@ -11701,6 +11815,12 @@ function battleInit(teamA,teamB,opts){
   /* the PARTY, by reference, on the same per-side object the death counter already rides. Beat Up
      hits once per eligible party member and dmgRange is handed one body -- WIRE 83. */
   S.sfA.team=teamA.filter(Boolean); S.sfB.team=teamB.filter(Boolean);
+  /* ROADMAP #246 -- AND THE DEATH COUNTER IS DERIVED FROM THAT ROSTER THE INSTANT IT EXISTS. The
+   * literal `fainted: 0` above is the value a side has before it has a party; leaving it as the
+   * value a side has AFTER one was handed in made turn one of every seeded playout a turn on which
+   * nobody had died. It must sit after the two `team` writes, because that is what fallenCount
+   * counts -- see fallenSettle, which is the same derivation the turn loop runs. */
+  fallenSettle(S);
   /* ROADMAP #81 WIRE 9 -- the battle state on the same per-side object, so liveFoesOf() can answer
      "who is this body fighting" from the body alone. playerAction is handed one Pokemon and has to
      price a SPREAD click, which names no target; without this the click was a no-op turn. One
@@ -12807,6 +12927,12 @@ function battleTurn(S,rng,actsForA,actsForB){
        * compares against is taken below, immediately before the action runs. */
       opportunistSettle(actA,actB,_oppSnap); _oppSnap=null;
       receiverSweep([...actA,...actB]);   // ROADMAP #175 -- the previous action's faint, answered
+      /* ROADMAP #243 -- AND THE PREVIOUS ACTION'S FAINT REACHES THE SIDE'S DEATH COUNTER HERE, which
+       * is the same boundary and the same reason: `side.totalFainted++` lives inside the authority's
+       * `faintMessages()`, and `faintMessages()` runs at the end of every move. Placed ABOVE the
+       * `sideWiped` break for the same reason the three settles above it are -- the authority does the
+       * increment before `if (this.ended) return`. See fallenSettle. */
+      fallenSettle(S);
       /* ROADMAP #231 -- `faintMessages(); if (this.ended) return;` AT THE END OF THE PREVIOUS ACTION.
        *
        * IT SITS EXACTLY HERE AND NOWHERE ELSE. Above it are the three settles that close out the
@@ -14187,10 +14313,20 @@ function battleTurn(S,rng,actsForA,actsForB){
         t=reaimToSlot(t,it,actA,actB,a.mv);
         if(!t||t.fainted||t===m){mvFail(m);continue;}
         if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
-        if(TAGS.has('ability',t.ability,'refusesStatusMoves')){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
-        if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;}
+        {const _rf=tryHitRefusal(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}   // WIRE 241
         if(subBlocks(m,t,a.mv)){if(TR)TR.act(t,'move: Substitute','[block]');continue;}
-        if((t.types||[]).includes('Ghost')){if(TR)TR.imm(t);continue;}   // a Ghost is never trapped
+        /* ROADMAP #241 -- A GHOST REFUSES THE TRAP SILENTLY AND THE MOVE THEN FAILS ON THE MOVER.
+         * This line read `TR.imm(t)`, which is the shape every OTHER refusal above it has and is the
+         * wrong one here. Read off the authority: Mean Look and Block are
+         * `onHit(target, source, move) { return target.addVolatile("trapped", ...) }`, the volatile
+         * runs through `Pokemon#tryTrap` (sim/pokemon.js:1171) whose first line is
+         *     if (!this.runStatusImmunity("trapped")) return false;
+         * and `runStatusImmunity(type, message)` writes `-immune` ONLY when `message` is supplied --
+         * it is not, here. So the refusal is silent, `onHit` returns false, and the move takes the
+         * ordinary generic-failure path, which names the MOVER. `Dex.getImmunity('trapped', ['Ghost'])`
+         * reads false, so the Ghost is the whole knob. Witness from the pinned pool:
+         *     Mean Look -> Chandelure    showdown |-fail|p2a: Farigiraf   ours |-immune|p1a: Chandelure */
+        if((t.types||[]).includes('Ghost')){MEDSEEN.ghostRefusedTrap++;mvFail(m);continue;}
         t._trapHard={by:m,mv:a.mv};
         if(TR)TR.vstart(t,'move: '+a.mv);
         continue;
@@ -14325,14 +14461,26 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* THROUGH THE MOLD BREAKER READER, and it returns the EFFECTIVE ABILITY rather than a
          * boolean -- the whole point of it is that an attacker carrying `ignoresDefenderAbility` makes
          * the defender read 'none'. */
+        /* WIRE 241 -- AND IT ANSWERS BEFORE SUCTION CUPS DOES, which is the authority's own order:
+         * Good as Gold is `onTryHit` and Suction Cups is `onDragOut`, so the drag is never attempted.
+         * No body can carry both, so this changes no outcome today and it is the right order anyway.
+         * Before this the refusal fell into the shared `else mvFail(m)` below and printed `|-fail|` on
+         * the MOVER -- 4 of the 241 distinct causes in the whole-game differential. */
+        if(_i>=0&&!_t.fainted){
+          const _rf=tryHitRefusal(m,_t,a.mv);
+          if(_rf){announceTryHitRefusal(_rf,_t);m._lastMove=a.mv;continue;}
+        }
         const _rfs=TAGS.param('ability',suppressedAbility(m,_t),'refusesForcedSwitch');
         if(_rfs&&_rfs.refuses==='forcedSwitch'){
           MEDSEEN.forcedSwitchRefused++;
           if(TR&&_rfs.announces)TR.act(_t,'ability: '+_t.ability);
           mvFail(m);m._lastMove=a.mv;continue;
         }
+        /* the `refusesStatusMoves` clause that stood in this conjunction is now the WIRE 241 gate
+         * above, which announces it; leaving a second copy here would be the private-answer problem
+         * the hoist exists to end. */
         if(_i>=0&&!_t.fainted&&!(shieldRefuses(_t,a.mv))
-           &&!moveClassBlocked(_t,a.mv,m)&&!TAGS.has('ability',_t.ability,'refusesStatusMoves')){
+           &&!moveClassBlocked(_t,a.mv,m)){
           const _lb=_live(_fb);
           /* THE ONE PLACE `|drag|` COMES FROM. bringIn() serves four callers and only the phaze pair
            * is a forced switch, so the flag is raised here and lowered immediately -- Showdown's split
@@ -14539,9 +14687,14 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _tgt=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         const _isFoe=_tgt&&m._sf&&_tgt._sf!==m._sf;
         const who=_isFoe?_tgt:(_tgt&&_tgt!==m?_tgt:(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0));
+        /* WIRE 241 -- the refusal was right and SILENT: a Decorate at a Gholdengo gave no boost and
+         * printed nothing, where the authority prints the ability's own `|-immune|` line. */
+        if(_isFoe){
+          const _rf=tryHitRefusal(m,_tgt,a.mv);
+          if(_rf){announceTryHitRefusal(_rf,_tgt);m._lastMove=a.mv;continue;}
+        }
         const _blocked=_isFoe&&((shieldRefuses(_tgt,a.mv))
-          ||TAGS.has('ability',_tgt.ability,'refusesStatusMoves')
-          ||moveClassBlocked(_tgt,a.mv,m)||powderBlocked(_tgt,a.mv)||pranksterBlocked(m,_tgt,a.mv));
+          ||moveClassBlocked(_tgt,a.mv,m)||powderBlocked(_tgt,a.mv));
         /* WIRE 146 -- `allies` MEANS THE USER TOO, AND THIS BRANCH COULD ONLY EVER MOVE ONE BODY.
          *
          * Howl's dex target is `allies`, which `Pokemon#getMoveTargets` resolves to
@@ -14584,9 +14737,10 @@ function battleTurn(S,rng,actsForA,actsForB){
         m._lastMove=a.mv;
         const _ti=TAGS.param('move',a.mv,'takesTargetItem')||{};
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        /* WIRE 241 -- a Trick into a Good as Gold kept both items and said nothing at all. */
+        {const _rf=tryHitRefusal(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
         if(t&&t!==m
            &&!(shieldRefuses(t,a.mv))
-           &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
            &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv)
            &&!TAGS.has('item',m.item,'megaStone')&&!TAGS.has('item',t.item,'megaStone')
            &&!abilityRefusesItemLoss(t,m)){
@@ -14607,9 +14761,11 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _ct=TAGS.param('move',a.mv,'changesTargetType')||{};
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         const _ty=(MC.moves[a.mv]||{}).t;
+        /* WIRE 241 -- Soak / Magic Powder / Trick-or-Treat / Forest's Curse into a Good as Gold wrote
+         * no type and printed nothing; the authority prints the ability's own line. */
+        {const _rf=tryHitRefusal(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
         if(t&&_ty
            &&!(shieldRefuses(t,a.mv))
-           &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
            &&!moveClassBlocked(t,a.mv,m)&&!powderBlocked(t,a.mv)&&!pranksterBlocked(m,t,a.mv)){
           /* ROADMAP #234 -- THE TWO HANDLERS DISAGREE ON PURPOSE AND THE TAG ALREADY SEPARATES THEM.
            * Forest's Curse and Trick-or-Treat write `add('-start', target, 'typeadd', TYPE,
@@ -14638,8 +14794,13 @@ function battleTurn(S,rng,actsForA,actsForB){
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         if(t){
           const _isFoe=m._sf&&t._sf!==m._sf;
-          const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))
-            &&!TAGS.has('ability',t.ability,'refusesStatusMoves')&&!pranksterBlocked(m,t,a.mv));
+          /* WIRE 241 -- After You / Quash into a Good as Gold fell into the shared `else mvFail(m)`
+           * below, so the refusal was announced on the MOVER. It has its own line and its own body. */
+          if(_isFoe){
+            const _rf=tryHitRefusal(m,t,a.mv);
+            if(_rf){announceTryHitRefusal(_rf,t);continue;}
+          }
+          const _ok=!_isFoe||!(shieldRefuses(t,a.mv));
           if(_ok&&unresolved.has(t)){
             const _entry=acts.find(x=>x.mon===t);
             if(_entry){_entry._order=(_ro.sends==='next')?TURN_ORDER.next:TURN_ORDER.last;
@@ -14725,9 +14886,12 @@ function battleTurn(S,rng,actsForA,actsForB){
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         if(t&&t!==m){
           const _isFoe=m._sf&&t._sf!==m._sf;
-          const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))
-            &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
-            &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv));
+          /* WIRE 241 -- Skill Swap into a Good as Gold swapped nothing and said nothing. */
+          if(_isFoe){
+            const _rf=tryHitRefusal(m,t,a.mv);
+            if(_rf){announceTryHitRefusal(_rf,t);continue;}
+          }
+          const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))&&!moveClassBlocked(t,a.mv,m));
           if(_ok){const _ab=m.ability;m.ability=t.ability;t.ability=_ab;
             if(TR){TR.act(m,'move: '+a.mv);TR.ab(m,m.ability,'[from] move: '+a.mv);TR.ab(t,t.ability,'[from] move: '+a.mv);}}
         }
@@ -14743,9 +14907,16 @@ function battleTurn(S,rng,actsForA,actsForB){
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         if(t&&t!==m){
           const _isFoe=m._sf&&t._sf!==m._sf;
-          const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))
-            &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
-            &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv));
+          /* WIRE 241 -- Worry Seed / Entrainment / Simple Beam. The refusal was RIGHT and collapsed
+           * into the same `mvFail(m)` as every other reason `_blocked` could be true, so the line
+           * named the mover. This is where the second half of #241 was measured: a Prankster
+           * Whimsicott's Worry Seed into a Dark Incineroar read
+           *     showdown |-immune|p1a: Incineroar     ours |-fail|p2b: Whimsicott       */
+          if(_isFoe){
+            const _rf=tryHitRefusal(m,t,a.mv);
+            if(_rf){announceTryHitRefusal(_rf,t);continue;}
+          }
+          const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))&&!moveClassBlocked(t,a.mv,m));
           const _want=a.becomes==='the user\'s own ability'?m.ability:a.becomes;
           /* THE AUTHORITY FAILS RATHER THAN NO-OPS when the target already holds it, and Stomping
            * Tantrum reads that failure -- so it is a `mvFail`, not a silent skip. */
@@ -14773,10 +14944,14 @@ function battleTurn(S,rng,actsForA,actsForB){
         m._lastMove=a.mv;
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         const _isFoe=t&&m._sf&&t._sf!==m._sf;
+        /* WIRE 241 -- Guard Split / Power Split / Speed Swap, same collapse into `mvFail` as the
+         * ability rewrite above. */
+        if(_isFoe){
+          const _rf=tryHitRefusal(m,t,a.mv);
+          if(_rf){announceTryHitRefusal(_rf,t);continue;}
+        }
         const _ok=t&&t!==m&&m.st&&t.st&&(!_isFoe
-          ||(!(shieldRefuses(t,a.mv))
-             &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
-             &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv)));
+          ||(!(shieldRefuses(t,a.mv))&&!moveClassBlocked(t,a.mv,m)));
         if(!_ok){mvFail(m);continue;}
         for(const k of a.stats){
           const _k=SD2ENG[k]||k;
@@ -14863,8 +15038,14 @@ function battleTurn(S,rng,actsForA,actsForB){
            refusing at neither is what this engine did. */
         const _vv=t?allyRefusesVolatile(t,'yawn'):null;
         if(_vv)MEDSEEN.allyVeilRefusedVolatile++;
-        if(t&&!_vv&&!t.fainted&&!t.protect&&t._yawn==null&&canTakeStatus(t,'slp')&&!pranksterBlocked(m,t,a.mv)
-           &&!(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m))
+        /* WIRE 241 -- WIRE 122 got the refusal right and said nothing, which is exactly the state
+         * this whole row is about. The gate is now the one announcer; the clause it replaces read
+         * `TAGS.has(...)&&t!==m` and `tryHitRefusal` carries that `t!==m` itself. */
+        if(!_vv&&t&&!t.fainted){
+          const _rf=tryHitRefusal(m,t,a.mv);
+          if(_rf){announceTryHitRefusal(_rf,t);m._lastMove=a.mv;continue;}
+        }
+        if(t&&!_vv&&!t.fainted&&!t.protect&&t._yawn==null&&canTakeStatus(t,'slp')&&!pranksterBlocked(m,t,a.mv))
           /* +1 because the end-of-turn tick below fires on the APPLICATION turn too. Without it a
              delay of 1 puts the target to sleep on the turn Yawn was clicked, which is a turn early
              and turns a telegraphed threat into an instant one. Same correction the sealsMoves wire
@@ -15001,10 +15182,17 @@ function battleTurn(S,rng,actsForA,actsForB){
            drop further down. Two reads of "who is the target" inside one branch is how they come to
            disagree; this is the same argument as the shared reader itself. */
         const _pt=reaimToSlot(a.target,it,actA,actB,a.mv);
+        /* WIRE 241 -- the refusal was right and the line was ATTRIBUTION-LESS: this branch printed a
+         * bare `|-immune|` for Good as Gold where the authority names the ability. It is split out
+         * above the shield/move-class gate because those two announce differently and folding all
+         * three into one `TR.imm` is what made this look correct. */
+        if(a.mv&&_pt&&!_pt.fainted){
+          const _rf=tryHitRefusal(m,_pt,a.mv);
+          if(_rf){announceTryHitRefusal(_rf,_pt);m._lastMove=a.mv;continue;}
+        }
         if(a.mv&&_pt&&!_pt.fainted
            &&((shieldRefuses(_pt,a.mv))
-              ||moveClassBlocked(_pt,a.mv,m)                                 // WIRE 66
-              ||TAGS.has('ability',_pt.ability,'refusesStatusMoves'))){m._lastMove=a.mv;
+              ||moveClassBlocked(_pt,a.mv,m))){m._lastMove=a.mv;                 // WIRE 66
           if(TR){if(_pt.protect)TR.act(_pt,'move: Protect');else TR.imm(_pt);}
           continue;}
         /* WIRE 67 -- PARTING SHOT ACTUALLY DROPS THE TARGET. This engine has modelled the switch and
@@ -15376,6 +15564,11 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _gv=_gp&&_gp.volatile;
         const _gt=a.target;
         m._lastMove=a.mv;
+        /* WIRE 241 -- AND THIS BRANCH HAD NO REFUSAL AT ALL, which the emission survey found: Lock-On
+         * into a Gholdengo applied the guarantee and printed nothing, where the authority refuses it
+         * at `onTryHit` and says so. Lock-On is a Status move, so Good as Gold answers it. */
+        {const _rf=tryHitRefusal(m,_gt,a.mv);
+         if(_rf){announceTryHitRefusal(_rf,_gt);MEDSEEN.guaranteeRefused++;continue;}}
         if(_gv&&_gt&&!_gt.fainted&&_gt.curHP>0
            &&!(_gp.refusesIfAlreadyUp&&m._vol&&m._vol[_gv]>0)){
           /* THE FALLBACK IS LOUD, because the artifact does not carry this number. `tag_dex` derives
@@ -15572,6 +15765,14 @@ function battleTurn(S,rng,actsForA,actsForB){
              resolves to the user, which is what the request and the roster both supply. */
           const _t=reaimToSlot(a.target,it,actA,actB,a.mv)||a.target||m;
           if(!_t||_t.fainted||_t.curHP<=0){mvFail(m);continue;}
+          /* WIRE 241 -- AND THIS BRANCH HAD NO REFUSAL EITHER. Heal Pulse is `target: 'any'`, so it
+           * can be aimed across the field, and a Heal Pulse at a Gholdengo HEALED IT here. The
+           * authority refuses it at `onTryHit` and prints the ability's line; this engine printed
+           * `|-fail|<target>|heal` followed by `|-fail|<mover>` whenever the body happened to be full.
+           * DECLARED RESIDUE, not this wire's to fix: that second `|-fail|<mover>` is emitted on the
+           * ordinary full-HP path too, and the authority emits only the first. */
+          {const _rf=tryHitRefusal(m,_t,a.mv);
+           if(_rf){announceTryHitRefusal(_rf,_t);continue;}}
           /* PROTECT REFUSES IT, and it is the ALLY'S Protect that matters here rather than a foe's:
              Heal Pulse carries `flags.protect` and the authority's shield has no ally exemption --
              staged and read off a real game, a Heal Pulse aimed at a Protecting partner heals
@@ -19098,6 +19299,7 @@ function battleTurn(S,rng,actsForA,actsForB){
     flushAfterMoveSpends([...actA,...actB]);   // WIRE 152 -- the LAST action's debt, same reason
     opportunistSettle(actA,actB,_oppSnap); _oppSnap=null;   // ROADMAP #212 -- and the LAST action's copy
     receiverSweep([...actA,...actB]);          // ROADMAP #175 -- and the LAST action's faint
+    fallenSettle(S);                           // ROADMAP #243 -- and the LAST action's death counter
     /* ROADMAP #231 -- and the LAST action's win check, in the same position relative to the settles
      * and to `_updateAll` as the loop-top copy. This is the one that fires in the ordinary case: the
      * body that wipes a side is usually the last one with an action left. */
@@ -20045,12 +20247,16 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!(m._vol[_gv]>0))continue;
         if(--m._vol[_gv]<=0){delete m._vol[_gv];if(m._guarantee&&m._guarantee.vol===_gv)m._guarantee=null;}
       }});
-    /* THE DEATH COUNTERS update at turn end, before replacements enter: the live side count for
-     * Last Respects (a mid-turn kill is seen one action late — an approximation, stated), and the
-     * entrant's frozen snapshot for Supreme Overlord. Derived from the actual fainted flags every
-     * turn — no hand-maintained tally to drift. */
-    sfA.fainted=fallenCount(sfA,actA,benchA);
-    sfB.fainted=fallenCount(sfB,actB,benchB);
+    /* THE DEATH COUNTERS settle again at turn end, before replacements enter, so the entrant's frozen
+     * snapshot for Supreme Overlord is stamped off a count that includes everything the RESIDUAL
+     * killed -- poison, a burn, Perish Song, sandstorm chip -- none of which any action boundary saw.
+     *
+     * ROADMAP #243 -- THIS USED TO BE THE ONLY CALL, and its old comment stated the gap it left: "a
+     * mid-turn kill is seen one action late — an approximation, stated". It no longer is: fallenSettle
+     * now also runs at each of the authority's own moments, between actions, where `faintMessages()`
+     * increments `side.totalFainted`. Derived from the actual fainted flags every time -- no
+     * hand-maintained tally to drift. */
+    fallenSettle(S);
     /* ONE SWITCH-IN PATH. Will's point: voluntary switching is not new machinery, it is the body
        refill() already had -- take the mon off the bench, reset its turn counter, stamp the fallen
        count, apply entry effects and Intimidate. Extracted to bringIn() at module scope so a faint

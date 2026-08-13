@@ -25,11 +25,18 @@
  * TWO CLOCKS, AND ONLY ONE OF THEM IS SEARCH'S TO FIX.
  *   §3  AFTER THE FIRST TURN — `battleTurn`'s end-of-turn block calls `fallenCount(sf,act,bench)`,
  *       which reads the roster. Fixing the seed fixes this, and this file is the proof.
- *   §4  AT THE SEED, BEFORE ANY TURN — `battleInit` hardcodes `sfA:{fainted:0}`. A candidate click
- *       being ranked by `rolloutAfterActions` resolves on THAT turn, so this is the decision-
- *       relevant one, and it cannot be closed from `rollout_leaf.js` without writing a second copy
- *       of `fallenCount` into the seed. §4 is a HAND-BACK TO ENGINE and is reported, not asserted —
- *       see docs/SEARCH.md and docs/ENGINE.md.
+ *   §4  AT THE SEED, BEFORE ANY TURN — `battleInit` hardcoded `sfA:{fainted:0}`. A candidate click
+ *       being ranked by `rolloutAfterActions` resolves on THAT turn, so this was the decision-
+ *       relevant one, and it could not be closed from `rollout_leaf.js` without writing a second
+ *       copy of `fallenCount` into the seed. §4 was a HAND-BACK TO ENGINE.
+ *
+ *       **CLOSED THE SAME NIGHT — ROADMAP #246, and this comment is corrected rather than left.**
+ *       ENGINE landed `fallenSettle(S)` and the seed now counts at `battleInit`, so the sentence
+ *       "battleInit stamps fainted:0; the recount is at turn end" is no longer true of this engine.
+ *       The NUMBERS this file asserts were correct before and remain correct; only the explanation
+ *       of why §4 was out of reach had gone stale. Caught by the ENGINE agent that closed it and
+ *       fixed here rather than filed — a note that outlives what it describes is the failure this
+ *       repository has documented more times than any other.
  *
  *   node tests/test-rollout-fallen.js
  */
@@ -179,11 +186,20 @@ for (const N of [1, 2, 3]) {
  *    turn green, and "KNOWN FAILURE" is a banned phrase in this repository.
  * ------------------------------------------------------------------------------------------ */
 {
+  /* WAS A REPORT, IS NOW AN ASSERTION — ROADMAP #246 CLOSED 2026-08-13.
+   *
+   * This block reported rather than asserted for a good reason: a red row nobody in this division
+   * could turn green is the "KNOWN FAILURE" shape, and reporting it was correct while `battleInit`
+   * hardcoded `fainted: 0`. ENGINE has since landed `fallenSettle(S)` and the seed counts.
+   *
+   * **A REPORT THAT SURVIVES ITS OWN FIX IS WORSE THAN NO CHECK**, because the regression it
+   * describes is now unguarded and the line still prints as though the defect were live. So it
+   * becomes a gate the moment there is someone to hold it. */
   const { S } = seed(3);
   const atSeed = impliedBP(S.sfA);
-  note(`ROADMAP #244b (ENGINE): at t=0 Last Respects prices at ${atSeed} where the position says ${bpFor(3)}`,
-    `battleInit stamps fainted:0; the recount is at turn end`);
-  note('   the roster is now correct, so the ENGINE fix is one line and needs nothing further from SEARCH');
+  ok(atSeed === bpFor(3),
+    `at t=0 Last Respects prices at the position's own fallen count (ROADMAP #246, closed)`,
+    `t=0 ${atSeed} BP, position says ${bpFor(3)} — the seed no longer starts every playout at zero dead`);
 }
 
 /* ---------------------------------------------------------------------------------------------

@@ -132,3 +132,8 @@ data/releases/
 # them is 104 MB, over GitHub's hard limit. FROZEN.md IS tracked: it carries the line counts
 # and sha256 of both files, which is what makes the pin checkable rather than assumed.
 data/team-pool-frozen/*.jsonl
+
+# the divergence viewer default output — a RENDER, regenerable from
+# data/divergence-turns.json in one command, and stale the moment the differential re-runs.
+# It landed in the repo root because engine/divergence_cards.js defaults --out here.
+divergences.html

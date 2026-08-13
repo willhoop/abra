@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-13T06:11:10.337Z",
+  "generated": "2026-08-13T07:16:03.498Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 558,
-  "live": 558,
+  "probed": 564,
+  "live": 564,
   "missing": 0,
-  "armed": 558,
+  "armed": 564,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -1583,6 +1583,26 @@
     },
     {
       "kind": "move",
+      "tag": "powerFromFallen",
+      "label": "Last Respects counts an ally that died EARLIER IN THE SAME TURN",
+      "live": true,
+      "detail": "[ally dead?, Last Respects damage] — ally survives the same turn 0,51; the ally is KOd EARLIER IN THE SAME TURN 1,101. The authority prices this at BP 50 -> BP 100 (measured on Showdown: 36 -> 69, x1.917), so the damage must double",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "powerFromFallen",
+      "label": "Last Respects prices the already-fallen on the FIRST action of a seeded battle",
+      "live": true,
+      "detail": "Last Respects on the FIRST action of a battle seeded with 0/1/2/3 of the roster already fallen — damage 51/101/151/201. The authority reads 50 + 50n live, so the ladder must be 1x/2x/3x/4x of 51",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "overridesEffectiveness",
       "label": "Freeze-Dry beats Ice Beam into a Water type",
       "live": true,
@@ -2067,6 +2087,36 @@
       "label": "Good as Gold refuses Thunder Wave",
       "live": true,
       "detail": "no ability -> par, Good as Gold -> none",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesStatusMoves",
+      "label": "Good as Gold announces |-immune| on the TARGET on every route, never |-fail| on the user",
+      "live": true,
+      "detail": "12/12 routes emit exactly `|-immune|p2a:gholdengo|[from]ability:goodasgold`; Thunder Wave outcome control par / Good as Gold none",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "trapsTarget",
+      "label": "a Ghost refuses a trap SILENTLY -- the move fails and names the MOVER",
+      "live": true,
+      "detail": "the same Garchomp, types written. Ghost -> trapped false, |-fail|p1a:raichu (must be exactly |-fail|p1a:raichu); Dragon/Ground -> trapped true, (no line) (must be no line at all)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "priorityMod",
+      "label": "Prankster into a Dark type announces a BARE |-immune| on the target",
+      "live": true,
+      "detail": "Worry Seed, the same Garchomp every arm. Prankster + Dark -> |-immune|p2a:garchomp ability roughskin (must be exactly |-immune|p2a:garchomp, bare, and the ability unchanged); Prankster + Dragon/Ground -> (no line) ability insomnia; no Prankster + Dark -> (no line) ability insomnia",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2836,7 +2886,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.4% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3367,6 +3417,16 @@
       "label": "Supreme Overlord reads the dead at the moment its body walks in",
       "live": true,
       "detail": "Iron Head from a Kingambit that switched in -- no ability with 3 fallen 97; Supreme Overlord with 0 fallen 97; Supreme Overlord with 3 fallen 126 (the tag says +10% each, so x1.3)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsFromFallen",
+      "label": "Supreme Overlord does NOT see an ally that dies while it stands there",
+      "live": true,
+      "detail": "[side fallen count, Iron Head damage] — Kingambit already on the field, ally alive 0,97; the SAME board with the ally KOd earlier in the same turn 1,97. The death must reach the counter and must NOT reach the damage: the snapshot is frozen at entry (authority, same staging: 70 -> 70, x1.000, where Last Respects is x1.917)",
       "hollow": false,
       "armed": true,
       "directCall": false
