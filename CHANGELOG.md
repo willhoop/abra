@@ -10,6 +10,66 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.15.0] — 2026-08-13
+
+### Fixed
+- **GOOD AS GOLD REFUSED FOES AND ACCEPTED ITS OWN PARTNER'S SUPPORT (ROADMAP #255).** The
+  ability's whole handler is `if (move.category === "Status" && target !== source)` — **`target !==
+  source`, not "target is a foe"** — so the authority refuses a partner's Decorate, Coaching, Skill
+  Swap, Helping Hand, Life Dew, Howl or Perish Song aimed at your own Gholdengo exactly as it refuses
+  a foe's Thunder Wave. Derived, not typed: **one carrier in this regulation** (a filtered
+  `Dex.forFormat` walk) and `refusesStatusMoves` has **exactly one member over the whole tag corpus**
+  (`abilities:goodasgold`, 3,043 uses), printed before anything was wired.
+  - **The authority was measured first, one battle per route:** a supporter aiming at its own partner
+    produces `|-immune|p1b: Gholdengo|[from] ability: Good as Gold` on **26 routes**, including the
+    untargetable ones (Life Dew, Howl, Heal Bell, Perish Song, Teeter Dance, Corrosive Gas).
+    **NOT refused, in the same sweep: Tailwind, Light Screen, Safeguard, Trick Room, Misty Terrain and
+    Haze** — a side and a field are not a body, so `onTryHit` never runs. That is the boundary of the
+    change, measured rather than assumed.
+  - **Nine branches were wrong, in two shapes.** Five gated the refusal on `_isFoe` (`boostally`,
+    `reorder`, `abilityswap`, `abilitywrite`, `statrewire` — a partner's Skill Swap **walked away with
+    Good as Gold**); four carried **no refusal at all** (`helpinghand`, Life Dew's arm of `heal`,
+    Howl's arm of `boostally`, and `perish`). **`perish` was therefore wrong for a FOE Gholdengo too**,
+    which no `_isFoe` audit could have found, because there was no gate to audit.
+  - **The fix is the existing announcer made side-blind**, because the authority's clause is:
+    `tryHitRefusal` already carried `t!==m`, which IS `target !== source`. The spread branches call it
+    **per body**, so Howl still lifts the user, Life Dew still heals the rest of the side and Perish
+    Song still marks the other three. `pranksterBlocked` keeps its own foe gate inside that function
+    because the authority gates it there, so this widens one ability and nothing else.
+
+### Added
+- **`MEDSEEN.tryHitRefusedAlly`** — the ally half of the onTryHit refusal, counted apart from
+  `tryHitRefused` because it is the half that did not exist until this row. A zero on a run in which a
+  partner supported a Gholdengo means the path has gone back to being unreachable.
+- **One probe in `tests/test-mechanics.js`**, nine ally-aimed routes plus a five-route self-aimed
+  exemption arm. Census **564 live / 0 missing -> 565 live / 0 missing**.
+
+### Notes
+- **The probe was wrong before the engine was, twice, and the second one is the lesson.** Its
+  exemption arm was a self-aimed Nasty Plot, which routes to `kind:'setup'` — a branch that never asks
+  about a refusal — so deleting the `target !== source` exemption outright left the probe **GREEN**.
+  Every self route now goes through a branch this change actually edited (Howl, Life Dew, Perish Song,
+  Rest), each measured on the authority first. Red proof in both directions: exemption deleted ->
+  `564/1` naming all four self routes; `_isFoe` restored on `boostally` alone -> `564/1` naming
+  `decorate`, with the pre-existing foe-side Decorate probe still LIVE.
+- **The whole-game differential moved by one game in each arm and that is the honest result.**
+  1,220-game pinned pair, both arms, releases `0c5bb83c5744` -> `9b25e830df49` verified to differ in
+  exactly one file: top **254 -> 253**, bottom **294 -> 293**, `unrelated event mismatch` **30/26 ->
+  29/25**, every other class identical to the instance, and one cause gone by name —
+  `|-immune|p2a|[from]goodasgold <> |-singleturn|p2a|helpinghand`. No new causes. Normalised lines
+  compared rose 1,507,925 -> 1,509,557, which is what removing an early stop looks like. The swarm
+  aims 828 clicks at an ally across 1,220 games, so only a fraction can ever land on the one carrier
+  in the format: **that is a fact about the instrument's reach, not a verdict on the fix.**
+- `tests/test-engine-diff.js --n 6000`: **6000 agreed, 0 disagreed**, top 0/6000 and bottom 0/6000.
+- **ROADMAP #257's stated mitigation does not work and is corrected in the row rather than left.**
+  `tests/test-engine-diff.js` has **no `--write` flag at all** — it writes `data/engine-diff.json`
+  unconditionally, and takes no `--out`. Omitting `--write` is a no-op. This run reproduced the
+  published 6000/6000/0 exactly, so nothing was orphaned, but a smaller `--n` would have republished
+  the measurement silently. MEASURE owns the fix.
+- **Everything downstream of MEDICHAM is re-run owed.** This is a behaviour change, not a narration
+  one, so any artifact measured on `0c5bb83c5744` or earlier describes an engine that plays one
+  interaction differently.
+
 ## [5.14.0] — 2026-08-13
 
 ### Fixed

@@ -7781,3 +7781,100 @@ without re-counting, "the gate was over-firing" would have gone into the record 
 **NOT RE-BASELINED.** `--update` exists and would turn a week of debt into the floor in one command.
 Registered as ROADMAP #258 with the numbers attached instead; the unit of work is the MANUFACTURE
 subset, per file, owned by whichever division owns the file.
+
+### GOOD AS GOLD REFUSED FOES AND ACCEPTED ITS OWN PARTNER, AND THE SWEEP DOUBLED THE ROW. 2026-08-13
+
+ROADMAP #255, ENGINE. **Census 564 live / 0 missing -> 565 live / 0 missing.** #241 left this row
+deliberately: that pass changed what was ANNOUNCED, this one changes the board, and folding a
+behaviour change into an emission pass would have made #241's three-game movement unattributable. So
+it gets its own before/after, its own release pair, and its own probe.
+
+**THE FACT, DERIVED.** The ability's only handler is
+
+```js
+if (move.category === "Status" && target !== source) {
+  this.add("-immune", target, "[from] ability: Good as Gold"); return null; }
+```
+
+`target !== source`, not "target is a foe". A filtered `Dex.forFormat` walk gives **one carrier in the
+regulation, Gholdengo**; `refusesStatusMoves` has **exactly one member over the whole tag corpus** —
+`abilities:goodasgold`, 3,043 uses, `announcesWith: "[from] ability: Good as Gold"` — printed before a
+line was wired, because #236 and #238 were both caught that way.
+
+**THE AUTHORITY, ONE BATTLE PER ROUTE.** A supporter aiming at its own partner: **26 routes, one line
+every time.** And the untargetable ally routes as well — Life Dew, Howl, Heal Bell, Perish Song, Teeter
+Dance, Corrosive Gas. **NOT refused, same sweep: Tailwind, Light Screen, Safeguard, Trick Room, Misty
+Terrain, Haze.** A side and a field are not a body, so the move never targets one. That negative half
+is the boundary of the change and it was measured, not assumed.
+
+**WHAT WE DID, 35 ROUTES PLAYED ON BOTH ENGINES: 19 ALREADY RIGHT, NINE WRONG IN TWO SHAPES.**
+
+| shape | branches | what a Gholdengo suffered |
+|---|---|---|
+| the call was gated on `_isFoe` | `boostally`, `reorder`, `abilityswap`, `abilitywrite`, `statrewire` | Decorate +2/+2, **Skill Swap handed the partner Good as Gold**, Worry Seed overwrote it, After You reordered it, Speed Swap rewired it |
+| no refusal at all | `helpinghand`, Life Dew's arm of `heal`, Howl's arm of `boostally`, `perish` | the mark, the heal, the +1 and the perish clock all landed |
+
+**`perish` WAS THEREFORE WRONG FOR A FOE GHOLDENGO TOO** — verified against the authority both ways
+round. No audit of the `_isFoe` gate could have found it, because there was no gate to audit. That is
+the argument for sweeping rather than fixing the named branch, and it is the same argument #241's own
+sweep made when "only the line is wrong" turned into twelve routes and two dead mechanics.
+
+**THE FIX IS THE EXISTING ANNOUNCER MADE SIDE-BLIND.** `tryHitRefusal` already carried `t!==m`, which
+IS `target !== source`; the five `_isFoe` gates were an extra clause the authority does not have. The
+four branches with no refusal now call the same function, **per BODY** in the spread cases, so Howl
+still lifts the user and Perish Song still marks the other three. `pranksterBlocked` keeps its own foe
+gate *inside* `tryHitRefusal` because the authority gates it there (`!targets[i].isAlly(pokemon)`), so
+the widening reaches exactly one ability. `_isFoe` still gates the `_ok` conjunctions — Protect and the
+move-class immunities, which genuinely are foe-only. New counter `MEDSEEN.tryHitRefusedAlly`.
+
+**THE PROBE WAS WRONG BEFORE THE ENGINE WAS, TWICE, AND THE SECOND ONE IS THE ENTRY WORTH KEEPING.**
+
+First it read the CLICK as an effect: the state read collected trace lines naming the Gholdengo, and
+`|move|p1b:raichu|decorate|p1a:gholdengo` names it in field 4. Six routes the fix had just corrected
+reported `board moved anyway`.
+
+Second — and the brief warned about exactly this — **the exemption arm could not fail.** It was a
+self-aimed Nasty Plot, which routes to `kind:'setup'`, a branch that never asks about a refusal at
+all. Deleting the `t===m` exemption from `tryHitRefusal` outright left the probe **GREEN**. That is
+"identical results across a varied knob" with the knob inside the engine, and a probe with a dead
+second arm passes on an engine that refuses everything. Every self route now goes through a branch
+this change actually edited — Howl, Life Dew, Perish Song, Rest — each measured on the authority first
+with the Gholdengo as the MOVER, each carrying a third clause that fails the arm if the control body
+did nothing either.
+
+**RED IN BOTH DIRECTIONS.** Exemption deleted -> **564/1**, naming all four self routes. `_isFoe`
+restored on `boostally` alone -> **564/1**, naming `decorate`, while the pre-existing foe-side Decorate
+probe stayed LIVE — which is the pair of facts that says the break was specific.
+
+**THE MEASUREMENT.** 1,220-game pinned pair, both arms, releases `0c5bb83c5744` -> `9b25e830df49`
+**verified to differ in exactly one file** (`engine/medicham2-browser.js`; the other 24 digests
+identical). Same pinned census `0f9ba85e21c2`, same pinned pool `ae79a8a875d1`; the driver's own
+`baseline_comparability` reads `ok: true`.
+
+| | before | after |
+|---|---|---|
+| top-tie-first | 254 / 1220 | **253** |
+| bottom-tie-first | 294 / 1220 | **293** |
+| `unrelated event mismatch` | 30 games / 26 causes | **29 / 25** |
+| every other class | — | identical to the instance |
+
+One cause gone, by name: `unrelated event mismatch :: |-immune|p2a|[from]goodasgold <>
+|-singleturn|p2a|helpinghand` — a real game where the authority refused a Helping Hand at a Gholdengo
+and we applied the mark. **No new causes.** Normalised lines compared rose 1,507,925 -> 1,509,557,
+which is what removing an early stop looks like.
+
+**ONE GAME PER ARM IS THE INSTRUMENT'S REACH, NOT THE FIX'S SIZE.** The driver aims 828 of ~46,700
+clicks at an ally across 1,220 games, and only the fraction landing on the one carrier in the format
+can exercise this at all. A partner supporting its own Gholdengo is ordinary doubles play and rare in
+a coverage-steered swarm. An instrument that cannot see a defect is not evidence the defect is small —
+the same sentence #243/#246 needed, for the same reason.
+
+`tests/test-engine-diff.js --n 6000`: **6000 agreed, 0 disagreed**, top 0/6000 and bottom 0/6000.
+
+**AND THE ROW ABOVE ABOUT THE SMALL VERIFICATION RUN NEEDS A CORRECTION, MEASURED HERE.** ROADMAP #257
+says a verification run should *"pass `--out` or omit `--write`"* until the split is built.
+**`tests/test-engine-diff.js` has no `--write` flag at all** — line 728 writes `data/engine-diff.json`
+unconditionally, and it takes no `--out` either (`OUT_NAME` is switched only by `--plant`). So the
+stated mitigation is a no-op: this pass ran with no flags and rewrote the artifact anyway, and only
+avoided orphaning anything because it asked for the published size and reproduced the published
+figure. The split has to be BUILT. Reported to MEASURE in the row; not fixed here.

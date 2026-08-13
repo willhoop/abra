@@ -1,10 +1,10 @@
 {
-  "current": "0c5bb83c5744",
-  "cut": "2026-08-13T07:17:34.055Z",
-  "why": "ROADMAP #243/#246 AFTER: the fallen count settles between actions and at battleInit",
+  "current": "9b25e830df49",
+  "cut": "2026-08-13T19:25:52.171Z",
+  "why": "ROADMAP #255 AFTER - Good as Gold refuses ally-aimed status moves too",
   "cuts": 1,
-  "latest_cut": "2026-08-13T07:17:34.055Z",
-  "latest_why": "ROADMAP #243/#246 AFTER: the fallen count settles between actions and at battleInit",
-  "pointer_written": "2026-08-13T07:17:34.065Z",
+  "latest_cut": "2026-08-13T19:25:52.171Z",
+  "latest_why": "ROADMAP #255 AFTER - Good as Gold refuses ally-aimed status moves too",
+  "pointer_written": "2026-08-13T19:25:52.179Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

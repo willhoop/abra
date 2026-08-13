@@ -6854,6 +6854,143 @@ probe('ability', 'refusesStatusMoves',
                  + '; Thunder Wave outcome control ' + tw.ctl + ' / Good as Gold ' + tw.gold };
 });
 
+/* ================= ROADMAP #255 -- GOOD AS GOLD REFUSES ITS OWN PARTNER TOO =======================
+ *
+ * #241 left this behind ON PURPOSE and said so in as many words: that pass changed what was ANNOUNCED
+ * and not what happened, so folding a behaviour change into it would have made its three-game
+ * differential movement unattributable. This is the behaviour change, and it gets its own probe.
+ *
+ * THE FACT, DERIVED, NOT TYPED. `onTryHit` is the ability's ONLY handler and its whole condition is
+ *     if (move.category === "Status" && target !== source) { ... return null; }
+ * -- `target !== source`, NOT "target is a foe". The exemption is the HOLDER ITSELF and nothing else,
+ * so a partner's Decorate, Coaching, Skill Swap, Helping Hand, Life Dew, Howl or Perish Song is
+ * refused by your own Gholdengo exactly as a foe's Thunder Wave is.
+ *
+ * MEASURED ON THE AUTHORITY FIRST, one battle per route, the supporter aiming at its own partner
+ * (`move 1 -2`) in the Champions format. TWENTY-SIX routes, all one line:
+ *     |-immune|p1b: Gholdengo|[from] ability: Good as Gold
+ * Decorate, Coaching, Skill Swap, Heal Pulse, Helping Hand, Aromatic Mist, Dragon Cheer, Acupressure,
+ * After You, Instruct, Trick, Worry Seed, Psych Up, Guard Split, Speed Swap, Role Play, Entrainment,
+ * Simple Beam, Gastro Acid, Power Swap, Guard Swap, Reflect Type, Soak, Magic Powder, Lock-On,
+ * Pain Split, Spicy Extract -- and the untargetable ally routes too: Life Dew, Howl, Heal Bell,
+ * Perish Song, Teeter Dance and Corrosive Gas all print it for the Gholdengo and land on everyone
+ * else. What is NOT refused, measured in the same sweep: Tailwind, Light Screen, Safeguard, Trick
+ * Room, Misty Terrain and Haze, because a side or a field is not a body and the move never targets it.
+ *
+ * MEMBERSHIP PRINTED BEFORE ANYTHING WAS WIRED, as this file's rule requires: `refusesStatusMoves`
+ * has EXACTLY ONE member over the whole tag corpus -- `abilities:goodasgold`, 3,043 uses,
+ * `announcesWith: "[from] ability: Good as Gold"`. The other clause in `tryHitRefusal` is
+ * `pranksterBlocked`, which is gated on the target being a FOE *inside* that function because the
+ * authority gates it there (`!targets[i].isAlly(pokemon)`), so widening the ally path widens Good as
+ * Gold and nothing else.
+ *
+ * THE SECOND ARM IS THE ONE THAT MATTERS. A probe that only asks "was the partner's move refused"
+ * passes on an engine that refuses EVERYTHING, including the Gholdengo's own Nasty Plot. So the
+ * self-aimed arm is a first-class part of this probe: `target === source` is the exemption and it
+ * must still work, identical to the control body.
+ *
+ * WHAT IS READ IS THE BOARD, NOT THE LINE. #241's probe reads the protocol; this one reads what the
+ * Gholdengo actually became, against a third cell in which the partner does NOTHING. Refused must
+ * equal untouched; the control ability must not. */
+probe('ability', 'refusesStatusMoves',
+      'Good as Gold refuses its own PARTNER\'S status move, and still allows its own self-aimed one', () => {
+  /* ONE ROUTE PER ACTION KIND that an ally-aimed status move can reach in medicham2's turn loop.
+   * `none` is the same board with the partner passing, so "refused" is measured against untouched
+   * rather than against a number typed here. */
+  const ROUTES = [{ mv: 'decorate', kind: 'boostally' }, { mv: 'skillswap', kind: 'abilityswap' },
+                  { mv: 'worryseed', kind: 'abilitywrite' }, { mv: 'afteryou', kind: 'reorder' },
+                  { mv: 'speedswap', kind: 'statrewire' }, { mv: 'helpinghand', kind: 'helpinghand' },
+                  { mv: 'lifedew', kind: 'heal(allies)' }, { mv: 'howl', kind: 'boostally(allies)' },
+                  { mv: 'perishsong', kind: 'perish' }];
+  const IMM = /^\|-immune\|p1a:gholdengo\|\[from\]ability:goodasgold$/;
+  /* The Gholdengo's OWN state and the EFFECT lines that name it. Everything else on the field is read
+   * separately, because a refusal that also cancelled the move for the partner would be a new bug.
+   *
+   * `|-` ONLY, AND THE FIRST DRAFT OF THIS PROBE GOT IT WRONG. A `|move|p1b:raichu|decorate|
+   * p1a:gholdengo` line names the Gholdengo in its TARGET field, so an unfiltered "lines mentioning
+   * gholdengo" read made the refused arm differ from the untouched arm and reported six correctly
+   * fixed routes as `board moved anyway`. The click is not an effect; it is present in every arm. */
+  const readGold = (B, trace, ab0) => JSON.stringify([
+    { b: B.me.boosts, hp: B.me.curHP, abChanged: B.me.ability !== ab0, ty: B.me.types,
+      st: B.me.status || '', yawn: B.me._yawn == null ? null : B.me._yawn,
+      perish: B.me._perish == null ? null : B.me._perish, hh: !!B.me._helpingHand,
+      spe: B.me.st && B.me.st.sp },
+    trace.map(M.traceCanon).filter(l => /^\|-/.test(l) && /gholdengo/.test(l) && !IMM.test(l))]);
+  const run = (mv, ab) => {
+    const B = board('gholdengo', 'raichu', 'garchomp', 'incineroar');
+    B.me.ability = ab; B.me.curHP = Math.floor(B.me.st.hp / 2);
+    const trace = []; B.S._trace = trace;
+    const act = mv ? M.playerAction(B.ally, mv, B.me, B.S.field) : { kind: 'pass' };
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, { kind: 'pass' }], [B.ally, act]]),
+      PASS2(B.f1, B.f2));
+    const lines = trace.map(M.traceCanon);
+    return { gold: readGold(B, trace, ab), imm: lines.filter(l => IMM.test(l)).length,
+             allyAtk: B.ally.boosts.at, foePerish: B.f1._perish == null ? null : B.f1._perish };
+  };
+  const wrong = [], leaked = [];
+  const goldReads = [], ctlReads = [];
+  for (const r of ROUTES) {
+    const none = run(null, 'goodasgold'), gold = run(r.mv, 'goodasgold'), ctl = run(r.mv, 'honeygather');
+    goldReads.push(gold.gold); ctlReads.push(ctl.gold);
+    if (gold.imm !== 1) wrong.push(r.mv + '(' + r.kind + '): no |-immune| line');
+    else if (gold.gold !== none.gold) wrong.push(r.mv + '(' + r.kind + '): board moved anyway');
+    /* THE CONTROL MUST LAND. Without it "refused" is satisfied by a route the engine never wired. */
+    if (ctl.gold === none.gold) wrong.push(r.mv + '(' + r.kind + '): CONTROL did nothing — vacuous');
+    if (ctl.imm) leaked.push(r.mv);
+    /* A SPREAD MOVE IS REFUSED FOR THE GHOLDENGO AND FOR NOBODY ELSE. Howl still gives the partner
+     * its +1 and Perish Song still marks the two foes — the authority's log shows exactly that. */
+    if (r.mv === 'howl' && gold.allyAtk !== 1) wrong.push('howl: the PARTNER lost its +1 as well');
+    if (r.mv === 'perishsong' && gold.foePerish !== 3) wrong.push('perishsong: the FOES lost the mark too');
+  }
+  /* THE EXEMPTION ARM, AND ITS FIRST DRAFT COULD NOT FAIL. `target === source` is the whole condition
+   * this fix must not break, so the arm was written as a self-aimed Nasty Plot — which routes to
+   * `kind:'setup'`, a branch that never asks about a refusal at all. Deleting the `t===m` exemption
+   * from `tryHitRefusal` left the probe GREEN, which is the "identical results across a varied knob"
+   * failure with the knob inside the engine. So every self route here goes through a branch this
+   * change actually edited, and each was measured on the authority first with the Gholdengo as the
+   * MOVER (all five identical to the control body):
+   *     Howl        both partners +1 atk           Life Dew   the user healed, the full-HP ally fails
+   *     Perish Song the USER is marked too         Rest       slp + a full heal on the user
+   * Nasty Plot is kept last as the plain `setup` case rather than as the evidence. */
+  const SELF = [{ mv: 'howl', kind: 'boostally(allies)', read: B => B.me.boosts.at },
+                { mv: 'lifedew', kind: 'heal(allies)', read: B => B.me.curHP },
+                { mv: 'perishsong', kind: 'perish', read: B => B.me._perish },
+                { mv: 'rest', kind: 'healdesc', read: B => [B.me.curHP, B.me.status] },
+                { mv: 'nastyplot', kind: 'setup', read: B => B.me.boosts.sa }];
+  const self = (mv, ab, read) => {
+    const B = board('gholdengo', 'raichu', 'garchomp', 'incineroar');
+    B.me.ability = ab; B.me.curHP = Math.floor(B.me.st.hp / 2);
+    const trace = []; B.S._trace = trace;
+    const before = JSON.stringify(read(B));
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, mv, B.me, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { after: JSON.stringify(read(B)), before,
+             imm: trace.map(M.traceCanon).filter(l => IMM.test(l)).length };
+  };
+  const selfDetail = [];
+  for (const s of SELF) {
+    const g = self(s.mv, 'goodasgold', s.read), c = self(s.mv, 'honeygather', s.read);
+    selfDetail.push(s.mv + ' ' + g.after);
+    /* Three clauses, and the middle one is what stops a vacuous pass: the move has to have DONE
+     * something on the control body, or "the two arms agree" is agreement about nothing. */
+    if (g.imm !== 0) wrong.push('SELF ' + s.mv + '(' + s.kind + '): the holder refused its OWN move');
+    else if (g.after !== c.after)
+      wrong.push('SELF ' + s.mv + '(' + s.kind + '): ' + g.after + ' vs control ' + c.after);
+    else if (g.after === g.before)
+      wrong.push('SELF ' + s.mv + '(' + s.kind + '): the move did nothing on either body — vacuous');
+  }
+  return { works: wrong.length === 0 && leaked.length === 0,
+           arms: { control: ctlReads, test: goldReads },
+           detail: (ROUTES.length - ROUTES.filter(r => wrong.some(w => w.startsWith(r.mv + '('))).length)
+                 + '/' + ROUTES.length + ' ally-aimed routes refused with exactly `|-immune|p1a:gholdengo|'
+                 + '[from]ability:goodasgold` and left the Gholdengo untouched; the holder\'s OWN '
+                 + 'status moves still resolve (' + selfDetail.join(', ') + ')'
+                 + (wrong.length ? '; WRONG: ' + wrong.join(' | ') : '')
+                 + (leaked.length ? '; CONTROL LEAKED the line on: ' + leaked.join(' ') : '') };
+});
+
 /* ================= ROADMAP #241 (2) -- THE SAME SHAPE WITH NO ABILITY ON THE LINE =================
  *
  * Two more `|-immune| <> |-fail|` pairs came out of the whole-game differential, and they point in

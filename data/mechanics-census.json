@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-13T07:16:03.498Z",
+  "generated": "2026-08-13T19:46:12.169Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 564,
-  "live": 564,
+  "probed": 565,
+  "live": 565,
   "missing": 0,
-  "armed": 564,
+  "armed": 565,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2102,6 +2102,16 @@
       "directCall": false
     },
     {
+      "kind": "ability",
+      "tag": "refusesStatusMoves",
+      "label": "Good as Gold refuses its own PARTNER'S status move, and still allows its own self-aimed one",
+      "live": true,
+      "detail": "9/9 ally-aimed routes refused with exactly `|-immune|p1a:gholdengo|[from]ability:goodasgold` and left the Gholdengo untouched; the holder's OWN status moves still resolve (howl 1, lifedew 122, perishsong 3, rest [162,\"slp\"], nastyplot 2)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "move",
       "tag": "trapsTarget",
       "label": "a Ghost refuses a trap SILENTLY -- the move fails and names the MOVER",
@@ -2886,7 +2896,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

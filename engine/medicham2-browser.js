@@ -966,6 +966,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * TARGET. Twelve action kinds route through it; a zero on a run containing a Gholdengo means the
    * hoist came undone and the branches have gone back to their own private answers. */
   tryHitRefused: 0,
+  /* ROADMAP #255 -- the SAME refusal, aimed at a body on the mover's OWN side. Counted apart from
+   * `tryHitRefused` because it is the half that did not exist until this row: every branch was gated
+   * on `_isFoe` and the authority's clause is `target !== source`. A zero on a run in which a partner
+   * supported a Gholdengo means the ally path has gone back to being unreachable, which is exactly
+   * how it stayed wrong while eleven foe-side sites named the ability. */
+  tryHitRefusedAlly: 0,
   /* ROADMAP #241 -- a Ghost was aimed at by Block or Mean Look and the trap was refused SILENTLY, the
    * move failing on the mover. Separate from `tryHitRefused` because the authority answers it at a
    * different step and with a different LINE, which is the whole finding. */
@@ -8943,11 +8949,17 @@ function pranksterBlocked(attacker,target,moveId){
  *      clause: without it, hoisting this into the ally-aimed branches (Decorate, Coaching, Heal
  *      Pulse) would have invented a refusal of a Prankster user's own partner.
  *
- * WHAT IT DOES NOT COVER, STATED SO THE NEXT READER DOES NOT ASSUME IT DOES: Good as Gold's handler
- * says `target !== source`, so the authority refuses an ALLY-AIMED status move into your own
- * Gholdengo as well (measured: Decorate, Coaching, Skill Swap and Heal Pulse at an ally all print the
- * line). This engine gates those branches on `_isFoe` and still does; that is a refusal defect rather
- * than an emission one and it is filed, not silently half-fixed here.
+ * ROADMAP #255 -- THE ALLY HALF, LANDED 2026-08-13, AND IT IS WHY THIS FUNCTION IS SIDE-BLIND. Good
+ * as Gold's handler says `target !== source`, so the authority refuses an ALLY-AIMED status move into
+ * your own Gholdengo as well. Measured on the authority first, one battle per route, the supporter
+ * aiming at its own partner: twenty-six routes, all printing `|-immune|p1b: Gholdengo|[from] ability:
+ * Good as Gold`, including the untargetable ones (Life Dew, Howl, Heal Bell, Perish Song, Teeter
+ * Dance, Corrosive Gas). NOT refused, in the same sweep: Tailwind, Light Screen, Safeguard, Trick
+ * Room, Misty Terrain and Haze -- a side or a field is not a body and the move never targets it.
+ * Five branches gated this call on `_isFoe` and four more (`helpinghand`, Life Dew's arm of `heal`,
+ * Howl's arm of `boostally`, and `perish`) had no refusal at all; `perish` was therefore wrong for a
+ * FOE Gholdengo too. The Prankster clause below KEEPS its foe gate, so this widens exactly one
+ * ability -- `refusesStatusMoves` has one member (goodasgold, 3,043 uses, membership printed first).
  *
  * THE FALLBACK IS LOUD. A `refusesStatusMoves` member with no `announcesWith` would be announced bare
  * and counted, because a silent default looks exactly like a working feature. */
@@ -8956,7 +8968,10 @@ function tryHitRefusal(m,t,mv){
   const _rs=TAGS.param('ability',t.ability,'refusesStatusMoves');
   if(_rs&&_rs.refuses){
     if(!_rs.announcesWith)MEDFAILS.tryHitRefusalUnannounced++;
-    return {why:'ability',ab:t.ability,attr:_rs.announcesWith||undefined};
+    /* ROADMAP #255 -- `__ally` is a COUNTER FIELD ONLY and changes no answer. The refusal itself is
+     * side-blind because the authority's is: `target !== source`. */
+    return {why:'ability',ab:t.ability,attr:_rs.announcesWith||undefined,
+            __ally:!!(m&&m._sf&&t._sf===m._sf)};
   }
   /* the authority's `!targets[i].isAlly(pokemon)` -- see the header */
   if(m._sf&&t._sf!==m._sf&&pranksterBlocked(m,t,mv)) return {why:'prankster',ab:null,attr:undefined};
@@ -8966,6 +8981,10 @@ function tryHitRefusal(m,t,mv){
 function announceTryHitRefusal(r,t){
   if(!r)return;
   MEDSEEN.tryHitRefused++;
+  /* ROADMAP #255 -- the ally half gets its own counter so it can prove it ran. `_sf` is the side
+   * record; two bodies sharing one are on the same side, which is the same test `tryHitRefusal`
+   * inverts for the Prankster clause. */
+  if(r.__ally)MEDSEEN.tryHitRefusedAlly++;
   if(TR)TR.imm(t,r.attr);
 }
 /* `ignoreTypeImmunity` -- ROADMAP #175, and it is a property of the ATTACKER rather than of the body
@@ -14688,10 +14707,19 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _isFoe=_tgt&&m._sf&&_tgt._sf!==m._sf;
         const who=_isFoe?_tgt:(_tgt&&_tgt!==m?_tgt:(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0));
         /* WIRE 241 -- the refusal was right and SILENT: a Decorate at a Gholdengo gave no boost and
-         * printed nothing, where the authority prints the ability's own `|-immune|` line. */
-        if(_isFoe){
-          const _rf=tryHitRefusal(m,_tgt,a.mv);
-          if(_rf){announceTryHitRefusal(_rf,_tgt);m._lastMove=a.mv;continue;}
+         * printed nothing, where the authority prints the ability's own `|-immune|` line.
+         * ROADMAP #255 -- AND THE GATE WAS `_isFoe`, WHICH IS NOT THE AUTHORITY'S CLAUSE. Good as
+         * Gold's whole condition is `move.category === "Status" && target !== source`, so a PARTNER'S
+         * Decorate, Coaching or Aromatic Mist is refused by your own Gholdengo exactly as a foe's
+         * Thunder Wave is (measured on the authority, one battle per route). `tryHitRefusal` carries
+         * that `t!==m` itself and its Prankster clause keeps its OWN foe gate, so dropping this one
+         * widens exactly one ability -- `refusesStatusMoves` has a single member.
+         * THE BODY ASKED ABOUT IS `who`, THE ONE THE BOOST LANDS ON, not the named target: a click
+         * that named nobody still resolves to the partner, and asking about a null target was how the
+         * ally path stayed silent even after the foe path was announced. */
+        if(who&&(moveFx(a.mv)||{}).target!=='allies'){
+          const _rf=tryHitRefusal(m,who,a.mv);
+          if(_rf){announceTryHitRefusal(_rf,who);m._lastMove=a.mv;continue;}
         }
         const _blocked=_isFoe&&((shieldRefuses(_tgt,a.mv))
           ||moveClassBlocked(_tgt,a.mv,m)||powderBlocked(_tgt,a.mv));
@@ -14718,6 +14746,12 @@ function battleTurn(S,rng,actsForA,actsForB){
         if((moveFx(a.mv)||{}).target==='allies'){
           _lift=(it.side==='A'?actA:actB).filter(x=>x&&!x.fainted&&x.curHP>0);
           if(_lift.length>1)MEDSEEN.boostAlliesSideWide++;
+          /* ROADMAP #255 -- A SPREAD REFUSAL IS PER BODY AND NOT PER CLICK. Howl's target list holds
+           * the user AND the partner; the authority runs TryHit on each, so a Gholdengo partner prints
+           * the ability's line and the USER STILL GETS ITS +1. Refusing the whole move here would be a
+           * new bug in the opposite direction, which is why the probe reads the partner's stage too. */
+          _lift=_lift.filter(x=>{const _rf=tryHitRefusal(m,x,a.mv);
+            if(_rf){announceTryHitRefusal(_rf,x);return false;} return true;});
         } else _lift=(who&&!_blocked)?[who]:[];
         if(bt.boosts)for(const _w of _lift)for(const k in bt.boosts){
           const kk=BK[k]; if(kk){const _b0=_w.boosts[kk]||0;
@@ -14795,8 +14829,11 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(t){
           const _isFoe=m._sf&&t._sf!==m._sf;
           /* WIRE 241 -- After You / Quash into a Good as Gold fell into the shared `else mvFail(m)`
-           * below, so the refusal was announced on the MOVER. It has its own line and its own body. */
-          if(_isFoe){
+           * below, so the refusal was announced on the MOVER. It has its own line and its own body.
+           * ROADMAP #255 -- and the `_isFoe` gate that stood here is not the authority's clause; an
+           * After You at your OWN Gholdengo is refused too. `_isFoe` still gates `_ok` below, which is
+           * the Protect check and genuinely is foe-only. */
+          {
             const _rf=tryHitRefusal(m,t,a.mv);
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
@@ -14886,8 +14923,10 @@ function battleTurn(S,rng,actsForA,actsForB){
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         if(t&&t!==m){
           const _isFoe=m._sf&&t._sf!==m._sf;
-          /* WIRE 241 -- Skill Swap into a Good as Gold swapped nothing and said nothing. */
-          if(_isFoe){
+          /* WIRE 241 -- Skill Swap into a Good as Gold swapped nothing and said nothing.
+           * ROADMAP #255 -- ungated: a partner's Skill Swap is refused by its own Gholdengo, and this
+           * was the sharpest arm of the defect, because our Raichu WALKED AWAY WITH GOOD AS GOLD. */
+          {
             const _rf=tryHitRefusal(m,t,a.mv);
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
@@ -14912,7 +14951,8 @@ function battleTurn(S,rng,actsForA,actsForB){
            * named the mover. This is where the second half of #241 was measured: a Prankster
            * Whimsicott's Worry Seed into a Dark Incineroar read
            *     showdown |-immune|p1a: Incineroar     ours |-fail|p2b: Whimsicott       */
-          if(_isFoe){
+          /* ROADMAP #255 -- ungated for the same reason as Skill Swap above. */
+          {
             const _rf=tryHitRefusal(m,t,a.mv);
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
@@ -14945,8 +14985,9 @@ function battleTurn(S,rng,actsForA,actsForB){
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         const _isFoe=t&&m._sf&&t._sf!==m._sf;
         /* WIRE 241 -- Guard Split / Power Split / Speed Swap, same collapse into `mvFail` as the
-         * ability rewrite above. */
-        if(_isFoe){
+         * ability rewrite above.
+         * ROADMAP #255 -- ungated; a partner's Speed Swap is refused by its own Gholdengo. */
+        {
           const _rf=tryHitRefusal(m,t,a.mv);
           if(_rf){announceTryHitRefusal(_rf,t);continue;}
         }
@@ -15007,7 +15048,19 @@ function battleTurn(S,rng,actsForA,actsForB){
            THE ANNOUNCED NUMBER IS THE ONE THE BOARD WILL READ AT THE END OF THIS TURN. Showdown emits
            a silent `perish3` here and then the residual's own `perish3` after the tick, so a `perish4`
            line would be one this engine invented; `tn-1` is what both of the authority's lines say. */
-        for(const x of [...actA,...actB])if(x&&!x.fainted&&x.curHP>0&&x._perish==null){x._perish=tn;if(TR)TR.vstart(x,'perish'+(tn-1));}
+        /* ROADMAP #255 -- PER BODY, because Perish Song is a Status move whose target list is every
+         * active body and the authority runs TryHit on each of them. Measured on the authority both
+         * ways round: a Gholdengo on EITHER side prints `|-immune|...|[from] ability: Good as Gold`
+         * and never gets the mark, while the other three are marked as usual. This branch had no
+         * refusal at all, so it was wrong for a FOE Gholdengo too -- an `_isFoe` gate could not have
+         * been the bug here because there was no gate. The USER is exempt (`t===m`), which is the
+         * ability's own `target !== source` and is carried inside `tryHitRefusal`. */
+        for(const x of [...actA,...actB]){
+          if(!(x&&!x.fainted&&x.curHP>0&&x._perish==null))continue;
+          const _rf=tryHitRefusal(m,x,a.mv);
+          if(_rf){announceTryHitRefusal(_rf,x);continue;}
+          x._perish=tn;if(TR)TR.vstart(x,'perish'+(tn-1));
+        }
         if(TR)TR.push(['-fieldactivate','move: Perish Song']);
         m._lastMove=a.mv;continue;
       }
@@ -15059,6 +15112,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          mark, because it does not persist. */
       if(a.kind==='helpinghand'){
         const ally=(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0);
+        /* ROADMAP #255 -- THIS BRANCH HAD NO REFUSAL AT ALL, and it is an ally-only move, so nothing
+         * foe-gated could ever have reached it. Measured on the authority: the mark is refused and the
+         * `|-singleturn|...|Helping Hand` line never appears. */
+        if(ally){
+          const _rf=tryHitRefusal(m,ally,a.mv);
+          if(_rf){announceTryHitRefusal(_rf,ally);m._lastMove=a.mv;continue;}
+        }
         if(ally){ally._helpingHand=true;if(TR)TR.st1(ally,'Helping Hand');}
         else mvFail(m);
         m._lastMove=a.mv;continue;
@@ -15676,7 +15736,16 @@ function battleTurn(S,rng,actsForA,actsForB){
           const amt=x=>{if(x&&x.st&&!healBlocked(x)){const _h0=x.curHP;
             x.curHP=Math.min(x.st.hp,x.curHP+_size(x));
             if(TR){if(x.curHP>_h0)TR.heal(x);else TR.fail(x,'heal');}}};
-          if(_hp.allies){for(const x of (it.side==='A'?actA:actB))if(x&&!x.fainted&&x.curHP>0)amt(x);}
+          /* ROADMAP #255 -- LIFE DEW IS A STATUS MOVE THAT TARGETS BODIES, so the authority runs
+           * TryHit on each and a Gholdengo partner refuses its share while everyone else is healed.
+           * Per body, like Howl's arm in `boostally`; the user itself is `t===m` and exempt, which
+           * `tryHitRefusal` carries. */
+          if(_hp.allies){for(const x of (it.side==='A'?actA:actB)){
+            if(!x||x.fainted||x.curHP<=0)continue;
+            const _rf=tryHitRefusal(m,x,a.mv);
+            if(_rf){announceTryHitRefusal(_rf,x);continue;}
+            amt(x);
+          }}
           else amt(m);
         }
         /* WIRE 152 -- AND SWALLOW SPENDS THE STACK, `onHit`, WHETHER OR NOT THE HEAL DID ANYTHING.
