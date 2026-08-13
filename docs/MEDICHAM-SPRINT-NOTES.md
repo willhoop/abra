@@ -7086,3 +7086,28 @@ the mechanics runner existing while nothing gated on it. Its verdict matches the
 
 The broken one is worth naming: `5e8c391b3f04` is UNLOADABLE with `Unexpected token ')'` — a release
 cut from a working tree mid-edit, frozen mid-keystroke. It verifies and it will never run.
+
+### A RELEASE FREEZES THE ENGINE AND NOT THE READER
+
+Will: *"should i be concerned we suddenly cant run old things"*, then *"make sure this never happens
+again"*. **168 of 200 releases could no longer be opened**, and essentially no artifact naming one could
+be re-run — including `all-mechanics-fire.json`, which carries the 93 move divergences.
+
+Nothing broke. The snapshots verify and hold their bytes; the HARNESS moved. Every symbol added to a
+caller's `need` list retroactively strands every release cut before it. **The cause was correct work**:
+ROADMAP #222 split the RNG streams so the Protect counter stopped being welded to the accuracy pin, and
+`spreadL50` stranded two more. Neither should be undone. The defect is that paying the cost was
+invisible — it surfaced as eleven scenarios reading `release THREW`, which reads as eleven broken
+mechanics and was one aged-out baseline.
+
+**The rule: do not reproduce a stranded artifact, stop it being citeable.** CLAUDE.md already settles
+it — a quarantined number becomes RE-RUNNABLE, meaning re-measured on the current engine. Freezing the
+reader alongside the engine was considered and rejected: it doubles every snapshot to answer a question
+nobody asks.
+
+Prevention, in three parts: a release now records what it PROVIDES at cut time; a ratcheted check fails
+a NEW stranding by name; and the pre-commit hook will run it, because a check somebody has to remember
+is the thing LESSONS.md exists to stop. Written up as LESSONS.md §12.
+
+**When a whole population of checks fails at once, suspect the thing they SHARE before the thing they
+each test.**

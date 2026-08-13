@@ -444,6 +444,34 @@ function cut(why, opts) {
     showdown_commit: first.showdown_commit || null,
     cuts: events,
     files,
+    /* WHAT THIS SNAPSHOT CAN SERVE, RECORDED AT CUT TIME — 2026-08-12.
+     *
+     * A release freezes the ENGINE and not the READER. Every symbol a caller later adds to its `need`
+     * list retroactively strands every release cut before that symbol existed, and nothing announces
+     * it: the snapshot still verifies, still holds its bytes, and simply stops being openable. On
+     * 2026-08-12 that reached 168 of 200 releases, and of the 26 artifacts on disk that name a release,
+     * exactly ONE could still be re-run. An unreproducible measurement is not wrong, it is
+     * unfalsifiable — which is the thing freezing was supposed to prevent.
+     *
+     * `compat` answered this by LOADING and parsing every snapshot, which is slow and can itself fail
+     * on a release that no longer parses. Recorded here, the answer is a string comparison against a
+     * fact captured when the bytes were known good.
+     *
+     * IT IS A RECORD, NOT A PROMISE. It says which top-level names this snapshot exported on the day
+     * it was frozen; it cannot say whether they still MEAN the same thing. That is the honest limit of
+     * a photograph and it is why this is `provides` rather than `compatible`. */
+    provides: (() => {
+      try {
+        const src = fs.readFileSync(path.join(dir, 'engine', 'medicham2-browser.js'), 'utf8');
+        const seen = new Set();
+        /* the export surface as WRITTEN, matched three ways because this file uses all three */
+        for (const m of src.matchAll(/module\.exports\s*=\s*\{([^}]*)\}/g))
+          for (const n of m[1].split(',')) { const k = n.split(':')[0].trim(); if (/^\w+$/.test(k)) seen.add(k); }
+        for (const m of src.matchAll(/module\.exports\.(\w+)\s*=/g)) seen.add(m[1]);
+        for (const m of src.matchAll(/\broot\.(\w+)\s*=/g)) seen.add(m[1]);
+        return [...seen].sort();
+      } catch (e) { return null; }   /* null means "not recorded", never "exports nothing" */
+    })(),
     note: 'IMMUTABLE. A measurement reads these bytes, not the live tree, so other divisions may keep '
         + 'working while it runs. Re-cutting an identical tree returns this same id and APPENDS to cuts[]; '
         + '`cut` and `why` are the FIRST freeze of these bytes and are never overwritten. The event log is '

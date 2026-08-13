@@ -190,6 +190,15 @@ valid DIGEST SET turned out not to be a loadable — then not a runnable — eng
 `REL.require` resolves, +5 lazily-read data files so a snapshot can actually play a game. Read the
 count from `SOURCES` in `engine/engine_release.js`, never from this sentence.)*
 
+**A RELEASE FREEZES THE ENGINE AND NOT THE READER, AND THE READER KEEPS MOVING.** Every symbol added to a
+caller’s eed list retroactively strands every release cut before it — the snapshot still verifies and
+simply stops being openable. On 2026-08-12 that reached **168 of 200 releases**, and it surfaced as eleven
+scenarios reading elease THREW, which reads as eleven broken mechanics and was one aged-out baseline.
+A stranded artifact is not a recovery job: it is a figure to WITHHOLD and re-measure, never to resurrect.
+ode engine/engine_release.js compat <file> <symbols...> says which releases can still serve a caller,
+and 	ests/test-artifact-rerunnable.js ratchets it so a new stranding fails by name. Full account:
+[docs/LESSONS.md](docs/LESSONS.md) §12.
+
 **A re-cut over an identical tree appends, it does not overwrite.** Cutting twice yields the same id
 by design, and the second cut used to rewrite the first one's timestamp and reason — so an artifact
 could point at a release stamped minutes *after* the run that used it. Cuts are now events in

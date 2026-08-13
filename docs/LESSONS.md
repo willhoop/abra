@@ -182,3 +182,55 @@ have been a guess at somebody else's design, and it would have passed.
 **Why this cost twenty minutes and not a day:** it went red LOUDLY, against a correct engine. The
 expensive version is the one where the stale contract lands quietly and goes green again on some
 future engine that happens to satisfy it.
+
+## 12. A frozen release freezes the ENGINE and not the READER, and the reader keeps moving
+
+**2026-08-12.** Will: *"should i be concerned we suddenly cant run old things"*, then *"make sure this
+never happens again"*.
+
+Measured that evening: **168 of 200 frozen releases could no longer be opened**, and of the artifacts
+on disk naming a release, essentially none could be re-run — including `all-mechanics-fire.json`, which
+carries the 93 move divergences the whole mechanics programme is built on.
+
+**Nothing broke that day.** The snapshots verify. They hold their bytes. What moved was the HARNESS:
+every symbol added to a caller's `REL.require(..., {need: [...]})` list retroactively strands every
+release cut before that symbol existed. The camera is not in the photograph.
+
+**THE CAUSE WAS CORRECT WORK, WHICH IS THE WHOLE POINT.** 30 snapshots export `rngStreams`, the oldest
+cut at 2026-08-12T00:19 — ROADMAP #222, splitting the RNG streams so the Protect counter stopped being
+welded to the accuracy pin. That was the most valuable instrument fix of the week. `spreadL50` stranded
+two more. Neither should be undone. **The defect is not the change; it is that paying its cost was
+invisible for a week, and surfaced as eleven scenarios reporting `release THREW` — which reads as
+eleven broken mechanics and was one unopenable snapshot.**
+
+### What the rule is
+
+**Do not try to reproduce a stranded artifact. Stop it being citeable.**
+
+CLAUDE.md already settles this: *"A quarantined number does not become true when MEDICHAM becomes
+correct; it becomes RE-RUNNABLE."* Re-running means re-measuring on the current engine, not
+resurrecting old bytes. So an artifact whose release cannot be opened is not a recovery job — it is a
+figure that must be WITHHELD rather than annotated, exactly like a quarantined one.
+
+Freezing the reader alongside the engine was considered and REJECTED. It would make old runs
+reproducible and doubles every snapshot to answer a question nobody asks: nobody wants the number the
+old harness produced, they want today's number.
+
+### What prevents it
+
+1. **A release records what it PROVIDES, at cut time** (`engine/engine_release.js`). Captured when the
+   bytes were known good, so the check is a string comparison instead of parsing 200 snapshots.
+2. **`tests/test-artifact-rerunnable.js` ratchets STRANDED-and-undeclared.** A new stranding fails BY
+   NAME. Growing a `need` list then costs a visible, named artifact at the moment it is paid.
+3. **The pre-commit hook runs it**, because a check somebody has to remember to run is the thing this
+   file exists to stop. Same reasoning that armed the living-docs hook on 2026-08-06.
+
+An artifact that genuinely should not be re-run declares `"rerun": false` with a reason. That is a
+person deciding, once, in writing — not a silence.
+
+### The part worth remembering when this shape appears again
+
+The failure announced itself as an ENGINE problem. A test went red with eleven scenarios reading
+`release THREW`, and the natural reading was eleven broken mechanics. It was one aged-out baseline.
+**When a whole population of checks fails at once, suspect the thing they SHARE before the thing they
+each test.**
