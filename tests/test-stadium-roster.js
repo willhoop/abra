@@ -60,6 +60,11 @@ const NOT_A_CABINET = {
    * check 3 will demand it be re-stated. That is the check working, not a defect here. */
   'Measurement environment, 3.39.0': 'a read-before-quoting preamble about the conditions numbers were measured under, not a component',
   'ROLES':                    'a labelling of teams, consumed by models rather than deciding',
+  /* Added 2026-08-13. It is the COMPOSITION of six models that each already have a cabinet — the
+   * sentence saying which one runs when. It owns no artifact and decides nothing on its own, and
+   * giving it a cabinet would put a seventh box on the Stadium for a thing that is the arrows
+   * between the other six. The models it names are each still checked by this test individually. */
+  'THE PER-TURN PIPELINE':    'the composition of models that each have their own cabinet, not a model itself',
   'WAR':                      'a statistic computed over the store',
   'NMF':                      'a decomposition that produces archetypes, consumed downstream',
   'COUNTERPLAY':              'a report over the field, not a decision-maker',
@@ -131,6 +136,28 @@ const NOT_A_CABINET = {
  *   evidence about IMPORTANCE, never about whether something needs writing down.
  * ============================================================================================== */
 const NOT_A_MODEL = {
+  /* --- SIX INSTRUMENTS DECLARED 2026-08-13. None of them decides anything: each reads the format,
+   *     the store or the register and reports. A model chooses; these describe. --- */
+  'engine/divergence_report.js':
+    'a diagnostic RANKING of the whole-game differential\'s own causes by corpus usage — it reads '
+    + 'data/game-differential.json and orders it, and every number in it belongs to that artifact',
+  'engine/million_run.js':
+    'the rate RUNNER — an instrument that measures how often a mechanic fires, which is a property of '
+    + 'the simulator rather than a model of the game (ROADMAP #196, #28)',
+  'engine/mod_audit.js':
+    'answers "did the Champions mod change this entity?" for every legal entity — a derivation off '
+    + 'the format, and the reason NO POKEMON VALUE MAY BE TYPED FROM MEMORY is enforceable',
+  'engine/open_work.js':
+    'prints every unclosed register row and every defect a live instrument measures — a REPORT, and '
+    + 'the whole point of it is that it is printed rather than typed (CLAUDE.md, START HERE)',
+  'engine/residual_order.js':
+    'derives the AUTHORITY\'s end-of-turn resolution order from the format — one shared FACT the '
+    + 'engine reads, in the sense of FEATURES ARE PER-MODEL, FACTS ARE GLOBAL. Incomplete by its own '
+    + 'admission: it enumerates effects owning an onResidual handler and misses the duration-only '
+    + 'ones (ROADMAP #242), which is a defect in the instrument and not a reason to call it a model',
+  'engine/speed_vs_pokeenv.js':
+    'a BENCHMARK — how fast this engine steps a battle against the reference implementation. A '
+    + 'property of the code, not a claim about Pokemon (ROADMAP #192)',
   /* --- RE-ENCODINGS. The site is buildless and cannot require(), so every artifact a page reads
    *     exists twice. The second copy makes no claim of its own; the claim belongs to the file it
    *     was built from, and that file is the one that owes a ledger entry. --- */
@@ -208,6 +235,7 @@ const NOT_A_MODEL = {
   'engine/lookahead_bound.py':       'GATE — is there anything for a search to find; an oracle upper bound on OUR search',
   'engine/lookahead_clock_control.py':'GATE — is the oracle gain information or is it just the clock; the control for the bound above',
   'engine/lookahead_cost.js':        'GATE — can we afford to look one turn ahead; a cost measurement of our own code',
+  'engine/rollout_fallen_prevalence.js': 'ROADMAP #244 — how often a rollout is seeded from a position with a dead ally AND a fallen-count carrier; a CEILING on the reach of a fix to our own seed, counted off the store and data/tags.json with no game played. It makes no claim about Champions',
   'engine/rollout_r2.js':            'GATE R2 — what a rollout LEAF costs; a cost measurement of our own search',
   'engine/rollout_r3.js':            'GATE R3 — does the search PICK A DIFFERENT MOVE; a behaviour diagnostic of our own search',
   'engine/rollout_explore_sweep.js': 'should --rollout-explore default to 1.0 — a knob sweep over our own search',

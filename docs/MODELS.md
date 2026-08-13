@@ -407,6 +407,129 @@ Guiding principle: **garbage in, garbage out.** The browser engine's **damage ma
 
 ---
 
+
+## THE PER-TURN PIPELINE — WHO DOES WHAT, 2026-08-13
+
+Stated by Will and argued through the same night; the full derivation, the four corrections and the
+measurements are in [ALAKAZAM-v2-spec.md](ALAKAZAM-v2-spec.md). This block exists because **the models
+were each documented and their COMPOSITION was not**, and a reader could not tell from this file which
+one runs when.
+
+| # | model | asks | returns | fitted? |
+|---|---|---|---|---|
+| 1 | **MAG** | is this action DEAD on this board? | the actions that are not | **no** — boolean, derived from the engine |
+| 2 | **DODUO** | how good is this PAIR of actions together? | scored joint actions — the scores ARE the sampling weights | yes |
+| 3 | **MILTANK** | what happens if we play it out? | outcomes, on MEDICHAM, to termination | no |
+| 4 | **SLOWKING** | what mix cannot be beaten? | a frequency per action | no — a solve |
+| 5 | **HYPNO** | how bad is THIS opponent? | how far to step off the mix | deferred by Will |
+| — | **DUSK** | is this endgame a forced win? | an exact answer, looked up | no — precomputed |
+
+**SLOWKING is the floor; HYPNO is stepping off it deliberately.** Nash is unexploitable and punishes
+nobody; deviating to punish a habit opens a hole in you. You can only step off safely if you computed
+where the floor is, which is why HYPNO is last and why the matrix is kept **even if greedy wins more
+games on average** — ADR-003 made exploitability the headline precisely because VGC-Bench's policy
+beats a Worlds competitor and is still ~100% exploitable.
+
+**THE WORD "ENDGAME" WAS CLAIMED BY TWO ENTRIES IN THIS FILE AND THAT IS WHY IT WAS HARD TO HOLD.**
+Will, 2026-08-13: *"wait didnt we have dusknoir as the endgame guy? its hard to keep track."* He is
+right, and the collision is ours: SLOWKING's **Job:** line below reads *"the endgame — tell you the
+equilibrium-best move (and win %) on a live position"*, which is not distinguishable in wording from
+DUSK's entire purpose.
+
+| | scope | exact? | when it runs |
+|---|---|---|---|
+| **DUSK** | small endgames only | **yes — solved** | offline, then looked up |
+| **SLOWKING** | any position | no — equilibrium over ESTIMATED values | live, per turn |
+| **HYPNO** | the opponent, not the position | n/a | a deliberate deviation FROM SLOWKING |
+
+"Which lines lead to a **guaranteed** win" is DUSK. Nothing else in this file can say *guaranteed*.
+
+### What changed for MAG, and the assumption it now carries
+
+MAG stops being a learned scorer and becomes a **futility gate** — a boolean "can this action do
+anything at all". This fixes an ordering fault rather than merely simplifying: a learned MAG prunes what
+is bad ON AVERAGE and runs BEFORE DODUO, so it deleted exactly the actions that are bad alone and good
+in combination — the class DODUO exists to find.
+
+The gate is **derived, never a written list**. Every one of the four rules Will first proposed is wrong
+as typed (Fake Out is *first turn out*, not turn 1; Corrosion poisons Steel; Good as Gold is
+`breakable`; Armor Tail is one of Farigiraf's three abilities). It asks the engine instead, so it
+cannot drift from the simulator and survives a regulation change.
+
+**AND IT CARRIES ONE DECLARED PREDICTION.** Will: *"there is forbidden tech of clicking a prio move when
+farig is on the board because youre making a prediction of it switching out."* Only the half of the gate
+that fails on the USER's own state is assumption-free (Fake Out out of position, Choice lock, no PP).
+The occupant-dependent half — status into Gholdengo, poison into Steel, priority into Armor Tail — is
+dead only while that body is in the slot, because a move follows the slot and a switch rescues it.
+Pruning those asserts *"they will not switch"*. Deferred by his decision; recorded so it is visible
+rather than discovered later as "the bot never makes a read".
+
+
+### THE GATE IS A RANGE, NOT A FILTER — WILL, 2026-08-13, AND THIS IS THE NIGHT'S REAL CORRECTION
+
+He gave two reads in a row and they redefine the stage:
+
+> "ive seen wolfe do the call out of calling a mon to switch out and using knock off into the new
+> flame orb guts ursaluna" ... "or using a ghost move into a normal type calling a switch" ...
+> "ground into flying etc" ... "thats the world champ difference"
+
+*(The Ursaluna example is Scarlet & Violet and he said so; Ursaluna and Flame Orb are both
+`isNonstandard: 'Past'` here. Guts and Knock Off are legal, so the SHAPE transfers and that exact
+board does not. The Ghost-into-Normal and Ground-into-Flying versions are legal and are cleaner
+anyway, because a type immunity is the most unambiguously dead action there is.)*
+
+**MEASURED, THIS IS NOT AN EDGE CASE — IT IS THE GATE'S ENTIRE MEMBERSHIP.** Derived from the format:
+
+| | count | |
+|---|---|---|
+| type immunities | **8** | Dragon→Fairy, Electric→Ground, Fighting→Ghost, Ghost→Normal, Ground→Flying, Normal→Ghost, Poison→Steel, Psychic→Dark |
+| legal abilities with an immunity-shaped handler | **29** | Levitate*, Volt Absorb, Sap Sipper, Storm Drain, Flash Fire, Good as Gold, Bulletproof, Wonder Guard, Armor Tail, Dazzling, Queenly Majesty, … |
+
+*(\*Levitate reaches this by a hardcoded name in the simulator rather than a handler — ROADMAP #237 —
+which is its own reason a handler-derived gate would under-count.)*
+
+Every one of those is a **switch-read opportunity**, because a move follows the SLOT and a switch
+replaces the body it lands on. So the gate's most confident cuts are precisely the plays Will is
+pointing at.
+
+**WHAT IS ACTUALLY ASSUMPTION-FREE IS ONLY THE USER'S OWN STATE** — six-ish conditions, not a
+category: Fake Out when not on its first turn out; Choice-locked into a different move; no PP;
+Disabled, Encored, or a status move under Taunt; Belly Drum at half HP or less. These cannot execute
+no matter what anybody clicks.
+
+**THE FIX IS TO STOP TREATING THE STAGE AS A FILTER.**
+
+| half | treatment | why |
+|---|---|---|
+| user-state futility | **hard cut** | the action cannot execute; nothing is being predicted |
+| occupant-dependent futility (all 8 + 29) | **weight to near-zero, do not delete** | it is dead *if they stay*; a switch makes it live |
+
+In poker terms you do not remove a bluff from your range, you play it 5% of the time. A near-zero
+weight costs exactly what a deletion costs and keeps the action reachable, so **SLOWKING can discover
+the right frequency for a Ghost move into a Normal type instead of us hand-deciding it is zero.** That
+is the argument for having the matrix at all, arriving from a direction nobody planned.
+
+**AND IT MOVES THE PREDICTION TO WHERE IT BELONGS.** An action that is dead under "they stay" and live
+under "they switch" is a **cell of the stage-4 matrix**, which is the object built to hold exactly that
+shape. A row deleted before stage 2 can never become a cell.
+
+### The two gates in front of all of it
+
+- **MILTANK untimed vs MILTANK on the clock** is unanswered, and **31.6% of move decisions** were
+  measured as deferred under time pressure. "As many rollouts as time allows" is load-bearing.
+- **The rollout may not approximate anything.** Will: *"miltanks rollout needs to just play the game out
+  on medicham and have it match showdown perfectly thats the whole point. miltanks just chooses the
+  actions."* The seed is the only place a correct simulator can still produce a wrong game — see
+  ROADMAP #244 and #245.
+
+**Games are short enough for stage 3 to reach real outcomes.** Measured on the open-sheet store,
+played-out games only (n=8,593): median **7** turns, 95.3% done by 12, **99.8% by 20** — the rollout
+horizon. So MILTANK can play to actual wins and losses, and the learned leaf evaluator (63.70% against
+60.28% for counting bodies and HP) is load-bearing only on the 0.2% tail. It is not a blocker for this
+design.
+
+---
+
 ## DODUO — Doubles Optimiser: Decisions United, One turn (named 2026-07-28)
 **Job:** score the PAIR of choices, not two choices separately. Named for the two heads on one body:
 two slots, one decision. 18 coordination features — `focusFireKills`, `redirectThenAttack`,

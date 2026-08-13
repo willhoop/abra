@@ -10,6 +10,118 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.12.0] — 2026-08-13
+
+### Added
+- **THE PER-TURN PIPELINE IS WRITTEN DOWN (ROADMAP #251, #252, #253).** Will stated the whole ALAKAZAM
+  loop out loud and it is now a dated section in `docs/ALAKAZAM-v2-spec.md` and a block at the top of
+  `docs/MODELS.md`. The models were each documented and their **composition** was not, so no reader
+  could tell from the ledger which one runs when. Five stages: MAG gates, DODUO scores joint actions
+  and owns the sampling weights, MILTANK plays out on MEDICHAM, SLOWKING solves the mix, HYPNO decides
+  how far to deviate. DUSK sits outside the loop as the exact endgame tablebase.
+
+### Changed
+- **MAG stops being a learned scorer and becomes a futility gate.** This fixes an ordering fault
+  rather than merely simplifying: a learned MAG prunes what is bad ON AVERAGE and runs BEFORE DODUO,
+  so it deleted exactly the actions that are bad alone and good in combination — the class DODUO
+  exists to find. The gate is **derived from the engine, never a written list**: all four rules Will
+  first proposed are wrong as typed (Fake Out is *first turn out*, not turn 1; Corrosion poisons
+  Steel; Good as Gold is `breakable`; Armor Tail is one of Farigiraf's three abilities). It is also
+  the only stage with no fitted parameters, so it is the one piece buildable before MEDICHAM lands.
+- **AND THE GATE IS A RANGE, NOT A FILTER — the night's real correction, and Will's.** *"ive seen wolfe
+  do the call out of calling a mon to switch out and using knock off into the new … or using a ghost
+  move into a normal type calling a switch … ground into flying etc. thats the world champ
+  difference."* A move follows the SLOT, so a switch replaces the body it lands on — meaning
+  occupant-dependent futility is a PREDICTION, not a rule. Measured, that is not an edge case but the
+  gate's entire membership: **8 type immunities and 29 legal abilities with an immunity-shaped
+  handler.** What is genuinely assumption-free is only the user's own state — Fake Out out of
+  position, a Choice lock, no PP, Disabled/Encored/Taunted, Belly Drum at half HP. So: **hard-cut the
+  user-state half, weight the rest to near-zero rather than deleting it.** A near-zero weight costs
+  what a deletion costs and keeps the action reachable, which lets SLOWKING *discover* the frequency
+  for a Ghost move into a Normal type instead of us hand-deciding it is zero.
+
+### Fixed
+- **"Endgame" was claimed by two entries in our own ledger, which is why the architecture was hard to
+  hold.** Will: *"wait didnt we have dusknoir as the endgame guy? its hard to keep track."* Correct,
+  and the collision is ours — SLOWKING's **Job:** line reads *"the endgame — tell you the
+  equilibrium-best move on a live position"*, indistinguishable in wording from DUSK's whole purpose.
+  Now split explicitly: DUSK is small endgames, exact, offline; SLOWKING is any position, approximate,
+  live; HYPNO is about the opponent rather than the position. **Only DUSK can say "guaranteed"**, so
+  the late-game stage Will described belongs to DUSK and had been filed under HYPNO.
+
+### Notes
+- The matrix is kept **even if greedy wins more games** — already ADR-003's position, since
+  VGC-Bench's policy beats a Worlds competitor and is ~100% exploitable. One correction to the stated
+  reasoning: adapting to an opponent makes you MORE exploitable, not less. Nash never adapts and
+  cannot be beaten long-run; what repeated play punishes is a FIXED mapping, and greedy is one. The
+  matrix is the floor you measure deviations against; HYPNO is the deviation.
+- Real games are short enough for the playout to reach true outcomes — open-sheet store, played-out
+  games only (n=8,593): median **7** turns, 95.3% by 12, **99.8% by 20**. So the learned leaf
+  evaluator (63.70% vs 60.28% for counting material) is load-bearing only on a 0.2% tail and is not a
+  blocker. Separately: **36% of decided games are forfeits**, median 5 turns, which must be held apart
+  from any win-probability learned off this store.
+- **Not all of this is locked behind MEDICHAM, and the exceptions are worth keeping visible**: the
+  futility gate has no fitted parameters, and HYPNO is the only model whose inputs never include the
+  simulator. Everything else waits.
+
+---
+
+## [5.11.0] — 2026-08-13
+
+### Fixed
+- **THE ROLLOUT SEED DROPPED THE DEAD, SO EVERY PLAYOUT BELIEVED NOBODY HAD DIED (ROADMAP #244).**
+  `battleInit` derives three things from the one array it is handed — the field (`teamA[0..1]`), the
+  bench (`teamA.slice(2)`) and **the roster** (`sfA.team`), which is `fallenCount`'s denominator.
+  `rollout_leaf.buildSide` dropped every fainted body, correct for the first two and fatal to the
+  third: `fallenCount` returned a confident **0**, so a rollout seeded from a position with two dead
+  allies priced Last Respects at 50 where the position says 150, and a Kingambit entered with a
+  Supreme Overlord snapshot of zero. The corpses are now **appended after the living**, which is the
+  only shape that fixes the roster without moving a body onto the field: the drop stays right for
+  `actA`/`benchA`, and a corpse in the bench tail is inert because every bench reader in
+  `medicham2-browser.js` goes through `_live` and `battleResult` sums `max(0,curHP)/hp`. They come
+  from `board.graveyard`, not from the fainted actives — a Pokemon that died and was replaced was
+  never in `sideTeam` at all, which was the larger half. **The count was NOT threaded through
+  `battleInit` as an option**, deliberately: that would leave the seed handing MEDICHAM a side of four
+  where the real side has six, and would be a second source for a fact the engine already owns.
+  Gate `tests/test-rollout-fallen.js`, shown RED first (12 failures, `fallenCount -> 0` at every N,
+  N=0 control green), now **27 passed / 0 failed**. The observable is Last Respects' base power,
+  inverted out of a control damage table computed through the engine's own `dmgRange`, with `base`
+  and `perFallen` read from `data/tags.json` rather than typed: **50 → 100 / 150 / 200 BP** at 1, 2
+  and 3 fallen, and 50 unchanged at 0.
+
+### Added
+- **`engine/rollout_fallen_prevalence.js` → `data/rollout-fallen-prevalence.json`** — how often the
+  fix above can matter. Over **13,592 open-sheet bo3 games / 183,840 decision points**: a death has
+  already happened on the acting side at **50.83%** of them, the acting side brought a fallen-count
+  carrier at **16.26%**, and **both hold at 8.75%** (16,082). Conditional on being affected the mean
+  fallen count is **1.67**, i.e. Last Respects should have priced at **133.5 BP on average and priced
+  at 50**. It is a **ceiling** on the fix's reach, not a count of flipped decisions, and it says so.
+  The carriers are enumerated from `data/tags.json` (`lastrespects`, `supremeoverlord`), never typed.
+  It reads the store and the tag artifact and **plays no game**, so it is not downstream of MEDICHAM,
+  is not quarantined, and needed no engine release while ENGINE was editing the simulator.
+
+### Notes
+- **ROADMAP #246 opened and handed to ENGINE: the fix is green from turn TWO.** `battleInit` writes
+  the literal `sfA:{fainted:0,…}` and the only recount is at turn end, so at t=0 the count is 0
+  whatever the roster says — and that is the turn `rolloutAfterActions` forces the candidate click
+  on, so a Last Respects being *ranked* is still priced at its floor. One line, in a file SEARCH may
+  not edit while ENGINE holds it, and it needs nothing further from SEARCH because the roster it
+  would read is now correct.
+- **ROADMAP #247–#250 opened: four more approximations on the seeding path**, swept for rather than
+  waited for, and none fixed — each changes what MILTANK clicks and owes its own arm. Supreme
+  Overlord's entry snapshot is unseedable from the board; a benched Pokemon enters every rollout at
+  full HP, unstatused and carrying the dataset's moves rather than its sheet's; the seed has no
+  hazards, screens or Gravity; and every seeded body can Fake Out because `_mvActs` is 0.
+  Chasing #249 found a defect underneath it: **`board.noteMove` starts every side condition on the
+  MOVER's side, and `stealthrock`/`spikes`/`stickyweb`/`toxicspikes` are all `target: foeSide`**
+  (derived from the format). The offline board — the fit's board — records every hazard on the side
+  that laid it, while the live path reads `|-sidestart|` and is right.
+- No feature was added; `board.js FEATURES` is still 58 and `data/policy-weights.json` keeps its
+  dimensionality. No leaf value was re-measured and no SPRT was prepared: the simulator is moving, and
+  measuring a half-fixed seed would describe a build nobody will ship.
+
+---
+
 ## [5.10.0] — 2026-08-13
 
 ### Fixed

@@ -7594,3 +7594,37 @@ ours recomputes every time.
 **WHERE THIS CAME FROM IS THE PART WORTH KEEPING.** Three engine rows came out of one evening of Will
 reading rendered games, and the classifier had surfaced none of them. It can say a disagreement is
 `ordering`; it cannot say which engine is right. That is not a gap a better classifier closes.
+
+### A SMALL VERIFICATION RUN OVERWROTE THE PUBLISHED DIFFERENTIAL, AND THE DOCS GATE CAUGHT IT. 2026-08-13
+
+`tests/test-docs-current.js` went red on **one new row**: `docs/MEDICHAM-SPRINT-NOTES.md:5426  6000
+not in data/engine-diff.json`.
+
+The line it flagged is WEEKS OLD and was never wrong. What moved was underneath it: an agent ran
+`test-engine-diff.js` at **n=150 with `--write`** as a quick check, and that overwrote the published
+artifact — `requested: 150, compared: 150, agreed: 150` — orphaning every document that cites the
+6,000-comparison run. The claim did not become false; **its evidence was deleted.**
+
+**THE FIX WAS TO RE-RUN AT THE PUBLISHED SIZE, NOT TO EDIT THE SENTENCE.** `--n 6000 --write`, and the
+gate went green. Editing the docs down to 150 would have quietly reduced a published result to
+whatever the last person happened to type on a command line.
+
+Two things worth keeping:
+
+**A GATE FIRED ON A LINE NOBODY TOUCHED, WHICH IS THE POINT OF IT.** Every other check here compares a
+document to itself. This one compares a document to an ARTIFACT, so it notices when the ground moves
+under prose that is still sitting still — the same failure as the fourteen stale handoffs, caught this
+time in seconds instead of in days.
+
+**`--write` ON A VERIFICATION RUN IS A HAZARD AND THE HABIT SHOULD CHANGE.** The whole-game
+differential already learned this — its dump is deliberately writable without `--write` precisely so a
+debugging run cannot clobber a measurement. `test-engine-diff.js` has no such separation: any `--n`
+plus `--write` republishes. A verification run should either omit `--write` or use `--out`.
+
+Also declared in the same pass, because the roster gate names them and a red gate is not a status:
+**six generators that appear in neither the ledger nor the Stadium** — `divergence_report`,
+`million_run`, `mod_audit`, `open_work`, `residual_order`, `speed_vs_pokeenv`. Every one is an
+instrument or a report rather than a model: they read the format, the store or the register and print
+what they found. Two of them were written on 2026-08-12/13 and went undeclared on the night they were
+built, which is exactly the hole that check exists to find. `residual_order`'s declaration carries its
+own known defect (ROADMAP #242) rather than presenting it as complete.
