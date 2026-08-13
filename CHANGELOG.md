@@ -13,6 +13,24 @@ silently rewritten; what changed and why is stated.
 ## [5.15.0] — 2026-08-13
 
 ### Fixed
+- **SIX ILLEGAL DECLARATIONS IN `engine/feature_fixture.js`, WITH THE COVERAGE COST MEASURED ON EVERY
+  ONE (ROADMAP #265).** Rocky Helmet -> Miracle Seed on Venusaur (banned here since 2026-08-04, four
+  sites), Electric Seed -> Mental Herb and Throat Spray -> White Herb on Farigiraf (both
+  `isNonstandard: 'Past'`), Grimmsnarl's Thunder Wave -> Taunt, and Hippowdon's Weather Ball.
+  Boards **10 -> 12**, candidates 352 -> 384, **0 columns silent before and after**, and the only
+  column that lost a firing is `statusBites` **5 -> 4**, which is declared rather than rounded away.
+  - **No body in this regulation can carry Weather Ball in sand.** Derived over the format: the move
+    has **80 legal carriers and not one is a Rock or Ground body or sets sand**, so `sand-is-up` had
+    been claiming the ROCK type-flip through a move Hippowdon cannot learn. Repairing it IN PLACE was
+    tried and MEASURED first — swapping in Heliolisk thinned `allyHit` 4 -> 3, `abilityBlock` 3 -> 2,
+    `deadStatus` 2 -> 1 and `statusBites` 5 -> 2 **while going silent nowhere, so the coverage check
+    would have waved it through**. The flip moved to its own board, `sand-weather-ball`, which is
+    what this file's own record of two bad in-place edits says to do.
+  - **Grimmsnarl has no legal primary-status move at all**, so Taunt cannot carry `deadStatus`; that
+    click moved to Torkoal's Will-O-Wisp into an already-paralysed Incineroar. The last `statusBites`
+    firing is not repaid, because the only body that could is the Clefable whose fourth move is the
+    single 4x hit anywhere in the fixture, and trading `eff4`'s only firing for one of five is a
+    worse board.
 - **A PRINTED-100 MOVE TOOK NO ACCURACY DRAW, SO THE `acc` STREAM WALKED OFF THE AUTHORITY'S
   (ROADMAP #264).** Will: *"even if a move is 100 accuracy it could still miss due to evasion, bright
   powder, sand veil, etc"*, then *"we gotta roll anyway"*. **Half the row was already true and
@@ -132,6 +150,41 @@ silently rewritten; what changed and why is stated.
     because the authority gates it there, so this widens one ability and nothing else.
 
 ### Added
+- **A LEGALITY SWEEP OVER EVERY TEST FIXTURE IN THE REPO, AND A RATCHET SO A NEW ONE CANNOT LAND
+  (ROADMAP #265, opening #266).** CLAUDE.md's cardinal rule — never name a Pokémon, item, ability or
+  move outside the regulation, in *"every example, every illustration and every derived result"* — was
+  being broken inside the tests, where a fixture built on a set that cannot exist measures a game we
+  do not play. Both known instances had been found **in passing rather than by a check**.
+  - **`engine/fixture_legality.js`** (new) sweeps the tree and puts every declared set to
+    **`TeamValidator#validateTeam`** through the existing `champions_sim.checkLegal`. Will:
+    *"i thought we were using showdowns team validator as the ultimate legality test."* The plan this
+    started from was a hand-written species/ability/item/`checkCanLearn` check — a re-implementation
+    of a table Showdown maintains, and FACTS ARE GLOBAL broken inside the file written to enforce a
+    rule. **Nothing here contains a legality rule of its own**; the authority's own sentences are what
+    is printed and what the ratchet is keyed on.
+  - **THE POPULATION: 334 `.js` files, 627 set declarations across 26 files, 227 distinct sets, 55
+    rejected, 41 distinct verdicts.** 507 construction sites carry no literal set and are outside it
+    — a fixture that derives its bodies from the format cannot type a name that does not exist, and a
+    fixture that builds through `buildMon(key)` and assigns the click later has no set to validate.
+    Both are printed rather than implied.
+  - **`tests/test-fixture-legality.js`** (new) + **`data/fixture-legality-baseline.json`** (new).
+    Keyed on the validator's sentence, so the same illegal declaration moved to a new scenario is the
+    same defect. The baseline **may only shrink** — a verdict that stops being produced FAILS, so a
+    repair cannot leave a hiding place behind — and every entry carries a kind and a written reason.
+    Two clauses exist because a green gate is worth nothing alone: a **population floor** (≥150
+    distinct sets, against 227) and a **self-check that the ratchet still discriminates**, run every
+    time rather than described once. **Shown RED three ways**: re-planting the real Rocky Helmet
+    fails naming `engine/feature_fixture.js:87`; two invented baseline entries fire the
+    stale-allowance clause; one with a bad kind fires the reason clause.
+- **A BODY DIGEST IN `engine/feature_fixture.js`, because the guard's identity check was labels only.**
+  `verify()` asked "is this the same fixture?" from `ROUND` and the scenario **LABELS**. Edit a body
+  inside a scenario that keeps its name and it passes — then reports every moved column as *"these
+  features changed MEANING since the weights were fitted"*, which is false and accuses `board.js` of a
+  change it did not make. That is the refit/restamp distinction the file turns on, collapsed. The
+  digest covers species, item, ability, nature, moves, bench and pre-set state; a stamp written before
+  it existed is an OLDER STAMP, not staleness. Three new clauses in
+  `tests/test-feature-semantics.js`, plus one that puts **every set on all 12 boards** through the
+  validator. **23 passed, 0 failed.**
 - **`MEDSEEN.tryHitRefusedAlly`** — the ally half of the onTryHit refusal, counted apart from
   `tryHitRefused` because it is the half that did not exist until this row. A zero on a run in which a
   partner supported a Gholdengo means the path has gone back to being unreachable.

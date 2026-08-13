@@ -21,6 +21,43 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #265 / #266 — THE FIXTURES DECLARED TEAMS THE GAME WOULD REFUSE. 2026-08-13 (MEASURE).
+
+**Files:** `engine/fixture_legality.js` (new), `tests/test-fixture-legality.js` (new),
+`data/fixture-legality-baseline.json` (new), `engine/feature_fixture.js`,
+`tests/test-feature-semantics.js`. **Not touched:** `engine/medicham2-browser.js`,
+`tests/test-mechanics.js`, `engine/game_differential.js` and its artifacts.
+
+**The population.** 334 `.js` files, 627 set declarations across 26 files, 227 distinct sets, **55
+rejected by `TeamValidator`, 41 distinct verdicts**. 507 construction sites carry no literal set and
+are correctly outside it.
+
+**The verdict is `validateTeam`'s and nothing re-implements it.** Will: *"i thought we were using
+showdowns team validator as the ultimate legality test."* The brief's species/ability/item/
+`checkCanLearn` plan was a re-implementation of a table Showdown maintains — FACTS ARE GLOBAL broken
+inside the file written to enforce a rule, and a piecemeal check only ever finds the rules somebody
+thought to write. `champions_sim.checkLegal` was already the canonical path; it is reused.
+
+**Six repairs, all in MEASURE's own fixture, coverage measured on each.** Rocky Helmet → Miracle Seed
+(banned since 2026-08-04, 4 sites), Electric Seed → Mental Herb, Throat Spray → White Herb,
+Grimmsnarl's Thunder Wave → Taunt, Hippowdon's Weather Ball → a new board. Boards 10 → 12, **0 columns
+silent before or after**, one column lost a firing (`statusBites` 5 → 4) and it is declared.
+
+**The finding that outlives the fix.** `feature_fixture.verify()` decided fixture identity from
+scenario **LABELS**, so a body edited inside a scenario that kept its name was reported as a feature
+changing MEANING — falsely accusing `board.js` and collapsing the refit/restamp distinction. A body
+digest now covers species, item, ability, nature, moves, bench and state.
+
+**41 verdicts are baselined, named and owed as #266.** Nothing was re-baselined into silence; the gate
+FAILS on a baselined verdict that stops being produced.
+
+**Shown RED three ways.** Re-planting Rocky Helmet fails by file and line; two invented baseline
+entries fire the stale-allowance clause; one with a bad kind fires the reason clause.
+`tests/test-mechanics.js` run unedited: **567 live / 0 missing**, which is ENGINE's number from #264
+and is quoted only as evidence this pass moved nothing.
+
+---
+
 ## ROADMAP #264 — A PRINTED-100 MOVE CAN MISS (IT ALREADY DID); THE DRAW IS WHAT WAS WRONG. 2026-08-13 (ENGINE).
 
 **Census 565 -> 567 live / 0 missing.** Two probes, four deliberate breaks shown RED against the

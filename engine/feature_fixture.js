@@ -84,7 +84,7 @@ const SCENARIOS = [
     p2: [
       { species: 'Incineroar', item: 'Sitrus Berry', ability: 'Intimidate', nature: 'Careful',
         moves: ['Flare Blitz', 'Fake Out', 'Darkest Lariat', 'Parting Shot'] },
-      { species: 'Venusaur', item: 'Rocky Helmet', ability: 'Overgrow', nature: 'Relaxed',
+      { species: 'Venusaur', item: 'Miracle Seed', ability: 'Overgrow', nature: 'Relaxed',
         moves: ['Grassy Terrain', 'Solar Beam', 'Sleep Powder', 'Charm'] },
     ],
     /* AEGISLASH IS BENCHED HERE, AND THE SCENARIO IS NOT ARBITRARY.
@@ -125,7 +125,7 @@ const SCENARIOS = [
     p2: [
       { species: 'Gyarados', item: 'Leftovers', ability: 'Intimidate', nature: 'Adamant',
         moves: ['Waterfall', 'Taunt', 'Protect', 'Dragon Dance'] },
-      { species: 'Venusaur', item: 'Rocky Helmet', ability: 'Overgrow', nature: 'Relaxed',
+      { species: 'Venusaur', item: 'Miracle Seed', ability: 'Overgrow', nature: 'Relaxed',
         moves: ['Grassy Terrain', 'Solar Beam', 'Sleep Powder', 'Charm'] },
     ],
     bench: { p1: ['Whimsicott', 'Volcarona'], p2: ['Clefable', 'Grimmsnarl'] },
@@ -160,7 +160,7 @@ const SCENARIOS = [
         moves: ['Shadow Ball', 'Life Dew', 'Protect', 'Giga Drain'] },
     ],
     p2: [
-      { species: 'Venusaur', item: 'Rocky Helmet', ability: 'Overgrow', nature: 'Relaxed',
+      { species: 'Venusaur', item: 'Miracle Seed', ability: 'Overgrow', nature: 'Relaxed',
         moves: ['Grassy Terrain', 'Solar Beam', 'Sleep Powder', 'Charm'] },
       { species: 'Garchomp', item: 'Life Orb', ability: 'Rough Skin', nature: 'Jolly',
         moves: ['Earthquake', 'Dragon Claw', 'Swords Dance', 'Protect'] },
@@ -195,19 +195,40 @@ const SCENARIOS = [
 
   /* Every condition a move could set is ALREADY set, so the whole dead-move family has something to
    * be dead against at once. Grimmsnarl has Prankster and Incineroar is Dark, which is the
-   * pranksterFailsDark board; Torkoal is left stalling so Protect reads as deadStall. */
+   * pranksterFailsDark board; Torkoal is left stalling so Protect reads as deadStall.
+   *
+   * THE DEAD-STATUS CLICK MOVED FROM GRIMMSNARL TO TORKOAL ON 2026-08-13, AND IT WAS NOT A FREE SWAP.
+   * Grimmsnarl's fourth move was THUNDER WAVE, which `TeamValidator#validateTeam` refuses — *"Grimmsnarl
+   * can't learn Thunder Wave."* Taunt replaces it (Prankster still fails into the Dark Incineroar, so
+   * `pranksterFailsDark` is untouched at 3 firings), but Taunt carries no `move.status`, and
+   * `deadStatus` and `statusBites` both key on one. Measured, not assumed: that single edit took
+   * deadStatus 2 -> 1 and statusBites 5 -> 2 with EVERY column still non-zero, so the coverage check
+   * would have passed it. Derived over the regulation, Grimmsnarl has NO legal primary-status move at
+   * all — only secondary-chance ones — so the click cannot stay on this body.
+   *
+   * Torkoal's Body Press becomes WILL-O-WISP, which is legal here and is a primary-status move aimed
+   * at an Incineroar this board has already paralysed: `m.status && t.status` is exactly `deadStatus`,
+   * and burn biting a physical attacker is exactly `statusBites`. Torkoal is still the stalled body,
+   * so `deadStall` is unaffected.
+   *
+   * IT DOES NOT FULLY REPAY, AND THE RESIDUAL IS STATED RATHER THAN ROUNDED AWAY. deadStatus is back
+   * to 2; statusBites lands at 4 against 5. The missing firing is the OTHER Grimmsnarl, on
+   * `immunities-screens-and-heals`, whose Thunder Wave bit a Speed the target relied on. The only
+   * body on that board that could carry a legal replacement is Clefable, and its fourth move is the
+   * Icy Wind that is the single 4x hit anywhere in this fixture — trading `eff4`'s only firing for one
+   * of `statusBites`' five is a worse board, so it is not made. 4/384 against 5/352, declared. */
   {
     label: 'everything-already-up',
     p1: [
       { species: 'Grimmsnarl', item: 'Light Clay', ability: 'Prankster', nature: 'Careful',
-        moves: ['Light Screen', 'Reflect', 'Thunder Wave', 'Spirit Break'] },
+        moves: ['Light Screen', 'Reflect', 'Taunt', 'Spirit Break'] },
       { species: 'Torkoal', item: 'Charcoal', ability: 'Drought', nature: 'Quiet',
-        moves: ['Sunny Day', 'Eruption', 'Body Press', 'Protect'] },
+        moves: ['Sunny Day', 'Eruption', 'Will-O-Wisp', 'Protect'] },
     ],
     p2: [
       { species: 'Incineroar', item: 'Sitrus Berry', ability: 'Intimidate', nature: 'Careful',
         moves: ['Flare Blitz', 'Fake Out', 'Darkest Lariat', 'Parting Shot'] },
-      { species: 'Venusaur', item: 'Rocky Helmet', ability: 'Overgrow', nature: 'Relaxed',
+      { species: 'Venusaur', item: 'Miracle Seed', ability: 'Overgrow', nature: 'Relaxed',
         moves: ['Grassy Terrain', 'Solar Beam', 'Sleep Powder', 'Charm'] },
     ],
     bench: { p1: ['Clefable', 'Garchomp'], p2: ['Gyarados', 'Whimsicott'] },
@@ -261,7 +282,7 @@ const SCENARIOS = [
       { species: 'Clefable', item: 'Leftovers', ability: 'Unaware', nature: 'Bold',
         moves: ['Follow Me', 'Life Dew', 'Icy Wind', 'Moonblast'] },
       { species: 'Grimmsnarl', item: 'Light Clay', ability: 'Prankster', nature: 'Careful',
-        moves: ['Light Screen', 'Reflect', 'Thunder Wave', 'Spirit Break'] },
+        moves: ['Light Screen', 'Reflect', 'Taunt', 'Spirit Break'] },
     ],
     bench: { p1: ['Whimsicott', 'Gyarados'], p2: ['Venusaur', 'Incineroar'] },
     state: { turn: 4, hp: { p1: { a: 0.3 }, p2: { a: 0.18, b: 0.22 } } },
@@ -290,7 +311,7 @@ const SCENARIOS = [
     p1: [
       { species: 'Blaziken', item: 'Life Orb', ability: 'Speed Boost', nature: 'Adamant',
         moves: ['Flare Blitz', 'Close Combat', 'Protect', 'Swords Dance'] },
-      { species: 'Farigiraf', item: 'Electric Seed', ability: 'Armor Tail', nature: 'Relaxed',
+      { species: 'Farigiraf', item: 'Mental Herb', ability: 'Armor Tail', nature: 'Relaxed',
         moves: ['Trick Room', 'Psychic', 'Helping Hand', 'Protect'] },
     ],
     p2: [
@@ -333,7 +354,7 @@ const SCENARIOS = [
     p2: [
       { species: 'Whimsicott', item: 'Focus Sash', ability: 'Prankster', nature: 'Timid',
         moves: ['Tailwind', 'Encore', 'Moonblast', 'Helping Hand'] },
-      { species: 'Farigiraf', item: 'Throat Spray', ability: 'Armor Tail', nature: 'Quiet',
+      { species: 'Farigiraf', item: 'White Herb', ability: 'Armor Tail', nature: 'Quiet',
         moves: ['Hyper Beam', 'Trick Room', 'Psychic', 'Helping Hand'] },
     ],
     bench: { p1: ['Garchomp', 'Volcarona'], p2: ['Incineroar', 'Gyarados'] },
@@ -378,16 +399,30 @@ const SCENARIOS = [
   {
     /* Tyranitar is ROCK and is taking SPECIAL hits from Hydreigon, which is the 1.5x special-defence
      * multiplier sand gives Rock types and nothing else on any board here reaches. Hippowdon is the
-     * second Sand Stream body in the format and carries WEATHER BALL, whose type resolves to ROCK
-     * under sand — the type flip rides on `mv.id` through dmgFractions, so it is a distinct path from
-     * the multiplier. Excadrill opposite is Sand Rush, so the board is one a real ladder game
-     * produces rather than a contrivance. */
+     * second Sand Stream body in the format. Excadrill opposite is Sand Rush, so the board is one a
+     * real ladder game produces rather than a contrivance.
+     *
+     * WEATHER BALL LEFT THIS BOARD ON 2026-08-13 AND THE REASON IS THAT HIPPOWDON CANNOT CLICK IT.
+     * This slot read `['Earthquake', 'Weather Ball', 'Yawn', 'Protect']` and the comment above used to
+     * say the Weather Ball was here for the ROCK type flip under sand. Asked of the authority rather
+     * than of memory, `TeamValidator#validateTeam` answers *"Hippowdon can't learn Weather Ball"* —
+     * and derived over the whole regulation, NOT ONE of the 80 legal Weather Ball carriers is a Rock
+     * or Ground body and not one of them sets sand. The board was therefore a position no team could
+     * bring, and it was declaring coverage through a move the game will not hand out.
+     *
+     * The flip is not lost: it moved to its own board, `sand-weather-ball` below, which is what this
+     * file's own record says to do. Repairing it IN PLACE was tried first and MEASURED — swapping
+     * Hippowdon for Heliolisk (the one legal Weather Ball carrier that a sand team plausibly runs)
+     * costs Earthquake and Yawn, and thinned four already-thin columns: allyHit 4 -> 3, abilityBlock
+     * 3 -> 2, deadStatus 2 -> 1, statusBites 5 -> 2. Nothing went silent, so it would have passed the
+     * coverage check while weakening the two features this whole file was built for. Adding a board
+     * cannot take anything away from the boards already here; editing one can, and here it did. */
     label: 'sand-is-up',
     p1: [
       { species: 'Tyranitar', item: 'Leftovers', ability: 'Sand Stream', nature: 'Adamant',
         moves: ['Rock Slide', 'Crunch', 'Ice Beam', 'Protect'] },
       { species: 'Hippowdon', item: 'Sitrus Berry', ability: 'Sand Stream', nature: 'Impish',
-        moves: ['Earthquake', 'Weather Ball', 'Yawn', 'Protect'] },
+        moves: ['Earthquake', 'Rock Slide', 'Yawn', 'Protect'] },
     ],
     p2: [
       { species: 'Hydreigon', item: 'Life Orb', ability: 'Levitate', nature: 'Modest',
@@ -424,6 +459,45 @@ const SCENARIOS = [
     /* An ICE body on each bench, for the same reason as the sand board's Rock pair. */
     bench: { p1: ['Clefable', 'Abomasnow'], p2: ['Froslass', 'Venusaur'] },
     state: { turn: 5, weather: 'Snowscape', hp: { p1: { a: 0.5, b: 0.45 }, p2: { a: 0.6 } } },
+  },
+
+  /* WEATHER BALL UNDER SAND, added 2026-08-13, BECAUSE THE BOARD THAT CLAIMED IT WAS ILLEGAL.
+   *
+   * `sand-is-up` above declared Weather Ball on HIPPOWDON. `TeamValidator#validateTeam` — the
+   * authority, asked as a whole set rather than re-implemented rule by rule — answers *"Hippowdon
+   * can't learn Weather Ball."* Derived over the regulation, the move has 80 legal carriers and not
+   * one of them is a Rock or Ground body or sets sand, so there is no in-place repair that keeps both
+   * the sand setter and the ROCK type flip on one pair of active slots.
+   *
+   * SO THE FLIP GETS ITS OWN BOARD RATHER THAN DISPLACING SOMETHING. Editing `sand-is-up` to carry
+   * Heliolisk was tried and measured first: it costs that board its Earthquake and its Yawn and
+   * thinned allyHit 4 -> 3, abilityBlock 3 -> 2, deadStatus 2 -> 1 and statusBites 5 -> 2 — the first
+   * two being precisely the pair this file was written to protect — while every column stayed
+   * non-zero, so the coverage check would have waved it through. That is the third time an edit to an
+   * existing board here has quietly cost coverage; adding one cannot.
+   *
+   * HELIOLISK is the carrier: legal, in the damage engine's mon cache, and SAND VEIL makes it a body
+   * a sand team actually brings rather than a contrivance. TYRANITAR beside it is the setter, so the
+   * sand is a fact of the board and not only of `state`. CHARIZARD opposite is Fire/Flying and takes
+   * ROCK at 4x, which is the largest signal the flip can produce anywhere in this fixture — if
+   * Weather Ball is priced as NORMAL the column moves hard. EXCADRILL keeps Sand Rush on the board.
+   * Every set here was put through `checkLegal` rather than recalled. */
+  {
+    label: 'sand-weather-ball',
+    p1: [
+      { species: 'Tyranitar', item: 'Leftovers', ability: 'Sand Stream', nature: 'Adamant',
+        moves: ['Rock Slide', 'Crunch', 'Ice Beam', 'Protect'] },
+      { species: 'Heliolisk', item: 'Sitrus Berry', ability: 'Sand Veil', nature: 'Timid',
+        moves: ['Weather Ball', 'Thunderbolt', 'Thunder Wave', 'Protect'] },
+    ],
+    p2: [
+      { species: 'Charizard', item: 'Life Orb', ability: 'Blaze', nature: 'Timid',
+        moves: ['Flamethrower', 'Dragon Claw', 'Air Slash', 'Protect'] },
+      { species: 'Excadrill', item: 'Focus Sash', ability: 'Sand Rush', nature: 'Adamant',
+        moves: ['Earthquake', 'Iron Head', 'Rock Slide', 'Protect'] },
+    ],
+    bench: { p1: ['Garchomp', 'Lycanroc'], p2: ['Incineroar', 'Lycanroc'] },
+    state: { turn: 5, weather: 'Sandstorm', hp: { p1: { a: 0.6, b: 0.5 }, p2: { a: 0.45, b: 0.4 } } },
   },
 
   /* HAZARDS, added 2026-08-13, AND THIS FIXTURE WAS STRUCTURALLY BLIND TO THE BUG THAT PROMPTED IT.
@@ -670,6 +744,33 @@ function tableDigest() {
   return { species: rows.length, digest: h(parts) };
 }
 
+/* THE FIXTURE'S OWN IDENTITY, AND `scenarios` WAS NOT IT — 2026-08-13.
+ *
+ * `verify()` decided "is this the same fixture?" by comparing ROUND and the list of scenario LABELS.
+ * A label is not a board. Change Venusaur's item, change a move, swap a species inside a scenario that
+ * keeps its name, and the identity check passes — after which every moved column is reported as
+ *
+ *     "these features changed MEANING since the weights were fitted"
+ *
+ * which is FALSE, and falsely accuses board.js of a change it did not make. The distinction is the one
+ * this file's own header turns on: a moved FEATURE hash means refit, a moved FIXTURE means restamp,
+ * and collapsing them makes the louder one unreadable.
+ *
+ * It was not hypothetical. The legality sweep of 2026-08-13 repaired six illegal declarations in the
+ * boards above (a banned Rocky Helmet, two banned items, three moves the bodies cannot learn). Every
+ * one of those moves columns, and none of them is board.js. */
+function bodyDigest() {
+  const parts = [];
+  for (const s of SCENARIOS) {
+    for (const side of ['p1', 'p2']) {
+      for (const m of s[side]) parts.push(`${s.label}/${side}/${m.species}/${m.item}/${m.ability}/${m.nature}/${(m.moves || []).join('+')}`);
+      parts.push(`${s.label}/${side}/bench/${(s.bench[side] || []).join('+')}`);
+    }
+    parts.push(`${s.label}/state/${JSON.stringify(s.state || {})}`);
+  }
+  return { boards: SCENARIOS.length, digest: h(parts) };
+}
+
 function hashes(dex) {
   const c = columns(dex);
   const features = {}, jointFeatures = {};
@@ -678,6 +779,7 @@ function hashes(dex) {
   return {
     version: 2, round: ROUND,
     scenarios: SCENARIOS.map(s => s.label),
+    bodies: bodyDigest(),
     candidates: c.nCands, pairs: c.nPairs,
     features, jointFeatures,
     table: tableDigest(),
@@ -699,6 +801,16 @@ function verify(stored, dex, opts) {
   if (stored.round !== now.round || (stored.scenarios || []).join(',') !== now.scenarios.join(',')) {
     return `the fixture itself changed (rounding ${stored.round} -> ${now.round}, scenarios `
       + `${(stored.scenarios || []).length} -> ${now.scenarios.length}). Old hashes cannot be compared; restamp after checking board.js.`;
+  }
+  /* THE BODIES, not just the labels. A stamp written before this block carries no `bodies`, and that
+   * is an OLDER STAMP rather than a mismatch — announcing it as staleness would make every existing
+   * file cry wolf on the first run, which is the failure the `table` block above already records. */
+  if (stored.bodies && stored.bodies.digest && stored.bodies.digest !== now.bodies.digest) {
+    return `the fixture's BOARDS changed while its scenario labels stayed the same `
+      + `(${stored.bodies.boards} boards, digest ${stored.bodies.digest} -> ${now.bodies.digest}).\n`
+      + '  A species, item, ability, nature, move or pre-set state was edited inside a scenario that kept its name.\n'
+      + '  The feature columns below WILL have moved and that is NOT evidence that board.js changed meaning —\n'
+      + '  it is a different fixture. Restamp: node engine/feature_fixture.js --stamp <file>';
   }
   /* THE TABLE CHECK RUNS FIRST AND REPORTS SEPARATELY. A weight file stamped before this block
    * existed carries no `table`, and that is not a mismatch — it is an older stamp, which must not

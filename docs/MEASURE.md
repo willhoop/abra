@@ -28,14 +28,14 @@ MEASURE — can we believe a number
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
-    feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 11). Old hashes cannot be compared; restamp after checking board.js.
-    moved after the fit: engine/medicham2-browser.js  2026-08-13 16:47
+    feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 12). Old hashes cannot be compared; restamp after checking board.js.
+    moved after the fit: engine/medicham2-browser.js  2026-08-13 17:21
     moved after the fit: engine/board.js  2026-08-13 16:06
     moved after the fit: data/engine-data.js  2026-08-10 18:59
     moved after the fit: data/abra-tags.js  2026-08-12 19:40
 ```
 
-_stamped 2026-08-13 16:48_
+_stamped 2026-08-13 17:24_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,116 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 000000000. ROADMAP #265 / #266 — THE FIXTURES WERE DECLARING TEAMS THE GAME WOULD REFUSE, AND THE RULER FOR THAT DID NOT EXIST — 2026-08-13
+
+`engine/fixture_legality.js` (new), `tests/test-fixture-legality.js` (new),
+`data/fixture-legality-baseline.json` (new), `engine/feature_fixture.js` (six repairs + a body
+digest), `tests/test-feature-semantics.js` (three new clauses). `engine/medicham2-browser.js`,
+`tests/test-mechanics.js`, `engine/game_differential.js` and its artifacts were not touched.
+
+**THE HEADLINE IS A POPULATION, NOT A VERDICT. 334 `.js` files, 627 set declarations across 26 files,
+227 distinct sets, 55 REJECTED by `TeamValidator`, producing 41 distinct verdicts.** Six of those
+were in MEASURE's own `engine/feature_fixture.js` and are repaired here; the other 41-minus-those are
+baselined, named, and owed as #266.
+
+**THE VERDICT IS THE AUTHORITY'S AND NOTHING HERE RE-IMPLEMENTS IT.** Will, mid-task: *"i thought we
+were using showdowns team validator as the ultimate legality test."* The brief this pass started from
+said to check the species with `isNonstandard`, then the ability against the species' list, then the
+item, then each move with `checkCanLearn` — **four hand-written rules standing in for a table Showdown
+maintains**, which is FACTS ARE GLOBAL broken inside the file written to enforce a rule. A piecemeal
+check only finds the rules somebody thought to write. `validateTeam` carries the 66-point SP budget,
+the 32-per-stat cap, the level, the item clause and every ban the Champions mod adds next. So
+`fixture_legality.js` calls `champions_sim.checkLegal` — one shared validator instance, five padding
+slots that are themselves proved clean — and prints the validator's own sentences rather than a
+summary of them. **It is also less code.**
+
+**THE SCANNER IS DERIVED AND IT WAS WRONG FOUR TIMES BEFORE IT WAS RIGHT, WHICH IS WHY EACH RULE IS
+WRITTEN DOWN WHERE IT LIVES.** A hand-listed set of fixture files is the shape this repository has
+been wrong about most often, so the sweep walks the tree and finds sets by shape:
+
+| the rule | what it was reporting before it existed |
+|---|---|
+| a literal is an entity only if it normalises to that entity's OWN id | `dex.species.get('p2')` answers **Porygon2**; `p2` in this tree is a SIDE |
+| moves come from ARRAY literals only | `hit('vaporeon','icebeam')` clicks the move AT that body — **three false accusations** |
+| helpers are taken at TOP LEVEL only | `test-mechanics.js` redeclares `run`/`hit`/`at` in dozens of probe callbacks; a file-global name set paired an ability stamped on the ATTACKER with the DEFENDER's name |
+| a set is declared by an object literal **or by MUTATION** | requiring a `species` key hid **64 real sets** in `test-protocol-trace.js` |
+
+**507 CONSTRUCTION SITES CARRY NO LITERAL SET AND ARE OUTSIDE THE POPULATION, WHICH IS CORRECT AND IS
+PRINTED RATHER THAN IMPLIED.** A fixture that builds its bodies from the format — `tests/roster.js`
+walks the regulation, `engine/all_mechanics_fire.js` reads the tag dex — cannot type a name that does
+not exist. A fixture that builds through `buildMon(key)` and assigns the click LATER, which is most of
+`tests/test-mechanics.js`, has no set to validate at the point the body is made; the sweep says so
+instead of guessing, and that is the honest limit of a static sweep.
+
+**THE GATE IS A RATCHET, SHAPED LIKE `data/fixture-learnset-baseline.json` AND A SUPERSET OF IT.**
+Keyed on the **validator's own sentence**, not on file:line, so the same illegal declaration moved to
+a new scenario is the same defect. Six clauses, and two of them exist because a green gate is worth
+nothing on its own: a **population floor** (a scanner that finds nothing passes everything below it —
+it must find ≥150 distinct sets, against 227 today), and a **self-check that the ratchet still
+discriminates**, run on every invocation rather than demonstrated once in prose. The baseline **may
+only shrink**: a baselined verdict that stops being produced FAILS, because a repair that leaves its
+allowance behind is a hiding place for the next illegal set. Every entry carries a `kind`
+(`DELIBERATE` or `PRE-EXISTING`) and a written reason, and an entry with neither fails.
+
+**SHOWN RED THREE WAYS BEFORE BEING TRUSTED, and the first is the real historical instance:**
+re-planting Rocky Helmet on Venusaur reports `[EXISTENCE] Venusaur's item Rocky Helmet does not exist
+in Gen 9.` naming `engine/feature_fixture.js:87`; two invented baseline entries fire the
+stale-allowance clause by name; one carrying a bad `kind` fires the reason clause. The tree was
+restored byte-for-byte from a copy taken before the plant.
+
+**THE SIX REPAIRS ARE ALL IN MEASURE'S OWN FIXTURE AND COVERAGE WAS MEASURED ACROSS EVERY ONE.**
+Rocky Helmet → Miracle Seed (4 sites), Electric Seed → Mental Herb, Throat Spray → White Herb,
+Grimmsnarl's Thunder Wave → Taunt, Hippowdon's Weather Ball → Rock Slide, and a new board.
+
+| | before | after |
+|---|---|---|
+| boards | 10 | **12** |
+| candidates / pairs | 352 / 1,407 | 384 / 1,534 |
+| columns that never fire | 0 | **0** |
+| columns that LOST a firing | — | **`statusBites` 5 → 4, and nothing else** |
+
+**TWO OF THOSE REPAIRS WERE NOT RENAMES AND THE COST IS RECORDED RATHER THAN ROUNDED AWAY.**
+*(a)* **No body in this regulation can carry Weather Ball in sand.** Derived over the format, the move
+has **80 legal carriers and not one is a Rock or Ground body or sets sand**, so `sand-is-up` had been
+claiming the ROCK type-flip path through a move Hippowdon cannot learn. Repairing it IN PLACE was
+tried first and measured: swapping in Heliolisk costs that board its Earthquake and its Yawn and
+thinned **`allyHit` 4 → 3, `abilityBlock` 3 → 2, `deadStatus` 2 → 1, `statusBites` 5 → 2** — the first
+two being exactly the pair this file was built to protect — while **every column stayed non-zero, so
+the coverage check would have waved it through**. The flip moved to its own board,
+`sand-weather-ball`, which is what this file's own record of two bad edits says to do. *(b)*
+**Grimmsnarl has no legal primary-status move at all**, only secondary-chance ones, so Taunt cannot
+carry `deadStatus`; the click moved to Torkoal's Will-O-Wisp into an already-paralysed Incineroar.
+That restores `deadStatus` and leaves `statusBites` one short, because the only body that could repay
+the last one is the Clefable whose fourth move is the single 4x hit anywhere in the fixture. Trading
+`eff4`'s only firing for one of five is a worse board, so it is not made. **4/384 against 5/352,
+declared.**
+
+**AND THE FINDING THAT OUTLIVES THE FIX IS THE GUARD'S OWN, FOR THE EIGHTH TIME.**
+`feature_fixture.verify()` decided *"is this the same fixture?"* from `ROUND` and the list of scenario
+**LABELS**. A label is not a board. Edit a species, an item, an ability, a nature, a move or a pre-set
+state inside a scenario that keeps its name and the identity check passes — after which every moved
+column is announced as *"these features changed MEANING since the weights were fitted"*, which is
+**FALSE**, and which accuses `board.js` of a change it did not make. That is the refit/restamp
+distinction this whole file turns on, collapsed. It now carries a **body digest** covering species,
+item, ability, nature, moves, bench and pre-set state, reported as *"the fixture's BOARDS changed
+while its scenario labels stayed the same"* and explicitly **NOT** as evidence about `board.js`. A
+stamp written before the digest existed is treated as an OLDER STAMP and not as staleness, matching
+the convention the `table` block already set.
+
+**WHAT THIS DOES NOT SAY.** It says nothing about whether a fixture's board is a good test — only
+that the team could be brought. It cannot see a set assembled at runtime. And the 41 baselined
+verdicts are **not repaired**: they are named, costed per file, and routed as **#266**. Nothing was
+re-baselined into silence, and the gate is what enforces that.
+
+**REPORTED, NOT FIXED, NOT SILENCED.** `tests/test-mechanics.js` was run WITHOUT being edited:
+**567 live / 0 missing, exit 0** — but ENGINE was working in the same window and took the census
+565 → 567 under #264, so that number is ENGINE's and is quoted here only as evidence that nothing in
+this pass moved it. `tests/test-protocol-trace.js:131` gives Politoed the item `'dampro'`, which
+names nothing in this format: the fixture builds a Politoed holding **nothing** while its source says
+otherwise, and reports success. That is *a capability was absent and everything reported success*,
+and it is filed rather than repaired because that file has twelve other verdicts and they move as one
+batch.
 
 ### 00000000. ROADMAP #254 — THE HAZARD SIDE. THE FIT DOES NOT MOVE, THE LIVE BOT DOES, AND THE GUARD COULD NOT SEE EITHER — 2026-08-13
 

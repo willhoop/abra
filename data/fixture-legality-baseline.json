@@ -1,0 +1,386 @@
+{
+  "stamped": "2026-08-13T21:17:52.730Z",
+  "what": "Distinct verdicts that Showdown's TeamValidator returns for a SET declared by a fixture in this repo. engine/fixture_legality.js sweeps every declaration; tests/test-fixture-legality.js reports these and FAILS on a verdict that is not listed here.",
+  "why": "The clause was added 2026-08-13 and every one of these predates it. Repairing forty fixtures in the pass that ADDS the check makes both unattributable — the same reasoning already recorded in data/fixture-learnset-baseline.json, of which this is the superset. The list may only SHRINK, and the gate asserts that: a baselined verdict that stops being produced must be REMOVED, or the next illegal set hides under a stale allowance.",
+  "key": "the validator's own sentence, lowercased and whitespace-collapsed. Keyed on the SENTENCE and not on file:line, so the same illegal declaration moved to a new scenario is the same defect and cannot be re-introduced as new.",
+  "kinds": {
+    "DELIBERATE": "the fixture stages an impossible pairing ON PURPOSE and says why — an isolation probe stamping one named control ability on every body, for instance. Legitimate; forcing a per-species legal control is the Fluffy/Sand Rush failure.",
+    "PRE-EXISTING": "a real defect, held because repairing it changes what its scenario measures."
+  },
+  "count": 41,
+  "verdicts": [
+    {
+      "problem": "Toxapex's item Black Sludge does not exist in Gen 9.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
+      "sites": [
+        "tests/test-protocol-trace.js:118"
+      ]
+    },
+    {
+      "problem": "Archaludon can't learn Body Press.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A driver fixture for the game differential, which is not MEASURE's to edit this session (engine/game_differential.js and its artifacts are held by another agent). Reported and filed.",
+      "sites": [
+        "tests/test-game-diff.js:504"
+      ]
+    },
+    {
+      "problem": "Clefable can't learn Agility.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. Agility is the carried boost the test is about; a legal replacement has to boost the same stat on the same body, which is a fixture redesign rather than a rename.",
+      "sites": [
+        "tests/test-switch-carry.js:80"
+      ]
+    },
+    {
+      "problem": "Clefable can't learn Perish Song.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. The bodies were chosen to match tests/test-volatile-duration.js so a shared duration change cannot pass in one file and fail in the other; changing either alone breaks that deliberate pairing.",
+      "sites": [
+        "tests/test-perish-song.js:102",
+        "tests/test-volatile-duration.js:73"
+      ]
+    },
+    {
+      "problem": "Clefable can't learn Trick Room.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:271",
+        "tests/test-protocol-trace.js:105",
+        "tests/test-protocol-trace.js:113",
+        "tests/test-protocol-trace.js:364"
+      ]
+    },
+    {
+      "problem": "Clefable can't learn Will-O-Wisp.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
+      "sites": [
+        "tests/test-protocol-trace.js:146"
+      ]
+    },
+    {
+      "problem": "Corviknight can't learn Ally Switch.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:584"
+      ]
+    },
+    {
+      "problem": "Corviknight can't learn Pound.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. The bodies were chosen to match tests/test-volatile-duration.js so a shared duration change cannot pass in one file and fail in the other; changing either alone breaks that deliberate pairing.",
+      "sites": [
+        "tests/test-perish-song.js:110"
+      ]
+    },
+    {
+      "problem": "Corviknight can't learn Swords Dance.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:679"
+      ]
+    },
+    {
+      "problem": "Ditto can't learn Protect.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:644"
+      ]
+    },
+    {
+      "problem": "Farigiraf can't learn Encore.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. The censoring fixture asserts which clicks are visible, not what the bodies can learn; repairing the sets moves the censored-click counts it pins.",
+      "sites": [
+        "tests/test-click-censoring.js:241"
+      ]
+    },
+    {
+      "problem": "Garchomp can't learn Agility.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. Agility is the carried boost the test is about; a legal replacement has to boost the same stat on the same body, which is a fixture redesign rather than a rename.",
+      "sites": [
+        "tests/test-switch-carry.js:122"
+      ]
+    },
+    {
+      "problem": "Gengar can't have Levitate.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
+      "sites": [
+        "tests/test-protocol-trace.js:130"
+      ]
+    },
+    {
+      "problem": "Incineroar can't learn Iron Defense.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:559",
+        "tests/staged_status_counters.js:379"
+      ]
+    },
+    {
+      "problem": "Incineroar can't learn Knock Off.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. The censoring fixture asserts which clicks are visible, not what the bodies can learn; repairing the sets moves the censored-click counts it pins.",
+      "sites": [
+        "tests/test-click-censoring.js:242",
+        "tests/test-nature-differential.js:152",
+        "tests/test-protocol-trace.js:100",
+        "tests/test-protocol-trace.js:362",
+        "tests/test-protocol-trace.js:380",
+        "tests/test-protocol-trace.js:647"
+      ]
+    },
+    {
+      "problem": "Kangaskhan can't learn Swords Dance.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:609"
+      ]
+    },
+    {
+      "problem": "Milotic can't learn Charm.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:554"
+      ]
+    },
+    {
+      "problem": "Milotic can't learn Nuzzle.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:341",
+        "tests/staged_status_counters.js:321"
+      ]
+    },
+    {
+      "problem": "Milotic can't learn Spore.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. The status-counter staging batch. Seven of these are already on data/fixture-learnset-baseline.json, which the turn-1 clause in tests/staged_board.js reads; this baseline is the superset and neither may grow.",
+      "sites": [
+        "tests/staged_status_counters.js:189",
+        "tests/staged_status_counters.js:209"
+      ]
+    },
+    {
+      "problem": "Milotic can't learn Will-O-Wisp.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. The status-counter staging batch. Seven of these are already on data/fixture-learnset-baseline.json, which the turn-1 clause in tests/staged_board.js reads; this baseline is the superset and neither may grow.",
+      "sites": [
+        "tests/staged_status_counters.js:376"
+      ]
+    },
+    {
+      "problem": "Mudsdale can't learn Swords Dance.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. The status-counter staging batch. Seven of these are already on data/fixture-learnset-baseline.json, which the turn-1 clause in tests/staged_board.js reads; this baseline is the superset and neither may grow.",
+      "sites": [
+        "tests/staged_status_counters.js:344"
+      ]
+    },
+    {
+      "problem": "Ninetales can't learn Dazzling Gleam.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. The speed-tie fixture is pinned to four 100-base-Speed bodies that both engines build identically; the illegal move is on one of them and changing the body dissolves the tie the case exists to stage.",
+      "sites": [
+        "tests/test-speed-tie.js:79"
+      ]
+    },
+    {
+      "problem": "Palafin can't learn U-turn.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:832"
+      ]
+    },
+    {
+      "problem": "Politoed can't learn Grassy Terrain.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
+      "sites": [
+        "tests/test-protocol-trace.js:131"
+      ]
+    },
+    {
+      "problem": "Politoed can't learn Scald.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
+      "sites": [
+        "tests/test-protocol-trace.js:147"
+      ]
+    },
+    {
+      "problem": "Slowking can't learn Haze.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
+      "sites": [
+        "tests/test-protocol-trace.js:365"
+      ]
+    },
+    {
+      "problem": "Slowking can't learn Perish Song.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
+      "sites": [
+        "tests/test-protocol-trace.js:115"
+      ]
+    },
+    {
+      "problem": "Snorlax can't learn Agility.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A probe fixture; Agility is the boost under probe and a legal replacement changes the leaf being counted.",
+      "sites": [
+        "tests/probe_volatile_leaves.js:90"
+      ]
+    },
+    {
+      "problem": "Snorlax can't learn Iron Defense.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:585",
+        "tests/staged_board.js:804"
+      ]
+    },
+    {
+      "problem": "Snorlax can't learn Pain Split.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
+      "sites": [
+        "tests/test-protocol-trace.js:257"
+      ]
+    },
+    {
+      "problem": "Snorlax can't learn Pound.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. The bodies were chosen to match tests/test-volatile-duration.js so a shared duration change cannot pass in one file and fail in the other; changing either alone breaks that deliberate pairing.",
+      "sites": [
+        "tests/test-perish-song.js:106",
+        "tests/test-volatile-duration.js:71"
+      ]
+    },
+    {
+      "problem": "Snorlax can't learn Roar.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
+      "sites": [
+        "tests/test-protocol-trace.js:132"
+      ]
+    },
+    {
+      "problem": "Snorlax can't learn Swords Dance.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:343",
+        "tests/staged_board.js:408",
+        "tests/staged_board.js:611",
+        "tests/staged_board.js:743",
+        "tests/staged_board.js:771",
+        "tests/staged_status_counters.js:190",
+        "tests/staged_status_counters.js:210",
+        "tests/staged_status_counters.js:235",
+        "tests/staged_status_counters.js:253",
+        "tests/staged_status_counters.js:280",
+        "tests/staged_status_counters.js:302",
+        "tests/staged_status_counters.js:323",
+        "tests/staged_status_counters.js:345",
+        "tests/staged_status_counters.js:504"
+      ]
+    },
+    {
+      "problem": "Snorlax can't learn U-turn.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:469"
+      ]
+    },
+    {
+      "problem": "Staraptor can't learn Swords Dance.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:678"
+      ]
+    },
+    {
+      "problem": "Tinkaton can't learn Iron Defense.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. The status-counter staging batch. Seven of these are already on data/fixture-learnset-baseline.json, which the turn-1 clause in tests/staged_board.js reads; this baseline is the superset and neither may grow.",
+      "sites": [
+        "tests/staged_status_counters.js:503"
+      ]
+    },
+    {
+      "problem": "Toxapex can't learn Scald.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
+      "sites": [
+        "tests/test-protocol-trace.js:118",
+        "tests/test-protocol-trace.js:149",
+        "tests/test-protocol-trace.js:214",
+        "tests/test-protocol-trace.js:241",
+        "tests/test-protocol-trace.js:261"
+      ]
+    },
+    {
+      "problem": "Toxapex can't learn U-turn.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:468"
+      ]
+    },
+    {
+      "problem": "Weavile can't learn Encore.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. Paired with tests/test-perish-song.js by design — the same bodies in both so a duration change cannot pass in one and fail in the other. They move together or not at all.",
+      "sites": [
+        "tests/test-volatile-duration.js:72"
+      ]
+    },
+    {
+      "problem": "Weavile can't learn U-turn.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:314",
+        "tests/staged_board.js:523",
+        "tests/staged_board.js:556",
+        "tests/staged_board.js:642",
+        "tests/staged_board.js:704"
+      ]
+    },
+    {
+      "problem": "Whimsicott can't learn Stealth Rock.",
+      "kind": "PRE-EXISTING",
+      "why": "PRE-EXISTING. A driver fixture for the game differential, which is not MEASURE's to edit this session (engine/game_differential.js and its artifacts are held by another agent). Reported and filed.",
+      "sites": [
+        "tests/test-game-diff.js:571"
+      ]
+    }
+  ],
+  "unknownLiterals": [
+    {
+      "literal": "dampro",
+      "sites": [
+        "tests/test-protocol-trace.js:131"
+      ],
+      "kind": "PRE-EXISTING",
+      "why": "A typo for damprock. The item resolves to nothing, so the fixture builds a Politoed holding NOTHING while the source says otherwise — a capability absent with everything reporting success. Filed to the owner of tests/test-protocol-trace.js; not repaired here because that file has 13 other verdicts and they move as one batch."
+    }
+  ]
+}
