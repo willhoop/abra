@@ -491,6 +491,29 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   perHitDamageLoop: 0, perHitBasePower: 0, smartTargetSplit: 0,
   conditionalPowerRolled: 0, conditionalPowerPriced: 0,
   perishTicked: 0, perishKO: 0, perishClearedOnSwitch: 0,
+  /* 2026-08-12 -- WHAT A BODY LEFT BEHIND WHEN IT LEFT THE FIELD, and what its badly-poison ramp did
+   * when it came back. Will: *"does toxic and sleep turns carry over when a mon is switched out and
+   * are we tracking relevant things like that"*.
+   *
+   *   volatilesClearedOnSwitch  volatile ENTRIES dropped by the wholesale wipe in switchOut. The
+   *                             three hand-written deletes above it run first, so this counts only
+   *                             what the old hand list MISSED -- a zero here on a run with pivots in
+   *                             it means the wipe is unreachable, not that it is unnecessary.
+   *   volatileSwitchBodies      bodies that carried at least one. `Cleared / Bodies` is the average
+   *                             number of volatiles a pivoting body was wrongly keeping.
+   *   volatileSwitchNames       WHICH ones, deduplicated. A bare count cannot answer the first
+   *                             question anybody asks of a non-zero, and this family is exactly the
+   *                             one whose hand-written membership was wrong for months.
+   *   toxStageResetOnEntry      the badly-poison ramp restarted on a returning body, which is
+   *                             `tox.onSwitchIn() { this.effectState.stage = 0; }` -- the ONLY status
+   *                             condition in this format that declares a switch handler at all. */
+  volatilesClearedOnSwitch: 0, volatileSwitchBodies: 0, volatileSwitchNames: [],
+  toxStageResetOnEntry: 0,
+  /* 2026-08-12 -- actions that skipped the whole onBeforeMove block because they are not a move.
+   * `onBeforeMove` is raised inside `runMove` and a switch never enters it, so a body that pivots
+   * does not spend a turn of sleep, freeze, confusion or the paralysis roll. A ZERO on a run with
+   * voluntary switches in it means the guard is unreachable. */
+  beforeMoveGateSkipped: 0,
   passesStateSwitch: 0, passesStateBoosts: 0, passesStateVolatiles: 0,
   curseGhost: 0, curseNonGhost: 0,
   /* WIRE 132 -- the three recoveries the mega path now makes, each named so a ZERO is readable.
@@ -10679,6 +10702,48 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry){
      (sim/battle-actions.ts:138) -- the body that just arrived has taken no move action, whatever it
      did before it left. Fake Out and First Impression are the readers; see firstTurnOnlyRefused. */
   nx._turnsOut=0; nx._mvActs=0; nx._fallenStuck=sf.fainted; act[i]=nx;
+  /* 2026-08-12 -- THE BADLY-POISON RAMP RESTARTS ON THE WAY BACK IN, AND IT IS THE ONLY STATUS THAT
+   * DOES ANYTHING AT ALL ON A SWITCH.
+   *
+   * Will: *"does toxic and sleep turns carry over when a mon is switched out and are we tracking
+   * relevant things like that"*. The two halves of that question have OPPOSITE answers, and this
+   * engine had the same answer for both.
+   *
+   * `Pokemon#clearVolatile()` does NOT touch `status` or `statusState` -- so a status and every
+   * counter hanging off it survives a switch by default, and the ONLY thing that can reset one is
+   * that condition's own `onSwitchIn`. Walked over every condition in the format's own table:
+   *
+   *   par  brn  psn  frz  slp   no switch handler at all   -> the counter CARRIES OVER. Correct here
+   *                                                           already: nothing in switchOut touches
+   *                                                           slpTurns or frzTurns, and it must not.
+   *   tox  onSwitchIn() { this.effectState.stage = 0; }    -> the ramp RESTARTS.
+   *
+   * SO SLEEP CARRIES AND TOXIC DOES NOT, and this engine carried both. STAGED against the authority
+   * before the line was written -- Toxic, pivot out on turn 4, back on turn 5, same script both sides:
+   *
+   *     boundary   medicham2            showdown
+   *     t3         115 hp  stage 3      115 hp  stage 3
+   *     t4 bench   115 hp  stage 3      115 hp  stage 3     (both freeze it -- correct)
+   *     t5 return   75 hp  stage 4      105 hp  stage 1     <-- 30 hp, and it compounds
+   *     t6          25 hp  stage 5       85 hp  stage 2
+   *     t7         FAINTED               81 hp  stage 3
+   *
+   * A body that is alive on the authority is DEAD here, three turns early, off one counter. It is
+   * also the counter-play the move has: pivoting out of a Toxic is how the ramp is beaten, and an
+   * engine that does not reset it prices every Toxic as strictly better than the real move.
+   *
+   * IT IS ON THE WAY IN, NOT ON THE WAY OUT, because that is the moment the authority uses -- proven
+   * by the t4 row above, where BOTH engines still hold stage 3 while the body sits on the bench. A
+   * reset in switchOut would produce the same HP and the wrong intermediate state, and `switchOut` is
+   * not the only door: a faint replacement, a Roar drag and a U-turn pivot all arrive through bringIn
+   * and none of them goes through switchOut at all.
+   *
+   * THE ENGINE HARD-CODES THE MEMBERSHIP AND THE TEST DERIVES IT. `tox` is not reachable through
+   * `TAGS`, which speaks moves, items and abilities -- so this line sits beside the residual's own
+   * hard-coded `toxTurns * 1/16` ramp rather than inventing a fourth tag namespace for one member.
+   * `tests/test-switch-carry.js` reads `D.conditions.get('tox').onSwitchIn` out of the format on
+   * every run and FAILS if the handler moves, so the fact is checked rather than remembered. */
+  if(nx.status==='tox'&&(nx.toxTurns||0)>0){ nx.toxTurns=0; MEDSEEN.toxStageResetOnEntry++; }
   /* WIRE 135 -- Payback refuses its double against a body that arrived this turn (`newlySwitched`),
    * so the arrival has to be recorded. Cleared at the top of the next turn with the rest of the
    * per-turn facts. */
@@ -10954,6 +11019,70 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * because a binding that outlives its counter is a volatile that ended and kept working. */
   if(out._vol)for(const _gv of guaranteeVolatiles().keys())if(out._vol[_gv]!=null)delete out._vol[_gv];
   out._guarantee=null;
+  /* 2026-08-12 -- AND NOW EVERY OTHER ONE, BECAUSE THE AUTHORITY'S RULE IS ONE LINE AND IT IS
+   * WHOLESALE. The three deletes above are members of a class that was being emptied BY HAND, and the
+   * hand-written list had been wrong since it was written: the comment on the confusion line filed
+   * `taunt`, `encore` and `disable` as "also survive a switch in this engine and should not", and a
+   * staged audit found ELEVEN more beside them.
+   *
+   *   `Pokemon#clearVolatile()` (sim/pokemon.ts:1514) is `this.volatiles = {}`.
+   *
+   * Not a loop over a membership, not a tag: the authority does not consult the volatile at all. It
+   * drops the table. Anything that must survive a switch is therefore NOT a volatile in the first
+   * place, which is exactly why `_sub`, `_trap`, `_seededBy`, `_perish` and `_healBlock` are separate
+   * fields on this body and are cleared on their own lines above.
+   *
+   * MEASURED BEFORE IT WAS WRITTEN, both engines, one script -- install, pivot out, pivot back, read
+   * the raw state off each side. Showdown held NOTHING afterwards in every row. medicham2 held:
+   *
+   *   aquaring  destinybond  electrify  encore  focusenergy  gastroacid  magnetrise  minimize
+   *   powertrick  smackdown  stockpile  taunt  torment
+   *
+   * and six of those have live consumers here, so this is behaviour and not bookkeeping: `taunt` and
+   * `encore` are read by the move filter, `magnetrise` and `smackdown` by `isGrounded`, `aquaring` by
+   * the residual heal, `stockpile` by Spit Up and Swallow. A Taunted body pivoted out and came back
+   * still Taunted -- and its clock had ticked DOWN on the bench while it did, so the engine was
+   * running a duration on a body that was not on the field.
+   *
+   * IT SITS BELOW `capturePassedState`, with the confusion and the charge, for their reason: Baton
+   * Pass exists to carry a volatile through a switch and reads the body before any of this runs.
+   *
+   * THE THREE DELETES ABOVE ARE KEPT RATHER THAN FOLDED IN. They are redundant now, and that is the
+   * point: `chargeClearedOnSwitch` and `perishClearedOnSwitch` are the anchors tests/staged_board.js
+   * patches for its red demonstration, and re-homing a working mechanic so a new one reads tidily is
+   * how a green test stops testing anything.
+   *
+   * COUNTED WITH THE NAMES, not with a bare total. A count alone cannot say WHICH volatile was riding
+   * the bench, and the first question anyone asks of a non-zero here is "which one". */
+  if(out._vol){
+    const _left=Object.keys(out._vol).filter(k=>out._vol[k]);
+    if(_left.length){
+      MEDSEEN.volatilesClearedOnSwitch+=_left.length;
+      MEDSEEN.volatileSwitchBodies++;
+      for(const _k of _left) if(!MEDSEEN.volatileSwitchNames.includes(_k)) MEDSEEN.volatileSwitchNames.push(_k);
+    }
+    out._vol={};
+  }
+  /* THE FIELDS THAT HANG OFF A VOLATILE GO WITH IT. `endDurationVolatile` already makes this pairing
+   * -- "each member owns a second field beside the counter, and freeing the name while leaving the
+   * field behind is how a volatile ends and keeps working" -- and a wholesale wipe of `_vol` walks
+   * straight into exactly that trap for the two members that have one. */
+  out._encoreMove=null; out._sealed=null; out._volGave=null;
+  /* AND THE MOVE THAT RAISED THE SHIELD. `protect` and `tookProtectTurns` are cleared at the top of
+   * this function; `_protectMove` names WHICH shield it was and is read by the contact punish, so
+   * leaving it behind is the same half-cleared shape one line up. */
+  out._protectMove=null;
+  /* ROADMAP #221-adjacent -- AND `lastMove`, WHICH IS NOT A VOLATILE AND IS CLEARED BY THE SAME CALL.
+   * `clearVolatile()` sets `this.lastMove = null` (and `lastMoveUsed`, `moveThisTurn`,
+   * `moveLastTurnResult`) alongside emptying the table. It matters here for one reason and it is a
+   * REFUSAL rather than an effect: `volNeedsLastMove` turns Encore and Disable away against a target
+   * with no last move, which is the authority's own guard (`if (!target.lastMove) return false`). A
+   * body that has just switched in HAS no last move, so both moves must fail on it -- and this engine
+   * let them land, sealing a move the entrant had clicked several turns and one bench trip ago.
+   *
+   * `_mvRes`/`_mvResLast` were already cleared four lines below under ROADMAP #84, which is the same
+   * clause of the same authority call; this is the member of that group that was missed. */
+  out._lastMove=null;
   /* _disguiseBusted IS DELIBERATELY NOT CLEARED HERE. A Mimikyu that leaves and comes back does not
    * get a second disguise -- the forme change lasts the battle. It sits beside these two because the
    * natural instinct on reading this line is to reset every underscore flag alongside them, and that
@@ -12283,6 +12412,34 @@ function battleTurn(S,rng,actsForA,actsForB){
        *     recharge   conditions.ts:372  return NULL    -- the one that does not count
        *     Throat Chop / Taunt / Disable  moves.ts      return false
        * Nothing here is a judgement; each is one line in the authority. */
+      /* 2026-08-12 -- AND NONE OF THEM RUN FOR A BODY THAT IS NOT USING A MOVE.
+       *
+       * Every gate below is an `onBeforeMove` handler, and `onBeforeMove` is raised inside `runMove`
+       * (sim/battle-actions.ts). A SWITCH is not a move: it is its own action kind, drained by
+       * `runSwitch`, and it never enters `runMove` at all -- so nothing asks a switching body whether
+       * it is asleep, and its sleep counter does not tick for the turn it leaves on. Same for `pass`.
+       *
+       * THIS ENGINE RAN THE GATES ON EVERY ACTION, because the kind dispatch is a thousand lines
+       * BELOW them. FOUND BY tests/test-switch-carry.js PART 3, which was written for a different
+       * question entirely -- does a sleep counter carry across a pivot -- and staged the two engines
+       * side by side:
+       *
+       *     boundary   medicham2              showdown
+       *     t1         slp  slpTurns=1        slp  time=1
+       *     t2 BENCH   AWAKE  slpTurns=2      slp  time=1     <-- ours woke ON THE WAY OUT
+       *     t3         awake                  slp  time=1
+       *     t4         awake                  AWAKE
+       *
+       * The counter itself was right and CARRIED correctly, which is why nothing had caught this: the
+       * defect is that a turn spent switching was being SPENT AGAINST THE CLOCK. It is worth two free
+       * turns of sleep to anyone who pivots, in a format built on pivoting -- and it applies to freeze
+       * and to paralysis' full-turn roll identically, which is why the guard is on the whole block
+       * rather than on the sleep line that exposed it.
+       *
+       * `struggle` IS DELIBERATELY NOT EXEMPT. Struggle is a MOVE -- `runMove` is entered with it and
+       * every BeforeMove gate applies -- so a body that is asleep and has no PP still cannot act. */
+      if(it.a&&(it.a.kind==='switch'||it.a.kind==='pass')){ MEDSEEN.beforeMoveGateSkipped++; }
+      else {
       /* ROADMAP #92 -- THE ORDER OF THESE FIVE IS `onBeforeMovePriority`, WHICH IS AN AUTHORITY FACT
        * AND WAS WRONG HERE. A HIGHER NUMBER RUNS FIRST:
        *     slp        conditions.ts:64    priority 10
@@ -12361,11 +12518,16 @@ function battleTurn(S,rng,actsForA,actsForB){
        * spend a turn of its clock. Measured on the probe that carries this row: with the tick applied
        * to a passing body, the CONTROL arm (a body standing still while nobody moves) lost its
        * confusion in two turns of doing nothing, which is not a game anybody plays.
-       * FILED, NOT FIXED HERE: `slp`, `frz` and the flinch above are on the same footing and are NOT
-       * guarded, so a sleeping body still ticks its counter on a pass and -- worse -- a `continue`
-       * there means it CANNOT VOLUNTARILY SWITCH AT ALL. That is a pre-existing turn-resolution bug
-       * with no failing probe on it, and changing how every switch resolves is not a line to add
-       * beside a confusion fix. */
+       * THE FILED HALF IS CLOSED, 2026-08-12. This comment used to end: *"FILED, NOT FIXED HERE: slp,
+       * frz and the flinch above are on the same footing and are NOT guarded ... That is a
+       * pre-existing turn-resolution bug WITH NO FAILING PROBE ON IT"*. There is one now --
+       * tests/test-switch-carry.js PART 3 stages a sleeping body pivoting out and reads both engines,
+       * and ours woke two turns early. The guard is the `if/else` opened above, which covers the whole
+       * block on one rule instead of three lines each restating it.
+       *
+       * THE TWO INLINE GUARDS BELOW ARE NOW REDUNDANT AND ARE KEPT. They are inside the else, so they
+       * can never fire on a switch or a pass whatever they say -- and deleting a correct guard to make
+       * a new one look tidy is how a rule ends up asserted in exactly one place. */
       if(!(it.a&&(it.a.kind==='pass'||it.a.kind==='switch'))
          &&confusionBeforeMove(m,rng)){m._mvRes=false;continue;}
       /* ROADMAP #197 -- ATTRACT, AND ITS POSITION IN THIS CHAIN IS READ RATHER THAN CHOSEN. The
@@ -12377,6 +12539,10 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(!(it.a&&(it.a.kind==='pass'||it.a.kind==='switch'))
          &&attractBeforeMove(m,rng,[...actA,...actB])){m._mvRes=false;continue;}
       if(m.status==='par'&&rng()<0.125){m._mvRes=false;if(TR)TR.cant(m,'par');continue;}   // Champions: 12.5% full-para (was 25%)
+      } /* end of the onBeforeMove block — see the `switch`/`pass` guard that opened it. RECHARGE IS
+         * DELIBERATELY OUTSIDE IT: `mustrecharge` is a real request state in the authority and a
+         * recharging body is not offered a switch at all, so exempting it here would invent an escape
+         * the format does not have. */
       const a=it.a;
       /* WIRE 43 -- THE RECHARGE TURN. Hyper Beam is 1,627 corpus clicks and Giga Impact 29, and both
          were free: the engine played the move and then let the user act again next turn, so the

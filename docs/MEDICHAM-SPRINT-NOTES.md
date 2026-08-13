@@ -6982,3 +6982,36 @@ the fix carries the source move on the volatile rather than adding a literal.
 It was already on the parked list as “residual damage attribution” and was parked as cosmetic. It is
 cosmetic per line and it is the biggest family in the mechanics numbers, which is the argument for
 ranking by usage rather than by how often the swarm happened to stage something.
+
+### THE HAND-WRITTEN LIST OF WHAT A SWITCH CLEARS WAS THE BUG
+
+Will: *"does toxic and sleep turns carry over when a mon is switched out and are we tracking relevant
+things like that"*. Toxic was his EXAMPLE; the class is the answer.
+
+`Pokemon#clearVolatile()` is `this.volatiles = {}` — wholesale, no membership — so the authority has ONE
+rule for every volatile. Ours emptied `_vol` three members at a time, and its own comment already filed
+taunt/encore/disable as known-wrong. **Eleven more were surviving**: aqua ring, destiny bond, electrify,
+focus energy, gastro acid, magnet rise, minimize, power trick, smack down, stockpile, torment. Six have
+live consumers — a Taunted body came back still Taunted AND its clock had ticked down on the bench.
+
+**Toxic, staged in both engines rather than reasoned about:** at the return, medicham2 75 hp stage 4
+against showdown 105 hp stage 1; two turns later ours had FAINTED and the authority sat at 81. `tox` is
+the ONLY status in the format carrying a switch handler (`onSwitchIn` sets stage 0); slp, frz, par, brn
+and psn all carry, and ours already carried them correctly.
+
+**A third defect nobody went looking for: a switching body was taking every `onBeforeMove` gate.** That
+event is raised inside `runMove` and a switch never enters it, so a sleeping body woke two turns early
+by pivoting. The file had already filed this as *a pre-existing turn-resolution bug WITH NO FAILING
+PROBE ON IT*; there is a probe now.
+
+Three red proofs, each restored byte-identical. One exposed a limit worth keeping: with the clear
+disabled, `volatilesClearedOnSwitch` still read +1, because the counting block sits above the
+assignment — it counts INTENT, not effect. The outcome assertion caught what the counter could not.
+
+`tests/test-switch-carry.js`, 27 assertions, every expectation derived from the format on each run.
+Census 541 live / 0 missing, unchanged — this added an instrument, not a row.
+
+**Flag, unrelated to switching and not fixed:** Toxic does not bypass accuracy for a Poison-type user.
+`battle-actions.ts:627` and `:731` set accuracy `true` for `gen>=8 && toxic && hasType('Poison')`. We
+have no such branch, so a Venusaur's Toxic emitted `|-miss|` where the authority's landed. Deterministic,
+and its own row rather than folded into this pass.

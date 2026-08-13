@@ -36,7 +36,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  541/541 probed mechanics live, 0 missing   (census 2026-08-12 21:52)
+  541/541 probed mechanics live, 0 missing   (census 2026-08-12 22:19)
   0/6000 differential comparisons disagree with Showdown   (2026-08-12 21:53)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -49,15 +49,123 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 8ef2e3c94062 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is cf7eba0ebc7b now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 918270fa949b now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 262/280 probed, 18 unprobed
 ```
 
-_stamped 2026-08-12 21:59_
+_stamped 2026-08-12 22:23_
 
 <!-- /GENERATED -->
+
+## WHAT SURVIVES A SWITCH — THREE DEFECTS, AND THE HAND-WRITTEN MEMBERSHIP WAS THE BUG. 2026-08-12.
+
+**Census 541 live / 0 missing -> 541 live / 0 missing. THE COUNT DID NOT MOVE AND THAT IS THE HONEST
+READING**: this pass added no census rows. It added a new instrument, `tests/test-switch-carry.js`,
+27 assertions, on the same footing as `test-volatile-duration.js` and `test-nature-differential.js` —
+the census probes what someone thought to probe, and none of this was in it. (The 537 -> 541 move on
+today's ledger is ROADMAP #221's, not this pass's.)
+
+Will: *"does toxic and sleep turns carry over when a mon is switched out and are we tracking relevant
+things like that"*.
+
+**THE TWO HALVES OF HIS QUESTION HAVE OPPOSITE ANSWERS AND THIS ENGINE GAVE THE SAME ANSWER TO BOTH.**
+`Pokemon#clearVolatile()` (sim/pokemon.ts:1514) empties `this.volatiles` **wholesale** and does not
+touch `status`. So a volatile always dies and a status counter always lives, and the only thing that
+can reset a status counter is that condition's own `onSwitchIn`. Walked over the format's own table:
+**exactly one status declares one — `tox`, `onSwitchIn() { this.effectState.stage = 0; }`.** Sleep,
+freeze, paralysis, burn and poison declare nothing.
+
+### 1 — THE BADLY-POISON RAMP DID NOT RESTART, AND IT KILLED A BODY THREE TURNS EARLY
+
+Staged both engines, one script, Toxic then a pivot out and back:
+
+| boundary | medicham2 | showdown |
+|---|---|---|
+| t3 | 115 hp stage 3 | 115 hp stage 3 |
+| t4 (bench) | 115 hp stage 3 | 115 hp stage 3 |
+| **t5 (return)** | **75 hp stage 4** | **105 hp stage 1** |
+| t6 | 25 hp stage 5 | 85 hp stage 2 |
+| t7 | **FAINTED** | 81 hp stage 3 |
+
+Pivoting out of a Toxic is the move's whole counter-play, so the engine was pricing every Toxic as
+strictly better than the real one. Fixed in `bringIn` — **the way IN, not the way out**, which the t4
+row proves is the authority's moment: both engines still hold stage 3 on the bench. `bringIn` is also
+the one door a faint replacement, a Roar drag and a U-turn pivot all come through.
+
+### 2 — THE HAND-WRITTEN VOLATILE LIST, WHICH HAD BEEN WRONG SINCE IT WAS WRITTEN
+
+`switchOut` emptied `_vol` **by hand**, three members at a time, and its own comment filed `taunt`,
+`encore` and `disable` as *"also survive a switch in this engine and should not"*. A staged audit
+found **eleven more beside them**: `aquaring destinybond electrify focusenergy gastroacid magnetrise
+minimize powertrick smackdown stockpile torment`. Six have live consumers here — `taunt` and `encore`
+in the move filter, `magnetrise` and `smackdown` in `isGrounded`, `aquaring` in the residual heal,
+`stockpile` in Spit Up and Swallow. **A Taunted body pivoted out and came back still Taunted, and its
+clock had ticked down on the bench while it did.**
+
+The fix is not a longer list. **The authority does not consult the volatile at all — it drops the
+table**, so `out._vol={}` is the whole rule, plus the fields that hang off a member (`_encoreMove`,
+`_sealed`, `_volGave`, `_protectMove`) and `_lastMove`, which the same call nulls. That last one is a
+REFUSAL rather than an effect: a body with no last move cannot be Encored or Disabled, and ours could.
+
+### 3 — A SWITCHING BODY WAS TAKING THE `onBeforeMove` GATES. FOUND BY A PROBE WRITTEN FOR SOMETHING ELSE
+
+`onBeforeMove` is raised inside `runMove`; a switch never enters it. This engine ran the gates on
+every action because the kind dispatch is a thousand lines below them, so **a sleeping body woke two
+turns early by pivoting** — the turn it spent switching was spent against the clock. It applies to
+freeze, confusion, attract and the paralysis roll identically.
+
+**This was already filed in the file and explicitly left unfixed** — *"a pre-existing turn-resolution
+bug WITH NO FAILING PROBE ON IT"*. PART 3 is that probe. It was written to ask whether sleep CARRIES
+(it does, in both engines, and always did) and caught this instead.
+
+### THE RED PROOF — THREE BREAKS, EACH RESTORED BYTE-IDENTICAL
+
+| break | what went red |
+|---|---|
+| `out._vol={}` removed | PART 5 — *"the returned body carries no volatile at all `["taunt"]`"* |
+| the tox reset removed | PART 2 — *"the ramp RESTARTS at stage 1 — medicham 4 vs showdown 1"*, and *"parted at t5 (75 vs 105), t6 (25 vs 85)"* |
+| the switch/pass guard removed | PART 3 — *"both engines agree on the status after the return — medicham `-` vs showdown `slp`"* |
+
+**AND THE FIRST BREAK EXPOSES A REAL LIMIT OF THE COUNTER.** With the clear disabled,
+`volatilesClearedOnSwitch` still read **+1** — the counting block sits above the assignment, so it
+counts the intent and not the effect. The OUTCOME assertion is what caught it. Stated because a
+counter that cannot fail is not evidence.
+
+### MY OWN PROBE WAS WRONG BEFORE THE ENGINE WAS, TWICE — DOCS/LESSONS §5, CASES ~27 AND ~28
+
+- **A 90%-accuracy Toxic MISSED** under the primary arm and the whole run read "the engines agree"
+  for the wrong reason. The bottom arm is now named in the file with the reason.
+- **`battleTurn(S, rng, actsForA, actsForB)` takes TWO maps**, and inside it `_a = forced ||
+  chooseAction(...)`. A handed-in action that is falsy silently becomes the ENGINE'S OWN choice — and
+  the engine's choice for an Alakazam holding Taunt is Taunt. It re-taunted the returning body on the
+  pivot turn and the reading looked **exactly** like "the clear does not work". The foe now passes,
+  and the pass is asserted rather than assumed.
+
+### ONE FINDING THIS PASS DID NOT FIX, WITH ITS EVIDENCE
+
+**TOXIC DOES NOT BYPASS ACCURACY FOR A POISON-TYPE USER.** `sim/battle-actions.ts:627` and `:731` —
+`gen >= 8 && move.id === 'toxic' && pokemon.hasType('Poison')` sets accuracy `true`. medicham2 has no
+such branch: under the top arm a Venusaur's Toxic emitted `|-miss|` while Showdown's landed. Not
+switch-carry, so it is reported rather than folded into this batch.
+
+### NOT DONE, AND WHY
+
+**The Minimize flag family and the Magic Room / Wonder Room click** were both handed to me mid-pass
+and both are left. Three behaviour changes in the turn loop already invalidate every roster artifact
+(`status.js` now says so by name), and adding a damage-path multiplier and an accuracy override to
+the same batch makes a moved differential unattributable — `memory/batch-size-for-engine-fixes`.
+`punishesMinimize` is still uncommitted in `engine/tag_dex.js` with no consumer.
+
+### RE-RUN OWED
+
+`data/roster.{items,abilities,moves}.json` — `engine/status.js` reports them as
+`MEASURED AGAINST A DIFFERENT ENGINE`, which is correct and is the consequence of any engine edit.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty. Nothing here came off it; it came off a question Will asked.
 
 ## ROADMAP #221 — THE RESIDUAL IS EFFECT-MAJOR. THE BRIEF'S OWN CHUNK LIST WAS SHORT BY FOUR. 2026-08-12.
 
