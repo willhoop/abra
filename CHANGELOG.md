@@ -118,6 +118,9 @@ than pruned from the log or waved through by raising a ratchet twice in one day.
   Shed Skin 17,432, 33.27%; Healer 19,620, 50.02%; Harvest 19,620, 50.18%.
 - **Rate run, self-play arm:** 30,052 scored major-status trials, of which 1,391 carried no damage line.
 - **Pre-correction z on the targetBoosts family:** −3.107 against a same-family control of −0.584.
+- **Protect corpus usage as the divergence report ranked it:** 100,806 clicks across 12 causes. Recorded
+  because the sprint notes quote it while RETRACTING it as a sizing measure — the shield fix moved one game
+  per arm, so 100,806 is usage of the entities named, never a count of games fixed.
 - **Damage differential, overwritten by a 150-comparison run before being restored:** data/engine-diff.json\n  read compared: 150, agreed: 150, disagreed: 0 where the documented claim rests on 6,000. Re-run at
   6,000: agreed 6000, disagreed 0. A weaker run reads identically to a strong one unless something asks
   the denominator.

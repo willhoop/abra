@@ -7359,3 +7359,36 @@ The two rows left are not attribution: `disable` (field 4 there is the DISABLED 
 **A DESIGN SMELL FOUND WHILE EXPLAINING 38 RAPID RELEASE CUTS**: `all_mechanics_fire.js` requires
 `game_differential.js`, which cuts a release at MODULE LOAD — so merely IMPORTING the runner mints a
 release. Benign and explained, but requiring a module should not mutate the release store.
+
+### CORROSION HAS NO HANDLERS, AND THAT IS A CLASS RATHER THAN A CURIOSITY
+
+Will asked whether the ability that poisons Steel types is even in the regulation. It is — **Corrosion,
+legal, Salazzle and Glimmora, 36 corpus uses** — and it has **ZERO `on*` handlers**. It is a name
+written into the immunity check itself (`pokemon.js:1257`), not an ability hook.
+
+Ten abilities are named directly in `dist/sim/*.js` rather than reached through a handler, and three
+carry no handlers at all. **Levitate is the expensive one: 3,186 corpus uses, 0 handlers.**
+
+**Every derivation built today reads HANDLERS** — the per-ability trigger derivation, the preflight
+trigger clauses, the ACCMOD sweep, the residual-order table. All are structurally blind to this shape,
+and a sweep reporting "no handler, nothing to check" is reporting its own blind spot as a clean bill.
+`data/tags.json` does carry rows for both, so `tag_dex` reached them another way — but that is a second
+derivation happening to cover the gap rather than coverage by design, and nothing checks the two agree.
+
+**The concrete cost, from a diverging game the same night**: Toxic into a Steel Scizor — the authority
+emits `-immune`, we emit `-miss`, because our poison immunity check runs AFTER the accuracy roll. And
+fixing it as an ABSOLUTE immunity would have been wrong the other way, because a Salazzle Toxic into a
+Steel body lands. Will caught that before it shipped. Registered as #237.
+
+### SIXTY DIVERGING GAMES, RENDERED FOR READING
+
+`--dump-games` takes a COUNT and only writes alongside `--write` — I passed it bare twice and read the
+stale 25-card file as the result. Corrected: 60 of 202, with context, published as a page so the split
+line is readable rather than a wall of pipes. Protocol lines are broken into fields, the `[from]` clause
+is kept and emphasised (dropping it made two cards render identically earlier tonight), and the two
+sides are coloured so agreement is the quiet part.
+
+Class spread of the 60: 14 `showdown stopped emitting while medicham2 continued`, 14 `event missing`,
+9 `ordering`, 8 `extra event emitted`, 6 `switch: a different body`, 4 `unrelated event mismatch`,
+5 field mismatches. **The top class only exists because of tonight's truncation fix** — before it, those
+14 games counted as agreement.

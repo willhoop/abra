@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-13T03:14:50.854Z",
+  "generated": "2026-08-13T04:20:31.489Z",
   "by": "engine/game_differential.js",
   "mode": "A/top-tie-first/pins:ef342837b791/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -74,12 +74,12 @@
       "damage_roll": "MAXIMUM",
       "speed_tie": "to the EARLIER body",
       "games": 815,
-      "diverged": 204,
+      "diverged": 202,
       "threw": 0,
       "median_turns": 12,
       "end_reasons": {
-        "the turn cap (12)": 611,
-        "the first divergent LINE": 190,
+        "the turn cap (12)": 613,
+        "the first divergent LINE": 188,
         "both engines ended the battle": 11,
         "showdown stopped asking for a move": 3
       },
@@ -87,15 +87,15 @@
       "turn1_boards_reached": null,
       "rows_credited": 237,
       "credit_events": {
-        "effect": 137978,
+        "effect": 140030,
         "negative": 299,
-        "click": 182674
+        "click": 189628
       },
       "classes": [
         {
           "cls": "event missing from medicham2",
-          "games": 75,
-          "distinct_causes": 62
+          "games": 76,
+          "distinct_causes": 63
         },
         {
           "cls": "ordering",
@@ -133,17 +133,7 @@
           "distinct_causes": 2
         },
         {
-          "cls": "-status field 4",
-          "games": 2,
-          "distinct_causes": 2
-        },
-        {
           "cls": "-miss field 3",
-          "games": 1,
-          "distinct_causes": 1
-        },
-        {
-          "cls": "-start field 5",
           "games": 1,
           "distinct_causes": 1
         },
@@ -166,38 +156,43 @@
       "damage_roll": "MINIMUM",
       "speed_tie": "to the EARLIER body",
       "games": 815,
-      "diverged": 230,
+      "diverged": 229,
       "threw": 0,
       "median_turns": 12,
       "end_reasons": {
-        "the turn cap (12)": 585,
-        "the first divergent LINE": 221,
-        "both engines ended the battle": 6,
-        "showdown stopped asking for a move": 3
+        "the turn cap (12)": 586,
+        "the first divergent LINE": 214,
+        "both engines ended the battle": 11,
+        "showdown stopped asking for a move": 4
       },
       "turn1_boards_identical": null,
       "turn1_boards_reached": null,
       "rows_credited": 238,
       "credit_events": {
-        "effect": 83267,
-        "negative": 102,
-        "click": 81936
+        "effect": 84989,
+        "negative": 98,
+        "click": 87643
       },
       "classes": [
         {
           "cls": "event missing from medicham2",
-          "games": 75,
-          "distinct_causes": 61
+          "games": 78,
+          "distinct_causes": 60
         },
         {
           "cls": "ordering",
-          "games": 48,
-          "distinct_causes": 47
+          "games": 49,
+          "distinct_causes": 48
         },
         {
           "cls": "unrelated event mismatch",
-          "games": 32,
-          "distinct_causes": 29
+          "games": 30,
+          "distinct_causes": 27
+        },
+        {
+          "cls": "extra event emitted by medicham2",
+          "games": 18,
+          "distinct_causes": 17
         },
         {
           "cls": "switch: a different body",
@@ -210,37 +205,17 @@
           "distinct_causes": 17
         },
         {
-          "cls": "extra event emitted by medicham2",
-          "games": 16,
-          "distinct_causes": 16
-        },
-        {
           "cls": "showdown stopped emitting while medicham2 continued",
-          "games": 10,
-          "distinct_causes": 7
-        },
-        {
-          "cls": "-curestatus field 4",
-          "games": 4,
-          "distinct_causes": 2
-        },
-        {
-          "cls": "-status field 4",
-          "games": 4,
-          "distinct_causes": 4
+          "games": 16,
+          "distinct_causes": 9
         },
         {
           "cls": "-fail: a different body",
-          "games": 2,
-          "distinct_causes": 2
-        },
-        {
-          "cls": "-damage field 3",
           "games": 1,
           "distinct_causes": 1
         },
         {
-          "cls": "-start field 5",
+          "cls": "-damage field 3",
           "games": 1,
           "distinct_causes": 1
         },
@@ -253,22 +228,17 @@
           "cls": "-start field 4",
           "games": 1,
           "distinct_causes": 1
-        },
-        {
-          "cls": "-status: a different body",
-          "games": 1,
-          "distinct_causes": 1
         }
       ]
     }
   ],
   "speed_ties": {
-    "shuffle_calls": 60468,
-    "tied_groups_resolved": 60468,
+    "shuffle_calls": 60168,
+    "tied_groups_resolved": 60168,
     "group_sizes": {
-      "2": 59009,
-      "3": 1322,
-      "4": 118,
+      "2": 58717,
+      "3": 1326,
+      "4": 106,
       "5": 8,
       "6": 11
     },
@@ -277,7 +247,7 @@
   },
   "games": 815,
   "turns_cap": 12,
-  "elapsed_s": 99.1,
+  "elapsed_s": 91.4,
   "planted_divergence_proof": [
     {
       "what": "a wrong FIELD on the last agreeing line",
@@ -324,7 +294,7 @@
     "rates": {
       "with_megas": {
         "games": 810,
-        "diverged": 202
+        "diverged": 200
       },
       "control_same_pairs_no_stones": {
         "games": 810,
@@ -343,9 +313,9 @@
     "pairing_broken": 0,
     "cost_of_the_megas": {
       "stone_carrying_pairs": 810,
-      "mega_arm_parted_earlier": 29,
-      "mega_arm_parted_later": 78,
-      "parted_at_the_same_line": 703,
+      "mega_arm_parted_earlier": 27,
+      "mega_arm_parted_later": 79,
+      "parted_at_the_same_line": 704,
       "first_divergence_is_a_mega_line": 0,
       "first_divergence_is_a_detailschange_line": 1,
       "on_a_mega_line": [],
@@ -392,7 +362,7 @@
       {
         "id": "ability-announcement",
         "why": "Showdown's `|-ability|` is a COSMETIC announcement that an ability activated (SIM-PROTOCOL). Every consequence of it is a separate line and is kept, so dropping the announcement cannot hide an ability that did not fire — its effect would still be missing.",
-        "lines_collapsed": 140686,
+        "lines_collapsed": 140592,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -407,7 +377,7 @@
       {
         "id": "stat-attribution",
         "why": "a stat line's meaning is (body, stat, direction, amount). `[from] ability: X` and `[of] Y` say WHICH effect moved it, which the two engines tag inconsistently; the four fields that decide the board are kept.",
-        "lines_collapsed": 8098,
+        "lines_collapsed": 8055,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -422,7 +392,7 @@
       {
         "id": "source-tag",
         "why": "`[of] pXy` names the BODY behind an effect whose name is already carried by `[from]`. The two engines tag it inconsistently on -heal, -activate and -damage.",
-        "lines_collapsed": 86032,
+        "lines_collapsed": 87019,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -437,7 +407,7 @@
       {
         "id": "effect-namespace",
         "why": "Showdown writes an effect sometimes bare and sometimes namespaced — `|-sidestart|p1: A|Reflect` against this engine's `move: reflect`. The NAME is kept; only the namespace goes.",
-        "lines_collapsed": 167997,
+        "lines_collapsed": 170201,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -452,7 +422,7 @@
       {
         "id": "display-flags",
         "why": "`[silent]`, `[still]`, `[miss]` and `[spread]` are rendering hints. The state each one decorates is a separate event — `-miss` for a miss, `-prepare` for a charge, one `-damage` per body actually hit for a spread — and all of those are kept.",
-        "lines_collapsed": 135134,
+        "lines_collapsed": 133798,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -467,7 +437,7 @@
       {
         "id": "move-target-field",
         "why": "THE BIGGEST ONE, AND THE ONE THAT NEEDS THE ARGUMENT. A `|move|` line means \"this body used this move\". Showdown additionally names ONE nominal target plus `[spread]`; this engine names its own user on a spread move. WHO WAS ACTUALLY HIT is not in this field on either side — it is in the `-damage` / `-status` / `-unboost` / `-enditem` lines that follow, which are kept and compared body by body. A redirection bug is therefore caught one line later rather than not at all, and the `distinct` pair below is exactly that case.",
-        "lines_collapsed": 425511,
+        "lines_collapsed": 427439,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -482,7 +452,7 @@
       {
         "id": "switch-cause",
         "why": "a pivot switch is tagged `[from] U-turn` by Showdown; the pivot itself is the `|move|` line immediately before it, which is kept. The species and the HP on the switch line are kept.",
-        "lines_collapsed": 109,
+        "lines_collapsed": 114,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -495,7 +465,7 @@
         ]
       }
     ],
-    "total_lines_collapsed": 963567
+    "total_lines_collapsed": 967218
   },
   "directed": [
     {
@@ -718,7 +688,7 @@
     },
     "verdict": "the predicted DAMAGE bug does not reproduce — medicham2 prices both halves correctly because playerAction computes the range at CLICK time, before the item is stripped. What differs is the item DISPOSITION: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF."
   },
-  "diverged": 204,
+  "diverged": 202,
   "threw": 0,
   "state": null,
   "state_mode": false,
@@ -841,11 +811,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 4067
+              "uses": 4078
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 4067
+          "max_uses": 4078
         },
         {
           "cause": "showdown stopped emitting while medicham2 continued :: |upkeep",
@@ -863,11 +833,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1103
+              "uses": 1109
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1103
+          "max_uses": 1109
         },
         {
           "cause": "showdown stopped emitting while medicham2 continued :: |move|p2a|hurricane",
@@ -880,11 +850,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 4342
+              "uses": 4365
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 4342
+          "max_uses": 4365
         },
         {
           "cause": "showdown stopped emitting while medicham2 continued :: |move|p1a|earthquake",
@@ -897,11 +867,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 9677
+              "uses": 9735
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 9677
+          "max_uses": 9735
         },
         {
           "cause": "showdown stopped emitting while medicham2 continued :: |switch|p2a|floetteeternal,l50|H/H",
@@ -937,11 +907,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 16452
+              "uses": 16532
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 16452
+          "max_uses": 16532
         },
         {
           "cause": "ordering :: |-damage|p1a|H/H|[from]sandstorm <> |-fieldend|trickroom",
@@ -963,11 +933,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 10179
+              "uses": 10248
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 10179
+          "max_uses": 10248
         },
         {
           "cause": "ordering :: |-enditem|p1a|sitrusberry|[eat] <> |-damage|p2b|H/H|[from]lifeorb",
@@ -980,7 +950,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 16452
+              "uses": 16532
             },
             {
               "kind": "items",
@@ -989,11 +959,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15415
+              "uses": 15518
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 16452
+          "max_uses": 16532
         },
         {
           "cause": "ordering :: |-boost|p1a|atk|1 <> |-start|p1a|noretreat",
@@ -1049,11 +1019,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3924
+              "uses": 3938
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3924
+          "max_uses": 3938
         },
         {
           "cause": "ordering :: |-enditem|p1b|whiteherb <> |turn|6",
@@ -1066,11 +1036,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2908
+              "uses": 2927
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 2908
+          "max_uses": 2927
         },
         {
           "cause": "ordering :: |-enditem|p1b|sitrusberry|[eat] <> |faint|p2a",
@@ -1083,11 +1053,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 16452
+              "uses": 16532
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 16452
+          "max_uses": 16532
         },
         {
           "cause": "ordering :: |-start|p1b|stockpile1 <> |-boost|p1b|def|1",
@@ -1131,7 +1101,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 16452
+              "uses": 16532
             },
             {
               "kind": "items",
@@ -1140,11 +1110,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15415
+              "uses": 15518
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 16452
+          "max_uses": 16532
         },
         {
           "cause": "ordering :: |switch|p1a|meganium,l50|H/H <> |switch|p1b|aerodactyl,l50|H/H",
@@ -1391,11 +1361,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 100806
+              "uses": 101357
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 100806
+          "max_uses": 101357
         },
         {
           "cause": "ordering :: |-damage|p1b|H/H|[from]sandstorm <> |faint|p2a",
@@ -1430,11 +1400,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 100806
+              "uses": 101357
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 100806
+          "max_uses": 101357
         },
         {
           "cause": "ordering :: |detailschange|p2a|raichumegay,l50 <> |move|p1b|helpinghand",
@@ -1456,11 +1426,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 5305
+              "uses": 5335
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 5305
+          "max_uses": 5335
         },
         {
           "cause": "ordering :: |switch|p1b|charizard,l50|H/H <> |move|p2b|helpinghand",
@@ -1482,11 +1452,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 5305
+              "uses": 5335
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 5305
+          "max_uses": 5335
         },
         {
           "cause": "ordering :: |-damage|p1a|H/H|[from]sandstorm <> |-sideend|p2:|tailwind",
@@ -1508,11 +1478,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15986
+              "uses": 16074
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15986
+          "max_uses": 16074
         },
         {
           "cause": "ordering :: |move|p1a|tailwind <> |move|p2a|tailwind",
@@ -1525,11 +1495,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15986
+              "uses": 16074
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15986
+          "max_uses": 16074
         },
         {
           "cause": "ordering :: |-damage|p1b|H/H|[from]sandstorm <> |-sideend|p2:|tailwind",
@@ -1551,11 +1521,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15986
+              "uses": 16074
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15986
+          "max_uses": 16074
         },
         {
           "cause": "ordering :: |move|p2b|tailwind <> |move|p1b|tailwind",
@@ -1568,11 +1538,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15986
+              "uses": 16074
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15986
+          "max_uses": 16074
         },
         {
           "cause": "ordering :: |-sideend|p2:|tailwind <> |-sideend|p1:|tailwind",
@@ -1585,11 +1555,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15986
+              "uses": 16074
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15986
+          "max_uses": 16074
         },
         {
           "cause": "ordering :: |-damage|p2a|H/H|[from]sandstorm <> |-sideend|p1:|tailwind",
@@ -1611,11 +1581,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15986
+              "uses": 16074
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15986
+          "max_uses": 16074
         },
         {
           "cause": "ordering :: |move|p1b|tailwind <> |move|p2b|tailwind",
@@ -1628,11 +1598,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15986
+              "uses": 16074
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15986
+          "max_uses": 16074
         },
         {
           "cause": "ordering :: |-damage|p2a|H/H|[from]sandstorm <> |-sideend|p2:|tailwind",
@@ -1654,11 +1624,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15986
+              "uses": 16074
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15986
+          "max_uses": 16074
         },
         {
           "cause": "ordering :: |move|p2a|tailwind <> |move|p1b|tailwind",
@@ -1671,11 +1641,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15986
+              "uses": 16074
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15986
+          "max_uses": 16074
         },
         {
           "cause": "ordering :: |move|p1a|tailwind <> |move|p2b|tailwind",
@@ -1688,11 +1658,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15986
+              "uses": 16074
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15986
+          "max_uses": 16074
         },
         {
           "cause": "ordering :: |-damage|p2b|H/H|[from]sandstorm <> |-sideend|p1:|tailwind",
@@ -1714,11 +1684,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15986
+              "uses": 16074
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15986
+          "max_uses": 16074
         }
       ]
     },
@@ -1742,7 +1712,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 5286
+              "uses": 5304
             },
             {
               "kind": "moves",
@@ -1751,11 +1721,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2761
+              "uses": 2790
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 5286
+          "max_uses": 5304
         },
         {
           "cause": "extra event emitted by medicham2 :: |switch|p2a|mamoswine,l50|H/H <> |-weather|snowscape|[from]snowwarning",
@@ -1786,11 +1756,11 @@
               "carriers": 6,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2134
+              "uses": 2154
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 2134
+          "max_uses": 2154
         },
         {
           "cause": "extra event emitted by medicham2 :: |-boost|p2a|spa|1 <> |-immune|p2a|[from]lightningrod",
@@ -1803,11 +1773,11 @@
               "carriers": 5,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3135
+              "uses": 3161
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3135
+          "max_uses": 3161
         },
         {
           "cause": "extra event emitted by medicham2 :: |-miss|p1a|p2b <> |-miss|p1a|p2a",
@@ -1852,11 +1822,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1731
+              "uses": 1741
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1731
+          "max_uses": 1741
         },
         {
           "cause": "extra event emitted by medicham2 :: |move|p2a|roar <> |-activate|p1b|transform",
@@ -1869,7 +1839,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 506
+              "uses": 513
             },
             {
               "kind": "moves",
@@ -1882,7 +1852,7 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 506
+          "max_uses": 513
         },
         {
           "cause": "extra event emitted by medicham2 :: |upkeep <> |-activate|p2a|transform",
@@ -1938,11 +1908,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 506
+              "uses": 513
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 506
+          "max_uses": 513
         },
         {
           "cause": "extra event emitted by medicham2 :: |upkeep <> |drag|p2a|sinistcha,l50|H/H",
@@ -2400,11 +2370,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 692
+              "uses": 694
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 692
+          "max_uses": 694
         },
         {
           "cause": "unrelated event mismatch :: |-status|p1a|tox <> |-miss|p2b|p1a",
@@ -2422,7 +2392,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 16452
+              "uses": 16532
             },
             {
               "kind": "abilities",
@@ -2435,7 +2405,7 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 16452
+          "max_uses": 16532
         },
         {
           "cause": "unrelated event mismatch :: |turn|1 <> |-unboost|p2a|atk|1",
@@ -2453,11 +2423,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 581
+              "uses": 590
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 581
+          "max_uses": 590
         },
         {
           "cause": "unrelated event mismatch :: |-activate|p1a|struggle <> |cant|p1a|nopp|afteryou",
@@ -2479,11 +2449,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 223
+              "uses": 225
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 223
+          "max_uses": 225
         },
         {
           "cause": "unrelated event mismatch :: |-immune|p2a|[from]goodasgold <> |-fail|p1b",
@@ -2496,11 +2466,11 @@
               "carriers": 1,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3027
+              "uses": 3043
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3027
+          "max_uses": 3043
         },
         {
           "cause": "unrelated event mismatch :: |turn|1 <> |-unboost|p1a|atk|1",
@@ -2518,7 +2488,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 506
+              "uses": 513
             },
             {
               "kind": "species",
@@ -2531,7 +2501,7 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 506
+          "max_uses": 513
         },
         {
           "cause": "unrelated event mismatch :: |-immune|p1a|[from]goodasgold <> |-fail|p2b",
@@ -2544,11 +2514,11 @@
               "carriers": 1,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3027
+              "uses": 3043
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3027
+          "max_uses": 3043
         },
         {
           "cause": "unrelated event mismatch :: |move|p1a|whirlwind <> |drag|p1a|ninetalesalola,l50|H/H",
@@ -2640,11 +2610,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 10052
+              "uses": 10102
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 10052
+          "max_uses": 10102
         },
         {
           "cause": "unrelated event mismatch :: |-fail|p1a <> |-activate|p2a|disguise",
@@ -2684,11 +2654,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1026
+              "uses": 1028
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1026
+          "max_uses": 1028
         },
         {
           "cause": "unrelated event mismatch :: |-fail|p2a <> |-resisted|p1a|1",
@@ -2706,11 +2676,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 5305
+              "uses": 5335
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 5305
+          "max_uses": 5335
         },
         {
           "cause": "unrelated event mismatch :: |-immune|p2a|[from]goodasgold <> |-fail|p1a",
@@ -2723,11 +2693,11 @@
               "carriers": 1,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3027
+              "uses": 3043
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3027
+          "max_uses": 3043
         },
         {
           "cause": "unrelated event mismatch :: |-immune|p1a|[from]goodasgold <> |-fail|p2a",
@@ -2740,11 +2710,11 @@
               "carriers": 1,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3027
+              "uses": 3043
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3027
+          "max_uses": 3043
         },
         {
           "cause": "unrelated event mismatch :: |-immune|p2a <> |-fail|p1a",
@@ -2755,7 +2725,7 @@
     },
     {
       "cls": "event missing from medicham2",
-      "games": 75,
+      "games": 76,
       "causes": [
         {
           "cause": "event missing from medicham2 :: |-fail|p1b <> |upkeep",
@@ -2773,11 +2743,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 9800
+              "uses": 9839
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 9800
+          "max_uses": 9839
         },
         {
           "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p2b|taunt",
@@ -2790,11 +2760,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1823
+              "uses": 1834
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1823
+          "max_uses": 1834
         },
         {
           "cause": "event missing from medicham2 :: |switch|p1a|morpeko,l50|H/H <> |switch|p2a|pyroar,l50|H/H",
@@ -2833,11 +2803,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 16512
+              "uses": 16602
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 16512
+          "max_uses": 16602
         },
         {
           "cause": "event missing from medicham2 :: |-unboost|p2b|atk|0 <> |switch|p1b|incineroar,l50|H/H",
@@ -2884,11 +2854,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 597
+              "uses": 604
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 597
+          "max_uses": 604
         },
         {
           "cause": "event missing from medicham2 :: |-singleturn|p1b|focuspunch <> |move|p2b|psychicfangs",
@@ -2910,11 +2880,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2165
+              "uses": 2171
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 2165
+          "max_uses": 2171
         },
         {
           "cause": "event missing from medicham2 :: |-singleturn|p2b|focuspunch <> |move|p1a|yawn",
@@ -2936,11 +2906,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1266
+              "uses": 1281
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1266
+          "max_uses": 1281
         },
         {
           "cause": "event missing from medicham2 :: |-start|p1a|confusion|[fatigue] <> |-weather|raindance|[upkeep]",
@@ -2962,11 +2932,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1103
+              "uses": 1109
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1103
+          "max_uses": 1109
         },
         {
           "cause": "event missing from medicham2 :: |-damage|p1a|H/H|[from]lifeorb <> |move|p1b|stoneaxe",
@@ -2979,7 +2949,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15415
+              "uses": 15518
             },
             {
               "kind": "moves",
@@ -2988,11 +2958,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 85
+              "uses": 87
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15415
+          "max_uses": 15518
         },
         {
           "cause": "event missing from medicham2 :: |-singleturn|p2b|beakblast <> |move|p2b|beakblast",
@@ -3101,11 +3071,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 2165
+              "uses": 2171
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 2165
+          "max_uses": 2171
         },
         {
           "cause": "event missing from medicham2 :: |-end|p1a|fallenundefined <> |switch|p1a|delphox,l50|H/H",
@@ -3135,11 +3105,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1103
+              "uses": 1109
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1103
+          "max_uses": 1109
         },
         {
           "cause": "event missing from medicham2 :: |-singleturn|p2b|focuspunch <> |move|p2b|focuspunch",
@@ -3169,7 +3139,7 @@
               "carriers": 9,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1345
+              "uses": 1356
             },
             {
               "kind": "species",
@@ -3182,7 +3152,7 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1345
+          "max_uses": 1356
         },
         {
           "cause": "event missing from medicham2 :: |switch|p2a|morpeko,l50|H/H <> |switch|p1b|alakazam,l50|H/H",
@@ -3238,11 +3208,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1103
+              "uses": 1109
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1103
+          "max_uses": 1109
         },
         {
           "cause": "event missing from medicham2 :: |switch|p1a|morpeko,l50|H/H <> |switch|p2b|whimsicott,l50|H/H",
@@ -3317,11 +3287,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 581
+              "uses": 590
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 581
+          "max_uses": 590
         },
         {
           "cause": "event missing from medicham2 :: |-damage|p1a|H/H|[from]lifeorb <> |upkeep",
@@ -3334,11 +3304,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15415
+              "uses": 15518
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15415
+          "max_uses": 15518
         },
         {
           "cause": "event missing from medicham2 :: |-activate|p2a|phantomforce|[broken] <> |-damage|p2a|H/H",
@@ -3351,11 +3321,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 581
+              "uses": 590
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 581
+          "max_uses": 590
         },
         {
           "cause": "event missing from medicham2 :: |-activate|p1a|phantomforce|[broken] <> |-supereffective|p1a|1",
@@ -3368,28 +3338,33 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 581
+              "uses": 590
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 581
+          "max_uses": 590
         },
         {
-          "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p1a|roar",
+          "cause": "event missing from medicham2 :: |-activate|p2a|feint <> |-damage|p2a|H/H",
           "n": 1,
           "mentions": [
             {
               "kind": "moves",
-              "id": "roar",
+              "id": "feint",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 506
+              "uses": 625
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 506
+          "max_uses": 625
+        },
+        {
+          "cause": "event missing from medicham2 :: |-fail|p2b <> |upkeep",
+          "n": 1,
+          "mentions": []
         },
         {
           "cause": "event missing from medicham2 :: |-boost|p2b|spa|0 <> |move|p2b|protect",
@@ -3402,11 +3377,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 100806
+              "uses": 101357
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 100806
+          "max_uses": 101357
         },
         {
           "cause": "event missing from medicham2 :: |switch|p2b|kingambit,l50|H/H <> |upkeep",
@@ -3436,11 +3411,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 622
+              "uses": 625
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 622
+          "max_uses": 625
         },
         {
           "cause": "event missing from medicham2 :: |-start|p2b|typechange|normal|[from]protean <> |-singleturn|p2b|protect",
@@ -3462,11 +3437,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 100806
+              "uses": 101357
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 100806
+          "max_uses": 101357
         },
         {
           "cause": "event missing from medicham2 :: |-boost|p1a|spa|0 <> |-unboost|p1b|atk|1",
@@ -3511,11 +3486,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 622
+              "uses": 625
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 622
+          "max_uses": 625
         },
         {
           "cause": "event missing from medicham2 :: |-activate|p1a|phantomforce|[broken] <> |-enditem|p1a|focussash",
@@ -3528,7 +3503,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 581
+              "uses": 590
             },
             {
               "kind": "items",
@@ -3537,11 +3512,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 18511
+              "uses": 18611
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 18511
+          "max_uses": 18611
         },
         {
           "cause": "event missing from medicham2 :: |-immune|p2a|[from]goodasgold <> |upkeep",
@@ -3554,11 +3529,11 @@
               "carriers": 1,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3027
+              "uses": 3043
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3027
+          "max_uses": 3043
         },
         {
           "cause": "event missing from medicham2 :: |-end|p2a|futuresight <> |-heal|p1b|H/H|[from]leftovers",
@@ -3580,11 +3555,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 9137
+              "uses": 9178
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 9137
+          "max_uses": 9178
         },
         {
           "cause": "event missing from medicham2 :: |-unboost|p2a|atk|0 <> |upkeep",
@@ -3619,11 +3594,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15415
+              "uses": 15518
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15415
+          "max_uses": 15518
         },
         {
           "cause": "event missing from medicham2 :: |-activate|p2a|forewarn|bravebird <> |switch|p1b|grimmsnarl,l50|H/H",
@@ -3645,7 +3620,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 4935
+              "uses": 4968
             },
             {
               "kind": "species",
@@ -3658,7 +3633,7 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 4935
+          "max_uses": 4968
         },
         {
           "cause": "event missing from medicham2 :: |-start|p1b|typechange|normal|[from]protean <> |-singleturn|p1b|protect",
@@ -3680,11 +3655,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 100806
+              "uses": 101357
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 100806
+          "max_uses": 101357
         },
         {
           "cause": "event missing from medicham2 :: |switch|p2a|staraptormega,l50|H/H <> |move|p1a|ragepowder",
@@ -3706,11 +3681,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 8407
+              "uses": 8437
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 8407
+          "max_uses": 8437
         },
         {
           "cause": "event missing from medicham2 :: |switch|p1b|raichu,l50|H/H <> |move|p2b|protect",
@@ -3732,11 +3707,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 100806
+              "uses": 101357
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 100806
+          "max_uses": 101357
         },
         {
           "cause": "event missing from medicham2 :: |-heal|p1a|H/H|[from]regenerator <> |switch|p1a|grimmsnarl,l50|H/H",
@@ -3749,7 +3724,7 @@
               "carriers": 9,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1345
+              "uses": 1356
             },
             {
               "kind": "species",
@@ -3762,7 +3737,7 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1345
+          "max_uses": 1356
         },
         {
           "cause": "event missing from medicham2 :: |-unboost|p2b|atk|0 <> |switch|p1b|rotomwash,l50|H/H",
@@ -3886,11 +3861,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 10179
+              "uses": 10248
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 10179
+          "max_uses": 10248
         }
       ]
     },
@@ -3934,29 +3909,6 @@
       ]
     },
     {
-      "cls": "-start field 5",
-      "games": 1,
-      "causes": [
-        {
-          "cause": "-start field 5 :: |-start|p2a|typechange|???/rock|[from]burnup <> |-start|p2a|typechange|???/rock",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "burnup",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 46
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 46
-        }
-      ]
-    },
-    {
       "cls": "-activate field 4",
       "games": 1,
       "causes": [
@@ -3971,7 +3923,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 137
+              "uses": 139
             },
             {
               "kind": "abilities",
@@ -3980,7 +3932,7 @@
               "carriers": 7,
               "reachable": true,
               "nonstandard": null,
-              "uses": 9636
+              "uses": 9690
             },
             {
               "kind": "abilities",
@@ -3993,7 +3945,7 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 9636
+          "max_uses": 9690
         }
       ]
     },
@@ -4242,46 +4194,6 @@
           "max_uses": null
         }
       ]
-    },
-    {
-      "cls": "-status field 4",
-      "games": 2,
-      "causes": [
-        {
-          "cause": "-status field 4 :: |-status|p1b|brn|[from]spicyspray <> |-status|p1b|brn",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "spicyspray",
-              "legal": true,
-              "carriers": 1,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 0
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 0
-        },
-        {
-          "cause": "-status field 4 :: |-status|p2b|brn|[from]spicyspray <> |-status|p2b|brn",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "spicyspray",
-              "legal": true,
-              "carriers": 1,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 0
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 0
-        }
-      ]
     }
   ],
   "first_divergences": [
@@ -4468,8 +4380,8 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2656656403 vs gen9championsvgc2026regmbbo3-2656614033",
-      "index": 141,
-      "agreed_lines": 141,
+      "index": 144,
+      "agreed_lines": 144,
       "cls": "showdown stopped emitting while medicham2 continued",
       "cause": "showdown stopped emitting while medicham2 continued :: |move|p2b|knockoff",
       "showdown": "(showdown emitted nothing further)",
@@ -4777,16 +4689,6 @@
     },
     {
       "config": "omit-protect",
-      "seed": "gen9championsvgc2026regmbbo3-2654054830 vs gen9championsvgc2026regmbbo3-2654316929",
-      "index": 22,
-      "agreed_lines": 22,
-      "cls": "-start field 5",
-      "cause": "-start field 5 :: |-start|p2a|typechange|???/rock|[from]burnup <> |-start|p2a|typechange|???/rock",
-      "showdown": "|-start|p2a: Arcanine|typechange|???/Rock|[from] move: Burn Up",
-      "medicham": "|-start|p2a: Arcanine|typechange|???/Rock"
-    },
-    {
-      "config": "omit-protect",
       "seed": "gen9championsvgc2026regmbbo3-2654493789 vs gen9championsvgc2026regmbbo3-2654492312",
       "index": 19,
       "agreed_lines": 19,
@@ -4884,6 +4786,16 @@
       "cause": "showdown stopped emitting while medicham2 continued :: |upkeep",
       "showdown": "(showdown emitted nothing further)",
       "medicham": "|upkeep"
+    },
+    {
+      "config": "omit-protect",
+      "seed": "gen9championsvgc2026regmbbo3-2661597319 vs gen9championsvgc2026regmbbo3-2661573110",
+      "index": 11,
+      "agreed_lines": 11,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-formechange|p2b|castformrainy|[msg]|[from]forecast <> |move|p2a|soak",
+      "showdown": "|-formechange|p2b: Castform|Castform-Rainy|[msg]|[from] ability: Forecast",
+      "medicham": "|move|p2a: Pelipper|soak|p1a: Aurorus"
     }
   ],
   "errors": [],
@@ -4891,10 +4803,10 @@
     "policy": "observed-effect/v1",
     "rule": "a census row is exercised when a board leaf in a family THE TAG'S OWN PARAMS NAME changed across the turn, in either engine, inside the scope of an entity that was in play; or when a blocking tag's declared negative case was reached and correctly did not fire. A click alone counts for NOTHING but an attempt.",
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
-    "rows_with_an_observed_effect": 217,
-    "rows_that_can_be_witnessed_on_a_board": 235,
-    "rows_that_name_no_board_leaf": 254,
-    "rows_credited_by_a_connected_click_only": 242,
+    "rows_with_an_observed_effect": 224,
+    "rows_that_can_be_witnessed_on_a_board": 242,
+    "rows_that_name_no_board_leaf": 256,
+    "rows_credited_by_a_connected_click_only": 244,
     "rows_clicked_or_present_that_did_nothing": 7,
     "rows_clicked_or_present_that_did_nothing_list": [
       "ability:clearsScreensOnEntry",
@@ -4905,7 +4817,7 @@
       "move:setsOwnTypeAlways",
       "move:survivesAnyHit"
     ],
-    "turns_credited_over": 24738,
+    "turns_credited_over": 24759,
     "attribution_limit": "credit is at TURN granularity, scoped to the user's slot, the target's slot, the field and both sides. Two mechanics acting on one body in one turn can both be credited. That is weaker than a per-effect trace and strictly tighter than the click it replaces, which is the whole claim.",
     "derivation": [
       {
@@ -4915,11 +4827,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 741,
+        "credit": 768,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1164
+          "click": 1191
         },
         "attempts": 0
       },
@@ -4933,9 +4845,9 @@
           "param key `heal`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 7646,
+        "credit": 7680,
         "of_which": {
-          "effect": 11492,
+          "effect": 11524,
           "negative": 0,
           "click": 0
         },
@@ -4952,9 +4864,9 @@
           "param key `into`",
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 65826,
+        "credit": 66006,
         "of_which": {
-          "effect": 65826,
+          "effect": 66006,
           "negative": 0,
           "click": 0
         },
@@ -4971,9 +4883,9 @@
           "param key `into`",
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 65826,
+        "credit": 66006,
         "of_which": {
-          "effect": 65826,
+          "effect": 66006,
           "negative": 0,
           "click": 0
         },
@@ -4990,9 +4902,9 @@
           "param key `into`",
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 65826,
+        "credit": 66006,
         "of_which": {
-          "effect": 65826,
+          "effect": 66006,
           "negative": 0,
           "click": 0
         },
@@ -5009,9 +4921,9 @@
           "param key `into`",
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 65826,
+        "credit": 66006,
         "of_which": {
-          "effect": 65826,
+          "effect": 66006,
           "negative": 0,
           "click": 0
         },
@@ -5028,9 +4940,9 @@
           "param key `into`",
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 65826,
+        "credit": 66006,
         "of_which": {
-          "effect": 65826,
+          "effect": 66006,
           "negative": 0,
           "click": 0
         },
@@ -5047,9 +4959,9 @@
           "param key `into`",
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 65826,
+        "credit": 66006,
         "of_which": {
-          "effect": 65826,
+          "effect": 66006,
           "negative": 0,
           "click": 0
         },
@@ -5062,11 +4974,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 12804,
+        "credit": 12866,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 19422
+          "click": 19454
         },
         "attempts": 20
       },
@@ -5077,11 +4989,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 12804,
+        "credit": 12866,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 19422
+          "click": 19454
         },
         "attempts": 20
       },
@@ -5090,11 +5002,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 7630,
+        "credit": 7632,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 11600
+          "click": 11562
         },
         "attempts": 20
       },
@@ -5103,11 +5015,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 7630,
+        "credit": 7632,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 11600
+          "click": 11562
         },
         "attempts": 20
       },
@@ -5116,11 +5028,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 7630,
+        "credit": 7632,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 11600
+          "click": 11562
         },
         "attempts": 20
       },
@@ -5129,24 +5041,24 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 3815,
+        "credit": 11448,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 5800
+          "click": 17343
         },
-        "attempts": 10
+        "attempts": 30
       },
       {
         "key": "move:stallCounterFeeds",
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 615,
+        "credit": 631,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 932
+          "click": 951
         },
         "attempts": 0
       },
@@ -5155,11 +5067,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 3935,
+        "credit": 3942,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 5983
+          "click": 5970
         },
         "attempts": 10
       },
@@ -5168,11 +5080,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 538,
+        "credit": 544,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 802
+          "click": 806
         },
         "attempts": 0
       },
@@ -5181,11 +5093,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 538,
+        "credit": 544,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 802
+          "click": 806
         },
         "attempts": 0
       },
@@ -5216,9 +5128,9 @@
         "from": [
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 105,
+        "credit": 152,
         "of_which": {
-          "effect": 156,
+          "effect": 220,
           "negative": 0,
           "click": 0
         },
@@ -5231,7 +5143,7 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 17556,
+        "credit": 17604,
         "of_which": {
           "effect": 0,
           "negative": 0,
@@ -5265,9 +5177,9 @@
         "from": [
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 105,
+        "credit": 152,
         "of_which": {
-          "effect": 156,
+          "effect": 220,
           "negative": 0,
           "click": 0
         },
@@ -5284,9 +5196,9 @@
           "param key `alsoRaises`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 26,
+        "credit": 30,
         "of_which": {
-          "effect": 34,
+          "effect": 38,
           "negative": 0,
           "click": 0
         },
@@ -5303,9 +5215,9 @@
           "param key `alsoLowers`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 30,
+        "credit": 31,
         "of_which": {
-          "effect": 42,
+          "effect": 43,
           "negative": 0,
           "click": 0
         },
@@ -5323,9 +5235,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 29,
+        "credit": 34,
         "of_which": {
-          "effect": 41,
+          "effect": 46,
           "negative": 0,
           "click": 0
         },
@@ -5340,9 +5252,9 @@
         "from": [
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 23,
+        "credit": 30,
         "of_which": {
-          "effect": 37,
+          "effect": 44,
           "negative": 0,
           "click": 0
         },
@@ -5357,9 +5269,9 @@
         "from": [
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 15,
+        "credit": 18,
         "of_which": {
-          "effect": 16,
+          "effect": 19,
           "negative": 0,
           "click": 0
         },
@@ -5390,11 +5302,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 75,
+        "credit": 93,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 111
+          "click": 135
         },
         "attempts": 15
       },
@@ -5408,9 +5320,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 5284,
+        "credit": 5312,
         "of_which": {
-          "effect": 8032,
+          "effect": 8068,
           "negative": 0,
           "click": 0
         },
@@ -5426,9 +5338,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 5284,
+        "credit": 5312,
         "of_which": {
-          "effect": 8032,
+          "effect": 8068,
           "negative": 0,
           "click": 0
         },
@@ -5441,11 +5353,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 1954,
+        "credit": 1971,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3022
+          "click": 3038
         },
         "attempts": 0
       },
@@ -5456,7 +5368,7 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 17556,
+        "credit": 17604,
         "of_which": {
           "effect": 0,
           "negative": 0,
@@ -5475,7 +5387,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 910
+          "click": 890
         },
         "attempts": 0
       },
@@ -5490,7 +5402,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 910
+          "click": 890
         },
         "attempts": 0
       },
@@ -5503,10 +5415,10 @@
         "from": [
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 210,
+        "credit": 204,
         "of_which": {
           "effect": 12,
-          "negative": 399,
+          "negative": 393,
           "click": 0
         },
         "attempts": 0
@@ -5516,11 +5428,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 7596,
+        "credit": 7752,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13968
+          "click": 14016
         },
         "attempts": 0
       },
@@ -5529,11 +5441,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 7596,
+        "credit": 7752,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13968
+          "click": 14016
         },
         "attempts": 0
       },
@@ -5542,11 +5454,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 7596,
+        "credit": 7752,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13968
+          "click": 14016
         },
         "attempts": 0
       },
@@ -5555,11 +5467,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 7596,
+        "credit": 7752,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13968
+          "click": 14016
         },
         "attempts": 0
       },
@@ -5573,9 +5485,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 1640,
+        "credit": 1632,
         "of_which": {
-          "effect": 2492,
+          "effect": 2484,
           "negative": 0,
           "click": 0
         },
@@ -5590,9 +5502,9 @@
         "from": [
           "the tag name matches forme|formechange|switchinfo"
         ],
-        "credit": 698,
+        "credit": 710,
         "of_which": {
-          "effect": 1040,
+          "effect": 1052,
           "negative": 0,
           "click": 0
         },
@@ -5639,7 +5551,7 @@
         ],
         "credit": 39,
         "of_which": {
-          "effect": 48,
+          "effect": 45,
           "negative": 0,
           "click": 0
         },
@@ -5654,9 +5566,9 @@
         "from": [
           "param key `status`"
         ],
-        "credit": 140,
+        "credit": 178,
         "of_which": {
-          "effect": 187,
+          "effect": 224,
           "negative": 0,
           "click": 0
         },
@@ -5684,11 +5596,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 336,
+        "credit": 332,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 550
+          "click": 544
         },
         "attempts": 0
       },
@@ -5716,9 +5628,9 @@
         "from": [
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 12,
+        "credit": 16,
         "of_which": {
-          "effect": 17,
+          "effect": 21,
           "negative": 0,
           "click": 0
         },
@@ -5763,11 +5675,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2460,
+        "credit": 2524,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3728
+          "click": 3804
         },
         "attempts": 0
       },
@@ -5776,11 +5688,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2460,
+        "credit": 2524,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3728
+          "click": 3804
         },
         "attempts": 0
       },
@@ -5789,11 +5701,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2460,
+        "credit": 2524,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3728
+          "click": 3804
         },
         "attempts": 0
       },
@@ -5802,11 +5714,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 1640,
+        "credit": 1644,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 2548
+          "click": 2552
         },
         "attempts": 0
       },
@@ -5871,11 +5783,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 34,
+        "credit": 50,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 34
+          "click": 50
         },
         "attempts": 0
       },
@@ -5884,11 +5796,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 34,
+        "credit": 50,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 34
+          "click": 50
         },
         "attempts": 0
       },
@@ -5914,11 +5826,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 30,
+        "credit": 38,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 40
+          "click": 48
         },
         "attempts": 0
       },
@@ -5933,7 +5845,7 @@
         ],
         "credit": 26,
         "of_which": {
-          "effect": 32,
+          "effect": 30,
           "negative": 0,
           "click": 0
         },
@@ -5949,9 +5861,9 @@
           "param key `heal`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 15,
+        "credit": 21,
         "of_which": {
-          "effect": 21,
+          "effect": 27,
           "negative": 0,
           "click": 0
         },
@@ -5964,11 +5876,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 503,
+        "credit": 499,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 763
+          "click": 759
         },
         "attempts": 0
       },
@@ -5979,11 +5891,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 3057,
+        "credit": 3054,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 4338
+          "click": 4335
         },
         "attempts": 3
       },
@@ -5994,11 +5906,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 3057,
+        "credit": 3054,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 4338
+          "click": 4335
         },
         "attempts": 3
       },
@@ -6011,9 +5923,9 @@
         "from": [
           "the tag name matches chipimmune"
         ],
-        "credit": 845,
+        "credit": 832,
         "of_which": {
-          "effect": 1271,
+          "effect": 1258,
           "negative": 0,
           "click": 0
         },
@@ -6024,11 +5936,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 168,
+        "credit": 172,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 273
+          "click": 278
         },
         "attempts": 0
       },
@@ -6041,9 +5953,9 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 2378,
+        "credit": 2406,
         "of_which": {
-          "effect": 3602,
+          "effect": 3630,
           "negative": 0,
           "click": 0
         },
@@ -6060,7 +5972,7 @@
         ],
         "credit": 39,
         "of_which": {
-          "effect": 48,
+          "effect": 45,
           "negative": 0,
           "click": 0
         },
@@ -6110,9 +6022,9 @@
         "from": [
           "the tag name matches taunt|forbidsstatusmoves"
         ],
-        "credit": 15,
+        "credit": 18,
         "of_which": {
-          "effect": 15,
+          "effect": 18,
           "negative": 0,
           "click": 0
         },
@@ -6127,9 +6039,9 @@
         "from": [
           "the tag name matches taunt|forbidsstatusmoves"
         ],
-        "credit": 15,
+        "credit": 18,
         "of_which": {
-          "effect": 15,
+          "effect": 18,
           "negative": 0,
           "click": 0
         },
@@ -6144,9 +6056,9 @@
         "from": [
           "the tag name matches taunt|forbidsstatusmoves"
         ],
-        "credit": 15,
+        "credit": 18,
         "of_which": {
-          "effect": 15,
+          "effect": 18,
           "negative": 0,
           "click": 0
         },
@@ -6170,11 +6082,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 1640,
+        "credit": 1644,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 2548
+          "click": 2552
         },
         "attempts": 0
       },
@@ -6196,11 +6108,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 357,
+        "credit": 358,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 532
+          "click": 533
         },
         "attempts": 0
       },
@@ -6209,11 +6121,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 18,
+        "credit": 16,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 31
+          "click": 29
         },
         "attempts": 0
       },
@@ -6222,11 +6134,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 297,
+        "credit": 302,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 574
+          "click": 582
         },
         "attempts": 0
       },
@@ -6239,9 +6151,9 @@
         "from": [
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 4120,
+        "credit": 4136,
         "of_which": {
-          "effect": 6178,
+          "effect": 6192,
           "negative": 0,
           "click": 0
         },
@@ -6269,11 +6181,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 308,
+        "credit": 332,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 621
+          "click": 645
         },
         "attempts": 0
       },
@@ -6282,11 +6194,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 223,
+        "credit": 211,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 498
+          "click": 486
         },
         "attempts": 4
       },
@@ -6299,7 +6211,7 @@
         "from": [
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 960,
+        "credit": 964,
         "of_which": {
           "effect": 1456,
           "negative": 0,
@@ -6317,9 +6229,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 216,
+        "credit": 222,
         "of_which": {
-          "effect": 312,
+          "effect": 318,
           "negative": 0,
           "click": 0
         },
@@ -6350,11 +6262,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 10114,
+        "credit": 10138,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 15344
+          "click": 15328
         },
         "attempts": 20
       },
@@ -6365,11 +6277,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 1496,
+        "credit": 1588,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 2316
+          "click": 2408
         },
         "attempts": 7
       },
@@ -6380,11 +6292,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 726,
+        "credit": 792,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1023
+          "click": 1089
         },
         "attempts": 0
       },
@@ -6395,11 +6307,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 51,
+        "credit": 57,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 60
+          "click": 66
         },
         "attempts": 0
       },
@@ -6410,11 +6322,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 726,
+        "credit": 792,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1023
+          "click": 1089
         },
         "attempts": 0
       },
@@ -6427,9 +6339,9 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 147,
+        "credit": 144,
         "of_which": {
-          "effect": 279,
+          "effect": 276,
           "negative": 0,
           "click": 0
         },
@@ -6444,9 +6356,9 @@
         "from": [
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 14,
+        "credit": 19,
         "of_which": {
-          "effect": 21,
+          "effect": 26,
           "negative": 0,
           "click": 0
         },
@@ -6462,9 +6374,9 @@
           "param key `leavesHP`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 17361,
+        "credit": 17370,
         "of_which": {
-          "effect": 26199,
+          "effect": 26220,
           "negative": 0,
           "click": 0
         },
@@ -6479,9 +6391,9 @@
         "from": [
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 15252,
+        "credit": 15264,
         "of_which": {
-          "effect": 22962,
+          "effect": 22971,
           "negative": 0,
           "click": 0
         },
@@ -6496,9 +6408,9 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 4012,
+        "credit": 4022,
         "of_which": {
-          "effect": 6024,
+          "effect": 6030,
           "negative": 0,
           "click": 0
         },
@@ -6511,11 +6423,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 5988,
+        "credit": 6099,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 9165
+          "click": 9255
         },
         "attempts": 0
       },
@@ -6526,11 +6438,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 5988,
+        "credit": 6099,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 9165
+          "click": 9255
         },
         "attempts": 0
       },
@@ -6541,11 +6453,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 1872,
+        "credit": 1875,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 2868
+          "click": 2861
         },
         "attempts": 0
       },
@@ -6558,9 +6470,9 @@
         "from": [
           "the tag name matches tailwind|doublessidespeed"
         ],
-        "credit": 5208,
+        "credit": 5211,
         "of_which": {
-          "effect": 7797,
+          "effect": 7800,
           "negative": 0,
           "click": 0
         },
@@ -6575,9 +6487,9 @@
         "from": [
           "the tag name matches tailwind|doublessidespeed"
         ],
-        "credit": 5208,
+        "credit": 5211,
         "of_which": {
-          "effect": 7797,
+          "effect": 7800,
           "negative": 0,
           "click": 0
         },
@@ -6592,9 +6504,9 @@
         "from": [
           "the tag name matches tailwind|doublessidespeed"
         ],
-        "credit": 5208,
+        "credit": 5211,
         "of_which": {
-          "effect": 7797,
+          "effect": 7800,
           "negative": 0,
           "click": 0
         },
@@ -6627,9 +6539,9 @@
         "from": [
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 72,
+        "credit": 78,
         "of_which": {
-          "effect": 138,
+          "effect": 144,
           "negative": 0,
           "click": 0
         },
@@ -6666,11 +6578,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2268,
+        "credit": 2242,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3456
+          "click": 3412
         },
         "attempts": 0
       },
@@ -6694,11 +6606,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 855,
+        "credit": 840,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1308
+          "click": 1284
         },
         "attempts": 0
       },
@@ -6709,11 +6621,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 33,
+        "credit": 39,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 45
+          "click": 51
         },
         "attempts": 0
       },
@@ -6724,11 +6636,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 33,
+        "credit": 39,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 45
+          "click": 51
         },
         "attempts": 0
       },
@@ -6739,11 +6651,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 33,
+        "credit": 39,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 45
+          "click": 51
         },
         "attempts": 0
       },
@@ -6757,9 +6669,9 @@
           "param key `weather`",
           "the tag name matches weathersetter|setsweather|pr"
         ],
-        "credit": 13980,
+        "credit": 13996,
         "of_which": {
-          "effect": 20736,
+          "effect": 20732,
           "negative": 0,
           "click": 0
         },
@@ -6775,9 +6687,9 @@
           "param key `weather`",
           "the tag name matches weathersetter|setsweather|pr"
         ],
-        "credit": 13980,
+        "credit": 13996,
         "of_which": {
-          "effect": 20736,
+          "effect": 20732,
           "negative": 0,
           "click": 0
         },
@@ -6788,11 +6700,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 38,
+        "credit": 40,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 50
+          "click": 52
         },
         "attempts": 0
       },
@@ -6801,11 +6713,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 38,
+        "credit": 40,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 50
+          "click": 52
         },
         "attempts": 0
       },
@@ -6814,11 +6726,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 14,
+        "credit": 16,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 18
+          "click": 20
         },
         "attempts": 0
       },
@@ -6827,11 +6739,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 14,
+        "credit": 16,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 18
+          "click": 20
         },
         "attempts": 0
       },
@@ -6844,9 +6756,9 @@
         "from": [
           "the tag name matches room|reversesspeed"
         ],
-        "credit": 2020,
+        "credit": 2110,
         "of_which": {
-          "effect": 3016,
+          "effect": 3134,
           "negative": 0,
           "click": 0
         },
@@ -6861,9 +6773,9 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 87,
+        "credit": 84,
         "of_which": {
-          "effect": 150,
+          "effect": 147,
           "negative": 0,
           "click": 0
         },
@@ -6876,11 +6788,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 42,
+        "credit": 48,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 76
+          "click": 82
         },
         "attempts": 2
       },
@@ -6893,9 +6805,9 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 87,
+        "credit": 84,
         "of_which": {
-          "effect": 150,
+          "effect": 147,
           "negative": 0,
           "click": 0
         },
@@ -6906,11 +6818,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 694,
+        "credit": 696,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1032
+          "click": 1034
         },
         "attempts": 0
       },
@@ -6919,11 +6831,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 694,
+        "credit": 696,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1032
+          "click": 1034
         },
         "attempts": 0
       },
@@ -6945,11 +6857,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2916,
+        "credit": 3024,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 4584
+          "click": 4692
         },
         "attempts": 0
       },
@@ -6963,9 +6875,9 @@
           "param key `heal`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 44,
+        "credit": 70,
         "of_which": {
-          "effect": 60,
+          "effect": 90,
           "negative": 0,
           "click": 0
         },
@@ -6981,9 +6893,9 @@
           "param key `heal`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 44,
+        "credit": 70,
         "of_which": {
-          "effect": 60,
+          "effect": 90,
           "negative": 0,
           "click": 0
         },
@@ -6999,9 +6911,9 @@
           "param key `heal`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 15,
+        "credit": 21,
         "of_which": {
-          "effect": 21,
+          "effect": 27,
           "negative": 0,
           "click": 0
         },
@@ -7016,9 +6928,9 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 147,
+        "credit": 144,
         "of_which": {
-          "effect": 279,
+          "effect": 276,
           "negative": 0,
           "click": 0
         },
@@ -7034,9 +6946,9 @@
           "param key `heal`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 44,
+        "credit": 70,
         "of_which": {
-          "effect": 60,
+          "effect": 90,
           "negative": 0,
           "click": 0
         },
@@ -7047,11 +6959,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 1528,
+        "credit": 1537,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 2314
+          "click": 2322
         },
         "attempts": 0
       },
@@ -7066,10 +6978,10 @@
           "param key `heal`",
           "param key `boosts`"
         ],
-        "credit": 6134,
+        "credit": 6186,
         "of_which": {
-          "effect": 9300,
-          "negative": 2,
+          "effect": 9360,
+          "negative": 4,
           "click": 0
         },
         "attempts": 0
@@ -7081,11 +6993,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 715,
+        "credit": 714,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 995
+          "click": 994
         },
         "attempts": 0
       },
@@ -7094,11 +7006,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 21,
+        "credit": 30,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 27
+          "click": 36
         },
         "attempts": 0
       },
@@ -7107,11 +7019,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 21,
+        "credit": 30,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 27
+          "click": 36
         },
         "attempts": 0
       },
@@ -7126,7 +7038,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 486
+          "click": 504
         },
         "attempts": 36
       },
@@ -7154,7 +7066,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 486
+          "click": 504
         },
         "attempts": 36
       },
@@ -7165,11 +7077,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 75,
+        "credit": 93,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 111
+          "click": 135
         },
         "attempts": 15
       },
@@ -7180,11 +7092,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 75,
+        "credit": 93,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 111
+          "click": 135
         },
         "attempts": 15
       },
@@ -7195,11 +7107,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 16,
+        "credit": 14,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 27
+          "click": 25
         },
         "attempts": 0
       },
@@ -7225,11 +7137,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 386,
+        "credit": 369,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 595
+          "click": 578
         },
         "attempts": 0
       },
@@ -7242,9 +7154,9 @@
         "from": [
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 3,
+        "credit": 8,
         "of_which": {
-          "effect": 3,
+          "effect": 8,
           "negative": 0,
           "click": 0
         },
@@ -7255,11 +7167,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 248,
+        "credit": 259,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 377
+          "click": 388
         },
         "attempts": 0
       },
@@ -7270,11 +7182,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 1099,
+        "credit": 1100,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1242
+          "click": 1243
         },
         "attempts": 0
       },
@@ -7285,11 +7197,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 1659,
+        "credit": 1668,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 2331
+          "click": 2340
         },
         "attempts": 3
       },
@@ -7300,11 +7212,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 1052,
+        "credit": 1048,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1788
+          "click": 1784
         },
         "attempts": 4
       },
@@ -7318,9 +7230,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 547,
+        "credit": 546,
         "of_which": {
-          "effect": 864,
+          "effect": 863,
           "negative": 0,
           "click": 0
         },
@@ -7336,9 +7248,9 @@
           "param key `heal`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 388,
+        "credit": 390,
         "of_which": {
-          "effect": 565,
+          "effect": 567,
           "negative": 0,
           "click": 0
         },
@@ -7353,13 +7265,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 2340,
+        "credit": 2730,
         "of_which": {
-          "effect": 3636,
+          "effect": 4242,
           "negative": 0,
           "click": 0
         },
-        "attempts": 6
+        "attempts": 7
       },
       {
         "key": "ability:buffsHolderOnHit",
@@ -7370,13 +7282,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 2340,
+        "credit": 2730,
         "of_which": {
-          "effect": 3636,
+          "effect": 4242,
           "negative": 0,
           "click": 0
         },
-        "attempts": 6
+        "attempts": 7
       },
       {
         "key": "ability:buffsHolderOnHit",
@@ -7387,13 +7299,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 2340,
+        "credit": 2730,
         "of_which": {
-          "effect": 3636,
+          "effect": 4242,
           "negative": 0,
           "click": 0
         },
-        "attempts": 6
+        "attempts": 7
       },
       {
         "key": "ability:buffsHolderOnHit",
@@ -7404,13 +7316,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 2340,
+        "credit": 2730,
         "of_which": {
-          "effect": 3636,
+          "effect": 4242,
           "negative": 0,
           "click": 0
         },
-        "attempts": 6
+        "attempts": 7
       },
       {
         "key": "move:fixedDamage",
@@ -7434,9 +7346,9 @@
         "from": [
           "the tag name matches perish"
         ],
-        "credit": 16,
+        "credit": 20,
         "of_which": {
-          "effect": 16,
+          "effect": 20,
           "negative": 0,
           "click": 0
         },
@@ -7488,9 +7400,9 @@
           "param key `chipPerTurn`",
           "the tag name matches partialtrap|preventsswitch"
         ],
-        "credit": 4,
+        "credit": 6,
         "of_which": {
-          "effect": 4,
+          "effect": 6,
           "negative": 0,
           "click": 0
         },
@@ -7536,11 +7448,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 4,
+        "credit": 7,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 6
+          "click": 9
         },
         "attempts": 0
       },
@@ -7566,11 +7478,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 4,
+        "credit": 5,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 6
+          "click": 7
         },
         "attempts": 0
       },
@@ -7611,6 +7523,32 @@
           "click": 0
         },
         "attempts": 0
+      },
+      {
+        "key": "move:shieldsUser",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 11448,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 17343
+        },
+        "attempts": 30
+      },
+      {
+        "key": "move:shieldsUser",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 11448,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 17343
+        },
+        "attempts": 30
       },
       {
         "key": "move:critRatioUp",
@@ -7619,11 +7557,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 4,
+        "credit": 6,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 5
+          "click": 7
         },
         "attempts": 0
       },
@@ -7766,7 +7704,7 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 17556,
+        "credit": 17604,
         "of_which": {
           "effect": 0,
           "negative": 0,
@@ -7781,7 +7719,7 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 17556,
+        "credit": 17604,
         "of_which": {
           "effect": 0,
           "negative": 0,
@@ -7796,11 +7734,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 30,
+        "credit": 38,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 40
+          "click": 48
         },
         "attempts": 0
       },
@@ -7813,9 +7751,9 @@
         "from": [
           "the tag name matches forme|formechange|switchinfo"
         ],
-        "credit": 698,
+        "credit": 710,
         "of_which": {
-          "effect": 1040,
+          "effect": 1052,
           "negative": 0,
           "click": 0
         },
@@ -7831,9 +7769,9 @@
           "param key `boosts`",
           "param key `lowersSpeed`"
         ],
-        "credit": 36,
+        "credit": 37,
         "of_which": {
-          "effect": 55,
+          "effect": 56,
           "negative": 0,
           "click": 0
         },
@@ -7849,13 +7787,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 644,
+        "credit": 888,
         "of_which": {
-          "effect": 861,
+          "effect": 1136,
           "negative": 0,
           "click": 0
         },
-        "attempts": 70
+        "attempts": 80
       },
       {
         "key": "move:variablePower",
@@ -7868,7 +7806,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 486
+          "click": 504
         },
         "attempts": 36
       },
@@ -7879,11 +7817,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 19365,
+        "credit": 19473,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 29379
+          "click": 29442
         },
         "attempts": 30
       },
@@ -7894,11 +7832,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 13,
+        "credit": 17,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 17
+          "click": 21
         },
         "attempts": 0
       },
@@ -7913,7 +7851,7 @@
         ],
         "credit": 39,
         "of_which": {
-          "effect": 48,
+          "effect": 45,
           "negative": 0,
           "click": 0
         },
@@ -7924,11 +7862,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 1298,
+        "credit": 1324,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 2028
+          "click": 2060
         },
         "attempts": 0
       },
@@ -7982,11 +7920,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 858,
+        "credit": 906,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1239
+          "click": 1287
         },
         "attempts": 6
       },
@@ -7997,11 +7935,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 858,
+        "credit": 906,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1239
+          "click": 1287
         },
         "attempts": 6
       },
@@ -8012,11 +7950,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 288,
+        "credit": 274,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 380
+          "click": 366
         },
         "attempts": 0
       },
@@ -8045,9 +7983,9 @@
           "param key `recoil`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 266,
+        "credit": 268,
         "of_which": {
-          "effect": 435,
+          "effect": 437,
           "negative": 0,
           "click": 0
         },
@@ -8073,11 +8011,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 336,
+        "credit": 332,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 550
+          "click": 544
         },
         "attempts": 0
       },
@@ -8140,11 +8078,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 275,
+        "credit": 285,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 430
+          "click": 443
         },
         "attempts": 0
       },
@@ -8189,9 +8127,9 @@
         "from": [
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 235,
+        "credit": 241,
         "of_which": {
-          "effect": 297,
+          "effect": 303,
           "negative": 0,
           "click": 0
         },
@@ -8202,11 +8140,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 105,
+        "credit": 106,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 186
+          "click": 187
         },
         "attempts": 0
       },
@@ -8370,9 +8308,9 @@
         "from": [
           "param key `cures`"
         ],
-        "credit": 30,
+        "credit": 32,
         "of_which": {
-          "effect": 38,
+          "effect": 40,
           "negative": 0,
           "click": 0
         },
@@ -8405,13 +8343,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 644,
+        "credit": 888,
         "of_which": {
-          "effect": 861,
+          "effect": 1136,
           "negative": 0,
           "click": 0
         },
-        "attempts": 70
+        "attempts": 80
       },
       {
         "key": "move:statusCategory",
@@ -8420,11 +8358,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 19365,
+        "credit": 19473,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 29379
+          "click": 29442
         },
         "attempts": 30
       },
@@ -8433,11 +8371,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 353,
+        "credit": 352,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 580
+          "click": 579
         },
         "attempts": 0
       },
@@ -8450,9 +8388,9 @@
         "from": [
           "param key `cures`"
         ],
-        "credit": 30,
+        "credit": 32,
         "of_which": {
-          "effect": 38,
+          "effect": 40,
           "negative": 0,
           "click": 0
         },
@@ -8535,11 +8473,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 2463,
+        "credit": 2522,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3804
+          "click": 3862
         },
         "attempts": 0
       },
@@ -8553,9 +8491,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 372,
+        "credit": 399,
         "of_which": {
-          "effect": 570,
+          "effect": 597,
           "negative": 0,
           "click": 0
         },
@@ -8568,7 +8506,7 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 171,
+        "credit": 172,
         "of_which": {
           "effect": 0,
           "negative": 0,
@@ -8590,24 +8528,24 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 6940,
+        "credit": 8400,
         "of_which": {
-          "effect": 10565,
+          "effect": 12744,
           "negative": 0,
           "click": 0
         },
-        "attempts": 50
+        "attempts": 60
       },
       {
         "key": "ability:reflectsStatusMoves",
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 92,
+        "credit": 98,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 142
+          "click": 148
         },
         "attempts": 0
       },
@@ -8634,11 +8572,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 1298,
+        "credit": 1324,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 2028
+          "click": 2060
         },
         "attempts": 0
       },
@@ -8754,11 +8692,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 52,
+        "credit": 58,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 80
+          "click": 86
         },
         "attempts": 0
       },
@@ -8776,13 +8714,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 6940,
+        "credit": 8400,
         "of_which": {
-          "effect": 10565,
+          "effect": 12744,
           "negative": 0,
           "click": 0
         },
-        "attempts": 50
+        "attempts": 60
       },
       {
         "key": "ability:addsOwnSecondary",
@@ -8808,11 +8746,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 81,
+        "credit": 72,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 103
+          "click": 94
         },
         "attempts": 0
       },
@@ -8957,11 +8895,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 42,
+        "credit": 48,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 76
+          "click": 82
         },
         "attempts": 2
       },
@@ -8974,10 +8912,10 @@
         "from": [
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 210,
+        "credit": 204,
         "of_which": {
           "effect": 12,
-          "negative": 399,
+          "negative": 393,
           "click": 0
         },
         "attempts": 0
@@ -8989,11 +8927,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 858,
+        "credit": 906,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1239
+          "click": 1287
         },
         "attempts": 6
       },
@@ -9008,9 +8946,9 @@
           "param key `chipPerTurn`",
           "the tag name matches partialtrap|preventsswitch"
         ],
-        "credit": 4,
+        "credit": 6,
         "of_which": {
-          "effect": 4,
+          "effect": 6,
           "negative": 0,
           "click": 0
         },
@@ -9023,11 +8961,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 111,
+        "credit": 128,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 164
+          "click": 187
         },
         "attempts": 0
       },
@@ -9038,11 +8976,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 314,
+        "credit": 325,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 481
+          "click": 492
         },
         "attempts": 0
       },
@@ -9053,11 +8991,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 1052,
+        "credit": 1048,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1788
+          "click": 1784
         },
         "attempts": 4
       },
@@ -9068,11 +9006,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 1659,
+        "credit": 1668,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 2331
+          "click": 2340
         },
         "attempts": 3
       },
@@ -9154,11 +9092,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 61,
+        "credit": 64,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 83
+          "click": 86
         },
         "attempts": 0
       },
@@ -9187,11 +9125,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 1659,
+        "credit": 1668,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 2331
+          "click": 2340
         },
         "attempts": 3
       },
@@ -9202,11 +9140,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 1052,
+        "credit": 1048,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1788
+          "click": 1784
         },
         "attempts": 4
       },
@@ -9302,9 +9240,9 @@
           "param key `leavesHP`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 135,
+        "credit": 145,
         "of_which": {
-          "effect": 219,
+          "effect": 234,
           "negative": 0,
           "click": 0
         },
@@ -9336,9 +9274,9 @@
         "from": [
           "the tag name matches room|reversesspeed"
         ],
-        "credit": 2020,
+        "credit": 2110,
         "of_which": {
-          "effect": 3016,
+          "effect": 3134,
           "negative": 0,
           "click": 0
         },
@@ -9351,11 +9289,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 19365,
+        "credit": 19473,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 29379
+          "click": 29442
         },
         "attempts": 30
       },
@@ -9368,9 +9306,9 @@
         "from": [
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 4120,
+        "credit": 4136,
         "of_which": {
-          "effect": 6178,
+          "effect": 6192,
           "negative": 0,
           "click": 0
         },
@@ -9387,7 +9325,7 @@
         ],
         "credit": 39,
         "of_which": {
-          "effect": 48,
+          "effect": 45,
           "negative": 0,
           "click": 0
         },
@@ -9404,7 +9342,7 @@
         ],
         "credit": 39,
         "of_which": {
-          "effect": 48,
+          "effect": 45,
           "negative": 0,
           "click": 0
         },
@@ -9419,9 +9357,9 @@
         "from": [
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 15252,
+        "credit": 15264,
         "of_which": {
-          "effect": 22962,
+          "effect": 22971,
           "negative": 0,
           "click": 0
         },
@@ -9464,11 +9402,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2268,
+        "credit": 2242,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3456
+          "click": 3412
         },
         "attempts": 0
       },
@@ -9479,11 +9417,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 726,
+        "credit": 792,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1023
+          "click": 1089
         },
         "attempts": 0
       },
@@ -9494,11 +9432,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 726,
+        "credit": 792,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1023
+          "click": 1089
         },
         "attempts": 0
       },
@@ -9507,11 +9445,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2460,
+        "credit": 2524,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3728
+          "click": 3804
         },
         "attempts": 0
       },
@@ -9522,11 +9460,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 51,
+        "credit": 57,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 60
+          "click": 66
         },
         "attempts": 0
       },
@@ -9537,11 +9475,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 726,
+        "credit": 792,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1023
+          "click": 1089
         },
         "attempts": 0
       },
@@ -9552,11 +9490,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 726,
+        "credit": 792,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1023
+          "click": 1089
         },
         "attempts": 0
       },
@@ -9567,11 +9505,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 726,
+        "credit": 792,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1023
+          "click": 1089
         },
         "attempts": 0
       },
@@ -9584,9 +9522,9 @@
         "from": [
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 72,
+        "credit": 78,
         "of_which": {
-          "effect": 138,
+          "effect": 144,
           "negative": 0,
           "click": 0
         },
@@ -9603,9 +9541,9 @@
           "param key `alsoRaises`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 26,
+        "credit": 30,
         "of_which": {
-          "effect": 34,
+          "effect": 38,
           "negative": 0,
           "click": 0
         },
@@ -9621,9 +9559,9 @@
           "param key `weather`",
           "the tag name matches weathersetter|setsweather|pr"
         ],
-        "credit": 13980,
+        "credit": 13996,
         "of_which": {
-          "effect": 20736,
+          "effect": 20732,
           "negative": 0,
           "click": 0
         },
@@ -9639,9 +9577,9 @@
           "param key `weather`",
           "the tag name matches weathersetter|setsweather|pr"
         ],
-        "credit": 13980,
+        "credit": 13996,
         "of_which": {
-          "effect": 20736,
+          "effect": 20732,
           "negative": 0,
           "click": 0
         },
@@ -9688,11 +9626,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 711,
+        "credit": 729,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 711
+          "click": 729
         },
         "attempts": 0
       },
@@ -9718,13 +9656,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 2340,
+        "credit": 2730,
         "of_which": {
-          "effect": 3636,
+          "effect": 4242,
           "negative": 0,
           "click": 0
         },
-        "attempts": 6
+        "attempts": 7
       },
       {
         "key": "ability:punishesAttacker",
@@ -9740,13 +9678,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 6940,
+        "credit": 8400,
         "of_which": {
-          "effect": 10565,
+          "effect": 12744,
           "negative": 0,
           "click": 0
         },
-        "attempts": 50
+        "attempts": 60
       },
       {
         "key": "move:swapsSlots",
@@ -9766,11 +9704,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 232,
+        "credit": 235,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 350
+          "click": 352
         },
         "attempts": 0
       },
@@ -9785,7 +9723,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 486
+          "click": 504
         },
         "attempts": 36
       },
@@ -9800,7 +9738,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 486
+          "click": 504
         },
         "attempts": 36
       },
@@ -9811,11 +9749,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 726,
+        "credit": 792,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1023
+          "click": 1089
         },
         "attempts": 0
       },
@@ -9826,11 +9764,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 726,
+        "credit": 792,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1023
+          "click": 1089
         },
         "attempts": 0
       },
@@ -9843,7 +9781,7 @@
         "from": [
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 960,
+        "credit": 964,
         "of_which": {
           "effect": 1456,
           "negative": 0,
@@ -9860,7 +9798,7 @@
         "from": [
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 960,
+        "credit": 964,
         "of_which": {
           "effect": 1456,
           "negative": 0,
@@ -9877,9 +9815,9 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 2378,
+        "credit": 2406,
         "of_which": {
-          "effect": 3602,
+          "effect": 3630,
           "negative": 0,
           "click": 0
         },
@@ -9899,13 +9837,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 6940,
+        "credit": 8400,
         "of_which": {
-          "effect": 10565,
+          "effect": 12744,
           "negative": 0,
           "click": 0
         },
-        "attempts": 50
+        "attempts": 60
       },
       {
         "key": "ability:punishesAttacker",
@@ -9921,13 +9859,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 6940,
+        "credit": 8400,
         "of_which": {
-          "effect": 10565,
+          "effect": 12744,
           "negative": 0,
           "click": 0
         },
-        "attempts": 50
+        "attempts": 60
       },
       {
         "key": "move:alwaysCrit",
@@ -9996,11 +9934,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 711,
+        "credit": 729,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 711
+          "click": 729
         },
         "attempts": 0
       },
@@ -10011,11 +9949,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 711,
+        "credit": 729,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 711
+          "click": 729
         },
         "attempts": 0
       },
@@ -10080,9 +10018,9 @@
         "from": [
           "the tag name matches perish"
         ],
-        "credit": 16,
+        "credit": 20,
         "of_which": {
-          "effect": 16,
+          "effect": 20,
           "negative": 0,
           "click": 0
         },
@@ -10097,9 +10035,9 @@
         "from": [
           "the tag name matches perish"
         ],
-        "credit": 16,
+        "credit": 20,
         "of_which": {
-          "effect": 16,
+          "effect": 20,
           "negative": 0,
           "click": 0
         },
@@ -10114,9 +10052,9 @@
         "from": [
           "the tag name matches perish"
         ],
-        "credit": 16,
+        "credit": 20,
         "of_which": {
-          "effect": 16,
+          "effect": 20,
           "negative": 0,
           "click": 0
         },
@@ -10129,11 +10067,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 5988,
+        "credit": 6099,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 9165
+          "click": 9255
         },
         "attempts": 0
       },
@@ -10201,9 +10139,9 @@
           "param key `heal`",
           "param key `becomes`"
         ],
-        "credit": 770,
+        "credit": 772,
         "of_which": {
-          "effect": 1136,
+          "effect": 1138,
           "negative": 0,
           "click": 0
         },
@@ -10294,9 +10232,9 @@
         "from": [
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 193,
+        "credit": 189,
         "of_which": {
-          "effect": 328,
+          "effect": 324,
           "negative": 0,
           "click": 0
         },
@@ -10331,9 +10269,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 1640,
+        "credit": 1632,
         "of_which": {
-          "effect": 2492,
+          "effect": 2484,
           "negative": 0,
           "click": 0
         },
@@ -10346,11 +10284,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 726,
+        "credit": 792,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1023
+          "click": 1089
         },
         "attempts": 0
       },
@@ -10361,11 +10299,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 726,
+        "credit": 792,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1023
+          "click": 1089
         },
         "attempts": 0
       },
@@ -10376,11 +10314,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 51,
+        "credit": 57,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 60
+          "click": 66
         },
         "attempts": 0
       },
@@ -10534,11 +10472,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2916,
+        "credit": 3024,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 4584
+          "click": 4692
         },
         "attempts": 0
       },
@@ -10606,13 +10544,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 644,
+        "credit": 888,
         "of_which": {
-          "effect": 861,
+          "effect": 1136,
           "negative": 0,
           "click": 0
         },
-        "attempts": 70
+        "attempts": 80
       },
       {
         "key": "move:statusInflict",
@@ -10624,13 +10562,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 644,
+        "credit": 888,
         "of_which": {
-          "effect": 861,
+          "effect": 1136,
           "negative": 0,
           "click": 0
         },
-        "attempts": 70
+        "attempts": 80
       },
       {
         "key": "move:boostsTarget",
@@ -10660,9 +10598,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 216,
+        "credit": 222,
         "of_which": {
-          "effect": 312,
+          "effect": 318,
           "negative": 0,
           "click": 0
         },
@@ -10678,9 +10616,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 216,
+        "credit": 222,
         "of_which": {
-          "effect": 312,
+          "effect": 318,
           "negative": 0,
           "click": 0
         },
@@ -10696,9 +10634,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 216,
+        "credit": 222,
         "of_which": {
-          "effect": 312,
+          "effect": 318,
           "negative": 0,
           "click": 0
         },
@@ -10714,9 +10652,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 216,
+        "credit": 222,
         "of_which": {
-          "effect": 312,
+          "effect": 318,
           "negative": 0,
           "click": 0
         },
@@ -10732,9 +10670,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 216,
+        "credit": 222,
         "of_which": {
-          "effect": 312,
+          "effect": 318,
           "negative": 0,
           "click": 0
         },
@@ -10764,7 +10702,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 486
+          "click": 504
         },
         "attempts": 36
       },
@@ -10778,9 +10716,9 @@
           "param key `heal`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 44,
+        "credit": 70,
         "of_which": {
-          "effect": 60,
+          "effect": 90,
           "negative": 0,
           "click": 0
         },
@@ -10854,13 +10792,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 644,
+        "credit": 888,
         "of_which": {
-          "effect": 861,
+          "effect": 1136,
           "negative": 0,
           "click": 0
         },
-        "attempts": 70
+        "attempts": 80
       },
       {
         "key": "move:healDescriptor",
@@ -10982,9 +10920,9 @@
         "from": [
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 105,
+        "credit": 152,
         "of_which": {
-          "effect": 156,
+          "effect": 220,
           "negative": 0,
           "click": 0
         },
@@ -11050,9 +10988,9 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 147,
+        "credit": 144,
         "of_which": {
-          "effect": 279,
+          "effect": 276,
           "negative": 0,
           "click": 0
         },
@@ -11195,11 +11133,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 21,
+        "credit": 30,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 27
+          "click": 36
         },
         "attempts": 0
       },
@@ -11213,9 +11151,9 @@
           "param key `leavesHP`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 17361,
+        "credit": 17370,
         "of_which": {
-          "effect": 26199,
+          "effect": 26220,
           "negative": 0,
           "click": 0
         },
@@ -11282,11 +11220,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 171,
+        "credit": 174,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 277
+          "click": 280
         },
         "attempts": 1
       },
@@ -11295,11 +11233,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 14206,
+        "credit": 14392,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 21804
+          "click": 21964
         },
         "attempts": 20
       },
@@ -11312,9 +11250,9 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 87,
+        "credit": 84,
         "of_which": {
-          "effect": 150,
+          "effect": 147,
           "negative": 0,
           "click": 0
         },
@@ -11338,11 +11276,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 14206,
+        "credit": 14392,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 21804
+          "click": 21964
         },
         "attempts": 20
       },
@@ -11364,11 +11302,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 7103,
+        "credit": 7196,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 10902
+          "click": 10982
         },
         "attempts": 10
       },
@@ -11403,11 +11341,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2916,
+        "credit": 3024,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 4584
+          "click": 4692
         },
         "attempts": 0
       },
@@ -11416,11 +11354,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2916,
+        "credit": 3024,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 4584
+          "click": 4692
         },
         "attempts": 0
       },
@@ -11429,11 +11367,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 4702,
+        "credit": 4741,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 7405
+          "click": 7431
         },
         "attempts": 3
       },
@@ -11444,11 +11382,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 288,
+        "credit": 274,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 380
+          "click": 366
         },
         "attempts": 0
       },
@@ -11462,9 +11400,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 372,
+        "credit": 399,
         "of_which": {
-          "effect": 570,
+          "effect": 597,
           "negative": 0,
           "click": 0
         },
@@ -11475,11 +11413,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 7103,
+        "credit": 7196,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 10902
+          "click": 10982
         },
         "attempts": 10
       },
@@ -11493,9 +11431,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 372,
+        "credit": 399,
         "of_which": {
-          "effect": 570,
+          "effect": 597,
           "negative": 0,
           "click": 0
         },
@@ -11549,11 +11487,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 3,
+        "credit": 4,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3
+          "click": 4
         },
         "attempts": 0
       },
@@ -11567,13 +11505,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 644,
+        "credit": 888,
         "of_which": {
-          "effect": 861,
+          "effect": 1136,
           "negative": 0,
           "click": 0
         },
-        "attempts": 70
+        "attempts": 80
       },
       {
         "key": "move:statusInflict",
@@ -11585,13 +11523,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 644,
+        "credit": 888,
         "of_which": {
-          "effect": 861,
+          "effect": 1136,
           "negative": 0,
           "click": 0
         },
-        "attempts": 70
+        "attempts": 80
       },
       {
         "key": "move:perTurnHP",
@@ -11623,10 +11561,10 @@
           "param key `heal`",
           "param key `boosts`"
         ],
-        "credit": 6134,
+        "credit": 6186,
         "of_which": {
-          "effect": 9300,
-          "negative": 2,
+          "effect": 9360,
+          "negative": 4,
           "click": 0
         },
         "attempts": 0
@@ -11836,11 +11774,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 41,
+        "credit": 42,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 80
+          "click": 81
         },
         "attempts": 0
       },
@@ -11995,7 +11933,7 @@
         ],
         "credit": 26,
         "of_which": {
-          "effect": 32,
+          "effect": 30,
           "negative": 0,
           "click": 0
         },
@@ -12079,24 +12017,24 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 2340,
+        "credit": 2730,
         "of_which": {
-          "effect": 3636,
+          "effect": 4242,
           "negative": 0,
           "click": 0
         },
-        "attempts": 6
+        "attempts": 7
       },
       {
         "key": "ability:preventsStatDrop",
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 7596,
+        "credit": 7752,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13968
+          "click": 14016
         },
         "attempts": 0
       },
@@ -12107,11 +12045,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 3057,
+        "credit": 3054,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 4338
+          "click": 4335
         },
         "attempts": 3
       },
@@ -12122,11 +12060,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 10114,
+        "credit": 10138,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 15344
+          "click": 15328
         },
         "attempts": 20
       },
@@ -12135,11 +12073,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 7596,
+        "credit": 7752,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13968
+          "click": 14016
         },
         "attempts": 0
       },
@@ -12259,10 +12197,10 @@
         "from": [
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 210,
+        "credit": 204,
         "of_which": {
           "effect": 12,
-          "negative": 399,
+          "negative": 393,
           "click": 0
         },
         "attempts": 0
@@ -12272,11 +12210,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 96,
+        "credit": 108,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 177
+          "click": 195
         },
         "attempts": 0
       },
@@ -12287,7 +12225,7 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 17556,
+        "credit": 17604,
         "of_which": {
           "effect": 0,
           "negative": 0,
@@ -12300,11 +12238,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 21,
+        "credit": 23,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 55
+          "click": 57
         },
         "attempts": 0
       },
@@ -12333,9 +12271,9 @@
           "param key `leavesHP`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 17361,
+        "credit": 17370,
         "of_which": {
-          "effect": 26199,
+          "effect": 26220,
           "negative": 0,
           "click": 0
         },
@@ -12348,11 +12286,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 1052,
+        "credit": 1048,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1788
+          "click": 1784
         },
         "attempts": 4
       },
@@ -12363,7 +12301,7 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 17556,
+        "credit": 17604,
         "of_which": {
           "effect": 0,
           "negative": 0,
@@ -12396,9 +12334,9 @@
           "param key `heal`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 7646,
+        "credit": 7680,
         "of_which": {
-          "effect": 11492,
+          "effect": 11524,
           "negative": 0,
           "click": 0
         },
@@ -12432,7 +12370,7 @@
         "from": [
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 960,
+        "credit": 964,
         "of_which": {
           "effect": 1456,
           "negative": 0,
@@ -12449,9 +12387,9 @@
         "from": [
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 15252,
+        "credit": 15264,
         "of_which": {
-          "effect": 22962,
+          "effect": 22971,
           "negative": 0,
           "click": 0
         },
@@ -12462,11 +12400,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 7630,
+        "credit": 7632,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 11600
+          "click": 11562
         },
         "attempts": 20
       },
@@ -12511,7 +12449,7 @@
         ],
         "credit": 39,
         "of_which": {
-          "effect": 48,
+          "effect": 45,
           "negative": 0,
           "click": 0
         },
@@ -12575,9 +12513,9 @@
           "param key `heal`",
           "the tag name matches heal|drain|recoil|perturnhp|"
         ],
-        "credit": 15,
+        "credit": 21,
         "of_which": {
-          "effect": 21,
+          "effect": 27,
           "negative": 0,
           "click": 0
         },
@@ -12614,17 +12552,145 @@
           "click": 148
         },
         "attempts": 0
+      },
+      {
+        "key": "move:statusInflict",
+        "kind": "effect",
+        "families": [
+          "status"
+        ],
+        "from": [
+          "param key `status`",
+          "the tag name matches burn|poison|toxic|paraly|sle"
+        ],
+        "credit": 888,
+        "of_which": {
+          "effect": 1136,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 80
+      },
+      {
+        "key": "ability:punishesAttacker",
+        "kind": "effect",
+        "families": [
+          "status",
+          "boosts",
+          "hazards"
+        ],
+        "from": [
+          "param key `inflicts`",
+          "param key `status`",
+          "param key `boosts`",
+          "param key `hazard`"
+        ],
+        "credit": 8400,
+        "of_which": {
+          "effect": 12744,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 60
+      },
+      {
+        "key": "ability:poisonsOnMyContact",
+        "kind": "effect",
+        "families": [
+          "status"
+        ],
+        "from": [
+          "the tag name matches burn|poison|toxic|paraly|sle"
+        ],
+        "credit": 8,
+        "of_which": {
+          "effect": 8,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:partialTrap",
+        "kind": "effect",
+        "families": [
+          "hp",
+          "trap"
+        ],
+        "from": [
+          "param key `chipPerTurn`",
+          "the tag name matches partialtrap|preventsswitch"
+        ],
+        "credit": 6,
+        "of_which": {
+          "effect": 6,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:healsSelf",
+        "kind": "effect",
+        "families": [
+          "hp"
+        ],
+        "from": [
+          "param key `heal`",
+          "the tag name matches heal|drain|recoil|perturnhp|"
+        ],
+        "credit": 70,
+        "of_which": {
+          "effect": 90,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:recoil",
+        "kind": "effect",
+        "families": [
+          "hp"
+        ],
+        "from": [
+          "the tag name matches heal|drain|recoil|perturnhp|"
+        ],
+        "credit": 152,
+        "of_which": {
+          "effect": 220,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:buffsHolderOnHit",
+        "kind": "effect",
+        "families": [
+          "boosts"
+        ],
+        "from": [
+          "param key `boosts`"
+        ],
+        "credit": 2730,
+        "of_which": {
+          "effect": 4242,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 7
       }
     ]
   },
   "coverage": {
-    "measurable": 489,
-    "exercised": 463,
+    "measurable": 498,
+    "exercised": 471,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
-    "exercised_by_a_connected_move": 282,
-    "move_targets": 291,
-    "present_on_the_field_only": 181,
-    "ability_or_item_targets": 198,
+    "exercised_by_a_connected_move": 287,
+    "move_targets": 297,
+    "present_on_the_field_only": 184,
+    "ability_or_item_targets": 201,
     "median_completed_turns_before_divergence": 12,
     "unmeasurable_by_this_instrument": [
       {
@@ -12838,6 +12904,18 @@
       {
         "key": "move:weatherSetter",
         "why": "names"
+      },
+      {
+        "key": "move:changesType",
+        "why": "names"
+      },
+      {
+        "key": "move:delayedHeal",
+        "why": "names"
+      },
+      {
+        "key": "move:cures",
+        "why": "names"
       }
     ],
     "not_exercised": [
@@ -12866,7 +12944,8 @@
       "ability:suppressesOwnItem",
       "ability:refusesItemLoss",
       "ability:damageByMoveTrait",
-      "ability:copiesFoeBoosts"
+      "ability:copiesFoeBoosts",
+      "move:partialTrap"
     ],
     "clicked_but_always_missed": [
       "blizzard",
@@ -12950,12 +13029,11 @@
       "highjumpkick",
       "makeitrain",
       "scaleshot",
-      "snarl",
       "stoneaxe",
       "swagger",
       "thunderwave"
     ],
-    "distinct_moves_connected": 186,
+    "distinct_moves_connected": 189,
     "distinct_abilities": 179,
     "distinct_items": 138,
     "distinct_species": 287
@@ -13047,10 +13125,10 @@
     "sets_unbuildable": 0,
     "ban_fallbacks": 0,
     "forced_first_slot": 0,
-    "aim_foe": 5498,
+    "aim_foe": 5656,
     "aim_ally": 513,
     "aim_self": 0,
-    "aim_none": 24142,
+    "aim_none": 24104,
     "aim_slot_empty": 0,
     "undeclared_event_drops": 0,
     "trace_body_off_field": 3,
@@ -13064,14 +13142,14 @@
     "rule": "at every decision the driver prefers the legal action reaching the least-exercised row of data/mechanics-census.json, ties broken toward the least-clicked entity (game_differential.js covWant/creditClick). The census therefore SELECTS THE SAMPLE this run measures.",
     "input": "data/mechanics-census.json",
     "input_read_from": "data/mechanics-census.json",
-    "input_digest": "687d671ec569",
-    "input_rows": 542,
-    "input_generated": "2026-08-13T02:47:41.334Z",
-    "input_live_digest": "687d671ec569",
+    "input_digest": "515be16da61b",
+    "input_rows": 554,
+    "input_generated": "2026-08-13T04:14:42.663Z",
+    "input_live_digest": "515be16da61b",
     "pinned": false,
     "matches_live": true,
-    "selects_from": 489,
-    "unmeasurable": 53,
+    "selects_from": 498,
+    "unmeasurable": 56,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "ffbb055d464c",
     "team_pool_teams": 8778,
@@ -13079,12 +13157,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "e7e64db837b1",
-  "engine_release_cut": "2026-08-13T02:47:46.500Z",
-  "engine_release_cuts": 8,
+  "engine_release": "ed3de7908b72",
+  "engine_release_cut": "2026-08-13T04:12:28.994Z",
+  "engine_release_cuts": 5,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "e07b35ccd820",
+    "engine/medicham2-browser.js": "e4a7f4be3b53",
     "engine/board.js": "a55f8271e101",
     "engine/rollout_leaf.js": "fa318c1022ff",
     "engine/position_features.js": "7927ccb7f5af",
@@ -13104,7 +13182,7 @@
     "data/quality-filter.json": "e675d10477c8",
     "data/engine-data.js": "c6bdc5c54d70",
     "data/abra-tags.js": "5032d42211c3",
-    "data/tags.json": "c05dff41446a",
+    "data/tags.json": "ec96b3a5260c",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "a64314db056b",
