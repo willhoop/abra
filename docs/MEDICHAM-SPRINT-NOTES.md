@@ -7062,3 +7062,27 @@ accuracy never decides an outcome. Same structural blindness that hid the OHKO b
 
 Registered as #236. It belongs with the never-miss family already answered above the stage arithmetic
 in hitChance, beside No Guard and Lock-On, rather than as a special case inside the pipeline.
+
+### A LAYERED REFUSAL TURNS RECOVERING A BASELINE INTO A SEQUENCE OF FULL RUNS
+
+`rngStreams` and `spreadL50` were each checked correctly and DEEP inside the run — one at the
+stall-counter setup, one at body construction — and neither may be softened; both are the
+silent-default failure this repo is built around. But they fired ONE AT A TIME. Re-pinning
+`staged_status_counters.js` went: pin, run, throw on `rngStreams`; scan 196 snapshots, re-pin, run,
+throw on `spreadL50`; scan again. Each refusal names only the NEXT missing symbol.
+
+They are in `need` now, so the loader answers in one message before any work is done:
+
+    release 6b5447db1738 was frozen before engine/medicham2-browser.js exported:
+      natureL50, rngStreams, spreadL50
+
+The deep checks STAY — they explain why each symbol matters, which a name in a list cannot.
+
+**THE TOOL FOR THIS ALREADY EXISTED AND I DID NOT KNOW.** `engine/engine_release.js compat <file>
+<symbols...>` reports every release as PROVIDES / LACKS / PRUNED / UNLOADABLE, and the new refusal now
+prints that command. I wrote a scan script to rediscover what it already answers — the same shape as
+the mechanics runner existing while nothing gated on it. Its verdict matches the hand count exactly:
+**27 of 200 releases can serve this caller, 4 pruned, 168 predate an export, 1 broken.**
+
+The broken one is worth naming: `5e8c391b3f04` is UNLOADABLE with `Unexpected token ')'` — a release
+cut from a working tree mid-edit, frozen mid-keystroke. It verifies and it will never run.

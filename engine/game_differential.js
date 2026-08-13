@@ -203,9 +203,30 @@ REL.require('data/engine-data.js');
  * staged damage span was computed as a single-target hit. That is a real defect and it is NOT fixed
  * here: the fix belongs in medicham2's export list, which ENGINE does not hold this session. Listing
  * it under `want` makes the release loader shout about it every run instead of it staying invisible. */
+/* `rngStreams` AND `spreadL50` BELONG IN `need`, AND LEAVING THEM OUT COST AN HOUR — 2026-08-12.
+ *
+ * Both are checked, correctly, deep inside the run: one at the stall-counter setup (#222, "the stall
+ * counter would silently re-couple to the accuracy pin") and one at body construction ("every body
+ * would be built blank while this file believes it filled a spread"). Neither may be softened — both
+ * are exactly the silent-default failure this repo is built around.
+ *
+ * BUT THEY FIRE ONE AT A TIME. Re-pinning `tests/staged_status_counters.js` went: pin a release, run,
+ * throw on `rngStreams`; scan 196 snapshots for it, re-pin, run, throw on `spreadL50`; scan again.
+ * Each refusal names only the NEXT missing symbol, so recovering a baseline is a sequence of full runs
+ * rather than one lookup. `need` already exists to answer this at load, in one message, before any
+ * work is done — these two simply were not in it.
+ *
+ * THE COST IS NOT ONLY TIME. A layered refusal makes an aged-out baseline look like an engine failure:
+ * that file reported ALL ELEVEN scenarios as `release THREW`, which reads as eleven broken mechanics
+ * and was one unopenable snapshot. 168 of the 196 frozen engines on disk cannot satisfy this list, and
+ * nothing said so until something tried to open one.
+ *
+ * The deep checks STAY. They document WHY each symbol matters, which a name in a list cannot, and they
+ * are the backstop if a caller ever bypasses this loader. */
 const M = REL.require('engine/medicham2-browser.js', {
   need: ['natureL50', 'battleInit', 'battleTurn', 'battleOver', 'playerAction', 'buildMon',
-         'dmgRange', 'traceCanon', 'TRACE_EVENTS', 'weatherId', 'terrainId', 'fails'],
+         'dmgRange', 'traceCanon', 'TRACE_EVENTS', 'weatherId', 'terrainId', 'fails',
+         'rngStreams', 'spreadL50'],
   want: ['MEDI_SPREAD'],
 });
 const CS = require('./champions_sim.js');
