@@ -7928,3 +7928,51 @@ IDENTICAL on both sides, so a divergence can only be a rule. A replay's are unkn
 what the player brought. **Unknown-but-identical is fine; unknown-and-wrong is not** — and
 `replay_differential.js` already makes exactly this argument about reconstructing CHOICES without ever
 applying it to the spreads.
+
+### THE MIDDLE ARM EXISTS, AND ITS OWN SELF-CHECK REFUTED THE DESIGN IN ONE RUN. 2026-08-13
+
+ROADMAP #262, built. Will: *"is it possible at all for us to run a middle bound? where things can miss,
+and secondary chances have a chance to proc? ... otherwise paralysis ends the mons usefulness ... thats
+why games take years."*
+
+A fifth arm with REAL seeded dice shared by CATEGORY — `acc`, `crit`, `sec`,
+`dmg`, `stall` — opt-in via `--arm middle` and deliberately NOT in the default
+set, because it answers a different question from the corners and would move the headline every
+published number is measured against. Both sides' streams come from
+`medicham2.rngStreams({seed})` — one factory, so "what does seed N mean" cannot drift into two
+answers.
+
+**REGISTERING AN ARM WITHOUT ITS CLAIMS WAS THE FIRST BUG, AND THE GUARD CAUGHT IT.** It inherited the
+corner's claims and the pin guard refused the run, naming eight that are false of it — this file
+working exactly as its own header says. A corner asserts deterministic outcomes; this arm cannot, so it
+asserts the properties that make it trustworthy instead: both engines draw the SAME sequence, the five
+categories are independent, a certainty stays a certainty, the die varies inside [0,1), and the rates
+land near the printed ones on this seed.
+
+**THEN THE VOID CHECK PAID FOR ITSELF ON THE FIRST RUN.** 137 diverged of 171 at a median of **two**
+turns. Without the check that reads as *MEDICHAM is 80% wrong in realistic play*. With it:
+
+```
+VOID (instrument desync): 131 of 171
+   acc sd=11 me=2     sec sd=12 me=0     any sd=1028 me=13
+```
+
+**`sec me=0` IN EVERY VOID GAME, AND `acc sd=11 me=2`.** That is not drift, it is
+structural — and this file's own pin claims already state it: *"a 100-accuracy move HITS — medicham2
+skips the check at acc >= 100"*. Showdown rolls anyway. **The two engines make a different NUMBER of
+draws even when they agree completely**, because medicham2 short-circuits rolls whose outcome is
+already determined.
+
+So per-category sequential streams cannot work — and that was precisely the shortcut argued for two
+messages before it was built: that splitting by category, PLUS the differential only ever reporting the
+FIRST divergence, would make a shared sequence safe. **The second half holds. The first half is false,
+and one run measured it.** The event-addressed hash is required after all: same event, same answer,
+independent of how many questions each engine asks. That needs event identity at the 49 context-free
+`rng()` sites, closed by one `CURRENT_EVENT` per action rather than 49 edits.
+
+**The 25% over the 40 usable games is NOT quoted as a rate.** Those forty are the games whose draw
+counts happened to match, which selects for the short and simple ones.
+
+**And the general lesson is the one the arm was built to serve.** An instrument that cannot tell its own
+failure apart from the engine's will report the engine as broken. This one can, and the first thing it
+did with that ability was say so.

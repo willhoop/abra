@@ -230,6 +230,19 @@ const M = REL.require('engine/medicham2-browser.js', {
   want: ['MEDI_SPREAD'],
 });
 const CS = require('./champions_sim.js');
+/* WRAPPING HAPPENS ONCE, AT LOAD, AND ONLY MATTERS FOR THE MIDDLE ARM — the wrapper merely records
+ * which method is executing and is inert for every other arm, so arming it unconditionally keeps one
+ * code path rather than two that could disagree about when it is on. It THROWS if a method it names
+ * has moved, because a wrapper that silently fails to attach would leave every roll in the 'any'
+ * bucket and the arm would quietly stop being what it says it is. */
+try {
+  const BA = require(process.env.SHOWDOWN_PATH
+    ? process.env.SHOWDOWN_PATH + '/dist/sim/battle-actions'
+    : 'C:/Users/willj/Projects/Pokemon/pokemon-showdown/dist/sim/battle-actions');
+  midWrapShowdown(BA.BattleActions || BA.default || BA);
+} catch (e) {
+  MID_WRAP_ERROR = e.message;
+}
 const { Dex, Teams, Battle } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
 const N = require('./names.js');
@@ -583,6 +596,97 @@ function annotateCause(cause) {
  * place 16 separately-floored indices and 11 uniformly-sampled integers can agree at all. */
 const crypto = require('crypto');
 const DAMAGE_ROLL_SIDES = 16;
+
+/* ==================================================================================================
+ * MIDDLE ARM — REAL DICE THAT BOTH ENGINES AGREE ON, ADDRESSED BY CATEGORY (ROADMAP #262)
+ * ==================================================================================================
+ *
+ * Will, 2026-08-13: *"is it possible at all for us to run a middle bound? where things can miss, and
+ * secondary chances have a chance to proc? ... otherwise paralysis ends the mons usefulness ... thats
+ * why games take years."*
+ *
+ * He is right about the cost of the corners. The bottom arm pins every `randomChance` TRUE, so the
+ * full-paralysis roll fires every turn and a paralysed body never moves again; the top arm pins them
+ * all FALSE, so nothing ever connects. Neither is a game anybody plays, and the median synthetic game
+ * runs to the 12-turn cap where a real open-sheet game ends at SEVEN.
+ *
+ * ---- WHY A SHARED SEEDED STREAM IS NOT ENOUGH ON ITS OWN -----------------------------------------
+ *
+ * The arms are pinned for SYNCHRONISATION, not for caution. Two engines that draw a different NUMBER
+ * of values, or draw them in a different ORDER, walk off a shared sequence immediately — and then
+ * every subsequent roll disagrees and the run reports catastrophic divergence that is entirely the
+ * instrument. A constant is the only mapping that is immune to order, which is why the corners exist.
+ *
+ * ---- WHAT MAKES IT TRACTABLE, AND BOTH HALVES WERE ALREADY HERE ----------------------------------
+ *
+ * (a) ROADMAP #222 ALREADY SPLIT THE DIE BY CATEGORY. `medicham2.rngStreams` turns one seed into five
+ *     independent LCGs — `acc`, `crit`, `sec`, `dmg`, `stall` — and this engine already routes each
+ *     kind of roll to its own. Per-category streams desynchronise far less readily than one global
+ *     sequence, because within a category the draws are tied to game events the two engines agree
+ *     about for as long as they agree at all.
+ *
+ * (b) THE DIFFERENTIAL REPORTS THE **FIRST** DIVERGENCE PER GAME AND DISCARDS EVERYTHING AFTER IT. So
+ *     a stream that parts company AFTER a divergence costs nothing. Desync only matters inside the
+ *     window where the engines still agree — and inside that window they are, by construction, playing
+ *     the same game.
+ *
+ * ---- THE RESIDUAL RISK, AND THE INSTRUMENT MUST BE ABLE TO NAME ITS OWN FAILURE ------------------
+ *
+ * Two engines can agree on every emitted line while making a DIFFERENT NUMBER of internal draws — one
+ * checks a roll the other skips. That desynchronises silently, and the next visible divergence is then
+ * MANUFACTURED BY THE INSTRUMENT. An instrument that invents defects is worse than no instrument.
+ *
+ * So every draw is COUNTED, per category, per side, per game, and a game whose counts do not match is
+ * **VOID rather than diverging**. That is the whole reason this is safe to run: it can tell its own
+ * failure apart from the engine's, and it says which it saw.
+ *
+ * ---- ONE CONSTRUCTION, NOT TWO ------------------------------------------------------------------
+ *
+ * Both sides' streams come from `medicham2.rngStreams({seed})` — the SAME function, so the two cannot
+ * drift apart in how a seed becomes a sequence. Re-implementing the LCG here would be a second source
+ * for a fact the engine already owns, which is the rule this repository breaks most expensively. */
+const MID_CATS = ['acc', 'crit', 'sec', 'dmg', 'stall'];
+let MID_CAT = 'any';                  /* which KIND of roll Showdown is making right now */
+const MID_DRAWS = { sd: {}, me: {} }; /* per-category draw counts, per side, for the void check */
+const midReset = () => { for (const k of ['sd', 'me']) { MID_DRAWS[k] = {}; for (const c of MID_CATS.concat('any')) MID_DRAWS[k][c] = 0; } };
+midReset();
+let MID_VOID_GAMES = 0, MID_VOID_DETAIL = [];
+let MID_WRAP_ERROR = null;
+
+/* THE VOID CHECK. Called after each game in the middle arm: if the two engines drew a different
+ * number of values from any category while they were still agreeing, the streams have parted and any
+ * divergence this game reports is the instrument's, not the engine's. */
+function midGameVoid() {
+  const bad = [];
+  for (const c of MID_CATS.concat('any')) {
+    const a = MID_DRAWS.sd[c] || 0, b = MID_DRAWS.me[c] || 0;
+    if (a !== b) bad.push(c + ' sd=' + a + ' me=' + b);
+  }
+  if (bad.length) { MID_VOID_GAMES++; if (MID_VOID_DETAIL.length < 40) MID_VOID_DETAIL.push(bad.join(', ')); }
+  return bad.length > 0;
+}
+
+/* THE CATEGORY IS DERIVED FROM WHICH METHOD IS EXECUTING, NOT FROM THE ARGUMENTS — because the
+ * arguments cannot tell them apart. Accuracy and a secondary are BOTH `randomChance(n, 100)`, and
+ * `random(16)` is a damage roll or a 1-in-16 chance with no way to know which (no legal move has one
+ * today; that is luck, not design — see ROADMAP #260). Wrapping the four owning methods is exact. */
+function midWrapShowdown(BattleActions) {
+  if (!BattleActions || BattleActions.__midWrapped) return;
+  const around = (name, cat) => {
+    const fn = BattleActions.prototype[name];
+    if (typeof fn !== 'function') throw new Error('MIDDLE ARM: BattleActions#' + name + ' is not a function — '
+      + 'the authority moved and this wrapper is guessing. Fix the name rather than falling back.');
+    BattleActions.prototype[name] = function (...a) {
+      const prev = MID_CAT; MID_CAT = cat;
+      try { return fn.apply(this, a); } finally { MID_CAT = prev; }
+    };
+  };
+  around('hitStepAccuracy', 'acc');
+  around('secondaries', 'sec');
+  around('getDamage', 'dmg');      /* the crit roll lives in here too and is split out below */
+  BattleActions.__midWrapped = true;
+}
+
 /* THE TWO CORNERS OF MEDICHAM2'S SINGLE SCALAR. */
 const CORNER_TOP = 1 - 1e-9;
 const CORNER_BOTTOM = 0;
@@ -602,7 +706,26 @@ const SHUFFLE_GROUP_SIZES = new Map();
 
 function makeArm(spec) {
   const top = spec.corner === CORNER_TOP;
+  /* ---- THE MIDDLE ARM'S DICE. Both sides are built from ONE call into the engine's own stream
+   * factory, so "what does seed N mean" has a single implementation. `sd` and `me` are separate
+   * INSTANCES of the same construction: identical sequences, independently consumed. */
+  const midSd = spec.middle ? M.rngStreams({ seed: spec.middleSeed }) : null;
+  const midMe = spec.middle ? M.rngStreams({ seed: spec.middleSeed }) : null;
+  const midDraw = (cat) => { MID_DRAWS.sd[cat] = (MID_DRAWS.sd[cat] || 0) + 1;
+                             return (midSd[cat] || midSd.any)(); };
   const random = function pinRandom(m, n) {
+    /* THE MIDDLE ARM SHORT-CIRCUITS THE CORNER LOGIC ENTIRELY. Inside `getDamage` the one-argument
+     * form with m === 16 is the damage roll and the two-argument form is the crit — the only place a
+     * denominator IS a reliable discriminator, because the wrapper has already narrowed the caller. */
+    if (spec.middle) {
+      const cat = (MID_CAT === 'dmg' && n !== undefined) ? 'crit' : MID_CAT;
+      const u = midDraw(cat === 'any' ? 'any' : cat);
+      if (n === undefined) {
+        if (m === undefined) return u;                       // random() -> float in [0,1)
+        return Math.floor(u * m);                            // random(m) -> 0..m-1, damage roll included
+      }
+      return m + Math.floor(u * (n - m));                    // random(m, n) -> m..n-1
+    }
     if (n === undefined) {
       if (m === undefined) { BARE_FLOAT_DRAWS++; return spec.corner; }   // random() -> a float in [0,1)
       if (m === DAMAGE_ROLL_SIDES) return spec.damageIndex;              // 0 = MAX damage, 15 = MIN
@@ -612,7 +735,15 @@ function makeArm(spec) {
      * a multi-hit count and a queue insertion index, and it is NOT the speed-tie resolver. */
     return m;
   };
-  const chance = (num, den) => random(den) < num;
+  /* `chance` MUST NOT go through the range form in the middle arm: `random(den) < num` re-derives a
+   * uniform from a floor and loses resolution at small denominators. It draws the float directly. */
+  const chance = (num, den) => {
+    if (spec.middle) {
+      const cat = (MID_CAT === 'dmg') ? 'crit' : MID_CAT;
+      return midDraw(cat === 'any' ? 'any' : cat) < (num / den);
+    }
+    return random(den) < num;
+  };
   /* THE SPEED-TIE RESOLVER, replaced as the function it actually is rather than steered through the
    * range form. `spec.sdShuffleReverses` is FALSE in every shipped arm — see the header: reversing it
    * was measured not to move Showdown's turn order at all, and a lever that changes one engine and not
@@ -689,6 +820,17 @@ function makeArm(spec) {
      * runs comparable with every run since 2026-08-07 and leaves PIN_DIGEST unmoved. The freed stream
      * is built and deliberately unused, so the next person can see what was tried. */
     void streams;
+    /* ---- THE MIDDLE ARM HANDS MEDICHAM ITS OWN COPY OF THE SAME STREAMS ------------------------
+     * Same factory, same seed, a SEPARATE instance — so the two engines read identical sequences and
+     * consume them independently. Every draw is counted so a desync can be DETECTED rather than
+     * assumed absent; see the header. Counting wrappers only — the values are the engine's own. */
+    if (spec.middle) {
+      const wrap = (cat) => { const f = midMe[cat] || midMe.any;
+        return () => { MID_DRAWS.me[cat] = (MID_DRAWS.me[cat] || 0) + 1; return f(); }; };
+      const o = { split: true, seed: spec.middleSeed, any: wrap('any') };
+      for (const c of MID_CATS) o[c] = wrap(c);
+      return o;
+    }
     return Object.assign({}, streams, {
       any: scalar, acc: scalar, crit: scalar, sec: scalar, dmg: scalar, stall: scalar, split: false,
     });
@@ -710,6 +852,20 @@ const REVERSING_SHUFFLE = makeArm({ id: '(unused) reversing shuffle', corner: CO
   damageIndex: 0, tieToSecondBody: false, sdShuffleReverses: true, what: 'not installed' }).shuffle;
 
 const ARMS = [
+  /* THE MIDDLE ARM IS OPT-IN AND IS NOT PART OF THE DEFAULT SET. It answers a different question from
+   * the two corners — "what happens in a game somebody could actually play" rather than "do the two
+   * rulebooks agree at the extremes" — and mixing it into the default run would move the headline
+   * every published number is measured against. Select it with `--arm middle`.
+   *
+   * IT IS ALSO THE ONLY ARM THAT CAN VOID A GAME. Every other arm's dice are a constant and cannot
+   * desynchronise; this one's can, so a game whose per-category draw counts disagree between the two
+   * engines is discarded as an INSTRUMENT failure rather than counted as a divergence. */
+  makeArm({ id: 'middle', corner: CORNER_BOTTOM, damageIndex: 8, tieToSecondBody: false,
+    middle: true, middleSeed: 20260813,
+    what: 'REAL dice, seeded and shared by CATEGORY (acc / crit / sec / dmg / stall) so both engines '
+        + 'draw the same values for the same kind of roll. Moves miss at their printed accuracy, '
+        + 'secondaries fire at their printed chance, paralysis does NOT end a body, and games END. '
+        + 'A game whose draw counts diverge is VOID, not a divergence.' }),
   makeArm({ id: 'top-tie-first', corner: CORNER_TOP, damageIndex: 0, tieToSecondBody: false,
     what: 'every sub-100-accuracy move MISSES, no crit, no secondary fires, MAX damage; medicham2 '
         + 'gives a speed tie to the EARLIER body. THIS IS THE ONLY ARM THAT EXISTED BEFORE 2026-08-07, '
@@ -775,6 +931,62 @@ function armClaims(a) {
   const reversed = (n, start) => { const xs = []; for (let i = start + n - 1; i >= start; i--) xs.push(i);
                                    return head(start) + '|' + xs.join(','); };
   const P = (w, f) => C.push([a.id + ': ' + w, f]);
+  /* ---- THE MIDDLE ARM ASSERTS DIFFERENT THINGS, AND NOT ASSERTING THEM WAS THE FIRST BUG ---------
+   *
+   * Registering it without its own claims made it inherit the corner's, and the pin guard refused the
+   * run — correctly, and loudly, listing eight claims that are false of it. That is this file working
+   * exactly as its header says: THE PIN IS ASSERTED ON ITS BEHAVIOUR, so a new arm owes a statement of
+   * what its behaviour IS.
+   *
+   * A corner's claims are deterministic ("a 90-accuracy move misses"). This arm's cannot be — the
+   * whole point is that sometimes it hits. So the claims are about the PROPERTIES that make the arm
+   * trustworthy rather than about any single outcome:
+   *
+   *   1. the two engines draw the SAME sequence — if this fails nothing else means anything;
+   *   2. a certainty is still a certainty — 100 accuracy never misses, 0 never hits;
+   *   3. the die is actually varying, and inside [0,1);
+   *   4. the rate is near the printed one over many draws.
+   *
+   * (4) is a sample and is stated as one: a fixed seed makes it deterministic, so it is a regression
+   * check on THIS seed rather than a claim about randomness in general. A tolerance wide enough never
+   * to flake is a tolerance too wide to catch a broken stream, so it is +/- 5 points on 4,000 draws,
+   * which a correct LCG clears by a wide margin and a constant fails immediately. */
+  if (a.middle) {
+    const fresh = () => ({ sd: M.rngStreams({ seed: a.middleSeed }), me: M.rngStreams({ seed: a.middleSeed }) });
+    P('BOTH ENGINES DRAW THE SAME SEQUENCE — the claim every other one rests on', () => {
+      const { sd, me } = fresh();
+      for (const c of ['acc', 'crit', 'sec', 'dmg', 'stall']) {
+        for (let i = 0; i < 200; i++) if (sd[c]() !== me[c]()) return false;
+      }
+      return true;
+    });
+    P('the five categories are INDEPENDENT — a shared stream would make them identical', () => {
+      const { sd } = fresh();
+      const first = ['acc', 'crit', 'sec', 'dmg', 'stall'].map(c => sd[c]());
+      return new Set(first).size === first.length;
+    });
+    P('a certainty is still a certainty: 100 accuracy always hits, 0 never does',
+      () => { for (let i = 0; i < 500; i++) { if (a.chance(100, 100) !== true) return false;
+                                             if (a.chance(0, 100) !== false) return false; } return true; });
+    P('the die VARIES and stays inside [0,1) — a constant would fail both halves', () => {
+      const { sd } = fresh(); const xs = [];
+      for (let i = 0; i < 500; i++) xs.push(sd.acc());
+      return new Set(xs).size > 400 && xs.every(x => x >= 0 && x < 1);
+    });
+    P('a 90-accuracy move lands near 90% over 4,000 draws  [this seed, +/- 5 points]', () => {
+      const { sd } = fresh(); let hit = 0;
+      for (let i = 0; i < 4000; i++) if (sd.acc() < 0.9) hit++;
+      return Math.abs(hit / 4000 - 0.9) < 0.05;
+    });
+    P('a 30% secondary fires near 30% over 4,000 draws  [this seed, +/- 5 points]', () => {
+      const { sd } = fresh(); let n = 0;
+      for (let i = 0; i < 4000; i++) if (sd.sec() < 0.3) n++;
+      return Math.abs(n / 4000 - 0.3) < 0.05;
+    });
+    P('the category wrapper ATTACHED — an unattached one silently buckets every roll as ANY',
+      () => MID_WRAP_ERROR === null);
+    return C;
+  }
   if (a.top) {
     P('a 100-accuracy move HITS  [medicham2 skips the check at acc >= 100]',
       () => a.chance(100, 100) === true);
@@ -3971,6 +4183,12 @@ if (!has('--proof')) {
       }
       armControl.push(c);
     }
+    /* ---- THE VOID CHECK RUNS HERE OR IT DOES NOT RUN AT ALL -------------------------------------
+     * Built and not wired, the first middle-arm run reported 137 divergences in 171 games at a median
+     * of TWO turns -- which is the desync signature, not an engine that is 80% wrong. A game whose
+     * per-category draw counts differ between the engines is the INSTRUMENT failing, and it is marked
+     * rather than counted. The counts are reset per game, so this is a statement about THIS game. */
+    if (arm.middle) { r._mid_void = midGameVoid(); midReset(); }
     armResults.push(r);
     /* SUMMED OVER THE PRIMARY MEASURED ARM ONLY, and that is not fussiness. `playGame` is also
      * called by the planted-divergence proof (four extra games on the baseline pair) and by the
@@ -4398,6 +4616,22 @@ if (!SHUFFLE_TIE_GROUPS) console.log('    ZERO TIED GROUPS — the tie arms test
 console.log('');
 console.log('  DIVERGED (primary arm ' + PRIMARY_ARM.id + '): ' + diverged.length + ' of ' + results.length + ' games'
   + (threw.length ? '   (' + threw.length + ' threw)' : ''));
+/* THE MIDDLE ARM REPORTS ITS OWN FAILURE BESIDE ITS RESULT, NOT INSTEAD OF IT. A divergence count
+ * from an arm whose streams desynchronised is not a smaller truth, it is a different number
+ * entirely -- so the void games are separated and the rate is quoted over what is left. */
+if (PRIMARY_ARM.middle) {
+  const voided = results.filter(r => r._mid_void).length;
+  const usable = results.filter(r => !r._mid_void);
+  const divUsable = usable.filter(r => r.div).length;
+  console.log('  VOID (instrument desync): ' + voided + ' of ' + results.length
+    + '   -- per-category draw counts differed between the engines; these are NOT divergences');
+  console.log('  DIVERGED among the ' + usable.length + ' usable games: ' + divUsable
+    + (usable.length ? '  (' + (100 * divUsable / usable.length).toFixed(1) + '%)' : ''));
+  if (MID_VOID_DETAIL.length) {
+    console.log('  which stream parted, first few:');
+    for (const d of MID_VOID_DETAIL.slice(0, 6)) console.log('      ' + d);
+  }
+}
 console.log('');
 
 /* ---- THE STATE DIFFERENTIAL, REPORTED BESIDE THE PROTOCOL NUMBER --------------------------------
