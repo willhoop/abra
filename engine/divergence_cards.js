@@ -89,9 +89,18 @@ const VERB = {
  * A bare `sends in Greninja` hides the half that matters. Which body LEFT decides whether the switch
  * was a pivot, a forced replacement after a faint, or a lead arriving — and those read identically in
  * the protocol. The occupant table is rebuilt per card by walking the lead-in in order, so it reflects
- * that card's own history rather than a global guess. */
+ * that card's own history rather than a global guess.
+ *
+ * THE TWO PANELS ARE ALTERNATIVE FUTURES OF ONE INSTANT, AND THE TABLE MUST NOT LEAK BETWEEN THEM.
+ * Will, 2026-08-13: *"but look at how busted our switches are, they are replacing themselves?"* — and
+ * that was this renderer, not the engine. Showdown's panel rendered first and wrote `p2a -> Gholdengo`;
+ * ours then read it back and printed "Gholdengo replacing Gholdengo". Each side has to start from the
+ * board as it stood AT THE SPLIT, so occupancy is snapshotted after the shared lead-in and restored
+ * before each panel. A viewer that invents a defect is worse than one that misses it. */
 const occupant = {};
 function resetSlots() { for (const k of Object.keys(occupant)) delete occupant[k]; }
+function snapSlots() { return { ...occupant }; }
+function restoreSlots(s) { resetSlots(); Object.assign(occupant, s); }
 function noteSlot(f) {
   const ev = f[0];
   if (ev !== 'switch' && ev !== 'drag' && ev !== 'replace') return null;
@@ -158,6 +167,16 @@ const cards = all.map((g, i) => {
   const sdAfter = ((g.after && g.after.showdown) || []).slice(1);
   const meAfter = ((g.after && g.after.medicham) || []).slice(1);
   const nothing = '<div class="line none">— nothing further —</div>';
+  /* RENDERED AS STATEMENTS, NOT INSIDE THE TEMPLATE, because the order these three run in is the whole
+   * fix. The lead-in builds the occupancy; the snapshot is the board AT THE SPLIT; each panel then
+   * starts from that same board instead of from whatever the other panel did to it. */
+  const leadHtml = lead.map(renderLine).join('');
+  const atSplit = snapSlots();
+  const sdHtml = (renderLine(g.at && g.at.showdown_raw) || nothing)
+    + (sdAfter.length ? `<div class="then">${sdAfter.map(renderLine).join('')}</div>` : '');
+  restoreSlots(atSplit);
+  const meHtml = (renderLine(g.at && g.at.medicham_raw) || nothing)
+    + (meAfter.length ? `<div class="then">${meAfter.map(renderLine).join('')}</div>` : '');
   return `
   <article class="card" data-cls="${esc(slug(g.cls || 'unclassified'))}" data-arm="${esc(slug(g.arm || ''))}">
     <header class="card-h">
@@ -168,15 +187,11 @@ const cards = all.map((g, i) => {
         ? `<span class="why">${esc(g.end_reason)}</span>` : ''}
       <span class="agreed">agreed for ${g.agreed_lines} lines</span>
     </header>
-    ${lead.length ? `<div class="both"><div class="lbl">the turn so far — both engines identical</div>
-      ${lead.map(renderLine).join('')}</div>` : ''}
+    ${lead.length ? `<div class="both"><div class="lbl">the turn so far — both engines agree</div>
+      ${leadHtml}</div>` : ''}
     <div class="split">
-      <div class="side sd"><div class="lbl">Showdown</div>
-        ${renderLine(g.at && g.at.showdown_raw) || nothing}
-        ${sdAfter.length ? `<div class="then">${sdAfter.map(renderLine).join('')}</div>` : ''}</div>
-      <div class="side me"><div class="lbl">ours</div>
-        ${renderLine(g.at && g.at.medicham_raw) || nothing}
-        ${meAfter.length ? `<div class="then">${meAfter.map(renderLine).join('')}</div>` : ''}</div>
+      <div class="side sd"><div class="lbl">Showdown</div>${sdHtml}</div>
+      <div class="side me"><div class="lbl">ours</div>${meHtml}</div>
     </div>
   </article>`;
 }).join('');
@@ -203,6 +218,10 @@ h1{font-size:clamp(24px,3.4vw,34px);margin:0 0 6px;letter-spacing:-.02em;text-wr
  font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
 .key{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 22px;font-size:12.5px;color:var(--ink-2)}
 .key b{font-weight:600}
+.caveat{color:var(--muted);font-size:12.5px;max-width:74ch;margin:0 0 22px;line-height:1.65}
+.caveat b{color:var(--ink-2)}
+.caveat code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;
+ background:var(--chip);padding:1px 5px;border-radius:4px}
 .legend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px;padding:0;list-style:none}
 .legend.arms{margin:0 0 26px}
 .legend.arms button{border-style:dashed}
@@ -269,7 +288,14 @@ footer.foot{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);co
     <span><b class="mon p2" style="color:var(--theirs)">purple</b> = p2's side</span>
     <span><b style="color:var(--mega)">highlighted</b> = mega evolution</span>
     <span>bars show HP remaining</span>
+    <span><b>replacing X</b> = who left that slot</span>
   </div>
+  <p class="caveat">The grey block is rendered from <b>our</b> stream, and the two engines agree there
+  <em>after normalisation</em> — not byte for byte. Seven equivalences are applied before anything is
+  compared (a <code>|move|</code> line's nominal target, a <code>[from]</code> switch cause, an
+  ability announcement, and four more), so a line can read slightly differently on each side and still
+  be the same claim about the board. Who was actually hit is compared body by body on the
+  <code>-damage</code> and <code>-status</code> lines that follow.</p>
   <ul class="legend">
     <li><button type="button" data-f="all" aria-pressed="true">all <span class="n">${all.length}</span></button></li>
     ${classes.map(c => `<li><button type="button" data-f="${esc(slug(c))}" aria-pressed="false">${esc(c)} <span class="n">${tally[c]}</span></button></li>`).join('')}

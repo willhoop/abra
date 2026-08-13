@@ -7513,3 +7513,31 @@ appearing to have no opinion when it had never been asked.
 *(One flag note in the section above is now stale and is corrected here rather than rewritten: the dump
 no longer requires `--write`. ENGINE removed that gate on the same night, for the right reason — it
 forced publishing a measurement in order to debug one.)*
+
+### A VIEWER THAT INVENTS A DEFECT IS WORSE THAN ONE THAT MISSES IT. 2026-08-13
+
+Will read card 3 and asked *"but look at how busted our switches are, they are replacing themselves?"*
+The page showed `Sinistcha sends in replacing Sinistcha`. **The engine was fine and the renderer was
+lying.** Slot occupancy was module state; Showdown's panel rendered first and wrote its own outcome
+into it, and ours then read that back as the previous occupant.
+
+The two panels are not sequential — they are **the same instant, two futures**. Occupancy is
+snapshotted after the shared lead-in and restored before each side.
+
+Two things this leaves behind, both bigger than the bug:
+
+**A rendering can manufacture evidence.** Every other instrument here is guarded against reporting a
+clean result it did not earn. This one reported a DIRTY result that never happened, and the only reason
+it was caught is that a human found it implausible. Same category as the fourteen stale handoffs: an
+artifact stating something nobody derived.
+
+**"Both engines identical" was never true.** The grey block renders our stream and the engines agree
+there only after the seven equivalences are applied — which is why `|-resisted|p2b: Sinistcha|1` sat
+inside a block claiming both sides emitted it. Showdown's only `-resisted` site emits no third field;
+ours appends a resistance depth (`Math.min(Math.round(-log2(mult)), 2)`). The label says "agree" now,
+with the normalisation stated on the page rather than known only by whoever wrote the comparator.
+
+**And the same reading session produced three engine rows — #240, #241, #242.** The ratio is worth
+noticing: one night of a human reading rendered games found more than the automated classifier had
+surfaced in a week of runs, because the classifier says what SHAPE a disagreement is and never which
+engine is right.

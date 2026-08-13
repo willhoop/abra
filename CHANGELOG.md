@@ -10,6 +10,36 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.9.1] — 2026-08-13
+
+### Fixed
+- **THE VIEWER INVENTED A DEFECT, WHICH IS WORSE THAN MISSING ONE.** Will, reading card 3:
+  *"but look at how busted our switches are, they are replacing themselves?"* — `Sinistcha sends in
+  replacing Sinistcha`. That was the renderer, not the engine. The slot-occupancy table was module
+  state shared by both panels: Showdown's rendered first and wrote `p2a → Gholdengo`, then ours read
+  it back. **The two panels are alternative futures of one instant** and each must start from the board
+  as it stood at the split, so occupancy is now snapshotted after the shared lead-in and restored
+  before each side. 198 switch labels, **0 self-replacements**. The three-line render is also lifted
+  out of the template literal into statements, because the order those three steps run in *is* the fix
+  and burying it in template-expression evaluation order was too clever to trust.
+- **The lead-in block said "both engines identical" and it is not identical.** It renders OUR stream,
+  and the engines agree there only *after* normalisation — which is why Will saw
+  `|-resisted|p2b: Sinistcha|1` inside a block claiming both sides emitted it. Showdown's only
+  `-resisted` site (`battle-actions.js:1503`) emits no third field; ours appends a resistance depth.
+  The label now reads "agree", with a caveat naming the seven equivalences and saying explicitly that
+  who was actually hit is compared on the `-damage` / `-status` lines rather than on the
+  `|move|` line's nominal target.
+
+### Added
+- `docs/ROADMAP.md` register rows **#240, #241, #242**, all found by Will reading the published cards:
+  the action-queue re-sort trigger, the generic `-fail` attribution family, and duration-only residual
+  expiry. #242 is the one that also indicts an instrument — `engine/residual_order.js` enumerates the
+  42 effects owning an `onResidual` handler, and Tailwind owns none; it is in the authority's walk
+  purely because it has a `duration`, so every duration-only effect expires from inside the residual
+  and is invisible to the table we derive the order from.
+
+---
+
 ## [5.9.0] — 2026-08-13
 
 ### Added
