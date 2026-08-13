@@ -790,7 +790,9 @@ function decisionsFor(g, tally, channels, opts) {
          * player, whose |-fail| lines make it exact. The asymmetry is small and is in the direction
          * of the fit UNDER-counting dead moves, never over-counting them. */
         if (user && mv && mv.exists) {
-          const already = (mv.sideCondition && board.hasSide(side, mv.sideCondition)) ||
+          /* ROADMAP #254: a hazard lives on the side `move.target` names, not on the mover's.
+           * B.sideFor is the one function that decides that; this used to decide it here. */
+          const already = (mv.sideCondition && board.hasSide(B.sideFor(side, mv), mv.sideCondition)) ||
                           (B.fieldKey(mv) && board.hasField(B.fieldKey(mv)));
           B.noteMove(board, side, user, mv, !already);
         }

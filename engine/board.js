@@ -869,6 +869,32 @@ class Board {
   }
 }
 
+/* WHOSE SIDE DOES A SIDE CONDITION LIVE ON. ROADMAP #254. Read off `move.target`, never off a list
+ * of names: of the 11 legal side-condition moves in this regulation SEVEN are `allySide` and FOUR
+ * are `foeSide` (Stealth Rock, Spikes, Sticky Web, Toxic Spikes), zero use `self.sideCondition`, and
+ * a hazard added by a future regulation is covered here for free. A hand-written hazard list would
+ * be the ban-list-of-four shape a third time.
+ *
+ * It is ONE function because three call sites in this file — the write in `noteMove`, the
+ * `deadSide` read and the `alreadyUp` read that gates `setupTurns` — used to answer it
+ * independently and agreed only by accident: all three took the MOVER's side, so a hazard was
+ * written to the wrong side and then looked for on that same wrong side. Whose side a condition
+ * lands on is a FACT, and facts are global (CLAUDE.md).
+ *
+ * MOVING THE WRITE ALONE IS STRICTLY WORSE THAN THE BUG, and that was measured rather than argued:
+ * with the write fixed and the reads left, `deadSide` never fires for a hazard and the model re-lays
+ * Stealth Rock every turn believing it is not up.
+ *
+ * ONLY `deadSide` MOVES FOR THE FOUR HAZARDS, and the roadmap row's "crediting itself setupTurns
+ * each time" is corrected here rather than repeated: measured 2026-08-13, none of the four carries a
+ * `condition.duration` (Reflect 5, Tailwind 4, the hazards none), so `dur()` returns 0 and
+ * `setupTurns` is 0 for them whatever `alreadyUp` says. The `alreadyUp` site below is still routed
+ * through this helper — one fact, one function — and it binds today only on the seven `allySide`
+ * moves, where `sideFor` is the identity. A timed hazard in a future regulation makes it bind. */
+function sideFor(side, move) {
+  return (move && move.target === 'foeSide') ? (side === 'p1' ? 'p2' : 'p1') : side;
+}
+
 /* ---------------------------------------------------------------------------------------------
  * FEATURES
  *
@@ -2672,7 +2698,7 @@ function noteMove(board, side, user, move, worked, opts) {
     if (sp > 0) ppCounters.spent += sp; else ppCounters.noRow++;
   }
   if (!worked || !move) return;
-  if (move.sideCondition) board.startSide(side, move.sideCondition, move.condition && move.condition.duration);
+  if (move.sideCondition) board.startSide(sideFor(side, move), move.sideCondition, move.condition && move.condition.duration);
   const fk = fieldKey(move);
   if (fk) board.startField(fk, move.condition && move.condition.duration);
   if (move.weather) board.setWeather(move.weather);
@@ -3308,7 +3334,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
   /* ---- MOVES THAT CANNOT WORK RIGHT NOW ------------------------------------------------------
    * Each of these is a dex data field compared against tracked state. No move is named. */
   if (m.status && t && t.status) set('deadStatus', 1);
-  if (m.sideCondition && board.hasSide(side, m.sideCondition)) set('deadSide', 1);
+  if (m.sideCondition && board.hasSide(sideFor(side, m), m.sideCondition)) set('deadSide', 1);
   if (fieldKey(m) && board.hasField(fieldKey(m))) set('deadField', 1);
   if (m.weather && norm(m.weather) === norm(board.weather)) set('deadWeather', 1);
   if (m.stallingMove && user.stalledLastTurn) set('deadStall', 1);
@@ -3340,7 +3366,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       }
       return 0;
     };
-    const alreadyUp = (m.sideCondition && board.hasSide(side, m.sideCondition))
+    const alreadyUp = (m.sideCondition && board.hasSide(sideFor(side, m), m.sideCondition))
       || (fieldKey(m) && board.hasField(fieldKey(m)))
       || (m.weather && norm(m.weather) === norm(board.weather));
     if (!alreadyUp) {
@@ -3666,7 +3692,7 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
  * stone that belongs to another species. One resolver, per CLAUDE.md's facts-are-global rule. */
 /* PUBLISHED BOTH WAYS. In node this is the module; in a browser it is globalThis.BOARD, so the page
  * can call the same featuresFor() the engine calls instead of maintaining a second scorer. */
-const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, effSpecies, effective, effAbility, effTypes, effStats, effWeight, SELF_TARGETS, dmgFailures, probeFailures, damageEngine, dmgMon, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData,
+const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, sideFor, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, effSpecies, effective, effAbility, effTypes, effStats, effWeight, SELF_TARGETS, dmgFailures, probeFailures, damageEngine, dmgMon, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData,
   /* ROADMAP #145. `ppCounters` is exported for the same reason `dmgFailures` is: a capability that
    * cannot prove it ran is assumed broken, and `spent: 0` after a real game means this wire is inert.
    * `PP` is re-exported so the 40 files that already require board.js can reach the one PP fact

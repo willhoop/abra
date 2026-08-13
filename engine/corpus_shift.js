@@ -92,7 +92,8 @@ function walk(games) {
         else if (e.t === 'm' && side) {
           const user = bd.slot(side, letter), mv = dex.moves.get(e.mv);
           if (user && mv && mv.exists) {
-            const already = (mv.sideCondition && bd.hasSide(side, mv.sideCondition)) || (B.fieldKey(mv) && bd.hasField(B.fieldKey(mv)));
+            /* ROADMAP #254 — B.sideFor, not the mover's side. */
+            const already = (mv.sideCondition && bd.hasSide(B.sideFor(side, mv), mv.sideCondition)) || (B.fieldKey(mv) && bd.hasField(B.fieldKey(mv)));
             B.noteMove(bd, side, user, mv, !already);
           }
           if (e.tgt && e.dmg) {

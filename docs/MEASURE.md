@@ -28,14 +28,14 @@ MEASURE — can we believe a number
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
-    feature_fixture --check FAILED:   Measure what it touches before deciding — how many corpus games contain a changed species — |   then refit (node engine/fit_policy.js, then node engine/fit_joint.js) if it reaches the fit, |   or restamp with: node engine/feature_fixture.js --stamp <file>
-    moved after the fit: engine/medicham2-browser.js  2026-08-13 15:24
-    moved after the fit: engine/board.js  2026-08-10 20:33
+    feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 11). Old hashes cannot be compared; restamp after checking board.js.
+    moved after the fit: engine/medicham2-browser.js  2026-08-13 16:47
+    moved after the fit: engine/board.js  2026-08-13 16:06
     moved after the fit: data/engine-data.js  2026-08-10 18:59
     moved after the fit: data/abra-tags.js  2026-08-12 19:40
 ```
 
-_stamped 2026-08-13 15:44_
+_stamped 2026-08-13 16:48_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,105 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 00000000. ROADMAP #254 — THE HAZARD SIDE. THE FIT DOES NOT MOVE, THE LIVE BOT DOES, AND THE GUARD COULD NOT SEE EITHER — 2026-08-13
+
+`engine/board.js` (`sideFor` + three call sites), six sweep sites, `engine/feature_fixture.js` (one
+new board), `tests/test-hazard-side.js` (new), `tests/test-feature-semantics.js` (one new clause).
+`engine/medicham2-browser.js` was not touched.
+
+**THE HEADLINE IS THE REFIT VERDICT, AND IT IS NO.** `board.js` recorded every side condition on the
+MOVER's side. Seven of the eleven legal side-condition moves in this regulation are `target:
+allySide` and were right by accident; the four `foeSide` ones — Stealth Rock, Spikes, Sticky Web,
+Toxic Spikes — landed on the side they can never be on. That is a feature the FIT reads, so the
+question this division has to answer is whether the weights now describe a different quantity.
+
+**THE WHOLE FIT CORPUS, REPLAYED THROUGH `FP.decisionsFor` UNDER BOTH BOARDS: 9,226 games, 237,052
+decisions, 1,731,851 candidate vectors, 0 errored, identical decision key set, and 0 decisions,
+0 games and 0 feature vectors move.** The pre-#254 board was compiled in memory and injected into
+`require.cache` under `board.js`'s own resolved path; the tree was never reverted, so both arms ran
+against the same everything-else.
+
+**THAT ZERO HAS TWO POSSIBLE MEANINGS AND THEY ARE OPPOSITE, SO BOTH WERE MEASURED.** Thin exposure
+would make the zero uninformative. Exposure is small but not nil: **24 hazard clicks in the fit
+corpus** (Stealth Rock 19, Toxic Spikes 2, Sticky Web 2, Spikes 1) against **9,911 `allySide`
+clicks**, and **258 of 237,052 decisions (0.109%) carry a hazard as a legal candidate**. The zero is
+therefore not "nothing to move".
+
+**IT IS AN ISOMORPHISM, AND IT WAS CONSTRUCTED RATHER THAN ARGUED.** `noteMove` wrote to the mover's
+side and both readers read the mover's side, so the old board is the new one with the two sides
+RELABELLED — every read that was derived offline lands on the same set. Same probe, all eleven moves,
+both boards:
+
+| how the condition arrived | pre-#254 | fixed |
+|---|---|---|
+| **OFFLINE** — `noteMove(..., worked=true)`, which is every corpus replay | `deadSide` p1=1, p2=0 | p1=1, p2=0 — **identical** |
+| **LIVE** — `\|-sidestart\|`, which is `engine/magnemite.js:647` | **p1=0, p2=1** | p1=1, p2=0 |
+
+**SO THE DEFECT WAS ONLY EVER IN PLAY, AND IT IS THE WORSE HALF.** The live path takes the side
+straight off the protocol and calls `noteMove(..., worked=false)`, so the offline derivation never
+runs and nothing relabels the read. On the old board the LAYER read `deadSide=0` after laying Stealth
+Rock — it would re-lay it every turn believing it was not up — and the VICTIM read `deadSide=1` and
+refused to lay its own. Both exactly backwards. **MAG was fitted in a world where `deadSide` was
+effectively right and played in one where it was inverted**, which is *fitting environment and
+playing environment must match* broken in a new place — the same shape as the sheet-visible fit and
+the broken-mega champion — and it is closed here in the one direction that costs no refit.
+
+**A REFIT IS NOT OWED BY THIS ROW.** The weights describe the same quantity on the corpus they were
+fitted on, to the vector. A refit remains OWED for the reasons `status.js` already prints
+(`medicham2-browser.js`, `board.js`, `engine-data.js` and `abra-tags.js` all moved after the fit) and
+nothing here changes that; no fit was run and no weight file was restamped.
+
+**ONE CONSEQUENCE TO NAME RATHER THAN DISCOVER LATER.** Adding a fixture board takes the scenario
+count 10 → 11, so `feature_fixture.js --check` now answers *"the fixture itself changed … Old hashes
+cannot be compared"* for every stamped file, which SUPERSEDES the per-feature message it printed
+before. That branch is correct and it is also less informative, and it is a restamp-or-refit decision
+that belongs to whoever next moves the weights — which is Will, who is reworking them.
+
+**THE FINDING THAT OUTLIVES THE FIX IS THE GUARD'S, AND IT IS THE REASON THIS ROW CAME HERE.**
+`tests/test-feature-semantics.js` is the guard against a feature changing MEANING under an unchanged
+NAME. Run under both boards with the fixture as it stood, **0 of 76 hashed columns moved** —
+`engine/feature_fixture.js` contained **zero hazard clicks** and the only side conditions any of its
+ten boards pre-set were `reflect` and `tailwind`, both `allySide`, which is exactly the half `sideFor`
+leaves alone. The guard would have certified this silently. R7 for the seventh time, and the new part
+generalises: the earlier misses were a SPECIES the boards did not stand on and a FIELD STATE they
+never entered; this one is a MOVE CLASS nobody clicks.
+
+**A NEW BOARD, `hazards-already-up`, AND IT IS DELIBERATELY ONE-SIDED.** `stealthrock` and `spikes`
+up on p2, `stickyweb` and `toxicspikes` up on p1, so the flip is exercised in BOTH directions on one
+board — setting a hazard on both sides makes every reader answer 1 before and after and moves
+nothing. `deadSide` now moves **`b984c210828d` → `d1be4f95d589`** and no other column does. Every set
+is learnset-checked against `Dex.forFormat`, and the board is added rather than an existing one
+edited, per that file's own record of two attempts that were inert and one that regressed coverage.
+
+**AND ONLY `deadSide` IS OBSERVABLE, WHICH CORRECTS THE ROADMAP ROW RATHER THAN REPEATING IT.** The
+row said a write-only fix would credit `setupTurns` every turn. Measured: none of the four hazards
+carries a `condition.duration` (Reflect 5, Tailwind 4, the hazards none), so `dur()` returns 0 and
+`setupTurns` is 0 for them under every variant. The `alreadyUp` site is routed through the helper for
+the one-fact-one-function rule and binds today only on the seven `allySide` moves, where `sideFor` is
+the identity.
+
+**NINE CALL SITES, NOT THREE.** The write, the two reads, and six verbatim copies of the same
+mover's-side derivation that ENGINE's sweep found outside `board.js` — `fit_policy.js:793` (the fit
+itself), `joint_rows.js`, `branch_recall.js`, `corpus_shift.js`, `feature_coverage.js`,
+`redirect_audit.js`. Fixing only `board.js` would have left the fit deciding the fact for itself.
+`tests/test-hazard-side.js` holds all six to reading `B.sideFor`, and reverting one of them fails
+that clause **by file name**.
+
+**SHOWN RED THREE WAYS BEFORE BEING BELIEVED, none of them by editing the tree.**
+`tests/test-hazard-side.js` was **5 passed / 3 failed at HEAD** and is 11/0 after; under the injected
+pre-#254 board the semantics guard's new clause names all six wrong candidates in both directions;
+and reverting one sweep site fails by name. `tests/test-mechanics.js` is **565 live / 0 missing**,
+unmoved — the whole-game differential exercises `medicham2`, not the feature board, so it was not
+expected to move and did not.
+
+**REPORTED, NOT FIXED, NOT SILENCED.** `engine/selftest.js` is RED (exit 1) on *"every raw reader of
+the ladder store declares why — 9 file(s)"*: it is a MISSING DECLARATION, not a corrupt read — the
+gate demands each raw reader carry a `RAW-STORE-OK`-style reason and nine do not. Pre-existing and
+untouched here. `tests/test-fragility.js` is RED on two Storm Drain assertions and is **identical
+under both boards**, so it is not this change. And `engine/feature_fixture.js` gives Venusaur a
+**Rocky Helmet**, which this format banned on 2026-08-04 — left alone deliberately, because changing
+a fixture body moves every stored hash.
 
 ### 0000000. GROWING A `need` LIST SILENTLY RETIRED OLD MEASUREMENTS. IT NOW COSTS A NAMED ARTIFACT — 2026-08-12
 

@@ -21,6 +21,44 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #254 — HAZARDS LANDED ON THE LAYER. THE FIT IS BIT-IDENTICAL; THE LIVE BOT WAS INVERTED. 2026-08-13 (MEASURE).
+
+Full account in `docs/MEASURE.md`. **No refit was run and no weight file was restamped.**
+
+**THE FIX.** One helper, `sideFor(side, move)` in `engine/board.js`, reading `move.target` — never a
+list of names. Derived from `Dex.forFormat` and filtered to legal: **11 side-condition moves, 7
+`allySide`, 4 `foeSide`**, and **zero** using `self.sideCondition`, so `target === 'foeSide'` is the
+whole predicate. **NINE call sites**: the write in `noteMove`, the `deadSide` read, the `alreadyUp`
+read, and six verbatim copies outside the file — `fit_policy.js:793` (the fit itself),
+`joint_rows.js`, `branch_recall.js`, `corpus_shift.js`, `feature_coverage.js`, `redirect_audit.js`.
+
+**THE REFIT VERDICT IS NO, AND IT IS MEASURED.** The whole fit corpus replayed through
+`FP.decisionsFor` under both boards — **9,226 games, 237,052 decisions, 1,731,851 candidate vectors,
+0 errored — and 0 decisions, 0 games, 0 vectors move.** Not thin exposure (24 hazard clicks; 258
+decisions carry a hazard candidate) but an **isomorphism**: write and both reads took the mover's
+side, so the old board is the new one with the sides relabelled and every offline-derived read
+agrees.
+
+**THE DEFECT WAS ONLY EVER IN PLAY.** `magnemite.js:647` takes the side off `|-sidestart|` and calls
+`noteMove(..., worked=false)`, so nothing relabels the read. Pre-#254, a Stealth Rock laid by p1 read
+`deadSide` **p1=0, p2=1** — the layer re-lays it forever, the victim refuses to lay its own. Fixed:
+p1=1, p2=0. Offline arm identical under both boards, all 11 moves. **Fitting environment and playing
+environment must match, broken in a new place and closed at no refit cost.**
+
+**THE GUARD WAS BLIND AND THAT IS THE PART TO KEEP.** `tests/test-feature-semantics.js` moved **0 of
+76 columns** across this change, because `feature_fixture.js` had **zero hazard clicks** and pre-set
+only `reflect` and `tailwind` — both `allySide`. New board `hazards-already-up` (one-sided on
+purpose, so the flip is exercised both ways): `deadSide` **b984c210828d → d1be4f95d589**, nothing
+else. New test `tests/test-hazard-side.js`: **5/3 red at HEAD, 11/0 green after**, landed in the same
+commit.
+
+**Correction to the row:** *"crediting itself `setupTurns` each time"* is wrong — no hazard carries a
+`condition.duration`, so `setupTurns` is 0 for them under every variant. `deadSide` is the only
+observable column.
+
+Census **565 live / 0 missing**, unmoved — the whole-game differential exercises `medicham2`, not the
+feature board.
+
 ## ROADMAP #221 — THE RESIDUAL WALK IS EFFECT-MAJOR. 2026-08-12 (ENGINE).
 
 Full account in `docs/ENGINE.md`. **Census 537 → 541 live / 0 missing**, four probes, 0 hollow,

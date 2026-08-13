@@ -287,7 +287,8 @@ function build(games, dex, opts) {
           const user = board.slot(side, letter);
           const mv = dex.moves.get(e.mv);
           if (user && mv && mv.exists) {
-            const already = (mv.sideCondition && board.hasSide(side, mv.sideCondition)) ||
+            /* ROADMAP #254 — B.sideFor, not the mover's side. */
+            const already = (mv.sideCondition && board.hasSide(B.sideFor(side, mv), mv.sideCondition)) ||
                             (B.fieldKey(mv) && board.hasField(B.fieldKey(mv)));
             B.noteMove(board, side, user, mv, !already);
           }

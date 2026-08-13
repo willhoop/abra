@@ -13,6 +13,63 @@ silently rewritten; what changed and why is stated.
 ## [5.15.0] — 2026-08-13
 
 ### Fixed
+- **EVERY HAZARD LANDED ON THE SIDE THAT LAID IT IN THE OFFLINE BOARD, AND THE FIT DID NOT MOVE —
+  THE LIVE BOT DID (ROADMAP #254).** `engine/board.js` recorded every side condition on the MOVER's
+  side. Derived from `Dex.forFormat` and filtered to legal — never a list of names — **11
+  side-condition moves in this regulation, 7 `allySide` and 4 `foeSide`** (Stealth Rock, Spikes,
+  Sticky Web, Toxic Spikes), and **zero** using `self.sideCondition`, so `move.target === 'foeSide'`
+  is the whole predicate. One helper, `sideFor(side, move)`, exported and called by **nine** sites:
+  the write in `noteMove`, the `deadSide` read, the `alreadyUp` read that gates `setupTurns`, and six
+  verbatim copies of the same derivation outside the file — `fit_policy.js:793` (**the fit itself**),
+  `joint_rows.js`, `branch_recall.js`, `corpus_shift.js`, `feature_coverage.js`, `redirect_audit.js`.
+  - **THE REFIT VERDICT IS NO, AND IT IS MEASURED RATHER THAN ARGUED.** The whole fit corpus was
+    replayed through `FP.decisionsFor` under both boards — the pre-change `board.js` compiled in
+    memory and injected, so the tree was never reverted. **9,226 games, 237,052 decisions, 1,731,851
+    candidate vectors, 0 errored, identical decision key set — and 0 decisions, 0 games and 0 feature
+    vectors move.**
+  - **That zero is an ISOMORPHISM, not thin exposure, and both were counted because they mean
+    opposite things.** Exposure: **24 hazard clicks** in the fit corpus (Stealth Rock 19, Toxic
+    Spikes 2, Sticky Web 2, Spikes 1) against 9,911 `allySide` clicks, and **258 of 237,052 decisions
+    (0.109%)** carry a hazard as a legal candidate. The write and both reads all took the mover's
+    side, so the old board is the new one with the two sides relabelled and every offline-derived
+    read lands on the same set.
+  - **SO THE DEFECT WAS ONLY EVER IN PLAY, WHICH IS THE WORSE HALF.** `engine/magnemite.js:647` takes
+    the side straight off `|-sidestart|` and calls `noteMove(..., worked=false)`, so nothing relabels
+    the read. Constructed probe, all 11 moves, both boards: **offline arm identical; live arm
+    pre-change reads `deadSide` p1=0, p2=1** for the four hazards — the LAYER re-lays Stealth Rock
+    every turn believing it is not up, the VICTIM refuses to lay its own believing it is. Fixed:
+    p1=1, p2=0. **MAG was fitted where `deadSide` was effectively right and played where it was
+    inverted** — *fitting environment and playing environment must match*, broken in a new place and
+    closed in the one direction that costs no refit.
+  - **THE GUARD BUILT TO CATCH THIS WAS STRUCTURALLY BLIND TO IT.** Run under both boards with the
+    fixture as it stood, **0 of 76 hashed columns moved**: `engine/feature_fixture.js` contained
+    **zero hazard clicks** and the only side conditions any of its ten boards pre-set were `reflect`
+    and `tailwind`, both `allySide` — exactly the half the fix leaves alone. R7 for the seventh time,
+    and the new part generalises: the earlier misses were a SPECIES the boards did not stand on and a
+    FIELD STATE they never entered; this is a MOVE CLASS nobody clicks. New board
+    `hazards-already-up`, deliberately ONE-SIDED (`stealthrock`/`spikes` up on p2,
+    `stickyweb`/`toxicspikes` up on p1) so the flip is exercised in both directions — setting a
+    hazard on both sides moves nothing. `deadSide` now moves **`b984c210828d` → `d1be4f95d589`** and
+    no other column does. Every set learnset-checked against `Dex.forFormat`.
+  - **New gate `tests/test-hazard-side.js`, landed in the same commit as the fix** because a red test
+    nobody can close is the banned "known failure". It walks all 11 moves from the format with both
+    movers, asserts PLACEMENT and READBACK separately (a write-only fix is worse than the bug), keeps
+    an `allySide` control and an inverse control, and holds all six sweep sites to reading
+    `B.sideFor`. **5 passed / 3 failed at HEAD, 11 / 0 after**; reverting one sweep site fails by file
+    name. `tests/test-feature-semantics.js` gained the matching clause: 16 → 18 assertions, and under
+    the injected pre-change board it names all six wrong candidates.
+  - **One correction to the roadmap row rather than a repetition of it:** *"crediting itself
+    `setupTurns` each time"* is wrong. None of the four hazards carries a `condition.duration`
+    (Reflect 5, Tailwind 4, the hazards none), so `setupTurns` is 0 for them under every variant;
+    `deadSide` is the only observable column. The `alreadyUp` site is still routed through the helper
+    — one fact, one function — and binds today only on the seven `allySide` moves.
+  - **NO FIT WAS RUN AND NO WEIGHT FILE WAS RESTAMPED.** A refit stays OWED for the reasons
+    `engine/status.js` already prints and this row adds nothing to them. Naming a consequence rather
+    than leaving it to be discovered: the scenario count went 10 → 11, so
+    `feature_fixture.js --check` now answers *"the fixture itself changed"* for every stamped file,
+    which supersedes the per-feature message.
+  - `tests/test-mechanics.js` **565 live / 0 missing**, unmoved — the whole-game differential
+    exercises `medicham2`, not the feature board, so it was not expected to move and did not.
 - **GOOD AS GOLD REFUSED FOES AND ACCEPTED ITS OWN PARTNER'S SUPPORT (ROADMAP #255).** The
   ability's whole handler is `if (move.category === "Status" && target !== source)` — **`target !==
   source`, not "target is a foe"** — so the authority refuses a partner's Decorate, Coaching, Skill

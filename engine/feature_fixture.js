@@ -425,6 +425,56 @@ const SCENARIOS = [
     bench: { p1: ['Clefable', 'Abomasnow'], p2: ['Froslass', 'Venusaur'] },
     state: { turn: 5, weather: 'Snowscape', hp: { p1: { a: 0.5, b: 0.45 }, p2: { a: 0.6 } } },
   },
+
+  /* HAZARDS, added 2026-08-13, AND THIS FIXTURE WAS STRUCTURALLY BLIND TO THE BUG THAT PROMPTED IT.
+   *
+   * ROADMAP #254: `engine/board.js` recorded EVERY side condition on the MOVER's side. Seven of the
+   * eleven legal side-condition moves are `target: allySide` and were right by accident; the four
+   * `foeSide` ones — Stealth Rock, Spikes, Sticky Web, Toxic Spikes — landed on the side they can
+   * never be on, and both readers (`deadSide`, and the `alreadyUp` gate on `setupTurns`) looked for
+   * them on that same wrong side, so the error cancelled and nothing could see it.
+   *
+   * RUN UNDER BOTH BOARDS, HEAD AND FIXED, ZERO OF THE 58 COLUMNS MOVED. Not a defect in the check:
+   * there is not one hazard CLICK anywhere in the ten boards above — grep the four move ids and the
+   * count is 0 — and the only side conditions any of them pre-set are `reflect` and `tailwind`, both
+   * `allySide`, which is exactly the half `sideFor` leaves alone. So the guard written to catch a
+   * feature changing meaning under its own name would have passed this in silence. R7 for the
+   * seventh time, and the new part generalises: the earlier misses were a SPECIES the boards did not
+   * stand on and a FIELD STATE they never entered. This one is a MOVE CLASS nobody clicks.
+   *
+   * THE CONDITIONS ARE UP ON ONE SIDE ONLY, AND THAT IS THE WHOLE DESIGN. Setting a hazard on both
+   * sides makes both readers answer 1 before and after the fix and moves nothing. Here `stealthrock`
+   * and `spikes` are up on p2 and `stickyweb` and `toxicspikes` on p1, so the flip is exercised in
+   * BOTH directions on the same board: p1's Stealth Rock goes dead 0 -> 1 (the rocks it would lay
+   * are already on the foe) while p1's Sticky Web goes 1 -> 0 (the web on its own side is not its to
+   * reuse), and p2's Spikes and Toxic Spikes mirror it. A one-directional board would pass an engine
+   * that had simply inverted everything.
+   *
+   * WHAT IT DOES NOT COVER, stated rather than implied: `state.side` reaches `board.startSide`
+   * directly, so this exercises the two READS and not the WRITE in `noteMove`. The write is covered
+   * by tests/test-hazard-side.js arm (A), which walks all eleven moves from the format with both
+   * movers. Every set below is learnset-checked against Dex.forFormat, not recalled. */
+  {
+    label: 'hazards-already-up',
+    p1: [
+      { species: 'Tyranitar', item: 'Leftovers', ability: 'Sand Stream', nature: 'Adamant',
+        moves: ['Stealth Rock', 'Rock Slide', 'Crunch', 'Protect'] },
+      { species: 'Araquanid', item: 'Sitrus Berry', ability: 'Water Bubble', nature: 'Relaxed',
+        moves: ['Sticky Web', 'Liquidation', 'Wide Guard', 'Protect'] },
+    ],
+    p2: [
+      { species: 'Glimmora', item: 'Focus Sash', ability: 'Toxic Debris', nature: 'Timid',
+        moves: ['Spikes', 'Toxic Spikes', 'Power Gem', 'Protect'] },
+      { species: 'Skarmory', item: 'Leftovers', ability: 'Sturdy', nature: 'Impish',
+        moves: ['Stealth Rock', 'Spikes', 'Brave Bird', 'Protect'] },
+    ],
+    bench: { p1: ['Garchomp', 'Incineroar'], p2: ['Gyarados', 'Venusaur'] },
+    state: {
+      turn: 5,
+      side: { p1: ['stickyweb', 'toxicspikes'], p2: ['stealthrock', 'spikes'] },
+      hp: { p1: { a: 0.65, b: 0.5 }, p2: { a: 0.45, b: 0.7 } },
+    },
+  },
 ];
 
 function need(x, what, name) {

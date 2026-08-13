@@ -1,10 +1,10 @@
 {
-  "current": "9b25e830df49",
-  "cut": "2026-08-13T19:25:52.171Z",
-  "why": "ROADMAP #255 AFTER - Good as Gold refuses ally-aimed status moves too",
+  "current": "a7649ef04500",
+  "cut": "2026-08-13T20:49:18.767Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
   "cuts": 1,
-  "latest_cut": "2026-08-13T19:25:52.171Z",
-  "latest_why": "ROADMAP #255 AFTER - Good as Gold refuses ally-aimed status moves too",
-  "pointer_written": "2026-08-13T19:25:52.179Z",
+  "latest_cut": "2026-08-13T20:49:18.767Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-13T20:49:18.780Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

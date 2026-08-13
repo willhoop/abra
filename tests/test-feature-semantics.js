@@ -160,5 +160,54 @@ ok(/allyHit/.test(msg), 'the rejection message names the feature that moved');
     'and the digest stays quiet when the table has not moved');
 }
 
+/* ---- 7. THE HAZARD CLASS — the blind spot this guard had until 2026-08-13 ----------------------
+ *
+ * ROADMAP #254. `board.js` put every side condition on the MOVER's side. Seven of the eleven legal
+ * side-condition moves are `allySide` and were right by accident; the four `foeSide` ones — Stealth
+ * Rock, Spikes, Sticky Web, Toxic Spikes — were recorded on the side they can never be on, and both
+ * readers looked for them there too, so the error cancelled.
+ *
+ * RUN UNDER BOTH BOARDS WITH THE OLD FIXTURE, ZERO OF THE 76 COLUMNS MOVED. Not a defect in the
+ * check: there was not one hazard CLICK on any fixture board, and the only conditions any board
+ * pre-set were `reflect` and `tailwind` — both `allySide`, the half the fix leaves alone. The guard
+ * written to catch a feature changing meaning under its own name would have passed this in silence,
+ * which is the one failure it may never have. With the `hazards-already-up` board added, `deadSide`
+ * moves (b984c210828d -> d1be4f95d589) and nothing else does.
+ *
+ * TWO ASSERTIONS, and they are different in kind. COVERAGE: the fixture must actually contain
+ * foeSide clicks, both dead and live, derived from the format so a regulation adding a hazard is
+ * covered without editing this file. SENSITIVITY: `deadSide` for a foeSide setter must equal
+ * whether the condition is up on the FOE's side — stated against the Board directly, never through
+ * board.js's own `sideFor`, so this is an independent statement rather than the code agreeing with
+ * itself. It is RED on the pre-#254 board.
+ *
+ * ONLY `deadSide` IS OBSERVABLE HERE, MEASURED RATHER THAN ASSUMED: none of the four hazards carries
+ * a `condition.duration` (Reflect 5, Tailwind 4; the hazards none), so `setupTurns` is 0 for them
+ * under every variant and the second read site is inert for this class today. */
+{
+  const slots = FF.build(dex);
+  const iDead = B.FEATURE_INDEX.deadSide;
+  const other = s => (s === 'p1' ? 'p2' : 'p1');
+  let seen = 0, live = 0, deadN = 0;
+  const wrong = [];
+  for (const s of slots) {
+    for (let i = 0; i < s.cands.length; i++) {
+      const mv = s.cands[i].move;
+      if (!mv || !mv.sideCondition || mv.target !== 'foeSide') continue;
+      seen++;
+      const upOnFoe = s.board.hasSide(other(s.side), mv.sideCondition) ? 1 : 0;
+      if (upOnFoe) deadN++; else live++;
+      if (s.feats[i][iDead] !== upOnFoe) {
+        wrong.push(`${s.label} ${mv.name}: deadSide=${s.feats[i][iDead]}, but it is `
+          + `${upOnFoe ? 'ALREADY UP' : 'NOT up'} on ${other(s.side)}`);
+      }
+    }
+  }
+  ok(seen > 0 && deadN > 0 && live > 0,
+    `the fixture clicks foeSide setters in both states: ${seen} candidates, ${deadN} already up, ${live} not`);
+  ok(wrong.length === 0, `deadSide for a foeSide setter reads the FOE's side: ` +
+    (wrong.length ? `${wrong.length} wrong\n         ` + wrong.join('\n         ') : 'every one agrees'));
+}
+
 console.log(`\nFEATURE SEMANTICS TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

@@ -108,7 +108,8 @@ const fit = blank();
           const u = board.slot(side, L);
           const mv = dex.moves.get(e.mv);
           if (u && mv && mv.exists) {
-            const already = (mv.sideCondition && board.hasSide(side, mv.sideCondition)) ||
+            /* ROADMAP #254 — B.sideFor, not the mover's side. */
+            const already = (mv.sideCondition && board.hasSide(B.sideFor(side, mv), mv.sideCondition)) ||
                             (B.fieldKey(mv) && board.hasField(B.fieldKey(mv)));
             B.noteMove(board, side, u, mv, !already);
           }
