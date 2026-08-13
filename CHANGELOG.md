@@ -39,6 +39,18 @@ silently rewritten; what changed and why is stated.
   the authority does not.** **Tangled Feet, Plus and Minus were switched off behind reasons that had
   expired.**
 
+- **A ROADMAP ROW REFERENCE IS AN IDENTIFIER, and # was already declared one — in ID_WORD, beside
+  §. It never fired: that lookbehind demands a space and this repo writes #224 with none, so the guard
+  covered a spelling nobody uses. It cost a real verdict — a note reading *Closed #218 and #224 on measured
+  evidence*, beside the two artifacts that prove it, was failed for citing a figure of 224 that neither
+  contains. Naming the rows it closed is what made it fail.
+- **The closed-detector was case-sensitive on a register that SHOUTS its titles.** closed 20\\d\\d\n  was written lowercase with no /i, so a row reading CLOSED 2026-08-11 in its own first line was counted
+  OPEN — and #220 asserts breakage, so a defect fixed the day before was still inflating the MEDICHAM gate.
+  That is #148 again with letter case in place of word choice. **The obvious fix was measured and rejected:**
+  /i on the whole alternation also swallows #33 (*rollout_r1.js done, three callers left*) and #80, silently
+  closing two live rows. Only the dated token ignores case. Rows asserting breakage: **4 to 1**, and the one
+  left is real.
+
 ### Changed
 - **The whole-game comparison is a gate clause now**, at seven clauses rather than six. The bar is a
   ratchet rather than zero, and the clause prints the absolute figure every run with the words
@@ -94,6 +106,59 @@ than pruned from the log or waved through by raising a ratchet twice in one day.
 - **Protocol-trace theoretical denominator before 93 ability rows left the file:** 9376.
 
 ---
+
+## [5.8.0] — 2026-08-12
+
+### Added
+- **THE END-STATE COMPARISON RANKS BY SEVERITY INSTEAD OF COUNTING.** `engine/end_state_severity.js`
+  and the end-state reporting in `engine/game_differential.js`. `DIFFERENT-END-STATE` was one row per
+  game, so a healthy body killed by a move it cannot be hit by weighed the same as a three-HP rounding
+  residue. Six rungs now, ordered by what the difference means for the game: different winner, different
+  bodies alive, HP beyond a typical hit, different identity on a live body, other state, small HP or
+  boost. Each band reports a count, the bodies in it ranked by corpus usage, and the games themselves —
+  team pair, seed, configuration and arm — so a band can be opened and re-played.
+- **`tests/test-end-state-severity.js`** — shown red first and shown NOT firing: a planted death reaches
+  the top rung, a planted three-HP residue must not, a one-sided forme change must not read as a death,
+  all six rungs reachable, the ladder ordered, `severity()` refuses to run without a measured threshold,
+  and the whole path through the real driver against a cleared control.
+
+### Changed
+- **THE BAND 3 THRESHOLD IS MEASURED FROM THE RUN, NOT PICKED** — the median DIRECT hit the AUTHORITY
+  narrated, as a fraction of the struck body's own maximum HP, cut per arm and never pooled.
+  **25.9% of a health bar over 2,092 hits (top-tie-first), 28.8% over 1,808 (bottom-tie-first).**
+- **The driver sets medicham2's `S.maxTurns`.** `battleOver` is `S.turn >= (S.maxTurns || 20)` and the
+  driver had never set it, so a run above 20 turns got a medicham2 that stopped while Showdown played
+  on. Measured at `--turns 40`: 943 of 983 games ENDED-APART, 937 of them "ONLY medicham2 ended". Set to
+  `max(turn cap + 1, 20)`, so every 12-turn run is byte-identical to before.
+
+### Fixed
+- **The severity ruler was excluding every killing blow.** Showdown writes a fainted body as `0 fnt`
+  with no denominator, and a parse requiring `\d+/\d+` discarded exactly the largest hits in the sample
+  — 13 direct hits narrated in one measured game, 8 reaching the ruler. Hits 1,612 → 2,092 and
+  1,321 → 1,808.
+- **The ruler was counting residual chip as a hit**, putting the median at 12.7% with quartiles 6.2 and
+  34.2 — the middle of a bimodal mixture. Sandstorm, burn, poison, Leech Seed, hazards and Life Orb are
+  identified by Showdown's own `[from]` attribution, excluded, and counted (4,838 and 4,947 events).
+- **The per-arm hit receipts were pooled** and published the same excluded-residual figure against two
+  arms whose hit counts differed. Re-derived per arm.
+- **`tests/test-end-state.js` PART 3 is green again, and the attribution in `docs/ENGINE.md` was wrong.**
+  Same frozen release, one flag apart: live team pool → 2 failures, `--team-store data/team-pool-frozen`
+  → all green. The pool is read live from a file OPS appends to, so the fixture drifted until the item
+  plant landed in a battle that legitimately undid it. The pool is now pinned by default.
+
+### Notes
+- **Measured, 2,300 games per arm, release `6155acc0fb26`, frozen team pool, turn cap 12, 0 threw:**
+  band 2 (a body dead in one engine and standing in the other) is **25 of 278 (9.0%)** and **27 of 297
+  (9.1%)**; band 4 (identity on a live body) is 86 (30.9%) and 95 (32.0%). `sinistcha` is the largest
+  single body in band 2 — 6 and 7 games, 2,668 corpus teams — reading `0/146` for us against `146/146`
+  for the authority. Filed to ENGINE, not diagnosed here.
+- **Band 1 (a different winner) is 0 and that is not a clean bill.** 2,275 of 2,300 games stop at the
+  turn cap, and above medicham2's 20-turn horizon the comparison degenerates. A 30-turn run refuses to
+  publish because one of the state comparator's own planted defects can no longer be staged in long
+  games. DIFFERENT-WINNER has no denominator in this harness yet.
+- The shape prior holds as a rate and not as a headline: RULE reaches band 2 on 14.9% / 16.2% of its
+  games against ORDERING's 7.1% / 4.8%, but EMISSION supplies the majority of band-2 games because it is
+  the largest bucket. ORDERING is not zero — one game per arm.
 
 ## [5.7.0] — 2026-08-11
 

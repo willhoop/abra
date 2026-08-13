@@ -383,7 +383,22 @@ function roadmapRowIsClosed(l) {
   /* the row's STATUS CELL first — see #148's prescription below — then the prose scan, kept because
    * a row that says it is done in its title and forgets the cell should still drop out. */
   if (/\|\s*(closed|done|page closed)\b[^|]*\|\s*$/i.test(l)) return true;
-  return /—\s*DONE|DONE,|RETRACTED|closed 20\d\d|GUARDED,/.test(l.slice(0, 600));
+  const head = l.slice(0, 600);
+  /* THE DATED-CLOSURE TOKEN IS THE ONE THAT MUST IGNORE CASE, AND ONLY IT.
+   *
+   * This register SHOUTS its titles, so the house spelling is `CLOSED 2026-08-11` — and the token was
+   * written lowercase with no /i, so the detector could not see the very phrase the rows use. #220 said
+   * CLOSED in its own first line, read as OPEN, and it asserts breakage, so it was inflating the
+   * MEDICHAM gate with a defect that had been fixed the day before. That is #148's lesson again with
+   * LETTER CASE in place of word choice.
+   *
+   * MEASURED BEFORE CHANGING IT, because the obvious fix — /i on the whole alternation — is WRONG and
+   * the measurement is what showed it. Four rows are hidden by case; only two of them are closed.
+   * A blanket /i also swallows #33 ("`rollout_r1.js` done, 3 callers left" — three callers left is not
+   * done) and #80 (prose "retracted" about a DISPOSITION, not about the row). Widening the whole
+   * pattern would have silently closed two live rows, which is the failure this detector exists to
+   * prevent, pointed the other way. */
+  return /—\s*DONE|DONE,|RETRACTED|GUARDED,/.test(head) || /closed 20\d\d/i.test(head);
 }
 /* THE BREAKAGE CLAIM IS DECLARED IN THE STATUS CELL FIRST, AND ONLY THEN GUESSED FROM PROSE.
  *

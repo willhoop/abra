@@ -21,6 +21,61 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE END-STATE COUNT IS A SEVERITY LADDER NOW, AND ONE DIVERGED GAME IN ELEVEN ENDS WITH A DIFFERENT SET OF POKEMON ALIVE. 2026-08-12 (MEASURE).
+
+Full account in `docs/MEASURE.md` §000000. Nothing in `medicham2-browser.js` or `tests/test-mechanics.js`
+was touched; measured against the frozen release **`6155acc0fb26`**, frozen team pool, 2,300 games per
+arm, turn cap 12, 0 threw, planted proof green.
+
+**THE PROBLEM.** Five defects were verified against Showdown's source, staged, shown red and fixed on
+2026-08-12, and the whole-game divergence count moved **+1 and +3**. All five were narration. Will then
+read twenty-five battles by hand and found three wrong OUTCOMES. `DIFFERENT-END-STATE` weighed those two
+kinds of finding identically because it was a COUNT.
+
+**THE LADDER** (`engine/end_state_severity.js`), over the `DIFFERENT-END-STATE` games — which is the
+parted ones PLUS the 31 (top) and 18 (bottom) whose narration never parted and that still ended apart:
+
+| band | top-tie-first | bottom-tie-first |
+|---|---|---|
+| 1 different WINNER | 0 | 0 |
+| 2 different BODIES ALIVE | **25 (9.0%)** | **27 (9.1%)** |
+| 3 HP beyond a typical hit | 47 | 59 |
+| 4 identity on a LIVE body | 86 | 95 |
+| 5 other state | 51 | 47 |
+| 6 small HP or boost | 69 | 69 |
+| banded | 278 | 297 |
+
+**FILED TO ENGINE, ranked by corpus usage, not diagnosed here.** `sinistcha` is the largest single body
+in band 2 — **6 and 7 games, 2,668 corpus teams** — and always the same shape: **`0/146` for us against
+`146/146` for the authority**, a body at full health in Showdown and dead here. `pair-redirect-priority`
+supplies 14 of 25 and 13 of 27 band-2 games; `pair-protect-bust` 8 and 7.
+
+**THE SHAPE PRIOR HOLDS AS A RATE AND FAILS AS A HEADLINE.** Share reaching band 2: RULE 14.9% / 16.2%,
+EMISSION 11.7% / 11.9%, ORDERING 7.1% / 4.8%, UNPARSED 0 / 0. So rule-shaped is the most dangerous per
+game — **but EMISSION supplies 16 of 25 and 15 of 27 band-2 games** because it is the biggest bucket.
+**And ORDERING is not zero**: one game per arm has an ordering-shaped first divergence and a different
+set of bodies alive at the end.
+
+**TWO HARNESS DEFECTS FOUND AND FIXED, BOTH IN THE INSTRUMENT AND NEITHER IN THE ENGINE.**
+- The driver never set `S.maxTurns`, and `battleOver` is `S.turn >= (S.maxTurns || 20)`. At `--turns 40`,
+  **943 of 983 games came back ENDED-APART, 937 "ONLY medicham2 ended the battle"** — 96% of a run
+  produced by one default, reading exactly like a catastrophic disagreement. Now
+  `max(turn cap + 1, 20)`, so every 12-turn run is byte-identical to before.
+- The band-3 ruler discarded **every killing blow** (`0 fnt` carries no denominator) and counted residual
+  chip as a hit (median 12.7%, quartiles 6.2/34.2 — the middle of a bimodal mixture). Fixed: median
+  **25.9%** of a health bar over 2,092 direct hits (top) and **28.8%** over 1,808 (bottom).
+
+**BAND 1 IS ZERO AND IT IS UNMEASURABLE RATHER THAN CLEAN.** 2,275 of 2,300 games stop at the cap; at a
+19-turn cap it is still 938 of 983 and band 1 is still 0; and a 30-turn run **refuses to publish**
+because the state comparator's *PP on a slot nothing has touched* plant cannot be staged in a long game.
+
+**`tests/test-end-state.js` PART 3 IS GREEN AGAIN AND `docs/ENGINE.md`'s ATTRIBUTION WAS WRONG.** Same
+frozen release, one flag apart: live team pool → 2 failures, `--team-store data/team-pool-frozen` → all
+green. The pool is read live from a file OPS appends to, so the fixture drifted until the item plant
+landed in a battle that legitimately undid it. Pinned by default now.
+
+---
+
 ## THE MACHINE FROZE AND THE FIRST ANSWER WAS THE WRONG ONE. 2026-08-11.
 
 Will: **"U KEEP FREEZING UP AND I HAVE TO FORCE CLOSE YOU"**. Then, when the answer offered was to
@@ -6596,3 +6651,25 @@ that had never run, with a plant the semantic normaliser could erase and another
 no field to bend. All three reproduced on the frozen pre-change engine before anything was touched. The
 reporting hole was the expensive part: "the plant was never placed" and "the comparator cannot see a
 divergence" were the same row, and only the second condemns a run.
+
+### THE REGISTER SAID FOUR THINGS WERE BROKEN AND THREE OF THEM WERE FIXED, ONE BY LETTER CASE
+
+oadmapRowIsClosed matched closed 20\\d\\d with no /i, on a register whose house style is to SHOUT its
+titles. #220 opens with CLOSED 2026-08-11 and read as OPEN; because it also asserts breakage it was inflating
+the MEDICHAM gate with a defect fixed the day before. #148 again, letter case standing in for word choice.
+
+**The obvious fix is wrong, and measuring is what showed it.** /i on the whole alternation reveals four
+hidden rows but only two are closed — it also swallows #33 (*rollout_r1.js done, three callers left*) and #80,
+whose prose says *retracted* about a DISPOSITION rather than about the row. A blanket widen would have silently
+closed two live rows. Only the dated token ignores case.
+
+Closed #218 and #224 on measured evidence. #224 verified in the ARTIFACTS rather than the source:
+data/game-differential.json and data/divergence-turns.json hold zero ??: occurrences, and the three
+literals left in the simulator are the fallback itself, which that row says must stay visible.
+
+The token goes in the TITLE, where #170 and #220 put it: the detector reads only the first 600 characters on
+purpose, so prose deep inside one row describing another row being closed cannot close the row it sits in. The
+first attempt appended it to the end of a 2,980-character row and nothing happened — the window doing its job.
+
+Rows asserting breakage 4 to 1. Open rows 110 to 106. The gate still reads CLOSED at 2 of 7 and now names the
+single row it fails on: #221, the residual handler-list restructure, genuinely open and deliberately not started.

@@ -123,6 +123,16 @@ function figuresIn(line) {
     .replace(/\b\d{4}-\d{2}-\d{2}\b/g, ' ')         // ISO dates
     .replace(/\bv?\d+\.\d+\.\d+\b/g, ' ')           // version strings
     .replace(/§\s*\d+[a-z]?/gi, ' ')                // section references
+    /* A ROADMAP ROW REFERENCE IS AN IDENTIFIER, AND `#` WAS ALREADY DECLARED ONE — in ID_WORD, right
+     * beside `§`. It never fired: that lookbehind is `(?<!\bID_WORD\s)` and demands a space, while
+     * this repo writes `#224` with none, so the guard covered a spelling nobody uses. `§` was given a
+     * strip in this chain for exactly that reason and `#` was left behind.
+     *
+     * It cost a real verdict: a sprint note reading "Closed #218 and #224 on measured evidence" beside
+     * two named artifacts was failed for citing a figure of 224 that neither artifact contains. The
+     * sentence was correct, its provenance was correct, and naming the rows it closed is what made it
+     * fail — the gate charging for the citation again, one rule over from the lines fix above. */
+    .replace(/(?<![\w])#\s*\d+/g, ' ')              // roadmap row references: #224
     .replace(/\b[Rr]\d\b/g, ' ')                    // rung names R1..R4
     /* A CITED SOURCE LINE IS THE OPPOSITE OF AN UNTRACEABLE FIGURE, AND THIS SCAN COUNTED IT AS ONE.
      * "the block is split across lines 10914-10915" is a citation into pokemon-showdown — the very

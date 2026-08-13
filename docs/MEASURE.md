@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 7 gate clauses fail (whole-game differential / the same game on both engines; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 25 unsafe, 1 void (declared), 85 possibly stale, 86 ok, 0 missing
+  provenance: 25 unsafe, 1 void (declared), 87 possibly stale, 86 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 7 gate clauses fail (whole-game differential / the same game on both engines; no open, known engine defect)
@@ -35,7 +35,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-12 19:40
 ```
 
-_stamped 2026-08-12 20:10_
+_stamped 2026-08-12 20:20_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,134 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 000000. THE END-STATE COUNT BECAME A SEVERITY LADDER, AND THE WORST BAND IS NINE PERCENT — 2026-08-12
+
+`engine/end_state_severity.js` (new) + `engine/game_differential.js` end-state reporting +
+`tests/test-end-state-severity.js` (new). Nothing in `medicham2-browser.js` or `tests/test-mechanics.js`
+was touched; the run reads the frozen release **`6155acc0fb26`**, the same one the standing 31.9% / 36.6%
+bar and the published end-state table use.
+
+**WHY.** `DIFFERENT-END-STATE` was a COUNT. A game in which a healthy body is killed by a move it
+cannot be hit by — after which a replacement comes in and every later line is a different game — weighed
+**exactly the same as a three-HP rounding residue**. On the same day, five defects were verified against
+Showdown's own source, staged, shown red, fixed, and the whole-game count moved by **+1 and +3**; all
+five were narration. Will then read twenty-five battles by hand and found three wrong OUTCOMES. **No
+instrument here could have separated those two kinds of finding, because a count has no order on it.**
+
+**THE HEADLINE — 2,300 games per arm, frozen team pool, release `6155acc0fb26`, turn cap 12, 0 threw,
+planted proof green, `data/game-differential-endstate.json`.** Bands are over the `DIFFERENT-END-STATE`
+games, which is the parted ones PLUS the games whose narration never parted and that still ended apart
+(31 top, 18 bottom — a class the protocol instrument is structurally blind to).
+
+| band | what it means | top-tie-first | bottom-tie-first |
+|---|---|---|---|
+| 1 | **DIFFERENT WINNER** | **0** | **0** |
+| 2 | **DIFFERENT BODIES ALIVE** — dead in one engine, standing in the other | **25 (9.0%)** | **27 (9.1%)** |
+| 3 | HP differing by more than a typical hit | 47 (16.9%) | 59 (19.9%) |
+| 4 | different species / typing / ability on a LIVE body | 86 (30.9%) | 95 (32.0%) |
+| 5 | a status, item, hazard, screen, weather, PP or volatile | 51 (18.3%) | 47 (15.8%) |
+| 6 | HP under one hit, or a stat stage — plausibly rounding | 69 (24.8%) | 69 (23.2%) |
+| | **banded** | **278** | **297** |
+
+**SO ROUGHLY ONE DIVERGED GAME IN ELEVEN ENDS WITH A DIFFERENT SET OF POKEMON ALIVE**, and about
+three in ten with a body whose identity we have wrong while it is still standing. Neither was visible
+before; both were inside one number.
+
+**THE BAND 3 THRESHOLD IS MEASURED AND THE RULER IS THE AUTHORITY'S, NOT OURS.** Every DIRECT `-damage`
+event Showdown narrated, as a fraction of the struck body's own maximum HP; the median is the threshold.
+**2,092 hits, median 25.9% of a health bar, IQR 14.1–47.3** (top); **1,808 hits, 28.8%, IQR 17.5–53.1**
+(bottom). Cut per arm and never pooled — the arms sit at opposite corners of the damage roll.
+
+**TWO THINGS THE FIRST VERSION OF THAT RULER GOT WRONG, BOTH FOUND BY READING ITS OWN OUTPUT.**
+*(a)* Residual chip — sandstorm, burn, Leech Seed, hazards, Life Orb — was counted as a hit and put the
+median at **12.7% with quartiles 6.2 and 34.2**, the middle of a bimodal mixture, describing neither
+half. Showdown's own line says which is which (`[from] …`), so the filter is read off the protocol
+rather than guessed from a size cutoff, which would be circular. **4,838 and 4,947 residual events are
+excluded and counted.** *(b)* `0 fnt` carries **no denominator**, so a parse requiring `\d+/\d+`
+discarded **every killing blow** — 13 direct hits narrated in one measured game and 8 reaching the
+ruler, the five missing being the knockouts. A ruler built only from hits too small to kill anybody. It
+now resolves against the body's carried maximum; hits went 1,612 → 2,092 and 1,321 → 1,808.
+
+**THE SHAPE PRIOR HOLDS AS A RATE AND IS WRONG AS A HEADLINE.** The prior was that ORDERING-shaped
+divergences land harmless and RULE-shaped ones land severe. Share of each shape's games reaching band 2:
+
+| shape | top | bottom |
+|---|---|---|
+| RULE | 7/47 = **14.9%** | 11/68 = **16.2%** |
+| EMISSION | 16/137 = 11.7% | 15/126 = 11.9% |
+| ORDERING | 1/14 = 7.1% | 1/21 = 4.8% |
+| UNPARSED | 0/48 | 0/57 |
+| protocol never parted | 0/31 | 0/18 |
+
+RULE is the most dangerous shape per game and ORDERING the least, so the prior is right. **But EMISSION
+supplies 16 of the 25 and 15 of the 27 band-2 games** — the majority of the worst outcomes — because it
+is by far the largest bucket. "Fix the rule-shaped ones first" is right per game and wrong per evening.
+**And ORDERING is not zero: one game in each arm has an ordering-shaped first divergence and a different
+set of bodies alive at the end.** That is the more interesting half and it is not dismissed here.
+
+**THE WORKLIST, RANKED BY BAND FIRST AND BY CORPUS USAGE SECOND** (teams containing the body in
+`data/meta-usage.json`, read LIVE — it is not in the frozen release, and it is **generated 2026-08-04**,
+so the ranking rests on an eight-day-old corpus model):
+
+- **`sinistcha` is the largest single body in band 2 — 6 games (top) and 7 (bottom), 2,668 corpus
+  teams**, and the same shape every time: **`0/146` for us against `146/146` for the authority.** A body
+  at FULL health in Showdown and dead here. Filed to `@engine`; not diagnosed here.
+- **`pair-redirect-priority` supplies 14 of 25 and 13 of 27 band-2 games**, `pair-protect-bust` 8 and 7.
+  That is a fact about the steered sample as much as about the engine and both readings are open.
+
+**BAND 1 IS ZERO AND THAT IS NOT A CLEAN BILL — THE HARNESS CANNOT CURRENTLY MEASURE IT.** A battle that
+does not resolve cannot have a different winner, and **2,275 of 2,300 games stop at the 12-turn cap**.
+Raised to 19 (`data/game-differential-endstate-turn19.json`, 983 games, proof green) it is still
+**938 of 983 at the cap, band 1 = 0 in both arms**.
+
+**AND ABOVE TWENTY TURNS THE COMPARISON COLLAPSES, FOR A REASON THAT WAS THE HARNESS.** `battleOver` is
+`S.turn >= (S.maxTurns || 20) || …` and this driver had never set `maxTurns`. Measured at `--turns 40`,
+983 games: **943 ENDED-APART, 937 of them "ONLY medicham2 ended the battle"** — 96% of a run produced by
+one hard-coded default, reading exactly like a catastrophic engine disagreement.
+(`data/game-differential-endstate-turn40.json` is that run, kept as the receipt; it was taken under the
+pre-fix driver and its band-3 figures are not to be quoted.) The driver now sets
+`S.maxTurns = max(MAXTURNS + 1, 20)`, so **every 12-turn run is byte-identical to before** and only the
+already-broken configurations move.
+
+**A 30-TURN RUN THEN REFUSED TO PUBLISH, CORRECTLY.** With the horizon lifted, one of the state
+comparator's own planted defects — *PP spent on a slot NOTHING has touched* — can no longer be staged,
+because in a 30-turn game every slot has touched every move. The run printed `THE STATE COMPARATOR
+FAILED ITS OWN PROOF` and declared its state numbers worthless. That is the instrument working. **So
+the honest position is that DIFFERENT-WINNER has no denominator in this harness yet**, and closing it
+needs a plant that survives a long game, not a bigger sample.
+
+**SHOWN RED FIRST, AND SHOWN NOT FIRING.** `tests/test-end-state-severity.js`: a planted death reaches
+the top rung and is localised; **a planted three-HP residue must NOT** — a ladder that answers "severe"
+to everything passes the first half alone; a one-sided forme change must land on the identity rung and
+not read as a death, because the party is keyed by species and a rename is indistinguishable from a
+corpse in the diff list; all six rungs reachable; a board carrying a death, a boost and a burn bands as
+the death; identity on a body dead in BOTH engines does not reach the identity rung; `severity()`
+REFUSES to run without a measured threshold; the `|split|` duplicate is stepped over; and the whole path
+through the real driver, a planted faint surviving to the last board against the same pair and seed run
+clean as a control.
+
+**THE ONE PLACE THE BRIEF WAS THE WRONG SHAPE, AND IT IS RECORDED RATHER THAN QUIETLY OBEYED.** The
+brief ranked *a different set alive* above *a different winner*. First-match-wins over that order makes
+the winner rung **structurally empty** — a different winner is always also a different set alive — and a
+band that can never fire is not a band. They are swapped, and the containment is printed on every run.
+A fifth rung was also added: folding a burn, or a layer of Spikes, into "plausibly rounding" would
+repeat in miniature the exact weighting bug the ladder exists to fix.
+
+**AND A RED THAT WAS OPEN ON ARRIVAL IS CLOSED, WITH THE ATTRIBUTION CORRECTED.** `docs/ENGINE.md`
+recorded `tests/test-end-state.js` PART 3 failing and attributed it to staleness in the pass that wrote
+it, having restored both `medicham2-browser.js` and `game_differential.js` to their HEAD bytes and
+reproduced it. That control was sound and it held the wrong variable still. **Same frozen release, one
+flag apart: live team pool → 2 FAILURES; `--team-store data/team-pool-frozen` → ALL GREEN.**
+`diff_swarm.js` reads the pool LIVE from a file OPS appends to, so `pairsFor` returns a different first
+pair as the store grows, and PART 3's item plant — legitimately undoable by a Knock Off or a berry —
+eventually lands in a battle that undoes it. The test now pins the pool by default and a caller can
+still override it.
+
+**WHAT THIS DOES NOT SAY.** A band is exactly as strong as what `board_state.js` compares; its
+`NOT_COMPARED` list is published with the artifact. `SAME-END-STATE` remains a claim about where the two
+engines ARRIVED and not about the turns in between. ENDED-APART (4 and 6) is a THIRD answer and is
+counted beside the ladder, never inside it.
 
 ### 00000. TURN 1 IS THE PRIMARY READING NOW, AND THE CONTAMINATION THEORY IS HALF RIGHT — 2026-08-10
 
