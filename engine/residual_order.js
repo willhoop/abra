@@ -118,6 +118,44 @@ function rowsFor() {
     if (c && c.exists) add('field', id, c.name || id, c,
                            c.effectType === 'Terrain' ? 'Terrain' : c.effectType === 'Weather' ? 'Weather' : 'Condition');
   }
+  /* SLOT CONDITIONS ARE NOT REACHED THROUGH `move.condition` EITHER, and the first table missed
+   * `futuremove` the same way it missed the weathers. Future Sight and Doom Desire do not carry a
+   * `condition` of their own at all (`moves.get('futuresight').condition` is undefined); both write the
+   * SHARED `futuremove` slot condition, whose `onResidualOrder` is 3 — above Wish's 4, so a Future
+   * Sight lands before a Wish heals it back. Wish itself does have a `.condition` and is already
+   * collected above; it is re-derived here anyway because the ids come from the MOVES rather than from
+   * a list, so a slot condition added later arrives without an edit. The merge below drops the dup.
+   *
+   * Two routes, because the authority uses two: a declared `slotCondition` property, and an
+   * `addSlotCondition(...)` call inside a handler. Derived 2026-08-12 to exactly
+   * {futuremove, healingwish, wish}; `healingwish` carries no residual hook and `add` declines it. */
+  const slotIds = new Set();
+  for (const mv of DEX.moves.all()) {
+    if (!mv.exists || mv.isNonstandard) continue;
+    if (mv.slotCondition) slotIds.add(String(mv.slotCondition).toLowerCase().replace(/[^a-z0-9]/g, ''));
+    let src = '';
+    for (const k of Object.keys(mv)) if (typeof mv[k] === 'function') src += String(mv[k]);
+    if (mv.condition) for (const k of Object.keys(mv.condition)) {
+      if (typeof mv.condition[k] === 'function') src += String(mv.condition[k]);
+    }
+    let m; const re = /addSlotCondition\([^,]+,\s*['"]([A-Za-z]+)['"]/g;
+    while ((m = re.exec(src))) slotIds.add(m[1].toLowerCase());
+  }
+  for (const id of slotIds) {
+    const c = DEX.conditions.get(id);
+    /* subOrder 3 is `resolvePriority`'s default for a SLOT condition, and it is not in TYPE_SUBORDER
+     * because `effectType` reads 'Condition' for these — the distinction lives in how the effect is
+     * attached, which the dex object does not carry. Stated here rather than folded into the map so
+     * the exception is visible instead of looking like the Condition default. */
+    if (!c || !c.exists) continue;
+    const before = rows.length;
+    add('condition', id, c.name || id, c, 'Condition');
+    for (let i = before; i < rows.length; i++) {
+      if (rows[i].subOrderSource.indexOf('default') !== 0) continue;
+      rows[i].subOrder = 3;
+      rows[i].subOrderSource = 'default for a SLOT condition (resolvePriority)';
+    }
+  }
   /* The statuses carry the two biggest residuals in the format and are not reachable through a move's
    * `condition`, so they are asked for by name — the ONE hand-written list here, and it is a list of
    * status ids rather than of behaviours, so it cannot drift into a claim about what they do. */

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-13T01:16:22.700Z",
+  "generated": "2026-08-13T01:40:06.378Z",
   "by": "engine/residual_order.js",
   "format": "gen9championsvgc2026regmb",
   "what": "Every effect in this format carrying a residual handler, with the authority's own onResidualOrder and subOrder. The table ROADMAP #221's restructure consumes.",
@@ -99,6 +99,18 @@
       "subOrderSource": "default for effectType Weather",
       "expiresInWalk": true,
       "duration": 5
+    },
+    {
+      "ns": "condition",
+      "id": "futuremove",
+      "name": "futuremove",
+      "hook": "onResidual",
+      "effectType": "Condition",
+      "order": 3,
+      "subOrder": 3,
+      "subOrderSource": "default for a SLOT condition (resolvePriority)",
+      "expiresInWalk": false,
+      "duration": null
     },
     {
       "ns": "condition",

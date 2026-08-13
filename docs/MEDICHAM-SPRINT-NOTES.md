@@ -21,6 +21,51 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #221 — THE RESIDUAL WALK IS EFFECT-MAJOR. 2026-08-12 (ENGINE).
+
+Full account in `docs/ENGINE.md`. **Census 537 → 541 live / 0 missing**, four probes, 0 hollow,
+0 unarmed, 0 direct-call, 0 threw. `#221` closed in the register, which was the last open row
+asserting a live engine defect (`open_work.js`: 1 → 0).
+
+**WHAT MOVED.** The end-of-turn loop was one pass per BODY over the effects; it is now one pass per
+ORDER GROUP over the bodies, which is `Battle#fieldEvent('Residual')`'s own shape. Groups come from
+`data/residual-order.json` (derived from the format by `engine/residual_order.js`) — **no order number
+is written in the engine.** `residualOrder()` is re-asked per group because Speed Boost is itself a
+step at order 28 and speeds change mid-walk.
+
+**THE KEY IN THE #221 ROW AND IN THE #218 LEDGER ENTRY IS WRONG, AND IS CORRECTED RATHER THAN EDITED.**
+`comparePriority` is `order ASC → priority DESC → SPEED DESC → subOrder ASC`. Speed sits BETWEEN order
+and subOrder; a restructure written from `(residualOrder, residualSubOrder, speed)` would have sorted
+Leftovers against Shed Skin by category when the authority sorts them by who is faster.
+
+**MEASURED, controlled, same command both ways** (200 games, frozen team pool, `planted_divergence_proof_ok`
+true in both):
+
+| | top-tie-first | bottom-tie-first |
+|---|---|---|
+| collapsed to one group — the body-major walk | 92 / 179  51.4% | 77 / 179  43.0% |
+| effect-major | **88 / 179  49.2%** | **73 / 179  40.8%** |
+
+The attributable number is the cause family: the **`ordering` class fell 24 games / 20 causes → 18 / 15**,
+and the `sandstorm-chip <> leftovers-heal` pair that #218 named as unfixed is gone from it. Two other
+classes each gained one game — games that used to stop early now survive and part elsewhere.
+
+**FOUR CHUNKS HAD NO STEP IN THE FILED PLAN**, and an unwrapped chunk runs once per GROUP (Cud Chew
+would decrement sixteen times a turn): Future Sight `futuremove` order 3, Wish 4, Salt Cure 13 — filed
+as sharing Aqua Ring's order 6, eleven orders away — and Cud Chew / Harvest / Pickup at 28. Future
+Sight was **absent from the derived table entirely** because it carries no `move.condition`;
+`residual_order.js` now derives slot conditions from `slotCondition` and `addSlotCondition(...)`,
+printing exactly `{futuremove, healingwish, wish}`.
+
+**THE `onUpdate` BERRIES ARE NOT A RESIDUAL STEP** and that half is a behaviour change, not a
+reordering: they close every group instead of sitting at one fixed point, so a body dropped under half
+by Leech Seed eats the same turn instead of waiting one. Counted by
+`MEDSEEN.residualBerryAteOffOldSlot`, whose "old slot" is DERIVED (the group holding `leftovers`).
+
+**THE DELIBERATE BREAK IS KEPT AND MADE LOUD.** `MEDI_RESIDUAL_COLLAPSE=1` collapses the table to one
+group — which IS the body-major walk — stamps `MEDFAILS.residualCollapsed`, and `test-mechanics.js`
+REFUSES to write the census under it, so a demonstration cannot overwrite the ratchet's artifact.
+
 ## THE END-STATE COUNT IS A SEVERITY LADDER NOW, AND ONE DIVERGED GAME IN ELEVEN ENDS WITH A DIFFERENT SET OF POKEMON ALIVE. 2026-08-12 (MEASURE).
 
 Full account in `docs/MEASURE.md` §000000. Nothing in `medicham2-browser.js` or `tests/test-mechanics.js`

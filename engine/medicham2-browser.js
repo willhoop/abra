@@ -214,6 +214,19 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * from each other. Salt Cure chipping and Aqua Ring healing are one map and two consumers, and a
    * zero on either is a whole family of residual doing nothing. */
   perTurnVolatileChip: 0, perTurnVolatileHeal: 0,
+  /* ROADMAP #221 -- THE EFFECT-MAJOR RESIDUAL WALK, AND A ZERO ON EITHER IS A FAILURE RATHER THAN AN
+   * ABSENCE. `residualGroupsWalked` counts the outer pass -- one per order-group per turn, so any turn
+   * at all makes it non-zero; a zero means the restructured loop is not running and every end-of-turn
+   * effect in this engine is dead. `residualStepsRun` counts the step SLOTS entered (group x body), so
+   * it separates "the loop spins" from "the loop reaches bodies". Neither says an effect FIRED --
+   * that is what the per-mechanic counters beside them are for.
+   *
+   * `residualBerryAte` / `residualBerryAteOffOldSlot` are the receipt for the half of #221 that is a
+   * behaviour change rather than a reordering: the `onUpdate` berries now run at the close of EVERY
+   * group instead of at one fixed point, so a body dropped under half by Leech Seed eats THIS turn.
+   * The second counter is the subset that could not have happened before. */
+  residualGroupsWalked: 0, residualStepsRun: 0,
+  residualBerryAte: 0, residualBerryAteOffOldSlot: 0,
   /* ROADMAP #139 -- a Focus Sash / Sturdy that answered ONE PACKET of a multi-packet click rather
    * than its total. A zero with a Parental Bond body on the field means the split never reached the
    * item and the Sash is still eating a whole two-hit turn. */
@@ -3733,6 +3746,128 @@ function abilityRefusesItemLoss(m,by){
  * SO IT IS ONE FUNCTION AND BOTH LOOPS ASK IT. Two copies of "what order do end-of-turn effects run
  * in" is the FACTS-ARE-GLOBAL breach that produced this, and re-sorting the weather loop in place
  * would have left the same fact written twice with the same chance of drifting again. */
+/* ---- ROADMAP #221 -- THE RESIDUAL IS EFFECT-MAJOR, NOT BODY-MAJOR --------------------------------
+ *
+ * Showdown builds ONE list of residual handlers across both sides and the field, `speedSort`s it once,
+ * and walks it. This engine walked BODY BY BODY: everything that happens to body A, then everything
+ * that happens to body B. Those are different sequences whenever two bodies carry different effects,
+ * which is nearly always -- and no amount of reordering the chunks inside a body-major loop can
+ * express the authority's grouping.
+ *
+ * MEASURED, not asserted (`engine/residual_order.js`, `data/residual-order.json`): of the 78 ordered
+ * pairs among the chunks below, **43 were inverted against the authority -- 55%**. Three that decide
+ * games rather than wording:
+ *
+ *   - Leftovers is order 5 and the burn chip is order 10. This engine healed AFTER the chip, which is
+ *     the difference between a body at low HP living through the turn and fainting.
+ *   - White Herb is order 29, the LAST thing in the walk. This engine ran it second.
+ *   - Speed Boost and Moody are order 28. This engine ran them third and fourth, so a boost landed on
+ *     a body before the chips that might faint it.
+ *
+ * THE KEY IS `order ASC -> priority DESC -> SPEED DESC -> subOrder ASC`, and the SPEED TERM SITS
+ * BETWEEN order AND subOrder. That is why the walk below is (group, then body-by-speed, then step):
+ * within one `order`, the authority separates two effects by the SPEED of the body carrying them
+ * before it ever consults their subOrder. ROADMAP #221's own title had those two the wrong way round
+ * and a restructure written from it would have sorted Leftovers against Shed Skin by category.
+ *
+ * THE ORDER NUMBERS ARE NOT WRITTEN HERE. They are read from data/residual-order.json, which is
+ * derived from the format on every run -- the same reason the ban list is a mechanism and not a list.
+ * This table maps our CHUNK NAMES onto the effect ids the authority orders; the sort is the artifact's.
+ *
+ * BERRIES ARE NOT IN IT, AND THAT IS THE RULE RATHER THAN AN OMISSION. Sitrus and Lum are `onUpdate`,
+ * which Showdown runs after EVERY damage event, not at a fixed residual position. So the pinch check
+ * runs after each damaging group below instead of once at a chosen point -- which is also a fix: a
+ * body dropped under half by Leech Seed used to wait for the next turn to eat its berry.
+ *
+ * FOUR STEPS BELOW ARE NOT IN #221's OWN CHUNK LIST, and they are named here rather than quietly
+ * added because leaving a chunk UNWRAPPED is the one way this restructure can be catastrophically
+ * wrong: an unwrapped chunk runs once per GROUP, so Cud Chew's counter would be decremented sixteen
+ * times a turn and Harvest would roll its chance sixteen times. Each of the four is a block that
+ * already sat inside the body loop:
+ *
+ *   futureHit  the Future Sight payout, `condition:futuremove` order 3. It is NOT reachable through
+ *              `move.condition` -- Future Sight carries none -- so `residual_order.js` did not emit a
+ *              row for it and the first version of this table could not place it. That generator now
+ *              derives slot conditions from `slotCondition` and `addSlotCondition(...)`; see its note.
+ *   wish       the Wish payout, `condition:wish` order 4. Above the terrain heal and Leftovers (5).
+ *   volChip    the DAMAGING half of the perTurnHP volatile map -- Salt Cure, `condition:saltcure`
+ *              order 13. #221's table put BOTH perTurnHP loops on `volHeal`, and they are eleven
+ *              orders apart: Aqua Ring is 6 and heals, Salt Cure is 13 and chips. Sharing one step
+ *              would have healed and chipped in the same slot and put Salt Cure ABOVE the status
+ *              chips, which is the class of error this whole restructure exists to remove.
+ *   berryAbil  Cud Chew / Harvest / Pickup, `ability:harvest` order 28 subOrder 2 -- the same group
+ *              as Speed Boost and Moody, which is why those three blocks already sat together. */
+const RESIDUAL_GROUPS = (() => {
+  /* chunk -> the authority effect whose order it inherits. One id is enough; where a chunk implements
+   * several they share an order by construction (psn/tox/brn are 9,9,10 and run as one step). */
+  const MAP = [
+    { step: 'weather',    id: 'sandstorm',        ns: 'field'     },
+    { step: 'futureHit',  id: 'futuremove',       ns: 'condition' },
+    { step: 'wish',       id: 'wish',             ns: 'condition' },
+    { step: 'terrain',    id: 'grassyterrain',    ns: 'field'     },
+    { step: 'cures',      id: 'shedskin',         ns: 'ability'   },
+    { step: 'leftovers',  id: 'leftovers',        ns: 'item'      },
+    { step: 'volHeal',    id: 'aquaring',         ns: 'condition' },
+    { step: 'seed',       id: 'leechseed',        ns: 'condition' },
+    { step: 'status',     id: 'psn',              ns: 'status'    },
+    { step: 'curse',      id: 'curse',            ns: 'condition' },
+    { step: 'trap',       id: 'partiallytrapped', ns: 'status'    },
+    { step: 'volChip',    id: 'saltcure',         ns: 'condition' },
+    { step: 'boosts',     id: 'speedboost',       ns: 'ability'   },
+    { step: 'moody',      id: 'moody',            ns: 'ability'   },
+    { step: 'berryAbil',  id: 'harvest',          ns: 'ability'   },
+    { step: 'whiteHerb',  id: 'whiteherb',        ns: 'item'      },
+    { step: 'forme',      id: 'zenmode',          ns: 'ability'   },
+  ];
+  let rows = null;
+  try { rows = require('../data/residual-order.json').rows; } catch (e) { rows = null; }
+  const key = (ns, id) => ns + ':' + id;
+  const idx = new Map((rows || []).map(r => [key(r.ns, r.id), r]));
+  const placed = MAP.map(m => {
+    const r = idx.get(key(m.ns, m.id));
+    return { ...m, order: r ? r.order : null, sub: r ? r.subOrder : 0, found: !!r };
+  });
+  /* A STEP THE ARTIFACT CANNOT PLACE IS LOUD, NOT SILENT. An unplaced step would otherwise sort to one
+   * end and look deliberate -- the same shape as a tag nothing reads. */
+  const missing = placed.filter(p => !p.found).map(p => p.step);
+  if (missing.length) MEDFAILS.residualUnplaced = missing.join(',');
+  const groups = new Map();
+  for (const p of placed) {
+    const o = p.order == null ? 1e9 : p.order;
+    if (!groups.has(o)) groups.set(o, []);
+    groups.get(o).push(p);
+  }
+  const _OUT = [...groups.entries()].sort((a, b) => a[0] - b[0])
+    .map(([order, steps]) => ({ order, steps: steps.sort((a, b) => a.sub - b.sub).map(s => s.step) }));
+  /* THE DELIBERATE BREAK, KEPT AND MADE LOUD. Collapsing every step into ONE group reproduces the
+   * body-major walk exactly -- one pass over the bodies with every chunk in source order -- which is
+   * the only honest control for a restructure like this, and the four ROADMAP #221 probes in
+   * tests/test-mechanics.js were each shown red against it before being trusted. It is behind an env
+   * var AND it stamps `MEDFAILS.residualCollapsed`, because an engine switch that silently makes the
+   * engine wrong is precisely the silent default this project keeps being bitten by: any run with it
+   * set carries a non-zero failure counter and cannot be mistaken for a clean one.
+   *
+   * IT IS NOT A FAITHFUL REPLAY OF THE OLD LOOP IN ONE RESPECT, stated because a control that
+   * overstates itself is worse than none: the `onUpdate` berries now close the group, so under a
+   * single group they close the whole walk -- BELOW Leech Seed. The old loop called them in the middle
+   * of the chunk sequence, ABOVE it. So the Sitrus probe's HP agrees between this control and the fix
+   * and only its off-slot counter separates them; against the real pre-#221 engine the HP differed
+   * too (89 held, against 147 eaten). */
+  if (typeof process !== 'undefined' && process.env && process.env.MEDI_RESIDUAL_COLLAPSE === '1') {
+    MEDFAILS.residualCollapsed = 1;
+    return [{ order: 0, steps: _OUT.reduce((a, g) => a.concat(g.steps), []) }];
+  }
+  return _OUT;
+})();
+/* Does this group contain this step? The walk asks per body, so it is a hot path — precomputed. */
+const RESIDUAL_HAS = RESIDUAL_GROUPS.map(g => new Set(g.steps));
+/* WHERE THE `onUpdate` BERRY CHECK USED TO SIT — immediately after Leftovers, which is the `leftovers`
+ * step. Derived rather than typed, because the whole point of the counter beside it is to say how often
+ * a berry is now eaten SOMEWHERE ELSE, and a hard-coded index would go on claiming that after the
+ * artifact moved Leftovers. -1 (no such group) would make every eat count as off-slot, which is the
+ * loud direction rather than the flattering one. */
+const RESIDUAL_OLD_BERRY_GI = RESIDUAL_HAS.findIndex(s => s.has('leftovers'));
+
 function residualOrder(actA,actB,field){
   const list=[...actA,...actB].filter(Boolean);
   for(const x of list)x._resSpe=effSpeed(x,field,actA.indexOf(x)>=0?'A':'B');
@@ -18205,18 +18340,47 @@ function battleTurn(S,rng,actsForA,actsForB){
     /* ROADMAP #218 -- SPEED ORDER, NOT SLOT ORDER. This loop carries the sandstorm chip, the weather
      * heals, the status chips, Leftovers and the berries, and it ran `[...actA, ...actB]` while the
      * clock loop below had been speed-sorted since #115. See residualOrder() for the authority. */
+    /* WIRE 55 -- THE STATUS BERRIES, AND THEY ARE NOT A RESIDUAL STEP AT ALL. Lum and its family are
+     * `onUpdate`, which Showdown runs after EVERY damage event and at the top of every request -- not
+     * at a position in the residual walk. So this runs ONCE, before the walk opens: a body that was
+     * just burned is cured the moment the status landed and must not also take the burn chip. WHICH
+     * status is the artifact's -- the param used to be a bare `{cures:true}` shared by six berries,
+     * five of which cure exactly ONE status, so a consumer reading the boolean would have made a Cheri
+     * Berry cure a Will-O-Wisp. Lum alone carries the explicit string 'any'.
+     * (ROADMAP #81 WIRE 7 -- one implementation, shared with the after-action update.) */
+    for(const m of residualOrder(actA,actB,field)){
+      if(!m||m.fainted||m.curHP<=0)continue;
+      berryCureUpdate(m);
+    }
+    /* ---- ROADMAP #221 -- THE WALK ITSELF, EFFECT-MAJOR ------------------------------------------
+     *
+     * One pass PER GROUP over the bodies, instead of one pass per body over the effects. That is the
+     * authority's shape and it is not expressible any other way: `Battle#fieldEvent('Residual')`
+     * builds ONE handler list across both sides and the field and `speedSort`s it once, so ALL of
+     * order 5 resolves before ANY of order 9 -- every Leftovers on the field heals before any poison
+     * chips, on either side, whatever the speeds. See the table above for the 43-of-78 measurement.
+     *
+     * `residualOrder()` IS RE-ASKED FOR EVERY GROUP, DELIBERATELY. Showdown calls `updateSpeed()`
+     * immediately before the residual and speeds change DURING it -- Speed Boost is itself a step at
+     * order 28. Hoisting this call out of the loop would freeze the order at the top of the walk and
+     * silently reintroduce a stale-speed bug of the same family.
+     *
+     * THE FAINT CHECK AND THE `onUpdate` BERRIES CLOSE EVERY GROUP, not just the last one, because
+     * `faintMessages()` runs after every handler upstream: a body the burn kills at order 10 must
+     * read `fainted` before the Leech Seed step at order 8... and by the same token a body dropped
+     * under half by a chip eats its Sitrus in THAT group rather than next turn. */
+    for(let _gi=0;_gi<RESIDUAL_GROUPS.length;_gi++){
+    const _G=RESIDUAL_HAS[_gi], _Gn=RESIDUAL_GROUPS[_gi].steps.length;
+    MEDSEEN.residualGroupsWalked++;
     for(const m of residualOrder(actA,actB,field)){if(!m||m.fainted||m.curHP<=0)continue;
-      /* WIRE 55 -- THE STATUS BERRIES, FIRST IN THE RESIDUAL ORDER on purpose: Lum and its family
-       * cure the MOMENT the status lands, so a body that was just burned must not also take the burn
-       * chip this turn. WHICH status is the artifact's now -- the param used to be a bare
-       * `{cures:true}` shared by six berries, five of which cure exactly ONE status, so a consumer
-       * reading the boolean would have made a Cheri Berry cure a Will-O-Wisp. Lum alone carries the
-       * explicit string 'any'. */
-      berryCureUpdate(m);   // ROADMAP #81 WIRE 7 -- one implementation, shared with the after-action update
+      MEDSEEN.residualStepsRun+=_Gn;
+      if(_G.has('whiteHerb')){
       /* WIRE 56 -- WHITE HERB. The block that stood here is now `restoreStatsUpdate()`, called from
        * three more places (ROADMAP #81 WIRE 11); this residual call is WIRE 56's own and is unchanged
-       * in effect. */
+       * in effect. ROADMAP #221 moved it from SECOND in the walk to order 29, the LAST group -- the
+       * authority's own placement, and the single largest single-step move in this restructure. */
       restoreStatsUpdate(m);
+      }
       /* WIRE 57 -- SPEED BOOST, 727 sheets. It raises Speed EVERY turn with no action spent, and it
        * compounds -- which is exactly the shape a rollout is blind to, because nothing recomputes a
        * speed order for a boost nobody clicked. WHICH stat comes from the artifact now: the param was
@@ -18245,7 +18409,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * largest single cause behind `active[].boosts.spe`, 99 games of the 1,530-game residue.
        * The suppression is COUNTED rather than silent, because a gate that stopped matching would
        * otherwise look exactly like an ability nobody brought. */
-      {const _be=TAGS.param('ability',m.ability,'boostsEachTurn');
+      if(_G.has('boosts')){const _be=TAGS.param('ability',m.ability,'boostsEachTurn');
        if(_be&&_be.boosts&&m.boosts&&m._newlySwitched)MEDSEEN.perTurnBoostGatedOnEntry++;
        if(_be&&_be.boosts&&m.boosts&&!m._newlySwitched)for(const k in _be.boosts){
          const _s=SD2ENG[k];if(_s&&m.boosts[_s]!=null){const _b0=m.boosts[_s];
@@ -18267,7 +18431,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * Written directly rather than through applyStatDrop, matching the Speed Boost block above --
        * the alternative would route a raise through the drop path and the two would disagree about
        * Contrary the first time a Contrary body carried a per-turn boost. */
-      {const _rb=TAGS.param('ability',m.ability,'randomBoostEachTurn');
+      if(_G.has('moody')){const _rb=TAGS.param('ability',m.ability,'randomBoostEachTurn');
        if(_rb&&_rb.randomStat&&m.boosts){
          const _ST=['at','df','sa','sd','sp'];
          const _pool=(f)=>_ST.filter(f);
@@ -18309,7 +18473,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * flipping for a TERASTALLIZED body (`stopsWhenTerastallized` is in the tag). This engine models
        * no Terastallization at all, so there is no field to test; that is a declared gap, not a
        * check that was forgotten. */
-      {const _fc=TAGS.param('ability',m.ability,'formeCycleResidual');
+      if(_G.has('forme')){const _fc=TAGS.param('ability',m.ability,'formeCycleResidual');
        if(_fc&&Array.isArray(_fc.alternates)&&_fc.alternates.length===2){
          const _keys=_fc.alternates.map(x=>pasteKey(x)||String(x).toLowerCase().replace(/[^a-z0-9]/g,'-'));
          const _at=_keys.indexOf(m.name);
@@ -18373,7 +18537,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * name would have typed a membership list the artifact is supposed to derive AND left the
        * ability half-right, because burn, poison, Toxic and Leech Seed chip in a different block. The
        * gate is asked in all nine places instead. */
-      if(field.weather==='sand'&&!field.wSup&&!m.types.some(t=>t==='Rock'||t==='Ground'||t==='Steel')){
+      if(_G.has('weather')&&field.weather==='sand'&&!field.wSup&&!m.types.some(t=>t==='Rock'||t==='Ground'||t==='Steel')){
         const _wc=TAGS.param('ability',m.ability,'weatherChipImmune');
         const _im=!!(_wc&&Array.isArray(_wc.weathers)&&_wc.weathers.includes('sand'));
         if(!_im&&!refusesIndirect(m)){
@@ -18409,7 +18573,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * THE HEAL IS GATED ON `healBlocked` and the CHIP IS NOT, which is the same asymmetry every other
        * member of both families already has here: Heal Block's `onTryHeal` refuses restored HP and says
        * nothing about damage. */
-      {const _wr=TAGS.param('ability',m.ability,'weatherResidualHP');
+      if(_G.has('weather')){const _wr=TAGS.param('ability',m.ability,'weatherResidualHP');
        if(_wr&&field.weather&&!field.wSup&&!m.fainted&&m.curHP>0){
          const _hn=_wr.heals&&_wr.heals[field.weather];
          const _dn=_wr.hurts&&_wr.hurts[field.weather];
@@ -18452,7 +18616,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * THE USER IS NEVER HIT BY ITS OWN BOOKING (`if (target.fainted || target === data.source)
        * return`), which is reachable here through Ally Switch and a pivot: the record is spent and
        * nothing happens, rather than banked. */
-      {const _sfF=actA.indexOf(m)>=0?sfA:sfB, _siF=actA.indexOf(m)>=0?actA.indexOf(m):actB.indexOf(m);
+      if(_G.has('futureHit')){const _sfF=actA.indexOf(m)>=0?sfA:sfB, _siF=actA.indexOf(m)>=0?actA.indexOf(m):actB.indexOf(m);
        const _scF=_sfF&&_sfF.slot, _rF=_scF&&_siF>=0?_scF[_siF]:null;
        if(_rF&&_rF.due&&_rF.when==='futureHit'){
          delete _scF[_siF];
@@ -18471,7 +18635,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            }
          } else MEDSEEN.delayedHitWasted++;
        }}
-      {const _sf2=actA.indexOf(m)>=0?sfA:sfB, _si2=actA.indexOf(m)>=0?actA.indexOf(m):actB.indexOf(m);
+      if(_G.has('wish')){const _sf2=actA.indexOf(m)>=0?sfA:sfB, _si2=actA.indexOf(m)>=0?actA.indexOf(m):actB.indexOf(m);
        const _sc2=_sf2&&_sf2.slot, _r2=_sc2&&_si2>=0?_sc2[_si2]:null;
        if(_r2&&_r2.due&&_r2.when==='endOfNextTurn'&&!healBlocked(m)){
          const _h0=m.curHP;
@@ -18524,7 +18688,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * THE WEATHER GATE IS `effectiveWeather`, so a suppressed sky is not a sky -- `field.wSup` is
        * the same guard the weather residual above uses. */
-      {const _cr=TAGS.param('ability',m.ability,'curesStatusResidual');
+      if(_G.has('cures')){const _cr=TAGS.param('ability',m.ability,'curesStatusResidual');
        if(_cr&&m.curHP>0&&!m.fainted){
          const _wOK=!Array.isArray(_cr.weathers)||(!field.wSup&&_cr.weathers.includes(field.weather));
          if(_wOK&&(+_cr.chance>=1||rng()<+_cr.chance)){
@@ -18541,7 +18705,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            }
          }
        }}
-      {const _th=terrainPerTurnHP()[terrainId(field.terrain)];
+      if(_G.has('terrain')){const _th=terrainPerTurnHP()[terrainId(field.terrain)];
        if(_th&&_th.effect==='heal'&&_th.per&&!healBlocked(m)){
          if(isGrounded(m)){const _h0=m.curHP;m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_th.per));
            if(TR&&m.curHP>_h0)TR.heal(m,'[from] Grassy Terrain');}
@@ -18582,6 +18746,11 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * HEAL BLOCK STOPS THE PAYMENT AND NOT THE REFUSAL, the same split every other heal in this
        * residual has: `onTryHeal` refuses restored HP and says nothing about damage. */
+      /* ROADMAP #221 -- POISON HEAL RIDES WITH THE CHIPS AND IS NOT A STEP OF ITS OWN. It is an
+       * `onDamage` at priority 1: it does not occupy a residual position, it INTERCEPTS the one the
+       * chip occupies. So the three blocks below share the `status` step and the `_ph`/`_mgi` locals,
+       * and splitting them would be both a wrong order and a broken scope. */
+      if(_G.has('status')){
       const _phl=TAGS.param('ability',m.ability,'healsFromOwnStatus');
       const _ph=!!(_phl&&Array.isArray(_phl.statuses)&&_phl.statuses.includes(m.status));
       if(_ph){
@@ -18598,39 +18767,27 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(m.status==='psn'&&!_mgi){m.curHP-=Math.max(1,Math.floor(m.st.hp/8));if(TR)TR.dmg(m,'[from] psn');}   // regular poison: a flat 1/8
       if(m.status==='tox'){m.toxTurns=(m.toxTurns||0)+1;                        // Toxic: n x 1/16, escalating
         if(!_mgi){m.curHP-=Math.max(1,Math.floor(m.st.hp/16))*Math.min(15,m.toxTurns);if(TR)TR.dmg(m,'[from] psn');}}
+      }
       /* WIRE 29 -- passiveHeal, from the item's own tag instead of a Leftovers name check. The tag
        * carries the fraction (0.0625 = 1/16) and the name check carried the same number typed out, so
        * this is a no-op today and the point is next month: a second passive-heal item joins by
        * EXISTING rather than by someone remembering to add a name here. docs/TAGS.md invariant 3. */
-      {const _ph=TAGS.param('item',m.item,'passiveHeal');
+      if(_G.has('leftovers')){const _ph=TAGS.param('item',m.item,'passiveHeal');
        if(_ph&&_ph.heal&&!healBlocked(m)){const _h0=m.curHP;
          m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*_ph.heal));
          if(TR&&m.curHP>_h0)TR.heal(m,'[from] item: '+m.item);}}
-      /* WIRE 14 -- healsAtThreshold, from the artifact instead of a Sitrus name check. The tag
-       * carries the threshold AND the restore as the handler states them ('1/2' -> '1/4'), so a
-       * future pinch berry joins by existing rather than by someone remembering.
-       * *(This said "Oran restores a FLAT 10 HP ... its param is honestly null and it stays unwired
-       * (0 uses)". True when written, and CLOSED 2026-08-10: `restoresFlat` is derived beside
-       * `restores`, so a flat heal arms the berry too. A documented gap is still a gap — the roster
-       * read Oran DID-NOT-FIRE regardless of how honestly the comment described it.)* */
-      /* Under Heal Block the berry is not eaten AT ALL — it is still there afterwards — so the gate
-       * wraps the whole block rather than only the HP line. */
-      /* WIRE 58 -- UNNERVE, 1,949 sheets. It stops the OTHER SIDE eating a berry at all -- the berry
-       * is not consumed and is still there afterwards, which is why the gate wraps the whole block
-       * rather than only the HP line, exactly as Heal Block's does. The side is found by identity
-       * because this residual loop walks both sides in one pass. */
-      berryPinchUpdate(m,(actA.indexOf(m)>=0?actB:actA));   // ROADMAP #81 WIRE 7 -- one implementation
-      berryPPUpdate(m,(actA.indexOf(m)>=0?actB:actA));      // ROADMAP #144 -- Leppa, on the same clock
       /* ---- ROADMAP #128 -- THE THREE RESIDUAL BERRY ABILITIES ------------------------------------
        *
-       * All three are `onResidualOrder: 28, onResidualSubOrder: 2` in the authority -- the same slot,
-       * which is why they are written together and BELOW the berry updaters above: a Sitrus eaten this
-       * turn is what Harvest gives back and what Cud Chew chews again, so a pass placed above them
-       * would be one turn early on every one of them.
+       * All three are `onResidualOrder: 28, onResidualSubOrder: 2` in the authority -- the same slot
+       * as Speed Boost and Moody, which is the `berryAbil` step. They used to sit BELOW the berry
+       * updaters in the same body pass, "so a Sitrus eaten this turn is what Harvest gives back". That
+       * relation still holds and is now stronger rather than weaker: ROADMAP #221 runs the `onUpdate`
+       * berries at the close of EVERY group, so a berry eaten anywhere in the walk -- not only in the
+       * one slot the old fixed call sat in -- has already been consumed by the time order 28 arrives.
        *
        * THEY WERE ALL BLOCKED ON THE SAME ONE FIELD. `lastItem` appeared zero times in this file, so
        * none of these could exist however they were wired -- see consumeBerry. */
-      if(m.curHP>0){
+      if(_G.has('berryAbil')&&m.curHP>0){
         /* CUD CHEW -- the second helping. The counter is armed at the eat and spent here; the berry's
          * own effect is re-applied by putting it BACK and letting the ordinary updaters eat it again
          * on the next pass, which is exactly what the authority does (`singleEvent('Eat', item...)`)
@@ -18703,14 +18860,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * `healBlocked` GATES IT for the reason every other heal in this residual is gated: Heal Block
        * stops the restore and leaves the volatile in place. */
-      if(m.curHP>0&&m._vol&&!healBlocked(m))for(const [_v,_r] of perTurnHPVolatiles()){
+      if(_G.has('volHeal')&&m.curHP>0&&m._vol&&!healBlocked(m))for(const [_v,_r] of perTurnHPVolatiles()){
         if(!(m._vol[_v]>0)||_r.pt.effect!=='heal'||_r.pt.on!=='holder')continue;
         const _h0=m.curHP;
         m.curHP=Math.min(m.st.hp,m.curHP+Math.max(1,Math.trunc(m.st.hp/perTurnHPDenominator(_r.pt,m))));
         MEDSEEN.perTurnVolatileHeal++;
         if(TR&&m.curHP>_h0)TR.heal(m,'[from] move: '+_r.mv);
       }
-      if(m._trap&&m.curHP>0){
+      if(_G.has('trap')&&m._trap&&m.curHP>0){
         /* WIRE 105 -- the trap DIES WITH ITS TRAPPER. A source that fainted or left the field ends
          * the trap before this tick chips, which is Showdown's own onUpdate rule. A trap whose
          * source is unknown (set by a caller outside the battle loop) keeps the old behaviour. */
@@ -18730,7 +18887,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * gets wrong. Showdown's leechseed onResidual is `const damage = this.damage(...); if (damage)
        * this.heal(damage, ...)` -- the heal is the RETURN of the damage call, so a blocked chip returns
        * false and the seeder gets nothing. Skipping only the victim's subtraction would mint HP. */
-      if(m._seededBy&&m.curHP>0&&!refusesIndirect(m)){
+      if(_G.has('seed')&&m._seededBy&&m.curHP>0&&!refusesIndirect(m)){
         /* Heal what was TAKEN, not the formula amount: the killing tick drains only the HP the
          * victim still had, and handing the seeder more than that would mint HP from nothing. */
         const _d=Math.min(Math.floor(m.st.hp/m._seededBy.per),m.curHP);
@@ -18764,7 +18921,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          SALT CURE CARRIES THE SAME TAG AND IS NOT SET ANYWHERE, which is stated rather than left to
          be discovered: it is a DAMAGING move, so its volatile would have to be applied on the attack
          path, and that is a different site. It stays visibly unwired. */
-      if(m._ptDmg&&m.curHP>0&&!refusesIndirect(m)){   /* ROADMAP #175 -- Curse's chip is a Condition */
+      if(_G.has('curse')&&m._ptDmg&&m.curHP>0&&!refusesIndirect(m)){   /* ROADMAP #175 -- Curse's chip is a Condition */
         m.curHP-=Math.max(1,Math.trunc(m.st.hp/m._ptDmg.per));
         if(TR)TR.dmg(m,'[from] Curse');
         MEDSEEN.perTurnDamageChip++;
@@ -18788,15 +18945,51 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `_ptDmg` and never `_vol.curse`, so the branch above owns it and this one never sees it. If
        * Curse is ever routed through `applyMoveVolatile` the two must be merged, and this sentence is
        * where that is written down. */
-      /* ROADMAP #175 -- Salt Cure and every other chipping volatile is a Condition too. */
-      if(m.curHP>0&&m._vol&&!refusesIndirect(m))for(const [_v,_r] of perTurnHPVolatiles()){
+      /* ROADMAP #175 -- Salt Cure and every other chipping volatile is a Condition too.
+       * ROADMAP #221 -- and it is the `volChip` step, order 13, NOT the `volHeal` step at order 6 that
+       * the sibling loop above carries. One map, two residual positions, because the authority puts
+       * Aqua Ring at 6 and Salt Cure at 13 with Leech Seed, both status chips and Curse in between. */
+      if(_G.has('volChip')&&m.curHP>0&&m._vol&&!refusesIndirect(m))for(const [_v,_r] of perTurnHPVolatiles()){
         if(!(m._vol[_v]>0)||_r.pt.effect!=='damage')continue;
         m.curHP-=Math.max(1,Math.trunc(m.st.hp/perTurnHPDenominator(_r.pt,m)));
         MEDSEEN.perTurnVolatileChip++;
         if(TR)TR.dmg(m,'[from] '+_r.mv);
         if(m.curHP<=0)break;
       }
-      if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
+      /* ---- THE CLOSE OF EVERY GROUP, and it is a close rather than an end-of-walk for two reasons.
+       *
+       * THE FAINT. Showdown runs `faintMessages()` after every handler, so a body the burn kills at
+       * order 10 is already `fainted` when the walk reaches order 12 -- and this loop's own `continue`
+       * at the top reads exactly that flag. Left at the end of the walk it would be a body taking Curse
+       * damage after it died.
+       *
+       * THE `onUpdate` BERRIES. Sitrus and Leppa are NOT residual steps -- `onUpdate` runs after every
+       * damage event upstream, which is what "the instant it drops below half" means. They used to sit
+       * at ONE fixed point in the body pass, so a body dropped under half by Leech Seed (order 8, below
+       * the old call site) waited a full turn to eat. `residualBerryAteOffOldSlot` counts exactly that
+       * case -- a berry eaten in a group other than the one the old fixed call sat in -- so the change
+       * proves it fired instead of being asserted. */
+      if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
+      if(!m.fainted&&m.curHP>0){
+        const _foes=(actA.indexOf(m)>=0?actB:actA), _it0=m.item;
+        /* WIRE 14 -- healsAtThreshold, from the artifact instead of a Sitrus name check. The tag
+         * carries the threshold AND the restore as the handler states them ('1/2' -> '1/4'), so a
+         * future pinch berry joins by existing rather than by someone remembering.
+         * *(This said "Oran restores a FLAT 10 HP ... its param is honestly null and it stays unwired
+         * (0 uses)". True when written, and CLOSED 2026-08-10: `restoresFlat` is derived beside
+         * `restores`, so a flat heal arms the berry too.)*
+         * Under Heal Block the berry is not eaten AT ALL -- it is still there afterwards -- so the
+         * gate wraps the whole block rather than only the HP line.
+         * WIRE 58 -- UNNERVE, 1,949 sheets, stops the OTHER SIDE eating a berry at all, on the same
+         * whole-block rule. The side is found by identity because this walk covers both sides. */
+        berryPinchUpdate(m,_foes);   // ROADMAP #81 WIRE 7 -- one implementation
+        berryPPUpdate(m,_foes);      // ROADMAP #144 -- Leppa, on the same clock
+        if(m.item!==_it0){
+          MEDSEEN.residualBerryAte++;
+          if(_gi!==RESIDUAL_OLD_BERRY_GI)MEDSEEN.residualBerryAteOffOldSlot++;
+        }
+      }
+    }}
     /* WIRE 154 -- A WISH THAT CAME DUE ON AN EMPTY OR DEAD SLOT IS SPENT ANYWAY, and this is the
      * counterpart of ticking the clock outside the body loop rather than inside it. The authority
      * removes the slot condition at the residual whatever is standing there and `onEnd` simply
@@ -20053,6 +20246,10 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
    * both decide Choice Scarf is x1.5" defect CLAUDE.md names. board.js still has its own float
    * arithmetic and is not this division's file to change -- filed, with the exposure measured. */
   md4096,ch4096,mdChain,CH_ONE,CH_EXACT,
+  /* ROADMAP #221 -- THE RESIDUAL WALK'S OWN TABLE, exported so a probe can assert the GROUPING rather
+   * than re-derive it. A probe that rebuilt the table from data/residual-order.json would agree with a
+   * copy of the rule and prove nothing (LESSONS §4); this is the array the loop actually walks. */
+  RESIDUAL_GROUPS,
   /* The swallowed-failure counters. Zero is a CLAIM, not a pass — read it, do not assume it. */
   fails:MEDFAILS,
   /* Capabilities that FIRED. A zero here is the finding — see MEDSEEN's own comment. */

@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-12T23:56:51.590Z",
+  "generated": "2026-08-13T01:52:50.147Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 537,
-  "live": 537,
+  "probed": 541,
+  "live": 541,
   "missing": 0,
-  "armed": 537,
+  "armed": 541,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2796,7 +2796,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 21.8% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5277,6 +5277,46 @@
       "label": "the sandstorm chip runs fastest-first, and Trick Room reverses it",
       "live": true,
       "detail": "four bodies in sand at Speed p2a 205, p1a 101, p1b 80 (p2b is Garchomp, GROUND, and takes no chip in either arm: false). Chip order with no Trick Room p2a -> p1a -> p1b (fastest first); under TRICK ROOM p1b -> p1a -> p2a (exactly reversed). An engine sorting by raw speed and ignoring the field passes the first arm and fails the second; one still in slot order fails both",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "passiveHeal",
+      "label": "Leftovers heals at order 5 and the burn chips at order 10 — a full-HP burned holder still loses the tick",
+      "live": true,
+      "detail": "Snorlax at full HP (235) holding Leftovers, one passing turn. NOT burned 235 (the heal has nothing to do); BURNED 221 = 235 - 14. Under a body-major walk the chip runs first and Leftovers restores the identical 1/16 after it, so the burned arm reads 235 and the status is free. The two orders differ ONLY at the top and bottom of the bar, which is why no damage differential can see this. The walk itself is counted on the same turn: 11 groups entered (of 11) and 68 step slots (of 68 = every step on all four living bodies) — a zero on either is the loop not running, not a mechanic being absent",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perTurnHP",
+      "label": "Leech Seed pays the seeder at order 8, before the order-10 burn that would kill it",
+      "live": true,
+      "detail": "A burned Whimsicott (Speed 177) on exactly its own burn tick (8 HP), with a Snorlax (Speed 50) seeded or not. UNSEEDED it faints: hp 0, fainted true. SEEDED the order-8 drain (29) reaches it before its own order-10 chip: hp 29, fainted false. The seeder is the FASTER body, so a body-major walk reaches its burn first and the drain then finds a corpse — the cross-body grouping is the only thing that saves it",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "restoresStats",
+      "label": "White Herb runs LAST (order 29) — it clears the drop Moody applies at order 28, in the same turn",
+      "live": true,
+      "detail": "A Moody Snorlax, one passing turn. NO ITEM: Moody draws +2 and -1 and both stand — negative stages [\"sd\"]. WHITE HERB: the -1 is gone and the +2 is untouched — negative [], positive [\"sa\"]. The herb is order 29 and Moody is 28, so it clears a drop applied one step earlier IN THE SAME RESIDUAL. Run second, as this engine ran it, the herb finds nothing and the -1 survives the turn",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "healsAtThreshold",
+      "label": "a Sitrus eats in the group that dropped it — the order-8 seed, not next turn",
+      "live": true,
+      "detail": "Snorlax on 118, one point above its Sitrus threshold (117), holding the berry. UNSEEDED nothing happens: hp 118, item \"sitrusberry\", off-slot eats 0. SEEDED, the order-8 drain of 29 takes it under half and the berry is eaten IN THAT GROUP: hp 147 = 118 - 29 + 58, item \"\", off-slot eats 1. The old fixed call sat above the seed, so the berry waited a full turn and the body spent it under half",
       "hollow": false,
       "armed": true,
       "directCall": false

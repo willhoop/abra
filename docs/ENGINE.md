@@ -36,8 +36,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  537/537 probed mechanics live, 0 missing   (census 2026-08-12 19:56)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-12 20:50)
+  541/541 probed mechanics live, 0 missing   (census 2026-08-12 21:52)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-12 21:53)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,15 +49,95 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 8ef2e3c94062 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 96874cefd9b4 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is cf7eba0ebc7b now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 262/280 probed, 18 unprobed
 ```
 
-_stamped 2026-08-12 21:08_
+_stamped 2026-08-12 21:59_
 
 <!-- /GENERATED -->
+
+## ROADMAP #221 — THE RESIDUAL IS EFFECT-MAJOR. THE BRIEF'S OWN CHUNK LIST WAS SHORT BY FOUR. 2026-08-12.
+
+**Census 537 live / 0 missing -> 541 live / 0 missing.** Four new probes, each shown RED against a
+deliberate break before the engine was trusted. 0 hollow, 0 unarmed, 0 direct-call, 0 threw.
+
+### WHAT CHANGED
+
+Showdown builds ONE residual handler list across both sides and the field, `speedSort`s it once and
+walks it. This engine walked BODY BY BODY — everything that happens to body A, then everything to
+body B — and no reordering of the chunks inside a body-major loop can express that grouping. The loop
+is now one pass per ORDER GROUP over the bodies, the groups read out of `data/residual-order.json`,
+which `engine/residual_order.js` derives from the format. **No order number is written in the engine.**
+
+`residualOrder()` is re-asked per group deliberately: Showdown calls `updateSpeed()` immediately
+before the residual and Speed Boost is itself a step at order 28, so a hoisted sort would be stale.
+
+**THE KEY IS `order ASC -> priority DESC -> SPEED DESC -> subOrder ASC`, and the #218 entry lower down
+this file states it as `(residualOrder, residualSubOrder, speed)` — that is WRONG and is corrected
+here rather than edited there.** Speed sits BETWEEN order and subOrder: within one order, two effects
+are separated by the SPEED of the body carrying them before subOrder is consulted.
+
+### THE MEASUREMENT — CONTROLLED, BOTH ARMS, SAME COMMAND
+
+200-game differential over the frozen team pool, the only difference being the collapsed table:
+
+| | top-tie-first | bottom-tie-first |
+|---|---|---|
+| BEFORE — walk collapsed to one group (body-major) | 92 / 179  **51.4%** | 77 / 179  **43.0%** |
+| AFTER — effect-major | **88 / 179  49.2%** | **73 / 179  40.8%** |
+
+`planted_divergence_proof_ok` true in both. The attributable number is the CAUSE FAMILY, not the
+rate: the **`ordering` class fell from 24 games / 20 distinct causes to 18 / 15**, and the
+`sandstorm-chip <> leftovers-heal` pair named as "not fixed" in the #218 entry is gone from it. Two
+other classes each gained one game — games that used to stop early on an ordering divergence now
+survive further and part elsewhere, which is the honest read and not a regression.
+
+### THE BRIEF'S CHUNK LIST WAS SHORT BY FOUR, AND AN UNWRAPPED CHUNK IS THE CATASTROPHIC CASE
+
+An unwrapped chunk runs once per GROUP: Cud Chew's counter would decrement sixteen times a turn and
+Harvest would roll its chance sixteen times. Four blocks already inside the loop had no step:
+
+- **Future Sight**, `condition:futuremove` order 3. It was NOT in the derived artifact at all —
+  Future Sight carries no `move.condition`, so `residual_order.js` never saw it. That generator now
+  derives slot conditions from `slotCondition` and `addSlotCondition(...)`; the derivation prints
+  exactly `{futuremove, healingwish, wish}` and `healingwish` carries no residual hook.
+- **Wish**, `condition:wish` order 4.
+- **Salt Cure**, `condition:saltcure` order 13. The brief put BOTH `perTurnHP` loops on `volHeal`;
+  they are eleven orders apart (Aqua Ring 6 heals, Salt Cure 13 chips) and sharing a step would have
+  put Salt Cure above the status chips.
+- **Cud Chew / Harvest / Pickup**, order 28 subOrder 2, beside Speed Boost and Moody.
+
+### THE `onUpdate` BERRIES ARE NOT A RESIDUAL STEP, AND THAT HALF IS A BEHAVIOUR CHANGE
+
+Sitrus and Lum are `onUpdate` — after EVERY damage event, not at a fixed position. `berryCureUpdate`
+now runs once before the walk opens; the pinch and PP berries run at the close of EVERY group. A body
+dropped under half by Leech Seed (order 8, below the old fixed call) used to hold an uneaten berry for
+a whole turn. Counted, not asserted: `MEDSEEN.residualBerryAteOffOldSlot`, and the old slot is
+DERIVED (the group holding `leftovers`) rather than typed.
+
+### THE FOUR PROBES, AND THE CONTROL THEY WERE SHOWN RED AGAINST
+
+`MEDI_RESIDUAL_COLLAPSE=1` collapses every step into one group, which IS the body-major walk. It
+stamps `MEDFAILS.residualCollapsed`, and `tests/test-mechanics.js` REFUSES to write the census under
+it — a demonstration must not be able to overwrite the ratchet's artifact.
+
+| probe | fix | collapsed control |
+|---|---|---|
+| `item/passiveHeal` — Leftovers order 5, burn order 10 | 221 | **235 — the burn is free** |
+| `move/perTurnHP` — the seed pays the seeder before its own burn | alive on 29 | **fainted** |
+| `item/restoresStats` — White Herb order 29, below Moody's 28 | the -1 cleared | **-1 survives** |
+| `item/healsAtThreshold` — the Sitrus eats in the group that dropped it | eaten, off-slot 1 | **off-slot 0** |
+
+**The last control is weaker than the defect it stands for and the probe says so.** The berry close
+sits at the bottom of the single collapsed group, i.e. BELOW the seed, so it eats to 147 there too and
+only the counter separates them; the real pre-#221 loop called it ABOVE the seed and held at 89.
+
+`MEDSEEN.residualGroupsWalked` and `residualStepsRun` are asserted inside the Leftovers probe as
+exact per-turn totals (11 groups, 68 step slots on four living bodies), so a zero reads as the loop
+not running rather than as a mechanic being absent.
 
 ## A, B, C AND GRAVITY — FOUR WRONG OUTCOMES, AND ONE NARRATION FIX RETRACTED THE DAY IT LANDED. 2026-08-12.
 
@@ -275,8 +355,10 @@ fired. **It draws no die and cannot need to**: the aimed foe is dead, so at most
   at all. So this is a `tag_dex` derivation plus a consumer, not a line in the engine, and `aurawheel`
   is its twin.
 - **Not started:** Clangorous Soul's boost-before-cost ordering; Gravity's x1.67 accuracy and the
-  derived `ACCMOD` sweep; the residual-order restructure; the spread-move faint path; Frisk's second
-  side; the volatile-expiry rule; Yawn's `-fail`; residual damage attribution; the Illusion exclusion.
+  derived `ACCMOD` sweep; the spread-move faint path; Frisk's second side; the volatile-expiry rule;
+  Yawn's `-fail`; residual damage attribution; the Illusion exclusion.
+  *(The residual-order restructure left this list on 2026-08-12 — ROADMAP #221, four probes, the
+  entry at the top of this file.)*
 
 ## WILL READ FIVE BATTLES AND SAID "ITS MOSTLY ORDERING OF EVENTS". FOUR DEFECTS, AND THE TWO CHEAPEST WERE NOT ORDERING AT ALL. 2026-08-12.
 

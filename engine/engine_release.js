@@ -105,6 +105,20 @@ const SOURCES = [
    * set_priors/smogon_priors decide what an unknown set is filled with, quality decides the team
    * pool, showdown_path decides which Showdown checkout loads. Adding them changes every FUTURE
    * release id; existing releases carry their own manifests and are untouched. */
+  /* THE RESIDUAL ORDER TABLE, added 2026-08-12 (ROADMAP #221). `medicham2-browser.js` reads
+   * `data/residual-order.json` to build RESIDUAL_GROUPS — the sequence its end-of-turn walk runs in —
+   * so the table is not documentation about the engine, it IS part of the engine. A release without it
+   * verifies, opens, and then throws `Cannot find module` the first time a battle reaches a residual.
+   *
+   * THE GUARD FOUND THIS, NOT A CRASHING RUN, WHICH IS THE FIRST TIME. mc_key (2026-08-05),
+   * move-effects (2026-08-05) and pp.js (2026-08-10) were each discovered by a measurement blowing up
+   * mid-flight; this one was refused at the cut, minutes after the dependency was introduced and
+   * before a single game was played against it. The escape check is doing exactly what it was built
+   * for, and it is worth saying so somewhere the next person will read.
+   *
+   * It is DERIVED — regenerate with `node engine/residual_order.js --write` — so freezing it does not
+   * freeze a hand-typed order. It freezes WHICH derivation the run used, which is the point. */
+  'data/residual-order.json',
   'engine/mc_key.js',
   'engine/lookup.js',
   'engine/set_priors.js',

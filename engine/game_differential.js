@@ -5046,6 +5046,23 @@ if (WRITE) {
                games: a.results.length, diverged: dv.length,
                threw: a.results.filter(r => r.err).length,
                median_turns: tt.length ? tt[Math.floor(tt.length / 2)] : 0,
+               /* WHY EACH GAME STOPPED, WHICH THE ARTIFACT HAS NEVER CARRIED — WILL, 2026-08-12.
+                *
+                * He put two hypotheses up: that games only reach the cap because the driver spams
+                * Protect, and that in the TOP arm nothing can end a battle because every sub-100 move
+                * misses and no secondary fires. Both are testable and neither was, because `endReason`
+                * was computed per game and then dropped at aggregation — so "median 12 turns" was the
+                * only evidence available and it cannot tell a stalemate from a cap.
+                *
+                * It matters beyond curiosity: a swarm that mostly hits the cap is measuring the first
+                * twelve turns of a battle rather than a battle, and the severity ladder's top rung
+                * (DIFFERENT WINNER) reads zero for exactly that reason. This is the number that says
+                * whether that zero is a finding or an artefact. */
+               end_reasons: (() => {
+                 const m = new Map();
+                 for (const r of a.results) m.set(r.endReason || 'unrecorded', (m.get(r.endReason || 'unrecorded') || 0) + 1);
+                 return Object.fromEntries([...m.entries()].sort((x, y) => y[1] - x[1]));
+               })(),
                /* `null` when the run was not asked for `--state`, which is a different claim from 0. */
                turn1_boards_identical: STATE ? t1ok.length : null,
                turn1_boards_reached: STATE ? t1.length : null,

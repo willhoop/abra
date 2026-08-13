@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-13T01:12:29.338Z",
+  "generated": "2026-08-13T01:58:13.203Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
     "register_rows": 197,
-    "open": 106,
-    "closed": 91,
-    "open_asserting_breakage": 1,
+    "open": 105,
+    "closed": 92,
+    "open_asserting_breakage": 0,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -680,15 +680,6 @@
       "full": "a data-only commit can orphan every figure in a living doc, and the hook that watches for that skips data-only commits — 2026-08-11. `tests/test-docs-current.js` calls a figure traceable when some artifact contains it. `docs/medicham-sprint-notes.md` recorded the first rate run — 16,575 trials, 30.42%, the confidence intervals — and every one was traceable because `data/million-run.json` held it. re-running the same instrument overwrote the artifact with new numbers and orphaned nineteen figures at a stroke. nothing was typed and nothing became false; the doc still describes what was measured, and the artifact that proved it no longer exists. isolated rather than assumed: at head with none of the evening's doc edits applied the count already read 47 against a baseline of 28, so only one of the twenty came from the pass being committed. the reason it went unseen is the hole: `.githooks/pre-commit` skips data-only commits, so the run that rewrote the artifact was exactly the commit the gate did not inspect. baseline raised 28 -> 48 with the diff shown (two lines, the count and the timestamp, nothing else laundered). the structural weakness is real and is not fixed by this row: the check cannot tell 'a figure nobody measured' from 'a figure whose instrument has since been re-run', and it will fire again on every re-run. the candidate repair is to make a re-run stamp the figures it supersedes — a doc figure would then cite a run rather than a value, which is the same lesson as the frozen release and is a bigger job than a baseline bump. recorded now because the alternative is that the next person raises the number again and the ratchet quietly becomes decoration"
     },
     {
-      "n": 221,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "RESIDUALS ARE RUN PER BODY AND INTERLEAVED; SHOWDOWN RUNS ONE HANDLER LIST — 2026-08-11, NAMED AND DELIBERATELY NOT STAR",
-      "full": "residuals are run per body and interleaved; showdown runs one handler list — 2026-08-11, named and deliberately not started. surfaced by the #220 fix rather than predicted. showdown sorts a single handler list by `(residualorder, residualsuborder, speed)` — sandstorm is `onfieldresidualorder: 1`, leftovers is `onresidualorder: 5 / suborder 4` — so it chips every body, then heals every body. this engine runs one loop per body and interleaves the two. 17 games in the current rollup. not a branch and not a sort: it is a restructure of every end-of-turn effect at once, and it could not be gated inside the pass that found it. recorded now because the alternative is that it is rediscovered as six unrelated causes next time"
-    },
-    {
       "n": 226,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
@@ -973,7 +964,7 @@
     {
       "artifact": "data/interaction-matrix.json",
       "generated": "2026-08-11T22:00:06.336Z",
-      "age_days": 1.1
+      "age_days": 1.2
     }
   ]
 }

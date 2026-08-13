@@ -17524,6 +17524,187 @@ probe('move', 'weatherSetter', 'the sandstorm chip runs fastest-first, and Trick
                  + 'arm and fails the second; one still in slot order fails both' };
 });
 
+/* ================================================================================================
+ * ROADMAP #221 — THE RESIDUAL IS EFFECT-MAJOR, NOT BODY-MAJOR. FOUR OUTCOMES, NOT A TABLE.
+ *
+ * #218 (directly above) fixed WHICH BODY goes first. This is the other axis and the larger one: the
+ * authority builds ONE handler list across both sides and the field, `speedSort`s it once and walks
+ * it, so ALL of order 5 resolves before ANY of order 9. This engine walked body by body — everything
+ * that happens to body A, then everything to body B — and no reordering of the chunks inside a
+ * body-major loop can produce the authority's grouping. Measured against the derived table
+ * (`data/residual-order.json`): 43 of the 78 ordered pairs among our chunks were inverted, 55%.
+ *
+ * NONE OF THESE PROBES READS THE TABLE, AND THAT IS DELIBERATE. Asserting that RESIDUAL_GROUPS is
+ * sorted would agree with a copy of the rule and prove nothing (LESSONS §4) — worse, it would stay
+ * green if the walk stopped consulting the table at all. Each of the four below is an HP, a faint or
+ * a stat that comes out DIFFERENT under the two groupings, and each was shown red against a
+ * deliberately collapsed table (one group holding every step, which is exactly the old body-major
+ * walk) before it was trusted.
+ *
+ * WHAT THE COLLAPSED TABLE PRINTS, per probe: Leftovers 235 instead of 221; the seeder FAINTED
+ * instead of alive on 29; Moody's -1 surviving instead of cleared; the Sitrus uneaten on 89 instead
+ * of eaten to 147. Four different mechanisms, one cause.
+ */
+
+/* THE HEADLINE CASE, AND IT IS THE ONE #221 WAS FILED FOR. Leftovers is order 5 and the burn chip is
+ * order 10. A burned body at FULL HP therefore ends the turn one tick DOWN: the heal arrives first,
+ * finds nothing to restore, and the chip lands on a full bar. Body-major ran the chip first and the
+ * heal second, so the same body ended the turn at MAX — a burn that cost literally nothing, every
+ * turn, on every Leftovers holder in the format (9,071 uses).
+ *
+ * THE ARMS VARY THE BURN, NOT THE ITEM, and that is not a cosmetic choice: with the item varied both
+ * arms read 221 here, which is the claim but reads as two agreeing arms and is flagged hollow. Varying
+ * the burn keeps the discriminating assertion (`hp === max - chip` WITH Leftovers held) and gives the
+ * control a genuinely different number. */
+probe('item', 'passiveHeal', 'Leftovers heals at order 5 and the burn chips at order 10 — a full-HP burned holder still loses the tick', () => {
+  const walk = { g: 0, s: 0 };
+  const run = (brn) => {
+    const { me, ally, f1, f2, S } = board('snorlax', 'clefable', 'milotic', 'garchomp');
+    me.item = 'leftovers'; me.curHP = me.st.hp;
+    if (brn) me.status = 'brn';
+    const g0 = M.seen.residualGroupsWalked, s0 = M.seen.residualStepsRun;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    walk.g = M.seen.residualGroupsWalked - g0; walk.s = M.seen.residualStepsRun - s0;
+    return me.curHP;
+  };
+  const control = run(false), test = run(true);
+  const max = 235, chip = Math.floor(max / 16);
+  /* THE WALK'S OWN RECEIPT, on the same turn. A capability that cannot prove it ran is assumed broken
+   * (CLAUDE.md), and both of these read ZERO if the group loop is not entered — which would look
+   * exactly like an engine with no end-of-turn effects at all. One turn must visit EVERY group once,
+   * and must enter every step slot on all four living bodies; an early `break` in the group loop, or a
+   * body silently skipped, moves one of the two. */
+  const nG = M.RESIDUAL_GROUPS.length;
+  const nS = M.RESIDUAL_GROUPS.reduce((a, g) => a + g.steps.length, 0) * 4;
+  return { works: control === max && test === max - chip
+                  && walk.g === nG && walk.s === nS && nG > 1,
+           arms: { control, test },
+           detail: 'Snorlax at full HP (' + max + ') holding Leftovers, one passing turn. NOT burned '
+                 + control + ' (the heal has nothing to do); BURNED ' + test + ' = ' + max + ' - '
+                 + chip + '. Under a body-major walk the chip runs first and Leftovers restores the '
+                 + 'identical 1/16 after it, so the burned arm reads ' + max + ' and the status is '
+                 + 'free. The two orders differ ONLY at the top and bottom of the bar, which is why '
+                 + 'no damage differential can see this. The walk itself is counted on the same turn: '
+                 + walk.g + ' groups entered (of ' + nG + ') and ' + walk.s + ' step slots (of ' + nS
+                 + ' = every step on all four living bodies) — a zero on either is the loop not '
+                 + 'running, not a mechanic being absent' };
+});
+
+/* THE GROUPING ACROSS TWO BODIES, which is the half a reordering of our own chunks cannot reach.
+ * Leech Seed is order 8 and the burn is order 10, so EVERY seed on the field pays out before ANY
+ * burn chips — including a seed on the SLOW foe paying the FAST seeder that is about to burn to
+ * death. Body-major walks the fast seeder first, kills it with its own burn, and then the seed drains
+ * a victim whose seeder is already a corpse: `_s.fainted` refuses the heal and the HP is lost.
+ *
+ * THE SPEEDS ARE ASSERTED because the whole fixture rests on them — Whimsicott 177 against Snorlax
+ * 50. If the victim were the faster body, a body-major walk would pay the seeder first by accident
+ * and this probe would go green on an engine that has none of the fix. */
+probe('move', 'perTurnHP', 'Leech Seed pays the seeder at order 8, before the order-10 burn that would kill it', () => {
+  const run = (seed) => {
+    const { me, ally, f1, f2, S } = board('whimsicott', 'clefable', 'snorlax', 'garchomp');
+    M.battleTurn(S, rng5,
+      new Map([[me, seed ? M.playerAction(me, 'leechseed', f1, S.field) : { kind: 'pass' }],
+               [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const chip = Math.max(1, Math.floor(me.st.hp / 16));
+    me.status = 'brn'; me.curHP = chip;                     /* exactly one burn tick from death */
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    return { hp: me.curHP, dead: !!me.fainted, seeded: !!f1._seededBy,
+             spe: [me.st.sp, f1.st.sp], chip, drain: Math.floor(f1.st.hp / 8) };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.dead === true && control.hp === 0 && control.seeded === false
+                  && test.dead === false && test.hp === test.drain && test.seeded === true
+                  && test.spe[0] > test.spe[1],
+           arms: { control: [control.hp, control.dead], test: [test.hp, test.dead] },
+           detail: 'A burned Whimsicott (Speed ' + test.spe[0] + ') on exactly its own burn tick ('
+                 + test.chip + ' HP), with a Snorlax (Speed ' + test.spe[1] + ') seeded or not. '
+                 + 'UNSEEDED it faints: hp ' + control.hp + ', fainted ' + control.dead + '. SEEDED '
+                 + 'the order-8 drain (' + test.drain + ') reaches it before its own order-10 chip: '
+                 + 'hp ' + test.hp + ', fainted ' + test.dead + '. The seeder is the FASTER body, so '
+                 + 'a body-major walk reaches its burn first and the drain then finds a corpse — the '
+                 + 'cross-body grouping is the only thing that saves it' };
+});
+
+/* WHITE HERB IS THE LAST THING IN THE WALK — order 29, below Moody at 28. This engine ran it SECOND,
+ * so a stat Moody lowered at the bottom of the same residual survived the turn and the herb was spent
+ * on nothing (or, more often, not spent at all).
+ *
+ * MOODY IS THE ONLY RESIDUAL STEP IN THIS FORMAT THAT LOWERS A STAT, which is what makes this pair
+ * the test: any other staging would need the drop to come from a click, and a click is not in the
+ * residual at all. `rng5` fixes which stats it draws, so the arms differ by the item alone. */
+probe('item', 'restoresStats', 'White Herb runs LAST (order 29) — it clears the drop Moody applies at order 28, in the same turn', () => {
+  const run = (item) => {
+    const { me, ally, f1, f2, S } = board('snorlax', 'clefable', 'milotic', 'garchomp');
+    me.ability = 'moody'; me.item = item;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    const neg = Object.keys(me.boosts).filter(k => me.boosts[k] < 0);
+    const pos = Object.keys(me.boosts).filter(k => me.boosts[k] > 0);
+    return { neg, pos, boosts: JSON.parse(JSON.stringify(me.boosts)) };
+  };
+  const control = run(''), test = run('whiteherb');
+  return { works: control.neg.length === 1 && control.pos.length === 1
+                  && test.neg.length === 0 && test.pos.length === 1,
+           arms: { control: control.neg, test: test.neg },
+           detail: 'A Moody Snorlax, one passing turn. NO ITEM: Moody draws +2 and -1 and both stand — '
+                 + 'negative stages ' + JSON.stringify(control.neg) + '. WHITE HERB: the -1 is gone and '
+                 + 'the +2 is untouched — negative ' + JSON.stringify(test.neg) + ', positive '
+                 + JSON.stringify(test.pos) + '. The herb is order 29 and Moody is 28, so it clears a '
+                 + 'drop applied one step earlier IN THE SAME RESIDUAL. Run second, as this engine ran '
+                 + 'it, the herb finds nothing and the -1 survives the turn' };
+});
+
+/* THE `onUpdate` BERRIES ARE NOT A RESIDUAL STEP AT ALL, and treating them as one was a real cost
+ * rather than bookkeeping. Sitrus fires on `onUpdate`, which the authority runs after EVERY damage
+ * event; this engine called it at ONE fixed point in the body pass, immediately after Leftovers. So a
+ * body dropped under half by anything BELOW that point — Leech Seed at order 8, the status chips at
+ * 9-10, Curse at 12, Salt Cure at 13 — sat under half for a whole turn holding an uneaten berry, and
+ * Sitrus is 16,346 uses.
+ *
+ * THE COUNTER IS ASSERTED ALONGSIDE THE HP, because the HP alone cannot say WHEN it was eaten and a
+ * fixed call moved one step lower would satisfy it. `residualBerryAteOffOldSlot` counts only an eat
+ * in a group other than the one the old fixed call sat in, and it is read as a DELTA across this
+ * probe's own turn.
+ *
+ * AND ON THIS ONE PROBE THE COUNTER IS THE WHOLE OF THE RED, which is said rather than glossed. The
+ * collapsed-table control puts the berry close at the bottom of the single group — BELOW the seed —
+ * so it eats to 147 exactly as the fix does and only `offSlot` separates them (1 against 0). Against
+ * the real pre-#221 loop, whose fixed call sat ABOVE the seed, the HP differed too: 89 with the berry
+ * still in hand. The control is weaker than the defect it stands for, and a probe that claimed
+ * otherwise would be the comfortable answer. */
+probe('item', 'healsAtThreshold', 'a Sitrus eats in the group that dropped it — the order-8 seed, not next turn', () => {
+  const run = (seed) => {
+    const { me, ally, f1, f2, S } = board('snorlax', 'clefable', 'whimsicott', 'garchomp');
+    me.item = 'sitrusberry';
+    M.battleTurn(S, rng5,
+      new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, seed ? M.playerAction(f1, 'leechseed', me, S.field) : { kind: 'pass' }],
+               [f2, { kind: 'pass' }]]));
+    const half = Math.floor(me.st.hp / 2), drain = Math.floor(me.st.hp / 8);
+    me.curHP = half + 1;                                   /* one point above the Sitrus threshold */
+    const before = M.seen.residualBerryAteOffOldSlot;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    return { hp: me.curHP, item: me.item, half, drain,
+             restore: Math.floor(me.st.hp / 4),
+             offSlot: M.seen.residualBerryAteOffOldSlot - before, seeded: !!me._seededBy };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.hp === control.half + 1 && control.item === 'sitrusberry'
+                  && control.offSlot === 0 && control.seeded === false
+                  && test.seeded === true && test.item === ''
+                  && test.hp === control.half + 1 - test.drain + test.restore
+                  && test.offSlot === 1,
+           arms: { control: [control.hp, control.item], test: [test.hp, test.item] },
+           detail: 'Snorlax on ' + (control.half + 1) + ', one point above its Sitrus threshold ('
+                 + control.half + '), holding the berry. UNSEEDED nothing happens: hp ' + control.hp
+                 + ', item ' + JSON.stringify(control.item) + ', off-slot eats ' + control.offSlot
+                 + '. SEEDED, the order-8 drain of ' + test.drain + ' takes it under half and the '
+                 + 'berry is eaten IN THAT GROUP: hp ' + test.hp + ' = ' + (control.half + 1) + ' - '
+                 + test.drain + ' + ' + test.restore + ', item ' + JSON.stringify(test.item)
+                 + ', off-slot eats ' + test.offSlot + '. The old fixed call sat above the seed, so '
+                 + 'the berry waited a full turn and the body spent it under half' };
+});
+
 /* FIVE DICE, NOT ONE — ROADMAP #222, AND THE INSTRUMENT HAD CONFESSED IT IN WRITING.
  *
  * `game_differential.js`'s own PINS block: *"accuracy, the crit, every secondary, the stall counter
@@ -17930,6 +18111,17 @@ console.log(`  LIVE probes whose detail carries >=2 numbers and they are ALL equ
   + '   (a heuristic upper bound on "both arms agree", NOT an assertion — see the comment)');
 for (const r of flat) console.log('    ?  ' + r.kind + ' `' + r.tag + '` — ' + r.detail);
 
+/* A DELIBERATELY BROKEN ENGINE MAY NOT WRITE THE CENSUS. ROADMAP #221 added a switch that collapses
+ * the residual walk back to body-major so its four probes can be shown red; a run under that switch
+ * scores 537/4 and would otherwise overwrite the artifact the ratchet reads, turning a demonstration
+ * into a regression nobody made. The engine stamps `MEDFAILS.residualCollapsed` for exactly this — a
+ * break that cannot be mistaken for a clean run. Any future switch of the same kind belongs here. */
+if (M.fails.residualCollapsed) {
+  console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '
+    + 'deliberate break (MEDFAILS.residualCollapsed). The counts above are a demonstration, not a '
+    + 'census.');
+  process.exit(0);
+}
 fs.writeFileSync(D('data', 'mechanics-census.json'), JSON.stringify({
   generated: new Date().toISOString(), by: 'tests/test-mechanics.js',
   design: 'Behavioural probes. Each clears its own control explicitly, because the first version '
