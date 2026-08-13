@@ -6673,3 +6673,47 @@ first attempt appended it to the end of a 2,980-character row and nothing happen
 
 Rows asserting breakage 4 to 1. Open rows 110 to 106. The gate still reads CLOSED at 2 of 7 and now names the
 single row it fails on: #221, the residual handler-list restructure, genuinely open and deliberately not started.
+
+### HEAD REQUIRED A FILE HEAD DID NOT CONTAIN, FOR ONE COMMIT
+
+`engine/game_differential.js` in `6585cf9` `require`s `./end_state_severity.js`, and that module was
+untracked. **A fresh clone of HEAD could not run the differential at all.** My commit staged by
+explicit path — chosen deliberately, so that a subagent's in-flight files would not be swept into a
+commit describing something else — and a path list cannot see a new file it was never told about.
+The narrower rule caught the writes and missed the dependency.
+
+Landed with both gates green: `tests/test-end-state-severity.js` ALL GREEN, `tests/test-end-state.js`
+ALL GREEN. Neither had ever been in a commit.
+
+**`data/game-differential-endstate-turn30.json` is committed and must not be quoted**: it self-declares
+`planted_state_proof_ok: false`, which is the artifact refusing to certify itself rather than a reader
+having to know. `-turn40.json` is the pre-fix ENDED-APART receipt and is a record, not a measurement.
+
+### THE DAMAGE DIFFERENTIAL HAD BEEN OVERWRITTEN BY A WEAKER RUN, AND A DOC GATE IS WHAT NOTICED
+
+The damage differential's artifact held `compared: 150` where the documented claim rests on 6,000. Nothing failed:
+(The path is deliberately not cited on this line: attributing a SUPERSEDED reading to a live artifact is
+exactly what rule 3b(b) exists to catch, and it caught this sentence.)
+0 of 150 disagree reads exactly like 0 of 6,000 unless something asks the denominator. The docs-currency
+gate did — the doc's 6,000 stopped matching any artifact — so the fix was to RE-RUN at 6,000 rather than
+edit the claim down. **Re-run: agreed 6000, disagreed 0.** An artifact silently downgraded is a ratchet
+running backwards, and it is invisible to every gate that reads only the rate.
+
+### THE ACCURACY CONFORMANCE CHECK HAD NO THIRD NAMESPACE, SO A CORRECT ROW READ AS INVENTED
+
+The walk was `['abilities','items']` and its own charter says *"every ability and item"*. Gravity's
+handler lives on `move.condition` (`dex.conditions.all` does not exist), so the engine's correct ACCMOD
+row was reported as a row that fires with no handler behind it. Derived over every legal move's
+condition rather than named, because **one row comes back** and a family of one does not look truncated.
+
+**The DIRECTION rule does not cross the namespace.** "`onModifyAccuracy` means the handler sits on the
+TARGET" is true because an ability or item has a HOLDER. A field condition has none: Gravity's handler
+takes `(accuracy)` alone and fires for every move either side clicks. `field`, not `def`.
+
+### A CLAIM I PUBLISHED TONIGHT, RETRACTED
+
+I wrote that the sweep named Lock-On and Minimize as still missing. **Wrong twice.** Neither is a
+multiplier — Lock-On carries `onSourceAccuracy`, Minimize `onAccuracy`, a second hook family returning a
+replacement accuracy or a never-miss — and neither is missing: 9 and 13 sites in the simulator, both
+tagged, Lock-On at 0 corpus uses. The real gap is that the conformance check knows only
+`*ModifyAccuracy`, so those two are invisible to it. Corrected in CHANGELOG 5.8.0 in place.

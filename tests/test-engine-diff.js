@@ -858,6 +858,38 @@ console.log('\n  wrote data/' + OUT_NAME
         never: /return\s+true\s*;/.test(src), past: e.isNonstandard === 'Past' });
     }
   }
+  /* THE THIRD NAMESPACE. This walk read abilities and items — the block's own charter above still
+   * says "every ability and item" — and a FIELD effect can modify accuracy too. Gravity's handler
+   * lives on `move.condition`, not on a standalone entry (`dex.conditions.all` does not exist), so
+   * nothing here could ever see it: the engine's correct ACCMOD row was reported as INVENTED, a row
+   * that fires with no handler behind it. The checker was wrong about the engine, which is this
+   * project's most common failure and the reason the row is derived here instead of listed.
+   *
+   * ONE ROW COMES BACK, and a family of one is exactly the shape CLAUDE.md warns does not look
+   * truncated — so it is derived over every legal move's condition rather than named. If a later
+   * regulation gives another field effect an accuracy handler, this finds it without an edit. */
+  for (const mv of dex.moves.all()) {
+    if (!mv.exists || mv.isNonstandard || !mv.condition) continue;
+    const hook = Object.keys(HOOKS).find(h => mv.condition[h]);
+    if (!hook) continue;
+    const src = String(mv.condition[hook]);
+    const m = src.match(/chainModify\(\[?\s*([\d.]+)/);
+    const mult = m ? (+m[1] > 100 ? +(+m[1] / 4096).toFixed(2) : +m[1]) : null;
+    const setTo = (src.match(/return\s+(\d+)\s*;/) || [])[1];
+    /* THE DIRECTION RULE DOES NOT CROSS THIS NAMESPACE, AND SAYING SO IS THE POINT OF THE ROW.
+     *
+     * "onModifyAccuracy means the handler sits on the TARGET" is true because an ability or an item
+     * has a HOLDER, and the hook name says which end of the move that holder is. A field condition
+     * has no holder. Gravity's handler takes `(accuracy)` alone — no target, no source, no move —
+     * and fires for every move either side clicks. Reading `def` off the hook name here would assert
+     * that Gravity sharpens moves aimed at one particular body, which is not what it does.
+     *
+     * So the side is `field`, and the engine already says `field`. This clause failing was the
+     * checker generalising a rule past the namespace it was derived in. */
+    derived.set('condition:' + mv.id, {
+      side: 'field', hook, mult, setTo: setTo == null ? null : +setTo,
+      never: /return\s+true\s*;/.test(src), past: mv.isNonstandard === 'Past' });
+  }
   const T = MEDI.ACCMOD || {};
   const bad = [];
   for (const [k, d] of derived) {

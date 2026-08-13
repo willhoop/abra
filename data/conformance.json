@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-11T11:13:28.469Z",
+ "generated": "2026-08-13T00:22:10.804Z",
  "by": "engine/conformance.js",
- "files": 375,
+ "files": 384,
  "findings": [
   {
    "std": "S12",
@@ -44,6 +44,15 @@
   {
    "std": "S12",
    "file": "engine/corpus_shift.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:protect"
+   ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/divergence_shape.js",
    "what": "names 1 Pokemon thing(s) in code: move:protect",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
@@ -112,6 +121,12 @@
    "detail": [
     "move:detect"
    ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/fixture_preflight.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
   {
    "std": "convention",
@@ -246,9 +261,12 @@
   {
    "std": "S12",
    "file": "engine/million_run.js",
-   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "what": "names 4 Pokemon thing(s) in code: move:detect, move:protect, ability:levitate, item:sitrusberry",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
+    "ability:levitate",
+    "item:sitrusberry",
+    "move:detect",
     "move:protect"
    ]
   },
@@ -871,6 +889,15 @@
   },
   {
    "std": "S13",
+   "file": "data/scenarios-from-will.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named in the CODE of engine/million_run.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
+   ]
+  },
+  {
+   "std": "S13",
    "file": "data/sheet-channel-value.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -902,6 +929,12 @@
   {
    "std": "S13",
    "file": "data/value-net.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/whole-game-baseline.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
   },

@@ -215,6 +215,8 @@
     "format-audit.json",
     "forme-assert.json",
     "game-diff.json",
+    "game-differential-endstate-turn19.json",
+    "game-differential-endstate-turn30.json",
     "game-differential-endstate-turn40.json",
     "game-differential-endstate-v2.json",
     "game-differential-endstate.json",
@@ -667,5 +669,5 @@
       ]
     }
   ],
-  "generated": "2026-08-13T00:10:50.702Z"
+  "generated": "2026-08-13T00:24:33.678Z"
 }

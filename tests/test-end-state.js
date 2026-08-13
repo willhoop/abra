@@ -41,6 +41,27 @@ if (!process.env.SHOWDOWN_PATH) {
  * exactly as tests/test-state-differential.js arms `--state`. Asserted immediately after the require,
  * because a run with the flag unread would pass every assertion below on an empty measurement. */
 process.argv.push('--end-state');
+/* ---- THE FIXTURE IS PINNED, AND NOT PINNING IT MADE THIS FILE RED FOR A DAY -------------------
+ *
+ * `docs/ENGINE.md` recorded PART 3 failing with *"the planted item difference did not reach the end
+ * state — verdict SAME-END-STATE"* and attributed it to staleness in the pass that wrote this file,
+ * after restoring both `medicham2-browser.js` and `game_differential.js` to their HEAD bytes and
+ * reproducing it. That control was sound and it held the wrong variable still.
+ *
+ * MEASURED 2026-08-12, same frozen release `6155acc0fb26`, one flag apart:
+ *   live team pool    control DIFFERENT-END-STATE, planted SAME-END-STATE  -> 2 FAILURES
+ *   --team-store data/team-pool-frozen                                     -> ALL GREEN
+ *
+ * `engine/diff_swarm.js` reads the pool LIVE from a file OPS appends to, so `pairsFor` returns a
+ * different first pair as the store grows and PART 3 plants its item into a different battle every
+ * day. The plant itself is legitimately undoable — an item can be knocked off or eaten — so a fixture
+ * that drifts will eventually land on a game that undoes it, and the failure then reads as a broken
+ * comparator. It is the same hazard `--team-store` was built for after one instrument reported 1,556,
+ * 1,213 and 983 games on three runs.
+ *
+ * A CALLER MAY STILL OVERRIDE IT. Passing `--team-store` on the command line wins, so this pins the
+ * default rather than removing the knob. */
+if (!process.argv.includes('--team-store')) process.argv.push('--team-store', 'data/team-pool-frozen');
 const G = require(D('engine', 'game_differential.js'));
 const SHAPE = require(D('engine', 'divergence_shape.js'));
 

@@ -28,7 +28,13 @@ silently rewritten; what changed and why is stated.
   wide. Into one Kingambit: base 33 resisted, Paldea-Combat 288 — four times.
 - **Gravity's accuracy multiplier was absent because `ACCMOD` had no namespace for field effects.**
   The tag artifact carried the value all along and nothing read it. Hypnosis reaches 100 and cannot
-  miss. The derived sweep also names Lock-On and Minimize as still missing.
+  miss. RETRACTED IN THE SAME PASS: this entry first said the sweep also named Lock-On and Minimize as
+  still missing. **Both halves were wrong.** Neither is an accuracy MULTIPLIER — Lock-On carries
+  `onSourceAccuracy` and Minimize `onAccuracy`, a second hook family that returns a replacement
+  accuracy or a never-miss rather than a factor — and neither is missing: the simulator has 9 and 13
+  sites, both are tagged, and Lock-On has 0 corpus uses. The real finding underneath is that the
+  ACCMOD conformance check knows only the `*ModifyAccuracy` family, so those two carriers are
+  invisible to it.
 - **Effects bind a SLOT, not a body.** 56 wrong-body hits to zero; 36 of them had been confirmed
   landing on an orphan object nobody reads again, so the effect silently did nothing and the live
   body's HP never moved — invisible to every board comparison in the project.
@@ -103,6 +109,9 @@ than pruned from the log or waved through by raising a ratchet twice in one day.
   Shed Skin 17,432, 33.27%; Healer 19,620, 50.02%; Harvest 19,620, 50.18%.
 - **Rate run, self-play arm:** 30,052 scored major-status trials, of which 1,391 carried no damage line.
 - **Pre-correction z on the targetBoosts family:** −3.107 against a same-family control of −0.584.
+- **Damage differential, overwritten by a 150-comparison run before being restored:** data/engine-diff.json\n  read compared: 150, agreed: 150, disagreed: 0 where the documented claim rests on 6,000. Re-run at
+  6,000: agreed 6000, disagreed 0. A weaker run reads identically to a strong one unless something asks
+  the denominator.
 - **Protocol-trace theoretical denominator before 93 ability rows left the file:** 9376.
 
 ---

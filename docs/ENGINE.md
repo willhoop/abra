@@ -55,7 +55,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 262/280 probed, 18 unprobed
 ```
 
-_stamped 2026-08-12 20:10_
+_stamped 2026-08-12 20:20_
 
 <!-- /GENERATED -->
 
