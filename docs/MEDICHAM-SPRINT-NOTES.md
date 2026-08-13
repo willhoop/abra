@@ -7392,3 +7392,44 @@ Class spread of the 60: 14 `showdown stopped emitting while medicham2 continued`
 9 `ordering`, 8 `extra event emitted`, 6 `switch: a different body`, 4 `unrelated event mismatch`,
 5 field mismatches. **The top class only exists because of tonight's truncation fix** — before it, those
 14 games counted as agreement.
+
+### KING'S SHIELD, THE TOXIC BYPASS, AND THE -immune EMISSION — THREE ROWS CLOSED
+
+Census **552 → 556 live, 0 missing**. Damage differential agreed 6000, disagreed 0.
+
+**#238 KING'S SHIELD.** `Battle#checkMoveBypassesProtect(move, attacker, defender, blockStatus = true)`
+— and **the argument count is the entire split**. Protect, Detect, Spiky Shield and Baneful Bunker pass
+three arguments and take the default `true`; King's Shield passes `false`. Fourteen call sites here held
+the identical `t.protect && !TAGS.has(...,'ignoresProtect')` pair, modelling `flags.protect` and nothing
+else. All fourteen now read one `shieldRefuses()` off a derived `shieldsUser.blocksStatus` — membership
+printed before wiring: **5 members, exactly one `false`**.
+
+**#236 TOXIC.** Landed above the stage arithmetic AND above the OHKO branch, because the authority
+writes `accuracy = true` BELOW `if (move.ohko)` and overwrites it, while our #230 OHKO branch RETURNS —
+so a clause underneath could never run and the precedence would silently invert. No move is both today;
+it is the authority's order rather than a coincidence.
+
+**#239, AND IT IS THE ONE I HAD DIAGNOSED WRONG.** `Pokemon#setStatus` reserves `-fail` for a body that
+ALREADY CARRIES the status and answers an immunity with `-immune`. Our emitter wrote `-fail` for both,
+and its own comment asserted the opposite. The attribution is read off the refusing ability's own
+handler — **Magma Armor is why**: it refuses through `onImmunity`, carries no tag row, and is announced
+bare, so composing `"[from] ability: " + id` produces a line the authority never writes.
+
+**FOUR THINGS I TOLD WILL THAT WERE WRONG:**
+
+| I said | measured |
+|---|---|
+| Toxic has 1,209 corpus uses | **1,216** |
+| 20 of 27 legal Poison types learn Toxic | **all 27** — the 20 was the non-mega count |
+| the poison immunity check must PRECEDE the accuracy roll | **it does not, and should not.** `hitStepAccuracy` is step 4, `setStatus` is step 7. A NON-Poison Toxic user into Scizor misses 13/100 and prints `-immune` the other 87 |
+| the Toxic→Scizor card was an ordering defect | it was #236 — the card's user was Toxapex, a Poison type, so it never rolled |
+
+**Corrosion needed no work** — already derived and probed under #175 as
+`nameImplementedBySim.ignoresStatusImmunityFor = ['tox','psn']`. Salazzle and Glimmora each land Toxic
+on Scizor 100/100 in both engines, so the never-miss branch and the immunity do not fight.
+
+**RED ON ARRIVAL, NOT FIXED, NOT FILED**: `tests/test-no-silent-failure.js` exits 1 — **79 new silent
+catch blocks since the 2026-08-06 baseline**, across ~25 files, spread thinly (3 in `mega_census.js`, 3
+in `medicham2-browser.js`, 3 in `game_differential.js`, 3 in `million_run.js`, 2 each in four more).
+The agent that found it correctly refused to re-baseline, which would launder a week of other divisions'
+work into its own pass. It is named here with its count rather than carried as a status.

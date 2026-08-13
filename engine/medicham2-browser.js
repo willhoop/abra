@@ -924,8 +924,32 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * click would be the once-per-side shape, which is the wrong mechanic. `abilityBoostNoTarget` is
    * the declared failure (`if (!targets.length) return false`) and is the ability test doing its
    * job rather than an error. */
-  abilityBoostLifted: 0, abilityBoostNoTarget: 0 };
+  abilityBoostLifted: 0, abilityBoostNoTarget: 0,
+  /* ROADMAP #238 -- a Status move walked through a shield because that shield's `onTryHit` passes
+   * `blockStatus = false` to `checkMoveBypassesProtect`. In this format that is King's Shield and
+   * nothing else, so this counter is also the only evidence the Aegislash branch ever runs: it read
+   * ZERO before the change by construction, because the engine had one shield behaviour. */
+  shieldLetStatusThrough: 0,
+  /* ROADMAP #236 -- the accuracy roll was skipped because the STEP LIST exempts this move for a user
+   * of this type. One member in this format: a Poison-type's Toxic. A zero on a run that staged one
+   * means the tag stopped resolving, because the branch has no other way to be reached. */
+  neverMissFromUserType: 0,
+  /* ROADMAP #239 -- a direct status move was refused by a TYPE or an ABILITY immunity and was
+   * announced `|-immune|` rather than `|-fail|`. Zero on a run containing a Toxic into a Steel body
+   * means the reason is not reaching the emitter. */
+  statusRefusedImmune: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* ROADMAP #238 -- a shield is up, a Status move is aimed at its holder, and `shieldsUser` carries
+   * no readable `blocksStatus` for the move that raised it. The move is REFUSED (the pre-change
+   * behaviour) rather than being guessed through, and the refusal is counted so the guess is not
+   * silent. Non-zero means either a shield reached the board without `_shieldGate` recording it or
+   * tag_dex stopped parsing the handler's argument list. Must stay ZERO. */
+  shieldBlocksStatusUnknown: 0, shieldBlocksStatusUnknownFirst: '',
+  /* ROADMAP #239 -- `applyStatus` returned false and named no clause, so the emitter cannot tell an
+   * immunity (`-immune`) from an already-statused body (`-fail`) and falls back to the old `-fail`.
+   * The three refusals ABOVE `canTakeStatus` -- an ally's veil, Uproar and a side buff -- emit their
+   * own lines and are filtered out before this is reached, so a non-zero here is a NEW path. */
+  statusRefusalUnlabelled: 0,
   /* ROADMAP #234 -- a partial trap whose SOURCE MOVE is unknown, so the chip line falls back to the
    * old literal `[from] partiallytrapped`. Showdown reads the move off the volatile's own
    * sourceEffect (sim/battle.ts:2141), so a trap laid by any path that forgets to record it prints a
@@ -2951,6 +2975,59 @@ function sideGuardRefuses(guard, moveId, ctx){
     if(r){ MEDSEEN.sideGuardBlocked++; return gid; }
   }
   return null;
+}
+
+/* ROADMAP #238 -- KING'S SHIELD DOES NOT STOP A STATUS MOVE, AND THIS ENGINE HAD ONE SHIELD.
+ *
+ * Fourteen call sites read the identical pair `t.protect && !TAGS.has('move', a.mv, 'ignoresProtect')`
+ * -- one fact, written out fourteen times, which is the shape CLAUDE.md's FEATURES-ARE-PER-MODEL /
+ * FACTS-ARE-GLOBAL rule exists to stop. They agreed with each other and all fourteen were wrong for
+ * the same reason: the pair models `move.flags['protect']` (that is exactly what `ignoresProtect` is
+ * derived from) and NOTHING models `blockStatus`.
+ *
+ * THE AUTHORITY, sim/battle.ts:1300, whole signature:
+ *
+ *     checkMoveBypassesProtect(move, attacker, defender, blockStatus = true) {
+ *       if ((move.category !== 'Status' || blockStatus) && move.flags['protect'] &&
+ *           this.runEvent('HitProtect', attacker, defender, move)) return false;   // <- BLOCKED
+ *
+ * Every shield's `condition.onTryHit` is `if (this.checkMoveBypassesProtect(...)) return;`, and the
+ * ARGUMENT COUNT is the split. Protect, Detect, Spiky Shield and Baneful Bunker pass three arguments
+ * and take the default `true`; King's Shield passes `false` (data/moves.ts:9933). So a Status move
+ * carrying `flags.protect` -- Encore, Toxic, Will-O-Wisp, Taunt, Leech Seed -- is REFUSED by four of
+ * the five and goes STRAIGHT THROUGH King's Shield.
+ *
+ * MEASURED ON THE OFFICIAL SIMULATOR before anything here changed, Clefable clicking Encore into a
+ * shielded Aegislash on a Champions doubles board (both learnset-legal, TeamValidator#checkCanLearn):
+ *     King's Shield   |move|p2a: Aegislash|King's Shield  ...  |-start|p2a: Aegislash|Encore
+ *     Protect         |move|p2a: Aegislash|Protect        ...  |-activate|p2a: Aegislash|move: Protect
+ * and this engine printed `|-activate|...|move: Protect` under BOTH, plus Spiky Shield and Baneful
+ * Bunker. Aegislash is the only body in the format that learns King's Shield, so the whole mechanic
+ * lives on one species and was invisible to anything that did not stage it deliberately.
+ *
+ * WHY THE DAMAGE PATH IS NOT CHANGED. The block at the top of the hit loop stays a bare
+ * `tg.protect && !_thruProtect && !_pierceP`: a damaging move is never `category === 'Status'`, so
+ * `blockStatus` cannot alter its answer, and that site also owns the Unseen Fist / Piercing Drill
+ * quarter which has no meaning for a status move. One question, asked where it can differ.
+ *
+ * READ OFF THE ARTIFACT, NOT OFF A NAME. `shieldsUser.blocksStatus` is parsed by tag_dex from the
+ * argument list of the move's own handler; membership was printed before this was wired -- 5 members,
+ * exactly one `false`. WHICH shield is up comes off `_protectMove`, which `_shieldGate` records.
+ * A shield whose param cannot be read is COUNTED and treated as blocking, i.e. as the pre-change
+ * behaviour, so a silent default is impossible: `shieldBlocksStatusUnknown` must stay zero. */
+function shieldRefuses(tgt, moveId){
+  if(!tgt || !tgt.protect || !moveId) return false;
+  if(TAGS.has('move', moveId, 'ignoresProtect')) return false;   // no flags.protect -- upstream clause
+  if(!TAGS.has('move', moveId, 'statusCategory')) return true;   // a damaging move: blockStatus is moot
+  const sh = tgt._protectMove ? TAGS.param('move', tgt._protectMove, 'shieldsUser') : null;
+  if(!sh || typeof sh.blocksStatus !== 'boolean'){
+    MEDFAILS.shieldBlocksStatusUnknown++;
+    if(!MEDFAILS.shieldBlocksStatusUnknownFirst)
+      MEDFAILS.shieldBlocksStatusUnknownFirst = String(tgt._protectMove || '(no _protectMove)');
+    return true;
+  }
+  if(!sh.blocksStatus){ MEDSEEN.shieldLetStatusThrough++; return false; }
+  return true;
 }
 
 /* WIRE 149 -- THE CHOOSER CAN CLICK A SIDE GUARD, AND WHICH ONE IS DERIVED FROM THE SAME PARAM THE
@@ -5099,6 +5176,46 @@ function hitChance(att,def,id,field,ctx){
    * attacker and names one defender, so `guaranteedAgainst(def,att)` would be a different, invented
    * mechanic and is deliberately not asked. */
   if(guaranteedAgainst(att,def)){MEDSEEN.guaranteedHit++;return Infinity;}
+  /* ROADMAP #236 -- A POISON-TYPE'S TOXIC CANNOT MISS, AND THE FACT IS NOT ON THE MOVE.
+   *
+   * `dex.moves.get('toxic').accuracy` is 90 and that is correct -- the exemption lives in the STEP
+   * LIST. sim/battle-actions.ts `hitStepAccuracy`, in the SAME condition as `move.alwaysHit`:
+   *
+   *     if (move.alwaysHit || (move.id === 'toxic' && this.battle.gen >= 8 && pokemon.hasType('Poison'))
+   *         || (move.target === 'self' && move.category === 'Status' && !target.isSemiInvulnerable()))
+   *       accuracy = true;   // bypasses ohko accuracy modifiers
+   *     else
+   *       accuracy = this.battle.runEvent('Accuracy', target, pokemon, move, accuracy);
+   *
+   * so nothing downstream can put a roll back: Sand Veil, Bright Powder, an evasion stage, Gravity
+   * and Wonder Skin all sit in the `else` or above it and are DISCARDED by the assignment. This
+   * engine had no such branch -- a staged Poison-type Toxic emitted `|-miss|` where the authority's
+   * landed -- on 1,216 corpus uses, and EVERY ONE of the format's 27 legal Poison-type species
+   * learns it (derived with TeamValidator#checkCanLearn over the legal species list; 20 of those 27
+   * are base formes and 7 are megas).
+   *
+   * WHY IT SITS HERE AND NOT LOWER, WHICH IS THE WHOLE PLACEMENT QUESTION:
+   *   ABOVE THE STAGE ARITHMETIC, because the authority computes the stages and then throws the
+   *     result away. Below them the number would be right and the CODE would be claiming an evasion
+   *     stage participates, which is the next reader's bug.
+   *   ABOVE THE OHKO BRANCH, because `accuracy = true` is written BELOW `if (move.ohko)` in the
+   *     authority and OVERWRITES it -- the comment on that very line says "bypasses ohko accuracy
+   *     modifiers". Our OHKO branch (ROADMAP #230) RETURNS, so a clause placed under it could never
+   *     run for an OHKO move and the precedence would be silently inverted. No move is both today,
+   *     so this is unobservable and it is still the authority's order rather than a coincidence.
+   *   BESIDE NO GUARD AND LOCK-ON, because those are the same kind of fact -- a guarantee that is
+   *     decided before any modifier exists -- and this file's rule is one to-hit authority.
+   *
+   * THE TYPE IS ASKED OF THE LIVE BODY. `att.types` is the same array the OHKO gate reads, so a
+   * Soaked Toxapex loses the guarantee exactly as `pokemon.hasType('Poison')` would stop returning
+   * true for it. Reading a species list instead would have frozen the answer at team build. */
+  {
+    const _nm=TAGS.param('move',id,'neverMissesFromUserType');
+    if(_nm&&_nm.userType&&att&&att.types&&
+       att.types.some(x=>String(x).toLowerCase()===String(_nm.userType).toLowerCase())){
+      MEDSEEN.neverMissFromUserType++; return Infinity;
+    }
+  }
   if(raw===true)return Infinity;
   let acc=+raw;
   if(!(acc>0))return Infinity;
@@ -8696,9 +8813,14 @@ function pranksterBlocked(attacker,target,moveId){
  * would have been the wrong body. The ABILITY refusals below are deliberately NOT bypassed: the
  * authority's clause guards `runStatusImmunity`, which is the TYPE chart, and an Immunity body still
  * refuses a Corrosion Toxic. */
-function canTakeStatus(t,st,ignoreTypeImmunity,src){
-  if(!t||t.fainted||t.curHP<=0) return false;
-  if(t.status) return false;                                  // one major status at a time
+/* ROADMAP #239 -- `why` IS AN OPTIONAL OUT-PARAMETER AND IT CHANGES NO ANSWER. It records WHICH
+ * clause refused, because the authority writes a DIFFERENT PROTOCOL LINE for each and this engine
+ * wrote `|-fail|` for all of them. It is fifth and optional so that `board.js`, which reaches this
+ * through `root.canTakeStatus`, and the eleven internal callers that do not care are untouched. */
+function canTakeStatus(t,st,ignoreTypeImmunity,src,why){
+  const _no=(reason,ability)=>{ if(why){why.reason=reason; why.ability=ability||null;} return false; };
+  if(!t||t.fainted||t.curHP<=0) return _no('fainted');
+  if(t.status) return _no('hasstatus');                       // one major status at a time
   const ab=(t.ability||'').replace(/[^a-z0-9]/g,'');
   /* WIRE 115 -- SHIELD DUST USED TO BE REFUSED HERE AND THAT WAS THE WRONG SCOPE, in the direction
    * that makes the ability far too strong. `canTakeStatus` is the gate for EVERY status this engine
@@ -8713,9 +8835,9 @@ function canTakeStatus(t,st,ignoreTypeImmunity,src){
    * Dust / Covert Cloak block Poison Touch's effect"). Covert Cloak is banned in this format, so
    * Shield Dust is the live carrier of every one of those. */
   const byType=STATUS_IMMUNE_TYPE[st]||[];
-  if(!ignoreTypeImmunity&&(t.types||[]).some(ty=>byType.includes(ty))) return false;
-  if(STATUS_IMMUNE_ABIL_ANY.includes(ab)) return false;        // WIRE 114 -- refuses every status
-  if((STATUS_IMMUNE_ABIL[st]||[]).includes(ab)) return false;
+  if(!ignoreTypeImmunity&&(t.types||[]).some(ty=>byType.includes(ty))) return _no('type');
+  if(STATUS_IMMUNE_ABIL_ANY.includes(ab)) return _no('ability',ab);   // WIRE 114 -- refuses every status
+  if((STATUS_IMMUNE_ABIL[st]||[]).includes(ab)) return _no('ability',ab);
   /* ROADMAP #213 -- LEAF GUARD, THE WEATHER-GATED MEMBER, AND THE ENRICHMENT THE BLOCK ABOVE ASKED
    * FOR. The name lists cannot express "only while the sun is up", which is why Leaf Guard is in none
    * of them and why the roster read it INERT: a burn landed on a Meganium in sun exactly as it does
@@ -8750,7 +8872,7 @@ function canTakeStatus(t,st,ignoreTypeImmunity,src){
         * damage — one implementation, both callers, which is why the attacker is threaded in rather
         * than the weather being re-derived here. */
        const _w=src?effWeatherOf(_f,src,t):((_f.wSup||suppressesWeather(t))?'':_f.weather);
-       if(_w&&_si.inWeather.some(x=>weatherId(x)===_w||x===_w)){MEDSEEN.statusRefusedByWeather++;return false;}
+       if(_w&&_si.inWeather.some(x=>weatherId(x)===_w||x===_w)){MEDSEEN.statusRefusedByWeather++;return _no('ability',ab);}
      }
    }}
   return true;
@@ -9359,7 +9481,10 @@ function allyRefusesVolatile(t,vol){
  * A CALL THAT PASSES NO `eff` GETS THE BARE LINE, which is the authority's own default and not a
  * silent fallback -- most of the thirteen call sites here (Yawn, Toxic Spikes, Synchronize's reflect,
  * Beak Blast's burn) are cases where Showdown genuinely writes nothing after the status. */
-function applyStatus(t,st,src,eff){
+/* ROADMAP #239 -- `why` is the same optional out-object `canTakeStatus` fills, forwarded so a caller
+ * that has to ANNOUNCE the refusal can ask which clause did it. Every existing call passes four
+ * arguments and is unaffected. */
+function applyStatus(t,st,src,eff,why){
   /* WIRE 157 -- ABOVE `canTakeStatus`, WHICH IS THE TARGET'S OWN REFUSAL. This one belongs to the
    * SIDE, and it is asked first for the same reason Uproar's is: a status refused by a body standing
    * next to you never reaches your own immunity table at all. */
@@ -9392,7 +9517,7 @@ function applyStatus(t,st,src,eff){
   {const _nis=src?TAGS.param('ability',src.ability,'nameImplementedBySim'):null;
    if(_nis&&Array.isArray(_nis.ignoresStatusImmunityFor)&&_nis.ignoresStatusImmunityFor.indexOf(st)>=0){
      _ignTypeImm=true;MEDSEEN.statusImmunityIgnoredByAbility++;}}
-  if(!canTakeStatus(t,st,_ignTypeImm,src))return false;t.status=st;
+  if(!canTakeStatus(t,st,_ignTypeImm,src,why))return false;t.status=st;
   if(TR){const _a=ATTR.status(st,eff);TR.sta(t,st,_a.from,_a.of);}
   if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;
   /* ROADMAP #175 -- SYNCHRONIZE, and it is `onAfterSetStatus` so it belongs at the BOTTOM of this
@@ -13537,7 +13662,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * TEARFULL LOOK reaches this same branch (statChange + ignoresProtect) and has been blocked
            * by a Protect it goes straight through since the branch was written. Named here rather than
            * left inside a diff, and it is visible as its own row in this wire's blast-radius sweep. */
-          if(_t.protect&&!TAGS.has('move',a.mv,'ignoresProtect')){if(TR)TR.act(_t,'move: Protect');continue;}
+          if(shieldRefuses(_t,a.mv)){if(TR)TR.act(_t,'move: Protect');continue;}
           if(subBlocks(m,_t,a.mv)){if(TR)TR.act(_t,'move: Substitute','[damage]');continue;}   // WIRE 130 -- the doll takes the status move
           /* GOOD AS GOLD REFUSES A STATUS MOVE OUTRIGHT. Gholdengo was taking Charm for -2, which
            * makes it a different Pokemon to the one people build around. The tag is derived from the
@@ -13763,7 +13888,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         let t=bounceOff(m,a.target,a.mv);
         t=reaimToSlot(t,it,actA,actB,a.mv);
         if(!t||t.fainted||t===m){mvFail(m);continue;}
-        if(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect')){if(TR)TR.act(t,'move: Protect');continue;}
+        if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
         if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;}
         if(subBlocks(m,t,a.mv)){if(TR)TR.act(t,'move: Substitute','[block]');continue;}
@@ -13841,7 +13966,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         let t=bounceOff(m,a.target,a.mv);
         t=reaimToSlot(t,it,actA,actB,a.mv);
         if(!t||t.fainted||t===m){mvFail(m);continue;}
-        if(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect')){if(TR)TR.act(t,'move: Protect');continue;}
+        if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
         if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;}
         if(subBlocks(m,t,a.mv)){if(TR)TR.act(t,'move: Substitute','[block]');continue;}
@@ -13986,7 +14111,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(TR&&_rfs.announces)TR.act(_t,'ability: '+_t.ability);
           mvFail(m);m._lastMove=a.mv;continue;
         }
-        if(_i>=0&&!_t.fainted&&!(_t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+        if(_i>=0&&!_t.fainted&&!(shieldRefuses(_t,a.mv))
            &&!moveClassBlocked(_t,a.mv,m)&&!TAGS.has('ability',_t.ability,'refusesStatusMoves')){
           const _lb=_live(_fb);
           /* THE ONE PLACE `|drag|` COMES FROM. bringIn() serves four callers and only the phaze pair
@@ -14194,7 +14319,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _tgt=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         const _isFoe=_tgt&&m._sf&&_tgt._sf!==m._sf;
         const who=_isFoe?_tgt:(_tgt&&_tgt!==m?_tgt:(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0));
-        const _blocked=_isFoe&&((_tgt.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+        const _blocked=_isFoe&&((shieldRefuses(_tgt,a.mv))
           ||TAGS.has('ability',_tgt.ability,'refusesStatusMoves')
           ||moveClassBlocked(_tgt,a.mv,m)||powderBlocked(_tgt,a.mv)||pranksterBlocked(m,_tgt,a.mv));
         /* WIRE 146 -- `allies` MEANS THE USER TOO, AND THIS BRANCH COULD ONLY EVER MOVE ONE BODY.
@@ -14240,7 +14365,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _ti=TAGS.param('move',a.mv,'takesTargetItem')||{};
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         if(t&&t!==m
-           &&!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+           &&!(shieldRefuses(t,a.mv))
            &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
            &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv)
            &&!TAGS.has('item',m.item,'megaStone')&&!TAGS.has('item',t.item,'megaStone')
@@ -14263,7 +14388,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         const _ty=(MC.moves[a.mv]||{}).t;
         if(t&&_ty
-           &&!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+           &&!(shieldRefuses(t,a.mv))
            &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
            &&!moveClassBlocked(t,a.mv,m)&&!powderBlocked(t,a.mv)&&!pranksterBlocked(m,t,a.mv)){
           /* ROADMAP #234 -- THE TWO HANDLERS DISAGREE ON PURPOSE AND THE TAG ALREADY SEPARATES THEM.
@@ -14293,7 +14418,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         if(t){
           const _isFoe=m._sf&&t._sf!==m._sf;
-          const _ok=!_isFoe||(!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+          const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))
             &&!TAGS.has('ability',t.ability,'refusesStatusMoves')&&!pranksterBlocked(m,t,a.mv));
           if(_ok&&unresolved.has(t)){
             const _entry=acts.find(x=>x.mon===t);
@@ -14380,7 +14505,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         if(t&&t!==m){
           const _isFoe=m._sf&&t._sf!==m._sf;
-          const _ok=!_isFoe||(!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+          const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))
             &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
             &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv));
           if(_ok){const _ab=m.ability;m.ability=t.ability;t.ability=_ab;
@@ -14398,7 +14523,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         if(t&&t!==m){
           const _isFoe=m._sf&&t._sf!==m._sf;
-          const _ok=!_isFoe||(!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+          const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))
             &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
             &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv));
           const _want=a.becomes==='the user\'s own ability'?m.ability:a.becomes;
@@ -14429,7 +14554,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         const _isFoe=t&&m._sf&&t._sf!==m._sf;
         const _ok=t&&t!==m&&m.st&&t.st&&(!_isFoe
-          ||(!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+          ||(!(shieldRefuses(t,a.mv))
              &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
              &&!moveClassBlocked(t,a.mv,m)&&!pranksterBlocked(m,t,a.mv)));
         if(!_ok){mvFail(m);continue;}
@@ -14657,7 +14782,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            disagree; this is the same argument as the shared reader itself. */
         const _pt=reaimToSlot(a.target,it,actA,actB,a.mv);
         if(a.mv&&_pt&&!_pt.fainted
-           &&((_pt.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+           &&((shieldRefuses(_pt,a.mv))
               ||moveClassBlocked(_pt,a.mv,m)                                 // WIRE 66
               ||TAGS.has('ability',_pt.ability,'refusesStatusMoves'))){m._lastMove=a.mv;
           if(TR){if(_pt.protect)TR.act(_pt,'move: Protect');else TR.imm(_pt);}
@@ -14829,7 +14954,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            Curse carries `ignoresProtect`, which bounceOff/the shield gate below already read. */
         const t=bounceOff(m,a.target,a.mv);
         if(!t||t.fainted||t===m){mvFail(m);continue;}
-        if(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect')){if(TR)TR.act(t,'move: Protect');continue;}
+        if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
         if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;}
         /* ALREADY CURSED -> `return false` in onTryHit, and NO HP is paid. */
@@ -15231,7 +15356,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              Heal Pulse carries `flags.protect` and the authority's shield has no ally exemption --
              staged and read off a real game, a Heal Pulse aimed at a Protecting partner heals
              nothing at all. */
-          if(_t!==m&&_t.protect&&!TAGS.has('move',a.mv,'ignoresProtect')){
+          if(_t!==m&&shieldRefuses(_t,a.mv)){
             if(TR)TR.act(_t,'move: Protect');
             mvFail(m);continue;}
           /* THE SAME STATUS IS A REFUSAL, AND IT IS `Pokemon#setStatus`'S OWN FIRST LINE
@@ -15371,14 +15496,52 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;} // Prankster does not touch Dark types
         const acc=hitChance(m,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
         if(_R.acc()*100>acc){if(TR)TR.miss(m,t);continue;}          // status moves miss (T-Wave 90, W-o-W 85); ROADMAP #222
-        /* applyStatus emits the `|-status|` itself; a REFUSED status (an immunity, an existing
-         * status) returns false and emits `|-fail|`, which is what Showdown does. */
         /* WIRE 133 -- THE SOURCE TRAVELS WITH THE STATUS, and it has to: Safeguard refuses what the
          * OTHER SIDE writes and lets a self-inflicted status through, so a call that cannot say who
          * wrote it cannot be gated. This is the direct status-move path -- the one Safeguard exists
-         * to answer. `applyStatus` emits its own refusal line, so the `-fail` below is only for the
-         * immunity case. */
-        if(!applyStatus(t,st,m,ATTR.move(a.mv))){m._mvRes=false;if(TR&&!sideBuffRefuses(t,m,'blocksStatus'))TR.fail(t);}
+         * to answer. `applyStatus` emits its own refusal line for the side-buff case. */
+        /* ROADMAP #239 -- AND AN IMMUNITY IS `|-immune|`, NOT `|-fail|`. THE COMMENT THAT USED TO SIT
+         * HERE SAID "returns false and emits |-fail|, which is what Showdown does" AND THAT WAS SIMPLY
+         * NOT TRUE.
+         *
+         * `Pokemon#setStatus` (sim/pokemon.ts:1714) refuses through `runStatusImmunity` and writes
+         *     if ((sourceEffect as Move)?.status) this.battle.add('-immune', this);
+         * -- and an ability that refuses through its own `onSetStatus` writes the line itself with
+         * attribution, e.g. `|-immune|p2a: Snorlax|[from] ability: Limber`. `-fail` is reserved for
+         * the body that ALREADY carries the status (the block above `runStatusImmunity`).
+         *
+         * MEASURED ON THE OFFICIAL SIMULATOR, one turn each, direct status moves:
+         *     Toxic -> Scizor (Bug/STEEL)      |-immune|p2a: Scizor
+         *     Thunder Wave -> Limber            |-immune|p2a: Snorlax|[from] ability: Limber
+         *     Will-O-Wisp -> Water Veil         |-immune|p2a: Milotic|[from] ability: Water Veil
+         * against this engine's `|-fail|p2a: scizor` in all three. It is a pure EMISSION defect --
+         * neither engine poisons the Scizor -- which is exactly the class the damage differential
+         * cannot see and `engine/divergence_report.js` counts under `emission`.
+         *
+         * THE ATTRIBUTION IS READ OFF THE ABILITY'S OWN HANDLER (`statusImmune.announcesWith`),
+         * never composed from its name. MAGMA ARMOR is why: it refuses through `onImmunity` instead
+         * of `onSetStatus`, carries no tag row and no announcement, and `setStatus` then writes the
+         * BARE line for it -- so a version that pasted "[from] ability: " + id would have invented a
+         * field on the one member that does not have it.
+         *
+         * A REFUSAL WITH NO REASON KEEPS THE OLD LINE AND IS COUNTED. `applyStatus` has three
+         * refusals ABOVE `canTakeStatus` (an ally's veil, Uproar, a side buff) that fill nothing;
+         * those still read `-fail` exactly as before, and `statusRefusalUnlabelled` is the receipt so
+         * a new unlabelled path cannot arrive silently. */
+        const _why={};
+        if(!applyStatus(t,st,m,ATTR.move(a.mv),_why)){
+          m._mvRes=false;
+          if(TR&&!sideBuffRefuses(t,m,'blocksStatus')){
+            if(_why.reason==='type'||_why.reason==='ability'){
+              const _si=_why.ability?TAGS.param('ability',_why.ability,'statusImmune'):null;
+              MEDSEEN.statusRefusedImmune++;
+              TR.imm(t,(_si&&_si.announcesWith)||undefined);
+            } else {
+              if(!_why.reason)MEDFAILS.statusRefusalUnlabelled++;
+              TR.fail(t);
+            }
+          }
+        }
         continue;
       }
       /* ROADMAP #68 -- THE SHIELD'S PROTOCOL EVENT IS EMITTED HERE, WHERE THE ACTION RESOLVES, AND

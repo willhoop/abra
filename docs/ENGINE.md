@@ -36,8 +36,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  552/552 probed mechanics live, 0 missing   (census 2026-08-12 23:54)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-12 23:50)
+  556/556 probed mechanics live, 0 missing   (census 2026-08-13 00:37)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-13 00:37)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -48,14 +48,14 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 8ef2e3c94062 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is e636c2861994 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 695be9f7f8c7 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 65e314fdb069 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 262/280 probed, 18 unprobed
+  tag coverage: 263/282 probed, 19 unprobed
 ```
 
-_stamped 2026-08-12 23:55_
+_stamped 2026-08-13 00:41_
 
 <!-- /GENERATED -->
 
@@ -63,7 +63,7 @@ _stamped 2026-08-12 23:55_
 
 **Census 552 live / 0 missing -> 552 live / 0 missing. This changed no engine byte and was not meant
 to** — it is an INSTRUMENT change to `engine/all_mechanics_fire.js` and `engine/fixture_preflight.js`,
-and its result is that 29 abilities that read DID-NOT-FIRE now exercise their trigger inside a real
+and its result is that 32 abilities that read DID-NOT-FIRE now exercise their trigger inside a real
 game against the official engine.
 
 Will, 2026-08-12: *"but we are staging it so a dark move hits a justified mon right? thats the whole
@@ -116,18 +116,19 @@ move is one `TeamValidator` accepts, and adds a TRIGGER TURN carrying it.
 
 ```
                        before        after
-FIRED                      70           98
+FIRED                      70          101
 SHOWDOWN-ONLY              11           10
-DID-NOT-FIRE               76           46
+DID-NOT-FIRE               76           43
 CANNOT-FIRE (named)        13           16
+UNREACHABLE (no carrier)  129          129     unchanged, and it is not addressable work
 ```
 
-**29 abilities moved into FIRED**: adaptability armortail bulletproof clearbody competitive contrary
-defiant eartheater fluffy hypercutter ironfist **justified** liquidvoice mirrorarmor opportunist
-purifyingsalt queenlymajesty reckless sapsipper sharpness sheerforce shielddust skilllink solidrock
-strongjaw thickfat torrent waterabsorb waterbubble.
+**32 abilities moved into FIRED**: adaptability armortail bigpecks bulletproof clearbody competitive
+contrary defiant eartheater fluffy hypercutter illuminate ironfist **justified** keeneye liquidvoice
+mirrorarmor opportunist purifyingsalt queenlymajesty reckless sapsipper sharpness sheerforce
+shielddust skilllink solidrock strongjaw thickfat torrent waterabsorb waterbubble.
 
-65 abilities carry a derived need, 69 needs, **59 staged on a legal body, 10 unstaged** — and every
+61 abilities carry a derived need, 65 needs, **55 staged on a legal body, 10 unstaged** — and every
 unstaged one carries the `trigger-move` clause naming the handler and the missing property, instead of
 an unexplained DID-NOT-FIRE. Two identical runs differ on 0 rows.
 
@@ -146,7 +147,7 @@ GREEN  {"tried":8,"fired":7,...}   DERIVED TRIGGERS — 7 abilities ... 7 STAGED
 `--break-preflight` could NOT have demonstrated this — it stubs the clauses and never reaches the
 staging — so the switch is separate and the counter exits non-zero on a zero.
 
-### MY OWN DERIVATION WAS WRONG BEFORE THE ENGINE, THREE TIMES — DOCS/LESSONS §5
+### MY OWN DERIVATION WAS WRONG BEFORE THE ENGINE, FIVE TIMES — DOCS/LESSONS §5
 
 Each was caught by printing the matches before wiring them, which is the only reason none shipped.
 
@@ -162,6 +163,17 @@ Each was caught by printing the matches before wiring them, which is the only re
    ROD. Alternating recovered Hustle and lost TORRENT. Trading one row for another is not a fix, so the
    trigger is now a THIRD turn and the two beat turns are byte-identical to what they were — no row can
    regress by construction rather than by measurement.
+
+4. **A stat drop is not any stat drop.** `statDrop` staged Breaking Swipe (an ATTACK drop) against BIG
+   PECKS (`boost.def < 0`), KEEN EYE and ILLUMINATE (`boost.accuracy < 0`). The board satisfied "a stat
+   went down" and satisfied nothing the handler was watching. Reading the stat name off the comparison
+   landed all three.
+5. **The effect gate needed the polarity test too, and I shipped it without one for a whole run.**
+   Excluding boost handlers gated on `effect.name === …` correctly removed Oblivious, Own Tempo, Inner
+   Focus and Scrappy (genuinely waiting on Intimidate, which no move supplies) — and *also* removed
+   MIRROR ARMOR and OPPORTUNIST, whose `effect.name === "Mirror Armor"` / `"Opportunist"` are
+   self-recursion guards with a bare return. Both dropped back out of FIRED. The fix was to call the
+   polarity helper that already existed twenty lines above.
 
 Also measured and corrected: `secondary` accepted Ancient Power for SHIELD DUST, whose only secondary
 is a `self` boost — precisely the one its handler `secondaries.filter(e => !!e.self)` KEEPS.
@@ -179,6 +191,17 @@ CANNOT-FIRE rows now, not silent ones.
 "an adversary whose own ability is inert" ranked LEVITATE first — **zero `on*` handlers and a Ground
 immunity**, which is exactly what the receiver must not have. A heuristic that recommends the worst
 case on its first try is not one to ship; the five rows are labelled instead.
+
+### THE 43 THAT STILL DO NOT FIRE ARE NOW THREE DIFFERENT QUESTIONS
+
+| rows | what it is | who owns it |
+|---|---|---|
+| **7** | a trigger WAS staged and neither game moved — `compoundeyes flowerveil longreach noguard overgrow swarm tangledfeet` | a real finding: an engine gap, or a need derived too loosely |
+| **8** | the derivation reports an UNDETERMINED cue it will not act on — `anticipation flowerveil innerfocus magician oblivious owntempo ripen scrappy`; four of those wait on Intimidate | `engine/faces.js` — they need an adversary CARRYING an effect, not a move |
+| **29** | no move-shaped need at all — the item, status, HP-threshold, ally-faint and switch families | a later pass; `thenWhat`/`faces` already own most of the vocabulary |
+
+That split is the actual deliverable. Before this, all 76 sat in one bucket that read like an engine
+gap list, and 129 unreachable rows sat next to it looking the same.
 
 ### ONE ROW LEFT FIRED, AND IT IS A CORRECTION RATHER THAN A REGRESSION
 
@@ -200,6 +223,56 @@ by the instrument that measures them.
 so a stamp would have photographed a moving tree. Read-only `status.js` confirms **552/552 live, 0
 missing — unchanged**. The full `--kind abilities --write` re-run and the stamp are owed once the tree
 settles.
+
+## ROADMAP #238 / #236 / #239 — THREE SHIELDS AND A NEVER-MISS, AND THE BRIEF WAS WRONG ABOUT THREE NUMBERS AND ONE MECHANISM. 2026-08-13.
+
+**Census 552 live / 0 missing -> 556 live / 0 missing.** Four probes, each shown RED on TWO opposite
+deliberate breaks — one that removes the mechanic and one that OVER-applies it — because a single
+break only proves the probe can see the fix, not that it can see the fix being wrong.
+
+**#238 — KING'S SHIELD DOES NOT STOP A STATUS MOVE.** `checkMoveBypassesProtect(move, attacker,
+defender, blockStatus = true)`; King's Shield is the only legal member that passes `false`, so Encore,
+Toxic, Taunt and Leech Seed go through it and are refused by the other four. Fourteen call sites held
+the identical pair `t.protect && !TAGS.has('move', a.mv, 'ignoresProtect')` — one fact written out
+fourteen times, modelling `flags.protect` and nothing else — and all fourteen were wrong together.
+They are now one `shieldRefuses()` over a derived `shieldsUser.blocksStatus`. Membership printed
+before wiring: **5 members, exactly one `false`.**
+
+**#236 — A POISON-TYPE'S TOXIC CANNOT MISS.** Landed above the stage arithmetic AND above the OHKO
+branch, because the authority writes `accuracy = true` *below* `if (move.ohko)` and overwrites it,
+while our OHKO branch RETURNS. The tag is parsed out of `BattleActions.prototype.hitStepAccuracy`'s
+own compiled source, because no move field can carry this fact.
+
+**THE MEMBERSHIP PRINT EARNED ITS KEEP AGAIN.** The first parser split that condition on `||`, which
+swept `hitStepInvulnerabilityEvent`'s opening `if (move.id === 'helpinghand')` into the same fragment
+and produced `{moveId:'helpinghand', userType:'Poison'}` — a never-miss invented for a move on the
+strength of two unrelated lines in one function. It now parses the `&&`-chain and counts any conjunct
+it does not model. Nothing had been wired yet; the print is the only reason it was ever seen.
+
+**#239 — A REFUSED STATUS IS `-immune`, NOT `-fail`.** The comment at the emitter asserted the
+opposite in so many words and the engine wrote `-fail` for every immunity. The attribution is read off
+the refusing ability's own handler (`statusImmune.announcesWith`), never composed from its id — MAGMA
+ARMOR refuses through `onImmunity`, carries no row, and is announced BARE, so a composed string would
+have invented a field on the one member that does not have it.
+
+**FOUR THINGS IN THE BRIEFS WERE WRONG AND THE MEASUREMENT SAYS SO, NOT AN ARGUMENT.**
+
+| claimed | measured |
+|---|---|
+| Toxic has **1,209** corpus uses | **1,216** (`data/tags.json`) |
+| **20 of 27** legal Poison-type species learn Toxic | **all 27**; the 20 is the count of NON-MEGA Poison types |
+| the Poison immunity check **must precede** the accuracy roll | it does not — `setStatus` is step 7, `hitStepAccuracy` is step 4. A NON-Poison Toxic user into Scizor misses **13/100** on the authority and prints `-immune` the other 87 |
+| `Toxic -> Scizor` printing `-miss` here is an ORDERING defect | it is #236: a Poison-type user never rolls, so it always reaches `setStatus`. What was really left is the EMISSION half (#239) |
+
+**AND ONE THING IN A BRIEF WAS RIGHT AND ALREADY DONE.** Corrosion needed no work: derived and probed
+under #175, 2 legal carriers, `['tox','psn']` only. It does not fight #236 — a Corrosion Poison type
+both never misses and is not refused, 100/100 on the authority and matched here.
+
+**RED ON ARRIVAL AND NOT MINE:** `tests/test-no-silent-failure.js` exits 1 with **79 NEW silent catch
+blocks across ~25 files**, its baseline dated 2026-08-06. Neither of my files adds one (the only catch
+I wrote `console.error`s its reason). I did not re-baseline it — doing so would launder other
+divisions' work into my pass. It is not one of the four gates this pass was measured on, and it is
+stated here rather than filed.
 
 ## ROADMAP #234 — THE `[from]` ATTRIBUTION FAMILY. TWENTY-FIVE ROWS, ONE FACT, AND TWO OF THEM WERE THE WRONG TAG RATHER THAN A MISSING ONE. 2026-08-13.
 

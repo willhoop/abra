@@ -6045,6 +6045,82 @@ probe('move', 'punishesContact', 'a Spiky Shield answers before the type chart, 
                  + test.toll + ' (must be ' + test.eighth + ')' };
 });
 
+/* ================= ROADMAP #238 -- THE SHIELD FAMILY DOES NOT BLOCK THE SAME SET OF MOVES ========
+ *
+ * `sim/battle.ts:1300` is `checkMoveBypassesProtect(move, attacker, defender, blockStatus = true)`,
+ * and the first clause is `(move.category !== 'Status' || blockStatus) && move.flags['protect']`.
+ * Every shield's `condition.onTryHit` calls it; KING'S SHIELD IS THE ONLY LEGAL MEMBER THAT PASSES
+ * `false` (data/moves.ts:9933; the Champions mod inherits the condition unchanged and only sets
+ * `isNonstandard: null` and `pp: 5`). So a Status move carrying `flags.protect` -- Encore, Toxic,
+ * Taunt, Will-O-Wisp, Leech Seed -- goes STRAIGHT THROUGH King's Shield and is refused by the other
+ * four. Membership printed from `data/tags.json` before either probe was wired: 5 `shieldsUser`
+ * members, exactly one with `blocksStatus: false`.
+ *
+ * MEASURED ON THE OFFICIAL SIMULATOR FIRST, both arms on the same Aegislash:
+ *     King's Shield  ->  |-start|p2a: Aegislash|Encore
+ *     Protect        ->  |-activate|p2a: Aegislash|move: Protect
+ *
+ * THE BODY IS HELD FIXED AND ONLY THE SHIELD MOVES, which is why this probe uses Aegislash for both
+ * arms: Aegislash is the ONLY species in the format that learns King's Shield (derived over the
+ * legal species list with `TeamValidator#checkCanLearn`) and it also learns Protect, so the knob is
+ * the shield and not the Pokemon. Iron Head is the third arm -- a real move, learnset-legal on the
+ * same body, no shield at all -- and it is not decoration: Encore's own `condition.onStart` returns
+ * false against a target with no `lastMove`, so without an arm in which Encore plainly LANDS, a
+ * King's-Shield arm reading 0 could not be told from Encore being unstageable here. */
+probe('move', 'shieldsUser', "King's Shield lets Encore through and Protect on the same body refuses it", () => {
+  /* THE SHIELD ITSELF SETS `lastMove`, exactly as it does in the authority, so the shielded arms need
+   * no extra turn to become encorable. `_vol.encore` is the turn counter the volatile carries. */
+  const run = (shield) => {
+    const B = board('clefable', 'snorlax', 'aegislash', 'garchomp');
+    const trace = []; B.S._trace = trace;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'encore', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, shield === 'ironhead' ? M.playerAction(B.f1, 'ironhead', B.me, B.S.field)
+                                            : { kind: 'protect', mv: shield }],
+               [B.f2, { kind: 'pass' }]]));
+    return { turns: (B.f1._vol && B.f1._vol.encore) || 0,
+             line: (trace.find(l => /\|-(start|activate)\|.*(encore|Protect)/i.test(l)) || '(none)') };
+  };
+  const pro = run('protect'), ks = run('kingsshield'), open = run('ironhead');
+  return { works: ks.turns > 0 && pro.turns === 0 && open.turns > 0
+                  && /-activate/.test(pro.line) && /-start/.test(ks.line),
+           arms: { control: pro.turns, test: ks.turns },
+           detail: 'Aegislash, same body every arm — Protect: encore ' + pro.turns + ' turns, ' + pro.line
+                 + '   |   King\'s Shield: encore ' + ks.turns + ' turns, ' + ks.line
+                 + '   |   no shield (Iron Head): encore ' + open.turns + ' turns (must be > 0, or the '
+                 + 'King\'s Shield arm proves nothing)' };
+});
+
+/* AND THE OTHER TWO PUNISHING SHIELDS MUST NOT MOVE, which is the over-match half. `blocksStatus` is
+ * parsed out of an argument list; a parser that read every shield as three-argument would leave the
+ * bug in place, and one that read every shield as FOUR would open all five. Neither is visible from
+ * the probe above, whose two arms both live on Aegislash.
+ *
+ * SPIKY SHIELD AND BANEFUL BUNKER NEED DIFFERENT BODIES -- Aegislash learns neither (checkCanLearn:
+ * "can't learn Spiky Shield" / "can't learn Baneful Bunker") -- so each is paired with PROTECT ON ITS
+ * OWN BODY. Comparing Chesnaught's Spiky Shield against Aegislash's Protect would be a claim about
+ * two Pokemon; comparing it against Chesnaught's Protect is a claim about the shield. */
+probe('move', 'shieldsUser', 'Spiky Shield and Baneful Bunker refuse Encore exactly as Protect does', () => {
+  const run = (sp, shield) => {
+    const B = board('clefable', 'snorlax', sp, 'garchomp');
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'encore', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, { kind: 'protect', mv: shield }], [B.f2, { kind: 'pass' }]]));
+    return (B.f1._vol && B.f1._vol.encore) || 0;
+  };
+  /* The CONTROL is the King's Shield answer on the body that carries it — the one arm that must be
+   * non-zero. Without it "everything reads 0" is also what a shield family that blocks everything
+   * prints, which is the state this pair of probes was written to leave. */
+  const ks = run('aegislash', 'kingsshield');
+  const spiky = run('chesnaught', 'spikyshield'), bunker = run('toxapex', 'banefulbunker');
+  const spikyPro = run('chesnaught', 'protect'), bunkerPro = run('toxapex', 'protect');
+  return { works: ks > 0 && spiky === 0 && bunker === 0 && spikyPro === 0 && bunkerPro === 0,
+           arms: { control: [spiky, bunker, spikyPro, bunkerPro], test: [ks, ks, ks, ks] },
+           detail: 'encore turns — Chesnaught Spiky Shield ' + spiky + ' / its own Protect ' + spikyPro
+                 + '   |   Toxapex Baneful Bunker ' + bunker + ' / its own Protect ' + bunkerPro
+                 + '   |   Aegislash King\'s Shield ' + ks + ' (the only one that may be non-zero)' };
+});
+
 /* THIS PROBE ASKED dmgRange THE WRONG QUESTION AND WAS REWRITTEN, 2026-08-04.
  *
  * It used to read `dmgRange(Night Slash) > dmgRange(the same move with its id changed)` -- i.e. it
@@ -10149,6 +10225,59 @@ probe('move', 'ohko', 'Fissure kills a body no damage roll could reach, and miss
            detail: `into a Garchomp on 8x max HP -- Fissure at roll 0.1 fainted=${hit.fainted}; at `
                  + `roll 0.9 dealt ${miss.dmg}; Ice Beam at roll 0.1 fainted=${normal.fainted} `
                  + `dealing ${normal.dmg}` };
+});
+
+/* ================= ROADMAP #236 -- A POISON-TYPE'S TOXIC CANNOT MISS ============================
+ *
+ * The exemption is NOT on the move. `Toxic.accuracy` is 90 in this format and stays 90; the clause
+ * is in `sim/battle-actions.ts hitStepAccuracy`, in the SAME condition as `move.alwaysHit` and ABOVE
+ * the `Accuracy` event, so no modifier downstream can put a roll back:
+ *
+ *     if (move.alwaysHit || (move.id === 'toxic' && this.battle.gen >= 8 && pokemon.hasType('Poison'))
+ *         || (move.target === 'self' && ...)) accuracy = true;
+ *
+ * MEASURED ON THE OFFICIAL SIMULATOR FIRST, 200 seeds each, Toxic at a Garchomp that is NOT shielding:
+ *     Toxapex (Poison/Water)   landed 200/200,  |-miss| 0/200
+ *     Umbreon (Dark)           landed 181/200,  |-miss| 19/200      <- 9.5%, i.e. the printed 90
+ * Both learnset-legal (TeamValidator#checkCanLearn). All 27 of this format's legal Poison-type
+ * species learn Toxic, so this is not a corner: it is every Poison type in the game.
+ *
+ * THE KNOB IS THE USER'S TYPE, WHICH IS WHY THE THIRD ARM IS THE SAME BODY. A Toxapex-versus-Umbreon
+ * pair alone would also be produced by an engine that keyed the exemption on the SPECIES, on the
+ * ability, or on anything else those two bodies do not share. The third arm is a Toxapex whose live
+ * `types` array has had Poison removed and NOTHING else touched -- the same species, the same stats,
+ * the same move, the same roll -- and it must go back to missing. That is the arm that says the
+ * engine is asking `pokemon.hasType('Poison')` rather than recognising a Toxapex.
+ *
+ * `rngLose` (0.99) is the whole instrument: it defeats every printed accuracy in this format and
+ * wins nothing, so a move that lands on it is one the engine believes cannot miss. */
+probe('move', 'neverMissesFromUserType', "a Poison type's Toxic lands on a roll that loses every printed accuracy", () => {
+  const run = (userSp, strip) => {
+    const B = board(userSp, 'snorlax', 'garchomp', 'clefable');
+    /* THE STRIP IS ON THE USER AND ON NOTHING ELSE — same species, same stats, same target. */
+    if (strip) B.me.types = (B.me.types || []).filter(t => String(t).toLowerCase() !== 'poison');
+    const trace = []; B.S._trace = trace;
+    M.battleTurn(B.S, rngLose,
+      new Map([[B.me, M.playerAction(B.me, 'toxic', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { types: (B.me.types || []).join('/'), status: B.f1.status || 'none',
+             missed: trace.some(l => /^\|-miss\|/.test(l)) };
+  };
+  const poison = run('toxapex', false);             // Poison/Water — the authority never rolls
+  const notPoison = run('umbreon', false);          // Dark — the authority rolls 90 and this loses
+  const stripped = run('toxapex', true);            // THE SAME BODY with Poison taken off its types
+  return { works: poison.status === 'tox' && !poison.missed
+                  && notPoison.status !== 'tox' && notPoison.missed
+                  && stripped.status !== 'tox' && stripped.missed,
+           arms: { control: [notPoison.status, notPoison.missed, stripped.status, stripped.missed],
+                   test: [poison.status, poison.missed, poison.status, poison.missed] },
+           detail: 'Toxic at rng 0.99 (loses every printed accuracy) — Toxapex [' + poison.types
+                 + '] status ' + poison.status + ' missed=' + poison.missed
+                 + '   |   Umbreon [' + notPoison.types + '] status ' + notPoison.status
+                 + ' missed=' + notPoison.missed
+                 + '   |   the SAME Toxapex with Poison stripped from its live types ['
+                 + stripped.types + '] status ' + stripped.status + ' missed=' + stripped.missed
+                 + ' (the exemption must follow the TYPE, not the species)' };
 });
 
 probe('ability', 'survivesFromFull', 'Sturdy holds at 1 HP from full and does not from chipped', () => {
@@ -16055,6 +16184,68 @@ probe('ability', 'nameImplementedBySim', 'Corrosion poisons a Steel type, and do
                  + ' (must be none,none,tox: the first two are refused by type and the third is the '
                  + 'control that says the click works at all)   |   CORROSION ' + JSON.stringify(test)
                  + ' (must be tox,none,tox — the Fire immunity is NOT bypassed)' };
+});
+
+/* ================= ROADMAP #239 -- A REFUSED STATUS IS `-immune`, AND WE WROTE `-fail` ==========
+ *
+ * The engine's own comment at the emitter said *"a REFUSED status ... emits |-fail|, which is what
+ * Showdown does"*. It is not. `Pokemon#setStatus` (sim/pokemon.ts:1714) reserves `-fail` for the body
+ * that ALREADY carries the status and answers an IMMUNITY with `-immune`:
+ *
+ *     if (!this.runStatusImmunity(status.id === 'tox' ? 'psn' : status.id)) {
+ *       if ((sourceEffect as Move)?.status) this.battle.add('-immune', this);
+ *       return false; }
+ *
+ * and an ability that refuses through its own `onSetStatus` writes the line ITSELF, with attribution.
+ * MEASURED ON THE OFFICIAL SIMULATOR, one turn each:
+ *     Toxic -> Scizor (Bug/Steel)     |-immune|p2a: Scizor
+ *     Thunder Wave -> Limber          |-immune|p2a: Snorlax|[from] ability: Limber
+ *     Will-O-Wisp -> Water Veil       |-immune|p2a: Milotic|[from] ability: Water Veil
+ *
+ * NEITHER ENGINE POISONS THE SCIZOR, which is what makes this the class of defect no damage
+ * differential can see -- the STATE agrees and the STREAM does not. `engine/divergence_report.js`
+ * counts it under `emission`, the largest bucket in the whole-game differential.
+ *
+ * THE BARE ARM AND THE ATTRIBUTED ARM ARE BOTH REQUIRED. A fix that emitted `-immune` with
+ * "[from] ability: " + id pasted on would pass a type-immunity-only probe and would invent a field
+ * on Magma Armor, which refuses through `onImmunity`, carries no `statusImmune` row, and is
+ * announced BARE by setStatus itself. So the Steel arm asserts the line has NO `[from]` and the
+ * Limber arm asserts it has exactly the one the handler writes.
+ *
+ * EVERY BODY IS NATIVE. Toxapex carries Limber in slot 1 of its own dex entry and Salazzle carries
+ * Corrosion in slot 0; Clefable learns Thunder Wave and Toxapex and Salazzle learn Toxic
+ * (TeamValidator#checkCanLearn). Toxapex does NOT learn Thunder Wave, which is why the paralysis arm
+ * is thrown by a Clefable. */
+probe('ability', 'statusImmune', 'a status refused by a type or an ability is announced |-immune|, not |-fail|', () => {
+  const run = (userSp, userAb, mv, foeSp, foeAb) => {
+    const me = bare(userSp), ally = bare('corviknight');
+    const f1 = bare(foeSp), f2 = bare('milotic');
+    me.ability = userAb; f1.ability = foeAb;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { status: f1.status || 'none',
+             line: (trace.find(l => /^\|-(immune|fail|status|miss)\|/.test(l)) || '(none)') };
+  };
+  /* THE CONTROL IS THE SAME CLICK AT THE SAME BODY WITH THE ABILITY BLANKED — so "the line changed"
+   * cannot be the staging, and the paralysis must actually LAND in one arm. */
+  const parLands = run('clefable', 'none', 'thunderwave', 'toxapex', 'none');
+  const parRefused = run('clefable', 'none', 'thunderwave', 'toxapex', 'limber');
+  const steel = run('toxapex', 'none', 'toxic', 'scizor', 'none');
+  const corroded = run('salazzle', 'corrosion', 'toxic', 'scizor', 'none');
+  return { works: parLands.status === 'par' && /^\|-status\|/.test(parLands.line)
+                  && parRefused.status === 'none' && /^\|-immune\|.*\[from\] ability: Limber$/.test(parRefused.line)
+                  && steel.status === 'none' && /^\|-immune\|[^|]*$/.test(steel.line)
+                  && corroded.status === 'tox',
+           arms: { control: [parLands.status, parLands.line],
+                   test: [parRefused.status, parRefused.line] },
+           detail: 'Thunder Wave at a Toxapex — ability blanked ' + parLands.line
+                 + '   |   its native LIMBER ' + parRefused.line
+                 + '   |   Toxic at a Bug/STEEL Scizor ' + steel.line
+                 + ' (the type arm must carry NO [from])   |   the same Toxic out of a CORROSION '
+                 + 'Salazzle ' + corroded.line + ' (status ' + corroded.status
+                 + ' — the immunity is not absolute)' };
 });
 
 probe('ability', 'nameImplementedBySim', 'Early Bird spends one fewer turn asleep', () => {

@@ -65,6 +65,82 @@ if (!process.env.SHOWDOWN_PATH) { console.error('set SHOWDOWN_PATH'); process.ex
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
 
+/* ---- ROADMAP #236 -- THE NEVER-MISS CLAUSES THAT LIVE IN THE STEP LIST, NOT ON THE MOVE ---------
+ *
+ * `sim/battle-actions.ts` hard-codes a per-move exemption from the accuracy roll:
+ *
+ *     hitStepAccuracy:               if (move.alwaysHit || (move.id === 'toxic' && this.battle.gen >= 8
+ *                                        && pokemon.hasType('Poison')) || ...) accuracy = true;
+ *     hitStepInvulnerabilityEvent:   else if (this.battle.gen >= 8 && move.id === 'toxic'
+ *                                        && pokemon.hasType('Poison')) hitResults[i] = true;
+ *
+ * NOTHING IN `dex.moves.get('toxic')` CAN SAY THIS. The accuracy field is 90 and stays 90; the
+ * exemption is a property of the ENGINE'S STEP LIST that names one move and one type. A tag derived
+ * only from move data therefore cannot see it, which is why this is read out of the compiled
+ * BattleActions prototype instead of being typed next to the name.
+ *
+ * BOTH METHODS ARE READ, and they disagree about conjunct ORDER once compiled -- one puts the id
+ * test first, the other the gen test -- so no fixed-order regex over the whole condition can find
+ * both.
+ *
+ * THE FIRST VERSION OF THIS SPLIT ON `||` AND IT OVER-MATCHED, WHICH IS WHY THE MEMBERSHIP IS
+ * PRINTED BEFORE ANYTHING READS IT (docs/LESSONS §4). `hitStepInvulnerabilityEvent` OPENS with
+ * `if (move.id === 'helpinghand') return ...` and there is no `||` anywhere above the toxic clause,
+ * so the whole prefix of that method was ONE fragment holding `helpinghand`, `gen >= 8`, `toxic` and
+ * `hasType("Poison")` together. It reported:
+ *
+ *     { moveId: 'toxic',       userType: 'Poison', minGen: 8 }        <- right
+ *     { moveId: 'helpinghand', userType: 'Poison', minGen: 8 }        <- INVENTED
+ *
+ * Helping Hand would have become a never-miss out of a Poison type on the strength of two unrelated
+ * lines sitting in the same function.
+ *
+ * SO THE CONJUNCTION IS PARSED AS A CONJUNCTION. The three interesting predicates are masked to
+ * single tokens, the source is cut at every boundary that ENDS a `&&`-chain -- `||`, brackets, braces
+ * and semicolons -- and a chain qualifies only if it holds one id token and one type token. A chain
+ * part that is none of the three is COUNTED and named: an extra conjunct means the authority is
+ * asking something this derivation does not model, and dropping it silently is how a tag comes to
+ * claim more than the engine it was read from.
+ *
+ * A METHOD THAT CANNOT BE READ IS LOUD. If `require` fails or a method disappears the reason is
+ * printed and the list is EMPTY, which makes the tag match nothing -- and `tag_dex` already fails a
+ * tag that matched nothing ("a bug, not an empty category"). */
+let _STEP_NEVER_MISS = null;
+function STEP_LIST_NEVER_MISS() {
+  if (_STEP_NEVER_MISS) return _STEP_NEVER_MISS;
+  const out = [];
+  const seen = Object.create(null);
+  try {
+    const BA = require(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim', 'battle-actions.js')).BattleActions;
+    for (const meth of ['hitStepAccuracy', 'hitStepInvulnerabilityEvent']) {
+      const fn = BA && BA.prototype && BA.prototype[meth];
+      if (!fn) { console.error(`  STEP_LIST_NEVER_MISS: BattleActions.prototype.${meth} is absent`); continue; }
+      const masked = fnsrc(fn)
+        .replace(/pokemon\.hasType\(\s*["']([A-Za-z]+)["']\s*\)/g, 'HASTYPE@$1')
+        .replace(/move\.id\s*===\s*["']([a-z0-9]+)["']/g, 'MOVEID@$1')
+        .replace(/this\.battle\.gen\s*>=\s*(\d+)/g, 'GEN@$1');
+      for (const chain of masked.split(/[|(){};]+/)) {
+        const parts = chain.split('&&').map(x => x.trim()).filter(x => x);
+        const ids = parts.filter(p => /^MOVEID@/.test(p));
+        const tys = parts.filter(p => /^HASTYPE@/.test(p));
+        if (ids.length !== 1 || tys.length !== 1) continue;
+        const gns = parts.filter(p => /^GEN@/.test(p));
+        const extra = parts.filter(p => !/^(MOVEID|HASTYPE|GEN)@/.test(p));
+        if (extra.length) console.error(`  STEP_LIST_NEVER_MISS: ${meth} clause for ${ids[0]} carries `
+          + `${extra.length} unmodelled conjunct(s): ${extra.join(' && ')}`);
+        const moveId = ids[0].slice('MOVEID@'.length), userType = tys[0].slice('HASTYPE@'.length);
+        const key = moveId + '/' + userType;
+        if (seen[key]) continue;
+        seen[key] = 1;
+        out.push({ moveId, userType, minGen: gns.length ? +gns[0].slice('GEN@'.length) : 0,
+                   from: 'DERIVED:BattleActions.prototype.' + meth });
+      }
+    }
+  } catch (e) { console.error('  STEP_LIST_NEVER_MISS: could not read BattleActions — ' + e.message); }
+  _STEP_NEVER_MISS = out;
+  return out;
+}
+
 /* ---- MAX PP, READ OFF A CONSTRUCTED BATTLE IN THE FORMAT ---------------------------------------
  *
  * ROADMAP #144. Will: *"CHAMPIONS STANDARDIZED IT AND LOWERED SOME PP OF MOVES LIKE PROTECT TO 8"*.
@@ -2117,6 +2193,40 @@ const MOVE_TAGS = [
        + 'because there is nothing to roll against. Kept so the distribution reads the right P(hit), '
        + 'flagged so nobody reviews 103 status moves looking for a pattern',
     of: m => (m.accuracy === true && m.category === 'Status') ? { pHit: 1, note: 'default for status' } : null },
+  /* ROADMAP #236 -- A NEVER-MISS THAT IS NOT ON THE MOVE AT ALL. IT IS IN THE STEP LIST.
+   *
+   * `Toxic` prints 90 accuracy and this artifact said so, correctly, because that IS the move's
+   * `accuracy` field. What no move field can say is that `sim/battle-actions.ts` carries a clause
+   * ABOUT that move: `hitStepAccuracy` sets `accuracy = true` outright when
+   *
+   *     move.alwaysHit || (move.id === 'toxic' && this.battle.gen >= 8 && pokemon.hasType('Poison'))
+   *                    || (move.target === 'self' && move.category === 'Status' && !target.isSemiInvulnerable())
+   *
+   * so a POISON-TYPE'S Toxic cannot miss, at any evasion, under Sand Veil, through Gravity. The same
+   * pair appears a second time in `hitStepInvulnerabilityEvent`, where it also beats Fly and Dig.
+   *
+   * SO IT IS READ OUT OF THE ENGINE'S OWN COMPILED SOURCE, not typed. `BattleActions.prototype`
+   * is `require`able, `String(fn)` is its body, and the alternation above is split on `||` and
+   * matched per fragment -- the compiled JS reorders the conjuncts between the two methods
+   * (`move.id === "toxic" && this.battle.gen >= 8` in one, `this.battle.gen >= 8 && move.id ===
+   * "toxic"` in the other), so a single fixed-order regex over the whole condition would have found
+   * one and missed the other. The GEN is compared against the format's own `dex.gen`, so the row
+   * disappears by itself if this ever runs under a generation the clause excludes.
+   *
+   * WHY IT IS A MOVE TAG AND NOT AN ABILITY-SHAPED ONE: the carrier is the move, the CONDITION is
+   * the user's type, and the engine has to ask both at the same moment. `userType` is the parameter
+   * so the consumer tests the attacker's live type array -- a Soaked or Terastallised body must get
+   * the same answer the authority gives it, which a species list could not do. */
+  { tag: 'neverMissesFromUserType', param: 'cannot miss when the USER has a named type',
+    probe: 'neverMissesFromUserType',
+    why: 'Toxic out of a Poison type (1,216 corpus uses; every one of the 27 legal Poison-type '
+       + 'species learns it). The engine rolled 90 and emitted |-miss| where the authority never '
+       + 'rolls at all',
+    of: m => {
+      const r = STEP_LIST_NEVER_MISS().find(x => x.moveId === m.id);
+      if (!r || dex.gen < r.minGen) return null;
+      return { userType: r.userType, minGen: r.minGen, pHit: 1, from: r.from };
+    } },
   /* INVERTED, on Will's review: "wouldn't it be easier to say what moves protect doesn't block".
    * Yes -- 389 moves are blocked and the exceptions are a handful, so tagging the majority made a
    * 67% column that says nothing. The EXCEPTIONS are also the actionable set, because a move that
@@ -2226,13 +2336,35 @@ const MOVE_TAGS = [
     why: 'the five shields. The engine dispatched this action off an exported NAME LIST of eight ids '
        + '(ROADMAP #127, 96,406 uses), and the tag that looked like the right replacement -- '
        + 'stallCounterChecks -- also holds Endure, which blocks nothing',
+    /* ROADMAP #238 -- AND THE FIVE DO NOT BLOCK THE SAME SET OF MOVES. `bypassable: true` was the
+     * only thing this param said about WHAT gets through, it is a literal, and it hid a real split.
+     *
+     * `Battle#checkMoveBypassesProtect` (sim/battle.ts:1300) takes a FOURTH argument:
+     *     checkMoveBypassesProtect(move, attacker, defender, blockStatus = true) {
+     *       if ((move.category !== 'Status' || blockStatus) && move.flags['protect'] && ...) return false;
+     * so a Status move carrying `flags.protect` is refused when `blockStatus` is true and goes
+     * STRAIGHT THROUGH when it is false. Protect, Detect, Spiky Shield and Baneful Bunker call it
+     * with three arguments and take the default; KING'S SHIELD PASSES `false` (data/moves.ts:9933,
+     * inherited unchanged by data/mods/champions/moves.ts:555, which only sets `isNonstandard: null`
+     * and `pp: 5`). Measured on the official simulator, Clefable clicking Encore into a shielded
+     * Aegislash: King's Shield gives `|-start|p2a: Aegislash|Encore`, Protect on the same body gives
+     * `|-activate|p2a: Aegislash|move: Protect`.
+     *
+     * READ OFF THE CALL, NOT OFF A NAME. The argument list of the move's own `onTryHit` is parsed, so
+     * the day a sixth shield is legalised it arrives with the right answer rather than with Protect's.
+     * The three-argument form yields `true` because that is the parameter's declared default -- the
+     * absence of a fourth argument is the fact, not a guess. */
     of: m => {
       if (m.stallingMove !== true) return null;
       let c = (m.condition && m.condition.onTryHit) ? m.condition : null;
       if (!c && m.volatileStatus) { const v = dex.conditions.get(m.volatileStatus); if (v && v.onTryHit) c = v; }
-      if (!c || !/checkMoveBypassesProtect/.test(fnsrc(c.onTryHit))) return null;
+      const src = c ? fnsrc(c.onTryHit) : '';
+      if (!c || !/checkMoveBypassesProtect/.test(src)) return null;
+      const call = src.match(/checkMoveBypassesProtect\(([^)]*)\)/);
+      const args = call ? call[1].split(',').map(s => s.trim()).filter(s => s) : [];
       return { volatile: m.volatileStatus || null, duration: c.duration != null ? +c.duration : null,
-               bypassable: true };
+               bypassable: true,
+               blocksStatus: args.length >= 4 ? args[3] !== 'false' : true };
     } },
   { tag: 'stallCounterFeeds', param: 'advances the shared stall counter and never reads it',
     probe: 'stallCounterFeeds',
@@ -6554,10 +6686,31 @@ const ABILITY_TAGS = [
     /* ROADMAP #213 -- plus the WEATHER gate, and only that. See the long note above `modifiesWeight`
      * for why `statuses` is deliberately NOT derived here. `weatherIn` is the same reader the speed
      * and damage families use, so 'sunnyday' and 'desolateland' land on the engine's own words. */
+    /* ROADMAP #239 -- AND WHAT THE REFUSAL SAYS, because the engine was writing `|-fail|` for all of
+     * them and the authority never writes `-fail` for an immunity at all.
+     *
+     * `Pokemon#setStatus` (sim/pokemon.ts:1714) refuses through `runStatusImmunity` and emits
+     * `-immune` BARE. An ability that refuses through its own `onSetStatus` emits the line ITSELF,
+     * with attribution, and this is the shape every member here carries:
+     *
+     *     onSetStatus(status, target, source, effect) { if (status.id !== 'par') return;
+     *       if ((effect as Move)?.status) this.add('-immune', target, '[from] ability: Limber');
+     *       return false; }
+     *
+     * so `announcesWith` is READ OUT OF THE HANDLER rather than composed from the ability's name --
+     * the string in the source is the string on the wire. A member whose handler writes no `-immune`
+     * gets null and the caller falls back to the BARE line, which is what `setStatus` itself would
+     * have written. MAGMA ARMOR is the reason that distinction is not theoretical: it refuses through
+     * `onImmunity`, not `onSetStatus`, so it is not a member of this tag at all and its refusal is
+     * announced by setStatus with no `[from]`. Derivation printed over the format before wiring. */
     of: a => {
       if (!a.onSetStatus) return null;
+      const src = fnsrc(a.onSetStatus);
       const w = weatherIn(String(a.onSetStatus));
-      return w.length ? { immune: true, inWeather: w } : { immune: true };
+      const line = src.match(/add\(\s*["']-immune["']\s*,\s*\w+\s*,\s*["']([^"']+)["']/);
+      const out = { immune: true, announcesWith: line ? line[1] : null };
+      if (w.length) out.inWeather = w;
+      return out;
     } },
   /* NEW 2026-08-05 (STAGED) -- the CONDITIONAL DEFENSIVE STAT MULTIPLIER, which is the census's
    * Marvel Scale row: an onModifyDef/onModifySpD gated on `pokemon.status`. The census called this

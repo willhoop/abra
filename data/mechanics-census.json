@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-13T03:57:10.571Z",
+  "generated": "2026-08-13T04:42:10.855Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 552,
-  "live": 552,
+  "probed": 556,
+  "live": 556,
   "missing": 0,
-  "armed": 552,
+  "armed": 556,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -1823,6 +1823,26 @@
     },
     {
       "kind": "move",
+      "tag": "shieldsUser",
+      "label": "King's Shield lets Encore through and Protect on the same body refuses it",
+      "live": true,
+      "detail": "Aegislash, same body every arm — Protect: encore 0 turns, |-activate|p2a: aegislash|move: Protect   |   King's Shield: encore 3 turns, |-start|p2a: aegislash|move: encore   |   no shield (Iron Head): encore 3 turns (must be > 0, or the King's Shield arm proves nothing)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "shieldsUser",
+      "label": "Spiky Shield and Baneful Bunker refuse Encore exactly as Protect does",
+      "live": true,
+      "detail": "encore turns — Chesnaught Spiky Shield 0 / its own Protect 0   |   Toxapex Baneful Bunker 0 / its own Protect 0   |   Aegislash King's Shield 3 (the only one that may be non-zero)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "critRatioUp",
       "label": "Night Slash crits on a roll Crunch does not",
       "live": true,
@@ -2806,7 +2826,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3307,6 +3327,16 @@
       "label": "Fissure kills a body no damage roll could reach, and misses on a losing roll",
       "live": true,
       "detail": "into a Garchomp on 8x max HP -- Fissure at roll 0.1 fainted=true; at roll 0.9 dealt 0; Ice Beam at roll 0.1 fainted=false dealing 228",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "neverMissesFromUserType",
+      "label": "a Poison type's Toxic lands on a roll that loses every printed accuracy",
+      "live": true,
+      "detail": "Toxic at rng 0.99 (loses every printed accuracy) — Toxapex [Poison/Water] status tox missed=false   |   Umbreon [Dark] status none missed=true   |   the SAME Toxapex with Poison stripped from its live types [Water] status none missed=true (the exemption must follow the TYPE, not the species)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4987,6 +5017,16 @@
       "label": "Corrosion poisons a Steel type, and does not burn a Fire type",
       "live": true,
       "detail": "[Toxic at a STEEL Corviknight, Will-O-Wisp at a FIRE Incineroar, Toxic at a neutral Milotic] — no ability [\"none\",\"none\",\"tox\"] (must be none,none,tox: the first two are refused by type and the third is the control that says the click works at all)   |   CORROSION [\"tox\",\"none\",\"tox\"] (must be tox,none,tox — the Fire immunity is NOT bypassed)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "statusImmune",
+      "label": "a status refused by a type or an ability is announced |-immune|, not |-fail|",
+      "live": true,
+      "detail": "Thunder Wave at a Toxapex — ability blanked |-status|p2a: toxapex|par   |   its native LIMBER |-immune|p2a: toxapex|[from] ability: Limber   |   Toxic at a Bug/STEEL Scizor |-immune|p2a: scizor (the type arm must carry NO [from])   |   the same Toxic out of a CORROSION Salazzle |-status|p2a: scizor|tox (status tox — the immunity is not absolute)",
       "hollow": false,
       "armed": true,
       "directCall": false

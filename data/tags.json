@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-13T04:22:43.713Z",
+ "generated": "2026-08-13T04:33:06.489Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -947,8 +947,8 @@
    "kind": "move",
    "param": "cannot miss when the USER has a named type",
    "why": "Toxic out of a Poison type (1,216 corpus uses; every one of the 27 legal Poison-type species learns it). The engine rolled 90 and emitted |-miss| where the authority never rolls at all",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "neverMissesFromUserType",
+   "used": true,
    "n": 1,
    "uses": 1216,
    "examples": [
@@ -35624,7 +35624,8 @@
      "breakable": true
     },
     "statusImmune": {
-     "immune": true
+     "immune": true,
+     "announcesWith": "[from] ability: Immunity"
     }
    }
   },
@@ -35740,7 +35741,8 @@
      "requiresForme": null
     },
     "statusImmune": {
-     "immune": true
+     "immune": true,
+     "announcesWith": "[from] ability: Insomnia"
     }
    }
   },
@@ -35866,6 +35868,7 @@
     },
     "statusImmune": {
      "immune": true,
+     "announcesWith": "[from] ability: Leaf Guard",
      "inWeather": [
       "sun",
       "harsh sun"
@@ -35947,7 +35950,8 @@
      "breakable": true
     },
     "statusImmune": {
-     "immune": true
+     "immune": true,
+     "announcesWith": "[from] ability: Limber"
     }
    }
   },
@@ -36639,7 +36643,8 @@
      "attackerStatMult": 0.5
     },
     "statusImmune": {
-     "immune": true
+     "immune": true,
+     "announcesWith": "[from] ability: Purifying Salt"
     }
    }
   },
@@ -37932,7 +37937,8 @@
      "requiresForme": null
     },
     "statusImmune": {
-     "immune": true
+     "immune": true,
+     "announcesWith": "[from] ability: Vital Spirit"
     }
    }
   },
@@ -38020,7 +38026,8 @@
      "costsPerTurn": null
     },
     "statusImmune": {
-     "immune": true
+     "immune": true,
+     "announcesWith": "[from] ability: Water Bubble"
     }
    }
   },
