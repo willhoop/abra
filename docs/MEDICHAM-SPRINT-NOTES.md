@@ -6869,3 +6869,28 @@ Five chunks still map to nothing — the pinch berries, Poison Heal, and the wea
 (Ice Body, Rain Dish, Dry Skin). Those are driven by `eachEvent('Weather')` INSIDE the weather's own
 residual rather than by an `onResidual` of their own, so they belong at order 1 with the weather. Named
 here rather than left as a silent gap in the mapping.
+
+### THE GATE SAID PASS WHILE PRINTING "NOT A PASS" IN THE SAME LINE
+
+Will, 2026-08-12: *"so if its not correct then it shouldnt pass man"*. He is right. The whole-game
+clause was a RATCHET — it passed whenever the rate had not risen — and its own text read *NOT ZERO,
+AND THE RATCHET IS NOT A PASS* beside a green verdict. A caption arguing with its own light, which is
+the exact shape this repo already has a receipt for: `PRE-CHANGE` was printed next to the quarantined
+figures and they were quoted anyway, by me among others.
+
+**The ratchet was chosen for a real reason and it was the wrong lever.** The argument was that a clause
+reading red for weeks is one people learn to skip — true, and with its own receipt in the docs gate
+that sat red for two days as *one of the two known failures*. But that is a fact about how people read
+reports, and it cannot be fixed by a gate that says something untrue.
+
+Mode A pins every die on both sides, so the two engines are deterministic functions of one input.
+Tolerance is zero, no statistics, and each of the 215 is a rule they disagree about. Zero is not an
+aspiration here, it is the definition — the clause said exactly that in the sentence beside PASS.
+
+Correctness now decides the verdict; the ratchet is reported as PROGRESS and can no longer open
+anything. A run that gets WORSE is named separately rather than folded into the same red.
+
+**The gate is CLOSED again: 1 of 7, the whole-game differential at 215 of 815.** The other six pass on
+their merits — damage 0 of 6000 at both corners, the three deliberate rosters clean, coverage clean, no
+open engine defect. Everything downstream of MEDICHAM stays withheld, which is the honest state and was
+the honest state an hour ago too.

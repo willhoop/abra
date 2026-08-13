@@ -506,15 +506,43 @@ function wholeGameClause(artifact) {
          + 'becomes the bar is one somebody chose.' + shapeLine };
   }
   const rose = rate > base.rate + band;
+  /* THE CLAUSE USED TO PRINT "NOT ZERO, AND THE RATCHET IS NOT A PASS" AND THEN REPORT PASS.
+   *
+   * Will, 2026-08-12: *"so if its not correct then it shouldnt pass man"*. He is right, and the old
+   * text was arguing with its own verdict — a caption saying this is not really a pass, sitting beside
+   * a green light. That is the shape this repo has a receipt for: `PRE-CHANGE` was printed next to the
+   * quarantined figures and they were quoted anyway, including by me, which is why CLAUDE.md says a
+   * figure must be WITHHELD rather than annotated.
+   *
+   * THE RATCHET WAS CHOSEN FOR A REAL REASON AND IT WAS THE WRONG LEVER. The argument was that a
+   * clause reading red for weeks is one people learn to skip — true, with its own receipt (a docs gate
+   * sat red for two days as "one of the two known failures" until the rule it guarded broke). But that
+   * is a fact about how people read reports, and the fix for it cannot be a gate that says something
+   * untrue. Mode A pins every die on both sides, so the two engines are deterministic functions of one
+   * input: tolerance is zero, no statistics, and every one of these games is a rule they disagree
+   * about. Zero is not an aspiration here, it is the definition.
+   *
+   * SO CORRECTNESS DECIDES THE VERDICT AND THE RATCHET BECOMES PROGRESS. Both are still reported,
+   * because direction of travel is genuinely useful — it just may not open a gate. A run that gets
+   * WORSE is now named as a separate, louder failure rather than folded into the same red. */
+  const ok = div === 0;
   return {
-    name: NAME, ok: !rose, generated: j.generated || null, rate, baseline: base.rate,
-    why: rose
-      ? `WORSE THAN THE BASELINE: ${div} of ${games} = ${pct}% against ${(100 * base.rate).toFixed(1)}%`
-        + ` (band ±${(100 * band).toFixed(1)} pts, 2 SE at n=${games}). The rate may only go DOWN.`
-        + shapeLine
-      : `${div} of ${games} = ${pct}% against a baseline of ${(100 * base.rate).toFixed(1)}%`
-        + ` — NOT ZERO, AND THE RATCHET IS NOT A PASS. Mode A pins every die on both sides, so every`
-        + ` one of these ${div} is a rule the two engines disagree about.` + shapeLine,
+    name: NAME, ok, generated: j.generated || null, rate, baseline: base.rate,
+    diverged: div, games,
+    /* kept so a reader can see the trend without the trend being able to pass anything */
+    progress: rose ? 'WORSE than the baseline' : (rate < base.rate ? 'better than the baseline' : 'level'),
+    regressed: rose,
+    why: ok
+      ? `ZERO divergences across ${games} games. Mode A pins every die on both sides, so this is the`
+        + ` real bar and it has been met.`
+      : `${div} of ${games} = ${pct}% DIVERGE — the two engines disagree about ${div} games.`
+        + ` Mode A pins every die on both sides, so each one is a RULE they disagree about, not noise.`
+        + ` This clause fails until that is zero.`
+        + (rose ? `  AND IT GOT WORSE: ${pct}% against a baseline of ${(100 * base.rate).toFixed(1)}%`
+                  + ` (band ±${(100 * band).toFixed(1)} pts, 2 SE at n=${games}).`
+                : `  Direction of travel: ${pct}% against a baseline of`
+                  + ` ${(100 * base.rate).toFixed(1)}% — better, and better is not correct.`)
+        + shapeLine,
   };
 }
 
