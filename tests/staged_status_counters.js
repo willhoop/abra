@@ -60,7 +60,51 @@ if (!process.argv.includes('--state')) process.argv.push('--state');
  *
  * So the baseline is NAMED, injected into argv before either module is required, and the run REFUSES
  * to proceed if that release is not on disk. `--release <id>` overrides it deliberately. */
-const BASELINE_RELEASE = '6b5447db1738';        // 3.76.0, the tree this session started from
+/* RE-PINNED 2026-08-12. THE OLD BASELINE IS STILL ON DISK AND CAN NO LONGER BE OPENED.
+ *
+ * `6b5447db1738` (cut 2026-08-08T06:30) predates ROADMAP #222, which SPLIT THE RNG STREAMS. The
+ * loader refuses it by name: *"the frozen engine predates split RNG streams (no rngStreams export),
+ * so the stall counter would silently re-couple to the accuracy pin"*. That refusal is correct and
+ * must not be worked around — a BEFORE arm whose stall die is welded to its accuracy die measures
+ * something other than what this file compares, and it would do it quietly.
+ *
+ * MY FIRST RE-PIN WAS WRONG AND THE INSTRUMENT CAUGHT IT. I read the old release's own `why` string
+ * ("frozen before medicham2 exported natureL50"), took that for the requirement, scanned for
+ * `natureL50`, and re-pinned to `72e361e1bd44` — which still threw, because the label on a release is
+ * not the predicate for opening it. The requirement is `rngStreams`, and it is stated in the refusal
+ * itself. Read the error, not the changelog next to it.
+ *
+ * **THE COST IS REAL AND IS NOT HIDDEN.** Only 30 of the 196 snapshots export `rngStreams`, and the
+ * OLDEST is `67f1c791fc83` at 2026-08-12T00:19 — four days after the original baseline. Everything
+ * this file measured between 08-08 and 08-12 is outside the comparison now and cannot be recovered:
+ * those snapshots exist but cannot be opened without re-coupling the dice.
+ *
+ * It is pinned to the OLDEST qualifying release rather than the newest, deliberately. The block above
+ * records this file silently re-pointing its BEFORE arm at a fresh cut TWICE, each time turning the
+ * comparison into a copy of the AFTER arm and reporting the comfortable answer. Choosing "the newest
+ * one that loads" is that failure committed on purpose.
+ *
+ * ================= THE REQUIREMENTS ARE LAYERED, AND EACH REFUSAL NAMES ONLY THE NEXT ONE ==========
+ *
+ * `67f1c791fc83` cleared `rngStreams` and then threw on `spreadL50` — *"predates the SP spread work,
+ * so every body would be built blank while this file believes it filled a spread"*. Two separate
+ * guards, each correct, each silent about the other until the first is satisfied. So re-pinning is
+ * not one lookup: 30 of 196 snapshots export `rngStreams`, 28 export `spreadL50`, and **28 export
+ * both**.
+ *
+ * **RELEASES AGE OUT, AND THAT IS THE FINDING RATHER THAN AN INCONVENIENCE.** The loader's
+ * requirements grow as the engine gains exports, so a snapshot becomes unopenable without anyone
+ * touching it. 168 of the 196 frozen engines on disk can no longer be used as a baseline by this
+ * file. They verify, they hold their bytes, and they cannot be run — which is the same distinction
+ * `engine_release.js` learned three times over (mc_key, move-effects, pp.js): a valid DIGEST SET is
+ * not a loadable ENGINE.
+ *
+ * The oldest release satisfying BOTH is `6155acc0fb26`, cut 2026-08-12T19:54. That still predates the
+ * ROADMAP #221 residual restructure and the switch-carry fixes, so it is a genuine BEFORE arm for
+ * those. It does NOT predate the earlier 2026-08-12 work — the slot binding, Fairy Aura, Raging Bull,
+ * Gravity, the OHKO branch — and anything this file would have caught in that window is gone. Stated
+ * rather than papered over. */
+const BASELINE_RELEASE = '6155acc0fb26';        // oldest release exporting BOTH rngStreams and spreadL50
 if (!process.argv.includes('--release')) process.argv.push('--release', BASELINE_RELEASE);
 {
   const rid = process.argv[process.argv.indexOf('--release') + 1];

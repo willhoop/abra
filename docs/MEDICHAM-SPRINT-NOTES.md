@@ -7015,3 +7015,31 @@ Census 541 live / 0 missing, unchanged — this added an instrument, not a row.
 `battle-actions.ts:627` and `:731` set accuracy `true` for `gen>=8 && toxic && hasType('Poison')`. We
 have no such branch, so a Venusaur's Toxic emitted `|-miss|` where the authority's landed. Deterministic,
 and its own row rather than folded into this pass.
+
+### A BASELINE THAT AGED OUT LOOKED EXACTLY LIKE AN ENGINE FAILURE
+
+`tests/staged_status_counters.js` exited 1 with **all 11 scenarios reading `release THREW`**. Nothing was
+wrong with the engine: the pinned BEFORE arm had aged out of the loader that has to open it.
+
+**The requirements are layered and each refusal names only the next one.** The original pin predates
+ROADMAP #222's split RNG streams; clearing that revealed a second guard on `spreadL50`. Both are
+correct and neither may be worked around — a baseline with welded dice or blank spreads measures
+something other than what this file compares, and does it silently.
+
+**30 of 196 snapshots export `rngStreams`, 28 export `spreadL50`, 28 export both. So 168 frozen engines
+verify, hold their bytes, and cannot be run.** That is the same distinction `engine_release.js` learned
+three times over — a valid DIGEST SET is not a loadable ENGINE — arriving from the opposite direction:
+not a snapshot missing a file, but a loader that grew past the snapshot.
+
+Re-pinned to the OLDEST release satisfying both, never the newest that loads. This file has twice
+re-pointed its BEFORE arm at a fresh cut and turned the comparison into a copy of the AFTER arm; taking
+"newest that loads" would be committing that on purpose.
+
+**10 of 11 scenarios went from unmeasurable to `release IDENTICAL / live IDENTICAL`.** The lost coverage
+is stated: the new baseline postdates today's earlier engine work, so anything this file would have
+caught in that window is gone. One scenario, `guts-is-not-halved-by-its-own-burn`, throws on BOTH arms
+— a fixture defect that was invisible while all eleven were throwing. Registered as #235, not filed.
+
+**MY FIRST RE-PIN WAS WRONG AND THE INSTRUMENT CAUGHT IT.** I read the old release's own `why` string,
+took its label for the requirement, and re-pinned on it. A release's description is not the predicate
+for opening it. Read the refusal, not the changelog beside it.
