@@ -7043,3 +7043,22 @@ caught in that window is gone. One scenario, `guts-is-not-halved-by-its-own-burn
 **MY FIRST RE-PIN WAS WRONG AND THE INSTRUMENT CAUGHT IT.** I read the old release's own `why` string,
 took its label for the requirement, and re-pinned on it. A release's description is not the predicate
 for opening it. Read the refusal, not the changelog beside it.
+
+### A POISON-TYPE’S TOXIC CANNOT MISS, AND OURS ROLLS FOR IT
+
+Found while auditing what survives a switch, unrelated to switching, and kept out of that batch on
+purpose. sim/battle-actions.ts sets accuracy 	rue outright for 	oxic && gen>=8 &&
+pokemon.hasType(Poison) — in the SAME condition as move.alwaysHit, above the Accuracy event, so
+nothing downstream can put a roll back. We have no such branch: a staged Poison-type’s Toxic emitted
+|-miss| where the authority’s landed.
+
+Sized rather than asserted: Toxic is printed at 90 accuracy with **1,209 corpus uses**, and **20 of the
+27 legal Poison-type species learn it**, so the exempt population is real.
+
+It is worth more than its usage suggests because it is DETERMINISTIC — not a rate needing a swarm, but
+a move that hits every time in the authority and rolls a die here, so one staged fixture decides it.
+And the whole-game differential cannot see it: both arms pin accuracy to a corner, so a computed
+accuracy never decides an outcome. Same structural blindness that hid the OHKO branch until Will asked.
+
+Registered as #236. It belongs with the never-miss family already answered above the stage arithmetic
+in hitChance, beside No Guard and Lock-On, rather than as a special case inside the pipeline.
