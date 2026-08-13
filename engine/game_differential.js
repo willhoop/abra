@@ -228,6 +228,12 @@ const BS = require('./board_state.js');
  * same rule per game. Two copies would have agreed the day they were written. Part of the INSTRUMENT,
  * so it is not loaded from the release, for the same reason `steering.js` and `board_state.js` are not. */
 const SHAPE = require('./divergence_shape.js');
+/* HOW BAD, NOT HOW MANY — the end-state severity ladder. Part of the INSTRUMENT for the same reason
+ * `board_state.js` and `divergence_shape.js` are: it decides what the run SAYS about a board, not what
+ * the board is, so freezing it would score every rung of the release ladder by its own contemporaneous
+ * reader. It is a separate file rather than another 200 lines here because every one of its branches
+ * has to be exercisable on a fabricated board — see tests/test-end-state-severity.js. */
+const ESS = require('./end_state_severity.js');
 const id = N.id;
 /* THE READER'S CONTEXT. `weatherId`/`terrainId` are THE ENGINE'S OWN exported translators, taken from
  * the frozen release rather than restated here — a second copy of "sandstorm means sand" is exactly the
@@ -235,6 +241,10 @@ const id = N.id;
  * could not be made produces `UNTRANSLATABLE:<name>` rather than an empty string, because empty reads
  * as clear skies and would agree with a Showdown that also had none. */
 const STATE_FAILS = {};
+/* The hit-collector's own swallowed failures. `splits_seen` at zero would mean the `|split|` handling
+ * never fired — either the authority stopped emitting them or the parse is wrong — and either way
+ * every damage figure below would be counted twice. A receipt, not silence. */
+const HIT_FAILS = {};
 /* `ppSpent` IS TAKEN FROM THE RELEASE THE SAME WAY, and its ABSENCE is meaningful rather than an
  * error: a release cut before ROADMAP #144 has no PP at all, so it cannot answer and `board_state.js`
  * skips the leaf and says so on every snapshot (`pp_comparable`). Reconstructing it here from the tag
@@ -346,6 +356,58 @@ function entityStanding(id) {
     const legal = !sp.isNonstandard && sp.tier !== 'Illegal';
     return { kind: 'species', id, legal, carriers: null, reachable: legal,
              nonstandard: sp.isNonstandard || (sp.tier === 'Illegal' ? 'Illegal' : null), uses: null };
+  }
+  return null;
+}
+
+/* ---- HOW MUCH REAL PLAY A BODY TOUCHES ---------------------------------------------------------
+ *
+ * `tags.json` carries `uses` for moves, abilities and items and NOTHING for a species — `entityStanding`
+ * returns `uses: null` on every one of them. The end-state severity ladder ranks by BODY (a wrong
+ * outcome on Incineroar is not a wrong outcome on a body nobody brings), so it needs the one thing the
+ * release cannot supply.
+ *
+ * `data/meta-usage.json` is the corpus model OPS writes off the store. It is UPSTREAM of the simulator
+ * and is not quarantined; it is also NOT in the frozen release, so it is read live and its own
+ * `generated` stamp travels into the artifact. A reader can then tell whether the ranking and the
+ * engine were photographed at the same moment, which is the whole reason the release exists.
+ *
+ * `n` — the number of stored teams containing the species — is the field, and it is NOT recomputed
+ * here. ABSENT MEANS UNKNOWN AND IS PRINTED AS SUCH: a species the corpus has never seen and a
+ * corpus that failed to load must not both read as zero usage, which is the `uses: 0` versus
+ * `uses: null` distinction the standing block one screen up exists to keep. */
+const SPECIES_USES = (() => {
+  const out = { by: new Map(), generated: null, teams: null, error: null };
+  try {
+    const mu = JSON.parse(fs.readFileSync(D('data', 'meta-usage.json'), 'utf8'));
+    for (const t of mu.threats || []) if (t && t.sp) out.by.set(N.id(t.sp), t.n);
+    out.generated = mu.generated || null;
+    out.teams = (mu.provenance && mu.provenance.teams) || mu.sampledTeams || null;
+  } catch (e) {
+    out.error = String((e && e.message) || e).slice(0, 120);
+    console.error('  species usage: data/meta-usage.json could not be read — every body below ranks '
+                + 'as UNKNOWN usage rather than as zero: ' + out.error);
+  }
+  return out;
+})();
+/* A MEGA FORME IS THE SAME BODY ON THE SAME TEAM, AND IT HAS NO ROW OF ITS OWN. `meta-usage.json`
+ * counts `charizard`; the board that killed something says `charizardmegay`, because both engines
+ * rename on evolution. Ranked without a fallback, every mega read `usage UNKNOWN` and sorted BELOW a
+ * body with a measured zero — in a format whose mega usage is ~26%.
+ *
+ * THE FALLBACK IS THE DEX'S OWN `baseSpecies`, NOT A STRING RULE. Stripping a `mega` suffix by regex
+ * would be a second implementation of "which body is this really", and it gets Meowstic, Urshifu and
+ * every hyphenated forme wrong. `via` rides on the answer so a ranking can say it used a base forme
+ * rather than the body that was actually on the field. */
+function speciesUses(sp) {
+  const k = N.id(sp);
+  const direct = SPECIES_USES.by.get(k);
+  if (typeof direct === 'number') return direct;
+  let base = null;
+  try { const d = dex.species.get(k); base = d && d.exists ? N.id(d.baseSpecies) : null; } catch (e) { base = null; }
+  if (base && base !== k) {
+    const v = SPECIES_USES.by.get(base);
+    if (typeof v === 'number') { SPECIES_USES.base_forme_fallbacks = (SPECIES_USES.base_forme_fallbacks || 0) + 1; return v; }
   }
   return null;
 }
@@ -1992,6 +2054,23 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * engines, so the choice is the driver's and the engine is told. An engine deciding for itself
    * beside a Showdown that was told is two different games. */
   const S = M.battleInit(A, B, { trace, autoMega: false });
+  /* ---- MEDICHAM2 HAS ITS OWN 20-TURN HORIZON, AND ABOVE IT THE END-STATE COMPARISON IS NONSENSE ---
+   *
+   * `battleOver` is `S.turn >= (S.maxTurns || 20) || …`, and this driver had never set `maxTurns`. So
+   * a run asked for more than 20 turns gets a medicham2 that declares the battle finished at turn 20
+   * while Showdown plays on — which the end-state verdict correctly, and uselessly, calls ENDED-APART.
+   *
+   * MEASURED 2026-08-12 at `--turns 40`, 983 games: **943 ENDED-APART, 937 of them "ONLY medicham2
+   * ended the battle"**. 96% of the run was one hard-coded default, and every one of those games had
+   * no comparable final board at all. It reads exactly like a catastrophic engine disagreement and is
+   * entirely the harness.
+   *
+   * THE FLOOR IS 20 SO NO EXISTING RUN MOVES BY A BYTE. Every published run of this file uses a cap of
+   * 12, where `max(13, 20)` is the old default — so the 12-turn figures are the same measurement they
+   * always were, and only the runs that were already broken change. Setting it to MAXTURNS flat would
+   * have made medicham2 stop at turn 12 while Showdown continued, turning every 12-turn game into an
+   * ENDED-APART: the same bug pointed the other way. */
+  S.maxTurns = Math.max(MAXTURNS + 1, 20);
 
   const battle = new Battle({ formatid: CS.FORMAT, seed: [1, 2, 3, 4] });
   battle.setPlayer('p1', { name: 'A', team: Teams.pack(pairA.map(x => x.sd)) });
@@ -2118,7 +2197,13 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
      * it here means the last board is whatever the last comparison actually was, rather than a board
      * some exit path forgot to take. */
     lastBoard = { turn: turnIdx, identical: snap.identical, leaves_compared: snap.leaves_compared,
-                  diffs: snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap)) };
+                  diffs: snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap)),
+                  /* BOTH PARTIES, FROM BOTH ENGINES, WHETHER OR NOT ANYTHING DIFFERS. The severity
+                   * ladder's top two rungs are claims about WHO IS ALIVE, and the diff list cannot
+                   * carry them: a party keyed by species reports a mega evolution that fired in one
+                   * engine as a missing member, which reads exactly like a death. Kept even on an
+                   * identical board so the winner arm has a denominator. */
+                  parties: ESS.endBoard(snap).parties };
     if (snap.identical) { boundariesAgreed++; return null; }
     if (!firstStateDiv) firstStateDiv = { turn: turnIdx, diffs: snap.diffs };
     return firstStateDiv;
@@ -2432,6 +2517,14 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
   try { endedMedi = !!M.battleOver(S); } catch (e) { endedMedi = false; STATE_FAILS.battle_over_threw = (STATE_FAILS.battle_over_threw || 0) + 1; }
 
   _lastSdLog = battle.log.slice();
+  /* THE RULER FOR BAND 3, GATHERED FROM THE AUTHORITY'S OWN NARRATION OF THIS GAME. Collected only in
+   * end-state mode, because it is only that mode's threshold and a protocol-mode run would pay for an
+   * array it never reads. It is deliberately taken from `battle.log` and not from medicham2's trace:
+   * a threshold made out of our own damage figures would move whenever the thing being measured moved,
+   * which is a ruler made of the object. */
+  const sdHitFracs = [], sdHitFails = {};
+  if (END_STATE) { ESS.collectHits(battle.log, sdHitFracs, sdHitFails);
+                   for (const [k, v] of Object.entries(sdHitFails)) HIT_FAILS[k] = (HIT_FAILS[k] || 0) + v; }
   harvest(trace, S);
   for (const m of bodiesSeen) { bump(OBSERVED.species, id(m.name)); bump(OBSERVED.abilities, id(m.ability)); if (m.item) bump(OBSERVED.items, id(m.item)); }
   /* ROADMAP #31 — READ OFF THE TWO STREAMS, not off a counter kept beside them, for the same reason
@@ -2454,7 +2547,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
            /* THE END STATE (2026-08-12). `finalBoard` is the LAST board compared — null when no
             * boundary was ever taken, which is a third answer and not a zero. `endedMedi`/`endedSd`
             * are each engine's own verdict on whether the battle is over, kept apart on purpose. */
-           finalBoard: lastBoard, endReason, endedMedi, endedSd,
+           finalBoard: lastBoard, endReason, endedMedi, endedSd, sdHitFracs, sdHitFails,
            megaMedi: megaMedi.length, megaSd: megaSd.length, megaCapableSides: capable, megaChoices,
            megaSlotA: megaMedi.filter(l => /\|p[12]a:/.test(l)).length,
            megaSlotB: megaMedi.filter(l => /\|p[12]b:/.test(l)).length,
@@ -3493,6 +3586,13 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                     * it is being measured under. */
                    endStateVerdict, END_STATE_VERDICTS, shapeOfCause: SHAPE.shapeOf,
                    END_STATE, STATE_ON: STATE,
+                   /* 2026-08-12 — the severity ladder, re-exported from engine/end_state_severity.js
+                    * rather than reimplemented, on the same rule as `shapeOfCause` directly above: a
+                    * test that drove a second copy would prove the copy works. `speciesUses` is the
+                    * ranking's second key and is exported so a test can prove the driver read the
+                    * corpus at all rather than ranking everything as UNKNOWN. */
+                   severity: ESS.severity, SEVERITY_BANDS: ESS.BANDS, endBoard: ESS.endBoard,
+                   typicalHit: ESS.typicalHit, collectHits: ESS.collectHits, speciesUses,
                    /* 2026-08-12 — the stopping rule, exported as a pure decision so its branches can
                     * be tested without playing 4,000 games to reach one of them. */
                    coverageStop,
@@ -3854,7 +3954,7 @@ const medianTurns = TURNS.length ? TURNS[Math.floor(TURNS.length / 2)] : 0;
  * AND IT ONLY MEANS ANYTHING IN `--end-state` MODE. Under the other two stop rules the game halts at
  * the first disagreement, so "the final board" is the board at the moment we stopped looking. `null`
  * rather than a flattering number. */
-function endStateSummary(rows) {
+function endStateSummary(rows, opts) {
   if (!END_STATE) return null;
   const V = new Map(END_STATE_VERDICTS.map(v => [v, 0]));
   const rowsWith = rows.map(r => ({ r, v: endStateVerdict(r),
@@ -3883,6 +3983,88 @@ function endStateSummary(rows) {
   for (const x of rowsWith) endReasons.set(x.r.endReason || '(none)', (endReasons.get(x.r.endReason || '(none)') || 0) + 1);
   const pctOf = (n, d) => (d ? +(n / d).toFixed(4) : null);
   const comparable = parted.filter(x => x.v === 'SAME-END-STATE' || x.v === 'DIFFERENT-END-STATE');
+
+  /* ---- THE SEVERITY LADDER (2026-08-12, MEASURE) -----------------------------------------------
+   *
+   * `end_state_families` above is the leaf worklist and it is not a severity: `active[].hp` 179 games
+   * counts a body killed by a move it cannot be hit by and a three-HP rounding residue in the same
+   * row. Will read twenty-five battles by hand and found three WRONG OUTCOMES that this instrument
+   * could not have surfaced, because a count has no order on it. The ladder is in
+   * `engine/end_state_severity.js`; the rungs and the one place they depart from the brief are
+   * documented there rather than restated here.
+   *
+   * IT IS COMPUTED OVER `DIFFERENT-END-STATE` GAMES ONLY, and that is a narrowing said out loud. A
+   * game ONE engine ended (ENDED-APART) has no comparable final board at all and is a THIRD answer;
+   * banding it would be inventing a severity for a comparison that was never made. It is carried
+   * beside the ladder, never inside it. */
+  const THRESH = { hpThresholdFrac: (opts && opts.hpThresholdFrac) || null };
+  const banded = [];
+  if (THRESH.hpThresholdFrac) {
+    for (const x of rowsWith) {
+      if (x.v !== 'DIFFERENT-END-STATE') continue;
+      const s = ESS.severity(x.r.finalBoard, THRESH);
+      const bodies = s.bodies.length ? s.bodies : [];
+      const usesOf = bodies.map(b => speciesUses(b)).filter(u => u != null);
+      banded.push({ ...s,
+        /* NAMED SO THE BAND CAN BE OPENED AND READ. One team pair, one seed, one configuration and one
+         * arm is exactly what `playGame` takes, so these four fields re-play the game. */
+        game: { config: x.r.config, seed: x.r.seed, arm: x.r.arm, turns: x.r.turns,
+                end_reason: x.r.endReason, board_turn: x.r.finalBoard.turn,
+                leaves_compared: x.r.finalBoard.leaves_compared,
+                differing_leaves: (x.r.finalBoard.diffs || []).length },
+        shape: x.cls ? SHAPE.shapeOf(x.cls.cause).shape : 'PROTOCOL-NEVER-PARTED',
+        protocol_parted: x.r.divTurn != null,
+        /* RANK 2 IS CORPUS USAGE, exactly as divergence_report.js ranks its causes: the swarm's game
+         * counts describe what the sampler chose to stage, and only the corpus describes what people
+         * actually bring. `null` where no body in the evidence is in the corpus model — UNKNOWN, and
+         * it sorts below a measured zero rather than above it. */
+        max_body_uses: usesOf.length ? Math.max(...usesOf) : null,
+      });
+    }
+  }
+  banded.sort((a, b) => (a.band - b.band)
+    || ((b.max_body_uses == null ? -1 : b.max_body_uses) - (a.max_body_uses == null ? -1 : a.max_body_uses)));
+  const bandRows = ESS.BANDS.map(B => {
+    const inB = banded.filter(x => x.band === B.rank);
+    const bodies = new Map();
+    for (const x of inB) for (const b of new Set(x.bodies)) {
+      const e = bodies.get(b) || { body: b, games: 0, corpus_teams: speciesUses(b) };
+      e.games++; bodies.set(b, e);
+    }
+    return { band: B.rank, band_id: B.id, what: B.what, games: inB.length,
+             bodies: [...bodies.values()].sort((a, b) =>
+               ((b.corpus_teams == null ? -1 : b.corpus_teams) - (a.corpus_teams == null ? -1 : a.corpus_teams))
+               || (b.games - a.games)),
+             /* THE GAMES THEMSELVES, capped. A band nobody can open is a count wearing a longer name;
+              * the cap exists so the artifact stays readable and is stated rather than silent. */
+             examples: inB.slice(0, 25),
+             examples_capped_at: 25, examples_total: inB.length };
+  });
+  /* THE CROSS-TAB THE BRIEF ASKED FOR, AND THE PRIOR IT IS MEANT TO TEST: ordering-shaped divergences
+   * should land in the harmless bands and rule-shaped ones in the severe bands. It is printed whether
+   * or not it holds — a confirmed prior is worth less than a refuted one here, because an ORDERING
+   * difference that changes who is alive would mean the scheduler decides games. */
+  const shapeBand = new Map();
+  for (const x of banded) {
+    const e = shapeBand.get(x.shape) || { shape: x.shape, games: 0,
+      by_band: Object.fromEntries(ESS.BANDS.map(B => [B.rank, 0])) };
+    e.games++; e.by_band[x.band]++; shapeBand.set(x.shape, e);
+  }
+  /* THE QUARTER-HIT MASS, PUBLISHED RATHER THAN BURIED. A missing damage multiplier is a fraction of a
+   * hit and therefore lands in the bottom band; the histogram is the only place a reader can see it. */
+  const hitBuckets = [0.25, 0.5, 1, 2, 4];
+  const hist = Object.fromEntries(hitBuckets.map(b => ['<=' + b + ' typical hits', 0]));
+  hist['> 4 typical hits'] = 0; hist['no HP leaf differs'] = 0;
+  if (THRESH.hpThresholdFrac) for (const x of rowsWith) {
+    if (x.v !== 'DIFFERENT-END-STATE') continue;
+    const g = ESS.hpGaps(x.r.finalBoard.diffs || [], x.r.finalBoard.parties || { medi: {}, sd: {} })
+      .filter(y => y.frac != null);
+    if (!g.length) { hist['no HP leaf differs']++; continue; }
+    const n = Math.max(...g.map(y => y.frac)) / THRESH.hpThresholdFrac;
+    const b = hitBuckets.find(k => n <= k);
+    hist[b ? '<=' + b + ' typical hits' : '> 4 typical hits']++;
+  }
+
   return {
     games: rows.length,
     verdicts: Object.fromEntries(V),
@@ -3901,12 +4083,57 @@ function endStateSummary(rows) {
     by_shape: [...byShape.values()].sort((a, b) => b.games - a.games),
     end_state_families: [...fam.entries()].sort((a, b) => b[1] - a[1]).map(([family, games]) => ({ family, games })),
     end_reasons: [...endReasons.entries()].sort((a, b) => b[1] - a[1]).map(([reason, games]) => ({ reason, games })),
+    /* ---- THE SEVERITY LADDER, over the DIFFERENT-END-STATE games only ---------------------------- */
+    severity: !THRESH.hpThresholdFrac ? null : {
+      what: 'HOW BAD each DIFFERENT-END-STATE game is, ordered by what it means for the game rather '
+          + 'than by how many leaves parted. Rungs and their definitions: engine/end_state_severity.js.',
+      scope: 'DIFFERENT-END-STATE games only. ENDED-APART has no comparable final board and is a THIRD '
+           + 'answer — it is counted beside this ladder and never inside it.',
+      games_banded: banded.length,
+      hp_threshold_fraction_of_max_hp: THRESH.hpThresholdFrac,
+      bands: bandRows,
+      /* THE CONTAINMENT THE SWAP MAKES VISIBLE. Every different-winner game also has a different set
+       * of bodies alive; this says how many, so the swap hides nothing. */
+      different_winner_also_different_bodies_alive:
+        banded.filter(x => x.band === 1 && x.also_different_bodies_alive).length,
+      by_shape_and_band: [...shapeBand.values()].sort((a, b) => b.games - a.games),
+      hp_gap_in_typical_hits: hist,
+      hp_gap_note: 'A MISSING DAMAGE MULTIPLIER IS A FRACTION OF A HIT. A lost x1.33 on a hit worth 40% '
+                 + 'of a health bar is about a quarter of a hit, so it lands in the bottom band unless '
+                 + 'it flips a knockout — in which case it is band 2. This histogram is where that mass '
+                 + 'is visible; "small" in band 6 does not mean harmless.',
+    },
     caveat: 'SAME-END-STATE says the two engines ARRIVED at the same board on every leaf '
           + 'board_state.js compares. It does NOT say the turns in between agreed, and it is bounded '
           + 'by that file\'s NOT_COMPARED list, published with this artifact.',
   };
 }
-const END_STATE_BY_ARM = ARM_RUNS.map(a => ({ arm: a.arm.id, summary: endStateSummary(a.results) }));
+/* THE RULER IS CUT PER ARM AND NEVER POOLED, on the same rule as every other rate in this file. The
+ * arms sit at opposite corners of the damage roll, so "a typical hit" is genuinely a different quantity
+ * in each; one pooled median would describe neither and would band the two arms against a threshold
+ * belonging to the average of two things nobody played.
+ *
+ * AN ARM THAT NARRATED NO HITS GETS NO LADDER, not a default threshold. `severity` throws rather than
+ * accepting a missing one, so the failure is a refusal at the top rather than a band computed against
+ * a number nobody measured. */
+const END_STATE_BY_ARM = ARM_RUNS.map(a => {
+  if (!END_STATE) return { arm: a.arm.id, summary: null };
+  /* THE COUNTERS ARE RE-DERIVED PER ARM RATHER THAN READ OFF `HIT_FAILS`, which is module-level and
+   * therefore accumulates across both arms AND the control games. The first version published the
+   * same 14,614 excluded residuals against BOTH arms while their hit counts differed (1,612 and
+   * 1,321) — a receipt that describes a different population from the figure beside it is worse than
+   * no receipt, because it reads as though it had been measured. */
+  const fr = [], fails = {};
+  for (const r of a.results) {
+    if (!r.sdHitFracs) continue;
+    for (const f of r.sdHitFracs) fr.push(f);
+    for (const [k, v] of Object.entries(r.sdHitFails || {})) fails[k] = (fails[k] || 0) + v;
+  }
+  const ruler = ESS.typicalHit(fr, fails);
+  const s = endStateSummary(a.results, { hpThresholdFrac: ruler.median_fraction_of_max_hp });
+  if (s) s.severity_ruler = ruler;
+  return { arm: a.arm.id, summary: s, ruler };
+});
 
 console.log('\nWHOLE-GAME DIFFERENTIAL — MODE A (pinned, tolerance zero)   ' + REL.id);
 console.log('  ' + results.length + ' games in the primary arm, ' + ARM_RUNS.length + ' arm(s), '
@@ -4333,6 +4560,81 @@ if (END_STATE) {
     console.log('');
     console.log('      how the games stopped: ' + s.end_reasons.map(x => x.games + ' ' + x.reason).join('; '));
     console.log('');
+    /* ---- THE SEVERITY LADDER ------------------------------------------------------------------- */
+    if (!s.severity) {
+      console.log('      NO SEVERITY LADDER — the authority narrated no damage in this arm, so the band-3');
+      console.log('      threshold could not be measured. A default threshold is refused: it would be the');
+      console.log('      picked number this ladder exists not to have.');
+    } else {
+      const V = s.severity, R = s.severity_ruler;
+      console.log('      HOW BAD, NOT HOW MANY — the ' + V.games_banded + ' DIFFERENT-END-STATE games, banded');
+      console.log('      by what the difference MEANS for the game. ENDED-APART is NOT in here: it has no');
+      console.log('      comparable final board and is counted above as a third answer.');
+      console.log('        the band-3 threshold is MEASURED, not picked: the median single hit the');
+      console.log('        AUTHORITY narrated in this arm is ' + (100 * R.median_fraction_of_max_hp).toFixed(1)
+        + '% of a health bar, over ' + R.hits.toLocaleString() + ' hits');
+      console.log('        (quartiles ' + (100 * R.p25).toFixed(1) + '% / ' + (100 * R.p75).toFixed(1)
+        + '%, p90 ' + (100 * R.p90).toFixed(1) + '%)');
+      console.log('');
+      console.log('        band  games  what it means');
+      for (const b of V.bands) {
+        console.log('          ' + b.band + '  ' + String(b.games).padStart(5) + '  ' + b.band_id);
+        console.log('                        ' + b.what);
+        if (!b.games) continue;
+        const top = b.bodies.slice(0, 6).map(x => x.body + ' ('
+          + (x.corpus_teams == null ? 'usage UNKNOWN' : x.corpus_teams.toLocaleString() + ' teams')
+          + ', ' + x.games + 'g)').join(', ');
+        if (top) console.log('                        bodies, most-played first: ' + top);
+      }
+      console.log('');
+      if (V.bands[0].games) {
+        console.log('        ' + V.different_winner_also_different_bodies_alive + ' of the ' + V.bands[0].games
+          + ' DIFFERENT-WINNER games also have a different set of bodies alive — which is');
+        console.log('        every one of them by construction. The brief ranked bodies-alive above winner;');
+        console.log('        that order leaves the winner rung permanently empty, so the two were swapped');
+        console.log('        and the containment is printed here rather than hidden. See end_state_severity.js.');
+      } else {
+        console.log('        BAND 1 IS EMPTY IN THIS ARM. Read it against the turn cap before calling it');
+        console.log('        agreement: a battle that never resolves cannot have a different winner, and');
+        console.log('        this run stopped ' + (s.end_reasons[0] ? s.end_reasons[0].games + ' games at "'
+          + s.end_reasons[0].reason + '"' : 'most games short of a result') + '.');
+      }
+      console.log('');
+      console.log('        CROSSED WITH THE SHAPE. The prior is that ORDERING lands in the harmless bands');
+      console.log('        and RULE in the severe ones. Printed whether or not it holds:');
+      console.log('          shape                 games' + ESS.BANDS.map(b => String(b.rank).padStart(6)).join(''));
+      for (const r of V.by_shape_and_band)
+        console.log('          ' + r.shape.padEnd(21) + String(r.games).padStart(5)
+          + ESS.BANDS.map(b => String(r.by_band[b.rank]).padStart(6)).join(''));
+      console.log('');
+      console.log('        WHERE THE HEALTH GAPS ACTUALLY SIT, in units of one typical hit. A missing');
+      console.log('        damage multiplier is a QUARTER of a hit and lands in band 6 unless it flips a');
+      console.log('        knockout; this is the only place that mass is visible:');
+      for (const [k, n] of Object.entries(V.hp_gap_in_typical_hits))
+        console.log('          ' + String(n).padStart(5) + '  ' + k);
+      console.log('');
+      const worst = V.bands.filter(b => b.band <= 2 && b.games);
+      if (worst.length) {
+        console.log('        THE WORST GAMES, most-played body first — each re-playable from these four fields:');
+        for (const b of worst) for (const g of b.examples.slice(0, 8)) {
+          console.log('          band ' + g.band + '  ' + g.game.arm + '  ' + g.game.config + '  ' + g.game.seed);
+          console.log('                  ' + g.why + '   [' + g.shape + ', board at turn ' + g.game.board_turn
+            + ', ' + g.game.differing_leaves + ' leaves differ]');
+          for (const e of g.evidence.slice(0, 4))
+            console.log('                  ' + (e.side ? e.side + ' ' : '') + (e.body ? e.body + ' ' : '')
+              + e.what + (e.us !== undefined ? '  (us ' + e.us + ' / authority ' + e.sd + ')' : ''));
+        }
+      } else {
+        console.log('        NO GAME IN THIS ARM REACHED BAND 1 OR BAND 2. Read that against the turn cap');
+        console.log('        above before calling it agreement: a battle that never resolves cannot have a');
+        console.log('        different winner, and a 12-turn cap resolves almost nothing.');
+      }
+      console.log('');
+      console.log('        RANKED BY BAND FIRST AND BY CORPUS USAGE SECOND. Usage is teams containing the');
+      console.log('        body in data/meta-usage.json (generated ' + (SPECIES_USES.generated || 'UNKNOWN')
+        + '), which is read LIVE and is NOT in the frozen release.');
+      console.log('');
+    }
   }
   console.log('    BOUNDED BY WHAT board_state.js COMPARES. A leaf it does not read cannot make a board');
   console.log('    differ here, so SAME-END-STATE is exactly as strong as that file\'s comparison set;');
@@ -4768,6 +5070,21 @@ if (WRITE) {
     end_state_mode: END_STATE,
     end_state: END_STATE ? END_STATE_BY_ARM : null,
     end_state_not_compared: END_STATE ? BS.NOT_COMPARED.map(x => x.field) : null,
+    /* THE ONE INPUT TO THE SEVERITY LADDER THAT IS NOT IN THE FROZEN RELEASE. The ranking's second key
+     * is corpus usage and `tags.json` carries none for a species, so `data/meta-usage.json` is read
+     * LIVE. Its stamp travels with the artifact for exactly the reason the release id does: a reader
+     * must be able to tell whether the engine and the ranking were photographed at the same moment.
+     * `error` non-null means every body ranked as UNKNOWN usage, which is not the same as zero. */
+    severity_usage_source: !END_STATE ? null : {
+      file: 'data/meta-usage.json', read: 'LIVE — not in the frozen release',
+      generated: SPECIES_USES.generated, species_with_a_usage_figure: SPECIES_USES.by.size,
+      base_forme_fallbacks: SPECIES_USES.base_forme_fallbacks || 0,
+      base_forme_note: 'A mega forme has no row of its own and falls back to the dex\'s baseSpecies, '
+                     + 'counted here. Without it every mega ranked UNKNOWN in a format whose mega usage '
+                     + 'is ~26%.',
+      error: SPECIES_USES.error,
+    },
+    severity_ladder: END_STATE ? ESS.BANDS : null,
     pin: PIN_CLAIMS.map(([w]) => w),
     /* EVERY CAUSE CARRIES ITS FORMAT STANDING. See annotateCause() -- three separate times on
      * 2026-08-06/07 a WIRE was justified by a mechanic that CANNOT OCCUR in Champions (Blunder Policy,

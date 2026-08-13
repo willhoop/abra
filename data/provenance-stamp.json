@@ -163,7 +163,7 @@
   "void_files": [
     "exploitability.json"
   ],
-  "verified": 4,
+  "verified": 3,
   "graph_files": [
     "ab-batch-effect.json",
     "ability-blocks.json",
@@ -215,11 +215,10 @@
     "format-audit.json",
     "forme-assert.json",
     "game-diff.json",
+    "game-differential-endstate-turn40.json",
     "game-differential-endstate-v2.json",
     "game-differential-endstate.json",
     "game-differential.json",
-    "gd-attrib.json",
-    "gd-attrib2.json",
     "guru-matchups.json",
     "guru.js",
     "illusion.json",
@@ -668,5 +667,5 @@
       ]
     }
   ],
-  "generated": "2026-08-12T23:15:18.844Z"
+  "generated": "2026-08-13T00:10:50.702Z"
 }

@@ -338,6 +338,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* WIRE 140 -- Ally Switch actually swapping two bodies, and the consecutive-use roll refusing one.
    * A zero on the first after real games means the branch is not on the path (202 corpus uses). */
   allySwitchSwapped: 0, allySwitchStalled: 0,
+  /* 2026-08-12 -- Raging Bull / Aura Wheel typed off the USER'S FORME. `Hit` is a forme that matched a
+     byForme key; `Default` is the fall-through (base Tauros, base Morpeko), which is the common case
+     and is counted apart so a zero on `Hit` is readable as "no Paldean Tauros was ever brought". */
+  formeTypedMoveHit: 0, formeTypedMoveDefault: 0,
+  /* 2026-08-12 -- Gravity's x1.67 accuracy actually applied to a to-hit test. A zero while a Gravity
+     is up means the field row is not on the path. */
+  gravityAccuracyApplied: 0,
   /* 2026-08-12 -- a body left the field carrying a REWRITTEN type (Soak, Burn Up, Reflect Type) and
      the species' own types were restored, which is `clearVolatile`'s closing `setSpecies`. A zero
      after real games means the rebuild is not on the path. */
@@ -346,9 +353,9 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      the surviving one, which is `getTarget`'s fall-through to `getRandomTarget`. `reaimNoLiveFoe` is
      the other half: nothing left to hit, so the move finds nobody. */
   reaimedOffFaintedFoe: 0, reaimNoLiveFoe: 0,
-  /* 2026-08-12 -- an Encore/Disable that refused because the target has never moved AND said so.
-     The authority emits `-fail` at the user; this engine refused silently. A zero after real games
-     means the announcement is back to being owed. */
+  /* 2026-08-12 -- RETRACTED, and the counter is kept at zero deliberately rather than deleted: the
+     announcement IS owed (the authority emits `-fail` at the user) and the fix that paid it cost 4 and
+     6 games on the whole-game differential, so it was pulled the same day. See the affect branch. */
   sealFailAnnounced: 0,
   /* ROADMAP #162 / #59 -- the two behaviours `stalling` could not express.
    *   stallCounterFed            a Wide Guard or Quick Guard ADVANCED the shared counter, which this
@@ -593,6 +600,9 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                      this project was "the base class could only mega from the LEFT slot"
    *   megaEvolvedAuto    the engine chose it itself rather than being told (S._autoMega) */
   megaCapableBuilt: 0, megaEvolved: 0, megaEvolvedSlotB: 0, megaEvolvedAuto: 0,
+  /* 2026-08-12 -- the field's `onAny` facts (aura, Air Lock, the sleep refusal) recomputed because a
+     mega evolution put a new ability on the field after the turn-top snapshot. */
+  fieldFactsResyncedOnMega: 0,
   /* WIRE 133 -- THE ELEVEN MECHANICS THIS PASS ARMED, each with a name so a ZERO reads as the finding
    * it is (CLAUDE.md: a capability that cannot prove it ran is assumed broken).
    *   switchOutTrigger    an ability fired because a body LEFT the field -- the class, not a member;
@@ -1159,7 +1169,11 @@ const MEDFAILS = { encoreAction: 0,
    * the fallback is indistinguishable from the bug and has to announce itself. Reads 0 across every
    * accuracyMod / writesAccuracy carrier in the artifact today; a non-zero means the format grew a
    * carrier and its evasion or accuracy bonus is silently absent. */
-  accModUntabled: 0, accModUntabledFirst: '',
+  accModUntabled: 0,
+  /* 2026-08-12 -- an ACCMOD row that names an artifact value and could not read it, so the literal
+     fallback beside it was used. Must read 0: a hand number on every sub-100 move is the shape this
+     table exists to avoid. */
+  accModNoTagValue: 0, accModUntabledFirst: '',
   /* WIRE 129 -- an ACCMOD row named a CONDITION _accWhen cannot evaluate. It resolves to false (the
    * modifier does not fire), which is the safe direction and the invisible one, so it is counted. */
   accModUnknownWhen: 0,
@@ -4330,6 +4344,24 @@ const ACCMOD={
    *      carriers in Reg M-B** -- Victini is not in this format. Wiring it would be unreachable code
    *      that no probe could stage, so it stays off. This is the honest blocker and the other two are
    *      not; if a regulation ever restores Victini, only the carrier check has to change. */
+  /* GRAVITY, 2026-08-12 -- AND IT WAS MISSED BECAUSE THIS TABLE HAD NO NAMESPACE FOR IT.
+   *
+   * `gravity.condition.onModifyAccuracy` is `chainModify([6840, 4096])` -- x1.6699, read off the
+   * move's own condition. Hypnosis at 60 becomes 100 and CANNOT MISS; Thunder, Blizzard and Focus
+   * Blast reach 117. The table is keyed `ability:` and `item:` and Gravity is neither: it is a FIELD
+   * effect, and a table with two namespaces cannot hold a member of a third. That is the whole reason
+   * a x1.67 on every sub-100 move in the format went unnoticed.
+   *
+   * WILL'S DIAGNOSTIC, worked out from the rendered cards without reading any source: *"it seems like
+   * all these are missing if there is any chance of missing but on showdown their hypnosis hit"*.
+   * Under the TOP pin every sub-100 move misses, so a missing accuracy modifier is a clean binary --
+   * they hit, we miss -- rather than a subtle multiplier. That is what turned this from a rounding
+   * question into something visible at a glance.
+   *
+   * `side:'field'` IS A THIRD SIDE VALUE, NOT A THIRD TABLE. The row is applied once per hit rather
+   * than once per body, because the field is not a body and applying it under the att/def loop would
+   * double it. */
+  'condition:gravity':   {side:'field',fromTag:['move','gravity','groundsField','accuracyMult'],mult:6840/4096},
   'ability:victorystar': {side:'att',mult:1.1,off:'ZERO legal carriers in Reg M-B (Victini is not in this format), so nothing could stage it. Its side-wide scope is real but no longer a blocker: _sf makes the side reachable since ROADMAP #213'},
 };
 /* A CARRIER WITH NO ROW IS LOUD. A silent default here looks exactly like a working feature, which is
@@ -4778,6 +4810,23 @@ function hitChance(att,def,id,field,ctx){
   if(!_cat&&_mv)_cat=(_mv.bp>0)?(_mv.cat==='phy'?'Physical':'Special'):'Status';
   const cond={weather:(field&&!field.wSup)?field.weather:'',cat:_cat,
               targetAlreadyMoved:c.targetAlreadyMoved};
+  /* THE FIELD'S OWN ROWS, APPLIED ONCE. Not inside the att/def walk below: a field effect belongs to
+   * neither body and running it there would apply it twice. Read off `field.gravity`, the counter the
+   * engine already keeps for the move's other halves. */
+  if(field&&field.gravity>0){
+    const _g=ACCMOD['condition:gravity'];
+    if(_g&&!_g.off){
+      /* THE NUMBER COMES OFF THE ARTIFACT, WHICH ALREADY HAD IT. `groundsField.accuracyMult` reads
+       * 1.669921875 -- exactly 6840/4096 -- and NOTHING HAD EVER READ IT. The literal below is the
+       * same value kept as a LOUD fallback for a tag that stops carrying it, counted rather than
+       * silent, because a made-up multiplier on every sub-100 move is worse than none. */
+      let _m=null;
+      try{const _t=TAGS.param(_g.fromTag[0],_g.fromTag[1],_g.fromTag[2]);
+          if(_t&&+_t[_g.fromTag[3]]>0)_m=+_t[_g.fromTag[3]];}catch(e){}
+      if(_m==null){_m=_g.mult;MEDFAILS.accModNoTagValue++;}
+      acc*=_m;MEDSEEN.gravityAccuracyApplied++;
+    }
+  }
   for(const [who,mon] of [['att',att],['def',def]]){
     if(!mon)continue;
     for(const kind of ['ability','item']){
@@ -4913,6 +4962,28 @@ function effMoveType(mv,moveId,field,att){
    * in the authority: the move's own handler runs and there is nothing Normal left to convert. */
   {const _st=moveId&&TAGS.param('move',moveId,'setsOwnTypeAlways');
    if(_st&&_st.type) return _st.type;}
+  /* 2026-08-12 -- A MOVE WHOSE TYPE IS KEYED ON THE USER'S FORME. Raging Bull and Aura Wheel.
+   *
+   * MEASURED before the tag existed: all four Tauros formes dealt NORMAL damage, so a
+   * Tauros-Paldea-Combat's Raging Bull was RESISTED by a Kingambit where the authority has it 4x --
+   * Fighting into Dark/Steel. Aura Wheel on Morpeko-Hangry is the twin, Electric where it should be
+   * Dark.
+   *
+   * THE FAMILY WAS DERIVED AND PRINTED BEFORE THIS LINE WAS WRITTEN, over the whole legal move set:
+   * exactly FOUR legal moves carry `onModifyType`, two of which (Weather Ball, Terrain Pulse) already
+   * have their own tags, so this is closed at TWO members rather than being a first instalment.
+   * `tag_dex` refuses any handler that does not read `pokemon.species.name`, which is what excludes
+   * the other two BY SHAPE.
+   *
+   * IT SITS ABOVE THE ABILITY CONVERSION for the reason Struggle's line above does: the MOVE's own
+   * `onModifyType` runs before `-ate` conversion in the authority, so a Pixilate body's Raging Bull is
+   * Fighting and not Fairy. `otherwise` is the tag's, never this file's -- Aura Wheel's handler sets
+   * Electric explicitly in its else and Raging Bull's switch falls through to its declared Normal, and
+   * a consumer that assumed one rule for both would be wrong on one of them.
+   *
+   * THE FORME KEY IS THE AUTHORITY'S DISPLAY NAME (`Tauros-Paldea-Combat`) and this engine's is a
+   * paste key (`tauros-paldeacombat`), so both sides are normalised rather than either being trusted. */
+  {const _out=formeMoveType(moveId,att); if(_out)return _out;}
   const _cm=convertsMoveTypeTo(mv,moveId,att,t);
   if(_cm)t=_cm.into;
   const w=moveId&&TAGS.param('move',moveId,'weatherScaled');
@@ -5122,6 +5193,30 @@ function auraFor(field,att,def){
  * passes the whole expectation on the flat path (so the arithmetic is byte-for-byte what it was) and
  * exactly 1 on the per-hit path (where the wrapper sums the hits itself). Nothing outside `dmgRange`
  * calls this; the exported name and its seven-argument signature are unchanged. */
+/* WHAT TYPE IS THIS MOVE WHEN THE ANSWER IS THE USER'S FORME. ONE IMPLEMENTATION, TWO CALLERS.
+ *
+ * `effMoveType` and `dmgRangeOneHit` BOTH resolve a move's real type, and they are two separate
+ * implementations of it -- `dmgRangeOneHit` opens `let mvT = mv.t` and re-does the -ate conversion and
+ * the weather override itself. That is CLAUDE.md's facts-are-global breach in miniature, and it is
+ * exactly what the first version of this wire walked into: `effMoveType` returned Fighting for a
+ * Tauros-Paldea-Combat's Raging Bull NINE TIMES while the damage was still priced Normal, so the
+ * engine went on printing `-resisted` against a Kingambit it should hit for 4x. The gates moved and
+ * the damage did not.
+ *
+ * THE HONEST FIX IS TO MAKE `dmgRangeOneHit` CALL `effMoveType`, AND IT IS NOT DONE HERE. That is a
+ * real consolidation owed its own probe, and folding it into this wire would ship an unmeasured change
+ * to every damage number in the engine. What IS done is that the NEW fact has ONE reader called from
+ * both sites, so the two cannot come apart on this rule; the older duplication is left standing and
+ * named rather than quietly inherited. */
+function formeMoveType(moveId,att){
+  const ft=moveId&&TAGS.param('move',moveId,'formeTypedMove');
+  if(!ft||!ft.byForme||!att)return null;
+  const k=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const me=k(att.name);
+  for(const f in ft.byForme) if(k(f)===me){MEDSEEN.formeTypedMoveHit++;return ft.byForme[f];}
+  if(ft.otherwise){MEDSEEN.formeTypedMoveDefault++;return ft.otherwise;}
+  return null;
+}
 function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,perHit){
   stampMoveIds();
   if(!mv||!hasPower(mv))return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
@@ -5140,6 +5235,12 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * in one turn, so Solar Beam is (wrongly, pre-existing) never charged anywhere -- stated, not fixed
    * by pretending. Pure: mv is never mutated, the overrides live in locals. */
   let mvT=mv.t,mvBP=mv.bp;
+  /* the USER'S FORME decides the type for Raging Bull and Aura Wheel, above the -ate conversion for
+   * the same reason Struggle's rewrite is above it in effMoveType: the MOVE's own onModifyType runs
+   * first in the authority, so a Pixilate body's Raging Bull is Fighting and not Fairy. THIS IS THE
+   * SECOND CALL SITE OF ONE FUNCTION, not a second implementation -- see formeMoveType's header for
+   * why `dmgRangeOneHit` resolving a type at all is the older duplication it is nested inside. */
+  {const _fmt=formeMoveType(mv.id,att); if(_fmt)mvT=_fmt;}
   /* THE -ATE ABILITIES. Aerilate, Pixilate, Galvanize, Refrigerate, Dragonize and Normalize rewrite
    * a NORMAL move's type and add 20% power. Both halves are declared in the dex -- onModifyType
    * names the type, onBasePower carries the multiplier -- and this engine read neither, so an
@@ -9645,6 +9746,29 @@ function megaEvolveNow(S,m,auto){
    * because a mega evolution can carry an Intimidate into a slot that had none. Same helper, same
    * whole-field pass, for the same reason: the drop lands on the FOES and the herb is theirs. */
   restoreStatsAll(S.actA,S.actB);
+  /* 2026-08-12 -- THE FIELD'S `onAny` FACTS ARE RECOMPUTED, BECAUSE A MEGA CAN CREATE ONE MID-TURN.
+   *
+   * `field.aura`, `field.wSup` and the sleep refusal are all computed ONCE at the top of the turn,
+   * with the comment "an `onAny` handler is a property of the FIELD for as long as a carrier is
+   * standing on it, on EITHER side, and a switch or a faint changes it". A MEGA EVOLUTION changes it
+   * too, and it is the one event that can put a carrier on the field WITHOUT a switch — the ability
+   * arrives with the forme, after the snapshot was taken.
+   *
+   * MEASURED on the only legal Fairy Aura body in the format, same mon, same stats, aura present
+   * throughout, Moonblast into an unfaintable Incineroar:
+   *     mega on turn 1   dealt 97 on the mega turn, then 129 on turns 2 and 3
+   *     the same body with the ability blanked from turn 2   97, 97, 97
+   * So 97 is the no-aura price and the aura was simply absent on the turn it arrived — a third of the
+   * damage, on the turn a mega is actually clicked. Floette-Mega is the ONLY Fairy Aura carrier in
+   * Reg M-B, so this is the whole of the ability's exposure.
+   *
+   * ALL THREE ARE RESYNCED, not just the aura: Air Lock and the sleep refusal are the same shape one
+   * event over, and a mega really can bring Cloud Nine or a Sweet Veil onto the field. Fixing only the
+   * one that was measured would leave two of its neighbours wrong for the same reason. */
+  S.field.aura=auraStateOf([...S.actA,...S.actB]);
+  S.field.wSup=[...S.actA,...S.actB].some(x=>x&&!x.fainted&&x.curHP>0&&suppressesWeather(x));
+  refreshSleepBlock(S.actA,S.actB,S.sfA,S.sfB);
+  MEDSEEN.fieldFactsResyncedOnMega++;
   sf.megaUsed=true;
   MEDSEEN.megaEvolved++;
   if(slot===1)MEDSEEN.megaEvolvedSlotB++;
@@ -12977,7 +13101,29 @@ function battleTurn(S,rng,actsForA,actsForB){
          * on the move landed, and the move carries no stat payload that could have succeeded on its
          * own. A move mixing a sealer with another effect is NOT covered, and that is stated rather
          * than assumed absent -- no member of this format's `sealsMoves` family carries one. */
-        if(_sealNoLastMove&&!_volApplied&&!a.sc){ mvFail(m); MEDSEEN.sealFailAnnounced++; }
+        /* RETRACTED THE SAME DAY IT LANDED, AND THE MEASUREMENT IS THE REASON. 2026-08-12.
+         *
+         * The line that stood here was `if(_sealNoLastMove&&!_volApplied&&!a.sc){ mvFail(m); }` and it
+         * is CORRECT on the case it was built from -- a staged Encore into a body that has never moved
+         * emits `|-fail|p1a: Whimsicott` on the authority and emitted nothing here. It is wrong
+         * somewhere else, and the whole-game differential says so at a size that is not arguable:
+         *
+         *     full tree                       225 / 815   249 / 815
+         *     this one line disabled          221 / 815   243 / 815
+         *
+         * FOUR AND SIX GAMES BOUGHT BY ONE NARRATION FIX. Those are games that previously agreed for
+         * twelve turns and now part, so the gate fires where the authority is SILENT. Membership is
+         * not the hole -- it is exactly Encore and Disable, measured against Taunt, Torment, Heal
+         * Block, Throat Chop and Yawn, which all still land. The sub-case was NOT identified, and
+         * shipping a change that is known to manufacture divergences because its motivating example is
+         * right is the "known failure" shape one level down.
+         *
+         * WHAT IS KEPT is `applyMoveVolatile`'s `why` reporting, which is inert on its own and is the
+         * hard half of the work: the refusal can now name itself, so whoever takes this next starts
+         * from the number above and a plumbed reason rather than from scratch. The likely place to
+         * look is `_lastMove` being null here where Showdown's `lastMove` is set -- our move line also
+         * carries a target field where the authority's failed Encore carries none and `[still]`. */
+        void _sealNoLastMove; void _volApplied;
         continue;
       }
       /* WIRE 39 -- HAZE. BOTH SIDES, including the user's own, which is the whole shape of the move:

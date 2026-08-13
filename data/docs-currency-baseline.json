@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-12T21:06:57.369Z",
+  "generated": "2026-08-13T00:10:09.303Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.7.0",
+  "changelog_top_at_baseline": "5.8.0",
   "version_pins": {
     "docs/ABRA-deck-plain-english.md": {
       "version": "3.98.0",
@@ -230,9 +230,7 @@
       "docs/ABRA-whitepaper.md|756|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|8,713|data/quality-filter.json",
       "docs/MEDICHAM-SPRINT-NOTES.md|107|data/scenarios-from-will.json",
-      "docs/MEDICHAM-SPRINT-NOTES.md|111|data/tags.json",
       "docs/MEDICHAM-SPRINT-NOTES.md|1641|data/scenarios-from-will.json",
-      "docs/MEDICHAM-SPRINT-NOTES.md|196|data/tags.json,data/million-targets.json",
       "docs/MEDICHAM-SPRINT-NOTES.md|317|data/policy-weights.json",
       "docs/MEDICHAM-SPRINT-NOTES.md|474|data/scenarios-from-will.json",
       "docs/MEDICHAM-SPRINT-NOTES.md|476|data/scenarios-from-will.json",
@@ -286,7 +284,7 @@
       "docs/ABRA-technical-docs.md": 2,
       "docs/ABRA-whitepaper.md": 12,
       "docs/ARCHITECTURE.md": 1,
-      "docs/MEDICHAM-SPRINT-NOTES.md": 35,
+      "docs/MEDICHAM-SPRINT-NOTES.md": 25,
       "docs/MODELS.md": 15,
       "docs/ROLE-FAMILY.md": 2,
       "docs/SLOWKING-whitepaper.md": 7,

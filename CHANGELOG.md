@@ -10,6 +10,91 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.8.0] — 2026-08-12
+
+### Fixed
+- **THREE WRONG OUTCOMES, ALL FOUND BY READING BATTLES RATHER THAN BY ANY INSTRUMENT.** A rewritten
+  type survived the bench: Showdown's `clearVolatile` ends by rebuilding the body from its base
+  species, so a Soaked Meowscarada is Grass/Dark again when it switches back in. Ours kept it Water,
+  and a Psychic move then killed a body that is immune to Psychic, from full HP. One fix covers Soak,
+  Burn Up and Reflect Type — and Burn Up's own comment asserted "switching out rebuilds the body",
+  which was never true here.
+- **Fairy Aura was live everywhere except the moment it arrives.** The `onAny` half is correct — the
+  aura prices the user, the partner and both foes — but the field's aura state is snapshotted at the
+  top of the turn, and **a mega evolution is the one event that puts an ability on the field without a
+  switch**. The mega turn was priced without its own aura. Fixed for all three field facts rather than
+  the one that was measured.
+- **Raging Bull's type now follows the user's forme**, closing a family derived to be exactly two moves
+  wide. Into one Kingambit: base 33 resisted, Paldea-Combat 288 — four times.
+- **Gravity's accuracy multiplier was absent because `ACCMOD` had no namespace for field effects.**
+  The tag artifact carried the value all along and nothing read it. Hypnosis reaches 100 and cannot
+  miss. The derived sweep also names Lock-On and Minimize as still missing.
+- **Effects bind a SLOT, not a body.** 56 wrong-body hits to zero; 36 of them had been confirmed
+  landing on an orphan object nobody reads again, so the effect silently did nothing and the live
+  body's HP never moved — invisible to every board comparison in the project.
+- **The weather residual ran in slot order while the clock residual had been speed-sorted for days.**
+  Every body takes the same chip, so every total agreed and a damage differential is structurally
+  blind to it.
+- **Focus Band could not save anything** — its whole tag was `flingable`. **Regenerator emitted a heal
+  the authority does not.** **Tangled Feet, Plus and Minus were switched off behind reasons that had
+  expired.**
+
+### Changed
+- **The whole-game comparison is a gate clause now**, at seven clauses rather than six. The bar is a
+  ratchet rather than zero, and the clause prints the absolute figure every run with the words
+  *NOT ZERO, AND THE RATCHET IS NOT A PASS*.
+- **The team pool is frozen** at `data/team-pool-frozen`. It had been read live from stores that are
+  appended to continuously, which is why three runs of one instrument reported 1,556, 1,213 and 983
+  games — a measurement that froze the engine and pinned every die took its SAMPLE from a moving file.
+- **The differential now fills a stat spread.** Every body had run at zero investment, which is not a
+  neutral choice: with everything flat, 91.4% of legal species share a base Speed with some other
+  species, so the rig manufactured speed ties and tested turn order in the one configuration where
+  turn order cannot be got wrong.
+- **The board comparison gained typing and ability**, which it had never carried. Without them the
+  end-of-battle measurement would have returned "cosmetic" for the most serious defect in the register.
+
+### Notes
+- **THE HEADLINE, AND THE UNCOMFORTABLE PART.** The whole-game differential opened the day at
+  **570 of 1,556 games diverging (36.6%)** and closes at **260 of 983 (26.4%)** on the top arm,
+  **284 of 983 (28.9%)** on the bottom. But **five verified narration fixes moved it by nothing**
+  (224 → 225), and **the three wrong-outcome fixes moved it by two games.** The rate counts games and
+  weights a rare catastrophic defect below a common cosmetic one. It is the wrong measure of severity
+  and a severity ladder is being built to replace it.
+- **The end-state measurement says about 62% of diverging games finish in the same state** — different
+  words, identical battle. It also refuted the assumption repeated all day that missing-or-extra lines
+  are mostly harmless: that shape ends in the same state **least** often, 54% against 82% for pure
+  ordering.
+- **A narration fix was taken back OUT.** Announcing Encore's refusal cost **ten games** — battles that
+  had agreed throughout began parting, because our gate fires where the authority is silent. The
+  sub-case could not be found, so it did not ship.
+- **The probe was wrong before the engine was, at least nine times.** A Showdown battle never taken
+  through team preview reads an empty board with every leaf null; `battleInit` slices its own bench so
+  a short team cannot switch; a regex matching single quotes finds nothing in a compiled source that
+  uses double. Every one of those produced a confident false verdict first.
+- **Predictions were wrong three times, in both directions**, each recorded before the run.
+
+---
+
+### Notes — SUPERSEDED MEASUREMENTS, RECORDED SO THEY REMAIN CHECKABLE
+
+Re-running an instrument overwrites its artifact, and `tests/test-docs-current.js` calls a figure
+traceable only while some artifact still contains it. A day of honest re-runs therefore orphaned the
+numbers written earlier in the same day — not because any of them became false, but because the
+evidence behind them was replaced. The registered repair is that a re-run should stamp the figures it
+supersedes. Until that exists they are recorded here, which is what a historical record is for, rather
+than pruned from the log or waved through by raising a ratchet twice in one day.
+
+- **Whole-game differential, the re-run before the spreads landed:** 1,556 games each arm, top-tie-first
+  570 diverged, bottom-tie-first 613, 0 threw either side, 201,493 tied groups resolved. Turn-1 boards
+  identical on 1,529.
+- **Rate run, staged arm:** Static 16,575 trials, 30.42%, CI [29.72, 31.12]; Quick Claw 12,697, 20.19%;
+  Shed Skin 17,432, 33.27%; Healer 19,620, 50.02%; Harvest 19,620, 50.18%.
+- **Rate run, self-play arm:** 30,052 scored major-status trials, of which 1,391 carried no damage line.
+- **Pre-correction z on the targetBoosts family:** −3.107 against a same-family control of −0.584.
+- **Protocol-trace theoretical denominator before 93 ability rows left the file:** 9376.
+
+---
+
 ## [5.7.0] — 2026-08-11
 
 ### Fixed

@@ -1,10 +1,10 @@
 {
   "what": "DIVERGING GAMES WITH THE LINES EITHER SIDE OF THE SPLIT. A debugging view, not a measurement. Both the RAW emitted line and the REDUCED line the comparator decides on are kept: the reduced form is what decided, the raw form is what has to be fixed.",
-  "generated": "2026-08-12T22:41:09.060Z",
-  "engine_release": "795f20af0c26",
+  "generated": "2026-08-13T00:01:08.323Z",
+  "engine_release": "225dda04a2a8",
   "team_store_pinned_to": "data/team-pool-frozen",
   "games": 25,
-  "of_diverged": 262,
+  "of_diverged": 260,
   "divergences": [
     {
       "config": "baseline",
@@ -44,80 +44,37 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2653790568 vs gen9championsvgc2026regmbbo3-2653761564",
-      "agreed_lines": 11,
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |move|p1b|bodyslam <> |-damage|p2a|H/H|[from]painsplit",
-      "at": {
-        "showdown_raw": "|move|p1b: Snorlax|Body Slam|p2a: Milotic",
-        "medicham_raw": "|-damage|p2a: Milotic|147/170|[from] move: painsplit",
-        "showdown": "|move|p1b:snorlax|bodyslam",
-        "medicham": "|-damage|p2a:milotic|147/170|[from]painsplit"
-      },
-      "before": [
-        "|-boost|p2a:milotic|atk|1",
-        "|-boost|p2a:milotic|def|1",
-        "|-boost|p2a:milotic|accuracy|1",
-        "|move|p1a:spiritomb|painsplit"
-      ],
-      "after": {
-        "showdown": [
-          "|move|p1b: Snorlax|Body Slam|p2a: Milotic",
-          "|-damage|p2a: Milotic|78/170",
-          "|-heal|p2a: Milotic|88/170|[from] item: Leftovers",
-          "|upkeep",
-          "|turn|2"
-        ],
-        "medicham": [
-          "|-damage|p2a: Milotic|147/170|[from] move: painsplit",
-          "|-damage|p1a: Spiritomb|125/125|[from] move: painsplit",
-          "|move|p1b: Snorlax|bodyslam|p2a: Milotic",
-          "|-damage|p2a: Milotic|78/170",
-          "|-heal|p2a: Milotic|88/170|[from] item: leftovers",
-          "|upkeep"
-        ]
-      }
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2653737272 vs gen9championsvgc2026regmbbo3-2653690984",
-      "agreed_lines": 99,
+      "agreed_lines": 36,
       "cls": "ordering",
-      "cause": "ordering :: |-boost|p2a|def|1 <> |-enditem|p2a|leftovers|[from]knockoff",
+      "cause": "ordering :: |-weather|sunnyday|[from]drought <> |-heal|p2a|H/H|[from]hospitality",
       "at": {
-        "showdown_raw": "|-boost|p2a: Archaludon|def|1",
-        "medicham_raw": "|-enditem|p2a: Archaludon|leftovers|[from] move: knockoff|[of] p1a: Swampert",
-        "showdown": "|-boost|p2a:archaludon|def|1",
-        "medicham": "|-enditem|p2a:archaludon|leftovers|[from]knockoff"
+        "showdown_raw": "|-weather|SunnyDay|[from] ability: Drought|[of] p1a: Torkoal",
+        "medicham_raw": "|-heal|p2a: Milotic|100/170|[from] ability: hospitality|[of] p2b: Sinistcha",
+        "showdown": "|-weather|sunnyday|[from]drought",
+        "medicham": "|-heal|p2a:milotic|100/170|[from]hospitality"
       },
       "before": [
-        "|-miss|p2b:charizard|p1a:swampert",
-        "|-miss|p2b:charizard|p1b:pelipper",
-        "|move|p1a:swampert|knockoff",
-        "|-damage|p2a:archaludon|86/165"
+        "|-heal|p2a:milotic|58/170|[from]leftovers",
+        "|upkeep",
+        "|switch|p2b:sinistcha|sinistcha,l50|146/146",
+        "|switch|p1a:torkoal|torkoal,l50|145/145"
       ],
       "after": {
         "showdown": [
-          "|-boost|p2a: Archaludon|def|1",
-          "|-enditem|p2a: Archaludon|Leftovers|[from] move: Knock Off|[of] p1a: Swampert",
-          "|move|p2a: Archaludon|Electro Shot||[still]",
-          "|-prepare|p2a: Archaludon|Electro Shot",
-          "|-boost|p2a: Archaludon|spa|1",
-          "|move|p1b: Pelipper|Hurricane|p2a: Archaludon|[miss]"
+          "|-weather|SunnyDay|[from] ability: Drought|[of] p1a: Torkoal",
+          "|-heal|p2a: Milotic|100/170|[from] ability: Hospitality|[of] p2b: Sinistcha",
+          "|turn|3"
         ],
         "medicham": [
-          "|-enditem|p2a: Archaludon|leftovers|[from] move: knockoff|[of] p1a: Swampert",
-          "|-boost|p2a: Archaludon|def|1|[from] ability: stamina",
-          "|move|p2a: Archaludon|electroshot|p1a: Swampert",
-          "|-prepare|p2a: Archaludon|electroshot",
-          "|-boost|p2a: Archaludon|spa|1",
-          "|move|p1b: Pelipper|hurricane|p2a: Archaludon"
+          "|-heal|p2a: Milotic|100/170|[from] ability: hospitality|[of] p2b: Sinistcha",
+          "|-weather|sunnyday|[from] ability: drought|[of] p1a: Torkoal"
         ]
       }
     },
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2653964541 vs gen9championsvgc2026regmbbo3-2654290201",
-      "agreed_lines": 90,
+      "agreed_lines": 91,
       "cls": "event missing from medicham2",
       "cause": "event missing from medicham2 :: |-fail|p2b <> |-end|p1a|yawn",
       "at": {
@@ -180,31 +137,33 @@
     },
     {
       "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2654066472 vs gen9championsvgc2026regmbbo3-2654016071",
-      "agreed_lines": 68,
+      "seed": "gen9championsvgc2026regmbbo3-2654158336 vs gen9championsvgc2026regmbbo3-2654113586",
+      "agreed_lines": 19,
       "cls": "ordering",
-      "cause": "ordering :: |switch|p2a|archaludon,l50|H/H <> |switch|p1a|archaludon,l50|H/H",
+      "cause": "ordering :: |-heal|p1b|H/H|[from]leftovers <> |-boost|p2b|spe|1",
       "at": {
-        "showdown_raw": "|switch|p2a: Archaludon|Archaludon, L50|80/165",
-        "medicham_raw": "|switch|p1a: Archaludon|archaludon, L50|165/165",
-        "showdown": "|switch|p2a:archaludon|archaludon,l50|80/165",
-        "medicham": "|switch|p1a:archaludon|archaludon,l50|165/165"
+        "showdown_raw": "|-heal|p1b: Corviknight|107/173|[from] item: Leftovers",
+        "medicham_raw": "|-boost|p2b: Blaziken|spe|1|[from] ability: speedboost",
+        "showdown": "|-heal|p1b:corviknight|107/173|[from]leftovers",
+        "medicham": "|-boost|p2b:blaziken|spe|1"
       },
       "before": [
-        "|-resisted|p2b:glimmora|1",
-        "|-damage|p2b:glimmora|119/158",
-        "|-weather|raindance|[upkeep]",
-        "|upkeep"
+        "|-damage|p1a:sylveon|27/170",
+        "|-unboost|p2b:blaziken|def|1",
+        "|-unboost|p2b:blaziken|spd|1",
+        "|-weather|snowscape|[upkeep]"
       ],
       "after": {
         "showdown": [
-          "|switch|p2a: Archaludon|Archaludon, L50|80/165",
-          "|switch|p1a: Archaludon|Archaludon, L50|165/165",
-          "|turn|5"
+          "|-heal|p1b: Corviknight|107/173|[from] item: Leftovers",
+          "|-boost|p2b: Blaziken|spe|1",
+          "|upkeep",
+          "|turn|2"
         ],
         "medicham": [
-          "|switch|p1a: Archaludon|archaludon, L50|165/165",
-          "|switch|p2a: Archaludon|archaludon, L50|80/165"
+          "|-boost|p2b: Blaziken|spe|1|[from] ability: speedboost",
+          "|-heal|p1b: Corviknight|107/173|[from] item: leftovers",
+          "|upkeep"
         ]
       }
     },
@@ -247,104 +206,65 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2654400537 vs gen9championsvgc2026regmbbo3-2654486674",
-      "agreed_lines": 45,
+      "agreed_lines": 15,
       "cls": "switch: a different body",
-      "cause": "switch: a different body :: |switch|p1a|raichualola,l50|H/H <> |switch|p1a|zoroarkhisui,l50|H/H",
+      "cause": "switch: a different body :: |switch|p1a|swampert,l50|H/H <> |switch|p1a|zoroarkhisui,l50|H/H",
       "at": {
-        "showdown_raw": "|switch|p1a: Raichu|Raichu-Alola, L50|130/130",
+        "showdown_raw": "|switch|p1a: Swampert|Swampert, L50|130/130",
         "medicham_raw": "|switch|p1a: Zoroark|zoroark-hisui, L50|130/130",
-        "showdown": "|switch|p1a:raichu|raichualola,l50|130/130",
+        "showdown": "|switch|p1a:swampert|swampert,l50|130/130",
         "medicham": "|switch|p1a:zoroark|zoroarkhisui,l50|130/130"
       },
       "before": [
+        "|faint|p1a:pelipper",
+        "|switch|p2a:primarina|primarina,l50|155/155",
         "|-weather|raindance|[upkeep]",
-        "|upkeep",
-        "|switch|p1a:raichu|raichualola,l50|135/135",
-        "|turn|4"
+        "|upkeep"
       ],
       "after": {
         "showdown": [
-          "|switch|p1a: Raichu|Raichu-Alola, L50|130/130",
-          "|switch|p2b: Rotom|Rotom-Heat, L50|125/125",
-          "|move|p1b: Swampert|Ice Punch|p2a: Metagross",
-          "|-resisted|p2a: Metagross|1",
-          "|-damage|p2a: Metagross|0 fnt",
-          "|faint|p2a: Metagross"
+          "|switch|p1a: Swampert|Swampert, L50|130/130",
+          "|turn|2"
         ],
         "medicham": [
-          "|switch|p1a: Zoroark|zoroark-hisui, L50|130/130",
-          "|switch|p2b: Rotom|rotom-heat, L50|125/125",
-          "|move|p1b: Swampert|icepunch|p2a: Metagross",
-          "|-resisted|p2a: Metagross|1",
-          "|-damage|p2a: Metagross|0 fnt",
-          "|faint|p2a: Metagross"
+          "|switch|p1a: Zoroark|zoroark-hisui, L50|130/130"
         ]
       }
     },
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2654515998 vs gen9championsvgc2026regmbbo3-2654545512",
-      "agreed_lines": 118,
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |-damage|p1a|0fnt|[from]psn <> |-fieldend|trickroom",
+      "agreed_lines": 85,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-activate|p2a|toxicdebris <> |-sidestart|p1:|toxicspikes",
       "at": {
-        "showdown_raw": "|-damage|p1a: Aerodactyl|0 fnt|[from] psn",
-        "medicham_raw": "|-fieldend|move: Trick Room",
-        "showdown": "|-damage|p1a:aerodactyl|0fnt|[from]psn",
-        "medicham": "|-fieldend|trickroom"
+        "showdown_raw": "|-activate|p2a: Glimmora|ability: Toxic Debris",
+        "medicham_raw": "|-sidestart|p1: |move: toxicspikes",
+        "showdown": "|-activate|p2a:glimmora|toxicdebris",
+        "medicham": "|-sidestart|p1:|toxicspikes"
       },
       "before": [
-        "|-damage|p1a:aerodactyl|3/155psn",
-        "|-damage|p2a:glimmora|98/158|[from]lifeorb",
-        "|move|p1a:aerodactyl|tailwind",
-        "|-sidestart|p1:|tailwind"
+        "|-fail|p2a:glimmora",
+        "|move|p1a:raichu|fakeout",
+        "|-resisted|p2a:glimmora|1",
+        "|-damage|p2a:glimmora|102/158"
       ],
       "after": {
         "showdown": [
-          "|-damage|p1a: Aerodactyl|0 fnt|[from] psn",
-          "|faint|p1a: Aerodactyl"
+          "|-activate|p2a: Glimmora|ability: Toxic Debris",
+          "|-sidestart|p1: A|move: Toxic Spikes",
+          "|move|p1b: Aerodactyl|Wide Guard|p1b: Aerodactyl",
+          "|-singleturn|p1b: Aerodactyl|Wide Guard",
+          "|move|p2b: Pelipper|Hurricane|p1a: Raichu",
+          "|-resisted|p1a: Raichu|1"
         ],
         "medicham": [
-          "|-fieldend|move: Trick Room",
-          "|-damage|p1a: Aerodactyl|0 fnt|[from] psn",
-          "|faint|p1a: Aerodactyl",
-          "|upkeep"
-        ]
-      }
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2654714554 vs gen9championsvgc2026regmbbo3-2654812667",
-      "agreed_lines": 83,
-      "cls": "ordering",
-      "cause": "ordering :: |-enditem|p1a|sitrusberry|[eat] <> |faint|p2b",
-      "at": {
-        "showdown_raw": "|-enditem|p1a: Krookodile|Sitrus Berry|[eat]",
-        "medicham_raw": "|faint|p2b: Basculegion",
-        "showdown": "|-enditem|p1a:krookodile|sitrusberry|[eat]",
-        "medicham": "|faint|p2b:basculegion"
-      },
-      "before": [
-        "|-miss|p1a:krookodile|p2b:basculegion",
-        "|move|p2a:dragonite|earthquake",
-        "|-damage|p2b:basculegion|0fnt",
-        "|-damage|p1a:krookodile|46/170"
-      ],
-      "after": {
-        "showdown": [
-          "|-enditem|p1a: Krookodile|Sitrus Berry|[eat]",
-          "|-heal|p1a: Krookodile|88/170|[from] item: Sitrus Berry",
-          "|faint|p2b: Basculegion",
-          "|-weather|RainDance|[upkeep]",
-          "|upkeep",
-          "|turn|7"
-        ],
-        "medicham": [
-          "|faint|p2b: Basculegion",
-          "|-enditem|p1a: Krookodile|sitrusberry|[eat]",
-          "|-heal|p1a: Krookodile|88/170|[from] item: sitrusberry",
-          "|-weather|raindance|[upkeep]",
-          "|upkeep"
+          "|-sidestart|p1: |move: toxicspikes",
+          "|move|p1b: Aerodactyl|wideguard|p1b: Aerodactyl",
+          "|-singleturn|p1b: Aerodactyl|Wide Guard",
+          "|move|p2b: Pelipper|hurricane|p1a: Raichu",
+          "|-resisted|p1a: Raichu|1",
+          "|-damage|p1a: Raichu|0 fnt"
         ]
       }
     },
@@ -353,12 +273,12 @@
       "seed": "gen9championsvgc2026regmbbo3-2654986294 vs gen9championsvgc2026regmbbo3-2655076520",
       "agreed_lines": 45,
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p1b|lastrespects",
+      "cause": "event missing from medicham2 :: |-fail|p2b <> |move|p1b|wavecrash",
       "at": {
         "showdown_raw": "|-fail|p2b: Whimsicott",
-        "medicham_raw": "|move|p1b: Basculegion|lastrespects|p2a: Froslass",
+        "medicham_raw": "|move|p1b: Basculegion|wavecrash|p2a: Froslass",
         "showdown": "|-fail|p2b:whimsicott",
-        "medicham": "|move|p1b:basculegion|lastrespects"
+        "medicham": "|move|p1b:basculegion|wavecrash"
       },
       "before": [
         "|turn|5",
@@ -369,18 +289,18 @@
       "after": {
         "showdown": [
           "|-fail|p2b: Whimsicott",
-          "|move|p1b: Basculegion|Last Respects|p2a: Froslass",
-          "|-supereffective|p2a: Froslass|1",
+          "|move|p1b: Basculegion|Wave Crash|p2a: Froslass",
           "|-damage|p2a: Froslass|0 fnt",
           "|faint|p2a: Froslass",
-          "|-damage|p1b: Basculegion|157/195|[from] item: Life Orb"
+          "|-damage|p1b: Basculegion|128/195|[from] Recoil",
+          "|-damage|p1b: Basculegion|109/195|[from] item: Life Orb"
         ],
         "medicham": [
-          "|move|p1b: Basculegion|lastrespects|p2a: Froslass",
-          "|-supereffective|p2a: Froslass|1",
+          "|move|p1b: Basculegion|wavecrash|p2a: Froslass",
           "|-damage|p2a: Froslass|0 fnt",
           "|faint|p2a: Froslass",
-          "|-damage|p1b: Basculegion|157/195|[from] item: Life Orb",
+          "|-damage|p1b: Basculegion|128/195|[from] Recoil",
+          "|-damage|p1b: Basculegion|109/195|[from] item: Life Orb",
           "|upkeep"
         ]
       }
@@ -445,32 +365,28 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2655542565 vs gen9championsvgc2026regmbbo3-2655613153",
-      "agreed_lines": 37,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-formechange|p2b|morpekohangry| <> |detailschange|p2b|morpekohangry,l50",
+      "agreed_lines": 82,
+      "cls": "switch field 3",
+      "cause": "switch field 3 :: |switch|p2a|morpeko,l50|H/H <> |switch|p2a|morpekohangry,l50|H/H",
       "at": {
-        "showdown_raw": "|-formechange|p2b: Morpeko|Morpeko-Hangry|",
-        "medicham_raw": "|detailschange|p2b: Morpeko|morpeko-hangry, L50",
-        "showdown": "|-formechange|p2b:morpeko|morpekohangry|",
-        "medicham": "|detailschange|p2b:morpeko|morpekohangry,l50"
+        "showdown_raw": "|switch|p2a: Morpeko|Morpeko, L50|133/133",
+        "medicham_raw": "|switch|p2a: Morpeko|morpeko-hangry, L50|133/133",
+        "showdown": "|switch|p2a:morpeko|morpeko,l50|133/133",
+        "medicham": "|switch|p2a:morpeko|morpekohangry,l50|133/133"
       },
       "before": [
-        "|move|p1b:sneasler|direclaw",
-        "|-damage|p2a:dragonite|0fnt",
-        "|faint|p2a:dragonite",
-        "|-weather|raindance|[upkeep]"
+        "|-damage|p2a:espathra|0fnt",
+        "|faint|p2a:espathra",
+        "|-weather|raindance|[upkeep]",
+        "|upkeep"
       ],
       "after": {
         "showdown": [
-          "|-formechange|p2b: Morpeko|Morpeko-Hangry|",
-          "|upkeep",
-          "|switch|p2a: Politoed|Politoed, L50|165/165",
-          "|turn|4"
+          "|switch|p2a: Morpeko|Morpeko, L50|133/133",
+          "|turn|7"
         ],
         "medicham": [
-          "|detailschange|p2b: Morpeko|morpeko-hangry, L50",
-          "|upkeep",
-          "|switch|p2a: Politoed|politoed, L50|165/165"
+          "|switch|p2a: Morpeko|morpeko-hangry, L50|133/133"
         ]
       }
     },
@@ -508,56 +424,25 @@
     },
     {
       "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2655780718 vs gen9championsvgc2026regmbbo3-2655902939",
-      "agreed_lines": 14,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-start|p1b|taunt <> |-fail|p2a",
-      "at": {
-        "showdown_raw": "|-start|p1b: Maushold|move: Taunt",
-        "medicham_raw": "|-fail|p2a: Tsareena",
-        "showdown": "|-start|p1b:maushold|taunt",
-        "medicham": "|-fail|p2a:tsareena"
-      },
-      "before": [
-        "|faint|p1a:annihilape",
-        "|move|p1b:maushold|populationbomb",
-        "|-miss|p1b:maushold|p2a:tsareena",
-        "|move|p2a:tsareena|taunt"
-      ],
-      "after": {
-        "showdown": [
-          "|-start|p1b: Maushold|move: Taunt",
-          "|upkeep",
-          "|switch|p1a: Dragonite|Dragonite, L50|166/166",
-          "|turn|2"
-        ],
-        "medicham": [
-          "|-fail|p2a: Tsareena",
-          "|upkeep",
-          "|switch|p1a: Dragonite|dragonite, L50|166/166"
-        ]
-      }
-    },
-    {
-      "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2655961808 vs gen9championsvgc2026regmbbo3-2656159439",
-      "agreed_lines": 31,
+      "agreed_lines": 32,
       "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-end|p2a|throatchop <> |upkeep",
+      "cause": "event missing from medicham2 :: |-damage|p2a|H/H|[from]roughskin <> |upkeep",
       "at": {
-        "showdown_raw": "|-end|p2a: Mawile|Throat Chop|[silent]",
+        "showdown_raw": "|-damage|p2a: Mawile|79/125|[from] ability: Rough Skin|[of] p1a: Gardevoir",
         "medicham_raw": "|upkeep",
-        "showdown": "|-end|p2a:mawile|throatchop",
+        "showdown": "|-damage|p2a:mawile|79/125|[from]roughskin",
         "medicham": "|upkeep"
       },
       "before": [
-        "|switch|p1b:primarina|primarina,l50|155/155",
+        "|switch|p1b:farigiraf|farigiraf,l50|195/195",
         "|move|p2a:mawile|brickbreak",
         "|-resisted|p1a:gardevoir|2",
         "|-damage|p1a:gardevoir|110/143"
       ],
       "after": {
         "showdown": [
+          "|-damage|p2a: Mawile|79/125|[from] ability: Rough Skin|[of] p1a: Gardevoir",
           "|-end|p2a: Mawile|Throat Chop|[silent]",
           "|upkeep",
           "|turn|4"
@@ -599,17 +484,17 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2656437798 vs gen9championsvgc2026regmbbo3-2656709541",
-      "agreed_lines": 42,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-status|p1a|slp|[from]hypnosis <> |-miss|p2a|p1a",
+      "agreed_lines": 22,
+      "cls": "-status field 4",
+      "cause": "-status field 4 :: |-status|p1a|slp|[from]hypnosis <> |-status|p1a|slp",
       "at": {
         "showdown_raw": "|-status|p1a: Staraptor|slp|[from] move: Hypnosis",
-        "medicham_raw": "|-miss|p2a: Gengar|p1a: Staraptor",
+        "medicham_raw": "|-status|p1a: Staraptor|slp",
         "showdown": "|-status|p1a:staraptor|slp|[from]hypnosis",
-        "medicham": "|-miss|p2a:gengar|p1a:staraptor"
+        "medicham": "|-status|p1a:staraptor|slp"
       },
       "before": [
-        "|-unboost|p2b:sableye|atk|1",
+        "|-mega|p2a:gengar|gengar|gengarite",
         "|move|p2b:sableye|gravity",
         "|-fail|p2b:sableye",
         "|move|p2a:gengar|hypnosis"
@@ -620,10 +505,10 @@
           "|move|p1b: Kingambit|Brick Break|p2a: Gengar",
           "|-immune|p2a: Gengar",
           "|upkeep",
-          "|turn|5"
+          "|turn|3"
         ],
         "medicham": [
-          "|-miss|p2a: Gengar|p1a: Staraptor",
+          "|-status|p1a: Staraptor|slp",
           "|move|p1b: Kingambit|brickbreak|p2a: Gengar",
           "|-immune|p2a: Gengar",
           "|upkeep"
@@ -633,36 +518,74 @@
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2656592581 vs gen9championsvgc2026regmbbo3-2656492881",
-      "agreed_lines": 17,
-      "cls": "ordering",
-      "cause": "ordering :: |-status|p1a|psn <> |-damage|p2b|H/H|[from]roughskin",
+      "agreed_lines": 33,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-activate|p1b|toxicdebris <> |-sidestart|p2:|toxicspikes",
       "at": {
-        "showdown_raw": "|-status|p1a: Garchomp|psn",
-        "medicham_raw": "|-damage|p2b: Glimmora|120/158|[from] ability: roughskin|[of] p1a: Garchomp",
-        "showdown": "|-status|p1a:garchomp|psn",
-        "medicham": "|-damage|p2b:glimmora|120/158|[from]roughskin"
+        "showdown_raw": "|-activate|p1b: Glimmora|ability: Toxic Debris",
+        "medicham_raw": "|-sidestart|p2: |move: toxicspikes",
+        "showdown": "|-activate|p1b:glimmora|toxicdebris",
+        "medicham": "|-sidestart|p2:|toxicspikes"
       },
       "before": [
-        "|-activate|p1b:glimmora|protect",
-        "|-damage|p2b:glimmora|139/158|[from]spikyshield",
-        "|-resisted|p1a:garchomp|1",
-        "|-damage|p1a:garchomp|173/183"
+        "|-resisted|p1b:glimmora|2",
+        "|-damage|p1a:froslass|133/145",
+        "|-damage|p1b:glimmora|153/158",
+        "|-status|p1a:froslass|psn"
       ],
       "after": {
         "showdown": [
-          "|-status|p1a: Garchomp|psn",
-          "|-damage|p2b: Glimmora|120/158|[from] ability: Rough Skin|[of] p1a: Garchomp",
+          "|-activate|p1b: Glimmora|ability: Toxic Debris",
+          "|-sidestart|p2: B|move: Toxic Spikes",
+          "|-sideend|p2: B|Toxic Spikes|[from] move: Mortal Spin|[of] p2b: Glimmora",
           "|-weather|Sandstorm|[upkeep]",
-          "|-damage|p1a: Garchomp|151/183 psn|[from] psn",
-          "|upkeep",
-          "|turn|2"
+          "|-damage|p1a: Froslass|124/145 psn|[from] Sandstorm",
+          "|-damage|p1a: Froslass|106/145 psn|[from] psn"
         ],
         "medicham": [
-          "|-damage|p2b: Glimmora|120/158|[from] ability: roughskin|[of] p1a: Garchomp",
-          "|-status|p1a: Garchomp|psn",
+          "|-sidestart|p2: |move: toxicspikes",
+          "|-sideend|p2: |move: toxicspikes",
           "|-weather|sandstorm|[upkeep]",
-          "|-damage|p1a: Garchomp|151/183 psn|[from] psn",
+          "|-damage|p1a: Froslass|124/145 psn|[from] Sandstorm",
+          "|-damage|p1a: Froslass|106/145 psn|[from] psn",
           "|upkeep"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2657191274 vs gen9championsvgc2026regmbbo3-2657375767",
+      "agreed_lines": 55,
+      "cls": "ordering",
+      "cause": "ordering :: |-enditem|p2a|whiteherb <> |turn|5",
+      "at": {
+        "showdown_raw": "|-enditem|p2a: Sneasler|White Herb",
+        "medicham_raw": "|turn|5",
+        "showdown": "|-enditem|p2a:sneasler|whiteherb",
+        "medicham": "|turn|5"
+      },
+      "before": [
+        "|upkeep",
+        "|switch|p1a:incineroar|incineroar,l50|160/170",
+        "|-unboost|p2a:sneasler|atk|1",
+        "|-unboost|p2b:steelix|atk|1"
+      ],
+      "after": {
+        "showdown": [
+          "|-enditem|p2a: Sneasler|White Herb",
+          "|-clearnegativeboost|p2a: Sneasler|[silent]",
+          "|turn|5",
+          "|switch|p2a: Tyranitar|Tyranitar, L50|175/175",
+          "|switch|p2b: Sinistcha|Sinistcha, L50|146/146",
+          "|switch|p1a: Whimsicott|Whimsicott, L50|127/135"
+        ],
+        "medicham": [
+          "|turn|5",
+          "|-enditem|p2a: Sneasler|whiteherb",
+          "|-clearnegativeboost|p2a: Sneasler|[silent]",
+          "|switch|p2a: Tyranitar|tyranitar, L50|175/175",
+          "|switch|p2b: Sinistcha|sinistcha, L50|146/146",
+          "|switch|p1a: Whimsicott|whimsicott, L50|127/135"
         ]
       }
     },
@@ -741,103 +664,170 @@
     },
     {
       "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2657728869 vs gen9championsvgc2026regmbbo3-2657831051",
-      "agreed_lines": 30,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-immune|p2a <> |-damage|p2a|0fnt",
+      "seed": "gen9championsvgc2026regmbbo3-2658497581 vs gen9championsvgc2026regmbbo3-2658446009",
+      "agreed_lines": 23,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-damage|p2b|H/H <> |detailschange|p2b|mimikyubusted,l50",
       "at": {
-        "showdown_raw": "|-immune|p2a: Meowscarada",
-        "medicham_raw": "|-damage|p2a: Meowscarada|0 fnt",
-        "showdown": "|-immune|p2a:meowscarada",
-        "medicham": "|-damage|p2a:meowscarada|0fnt"
+        "showdown_raw": "|-damage|p2b: Mimikyu|130/130",
+        "medicham_raw": "|detailschange|p2b: Mimikyu|mimikyu-busted, L50",
+        "showdown": "|-damage|p2b:mimikyu|130/130",
+        "medicham": "|detailschange|p2b:mimikyu|mimikyubusted,l50"
       },
       "before": [
-        "|switch|p2b:annihilape|annihilape,l50|185/185",
-        "|switch|p1b:hydreigon|hydreigon,l50|167/167",
-        "|switch|p2a:meowscarada|meowscarada,l50|151/151",
-        "|move|p1a:metagross|psychicfangs"
+        "|faint|p2a:morpeko",
+        "|-damage|p1a:tauros|135/150|[from]lifeorb",
+        "|move|p1b:pelipper|hurricane",
+        "|-activate|p2b:mimikyu|disguise"
       ],
       "after": {
         "showdown": [
-          "|-immune|p2a: Meowscarada",
-          "|upkeep",
-          "|turn|4"
+          "|-damage|p2b: Mimikyu|130/130",
+          "|detailschange|p2b: Mimikyu|Mimikyu-Busted, L50",
+          "|-damage|p2b: Mimikyu|114/130|[from] pokemon: Mimikyu-Busted",
+          "|-weather|RainDance|[upkeep]",
+          "|-heal|p2b: Mimikyu|122/130|[from] item: Leftovers",
+          "|upkeep"
         ],
         "medicham": [
-          "|-damage|p2a: Meowscarada|0 fnt",
-          "|faint|p2a: Meowscarada",
+          "|detailschange|p2b: Mimikyu|mimikyu-busted, L50",
+          "|-damage|p2b: Mimikyu|114/130",
+          "|-weather|raindance|[upkeep]",
+          "|-heal|p2b: Mimikyu|122/130|[from] item: leftovers",
           "|upkeep",
-          "|switch|p2a: Maushold|maushold, L50|149/149"
+          "|switch|p2a: Raichu|raichu, L50|135/135"
         ]
       }
     },
     {
       "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2657785829 vs gen9championsvgc2026regmbbo3-2657901077",
-      "agreed_lines": 37,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-damage|p2a|0fnt <> |-resisted|p2a|1",
+      "seed": "gen9championsvgc2026regmbbo3-2658674644 vs gen9championsvgc2026regmbbo3-2658770446",
+      "agreed_lines": 95,
+      "cls": "ordering",
+      "cause": "ordering :: |-enditem|p1a|sitrusberry|[eat] <> |-damage|p2a|H/H|[from]recoil",
       "at": {
-        "showdown_raw": "|-damage|p2a: Kingambit|0 fnt",
-        "medicham_raw": "|-resisted|p2a: Kingambit|1",
-        "showdown": "|-damage|p2a:kingambit|0fnt",
-        "medicham": "|-resisted|p2a:kingambit|1"
+        "showdown_raw": "|-enditem|p1a: Farigiraf|Sitrus Berry|[eat]",
+        "medicham_raw": "|-damage|p2a: Incineroar|55/170|[from] Recoil",
+        "showdown": "|-enditem|p1a:farigiraf|sitrusberry|[eat]",
+        "medicham": "|-damage|p2a:incineroar|55/170|[from]recoil"
       },
       "before": [
-        "|move|p1a:pidgeot|hurricane",
-        "|-resisted|p2a:kingambit|1",
-        "|-damage|p2a:kingambit|77/175",
-        "|move|p1b:tauros|ragingbull"
+        "|move|p2b:pelipper|hurricane",
+        "|-miss|p2b:pelipper|p1a:farigiraf",
+        "|move|p2a:incineroar|flareblitz",
+        "|-damage|p1a:farigiraf|95/195"
       ],
       "after": {
         "showdown": [
-          "|-damage|p2a: Kingambit|0 fnt",
-          "|faint|p2a: Kingambit",
-          "|upkeep",
-          "|switch|p2a: Floette|Floette-Eternal, L50|21/149",
-          "|turn|5"
+          "|-enditem|p1a: Farigiraf|Sitrus Berry|[eat]",
+          "|-heal|p1a: Farigiraf|143/195|[from] item: Sitrus Berry",
+          "|-damage|p2a: Incineroar|55/170|[from] Recoil",
+          "|-enditem|p2a: Incineroar|Sitrus Berry|[eat]",
+          "|-heal|p2a: Incineroar|97/170|[from] item: Sitrus Berry",
+          "|move|p1a: Farigiraf|Trick Room|p1a: Farigiraf"
         ],
         "medicham": [
-          "|-resisted|p2a: Kingambit|1",
-          "|-damage|p2a: Kingambit|51/175",
+          "|-damage|p2a: Incineroar|55/170|[from] Recoil",
+          "|-enditem|p2a: Incineroar|sitrusberry|[eat]",
+          "|-heal|p2a: Incineroar|97/170|[from] item: sitrusberry",
+          "|-enditem|p1a: Farigiraf|sitrusberry|[eat]",
+          "|-heal|p1a: Farigiraf|143/195|[from] item: sitrusberry",
+          "|move|p1a: Farigiraf|trickroom|p1a: Farigiraf"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2658726023 vs gen9championsvgc2026regmbbo3-2658819446",
+      "agreed_lines": 13,
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |faint|p2a <> |-damage|p2a|0fnt",
+      "at": {
+        "showdown_raw": "|faint|p2a: Staraptor",
+        "medicham_raw": "|-damage|p2a: Staraptor|0 fnt",
+        "showdown": "|faint|p2a:staraptor",
+        "medicham": "|-damage|p2a:staraptor|0fnt"
+      },
+      "before": [
+        "|switch|p1b:garchomp|garchomp,l50|183/183",
+        "|switch|p2b:farigiraf|farigiraf,l50|195/195",
+        "|move|p2a:staraptor|finalgambit",
+        "|-damage|p1a:milotic|10/170"
+      ],
+      "after": {
+        "showdown": [
+          "|faint|p2a: Staraptor",
+          "|-weather|Snowscape|[upkeep]",
+          "|-heal|p1a: Milotic|20/170|[from] item: Leftovers",
+          "|upkeep",
+          "|switch|p2a: Kingambit|Kingambit, L50|175/175",
+          "|turn|2"
+        ],
+        "medicham": [
+          "|-damage|p2a: Staraptor|0 fnt",
+          "|faint|p2a: Staraptor",
+          "|-weather|snowscape|[upkeep]",
+          "|-heal|p1a: Milotic|20/170|[from] item: leftovers",
+          "|upkeep",
+          "|switch|p2a: Kingambit|kingambit, L50|175/175"
+        ]
+      }
+    },
+    {
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2659495931 vs gen9championsvgc2026regmbbo3-2659538993",
+      "agreed_lines": 17,
+      "cls": "unrelated event mismatch",
+      "cause": "unrelated event mismatch :: |-immune|p1a <> |-miss|p2a|p1a",
+      "at": {
+        "showdown_raw": "|-immune|p1a: Scizor",
+        "medicham_raw": "|-miss|p2a: Toxapex|p1a: Scizor",
+        "showdown": "|-immune|p1a:scizor",
+        "medicham": "|-miss|p2a:toxapex|p1a:scizor"
+      },
+      "before": [
+        "|switch|p1b:ceruledge|ceruledge,l50|150/150",
+        "|switch|p1a:scizor|scizor,l50|145/145",
+        "|switch|p2b:venusaur|venusaur,l50|155/155",
+        "|move|p2a:toxapex|toxic"
+      ],
+      "after": {
+        "showdown": [
+          "|-immune|p1a: Scizor",
+          "|upkeep",
+          "|turn|3"
+        ],
+        "medicham": [
+          "|-miss|p2a: Toxapex|p1a: Scizor",
           "|upkeep"
         ]
       }
     },
     {
       "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2658205203 vs gen9championsvgc2026regmbbo3-2658132014",
-      "agreed_lines": 44,
-      "cls": "-damage field 3",
-      "cause": "-damage field 3 :: |-damage|p1a|0fnt <> |-damage|p1a|H/H",
+      "seed": "gen9championsvgc2026regmbbo3-2659570733 vs gen9championsvgc2026regmbbo3-2659719523",
+      "agreed_lines": 2,
+      "cls": "switch: a different body",
+      "cause": "switch: a different body :: |switch|p2a|sinistcha,l50|H/H <> |switch|p2a|zoroarkhisui,l50|H/H",
       "at": {
-        "showdown_raw": "|-damage|p1a: Pelipper|0 fnt",
-        "medicham_raw": "|-damage|p1a: Pelipper|29/135",
-        "showdown": "|-damage|p1a:pelipper|0fnt",
-        "medicham": "|-damage|p1a:pelipper|29/135"
+        "showdown_raw": "|switch|p2a: Sinistcha|Sinistcha, L50|130/130",
+        "medicham_raw": "|switch|p2a: Zoroark|zoroark-hisui, L50|130/130",
+        "showdown": "|switch|p2a:sinistcha|sinistcha,l50|130/130",
+        "medicham": "|switch|p2a:zoroark|zoroarkhisui,l50|130/130"
       },
       "before": [
-        "|switch|p2a:garchomp|garchomp,l50|183/183",
-        "|detailschange|p2b:floette|floettemega,l50",
-        "|-mega|p2b:floette|floette|floettite",
-        "|move|p2b:floette|moonblast"
+        "|switch|p1a:aerodactyl|aerodactyl,l50|155/155",
+        "|switch|p1b:kingambit|kingambit,l50|175/175"
       ],
       "after": {
         "showdown": [
-          "|-damage|p1a: Pelipper|0 fnt",
-          "|faint|p1a: Pelipper",
-          "|-weather|none",
-          "|upkeep",
-          "|switch|p1a: Archaludon|Archaludon, L50|165/165",
-          "|turn|6"
+          "|switch|p2a: Sinistcha|Sinistcha, L50|130/130",
+          "|switch|p2b: Glimmora|Glimmora, L50|158/158",
+          "|turn|1"
         ],
         "medicham": [
-          "|-damage|p1a: Pelipper|29/135",
-          "|-enditem|p1a: Pelipper|sitrusberry|[eat]",
-          "|-heal|p1a: Pelipper|62/135|[from] item: sitrusberry",
-          "|move|p1a: Pelipper|hurricane|p2a: Garchomp",
-          "|-damage|p2a: Garchomp|98/183",
-          "|-weather|none"
+          "|switch|p2a: Zoroark|zoroark-hisui, L50|130/130",
+          "|switch|p2b: Glimmora|glimmora, L50|158/158"
         ]
       }
     }

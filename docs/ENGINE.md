@@ -36,7 +36,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  533/533 probed mechanics live, 0 missing   (census 2026-08-12 19:14)
+  537/537 probed mechanics live, 0 missing   (census 2026-08-12 19:56)
   0/6000 differential comparisons disagree with Showdown   (2026-08-12 17:05)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -49,15 +49,117 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 00d6e260a25e now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is a9322b296569 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 96874cefd9b4 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 261/279 probed, 18 unprobed
+  tag coverage: 262/280 probed, 18 unprobed
 ```
 
-_stamped 2026-08-12 19:15_
+_stamped 2026-08-12 20:10_
 
 <!-- /GENERATED -->
+
+## A, B, C AND GRAVITY — FOUR WRONG OUTCOMES, AND ONE NARRATION FIX RETRACTED THE DAY IT LANDED. 2026-08-12.
+
+**Census 533 → 537 live / 0 missing.** Four new probes, each shown RED on a deliberate break. The
+retraction below is the most important line in this entry.
+
+| | top-tie-first | bottom-tie-first |
+|---|---|---|
+| control — release `795f20af0c26` | 224 / 815 | 246 / 815 |
+| batch 2 as shipped | 225 / 815 | 249 / 815 |
+| **Encore's `-fail` retracted** | **221 / 815** | **243 / 815** |
+| + A (types) + B (aura on mega) + Gravity | 214 / 815 | 248 / 815 |
+| + C (forme-typed moves) — **final** | **214 / 815  26.3%** | **250 / 815  30.7%** |
+
+### THE RETRACTION, FIRST, BECAUSE IT IS THE FINDING
+
+Encore's `-fail` was **correct on the case it was built from** and measurably wrong somewhere else.
+Attribution, one run each as asked:
+
+- **fainted-foe retarget OFF** → 224 / 249. Costs **+1 top, 0 bottom**. Kept.
+- **Encore `-fail` OFF** → 221 / 243. Costs **+4 top and +6 bottom**. **Pulled.**
+
+Ten games bought by one narration fix — games that previously agreed for twelve turns and now part, so
+the gate fires where the authority is SILENT. Membership is not the hole: it is exactly Encore and
+Disable, measured against Taunt, Torment, Heal Block, Throat Chop and Yawn, which all still land. **The
+sub-case was not identified**, and shipping a change known to manufacture divergences because its
+motivating example is right is the "known failure" shape one level down. The `why` plumbing on
+`applyMoveVolatile` is KEPT — it is inert alone and is the hard half, so the next attempt starts from
+the number and a named reason.
+
+### A — A REWRITTEN TYPE SURVIVED THE BENCH. THIS IS THE POKÉMON THAT DIED THROUGH AN IMMUNITY.
+
+Nine hand-built stagings did not reproduce it; **the reproduction did, in one**. A Soaked Meowscarada
+stayed Water through a switch out and back, so a Psychic move killed it from full through the Dark
+immunity. Derived: `switchIn` calls `oldActive.clearVolatile()`, whose last line is
+`setSpecies(this.baseSpecies)` → `setType(species.types, true)`. `faintMessages` calls the same. It
+covers Soak, Burn Up and Reflect Type at once — **Burn Up's own comment asserted "switching out
+rebuilds the body", which was simply not true of this engine.**
+
+**AND THE FIRST VERSION WAS A SILENT NO-OP.** It read `_row.types`; the field is `_row.t`, undefined on
+every row. The restore did nothing and looked exactly like the fix working. **Only the counter caught
+it** — it stayed 0 on a staging that had just been shown to need it.
+
+### B — AN ABILITY THAT ARRIVES WITH A MEGA WAS NOT ON THE FIELD THAT TURN
+
+`field.aura`, `field.wSup` and the sleep refusal are computed once at the top of the turn, "and a
+switch or a faint changes it". **A mega changes it too, and is the one event that puts a carrier on the
+field without a switch.** Measured, same body, same stats, aura present throughout: `[97, 129, 129]` —
+the mega turn priced without the aura. All three field facts are resynced, not just the one measured.
+
+**The `onAny` half was checked and is LIVE** — an aura on the user, my partner, the foe being hit and
+the other foe all read 87 against a 66 control. Only the arrival moment was wrong; the half-measured
+warning was right to make.
+
+### C — RAGING BULL'S TYPE, AND IT NEEDED A DERIVATION BEFORE A CONSUMER COULD EXIST
+
+`tag_dex` gained `formeTypedMove`, derived from `onModifyType` and refusing any handler that does not
+read `pokemon.species.name`. **Membership printed before a line was wired:** exactly FOUR legal moves
+carry `onModifyType`, two already covered by `weatherScaled`/`terrainScaled`, so the family is **closed
+at two** — Raging Bull and Aura Wheel. `otherwise` is part of the fact: Aura Wheel's handler sets
+Electric in an explicit else, Raging Bull's switch falls through to its declared Normal.
+
+Into one unfaintable Kingambit: tauros 33 (Normal, resisted), **Paldea-Combat 288 (`x2` on the
+supereffective line — four times)**, Paldea-Blaze 144, Paldea-Aqua 80.
+
+**AND THE FIRST VERSION MOVED THE GATES AND NOT THE DAMAGE.** `effMoveType` returned Fighting nine
+times while `dmgRangeOneHit` — which resolves the type *again*, on its own — kept pricing Normal. The
+new fact now has ONE reader called from both sites. **`dmgRangeOneHit` duplicating `effMoveType` is a
+real facts-are-global breach that is left standing and named**, because consolidating it would ship an
+unmeasured change to every damage number in the engine.
+
+### GRAVITY, AND THE DERIVED `ACCMOD` SWEEP
+
+`ACCMOD` was keyed `ability:` and `item:`; **Gravity is neither** — it is a field effect, and a table
+with two namespaces cannot hold a member of a third. Hypnosis 60 → 100.2 (unmissable), Thunder,
+Blizzard and Focus Blast 70 → 116.9. The multiplier is read from the artifact's own
+`groundsField.accuracyMult`, which **carried 1.669921875 all along and had no reader**.
+
+The sweep, derived over every legal ability, item and move-borne condition:
+
+| | |
+|---|---|
+| present and wired | compoundeyes, hustle, sandveil, snowcloak, tangledfeet, wonderskin, brightpowder, widelens, zoomlens, noguard |
+| **MISSING** | **`condition:gravity` (now wired), `condition:lockon`, `condition:minimize`** |
+| present-but-`off`, reason re-derived and still correct | `victorystar` (zero legal carriers), `skilllink` (`onModifyMove` only — not an accuracy handler at all) |
+| inert row | `item:laxincense` — `isNonstandard: 'Past'`, so it can never be held |
+
+**Two are still missing and both are legal**: Lock-On's `onSourceAccuracy` returns `true` (never miss)
+and Minimize's `onAccuracy` returns `true` for `minimize`-flagged moves. Both are in the `condition:`
+namespace this pass created, so they are now additions rather than redesigns.
+
+**Will's diagnostic is the part worth keeping**, worked out from the rendered cards with no source:
+*"it seems like all these are missing if there is any chance of missing but on showdown their hypnosis
+hit"*. Under the top pin every sub-100 move misses, so a missing accuracy modifier is a clean binary.
+
+### THE BOTTOM ARM WENT UP AND I DID NOT ATTRIBUTE IT
+
+243 → 248 with A+B+Gravity → 250 with C. **The top arm improved by 10 and the bottom worsened by 7 from
+its low.** Gravity cannot touch the bottom arm at all (everything hits there), so it is A, B, C or the
+retarget. C's own step is +2 bottom and 0 top. **Not attributed further — that is one run per suspect
+and the budget went on landing them.** It is the same shape as the flat headline: a correct fix lets a
+game run past its old first divergence into a new one.
 
 ## SECOND BATCH OFF WILL'S READ — FIVE LANDED, AND THE ONE CALLED A POSSIBLE REGRESSION WAS NOT ONE. 2026-08-12.
 

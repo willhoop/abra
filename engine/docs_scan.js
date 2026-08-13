@@ -123,7 +123,16 @@ function figuresIn(line) {
     .replace(/\b\d{4}-\d{2}-\d{2}\b/g, ' ')         // ISO dates
     .replace(/\bv?\d+\.\d+\.\d+\b/g, ' ')           // version strings
     .replace(/§\s*\d+[a-z]?/gi, ' ')                // section references
-    .replace(/\b[Rr]\d\b/g, ' ');                   // rung names R1..R4
+    .replace(/\b[Rr]\d\b/g, ' ')                    // rung names R1..R4
+    /* A CITED SOURCE LINE IS THE OPPOSITE OF AN UNTRACEABLE FIGURE, AND THIS SCAN COUNTED IT AS ONE.
+     * "the block is split across lines 10914-10915" is a citation into pokemon-showdown — the very
+     * act this project calls READ:<file>:<line> and prefers over typing a number from memory. The
+     * census reported both halves as unsourced measurements, so a sentence became cheaper to write
+     * WITHOUT its provenance than with it. That is the gate paying for the wrong behaviour.
+     *
+     * ID_WORD cannot carry this: it is a lookbehind on one word, and a RANGE puts the second number
+     * behind a hyphen instead. Stripping the whole "lines N-M" span is what actually covers it. */
+    .replace(/\blines?\s*\d[\d,]*(?:\s*[-–—]\s*\d[\d,]*)?/gi, ' ');
   const out = [];
   let m;
   FIGURE_RE.lastIndex = 0;

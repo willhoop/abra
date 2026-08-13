@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-12T23:23:01.259Z",
+  "generated": "2026-08-12T23:56:51.590Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 534,
-  "live": 534,
+  "probed": 537,
+  "live": 537,
   "missing": 0,
-  "armed": 534,
+  "armed": 537,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2796,7 +2796,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.3% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 21.8% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3517,6 +3517,36 @@
       "label": "a KO replacement's entry effect resolves in the ARRIVING bodies' speed order",
       "live": true,
       "detail": "the same two bodies die; only the replacements' Speed moves. Pelipper 200 / Torkoal 50: sky sun (the SLOWER Torkoal resolves last and owns the field), lines [pelipper,torkoal]. Pelipper 50 / Torkoal 200: sky rain, lines [pelipper,torkoal]. The sky must flip and the lines must not — Showdown runs ONE speed-sorted fieldEvent('SwitchIn') over both arrivals",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "formeTypedMove",
+      "label": "Raging Bull's type follows the user's Tauros forme, and Aura Wheel's follows Morpeko's",
+      "live": true,
+      "detail": "Raging Bull into an unfaintable Kingambit (Dark/Steel), one defender, four formes: tauros 33 (Normal, resisted), PALDEA-COMBAT 288 (Fighting, the -supereffective line reads x2 — FOUR times), PALDEA-BLAZE 144 (Fire, x2), PALDEA-AQUA 80 (Water, neutral). The twin: base Morpeko's Aura Wheel into a Milotic deals 226, super-effective true — Electric, which is the handler's explicit else branch",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "groundsField",
+      "label": "Gravity multiplies accuracy by 1.67, so a 60-accuracy Hypnosis cannot miss",
+      "live": true,
+      "detail": "Hypnosis (60 printed) at the LOSING roll 0.99. NO GRAVITY — target status \"(none)\", a -miss line true. UNDER GRAVITY — status \"slp\", -miss false: 60 x 1.6699 = 100.2, which the engine must treat as unmissable. The multiplier is read from the artifact's own groundsField.accuracyMult, which carried 1.669921875 all along and had no reader",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "auraBoost",
+      "label": "an aura that arrives WITH a mega applies on the mega turn itself",
+      "live": true,
+      "detail": "Floette-Eternal megas on turn 1 and Moonblasts an unfaintable Incineroar twice — [129,129] with the aura kept, forme \"floette-mega\", mega line true. The SAME body with the ability blanked after it evolves: [129,97]. Turn 1 must MATCH between the arms and must EXCEED the blanked turn 2 — that is the aura on the arrival turn, at mega stats, with the stat line held fixed",
       "hollow": false,
       "armed": true,
       "directCall": false

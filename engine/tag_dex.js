@@ -718,6 +718,45 @@ const MOVE_TAGS = [
    * type, bpMult, accuracy, boosts, healFraction, chargeSkip -- all read from four handler idioms
    * (the effectiveWeather switch, the includes() gate, isWeather(), and the weakWeathers array),
    * never from a move list. */
+  /* ROADMAP -- A MOVE WHOSE TYPE IS KEYED ON THE USER'S FORME. 2026-08-12.
+   *
+   * Raging Bull is Normal in this engine on ALL FOUR Tauros formes, so a Tauros-Paldea-Combat's click
+   * was RESISTED by a Kingambit where the authority has it 4x. Aura Wheel is the twin. Neither carried
+   * anything: `ragingbull`'s tags were `pp, clearsScreens, targetClass, contact, formatSecondaryCount`
+   * and no forme-typed row existed anywhere in the artifact, so no consumer could have been written.
+   *
+   * MEMBERSHIP PRINTED BEFORE A CONSUMER WAS WIRED, over the whole legal move set: exactly FOUR legal
+   * moves carry `onModifyType`, and two of them -- Weather Ball and Terrain Pulse -- are already
+   * covered by `weatherScaled` and `terrainScaled`. So this family is closed at TWO, by derivation
+   * rather than by assertion, and the guard below refuses any handler that keys on something other
+   * than the species so a future third member cannot arrive silently mis-derived.
+   *
+   * `otherwise` IS PART OF THE FACT AND IS NOT THE MOVE'S DECLARED TYPE BY DEFAULT. Aura Wheel's
+   * handler has an explicit `else { move.type = "Electric" }`; Raging Bull's switch has no default and
+   * falls through to the declared Normal. Reading the else when it exists and the declared type when
+   * it does not is the difference between a derivation and a guess. */
+  { tag: 'formeTypedMove', param: 'byForme: species name -> type; otherwise: the type when no case matches', probe: 'ragingBull',
+    why: 'Raging Bull on the three Paldean Tauros (Fighting / Fire / Water) and Aura Wheel on '
+       + 'Morpeko-Hangry (Dark). The engine typed every one of them off the move table, so a '
+       + 'Tauros-Paldea-Combat was resisted where the authority is 4x',
+    of: m => {
+      const src = typeof m.onModifyType === 'function' ? String(m.onModifyType) : '';
+      if (!src) return null;
+      /* ONLY the species-keyed shape. Weather Ball switches on `effectiveWeather()` and Terrain Pulse
+       * on `this.field.terrain`; both must fall through to their own tags rather than be half-read
+       * here. Requiring the species read is what excludes them BY SHAPE and not by name. */
+      if (!/pokemon\.species\.name/.test(src)) return null;
+      const by = {};
+      /* the `switch (pokemon.species.name) { case "X": move.type = "T"; ...` form */
+      const sw = /case\s*"([^"]+)"\s*:\s*move\.type\s*=\s*"(\w+)"/g;
+      let mm; while ((mm = sw.exec(src))) by[mm[1]] = mm[2];
+      /* and the `if (pokemon.species.name === "X") { move.type = "T" } else { move.type = "U" }` form */
+      const iff = /species\.name\s*===\s*"([^"]+)"\)\s*\{\s*move\.type\s*=\s*"(\w+)"/.exec(src);
+      if (iff) by[iff[1]] = iff[2];
+      if (!Object.keys(by).length) return null;
+      const els = /else\s*\{\s*move\.type\s*=\s*"(\w+)"/.exec(src);
+      return { byForme: by, otherwise: els ? els[1] : (m.type || null) };
+    } },
   { tag: 'weatherScaled', param: 'byWeather: WHICH weather changes WHAT (type / power / accuracy / boosts / heal / charge)', probe: 'weatherBall',
     why: 'Weather Ball (4,699), Thunder, Hurricane, Blizzard, Solar Beam (2,477), Growth, and the '
        + 'weather heals. The engine cannot price "it depends on the weather"; it can price x2 in sand',

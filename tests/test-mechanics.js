@@ -419,7 +419,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * spends up to three real turns through `battleTurn`, and it has to: the whole mechanic is a fact
  * carried ACROSS a turn boundary -- what the body CONSUMED on an earlier turn -- and the berry that
  * creates that fact fires at the residual, so nothing below the turn loop can see either end of it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -10857,6 +10857,161 @@ probe('ability', 'weatherSetter', 'a KO replacement\'s entry effect resolves in 
                  + `field), lines [${pelFast.order}]. Pelipper 50 / Torkoal 200: sky ${torFast.sky}, `
                  + `lines [${torFast.order}]. The sky must flip and the lines must not — Showdown `
                  + `runs ONE speed-sorted fieldEvent('SwitchIn') over both arrivals` };
+});
+
+/* ---- A MOVE WHOSE TYPE IS THE USER'S FORME. RAGING BULL AND AURA WHEEL. ------------------------
+ *
+ * MEASURED BEFORE THE TAG EXISTED: all four Tauros formes dealt NORMAL damage, so a
+ * Tauros-Paldea-Combat's Raging Bull was RESISTED by a Kingambit where the authority has it 4x.
+ * `ragingbull` carried `pp, clearsScreens, targetClass, contact, formatSecondaryCount` and NO
+ * forme-typed row existed anywhere in the artifact, so no consumer could have been written.
+ *
+ * MEMBERSHIP WAS DERIVED AND PRINTED BEFORE A LINE WAS WIRED, over the whole legal move set: exactly
+ * FOUR legal moves carry `onModifyType`, two of which (Weather Ball, Terrain Pulse) already have their
+ * own tags. So the family is CLOSED AT TWO by derivation rather than by assertion, and `tag_dex`
+ * refuses any handler that does not read `pokemon.species.name` — which is what excludes the other two
+ * by shape rather than by name.
+ *
+ * THE PROBE IS THE CHART, NOT THE FIELD. One defender, four formes, and the four answers must differ
+ * from each other in the direction the type chart predicts — Fighting 4x into Dark/Steel, Fire 2x,
+ * Water neutral, Normal resisted. Reading `mv.t` back would have passed on the first version of this
+ * wire, which moved `effMoveType` and left the DAMAGE priced off a second, separate resolution. */
+const formeTyped = (sp) => {
+  const me = bare(sp), ally = bare('milotic');
+  const f1 = bare('kingambit'), f2 = bare('milotic');
+  unfaintable(f1); unfaintable(f1);
+  me.st = Object.assign({}, me.st, { sp: 999 });
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  const b0 = f1.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'ragingbull', f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { dealt: b0 - f1.curHP,
+           eff: (trace.find(l => /^\|-(supereffective|resisted)\|/.test(l)) || '(neutral)').split('|')[2] || 'neutral',
+           mult: (trace.find(l => /^\|-supereffective\|/.test(l)) || '').split('|')[3] || '' };
+};
+probe('move', 'formeTypedMove', "Raging Bull's type follows the user's Tauros forme, and Aura Wheel's follows Morpeko's", () => {
+  const base = formeTyped('tauros'), combat = formeTyped('tauros-paldeacombat');
+  const blaze = formeTyped('tauros-paldeablaze'), aqua = formeTyped('tauros-paldeaaqua');
+  /* the twin, on its own defender: base Morpeko's Aura Wheel is Electric and Milotic is Water */
+  const wheel = (() => {
+    const me = bare('morpeko'), ally = bare('milotic'), f1 = bare('milotic'), f2 = bare('milotic');
+    unfaintable(f1); me.st = Object.assign({}, me.st, { sp: 999 });
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const t = []; S._trace = t; const b0 = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'aurawheel', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { dealt: b0 - f1.curHP, se: t.some(l => /^\|-supereffective\|/.test(l)) };
+  })();
+  return { works: base.dealt > 0 && combat.dealt > base.dealt * 3 && combat.mult === '2'
+                  && blaze.dealt > base.dealt && blaze.dealt < combat.dealt
+                  && aqua.dealt > base.dealt && aqua.eff === 'neutral'
+                  && wheel.dealt > 0 && wheel.se,
+           arms: { control: 'tauros ' + base.dealt + '/' + base.eff,
+                   test: 'combat ' + combat.dealt + '/x' + (combat.mult || '1') },
+           detail: `Raging Bull into an unfaintable Kingambit (Dark/Steel), one defender, four formes: `
+                 + `tauros ${base.dealt} (Normal, resisted), PALDEA-COMBAT ${combat.dealt} (Fighting, `
+                 + `the -supereffective line reads x${combat.mult} — FOUR times), PALDEA-BLAZE `
+                 + `${blaze.dealt} (Fire, x2), PALDEA-AQUA ${aqua.dealt} (Water, neutral). The twin: `
+                 + `base Morpeko's Aura Wheel into a Milotic deals ${wheel.dealt}, super-effective `
+                 + `${wheel.se} — Electric, which is the handler's explicit else branch` };
+});
+
+/* ---- GRAVITY MULTIPLIES ACCURACY BY 1.67, AND `ACCMOD` HAD NO NAMESPACE THAT COULD HOLD IT -------
+ *
+ * `gravity.condition.onModifyAccuracy` is `chainModify([6840, 4096])`. Hypnosis at 60 becomes 100 and
+ * CANNOT MISS; Thunder, Blizzard and Focus Blast reach 117. The table was keyed `ability:` and `item:`
+ * and Gravity is neither — it is a FIELD effect, and a table with two namespaces cannot hold a member
+ * of a third. That is the whole reason a x1.67 on every sub-100 move went unnoticed.
+ *
+ * WILL WORKED IT OUT FROM THE RENDERED CARDS WITHOUT READING ANY SOURCE: *"it seems like all these are
+ * missing if there is any chance of missing but on showdown their hypnosis hit"*. Under the TOP pin
+ * every sub-100 move misses, so a missing accuracy modifier is a clean binary — they hit, we miss.
+ *
+ * THE PROBE SPENDS THE LOSING ROLL, which is the only lever an accuracy probe has: 0.99 loses every
+ * printed accuracy in this format. A Hypnosis that lands on that roll is one the engine believes
+ * cannot miss, and under Gravity it genuinely cannot. The CONTROL is the same click with no Gravity,
+ * which must MISS and leave the target unstatused — otherwise "it landed" is satisfied by an engine
+ * that never rolls at all. */
+const gravityAcc = (up) => {
+  const me = bare('whimsicott'), ally = bare('milotic');
+  const f1 = bare('incineroar'), f2 = bare('milotic');
+  me.st = Object.assign({}, me.st, { sp: 999 });
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  if (up) S.field.gravity = 5;
+  const trace = []; S._trace = trace;
+  M.battleTurn(S, rngLose,
+    new Map([[me, M.playerAction(me, 'hypnosis', f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { status: f1.status || '(none)', missed: trace.some(l => /^\|-miss\|/.test(l)),
+           gravity: S.field.gravity | 0 };
+};
+probe('move', 'groundsField', 'Gravity multiplies accuracy by 1.67, so a 60-accuracy Hypnosis cannot miss', () => {
+  const on = gravityAcc(true), off = gravityAcc(false);
+  return { works: on.status === 'slp' && !on.missed && on.gravity > 0
+                  && off.status === '(none)' && off.missed,
+           arms: { control: off.status + '/miss:' + off.missed, test: on.status + '/miss:' + on.missed },
+           detail: `Hypnosis (60 printed) at the LOSING roll 0.99. NO GRAVITY — target status `
+                 + `"${off.status}", a -miss line ${off.missed}. UNDER GRAVITY — status "${on.status}", `
+                 + `-miss ${on.missed}: 60 x 1.6699 = 100.2, which the engine must treat as unmissable. `
+                 + `The multiplier is read from the artifact's own groundsField.accuracyMult, which `
+                 + `carried 1.669921875 all along and had no reader` };
+});
+
+/* ---- AN ABILITY THAT ARRIVES WITH A MEGA IS ON THE FIELD *THAT TURN* -----------------------------
+ *
+ * `field.aura`, `field.wSup` and the sleep refusal are computed ONCE at the top of the turn, with the
+ * reason written beside them: an `onAny` handler is a property of the FIELD while a carrier stands on
+ * it, "and a switch or a faint changes it". A MEGA EVOLUTION changes it too, and it is the one event
+ * that puts a carrier on the field WITHOUT a switch — the ability arrives with the forme, after the
+ * snapshot was taken.
+ *
+ * MEASURED on the only legal Fairy Aura body in the format. Same mon, same stats, aura present
+ * throughout, Moonblast into an unfaintable Incineroar: `[97, 129, 129]` — the mega turn priced
+ * without the aura and every turn after it priced with. A third of the damage, on the turn a mega is
+ * actually clicked.
+ *
+ * THE CONTROL IS THE SAME BODY WITH THE ABILITY BLANKED AFTER IT EVOLVES, and it has to be: Floette
+ * and Floette-Mega have different Special Attack, so comparing the mega turn against the BASE forme
+ * measures the stat line and not the aura. Blanking after the evolution holds the forme, the stats and
+ * the move fixed and varies only the ability — `[129, 97, 97]`, which is what says 97 is the no-aura
+ * price at mega stats and 129 is the aura's.
+ *
+ * THE `onAny` HALF WAS CHECKED AND IS LIVE, so this probe does not claim it: an aura on the USER, on
+ * MY PARTNER, on the FOE being hit and on the OTHER FOE all read 87 against a 66 control. Only the
+ * arrival moment was wrong. */
+const auraOnMega = (blankAfter) => {
+  const me = bare('floette-eternal'), ally = bare('milotic');
+  const f1 = bare('incineroar'), f2 = bare('milotic');
+  me.item = 'floettite';
+  unfaintable(f1); unfaintable(f1);
+  me.st = Object.assign({}, me.st, { sp: 999 });
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  const dealt = [];
+  for (let t = 0; t < 2; t++) {
+    if (blankAfter && t > 0) me.ability = 'none';
+    const b0 = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'moonblast', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    dealt.push(b0 - f1.curHP);
+  }
+  /* THE EVOLUTION IS ASSERTED, by forme and by the emitted line. A stone the builder did not honour
+   * would leave the base forme standing and the probe would be comparing two un-evolved turns. */
+  return { dealt, forme: me.name, mega: trace.some(l => /^\|-mega\|/.test(l)), ab: me.ability };
+};
+probe('ability', 'auraBoost', 'an aura that arrives WITH a mega applies on the mega turn itself', () => {
+  const kept = auraOnMega(false), blanked = auraOnMega(true);
+  return { works: kept.mega && kept.forme === 'floette-mega' && kept.ab === 'fairyaura'
+                  && kept.dealt[0] === kept.dealt[1] && kept.dealt[0] > blanked.dealt[1]
+                  && blanked.mega && blanked.dealt[0] === kept.dealt[0],
+           arms: { control: blanked.dealt.join(','), test: kept.dealt.join(',') },
+           detail: `Floette-Eternal megas on turn 1 and Moonblasts an unfaintable Incineroar twice — `
+                 + `[${kept.dealt}] with the aura kept, forme "${kept.forme}", mega line ${kept.mega}. `
+                 + `The SAME body with the ability blanked after it evolves: [${blanked.dealt}]. Turn 1 `
+                 + `must MATCH between the arms and must EXCEED the blanked turn 2 — that is the aura `
+                 + `on the arrival turn, at mega stats, with the stat line held fixed` };
 });
 
 /* ---- LEAVING THE FIELD REBUILDS THE BODY, AND A REWRITTEN TYPE DOES NOT SURVIVE THE BENCH -------
