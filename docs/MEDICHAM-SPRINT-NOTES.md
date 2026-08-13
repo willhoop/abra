@@ -7433,3 +7433,30 @@ catch blocks since the 2026-08-06 baseline**, across ~25 files, spread thinly (3
 in `medicham2-browser.js`, 3 in `game_differential.js`, 3 in `million_run.js`, 2 each in four more).
 The agent that found it correctly refused to re-baseline, which would launder a week of other divisions'
 work into its own pass. It is named here with its count rather than carried as a status.
+
+### THE DIVERGENCE VIEWER IS A TOOL NOW, NOT A SCRATCH SCRIPT
+
+Will: *"keep this a template so we can easily use it in the future if need be"*. It is
+`engine/divergence_cards.js`, with `--in` / `--out`.
+
+Every part of it came from a specific complaint rather than from taste. Slot codes become species names
+coloured by side, because *"p1a is hard to read"*. Health becomes a bar plus a fraction plus a percent,
+because *"can you make clear the health an stuff"* — and a status suffix is KEPT, since `49/170 brn` and
+`49/170` are different boards. Events become verbs. Megas get their own highlight, because the first
+render showed raw protocol and the question was *"why arent the mons mega evolving"*. The lead-in went
+from four lines to sixteen, because four crops off the `|move|` that caused the split. And the `[from]`
+tag is emphasised rather than stripped, because stripping it once made two cards render identically and
+Will correctly said there was no difference to see.
+
+**It computes NOTHING.** Every number on the page came out of `game_differential.js`. A figure whose
+only home is a rendering is a figure no gate can check.
+
+Two flags cost a wasted run each and are now written at the top of the file: `--dump-games` takes a
+COUNT rather than being a bare flag, and the dump only writes ALONGSIDE `--write`. Both times the stale
+file on disk was read as the fresh result — the same shape as every other stale-artifact failure here.
+
+**AND CARD 1 IS WHY THE WIDER CONTEXT MATTERED.** With four lines of lead-in it read as an unexplained
+extra `|switch|`. With sixteen it reads: both of p2's active bodies faint, the authority ends the
+battle, and **we send in a replacement**. That is either a bench that should not exist or a lost count
+of who has fainted, and it sits in the class that only became visible tonight — before the truncation
+fix it counted as agreement.

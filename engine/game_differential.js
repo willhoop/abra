@@ -2328,10 +2328,19 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
                   * what a person has to go and fix. */
                  sdRaw: sdRawAll[A.rawIdx[i]], meRaw: raw[B.rawIdx[i]],
                  meRawIndex: B.rawIdx[i],
-                 before: b.slice(Math.max(0, i - 4), i),
-                 sdAfter: a.slice(i, i + 6), meAfter: b.slice(i, i + 6),
-                 sdAfterRaw: A.rawIdx.slice(i, i + 6).map(j => sdRawAll[j]),
-                 meAfterRaw: B.rawIdx.slice(i, i + 6).map(j => raw[j]),
+                 /* FOUR LINES BEFORE IS NOT A TURN — WILL, 2026-08-13: *"can you make it clear like
+                  * you did for the last one with the moves and megas"*. A split shown with four lines
+                  * of lead-in loses the `|move|` that caused it and every `|-mega|` earlier in the
+                  * turn, so a reader sees a consequence with its cause cropped off. Widened to reach
+                  * back past the turn boundary in a doubles game: four bodies acting, each with a
+                  * move line plus its damage, resisted, crit and secondary lines. */
+                 before: b.slice(Math.max(0, i - 16), i),
+                 sdAfter: a.slice(i, i + 10), meAfter: b.slice(i, i + 10),
+                 sdAfterRaw: A.rawIdx.slice(i, i + 10).map(j => sdRawAll[j]),
+                 meAfterRaw: B.rawIdx.slice(i, i + 10).map(j => raw[j]),
+                 /* the RAW lead-in too: `before` is the reduced form, and the reduced form is where a
+                  * `|-mega|` can have been normalised away before a person ever sees it. */
+                 beforeRaw: B.rawIdx.slice(Math.max(0, i - 16), i).map(j => raw[j]),
                  agreedLines: i };
       }
     }
@@ -5399,6 +5408,7 @@ if (DUMP_GAMES && diverged.length) {
     at: { showdown_raw: r.div.sdRaw, medicham_raw: r.div.meRaw,
           showdown: r.div.sd, medicham: r.div.me },
     before: r.div.before || [],
+    before_raw: r.div.beforeRaw || [],
     after: { showdown: r.div.sdAfterRaw || r.div.sdAfter || [],
              medicham: r.div.meAfterRaw || r.div.meAfter || [] },
   }));
