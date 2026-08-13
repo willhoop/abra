@@ -147,6 +147,39 @@ function renderLine(line) {
 }
 
 const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+/* THE PAGE CARRIES ITS OWN READING ORDER — WILL, 2026-08-13: *"i dont want to keep scrolling up
+ * for the list of things you want me to look at, can you either just remake the artifact in the order
+ * you want?"*. Fair: an ordered list that lives in the chat is a handoff document, and this project has
+ * fourteen of those it no longer trusts. The order and the question now travel WITH the evidence.
+ *
+ * Ranked by how much a human judgement is worth on it, which is NOT the same as how many cards there
+ * are. The classifier can say what SHAPE a disagreement is; it can never say which engine is right, and
+ * that is the whole reason these groups are ordered this way. */
+const READING_ORDER = [
+  { cls: 'event missing from medicham2',
+    title: 'Showdown says something we never say',
+    ask: 'Would that missing line have changed what happens next? If yes it is a defect. If no it is '
+       + 'narration and I will stop counting it against us.' },
+  { cls: 'showdown stopped emitting while medicham2 continued',
+    title: 'We keep playing after Showdown has stopped',
+    ask: 'Showdown thinks the game is over and we are still going. This class was 38 games and an '
+       + 'agent got it to 2 — these are what is left, so each one is either a new cause or an old one '
+       + 'resurfacing.' },
+  { cls: 'ordering',
+    title: 'Same events, different order',
+    ask: 'Is the order actually wrong, or a different-but-equivalent way to say the same turn? Two of '
+       + 'tonight\'s fixes came out of this class.' },
+  { cls: 'extra event emitted by medicham2',
+    title: 'We say something Showdown never says',
+    ask: 'Is that line describing something that really happened, or are we inventing an event?' },
+  { cls: 'unrelated event mismatch',
+    title: 'Both engines emit — different events entirely',
+    ask: 'These are the hardest to classify automatically. Often the two sides are describing the '
+       + 'same board from different angles; sometimes the boards genuinely differ.' },
+  { cls: '-damage field 3',
+    title: 'Same damage event, different number',
+    ask: 'A number mismatch is nearly always a real defect. Worth a look even though there are few.' },
+];
 const armTally = {}; for (const x of all) if (x.arm) armTally[x.arm] = (armTally[x.arm] || 0) + 1;
 const ARMS_PRESENT = Object.keys(armTally).sort();
 const TOTAL_DIVERGED = d.of_diverged || all.length;
@@ -158,10 +191,36 @@ const RATE_LINE = (() => {
   if (!by) return esc(TOTAL_DIVERGED + ' diverging games');
   return Object.keys(by).sort().map(k => esc(k + ' ' + by[k])).join(' &nbsp;·&nbsp; ') + ' diverged';
 })();
+/* SORTED BEFORE NUMBERING, so card 1 is the first thing worth reading rather than the first thing
+ * the differential happened to record. A class not named in READING_ORDER keeps its place at the end
+ * rather than being dropped — an unlisted class is an unranked one, never an invisible one. */
+const rank = c => { const i = READING_ORDER.findIndex(r => r.cls === c); return i < 0 ? READING_ORDER.length : i; };
+all.sort((a, b) => rank(a.cls) - rank(b.cls));
+const GROUPS = (() => {
+  const seen = [], out = [];
+  for (const g of all) { const c = g.cls || 'unclassified'; if (!seen.includes(c)) { seen.push(c); out.push(c); } }
+  return out.map(c => ({ cls: c, meta: READING_ORDER.find(r => r.cls === c) || null,
+                         n: all.filter(x => (x.cls || 'unclassified') === c).length }));
+})();
 const classes = [...new Set(all.map(x => x.cls || 'unclassified'))].sort();
 const tally = {}; for (const x of all) tally[x.cls || 'unclassified'] = (tally[x.cls || 'unclassified'] || 0) + 1;
 
+let _lastCls = null;
 const cards = all.map((g, i) => {
+  /* The heading rides INSIDE the card list rather than wrapping it, so the class filter can hide a
+   * whole group without leaving an orphaned header behind. */
+  const cls_ = g.cls || 'unclassified';
+  let head = '';
+  if (cls_ !== _lastCls) {
+    _lastCls = cls_;
+    const grp = GROUPS.find(x => x.cls === cls_);
+    head = `<section class="grouphead" data-cls="${esc(slug(cls_))}">
+      <h2>${esc((grp && grp.meta && grp.meta.title) || cls_)}</h2>
+      <p class="ask">${esc((grp && grp.meta && grp.meta.ask) || 'Unranked class — no reading question written for it yet.')}</p>
+      <p class="grpmeta">${grp ? grp.n : 0} cards &nbsp;·&nbsp; classifier calls this <code>${esc(cls_)}</code></p>
+    </section>`;
+  }
+  return head + (() => {
   resetSlots();
   const lead = (g.before_raw && g.before_raw.length ? g.before_raw : g.before) || [];
   const sdAfter = ((g.after && g.after.showdown) || []).slice(1);
@@ -194,6 +253,7 @@ const cards = all.map((g, i) => {
       <div class="side me"><div class="lbl">ours</div>${meHtml}</div>
     </div>
   </article>`;
+  })();
 }).join('');
 
 const html = `<title>Where MEDICHAM and Showdown part</title>
@@ -231,6 +291,16 @@ h1{font-size:clamp(24px,3.4vw,34px);margin:0 0 6px;letter-spacing:-.02em;text-wr
 .legend button:focus-visible{outline:2px solid var(--sd);outline-offset:2px}
 .legend .n{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--muted);font-size:11.5px}
 .cards{display:flex;flex-direction:column;gap:18px}
+.grouphead{margin:26px 0 2px;padding-top:20px;border-top:2px solid var(--rule)}
+.grouphead:first-child{margin-top:6px;padding-top:0;border-top:0}
+.grouphead[hidden]{display:none}
+.grouphead h2{font-size:19px;margin:0 0 6px;letter-spacing:-.01em}
+.ask{margin:0 0 6px;color:var(--ink-2);max-width:70ch;font-size:14px;line-height:1.6}
+.grpmeta{margin:0;color:var(--muted);font-size:12px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+.grpmeta code{background:var(--chip);padding:1px 5px;border-radius:4px}
+.toc{margin:0 0 26px;padding:14px 16px;border:1px solid var(--rule);border-radius:10px;background:var(--card)}
+.toc ol{margin:0;padding-left:20px;color:var(--ink-2);font-size:13.5px;line-height:1.9}
+.toc .n{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--muted);font-size:12px}
 .card{background:var(--card);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
 .card[hidden]{display:none}
 .card-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--rule-2)}
@@ -304,6 +374,9 @@ footer.foot{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);co
     <li><button type="button" data-a="all" aria-pressed="true">both corners <span class="n">${all.length}</span></button></li>
     ${ARMS_PRESENT.map(a => `<li><button type="button" data-a="${esc(slug(a))}" aria-pressed="false">${esc(a)} <span class="n">${armTally[a]}</span></button></li>`).join('')}
   </ul>
+  <nav class="toc"><ol>
+    ${GROUPS.map(g => `<li>${esc((g.meta && g.meta.title) || g.cls)} <span class="n">${g.n}</span></li>`).join('')}
+  </ol></nav>
   <div class="cards">${cards}</div>
   <footer class="foot">Read the two coloured panels first — everything above them is agreement. If the
   two sides describe the same board in different words, that's narration. If they describe different
@@ -311,10 +384,26 @@ footer.foot{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);co
 </div>
 <script>
 (function(){
- var c=[].slice.call(document.querySelectorAll('.card')), cls='all', arm='all';
- function apply(){c.forEach(function(k){
-   k.hidden=(cls!=='all'&&k.getAttribute('data-cls')!==cls)||(arm!=='all'&&k.getAttribute('data-arm')!==arm);
- });}
+ /* headings are hidden by the same rule as their cards, or filtering leaves orphans behind */
+ var c=[].slice.call(document.querySelectorAll('.card,.grouphead')), cls='all', arm='all';
+ function apply(){
+   c.forEach(function(k){
+     var isHead=k.classList.contains('grouphead');
+     k.hidden=(cls!=='all'&&k.getAttribute('data-cls')!==cls)
+            ||(!isHead&&arm!=='all'&&k.getAttribute('data-arm')!==arm);
+   });
+   /* A HEADING WITH NOTHING UNDER IT IS A LIE ABOUT THE FILTER. The arm filter hides cards and not
+    * headings, so a one-card group (there are two) would otherwise show its title and question with
+    * no evidence beneath. Second pass: a head survives only if a card of its class is still visible. */
+   c.forEach(function(k){
+     if(!k.classList.contains('grouphead')||k.hidden) return;
+     var mine=k.getAttribute('data-cls'), any=false;
+     c.forEach(function(x){
+       if(x.classList.contains('card')&&!x.hidden&&x.getAttribute('data-cls')===mine) any=true;
+     });
+     if(!any) k.hidden=true;
+   });
+ }
  function group(sel,attr,set){var b=[].slice.call(document.querySelectorAll(sel));
   b.forEach(function(x){x.addEventListener('click',function(){
     b.forEach(function(o){o.setAttribute('aria-pressed',String(o===x))});

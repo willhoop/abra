@@ -7878,3 +7878,53 @@ unconditionally, and it takes no `--out` either (`OUT_NAME` is switched only by 
 stated mitigation is a no-op: this pass ran with no flags and rewrote the artifact anyway, and only
 avoided orphaning anything because it asked for the published size and reproduced the published
 figure. The split has to be BUILT. Reported to MEASURE in the row; not fixed here.
+
+### AN HOUR OF WILL READING CARDS: FIVE ROWS, AND TWO OF THEM ARE ABOUT THE INSTRUMENT. 2026-08-13
+
+Registered #259–#263. The pattern from earlier in the week held — the classifier can say what SHAPE a
+disagreement is and never which engine is right, so a human reading the rendered games finds things no
+run surfaces.
+
+**#259 — one frozen body thaws with an announcement and the other thaws silently, same turn.** Both p1
+bodies frozen; the authority cures both with `[msg]`, we emit one line and play the second body's move
+anyway. **The thaw HAPPENS and only the announcement is missing**, and one branch handles both bodies —
+nothing in it distinguishes p1a from p1b. Toxapex is slot **a** and Incineroar slot **b**, which is the
+presentation the mega bug had, but reasoning from a code read was wrong twice this same day, so it is
+registered for STAGING rather than fixed on a hunch.
+
+**#260 — "every secondary fires" self-cancels for anything with an escape roll.** Will: *"bro
+guaranteed freeze in the lower bound is so broken"*, then *"but i guess we get guaranteed thaw?"* Both
+right, and together they name a property of the pin nobody had written down. `chance = (num, den) =>
+random(den) < num` with `random` pinned to 0 makes EVERY `randomChance` true, so the freeze secondary
+fires **and** the thaw check inside `frz.onBeforeMove` fires — the body freezes and cures before losing
+a turn. **The bottom arm never exercises frozen-turn behaviour while appearing to guarantee it.** One-roll
+effects compound (paralysis applies AND fully paralyses every turn); escape-roll effects cancel. "The
+worst corner" is the wrong model; it is "every branch taken".
+
+**#261 — a frozen body cannot thaw itself by attacking.** Will asked for both auto-thaw routes to be
+tested. The format has two and this engine has one: `flags.defrost` (the USER thaws by USING the move —
+Burn Up, Flare Blitz, Matcha Gotcha, Scald, Scorching Sands) and `thawsTarget` (the TARGET thaws on
+being HIT — Matcha Gotcha, Scald, Scorching Sands). **`grep -c defrost` returns 0 in both
+`medicham2-browser.js` and `data/tags.json`.** And the tag we do have is a collapsed pair: all five are
+tagged `thawsTarget`, so the label is wrong about two of its own members — **masked because Burn Up and
+Flare Blitz are Fire and `frz.onDamagingHit` cures on any Fire hit**, so the right thing happens for the
+wrong reason and no test can tell. Task #1's shape a second time.
+
+**#262 — a middle arm, addressed by event rather than by draw order.** Will: *"is it possible at all for
+us to run a middle bound... otherwise paralysis ends the mons usefulness... thats why games take
+years."* The arms are pinned for SYNCHRONISATION, not caution — two engines drawing different numbers
+of values in different orders desynchronise a shared stream on turn one, and a constant is the only
+mapping that survives. `hash(turn, slot, move, effect) % 100 < chance` is order-independent, so the
+engines agree without lockstep, rates approach the printed ones, and **games end**.
+
+**#263 — AND HE TALKED ME OUT OF MY OWN RECOMMENDATION.** I proposed leading with
+`replay_differential.js` — real games, real dice, realism for free. *"we dont know the sps on games that
+actually happened tho"*, then *"so the damage and speed would be off."* Measured over `data/games.bo3.jsonl`: **every sheet body in the store carries `"evs": null`
+and not one carries a spread.** Speed is the worse half — a wrong spread gives a
+wrong TURN ORDER, which is categorical, so every line after it diverges for a reason that is not a rule.
+
+**The distinction is CONTROL, not realism.** The synthetic differential's spreads are unknown and
+IDENTICAL on both sides, so a divergence can only be a rule. A replay's are unknown and DIFFERENT from
+what the player brought. **Unknown-but-identical is fine; unknown-and-wrong is not** — and
+`replay_differential.js` already makes exactly this argument about reconstructing CHOICES without ever
+applying it to the spreads.
