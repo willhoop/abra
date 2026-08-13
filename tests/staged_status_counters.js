@@ -395,16 +395,21 @@ const SCENARIOS = [
     arm: 'bottom-tie-first',
     kind: 'ability', shape: 'the ability that inverts the burn',
     what: 'Conkeldurr has GUTS, which turns a burn into a x1.5 Attack multiplier AND skips the x0.5 '
-        + 'halving. Milotic burns it on turn 1 and it clicks Drain Punch into the Snorlax opposite on '
-        + 'all three turns; the HP on that body is the whole reading.',
+        + 'halving. Armarouge burns it on turn 1 and it clicks Drain Punch into the Slowbro-Galar '
+        + 'opposite on all three turns; the HP on that body is the whole reading. MEASURED, on the '
+        + 'authority\'s own board: 40 HP a turn. A Conkeldurr that lost the Guts multiplier would deal '
+        + '27 and one that took the burn halving on top would deal 13, so the arm is not a hair\'s '
+        + 'breadth apart from its failure modes.',
     negative: 'THE PARTNER IS THE NEGATIVE AND IT IS ON THE SAME BOARDS. Scizor is burned by the same '
-            + 'Milotic on turn 2 and has TECHNICIAN rather than Guts, so the identical status must '
+            + 'Armarouge on turn 2 and has TECHNICIAN rather than Guts, so the identical status must '
             + 'halve its Bullet Punch and must not raise its Attack. Both bodies are burned and only '
             + 'one is exempt, which is the separation a single-body scenario cannot make. Scizor also '
             + 'aims at the OTHER slot, so the two damage arms are read off two different bodies and '
-            + 'cannot be confused with each other.',
-    A: [mon('milotic', '', 'Marvel Scale', ['Will-O-Wisp', 'Calm Mind', 'Protect']),
-        mon('clefable', '', 'Unaware', ['Calm Mind', 'Protect'])].concat(FILL('garchomp', 'weavile')),
+            + 'cannot be confused with each other. MEASURED: 39, 39, 19 — Bullet Punch is priority +1 '
+            + 'and therefore fires BEFORE the Will-O-Wisp that burns it, so turn 2 is still a full hit '
+            + 'and TURN 3 IS THE ONLY TURN THAT CARRIES THE HALVING.',
+    A: [mon('armarouge', '', 'Flash Fire', ['Will-O-Wisp', 'Calm Mind', 'Protect']),
+        mon('slowbrogalar', '', 'Regenerator', ['Calm Mind', 'Protect'])].concat(FILL('garchomp', 'weavile')),
     B: [mon('conkeldurr', '', 'Guts', ['Drain Punch', 'Protect']),
         mon('scizor', '', 'Technician', ['Bullet Punch', 'Protect'])].concat(FILL('toxapex', 'corviknight')),
     /* THE TWO ATTACKERS AIM AT DIFFERENT BODIES, AND NEITHER TARGET MAY PROTECT OR DIE. The first
@@ -412,7 +417,50 @@ const SCENARIOS = [
      * game is not a finding, it is a THROW: the replacement carries a different moveset, the scripted
      * click is answered `pass`, and Showdown rejects a pass for a healthy active body. The version
      * before that had the target on Protect, so both damage arms read zero. Both are staging faults
-     * and both looked like results. */
+     * and both looked like results.
+     *
+     * ================= AND THE FAINT MOVED TO TURN 3, WHICH IS WHERE IT WAS FOUND 2026-08-12 =========
+     *
+     * SPLITTING THE TARGETS FIXED TURN 2 AND NOT TURN 3. Clefable alone still could not stand up to
+     * three Drain Punches, and the fixture threw on BOTH arms with the identical message -- which is
+     * what says it is a staging fault and not an engine one:
+     *
+     *     the leads     184 of 184 fields identical
+     *     end of turn 1 184 of 184 fields identical
+     *     end of turn 2 183 of 183 fields identical
+     *     p1 choice rejected "move 2, pass": Can't pass: Your Garchomp must make a move (or switch)
+     *
+     * PRINTED RATHER THAN REASONED ABOUT, because the same guess had already been wrong once here.
+     * Showdown's own HP at each boundary: Clefable 170 -> 71 -> FAINTED. Every crit lands on this arm
+     * and Guts is on from turn 1, so the hit is 99 and three of them are 297 into a 170-HP body.
+     *
+     * THE REPLACEMENT IS CHOSEN ON THE MEASUREMENT, NOT ON A FEELING ABOUT BULK. Slowbro-Galar is
+     * Poison/Psychic, so Fighting is x0.25 rather than Clefable's x0.5, and it holds 170 HP: the hit
+     * is 40 and it ends the game on 50. The whole legal dex was walked under
+     * `x.exists && !x.isNonstandard && x.tier !== 'Illegal'` with this fixture's OWN spread applied,
+     * and only EIGHT legal bodies survive three of these at all -- four of them mega formes. Clefable
+     * was re-played as the control afterwards and still faints on turn 2, so the repair is not a
+     * coincidence of some other edit.
+     *
+     * ITS ABILITY IS DECLARED AND THAT IS LOAD-BEARING. `buildPair` falls back to `legal[0]`, and
+     * Slowbro-Galar's is QUICK DRAW -- a random priority roll, which would put a die inside a pinned
+     * fixture and be invisible in the verdict. Regenerator is inert here because nothing switches.
+     *
+     * THE BURNER CHANGED TOO, AND FOR A SEPARATE REASON: MILOTIC CANNOT LEARN WILL-O-WISP. Showdown's
+     * own TeamValidator on this format: *"Milotic can't learn Will-O-Wisp"*, and *"Milotic can't learn
+     * Calm Mind"* as well. `fixtureAudit` cannot see this -- it checks that the click is on the body's
+     * DECLARED move list, never that the body could legally carry it, and `buildPair` only checks the
+     * move EXISTS. Armarouge learns both, is Fire/Psychic so it resists Bullet Punch exactly as the
+     * Water Milotic did (STEEL IS NOT VERY EFFECTIVE AGAINST WATER -- that was typed from memory as
+     * neutral here and it was wrong), and at 127 Speed to Conkeldurr's 97 it still lands the burn
+     * BEFORE the first Drain Punch, which is what makes all three hits Guts-boosted. Its ability is
+     * declared for the same reason as above: the other one is Weak Armor, which would drop the
+     * Defence being read every time Bullet Punch connects.
+     *
+     * SEVEN MORE ILLEGAL BODY/MOVE PAIRS REMAIN IN THIS FILE and are NOT touched here, because they
+     * sit in scenarios that are green and changing them is a separate measurement: Milotic|Spore,
+     * Milotic|Nuzzle, Snorlax|Swords Dance (nine places), Mudsdale|Swords Dance, Incineroar|Iron
+     * Defense and Tinkaton|Iron Defense. Reported, not quietly folded in. */
     script: [
       { p1: [{ m: 'willowisp', t: 0, mayMiss: 'the burn IS the mechanic and this arm lands it' }, { m: 'calmmind' }],
         p2: [{ m: 'drainpunch', t: 1 }, { m: 'bulletpunch', t: 0 }] },

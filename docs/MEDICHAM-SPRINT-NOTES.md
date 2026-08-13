@@ -7111,3 +7111,34 @@ is the thing LESSONS.md exists to stop. Written up as LESSONS.md §12.
 
 **When a whole population of checks fails at once, suspect the thing they SHARE before the thing they
 each test.**
+
+### THE SPREAD WORK I LANDED TONIGHT BUILT AN ILLEGAL BODY ON EVERY FOURTH SLOT
+
+`spreadFor` put `rest` into Special Defence UNCAPPED. At `index % 4 === 3` the ladder gives 0 Speed,
+so the whole 66-point budget is free, the attacking stat takes 32, and **the remaining 34 landed in
+Special Defence against a 32 cap**. Showdown's TeamValidator refuses it by name — *"Weavile has more
+than 32 Stat Points in Special Defense"* — and it was one body in four, on BOTH sides, in every staged
+fixture and every game of the whole-game differential.
+
+**It is exactly the failure the spread work existed to end.** The blank-spread version was legal and
+unrealistic; this one was realistic and ILLEGAL, which is worse: a validator would reject the team
+outright while the differential happily compared two engines playing it.
+
+Fixed by spilling to Defence, which leaves slots 0-2 byte-identical so only the broken one moves, plus
+an assertion that refuses any spread over the cap, off-budget, or with points it could not place. Shown
+against the authority: slot 3 before carries the extra rejection, slot 3 after carries none.
+
+**I did not find it.** It came back as the third item in a report from an agent sent to repair one
+fixture, alongside seven illegal body/move pairs in that same file and the reason they all got in.
+
+### `fixtureAudit` PROVES THE CLICK IS CARRIED AND NEVER THAT THE BODY COULD LEARN IT
+
+Eight illegal pairs are sitting in `tests/staged_status_counters.js` — `Milotic|Will-O-Wisp`,
+`Milotic|Calm Mind`, `Milotic|Spore` (x2), `Milotic|Nuzzle`, `Snorlax|Swords Dance` (**nine places**),
+`Mudsdale|Swords Dance`, `Incineroar|Iron Defense`, `Tinkaton|Iron Defense`. Showdown's TeamValidator
+rejects each one; our fixture audit passes them, because it checks the click is on the body's DECLARED
+move list and `buildPair` only checks the move EXISTS. Neither asks the learnset.
+
+One scenario's pair was repaired because it was the one being fixed. The rest are named and left,
+deliberately — they sit in currently-green scenarios, and folding eight fixture rewrites into a repair
+of one makes any moved result unattributable.

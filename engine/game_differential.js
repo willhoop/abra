@@ -1741,7 +1741,39 @@ function spreadFor(index, sp) {
    * Def instead, and the day medicham2's line grows an HP term this comment is the reason to revisit. */
   const e = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe };
   e[physical ? 'atk' : 'spa'] = main;
-  e.spd = rest;
+  /* EVERY STAT IS CAPPED, AND `rest` INTO ONE STAT WAS AN ILLEGAL BUILD ON EVERY FOURTH BODY.
+   *
+   * This read `e.spd = rest` — uncapped. At `index % 4 === 3` the ladder gives 0 Speed, so `left` is
+   * the whole 66-point budget, `main` takes 32, and the remaining **34 landed in Special Defence
+   * against a 32 cap**. Showdown's own TeamValidator refuses it by name: *"Weavile has more than 32
+   * Stat Points in Special Defense"*. One body in four, on BOTH sides, in every staged fixture and
+   * every game of the whole-game differential.
+   *
+   * It is mine, from the spread work earlier tonight, and it is exactly the failure that work was
+   * meant to end: the rig was testing a board the game cannot produce. The blank-spread version was
+   * legal and unrealistic; this was realistic and ILLEGAL, which is worse, because a validator would
+   * reject the team while the differential happily compared two engines on it.
+   *
+   * Spilling to Defence rather than growing the ladder keeps every existing arm byte-identical for
+   * indices 0-2, so only the broken slot moves. */
+  let spill = rest;
+  for (const stat of ['spd', 'def']) {
+    const take = Math.min(SP_CAP, spill);
+    e[stat] = take;
+    spill -= take;
+  }
+  /* A SPREAD THAT CANNOT BE BUILT MUST NOT REACH A GAME. Cheap, once per body, and it fails loudly
+   * rather than letting the authority reject the team 1,200 lines later where it reads as a harness
+   * fault. `spill` non-zero means the budget outgrew what this shape can place. */
+  const total = e.hp + e.atk + e.def + e.spa + e.spd + e.spe;
+  const over = Object.entries(e).filter(([, v]) => v > SP_CAP);
+  if (spill || over.length || total !== SP_BUDGET) {
+    throw new Error('spreadFor(' + index + ') built an ILLEGAL spread: ' + JSON.stringify(e)
+      + '  total=' + total + '/' + SP_BUDGET
+      + (over.length ? '  over the ' + SP_CAP + ' cap: ' + over.map(([k, v]) => k + '=' + v).join(',') : '')
+      + (spill ? '  unplaced=' + spill : '')
+      + '. Champions allows ' + SP_BUDGET + ' points with a ' + SP_CAP + ' cap per stat.');
+  }
   return e;
 }
 /* THE BRANCH GUARD. Called once at startup; a format that changes underneath this stops the run
