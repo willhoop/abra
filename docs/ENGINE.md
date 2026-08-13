@@ -9,9 +9,9 @@
 `tests/roster.js`, `data/roster.{items,abilities,moves,all}.json` (+ `data/roster.json`, a convenience
 copy of whatever stage ran last — **it is not the roster**), `tests/test-nature-differential.js`,
 `tests/test-volatile-duration.js`, `engine/divergence_shape.js`, `tests/test-end-state.js`,
-`tests/test-coverage-stop.js`, `tests/probe_volatile_leaves.js`
+`tests/test-coverage-stop.js`, `tests/probe_volatile_leaves.js`, `tests/test-middle-identity.js`
 
-**Eleven instruments, and none substitutes for another:**
+**Twelve instruments, and none substitutes for another:**
 
 | file | asks | structurally cannot see |
 |---|---|---|
@@ -25,6 +25,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 | `test-volatile-duration.js` | does a duration-bearing volatile carry the number Showdown carries, at every turn boundary — applied, re-applied, and left alone. Plays the LIVE tree by default, so it fails on bytes an author just wrote; `--engine release` plays a snapshot's | anything outside the duration family, and the HP consequences of a lock the engine holds but does not ENFORCE on a caller-supplied action — Encore's remaining row |
 | `test-end-state.js` | can the differential say whether a diverged game ENDS in the same board — every branch of the verdict, the stop rule really moving, and a plant that survives to the last board against a cleared control | whether a SAME-END-STATE is right; it is exactly as strong as what `board_state.js` compares, and it says nothing about the turns between the mismatch and the end |
 | `test-coverage-stop.js` | does the run stop on COVERAGE rather than on a number somebody picked, and does a truncation announce itself | whether the coverage that was reached is enough; a stall is the rule firing, not proof the census is covered |
+| `test-middle-identity.js` | do the two engines NAME the same event — the address the middle arm's dice are keyed on, diffed over real games, per category, with the shapes that cannot match printed rather than averaged | whether either engine plays the game right; it compares the QUESTIONS asked, never the answers. And `nth`: two engines that take a different NUMBER of draws at one address line up on entry 0 and part after it — the size of that population is printed, not solved |
 | `test-nature-differential.js` | is the two engines' Pokemon the SAME Pokemon — chart, arithmetic, the sheet's declared nature reaching both sides, and the line surviving a mega mid-turn | whether either engine plays the game right; it compares BODIES, not turns. The SPREADS, permanently — an open team sheet does not show them |
 
 **Its one number:** mechanics live. **It must never go down.**
@@ -36,8 +37,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  567/567 probed mechanics live, 0 missing   (census 2026-08-13 17:07)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-13 16:58)
+  567/567 probed mechanics live, 0 missing   (census 2026-08-13 18:02)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-13 18:02)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -48,16 +49,124 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is b1842eb4a7eb now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 828e033af6df now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 9d2f2dd8f0ea now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 3ce03327bed0 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 263/282 probed, 19 unprobed
 ```
 
-_stamped 2026-08-13 17:07_
+_stamped 2026-08-13 18:03_
 
 <!-- /GENERATED -->
+
+## ROADMAP #262 — THE TWO ENGINES NOW NAME THE SAME EVENT, AND THE AUTHORITY'S HALF IS STILL UNWIRED. 2026-08-13.
+
+**Census 567 live / 0 missing -> 567 live / 0 missing.** Nothing here is a mechanic. It is the middle
+arm's other half: `game_differential.js` replaced the arm's five shared SEQUENCES with an event
+ADDRESS and left medicham2 reading sequences, so the arm could not be trusted at all.
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md`. For this ledger:
+
+### THE DELIVERABLE IS A DIFF, AND HERE IT IS
+
+`tests/test-middle-identity.js`, 900 games, release `130f2bfb26e9`. "Matched" means the other engine
+computed the same address string for the same event.
+
+| category | authority | medicham2 | matched | floor |
+|---|---|---|---|---|
+| `acc` | 346 | 315 | **99.7%** | 95 |
+| `dmg` | 341 | 327 | **98.8%** | 95 |
+| `crit` | 340 | 327 | **98.5%** | 95 |
+| `sec` | 94 | 89 | **91.0%** | 70 — loose, and the reason is in the file |
+| `any*` | 16 | 16 | 62.5% | **not floored** |
+| `any-` | 394 | 955 | 3.6% | **excluded** |
+
+The four outcome categories pool at **98.3% over 1,058 events**. Floors are PER CATEGORY because
+pooling hid a break: deleting the per-target write left the pooled figure at 91.2%, over a floor of 90.
+
+### SAY IT PLAINLY — THE ARM CANNOT BE SWITCHED ON YET, AND IT IS NOT THIS FILE'S TO FIX
+
+`game_differential.js` builds its address inside the function it installs as `battle.prng.random`.
+`Battle#random` is `return this.prng.random(m, n)`, so `this` there is the **PRNG**: turn, activeMove
+and activeTarget are all undefined and every address it computes is `<seed>|undefined|<cat>|-|-|<nth>`.
+**Measured match rate as wired today: 0.0%.** The test computes BOTH address streams on every draw and
+asserts the degenerate one stays under 5%, so nobody can wire the arm believing it works. Two small
+changes are owed in that file — capture `this.battle` in `midWrapShowdown`'s `around()`, and clear
+`MID_NTH` per game beside the existing `midReset()`. Reported, not touched.
+
+### FOUR WRITES IN THE ENGINE, NOT FORTY-NINE
+
+Top of `battleTurn` (`MID_TURN = S.turn + 1`); top of the action loop (move + target, which is where
+the authority's `setActiveMove` sits — the FIRST line of `runMove`, above every BeforeMove gate); the
+announcement site; and the step driver, the one line that walks the per-target loop
+`hitStepAccuracy` and `getSpreadDamage` both walk. `midEventDice` / `midEventLog` / `midEventValue` /
+`midEventBase` are exported; medicham2 does not require the differential, so FNV-1a exists twice on
+purpose and the test re-implements it a third time from the two constants.
+
+### THREE CATEGORY MISLABELS THE DIFF FOUND BY COUNTING, AND ONE IS A ROADMAP #222 GAP
+
+Each appeared as *N draws on one side, N on the other, zero matched*, and only then was the handler read.
+
+1. **The move's own secondaries were on the generic stream** — 28 authority `sec` draws against ZERO
+   from medicham2 over 39 games. #222's five-way split never reached the main secondary loop; the three
+   `_R.sec()` calls that existed are the status-move riders. Flare Blitz's burn, Hurricane's confuse,
+   Discharge's paralysis and Blizzard's freeze were all in the `any` bucket.
+2. **King's Rock** — `onModifyMove` pushes a secondary onto `move.secondaries` (`data/items.ts:3219`),
+   so the authority draws for it inside `secondaries()`. 6 of each, zero matched.
+3. **Dire Claw** — `secondaries: [{chance: 30, onHit() { this.sample([...]) }}]`
+   (`data/moves.ts:3641`): both draws are `sec`, chance first.
+
+A non-split caller is bit-identical through all three (every stream aliases the one function), so no
+census probe, harness or seeded run moves. `stall` keeps its own STREAM and its ADDRESS says `any`,
+because that is what the authority calls it — one declared table, not a rename at a call site.
+
+### THE RED PROOFS — FOUR, AND THE FOURTH CAME BACK GREEN
+
+Per-turn write broken: every category 0.0%. Top-of-action write broken: both staged claims fail and the
+game diff cannot see it. Per-target write broken: `dmg` 90.5, `crit` 90.2. **Announcement-site write
+broken: GREEN** — it is redundant over 900 games because the choice lock rewrites `it.a` before the
+loop. Kept (a called move is where the two would part) and now COUNTED as
+`MEDSEEN.midAddrMovedAtAnnounce`, 0 so far, because "no probe can see it" and "it never happens" are
+different statements.
+
+### WHAT IS NOT CLAIMED
+
+`any*` is **not floored**: 95.2% on one 126-game sample and 37.0% on a 900-game one, same engine, 16–27
+events. A number that moves 58 points on the fixture measures the fixture; its write site is staged
+deterministically instead. `nth` remains a repeat counter and therefore a sequence in miniature —
+**457 of 2,029 events are `nth > 0`** and that population is printed every run. Two shapes cannot
+match and are declared: our one-accuracy-roll-per-move against the authority's per-target roll, and the
+authority addressing every target's secondary to the LAST body of a spread because `secondaries()`
+never updates `activeTarget`.
+
+### THE COST, MEASURED RATHER THAN ASSERTED
+
+6,000 scripted four-click turns, three rounds per configuration: WITH 2123/1886/1944, 2103/1859/1843,
+2104/1854/1895 ms; WITHOUT 2037/1798/1794, 2094/1849/1829 ms. The within-configuration spread exceeds
+the between-configuration gap, but WITH is never the faster of a matched pair — **under 3%, about 8
+microseconds on a ~310 microsecond turn.**
+
+### RE-RUN OWED
+
+Nothing downstream. This changes which random values a MIDDLE-ARM game consumes and no artifact records
+one; both pinned corners are byte-identical (`test-engine-diff --n 6000`: 0 disagreements, top 0/6000,
+bottom 0/6000). The middle arm's own usable-game count is the number that will move, and only once the
+authority's half is wired.
+
+### THE HAND LIST
+
+`nth` under a differing draw count, and the two spread-move shapes above, are now carried by
+`tests/test-middle-identity.js` and leave the list. Added, because this pass measured them and did not
+fix them: **medicham2 rolls accuracy once per move where the authority rolls once per target** — a
+declared divergence in the engine's own header, now with a number on it (8 unmatched `acc` addresses on
+Mortal Spin alone in 900 games).
+
+### NOT MINE, REPORTED
+
+`tests/test-nature-differential.js` is RED on two natured-mega stat lines. It fails identically against
+release `011b91b3749b`, cut before any of this work, so it predates this pass.
+`tests/test-volatile-duration.js` is red and MEASURE is sweeping that class.
 
 ## ROADMAP #264 — A 100-ACCURACY MOVE CAN MISS. THE OUTCOME WAS ALREADY RIGHT; THE DIE WAS NOT. 2026-08-13.
 

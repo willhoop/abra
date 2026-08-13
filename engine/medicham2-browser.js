@@ -707,6 +707,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * defect it replaces: `Array.prototype.sort` swallowed every tie silently for the life of this
    * project and nothing counted them. */
   speedTieResolved: 0, speedTieLargestGroup: 0,
+  /* ROADMAP #262 -- the announcement-site event-address write actually MOVED the address, i.e. the
+   * action was rewritten between the top of the action and `setActiveMove`'s counterpart. Zero over
+   * 900 differential games; kept and counted rather than deleted, because "no probe can see it" and
+   * "it never happens" are different statements and only one of them is measured. */
+  midAddrMovedAtAnnounce: 0,
   switchOutTrigger: 0, switchOutCure: 0, formeSwapped: 0, formeAnnouncedOnReturn: 0,
   /* WIRE 136 -- a forme change performed as a RENAME because the target forme has no row and the
    * artifact states it is identical to the base in stats and types. Mimikyu-Busted is the one. */
@@ -12243,7 +12248,109 @@ function rngStreams(src) {
   for (const k of RNG_STREAMS) o[k] = f;
   return o;
 }
+/* ---- ROADMAP #262 -- EVENT-ADDRESSED DICE: THE DIE IS A FUNCTION OF WHAT IS BEING ROLLED FOR ------
+ *
+ * `engine/game_differential.js`'s middle arm used to hand both engines the same SEQUENCE per category
+ * and that design was refuted twice, by measurement, in its own header:
+ *
+ *   1. the draw COUNTS differ by construction -- `acc sd=11 me=2` -- because this engine short-circuits
+ *      rolls whose outcome is already determined and the authority rolls anyway;
+ *   2. worse, with the counts MATCHING, 29 of 40 surviving games diverged on a damage NUMBER while
+ *      `test-engine-diff --n 6000` reports 0 damage disagreements. Our driver PRICES candidate moves
+ *      before it clicks one and every speculative `dmgRange` consumed from the shared `dmg` sequence.
+ *      Two sequences hold the same count at different OFFSETS.
+ *
+ * So the die stops being a cursor and becomes an ADDRESS:
+ *
+ *     value = FNV1a(seed | turn | category | move id | target slot | nth)  ->  [0,1)
+ *
+ * A speculative evaluation and a real one are then different QUESTIONS with different answers, and
+ * neither consumes anything the other needed. A draw only one engine makes is harmless.
+ *
+ * THE STRING IS THE INTERFACE AND IT IS DUPLICATED ON PURPOSE. The authority side computes the same
+ * five fields from `battle.turn` / `battle.activeMove` / `battle.activeTarget`; this side computes them
+ * from `S.turn` / the committed move / the row being stepped. medicham2 MUST NOT require the
+ * differential -- the differential is an instrument that reads this engine, and an engine that imports
+ * its own instrument cannot be measured by it. Both halves are twelve lines; the pin test
+ * `tests/test-middle-identity.js` asserts they agree over real games rather than assuming it.
+ *
+ * WHAT IS NOT SOLVED, STATED HERE RATHER THAN DISCOVERED LATER: `nth` is a repeat counter, and a
+ * counter is a sequence wearing a smaller scope. Two engines that draw a DIFFERENT NUMBER of times for
+ * one address still line up on entry 0 and part after it. The address makes the collision small and
+ * visible; it does not abolish it. See docs/MEDICHAM-SPRINT-NOTES.md for the measured size. */
+const MID_EVENT_SEED = 20260813;
+/* FNV-1a, 32-bit. Chosen because it is short enough to reimplement identically on the other side. */
+function midEventHash(str) {
+  let h = 0x811c9dc5 >>> 0;
+  for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 0x01000193) >>> 0; }
+  return h >>> 0;
+}
+function midEventValue(ctx) { return midEventHash(ctx) / 4294967296; }
+/* THE CURRENT EVENT. Four writes in the whole engine -- the turn, the action, the committed move and
+ * the row being stepped -- rather than an argument threaded through 49 context-free `rng()` sites.
+ * They are plain string assignments and they run whether or not anyone is using the event dice, which
+ * is deliberate: a mode flag would mean the instrumented engine and the shipped engine take different
+ * branches, and then the thing being measured is not the thing that plays. */
+let MID_S = null, MID_TURN = 0, MID_MOVE = '-', MID_TGT = '-';
+const MID_NTH = new Map();
+const MID_LOG = [];
+/* `p1`/`p2` + the 0-based active position, which is exactly Showdown's `target.side.id + target.position`.
+ * A body that is not on the field has no slot and reports `-`, the same as no target at all. */
+function midEventSlot(m) {
+  const S = MID_S; if (!m || !S) return '-';
+  let i = S.actA ? S.actA.indexOf(m) : -1; if (i >= 0) return 'p1' + i;
+  i = S.actB ? S.actB.indexOf(m) : -1;     if (i >= 0) return 'p2' + i;
+  return '-';
+}
+/* The address WITHOUT its repeat index -- exported so a caller can see what the engine thinks it is
+ * rolling for without taking a draw (and so a probe can prove the field writes actually happen). */
+function midEventBase(cat, seed) {
+  return [(seed == null ? MID_EVENT_SEED : seed), MID_TURN, cat, MID_MOVE, MID_TGT].join('|');
+}
+function midEventDraw(cat, seed) {
+  const base = midEventBase(cat, seed);
+  const n = MID_NTH.get(base) || 0;
+  MID_NTH.set(base, n + 1);
+  const ctx = base + '|' + n;
+  MID_LOG.push(ctx);
+  return midEventValue(ctx);
+}
+/* THE FACTORY. Returns the same shape `rngStreams` returns, so `battleTurn` passes it straight through
+ * and every existing call site is untouched. It CLEARS the repeat map and the log, because the repeat
+ * index is only meaningful inside one game: `turn` is part of the address, so turn 1 of game 2 has the
+ * same address as turn 1 of game 1 and a map carried across would keep counting. The differential
+ * builds a fresh `mediRng` per game, so the reset lands exactly on the game boundary. */
+/* ---- THE STREAM NAME IS NOT ALWAYS THE ADDRESS'S CATEGORY, AND `stall` IS THE ONE CASE ------------
+ *
+ * The authority has no named streams at all. An instrument derives the category from WHICH METHOD IS
+ * EXECUTING -- `hitStepAccuracy` -> acc, `secondaries` -> sec, `getDamage` -> dmg/crit -- and
+ * everything else falls into `any`. Showdown's consecutive-Protect check is `randomChance(1, counter)`
+ * inside `stall.onStallMove`, which is none of those three, so the authority calls it `any`.
+ *
+ * ROADMAP #222 gave this engine a SEPARATE STREAM for it, correctly and for a different reason (the
+ * scalar pin welded five mechanics onto one die). That stream stays. What is wrong is to let the
+ * stream's private NAME leak into a shared address: two engines that name one event differently can
+ * never agree about it, and measured over 39 games this was 14 draws on each side matching zero times.
+ *
+ * So the address category is a deliberate, declared mapping and not the stream name. It is here, in
+ * one table, rather than at the draw site -- a rename hidden inside a call is exactly the thing that
+ * makes two files disagree quietly. */
+const MID_ADDR_CAT = { stall: 'any' };
+function midEventDice(opt) {
+  opt = opt || {};
+  const seed = (opt.seed == null) ? MID_EVENT_SEED : opt.seed;
+  if (opt.reset !== false) { MID_NTH.clear(); MID_LOG.length = 0; }
+  const mk = (cat) => { const addr = MID_ADDR_CAT[cat] || cat; return () => midEventDraw(addr, seed); };
+  const d = { split: true, seed, any: mk('any') };
+  for (const k of RNG_STREAMS) d[k] = mk(k);
+  return d;
+}
+const midEventLog = () => MID_LOG.slice();
 function battleTurn(S,rng,actsForA,actsForB){
+  /* ROADMAP #262 -- the event address's outer two fields. Showdown prints `|turn|N` for the turn it is
+   * about to play and `S.turn` is incremented at the BOTTOM of this function, so the turn now running
+   * is `S.turn + 1` -- the same arithmetic the trace on the next few lines already uses. */
+  MID_S=S; MID_TURN=(S&&S.turn!=null?S.turn:0)+1; MID_MOVE='-'; MID_TGT='-';
   /* ROADMAP #222 -- the five named dice. `rng` below remains the GENERIC stream, so every call
    * site not named in RNG_STREAMS is untouched and a plain-function caller sees no change at all. */
   const _R=rngStreams(rng); rng=_R.any;
@@ -13018,6 +13125,24 @@ function battleTurn(S,rng,actsForA,actsForB){
       _updateAll();
       _oppSnap=opportunistSnapshot(actA,actB);
       const it=acts[actIdx];const m=it.mon;
+      /* ---- ROADMAP #262 -- ONE WRITE PER ACTION, AND IT IS AT THE TOP OF THE ACTION ---------------
+       *
+       * The authority calls `setActiveMove(move, pokemon, target)` on the FIRST line of `runMove`,
+       * ABOVE every BeforeMove gate -- so its full paralysis check, its sleep and freeze timers, its
+       * Attract coin and its stall counter all draw with the move and the target already in scope.
+       * This engine's own announcement site is ~150 lines below, past those gates, and addressing the
+       * draws from there left every gate draw wearing `move=NONE tgt=-` while the authority named the
+       * move. Measured over 39 games before this line existed: 14 of medicham2's draws and 14 of the
+       * authority's were the same Protect stall check and NONE of them matched.
+       *
+       * A SWITCH AND A PASS KEEP `-` ON BOTH SIDES: `runAction` routes them away from `runMove`, so
+       * the authority never sets an active move for them, and `actionMoveId` returns null here.
+       *
+       * `it.a` CAN STILL BE REWRITTEN under it -- Encore, a choice lock, a called move -- so the
+       * announcement site below writes the address a second time from the action as it finally
+       * stands. Two writes, both cheap, and the later one wins. */
+      MID_MOVE=actionMoveId(it.a)||'-';
+      MID_TGT=(MID_MOVE==='-')?'-':midEventSlot(reaimToSlot(it.a&&it.a.target,it,actA,actB,MID_MOVE,true)||m);
       /* Marked BEFORE the body runs, so a move cannot flinch the Pokemon using it. */
       unresolved.delete(m);
       /* WIRE 135 -- `_acted` is the SAME fact `unresolved` carries, written onto the body so that a
@@ -13596,6 +13721,22 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _tt=reaimToSlot(a.target,it,actA,actB,_mid,true);
           TR.mv(m,_mid,_tt||m);
         }
+        /* ROADMAP #262 -- THE COMMIT SITE IS THE AUTHORITY'S `setActiveMove(move, pokemon, target)`,
+         * whose third field is `target || pokemon` -- a self-targeting status move addresses the USER.
+         * It is written OUTSIDE the `if(TR)` above on purpose: the address must not depend on whether
+         * a trace sink happens to be attached, or the instrumented run and the plain run would roll
+         * different numbers. `reaimToSlot` is re-read rather than reused for the same reason. */
+        /* AND IT IS COUNTED, BECAUSE A REDUNDANT WRITE AND A LOAD-BEARING ONE LOOK IDENTICAL.
+         * Deleting this write left `tests/test-middle-identity.js` GREEN over 900 games -- the write
+         * at the top of the action had already put the same two values there, because `it.a` is
+         * rewritten by the choice lock and the volatile pre-pass BEFORE the action loop runs. It is
+         * kept because Showdown's `setActiveMove` is here and a called move (Metronome, Sleep Talk,
+         * Copycat) is exactly the case where the two would part -- and it is COUNTED so that "this
+         * never fires" is readable rather than assumed. A non-zero reading is the day it earned its
+         * place. */
+        if(_mid){ const _mt=midEventSlot(reaimToSlot(a.target,it,actA,actB,_mid,true)||m);
+                  if(_mid!==MID_MOVE||_mt!==MID_TGT)MEDSEEN.midAddrMovedAtAnnounce++;
+                  MID_MOVE=_mid; MID_TGT=_mt; }
         /* ROADMAP #84 -- THE MOVE WAS USED, SO THE DEFAULT RESULT IS SUCCESS, and it is set exactly
          * here for the same reason the announcement is: everything ABOVE this line is a BeforeMove
          * refusal that has already written its own false-or-null and `continue`d, and everything
@@ -18345,7 +18486,17 @@ function battleTurn(S,rng,actsForA,actsForB){
                 if(!MEDFAILS.rulebookChanceDriftFirst)
                   MEDFAILS.rulebookChanceDriftFirst=a.move.id+':'+(s.status||s.volatile)+' format '+_fmt+' vs generic '+_generic;
               }
-              if(rng()*100>=(_fmt!=null?_fmt:_generic)) continue;
+              /* ROADMAP #262 -- `_R.sec()`, AND IT WAS `rng()` UNTIL 2026-08-13. This is the move's
+               * own `moveData.secondaries` loop -- the authority's `BattleActions#secondaries` -- and
+               * it is the site ROADMAP #222's five-way split was written FOR. It was the one secondary
+               * site the split never reached: the three `_R.sec()` calls above are the status-move
+               * riders, and every damaging move's burn, freeze, flinch and stat drop went on reading
+               * the generic stream. Found by counting, not by reading: the event-address diff put the
+               * authority at 28 `sec` draws and this engine at ZERO across 39 games, with Flare Blitz's
+               * burn, Hurricane's confuse, Discharge's paralysis and Blizzard's freeze all showing up
+               * in the `any` bucket instead. A non-split caller is bit-identical -- every stream
+               * aliases the one function -- so no census probe and no seeded harness moves. */
+              if(_R.sec()*100>=(_fmt!=null?_fmt:_generic)) continue;
               /* WIRE 133 -- the ATTACKER is passed so a side buff on the target's side can refuse
                  it. Showdown's Safeguard suppresses the `-activate` line for a SECONDARY (`!effect
                  .secondaries`), which is why the refusal here is silent and the direct status path's
@@ -18522,7 +18673,12 @@ function battleTurn(S,rng,actsForA,actsForB){
           {const _kr=TAGS.param('item',m.item,'addsFlinch');
            if(_kr&&_kr.pFlinch&&!suppressed&&!tg.fainted
               &&!(fx&&fx.secondary&&fx.secondary.some(s=>s&&s.volatile==='flinch'))
-              &&rng()<+_kr.pFlinch){
+              /* ROADMAP #262 -- `_R.sec()`. King's Rock does not run a handler of its own at hit time:
+               * `onModifyMove` PUSHES `{chance: 10, volatileStatus: 'flinch'}` onto `move.secondaries`
+               * (data/items.ts:3219), so the authority draws for it inside `BattleActions#secondaries`
+               * like any other secondary. Addressing it as a generic draw made the same event carry two
+               * different names across the two engines -- 6 of each in 900 games, matching zero times. */
+              &&_R.sec()<+_kr.pFlinch){
              if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
              else if(refusesFlinch(tgAb)) MEDSEEN.flinchBlockedByInnerFocus++;
              else { tg._flinch=true; MEDSEEN.flinch++; }
@@ -18581,8 +18737,13 @@ function battleTurn(S,rng,actsForA,actsForB){
                if(TR)TR.act(tg,'move: '+(MC.moves[a.move.id]?a.move.id:a.move.id)); }
            }}
           {const _ps=TAGS.param('move',a.move.id,'proceduralStatus');
-           if(_ps&&_ps.p&&Array.isArray(_ps.oneOf)&&_ps.oneOf.length&&!suppressed&&rng()<+_ps.p){
-             const _i=Math.min(_ps.oneOf.length-1,Math.floor(rng()*_ps.oneOf.length));
+           /* ROADMAP #262 -- BOTH DRAWS ARE `_R.sec()`, AND IN THIS ORDER. Dire Claw is
+            * `secondaries: [{chance: 30, onHit(target) { const status = this.sample([...]) } }]`
+            * (data/moves.ts:3641), so the authority takes its chance roll in `secondaries` and its
+            * three-way pick inside the `onHit` that `secondaries` called -- both under the same
+            * category, chance first, pick second. Same two draws, same order, same names. */
+           if(_ps&&_ps.p&&Array.isArray(_ps.oneOf)&&_ps.oneOf.length&&!suppressed&&_R.sec()<+_ps.p){
+             const _i=Math.min(_ps.oneOf.length-1,Math.floor(_R.sec()*_ps.oneOf.length));
              applyStatus(tg,CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i],m,ATTR.move(a.move.id));
            }}
           /* WIRE 156 -- FAKE OUT'S FLINCH IS A SECONDARY, AND THE HARDCODE THAT USED TO SIT HERE
@@ -18916,7 +19077,13 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _STEPS=[_stepInvuln,_stepTryHit,_stepTypeImm,_stepTryImm,_stepAccuracy,
                     _stepDamage,_stepApply,_stepSelfPay,_stepEffects,
                     _stepDamagingHit,_stepAfterHit,_stepFaint];
-      for(const _step of _STEPS)for(const R of _rows){if(R.out)continue;_step(R);}
+      /* ROADMAP #262 -- THE PER-TARGET HALF OF THE ADDRESS, IN THE ONE PLACE THE TARGET CHANGES.
+       * `hitStepAccuracy` and `getSpreadDamage` both open with `this.battle.activeTarget = target`
+       * inside their per-target loop, so the authority's address moves target by target within a
+       * single action; this driver is the only line here that walks that same loop. One assignment,
+       * not twelve instrumented steps -- a step list that has to remember to stamp itself is the
+       * silent-default shape. */
+      for(const _step of _STEPS)for(const R of _rows){if(R.out)continue;MID_TGT=midEventSlot(R.tg);_step(R);}
       /* ROADMAP #81 WIRE 1 -- NOTHING GOT THROUGH, so the move FAILED and the crash is paid. This is
          the immunity half of the same rule the shield half above pays: measured in the authority, a
          High Jump Kick into a Ghost prints `|-immune|` and then takes the user to `0 fnt`. No
@@ -21398,12 +21565,23 @@ root.compareTurnOrder=compareTurnOrder; root.turnOrderKey=turnOrderKey; root.sor
 root.traceCounts=traceCounts; root.traceCanon=traceCanon; root.TRACE_EVENTS=TRACE_EVENTS;
 root.punishExposure=punishExposure; root.clickFragility=clickFragility;
 root.battleInit=battleInit; root.battleTurn=battleTurn; root.rngStreams=rngStreams; root.RNG_STREAMS=RNG_STREAMS; root.battleOver=battleOver; root.battleResult=battleResult; root.playerAction=playerAction;
+/* ROADMAP #262 -- the event-addressed dice and the log of what they were asked. On the root as well as
+   in module.exports for the same reason compareTurnOrder is. */
+root.midEventDice=midEventDice; root.midEventLog=midEventLog; root.midEventHash=midEventHash;
+root.midEventValue=midEventValue; root.midEventBase=midEventBase; root.MID_EVENT_SEED=MID_EVENT_SEED;
 root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet; root.weatherId=weatherId; root.terrainId=terrainId;
 root.megaTargetFor=megaTargetFor; root.canMegaNow=canMegaNow; root.megaEvolveNow=megaEvolveNow;
 root.natureShift=natureShift; root.natureStat=natureStat; root.natureL50=natureL50; root.spreadL50=spreadL50;
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,rngStreams,RNG_STREAMS,
+  /* ROADMAP #262 -- EVENT-ADDRESSED DICE. `midEventDice` is a drop-in `rngStreams` struct whose value
+   * is a pure function of the event being rolled for; `midEventLog` is every address this engine asked
+   * about since the last `midEventDice` call, in order, so an instrument can DIFF the two engines'
+   * identities instead of assuming they match. `midEventHash` / `midEventValue` / `midEventBase` are
+   * exported so a caller computes the authority's half with THIS implementation rather than a second
+   * copy of the arithmetic -- CLAUDE.md's facts-are-global rule. */
+  midEventDice,midEventLog,midEventHash,midEventValue,midEventBase,MID_EVENT_SEED,
   punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,battleInit,battleTurn,battleOver,battleResult,playerAction,parsePaste,buildMonFromSet,
   spreadL50,moveFx,movePriority,priorityRefusedAbove,isGrounded,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
   /* ROADMAP #81 WIRE 12 -- the aura roster read; see the root export above. */

@@ -8182,3 +8182,184 @@ spread above the between-variant spread, with a different variant fastest each r
 it down as a design decision converts it into a requirement nobody measured. The right form was *“Will
 is concerned about speed — measure the cost and report it”*, which is what the agent did anyway. It was
 right to; had it complied, we would have shipped a regression to protect a cost that does not exist.
+
+## ROADMAP #262 — THE ENGINE'S HALF OF THE EVENT ADDRESS, AND THE AUTHORITY'S HALF IS NOT WIRED. 2026-08-13
+
+`game_differential.js` had already replaced the middle arm's five sequences with an address —
+`FNV1a(seed | turn | category | move id | target slot | nth) -> [0,1)` — and left medicham2 still
+reading sequences. This is medicham2's side, plus the diff that says whether the two halves are
+talking about the same events.
+
+**The census did not move: 567 live / 0 missing, before and after.** Nothing here is a mechanic; the
+census is quoted because it may not fall.
+
+### THE ANSWER FIRST: THEY AGREE ABOUT THE EVENTS THAT DECIDE A GAME, AND NOT ABOUT THE REST
+
+900 games, release `130f2bfb26e9`, `tests/test-middle-identity.js`. "Matched" means the other engine
+computed the *same address string* for the same event.
+
+| category | authority | medicham2 | shared | medicham2 matched |
+|---|---|---|---|---|
+| `acc` | 346 | 315 | 314 | **99.7%** |
+| `dmg` | 341 | 327 | 323 | **98.8%** |
+| `crit` | 340 | 327 | 322 | **98.5%** |
+| `sec` | 94 | 89 | 81 | **91.0%** |
+| `any*` (a move in scope) | 16 | 16 | 10 | 62.5% — not floored, see below |
+| `any-` (no move in scope) | 394 | 955 | 34 | 3.6% — excluded, unmatchable both ways |
+
+The four categories that decide an outcome pool at **98.3% over 1,058 events**. That is the number the
+arm rests on, and it is floored per category (95 / 95 / 95 / 70) rather than pooled — pooling hid a
+real break, see the red runs.
+
+### AND THE HALF THAT IS NOT WIRED, SAID PLAINLY
+
+**`game_differential.js` cannot compute its own address today, and its measured match rate is 0.0%.**
+It builds the address inside the function it installs as `battle.prng.random`. `Battle#random` is
+`return this.prng.random(m, n)`, so `this` at that override is the **PRNG**, not the battle:
+`this.turn`, `this.activeMove` and `this.activeTarget` are all `undefined` and every address it builds
+is `<seed>|undefined|<cat>|-|-|<nth>`. The file's own note — *"the override runs as a method, so the
+turn, the active move and the active target are already in scope"* — is true of the `BattleActions`
+wrapper, where `this.battle` exists, and not of the `prng` override where the address is actually
+computed.
+
+This is not inferred. `tests/test-middle-identity.js` computes **both** address streams on every single
+draw — one from the object the override receives, one from the battle — and prints the two rates side
+by side. It is an assertion (`< 5%`) so that nobody can wire the arm believing it works.
+
+`engine/game_differential.js` is not ENGINE's file. Two changes are owed there and both are small:
+
+1. capture the battle in `midWrapShowdown`'s `around()` (`MID_BATTLE = this.battle`) and build the
+   address from that rather than from the override's `this`;
+2. clear `MID_NTH` per game. `midReset()` already runs per game and resets the draw COUNTS only, so the
+   repeat index carries across games — and `turn` is part of the address, so turn 1 of game 2 is the
+   same address as turn 1 of game 1 and the counter never restarts. medicham2's `midEventDice()` clears
+   its own on every call, which the driver makes once per game.
+
+Also worth their attention: their `midCtx` takes five fields and the brief for this work named six
+(it lists an *attacker* slot). The code has no attacker field. medicham2 matches **the code**.
+
+### WHAT MEDICHAM2 GOT — FOUR WRITES, NOT FORTY-NINE
+
+There are 49 context-free `rng()` sites and threading an argument through them was never on. Instead a
+module-level current event, written where the event changes:
+
+| where | what it sets | why there |
+|---|---|---|
+| top of `battleTurn` | `MID_TURN = S.turn + 1` | Showdown prints the turn line for the turn about to run; `S.turn` increments at the bottom |
+| top of the action loop | move + target from `it.a` | the authority calls `setActiveMove` on the FIRST line of `runMove`, **above** every BeforeMove gate |
+| the announcement site | move + target from `a` as it finally stands | the literal counterpart of `setActiveMove`; kept for a called move, and **counted** |
+| the step driver | target = the row being stepped | `hitStepAccuracy` and `getSpreadDamage` both open with `this.battle.activeTarget = target` inside their per-target loop |
+
+`midEventDice({seed})` returns a `rngStreams`-shaped struct whose every stream is the address function;
+`midEventLog()` hands back every address asked since. Both exported. medicham2 does **not** require the
+differential and never will — an engine that imports its own instrument cannot be measured by it — so
+the twelve lines of FNV-1a exist twice on purpose, and the test re-implements them a third time from
+the two constants so a drift in either is caught.
+
+### THE TOP-OF-ACTION WRITE WAS THE WHOLE OF THE `any` FIX, AND IT WAS FOUND BY COUNTING
+
+First cut addressed everything from the announcement site, ~150 lines below the gates. Over 39 games
+that left **14 of medicham2's draws and 14 of the authority's as the same Protect stall check, matching
+zero times**: ours read `|any|-|-|0`, theirs read `|any|protect|p20|0`. Moving the write to the top of
+the action fixed the whole class — the full-paralysis check, the sleep and freeze timers, Attract and
+the stall counter all draw up there.
+
+### THREE CATEGORY MISLABELS, ALL FOUND THE SAME WAY: THE DIFF COUNTED THEM
+
+None of these was read out of the source. Each appeared as *N draws on one side, N on the other, zero
+matched*, and only then was the handler read.
+
+1. **The move's own secondaries were on the generic stream.** `sec` read **28 authority draws against
+   ZERO from medicham2** across 39 games, with Flare Blitz's burn, Hurricane's confuse, Discharge's
+   paralysis and Blizzard's freeze all sitting in the `any` bucket. ROADMAP #222's five-way split never
+   reached the main secondary loop — the three `_R.sec()` calls that existed are the status-move riders.
+   This is a #222 gap that the address diff surfaced and that nothing else could have.
+2. **King's Rock.** `onModifyMove` *pushes* `{chance: 10, volatileStatus: 'flinch'}` onto
+   `move.secondaries` (`data/items.ts:3219`), so the authority draws for it inside `secondaries()`.
+   6 of each, matching zero.
+3. **Dire Claw.** `secondaries: [{chance: 30, onHit(target) { this.sample([...]) }}]`
+   (`data/moves.ts:3641`) — both the chance roll and the three-way pick happen under `secondaries`,
+   chance first. Ours took both on the generic stream.
+
+A non-split caller is bit-identical through all three: every stream aliases the one function, so no
+census probe, no scripted harness and no seeded run moves.
+
+**And the `stall` STREAM keeps its name while its ADDRESS says `any`.** The authority has no named
+streams; an instrument derives the category from which method is executing, and Showdown's
+`stall.onStallMove` is none of the three, so the authority calls it `any`. #222's separate stream is
+right and stays; letting its private name into a shared address is what made 14 draws a side match
+zero times. The mapping is one declared table (`MID_ADDR_CAT`), not a rename hidden at a call site.
+
+### THE RED PROOFS — FOUR, AND ONE OF THEM CAME BACK GREEN
+
+| break | result |
+|---|---|
+| the per-turn write (`MID_TURN = 0`) | **RED** — every category 0.0%, 5 claims fail |
+| the top-of-action write | **RED** — both staged claims in section 1b fail (`|any|-|-|` for the stall and paralysis draws); the game diff stays at 98.0% and cannot see it |
+| the per-target write in the step driver | **RED** — `dmg` 98.8 -> **90.5**, `crit` 98.5 -> **90.2** |
+| the announcement-site write | **GREEN, and that is a finding** |
+
+The last one is why the floors are per category. Deleting the per-target write left the POOLED figure
+at 91.2% — over a floor of 90, i.e. green on a broken engine. The pooled claim is now a backstop and
+the per-category floors do the work.
+
+The announcement-site write is genuinely redundant over 900 games: the choice lock and the volatile
+pre-pass rewrite `it.a` *before* the action loop runs, so the top-of-action write has already put the
+same two values there. It is kept — Showdown's `setActiveMove` is there, and a called move (Metronome,
+Sleep Talk, Copycat) is exactly where the two would part — and it is now **counted**
+(`MEDSEEN.midAddrMovedAtAnnounce`, 0 over 900 games), because "no probe can see it" and "it never
+happens" are different statements and only one of them was measured.
+
+### `any*` IS NOT FLOORED, AND REFUSING TO FLOOR IT IS THE HONEST ANSWER
+
+Same unchanged engine, two samples: **95.2%** (126 games, small steering pool, dominated by Protect) and
+**37.0%** (900 games, large pool, no Protect in it at all), on 16–27 events. A number that moves 58
+points on the fixture is measuring the fixture. Its write site is staged deterministically in section
+1b instead, where a claim about it can actually be wrong.
+
+`any-` is excluded outright: 955 of ours are `sortTurnOrder`'s speed-tie key and 394 of theirs are
+`Side#randomFoe` at queue resolution and `BattleQueue#insertChoice` after a switch. Neither engine
+makes the other's draw, and under this arm the authority's tie resolver is `PRNG#shuffle`, which the
+pin replaces with a no-op that draws nothing at all.
+
+### THE TWO STANDING SHAPES, DECLARED RATHER THAN DISCOVERED
+
+* **`acc` on the second body of a spread move.** medicham2 rolls accuracy ONCE per move — its own
+  header says so and calls it a declared divergence — and the authority rolls per target. The first
+  target matches, the rest cannot. Fixing it is an engine change with its own probe, not an address
+  change, and it would move every seeded run's rng consumption.
+* **`sec` on the second body of a spread move.** `BattleActions#secondaries` does **not** set
+  `activeTarget` in its own loop, so the authority addresses every target's secondary to the LAST body
+  of the spread. medicham2 addresses each to its own. Copying the authority here would make the address
+  stop naming the event, so it is left — and it is most of why `sec` swings 82–91% with the sample.
+
+### WHAT `nth` CANNOT DO, STATED BEFORE SOMEBODY RELIES ON IT
+
+`nth` is a repeat counter and a counter is a sequence wearing a smaller scope. If one engine takes two
+draws at an address and the other takes one, entry 0 lines up and everything after it is luck. **457 of
+2,029 medicham2 events are `nth > 0`** — that is the population where a count difference can still
+hide, and it is printed on every run rather than assumed small.
+
+### THE TIMING, MEASURED
+
+6,000 scripted four-click turns, three rounds per configuration, interleaved.
+
+```
+WITH the writes      2123 / 1886 / 1944      2103 / 1859 / 1843      2104 / 1854 / 1895 ms
+WITHOUT the writes   2037 / 1798 / 1794      2094 / 1849 / 1829 ms
+```
+
+The spread WITHIN a configuration (1843–2123) is larger than the gap between them, but the WITH rows
+are never the faster of a matched pair: the difference is **under 3%, about 8 microseconds on a turn
+that costs ~310**. Four string assignments per action plus one per step-target. Stated as a number
+rather than as "cheap", per #264.
+
+### WHAT WAS RUN
+
+* `node tests/test-mechanics.js` — **567 live / 0 missing**, unchanged.
+* `node tests/test-engine-diff.js --n 6000` — **0 disagreements**, both corners 0/6000.
+* `node tests/test-middle-identity.js` — GREEN, 17 claims.
+* `tests/test-engine-consistency.js`, `tests/test-protocol-trace.js` — GREEN.
+* `tests/test-nature-differential.js` is **RED on two natured-mega stat lines** and it is **NOT this
+  pass**: re-run against release `011b91b3749b`, cut before any of this work, it fails identically.
+  Reported, not filed. `tests/test-volatile-duration.js` is also red and is MEASURE's format sweep.

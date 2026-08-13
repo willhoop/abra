@@ -10,6 +10,74 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.16.0] — 2026-08-13
+
+### Added
+- **THE ENGINE HALF OF THE MIDDLE ARM'S EVENT-ADDRESSED DICE (ROADMAP #262), AND A DIFF THAT SAYS
+  WHETHER THE TWO ENGINES NAME THE SAME EVENT.** `game_differential.js` had already replaced the arm's
+  five shared SEQUENCES with an address — `FNV1a(seed | turn | category | move id | target slot | nth)`
+  — and left `medicham2-browser.js` reading sequences, so the arm was unusable. medicham2 now carries a
+  module-level current event written at **four sites, not at the 49 context-free `rng()` call sites**:
+  the top of `battleTurn` (`S.turn + 1`, the turn about to run), the top of the action loop (where the
+  authority's `setActiveMove` sits, on the first line of `runMove` and ABOVE every BeforeMove gate), the
+  announcement site, and the step driver — the one line that walks the per-target loop that
+  `hitStepAccuracy` and `getSpreadDamage` both walk. `midEventDice`, `midEventLog`, `midEventValue`,
+  `midEventBase` and `MID_EVENT_SEED` are exported. medicham2 does **not** require the differential, so
+  the twelve lines of FNV-1a exist twice on purpose.
+- **`tests/test-middle-identity.js` — the two engines' address logs, DIFFED over 900 real games**,
+  per category, with the shapes that cannot match printed rather than averaged. medicham2-matched:
+  **`acc` 99.7%, `dmg` 98.8%, `crit` 98.5%, `sec` 91.0% — 98.3% pooled over 1,058 events.** Floors are
+  PER CATEGORY because pooling hid a real break: deleting the per-target write left the pooled figure at
+  91.2%, over a floor of 90, i.e. green on a broken engine. Four deliberate breaks were run; three are
+  RED and the fourth is a finding (below).
+
+### Fixed
+- **THE MOVE'S OWN SECONDARIES WERE ON THE GENERIC RNG STREAM — A STANDING ROADMAP #222 GAP, FOUND BY
+  COUNTING.** The address diff read **28 `sec` draws from the authority against ZERO from medicham2**
+  across 39 games, with Flare Blitz's burn, Hurricane's confuse, Discharge's paralysis and Blizzard's
+  freeze all sitting in the `any` bucket. #222's five-way split never reached `moveData.secondaries`;
+  the three `_R.sec()` calls that existed are the status-move riders. Two more of the same shape:
+  **King's Rock**, whose `onModifyMove` PUSHES a secondary onto `move.secondaries`
+  (`data/items.ts:3219`), and **Dire Claw**, whose chance roll and three-way `sample` both run under
+  `secondaries()` (`data/moves.ts:3641`). A non-split caller is bit-identical through all three — every
+  stream aliases the one function — so no census probe, harness or seeded run moves.
+
+### Changed
+- **The `stall` STREAM keeps its name; its ADDRESS says `any`,** because that is what the authority
+  calls it: Showdown's `stall.onStallMove` is outside the three methods an instrument derives the
+  category from. Letting a private stream name into a shared address made 14 draws a side match zero
+  times. One declared table (`MID_ADDR_CAT`), not a rename hidden at a call site.
+- `MEDSEEN.midAddrMovedAtAnnounce` added. Deleting the announcement-site write left the test GREEN over
+  900 games — the choice lock rewrites `it.a` before the action loop, so the top-of-action write has
+  already put the same values there. The write is kept (a called move is where the two would part) and
+  is now counted, because "no probe can see it" and "it never happens" are different statements.
+
+### Notes
+- **THE ARM STILL CANNOT BE SWITCHED ON, AND THE REASON IS IN `engine/game_differential.js`, WHICH IS
+  NOT ENGINE'S FILE.** It builds its address inside the function it installs as `battle.prng.random`;
+  `Battle#random` is `return this.prng.random(m, n)`, so `this` there is the **PRNG** and every address
+  it computes is `<seed>|undefined|<cat>|-|-|<nth>`. **Measured match rate as wired today: 0.0%.** The
+  new test computes BOTH address streams on every draw and asserts the degenerate one stays under 5%, so
+  the arm cannot be enabled by mistake. Owed there: capture `this.battle` in `midWrapShowdown`'s
+  `around()`, and clear `MID_NTH` per game beside the existing `midReset()`.
+- **What is not solved and is not claimed.** `nth` is a repeat counter, and a counter is a sequence
+  wearing a smaller scope: two engines that take a different NUMBER of draws at one address line up on
+  entry 0 and part after it. **457 of 2,029 events are `nth > 0`**, printed every run. Two shapes cannot
+  match and are declared: medicham2 rolls accuracy ONCE per move where the authority rolls per target,
+  and `BattleActions#secondaries` never updates `activeTarget`, so the authority addresses every
+  target's secondary on a spread move to the LAST body.
+- `any*` (the BeforeMove gates and the stall counter) is deliberately **not floored**: same unchanged
+  engine, 95.2% on a 126-game sample and 37.0% on a 900-game one, on 16–27 events. A number that moves
+  58 points on the fixture measures the fixture; its write site is staged deterministically instead.
+- **Cost, measured rather than asserted** (6,000 scripted four-click turns, three rounds per
+  configuration, interleaved): WITH 2123/1886/1944, 2103/1859/1843, 2104/1854/1895 ms; WITHOUT
+  2037/1798/1794, 2094/1849/1829 ms. Under 3%, about 8 microseconds on a ~310 microsecond turn.
+- **The census did not move: 567 live / 0 missing, before and after.** `tests/test-engine-diff.js
+  --n 6000` reports 0 disagreements, top 0/6000 and bottom 0/6000 — both pinned corners are unchanged.
+- `tests/test-nature-differential.js` is RED on two natured-mega stat lines and it **predates this
+  pass**: it fails identically against release `011b91b3749b`, cut before any of this work. Reported,
+  not filed.
+
 ## [5.15.0] — 2026-08-13
 
 ### Fixed
