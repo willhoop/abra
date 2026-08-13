@@ -378,6 +378,19 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                              the turn -- `!!this.queue.willAct()`, the gate the shields already
    *                              had and the Guards did not. */
   stallCounterFed: 0, sideGuardRefusedMovesLast: 0,
+  /* ROADMAP #232 -- WHERE THE `willAct()` GATE IS ASKED, AND WHETHER MOVING IT CHANGED AN ANSWER.
+   *   shieldGateAtExecution      a shield's whole `onPrepareHit` gate -- the queue scan AND the stall
+   *                              roll behind it -- was resolved at the instant the shield's own action
+   *                              came up, which is where sim/battle-actions.ts asks it. A zero after
+   *                              real games means no shield was clicked, not that the branch is absent.
+   *   shieldGateOrderChanged     and the answer DIFFERED from what the top-of-turn sort would have
+   *                              given, because the queue moved under it: `sim/battle.ts` re-sorts the
+   *                              whole remaining list after every action in gen >= 8 (the megaEvo case
+   *                              is the common one -- a body that evolves into a higher Speed is
+   *                              re-sorted to the front of its bracket before any move runs). THIS IS
+   *                              THE COUNTER THAT PROVES THE FIX DOES SOMETHING; a zero here with a
+   *                              non-zero above means every shield this run held its pre-pass place. */
+  shieldGateAtExecution: 0, shieldGateOrderChanged: 0,
   /* ROADMAP #162 / #60 -- Upper Hand refused because the target's committed move was not priority.
    * A zero after real games means nobody clicked it (89 corpus uses), not that the branch is absent. */
   priorityConditionRefused: 0,
@@ -11953,6 +11966,34 @@ function battleTurn(S,rng,actsForA,actsForB){
        because board.js calls the same rule. See the block above effSpeed. */
     for(const it of acts) it._pri=actionPriority(it,field);
     sortTurnOrder(acts,field,rng);
+    /* ROADMAP #232 -- `BattleQueue.willAct()`, AND IT IS ONE FUNCTION BECAUSE IT IS ONE FACT.
+     *
+     *     willAct() { for (const action of this.list)
+     *                   if (['move','switch','instaswitch','shift'].includes(action.choice)) return action;
+     *                 return null; }                             sim/battle-queue.ts:310
+     *
+     * It scans the LIVE list -- the current action has already been shifted off -- so here it is "is
+     * there an entry after `idx` in `acts` as `acts` stands right now".
+     *
+     * `kind:'pass'` IS COUNTED, AND EXCLUDING IT WAS TRIED FIRST AND WAS WRONG. Showdown's `pass`
+     * choice is not one of willAct's four, so skipping ours looks like the faithful reading -- but
+     * the two words name different things. Showdown may only `pass` an EMPTY SLOT; every body that is
+     * on the field holds a `move` action. `{kind:'pass'}` here is this engine's own declaration that
+     * it models no effect for a click that was still made (see `composedEffectUnexpressed` below), and
+     * an empty slot produces no `acts` entry at all because `mk()` skips it. So a pass here is a body
+     * that IS acting, and the authority counts it. Skipping it took `stallCounterFeeds` and
+     * `swapsSlots` from LIVE to MISSING -- both stage three idle bodies behind one shield -- which is
+     * how the mistranslation was caught.
+     *
+     * IT DOES NOT CARE WHETHER THE BODY BEHIND IT CAN STILL ACT. Showdown does not check `fainted`
+     * here -- a body that died earlier in the turn still holds a queued action, and `runAction`
+     * refuses it only when it is shifted. So this deliberately does not skip fainted entries either;
+     * that is the authority's answer, not an oversight.
+     *
+     * WHICH LEAVES IT ARITHMETICALLY IDENTICAL TO THE `i+1>=acts.length` IT REPLACES. That is the
+     * point: the ONLY thing ROADMAP #232 changes is WHEN this is asked, and a function is what makes
+     * the two call sites -- the shield and the side guard -- ask one question instead of two copies. */
+    const _anyActionAfter=(idx)=>idx+1<acts.length;
     /* WIRE 119 -- THE SHIELD IS RAISED BEFORE ANY MOVE RESOLVES, so a body Taunted on an EARLIER turn
      * would otherwise still get its Protect up: the gate above the kind dispatch fires too late for
      * this pre-pass. It is asked here as well, and only here, because a body Taunted THIS turn is
@@ -11995,41 +12036,34 @@ function battleTurn(S,rng,actsForA,actsForB){
      *    A FAILURE ON THIS GATE ALSO LEAVES THE BODY FRESH NEXT TURN. `stall` carries `duration: 2`
      *    and is only refreshed by a successful use, so a turn that fails here lets it expire at the
      *    end of that turn -- indistinguishable from a reset, which is what is written.
-     * ONE THING THIS DOES NOT MODEL, STATED: a mega evolution mid-turn re-sorts the tail (see the
-     * mega block below), so a shield's position could in principle change after this pre-pass ran.
-     * It can only move WITHIN the +4 bracket, and only when the last two actions of the turn are both
-     * shields and one of them megas. Not modelled, not silently: it is written here. */
+     *
+     * ROADMAP #232 -- AND THE GATE IS NO LONGER ANSWERED HERE. The paragraph that used to close this
+     * comment said a mid-turn mega "could in principle" move a shield's position after the pre-pass
+     * ran, called it unmodelled, and estimated it as needing "the last two actions of the turn to be
+     * both shields". BOTH HALVES WERE WRONG. It is not in principle -- it is the largest single cause
+     * in `engine/divergence_report.js`, 100,806 corpus clicks -- and it needs no such coincidence:
+     * `sim/battle.ts:2915` re-sorts the WHOLE remaining queue after EVERY action in gen >= 8, and
+     * `willAct()` reads that live list at the instant each shield executes. A body that megas into a
+     * higher Speed is re-sorted to the FRONT of its bracket before any move runs, so BOTH the megaer
+     * (which the stale order called last) and the body that is really slowest afterwards get the
+     * opposite answer. Measured against the authority with four Protects and a Beedrill-Mega: the
+     * megaer's shield HOLDS and the second-slowest body is refused; this engine had it exactly
+     * inverted. So the queue scan, the stall roll behind it and the raise itself now happen at the
+     * shield's own action -- see `_shieldGate` below the mega phase.
+     *
+     * WHAT STAYS HERE, AND WHY. `volatileForbidsMove` is still asked at the top of the turn, on the
+     * pre-pass order, because that is WIRE 119's rule and it is a different question: a body Taunted
+     * on an EARLIER turn may not shield at all, while one Taunted THIS turn still may (Protect is +4
+     * and Taunt is +0, so the shield has already resolved). Asking it later would quietly change that.
+     * The `else` that clears the counter for every body NOT shielding this turn also stays: it reads
+     * only this turn's chosen action and no ordering at all. */
     for(let i=0;i<acts.length;i++){
       const it=acts[i];
       if(it.a.kind==='protect'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){
-        /* ROADMAP #162 / #59 -- THE THREE NUMBERS COME OFF `stallCounterChecks` NOW.
-         *
-         * `1/3`, `6` and the implicit 729 were literals, and they are the same shape the Ally Switch
-         * branch used to hold four of: two copies of one mechanic that agree until they do not.
-         * `stallCounterChecks` reads them off data/conditions.ts `stall` itself -- `counter = 3` in
-         * onStart, `counter *= 3` in onRestart, `counterMax: 729` -- so the decay is derived rather
-         * than typed. The cap follows from those three (3 * 3^(n-1) reaches 729 at n = 6) instead of
-         * being a fourth independent literal that has to be kept consistent with them by hand.
-         *
-         * AND THE ARITHMETIC IS NOW THE AUTHORITY'S. Showdown draws `randomChance(1, counter)` on an
-         * INTEGER counter, so the exact probability is 1/27; `Math.pow(1/3, 3)` compounds a rounding
-         * error and is 1 ulp low from n = 3 onward. The window that changes is ~1e-17 wide and no
-         * die in this repository can land in it -- it is a correctness point, not a measured one,
-         * and it is stated rather than claimed as a fix. */
-        if(i+1>=acts.length){it.mon.protect=false;it.mon.tookProtectTurns=0;}   // willAct() === null
-        else{
-          const _sc=TAGS.param('move',actionMoveId(it.a),'stallCounterChecks');
-          if(!_sc){MEDFAILS.stallCounterUntagged++;
-            if(!MEDFAILS.stallCounterUntaggedFirst)MEDFAILS.stallCounterUntaggedFirst=String(actionMoveId(it.a));}
-          const _f=(_sc&&_sc.firstCounter)||3,_g=(_sc&&_sc.growsBy)||3,_mx=(_sc&&_sc.counterMax)||729;
-          const _n=it.mon.tookProtectTurns;
-          const _cap=1+Math.round(Math.log(_mx/_f)/Math.log(_g));
-          const _ctr=_n===0?1:Math.min(_mx,_f*Math.pow(_g,_n-1));
-          const _ok=(_ctr<=1||_R.stall()<1/_ctr);   // ROADMAP #222 -- its own die
-          it.mon.protect=_ok;
-          it.mon.tookProtectTurns=_ok?Math.min(_cap,_n+1):0;
-        }
-        it.mon._lastMove=it.a.mv||'protect';it.mon._protectMove=it.a.mv||null;
+        /* DEFERRED. `_preWillAct` is the answer the TOP-OF-TURN order would have given, recorded only
+         * so `MEDSEEN.shieldGateOrderChanged` can say how often the two disagree -- a fix whose
+         * counter cannot move is indistinguishable from no fix. Nothing reads it as a decision. */
+        it._shieldPending=true;it._preWillAct=_anyActionAfter(i);
       }
       /* ROADMAP #126 -- THE GUARD RAISED IS RECORDED BY ITS MOVE ID, not by a boolean whose name is
        * the mechanic.
@@ -12051,27 +12085,12 @@ function battleTurn(S,rng,actsForA,actsForB){
        * and `failsIfMovesLast` (8 moves: these 2 plus the 6 shields). Anything the artifact later
        * gives one and not the other is picked up without editing this branch. */
       else if(it.a.kind==='wideguard'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){
-        const _g=actionMoveId(it.a)||'wideguard';
-        /* THE QUEUE GATE SHORT-CIRCUITS AHEAD OF THE HIT, so a guard refused here never reaches its
-         * own onHitSide and never feeds anything -- the same shape, and the same `i+1>=acts.length`
-         * reading, the shield branch above already uses. */
-        if(TAGS.has('move',_g,'failsIfMovesLast')&&i+1>=acts.length){
-          /* NO PROTOCOL LINE, and that matches what the shield branch does one block up rather than
-           * being an oversight: this pre-pass runs before any move line has been opened, so
-           * `TR.attrStill()` would have nothing to attach to. The refusal is a STATE fact here and
-           * the announcement half belongs to ROADMAP #68's stream comparison. */
-          it.mon.tookProtectTurns=0;MEDSEEN.sideGuardRefusedMovesLast++;
-        }else{
-          (it.side==='A'?field.sgA:field.sgB)[_g]=true;
-          if(TAGS.has('move',_g,'stallCounterFeeds')){
-            it.mon.tookProtectTurns=Math.min(6,it.mon.tookProtectTurns+1);MEDSEEN.stallCounterFed++;
-          }else{
-            /* A side guard the artifact does NOT call a feeder. Nothing in this format is one, so a
-             * non-zero here names a member that arrived with no rule -- loud, not silent. */
-            it.mon.tookProtectTurns=0;MEDFAILS.sideGuardNotAFeeder++;
-            if(!MEDFAILS.sideGuardNotAFeederFirst)MEDFAILS.sideGuardNotAFeederFirst=String(_g);
-          }
-        }}
+        /* DEFERRED FOR THE SAME REASON AS THE SHIELD, and it has to be the same reason: `onTry` is the
+         * SAME `!!this.queue.willAct()` call, asked at the same instant, and the side condition cannot
+         * go up ahead of a gate that may refuse it. Deferring the gate and not the raise would be two
+         * halves of one rule pulled apart -- which is what the shields and the Guards already were. */
+        it._guardPending=true;it._preWillAct=_anyActionAfter(i);
+      }
       else it.mon.tookProtectTurns=0;
     }
     /* WIRE 118 -- "HAS THIS BODY ALREADY ACTED?" IS NOW "HAS IT RESOLVED?", AND THAT IS THE POINT.
@@ -12185,6 +12204,96 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _rest=sortTurnOrder(acts.slice(from),field,rng);
       for(let _k=0;_k<_rest.length;_k++)acts[from+_k]=_rest[_k];
     };
+    /* ROADMAP #232 -- THE SHIELD FAMILY'S GATE, ASKED WHERE THE AUTHORITY ASKS IT.
+     *
+     *     protect.onPrepareHit(pokemon) {
+     *       return !!this.queue.willAct() && this.runEvent('StallMove', pokemon);   data/moves.ts
+     *     }
+     *     wideguard.onTry() { return !!this.queue.willAct(); }
+     *
+     * `onPrepareHit` runs inside `useMoveInner` -- per action, at execution -- and `willAct()` reads
+     * the queue as it stands THEN. Between the top-of-turn sort and that instant the queue is re-sorted
+     * after every action (`sim/battle.ts:2915`, gen >= 8), and the megaEvo phase directly above is the
+     * re-sort that moves a shield the furthest.
+     *
+     * THE `&&` IS A SHORT-CIRCUIT AND THAT IS LOAD-BEARING: a shield refused by the queue scan draws
+     * NO die and never touches the counter, which is why the roll lives inside the `else` rather than
+     * above the branch. A failure here also leaves the body fresh next turn -- `stall` carries
+     * `duration: 2` and only a successful use refreshes it, so it expires at the end of this turn,
+     * which is indistinguishable from the reset that is written.
+     *
+     * WHAT IS NOT MOVED: `volatileForbidsMove`, asked in the pre-pass above on WIRE 119's schedule. */
+    const _shieldGate=(it,idx)=>{
+      const _will=_anyActionAfter(idx);
+      MEDSEEN.shieldGateAtExecution++;
+      if(_will!==!!it._preWillAct)MEDSEEN.shieldGateOrderChanged++;
+      if(it._shieldPending){
+        /* ROADMAP #162 / #59 -- THE THREE NUMBERS COME OFF `stallCounterChecks` NOW.
+         *
+         * `1/3`, `6` and the implicit 729 were literals, and they are the same shape the Ally Switch
+         * branch used to hold four of: two copies of one mechanic that agree until they do not.
+         * `stallCounterChecks` reads them off data/conditions.ts `stall` itself -- `counter = 3` in
+         * onStart, `counter *= 3` in onRestart, `counterMax: 729` -- so the decay is derived rather
+         * than typed. The cap follows from those three (3 * 3^(n-1) reaches 729 at n = 6) instead of
+         * being a fourth independent literal that has to be kept consistent with them by hand.
+         *
+         * AND THE ARITHMETIC IS NOW THE AUTHORITY'S. Showdown draws `randomChance(1, counter)` on an
+         * INTEGER counter, so the exact probability is 1/27; `Math.pow(1/3, 3)` compounds a rounding
+         * error and is 1 ulp low from n = 3 onward. The window that changes is ~1e-17 wide and no
+         * die in this repository can land in it -- it is a correctness point, not a measured one,
+         * and it is stated rather than claimed as a fix. */
+        if(!_will){it.mon.protect=false;it.mon.tookProtectTurns=0;}   // willAct() === null
+        else{
+          const _sc=TAGS.param('move',actionMoveId(it.a),'stallCounterChecks');
+          if(!_sc){MEDFAILS.stallCounterUntagged++;
+            if(!MEDFAILS.stallCounterUntaggedFirst)MEDFAILS.stallCounterUntaggedFirst=String(actionMoveId(it.a));}
+          const _f=(_sc&&_sc.firstCounter)||3,_g=(_sc&&_sc.growsBy)||3,_mx=(_sc&&_sc.counterMax)||729;
+          const _n=it.mon.tookProtectTurns;
+          const _cap=1+Math.round(Math.log(_mx/_f)/Math.log(_g));
+          const _ctr=_n===0?1:Math.min(_mx,_f*Math.pow(_g,_n-1));
+          const _ok=(_ctr<=1||_R.stall()<1/_ctr);   // ROADMAP #222 -- its own die
+          it.mon.protect=_ok;
+          it.mon.tookProtectTurns=_ok?Math.min(_cap,_n+1):0;
+        }
+        it.mon._lastMove=it.a.mv||'protect';it.mon._protectMove=it.a.mv||null;
+      }else{
+        /* ROADMAP #126 -- THE GUARD RAISED IS RECORDED BY ITS MOVE ID, not by a boolean whose name is
+         * the mechanic.
+         *
+         * ROADMAP #162 / #59 -- AND IT FEEDS THE COUNTER RATHER THAN CLEARING IT. The line here read
+         * `it.mon.tookProtectTurns=0`, which is the OPPOSITE of the rule, and the comment that used to
+         * sit in its place said so and left it. Showdown, data/moves.ts wideguard/quickguard:
+         *
+         *     onTry()                  { return !!this.queue.willAct(); }
+         *     onHitSide(side, source)  { source.addVolatile('stall'); }
+         *
+         * Neither move is a `stallingMove` and neither raises `StallMove`, so no die is ever drawn for
+         * the Guard itself -- but `addVolatile('stall')` lands on `stall.onRestart`
+         * (data/conditions.ts) and TRIPLES the counter. A Wide Guard therefore makes the NEXT Protect
+         * 1/3; this engine made it a free 100%, so a Wide Guard was a way to refresh a decaying shield.
+         *
+         * BOTH HALVES ARE READ OFF THE TAG, NOT OFF THE KIND. `wideguard` is an ACTION KIND, and the
+         * two behaviours are separate tags with separate membership -- `stallCounterFeeds` (2 moves)
+         * and `failsIfMovesLast` (8 moves: these 2 plus the 6 shields). Anything the artifact later
+         * gives one and not the other is picked up without editing this branch. */
+        const _g=actionMoveId(it.a)||'wideguard';
+        if(TAGS.has('move',_g,'failsIfMovesLast')&&!_will){
+          /* NO PROTOCOL LINE. The shield branch above emits none either, and the announcement half
+           * belongs to ROADMAP #68's stream comparison; the refusal is a STATE fact here. */
+          it.mon.tookProtectTurns=0;MEDSEEN.sideGuardRefusedMovesLast++;
+        }else{
+          (it.side==='A'?field.sgA:field.sgB)[_g]=true;
+          if(TAGS.has('move',_g,'stallCounterFeeds')){
+            it.mon.tookProtectTurns=Math.min(6,it.mon.tookProtectTurns+1);MEDSEEN.stallCounterFed++;
+          }else{
+            /* A side guard the artifact does NOT call a feeder. Nothing in this format is one, so a
+             * non-zero here names a member that arrived with no rule -- loud, not silent. */
+            it.mon.tookProtectTurns=0;MEDFAILS.sideGuardNotAFeeder++;
+            if(!MEDFAILS.sideGuardNotAFeederFirst)MEDFAILS.sideGuardNotAFeederFirst=String(_g);
+          }
+        }
+      }
+    };
     for(let actIdx=0;actIdx<acts.length;actIdx++){
       if(!_megaPhaseDone&&acts[actIdx]&&(acts[actIdx]._pri||0)<6)_megaPhase(actIdx);
       if(actIdx>0&&actIdx<acts.length-1){
@@ -12233,6 +12342,17 @@ function battleTurn(S,rng,actsForA,actsForB){
          runMove -- so a body that died before its turn came up does not spend one either. */
       if(m.fainted||m.curHP<=0)continue;
       if(it.a&&it.a.kind!=='switch'&&it.a.kind!=='pass')m._mvActs=((m._mvActs)|0)+1;
+      /* ROADMAP #232 -- THE SHIELD FAMILY'S GATE, AT THE ACTION. See `_shieldGate` above the loop.
+       *
+       * IT SITS HERE AND NOT LOWER ON PURPOSE. Above it is `runAction`'s own fainted refusal, which is
+       * the authority's -- a body that died earlier in the turn never reaches `useMove`, so it raises
+       * nothing, and that is a change from the pre-pass, which shielded it anyway. Below it are the
+       * five `BeforeMove` gates. Those are LEFT above the shield deliberately: a flinched or sleeping
+       * body should not shield either, but that is a second defect with no failing probe on it, and
+       * folding it in would make a moved differential unattributable. Keeping the raise ahead of them
+       * preserves exactly today's behaviour there, so the only thing this batch changes is WHEN the
+       * queue is scanned. STATED, not silently left. */
+      if(it._shieldPending||it._guardPending)_shieldGate(it,actIdx);
       /* WIRE 144 -- did the Encore override below rewrite this action? The randomTarget re-roll after
        * it must not draw a second time for one rule; see its own comment. */
       let _ovr=false;

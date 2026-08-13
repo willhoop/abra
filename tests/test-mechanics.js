@@ -977,6 +977,81 @@ probe('move', 'stalling', 'Protect FAILS outright when its user holds the LAST a
                  + `turn-1 shield failed, counter never armed) ${test}` };
 });
 
+/* ROADMAP #232 -- "WHO HOLDS THE LAST ACTION" IS ANSWERED AT EXECUTION, NOT AT THE TOP OF THE TURN.
+ *
+ * The probe above proves the gate EXISTS. It cannot see WHEN it is asked, because nothing in it moves
+ * the queue after the turn has been sorted -- and the authority's queue moves twice per turn.
+ *
+ *     sim/battle.ts:2915   if (this.gen >= 8 && this.queue.peek()?.choice === 'move') {
+ *                            this.updateSpeed();
+ *                            for (const queueAction of this.queue.list) this.getActionSpeed(queueAction);
+ *                            this.queue.sort();     // <- after EVERY action, including megaEvo
+ *                          }
+ *     sim/battle-queue.ts:310  willAct() { for (const action of this.list) ... }   // the LIVE list
+ *
+ * So a body that megas into a higher Speed is re-sorted to the FRONT of its bracket before any move
+ * runs, and `willAct()` -- read at the instant each shield executes -- names a different body as the
+ * one holding the last action than the top-of-turn order did. medicham2 decided every shield in one
+ * pre-pass above the action loop, on the PRE-mega sort, and never revisited it.
+ *
+ * STAGED AGAINST THE AUTHORITY BEFORE THIS WAS WRITTEN, four shields in one turn, gen9championsvgc2026regmb:
+ *     |detailschange|p1a: Beedrill|Beedrill-Mega, L50, M    (base Speed 75 -> 145)
+ *     |move|p1a: Beedrill|Protect|p1a: Beedrill     |-singleturn|p1a: Beedrill|Protect
+ *     |move|p2a: Sceptile|Protect|p2a: Sceptile     |-singleturn|p2a: Sceptile|Protect
+ *     |move|p2b: Typhlosion|Protect|p2b: Typhlosion |-singleturn|p2b: Typhlosion|Protect
+ *     |move|p1b: Meganium|Protect||[still]          |-fail|p1b: Meganium          <- the SLOWEST POST-mega
+ * The megaer's shield HOLDS and the body that was second-slowest before the mega is the one refused.
+ * medicham2 refused the megaer and let all three others through -- the exact inversion.
+ *
+ * THE KNOB IS THE MEGA AND NOTHING ELSE. Both arms are the same four bodies, the same Speeds, the same
+ * four Protects and the same rolls; only the `mega` flag on the megaer's own action differs. Beedrill
+ * is the SLOWEST of the four before it evolves and the FASTEST after, so the two orders disagree about
+ * who is last in the only way that matters.
+ *
+ * ASSERTED ON TURN 2'S DAMAGE, because a Protect refused on a turn where everybody shields blocks
+ * nothing either way -- the observable is that a refused shield never armed the counter, so turn 2 is a
+ * fresh guaranteed shield instead of a 1/3 a losing roll takes down. Before the fix BOTH arms read 0,
+ * which is the shape docs/LESSONS.md calls an unwired knob rather than a null result. */
+probe('move', 'stalling', 'the LAST action is decided at EXECUTION — a mega mid-turn re-sorts the queue under the shield', () => {
+  const SH = () => ({ kind: 'protect', mv: 'protect' });
+  const run = (doMega) => {
+    /* NOT `bare()`: the stone is the mechanic. The ability is blanked on all four so nothing else
+     * can supply a Speed change; Beedrill-Mega's own Adaptability touches neither shield nor Speed. */
+    const me = M.buildMon('beedrill', {}); me.ability = 'none'; me.item = 'beedrillite';
+    const ally = bare('incineroar'), f1 = bare('garchomp'), f2 = bare('garchomp');
+    /* me is 132 before the mega and 202 after it — printed in the detail, not assumed here. */
+    ally.st = Object.assign({}, ally.st, { sp: 140 });
+    f1.st = Object.assign({}, f1.st, { sp: 150 });
+    f2.st = Object.assign({}, f2.st, { sp: 160 });
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    unfaintable(me); unfaintable(ally);
+    const a = SH(); if (doMega) a.mega = true;
+    /* turn 1 — four shields, all at +4, so the order inside the bracket is pure Speed. */
+    M.battleTurn(S, rng5, new Map([[me, a], [ally, SH()]]), new Map([[f1, SH()], [f2, SH()]]));
+    const raised = { me: me.protect, ally: ally.protect, f1: f1.protect, f2: f2.protect };
+    const spe = me.st.sp, forme = String(me.sp || me.name || '');
+    /* turn 2 — the same shield at a LOSING roll with a real attack behind it, so this one is not last. */
+    const before = me.curHP;
+    M.battleTurn(S, rngLose,
+      new Map([[me, SH()], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { dmg: before - me.curHP, raised, spe, forme };
+  };
+  const control = run(false);   // no mega: me is last on BOTH orders, so the shield is refused
+  const test = run(true);       // mega: me is last only on the STALE order — the shield must hold
+  return { works: control.dmg === 0 && test.dmg > 0
+                  && test.raised.me === true && test.raised.ally === false
+                  && control.raised.me === false && control.raised.ally === true,
+           arms: { control: control.dmg, test: test.dmg },
+           detail: `damage taken on turn 2 behind a shield at roll 0.99 — NO mega (${control.forme} at `
+                 + `Speed ${control.spe} is last on both orders, turn-1 shield refused, counter never `
+                 + `armed) ${control.dmg}; WITH the mega (${test.forme} at Speed ${test.spe} is last on `
+                 + `the stale order and FIRST on the live one, turn-1 shield holds, counter armed) `
+                 + `${test.dmg}. Shields raised on turn 1 — no mega ${JSON.stringify(control.raised)}, `
+                 + `mega ${JSON.stringify(test.raised)}: the mega arm must refuse the ALLY (Speed 140, `
+                 + `the slowest once Beedrill has evolved) and nobody else` };
+});
+
 /* ROADMAP #81 WIRE 1 -- A SHIELD PREEMPTS THE TO-HIT ROLL. Showdown runs TryHit as step 1 and
  * accuracy as step 4 (sim/battle-actions.ts:553-576), so a move aimed into a Protect is BLOCKED and
  * never rolls at all. medicham2 rolled first, and printed `|-miss|` where the authority prints

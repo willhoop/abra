@@ -36,8 +36,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  541/541 probed mechanics live, 0 missing   (census 2026-08-12 22:19)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-12 21:53)
+  542/542 probed mechanics live, 0 missing   (census 2026-08-12 22:47)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-12 22:49)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,15 +49,126 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 8ef2e3c94062 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 918270fa949b now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 687d671ec569 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 262/280 probed, 18 unprobed
 ```
 
-_stamped 2026-08-12 22:23_
+_stamped 2026-08-12 22:55_
 
 <!-- /GENERATED -->
+
+## ROADMAP #232 — PROTECT. THE GATE WAS ASKED AT THE TOP OF THE TURN AND THE QUEUE MOVES UNDER IT. 2026-08-12.
+
+**Census 541 live / 0 missing -> 542 live / 0 missing.** One probe, shown RED against a deliberate
+break before the engine was trusted.
+
+`engine/divergence_report.js` ranks Protect first by corpus usage: **100,806 clicks across 12 causes**,
+and the direction was always the same way round — *Showdown's Protect succeeds, ours refuses.*
+
+### WHAT ACTUALLY DIFFERED, READ OFF A REAL DIVERGING GAME AND NOT OFF A HYPOTHESIS
+
+`--dump-games` on the 267-game pair, seed `…656203256`. A turn with three shields and a mega:
+
+| | showdown | medicham2 |
+|---|---|---|
+| p1b Swampert (megas, Swift Swim in rain) | `-singleturn` | **`-fail`** |
+| p2b Garchomp | `-singleturn` | `-singleturn` |
+| p1a Pelipper | **`-fail`** | `-singleturn` |
+
+Both engines resolve the three in the SAME order. The authority refuses the LAST of them; this engine
+refused the FIRST. **It is not a queue whose contents differ — it is a queue whose ORDER moved after we
+had already answered the question.**
+
+`sim/battle.ts:2915` re-sorts the WHOLE remaining queue after EVERY action in gen >= 8, and
+`willAct()` (`sim/battle-queue.ts:310`) reads that live list at the instant each shield executes. The
+megaEvo phase is the re-sort that moves a shield furthest: a body that evolves into a higher Speed goes
+to the FRONT of its bracket before any move runs. medicham2 decided every shield in ONE pre-pass above
+the action loop, on the PRE-mega sort, and never revisited it — so both the megaer *and* whoever is
+really slowest afterwards got the opposite answer.
+
+**THE FILE HAD ALREADY WRITTEN THIS DOWN AND UNDER-PRICED IT.** WIRE 119's closing paragraph said a
+mid-turn mega "could in principle" move a shield, called it unmodelled, and estimated it as needing
+"the last two actions of the turn to be both shields". Both halves were wrong: it is the largest single
+divergence cause in the format, and it needs no such coincidence.
+
+### THE FIX
+
+The queue scan, the stall roll short-circuited behind it (`!!willAct() && runEvent('StallMove')`) and
+the raise itself now happen at the shield's own action, in `_shieldGate`, for BOTH halves of the family
+— the six shields' `onPrepareHit` and the two Guards' `onTry` are the same call and could not be split.
+`volatileForbidsMove` stays in the pre-pass, because WIRE 119's rule is a different question.
+
+Confirmed against the authority before anything was edited — four Protects, a Beedrill-Mega (base Speed
+75 -> 145), `gen9championsvgc2026regmb`: the megaer's shield HOLDS and the second-slowest body is
+refused. This engine had it exactly inverted.
+
+### MY OWN CHANGE WAS WRONG BEFORE THE ENGINE WAS — DOCS/LESSONS §5
+
+`willAct` filters to `move|switch|instaswitch|shift`, so I excluded `kind:'pass'`. **That looked like
+the faithful reading and it is a mistranslation.** Showdown may only `pass` an EMPTY SLOT; here
+`{kind:'pass'}` is this engine's own declaration that it models no effect for a click that was still
+made, and an empty slot produces no `acts` entry at all. It took `stallCounterFeeds` and `swapsSlots`
+from LIVE to MISSING — both stage three idle bodies behind one shield — which is how it was caught.
+Reverted, with the reason written at the function. `_anyActionAfter` is therefore arithmetically
+identical to the `i+1>=acts.length` it replaces; the only thing that changed is WHEN it is asked.
+
+### THE RED PROOF
+
+`const _will=_anyActionAfter(idx)` -> `const _will=!!it._preWillAct` (the stale top-of-turn answer):
+
+```
+MISSING  stalling  the LAST action is decided at EXECUTION — a mega mid-turn re-sorts the queue
+   NO mega ... 0; WITH the mega ... 0.  no mega {"me":false,"ally":true,...}, mega {"me":false,"ally":true,...}
+541 live, 1 missing, 542 probed.
+```
+
+Both arms read 0 and the two shield maps are identical — an unwired knob, not a null result. Restored
+byte-identical; 542 live, 0 missing.
+
+### THE COUNTERS
+
+`shieldGateAtExecution` (the gate ran here) and `shieldGateOrderChanged` (**and the answer differed from
+what the top-of-turn sort would have given**). Staged: 20 / 2 — the 2 are the megaer and the ally
+swapping places. `sideGuardRefusedMovesLast` 1 and `stallCounterFed` 2 still fire.
+`MEDFAILS.stallCounterUntagged` and `sideGuardNotAFeeder` stay 0.
+
+### THE MEASURED MOVE, AND IT IS SMALL
+
+300-game pair, `--team-store data/team-pool-frozen`, `planted_divergence_proof_ok` true both sides:
+
+| arm | before | after |
+|---|---|---|
+| top-tie-first | 115 / 267 | **114 / 267** |
+| bottom-tie-first | 84 / 267 | **83 / 267** |
+
+**One game per arm, and it is the RIGHT game**: seed `…656203256` — the Swampert row above — is gone
+from the diverged list. The 100,806 figure is CORPUS USAGE of the entities named, not the number of
+games this fixes; the swarm staged this shape once in 267. Stated because the two numbers read alike.
+
+### TWO SHIELD-FAMILY DIVERGENCES REMAIN AT THE SPLIT, NEITHER IN THIS BATCH
+
+- **King's Shield does not block STATUS moves and ours does.** `onTryHit` returns early on
+  `!move.flags['protect'] || move.category === 'Status'`. Seed `…635998123`: Whimsicott's Encore lands
+  on a King-Shielded Aegislash in Showdown (`-start|encore`) and is refused here (`-activate|protect`).
+- **`-activate|p2b|quickguard <> -activate|p2a|quickguard`** — a different body announces the guard.
+  Seed `…658016193`. Not established.
+
+### AND ONE THIS BATCH DELIBERATELY DID NOT TAKE
+
+**A flinched, sleeping or fully-paralysed body still raises its shield here.** The five `BeforeMove`
+gates sit BELOW the new call site on purpose, so this batch changes only WHEN the queue is scanned and
+a moved differential stays attributable. Written at the call site, not left silent.
+
+### RE-RUN OWED
+
+`data/roster.{items,abilities,moves}.json` — `engine/status.js` reports them as
+`MEASURED AGAINST A DIFFERENT ENGINE`, which is the consequence of any engine edit.
+
+### THE HAND LIST IS UNCHANGED
+
+Still empty.
 
 ## WHAT SURVIVES A SWITCH — THREE DEFECTS, AND THE HAND-WRITTEN MEMBERSHIP WAS THE BUG. 2026-08-12.
 

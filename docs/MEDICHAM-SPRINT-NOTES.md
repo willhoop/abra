@@ -7142,3 +7142,43 @@ move list and `buildPair` only checks the move EXISTS. Neither asks the learnset
 One scenario's pair was repaired because it was the one being fixed. The rest are named and left,
 deliberately — they sit in currently-green scenarios, and folding eight fixture rewrites into a repair
 of one makes any moved result unattributable.
+
+### THE SHIELD IS DECIDED AT ITS OWN ACTION, AND A MEGA MID-TURN RE-SORTS THE QUEUE UNDER IT
+
+My hypothesis was wrong and the real cause is better. I guessed an action existed in Showdown's queue
+and not in our `acts`. **Both engines hold the same actions in the same order — the order just moves
+after we have already answered the question.**
+
+`sim/battle.ts:2915` re-sorts the whole REMAINING queue after EVERY action in gen >= 8, and
+`willAct()` reads that live list when each shield executes. A mega evolution changes Speed mid-turn and
+moves a body's place in it. `medicham2` decided every shield in ONE PRE-PASS above the action loop, on
+the PRE-MEGA sort.
+
+A real diverging game — three shields and a mega in one turn:
+
+| body | showdown | medicham2 |
+|---|---|---|
+| p1b (megas; Swift Swim in rain) | `-singleturn` | **`-fail`** |
+| p2b | `-singleturn` | `-singleturn` |
+| p1a | **`-fail`** | `-singleturn` |
+
+**The authority refuses the LAST shield; we refused the FIRST.** Exactly inverted. Confirmed against the
+authority before any edit: four Protects with a Beedrill-Mega going 75 to 145 base Speed — the megaer's
+shield HOLDS and the second-slowest body is refused.
+
+The scan, the stall roll behind it, and the raise now happen at the shield's own action, for both
+halves of the family, because `onPrepareHit` and the Guards' `onTry` are the same `willAct()` call.
+
+**AND THE 100,806 WAS THE WRONG WAY TO SIZE IT.** The pair moved 115/267 to 114/267 top and 84/267 to
+83/267 bottom — ONE GAME PER ARM, and it is the right game: the seed is gone from the diverged list.
+100,806 is corpus usage of the ENTITIES named by those causes, not games this fixes. The swarm staged
+this shape once in 267. I ranked the queue by usage to stop counting games as the measure of severity,
+and then read a usage figure as if it were a count of games. Both readings are wrong in opposite
+directions and the honest answer is that the ladder needs BOTH numbers side by side.
+
+Census 541 live / 0 missing to **542 live / 0 missing**. Damage differential agreed 6000, disagreed 0.
+
+**Three things handed back rather than folded in**: King's Shield blocks status moves here and must not
+(`onTryHit` returns early on `move.category === 'Status'`, so an Encore that lands in Showdown is
+refused here); a Quick Guard announced by a different body; and a flinched or sleeping body still
+raising its shield, which has no failing probe on it yet.

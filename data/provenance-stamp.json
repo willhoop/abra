@@ -164,8 +164,10 @@
   "void_files": [
     "exploitability.json"
   ],
-  "verified": 2,
+  "verified": 3,
   "graph_files": [
+    "_scratch-gd-after.json",
+    "_scratch-gd.json",
     "ab-batch-effect.json",
     "ability-blocks.json",
     "abra-meta.js",
@@ -368,6 +370,8 @@
     "xatu.json"
   ],
   "no_writer_files": [
+    "_scratch-protect-dump-after.json",
+    "_scratch-protect-dump.json",
     "artifact-accessors.json",
     "battle-formes.json",
     "conditional-audit.json",
@@ -681,5 +685,5 @@
       ]
     }
   ],
-  "generated": "2026-08-13T02:23:01.236Z"
+  "generated": "2026-08-13T02:55:46.185Z"
 }

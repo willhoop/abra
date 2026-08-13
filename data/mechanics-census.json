@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-13T02:19:39.023Z",
+  "generated": "2026-08-13T02:47:41.334Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 541,
-  "live": 541,
+  "probed": 542,
+  "live": 542,
   "missing": 0,
-  "armed": 541,
+  "armed": 542,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -167,6 +167,16 @@
       "label": "Protect FAILS outright when its user holds the LAST action of the turn",
       "live": true,
       "detail": "damage taken on turn 2 behind a shield at roll 0.99 — foe Speed 50 (me acts before it, turn-1 shield succeeded, counter armed) 182; foe Speed 150 (me acts LAST, turn-1 shield failed, counter never armed) 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "stalling",
+      "label": "the LAST action is decided at EXECUTION — a mega mid-turn re-sorts the queue under the shield",
+      "live": true,
+      "detail": "damage taken on turn 2 behind a shield at roll 0.99 — NO mega (beedrill at Speed 132 is last on both orders, turn-1 shield refused, counter never armed) 0; WITH the mega (beedrill-mega at Speed 202 is last on the stale order and FIRST on the live one, turn-1 shield holds, counter armed) 166. Shields raised on turn 1 — no mega {\"me\":false,\"ally\":true,\"f1\":true,\"f2\":true}, mega {\"me\":true,\"ally\":false,\"f1\":true,\"f2\":true}: the mega arm must refuse the ALLY (Speed 140, the slowest once Beedrill has evolved) and nobody else",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2796,7 +2806,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
