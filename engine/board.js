@@ -568,6 +568,25 @@ class Board {
     this.itemNow = { p1: {}, p2: {} };
     this.party = { p1: [], p2: [] };
     this.graveyard = { p1: new Set(), p2: new Set() };
+    /* WHAT A POKEMON WAS WHEN IT LEFT THE FIELD (ROADMAP #248).
+     *
+     * `switchIn` builds a brand-new object over the slot and the old one is discarded, so the board
+     * held NOTHING about a body that is not standing somewhere — and `rollout_leaf.sideTeam`, which
+     * has to synthesise a benched body from a species name, could only guess "full HP, no status".
+     * A Pokemon that pivoted out at 20% and burnt therefore came back to every playout clean and
+     * whole, on both sides, so the search could sack a body it believed was healthy.
+     *
+     * HP AND STATUS ARE PUBLIC INFORMATION — the protocol shows both on the way out and the store
+     * records the damage — so this is remembering what was seen, not peeking. Same shape as `pp`
+     * above and for the same reason: it belongs to the POKEMON, not to the slot. BOOSTS are
+     * deliberately NOT kept: Showdown clears stat stages on switch-out, so carrying them would be a
+     * new bug wearing the shape of a fix.
+     *
+     * TWO SILENT HEALS ARE OUTSIDE THIS, DECLARED RATHER THAN GUESSED AT: Regenerator restores a
+     * third and Natural Cure clears the status, both on the way out and both without an event, so a
+     * body with either is remembered at its pre-heal HP / pre-cure status. Erring low on HP is the
+     * safe direction; it can only make the search value the body less than it is. */
+    this.lastSeen = { p1: {}, p2: {} };
     /* PP, PER SIDE AND PER SPECIES — NOT PER SLOT (ROADMAP #145).
      *
      * `switchIn` builds a BRAND NEW mon object every time a Pokemon comes out, and that is correct
@@ -613,6 +632,22 @@ class Board {
     return until != null && until > this.turn;
   }
 
+  /* HOW MANY TURNS ARE LEFT ON IT, 0 when it is not up (ROADMAP #249).
+   *
+   * `hasSide` answers the feature's question — is it up — and the SEED needs the other half, because
+   * MEDICHAM stores a side condition as a countdown (`sf.sc[id]`) rather than as a flag. Written as a
+   * method beside `hasSide` rather than read out of the Map at the seed, so the two answers cannot
+   * come to disagree about what `norm` or the expiry comparison means.
+   *
+   * IT IS ONLY AS GOOD AS THE DURATION IT WAS GIVEN, and for a hazard that is a known defect held
+   * open elsewhere: Stealth Rock, Spikes, Sticky Web and Toxic Spikes carry no `condition.duration`
+   * in the dex because they are PERMANENT until removed, and `startSide` defaults an absent duration
+   * to one turn. */
+  sideLeft(side, cond) {
+    const until = this.sides[side].sideConditions.get(norm(cond));
+    return until != null && until > this.turn ? until - this.turn : 0;
+  }
+
   startField(name, duration) {
     if (!name) return;
     this.pseudoWeather.set(norm(name), this.turn + (duration || 5));
@@ -621,6 +656,12 @@ class Board {
   hasField(name) {
     const until = this.pseudoWeather.get(norm(name));
     return until != null && until > this.turn;
+  }
+
+  /* The field sibling of `sideLeft`, for the same reason: Gravity is a COUNTDOWN in the engine. */
+  fieldLeft(name) {
+    const until = this.pseudoWeather.get(norm(name));
+    return until != null && until > this.turn ? until - this.turn : 0;
   }
 
   setWeather(w) { this.weather = norm(w); }
@@ -771,7 +812,22 @@ class Board {
     return out;
   }
 
+  /* WHAT THIS POKEMON WAS WHEN IT LEFT, or null (ROADMAP #248). Only meaningful for a body that is
+   * not on the field: while it is standing there the slot object is the authority. */
+  benchState(side, species) {
+    const e = this.lastSeen && this.lastSeen[side] && this.lastSeen[side][baseSpecies(species)];
+    return e || null;
+  }
+
   switchIn(side, letter, species) {
+    /* THE OUTGOING BODY IS REMEMBERED BEFORE IT IS OVERWRITTEN (ROADMAP #248). A corpse is not: it is
+     * in the graveyard, `bench()` excludes it, and `rollout_leaf.sideFallen` reconstructs it from
+     * there — two records of one dead Pokemon is exactly the second source this file avoids. */
+    const outgoing = this.sides[side].active[letter];
+    if (outgoing && !outgoing.fainted && outgoing.species) {
+      this.lastSeen[side][baseSpecies(outgoing.species)] =
+        { hp: typeof outgoing.hp === 'number' ? outgoing.hp : 1, status: outgoing.status || '' };
+    }
     this.sides[side].active[letter] = {
       species: norm(species),
       base: baseSpecies(species),
@@ -835,6 +891,37 @@ class Board {
        * without a single named move appearing in this codebase. If it is not, the residual shows up
        * in the realism report and is reported as a miss rather than patched with a special case. */
       turnsActive: 0,
+      /* MOVE ACTIONS TAKEN, WHICH IS NOT `turnsActive` (ROADMAP #250).
+       *
+       * Showdown's `activeMoveActions` is incremented at the top of `runMove`, above every
+       * BeforeMove refusal, and is what Fake Out, First Impression and Mat Block are gated on. It is
+       * ZEROED ON SWITCH-IN, which is the whole mechanic: a body that came out this turn may Fake
+       * Out and one that has been standing there may not.
+       *
+       * `turnsActive` above is the wrong quantity for that question and using it was measured wrong
+       * in BOTH directions: `endTurn` counts every turn a body is on the field, so a lead is already
+       * at 1 on the turn it may still Fake Out, and a body that entered mid-turn is at 1 on the very
+       * turn it came out to use the move. This one is incremented in `noteMove` — where a move
+       * actually happens — so it needs no assumption about when the adapter calls `endTurn`.
+       *
+       * THE ONE GAP, STATED: a turn the body spent asleep, flinched or fully paralysed emits `|cant|`
+       * and no `|move|`, so `noteMove` is never called and this undercounts. Showdown counts those.
+       * It errs by leaving Fake Out legal a turn longer, which is the direction the seed already
+       * erred in, and only for a body that has not moved once since it came out. */
+      moveActs: 0,
+      /* HOW MANY OF MY SIDE WERE ALREADY DEAD WHEN THIS BODY ENTERED (ROADMAP #247).
+       *
+       * Supreme Overlord takes a SNAPSHOT in `onStart` and never re-reads it, which #243 records as
+       * the correct split: Last Respects re-reads the count on every hit, and an ally dying while
+       * Kingambit stands there is worth nothing to Kingambit. The engine stamps `_fallenStuck` in
+       * `bringIn`, so a body placed on the field by the SEED — which never goes through `bringIn` —
+       * had a snapshot of zero however deep into the game the position was.
+       *
+       * The graveyard is the side's own death record and `faint()` writes it before the replacement
+       * comes in, exactly as `faintMessages()` increments `side.totalFainted` before Showdown asks
+       * for one, so the count at this moment is the count the snapshot wants. Nothing reads this
+       * except the rollout seed; it is not a feature. */
+      enteredWithFallen: this.graveyard[side] ? this.graveyard[side].size : 0,
       lastMove: '',
       stalledLastTurn: false,
       moveFailedThisTurn: false,
@@ -2679,6 +2766,11 @@ function ppCostOf(board, side, move, opts) {
 function noteMove(board, side, user, move, worked, opts) {
   if (!user) return;
   user.moveThisTurn = norm(move && move.id || '');
+  /* ROADMAP #250 — `activeMoveActions`, counted where a move actually happens. ABOVE the `worked`
+   * gate, and beside the PP spend for the identical reason: Showdown increments it at the top of
+   * `runMove`, so a move that missed, failed or was eaten by a Protect has still been taken. See the
+   * field's own note in `switchIn` for why this is not `turnsActive`. */
+  user.moveActs = (user.moveActs | 0) + 1;
   if (move && move.stallingMove) user.stalledThisTurn = true;
   /* ---- PP IS SPENT HERE, ABOVE THE `worked` GATE, AND THE POSITION IS THE MECHANIC ------------
    *

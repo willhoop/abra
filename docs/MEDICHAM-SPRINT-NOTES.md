@@ -21,6 +21,66 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #247 / #248 / #249 / #250 — THE ROLLOUT SEED. FOUR CLOSED, FIVE OPENED. 2026-08-13 (SEARCH).
+
+**Files:** `engine/rollout_leaf.js`, `engine/board.js`, `engine/rollout_seed_prevalence.js` (new),
+`tests/test-rollout-seed.js` (new), `tests/test-stadium-roster.js` (one declaration).
+**Not touched:** `engine/medicham2-browser.js`, `engine/magnemite.js`, `engine/mag_bot.js`,
+`engine/game_differential.js` and its artifacts, `engine/feature_fixture.js`,
+`engine/fixture_legality.js`, `tests/test-fixture-legality.js`, `tests/test-hazard-side.js`.
+
+**One batch, deliberately.** All four are approximations on one surface — the seed — and Will's
+statement of the design is what makes each of them a defect rather than a tradeoff: *"miltanks
+rollout needs to just play the game out on medicham and have it match showdown perfectly thats the
+whole point. miltanks just chooses the actions."* Landing them separately would have made each
+one's arm unattributable.
+
+**RED FIRST: `tests/test-rollout-seed.js` reported 23 passed / 24 failed** before a byte of the fix
+existed, with every control green in the same run. After: **47 passed, 0 failed.**
+
+**What moved, and where each fact now lives.**
+
+| row | the fix | file |
+|---|---|---|
+| #248 moves | `sideTeam` passes the sheet's `moves` into the bench synthesis; `dmgMon` already preferred them | `rollout_leaf.js` |
+| #248 state | `switchIn` records the OUTGOING body's hp/status in `lastSeen` before overwriting the slot; `benchState()` reads it back | `board.js` |
+| #250 | `noteMove` counts `moveActs` (Showdown's `activeMoveActions`), above the `worked` gate; `seedHistory` copies it to `_mvActs` | `board.js` + `rollout_leaf.js` |
+| #249 | `applySideState` seeds `sf.hz`, `sf.sc` and `field.gravity` from the board's own per-side record; `sideLeft`/`fieldLeft` are the readers | `rollout_leaf.js` + `board.js` |
+| #247 | `switchIn` stamps `enteredWithFallen: graveyard[side].size`; `seedHistory` copies it to `_fallenStuck` | `board.js` + `rollout_leaf.js` |
+
+**Four board fields were added and NONE of them is a feature.** `FEATURES` is still 58 and
+`data/policy-weights.json` keeps its dimensionality. `_mvActs` and `_fallenStuck` are seeded in
+`buildSide` and **deliberately not in `dmgMon`**: `_fallenStuck` multiplies base power inside
+`dmgRange` and `_mvActs` is read by `bestMoveVs`, so putting either in the shared builder would have
+moved fitted feature values silently.
+
+**Two corrections to the rows as written.** #250 proposed `turnsActive` and it is the wrong quantity
+in both directions — `endTurn` counts turns on the field, so a lead reads 1 on the turn it may still
+Fake Out and a mid-turn switch-in reads 1 on the turn it came out to use the move. #247 was filed as
+possibly unfixable ("the fact is not on the board at all"); the row's own sentence — *"it needs the
+board to remember the fallen count at each switch-in"* — is exactly what landed, and the graveyard
+already holds the count at the moment of entry.
+
+**Prevalence, `data/rollout-seed-prevalence.json`, 14,102 open-sheet bo3 games / 190,378 decision
+points, a store scan that plays no game and is therefore not quarantined:** #248 moves **55.379%**,
+#250 **17.655%**, #248 state **17.053%**, #249 **13.089%**, #247 **0.061%**, **any of the five
+70.554%**. Ceilings on reach, not counts of flipped argmaxes. #247 is correct and very nearly inert
+and that is stated plainly.
+
+**Opened by the sweep that followed: #267** (a status is seeded and its counter is not),
+**#268** (a permanent hazard is given a one-turn duration and layers are not counted — fit-invalidating),
+**#269** (every durable volatile, and the foe's Protect streak is in the wrong place),
+**#270** (the seeded field has no clock, so `weatherT: 0` means never expires),
+**#271** (a knocked-off item is still on the board's body, so `dmgMon` keeps applying it — this one
+reaches MAG's features, not only the seed, and is the largest thing found in the sweep).
+
+**No leaf value was re-measured and no SPRT was prepared.** Two agents were rewriting
+`medicham2-browser.js` while this landed, so a rollout measurement against the live tree is void; and
+#271 changes what `dmgMon` builds for every body, so any leaf number taken before it lands describes
+a build nobody will ship. Full account: `docs/SEARCH.md` R14.
+
+---
+
 ## ROADMAP #265 / #266 — THE FIXTURES DECLARED TEAMS THE GAME WOULD REFUSE. 2026-08-13 (MEASURE).
 
 **Files:** `engine/fixture_legality.js` (new), `tests/test-fixture-legality.js` (new),
@@ -55,6 +115,107 @@ FAILS on a baselined verdict that stops being produced.
 entries fire the stale-allowance clause; one with a bad kind fires the reason clause.
 `tests/test-mechanics.js` run unedited: **567 live / 0 missing**, which is ENGINE's number from #264
 and is quoted only as evidence this pass moved nothing.
+
+---
+
+## ROADMAP #261 — A FROZEN BODY THAWS BY ATTACKING, AND THE TAG WE HAD WAS A COLLAPSED PAIR. 2026-08-13 (ENGINE).
+
+**Census 567 -> 570 live / 0 missing.** Three probes, two of them shown MISSING before a byte of the
+fix existed; four deliberate breaks in `tests/probe_red_demo.js`, all green-then-red.
+
+**Files:** `engine/medicham2-browser.js`, `engine/tag_dex.js`, `data/tags.json`, `data/abra-tags.js`
+(regenerated), `tests/test-mechanics.js`, `tests/probe_red_demo.js`.
+**Not touched:** `engine/board.js`, `engine/magnemite.js`, `data/engine-data.js`,
+`engine/rollout_leaf.js`, `engine/game_differential.js`, `engine/feature_fixture.js`,
+`engine/fixture_legality.js`, `tests/test-fixture-legality.js`, `tests/test-hazard-side.js`,
+`tests/test-middle-identity.js`, any `data/divergence-*.json`.
+
+**TWO RULES, DERIVED OVER THE 500 LEGAL MOVES AND PRINTED BEFORE ANYTHING WAS WIRED.** Will: *"we need
+to test that the moves that auto thaw you out (either by the user or getting hit by it) actually
+thaw."*
+
+| rule | members | this engine, before |
+|---|---|---|
+| `flags.defrost` — the USER thaws by USING it | Burn Up, Flare Blitz, Matcha Gotcha, Scald, Scorching Sands (**5**) | **no representation anywhere** — `grep -c defrost` was 0 in `medicham2-browser.js` AND in `data/tags.json` |
+| `thawsTarget` — the TARGET thaws on being HIT | Matcha Gotcha, Scald, Scorching Sands (**3**) | live since WIRE 17 |
+
+`data/tags.json` tagged **all five** `thawsTarget`, so the label was wrong about two of its own
+members. Burn Up and Flare Blitz do not thaw a target; they defrost their user. It was masked because
+both are FIRE and `frz.onDamagingHit` cures on ANY damaging Fire move — the right thing for the wrong
+reason, and no existing test could tell.
+
+**THE AUTHORITY, STAGED IN REAL BATTLES FIRST, ONE PER ROUTE, WITH THE 1/4 THAW ROLL PINNED FALSE** so
+the ordinary route could not supply any answer:
+
+| route | authority | this engine BEFORE | AFTER |
+|---|---|---|---|
+| frozen Incineroar clicks Flare Blitz | `-curestatus \|frz\|[from] move: Flare Blitz`, then attacks (183 -> 118) | `{frz, dealt 0}` | `{none, dealt 59}` |
+| frozen Incineroar clicks Crunch (CONTROL) | `\|cant\|frz`, no damage | same | same |
+| frozen Garchomp hit by Scald (Water, tag) | thaws, 183 -> 129 | thaws | thaws |
+| frozen Garchomp hit by Fire Fang (NEITHER flag) | thaws by TYPE, 183 -> 162 | thaws | thaws |
+| frozen Garchomp hit by Crunch (CONTROL) | stays frozen, takes damage | same | same |
+| Arcanine that has SPENT its Fire type, frozen, clicks Burn Up | `\|cant\|frz`, no damage | right BY ACCIDENT (no rule at all) | right BY RULE |
+
+The first row read **identically to its own control** before the fix, which is this project's own
+signature for an unwired knob.
+
+**THE FIX IS A SPLIT, AND THE EXCEPTION IS A PARAM.** `thawsUser` is parsed off `flags.defrost` and
+carries `requiresUserType`, read off Burn Up's own `onTryMove(pokemon){ if (pokemon.hasType('Fire'))
+return; ... }` through the SAME reader `spendsOwnType.requires` uses — one implementation, two callers,
+because upstream's `move.id === 'burnup'` is a name and this repository does not consume names.
+`thawsTarget` narrowed to `m.thawsTarget`. In the engine the clause sits ABOVE the counter tick,
+because the authority's `return` spends no turn and draws no die. **MEMBERSHIP PRINTED BEFORE WIRING:
+5 defrost members, and `requiresUserType` matches exactly ONE move in the whole format — burnup ->
+Fire.** Diffed against the old artifact, the regeneration changed **exactly five entities** and
+nothing else.
+
+**THE THIRD ARM IS WHY THE PROBE IS WORTH ANYTHING.** The existing `thawsTarget` probe used Flare
+Blitz for its Fire arm, and Flare Blitz carries `defrost` — so once the user route exists it is no
+longer a clean read on the type clause. The new probe uses **Fire Fang**, which carries neither flag,
+so it is the one carrier the type clause alone can explain.
+
+**FOUND WHILE LANDING THIS, AND IT IS THE FILE'S OWN LESSON A SECOND TIME:
+`tests/probe_red_demo.js` HAS BEEN DYING AT ROW 45 OF 197 SINCE 2026-08-11.**
+`without('ability','icescales','damageReduce')` throws — correctly, because ROADMAP #175 stopped
+deriving abilities with no legal carrier and Ice Scales is not in Reg M-B — and the `CONVERSIONS` loop
+built its known-bad artifact INSIDE the loop argument, so one unstrippable row killed the process.
+Two further bare `revertedEngine` calls outside `demoSource` did the same thing further down. All
+three now degrade to a NAMED, counted STALE row, exactly as `demoSource` already did. The file now
+runs to completion: **197 demonstrations, 38 failed — 30 STALE reversals/strips and 8 genuine
+non-flips, every one of them pre-existing and none of them about thaw.** They are reported below and
+in `docs/ENGINE.md`, not folded in: re-aiming somebody else's reversal is a guess at their design.
+
+**WHAT THE WHOLE-GAME DIFFERENTIAL SAYS, AND IT IS SMALL AND NAMED.** Releases `b4746a1e44a7` ->
+`652b971cb70d`, 1,220 requested / 978 played, census and team pool pinned identically, `--nature real`.
+The two releases differ in five files, of which `engine/board.js` and `engine/rollout_leaf.js` are
+another division's — **and the driver loads neither, directly or transitively**, so the comparison is
+over my three (`medicham2-browser.js`, `tags.json`, `abra-tags.js`).
+
+| arm | before | after |
+|---|---|---|
+| middle | 588 / 978 | 588 |
+| top-tie-first | 222 / 978 | 222 |
+| bottom-tie-first | 256 / 978 | 256 |
+
+**No count moved. One CLASS did:** in the bottom corner, `-curestatus field 4` (1 game, 1 cause)
+**disappears**, and `event missing from medicham2` gains that game (114 -> 115). `field 4` of a
+`-curestatus` is the ATTRIBUTION, my change touches exactly one `-curestatus` emission, and the emitted
+line now matches the authority's shape — measured on the staged board:
+`|-curestatus|p1a: incineroar|frz|[from] move: flareblitz` where it used to write `[msg]`. The game
+still diverges, later, on a pre-existing defect. **The artifact does not NAME that game** (only the
+primary arm's first divergences are recorded) and a single-arm re-run draws a different sample (208
+diverged, not 256), so the identification rests on the class, the emit and the one-line change —
+stated rather than dressed up as a located game.
+
+**`tests/test-engine-diff.js --n 6000`: 0/6000 disagree, top 0/6000, bottom 0/6000.** Unmoved, as
+expected — freeze is a turn counter and that instrument compares one hit's damage.
+
+**NOT MINE, REPORTED:** `tests/test-effective-identity.js` is red on the raw-read ratchet (1471 vs
+baseline 1198) and every file it names belongs to another division. `tests/test-tag-consumed.js` is
+red on `punishesMinimize [STILL DEAD]`, untouched by this pass. A release (`652b971cb70d`) was cut over
+my working tree at 00:23:58 by a `game_differential` run in another process, mid-edit — it happens to
+match the live tree exactly and so served as the after-arm, but a snapshot taken of somebody else's
+half-finished edit is the hazard `tests/staged_status_counters.js` documents.
 
 ---
 

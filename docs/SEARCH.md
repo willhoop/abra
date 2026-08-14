@@ -28,7 +28,7 @@ SEARCH — does MILTANK choose better than MAG
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-13 16:47):
+  runs vs engine (newest engine source: engine/board.js 2026-08-13 20:23):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-03 22:36
     PRE-CHANGE games.r4.jsonl  2026-08-03 22:33
@@ -36,9 +36,177 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-03 20:45
 ```
 
-_stamped 2026-08-13 16:48_
+_stamped 2026-08-13 20:45_
 
 <!-- /GENERATED -->
+
+## R14 — THE SEED WAS WRONG AT 70.6% OF DECISION POINTS. FOUR ROWS CLOSED 2026-08-13; five more filed.
+
+ROADMAP **#247, #248, #249 and #250 closed** — one batch, because they are one surface and fixing
+them piecemeal makes each result unattributable. Gate: **`tests/test-rollout-seed.js`** (47
+assertions, auto-discovered by `tests/run-all.js`), shown **RED first at 23 passed / 24 failed**.
+Prevalence artifact: **`data/rollout-seed-prevalence.json`**, written by
+`engine/rollout_seed_prevalence.js`. ROADMAP **#267, #268, #269, #270, #271 opened** by the sweep
+that followed.
+
+### The verdict in one line
+
+**At 70.55% of open-sheet decision points the seed handed MEDICHAM a position that differs from the
+real one, and it now hands over the truth on all four counts — but #271, found in the same sweep, is
+bigger than any of them and is not SEARCH's to fix.**
+
+### Why these four were one batch
+
+Will, 2026-08-13: *"miltanks rollout needs to just play the game out on medicham and have it match
+showdown perfectly thats the whole point. miltanks just chooses the actions."*
+
+That sentence makes the **seed the only place a correct simulator can still produce a wrong game**,
+so every approximation on it is a defect by definition rather than a tradeoff. All four were found by
+sweeping the seeding path while #244 was being closed; all four sit inside two functions; and each
+one changes what the leaf sees, so a single arm measured after four separate landings could not say
+which one moved it.
+
+### What each one was, and what closed it
+
+| row | the seed said | the position says | closed by |
+|---|---|---|---|
+| **#248** | a benched body is whole, unstatused, and carries **the dataset's four moves** | it is at 20% and burnt, and its sheet declares four specific moves | `sideTeam` passes the sheet's `moves`; `board.switchIn` remembers the outgoing body's hp/status in `lastSeen`, `benchState()` reads it back |
+| **#250** | every body may Fake Out | a body that has taken a move action may not | `board.noteMove` counts `moveActs`; `seedHistory` copies it to `_mvActs` |
+| **#249** | no hazards, no screens, no Gravity | Reflect is up, the rocks are down | `rollout_leaf.applySideState`, reading the board's own per-side record |
+| **#247** | Supreme Overlord entered with nobody dead | it walked in over two graves | `board.switchIn` stamps `enteredWithFallen`; `seedHistory` copies it to `_fallenStuck` |
+
+### Does it change decisions? MEASURED, and the answer is not uniform
+
+`data/rollout-seed-prevalence.json`, over **14,102 open-sheet bo3 games / 190,378 decision points**.
+It reads the store and `data/tags.json`, **plays no game** — no `battleInit`, no rollout, no board —
+so it is not downstream of MEDICHAM, is not quarantined, and needed no engine release even with two
+agents rewriting the simulator underneath it. That is exactly why it is the measurement that was
+taken. Same denominator as `data/rollout-fallen-prevalence.json` by construction, so these numbers
+are comparable to #244's 8.75% rather than five islands.
+
+| | share of decision points |
+|---|---|
+| **#248** a live benched body's declared moveset differs from the dataset's four | **55.379%** |
+| **#250** a first-turn-only move was offerable in the seed and the game refuses it | **17.655%** |
+| **#248** a live benched body is hurt or statused | **17.053%** |
+| **#249** a hazard, a screen or Gravity is up | **13.089%** |
+| **#247** a fallen-count carrier entered over graves | **0.061%** |
+| **ANY of the five — the ceiling on this batch's reach** | **70.554%** |
+
+**#247 IS CORRECT AND VERY NEARLY INERT, AND THAT IS STATED RATHER THAN DRESSED UP.** Only 201 of
+190,378 decision points have a Supreme Overlord carrier active at all: Kingambit is real in this
+format and is almost always brought with Defiant. 116 of those 201 walked in over graves, so the
+mechanic is right when it fires and it hardly ever fires.
+
+**EVERY FIGURE IS A CEILING, and it is stated as one.** It counts positions where the seed handed
+over a state that is not the real one, not decisions whose argmax flips. The paired argmax run is a
+frozen release and a common-random-numbers comparison, and it was not taken — see the closing note.
+
+### Three decisions inside the fix that were load-bearing
+
+**1. `turnsActive` was the wrong quantity, and the roadmap row proposed it.** #250 says
+*"`board.js` tracks `turnsActive` and the seed does not pass it."* Passing it would have been wrong
+in **both directions**: `endTurn` counts every turn a body is on the field, so a LEAD reads 1 on the
+turn it may still Fake Out, and a body that entered MID-TURN reads 1 on the very turn it came out to
+use the move — which is when Fake Out is actually clicked. Showdown's quantity is
+`activeMoveActions`, incremented at the top of `runMove`, so the count is now taken in `noteMove`
+where a move actually happens. It needs no assumption about when an adapter calls `endTurn`, and
+that assumption is what made `turnsActive` unusable.
+
+**2. `_mvActs` and `_fallenStuck` are seeded in `buildSide`, NOT in `dmgMon`, and that is not
+style.** `dmgMon` is `board.js`'s own builder and every damage FEATURE goes through it.
+`_fallenStuck` multiplies base power inside `dmgRange` and `_mvActs` is read by `bestMoveVs`, so
+putting either one in the shared builder would have moved fitted feature values and silently
+invalidated `data/policy-weights.json`. These are facts inside the **playout**; they belong to the
+seed. `FEATURES` is still 58 and the weights keep their dimensionality.
+
+**3. #249's side is READ, never re-derived, and that is the trap the brief warned about.** ROADMAP
+#254 resolved whose side a condition lands on **once, at the WRITE**, in `board.sideFor` — of the 11
+legal side-condition moves seven are `allySide` and four are `foeSide`. So `applySideState` takes the
+board's per-side record straight and calls `sideFor` **nowhere**. A second flip would have
+re-introduced #254 one layer up while looking exactly like a fix, and it would have cancelled
+invisibly if only one seat were tested. The gate therefore asserts placement **from both seats** for
+all four hazards, plus a behavioural arm.
+
+### The proof, red first
+
+`tests/test-rollout-seed.js` was run before a byte of the fix existed: **23 passed, 24 failed**,
+every failure one of the four defects reading its floor — bench moves = the dataset's four, bench HP
+= full, `_mvActs` = 0 with the flinch landing on a body six turns out, `sfA.hz`/`sc`/`gravity` empty,
+`_fallenStuck` = 0 with three allies buried. **Every control was green in the same run**, which is
+what says the file cannot pass by inventing state. After: **47 passed, 0 failed.**
+
+Nothing in it is typed. Species come from `MC.mons` **intersected with the regulation**
+(`Dex.forFormat(...)` filtered on `isNonstandard`/`tier`); a Fake Out user is a species **observed
+clicking it** on the ladder; the Supreme Overlord carrier is derived from the dex's ability table
+(exactly one, and the file asserts that); hazards, screens, Safeguard and Gravity come from their
+tags; and the two damage observables are **inverted out of control tables asserted injective before
+use**.
+
+Two observables were deliberately chosen to be behavioural rather than field reads:
+
+- **#250 is the FLINCH**, read out of a played turn's trace. Reading `_mvActs` back would only prove
+  the seed wrote what the seed wrote.
+- **#249 has a switch-in arm**, and its first version was wrong in a way worth keeping: with one slot
+  pivoting per side the partner that stayed **attacked**, so the incoming body lost HP for a reason
+  that was not the hazard — a green row for the wrong reason on one side and a red control on the
+  other, while the seed was still completely empty. All four slots pivot now, nobody attacks, and any
+  HP that moves is entry damage.
+
+### Adjacent gates, run and reported
+
+Green: `tests/test-rollout-fallen.js` (28/28), `tests/test-rollout-switch.js` (16/16),
+`tests/test-rollout-gates.js` (16/16), `tests/test-pp-fact.js` (33/33),
+`tests/test-forced-switch.js`, `tests/test-hazard-side.js` (11/11),
+`tests/test-feature-semantics.js` (23/23), `tests/test-engine-consistency.js`,
+`tests/test-switch-features.js`, `tests/test-switch-carry.js` (27/27),
+`tests/test-board-browser.js` (14/14), `tests/test-miltank-release.js` (25/25),
+`tests/test-wiring.js`, `tests/test-fixture-legality.js`, `tests/test-artifact-keys.js`,
+`tests/test-provenance-discovery.js`, `tests/test-timestamps.js`, `tests/test-roadmap-register.js`.
+
+`tests/test-rollout-switch.js` and `tests/test-pp-fact.js` are the real control here: both seed
+boards with nothing up and both assert exact, dice-for-dice win probabilities, which is only possible
+if a seed with no hazards, no bench state and no move history is byte-identical to what it was.
+
+**`tests/test-stadium-roster.js` was RED on this work and is GREEN**: the new prevalence generator
+was undeclared, and it now carries a `NOT_A_MODEL` entry with a reason. It was the only failure —
+the six from R13 have since been declared by their owners.
+
+**Two gates are RED, neither is this work's, and this work contributes ZERO rows to either.** Said
+plainly rather than filed. `tests/test-rollout-effects.js` is 41 passed / 2 failed on Full Metal Body
+and Guard Dog refusing an Intimidate drop — **verified pre-existing by stashing this change and
+re-running: identical 41/2** — and it is ENGINE's. `tests/test-effective-identity.js` is 18/1 on the
+raw-read ratchet at 1,470 against a 1,198 baseline; the ten contributing files are named in its own
+output and **none of them is `board.js`, `rollout_leaf.js` or `tests/test-rollout-seed.js`**.
+`tests/test-no-silent-failure.js` is red at 80 NEW silent catches (ROADMAP #258) and **grep of its
+output for this work's files returns nothing** — the one `catch` added to the new gate names the
+species that would not build and prints it.
+
+### THE SWEEP — five more, and one of them is the biggest thing found tonight
+
+Will's principle makes every approximation on this path a defect, so the path was swept again once
+the four were closed. Each is registered; none was touched.
+
+| # | what is still wrong | why it is not a detail |
+|---|---|---|
+| **#271** | **a knocked-off item is still on the board's body** | `switchIn` copies the item off the SHEET, `noteItem` writes only `itemNow`, and **`dmgMon` reads `mon.item`**. Measured: declare a Life Orb, `noteItem(…, '')`, and `sheetItem` says `''` while `dmgMon(...).item` says `lifeorb`. So a Life Orb, a Choice Scarf, an eaten Sitrus Berry and a spent Focus Sash keep applying — **in MAG's damage features as well as in every playout**. This is the CLAUDE.md lesson broken in the place that lesson was written about. Floor from the store: **2,375 item-removing clicks, 10.62% of games, 5.95% of decision points after one** — and the live path also sees every consumption, which the store does not record |
+| **#270** | **the seeded field has no clock** | `applyField` never sets `weatherT`/`terrainT`, and the engine's tick is `if (weatherT > 0 && --weatherT <= 0)` — **zero means never expires**. A sun with two turns left runs for sixty. `applyMegaWeather`, one function away, sets it correctly, so the seed's two weather paths disagree. The terrain half is on the board today (`fieldLeft`); the weather half is not (`setWeather` records no duration) |
+| **#269** | **every durable volatile** | choice lock, Encore, Disable, Taunt, the multi-turn lock, a charge turn, Substitute, Leech Seed, a partial trap, Recharge, the perish count. `magnemite.js` already writes `board.startVolatile` from `|-start|` **with a duration**, so the live board holds an answer the seed throws away. First task is a **vocabulary check**, not a patch: `_vol` is writable from here, but its keys come from a tag param and the board's from `move.volatileStatus`, and a mismatch seeds a volatile nothing reads — silently, exactly like the terrain dialect |
+| **#268** | **a permanent hazard is given a duration, and layers are not counted** | Stealth Rock, Spikes, Sticky Web and Toxic Spikes carry no `condition.duration`; `startSide` defaults an absent one to **one turn** offline and the live path to five. Measured on a fixture: laid `true`, one `endTurn()` later `false`. So `deadSide` returns to 0 and the model re-lays the rocks. **Fit-invalidating**, therefore not SEARCH's |
+| **#267** | **a status is seeded and its counter is not** | sleep turns and the toxic ramp. medicham2 already models the split correctly (sleep carries a switch, the toxic ramp restarts); the BOARD records only the status name, so every playout gives a body two turns into a sleep a fresh one |
+
+### Two things deliberately NOT done
+
+- **No leaf value was re-measured and no SPRT was prepared off it.** Two agents were rewriting
+  `engine/medicham2-browser.js` while this landed (`data/tags.json`, `data/abra-tags.js`,
+  `engine/tag_dex.js` and the census moved too), so a rollout measurement against the live tree is
+  void by the rule that cost this project 7,100 games. The prevalence figure above is a store scan by
+  construction and is the number that can honestly be taken today. **The paired argmax run belongs
+  after #270 and #271 land**, because #271 changes what `dmgMon` builds for every body on the board
+  and would move any leaf number taken before it.
+- **#270 was found mid-batch and left open on purpose.** It is one fact whose weather half needs board
+  work first, and landing half of it inside a four-row batch is precisely what makes the batch's own
+  result unattributable — which is the reason these four were one batch.
 
 ## R13 — THE ROLLOUT SEED NOW HANDS MEDICHAM THE DEAD. HALF FIXED 2026-08-13; the other half is one line in ENGINE's file.
 

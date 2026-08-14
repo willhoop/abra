@@ -254,10 +254,46 @@ the mean fallen count is 1.67 — Last Respects priced at 50 where it should hav
 
 **It is fixed from turn TWO only.** `battleInit` stamps `fainted: 0` and the recount is at turn end,
 so the turn `rolloutAfterActions` forces the candidate click on still prices the move at its floor.
-That is one line in `medicham2-browser.js`, ROADMAP #246, and it is ENGINE's. Four further seeding
-approximations were swept out beside it and are registered unfixed: #247 (Supreme Overlord's entry
-snapshot), #248 (a benched Pokémon arrives at full HP with the dataset's moves), #249 (no hazards, no
-screens), #250 (every body can Fake Out). Full account in [SEARCH.md](SEARCH.md) R13.
+That is one line in `medicham2-browser.js`, ROADMAP #246, and it is ENGINE's — **closed the same day
+by ENGINE**, so the fallen count is now right from turn one. Four further seeding approximations were
+swept out beside it and were closed in one batch a few hours later; see §3.9.
+
+### 3.9 The seed was wrong at 70.6% of decision points — four rows closed 2026-08-13
+
+Fourth, fifth, sixth and seventh instances of the same shape as 3.6, 3.7 and 3.8, closed as **one
+batch** because they are one surface: ROADMAP #247, #248, #249, #250. Will's principle is what makes
+each of them a defect rather than a tradeoff — *"miltanks rollout needs to just play the game out on
+medicham and have it match showdown perfectly thats the whole point. miltanks just chooses the
+actions."* The seed is the only place a correct simulator can still produce a wrong game.
+
+| the seed said | the position says |
+|---|---|
+| a benched Pokémon is whole, unstatused, and carries **the dataset's four moves** | it is at 20% and burnt, and its sheet declares its own four |
+| every body may Fake Out | a body that has already taken a move action may not |
+| no hazards, no screens, no Gravity | Reflect is up and the rocks are down |
+| Supreme Overlord entered with nobody dead | it walked in over two graves |
+
+Measured over 14,102 open-sheet games / 190,378 decision points
+(`data/rollout-seed-prevalence.json`, a store scan that plays no game): a benched body's declared
+moveset differs from the dataset's four at **55.4%** of decision points, a first-turn-only move was
+offerable and illegal at **17.7%**, a benched body is hurt or statused at **17.1%**, something is up
+on the field at **13.1%**, and a Supreme Overlord snapshot is wrong at **0.061%** — that last one
+correct and very nearly inert, because Kingambit is almost always brought with Defiant. **At least
+one of the five held at 70.6% of decision points.** Each is a ceiling on reach, not a count of
+flipped argmaxes.
+
+Two details are worth carrying because getting them wrong looks like getting them right. **The board
+quantity Fake Out needs is not `turnsActive`** — that counts turns on the field, so a lead reads 1 on
+the turn it may still Fake Out — it is Showdown's `activeMoveActions`, counted where a move happens.
+And **whose side a hazard lands on is read, never re-derived**: ROADMAP #254 resolved it once at the
+write, so the seed takes the board's per-side record straight; a second flip would re-introduce that
+bug one layer up and cancel invisibly if only one seat were tested.
+
+Five more were swept out and are registered unfixed — **#271 (a knocked-off item is still on the
+board's body, so every damage feature and every playout keeps applying it)**, #270 (the seeded field
+has no clock, so a weather with one turn left lasts sixty), #269 (every durable volatile), #268 (a
+permanent hazard is given a one-turn duration and layers are not counted), #267 (a status is seeded
+and its counter is not). Full account in [SEARCH.md](SEARCH.md) R14.
 
 ---
 

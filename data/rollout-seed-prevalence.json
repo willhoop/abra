@@ -1,0 +1,68 @@
+{
+  "generated": "2026-08-14T00:27:29.768Z",
+  "what": "ceiling on the reach of ROADMAP #247/#248/#249/#250 — the rollout seed batch",
+  "store": "data/games.bo3.jsonl",
+  "derived_populations": {
+    "firstTurnOnly": [
+      "fakeout",
+      "firstimpression"
+    ],
+    "fallenAbility": [
+      "supremeoverlord"
+    ],
+    "hazards": [
+      "spikes",
+      "stealthrock",
+      "stickyweb",
+      "toxicspikes"
+    ],
+    "hazardRemovers": [
+      "defog",
+      "mortalspin",
+      "rapidspin",
+      "tidyup"
+    ],
+    "screens": [
+      "auroraveil",
+      "lightscreen",
+      "reflect"
+    ],
+    "gravity": [
+      "gravity"
+    ],
+    "lightClay": {
+      "item": "lightclay",
+      "turns": 8
+    }
+  },
+  "games": 14102,
+  "gamesSkipped": 0,
+  "decisionPoints": 190378,
+  "dp": {
+    "movesDiffer": 105430,
+    "benchHurt": 32465,
+    "staleFirstTurn": 33612,
+    "sideState": 24918,
+    "entrySnapshot": 116,
+    "any": 134319
+  },
+  "detail": {
+    "benchLive": 138927,
+    "benchEverOut": 64192,
+    "hazardUp": 522,
+    "screenUp": 24082,
+    "gravityUp": 488,
+    "firstTurnCarrierActive": 48221,
+    "fallenCarrierActive": 201
+  },
+  "node": "v24.15.0",
+  "rates": {
+    "pct_248_bench_moves_differ": 55.379,
+    "pct_248_bench_hurt_or_statused": 17.053,
+    "pct_250_first_turn_move_offered_but_illegal": 17.655,
+    "pct_249_hazard_screen_or_gravity_up": 13.089,
+    "pct_247_carrier_entered_over_graves": 0.061,
+    "pct_any": 70.554
+  },
+  "elapsedMs": 4145
+}

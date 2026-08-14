@@ -30,16 +30,31 @@ const PP = require('./pp.js');
 
 /* Every Pokemon a side owns, actives first, then the bench.
  *
- * THE BENCH IS SPECIES NAMES, NOT TRACKED BODIES, and that is correct rather than a gap: `bench()`
- * returns what was brought, is not on the field and is not in the graveyard, and a Pokemon that has
- * never appeared has no live state to track — full HP, no status, no stages. So a mon-shaped object
- * is synthesised for it and handed to the SAME `dmgMon` the actives go through, rather than building
- * it a second way here. `nature` is what dmgMon reads to decide the sheet is known, so passing the
- * sheet through is what makes a benched Pokemon carry its declared item instead of the usage guess.
+ * THE BENCH IS SPECIES NAMES, NOT TRACKED BODIES: `bench()` returns what was brought, is not on the
+ * field and is not in the graveyard, and the board keeps no live object for it. So a mon-shaped
+ * object is synthesised for it and handed to the SAME `dmgMon` the actives go through, rather than
+ * building it a second way here. `nature` is what dmgMon reads to decide the sheet is known, so
+ * passing the sheet through is what makes a benched Pokemon carry its declared item instead of the
+ * usage guess.
  *
  * Including the bench at all is new. Before voluntary switching existed it would have been
  * decorative; now it is half the rollout, and a leaf that judged 2v2 when the real position is 4v4
- * would be answering a different question. */
+ * would be answering a different question.
+ *
+ * *** WHAT THE SYNTHESIS USED TO INVENT — ROADMAP #248, FIXED 2026-08-13. ***
+ * It passed `item`, `nature` and `pp` from the sheet and stopped there, so:
+ *
+ *   - THE MOVES WERE THE DATASET'S. `dmgMon` overwrites `buildMon`'s representative four with
+ *     `mon.moves` and nothing put the declared four on this object, so every body coming off the
+ *     bench was valued on the AVERAGE build of its species in a format where the sheet is on the
+ *     table. That is the same shape as the mega rows shipping with `mv: []` and as the two 2026-07-30
+ *     instances CLAUDE.md records: the sheet reaching one consumer and not the next.
+ *   - HP AND STATUS WERE FULL AND CLEAN. A body that pivoted out at 20% and burnt came back whole on
+ *     every sample, on both sides. The board holds them now (`benchState`, written on switch-out);
+ *     the guard is for a Board built before that landed, and the fallback is the old behaviour.
+ *
+ * BOOSTS STAY EMPTY AND THAT IS NOT AN OVERSIGHT: Showdown clears stat stages on switch-out, so a
+ * body arriving from the bench genuinely has none. */
 function sideTeam(board, side, dex) {
   const out = [];
   const seen = new Set();
@@ -50,9 +65,17 @@ function sideTeam(board, side, dex) {
   const sheets = (board.sheet && board.sheet[side]) || {};
   for (const sp of board.bench(side)) {
     const sh = sheets[sp] || null;
-    out.push({ species: sp, hp: 1, status: '', boosts: {},
+    const st = (typeof board.benchState === 'function') ? board.benchState(side, sp) : null;
+    out.push({ species: sp,
+               hp: st && typeof st.hp === 'number' ? st.hp : 1,
+               status: (st && st.status) || '',
+               boosts: {},
                item: sh ? (sh.item || '') : undefined,
                nature: sh ? (sh.nature || '') : undefined,
+               /* THE DECLARED FOUR. Passed raw; `dmgMon` norms them, drops anything with no MC row
+                * and keeps `buildMon`'s dataset set when the sheet declared nothing — so a
+                * closed-sheet game is bit-identical to what it was. */
+               moves: sh && Array.isArray(sh.moves) ? sh.moves : undefined,
                /* PP (ROADMAP #145). A BENCHED Pokemon is exactly the one this is easiest to get
                 * wrong: it has no live tracked object, so it is synthesised here — and a synthesised
                 * body with no ledger arrives at full PP even though it may have spent six turns on
@@ -116,6 +139,10 @@ function sideFallen(board, side) {
     out.push({ species: sp, hp: 0, fainted: true, status: '', boosts: {},
                item: sh ? (sh.item || '') : undefined,
                nature: sh ? (sh.nature || '') : undefined,
+               /* ONE BUILDER, ONE SHAPE (ROADMAP #248). A corpse cannot click anything, so its
+                * moveset changes no outcome — but a synthesised body that differs from the living
+                * one in what it declares is exactly how the two come to disagree later. */
+               moves: sh && Array.isArray(sh.moves) ? sh.moves : undefined,
                pp: (typeof board.ppTable === 'function') ? board.ppTable(side, sp) : undefined });
   }
   return out;
@@ -131,6 +158,30 @@ function sideFallen(board, side) {
  * (`bringIn`, `switchOut`, `sideWiped`, the explore draw) and `battleResult` sums `max(0,curHP)/hp`,
  * which is 0 for a corpse. So the living pass below is byte-for-byte what it was, and the corpses are
  * APPENDED -- which is what puts them in `sfA.team` without moving a single living body's index. */
+/* HOW LONG THIS BODY HAS BEEN STANDING THERE, AND WHAT IT WALKED IN ON.
+ *
+ * Two facts that `dmgMon` does not carry and MUST NOT — ROADMAP #250 and #247.
+ *
+ *   `_mvActs`       Showdown's `activeMoveActions`. `firstTurnOnlyRefused` is the only reader, so
+ *                   with it at 0 EVERY seeded body could Fake Out, First Impression and Mat Block,
+ *                   six turns into the game, on both sides. 16,871 corpus uses.
+ *   `_fallenStuck`  Supreme Overlord's ENTRY snapshot. #243 records why it cannot be `sf.fainted`:
+ *                   the ability reads the count once in `onStart` and freezes it, so an ally dying
+ *                   while Kingambit stands there is worth nothing, and even the correct t=0 count
+ *                   ROADMAP #246 landed is the wrong number for this body.
+ *
+ * *** THEY ARE SEEDED HERE AND NOT IN `dmgMon`, AND THAT IS LOAD-BEARING. ***
+ * `dmgMon` is board.js's own builder and every damage FEATURE goes through it — `incomingThreat`,
+ * `clickFragility`, `bestMoveVs`. `_fallenStuck` multiplies base power inside `dmgRange` and
+ * `_mvActs` is read by `bestMoveVs`, so putting either one there would move fitted feature values
+ * and silently invalidate `data/policy-weights.json`. This is a fact inside the PLAYOUT; it belongs
+ * to the seed. Both fall back to 0 — today's behaviour — on a Board built before they existed. */
+function seedHistory(b, m) {
+  if (!b || !m) return;
+  b._mvActs = m.moveActs | 0;
+  b._fallenStuck = m.enteredWithFallen | 0;
+}
+
 function buildSide(board, side, dex, stats, protectTurns) {
   const mons = [];
   for (const m of sideTeam(board, side, dex)) {
@@ -150,6 +201,7 @@ function buildSide(board, side, dex, stats, protectTurns) {
      * tracks it because the board does not. Absent, this is 0 and behaves exactly as before. */
     const pt = protectTurns && m && protectTurns[m.species];
     if (pt) b.tookProtectTurns = pt;
+    seedHistory(b, m);
     mons.push(b);
   }
   /* THE ROSTER TAIL. `dmgMon` carries `hp` across and leaves `fainted` alone -- it has never been
@@ -670,6 +722,85 @@ function terrainOnBoard(board) {
   return k ? MEDI.terrainId(k) : '';
 }
 
+/* THE HAZARDS, THE SCREENS AND GRAVITY — ROADMAP #249.
+ *
+ * `applyField` translates four things (weather, terrain, Tailwind, Trick Room) and `battleInit`
+ * starts `sf.hz` absent and `sf.sc` empty. So every rollout switch-in walked onto a clean field,
+ * every screen the real position is under was deleted, and a search that has already had to be
+ * taught not to spam Protect was being shown a cheaper switch than the game offers. Same shape as
+ * the terrain defect MILTANK.md §3.7 closed — a fact the position holds that never reached the
+ * engine — except here the leaf was not even being given it.
+ *
+ * *** WHOSE SIDE. READ, NEVER RE-DERIVED. ROADMAP #254 CLOSED THE OTHER HALF OF THIS. ***
+ * Of the 11 legal side-condition moves in this regulation SEVEN are `allySide` and FOUR are
+ * `foeSide` — Stealth Rock, Spikes, Sticky Web, Toxic Spikes — so a hazard lands on the side it was
+ * laid AGAINST. `board.js` resolves that ONCE, in `sideFor`, at the moment the condition is
+ * WRITTEN, which is why there is no call to `sideFor` here and must not be: the board's per-side
+ * record is already the answer, and flipping it a second time would re-introduce #254 one layer up
+ * while looking exactly like a fix. `tests/test-rollout-seed.js` asserts the placement from BOTH
+ * seats precisely so a double flip fails instead of cancelling.
+ *
+ * NOTHING IS NAMED. The hazards come from the `hazard` tag (which also carries `maxLayers`), the
+ * screens from `halvesDamage`, Safeguard from `sideBuff`, Gravity from `groundsField` — so a
+ * condition added by a future regulation is picked up without editing this file, which is the rule
+ * docs/TAGS.md states and the ban-list-of-four shape CLAUDE.md warns about.
+ *
+ * *** THREE THINGS IT CANNOT SAY, DECLARED RATHER THAN GUESSED ***
+ *   - A HAZARD'S REAL LIFETIME. Stealth Rock, Spikes, Sticky Web and Toxic Spikes carry no
+ *     `condition.duration` because they are permanent until removed, and `board.startSide` defaults
+ *     an absent duration to ONE TURN offline (the live path's `-sidestart` gets 5). So the seed sees
+ *     a hazard only while the board still believes it is up. That is a board defect, it moves the
+ *     `deadSide` FEATURE and therefore the fit, and it is filed rather than fixed here.
+ *   - LAYERS. The board records an expiry, not a count, so a seeded Spikes or Toxic Spikes is always
+ *     ONE layer. `maxLayers` is read from the tag and clamps it, so this can only ever under-state.
+ *   - QUICK GUARD / WIDE GUARD. Those live for the turn they are clicked (`field.sgA`/`sgB`) and a
+ *     mid-battle seed starts at the top of a turn, so there is nothing to carry.
+ */
+function applySideState(S, board, side) {
+  if (!S || !board || typeof board.hasSide !== 'function') return;
+  const foe = side === 'p1' ? 'p2' : 'p1';
+  /* battleInit's side A is always the asking side, so the pairing is fixed by construction. */
+  const pairs = [[S.sfA, side], [S.sfB, foe]];
+
+  for (const mv of (TAGSMOD.withTag('move', 'hazard') || [])) {
+    const p = TAGSMOD.param('move', mv, 'hazard') || {};
+    const key = p.hazard || mv;
+    /* Clamped by the tag's own ceiling, never by a number typed here. */
+    const layers = Math.min(1, +p.maxLayers > 0 ? +p.maxLayers : 1);
+    for (const [sf, sd] of pairs) {
+      if (!board.hasSide(sd, key)) continue;
+      (sf.hz = sf.hz || {})[key] = layers;
+    }
+  }
+
+  /* A SCREEN IS KEYED BY ITS MOVE, which is what `sf.sc` holds (medicham2's screen branch writes
+   * `sf.sc[a.mv]`), and the three screens' move id and `sideCondition` are the same word. Safeguard
+   * is keyed by the tag's `sideCondition`, which is what the engine's sidebuff branch writes. */
+  const named = [];
+  for (const mv of (TAGSMOD.withTag('move', 'halvesDamage') || [])) named.push([mv, mv]);
+  for (const mv of (TAGSMOD.withTag('move', 'sideBuff') || [])) {
+    const p = TAGSMOD.param('move', mv, 'sideBuff') || {};
+    named.push([mv, p.sideCondition || mv]);
+  }
+  for (const [cond, key] of named) {
+    for (const [sf, sd] of pairs) {
+      const left = typeof board.sideLeft === 'function' ? board.sideLeft(sd, cond) : (board.hasSide(sd, cond) ? 1 : 0);
+      if (left > 0) (sf.sc = sf.sc || {})[key] = left;
+    }
+  }
+
+  /* GRAVITY IS A FIELD FACT, not a side one, and it is a counter in the engine rather than a flag.
+   * DECLARED: medicham2 sets `field.gravity` on the click and never ticks it down, so a seeded
+   * Gravity lasts the whole playout whatever number is written here. The truthful remaining count is
+   * written anyway — the day the engine expires it, this is already right. */
+  for (const mv of (TAGSMOD.withTag('move', 'groundsField') || [])) {
+    const p = TAGSMOD.param('move', mv, 'groundsField') || {};
+    const key = p.pseudoWeather || mv;
+    const left = typeof board.fieldLeft === 'function' ? board.fieldLeft(key) : (board.hasField(key) ? 1 : 0);
+    if (left > 0) S.field.gravity = left;
+  }
+}
+
 function applyField(S, f, side, seeded) {
   /* Terrain goes through `terrainId` for the SAME reason weather goes through `weatherId` one line
    * over: this boundary is handed both vocabularies — `terrainOnBoard` above yields the engine's,
@@ -780,6 +911,9 @@ function rolloutWinProb(board, side, opts) {
      * applyMegaWeather's `if (S.field.weather) return` guard arbitrates between them instead of
      * being overwritten by the next line. A real weather the board reports still wins. */
     applyField(S, f, side, SEEDED);
+    /* ROADMAP #249. Board-seeded only: `buildTeams` (team preview) has no board and no game has
+     * started, so there is nothing up to carry — and inventing it would be worse than omitting it. */
+    if (board && SEEDED) applySideState(S, board, side);
     applyMegaWeather(S, dex);
     wins += runPlayout(S, rng, EXPLORE, FOE_POLICY, exCount, opts.switchRate);
     ran++;
@@ -837,6 +971,7 @@ function rolloutAfterActions(board, side, opts) {
     /* Always SEEDED here: rolloutAfterActions only ever steps a real mid-battle board.
      * Field first, mega weather second -- see the note at the call site in rolloutWinProb. */
     applyField(S, f, side, true);
+    applySideState(S, board, side);                 /* ROADMAP #249 — always a mid-battle board here */
     applyMegaWeather(S, dex);
     const rng = mulberry((opts.seed || 1) * 1000003 + i);
 
@@ -931,7 +1066,12 @@ function rolloutAfterActions(board, side, opts) {
  * becomes a playout field, which makes it the one place the board's vocabulary is translated into the
  * engine's -- `tests/test-mechanics.js` probes it directly rather than inferring the translation from
  * a win probability, because a leaf value moving is consistent with several other explanations. */
-module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, sideFallen, buildSide, wilson, runPlayout, applyField, terrainOnBoard,
+module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, sideFallen, buildSide, wilson, runPlayout, applyField,
+                   /* ROADMAP #249. Exported as the same kind of TEST SEAM `applyField` is, and for
+                    * the same reason: it is the boundary where an observed side condition becomes a
+                    * playout one, so the translation is probed directly rather than inferred from a
+                    * win probability that several other things could also have moved. */
+                   applySideState, terrainOnBoard,
                    /* ROADMAP #152/#153. `SWITCH_COUNTERS` is the proof-of-firing surface — a run
                     * prints it and `tests/test-rollout-switch.js` fails on a zero. `census()` is the
                     * ONE reader of the store-measured switch rate and horizon, so miltank.js and the
