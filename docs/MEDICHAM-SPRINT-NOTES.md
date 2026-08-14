@@ -21,6 +21,58 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #271 — A KNOCKED-OFF ITEM WAS STILL ON THE BOARD'S BODY. CLOSED 2026-08-14 (SEARCH).
+
+**Files:** `engine/board.js`, `engine/rollout_leaf.js`, `engine/rollout_item_prevalence.js` (new),
+`tests/test-seed-residue.js` (finished — it was left by the interrupted attempt at this row),
+`tests/test-stadium-roster.js` (one declaration), `docs/ROADMAP.md`, `docs/SEARCH.md`.
+**Not touched:** `engine/medicham2-browser.js`, `engine/magnemite.js`, `engine/mag_bot.js`,
+`engine/miltank.js`, `engine/game_differential.js`, `engine/divergence_cards.js`,
+`tests/test-middle-identity.js`, `data/divergence-*.json`, `data/policy-weights.json`.
+
+**ONE ROW, ALONE, ON PURPOSE.** #267, #268, #269 and #270 sit on the same surface and were left open
+so that this result is attributable on its own.
+
+**The defect, as measured:** declare a Life Orb, call `noteItem('p1','garchomp','')`, and
+`board.sheetItem` says `''` while `slot.item` and `dmgMon(...).item` both say `lifeorb`. `switchIn`
+COPIED the item off the sheet; `noteItem` wrote only `itemNow`; `sheetItem()` was the sole reader of
+`itemNow`. So a Life Orb, a Choice Scarf, an eaten Sitrus Berry and a spent Focus Sash kept applying
+in every damage feature MAG scores with and in every seeded playout. **CLAUDE.md's own PREFER
+OBSERVED OVER DECLARED, broken in the file that lesson was written about.**
+
+**The fix is ONE SOURCE, not a write-through.** `mon.item` is an accessor calling
+`board.sheetItem(side, mon.base)`, so `dmgMon`, `monSpeedMult`, `effSpecies`'s stone check and the
+choice lock all ask the one function without one of them being edited. Making `noteItem` patch the
+slots would have left two places answering one question, which is what created this.
+
+**The sweep ran BEFORE the fix and found four more readers; all five are fixed in this pass.**
+`rollout_leaf.sideTeam` and `sideFallen` (the synthesised bench body) and `board.js:3306` (benchRisk's
+foe-bench bodies) each read `board.sheet` directly. **`miltank.js`'s preview builder reads the sheet
+and is CORRECT** — nothing has been knocked off at team preview — and was left alone.
+
+**RED FIRST: 13 passed / 7 failed** against a deliberate break of the accessor (`get: () =>
+mon._itemAtEntry`, the exact old semantics), every control green in the same run. After: **20 passed,
+0 failed.** The damage item, the speed item and the responsive attacker/defender pair are all DERIVED
+by probing the regulation, never named.
+
+**Prevalence, `data/rollout-item-prevalence.json`** — a store scan that plays no game and opens no
+`Dex`, over 14,288 open-sheet games / 192,912 decision points: **3.622% of decision points have a body
+priced holding an item it does not hold (3.197% an ACTIVE body, 0.667% a benched one)**; 10.631% of
+games contain an item-affecting click. **A FLOOR** — the store records no consumption at all.
+
+**NOT FIT-INVALIDATING, and that was measured.** `noteItem` has exactly one caller
+(`engine/magnemite.js`), so the offline board never sees an item event and the accessor returns the
+same string the copy did. `engine/feature_fixture.js`'s 58 per-feature column hashes are
+**byte-identical** with the fix and against the deliberate break. **No refit is owed by this row.**
+What IS owed is PRIORITIES 13e and it is MEASURE's: the FIT sees no item event at all.
+
+**One gate turned red by this work and was fixed, not filed:** `tests/test-stadium-roster.js`, on the
+undeclared new generator. `tests/test-rollout-effects.js` (41/2), `tests/test-effective-identity.js`
+(1,470 vs 1,198) and `tests/test-no-silent-failure.js` (80 NEW) were red before and this work
+contributes zero rows to any of them — verified by name in each gate's own output.
+
+---
+
 ## ROADMAP #247 / #248 / #249 / #250 — THE ROLLOUT SEED. FOUR CLOSED, FIVE OPENED. 2026-08-13 (SEARCH).
 
 **Files:** `engine/rollout_leaf.js`, `engine/board.js`, `engine/rollout_seed_prevalence.js` (new),

@@ -28,7 +28,7 @@ SEARCH — does MILTANK choose better than MAG
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/board.js 2026-08-13 20:23):
+  runs vs engine (newest engine source: engine/board.js 2026-08-14 00:52):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-03 22:36
     PRE-CHANGE games.r4.jsonl  2026-08-03 22:33
@@ -36,9 +36,215 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-03 20:45
 ```
 
-_stamped 2026-08-13 20:45_
+_stamped 2026-08-14 01:04_
 
 <!-- /GENERATED -->
+
+## R15 — A KNOCKED-OFF ITEM WAS STILL ON THE BOARD'S BODY. ROADMAP #271 CLOSED 2026-08-14.
+
+ROADMAP **#271 closed**. Gate: **`tests/test-seed-residue.js`** (20 assertions, auto-discovered by
+`tests/run-all.js`), shown **RED first**. Prevalence artifact: **`data/rollout-item-prevalence.json`**,
+written by `engine/rollout_item_prevalence.js`. **#267, #268, #269 and #270 were deliberately NOT
+taken in this pass**, so this result is attributable on its own.
+
+### The verdict in one line
+
+**Every damage feature MAG scores with, and every body in every playout, was priced holding an item
+the game had already removed — and the board had known it was gone the whole time.**
+
+### The defect, exactly as it was measured
+
+```
+declare Life Orb -> noteItem('p1','garchomp','') ->
+   board.sheetItem  = ''          (correct)
+   slot.item        = 'lifeorb'   (stale)
+   dmgMon(...).item = 'lifeorb'   <- what MAG scores with AND what every playout gets
+```
+
+`board.switchIn` **copied** the item off the sheet onto the slot object. `board.noteItem` — the one
+thing `|-item|` and `|-enditem|` reach — wrote only `itemNow`. `sheetItem()` was the **sole reader**
+of `itemNow`. So the board held two answers to one question and every consumer read the wrong one.
+
+**This is CLAUDE.md's founding lesson arriving through a new door, and the door was in the file the
+lesson was written about.** *"the damage and speed calculations keep applying an Assault Vest, Choice
+Scarf or Life Orb that is gone — and those apply at ANY hp"*, and **PREFER OBSERVED OVER DECLARED**.
+The rule was written down. The tracking existed. One reader read the wrong field.
+
+### It is ONE SOURCE, and a write-through was refused
+
+`noteItem` could have been made to walk the slots and patch them. That fixes today's symptom and
+leaves **two** places that answer *"what is this body holding"* — which is what created this in the
+first place. So `mon.item` is now an **accessor** that calls `board.sheetItem(side, mon.base)`:
+
+- **Every existing reader is fixed without being edited.** `dmgMon`, `monSpeedMult`, `effSpecies`'s
+  mega-stone check, `candidates()`'s choice lock and every caller outside `board.js` now ask the one
+  function. An accessor cannot drift; two copies always eventually do.
+- **The key is `base`, frozen at entry** — `baseSpecies(species)` computed from the same string the
+  old copy used — so a mid-battle mega, a Ditto transform or an Illusion breaking keeps looking the
+  item up under the key `sheet`, `itemNow` and `pp` are all keyed by. Re-deriving it from a mutating
+  `mon.species` would be a second dialect, which is MILTANK.md §3.7's terrain defect one layer down.
+- **`null` from `sheetItem` means "no sheet" and is NOT `''`.** On null the accessor falls back to
+  `_itemAtEntry`, the literal it replaced, so a closed-sheet board and a board with no item event are
+  both byte-identical to what they were. Collapsing the two would strip the item off every
+  closed-sheet Pokémon — a new bug wearing the shape of a fix.
+- **The setter routes to `noteItem`.** `board.js` is `'use strict'`, so a getter with no setter would
+  turn a silent staleness into a crash on `mon.item = x` from any caller. Routing the assignment makes
+  it mean what it says.
+
+### THE SWEEP CAME FIRST, and it found four more readers of the declared item
+
+Finding a reader after the fix means measuring twice, so the sweep ran before a byte was changed.
+**All five are fixed in this one pass**; two of them are outside `board.js`.
+
+| # | reader | what it got wrong | now |
+|---|---|---|---|
+| 1 | the SLOT object, `switchIn`'s copy | held the sheet's item forever | an accessor |
+| 2 | `dmgMon`, `board.js:1163` | **every damage feature MAG scores with**, and every playout body | reads the accessor |
+| 3 | `monSpeedMult`, `board.js:2121` | the Choice Scarf ×1.5 — CLAUDE.md's own example | reads the accessor |
+| 4 | `rollout_leaf.sideTeam` / `sideFallen` | the synthesised BENCH body read `board.sheet` directly | calls `board.sheetItem` |
+| 5 | `board.js:3306`, benchRisk's foe-bench bodies | same — a benched foe whose Sash was gone still priced as holding it | calls `board.sheetItem` |
+
+**Two readers were checked and are CORRECT, and saying so is the point of a sweep.**
+`board.switchFeatures` and `engine/position_features.js` already went through `sheetItem`, which is
+why they are the model this fix copied rather than something to repair.
+**`miltank.js:674`'s team-preview builder reads the sheet and is also right**: at preview nothing has
+been knocked off, so the sheet IS the observed item. A fix applied there would have been wrong.
+
+### The proof, red first
+
+`tests/test-seed-residue.js` was run before the fix existed and again against a **deliberate break**
+of the accessor (`get: () => mon._itemAtEntry`, the exact old semantics), which is the honest red
+because two arms were added after the first run:
+
+| run | result |
+|---|---|
+| before any fix | 10 ok / **7 FAIL** (aborted in the arm being written) |
+| deliberate break of the accessor | 13 passed / **7 failed** |
+| after | **20 passed, 0 failed** |
+
+Every failure was a reader holding an item the game removed. **Every CONTROL was green in the same
+run**, which is what says the file cannot pass by simply emptying every item: a body with no item
+event keeps what it declared, a body the sheet declares itemless starts with nothing, a body with NO
+sheet still passes `undefined` rather than `''`, and an item **gained** mid-battle (Trick, Symbiosis)
+reaches the same readers.
+
+**Nothing in it is typed.** The damage-changing item is found by probing every legal item in the
+regulation through the engine's own `dmgRange` until one moves the number (it lands on Life Orb, and
+would still be right if it did not). The speed-changing item comes out of the dex's own `onModifySpe`
+handler (Choice Scarf). The species pool is `MC.mons` intersected with `Dex.forFormat` filtered on
+`isNonstandard`/`tier`. And the **attacker/defender pair for the speed arm is searched for**, because
+a Choice Scarf only moves `movesFirst` when it actually flips the order — a hardcoded pair would go
+silently inert the day the dataset's speeds moved.
+
+**One arm carries no assertion and says so.** `benchRisk` did not move for any survival-changing item
+on the fixture pair, so reader 5 is routed through `sheetItem` **by construction** and that is stated
+here rather than claimed as tested. Reporting it is the alternative to a green row that proves
+nothing.
+
+### Does it change decisions? MEASURED — and this one is SMALLER than the seed batch
+
+`data/rollout-item-prevalence.json`, over **14,288 open-sheet bo3 games / 192,912 decision points**.
+It reads the store and `data/tags.json`, **plays no game and opens no `Dex`** — no `battleInit`, no
+rollout, no board — so it is not downstream of MEDICHAM, is not quarantined, and needed no engine
+release with four agents in the tree. Same denominator as `data/rollout-seed-prevalence.json` and
+`data/rollout-fallen-prevalence.json` by construction.
+
+| | share of decision points |
+|---|---|
+| an **ACTIVE** body is priced holding an item it does not hold | **3.197%** |
+| a live **BENCHED** body is | **0.667%** |
+| **ANY body that reaches a feature or a seed — the reach of this fix** | **3.622%** |
+| (context) decision points occurring after any item-affecting click | 5.959% |
+| (context) games containing at least one such click | 10.631% |
+
+2,405 item-affecting clicks over the store. Every move is enumerated from the tag artifact —
+`removesItem`, `takesTargetItem` (whose params carry the three-way split between destroy, steal and
+**swap**) and `flingsOwnItem` — so a move a future regulation adds is counted with no edit here.
+
+**THIS IS A FLOOR, AND FOR A BIGGER REASON THAN THE USUAL CAVEAT.** The store records **no item
+consumption at all**: a spent Focus Sash, an eaten Sitrus Berry, a detonated Air Balloon and a used
+Weakness Policy each emit `|-enditem|` on the live wire and *nothing* in a stored game. Neither
+Symbiosis, Pickpocket nor Magician has an observable trigger there. **The live bot sees strictly
+more than 3.622%**, and how much more is not knowable from the store. It is also a **ceiling on
+decisions** in the other direction, stated as one: it counts positions priced wrongly, not argmaxes
+that flip.
+
+*(`mineStale` and `foeStale` come out identical at 1.881% by construction, not by coincidence — every
+turn contributes a decision point for both sides, so "my side is wrong" for p1 is "the foe is wrong"
+for p2.)*
+
+### IS THE FIT INVALIDATED? NO — AND THAT WAS MEASURED, NOT ARGUED
+
+The roadmap row filed this as **fit-invalidating** and that turns out to be wrong, for a reason
+worth writing down because it is itself a defect one row over:
+
+**`board.noteItem` has exactly one caller in the whole repository — `engine/magnemite.js:574`, the
+live protocol reader.** The fitter never calls it. So offline `itemNow` is empty on every board,
+`sheetItem` returns the sheet's declared item, and the accessor returns **the same string the copy
+did**. `setSheet` also precedes `switchIn` in every offline path (`fit_policy.js` 625 before 640/784,
+`feature_coverage.js`, `forced_switch_audit.js`, `feature_fixture.js`), so the live sheet read cannot
+differ from the entry snapshot either.
+
+**Checked rather than reasoned about:** `engine/feature_fixture.js` hashes every feature's column
+separately over 12 frozen scenario boards, precisely so a changed MEANING under an unchanged NAME is
+visible. Run with the fix and run again against the deliberate break, the 58 per-feature hashes are
+**byte-identical**. `data/policy-weights.json` keeps its meaning and **no refit is owed by this row.**
+
+*(`node engine/feature_fixture.js --check data/policy-weights.json` fails for an unrelated and
+pre-existing reason — the stamped fixture is 10 scenarios and the code's is 12 — so the comparison
+above was taken between two runs of the CODE, which is the question this asks.)*
+
+**What IS owed is one row over and it is MEASURE's**: PRIORITIES 13e. The fit never sees an item
+event at all, so a declared item stands for the whole of a stored game while the live player now
+tracks it correctly. That is the fitting-environment-and-playing-environment mismatch CLAUDE.md names,
+still open, and #271 does not close it — #271 fixes the READER, 13e is the missing offline EVENT.
+
+### Adjacent gates, run and reported
+
+Green: `tests/test-rollout-seed.js` (47/47), `tests/test-rollout-fallen.js` (28/28),
+`tests/test-rollout-switch.js` (16/16), `tests/test-rollout-gates.js` (16/16),
+`tests/test-pp-fact.js` (33/33), `tests/test-feature-semantics.js` (18/18),
+`tests/test-engine-consistency.js`, `tests/test-switch-features.js`, `tests/test-switch-carry.js`
+(27/27), `tests/test-board-browser.js` (14/14), `tests/test-hazard-side.js` (11/11),
+`tests/test-forced-switch.js`, `tests/test-miltank-release.js` (25/25), `tests/test-wiring.js`,
+`tests/test-artifact-keys.js` (4/4), `tests/test-provenance-discovery.js`,
+`tests/test-timestamps.js` (6/6), `tests/test-fixture-legality.js`, `tests/test-docs-current.js`
+(21/21), `tests/test-roadmap-register.js` (3/3).
+
+`tests/test-rollout-switch.js` and `tests/test-pp-fact.js` are the real control again: both seed
+boards and assert exact, dice-for-dice win probabilities, which is only possible if a board with no
+item event is byte-identical to what it was.
+
+**`tests/test-stadium-roster.js` was RED on this work and is GREEN**: the new prevalence generator was
+undeclared and now carries a `NOT_A_MODEL` entry with its reason. It was the only gate this work
+turned red, and it was fixed rather than filed.
+
+**Two gates are RED, neither is this work's, and this work contributes ZERO rows to either. Verified
+by name, not by assertion.** `tests/test-rollout-effects.js` is 41 passed / 2 failed on Full Metal
+Body and Guard Dog refusing an Intimidate drop — identical to R14's reading, and it is ENGINE's.
+`tests/test-effective-identity.js` is 18/1 at **1,470** raw reads against a 1,198 baseline — the same
+1,470 R14 reported, and neither new file appears in its list. `tests/test-no-silent-failure.js` is red
+at **80** NEW silent catches, which is R14's number exactly: the six `catch` blocks in the new gate
+were flagged at first, and they now `push` the probe and the reason onto a list the run prints, so the
+count came back to 80 rather than being re-baselined.
+
+### What was deliberately NOT done
+
+- **No SPRT was prepared and no leaf value was re-measured.** #267, #268, #269 and #270 are still open
+  on the same surface, and a leaf number taken between them describes a build nobody will ship. The
+  paired argmax run belongs after the residue is closed.
+- **No refit was run.** MAG's weights are Will's and he is reworking them; the measurement above says
+  none is owed by this row in any case.
+- **`engine/medicham2-browser.js` was not touched.** Nothing in this row needed it.
+- **The other four rows of the sweep were left alone**, and the gate reports them as `note` lines
+  rather than red `ok` lines — a red row nobody is fixing in this pass is the "KNOWN FAILURE" shape
+  this repository bans by name.
+
+### One thing seen in passing, reported and not touched
+
+`tests/test-seed-residue.js` is the file left behind by the previous, interrupted attempt at this row.
+**It is kept and finished**, rescoped from all five sweep rows to #271 alone with the other four as
+reported notes. Nothing was deleted.
 
 ## R14 — THE SEED WAS WRONG AT 70.6% OF DECISION POINTS. FOUR ROWS CLOSED 2026-08-13; five more filed.
 

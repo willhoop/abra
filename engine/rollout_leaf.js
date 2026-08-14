@@ -70,7 +70,19 @@ function sideTeam(board, side, dex) {
                hp: st && typeof st.hp === 'number' ? st.hp : 1,
                status: (st && st.status) || '',
                boosts: {},
-               item: sh ? (sh.item || '') : undefined,
+               /* THE ITEM IS ASKED FOR, NOT READ OFF THE SHEET (ROADMAP #271). A benched body is the
+                * easiest one to get wrong here for the same reason its PP was: it has no live tracked
+                * object, so this synthesis is the ONLY place its item is decided — and it read the
+                * SHEET, which says what the Pokemon started the game with. Knock Off it, Trick it, or
+                * simply let it eat its own berry before it pivoted out and the seed handed MEDICHAM a
+                * body holding something the game removed. `sheetItem` is the one function that knows;
+                * null means "no sheet at all", and `undefined` is passed on for that case so `dmgMon`
+                * keeps `buildMon`'s dataset guess exactly as it did before. */
+               item: (() => {
+                 const obs = (typeof board.sheetItem === 'function') ? board.sheetItem(side, sp) : null;
+                 if (obs != null) return obs;
+                 return sh ? (sh.item || '') : undefined;
+               })(),
                nature: sh ? (sh.nature || '') : undefined,
                /* THE DECLARED FOUR. Passed raw; `dmgMon` norms them, drops anything with no MC row
                 * and keeps `buildMon`'s dataset set when the sheet declared nothing — so a
@@ -137,7 +149,15 @@ function sideFallen(board, side) {
     seen.add(sp);
     const sh = sheets[sp] || null;
     out.push({ species: sp, hp: 0, fainted: true, status: '', boosts: {},
-               item: sh ? (sh.item || '') : undefined,
+               /* ONE BUILDER, ONE SHAPE (ROADMAP #271). A corpse holds nothing that changes an
+                * outcome — it cannot click and `battleResult` sums its 0 — but a synthesised body
+                * that answers "what is it holding" differently from the living one is exactly how the
+                * two come to disagree later. Same call as `sideTeam`'s, for that reason alone. */
+               item: (() => {
+                 const obs = (typeof board.sheetItem === 'function') ? board.sheetItem(side, sp) : null;
+                 if (obs != null) return obs;
+                 return sh ? (sh.item || '') : undefined;
+               })(),
                nature: sh ? (sh.nature || '') : undefined,
                /* ONE BUILDER, ONE SHAPE (ROADMAP #248). A corpse cannot click anything, so its
                 * moveset changes no outcome — but a synthesised body that differs from the living

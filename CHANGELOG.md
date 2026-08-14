@@ -10,6 +10,81 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.19.0] — 2026-08-14
+
+### Fixed
+- **A KNOCKED-OFF ITEM WAS STILL ON THE BOARD'S BODY, SO EVERY DAMAGE FEATURE AND EVERY ROLLOUT KEPT
+  APPLYING AN ITEM THAT WAS GONE — ROADMAP #271.** Measured, not argued: declare a Life Orb, call
+  `board.noteItem('p1','garchomp','')`, and `board.sheetItem` says `''` while `slot.item` and
+  `dmgMon(...).item` both say `lifeorb`. `board.switchIn` **copied** the item off the team sheet onto
+  the slot object; `board.noteItem` — the one thing `|-item|`/`|-enditem|` reaches — wrote only
+  `itemNow`; and `sheetItem()` was the sole reader of `itemNow`. So a Life Orb, a Choice Scarf, an
+  eaten Sitrus Berry and a spent Focus Sash all kept applying, in the damage AND speed numbers MAG
+  scores with and in every seeded playout. **This is CLAUDE.md's own founding lesson arriving through
+  a new door, and the door was in the file that lesson was written about**: *"the damage and speed
+  calculations keep applying an Assault Vest, Choice Scarf or Life Orb that is gone — and those apply
+  at ANY hp"*, and **PREFER OBSERVED OVER DECLARED**. The rule was written down, the tracking existed,
+  and one reader read the wrong field.
+- **The fix is ONE SOURCE, and a write-through was refused.** `mon.item` is now an ACCESSOR that calls
+  `board.sheetItem(side, mon.base)`, so `dmgMon`, `monSpeedMult`, `effSpecies`'s mega-stone check and
+  `candidates()`'s choice lock all ask the one function without one of them being edited. Making
+  `noteItem` walk the slots and patch them would have fixed today's symptom and left TWO places
+  answering "what is this body holding", which is exactly what created the defect. The key is `base`,
+  frozen at entry, so a mega, a Ditto transform or an Illusion breaking keeps looking the item up
+  under the key `sheet`, `itemNow` and `pp` are already keyed by. `null` from `sheetItem` means "no
+  sheet" and is NOT `''`: on null the accessor falls back to the entry snapshot, so a closed-sheet
+  board is byte-identical to what it was. The setter routes to `noteItem`, because `board.js` is
+  `'use strict'` and a getter with no setter would turn a silent staleness into a crash.
+- **THE SWEEP CAME FIRST AND FOUND FOUR MORE READERS; ALL FIVE LANDED TOGETHER.** Besides the slot
+  copy: `dmgMon` (`board.js`), `monSpeedMult` (`board.js`), `rollout_leaf.sideTeam`/`sideFallen` (the
+  synthesised BENCH body, which read `board.sheet` directly) and `board.js`'s benchRisk foe-bench
+  bodies. Two readers were checked and are CORRECT and that is recorded rather than left implied:
+  `switchFeatures` and `engine/position_features.js` already went through `sheetItem`, and
+  `engine/miltank.js`'s team-preview builder reads the sheet **correctly**, because at team preview
+  nothing has been knocked off yet.
+
+### Added
+- **`tests/test-seed-residue.js` — 20 assertions, auto-discovered by `tests/run-all.js`.** Shown RED
+  first: **13 passed / 7 failed** against a deliberate break of the accessor (the exact old
+  semantics), with every CONTROL green in the same run — a body with no item event keeps what it
+  declared, a body with NO sheet still passes `undefined` rather than `''`, and an item GAINED
+  mid-battle reaches the same readers. Nothing in it is typed: the damage-changing item is found by
+  probing every legal item through the engine's own `dmgRange`, the speed-changing item comes out of
+  the dex's `onModifySpe` handler, and the attacker/defender pair for the speed arm is SEARCHED for,
+  because a Choice Scarf only moves `movesFirst` when it actually flips the order.
+- **`engine/rollout_item_prevalence.js` -> `data/rollout-item-prevalence.json`.** Over **14,288
+  open-sheet bo3 games / 192,912 decision points**: **3.622% of decision points have a body priced
+  holding an item it does not hold — 3.197% a body actually on the field, 0.667% a benched one**;
+  10.631% of games contain an item-affecting click. It reads the store and `data/tags.json` and plays
+  no game and opens no `Dex`, so it is not downstream of MEDICHAM and is not quarantined. **Every
+  figure is a FLOOR**: the store records no item CONSUMPTION at all — a spent Focus Sash, an eaten
+  berry, a detonated Air Balloon — so the live path sees strictly more.
+
+### Notes
+- **NOT FIT-INVALIDATING, AND THAT WAS MEASURED RATHER THAN ASSUMED.** The roadmap row filed this as
+  fit-invalidating. `board.noteItem` has exactly one caller in the repository —
+  `engine/magnemite.js`, the live protocol reader — so the offline board never sees an item event,
+  `sheetItem` returns the sheet, and the accessor returns the same string the copy did. `setSheet`
+  also precedes `switchIn` in every offline path. Checked: `engine/feature_fixture.js`'s 58
+  per-feature column hashes are **byte-identical** with the fix and against the deliberate break.
+  `data/policy-weights.json` keeps its meaning and **no refit is owed by this row.**
+- **What IS owed is one row over and it is MEASURE's — PRIORITIES 13e.** The FIT never sees an item
+  event at all, so a declared item stands for the whole of a stored game while the live player now
+  tracks it correctly. #271 fixed the READER; 13e is the missing offline EVENT.
+- **#267, #268, #269 and #270 were deliberately NOT taken in this pass**, so this row's result is
+  attributable on its own. The gate reports them as `note` lines rather than red assertions, because
+  a red row nobody is fixing is the "KNOWN FAILURE" shape this repository bans by name.
+- **One gate turned red by this work and was fixed rather than filed:** `tests/test-stadium-roster.js`,
+  on the undeclared new generator, now carrying a `NOT_A_MODEL` entry with its reason.
+  `tests/test-rollout-effects.js` (41/2, Full Metal Body and Guard Dog, ENGINE's),
+  `tests/test-effective-identity.js` (1,470 raw reads against a 1,198 baseline) and
+  `tests/test-no-silent-failure.js` (80 NEW silent catches) were all red before and this work
+  contributes ZERO rows to any of them — verified by name in each gate's own output, not asserted.
+- **No SPRT was prepared, no leaf value was re-measured and no refit was run.** #267 to #270 are still
+  open on the same surface; a leaf number taken between them would describe a build nobody will ship.
+
+---
+
 ## [5.18.0] — 2026-08-13
 
 ### Fixed

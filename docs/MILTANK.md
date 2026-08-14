@@ -289,11 +289,47 @@ And **whose side a hazard lands on is read, never re-derived**: ROADMAP #254 res
 write, so the seed takes the board's per-side record straight; a second flip would re-introduce that
 bug one layer up and cancel invisibly if only one seat were tested.
 
-Five more were swept out and are registered unfixed — **#271 (a knocked-off item is still on the
-board's body, so every damage feature and every playout keeps applying it)**, #270 (the seeded field
-has no clock, so a weather with one turn left lasts sixty), #269 (every durable volatile), #268 (a
-permanent hazard is given a one-turn duration and layers are not counted), #267 (a status is seeded
-and its counter is not). Full account in [SEARCH.md](SEARCH.md) R14.
+Five more were swept out and registered. **#271 closed 2026-08-14 — see §3.10.** Still open: #270
+(the seeded field has no clock, so a weather with one turn left lasts sixty), #269 (every durable
+volatile), #268 (a permanent hazard is given a one-turn duration and layers are not counted), #267 (a
+status is seeded and its counter is not). Full account in [SEARCH.md](SEARCH.md) R14.
+
+### 3.10 A knocked-off item was still on the board's body — fixed 2026-08-14
+
+Eighth instance of the shape §3.6 to §3.9 record, and the first one that is **not** only about the
+seed: `board.switchIn` **copied** the item off the team sheet onto the slot object, `board.noteItem` —
+the one thing `|-item|`/`|-enditem|` reaches — wrote only `itemNow`, and `sheetItem()` was the sole
+reader of `itemNow`. So the board held two answers to one question and `dmgMon` read the wrong one.
+
+```
+declare Life Orb -> noteItem('p1','garchomp','') ->
+   sheetItem = ''   (correct)      slot.item = dmgMon(...).item = 'lifeorb'   (stale)
+```
+
+A Life Orb, a Choice Scarf, an eaten Sitrus Berry and a spent Focus Sash therefore kept applying —
+**in the damage and speed features MAG scores with as well as in every seeded playout.** CLAUDE.md
+states the mechanism exactly and states the rule that was broken: *"the damage and speed calculations
+keep applying an Assault Vest, Choice Scarf or Life Orb that is gone"*, and **PREFER OBSERVED OVER
+DECLARED**.
+
+**The fix is ONE SOURCE and a write-through was refused.** `mon.item` is now an accessor calling
+`board.sheetItem`, so every existing reader — `dmgMon`, `monSpeedMult`, the mega-stone check, the
+choice lock — asks the one function without being edited. Making `noteItem` patch the slot objects
+would have fixed the symptom and left two places answering "what is it holding", which is what created
+this. **Four more readers of the declared item were swept out first and all five landed together**;
+`miltank.js`'s team-preview builder also reads the sheet and is CORRECT, because at preview nothing
+has been knocked off yet.
+
+Measured on 14,288 open-sheet games (`data/rollout-item-prevalence.json`, a store scan): **3.622% of
+decision points have a body priced holding an item it does not hold, 3.197% of them a body actually on
+the field.** That is a **FLOOR**: the store records no item consumption at all, so every spent Sash
+and eaten berry is missing from it by construction and the live path sees strictly more.
+
+**It does not invalidate the fit, and that was measured rather than assumed.** `noteItem` has exactly
+one caller, `magnemite.js`, so the offline board never sees an item event and the accessor returns the
+same string the copy did — `engine/feature_fixture.js`'s 58 per-feature column hashes are
+byte-identical before and after. The remaining half is PRIORITIES 13e and is MEASURE's: the FIT sees
+no item event at all, so a declared item still stands for a whole stored game.
 
 ---
 

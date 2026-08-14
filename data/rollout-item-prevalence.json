@@ -1,0 +1,71 @@
+{
+  "generated": "2026-08-14T04:54:41.347Z",
+  "what": "ROADMAP #271 — how often a body on the board is priced holding an item the game removed",
+  "store": "data/games.bo3.jsonl",
+  "floor": "The store records NO item consumption (a spent Focus Sash, an eaten berry, a detonated Air Balloon) and no Symbiosis / Pickpocket / Magician trigger. Only the item-affecting CLICK is countable here, so every rate below is a FLOOR on what the live path sees.",
+  "derived_populations": {
+    "itemMoves": [
+      "bugbite",
+      "corrosivegas",
+      "covet",
+      "fling",
+      "knockoff",
+      "pluck",
+      "stuffcheeks",
+      "switcheroo",
+      "thief",
+      "trick"
+    ],
+    "swappers": [
+      "covet",
+      "switcheroo",
+      "thief",
+      "trick"
+    ],
+    "stealers": [
+      "covet",
+      "switcheroo",
+      "thief",
+      "trick"
+    ],
+    "selfSpenders": [
+      "fling"
+    ],
+    "unmodelledAbilities": [
+      "magician",
+      "pickpocket",
+      "symbiosis",
+      "pickup"
+    ]
+  },
+  "games": 14288,
+  "gamesSkipped": 0,
+  "gamesWithItemClick": 1519,
+  "decisionPoints": 192912,
+  "itemClicks": 2405,
+  "ambiguousTargets": 2381,
+  "dp": {
+    "activeStale": 6168,
+    "benchStale": 1286,
+    "mineStale": 3628,
+    "foeStale": 3628,
+    "any": 6988,
+    "afterAnyClick": 11496
+  },
+  "detail": {
+    "staleBodyTurns": 8108,
+    "bodiesEverStale": 1313,
+    "sheetEntries": 171084
+  },
+  "node": "v24.15.0",
+  "rates": {
+    "pct_games_with_an_item_click": 10.631,
+    "pct_dp_after_any_item_click": 5.959,
+    "pct_dp_active_body_priced_with_a_removed_item": 3.197,
+    "pct_dp_bench_body_priced_with_a_removed_item": 0.667,
+    "pct_dp_my_own_side_wrong": 1.881,
+    "pct_dp_the_foe_wrong": 1.881,
+    "pct_any": 3.622
+  },
+  "elapsedMs": 2637
+}

@@ -828,7 +828,7 @@ class Board {
       this.lastSeen[side][baseSpecies(outgoing.species)] =
         { hp: typeof outgoing.hp === 'number' ? outgoing.hp : 1, status: outgoing.status || '' };
     }
-    this.sides[side].active[letter] = {
+    const mon = {
       species: norm(species),
       base: baseSpecies(species),
       hp: 1,
@@ -845,10 +845,7 @@ class Board {
       status: '',
       /* Copied onto the mon so featuresFor never has to work out which side it is looking at. */
       nature: (this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).nature || '',
-      /* THE ITEM, for the same reason and because move ORDER depends on it. The sheet has carried an
-       * item since setSheet was written and nothing read it, so Choice Scarf -- 6.52% of every item
-       * in this format, and a flat +50% Speed -- was invisible to the one feature it most affects. */
-      item: norm((this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).item || ''),
+      /* THE ITEM IS NOT HERE. It is an accessor, defined below the literal — see the note there. */
       /* THE ABILITY, same rule as the item (Will: "actually be able to interpret those open team
        * sheets"). The sheet declares it for all six, and every tag wire the damage engine grew --
        * Rough Skin's toll, Volt Absorb's immunity-and-heal, Flame Body's burn risk -- keys on the
@@ -927,6 +924,61 @@ class Board {
       moveFailedThisTurn: false,
       moveFailedLastTurn: false,
     };
+    /* ---- THE ITEM IS ASKED FOR, NOT REMEMBERED (ROADMAP #271) ---------------------------------
+     *
+     * THIS USED TO BE A COPY, and the copy is the whole defect. `switchIn` took the item off the
+     * SHEET and stamped it onto the slot; `noteItem` -- the one thing `|-item|`/`|-enditem|` reaches
+     * -- wrote only `itemNow`; and `sheetItem()` was the SOLE reader of `itemNow`. So the board held
+     * two answers to one question and `dmgMon` read the wrong one:
+     *
+     *     declare Life Orb -> noteItem('p1','garchomp','')
+     *        sheetItem        ''          correct
+     *        slot.item        'lifeorb'   stale
+     *        dmgMon(...).item 'lifeorb'   what MAG scores with AND what every playout gets
+     *
+     * CLAUDE.md names this mechanism by name -- *"the damage and speed calculations keep applying an
+     * Assault Vest, Choice Scarf or Life Orb that is gone -- and those apply at ANY hp"* -- and
+     * **PREFER OBSERVED OVER DECLARED** is the rule it broke, in the file that rule was written
+     * about. The tracking already existed. One reader read the wrong field.
+     *
+     * SO IT IS ONE SOURCE, NOT A WRITE-THROUGH. `noteItem` could have been made to walk the slots and
+     * patch them, and that would fix today's symptom while leaving TWO places that answer "what is it
+     * holding" -- which is exactly what created this. An accessor cannot drift: every existing reader
+     * of `mon.item` (dmgMon, monSpeedMult, effSpecies's stone check, candidates' choice lock, and
+     * every caller outside this file) is asking `sheetItem` now without one of them being edited.
+     *
+     * THE KEY IS `base`, FROZEN AT ENTRY, and that is deliberate: it is `baseSpecies(species)`
+     * computed from the same string the old copy used, so a mid-battle forme change (a mega, a Ditto
+     * transform, an Illusion breaking) keeps looking the item up under the key `sheet`, `itemNow` and
+     * `pp` are all keyed by. Re-deriving it from a mutating `mon.species` would be a second dialect.
+     *
+     * NULL FROM `sheetItem` MEANS "NO SHEET", and that is NOT the same as '' meaning "the sheet says
+     * no item" -- collapsing the two turns every closed-sheet game into a game of itemless Pokemon.
+     * On null this falls back to `_itemAtEntry`, which is the literal this replaced, so a Board with
+     * no sheet and a Board with no item event are both byte-identical to what they were.
+     *
+     * THE SETTER GOES THROUGH `noteItem` for the same one-source reason. `board.js` has 'use strict',
+     * so a getter with no setter would THROW on `mon.item = x` from any caller outside this file --
+     * turning a silent staleness into a crash. Routing the assignment to `noteItem` makes it mean
+     * what it says: this body is holding something else now.
+     *
+     * `_itemAtEntry` is NON-ENUMERABLE on purpose: the enumerable key set of a slot object is what a
+     * dozen serialisers and digesters walk, and this fix must not change the SHAPE of a tracked mon
+     * while it changes one of its values. `item` stays enumerable, exactly as the data property was. */
+    Object.defineProperty(mon, '_itemAtEntry', {
+      enumerable: false, configurable: true, writable: true,
+      value: norm((this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).item || ''),
+    });
+    Object.defineProperty(mon, 'item', {
+      enumerable: true,
+      configurable: true,
+      get: () => {
+        const obs = this.sheetItem(side, mon.base);
+        return obs == null ? mon._itemAtEntry : norm(obs);
+      },
+      set: (v) => { this.noteItem(side, mon.base, v); },
+    });
+    this.sides[side].active[letter] = mon;
   }
 
   faint(side, letter) {
@@ -3303,7 +3355,17 @@ function featuresFor(cand, user, board, side, dex, priorP) {
               const b2 = D2.buildMon(key2);
               if (!b2) return null;
               const sh = board.sheet && board.sheet[foeSide2] && board.sheet[foeSide2][baseSpecies(sp)];
-              if (sh) { b2.item = norm(sh.item || ''); if (sh.ability) b2.ability = norm(sh.ability); }
+              /* THE ITEM IS ASKED FOR, NOT READ OFF THE SHEET (ROADMAP #271). This was the fifth
+               * reader of the declared item and the only one left in this file after `switchIn`'s
+               * copy became an accessor: a BENCHED foe whose Sitrus was eaten or whose Sash was
+               * knocked off was still priced as holding it, so `clickFragility` reported a retention
+               * the position cannot produce. `sheetItem` returns the observed item when one has been
+               * seen and the sheet's otherwise, and null only when there is no sheet at all — which
+               * is when `buildMon`'s dataset guess must stand rather than be blanked. */
+              const obs2 = typeof board.sheetItem === 'function' ? board.sheetItem(foeSide2, sp) : null;
+              if (obs2 != null) b2.item = norm(obs2);
+              else if (sh) b2.item = norm(sh.item || '');
+              if (sh && sh.ability) b2.ability = norm(sh.ability);
               return b2;
             }).filter(Boolean);
             if (benchMons.length) {
