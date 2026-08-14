@@ -21,6 +21,111 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #242 SECOND HALF — THE RESIDUAL EXPIRIES ARE PLACED. 2026-08-14 (ENGINE).
+
+**Census 575 live / 0 missing → 577 live / 0 missing.** 0 hollow, 0 unarmed, 0 direct-call, 0 threw.
+
+**THE AUTHORITY WAS STAGED FIRST.** A real Champions battle (Whimsicott/Milotic vs Garchomp/Farigiraf;
+Light Screen + Sandstorm turn 1, Tailwind turn 2, four Protect turns, both actives poisoned, Leftovers
+held) prints on the expiry turn:
+
+```
+|-weather|none                                  sandstorm expiry, order 1, and NO chip
+|-heal|p1a: Whimsicott|…|[from] item: Leftovers  order 5
+|-heal|p2a: Garchomp|…|[from] item: Leftovers    order 5
+|-damage|p1a: Whimsicott|…|[from] psn            order 9
+|-damage|p2a: Garchomp|…|[from] psn              order 9
+|-sideend|p1: A|move: Light Screen               order 26 subOrder 2
+|-sideend|p1: A|move: Tailwind                   order 26 subOrder 5
+|upkeep
+```
+
+medicham2 emitted **`sideend:tailwind → sideend:lightscreen → sand → sand → leftovers → psn`** — both
+side expiries above the entire walk, and the two of them in the wrong order relative to each other.
+
+**THE PREMISE THAT THESE EFFECTS HAVE NO ORDER IS WRONG, AND MEASURE CORRECTED IT BEFORE ANY CODE
+MOVED.** `tailwind.condition` declares `onSideResidualOrder: 26, onSideResidualSubOrder: 5` and no
+`onSideResidual`; `resolvePriority` reads `effect[callbackName + 'Order']` regardless. So this pass
+READ a published position. `medicham2-browser.js` contains no order number for any of it — every one
+comes out of `data/residual-order.json`, which CALLS `Battle#resolvePriority` on staged state.
+
+**TEN CLOCKS, EIGHT SITES, ONE FUNCTION.** `residualExpireAt(order, …)` is called once per order-group
+after that group's per-body pass (a Side or Field holder has no speed, and `comparePriority`'s speed
+term sits between order and subOrder, so they sort below every body of the same order). One turn with
+all ten due reads out:
+
+```
+-sideend reflect(26/1) → lightscreen(26/2) → Safeguard(26/3) → Tailwind(26/5) → auroraveil(26/10)
+-fieldend Trick Room(27/1) → Gravity(27/2) → Wonder Room(27/5) → Magic Room(27/6) → terrain(27/7)
+```
+
+Nothing is named: `sf.sc` is keyed by the move id that set it, which is the id the artifact publishes
+an `expiry:` row for, so a fourth screen arriving in a later regulation is placed without an edit.
+
+**THE SILENT HALF FOUND A SECOND BUG.** Roost is `expiry:roost`, order 25, announces nothing — and the
+type it gives back is read TWENTY ORDERS ABOVE by the Grassy Terrain heal (order 5, grounded bodies
+only). This engine restored the type above the whole walk, so **every Roost in Grassy Terrain lost its
+terrain heal**, silently. Staged on the authority at a quarter HP before the fix: a Roosting Talonflame
+reads `|-heal|p1a: Talonflame|124/153|[from] Grassy Terrain` and the same body clicking Protect reads
+no terrain line at all. The comment on the broken code stated the correct reason and the code did the
+opposite.
+
+**MY FIRST DRAFT SHIPPED THIS PROJECT'S SIGNATURE FAILURE AND ONLY A COUNTER CAUGHT IT.**
+`field.terrain` holds the engine's short id (`grassy`); the artifact publishes `grassyterrain`. The
+lookup matched nothing, the terrain clock stopped, and there was no line and no counter to say so — a
+permanent Grassy Terrain. It surfaced because the ten-clock staging counted **7 ticks where 8 were
+due**. `residualTerrainKey` now matches on `terrainId` of BOTH spellings and stamps
+`MEDFAILS.residualTerrainExpiryUnplaced` on a miss.
+
+**A CORPSE IS NOT ROOSTING EITHER.** Moving the restore into the walk skips fainted bodies
+(`residualEvent`'s own first line), but the authority still clears the volatile via
+`faintMessages() → clearVolatile(false)`, and gen 9's roost is an `onType` handler rather than a
+mutation. The old restore had that right by accident; losing it turned a dead Talonflame into a
+permanent Fire type and broke a probe that had been green for days. It is restored once at the foot of
+the walk, counted separately as `roostTypeRestoredOnFaint`, with the granularity declared.
+
+**BOTH PROBES SHOWN RED ON A DELIBERATE BREAK.** With the placement reverted (clocks spent at the top
+of the walk, roost restored above it) the census reads **575 live / 2 missing** and the two probes
+print exactly the pre-change shapes.
+
+**WHAT MOVED — 1,200-game whole-game differential (961 played), `af85d7a4181e` (before) vs
+`bbbf28c728ee` (after), two frozen releases differing in ONE file, same seeds and pairs, both arms run
+back to back under ONE steering state:**
+
+| arm | before | after |
+|---|---|---|
+| `top-tie-first` | 193 / 961 | **188 / 961** |
+| `bottom-tie-first` | 191 / 961 | **176 / 961** |
+| `middle` | 598 / 961 | **584 / 961** |
+| `ordering` class | 191 games, 174 causes | **176 games, 168 causes** |
+
+The three `|-sideend|…|tailwind` first-divergence causes present in the before run are gone from the
+after run.
+
+**A 300-GAME RUN MOVED NOTHING AT ALL AND PRINTED A BYTE-IDENTICAL CLASS TABLE IN BOTH ARMS** — the
+shape is ~1.4% of games and a game stops at its first divergence, so 258 games cannot reach it. That
+is recorded because 300 was the run asked for and would have read as "no change".
+
+**THE SAMPLE IS STEERED BY THE CENSUS, AND THAT NEARLY COST A NUMBER.** The first before/after pair
+was run before the census was regenerated and the second after it; the SAME after release reads
+`middle 589 / bottom 209` under the old steering and `584 / 176` under the new, on identical bytes.
+Two arms either side of a census regeneration are not a before/after. The table above is one steering
+state throughout. The live tree was also SHOWN behaviourally identical to `bbbf28c728ee` rather than
+assumed to be: `--release bbbf28c728ee` and the live tree return the same three numbers.
+
+`tests/test-engine-diff.js --n 6000`: 0/6000, top 0/6000, bottom 0/6000 — a placement change moves no
+damage roll.
+
+**STILL OPEN, DERIVED NOT TYPED.** Six per-body volatile clocks are still spent below the walk:
+`M.residualExpiryDeferred()` prints `taunt@15, disable@17, magnetrise@18, healblock@20, throatchop@22,
+yawn@23`. Encore (16), Perish Song (24), Uproar (28) and `lockedmove` sit in the same block and are
+`condition:` rows, so they CANNOT appear in that list however wrong their position is — stated so the
+printed list is not mistaken for the whole gap.
+
+**REPORTED, NOT FIXED (not ordering):** `|-sideend|p2: |move: Tailwind` has a blank player name where
+the authority emits `p2: B`, and the screens announce raw ids (`move: lightscreen`) where the authority
+writes display names.
+
 ## ROADMAP #266 — TEN OF THE FORTY-ONE ILLEGAL FIXTURE DECLARATIONS REPAIRED. 2026-08-14 (MEASURE).
 
 **41 distinct verdicts → 32. 55 rejected sets → 45. 1 stray literal → 0.** `tests/test-fixture-legality.js`

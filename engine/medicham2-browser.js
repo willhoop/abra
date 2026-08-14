@@ -256,6 +256,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * The second counter is the subset that could not have happened before. */
   residualGroupsWalked: 0, residualStepsRun: 0,
   residualBerryAte: 0, residualBerryAteOffOldSlot: 0,
+  /* ROADMAP #242 -- THE EXPIRIES THAT RUN FROM INSIDE THE WALK. A side or field clock is in the
+   * authority's residual on its `duration` alone (no handler), at an order it DECLARES, and this
+   * engine used to spend every one of them ABOVE the walk. `residualExpiryTicked` counts a clock
+   * spent at its published position and `residualExpiryEnded` the subset that reached zero and
+   * announced; a zero on the first with a Tailwind on the board means the placement is not running
+   * and the clocks are frozen, which is worse than the ordering bug it replaced. */
+  residualExpiryTicked: 0, residualExpiryEnded: 0,
   /* ROADMAP #139 -- a Focus Sash / Sturdy that answered ONE PACKET of a multi-packet click rather
    * than its total. A zero with a Parental Bond body on the field means the split never reached the
    * item and the Sash is still eating a whole two-hit turn. */
@@ -882,6 +889,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                           rather than the drop alone.
    *   groundedByVolatile      Ingrain or Smack Down put a body on the floor that was not on it. */
   gravitySet: 0, gravityGroundedCharge: 0, roostTypeDropped: 0, roostTypeRestored: 0,
+  /* ROADMAP #242 -- the SUBSET of the restores above that happened because the body died rather than
+   * because the order-25 step reached it. `faintMessages()` clears volatiles, so the authority gives
+   * the type back to a corpse too; a rise here with a flat `roostTypeRestored` would mean the step in
+   * the walk has stopped firing and this is covering for it. */
+  roostTypeRestoredOnFaint: 0,
   groundedByVolatile: 0,
   /* ROADMAP #186 -- the branch where the ABSORB gate deferred to `isGrounded` and let a Ground move
    * through a Levitate body that Gravity or Smack Down had put on the floor. It did not exist before
@@ -1439,6 +1451,14 @@ const MEDFAILS = { encoreAction: 0,
   /* A terrain string neither vocabulary recognises (see terrainId). Returning the raw value is what
    * made the weather bug: truthy, and matching nothing. */
   terrainUnknown: 0, terrainUnknownFirst: '',
+  /* ROADMAP #242 -- a terrain that IS up and for which `data/residual-order.json` publishes no
+   * `expiry:` row, so its clock has no position in the walk to be spent at. Non-zero means the
+   * terrain never comes down, which is the exact shape the first draft of `residualExpireAt` shipped
+   * with (it looked up this engine's short id `grassy` against the artifact's `grassyterrain` and
+   * silently matched nothing), and `residualExpiryTableMissing` is the same failure for the whole
+   * table rather than one sky. */
+  residualTerrainExpiryUnplaced: 0, residualTerrainExpiryUnplacedFirst: '',
+  residualExpiryTableMissing: 0, residualExpiryTableMissingWhy: '',
   /* A `critRatioUp` carrier this engine deliberately does NOT read (WIRE 35). The tag's only param is
    * `critRatio: 2`, which cannot express Merciless's condition -- it is a GUARANTEED crit into a
    * poisoned target, not a permanent stage bump -- and Super Luck, which genuinely is a permanent
@@ -4117,6 +4137,78 @@ function abilityRefusesItemLoss(m,by){
  *              chips, which is the class of error this whole restructure exists to remove.
  *   berryAbil  Cud Chew / Harvest / Pickup, `ability:harvest` order 28 subOrder 2 -- the same group
  *              as Speed Boost and Moody, which is why those three blocks already sat together. */
+/* ---- ROADMAP #242 -- A DURATION IS A WALK PARTICIPANT, AND IT DECLARES ITS OWN POSITION ----------
+ *
+ * `Battle#fieldEvent` collects the residual on TWO keys, not one:
+ *
+ *     let getKey; if (eventid === 'Residual') getKey = 'duration';
+ *     findFieldEventHandlers(field,'onFieldResidual',getKey) + findSideEventHandlers(side,'onSideResidual',getKey)
+ *       + findPokemonEventHandlers(active,'onResidual',getKey)
+ *
+ * and every collector admits an effect on `callback !== undefined || state[getKey]`. So an effect
+ * with a live `duration` and NO residual handler is IN the walk, and the walk body spends its slot:
+ *
+ *     if (eventid === 'Residual' && handler.end && handler.state?.duration) {
+ *       handler.state.duration--;
+ *       if (!handler.state.duration) { handler.end.call(...); continue; }
+ *     }
+ *
+ * Tailwind owns no residual handler. It was in the authority's walk and not in our table, and this
+ * engine spent every side and field clock ABOVE the whole walk -- so a `-sideend` announced before
+ * the sandstorm chip, before Leftovers and before the poison chip. That single shape,
+ * `|-damage|…|[from]sandstorm <> |-sideend|…|tailwind`, is 21 games of the game differential and the
+ * largest one on the board.
+ *
+ * THE ORDER WAS IN THE FORMAT THE WHOLE TIME. `tailwind.condition` carries `onSideResidualOrder: 26,
+ * onSideResidualSubOrder: 5` and simply declares no `onSideResidual`; `resolvePriority` reads
+ * `effect[callbackName + 'Order']` whether or not the callback exists. `engine/residual_order.js`'s
+ * old `if (!hook) return` guard threw the effect away before anything could read it. So this is a
+ * PUBLISHED POSITION being read, not a position being invented here -- which is why not one order
+ * number is written in this file.
+ *
+ * A ROW IS AN (EFFECT, ATTACHMENT SITE) PAIR, because the site decides the callback name and hence
+ * which `*Order` field is read. Grassy Terrain is in the walk TWICE and eleven orders apart: its HEAL
+ * is `field:grassyterrain` at `onResidualOrder` 5 with the healed body's speed, its EXPIRY is
+ * `expiry:grassyterrain` at `onFieldResidualOrder` 27 with none. One row could not express that.
+ *
+ * A SIDE OR FIELD EXPIRY HAS NO SPEED -- the holder is a Side or a Field -- so it sorts as 0 in
+ * `comparePriority`'s speed term and therefore runs AFTER every body step of the same order. That is
+ * why the walk below runs the per-body pass first and this phase second within one group. */
+const RESIDUAL_EXPIRY = (() => {
+  let rows = null;
+  /* THE CATCH CARRIES THE REASON. An unreadable artifact and an artifact with no `expiry:` rows in it
+   * are different failures and both end this walk's expiries; discarding `e` would make the first
+   * indistinguishable from the second, which is `tests/test-no-silent-failure.js`'s whole subject. */
+  try { rows = require('../data/residual-order.json').rows; }
+  catch (e) { rows = null; MEDFAILS.residualExpiryTableMissingWhy = String((e && e.message) || e); }
+  const out = new Map();
+  for (const r of (rows || [])) if (r.ns === 'expiry') out.set(r.id, { order: r.order, sub: r.subOrder, site: r.site });
+  if (!out.size) MEDFAILS.residualExpiryTableMissing = 1;
+  return out;
+})();
+/* THE SITES THIS PASS PLACES, and the ones it does not are DECLARED rather than discovered.
+ *
+ * `side`, `pseudoweather` and `terrain` are the clocks this engine keeps OUTSIDE a Pokemon, and all
+ * of them are placed. The `volatile` site is a per-body clock; exactly one member of it (roost) is a
+ * step in the walk below, and the rest still tick in the block UNDERNEATH the walk — a position no
+ * effect in this format declares. `residualExpiryDeferred()` PRINTS them rather than describing
+ * them, from the artifact, so a new one in a later regulation appears without an edit here. Measured
+ * on this build it names six: taunt@15, disable@17, magnetrise@18, healblock@20, throatchop@22,
+ * yawn@23.
+ *
+ * THE LIST IS OVER `expiry:` ROWS ONLY, WHICH IS NARROWER THAN "everything still misplaced", and
+ * saying so is the point of writing it down. An effect that owns a handler AND a duration is a
+ * `condition:` or `status:` row (Encore 16, Perish Song 24, Uproar 28, `lockedmove`) and cannot
+ * appear here however wrong its position is — those tick in the same block and are the same open
+ * work. A row with `order: null` is excluded deliberately: it sorts at the `4294967296` sentinel,
+ * last in the walk, which is where the foot-of-turn block already is.
+ *
+ * IT IS NOT A SILENT FALLBACK. The count is non-zero today and stays non-zero until those clocks
+ * move, and it is exported so a caller can read it instead of taking this comment's word. */
+const RESIDUAL_EXPIRY_SITES = new Set(['side', 'pseudoweather', 'terrain']);
+const residualExpiryDeferred = () => [...RESIDUAL_EXPIRY.entries()]
+  .filter(([id, r]) => !RESIDUAL_EXPIRY_SITES.has(r.site) && id !== 'roost' && r.order != null)
+  .map(([id, r]) => id + '@' + r.order).sort();
 const RESIDUAL_GROUPS = (() => {
   /* chunk -> the authority effect whose order it inherits. One id is enough; where a chunk implements
    * several they share an order by construction (psn/tox/brn are 9,9,10 and run as one step). */
@@ -4138,6 +4230,11 @@ const RESIDUAL_GROUPS = (() => {
     { step: 'berryAbil',  id: 'harvest',          ns: 'ability'   },
     { step: 'whiteHerb',  id: 'whiteherb',        ns: 'item'      },
     { step: 'forme',      id: 'zenmode',          ns: 'ability'   },
+    /* ROADMAP #242 -- the one PER-BODY expiry this pass places. `expiry:` is the namespace the
+     * artifact gives an effect that is in the walk on its `duration` alone; roost declares
+     * `onResidualOrder: 25` and no `onResidual`, announces nothing, and the type it gives back is
+     * read TWENTY ORDERS ABOVE it by the Grassy Terrain heal (order 5, grounded bodies only). */
+    { step: 'expRoost',   id: 'roost',            ns: 'expiry'    },
   ];
   let rows = null;
   try { rows = require('../data/residual-order.json').rows; } catch (e) { rows = null; }
@@ -4156,6 +4253,16 @@ const RESIDUAL_GROUPS = (() => {
     const o = p.order == null ? 1e9 : p.order;
     if (!groups.has(o)) groups.set(o, []);
     groups.get(o).push(p);
+  }
+  /* ROADMAP #242 -- A GROUP MUST EXIST AT AN ORDER THAT HOLDS ONLY EXPIRIES. Orders 26 and 27 carry
+   * no per-body step in this engine's table at all, so without this the side and field clocks would
+   * have no position in the walk to run at and would have to stay outside it, which is the defect.
+   * The orders are taken from the artifact, never typed, and the group is left with an EMPTY step
+   * list so `residualStepsRun` -- ROADMAP #221's receipt, counted per body -- means exactly what it
+   * meant before. */
+  for (const r of RESIDUAL_EXPIRY.values()) {
+    if (!RESIDUAL_EXPIRY_SITES.has(r.site) || r.order == null) continue;
+    if (!groups.has(r.order)) groups.set(r.order, []);
   }
   const _OUT = [...groups.entries()].sort((a, b) => a[0] - b[0])
     .map(([order, steps]) => ({ order, steps: steps.sort((a, b) => a.sub - b.sub).map(s => s.step) }));
@@ -4196,6 +4303,111 @@ function residualOrder(actA,actB,field){
    * which is the approximation those two sites already declare. */
   list.sort((x,y)=>compareTurnOrder({spe:x._resSpe},{spe:y._resSpe},field));
   return list;
+}
+/* ---- ROADMAP #242 -- THE SIDE AND FIELD CLOCKS, SPENT AT THE POSITION THE FORMAT PUBLISHES -------
+ *
+ * Called ONCE per order-group, after that group's per-body pass (a Side/Field holder has no speed, so
+ * `comparePriority`'s speed term puts it below every body of the same order). Every clock this engine
+ * keeps outside a Pokemon is collected here with the subOrder the artifact gives it, sorted, and
+ * spent -- so Reflect (26/1), Light Screen (26/2), Safeguard (26/3), Tailwind (26/5) and Aurora Veil
+ * (26/10) come out in that sequence, and Trick Room (27/1), Gravity (27/2), Wonder Room (27/5),
+ * Magic Room (27/6) and the terrain (27/7) in theirs.
+ *
+ * NO SORT RULE IS COPIED HERE, AND THAT IS THE POINT OF READING THE TABLE. MEASURE found four
+ * published subOrders wrong from exactly that mistake -- a rule restated instead of called -- so the
+ * numbers below come out of `data/residual-order.json`, which CALLS `Battle#resolvePriority` on real
+ * staged state. The only thing this function knows is which of ITS OWN fields holds which clock.
+ *
+ * THE SIDE CONDITIONS ARE NOT NAMED. `sf.sc` is keyed by the MOVE ID that set it, which is the same
+ * id the artifact publishes an `expiry:` row for, so a screen or a Safeguard is matched by its key
+ * and a fourth one arriving in a later regulation is placed without an edit. The two filters
+ * (`screenCat` and `sideBuff`) are the ones the two loops this replaces already used, kept so that a
+ * hazard or a slot condition sharing the bag is not mistaken for a timed side buff.
+ *
+ * A CLOCK AT ZERO IS NOT A JOB. Every branch below re-checks its own counter, so a field with no
+ * Tailwind on it does nothing at all and `residualExpiryTicked` counts only clocks actually spent. */
+/* The artifact's key for the terrain that is up, found by comparing `terrainId` of both spellings so
+ * that neither is written down. Memoised because the walk asks once per group; a live terrain with no
+ * row is a FAILURE and not an empty answer. */
+const _RES_TERRAIN_KEY=new Map();
+function residualTerrainKey(t){
+  const tid=terrainId(t);
+  if(!tid)return '';
+  if(_RES_TERRAIN_KEY.has(tid))return _RES_TERRAIN_KEY.get(tid);
+  let key='';
+  for(const [id,r] of RESIDUAL_EXPIRY) if(r.site==='terrain'&&terrainId(id)===tid){key=id;break;}
+  if(!key){MEDFAILS.residualTerrainExpiryUnplaced++;
+    if(!MEDFAILS.residualTerrainExpiryUnplacedFirst)MEDFAILS.residualTerrainExpiryUnplacedFirst=tid;}
+  _RES_TERRAIN_KEY.set(tid,key);
+  return key;
+}
+function residualExpireAt(order,field,sfA,sfB,actA,actB){
+  if(!RESIDUAL_EXPIRY.size)return;
+  const jobs=[];
+  const at=(id)=>{const r=RESIDUAL_EXPIRY.get(id);
+    return (r&&r.order===order&&RESIDUAL_EXPIRY_SITES.has(r.site))?r:null;};
+  const push=(id,fn)=>{const r=at(id);if(r)jobs.push({sub:r.sub|0,fn});};
+  for(const sf of [sfA,sfB]){
+    if(!sf||!sf.sc)continue;
+    for(const _id of Object.keys(sf.sc)){
+      if(!(sf.sc[_id]>0))continue;
+      const _sb=TAGS.param('move',_id,'sideBuff');
+      if(!screenCat(_id)&&!_sb)continue;
+      push(_id,()=>{
+        if(!(sf.sc[_id]>0))return;
+        MEDSEEN.residualExpiryTicked++;
+        if(--sf.sc[_id]<=0){delete sf.sc[_id];MEDSEEN.residualExpiryEnded++;
+          if(TR)TR.sendSide(sf.side==='A'?'p1':'p2',(_sb&&_sb.startsAs)||_id);}
+      });
+    }
+  }
+  /* TAILWIND IS A FIELD COUNTER IN THIS ENGINE AND A SIDE CONDITION IN THE AUTHORITY, so it is two
+   * jobs at one published subOrder rather than a member of the bag above. The representation is
+   * ROADMAP #81 WIRE 8's and is left alone; what moves is WHEN it is spent. */
+  const tw=(k,who)=>push('tailwind',()=>{
+    if(!(field[k]>0))return;
+    MEDSEEN.residualExpiryTicked++;
+    if(--field[k]<=0){MEDSEEN.residualExpiryEnded++;if(TR)TR.sendSide(who,'Tailwind');}
+  });
+  tw('twA','p1'); tw('twB','p2');
+  const fieldClock=(id,k,name,after)=>push(id,()=>{
+    if(!(field[k]>0))return;
+    MEDSEEN.residualExpiryTicked++;
+    if(--field[k]<=0){MEDSEEN.residualExpiryEnded++;if(TR)TR.fend(name);if(after)after();}
+  });
+  fieldClock('trickroom','tr','Trick Room',null);
+  fieldClock('gravity','gravity','Gravity',null);
+  fieldClock('wonderroom','wonderRoom','Wonder Room',null);
+  /* MAGIC ROOM GIVES THE ITEMS BACK ON THE TURN IT ENDS, and that restore is the half that would rot
+   * silently -- a room that expires with the suppression still applied is a body that never holds an
+   * item again, and nothing in the state would say why. (WIRE 133's own note, carried across.) */
+  fieldClock('magicroom','magicRoom','Magic Room',()=>itemRoomSync(field,[...actA,...actB]));
+  /* THE TERRAIN'S EXPIRY IS A DIFFERENT ROW FROM ITS HEAL -- `expiry:<terrain>` at 27, against
+   * `field:grassyterrain` at 5 -- and the id is read off the sky that is actually up, so all four
+   * terrains are placed by one line. WIRE 74's asymmetry survives intact and is now DERIVED rather
+   * than asserted: the weather clock is spent at order 1 above the walk (its route is
+   * `handler+duration`, so a sky that expires skips its own chip), and the terrain is spent at 27,
+   * twenty-two orders BELOW the order-5 heal -- so the terrain still heals on its last turn.
+   *
+   * THE KEY IS TRANSLATED, NOT ASSUMED, AND THE FIRST VERSION OF THIS LINE WAS SILENTLY WRONG.
+   * `field.terrain` holds this engine's SHORT id (`grassy`) and the artifact publishes Showdown's
+   * (`grassyterrain`), so `RESIDUAL_EXPIRY.get(terrainId(...))` missed every time and the terrain
+   * clock simply stopped -- a permanent Grassy Terrain, with no line and no counter to say so. It was
+   * caught by exercising every clock in one turn and counting the ticks (7 where 8 were staged),
+   * which is the only reason it did not ship. The translation goes through `residualTerrainKey`,
+   * which matches on `terrainId` of BOTH sides so neither spelling is written here, and a terrain the
+   * artifact cannot place stamps a failure instead of doing nothing. */
+  const _tid=residualTerrainKey(field.terrain);
+  if(_tid)push(_tid,()=>{
+    if(!(field.terrainT>0))return;
+    const _t0=field.terrain;
+    MEDSEEN.residualExpiryTicked++;
+    if(--field.terrainT<=0){field.terrain='';MEDSEEN.residualExpiryEnded++;
+      if(TR)TR.terrainEnd(_t0);syncFieldTypes(field,[...actA,...actB]);}
+  });
+  if(!jobs.length)return;
+  jobs.sort((a,b)=>a.sub-b.sub);
+  for(const j of jobs)j.fn();
 }
 function effWeight(m){
   if(!m||!m.wt)return m&&m.wt;
@@ -19805,52 +20017,36 @@ function battleTurn(S,rng,actsForA,actsForB){
     if(field.weatherT>0&&--field.weatherT<=0){field.weather=null;
       syncFieldTypes(field,[...actA,...actB]);}   // ROADMAP #175 -- a lapsed sky gives the type back
     if(TR){if(field.weather&&!field.wSup)TR.wx(field.weather,null,null,true);else if(_wx0&&!field.weather)TR.wxNone();}
-    if(field.twA>0){if(--field.twA<=0&&TR)TR.sendSide('p1','Tailwind');}
-    if(field.twB>0){if(--field.twB<=0&&TR)TR.sendSide('p2','Tailwind');}
-    if(field.tr>0){if(--field.tr<=0&&TR)TR.fend('Trick Room');}
-    /* ROADMAP #147 -- GRAVITY TICKS WITH THE ROOMS. One clock, in the one place every other field
-     * timer already lives, so it cannot become the field slot that never comes down. */
-    if(field.gravity>0){if(--field.gravity<=0&&TR)TR.fend('Gravity');}
-    /* ROADMAP #147 -- AND THE TYPE COMES BACK. `roost` is `duration: 1` with `onResidualOrder: 25`, so
-     * it ends inside THIS residual and after everything that reads a type: the Grassy Terrain heal is
-     * order 5 and DOES heal a Roosting Flying body, which it would not if the restore ran first. The
-     * counter is paired with the drop deliberately -- a drop without a restore is a Pokemon that has
-     * permanently lost a type, and it would look exactly like the mechanic working. */
-    for(const _b of [...actA,...actB]){
-      if(!_b||!_b._typeWas)continue;
-      _b.types=_b._typeWas; _b._typeWas=null;
-      MEDSEEN.roostTypeRestored++;
-    }
-    /* WIRE 133 -- THE OTHER TWO ROOMS TICK BESIDE TRICK ROOM, for the reason the screens tick beside
-     * the field timers: three clocks with one lifetime rule in one place cannot drift apart.
-     * MAGIC ROOM GIVES THE ITEMS BACK ON THE TURN IT ENDS, and that restore is the half that would
-     * rot silently -- a room that expires while the suppression stays applied is a body that never
-     * holds an item again, and nothing in the state would say why. */
-    if(field.wonderRoom>0){if(--field.wonderRoom<=0&&TR)TR.fend('Wonder Room');}
-    if(field.magicRoom>0){
-      if(--field.magicRoom<=0){if(TR)TR.fend('Magic Room');itemRoomSync(field,[...actA,...actB]);}
-    }
-    /* WIRE 133 -- AND THE SIDE BUFFS. `turns` is the condition's own duration out of the artifact, so
-     * nothing here says "five"; the tick is the same shape the screens use one block down, and the
-     * two are separate only because `screenIds` filters on the screen category. */
-    for(const sf of [sfA,sfB]){if(sf&&sf.sc){
-      for(const _id of Object.keys(sf.sc)){
-        if(!(sf.sc[_id]>0))continue;
-        const _sb=TAGS.param('move',_id,'sideBuff'); if(!_sb)continue;
-        if(--sf.sc[_id]<=0){delete sf.sc[_id];
-          if(TR)TR.sendSide(sf.side==='A'?'p1':'p2',_sb.startsAs||_id);}
-      }}}
-    /* Screens tick on the SIDE object, beside the field timers above so the two cannot drift. Each
-     * named condition carries its own clock since ROADMAP #81 WIRE 8, so an expiring Aurora Veil
-     * announces an Aurora Veil and a Reflect that outlives a Light Screen keeps halving.
-     * DECLARED, not fixed: Showdown's side residual sub-orders are reflect 1, lightscreen 2,
-     * tailwind 5, auroraveil 10, so a Tailwind expiring on the same turn as an Aurora Veil is
-     * announced in the wrong order here -- the Tailwind clock is a FIELD counter ticked above and
-     * splitting the two sides' residuals apart is a restructure, not a wire. */
-    for(const sf of [sfA,sfB]){if(sf&&sf.sc){
-      for(const _id of screenIds(sf)){
-        if(--sf.sc[_id]<=0){delete sf.sc[_id]; if(TR)TR.sendSide(sf.side==='A'?'p1':'p2',_id);}
-      }}}
+    /* ROADMAP #242 -- EVERY OTHER FIELD AND SIDE CLOCK USED TO BE SPENT HERE, ABOVE THE WALK.
+     *
+     * Tailwind, the three screens, Safeguard, the three rooms, Gravity and the terrain all ticked in
+     * this block, which is a position no effect in the format declares: it announces a `-sideend`
+     * before the sandstorm chip at order 1, before Leftovers at 5 and before the poison chip at 9,
+     * where the authority announces it at 26. The three loops that stood here (the field timers, the
+     * `sideBuff` bag and the screens) are now `residualExpireAt`, called once per order-group from
+     * inside the walk below.
+     *
+     * THE OLD COMMENT ON THE SCREENS SAID EXACTLY WHY IT COULD NOT BE FIXED IN PLACE: *"a Tailwind
+     * expiring on the same turn as an Aurora Veil is announced in the wrong order here -- the
+     * Tailwind clock is a FIELD counter ticked above and splitting the two sides' residuals apart is
+     * a restructure, not a wire."* That is this change. The representations are untouched; only the
+     * MOMENT they are spent moved.
+     *
+     * THE WEATHER STAYS HERE and that is the authority's own asymmetry, not an exception carved out
+     * for convenience. Its route is `handler+duration`: the decrement happens at order 1, the FIRST
+     * group, and a sky that reaches zero runs `end` and SKIPS its own chip -- which is WIRE 74's
+     * measurement, that a five-turn sandstorm chips four times. Order 1 is the first group in the
+     * walk, so ticking immediately above it is that position. The TERRAIN's expiry is order 27 and
+     * has moved, which is the other half of WIRE 74's asymmetry and is now derived rather than
+     * hard-coded into two different places in the turn.
+     *
+     * ROOST'S TYPE RESTORE MOVED TOO, into the walk as the `expRoost` step at its published order 25.
+     * The comment that stood here had the reason exactly right and the CODE in the wrong place: *"the
+     * Grassy Terrain heal is order 5 and DOES heal a Roosting Flying body, which it would not if the
+     * restore ran first"* -- and the restore ran first, above the whole walk, so the heal was refused
+     * on every Roost in Grassy Terrain. Staged on the authority before this was touched: a Talonflame
+     * at a quarter HP clicking Roost reads `|-heal|p1a: Talonflame|124/153|[from] Grassy Terrain`,
+     * and the same body clicking Protect reads no terrain line at all. */
     /* WIRE 154 -- THE SLOT CLOCK TICKS ONCE PER SLOT, NOT ONCE PER BODY, and it is decoupled from the
      * pay-out below for exactly that reason: the residual loop walks LIVING BODIES and skips a slot
      * whose occupant fainted or was never refilled, so a clock that lived inside it would freeze
@@ -20512,6 +20708,21 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(TR)TR.dmg(m,'[from] '+_r.mv);
         if(m.curHP<=0)break;
       }
+      /* ROADMAP #242 -- ROOST GIVES THE TYPE BACK AT ORDER 25, A SILENT EXPIRY THAT IS STILL
+       * ORDER-BEARING. It announces nothing, so the only way to see where it ran is an effect that
+       * READS a type from a different position: the Grassy Terrain heal is order 5 and heals only a
+       * GROUNDED body, so a Roosting Flying body must still be grounded when it runs. Restored above
+       * the walk -- where this engine restored it -- the heal is refused and nothing in the stream
+       * says why. The counter is paired with the drop deliberately: a drop with no restore is a
+       * Pokemon that has permanently lost a type, which is worse than the bug being fixed.
+       *
+       * A BODY THAT FAINTED EARLIER IN THIS WALK IS SKIPPED, which is `residualEvent`'s own first
+       * line (`if (handler.effectHolder.fainted) continue`) and not a shortcut. Its corpse keeps the
+       * dropped type until it leaves the field; `switchOut` restores it on the way out, and nothing
+       * reads the types of a fainted body in between. */
+      if(_G.has('expRoost')&&m._typeWas){
+        m.types=m._typeWas; m._typeWas=null; MEDSEEN.roostTypeRestored++;
+      }
       /* ---- THE CLOSE OF EVERY GROUP, and it is a close rather than an end-of-walk for two reasons.
        *
        * THE FAINT. Showdown runs `faintMessages()` after every handler, so a body the burn kills at
@@ -20545,7 +20756,35 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_gi!==RESIDUAL_OLD_BERRY_GI)MEDSEEN.residualBerryAteOffOldSlot++;
         }
       }
-    }}
+    }
+    /* ROADMAP #242 -- AND THE SIDE AND FIELD CLOCKS OF THIS GROUP, AFTER ITS BODIES. A Side or a
+     * Field has no speed, so `comparePriority`'s speed term (which sits BETWEEN order and subOrder)
+     * puts every one of them below every body at the same order. It is called for EVERY group, not
+     * only the two that currently hold an expiry, because which orders hold one is the artifact's
+     * answer and not this loop's. */
+    residualExpireAt(RESIDUAL_GROUPS[_gi].order,field,sfA,sfB,actA,actB);
+    }
+    /* ROADMAP #242 -- A CORPSE IS NOT ROOSTING EITHER, and this is the half moving the restore into
+     * the walk would otherwise have dropped. The walk skips a fainted body (`residualEvent`'s own
+     * first line), so the order-25 step above never reaches one -- but the authority takes the
+     * volatile off anyway: `faintMessages()` calls `pokemon.clearVolatile(false)`, and gen 9's roost
+     * is an `onType` handler on a volatile rather than a mutation, so the types come back the instant
+     * the volatile goes. The old restore, which walked every active slot regardless of faint, had
+     * this right by accident; losing it silently turned a dead Talonflame into a permanent Fire type
+     * and broke a probe that had been green for days.
+     *
+     * ONCE AT THE FOOT OF THE WALK RATHER THAN AT EVERY FAINT SITE, declared as an approximation: the
+     * authority clears at each `faintMessages()`, and this engine has twenty-odd places that write
+     * `fainted = true`. The window between the two is a body that is already dead and cannot be
+     * targeted, healed or chipped, so nothing in a turn can read the difference -- the same
+     * granularity argument ROADMAP #231 makes about the group boundary. It is COUNTED separately from
+     * the order-25 restore, because a rise here with a flat `roostTypeRestored` would mean the step
+     * in the walk has stopped firing and this is quietly covering for it. */
+    for(const _b of [...actA,...actB]){
+      if(!_b||!_b._typeWas||!(_b.fainted||_b.curHP<=0))continue;
+      _b.types=_b._typeWas; _b._typeWas=null;
+      MEDSEEN.roostTypeRestored++; MEDSEEN.roostTypeRestoredOnFaint++;
+    }
     /* WIRE 154 -- A WISH THAT CAME DUE ON AN EMPTY OR DEAD SLOT IS SPENT ANYWAY, and this is the
      * counterpart of ticking the clock outside the body loop rather than inside it. The authority
      * removes the slot condition at the residual whatever is standing there and `onEnd` simply
@@ -20563,10 +20802,14 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_r3&&_r3.due&&(_r3.when==='endOfNextTurn'||_r3.when==='futureHit'))delete _sc3[_k3];
       }
     }
-    /* The TERRAIN clock ticks here, below the residual, and the weather clock above it — see WIRE 74
-       for the measurement that says the two are not symmetric in the official engine. */
-    if(field.terrainT>0){const _t0=field.terrain;if(--field.terrainT<=0){field.terrain='';if(TR)TR.terrainEnd(_t0);
-      syncFieldTypes(field,[...actA,...actB]);}}   // ROADMAP #175 -- a lapsed terrain gives the type back
+    /* ROADMAP #242 -- THE TERRAIN CLOCK USED TO TICK HERE, BELOW THE WHOLE RESIDUAL. WIRE 74's
+     * asymmetry -- the weather clock above the walk and the terrain clock below it -- was the right
+     * ANSWER reached with two hard-coded positions, and the second of them is not a position the
+     * format declares: the terrain expiry is `expiry:<terrain>` at order 27 subOrder 7, inside the
+     * walk and twenty-two orders below the order-5 heal. Spending it at 27 keeps the whole of WIRE
+     * 74's measurement (the terrain still heals on its last turn; the sky still does not chip on
+     * its) and now DERIVES it, so neither half can drift without the artifact moving. It is
+     * `residualExpireAt`'s last job, with the rooms and Gravity. */
     /* PERISH and YAWN tick here, with the field timers, so every clock in this engine advances in one
        place. Perish faints at zero -- that is the move. Yawn sleeps at zero, and only if the target is
        still statusless, because anything that landed in between takes precedence. */
@@ -21833,6 +22076,11 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
    * than re-derive it. A probe that rebuilt the table from data/residual-order.json would agree with a
    * copy of the rule and prove nothing (LESSONS §4); this is the array the loop actually walks. */
   RESIDUAL_GROUPS,
+  /* ROADMAP #242 -- THE EXPIRY TABLE, AND THE LIST OF ROWS THIS PASS DOES NOT PLACE. Exported
+   * together on purpose: `RESIDUAL_EXPIRY` says what the artifact publishes and
+   * `residualExpiryDeferred()` says which of it is still spent at a position the format does not
+   * declare. A gap that is printed is open work; a gap that is only true is a silent default. */
+  RESIDUAL_EXPIRY, residualExpiryDeferred,
   /* The swallowed-failure counters. Zero is a CLAIM, not a pass — read it, do not assume it. */
   fails:MEDFAILS,
   /* Capabilities that FIRED. A zero here is the finding — see MEDSEEN's own comment. */

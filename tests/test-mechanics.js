@@ -18985,6 +18985,131 @@ probe('item', 'healsAtThreshold', 'a Sitrus eats in the group that dropped it �
                  + 'the berry waited a full turn and the body spent it under half' };
 });
 
+/* ================================================================================================
+ * ROADMAP #242 — A DURATION-ONLY EFFECT EXPIRES FROM INSIDE THE RESIDUAL WALK, AT A POSITION IT
+ * DECLARES. TWO PROBES: ONE LOUD EXPIRY AND ONE SILENT, BECAUSE PLACING ONLY THE LOUD ONES IS THE
+ * FAILURE MODE.
+ *
+ * #221 (above) fixed the effects that own an `onResidual` handler. Tailwind owns NONE. It is in
+ * `Battle#fieldEvent`'s walk purely because it carries a `duration` — the collectors admit an effect
+ * on `callback !== undefined || state[getKey]` with `getKey = 'duration'` — and the walk body then
+ * spends its position: `if (handler.end && handler.state?.duration) { duration--; if (!duration)
+ * { end(); continue; } }`. `data/residual-order.json` now enumerates on that key: 90 walk
+ * participants, 58 of which expire from inside the walk and 48 of which own no handler at all.
+ *
+ * THE ORDER IS DECLARED, NOT DISCOVERED. `tailwind.condition` carries `onSideResidualOrder: 26,
+ * onSideResidualSubOrder: 5` and simply declares no `onSideResidual`; `resolvePriority` reads
+ * `effect[callbackName + 'Order']` whether or not the callback exists.
+ *
+ * BOTH PROBES WERE STAGED ON THE AUTHORITY FIRST AND THEIR ANSWERS READ OFF IT, not typed. The
+ * expiry walk below is a real Champions battle (Whimsicott/Milotic vs Garchomp/Farigiraf, Light
+ * Screen turn 1, Sandstorm turn 1, Tailwind turn 2, four Protect turns, both actives poisoned):
+ *
+ *     |-weather|none                                sandstorm expiry, order 1, and NO chip
+ *     |-heal|p1a: Whimsicott|…|[from] item: Leftovers          order 5
+ *     |-heal|p2a: Garchomp|…|[from] item: Leftovers            order 5
+ *     |-damage|p1a: Whimsicott|…|[from] psn                    order 9
+ *     |-damage|p2a: Garchomp|…|[from] psn                      order 9
+ *     |-sideend|p1: A|move: Light Screen                       order 26 subOrder 2
+ *     |-sideend|p1: A|move: Tailwind                           order 26 subOrder 5
+ *     |upkeep
+ *
+ * Light Screen before Tailwind is their declared subOrders, not a shuffled tie. This engine emitted
+ * BOTH `-sideend` lines above the whole walk — before the sandstorm chip, before Leftovers, before
+ * the poison chip — which is 21 games of the game differential under one shape,
+ * `|-damage|…|[from]sandstorm <> |-sideend|…|tailwind`, the largest single shape on the board.
+ *
+ * NEITHER PROBE READS `data/residual-order.json`. Asserting the table's contents would agree with a
+ * copy of the rule and prove nothing (LESSONS §4), and would stay green if the walk stopped
+ * consulting the table at all. Both read the EMITTED STREAM of a real turn. */
+probe('move', 'doublesSideSpeed', 'a Tailwind expires at order 26 — after the sandstorm chip, Leftovers and the poison chip, and after the Light Screen at subOrder 2', () => {
+  /* ONE VARIED KNOB: how many turns are left on the two side conditions. Everything else — the sky,
+   * the item, the status, the bodies — is identical in both arms, so the two `-sideend` lines are the
+   * only difference and their POSITION is the measurement. The control also proves the three lines
+   * they must follow are emitted at all: an engine with no residual would print an empty shape in
+   * both arms and could not pass either. */
+  const run = (left) => {
+    const me = bare('milotic'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    me.item = 'leftovers'; me.curHP = Math.floor(me.st.hp / 2);
+    ally.status = 'psn';
+    S.field.weather = 'sand'; S.field.weatherT = 3;   /* survives this turn, so the chip is real */
+    S.field.twA = left;                               /* left === 1 -> expires at THIS residual */
+    (S.sfA.sc = S.sfA.sc || {}).lightscreen = left;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    const tok = (l) => /\[from\] Sandstorm/.test(l) ? 'sand'
+                     : /\[from\] item: ?leftovers/i.test(l) ? 'leftovers'
+                     : /\[from\] psn/.test(l) ? 'psn'
+                     : /^\|-sideend\|/.test(l) && /light ?screen/i.test(l) ? 'sideend:lightscreen'
+                     : /^\|-sideend\|/.test(l) && /tailwind/i.test(l) ? 'sideend:tailwind'
+                     : null;
+    return trace.map(tok).filter(Boolean).join(' -> ');
+  };
+  const control = run(3), test = run(1);
+  const CHIPS = 'sand -> sand -> leftovers -> psn';
+  return { works: control === CHIPS && test === CHIPS + ' -> sideend:lightscreen -> sideend:tailwind',
+           arms: { control, test },
+           detail: 'Milotic (Leftovers, half HP) and a poisoned Incineroar in a sandstorm with three '
+                 + 'turns left, on a side holding Light Screen and Tailwind. THREE TURNS LEFT on both '
+                 + 'side conditions: "' + control + '" (no expiry — this is the control that says the '
+                 + 'three lines the expiry must follow are emitted at all). ONE TURN LEFT: "' + test
+                 + '". The authority puts the sandstorm chip at order 1, Leftovers at 5, poison at 9, '
+                 + 'Light Screen at 26 subOrder 2 and Tailwind at 26 subOrder 5, and was staged to '
+                 + 'read exactly that sequence. This engine announced both side expiries ABOVE the '
+                 + 'whole walk, which inverts every one of those pairs' };
+});
+
+/* THE SILENT HALF, AND IT IS THE FAILURE MODE THIS PROBE EXISTS FOR. 30 of the 58 expiries in the
+ * walk announce nothing, and they are still ORDER-BEARING: their `duration--` occupies a position in
+ * the same list. Placing only the loud ones leaves the walk wrong in a way no `-sideend` can show.
+ *
+ * ROOST IS THE ONE THAT CAN BE MEASURED WITHOUT A LINE. It is `expiry:roost`, `volatile`, order 25,
+ * announces nothing — and the type it gives back is read by an effect TWENTY ORDERS ABOVE it:
+ * Grassy Terrain heals at order 5 and only a GROUNDED body, so a Roosting Flying body must still be
+ * grounded when the heal runs. Restore the type first and the heal is refused, and nothing in the
+ * stream would say why.
+ *
+ * STAGED ON THE AUTHORITY BEFORE A BYTE MOVED, at a quarter HP so the Roost itself does not fill the
+ * bar and hide the tick:
+ *     click roost:    |-heal|p1a: Talonflame|115/153        (the Roost)
+ *                     |-singleturn|p1a: Talonflame|move: Roost
+ *                     |-heal|p1a: Talonflame|124/153|[from] Grassy Terrain      <- the order-5 heal
+ *     click protect:  (no Grassy Terrain line at all — still Flying, still airborne)
+ * and the types read Fire/Flying at the end of BOTH turns, so the restore did happen.
+ *
+ * THE ARMS VARY THE CLICK, NOT THE TERRAIN, so the control is the same body on the same board that
+ * simply stayed airborne. An engine that healed everybody in terrain passes "the roost arm was
+ * healed" and fails this. */
+probe('move', 'typeRemovedForTurn', 'Roost expires at order 25 — the Grassy Terrain heal at order 5 still finds the body grounded', () => {
+  const run = (mv) => {
+    const me = bare('talonflame'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    S.field.terrain = 'grassy'; S.field.terrainT = 5;
+    me.curHP = Math.floor(me.st.hp / 4);
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, mv === 'roost' ? null : me, S.field)],
+               [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { terrainHeal: trace.some(l => /talonflame/i.test(l) && /Grassy Terrain/.test(l)),
+             types: me.types.slice().sort().join('/'), airborneSkips: 0 };
+  };
+  const control = run('protect'), test = run('roost');
+  return { works: control.terrainHeal === false && test.terrainHeal === true
+                  && control.types === 'Fire/Flying' && test.types === 'Fire/Flying',
+           arms: { control: control.terrainHeal, test: test.terrainHeal },
+           detail: 'Talonflame (Fire/FLYING) at a quarter HP in Grassy Terrain. Clicked PROTECT: '
+                 + 'terrain heal ' + control.terrainHeal + ' (airborne, correctly refused — the '
+                 + 'control that stops "everybody heals in terrain" passing this). Clicked ROOST: '
+                 + 'terrain heal ' + test.terrainHeal + '. Roost is a SILENT expiry at order 25 and '
+                 + 'the terrain heal is order 5, so the body is still grounded when the heal runs; '
+                 + 'restoring the type above the walk refuses it. Types after the turn — control '
+                 + control.types + ', roost ' + test.types + ' — so the restore itself still happened '
+                 + 'and this cannot pass on a Roost that never gave the type back' };
+});
+
 /* FIVE DICE, NOT ONE — ROADMAP #222, AND THE INSTRUMENT HAD CONFESSED IT IN WRITING.
  *
  * `game_differential.js`'s own PINS block: *"accuracy, the crit, every secondary, the stall counter

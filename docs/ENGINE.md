@@ -37,8 +37,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  575/575 probed mechanics live, 0 missing   (census 2026-08-14 01:27)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-14 01:28)
+  577/577 probed mechanics live, 0 missing   (census 2026-08-14 03:19)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-14 02:36)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,16 +49,99 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 93c290853f5e now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 0093f21e5322 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1b3214613280 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 783be28476b3 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 265/284 probed, 19 unprobed
 ```
 
-_stamped 2026-08-14 01:42_
+_stamped 2026-08-14 03:21_
 
 <!-- /GENERATED -->
+
+## ROADMAP #242 SECOND HALF — EVERY SIDE AND FIELD CLOCK WAS SPENT AT A POSITION NO EFFECT DECLARES. 2026-08-14.
+
+**Census 575 live / 0 missing -> 577 live / 0 missing.** Two probes, both shown RED on a deliberate
+break before being trusted. Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md`. For this ledger:
+
+- **THE AUTHORITY WAS STAGED FIRST, BEFORE A BYTE MOVED**, and the walk it produced is the whole
+  specification. A real Champions battle — Light Screen and Sandstorm on turn 1, Tailwind on turn 2,
+  four Protect turns, both actives poisoned, Leftovers on both — prints, on the turn everything
+  expires: `|-weather|none` (order 1, and no chip), two `|-heal|…[from] item: Leftovers` (5), two
+  `|-damage|…[from] psn` (9), `|-sideend|p1: A|move: Light Screen` (26/2), `|-sideend|p1: A|move:
+  Tailwind` (26/5), `|upkeep`. This engine emitted BOTH `-sideend` lines above the whole walk, and
+  emitted Tailwind before Light Screen.
+- **MY PREMISE WAS WRONG IN MY OWN FAVOUR AND MEASURE CORRECTED IT.** A duration-only effect does not
+  have to have its position discovered — it DECLARES one. `tailwind.condition` carries
+  `onSideResidualOrder: 26, onSideResidualSubOrder: 5` and no `onSideResidual`, and `resolvePriority`
+  reads `effect[cb + 'Order']` whether or not the callback exists. So this pass READ a published
+  position; it did not invent one. Not one order number is written in `medicham2-browser.js`.
+- **TEN CLOCKS MOVED, ALL EIGHT SITES:** the three screens (26/1, 26/2, 26/10), Safeguard (26/3),
+  Tailwind (26/5) on both sides, Trick Room (27/1), Gravity (27/2), Wonder Room (27/5), Magic Room
+  (27/6) and the terrain (27/7). One turn staged with all ten due reads them out in exactly that
+  order. `residualExpireAt` is called once per order-group AFTER that group's bodies, because a Side
+  or Field holder has no speed and `comparePriority`'s speed term sits between order and subOrder.
+- **THE SILENT HALF IS NOT DECORATION AND IT FOUND A SECOND BUG.** Roost is order 25, announces
+  nothing, and the type it gives back is read by the Grassy Terrain heal at order 5 — which heals only
+  a GROUNDED body. This engine restored the type above the whole walk, so **every Roost in Grassy
+  Terrain was refused its terrain heal**, with no line in the stream to say so. The comment sitting on
+  that code had the reason exactly right and the code in the wrong place.
+- **AND MY OWN FIRST DRAFT SHIPPED THE FAILURE THIS DIVISION IS ABOUT.** `field.terrain` holds the
+  engine's short id (`grassy`) and the artifact publishes Showdown's (`grassyterrain`), so the lookup
+  matched nothing and the terrain clock simply stopped — a permanent Grassy Terrain, no line, no
+  counter. It was caught only by staging all ten clocks in one turn and COUNTING the ticks: 7 where 8
+  were due. `residualTerrainKey` now translates through `terrainId` on both sides and stamps
+  `MEDFAILS.residualTerrainExpiryUnplaced` rather than doing nothing.
+
+### WHAT MOVED, MEASURED — 1,200-game whole-game differential, two frozen releases differing in ONE file
+
+`af85d7a4181e` (before) against `bbbf28c728ee` (after), 1,200 requested / 961 played, same seeds, same
+pairs, **both arms run back to back under ONE steering state** — see the caveat below, which cost a
+number:
+
+| arm | before | after |
+|---|---|---|
+| `top-tie-first` (max damage corner) | 193 / 961 | **188 / 961** |
+| `bottom-tie-first` (min damage corner) | 191 / 961 | **176 / 961** |
+| `middle` (real dice) | 598 / 961 | **584 / 961** |
+| `ordering` class | 191 games, 174 causes | **176 games, 168 causes** |
+
+The three `|-sideend|…|tailwind` first-divergence causes printed in the before run are absent from the
+after run.
+
+**A 300-GAME RUN MOVED NOTHING AND PRINTED A BYTE-IDENTICAL CLASS TABLE IN BOTH ARMS.** The shape is
+~1.4% of games and a game stops at its first divergence, so 258 games cannot reach it. Recorded
+because 300 was the run asked for and it would have read as a comfortable "no change".
+
+**THE SAMPLE IS STEERED BY THE CENSUS, SO TWO ARMS RUN EITHER SIDE OF A CENSUS REGENERATION ARE NOT A
+BEFORE/AFTER.** Measured, not assumed: the same after release reads `middle 589 / bottom 209` before
+the census was rewritten and `584 / 176` after it, on identical bytes. The pair above is one steering
+state. And the live tree was shown behaviourally identical to `bbbf28c728ee` rather than asserted to
+be — `--release bbbf28c728ee` and the live tree return the same three numbers under the same steering.
+
+### RE-RUN OWED
+
+Nothing downstream. `test-engine-diff --n 6000` is 0/6000 with both corners at 0/6000 — a placement
+change moves no damage roll. The whole-game differential numbers above supersede any earlier
+before/after on the residual walk.
+
+### THE HAND LIST
+
+Both #242 items leave it — the census carries them now (`doublesSideSpeed` at order 26,
+`typeRemovedForTurn` at order 25). **Added, because this pass measured it and did not fix it: six
+per-body volatile clocks are still spent below the whole walk instead of at their declared orders** —
+`taunt@15, disable@17, magnetrise@18, healblock@20, throatchop@22, yawn@23`. That list is not typed:
+`M.residualExpiryDeferred()` derives it from `data/residual-order.json` and prints it. The same block
+also holds Encore (16), Perish Song (24), Uproar (28) and `lockedmove`, which are `condition:` rows
+rather than `expiry:` rows and therefore cannot appear in that list however wrong their position is —
+said out loud so the printed list is not read as the whole gap.
+
+### NOT MINE, REPORTED
+
+`|-sideend|p2: |move: Tailwind` carries a BLANK player name where the authority emits `p2: B`, and the
+screens announce their raw ids (`move: lightscreen`, `move: auroraveil`) where the authority writes
+display names. Both are protocol rendering, not ordering, and neither moved in this pass.
 
 ## ROADMAP #272 — FEINT AND PHANTOM FORCE WENT THROUGH THE SHIELD AND LEFT IT STANDING. 2026-08-14.
 

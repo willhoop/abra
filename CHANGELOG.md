@@ -10,6 +10,56 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.24.0] — 2026-08-14
+
+### Fixed
+- **EVERY SIDE AND FIELD CLOCK WAS SPENT AT A POSITION NO EFFECT IN THE FORMAT DECLARES — ROADMAP
+  #242, second half.** Tailwind, the three screens, Safeguard, Trick Room, Gravity, Wonder Room, Magic
+  Room and the terrain all ticked ABOVE the whole residual walk, so a `|-sideend|` announced before
+  the sandstorm chip (order 1), before Leftovers (5) and before the poison chip (9) where the
+  authority announces it at 26. All ten now run from inside the walk at the order and subOrder
+  `data/residual-order.json` publishes, in one function called once per order-group after that
+  group's bodies. **Census 575 live / 0 missing → 577 live / 0 missing.**
+- **ROOST GAVE ITS TYPE BACK ABOVE THE WALK, SO EVERY ROOST IN GRASSY TERRAIN LOST ITS TERRAIN HEAL.**
+  Roost is order 25 and announces nothing; the Grassy Terrain heal is order 5 and heals only a
+  GROUNDED body. Restoring the type first refused the heal with no line in the stream to say why. The
+  comment sitting on that code stated the correct reason while the code did the opposite. Staged on
+  the authority first: a Roosting Talonflame at a quarter HP reads
+  `|-heal|p1a: Talonflame|124/153|[from] Grassy Terrain`; the same body clicking Protect reads no
+  terrain line at all.
+
+### Changed
+- **NOT ONE ORDER NUMBER IS WRITTEN IN `engine/medicham2-browser.js`.** A duration-only effect declares
+  its own position (`tailwind.condition` carries `onSideResidualOrder: 26, onSideResidualSubOrder: 5`
+  and no `onSideResidual`, and `resolvePriority` reads the order field regardless), so this is a
+  published position being READ. The side conditions are matched on the move id `sf.sc` is already
+  keyed by, so a fourth screen in a later regulation is placed without an edit.
+
+### Notes
+- **A COUNTER CAUGHT A SILENT DEFAULT IN THE FIX ITSELF.** The first draft looked this engine's short
+  terrain id (`grassy`) up against the artifact's (`grassyterrain`), matched nothing, and stopped the
+  terrain clock outright — a permanent Grassy Terrain with no line and no failure. It surfaced only
+  because a staging with all ten clocks due counted **7 ticks where 8 were expected**.
+  `MEDFAILS.residualTerrainExpiryUnplaced` now fires instead of nothing happening.
+- **Measured, two frozen releases differing in one file** (`af85d7a4181e` → `bbbf28c728ee`), 1,200
+  games / 961 played, same seeds and pairs, both arms under one steering state: `top-tie-first`
+  193 → **188**, `bottom-tie-first` 191 → **176**, `middle` 598 → **584**, the `ordering` class
+  191 → **176** games (174 → 168 causes), and the three `|-sideend|…|tailwind` first-divergence
+  causes gone. A 300-game run moved nothing and printed an identical class table — the shape is
+  ~1.4% of games and a game stops at its first divergence. `tests/test-engine-diff.js --n 6000` is
+  0/6000 with both corners at 0/6000.
+- **THE DIFFERENTIAL'S SAMPLE IS STEERED BY THE CENSUS, so two arms run either side of a census
+  regeneration are not a before/after.** Measured rather than assumed: the same after release reads
+  `middle 589 / bottom 209` under the pre-regeneration steering and `584 / 176` under the post, on
+  identical bytes. The live tree was also SHOWN behaviourally identical to `bbbf28c728ee`, not
+  asserted to be.
+- **Still open, and derived rather than typed:** `M.residualExpiryDeferred()` prints the six per-body
+  volatile clocks still spent below the walk — `taunt@15, disable@17, magnetrise@18, healblock@20,
+  throatchop@22, yawn@23`. Encore, Perish Song, Uproar and `lockedmove` share that block and are
+  `condition:` rows, so they cannot appear in that list however wrong their position is.
+- **Reported, not fixed, because it is rendering and not ordering:** `|-sideend|p2: |move: Tailwind`
+  has a blank player name where the authority emits `p2: B`.
+
 ## [5.23.0] — 2026-08-14
 
 ### Fixed

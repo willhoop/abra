@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-14T05:43:20.151Z",
+  "generated": "2026-08-14T07:19:48.040Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 575,
-  "live": 575,
+  "probed": 577,
+  "live": 577,
   "missing": 0,
-  "armed": 575,
+  "armed": 577,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -2976,7 +2976,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.7% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5516,7 +5516,7 @@
       "tag": "passiveHeal",
       "label": "Leftovers heals at order 5 and the burn chips at order 10 — a full-HP burned holder still loses the tick",
       "live": true,
-      "detail": "Snorlax at full HP (235) holding Leftovers, one passing turn. NOT burned 235 (the heal has nothing to do); BURNED 221 = 235 - 14. Under a body-major walk the chip runs first and Leftovers restores the identical 1/16 after it, so the burned arm reads 235 and the status is free. The two orders differ ONLY at the top and bottom of the bar, which is why no damage differential can see this. The walk itself is counted on the same turn: 11 groups entered (of 11) and 68 step slots (of 68 = every step on all four living bodies) — a zero on either is the loop not running, not a mechanic being absent",
+      "detail": "Snorlax at full HP (235) holding Leftovers, one passing turn. NOT burned 235 (the heal has nothing to do); BURNED 221 = 235 - 14. Under a body-major walk the chip runs first and Leftovers restores the identical 1/16 after it, so the burned arm reads 235 and the status is free. The two orders differ ONLY at the top and bottom of the bar, which is why no damage differential can see this. The walk itself is counted on the same turn: 14 groups entered (of 14) and 72 step slots (of 72 = every step on all four living bodies) — a zero on either is the loop not running, not a mechanic being absent",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5547,6 +5547,26 @@
       "label": "a Sitrus eats in the group that dropped it — the order-8 seed, not next turn",
       "live": true,
       "detail": "Snorlax on 118, one point above its Sitrus threshold (117), holding the berry. UNSEEDED nothing happens: hp 118, item \"sitrusberry\", off-slot eats 0. SEEDED, the order-8 drain of 29 takes it under half and the berry is eaten IN THAT GROUP: hp 147 = 118 - 29 + 58, item \"\", off-slot eats 1. The old fixed call sat above the seed, so the berry waited a full turn and the body spent it under half",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "doublesSideSpeed",
+      "label": "a Tailwind expires at order 26 — after the sandstorm chip, Leftovers and the poison chip, and after the Light Screen at subOrder 2",
+      "live": true,
+      "detail": "Milotic (Leftovers, half HP) and a poisoned Incineroar in a sandstorm with three turns left, on a side holding Light Screen and Tailwind. THREE TURNS LEFT on both side conditions: \"sand -> sand -> leftovers -> psn\" (no expiry — this is the control that says the three lines the expiry must follow are emitted at all). ONE TURN LEFT: \"sand -> sand -> leftovers -> psn -> sideend:lightscreen -> sideend:tailwind\". The authority puts the sandstorm chip at order 1, Leftovers at 5, poison at 9, Light Screen at 26 subOrder 2 and Tailwind at 26 subOrder 5, and was staged to read exactly that sequence. This engine announced both side expiries ABOVE the whole walk, which inverts every one of those pairs",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "typeRemovedForTurn",
+      "label": "Roost expires at order 25 — the Grassy Terrain heal at order 5 still finds the body grounded",
+      "live": true,
+      "detail": "Talonflame (Fire/FLYING) at a quarter HP in Grassy Terrain. Clicked PROTECT: terrain heal false (airborne, correctly refused — the control that stops \"everybody heals in terrain\" passing this). Clicked ROOST: terrain heal true. Roost is a SILENT expiry at order 25 and the terrain heal is order 5, so the body is still grounded when the heal runs; restoring the type above the walk refuses it. Types after the turn — control Fire/Flying, roost Fire/Flying — so the restore itself still happened and this cannot pass on a Roost that never gave the type back",
       "hollow": false,
       "armed": true,
       "directCall": false
