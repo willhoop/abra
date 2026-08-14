@@ -10,6 +10,59 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.23.0] — 2026-08-14
+
+### Fixed
+- **TEN OF THE FORTY-ONE ILLEGAL FIXTURE DECLARATIONS ARE REPAIRED — ROADMAP #266, part one.**
+  41 distinct `TeamValidator` verdicts → **32**, 55 rejected sets → **45**, and the one stray literal
+  → **0**. `tests/test-fixture-legality.js` is ALL GREEN on the shrunk baseline, its stale-allowance
+  clause included, and the population is unchanged at 627 declarations / 227 distinct sets — so
+  nothing came off because the scanner stopped looking. Every removal is named with what it cost, in
+  the new `repaired` block of `data/fixture-legality-baseline.json`.
+- **A FIXTURE HELD AN ITEM THAT NAMES NOTHING, AND THE VALIDATOR COULD NOT REPORT IT.**
+  `tests/test-protocol-trace.js:131` gave Politoed `'dampro'`. `dex.items.get('dampro')` returns a
+  row that does not exist whose `.name` is the empty string, **and an empty item is a legal item** —
+  so the fixture built a Politoed **holding nothing** and every check went green. It is
+  *"a capability was absent and everything reported success"* inside a test. Now `damprock`, which
+  the same file already spells correctly. `engine/fixture_legality.js` reports stray literals in
+  their own section for exactly this reason.
+- **THE TWO RED GATES: both fixture audits are green and `tests/test-perish-song.js` is green
+  outright.** The Perish Song singer is **Azumarill** in both files that share it and the
+  Taunt/Encore/Disable user is **Alakazam** — both derived from the format, not recalled: exactly six
+  legal bodies learn Perish Song and Protect together and exactly seven learn Taunt, Encore and
+  Disable together. **The cost is stated rather than absorbed: none of the seven can have Pressure**,
+  so `tests/test-volatile-duration.js` no longer stages the DOUBLED PP rate. It still stages PP; the
+  doubled rate is staged by `tests/staged_board.js`, whose Pressure bodies are actually targeted.
+
+### Changed
+- `tests/test-game-diff.js` — the hazard and the screen swapped bodies (Whimsicott can learn neither
+  Stealth Rock nor Reflect here; Archaludon sets the rocks and Whimsicott raises **Light Screen**).
+  Both mechanics survive and the file is green, 7 of 7 turns identical. `tests/test-speed-tie.js`
+  Ninetales clicks **Psyshock** rather than Dazzling Gleam, which it cannot learn — the click is now
+  single-target, which the ORDER verdict does not read. `tests/probe_volatile_leaves.js` clicks
+  **Recycle**, the repo's own derived no-op, instead of an Agility that Snorlax cannot learn and that
+  was moving the foe's Speed two stages a turn. `tests/test-nature-differential.js` Incineroar carries
+  **Darkest Lariat**; the *"can't learn Knock Off"* verdict stays baselined because five other sites
+  still produce it.
+
+### Notes
+- **`tests/test-volatile-duration.js` passes its audit and still parts from Showdown on HP, and that
+  is not this repair — it was measured, not assumed.** The audit exits before a game runs, so this
+  file's engine comparison had not been seen since the learnset clause landed on 2026-08-12. The
+  pre-repair fixture was replayed body-for-body and parts in all four scenarios by the same magnitude
+  and in the same direction (`weavile sd=72 us=76`, `snorlax sd=199 us=204`). **The absolute verdict
+  is WITHHELD rather than annotated:** `engine/medicham2-browser.js` was written at 02:26 while these
+  runs were going and `engine/game_differential.js` carries in-flight middle-arm RNG work belonging to
+  another agent. A measurement is a photograph and nothing in frame may move. What is published is the
+  paired claim, which is valid because both arms were measured minutes apart against the same bytes.
+- **32 verdicts remain and each carries its own written reason.** `tests/staged_board.js` (15) and
+  `tests/staged_status_counters.js` (7) route to `@engine` and their illegal clicks are load-bearing
+  filler boosts; `tests/test-protocol-trace.js` keeps 10 that each move an event-coverage board; and
+  `tests/test-switch-carry.js` keeps 2 because repairing only the two the static sweep can SEE would
+  leave the identical defect in the fillers it cannot.
+
+---
+
 ## [5.22.0] — 2026-08-14
 
 ### Fixed

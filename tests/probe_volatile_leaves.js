@@ -87,13 +87,19 @@ for (const c of CANDIDATES) {
   const sp = carrierOf(c.move);
   if (!sp) { rows.push({ ...c, verdict: 'NO LEGAL CARRIER — the fixture, not the mechanic' }); continue; }
   const A = [{ species: N.id(sp.id), item: '', ability: '', moves: [mv.name, 'Protect'] }].concat(bench(...FILLER));
-  const B = [{ species: 'snorlax', item: '', ability: '', moves: ['Agility', 'Protect'] }].concat(bench(...FILLER));
+  /* THE FOE CLICKS RECYCLE, NOT AGILITY — 2026-08-14. Snorlax cannot learn Agility in this
+   * regulation (TeamValidator: "Snorlax can't learn Agility."), so this probe declared a body the
+   * game would refuse. RECYCLE is this repo's derived no-op (champions_sim.INERT_MOVE, with the
+   * reasoning at its definition): Snorlax can learn it, it is in MC.moves, and it FAILS outright when
+   * the user has consumed no item — so it cannot damage, boost, heal, switch or touch the field.
+   * It is strictly quieter than Agility, which was moving the foe's Speed by two stages every turn. */
+  const B = [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER));
   const a = G.buildPair(A), b = G.buildPair(B);
   if (!a || !b) { rows.push({ ...c, carrier: sp.name, verdict: 'COULD NOT BUILD THE PAIR' }); continue; }
   let medi = '', sd = '';
   const script = [{ p1: [{ m: c.move, t: c.target === 'foe' ? 0 : undefined }, { m: 'protect' }],
-                    p2: [{ m: 'agility' }, { m: 'protect' }] },
-                  { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }];
+                    p2: [{ m: 'recycle' }, { m: 'protect' }] },
+                  { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }];
   const r = G.playGame(a, b, 'directed', 'volprobe/' + c.vol, { script,
     onBoundary: (snap, turnIdx, S, battle) => {
       if (turnIdx < 1) return;

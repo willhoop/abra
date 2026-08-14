@@ -21,6 +21,37 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #266 — TEN OF THE FORTY-ONE ILLEGAL FIXTURE DECLARATIONS REPAIRED. 2026-08-14 (MEASURE).
+
+**41 distinct verdicts → 32. 55 rejected sets → 45. 1 stray literal → 0.** `tests/test-fixture-legality.js`
+ALL GREEN on the shrunk baseline, stale-allowance clause included. Population unchanged (627
+declarations, 227 distinct sets), so nothing came off because the scanner stopped looking. Every
+removal is named with its cost in the `repaired` block of `data/fixture-legality-baseline.json`.
+
+**The stray literal was the worst of them and no validator could have caught it.**
+`tests/test-protocol-trace.js:131` gave Politoed the item `'dampro'`. `dex.items.get('dampro')` returns
+a non-existent row whose `.name` is `''`, and an empty item is a LEGAL item — so the fixture built a
+Politoed **holding nothing** and every check reported success. Now `damprock`, which the same file
+already spells correctly.
+
+**The two red gates: both fixture audits green; `tests/test-perish-song.js` green outright.**
+The singer is AZUMARILL in both files that share it and the Taunt/Encore/Disable user is ALAKAZAM,
+both DERIVED — six legal bodies learn Perish Song + Protect, seven learn Taunt + Encore + Disable.
+**Cost, named: none of the seven can have Pressure**, so `tests/test-volatile-duration.js` no longer
+stages the DOUBLED PP rate (it still stages PP; the doubled rate lives in `tests/staged_board.js`).
+
+**`tests/test-volatile-duration.js` still parts from Showdown on HP and IT IS NOT THIS REPAIR.**
+The audit exits before any game runs, so the engine comparison had not been seen since 2026-08-12. The
+**pre-repair fixture was replayed** — Weavile/Snorlax/Clefable, Pound and Shadow Punch — and parts in
+all four scenarios by the same magnitude and direction (`weavile sd=72 us=76`). The absolute verdict is
+WITHHELD: `engine/medicham2-browser.js` was written at 02:26 while these runs were going and
+`engine/game_differential.js` carries another agent's in-flight middle-arm RNG work. A measurement is
+a photograph. What is published is the PAIRED claim, which both arms share bytes for.
+
+Untouched: `engine/medicham2-browser.js`, `tests/test-mechanics.js`, `engine/board.js`,
+`engine/rollout_leaf.js`, `engine/game_differential.js`, `tests/staged_board.js`,
+`tests/staged_status_counters.js`. Full account: `docs/MEASURE.md`.
+
 ## ROADMAP #267 / #268 / #269 / #270 — EVERY CLOCK THE POSITION WAS RUNNING REACHED THE PLAYOUT AS ZERO. CLOSED 2026-08-14 (SEARCH).
 
 **Files:** `engine/board.js`, `engine/rollout_leaf.js`, `tests/test-seed-clock.js` (new),

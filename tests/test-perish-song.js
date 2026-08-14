@@ -97,17 +97,34 @@ if (BREAK) {
 const mon = (species, item, ability, moves) => ({ species, item: item || '', ability: ability || '', moves });
 const FILL = (...names) => names.map(n => mon(n, '', '', ['Protect']));
 
-/* THE SINGER IS CLEFABLE, matching the row already in test-volatile-duration.js so a shared duration
- * change cannot pass there and fail here for a reason that is really about the body. */
-const SINGER  = () => mon('clefable', '', 'Unaware', ['Perish Song', 'Protect']);
+/* THE SINGER IS AZUMARILL, matching the row already in test-volatile-duration.js so a shared duration
+ * change cannot pass there and fail here for a reason that is really about the body.
+ *
+ * IT WAS CLEFABLE UNTIL 2026-08-14 AND CLEFABLE CANNOT LEARN PERISH SONG IN THIS REGULATION, so this
+ * whole file was red on its own fixture audit — a staged board the game would refuse at validation is
+ * a test of a position that cannot occur. Derived, not chosen: exactly SIX legal bodies learn Perish
+ * Song and Protect together (Gengar, Altaria, Absol, Politoed, Primarina, Azumarill). Azumarill is the
+ * slowest and the bulkiest of the six and the only one whose ability neither sets weather nor copies
+ * anything — Politoed's Drizzle would put rain on every board here, Altaria's Cloud Nine would take it
+ * off, Absol brings Pressure into a PP-compared board. THE COST: Clefable's Unaware is no longer on
+ * the field, so a boost-ignoring read is not staged here; nothing in these two scenarios boosts, so
+ * Unaware could never have fired, and the substitution removes no live behaviour. Thick Fat likewise
+ * cannot fire — nothing here throws Fire or Ice. */
+const SINGER  = () => mon('azumarill', '', 'Thick Fat', ['Perish Song', 'Protect']);
 /* THE PARTNER IS ON THE SINGER'S OWN SIDE AND MUST DIE TOO. `target: 'all'`. If this body survives,
  * the engine is applying Perish Song to the foes only — which is the failure a one-sided test cannot
- * see, and it is the whole reason Will said "both sides simultaneously". */
-const PARTNER = () => mon('snorlax', '', 'Thick Fat', ['Protect', 'Pound']);
-/* THE PIVOT carries U-turn so the negative clause can be staged at all. Bug move into Clefable is
- * resisted-neutral and 70 BP, so nothing faints early and the boundary is not lost to a replacement. */
+ * see, and it is the whole reason Will said "both sides simultaneously".
+ * Its second slot was Pound, which Snorlax cannot learn; ROUND is the 100-accurate no-secondary click
+ * it can. Neither is ever clicked in these scenarios — the partner only Protects — so this is a
+ * DECLARATION repair and it moves no board. */
+const PARTNER = () => mon('snorlax', '', 'Thick Fat', ['Protect', 'Round']);
+/* THE PIVOT carries U-turn so the negative clause can be staged at all. Bug move into Azumarill is
+ * resisted (Bug x0.5 into Fairy) and 70 BP, so nothing faints early and the boundary is not lost to a
+ * replacement — the same property the Clefable it replaces had. */
 const PIVOT   = () => mon('scizor', '', 'Technician', ['U-turn', 'Protect']);
-const ANCHOR  = () => mon('corviknight', '', 'Pressure', ['Protect', 'Pound']);
+/* Pound -> BODY PRESS for the same reason as the partner's: Corviknight cannot learn Pound, it never
+ * clicks the second slot, and Body Press is the move this body actually carries in this format. */
+const ANCHOR  = () => mon('corviknight', '', 'Pressure', ['Protect', 'Body Press']);
 
 const PASS = { m: 'protect' };
 
@@ -115,8 +132,8 @@ const SCENARIOS = [
 
   /* ---------------------------------------------------------- 1. THE CLAIM: FOUR BODIES DIE AT ONCE */
   { id: 'perishsong-kills-all-four-on-turn-four',
-    what: 'Clefable clicks Perish Song on turn 1 and nothing else happens for three more turns. All '
-        + 'four active bodies — both foes AND Clefable\'s own partner AND Clefable — carry the count, '
+    what: 'Azumarill clicks Perish Song on turn 1 and nothing else happens for three more turns. All '
+        + 'four active bodies — both foes AND Azumarill\'s own partner AND Azumarill — carry the count, '
         + 'and on turn 4 `onEnd` calls faint() on every one of them.',
     asks: 'THE FAINT, which nothing in this repo has ever observed. `tests/test-volatile-duration.js` '
         + 'runs three turns and watches the number fall; the number reaching zero and a body actually '

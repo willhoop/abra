@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 24 unsafe, 1 void (declared), 89 possibly stale, 91 ok, 0 missing
+  provenance: 24 unsafe, 1 void (declared), 88 possibly stale, 92 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
@@ -29,13 +29,13 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 12). Old hashes cannot be compared; restamp after checking board.js.
-    moved after the fit: engine/medicham2-browser.js  2026-08-14 01:41
+    moved after the fit: engine/medicham2-browser.js  2026-08-14 02:44
     moved after the fit: engine/board.js  2026-08-14 01:55
     moved after the fit: data/engine-data.js  2026-08-10 18:59
     moved after the fit: data/abra-tags.js  2026-08-13 20:18
 ```
 
-_stamped 2026-08-14 01:59_
+_stamped 2026-08-14 02:44_
 
 <!-- /GENERATED -->
 
@@ -190,6 +190,102 @@ that the population is short**, which is the sixth instance of that shape this w
 21 games of `data/game-differential.json` regroup to
 `ordering :: |-damage|<slot>|H/H|[from]sandstorm <> |-sideend|<side>|tailwind`, the largest single
 shape on the board. That is ENGINE's, it is live in that file, and the table it needs now exists.
+
+### 0000000000. ROADMAP #266 — TEN OF THE FORTY-ONE ARE REPAIRED, AND ONE OF THEM WAS NOT A LEGALITY DEFECT AT ALL — 2026-08-14
+
+`tests/test-volatile-duration.js`, `tests/test-perish-song.js`, `tests/test-protocol-trace.js`,
+`tests/test-game-diff.js`, `tests/test-speed-tie.js`, `tests/test-nature-differential.js`,
+`tests/probe_volatile_leaves.js`, `data/fixture-legality-baseline.json`. `engine/medicham2-browser.js`,
+`tests/test-mechanics.js`, `engine/board.js`, `engine/rollout_leaf.js`, `engine/game_differential.js`,
+`tests/staged_board.js` and `tests/staged_status_counters.js` were NOT touched.
+
+**THE NUMBER: 41 distinct verdicts → 32, 55 rejected sets → 45, and 1 stray literal → 0.**
+`tests/test-fixture-legality.js` is ALL GREEN on the shrunk baseline, including its stale-allowance
+clause — every removal came off because the set became legal, and every one is named with its cost in
+the `repaired` block of `data/fixture-legality-baseline.json`. Population unchanged at 627 declarations
+and 227 distinct sets, so nothing came off because the scanner stopped looking.
+
+| verdict removed | what replaced it | what it cost |
+|---|---|---|
+| **literal `"dampro"`** (the stray) | `damprock` | nothing — the body is benched all scenario |
+| Toxapex's item Black Sludge does not exist in Gen 9 | Leftovers | nothing — benched body, and EXISTENCE is never deliberate |
+| Clefable can't learn Perish Song | **Azumarill** sings, in BOTH files that share the singer | Clefable's Unaware leaves the field; nothing in either scenario boosts, so it could never have fired |
+| Weavile can't learn Encore | **Alakazam** is the user | **Pressure. Named below.** |
+| Snorlax can't learn Pound | Round / Terrain Pulse (duration), Round (perish, never clicked) | both Special and 100-accurate, so they are paid into SpD rather than Def |
+| Snorlax can't learn Agility | **Recycle** — this repo's own derived no-op | strictly quieter: Agility was moving the foe's Speed two stages a turn |
+| Corviknight can't learn Pound | Body Press | nothing — the anchor only ever clicks Protect |
+| Archaludon can't learn Body Press | Iron Defense | nothing — the slot Protects for six turns |
+| Whimsicott can't learn Stealth Rock | the hazard and the screen **swapped bodies** | the screen guards the special side now, and the rocks lose Prankster's +1 |
+| Ninetales can't learn Dazzling Gleam | Psyshock | the click is single-target instead of spread |
+
+**THE WORST ENTRY ON THE LIST PRODUCED NO VALIDATOR VERDICT AT ALL.** `tests/test-protocol-trace.js:131`
+gave Politoed the item `'dampro'`. `dex.items.get('dampro')` returns a row that does not exist whose
+`.name` is the empty string — **and an empty item is a LEGAL item** — so `checkLegal` was asked about a
+Politoed holding nothing and answered honestly. The fixture built a Politoed holding nothing and every
+check went green. That is *"a capability was absent and everything reported success"*, inside a test,
+and it is exactly why `fixture_legality.js` reports stray literals in their own section rather than
+folding them into the illegal-set list: nobody is being accused of an illegal pairing, the string
+simply means nothing. The intended item is spelled correctly sixteen lines further down the same file.
+
+**A REPLACEMENT BODY IS DERIVED FROM THE FORMAT, NEVER RECALLED, AND THE DERIVATION IS THE ANSWER TO
+"WHY THAT ONE".** Exactly **seven** legal bodies in this regulation learn Taunt, Encore and Disable
+together (Alakazam, Salazzle, Gardevoir, Gallade, Banette, Chimecho, Sableye) and exactly **six** learn
+Perish Song and Protect together (Gengar, Altaria, Absol, Politoed, Primarina, Azumarill). Alakazam is
+the fastest of the seven at 120 base Speed — the nearest thing to Weavile's 125 — and equally frail, so
+"the user must survive three turns of being hit" stays a real constraint instead of being quietly
+removed. Azumarill is the slowest and bulkiest of the six and the only one whose ability neither sets
+weather nor copies anything: Politoed's Drizzle would put rain on every board, Altaria's Cloud Nine
+would take it off, Absol brings Pressure into a PP-compared board.
+
+**AND THE COST OF THAT ONE IS A CAPABILITY THIS FILE NO LONGER STAGES, SAID OUT LOUD RATHER THAN
+ABSORBED: NONE OF THE SEVEN CAN HAVE PRESSURE.** Weavile's Pressure made Snorlax pay double PP for
+every click into the user's slot, and PP is a compared board leaf. `tests/test-volatile-duration.js`
+still stages PP — both sides spend it every turn — but it no longer stages the DOUBLED rate. That rate
+is staged by `tests/staged_board.js`, whose Corviknight/Pressure bodies are actually targeted, so the
+coverage is not lost from the repo; it is lost from this file. Same shape as the Weather Ball case
+(#265): no legal body can carry the combination, so the honest move is to name what went with it.
+
+**THE FIXTURE AUDIT IN BOTH RED GATES IS NOW GREEN, AND `tests/test-perish-song.js` IS GREEN OUTRIGHT.**
+Its two scenarios — four bodies dying at once, and the pivot that escapes the count — pass against the
+official engine with an Azumarill singing.
+
+**`tests/test-volatile-duration.js` PASSES ITS AUDIT AND STILL PARTS FROM SHOWDOWN ON HP, AND THAT IS
+NOT THIS REPAIR. IT WAS MEASURED RATHER THAN ASSUMED.** The audit calls `process.exit(1)` before a
+single game runs, so nobody had seen this file's engine comparison since the learnset clause landed on
+2026-08-12. The **pre-repair fixture was replayed body-for-body** — Weavile / Snorlax / Clefable, Pound
+and Shadow Punch, the same three-turn scripts — and it parts in all four scenarios by the same
+magnitude and in the same direction (`weavile sd=72 us=76`, `snorlax sd=199 us=204`). The legality
+repair moved the numbers; it did not create the disagreement.
+
+**WHAT THAT DISAGREEMENT IS, IS NOT MINE TO SAY TONIGHT, AND SAYING SO IS THE POINT.** Isolated one
+click at a time it reads like a DAMAGE ROLL: medicham2 answers the same number every time while
+Showdown's varies with the scenario id, which is the signature of one engine on a pinned corner and
+the other on a die. `tests/test-speed-tie.js` shows the same shape on bodies this pass never touched —
+its `no-tie-CONTROL` case parts on `-damage` 75 vs 69 with Weavile and Volcarona. But
+`engine/medicham2-browser.js` was written at **02:26 tonight, while these runs were going**, and
+`engine/game_differential.js` carries in-flight middle-arm RNG work belonging to another agent. **A
+measurement is a photograph and nothing in frame may move.** So the absolute verdict is WITHHELD
+rather than annotated; what is published is the paired claim, which is valid because both arms were
+measured minutes apart against the same bytes: **pre-repair and post-repair part identically.**
+
+**WHAT IS DELIBERATELY NOT REPAIRED, AND WHY EACH ONE IS A SEPARATE PASS.** 32 verdicts remain, and
+the reason is written per entry in the baseline rather than summarised here. Three blocks:
+`tests/staged_board.js` (15) and `tests/staged_status_counters.js` (7) are the staged-board library,
+which ROADMAP #266 routes to `@engine` and whose illegal clicks are load-bearing FILLER BOOSTS — a
+body clicking Iron Defense at +2 Def while a damage arm reads it is not a rename, it is a different
+board; `tests/test-protocol-trace.js` keeps 10, every one of which moves an event-coverage board
+(Clefable's Trick Room, Slowking's Perish Song and Haze, Incineroar's Knock Off and Politoed's Scald
+are all CLICKED to reach a protocol line, and the file's own verdict cannot be re-measured while
+ENGINE is live in the simulator); and `tests/test-switch-carry.js` keeps 2 because repairing only the
+two the static sweep can SEE would leave the identical defect in the Milotic and Vaporeon fillers it
+cannot see — those are declared through identifiers, so they are outside the population, and the fix
+is a filler policy rather than two edits.
+
+**ONE SITE CAME OFF WITHOUT A VERDICT COMING OFF, AND IT IS COUNTED AS A SITE AND NOT AS A REPAIR.**
+`tests/test-nature-differential.js:152` gave Incineroar Knock Off, which it cannot learn here; it is
+now Darkest Lariat, its legal Dark physical click. *"Incineroar can't learn Knock Off"* is still
+produced by five other sites in two files, so the verdict stays on the baseline — a ratchet keyed on
+the sentence only shrinks when the last site producing it is gone.
 
 ### 000000000. ROADMAP #265 / #266 — THE FIXTURES WERE DECLARING TEAMS THE GAME WOULD REFUSE, AND THE RULER FOR THAT DID NOT EXIST — 2026-08-13
 

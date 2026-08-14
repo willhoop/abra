@@ -149,8 +149,12 @@ const SHEET = [
     moves: ['Hyper Voice', 'Moonblast', 'Haze', 'Protect'] },
   { species: 'Dragonite',  item: 'Leftovers',  ability: 'Multiscale',   nature: 'Adamant',
     moves: ['Extreme Speed', 'Ice Spinner', 'Protect', 'Tailwind'] },
+  /* DARKEST LARIAT, NOT KNOCK OFF -- 2026-08-14. Incineroar cannot learn Knock Off in this
+   * regulation, so this "realistic sheet" was one the game would refuse. Darkest Lariat is its legal
+   * Dark physical click and keeps the sheet a plausible Reg M-B set, which is all this probe wants of
+   * it: nothing here clicks a move, the sheet exists so the NATURE on it can be checked through. */
   { species: 'Incineroar', item: 'Sitrus Berry', ability: 'Intimidate', nature: 'Relaxed',
-    moves: ['Fake Out', 'Knock Off', 'Protect', 'Parting Shot'] },
+    moves: ['Fake Out', 'Darkest Lariat', 'Protect', 'Parting Shot'] },
   { species: 'Garchomp',   item: 'Choice Scarf', ability: 'Rough Skin', nature: 'Jolly',
     moves: ['Earthquake', 'Rock Slide', 'Dragon Claw', 'Protect'] },
 ];

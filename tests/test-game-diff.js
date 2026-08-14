@@ -501,7 +501,10 @@ const GAMES = [];
  * interaction the single-hit differential cannot see. Six turns takes Tailwind past its expiry. */
 GAMES.push({
   name: 'tailwind expires on the right turn',
-  A: [set('Whimsicott', ['Tailwind', 'Protect'], 'Prankster'), set('Archaludon', ['Protect', 'Body Press']),
+  /* IRON DEFENSE, NOT BODY PRESS -- 2026-08-14. Archaludon cannot learn Body Press in this
+   * regulation (TeamValidator: "Archaludon can't learn Body Press."), and this slot never clicks its
+   * second move at all: the script is Protect for six turns. A DECLARATION repair that moves no board. */
+  A: [set('Whimsicott', ['Tailwind', 'Protect'], 'Prankster'), set('Archaludon', ['Protect', 'Iron Defense']),
       set('Incineroar', ['Protect']), set('Garchomp', ['Protect'])],
   B: [set('Milotic', ['Protect', 'Recover']), set('Corviknight', ['Protect']),
       set('Farigiraf', ['Protect']), set('Weavile', ['Protect'])],
@@ -568,12 +571,20 @@ GAMES.push({
  * it does to the NEXT body in, which is a sequence and not a hit. */
 GAMES.push({
   name: 'a screen expires and a hazard outlives it',
-  A: [set('Archaludon', ['Reflect', 'Protect']), set('Whimsicott', ['Stealth Rock', 'Protect'], 'Prankster'),
+  /* THE HAZARD AND THE SCREEN SWAPPED BODIES -- 2026-08-14. Whimsicott cannot learn Stealth Rock in
+   * this regulation and cannot learn Reflect either, so the pairing could not simply be exchanged:
+   * only Archaludon and Garchomp on this side can set the rocks, and Whimsicott's legal screen is
+   * LIGHT SCREEN. Both mechanics survive intact -- a Prankster body still puts up a five-turn screen
+   * and a hazard still outlives it, which is the whole content of this game. THE COST, named: the
+   * screen now guards the special side rather than the physical one, which nothing here tests because
+   * nothing here attacks; and Stealth Rock is set at normal priority rather than Prankster's +1, which
+   * moves only its position inside turn 1. */
+  A: [set('Archaludon', ['Stealth Rock', 'Protect']), set('Whimsicott', ['Light Screen', 'Protect'], 'Prankster'),
       set('Incineroar', ['Protect']), set('Garchomp', ['Protect'])],
   B: [set('Milotic', ['Protect']), set('Corviknight', ['Protect']),
       set('Farigiraf', ['Protect']), set('Weavile', ['Protect'])],
   script: [
-    { a: [{ m: 'reflect' }, { m: 'stealthrock' }], b: [{ m: 'protect' }, { m: 'protect' }] },
+    { a: [{ m: 'stealthrock' }, { m: 'lightscreen' }], b: [{ m: 'protect' }, { m: 'protect' }] },
     ...Array.from({ length: 5 }, () => ({ a: [{ m: 'protect' }, { m: 'protect' }], b: [{ m: 'protect' }, { m: 'protect' }] })),
     { a: [{ m: 'protect' }, { m: 'protect' }], b: [{ sw: 'farigiraf' }, { m: 'protect' }] },
   ],

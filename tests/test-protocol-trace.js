@@ -115,7 +115,13 @@ const SCENARIOS = [
            mon('slowking', ['perishsong', 'haze', 'protect', 'scald'], 'regenerator', 'leftovers')],
     () => [mon('gengar', ['substitute', 'shadowball', 'protect', 'sludgebomb'], 'cursedbody', 'leftovers'),
            mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', 'leftovers'),
-           mon('toxapex', ['toxic', 'recover', 'protect', 'scald'], 'regenerator', 'blacksludge')],
+           /* LEFTOVERS, NOT BLACK SLUDGE -- 2026-08-14. TeamValidator: "Toxapex's item Black Sludge
+            * does not exist in Gen 9." An EXISTENCE verdict is always wrong -- it is not a pairing an
+            * isolation probe could be staging on purpose -- and Leftovers is the legal item with the
+            * same job. This body is on the bench for the whole scenario and is never sent in, so the
+            * repair moves no board. (Its `scald` is a separate, still-open defect: Toxapex cannot
+            * learn Scald here either, and that one DOES move a board -- see the baseline.) */
+           mon('toxapex', ['toxic', 'recover', 'protect', 'scald'], 'regenerator', 'leftovers')],
     [{ a: [{ m: 'trickroom' }, { m: 'tailwind' }], b: [{ m: 'substitute' }, { m: 'bodyslam', t: 0 }] },
      { a: [{ m: 'reflect' }, { m: 'taunt', t: 0 }], b: [{ m: 'shadowball', t: 0 }, { m: 'protect' }] },
      { a: [{ m: 'moonblast', t: 0 }, { m: 'leechseed', t: 1 }], b: [{ m: 'shadowball', t: 0 }, { m: 'bodyslam', t: 0 }] },
@@ -128,7 +134,16 @@ const SCENARIOS = [
   ['charge turn, recharge, phaze, hazards, Trick, status, terrain, immunity, always-crit',
     () => [mon('torterra', ['solarbeam', 'stealthrock', 'earthquake', 'protect'], 'overgrow', 'leftovers'),
            mon('gengar', ['hyperbeam', 'willowisp', 'trick', 'shadowball'], 'levitate', 'lumberry'),
-           mon('politoed', ['grassyterrain', 'scald', 'protect', 'icywind'], 'drizzle', 'dampro')],
+           /* 'dampro' NAMED NOTHING AT ALL AND THE FIXTURE REPORTED SUCCESS -- fixed 2026-08-14.
+            * This is not an illegal pairing, which is why no validator verdict could ever have caught
+            * it: `dex.items.get('dampro')` returns a row that does not exist, whose `.name` is the
+            * empty string, and an empty item is a LEGAL item -- so this Politoed was built HOLDING
+            * NOTHING and every check went green. It is the shape CLAUDE.md calls "a capability was
+            * absent and everything reported success", sitting inside a test. The intended item is
+            * DAMP ROCK, which this same file already spells correctly at the Perish Song scenario
+            * below. `engine/fixture_legality.js` reports stray literals separately from illegal sets
+            * for exactly this reason. */
+           mon('politoed', ['grassyterrain', 'scald', 'protect', 'icywind'], 'drizzle', 'damprock')],
     () => [mon('snorlax', ['roar', 'bodyslam', 'protect', 'yawn'], 'thickfat', 'leftovers'),
            mon('mamoswine', ['iciclecrash', 'earthquake', 'protect', 'iceshard'], 'thickfat', 'focussash'),
            mon('meowscarada', ['flowertrick', 'knockoff', 'protect', 'uturn'], 'overgrow', '')],

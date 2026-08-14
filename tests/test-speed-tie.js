@@ -76,7 +76,14 @@ const FILL = (...names) => names.map(n => mon(n, '', '', ['Protect']));
  * stage. */
 const VOLC = () => mon('volcarona', '', 'Flame Body', ['Bug Buzz', 'Protect']);
 const ZARD = () => mon('charizard', '', 'Blaze', ['Flamethrower', 'Dragon Claw', 'Protect']);
-const NINE = () => mon('ninetales', '', 'Flash Fire', ['Dazzling Gleam', 'Protect']);
+/* PSYSHOCK, NOT DAZZLING GLEAM -- 2026-08-14. Ninetales cannot learn Dazzling Gleam in this
+ * regulation (TeamValidator: "Ninetales can't learn Dazzling Gleam."), so this body could never have
+ * stood on a board the game would accept. Psyshock is the closest legal click: 100-accurate, no
+ * secondary, and NOT Fire -- which is the constraint the three-way case below is built around.
+ * THE COST, named: Dazzling Gleam is a SPREAD move and Psyshock is single-target, so the click now
+ * carries a target and hits one body instead of two. This file's verdict is about the ORDER three
+ * tied bodies move in, not about how many of them are hit, and nothing else in the case reads it. */
+const NINE = () => mon('ninetales', '', 'Flash Fire', ['Psyshock', 'Protect']);
 /* 130 base Speed against 100 — the control's whole content is that these two are NOT tied. */
 const WEAV = () => mon('weavile', '', 'Pressure', ['Night Slash', 'Protect']);
 
@@ -118,7 +125,7 @@ const CASES = [
      * `-immune`), which is a real defect and belongs to the protocol differential, not to this file.
      * A scenario that fails for somebody else's reason cannot report on its own. */
     script: [{ p1: [{ m: 'bugbuzz', t: 0 }, { m: 'dragonclaw', t: 0 }],
-               p2: [{ m: 'dazzlinggleam' }, { m: 'protect' }] }] },
+               p2: [{ m: 'psyshock', t: 0 }, { m: 'protect' }] }] },
 
   { id: 'no-tie-CONTROL',
     what: 'Weavile (130 base) against Volcarona (100 base). NOT A TIE, and it must have been agreeing '
