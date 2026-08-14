@@ -6410,6 +6410,221 @@ probe('move', 'shieldsUser', 'Spiky Shield and Baneful Bunker refuse Encore exac
                  + '   |   Aegislash King\'s Shield ' + ks + ' (the only one that may be non-zero)' };
 });
 
+/* ================= ROADMAP #272 -- BREAKING A SHIELD IS NOT GOING THROUGH ONE ====================
+ *
+ * `hitStepBreakProtect` (sim/battle-actions.ts:755) is step 5 of `moveSteps` and this engine had no
+ * step 5. Feint and Phantom Force both carry `ignoresProtect`, so the MOVE landed -- and the shield
+ * stayed up behind it, so the partner's click was still refused and the target's stall counter went
+ * on decaying. The missing `|-activate|` the differential reported was the symptom; the free second
+ * block was the cost, and it is a cost on every later turn of those games too.
+ *
+ * MEMBERSHIP, DERIVED OVER THE WHOLE DEX AND PRINTED BEFORE ANYTHING WAS WIRED (`data/tags.json`):
+ *     ALL breaksProtect    Hyperspace Fury (Past), Hyperspace Hole (Past), Shadow Force (Past),
+ *                          Feint (legal), Phantom Force (legal)
+ *     LEGAL HERE           exactly TWO, and `announceAs` splits them 1/1 -- Feint bare, Phantom Force
+ *                          `[broken]`, parsed from the authority's own `move.id === "feint"` clause.
+ * Two members is exactly the size at which a hand list is tempting and still wrong, so the tag keys
+ * on the dex field.
+ *
+ * STAGED ON THE AUTHORITY FIRST, before a byte moved -- Incineroar Protects, Feint, then Garchomp's
+ * Dragon Claw at the SAME body:
+ *     |-activate|p2a: Incineroar|move: Feint
+ *     |-damage|p2a: Incineroar|154/170
+ *     |-damage|p2a: Incineroar|84/170          <- the partner LANDS.  p2a volatiles afterwards: []
+ * and the identical board in medicham2 printed `|-activate|p2a|move: Protect` for the Dragon Claw and
+ * left `protect=true, tookProtectTurns=1`.
+ *
+ * THE CONTROL IN EVERY PROBE BELOW IS AN ORDINARY MOVE STILL BEING REFUSED. A fix that took every
+ * shield down would pass any test that only asserts "the partner landed". */
+probe('move', 'breaksProtect', 'Feint takes the shield down, so the PARTNER lands on the same body', () => {
+  /* Both arms are the same two clicks in the same order; only the first move changes. Medicham's
+   * Feint and Ice Punch are both learnset-legal (TeamValidator#checkCanLearn), as are Incineroar's
+   * Protect and Garchomp's Dragon Claw. */
+  const run = (opener) => {
+    const B = board('medicham', 'garchomp', 'incineroar', 'milotic');
+    const trace = []; B.S._trace = trace;
+    unfaintable(B.f1);
+    const before = B.f1.curHP;
+    /* THE PARTNER SHIELDS TOO, AND IT IS THE OVER-MATCH ARM. `hitStepBreakProtect` walks the move's
+     * OWN target list, so the body beside the aimed one keeps its shield and its counter -- confirmed
+     * on the authority, where p2b ends the turn still holding `stall`. A break that swept the side
+     * instead of the target passes every other assertion in this probe. */
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, opener, B.f1, B.S.field)],
+               [B.ally, M.playerAction(B.ally, 'dragonclaw', B.f1, B.S.field)]]),
+      new Map([[B.f1, { kind: 'protect', mv: 'protect' }], [B.f2, { kind: 'protect', mv: 'protect' }]]));
+    return { lost: before - B.f1.curHP, up: B.f1.protect,
+             mateUp: B.f2.protect, mateStall: B.f2.tookProtectTurns,
+             /* HOW MANY TIMES THE SHIELD REFUSED SOMETHING. The control must refuse BOTH clicks. */
+             refusals: trace.filter(l => /move: Protect/.test(l)).length,
+             broke: trace.filter(l => /move: Feint/.test(l)).length };
+  };
+  /* THE CONTROL IS ASSERTED AS A SETUP, NOT ASSUMED: two refusals and zero damage is the proof that
+   * the shield was really up on this board, which is what the Feint arm's zero-refusals means against. */
+  const control = run('icepunch'), test = run('feint');
+  return { works: control.lost === 0 && control.refusals === 2 && control.up === true && control.broke === 0
+                  && test.lost > 0 && test.refusals === 0 && test.up === false && test.broke === 1
+                  && control.mateUp === true && control.mateStall === 1
+                  && test.mateUp === true && test.mateStall === 1,
+           arms: { control: [control.lost, control.refusals], test: [test.lost, test.refusals] },
+           detail: 'Incineroar behind Protect, Garchomp Dragon Claw second in both arms, Milotic '
+                 + 'shielding beside it — Ice Punch opener: lost ' + control.lost + ', shield refused '
+                 + control.refusals + ' clicks, still up=' + control.up
+                 + '   |   FEINT opener: lost ' + test.lost + ', shield refused ' + test.refusals
+                 + ' clicks, still up=' + test.up + ', break announced ' + test.broke + 'x'
+                 + '   |   the UNAIMED Milotic beside it: shield up=' + control.mateUp + '/'
+                 + test.mateUp + ', stall counter ' + control.mateStall + '/' + test.mateStall
+                 + ' (both must be up with the counter still armed — the break follows the TARGET)' };
+});
+
+/* THE TWO-TURN MEMBER, AND THE CHARGE TURN IS THE HALF THAT COULD HAVE MADE THE OTHER PROBE A LIE.
+ * Phantom Force is `flags.charge` with `onInvulnerability: false` -- it vanishes on turn 1 and strikes
+ * on turn 2, and the shield comes down on the STRIKE. If the charge turn were unmodelled here, then
+ * everything about those seven diverging games would be wrong from the vanish onward and the missing
+ * `-activate` would be a symptom of something else entirely. So the vanish is asserted -- the foe's
+ * click must MISS on turn 1 -- before anything is claimed about turn 2. */
+probe('move', 'breaksProtect', 'Phantom Force vanishes, then breaks the shield on the STRIKE turn with [broken]', () => {
+  const B = board('dragapult', 'garchomp', 'incineroar', 'milotic');
+  const trace = []; B.S._trace = trace;
+  unfaintable(B.f1);
+  const pultBefore = B.me.curHP;
+  /* TURN 1 -- the charge. The foe swings at the vanished body and must miss it; nothing may break. */
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, 'phantomforce', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    new Map([[B.f1, M.playerAction(B.f1, 'knockoff', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+  const t1 = { took: pultBefore - B.me.curHP, charging: B.me._charging,
+               missed: trace.filter(l => /^\|-miss\|/.test(l)).length,
+               broke: trace.filter(l => /\[broken\]/.test(l)).length };
+  trace.length = 0;
+  /* TURN 2 -- the strike, into a Protect raised this turn, with the partner clicking second. */
+  const before = B.f1.curHP;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, 'phantomforce', B.f1, B.S.field)],
+             [B.ally, M.playerAction(B.ally, 'dragonclaw', B.f1, B.S.field)]]),
+    new Map([[B.f1, { kind: 'protect', mv: 'protect' }], [B.f2, { kind: 'pass' }]]));
+  const t2 = { lost: before - B.f1.curHP, up: B.f1.protect,
+               refusals: trace.filter(l => /move: Protect/.test(l)).length,
+               line: trace.find(l => /\[broken\]/.test(l)) || '(none)' };
+  return { works: t1.took === 0 && t1.missed === 1 && t1.charging === 'phantomforce' && t1.broke === 0
+                  && t2.lost > 0 && t2.refusals === 0 && t2.up === false
+                  && /move: Phantom Force\|\[broken\]/.test(t2.line),
+           arms: { control: [t1.broke, t1.missed], test: [1, t2.refusals] },
+           detail: 'turn 1 (charge): Dragapult took ' + t1.took + ', foe missed ' + t1.missed
+                 + 'x, _charging=' + t1.charging + ', breaks announced ' + t1.broke
+                 + '   |   turn 2 (strike): Incineroar lost ' + t2.lost + ', shield refused '
+                 + t2.refusals + ' clicks, still up=' + t2.up + ', line ' + t2.line };
+});
+
+/* THE ORDERING, AND IT IS THE OVER-MATCH GUARD. `hitStepBreakProtect` is index 5 -- BELOW the type
+ * chart at index 2 and below the accuracy roll at index 4 -- so a target the move never reached does
+ * not lose its shield. Measured on the authority, Feint (Normal) into a Ghost behind Protect:
+ *     |-immune|p2a: Gengar
+ *     |-activate|p2a: Gengar|move: Protect      <- the partner is STILL refused
+ * and `p2a volatiles: ["stall"]`, i.e. the counter survived too.
+ *
+ * A break wired next to the `ignoresProtect` read at the top of the move -- the obvious place, and
+ * where this nearly went -- opens that shield wrongly and nothing else in this file would notice. */
+probe('move', 'breaksProtect', 'a Feint the type chart refused leaves the shield standing', () => {
+  const run = (foeSp) => {
+    const B = board('medicham', 'garchomp', foeSp, 'milotic');
+    const trace = []; B.S._trace = trace;
+    unfaintable(B.f1);
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'feint', B.f1, B.S.field)],
+               [B.ally, M.playerAction(B.ally, 'dragonclaw', B.f1, B.S.field)]]),
+      new Map([[B.f1, { kind: 'protect', mv: 'protect' }], [B.f2, { kind: 'pass' }]]));
+    return { lost: before - B.f1.curHP, up: B.f1.protect, stall: B.f1.tookProtectTurns,
+             imm: trace.filter(l => /^\|-immune\|/.test(l)).length,
+             refusals: trace.filter(l => /move: Protect/.test(l)).length,
+             broke: trace.filter(l => /move: Feint/.test(l)).length };
+  };
+  /* Gengar is Ghost — Normal does nothing to it. Incineroar is the SAME click on a body that is not
+   * immune, and it is the arm that must break: without it, "the shield survived" is also what an
+   * unwired break prints. Both learn Protect (checkCanLearn). */
+  const ghost = run('gengar'), open = run('incineroar');
+  return { works: ghost.imm === 1 && ghost.broke === 0 && ghost.up === true && ghost.refusals === 1
+                  && ghost.stall === 1
+                  && open.broke === 1 && open.up === false && open.refusals === 0 && open.lost > 0,
+           arms: { control: [ghost.broke, ghost.up], test: [open.broke, open.up] },
+           detail: 'Feint into a GHOST behind Protect: immune lines ' + ghost.imm + ', breaks '
+                 + ghost.broke + ', shield still up=' + ghost.up + ' and it refused the partner '
+                 + ghost.refusals + 'x, stall counter ' + ghost.stall
+                 + '   |   the same Feint into Incineroar: breaks ' + open.broke + ', shield up='
+                 + open.up + ', body lost ' + open.lost };
+});
+
+/* THE HALF THAT IS NOT COSMETIC. `if (broke) ... delete target.volatiles['stall']` wipes the
+ * consecutive-Protect counter, so a body whose shield was broken gets a FREE 100% Protect next turn
+ * instead of a 1/3. Asserted on HP, exactly as the `stallCounterFeeds` probe above is: reading
+ * `tookProtectTurns` would prove the bookkeeping and not the game. */
+probe('move', 'breaksProtect', 'a broken shield RESETS the stall counter, so the next Protect is free again', () => {
+  const run = (opener) => {
+    const B = board('medicham', 'garchomp', 'incineroar', 'milotic');
+    unfaintable(B.f1);
+    /* TURN 1 -- Incineroar Protects; the varied click is Medicham's. Garchomp holds an action behind
+     * both so neither arm's shield can be refused for moving last (that is a different mechanic). */
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, opener, B.f1, B.S.field)],
+               [B.ally, M.playerAction(B.ally, 'dragonclaw', B.f1, B.S.field)]]),
+      new Map([[B.f1, { kind: 'protect', mv: 'protect' }], [B.f2, { kind: 'pass' }]]));
+    /* TURN 2 -- Protect again at a losing roll of 0.99. A counter of 3 rolls 1/3 and fails; a counter
+     * the break wiped is fresh and blocks. */
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rngLose,
+      new Map([[B.me, M.playerAction(B.me, 'icepunch', B.f1, B.S.field)],
+               [B.ally, M.playerAction(B.ally, 'dragonclaw', B.f1, B.S.field)]]),
+      new Map([[B.f1, { kind: 'protect', mv: 'protect' }], [B.f2, { kind: 'pass' }]]));
+    return before - B.f1.curHP;
+  };
+  const control = run('icepunch');   // shield held, counter advanced to 1 -> turn 2 is a 1/3 and fails
+  const test = run('feint');         // shield BROKEN, counter wiped   -> turn 2 is guaranteed
+  return { works: control > 0 && test === 0,
+           arms: { control, test },
+           detail: 'damage taken on TURN 2 behind a second Protect at roll 0.99 — turn 1 opener Ice '
+                 + 'Punch (shield held, counter armed): ' + control + ' (must be > 0, the 1/3 fails)'
+                 + '   |   turn 1 opener FEINT (shield broken, counter wiped): ' + test
+                 + ' (must be 0, the shield is fresh again)' };
+});
+
+/* THE OTHER HALF OF THE REMOVAL LIST, AND IT LIVES ON A DIFFERENT OBJECT. `hitStepBreakProtect`
+ * sweeps `["craftyshield","matblock","quickguard","wideguard"]` off `target.side` as well as the
+ * seven volatiles off the body. In this engine those are `field.sgA/sgB` and not `mon.protect`, so a
+ * fix that only cleared the mon would leave a Quick Guard standing and look complete.
+ *
+ * THE BRACKETS MAKE THIS STAGEABLE: Quick Guard is +3, Feint is +2, Bullet Punch is +1, so the guard
+ * goes up, the Feint breaks it, and the priority move arrives after. Hawlucha/Quick Guard,
+ * Medicham/Feint and Metagross/Bullet Punch are all learnset-legal. */
+probe('move', 'breaksProtect', 'Feint sweeps the target side\'s Quick Guard, so a priority move gets through', () => {
+  const run = (opener, partner) => {
+    const B = board('medicham', 'metagross', 'hawlucha', 'incineroar');
+    const trace = []; B.S._trace = trace;
+    unfaintable(B.f1);
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, opener ? M.playerAction(B.me, opener, B.f1, B.S.field) : { kind: 'pass' }],
+               [B.ally, partner ? M.playerAction(B.ally, partner, B.f1, B.S.field) : { kind: 'pass' }]]),
+      new Map([[B.f1, { kind: 'wideguard', mv: 'quickguard' }], [B.f2, { kind: 'pass' }]]));
+    return { lost: before - B.f1.curHP,
+             /* THE GUARD MUST ACTUALLY HAVE GONE UP. Without this line a fixture whose Quick Guard
+              * silently failed reads exactly like a guard that was swept. */
+             raised: trace.filter(l => /-singleturn\|.*Quick Guard/.test(l)).length,
+             refused: trace.filter(l => /-activate\|.*move: Quick Guard/.test(l)).length };
+  };
+  const guarded = run(null, 'bulletpunch');       // no Feint: the guard refuses the priority move
+  const feintOnly = run('feint', null);           // the Feint's own damage, so the third arm is readable
+  const both = run('feint', 'bulletpunch');       // the Feint sweeps it and Bullet Punch lands too
+  return { works: guarded.raised === 1 && guarded.lost === 0 && guarded.refused === 1
+                  && feintOnly.raised === 1 && feintOnly.lost > 0
+                  && both.raised === 1 && both.refused === 0 && both.lost > feintOnly.lost,
+           arms: { control: [guarded.lost, guarded.refused], test: [both.lost, both.refused] },
+           detail: 'Hawlucha behind Quick Guard (raised in all three arms) — Bullet Punch alone: lost '
+                 + guarded.lost + ', guard refused ' + guarded.refused
+                 + '   |   Feint alone: lost ' + feintOnly.lost
+                 + '   |   Feint then Bullet Punch: lost ' + both.lost + ' (must exceed '
+                 + feintOnly.lost + '), guard refused ' + both.refused };
+});
+
 /* THIS PROBE ASKED dmgRange THE WRONG QUESTION AND WAS REWRITTEN, 2026-08-04.
  *
  * It used to read `dmgRange(Night Slash) > dmgRange(the same move with its id changed)` -- i.e. it

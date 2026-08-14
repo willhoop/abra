@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-14T00:46:14.934Z",
+  "generated": "2026-08-14T05:43:20.151Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 570,
-  "live": 570,
+  "probed": 575,
+  "live": 575,
   "missing": 0,
-  "armed": 570,
+  "armed": 575,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -1903,6 +1903,56 @@
     },
     {
       "kind": "move",
+      "tag": "breaksProtect",
+      "label": "Feint takes the shield down, so the PARTNER lands on the same body",
+      "live": true,
+      "detail": "Incineroar behind Protect, Garchomp Dragon Claw second in both arms, Milotic shielding beside it — Ice Punch opener: lost 0, shield refused 2 clicks, still up=true   |   FEINT opener: lost 110, shield refused 0 clicks, still up=false, break announced 1x   |   the UNAIMED Milotic beside it: shield up=true/true, stall counter 1/1 (both must be up with the counter still armed — the break follows the TARGET)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "breaksProtect",
+      "label": "Phantom Force vanishes, then breaks the shield on the STRIKE turn with [broken]",
+      "live": true,
+      "detail": "turn 1 (charge): Dragapult took 0, foe missed 1x, _charging=phantomforce, breaks announced 0   |   turn 2 (strike): Incineroar lost 140, shield refused 0 clicks, still up=false, line |-activate|p2a: incineroar|move: Phantom Force|[broken]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "breaksProtect",
+      "label": "a Feint the type chart refused leaves the shield standing",
+      "live": true,
+      "detail": "Feint into a GHOST behind Protect: immune lines 1, breaks 0, shield still up=true and it refused the partner 1x, stall counter 1   |   the same Feint into Incineroar: breaks 1, shield up=false, body lost 110",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "breaksProtect",
+      "label": "a broken shield RESETS the stall counter, so the next Protect is free again",
+      "live": true,
+      "detail": "damage taken on TURN 2 behind a second Protect at roll 0.99 — turn 1 opener Ice Punch (shield held, counter armed): 121 (must be > 0, the 1/3 fails)   |   turn 1 opener FEINT (shield broken, counter wiped): 0 (must be 0, the shield is fresh again)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "breaksProtect",
+      "label": "Feint sweeps the target side's Quick Guard, so a priority move gets through",
+      "live": true,
+      "detail": "Hawlucha behind Quick Guard (raised in all three arms) — Bullet Punch alone: lost 0, guard refused 1   |   Feint alone: lost 19   |   Feint then Bullet Punch: lost 73 (must exceed 19), guard refused 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "critRatioUp",
       "label": "Night Slash crits on a roll Crunch does not",
       "live": true,
@@ -2926,7 +2976,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

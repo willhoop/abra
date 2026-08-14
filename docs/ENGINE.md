@@ -37,8 +37,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  570/570 probed mechanics live, 0 missing   (census 2026-08-13 20:18)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-13 20:23)
+  575/575 probed mechanics live, 0 missing   (census 2026-08-14 01:27)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-14 01:28)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,16 +49,115 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 9d2f2dd8f0ea now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 98b4ec59dc51 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 93c290853f5e now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 0093f21e5322 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 264/283 probed, 19 unprobed
+  tag coverage: 265/284 probed, 19 unprobed
 ```
 
-_stamped 2026-08-13 20:45_
+_stamped 2026-08-14 01:42_
 
 <!-- /GENERATED -->
+
+## ROADMAP #272 — FEINT AND PHANTOM FORCE WENT THROUGH THE SHIELD AND LEFT IT STANDING. 2026-08-14.
+
+**Census 570 live / 0 missing -> 575 live / 0 missing.** Five probes, every one shown red first.
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md`. For this ledger:
+
+### THE MISSING `-activate` WAS THE SYMPTOM. THE FREE SECOND BLOCK WAS THE COST.
+
+The differential's shape regrouping put `event missing from medicham2 :: -activate <slot> feint` at 15
+games and the `phantomforce [broken]` twin at 7 — the largest concentrated cause after the Tailwind
+ordering. It was **not a missing line**. `hitStepBreakProtect` is step 5 of the authority's `moveSteps`
+(sim/battle-actions.ts:755) and **this engine had no step 5 at all**. Both moves carry `ignoresProtect`,
+so the move itself landed; the shield stayed up behind it.
+
+Staged on the authority first, before a byte moved — Incineroar Protects, Feint, then Garchomp's Dragon
+Claw at the same body:
+
+| | authority | medicham2, before |
+|---|---|---|
+| the Feint | `\|-activate\|p2a\|move: Feint` then `\|-damage\|` | `\|-damage\|` only |
+| the PARTNER's next click | **lands** — `\|-damage\|p2a\|84/170` | **refused** — `\|-activate\|p2a\|move: Protect` |
+| the shield afterwards | `p2a volatiles: []` | `protect=true` |
+| the stall counter | deleted | `tookProtectTurns=1`, still decaying |
+
+So a Feint — clicked precisely to open a body up for the partner — bought 30 base power and nothing
+else, and the target's next Protect kept the 1/3 decay the authority had just wiped.
+
+### MEMBERSHIP, PRINTED BEFORE WIRING, AND IT IS TWO
+
+`breaksProtect` over the whole dex: Hyperspace Fury, Hyperspace Hole, Shadow Force (all `Past`), **Feint
+and Phantom Force (legal)**. Two members is exactly the size at which a hand list is tempting and still
+the ban-list-of-four shape, so the tag keys on the dex field.
+
+WHAT the break does is **not** on the move — `breaksProtect` is a bare `true`. The seven volatiles, the
+four side conditions, the stall wipe and the two announcement shapes all live inside the step, so
+`STEP_LIST_BREAK_PROTECT()` reads the compiled `BattleActions.prototype.hitStepBreakProtect` exactly as
+ROADMAP #236's `STEP_LIST_NEVER_MISS` reads the accuracy step. The announcement is a hard-coded per-move
+exception (`move.id === "feint"` prints bare, everything else prints its own name with `[broken]`) —
+ROADMAP #237's class, and the half a typed list gets wrong. `announceAs` is parsed from that clause.
+
+### PLACED AS A STEP, WHICH IS WHERE THE ORDERING COMES FROM FOR FREE
+
+`_stepBreakProtect` sits in `_STEPS` between `_stepAccuracy` and `_stepDamage` — index 5, as upstream.
+It is not next to the `ignoresProtect` read at the top of the move, and that is a measured distinction
+rather than tidiness: on the authority a Feint into a **Ghost** behind Protect prints `|-immune|`, the
+shield **survives**, the partner is still refused and the counter still reads `stall`. A break hoisted
+above the type chart opens that shield wrongly.
+
+### THE ARMS
+
+Counters: `MEDSEEN.protectBroken` and `MEDSEEN.breakProtectNothingToBreak` — Feint has **no
+precondition**, so the second must be non-zero over any real sample or the step is only ever reached
+behind a shield. Measured over 60 staged boards x 2 turns: **40 / 140**, and
+`MEDFAILS.breakProtectUnlistedShield` **0**.
+
+### FIVE PROBES, EACH SHOWN RED ON A DIFFERENT DELIBERATE BREAK
+
+| break | what it models | probes that went MISSING |
+|---|---|---|
+| the step removed from `_STEPS` | the pre-change engine | **all five** |
+| `tg.protect` left set, line still emitted | "just emit the missing line" | the shield probe, Phantom Force, the ordering probe |
+| the stall wipe deleted | the cosmetic half only | the stall probe |
+| the step hoisted to index 0 | wired next to `ignoresProtect` | the ordering probe |
+| the break sweeps the SIDE, not the target | one object too wide | the shield probe (its partner arm) |
+
+### TWO THINGS THAT COULD NOT BE PROBED, SAID PLAINLY
+
+- **An over-match onto `ignoresProtect` is not stageable in this regulation.** The two tags' damaging
+  membership differs by exactly one move — **Future Sight** — and Future Sight's payout is a residual,
+  not a hit step, so it never reaches `_stepBreakProtect`. Measured: an engine deliberately gating on
+  `ignoresProtect` still leaves a Protect standing against Future Sight. The discrimination rests on the
+  derivation (dex field, membership 2, printed) and not on a probe, and this sentence is the receipt.
+- **An over-match onto ORDINARY moves is structurally unreachable.** WIRE 1 hoists the shield refusal
+  above the step list, so a move Protect refuses is removed from `targets` before `_rows` is built.
+  Deliberately making the step break every shield changed **nothing**, in either direction.
+
+### WHOLE-GAME DIFFERENTIAL, TWO FROZEN RELEASES DIFFERING IN ONE FILE
+
+`cfa8e98baebf` (BEFORE — the step absent) against `af146ab666be` (AFTER), 258 team pairs, three arms,
+identical census steering, no `--write`:
+
+| arm | before | after |
+|---|---|---|
+| top-tie-first | 94 / 258 diverged | **89** |
+| bottom-tie-first | 89 / 258 diverged | **84** |
+| middle (real dice) | 174 / 258 | 174 — unchanged, and it parts at median turn **2**, before either move is reached |
+| `event missing from medicham2` | 18 games, 16 causes | **14 games, 13 causes** |
+| `\|-activate\|p2a\|feint <> \|-crit\|p2a` | 2 games | **gone** |
+
+**The games also got LONGER, which is the second half of the result**: 267,190 aligned lines -> 279,446,
+and 2,481 -> 2,626 clicks aimed at a foe. Distinct moves that CONNECTED goes 185 -> 187, and
+`makeitrain` leaves the never-connected-in-any-arm list (5 moves -> 4). New territory brings new causes with it — a
+`toxicdebris <> toxicspikes` cause and one more `drag: a different body` appear, on games that
+previously ended before reaching them. Those are not regressions; they are the sample getting deeper.
+
+**Scaling, stated rather than implied:** `data/game-differential.json` is a 1,539-game run and this is a
+258-pair one, so −5 games per corner here is the same order as the 22 games the shape table predicts
+there. I did not re-measure the published artifact and do not claim its number.
 
 ## ROADMAP #261 — A FROZEN BODY THAWS BY ATTACKING, AND THE TAG WE HAD WAS A COLLAPSED PAIR. 2026-08-13.
 

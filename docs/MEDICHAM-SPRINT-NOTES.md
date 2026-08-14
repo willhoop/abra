@@ -21,6 +21,151 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #272 — FEINT AND PHANTOM FORCE LEFT THE SHIELD STANDING. CLOSED 2026-08-14 (ENGINE).
+
+**Files:** `engine/medicham2-browser.js`, `engine/tag_dex.js`, `data/tags.json` (regenerated),
+`tests/test-mechanics.js`, `data/mechanics-census.json`, `data/engine-diff.json`, `docs/ENGINE.md`,
+`docs/ROADMAP.md`, `CHANGELOG.md`.
+**Not touched:** `engine/board.js`, `engine/magnemite.js`, `data/engine-data.js`,
+`engine/rollout_leaf.js`, `tests/test-seed-residue.js`, `engine/game_differential.js`,
+`engine/divergence_cards.js`, `tests/test-middle-identity.js`, `data/divergence-*.json`.
+
+**ONE ROW, ALONE, ON PURPOSE.** The Tailwind/sandstorm residual ordering (#242) is the larger shape and
+is a different mechanism; taking both would make neither attributable.
+
+### THE SUSPICION WAS RIGHT AND THE SYMPTOM WAS THE SMALLER HALF
+
+The differential's shape regrouping ranked `event missing from medicham2 :: -activate <slot> feint` at
+15 games and `-activate <slot> phantomforce [broken]` at 7. **It was not a forgotten line.**
+`hitStepBreakProtect` is step **5** of the authority's `moveSteps` (sim/battle-actions.ts:755) and this
+engine had no step 5 at all.
+
+Staged on the authority BEFORE a byte moved. Incineroar Protects, Mienshao Feints it, Garchomp's Dragon
+Claw follows at the same body:
+
+```
+AUTHORITY   |-activate|p2a: Incineroar|move: Feint
+            |-damage|p2a: Incineroar|154/170
+            |-damage|p2a: Incineroar|84/170       <- the PARTNER lands.  p2a volatiles: []
+MEDICHAM2   |move|p1a|feint  |-damage|p2a|149/170
+            |-activate|p2a: incineroar|move: Protect   <- the partner is REFUSED
+                                                          protect=true, tookProtectTurns=1
+```
+
+Three separate defects behind one missing line:
+
+1. **the shield stayed up**, so the partner's click — the entire reason a Feint is clicked in doubles —
+   was still refused;
+2. **the stall counter kept decaying.** `if (broke) ... delete target.volatiles['stall']`, so the
+   target's NEXT Protect is a free 100% in the authority and a 1/3 here;
+3. **the side guards survived.** `hitStepBreakProtect` sweeps `craftyshield / matblock / quickguard /
+   wideguard` off `target.side` as well, and those live on `field.sgA/sgB` here rather than on the mon.
+
+### THREE MORE THINGS MEASURED ON THE AUTHORITY, EACH ONE A DIFFERENT BOARD
+
+| staged | authority |
+|---|---|
+| Feint into a body that did NOT protect | plain 30 BP attack, **no announcement at all** — there is no `onTry` gating Feint on the target having shielded |
+| Feint (Normal) into a **Ghost** behind Protect | `\|-immune\|`, the shield **SURVIVES**, the partner is still refused, `p2a volatiles: ["stall"]` |
+| Phantom Force turn 1 | vanish (`\|-prepare\|`), both foes MISS it, nothing breaks; the break is on the STRIKE turn |
+
+The charge turn was checked first and deliberately: had it been unmodelled, everything about those
+seven games would be wrong from the vanish onward and the missing `-activate` would be a symptom of
+something else. It is modelled — `_charging` / `_invuln` / `semiInvulnerable.pierces: []` all fire —
+so the shield really is the defect.
+
+### THE DERIVATION: THE MOVE FIELD SAYS NOTHING, THE STEP SAYS EVERYTHING
+
+`dex.moves.get('feint').breaksProtect` is a bare `true`. The seven volatiles, the four side conditions,
+the stall wipe and the two announcement shapes are all in the step body, so
+`STEP_LIST_BREAK_PROTECT()` reads the compiled `BattleActions.prototype.hitStepBreakProtect` — the same
+technique ROADMAP #236 uses on the accuracy step, and loud in the same way (a missing method, an empty
+array or a missing `[broken]` arm prints the reason and returns null, which makes the tag match nothing,
+which `tag_dex` already fails on).
+
+**MEMBERSHIP PRINTED BEFORE WIRING:** over the whole dex, `Hyperspace Fury (Past)`,
+`Hyperspace Hole (Past)`, `Shadow Force (Past)`, **`Feint (legal)`**, **`Phantom Force (legal)`**. In
+`data/tags.json` after the regeneration: exactly **2** members, `announceAs` split **1/1**.
+
+The bare-vs-`[broken]` announcement is a hard-coded `move.id === "feint"` clause — ROADMAP #237's class
+of "some mechanics are hardcoded exceptions in the simulator, not handlers" — and it is exactly the half
+a typed list gets wrong. It is parsed, not typed.
+
+### WHY IT IS A STEP AND NOT A LINE NEXT TO `ignoresProtect`
+
+`_stepBreakProtect` sits in `_STEPS` at index 5, between `_stepAccuracy` and `_stepDamage`. That is not
+tidiness: the Ghost row above is the measurement. A break wired next to the `ignoresProtect` read at the
+top of the move opens a shield the type chart already closed, and being a step means `R.out` — already
+set by whichever earlier step refused this target — does the ordering for free.
+
+### THE PROBES, AND THE FIVE BREAKS THEY WERE SHOWN RED ON
+
+Five probes, tag `breaksProtect`, all in `tests/test-mechanics.js`:
+
+1. Feint takes the shield down, so the PARTNER lands (control: Ice Punch, refused twice; and the
+   UNAIMED partner beside it keeps its own shield and its counter);
+2. Phantom Force vanishes, then breaks on the STRIKE turn with `[broken]` (turn 1 asserts the vanish and
+   the foe's miss before turn 2 claims anything);
+3. a Feint the type chart refused leaves the shield standing (control: the same Feint into Incineroar);
+4. a broken shield RESETS the stall counter, asserted on HP at roll 0.99, not on the counter field;
+5. Feint sweeps the target side's Quick Guard, so a priority move gets through (three arms, because
+   "Hawlucha lost HP" otherwise conflates the Feint's own damage with the Bullet Punch's).
+
+| deliberate break | probes that went MISSING |
+|---|---|
+| the step removed from `_STEPS` (the pre-change engine) | **all five** |
+| the line emitted, `tg.protect` left set | 1, 2, 3 |
+| the stall wipe deleted | 4 |
+| the step hoisted to index 0 | 3 |
+| the break sweeps the SIDE instead of the target | 1 |
+
+### TWO GUARDS THAT ARE NOT PROBES, AND SAYING SO IS THE POINT
+
+- **`ignoresProtect` vs `breaksProtect` cannot be separated by a fixture in this regulation.** The
+  natural wrong implementation is to gate on `ignoresProtect` (Feint carries both). Their DAMAGING
+  membership differs by exactly one move — **Future Sight** — and Future Sight's payout is a residual,
+  not a hit step. Measured with the wrong gate deliberately installed: Future Sight still pays out
+  through a Protect and the shield still stands. The discrimination therefore rests entirely on the
+  derivation, and the membership print is the receipt.
+- **An over-match onto ORDINARY moves is structurally unreachable.** WIRE 1 hoists the shield refusal
+  above the step list, so a move Protect refuses never enters `_rows`. Deliberately making the step
+  break every shield with every move changed **nothing in either direction** — which is a safety
+  property worth recording rather than a probe that failed to fire.
+
+### COUNTERS
+
+`MEDSEEN.protectBroken` **40** and `MEDSEEN.breakProtectNothingToBreak` **140** over 60 staged boards ×
+2 turns; `MEDFAILS.breakProtectUnlistedShield` **0**. The second counter has to be non-zero: Feint has
+no precondition, so a zero there would mean the step is only ever reached behind a shield.
+
+### THE NUMBERS
+
+- census **570 live / 0 missing → 575 live / 0 missing**, 575 of 575 armed, 0 hollow, 0 direct-call;
+- `tests/test-engine-diff.js --n 6000` → **6000 compared, 6000 agreed, 0 disagreed**;
+- whole-game differential, `cfa8e98baebf` (BEFORE) vs `af146ab666be` (AFTER), two frozen releases
+  differing in one file, 258 team pairs, identical census steering, run WITHOUT `--write`:
+
+| | before | after |
+|---|---|---|
+| top-tie-first | 94 / 258 | **89** |
+| bottom-tie-first | 89 / 258 | **84** |
+| middle (real dice, median first divergence at turn 2) | 174 / 258 | 174 |
+| `event missing from medicham2` | 18 games, 16 causes | **14 games, 13 causes** |
+| `\|-activate\|p2a\|feint <> \|-crit\|p2a` | 2 games | **gone** |
+| aligned lines across the 7 equivalence rules | 267,190 | **279,446** |
+| distinct moves that CONNECTED | 185 | **187** |
+
+**The longer games are half the result.** `makeitrain` leaves the never-connected-in-any-arm list (5 → 4)
+and clicks aimed at a foe go 2,481 → 2,626, because games that used to end at a wrongly-refused partner
+click now continue. Two new causes appear on that new territory (`toxicdebris <> toxicspikes`, one more
+`drag: a different body`); they are the sample getting deeper, not regressions.
+
+**Scaling, stated rather than implied.** `data/game-differential.json` is a 1,539-game run and this is a
+258-pair one, so −5 games per corner here is the same order as the 22 games the published shape table
+predicts there. The published artifact was NOT re-measured and its number is not claimed.
+
+---
+
 ## ROADMAP #271 — A KNOCKED-OFF ITEM WAS STILL ON THE BOARD'S BODY. CLOSED 2026-08-14 (SEARCH).
 
 **Files:** `engine/board.js`, `engine/rollout_leaf.js`, `engine/rollout_item_prevalence.js` (new),

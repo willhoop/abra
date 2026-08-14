@@ -162,6 +162,72 @@ function STEP_LIST_NEVER_MISS() {
   return out;
 }
 
+/* ---- ROADMAP #272 -- WHAT `breaksProtect` ACTUALLY DOES LIVES IN THE STEP LIST, NOT ON THE MOVE --
+ *
+ * `dex.moves.get('feint').breaksProtect` is a bare `true`. It says a shield comes down and nothing
+ * about WHICH effects come down, whether the stall counter is cleared, or what gets announced — all
+ * three are in `BattleActions.prototype.hitStepBreakProtect`, step 5 of `moveSteps`:
+ *
+ *     for (const effectid of ["banefulbunker","burningbulwark","kingsshield","obstruct",
+ *                             "protect","silktrap","spikyshield"])   target.removeVolatile(effectid)
+ *     if (gen >= 6 || !target.isAlly(pokemon))
+ *       for (const effectid of ["craftyshield","matblock","quickguard","wideguard"])
+ *                                                          target.side.removeSideCondition(effectid)
+ *     if (broke) {
+ *       if (move.id === "feint") add("-activate", target, "move: Feint");
+ *       else                     add("-activate", target, `move: ${move.name}`, "[broken]");
+ *       if (gen >= 6) delete target.volatiles["stall"];
+ *     }
+ *
+ * THE ANNOUNCEMENT IS A HARD-CODED PER-MOVE EXCEPTION -- ROADMAP #237's class exactly -- and it is
+ * the half a name list would get wrong: Feint prints a BARE `-activate`, everything else prints the
+ * move's own name with `[broken]`. Typing that next to `feint` would look identical to reading it.
+ *
+ * THE STALL CLEAR IS THE HALF THAT IS NOT COSMETIC. `stall` is the consecutive-Protect counter, so a
+ * broken shield also RESETS the decay: the target's next Protect is a free 100% again rather than
+ * 1/3. An engine that only stopped refusing the move keeps charging a decay the authority just wiped.
+ *
+ * LOUD ON FAILURE, in the shape STEP_LIST_NEVER_MISS already uses: if the method is absent, or either
+ * array is empty, or the announce exception cannot be found, the reason is PRINTED and null comes
+ * back -- which makes the tag match nothing, and tag_dex already fails a tag that matched nothing. */
+let _STEP_BREAK_PROTECT;
+function STEP_LIST_BREAK_PROTECT() {
+  if (_STEP_BREAK_PROTECT !== undefined) return _STEP_BREAK_PROTECT;
+  _STEP_BREAK_PROTECT = null;
+  try {
+    const BA = require(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim', 'battle-actions.js')).BattleActions;
+    const fn = BA && BA.prototype && BA.prototype.hitStepBreakProtect;
+    if (!fn) { console.error('  STEP_LIST_BREAK_PROTECT: BattleActions.prototype.hitStepBreakProtect is absent'); return null; }
+    const src = fnsrc(fn);
+    /* Each `for (const effectid of [ ... ])` array, IN SOURCE ORDER. The first is removed from the
+     * TARGET (volatiles), the second from the target's SIDE (side conditions); the two are kept apart
+     * because they live on different objects in this engine too and merging them would let a shield
+     * id clear a side condition. */
+    const arrays = [...src.matchAll(/for\s*\(\s*const\s+effectid\s+of\s*\[([^\]]*)\]/g)]
+      .map(mm => (mm[1].match(/["']([a-z0-9]+)["']/g) || []).map(q => q.replace(/['"]/g, '')));
+    if (arrays.length !== 2 || !arrays[0].length || !arrays[1].length) {
+      console.error('  STEP_LIST_BREAK_PROTECT: expected 2 non-empty effectid arrays, read ' +
+        JSON.stringify(arrays)); return null;
+    }
+    /* The bare-announce exception, by id. `add("-activate", target, "move: Feint")` sits in the THEN
+     * arm of `move.id === "feint"`; everything else takes the `[broken]` arm. */
+    const bare = [...src.matchAll(/move\.id\s*===\s*["']([a-z0-9]+)["']/g)].map(mm => mm[1]);
+    if (!bare.length) { console.error('  STEP_LIST_BREAK_PROTECT: no per-move announce exception found'); return null; }
+    if (!/\[broken\]/.test(src)) { console.error('  STEP_LIST_BREAK_PROTECT: no [broken] arm found'); return null; }
+    /* The side-condition sweep and the stall clear each sit behind their own `gen >= N`. Both are
+     * read; a run under a generation that excludes them simply gets `false` rather than a wrong true. */
+    const gens = [...src.matchAll(/this\.battle\.gen\s*>=\s*(\d+)/g)].map(mm => +mm[1]);
+    const stallGen = /delete\s+target\.volatiles\["stall"\]/.test(src) ? (gens.length ? Math.max(...gens) : 0) : null;
+    if (stallGen === null) { console.error('  STEP_LIST_BREAK_PROTECT: no stall clear found'); return null; }
+    _STEP_BREAK_PROTECT = {
+      volatiles: arrays[0], sideConditions: arrays[1], bareAnnounce: bare,
+      sideGen: gens.length ? Math.min(...gens) : 0, stallGen,
+      from: 'DERIVED:BattleActions.prototype.hitStepBreakProtect',
+    };
+  } catch (e) { console.error('  STEP_LIST_BREAK_PROTECT: could not read BattleActions — ' + e.message); }
+  return _STEP_BREAK_PROTECT;
+}
+
 /* ---- MAX PP, READ OFF A CONSTRUCTED BATTLE IN THE FORMAT ---------------------------------------
  *
  * ROADMAP #144. Will: *"CHAMPIONS STANDARDIZED IT AND LOWERED SOME PP OF MOVES LIKE PROTECT TO 8"*.
@@ -2286,6 +2352,35 @@ const MOVE_TAGS = [
       const hitsFoe = /adjacentFoe|allAdjacentFoes|allAdjacent|^any$|^normal$/.test(m.target || '');
       if (m.category === 'Status' && !hitsFoe) return null;
       return { throughProtect: true };
+    } },
+  /* ROADMAP #272 -- AND GOING THROUGH A SHIELD IS NOT THE SAME AS BREAKING IT.
+   *
+   * `ignoresProtect` above is the ABSENCE of `flags.protect`: the shield does not refuse this move.
+   * `breaksProtect` is a separate, stronger fact -- the shield is TAKEN DOWN, for the whole turn, so
+   * the partner's next click lands on an unshielded body -- and it is a different dex field with
+   * different membership. 42 legal moves carry `ignoresProtect`; TWO carry `breaksProtect`.
+   *
+   * MEMBERSHIP PRINTED BEFORE THIS WAS WIRED, over the whole dex and then filtered to the format:
+   *     Feint (legal), Phantom Force (legal), Hyperspace Fury / Hyperspace Hole / Shadow Force (Past)
+   * Keyed on the dex field, never on those two names, so a move added next regulation is covered.
+   *
+   * WHAT gets removed, whether the stall counter is wiped, and which of the two announcement shapes
+   * is used all come out of `hitStepBreakProtect` -- see STEP_LIST_BREAK_PROTECT above. */
+  { tag: 'breaksProtect', param: 'takes the shield DOWN for the rest of the turn, then announces it',
+    probe: 'breaksProtect',
+    why: 'Feint (668 uses) and Phantom Force (601). The shield stayed up here, so a Feint bought the '
+       + 'attacker one hit and left the partner refused -- and the stall counter kept decaying',
+    of: m => {
+      if (!m.breaksProtect) return null;
+      const S = STEP_LIST_BREAK_PROTECT();
+      if (!S) return null;
+      return { breaksShield: true,
+               volatiles: S.volatiles,
+               sideConditions: dex.gen >= S.sideGen ? S.sideConditions : [],
+               clearsStallCounter: dex.gen >= S.stallGen,
+               /* 'bare' -> |-activate|<slot>|move: Feint ; 'broken' -> |...|move: <Name>|[broken] */
+               announceAs: S.bareAnnounce.includes(m.id) ? 'bare' : 'broken',
+               from: S.from };
     } },
   { tag: 'punishesContact', param: 'the attacker pays for touching the shield', probe: 'punishesContact',
     why: 'Spiky Shield chips 1/8, Baneful Bunker poisons, Kings Shield drops Attack. Rough Skin with '

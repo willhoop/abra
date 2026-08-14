@@ -900,6 +900,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                   and Thousand Arrows pierce Fly for NORMAL damage. Equal counts over a varied
    *                   sample is the signature of "pierces => doubles", which is the wrong rule. */
   invulnPierced: 0, invulnDoubled: 0,
+  /* ROADMAP #272 -- THE SHIELD BREAK, BOTH ARMS, because either one going quiet is a different bug.
+   *   protectBroken               a Feint / Phantom Force actually took a shield or a side guard down.
+   *                               Zero means step 5 is unwired again and the partner is being refused.
+   *   breakProtectNothingToBreak  the same move landing on a body with nothing up -- an ordinary
+   *                               attack, no announcement. It must be NON-ZERO over any real sample:
+   *                               Feint has no precondition, and a zero here would mean the step is
+   *                               only ever reached behind a shield, i.e. staged and not played. */
+  protectBroken: 0, breakProtectNothingToBreak: 0,
   /* ROADMAP #128 -- THE BERRY-ABILITY FAMILY, SEVEN COUNTERS, one per mechanic, because six of the
    * seven were absent and a shared total could not have told you which one came back.
    *   berryConsumed             a berry was EATEN (not knocked off, not tricked away) and the one
@@ -1081,6 +1089,11 @@ const MEDFAILS = { encoreAction: 0,
    * move would be refused -- which is the pre-fix behaviour arriving back through the fallback. Must
    * read 0: the charge branch writes and clears the pair together. */
   invulnWithoutChargeSource: 0, invulnWithoutChargeSourceFirst: '',
+  /* ROADMAP #272 -- a body with `protect` up whose `_protectMove` is NOT in the authority's own
+   * removal list. The shield is LEFT STANDING, which is the pre-change behaviour, so a wrong list can
+   * never silently open a shield the authority keeps closed -- and it names the offender. Expected 0:
+   * every `shieldsUser` member in this format is in `hitStepBreakProtect`'s seven. */
+  breakProtectUnlistedShield: 0, breakProtectUnlistedShieldFirst: '',
   /* ROADMAP #128 -- Cud Chew spent its counter on a berry whose `onEat` this engine cannot express
    * (Leppa's PP restore is the live example: the slot CHOICE lives in berryPPUpdate and is not routed
    * through berryForceEat). The helping is announced and delivers nothing, which is precisely the
@@ -2997,10 +3010,15 @@ function sideGuardBlocksClass(gid){
   const p = gid && TAGS.param('move', gid, 'oneTurnGuard');
   return p ? String(p.blocks || '') : null;
 }
-function sideGuardName(gid){
-  const rec = (TAGS.tagsFor && TAGS.tagsFor('move', gid)) || null;
-  return (rec && rec.name) || String(gid || '');
+/* THE MOVE'S DISPLAY NAME, off the artifact. Showdown's protocol prints `move: ${move.name}` in
+ * several places -- the side-guard refusal and ROADMAP #272's shield break among them -- and the id
+ * is not the name ("phantomforce" vs "Phantom Force"), so a stream built from the id parts on the
+ * one line it emits. `sideGuardName` is the historical name of this and is kept as its caller. */
+function moveDisplayName(id){
+  const rec = (TAGS.tagsFor && TAGS.tagsFor('move', id)) || null;
+  return (rec && rec.name) || String(id || '');
 }
+function sideGuardName(gid){ return moveDisplayName(gid); }
 /* Which guard standing on the TARGETED side refuses this move -- the guard's move id, or null.
  * `guard` is the side's `sgA`/`sgB` map: guard move id -> true, one entry per guard raised this turn.
  * The STATE stores which guard is up; the CLASS is re-derived from the artifact on every read, so a
@@ -17315,6 +17333,84 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(TR)TR.miss(m,tg);
         _explicitFail=true;R.out=true;
       };
+      /* ================= ROADMAP #272 -- STEP 5: THE SHIELD COMES DOWN =============================
+       *
+       * `hitStepBreakProtect` (sim/battle-actions.ts:755) is step 5 of `moveSteps`, and this engine
+       * had no step 5 at all. Feint and Phantom Force both carry `ignoresProtect`, so the move itself
+       * got through -- and the shield STAYED UP, which is a different and larger defect than a missing
+       * protocol line. Measured on the authority and on this engine, same board, before a byte moved:
+       *
+       *   AUTHORITY  Incineroar Protects; Feint; partner Dragon Claw at the same body
+       *              |-activate|p2a: Incineroar|move: Feint
+       *              |-damage|p2a: Incineroar|154/170
+       *              |-damage|p2a: Incineroar|84/170          <- the partner LANDS. p2a vol: []
+       *   MEDICHAM2  |move|p1a|feint  |-damage|p2a|149/170
+       *              |-activate|p2a: incineroar|move: Protect <- the partner is REFUSED
+       *                                                          protect=true, tookProtectTurns=1
+       *
+       * So the missing `-activate` was the symptom and the free second block was the cost, on every
+       * turn after it as well: a Feint is clicked to open a body up for the PARTNER, and here it did
+       * nothing but 30 base power.
+       *
+       * THREE EFFECTS, ALL READ OFF `breaksProtect` RATHER THAN WRITTEN HERE:
+       *   the SHIELD volatile      `protect` / `_protectMove`, if `_protectMove` is in `volatiles`
+       *   the target side's GUARDS  Quick Guard / Wide Guard, if the id is in `sideConditions`
+       *   the STALL counter        `tookProtectTurns`, wiped -- so the target's NEXT Protect is a free
+       *                            100% again. This is the half that is not cosmetic and the half a
+       *                            "just emit the line" fix would have left behind.
+       *
+       * PLACED AFTER ACCURACY AND AFTER BOTH IMMUNITY STEPS, WHICH IS NOT A DETAIL. The authority runs
+       * this at index 5, so a target that was dropped by the type chart never reaches it -- measured:
+       * Feint (Normal) into a Ghost behind Protect prints `|-immune|` and the shield SURVIVES, and the
+       * partner's Dragon Claw is still refused. A break hoisted next to the `ignoresProtect` read at
+       * the top of the move would open that shield wrongly. Being a step in `_STEPS` is what gets the
+       * ordering for free: `R.out` is already set by whichever earlier step refused this target.
+       *
+       * THE ANNOUNCEMENT HAS TWO SHAPES AND THEY ARE THE AUTHORITY'S, not a preference: Feint prints a
+       * bare `move: Feint`, everything else prints its own name with `[broken]` (`move.id === "feint"`
+       * in the step). `announceAs` carries which, parsed from that clause, so the exception is READ.
+       *
+       * `broke` GATES THE LINE. A Feint into a body with no shield and no side guard announces NOTHING
+       * and is an ordinary 30 BP attack -- confirmed on the authority, and there is no `onTry` gating
+       * Feint on the target having Protected. Counted both ways so neither arm can go quiet. */
+      const _stepBreakProtect=(R)=>{const tg=R.tg;
+        const _bp=TAGS.param('move',a.move.id,'breaksProtect');
+        if(!_bp||!_bp.breaksShield||!tg||tg.fainted)return;
+        const _vols=Array.isArray(_bp.volatiles)?_bp.volatiles:[];
+        const _sides=Array.isArray(_bp.sideConditions)?_bp.sideConditions:[];
+        let _broke=false;
+        /* THE SHIELD. `protect` is the boolean and `_protectMove` names which move raised it, so the
+         * membership test is the authority's own list rather than "is anything up". A shield whose id
+         * is NOT in that list would be left standing, loudly, instead of being swept by a truthy test. */
+        if(tg.protect){
+          if(tg._protectMove&&_vols.indexOf(tg._protectMove)>=0){
+            tg.protect=false;tg._protectMove=null;_broke=true;
+          }else{
+            MEDFAILS.breakProtectUnlistedShield++;
+            if(!MEDFAILS.breakProtectUnlistedShieldFirst)
+              MEDFAILS.breakProtectUnlistedShieldFirst=String(tg._protectMove||'(no _protectMove)');
+          }
+        }
+        /* THE TARGET'S SIDE GUARDS -- the TARGET's, read off where the body is standing, not off the
+         * mover. `gen >= 6 || !target.isAlly(pokemon)` is unconditional at gen 9 and the tag already
+         * resolved the gen clause, so there is no ally branch to get wrong here. */
+        {
+          const _sg=(actA.indexOf(tg)>=0)?field.sgA:field.sgB;
+          if(_sg)for(const _gid of Object.keys(_sg)){
+            if(!_sg[_gid])continue;
+            if(_sides.indexOf(_gid)<0)continue;
+            delete _sg[_gid];_broke=true;
+          }
+        }
+        if(!_broke){MEDSEEN.breakProtectNothingToBreak++;return;}
+        MEDSEEN.protectBroken++;
+        /* THE STALL COUNTER, and it is the reason this is a mechanic rather than a line. */
+        if(_bp.clearsStallCounter)tg.tookProtectTurns=0;
+        if(TR){
+          if(_bp.announceAs==='bare')TR.act(tg,'move: '+moveDisplayName(a.move.id));
+          else TR.act(tg,'move: '+moveDisplayName(a.move.id),'[broken]');
+        }
+      };
       /* STEP 7a -- getSpreadDamage (battle-actions.ts:1072/1148): the roll, the crit and the
        * effectiveness announcement, for EVERY target, before a single point of HP moves. */
       /* ROADMAP #103 -- ONE COUNT PER MOVE USE, DRAWN ONCE, LAZILY.
@@ -19140,6 +19236,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * and it is why a single-target hit is untouched by this restructure while a spread hit is
        * re-shaped completely. */
       const _STEPS=[_stepInvuln,_stepTryHit,_stepTypeImm,_stepTryImm,_stepAccuracy,
+                    _stepBreakProtect,                                   // ROADMAP #272 -- step 5
                     _stepDamage,_stepApply,_stepSelfPay,_stepEffects,
                     _stepDamagingHit,_stepAfterHit,_stepFaint];
       /* ROADMAP #262 -- THE PER-TARGET HALF OF THE ADDRESS, IN THE ONE PLACE THE TARGET CHANGES.

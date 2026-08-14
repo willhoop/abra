@@ -10,6 +10,65 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.20.0] — 2026-08-14
+
+### Fixed
+- **FEINT AND PHANTOM FORCE WENT THROUGH THE SHIELD AND LEFT IT STANDING, SO THE PARTNER'S CLICK WAS
+  STILL REFUSED — ROADMAP #272.** The game differential named `-activate <slot> feint` at 15 games and
+  `-activate <slot> phantomforce [broken]` at 7 — the largest concentrated cause after the Tailwind
+  ordering — and **it was not a forgotten line.** `hitStepBreakProtect` is step 5 of the authority's
+  `moveSteps` (sim/battle-actions.ts:755) and **this engine had no step 5 at all.** Both moves carry
+  `ignoresProtect`, so the move itself landed and the shield stood behind it. Staged on the official
+  simulator first, Incineroar behind Protect with Dragon Claw following at the same body: Showdown
+  prints `|-activate|p2a|move: Feint`, lands the partner's click, and ends the turn with
+  `p2a volatiles: []`; medicham2 refused that click with `|-activate|p2a|move: Protect` and kept
+  `protect=true, tookProtectTurns=1`. Three defects behind one missing line — the shield survived, the
+  **stall counter kept decaying** (so the target's next Protect was a 1/3 where the authority had just
+  wiped it to a free 100%), and the target side's Quick Guard / Wide Guard survived too.
+- **The membership is TWO and it is keyed on the dex field.** Printed before anything was wired:
+  Hyperspace Fury, Hyperspace Hole and Shadow Force are all `isNonstandard: 'Past'`; **Feint and
+  Phantom Force** are the legal members. Two is exactly the size at which a hand list is tempting and
+  still the ban-list-of-four shape.
+- **What the break DOES is not on the move, so it is read out of the step.** `breaksProtect` is a bare
+  `true`; the seven volatiles, the four side conditions, the stall wipe and the **two** announcement
+  shapes all live inside `hitStepBreakProtect`. `STEP_LIST_BREAK_PROTECT()` in `engine/tag_dex.js`
+  reads the compiled `BattleActions.prototype`, exactly as ROADMAP #236 reads the accuracy step, and is
+  loud in the same way. The bare-vs-`[broken]` split is a hard-coded `move.id === "feint"` clause —
+  ROADMAP #237's class — and `announceAs` is parsed from it rather than typed beside the name.
+- **Wired as a STEP, at index 5, which is where the ordering comes from.** Measured on the authority: a
+  Feint (Normal) into a **Ghost** behind Protect prints `|-immune|`, the shield **survives**, the
+  partner is still refused and the counter still reads `stall`. A break placed next to the
+  `ignoresProtect` read at the top of the move — the obvious site — opens that shield wrongly.
+
+### Added
+- `move|breaksProtect` in `data/tags.json`, with `volatiles`, `sideConditions`, `clearsStallCounter`
+  and `announceAs`, all `DERIVED:BattleActions.prototype.hitStepBreakProtect`.
+- Five census probes, each shown RED first on its own deliberate break (the step removed; the line
+  emitted with no state change; the stall wipe deleted; the step hoisted to index 0; the break
+  sweeping the SIDE instead of the target). Census **570 → 575 live / 0 missing**.
+- Counters `MEDSEEN.protectBroken` / `MEDSEEN.breakProtectNothingToBreak` (40 / 140 over 60 staged
+  boards × 2 turns — the second must be non-zero, because Feint has no precondition) and
+  `MEDFAILS.breakProtectUnlistedShield` (0 — a shield whose id is not in the authority's own removal
+  list is LEFT STANDING and named, never swept by a truthy test).
+
+### Notes
+- **Two guards that could not be made into probes, stated rather than implied.** An over-match onto
+  `ignoresProtect` is not stageable in this regulation: the two tags' damaging membership differs by
+  exactly one move, Future Sight, whose payout is a residual and never reaches the hit step —
+  measured with the wrong gate deliberately installed. And an over-match onto ordinary moves is
+  structurally unreachable, because WIRE 1 hoists the shield refusal above the step list.
+- **Whole-game differential, two frozen releases differing in one file** (`cfa8e98baebf` →
+  `af146ab666be`), 258 team pairs, identical census steering, no `--write`: top-tie-first
+  **94 → 89** diverged, bottom-tie-first **89 → 84**, `event missing from medicham2`
+  **18 games / 16 causes → 14 / 13**, and the `feint` cause gone. The middle arm is unchanged at
+  174/258 and parts at median turn 2, before either move is reached. Games also run **longer** —
+  267,190 → 279,446 aligned lines, 185 → 187 distinct moves connected — which brings two new causes
+  on territory that was previously unreachable. `tests/test-engine-diff.js --n 6000`: 6000 compared,
+  6000 agreed.
+- **The published 22-game figure was not re-measured.** `data/game-differential.json` is a 1,539-game
+  run against this 258-pair one; −5 games per corner here is the same order, and that is the whole
+  claim.
+
 ## [5.19.0] — 2026-08-14
 
 ### Fixed
