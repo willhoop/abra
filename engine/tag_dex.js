@@ -676,6 +676,24 @@ for (const m of dex.moves.all()) {
   (m.target === 'foeSide' ? HAZARD_CONDS : OTHER_SIDE_CONDS).add(String(m.sideCondition).toLowerCase());
 }
 
+/* "DOES THIS MOVE REQUIRE A TYPE ON ITS USER" -- ONE IMPLEMENTATION, TWO READERS (ROADMAP #261).
+ *
+ * `spendsOwnType` has asked this since ROADMAP #210 (Burn Up's `onTryMove(pokemon) { if
+ * (pokemon.hasType('Fire')) return; ... }`), and `thawsUser` needs the SAME fact for a different
+ * purpose: the authority's freeze clause is
+ *     if (move.flags['defrost'] && !(move.id === 'burnup' && !pokemon.hasType('Fire'))) return;
+ * -- a hardcoded name upstream, which is exactly the shape CLAUDE.md says to carry as a PARAM. Two
+ * copies of the same regex would be two answers to one question and would diverge silently the first
+ * time either was touched, so it is a function both tags call.
+ *
+ * THE COMPILED `dist/sim` PRINTS DOUBLE QUOTES. Both are matched; a single-quote-only regex reads
+ * every handler in the built checkout as having no requirement at all. */
+const userTypeRequirement = (m) => {
+  const tryS = String(m.onTryMove || '') + String(m.onTry || '');
+  const req = /hasType\(\s*['"]([A-Za-z?]+)['"]\s*\)/.exec(tryS);
+  return req ? req[1] : null;
+};
+
 const MOVE_TAGS = [
   /* ROADMAP #144 -- HOW MANY TIMES THIS MOVE CAN BE CLICKED, and until 2026-08-11 the engine had no
    * such number at all: zero mentions of PP in medicham2-browser.js and no `pp` field on a built
@@ -1470,14 +1488,15 @@ const MOVE_TAGS = [
   { tag: 'spendsOwnType', param: 'the move needs a type on its USER and burns it off on the way out', probe: 'spendsOwnType',
     why: 'Burn Up (46 uses) resolved off a user that no longer had a Fire type to spend, and never '
        + 'spent it in the first place -- so it was an unconditional, permanently repeatable 130 BP',
+    /* `requires` MOVED TO THE SHARED READER, ROADMAP #261 — `thawsUser` asks the identical question
+     * and two copies of one regex is two answers. See `userTypeRequirement` above MOVE_TAGS. */
     of: m => {
-      const tryS = String(m.onTryMove || '') + String(m.onTry || '');
       const selfS = String((m.self && m.self.onHit) || '');
-      const req = /hasType\(\s*['"]([A-Za-z?]+)['"]\s*\)/.exec(tryS);
+      const req = userTypeRequirement(m);
       const rem = /setType\(/.test(selfS)
         ? /type\s*===?\s*['"]([A-Za-z?]+)['"]\s*\?\s*['"]([A-Za-z?]+)['"]/.exec(selfS) : null;
       if (!req && !rem) return null;
-      return { requires: req ? req[1] : null,
+      return { requires: req || null,
                removes: rem ? rem[1] : null,
                becomes: rem ? rem[2] : null };
     } },
@@ -2679,10 +2698,62 @@ const MOVE_TAGS = [
         { out.effect = 'reflectsDamage'; out.modelled = false; }
       return out;
     } },
-  /* Will: "add the thaws you out tag and make sure frozen is in there too. all secondary effects". */
-  { tag: 'thawsTarget', param: 'unfreezes the target it hits', probe: 'thawsTarget',
-    why: 'Scald (601 uses), Scorching Sands. Undoes a freeze you may have wanted',
-    of: m => (m.thawsTarget || (m.flags && m.flags.defrost)) ? { thaws: true } : null },
+  /* Will: "add the thaws you out tag and make sure frozen is in there too. all secondary effects".
+   *
+   * ================= ROADMAP #261 -- THIS WAS A COLLAPSED PAIR, AND IT WAS WRONG ABOUT TWO OF ITS
+   * OWN MEMBERS =====================================================================================
+   *
+   * The predicate used to be `m.thawsTarget || m.flags.defrost`, which is the OR of two DIFFERENT
+   * rules, published under the name of one of them. Will named both routes: *"the moves that auto
+   * thaw you out (either by the user or getting hit by it)"*.
+   *
+   *   flags.defrost   the USER thaws by USING the move          sim: frz.onBeforeMove returns, then
+   *                                                             frz.onModifyMove cures the user
+   *   thawsTarget     the TARGET thaws on being HIT             sim: frz.onAfterMoveSecondary cures
+   *
+   * MEMBERSHIP PRINTED OVER THE 500 LEGAL MOVES BEFORE EITHER WAS WIRED:
+   *     defrost      Burn Up, Flare Blitz, Matcha Gotcha, Scald, Scorching Sands            (5)
+   *     thawsTarget  Matcha Gotcha, Scald, Scorching Sands                                  (3)
+   * So the old tag claimed Burn Up and Flare Blitz unfreeze a TARGET. They do not. It was invisible
+   * because both are FIRE and `frz.onDamagingHit` cures a frozen body on ANY damaging Fire move
+   * (`move.type === "Fire" && move.category !== "Status" && move.id !== "polarflare"`,
+   * data/conditions.ts:115) -- the right thing for the wrong reason, which no test could tell apart.
+   * Only the three NON-Fire members need the target tag at all.
+   *
+   * `thaws: true` IS KEPT AND IS NOT DECORATION. `TAGS.has` is the reader in the engine today, but a
+   * param-shaped tag is what lets a future member arrive carrying a condition. */
+  { tag: 'thawsTarget', param: 'unfreezes the TARGET it hits', probe: 'thawsTarget',
+    why: 'Scald (601 uses), Scorching Sands, Matcha Gotcha. All three are NON-Fire, so the type route '
+       + 'cannot cover them and the tag is the whole mechanic',
+    of: m => m.thawsTarget ? { thaws: true } : null },
+  /* ROADMAP #261 -- THE OTHER HALF, AND THIS ENGINE HAD NO REPRESENTATION OF IT ANYWHERE:
+   * `grep -c defrost` returned 0 in medicham2-browser.js AND in data/tags.json.
+   *
+   *     frz.onBeforeMove (data/mods/champions/conditions.ts:45, the format's own override):
+   *       if (move.flags['defrost'] && !(move.id === 'burnup' && !pokemon.hasType('Fire'))) return;
+   *       pokemon.statusState.time--;
+   *       if (pokemon.statusState.time <= 0 || this.randomChance(1, 4)) { cureStatus(); return; }
+   *       this.add('cant', pokemon, 'frz'); return false;
+   *     frz.onModifyMove (data/conditions.ts:106, inherited -- the mod does not override it):
+   *       if (move.flags['defrost']) { add('-curestatus', pokemon, 'frz', '[from] move: ' + move);
+   *                                    pokemon.clearStatus(); }
+   *
+   * The frozen body simply MOVES: no counter tick, no 1/4 roll, and the ice comes off before the
+   * move announces itself. Ours ran the ordinary `frzTurns>=3 || rng()<0.25` gate, so a frozen
+   * Incineroar clicking Flare Blitz waited on a die instead of thawing and attacking.
+   *
+   * THE EXCEPTION IS A PARAM, NOT A NAME. Upstream hardcodes `move.id === 'burnup'`; what it is
+   * really testing is Burn Up's OWN precondition (`onTryMove(pokemon){ if (pokemon.hasType('Fire'))
+   * return; ... }`), so `requiresUserType` is read off that handler through the shared
+   * `userTypeRequirement` reader and a second member of the family joins with no edit here.
+   *
+   * MEMBERSHIP OF `requiresUserType`, PRINTED OVER THE FIVE BEFORE THIS WAS WIRED: exactly ONE is
+   * non-null, burnup -> 'Fire'. The other four carry null, which is the authority's own shape. */
+  { tag: 'thawsUser', param: 'the USER thaws by USING the move, before it resolves', probe: 'thawsUser',
+    why: 'Flare Blitz (2,193 uses), Scald, Scorching Sands, Matcha Gotcha, Burn Up. A frozen body '
+       + 'clicking one of these does not roll for a thaw -- it acts. The engine had no defrost clause '
+       + 'at all, so every one of them waited on the 25% die',
+    of: m => (m.flags && m.flags.defrost) ? { thaws: true, requiresUserType: userTypeRequirement(m) } : null },
   { tag: 'inflictsFreeze', param: 'P(freeze): they lose turns until thawed', probe: 'frz',
     why: '7,441 appearances carry a freeze secondary -- Ice Beam, Blizzard. Rarer than sleep and '
        + 'harder to remove',

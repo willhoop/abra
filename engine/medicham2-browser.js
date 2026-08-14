@@ -183,6 +183,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * `ownTypeAlreadySpent` is the refusal that becomes reachable BECAUSE of it. A non-zero spend with a
    * zero refusal, in a game where Burn Up was clicked twice, means the precondition stopped matching. */
   ownTypeSpent: 0, ownTypeAlreadySpent: 0,
+  /* ROADMAP #261 -- the USER route of the thaw. `thawedByOwnMove` is a frozen body granted the free
+   * move by `flags.defrost`; `frzFreeMoveRefusedOnType` is the Burn Up exception REFUSING it because
+   * the user no longer has the type the move requires. A zero on the first, in a game where a frozen
+   * body clicked Flare Blitz, means the clause is gone and every defrost move is back to waiting on
+   * the 25% die -- which is the state this engine shipped in, and it looked exactly like working. */
+  thawedByOwnMove: 0, frzFreeMoveRefusedOnType: 0,
   /* ROADMAP #210 -- a Last Resort refused because a slot on its own user is still unspent. A zero in a
    * game where Last Resort was clicked on turn one means the precondition is not being asked and the
    * move is a free 140 BP again. */
@@ -13394,7 +13400,66 @@ function battleTurn(S,rng,actsForA,actsForB){
        * PAR MOVING BELOW SLP AND FRZ CHANGES NOTHING TODAY -- a body cannot hold two major statuses --
        * and it moves anyway, because a list that is four fifths of the authority's list is the shape
        * that comes apart the day somebody adds the fifth member. */
-      if(m.status==='frz'){m.frzTurns=(m.frzTurns||0)+1;if(m.frzTurns>=3||rng()<0.25){m.status='';if(TR)TR.cure(m,'frz',ATTR.cured(false).from);}else {m._mvRes=false;if(TR)TR.cant(m,'frz');continue;}}   // Champions: 25%/attempt, guaranteed thaw turn 3
+      /* ROADMAP #261 -- A FROZEN BODY THAWS ITSELF BY ATTACKING, AND THIS ENGINE HAD NO CLAUSE FOR IT.
+       *
+       * Will: *"we need to test that the moves that auto thaw you out (either by the user or getting
+       * hit by it) actually thaw."* Two routes; this engine had one. The TARGET route is live below
+       * (the `thawsTarget` / Fire-type cure in the hit path). This is the USER route, and
+       * `grep -c defrost` returned ZERO in this file and in data/tags.json.
+       *
+       * THE AUTHORITY, and the clause is the FIRST line of the format's own override
+       * (data/mods/champions/conditions.ts:45):
+       *     if (move.flags['defrost'] && !(move.id === 'burnup' && !pokemon.hasType('Fire'))) return;
+       *     pokemon.statusState.time--;
+       *     if (pokemon.statusState.time <= 0 || this.randomChance(1, 4)) { cureStatus(); return; }
+       *     this.add('cant', pokemon, 'frz'); return false;
+       * and the cure itself is the inherited `frz.onModifyMove` (data/conditions.ts:106):
+       *     if (move.flags['defrost']) { add('-curestatus', pokemon, 'frz', '[from] move: ' + move);
+       *                                  pokemon.clearStatus(); }
+       *
+       * `return` MEANS NO TICK AND NO ROLL. The counter is not spent and the 1/4 is not drawn -- the
+       * body simply moves -- so this branch must sit ABOVE the tick rather than beside it. Measured
+       * before the fix on a staged board with the roll pinned LOSING: a frozen Incineroar clicking
+       * Flare Blitz read `{status:frz, dealt:0}`, IDENTICAL to its own Crunch control, which is this
+       * project's own signature for an unwired knob.
+       *
+       * THE EXCEPTION IS READ AS A PARAM, NEVER AS A NAME. Upstream hardcodes `move.id === 'burnup'`;
+       * what it is really asking is whether the move's own precondition is satisfiable, and Burn Up
+       * carries `onTryMove(pokemon){ if (pokemon.hasType('Fire')) return; ... }`. `thawsUser` derives
+       * `requiresUserType` off that handler with the same reader `spendsOwnType.requires` uses, so the
+       * two can never disagree and a second member of the family needs no edit here. MEMBERSHIP,
+       * printed over the 500 legal moves before this was wired: five carry `defrost` (Burn Up, Flare
+       * Blitz, Matcha Gotcha, Scald, Scorching Sands) and exactly ONE carries a user-type requirement,
+       * burnup -> 'Fire'.
+       *
+       * IT READS `actionMoveId(it.a)` AND NOT THE CHOSEN MOVE, which matters: Encore's override two
+       * blocks above has already rewritten `it.a`, and the authority raises BeforeMove AFTER
+       * OverrideAction. A body encored into Flare Blitz thaws; a body encored OFF one does not.
+       *
+       * THE THAW IS UNCONDITIONAL ON THE MOVE CONNECTING. `onModifyMove` runs inside `useMove`, above
+       * accuracy and above Protect, so a Scald that misses still leaves its user unfrozen. That is the
+       * authority's behaviour and it is why the cure is written here rather than in the hit path. */
+      if(m.status==='frz'){
+        const _fmid=actionMoveId(it.a);
+        const _tu=_fmid?TAGS.param('move',_fmid,'thawsUser'):null;
+        const _needT=_tu&&_tu.requiresUserType;
+        if(_tu&&!(_needT&&!(m.types||[]).includes(_needT))){
+          MEDSEEN.thawedByOwnMove++;
+          m.status='';
+          /* `[from] move: <id>`, the handler's own attribution. Ids rather than display names is this
+           * file's convention everywhere ATTR.move is used -- see the typechange emit for Burn Up. */
+          if(TR)TR.cure(m,'frz',ATTR.from(ATTR.move(_fmid)));
+        }else{
+          /* A defrost move that reached HERE was refused the free move by the type clause, and that is
+           * the only way to get here with `_tu` set. Counted, because a zero on a board where a
+           * type-spent Burn Up was clicked means the param stopped being read and the exception is
+           * gone -- and the WRONG answer there looks exactly like the right one did before the fix. */
+          if(_tu)MEDSEEN.frzFreeMoveRefusedOnType++;
+          m.frzTurns=(m.frzTurns||0)+1;
+          if(m.frzTurns>=3||rng()<0.25){m.status='';if(TR)TR.cure(m,'frz',ATTR.cured(false).from);}
+          else {m._mvRes=false;if(TR)TR.cant(m,'frz');continue;}
+        }
+      }   // Champions: 25%/attempt, guaranteed thaw turn 3
       /* ROADMAP #175 -- EARLY BIRD IS AN EXTRA TICK, NOT A HALVED DURATION, and the distinction is
        * the whole reason this reads a param instead of a name. `data/conditions.ts:68-70` puts
        * `pokemon.statusState.time--` for the ability IMMEDIATELY ABOVE the ordinary one, so each turn

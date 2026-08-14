@@ -314,6 +314,10 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * board until the move's own `self.onHit` has taken the user's Fire type away, so the first turn
  * creates the condition the second turn tests. The spend is gated on the hit having CONNECTED, which
  * only exists inside a real hit, so nothing below the turn loop can see either half. */
+/* `thawRun(` added 2026-08-13 with ROADMAP #261, declared HERE and with its full reason at the helper
+ * itself, exactly as the paragraph above requires. It stages a real doubles board through `battleInit`
+ * and spends a real turn through `battleTurn`, and it has to: the mechanic is a BeforeMove GATE — does
+ * the frozen body get to act at all — and nothing below the turn loop asks that question. */
 /* `lastResortRun(` added 2026-08-11 with ROADMAP #210's Last Resort row, declared HERE and with its
  * reason. It stages a real doubles board through `battleInit` and spends FIVE real turns through
  * `battleTurn`, and it has to spend all five: the precondition is a fact accumulated ACROSS turns —
@@ -419,7 +423,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * spends up to three real turns through `battleTurn`, and it has to: the whole mechanic is a fact
  * carried ACROSS a turn boundary -- what the body CONSUMED on an earlier turn -- and the berry that
  * creates that fact fires at the residual, so nothing below the turn loop can see either end of it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bMISSRATE\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bMISSRATE\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -4071,6 +4075,127 @@ probe('move', 'thawsTarget', 'Flare Blitz thaws a frozen target', () => {
                  + `${control.status}; Flare Blitz (Fire, thaws by TYPE) dealt ${test.dealt} and left it `
                  + `${test.status}; Matcha Gotcha (Grass, thaws by TAG) dealt ${tagged.dealt} and left `
                  + `it ${tagged.status}` };
+});
+
+/* ================= ROADMAP #261 — THE OTHER HALF OF THE THAW =====================================
+ *
+ * Will: *"we need to test that the moves that auto thaw you out (either by the user or getting hit
+ * by it) actually thaw."* He named TWO routes and the format has two; this engine had one.
+ *
+ * DERIVED OVER THE 500 LEGAL MOVES, printed before anything was wired:
+ *     flags.defrost   — the USER thaws by USING the move    Burn Up, Flare Blitz, Matcha Gotcha,
+ *                                                           Scald, Scorching Sands            (5)
+ *     thawsTarget     — the TARGET thaws on being HIT       Matcha Gotcha, Scald,
+ *                                                           Scorching Sands                   (3)
+ * Two different rules over OVERLAPPING sets, and `data/tags.json` had collapsed them into one:
+ * `thawsTarget` held all five, so the label was wrong about two of its own members. Burn Up and
+ * Flare Blitz do not thaw a target — they defrost their user — and it was invisible because both
+ * are FIRE and the authority cures a frozen body on ANY Fire hit (`frz.onDamagingHit`:
+ * `move.type === "Fire" && move.category !== "Status" && move.id !== "polarflare"`). The right
+ * thing happened for the wrong reason and no test in this repository could tell.
+ *
+ * THE AUTHORITY, STAGED IN REAL BATTLES BEFORE A LINE OF THIS WAS WRITTEN (champions frz.onBeforeMove,
+ * data/mods/champions/conditions.ts:45, plus the inherited onModifyMove at data/conditions.ts:106):
+ *     if (move.flags['defrost'] && !(move.id === 'burnup' && !pokemon.hasType('Fire'))) return;
+ *
+ *     R1   frozen Incineroar clicks Flare Blitz   |-curestatus|p1a|frz|[from] move: Flare Blitz
+ *                                                 |move|p1a: Incineroar|Flare Blitz    183 -> 118 hp
+ *     R1c  frozen Incineroar clicks Crunch        |cant|p1a: Incineroar|frz            no damage
+ *     R2   frozen Garchomp hit by Scald           |-curestatus|p2a|frz|[msg]           183 -> 129 hp
+ *     R3   frozen Garchomp hit by Fire Fang       |-curestatus|p2a|frz|[msg]           183 -> 162 hp
+ *     R3c  frozen Garchomp hit by Crunch          still frz                            183 -> 120 hp
+ *     R4   Arcanine that already spent its Fire
+ *          type, frozen, clicks Burn Up           |cant|p1a: Arcanine|frz              no damage
+ * The 1/4 thaw roll was pinned FALSE in every one of those, so the ordinary route could not supply
+ * the answer — and it is pinned here too, by rng5: the gate is `frzTurns>=3||rng()<0.25` and 0.5
+ * loses both clauses on the first frozen turn.
+ *
+ * WHAT THIS ENGINE DID, MEASURED ROUTE BY ROUTE BEFORE THE FIX: R1 `{status:frz, dealt:0}` — IDENTICAL
+ * to its own control, which is this file's own rule for an unwired knob. R2 and R3 were already right.
+ * R4 was right BY ACCIDENT: nothing was wired, so the body stayed frozen, which is the correct answer
+ * arrived at by having no rule at all.
+ *
+ * `thawRun(` is declared here with its reason, as the helper protocol at the top of this file
+ * requires. It stages a real doubles board through `battleInit` and spends a real turn through
+ * `battleTurn`, and it has to: the whole mechanic is a BeforeMove gate — whether the frozen body gets
+ * to act at all — and nothing below the turn loop asks that question. */
+const thawRun = (userSp, mv, freeze) => {
+  const B = board(userSp, 'corviknight', 'garchomp', 'garchomp');
+  unfaintable(B.f1);
+  const body = freeze === 'user' ? B.me : B.f1;
+  body.status = 'frz'; body.frzTurns = 0;
+  const before = B.f1.curHP;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  return { status: body.status || 'none', dealt: before - B.f1.curHP };
+};
+/* THE CONTROL IS THE SAME BODY ON THE SAME BOARD CLICKING A MOVE WITHOUT THE FLAG, because "the frozen
+ * body is no longer frozen" is also what an engine that thaws everybody every turn prints. And a THIRD
+ * arm that is not Fire: Milotic's Scald carries `defrost` and is WATER, so an engine that grants the
+ * free move off the move's TYPE rather than off the flag passes the first two arms and fails this one.
+ * Damage is read on every arm — a thaw that does not also let the body ACT is half the mechanic, and
+ * that half is exactly what was missing. */
+probe('move', 'thawsUser', 'a frozen body thaws by USING a defrost move', () => {
+  const control = thawRun('incineroar', 'crunch', 'user');
+  const test = thawRun('incineroar', 'flareblitz', 'user');
+  const nonFire = thawRun('milotic', 'scald', 'user');
+  return { works: control.status === 'frz' && control.dealt === 0
+                  && test.status === 'none' && test.dealt > 0
+                  && nonFire.status === 'none' && nonFire.dealt > 0,
+           arms: { control, test },
+           detail: `a frozen user on a LOSING thaw roll — Crunch (no flag) ${JSON.stringify(control)} `
+                 + `must stay frozen and deal 0; Flare Blitz (defrost) ${JSON.stringify(test)} must `
+                 + `thaw AND land; Scald (defrost, WATER) ${JSON.stringify(nonFire)} must too, which `
+                 + `is the arm a type-based fix fails` };
+});
+/* THE EXCEPTION, AND IT IS THE ONE CLAUSE THE AUTHORITY WRITES BY NAME — `move.id === 'burnup' &&
+ * !pokemon.hasType('Fire')`. Carried here as a PARAM (`thawsUser.requiresUserType`, derived from Burn
+ * Up's own `onTryMove(pokemon){ if (pokemon.hasType('Fire')) return; ... }`) rather than as a name, so
+ * a second member of the family joins with no edit.
+ *
+ * STAGED THE WAY IT IS ACTUALLY REACHABLE. All nine legal learners of Burn Up in this format are Fire
+ * type — derived, not remembered — so the only board on which a NON-Fire body clicks it is one where
+ * the user has already spent its Fire type to a previous Burn Up. The knob is therefore the user's
+ * TYPE and nothing else: same species, same move, same freeze, one turn apart. */
+probe('move', 'thawsUser', 'Burn Up grants no free move once the user is no longer Fire', () => {
+  const control = thawRun('arcanine', 'burnup', 'user');          // still Fire — the free move applies
+  const B = board('arcanine', 'corviknight', 'garchomp', 'garchomp');
+  unfaintable(B.f1);
+  M.battleTurn(B.S, rng5,                                        // turn 1 spends the Fire type
+    new Map([[B.me, M.playerAction(B.me, 'burnup', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  const spent = (B.me.types || []).join('/');
+  B.me.status = 'frz'; B.me.frzTurns = 0;
+  const before = B.f1.curHP;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, 'burnup', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  const test = { types: spent, status: B.me.status || 'none', dealt: before - B.f1.curHP };
+  return { works: control.status === 'none' && control.dealt > 0
+                  && spent === '???' && test.status === 'frz' && test.dealt === 0,
+           arms: { control, test },
+           detail: `a FIRE Arcanine clicking Burn Up while frozen ${JSON.stringify(control)} — the `
+                 + `free move applies; the SAME body after it has spent its Fire type `
+                 + `${JSON.stringify(test)} — the authority emits |cant|frz and it must not act` };
+});
+/* THE THIRD ROUTE, AND WITHOUT IT NO PROBE CAN TELL THE TYPE ROUTE FROM THE TAG ROUTE. The probe above
+ * this block uses Flare Blitz for its Fire arm — and Flare Blitz carries `defrost`, so once the user
+ * route exists it is no longer a clean read on the TYPE clause. Fire Fang is FIRE, carries NEITHER
+ * flag (derived: it is in neither the five nor the three), and is the only arm here that the
+ * `onDamagingHit` type clause alone can explain. Scald is the tag arm and is WATER, so it cannot be
+ * explained by type. Crunch is the control and is neither. */
+probe('move', 'thawsTarget', 'a frozen TARGET thaws by TAG and by TYPE, and by nothing else', () => {
+  const control = thawRun('incineroar', 'crunch', 'target');        // Dark, neither flag
+  const byTag = thawRun('milotic', 'scald', 'target');              // Water, thawsTarget
+  const byType = thawRun('arcanine', 'firefang', 'target');         // Fire, NEITHER flag
+  return { works: control.status === 'frz' && control.dealt > 0
+                  && byTag.status === 'none' && byTag.dealt > 0
+                  && byType.status === 'none' && byType.dealt > 0,
+           arms: { control, test: byTag },
+           detail: `a frozen Garchomp — Crunch (Dark, neither flag) ${JSON.stringify(control)} must `
+                 + `land and leave the ice; Scald (Water, thawsTarget) ${JSON.stringify(byTag)} thaws `
+                 + `by TAG; Fire Fang (Fire, neither flag) ${JSON.stringify(byType)} thaws by TYPE` };
 });
 
 probe('item', 'survivesFromFull', 'Focus Sash leaves 1 HP from full', () => {

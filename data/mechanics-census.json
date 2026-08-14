@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-13T22:02:16.438Z",
+  "generated": "2026-08-14T00:46:14.934Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 567,
-  "live": 567,
+  "probed": 570,
+  "live": 570,
   "missing": 0,
-  "armed": 567,
+  "armed": 570,
   "unarmed": 0,
   "directCall": 0,
   "threw": 0,
@@ -1077,6 +1077,36 @@
       "label": "Flare Blitz thaws a frozen target",
       "live": true,
       "detail": "a frozen Garchomp — Crunch (Dark, no thaw) dealt 80 and left it frz; Flare Blitz (Fire, thaws by TYPE) dealt 59 and left it none; Matcha Gotcha (Grass, thaws by TAG) dealt 22 and left it none",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "thawsUser",
+      "label": "a frozen body thaws by USING a defrost move",
+      "live": true,
+      "detail": "a frozen user on a LOSING thaw roll — Crunch (no flag) {\"status\":\"frz\",\"dealt\":0} must stay frozen and deal 0; Flare Blitz (defrost) {\"status\":\"none\",\"dealt\":59} must thaw AND land; Scald (defrost, WATER) {\"status\":\"none\",\"dealt\":80} must too, which is the arm a type-based fix fails",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "thawsUser",
+      "label": "Burn Up grants no free move once the user is no longer Fire",
+      "live": true,
+      "detail": "a FIRE Arcanine clicking Burn Up while frozen {\"status\":\"none\",\"dealt\":46} — the free move applies; the SAME body after it has spent its Fire type {\"types\":\"???\",\"status\":\"frz\",\"dealt\":0} — the authority emits |cant|frz and it must not act",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "thawsTarget",
+      "label": "a frozen TARGET thaws by TAG and by TYPE, and by nothing else",
+      "live": true,
+      "detail": "a frozen Garchomp — Crunch (Dark, neither flag) {\"status\":\"frz\",\"dealt\":80} must land and leave the ice; Scald (Water, thawsTarget) {\"status\":\"none\",\"dealt\":80} thaws by TAG; Fire Fang (Fire, neither flag) {\"status\":\"none\",\"dealt\":32} thaws by TYPE",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2896,7 +2926,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

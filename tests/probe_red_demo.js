@@ -940,7 +940,36 @@ const CONVERSIONS = [
       return ['psychicterrain', 'electricterrain', 'grassyterrain', 'mistyterrain']
         .every(id => landed(id) !== 'none') && landed('swordsdance') === 'none'; } },
 ];
-for (const c of CONVERSIONS) demo('#42/#45  ' + c.name, shipped, without(c.strip[0], c.strip[1], c.strip[2]), c.run);
+/* ================= A STRIP THAT CANNOT APPLY IS A RED ROW, NOT A DEAD PROCESS ====================
+ *
+ * FOUND 2026-08-13 WHILE LANDING ROADMAP #261, AND IT IS THE FILE'S OWN LESSON A SECOND TIME. The
+ * comment on `stale` above already says it: *"the guard fired, and firing it made the rest
+ * invisible."* That was written about `revertedEngine` throwing out of `demoSource`. The IDENTICAL
+ * hazard was one line below it, unguarded — `without()` throws when the entity it names is not in
+ * the artifact, and the whole `CONVERSIONS` table is built by calling it INSIDE the loop argument,
+ * so one unstrippable row killed the process.
+ *
+ * IT WAS NOT HYPOTHETICAL. `without('ability','icescales','damageReduce')` has thrown since ROADMAP
+ * #175 (2026-08-11) stopped deriving abilities with NO LEGAL CARRIER in this regulation — Will: *"if
+ * no legal species, then toss it man"*. That is correct behaviour upstream and Ice Scales is
+ * genuinely not in Reg M-B; what is wrong is that a correct upstream change silently took EVERY
+ * demonstration below line 943 out of service, including the four ROADMAP #261 rows this file was
+ * opened to add. Measured on the run that found it: the process died at row 45 of ~70.
+ *
+ * So a row whose strip cannot apply is NAMED, counted as a failure, and the loop continues — exactly
+ * what `demoSource` does with a reversal that no longer matches. */
+for (const c of CONVERSIONS) {
+  const label = '#42/#45  ' + c.name;
+  let bad = null;
+  try { bad = without(c.strip[0], c.strip[1], c.strip[2]); }
+  catch (e) {
+    ran++; failures++; stale.push(label + '   (the STRIP cannot apply: ' + String(e.message) + ')');
+    console.log(`  STALE ${label}   THE STRIP NO LONGER APPLIES — ${String(e.message)}. The entity or `
+      + 'the tag has left data/tags.json, so this demonstration has not run since it did.');
+    continue;
+  }
+  demo(label, shipped, bad, c.run);
+}
 
 /* INSOMNIA IS NOT A TAG-STRIP DEMO, AND FINDING THAT OUT IS WHY THE DEMO IS WORTH WRITING.
  *
@@ -1315,6 +1344,87 @@ demo('ARM  thawsTarget -- a GRASS move with the tag thaws, and Crunch does not',
       return B.f1.fainted ? 'FAINTED' : (B.f1.status || 'none');
     };
     return run('crunch') === 'frz' && run('matchagotcha') === 'none';
+  });
+
+/* ---- ROADMAP #261 — THE USER ROUTE OF THE THAW, FOUR DEMONSTRATIONS ------------------------------
+ *
+ * The row above this one is the TARGET route and it has been live since WIRE 17. The defect was the
+ * other half: `flags.defrost` — the user thaws by USING the move — had no representation anywhere,
+ * and `data/tags.json` had collapsed the two rules into one tag that was wrong about two of its own
+ * five members. Each arm below removes exactly one thing.
+ *
+ * THE FROZEN BODY IS STAGED WITH `frzTurns = 0` AND THE ROLL PINNED LOSING (rng5 = 0.5 against
+ * `frzTurns>=3||rng()<0.25`), so the ORDINARY thaw route cannot supply a green in any arm. Without
+ * that pin every row here would pass on an engine with no defrost clause at all, one turn in four. */
+const frozenUserActs = (E, sp, mv) => {
+  const B = stage4(E, [sp, 'corviknight', 'garchomp', 'garchomp'],
+    (b) => { b.f1.st = Object.assign({}, b.f1.st, { hp: b.f1.st.hp * 8 }); b.f1.curHP = b.f1.st.hp;
+             b.me.status = 'frz'; b.me.frzTurns = 0; });
+  const before = B.f1.curHP;
+  E.battleTurn(B.S, rng5,
+    new Map([[B.me, E.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]), P2(B.f1, B.f2));
+  return { status: B.me.status || 'none', dealt: before - B.f1.curHP };
+};
+/* THE SOURCE-TIER REVERSAL: the artifact keeps its tag and the ENGINE stops asking for it, which is
+ * the exact state this engine shipped in. One line, so a later wire that moves the block still
+ * matches; `revertedEngine` throws by name if it ever stops. */
+demoSource('ROADMAP #261  thawsUser -- a frozen body thaws by USING a defrost move',
+  [["        const _tu=_fmid?TAGS.param('move',_fmid,'thawsUser'):null;",
+    '        const _tu=null;']],
+  (E) => {
+    const control = frozenUserActs(E, 'incineroar', 'crunch');
+    const test = frozenUserActs(E, 'incineroar', 'flareblitz');
+    const nonFire = frozenUserActs(E, 'milotic', 'scald');
+    return control.status === 'frz' && control.dealt === 0
+        && test.status === 'none' && test.dealt > 0
+        && nonFire.status === 'none' && nonFire.dealt > 0;
+  });
+/* THE ARTIFACT-TIER ARM, and it is not a duplicate of the row above: it proves the clause reads the
+ * TAG rather than a move name somebody typed. Stripped off SCALD deliberately — Flare Blitz is Fire
+ * and Fire is the other route entirely, so a strip there could be masked the way the collapsed tag
+ * masked Burn Up for months. Scald is Water and has nothing else to fall back on. */
+demo('ROADMAP #261  thawsUser -- the clause reads the ARTIFACT, not a name',
+  shipped, without('move', 'scald', 'thawsUser'), () => {
+    const control = frozenUserActs(M, 'milotic', 'surf');
+    const test = frozenUserActs(M, 'milotic', 'scald');
+    return control.status === 'frz' && control.dealt === 0 && test.status === 'none' && test.dealt > 0;
+  });
+/* THE EXCEPTION, DEMONSTRATED BY BLANKING THE PARAM RATHER THAN THE TAG. `requiresUserType` is the
+ * whole of the authority's `!(move.id === 'burnup' && !pokemon.hasType('Fire'))`; with it null the
+ * engine hands a type-spent Arcanine the free move, which is a frozen body acting on a move that
+ * cannot even resolve. */
+demo('ROADMAP #261  thawsUser -- Burn Up is refused once its user is no longer Fire',
+  shipped, withAdded('move', 'burnup', 'thawsUser', { thaws: true, requiresUserType: null }), () => {
+    const control = frozenUserActs(M, 'arcanine', 'burnup');     // still Fire — the free move applies
+    const B = stage4(M, ['arcanine', 'corviknight', 'garchomp', 'garchomp'],
+      (b) => { b.f1.st = Object.assign({}, b.f1.st, { hp: b.f1.st.hp * 8 }); b.f1.curHP = b.f1.st.hp; });
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'burnup', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]), P2(B.f1, B.f2));
+    B.me.status = 'frz'; B.me.frzTurns = 0;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'burnup', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]), P2(B.f1, B.f2));
+    return control.status === 'none' && control.dealt > 0
+        && (B.me.types || []).join('/') === '???' && B.me.status === 'frz';
+  });
+/* AND THE TARGET ROUTE'S **TYPE** CLAUSE, WHICH NOTHING HAD EVER SHOWN RED ON ITS OWN. The row a few
+ * above strips `thawsTarget` off Matcha Gotcha and so demonstrates the TAG clause; the type clause
+ * beside it was only ever exercised by Flare Blitz, which now carries `thawsUser` as well. Fire Fang
+ * carries NEITHER flag, so it is the one carrier the type clause alone can explain. */
+demoSource('ROADMAP #261  thawsTarget -- a Fire move with NEITHER flag thaws a target by TYPE',
+  [["        if(tg.status==='frz'&&(effMoveType(mv,a.move.id,field,m)==='Fire'||TAGS.has('move',a.move.id,'thawsTarget'))){",
+    "        if(tg.status==='frz'&&(false||TAGS.has('move',a.move.id,'thawsTarget'))){"]],
+  (E) => {
+    const hit = (sp, mv) => {
+      const B = stage4(E, [sp, 'corviknight', 'garchomp', 'garchomp'],
+        (b) => { b.f1.st = Object.assign({}, b.f1.st, { hp: b.f1.st.hp * 8 }); b.f1.curHP = b.f1.st.hp;
+                 b.f1.status = 'frz'; b.f1.frzTurns = 0; });
+      const before = B.f1.curHP;
+      E.battleTurn(B.S, rng5,
+        new Map([[B.me, E.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]), P2(B.f1, B.f2));
+      return { status: B.f1.status || 'none', dealt: before - B.f1.curHP };
+    };
+    const control = hit('incineroar', 'crunch'), byType = hit('arcanine', 'firefang');
+    return control.status === 'frz' && control.dealt > 0 && byType.status === 'none' && byType.dealt > 0;
   });
 
 demo('ARM  survivesFromFull -- a Focus Sash holder is left on 1',
@@ -3107,7 +3217,19 @@ demoSource('ROADMAP #81 WIRE 10  a target that faints mid-spread does not interr
  * At one target the two loop orders are the same permutation, so this is arithmetic rather than luck
  * — and it is measured anyway, because "it must be identical" is precisely the kind of claim this
  * repository has been wrong about while sounding certain. */
-{
+/* GUARDED 2026-08-13, ROADMAP #261 — SAME DEFECT AS THE `CONVERSIONS` LOOP, ONE FILE DOWN. This is
+ * the only bare `revertedEngine` left outside `demoSource`, and `W10_REVERT` has been stale for a
+ * while: the three WIRE 10 rows above it already report STALE. `demoSource` catches that and this did
+ * not, so the file exited here with a stack trace and everything below it stopped running. Named,
+ * counted and skipped, exactly like every other stale reversal. RE-AIMING `W10_REVERT` IS NOT DONE
+ * HERE ON PURPOSE — it is somebody else's design and a reconstruction by a passer-by would go green
+ * while testing something nobody chose (docs/LESSONS.md §11). */
+if (!(() => { try { revertedEngine(W10_REVERT); return true; } catch (e) {
+  ran++; failures++; stale.push('ROADMAP #81 WIRE 10  the single-target CONTROL');
+  console.log('  STALE ROADMAP #81 WIRE 10  the single-target CONTROL   THE REVERSAL NO LONGER '
+    + 'MATCHES THE ENGINE, so the control that holds the single-target path constant has not run. '
+    + String(e.message).split('\n')[0]);
+  return false; } })()) { /* skipped */ } else {
   const bad = revertedEngine(W10_REVERT);
   /* THE LIST IS CHECKED, NOT TRUSTED. The first cut of this control put `makeitrain` and
    * `earthquake` in it and reported five single-target clicks "moving" — both are spread moves, so
@@ -3885,8 +4007,19 @@ demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any co
    * reason that has nothing to do with hit counts, on both builds. That is asserted rather than
    * hidden, because "the control read 0" and "the control was not measurable" must not look alike.
    * TWIN BEAM is 100-accurate and exactly 2 hits, so it is the control that IS readable at both. */
-  {
-    const reverted = revertedEngine(WITHHOLD);
+  /* GUARDED 2026-08-13, ROADMAP #261 — the third and last bare `revertedEngine` outside `demoSource`,
+   * same treatment as the other two. `WITHHOLD` is already stale (the row directly above reports it),
+   * so this threw and killed the file at its very last block. Re-aiming the patch belongs to whoever
+   * owns ROADMAP #103. */
+  let reverted = null;
+  try { reverted = revertedEngine(WITHHOLD); }
+  catch (e) {
+    ran++; failures++; stale.push('ROADMAP #103  the fixed-count POSITIVE CONTROL');
+    console.log('  STALE ROADMAP #103  the fixed-count members are the POSITIVE CONTROL   THE '
+      + 'REVERSAL NO LONGER MATCHES THE ENGINE, so the control has not run. '
+      + String(e.message).split('\n')[0]);
+  }
+  if (reverted) {
     ran++;
     const a = RATIOS(M, 'doublehit'), b = RATIOS(reverted, 'doublehit');
     const c = RATIOS(M, 'twinbeam'), d = RATIOS(reverted, 'twinbeam');

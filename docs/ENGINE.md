@@ -37,8 +37,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  567/567 probed mechanics live, 0 missing   (census 2026-08-13 18:02)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-13 18:02)
+  570/570 probed mechanics live, 0 missing   (census 2026-08-13 20:18)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-13 20:23)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -50,15 +50,124 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 9d2f2dd8f0ea now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 3ce03327bed0 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 98b4ec59dc51 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 263/282 probed, 19 unprobed
+  tag coverage: 264/283 probed, 19 unprobed
 ```
 
-_stamped 2026-08-13 18:03_
+_stamped 2026-08-13 20:45_
 
 <!-- /GENERATED -->
+
+## ROADMAP #261 — A FROZEN BODY THAWS BY ATTACKING, AND THE TAG WE HAD WAS A COLLAPSED PAIR. 2026-08-13.
+
+**Census 567 live / 0 missing -> 570 live / 0 missing.** Three probes. Two were shown MISSING against
+the shipped engine before a byte of the fix existed; the third separates two routes that could not be
+told apart before.
+
+Full write-up in `docs/MEDICHAM-SPRINT-NOTES.md`. For this ledger:
+
+### THE FORMAT HAS TWO RULES AND THIS ENGINE HAD ONE
+
+Derived over the 500 legal moves, printed before anything was wired:
+
+| rule | members | here, before |
+|---|---|---|
+| `flags.defrost` — the USER thaws by USING the move | Burn Up, Flare Blitz, Matcha Gotcha, Scald, Scorching Sands (**5**) | **nothing** — `grep -c defrost` was 0 in `medicham2-browser.js` and in `data/tags.json` |
+| `thawsTarget` — the TARGET thaws on being HIT | Matcha Gotcha, Scald, Scorching Sands (**3**) | live since WIRE 17 |
+
+`data/tags.json` held all five under `thawsTarget`, so the tag was wrong about two of its own members.
+Burn Up and Flare Blitz defrost their USER; they do not thaw a target. Masked because both are Fire
+and `frz.onDamagingHit` cures on any damaging Fire move — right answer, wrong reason, invisible to
+every instrument here.
+
+### THE AUTHORITY FIRST, ONE STAGED BATTLE PER ROUTE, WITH THE 1/4 THAW ROLL PINNED FALSE
+
+| route | authority | before | after |
+|---|---|---|---|
+| frozen user clicks Flare Blitz | thaws, then attacks | `{frz, dealt 0}` | `{none, dealt 59}` |
+| frozen user clicks Crunch (CONTROL) | `\|cant\|frz`, 0 damage | same | same |
+| frozen target hit by Scald (Water, TAG) | thaws | ok | ok |
+| frozen target hit by Fire Fang (NEITHER flag) | thaws by TYPE | ok | ok |
+| frozen target hit by Crunch (CONTROL) | stays frozen | same | same |
+| Burn Up by a user that has SPENT its Fire type | `\|cant\|frz` | right by ACCIDENT | right by RULE |
+
+The first row read identically to its own control, which is this file's own signature for an unwired
+knob.
+
+### THE FIX IS A SPLIT AND THE EXCEPTION IS A PARAM
+
+`thawsUser` off `flags.defrost`, carrying `requiresUserType` read from Burn Up's own `onTryMove`
+through the SAME reader `spendsOwnType.requires` uses — upstream hardcodes `move.id === 'burnup'` and
+this repository does not consume names. `thawsTarget` narrowed to `m.thawsTarget`. The clause sits
+ABOVE the counter tick, because the authority's `return` spends no turn and draws no die. Counters:
+`MEDSEEN.thawedByOwnMove`, `MEDSEEN.frzFreeMoveRefusedOnType`.
+
+Membership printed before wiring: 5 defrost members; `requiresUserType` matches exactly ONE move in
+the format, `burnup -> Fire`. The regeneration changed **exactly five entities** against the old
+artifact and nothing else.
+
+### THE RED PROOFS — FOUR, GREEN-THEN-RED, IN `tests/probe_red_demo.js`
+
+A source reversal that stops the engine asking for the tag; an artifact strip on **Scald** (not Flare
+Blitz — Fire is the other route and a strip there could be masked exactly as the collapsed tag masked
+Burn Up); a param blanking for the Burn Up exception; and a source reversal of the target route's
+**type** clause, which nothing had ever shown red on its own.
+
+### `tests/probe_red_demo.js` HAD BEEN DYING AT ROW 45 OF 197 SINCE 2026-08-11
+
+`without('ability','icescales','damageReduce')` throws — correctly; ROADMAP #175 stopped deriving
+abilities with no legal carrier — and the `CONVERSIONS` loop built its known-bad artifact inside the
+loop argument. Two further bare `revertedEngine` calls outside `demoSource` did the same further down.
+All three now degrade to a NAMED, counted STALE row. The file runs to completion: **197
+demonstrations, 38 failed — 30 STALE reversals/strips, 8 genuine non-flips.** Every one is
+pre-existing and none is about thaw. Re-aiming somebody else's reversal is a guess at their design and
+was not done here.
+
+### THE WHOLE-GAME DIFFERENTIAL MOVES NO COUNT AND ONE CLASS
+
+Releases `b4746a1e44a7` -> `652b971cb70d`, 978 games played of 1,220 requested, census and team pool
+pinned identically. The two releases differ in five files; two of them (`engine/board.js`,
+`engine/rollout_leaf.js`) are another division's and **the driver loads neither, directly or
+transitively**, so the comparison is over my three.
+
+| arm | before | after |
+|---|---|---|
+| middle | 588 / 978 | 588 |
+| top-tie-first | 222 / 978 | 222 |
+| bottom-tie-first | 256 / 978 | 256 |
+
+In the bottom corner the class `-curestatus field 4` (1 game) **disappears** and `event missing from
+medicham2` gains that game (114 -> 115). Field 4 of a `-curestatus` is the attribution; this change
+touches exactly one `-curestatus` emission, and the staged line now reads
+`|-curestatus|p1a: incineroar|frz|[from] move: flareblitz` where it wrote `[msg]`. **The artifact does
+not name that game** — only the primary arm's first divergences are recorded, and a single-arm re-run
+draws a different sample (208 diverged, not 256) — so the identification rests on the class, the emit
+and the one-line change, and is stated as that.
+
+`tests/test-engine-diff.js --n 6000`: **0/6000, top 0/6000, bottom 0/6000.** Unmoved, and expected —
+freeze is a turn counter and that instrument compares one hit.
+
+### RE-RUN OWED
+
+Everything downstream of MEDICHAM. This is a BEHAVIOUR change: a frozen body now acts on five moves
+where it used to wait on a die.
+
+### THE HAND LIST IS UNCHANGED
+
+This pass took its target from ROADMAP #261, not from the hand list.
+
+### NOT MINE, REPORTED
+
+`tests/test-effective-identity.js` is red on the raw-read ratchet (1471 against a baseline of 1198);
+every file in its delta belongs to another division. `tests/test-tag-consumed.js` is red on
+`punishesMinimize [STILL DEAD]`, untouched here. A release (`652b971cb70d`) was cut over this working
+tree at 00:23:58 by a `game_differential` run in another process, mid-edit; it happens to match the
+live tree exactly and so served as the after-arm, but a snapshot of somebody else's half-finished edit
+is the hazard `tests/staged_status_counters.js` documents. `engine/faces.js`'s `thawsTarget` entry
+describes Burn Up removing the user's Fire type — that is `spendsOwnType`'s mechanic, not this one,
+and now that Burn Up has left `thawsTarget` the entry is plainly mislabelled. Left alone and reported.
 
 ## ROADMAP #262 — THE TWO ENGINES NOW NAME THE SAME EVENT, AND THE AUTHORITY'S HALF IS STILL UNWIRED. 2026-08-13.
 

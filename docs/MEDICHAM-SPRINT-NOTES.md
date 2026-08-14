@@ -8558,3 +8558,36 @@ place the address is actually built, and I wrote both.
 
 Fixed, and the identities now agree where it matters: **dmg 99.3%, crit 99.0%, acc 99.7%** from the
 battle hook.
+
+### THE FILE THAT PROVES OUR TESTS CAN FAIL HAD ITSELF BEEN FAILING TO RUN SINCE THE 11TH. 2026-08-13
+
+Found while landing ROADMAP #261, and it is worth more than the row it was found under.
+
+`tests/probe_red_demo.js` is the file that demonstrates our probes go RED on a deliberate break —
+the answer to *"is this test capable of failing at all"*, which is the question this whole project is
+organised around. **It had been dying at row 45 of 197 since 2026-08-11.**
+
+The mechanism is ordinary and that is the point.
+`without('ability','icescales','damageReduce')` THROWS, correctly — ROADMAP #175 stopped deriving
+abilities with no legal carrier. But the `CONVERSIONS` loop built its known-bad artifact **inside
+the loop argument**, so a correct refusal took the whole file down with it. Two further bare calls did
+the same further on.
+
+**152 demonstrations had not been running, including the four this pass came to add.** Nothing reported
+a failure. The file exited, and an exit is not a result.
+
+Fixed by degrading to a named, counted STALE row rather than by removing the call. The file now
+completes: **197 demonstrations, 38 failed — 30 stale reversals or strips, 8 genuine non-flips.** Every
+one pre-existing and none about thaw. That residue needs its own row: re-aiming somebody else's
+reversal is a guess at their design, and a guess here is worse than the gap.
+
+**THE SHAPE, ONCE MORE.** A guard that cannot run reports the same silence as a guard with nothing to
+report. This is the fifth distinct instance today of a check that was not checking — the mega dex
+against a file nobody compared, `verify()` keyed on labels instead of bodies, a semantics guard
+whose fixture contained none of the thing it guarded, a clause measuring a re-implementation of the
+wiring it named, and now a demonstration harness that stopped at row 45.
+
+**And the row it was found under closed on the same principle.** #261's own evidence was that a frozen
+Incineroar clicking Flare Blitz produced `{frz, dealt 0}` — **identical to its own Crunch control**.
+Two arms of a knob reading the same number is this project's signature for a wire that was never
+connected, and it is why the control existed.
