@@ -344,15 +344,11 @@ ok(!!SPE_ITEM, 'a speed-changing item is DERIVED from the dex\'s own onModifySpe
  * FAILURE" shape this repository bans by name.
  * ------------------------------------------------------------------------------------------ */
 {
-  note('OPEN #270 — the seeded field has no clock:',
-    '`applyField` never sets weatherT/terrainT and the engine tick is `if (weatherT > 0 && ...)`, ' +
-    'so ZERO MEANS NEVER EXPIRES and a sun with two turns left runs for sixty');
-  note('OPEN #269 — every durable volatile is dropped at the seam:',
-    'choice lock, Encore, Disable, Taunt, Substitute, Leech Seed, the perish count');
-  note('OPEN #268 — a permanent hazard is given a one-turn duration and layers are not counted:',
-    'Stealth Rock / Spikes / Sticky Web / Toxic Spikes declare no duration and startSide defaults to 1');
-  note('OPEN #267 — a status is seeded and its counter is not:',
-    'sleep turns and the toxic ramp; the board records only the status NAME');
+  note('CLOSED 2026-08-14 — #267, #268, #269 and #270 were the other four rows of this sweep:',
+    'the gate for all four is tests/test-seed-clock.js and the prevalence is ' +
+    'data/rollout-clock-prevalence.json, over the same 14,288 games / 192,912 decision points as ' +
+    'the item scan beside it. #269 is closed in PART — Taunt, Encore and Disable are seeded; the ' +
+    'choice lock, Substitute, Leech Seed and the perish count are declared unseeded with a reason');
   note('OPEN — the OFFLINE board never sees an item event at all (PRIORITIES 13e):',
     '`noteItem` has exactly one caller, engine/magnemite.js, so in the FIT a declared item stands ' +
     'for the whole game. #271 fixes the READER; the missing offline EVENT is MEASURE\'s row');

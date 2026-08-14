@@ -202,6 +202,115 @@ function seedHistory(b, m) {
   b._fallenStuck = m.enteredWithFallen | 0;
 }
 
+/* HOW FAR THROUGH ITS STATUS THIS BODY IS — ROADMAP #267.
+ *
+ * The seed carried `status` onto every body and NOTHING about how far through it the body was, so a
+ * body two turns into a one-or-two-turn sleep got a fresh one in every playout and a `tox` at stage
+ * five chipped at stage one. The engine already models the split correctly — medicham2's own note
+ * walks the format's condition table and records that `par/brn/psn/frz/slp` have no switch handler so
+ * their counters CARRY OVER, while `tox.onSwitchIn` sets the stage to 0 so the ramp RESTARTS — so
+ * this seeds the counter and the engine keeps deciding what happens to it.
+ *
+ * THE THREE FIELDS ARE THE ENGINE'S OWN and there is no fourth: `par` and `brn` have no counter
+ * because nothing about them changes with time. Seeding `toxTurns` on a BENCHED body is deliberately
+ * still done — the engine zeroes it on entry itself and counts `toxStageResetOnEntry` when it does,
+ * so writing the truth here keeps one source and lets the engine apply its own rule.
+ *
+ * OFF BY AT MOST ONE, AND THE DIRECTION IS STATED: `board.endTurn` books a turn under the status at
+ * the end of the turn, and the engine increments `slpTurns` as the body tries to act — so a body that
+ * was slept AFTER it had already moved reads one turn light. It errs by keeping the body asleep
+ * marginally longer, which is the direction the seed already erred in, and only for one turn. */
+const STATUS_CLOCK_FIELD = { slp: 'slpTurns', tox: 'toxTurns', frz: 'frzTurns' };
+function seedStatusClock(b, board, side, species) {
+  if (!b || !board || typeof board.statusTurns !== 'function') return;
+  const f = STATUS_CLOCK_FIELD[B.norm(b.status || '')];
+  if (!f) return;
+  const t = board.statusTurns(side, species) | 0;
+  if (t > 0) b[f] = t;
+}
+
+/* THE DURABLE VOLATILES — ROADMAP #269.
+ *
+ * `magnemite.js` writes `board.startVolatile` from every `|-start|` WITH a duration, so the live
+ * board holds an answer the seed threw away: an Encore with one turn left looked identical to a fresh
+ * one, and a Taunted body walked into every playout free to click its status move.
+ *
+ * *** THE VOCABULARY CHECK CAME FIRST, AND IT FOUND A REAL MISMATCH. ***
+ * The row warned that `_vol`'s keys come from a TAG PARAM while the board's come from the protocol's
+ * own name, and that a key that does not match seeds a volatile NOTHING READS — silently, which is
+ * the terrain-dialect defect MILTANK.md §3.7 records one layer down. It is not hypothetical:
+ * `medicham2-browser.js:10160` states outright that **`_vol.healblock` is read by nothing** and the
+ * consumer is `_healBlock`. Writing the board's key straight into `_vol` would have produced exactly
+ * the green-looking no-op that comment describes.
+ *
+ * SO THE SEEDED SET IS THE ENGINE'S OWN TABLE, REBUILT BY THE SAME EXPRESSION. `durationVolatiles()`
+ * is the `sealsMoves` + `statusInflict` join; this is that join. Nothing is named here, the two
+ * vocabularies cannot come apart, and a volatile a future regulation adds to the family is carried
+ * with no edit. Everything the board can hold OUTSIDE that set is declared below with the field it
+ * would need, rather than written into `_vol` and forgotten.
+ *
+ * ENCORE AND DISABLE NEED THE MOVE, NOT ONLY THE COUNT. `medicham2` reads `_encoreMove` and
+ * `_sealed`, and a volatile whose count is set and whose move is not is recorded and then ignored —
+ * the shape that made Encore LOOK modelled for a whole session. The board records the move it sealed
+ * at `startVolatile` from the body's own last click, so there is nothing to invent here.
+ *
+ * ACTIVE BODIES ONLY, AND THAT IS THE RULE RATHER THAN A LIMIT: Showdown clears volatiles on
+ * switch-out, so a body arriving from the bench genuinely carries none. */
+let _volSeed = null;
+function seedableVolatiles() {
+  if (_volSeed) return _volSeed;
+  _volSeed = new Map();
+  for (const id of (TAGSMOD.withTag('move', 'sealsMoves') || [])) {
+    const sm = TAGSMOD.param('move', id, 'sealsMoves');
+    const si = TAGSMOD.param('move', id, 'statusInflict');
+    if (!sm || !(+sm.turns > 0) || !si || !Array.isArray(si.effects)) continue;
+    for (const e of si.effects) if (e.volatile) _volSeed.set(e.volatile, +sm.turns);
+  }
+  return _volSeed;
+}
+/* WHAT IS DELIBERATELY NOT CARRIED, AND WHY — printed by the gate on every run, because a silent
+ * omission and a considered one look identical in the code. */
+function unseededVolatiles() {
+  return [
+    ['substitute', 'the consumer is `_sub`, which is the substitute\'s REMAINING hp. The protocol ' +
+      'never states it, so any number here would be invented rather than read'],
+    ['leechseed', 'the consumer is `_seededBy`, a reference to the BODY that drains — not a count'],
+    ['healblock', 'the consumer is `_healBlock`; `_vol.healblock` is read by nothing ' +
+      '(medicham2-browser.js:10160), which is exactly the mismatch this check exists for'],
+    ['perishsong', 'the consumer is `_perish`, and the engine clears it on switch-out ' +
+      '(`perishClearedOnSwitch`) — carried here would need the same rule in a second place'],
+    ['throatchop', 'the consumer is `_noSound`, not a `_vol` counter'],
+  ];
+}
+/* THE ONE THING IN THIS BLOCK THAT CANNOT BE DERIVED, DECLARED RATHER THAN HIDDEN.
+ *
+ * Both Encore and Disable seal a move and both carry a duration, and the engine keeps the two in
+ * DIFFERENT fields because they are opposite constraints: `_encoreMove` is the move the body must
+ * use, `_sealed` is the move it may not. No data field in the format or the tag artifact states that
+ * difference — `sealsMoves` carries turns and scope and nothing about direction — so this is a JOIN
+ * between two vocabularies and it is written down in one place, beside the derivation it completes,
+ * rather than as two `if` branches inside the loop. `tests/test-seed-clock.js` asserts every key here
+ * is in the derived table, so a name that stops existing fails loudly instead of going inert. */
+const VOL_MOVE_FIELD = { encore: '_encoreMove', disable: '_sealed' };
+const volCounters = { seeded: 0, unmapped: 0, unmappedKeys: {} };
+function seedVolatiles(b, board, mon) {
+  if (!b || !board || !mon || !mon.volatiles || typeof board.volLeftOn !== 'function') return;
+  const table = seedableVolatiles();
+  for (const key of mon.volatiles.keys()) {
+    const left = board.volLeftOn(mon, key) | 0;
+    if (left <= 0) continue;
+    if (!table.has(key)) {
+      volCounters.unmapped++;
+      volCounters.unmappedKeys[key] = (volCounters.unmappedKeys[key] | 0) + 1;
+      continue;
+    }
+    (b._vol = b._vol || {})[key] = left;
+    volCounters.seeded++;
+    const mv = B.norm(board.volMoveOn(mon, key) || '');
+    if (mv && VOL_MOVE_FIELD[key]) b[VOL_MOVE_FIELD[key]] = mv;
+  }
+}
+
 function buildSide(board, side, dex, stats, protectTurns) {
   const mons = [];
   for (const m of sideTeam(board, side, dex)) {
@@ -222,6 +331,11 @@ function buildSide(board, side, dex, stats, protectTurns) {
     const pt = protectTurns && m && protectTurns[m.species];
     if (pt) b.tookProtectTurns = pt;
     seedHistory(b, m);
+    /* ROADMAP #267 and #269, seeded HERE and not in `dmgMon`, for the reason `seedHistory`'s own note
+     * gives: `dmgMon` is board.js's builder and every damage FEATURE goes through it, so a fact
+     * written there moves fitted feature values. These are facts inside the PLAYOUT. */
+    seedStatusClock(b, board, side, m.species);
+    seedVolatiles(b, board, m);
     mons.push(b);
   }
   /* THE ROSTER TAIL. `dmgMon` carries `hp` across and leaves `fainted` alone -- it has never been
@@ -786,10 +900,18 @@ function applySideState(S, board, side) {
     const p = TAGSMOD.param('move', mv, 'hazard') || {};
     const key = p.hazard || mv;
     /* Clamped by the tag's own ceiling, never by a number typed here. */
-    const layers = Math.min(1, +p.maxLayers > 0 ? +p.maxLayers : 1);
+    const ceiling = +p.maxLayers > 0 ? +p.maxLayers : 1;
     for (const [sf, sd] of pairs) {
       if (!board.hasSide(sd, key)) continue;
-      (sf.hz = sf.hz || {})[key] = layers;
+      /* ROADMAP #268 — THE LAYER COUNT IS READ NOW. This was `Math.min(1, ceiling)`, a constant 1,
+       * because `sideConditions` held an expiry and no count: a Spikes laid three times seeded one
+       * layer (1/8 of a switch-in's HP where the position says 1/4) and Toxic Spikes could never
+       * reach the second layer that makes it BADLY poisoned rather than poisoned. The board counts
+       * them now and clamps on the way in; the second clamp here is kept because the two ceilings
+       * come from the same tag and a seed that trusted the board alone would silently pass a value
+       * the engine's own table does not allow. */
+      (sf.hz = sf.hz || {})[key] = Math.min(ceiling,
+        typeof board.sideLayers === 'function' ? Math.max(1, board.sideLayers(sd, key)) : 1);
     }
   }
 
@@ -818,6 +940,64 @@ function applySideState(S, board, side) {
     const key = p.pseudoWeather || mv;
     const left = typeof board.fieldLeft === 'function' ? board.fieldLeft(key) : (board.hasField(key) ? 1 : 0);
     if (left > 0) S.field.gravity = left;
+  }
+}
+
+/* THE FIELD'S CLOCK — ROADMAP #270.
+ *
+ * `applyField` set `S.field.weather` and `S.field.terrain` and never the two counters beside them,
+ * and the engine's tick is `if (field.weatherT > 0 && --field.weatherT <= 0)` — so **ZERO MEANS NEVER
+ * EXPIRES**. A sun the real board has two turns of ran for sixty in every rollout, mispricing every
+ * Fire move, every Solar Beam, every weather-scaled ability and every Aurora Veil for the whole
+ * playout. The same file already did it correctly one function away: `applyMegaWeather` sets
+ * `weatherT` from `MEDI.weatherTurns`, so the seed's two weather paths disagreed with each other —
+ * which is the shape that produced the mega-weather defect in the first place.
+ *
+ * IT IS ITS OWN FUNCTION, BESIDE `applySideState`, AND NOT A NEW ARGUMENT ON `applyField`. Six
+ * callers build the `field` object by hand (`miltank.js`, the four R-gates, the switch probe) and
+ * every one of them would have had to grow the same two lines — six copies of one fact, which is the
+ * defect this whole batch is made of. The board is already in scope at both leaves; this reads it.
+ *
+ * THE LENGTH IS ASKED OF THE ENGINE. `MEDI.weatherTurns(w, rock, TAGS)` is the one implementation and
+ * the mega branch calls it too, so a Heat Rock, an Icy Rock or a regulation that re-lengths a weather
+ * moves both paths together and neither can drift.
+ *
+ * *** AN EXPIRED WEATHER IS DELETED, NOT COUNTED DOWN TO ZERO, and that is not cosmetic. *** Zero is
+ * the engine's word for "runs forever", so handing over a weather whose clock has run out with
+ * `weatherT: 0` is the precise bug this fixes, spelled differently. The board's own `weather` field is
+ * deliberately NOT expired — it feeds `deadWeather` and the weather-boost features, and expiring it
+ * would move fitted values. That the board's weather never expires FOR THOSE FEATURES is a real and
+ * separate defect; it is filed, not fixed here.
+ *
+ * AN UNKNOWN AGE IS SEEDED AT FULL LENGTH AND COUNTED. A Board that never saw the weather start
+ * cannot say how old it is, and a full clock is both the closest honest answer and strictly better
+ * than the infinity it replaces. */
+const fieldClockCounters = { weatherKnown: 0, weatherUnknownAge: 0, weatherExpired: 0, terrainKnown: 0, terrainUnknownAge: 0 };
+function applyFieldClock(S, board, side) {
+  if (!S || !S.field || !board) return;
+  const w = S.field.weather;
+  if (w) {
+    const age = typeof board.weatherAge === 'function' ? board.weatherAge() : null;
+    const rock = (typeof board.weather === 'string' && MEDI.weatherId(board.weather) === w)
+      ? (board.weatherRock || '') : '';
+    const full = MEDI.weatherTurns(w, rock, TAGSMOD) | 0;
+    if (age == null) { fieldClockCounters.weatherUnknownAge++; S.field.weatherT = full; }
+    else {
+      const left = full - age;
+      if (left > 0) { fieldClockCounters.weatherKnown++; S.field.weatherT = left; }
+      else { fieldClockCounters.weatherExpired++; S.field.weather = ''; S.field.weatherT = 0; }
+    }
+  }
+  /* THE TERRAIN HALF WAS ALREADY REPRESENTABLE and was simply never read: `board.startField` stores an
+   * expiry and `board.fieldLeft` has read it back since ROADMAP #249 gave Gravity the same treatment.
+   * The board key is the long form (`electricterrain`); `terrainId` owns that translation and nothing
+   * else does. */
+  const t = S.field.terrain;
+  if (t && typeof board.fieldLeft === 'function') {
+    const k = BOARD_TERRAIN_KEYS.find(x => MEDI.terrainId(x) === t);
+    const left = k ? board.fieldLeft(k) | 0 : 0;
+    if (left > 0) { fieldClockCounters.terrainKnown++; S.field.terrainT = left; }
+    else fieldClockCounters.terrainUnknownAge++;
   }
 }
 
@@ -931,9 +1111,11 @@ function rolloutWinProb(board, side, opts) {
      * applyMegaWeather's `if (S.field.weather) return` guard arbitrates between them instead of
      * being overwritten by the next line. A real weather the board reports still wins. */
     applyField(S, f, side, SEEDED);
-    /* ROADMAP #249. Board-seeded only: `buildTeams` (team preview) has no board and no game has
-     * started, so there is nothing up to carry — and inventing it would be worse than omitting it. */
-    if (board && SEEDED) applySideState(S, board, side);
+    /* ROADMAP #249 and #270. Board-seeded only: `buildTeams` (team preview) has no board and no game
+     * has started, so there is nothing up to carry — and inventing it would be worse than omitting
+     * it. The clock runs BEFORE `applyMegaWeather`, so that a real weather with turns left keeps its
+     * own remainder and the mega's guard still arbitrates on `S.field.weather` exactly as it did. */
+    if (board && SEEDED) { applyFieldClock(S, board, side); applySideState(S, board, side); }
     applyMegaWeather(S, dex);
     wins += runPlayout(S, rng, EXPLORE, FOE_POLICY, exCount, opts.switchRate);
     ran++;
@@ -991,6 +1173,7 @@ function rolloutAfterActions(board, side, opts) {
     /* Always SEEDED here: rolloutAfterActions only ever steps a real mid-battle board.
      * Field first, mega weather second -- see the note at the call site in rolloutWinProb. */
     applyField(S, f, side, true);
+    applyFieldClock(S, board, side);                /* ROADMAP #270 — the field's own countdown */
     applySideState(S, board, side);                 /* ROADMAP #249 — always a mid-battle board here */
     applyMegaWeather(S, dex);
     const rng = mulberry((opts.seed || 1) * 1000003 + i);
@@ -1096,4 +1279,13 @@ module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, sideFallen, bu
                     * prints it and `tests/test-rollout-switch.js` fails on a zero. `census()` is the
                     * ONE reader of the store-measured switch rate and horizon, so miltank.js and the
                     * leaf cannot end up holding two different numbers for one fact. */
-                   SWITCH_COUNTERS, census };
+                   SWITCH_COUNTERS, census,
+                   /* ROADMAP #267/#269/#270. Same kind of test seam, and the counters for the same
+                    * stated reason `ppCounters` is exported: a seed that carried nothing looks
+                    * exactly like a position with nothing on it, so the wire has to be able to prove
+                    * it fired. `seedableVolatiles`/`unseededVolatiles` are the vocabulary check
+                    * itself — the gate asserts the first against the engine's own table and PRINTS
+                    * the second, because a silent omission and a considered one look identical in
+                    * the code. */
+                   applyFieldClock, seedableVolatiles, unseededVolatiles, VOL_MOVE_FIELD,
+                   fieldClockCounters, volCounters };

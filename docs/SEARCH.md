@@ -28,7 +28,7 @@ SEARCH — does MILTANK choose better than MAG
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/board.js 2026-08-14 00:52):
+  runs vs engine (newest engine source: engine/board.js 2026-08-14 01:55):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-03 22:36
     PRE-CHANGE games.r4.jsonl  2026-08-03 22:33
@@ -36,9 +36,227 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-03 20:45
 ```
 
-_stamped 2026-08-14 01:04_
+_stamped 2026-08-14 02:04_
 
 <!-- /GENERATED -->
+
+## R16 — EVERY CLOCK THE POSITION WAS RUNNING. #267, #268, #270 CLOSED AND #269 CLOSED IN PART, 2026-08-14.
+
+ROADMAP **#267, #268 and #270 closed; #269 closed in part**, as one batch — they are one surface and
+the same defect asked four times. Gate: **`tests/test-seed-clock.js`** (63 assertions, auto-discovered
+by `tests/run-all.js`), shown **RED first**. Prevalence artifact:
+**`data/rollout-clock-prevalence.json`**, written by `engine/rollout_clock_prevalence.js`. ROADMAP
+**#275, #276 and #277 opened** by what the work found. This completes the five-row sweep R14 filed;
+#271 landed separately on 2026-08-13 so its result stays attributable on its own.
+
+**#269 is CLOSED IN PART and its remainder is a row of its own, #277, deliberately.** A row closed in
+part is a row whose leftovers have no home, and a defect with no home is the UNREGISTERED shape
+`open_work.js` exists to print — the register's closed-detector reads "closed in part" as closed, so
+the six volatiles and the foe's Protect streak would have vanished from the work list on the day they
+were half fixed.
+
+### The verdict in one line
+
+**A weather was up at 32.2% of decision points with a mean of 2.95 turns left, and the seed ran every
+one of them for sixty turns — that single row is bigger than the other three put together, and #268,
+the one the roadmap called fit-invalidating, turns out to move exactly two candidates in 139,340.**
+
+### What each one was, and what closed it
+
+| row | the seed said | the position says | closed by |
+|---|---|---|---|
+| **#270** | `weatherT: 0` — and **zero is the engine's word for NEVER EXPIRES** | the sun has two turns left | `board.setWeather` stamps `weatherSince`/`weatherRock`; `rollout_leaf.applyFieldClock` asks `MEDI.weatherTurns` for the length and **deletes** an expired weather |
+| **#268** | a permanent hazard is up for one turn offline, five live, and is always one layer | the rocks stay until they are removed, and Spikes stack three deep | `startSide` asks the FORMAT whether a condition is permanent; the Map's value is `{until, layers}` and `board.sideLayers` is the one reader |
+| **#269** | no Taunt, no Encore, no Disable | all three are on the live board with a duration | `rollout_leaf.seedVolatiles`, over the engine's OWN `durationVolatiles()` join |
+| **#267** | a body carries a status and no counter | it is three turns into the sleep | `board.statusClock`, booked in `endTurn`; `seedStatusClock` writes `slpTurns`/`toxTurns`/`frzTurns` |
+
+### Does it change decisions? MEASURED — and the four are wildly unequal
+
+`data/rollout-clock-prevalence.json`, over **14,288 open-sheet bo3 games / 192,912 decision points**.
+It reads the store and `data/tags.json`, **plays no game and opens no `Dex`** — no `battleInit`, no
+rollout, no board — so it is not downstream of MEDICHAM, is not quarantined, and needed no engine
+release with three other agents in the tree. **Same denominator as `data/rollout-item-prevalence.json`
+by construction**, so R15's 3.622% and these sit on one axis.
+
+| | share of decision points |
+|---|---|
+| **#270** a WEATHER is up (mean **2.95** turns left) | **32.223%** |
+| **#267** a body is some turns into slp / tox / frz | **8.243%** (7.405% of them on the field) |
+| **#269** a duration volatile is up — **a FLOOR, and the worst of the four** | **4.994%** |
+| **#268** a hazard is up | **0.271%** (0.08% older than five turns, 0.015% deeper than one layer) |
+| (context) after a terrain was set — a **CEILING**, kept out of the headline | 17.857% |
+| **ANY of them — the ceiling on this batch's reach** | **39.724%** |
+
+**Every floor and ceiling is stated with its direction, because three of the four have one.** #269 is
+a FLOOR for a structural reason: **the store records no `|-start|` at all**, so a Taunt is countable
+only from the CLICK that caused it and every volatile an item or an ability starts is invisible — the
+live board sees strictly more, by an unknown amount. #267 is a CEILING the other way: the store
+records a status landing and never a cure, so a Heal Bell, a Lum Berry and a Natural Cure pivot all
+leave the body counted as still statused. The terrain figure is a CEILING because a terrain's
+duration is not in the tag artifact and reading it would mean opening a `Dex` — which is the one
+thing that keeps this scan honest — so it is printed and deliberately excluded from the union.
+And all of it is a **ceiling on decisions**: it counts positions the seed described wrongly, not
+argmaxes that flip.
+
+### #268 WAS FILED AS FIT-INVALIDATING AND THAT IS CORRECTED — MEASURED, NOT ARGUED
+
+The row says *"fixing it moves `deadSide` and `setupTurns`, which are fitted FEATURES, so it
+invalidates `data/policy-weights.json`… THIS IS NOT SEARCH'S."* It is fit-**affecting** in kind and
+immaterial in size:
+
+| | |
+|---|---|
+| `deadSide` fires, **with** the fix | **927** of 139,340 candidates |
+| `deadSide` fires, against a deliberate break restoring the old semantics | **925** |
+| every other feature in `engine/feature_coverage.js`, 800 fit games | **byte-identical** |
+| `engine/feature_fixture.js`, 58 per-feature column hashes | **byte-identical** |
+
+**Two candidates.** The reason is the format rather than the code: **60 hazard clicks across 14,288
+open-sheet games**, and not one hazard is laid in the first 120 games of the fit corpus — measured by
+counting `startSide` calls through the fitter's own replay, which returns
+`{tailwind: 80, reflect: 18, lightscreen: 18, wideguard: 17, auroraveil: 3, quickguard: 3}` and no
+hazard at all. `setupTurns` does not move, exactly as #254's own note predicted: no hazard carries a
+`condition.duration`, so `dur()` is 0 whatever `alreadyUp` says.
+
+**This is the same correction shape as #271's, and it is worth as much as the fix.** A row that says
+"belongs with the refit" stops work; the number says it does not. The fix is still correct and still
+worth having — 0.271% is small and it is not zero, and a model that re-lays Stealth Rock because it
+forgot the rocks is wrong in a way that is visible on the screen.
+
+### Four decisions inside the fix that were load-bearing
+
+**1. `startSide` asks the FORMAT, not the caller, and that is `sideFor`'s shape one screen up.**
+Whose side a condition lands on (#254) and how long it lasts are both FACTS; a fact answered
+independently by two callers agrees only by accident. So permanence is derived — a move declaring no
+`condition.duration` — which overrules the live adapter's guessed `fieldDuration` of **5** without
+`magnemite.js` being touched at all.
+
+**2. The FIRST version of that read only `derived()` and was MEASURED WRONG.** `derived()` needs a
+dex and is filled by `featuresFor`, so on a board that had never scored a feature the layer ceiling
+silently fell back to one — **four Spikes read one layer deep**, the defect wearing the shape of the
+fix, caught by the gate rather than by review. The `hazard` tag answers both questions with no dex at
+all (its `hazard` param IS the side-condition key), so it is the primary source and `derived()` the
+refinement, and `board.sideCounters` counts every fallback taken.
+
+**3. `applyFieldClock` is a new seam, NOT a new argument on `applyField`.** Seven callers build the
+field object by hand — `miltank.js` twice, the four R-gates, the switch probe, the contrast tool — and
+every one would have grown the same two lines. Seven copies of one fact is the defect this whole batch
+is made of. The board is already in scope at both leaves, so the clock reads it there and every caller
+is fixed without being edited.
+
+**4. An expired weather is DELETED, not counted down to zero.** Zero means "runs forever" to the
+engine, so handing over an expired weather with `weatherT: 0` is this row's bug spelled differently.
+The board's own `weather` field is deliberately left alone — it feeds `deadWeather` and the
+weather-scaled features, and expiring it moves fitted values. That it never expires for those features
+either is real, is filed as **#276**, and is not fixed here.
+
+### #269's FIRST TASK WAS A VOCABULARY CHECK AND THE MISMATCH IS REAL
+
+The row warned that `_vol`'s keys come from a tag param and the board's from the protocol's own name,
+and that a key that does not match seeds a volatile **nothing reads** — silently. It is not
+hypothetical, and the engine says so itself at `medicham2-browser.js:10160`: **`_vol.healblock` is
+read by NOTHING**; the consumer is `_healBlock`. Writing the board's key straight into `_vol` would
+have produced exactly the green-looking no-op that comment describes.
+
+So the seeded set is **the engine's own table, rebuilt by the same expression** — the `sealsMoves` +
+`statusInflict` join `durationVolatiles()` uses, which yields exactly `taunt`, `encore`, `disable`.
+The two vocabularies cannot come apart, and the gate asserts the seed's set against the engine's
+rather than against a list. Encore and Disable need the MOVE as well as the count; the board records
+it at `startVolatile` from the body's own `moveThisTurn || lastMove`, which is what both moves act on,
+so the protocol did not have to grow an argument. The one thing that **cannot** be derived — which of
+the two engine fields each takes, since no data field states that Encore locks IN and Disable locks
+OUT — is a declared JOIN in one place (`VOL_MOVE_FIELD`) that the gate checks against the derived
+table.
+
+**Five are declared UNSEEDED with a reason each, and `rollout_leaf.unseededVolatiles()` prints them on
+every run**: `substitute` (`_sub` is the sub's remaining hp, which the wire never states),
+`leechseed` (`_seededBy` is a body reference), `healblock`, `perishsong` (`_perish`, which the engine
+clears on switch-out) and `throatchop` (`_noSound`). A silent omission and a considered one look
+identical in the code, which is why they are printed.
+
+### The proof, red first
+
+`tests/test-seed-clock.js` was run before a byte of the fix existed: **11 FAIL** and then an abort on
+`bd.sideLayers is not a function`, every failure one of the four counters reading its floor —
+`weatherT 0` on a weather five turns long, a hazard gone one `endTurn()` after it was laid, no
+`_vol`, no `slpTurns`. A second honest red came mid-fix and is the more useful one: with the layer
+ceiling reading only `derived()`, **5 FAIL** — four Spikes at one layer and the behavioural arm at
+`-17 / -17`. After: **63 passed, 0 failed.**
+
+**Every control was green in both reds**, which is what says the file cannot pass by making everything
+permanent or by inventing a clock: a timed side condition still expires exactly on its own duration
+(Reflect, Light Screen, Aurora Veil at 5, Quick Guard at 1), an unstatused body two turns in is
+byte-identical, a paralysed body gets no counter, and a body with no Taunt carries none.
+
+**Nothing in it is typed.** The weather-setting move and the terrain-setting move are the first the
+format offers; the weather's length is `MEDI.weatherTurns`; the rock is found by probing every legal
+item until one lengthens it; the hazards and their ceilings come from the `hazard` tag; the
+duration-volatiles from the engine's own join; the timed controls are every legal move that declares
+a `condition.duration`. Two observables are behavioural rather than field reads — **three layers of
+Spikes take more HP off a switch-in than one (−35 against −17)**, and **a seeded Taunt actually
+refuses the status click** — because reading `_vol` back would only prove the seed wrote what the
+seed wrote.
+
+**And the wires prove they ran** (§5): the gate asserts `fieldClockCounters.weatherKnown`,
+`weatherExpired`, `terrainKnown` and `volCounters.seeded` are all non-zero, that the hazard table
+loaded, and it prints `volCounters.unmapped` — the vocabulary mismatch as a number, so a volatile
+arriving with nowhere to go is visible on a live board instead of silent.
+
+### Adjacent gates, run and reported
+
+Green: `tests/test-rollout-seed.js` (48/48), `tests/test-seed-residue.js` (20/20),
+`tests/test-rollout-fallen.js` (28/28), `tests/test-rollout-switch.js` (16/16),
+`tests/test-rollout-gates.js` (16/16), `tests/test-pp-fact.js` (33/33),
+`tests/test-hazard-side.js` (11/11), `tests/test-weather-duration.js` (60/60),
+`tests/test-feature-semantics.js` (18/18), `tests/test-switch-features.js`,
+`tests/test-switch-carry.js` (27/27), `tests/test-board-browser.js` (14/14),
+`tests/test-engine-consistency.js`, `tests/test-forced-switch.js`,
+`tests/test-miltank-release.js` (25/25), `tests/test-wiring.js` (*"every capability proved it ran"*),
+`tests/test-artifact-keys.js` (4/4), `tests/test-provenance-discovery.js`,
+`tests/test-timestamps.js` (6/6), `tests/test-fixture-legality.js`,
+`tests/test-docs-current.js` (21/21), `tests/test-roadmap-register.js` (3/3),
+`tests/test-lownode.js` (4/4).
+
+`tests/test-rollout-switch.js` and `tests/test-pp-fact.js` are the real control again: both seed
+boards with nothing up and assert exact, dice-for-dice win probabilities, which is only possible if a
+board with no weather, no hazard, no volatile and no status is byte-identical to what it was.
+
+**`tests/test-stadium-roster.js` was RED on this work and is GREEN**: the new prevalence generator was
+undeclared and now carries a `NOT_A_MODEL` entry with its reason. It was the only gate this work
+turned red, and it was fixed rather than filed.
+
+**Four gates are RED, none is this work's, and this work contributes ZERO rows to any of them —
+verified by name, not by assertion.** `tests/test-volatile-duration.js` and
+`tests/test-perish-song.js` fail their FIXTURE LEGALITY audit (*"clefable can't learn Perish Song"*,
+*"snorlax can't learn Pound"*), which is **ROADMAP #266** — those two files are named in that row with
+three verdicts each, and the failure is a moveset declaration with nothing to do with a clock.
+`tests/test-no-silent-failure.js` is red at **81** NEW silent catches against R15's 80; grep of its
+full list for `board.js`, `rollout_leaf.js`, `rollout_clock_prevalence.js` and `test-seed-clock.js`
+**returns nothing** — and the one catch this work did add, `hazardSideTable`'s, was flagged and then
+made to speak (`sideCounters.hazardTableFailed` plus the reason), which is why the count did not go to
+82. `tests/test-effective-identity.js` is 18/1 at **1,471** raw reads against a 1,198 baseline; the
+20 contributing files are named in its own output and **none of the four is mine**.
+
+### What was deliberately NOT done
+
+- **No SPRT was prepared and no leaf value was re-measured.** Three other agents were in the tree
+  tonight — `engine/medicham2-browser.js` on Feint / Phantom Force, `engine/residual_order.js`, the
+  divergence cards — and the census moved 556 → 570 while this landed, so a rollout measurement
+  against the live tree is void by the rule that cost this project 7,100 games. The prevalence figure
+  above is a store scan by construction and is the number that can honestly be taken today. **The
+  paired argmax run is now unblocked**: all five rows of the R14 sweep are closed or declared, so a
+  frozen release and a common-random-numbers comparison is the next thing this division owes.
+- **No refit was run and none is owed by these rows.** #267, #269 and #270 add no feature and change
+  no fitted value; #268's is two candidates in 139,340, measured above. **#276 is the one that owes a
+  refit** and it is filed rather than taken.
+- **`engine/medicham2-browser.js`, `engine/magnemite.js` and `engine/mag_bot.js` were not touched.**
+  The Encore/Disable move and the hazard ceiling were both derivable inside `board.js`, which is what
+  made that possible; the foe's `protectTurns` living in `mag_bot.js` is still open and is still not
+  SEARCH's to move.
+- **#275 was found and left open on purpose.** `miltank.js` types a Tailwind as four turns and a Trick
+  Room as five whatever is left on them — #270 in a different file — and it changes the seeded speed
+  order of a live search in seven callers at once. Landing it inside this batch is exactly what makes
+  a batch unattributable.
 
 ## R15 — A KNOCKED-OFF ITEM WAS STILL ON THE BOARD'S BODY. ROADMAP #271 CLOSED 2026-08-14.
 

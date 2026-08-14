@@ -1,0 +1,109 @@
+{
+  "generated": "2026-08-14T05:50:48.729Z",
+  "what": "ROADMAP #267/#268/#269/#270 — how often the position is running a clock the seed dropped",
+  "store": "data/games.bo3.jsonl",
+  "floors": {
+    "volatiles": "FLOOR. The store records no |-start| at all, so a Taunt/Encore/Disable is countable only from the CLICK that caused it. Any other source — an item, an ability, a move whose secondary applies one — is invisible. The live board sees all of them.",
+    "terrain": "CEILING, and kept out of the headline. A terrain's duration is not in the tag artifact and reading it would mean opening a Dex, which is what keeps this scan honest. The figure is the share of decision points AFTER a terrain was set, never expired.",
+    "hazardRemoval": "CEILING. Rapid Spin / Mortal Spin / Defog / Tidy Up are counted from the `removesHazards` tag; a grounded Poison type ABSORBING Toxic Spikes on entry is not, because it needs the body's types and therefore a Dex.",
+    "statusCures": "CEILING. The store records a status LANDING and never a cure, so a Heal Bell, a Lum Berry, a Natural Cure pivot and a thaw all leave the body counted as still statused.",
+    "decisions": "AND ALL OF IT IS A CEILING ON DECISIONS: it counts positions the seed described wrongly, not argmaxes that flip."
+  },
+  "derived_populations": {
+    "hazards": [
+      "spikes->spikes x3",
+      "stealthrock->stealthrock x1",
+      "stickyweb->stickyweb x1",
+      "toxicspikes->toxicspikes x2"
+    ],
+    "hazardRemovers": [
+      "defog(both)",
+      "mortalspin(self)",
+      "rapidspin(self)",
+      "tidyup(both)"
+    ],
+    "weathers": [
+      "raindance",
+      "sandstorm",
+      "snowscape",
+      "sunnyday"
+    ],
+    "weatherLengths": [
+      "auroraveil:5/8 (lightclay)",
+      "hail:5/8 (icyrock)",
+      "lightscreen:5/8 (lightclay)",
+      "raindance:5/8 (damprock)",
+      "reflect:5/8 (lightclay)",
+      "sandstorm:5/8 (smoothrock)",
+      "snowscape:5/8 (icyrock)",
+      "sunnyday:5/8 (heatrock)"
+    ],
+    "durationVolatiles": [
+      "disable->disable:5",
+      "encore->encore:3",
+      "taunt->taunt:3"
+    ],
+    "countedStatuses": [
+      "slp",
+      "tox",
+      "frz"
+    ]
+  },
+  "games": 14288,
+  "gamesSkipped": 0,
+  "decisionPoints": 192912,
+  "clicks": {
+    "hazard": 60,
+    "hazardRemove": 30,
+    "volatile": 3017,
+    "weatherEvents": 13509,
+    "fieldEvents": 3887,
+    "statusEvents": 9607
+  },
+  "unknownWeatherKeys": {},
+  "dp": {
+    "weatherUp": 62162,
+    "weatherWithRock": 1048,
+    "terrainEverSet": 34448,
+    "hazardUp": 522,
+    "hazardOlderThan1": 522,
+    "hazardOlderThan5": 154,
+    "hazardMultiLayer": 28,
+    "volatileUp": 9634,
+    "statusClock": 15902,
+    "statusClockActive": 14286,
+    "any": 76632
+  },
+  "detail": {
+    "weatherTurnsLeftSum": 183486,
+    "weatherUpPoints": 62162,
+    "hazardLayerSum": 277,
+    "hazardPoints": 261
+  },
+  "games_with": {
+    "weather": 7664,
+    "hazard": 50,
+    "volatile": 1922,
+    "countedStatus": 1891
+  },
+  "node": "v24.15.0",
+  "rates": {
+    "pct_dp_a_weather_is_up": 32.223,
+    "pct_dp_that_weather_was_rock_extended": 0.543,
+    "mean_weather_turns_left_when_up": 2.952,
+    "pct_dp_after_a_terrain_was_set_CEILING": 17.857,
+    "pct_dp_a_hazard_is_up": 0.271,
+    "pct_dp_a_hazard_older_than_1_turn": 0.271,
+    "pct_dp_a_hazard_older_than_5_turns": 0.08,
+    "pct_dp_a_hazard_is_more_than_one_layer": 0.015,
+    "pct_dp_a_duration_volatile_is_up_FLOOR": 4.994,
+    "pct_dp_a_body_is_some_turns_into_slp_tox_frz": 8.243,
+    "pct_dp_that_body_is_on_the_field": 7.405,
+    "pct_any": 39.724,
+    "pct_games_with_a_weather": 53.639,
+    "pct_games_with_a_hazard": 0.35,
+    "pct_games_with_a_duration_volatile_FLOOR": 13.452,
+    "pct_games_with_a_counted_status": 13.235
+  },
+  "elapsedMs": 2056
+}

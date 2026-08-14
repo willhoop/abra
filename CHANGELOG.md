@@ -10,6 +10,57 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.22.0] — 2026-08-14
+
+### Fixed
+- **EVERY CLOCK THE POSITION WAS RUNNING REACHED THE PLAYOUT AS ZERO — ROADMAP #267, #268, #270
+  CLOSED AND #269 CLOSED IN PART.** One surface, four rows, one batch, because fixing them piecemeal
+  makes each result unattributable. **The largest by a wide margin is the weather: `applyField` never
+  set `S.field.weatherT`, and the engine's tick is `if (weatherT > 0 && --weatherT <= 0)` — so ZERO
+  MEANS NEVER EXPIRES and a sun with two turns left ran for sixty.** Measured on the store: a weather
+  is up at **32.223%** of decision points with a mean of **2.95** turns left. `board.setWeather` now
+  stamps when it was set and what the setter was holding, and `rollout_leaf.applyFieldClock` asks
+  `MEDI.weatherTurns` — the one function `applyMegaWeather` already calls — for the length, so the
+  seed's two weather paths can no longer disagree. An expired weather is DELETED rather than counted
+  down to zero, because zero is the bug spelled differently.
+- **A PERMANENT HAZARD WAS GIVEN A DURATION AND LAYERS WERE NOT COUNTED — #268.** `startSide` asks
+  the FORMAT whether a condition is permanent (a move declaring no `condition.duration`, with the
+  `hazard` tag as the dex-free source) instead of trusting the duration a caller guessed, which is
+  `sideFor`'s shape one screen up and overrules the live adapter's default of 5 without editing it.
+  The condition value carries a layer count now, clamped at the tag's own ceiling, so three Spikes
+  take 1/4 of a switch-in rather than 1/8 and Toxic Spikes can reach the layer that makes a body
+  badly poisoned.
+- **TAUNT, ENCORE AND DISABLE ARE SEEDED — #269, in part.** The seeded set is the engine's own
+  `durationVolatiles()` join rebuilt by the same expression, so the two vocabularies cannot come
+  apart; the sealed move comes off the board's own record of the body's last click. Five more are
+  declared UNSEEDED with a reason each and printed on every gate run.
+- **A STATUS IS SEEDED WITH ITS COUNTER — #267.** `board.statusClock` is a per-side, per-species
+  ledger booked in `endTurn` for bodies on the field, which is the engine's own rule; the seed writes
+  `slpTurns` / `toxTurns` / `frzTurns`. No caller changed and no feature reads it.
+
+### Added
+- `tests/test-seed-clock.js` — 63 assertions, shown RED first (11 failures and an abort before the
+  fix; 5 more on a real mid-fix defect the gate caught). Two observables are behavioural rather than
+  field reads, and §5 asserts every wire proves it fired.
+- `engine/rollout_clock_prevalence.js` → `data/rollout-clock-prevalence.json` — 14,288 open-sheet
+  games / 192,912 decision points, the same denominator as the item and seed scans. Reads the store
+  and `data/tags.json`, plays no game and opens no `Dex`, so it is not downstream of MEDICHAM.
+
+### Changed
+- **ROADMAP #268's "fit-invalidating" classification is CORRECTED, measured rather than argued.**
+  Over the fitter's own replay of 800 games / 139,340 candidates, `deadSide` fires **927** times with
+  the fix and **925** without it — two candidates — and no other feature moves; `feature_fixture`'s 58
+  per-feature column hashes are byte-identical. The cause is the format: 60 hazard clicks across
+  14,288 games. No refit is owed by any of these four rows.
+
+### Notes
+- ROADMAP **#275** (the caller's field types Tailwind as 4 and Trick Room as 5 in seven places) and
+  **#276** (the board's weather never expires for the weather FEATURES either — fit-invalidating, so
+  it belongs with the refit) were opened by this work and deliberately not taken.
+- No SPRT was prepared and no leaf value was re-measured: three other agents were editing the tree.
+  With the R14 sweep now closed or declared in full, the paired argmax run against a frozen release is
+  the next thing SEARCH owes.
+
 ## [5.21.0] — 2026-08-14
 
 ### Fixed

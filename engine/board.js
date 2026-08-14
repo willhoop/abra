@@ -599,8 +599,29 @@ class Board {
      * PP its base forme spent. Sparse: `{}` for a Pokemon that has clicked nothing, and inside each
      * table an absent move means FULL rather than unknown (engine/pp.js `left`). */
     this.pp = { p1: {}, p2: {} };
+    /* HOW FAR THROUGH ITS STATUS EACH BODY IS — ROADMAP #267.
+     *
+     * The board recorded the status NAME and nothing else, so the seed handed a body two turns into a
+     * one-or-two-turn sleep a FRESH sleep in every playout, and a `tox` at stage five chipped at
+     * stage one. The engine already models the split correctly (`par/brn/psn/frz/slp` have no switch
+     * handler so their counters carry over; `tox.onSwitchIn` restarts the ramp) — there was simply
+     * nothing to seed it from.
+     *
+     * PER SIDE AND PER SPECIES, exactly like `pp` above and for the identical reason: the counter
+     * belongs to the POKEMON, not to the slot, and `switchIn` builds a brand-new object every time a
+     * body comes out — so a table held on that object would silently restart the count on a pivot,
+     * which is the one case where "carries over" is the whole mechanic.
+     *
+     * COUNTED AT `endTurn` AND ONLY FOR A BODY ON THE FIELD. That is not a simplification, it is the
+     * engine's own rule: `slpTurns` moves when the body tries to ACT, so a Pokemon that slept two
+     * turns and pivoted out comes back two turns in and no deeper. */
+    this.statusClock = { p1: {}, p2: {} };
     this.pseudoWeather = new Map();
     this.weather = '';
+    /* When the current weather was set, and what the setter was holding (ROADMAP #270). See
+     * `setWeather` for why the LENGTH is not recorded here. */
+    this.weatherSince = 0;
+    this.weatherRock = '';
     /* Counted, not hidden: when a stored target name matches a species on both sides we cannot tell
      * which one was hit. The caller reports this so an ambiguity that grows is noticed. */
     this.ambiguousTargets = 0;
@@ -622,14 +643,48 @@ class Board {
    * The derivation is imperfect — an item or ability that extends a screen is not modelled — and it
    * is used identically offline and online precisely so that any error is COMMON to the fit and the
    * player rather than a difference between them. */
+  /* *** A PERMANENT HAZARD IS NOT A ONE-TURN ONE, AND LAYERS ARE COUNTED — ROADMAP #268. ***
+   *
+   * Derived from the format, never recalled: Stealth Rock, Spikes, Sticky Web and Toxic Spikes carry
+   * NO `condition.duration`, because they last until something removes them. This defaulted an absent
+   * duration to `turn + 1`, so on the OFFLINE board — the fitter's board — a hazard was up for exactly
+   * one turn; the live path passes `fieldDuration`'s default of 5 and was wrong for longer. Measured
+   * on a fixture before the fix: laid `true`, one `endTurn()` later `false`, while the real rocks are
+   * still there. So `deadSide` went back to 0 and the model re-laid Stealth Rock — the same symptom
+   * ROADMAP #254 measured for the write-only variant.
+   *
+   * WHETHER IT IS PERMANENT IS ASKED OF THE FORMAT, NOT OF THE CALLER, and that is the same shape as
+   * `sideFor` one screen down: whose side a condition lands on and how long it lasts are both FACTS,
+   * and a fact answered independently by two callers agrees only by accident. `derived()` builds the
+   * set from `move.condition.duration` being absent, so the live path's guessed 5 is overruled by the
+   * dex rather than by a list of four names — the ban-list-of-four shape CLAUDE.md warns about.
+   * Before `derived()` has run there is no dex to ask and the CALLER's own signal is used (an absent
+   * duration means the dex had none), and that fallback is COUNTED rather than silent.
+   *
+   * LAYERS ARE THE SECOND HALF. The value was an expiry and nothing else, so a Spikes laid three
+   * times was one layer deep and one Toxic Spikes could never become two — poisoned where the real
+   * board says badly poisoned. The ceiling comes from the `hazard` tag's own `maxLayers`. */
   startSide(side, cond, duration) {
     if (!cond) return;
-    this.sides[side].sideConditions.set(norm(cond), this.turn + (duration || 1));
+    const k = norm(cond);
+    const perm = permanentSide(k, duration);
+    const prev = this.sides[side].sideConditions.get(k);
+    const up = prev && (prev.until === Infinity || prev.until > this.turn);
+    const max = sideMaxLayers(k);
+    const layers = up ? Math.min(max, (prev.layers | 0) + 1) : 1;
+    this.sides[side].sideConditions.set(k, { until: perm ? Infinity : this.turn + (duration || 1), layers });
   }
 
   hasSide(side, cond) {
-    const until = this.sides[side].sideConditions.get(norm(cond));
-    return until != null && until > this.turn;
+    const e = this.sides[side].sideConditions.get(norm(cond));
+    return e != null && e.until > this.turn;
+  }
+
+  /* HOW MANY LAYERS DEEP, 0 when it is not up (ROADMAP #268). Clamped at the tag's own ceiling on the
+   * way in, so a caller cannot read a Spikes four deep however many times the move was clicked. */
+  sideLayers(side, cond) {
+    const e = this.sides[side].sideConditions.get(norm(cond));
+    return e != null && e.until > this.turn ? Math.max(1, e.layers | 0) : 0;
   }
 
   /* HOW MANY TURNS ARE LEFT ON IT, 0 when it is not up (ROADMAP #249).
@@ -639,13 +694,14 @@ class Board {
    * method beside `hasSide` rather than read out of the Map at the seed, so the two answers cannot
    * come to disagree about what `norm` or the expiry comparison means.
    *
-   * IT IS ONLY AS GOOD AS THE DURATION IT WAS GIVEN, and for a hazard that is a known defect held
-   * open elsewhere: Stealth Rock, Spikes, Sticky Web and Toxic Spikes carry no `condition.duration`
-   * in the dex because they are PERMANENT until removed, and `startSide` defaults an absent duration
-   * to one turn. */
+   * IT IS ONLY AS GOOD AS THE DURATION IT WAS GIVEN, and for a hazard that used to be a defect: the
+   * four hazards carry no `condition.duration` in the dex because they are PERMANENT until removed,
+   * and `startSide` defaulted an absent duration to one turn. It returns Infinity for those now
+   * (ROADMAP #268) — which is what "until it is removed" means as a countdown, and is exactly how the
+   * engine reads a side condition it must not expire. */
   sideLeft(side, cond) {
-    const until = this.sides[side].sideConditions.get(norm(cond));
-    return until != null && until > this.turn ? until - this.turn : 0;
+    const e = this.sides[side].sideConditions.get(norm(cond));
+    return e != null && e.until > this.turn ? e.until - this.turn : 0;
   }
 
   startField(name, duration) {
@@ -664,7 +720,43 @@ class Board {
     return until != null && until > this.turn ? until - this.turn : 0;
   }
 
-  setWeather(w) { this.weather = norm(w); }
+  /* *** THE WEATHER HAS A CLOCK AND THE BOARD DID NOT RECORD IT — ROADMAP #270. ***
+   *
+   * `applyField` never set `S.field.weatherT`, and the engine's tick is
+   * `if (field.weatherT > 0 && --field.weatherT <= 0)` — so ZERO MEANS NEVER EXPIRES and a sun the
+   * real board has two turns of ran for sixty in every rollout. The terrain half was already
+   * representable (`pseudoWeather` holds an expiry and `fieldLeft` reads it back); the weather half
+   * was not, because this recorded a word and nothing else.
+   *
+   * IT RECORDS THE AGE AND THE SETTER'S ROCK, NOT A DURATION, and that is deliberate: how long a
+   * weather lasts is `MEDI.weatherTurns(w, item, TAGS)` — one function, which `applyMegaWeather`
+   * already calls — and a second copy of that arithmetic here is the FACTS-ARE-GLOBAL breach that
+   * gave the two weather paths different answers in the first place. The board says WHEN and WITH
+   * WHAT; the seed asks the engine HOW LONG.
+   *
+   * NOTHING ELSE MOVES. `this.weather` keeps meaning exactly what it meant, so every weather FEATURE
+   * — `deadWeather`, the weather-boost reads — is byte-identical and no refit is owed by this. That
+   * the board's weather never expires for those features either is a real and separate defect; it is
+   * filed rather than fixed here, because expiring it moves fitted values.
+   *
+   * THE ROCK IS KNOWN ONLY ON THE MOVE PATH. `noteMove` has the user in hand; the live `-weather`
+   * event names no setter, so an ability-set weather is recorded rockless and reads its base length.
+   * Erring SHORT is the safe direction — the playout ends the weather early rather than running it
+   * for the whole game, which is the defect this row is about. */
+  setWeather(w, opts) {
+    this.weather = norm(w);
+    this.weatherSince = this.turn;
+    this.weatherRock = norm((opts && opts.rock) || '');
+  }
+
+  /* How many turns this weather has already run, or null when the board never saw it start (a Board
+   * built before this landed, or one whose weather was assigned directly). Null is not 0: the seed
+   * must be able to tell "set this turn" from "no idea", and treating the second as the first is how
+   * a defaulted clock becomes a silent one. */
+  weatherAge() {
+    if (!this.weather) return null;
+    return typeof this.weatherSince === 'number' ? Math.max(0, this.turn - this.weatherSince) : null;
+  }
 
   slot(side, letter) { return this.sides[side].active[letter] || null; }
 
@@ -713,11 +805,18 @@ class Board {
    * So Taunting into a Taunt looked identical to the first one, and an Encore with one turn left
    * looked identical to a fresh one. Stored as an expiry turn, the same shape as the side and field
    * conditions, so hasVolatile is a comparison rather than a countdown to maintain. */
+  /* THE MOVE IT SEALED IS RECORDED WITH IT — ROADMAP #269. Encore and Disable are not durations
+   * alone: the engine needs `_encoreMove` / `_sealed` or the volatile is carried and then ignored,
+   * which is the shape that made Encore LOOK modelled for a whole session. The protocol does not
+   * pass the move to this function, and it does not have to — both moves act on what the target
+   * last used, and the board already tracks that. `moveThisTurn` first, because Disable lands in the
+   * same turn as the move it seals. */
   startVolatile(side, letter, name, duration) {
     const mon = this.slot(side, letter);
     if (!mon || !name) return;
     if (!mon.volatiles) mon.volatiles = new Map();
-    mon.volatiles.set(norm(name), this.turn + (duration || 1));
+    mon.volatiles.set(norm(name),
+      { until: this.turn + (duration || 1), move: norm(mon.moveThisTurn || mon.lastMove || '') });
   }
 
   endVolatile(side, letter, name) {
@@ -726,10 +825,23 @@ class Board {
   }
 
   hasVolatile(side, letter, name) {
-    const mon = this.slot(side, letter);
-    if (!mon || !mon.volatiles) return false;
-    const until = mon.volatiles.get(norm(name));
-    return until != null && until > this.turn;
+    return this.volLeftOn(this.slot(side, letter), name) > 0;
+  }
+
+  /* HOW MANY TURNS ARE LEFT ON IT, and WHICH MOVE it sealed. Taken on the BODY rather than on a slot
+   * letter because the seed walks bodies (`rollout_leaf.buildSide` holds the tracked mon and not the
+   * letter it stands on), and because the expiry arithmetic must live in exactly one place — the
+   * same reason `sideLeft` is a method beside `hasSide` rather than a Map read at the seed. */
+  volLeftOn(mon, name) {
+    if (!mon || !mon.volatiles) return 0;
+    const e = mon.volatiles.get(norm(name));
+    return e != null && e.until > this.turn ? e.until - this.turn : 0;
+  }
+
+  volMoveOn(mon, name) {
+    if (!mon || !mon.volatiles) return '';
+    const e = mon.volatiles.get(norm(name));
+    return e && e.until > this.turn ? (e.move || '') : '';
   }
 
   /* Recorded from the protocol: |-item| (gained, e.g. Trick) and |-enditem| (lost or consumed). */
@@ -817,6 +929,24 @@ class Board {
   benchState(side, species) {
     const e = this.lastSeen && this.lastSeen[side] && this.lastSeen[side][baseSpecies(species)];
     return e || null;
+  }
+
+  /* HOW MANY TURNS THIS BODY HAS SPENT UNDER ITS CURRENT STATUS (ROADMAP #267), 0 when it has none or
+   * when the status it is carrying now is not the one the clock was counting — a cured-and-re-slept
+   * body must not inherit the old count. */
+  statusTurns(side, species) {
+    const sp = baseSpecies(species);
+    const e = this.statusClock && this.statusClock[side] && this.statusClock[side][sp];
+    if (!e || !e.status) return 0;
+    /* The authority on WHAT the status is, is the body if it is standing and `lastSeen` if it is not
+     * — the same two records `rollout_leaf.sideTeam` already reads for hp and status. */
+    let now = null;
+    for (const L of Object.keys(this.sides[side].active)) {
+      const m = this.sides[side].active[L];
+      if (m && baseSpecies(m.species) === sp) { now = m.status || ''; break; }
+    }
+    if (now === null) { const b = this.benchState(side, sp); now = b ? (b.status || '') : e.status; }
+    return now === e.status ? (e.turns | 0) : 0;
   }
 
   switchIn(side, letter, species) {
@@ -1003,6 +1133,24 @@ class Board {
       mon.moveFailedThisTurn = false;
       mon.lastMove = mon.moveThisTurn || '';
       mon.moveThisTurn = '';
+    }
+    /* THE STATUS CLOCK — ROADMAP #267. One turn under a status has now been served, and the count
+     * RESTARTS when the status itself changes: a body that was cured and slept again is one turn in,
+     * not five. Walked per SIDE rather than through `field()` because the ledger is keyed by side and
+     * species — `sideTeam` reads it back for a body that has since pivoted to the bench, which is the
+     * case the whole row is about. */
+    for (const side of ['p1', 'p2']) {
+      for (const L of Object.keys(this.sides[side].active)) {
+        const mon = this.sides[side].active[L];
+        if (!mon || mon.fainted) continue;
+        const sp = baseSpecies(mon.species);
+        const st = mon.status || '';
+        const tab = this.statusClock[side];
+        if (!st) { delete tab[sp]; continue; }
+        const e = tab[sp];
+        if (e && e.status === st) e.turns = (e.turns | 0) + 1;
+        else tab[sp] = { status: st, turns: 1 };
+      }
     }
     this.turn++;
   }
@@ -1587,11 +1735,24 @@ function derived(dex) {
   /* MOVES THAT LOCK THE TARGET INTO ITS LAST MOVE. Derived from `volatileStatus === 'encore'`, a dex
    * data field, so Encore is not named and anything sharing its shape is picked up. */
   const locking = new Set();
+  /* ROADMAP #268 — WHICH SIDE CONDITIONS NEVER EXPIRE, AND HOW DEEP EACH ONE STACKS.
+   *
+   * Both are read off the format: a side condition whose move declares no `condition.duration` lasts
+   * until it is removed (the four hazards, and nothing else in this regulation), and the layer
+   * ceiling is the `hazard` tag's own `maxLayers`. `startSide` asks these instead of trusting the
+   * duration a caller happened to guess — the live adapter's `fieldDuration` defaults to 5 for
+   * anything it cannot find, which is wrong for a permanent hazard in the other direction. */
+  const permanent = new Set();
+  const maxLayers = new Map();
   for (const m of dex.moves.all()) {
     if (!m || !m.exists || m.isNonstandard) continue;
     if (m.stallingMove) stalling.add(norm(m.id));
     if (norm(m.volatileStatus || '') === 'encore') locking.add(norm(m.id));
     if (!m.sideCondition) continue;
+    const sid = norm(m.sideCondition);
+    if (!(m.condition && m.condition.duration)) permanent.add(sid);
+    const hp = tagParam(norm(m.id), 'hazard');
+    if (hp && +hp.maxLayers > 0) maxLayers.set(sid, Math.max(maxLayers.get(sid) || 1, +hp.maxLayers));
     const id = norm(m.sideCondition);
     const c = dex.conditions.get(m.sideCondition);
     if (!c || !c.exists) continue;
@@ -1607,9 +1768,59 @@ function derived(dex) {
     if (typeof c.onAnyModifyDamage === 'function' || typeof c.onAnyModifyDamagePhase1 === 'function' ||
         typeof c.onAnyModifyDamagePhase2 === 'function') screens.add(id);
   }
-  _derived = { speedSide, screens, stalling, locking };
+  _derived = { speedSide, screens, stalling, locking, permanent, maxLayers };
   DERIVED = _derived; STALL = stalling;
   return _derived;
+}
+
+/* ROADMAP #268 — THE TWO QUESTIONS `startSide` ASKS, AND WHAT HAPPENS BEFORE THERE IS A DEX.
+ *
+ * `derived()` needs a dex and `startSide` does not have one, so these read the table `featuresFor`
+ * fills on its first call — which every live adapter and every offline fitter makes before a
+ * protocol line is parsed. When it has NOT been filled the caller's own signal is used instead (an
+ * absent duration means the dex had none, which is how `noteMove` calls it) and the fallback is
+ * COUNTED, because a capability that cannot prove it ran is assumed broken. */
+const sideCounters = { permanentFromFormat: 0, permanentFromTag: 0, permanentFromCaller: 0,
+                       layerCeilingUnknown: 0, hazardTableFailed: 0, hazardTableFailedFirst: null };
+/* THE TAG ARTIFACT ANSWERS BOTH QUESTIONS WITH NO DEX AT ALL, and that is why it is here rather than
+ * only in `derived()`. `startSide` runs from the protocol adapter, from the fitter's replay and from
+ * a fixture that has never computed a feature — and the FIRST version of this read only `derived()`,
+ * which is filled by `featuresFor`. On a board that had not scored anything the ceiling silently fell
+ * back to one layer, which is the defect being fixed wearing the shape of the fix: measured, four
+ * Spikes read one layer deep. The `hazard` tag's own `hazard` param IS the side-condition key — the
+ * same field `rollout_leaf.applySideState` keys on — so no name is written down and no dex is needed. */
+let _hzSide = null;
+function hazardSideTable() {
+  if (_hzSide) return _hzSide;
+  _hzSide = new Map();
+  const T = tagsMod();
+  try {
+    for (const mv of (T && T.withTag ? T.withTag('move', 'hazard') : []) || []) {
+      const p = (T.param && T.param('move', mv, 'hazard')) || {};
+      _hzSide.set(norm(p.hazard || mv), Math.max(1, +p.maxLayers || 1));
+    }
+  } catch (e) {
+    /* IT SPEAKS. An empty table here is EXACTLY the pre-fix behaviour — every hazard one layer deep
+     * and expiring on a guessed duration — so a swallowed reason would be a silent default wearing
+     * the shape of a working fix, which is the failure mode this repository is named for. */
+    sideCounters.hazardTableFailed++;
+    if (!sideCounters.hazardTableFailedFirst) sideCounters.hazardTableFailedFirst = String((e && e.message) || e);
+  }
+  return _hzSide;
+}
+function permanentSide(k, duration) {
+  if (_derived && _derived.permanent && _derived.permanent.has(k)) { sideCounters.permanentFromFormat++; return true; }
+  if (hazardSideTable().has(k)) { sideCounters.permanentFromTag++; return true; }
+  if (_derived && _derived.permanent) { sideCounters.permanentFromFormat++; return false; }
+  sideCounters.permanentFromCaller++;
+  return duration === undefined || duration === null;
+}
+function sideMaxLayers(k) {
+  if (_derived && _derived.maxLayers && _derived.maxLayers.has(k)) return _derived.maxLayers.get(k);
+  const t = hazardSideTable();
+  if (t.has(k)) return t.get(k);
+  sideCounters.layerCeilingUnknown++;
+  return 1;
 }
 
 /* THE IRREDUCIBLE RULES, IN ONE PLACE AND DECLARED.
@@ -2845,7 +3056,11 @@ function noteMove(board, side, user, move, worked, opts) {
   if (move.sideCondition) board.startSide(sideFor(side, move), move.sideCondition, move.condition && move.condition.duration);
   const fk = fieldKey(move);
   if (fk) board.startField(fk, move.condition && move.condition.duration);
-  if (move.weather) board.setWeather(move.weather);
+  /* THE SETTER'S ITEM GOES WITH IT (ROADMAP #270). Heat / Damp / Icy / Smooth Rock is what makes a
+   * weather eight turns instead of five, and it is the USER's — so it is passed here, where the user
+   * is in hand, rather than guessed at by the seed. `MEDI.weatherTurns` turns the pair into a length;
+   * this file does not know and must not learn that arithmetic. */
+  if (move.weather) board.setWeather(move.weather, { rock: user.item });
 }
 
 function featuresFor(cand, user, board, side, dex, priorP) {
@@ -3851,6 +4066,10 @@ const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDE
    * cannot prove it ran is assumed broken, and `spent: 0` after a real game means this wire is inert.
    * `PP` is re-exported so the 40 files that already require board.js can reach the one PP fact
    * without each growing an import — the same argument mcKeyFor is re-exported on. */
-  ppCounters, PP: _PP };
+  /* ROADMAP #268. Same rule: `permanentFromCaller` counting up means `startSide` is deciding
+   * permanence without a dex to ask, which is the silent-default shape this repository keeps
+   * finding, and `layerCeilingUnknown` means a hazard is being clamped to one layer by ignorance
+   * rather than by the tag. */
+  ppCounters, sideCounters, PP: _PP };
 if (typeof module !== 'undefined' && module.exports) module.exports = _EXPORTS;
 if (typeof globalThis !== 'undefined') globalThis.BOARD = _EXPORTS;

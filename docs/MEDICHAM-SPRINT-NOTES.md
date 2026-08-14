@@ -21,6 +21,49 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #267 / #268 / #269 / #270 — EVERY CLOCK THE POSITION WAS RUNNING REACHED THE PLAYOUT AS ZERO. CLOSED 2026-08-14 (SEARCH).
+
+**Files:** `engine/board.js`, `engine/rollout_leaf.js`, `tests/test-seed-clock.js` (new),
+`engine/rollout_clock_prevalence.js` (new), `data/rollout-clock-prevalence.json` (new),
+`tests/test-rollout-seed.js` and `tests/test-seed-residue.js` (their OPEN notes retired),
+`tests/test-stadium-roster.js` (the new generator declared), `docs/SEARCH.md`, `docs/ROADMAP.md`,
+`CHANGELOG.md`.
+
+**The headline: a weather is up at 32.223% of decision points with a mean of 2.95 turns left, and the
+seed ran every one of them for the whole playout** — `weatherT` was never set and the engine's tick is
+`if (weatherT > 0 && --weatherT <= 0)`, so **zero means never expires**. That one row is bigger than
+the other three together.
+
+| row | what the seed said | prevalence (192,912 decision points) |
+|---|---|---|
+| #270 weather / terrain clock | `weatherT: 0`, i.e. forever | **32.223%** (terrain: 17.857%, a CEILING) |
+| #267 status counter | a fresh sleep, a stage-one toxic | **8.243%** |
+| #269 durable volatiles | no Taunt, Encore or Disable | **4.994%**, a FLOOR |
+| #268 permanent hazard + layers | gone after one turn, one layer | **0.271%** |
+| any of them | | **39.724%** |
+
+**#268's "fit-invalidating" label is CORRECTED and that is worth more than the fix.** Over the
+fitter's own replay of 800 games / 139,340 candidates, `deadSide` fires **927** with the fix and
+**925** against a deliberate break — two candidates — and every other feature and all 58
+`feature_fixture` column hashes are byte-identical. Cause: **60 hazard clicks in 14,288 games**, none
+at all in the first 120 of the fit corpus.
+
+**The mistake worth keeping.** The layer ceiling first read only `derived()`, which needs a dex and is
+filled by `featuresFor` — so on a board that had never scored a feature it fell back to one layer and
+**four Spikes read one layer deep**: the defect wearing the shape of the fix, caught by the gate and
+not by review. The `hazard` tag answers the same question with no dex at all, so it is the primary
+source now and every fallback is counted in `board.sideCounters`.
+
+**The vocabulary check the row demanded found a real mismatch**, stated by the engine itself at
+`medicham2-browser.js:10160`: **`_vol.healblock` is read by nothing**; the consumer is `_healBlock`.
+Seeding the board's key straight into `_vol` would have been a silent no-op, so the seeded set is the
+engine's own `durationVolatiles()` join rebuilt by the same expression, and five volatiles are
+declared unseeded with a reason each.
+
+**Opened by this work and not taken:** #275 (seven callers type Tailwind as 4 and Trick Room as 5) and
+#276 (the board's weather never expires for the weather FEATURES either — fit-invalidating, belongs
+with the refit).
+
 ## ROADMAP #242, FIRST HALF — THE RESIDUAL ORDER TABLE WAS A SUBSET, 42 ROWS AGAINST 90. INSTRUMENT CLOSED 2026-08-14 (MEASURE).
 
 **Files:** `engine/residual_order.js` (rewritten), `tests/test-residual-order-population.js` (new),

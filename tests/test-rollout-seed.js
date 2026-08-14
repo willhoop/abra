@@ -475,12 +475,15 @@ function baseBoard() {
   const upNow = bd.hasSide('p2', 'stealthrock');
   bd.endTurn();
   const upNext = bd.hasSide('p2', 'stealthrock');
-  note('OPEN — the board gives a PERMANENT hazard a duration, so the seed can only see it briefly:',
-    `laid ${upNow}, one turn later ${upNext} (the real rocks are still there until they are removed)`);
-  note('OPEN — the board counts no hazard LAYERS, so a seeded Spikes/Toxic Spikes is always one layer:',
-    'Toxic Spikes at 2 layers is badly poisoned and the seed can only say poisoned');
-  note('OPEN — still unseeded from the same hole as #250:',
-    'choice lock, Encore, Disable, Taunt, Substitute, Leech Seed, the perish count, and the foe\'s protectTurns');
+  /* CLOSED 2026-08-14 (#268) — kept as a live PRINT rather than deleted, because this is the fixture
+   * that measured the defect and it is the one that will notice if it comes back. */
+  ok(upNow && upNext, 'ROADMAP #268 (CLOSED) — a permanent hazard is still up a turn later',
+    `laid ${upNow}, one turn later ${upNext}`);
+  note('CLOSED #268 — hazard LAYERS are counted now:',
+    'tests/test-seed-clock.js asserts all of them, from both seats, with the tag\'s own ceiling');
+  note('CLOSED #269 (in part) — Taunt, Encore and Disable are seeded now:',
+    'still unseeded from the same hole: choice lock, Substitute, Leech Seed, the perish count, and ' +
+    'the foe\'s protectTurns — see rollout_leaf.unseededVolatiles() for each one\'s reason');
   note('OPEN — a Regenerator body is remembered at its PRE-heal HP and a Natural Cure body at its ' +
     'pre-cure status:', 'both heal silently on switch-out and the protocol shows neither');
 }
