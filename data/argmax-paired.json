@@ -1,0 +1,550 @@
+{
+  "generated": "2026-08-14T06:56:26.055Z",
+  "by": "engine/argmax_paired.js",
+  "gate": "R17 — does the seed work (R13-R16) change what MILTANK clicks?",
+  "verdict": "FLIPS — the whole of the seed work changed the argmax on 62 of 131 paired decision points (47.3%), against a paired null of exactly 0 that this run demonstrates twice (the identical-dice control, and the r14 -> r15 pair which is inert offline). Without common random numbers the same comparison invents 62.6%. A FLIP IS NOT A WIN: direction is a leaf-value gap under the newer arm's own leaf, which is the estimator that selected it, so the gap is biased upward and the sign is the most that can be read from it.",
+  "verdict_code": "FLIPS",
+  "n_measured": 131,
+  "n_unit": "paired decision points",
+  "engine_release": "957c638ba6e5",
+  "engine_release_cut": "2026-08-14T06:18:58.299Z",
+  "engine_release_cuts": 6,
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "source_digests": {
+    "engine/medicham2-browser.js": "79f269afe755",
+    "engine/board.js": "89b5ef762eba",
+    "engine/rollout_leaf.js": "c21308e974bf",
+    "engine/position_features.js": "7927ccb7f5af",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "6c48ce1952af",
+    "data/residual-order.json": "eff160ad1c5a",
+    "engine/mc_key.js": "da0d2b55cf3a",
+    "engine/lookup.js": "03caca7859cd",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "e397e99ef257",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "638ce5aabbe4",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "7cff8927a784",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "e675d10477c8",
+    "data/engine-data.js": "c6bdc5c54d70",
+    "data/abra-tags.js": "0d27bdaf1921",
+    "data/tags.json": "5164fa3397db",
+    "data/policy-weights.json": "626c1d240782",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "a64314db056b",
+    "engine/pp.js": "30b12a4ef623"
+  },
+  "engine_stable_after_run": true,
+  "sweep": {
+    "GAMES": 75,
+    "N": 40,
+    "TOPK": 3,
+    "EXPLORE": 1,
+    "EVERY": 3,
+    "corpus_games": 9427,
+    "side": "p1"
+  },
+  "arms": [
+    {
+      "label": "pre",
+      "commit": "f8f2c67",
+      "adds": "(baseline — before any of the seed work)",
+      "decisions": 131,
+      "cells": 1236,
+      "skipped_no_slots": 30,
+      "skipped_no_value": 7
+    },
+    {
+      "label": "r13",
+      "commit": "16bd0e5",
+      "adds": "#244 the fallen count reaches the seed",
+      "decisions": 131,
+      "cells": 1236,
+      "skipped_no_slots": 30,
+      "skipped_no_value": 7
+    },
+    {
+      "label": "h254",
+      "commit": "1cd6af5",
+      "adds": "#254 a side condition lands on the right side",
+      "decisions": 131,
+      "cells": 1236,
+      "skipped_no_slots": 30,
+      "skipped_no_value": 7
+    },
+    {
+      "label": "r14",
+      "commit": "25d67c5",
+      "adds": "#247 #248 #249 #250 bench state, move count, side state",
+      "decisions": 131,
+      "cells": 1236,
+      "skipped_no_slots": 30,
+      "skipped_no_value": 7
+    },
+    {
+      "label": "r15",
+      "commit": "435be2b",
+      "adds": "#271 a knocked-off item (INERT offline — see header)",
+      "decisions": 131,
+      "cells": 1236,
+      "skipped_no_slots": 30,
+      "skipped_no_value": 7
+    },
+    {
+      "label": "head",
+      "commit": "58a26a7",
+      "adds": "#267 #268 #269 #270 the clocks",
+      "decisions": 131,
+      "cells": 1236,
+      "skipped_no_slots": 30,
+      "skipped_no_value": 7
+    }
+  ],
+  "pooled": {
+    "from": "pre",
+    "to": "head",
+    "paired": 131,
+    "flips": 62,
+    "flip_pct": 47.32824427480916,
+    "mag_flips": 0,
+    "mag_flip_pct": 0,
+    "menu_differed": 0,
+    "flips_on_identical_menus": 62,
+    "flip_pct_on_identical_menus": 47.32824427480916,
+    "of_identical_menus": 131,
+    "gap_evaluable": 62,
+    "gap_mean_pts": 9.698,
+    "gap_median_pts": 6.25,
+    "examples": [
+      {
+        "at": "4:3",
+        "was": "M:hurricane@b + S:archaludon",
+        "now": "M:tailwind@- + M:protect@-",
+        "gap_pts": 2.5
+      },
+      {
+        "at": "5:3",
+        "was": "M:dragonpulse@a + M:fakeout@b",
+        "now": "M:flamethrower@b + M:gunkshot@b",
+        "gap_pts": 10
+      },
+      {
+        "at": "6:3",
+        "was": "M:thunderbolt@a + M:fakeout@a",
+        "now": "M:protect@- + M:spiritbreak@a",
+        "gap_pts": 22.5
+      },
+      {
+        "at": "6:6",
+        "was": "M:thunderbolt@a + M:calmmind@-",
+        "now": "M:thunderbolt@b + M:moonblast@a",
+        "gap_pts": 5
+      },
+      {
+        "at": "7:3",
+        "was": "M:ancientpower@a + M:brickbreak@b",
+        "now": "M:ancientpower@a + M:closecombat@b",
+        "gap_pts": 7.5
+      },
+      {
+        "at": "7:6",
+        "was": "M:fakeout@b + M:closecombat@b",
+        "now": "M:closecombat@b + M:closecombat@b",
+        "gap_pts": 72.5
+      },
+      {
+        "at": "8:3",
+        "was": "M:hurricane@a + M:fakeout@a",
+        "now": "M:hurricane@a + M:gunkshot@b",
+        "gap_pts": 20
+      },
+      {
+        "at": "8:6",
+        "was": "M:flashcannon@b + M:icefang@b",
+        "now": "M:protect@- + M:lastrespects@a",
+        "gap_pts": 2.5
+      }
+    ]
+  },
+  "per_landing": [
+    {
+      "from": "pre",
+      "to": "r13",
+      "paired": 131,
+      "flips": 8,
+      "flip_pct": 6.106870229007634,
+      "mag_flips": 0,
+      "mag_flip_pct": 0,
+      "menu_differed": 0,
+      "flips_on_identical_menus": 8,
+      "flip_pct_on_identical_menus": 6.106870229007634,
+      "of_identical_menus": 131,
+      "gap_evaluable": 8,
+      "gap_mean_pts": 12.5,
+      "gap_median_pts": 3.75,
+      "examples": [
+        {
+          "at": "11:6",
+          "was": "M:psychicfangs@a + M:allyswitch@-",
+          "now": "M:psychicfangs@a + M:lastrespects@a",
+          "gap_pts": 2.5
+        },
+        {
+          "at": "24:3",
+          "was": "M:freezedry@a + M:protect@-",
+          "now": "M:blizzard@- + M:earthpower@a",
+          "gap_pts": 0
+        },
+        {
+          "at": "35:3",
+          "was": "M:direclaw@a + M:hurricane@a",
+          "now": "M:closecombat@a + M:hurricane@a",
+          "gap_pts": 2.5
+        },
+        {
+          "at": "39:3",
+          "was": "M:heatwave@- + M:highhorsepower@a",
+          "now": "M:heatwave@- + S:basculegion",
+          "gap_pts": 1.25
+        },
+        {
+          "at": "51:6",
+          "was": "M:blizzard@- + M:lastrespects@b",
+          "now": "M:moonblast@a + M:lastrespects@b",
+          "gap_pts": 10
+        },
+        {
+          "at": "54:6",
+          "was": "M:partingshot@b + M:lastrespects@b",
+          "now": "M:spiritbreak@b + M:lastrespects@b",
+          "gap_pts": 42.5
+        },
+        {
+          "at": "66:6",
+          "was": "M:dragonpulse@b + M:protect@-",
+          "now": "M:dragonpulse@b + M:hurricane@a",
+          "gap_pts": 3.75
+        },
+        {
+          "at": "69:3",
+          "was": "M:matchagotcha@- + M:knockoff@a",
+          "now": "M:protect@- + M:knockoff@b",
+          "gap_pts": 37.5
+        }
+      ]
+    },
+    {
+      "from": "r13",
+      "to": "h254",
+      "paired": 131,
+      "flips": 0,
+      "flip_pct": 0,
+      "mag_flips": 0,
+      "mag_flip_pct": 0,
+      "menu_differed": 0,
+      "flips_on_identical_menus": 0,
+      "flip_pct_on_identical_menus": 0,
+      "of_identical_menus": 131,
+      "gap_evaluable": 0,
+      "gap_mean_pts": null,
+      "gap_median_pts": null,
+      "examples": []
+    },
+    {
+      "from": "h254",
+      "to": "r14",
+      "paired": 131,
+      "flips": 61,
+      "flip_pct": 46.56488549618321,
+      "mag_flips": 0,
+      "mag_flip_pct": 0,
+      "menu_differed": 0,
+      "flips_on_identical_menus": 61,
+      "flip_pct_on_identical_menus": 46.56488549618321,
+      "of_identical_menus": 131,
+      "gap_evaluable": 61,
+      "gap_mean_pts": 8.852,
+      "gap_median_pts": 6.25,
+      "examples": [
+        {
+          "at": "4:3",
+          "was": "M:hurricane@b + S:archaludon",
+          "now": "M:tailwind@- + M:protect@-",
+          "gap_pts": 2.5
+        },
+        {
+          "at": "5:3",
+          "was": "M:dragonpulse@a + M:fakeout@b",
+          "now": "M:flamethrower@b + M:gunkshot@b",
+          "gap_pts": 10
+        },
+        {
+          "at": "6:3",
+          "was": "M:thunderbolt@a + M:fakeout@a",
+          "now": "M:protect@- + M:spiritbreak@a",
+          "gap_pts": 20
+        },
+        {
+          "at": "6:6",
+          "was": "M:thunderbolt@a + M:calmmind@-",
+          "now": "M:thunderbolt@b + M:moonblast@a",
+          "gap_pts": 5
+        },
+        {
+          "at": "7:3",
+          "was": "M:ancientpower@a + M:brickbreak@b",
+          "now": "M:ancientpower@a + M:closecombat@b",
+          "gap_pts": 7.5
+        },
+        {
+          "at": "7:6",
+          "was": "M:fakeout@b + M:closecombat@b",
+          "now": "M:closecombat@b + M:closecombat@b",
+          "gap_pts": 72.5
+        },
+        {
+          "at": "8:3",
+          "was": "M:hurricane@a + M:fakeout@a",
+          "now": "M:hurricane@a + M:gunkshot@b",
+          "gap_pts": 20
+        },
+        {
+          "at": "8:6",
+          "was": "M:flashcannon@b + M:icefang@b",
+          "now": "M:protect@- + M:lastrespects@a",
+          "gap_pts": 2.5
+        }
+      ]
+    },
+    {
+      "from": "r14",
+      "to": "r15",
+      "paired": 131,
+      "flips": 0,
+      "flip_pct": 0,
+      "mag_flips": 0,
+      "mag_flip_pct": 0,
+      "menu_differed": 0,
+      "flips_on_identical_menus": 0,
+      "flip_pct_on_identical_menus": 0,
+      "of_identical_menus": 131,
+      "gap_evaluable": 0,
+      "gap_mean_pts": null,
+      "gap_median_pts": null,
+      "examples": []
+    },
+    {
+      "from": "r15",
+      "to": "head",
+      "paired": 131,
+      "flips": 13,
+      "flip_pct": 9.923664122137405,
+      "mag_flips": 0,
+      "mag_flip_pct": 0,
+      "menu_differed": 0,
+      "flips_on_identical_menus": 13,
+      "flip_pct_on_identical_menus": 9.923664122137405,
+      "of_identical_menus": 131,
+      "gap_evaluable": 13,
+      "gap_mean_pts": 5.673,
+      "gap_median_pts": 2.5,
+      "examples": [
+        {
+          "at": "10:6",
+          "was": "S:houndstone + M:rockslide@-",
+          "now": "M:lowkick@b + M:protect@-",
+          "gap_pts": 2.5
+        },
+        {
+          "at": "12:3",
+          "was": "M:auroraveil@- + M:protect@-",
+          "now": "M:blizzard@- + M:protect@-",
+          "gap_pts": 2.5
+        },
+        {
+          "at": "15:3",
+          "was": "M:protect@- + M:protect@-",
+          "now": "M:flashcannon@b + M:protect@-",
+          "gap_pts": 1.25
+        },
+        {
+          "at": "40:6",
+          "was": "M:heatwave@- + M:partingshot@b",
+          "now": "M:weatherball@b + M:partingshot@b",
+          "gap_pts": 2.5
+        },
+        {
+          "at": "41:6",
+          "was": "M:banefulbunker@- + M:closecombat@a",
+          "now": "M:toxic@a + M:closecombat@a",
+          "gap_pts": 7.5
+        },
+        {
+          "at": "54:3",
+          "was": "M:protect@- + M:rockslide@-",
+          "now": "M:leechseed@b + M:rockslide@-",
+          "gap_pts": 7.5
+        },
+        {
+          "at": "55:3",
+          "was": "M:swordsdance@- + M:protect@-",
+          "now": "M:suckerpunch@a + M:protect@-",
+          "gap_pts": 15
+        },
+        {
+          "at": "56:3",
+          "was": "M:earthpower@b + M:solarbeam@a",
+          "now": "M:earthpower@b + M:weatherball@a",
+          "gap_pts": 2.5
+        }
+      ]
+    }
+  ],
+  "controls": {
+    "purity": {
+      "from": "head",
+      "to": "head@identical-dice",
+      "paired": 131,
+      "flips": 0,
+      "flip_pct": 0,
+      "mag_flips": 0,
+      "mag_flip_pct": 0,
+      "menu_differed": 0,
+      "flips_on_identical_menus": 0,
+      "flip_pct_on_identical_menus": 0,
+      "of_identical_menus": 131,
+      "gap_evaluable": 0,
+      "gap_mean_pts": null,
+      "gap_median_pts": null,
+      "examples": []
+    },
+    "unpaired": {
+      "from": "head",
+      "to": "head@different-dice",
+      "paired": 131,
+      "flips": 82,
+      "flip_pct": 62.595419847328245,
+      "mag_flips": 0,
+      "mag_flip_pct": 0,
+      "menu_differed": 0,
+      "flips_on_identical_menus": 82,
+      "flip_pct_on_identical_menus": 62.595419847328245,
+      "of_identical_menus": 131,
+      "gap_evaluable": 82,
+      "gap_mean_pts": 7.957,
+      "gap_median_pts": 7.5,
+      "examples": [
+        {
+          "at": "2:3",
+          "was": "M:blizzard@- + M:protect@-",
+          "now": "M:blizzard@- + M:accelerock@b",
+          "gap_pts": 2.5
+        },
+        {
+          "at": "4:3",
+          "was": "M:tailwind@- + M:protect@-",
+          "now": "M:hurricane@b + M:protect@-",
+          "gap_pts": 7.5
+        },
+        {
+          "at": "5:3",
+          "was": "M:flamethrower@b + M:gunkshot@b",
+          "now": "M:dragonpulse@a + M:fakeout@a",
+          "gap_pts": 0
+        },
+        {
+          "at": "6:3",
+          "was": "M:protect@- + M:spiritbreak@a",
+          "now": "M:thunderbolt@a + M:spiritbreak@b",
+          "gap_pts": 7.5
+        },
+        {
+          "at": "6:6",
+          "was": "M:thunderbolt@b + M:moonblast@a",
+          "now": "M:thunderbolt@b + M:moonblast@b",
+          "gap_pts": 10
+        },
+        {
+          "at": "7:3",
+          "was": "M:ancientpower@a + M:closecombat@b",
+          "now": "M:weatherball@b + M:closecombat@b",
+          "gap_pts": 5
+        },
+        {
+          "at": "8:3",
+          "was": "M:hurricane@a + M:gunkshot@b",
+          "now": "M:protect@- + M:gunkshot@b",
+          "gap_pts": 6.25
+        },
+        {
+          "at": "8:6",
+          "was": "M:protect@- + M:lastrespects@a",
+          "now": "M:flashcannon@b + M:lastrespects@a",
+          "gap_pts": 7.5
+        }
+      ]
+    },
+    "what": "purity is the SAME arm run twice with the SAME seed salt. It is the NULL for every paired row in this artifact and it must be exactly 0 — a paired run that cannot reproduce itself is measuring its own state. unpaired is the same arm run twice with a DIFFERENT salt: it is what this comparison would invent without common random numbers, an argmax over K^2 near-ties, and it is printed to justify the pairing rather than as the comparator.",
+    "do_not_compare_to": "The paired flip rate is NOT to be read against `unpaired`. Doing so declares every possible result null, because the unpaired figure is an instrument artefact of an uncalibrated leaf and is near its ceiling already."
+  },
+  "inert_by_construction": {
+    "rows": [
+      "#271 a removed item",
+      "#269 durable volatiles"
+    ],
+    "why": "The decision points come from engine/joint_rows.js's replay, which calls neither board.noteItem nor board.startVolatile — board.noteItem's only caller in the repository is engine/magnemite.js, the live protocol reader. Those two rows therefore contribute exactly zero flips here and their live effect is UNMEASURED by this run. The r14 -> r15 arm pair is the demonstration: it is #271 alone and it is expected to be 0.",
+    "consequence": "Every flip rate in this artifact is a FLOOR on what the live board would show."
+  },
+  "caveats": [
+    "A FLIP IS NOT AN IMPROVEMENT. It is a different choice under a more correct board. The gap fields price the newer arm's pick against the older arm's pick USING THE NEWER ARM'S OWN LEAF, which is the estimator that selected it — so the gap is biased upward and its SIGN is the most that can be read from it. Whether the new choice wins more games is an SPRT and this run is not one.",
+    "THE LEAF IS NOT CALIBRATED. Every decision here is an argmax over that leaf, so a null result may be about the leaf rather than about the search. That item is MEASURE's.",
+    "Both arms rank the same corpus and the same weight vector; only board.js, rollout_leaf.js and the replay closure that calls them differ. Menu changes are counted separately and the flip rate is also reported restricted to decisions whose menus were identical.",
+    "Common random numbers are keyed on the CANDIDATE'S IDENTITY, not its index, so a cell keeps its dice across a menu that moved. Within a cell the two arms still consume the stream differently once the seeded states diverge — CRN pairs the seed, not the trajectory.",
+    "Side p1 only, and every Nth board, exactly as engine/rollout_r3.js samples."
+  ],
+  "n_sweep": {
+    "rows": [
+      {
+        "n": 12,
+        "source": "data/argmax-paired-n12.json",
+        "verdict_code": "UNCONTROLLED",
+        "from": "pre",
+        "to": "head",
+        "flips": 70,
+        "paired": 131,
+        "flip_pct": 53.43511450381679,
+        "gap_mean_pts": 15.833,
+        "gap_median_pts": 8.333
+      },
+      {
+        "n": 40,
+        "source": "data\\argmax-paired.json",
+        "verdict_code": "FLIPS",
+        "from": "pre",
+        "to": "head",
+        "flips": 62,
+        "paired": 131,
+        "flip_pct": 47.32824427480916,
+        "gap_mean_pts": 9.698,
+        "gap_median_pts": 6.25
+      },
+      {
+        "n": 100,
+        "source": "data/argmax-paired-n100.json",
+        "verdict_code": "UNCONTROLLED",
+        "from": "pre",
+        "to": "head",
+        "flips": 54,
+        "paired": 131,
+        "flip_pct": 41.221374045801525,
+        "gap_mean_pts": 7.861,
+        "gap_median_pts": 3
+      }
+    ],
+    "what": "The SAME 131 decision points and the SAME arm pair at three rollout budgets. This is the discriminator the paired design needs and cannot get from either control: common random numbers pair the SEED and not the trajectory, so once two seeded states differ the playouts consume the stream differently and some flips are a rerouted die rather than a different answer. That component falls as the budget grows; a genuine difference in the true values does not.",
+    "reading": "Read the DIRECTION and the SIZE of the change, never an extrapolation. The rate is budget-dependent and this artifact reports the budget beside every figure."
+  }
+}

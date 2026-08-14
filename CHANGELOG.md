@@ -113,6 +113,47 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.23.0] — 2026-08-14
+
+### Added
+- **THE PAIRED ARGMAX RUN — ROADMAP #278. REACH BECOMES EFFECT, AND IT IS 47.3%.** R13 through R16
+  each published a prevalence and each said, correctly, that it is a **ceiling on reach** and not an
+  effect. `engine/argmax_paired.js` converts one into the other: six arms, each a COMMIT, compiled
+  with `Module._compile` into `require.cache` so the delta between consecutive arms is ONE landing and
+  attribution is a subtraction rather than an assertion. The simulator, the dex, the tags, the priors,
+  the engine data and the weights all come from one frozen release and are byte-identical across every
+  arm. **Over 131 paired decision points under common random numbers, the whole of the seed work moves
+  MILTANK's argmax on 62 of them — 47.3% — and moves MAG's argmax on ZERO.** Per landing: #244 6.1%,
+  #254 0.0%, #247/#248/#249/#250 **46.6%**, #271 0.0%, #267/#268/#269/#270 9.9%. Artifacts:
+  `data/argmax-paired.json` with `data/argmax-paired-n12.json` and `data/argmax-paired-n100.json`
+  folded into it as the N-sweep.
+- **THE PAIRED NULL IS ZERO AND THE RUN DEMONSTRATES IT THREE TIMES**, rather than asserting it: the
+  identical-dice control (0/131), and two arm pairs whose change provably cannot reach these positions
+  (#254 and #271, both 0/131). **The UNPAIRED figure is deliberately NOT the comparator** — the same
+  arm against itself with only the dice changed disagrees on **62.6%**, which is R3's finding arriving
+  from another direction and is the reason the run is paired at all. Reading the paired rate against
+  it would declare every possible result null.
+- **THE ONE THING COMMON RANDOM NUMBERS CANNOT SETTLE IS SWEPT RATHER THAN ARGUED.** CRN pairs the
+  SEED, not the TRAJECTORY, so some flips are a rerouted die. The rate falls **53.4% → 47.3% → 41.2%**
+  across n=12 → 40 → 100: an 8.3x budget costs 12 points, so the residual is real and is not most of
+  it. The flip rate is budget-dependent and every figure is printed with its budget.
+
+### Notes
+- **WHETHER THE NEW CHOICE IS BETTER IS UNMEASURED, AND A NUMBER SAYS SO RATHER THAN THE PROSE.**
+  `head`'s pick is worth **+9.70 points** over `pre`'s by `head`'s own leaf — and the identical
+  statistic on the unpaired control, where neither pick is better by construction, is **+7.96**. That
+  gap is argmax selection bias, it shrinks with budget the way selection bias does, and it carries no
+  direction. A FLIP IS NOT A WIN; the thing that answers "better" is an SPRT and this is not one.
+- **#271 and #269 contribute exactly ZERO here, and that is the harness rather than the fix.** The
+  decision points come from `engine/joint_rows.js`'s replay, which calls neither `board.noteItem`
+  (whose one caller in the repository is the live protocol reader `engine/magnemite.js`) nor
+  `board.startVolatile`. Every rate reported is therefore a **FLOOR** on what the live board would
+  show, and closing that is PRIORITIES 13e and is MEASURE's. The upside is the best control in the
+  run came free: `r14 -> r15` is #271 alone, is provably inert on these positions, and returned 0.
+- No engine file was edited by this work. `tests/test-stadium-roster.js` gained a `NOT_A_MODEL` entry
+  with its TRIGGER for the new generator — the only gate this work turned red, and it was fixed rather
+  than filed.
+
 ## [5.22.0] — 2026-08-14
 
 ### Fixed

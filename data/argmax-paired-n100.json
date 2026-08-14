@@ -1,0 +1,220 @@
+{
+  "generated": "2026-08-14T07:21:46.256Z",
+  "by": "engine/argmax_paired.js",
+  "gate": "R17 — does the seed work (R13-R16) change what MILTANK clicks?",
+  "verdict": "UNCONTROLLED — controls were skipped (CONTROLS=0), so this run is an N-sweep leg and not a headline. It reports 54 flips on 131 paired decisions at n=100.",
+  "verdict_code": "UNCONTROLLED",
+  "n_measured": 131,
+  "n_unit": "paired decision points",
+  "engine_release": "957c638ba6e5",
+  "engine_release_cut": "2026-08-14T06:18:58.299Z",
+  "engine_release_cuts": 6,
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "source_digests": {
+    "engine/medicham2-browser.js": "79f269afe755",
+    "engine/board.js": "89b5ef762eba",
+    "engine/rollout_leaf.js": "c21308e974bf",
+    "engine/position_features.js": "7927ccb7f5af",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "6c48ce1952af",
+    "data/residual-order.json": "eff160ad1c5a",
+    "engine/mc_key.js": "da0d2b55cf3a",
+    "engine/lookup.js": "03caca7859cd",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "e397e99ef257",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "638ce5aabbe4",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "7cff8927a784",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "e675d10477c8",
+    "data/engine-data.js": "c6bdc5c54d70",
+    "data/abra-tags.js": "0d27bdaf1921",
+    "data/tags.json": "5164fa3397db",
+    "data/policy-weights.json": "626c1d240782",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "a64314db056b",
+    "engine/pp.js": "30b12a4ef623"
+  },
+  "engine_stable_after_run": true,
+  "sweep": {
+    "GAMES": 75,
+    "N": 100,
+    "TOPK": 3,
+    "EXPLORE": 1,
+    "EVERY": 3,
+    "corpus_games": 9454,
+    "side": "p1"
+  },
+  "arms": [
+    {
+      "label": "pre",
+      "commit": "f8f2c67",
+      "adds": "(baseline — before any of the seed work)",
+      "decisions": 131,
+      "cells": 1236,
+      "skipped_no_slots": 30,
+      "skipped_no_value": 7
+    },
+    {
+      "label": "head",
+      "commit": "58a26a7",
+      "adds": "#267 #268 #269 #270 the clocks",
+      "decisions": 131,
+      "cells": 1236,
+      "skipped_no_slots": 30,
+      "skipped_no_value": 7
+    }
+  ],
+  "pooled": {
+    "from": "pre",
+    "to": "head",
+    "paired": 131,
+    "flips": 54,
+    "flip_pct": 41.221374045801525,
+    "mag_flips": 0,
+    "mag_flip_pct": 0,
+    "menu_differed": 0,
+    "flips_on_identical_menus": 54,
+    "flip_pct_on_identical_menus": 41.221374045801525,
+    "of_identical_menus": 131,
+    "gap_evaluable": 54,
+    "gap_mean_pts": 7.861,
+    "gap_median_pts": 3,
+    "examples": [
+      {
+        "at": "1:3",
+        "was": "M:hypervoice@- + M:fakeout@a",
+        "now": "M:hypervoice@- + M:protect@-",
+        "gap_pts": 3
+      },
+      {
+        "at": "4:3",
+        "was": "M:hurricane@b + S:archaludon",
+        "now": "M:tailwind@- + M:protect@-",
+        "gap_pts": 1
+      },
+      {
+        "at": "5:3",
+        "was": "M:dragonpulse@a + M:fakeout@b",
+        "now": "M:protect@- + M:gunkshot@b",
+        "gap_pts": 10
+      },
+      {
+        "at": "6:3",
+        "was": "M:thunderbolt@a + M:fakeout@a",
+        "now": "M:thunderbolt@a + M:spiritbreak@b",
+        "gap_pts": 6
+      },
+      {
+        "at": "6:6",
+        "was": "M:thunderbolt@a + M:calmmind@-",
+        "now": "M:thunderbolt@a + M:moonblast@a",
+        "gap_pts": 2
+      },
+      {
+        "at": "7:3",
+        "was": "M:ancientpower@a + M:brickbreak@b",
+        "now": "M:ancientpower@a + M:protect@-",
+        "gap_pts": 6
+      },
+      {
+        "at": "7:6",
+        "was": "M:fakeout@b + M:closecombat@b",
+        "now": "M:closecombat@b + M:closecombat@b",
+        "gap_pts": 70
+      },
+      {
+        "at": "8:3",
+        "was": "M:hurricane@a + M:fakeout@a",
+        "now": "M:hurricane@a + M:gunkshot@b",
+        "gap_pts": 17
+      }
+    ]
+  },
+  "per_landing": [
+    {
+      "from": "pre",
+      "to": "head",
+      "paired": 131,
+      "flips": 54,
+      "flip_pct": 41.221374045801525,
+      "mag_flips": 0,
+      "mag_flip_pct": 0,
+      "menu_differed": 0,
+      "flips_on_identical_menus": 54,
+      "flip_pct_on_identical_menus": 41.221374045801525,
+      "of_identical_menus": 131,
+      "gap_evaluable": 54,
+      "gap_mean_pts": 7.861,
+      "gap_median_pts": 3,
+      "examples": [
+        {
+          "at": "1:3",
+          "was": "M:hypervoice@- + M:fakeout@a",
+          "now": "M:hypervoice@- + M:protect@-",
+          "gap_pts": 3
+        },
+        {
+          "at": "4:3",
+          "was": "M:hurricane@b + S:archaludon",
+          "now": "M:tailwind@- + M:protect@-",
+          "gap_pts": 1
+        },
+        {
+          "at": "5:3",
+          "was": "M:dragonpulse@a + M:fakeout@b",
+          "now": "M:protect@- + M:gunkshot@b",
+          "gap_pts": 10
+        },
+        {
+          "at": "6:3",
+          "was": "M:thunderbolt@a + M:fakeout@a",
+          "now": "M:thunderbolt@a + M:spiritbreak@b",
+          "gap_pts": 6
+        },
+        {
+          "at": "6:6",
+          "was": "M:thunderbolt@a + M:calmmind@-",
+          "now": "M:thunderbolt@a + M:moonblast@a",
+          "gap_pts": 2
+        },
+        {
+          "at": "7:3",
+          "was": "M:ancientpower@a + M:brickbreak@b",
+          "now": "M:ancientpower@a + M:protect@-",
+          "gap_pts": 6
+        },
+        {
+          "at": "7:6",
+          "was": "M:fakeout@b + M:closecombat@b",
+          "now": "M:closecombat@b + M:closecombat@b",
+          "gap_pts": 70
+        },
+        {
+          "at": "8:3",
+          "was": "M:hurricane@a + M:fakeout@a",
+          "now": "M:hurricane@a + M:gunkshot@b",
+          "gap_pts": 17
+        }
+      ]
+    }
+  ],
+  "controls": null,
+  "inert_by_construction": {
+    "rows": [
+      "#271 a removed item",
+      "#269 durable volatiles"
+    ],
+    "why": "The decision points come from engine/joint_rows.js's replay, which calls neither board.noteItem nor board.startVolatile — board.noteItem's only caller in the repository is engine/magnemite.js, the live protocol reader. Those two rows therefore contribute exactly zero flips here and their live effect is UNMEASURED by this run. The r14 -> r15 arm pair is the demonstration: it is #271 alone and it is expected to be 0.",
+    "consequence": "Every flip rate in this artifact is a FLOOR on what the live board would show."
+  },
+  "caveats": [
+    "A FLIP IS NOT AN IMPROVEMENT. It is a different choice under a more correct board. The gap fields price the newer arm's pick against the older arm's pick USING THE NEWER ARM'S OWN LEAF, which is the estimator that selected it — so the gap is biased upward and its SIGN is the most that can be read from it. Whether the new choice wins more games is an SPRT and this run is not one.",
+    "THE LEAF IS NOT CALIBRATED. Every decision here is an argmax over that leaf, so a null result may be about the leaf rather than about the search. That item is MEASURE's.",
+    "Both arms rank the same corpus and the same weight vector; only board.js, rollout_leaf.js and the replay closure that calls them differ. Menu changes are counted separately and the flip rate is also reported restricted to decisions whose menus were identical.",
+    "Common random numbers are keyed on the CANDIDATE'S IDENTITY, not its index, so a cell keeps its dice across a menu that moved. Within a cell the two arms still consume the stream differently once the seeded states diverge — CRN pairs the seed, not the trajectory.",
+    "Side p1 only, and every Nth board, exactly as engine/rollout_r3.js samples."
+  ]
+}

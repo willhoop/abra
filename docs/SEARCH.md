@@ -36,9 +36,240 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-03 20:45
 ```
 
-_stamped 2026-08-14 03:21_
+_stamped 2026-08-14 03:31_
 
 <!-- /GENERATED -->
+
+## R17 — THE PAIRED ARGMAX RUN. REACH BECOMES EFFECT, AND IT IS 47.3%. 2026-08-14.
+
+ROADMAP **#278**. Artifacts: **`data/argmax-paired.json`** (headline) with
+`data/argmax-paired-n12.json` and `data/argmax-paired-n100.json` folded into it as the N-sweep, all
+written by **`engine/argmax_paired.js`**. Engine release **`957c638ba6e5`**, asserted to be the
+committed engine at `58a26a7` rather than assumed.
+
+### The verdict in one line
+
+**Every prevalence figure R13 through R16 published was a ceiling on reach, and it converts: over the
+same 131 decision points under common random numbers, the seed work changes MILTANK's argmax on 62 of
+them — 47.3%, against a paired null of exactly 0 that this run demonstrates three separate times.
+It changes MAG's argmax on ZERO of them. And nothing here says the new choice is better.**
+
+### What was run
+
+Six arms, each a COMMIT, so the delta between consecutive arms is one landing and attribution is a
+subtraction rather than an assertion. `Module._compile` into `require.cache` — #254's technique —
+because three other agents were live in the tree and reverting it would have fought them. The board,
+the leaf and the replay closure that calls them are per-arm; the simulator, the dex, the tags, the
+priors, the engine data and **the weights** all come from one frozen release and are byte-identical
+across every arm.
+
+| arm | commit | what it adds |
+|---|---|---|
+| `pre` | `f8f2c67` | baseline — before any of it |
+| `r13` | `16bd0e5` | **#244** the fallen count reaches the seed |
+| `h254` | `1cd6af5` | **#254** a side condition lands on the right side |
+| `r14` | `25d67c5` | **#247 #248 #249 #250** bench state, move count, side state |
+| `r15` | `435be2b` | **#271** a knocked-off item |
+| `head` | `58a26a7` | **#267 #268 #269 #270** the clocks |
+
+131 paired decision points, 75 open-sheet games, every 3rd board, side p1, top-3 per slot by MAG's
+own score, n=40 rollouts per cell, explore=1.0 — the same sampling `engine/rollout_r3.js` uses, so
+this sits on R3's axis and not on a new one.
+
+### THE RESULT, PER LANDING WHERE IT SEPARATES AND POOLED WHERE IT DOES NOT
+
+| pair | rows | argmax flips | reach that row published |
+|---|---|---|---|
+| `pre -> r13` | **#244** the fallen count | **8/131 = 6.1%** | 8.75% |
+| `r13 -> h254` | **#254** the side a condition lands on | **0/131 = 0.0%** | (hazards: 60 clicks in 14,288 games) |
+| `h254 -> r14` | **#247 #248 #249 #250** | **61/131 = 46.6%** | 70.55% |
+| `r14 -> r15` | **#271** a removed item | **0/131 = 0.0%** | 3.62% — **and see below** |
+| `r15 -> head` | **#267 #268 #269 #270** | **13/131 = 9.9%** | 39.72% |
+| **`pre -> head` POOLED** | **all of it** | **62/131 = 47.3%** | 70.55% |
+
+The pooled figure is barely above the R14 row on its own, and that is not an error: later landings
+re-flip decisions the earlier ones already moved, and two of them flip a decision back.
+
+### THE CONTROLS, AND THE ONE THAT MATTERS IS NOT THE ONE YOU EXPECT
+
+| control | result | what it says |
+|---|---|---|
+| **PURITY** — the same arm, the same dice | **0/131** | the null for every row above; a paired run that cannot reproduce itself is measuring its own state |
+| **UNPAIRED** — the same arm, different dice | **82/131 = 62.6%** | what this comparison invents WITHOUT common random numbers |
+| **INERT BY CONSTRUCTION** — `r14 -> r15`, which is #271 alone | **0/131** | a code change that cannot reach the position returns exactly 0, measured rather than argued |
+
+**THE UNPAIRED FIGURE IS NOT THE COMPARATOR, AND READING IT AS ONE WOULD DECLARE EVERY POSSIBLE
+RESULT NULL.** The same search, the same menu, the same opponent policy, the same everything it can
+see — only the dice differ — and it disagrees with itself on **62.6%** of these decisions. That is
+R3's finding arriving again from a different direction: the argmax is taken over nine estimates that
+are mostly near-ties, so an unpaired instrument here is saturated before it starts. The pairing is
+what makes the question askable at all, and the null for a paired rate is **zero** — which this run
+establishes three times over, twice from a code change that provably cannot reach the position and
+once from the dice.
+
+### DOES IT SURVIVE A BIGGER BUDGET? MEASURED — IT SHRINKS AND IT DOES NOT GO AWAY
+
+The one thing neither control can settle: **common random numbers pair the SEED, not the
+TRAJECTORY.** Once two seeded states differ the playouts consume the stream differently, so some
+share of those 62 flips is a rerouted die rather than a different answer. That component falls as
+the rollout budget grows; a real difference in the true values does not. So it was swept.
+
+| rollout budget | `pre -> head` |
+|---|---|
+| n=12 | 70/131 = **53.4%** |
+| n=40 | 62/131 = **47.3%** |
+| n=100 | 54/131 = **41.2%** |
+
+**An 8.3x budget costs 12 points.** Some of the rate is the residual and it is not most of it. **The
+flip rate is budget-dependent and every figure above is printed with its budget** — do not
+extrapolate it to a limit this run did not measure.
+
+### AND WHETHER THE NEW CHOICE IS BETTER IS UNMEASURED. SAID PLAINLY, WITH THE NUMBER THAT SAYS SO
+
+A flip is a different choice under a more correct board. It is not a win.
+
+The obvious way to give it a direction is to price both picks under the newer arm's own leaf, and
+this run does compute that: when they disagree, `head`'s pick is worth **+9.70 points on average
+(median +6.25)** over `pre`'s pick by `head`'s own leaf. **That number carries no information, and
+the control is what proves it**: the identical statistic computed for the UNPAIRED control — where
+the truth is that both picks came from the same player and neither is better — is **+7.96 mean,
++7.50 median.** The gap is argmax selection bias almost exactly, and it shrinks with budget the way
+selection bias does (+15.83 at n=12, +9.70 at n=40, +7.86 at n=100).
+
+**So: the search now chooses differently, and this run does not say it chooses better.** The thing
+that answers "better" is an SPRT and this is not one.
+
+### WHAT THE FLIPS LOOK LIKE, BECAUSE A RATE IS NOT A MECHANISM
+
+The artifact records eight flipped decisions PER ARM PAIR, and each pair's examples carry its own
+row's fingerprint. This is the check that the rate is the fix rather than the dice, and it is the one
+a control cannot give you.
+
+**`h254 -> r14` — three of its eight drop Fake Out:**
+
+```
+  was  M:thunderbolt@a + M:fakeout@a        now  M:protect@-      + M:spiritbreak@a
+  was  M:fakeout@b     + M:closecombat@b    now  M:closecombat@b  + M:closecombat@b
+  was  M:hurricane@a   + M:fakeout@a        now  M:hurricane@a    + M:gunkshot@b
+```
+
+The old seed built every body with `_mvActs: 0`, so **Fake Out was not merely offered, it WORKED**
+inside the playout for a body that had been on the field for six turns — and the search ranked it on
+a payoff the server would have refused. That is not a mispriced estimate, it is a rule the playout was
+not obeying, and it is why #250's batch is 46.6% while its neighbours are single digits.
+
+**`pre -> r13` — three of its eight have Last Respects on one side or the other**, which is the move
+whose whole identity is that it grows as your team dies, and it is the one #244 was priced at 50 base
+power for:
+
+```
+  was  M:psychicfangs@a + M:allyswitch@-    now  M:psychicfangs@a + M:lastrespects@a
+  was  M:blizzard@-     + M:lastrespects@b  now  M:moonblast@a    + M:lastrespects@b
+  was  M:partingshot@b  + M:lastrespects@b  now  M:spiritbreak@b  + M:lastrespects@b
+```
+
+**`r15 -> head` — three of its eight are weather-dependent moves**, which is #270 arriving in a click:
+a weather that used to run for sixty turns now expires, so Aurora Veil, Weather Ball and Solar Beam
+are all priced differently and two of them get displaced:
+
+```
+  was  M:auroraveil@-  + M:protect@-       now  M:blizzard@-     + M:protect@-
+  was  M:heatwave@-    + M:partingshot@b   now  M:weatherball@b  + M:partingshot@b
+  was  M:earthpower@b  + M:solarbeam@a     now  M:earthpower@b   + M:weatherball@a
+```
+
+### #271 AND #269 CONTRIBUTE EXACTLY ZERO HERE, AND THAT IS A PROPERTY OF THE HARNESS
+
+The decision points come from `engine/joint_rows.js`'s replay — the FIT's replay, and the only
+implementation of it. It applies switches, moves (through `B.noteMove`, so side conditions and move
+counts land), damage, status, hp, boosts, faints, weather and field. It applies **neither
+`board.noteItem` nor `board.startVolatile`.** `board.noteItem` has exactly one caller in the
+repository and it is `engine/magnemite.js`, the live protocol reader.
+
+So **#271 (3.62% reach) and #269 (4.99%, itself a floor) are structurally invisible to this run**,
+and every flip rate above is a **FLOOR on what the live board would show**. This is not a gap to be
+patched here: it is MEASURE's **PRIORITIES 13e**, the missing offline event, named in R15 as still
+open. Turning #271 from 0.0% into its real number requires the replay to emit item events, which
+changes what the FIT sees, which is a refit question.
+
+The upside is that it gave this run its best control for free. `r14 -> r15` is #271 alone, it is
+provably inert on these positions, and it returned **exactly 0** — a code change producing zero flips
+when it cannot reach the position, measured rather than asserted.
+
+### FOUR DECISIONS INSIDE THE HARNESS THAT WERE LOAD-BEARING
+
+**1. COMMON RANDOM NUMBERS ARE KEYED ON THE CANDIDATE'S IDENTITY, NOT ITS INDEX.** `rollout_r3.js`
+seeds each cell with `ia * 31 + ib`, which is correct when both runs see the same menu in the same
+order and is exactly wrong for a paired run: a board change can reorder or resize the menu, and an
+index-keyed seed would then hand the SAME candidate DIFFERENT dice in the two arms — noise
+attributed to the fix. The seed here is a hash of `move@target + move@target`. (As it turns out the
+menus were identical on all 131 decisions in all six arms, so it changed no number in this run. It
+would have been the first thing to break the day a fix moved a feature, and the failure would have
+looked like a result.)
+
+**2. THE ARM IS A COMMIT AND THE HARNESS MOVES WITH IT.** `joint_rows.js` grew a `B.sideFor` call in
+`1cd6af5`, so HEAD's replay throws `B.sideFor is not a function` against the `pre` board. Seven files
+are compiled per arm; everything else is the frozen release.
+
+**3. THE RELEASE IS ASSERTED TO BE THE COMMITTED ENGINE, NOT ASSUMED TO BE.** `cut()` freezes
+whatever is on disk, and ENGINE was mid-edit in `medicham2-browser.js` while this ran — a release cut
+in that moment VERIFIES perfectly, is internally consistent, and is a build nobody has. So the run
+takes `REL_ID` and then compares the manifest's digests against the bytes git holds at the `head`
+arm's commit, for the simulator and for both files the arms swap. It refused twice while being built:
+once on a modified arm file, once on a release that did not match. (Line endings are normalised out
+first, and that is not a shortcut — this checkout stores LF and writes CRLF, so `git show` and the
+snapshot disagree on 4,075 bytes of `board.js` and agree on every character of it.)
+
+**4. THE SHOWDOWN CHECKOUT IS RESOLVED BEFORE ANYTHING LOADS.** `showdown_path.js` walks up from its
+OWN `__dirname`, and a copy sitting in `data/releases/<id>/engine/` walks into `data/`, finds nothing,
+falls through to the `/tmp/ps` candidate and kills the run with a message about npm. The live copy is
+required first for its documented side effect. This is what a release CANNOT freeze, and the release
+records the Showdown commit instead.
+
+### Ties are broken by the cell's NAME, and that is not style
+
+Menu order is exactly what a board change can move, so an enumeration-order tiebreak would manufacture
+flips out of exact ties between two arms that agree. At n=40 a tie is a 1-in-40 grid and they are
+common.
+
+### Adjacent gates, run and reported
+
+Run in this pass and green, every one of them read off its own output rather than remembered:
+`tests/test-stadium-roster.js` (ALL PASS, 122 generators — the new one carries a `NOT_A_MODEL` entry
+with its TRIGGER, and it was the only gate this work turned red), `tests/test-seed-clock.js` (63/63),
+`tests/test-seed-residue.js` (20/20), `tests/test-rollout-seed.js` (48/48),
+`tests/test-rollout-fallen.js` (28/28), `tests/test-rollout-switch.js` (16/16),
+`tests/test-rollout-gates.js` (16/16), `tests/test-pp-fact.js` (33/33),
+`tests/test-engine-release.js` (66/66), `tests/test-miltank-release.js` (25/25),
+`tests/test-artifact-keys.js` (4/4), `tests/test-provenance-discovery.js` (229 rows, all clear),
+`tests/test-timestamps.js` (6/6), `tests/test-docs-current.js` (21/21),
+`tests/test-roadmap-register.js` (3/3).
+
+`tests/test-rollout-switch.js` and `tests/test-pp-fact.js` are the real control again: both assert
+exact, dice-for-dice win probabilities, which is only possible if the leaf this run measured through
+is byte-identical to the one they pin.
+
+**No engine file was touched by this run at all** — it reads two files it does not write and six
+commits it does not move — so the red gates standing at R16 are standing unchanged and this work
+contributes zero rows to any of them. **ENGINE landed two commits on `medicham2-browser.js` and
+`engine/game_differential.js` while this pass was in flight, so the gate readings above are a reading
+of the tree at that moment and nothing more. THE RUN ITSELF IS UNAFFECTED, and that is the whole
+point of the release: it read `957c638ba6e5` and never the tree.**
+
+### What was deliberately NOT done
+
+- **No SPRT was prepared.** This run establishes the PRECONDITION for one — the two builds are
+  different players on nearly half of decisions — and says nothing about which wins. That is R4's
+  question, it needs a frozen release and a hand-over, and R4 is still quarantined behind MEDICHAM.
+- **No engine file was edited to make #271 or #269 measurable.** The replay's missing item event is
+  PRIORITIES 13e and it is MEASURE's; adding it here would change what the FIT sees inside a run
+  measuring something else.
+- **#275, #276 and #277 were not taken.** #276 in particular would move fitted feature values, and
+  this run is the argument for doing it rather than a licence to do it inside the same pass.
+- **The leaf was not re-calibrated and this result inherits that.** Every decision here is an argmax
+  over an uncalibrated leaf; the 62.6% unpaired control is what that looks like from the inside. A
+  flip rate is a statement about two builds ranking the same menu differently, and it is only as
+  meaningful as the ranking. That item is MEASURE's.
 
 ## R16 — EVERY CLOCK THE POSITION WAS RUNNING. #267, #268, #270 CLOSED AND #269 CLOSED IN PART, 2026-08-14.
 

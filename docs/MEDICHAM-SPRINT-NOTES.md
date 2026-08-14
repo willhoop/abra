@@ -9183,3 +9183,43 @@ on one of the three shapes passes on an engine that has the other two backwards.
 which says two sides disagree and nothing about which field is wrong. Reading the code to find out
 failed twice. Printing three examples of each side's actual output found it immediately. **When a
 measurement disagrees, print the objects, not the percentage.**
+
+### REACH CONVERTS TO EFFECT, AND A FLIP IS STILL NOT A WIN. 2026-08-14
+
+The question nobody had answered all night. Every prevalence figure produced tonight is a **ceiling on
+what the model SEES** — the seed was wrong about the weather at a third of decision points, the
+moveset at over half, the item at a few percent. None of that says the model CHOSE differently.
+
+**It does. Over 131 paired decision points under common random numbers, the seed work changes
+MILTANK's argmax on 62 of them. It changes MAG's on none.**
+
+**THE CONTROLS ARE THE REASON THAT NUMBER IS BELIEVABLE, AND THERE ARE THREE.**
+
+| control | result | what it establishes |
+|---|---|---|
+| same arm, same dice | **0** | the null for every row |
+| a landing the harness cannot reach | **0** | a code change with no path to the position returns exactly zero — measured, not argued |
+| a second such landing | **0** | it was not luck |
+| same arm, DIFFERENT dice | 62.6% | printed to justify the pairing, and **deliberately not the comparator** |
+
+That last one matters: read a paired rate against an unpaired one and every result that could ever be
+obtained is declared null.
+
+**CRN PAIRS THE SEED, NOT THE TRAJECTORY**, so some flips are a rerouted die rather than a changed
+decision. That was swept rather than argued about: the rate falls as the search budget grows, and an
+8.3x budget costs about twelve points. The residual is real and it is not most of it.
+
+**AND THE DIRECTION IS UNMEASURED — WITH A NUMBER SAYING SO RATHER THAN A SENTENCE.** The new pick
+beats the old one under the new engine's own leaf. The identical statistic on the unpaired control,
+**where neither pick is better by construction**, is almost as large. The gap is argmax selection bias,
+and it shrinks with budget exactly the way selection bias does. So: the model chooses differently on a
+more correct board. Whether it chooses BETTER is a separate measurement, and it is an SPRT.
+
+**IT IS A FLOOR.** The fit's replay calls neither the item writer nor the volatile starter, so two of
+the six landings are structurally invisible to this harness — which is also where two of the three
+zero-controls came from. The live board sees strictly more.
+
+**AND THE FLIPS CARRY THEIR ROW'S FINGERPRINT**, which is what turns a rate into a finding. Three of
+one arm's flips drop **Fake Out** — the old seed built every body with no move-count, so Fake Out did
+not merely get OFFERED to a body six turns onto the field, it WORKED. Three involve **Last Respects**.
+Three are **Aurora Veil / Weather Ball / Solar Beam**, which is the weather clock arriving in a click.
