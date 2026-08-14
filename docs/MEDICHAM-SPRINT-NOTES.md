@@ -9223,3 +9223,49 @@ zero-controls came from. The live board sees strictly more.
 one arm's flips drop **Fake Out** — the old seed built every body with no move-count, so Fake Out did
 not merely get OFFERED to a body six turns onto the field, it WORKED. Three involve **Last Respects**.
 Three are **Aurora Veil / Weather Ball / Solar Beam**, which is the weather clock arriving in a click.
+
+### ONE CORE OF SIXTEEN, AND THE EVIDENCE WAS IN HAND BEFORE THE RUN STARTED. 2026-08-14
+
+R4 was launched to answer whether the search is worth anything. It answered that, and on the way it
+showed that **no MILTANK measurement in this project's history has ever run on more than one core.**
+
+**THREE COMPOUNDING COSTS, EACH A TOOL THAT ALREADY EXISTED.**
+
+`--conc` is not parallelism. `mew.js:967` is `Promise.all` over async workers in ONE
+process — no `worker_threads`, no `child_process`. The simulator is synchronous and
+CPU-bound, so in-process concurrency overlaps nothing and only multiplies GC pressure.
+`mew_farm.js`'s header has said **"CONC MUST BE 1"** since 2026-07-25, with the measured table
+sitting under it (8 procs x conc 4 = 11 games/s; 8 x conc 1 = **38**). The arms were launched at
+`--conc 6` anyway.
+
+**THE MEASUREMENT THAT WOULD HAVE CAUGHT IT WAS TAKEN AND READ PAST.** A timing probe at conc 2 gave
+**34.25 s/game**; the real run at conc 6 gave **34.7 s/game**. Identical. Raising concurrency threefold
+changed nothing, which is the signature of concurrency that is not happening, and it was on screen
+before the eight-hour run began.
+
+The farm was never used. And `sprt.js --watch` — which follows a run and says when to stop — was
+not used either: run 1 decided at **625 games of 2,326**, run 2 at **84 of 880**. Together the two
+mistakes cost roughly 100x; run 2's 8h28m needed about five minutes.
+
+**MILTANK WAS NOT FARMABLE AT ALL, AND THE REASON IS A GUARD WORKING CORRECTLY.** `mew_farm`
+refuses unknown flags rather than dropping them — the 2026-07-31 `--opponent-model` lesson, where
+a silently dropped flag produced two secretly identical arms. Nobody had added the miltank family to
+its lists, so the farm had always refused `--miltank2` and every MILTANK number came from one
+process. **The two lists are not interchangeable**: one FORWARDS, the other only silences the error,
+so a value flag added to `KNOWN_VALUE` alone reproduces the exact bug the guard exists to stop.
+That asymmetry is now commented in the file.
+
+**THE RAM GUARD IS THE PART THAT IS A CHECK RATHER THAN A LESSON.** A MILTANK worker measured
+**663–867 MB fresh and 1,948 MB after an 8h28m run**; the core-based default picks 12 on a 13.3 GB
+machine, which is ~10 GB before growth. The machine swaps, and **a swapping desktop does not look
+slow, it looks FROZEN** — the force-quit Will reported twice, misdiagnosed both times as something
+outside this repo (orphan processes, then vmmem, which measured 0.12 GB the second time and was not
+the cause). `engine/ram_cap.js` is its own module because `mew_farm` spawns at require
+time, so a test importing the cap from there would launch the farm as a side effect.
+`tests/test-farm-ram-guard.js` was shown RED on a deliberate break (`granted 12`, exit 1)
+before being armed. **It capped its first real run 4 -> 2 without being asked**, and refused to
+truncate an existing corpus in the same breath.
+
+**A REMEMBERED `--procs 3` WOULD NOT HAVE BEEN A FIX**, for the reason this file has now recorded
+six times in other forms: a promise is not a check. What makes this instance worth writing down is
+that every one of the three tools was already here, already documented, and already correct.

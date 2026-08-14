@@ -84,7 +84,45 @@ function arg(name, dflt) {
 }
 const N = parseInt(arg('n', '100000'), 10);
 /* Leave a core or two for the OS, or the machine becomes unusable and the run slows down anyway. */
-const PROCS = parseInt(arg('procs', String(Math.max(1, Math.min(16, Math.floor(os.cpus().length * 0.75))))), 10);
+const PROCS_ASKED = parseInt(arg('procs', String(Math.max(1, Math.min(16, Math.floor(os.cpus().length * 0.75))))), 10);
+
+/* THE LIMIT ON THIS MACHINE IS RAM, NOT CORES, AND THE CORE-BASED DEFAULT ABOVE DOES NOT KNOW THAT.
+ * ------------------------------------------------------------------------------------------------
+ * Every worker is a whole Node process that loads the store, the dex and the tags. Measured
+ * 2026-08-14 on 13.3 GB: a MILTANK worker is 663-867 MB when fresh and had grown to 1,948 MB after
+ * an 8h28m run. The core default picks 12 here, which is ~10 GB before growth -- more than the
+ * machine has, so it swaps, and A SWAPPING DESKTOP DOES NOT LOOK SLOW, IT LOOKS FROZEN. That is
+ * the force-quit Will reported twice, and both times the diagnosis went hunting outside this repo
+ * (orphan processes, then vmmem) when the cause was a runner with no idea how big its workers are.
+ *
+ * A REMEMBERED `--procs 3` IS NOT A FIX. This file already refuses unknown flags rather than trusting
+ * the caller to have listed them; same reasoning, same remedy. The cap is computed and PRINTED, so a
+ * run that was quietly narrowed says so instead of looking like the run that was asked for.
+ *
+ * WORKER_MB is a flag, not a constant, so the day a worker gets cheaper the number is re-measurable
+ * rather than inherited. RESERVE_MB keeps the desktop alive: the editor, the browser and ~19 Claude
+ * processes are not optional, and a cap that leaves 0 free has not protected anything. */
+const WORKER_MB = parseInt(arg('worker-mb', '1200'), 10);   /* between fresh 800 and 8h-grown 1,948 */
+const RESERVE_MB = parseInt(arg('reserve-mb', '3000'), 10);
+
+/* Pure, and in its OWN module: this file spawns workers at require time, so a test that imported the
+ * cap from here would start the farm as a side effect. See engine/ram_cap.js. */
+const { ramCap } = require('./ram_cap.js');
+
+const AVAIL_MB = Math.round(os.freemem() / (1024 * 1024));
+const CAP = ramCap({ availMB: AVAIL_MB, reserveMB: RESERVE_MB, workerMB: WORKER_MB, asked: PROCS_ASKED });
+if (CAP.granted < 1) {
+  console.error(`mew_farm: REFUSING TO START — ${AVAIL_MB} MB available, ${RESERVE_MB} MB reserved for the`);
+  console.error(`desktop, so ${CAP.budget} MB is left and one worker needs ~${WORKER_MB} MB.`);
+  console.error('Close something, or lower --reserve-mb / --worker-mb if you have measured better numbers.');
+  process.exit(3);
+}
+if (CAP.granted < PROCS_ASKED) {
+  console.error(`mew_farm: CAPPED ${PROCS_ASKED} -> ${CAP.granted} workers. ${AVAIL_MB} MB available minus ` +
+    `${RESERVE_MB} MB reserved leaves ${CAP.budget} MB at ~${WORKER_MB} MB/worker.`);
+  console.error('This run is NARROWER than the one you asked for. It is not the requested configuration.');
+}
+const PROCS = CAP.granted;
 const POLICY = arg('policy', 'prior');
 /* 1, not 4 — see the header. In-process concurrency cannot overlap CPU-bound simulation and cost 4x
  * when it was hardcoded here. Exposed as a flag only so the finding stays re-measurable. */
@@ -190,13 +228,22 @@ const workers = Array.from({ length: PROCS }, (_, i) => new Promise((resolve) =>
    * happened on the first 20,000-game comparison. Forwarded rather than re-declared, so a flag added
    * to mew.js is farmable without touching this file. */
   const extra = [];
-  for (const k of ['policy2', 'format', 'weights', 'weights2', 'randmove', 'joint-weights', 'joint-weights2']) {
+  /* THE TWO LISTS ARE NOT INTERCHANGEABLE AND THE ASYMMETRY IS A TRAP. This one FORWARDS; the
+   * KNOWN_VALUE list below only silences the unknown-flag error. Adding a value flag to KNOWN_VALUE
+   * alone therefore reproduces the 2026-07-31 bug exactly -- the run is accepted and the value is
+   * dropped -- which is the failure the guard was built to stop. Any new value flag goes in BOTH. */
+  for (const k of ['policy2', 'format', 'weights', 'weights2', 'randmove', 'joint-weights', 'joint-weights2',
+    /* MILTANK, added 2026-08-14 for R4. The search could not be farmed at all before this: the guard
+     * correctly refused `--miltank2`, so every MILTANK measurement in this project's history ran in a
+     * single process. R4's run 2 took 8h28m for 880 games at 1 core of 16. */
+    'miltank-n', 'miltank-foe', 'miltank-preview-n', 'mega']) {
     const v = arg(k, '');
     if (v) extra.push('--' + k, v);
   }
   const BOOL_FLAGS = ['paired', 'switching', 'switching2', 'forced-switch', 'forced-switch2',
     'greedy', 'greedy2', 'learn', 'thoughts', 'opponent-model', 'opponent-model2',
-    'joint', 'joint2', 'joint-zero', 'joint-zero2', 'blind', 'blind2'];
+    'joint', 'joint2', 'joint-zero', 'joint-zero2', 'blind', 'blind2',
+    'miltank', 'miltank2', 'miltank-no-defer', 'no-raw', 'closed-sheets', 'explain'];
   for (const f of BOOL_FLAGS) if (process.argv.includes('--' + f)) extra.push('--' + f);
 
   /* AN UNKNOWN FLAG IS A HARD ERROR, because the alternative is what happened on 2026-07-31: the
@@ -209,7 +256,9 @@ const workers = Array.from({ length: PROCS }, (_, i) => new Promise((resolve) =>
    * mew.js parses argv ad hoc rather than declaring options -- so it does the next best thing and
    * refuses to run rather than dropping something the caller asked for. */
   const KNOWN_VALUE = ['policy2', 'format', 'weights', 'weights2', 'randmove', 'n', 'procs', 'conc',
-    'seed', 'out', 'policy', 'joint-weights', 'joint-weights2'];
+    'seed', 'out', 'policy', 'joint-weights', 'joint-weights2',
+    /* Mirrors of the forwarding list above -- see the note there on why both must be edited. */
+    'miltank-n', 'miltank-foe', 'miltank-preview-n', 'mega'];
   const unknown = [];
   for (let i = 2; i < process.argv.length; i++) {
     const a = process.argv[i];

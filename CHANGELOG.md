@@ -10,6 +10,46 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.25.0] — 2026-08-14
+
+### Added
+- **`engine/ram_cap.js` AND `tests/test-farm-ram-guard.js` — THE FARM NOW REFUSES TO START MORE
+  WORKERS THAN THE MACHINE CAN HOLD.** `mew_farm`'s process count was core-based (0.75 × cpus,
+  capped 16) and knew nothing about how large a worker is. Measured 2026-08-14 on 13.3 GB: a MILTANK
+  worker is 663–867 MB fresh and had reached **1,948 MB after an 8h28m run**, so the default of 12
+  is ~10 GB before growth. The machine swaps, and a swapping desktop does not look slow, it looks
+  **frozen** — that is the force-quit reported twice and misdiagnosed twice as something outside this
+  repo (orphan processes, then vmmem; vmmem measured 0.12 GB the second time and was not the cause).
+  The cap is computed from `os.freemem()` minus a reserve the desktop keeps, and it is **printed**:
+  a narrowed run says *"This run is NARROWER than the one you asked for"* rather than passing for the
+  run that was requested. `ram_cap.js` is a separate module because `mew_farm` spawns workers at
+  require time — a test importing the cap from there would launch the farm as a side effect. Shown
+  RED on a deliberate break (`granted 12`, exit 1) before being armed; auto-discovered by
+  `tests/run-all.js`. It capped its first real run 4 → 2 without being asked.
+- **MILTANK IS FARMABLE FOR THE FIRST TIME.** `mew_farm`'s unknown-flag guard had always REFUSED
+  `--miltank2` — correctly, per the 2026-07-31 `--opponent-model` incident — and nobody had added the
+  miltank family to its lists, so **every MILTANK measurement in this project's history ran in a
+  single process.** Added `miltank`, `miltank2`, `miltank-no-defer`, `no-raw`, `closed-sheets`,
+  `explain` to `BOOL_FLAGS`, and `miltank-n`, `miltank-foe`, `miltank-preview-n`, `mega` to **both**
+  the forwarding list and `KNOWN_VALUE`. The asymmetry between those two lists is now commented:
+  `KNOWN_VALUE` only silences the error, so adding a value flag there alone reproduces the exact bug
+  the guard exists to prevent.
+
+### Notes
+- **R4 RE-RUN (ROADMAP #281) — MILTANK BEATS MAG, AND MAG'S SWITCH FEATURE COSTS IT ~15 POINTS.**
+  Run 1, switching alone: MAG with switching **off** takes **65.1% of 398 decisive pairs, CI
+  [60.3, 69.6]**; `magnemite.js` estimates that feature's cost at 10 points and it is worse. Run 2,
+  both arms switching: MILTANK takes **94.3% of 265 decisive pairs** — read only alongside run 1,
+  because forcing switching on to equalise the arms crippled MAG rather than removing a confound.
+  Run 3, as shipped, in flight. Decisive-pair rate rose 34.2% → 60.2% when MILTANK was on the board.
+  Search cost measured at **48.9 options and 3,859 ms per decision**, which fits a 7-minute clock.
+  **QUARANTINED ON ARRIVAL**: MEDICHAM has not passed its gate, so magnitudes are provisional.
+  Stamped against the engine release cut 2026-08-14T08:20:43Z.
+- **THE RUNS COST ~100× WHAT THEY NEEDED TO, FROM THREE TOOLS THAT ALREADY EXISTED.** `--conc` is
+  `Promise.all` in one process and cannot overlap CPU-bound simulation (`mew_farm`'s header has said
+  **"CONC MUST BE 1"** since 2026-07-25); the farm was not used; and `sprt.js --watch` was not used —
+  run 1 was decided at 625 games of 2,326 and run 2 at **84 of 880**.
+
 ## [5.24.0] — 2026-08-14
 
 ### Fixed
