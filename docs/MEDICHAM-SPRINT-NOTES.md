@@ -21,6 +21,96 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #242, FIRST HALF — THE RESIDUAL ORDER TABLE WAS A SUBSET, 42 ROWS AGAINST 90. INSTRUMENT CLOSED 2026-08-14 (MEASURE).
+
+**Files:** `engine/residual_order.js` (rewritten), `tests/test-residual-order-population.js` (new),
+`data/residual-order.json` (regenerated), `docs/MEASURE.md`, `docs/ROADMAP.md`, `CHANGELOG.md`.
+The row count it moved from is a superseded figure and is stated in the table below, not beside the
+artifact's name — the old 42 is no longer in that file and citing it there is what the docs gate
+correctly refuses.
+**Not touched:** `engine/medicham2-browser.js`, `tests/test-mechanics.js`, `engine/board.js`,
+`engine/rollout_leaf.js`, `tests/test-seed-residue.js`, `engine/game_differential.js`,
+`engine/divergence_cards.js`, `tests/test-middle-identity.js`, `data/divergence-*.json`.
+
+**THE TABLE COMES FIRST BECAUSE THE ENGINE CANNOT BE FIXED AGAINST A TABLE MISSING TWO THIRDS OF ITS
+POPULATION.** #242 has two halves; this is the instrument half only. The placement in medicham2 is
+ENGINE's and is untouched here.
+
+### THE NUMBER
+
+`Battle#fieldEvent` collects the residual walk on **two** keys — `callback !== undefined || state['duration']`
+— and this file enumerated on the first clause only. Filtered to `gen9championsvgc2026regmb`:
+
+| | was | is |
+|---|---|---|
+| walk participants | 42 | **90** |
+| expire from inside the walk | (not modelled) | **58** |
+| …owning no residual handler at all | 0 | **48** |
+| …that announce a protocol line | 0 | **28** |
+| …silent and still order-bearing | 0 | **30** |
+| declaring no order (sort at the `4294967296` sentinel, last) | 0 | **29** |
+
+### THE ROADMAP ROW'S DIAGNOSIS WAS WRONG WHERE IT MATTERS, AND SO WAS MINE FOR AN HOUR
+
+The row says a duration-only effect has no order of its own. **It declares one.**
+`tailwind.condition` carries `onSideResidualOrder: 26, onSideResidualSubOrder: 5` and declares no
+`onSideResidual`; `resolvePriority` reads `effect[callbackName + 'Order']` regardless of whether the
+callback exists. The order was in the format the whole time — the `if (!hook) return;` guard threw the
+effect away before anything read it. So 28 of the 58 expiries have an exact published position rather
+than a heuristic one, which makes ENGINE's half a read.
+
+### PROVED BY RUNNING IT
+
+One staged walk on the official simulator, four bodies, every family live, stable across twelve seeds:
+
+```
+|-weather|none                         sandstorm expiry   order 1
+|-heal| … [from] Grassy Terrain        terrain heal       order 5
+|-heal| … [from] item: Leftovers       Leftovers          order 5
+|-damage| … [from] psn                 poison             order 9
+|-end|p1a: …|move: Taunt               Taunt              order 15
+|-sideend|p1: A|move: Light Screen     screen             order 26 sub 2
+|-sideend|p1: A|move: Tailwind         Tailwind           order 26 sub 5
+|-fieldend|move: Trick Room            Trick Room         order 27 sub 1
+```
+
+Light Screen before Tailwind is their declared subOrders, not a shuffled tie.
+
+### WHAT ENGINE READS FOR THE SECOND HALF
+
+- `site` decides the callback name, hence the `*Order` field, hence the position. `ns:id` is the
+  stable published key; all 42 legacy keys still resolve and `MEDFAILS.residualUnplaced` is unset.
+- `route: 'handler+duration'` (10 rows — the four weathers, Encore, Perish Song, Uproar, Syrup Bomb,
+  `partiallytrapped`, `lockedmove`) means **decrement first, and on the turn it hits zero run `end`
+  and SKIP the residual callback**.
+- 30 silent expiries are order-bearing. An engine that places only the 28 loud ones will still diverge.
+- A side or field expiry has **no speed** (its holder is a Side/Field), so it sorts as 0 within its
+  order group and lands behind every body-held effect there.
+- **Grassy Terrain is two participants, eleven orders apart** — heal at 5 with the healed body's
+  speed, expiry at 27 with none.
+- The blank player name in `|-sideend|p2: |move: Tailwind` is a protocol-rendering defect, not an
+  ordering one; the authority emits `p2: B`.
+
+### THREE CORRECTIONS TO PUBLISHED VALUES, ONE CAUSE
+
+`psn`/`tox`/`brn` were published at subOrder 2 (effectType `Status` → **0**); `wish` at 2 (a slot
+condition → **3**). The old file transcribed `resolvePriority`'s defaults as a literal map instead of
+calling it, and the map cannot express the authority's real rule, which refines on **where the effect
+is attached**. None changed a grouping medicham2 consumes. The file now calls
+`Battle.prototype.resolvePriority` and `comparePriority` on real staged state — which immediately
+caught my own replacement publishing Fairy Lock at subOrder 5 when the live answer is 2, because
+`field.addPseudoWeather` writes no `target` and the field refinement branch is unreachable.
+
+### THE GATE, SHOWN RED FIRST
+
+`tests/test-residual-order-population.js`, 14 checks, auto-discovered by `run-all.js`. It asks the
+authority's own `find*EventHandlers` for the walk with `getKey: 'duration'` and matches every returned
+handler against a row. Reverting to handler-only enumeration makes it name **41 live participants with
+no row**. `tests/test-residual-order-observed.js` was green throughout and could not have caught this —
+it only looks at effects the table already contains.
+
+---
+
 ## ROADMAP #272 — FEINT AND PHANTOM FORCE LEFT THE SHIELD STANDING. CLOSED 2026-08-14 (ENGINE).
 
 **Files:** `engine/medicham2-browser.js`, `engine/tag_dex.js`, `data/tags.json` (regenerated),

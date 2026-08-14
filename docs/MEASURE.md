@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 24 unsafe, 1 void (declared), 82 possibly stale, 95 ok, 0 missing
+  provenance: 24 unsafe, 1 void (declared), 89 possibly stale, 91 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
@@ -29,13 +29,13 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 12). Old hashes cannot be compared; restamp after checking board.js.
-    moved after the fit: engine/medicham2-browser.js  2026-08-13 17:21
-    moved after the fit: engine/board.js  2026-08-13 16:06
+    moved after the fit: engine/medicham2-browser.js  2026-08-14 01:41
+    moved after the fit: engine/board.js  2026-08-14 01:55
     moved after the fit: data/engine-data.js  2026-08-10 18:59
-    moved after the fit: data/abra-tags.js  2026-08-12 19:40
+    moved after the fit: data/abra-tags.js  2026-08-13 20:18
 ```
 
-_stamped 2026-08-13 17:24_
+_stamped 2026-08-14 01:59_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,144 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 0000000000. ROADMAP #242, FIRST HALF — THE RESIDUAL ORDER TABLE WAS A SUBSET PRESENTED AS A POPULATION: 42 ROWS AGAINST 90 — 2026-08-14
+
+`engine/residual_order.js` (rewritten), `tests/test-residual-order-population.js` (new),
+`data/residual-order.json` (regenerated, 42 → 90 rows). `engine/medicham2-browser.js`,
+`tests/test-mechanics.js`, `engine/board.js`, `engine/rollout_leaf.js` were **not touched** — the
+placement half of #242 is ENGINE's and reads this table rather than re-deriving it.
+
+**THE NUMBER. The table published 42 walk participants. The authority walks 90.** Measured against
+`Battle#fieldEvent` in `gen9championsvgc2026regmb`, filtered to the regulation:
+
+| | |
+|---|---|
+| walk participants | **90** (was 42) |
+| that expire from inside the walk | **58** |
+| …of which own no residual handler at all | **48** |
+| …of which announce a protocol line | **28** |
+| …silent but still order-bearing | **30** |
+| that declare no order and sort at the `4294967296` sentinel | **29** |
+
+**WHY IT WAS 42.** `fieldEvent` sets `getKey = 'duration'` for the Residual event, and every collector
+admits an effect on `callback !== undefined || state[getKey]`. This file enumerated on the first
+clause only, so a `if (!hook) return;` guard threw away every effect that is in the walk purely
+because it has a live duration — Tailwind, Trick Room, the screens, Safeguard, Protect, the guards,
+the two-turn moves.
+
+**AND THE DIAGNOSIS IN THE ROADMAP ROW WAS WRONG IN THE WAY THAT MATTERS, INCLUDING MINE.** The row
+says these effects have no order of their own. **They do, and it was in the format the whole time.**
+`tailwind.condition` declares `onSideResidualOrder: 26, onSideResidualSubOrder: 5` and simply declares
+no `onSideResidual`; `resolvePriority` reads `effect[callbackName + 'Order']` whether or not the
+matching callback exists. The order was never missing — the guard threw the effect away before
+anything read it. That is a better outcome than the row assumed: 28 of the 58 expiries have an exact
+published position, not a heuristic one.
+
+**PROVED BY RUNNING IT, NOT BY READING IT.** One staged walk on the official simulator, four bodies,
+every family live at once:
+
+```
+|-weather|none                                   sandstorm expiry      order 1
+|-heal| … [from] Grassy Terrain                  terrain heal          order 5
+|-heal| … [from] item: Leftovers                 Leftovers             order 5
+|-damage| … [from] psn                           poison                order 9
+|-end|p1a: …|move: Taunt                         Taunt expiry          order 15
+|-sideend|p1: A|move: Light Screen               screen expiry         order 26 sub 2
+|-sideend|p1: A|move: Tailwind                   Tailwind expiry       order 26 sub 5
+|-fieldend|move: Trick Room                      Trick Room expiry     order 27 sub 1
+```
+
+Twelve seeds, identical sequence. It is not a coin flip: Light Screen precedes Tailwind because their
+declared subOrders differ, not because a tie shuffled.
+
+**FOUR PUBLISHED VALUES WERE WRONG, AND ALL FOUR WERE THE SAME MISTAKE — A RULE COPIED INSTEAD OF
+CALLED.** The old file owned a literal transcription of `resolvePriority`'s subOrder defaults:
+
+- `psn`, `tox`, `brn` were published at subOrder **2**. Their effectType is `Status`, which is not in
+  the authority's map at all — the real value is **0**.
+- `wish` was published at subOrder **2**. It is a slot condition, so the authority gives it **3**. The
+  old file *had* a clause for that and its own de-duplication defeated it: the row was already emitted
+  by an earlier loop, so the slot-condition patch never reached it.
+- the map's flat `Condition: 2` is not what the authority does at all. `resolvePriority` refines by
+  **where the effect is attached** — `state.target instanceof Side` → 4, `isSlotCondition` → 3,
+  `instanceof Field` → 5 — which no effectType can express.
+
+None of the four changed a grouping medicham2 currently consumes, so nothing downstream moved. They
+were wrong in the published artifact regardless, and they are the argument for the fix: **this file no
+longer owns a copy of the sort rule. It calls `Battle.prototype.resolvePriority` and
+`Battle.prototype.comparePriority` on the real objects.**
+
+**THE GATE FOUND AN ERROR IN MY OWN REPLACEMENT WITHIN A MINUTE OF EXISTING**, which is the strongest
+thing I can say for it. I shaped the `state` argument by hand —
+`{ target: Object.create(Field.prototype) }` — and published Fairy Lock at subOrder 5. Live, it
+resolves to 2, because **`field.addPseudoWeather` writes no `target` at all**: the field-condition
+refinement branch is unreachable in this Showdown build. The generator now stages a throwaway battle
+and keeps the real state object each attach method produces. A derivation that models the authority
+instead of asking it is wrong exactly where nobody thought to model.
+
+**THE GATE.** `tests/test-residual-order-population.js`, auto-discovered by `tests/run-all.js`, 14
+checks. It stages one battle, calls the authority's OWN `findSideEventHandlers` /
+`findFieldEventHandlers` / `findPokemonEventHandlers` with the same `getKey: 'duration'` that
+`fieldEvent` passes, and asserts every handler that comes back has a row whose `(order, subOrder)`
+equals what `resolvePriority` just produced live. **Shown RED first**: reverting the enumeration to
+handler-only makes it name 41 live participants with no row, plus 31 duration-carrying conditions from
+an independent lower bound.
+
+**AND THE FIXTURE HAD TO BE MADE INDEPENDENT, BECAUSE THE FIRST DRAFT STAGED FROM THE TABLE IT WAS
+AUDITING.** With `ROWS.filter(site === 'side')` as the stage list, a table that had dropped every side
+condition also staged no side condition, and the membership clause reported one missing row instead of
+forty-one. The ids now come from the moves. This is the same defect as the row itself, one level up,
+and it is only visible because the break was run.
+
+**WHY `tests/test-residual-order-observed.js` COULD NOT HAVE CAUGHT ANY OF THIS.** It stages a turn
+and checks the chips come out in the table's order — but it only ever looks at effects the table
+already contains, so a table missing a whole class of participants agrees with it perfectly. It is
+green today and was green throughout. **A check that watches a copy of the population cannot report
+that the population is short**, which is the sixth instance of that shape this week.
+
+**THREE MORE FINDINGS THAT ARE NOT ABOUT ORDER.**
+
+1. **Lucky Chant and Mist are `isNonstandard: 'Past'`.** The roadmap row's hand-derived list of 19
+   announcers names both. They are not in this regulation and cannot appear in a Champions turn. The
+   list also omits the four weathers, `partiallytrapped`, Syrup Bomb, Encore, Perish Song and Uproar.
+   The measured count is **28**, and Heal Block belongs on it — the *move* is `Past`, but the volatile
+   is reachable in the regulation through **Psychic Noise**.
+2. **Grassy Terrain is in the walk TWICE, eleven orders apart.** Its heal arrives through the
+   per-active field collection at `onResidualOrder` **5** carrying the healed body's speed; its expiry
+   arrives through the field collection at `onFieldResidualOrder` **27** with no speed at all. One row
+   cannot say both, which is why a row is now an `(effect, attachment site)` pair rather than an
+   effect. The 42-row table said only the first.
+3. **A duplicate published key would have silently unplaced a medicham2 step**, and the first run of
+   the rewrite produced one: both Grassy Terrain participants wanted `field:grassyterrain`, and
+   medicham2 builds a `Map` from these rows, so the last would have won and its `terrain` step would
+   have moved from order 5 to order 27 **while still reporting itself placed**. The generator now
+   refuses to publish a duplicate and the gate asserts it. All 42 legacy keys still resolve; only
+   `condition:grassyterrain` is gone, and it was a duplicate of `field:grassyterrain` that nothing read.
+
+**WHAT ENGINE NEEDS FROM THIS TABLE FOR THE SECOND HALF** — a read, not a re-derivation:
+
+- `rows[].site` is the load-bearing field. It decides the callback name, hence which `*Order` is read,
+  hence where the effect lands. `ns:id` is the stable published key.
+- `route` — `handler`, `duration`, or `handler+duration`. **A `handler+duration` row decrements first
+  and, on the turn it reaches zero, runs `end` and SKIPS its own residual callback** (`continue` in
+  `battle.ts`). Ten rows: the four weathers, Encore, Perish Song, Uproar, Syrup Bomb,
+  `partiallytrapped`, `lockedmove`.
+- `announces` + `announceLine` — 28 rows emit protocol at their sorted position. **30 more expire
+  silently and are still order-bearing**, because the `duration--` spends a position in the same walk.
+  An engine that skips the silent 30 will place the loud 28 correctly and still diverge.
+- `order: null` means no declared order: `resolvePriority` stores `false` and `comparePriority`
+  substitutes **4294967296**, so those 29 sort LAST — after Trick Room — by holder speed then subOrder.
+- `speedFrom` — a side or field condition's expiry has **no speed** (its holder is a Side/Field, which
+  has no `getStat`), so it sorts as 0 and lands behind every body-held effect at the same order.
+- The blank-player-name defect on `|-sideend|p2: |move: Tailwind` is untouched here. The authority
+  emits `|-sideend|p2: B|move: Tailwind`; that is a protocol-rendering bug in medicham2, not an
+  ordering one.
+
+**NOT DONE, AND IT IS THE HALF THAT MOVES A GAME.** medicham2 still places these expiries wrongly —
+21 games of `data/game-differential.json` regroup to
+`ordering :: |-damage|<slot>|H/H|[from]sandstorm <> |-sideend|<side>|tailwind`, the largest single
+shape on the board. That is ENGINE's, it is live in that file, and the table it needs now exists.
 
 ### 000000000. ROADMAP #265 / #266 — THE FIXTURES WERE DECLARING TEAMS THE GAME WOULD REFUSE, AND THE RULER FOR THAT DID NOT EXIST — 2026-08-13
 

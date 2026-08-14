@@ -10,6 +10,90 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.21.0] — 2026-08-14
+
+### Fixed
+- **THE DERIVED RESIDUAL-ORDER TABLE WAS A SUBSET PRESENTED AS A POPULATION — 42 ROWS AGAINST 90 —
+  ROADMAP #242, FIRST HALF.** `Battle#fieldEvent` collects the end-of-turn walk on **two** keys:
+  `callback !== undefined || state['duration']`. `engine/residual_order.js` enumerated on the first
+  clause only, so a `if (!hook) return;` guard threw away every effect that is in the walk purely
+  because it carries a live duration — Tailwind, Trick Room, the screens, Safeguard, Protect, the
+  guards, the two-turn moves. Filtered to `gen9championsvgc2026regmb`: **90 walk participants**, of
+  which **58 expire from inside the walk**, **48 own no residual handler at all**, **28 announce a
+  protocol line** and **30 are silent and still order-bearing** because their `duration--` spends a
+  position in the same walk. A row is now an `(effect, attachment site)` pair, because the site
+  decides the callback name, hence which `*Order` is read, hence where the effect lands.
+- **AND THE PREMISE THAT THOSE EFFECTS HAVE NO ORDER IS WRONG — THEY DECLARE ONE, AND IT WAS IN THE
+  FORMAT ALL ALONG.** `tailwind.condition` carries `onSideResidualOrder: 26, onSideResidualSubOrder: 5`
+  and simply declares no `onSideResidual`; `resolvePriority` reads `effect[callbackName + 'Order']`
+  whether or not the matching callback exists. The order was never missing — the guard threw the
+  effect away before anything read it. **Proved by running it**, one staged walk on the official
+  simulator, stable across twelve seeds: sandstorm expiry (order 1), Grassy Terrain heal and Leftovers
+  (5), poison (9), `-end` Taunt (15), `-sideend` Light Screen (26/2) then Tailwind (26/5), `-fieldend`
+  Trick Room (27/1). The **29** participants that declare no order sort at `comparePriority`'s
+  `4294967296` sentinel — last, after Trick Room, by holder speed then subOrder.
+- **GRASSY TERRAIN IS IN THE WALK TWICE, ELEVEN ORDERS APART.** Its heal arrives through the
+  per-active field collection at `onResidualOrder` **5** carrying the healed body's speed; its expiry
+  arrives through the field collection at `onFieldResidualOrder` **27** with no speed at all. One row
+  could not say both, and the 42-row table said only the first.
+- **FOUR PUBLISHED subOrder VALUES WERE WRONG AND ALL FOUR WERE ONE MISTAKE: A RULE COPIED INSTEAD OF
+  CALLED.** `psn`, `tox` and `brn` were published at subOrder 2 — their effectType is `Status`, which
+  is not in the authority's map, so the real value is **0**. `wish` was published at 2 where a slot
+  condition gets **3**; the old file had a clause for exactly that and its own de-duplication defeated
+  it. The flat `Condition: 2` in that transcribed map is not what the authority does at all — it
+  refines by **where the effect is attached** (`state.target instanceof Side` → 4, `isSlotCondition` →
+  3, `instanceof Field` → 5). None of the four changed a grouping medicham2 currently consumes.
+- **THE ROADMAP ROW'S HAND-DERIVED ANNOUNCER LIST NAMES TWO MOVES THAT ARE NOT IN THIS REGULATION.**
+  Lucky Chant and Mist are both `isNonstandard: 'Past'`. The list also omits the four weathers,
+  `partiallytrapped`, Syrup Bomb, Encore, Perish Song and Uproar. The measured count is **28**, and
+  Heal Block belongs on it — the *move* is `Past`, but the volatile is reachable through **Psychic
+  Noise**, which is legal.
+
+### Changed
+- **`engine/residual_order.js` NO LONGER OWNS A COPY OF THE SORT RULE.** It calls
+  `Battle.prototype.resolvePriority` and `Battle.prototype.comparePriority` on handler objects shaped
+  the way each collector shapes them, with the **real `state` objects staged from a throwaway battle**
+  rather than shapes guessed by hand. `TYPE_SUBORDER` is still exported but is now PROBED out of that
+  function instead of transcribed.
+- The published namespace rule is one line: a row carrying a residual handler keeps its legacy `ns`;
+  a row in the walk only to spend a `duration` is published under `expiry`. All 42 legacy keys still
+  resolve and `MEDFAILS.residualUnplaced` is unset. `condition:grassyterrain` is gone — it was a
+  duplicate of `field:grassyterrain` that nothing read. The generator now **refuses to publish a
+  duplicate key**: medicham2 builds a `Map` from these rows, so a duplicate would silently keep the
+  last and move a step eleven orders down the walk *while still reporting itself placed*.
+
+### Added
+- **`tests/test-residual-order-population.js`** — 14 checks, auto-discovered by `tests/run-all.js`. It
+  stages one battle and asks the authority's OWN `findSideEventHandlers` / `findFieldEventHandlers` /
+  `findPokemonEventHandlers` for the walk with the same `getKey: 'duration'` that `fieldEvent` passes,
+  then asserts every handler that comes back has a row whose `(order, subOrder)` equals what
+  `resolvePriority` just produced live. **Shown RED first**: reverting the enumeration to handler-only
+  makes it name **41 live participants with no row**, plus 31 duration-carrying conditions from an
+  independent lower bound.
+- **The gate caught an error in its own instrument within a minute of existing.** The rewritten
+  generator shaped `state` by hand as `{ target: Object.create(Field.prototype) }` and published Fairy
+  Lock at subOrder 5. Live it resolves to **2**, because `field.addPseudoWeather` writes no `target`
+  at all — `resolvePriority`'s field-condition branch is unreachable in this Showdown build. A
+  derivation that models the authority instead of asking it is wrong exactly where nobody thought to
+  model.
+
+### Notes
+- **`tests/test-residual-order-observed.js` was green throughout and could not have caught any of
+  this.** It stages a turn and checks the chips come out in the table's order — but it only ever looks
+  at effects the table already contains, so a table missing a whole class of participants agrees with
+  it perfectly. A check that watches a copy of the population cannot report that the population is
+  short. The first draft of the new gate had the same defect one level up: it staged from
+  `ROWS.filter(...)`, so a table that had dropped every side condition also staged none and the
+  membership clause reported one missing row instead of forty-one. The fixture ids now come from the
+  moves.
+- **STILL OPEN — the second half of #242 is ENGINE's**: medicham2 still places these expiries wrongly,
+  and `ordering :: |-damage|<slot>|H/H|[from]sandstorm <> |-sideend|<side>|tailwind` remains the
+  largest single shape in `data/game-differential.json` at 21 games. The table it needs now exists, so
+  that half is a read rather than a re-derivation. The blank player name in
+  `|-sideend|p2: |move: Tailwind` is a separate protocol-rendering defect in the same line.
+- Living-docs pass is deferred to `docs/MEDICHAM-SPRINT-NOTES.md` under the sprint rule; that file
+  carries the full row.
+
 ## [5.20.0] — 2026-08-14
 
 ### Fixed
