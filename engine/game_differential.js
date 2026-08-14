@@ -705,7 +705,7 @@ const MID_DRAWS = { sd: {}, me: {} }; /* per-category draw counts, per side, for
 const MID_CTX_SEEN = { sd: [], me: [] };
 const midReset = () => { for (const k of ['sd', 'me']) { MID_DRAWS[k] = {}; for (const c of MID_CATS.concat('any')) MID_DRAWS[k][c] = 0; } };
 midReset();
-let MID_VOID_GAMES = 0, MID_VOID_DETAIL = [];
+let MID_VOID_GAMES = 0, MID_VOID_DETAIL = [], MID_SAMPLE = [];
 let MID_WRAP_ERROR = null;
 
 /* THE VOID CHECK. Called after each game in the middle arm: if the two engines drew a different
@@ -744,6 +744,12 @@ function midGameVoid() {
   const denom = Math.min(sdO.length, meO.length);
   const rate = denom ? shared.length / denom : 0;
   MID_CTX_SEEN.sd = [];
+  /* WHEN IT FAILS, SHOW THE ADDRESSES, NOT THE RATE. A percentage says the two sides disagree and
+   * nothing about WHY; three examples of each say which field is wrong in one glance. Reading the two
+   * constructions side by side found nothing -- same seed, same hash, same five fields. */
+  if (rate < MID_OVERLAP_FLOOR && MID_SAMPLE.length < 3) {
+    MID_SAMPLE.push({ sd: sdO.slice(0, 4), me: meO.slice(0, 4) });
+  }
   if (rate < MID_OVERLAP_FLOOR) { MID_VOID_GAMES++; if (MID_VOID_DETAIL.length < 40)
     MID_VOID_DETAIL.push('outcome-address identity ' + (100*rate).toFixed(1) + '% (sd ' + sdO.length + ', me ' + meO.length + ')');
     return true; }
@@ -4737,6 +4743,11 @@ if (PRIMARY_ARM.middle) {
   if (MID_VOID_DETAIL.length) {
     console.log('  which stream parted, first few:');
     for (const d of MID_VOID_DETAIL.slice(0, 6)) console.log('      ' + d);
+    for (const x of MID_SAMPLE) {
+      console.log('    -- one voided game, first addresses each side --');
+      for (const a of x.sd) console.log('       SD  ' + a);
+      for (const a of x.me) console.log('       ME  ' + a);
+    }
   }
 }
 console.log('');

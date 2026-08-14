@@ -21,6 +21,53 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #278 — THE PAIRED ARGMAX RUN. REACH BECOMES EFFECT, AND IT IS 47.3%. 2026-08-14 (SEARCH).
+
+**Every prevalence R13 through R16 published was a ceiling on REACH and each report said so. This is
+the run that converts one into the other, and it does not touch a byte of the engine.**
+
+`engine/argmax_paired.js`. Artifacts `data/argmax-paired.json` (headline) with
+`data/argmax-paired-n12.json` and `data/argmax-paired-n100.json` folded into it as the N-sweep by the
+generator itself. Engine release `957c638ba6e5`, **asserted to be the committed engine at `58a26a7`
+rather than assumed** — ENGINE was mid-edit in `medicham2-browser.js` while this ran, and a release cut
+in that moment verifies perfectly and is a build nobody has.
+
+| pair | rows | argmax flips |
+|---|---|---|
+| `pre -> r13` | **#244** | 8/131 = **6.1%** |
+| `r13 -> h254` | **#254** | 0/131 = **0.0%** |
+| `h254 -> r14` | **#247 #248 #249 #250** | 61/131 = **46.6%** |
+| `r14 -> r15` | **#271** | 0/131 = **0.0%** |
+| `r15 -> head` | **#267 #268 #269 #270** | 13/131 = **9.9%** |
+| **pooled** | **all of it** | **62/131 = 47.3%** |
+
+**MAG's own argmax flipped on 0 of 131 in every pair, and the menu was identical on all 131.** The
+seed work changes nothing MAG sees; it changes only what the rollout search chooses. That is exactly
+what R14's and R15's byte-identical feature hashes predicted, now measured on positions rather than on
+a fixture.
+
+**THE PAIRED NULL IS ZERO AND THE RUN DEMONSTRATES IT THREE TIMES** — the identical-dice control
+(0/131) and two arm pairs whose change provably cannot reach these positions (#254 and #271). **The
+UNPAIRED control is 62.6% and is NOT the comparator**: the same arm against itself with only the dice
+changed. Reading the paired rate against that would declare every possible result null, and it is
+printed to justify the pairing, not to test against.
+
+**CRN PAIRS THE SEED, NOT THE TRAJECTORY**, so some flips are a rerouted die. Swept rather than
+argued: **53.4% (n=12) → 47.3% (n=40) → 41.2% (n=100)**. An 8.3x budget costs 12 points.
+
+**DIRECTION IS UNMEASURED AND A NUMBER SAYS SO.** `head`'s pick beats `pre`'s by **+9.70 points**
+under `head`'s own leaf; the identical statistic on the unpaired control, where neither pick is better
+by construction, is **+7.96**. That is argmax selection bias, and it shrinks with budget the way
+selection bias does. A flip is not a win.
+
+**#271 AND #269 ARE STRUCTURALLY INVISIBLE HERE.** `joint_rows.js`'s replay calls neither
+`board.noteItem` (one caller in the repository: `engine/magnemite.js`) nor `board.startVolatile`, so
+every rate above is a **FLOOR** on the live board. That is PRIORITIES 13e and it is MEASURE's.
+
+**The dominant shape in the recorded flips is #250's**: the old seed built every body with
+`_mvActs: 0`, so Fake Out did not merely get offered, it WORKED inside the playout for a body six
+turns onto the field. The search was ranking it on a payoff the server would refuse.
+
 ## ROADMAP #242 SECOND HALF — THE RESIDUAL EXPIRIES ARE PLACED. 2026-08-14 (ENGINE).
 
 **Census 575 live / 0 missing → 577 live / 0 missing.** 0 hollow, 0 unarmed, 0 direct-call, 0 threw.
@@ -9093,3 +9140,46 @@ every value differ.
 **THE PATTERN, FOR THE SIXTH TIME TODAY.** A check that was not checking, a capability that was not
 called, and a warning that was written down and not read. The engine defects this project finds are
 real; the instruments around them keep being the larger story.
+
+### A PERCENTAGE SAID THEY DISAGREED AND NOTHING ABOUT WHY. THREE ADDRESSES SAID IT IN ONE GLANCE. 2026-08-14
+
+The middle arm still does not work, and it found an engine defect anyway — which is the argument for
+having built it.
+
+Reading the two address constructions side by side found **nothing**: same seed, same
+FNV-1a, same five fields, and the category hooks wrap the identical three `BattleActions`
+methods. So the void check was changed to dump the ADDRESSES instead of the rate, and one voided game
+answered it:
+
+```
+SD  20260813|1|dmg|flowertrick|p10|0      ME  20260813|1|dmg|flowertrick|p10|0
+                                          ME  20260813|1|crit|flowertrick|p10|0
+SD  20260813|1|acc|lowkick|p20|0          ME  20260813|1|acc|lowkick|p20|0
+SD  20260813|1|crit|lowkick|p20|0
+SD  20260813|1|dmg|lowkick|p20|0          ME  20260813|1|dmg|lowkick|p20|0
+```
+
+**We roll a crit the authority does not, and then skip one it does.**
+
+Derived and filtered to the regulation: **exactly three legal moves carry `willCrit: true` —
+Storm Throw, Flower Trick, Frost Breath.** Wicked Blow and Surging Strikes carry it and are
+`isNonstandard` here. **A guaranteed crit that ROLLS is wrong on every use** — sometimes we fail
+to crit on a move that always does — and it is a DAMAGE error rather than a narration one.
+
+**AND IT IS STRUCTURALLY INVISIBLE TO BOTH PINNED CORNERS**, because they force the crit die to a
+constant: the top arm never crits and the bottom arm always does, so a move that should always crit
+looks correct in one arm and indistinguishable in the other. Only real dice can see it. That is what
+the middle arm is FOR, and it delivered before it was finished.
+
+The second half is undiagnosed and more interesting: Low Kick is `willCrit: false`,
+`critRatio: 1`, so the authority rolls an ordinary crit and we appear to skip it entirely.
+
+Also derived and unchecked by anyone: **these legal moves carry `critRatio: 2`** — Stone Edge, Leaf
+Blade, Night Slash, Crabhammer, Shadow Claw, Air Cutter, Aqua Cutter, Blaze Kick, Cross Chop, Cross
+Poison, Drill Run, Psycho Cut, Sky Attack, Triple Arrows. Registered as #279 with the note that a probe
+on one of the three shapes passes on an engine that has the other two backwards.
+
+**THE METHOD IS THE TRANSFERABLE PART.** The instrument had been reporting a RATE — "identity 66.7%" —
+which says two sides disagree and nothing about which field is wrong. Reading the code to find out
+failed twice. Printing three examples of each side's actual output found it immediately. **When a
+measurement disagrees, print the objects, not the percentage.**
