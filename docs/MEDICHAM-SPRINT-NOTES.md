@@ -8591,3 +8591,39 @@ wiring it named, and now a demonstration harness that stopped at row 45.
 Incineroar clicking Flare Blitz produced `{frz, dealt 0}` — **identical to its own Crunch control**.
 Two arms of a knob reading the same number is this project's signature for a wire that was never
 connected, and it is why the control existed.
+
+### BUILT, PROBED, AND NEVER CALLED: THE MIDDLE ARM RAN FOR TWO HOURS ON THE WRONG DICE. 2026-08-14
+
+Will asked whether the middle run was working. It was not, and the reason is the failure this whole
+project is organised against, arriving in my own file.
+
+ENGINE built the event-addressed dice on the medicham2 side, probed them at **98–99% address identity**,
+and exported `midEventDice`. **The arm never called it.** `game_differential.js` went on
+handing medicham2 `rngStreams` — a SEQUENCE — while the authority drew from hashes. Half of every
+run voided, and the report read like an engine that could not agree with itself.
+
+**A capability that exists and is not called reports exactly what a missing one reports.**
+
+**AND THE VOID CHECK HAD GONE STALE IN THE SAME PASS.** It compared draw COUNTS — correct for sequences,
+wrong the moment the hash landed. Under event addressing, differing counts are EXPECTED: medicham2
+short-circuits rolls whose outcome is determined, the authority rolls anyway, and neither draw consumes
+anything the other needed. It voided **126 of 258** games for a condition that had stopped being a
+defect. ENGINE had said in its own report that the check would need to change question. I did not
+change it.
+
+**THEN I IGNORED A WARNING I HAD BEEN GIVEN IN WRITING.** The replacement pooled every category
+including `any` — the draws with no move in scope. ENGINE had explicitly refused that bucket a
+floor, having measured it at **95.2% on one sample and 37.0% on another FROM THE SAME ENGINE**. Pooling
+it dragged a 98–99% identity down to 70–78% and voided three quarters of the run. Restricted to the
+five outcome categories: void **196 → 97 of 258**.
+
+**STILL NOT WORKING, AND THE NUMBER IS QUOTED NOWHERE.** 97.5% of usable games diverge against ~20% in
+the corners, so the two sides are still not drawing the same values in practice. The identity test
+reports 98–99% through ITS OWN Showdown hook; the arm uses a different one, and the **category
+assignment is the open suspect** — my side maps `getDamage` to `dmg` and splits `crit`
+by argument count, which is cruder than what the test does. One field of the address differing makes
+every value differ.
+
+**THE PATTERN, FOR THE SIXTH TIME TODAY.** A check that was not checking, a capability that was not
+called, and a warning that was written down and not read. The engine defects this project finds are
+real; the instruments around them keep being the larger story.

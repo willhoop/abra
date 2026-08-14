@@ -711,14 +711,43 @@ let MID_WRAP_ERROR = null;
 /* THE VOID CHECK. Called after each game in the middle arm: if the two engines drew a different
  * number of values from any category while they were still agreeing, the streams have parted and any
  * divergence this game reports is the instrument's, not the engine's. */
+/* THE VOID CHECK ASKS A DIFFERENT QUESTION UNDER HASHING, AND LEAVING IT ON COUNTS VOIDED HALF
+ * THE RUN FOR A CONDITION THAT HAD STOPPED BEING A DEFECT.
+ *
+ * With sequences, a count mismatch meant the two streams had walked out of step and everything after
+ * was noise. With event-addressed dice, differing counts are EXPECTED and harmless -- medicham2
+ * short-circuits rolls whose outcome is determined and the authority rolls anyway, and neither draw
+ * consumes anything the other needed. Keeping the old test voided 126 of 258 games on a run where the
+ * measured identity was 98-99%.
+ *
+ * SHARED-EVENT IDENTITY is the question that survives the change: of the addresses BOTH engines
+ * computed, how many agree? An address only one side asked about is fine. A game where the overlap is
+ * thin has nothing to compare and is voided; a game where the two engines named the same moments
+ * differently is voided LOUDLY, because that is the instrument failing and not the engine. */
+const MID_OVERLAP_FLOOR = 0.90;
 function midGameVoid() {
-  const bad = [];
-  for (const c of MID_CATS.concat('any')) {
-    const a = MID_DRAWS.sd[c] || 0, b = MID_DRAWS.me[c] || 0;
-    if (a !== b) bad.push(c + ' sd=' + a + ' me=' + b);
-  }
-  if (bad.length) { MID_VOID_GAMES++; if (MID_VOID_DETAIL.length < 40) MID_VOID_DETAIL.push(bad.join(', ')); }
-  return bad.length > 0;
+  const sd = MID_CTX_SEEN.sd, me = (typeof M.midEventLog === 'function') ? M.midEventLog() : [];
+  if (!sd.length || !me.length) { MID_VOID_GAMES++; if (MID_VOID_DETAIL.length < 40)
+    MID_VOID_DETAIL.push('no addresses on one side: sd=' + sd.length + ' me=' + me.length); return true; }
+  /* OUTCOME CATEGORIES ONLY, AND THE ENGINE AGENT SAID SO BEFORE I IGNORED IT. The address is
+   * `seed|turn|cat|move|target|nth`, and the `any` bucket is every draw with no move in scope --
+   * target selection, sleep timers, multihit counts. It was measured at 95.2% on one sample and
+   * 37.0% on another FROM THE SAME ENGINE and was explicitly refused a floor for that reason.
+   * Pooling it dragged a 98-99% identity down to 70-78% and voided three quarters of the run. The
+   * four categories that decide a game are the ones that have to agree. */
+  const OUT = new Set(['acc', 'crit', 'sec', 'dmg', 'stall']);
+  const cat = a => String(a).split('|')[2];
+  const sdO = sd.filter(a => OUT.has(cat(a))), meO = me.filter(a => OUT.has(cat(a)));
+  if (!sdO.length || !meO.length) { MID_CTX_SEEN.sd = []; return false; }
+  const S = new Set(sdO), shared = meO.filter(x => S.has(x));
+  /* the overlap is over the SMALLER side: one engine asking more questions is not a disagreement */
+  const denom = Math.min(sdO.length, meO.length);
+  const rate = denom ? shared.length / denom : 0;
+  MID_CTX_SEEN.sd = [];
+  if (rate < MID_OVERLAP_FLOOR) { MID_VOID_GAMES++; if (MID_VOID_DETAIL.length < 40)
+    MID_VOID_DETAIL.push('outcome-address identity ' + (100*rate).toFixed(1) + '% (sd ' + sdO.length + ', me ' + meO.length + ')');
+    return true; }
+  return false;
 }
 
 /* THE CATEGORY IS DERIVED FROM WHICH METHOD IS EXECUTING, NOT FROM THE ARGUMENTS — because the
@@ -777,7 +806,14 @@ function makeArm(spec) {
    * factory, so "what does seed N mean" has a single implementation. `sd` and `me` are separate
    * INSTANCES of the same construction: identical sequences, independently consumed. */
   const midSd = spec.middle ? M.rngStreams({ seed: spec.middleSeed }) : null;
-  const midMe = spec.middle ? M.rngStreams({ seed: spec.middleSeed }) : null;
+  /* MEDICHAM GETS THE EVENT DICE, NOT A SEQUENCE -- AND FOR TWO HOURS IT DID NOT.
+   * The engine half of ROADMAP #262 was built, probed at 98-99% identity, and never wired: this line
+   * still handed it `rngStreams`, so the authority drew from hashes while medicham2 drew from a
+   * sequence and 49% of games voided. A capability that exists and is not called reports exactly the
+   * same thing as a capability that is missing, which is this project.s founding lesson arriving in
+   * my own file. Built per GAME by `mediRng`, and `midEventDice` clears its own repeat map on each
+   * call, so the reset lands on the game boundary without a second mechanism to keep in step. */
+  const midMe = null;
   /* `battle` is `this` at the override's call site. It is optional so a draw made outside a battle
    * (there is one per game) still gets a stable answer rather than throwing. */
   const midDraw = (cat, battle) => {
@@ -901,7 +937,8 @@ function makeArm(spec) {
      * consume them independently. Every draw is counted so a desync can be DETECTED rather than
      * assumed absent; see the header. Counting wrappers only — the values are the engine's own. */
     if (spec.middle) {
-      const wrap = (cat) => { const f = midMe[cat] || midMe.any;
+      const d = M.midEventDice({ seed: spec.middleSeed });
+      const wrap = (cat) => { const f = d[cat] || d.any;
         return () => { MID_DRAWS.me[cat] = (MID_DRAWS.me[cat] || 0) + 1; return f(); }; };
       const o = { split: true, seed: spec.middleSeed, any: wrap('any') };
       for (const c of MID_CATS) o[c] = wrap(c);
