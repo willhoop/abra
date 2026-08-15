@@ -9392,3 +9392,60 @@ silent-catch population **moved by eight blocks during the hour MEASURE spent me
 23:05 — after those games were played. Nothing was corrupted, because no MEASUREMENT was live. But the
 R4 figures from earlier tonight now describe a build that no longer exists, which is the frozen-release
 rule stating its own case.
+
+### A FROZEN BODY SWUNG, AND THE INSTRUMENT WAS BUILT NOT TO SEE IT. 2026-08-15
+
+Three divisions again. **#241, #256 and #259 were all REAL** — the first genuine engine defects of the
+sprint, after four rows in a row turned out to be stale. And two of the three were LARGER than the row
+said, in the same direction both times: the missing line was the visible end of a behaviour defect.
+
+**THE LOAD-BEARING BUG IS ONE PREDICATE.**
+
+```js
+if(it.a&&(it.a.kind==='switch'||it.a.kind==='pass')){ MEDSEEN.beforeMoveGateSkipped++; }
+```
+
+A pivot move is `{kind:'switch',mv}`. So a pivot skipped sleep, freeze, flinch, confusion,
+Attract **and** the paralysis roll, and the same held for **seven moves** — every one exempt from every
+status gate. Staged: the authority prints `|cant|frz` for both bodies; this engine printed
+`|cant|frz` for one and let the other attack.
+
+**The row blamed slot letters and the file already held the answer.** The guard's own comment said
+*"a PASS AND A VOLUNTARY SWITCH"* — the word VOLUNTARY doing work the test never did.
+
+**AND THE 18.6% CLAUSE COULD NEVER HAVE FOUND IT.** The whole-game differential normalises field 4 and
+`[still]` away **on purpose** — 851,502 and 288,478 lines collapsed by design. **A card Will read
+found it; 1,539 games did not.** Driving the divergence number down was never going to surface this
+class, which is worth remembering the next time that number is treated as the definition of correct.
+
+**THE PRETTIEST INSTRUMENT BUG OF THE PROJECT SO FAR, FOUND THE SAME NIGHT.** The docs-currency census
+was **exempting figures on the strength of its own complaint about them**: the baseline it writes is a
+`data/*.json`, the traceability check unions every `data/*.json`, so **recording a figure
+as an offender made it traceable**. Recording the whole untraceable set drops the whitepaper 12 → 5.
+The same loop runs through the REGISTER — `data/open-work.json` is a copy of ROADMAP prose — and
+it was caught **in the act**: the row filed ABOUT the defect quoted the offending value while
+describing it, and the clause went green with the regression still underneath. It was masking nine
+figures across three documents.
+
+**AND THE FIGURE THAT FELL OUT WAS NEVER TRACEABLE AT ALL.** One cell of the whitepaper's
+sheet-channel table was passing because the tag artifact happened to carry the identical value as a
+corpus usage count for an unrelated tag. ENGINE regenerated the tags tonight, the usage counts moved
+with the store, and the coincidence evaporated. **The number never had a source; it had a collision**,
+for an unknown length of time. Both cells are now withheld, with the reason written into the paper.
+
+**AND WRITING THAT PARAGRAPH TRIPPED THE SAME INSTRUMENT A THIRD TIME.** The first draft named the
+value and the artifact in one sentence — *"X is not in Y"* — and the scanner read a number adjacent to
+a filename, called it a CITATION, and failed the run because the artifact does not contain it. Which is
+true, and is the entire finding. **The instrument could not describe its own defect without triggering
+itself**, in the opposite direction from the masking bug above: there, recording a figure as an offender
+made it traceable; here, describing one as untraceable makes it a false citation. A checker that matches
+a bare number against a nearby filename does both. Registered rather than worked around.
+
+**ONE MORE ENTITY THAT CANNOT EXIST.** Derived twice, independently: **Spore has ZERO legal carriers in
+this regulation** — and both sleep-counter scenarios stage on it. Worse, every sleep move that DOES have
+a carrier here is sub-100 accuracy, and both scenarios run on the top arm **where every sub-100 move
+misses by construction**. So that mechanic is untestable on that arm by design, not by accident. That is
+the fifth distinct place this sprint where a test asserted behaviour for something the format does not
+contain.
+
+Census **579 → 584 live, 0 missing**. Rows asserting breakage **11 → 7**.

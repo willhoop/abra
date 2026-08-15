@@ -575,6 +575,34 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * does not spend a turn of sleep, freeze, confusion or the paralysis roll. A ZERO on a run with
    * voluntary switches in it means the guard is unreachable. */
   beforeMoveGateSkipped: 0,
+  /* ROADMAP #259 -- and the guard above was keyed on the ACTION KIND, which is not the same question.
+   * A PIVOT MOVE (Parting Shot, Chilly Reception) is `{kind:'switch',mv}` and an unmodelled status
+   * click is `{kind:'pass',mv}`; both are MOVES in the authority and both were skipping every
+   * onBeforeMove gate. This counts the actions that now reach the gates BECAUSE they carry a move id
+   * while wearing one of those two kinds -- a ZERO on a run containing a pivot means the fix is
+   * unreachable and the old behaviour is back. */
+  beforeMoveGateOnMoveKindedSwitchOrPass: 0,
+  /* ROADMAP #241 -- the two branches of `setStatus`'s already-statused refusal, split so each can
+   * prove it ran. `statusFailSameStatus` is the rare one (the move applies the status the body
+   * already holds) and was the ONLY line this engine emitted; `statusFailOtherStatus` is Will's card
+   * (Thunder Wave into a poisoned body) and did not exist. `statusFailUnstaged` is everything else
+   * that reaches the generic branch and was NOT staged against the authority in that pass. */
+  statusFailSameStatus: 0, statusFailOtherStatus: 0, statusFailUnstaged: 0,
+  /* ROADMAP #256 -- a failure whose `|-fail|` the CALLER already wrote on the target, so `mvFail`'s
+   * second line on the mover would have been an event the authority never emits. */
+  mvFailAnnouncedByCaller: 0,
+  /* ROADMAP #256 -- an unmodelled click that KEPT the body it was aimed at (only the target classes
+   * the authority lets a player name one for), and how often one of those was refused at onTryHit.
+   * A zero on the first with Role Play or Spite in the game means the target is being dropped again
+   * and the `|move|` line is naming the user; a zero on the second is only meaningful opposite a
+   * `refusesStatusMoves` carrier. */
+  unmodelledClickKeptTarget: 0, unmodelledClickRefused: 0,
+  /* ROADMAP #256 -- the split of every move-class `|-immune|` into the ones that name their refuser
+   * and the ones the authority writes bare. A run with a Soundproof, Overcoat or Bulletproof body in
+   * it and ZERO on `Attributed` means `immuneToMoveClass.announcesWith` stopped being read and the
+   * bare line is back. `Bare` is NOT a failure counter -- a Grass body refusing a powder move is
+   * announced bare by the authority too. */
+  moveClassImmuneAttributed: 0, moveClassImmuneBare: 0,
   passesStateSwitch: 0, passesStateBoosts: 0, passesStateVolatiles: 0,
   curseGhost: 0, curseNonGhost: 0,
   /* WIRE 132 -- the three recoveries the mega path now makes, each named so a ZERO is readable.
@@ -7964,6 +7992,23 @@ function bestMoveVs(att,def,field){ let best=null,bs=-1e18;
  *
  * TR is module-level and may be null; the state write is not conditional and the announcement is. */
 function mvFail(mon){ if(mon)mon._mvRes=false; if(TR)TR.fail(mon); }
+/* ROADMAP #256 -- THE SAME STATE WRITE WITH NO SECOND ANNOUNCEMENT, AND IT IS A SEPARATE FUNCTION
+ * RATHER THAN A FLAG SO A CALL SITE CANNOT SILENTLY LOSE THE `|-fail|` IT OWES.
+ *
+ * A handful of the authority's failure sites announce the failure THEMSELVES, on the TARGET, and
+ * then return `NOT_FAIL` -- so `useMoveInner`'s generic `add('-fail', source)` never runs and exactly
+ * ONE line reaches the wire. Heal Pulse is the measured case (`data/moves.ts healpulse.onHit`:
+ * `this.add('-fail', target, 'heal'); return this.NOT_FAIL;`), and it is not alone: staged one turn
+ * each at full HP, RECOVER, REST, LIFE DEW and SYNTHESIS all print a single
+ * `|-fail|p1a: Toxapex|heal` and nothing else. This engine printed that line AND `mvFail`'s
+ * `|-fail|<mover>` under it, so it was wrong on the ordinary path with nothing refusing anything.
+ *
+ * THE STATE WRITE IS UNCHANGED AND DELIBERATELY SO. ROADMAP #84 owns `_mvRes` (Stomping Tantrum's
+ * base power reads it next turn) and `NOT_FAIL`'s effect on `moveThisTurnResult` was NOT staged in
+ * this pass -- the field is cleared at the turn boundary, so it cannot be read off a finished battle
+ * the way a protocol line can. Changing it on a code read is exactly what this row's parent (#241)
+ * got wrong twice on 2026-08-13. This function changes the LINE and nothing else. */
+function mvFailAnnouncedByCaller(mon){ if(mon)mon._mvRes=false; MEDSEEN.mvFailAnnouncedByCaller++; }
 function liveFoesOf(me){
   const _s=me&&me._sf, _S=_s&&_s._S;
   if(!_S)return [];
@@ -9164,6 +9209,47 @@ function moveClassBlocked(t,moveId,att){
   if(_flag==='sound')return TAGS.has('move',moveId,'sound');
   const _c=TAGS.param('move',moveId,'moveClass');
   return !!(_c&&_c.classes&&_c.classes.indexOf(_flag)>=0);
+}
+/* ROADMAP #256 -- WHAT A MOVE-CLASS REFUSAL SAYS ON THE WIRE, IN ONE PLACE AND READ OFF THE HANDLER.
+ *
+ * The row: *"Soundproof and Overcoat announce a bare `|-immune|` where the authority names the
+ * ability ... the fix is to widen `immuneAttrIn()`'s reach rather than to add two names."* That
+ * widening is in `engine/tag_dex.js` (`immuneToMoveClass.announcesWith`, through the SAME reader #239
+ * built for `onSetStatus` and #241 reused for `onTryHit`); this is the one function that reads it, so
+ * the seven call sites cannot each decide what the line says. Measured on the authority, one turn per
+ * refuser, and the MEMBERSHIP was printed before a line was wired -- five carriers, of which four
+ * announce and one does not:
+ *
+ *     Sleep Powder -> Forretress (Overcoat)   |-immune|p2a: Forretress|[from] ability: Overcoat
+ *     Snarl        -> Bastiodon (Soundproof)  |-immune|p2a: Bastiodon|[from] ability: Soundproof
+ *     Shadow Ball  -> Chesnaught (Bulletproof)|-immune|p2a: Chesnaught|[from] ability: Bulletproof
+ *     Sleep Powder -> Chesnaught (GRASS TYPE) |-immune|p2a: Chesnaught          <- BARE, no ability
+ *     Magic Bounce                             announces no `-immune` at all (it reflects)
+ *
+ * THE GRASS ROW IS THE WHOLE REASON THIS IS A FUNCTION RATHER THAN A FIELD READ AT EACH SITE. Powder
+ * has three refusers in this format and only one of them is an ability: the TYPE immunity is resolved
+ * in `hitStepTryImmunity` above `onTryHit` and is announced bare, and Overcoat's own handler is
+ * guarded by `this.dex.getImmunity('powder', target)` so it never even runs on a Grass body. A reader
+ * that returned the ability's string whenever the holder had the ability would invent an attribution
+ * on every Grass-type Overcoat carrier -- Kommo-o is not one, but a regeneration could make one.
+ *
+ * WIND RIDER IS THE FIFTH CARRIER AND HAS NO LEGAL BODY IN THIS REGULATION (filtered walk over
+ * `Dex.forFormat`: zero species). It is named here so its absence is a statement rather than a gap,
+ * and because its handler announces only when the +1 Attack fails -- so the day a carrier is legal,
+ * this reader is the wrong shape for it and this paragraph is the warning. */
+function moveClassImmuneAttr(t,att){
+  const _imc=TAGS.param('ability',suppressedAbility(att,t),'immuneToMoveClass');
+  const _a=_imc&&_imc.announcesWith;
+  if(!_a){MEDSEEN.moveClassImmuneBare++;return undefined;}
+  MEDSEEN.moveClassImmuneAttributed++;return _a;
+}
+/* The powder half, which has to say WHICH of the three refusers answered. Grass is the type chart and
+ * is announced bare; the ability is the only one that names itself; Safety Goggles is banned in this
+ * format and is kept in `powderBlocked` because that function is also read where the ban does not
+ * apply -- it announces nothing here either way. */
+function powderImmuneAttr(t,att){
+  if((t.types||[]).includes('Grass')){MEDSEEN.moveClassImmuneBare++;return undefined;}
+  return moveClassImmuneAttr(t,att);
 }
 function powderBlocked(t,moveId){
   if(!POWDER.has(String(moveId||'').replace(/[^a-z0-9]/g,''))) return false;
@@ -13611,8 +13697,44 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * `struggle` IS DELIBERATELY NOT EXEMPT. Struggle is a MOVE -- `runMove` is entered with it and
        * every BeforeMove gate applies -- so a body that is asleep and has no PP still cannot act. */
-      if(it.a&&(it.a.kind==='switch'||it.a.kind==='pass')){ MEDSEEN.beforeMoveGateSkipped++; }
+      /* ROADMAP #259 -- THE GUARD ASKED FOR AN ACTION KIND AND THE RULE IS ABOUT A MOVE, AND THIS
+       * ENGINE ALREADY OWNED THE RIGHT READER.
+       *
+       * Will, reading card 2: *"for some reason we announce toxapex thaw but not incin thaw."* Both
+       * p1 bodies were frozen; ours thawed p1a with `|-curestatus|` and said nothing at all about
+       * p1b. The code read did not explain it because nothing in the freeze branch distinguishes the
+       * two bodies -- the difference was one block ABOVE, in what let each of them into the block.
+       * The missing line was the SMALL half. Staged against the authority, two frozen bodies, the
+       * thaw roll pinned LOSING (`randomChance(1,4)` false):
+       *
+       *     showdown   |cant|p1a: Toxapex|frz          |cant|p1b: Incineroar|frz
+       *     medicham   |cant|p1a: toxapex|frz          |move|p1b: incineroar|partingshot|p2a: snorlax
+       *
+       * p1b was frozen solid and MOVED, because `it.a.kind==='switch'` matched. That kind is not the
+       * question. `sdChoiceOf` (one file, ~4,800 lines up) already derives the fact and says so in as
+       * many words: *"a PIVOT (`a.mv` present -- Parting Shot, Chilly Reception) is a MOVE that
+       * happens to switch its user out afterwards, and Showdown queues it as choice 'move'"*. Two
+       * answers to one question, in one file, which is CLAUDE.md's facts-are-global rule exactly --
+       * and the comment on this very guard already said "a PASS AND A VOLUNTARY SWITCH", with the
+       * word VOLUNTARY doing work the test never did.
+       *
+       * SO IT ASKS `actionMoveId`, this file's ONE reader of "which move is this action". A bare
+       * `{kind:'switch'}` (a real switch, with `to`) and a bare `{kind:'pass'}` (a caller's "this
+       * body does nothing", which every probe in tests/test-mechanics.js hands in as PASS2) carry no
+       * move and answer null -- they skip, exactly as before. An action carrying `mv` is a move
+       * whatever kind it wears, so `onBeforeMove` runs for it.
+       *
+       * MEMBERSHIP, PRINTED OVER ALL 500 LEGAL MOVES BEFORE THIS WAS WIRED (playerAction with a foe
+       * supplied): `{kind:'switch',mv}` = chillyreception, partingshot; `{kind:'pass',mv}` =
+       * fairylock, healbell, roleplay, spite, teatime. SEVEN moves, and they were exempt from slp,
+       * frz, flinch, confusion, Attract AND the 12.5% full-paralysis roll -- not just the freeze that
+       * exposed it. Verified on the authority for `spite` as well as `partingshot`: both draw
+       * `|cant|<body>|frz`.
+       *
+       * RECHARGE STAYS OUTSIDE THIS BLOCK, unchanged -- see the closing brace. */
+      if(!actionMoveId(it.a)){ MEDSEEN.beforeMoveGateSkipped++; }
       else {
+      if(it.a&&(it.a.kind==='switch'||it.a.kind==='pass'))MEDSEEN.beforeMoveGateOnMoveKindedSwitchOrPass++;
       /* ROADMAP #92 -- THE ORDER OF THESE FIVE IS `onBeforeMovePriority`, WHICH IS AN AUTHORITY FACT
        * AND WAS WRONG HERE. A HIGHER NUMBER RUNS FIRST:
        *     slp        conditions.ts:64    priority 10
@@ -13759,16 +13881,22 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * THE TWO INLINE GUARDS BELOW ARE NOW REDUNDANT AND ARE KEPT. They are inside the else, so they
        * can never fire on a switch or a pass whatever they say -- and deleting a correct guard to make
-       * a new one look tidy is how a rule ends up asserted in exactly one place. */
-      if(!(it.a&&(it.a.kind==='pass'||it.a.kind==='switch'))
+       * a new one look tidy is how a rule ends up asserted in exactly one place.
+       *
+       * ROADMAP #259 -- AND "REDUNDANT" IS WHY THEY HAD TO MOVE WITH THE OUTER ONE. They restated the
+       * outer guard's test by hand, so the moment the outer guard learned that a PIVOT is a move,
+       * these two would have kept Parting Shot exempt from confusion and from Attract while the
+       * freeze above it applied -- a half fix that reads exactly like a whole one. They now ask the
+       * same `actionMoveId` reader, so the three can never disagree again. */
+      if(actionMoveId(it.a)
          &&confusionBeforeMove(m,rng)){m._mvRes=false;continue;}
       /* ROADMAP #197 -- ATTRACT, AND ITS POSITION IN THIS CHAIN IS READ RATHER THAN CHOSEN. The
        * authority orders the BeforeMove refusals by `onBeforeMovePriority`: recharge 11, slp and frz
        * 10, flinch 8, confusion 3, ATTRACT 2 (data/moves.ts:742), par 1. So it sits below confusion
        * and above paralysis, which is exactly here -- a confused body that hits itself never flips
        * the attract coin, and an attracted body that loses the coin never rolls for full paralysis.
-       * The same not-a-move guard as confusion: `onBeforeMove` does not run for a switch or a pass. */
-      if(!(it.a&&(it.a.kind==='pass'||it.a.kind==='switch'))
+       * The same not-a-move guard as confusion, through the same reader (ROADMAP #259). */
+      if(actionMoveId(it.a)
          &&attractBeforeMove(m,rng,[...actA,...actB])){m._mvRes=false;continue;}
       if(m.status==='par'&&rng()<0.125){m._mvRes=false;if(TR)TR.cant(m,'par');continue;}   // Champions: 12.5% full-para (was 25%)
       } /* end of the onBeforeMove block — see the `switch`/`pass` guard that opened it. RECHARGE IS
@@ -14523,8 +14651,8 @@ function battleTurn(S,rng,actsForA,actsForB){
            * tests category !== 'Status' and blocks an ALLY'S DAMAGE, and Wonder Guard, which tests
            * for Status and then bare-returns to ALLOW it. */
           if(TAGS.has('ability',_t.ability,'refusesStatusMoves')&&_t!==m){if(TR)TR.imm(_t,'[from] ability: '+_t.ability);continue;}
-          if(moveClassBlocked(_t,a.mv,m)){if(TR)TR.imm(_t);continue;}               // WIRE 66 -- Soundproof, Bulletproof
-          if(powderBlocked(_t,a.mv)){if(TR)TR.imm(_t);continue;}
+          if(moveClassBlocked(_t,a.mv,m)){if(TR)TR.imm(_t,moveClassImmuneAttr(_t,m));continue;}   // WIRE 66 / #256
+          if(powderBlocked(_t,a.mv)){if(TR)TR.imm(_t,powderImmuneAttr(_t,m));continue;}           // #256
           if(pranksterBlocked(m,_t,a.mv)){if(TR)TR.imm(_t);continue;}
           /* WIRE 129 -- hitChance, not moveAccuracy: a Minimize'd target dodges a Will-O-Wisp exactly
            * as it dodges an Ice Beam, and No Guard lands one exactly as it lands a Stone Edge. */
@@ -16348,7 +16476,15 @@ function battleTurn(S,rng,actsForA,actsForB){
              does not fall asleep for nothing, and Heal Pulse at full HP emits `-fail|TARGET|heal`.
              Both were read off staged games rather than remembered. */
           const _amt=healSize(_hd,_t,m);
-          if(_t.curHP>=_t.st.hp||_amt<=0){if(TR)TR.fail(_t,'heal');mvFail(m);continue;}
+          /* ROADMAP #256 -- ONE LINE, NOT TWO. The `|-fail|<target>|heal` below is the handler's own
+             announcement and the authority stops there; `mvFail` used to add `|-fail|<mover>` under
+             it. Measured at full HP on Recover, Rest, Life Dew, Synthesis and Heal Pulse -- one line
+             in every case. `[still]` is NOT added here and that is a stated gap rather than an
+             oversight: the authority appends it only for the members whose heal runs through
+             `battle-actions.ts:1202` (Recover, Life Dew) and not for the ones with their own
+             `onTry`/`onHit` (Rest, Synthesis, Heal Pulse), and no tag in data/tags.json distinguishes
+             the two paths today. Emitting it for all five would trade one wrong line for three. */
+          if(_t.curHP>=_t.st.hp||_amt<=0){if(TR)TR.fail(_t,'heal');mvFailAnnouncedByCaller(m);continue;}
           /* THE STATUS FIRST, THEN THE HP -- the handler's own order (`setStatus`, then `heal`), and
              it matters because a refused status means the move never heals at all. `_prev` is cleared
              around the call because Showdown's `setStatus` REPLACES a different status where this
@@ -16435,7 +16571,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!t||t.fainted){mvFail(m);continue;}
         if(t.protect){if(TR)TR.act(t,'move: Protect');continue;}
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}   // Good as Gold
-        if(moveClassBlocked(t,a.mv,m)){if(TR)TR.imm(t);continue;}                 // WIRE 66
+        if(moveClassBlocked(t,a.mv,m)){if(TR)TR.imm(t,moveClassImmuneAttr(t,m));continue;}      // WIRE 66 / #256
         const fx=moveFx(a.mv);
         const st=(fx&&fx.status)||null;
         /* WIRE 8 -- perTurnHP, the drain half. Leech Seed carries no major status, so this branch
@@ -16473,7 +16609,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         m._lastMove=a.mv;
         if(subBlocks(m,t,a.mv)){if(TR)TR.act(t,'move: Substitute','[block]');continue;}   // WIRE 130 -- the doll takes the status move
-        if(powderBlocked(t,a.mv)){if(TR)TR.imm(t);continue;}     // Grass / Overcoat / Safety Goggles
+        if(powderBlocked(t,a.mv)){if(TR)TR.imm(t,powderImmuneAttr(t,m));continue;}     // Grass / Overcoat / Safety Goggles; #256
         if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;} // Prankster does not touch Dark types
         const acc=hitChance(m,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
         /* ROADMAP #264 -- this site used to roll UNCONDITIONALLY, which over-draws in the other
@@ -16520,8 +16656,49 @@ function battleTurn(S,rng,actsForA,actsForB){
               const _si=_why.ability?TAGS.param('ability',_why.ability,'statusImmune'):null;
               MEDSEEN.statusRefusedImmune++;
               TR.imm(t,(_si&&_si.announcesWith)||undefined);
+            } else if(_why.reason==='hasstatus'){
+              /* ROADMAP #241 -- THE ATTRIBUTION CASE, THE ONE WILL READ OFF A CARD, AND IT IS TWO
+               * BRANCHES RATHER THAN ONE. He watched Meowstic click Thunder Wave into an
+               * already-poisoned Snorlax: Showdown wrote `|-fail|p1a: Meowstic` and we wrote
+               * `|-fail|p2a: Snorlax`.
+               *
+               * THE AUTHORITY'S RULE IS NOT "NAME THE MOVER" AND IT IS NOT "NAME THE TARGET". It is
+               * one `if/else if` inside `Pokemon#setStatus` (sim/pokemon.ts:1704-1712), reached
+               * because `trySetStatus` calls `setStatus(this.status || status, ...)` -- so a body
+               * that ALREADY holds a status enters with its OWN status as the argument and the
+               * equality test below is really "is the move applying the status I already have":
+               *
+               *     if (this.status === status.id) {
+               *       if ((sourceEffect as Move)?.status === this.status) {
+               *         this.battle.add('-fail', this, this.status);          // the TARGET, + the status
+               *       } else if ((sourceEffect as Move)?.status) {
+               *         this.battle.add('-fail', source);                     // the MOVER
+               *         this.battle.attrLastMove('[still]');
+               *       }
+               *       return false;
+               *     }
+               *
+               * So Thunder Wave (par) into a psn body takes the SECOND branch -- mover, `[still]`,
+               * no third field -- and only a Thunder Wave into an ALREADY-PARALYSED body takes the
+               * first. Ours took the first branch unconditionally, and wrongly: no third field, and
+               * no `[still]`, which additionally blanks field 4 of the preceding `|move|` line.
+               *
+               * STAGED AGAINST THE AUTHORITY, one turn, Thunder Wave into a poisoned Snorlax:
+               *     showdown   |move|p1a: Meowstic|Thunder Wave||[still]   |-fail|p1a: Meowstic
+               *     medicham   |move|p1a: meowstic|thunderwave|p2a: snorlax  |-fail|p2a: snorlax
+               *
+               * `attrStill()` is called BEFORE the `-fail`, matching `attrLastMove`'s semantics: it
+               * amends the `|move|` line already in the log rather than emitting a new event. */
+              if(t.status===st){ MEDSEEN.statusFailSameStatus++; TR.fail(t,t.status); }
+              else { MEDSEEN.statusFailOtherStatus++; TR.attrStill(); TR.fail(m); }
             } else {
               if(!_why.reason)MEDFAILS.statusRefusalUnlabelled++;
+              /* NOT WIDENED BEYOND WHAT WAS MEASURED. The only other reason `canTakeStatus` can give
+               * here is `fainted`, and the three refusals `applyStatus` makes above it fill nothing
+               * at all -- neither was staged against the authority in this pass, so neither gets a
+               * line changed on the strength of a code read. `statusRefusalUnlabelled` above and
+               * `statusFailUnstaged` here are the receipts that say how often it happens. */
+              MEDSEEN.statusFailUnstaged++;
               TR.fail(t);
             }
           }
@@ -16550,6 +16727,26 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(a.kind==='wideguard'?!!(_sg&&_sg[actionMoveId(a)||'wideguard']):m.protect){
           if(TR)TR.st1(m,a.kind==='wideguard'?sideGuardName(actionMoveId(a)||'wideguard'):'Protect');
         } else { if(TR)TR.attrStill(); mvFail(m); }
+      }
+      /* ROADMAP #256 -- THE onTryHit REFUSAL FOR A CLICK THIS ENGINE MODELS NOTHING FOR.
+       *
+       * `{kind:'pass'}` falls through every branch above and lands on the `continue` below, so a Role
+       * Play or a Spite aimed at a Gholdengo produced a `|move|` line and NOTHING ELSE while the
+       * authority refused it. The refusal is not "unmodelled": it happens at Showdown's onTryHit,
+       * ABOVE anything the move would have done, so it is exactly as real for a move we cannot play
+       * as for one we can -- and it is the ONE observable this engine can produce honestly here.
+       *
+       * IT IS THE SHARED ANNOUNCER, not a tenth copy. `tryHitRefusal` carries the `target !== source`
+       * clause and the Prankster foe gate itself (#241, #255), and a target only reaches this action
+       * at all when `targetClass.chooseable` said the player names one -- so a side-wide or field
+       * move cannot arrive here with a body attached and be wrongly refused.
+       *
+       * PLACED HERE, DIRECTLY ABOVE THE ATTACK GATE, because a pass touches nothing between the
+       * `|move|` line and this point: the stream is `|move|` then `|-immune|`, which is the
+       * authority's order. */
+      if(a.kind==='pass'&&a.target){
+        const _rf=tryHitRefusal(m,a.target,a.mv);
+        if(_rf){MEDSEEN.unmodelledClickRefused++;announceTryHitRefusal(_rf,a.target);}
       }
       if(a.kind!=='attack')continue;
       /* THE CHARGE TURN. Ten moves cost a turn before they land and this engine played all of them
@@ -17421,7 +17618,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * docs/TAGS.md: "an immune target takes nothing -- not the damage, and not the secondary".
          * That rule was already written down and had one implementation per stage-3 mechanism instead
          * of one per stage. */
-        if(moveClassBlocked(tg,a.move.id,m)){_explicitFail=true;if(TR)TR.imm(tg,'[from] ability: '+tg.ability);R.out=true;return;}   // WIRE 128 -- Mold Breaker suppresses Bulletproof too
+        if(moveClassBlocked(tg,a.move.id,m)){_explicitFail=true;if(TR)TR.imm(tg,moveClassImmuneAttr(tg,m));R.out=true;return;}   // WIRE 128 -- Mold Breaker suppresses Bulletproof too; #256 reads the attribution off the handler instead of pasting the id
       };
       /* STEP 0 -- SEMI-INVULNERABILITY (`hitStepInvulnerabilityEvent`, battle-actions.ts:621). FIRST
        * in Showdown's list and fourth here, which is why the step list is data and the blocks below
@@ -21871,6 +22068,28 @@ function playerActionPrimary(me,moveId,target,field){
     if(!MEDFAILS.unmodelledClickFirst) MEDFAILS.unmodelledClickFirst=id;
     MEDFAILS.unmodelledClickBy[id]=(MEDFAILS.unmodelledClickBy[id]||0)+1;
   }
+  /* ROADMAP #256 -- AN UNMODELLED CLICK STILL HAS A TARGET, AND DROPPING IT COST TWO LINES.
+   *
+   * Role Play and Spite reach this terminal `pass`, and the row's phrasing was that the refusal
+   * "has nowhere to go". That is the second half; the FIRST half is the `|move|` line itself.
+   * `TR.mv(m,_mid,_tt||m)` falls back to the USER when the action carries no target, so:
+   *
+   *     showdown   |move|p1a: Meowstic|Role Play|p2a: Gholdengo
+   *                |-immune|p2a: Gholdengo|[from] ability: Good as Gold
+   *     medicham   |move|p1a: meowstic|roleplay|p1a: meowstic          <- wrong body in field 4
+   *                (nothing)                                           <- and no refusal
+   *
+   * ONLY FOR THE TARGET CLASSES THE AUTHORITY LETS A PLAYER NAME A BODY FOR, read out of the
+   * simulator's own `CHOOSABLE_TARGETS` through `targetClass.chooseable` -- 360 of the 500 legal
+   * moves. The other 140 must NOT keep a target a caller happened to pass, and the three other
+   * members of this branch are the proof that this is a real distinction rather than a tidiness:
+   * measured one turn each with a Gholdengo opposite, FAIRY LOCK (`all`) prints the USER in field 4,
+   * and TEATIME (`all`) and HEAL BELL (`allyTeam`) print field 4 BLANK with `[still]`. Those three
+   * are DECLARED RESIDUE of this pass -- they need a blank field and an `attrStill`, which is a
+   * different shape from naming a body, and Teatime additionally IS refused by Good as Gold while
+   * Fairy Lock is not. Written down rather than half-fixed, exactly as #241 left #255. */
+  const _tc=id?TAGS.param('move',id,'targetClass'):null;
+  if(_tc&&_tc.chooseable&&target){MEDSEEN.unmodelledClickKeptTarget++;return {kind:'pass',mv:id,target};}
   return {kind:'pass',mv:id};
 }
 function winProb2(nA,nB,N,ov){

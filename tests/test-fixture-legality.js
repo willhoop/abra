@@ -32,6 +32,26 @@
  *                  draws this line, calling "can't learn"/"can't have" PAIRING and declarable.
  *   PRE-EXISTING — a real defect, held because repairing it moves what its scenario measures.
  * Both carry a written reason. Neither is silence.
+ *
+ * WHAT WAS WRONG WITH THAT RATCHET, FOUND AND FIXED 2026-08-14 (ROADMAP #266)
+ * ---------------------------------------------------------------------------
+ * (1) IT COULD BE LAUNDERED, and by exactly the edit that also fixes things. "Repair a verdict" and
+ *     "excuse a new one" were the same action: delete a line here, or add one. Clause 3 forced the
+ *     list to SHRINK but nothing stopped it being refilled with fresh offenders under the label
+ *     PRE-EXISTING — a label that is a CLAIM ABOUT TIME. So the closed historical set is now written
+ *     down (`origin`, the 41 sentences that existed when the check was added) and clause 7 refuses any
+ *     PRE-EXISTING entry that is not in it. A genuinely new illegal set can still be declared, but
+ *     only as DELIBERATE and only with a reason — which is a different, visible, arguable act.
+ * (2) IT COUNTED THE WRONG THING. `validateTeam` returns ONE complaint per Pokemon, so a set with
+ *     four unlearnable moves produced one sentence, and repairing the first made the second appear as
+ *     a NEW verdict — a repair reading as a regression. The sweep now also asks checkCanLearn per
+ *     declared move and this file ratchets those PAIRS beside the sentences (clause 5).
+ * (3) IT DID NOT SEPARATE THE ONE CLASS THAT COSTS THE MOST. An entity with NO LEGAL CARRIER anywhere
+ *     in the regulation is not "a body chosen badly"; it is a mechanic this format cannot produce, and
+ *     a probe that fails on it reads as an ENGINE DEFECT when the engine is correct not to model it.
+ *     Four phantom defects were filed from that shape in one session on 2026-08-14, one of them ranked
+ *     first of fourteen and put in front of Will as the place to start. Clause 6 makes UNREACHABLE its
+ *     own declared class and refuses to let it be called DELIBERATE.
  */
 'use strict';
 const fs = require('fs');
@@ -108,7 +128,76 @@ else {
   for (const v of undeclared) note('      ' + v.problem);
 }
 
-/* ---- 5. a literal that names nothing in the format --------------------------------------------- */
+/* ---- 5. the PAIR ratchet — nothing hides behind the validator's first-failure ------------------ */
+/* The verdict list is keyed on the authority's sentence and that stays the ratchet. But one sentence
+ * can stand in front of several illegal declarations, because validateTeam stops at the first problem
+ * per Pokemon: on the day this clause was added the sweep reported 32 verdicts and 34 pairs, the two
+ * extras being Swords Dance on a Toxapex and on a Clefable that were each masked by a different move
+ * in the same set. A ratchet that cannot see them lets a repair look like a regression, and lets a
+ * second illegal move ride into the tree behind a first that is already excused. */
+{
+  const knownPairs = new Map((base.pairs || []).map(p => [FL.keyOf(p.problem), p]));
+  const freshPairs = r.pairs.filter(p => !knownPairs.has(p.key));
+  const gonePairs = [...knownPairs.keys()].filter(k => !r.pairs.some(p => p.key === k));
+  if (!freshPairs.length) ok(`no new illegal declaration — ${r.pairs.length} pairs, all on the baseline`);
+  else {
+    fail(`${freshPairs.length} NEW illegal DECLARATION(S) that no verdict sentence names:`);
+    for (const p of freshPairs) note(`  [${p.cls}] ${p.problem}   carriers: ${p.carriers}   ${p.sites.join(', ')}`);
+  }
+  if (!gonePairs.length) ok(`every one of the ${knownPairs.size} baselined declarations is still produced`);
+  else {
+    fail(`${gonePairs.length} baselined declaration(s) are no longer produced — remove them from the `
+      + 'baseline\'s `pairs` so the next one cannot hide under a stale allowance:');
+    for (const k of gonePairs) note('      ' + knownPairs.get(k).problem);
+  }
+}
+
+/* ---- 6. UNREACHABLE is its own class, and it can never be DELIBERATE --------------------------- */
+/* An entity NOTHING in this regulation can carry is not a pairing an isolation probe stages on
+ * purpose — there is no body to stage it on. It is the shape that manufactures phantom engine
+ * defects, so it is named in the report every run rather than sitting inside a count. */
+{
+  const un = r.unreachable || [];
+  const declared = new Set((base.verdicts || []).filter(v => v.unreachable).map(v => FL.keyOf(v.problem)));
+  const undeclaredUn = un.filter(p => !declared.has(p.key));
+  if (!un.length) ok('no fixture declares an entity with zero legal carriers');
+  else {
+    note(`${un.length} UNREACHABLE declaration(s) — nothing in this regulation can carry these, so a `
+      + 'probe that fails on one is NOT evidence of an engine defect:');
+    for (const p of un) note(`      ${p.problem}   ${p.sites.join(', ')}`);
+    if (undeclaredUn.length) {
+      fail(`${undeclaredUn.length} of them are on the baseline WITHOUT \`unreachable: true\` and a `
+        + 'reason that says so. A caption inside a count is how these get quoted as defects:');
+      for (const p of undeclaredUn) note('      ' + p.problem);
+    } else ok(`all ${un.length} are declared \`unreachable\` on the baseline, with a written reason`);
+  }
+  const badKind = (base.verdicts || []).filter(v => v.unreachable && v.kind === 'DELIBERATE');
+  if (badKind.length) fail(`${badKind.length} baseline entr(ies) call an UNREACHABLE entity DELIBERATE. `
+    + 'There is no body in this format to stage it on, so it cannot have been staged on purpose.');
+  else ok('no UNREACHABLE entry is excused as DELIBERATE');
+}
+
+/* ---- 7. the closed origin set — PRE-EXISTING is a claim about TIME, and it is checked ---------- */
+{
+  const origin = base.origin || {};
+  const keys = new Set(origin.keys || []);
+  /* 41 is the count the roadmap row was opened with on 2026-08-13 and is history: it is anchored here
+   * as well as in the artifact so that moving it takes two deliberate edits and a false statement. */
+  if (origin.count !== 41 || keys.size !== 41) {
+    fail(`the origin set holds ${keys.size} keys and declares ${origin.count} — it must be the 41 `
+      + 'verdicts that existed when this check was added on 2026-08-13. It is HISTORY and cannot change.');
+  } else ok('the closed origin set is intact at 41 historical verdicts');
+  const smuggled = (base.verdicts || []).filter(v => v.kind === 'PRE-EXISTING' && !keys.has(FL.keyOf(v.problem)));
+  if (!smuggled.length) ok('every PRE-EXISTING entry is one of the 41 — none was added after the freeze');
+  else {
+    fail(`${smuggled.length} entr(ies) claim to be PRE-EXISTING but are not in the closed origin set. `
+      + 'PRE-EXISTING means "it predates the check"; a new offender must be repaired, or declared '
+      + 'DELIBERATE with a reason, which is a visible act rather than a quiet one:');
+    for (const v of smuggled) note('      ' + v.problem);
+  }
+}
+
+/* ---- 8. a literal that names nothing in the format --------------------------------------------- */
 /* Not an illegal set: a string that resolves to no entity at all, so the validator is never asked
  * about it and the fixture silently runs without whatever it thought it had. */
 const knownStray = new Set((base.unknownLiterals || []).map(x => String(x.literal).toLowerCase()));
@@ -120,7 +209,7 @@ else {
   for (const u of newStray) note(`      "${u.literal}"   ${u.sites.join(', ')}`);
 }
 
-/* ---- 6. the guard can go red ------------------------------------------------------------------- */
+/* ---- 9. the guard can go red ------------------------------------------------------------------- */
 /* PROVED ON EVERY RUN, not demonstrated once and described afterwards. A ratchet whose matching has
  * quietly stopped working looks exactly like a clean tree. An invented verdict must be reported NEW
  * and a baselined one must not, through the same comparison clause 2 uses. */

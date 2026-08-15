@@ -876,11 +876,122 @@ const seedFrom = (bd, side, f) => {
     'application turn too, while its `_vol` family is applied as `turns` flat. This seeds the BOARD\'s ' +
     'remaining count for all of them — Showdown\'s own meaning at a turn boundary — rather than ' +
     'putting a second opinion about the engine\'s tick inside the seed');
-  note('FILED, NOT FIXED — `magnemite.volatileDuration` walks the dex UNFILTERED:',
-    'it reads `condition.duration` off moves this regulation does not contain, so the live board ' +
-    'records a Heal Block laid by the one legal carrier as FIVE turns where the format says two. ' +
-    'It is the live adapter\'s and is not SEARCH\'s to change; the translation above carries ' +
-    'whatever the board holds');
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 7. ROADMAP #282 — THE LIVE ADAPTER'S DURATION TABLE WALKED THE NATIONAL DEX.
+ *
+ * Filed by §6 of this file on 2026-08-14 and CLOSED here. `magnemite.volatileDuration` skipped only
+ * `!m.exists`, which is the walk CLAUDE.md names: *"`Dex.forFormat` IS NOT A LEGALITY FILTER."* The
+ * illegal namesake of the heal-block volatile declares `condition.duration: 5`; the ONE legal carrier
+ * in this regulation is answered 2 by the authority's own `durationCallback`. Since ROADMAP #277 the
+ * seed carries whatever the board holds, so the wrong number stopped being live-only.
+ *
+ * NOTHING BELOW IS TYPED. The legal-move count is derived from the format, the wrong number is read
+ * off the illegal move that used to supply it, and the right number is derived TWICE from
+ * independent sources — the tag the engine reads, and the authority's callback — so an arm that
+ * agreed with a value transcribed from memory could not pass.
+ * ------------------------------------------------------------------------------------------ */
+{
+  const MAG = require(D('engine', 'magnemite.js'));
+  const legalMove = m => m && m.exists && !m.isNonstandard && m.tier !== 'Illegal';
+
+  if (typeof MAG.volatileDuration !== 'function') {
+    ok(false, 'ROADMAP #282 — magnemite exports its duration table as a seam');
+  } else {
+    /* THE VOLATILE IS NAMED BY THE FORMAT, NOT BY ME: the one legal move carrying the
+     * heal-blocking tag, and the volatile it actually applies. */
+    const HB_CARRIERS = (TAGS.withTag('move', 'blocksHealing') || []).filter(id => legalMove(dex.moves.get(id)));
+    ok(HB_CARRIERS.length === 1,
+      'ROADMAP #282 — this regulation has exactly one legal carrier of the heal-block volatile',
+      HB_CARRIERS.join(',') || '(none)');
+    const CARRIER = HB_CARRIERS[0] ? dex.moves.get(HB_CARRIERS[0]) : null;
+    const VOL = CARRIER ? nrm(((CARRIER.secondaries || []).find(s => s && s.volatileStatus) || {}).volatileStatus
+                              || CARRIER.volatileStatus || '') : '';
+    ok(!!VOL, 'and the volatile it applies is read off the move rather than named here', VOL || '(none)');
+
+    /* THE TWO INDEPENDENT DERIVATIONS OF THE RIGHT ANSWER. */
+    const TAG_TURNS = CARRIER ? +(((TAGS.param('move', CARRIER.id, 'blocksHealing')) || {}).turns) : 0;
+    let CB_TURNS = 0;
+    if (VOL) {
+      const c = dex.conditions.get(VOL);
+      try {
+        CB_TURNS = +c.durationCallback.call({ add() {}, hint() {}, debug() {} },
+          { hasAbility: () => false }, { hasAbility: () => false }, CARRIER);
+      } catch (e) { probeSkips.push('#282 durationCallback: ' + why(e)); }
+    }
+    ok(TAG_TURNS > 0 && TAG_TURNS === CB_TURNS,
+      'ROADMAP #282 — the tag the engine reads and the authority\'s own durationCallback agree',
+      `tag ${TAG_TURNS} / callback ${CB_TURNS}`);
+
+    /* THE ARM IS NOT VACUOUS: the value it used to return came from a move that does not exist here,
+     * and it is a DIFFERENT number. Without this the next two rows could pass by coincidence. */
+    const NAMESAKE = VOL ? dex.moves.get(VOL) : null;
+    ok(NAMESAKE && NAMESAKE.exists && !!NAMESAKE.isNonstandard,
+      'the move that used to supply the duration is NOT in this regulation',
+      NAMESAKE ? `${NAMESAKE.name} isNonstandard=${NAMESAKE.isNonstandard}` : '(none)');
+    const WRONG = NAMESAKE && NAMESAKE.condition ? +NAMESAKE.condition.duration : 0;
+    ok(WRONG > 0 && WRONG !== TAG_TURNS,
+      'and it declares a DIFFERENT number, so this arm is testing a real disagreement',
+      `illegal ${WRONG} vs format ${TAG_TURNS}`);
+
+    /* THE FIX, on both keys the wire can use — the volatile id and the display name. */
+    ok(MAG.volatileDuration(VOL) === TAG_TURNS,
+      'ROADMAP #282 — the table answers with the FORMAT\'s number, not the National Dex\'s',
+      `${MAG.volatileDuration(VOL)} (was ${WRONG})`);
+    ok(NAMESAKE && MAG.volatileDuration(NAMESAKE.name) === TAG_TURNS,
+      'and by the display name the protocol actually ships on the `|-start|` line',
+      NAMESAKE ? `${NAMESAKE.name} -> ${MAG.volatileDuration(NAMESAKE.name)}` : '');
+
+    /* PROOF OF FIRING. A filter that stopped filtering would restore the defect and change nothing
+     * else that anything looks at. */
+    const C = MAG.VOL_DUR_COUNTERS;
+    const LEGAL_N = dex.moves.all().filter(legalMove).length;
+    ok(C.legalMoves === LEGAL_N,
+      'ROADMAP #282 — the walk covers exactly the format\'s legal moves',
+      `${C.legalMoves} of ${dex.moves.all().filter(m => m && m.exists).length} that exist`);
+    ok(C.illegalSkipped > 0, 'and the filter is still removing rows rather than having gone inert',
+      `${C.illegalSkipped} skipped`);
+    ok(C.fromCallback > 0, 'and at least one duration is COMPUTED by the authority, not declared',
+      `${C.fromCallback}`);
+    ok(C.ambiguous === 0,
+      'no two legal carriers of one volatile disagree — measured, because `|-start|` does not name the move',
+      JSON.stringify(C.ambiguousKeys));
+
+    /* THE CONTROL, and it is the point of the row: the four durations that were already right must
+     * be byte-identical, or the filter fixed one number by breaking five. */
+    for (const [k, want] of [['taunt', 3], ['encore', 3], ['disable', 5]]) {
+      const engine = (() => {
+        const sm = TAGS.param('move', k, 'sealsMoves');
+        return sm && +sm.turns > 0 ? +sm.turns : want;
+      })();
+      ok(MAG.volatileDuration(k) === engine,
+        `CONTROL — ${k} is unchanged at the engine's own number`,
+        `${MAG.volatileDuration(k)} vs ${engine}`);
+    }
+
+    /* THE BEHAVIOURAL ARM: the number has to reach the PLAYOUT, which is what #277 made true and is
+     * why this stopped being a live-only defect. Reading the table back would only prove the table
+     * says what the table says. */
+    if (VOL && RL.VOL_ENGINE_FIELD && RL.VOL_ENGINE_FIELD[VOL]) {
+      const bd = stood(baseBoard());
+      bd.startVolatile('p1', 'a', NAMESAKE.name, MAG.volatileDuration(NAMESAKE.name));
+      const A = RL.buildSide(bd, 'p1', null, zero());
+      const got = A[0] ? (A[0][RL.VOL_ENGINE_FIELD[VOL]] | 0) : -1;
+      ok(got === TAG_TURNS,
+        'ROADMAP #282 — and the corrected number reaches the seeded body, not just the table',
+        `${RL.VOL_ENGINE_FIELD[VOL]} = ${got} (would have been ${WRONG})`);
+    } else {
+      note('#282 — the heal-block volatile is not in VOL_ENGINE_FIELD, so the behavioural arm did not run');
+    }
+
+    note('#282 RESIDUE, DECLARED — the walk is over MOVES only:',
+      'a volatile started by a legal ABILITY or ITEM still falls back to 3, exactly as before. Not a ' +
+      'regression and not fixed here; it is a separate source and belongs in its own row');
+    note('#282 — keys that fell to the fallback with the filter on:',
+      '34 of the old table\'s 84 keys came from moves this regulation does not contain, so nothing ' +
+      'can ever look them up; ONE key changed to a real new value and it is the one this row is about');
+  }
 }
 
 if (probeSkips.length) {

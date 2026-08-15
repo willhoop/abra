@@ -1476,10 +1476,29 @@ declare an ability and 100.0% declare four moves**, and the fit discards both.
 
 | | weather defect | sheet-channel gap |
 |---|---|---|
-| vectors that move | 1,768 (0.75%) | **37,460 (15.95%)** |
-| decisions that move | 892 (2.78%) | **16,177 (50.47%)** |
+| vectors that move | 1,768 (0.75%) | **WITHHELD** (see below) |
+| decisions that move | 892 (2.78%) | **WITHHELD** (see below) |
 | feature columns | 14 of 58 | **20 of 58** |
 | games touched | 238 (19.83%) | **1,197 of 1,200 (99.75%)** |
+
+> **TWO FIGURES WITHHELD 2026-08-15, AND THE REASON MATTERS MORE THAN THE NUMBERS.** The two cells above
+> read **37,460 (15.95%)** and **16,177 (50.47%)**. **No artifact in this repository backs either
+> one** — `37,460` occurs in no file at all, and `16,177` occurs only in unrelated artifacts it has
+> nothing to do with. They are withheld rather than captioned, because
+> [CLAUDE.md](../CLAUDE.md) is explicit that a caption is not a quarantine and printing a figure with a
+> caveat is the bug.
+>
+> **They were not caught by the currency gate for an unknown length of time, and the reason is a
+> COLLISION.** `data/tags.json` happened to carry `"uses": 16177` for an unrelated tag, so the check
+> "does this number appear in an artifact" answered yes. Regenerating the tags on 2026-08-14 moved 233
+> usage counts with the store, the coincidence evaporated, and the figure surfaced as untraceable. **It
+> never had a source; it had a coincidence.** A traceability check that matches on a bare number will
+> do this again, and that is now a register row rather than a footnote.
+>
+> The surrounding claim is NOT retracted: `engine/fit_policy.js:376` hands the board `{nature, item}`
+> while `engine/magnemite.js:522` hands it `{nature, item, ability, moves}`, and the 100.0% / 100.0%
+> sheet-declaration rates above are separately sourced. What is withheld is the SIZE of the resulting
+> gap, which needs a run that leaves an artifact.
 
 The choice set is identical game for game, so this is purely what the board *knows*. **Half of every
 decision the fit trains on is priced against a board the player does not see.** This is CLAUDE.md's

@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-13T06:50:18.786Z",
+ "generated": "2026-08-14T05:58:24.040Z",
  "by": "engine/conformance.js",
- "files": 393,
+ "files": 404,
  "findings": [
   {
    "std": "S12",
@@ -365,12 +365,6 @@
   },
   {
    "std": "S12",
-   "file": "engine/residual_order.js",
-   "what": "hardcodes \"gen9championsvgc2026regmb\"",
-   "why": "lives in data/regulations.json (showdownFormat) — reference it"
-  },
-  {
-   "std": "S12",
    "file": "engine/rollout_r1.js",
    "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -698,6 +692,15 @@
   },
   {
    "std": "S13",
+   "file": "data/divergence-middle.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
    "file": "data/engine-release.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -724,6 +727,15 @@
    "why": "a file nobody generates is a file that will lie",
    "detail": [
     "named in the CODE of tests/staged_board.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/fixture-legality-baseline.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named in the CODE of tests/test-fixture-legality.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
    ]
   },
   {

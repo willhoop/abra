@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-15T03:08:24.631Z",
+  "generated": "2026-08-15T04:20:13.601Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 579,
-  "live": 579,
+  "probed": 584,
+  "live": 584,
   "missing": 0,
-  "armed": 579,
+  "armed": 584,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -2996,7 +2996,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5797,6 +5797,56 @@
       "label": "a side wiped mid-turn ends the battle THERE — no later action, no upkeep, no replacement",
       "live": true,
       "detail": "[p1 |move| lines, |upkeep| lines, |switch| lines] — side B keeps a bench body [2,1,1] (the turn plays out and a replacement walks in), side B wiped [1,0,0] (the authority's turnLoop returns and emits nothing further). Before the fix the two read [2,1,1] and [2,1,0] — the move and upkeep counts were IDENTICAL across the knob and only the replacement differed, and it differed because there was no body to bring in rather than because a rule fired",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "pivotStatus",
+      "label": "a frozen body clicking a PIVOT move is refused like any other move — the pivot is a move, not a switch",
+      "live": true,
+      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 40 to 42",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "a status move refused by an ALREADY-STATUSED body names the MOVER, unless it is applying the status already there",
+      "live": true,
+      "detail": "the SAME Thunder Wave into the SAME Snorlax, differing only in the status it is already carrying — par [\"|move|p1a:meowstic|thunderwave|p2a:snorlax\",\"|-fail|p2a:snorlax|par\"]; psn [\"|move|p1a:meowstic|thunderwave||[still]\",\"|-fail|p1a:meowstic\"]. Showdown prints -fail p2a Snorlax par and -fail p1a Meowstic respectively, and blanks the move line's target field on the second",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "healDescriptor",
+      "label": "a heal that restores nothing prints ONE `-fail`, on the body it aimed at — not a second one on the mover",
+      "live": true,
+      "detail": "the same Heal Pulse at the same Snorlax — half HP [\"|-heal|p2a:snorlax|235/235\"], full HP [\"|-fail|p2a:snorlax|heal\"]. Before the fix the full-HP arm read TWO lines, the handler's own -fail on the target followed by mvFail's -fail on the mover, and the second is an event the authority never emits on any of the five heal moves staged",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesStatusMoves",
+      "label": "a click the engine models NO effect for is still refused at onTryHit, and still names the body it aimed at",
+      "live": true,
+      "detail": "the same Role Play at the same Gholdengo — inert ability [\"|move|p1a:meowstic|roleplay|p2a:gholdengo\"]; Good as Gold [\"|move|p1a:meowstic|roleplay|p2a:gholdengo\",\"|-immune|p2a:gholdengo|[from]ability:goodasgold\"]. Before the fix BOTH arms named the USER in field 4 of the move line and neither emitted anything after it: the target was dropped by the unmodelled-click return, so there was no body to refuse against. Spite is the second member and resolves through the same branch",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "immuneToMoveClass",
+      "label": "a move-class immunity NAMES the ability that refused, and a TYPE immunity to the same move stays bare",
+      "live": true,
+      "detail": "the same Sleep Powder — a GRASS body [\"|-immune|p2a:chesnaught\"] (the type chart, announced bare by the authority too); an OVERCOAT body [\"|-immune|p2a:forretress|[from]ability:overcoat\"]. Before the fix both arms read the bare line. Soundproof and Bulletproof reach the same reader and were measured the same way (Bastiodon/Snarl, Chesnaught/Shadow Ball)",
       "hollow": false,
       "armed": true,
       "directCall": false

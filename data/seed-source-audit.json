@@ -1,0 +1,367 @@
+{
+  "generated": "2026-08-15T03:51:47.955Z",
+  "by": "engine/seed_source_audit.js",
+  "what": "every derived table on the seeding path, audited against the regulation — ROADMAP #282 and the open remainder of #244",
+  "format": "gen9championsvgc2026regmb",
+  "notQuarantined": "opens a Dex and plays no game — no battleInit, no rollout, no store — so it is not downstream of MEDICHAM",
+  "volatileDurationTable": {
+    "movesExist": 954,
+    "movesLegal": 500,
+    "counters": {
+      "legalMoves": 500,
+      "illegalSkipped": 454,
+      "keys": 56,
+      "fromCallback": 18,
+      "callbackThrew": 7,
+      "callbackThrewKeys": {
+        "partiallytrapped": 7
+      },
+      "lookupThrew": 0,
+      "lookupThrewFirst": null,
+      "ambiguous": 0,
+      "ambiguousKeys": {}
+    },
+    "keysBefore": 84,
+    "keysAfter": 56,
+    "correctedValues": [
+      {
+        "key": "healblock",
+        "before": 5,
+        "after": 2
+      }
+    ],
+    "keysWithNoLegalCarrier": 34,
+    "keysWithNoLegalCarrierList": [
+      "burningbulwark",
+      "craftyshield",
+      "echoedvoice",
+      "embargo",
+      "firepledge",
+      "furycutter",
+      "gmaxcannonade",
+      "gmaxvinelash",
+      "gmaxvolcalith",
+      "gmaxwildfire",
+      "grasspledge",
+      "iceball",
+      "iondeluge",
+      "laserfocus",
+      "luckychant",
+      "magiccoat",
+      "matblock",
+      "maxguard",
+      "mefirst",
+      "mist",
+      "mudsport",
+      "obstruct",
+      "powder",
+      "pursuit",
+      "revivalblessing",
+      "rollout",
+      "shadowforce",
+      "shelltrap",
+      "silktrap",
+      "skydrop",
+      "snatch",
+      "spotlight",
+      "waterpledge",
+      "watersport"
+    ]
+  },
+  "basePowerCallbackClass": {
+    "legalCallbackMoves": 29,
+    "fellThroughOnACleanBoard": 19,
+    "readUnmodelledState": 6,
+    "readUnmodelledStateList": [
+      {
+        "id": "assurance",
+        "reads": [
+          "hurtThisTurn"
+        ]
+      },
+      {
+        "id": "beatup",
+        "reads": [
+          "allies"
+        ]
+      },
+      {
+        "id": "lastrespects",
+        "reads": [
+          "totalFainted"
+        ]
+      },
+      {
+        "id": "payback",
+        "reads": [
+          "queue",
+          "newlySwitched"
+        ]
+      },
+      {
+        "id": "spitup",
+        "reads": [
+          "stockpile"
+        ]
+      },
+      {
+        "id": "watershuriken",
+        "reads": [
+          "battle"
+        ]
+      }
+    ],
+    "rows": [
+      {
+        "id": "infernalparade",
+        "name": "Infernal Parade",
+        "printed": 65,
+        "computed": 65,
+        "fellThrough": true,
+        "unmodelledReads": []
+      },
+      {
+        "id": "ragefist",
+        "name": "Rage Fist",
+        "printed": 50,
+        "computed": 50,
+        "fellThrough": true,
+        "unmodelledReads": []
+      },
+      {
+        "id": "acrobatics",
+        "name": "Acrobatics",
+        "printed": 55,
+        "computed": 110,
+        "fellThrough": false,
+        "unmodelledReads": []
+      },
+      {
+        "id": "assurance",
+        "name": "Assurance",
+        "printed": 60,
+        "computed": 60,
+        "fellThrough": true,
+        "unmodelledReads": [
+          "hurtThisTurn"
+        ]
+      },
+      {
+        "id": "avalanche",
+        "name": "Avalanche",
+        "printed": 60,
+        "computed": 60,
+        "fellThrough": true,
+        "unmodelledReads": []
+      },
+      {
+        "id": "beatup",
+        "name": "Beat Up",
+        "printed": 0,
+        "computed": 0,
+        "fellThrough": true,
+        "unmodelledReads": [
+          "allies"
+        ]
+      },
+      {
+        "id": "electroball",
+        "name": "Electro Ball",
+        "printed": 0,
+        "computed": 60,
+        "fellThrough": false,
+        "unmodelledReads": []
+      },
+      {
+        "id": "eruption",
+        "name": "Eruption",
+        "printed": 150,
+        "computed": 150,
+        "fellThrough": true,
+        "unmodelledReads": []
+      },
+      {
+        "id": "flail",
+        "name": "Flail",
+        "printed": 0,
+        "computed": 20,
+        "fellThrough": false,
+        "unmodelledReads": []
+      },
+      {
+        "id": "grassknot",
+        "name": "Grass Knot",
+        "printed": 0,
+        "computed": 40,
+        "fellThrough": false,
+        "unmodelledReads": []
+      },
+      {
+        "id": "gyroball",
+        "name": "Gyro Ball",
+        "printed": 0,
+        "computed": 22,
+        "fellThrough": false,
+        "unmodelledReads": []
+      },
+      {
+        "id": "hardpress",
+        "name": "Hard Press",
+        "printed": 0,
+        "computed": 100,
+        "fellThrough": false,
+        "unmodelledReads": []
+      },
+      {
+        "id": "heatcrash",
+        "name": "Heat Crash",
+        "printed": 0,
+        "computed": 120,
+        "fellThrough": false,
+        "unmodelledReads": []
+      },
+      {
+        "id": "heavyslam",
+        "name": "Heavy Slam",
+        "printed": 0,
+        "computed": 120,
+        "fellThrough": false,
+        "unmodelledReads": []
+      },
+      {
+        "id": "hex",
+        "name": "Hex",
+        "printed": 65,
+        "computed": 65,
+        "fellThrough": true,
+        "unmodelledReads": []
+      },
+      {
+        "id": "lastrespects",
+        "name": "Last Respects",
+        "printed": 50,
+        "computed": 50,
+        "fellThrough": true,
+        "unmodelledReads": [
+          "totalFainted"
+        ]
+      },
+      {
+        "id": "lowkick",
+        "name": "Low Kick",
+        "printed": 0,
+        "computed": 40,
+        "fellThrough": false,
+        "unmodelledReads": []
+      },
+      {
+        "id": "payback",
+        "name": "Payback",
+        "printed": 50,
+        "computed": 50,
+        "fellThrough": true,
+        "unmodelledReads": [
+          "queue",
+          "newlySwitched"
+        ]
+      },
+      {
+        "id": "powertrip",
+        "name": "Power Trip",
+        "printed": 20,
+        "computed": 20,
+        "fellThrough": true,
+        "unmodelledReads": []
+      },
+      {
+        "id": "reversal",
+        "name": "Reversal",
+        "printed": 0,
+        "computed": 20,
+        "fellThrough": false,
+        "unmodelledReads": []
+      },
+      {
+        "id": "risingvoltage",
+        "name": "Rising Voltage",
+        "printed": 70,
+        "computed": 70,
+        "fellThrough": true,
+        "unmodelledReads": []
+      },
+      {
+        "id": "round",
+        "name": "Round",
+        "printed": 60,
+        "computed": 60,
+        "fellThrough": true,
+        "unmodelledReads": []
+      },
+      {
+        "id": "spitup",
+        "name": "Spit Up",
+        "printed": 0,
+        "computed": 0,
+        "fellThrough": true,
+        "unmodelledReads": [
+          "stockpile"
+        ]
+      },
+      {
+        "id": "stompingtantrum",
+        "name": "Stomping Tantrum",
+        "printed": 75,
+        "computed": 75,
+        "fellThrough": true,
+        "unmodelledReads": []
+      },
+      {
+        "id": "storedpower",
+        "name": "Stored Power",
+        "printed": 20,
+        "computed": 20,
+        "fellThrough": true,
+        "unmodelledReads": []
+      },
+      {
+        "id": "temperflare",
+        "name": "Temper Flare",
+        "printed": 75,
+        "computed": 75,
+        "fellThrough": true,
+        "unmodelledReads": []
+      },
+      {
+        "id": "tripleaxel",
+        "name": "Triple Axel",
+        "printed": 20,
+        "computed": 20,
+        "fellThrough": true,
+        "unmodelledReads": []
+      },
+      {
+        "id": "watershuriken",
+        "name": "Water Shuriken",
+        "printed": 15,
+        "computed": 15,
+        "fellThrough": true,
+        "unmodelledReads": [
+          "battle"
+        ]
+      },
+      {
+        "id": "waterspout",
+        "name": "Water Spout",
+        "printed": 150,
+        "computed": 150,
+        "fellThrough": true,
+        "unmodelledReads": []
+      }
+    ]
+  },
+  "openAndNotFixed": {
+    "row": 244,
+    "what": "board.movePower builds no side.totalFainted, so Last Respects is scored at its printed floor in every FEATURE MAG ranks with, whatever the position says",
+    "whyNotFixed": "it moves fitted feature values. engine/feature_fixture.js's 58 per-feature column hashes MOVE when movePower's callback path is disabled — measured, not argued — so a fix here owes data/policy-weights.json a refit, and the refit is gated behind MEDICHAM by Will's own instruction"
+  }
+}

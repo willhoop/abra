@@ -120,22 +120,120 @@ const _semanticsWarned = new Set();
  * Resolved lazily HERE, from the same expression makeScoringPlayer uses, so there is one source and
  * no load-order dependency. The catch now records the failure instead of hiding it: a table that
  * could not be built must not be cached as if it were empty-and-correct. */
+/* *** AND IT WALKED THE NATIONAL DEX — ROADMAP #282. ***
+ *
+ * `dex.moves.all()` skipping only `!m.exists` is the walk CLAUDE.md names by name: *"`Dex.forFormat`
+ * IS NOT A LEGALITY FILTER, AND THAT IS EXACTLY HOW THIS RULE GOT BROKEN."* Measured on the format:
+ * 954 moves exist, **500 are legal here**, and the illegal 454 were writing durations into this table.
+ *
+ * WHAT IT COST, DERIVED RATHER THAN ARGUED. The move that shares the heal-block volatile's name is
+ * `isNonstandard: 'Past'` with `condition.duration: 5`. This regulation's ONLY carrier of that
+ * volatile is Psychic Noise, and the authority's own `durationCallback` on the heal-block condition
+ * opens `if (effect?.name === "Psychic Noise") return 2;`. So the live board recorded a heal block as
+ * **five** turns where the game says **two** — and since ROADMAP #277 the seed carries that number
+ * into every playout, so the defect got further rather than staying live-only.
+ *
+ * *** THE FILTER ALONE IS NOT THE FIX, AND THAT IS WHY THE ROW WAS FILED BEFORE IT WAS TAKEN. ***
+ * With the illegal row gone the old expression has NO entry for that volatile at all — Psychic Noise
+ * declares no `volatileStatus` and no `condition` of its own; it applies the volatile through a 100%
+ * SECONDARY — so the lookup would fall through to the bare 3. Trading a wrong 5 for a wrong 3 is not
+ * a repair.
+ *
+ * *** SO THE DURATION IS READ OFF THE CONDITION, WHICH IS WHERE IT LIVES. ***
+ * A duration is a property of the CONDITION, not of the move that starts it, and Showdown's own
+ * registry answers for both: `dex.conditions.get(id)` resolves the standalone conditions AND a move's
+ * private `condition`. So this walks the LEGAL moves, asks each which volatiles it can start
+ * (`volatileStatus`, `secondary`, `secondaries`, `self` — Psychic Noise declares NONE of the first
+ * kind and reaches the volatile through a 100% SECONDARY, which is why reading `volatileStatus`
+ * alone finds nothing), and takes the number from the condition, running the authority's
+ * `durationCallback` with that legal move as the effect. That is the same function the server runs,
+ * so Psychic Noise's 2 is DERIVED and self-correcting rather than transcribed.
+ *
+ * MEASURED WHILE BREAKING IT: `secondary` and `secondaries` BOTH carry it on this move, so removing
+ * either one alone changes nothing. They are kept as separate reads because the redundancy is
+ * Showdown's and not ours, and a move declaring only one of them is the ordinary case.
+ *
+ * WHAT IS COUNTED, BECAUSE EACH OF THESE FAILS SILENTLY OTHERWISE:
+ *   `illegalSkipped`  the rows this row exists to remove — a zero means the filter went inert
+ *   `fromCallback`    a duration the authority computed rather than declared — the heal-block case
+ *   `callbackThrew`   a callback needing battle state this table has none of (the trapping moves ask
+ *                     for `this.random`); the DECLARED duration is used and the count says so
+ *   `ambiguous`       two legal carriers of one volatile disagreeing. The `|-start|` line does not
+ *                     name the move that caused it, so the table genuinely cannot tell them apart —
+ *                     today this regulation has NONE, and a future one must be loud rather than
+ *                     silently resolved. The longer value wins, which is the direction that keeps a
+ *                     lock modelled rather than forgotten.
+ */
 let _volDur = null, _volDurFailed = null;
+const VOL_DUR_COUNTERS = { legalMoves: 0, illegalSkipped: 0, keys: 0, fromCallback: 0,
+                           callbackThrew: 0, callbackThrewKeys: {}, lookupThrew: 0,
+                           lookupThrewFirst: null, ambiguous: 0, ambiguousKeys: {} };
 function volatileDuration(name) {
   if (!_volDur) {
     const built = {};
     try {
       const CS = require('./champions_sim.js');
       const dex = CS.sim().Dex.forFormat(CS.FORMAT);
+      /* No `this` a durationCallback can use to reach a battle, deliberately: one that needs a live
+       * battle must THROW and be counted, not be handed a plausible-looking stub that invents a
+       * number. `add`/`hint`/`debug` are announcements and are the only things safe to swallow. */
+      const ctx = { add() {}, hint() {}, debug() {}, effectState: {} };
+      const noMon = { hasAbility: () => false, hasItem: () => false };
+      const src = {};
+      const put = (key, turns, id) => {
+        if (!key || !(turns > 0)) return;
+        if (built[key] === undefined) { built[key] = turns; src[key] = id; return; }
+        if (built[key] === turns) return;
+        VOL_DUR_COUNTERS.ambiguous++;
+        VOL_DUR_COUNTERS.ambiguousKeys[key] = `${src[key]}:${built[key]} vs ${id}:${turns}`;
+        if (turns > built[key]) { built[key] = turns; src[key] = id; }
+      };
+      const durOf = (condId, effect) => {
+        let c = null;
+        /* COUNTED WITH ITS REASON, not swallowed. A registry lookup that starts throwing would empty
+         * this table one key at a time and every duration would quietly become the fallback 3 —
+         * which is the exact shape of the 2026-07-31 defect this function's header describes. */
+        try { c = dex.conditions.get(condId); }
+        catch (e) {
+          VOL_DUR_COUNTERS.lookupThrew++;
+          if (!VOL_DUR_COUNTERS.lookupThrewFirst) VOL_DUR_COUNTERS.lookupThrewFirst = `${condId}: ${e.message}`;
+          c = null;
+        }
+        if (!c || c.exists === false) return 0;
+        if (typeof c.durationCallback === 'function') {
+          try {
+            const d = +c.durationCallback.call(ctx, noMon, noMon, effect);
+            if (d > 0) { VOL_DUR_COUNTERS.fromCallback++; return d; }
+          } catch (e) {
+            /* The callback needs battle state this table has none of — the trapping family asks for
+             * `this.random`. The DECLARED duration is used and the count says which keys did it,
+             * because "the authority computed it" and "the authority refused" must not look alike. */
+            VOL_DUR_COUNTERS.callbackThrew++;
+            VOL_DUR_COUNTERS.callbackThrewKeys[condId] = (VOL_DUR_COUNTERS.callbackThrewKeys[condId] | 0) + 1;
+          }
+        }
+        return +c.duration || 0;
+      };
       for (const m of dex.moves.all()) {
         if (!m || !m.exists) continue;
-        const v = B.norm(m.volatileStatus || '');
-        const d = m.condition && m.condition.duration;
-        if (v && d) built[v] = d;
-        const byName = B.norm(m.name);
-        if (d && !built[byName]) built[byName] = d;
+        /* THE REGULATION, not the National Dex. `tier` is checked as well as `isNonstandard` because
+         * CLAUDE.md's filter is three clauses and a move carrying only the third would slip through. */
+        if (m.isNonstandard || m.tier === 'Illegal') { VOL_DUR_COUNTERS.illegalSkipped++; continue; }
+        VOL_DUR_COUNTERS.legalMoves++;
+        const vols = new Set();
+        if (m.volatileStatus) vols.add(B.norm(m.volatileStatus));
+        if (m.secondary && m.secondary.volatileStatus) vols.add(B.norm(m.secondary.volatileStatus));
+        for (const s of (m.secondaries || [])) if (s && s.volatileStatus) vols.add(B.norm(s.volatileStatus));
+        if (m.self && m.self.volatileStatus) vols.add(B.norm(m.self.volatileStatus));
+        for (const v of vols) put(v, durOf(v, m), m.id);
+        /* THE WIRE OFTEN NAMES THE MOVE, NOT THE VOLATILE — `|-start|p1a: X|move: Heal Block`, and
+         * Throat Chop declares no `volatileStatus` at all — so the move's own name is a key too, off
+         * the move's own condition. Same shape the old table had, same reason. */
+        put(B.norm(m.name), durOf(m.id, m), m.id);
       }
-      if (!Object.keys(built).length) throw new Error('the dex produced no move durations at all');
+      VOL_DUR_COUNTERS.keys = Object.keys(built).length;
+      if (!VOL_DUR_COUNTERS.keys) throw new Error('the dex produced no move durations at all');
+      if (!VOL_DUR_COUNTERS.legalMoves) throw new Error('the legality filter removed every move');
       _volDur = built;
     } catch (e) {
       /* LOUD, ONCE. Silence here is what cost every duration in the project's history. Not thrown,
@@ -1271,4 +1369,10 @@ function hpFrac(s, prev) {
   return +m[2] ? Math.max(0, Math.min(1, +m[1] / +m[2])) : prev;
 }
 
-module.exports = { makeScoringPlayer, loadWeights, hpFrac, accumulateLogitGrad };
+module.exports = { makeScoringPlayer, loadWeights, hpFrac, accumulateLogitGrad,
+                   /* ROADMAP #282. Exported as a TEST SEAM and as proof of firing: the table is
+                    * built lazily inside a live protocol reader, so without a way to ask it directly
+                    * the only evidence a duration is right is a battle log nobody diffs.
+                    * `VOL_DUR_COUNTERS` is what says the legality filter is still filtering — an
+                    * `illegalSkipped` of 0 means it went inert and nothing else would notice. */
+                   volatileDuration, VOL_DUR_COUNTERS };

@@ -37,8 +37,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  579/579 probed mechanics live, 0 missing   (census 2026-08-14 23:08)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-14 02:36)
+  584/584 probed mechanics live, 0 missing   (census 2026-08-14 23:48)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-14 23:54)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -49,16 +49,186 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c0dcb33ecd24 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 6991d4ac7e09 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is ec4bfd79451f now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 41184089df15 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 265/284 probed, 19 unprobed
 ```
 
-_stamped 2026-08-14 23:12_
+_stamped 2026-08-15 00:16_
 
 <!-- /GENERATED -->
+
+## ROADMAP #259 / #256 / #241 — THE ANNOUNCEMENT-NAMING FAMILY, AND THE MISSING LINE WAS THE SMALL HALF TWICE. 2026-08-15.
+
+**Census 579 live / 0 missing -> 584 live / 0 missing.** Three rows Will read off real protocol
+streams, taken as one batch because they are one shape: the board was right (or nearly) and the LINE
+was wrong, which every state-reading probe in `tests/test-mechanics.js` is structurally blind to.
+Two of the three turned out to be bigger than the row said, in the same direction both times — the
+narration defect was the visible end of a behaviour defect.
+
+### #259 — A FROZEN BODY MOVED, AND THE SLOT-LETTER SUSPICION WAS WRONG
+
+Will, reading card 2: *"for some reason we announce toxapex thaw but not incin thaw."* The row was
+right that a code read does not explain it — nothing in the freeze branch distinguishes p1a from p1b
+— and right to refuse to edit on that read. Staged as it asked, two frozen bodies, the 1/4 thaw roll
+pinned LOSING:
+
+```
+showdown   |cant|p1a: Toxapex|frz          |cant|p1b: Incineroar|frz
+medicham   |cant|p1a: toxapex|frz          |move|p1b: incineroar|partingshot|p2a: snorlax
+```
+
+**The second frozen body did not fail to announce a thaw. It never entered the gate at all, and it
+moved.** The 2026-08-12 guard tests `it.a.kind==='switch'||it.a.kind==='pass'`, and a PIVOT MOVE is
+`{kind:'switch',mv}` — so Parting Shot skipped sleep, freeze, flinch, confusion, Attract **and** the
+12.5% full-paralysis roll. Membership over all 500 legal moves, printed before anything was wired:
+`{kind:'switch',mv}` = **chillyreception, partingshot**; `{kind:'pass',mv}` = **fairylock, healbell,
+roleplay, spite, teatime**. Seven moves, exempt from every status gate in the engine.
+
+**The file already owned the right answer and was disagreeing with itself.** `sdChoiceOf` says in as
+many words that a pivot carrying `mv` is a MOVE and that Showdown queues it as choice `move`; the
+guard's own comment already said *"a PASS AND A VOLUNTARY SWITCH"*, with the word VOLUNTARY doing
+work the test never did. That is CLAUDE.md's facts-are-global rule broken inside one file. The guard
+now asks `actionMoveId(it.a)` — this file's one reader of *which move is this action* — so a bare
+`{kind:'switch'}` (a real switch) and a bare `{kind:'pass'}` (the do-nothing every probe hands in as
+`PASS2`) still skip, and anything carrying a move does not. **The two redundant inline guards below
+it moved in the same pass**: left alone they would have kept Parting Shot exempt from confusion and
+Attract while the freeze applied, which reads exactly like a whole fix.
+
+`tests/test-switch-carry.js` PART 3 — the sleeping body pivoting out, which is why the guard exists —
+is still **27 passed, 0 failed**.
+
+### #241 — THE ATTRIBUTION RULE IS TWO BRANCHES, AND THE ROW STATED ONLY THE ONE THAT NEVER FIRES
+
+```
+showdown   |move|p1a: Meowstic|Thunder Wave||[still]      |-fail|p1a: Meowstic
+medicham   |move|p1a: meowstic|thunderwave|p2a: snorlax   |-fail|p2a: snorlax
+```
+
+`trySetStatus` calls `setStatus(this.status || status)` (sim/pokemon.ts:1675), so an already-statused
+body enters `setStatus` holding its OWN status and the test at :1704 is really *is the move applying
+the status I already have*. Same → `add('-fail', this, this.status)` on the **target**, third field
+carrying the status, no `[still]`. Different → `add('-fail', source)` on the **mover** plus
+`attrLastMove('[still]')`, which also blanks field 4 of the preceding `|move|` line. This engine wrote
+the first shape for both, with no third field and no `[still]`. Both arms now match the authority byte
+for byte, and the control arm (Thunder Wave into an already-PARALYSED body) is what stops the fix
+being "name the mover everywhere".
+
+**The whole-game differential could never have caught the `|move|` half.** Its own normalisation
+rules `move-target-field` and `display-flags` collapse field 4 and `[still]` deliberately — 851,502
+and 288,478 lines collapsed on the published run — which is why a person reading one card found this
+and 1,539 games did not.
+
+### #256 — FOUR SITES, AND TWO OF THEM WERE A DROPPED TARGET RATHER THAN A MISSING LINE
+
+- **Role Play and Spite.** The row said the refusal *"has nowhere to go"*. It had two nowheres: the
+  terminal `{kind:'pass',mv:id}` dropped the target it was handed, so the `|move|` line named the
+  USER in field 4 **and** no body existed for a refusal to answer against. The target is now kept for
+  the classes the authority lets a player name a body for, read out of `sim/battle-actions.ts:3`'s own
+  `CHOOSABLE_TARGETS` into a new `targetClass.chooseable` (**360 of 500** legal moves; the read THROWS
+  rather than defaulting to an empty set, because an empty set would drop every target and look
+  exactly like the defect). The refusal goes through the one `tryHitRefusal` announcer #241/#255 built.
+- **Heal Pulse.** It printed the handler's own `|-fail|<target>|heal` and then `mvFail`'s
+  `|-fail|<mover>` under it. `healpulse.onHit` returns `this.NOT_FAIL`, so the generic fail never
+  runs — and staged at full HP, **Recover, Rest, Life Dew and Synthesis all print exactly one line
+  too**. Fixed with `mvFailAnnouncedByCaller`, a separate writer rather than a flag, so a call site
+  cannot silently lose the `|-fail|` it owes.
+- **Soundproof and Overcoat.** The row asked for `immuneAttrIn()` to be widened rather than for two
+  names, and that is what landed: `immuneToMoveClass.announcesWith`, read off `onTryHit` /
+  `onAllyTryHitSide` by the same reader #239 built for `onSetStatus`. The engine reads it through ONE
+  function, `moveClassImmuneAttr`.
+
+### MEMBERSHIP, PRINTED BEFORE WIRING, AND ONE MEMBER CANNOT OCCUR
+
+`immuneToMoveClass` selects **five** legal abilities. Four announce, one does not:
+
+| ability | flag | announces |
+|---|---|---|
+| Overcoat | powder | `[from] ability: Overcoat` |
+| Soundproof | sound | `[from] ability: Soundproof` |
+| Bulletproof | bullet | `[from] ability: Bulletproof` |
+| Wind Rider | wind | `[from] ability: Wind Rider` — **but no legal species carries it in this regulation** |
+| Magic Bounce | reflectable | nothing — it reflects rather than refusing |
+
+Wind Rider is named rather than skipped, because its handler announces only when the +1 Attack fails,
+so this reader is the wrong shape for it the day a carrier becomes legal. That warning is in the code.
+
+### THE POWDER CONTROL IS WHY THIS IS NOT A PASTE
+
+Powder has three refusers in this format and only one is an ability. A GRASS body is refused by the
+type chart in `hitStepTryImmunity`, **above** `onTryHit`, and the authority announces it BARE — and
+Overcoat's own handler is guarded by `this.dex.getImmunity('powder', target)` so it never even runs on
+a Grass body. Measured, one turn each:
+
+```
+Sleep Powder -> Forretress (Overcoat)     |-immune|p2a: Forretress|[from] ability: Overcoat
+Snarl        -> Bastiodon (Soundproof)    |-immune|p2a: Bastiodon|[from] ability: Soundproof
+Shadow Ball  -> Chesnaught (Bulletproof)  |-immune|p2a: Chesnaught|[from] ability: Bulletproof
+Sleep Powder -> Chesnaught (GRASS)        |-immune|p2a: Chesnaught          <- bare, and correct
+```
+
+`powderImmuneAttr` is a second function for that reason. Every carrier above is a real one out of a
+filtered `Dex.forFormat` walk — no ability is bolted onto a body that cannot hold it (#266's trap).
+
+### FIVE PROBES, EACH SHOWN RED FIRST
+
+`tests/probe_red_demo.js` — **200 demonstrations, 0 failed**, up from 195. Four are source reversals
+and the fifth is an ARTIFACT strip, because that one's fix lives in `data/tags.json` and not in a line
+of engine code: the known-bad artifact keeps `immuneToMoveClass` (so the refusal still FIRES and the
+arms are not comparing blocked against not-blocked) and removes only `announcesWith`.
+
+**#259's probe asserts the OUTCOME, not the announcement**, and that is the load-bearing choice:
+`[|move| lines, |switch| lines, |cant|frz lines]` reads `[1,1,0]` unfrozen against `[0,0,1]` frozen.
+A probe counting only `|-curestatus|` would have gone green on an engine that still let a frozen body
+move — which is exactly what the row's symptom was.
+
+While re-aiming, the WIRE 128 Mold Breaker reversal went STALE on the same line this pass edited, and
+was re-aimed in the same pass rather than reported.
+
+### WHAT IS NOT CLAIMED
+
+**No whole-game differential movement.** A 1,500-game run was taken to
+`data/verification/gd-after-241-256-259.json` and it is **NOT comparable to the published 1,539-game
+artifact**: the instrument gained a third `middle` arm (#262) since that run, so the two files' cause
+lists describe different arms at different sample sizes. Comparing them produced a headline
+(+157 `|-fail| <> |-singleturn|protect`) that is a middle-arm property and not a change. The figure is
+WITHHELD rather than captioned. `tests/test-engine-diff.js --n 6000`: **6000 agreed, 0 disagreed.**
+
+**`_mvRes` was not touched** on the Heal Pulse path. `NOT_FAIL`'s effect on `moveThisTurnResult` could
+not be staged — the field is cleared at the turn boundary, so it does not survive to be read off a
+finished battle — and #241's parent got burned twice on 2026-08-13 changing behaviour off a code read.
+The line changed; the state did not.
+
+### THE HAND LIST
+
+**#259 and #256 leave it entirely; #241 leaves it in part.** The census carries `pivotStatus`,
+`statusInflict`, `healDescriptor`, `refusesStatusMoves` and `immuneToMoveClass` for these.
+
+**Added, because this pass measured it and did not fix it:** the other three `{kind:'pass'}` moves
+narrate wrongly and in a different shape — **Fairy Lock** (`all`) names the USER in field 4, **Teatime**
+(`all`) and **Heal Bell** (`allyTeam`) name it BLANK with `[still]`, and Teatime IS refused by Good as
+Gold while Fairy Lock is not. And `[still]` on a full-HP heal: the authority appends it for the members
+whose heal runs through `battle-actions.ts:1202` (Recover, Life Dew) and not for the ones with their
+own `onTry`/`onHit` (Rest, Synthesis, Heal Pulse), and no tag in `data/tags.json` distinguishes those
+two paths — emitting it for all five would trade one wrong line for three.
+
+**#241 part (3) stays open and is not sized down.** The eight *SHOWDOWN FAILS AND WE ARE SILENT*
+causes are bare `|-fail|<mover>` lines inside real games; each needs its own game-level reproduction.
+Three of the six that carry a body name a Prankster carrier (Whimsicott x3, Sableye, Sylveon), which
+is a lead and not a diagnosis.
+
+### NOT MINE, REPORTED
+
+- `tests/test-mod-conformance.js` is RED on **22 mainline values in `data/move-effects.js`** — that is
+  ROADMAP #191, registered, and no byte of that file moved in this pass.
+- Baneful Bunker emits `|-singleturn|p1a: X|Protect` where the authority writes
+  `|-singleturn|p1a: X|move: Protect` while plain Protect is bare on both sides. Seen while staging
+  #259; not touched.
+- `data/tags.json` was regenerated for the two new derived fields. **737 rows changed and 504 of them
+  are the two intended fields** (`moves:targetClass` 500, `abilities:immuneToMoveClass` 4); the other
+  233 are `uses` counts moving with the store, which the ingest grows continuously.
 
 ## ROADMAP #273 / #266 — THIRTY-NINE DEMONSTRATIONS HAD NOT RUN, AND NOT ONE OF THEM WAS AN ENGINE DEFECT. 2026-08-14.
 

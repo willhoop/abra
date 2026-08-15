@@ -655,8 +655,102 @@ function checkLegal(o) {
   }
 }
 
+/* ================================================================================================
+ * WHO CAN CARRY THIS AT ALL — the derived answer to "does this mechanic exist in the regulation?"
+ *
+ * `checkLegal` answers a question about ONE set. It cannot answer the question that manufactured
+ * four phantom engine defects in a single session on 2026-08-14: a probe built a body and stamped an
+ * ability on it, a WIRE demo asserted an aura interaction, and two coverage strips targeted
+ * abilities that had already been dropped for having no carrier. Every one of them read as AN ENGINE
+ * DEFECT and every one of them was the exact opposite — **the engine is correct not to model a thing
+ * this format cannot produce, and `tag_dex.js` is correct to omit it.** One was ranked first of
+ * fourteen open engine defects and put in front of Will as the place to start work, which is the real
+ * cost: not a wrong number, a wrong DECISION about what to work on.
+ *
+ * IT LIVES HERE BECAUSE FACTS ARE GLOBAL. `tests/probe_red_demo.js` grew its own `abilityUnreachable`
+ * with its own lazy dex walk; a second copy of "is this legal here" is the two-implementations failure
+ * this repository has paid for repeatedly, and it will diverge silently because both copies keep
+ * working. This is the same module that already owns `checkLegal`, `firstLegalMove` and `LEGAL_SPREAD`.
+ *
+ * THE FILTER IS THE ONE CLAUDE.md MANDATES — `x.exists && !x.isNonstandard && x.tier !== 'Illegal'`
+ * — because `Dex.forFormat(...).species.all()` is the WHOLE National Dex wearing this format's name.
+ * MOVE carriage is asked of `TeamValidator#checkCanLearn`, the authority's own function, and never of
+ * a hand-walked learnset: an evolved forme's list lives partly on its prevo and partly on its base
+ * forme, and a walk that misses either invents a zero. Measured 2026-08-14 on Sleep Powder — a raw
+ * learnset walk found 7 carriers where the validator finds 26.
+ * ============================================================================================== */
+let _roster = null, _abilityCarriers = null;
+const _learn = new Map(), _moveCarriers = new Map();
+const _id = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+function legalRoster() {
+  if (_roster) return _roster;
+  const { Dex } = sim();
+  const dex = Dex.forFormat(FORMAT);
+  _roster = dex.species.all().filter(x => x.exists && !x.isNonstandard && x.tier !== 'Illegal');
+  return _roster;
+}
+
+/* Every legal body that can have this ability, in ANY of its slots. A mega forme counts: it is a
+ * body that appears on the field in this format. */
+function abilityCarriers(ability) {
+  if (!_abilityCarriers) {
+    _abilityCarriers = new Map();
+    for (const sp of legalRoster()) {
+      for (const slot of Object.values(sp.abilities || {})) {
+        const k = _id(slot);
+        if (!_abilityCarriers.has(k)) _abilityCarriers.set(k, []);
+        _abilityCarriers.get(k).push(sp.name);
+      }
+    }
+  }
+  return _abilityCarriers.get(_id(ability)) || [];
+}
+
+/* Can THIS body legally hold THIS move — the validator's own verdict, cached per pair. */
+function canLearn(species, move) {
+  const { Dex, TeamValidator } = sim();
+  const dex = Dex.forFormat(FORMAT);
+  const sp = dex.species.get(species), mv = dex.moves.get(move);
+  if (!sp.exists || !mv.exists) return false;
+  const k = sp.id + '|' + mv.id;
+  if (_learn.has(k)) return _learn.get(k);
+  if (!_validator) _validator = new TeamValidator(FORMAT);
+  let ok = false;
+  try { ok = _validator.checkCanLearn(mv, sp, _validator.allSources(sp), {}) == null; } catch (e) { ok = false; }
+  _learn.set(k, ok);
+  return ok;
+}
+
+/* Every legal body that can learn this move. The whole-roster walk is cached per move because it is
+ * ~700 validator calls. */
+function moveCarriers(move) {
+  const { Dex } = sim();
+  const mv = Dex.forFormat(FORMAT).moves.get(move);
+  if (!mv.exists || mv.isNonstandard) return [];
+  if (_moveCarriers.has(mv.id)) return _moveCarriers.get(mv.id);
+  const out = legalRoster().filter(sp => canLearn(sp.name, mv.name)).map(sp => sp.name);
+  _moveCarriers.set(mv.id, out);
+  return out;
+}
+
+/* THE ONE CALL A PROBE SHOULD MAKE BEFORE ASSERTING ANYTHING. True when NOTHING in this regulation
+ * can produce the entity, so a demonstration of it cannot run here and its absence from the engine is
+ * correct rather than a defect. `kind` is 'ability' or 'move'. */
+function unreachable(kind, id) {
+  if (kind === 'ability') return abilityCarriers(id).length === 0;
+  if (kind === 'move') {
+    const { Dex } = sim();
+    const mv = Dex.forFormat(FORMAT).moves.get(id);
+    if (!mv.exists || mv.isNonstandard) return true;      /* not in the format at all */
+    return moveCarriers(id).length === 0;                 /* in the format, and NOBODY can click it */
+  }
+  throw new Error('champions_sim.unreachable: kind must be "ability" or "move", got ' + kind);
+}
+
 module.exports = { FORMAT, PINNED_COMMIT, PINNED_DATE, actualCommit, verify, packTeam, battle, winProb, sim,
-                   snapshot, forkBattle, checkLegal, firstLegalMove, LEGAL_SPREAD, INERT_MOVE };
+                   snapshot, forkBattle, checkLegal, firstLegalMove, LEGAL_SPREAD, INERT_MOVE,
+                   legalRoster, abilityCarriers, moveCarriers, canLearn, unreachable };
 
 if (require.main === module) {
   const v = verify();

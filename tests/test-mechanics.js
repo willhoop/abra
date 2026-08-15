@@ -19743,6 +19743,154 @@ probe('move', 'battleEndsOnWipe', 'a side wiped mid-turn ends the battle THERE �
                  + `differed because there was no body to bring in rather than because a rule fired` };
 });
 
+/* ================= THE ANNOUNCEMENT-NAMING FAMILY — ROADMAP #241, #256, #259 =====================
+ *
+ * Three rows Will read off actual protocol streams, closed as one batch because they are one shape:
+ * the BOARD was right (or nearly) and the LINE was wrong, which is invisible to every probe in this
+ * file that reads state. Each of the five below was staged against `Dex.forFormat` first and the two
+ * streams were printed side by side; what is asserted here is the medicham half of a comparison that
+ * was made against the authority, never a value somebody typed.
+ *
+ * `attrRun(` is reused rather than a sixth helper being added — it already stages a real doubles
+ * board with a BENCH through `battleInit` and spends real turns through `battleTurn`, which #259
+ * needs (a pivot has nowhere to go without a bench) and every one of the others needs anyway, because
+ * an announcement is a property of the EVENT STREAM and no direct call produces one.
+ *
+ * EVERY ARM PAIR IS AN OUTCOME PAIR, NOT A CLASSIFICATION PAIR. #259 in particular is asserted on
+ * whether the switch HAPPENED, because "the line is missing" was the symptom and "the whole
+ * onBeforeMove block was skipped" was the cause — a probe that only counted `|-curestatus|` lines
+ * would have gone green on an engine that still let a frozen body move. */
+
+probe('move', 'pivotStatus', 'a frozen body clicking a PIVOT move is refused like any other move — the pivot is a move, not a switch', () => {
+  /* ROADMAP #259. Both halves of Will's card in one pair: the `|cant|` line AND the switch that must
+   * not happen. rng5 loses the 1/4 thaw roll (`rng()<0.25` at 0.5), so the frozen arm stays frozen.
+   *
+   * THE CONTROL IS THE FREEZE AND NOTHING ELSE — same body, same click, same board, same die. Before
+   * the fix the two arms were IDENTICAL: `{kind:'switch'}` matched the not-a-move guard, so the
+   * freeze gate never ran and Parting Shot resolved out of a solid block of ice.
+   * `beforeMoveGateOnMoveKindedSwitchOrPass` is read as well, because a zero there on this board
+   * means the guard stopped reaching the pivot and the arms would agree again. */
+  const run = (frz) => {
+    const t = attrRun(['incineroar', 'clefable', 'snorlax', 'milotic', 'garchomp'],
+      b => { if (frz) { b.me.status = 'frz'; b.me.frzTurns = 0; } },
+      { mv: 'partingshot' }, null);
+    return [t.filter(l => /^\|move\|p1a:/.test(l)).length, t.filter(l => /^\|switch\|p1a:/.test(l)).length,
+            t.filter(l => /^\|cant\|p1a:[^|]*\|frz$/.test(l)).length];
+  };
+  const c0 = M.seen.beforeMoveGateOnMoveKindedSwitchOrPass;
+  const control = run(false), test = run(true);
+  const c1 = M.seen.beforeMoveGateOnMoveKindedSwitchOrPass;
+  return { works: JSON.stringify(control) === JSON.stringify([1, 1, 0])
+                  && JSON.stringify(test) === JSON.stringify([0, 0, 1]) && c1 > c0,
+           arms: { control, test },
+           detail: `[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking `
+                 + `the SAME Parting Shot — unfrozen ${JSON.stringify(control)}, frozen `
+                 + `${JSON.stringify(test)}. The authority answers |cant|p1b: Incineroar|frz and the `
+                 + `pivot does not happen; this engine played it, because the onBeforeMove guard asked `
+                 + `for the ACTION KIND and a pivot wears kind switch. `
+                 + `beforeMoveGateOnMoveKindedSwitchOrPass ${c0} to ${c1}` };
+});
+
+probe('move', 'statusInflict', 'a status move refused by an ALREADY-STATUSED body names the MOVER, unless it is applying the status already there', () => {
+  /* ROADMAP #241, the case Will read off card 2. `Pokemon#setStatus` (sim/pokemon.ts:1704-1712) is
+   * reached through `trySetStatus`'s `this.status || status`, so the equality test is really "is this
+   * the status I already hold": same -> `add('-fail', TARGET, status)`, different ->
+   * `add('-fail', SOURCE)` plus `attrLastMove('[still]')`, which ALSO blanks field 4 of the |move|
+   * line. This engine wrote the first shape for both, with no third field and no [still].
+   *
+   * THE ARMS ARE THE AUTHORITY'S OWN ASYMMETRY, the same discipline as the rest of the attribution
+   * family: an engine that names the mover everywhere fails the par arm, and one that names the
+   * target everywhere fails the psn arm. Neither can be passed by stapling one rule on. */
+  const run = (had) => attrRun(['meowstic', 'clefable', 'snorlax', 'milotic'],
+    b => { b.f1.status = had; }, { mv: 'thunderwave' }, null)
+    .filter(l => /^\|(-fail|move)\|/.test(l)).map(M.traceCanon);
+  const same = run('par'), other = run('psn');
+  return { works: JSON.stringify(same) === JSON.stringify(['|move|p1a:meowstic|thunderwave|p2a:snorlax',
+                                                           '|-fail|p2a:snorlax|par'])
+                  && JSON.stringify(other) === JSON.stringify(['|move|p1a:meowstic|thunderwave||[still]',
+                                                               '|-fail|p1a:meowstic']),
+           arms: { control: same, test: other },
+           detail: `the SAME Thunder Wave into the SAME Snorlax, differing only in the status it is `
+                 + `already carrying — par ${JSON.stringify(same)}; psn ${JSON.stringify(other)}. `
+                 + `Showdown prints -fail p2a Snorlax par and -fail p1a Meowstic respectively, `
+                 + `and blanks the move line's target field on the second` };
+});
+
+probe('move', 'healDescriptor', 'a heal that restores nothing prints ONE `-fail`, on the body it aimed at — not a second one on the mover', () => {
+  /* ROADMAP #256. `data/moves.ts healpulse.onHit`: `this.add('-fail', target, 'heal'); return
+   * this.NOT_FAIL;` — the handler announces on the TARGET and then declares the move did not fail, so
+   * `useMoveInner`'s generic `add('-fail', source)` never runs. Staged one turn each at full HP,
+   * RECOVER, REST, LIFE DEW and SYNTHESIS all print exactly one line too.
+   *
+   * THE CONTROL IS A HEAL THAT WORKS, on the same body and the same click, so "one -fail" cannot be
+   * read off a probe that never staged a heal at all. */
+  const run = (full) => attrRun(['clefable', 'milotic', 'snorlax', 'garchomp'],
+    b => { b.f1.curHP = full ? b.f1.st.hp : Math.floor(b.f1.st.hp / 2); }, { mv: 'healpulse' }, null)
+    .filter(l => /^\|(-fail|-heal)\|/.test(l)).map(M.traceCanon);
+  const control = run(false), test = run(true);
+  return { works: control.length === 1 && /^\|-heal\|p2a:snorlax\|/.test(control[0])
+                  && test.length === 1 && test[0] === '|-fail|p2a:snorlax|heal',
+           arms: { control, test },
+           detail: `the same Heal Pulse at the same Snorlax — half HP ${JSON.stringify(control)}, full `
+                 + `HP ${JSON.stringify(test)}. Before the fix the full-HP arm read TWO lines, the `
+                 + `handler's own -fail on the target followed by mvFail's -fail on the mover, and the `
+                 + `second is an event the authority never emits on any of the five heal moves staged` };
+});
+
+probe('ability', 'refusesStatusMoves', 'a click the engine models NO effect for is still refused at onTryHit, and still names the body it aimed at', () => {
+  /* ROADMAP #256. Role Play and Spite reach `{kind:'pass'}` — this engine's own "I model nothing for
+   * that click" — and the row was that the refusal "has nowhere to go". It had two nowheres: the
+   * action carried no target at all, so the |move| line named the USER in field 4, and no branch
+   * asked about a refusal. The authority prints the move line naming Gholdengo followed by
+   * |-immune|p2a: Gholdengo|[from] ability: Good as Gold.
+   *
+   * THE CONTROL IS THE ABILITY, NOT THE MOVE. The same Role Play at the same Gholdengo with an inert
+   * ability must still name the target on the |move| line and emit NOTHING after it — so a fix that
+   * simply started emitting -immune for every unmodelled click fails here, and a fix that only put
+   * the target back fails the test arm. */
+  const run = (ab) => attrRun(['meowstic', 'clefable', 'gholdengo', 'milotic'],
+    b => { b.f1.ability = ab; }, { mv: 'roleplay' }, null)
+    .filter(l => /^\|(move|-immune)\|/.test(l)).map(M.traceCanon);
+  const control = run('none'), test = run('goodasgold');
+  return { works: JSON.stringify(control) === JSON.stringify(['|move|p1a:meowstic|roleplay|p2a:gholdengo'])
+                  && JSON.stringify(test) === JSON.stringify(['|move|p1a:meowstic|roleplay|p2a:gholdengo',
+                                                              '|-immune|p2a:gholdengo|[from]ability:goodasgold']),
+           arms: { control, test },
+           detail: `the same Role Play at the same Gholdengo — inert ability ${JSON.stringify(control)}; `
+                 + `Good as Gold ${JSON.stringify(test)}. Before the fix BOTH arms named the USER in `
+                 + `field 4 of the move line and neither emitted anything after it: the target was `
+                 + `dropped by the unmodelled-click return, so there was no body to refuse against. `
+                 + `Spite is the second member and resolves through the same branch` };
+});
+
+probe('ability', 'immuneToMoveClass', 'a move-class immunity NAMES the ability that refused, and a TYPE immunity to the same move stays bare', () => {
+  /* ROADMAP #256, and the row asked for the reader to be widened rather than for two names to be
+   * added: `immuneToMoveClass` now carries `announcesWith`, read off the handler by the same
+   * `immuneAttrIn()` #239 built for `onSetStatus` and #241 reused for `onTryHit`. Membership was
+   * printed before it was wired — five carriers, four of which announce (Overcoat, Soundproof,
+   * Bulletproof, Wind Rider) and one of which does not (Magic Bounce, which reflects).
+   *
+   * THE CONTROL IS THE WHOLE REASON THIS IS NOT A ONE-LINE PASTE. The same Sleep Powder into a GRASS
+   * body is refused by the type chart in `hitStepTryImmunity`, above `onTryHit`, and the authority
+   * announces it BARE. Measured on both, one turn each. An engine that attributed every move-class
+   * immunity would invent a field here.
+   *
+   * BOTH CARRIERS ARE REAL. Forretress carries Overcoat and Chesnaught is Grass/Fighting in this
+   * regulation (filtered walk over Dex.forFormat) — no ability is bolted onto a body that cannot
+   * legally hold it, which is the #266 trap. */
+  const run = (sp, ab) => attrRun(['meowstic', 'clefable', sp, 'milotic'],
+    b => { b.f1.ability = ab; }, { mv: 'sleeppowder' }, null)
+    .filter(l => /^\|-immune\|/.test(l)).map(M.traceCanon);
+  const control = run('chesnaught', 'none'), test = run('forretress', 'overcoat');
+  return { works: JSON.stringify(control) === JSON.stringify(['|-immune|p2a:chesnaught'])
+                  && JSON.stringify(test) === JSON.stringify(['|-immune|p2a:forretress|[from]ability:overcoat']),
+           arms: { control, test },
+           detail: `the same Sleep Powder — a GRASS body ${JSON.stringify(control)} (the type chart, `
+                 + `announced bare by the authority too); an OVERCOAT body ${JSON.stringify(test)}. `
+                 + `Before the fix both arms read the bare line. Soundproof and Bulletproof reach the `
+                 + `same reader and were measured the same way (Bastiodon/Snarl, Chesnaught/Shadow Ball)` };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');

@@ -203,11 +203,20 @@ for (const N of [1, 2, 3]) {
 }
 
 /* ---------------------------------------------------------------------------------------------
- * 5. #245, RECORDED WHERE IT WILL BE READ. `MEDFAILS.fallenNoRoster` was built for exactly this bug
- *    and fires only on an ABSENT roster. Here the roster is PRESENT and was pre-filtered, so the
- *    counter reads 0 while the count is wrong — a capability counter reporting success while the
- *    capability is absent. Asserted as 0 because that is the truth about the counter, and the note
- *    is what stops the 0 being read as "the mechanic is fine".
+ * 5. THE GUARD THAT CAN SEE ITS OWN BUG — ROADMAP #245, CLOSED HERE.
+ *
+ *    `MEDFAILS.fallenNoRoster` was built for exactly #244 and fires only on an ABSENT roster. The
+ *    #244 roster was PRESENT and pre-filtered, so it read 0 while the count was wrong — a capability
+ *    counter reporting success while the capability is absent. Reported as a note since R13 and
+ *    never enforceable, because `fallenCount(sf, act, bench)` sees three arrays and NOTHING in them
+ *    distinguishes "nobody died" from "somebody pruned the corpses before I was called". No counter
+ *    written inside that function can ever fire on this bug.
+ *
+ *    So the guard moved to the seam, where the board's own death record is also in scope, and this
+ *    block is its RED DEMONSTRATION AS A STANDING ASSERTION rather than a break done once by hand:
+ *    the pre-filtered roster is REBUILT here, the two guards are asked the same question, and the
+ *    file fails if the engine's counter ever starts catching it (which would mean this arm is no
+ *    longer testing what it says) or if the new one ever stops.
  * ------------------------------------------------------------------------------------------ */
 {
   const before = MEDI.MEDFAILS.fallenNoRoster;
@@ -216,6 +225,101 @@ for (const N of [1, 2, 3]) {
   ok(MEDI.MEDFAILS.fallenNoRoster === before,
     'fallenNoRoster does not fire on a pre-filtered roster — which is ROADMAP #245, not a pass',
     `${MEDI.MEDFAILS.fallenNoRoster}`);
+}
+
+/* 5a. THE DEFECT, REBUILT. `buildSide` pre-#244: every corpse dropped before `battleInit`. The
+ *     roster is present, non-empty and short by two. */
+{
+  const bd = makeBoard(2);
+  ok(RL.fallenTruth(bd, 'p1') === 2,
+    "the board's own death record is the comparator, and it is not the array anyone filters",
+    `graveyard ${RL.fallenTruth(bd, 'p1')}`);
+
+  const prefiltered = RL.buildSide(bd, 'p1', null, zero()).filter(m => !m.fainted);
+  const Bt = RL.buildSide(bd, 'p2', null, zero());
+  const noRosterBefore = MEDI.MEDFAILS.fallenNoRoster;
+  const g0 = { ...RL.FALLEN_GUARD };
+  const S = MEDI.battleInit(prefiltered, Bt, { seeded: true });
+
+  ok(S.sfA.team && S.sfA.team.length === 4,
+    'the pre-filtered roster is PRESENT and NON-EMPTY — which is why the old guard cannot see it',
+    `sfA.team ${S.sfA.team.length}`);
+  ok(S.sfA.fainted === 0,
+    'and the engine confidently counts ZERO fallen on a position with two in the ground',
+    `sfA.fainted ${S.sfA.fainted}`);
+
+  /* Silenced for this one call: the arm deliberately triggers the warning it is testing for, and a
+   * gate that prints its own alarm reads as a broken gate. */
+  RL.FALLEN_GUARD.warned = true;
+  RL.checkFallenSeeded(S, bd, 'p1', 'p2');
+
+  ok(MEDI.MEDFAILS.fallenNoRoster === noRosterBefore,
+    'THE OLD GUARD IS SILENT ON THE REAL DEFECT — fallenNoRoster does not move',
+    `${MEDI.MEDFAILS.fallenNoRoster}`);
+  ok(RL.FALLEN_GUARD.mismatch === g0.mismatch + 1,
+    'THE NEW GUARD FIRES ON THE REAL DEFECT — exactly one mismatch, on my side',
+    `mismatch ${g0.mismatch} -> ${RL.FALLEN_GUARD.mismatch}`);
+  ok(/says 0 of p1 have fallen/.test(RL.FALLEN_GUARD.first || ''),
+    'and it says which side and both numbers, not merely that something was wrong',
+    RL.FALLEN_GUARD.first || '(nothing)');
+  ok(RL.FALLEN_GUARD.checked === g0.checked + 2,
+    'BOTH sides are checked, so a foe whose dead were dropped is caught too',
+    `checked ${g0.checked} -> ${RL.FALLEN_GUARD.checked}`);
+}
+
+/* 5b. THE CONTROL. The same guard, the same board, the CORRECT roster. It must be silent — a guard
+ *     that fires on everything is a guard that gets turned off. */
+{
+  const bd = makeBoard(2);
+  const A = RL.buildSide(bd, 'p1', null, zero());
+  const Bt = RL.buildSide(bd, 'p2', null, zero());
+  const g0 = { ...RL.FALLEN_GUARD };
+  const S = MEDI.battleInit(A, Bt, { seeded: true });
+  RL.checkFallenSeeded(S, bd, 'p1', 'p2');
+  ok(RL.FALLEN_GUARD.mismatch === g0.mismatch,
+    'the correct roster raises nothing — the guard does not fire on everything',
+    `mismatch ${RL.FALLEN_GUARD.mismatch}`);
+  ok(RL.FALLEN_GUARD.agreed === g0.agreed + 2,
+    'and it AGREED twice rather than being skipped, which is the difference that matters',
+    `agreed ${g0.agreed} -> ${RL.FALLEN_GUARD.agreed}`);
+}
+
+/* 5bb. IT SPEAKS, AND IT SPEAKS ONCE. A counter nobody reads is the thing ROADMAP #245 is about, so
+ *      the guard also prints — and a line per rollout in a 200,000-game run is a line nobody reads,
+ *      which is how the last warning of this shape died. Both halves are asserted because they fail
+ *      in opposite directions: silent is the bug, and per-rollout spam is how the fix gets removed. */
+{
+  const bd = makeBoard(1);
+  const prefiltered = RL.buildSide(bd, 'p1', null, zero()).filter(m => !m.fainted);
+  const S = MEDI.battleInit(prefiltered, RL.buildSide(bd, 'p2', null, zero()), { seeded: true });
+  const said = [];
+  const real = console.error;
+  console.error = (...a) => said.push(a.join(' '));
+  RL.FALLEN_GUARD.warned = false;
+  try { RL.checkFallenSeeded(S, bd, 'p1', 'p2'); RL.checkFallenSeeded(S, bd, 'p1', 'p2'); }
+  finally { console.error = real; RL.FALLEN_GUARD.warned = true; }
+  ok(said.length === 1, 'the guard says so out loud — once per process, not once per rollout',
+    `${said.length} line(s)`);
+  ok(/ROADMAP #244\/#245/.test(said[0] || ''), 'and the line names the rows, so it can be routed',
+    (said[0] || '(nothing)').replace(/\n/g, ' ').trim().slice(0, 90));
+}
+
+/* 5c. AND IT IS WIRED ON THE PATHS THAT DECIDE. A guard nobody calls is the bug wearing the shape of
+ *     the fix, so both real entry points are driven and the counter is asserted to have MOVED.
+ *     `rolloutAfterActions` is named separately because it is the RANKING path — the one that prices
+ *     the candidate click. */
+for (const [name, run] of [
+  ['rolloutWinProb', bd => RL.rolloutWinProb(bd, 'p1', { n: 2, seed: 7, maxTurns: 3 })],
+  ['rolloutAfterActions', bd => RL.rolloutAfterActions(bd, 'p1', { n: 2, seed: 7, maxTurns: 3, myClicks: [] })],
+]) {
+  const bd = makeBoard(2);
+  const g0 = { ...RL.FALLEN_GUARD };
+  run(bd);
+  ok(RL.FALLEN_GUARD.checked > g0.checked, `${name} actually calls the guard`,
+    `checked ${g0.checked} -> ${RL.FALLEN_GUARD.checked}`);
+  ok(RL.FALLEN_GUARD.mismatch === g0.mismatch,
+    `${name} seeds a roster the board agrees with, over every playout`,
+    `mismatch ${RL.FALLEN_GUARD.mismatch}`);
 }
 
 console.log(`\n  ${pass} passed, ${fail} failed\n`);

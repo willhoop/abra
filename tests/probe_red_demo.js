@@ -864,7 +864,11 @@ demoSource('WIRE 128 a Mold Breaker is not absorbed by the ability it suppresses
 demoSource('WIRE 128 a Mold Breaker goes through Bulletproof, which Showdown marks breakable',
 /* RE-TARGETED BY ROADMAP #84, which added `_explicitFail` to this gate too, and by ROADMAP #81
  * WIRE 10, which made it a step closure. The reversal is still the one dropped attacker argument. */
-  [["        if(moveClassBlocked(tg,a.move.id,m)){_explicitFail=true;if(TR)TR.imm(tg,'[from] ability: '+tg.ability);R.out=true;return;}   // WIRE 128 -- Mold Breaker suppresses Bulletproof too",
+/* RE-AIMED 2026-08-15 (ROADMAP #256), which replaced the pasted `'[from] ability: '+tg.ability` with
+ * the shared `moveClassImmuneAttr` reader so the attribution comes off the handler. The reversal is
+ * unchanged in substance -- it is still the dropped ATTACKER argument, which is the only part WIRE
+ * 128 is about; the announcement text plays no part in the assertion below. */
+  [["        if(moveClassBlocked(tg,a.move.id,m)){_explicitFail=true;if(TR)TR.imm(tg,moveClassImmuneAttr(tg,m));R.out=true;return;}   // WIRE 128 -- Mold Breaker suppresses Bulletproof too; #256 reads the attribution off the handler instead of pasting the id",
     '        if(moveClassBlocked(tg,a.move.id)){_explicitFail=true;R.out=true;return;}']],
   (E) => {
     const dealt = (defAb, attAb) => {
@@ -4379,6 +4383,112 @@ demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any co
       + `Double Hit (90 acc) shipped=${JSON.stringify(a)} reverted=${JSON.stringify(b)} — bottom must be 2, `
       + `top must be 0 (it MISSES); Twin Beam (100 acc) shipped=${JSON.stringify(c)} reverted=${JSON.stringify(d)} — all four must be 2`);
   }
+}
+
+/* ---- THE ANNOUNCEMENT-NAMING BATCH — ROADMAP #241, #256, #259 (2026-08-15) ----------------------
+ *
+ * Five probes landed in tests/test-mechanics.js for three rows Will read off real protocol streams.
+ * Each is shown red here against the engine as it stood before the pass. Four are SOURCE reversals
+ * (the defect was a line of code with no tag to strip) and one is an ARTIFACT strip, because that
+ * one's whole fix was a field `tag_dex.js` did not derive.
+ *
+ * The assertions are the probes' own comparisons, not weaker restatements of them: each reads the
+ * SAME protocol lines off the SAME staged board, so a demonstration passing here means the probe in
+ * the census watches the knob it names. */
+{
+  const traceOf = (E, sps, stage, mv, rng) => {
+    const me = bare(sps[0]), ally = bare(sps[1]), f1 = bare(sps[2]), f2 = bare(sps[3]);
+    const bench = bare(sps[4] || 'clefable');
+    if (stage) stage({ me, ally, f1, f2, bench });
+    const S = E.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    E.battleTurn(S, rng || rng5,
+      new Map([[me, E.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { trace, S };
+  };
+  const canon = (E, t, re) => t.filter(l => re.test(l)).map(E.traceCanon);
+
+  /* ROADMAP #259 — the guard asked for the ACTION KIND, and a pivot move wears `kind:'switch'`, so a
+   * frozen body pivoted out of a solid block of ice. Reverting the one test puts that back. */
+  demoSource('ROADMAP #259  a frozen body clicking a PIVOT move is refused, and the pivot does not happen',
+    [["      if(!actionMoveId(it.a)){ MEDSEEN.beforeMoveGateSkipped++; }",
+      "      if(it.a&&(it.a.kind==='switch'||it.a.kind==='pass')){ MEDSEEN.beforeMoveGateSkipped++; }"]],
+    (E) => {
+      const run = (frz) => {
+        const { trace } = traceOf(E, ['incineroar', 'clefable', 'snorlax', 'milotic', 'garchomp'],
+          b => { if (frz) { b.me.status = 'frz'; b.me.frzTurns = 0; } }, 'partingshot');
+        return [trace.filter(l => /^\|move\|p1a:/.test(l)).length,
+                trace.filter(l => /^\|switch\|p1a:/.test(l)).length,
+                trace.filter(l => /^\|cant\|p1a:[^|]*\|frz$/.test(l)).length];
+      };
+      return JSON.stringify(run(false)) === JSON.stringify([1, 1, 0])
+          && JSON.stringify(run(true)) === JSON.stringify([0, 0, 1]);
+    });
+
+  /* ROADMAP #241 — the attribution case. The reverted line is what the engine said before: name the
+   * TARGET always, no third field, no `[still]`. That is right for one of the two arms and wrong for
+   * the other, which is exactly why the probe needs both. */
+  demoSource('ROADMAP #241  a status move refused by an ALREADY-STATUSED body names the MOVER when the status differs',
+    [["              if(t.status===st){ MEDSEEN.statusFailSameStatus++; TR.fail(t,t.status); }\n              else { MEDSEEN.statusFailOtherStatus++; TR.attrStill(); TR.fail(m); }",
+      "              TR.fail(t);"]],
+    (E) => {
+      const run = (had) => canon(E, traceOf(E, ['meowstic', 'clefable', 'snorlax', 'milotic'],
+        b => { b.f1.status = had; }, 'thunderwave').trace, /^\|(-fail|move)\|/);
+      return JSON.stringify(run('par')) === JSON.stringify(['|move|p1a:meowstic|thunderwave|p2a:snorlax',
+                                                            '|-fail|p2a:snorlax|par'])
+          && JSON.stringify(run('psn')) === JSON.stringify(['|move|p1a:meowstic|thunderwave||[still]',
+                                                            '|-fail|p1a:meowstic']);
+    });
+
+  /* ROADMAP #256 — the second `|-fail|<mover>` under the handler's own `|-fail|<target>|heal`. */
+  demoSource('ROADMAP #256  a heal that restores nothing prints ONE -fail, on the body it aimed at',
+    [["if(_t.curHP>=_t.st.hp||_amt<=0){if(TR)TR.fail(_t,'heal');mvFailAnnouncedByCaller(m);continue;}",
+      "if(_t.curHP>=_t.st.hp||_amt<=0){if(TR)TR.fail(_t,'heal');mvFail(m);continue;}"]],
+    (E) => {
+      const run = (full) => canon(E, traceOf(E, ['clefable', 'milotic', 'snorlax', 'garchomp'],
+        b => { b.f1.curHP = full ? b.f1.st.hp : Math.floor(b.f1.st.hp / 2); }, 'healpulse').trace,
+        /^\|(-fail|-heal)\|/);
+      const c = run(false), t = run(true);
+      return c.length === 1 && /^\|-heal\|p2a:snorlax\|/.test(c[0])
+          && t.length === 1 && t[0] === '|-fail|p2a:snorlax|heal';
+    });
+
+  /* ROADMAP #256 — an unmodelled click dropped the body it was aimed at, so the `|move|` line named
+   * the USER and there was nothing for the onTryHit refusal to answer against. BOTH halves are in
+   * this one reversal, which is the point: they were one omission. */
+  demoSource('ROADMAP #256  an unmodelled click keeps its target, and is still refused at onTryHit',
+    [["  const _tc=id?TAGS.param('move',id,'targetClass'):null;\n  if(_tc&&_tc.chooseable&&target){MEDSEEN.unmodelledClickKeptTarget++;return {kind:'pass',mv:id,target};}\n  return {kind:'pass',mv:id};",
+      "  return {kind:'pass',mv:id};"]],
+    (E) => {
+      const run = (ab) => canon(E, traceOf(E, ['meowstic', 'clefable', 'gholdengo', 'milotic'],
+        b => { b.f1.ability = ab; }, 'roleplay').trace, /^\|(move|-immune)\|/);
+      return JSON.stringify(run('none')) === JSON.stringify(['|move|p1a:meowstic|roleplay|p2a:gholdengo'])
+          && JSON.stringify(run('goodasgold')) === JSON.stringify(['|move|p1a:meowstic|roleplay|p2a:gholdengo',
+                                                                   '|-immune|p2a:gholdengo|[from]ability:goodasgold']);
+    });
+
+  /* ROADMAP #256 — THE ARTIFACT ARM. This one is not a source reversal, because the fix was a field
+   * `tag_dex.js` did not derive: `immuneToMoveClass.announcesWith`, read off the handler by the same
+   * `immuneAttrIn()` reader #239 built. The known-bad artifact keeps the tag (so the refusal still
+   * FIRES and the arms are not comparing "blocked" against "not blocked") and removes only the
+   * announcement — which is exactly the shape the engine shipped with. */
+  demo('ROADMAP #256  a move-class immunity NAMES its ability, read off the handler and not pasted from the id',
+    shipped,
+    (() => {
+      const db = JSON.parse(JSON.stringify(shipped));
+      const r = db.abilities.overcoat;
+      if (!r || !r.params || !r.params.immuneToMoveClass || !r.params.immuneToMoveClass.announcesWith)
+        throw new Error('cannot strip: overcoat carries no immuneToMoveClass.announcesWith');
+      delete r.params.immuneToMoveClass.announcesWith;
+      return db;
+    })(),
+    () => {
+      const run = (sp, ab) => canon(M, traceOf(M, ['meowstic', 'clefable', sp, 'milotic'],
+        b => { b.f1.ability = ab; }, 'sleeppowder').trace, /^\|-immune\|/);
+      return JSON.stringify(run('chesnaught', 'none')) === JSON.stringify(['|-immune|p2a:chesnaught'])
+          && JSON.stringify(run('forretress', 'overcoat')) === JSON.stringify(['|-immune|p2a:forretress|[from]ability:overcoat']);
+    });
 }
 
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);

@@ -59,7 +59,25 @@ let P = 0, F = 0;
 const ok = (c, m) => { if (c) { P++; console.log('  ok   ' + m); } else { F++; console.log('  FAIL ' + m); } };
 
 const BASELINE = D('data', 'docs-currency-baseline.json');
+
+/* `--update` IS MONOTONE, AND IT WAS NOT UNTIL 2026-08-15 (ROADMAP #258's lesson, second file).
+ *
+ * It did two things at once: `ok(added.length === 0 || UPDATE, ...)` turned a FAILING clause green,
+ * and `next: (added.length && !UPDATE) ? base : cur` adopted every new offender into the floor. So
+ * "lock in a fix" and "launder tonight's regression" were the same command — the exact defect that
+ * left `tests/test-no-silent-failure.js` red for a week while three separate agents correctly
+ * observed they had not caused it. The comment it carried ("--update is the BOOTSTRAP and nothing
+ * else") is the same defence that one carried, and it does not survive contact with 2am.
+ *
+ * It may still RETIRE what was fixed and LOWER a count. It may no longer ADD an entry, RAISE a count,
+ * or make a red clause read green. Bootstrapping a genuinely new list still works, because an EMPTY
+ * baseline adopts — that is a first write, not an adoption of a regression.
+ *
+ * Deliberately kept as the same flag name: a future reader running `--update` on a red gate now gets
+ * a refusal that says why, which is more use than a flag that quietly did the wrong thing. */
 const UPDATE = process.argv.includes('--update');
+if (UPDATE) console.log('  --update is MONOTONE: it retires what was fixed and lowers counts. It '
+  + 'cannot adopt a new entry, raise a count, or turn a failing clause green.');
 
 /* ---- 1. RETRACTED NUMBERS MUST NOT REAPPEAR AS FACT ------------------------------------------
  * The registry is the point. A number that was withdrawn goes in here with what replaced it, and
@@ -300,14 +318,14 @@ function ratchet(name, current, baseline, describe) {
   const cur = new Set(current), base = new Set(baseline);
   const added = [...cur].filter(x => !base.has(x));
   const retired = [...base].filter(x => !cur.has(x));
-  ok(added.length === 0 || UPDATE,
+  ok(added.length === 0,
     `${name}: no new entries (baseline ${base.size}, now ${cur.size})` +
     (added.length ? `\n         NEW:\n         ` + added.slice(0, 12).map(describe || (x => x)).join('\n         ') +
       (added.length > 12 ? `\n         ... and ${added.length - 12} more` : '') : ''));
   if (retired.length) console.log(`         ratchet tightened: ${retired.length} entr${retired.length === 1 ? 'y' : 'ies'} retired`);
-  /* --update is the BOOTSTRAP and nothing else: it is how the first baseline is written, and how a
-   * human deliberately adopts a state after reading it. Without it the list can only lose members. */
-  return { added, retired, next: (added.length && !UPDATE) ? [...base] : [...cur] };
+  /* MONOTONE. Retired entries drop; new ones are never adopted, with or without --update. An EMPTY
+   * baseline is a first write and adopts, which is bootstrap; a NON-EMPTY one can only shrink. */
+  return { added, retired, next: base.size === 0 ? [...cur] : [...cur].filter(x => base.has(x)) };
 }
 
 /* ---- 2. THE VERSION RULE, DERIVED --------------------------------------------------------------
@@ -472,7 +490,7 @@ function figureRules(base, next) {
     if (was === undefined) worse.push(`${d}: ${n} untraceable figures (document was not in the baseline)`);
     else if (n > was) worse.push(`${d}: ${n} untraceable figures, was ${was}`);
   }
-  ok(worse.length === 0 || UPDATE,
+  ok(worse.length === 0,
     `no living document gained untraceable figures (${census.total} across ${Object.keys(census.per).length} documents)` +
     (worse.length ? `:\n         ` + worse.join('\n         ') : ''));
   for (const [d, n] of Object.entries(census.per).sort((a, b) => b[1] - a[1])) {
@@ -490,16 +508,41 @@ function figureRules(base, next) {
   console.log('         Report only. A figure here is generated, cites an artifact, or is deleted —');
   console.log('         this check says which ones are none of the three. It removes nothing.');
 
+  /* MONOTONE, --update included: a count may fall and may never rise. A document not yet in the
+   * baseline is a first write and adopts; every other one takes the minimum. */
   const nextCensus = {};
   for (const [d, n] of Object.entries(census.per)) {
     const was = baseCensus[d];
-    nextCensus[d] = (was === undefined || UPDATE) ? n : Math.min(n, was);
+    nextCensus[d] = (was === undefined) ? n : Math.min(n, was);
   }
+  /* THE COUNT IS NOT ENOUGH, AND TONIGHT PROVED IT. The baseline recorded `docs/ABRA-whitepaper.md:
+   * 11` and the run found 12 — and NOTHING IN THE TREE COULD SAY WHICH TWELFTH, because the eleven
+   * were never written down. Sixteen data/*.json artifacts had been rewritten in the 47 minutes
+   * between the two runs, so recovering it meant reading a previous state that only git holds.
+   *
+   * A count also launders by SWAP: fix one untraceable figure, introduce another in the same pass,
+   * and the count is unchanged and the gate is green. So the SET is recorded beside the count. It is
+   * a DIAGNOSTIC RECORD and NOT an allowance — the count above remains the gate — and it is written
+   * only on a green run like everything else here, so a red run cannot record its own regression. */
+  const figs = [];
+  for (const [d, ws] of Object.entries(census.where || {})) for (const w of ws) figs.push(`${d}|${w.value}`);
   next.known = {
     retraction_violations: rv.next.sort(),
     citation_mismatches: rm.next.sort(),
     untraceable_by_doc: Object.fromEntries(Object.entries(nextCensus).sort()),
+    untraceable_figures: [...new Set(figs)].sort(),
   };
+  const knownFigs = new Set(known.untraceable_figures || []);
+  if (knownFigs.size) {
+    const newFigs = [...new Set(figs)].filter(k => !knownFigs.has(k));
+    const goneFigs = [...knownFigs].filter(k => !figs.includes(k));
+    if (newFigs.length) console.log('         FIGURES THAT ARE NEWLY UNTRACEABLE SINCE THE BASELINE:\n         '
+      + newFigs.join('\n         '));
+    if (goneFigs.length) console.log(`         ${goneFigs.length} figure(s) became traceable again since the baseline`);
+  } else {
+    console.log('         (no figure SET in the baseline yet — this run records one, so the next '
+      + 'regression can be named instead of re-derived by hand)');
+  }
 }
 
 /* ---- run -------------------------------------------------------------------------------------- */
@@ -521,8 +564,13 @@ archiveIndexRule();
 figureRules(base, next);
 
 /* The baseline tightens on every green run and never loosens itself. If anything failed, the file is
- * left exactly as it was: a run that found a regression must not record the regression as normal. */
-if (F === 0 || UPDATE) {
+ * left exactly as it was: a run that found a regression must not record the regression as normal.
+ *
+ * `|| UPDATE` REMOVED 2026-08-15. It let a RED run write the file, which is the same sentence as "a
+ * run that found a regression must not record the regression as normal" with an exception attached.
+ * It was not theoretical: the first monotone `--update` of the evening recorded a figure set taken
+ * from a failing run. Fail-closed — fix the gate, then let a green run tighten it. */
+if (F === 0) {
   /* base first so hand-written keys — the note_* explanations, any reason a person added — survive a
    * rewrite; next second so every DERIVED key is replaced by what was just measured. A generated file
    * that eats the prose explaining it is how a baseline turns back into an unexplained list. */

@@ -218,6 +218,40 @@ function scan(dex) {
       }
     }
 
+    /* (C) POSITIONAL-ARRAY ROWS — `['species', ['move', ...], 'ability', 'item']`.
+     *
+     * ADDED 2026-08-14 (ROADMAP #266) AFTER IT HID FIVE ILLEGAL SETS INCLUDING A BANNED ITEM. A set
+     * written as a row in a table is neither a helper CALL nor an object literal keyed `species:`, so
+     * both matchers above walked straight past `tests/test-protocol-trace.js`'s twelve-body pool —
+     * which drives 200 games — while this gate reported the tree clean. Put through the validator by
+     * hand it rejected five of the twelve: three unlearnable moves, and a Toxapex holding BLACK
+     * SLUDGE, an item that "does not exist in Gen 9".
+     *
+     * IT IS SAFE TO ADD IN THE SAME PASS AS THOSE REPAIRS PRECISELY BECAUSE THEY ARE DONE. Measured
+     * first, repaired, then the matcher turned on: the population grows by twelve declarations and the
+     * verdict count does not move at all, so nothing here is unattributable. Repo-wide this shape
+     * occurs in ONE file — measured, not assumed.
+     *
+     * Conservative on purpose: the first literal must NAME ITSELF as a species (rule 1 above), the
+     * second element must be an ARRAY of string literals (rule 2 — moves come from arrays only), and
+     * the trailing scalars are taken in declaration order. */
+    const POSROW = /\[\s*(['"])([a-z0-9-]+)\1\s*,\s*\[([^\]]*)\]\s*,\s*(['"])([^'"]*)\4\s*(?:,\s*(['"])([^'"]*)\6\s*)?[,\s]*\]/gi;
+    let m4;
+    POSROW.lastIndex = 0;
+    while ((m4 = POSROW.exec(src))) {
+      const spName = m4[2];
+      const spRow = dex.species.get(spName);
+      if (!(spRow && spRow.exists && spRow.id === nrm(spName))) continue;
+      const mvs = (m4[3].match(STR) || []).map(x => x.slice(1, -1));
+      if (!mvs.length) continue;
+      const tail = [m4[5], m4[7]].filter(x => x !== undefined && x !== '');
+      const roles = tail.map(s => ({ s, r: roleOf(s) }));
+      sets.push({ file: rel, line: lineOf(src, m4.index), how: 'positional-row', species: spName,
+                  item: (roles.find(x => x.r === 'item') || {}).s || '',
+                  ability: (roles.find(x => x.r === 'ability') || {}).s || '',
+                  moves: mvs, unknown: roles.filter(x => x.r === 'unknown').map(x => x.s) });
+    }
+
     /* (B) bare object literals holding species: and moves: */
     const re3 = /\bspecies\s*:/g; let m3;
     while ((m3 = re3.exec(src))) {
@@ -281,6 +315,60 @@ function sweep() {
   const out = [...findings.values()].map(f => ({ ...f, sites: [...f.sites].sort() }))
     .sort((a, b) => (a.kind === b.kind ? a.key.localeCompare(b.key) : (a.kind === 'EXISTENCE' ? -1 : 1)));
 
+  /* ---- THE PAIR PASS, BECAUSE THE VALIDATOR STOPS AT THE FIRST PROBLEM PER SET ------------------
+   *
+   * MEASURED 2026-08-14, and it had been under-reading since this file was written. `validateTeam`
+   * returns ONE complaint per Pokemon: a Snorlax declared with Swords Dance, Iron Defense, U-turn and
+   * Roar — FOUR moves it cannot learn — produces the single sentence "Snorlax can't learn Swords
+   * Dance." Keying the ratchet on the sentence is still right (see `keyOf`), but COUNTING sentences
+   * understates the defect, and worse: repairing the first illegal move in a set makes the second one
+   * appear as a NEW verdict, which reads as a regression caused by the repair.
+   *
+   * So every declared move is also asked of `champions_sim.canLearn`, which is the validator's own
+   * `checkCanLearn` — not a hand-walked learnset. The verdict sentences are unchanged and remain the
+   * ratchet; `pairs` is the honest population count beside them. On the day it was added the sweep
+   * reported 32 verdicts and 34 pairs.
+   *
+   * AND EVERY PAIR CARRIES ITS CLASS, which is what decides the SEVERITY and the repair:
+   *   UNREACHABLE  nothing in this regulation can carry the entity. A fixture asserting it is testing
+   *                a game nobody plays, and — the expensive part — a probe that fails on it reads as
+   *                an ENGINE DEFECT when the engine is correct not to model it. Four phantom defects
+   *                were filed from this shape in one session on 2026-08-14.
+   *   PAIRING      the entity exists and has carriers; THIS body is not one of them. Re-aimable onto
+   *                a legal carrier, which is what the repairs in ROADMAP #266 do. */
+  const pairs = [];
+  {
+    const seenPair = new Map();
+    for (const s of distinct) {
+      const sp = dex.species.get(s.species);
+      if (!sp.exists) continue;
+      const push = (kind, entity, problem, carriers) => {
+        const k = keyOf(problem);
+        if (!seenPair.has(k)) {
+          seenPair.set(k, { key: k, problem, kind, entity, carriers,
+                            cls: carriers === 0 ? 'UNREACHABLE' : 'PAIRING', sites: new Set() });
+          pairs.push(seenPair.get(k));
+        }
+        for (const site of s.sites) seenPair.get(k).sites.add(site);
+      };
+      for (const m of s.moves) {
+        const mv = dex.moves.get(m);
+        if (!mv.exists) continue;                       /* a stray literal — reported separately */
+        if (CS.canLearn(sp.name, mv.name)) continue;
+        push('move', mv.name, `${sp.name} can't learn ${mv.name}.`, CS.moveCarriers(mv.name).length);
+      }
+      if (s.ability) {
+        const ab = dex.abilities.get(s.ability);
+        const owns = Object.values(sp.abilities || {}).some(a => nrm(a) === nrm(s.ability));
+        if (ab.exists && !owns) {
+          push('ability', ab.name, `${sp.name} can't have ${ab.name}.`, CS.abilityCarriers(ab.name).length);
+        }
+      }
+    }
+    for (const p of pairs) p.sites = [...p.sites].sort();
+    pairs.sort((a, b) => (a.cls === b.cls ? a.key.localeCompare(b.key) : (a.cls === 'UNREACHABLE' ? -1 : 1)));
+  }
+
   const byFile = {};
   for (const s of sets) byFile[s.file] = (byFile[s.file] || 0) + 1;
 
@@ -308,6 +396,8 @@ function sweep() {
     distinctSets: distinct.length,
     rejectedSets: rejected,
     findings: out,
+    pairs,
+    unreachable: pairs.filter(p => p.cls === 'UNREACHABLE'),
     byFile,
     notStaticallyPaired: unpaired.length,
   };
@@ -323,6 +413,8 @@ if (require.main === module) {
   console.log(`  ${r.filesScanned} .js files scanned`);
   console.log(`  ${r.declarations} set declarations, ${r.distinctSets} distinct sets`);
   console.log(`  ${r.rejectedSets} distinct sets REJECTED, producing ${r.findings.length} distinct verdicts`);
+  console.log(`  ${r.pairs.length} distinct illegal DECLARATIONS behind those verdicts `
+    + `(${r.unreachable.length} of them UNREACHABLE — no legal carrier anywhere in the regulation)`);
   console.log(`  ${r.notStaticallyPaired} construction sites carry no literal set and are NOT in this population\n`);
   console.log('DECLARATIONS BY FILE');
   for (const k of Object.keys(r.byFile).sort((a, b) => r.byFile[b] - r.byFile[a])) {
@@ -331,6 +423,11 @@ if (require.main === module) {
   if (r.unknownLiterals.length) {
     console.log('\nSTRING LITERALS INSIDE A SET DECLARATION THAT NAME NOTHING IN THIS FORMAT');
     for (const u of r.unknownLiterals) console.log(`  "${u.literal}"   ${u.sites.join(', ')}`);
+  }
+  if (r.unreachable.length) {
+    console.log('\nUNREACHABLE — NOTHING IN THIS REGULATION CAN CARRY THESE, so a probe that asserts');
+    console.log('them is measuring a game nobody plays and its failure is NOT an engine defect:');
+    for (const p of r.unreachable) console.log(`  [${p.kind}] ${p.problem}   ${p.sites.join(', ')}`);
   }
   console.log('\nTHE AUTHORITY\'S VERDICTS');
   for (const f of r.findings) {

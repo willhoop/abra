@@ -96,32 +96,65 @@ function play(teamA, teamB, script, seed) {
 console.log('\nPART 1 — every event in TRACE_EVENTS fires');
 
 const SCENARIOS = [
-  ['entry, weather, Intimidate, Fake Out flinch, contact punish, Sitrus, Knock Off, faint, switch',
-    () => [mon('incineroar', ['fakeout', 'knockoff', 'flareblitz', 'protect'], 'intimidate', 'sitrusberry'),
+  /* THIEF, NOT KNOCK OFF, AND INCINEROAR HOLDS NOTHING — REPAIRED 2026-08-14 (ROADMAP #266).
+   * TeamValidator: "Incineroar can't learn Knock Off." Derived rather than recalled: Incineroar's
+   * legal item-removal click in this regulation is THIEF (checkCanLearn, Champions Reg M-B), which is
+   * also Dark, physical and contact, so the Rough Skin punish this scenario is named for is unchanged.
+   * THE ITEM HAD TO GO WITH IT: `data/moves.ts:19305` — `if (source.item || source.volatiles['gem'])
+   * return;` — so a Thief thrown by a body already holding something takes nothing, and the removal
+   * event would have vanished silently. The Sitrus Berry event is NOT lost: Azumarill in this same
+   * scenario holds one and Belly Drums to half HP, which is what actually eats it. COST, named: the
+   * Focus Sash now MOVES to Incineroar instead of being destroyed, and Incineroar no longer has a
+   * berry of its own to eat. */
+  ['entry, weather, Intimidate, Fake Out flinch, contact punish, Sitrus, Thief, faint, switch',
+    () => [mon('incineroar', ['fakeout', 'thief', 'flareblitz', 'protect'], 'intimidate', ''),
            mon('torkoal', ['eruption', 'protect', 'bodypress', 'yawn'], 'drought', 'charcoal'),
            mon('azumarill', ['bellydrum', 'aquajet', 'protect', 'playrough'], 'hugepower', 'sitrusberry')],
     () => [mon('garchomp', ['earthquake', 'protect', 'dragonclaw', 'rockslide'], 'roughskin', 'focussash'),
            mon('tyranitar', ['rockslide', 'crunch', 'protect', 'taunt'], 'sandstream', 'leftovers'),
-           mon('clefable', ['moonblast', 'protect', 'followme', 'trickroom'], 'unaware', 'leftovers')],
+           /* HELPING HAND, NOT TRICK ROOM — REPAIRED 2026-08-14 (#266). "Clefable can't learn Trick
+            * Room." This body sits on the bench for the whole scripted game and the slot is never
+            * clicked, so the move is decoration; Helping Hand is derived legal for Clefable and is
+            * the quietest of the five it can learn. The Trick Room EVENT is staged deliberately in
+            * the next scenario, on a body that can legally set it. */
+           mon('clefable', ['moonblast', 'protect', 'followme', 'helpinghand'], 'unaware', 'leftovers')],
     [{ a: [{ m: 'fakeout', t: 0 }, { m: 'protect' }], b: [{ m: 'earthquake' }, { m: 'protect' }] },
-     { a: [{ m: 'knockoff', t: 0 }, { m: 'eruption', t: 0 }], b: [{ m: 'protect' }, { m: 'rockslide' }] },
+     { a: [{ m: 'thief', t: 0 }, { m: 'eruption', t: 0 }], b: [{ m: 'protect' }, { m: 'rockslide' }] },
      { a: [{ m: 'flareblitz', t: 0 }, { m: 'bodypress', t: 1 }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'crunch', t: 0 }] },
      { a: [{ m: 'flareblitz', t: 0 }, { m: 'eruption', t: 0 }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'crunch', t: 0 }] },
      { a: null, b: null }, { a: null, b: null }, { a: null, b: null }]],
 
+  /* TWO BODIES RE-AIMED 2026-08-14 (ROADMAP #266), both because the click was illegal rather than
+   * because anything about the scenario was wrong.
+   *
+   * AROMATISSE SETS THE TRICK ROOM. "Clefable can't learn Trick Room." Derived, not chosen: exactly
+   * THREE declarable bodies in this regulation learn Trick Room, Reflect, Protect and Moonblast
+   * together, and Aromatisse is the only one that is FAIRY — so Moonblast keeps its STAB and the
+   * Gengar's Shadow Ball stays neutral into this slot instead of doubling, which a Psychic body would
+   * have changed. COST, named: 29 base Speed against Clefable's 60, so under its own Trick Room this
+   * slot now moves FIRST on its side rather than in the middle; and Aroma Veil in place of Unaware,
+   * which could never have fired here because nothing in this scenario boosts.
+   *
+   * PRIMARINA SINGS THE PERISH SONG. "Slowking can't learn Perish Song" and "can't learn Haze" — two
+   * verdicts on one bench body. Exactly four declarable bodies learn Perish Song, Haze and Protect
+   * together; Primarina is the bulky special Water of them, which is the role Slowking held, and its
+   * fourth click is WATER PULSE because it cannot learn Scald either. COST, named: 60 base Speed
+   * against Slowking's 30, which removes a speed TIE with the Snorlax under Trick Room — no body in
+   * this regulation carries that move pair at 30 Speed, so the tie cannot be preserved. */
   ['Trick Room, Tailwind, screens, Substitute, Taunt, Leech Seed, Haze, White Herb, Perish Song',
-    () => [mon('clefable', ['trickroom', 'reflect', 'protect', 'moonblast'], 'unaware', 'whiteherb'),
+    () => [mon('aromatisse', ['trickroom', 'reflect', 'protect', 'moonblast'], 'aromaveil', 'whiteherb'),
            mon('whimsicott', ['tailwind', 'taunt', 'leechseed', 'moonblast'], 'prankster', 'focussash'),
-           mon('slowking', ['perishsong', 'haze', 'protect', 'scald'], 'regenerator', 'leftovers')],
+           mon('primarina', ['perishsong', 'haze', 'protect', 'waterpulse'], 'torrent', 'leftovers')],
     () => [mon('gengar', ['substitute', 'shadowball', 'protect', 'sludgebomb'], 'cursedbody', 'leftovers'),
            mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', 'leftovers'),
            /* LEFTOVERS, NOT BLACK SLUDGE -- 2026-08-14. TeamValidator: "Toxapex's item Black Sludge
             * does not exist in Gen 9." An EXISTENCE verdict is always wrong -- it is not a pairing an
             * isolation probe could be staging on purpose -- and Leftovers is the legal item with the
             * same job. This body is on the bench for the whole scenario and is never sent in, so the
-            * repair moves no board. (Its `scald` is a separate, still-open defect: Toxapex cannot
-            * learn Scald here either, and that one DOES move a board -- see the baseline.) */
-           mon('toxapex', ['toxic', 'recover', 'protect', 'scald'], 'regenerator', 'leftovers')],
+            * repair moves no board. WATER PULSE, NOT SCALD -- 2026-08-14 (#266): "Toxapex can't learn
+            * Scald" either, and Water Pulse is the 100-accurate single-target Water move it CAN learn
+            * (checkCanLearn). The slot is never clicked in this scenario. */
+           mon('toxapex', ['toxic', 'recover', 'protect', 'waterpulse'], 'regenerator', 'leftovers')],
     [{ a: [{ m: 'trickroom' }, { m: 'tailwind' }], b: [{ m: 'substitute' }, { m: 'bodyslam', t: 0 }] },
      { a: [{ m: 'reflect' }, { m: 'taunt', t: 0 }], b: [{ m: 'shadowball', t: 0 }, { m: 'protect' }] },
      { a: [{ m: 'moonblast', t: 0 }, { m: 'leechseed', t: 1 }], b: [{ m: 'shadowball', t: 0 }, { m: 'bodyslam', t: 0 }] },
@@ -132,8 +165,29 @@ const SCENARIOS = [
      { a: null, b: null }, { a: null, b: null }, { a: null, b: null }]],
 
   ['charge turn, recharge, phaze, hazards, Trick, status, terrain, immunity, always-crit',
+    /* FOUR ILLEGAL DECLARATIONS IN ONE SCENARIO, REPAIRED TOGETHER 2026-08-14 (#266), because they
+     * were load-bearing for four different events and could not be taken one at a time.
+     *
+     * ROTOM CARRIES THE LEVITATE. **Gengar has exactly ONE ability in Champions Reg M-B and it is
+     * CURSED BODY** — `dex.species.get('gengar').abilities` is `{"0":"Cursed Body"}` — so the
+     * `|-immune|` this scenario stages, the partner shrugging off the Torterra's Earthquake, was
+     * staged on an ability that body cannot have. Derived: ELEVEN legal bodies carry Levitate here and
+     * only Rotom and its formes also learn Will-O-Wisp, Trick and Shadow Ball; base Rotom is the one
+     * with an engine-data row. It cannot learn Hyper Beam, so the RECHARGE moves — see below.
+     *
+     * MAMOSWINE PHAZES. "Snorlax can't learn Roar", and Snorlax learns no phazing move at all in this
+     * regulation (Roar, Whirlwind, Dragon Tail and Circle Throw all read `no`). Its partner Mamoswine
+     * does, and Mamoswine's fourth slot was a Protect it never clicked.
+     *
+     * MEGANIUM SETS THE TERRAIN AND THROWS THE HYPER BEAM. Politoed can learn neither Grassy Terrain
+     * nor Scald here — no terrain move at all — and it is the body this scenario DRAGS IN, so from the
+     * phaze onwards it is the one receiving the slot-0 script. Meganium is derived from the
+     * intersection of the Grassy Terrain carriers with the Hyper Beam carriers, and holds both events
+     * on the one body that is actually on the field when the script asks for them. COST, named: the
+     * scenario no longer carries a rain setter or a Damp Rock, neither of which it ever used — the
+     * weather events in this file come from the Torkoal and the Tyranitar in scenario 1. */
     () => [mon('torterra', ['solarbeam', 'stealthrock', 'earthquake', 'protect'], 'overgrow', 'leftovers'),
-           mon('gengar', ['hyperbeam', 'willowisp', 'trick', 'shadowball'], 'levitate', 'lumberry'),
+           mon('rotom', ['shadowball', 'willowisp', 'trick', 'protect'], 'levitate', 'lumberry'),
            /* 'dampro' NAMED NOTHING AT ALL AND THE FIXTURE REPORTED SUCCESS -- fixed 2026-08-14.
             * This is not an illegal pairing, which is why no validator verdict could ever have caught
             * it: `dex.items.get('dampro')` returns a row that does not exist, whose `.name` is the
@@ -143,29 +197,48 @@ const SCENARIOS = [
             * DAMP ROCK, which this same file already spells correctly at the Perish Song scenario
             * below. `engine/fixture_legality.js` reports stray literals separately from illegal sets
             * for exactly this reason. */
-           mon('politoed', ['grassyterrain', 'scald', 'protect', 'icywind'], 'drizzle', 'damprock')],
-    () => [mon('snorlax', ['roar', 'bodyslam', 'protect', 'yawn'], 'thickfat', 'leftovers'),
-           mon('mamoswine', ['iciclecrash', 'earthquake', 'protect', 'iceshard'], 'thickfat', 'focussash'),
+           mon('meganium', ['grassyterrain', 'hyperbeam', 'protect', 'bodyslam'], 'overgrow', 'leftovers')],
+    () => [mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', 'leftovers'),
+           mon('mamoswine', ['iciclecrash', 'earthquake', 'roar', 'iceshard'], 'thickfat', 'focussash'),
            mon('meowscarada', ['flowertrick', 'knockoff', 'protect', 'uturn'], 'overgrow', '')],
-    [{ a: [{ m: 'solarbeam', t: 0 }, { m: 'willowisp', t: 0 }], b: [{ m: 'roar', t: 0 }, { m: 'earthquake' }] },
-     { a: [{ m: 'stealthrock' }, { m: 'hyperbeam', t: 0 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'iciclecrash', t: 0 }] },
-     { a: [{ m: 'earthquake' }, { m: 'trick', t: 0 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'earthquake' }] },
-     { a: [{ m: 'earthquake' }, { m: 'shadowball', t: 0 }], b: [{ sw: 'meowscarada' }, { m: 'iceshard', t: 0 }] },
-     { a: [{ m: 'earthquake' }, { m: 'shadowball', t: 0 }], b: [{ m: 'flowertrick', t: 0 }, { m: 'iciclecrash', t: 0 }] },
+    /* THE PHAZE MOVED FROM TURN 1 TO TURN 2, AND THAT IS A REPAIR RATHER THAN A PREFERENCE. Roar is
+     * priority -6, so a turn-1 Roar aimed at slot 0 dragged the Torterra out at the END of its own
+     * CHARGING turn: the Solar Beam never released, and every slot-0 click from turn 2 on belonged to
+     * whoever had been dragged in rather than to the Torterra the script names. One turn later the
+     * beam fires first and the drag still happens with a full bench behind it — measured, not
+     * assumed: at turn 4 the drag produced nothing at all in any of the four seeds, because by then
+     * the Torterra had usually fainted and there was no body left to drag in. */
+    [{ a: [{ m: 'solarbeam', t: 0 }, { m: 'willowisp', t: 0 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'earthquake' }] },
+     { a: [{ m: 'stealthrock' }, { m: 'shadowball', t: 0 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'roar', t: 0 }] },
+     { a: [{ m: 'hyperbeam', t: 0 }, { m: 'trick', t: 0 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'earthquake' }] },
+     { a: [{ m: 'protect' }, { m: 'shadowball', t: 0 }], b: [{ sw: 'meowscarada' }, { m: 'iceshard', t: 0 }] },
+     { a: [{ m: 'grassyterrain' }, { m: 'shadowball', t: 0 }], b: [{ m: 'flowertrick', t: 0 }, { m: 'iciclecrash', t: 0 }] },
      { a: null, b: null }, { a: null, b: null }, { a: null, b: null }, { a: null, b: null }]],
 
   /* The five events the three scenarios above never reached, each one clicked ON PURPOSE. A scenario
    * written to make a game happen will not reach a Lum Berry or a White Herb, and "we played a lot of
    * games" is not coverage -- §5's own rule pointed at this file. */
+  /* GALLADE BURNS AND BOOSTS — REPAIRED 2026-08-14 (#266). TWO verdicts sat on the Clefable here, and
+   * only one of them was visible: TeamValidator stops at the first illegal move in a set, so it
+   * reported "Clefable can't learn Will-O-Wisp" and never got as far as Swords Dance, which Clefable
+   * cannot learn either. Derived: exactly four declarable bodies learn Will-O-Wisp, Swords Dance,
+   * Trick and Protect together, and Gallade is the only one that is not part Ghost — the other three
+   * would be IMMUNE to the Snorlax's Body Slam and would take no damage at all for the whole game.
+   * COST, named: 80 base Speed against Clefable's 60, so this slot now outruns its own Politoed
+   * partner; and Steadfast in place of Unaware, neither of which can fire here. */
   ['setup boost, Lum Berry cure, White Herb restore, Trick, Perish Song',
-    () => [mon('clefable', ['willowisp', 'swordsdance', 'trick', 'protect'], 'unaware', 'leftovers'),
-           mon('politoed', ['icywind', 'perishsong', 'protect', 'scald'], 'drizzle', 'damprock')],
+    () => [mon('gallade', ['willowisp', 'swordsdance', 'trick', 'protect'], 'steadfast', 'leftovers'),
+           /* WATER PULSE, NOT SCALD, HERE AND ON THE TOXAPEX BELOW — 2026-08-14 (#266). Neither body
+            * can learn Scald in this regulation. Water Pulse is 100-accurate and single-target like
+            * Scald; COST: its secondary is a 20% confusion rather than a 30% burn, and the burn this
+            * scenario needs is the Will-O-Wisp above, which is what the Lum Berry is here to cure. */
+           mon('politoed', ['icywind', 'perishsong', 'protect', 'waterpulse'], 'drizzle', 'damprock')],
     () => [mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', 'lumberry'),
-           mon('toxapex', ['scald', 'recover', 'protect', 'toxic'], 'regenerator', 'whiteherb')],
+           mon('toxapex', ['waterpulse', 'recover', 'protect', 'toxic'], 'regenerator', 'whiteherb')],
     [{ a: [{ m: 'willowisp', t: 0 }, { m: 'icywind', t: 1 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'recover' }] },
      { a: [{ m: 'swordsdance' }, { m: 'perishsong' }], b: [{ m: 'bodyslam', t: 0 }, { m: 'recover' }] },
-     { a: [{ m: 'trick', t: 1 }, { m: 'scald', t: 0 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'recover' }] },
-     { a: [{ m: 'protect' }, { m: 'scald', t: 0 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'recover' }] },
+     { a: [{ m: 'trick', t: 1 }, { m: 'waterpulse', t: 0 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'recover' }] },
+     { a: [{ m: 'protect' }, { m: 'waterpulse', t: 0 }], b: [{ m: 'bodyslam', t: 0 }, { m: 'recover' }] },
      { a: null, b: null }, { a: null, b: null }]],
 
   /* ROADMAP #31 — MEGA EVOLUTION, BOTH DOORS. `|detailschange|` and `|-mega|` were declared
@@ -226,7 +299,9 @@ const SCENARIOS = [
            mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', 'leftovers')],
     () => [mon('milotic', ['scald', 'protect', 'icywind', 'haze'], 'marvelscale', ''),
            mon('garchomp', ['earthquake', 'protect', 'dragonclaw', 'rockslide'], 'roughskin', ''),
-           mon('toxapex', ['scald', 'recover', 'protect', 'toxic'], 'regenerator', '')],
+           /* WATER PULSE, NOT SCALD — 2026-08-14 (#266). Toxapex cannot learn Scald in this
+            * regulation; this body is benched for the whole scenario and never clicks. */
+           mon('toxapex', ['waterpulse', 'recover', 'protect', 'toxic'], 'regenerator', '')],
     [{ a: [{ m: 'ironhead', t: 0 }, { m: 'moonblast', t: 0 }], b: [{ m: 'icywind' }, { m: 'dragonclaw', t: 0 }] },
      { a: [{ m: 'swordsdance' }, { m: 'moonblast', t: 0 }], b: [{ m: 'scald', t: 0 }, { m: 'dragonclaw', t: 0 }] },
      { a: [{ m: 'kingsshield' }, { m: 'moonblast', t: 0 }], b: [{ m: 'scald', t: 0 }, { m: 'dragonclaw', t: 0 }] },
@@ -253,7 +328,8 @@ const SCENARIOS = [
            mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
     () => [mon('snorlax', ['curse', 'bodyslam', 'protect', 'yawn'], 'thickfat', ''),
            mon('garchomp', ['swordsdance', 'earthquake', 'protect', 'rockslide'], 'roughskin', ''),
-           mon('toxapex', ['scald', 'recover', 'protect', 'toxic'], 'regenerator', '')],
+           /* WATER PULSE, NOT SCALD — 2026-08-14 (#266), benched body, never clicked. */
+           mon('toxapex', ['waterpulse', 'recover', 'protect', 'toxic'], 'regenerator', '')],
     [{ a: [{ m: 'protect' }, { m: 'protect' }], b: [{ m: 'curse' }, { m: 'swordsdance' }] },
      { a: [{ m: 'haze' }, { m: 'moonblast', t: 0 }], b: [{ m: 'protect' }, { m: 'protect' }] },
      { a: null, b: null }, { a: null, b: null }]],
@@ -264,19 +340,29 @@ const SCENARIOS = [
    * one of them `[silent]`), so a claim with no scenario behind it can only ever read zero.
    *
    * THE USER IS DAMAGED FIRST, ON PURPOSE. Pain Split on two full-health bodies is a no-op that still
-   * emits its two lines, which would satisfy this file and prove nothing — so the Snorlax takes a
-   * Scald and a Body Slam on turn 1 and splits on turn 2, where the levelling is visible in the HP the
+   * emits its two lines, which would satisfy this file and prove nothing — so the user takes a Dragon
+   * Claw and a Water Pulse on turn 1 and splits on turn 2, where the levelling is visible in the HP the
    * two `-sethp` lines carry. THE FOE DOES NOT PROTECT: Pain Split IS refused by a shield, and a
-   * scenario whose click is blocked is the coverage gap wearing the fix's clothes. */
+   * scenario whose click is blocked is the coverage gap wearing the fix's clothes.
+   *
+   * REUNICLUS SPLITS, NOT SNORLAX — REPAIRED 2026-08-14 (#266). "Snorlax can't learn Pain Split," and
+   * this scenario is the ONLY producer of `-sethp` in the file, so the one claim it exists to hold was
+   * being staged on a click that cannot be made in this regulation. Derived: of the declarable bodies
+   * that learn Pain Split and Protect, Reuniclus is the second-bulkiest and — the reason it wins — it
+   * has EXACTLY Snorlax's 30 base Speed, so the whole turn order is unchanged. Its ability is set to
+   * OVERCOAT and not Magic Guard for the obvious reason: this scenario's entire premise is that the
+   * user gets hurt first. COST, named: 110 HP against Snorlax's 160 and 85 SpD against 110, so the
+   * body arrives at the split further down than it used to — which makes the levelling larger, not
+   * smaller. WATER PULSE for the Toxapex's Scald, which it cannot learn either. */
   ['Pain Split: the user is hurt first, then the two bodies are levelled',
-    () => [mon('snorlax', ['painsplit', 'bodyslam', 'protect', 'yawn'], 'thickfat', ''),
+    () => [mon('reuniclus', ['painsplit', 'bodyslam', 'protect', 'psychic'], 'overcoat', ''),
            mon('clefable', ['moonblast', 'protect', 'followme', 'helpinghand'], 'unaware', ''),
            mon('milotic', ['scald', 'recover', 'protect', 'icywind'], 'marvelscale', '')],
     () => [mon('garchomp', ['earthquake', 'dragonclaw', 'protect', 'rockslide'], 'roughskin', ''),
-           mon('toxapex', ['scald', 'recover', 'protect', 'toxic'], 'regenerator', ''),
+           mon('toxapex', ['waterpulse', 'recover', 'protect', 'toxic'], 'regenerator', ''),
            mon('milotic', ['scald', 'recover', 'protect', 'icywind'], 'marvelscale', '')],
-    [{ a: [{ m: 'protect' }, { m: 'protect' }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'scald', t: 0 }] },
-     { a: [{ m: 'painsplit', t: 0 }, { m: 'helpinghand' }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'scald', t: 0 }] },
+    [{ a: [{ m: 'protect' }, { m: 'protect' }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'waterpulse', t: 0 }] },
+     { a: [{ m: 'painsplit', t: 0 }, { m: 'helpinghand' }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'waterpulse', t: 0 }] },
      { a: null, b: null }, { a: null, b: null }]],
 ];
 
@@ -374,10 +460,14 @@ else pass('every game that ended with a hurt body emitted |-damage| (floor: 100%
  * emits `|-ability|X|Intimidate|boost` and then one `|-unboost|` per live foe, and a trace that got
  * the pair but not the order would still read as a pass on a count. */
 {
-  const A = () => [mon('incineroar', ['fakeout', 'knockoff', 'flareblitz', 'protect'], 'intimidate', ''),
+  /* Four illegal declarations repaired 2026-08-14 (#266) — Incineroar/Knock Off, Clefable/Trick Room,
+   * and BOTH of Slowking's Haze and Perish Song, which it cannot learn here. Every slot in this block
+   * clicks Protect for its one turn, so nothing but the Intimidate itself is exercised and the
+   * replacements are all derived legal clicks for the same bodies. */
+  const A = () => [mon('incineroar', ['fakeout', 'thief', 'flareblitz', 'protect'], 'intimidate', ''),
                    mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')];
-  const B = () => [mon('clefable', ['moonblast', 'protect', 'followme', 'trickroom'], 'unaware', ''),
-                   mon('slowking', ['scald', 'protect', 'haze', 'perishsong'], 'regenerator', '')];
+  const B = () => [mon('clefable', ['moonblast', 'protect', 'followme', 'helpinghand'], 'unaware', ''),
+                   mon('slowking', ['scald', 'protect', 'surf', 'icywind'], 'regenerator', '')];
   const { trace } = play(A, B, [{ a: [{ m: 'protect' }, { m: 'protect' }], b: [{ m: 'protect' }, { m: 'protect' }] }], 7);
   const iAb = trace.findIndex(l => /^\|-ability\|p1a: incineroar\|intimidate\|boost$/.test(l));
   const drops = trace.map((l, i) => [l, i]).filter(([l]) => /^\|-unboost\|p2[ab]: \S+\|atk\|1$/.test(l));
@@ -392,12 +482,15 @@ else pass('every game that ended with a hurt body emitted |-damage| (floor: 100%
 /* ================= PART 3 — OFF BY DEFAULT, AND THE CONTROL IS EXPLICIT ========================= */
 console.log('\nPART 3 — off by default');
 {
-  const teamA = () => [mon('incineroar', ['fakeout', 'knockoff', 'flareblitz', 'protect'], 'intimidate', 'sitrusberry'),
+  /* THIEF, NOT KNOCK OFF — 2026-08-14 (#266). Incineroar cannot learn Knock Off in this regulation.
+   * The control here compares a traced game against an untraced one, so what matters is only that the
+   * click is the same in both arms; it is the same body, the same slot and the same Dark contact move. */
+  const teamA = () => [mon('incineroar', ['fakeout', 'thief', 'flareblitz', 'protect'], 'intimidate', 'sitrusberry'),
                        mon('torkoal', ['eruption', 'protect', 'bodypress', 'yawn'], 'drought', '')];
   const teamB = () => [mon('garchomp', ['earthquake', 'protect', 'dragonclaw', 'rockslide'], 'roughskin', 'focussash'),
                        mon('tyranitar', ['rockslide', 'crunch', 'protect', 'taunt'], 'sandstream', 'leftovers')];
   const script = [{ a: [{ m: 'fakeout', t: 0 }, { m: 'eruption', t: 0 }], b: [{ m: 'earthquake' }, { m: 'rockslide' }] },
-                  { a: [{ m: 'knockoff', t: 0 }, { m: 'bodypress', t: 0 }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'crunch', t: 0 }] },
+                  { a: [{ m: 'thief', t: 0 }, { m: 'bodypress', t: 0 }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'crunch', t: 0 }] },
                   { a: [{ m: 'flareblitz', t: 0 }, { m: 'eruption', t: 0 }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'crunch', t: 0 }] }];
   const shot = (S) => JSON.stringify([...S.actA, ...S.actB, ...S.benchA, ...S.benchB]
     .map(x => x && [x.name, x.curHP, x.status || '', x.item || '', JSON.stringify(x.boosts)]));
@@ -481,18 +574,31 @@ console.log('\nPART 4 — counts are derived from the stream, not kept beside it
 console.log('\nPART 6 — every identifier resolved to a real slot');
 {
   const POOL = [
+  /* FIVE OF THESE TWELVE ROWS WERE ILLEGAL AND NO GATE COULD SEE THEM — REPAIRED 2026-08-14 (#266).
+   *
+   * `engine/fixture_legality.js` finds a declared set two ways: a helper CALL carrying string literals,
+   * or an object literal keyed `species:`/`moves:`. This pool is neither — it is a POSITIONAL ARRAY,
+   * `[species, [moves], ability, item]` — so all twelve rows sat outside the swept population while the
+   * gate reported the tree clean, and they drive the 200 games below. Put through TeamValidator by hand
+   * on 2026-08-14 it rejected five: Clefable/Soak, Sableye/Entrainment, Grimmsnarl/Thunder Wave,
+   * Incineroar/Knock Off, and a Toxapex holding BLACK SLUDGE — an item that "does not exist in Gen 9",
+   * which is the EXISTENCE class and is never something a probe stages on purpose.
+   *
+   * Each replacement is derived from the format (checkCanLearn) and keeps the row's JOB, which in this
+   * pool is to stress body identity with target-swapping and ability-swapping clicks: Skill Swap for
+   * Soak and for Entrainment, Taunt for Thunder Wave, Thief for Knock Off, Water Pulse for Scald. */
     ['slowking',   ['skillswap', 'yawn', 'scald', 'trickroom'],           'regenerator', 'leftovers'],
-    ['clefable',   ['soak', 'healpulse', 'followme', 'moonblast'],        'unaware',     'leftovers'],
+    ['clefable',   ['skillswap', 'healpulse', 'followme', 'moonblast'],   'unaware',     'leftovers'],
     ['oranguru',   ['instruct', 'afteryou', 'psychic', 'trickroom'],      'telepathy',   'sitrusberry'],
     ['whimsicott', ['leechseed', 'worryseed', 'taunt', 'moonblast'],      'prankster',   'focussash'],
-    ['sableye',    ['entrainment', 'quash', 'knockoff', 'willowisp'],     'prankster',   'leftovers'],
-    ['grimmsnarl', ['lightscreen', 'spiritbreak', 'trick', 'thunderwave'], 'prankster',  'lightclay'],
+    ['sableye',    ['skillswap', 'quash', 'knockoff', 'willowisp'],       'prankster',   'leftovers'],
+    ['grimmsnarl', ['lightscreen', 'spiritbreak', 'trick', 'taunt'],      'prankster',   'lightclay'],
     ['farigiraf',  ['guardswap', 'powerswap', 'psychic', 'trickroom'],    'armortail',   'leftovers'],
     ['milotic',    ['scald', 'icywind', 'haze', 'protect'],               'marvelscale', ''],
     ['snorlax',    ['bodyslam', 'yawn', 'curse', 'protect'],              'thickfat',    'lumberry'],
     ['garchomp',   ['earthquake', 'dragonclaw', 'rockslide', 'protect'],  'roughskin',   'focussash'],
-    ['incineroar', ['fakeout', 'knockoff', 'flareblitz', 'protect'],      'intimidate',  'sitrusberry'],
-    ['toxapex',    ['toxic', 'recover', 'scald', 'protect'],              'regenerator', 'blacksludge'],
+    ['incineroar', ['fakeout', 'thief', 'flareblitz', 'protect'],         'intimidate',  'sitrusberry'],
+    ['toxapex',    ['toxic', 'recover', 'waterpulse', 'protect'],         'regenerator', 'leftovers'],
   ];
   const N = 200, SWRATE = 0.25;
   const before = M.fails.traceBodyOffField;
@@ -634,7 +740,13 @@ if (!process.env.SHOWDOWN_PATH) {
   function showdownArm(ability) {
     const s1 = [sdSet('Meowscarada', ['Flower Trick', 'Protect'], 'Overgrow'),
                 sdSet('Snorlax', ['Protect', 'Body Slam'], 'Thick Fat')];
-    const s2 = [sdSet('Incineroar', ['Knock Off', 'Protect'], ability),
+    /* THIEF, NOT KNOCK OFF — 2026-08-14 (#266), and this was the sharpest instance in the file.
+     * `new Battle()` VALIDATES NOTHING (ROADMAP #116), so the ONE acceptance case that adjudicates
+     * medicham2 against the authority was staging a click Incineroar cannot make in Champions Reg M-B
+     * — on BOTH sides, since the medicham2 arm below mirrors this set. The measurement is a ratio
+     * between an Intimidate arm and a control arm using the SAME move, so the base power is irrelevant
+     * and only the Atk drop is being read; Thief is the legal Dark physical click for this body. */
+    const s2 = [sdSet('Incineroar', ['Thief', 'Protect'], ability),
                 sdSet('Clefable', ['Protect', 'Moonblast'], 'Unaware')];
     const b = new Battle({ formatid: CS.FORMAT, seed: [1, 2, 3, 4] });
     b.setPlayer('p1', { name: 'A', team: Teams.pack(s1) });
@@ -659,10 +771,10 @@ if (!process.env.SHOWDOWN_PATH) {
   function mediArm(ability) {
     const A = () => [mon('meowscarada', ['flowertrick', 'protect'], 'overgrow', ''),
                      mon('snorlax', ['protect', 'bodyslam'], 'thickfat', '')];
-    const B = () => [mon('incineroar', ['knockoff', 'protect'], norm(ability), ''),
+    const B = () => [mon('incineroar', ['thief', 'protect'], norm(ability), ''),
                      mon('clefable', ['protect', 'moonblast'], 'unaware', '')];
     return play(A, B, [{ a: [{ m: 'flowertrick', t: 0 }, { m: 'protect' }],
-                         b: [{ m: 'knockoff', t: 1 }, { m: 'protect' }] }], 7).trace;
+                         b: [{ m: 'thief', t: 1 }, { m: 'protect' }] }], 7).trace;
   }
   const dmgOn = (stream, who) => {
     const l = stream.map(M.traceCanon).find(x => x.startsWith('|-damage|' + who + '|'));

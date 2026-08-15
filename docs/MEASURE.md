@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 24 unsafe, 1 void (declared), 91 possibly stale, 93 ok, 0 missing
+  provenance: 25 unsafe, 1 void (declared), 91 possibly stale, 93 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
@@ -29,13 +29,13 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 12). Old hashes cannot be compared; restamp after checking board.js.
-    moved after the fit: engine/medicham2-browser.js  2026-08-14 03:19
-    moved after the fit: engine/board.js  2026-08-14 23:05
+    moved after the fit: engine/medicham2-browser.js  2026-08-14 23:44
+    moved after the fit: engine/board.js  2026-08-14 23:37
     moved after the fit: data/engine-data.js  2026-08-10 18:59
     moved after the fit: data/abra-tags.js  2026-08-13 20:18
 ```
 
-_stamped 2026-08-14 23:12_
+_stamped 2026-08-15 00:16_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,111 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 0000000000000. ROADMAP #285 — THE DOCS-CURRENCY CENSUS WAS EXEMPTING FIGURES ON THE STRENGTH OF ITS OWN COMPLAINT ABOUT THEM — 2026-08-15
+
+`engine/docs_scan.js`, `tests/test-docs-current.js`, `data/docs-currency-baseline.json`.
+
+**THE GATE IS RED AND I AM NOT FILING IT.** `docs/ABRA-whitepaper.md: 12 untraceable figures, was 11`.
+The whitepaper has not been edited since 2026-08-10; the regression came from underneath it. Three
+instrument defects were found chasing it, all three fixed and shown red; **the figure itself is not
+resolved** and #285 says exactly what the next actor needs.
+
+1. **SELF-REFERENCE — a gate that could satisfy itself.** `allArtifactNumbers` unions every
+   `data/*.json`, and the baseline IS one. It records the census's own findings as strings, and the
+   artifact walk reads numbers out of strings, so **writing a figure down as an offender made that
+   figure traceable on the next run.** Demonstrated by building it worse: recording the untraceable
+   SET dropped the whitepaper from 12 to 5 in one run. The loop had been live through
+   `citation_mismatches` since that list was created.
+   **And the same loop arrives through the REGISTER**, caught in the act within the hour:
+   `data/open-work.json` is a copy of ROADMAP.md's prose, so any figure quoted in a register row
+   becomes traceable. The row filed about this defect quoted the offending value while describing it,
+   and the clause went green with the real regression still underneath. **Writing down "this number
+   has no source" must never become that number's source.** It was masking **nine figures across
+   three documents**; closing it takes `docs/MEDICHAM-SPRINT-NOTES.md` from 25 to 32 and restores
+   `docs/ROLE-FAMILY.md`. Those are a DISCOVERY, not a regression, and the counts were **not** raised
+   to match — that split is ROADMAP #188.
+2. **`--update` WAS #258's LAUNDERING BUTTON, IN A SECOND FILE.** It turned a failing clause green
+   *and* adopted every new offender into the floor, and the write gate was `if (F === 0 || UPDATE)`
+   — so a red run could record its own regression. Monotone now, and proved: `--update` leaves the
+   artifact byte-identical and exits 1.
+3. **IT RATCHETS A COUNT IT CANNOT EXPLAIN.** The baseline said `11` and not *which* eleven, so the
+   twelfth is not recoverable from the tree. A count also launders by SWAP — fix one, add one, count
+   unchanged, gate green.
+
+**ONE HAND EDIT TO A RATCHET, AND THE ONLY REASON THAT IS EVER ALLOWED:** the self-referential run
+had written the counts DOWNWARD (whitepaper 5), which is stricter than the truth and would have left
+the gate permanently red against a floor no correct run could meet. They are restored to the values
+the file held at `2026-08-15T03:11:13.624Z`, with the reason written into the artifact beside them.
+
+### 000000000000. ROADMAP #266 — THE FIXTURE-LEGALITY RATCHET COULD BE LAUNDERED, IT WAS UNDER-COUNTING, AND ONE ENTRY WAS A DIFFERENT DISEASE — 2026-08-14
+
+`tests/test-fixture-legality.js`, `engine/fixture_legality.js`, `engine/champions_sim.js` (the shared
+oracle), `data/fixture-legality-baseline.json`, and the fixtures repaired in `tests/test-protocol-trace.js`
+and `tests/test-click-censoring.js`.
+
+**THE COUNT, AND WHY THE ROW'S 41 WAS NOT IT.** Read from `data/fixture-legality-baseline.json` and
+`engine/fixture_legality.js`, never typed:
+
+| | |
+|---|---|
+| verdicts open at the start of this pass | 32 (the row's 41, minus the ten repaired earlier the same day) |
+| **illegal DECLARATIONS behind those 32** | **34** — `pairOrigin.count` |
+| verdicts now | **22** — `count` |
+| declarations now | **23** — `pairCount` |
+| repaired in this pass | **10 verdicts / 11 declarations** |
+| UNREACHABLE — no legal carrier anywhere in the regulation | **1** |
+
+**THE VALIDATOR STOPS AT THE FIRST PROBLEM PER POKÉMON, SO THE RULER WAS SHORT.** A Snorlax declared
+with Swords Dance, Iron Defense, U-turn and Roar — four moves it cannot learn — produces the single
+sentence *"Snorlax can't learn Swords Dance."* Two declarations were hidden that way, and the cost is
+worse than a low count: repairing the first illegal move in a set makes the second appear as a **NEW**
+verdict, so a repair reads as a regression. Every declared move now also goes through
+`TeamValidator#checkCanLearn` and the baseline ratchets those pairs beside the sentences.
+
+**THE CLASSES ARE NOT ONE PROBLEM.** Of the 34: **0** named a species this format does not contain,
+**1** named an entity with no legal carrier at all, and **33** were a legal body holding something a
+legal body somewhere else can hold — re-aimable, which is what the repairs did. The one that matters
+most is the smallest: **Spore has ZERO legal carriers in Champions Reg M-B**, derived twice (whole-roster
+`checkCanLearn`, and an independent raw learnset walk through the prevo and base-forme chains; both
+answer 0), and `tests/staged_status_counters.js` stages its two sleep-counter scenarios on it. That is
+the shape that manufactured four phantom engine defects in one session — a probe fails, it reads as an
+ENGINE DEFECT, and the engine was correct not to model a thing the format cannot produce. **The repair
+is not a rename**: every sleep move that does have a carrier here is sub-100 accuracy (Hypnosis 60,
+Sleep Powder 75, Sing 55) and both scenarios run on the `top-tie-first` arm, where every sub-100 move
+MISSES by construction. Milotic can legally learn Hypnosis, so the mechanic is reachable on the bottom
+arm and nowhere else. **Held, not repaired** — that file belongs to the owner of the differential and
+moving a scenario between pin arms changes what it measures.
+
+**THE LAUNDERING BUTTON, THE SAME SHAPE AS #258's `--update`.** "Repair a verdict" and "excuse a new
+one" were the same edit: a line out, or a line in. The label `PRE-EXISTING` is a **claim about time**
+and nothing checked it. The 41 sentences that existed when the check was added are now written down as
+a closed `origin` set, and a PRE-EXISTING entry that is not one of them fails by name. A genuinely new
+illegal set can still be declared — as DELIBERATE, with a reason, which is a visible and arguable act —
+and an UNREACHABLE entity may never be called DELIBERATE, because there is no body to stage it on.
+**Shown red on the full laundering attempt**: the offender planted in a fixture AND added to both
+`verdicts` and `pairs` AND marked `unreachable`, and the gate still failed by name and exited 1.
+
+**A POPULATION HOLE, MEASURED AND CLOSED.** The sweep found a declared set two ways — a helper call, or
+an object literal keyed `species:` — and a set written as a **positional row** `['species', [moves],
+ability, item]` was neither. Twelve such rows drive 200 games in `tests/test-protocol-trace.js` and
+**five of the twelve were illegal, including a Toxapex holding an item that does not exist in Gen 9**,
+while the gate reported the tree clean. Repo-wide that shape occurs in exactly one file (measured), so
+the rows were repaired first and the matcher turned on after: the population grew 627 → 639
+declarations and the verdict count did not move at all.
+
+**WHAT IS STILL OPEN: 22 verdicts / 23 declarations, all in files this division does not own.**
+`tests/staged_board.js` (16) and `tests/staged_status_counters.js` (7) are the differential's staged
+scenarios, filed to their owner; `tests/test-switch-carry.js` (2) needs a filler POLICY rather than a
+rename; and `tests/test-click-censoring.js` (1) is Farigiraf/Encore, where the repair is a re-cast
+rather than a swap — **derived: no legal body in this regulation learns Encore, Roar and Follow Me
+together**, and that fixture's one p1a body plays all three roles.
+
+**THE ORACLE IS SHARED, BECAUSE FACTS ARE GLOBAL.** `champions_sim.legalRoster / abilityCarriers /
+moveCarriers / canLearn / unreachable` — one derived answer to "can anything in this format carry
+this", in the module that already owns `checkLegal`. `tests/probe_red_demo.js` still carries its own
+`abilityUnreachable` with its own dex walk; that file is ENGINE's and adopting the shared one is theirs
+to do. Two implementations of "is this legal here" will diverge silently, because both keep working.
 
 ### 00000000000. ROADMAP #258 — THE SILENT-CATCH RATCHET HAD A LAUNDERING BUTTON, WHICH IS WHY IT SAT RED FOR A WEEK — 2026-08-14
 

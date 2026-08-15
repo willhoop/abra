@@ -276,6 +276,27 @@ const MAXPP = (function () {
   return out;
 })();
 
+/* ROADMAP #256 -- THE AUTHORITY'S OWN SET OF TARGET CLASSES THE PLAYER NAMES A BODY FOR, READ OUT OF
+ * THE COMPILED SIMULATOR RATHER THAN TYPED. `sim/battle-actions.ts:3`:
+ *     const CHOOSABLE_TARGETS = new Set(['normal','any','adjacentAlly','adjacentAllyOrSelf','adjacentFoe']);
+ * A FAILURE TO READ IT THROWS. An empty set would silently mark every move in the format
+ * unchooseable, and the consumer (`playerActionPrimary`'s unmodelled-click return) would then drop
+ * every target it is handed -- which looks exactly like the defect this derivation removes. */
+const CHOOSABLE_TARGETS = (() => {
+  const p = path.join(process.env.SHOWDOWN_PATH || '', 'dist', 'sim', 'battle-actions.js');
+  const src = fs.readFileSync(p, 'utf8');
+  /* The compiled file writes `= /* @__PURE__ *​/ new Set([...])`, so the gap between the `=` and the
+   * array is not just whitespace. Matched loosely up to the `[` rather than pinned to the source
+   * spelling -- a regex that only matches the .ts form would read EMPTY off dist/ and be a silent lie
+   * (the throw below is what stops that being possible). */
+  const m = src.replace(/\s+/g, ' ').match(/CHOOSABLE_TARGETS\s*=[^[]*\[([^\]]+)\]/);
+  if (!m) throw new Error('CHOOSABLE_TARGETS could not be read from ' + p
+    + ' -- targetClass.chooseable would be a silent lie, so this stops rather than guessing');
+  const set = new Set(m[1].split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean));
+  if (!set.size) throw new Error('CHOOSABLE_TARGETS parsed EMPTY from ' + p);
+  return set;
+})();
+
 /* The two files that would have to read a parameter for it to reach a decision. */
 const BOARD = fs.readFileSync(D('engine', 'board.js'), 'utf8');
 const DMG = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
@@ -2057,7 +2078,23 @@ const MOVE_TAGS = [
       else if (m.target === 'allySide' || m.target === 'allyTeam' || m.target === 'allies'
                || m.target === 'self') scope = 'none';              // reaches no foe, so charges none
       else scope = 'aimed';                                         // the switch's `default:` branch
-      return { target: m.target, mustPressure: must, pressureScope: scope };
+      /* ROADMAP #256 -- AND WHETHER THE PLAYER NAMES A BODY, WHICH IS A DIFFERENT QUESTION FROM THE
+       * PRESSURE SCOPE AND HAS ITS OWN LIST IN THE AUTHORITY.
+       *
+       * `sim/battle-actions.ts:3` -- a module constant, not a heuristic:
+       *     const CHOOSABLE_TARGETS = new Set(['normal','any','adjacentAlly','adjacentAllyOrSelf','adjacentFoe']);
+       * It is the set for which `runMove` resolves ONE named body out of the request's targetLoc, and
+       * it is exactly what the `|move|` line's fourth field carries. Measured on the authority, one
+       * turn each: Role Play and Spite (`normal`) print `|move|p1a: Meowstic|Role Play|p2a: Gholdengo`
+       * and are refused by Good as Gold on that body; Fairy Lock (`all`) prints the USER in field 4;
+       * Teatime (`all`) and Heal Bell (`allyTeam`) print field 4 BLANK with `[still]`.
+       *
+       * READ, NOT TYPED. `CHOOSABLE_TARGETS` is parsed out of the compiled simulator so a regulation
+       * that changes the set changes this artifact, and a failure to read it is LOUD rather than a
+       * quietly-empty set -- an empty set here would mark every move unchooseable, which reads exactly
+       * like a mechanic that does not exist. */
+      return { target: m.target, mustPressure: must, pressureScope: scope,
+               chooseable: CHOOSABLE_TARGETS.has(m.target) };
     } },
   { tag: 'spreadFoes', param: 'x0.75, hits BOTH ENEMIES, ally is safe', probe: 'allAdjacentFoes',
     why: 'Heat Wave, Hyper Voice, Dazzling Gleam, Blizzard, Make It Rain. Free to click beside a partner',
@@ -5674,7 +5711,17 @@ const ABILITY_TAGS = [
       const src = String(a.onTryHit || '') + String(a.onAllyTryHitSide || '');
       const f = (src.match(/flags\["(\w+)"\]/) || src.match(/flags\.(\w+)/) || [])[1];
       if (!f || !/return null|-immune/.test(src)) return null;
-      return { blocksFlag: f };
+      /* ROADMAP #256 -- AND WHAT IT SAYS ON THE WIRE, THROUGH THE SAME READER #239 BUILT FOR
+       * `onSetStatus` AND #241 REUSED FOR `refusesStatusMoves`. This family was announcing BARE:
+       *     showdown   |-immune|p2a: Garchomp|[from] ability: Overcoat
+       *     medicham   |-immune|p2a: garchomp
+       * The row asked for the reader to be widened rather than for two names to be added, and this is
+       * that widening -- `immuneAttrIn` is one function and a fourth family reaches it without a
+       * fourth copy of the regex. Both handlers are read because Soundproof announces from
+       * `onAllyTryHitSide` as well as `onTryHit`, and a member whose handler writes no `-immune` at
+       * all keeps the bare line (Magma Armor is why that distinction is not theoretical). */
+      return { blocksFlag: f,
+               announcesWith: immuneAttrIn(a.onTryHit) || immuneAttrIn(a.onAllyTryHitSide) };
     } },
   /* Will: "infiltrator ignores sub right." It does, and more -- it also passes through Reflect,
    * Light Screen, Safeguard, Mist and Aurora Veil. It was UNTAGGED.

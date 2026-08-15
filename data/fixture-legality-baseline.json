@@ -1,5 +1,5 @@
 {
-  "stamped": "2026-08-14T06:34:02.408Z",
+  "stamped": "2026-08-15T03:51:56.994Z",
   "what": "Distinct verdicts that Showdown's TeamValidator returns for a SET declared by a fixture in this repo. engine/fixture_legality.js sweeps every declaration; tests/test-fixture-legality.js reports these and FAILS on a verdict that is not listed here.",
   "why": "The clause was added 2026-08-13 and every one of these predates it. Repairing forty fixtures in the pass that ADDS the check makes both unattributable — the same reasoning already recorded in data/fixture-learnset-baseline.json, of which this is the superset. The list may only SHRINK, and the gate asserts that: a baselined verdict that stops being produced must be REMOVED, or the next illegal set hides under a stale allowance.",
   "key": "the validator's own sentence, lowercased and whitespace-collapsed. Keyed on the SENTENCE and not on file:line, so the same illegal declaration moved to a new scenario is the same defect and cannot be re-introduced as new.",
@@ -7,8 +7,61 @@
     "DELIBERATE": "the fixture stages an impossible pairing ON PURPOSE and says why — an isolation probe stamping one named control ability on every body, for instance. Legitimate; forcing a per-species legal control is the Fluffy/Sand Rush failure.",
     "PRE-EXISTING": "a real defect, held because repairing it changes what its scenario measures."
   },
-  "count": 32,
+  "count": 22,
   "shrank_from": 41,
+  "origin": {
+    "what": "THE CLOSED HISTORICAL SET. Every verdict that existed when this check was added on 2026-08-13, repaired or not. It is HISTORY and may never grow: a PRE-EXISTING entry is by definition one that predates the check, so a sentence that is not in here cannot be baselined as PRE-EXISTING and must be repaired or declared DELIBERATE with a reason. This is what stops \"lock in a fix\" and \"launder a new offender\" from being the same edit.",
+    "count": 41,
+    "keys": [
+      "archaludon can't learn body press.",
+      "clefable can't learn agility.",
+      "clefable can't learn perish song.",
+      "clefable can't learn trick room.",
+      "clefable can't learn will-o-wisp.",
+      "corviknight can't learn ally switch.",
+      "corviknight can't learn pound.",
+      "corviknight can't learn swords dance.",
+      "ditto can't learn protect.",
+      "farigiraf can't learn encore.",
+      "garchomp can't learn agility.",
+      "gengar can't have levitate.",
+      "incineroar can't learn iron defense.",
+      "incineroar can't learn knock off.",
+      "kangaskhan can't learn swords dance.",
+      "milotic can't learn charm.",
+      "milotic can't learn nuzzle.",
+      "milotic can't learn spore.",
+      "milotic can't learn will-o-wisp.",
+      "mudsdale can't learn swords dance.",
+      "ninetales can't learn dazzling gleam.",
+      "palafin can't learn u-turn.",
+      "politoed can't learn grassy terrain.",
+      "politoed can't learn scald.",
+      "slowking can't learn haze.",
+      "slowking can't learn perish song.",
+      "snorlax can't learn agility.",
+      "snorlax can't learn iron defense.",
+      "snorlax can't learn pain split.",
+      "snorlax can't learn pound.",
+      "snorlax can't learn roar.",
+      "snorlax can't learn swords dance.",
+      "snorlax can't learn u-turn.",
+      "staraptor can't learn swords dance.",
+      "tinkaton can't learn iron defense.",
+      "toxapex can't learn scald.",
+      "toxapex can't learn u-turn.",
+      "toxapex's item black sludge does not exist in gen 9.",
+      "weavile can't learn encore.",
+      "weavile can't learn u-turn.",
+      "whimsicott can't learn stealth rock."
+    ]
+  },
+  "pairCount": 23,
+  "pairOrigin": {
+    "what": "TeamValidator reports ONE problem per Pokemon, so counting its sentences UNDER-COUNTS the illegal declarations behind them. Every declared move is also put to checkCanLearn. Measured 2026-08-14 BEFORE this batch: 34 illegal declarations behind 32 verdict sentences.",
+    "count": 34,
+    "measured": "2026-08-14"
+  },
   "repaired": [
     {
       "problem": "Toxapex's item Black Sludge does not exist in Gen 9.",
@@ -59,12 +112,64 @@
       "problem": "literal \"dampro\"",
       "was": "PRE-EXISTING",
       "fixed": "REPAIRED 2026-08-14 and it was the worst entry on this list. `dex.items.get('dampro')` returns a row that does not exist whose .name is the empty string, and an empty item is a LEGAL item -- so the fixture built a Politoed HOLDING NOTHING and every check reported success. No validator verdict could ever have caught it, which is why engine/fixture_legality.js reports stray literals apart from illegal sets. The intended item is DAMP ROCK, spelled correctly in the same file's Perish Song scenario. tests/test-protocol-trace.js:131."
+    },
+    {
+      "problem": "Clefable can't learn Will-O-Wisp.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED 2026-08-14. The burner is GALLADE. Derived: exactly four declarable bodies learn Will-O-Wisp, Swords Dance, Trick and Protect together, and Gallade is the only one that is not part Ghost -- the other three would be IMMUNE to the Snorlax's Body Slam and take no damage for the whole scenario. THIS SET CARRIED TWO ILLEGAL MOVES AND THE VALIDATOR ONLY EVER REPORTED ONE: it stops at the first, so 'Clefable can't learn Swords Dance' was never printed. That is why this baseline now ratchets PAIRS as well as sentences. COST: 80 base Speed against 60, and Steadfast for Unaware, neither of which can fire here. tests/test-protocol-trace.js."
+    },
+    {
+      "problem": "Gengar can't have Levitate.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED 2026-08-14, and it was the most expensive entry on this list. **Gengar has exactly ONE ability in this regulation and it is Cursed Body** -- `dex.species.get('gengar').abilities` is `{\"0\":\"Cursed Body\"}` -- so the `|-immune|` the scenario stages, a partner shrugging off its own Torterra's Earthquake, rested on an ability that body cannot have. The event is now carried by ROTOM, derived from the eleven legal Levitate carriers as the only one that also learns Will-O-Wisp, Trick and Shadow Ball and has an engine-data row. tests/test-protocol-trace.js."
+    },
+    {
+      "problem": "Incineroar can't learn Knock Off.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED 2026-08-14 across FIVE sites in two files, including PART 5 -- the one acceptance case in the repo that adjudicates medicham2 against Showdown, which `new Battle()` never validated (ROADMAP #116). THIEF is Incineroar's legal Dark physical removal click. Where the removal itself mattered the ITEM had to go with it: `pokemon-showdown/data/moves.ts:19305` refuses the steal when the user already holds something, so a Thief thrown by a body holding a Sitrus Berry takes nothing and the event would have vanished silently. The Sitrus event is unaffected -- the Azumarill in that scenario holds one and Belly Drums into it. tests/test-protocol-trace.js, tests/test-click-censoring.js."
+    },
+    {
+      "problem": "Politoed can't learn Grassy Terrain.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED 2026-08-14. Politoed learns NO terrain move in this regulation, so this could not be a rename. The terrain moved to MEGANIUM, derived from the intersection of the Grassy Terrain carriers with the Hyper Beam carriers, because the same body must also carry the recharge -- it is the body this scenario PHAZES IN, so from the drag onwards it is the one receiving the slot-0 script. tests/test-protocol-trace.js."
+    },
+    {
+      "problem": "Politoed can't learn Scald.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED 2026-08-14. WATER PULSE, which Politoed can learn and which is 100-accurate and single-target like Scald. COST: its secondary is a 20% confusion rather than a 30% burn; the burn that scenario needs is its own Will-O-Wisp. tests/test-protocol-trace.js."
+    },
+    {
+      "problem": "Slowking can't learn Haze.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED 2026-08-14 with the Perish Song below -- two verdicts on one body. PRIMARINA sings and hazes: exactly four declarable bodies learn Perish Song, Haze and Protect together, and Primarina is the bulky special Water of them, which is the role Slowking held. COST: 60 base Speed against 30, which removes a speed TIE with the Snorlax under Trick Room. No body in this regulation carries that move pair at 30 Speed, so the tie cannot be preserved. tests/test-protocol-trace.js."
+    },
+    {
+      "problem": "Slowking can't learn Perish Song.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED 2026-08-14 -- see the Haze entry above, same body, same replacement. The second site, the Intimidate rate-floor block, keeps its Slowking and simply gets a legal menu ([Scald, Protect, Surf, Icy Wind]); every slot there clicks Protect for its one turn. tests/test-protocol-trace.js."
+    },
+    {
+      "problem": "Snorlax can't learn Pain Split.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED 2026-08-14, and this one was load-bearing for a whole claim: that scenario is the ONLY producer of `-sethp` in the file, and `-sethp` has one producer in the whole authority. REUNICLUS splits instead -- derived from the Pain Split carriers as the bulky one with EXACTLY Snorlax's 30 base Speed, so the turn order is unchanged -- with OVERCOAT and not Magic Guard, because the scenario's premise is that the user gets hurt first. tests/test-protocol-trace.js."
+    },
+    {
+      "problem": "Snorlax can't learn Roar.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED 2026-08-14. Snorlax learns NO phazing move in this regulation -- Roar, Whirlwind, Dragon Tail and Circle Throw all read `no` -- so the phaze moved to its partner MAMOSWINE, whose fourth slot was a Protect it never clicked. IT ALSO MOVED A TURN LATER, measured rather than tidied: Roar is priority -6, so the turn-1 Roar dragged the Torterra out at the end of its own CHARGING turn and every slot-0 click after that belonged to a body the script does not name. Aimed at turn 4 instead the drag produced nothing at all in any of the four seeds, because the Torterra had usually fainted and there was no body left to drag in; turn 2 fires the beam, keeps the drag and keeps the bench. tests/test-protocol-trace.js."
+    },
+    {
+      "problem": "Toxapex can't learn Scald.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED 2026-08-14 across five sites. WATER PULSE, which Toxapex can learn. Four of the five are benched bodies that never click; the fifth is the Pain Split scenario, where the damage is what hurts the user before the split -- 60 base power instead of 80, and the split is still visible because the new user is frailer on the special side. tests/test-protocol-trace.js."
     }
   ],
   "verdicts": [
     {
       "problem": "Clefable can't learn Agility.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 95,
       "why": "PRE-EXISTING. Agility is the carried boost the test is about; a legal replacement has to boost the same stat on the same body, which is a fixture redesign rather than a rename.",
       "sites": [
         "tests/test-switch-carry.js:80"
@@ -73,25 +178,18 @@
     {
       "problem": "Clefable can't learn Trick Room.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 61,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
-        "tests/staged_board.js:271",
-        "tests/test-protocol-trace.js:105",
-        "tests/test-protocol-trace.js:113",
-        "tests/test-protocol-trace.js:379"
-      ]
-    },
-    {
-      "problem": "Clefable can't learn Will-O-Wisp.",
-      "kind": "PRE-EXISTING",
-      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
-      "sites": [
-        "tests/test-protocol-trace.js:161"
+        "tests/staged_board.js:271"
       ]
     },
     {
       "problem": "Corviknight can't learn Ally Switch.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 30,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:584"
@@ -100,6 +198,8 @@
     {
       "problem": "Corviknight can't learn Swords Dance.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 102,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:679"
@@ -108,6 +208,8 @@
     {
       "problem": "Ditto can't learn Protect.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 346,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:644"
@@ -116,6 +218,8 @@
     {
       "problem": "Farigiraf can't learn Encore.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 72,
       "why": "PRE-EXISTING. The censoring fixture asserts which clicks are visible, not what the bodies can learn; repairing the sets moves the censored-click counts it pins.",
       "sites": [
         "tests/test-click-censoring.js:241"
@@ -124,22 +228,18 @@
     {
       "problem": "Garchomp can't learn Agility.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 95,
       "why": "PRE-EXISTING. Agility is the carried boost the test is about; a legal replacement has to boost the same stat on the same body, which is a fixture redesign rather than a rename.",
       "sites": [
         "tests/test-switch-carry.js:122"
       ]
     },
     {
-      "problem": "Gengar can't have Levitate.",
-      "kind": "PRE-EXISTING",
-      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
-      "sites": [
-        "tests/test-protocol-trace.js:136"
-      ]
-    },
-    {
       "problem": "Incineroar can't learn Iron Defense.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 105,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:559",
@@ -147,20 +247,10 @@
       ]
     },
     {
-      "problem": "Incineroar can't learn Knock Off.",
-      "kind": "PRE-EXISTING",
-      "why": "PRE-EXISTING. The censoring fixture asserts which clicks are visible, not what the bodies can learn; repairing the sets moves the censored-click counts it pins.",
-      "sites": [
-        "tests/test-click-censoring.js:242",
-        "tests/test-protocol-trace.js:100",
-        "tests/test-protocol-trace.js:377",
-        "tests/test-protocol-trace.js:395",
-        "tests/test-protocol-trace.js:662"
-      ]
-    },
-    {
       "problem": "Kangaskhan can't learn Swords Dance.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 102,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:609"
@@ -169,6 +259,8 @@
     {
       "problem": "Milotic can't learn Charm.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 87,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:554"
@@ -177,6 +269,8 @@
     {
       "problem": "Milotic can't learn Nuzzle.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 8,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:341",
@@ -186,15 +280,20 @@
     {
       "problem": "Milotic can't learn Spore.",
       "kind": "PRE-EXISTING",
-      "why": "PRE-EXISTING. The status-counter staging batch. Seven of these are already on data/fixture-learnset-baseline.json, which the turn-1 clause in tests/staged_board.js reads; this baseline is the superset and neither may grow.",
+      "cls": "UNREACHABLE",
+      "carriers": 0,
+      "why": "UNREACHABLE, AND IT IS THE ONLY ONE ON THIS LIST — NOT the same kind of defect as the others. SPORE HAS ZERO LEGAL CARRIERS IN THIS REGULATION: derived twice over on 2026-08-14, once through TeamValidator#checkCanLearn across the whole filtered roster and once through a raw learnset walk including prevo and base-forme chains, and both answer 0. So the two sleep scenarios that use it are not a body chosen badly, they are a CLICK NOBODY IN CHAMPIONS REG M-B CAN MAKE. Worse, the repair is not a rename: every sleep move that DOES have a carrier here is sub-100 accuracy (Hypnosis 60, Sleep Powder 75, Sing 55) and both scenarios run on the top-tie-first arm, where every sub-100 move MISSES by construction. Milotic can legally learn Hypnosis, so the mechanic is reachable on the bottom arm and nowhere else. HELD, NOT REPAIRED, because tests/staged_status_counters.js belongs to the owner of the differential and moving a scenario between pin arms changes what it measures. This is the exact shape that manufactured four phantom engine defects on 2026-08-14 and it must not be left implicit.",
       "sites": [
         "tests/staged_status_counters.js:189",
         "tests/staged_status_counters.js:209"
-      ]
+      ],
+      "unreachable": true
     },
     {
       "problem": "Milotic can't learn Will-O-Wisp.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 73,
       "why": "PRE-EXISTING. The status-counter staging batch. Seven of these are already on data/fixture-learnset-baseline.json, which the turn-1 clause in tests/staged_board.js reads; this baseline is the superset and neither may grow.",
       "sites": [
         "tests/staged_status_counters.js:376"
@@ -203,6 +302,8 @@
     {
       "problem": "Mudsdale can't learn Swords Dance.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 102,
       "why": "PRE-EXISTING. The status-counter staging batch. Seven of these are already on data/fixture-learnset-baseline.json, which the turn-1 clause in tests/staged_board.js reads; this baseline is the superset and neither may grow.",
       "sites": [
         "tests/staged_status_counters.js:344"
@@ -211,46 +312,18 @@
     {
       "problem": "Palafin can't learn U-turn.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 71,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:832"
       ]
     },
     {
-      "problem": "Politoed can't learn Grassy Terrain.",
-      "kind": "PRE-EXISTING",
-      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
-      "sites": [
-        "tests/test-protocol-trace.js:146"
-      ]
-    },
-    {
-      "problem": "Politoed can't learn Scald.",
-      "kind": "PRE-EXISTING",
-      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
-      "sites": [
-        "tests/test-protocol-trace.js:162"
-      ]
-    },
-    {
-      "problem": "Slowking can't learn Haze.",
-      "kind": "PRE-EXISTING",
-      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
-      "sites": [
-        "tests/test-protocol-trace.js:380"
-      ]
-    },
-    {
-      "problem": "Slowking can't learn Perish Song.",
-      "kind": "PRE-EXISTING",
-      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
-      "sites": [
-        "tests/test-protocol-trace.js:115"
-      ]
-    },
-    {
       "problem": "Snorlax can't learn Iron Defense.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 105,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:585",
@@ -258,24 +331,10 @@
       ]
     },
     {
-      "problem": "Snorlax can't learn Pain Split.",
-      "kind": "PRE-EXISTING",
-      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
-      "sites": [
-        "tests/test-protocol-trace.js:272"
-      ]
-    },
-    {
-      "problem": "Snorlax can't learn Roar.",
-      "kind": "PRE-EXISTING",
-      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
-      "sites": [
-        "tests/test-protocol-trace.js:147"
-      ]
-    },
-    {
       "problem": "Snorlax can't learn Swords Dance.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 102,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:343",
@@ -297,6 +356,8 @@
     {
       "problem": "Snorlax can't learn U-turn.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 71,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:469"
@@ -305,6 +366,8 @@
     {
       "problem": "Staraptor can't learn Swords Dance.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 102,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:678"
@@ -313,26 +376,18 @@
     {
       "problem": "Tinkaton can't learn Iron Defense.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 105,
       "why": "PRE-EXISTING. The status-counter staging batch. Seven of these are already on data/fixture-learnset-baseline.json, which the turn-1 clause in tests/staged_board.js reads; this baseline is the superset and neither may grow.",
       "sites": [
         "tests/staged_status_counters.js:503"
       ]
     },
     {
-      "problem": "Toxapex can't learn Scald.",
-      "kind": "PRE-EXISTING",
-      "why": "PRE-EXISTING and the largest single block, 13 verdicts across one file. Its sets were typed rather than derived and several are mainline recollections the Champions mod does not carry (Gengar has Cursed Body here, not Levitate). Repairing them changes the protocol traces the file pins, so it is its own pass.",
-      "sites": [
-        "tests/test-protocol-trace.js:124",
-        "tests/test-protocol-trace.js:164",
-        "tests/test-protocol-trace.js:229",
-        "tests/test-protocol-trace.js:256",
-        "tests/test-protocol-trace.js:276"
-      ]
-    },
-    {
       "problem": "Toxapex can't learn U-turn.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 71,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
       "sites": [
         "tests/staged_board.js:468"
@@ -341,7 +396,263 @@
     {
       "problem": "Weavile can't learn U-turn.",
       "kind": "PRE-EXISTING",
+      "cls": "PAIRING",
+      "carriers": 71,
       "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
+      "sites": [
+        "tests/staged_board.js:314",
+        "tests/staged_board.js:523",
+        "tests/staged_board.js:556",
+        "tests/staged_board.js:642",
+        "tests/staged_board.js:704"
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "problem": "Milotic can't learn Spore.",
+      "cls": "UNREACHABLE",
+      "kind": "move",
+      "entity": "Spore",
+      "carriers": 0,
+      "sites": [
+        "tests/staged_status_counters.js:189",
+        "tests/staged_status_counters.js:209"
+      ]
+    },
+    {
+      "problem": "Clefable can't learn Agility.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Agility",
+      "carriers": 95,
+      "sites": [
+        "tests/test-switch-carry.js:80"
+      ]
+    },
+    {
+      "problem": "Clefable can't learn Trick Room.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Trick Room",
+      "carriers": 61,
+      "sites": [
+        "tests/staged_board.js:271"
+      ]
+    },
+    {
+      "problem": "Corviknight can't learn Ally Switch.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Ally Switch",
+      "carriers": 30,
+      "sites": [
+        "tests/staged_board.js:584"
+      ]
+    },
+    {
+      "problem": "Corviknight can't learn Swords Dance.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Swords Dance",
+      "carriers": 102,
+      "sites": [
+        "tests/staged_board.js:679"
+      ]
+    },
+    {
+      "problem": "Ditto can't learn Protect.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Protect",
+      "carriers": 346,
+      "sites": [
+        "tests/staged_board.js:644"
+      ]
+    },
+    {
+      "problem": "Farigiraf can't learn Encore.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Encore",
+      "carriers": 72,
+      "sites": [
+        "tests/test-click-censoring.js:241"
+      ]
+    },
+    {
+      "problem": "Garchomp can't learn Agility.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Agility",
+      "carriers": 95,
+      "sites": [
+        "tests/test-switch-carry.js:122"
+      ]
+    },
+    {
+      "problem": "Incineroar can't learn Iron Defense.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Iron Defense",
+      "carriers": 105,
+      "sites": [
+        "tests/staged_board.js:559",
+        "tests/staged_status_counters.js:379"
+      ]
+    },
+    {
+      "problem": "Kangaskhan can't learn Swords Dance.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Swords Dance",
+      "carriers": 102,
+      "sites": [
+        "tests/staged_board.js:609"
+      ]
+    },
+    {
+      "problem": "Milotic can't learn Charm.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Charm",
+      "carriers": 87,
+      "sites": [
+        "tests/staged_board.js:554"
+      ]
+    },
+    {
+      "problem": "Milotic can't learn Nuzzle.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Nuzzle",
+      "carriers": 8,
+      "sites": [
+        "tests/staged_board.js:341",
+        "tests/staged_status_counters.js:321"
+      ]
+    },
+    {
+      "problem": "Milotic can't learn Will-O-Wisp.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Will-O-Wisp",
+      "carriers": 73,
+      "sites": [
+        "tests/staged_status_counters.js:376"
+      ]
+    },
+    {
+      "problem": "Mudsdale can't learn Swords Dance.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Swords Dance",
+      "carriers": 102,
+      "sites": [
+        "tests/staged_status_counters.js:344"
+      ]
+    },
+    {
+      "problem": "Palafin can't learn U-turn.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "U-turn",
+      "carriers": 71,
+      "sites": [
+        "tests/staged_board.js:832"
+      ]
+    },
+    {
+      "problem": "Snorlax can't learn Iron Defense.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Iron Defense",
+      "carriers": 105,
+      "sites": [
+        "tests/staged_board.js:585",
+        "tests/staged_board.js:804"
+      ]
+    },
+    {
+      "problem": "Snorlax can't learn Swords Dance.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Swords Dance",
+      "carriers": 102,
+      "sites": [
+        "tests/staged_board.js:343",
+        "tests/staged_board.js:408",
+        "tests/staged_board.js:469",
+        "tests/staged_board.js:611",
+        "tests/staged_board.js:743",
+        "tests/staged_board.js:771",
+        "tests/staged_status_counters.js:190",
+        "tests/staged_status_counters.js:210",
+        "tests/staged_status_counters.js:235",
+        "tests/staged_status_counters.js:253",
+        "tests/staged_status_counters.js:280",
+        "tests/staged_status_counters.js:302",
+        "tests/staged_status_counters.js:323",
+        "tests/staged_status_counters.js:345",
+        "tests/staged_status_counters.js:504"
+      ]
+    },
+    {
+      "problem": "Snorlax can't learn U-turn.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "U-turn",
+      "carriers": 71,
+      "sites": [
+        "tests/staged_board.js:469"
+      ]
+    },
+    {
+      "problem": "Staraptor can't learn Swords Dance.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Swords Dance",
+      "carriers": 102,
+      "sites": [
+        "tests/staged_board.js:678"
+      ]
+    },
+    {
+      "problem": "Tinkaton can't learn Iron Defense.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Iron Defense",
+      "carriers": 105,
+      "sites": [
+        "tests/staged_status_counters.js:503"
+      ]
+    },
+    {
+      "problem": "Toxapex can't learn Swords Dance.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "Swords Dance",
+      "carriers": 102,
+      "sites": [
+        "tests/staged_board.js:468"
+      ]
+    },
+    {
+      "problem": "Toxapex can't learn U-turn.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "U-turn",
+      "carriers": 71,
+      "sites": [
+        "tests/staged_board.js:468"
+      ]
+    },
+    {
+      "problem": "Weavile can't learn U-turn.",
+      "cls": "PAIRING",
+      "kind": "move",
+      "entity": "U-turn",
+      "carriers": 71,
       "sites": [
         "tests/staged_board.js:314",
         "tests/staged_board.js:523",

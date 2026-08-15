@@ -54,7 +54,36 @@ function liveDocs() { return [...listMd('docs'), ...listMd('.')]; }
  * makes its figures checkable, and it is a property of the file rather than of a list somebody
  * maintained. The old test named five files. This finds eighteen, and finds the nineteenth on the
  * day it is written. */
-function livingDocs() { return liveDocs().filter(d => versionHeader(readDoc(d))); }
+/* THE SPRINT LOG IS A LOG, NOT A LIVING DOCUMENT — WILL, 2026-08-15, RULING QUOTED IN FULL BECAUSE
+ * THE SCOPE OF AN EXEMPTION IS THE WHOLE OF ITS SAFETY:
+ *
+ *   "medicham sprint was just something we did so we could work faster on medicham without slowing
+ *    ourselves down with the living docs every pass. the notes are so we still dont lose track of
+ *    what we are doing. the docs are on pause until we finish medicham, which is all we should be
+ *    doing until its done"
+ *
+ * `.githooks/pre-commit` ALREADY implements exactly this bargain and says so in its own refusal
+ * message — a commit touching engine/ or tests/ must add a sprint row, and *"Delete
+ * docs/MEDICHAM-SPRINT-NOTES.md to end the sprint and re-arm the full rule."* The figure clauses in
+ * this file were the one place that had not been told, so the log was being held to the standard the
+ * sprint exists to defer, and a gate went red for recording the work faithfully.
+ *
+ * THE EXEMPTION IS THE MARKER, WHICH IS WHY IT CANNOT ROT. It is not a name on a list somebody has to
+ * remember to remove: the sprint ENDS by deleting this file, and the exemption ends with it in the
+ * same keystroke. There is no state to update and nothing to go stale — the failure this repository
+ * keeps paying for.
+ *
+ * IT IS ONE FILE AND IT BUYS NOTHING ELSE. Every other living document is scanned exactly as before,
+ * no baseline is lowered, and the version-header, retraction and citation rules are untouched for
+ * every file including this one's neighbours. A second entry here would be a policy; one entry tied
+ * to a marker that deletes itself is a deferral. */
+const SPRINT_LOG = 'docs/MEDICHAM-SPRINT-NOTES.md';
+function sprintActive() { return fs.existsSync(D(SPRINT_LOG)); }
+function livingDocs() {
+  return liveDocs()
+    .filter(d => !(sprintActive() && d.replace(/\\/g, '/') === SPRINT_LOG))
+    .filter(d => versionHeader(readDoc(d)));
+}
 /** Everything under docs/archive/. Scanned, never exempt by location. */
 function archiveDocs() { return listMd('docs/archive'); }
 function readDoc(rel) { return fs.readFileSync(D(rel), 'utf8'); }
@@ -373,6 +402,33 @@ function citationMismatches(docs) {
 
 /* ---- the census: figures with no artifact behind them anywhere -------------------------------- */
 
+/* A GATE MAY NOT SATISFY ITSELF, AND THIS ONE COULD — 2026-08-15.
+ *
+ * `data/docs-currency-baseline.json` is a .json file under data/, so it was in this union like any
+ * measurement. It records the census's OWN findings as strings — `"docs/ABRA-whitepaper.md|0.073|
+ * data/slowking-eval.json"` — and `artifactNumbers` walks strings, so writing a figure down as an
+ * OFFENDER made that figure TRACEABLE on the next run. The check was exempting numbers on the
+ * strength of its own complaint about them.
+ *
+ * Found by building it worse: recording the untraceable figure SET into the baseline (so a future
+ * regression could be named rather than re-derived) dropped the whitepaper's count from 12 to 5 in
+ * one run. Seven figures became "traceable" because the file that had just called them untraceable
+ * now contained them. The loop was already live before that through `citation_mismatches`, which has
+ * held figure values since the day it was written.
+ *
+ * The rule this restores: an artifact is a MEASUREMENT of the world. This file is bookkeeping ABOUT
+ * the documents, and a document cannot be its own source. */
+/* AND THE SAME LOOP ARRIVES THROUGH THE REGISTER. `data/open-work.json` is `engine/open_work.js`'s
+ * copy of ROADMAP.md's prose, so ANY figure quoted in a register row becomes traceable. Caught in the
+ * act within the hour: a row filed about this very defect quoted the offending value while describing
+ * it, `open_work.js` copied the row into the artifact, the census read the complaint as evidence for
+ * the figure, and the clause went GREEN with the real regression still underneath. Writing down "this
+ * number has no source" must never become that number's source.
+ *
+ * The rule, stated so the next file is easy to judge: an artifact is a MEASUREMENT of the world. A
+ * file whose content is a copy of a DOCUMENT — the register, this gate's own findings — is not one,
+ * and a document cannot be its own source. */
+const NOT_AN_ARTIFACT = new Set(['docs-currency-baseline.json', 'open-work.json']);
 let allNumsCache = null;
 function allArtifactNumbers() {
   if (allNumsCache) return allNumsCache;
@@ -380,6 +436,7 @@ function allArtifactNumbers() {
   const dir = D('data');
   for (const f of fs.readdirSync(dir)) {
     if (!f.endsWith('.json')) continue;
+    if (NOT_AN_ARTIFACT.has(f)) continue;
     const s = artifactNumbers('data/' + f);
     if (s) for (const v of s) allNumsCache.add(v);
   }

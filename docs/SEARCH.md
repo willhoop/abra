@@ -28,7 +28,7 @@ SEARCH — does MILTANK choose better than MAG
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/board.js 2026-08-14 23:05):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-14 23:44):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
     PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
     PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
@@ -36,9 +36,173 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-08-14 23:12_
+_stamped 2026-08-15 00:16_
 
 <!-- /GENERATED -->
+
+## R19 — THE GUARD MOVED FILES, AND THE WALK STOPPED BEING THE NATIONAL DEX. #245 AND #282 CLOSED, #244 CLOSED WITH ITS REMAINDER NAMED. 2026-08-14.
+
+ROADMAP **#244 closed** (seed 2026-08-13, turn one as #246), **#245 closed**, **#282 closed**;
+**#283 and #284 opened** by what the work found. Gates: **`tests/test-rollout-fallen.js`** 28 → **43**
+and **`tests/test-seed-clock.js`** 119 → **134**, shown **RED on four deliberate breaks between them**.
+Artifact: **`data/seed-source-audit.json`** (`engine/seed_source_audit.js`).
+**No run was launched and #275 is still unmeasured.**
+
+### The verdict in one line
+
+**The seed has carried the dead since 2026-08-13 and the guard watching it could not have seen
+otherwise — that is now fixed by MOVING the guard, because no counter written inside `fallenCount`
+could ever fire on this bug. The unfiltered walk is closed and it moved exactly ONE number: a heal
+block is two turns, not five. And nothing here says MILTANK chooses better.**
+
+### #244 — CARRIED, AND THE ANSWER IS YES
+
+Asked and answered rather than assumed: `rollout_leaf.buildSide` appends `sideFallen`'s corpses,
+`battleInit` calls `fallenSettle` (#246, ENGINE), and the gate reads the count back through damage
+rather than through a field.
+
+| the position holds | Last Respects prices at |
+|---|---|
+| 0 in the ground (CONTROL) | 50 BP — unchanged, so the fix does not invent deaths |
+| 1 / 2 / 3 | 100 / 150 / 200 BP |
+
+Reach was measured (**8.75%** of 183,840 decision points, `data/rollout-fallen-prevalence.json`) and
+then converted to effect (**6.1%** argmax flips over 131 paired decision points, #278) — and three of
+that arm's eight sampled flips have Last Respects on the board.
+
+**THE ROW IS CLOSED AND ITS REMAINDER IS #283, WHICH IS NOT A BOOKKEEPING CHOICE.** `board.movePower`
+still builds no `side.totalFainted`, so the FEATURE vector MAG ranks with prices the move at its
+printed floor at every depth of the game. A row "closed in part" is read as closed by the register's
+own detector — that is exactly how #269's six volatiles nearly vanished and why #277 had to exist.
+
+**AND IT IS A CLASS, COUNTED AS ONE.** `data/seed-source-audit.json`: **29 legal moves carry a
+`basePowerCallback`, and 6 read state `movePower`'s stub does not build** — Last Respects
+(`totalFainted`), Assurance (`hurtThisTurn`), Beat Up (`allies`), Payback (`queue`/`newlySwitched`),
+Spit Up (`stockpile`), Water Shuriken (`battle`). A fix aimed at Last Respects leaves five.
+
+**IT WAS NOT TAKEN AND THE REASON IS A MEASUREMENT.** Disabling `movePower`'s callback path MOVES
+`engine/feature_fixture.js`'s 58 per-feature column hashes. So a fix there reaches
+`data/policy-weights.json`, and Will's ruling is that the refit waits for MEDICHAM. It belongs in the
+same batch as #276.
+
+### #245 — THE GUARD WAS IN THE WRONG FILE, AND THAT IS THE FINDING
+
+`fallenCount`'s own comment states the principle correctly: *"a quiet fallback here is
+indistinguishable from the bug."* `MEDFAILS.fallenNoRoster` then fires only on an ABSENT roster, and
+#244's roster was present, non-empty and pre-filtered.
+
+**ANOTHER COUNTER IN THE SAME PLACE WOULD HAVE BEEN THE SAME GUARD A SECOND TIME.**
+`fallenCount(sf, act, bench)` sees three arrays. Nothing computable from them distinguishes *this
+side has lost nobody* from *somebody pruned the corpses before I was called* — the information is not
+in scope, so the file is not where the check can live.
+
+So it moved to the seam:
+
+| | |
+|---|---|
+| what it asks | `S.sfA.fainted` — settled by `fallenSettle`, and the field Last Respects and Supreme Overlord actually read |
+| what it compares against | `board.graveyard[side]` — written by `board.faint()`, and **not** the array `buildSide` returns, `battleInit` slices or `sf.team` holds |
+| where | both `battleInit` sites, **including `rolloutAfterActions`, the ranking path** |
+| what it says | `FALLEN_GUARD.checked` (proof of firing), `.mismatch` (the claim), and it PRINTS the first disagreement — once per process, because a line per rollout in a 200,000-game run is a line nobody reads |
+
+It catches strictly more than #244: an unbuildable corpse, a `bringIn` splice that loses one, and a
+future caller that "tidies" the array all arrive as a mismatch rather than as a confident zero.
+
+**THE RED DEMONSTRATION IS A STANDING ASSERTION, NOT A BREAK DONE ONCE BY HAND.** The pre-filtered
+roster is rebuilt inside the gate and both guards are asked the same question in the same block:
+
+```
+  ok   the pre-filtered roster is PRESENT and NON-EMPTY — which is why the old guard cannot see it   sfA.team 4
+  ok   and the engine confidently counts ZERO fallen on a position with two in the ground            sfA.fainted 0
+  ok   THE OLD GUARD IS SILENT ON THE REAL DEFECT — fallenNoRoster does not move                     0
+  ok   THE NEW GUARD FIRES ON THE REAL DEFECT — exactly one mismatch, on my side                     mismatch 0 -> 1
+```
+
+**AND A NUMBER IN THAT SAME COMMENT IS STALE — RE-DERIVED, AND IT IS NEITHER OF THE TWO ALREADY
+WRITTEN DOWN.** The comment says 19,299 Last Respects uses; the row said 6,650; `data/tags.json` says
+**6,970** today. Three numbers for one fact and none derived at read time, sitting inside the
+justification for a guard. Filed as **#284** — it is in `medicham2-browser.js` and is not SEARCH's.
+
+### #282 — ONE KEY MOVED, AND THE NAIVE FIX WAS DEMONSTRATED RATHER THAN DESCRIBED
+
+| | |
+|---|---|
+| the walk | `dex.moves.all()` skipping only `!m.exists` — **954 exist, 500 are legal here** |
+| what it cost | the illegal namesake of the heal-block volatile declares `condition.duration: 5`; the format's own `durationCallback` opens `if (effect?.name === "Psychic Noise") return 2` |
+| why it got worse | since #277 the seed carries that number into the playout, so it stopped being live-only |
+
+**THE FILTER ALONE TRADES A WRONG 5 FOR A WRONG 3, AND THAT WAS SHOWN RED.** The one legal carrier
+declares no `volatileStatus` and no `condition` of its own — it reaches the volatile through a 100%
+SECONDARY — so the old expression finds nothing and the lookup falls through to the bare fallback.
+The naive version fails three arms with `Heal Block -> 3`.
+
+**A DURATION IS A PROPERTY OF THE CONDITION, NOT OF THE MOVE.** `dex.conditions.get(id)` resolves the
+standalone conditions and a move's private one, so the table now asks each legal move which volatiles
+it can start and runs the authority's own `durationCallback` with that move as the effect. Same
+function the server runs; the 2 is DERIVED and self-correcting rather than transcribed.
+
+**THE WHOLE MEASURED EFFECT IS ONE KEY** (`data/seed-source-audit.json`):
+
+| | |
+|---|---|
+| keys | 84 → **56** |
+| **corrected values** | **1** — `healblock` 5 → **2** |
+| keys with no legal carrier at all | **34** — nothing in this regulation can ever look them up |
+| taunt / encore / disable / throatchop | **byte-identical**, asserted as controls |
+| computed by the authority / refused / ambiguous | 18 / 7 (the trapping family wants `this.random`; the DECLARED value is used and the refusal is counted) / **0** |
+
+**AMBIGUITY IS COUNTED BECAUSE A `|-start|` LINE DOES NOT NAME THE MOVE THAT CAUSED IT.** Two legal
+carriers of one volatile with different durations would be genuinely unresolvable here. Today there
+are none — measured — and a future regulation adding one must be loud rather than silently resolved.
+
+**AND THE ARM IS BEHAVIOURAL.** Reading the table back would only prove the table says what the table
+says, so the gate asserts the corrected number reaches the seeded body's `_healBlock`.
+
+### IS THE FIT INVALIDATED? NO — CHECKED, AND THE INSTRUMENT WAS PROVED LIVE IN THE SAME PASS
+
+| | |
+|---|---|
+| 58 per-feature column hashes, with both changes, vs a deliberate break restoring both old behaviours | **byte-identical** |
+| the same hashes with `movePower`'s callback path disabled | **THEY MOVE** — so the check is not vacuous |
+
+That second row is the control R18's version did not have, and it is also the measurement behind
+**#283**: `movePower` is in the feature path, so the remainder of #244 owes a refit.
+
+### The proof, red first — four breaks, four attributable reds
+
+| deliberate break | result |
+|---|---|
+| `sideFallen` returns `[]` — the pre-#244 seed | **17 FAIL**, and the guard fires through both real entry points (`rolloutWinProb` 4 mismatches, `rolloutAfterActions` 6) |
+| `checkFallenSeeded` returns immediately | **8 FAIL** — including both wiring arms and the printed-warning arm |
+| the legality filter removed from the walk | **6 FAIL**, one behavioural (`_healBlock = 5`), and `ambiguousKeys` names the conflict: `healblock:5 vs psychicnoise:2` |
+| the NAIVE fix — filter added, nothing else | **3 FAIL**, `Heal Block -> 3` |
+
+After: **43 / 43** and **134 / 134**.
+
+### A RED GATE THAT IS NOT MINE, REPORTED RATHER THAN FILED
+
+`tests/test-docs-current.js` is **20/1**: `docs/ABRA-whitepaper.md` holds 12 untraceable figures
+against a baseline of 11, stamped 23:11 tonight. **It is not this work's**, and that is evidence
+rather than a claim: this pass edited no living document the rule scans (only `docs/ROADMAP.md`,
+which is not among its eight), none of the twelve figures appears in any file it wrote, and removing
+`data/seed-source-audit.json` entirely leaves the gate red. Two artifacts were rewritten by other
+agents inside the failing window — `data/engine-release.json` at 23:39 and `data/tags.json` at 23:41.
+The rule's own header calls the census *"a pressure gauge and not a verdict"* and forbids
+re-baselining. **Routed to MEASURE; not fixed here, and not called known.**
+
+### What was deliberately NOT done
+
+- **NO HEAD-TO-HEAD WAS PREPARED OR LAUNCHED.** Writing agents were live in the tree all evening —
+  `data/tags.json` moved at 23:41 while this landed — which is the rule that cost this project 7,100
+  games. **#275 still owes its arm and this pass does not add a second unmeasured one**: the guard
+  reads state and writes none, and the duration fix moves exactly one key.
+- **#283 AND #276 WERE NOT TOUCHED.** Both move fitted feature values; the refit is gated behind
+  MEDICHAM by Will's own instruction, and #283's fit-invalidation is measured above rather than
+  assumed.
+- **`engine/medicham2-browser.js` WAS NOT EDITED.** Both halves of #245 that live in it — the
+  too-narrow counter and the stale corpus number — are reported, and the counter is now covered from
+  outside rather than patched from inside, which is the stronger fix in any case.
+- **The other six callers' dead constants were left in place**, unchanged from R18.
 
 ## R18 — THE LAST CONSTANTS AND THE LAST VOLATILES. #275 LANDED **UNMEASURED**, #277 WORKED. 2026-08-14.
 

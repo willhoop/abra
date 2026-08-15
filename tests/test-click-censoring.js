@@ -239,7 +239,11 @@ console.log('\nSTAGE B — THE COERCED ACTIONS LEAVE THE LABELED SET\n');
   const sheets = {
     p1: [
       { species: 'farigiraf', item: 'leftovers', ability: 'armortail', moves: ['Encore', 'Roar', 'Psychic', 'Trick Room'], nature: 'Relaxed' },
-      { species: 'incineroar', item: 'sitrusberry', ability: 'intimidate', moves: ['Fake Out', 'Knock Off', 'Flare Blitz', 'Parting Shot'], nature: 'Adamant' },
+      /* THIEF, NOT KNOCK OFF — 2026-08-14 (#266). TeamValidator: "Incineroar can't learn Knock Off"
+       * in this regulation; Thief is the Dark physical removal click it CAN learn (checkCanLearn).
+       * This slot's declared menu is never clicked in any planted log in this file, so the repair
+       * changes no census, no match and no training row. */
+      { species: 'incineroar', item: 'sitrusberry', ability: 'intimidate', moves: ['Fake Out', 'Thief', 'Flare Blitz', 'Parting Shot'], nature: 'Adamant' },
     ],
     p2: [
       { species: 'sneasler', item: 'focussash', ability: 'poisontouch', moves: ['Close Combat', 'Dire Claw', 'Fake Out', 'Protect'], nature: 'Jolly' },

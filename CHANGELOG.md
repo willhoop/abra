@@ -10,6 +10,114 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.30.0] — 2026-08-15
+
+### Fixed
+- **ROADMAP #266 — THE FIXTURE-LEGALITY BATCH, PART TWO: 32 verdicts to 22, and the real population
+  was never 32.** `TeamValidator` returns ONE complaint per Pokemon, so a set with four unlearnable
+  moves produced one sentence and repairing the first made the second read as a NEW verdict. Every
+  declared move now also goes through `checkCanLearn`: **34 illegal declarations behind the 32
+  sentences, 23 after this batch.** Ten verdicts and eleven declarations repaired in
+  `tests/test-protocol-trace.js` and `tests/test-click-censoring.js`, each onto a DERIVED legal
+  carrier with its cost named, and all 41 claimed protocol events still fire.
+- **The one class that costs the most is now its own, declared class.** Of the 34: 0 named a species
+  this format lacks, 33 were re-aimable pairings, and **1 was UNREACHABLE — Spore has ZERO legal
+  carriers in Champions Reg M-B**, derived twice over. `tests/staged_status_counters.js` stages both
+  sleep-counter scenarios on it. The repair is not a rename: every clickable sleep move in this
+  regulation is sub-100 accuracy and both scenarios run on the arm where sub-100 moves miss by
+  construction. HELD and declared `unreachable: true`, so it can never be quoted as an engine defect
+  — that shape manufactured four phantom defects in one session.
+- **A blind spot in the sweep's own population, measured and closed.** A set written as a positional
+  row `['species',[moves],ability,item]` matched neither of the two shapes the scanner knew. Twelve
+  such rows drive 200 games and **five were illegal, including a Toxapex holding an item that does
+  not exist in Gen 9**. Repaired first, matcher added second: 627 to 639 declarations, verdict count
+  unmoved.
+- **ROADMAP #285 — the docs-currency census was exempting figures on the strength of its own
+  complaint about them.** `data/docs-currency-baseline.json` is a `data/*.json`, so
+  `allArtifactNumbers` was reading the census's own record of a figure as evidence FOR it;
+  recording the untraceable set dropped one document's count from 12 to 5 in a single run.
+  `--update` in the same gate both turned a failing clause green and adopted every new offender —
+  #258's laundering button in a second file — and the write gate let a RED run record its own
+  regression. **The same loop arrives through the REGISTER**: `data/open-work.json` is a copy of
+  ROADMAP.md's prose, so any figure quoted in a register row became traceable — the row filed about
+  this defect did exactly that within the hour and turned the clause green with the regression still
+  underneath. It was masking **nine figures across three documents**. All four fixed and shown red;
+  the recorded counts were NOT raised to match the discoveries. **The gate remains RED on one clause
+  and is not filed** — the figure that lost its source is named as a candidate set in #285.
+
+### Added
+- **A shared, derived answer to "can anything in this regulation carry this".**
+  `champions_sim.legalRoster / abilityCarriers / moveCarriers / canLearn / unreachable`, in the
+  module that already owns `checkLegal`. Move carriage is asked of `TeamValidator#checkCanLearn`
+  and never of a hand-walked learnset — measured on one move, a raw walk finds 7 carriers where the
+  authority finds 26.
+- **A closed `origin` set on the fixture-legality baseline.** `PRE-EXISTING` is a claim about
+  TIME and nothing checked it, so "repair one" and "excuse a new one" were the same edit. The 41
+  sentences that existed when the check was added are recorded; anything outside them must be
+  repaired or declared DELIBERATE with a reason, and an UNREACHABLE entity may never be DELIBERATE.
+  Shown RED on the full laundering attempt.
+
+## [5.29.0] — 2026-08-14
+
+### Added
+- **ROADMAP #245 — THE GUARD THAT COULD NOT SEE ITS OWN BUG NOW CAN, AND IT HAD TO MOVE FILES TO DO
+  IT.** `medicham2-browser.js`'s `MEDFAILS.fallenNoRoster` was written for #244 and fires only when
+  `sf.team` is missing or empty; #244's roster was PRESENT, NON-EMPTY and pre-filtered, so the
+  counter read zero while `fallenCount` returned a confident zero — a capability counter reporting
+  success while the capability is absent. **No counter written inside that function could ever have
+  fired**: `fallenCount(sf, act, bench)` sees three arrays and nothing in them distinguishes "nobody
+  died" from "somebody pruned the corpses before I was called". So the check is now
+  `rollout_leaf.checkFallenSeeded`, at the seam where both the seeded roster and the real position
+  are in scope: it compares `S.sfA.fainted` — settled by `fallenSettle`, and the field Last Respects
+  and Supreme Overlord actually read — against `board.graveyard[side]`, a record `board.faint()`
+  writes and that nothing on the seeding path filters. Called at BOTH `battleInit` sites including
+  the ranking path, counted (`FALLEN_GUARD.checked` is the proof-of-firing, `mismatch` is the claim)
+  and it speaks once per process rather than once per rollout.
+- **ROADMAP #282 — THE LIVE ADAPTER'S DURATION TABLE STOPPED WALKING THE NATIONAL DEX.**
+  `magnemite.volatileDuration` skipped only `!m.exists`; the format holds **500 legal moves of the
+  954 that exist**, and the illegal 454 were writing durations into the table. A duration is a
+  property of the CONDITION rather than of the move, so the walk now asks each legal move which
+  volatiles it can start (`volatileStatus`, `secondary`, `secondaries`, `self`) and takes the number
+  by running Showdown's own `durationCallback` with that legal move as the effect. **THE FILTER ALONE
+  WOULD HAVE TRADED A WRONG 5 FOR A WRONG 3** — the sole legal carrier of the heal-block volatile
+  declares neither a `volatileStatus` nor a `condition`, reaching it through a 100% secondary — and
+  that naive version was demonstrated red rather than merely described.
+- **`data/seed-source-audit.json`** (`engine/seed_source_audit.js`, declared `NOT_A_MODEL`): every
+  derived table on the seeding path audited against the regulation. Records the duration table key by
+  key — **84 keys to 56, exactly ONE corrected value (`healblock` 5 to 2)** and 34 keys with no legal
+  carrier at all — and the `basePowerCallback` class behind #283.
+
+### Changed
+- **`tests/test-rollout-fallen.js` 28 assertions to 43**, shown RED twice: **17 failures** with the
+  corpses dropped from the seed, **8** with the guard disabled. The red demonstration is a STANDING
+  ASSERTION rather than a break done once by hand — the pre-filtered roster is rebuilt inside the
+  file and both guards are asked the same question, so it fails if the engine's counter ever starts
+  catching this (the arm would no longer test what it says) or if the new one ever stops.
+- **`tests/test-seed-clock.js` 119 assertions to 134**, shown RED on two deliberate breaks: the
+  legality filter removed (**6 failures**, including the behavioural arm and the ambiguity counter
+  naming the exact conflict), and the naive filter-only fix (**3 failures**, `Heal Block -> 3`).
+  Nothing in the new section is typed: the carrier is the format's own, the wrong number is read off
+  the illegal move that used to supply it, and the right number is derived twice from independent
+  sources.
+
+### Notes
+- **ROADMAP #244 IS CLOSED AND ITS REMAINDER IS #283, DELIBERATELY.** The seed half closed
+  2026-08-13 and turn one closed as #246; what is left is `board.movePower`, whose stub builds no
+  `side.totalFainted`, so the FEATURE vector prices a fallen-count move at its printed floor. **It is
+  a CLASS — 29 legal moves carry a `basePowerCallback` and 6 read state the stub does not build.** A
+  row closed in part is a row whose leftovers have no home, which is the shape #269 left behind.
+- **NOTHING HERE MOVES A FITTED FEATURE VALUE, AND IT WAS CHECKED RATHER THAN ARGUED.**
+  `engine/feature_fixture.js`'s 58 per-feature column hashes are **byte-identical** against a
+  deliberate break restoring both old behaviours — and the instrument was proved LIVE in the same
+  pass, because disabling `movePower`'s callback path does move them. That control is also the
+  measurement that says #283 is fit-invalidating and must wait for the refit.
+- **NO HEAD-TO-HEAD WAS PREPARED OR LAUNCHED, AND #275 IS STILL UNMEASURED.** This pass adds no
+  second unmeasured arm: the guard reads state and writes none, and the duration fix changes exactly
+  one key that no fitted artifact has ever seen. Whether MILTANK chooses better remains unanswered.
+- **ROADMAP #284 OPENED** — the comment justifying `fallenCount`'s guard states Last Respects at
+  19,299 corpus uses, #245's row quoted 6,650, and `data/tags.json` says **6,970**. Three numbers,
+  one fact, none derived at read time. It is in `medicham2-browser.js`, which SEARCH may not edit.
+
 ## [5.28.0] — 2026-08-14
 
 ### Added

@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-15T03:11:13.624Z",
+  "generated": "2026-08-15T04:42:18.618Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.28.0",
+  "changelog_top_at_baseline": "5.30.0",
   "version_pins": {
     "docs/ABRA-deck-plain-english.md": {
       "version": "3.98.0",
@@ -59,10 +59,6 @@
     "docs/KADABRA-coach-spec.md": {
       "version": "0.1",
       "reason": "OWN VERSION LINE — a 0.1 SPEC for an unbuilt component. It describes intent, not a measured result."
-    },
-    "docs/MEDICHAM-SPRINT-NOTES.md": {
-      "version": "3.98.0",
-      "reason": "MEDICHAM SPRINT PAUSE — Will, 2026-08-10: \"WE PUT A PAUSE ON DOCS UNTIL MEDICHAM IS FUNCTIONAL, RATHER JUST HAVE NOTES TO A RUNNING LIST THAT WE CAN REFER TO WHEN FINALLY UPDATING THE DOCS.\" The living-docs pass is DEFERRED BY THE OWNER, on the record, for the duration of the gate sprint. The debt is not silent: every owed correction is written to docs/MEDICHAM-SPRINT-NOTES.md in the same pass as the code, and .githooks/pre-commit BLOCKS any commit touching engine/ or tests/ that does not also touch that file. THIS PIN IS THE DEFERRAL MADE CHECKABLE, not a licence — bumping these headers without bringing the content current would turn the version into another asserted number, which is the failure the rule exists to stop. Deleting docs/MEDICHAM-SPRINT-NOTES.md ends the sprint and RE-ARMS the full rule; these pins must be retired in that same pass."
     },
     "docs/MEGA-FEATURES-SPEC.md": {
       "version": "3.71.0",
@@ -229,13 +225,6 @@
       "docs/ABRA-whitepaper.md|73%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|756|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|8,713|data/quality-filter.json",
-      "docs/MEDICHAM-SPRINT-NOTES.md|107|data/scenarios-from-will.json",
-      "docs/MEDICHAM-SPRINT-NOTES.md|117|data/tags.json",
-      "docs/MEDICHAM-SPRINT-NOTES.md|1641|data/scenarios-from-will.json",
-      "docs/MEDICHAM-SPRINT-NOTES.md|317|data/policy-weights.json",
-      "docs/MEDICHAM-SPRINT-NOTES.md|474|data/scenarios-from-will.json",
-      "docs/MEDICHAM-SPRINT-NOTES.md|476|data/scenarios-from-will.json",
-      "docs/MEDICHAM-SPRINT-NOTES.md|94|data/scenarios-from-will.json",
       "docs/MODELS.md|0.0155|data/counterplay.json",
       "docs/MODELS.md|0.0386|data/counterplay.json",
       "docs/MODELS.md|0.0617|data/counterplay.json",
@@ -283,17 +272,54 @@
     ],
     "untraceable_by_doc": {
       "docs/ABRA-technical-docs.md": 2,
-      "docs/ABRA-whitepaper.md": 11,
+      "docs/ABRA-whitepaper.md": 10,
       "docs/ARCHITECTURE.md": 1,
-      "docs/MEDICHAM-SPRINT-NOTES.md": 25,
       "docs/MODELS.md": 15,
       "docs/ROLE-FAMILY.md": 2,
       "docs/SLOWKING-whitepaper.md": 7,
       "docs/SUMMARY.md": 1
-    }
+    },
+    "untraceable_figures": [
+      "docs/ABRA-technical-docs.md|-0.003647",
+      "docs/ABRA-technical-docs.md|0.5822",
+      "docs/ABRA-whitepaper.md|1.0021",
+      "docs/ABRA-whitepaper.md|1.0208",
+      "docs/ABRA-whitepaper.md|2304.08272",
+      "docs/ABRA-whitepaper.md|24,997",
+      "docs/ABRA-whitepaper.md|82,483",
+      "docs/ABRA-whitepaper.md|−0.000076",
+      "docs/ABRA-whitepaper.md|−0.000172",
+      "docs/ABRA-whitepaper.md|−0.117",
+      "docs/ABRA-whitepaper.md|−5.054",
+      "docs/ARCHITECTURE.md|200,004",
+      "docs/MODELS.md|0.6981",
+      "docs/MODELS.md|14,995",
+      "docs/MODELS.md|15,279",
+      "docs/MODELS.md|24,997",
+      "docs/MODELS.md|63,305",
+      "docs/MODELS.md|66,520",
+      "docs/MODELS.md|82,483",
+      "docs/MODELS.md|−3.2447",
+      "docs/MODELS.md|−3.3318",
+      "docs/MODELS.md|−3.3425",
+      "docs/MODELS.md|−3.989",
+      "docs/MODELS.md|−4.125",
+      "docs/MODELS.md|−4.986",
+      "docs/MODELS.md|−5.054",
+      "docs/ROLE-FAMILY.md|2304.08272",
+      "docs/SLOWKING-whitepaper.md|10.1126",
+      "docs/SLOWKING-whitepaper.md|2007.13544",
+      "docs/SLOWKING-whitepaper.md|2112.03178",
+      "docs/SLOWKING-whitepaper.md|2301.04104",
+      "docs/SLOWKING-whitepaper.md|2503.04094",
+      "docs/SLOWKING-whitepaper.md|2504.04395",
+      "docs/SLOWKING-whitepaper.md|2506.10326",
+      "docs/SUMMARY.md|0.5822"
+    ]
   },
   "reasons": {
-    "docs/MEDICHAM-SPRINT-NOTES.md|117|data/tags.json": "HAND EDIT, 2026-08-13, ROADMAP #261. THE FIGURE DID NOT CHANGE AND NEITHER DID ITS DOCUMENT — the ARTIFACT it was coincidentally matching did. `docs/MEDICHAM-SPRINT-NOTES.md:5759` states a roster result from 2026-08-11 (\"on abilities, FIRED-AND-BOARDS-MATCH 107 -> 117\"); the nearest artifact its block cites is data/tags.json, and 117 appeared FOUR times in that file as a corpus usage count, so the citation check passed on a collision rather than on a citation. Regenerating data/tags.json for the thawsUser/thawsTarget split re-read those usage counts and 117 no longer occurs, which exposed a figure that has been untraceable since the day it was written. Measured, not assumed: OLD tags.json 4 occurrences of 117, NEW 0. It is a ROSTER number and belongs to data/roster.abilities.json; re-citing an earlier pass's measurement is that pass's job, not this one's, so it is recorded here rather than silently rewritten."
+    "docs/MEDICHAM-SPRINT-NOTES.md|117|data/tags.json": "HAND EDIT, 2026-08-13, ROADMAP #261. THE FIGURE DID NOT CHANGE AND NEITHER DID ITS DOCUMENT — the ARTIFACT it was coincidentally matching did. `docs/MEDICHAM-SPRINT-NOTES.md:5759` states a roster result from 2026-08-11 (\"on abilities, FIRED-AND-BOARDS-MATCH 107 -> 117\"); the nearest artifact its block cites is data/tags.json, and 117 appeared FOUR times in that file as a corpus usage count, so the citation check passed on a collision rather than on a citation. Regenerating data/tags.json for the thawsUser/thawsTarget split re-read those usage counts and 117 no longer occurs, which exposed a figure that has been untraceable since the day it was written. Measured, not assumed: OLD tags.json 4 occurrences of 117, NEW 0. It is a ROSTER number and belongs to data/roster.abilities.json; re-citing an earlier pass's measurement is that pass's job, not this one's, so it is recorded here rather than silently rewritten.",
+    "untraceable_by_doc|RESTORED 2026-08-15": "THESE EIGHT COUNTS WERE PUT BACK BY HAND, and the reason is the only reason a ratchet may ever be written by hand: a run had corrupted them DOWNWARD, which is stricter than the truth and would have left the gate permanently red against a floor no correct run could meet. The corruption was self-reference — data/docs-currency-baseline.json is itself a .json under data/, so engine/docs_scan.js#allArtifactNumbers was reading the census own record of a figure as EVIDENCE FOR that figure. Recording the untraceable SET took docs/ABRA-whitepaper.md from 12 to 5 in one run; the same loop had been live through citation_mismatches, which has carried figure values since it was written. allArtifactNumbers now excludes this file (NOT_AN_ARTIFACT). The values restored are the ones this file held at 2026-08-15T03:11:13.624Z. SECOND RESTORE, SAME RUN: docs/ROLE-FAMILY.md had been laundered to zero by data/open-work.json and a green run then DROPPED it from this list entirely, so closing the loop made it read as a document that was never baselined. It is put back at the 2 it held at 03:11:13.624Z. The counts in this list are the pre-session truth and are NOT to be raised: docs/MEDICHAM-SPRINT-NOTES.md now measures 32 against a recorded 25 and docs/ABRA-whitepaper.md 12 against 11 — the first seven are a DISCOVERY (the register was masking them), the twelfth is a real REGRESSION whose cause is an expired numeric collision in an artifact rewritten tonight. ROADMAP #188 is the row about a ratchet with no regression-vs-discovery split; this is that row happening."
   },
   "note_unversioned": "These documents carry no version header, so nothing can say whether they are current. They are EXEMPT FROM RULE 1 ONLY - they are still scanned by the retracted-number rules. The list may only shrink: give a document a version header matching the CHANGELOG and it leaves this list and joins the figure scans.",
   "note_archive": "docs/archive/ files that do NOT declare a SUPERSEDED replacement. Grandfathering here only stops the SUPERSEDED-header rule failing; it grants NO exemption from the content scans, and the sixteen files archived on 2026-08-05 were deliberately left undeclared for exactly that reason. Moving a file into docs/archive/ must not convert a caught retracted figure into an uncaught one, so these carry a provenance header (what it claimed / when / what replaced it / what in it is retracted) and STAY in rules 1, 1b and 3b. Use the SUPERSEDED form only for a document whose content is wholly reproduced elsewhere. docs/archive/INDEX.md is GENERATED by build/build_archive_index.js and is the index over this directory, not an archived document.",

@@ -422,6 +422,61 @@ function buildSide(board, side, dex, stats, protectTurns) {
  * every caller that treats null as "do not score this". */
 const liveCount = arr => arr.filter(x => x && !x.fainted && x.curHP > 0).length;
 
+/* *** THE GUARD FOR #244 HAS TO STAND WHERE THE TRUTH IS VISIBLE — ROADMAP #245. ***
+ *
+ * `medicham2-browser.js`'s `fallenCount` carries the right principle and the wrong scope. Its own
+ * comment: *"the one case where the roster is absent is COUNTED rather than falling silently back to
+ * the arrays that caused this, because a quiet fallback here is indistinguishable from the bug."*
+ * `MEDFAILS.fallenNoRoster` therefore increments only when `sf.team` is MISSING OR EMPTY. The #244
+ * roster was PRESENT, NON-EMPTY and pre-filtered, so the counter stayed at zero while the function
+ * returned a confident 0 — a capability counter reporting success while the capability is absent,
+ * which is this project's named failure mode arriving through the door its own guard was built to
+ * close. `tests/test-rollout-fallen.js` has asserted that zero since R13 and labelled it "not a pass".
+ *
+ * *** IT IS NOT ANOTHER COUNTER IN THE SAME PLACE, BECAUSE THE INFORMATION IS NOT IN THAT PLACE. ***
+ * `fallenCount(sf, act, bench)` sees three arrays and nothing else. Nothing it can compute
+ * distinguishes "this side has lost nobody" from "somebody pruned the corpses before I was called" —
+ * so no counter written inside it can ever fire on #244, and adding one would be the same guard a
+ * second time. The check has to run where BOTH the seeded roster and the real position are in scope,
+ * and that is this seam.
+ *
+ * *** THE COMPARATOR IS A RECORD NOTHING ON THE SEEDING PATH CAN PRUNE. ***
+ * `board.graveyard[side]` is written by `board.faint()` and is read by `sideFallen` to build the
+ * corpses — but it is not the array `buildSide` returns, not the array `battleInit` slices, and not
+ * `sf.team`. Every filter #244 was about operates on the ARRAY. So the guard asks the engine what it
+ * will actually count — `S.sfA.fainted`, settled by `fallenSettle` at `battleInit` (#246), which is
+ * the field Last Respects and Supreme Overlord read — and compares it against the board's own death
+ * record. A pre-filtered roster, an unbuildable corpse, a `bringIn` splice that loses one, or a
+ * future caller that "tidies" the array all land as a MISMATCH rather than as a confident zero.
+ *
+ * *** AND IT SPEAKS ONCE, RATHER THAN ONLY COUNTING. *** A counter nobody reads is what the row is
+ * about. The counters exist so a gate can assert them (`checked > 0` is the proof-of-firing, `mismatch
+ * === 0` is the claim), and the first disagreement also prints — once per process, the same shape
+ * `magnemite.js`'s semantics warning uses, because a line per rollout in a 200,000-game run is a line
+ * nobody reads. */
+const FALLEN_GUARD = { checked: 0, agreed: 0, mismatch: 0, noRecord: 0, first: null, warned: false };
+function fallenTruth(board, side) {
+  if (!board || !board.graveyard || !board.graveyard[side]) return null;
+  return board.graveyard[side].size;
+}
+function checkFallenSeeded(S, board, side, foe) {
+  if (!S || !board) return;
+  for (const [sf, sd] of [[S.sfA, side], [S.sfB, foe]]) {
+    const truth = fallenTruth(board, sd);
+    if (truth == null) { FALLEN_GUARD.noRecord++; continue; }
+    FALLEN_GUARD.checked++;
+    const got = sf ? (sf.fainted | 0) : -1;
+    if (got === truth) { FALLEN_GUARD.agreed++; continue; }
+    FALLEN_GUARD.mismatch++;
+    const msg = `the seeded position says ${got} of ${sd} have fallen; the board's own death record says ${truth}`;
+    if (!FALLEN_GUARD.first) FALLEN_GUARD.first = msg;
+    if (!FALLEN_GUARD.warned) {
+      FALLEN_GUARD.warned = true;
+      console.error(`\nROLLOUT SEED — THE DEAD DID NOT REACH THE PLAYOUT (ROADMAP #244/#245)\n  ${msg}\n`);
+    }
+  }
+}
+
 /* Wilson, the same interval champions_sim.winProb uses and for the same stated reason: a rollout
  * estimate without one invites reading noise as signal. At N=20 the half-width near 0.5 is ~11
  * points, which is most of the gap this leaf is trying to close — see ROLLOUT-design 4.2. */
@@ -1228,6 +1283,10 @@ function rolloutWinProb(board, side, opts) {
       if (at !== surv) { const [body] = A.splice(at, 1); A.splice(surv, 0, body); }
     }
     const S = MEDI.battleInit(A, Bt, { seeded: SEEDED });
+    /* ROADMAP #245. Board-seeded only: a `buildTeams` caller (team preview) supplies its own bodies
+     * and there is no position behind them to check against, so asking would compare a hypothetical
+     * bring against a real graveyard and invent a mismatch. */
+    if (!TEAMS) checkFallenSeeded(S, board, side, foe);
     S._explore = EXPLORE;
     if (opts.maxTurns) S.maxTurns = opts.maxTurns;
     /* ORDER IS THE FIX. The caller's field is applied FIRST and the mega's own weather SECOND, so
@@ -1292,6 +1351,7 @@ function rolloutAfterActions(board, side, opts) {
     const Bt = buildSide(board, foe, dex, zero());
     if (!liveCount(A) || !liveCount(Bt)) break;
     const S = MEDI.battleInit(A, Bt, { seeded: true });
+    checkFallenSeeded(S, board, side, foe);          /* ROADMAP #245 — and this is the RANKING path */
     if (opts.maxTurns) S.maxTurns = opts.maxTurns;
     /* Always SEEDED here: rolloutAfterActions only ever steps a real mid-battle board.
      * Field first, mega weather second -- see the note at the call site in rolloutWinProb. */
@@ -1416,4 +1476,11 @@ module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, sideFallen, bu
                     * calls it through `applyFieldClock` — and `VOL_ENGINE_FIELD` is the declared
                     * protocol-to-engine join the gate checks both halves of. `SEED_COUNTERS` says
                     * which source answered the Protect streak and whether a choice lock ever fired. */
-                   applySpeedClocks, VOL_ENGINE_FIELD, SEED_COUNTERS };
+                   applySpeedClocks, VOL_ENGINE_FIELD, SEED_COUNTERS,
+                   /* ROADMAP #245. `FALLEN_GUARD` is the guard the engine's own `fallenNoRoster`
+                    * structurally cannot be: it compares what the engine will COUNT against the
+                    * board's own death record, at the seam where both are in scope. Exported so a
+                    * gate can assert `checked > 0` (it ran at all) and `mismatch === 0` (the claim),
+                    * and `fallenTruth` so a caller outside the leaf can ask the same question of the
+                    * same source rather than re-deriving it from a list somebody else pruned. */
+                   FALLEN_GUARD, fallenTruth, checkFallenSeeded };
