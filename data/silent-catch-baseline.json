@@ -1,13 +1,12 @@
 {
- "generated": "2026-08-06",
+ "generated": "2026-08-15",
  "by": "tests/test-no-silent-failure.js --update",
- "note": "GENERATED. Silent catch blocks that existed when the ratchet was set. Never hand-edit: re-run with --update after FIXING some, so this number only ever goes down.",
- "count": 220,
+ "note": "GENERATED. Silent catch blocks that existed when the ratchet was set. Never hand-edit. `--update` is MONOTONE — it writes min(baseline, current) per key, so it locks in FIXES and structurally cannot launder a new offender into the floor (ROADMAP #258). The only way in is `--accept <file> \"reason\"`, one file at a time, and the reason is recorded in `accepted` beside the keys it let through.",
+ "count": 216,
  "entries": {
   "build/build_ability_blocks.js#8ed85277ffd4": 1,
   "build/build_engine_data.js#0c3b2986fd6f": 1,
   "build/build_engine_data.js#5e760d16b367": 1,
-  "build/build_engine_data.js#cc3ed1b20315": 1,
   "build/build_mag_data.js#2d0359dcc931": 1,
   "build/build_mag_data.js#afcc77770f0d": 1,
   "build/build_mag_data.js#da39a3ee5e6b": 1,
@@ -119,7 +118,6 @@
   "engine/prior_player.js#22d2b6d9b371": 1,
   "engine/provenance.js#8adf98dba67d": 5,
   "engine/provenance.js#ae7ff32960f9": 1,
-  "engine/provenance.js#afcc77770f0d": 1,
   "engine/provenance.js#da39a3ee5e6b": 2,
   "engine/python.js#0f3244039e6e": 1,
   "engine/python.js#384e416aa5fb": 1,
@@ -153,7 +151,7 @@
   "engine/stab_audit.js#da39a3ee5e6b": 1,
   "engine/stamp.js#afcc77770f0d": 1,
   "engine/tag_dex.js#29efa4f97b99": 1,
-  "engine/tag_dex.js#7eea7c7669e7": 2,
+  "engine/tag_dex.js#7eea7c7669e7": 1,
   "engine/tag_dex.js#7fc6b5fd0226": 1,
   "engine/tag_dex.js#8adf98dba67d": 1,
   "engine/tag_exposure.js#8adf98dba67d": 2,
@@ -166,7 +164,6 @@
   "tests/test-board-browser.js#8aac8c5782a1": 1,
   "tests/test-entry-effects.js#8adf98dba67d": 1,
   "tests/test-mc-key.js#606e0f7b47c3": 1,
-  "tests/test-no-silent-failure.js#5e760d16b367": 1,
   "tests/test-no-silent-failure.js#8adf98dba67d": 1,
   "tests/test-opponent-model.js#8adf98dba67d": 2,
   "tests/test-oracle-differential.js#6f53b9372333": 1,
@@ -183,5 +180,6 @@
   "tests/test-site-engine.js#e9d54ebd3134": 1,
   "tests/test-tag-wire.js#db2eeaf2f910": 1,
   "tests/test-wiring.js#da39a3ee5e6b": 1
- }
+ },
+ "accepted": {}
 }

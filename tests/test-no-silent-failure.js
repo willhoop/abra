@@ -34,8 +34,27 @@
  *
  * The count is printed every run, so the number going DOWN is visible and going up is impossible.
  *
- *   node tests/test-no-silent-failure.js            check
- *   node tests/test-no-silent-failure.js --update   re-baseline (do this when you FIX some)
+ *   node tests/test-no-silent-failure.js                     check
+ *   node tests/test-no-silent-failure.js --all               ... and list every new one with its body
+ *   node tests/test-no-silent-failure.js --dangerous         the MANUFACTURE subset, by file
+ *   node tests/test-no-silent-failure.js --update            lock in FIXES (the floor may only fall)
+ *   node tests/test-no-silent-failure.js --accept <file> "reason"    accept ONE file's new silence
+ *
+ * THE RATCHET HAD ONE CONTROL AND IT WAS ALL-OR-NOTHING — ROADMAP #258, 2026-08-14
+ * -------------------------------------------------------------------------------
+ * `--update` used to write the CURRENT silent set as the new baseline. So there was no way to lock in
+ * a fix without also laundering every new offender into the floor in the same command, and the
+ * register row says exactly that: *"NOT RE-BASELINED, because --update would launder a week of it
+ * into the floor."* The consequence is the failure this repository is worst at: the gate stayed red
+ * for a week, three separate agent reports called it pre-existing and moved on, and "pre-existing"
+ * did the work the banned phrase "known failure" used to do.
+ *
+ * A ratchet with a laundering button is not a ratchet. So `--update` is now MONOTONE: for every key
+ * it writes min(baseline, current), which removes what was fixed and can never add what is new. The
+ * only way into the floor is `--accept <file> "reason"`, one file at a time, with the reason recorded
+ * in the artifact beside the keys — a person deciding, once, in writing, exactly like `"rerun": false`
+ * in engine/engine_release.js. Shown RED before it was trusted: with the old behaviour, `--update`
+ * over a fresh silent catch made the gate green; with this one it stays red and names the file.
  */
 'use strict';
 const fs = require('fs');
@@ -45,6 +64,12 @@ const crypto = require('crypto');
 const ROOT = path.join(__dirname, '..');
 const BASELINE = path.join(ROOT, 'data', 'silent-catch-baseline.json');
 const UPDATE = process.argv.includes('--update');
+/* `--accept <file> "reason"` — the ONLY door into the floor, and it takes one file at a time because
+ * the unit of work in ROADMAP #258 is a file, owned by the division that owns it. Both arguments are
+ * required: an acceptance with no reason is the silence this whole file is about, one level up. */
+const ACCEPT_AT = process.argv.indexOf('--accept');
+const ACCEPT_FILE = ACCEPT_AT >= 0 ? process.argv[ACCEPT_AT + 1] : null;
+const ACCEPT_WHY = ACCEPT_AT >= 0 ? process.argv[ACCEPT_AT + 2] : null;
 const DIRS = ['engine', 'build', 'tests'];
 
 /* ---- strip what would confuse a brace scanner ------------------------------------------------
@@ -168,6 +193,15 @@ const SPEAKS = [
    * must be present, so a plain `x = y + 1` assignment does not qualify. Same justification as the
    * three above: this can only SHRINK the silent set, the one direction a detector change may move it. */
   /=\s*\(\s*[\w$.[\]]+\s*\|\|\s*0\s*\)\s*\+/,
+  /* A SECOND STATED LIMIT, FOUND 2026-08-14 WHILE FIXING ROADMAP #258 AND WRITTEN DOWN RATHER THAN
+   * WORKED AROUND SILENTLY: `blank()` replaces template literals wholesale, so the reason travelling
+   * in `${e.message}` INSIDE a template is invisible to the `.message` clause above, while the same
+   * reason in `'...' + e.message + '...'` is seen. `engine/quarantine.js`'s open-defect clause was
+   * flagged for a body that returns a fully-worded FAILING verdict. The fix went into the code (plain
+   * concatenation) rather than into this detector, because recovering `${}` interpolations would mean
+   * changing the brace scanner every other check in this file depends on — a large change to the one
+   * piece of machinery here that must not be wrong, to catch a case a one-line edit at the call site
+   * already handles. Accepted knowingly; it costs a false POSITIVE, never a false negative. */
   /* AND THE LIMIT OF THAT PATTERN, STATED RATHER THAN DISCOVERED LATER: a catch that reads
    * `e.message` only to BRANCH on it and then discards it — `if (e.message === 'x') return null` —
    * still passes this test while being genuinely silent. That case is accepted knowingly. The
@@ -225,27 +259,104 @@ for (const dir of DIRS) {
   }
 }
 
-/* ---- baseline ------------------------------------------------------------------------------------ */
-if (UPDATE) {
+/* ---- the current census, keyed the way the baseline is keyed ------------------------------------ */
+/* COUNTS, NOT A SET. Keying on file#hash alone collapsed 229 silent blocks into 184 keys, because
+ * `catch (e) {}` and `catch (e) { /* ignore *\/ }` hash identically wherever they appear. A set
+ * therefore could not tell a THIRD identical silent catch in the same file from the two already
+ * baselined — the ratchet would have been fooled by the commonest shape of the very thing it exists
+ * to stop. Counting per key is edit-resilient (a change elsewhere in the file does not move the key)
+ * and still catches duplication. */
+const CURRENT = {};
+for (const s of silent) { const k = `${s.file}#${s.hash}`; CURRENT[k] = (CURRENT[k] || 0) + 1; }
+
+function readBaseline() {
+  let b = null;
+  try { b = JSON.parse(fs.readFileSync(BASELINE, 'utf8')); }
+  catch (e) {
+    /* NOT SILENT: an absent baseline and an unparseable one are different situations and the caller
+     * must be able to tell them apart. This file has cost enough to know better than to return the
+     * same empty object for both. */
+    if (e.code !== 'ENOENT') console.error(`  data/${path.basename(BASELINE)} did not parse: ${e.message}`);
+    return null;
+  }
+  /* Old baselines were an array of keys; treat those as count 1 each so the file can be re-based
+   * without a flag day. */
+  const raw = b.entries || {};
+  b.entries = Array.isArray(raw) ? raw.reduce((m, k) => (m[k] = (m[k] || 0) + 1, m), {}) : raw;
+  if (!b.accepted || typeof b.accepted !== 'object') b.accepted = {};
+  return b;
+}
+
+function writeBaseline(entries, accepted, how) {
+  const sorted = Object.fromEntries(Object.entries(entries).filter(([, n]) => n > 0)
+    .sort(([a], [b]) => a < b ? -1 : 1));
   fs.writeFileSync(BASELINE, JSON.stringify({
     generated: new Date().toISOString().slice(0, 10),
-    by: 'tests/test-no-silent-failure.js --update',
-    note: 'GENERATED. Silent catch blocks that existed when the ratchet was set. Never hand-edit: '
-        + 're-run with --update after FIXING some, so this number only ever goes down.',
-    count: silent.length,
-    /* COUNTS, NOT A SET. Keying on file#hash alone collapsed 229 silent blocks into 184 keys,
-     * because `catch (e) {}` and `catch (e) { /* ignore *\/ }` hash identically wherever they appear.
-     * A set therefore could not tell a THIRD identical silent catch in the same file from the two
-     * already baselined — the ratchet would have been fooled by the commonest shape of the very
-     * thing it exists to stop. Counting per key is edit-resilient (a change elsewhere in the file
-     * does not move the key) and still catches duplication. */
-    entries: (() => {
-      const m = {};
-      for (const s of silent) { const k = `${s.file}#${s.hash}`; m[k] = (m[k] || 0) + 1; }
-      return Object.fromEntries(Object.entries(m).sort(([a], [b]) => a < b ? -1 : 1));
-    })(),
-  }, null, 1));
-  console.log(`baselined ${silent.length} silent catch blocks across ${scanned} files -> ${path.relative(ROOT, BASELINE)}`);
+    by: 'tests/test-no-silent-failure.js ' + how,
+    note: 'GENERATED. Silent catch blocks that existed when the ratchet was set. Never hand-edit. '
+        + '`--update` is MONOTONE — it writes min(baseline, current) per key, so it locks in FIXES '
+        + 'and structurally cannot launder a new offender into the floor (ROADMAP #258). The only '
+        + 'way in is `--accept <file> "reason"`, one file at a time, and the reason is recorded in '
+        + '`accepted` beside the keys it let through.',
+    count: Object.values(sorted).reduce((a, b) => a + b, 0),
+    entries: sorted,
+    accepted,
+  }, null, 1) + '\n');
+}
+
+/* ---- --update: LOCK IN FIXES, and nothing else --------------------------------------------------- */
+if (UPDATE) {
+  const b = readBaseline();
+  if (!b) { console.error('NO BASELINE to update. This file may not create one from the current state '
+    + '— that is the laundering ROADMAP #258 is about.'); process.exit(2); }
+  const next = {}; const lockedIn = [];
+  for (const [k, n] of Object.entries(b.entries)) {
+    const now = CURRENT[k] || 0;
+    const keep = Math.min(n, now);
+    if (keep > 0) next[k] = keep;
+    if (keep < n) lockedIn.push(`${k}  ${n} -> ${keep}`);
+  }
+  const wouldLaunder = Object.entries(CURRENT).filter(([k, n]) => n > (b.entries[k] || 0));
+  writeBaseline(next, b.accepted, '--update');
+  const before = Object.values(b.entries).reduce((a, c) => a + c, 0);
+  const after = Object.values(next).reduce((a, c) => a + c, 0);
+  console.log(`  baseline ${before} -> ${after}   (${lockedIn.length} key(s) fixed and locked in)`);
+  for (const l of lockedIn) console.log('    fixed  ' + l);
+  if (wouldLaunder.length) {
+    console.log(`\n  ${wouldLaunder.length} key(s) are NEW and were NOT added. --update can only lower`);
+    console.log('  the floor; a new silent catch is fixed, or accepted one file at a time with a reason:');
+    console.log('    node tests/test-no-silent-failure.js --accept <file> "why this silence is right"');
+  }
+  process.exit(0);
+}
+
+/* ---- --accept: the only door into the floor, one file and one reason at a time -------------------- */
+if (ACCEPT_AT >= 0) {
+  if (!ACCEPT_FILE || !ACCEPT_WHY || ACCEPT_WHY.startsWith('--')) {
+    console.error('  usage: node tests/test-no-silent-failure.js --accept <engine/foo.js> "the reason"');
+    console.error('  Both are required. An acceptance with no reason is the silence this gate is about.');
+    process.exit(2);
+  }
+  const b = readBaseline();
+  if (!b) { console.error('NO BASELINE — nothing to accept into.'); process.exit(2); }
+  const target = ACCEPT_FILE.replace(/\\/g, '/').replace(/^\.\//, '');
+  const mine = Object.entries(CURRENT).filter(([k]) => k.split('#')[0] === target);
+  if (!mine.length) { console.error(`  no silent catch blocks found in ${target} — nothing to accept.`); process.exit(2); }
+  const next = Object.assign({}, b.entries);
+  const accepted = Object.assign({}, b.accepted);
+  const added = [];
+  for (const [k, n] of mine) {
+    const was = next[k] || 0;
+    if (n <= was) continue;
+    next[k] = n;
+    accepted[k] = { at: new Date().toISOString().slice(0, 10), why: ACCEPT_WHY, count: n - was };
+    added.push(`${k}  +${n - was}`);
+  }
+  if (!added.length) { console.log(`  ${target} has no NEW silent catch blocks. Baseline unchanged.`); process.exit(0); }
+  writeBaseline(next, accepted, `--accept ${target}`);
+  console.log(`  accepted ${added.length} key(s) from ${target} into the floor, with the reason recorded:`);
+  console.log(`    "${ACCEPT_WHY}"`);
+  for (const a of added) console.log('    ' + a);
   process.exit(0);
 }
 
@@ -261,18 +372,12 @@ if (process.argv.includes('--dangerous')) {
   process.exit(0);
 }
 
-let base = null;
-try { base = JSON.parse(fs.readFileSync(BASELINE, 'utf8')); } catch (e) { /* first run */ }
+const base = readBaseline();
 if (!base) {
-  console.error('NO BASELINE. Run:  node tests/test-no-silent-failure.js --update');
+  console.error('NO BASELINE. data/silent-catch-baseline.json is absent or unreadable.');
   process.exit(2);
 }
-/* Old baselines were an array of keys; treat those as count 1 each so the file can be re-based
- * without a flag day. */
-const rawEntries = base.entries || {};
-const known = Array.isArray(rawEntries)
-  ? rawEntries.reduce((m, k) => (m[k] = (m[k] || 0) + 1, m), {})
-  : rawEntries;
+const known = base.entries;
 
 const now = {};
 for (const s of silent) { const k = `${s.file}#${s.hash}`; (now[k] = now[k] || []).push(s); }
@@ -300,17 +405,41 @@ console.log(`  FIXED since the baseline ${gone.length}`);
 console.log(`  NEW since the baseline   ${fresh.length}`);
 
 if (fresh.length) {
-  console.log('\n  NEW SILENT CATCH BLOCKS — each of these discards the reason something failed:');
-  /* `--all` prints every one WITH ITS BODY. The 25-line cap is right for a gate — a wall of text is
-   * a wall nobody reads — but a truncated list cannot be worked through, and "... and 27 more" is
-   * how the tail of a list stops being anybody's job. */
+  /* THE NEW SET IS RANKED, NOT LISTED — ROADMAP #258. It is two populations and treating it as one
+   * is why a week of it read as a single undifferentiated wall: a catch that skips a torn line and
+   * continues is usually right, and a catch that RETURNS A PLAUSIBLE VALUE is this project's named
+   * failure mode — a capability that could not prove it ran, reporting success. The manufacturing
+   * ones go first, grouped by the file that owns them, because the unit of work is a file and a
+   * division owns each one. */
+  const mfg = fresh.filter(s => s.manufactures);
+  const skip = fresh.filter(s => !s.manufactures);
+  const group = (list) => {
+    const m = {};
+    for (const s of list) (m[s.file] = m[s.file] || []).push(s);
+    return Object.entries(m).sort((a, b) => b[1].length - a[1].length || (a[0] < b[0] ? -1 : 1));
+  };
   const ALL = process.argv.includes('--all');
-  const show = ALL ? fresh : fresh.slice(0, 25);
-  for (const s of show) console.log(`    ${s.file}:${s.line}${ALL ? (s.manufactures ? '   [MANUFACTURES]  ' : '                 ') + s.body : ''}`);
-  if (!ALL && fresh.length > 25) console.log(`    ... and ${fresh.length - 25} more  (--all to list them)`);
+  console.log(`\n  NEW, AND THEY MANUFACTURE A VALUE — ${mfg.length}. Fix these first: each hands a`);
+  console.log('  made-up answer to whatever reads it, and reports success doing it.');
+  for (const [f, list] of group(mfg)) {
+    console.log(`    ${f}  (${list.length})`);
+    for (const s of list) console.log(`      :${String(s.line).padEnd(6)} ${s.body}`);
+  }
+  console.log(`\n  NEW, AND THEY ONLY SKIP OR CONTINUE — ${skip.length}. Lower priority: usually correct`);
+  console.log('  silence over ragged input, but each still discards the reason.');
+  /* `--all` prints every one. The cap is right for a gate — a wall of text is a wall nobody reads —
+   * but a truncated list cannot be worked through, and "... and 27 more" is how the tail of a list
+   * stops being anybody's job. */
+  for (const [f, list] of group(skip)) {
+    console.log(`    ${f}  (${list.length})`
+      + (ALL ? '' : list.length > 3 ? '   [--all for every line]' : ''));
+    for (const s of (ALL ? list : list.slice(0, 3))) console.log(`      :${String(s.line).padEnd(6)} ${s.body}`);
+  }
   console.log('\n  Make it speak: rethrow, console.error it, count it, or record it somewhere a later');
-  console.log('  assertion can see. If a silent fallback is genuinely right here, say why in the code');
-  console.log('  and re-baseline with --update so the exception is deliberate and visible.');
+  console.log('  assertion can see.');
+  console.log('  `--update` locks in FIXES and can no longer launder these into the floor (#258).');
+  console.log('  If a silence here is genuinely right, say why in the code and then, one file at a time:');
+  console.log('    node tests/test-no-silent-failure.js --accept <file> "the reason"');
   process.exit(1);
 }
 if (gone.length) console.log(`\n  ${gone.length} baselined block(s) now speak. Re-run with --update to lock the gain in.`);

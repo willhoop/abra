@@ -70,7 +70,19 @@ const open = rows.filter(r => !r.closed);
  * A REGISTER CANNOT AUDIT ITSELF. Every row above is something a human wrote down; a defect nobody
  * wrote down is invisible to any amount of reading. So the measured disagreements are pulled from the
  * artifacts and matched against the register by SUBJECT, and anything unmatched is reported. */
-const readJSON = (p) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, p), 'utf8')); } catch (e) { return null; } };
+/* ROADMAP #258 — AN UNREADABLE INSTRUMENT IS NOT AN INSTRUMENT WITH NOTHING TO SAY. This returned
+ * null for both, so a corrupt or half-written artifact dropped silently out of the measured half of
+ * this report and the work it was measuring simply stopped being printed — in the one tool whose job
+ * is to print what is open. ENOENT stays quiet: an artifact that was never generated is a real and
+ * expected answer, and shouting about it would make this list noise. */
+const readJSON = (p) => {
+  try { return JSON.parse(fs.readFileSync(path.join(ROOT, p), 'utf8')); }
+  catch (e) {
+    if (e.code !== 'ENOENT') console.error(`  ${p} EXISTS AND COULD NOT BE READ (${e.message}) — `
+      + 'anything it measures is missing from this report, not absent from the project.');
+    return null;
+  }
+};
 const measured = [];
 const matrix = readJSON('data/interaction-matrix.json');
 if (matrix && Array.isArray(matrix.parting)) {

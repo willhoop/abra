@@ -274,14 +274,41 @@ function unseededVolatiles() {
   return [
     ['substitute', 'the consumer is `_sub`, which is the substitute\'s REMAINING hp. The protocol ' +
       'never states it, so any number here would be invented rather than read'],
-    ['leechseed', 'the consumer is `_seededBy`, a reference to the BODY that drains — not a count'],
-    ['healblock', 'the consumer is `_healBlock`; `_vol.healblock` is read by nothing ' +
-      '(medicham2-browser.js:10160), which is exactly the mismatch this check exists for'],
-    ['perishsong', 'the consumer is `_perish`, and the engine clears it on switch-out ' +
-      '(`perishClearedOnSwitch`) — carried here would need the same rule in a second place'],
-    ['throatchop', 'the consumer is `_noSound`, not a `_vol` counter'],
+    ['leechseed', 'the consumer is `_seededBy`, a reference to the BODY that drains — not a count. ' +
+      'AND THE BOARD CANNOT HOLD IT EITHER: Leech Seed declares no `condition.duration`, so ' +
+      '`magnemite.volatileDuration` falls back to 3 and the board forgets a seed that the real game ' +
+      'keeps until the body leaves. Seeding it would carry that expiry into the playout'],
+    ['perishsong', 'the consumer is `_perish` and the two counters are OFF BY ONE: the wire\'s ' +
+      '`perish3` is stored as three board turns, while the engine holds `_perish = 4` at that ' +
+      'instant and kills at the end of the turn it reaches 0 — so the board reads ZERO on the very ' +
+      'turn the body dies. Seeding it would end the count a turn early, or drop the lethal turn ' +
+      'entirely; the fix is in the live adapter, which is not SEARCH\'s. The engine also clears it ' +
+      'on switch-out (`perishClearedOnSwitch`), so a bench seed would put that rule in two places'],
   ];
 }
+/* AND THE TWO THAT ARE PURE VOCABULARY, NOW CARRIED — ROADMAP #277.
+ *
+ * Both were on the refusal list for one reason: the board's key is the PROTOCOL's word and the engine
+ * keeps the effect somewhere other than `_vol`. That is a translation, not a missing quantity — the
+ * count itself is on the board and is the same count the engine ticks (`medicham2-browser.js:20854`
+ * and `:20859`, beside the `_vol` tick at `:20937`, all three `if (x > 0) x--`).
+ *
+ *   healblock   -> `_healBlock`   `_vol.healblock` IS READ BY NOTHING (medicham2-browser.js:10160),
+ *                                 which is the mismatch #269's vocabulary check was built to catch.
+ *                                 `healBlocked` (:3659) asks `_healBlock > 0` and nothing else does.
+ *   throatchop  -> `_noSound`     read at :8113 and :13800 to refuse a sound move.
+ *
+ * IT IS A DECLARED JOIN, exactly like `VOL_MOVE_FIELD`, and for the same reason: no data field states
+ * which engine field a protocol volatile lands in, so the pairing is written down ONCE where the gate
+ * can check both halves still exist rather than as two `if` branches inside the loop.
+ *
+ * A CONVENTION DIFFERENCE IS DECLARED RATHER THAN COMPENSATED. The engine applies these two as
+ * `turns + 1` because its residual fires on the application turn too, while `_vol`'s duration family
+ * is applied as `turns` flat. This seeds the BOARD's remaining count for all of them, which is what
+ * Showdown's own duration means at a turn boundary — so where the two conventions differ this errs
+ * SHORT by one turn, the same direction #270 chose for an unknown weather rock. Writing a `+1` here
+ * would put a second opinion about the engine's tick inside the seed. */
+const VOL_ENGINE_FIELD = { healblock: '_healBlock', throatchop: '_noSound' };
 /* THE ONE THING IN THIS BLOCK THAT CANNOT BE DERIVED, DECLARED RATHER THAN HIDDEN.
  *
  * Both Encore and Disable seal a move and both carry a duration, and the engine keeps the two in
@@ -292,13 +319,17 @@ function unseededVolatiles() {
  * rather than as two `if` branches inside the loop. `tests/test-seed-clock.js` asserts every key here
  * is in the derived table, so a name that stops existing fails loudly instead of going inert. */
 const VOL_MOVE_FIELD = { encore: '_encoreMove', disable: '_sealed' };
-const volCounters = { seeded: 0, unmapped: 0, unmappedKeys: {} };
+const volCounters = { seeded: 0, translated: 0, unmapped: 0, unmappedKeys: {} };
 function seedVolatiles(b, board, mon) {
   if (!b || !board || !mon || !mon.volatiles || typeof board.volLeftOn !== 'function') return;
   const table = seedableVolatiles();
   for (const key of mon.volatiles.keys()) {
     const left = board.volLeftOn(mon, key) | 0;
     if (left <= 0) continue;
+    /* ROADMAP #277 — the translated pair, ABOVE the `_vol` table on purpose: writing either of these
+     * into `_vol` as well would leave a second, consumer-less copy of the same effect on the body,
+     * which is the duplicate the engine refuses at its own owner for Substitute and confusion. */
+    if (VOL_ENGINE_FIELD[key]) { b[VOL_ENGINE_FIELD[key]] = left; volCounters.translated++; continue; }
     if (!table.has(key)) {
       volCounters.unmapped++;
       volCounters.unmappedKeys[key] = (volCounters.unmappedKeys[key] | 0) + 1;
@@ -311,6 +342,10 @@ function seedVolatiles(b, board, mon) {
   }
 }
 
+/* PROOF OF FIRING for the two facts #277 added to the seed, and for which SOURCE answered the
+ * Protect streak. A seed that carried nothing looks exactly like a position with nothing on it,
+ * which is what kept the foe's shield uncounted for as long as it was. */
+const SEED_COUNTERS = { streakFromBoard: 0, streakFromCaller: 0, choiceLocked: 0 };
 function buildSide(board, side, dex, stats, protectTurns) {
   const mons = [];
   for (const m of sideTeam(board, side, dex)) {
@@ -326,10 +361,35 @@ function buildSide(board, side, dex, stats, protectTurns) {
      * turn of immunity, which the search duly spammed. Will watched it do that ("WAY TOO MUCH
      * PROTECTIGN") while the engine had the correct rule the entire time.
      *
-     * `protectTurns` is what the LIVE game has seen this Pokemon do, keyed by species; the caller
-     * tracks it because the board does not. Absent, this is 0 and behaves exactly as before. */
-    const pt = protectTurns && m && protectTurns[m.species];
-    if (pt) b.tookProtectTurns = pt;
+     * *** THE STREAK IS THE BOARD'S NOW, AND THE FOE HAS ONE AT LAST — ROADMAP #277. ***
+     * `protectTurns` was CALLER state: a map `mag_bot.js` builds off the wire and gates `if (mine)`,
+     * so the OPPONENT's consecutive Protects were never counted anywhere and the search priced the
+     * foe's shield as certain on every turn of every game. It was also absent from the fitter's board
+     * and from every offline harness, because only the live bot kept it. `board.noteMove` already
+     * reads `move.stallingMove` and is called on every `|move|` line from BOTH sides, so the counter
+     * lives there and this reads it — one implementation, both sides, both worlds.
+     *
+     * THE MAP REMAINS AS A FALLBACK AND IS COUNTED. It is used only for a body the board has never
+     * seen move (`protectStreak` absent), which is exactly the pre-existing behaviour; a body the
+     * board HAS seen move takes the board's answer even when that answer is zero, because the map is
+     * keyed by SPECIES and never resets on a switch-out while the streak does. */
+    const streak = m && m.protectStreak;
+    if (streak !== undefined) { if (streak) b.tookProtectTurns = streak | 0; SEED_COUNTERS.streakFromBoard++; }
+    else {
+      const pt = protectTurns && m && protectTurns[m.species];
+      if (pt) { b.tookProtectTurns = pt; SEED_COUNTERS.streakFromCaller++; }
+    }
+    /* THE CHOICE LOCK — ROADMAP #277. `board.choiceLockOn` is the expression that used to live inside
+     * `candidates()` and nowhere else, so the FIT knew a scarfed body had one legal move and the
+     * PLAYOUT did not: `_lock`/`_lockT` were never written, so every locked body in every rollout was
+     * offered all four of its moves and the search planned turns the game refuses.
+     *
+     * `_lockT === Infinity` is the engine's own discriminator between the item lock and Encore's
+     * (`lockMenuMove`, medicham2-browser.js:8150), which is why the pair is written together. The
+     * engine RE-READS the item before honouring it and drops a lock whose item has gone, so a
+     * disagreement between the board and the body fails safe rather than silently constraining. */
+    const lock = (typeof B.choiceLockOn === 'function') ? B.choiceLockOn(m, dex) : null;
+    if (lock) { b._lock = lock; b._lockT = Infinity; SEED_COUNTERS.choiceLocked++; }
     seedHistory(b, m);
     /* ROADMAP #267 and #269, seeded HERE and not in `dmgMon`, for the reason `seedHistory`'s own note
      * gives: `dmgMon` is board.js's builder and every damage FEATURE goes through it, so a fact
@@ -972,9 +1032,72 @@ function applySideState(S, board, side) {
  * AN UNKNOWN AGE IS SEEDED AT FULL LENGTH AND COUNTED. A Board that never saw the weather start
  * cannot say how old it is, and a full clock is both the closest honest answer and strictly better
  * than the infinity it replaces. */
-const fieldClockCounters = { weatherKnown: 0, weatherUnknownAge: 0, weatherExpired: 0, terrainKnown: 0, terrainUnknownAge: 0 };
+/* *** AND THE TWO CLOCKS THE CALLER WAS TYPING AS CONSTANTS — ROADMAP #275. ***
+ *
+ * `miltank.js` built `twA: board.hasSide(side,'tailwind') ? 4 : 0` and `tr: hasField('trickroom') ? 5
+ * : 0`, and the four R-gates, the switch probe, the contrast tool and the paired-argmax harness each
+ * built the same object with the same two literals. EIGHT copies of one fact, and every one of them
+ * says a Tailwind with one turn left has four — which is #270 exactly, in a different file: the
+ * position is running a clock and the seed hands over a constant. A search seeded that way believes
+ * it outruns the foe for three turns it does not have, and Trick Room is worse because the number is
+ * a SPEED INVERSION rather than a multiplier.
+ *
+ * THE REMAINDER WAS ALREADY ON THE BOARD AND ALREADY READ. `sideLeft` and `fieldLeft` have returned
+ * it since #249, which is what `applySideState` uses for the screens. Nothing new is tracked here.
+ *
+ * IT IS READ AT THE LEAF SO NO CALLER GROWS THE LINES A NINTH TIME — the same argument that made this
+ * function a new seam rather than an argument on `applyField`. The caller's `twA`/`twB`/`tr` are
+ * OVERWRITTEN rather than merged: the board is the authority for every one of those eight callers,
+ * because all eight built their constant out of this same board. When they disagree it is counted,
+ * which is what turns "the callers were wrong" from a claim into a number.
+ *
+ * WHOSE SIDE: `battleInit`'s side A is always the ASKING side, which is `applySideState`'s pairing
+ * and not a second convention — so `twA` is read for `side` and `twB` for the foe, and `applyField`'s
+ * p1/p2 swap one function down is exactly what this replaces.
+ *
+ * NEITHER KEY IS SPELLED HERE. `board.speedSideKeys()` is the format's own answer to "which side
+ * condition multiplies speed" and `board.roomFieldKey()` is the declared irreducible `GAME_RULES`
+ * already holds — so a regulation that renames either is followed with no edit in this file.
+ *
+ * AN INFINITE REMAINDER IS REFUSED AND COUNTED. `sideLeft` returns Infinity for a PERMANENT side
+ * condition (#268), and the engine's tick is `if (field[k] > 0 && --field[k] <= 0)` — so writing
+ * Infinity would hand over a Tailwind that never ends, which is the bug this row is about with the
+ * sign flipped. Nothing in this family is permanent today; the guard costs nothing and its
+ * alternative failure is silent. */
+const fieldClockCounters = { weatherKnown: 0, weatherUnknownAge: 0, weatherExpired: 0, terrainKnown: 0, terrainUnknownAge: 0,
+                             twSeeded: 0, twCallerDiffered: 0, twInfinite: 0, trSeeded: 0, trCallerDiffered: 0, trInfinite: 0 };
+function applySpeedClocks(S, board, side) {
+  if (!S || !S.field || !board || typeof board.sideLeft !== 'function') return;
+  const foe = side === 'p1' ? 'p2' : 'p1';
+  const left = (sd) => {
+    let n = 0;
+    for (const k of (typeof B.speedSideKeys === 'function' ? B.speedSideKeys() : [])) {
+      const v = board.sideLeft(sd, k);
+      if (!isFinite(v)) { fieldClockCounters.twInfinite++; continue; }
+      n = Math.max(n, v | 0);
+    }
+    return n;
+  };
+  for (const [k, sd] of [['twA', side], ['twB', foe]]) {
+    const was = S.field[k] | 0, now = left(sd);
+    if (was !== now) fieldClockCounters.twCallerDiffered++;
+    S.field[k] = now;
+    if (now > 0) fieldClockCounters.twSeeded++;
+  }
+  if (typeof board.fieldLeft === 'function' && typeof B.roomFieldKey === 'function') {
+    const v = board.fieldLeft(B.roomFieldKey());
+    if (!isFinite(v)) fieldClockCounters.trInfinite++;
+    else {
+      const was = S.field.tr | 0, now = v | 0;
+      if (was !== now) fieldClockCounters.trCallerDiffered++;
+      S.field.tr = now;
+      if (now > 0) fieldClockCounters.trSeeded++;
+    }
+  }
+}
 function applyFieldClock(S, board, side) {
   if (!S || !S.field || !board) return;
+  applySpeedClocks(S, board, side);
   const w = S.field.weather;
   if (w) {
     const age = typeof board.weatherAge === 'function' ? board.weatherAge() : null;
@@ -1288,4 +1411,9 @@ module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, sideFallen, bu
                     * the second, because a silent omission and a considered one look identical in
                     * the code. */
                    applyFieldClock, seedableVolatiles, unseededVolatiles, VOL_MOVE_FIELD,
-                   fieldClockCounters, volCounters };
+                   fieldClockCounters, volCounters,
+                   /* ROADMAP #275/#277. `applySpeedClocks` is exported for the gate alone — the leaf
+                    * calls it through `applyFieldClock` — and `VOL_ENGINE_FIELD` is the declared
+                    * protocol-to-engine join the gate checks both halves of. `SEED_COUNTERS` says
+                    * which source answered the Protect streak and whether a choice lock ever fired. */
+                   applySpeedClocks, VOL_ENGINE_FIELD, SEED_COUNTERS };

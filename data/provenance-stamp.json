@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 159,
+  "mtime_only": 163,
   "mtime_only_files": [
     "ab-batch-effect.json",
     "ability-blocks.json",
@@ -97,6 +97,7 @@
     "porygon2c.json",
     "pp-board-probe.json",
     "provenance-stamp.json",
+    "published-samples.json",
     "recall-at-k.json",
     "redirect-audit.json",
     "regulation-usage.json",
@@ -108,13 +109,16 @@
     "role-matchups.json",
     "roles-eval.json",
     "roles.js",
+    "rollout-clock-prevalence.json",
     "rollout-cost.json",
     "rollout-cost.meta.json",
     "rollout-fallen-prevalence.json",
+    "rollout-item-prevalence.json",
     "rollout-r1-withdrawn-join.json",
     "rollout-r1.json",
     "rollout-r3.json",
     "rollout-r4.json",
+    "rollout-seed-prevalence.json",
     "rollout-switch-census.json",
     "rollout-switch-probe.json",
     "roster.abilities.json",
@@ -174,6 +178,9 @@
     "abra-tags.js",
     "all-mechanics-fire.json",
     "archetypes.json",
+    "argmax-paired-n100.json",
+    "argmax-paired-n12.json",
+    "argmax-paired.json",
     "artifact-rerunnable-baseline.json",
     "board-browser-baseline.json",
     "board-data.js",
@@ -288,6 +295,7 @@
     "pp-board-probe.json",
     "protocol-events.json",
     "provenance-stamp.json",
+    "published-samples.json",
     "quarantine-stamp.json",
     "recall-at-k.json",
     "redirect-audit.json",
@@ -304,9 +312,11 @@
     "role-matchups.json",
     "roles-eval.json",
     "roles.js",
+    "rollout-clock-prevalence.json",
     "rollout-cost.json",
     "rollout-cost.meta.json",
     "rollout-fallen-prevalence.json",
+    "rollout-item-prevalence.json",
     "rollout-r1-explore-sweep.json",
     "rollout-r1-explore1-rows-3932186b59ef.meta.json",
     "rollout-r1-explore1-rows-6e43710396db.meta.json",
@@ -318,6 +328,7 @@
     "rollout-r3.json",
     "rollout-r3.meta.json",
     "rollout-r4.json",
+    "rollout-seed-prevalence.json",
     "rollout-switch-census.json",
     "rollout-switch-probe.json",
     "roster.abilities.json",
@@ -375,8 +386,10 @@
     "artifact-accessors.json",
     "battle-formes.json",
     "conditional-audit.json",
+    "divergence-middle.json",
     "exploitability-holdout.json",
     "fixture-learnset-baseline.json",
+    "fixture-legality-baseline.json",
     "leaf-comparison.json",
     "meta-nash.json",
     "miltank-timing-r6.json",
@@ -704,7 +717,38 @@
       "files": [
         "rollout-fallen-prevalence.json"
       ]
+    },
+    {
+      "when": "2026-08-14T05:04:04.016Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 2 path variable",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 202,
+      "graph_after": 204,
+      "files": [
+        "rollout-item-prevalence.json",
+        "rollout-seed-prevalence.json"
+      ]
+    },
+    {
+      "when": "2026-08-14T05:54:40.851Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 path variable",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 204,
+      "graph_after": 205,
+      "files": [
+        "rollout-clock-prevalence.json"
+      ]
+    },
+    {
+      "when": "2026-08-15T02:52:39.677Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 DECLARED BY THE ARTIFACT",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 208,
+      "graph_after": 209,
+      "files": [
+        "published-samples.json"
+      ]
     }
   ],
-  "generated": "2026-08-13T20:49:22.541Z"
+  "generated": "2026-08-15T03:12:09.133Z"
 }

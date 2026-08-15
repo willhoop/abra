@@ -1854,6 +1854,88 @@ const GAME_RULES = {
   survivesFromFull: 'focussash',
 };
 
+/* ---------------------------------------------------------------------------------------------
+ * TWO FACTS THE PLAYOUT SEED NEEDS AND HAD TO INVENT — ROADMAP #275 and #277.
+ *
+ * Both are FACTS-ARE-GLOBAL: one implementation here, and every caller asks it. Neither adds a
+ * feature, neither is read by `featuresFor`, and `data/policy-weights.json` keeps its meaning.
+ * ------------------------------------------------------------------------------------------ */
+const bodyCounters = { stallStreakUp: 0, stallStreakReset: 0, choiceLockFromFormat: 0,
+                       choiceLockFromTag: 0, choiceLockNoSource: 0,
+                       speedSideFromFormat: 0, speedSideFromTag: 0, speedSideUnknown: 0,
+                       speedSideTagThrew: 0, speedSideTagThrewFirst: null,
+                       tagReadThrew: 0, tagReadThrewFirst: null };
+
+/* WHICH SIDE CONDITION MULTIPLIES SPEED, and WHICH FIELD KEY IS THE ROOM — ROADMAP #275.
+ *
+ * Seven callers built a leaf field by hand with `hasSide(side,'tailwind') ? 4 : 0` and
+ * `hasField('trickroom') ? 5 : 0` — seven copies of one fact, all of them saying that a Tailwind with
+ * one turn left has four. `rollout_leaf.applyFieldClock` reads the remainder off this board instead,
+ * and it needs the two KEYS without being handed a dex (the gate builds boards that have never scored
+ * a feature). Same three-tier shape as `permanentSide` one screen up, and counted at every tier:
+ *
+ *   1. `derived()`'s `speedSide` — the side conditions whose dex condition declares an `onModifySpe`
+ *      handler. Nothing is named, and the multiplier is asked of the handler rather than assumed.
+ *   2. the tag artifact's `doublesSideSpeed`, which answers with no dex at all. The move id IS the
+ *      side-condition key for this family, the same identity `applySideState` already relies on for
+ *      the screens.
+ *   3. nothing, counted — never a typed name.
+ *
+ * The room is `GAME_RULES.trickRoomField`, which is already the declared irreducible above and is
+ * already what `featuresFor` and `movesFirst` ask; this is an accessor so the leaf reads the same
+ * one rather than spelling it a second time. */
+function speedSideKeys() {
+  if (_derived && _derived.speedSide && _derived.speedSide.size) {
+    bodyCounters.speedSideFromFormat++;
+    return Array.from(_derived.speedSide.keys());
+  }
+  const T = tagsMod();
+  try {
+    const ids = (T && T.withTag ? T.withTag('move', 'doublesSideSpeed') : []) || [];
+    if (ids.length) { bodyCounters.speedSideFromTag++; return ids.map(norm); }
+  } catch (e) {
+    /* IT SPEAKS. An empty answer here seeds every Tailwind as ZERO, which looks exactly like a
+     * position with no Tailwind on it — the silent default this whole batch is made of. */
+    bodyCounters.speedSideTagThrew++;
+    if (!bodyCounters.speedSideTagThrewFirst) bodyCounters.speedSideTagThrewFirst = String((e && e.message) || e);
+  }
+  bodyCounters.speedSideUnknown++;
+  return [];
+}
+const roomFieldKey = () => GAME_RULES.trickRoomField;
+
+/* WHICH MOVE A CHOICE ITEM HAS LOCKED THIS BODY INTO, or null — ROADMAP #277.
+ *
+ * This expression lived inside `candidates()` and nowhere else, so the fitter's choice set knew about
+ * the lock and THE PLAYOUT DID NOT: `medicham2` reads `_lock` / `_lockT` and the seed wrote neither,
+ * so every scarfed body in every rollout was free to click all four of its moves and the search
+ * planned turns the game would refuse. The roadmap row called the lock "not on the board at all",
+ * which is true of the FIELD and not of the FACT — the board holds both halves already.
+ *
+ * TURN ONE IS FREE AND NEEDS NO COUNTER. `switchIn` starts every arrival with `lastMove: ''` and
+ * `endTurn` fills it only once the body has actually moved, so `lastMove` already means "has this
+ * thing moved since it arrived" — and a switch out and back in empties it again, which is the real
+ * rule (`medicham2` clears `_lock` on switch-out for the same reason).
+ *
+ * THE ITEM IS THE ACCESSOR'S (ROADMAP #271), so a Choice item that has been knocked off or tricked
+ * away stops locking the instant the board hears about it — which is also what the engine does, and
+ * it re-reads the item itself when it consumes `_lock`, so a disagreement here fails safe.
+ *
+ * DERIVED FROM THE FORMAT WHERE THERE IS ONE, AND FROM THE TAG WHERE THERE IS NOT. `isChoice` is the
+ * dex's own flag; `choiceLock` is the item tag `medicham2.lockMenuMove` itself asks. Measured over
+ * this regulation the two sets are identical, and asking both means neither can go quietly empty. */
+function choiceLockOn(mon, dex) {
+  const last = norm(mon && mon.lastMove || '');
+  if (!last) return null;
+  const id = norm(mon.item || '');
+  if (!id) return null;
+  const it = dex && dex.items && dex.items.get(id);
+  if (it && it.exists) { bodyCounters.choiceLockFromFormat++; return it.isChoice ? last : null; }
+  if (tagHasKind('item', id, 'choiceLock')) { bodyCounters.choiceLockFromTag++; return last; }
+  bodyCounters.choiceLockNoSource++;
+  return null;
+}
+
 /* WHAT IS AIMED AT ME. For each living foe, the hardest its usage-listed moves could hit this
  * Pokemon, as a share of my maximum hp.
  *
@@ -2118,6 +2200,19 @@ function tagsMod() {
   return _TAGS;
 }
 const tagHas = (id, tag) => { const T = tagsMod(); try { return !!(T && T.has('move', id, tag)); } catch (e) { return false; } };
+/* The same read for a kind other than `move`. `tagHas` above is the move-only shorthand this file was
+ * written with; the item tags (ROADMAP #277's choice lock) need the kind, and one loader serves both. */
+/* IT SPEAKS, unlike its move-only sibling above: a `false` here is indistinguishable from "this item
+ * carries no such tag", which for the choice lock means silently unlocking every locked body. */
+const tagHasKind = (kind, id, tag) => {
+  const T = tagsMod();
+  try { return !!(T && T.has(kind, id, tag)); }
+  catch (e) {
+    bodyCounters.tagReadThrew++;
+    if (!bodyCounters.tagReadThrewFirst) bodyCounters.tagReadThrewFirst = `${kind}/${id}/${tag}: ${(e && e.message) || e}`;
+    return false;
+  }
+};
 const tagParam = (id, tag) => { const T = tagsMod(); try { return (T && T.param('move', id, tag)) || null; } catch (e) { return null; } };
 
 /* WHAT SHARE OF THE INCOMING DAMAGE IS PHYSICAL (or Special). A screen that halves Physical is
@@ -3035,6 +3130,36 @@ function noteMove(board, side, user, move, worked, opts) {
    * field's own note in `switchIn` for why this is not `turnsActive`. */
   user.moveActs = (user.moveActs | 0) + 1;
   if (move && move.stallingMove) user.stalledThisTurn = true;
+  /* HOW MANY TIMES IN A ROW THIS BODY HAS RAISED A SHIELD — ROADMAP #277, and it is booked HERE
+   * because this function is the one place a move is known to have happened on EITHER side.
+   *
+   * MEDICHAM fails a repeated shield with probability 1/(3*3^(n-1)) and a rollout builds fresh bodies,
+   * so a seeded body has protected zero times and Protect is free in every playout — the behaviour
+   * Will watched ("WAY TOO MUCH PROTECTIGN") while the engine held the correct rule the whole time.
+   * `rollout_leaf.buildSide` already seeded `tookProtectTurns` from a map the LIVE BOT kept, and that
+   * map is gated `if (mine)` in `mag_bot.js`: the OPPONENT's consecutive Protects were never counted
+   * at all, so the search priced the foe's shield as certain every single turn. It is also caller
+   * state, which means the fitter's board and the offline harnesses had no count either.
+   *
+   * A counter here serves both sides and both worlds, and it needs no new event: `magnemite.js:626`
+   * calls this on every `|move|` line from EITHER side, and every offline replay calls it too.
+   *
+   * THE FEEDING SET IS THE ENGINE'S, NOT A LIST. `stallingMove` is the dex's own flag for the shield
+   * family (the same flag `stalledThisTurn` above and `deadStall` already read), and the two side
+   * guards feed the same counter in the authority without being stalling moves — which the engine
+   * reads off the `stallCounterFeeds` tag rather than off a name. Both are asked here, so a member
+   * arriving in either source is picked up with no edit.
+   *
+   * IT IS NOT A FEATURE AND MUST NOT BECOME ONE. Nothing in `featuresFor` reads it; it is a fact
+   * inside the PLAYOUT, seeded by `rollout_leaf`, exactly as `moveActs` above is. Resetting on any
+   * other move is Showdown's own rule (the `stall` volatile lapses the turn a stalling move is not
+   * used), and a switch-out resets it for free because `switchIn` builds a new body. */
+  if (move) {
+    const stalls = !!move.stallingMove || (move.id ? tagHas(norm(move.id), 'stallCounterFeeds') : false);
+    if (stalls) { user.protectStreak = (user.protectStreak | 0) + 1; bodyCounters.stallStreakUp++; }
+    else if (user.protectStreak) { user.protectStreak = 0; bodyCounters.stallStreakReset++; }
+    else user.protectStreak = 0;
+  }
   /* ---- PP IS SPENT HERE, ABOVE THE `worked` GATE, AND THE POSITION IS THE MECHANIC ------------
    *
    * `worked` is the caller's judgement that the move RESOLVED — offline "the setter is not already
@@ -3824,18 +3949,18 @@ function candidates(moves, user, board, side, dex) {
    * `lastMove` already means "has this thing moved since it arrived". Switch out and back in and it
    * is empty again -- correct by construction.
    *
-   * DERIVED, NOT LISTED: the dex flags choiceband, choicespecs and choicescarf with `isChoice`, so
-   * nothing is named here and a future item is picked up with no edit. Protect goes with the rest,
-   * because a locked Pokemon cannot click it either.
+   * DERIVED, NOT LISTED: the dex flags the Choice items with `isChoice`, so nothing is named here and
+   * a future item is picked up with no edit. Protect goes with the rest, because a locked Pokemon
+   * cannot click it either.
    *
    * Switches are added further down and are deliberately NOT filtered: leaving is always legal, and
-   * being locked into a bad move is one of the strongest reasons to do it. */
-  const lockedTo = (() => {
-    const last = norm(user && user.lastMove || '');
-    if (!last) return null;                       // just arrived, or has not moved yet
-    const it = dex && dex.items && dex.items.get(norm(user.item || ''));
-    return (it && it.exists && it.isChoice) ? last : null;
-  })();
+   * being locked into a bad move is one of the strongest reasons to do it.
+   *
+   * ROADMAP #277 — THE EXPRESSION MOVED OUT AND THE ANSWER DID NOT. It sat inline here and nowhere
+   * else, so the fit knew about the lock and the PLAYOUT SEED did not. `choiceLockOn` is now the one
+   * implementation and `rollout_leaf` asks the same one; with a dex in hand it is the identical
+   * expression this line held. */
+  const lockedTo = choiceLockOn(user, dex);
   if (lockedTo) {
     const kept = moves.filter(mv => norm(mv) === lockedTo);
     /* Only narrow when the locked move is actually in the list. If it is missing -- a sheet that
@@ -4070,6 +4195,11 @@ const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDE
    * permanence without a dex to ask, which is the silent-default shape this repository keeps
    * finding, and `layerCeilingUnknown` means a hazard is being clamped to one layer by ignorance
    * rather than by the tag. */
-  ppCounters, sideCounters, PP: _PP };
+  /* ROADMAP #275 and #277. `speedSideKeys` and `roomFieldKey` exist so the playout seed can read the
+   * two clocks the callers were typing as 4 and 5 without spelling either key a second time;
+   * `choiceLockOn` is the one implementation of the lock that `candidates()` and the seed both ask.
+   * `bodyCounters` is the proof-of-firing surface for all three, and `speedSideUnknown` counting up
+   * means the seed is reading a Tailwind key from neither the format nor the tag. */
+  ppCounters, sideCounters, bodyCounters, speedSideKeys, roomFieldKey, choiceLockOn, PP: _PP };
 if (typeof module !== 'undefined' && module.exports) module.exports = _EXPORTS;
 if (typeof globalThis !== 'undefined') globalThis.BOARD = _EXPORTS;

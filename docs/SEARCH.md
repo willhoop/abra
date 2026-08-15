@@ -28,17 +28,228 @@ SEARCH — does MILTANK choose better than MAG
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-14 03:19):
+  runs vs engine (newest engine source: engine/board.js 2026-08-14 23:05):
+    PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
+    PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
+    PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
+    PRE-CHANGE games.r4a-switching.jsonl  2026-08-14 04:34
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
-    PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-03 22:36
-    PRE-CHANGE games.r4.jsonl  2026-08-03 22:33
-    PRE-CHANGE games.r4-baseline.jsonl  2026-08-03 21:22
-    PRE-CHANGE games.r4-smoke.jsonl  2026-08-03 20:45
 ```
 
-_stamped 2026-08-14 03:31_
+_stamped 2026-08-14 23:12_
 
 <!-- /GENERATED -->
+
+## R18 — THE LAST CONSTANTS AND THE LAST VOLATILES. #275 LANDED **UNMEASURED**, #277 WORKED. 2026-08-14.
+
+ROADMAP **#275 landed and #277 worked**; **#282 opened** by what the work found. Gate:
+**`tests/test-seed-clock.js`**, 63 assertions → **119**, shown **RED on four separate deliberate
+breaks**. **No artifact was written and no run was launched — see the verdict.**
+
+### The verdict in one line, and the first half of it is a caveat
+
+**Eight callers typed a Tailwind as four turns whatever was left on it and the leaf reads the real
+remainder now — and NOTHING HERE SAYS THAT CHOOSES BETTER. #275 is IMPLEMENTED AND UNMEASURED, it
+owes its own arm, and it changes the seeded speed order of a live search in eight places at once.**
+
+The half that is not a caveat: **three of #277's six volatiles are carried, three are refused BY
+NAME, the choice lock turns out to have existed inside `board.candidates()` the whole time and never
+to have reached a playout, and the FOE's Protect streak is counted for the first time.**
+
+### #275 — one read at the leaf, and the eight copies are gone
+
+| | |
+|---|---|
+| what the callers said | `twA: hasSide(side,'tailwind') ? 4 : 0`, `tr: hasField('trickroom') ? 5 : 0` |
+| where | `miltank.js` ×2, `rollout_r1/r2/r3.js`, `rollout_switch_probe.js`, `leaf_position_contrast.js`, `argmax_paired.js` — **eight sites in seven files**, counted rather than quoted: the row said seven, and R17's own harness had grown the eighth while R16 was writing it. (`rollout_r4.js` builds no field of its own, so "the four R-gates" is three.) |
+| what the position says | `board.sideLeft` / `board.fieldLeft`, on the board since #249 |
+| the fix | `rollout_leaf.applySpeedClocks`, called from `applyFieldClock`, **overwriting** the caller |
+
+**IT IS ONE READ AT THE LEAF AND NOT EIGHT EDITS, which is the whole shape of the row.** Only
+`miltank.js`'s two copies were deleted; the other six are now inert, and the ninth caller that gets
+written tomorrow is correct without knowing this row exists.
+
+**NEITHER KEY IS SPELLED THERE.** `board.speedSideKeys()` answers from `derived()`'s `speedSide` —
+the side conditions whose dex condition declares an `onModifySpe` handler — and falls back to the
+`doublesSideSpeed` tag on a board that has never scored a feature, counted at both tiers, which is
+`permanentSide`'s three-tier shape from #268. `board.roomFieldKey()` is the declared irreducible
+`GAME_RULES` already held, so the room is not spelled a second time either.
+
+**AN INFINITE REMAINDER IS REFUSED AND COUNTED.** `sideLeft` returns `Infinity` for a permanent side
+condition (#268) and the engine's tick is `if (field[k] > 0 && --field[k] <= 0)` — so handing over
+Infinity would be this row's own bug with the sign flipped. Nothing in this family is permanent
+today; the guard costs nothing and its alternative failure is silent.
+
+### AND IT IS UNMEASURED. SAID PLAINLY, BECAUSE THE ROW ITSELF WARNED ABOUT THIS
+
+The register's own note on #275: *"it changes the seeded speed order of a live search in seven
+callers at once, so it owes its own arm rather than a free ride."* **That arm was not run and could
+not be.** Writing agents were live in the tree all evening, which is the rule that cost this project
+7,100 games, and every downstream figure is quarantined behind MEDICHAM in any case. R17 is the
+instrument this owes — a paired argmax run under common random numbers — and it is a hand-over, not
+something to start beside three other agents.
+
+So: **a Tailwind with one turn left is now seeded with one turn instead of four, the search sees a
+different speed order, and whether it picks better is an open question with no number against it.**
+
+### #277 — three carried, three refused by name
+
+| volatile | verdict | why |
+|---|---|---|
+| **`healblock`** | **CARRIED** → `_healBlock` | pure vocabulary. `_vol.healblock` is read by NOTHING (`medicham2-browser.js:10160`); the consumer is `_healBlock` (`healBlocked`, `:3659`) |
+| **`throatchop`** | **CARRIED** → `_noSound` | same shape, same tick (`:20859` beside `_healBlock`'s `:20854` and `_vol`'s `:20937`) |
+| **the CHOICE LOCK** | **CARRIED** → `_lock` + `_lockT: Infinity` | it was never missing — see below |
+| `substitute` | **REFUSED** | `_sub` is the doll's REMAINING hp and the wire never states it |
+| `leechseed` | **REFUSED** | `_seededBy` is a body reference — **and the board cannot hold it either**: the move declares no `condition.duration`, so the adapter's table falls back to 3 and the board forgets a seed the real game keeps until the body leaves |
+| `perishsong` | **REFUSED** | **the two counters are OFF BY ONE, measured** — see below |
+
+`rollout_leaf.unseededVolatiles()` prints all three refusals with their reasons on every gate run,
+and the gate asserts each one still carries one. A silent omission and a considered one look
+identical in the code; that is why they are printed rather than deleted.
+
+**THE PERISH REFUSAL IS A MEASUREMENT, NOT A PREFERENCE, AND IT IS STRONGER THAN THE ROW'S.** The row
+said the engine clears `_perish` on switch-out, so seeding it would put that rule in two places. True,
+and not the blocker. The blocker is arithmetic: `magnemite.js:548` reads the count straight off the
+wire's own name (`perish3` → three board turns), while the engine holds `_perish = 4` at that instant
+(`:15551` announces `perish` + `tn-1`) and kills at the end of the turn it reaches 0. So **the board
+reads ZERO on the very turn the body dies.** A seed would end the count a turn early or drop the
+lethal turn outright, and the repair is in the live adapter, which is not SEARCH's.
+
+**THE TRANSLATION IS A DECLARED JOIN AND THE GATE CHECKS BOTH HALVES.** `VOL_ENGINE_FIELD` sits
+beside `VOL_MOVE_FIELD` for the reason #269 gives: no data field states which engine field a protocol
+volatile lands in. So the gate asserts the KEY is the format's own condition NAME — which is the word
+the wire carries and `magnemite.js` normalises — and that the FIELD still appears in the engine as a
+read. A name that stops existing fails loudly instead of going inert, which is exactly what
+`_vol.healblock` did.
+
+**AND THE PAIR IS WRITTEN ABOVE THE `_vol` TABLE, NOT BESIDE IT.** Writing both would leave a
+consumer-less duplicate on the body — the duplicate the engine refuses at its own owner for
+Substitute and confusion — and the roster differential compares `_vol`, so it would read as a
+divergence that is really a copy.
+
+### THE CHOICE LOCK WAS NOT MISSING. IT WAS PRIVATE, AND THAT IS THE FINDING
+
+The row called it *"not on the board at all"*. The FIELD was not; the FACT was, and had been since
+2026-07-31. `board.candidates()` held this inline and nowhere else:
+
+```js
+const lockedTo = (() => {
+  const last = norm(user && user.lastMove || '');
+  if (!last) return null;
+  const it = dex && dex.items && dex.items.get(norm(user.item || ''));
+  return (it && it.exists && it.isChoice) ? last : null;
+})();
+```
+
+So **the FIT knew a locked body had one legal move and the PLAYOUT did not**: every locked body in
+every rollout this project has ever run was offered all four of its moves, and the search planned
+turns the game refuses. It is now `board.choiceLockOn(mon, dex)`, asked by `candidates()` and by the
+seed — FACTS ARE GLOBAL, one implementation.
+
+Only **one** Choice item is legal in this regulation and the two sources that name it — the dex's
+`isChoice` and the item tag `medicham2.lockMenuMove` itself reads — agree exactly, so both are asked
+and neither can go quietly empty.
+
+### THE FOE'S PROTECT STREAK, WHICH WAS CALLER STATE AND IS NOW A FACT
+
+`mag_bot.js` counts consecutive Protects off the wire and gates it `if (mine)`. So **the opponent's
+shield was priced as certain on every turn of every game** — while the engine has had the correct
+1/(3·3ⁿ⁻¹) rule the whole time — and the fitter's board and every offline harness had no count at
+all, because only the live bot kept one.
+
+The counter is `board.noteMove`'s now: it already read `move.stallingMove`, it is called on every
+`|move|` line from BOTH sides (`magnemite.js:626`) and by every offline replay, and the feeding set is
+the dex's own flag plus the engine's `stallCounterFeeds` tag rather than a list. A switch clears it
+for free, because `switchIn` builds a new body — the species-keyed map could not do that and would
+have carried the count back in. The map survives only as a counted fallback for a body the board has
+never seen move.
+
+### IS THE FIT INVALIDATED? NO — AND IT WAS CHECKED, NOT ARGUED
+
+`engine/feature_fixture.js` hashes every feature's column separately over the frozen scenario boards,
+precisely so a changed MEANING under an unchanged NAME is visible.
+
+| | |
+|---|---|
+| 58 per-feature column hashes, with the change | **byte-identical** to a run against a deliberate break restoring the old inline lock and removing the streak write |
+| the shared lock vs the dex's own `isChoice`, over every legal item | **148 items, 0 disagreements** — and `lastMove` + item are the WHOLE input to `candidates()` |
+| `board.js FEATURES` vs the fitted vector | 58 / 58 (`tests/test-rollout-switch.js`) |
+
+Nothing here adds a feature and nothing is read by `featuresFor`. **No refit is owed by either row.**
+#276 — the board's own weather never expiring for the features — is the one that owes one, and it was
+deliberately not touched: Will's ruling is that the refit waits for MEDICHAM.
+
+### The proof, red first — four breaks, four attributable reds
+
+| deliberate break | result |
+|---|---|
+| `applySpeedClocks` returns immediately | **9 FAIL** — including the CONTROL, which is what says the arms cannot pass by zeroing both fields |
+| the `VOL_ENGINE_FIELD` branch disabled | **4 FAIL**, one of them the behavioural arm: the silenced body clicked its sound move |
+| `choiceLockOn` returns null | **4 FAIL**, one of them behavioural: the locked body's other move came back onto the menu |
+| the streak write removed from `noteMove` | **5 FAIL** |
+
+After: **119 passed, 0 failed.**
+
+**TWO ARMS ARE BEHAVIOURAL, BECAUSE READING THE FIELD BACK WOULD ONLY PROVE THE SEED WROTE WHAT THE
+SEED WROTE.** A seeded sound lock must REFUSE the sound click, and a seeded choice lock must REMOVE
+the other move from the menu over six different dice. **The sound-lock fixture is CONSTRUCTED, not
+found**: the first version handed one species one sound move, the unsilenced control declined to click
+it, and a control that does not fire proves nothing — so every (species, sound move) pair in the pool
+is tried until the control actually clicks.
+
+**The #275 arms are STATE reads and the file says so.** The engine consumes `field.twA` and
+`field.tr` in its own speed sort and residual tick; what the seed produces is exactly those two
+numbers and there is no observable between them. The caller deliberately passes the OLD constants in
+every one of those arms, so a green row can only mean the board overruled it —
+`twCallerDiffered` counts the overrides and the gate fails on a zero.
+
+### #282 — FILED, NOT FIXED: the live adapter reads a duration off a move this format does not have
+
+`engine/magnemite.js:130` walks `dex.moves.all()` and skips only `!m.exists` — **no `isNonstandard`
+filter**, the exact walk CLAUDE.md names. The move sharing the heal-block volatile's name is
+`isNonstandard: 'Past'` with `condition.duration: 5`, while this regulation's only carrier declares
+**2** through its `blocksHealing` tag, matching Showdown's own `durationCallback`. So the live board
+records that volatile as five turns where the game says two — and since #277 the seed carries that
+number into the playout.
+
+It is filed rather than fixed for two reasons: `magnemite.js` is the live adapter and not SEARCH's,
+and **the repair is not just adding the filter** — with the illegal row gone the table has no entry at
+all and the fallback is a bare 3, so the duration has to come from the tag the engine already reads.
+The seed carries whatever the board holds, and this says so out loud rather than quietly compensating.
+
+### What was deliberately NOT done
+
+- **NO HEAD-TO-HEAD WAS PREPARED OR LAUNCHED, AND #275 IS UNMEASURED.** Writing agents were live in
+  the tree; a rollout measurement against the live tree is void by the rule that cost 7,100 games.
+  Checked rather than assumed: no self-play or `mew.js` process was running while this landed.
+- **#276 WAS NOT TOUCHED.** It moves fitted feature values, and the refit is gated behind MEDICHAM by
+  Will's own instruction.
+- **NO REFIT WAS RUN AND NONE IS OWED BY THESE ROWS**, measured above rather than asserted.
+- **`engine/medicham2-browser.js`, `engine/magnemite.js` and `engine/mag_bot.js` WERE NOT EDITED.**
+  The Protect streak was derivable inside `board.js`, which is what made that possible — the brief
+  allowed `mag_bot.js` and it turned out not to be needed, because the fix was to STOP reading caller
+  state rather than to extend it.
+- **The other six callers' dead constants were left in place.** They are inert and correcting them
+  would mean editing four quarantined R-gates and two probes for no behavioural change.
+
+### Adjacent gates, run and reported
+
+Green, each read off its own output: `tests/test-seed-clock.js` (119/119),
+`tests/test-rollout-seed.js` (48/48), `tests/test-seed-residue.js` (20/20),
+`tests/test-rollout-fallen.js` (28/28), `tests/test-rollout-switch.js` (16/16),
+`tests/test-rollout-gates.js` (16/16), `tests/test-pp-fact.js` (33/33),
+`tests/test-feature-semantics.js` (18/18), `tests/test-hazard-side.js` (11/11),
+`tests/test-switch-carry.js` (27/27), `tests/test-board-browser.js` (14/14, 58 of 58 features agree),
+`tests/test-engine-consistency.js`, `tests/test-switch-features.js`, `tests/test-forced-switch.js`,
+`tests/test-wiring.js` (*"every capability proved it ran"*), `tests/test-miltank-release.js` (25/25).
+
+`tests/test-rollout-switch.js` and `tests/test-pp-fact.js` are the real control again: both assert
+exact, dice-for-dice win probabilities, which is only possible if a board with no Tailwind, no room,
+no translated volatile and no lock is byte-identical to what it was.
+
+**`engine/miltank.js` reports `OFF_RELEASE` and that is correct rather than a failure** — `board.js`
+has moved since the last release was cut, which is what the stamp exists to say. Nothing here was
+measured through a release, and the next measurement needs a fresh cut.
 
 ## R17 — THE PAIRED ARGMAX RUN. REACH BECOMES EFFECT, AND IT IS 47.3%. 2026-08-14.
 

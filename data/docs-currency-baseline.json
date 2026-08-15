@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-14T00:44:29.346Z",
+  "generated": "2026-08-15T03:11:13.624Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.18.0",
+  "changelog_top_at_baseline": "5.28.0",
   "version_pins": {
     "docs/ABRA-deck-plain-english.md": {
       "version": "3.98.0",
@@ -283,7 +283,7 @@
     ],
     "untraceable_by_doc": {
       "docs/ABRA-technical-docs.md": 2,
-      "docs/ABRA-whitepaper.md": 12,
+      "docs/ABRA-whitepaper.md": 11,
       "docs/ARCHITECTURE.md": 1,
       "docs/MEDICHAM-SPRINT-NOTES.md": 25,
       "docs/MODELS.md": 15,

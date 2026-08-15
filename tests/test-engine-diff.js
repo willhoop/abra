@@ -725,7 +725,20 @@ if (bad.length) {
  * demonstration cannot be mistaken for a measurement by anything that reads `data/engine-diff.json` —
  * which is `engine/quarantine.js` and `engine/status.js`. Declared rather than trusted to a habit. */
 const OUT_NAME = PLANT ? 'engine-diff-PLANTED-' + PLANT + '.json' : 'engine-diff.json';
-fs.writeFileSync(D('data', OUT_NAME), JSON.stringify({
+/* ROADMAP #257 — A VERIFICATION RUN MAY NOT REPUBLISH A SMALLER MEASUREMENT.
+ *
+ * This write used to be an unconditional `fs.writeFileSync`, so `--n 150` typed as a quick check
+ * replaced a 6,000-comparison published result with a 150-comparison one and orphaned every document
+ * citing it. The register row's stated mitigation — "pass --out or omit --write" — was measured to be
+ * a no-op: this file has neither flag. So the protection is a MECHANISM rather than a habit.
+ * engine/publish_guard.js refuses the shrink, writes this run to data/verification/ instead so nothing
+ * is lost, and sets a non-zero exit code so a refused run cannot read as a pass. */
+const GUARD = require(D('engine', 'publish_guard.js'));
+const PUBLISHED = GUARD.publish({
+  file: D('data', OUT_NAME),
+  sampleKey: 'compared',
+  what: 'the damage differential (' + OUT_NAME + ')',
+  artifact: {
   generated: new Date().toISOString(), by: 'tests/test-engine-diff.js',
   design: 'Showdown is the authority. Same attacker, move and defender through both engines; a '
         + 'disagreement is a MEDICHAM bug, including one nobody thought to look for.',
@@ -767,8 +780,15 @@ fs.writeFileSync(D('data', OUT_NAME), JSON.stringify({
           + 'applyIntimidate; and the defender ability\'s onTryHit is asked directly, because '
           + 'Showdown\'s moveHit entry point does not run it.',
   touched,
-}, null, 2) + '\n');
-console.log('\n  wrote data/' + OUT_NAME
+  },
+});
+/* THE THREE CONFORMANCE SECTIONS BELOW AMEND THE FILE THIS RUN ACTUALLY WROTE, NOT A FIXED PATH.
+ * They each used to re-read `data/engine-diff.json` by name and write it back — so a `--plant` run,
+ * which goes out of its way to write beside the artifact rather than over it, stamped three sections
+ * onto the published artifact anyway, and a REFUSED run would amend the file it had just been refused
+ * permission to touch. */
+const ART_PATH = PUBLISHED.path;
+console.log('\n  wrote ' + require('path').relative(D('.'), ART_PATH).replace(/\\/g, '/')
   + (PLANT ? '   (PLANTED — data/engine-diff.json was NOT touched)' : ''));
 
 /* ---- WIRE 124 — THE ACCURACY TABLE, CHECKED AGAINST THE FORMAT RATHER THAN REMEMBERED -----------
@@ -808,11 +828,10 @@ console.log('\n  wrote data/' + OUT_NAME
     console.log(`    ${b.move.padEnd(20)} medicham ${String(b.medicham).padStart(4)}   `
       + `showdown ${String(b.showdown).padStart(4)}   (${b.uses} uses)`);
   }
-  const diffPath = D('data', 'engine-diff.json');
-  const art = JSON.parse(fs.readFileSync(diffPath, 'utf8'));
-  art.accuracy_conformance = { compared: accCompared, disagreed: accBad.length,
-                               unknown_accuracy: unknown, worst: accBad.slice(0, 20) };
-  fs.writeFileSync(diffPath, JSON.stringify(art, null, 2) + '\n');
+  GUARD.amend(ART_PATH, 'compared', (art) => {
+    art.accuracy_conformance = { compared: accCompared, disagreed: accBad.length,
+                                 unknown_accuracy: unknown, worst: accBad.slice(0, 20) };
+  });
   if (accBad.length || unknown) {
     console.log('\n  FAILED: the accuracy table no longer matches the format. Either data/move-effects.js');
     console.log('  moved under the engine, or ACC_FIX in engine/medicham2-browser.js needs a row — and');
@@ -933,13 +952,10 @@ console.log('\n  wrote data/' + OUT_NAME
   const untabled = (MEDI.fails && MEDI.fails.accModUntabled) || 0;
   console.log(`    carriers the artifact tags and ACCMOD has no row for (MEDFAILS.accModUntabled): `
     + `${untabled}${untabled ? '   first: ' + MEDI.fails.accModUntabledFirst : ''}`);
-  {
-    const diffPath = D('data', 'engine-diff.json');
-    const art = JSON.parse(fs.readFileSync(diffPath, 'utf8'));
+  GUARD.amend(ART_PATH, 'compared', (art) => {
     art.accuracy_modifier_conformance = { handlers: derived.size, rows: Object.keys(T).length,
                                           disagreed: bad.length, problems: bad };
-    fs.writeFileSync(diffPath, JSON.stringify(art, null, 2) + '\n');
-  }
+  });
   if (bad.length) {
     console.log('\n  FAILED: ACCMOD no longer matches the format. A wrong DIRECTION here is silent and');
     console.log('  expensive — it hands the attacker the defender\'s evasion bonus and vice versa,');
@@ -979,13 +995,10 @@ console.log('\n  wrote data/' + OUT_NAME
     console.log(`    !! MISSING  ${r.id.padEnd(20)} bypasses a substitute in the real game  (${r.uses} uses)`);
   for (const r of extra.sort((a, b) => b.uses - a.uses).slice(0, 20))
     console.log(`    !! EXTRA    ${r.id.padEnd(20)} does NOT bypass, and the engine lets it through  (${r.uses} uses)`);
-  {
-    const diffPath = D('data', 'engine-diff.json');
-    const art = JSON.parse(fs.readFileSync(diffPath, 'utf8'));
+  GUARD.amend(ART_PATH, 'compared', (art) => {
     art.substitute_bypass_conformance = { compared: considered, inSet: SUBPASS.size,
                                           missing, extra };
-    fs.writeFileSync(diffPath, JSON.stringify(art, null, 2) + '\n');
-  }
+  });
   if (missing.length || extra.length) {
     console.log('\n  FAILED: SUBPASS no longer matches the format. A move MISSING from it is silently');
     console.log('  blocked by every substitute in every rollout, and Encore/Taunt/Disable are the ones');

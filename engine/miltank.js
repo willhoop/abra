@@ -832,9 +832,12 @@ function install(bot, o) {
              * where the terrain is often exactly the point (who is safe to send into Electric
              * Terrain). One call, same helper, no map in this file. */
             weather: this.board.weather || '', terrain: RL.terrainOnBoard(this.board),
-            tr: this.board.hasField('trickroom') ? 5 : 0,
-            twA: this.board.hasSide(side, 'tailwind') ? 4 : 0,
-            twB: this.board.hasSide(side === 'p1' ? 'p2' : 'p1', 'tailwind') ? 4 : 0,
+            /* ROADMAP #275 — TAILWIND AND TRICK ROOM ARE NO LONGER TYPED HERE. These two lines read
+             * `hasSide(side,'tailwind') ? 4 : 0` and `hasField('trickroom') ? 5 : 0`, so a Tailwind
+             * with one turn left was seeded with four and the search believed it outran the foe for
+             * three turns it did not have. Eight callers held the same two literals. The remainder is
+             * on the board and `rollout_leaf.applyFieldClock` reads it there — one implementation, so
+             * this file cannot drift from the other seven. */
           };
           const replSeed = (Date.now() & 0xffff) * 6151 + 17;
           const scored = [];
@@ -1028,9 +1031,10 @@ function install(bot, o) {
              * reached the leaf with a terrain. `RL.terrainOnBoard` probes the board's own keys and
              * translates with `MEDI.terrainId`; no map lives in this file. */
             terrain: RL.terrainOnBoard(board),
-            tr: board.hasField('trickroom') ? 5 : 0,
-            twA: board.hasSide(side, 'tailwind') ? 4 : 0,
-            twB: board.hasSide(side === 'p1' ? 'p2' : 'p1', 'tailwind') ? 4 : 0,
+            /* ROADMAP #275 — the same two clocks, read at the leaf. See the note at the replacement
+             * search's field object: the caller's constant was `4` and `5` whatever was left on them,
+             * and `rollout_leaf.applyFieldClock` now reads `sideLeft`/`fieldLeft` off this board for
+             * all eight callers at once. */
           };
           /* THE CANDIDATE SHAPE HERE IS MAGNEMITE'S, NOT BOARD.JS'S, and I used the wrong one.
            *

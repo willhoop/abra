@@ -826,7 +826,13 @@ function search() {
      * number, so a line printed from a clean artifact with a rotten stamp is a number nobody can
      * attribute. Both files gate the line, the same way `held` takes every file a line rests on. */
     let metaPath = null;
-    try { metaPath = require('./run_stamp.js').metaPathFor(file); } catch (e) { metaPath = null; }
+    /* ROADMAP #258 — NOT SILENT. `metaPathFor` is a pure path computation; if it throws, run_stamp is
+     * broken, and swallowing that meant the sidecar clause above simply stopped applying — every
+     * figure whose stamp is rotten would print as clean, which is the one thing this block exists to
+     * prevent. A quiet null here is indistinguishable from "this artifact has no sidecar". */
+    try { metaPath = require('./run_stamp.js').metaPathFor(file); }
+    catch (e) { console.error(`  run_stamp.metaPathFor(${file}) THREW: ${e.message} — the sidecar `
+      + 'clause cannot run for this figure, so its stamp is UNCHECKED rather than clean.'); }
     const u = unsafeFig(...[file, metaPath].filter(Boolean));
     if (u) { sayUnsafe(name, u); continue; }
     const d = j(file);

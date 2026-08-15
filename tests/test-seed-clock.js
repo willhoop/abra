@@ -88,6 +88,17 @@ function stood(bd) {
   bd.switchIn('p2', 'a', THEIRS[0]); bd.switchIn('p2', 'b', THEIRS[1]);
   return bd;
 }
+/* The leaf's own PRNG shape, local to this file: a behavioural arm that needs several DIFFERENT dice
+ * cannot use a constant, and `() => 0.5` picks the same branch every time. */
+const mulberryLocal = (seed) => {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+};
 const seedFrom = (bd, side, f) => {
   const A = RL.buildSide(bd, side, null, zero());
   const Bt = RL.buildSide(bd, side === 'p1' ? 'p2' : 'p1', null, zero());
@@ -461,6 +472,348 @@ const seedFrom = (bd, side, f) => {
 }
 
 /* ---------------------------------------------------------------------------------------------
+ * 4b. ROADMAP #275 — THE CALLER'S FIELD TYPED TWO CLOCKS AS CONSTANTS.
+ *
+ * `miltank.js` built `twA: hasSide(side,'tailwind') ? 4 : 0` and `tr: hasField('trickroom') ? 5 : 0`,
+ * and seven other callers built the same object with the same two literals — so a Tailwind with one
+ * turn left was seeded with four in every one of them. It is #270 in a different file: the position
+ * runs a clock and the seed hands over a constant.
+ *
+ * NEITHER KEY NOR DURATION IS TYPED HERE. The speed side condition comes from the `doublesSideSpeed`
+ * tag and the room from `reversesSpeed`; both durations come from the dex condition of the move that
+ * sets them; and `board.speedSideKeys()` / `board.roomFieldKey()` are asserted AGAINST the format
+ * rather than trusted, so a regulation that renames either fails here loudly.
+ * ------------------------------------------------------------------------------------------ */
+{
+  const legalMove = id => { const m = dex.moves.get(id); return m && m.exists && !m.isNonstandard ? m : null; };
+  const TWM = ((TAGS.withTag('move', 'doublesSideSpeed') || []).map(legalMove).filter(Boolean))[0];
+  const TRM = ((TAGS.withTag('move', 'reversesSpeed') || []).map(legalMove).filter(Boolean))[0];
+  ok(!!TWM, 'the speed-doubling side condition is derived from the tag, not named', TWM ? TWM.id : '-');
+  ok(!!TRM, 'the speed-reversing field is derived from the tag, not named', TRM ? TRM.id : '-');
+
+  if (TWM && TRM) {
+    const TWKEY = nrm(TWM.sideCondition || TWM.id), TWDUR = (TWM.condition && TWM.condition.duration) | 0;
+    const TRKEY = nrm(TRM.pseudoWeather || TRM.id), TRDUR = (TRM.condition && TRM.condition.duration) | 0;
+    ok(TWDUR > 1 && TRDUR > 1, 'both clocks have a real dex duration to run down',
+      `${TWKEY} ${TWDUR} / ${TRKEY} ${TRDUR}`);
+
+    /* THE BOARD ANSWERS WITH THE FORMAT'S OWN KEY, which is what lets the leaf read the remainder
+     * without spelling either word. A board that answered with a key the format does not use would
+     * seed zero on every position and look exactly like a position with no Tailwind on it. */
+    ok(typeof B.speedSideKeys === 'function' && B.speedSideKeys().includes(TWKEY),
+      'ROADMAP #275 — `board.speedSideKeys()` answers with the format\'s own side-condition key',
+      JSON.stringify(typeof B.speedSideKeys === 'function' ? B.speedSideKeys() : null));
+    ok(typeof B.roomFieldKey === 'function' && B.roomFieldKey() === TRKEY,
+      'ROADMAP #275 — the declared room key still matches the format',
+      `${typeof B.roomFieldKey === 'function' ? B.roomFieldKey() : '-'} vs ${TRKEY}`);
+
+    /* THE CALLER DELIBERATELY LIES IN EVERY ARM BELOW — it passes the old constants — so a green row
+     * can only mean the board overruled it. */
+    const CALLER = { twA: TWDUR, twB: TWDUR, tr: TRDUR };
+    const twAfter = (elapsed, sd) => {
+      const bd = stood(baseBoard());
+      bd.startSide(sd, TWKEY, TWDUR);
+      for (let i = 0; i < elapsed; i++) bd.endTurn();
+      return seedFrom(bd, 'p1', Object.assign({}, CALLER));
+    };
+    ok((twAfter(0, 'p1').field.twA | 0) === TWDUR,
+      'ROADMAP #275 — a Tailwind set this turn seeds its full remainder',
+      `twA ${twAfter(0, 'p1').field.twA} vs ${TWDUR}`);
+    ok((twAfter(2, 'p1').field.twA | 0) === TWDUR - 2,
+      'ROADMAP #275 — a Tailwind two turns old reaches the playout with what is LEFT, not with the constant',
+      `twA ${twAfter(2, 'p1').field.twA} vs caller ${TWDUR}`);
+    ok((twAfter(TWDUR, 'p1').field.twA | 0) === 0,
+      'ROADMAP #275 — an EXPIRED Tailwind is not carried, though the caller still types four',
+      `twA ${twAfter(TWDUR, 'p1').field.twA}`);
+
+    /* BOTH SEATS, for the reason #249's hazards are asserted from both: a swap between A and B
+     * cancels invisibly when only one side is ever tested, and side A is the ASKING side here. */
+    {
+      const bd = stood(baseBoard());
+      bd.startSide('p2', TWKEY, TWDUR); bd.endTurn();
+      const asP1 = seedFrom(bd, 'p1', Object.assign({}, CALLER));
+      const asP2 = seedFrom(bd, 'p2', Object.assign({}, CALLER));
+      ok((asP1.field.twB | 0) === TWDUR - 1 && (asP1.field.twA | 0) === 0,
+        'ROADMAP #275 — a FOE Tailwind lands on side B and not on mine',
+        `twA ${asP1.field.twA} twB ${asP1.field.twB}`);
+      ok((asP2.field.twA | 0) === TWDUR - 1 && (asP2.field.twB | 0) === 0,
+        'ROADMAP #275 — and the same board asked from the OTHER seat answers the mirror',
+        `twA ${asP2.field.twA} twB ${asP2.field.twB}`);
+    }
+
+    /* THE ROOM, which is the worse of the two: its number is a SPEED INVERSION rather than a
+     * multiplier, so a room the caller keeps alive reverses the order for the whole playout. */
+    {
+      const bd = stood(baseBoard());
+      bd.startField(TRKEY, TRDUR); bd.endTurn();
+      ok((seedFrom(bd, 'p1', Object.assign({}, CALLER)).field.tr | 0) === TRDUR - 1,
+        'ROADMAP #275 — a Trick Room one turn old seeds its remainder, not the constant',
+        `tr ${seedFrom(bd, 'p1', Object.assign({}, CALLER)).field.tr} vs caller ${TRDUR}`);
+      for (let i = 0; i < TRDUR; i++) bd.endTurn();
+      ok((seedFrom(bd, 'p1', Object.assign({}, CALLER)).field.tr | 0) === 0,
+        'ROADMAP #275 — and an expired room is gone, though the caller types five');
+    }
+
+    /* CONTROL — a board with NEITHER up seeds neither, whatever the caller says. Without this the
+     * arms above pass for a seed that simply zeroes both fields. */
+    {
+      const S = seedFrom(stood(baseBoard()), 'p1', Object.assign({}, CALLER));
+      ok(!(S.field.twA | 0) && !(S.field.twB | 0) && !(S.field.tr | 0),
+        'CONTROL — a bare board seeds no Tailwind and no room, whatever the caller passed',
+        `twA ${S.field.twA} twB ${S.field.twB} tr ${S.field.tr}`);
+    }
+    note('DECLARED — these are STATE reads, not behavioural arms:',
+      'the engine consumes `field.twA`/`field.tr` in its own speed sort and residual tick, and what ' +
+      'the seed produces is exactly those two numbers. There is no observable between them to read.');
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 4c. ROADMAP #277 — THE REMAINDER OF #269: THE TRANSLATED VOLATILES, THE CHOICE LOCK AND THE FOE'S
+ * PROTECT STREAK.
+ *
+ * #269 carried the three volatiles the engine's own `durationVolatiles()` table holds. Six more were
+ * declared UNSEEDED with a reason each. Three of those six are now carried and three are still
+ * refused BY NAME — `rollout_leaf.unseededVolatiles()` prints the refusals on every run, because a
+ * silent omission and a considered one look identical in the code.
+ * ------------------------------------------------------------------------------------------ */
+{
+  const ENGSRC = require('fs').readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
+  const JOIN = RL.VOL_ENGINE_FIELD || {};
+  ok(Object.keys(JOIN).length > 0, 'ROADMAP #277 — the seed declares a protocol-to-engine join',
+    JSON.stringify(JOIN));
+
+  /* THE VOCABULARY CHECK, BOTH HALVES. The KEY must be the word the wire carries (`magnemite.js`
+   * writes `norm` of the `-start` name, and the format's own condition carries that name), and the
+   * FIELD must be one the engine still reads — the exact mismatch `_vol.healblock` is. */
+  for (const [key, field] of Object.entries(JOIN)) {
+    const c = dex.conditions.get(key);
+    ok(!!(c && c.exists) && nrm(c.name) === key,
+      `ROADMAP #277 — \`${key}\` is the format's own word for this volatile, which is what the wire carries`,
+      c ? `${c.name} -> ${nrm(c.name)}` : 'no condition');
+    ok(ENGSRC.includes(field + '>0') || ENGSRC.includes(field + ' > 0'),
+      `ROADMAP #277 — and the engine still READS \`${field}\`, so this is not a write nobody consumes`);
+    ok(!(typeof RL.seedableVolatiles === 'function' && RL.seedableVolatiles().has(key)),
+      `ROADMAP #277 — \`${key}\` is not ALSO in the \`_vol\` table — one owner per effect`);
+  }
+
+  /* THE VALUE ARM: the board's remaining count reaches the engine's own field, and NOTHING is written
+   * into `_vol` beside it. The duration is the format's for that condition; what is under test is the
+   * pipe, not the number the live adapter chooses. */
+  for (const [key, field] of Object.entries(JOIN)) {
+    const c = dex.conditions.get(key);
+    const dur = Math.max(2, (c && c.duration) | 0);
+    const bd = stood(baseBoard());
+    bd.startVolatile('p1', 'a', key, dur);
+    bd.endTurn();
+    const A = RL.buildSide(bd, 'p1', null, zero());
+    ok((A[0] && A[0][field] | 0) === dur - 1,
+      `ROADMAP #277 — a board \`${key}\` reaches the playout as \`${field}\`, with what is left on it`,
+      `${field} ${A[0] && A[0][field] | 0} vs ${dur - 1}`);
+    ok(!(A[0] && A[0]._vol && A[0]._vol[key]),
+      `ROADMAP #277 — and NOT into \`_vol.${key}\`, which nothing reads`);
+    const clean = RL.buildSide(stood(baseBoard()), 'p1', null, zero());
+    ok(!(clean[0] && clean[0][field]),
+      `CONTROL — a body with no ${key} on the board carries no \`${field}\``);
+  }
+
+  /* THE BEHAVIOURAL ARM, and it is the sound lock because that one has an observable: a silenced body
+   * must REFUSE a sound move. Everything about it is derived — the carrier from `blocksSoundMoves`,
+   * the protocol key from that move's own NAME (which is what `magnemite.js` normalises off the
+   * `-start` line), and the victim from a species whose dataset row holds a sound-tagged move. */
+  const SNDM = ((TAGS.withTag('move', 'blocksSoundMoves') || [])
+    .map(id => dex.moves.get(id)).filter(m => m && m.exists && !m.isNonstandard))[0];
+  ok(!!SNDM, 'the sound lock\'s carrier is derived from the tag rather than named', SNDM ? SNDM.id : '-');
+  if (SNDM) {
+    const SNDKEY = nrm(SNDM.name);
+    ok(!!JOIN[SNDKEY], 'ROADMAP #277 — and the join holds it under the PROTOCOL\'s word for it', SNDKEY);
+    const soundMovesFor = sp => (globalThis.MC.mons[sp].mv || []).map(nrm)
+      .filter(id => TAGS.has('move', id, 'sound') && globalThis.MC.moves[id]);
+    /* THE FIXTURE IS CONSTRUCTED, NOT FOUND. A body handed one sound move may still decline to click
+     * it — the picker can prefer a switch, and a status move against a full-health foe is not always
+     * its greedy choice — and a control that does not fire proves nothing about the silenced arm. So
+     * every (species, sound move) pair is tried until the UNSILENCED body actually clicks. */
+    const played = (sp, mv, silenced) => {
+      const bd = baseBoard();
+      bd.setParty('p1', [sp].concat(MINE.filter(s => s !== sp)).slice(0, 6));
+      bd.setSheet('p1', sp, { nature: 'Serious', item: '', ability: '', moves: [mv] });
+      stood(bd); bd.switchIn('p1', 'a', sp);
+      if (silenced) bd.startVolatile('p1', 'a', SNDKEY, 2);
+      const A = RL.buildSide(bd, 'p1', null, zero());
+      const Bt = RL.buildSide(bd, 'p2', null, zero());
+      const trace = [];
+      const S = MEDI.battleInit(A, Bt, { seeded: true, trace });
+      S._explore = 0;
+      MEDI.battleTurn(S, () => 0.5, null, null);
+      return trace.some(l => /\|move\|p1a[^|]*\|/.test(String(l)) &&
+                             nrm(String(l).split('|')[3] || '') === nrm(mv));
+    };
+    let pair = null, gagged = null;
+    for (const sp of BUILDABLE) {
+      for (const mv of soundMovesFor(sp)) {
+        let free = false;
+        try { free = played(sp, mv, false); } catch (e) { probeSkips.push('sound lock control: ' + why(e)); continue; }
+        if (!free) continue;
+        pair = [sp, mv];
+        try { gagged = played(sp, mv, true); } catch (e) { probeSkips.push('sound lock playout: ' + why(e)); }
+        break;
+      }
+      if (pair) break;
+    }
+    ok(!!pair, 'a body that actually clicks a sound move is CONSTRUCTED rather than assumed',
+      pair ? pair.join(' / ') : 'no pair in the fixture pool clicked one');
+    if (pair && gagged !== null) {
+      ok(!gagged, 'ROADMAP #277 — the seeded sound lock actually REFUSES the sound click',
+        `${pair.join(' / ')} — free true / silenced ${gagged}`);
+    } else if (pair) note('#277 — the silenced arm threw and carries no assertion');
+  }
+
+  /* THE CHOICE LOCK. It was derived inside `candidates()` and nowhere else, so the FIT knew a locked
+   * body had one legal move and the PLAYOUT did not. The item is derived from the dex's own
+   * `isChoice` flag; nothing is named. */
+  /* *** AND THE FIT IS UNMOVED, PROVED OVER THE WHOLE ITEM TABLE RATHER THAN ARGUED. ***
+   * `candidates()` narrows the choice set with this same function now, and that function's only
+   * inputs are the body's `lastMove` and its item. So if it answers exactly `isChoice` for EVERY
+   * legal item in the regulation, no choice set can have moved and `data/policy-weights.json` keeps
+   * its meaning. This is the check, not the claim. */
+  {
+    /* Both fixtures are derived: the first legal move in the format, and the first legal Choice item. */
+    const ANYMV = dex.moves.all().filter(m => m && m.exists && !m.isNonstandard)[0];
+    const ANYCH = dex.items.all().filter(i => i && i.exists && !i.isNonstandard && i.isChoice)[0];
+    const probe = (itemId) => B.choiceLockOn({ lastMove: ANYMV && ANYMV.id, item: itemId }, dex);
+    const items = dex.items.all().filter(i => i && i.exists && !i.isNonstandard);
+    const wrong = items.filter(i => !!probe(i.id) !== !!i.isChoice);
+    ok(items.length > 20 && wrong.length === 0,
+      'ROADMAP #277 — the shared lock answers exactly `isChoice` for every legal item, so no choice set moved',
+      `${items.length} items, ${wrong.length} disagreements${wrong.length ? ' — ' + wrong.slice(0, 5).map(i => i.id).join(',') : ''}`);
+    ok(!!ANYCH && B.choiceLockOn({ lastMove: '', item: ANYCH.id }, dex) === null,
+      'CONTROL — and a body that has not moved is never locked, whatever it holds');
+  }
+
+  const CHOICE = dex.items.all().filter(i => i && i.exists && !i.isNonstandard && i.isChoice)[0];
+  ok(!!CHOICE, 'the Choice item is derived from the dex\'s own flag rather than named',
+    CHOICE ? CHOICE.id : 'none in this regulation');
+  if (CHOICE) {
+    const SP = MINE[0];
+    const MVS = (globalThis.MC.mons[SP].mv || []).map(nrm).filter(id => {
+      const m = dex.moves.get(id); return m && m.exists && !m.isNonstandard;
+    }).slice(0, 2);
+    ok(MVS.length === 2, 'a two-move body is derived, so a lock has something to exclude', MVS.join(','));
+    const locked = (item, moved) => {
+      const bd = baseBoard();
+      bd.setSheet('p1', SP, { nature: 'Serious', item, ability: '', moves: MVS });
+      stood(bd); bd.switchIn('p1', 'a', SP);
+      const mon = bd.slot('p1', 'a');
+      if (moved) { B.noteMove(bd, 'p1', mon, dex.moves.get(MVS[0]), true); bd.endTurn(); }
+      return { bd, mon };
+    };
+    if (MVS.length === 2) {
+      const on = locked(CHOICE.id, true);
+      ok(B.choiceLockOn(on.mon, dex) === MVS[0],
+        'ROADMAP #277 — the board answers WHICH move the item has locked this body into',
+        String(B.choiceLockOn(on.mon, dex)));
+      const A = RL.buildSide(on.bd, 'p1', dex, zero());
+      ok(A[0] && A[0]._lock === MVS[0] && A[0]._lockT === Infinity,
+        'ROADMAP #277 — and the lock reaches the playout body, with the engine\'s own Infinity discriminator',
+        A[0] ? `_lock ${A[0]._lock} _lockT ${A[0]._lockT}` : 'not built');
+
+      const noItem = locked('', true);
+      const A2 = RL.buildSide(noItem.bd, 'p1', dex, zero());
+      ok(!(A2[0] && A2[0]._lock), 'CONTROL — a body holding nothing is not locked');
+      const notMoved = locked(CHOICE.id, false);
+      const A3 = RL.buildSide(notMoved.bd, 'p1', dex, zero());
+      ok(!(A3[0] && A3[0]._lock), 'CONTROL — a body that has not moved since it arrived is not locked');
+
+      /* AND IT BINDS: the other move must never be clicked. Six dice, because a body free to choose
+       * picks the same move by chance often enough that one turn proves nothing. */
+      const clicks = (bd) => {
+        const seen = new Set();
+        for (let s = 0; s < 6; s++) {
+          const A4 = RL.buildSide(bd, 'p1', dex, zero());
+          const B4 = RL.buildSide(bd, 'p2', dex, zero());
+          const trace = [];
+          const S = MEDI.battleInit(A4, B4, { seeded: true, trace });
+          S._explore = 1;
+          const r = mulberryLocal(s * 7919 + 3);
+          try { MEDI.battleTurn(S, r, null, null); } catch (e) { probeSkips.push('choice lock playout: ' + why(e)); }
+          for (const l of trace) {
+            const p = String(l).split('|');
+            if (p[1] === 'move' && /^p1a/.test(String(p[2] || ''))) seen.add(nrm(p[3] || ''));
+          }
+        }
+        return seen;
+      };
+      const freeSeen = clicks(locked('', true).bd);
+      const lockSeen = clicks(on.bd);
+      if (!freeSeen.has(MVS[1])) note('#277 — the unlocked body never clicked its second move on this ' +
+        'fixture, so the behavioural arm has no control and carries no assertion', MVS.join(','));
+      else ok(!lockSeen.has(MVS[1]),
+        'ROADMAP #277 — the seeded lock actually REMOVES the other move from the menu',
+        `free [${[...freeSeen].join(',')}] locked [${[...lockSeen].join(',')}]`);
+    }
+  }
+
+  /* THE FOE'S PROTECT STREAK. `mag_bot.js`'s tracker is gated `if (mine)` and is caller state, so the
+   * opponent's consecutive Protects were never counted anywhere — the search priced the foe's shield
+   * as certain every turn. The counter is `board.noteMove`'s now, which is called on every `|move|`
+   * line from BOTH sides and by every offline replay.
+   *
+   * NO CALLER MAP IS PASSED IN ANY ARM BELOW. That is the row: the foe never had one. */
+  {
+    const ST = dex.moves.all().find(m => m && m.exists && !m.isNonstandard && m.stallingMove);
+    const AT = dex.moves.all().find(m => m && m.exists && !m.isNonstandard && !m.stallingMove &&
+      (m.basePower | 0) > 0 && !TAGS.has('move', nrm(m.id), 'stallCounterFeeds'));
+    ok(!!ST, 'a shield move is derived from the dex\'s own stalling flag', ST ? ST.id : '-');
+    ok(!!AT, 'and an ordinary attack to break the streak with', AT ? AT.id : '-');
+    if (ST && AT) {
+      const streak = (seq) => {
+        const bd = stood(baseBoard());
+        for (const m of seq) { B.noteMove(bd, 'p2', bd.slot('p2', 'a'), m, true); bd.endTurn(); }
+        return bd;
+      };
+      const two = streak([ST, ST]);
+      ok((two.slot('p2', 'a').protectStreak | 0) === 2,
+        'ROADMAP #277 — the board counts the FOE\'s consecutive shields',
+        `protectStreak ${two.slot('p2', 'a').protectStreak}`);
+      const Bt = RL.buildSide(two, 'p2', null, zero());
+      ok((Bt[0] && Bt[0].tookProtectTurns | 0) === 2,
+        'ROADMAP #277 — and it reaches the foe\'s playout body with NO caller map at all',
+        `tookProtectTurns ${Bt[0] && Bt[0].tookProtectTurns}`);
+
+      const broken = streak([ST, AT]);
+      ok(!(broken.slot('p2', 'a').protectStreak | 0),
+        'ROADMAP #277 — an ordinary move breaks the streak, which is Showdown\'s own rule');
+      const B2 = RL.buildSide(broken, 'p2', null, zero());
+      ok(!(B2[0] && B2[0].tookProtectTurns | 0),
+        'CONTROL — and the broken streak reaches the playout as zero, not as two');
+
+      /* MY OWN SIDE STILL WORKS, and it now comes from the board rather than from the caller. */
+      const mine = stood(baseBoard());
+      B.noteMove(mine, 'p1', mine.slot('p1', 'a'), ST, true); mine.endTurn();
+      const A5 = RL.buildSide(mine, 'p1', null, zero());
+      ok((A5[0] && A5[0].tookProtectTurns | 0) === 1,
+        'ROADMAP #277 — my own streak is the same counter, from the same place');
+
+      /* SWITCHING OUT CLEARS IT, for free: `switchIn` builds a new body. The old species-keyed map
+       * could not do this and would have carried the count back in. */
+      const pivot = streak([ST, ST]);
+      pivot.switchIn('p2', 'a', THEIRS[2]);
+      ok(!(pivot.slot('p2', 'a').protectStreak | 0),
+        'CONTROL — a body that pivots out does not bring the streak back with it');
+    }
+  }
+
+  /* WHAT IS STILL REFUSED, PRINTED WITH ITS REASON. */
+  if (typeof RL.unseededVolatiles === 'function') {
+    const left = RL.unseededVolatiles();
+    ok(left.length > 0 && left.every(r => r[1] && r[1].length > 40),
+      'ROADMAP #277 — every volatile still refused is refused BY NAME, with a reason',
+      left.map(r => r[0]).join(','));
+    for (const [k, reason] of left) note(`#277 NOT SEEDED — ${k}:`, reason);
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
  * 5. THE WIRES PROVE THEY RAN.
  *
  * CLAUDE.md: *a capability that cannot prove it ran is assumed broken.* A seed that carried nothing
@@ -483,6 +836,27 @@ const seedFrom = (bd, side, f) => {
    * a non-zero is the signal that a volatile is arriving with nowhere to go. */
   note('vocabulary — board volatiles the seed could not map, this run:',
     `${VC.unmapped | 0} ${JSON.stringify(VC.unmappedKeys || {})}`);
+
+  /* ROADMAP #275 and #277, same rule. `twCallerDiffered` is the one that matters most: it is the
+   * number of times the board OVERRULED a caller's typed constant in this run, so a zero would mean
+   * the fix is inert however green the arms above look. */
+  ok((FC.twCallerDiffered | 0) > 0, 'ROADMAP #275 — the board overruled the caller\'s typed Tailwind',
+    JSON.stringify({ twSeeded: FC.twSeeded | 0, twCallerDiffered: FC.twCallerDiffered | 0,
+                     trSeeded: FC.trSeeded | 0, trCallerDiffered: FC.trCallerDiffered | 0 }));
+  ok((FC.trSeeded | 0) > 0, 'ROADMAP #275 — and a room reached a playout with a real remainder');
+  ok(!(FC.twInfinite | 0) && !(FC.trInfinite | 0),
+    'ROADMAP #275 — no clock was handed over as never-expiring');
+  ok((VC.translated | 0) > 0, 'ROADMAP #277 — the translated volatiles fired during this run',
+    JSON.stringify(VC));
+  const SEEDC = RL.SEED_COUNTERS || {};
+  ok((SEEDC.streakFromBoard | 0) > 0, 'ROADMAP #277 — the Protect streak came from the BOARD',
+    JSON.stringify(SEEDC));
+  ok((SEEDC.choiceLocked | 0) > 0, 'ROADMAP #277 — and a choice lock reached a playout body');
+  const BC = B.bodyCounters || {};
+  ok((BC.stallStreakUp | 0) > 0 && (BC.stallStreakReset | 0) > 0,
+    'ROADMAP #277 — the board counted a shield UP and a streak RESET', JSON.stringify(BC));
+  ok(!(BC.speedSideUnknown | 0),
+    'ROADMAP #275 — every speed-side key came from the format or the tag, never from a fallback');
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -497,10 +871,16 @@ const seedFrom = (bd, side, f) => {
   note('DECLARED — `_sub` and `_seededBy` are not seeded:',
     'a Substitute\'s REMAINING hp is not on the wire and Leech Seed\'s drain target is a body ' +
     'reference, so both would be invented rather than read');
-  note('OPEN — the caller\'s field still types Tailwind as 4 and Trick Room as 5:',
-    '`miltank.js` builds `twA: hasSide ? 4 : 0`, so a Tailwind with one turn left is seeded with ' +
-    'four. `board.sideLeft`/`fieldLeft` hold the true remainder. Same shape as #270 in a different ' +
-    'file and filed as its own row rather than folded into this batch');
+  note('DECLARED — a translated volatile errs SHORT by up to one turn:',
+    'the engine applies `_healBlock` and `_noSound` as `turns + 1` because its residual fires on the ' +
+    'application turn too, while its `_vol` family is applied as `turns` flat. This seeds the BOARD\'s ' +
+    'remaining count for all of them — Showdown\'s own meaning at a turn boundary — rather than ' +
+    'putting a second opinion about the engine\'s tick inside the seed');
+  note('FILED, NOT FIXED — `magnemite.volatileDuration` walks the dex UNFILTERED:',
+    'it reads `condition.duration` off moves this regulation does not contain, so the live board ' +
+    'records a Heal Block laid by the one legal carrier as FIVE turns where the format says two. ' +
+    'It is the live adapter\'s and is not SEARCH\'s to change; the translation above carries ' +
+    'whatever the board holds');
 }
 
 if (probeSkips.length) {

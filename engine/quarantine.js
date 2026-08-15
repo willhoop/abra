@@ -39,7 +39,25 @@ const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
-const readJson = p => { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { return null; } };
+/* ROADMAP #258 — UNREADABLE IS NOT ABSENT, AND HERE THE DIFFERENCE DECIDES A GATE. Every clause below
+ * reads its evidence through this function, and a null means "NO ARTIFACT — run the instrument". A
+ * corrupt or half-written file therefore produced the same verdict as a file nobody has generated,
+ * which is a wrong diagnosis handed to the gate that decides whether MEDICHAM is correct. ENOENT is
+ * genuinely absent and stays quiet; anything else says so on stderr. */
+const readJson = p => {
+  try { return JSON.parse(fs.readFileSync(p, 'utf8')); }
+  catch (e) {
+    /* ONLY FOR A .json PATH, AND THE FIRST DRAFT GOT THIS WRONG IN THE DIRECTION THAT MATTERS. This
+     * helper is also pointed at `.js` BUNDLES (data/mag.js, data/mew.js, web/scoreboard.js) to ask
+     * cheaply whether they happen to be JSON; those never parse, by design, and reporting them
+     * printed six lines of pure noise on a clean run. A ratchet that flags code for doing what it
+     * asked is how a ratchet gets ignored — the fourth correction of that shape in this repository. */
+    if (e.code !== 'ENOENT' && /\.json$/i.test(p)) console.error(`  ${path.basename(p)} EXISTS AND `
+      + 'COULD NOT BE READ (' + e.message + ') — the clause reading it will report NO ARTIFACT, '
+      + 'which is not what happened.');
+    return null;
+  }
+};
 
 /* ================================================================================================
  * 1. THE GATE — is MEDICHAM correct?
@@ -604,8 +622,12 @@ function openDefectClause() {
   let lines;
   try { lines = fs.readFileSync(D('docs', 'ROADMAP.md'), 'utf8').split(/\r?\n/); }
   catch (e) {
+    /* ROADMAP #258 — the verdict was already loud; the REASON was not. "docs/ROADMAP.md is
+     * unreadable" does not distinguish a missing file from a permission error from a torn write, and
+     * the person reading this clause is the one who has to fix it. */
     return { name: 'no open, known engine defect', ok: false, missing: true,
-      why: 'CANNOT ANSWER — docs/ROADMAP.md is unreadable. A clause that cannot be computed FAILS.' };
+      why: 'CANNOT ANSWER — docs/ROADMAP.md is unreadable (' + e.message + '). A clause that cannot '
+         + 'be computed FAILS.' };
   }
   const open = [];
   for (const l of lines) {

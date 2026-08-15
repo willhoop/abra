@@ -46,6 +46,24 @@ const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 const STRICT = process.argv.includes('--strict');
 
+/* UNREADABLE IS NOT ABSENT — ROADMAP #258.
+ *
+ * Three catch blocks in this file returned `null` and said nothing: the declared-writer read, the
+ * shape read used to revoke a pattern match, and the mtime stat. Each one turned "this file is
+ * corrupt / permission-denied / mid-write" into the SAME answer as "this file has no declaration" or
+ * "this file is not there" — a manufactured value, handed to the very report that exists to tell a
+ * reader whether an artifact can be believed. This file already carries that exact sentence about
+ * stamped inputs at `digestFailures`; the other three reads did not have it.
+ *
+ * ENOENT stays quiet on purpose. An absent file is a real, expected answer here and shouting about it
+ * would make this list noise, which is how a list stops being read. */
+const UNREADABLE = [];
+function logUnreadable(what, where, e) {
+  if (e && e.code === 'ENOENT') return null;
+  UNREADABLE.push(`${what}  (${where})  ${String(e && e.message).slice(0, 90)}`);
+  return null;
+}
+
 /* THE ARTIFACT GRAPH IS DERIVED, NOT TYPED.
  *
  * The first version of this file carried a hand-written list of every artifact, its generator and
@@ -432,7 +450,8 @@ function deriveGraph() {
   function declaredWriter(file) {
     if (!/\.json$/i.test(file)) return null;                     // a .js bundle is not self-describing
     let j = null;
-    try { j = JSON.parse(fs.readFileSync(D('data', file), 'utf8')); } catch (e) { return null; }
+    try { j = JSON.parse(fs.readFileSync(D('data', file), 'utf8')); }
+    catch (e) { return logUnreadable(file, 'declaredWriter — it may carry a `by` nobody can read', e); }
     if (!j || typeof j !== 'object') return null;
     const p = j.provenance && typeof j.provenance === 'object' ? j.provenance : {};
     for (const v of [j.by, j.generated_by, j.written_by, j.generator, j.source,
@@ -744,7 +763,7 @@ function deriveGraph() {
     try {
       const j = JSON.parse(fs.readFileSync(D('data', f), 'utf8'));
       return (j && typeof j === 'object' && !Array.isArray(j)) ? Object.keys(j) : null;
-    } catch (e) { return null; }
+    } catch (e) { return logUnreadable(f, 'keysOf — a pattern match cannot be revoked on shape', e); }
   };
   const shapeAgrees = (a, b) => {
     const ka = keysOf(a), kb = keysOf(b);
@@ -940,7 +959,8 @@ function printNoWriter() {
   }
 }
 
-const mtime = f => { try { return fs.statSync(D('data', f)).mtimeMs; } catch (e) { return null; } };
+const mtime = f => { try { return fs.statSync(D('data', f)).mtimeMs; }
+                     catch (e) { return logUnreadable(f, 'mtime — every staleness verdict about it is skipped', e); } };
 /* CONTENT, NOT TIMESTAMP. Resolved against the repo root as well as data/, because a stamped input
  * is as often an ENGINE file (`medicham2-browser.js` — the simulator a run was scored under) as a
  * data one, and the simulator moving mid-run is the case that voided the WOBBUFFET re-run. */
@@ -1430,6 +1450,12 @@ if (digestFailures.length) {
   console.log(`  ${digestFailures.length} stamped input(s) could not be READ to verify — unreadable is not absent:`);
   for (const f of digestFailures) console.log('    ' + f);
 }
+/* ROADMAP #258 — the same admission for the three reads that used to return null in silence. Printed
+ * unconditionally, INCLUDING AT ZERO, for the reason NO_WRITER is: an empty list has to mean "every
+ * file read cleanly" and never "we stopped looking". */
+console.log(`  ${UNREADABLE.length} file(s) existed and could not be read while deriving this table`
+  + (UNREADABLE.length ? ' — each was treated as ABSENT, which is a guess:' : '.'));
+for (const u of UNREADABLE) console.log('    ' + u);
 console.log(`  ${verified.length} verified by CONTENT digest, ${mtimeOnly.length} by mtime alone` +
             (mtimeOnly.length ? ' — an mtime test cannot see an artifact written AFTER an input it read BEFORE' : ''));
 /* AND HOW MANY ARTIFACTS THIS TABLE DOES NOT COVER AT ALL. Printed here, in the same block as the

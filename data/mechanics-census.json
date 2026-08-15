@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-14T07:19:48.040Z",
+  "generated": "2026-08-15T03:08:24.631Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 577,
-  "live": 577,
+  "probed": 579,
+  "live": 579,
   "missing": 0,
-  "armed": 577,
+  "armed": 579,
   "unarmed": 0,
-  "directCall": 0,
+  "directCall": 1,
   "threw": 0,
   "hollow": 0,
   "results": [
@@ -2692,6 +2692,26 @@
       "directCall": false
     },
     {
+      "kind": "item",
+      "tag": "extendsDuration",
+      "label": "all four weather rocks extend to 8 turns and then stop",
+      "live": true,
+      "detail": "all four extend to 8 turns and expire by turn 9",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "alwaysCrit",
+      "label": "the three guaranteed crits are already crit-priced, and ordinary moves are not",
+      "live": true,
+      "detail": "guaranteed stormthrow 34, flowertrick 39, frostbreath 304 (unchanged when a crit is requested); control flamethrower 56->84, surf 75->112",
+      "hollow": false,
+      "armed": true,
+      "directCall": true
+    },
+    {
       "kind": "move",
       "tag": "weatherDamageMult",
       "label": "sun raises Fire and halves Water, rain does the reverse",
@@ -2976,7 +2996,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.7% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

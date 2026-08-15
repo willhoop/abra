@@ -79,6 +79,13 @@ function demo(name, goodDB, badDB, assertFn) {
 const Module = require('module');
 const fs = require('fs');
 const MEDI_PATH = D('engine', 'medicham2-browser.js');
+/* THE STALE ROW NAMES ITS PATTERN ONLY ON REQUEST, and the reason is that it must not drown the run.
+ * A stale reversal's whole diagnosis is the multi-line string the engine no longer contains, and
+ * `console.log` of 31 of those buries the 195-row verdict this file exists to print. `PROBE_VERBOSE=1`
+ * prints the FULL missing pattern (and every pattern that DID apply), which is what re-aiming one
+ * needs. The default stays one line — the row is still NAMED and still counted, so nothing is
+ * silenced, only abbreviated. */
+const VERBOSE = !!process.env.PROBE_VERBOSE;
 function revertedEngine(edits) {
   /* NORMALISED FIRST. The engine file is CRLF on this machine and the patterns below are written in
    * a JS source file with LF newlines, so an un-normalised match fails on every multi-line edit --
@@ -86,6 +93,7 @@ function revertedEngine(edits) {
   let src = fs.readFileSync(MEDI_PATH, 'utf8').replace(/\r\n/g, '\n');
   for (const [find, replace] of edits) {
     if (!src.includes(find)) throw new Error('reversal did not apply — the source no longer contains:\n' + find);
+    if (VERBOSE) console.log('    [applied] ' + find.split('\n')[0].trim().slice(0, 90));
     src = src.split(find).join(replace);
   }
   const m = new Module(MEDI_PATH, null);
@@ -111,12 +119,84 @@ function demoSource(name, edits, assertFn) {
     failures++; stale.push(name);
     console.log(`  STALE ${name}   THE REVERSAL NO LONGER MATCHES THE ENGINE — a later wire rewrote `
       + `the lines it patches, so this demonstration has not run since. ${String(e.message).split('\n')[0]}`);
+    if (VERBOSE) console.log('    ' + String(e.message).split('\n').slice(1).join('\n    '));
     return;
   }
-  const green = !!assertFn(M), red = !!assertFn(bad);
+  /* A REVERSAL THAT MAKES THE ENGINE THROW IS A BROKEN PATCH, NOT A KNOWN-BAD ENGINE — added
+   * 2026-08-14 (ROADMAP #273), and it is the SAME lesson this file already learned twice, one door
+   * further in. `revertedEngine` throwing is caught above; the reverted engine throwing when it is
+   * PLAYED was not, so it killed the process and took every row below it with it. That happened
+   * during this very pass: re-aiming WIRE 11's ordering reversal to the old call site put
+   * `_damagingHit()` above the temporal dead zone of a `const` a later wire introduced, and the run
+   * died at row 148 of 195 with a stack trace instead of a named row.
+   *
+   * NAMED AND COUNTED, LIKE THE OTHER TWO. It is deliberately NOT called stale — a stale patch does
+   * not match, this one matches and produces an engine that cannot run — so it gets its own word, and
+   * WHICH ARM threw is printed, because a shipped arm throwing is an engine defect and a reverted arm
+   * throwing is a defect in the reversal. */
+  let green, red, threw = null;
+  try { green = !!assertFn(M); } catch (e) { threw = 'THE SHIPPED ENGINE THREW: ' + String(e.message).split('\n')[0]; }
+  if (threw === null) {
+    try { red = !!assertFn(bad); }
+    catch (e) { threw = 'THE REVERTED ENGINE THREW — the patch applied and produced an engine that cannot '
+      + 'play a turn, so nothing was demonstrated: ' + String(e.message).split('\n')[0]; }
+  }
+  if (threw !== null) {
+    failures++; stale.push(name + '   (' + threw + ')');
+    console.log(`  THREW ${name}   ${threw}`);
+    return;
+  }
   const ok = green && !red;
   if (!ok) failures++;
   console.log(`  ${ok ? 'OK   ' : 'FAIL '} ${name}   shipped-arm=${green} (must be true)  reverted-arm=${red} (must be false)`);
+}
+
+/* A DEMONSTRATION OF AN ABILITY NO LEGAL BODY CAN CARRY IS NOT A FAILURE, AND COUNTING IT AS ONE SENT
+ * A SESSION HUNTING FOR AN ENGINE BUG — added 2026-08-14 while working #273.
+ *
+ * Two of this file's eight FAILs were probes for abilities that CANNOT OCCUR in Champions Reg M-B:
+ * the ROADMAP #112 positive control builds a Pikachu and assigns it `transistor`, and the WIRE 12
+ * Aura Break arm assigns `aurabreak`. Derived over the format's legal roster, NO legal species lists
+ * Transistor, Dark Aura or Aura Break in any slot — only Fairy Aura survives, on Floette-Mega. So the
+ * engine is right not to model them, `tag_dex.js` is right to leave them out of data/tags.json, and
+ * the probes were asserting behaviour for entities this regulation does not contain. They read as
+ * engine defects and are the opposite: they are CLAUDE.md's "never name an entity that is not in the
+ * regulation" arriving inside a test.
+ *
+ * DERIVED, NOT LISTED. A hand-typed set of unreachable abilities is the ban-list-of-four failure over
+ * again — it would be right today and silently wrong the next time the format moves. This asks the
+ * format. The Dex is loaded LAZILY and cached, so a run that never consults it pays nothing.
+ *
+ * ABSENCE FROM data/tags.json IS NOT THE SAME QUESTION and is deliberately not used here: an ability
+ * can be perfectly legal and still carry no tag, simply because nothing about it is modelled yet.
+ * That is a coverage gap. This one is a legality fact, and they must not be read off each other. */
+let _legalAbilities = null;
+function abilityUnreachable(id) {
+  if (!_legalAbilities) {
+    _legalAbilities = new Set();
+    require(D('engine', 'showdown_path.js'));
+    const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
+    const DX = Dex.forFormat('gen9championsvgc2026regmb');
+    const legal = (x) => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
+    for (const sp of DX.species.all()) {
+      if (!legal(sp)) continue;
+      for (const slot of Object.values(sp.abilities || {})) {
+        _legalAbilities.add(String(slot).toLowerCase().replace(/[^a-z0-9]/g, ''));
+      }
+    }
+  }
+  return !_legalAbilities.has(String(id).toLowerCase().replace(/[^a-z0-9]/g, ''));
+}
+let notInFormat = 0;
+/* Reports and returns true when the demonstration cannot apply, so the caller can skip its body
+ * WITHOUT touching `failures`. It still prints, because a silently skipped check is worse than a
+ * failing one — that is this repository's most expensive recurring shape. */
+function skipUnreachableAbility(name, abilityId) {
+  if (!abilityUnreachable(abilityId)) return false;
+  notInFormat++;
+  console.log(`  N/A   ${name}   NOT IN THIS FORMAT — no legal species carries \`${abilityId}\`, derived `
+    + 'over the regulation\'s roster. The engine is correct not to model it; this demonstration cannot run here.');
+  return true;
 }
 
 /* ---- the wires, each against its own mutation ---------------------------------------------------- */
@@ -447,12 +527,15 @@ demoSource('WIRE 117 Grassy Terrain does not heal a Levitate body',
  *
  * The assertion is the shipped probe's, both arms in one expression: the control MUST take damage, or
  * "the partner took nothing" is satisfied by an engine where nothing happens at all. */
+/* RE-AIMED 2026-08-14 (ROADMAP #273). The re-sort moved into `_resortTail` and grew a guard, a
+ * not-a-move counter and a changed-order counter, so a patch that deleted the old four lines whole
+ * stopped matching. The reversal is NARROWER now and says the defect more exactly: the tail is still
+ * gathered, still written back and still counted — it is simply not RE-DERIVED, which is the whole of
+ * WIRE 118's bug. Deleting the block would also have removed the counters, and a demonstration that
+ * turns off the instrument as well as the mechanic proves the weaker thing. */
 demoSource('WIRE 118 Tailwind speeds the PARTNER up inside the same turn (dynamic speed)',
-  [[`      if(actIdx>0&&actIdx<acts.length-1){
-        const _rest=sortTurnOrder(acts.slice(actIdx),field,rng);
-        for(let _k=0;_k<_rest.length;_k++)acts[actIdx+_k]=_rest[_k];
-      }
-`, '']],
+  [['      const _rest=sortTurnOrder(acts.slice(from),field,rng);',
+    '      const _rest=acts.slice(from);']],
   (E) => {
     const took = (setTailwind) => {
       const me = bare('whimsicott'), ally = bare('incineroar');
@@ -656,8 +739,11 @@ demoSource('WIRE 124 a 90% move can miss — accuracy is derived, not a 35-name 
  * assertion made on that turn passes on both and proves nothing — the ally is killed on turn 1 and
  * the move is clicked on turn 2. */
 demoSource('WIRE 125 the fallen count survives the turn after the death',
-  [['    sfA.fainted=fallenCount(sfA,actA,benchA);\n    sfB.fainted=fallenCount(sfB,actB,benchB);',
-    '    sfA.fainted=[...actA,...benchA].filter(x=>x&&x.fainted).length;\n    sfB.fainted=[...actB,...benchB].filter(x=>x&&x.fainted).length;']],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273): the recount was lifted out of the turn loop into
+   * `fallenSettle(S)`, so the same two statements now read off `S`. The reversal is character-for-
+   * character the old expression, on the new receiver. */
+  [['  S.sfA.fainted=fallenCount(S.sfA,S.actA,S.benchA);\n  S.sfB.fainted=fallenCount(S.sfB,S.actB,S.benchB);',
+    '  S.sfA.fainted=[...S.actA,...S.benchA].filter(x=>x&&x.fainted).length;\n  S.sfB.fainted=[...S.actB,...S.benchB].filter(x=>x&&x.fainted).length;']],
   (E) => {
     const run = (killAlly) => {
       const me = bare('houndstone'), ally = bare('corviknight');
@@ -754,8 +840,11 @@ demoSource('WIRE 128 the loop asks about the ATTACKER before calling a type immu
   });
 
 demoSource('WIRE 128 a Mold Breaker is not absorbed by the ability it suppresses',
-  [['        const _ab=absorbedBy(m,tg,effMoveType(mv,a.move.id,field,m));',
-    '        const _ab=absorbedBy(null,tg,effMoveType(mv,a.move.id,field,m));']],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273): `absorbedBy` gained a fourth argument (the move's category),
+   * so the three-argument pattern stopped matching. The reversal is still exactly the attacker being
+   * dropped from the question — the new argument is carried through unchanged on both arms. */
+  [["        const _ab=absorbedBy(m,tg,effMoveType(mv,a.move.id,field,m),(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status');",
+    "        const _ab=absorbedBy(null,tg,effMoveType(mv,a.move.id,field,m),(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status');"]],
   (E) => {
     const dealt = (ab) => {
       const me = bare('tinkaton'), ally = bare('corviknight');
@@ -829,10 +918,17 @@ const CONVERSIONS = [
     run: () => { const h = (ab) => turnHit(M, ['garchomp', 'incineroar', 'charizard', 'milotic'],
       (B) => { B.f1.ability = ab; }, 'rockslide');
       return h('filter') < h('none'); } },
-  { name: 'damageReduce -- Ice Scales halves a special hit', strip: ['ability', 'icescales', 'damageReduce'],
-    run: () => { const h = (ab) => turnHit(M, ['garchomp', 'incineroar', 'milotic', 'corviknight'],
-      (B) => { B.f1.ability = ab; }, 'earthpower');
-      return h('icescales') < h('none'); } },
+  /* RE-AIMED 2026-08-14 (ROADMAP #273). This row named an ability NO LEGAL BODY IN THIS REGULATION
+   * CARRIES, so ROADMAP #175 correctly stopped deriving it and the strip has thrown ever since --
+   * counted as STALE, which reads as a rotted patch and is really a legality fact. The remaining
+   * `damageReduce` carriers are printed rather than remembered: filter, multiscale, ripen, solidrock.
+   * Multiscale is the one that is NOT a second copy of the Filter row above it -- its `onlyWhen` is
+   * `fullHP`, not `superEffective` -- so the claim gets stronger, not weaker: the cut applies at full
+   * HP and does NOT apply one point below it, which is the condition and not merely the multiplier. */
+  { name: 'damageReduce -- Multiscale halves a hit at FULL HP and not below it', strip: ['ability', 'multiscale', 'damageReduce'],
+    run: () => { const h = (ab, frac) => turnHit(M, ['garchomp', 'incineroar', 'dragonite', 'corviknight'],
+      (B) => { B.f1.ability = ab; if (frac < 1) B.f1.curHP = B.f1.st.hp - 1; }, 'icebeam');
+      return h('multiscale', 1) < h('none', 1) && h('multiscale', 0.99) === h('none', 0.99); } },
   { name: 'boostsMoveClass -- Iron Fist raises a punch and not a kick', strip: ['ability', 'ironfist', 'boostsMoveClass'],
     run: () => { const h = (ab, mv) => turnHit(M, ['incineroar', 'corviknight', 'garchomp', 'milotic'],
       (B) => { B.me.ability = ab; }, mv);
@@ -889,12 +985,50 @@ const CONVERSIONS = [
       (B) => { B.me.ability = ab; }, mv);
       return h('sheerforce', 'rockslide') > h('none', 'rockslide')
           && h('sheerforce', 'doubleedge') === h('none', 'doubleedge'); } },
-  { name: 'multiAccuracy -- Triple Axel is priced below three full hits', strip: ['move', 'tripleaxel', 'multiAccuracy'],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273), AND THE OLD THRESHOLD IS THE WHOLE LESSON. This row asserted
+   * `all / one < 2.95` against a SINGLE flat hit -- a constant that quietly encoded "three equal hits
+   * of the printed base power" as the ceiling. ROADMAP #84 then landed `variablePower`, and Triple
+   * Axel's escalation (20/40/60, `perHitEscalates` in data/tags.json) took BOTH arms over 2.95:
+   * shipped 4.98, stripped 5.71. The probe went red on the shipped engine AND stopped watching its
+   * knob in the same move, because a fixed number cannot follow a base power that became a function.
+   *
+   * THE CEILING IS DERIVED NOW, from the same two params the engine reads: `multiHit.hits` says how
+   * many, `variablePower.per` says how the power climbs. Summing those hits AT FULL PRICE is exactly
+   * the engine with multiAccuracy stripped (measured: 548 both ways), so `all < ceiling` is the flip,
+   * and it cannot rot when a base power moves again.
+   *
+   * AND THE DISCOUNT IS CHECKED EXACTLY, not merely "less". The geometric series is
+   * `sum_i d_i * p^(i-1)` -- 96 + 184*0.9 + 268*0.81 = 478.68, and the engine returns 478. The clause
+   * runs only when the param is present, so the stripped arm skips it and `all < ceiling` carries the
+   * red on its own; that is deliberate, not a softening. */
+  { name: 'multiAccuracy -- Triple Axel is priced below three full ESCALATING hits', strip: ['move', 'tripleaxel', 'multiAccuracy'],
     run: () => { const att = bare('weavile'), def = bare('garchomp');
       const ta = MC.moves['tripleaxel'];
-      const one = M.dmgRange(att, def, Object.assign({}, ta, { id: '__ta_flat' }), FIELD(), false).max;
+      const mh = TAGS.param('move', 'tripleaxel', 'multiHit');
+      const vp = TAGS.param('move', 'tripleaxel', 'variablePower');
+      const hits = (mh && +mh.hits) || 0, per = (vp && +vp.per) || 0;
+      /* THE FIXTURE SPEAKS RATHER THAN PASSING. Neither param is what this row strips, so both arms
+       * see them; a null here means the artifact changed shape and the ceiling below would be a
+       * silent 0 that makes any `all` look large. */
+      if (!(hits > 1) || !(per > 0)) {
+        console.log('        multiAccuracy: NO FIXTURE — tripleaxel multiHit.hits=' + hits + ' variablePower.per=' + per);
+        return false;
+      }
+      const d = [];
+      for (let i = 1; i <= hits; i++)
+        d.push(M.dmgRange(att, def, Object.assign({}, ta, { id: '__ta_hit' + i, bp: per * i }), FIELD(), false).max);
+      const ceiling = d.reduce((a, b) => a + b, 0);
       const all = M.dmgRange(att, def, ta, FIELD(), false).max;
-      return all / one < 2.95 && turnHit(M, ['weavile', 'incineroar', 'garchomp', 'milotic'], null, 'tripleaxel') > 0; } },
+      const ma = TAGS.param('move', 'tripleaxel', 'multiAccuracy');
+      let exact = true;
+      if (ma && +ma.accuracy > 0) {
+        const p = +ma.accuracy / 100;
+        let want = 0;
+        for (let i = 0; i < d.length; i++) want += d[i] * Math.pow(p, i);
+        exact = Math.abs(all - want) <= 1;
+      }
+      return all < ceiling && exact
+        && turnHit(M, ['weavile', 'incineroar', 'garchomp', 'milotic'], null, 'tripleaxel') > 0; } },
   { name: 'weatherScaled -- Weather Ball changes type with the sky', strip: ['move', 'weatherball', 'weatherScaled'],
     run: () => { const h = (w) => turnHit(M, ['alakazam', 'incineroar', 'gengar', 'milotic'],
       (B) => { B.S.field.weather = w; }, 'weatherball');
@@ -911,10 +1045,14 @@ const CONVERSIONS = [
     run: () => { const h = (mine, allies) => turnHit(M, ['meganium', 'meganium', 'corviknight', 'milotic'],
       (B) => { B.me.ability = mine; B.ally.ability = allies; }, 'flamethrower');
       return h('megasol', 'none') > h('none', 'none') && h('none', 'megasol') === h('none', 'none'); } },
-  { name: 'weatherSuppression -- Air Lock returns the sun to clear', strip: ['ability', 'airlock', 'weatherSuppression'],
-    run: () => { const h = (ab, w) => turnHit(M, ['charizard', 'incineroar', 'garchomp', 'milotic'],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273), the same legality story as the Multiscale row above. Air Lock
+   * has no legal carrier in this regulation, so it left data/tags.json and the strip has thrown since.
+   * `weatherSuppression`'s membership is now exactly ONE -- cloudnine, printed off data/tags.json
+   * before this was rewritten -- and it is reachable (Altaria, Drampa). The claim is unchanged. */
+  { name: 'weatherSuppression -- Cloud Nine returns the sun to clear', strip: ['ability', 'cloudnine', 'weatherSuppression'],
+    run: () => { const h = (ab, w) => turnHit(M, ['charizard', 'incineroar', 'altaria', 'milotic'],
       (B) => { B.f1.ability = ab; B.S.field.weather = w; }, 'flamethrower');
-      return h('airlock', 'sun') === h('none', '') && h('none', 'sun') > h('none', ''); } },
+      return h('cloudnine', 'sun') === h('none', '') && h('none', 'sun') > h('none', ''); } },
   { name: 'boostsWhenLowered -- Intimidate into Defiant is net +1', strip: ['ability', 'defiant', 'boostsWhenLowered'],
     run: () => { const entry = (ab) => {
         const me = bare('incineroar'), ally = bare('corviknight');
@@ -960,6 +1098,15 @@ const CONVERSIONS = [
  * what `demoSource` does with a reversal that no longer matches. */
 for (const c of CONVERSIONS) {
   const label = '#42/#45  ' + c.name;
+  /* AND A STRIP THAT CANNOT APPLY BECAUSE THE ABILITY CANNOT EXIST IS NOT STALE EITHER — 2026-08-14.
+   * Two of the rows above threw for a reason that has nothing to do with rot: ROADMAP #175 stopped
+   * deriving abilities with no legal carrier, so the entity is correctly absent. Asked BEFORE the
+   * strip, because otherwise the throw's message is the only evidence and it names a rotted patch.
+   * Both rows have since been re-aimed at reachable carriers, so this fires zero times today — it is
+   * here for the NEXT ability the regulation drops, which would otherwise arrive as a red row nobody
+   * can act on. Deliberately ability-only: an item or a move leaving the artifact is a different
+   * question and must not be swept up by an oracle that cannot answer it. */
+  if (c.strip[0] === 'ability' && skipUnreachableAbility(label, c.strip[1])) { ran++; continue; }
   let bad = null;
   try { bad = without(c.strip[0], c.strip[1], c.strip[2]); }
   catch (e) {
@@ -984,8 +1131,13 @@ for (const c of CONVERSIONS) {
  * So the known-bad engine is the TABLE with Insomnia taken out of the sleep row and nothing else --
  * `vitalspirit` and `sweetveil` stay, so the reversion is one ability rather than the mechanism. */
 demoSource('#42/#45  statusImmune -- Insomnia refuses a Spore and takes a burn (a hand table, not the tag)',
-  [["                           slp:['insomnia','vitalspirit','sweetveil'] };",
-    "                           slp:['vitalspirit','sweetveil'] };"]],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273). WIRE 157 removed `sweetveil` from this row — correctly; it is
+   * an `onAllySetStatus` ability and was protecting the holder by accident and the partner not at all
+   * — so the three-name pattern stopped matching. The reversion is unchanged in KIND: exactly one
+   * ability leaves the sleep row, and `vitalspirit` stays, so what is being reverted is Insomnia's
+   * membership and not the mechanism. */
+  [["                           slp:['insomnia','vitalspirit'] };",
+    "                           slp:['vitalspirit'] };"]],
   (E) => {
     const st = (ab, mv) => {
       const me = bare('venusaur'), ally = bare('corviknight');
@@ -1156,10 +1308,15 @@ demoSource('WIRE 130 a sound move and an Infiltrator go THROUGH the doll',
    * when it breaks. ROADMAP #81 WIRE 10 re-anchored again: the branch sits in a step closure, so it
    * drops its row rather than `continue`-ing. The REVERSAL is unchanged in substance -- the bare
    * `_sub > 0` test, which is the bypass defect this demonstration exists to show red. */
+  /* RE-ANCHORED AGAIN 2026-08-14 (ROADMAP #273): ROADMAP #72's `_subAte` flag landed inside the
+   * branch, so the three-line pattern stopped matching. It is CARRIED ACROSS into the replacement
+   * rather than dropped — a reversal that also unset that flag would make this a `_subAte` demo as
+   * well, and it would then be red for two reasons. */
   [[`        if(subBlocks(m,tg,a.move.id)){const _s0=tg._sub;tg._sub=Math.max(0,tg._sub-dmg);
+          _subAte=true;                      // ROADMAP #72 -- see the declaration for why this is not \`!connected\`
           if(TR){TR.act(tg,'move: Substitute','[damage]');if(_s0>0&&tg._sub<=0)TR.vend(tg,'Substitute');}
           R.out=true;return;}`,
-    '        if(tg._sub>0){tg._sub=Math.max(0,tg._sub-dmg);R.out=true;return;}']],
+    '        if(tg._sub>0){tg._sub=Math.max(0,tg._sub-dmg);_subAte=true;R.out=true;return;}']],
   (E) => {
     const beam = twoOn(E, { setupFoe: 'substitute', move: 'icebeam' });
     const sound = twoOn(E, { setupFoe: 'substitute', move: 'hypervoice' });
@@ -1279,8 +1436,12 @@ demoSource('WIRE 131 bestMoveVs prices the DEFENDER (the old line took no defend
   });
 
 demoSource("WIRE 131 the action object's acc is this click into THIS body",
-  [["    return {kind:'attack',move:{id,mv,spread,d:dmgRange(me,target,mv,field,spread),acc:hitProb(me,target,id,field)},target};",
-    "    return {kind:'attack',move:{id,mv,spread,d:dmgRange(me,target,mv,field,spread),acc:moveAccuracy(id,field)/100},target};"]],
+  /* NARROWED TO THE ONE FIELD 2026-08-14 (ROADMAP #273), for the reason WIRE 132's reversal was
+   * narrowed on 2026-08-07: this pinned the whole `return {...}` statement, which is shared with every
+   * other property of an attack action — so ROADMAP #81 WIRE 9 adding `rescript` and moving `target`
+   * onto its own line broke a reversal that has nothing to do with either. `acc:hitProb(me,target,id,
+   * field)` occurs exactly once in the engine and is the whole of what WIRE 131 changed here. */
+  [["acc:hitProb(me,target,id,field)}", "acc:moveAccuracy(id,field)/100}"]],
   (E) => {
     const bare_ = valued(E, 'hydropump', null).action;
     const ng = valued(E, 'hydropump', (B) => { B.f1.ability = 'noguard'; }).action;
@@ -1471,22 +1632,57 @@ demo('ARM  passiveHeal -- Leftovers ticks and an empty hand does not',
     return run('') === 0 && run('leftovers') > 0;
   });
 
-demo('ARM  sealsMoves -- a Disabled foe stops repeating, and an undisabled one repeats',
+/* RE-AIMED 2026-08-14 (ROADMAP #273). IT WAS GREEN ON BOTH ARMS, AND CORRECTING IT TOOK TWO GOES —
+ * the first re-aim was wrong in the comfortable direction, which is the thing this file exists to stop.
+ *
+ * WHY THE OLD ONE WAS HOLLOW. `sealsMoves` is not what puts the seal on. `applyMoveVolatile` writes
+ * `_vol.disable` and `_sealed` off the move's own `statusInflict` volatile, and the tag supplies the
+ * DURATION and the MEMBERSHIP of the ticking family (medicham2:2159 `durationVolatiles`, 10309-22
+ * `volDurationOnApply`). The old assertion looked at the ONE turn after the Disable and asked whether
+ * the foe repeated — and one turn is sealed either way, so the row could not fail.
+ *
+ * MY FIRST REPLACEMENT COUNTED WHAT THE FOE FREELY CHOSE, AND MEASURED THE CHOOSER INSTEAD. Left to
+ * pick for itself the foe leaves Earthquake after one turn WITH NO DISABLE AT ALL — the board has
+ * moved and Dragon Claw scores better. Every arm then read "sealed forever" and the row would have
+ * gone green on a lie. The action is SUPPLIED every turn now, so the only thing that can refuse it is
+ * the seal: WIRE 24's rule is that a caller who hands in a sealed move is re-asked, not obeyed.
+ *
+ * AND WHAT THE STRIPPED ARM ACTUALLY DOES IS WORSE THAN A SHORT DISABLE, WHICH IS WHY THE FLIP IS
+ * SHARP. With the tag gone, `volDurationOnApply` returns null, the fallback writes a bare 1 — and
+ * `disable` is no longer in `durationVolatiles()`, so the end-of-turn walk never ticks it. Measured:
+ * shipped refuses the move for 3 turns and then obeys it; stripped refuses it on all 8 watched turns
+ * and never frees. A PERMANENT Disable is precisely the state that table's header says it exists to
+ * prevent, so the probe asserts BOTH halves — it lasts, and it ends. */
+demo('ARM  sealsMoves -- the Disable LASTS, and it ENDS, and the tag is what says when',
   shipped, without('move', 'disable', 'sealsMoves'), () => {
-    const run = (disable) => {
-      const B = stage4(M, ['whimsicott', 'incineroar', 'garchomp', 'garchomp']);
-      M.battleTurn(B.S, rng5, P2(B.me, B.ally),
-        new Map([[B.f1, M.playerAction(B.f1, 'earthquake', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    const run = (disable, watch) => {
+      /* The bodies are padded so a ten-turn Earthquake exchange cannot end the fixture early — a
+       * faint would stop the trail and read exactly like an expiry. */
+      const B = stage4(M, ['whimsicott', 'incineroar', 'garchomp', 'garchomp'], (b) => {
+        for (const x of [b.me, b.ally, b.f1, b.f2]) {
+          x.st = Object.assign({}, x.st, { hp: x.st.hp * 20 }); x.curHP = x.st.hp;
+        }
+      });
+      const forced = () => new Map([[B.f1, M.playerAction(B.f1, 'earthquake', B.me, B.S.field)],
+                                    [B.f2, { kind: 'pass' }]]);
+      M.battleTurn(B.S, rng5, P2(B.me, B.ally), forced());
       const committed = B.f1._lastMove;
       M.battleTurn(B.S, rng5,
         new Map([[B.me, disable ? M.playerAction(B.me, 'disable', B.f1, B.S.field) : { kind: 'pass' }],
                  [B.ally, { kind: 'pass' }]]), P2(B.f1, B.f2));
-      M.battleTurn(B.S, rng5, P2(B.me, B.ally), new Map([[B.f2, { kind: 'pass' }]]));
-      const rec = (B.S.lastActs || []).find(x => x.side === 'B');
-      return { committed, then: rec && (rec.move || rec.kind) };
+      let refusedFor = 0, freedAfter = false;
+      for (let t = 0; t < watch; t++) {
+        M.battleTurn(B.S, rng5, P2(B.me, B.ally), forced());
+        const rec = (B.S.lastActs || []).find(x => x.side === 'B');
+        if ((rec && (rec.move || rec.kind)) === committed) { freedAfter = true; break; }
+        refusedFor++;
+      }
+      return { committed, refusedFor, freedAfter };
     };
-    const free = run(false), sealed = run(true);
-    return free.then === free.committed && sealed.then !== sealed.committed;
+    const free = run(false, 8), sealed = run(true, 8);
+    return free.refusedFor === 0 && free.freedAfter   // CONTROL: an unsealed body obeys the click
+        && sealed.refusedFor > 1                      // the seal outlives the turn it was applied
+        && sealed.freedAfter;                         // and it ends — a permanent Disable is not the move
   });
 
 demo('ARM  punishesAttacker -- Rough Skin tolls contact and leaves a special hit alone',
@@ -1838,11 +2034,22 @@ demo('ARM  restoresStats -- White Herb undoes the drop and an empty hand keeps i
   });
 
 /* A SOURCE REVERT, BECAUSE THE TAG IS NOT WHAT IS READ. playerAction classifies a weather move from
- * `data/move-effects.js`'s own `fx.weather` -- `setsWeather` is never consulted -- so stripping the
- * tag leaves a working Sandstorm. The known-bad engine is the classifier refusing to recognise one. */
+ * `data/move-effects.js`'s own `fx.weather` -- so stripping the tag leaves a working Sandstorm. The
+ * known-bad engine is the classifier refusing to recognise one.
+ *
+ * SECOND ROAD ADDED 2026-08-14 (ROADMAP #273), AND ITS ABSENCE IS WHY THIS ROW WENT GREEN ON BOTH
+ * ARMS. The header above used to say `setsWeather` "is never consulted", and WIRE 146 made that false:
+ * `composeResiduals` reads the tag and rides `{fx:'weather'}` onto any non-attack action whose kind
+ * does not already cover weather. Measured on the reverted build — with the classifier cut, Sandstorm
+ * arrives as `{kind:'pass',mv:'sandstorm',also:[{fx:'weather'}]}` and the sky still changes. So the
+ * old reversal was not a broken engine at all; it was the same engine reaching the same field by the
+ * other door. There are TWO roads and the known-bad engine has to cut both. Howl stays the control on
+ * both arms: it carries no weather on either road. */
 demoSource('ARM  setsWeather -- Sandstorm sets SAND, Sunny Day sets SUN, Howl sets nothing',
   [['  if(fx&&fx.weather&&weatherId(fx.weather))\n    return {kind:\'weather\',mv:id};',
-    '  if(false&&fx&&fx.weather&&weatherId(fx.weather))\n    return {kind:\'weather\',mv:id};']],
+    '  if(false&&fx&&fx.weather&&weatherId(fx.weather))\n    return {kind:\'weather\',mv:id};'],
+   ["    if(_w&&_w.weather&&cov.indexOf('weather')<0)also.push({fx:'weather'});",
+    "    if(false&&_w&&_w.weather&&cov.indexOf('weather')<0)also.push({fx:'weather'});"]],
   (E) => {
     const run = (mv) => {
       const B = stage4(E, ['tyranitar', 'incineroar', 'garchomp', 'garchomp'], (b) => { b.S.field.weather = ''; });
@@ -1920,7 +2127,11 @@ demo('ARM  crashOnMiss -- High Jump Kick costs the user on a miss and nothing on
  * only the format's CHANCE, so stripping it leaves the generic 10% and the freeze still lands. The
  * known-bad engine is therefore the secondary loop refusing to run. */
 demoSource('ARM  inflictsFreeze -- Ice Beam freezes at a forced roll and Surf does not',
-  [['          if(fx&&fx.secondary&&!sheerForce){', '          if(false&&fx&&fx.secondary&&!sheerForce){']],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273): the loop's gate is no longer `fx.secondary` directly. ROADMAP
+   * #132 gave abilities their own added secondary, so the list the loop walks is `_secs` — the move's
+   * own plus the ability's — and the gate tests that. Reverting the new gate is the same known-bad
+   * engine: the secondary loop refuses to run at all. */
+  [['          if(_secs.length&&!sheerForce){', '          if(false&&_secs.length&&!sheerForce){']],
   (E) => {
     const run = (mv) => {
       const B = stage4(E, ['milotic', 'incineroar', 'corviknight', 'garchomp']);
@@ -2022,10 +2233,23 @@ demoSource('WIRE 132 the stone names the forme (the guess reaches the EMPTY twin
   });
 
 /* AND THE OTHER HALF: a mega ROW with `mv: []` produces a body that threatens NOTHING. Reverting the
- * inheritance leaves `buildMon('floette-mega')` holding zero moves -- and note that it still returns
- * a complete, plausible Pokemon with the right types, stats and ability, which is exactly why nothing
- * in this project ever noticed. The control is a mega row whose own `mv` is populated, which must be
- * unaffected by the fix in either direction. */
+ * inheritance leaves the body holding zero moves -- and note that it still returns a complete,
+ * plausible Pokemon with the right types, stats and ability, which is exactly why nothing in this
+ * project ever noticed. The control is a mega row whose own `mv` is populated, which must be
+ * unaffected by the fix in either direction.
+ *
+ * THE FIXTURE IS CONSTRUCTED NOW, NOT FOUND -- 2026-08-14 (ROADMAP #273), and finding out why is the
+ * whole value of the row. It used to name `floette-mega` as the empty row. That row is no longer
+ * empty: data/engine-data.js carries four moves for it today, so the reverted engine returned four
+ * moves as well and the demonstration stopped flipping while the code it watches was untouched. The
+ * four mega rows still holding `mv: []` are ALL ILLEGAL IN THIS REGULATION -- derived, and they are
+ * not named here for that reason -- so there is nothing legal left to point at.
+ *
+ * A COULD-NOT-STAGE VERDICT WOULD BE A CLAIM ABOUT THE FIXTURE AND NOT ABOUT THE MECHANIC. The hole
+ * is emptied in memory, on a LEGAL mega row, and put back in a finally: `megaRowMoves` (medicham2:4435)
+ * fires exactly as it would on a real empty row, and the base it recovers is found through the
+ * INVERTED into-map, which is the half a suffix-strip cannot do. The control is a second legal mega
+ * whose own `mv` is left alone. */
 demoSource('WIRE 132 a mega row with mv:[] inherits the base moveset',
   /* NARROWED TO THE ONE FIELD, 2026-08-07. This used to pin the whole `return {...}` line, which is
    * shared with every other property buildMon sets — so ROADMAP #31 adding `_ident` and the mega
@@ -2034,8 +2258,22 @@ demoSource('WIRE 132 a mega row with mv:[] inherits the base moveset',
    * is the whole of what WIRE 132 changed here. */
   [['moves:megaRowMoves(name,m).slice(),', 'moves:m.mv.slice(),']],
   (E) => {
+    /* BASE is asserted separately from SUBJECT on purpose: no string surgery gets from the mega key
+     * to this base, so "it found the right row" is the claim, not merely "it found some moves". */
+    const SUBJECT = 'floette-mega', BASE = 'floette-eternal', CONTROL = 'scizor-mega';
+    const row = MC.mons[SUBJECT], keep = row && row.mv;
+    const baseMoves = (MC.mons[BASE] && MC.mons[BASE].mv) || [];
+    /* The row must have moves of its own to take away, and the base must have some to give back, or
+     * this stages nothing. Said out loud rather than returning a comfortable false. */
+    if (!keep || !keep.length || !baseMoves.length) {
+      console.log('        WIRE 132: NO FIXTURE — ' + SUBJECT + ' mv=' + (keep ? keep.length : 'null')
+        + ', ' + BASE + ' mv=' + baseMoves.length); return false;
+    }
     const holds = (name) => { const b = E.buildMon(name, {}); return b ? b.moves.length : -1; };
-    return holds('floette-mega') === 4 && holds('scizor-mega') > 0;
+    try {
+      row.mv = [];
+      return holds(SUBJECT) === baseMoves.length && holds(CONTROL) > 0;
+    } finally { row.mv = keep; }
   });
 
 /* ================= ROADMAP #31 - MEGA EVOLUTION AS A MID-TURN CHOICE ==============================
@@ -2225,8 +2463,13 @@ demoSource('ROADMAP #81  a High Jump Kick that hits nothing but a type immunity 
  *    line, and the control is the same immune body with no shield up: it must toll nothing on both
  *    engines. */
 demoSource('ROADMAP #81  a Spiky Shield tolls a contact move its holder is immune to',
-  [[`          if(!(tg.protect&&!_thruProtect&&!(m.ability==='piercingdrill'&&mv.c==='P'))){_through.push(tg);continue;}`,
-    `          if(!(tg.protect&&!_thruProtect&&!(m.ability==='piercingdrill'&&mv.c==='P'))||typeEffAgainst(m,tg,mv,effMoveType(mv,a.move.id,field,m))===0){_through.push(tg);continue;}`]],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273). WIRE 158 lifted the pierce test out of this line into
+   * `_pierceP` and put a counter inside the branch, so the pattern stopped matching — and the old one
+   * named an ability inline, which this reversal now does not have to. The reversal is unchanged in
+   * substance: the type chart is asked BEFORE the shield, which is the gate order this claim is about,
+   * and the branch body is untouched so the pierce counter still fires on both arms. */
+  [['          if(!(tg.protect&&!_thruProtect&&!_pierceP)){',
+    '          if(!(tg.protect&&!_thruProtect&&!_pierceP)||typeEffAgainst(m,tg,mv,effMoveType(mv,a.move.id,field,m))===0){']],
   (E) => {
     const shielded = WIRE81.click(E, 'tauros', 'gengar', 'bodyslam', 'spikyshield', 0.5);
     const open     = WIRE81.click(E, 'tauros', 'gengar', 'bodyslam', null, 0.5);
@@ -2309,8 +2552,13 @@ const WIRE82 = {
 };
 
 demoSource('ROADMAP #81 WIRE 2  a FAILED Protect resets the counter, so the next one is a certainty again',
-  [['          it.mon.tookProtectTurns=_ok?Math.min(6,it.mon.tookProtectTurns+1):0;',
-    '          it.mon.tookProtectTurns=it.mon.tookProtectTurns+1;']],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273): the hard 6 became `_cap`, derived from the artifact's
+   * `stallCounterChecks` (first counter, growth, max), and the counter was hoisted into `_n`. The
+   * reversal is unchanged in substance — the counter climbs on every attempt and is never reset on a
+   * failure, which is the literal historical behaviour — and it keeps the derived cap so this stays a
+   * demonstration about the RESET and not about the ceiling. */
+  [['          it.mon.tookProtectTurns=_ok?Math.min(_cap,_n+1):0;',
+    '          it.mon.tookProtectTurns=Math.min(_cap,_n+1);']],
   (E) => {
     const d = WIRE82.streak(E);
     /* turns 1-2 blocked and turn 3 taken on BOTH engines -- that is the decay half, which was never
@@ -2319,7 +2567,10 @@ demoSource('ROADMAP #81 WIRE 2  a FAILED Protect resets the counter, so the next
   });
 
 demoSource('ROADMAP #81 WIRE 2  a Protect holding the LAST action of the turn fails and arms nothing',
-  [['        if(i+1>=acts.length){it.mon.protect=false;it.mon.tookProtectTurns=0;}   // willAct() === null',
+  /* RE-AIMED 2026-08-14 (ROADMAP #273): the "is there anything left to act" test is `_will` now, a
+   * named predicate computed above the branch, rather than an inline index comparison. The reversal is
+   * the same one — the willAct() rule is not modelled, so the shield goes up whatever it holds. */
+  [['        if(!_will){it.mon.protect=false;it.mon.tookProtectTurns=0;}   // willAct() === null',
     '        if(false){it.mon.protect=false;it.mon.tookProtectTurns=0;}']],
   (E) => {
     const slowFoe = WIRE82.lastAction(E, 50);    // `me` acts before it: turn-1 shield holds, counter armed
@@ -2443,8 +2694,13 @@ demoSource('ROADMAP #81 WIRE 4  Life Orb is chainModify([5324,4096]), not Math.f
  * restores the pre-wire line exactly, floor and pre-divided float together, because those were one
  * expression and separating them would demonstrate half a bug. */
 demoSource('ROADMAP #81 WIRE 4  recoil is Math.round of the damage dealt, not a floor of a float ratio',
-  [['      const _rc=a.move.mv&&a.move.mv.rc;\n      const _rcMul=(_nr&&_nr.recoil!=null)?+_nr.recoil:1;\n      const _rcDmg=(_rc&&_rcMul)?Math.max(1,Math.round(dealt*_rc[0]*_rcMul/_rc[1])):0;\n      if(_rcF&&dealt>0){m.curHP-=_rcDmg;',
-    '      if(_rcF&&dealt>0){m.curHP-=Math.floor(dealt*_rcF);']],
+  /* NARROWED 2026-08-14 (ROADMAP #273): the old pattern spanned three declarations AND the `if` that
+   * spends them, so ROADMAP #175 adding `!refusesIndirect(m)` to that `if` — a rule about who takes
+   * indirect damage, nothing to do with rounding — staled a reversal about arithmetic. Only the
+   * arithmetic is named now: the integer `Math.round(dealt * rc[0] * mul / rc[1])` goes back to the
+   * pre-divided float floor. `_rcF` is still the recoil fraction the `if` above already reads. */
+  [['      const _rcDmg=(_rc&&_rcMul)?Math.max(1,Math.round(dealt*_rc[0]*_rcMul/_rc[1])):0;',
+    '      const _rcDmg=Math.floor(dealt*_rcF);']],
   (E) => {
     const run = (mv) => {
       const B = (s) => { const b = E.buildMon(s, {}); b.item = ''; b.ability = 'none'; return b; };
@@ -2495,6 +2751,42 @@ const W6 = {
   says(E, mv) { const l = W6.lines(E, mv); return l.length === 1 && l[0].split('|')[3] === mv; },
   /* the two controls, asserted inside every case */
   controls(E) { return W6.says(E, 'earthquake') && W6.lines(E, null).length === 0; },
+  /* THE `{kind:'pass'}` EXAMPLE IS DERIVED, NOT NAMED — 2026-08-14 (ROADMAP #273), and this is the
+   * THIRD time this row's example has been outgrown by the engine. Quick Guard stopped being a pass
+   * click on 2026-08-10 (it became a real side guard); Psych Up replaced it and has now stopped too —
+   * `playerAction` returns `{kind:'affect', op:{kind:'copy'}}` for it, so the reverted engine kept
+   * announcing it and both cases went green on a broken build. Naming a move here is a bet that the
+   * engine will not learn it, and the engine keeps winning that bet.
+   *
+   * So the example is ASKED FOR at run time: the first move, in sorted order, that the SHIPPED engine
+   * still degrades to `{kind:'pass', mv:id}`. Sorted so it is deterministic across runs.
+   *
+   * FILTERED TO THE REGULATION, because MC.moves is not. An out-of-format move would be a probe about
+   * a click that cannot happen — the same defect two of this file's rows carried until today.
+   *
+   * IT THROWS RATHER THAN SKIPS IF THERE IS NONE. An engine that models every legal move would be a
+   * fine thing and this demonstration would be genuinely unstageable — that is news, not a pass. */
+  _pass: null,
+  passMove(E) {
+    if (W6._pass) return W6._pass;
+    require(D('engine', 'showdown_path.js'));
+    const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
+    const DX = Dex.forFormat('gen9championsvgc2026regmb');
+    const legal = (x) => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
+    const me = bare('incineroar'), foe = bare('garchomp');
+    const found = [];
+    for (const id of Object.keys(MC.moves).sort()) {
+      let a = null;
+      try { a = E.playerAction(me, id, foe, FIELD()); } catch (e) { continue; }
+      if (a && a.kind === 'pass' && a.mv === id && legal(DX.moves.get(id))) found.push(id);
+    }
+    if (!found.length) throw new Error('WIRE 6: no legal move degrades to {kind:pass} any more — '
+      + 'the demonstration has nothing to stand on and must be retired, not quietly passed');
+    console.log('    [WIRE 6] `{kind:pass}` clicks still available: ' + found.length
+      + ' — using `' + found[0] + '`');
+    W6._pass = found[0];
+    return W6._pass;
+  },
 };
 
 /* 1. THE KIND THE MAP DID NOT HAVE. `playerAction` returned a bare `{kind:'trickroom'}` and
@@ -2509,7 +2801,7 @@ demoSource('ROADMAP #81 WIRE 6  Trick Room announces the move that set it',
  *    Guard is 803 corpus uses; the reverted engine is silent on all of them. */
 demoSource('ROADMAP #81 WIRE 6  a move the engine models NOTHING for still announces itself',
   [['  return {kind:\'pass\',mv:id};', '  return {kind:\'pass\'};']],
-  (E) => W6.controls(E) && W6.says(E, 'quickguard') && W6.says(E, 'psychup'));
+  (E) => W6.controls(E) && W6.says(E, W6.passMove(M)));
 
 /* 3. THE GATE, WHICH IS A SEPARATE SITE AND WOULD HAVE SUPPRESSED CASE 2 ON ITS OWN. The emit
  *    condition read `_mid && a.kind!=='pass'`; restoring the kind test leaves playerAction stamping
@@ -2518,12 +2810,12 @@ demoSource('ROADMAP #81 WIRE 6  a move the engine models NOTHING for still annou
 /*    RE-AIMED 2026-08-10 (ROADMAP #126), AND THE REASON IS THE FINDING. This case used QUICK GUARD
  *    as its example of a `{kind:'pass'}` click, and Quick Guard is no longer one: it now resolves as
  *    a real side guard, so the reverted engine kept announcing it and the demonstration stopped
- *    flipping. Psych Up (still `{kind:'pass',mv:'psychup'}`, and already the second half of case 2)
- *    is the replacement. Nothing about the CLAIM changed -- only the move that can still exhibit it.
- *    Case 2 above is untouched because it already asserted psychup beside quickguard. */
+ *    flipping. Psych Up replaced it and was outgrown the same way (ROADMAP #273, 2026-08-14) -- see
+ *    `W6.passMove`, which is why neither case names a move any more. Nothing about the CLAIM has ever
+ *    changed; only the move that can still exhibit it. */
 demoSource('ROADMAP #81 WIRE 6  the announcement is gated on THE MOVE, not on the kind being liked',
   [['        if(TR&&_mid){', "        if(TR&&_mid&&a.kind!=='pass'){"]],
-  (E) => W6.controls(E) && W6.says(E, 'trickroom') && W6.says(E, 'psychup'));
+  (E) => W6.controls(E) && W6.says(E, 'trickroom') && W6.says(E, W6.passMove(M)));
 
 /* ================= ROADMAP #81 WIRE 7 — SEVEN TARGETS, EIGHT REVERTS ==============================
  *
@@ -2594,9 +2886,17 @@ demoSource('ROADMAP #81 WIRE 7  Knock Off cannot take the Sash that just saved t
    * sits above both and still fired. That is the probe catching the demonstration, one level up from
    * where it usually catches the engine: a reversal that leaves the defect unreachable proves nothing.
    * The old site is above the resist berry, which is above the Sash. */
-  [["        {\n          const _ri=TAGS.param('move',a.move.id,'removesItem');\n          if(_ri&&tg.item&&!itemRefusesTake(tg)){\n            const _taken=tg.item; tg.item='';\n            if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);\n            if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}\n          }\n        }\n", ''],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273). ROADMAP #81 WIRE 10 lifted the strip out of `_stepApply` into
+   * its own `_stepAfterHit` closure and ROADMAP #175 added `abilityRefusesItemLoss` to its guard, so
+   * the block the old pattern deleted no longer exists in that shape. The reversal is the same one:
+   * the step is emptied and an identical strip is put back ABOVE the resist berry, which is above the
+   * Sash — the position it held before this wire. BOTH refusal guards are carried into the moved copy
+   * on purpose, so what is reverted is only the ORDER; the refusal SET is the next demonstration's
+   * claim and must not ride on this one. */
+  [["      const _stepAfterHit=(R)=>{const tg=R.tg;\n        const _ri=TAGS.param('move',a.move.id,'removesItem');\n        if(_ri&&tg.item&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){\n          const _taken=tg.item; tg.item='';\n          if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);\n          if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}\n        }\n      };",
+    "      const _stepAfterHit=(R)=>{void R;};"],
    ["        const _rbHit=TAGS.param('item',tg.item,'resistBerry');",
-    "        {\n          const _ri=TAGS.param('move',a.move.id,'removesItem');\n          if(_ri&&tg.item&&!tg.fainted){\n            const _taken=tg.item; tg.item='';\n            if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);\n            if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}\n          }\n        }\n        const _rbHit=TAGS.param('item',tg.item,'resistBerry');"]],
+    "        {\n          const _ri=TAGS.param('move',a.move.id,'removesItem');\n          if(_ri&&tg.item&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){\n            const _taken=tg.item; tg.item='';\n            if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);\n            if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}\n          }\n        }\n        const _rbHit=TAGS.param('item',tg.item,'resistBerry');"]],
   (E) => { const none = W7.knock(E, 'gengar', ''), sash = W7.knock(E, 'gengar', 'focussash');
            return none.dead && !sash.dead && sash.hp === 1; });
 
@@ -2605,7 +2905,11 @@ demoSource('ROADMAP #81 WIRE 7  Knock Off cannot take the Sash that just saved t
  *    rather than on "is it THIS body's" would pass the test arm and fail the control, and that
  *    over-match is what `itemRefusesTake` was measured against 47,064 (item x body) pairs to avoid. */
 demoSource('ROADMAP #81 WIRE 7  a mega stone cannot be knocked off the body it belongs to',
-  [['if(_ri&&tg.item&&!itemRefusesTake(tg)){', 'if(_ri&&tg.item){']],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273): ROADMAP #175 added a second refusal to this guard. Only
+   * `itemRefusesTake` is removed — the other refusal is carried across, so the reversal is still
+   * exactly the mega-stone rule and not "Knock Off refuses nothing". */
+  [['if(_ri&&tg.item&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){',
+    'if(_ri&&tg.item&&!abilityRefusesItemLoss(tg,m)){']],
   (E) => { const owner = W7.knock(E, 'gengar', 'gengarite'), other = W7.knock(E, 'garchomp', 'gengarite');
            return other.item === '' && owner.item === 'gengarite'; });
 
@@ -2613,7 +2917,10 @@ demoSource('ROADMAP #81 WIRE 7  a mega stone cannot be knocked off the body it b
  *    back where this engine had it — the residual. STATE CLAIM, and the state is a life: two Scalds
  *    that together exceed a Corviknight's HP but not its HP plus a quarter. */
 demoSource('ROADMAP #81 WIRE 7  the Sitrus is eaten between the two attackers, not at the residual',
-  [['      _updateAll();\n      const it=acts[actIdx];', '      const it=acts[actIdx];'],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273): the loop-top Update pass no longer sits directly above
+   * `const it=acts[actIdx]` — ROADMAP #262's opportunist snapshot was inserted between them. The
+   * anchor moves to that line; the reversal removes the same one call and nothing else. */
+  [['      _updateAll();\n      _oppSnap=opportunistSnapshot(actA,actB);', '      _oppSnap=opportunistSnapshot(actA,actB);'],
    ['    _updateAll();   // ROADMAP #81 WIRE 7 -- after the LAST action',
     '    if(0)_updateAll();   // reverted -- after the LAST action']],
   (E) => {
@@ -2721,6 +3028,12 @@ demoSource('ROADMAP #81 WIRE 7  Follow Me announces nothing when it draws, Light
 /* THE CHARGE-TURN REVERT, shared by demos 4 and 5: the wind-up's announcement and its stat boost put
  * back INSIDE the "we are charging" branch, below the weather test, exactly where they sat until
  * tonight. Two edits because the block was reordered as well as moved. */
+/* SPLIT IN TWO 2026-08-14 (ROADMAP #273), AND THE REASON IS THAT THE OLD ONE PINNED A NEIGHBOUR. The
+ * second edit used to span the boost loop, the weather test and the charging branch as one string, so
+ * ROADMAP #186 changing the weather READ inside that span (`field.weather` -> `effWeatherOf`, Mega
+ * Sol's private sun) broke a reversal about where the BOOST sits. The two halves are now independent:
+ * take the boost out of its unconditional position, and put it back inside the charging branch. The
+ * weather test is not named by either, so it can move again without staling this. */
 const W8_CHARGE = [
   ['          /* `|-prepare|ATTACKER|MOVE` -- sim/SIM-PROTOCOL.md:594, and it is unconditional. */\n          if(TR)TR.prep(m,a.move.id);\n', ''],
   ["          const _cp=TAGS.param('move',a.move.id,'chargeTurn'), _b=_cp&&_cp.boosts;\n"
@@ -2729,19 +3042,11 @@ const W8_CHARGE = [
  + '            if(m.boosts&&_kk in m.boosts){const _b0=m.boosts[_kk];\n'
  + '              m.boosts[_kk]=Math.max(-6,Math.min(6,m.boosts[_kk]+_b[_k]));\n'
  + '              if(TR)TR.bst(m,_kk,m.boosts[_kk]-_b0);}\n'
- + '          }\n'
- + "          const _sk=TAGS.param('move',a.move.id,'chargeSkippedByWeather');\n"
- + "          const _herb=m.item==='powerherb';\n"
- + '          if(!(_sk&&_sk.skipsIn&&!field.wSup&&field.weather===_sk.skipsIn)&&!_herb){\n'
- + '            m._charging=a.move.id;\n'
+ + '          }\n', ''],
+  ['            m._charging=a.move.id;\n'
  + "            m._invuln=TAGS.has('move',a.move.id,'semiInvulnerable');\n"
- + '            m._lastMove=a.move.id;\n'
- + '            continue;                                           // the turn is spent\n'
- + '          }',
-    "          const _sk=TAGS.param('move',a.move.id,'chargeSkippedByWeather');\n"
- + "          const _herb=m.item==='powerherb';\n"
- + '          if(!(_sk&&_sk.skipsIn&&!field.wSup&&field.weather===_sk.skipsIn)&&!_herb){\n'
- + '            m._charging=a.move.id;\n'
+ + '            m._lastMove=a.move.id;\n',
+    '            m._charging=a.move.id;\n'
  + "            m._invuln=TAGS.has('move',a.move.id,'semiInvulnerable');\n"
  + "            const _cp=TAGS.param('move',a.move.id,'chargeTurn'), _b=_cp&&_cp.boosts;\n"
  + '            if(_b)for(const _k of Object.keys(_b)){\n'
@@ -2751,9 +3056,7 @@ const W8_CHARGE = [
  + '                if(TR)TR.bst(m,_kk,m.boosts[_kk]-_b0);}\n'
  + '            }\n'
  + '            if(TR)TR.prep(m,a.move.id);\n'
- + '            m._lastMove=a.move.id;\n'
- + '            continue;                                           // the turn is spent\n'
- + '          }'],
+ + '            m._lastMove=a.move.id;\n'],
 ];
 
 /* the screen click's duplicate gate, as landed */
@@ -2838,12 +3141,19 @@ demoSource('ROADMAP #81 WIRE 8  Aurora Veil still goes up on a side that already
  *    The control is that the reverted arm emits TWO lines rather than none, so a revert that simply
  *    lost the announcement would not read as a pass. */
 demoSource('ROADMAP #81 WIRE 8  an expiring Aurora Veil announces an Aurora Veil, once',
-  [['      for(const _id of screenIds(sf)){\n        if(--sf.sc[_id]<=0){delete sf.sc[_id]; if(TR)TR.sendSide(sf.side===\'A\'?\'p1\':\'p2\',_id);}\n      }}}',
-    '      for(const _id of screenIds(sf)){\n        const _c=screenCat(_id);\n'
-  + '        if(--sf.sc[_id]<=0){delete sf.sc[_id]; if(TR){\n'
-  + "          if(_c==='Physical'||_c==='both')TR.sendSide(sf.side==='A'?'p1':'p2','Reflect');\n"
-  + "          if(_c==='Special'||_c==='both')TR.sendSide(sf.side==='A'?'p1':'p2','Light Screen');}}\n"
-  + '      }}}']],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273). ROADMAP #242 moved every side clock out of the flat expiry
+   * walk into a job pushed at its own declared residual order, so the screen tick is no longer a
+   * `for(const _id of screenIds(sf))` loop here — it is one closure per screen, carrying the
+   * residual-expiry counters and reading `sideBuff.startsAs` for the name. The reversal is unchanged
+   * in substance: the ONE `-sideend` the condition emits becomes the two-counter engine's
+   * per-CATEGORY pair, which is what wrote `Reflect` and `Light Screen` for a lapsing Aurora Veil and
+   * never its own name. The counters are carried across so this stays a naming demonstration. */
+  [["        if(--sf.sc[_id]<=0){delete sf.sc[_id];MEDSEEN.residualExpiryEnded++;\n          if(TR)TR.sendSide(sf.side==='A'?'p1':'p2',(_sb&&_sb.startsAs)||_id);}",
+    "        if(--sf.sc[_id]<=0){delete sf.sc[_id];MEDSEEN.residualExpiryEnded++;\n"
+  + '          const _c=screenCat(_id);\n'
+  + '          if(TR){\n'
+  + "            if(_c==='Physical'||_c==='both')TR.sendSide(sf.side==='A'?'p1':'p2','Reflect');\n"
+  + "            if(_c==='Special'||_c==='both')TR.sendSide(sf.side==='A'?'p1':'p2','Light Screen');}}"]],
   (E) => {
     const { me, ally, f1, f2, S } = W7.board(E, 'incineroar', 'corviknight', 'garchomp', 'garchomp');
     S.field.weather = 'snow';
@@ -3088,8 +3398,11 @@ const W84_RECHARGE = (E, S, me, ally, f1, f2) => {
  *    Fake Out is 150 BP. Reverted at the flinch site alone, so the reverted build still records
  *    everything else and only this one refusal goes unrecorded. */
 demoSource('ROADMAP #84  a FLINCHED Stomping Tantrum reads 150 BP next turn',
-  [["      if(m._flinch){m._flinch=false;m._mvRes=false;if(TR)TR.cant(m,'flinch');continue;}",
-    "      if(m._flinch){m._flinch=false;if(TR)TR.cant(m,'flinch');continue;}"]],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273): the flinch branch is no longer one line — ROADMAP #175 put
+   * Steadfast's boost inside it, so the `continue` is now several lines below. Only the `_mvRes=false`
+   * write is reverted, which is the same single fact this demonstration is about. */
+  [["        m._flinch=false;m._mvRes=false;if(TR)TR.cant(m,'flinch');",
+    "        m._flinch=false;if(TR)TR.cant(m,'flinch');"]],
   (E) => {
     const clean = W84_TANTRUM(E, W84_CLEAN), flinched = W84_TANTRUM(E, W84_FLINCH);
     return clean > 0 && flinched >= clean * 1.8 && flinched <= clean * 2.2;
@@ -3116,7 +3429,9 @@ demoSource('ROADMAP #84  a RECHARGING Stomping Tantrum still reads 75 — null i
  *    control is Acrobatics, which HAS a kind and must be unaffected by the revert — without it this
  *    would also pass on a build that had simply lost variablePower altogether. */
 demoSource('ROADMAP #84  the variablePower gate lets a KINDLESS member through, and changes nothing for a kinded one',
-  [['  if(_vp){\n    if(_vp.kind===\'targetWeightKg\'', '  if(_vp&&_vp.kind){\n    if(_vp.kind===\'targetWeightKg\'']],
+  /* NARROWED 2026-08-14 (ROADMAP #273): the pattern spanned the gate AND the first branch, so
+   * ROADMAP #213's comment landing between them staled it. `  if(_vp){` on its own is the gate. */
+  [['  if(_vp){', '  if(_vp&&_vp.kind){']],
   (E) => {
     const acro = (item) => {
       const a = W7.bare(E, 'staraptor'); a.item = item;
@@ -3137,8 +3452,12 @@ demoSource('ROADMAP #84  the variablePower gate lets a KINDLESS member through, 
  * `break` rather than `continue` in the reverted arm, because in a per-target loop a row that drops
  * out has to stop this target's remaining steps, not skip to the next step. That is what a `continue`
  * inside the old single loop did. */
-const W10_REVERT = [['      for(const _step of _STEPS)for(const R of _rows){if(R.out)continue;_step(R);}',
-                     '      for(const R of _rows)for(const _step of _STEPS){if(R.out)break;_step(R);}']];
+/* RE-AIMED 2026-08-14 (ROADMAP #273): ROADMAP #250's `MID_TGT` write landed inside the inner loop
+ * body. It is carried across rather than dropped — it names the event address the middle arm's dice
+ * are keyed on, and a reversal that also stopped writing it would be a divergence-addressing demo as
+ * well as an ordering one. The swap of the two `for`s is unchanged. */
+const W10_REVERT = [['      for(const _step of _STEPS)for(const R of _rows){if(R.out)continue;MID_TGT=midEventSlot(R.tg);_step(R);}',
+                     '      for(const R of _rows)for(const _step of _STEPS){if(R.out)break;MID_TGT=midEventSlot(R.tg);_step(R);}']];
 const W10 = {
   /* two identical Milotic, the first optionally left on 1 HP so the spread click kills it */
   board(E, ability, killFirst, mv) {
@@ -3282,19 +3601,37 @@ if (!(() => { try { revertedEngine(W10_REVERT); return true; } catch (e) {
  * EVERY REVERSAL ASSERTS IT APPLIED (revertedEngine throws on a pattern that no longer matches), so a
  * demo cannot go green because its known-bad engine quietly failed to be bad. */
 
+/* RE-AIMED 2026-08-14 (ROADMAP #273): the pricing call was wrapped in `_price(isCrit)` when the crit
+ * re-price became an index read, and it gained a `_hitCtx` argument. The reversal is unchanged in
+ * substance — the SPREAD flag goes back to "is this a spread move that currently has more than one
+ * target", which is the reading a Protecting partner falsifies. `_hitCtx` is carried across. */
 const W11_SPREAD_REVERT = [[
-  '          let d=dmgRange(m,tg,mv,field,_spreadHit,isCrit);',
-  '          let d=dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1,isCrit);']];
+  '        const _price=(isCrit)=>dmgRange(m,tg,mv,field,_spreadHit,isCrit,_hitCtx);',
+  '        const _price=(isCrit)=>dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1,isCrit,_hitCtx);']];
 
 const W11_HERB_REVERT = [[
   'function restoreStatsAll(a,b){\n  let n=0;\n  for(const x of [...(a||[]),...(b||[])])if(x&&restoreStatsUpdate(x))n++;\n  return n;\n}',
   'function restoreStatsAll(a,b){\n  return 0;   /* WIRE 11 REVERTED: the residual keeps its own call, the other three do nothing */\n}']];
 
 const W11_ORDER_REVERT = [
+  /* RE-AIMED 2026-08-14 (ROADMAP #273), AND THE FIRST DRAFT OF THE RE-AIM THREW RATHER THAN FLIPPING,
+   * WHICH IS THE GUARD DOING ITS JOB. Calling `_damagingHit()` at the old anchor now hits a TEMPORAL
+   * DEAD ZONE: WIRE 84's reaction count `_react` is a `const` declared BELOW the damage, and the
+   * deferred reactor reads it out of that scope. A reversal that crashes is not a known-bad engine,
+   * it is a broken patch — so the count is hoisted with the call. `var _react=1` is the honest value
+   * for the build being restored: WIRE 11 predates the multi-hit count entirely and paid exactly one
+   * reaction. The `const` becomes a plain assignment so the real count still lands where it does
+   * today and `R.react` is unchanged. */
   ['        /* WIRE 11 REVERT ANCHOR -- THE OLD CALL SITE, and it is a comment on purpose. This engine ran',
-   '        _koThisHit=dmg>=tg.curHP;_damagingHit();\n        /* WIRE 11 REVERTED -- THE OLD CALL SITE. This engine ran'],
-  ['        _damagingHit();   /* ROADMAP #81 WIRE 11 -- the reactors, AFTER the damage */',
-   '        ;                 /* WIRE 11 REVERTED -- the reactors already ran, above the damage */']];
+   '        var _react=1;\n        _koThisHit=dmg>=tg.curHP;_damagingHit();\n        /* WIRE 11 REVERTED -- THE OLD CALL SITE. This engine ran'],
+  ['        const _react=(()=>{', '        _react=(()=>{'],
+  /* RE-AIMED 2026-08-14 (ROADMAP #273): the reactors are no longer CALLED here. 2026-08-12 deferred
+   * them to `_stepDamagingHit` — the closure is stored on the row and the call became a position in
+   * `_STEPS`, which is what WIRE 11's own comment asked for. So the line to blank is the STORE, and
+   * the step already guards on a missing closure (`if(!R._dh)return`), so nulling it is the same
+   * reversal: the reactors ran once, above the damage, at the anchor site restored by the edit above. */
+  ['        R._dh=_damagingHit;',
+   '        R._dh=null;   /* WIRE 11 REVERTED -- the reactors already ran, above the damage */']];
 
 const W11_CRIT_REVERT = [
   ['  const _critIgnA=_critHere&&_aBody.boosts[_aKey]<0;\n  const _critIgnD=_critHere&&def.boosts[_dKey]>0;',
@@ -3727,6 +4064,9 @@ demoSource('ROADMAP #81 WIRE 12  an aura on the FOE raises MY Fairy move too',
 
 /* 3. AURA BREAK INVERTS RATHER THAN CANCELS. The reversal makes it cancel -- the natural
  *    mis-statement -- and the demonstration is the difference between 0.75 and 1.0. */
+/* GUARDED 2026-08-14: no legal species in this regulation carries Aura Break, so `_ae.breakMult` is
+ * dead code here and the arm below asserts an interaction that cannot occur. See skipUnreachableAbility. */
+if (!skipUnreachableAbility('ROADMAP #81 WIRE 12  Aura Break inverts the aura to 0.75 rather than cancelling it', 'aurabreak'))
 demoSource('ROADMAP #81 WIRE 12  Aura Break inverts the aura to 0.75 rather than cancelling it',
   [['      const _m=_au.brk?_ae.breakMult:_ae.mult;',
     '      const _m=_au.brk?null:_ae.mult;   // reverted -- Aura Break merely cancels']],
@@ -3878,13 +4218,17 @@ demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any co
     };
     return run(me) > run(ctl);
   };
-  const reverted = revertedEngine([["    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&_db.onType===mvT",
-    "    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&!_db.onlyWhen&&_db.onType===mvT"]]);
-  ran++;
-  const a = trans(M), b = trans(reverted);
-  const ok = a && b;
-  if (!ok) failures++;
-  console.log(`  ${ok ? 'OK   ' : 'FAIL '} ROADMAP #112  Transistor (0 uses) is the POSITIVE CONTROL and fires on BOTH builds   shipped=${a} reverted=${b} (both must be true)`);
+  /* GUARDED 2026-08-14: this control assigns `transistor` to a Pikachu, and NO legal species in this
+   * regulation carries Transistor in any slot. It was counted as a FAIL for exactly that reason. */
+  if (!skipUnreachableAbility('ROADMAP #112  Transistor (0 uses) is the POSITIVE CONTROL and fires on BOTH builds', 'transistor')) {
+    const reverted = revertedEngine([["    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&_db.onType===mvT",
+      "    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&!_db.onlyWhen&&_db.onType===mvT"]]);
+    ran++;
+    const a = trans(M), b = trans(reverted);
+    const ok = a && b;
+    if (!ok) failures++;
+    console.log(`  ${ok ? 'OK   ' : 'FAIL '} ROADMAP #112  Transistor (0 uses) is the POSITIVE CONTROL and fires on BOTH builds   shipped=${a} reverted=${b} (both must be true)`);
+  }
 }
 
 /* ---- ROADMAP #96 / WIRE 3 -- TWO SOURCE-REVERTED ENGINES ----------------------------------------
@@ -3990,8 +4334,13 @@ demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any co
     const oneB = run(true, BOTTOM), manyB = run(false, BOTTOM);
     return (oneT > 0 && oneB > 0) ? [manyT / oneT, manyB / oneB] : [0, 0];
   };
-  const WITHHOLD = [['if(_hitsThisUse>1)c.hits=_hitsThisUse;',
-                     'if(false&&_hitsThisUse>1)c.hits=_hitsThisUse;']];
+  /* RE-AIMED 2026-08-14 (ROADMAP #273): the guard gained its drawn-1 clause — WIRE 147's Fickle Beam,
+   * where a move the artifact calls multi-hit can legitimately roll ONE hit and must not fall back on
+   * the 3.1 expectation. So the line is now `_hitsThisUse>1 || (_hitsThisUse===1 && multiHit)`. The
+   * reversal is unchanged in substance: the rolled count does not reach `dmgRange` at all, and the
+   * consumer falls straight back on the mean. */
+  const WITHHOLD = [["if(_hitsThisUse>1||(_hitsThisUse===1&&TAGS.param('move',a.move.id,'multiHit')))c.hits=_hitsThisUse;",
+                     "if(false&&(_hitsThisUse>1||(_hitsThisUse===1&&TAGS.param('move',a.move.id,'multiHit'))))c.hits=_hitsThisUse;"]];
   demoSource('ROADMAP #103  Icicle Spear lands FIVE hits at one rng corner and TWO at the other',
     WITHHOLD,
     (E) => { const r = RATIOS(E, 'iciclespear'); return r[0] === 5 && r[1] === 2; });

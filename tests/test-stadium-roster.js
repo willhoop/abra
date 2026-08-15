@@ -147,6 +147,13 @@ const NOT_A_MODEL = {
   'engine/mod_audit.js':
     'answers "did the Champions mod change this entity?" for every legal entity — a derivation off '
     + 'the format, and the reason NO POKEMON VALUE MAY BE TYPED FROM MEMORY is enforceable',
+  'engine/publish_guard.js':
+    'a WRITE GUARD, not a model — it holds the high-water mark of the sample size each published '
+    + 'artifact was measured at, and refuses a republish below it. data/published-samples.json is '
+    + 'that ledger of marks and carries no claim about the game. Built for ROADMAP #257, where a '
+    + '--write on a verification run republished the damage differential at n=150 while every '
+    + 'citing document still said 6,000: the number is only the symptom, and a run that can '
+    + 'silently shrink a published sample is the defect',
   'engine/open_work.js':
     'prints every unclosed register row and every defect a live instrument measures — a REPORT, and '
     + 'the whole point of it is that it is printed rather than typed (CLAUDE.md, START HERE)',

@@ -9348,3 +9348,47 @@ already written down as unreliable — the sprint note two entries above names i
 as the open suspect — and I filed an engine defect off its output anyway, ranked it first, and put it
 in front of Will as the place to start. **A defect read off an instrument you have already impeached
 is a claim about the instrument.** Open engine defects: 14 -> 13, by measuring rather than by fixing.
+
+### THIRTY-NINE RED DEMONSTRATIONS AND NOT ONE ENGINE DEFECT. 2026-08-14
+
+Three divisions ran at once, on disjoint files, with no measurement live. The headline is what did
+NOT happen: `probe_red_demo.js` went **195 demonstrations / 39 failed → 195 / 0 failed / 2 N/A**,
+and **not one byte of `medicham2-browser.js` moved**. Every one of the 39 was a defect in the
+demonstration.
+
+**THE 39 WERE TWO DIFFERENT PROBLEMS WEARING ONE COUNT.** 31 were STALE — source-string reversals that
+no longer matched the engine, so the demonstration had NOT RUN since some later wire rewrote those
+lines. 8 were FAIL — the reversal applied and the probe did not flip, or the probe was already red on
+the shipped engine. Reporting them as "31 stale reversals" hid the eight that had actually run and
+proved nothing.
+
+**FOUR OF THEM, ACROSS TWO DIVISIONS, WERE ONE STORY: A TEST ASSERTING BEHAVIOUR FOR AN ENTITY THIS
+REGULATION DOES NOT CONTAIN.** Derived over the legal roster, **no legal species carries Transistor,
+Dark Aura or Aura Break** — only Fairy Aura survives, on one body. The engine is right not to model
+them and `tag_dex.js` is right to omit them, and the probes read as engine defects. It is
+CLAUDE.md's "never name an entity that is not in the regulation" arriving **inside the instrument**.
+The guard derives reachability from the format, never from a typed list, and ENGINE re-aimed two more
+strips onto reachable carriers rather than skipping them — coverage went UP.
+
+**AND THE SEARCH FIND IS THE LARGEST OF THE NIGHT.** The choice lock **was not missing, it was
+PRIVATE**: the expression sat inline in `board.candidates()` and nowhere else, so the FIT knew a
+locked body had one legal move and **every playout this project has ever run offered it four**. Same
+shape as the priority-blocking bug: a FACT living inside one caller instead of being global.
+
+**THREE VOLATILES REFUSED BY NAME, AND ONE REFUSAL IS A MEASUREMENT.** Perish Song's two counters are
+**off by one** — the live adapter stores the wire's `perish3` as three board turns while the
+engine holds `_perish = 4` at that instant — so the board reads **zero on the very turn the body
+dies**. Seeding it would have ended the count early or dropped the lethal turn. A refusal with a
+measured reason is worth more than a seeded number nobody checked.
+
+**#275 IS IMPLEMENTED AND UNMEASURED, AND SAYS SO.** Eight sites in seven files, not the seven the row
+claimed — counted, not quoted. It moves the seeded speed order of a live search and **nothing says the
+search now chooses better**; that owes a paired-argmax arm against a frozen release, which cannot be
+cut while the tree moves.
+
+**THE COST OF RUNNING THREE WRITERS AT ONCE WAS REAL AND WAS CAUGHT BY THE AGENTS THEMSELVES.** The
+silent-catch population **moved by eight blocks during the hour MEASURE spent measuring it**, and
+`status.js` now stamps every R4 artifact `PRE-CHANGE` because `board.js` moved at
+23:05 — after those games were played. Nothing was corrupted, because no MEASUREMENT was live. But the
+R4 figures from earlier tonight now describe a build that no longer exists, which is the frozen-release
+rule stating its own case.

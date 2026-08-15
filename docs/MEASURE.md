@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 24 unsafe, 1 void (declared), 89 possibly stale, 92 ok, 0 missing
+  provenance: 24 unsafe, 1 void (declared), 91 possibly stale, 93 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
@@ -30,12 +30,12 @@ MEASURE — can we believe a number
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 12). Old hashes cannot be compared; restamp after checking board.js.
     moved after the fit: engine/medicham2-browser.js  2026-08-14 03:19
-    moved after the fit: engine/board.js  2026-08-14 01:55
+    moved after the fit: engine/board.js  2026-08-14 23:05
     moved after the fit: data/engine-data.js  2026-08-10 18:59
     moved after the fit: data/abra-tags.js  2026-08-13 20:18
 ```
 
-_stamped 2026-08-14 03:21_
+_stamped 2026-08-14 23:12_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,113 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 00000000000. ROADMAP #258 — THE SILENT-CATCH RATCHET HAD A LAUNDERING BUTTON, WHICH IS WHY IT SAT RED FOR A WEEK — 2026-08-14
+
+`tests/test-no-silent-failure.js` (reworked), `engine/provenance.js`, `engine/quarantine.js`,
+`engine/status.js`, `engine/open_work.js`, `data/silent-catch-baseline.json` (lowered, never raised).
+
+**THE NUMBERS, MEASURED RATHER THAN QUOTED.** The register row said 78 new and 101 manufacturing; an
+earlier note said 81 and 101. Both were stale and neither was today's:
+
+| | |
+|---|---|
+| catch blocks | 787 |
+| silent — say nothing at all | **296** (38%) |
+| …of which MANUFACTURE a value | **97** |
+| …of which only skip or continue | 199 |
+| baselined floor | 216 (was 220) |
+| NEW since the baseline | **80** — 41 manufacturing, 39 skipping |
+
+**THE TWO POPULATIONS ARE NOT ONE PROBLEM AND THE REPORT NOW SAYS SO.** A `catch { continue; }` over a
+torn JSONL line is correct silence. A catch that RETURNS A PLAUSIBLE VALUE is this project's named
+failure mode in its purest form — a capability that could not prove it ran, reporting success. The
+new list is grouped by file, manufacturing first, instead of 25 flat names and "… and 57 more".
+
+**THE INSTRUMENT'S OWN DEFECT WAS THE REASON THE DEBT COMPOUNDED.** `--update` rewrote the floor to the
+CURRENT silent set, so locking in a fix and laundering every new offender were THE SAME COMMAND. The
+row says as much — *"NOT RE-BASELINED, because `--update` would launder a week of it into the floor"* —
+and the consequence was a gate red for a week with three separate agent reports correctly observing
+they had not caused it. The sum of those correct observations is a check nobody acts on, which is
+"known failure" wearing the word *pre-existing*.
+
+`--update` is now MONOTONE: `min(baseline, current)` per key. It removes what was fixed and cannot add
+what is new. The only door into the floor is `--accept <file> "reason"`, one file at a time, with the
+reason written into the artifact beside the keys, refused outright if either argument is missing.
+**Demonstrated:** two `--update` passes took the floor 220 → 216 and the gate stayed RED at 80 NEW,
+where the old behaviour would have written 303 and reported zero.
+
+**FIXED HERE — seven, all MANUFACTURE, all in files this division owns:**
+
+| file | what the silence cost |
+|---|---|
+| `provenance.js` ×3 | `declaredWriter`, `keysOf` and `mtime` each turned *corrupt / permission-denied / mid-write* into the same answer as *absent*, inside the tool whose whole job is saying whether an artifact can be believed. They call `logUnreadable` now and the count prints every run, **including at zero** |
+| `quarantine.js` ×2 | an unreadable artifact was reported to the gate as `NO ARTIFACT — run the instrument`, which is a wrong diagnosis handed to the clause that decides whether MEDICHAM is correct; and the open-defect clause failed loudly without ever saying WHY it could not read the register |
+| `status.js` ×1 | `metaPathFor` throwing silently disabled the sidecar clause, so a figure whose stamp is rotten would print as clean — the one thing that block exists to prevent |
+| `open_work.js` ×1 | an unreadable instrument dropped out of the measured half of the report that exists to print what is open |
+
+**AND THE FIRST DRAFT OF THE `quarantine.js` FIX WAS ITSELF THE LESSON.** It reported on `.js` bundles
+that are handed to a JSON reader on purpose, and printed six lines of noise on a clean run. Narrowed
+to `.json` paths: a ratchet that flags code for doing what it asked is how a ratchet gets ignored, and
+that is the fourth correction of exactly this shape in this repository.
+
+A second detector blind spot is now STATED in the file rather than worked around: `blank()` erases
+template literals, so a reason travelling in `${e.message}` is invisible while `' (' + e.message + ')'`
+is seen. Fixing that would mean changing the brace scanner every other check in the file depends on;
+the call sites were changed instead, and the limit is written down. It costs a false POSITIVE, never a
+false negative.
+
+**STILL OPEN, AND NOT THIS DIVISION'S TO EDIT.** The remaining 80 sit in `tests/roster.js` (5
+manufacturing), `engine/mod_audit.js` (3), `engine/tag_dex.js`, `engine/game_differential.js`,
+`engine/million_run.js`, `engine/diff_swarm.js`, `engine/mega_census.js`,
+`engine/leaf_engine_contrast.js`, `engine/board.js`, `engine/medicham2-browser.js` and others owned by
+ENGINE and SEARCH. **The population moved by eight blocks during one hour of measuring it**, because
+both divisions were writing at the time — which is worth knowing before anyone quotes a single figure
+off this gate as though it were a constant. `node tests/test-no-silent-failure.js` prints the current
+per-file list; do not type one.
+
+### 00000000000. ROADMAP #257 — A VERIFICATION RUN CAN NO LONGER REPUBLISH A SMALLER MEASUREMENT — 2026-08-14
+
+`engine/publish_guard.js` (new), `tests/test-publish-guard.js` (new),
+`data/published-samples.json` (new), `tests/test-engine-diff.js` (four write sites).
+
+**FIRST, THE FIGURE, BECAUSE THAT IS THE HALF THAT MATTERS: IT IS TRUE.** `data/engine-diff.json`
+carries `requested 6000, compared 6000, agreed 6000, disagreed 0`, generated 2026-08-14T06:36Z. The
+white paper, the deck, the technical docs and the site cite 6,000 and are backed by a real run of that
+size; `tests/test-docs-current.js` is green on all 21 clauses. Nothing had to be restated and nothing
+is withheld. **One caveat that is not this row's to close:** `engine/medicham2-browser.js` moved at
+03:19 local, 43 minutes AFTER that run, so 0-of-6000 is a photograph of the 02:36 build. That is
+provenance's question and `status.js` prints it.
+
+**SECOND, THE DEFECT, WHICH IS THE `--write` AND NOT THE 150.** The stated mitigation on the row —
+*"a verification run passes `--out` or omits `--write`"* — was measured to be a no-op: the file has
+neither flag and wrote `data/engine-diff.json` unconditionally on every run. A rule you can only
+follow by remembering it is worth what the ban list of four was worth. So it is a mechanism:
+
+- **A publish below the published sample is REFUSED.** The run still completes and its output goes to
+  `data/verification/<name>.n<sample>.json`, so a verification run loses nothing except the ability to
+  republish. `process.exitCode = 3`, because a run that did not publish what its own output describes
+  must not read as a pass — that is exactly how the original quick check looked successful.
+- **`--republish-smaller` is the deliberate door**, and it stamps `sample_shrunk {from, to, at}` INTO
+  the artifact, so the next reader sees the decision in the file rather than in a closed terminal.
+- **A high-water mark per artifact** lives in `data/published-samples.json`, so the refusal survives a
+  hand edit, a merge, or a writer that never called the guard at all.
+- **The three conformance sections now amend the path `publish()` actually wrote.** They used to
+  re-read `data/engine-diff.json` BY NAME — so a `--plant` run, which goes out of its way to write
+  beside the artifact instead of over it, stamped three sections onto the published one anyway.
+
+**SHOWN RED ON THREE DELIBERATE BREAKS BEFORE BEING TRUSTED**: the refusal disabled (clause A fails on
+5 assertions), the artifact shrunk behind the guard (clause C names `data/engine-diff.json` and prints
+`ON DISK compared=150, RECORDED 6000`), and a bare write restored in the caller (clause B names the
+file and line). And on the real defect: `tests/test-engine-diff.js --n 150` now exits 3, leaves the
+6,000-comparison artifact untouched, and writes `data/verification/engine-diff.n150.json`.
+
+The guard is deliberately general — `publish({file, artifact, sampleKey, argv})` and
+`amend(path, sampleKey, fn)` — and only `tests/test-engine-diff.js` uses it today. **27 other
+top-level artifacts in `data/` carry a numeric sample field and are still unprotected** (counted, not
+listed — the shape is `compared` / `requested` / `n` / `games` / `pairs` / `decisions`);
+`node engine/publish_guard.js record <artifact> <key>` is how one joins, and each belongs to the
+division that writes it.
 
 ### 0000000000. ROADMAP #242, FIRST HALF — THE RESIDUAL ORDER TABLE WAS A SUBSET PRESENTED AS A POPULATION: 42 ROWS AGAINST 90 — 2026-08-14
 

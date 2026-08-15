@@ -10,6 +10,124 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.28.0] — 2026-08-14
+
+### Added
+- **ROADMAP #275 — THE LEAF READS THE TWO CLOCKS THE CALLERS WERE TYPING AS CONSTANTS. IMPLEMENTED
+  AND UNMEASURED.** `rollout_leaf.applySpeedClocks`, called from `applyFieldClock`, reads
+  `board.sideLeft` / `board.fieldLeft` and overwrites the caller's `twA` / `twB` / `tr`. Eight sites
+  in seven files built `twA: hasSide(side,'tailwind') ? 4 : 0` and `tr: hasField('trickroom') ? 5 : 0`
+  — so a Tailwind with one turn left was seeded with four in every one of them, and Trick Room is the
+  worse of the two because its number is a speed INVERSION rather than a multiplier. Fixed with ONE
+  read at the leaf, so only `miltank.js`'s two copies were deleted and the ninth caller written
+  tomorrow is correct without knowing the row exists. Neither key is spelled there:
+  `board.speedSideKeys()` derives from `derived()`'s `onModifySpe` join and falls back to the
+  `doublesSideSpeed` tag, counted at both tiers; `board.roomFieldKey()` is the declared irreducible.
+  An INFINITE remainder — what `sideLeft` returns for a permanent condition since #268 — is refused
+  and counted, because the engine reads a positive counter as running. **THIS IS UNMEASURED AND OWES
+  ITS OWN ARM**: it changes the seeded speed order of a live search in eight places at once, no
+  head-to-head could run beside writing agents, and nothing here says the new choice is better.
+- **ROADMAP #277 — THREE MORE VOLATILES REACH THE PLAYOUT AND THREE ARE REFUSED BY NAME.**
+  `VOL_ENGINE_FIELD` is a declared protocol-to-engine join beside `VOL_MOVE_FIELD`:
+  `healblock -> _healBlock` and `throatchop -> _noSound`, written ABOVE the `_vol` table so neither
+  leaves a consumer-less duplicate. **The choice lock was never missing — it was private**: the
+  expression sat inline in `board.candidates()` and nowhere else, so the fit knew a locked body had
+  one legal move and every playout ever run offered it four. It is now `board.choiceLockOn(mon, dex)`,
+  asked by both, and the seed writes `_lock` with the engine's own `_lockT: Infinity` discriminator.
+  **The foe's Protect streak is `board.noteMove`'s now** — `mag_bot.js`'s tracker is gated
+  `if (mine)`, so the opponent's shield was priced as certain on every turn of every game, and the
+  fitter's board had no count at all. `substitute`, `leechseed` and `perishsong` are refused with a
+  reason each, printed by `rollout_leaf.unseededVolatiles()` on every run.
+- **`tests/test-seed-clock.js` grew from 63 assertions to 119**, shown RED on four separate
+  deliberate breaks (9, 4, 4 and 5 failures, each attributable to its own wire), with two BEHAVIOURAL
+  arms — a silenced body must refuse its sound click, a locked body's other move must never appear on
+  the menu — because reading the seeded field back would only prove the seed wrote what the seed
+  wrote. The sound-lock fixture is CONSTRUCTED rather than found: every (species, sound move) pair is
+  tried until the unsilenced control actually clicks.
+
+### Fixed
+- **The perish-song refusal is now a measurement rather than a preference.** `magnemite.js:548` reads
+  the count off the wire's own name while the engine holds one more at the same instant and kills at
+  the end of the turn it reaches zero — so the board reads ZERO on the very turn the body dies.
+  Seeding it would end the count early or drop the lethal turn.
+
+### Notes
+- **NO REFIT IS OWED AND IT WAS CHECKED, NOT ARGUED.** `engine/feature_fixture.js`'s 58 per-feature
+  column hashes are byte-identical against a deliberate break restoring the old inline lock and
+  removing the streak write; and the shared lock answers exactly `isChoice` over all 148 legal items,
+  which with `lastMove` is the whole input to `candidates()`. ROADMAP #276 is the row that owes a
+  refit and it was deliberately not touched — the refit is gated behind MEDICHAM by Will's ruling.
+- **ROADMAP #282 opened**: `engine/magnemite.js:130` walks `dex.moves.all()` with no `isNonstandard`
+  filter, so a volatile's duration can be read off a move this regulation does not contain — measured
+  at five turns where the format's only legal carrier says two. Filed rather than fixed: it is the
+  live adapter's, and adding the filter alone leaves the table empty and falling back to a bare 3.
+- `engine/medicham2-browser.js`, `engine/magnemite.js` and `engine/mag_bot.js` were not edited.
+
+## [5.27.0] — 2026-08-14
+
+### Added
+- **ROADMAP #257 — A VERIFICATION RUN CAN NO LONGER REPUBLISH A SMALLER MEASUREMENT.**
+  `engine/publish_guard.js`, `tests/test-publish-guard.js` (23 assertions), `data/published-samples.json`.
+  **The published figure was checked FIRST and it is TRUE:** `data/engine-diff.json` holds
+  `requested 6000, compared 6000, agreed 6000, disagreed 0`, generated 2026-08-14T06:36Z, and
+  `tests/test-docs-current.js` is green on all 21 clauses — so the white paper, deck, technical docs
+  and site citing 6,000 are backed by a run of that size. Nothing was restated and nothing withheld.
+  The row's stated mitigation, *"pass `--out` or omit `--write`"*, was measured to be a no-op:
+  `tests/test-engine-diff.js` has neither flag and wrote the artifact unconditionally. So the
+  protection is a mechanism — a publish below the published sample is REFUSED, the run's output goes
+  to `data/verification/<name>.n<sample>.json` so nothing is lost, and `process.exitCode` becomes 3
+  because a run that did not publish what its output describes must not read as a pass.
+  `--republish-smaller` is the deliberate door and stamps `sample_shrunk {from,to,at}` into the
+  artifact. A high-water mark per artifact survives a hand edit or a writer that never called the
+  guard. **Shown RED on three deliberate breaks** (refusal disabled; artifact shrunk behind the guard;
+  a bare write restored in the caller) and on the real defect: `--n 150` now exits 3 and leaves the
+  6,000-comparison artifact untouched.
+
+### Fixed
+- **`tests/test-engine-diff.js`'s three conformance sections amended the PUBLISHED artifact by name.**
+  They re-read `data/engine-diff.json` regardless of what the run had written, so a `--plant` run —
+  which exists to write beside the artifact rather than over it — stamped three sections onto the real
+  one anyway. They now amend the path `publish()` actually wrote, and `amend()` refuses any mutation
+  that moves the sample size.
+- **ROADMAP #258 — THE SILENT-CATCH RATCHET HAD A LAUNDERING BUTTON.** `--update` rewrote the floor to
+  the CURRENT silent set, so locking in a fix and laundering every new offender were the same command;
+  that is why the row says NOT RE-BASELINED and why the gate could stay red for a week while three
+  correct reports called it pre-existing. `--update` is now MONOTONE — `min(baseline, current)` per
+  key — and the only door in is `--accept <file> "reason"`, one file at a time, with the reason
+  recorded in the artifact. Demonstrated: the floor fell **220 → 216** and the gate stayed RED at 80
+  NEW, where the old behaviour would have written 303 and reported zero.
+- **Seven manufacturing silent catches, all in MEASURE-owned files.** `engine/provenance.js` ×3 —
+  `declaredWriter`, `keysOf` and `mtime` each turned *corrupt / permission-denied / mid-write* into
+  the same answer as *absent*, inside the tool whose job is saying whether an artifact can be
+  believed; the count of unreadable files now prints every run, including at zero.
+  `engine/quarantine.js` ×2 — an unreadable artifact was reported to the gate as `NO ARTIFACT`, a
+  wrong diagnosis handed to the clause that decides whether MEDICHAM is correct. `engine/status.js`
+  ×1 — `metaPathFor` throwing silently disabled the sidecar clause, so a figure with a rotten stamp
+  would print as clean. `engine/open_work.js` ×1 — an unreadable instrument dropped out of the report
+  that exists to print what is open.
+
+### Changed
+- **The silent-catch report is RANKED, not listed.** It is two populations: a `catch { continue; }`
+  over a torn line is usually correct, and a catch that RETURNS A PLAUSIBLE VALUE is this project's
+  named failure mode. New blocks are printed manufacturing-first and grouped by the file that owns
+  them, instead of 25 flat names and "… and 57 more". Current census: 787 catch blocks, **296 silent
+  (38%), of which 97 manufacture**; floor 216; **80 NEW — 41 manufacturing, 39 skipping**. The
+  register's 78/101 and an earlier note's 81/101 were both stale.
+
+### Notes
+- **The population moved by eight blocks during one hour of measuring it**, because ENGINE and SEARCH
+  were writing at the time. Anyone quoting a single figure off that gate should re-run it first.
+- **The first draft of the `quarantine.js` fix was itself the lesson:** it reported on `.js` bundles
+  deliberately handed to a JSON reader and printed six lines of noise on a clean run. Narrowed to
+  `.json` paths — a ratchet that flags code for doing what it asked is how a ratchet gets ignored, and
+  that is the fourth correction of this exact shape here.
+- **A detector blind spot is now stated rather than worked around:** `blank()` erases template
+  literals, so a reason travelling in `${e.message}` is invisible while `' (' + e.message + ')'` is
+  seen. The call sites were changed; the brace scanner every other check depends on was not.
+- **Withheld:** nothing produced in this pass is downstream of MEDICHAM. `data/engine-diff.json`
+  MEASURES the simulator rather than consuming it. It is, however, older than
+  `engine/medicham2-browser.js` by 43 minutes, so 0-of-6000 describes the 02:36 build.
+
 ## [5.26.0] — 2026-08-14
 
 ### Changed

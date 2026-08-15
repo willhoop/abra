@@ -37,7 +37,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  577/577 probed mechanics live, 0 missing   (census 2026-08-14 03:19)
+  579/579 probed mechanics live, 0 missing   (census 2026-08-14 23:08)
   0/6000 differential comparisons disagree with Showdown   (2026-08-14 02:36)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -49,16 +49,123 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1b3214613280 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 783be28476b3 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c0dcb33ecd24 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 6991d4ac7e09 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 265/284 probed, 19 unprobed
 ```
 
-_stamped 2026-08-14 03:21_
+_stamped 2026-08-14 23:12_
 
 <!-- /GENERATED -->
+
+## ROADMAP #273 / #266 — THIRTY-NINE DEMONSTRATIONS HAD NOT RUN, AND NOT ONE OF THEM WAS AN ENGINE DEFECT. 2026-08-14.
+
+**Census 579 live / 0 missing -> 579 live / 0 missing. NOT ONE BYTE OF `medicham2-browser.js` MOVED**,
+and that is the finding rather than a caveat: `tests/probe_red_demo.js` was exiting 1 with **31 STALE
+and 8 FAIL**, and every one of the 39 was a defect in the DEMONSTRATION. The file now runs
+**195 demonstrations, 0 failed, 2 N/A**.
+
+### A SOURCE-STRING REVERSAL ROTS ON ANY NEARBY EDIT, WHICH IS WHY 31 DIED AT ONCE
+
+Each stale row was a multi-line patch into the simulator that a later wire had rewritten — the guard
+firing correctly and, by firing, taking its own demonstration out of service. Re-aimed one at a time
+against what the engine says today. **Where a reversal spanned a NEIGHBOUR it was narrowed**, because
+that is what staled it in the first place:
+
+| what staled it | rows | the narrowing |
+|---|---|---|
+| WIRE 11's ordering reversal spanned three declarations AND the `if` that spends them | recoil | only the arithmetic is named now; `refusesIndirect` is not in the pattern |
+| ROADMAP #213's comment landed between the gate and its first branch | the `variablePower` gate | `if(_vp){` alone |
+| ROADMAP #81 WIRE 9 added `rescript` to the attack action | WIRE 131's `acc` | `acc:hitProb(me,target,id,field)}`, one field |
+| ROADMAP #186 changed the weather READ inside a span about where the BOOST sits | both charge rows | split into two independent edits |
+
+**A COUNTER OR A FLAG INSIDE A REVERTED BLOCK IS CARRIED ACROSS, NEVER DROPPED.** `_subAte`, `MID_TGT`,
+`protectPierced`, the residual-expiry counters and both Knock Off refusal guards all stay, because a
+reversal that also turns off the instrument demonstrates the weaker thing — and a row red for two
+reasons cannot say which.
+
+### THE SIX FAILS, EACH NAMED WITH ITS KIND
+
+None was an engine defect. Four were probes that had stopped watching their knob and two were
+assertions the engine had legitimately outgrown:
+
+- **`multiAccuracy` was RED ON THE SHIPPED ENGINE** and had stopped flipping in the same move. It
+  asserted `all / one < 2.95` — a constant that quietly encoded "three equal hits of the printed base
+  power". ROADMAP #84's `variablePower` landed Triple Axel's 20/40/60 escalation and took BOTH arms
+  over it (shipped 4.98, stripped 5.71). The ceiling is DERIVED now, from `multiHit.hits` and
+  `variablePower.per`, and the discount is checked exactly: `96 + 184*0.9 + 268*0.81 = 478.68`, engine
+  478.
+- **`sealsMoves` was green on both arms**, because the tag does not put the seal on — it supplies the
+  DURATION and the membership of the ticking family. The old probe looked at the one turn after the
+  Disable, and one turn is sealed either way. **MY FIRST REPLACEMENT WAS WRONG IN THE COMFORTABLE
+  DIRECTION**: it counted what the foe freely chose, and a foe with no Disable at all leaves Earthquake
+  after one turn because the board moved — every arm then read "sealed forever". The action is SUPPLIED
+  now. Measured: shipped refuses it for 3 turns then obeys; **stripped refuses it on all 8 watched
+  turns and never frees**, because `disable` leaves `durationVolatiles()` and nothing ticks it. The
+  probe asserts both halves — it lasts, and it ends.
+- **`setsWeather`'s reversal was not a broken engine.** Its own header said `setsWeather` "is never
+  consulted"; WIRE 146 made that false. With the classifier cut, Sandstorm arrives as
+  `{kind:'pass',mv:'sandstorm',also:[{fx:'weather'}]}` and `composeResiduals` sets the sky anyway.
+  There are TWO roads and the known-bad engine now cuts both.
+- **WIRE 132's exemplar stopped exercising the code it names.** `floette-mega` carries four moves in
+  `data/engine-data.js` today, so the reverted engine returned four too. **The four mega rows still
+  holding `mv: []` are all illegal in this regulation**, so there is nothing legal left to point at —
+  the hole is now CONSTRUCTED in memory on a legal row and restored in a `finally`, and the recovered
+  count is asserted against the BASE row, which no suffix strip can reach.
+- **WIRE 6, twice, and this is the THIRD time the same row has been outgrown.** Quick Guard stopped
+  being a `{kind:'pass'}` click on 2026-08-10; Psych Up replaced it and is now `{kind:'affect'}` with a
+  copy op. Naming a move there is a bet the engine will not learn it, and the engine keeps winning.
+  `W6.passMove` ASKS the shipped engine at run time for the first legal move that still degrades to
+  `pass` — 5 available today — and throws rather than skipping if there is ever none.
+
+### #266 — THE OUT-OF-FORMAT STORY GENERALISES, AND IT IS A LEGALITY FACT RATHER THAN A COVERAGE GAP
+
+Two FAILs and two STALEs were demonstrations of entities **no legal body in Reg M-B can carry**. The
+`abilityUnreachable()` oracle is derived over `Dex.forFormat` and cached, and it was checked against
+every ability this file otherwise relies on before being wired: **28 reachable, and only the three that
+should be unreachable are** (Fairy Aura survives, on one legal mega). It is deliberately not read off
+`data/tags.json` — absence there means "not modelled", which is a different question — and deliberately
+ability-only, because an item or a move leaving the artifact is not something this oracle can answer.
+
+The two STALEs were STRIPS that could not apply for the same reason, and they were **re-aimed rather
+than skipped**, which is strictly better than an `N/A`: `weatherSuppression`'s membership is exactly one
+and it is reachable, so the row now runs on Cloud Nine; `damageReduce`'s remaining carriers were printed
+and the row moved to the one whose `onlyWhen` is NOT a second copy of the Filter row above it, so it
+asserts the condition (full HP, and not one point below) and not just the multiplier. The loop now asks
+the oracle BEFORE the strip, so the next ability the regulation drops arrives as `N/A` and not as a red
+row nobody can act on. **It fires zero times today**, which is stated because a guard that fires zero
+times is indistinguishable from one that is unwired — it was shown firing on a deliberate break first.
+
+### A REVERSAL THAT MAKES THE ENGINE THROW IS A BROKEN PATCH, AND IT USED TO KILL THE RUN
+
+`revertedEngine` throwing was already caught. The reverted engine throwing when it is PLAYED was not —
+and it happened during this pass: re-aiming WIRE 11's ordering reversal to the old call site put
+`_damagingHit()` above the temporal dead zone of a `const` a later wire introduced, and the run died at
+row 148 of 195 with a stack trace instead of a named row. That is this file's own lesson one door
+further in, for the third time. `demoSource` now names it `THREW`, says WHICH ARM threw (a shipped arm
+is an engine defect, a reverted arm is a defect in the reversal), counts it and carries on. Shown red on
+a deliberate break — an undefined call inside one reversal's replacement — and the other 194 rows still
+reported.
+
+`PROBE_VERBOSE=1` prints the full missing pattern for a stale row and every pattern that DID apply. The
+default stays one line: the row is still named and still counted, only abbreviated.
+
+### NOTHING RE-RUN IS OWED
+
+No engine byte moved, so no downstream figure is invalidated and the census is unchanged at 579/579.
+
+### THE HAND LIST IS UNCHANGED
+
+Nothing left it: this pass repaired instruments rather than landing mechanics. **Added, because this
+pass measured it and did not fix it:** the reversal for `WIRE 11 the contact punish is paid AFTER the
+damage lands` can no longer restore the pre-wire build with a pure move of the call — WIRE 84's reaction
+count `_react` is declared below the damage, so the reversal has to hoist a `var _react=1` with it. That
+is faithful to the build being restored (WIRE 11 predates the multi-hit count and paid one reaction) and
+it is a reversal that now depends on TWO wires instead of one. If `_react` moves again this row stales
+again, and the durable fix is for `_damagingHit` to take the count as a parameter — an engine change,
+not a probe change, and it is not made here.
 
 ## ROADMAP #242 SECOND HALF — EVERY SIDE AND FIELD CLOCK WAS SPENT AT A POSITION NO EFFECT DECLARES. 2026-08-14.
 
