@@ -9269,3 +9269,41 @@ truncate an existing corpus in the same breath.
 **A REMEMBERED `--procs 3` WOULD NOT HAVE BEEN A FIX**, for the reason this file has now recorded
 six times in other forms: a promise is not a check. What makes this instance worth writing down is
 that every one of the three tools was already here, already documented, and already correct.
+
+### THE MOST-USED ROCK WAS THE UNPINNED ONE, AND THE PROBE COULD NOT TELL "8 TURNS" FROM "FOREVER". 2026-08-14
+
+Will asked whether Heat Rock and Damp Rock had been tested. Heat Rock had; Damp Rock had not, and
+neither had Smooth Rock or Icy Rock.
+
+**ALL FOUR ARE CORRECT.** Measured before anything was claimed — control expires by turn 6, the rock
+holds the weather at 6, and it is gone by turn 9:
+
+```
+heatrock    sunnyday   CLEAR -> sun    -> CLEAR   OK
+damprock    raindance  CLEAR -> rain   -> CLEAR   OK
+smoothrock  sandstorm  CLEAR -> sand   -> CLEAR   OK
+icyrock     snowscape  CLEAR -> snow   -> CLEAR   OK
+```
+
+So this is a coverage finding, not a bug report. Two things in it are worth keeping.
+
+**THE ONE THAT WAS PROBED IS NOT THE ONE THAT MATTERS.** Derived from the corpus rather than guessed:
+**Damp Rock is held 342 times, Heat Rock 93, Smooth Rock 31, Icy Rock 20.** The single probe covered
+the second-rarest of the four. Nothing chose that — Heat Rock is simply the one somebody wrote a probe
+for while fixing the weather branch, and coverage followed the fix rather than the usage.
+
+**ONE PROBE OVER FOUR ITEMS IS NOT FOUR MECHANICS.** All four carry the same `extendsDuration`
+tag and the engine matches on tag shape rather than on a name, so Heat Rock passing IS evidence the
+code path works. What it cannot see is the MAPPING: each rock names a different weather —
+`icyrock` names two, `snowscape` and `hail` — and a rock wired to the wrong weather,
+or a weather branch that never consults the tag, passes the existing probe untouched. That is #279's
+lesson in another costume.
+
+**AND THE MISSING ARM IS THE SHARPER HALF.** The Heat Rock probe reads turn 6 only, so
+**"extends to 8" and "never expires" are the same observation to it.** An engine that made a held rock
+set permanent weather would have passed. Turn 9 separates them, all four pass it, and the new probe
+carries all three arms for every rock.
+
+The tag itself was already right: `extendsDuration {extends:["raindance"], toTurns:8, insteadOf:5}`,
+derived by `tag_dex.js` from the format's own `durationCallback` rather than typed. The gap
+was never in the data.

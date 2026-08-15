@@ -8801,6 +8801,44 @@ probe('item', 'extendsDuration', 'Heat Rock keeps the sun up past turn five', ()
            detail: `turn 6 weather: no item ${control}, Heat Rock ${test}` };
 });
 
+/* THE OTHER THREE ROCKS, AND AN ARM THE PROBE ABOVE DOES NOT HAVE — filed 2026-08-14 after Will asked
+ * whether Damp Rock had been tested. It had not. Only Heat Rock was probed, and it is the SECOND
+ * rarest of the four: derived from the corpus, Damp Rock is held 342 times against Heat Rock's 93,
+ * Smooth Rock's 31 and Icy Rock's 20. The most-used one was the unpinned one.
+ *
+ * ONE PROBE OVER FOUR ITEMS DOES NOT COVER FOUR MECHANICS. All four carry the same
+ * `extendsDuration` tag and the engine reads the tag rather than the name, so Heat Rock passing IS
+ * evidence the code path works. What it cannot see is the MAPPING: each rock names a different
+ * weather (`icyrock` names two — `snowscape` and `hail`), and a rock wired to the wrong weather, or a
+ * weather branch that never consults the tag, passes the probe above untouched. That is #279's lesson
+ * in another costume — a probe on one shape passes on an engine that has the others backwards.
+ *
+ * AND THE THIRD ARM IS THE POINT. The Heat Rock probe reads turn 6 only, so "extends to 8" and
+ * "never expires" are the same observation to it. Turn 9 separates them. All four were measured
+ * correct on both arms when this was written; it is a regression pin, not a bug report. */
+probe('item', 'extendsDuration', 'all four weather rocks extend to 8 turns and then stop', () => {
+  const ROCKS = [['heatrock', 'sunnyday', 'sun'], ['damprock', 'raindance', 'rain'],
+    ['smoothrock', 'sandstorm', 'sand'], ['icyrock', 'snowscape', 'snow']];
+  const run = (item, move, turns) => {
+    const { me, ally, f1, f2, S } = board('torkoal', 'incineroar', 'garchomp', 'garchomp');
+    me.ability = 'none'; me.item = item;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, move, null, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    for (let t = 0; t < turns; t++) M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    return S.field.weather || 'CLEAR';
+  };
+  const arms = {}; const bad = [];
+  for (const [item, move, want] of ROCKS) {
+    const c6 = run('', move, 5), t6 = run(item, move, 5), t9 = run(item, move, 8);
+    arms[item] = { noItemTurn6: c6, rockTurn6: t6, rockTurn9: t9 };
+    if (c6 !== 'CLEAR') bad.push(`${item}: control weather never expired (${c6})`);
+    else if (t6 !== want) bad.push(`${item}: turn 6 is ${t6}, wanted ${want} — did not extend`);
+    else if (t9 !== 'CLEAR') bad.push(`${item}: still ${t9} on turn 9 — extends past 8`);
+  }
+  return { works: bad.length === 0, arms,
+           detail: bad.length ? bad.join('; ') : 'all four extend to 8 turns and expire by turn 9' };
+});
+
 /* THE OFFENSIVE MULTIPLIERS, BOTH DIRECTIONS AND BOTH WEATHERS. A wire that boosted the matching type
  * and forgot the halve is the likelier bug and reads as working on a two-armed probe. */
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Six arms, all through a real turn; the weather
