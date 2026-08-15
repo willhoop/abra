@@ -9307,3 +9307,44 @@ carries all three arms for every rock.
 The tag itself was already right: `extendsDuration {extends:["raindance"], toTurns:8, insteadOf:5}`,
 derived by `tag_dex.js` from the format's own `durationCallback` rather than typed. The gap
 was never in the data.
+
+### I FILED A DAMAGE DEFECT AND THE DAMAGE WAS RIGHT. 2026-08-14
+
+#279 said three moves always crit in this format, that we roll a die for them anyway, and that this is
+**"a DAMAGE error rather than a narration one"**. The first two are true. The third is false, and it
+was the reason the row was ranked first of the fourteen.
+
+**MEASURED THROUGH `dmgRange`**, the function the battle loop and the pricer both call:
+
+```
+stormthrow   34    frostbreath  304    flowertrick  39     <- asking for a NON-crit
+stormthrow   34    frostbreath  304    flowertrick  39     <- asking for a crit
+flamethrower 56 -> 84      surf 75 -> 112                  <- control, same call
+```
+
+A guaranteed crit is **already crit-priced without being asked**: `dmgRangeOneHit` derives
+`_critHere` from `critChance(...) === 1` itself, and the battle loop deliberately skips
+re-pricing a rate of exactly 1 so the 1.5 is never applied twice. The comment saying so was sitting
+directly above the line I read.
+
+**THE CONTROL IS THE WHOLE PROBE.** "plain equals crit" is also exactly what an engine that IGNORED
+the crit flag would print — and that engine would be catastrophically broken. Without
+`flamethrower 56 -> 84` in the same call, the three matching numbers are not evidence of
+anything. That is the arm the original filing lacked in both directions.
+
+**THE OTHER TWO CLAIMS.** The `critRatio: 2` half checks out: all 14 legal carriers hold
+`{"critRatio":2}` and `CRIT_BY_STAGE=[1/24,1/8,1/2,1]` is the correct gen-9 ladder. What
+survives is that we consume `_R.crit()` where the authority short-circuits `willCrit` and
+never draws — which costs an ADDRESS in the middle arm and nothing in a game, and is unconditional on
+purpose so a Shell Armor arm and a plain arm read the same stream.
+
+**AND THE COVERAGE WAS NOT ABSENT, IT WAS DEAD.** `tests/probe_red_demo.js` pins alwaysCrit in
+four separate places — and that file is #273, red with 31 stale reversals. **A mechanic pinned only in
+an instrument that does not run is not pinned**, and it reads exactly like a mechanic nobody covered.
+The probe now lives in `tests/test-mechanics.js`, which runs.
+
+**THE SHAPE, AND IT IS THE ONE THIS FILE KEEPS RECORDING.** The middle arm is an instrument I had
+already written down as unreliable — the sprint note two entries above names its category assignment
+as the open suspect — and I filed an engine defect off its output anyway, ranked it first, and put it
+in front of Will as the place to start. **A defect read off an instrument you have already impeached
+is a claim about the instrument.** Open engine defects: 14 -> 13, by measuring rather than by fixing.

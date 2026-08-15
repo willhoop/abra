@@ -10,6 +10,31 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.26.0] — 2026-08-14
+
+### Changed
+- **ROADMAP #279 CORRECTED AND LARGELY RETRACTED — THE DAMAGE WAS ALREADY RIGHT.** The row claimed a
+  guaranteed crit that rolls a die is *"a DAMAGE error rather than a narration one"*, and that ranking
+  put it first of the fourteen open engine defects. Measured through `dmgRange`, the function the
+  battle loop and the pricer both call: **Storm Throw 34, Flower Trick 39, Frost Breath 304, and
+  asking for a NON-crit returns the same numbers** — `dmgRangeOneHit` derives `_critHere` from
+  `critChance(...) === 1` itself, and the loop deliberately skips re-pricing a rate of exactly 1 so
+  the 1.5 is never applied twice. The `critRatio: 2` half also checks out: all 14 legal carriers hold
+  `{"critRatio":2}` and `CRIT_BY_STAGE=[1/24,1/8,1/2,1]` is the correct gen-9 ladder. What survives is
+  that this engine consumes `_R.crit()` where the authority short-circuits `willCrit` and never draws
+  — an ADDRESS cost in the middle arm's differential and nothing in a game, and unconditional on
+  purpose so a Shell Armor arm and a plain arm read the same stream. **Open engine defects 14 → 13,
+  by measuring rather than by fixing.** The row was filed off the middle arm, an instrument the sprint
+  notes had already recorded as unreliable.
+
+### Added
+- **A LIVE PROBE FOR THE THREE GUARANTEED CRITS, WITH THE CONTROL THAT MAKES IT MEAN ANYTHING.**
+  "Plain equals crit" is also what an engine ignoring the crit flag entirely would print, so the probe
+  asserts `flamethrower 56 -> 84` and `surf 75 -> 112` in the same call. **The coverage was not
+  absent, it was dead**: `tests/probe_red_demo.js` pins `alwaysCrit` in four places and is #273, red
+  with 31 stale reversals — a mechanic pinned only in an instrument that does not run is not pinned.
+  The new probe is in `tests/test-mechanics.js`, which runs.
+
 ## [5.25.0] — 2026-08-14
 
 ### Added

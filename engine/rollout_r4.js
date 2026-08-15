@@ -394,16 +394,50 @@ if (st.records !== games) {
     + 'Two readers over the same file must agree on how big it is.');
 }
 
-/* THE PAIRING INVARIANTS, ASSERTED RATHER THAN DESCRIBED. If they ever stop holding, the sentence
- * this artifact prints about the line count would become a lie, so it is checked before it is
- * written: every id appears exactly twice (game record + log companion) and every seed appears
- * exactly twice (the same matchup from both sides). */
+/* THE PAIRING INVARIANT AND THE LAYOUT INVARIANT ARE TWO DIFFERENT CLAIMS AND USED TO BE ONE CHECK.
+ * ------------------------------------------------------------------------------------------------
+ * Split 2026-08-14. The old check asserted, under the single name "the pairing invariants", that every
+ * SEED appears twice AND that every ID appears twice AND that `lines === 2 * records`. Only the first
+ * is about the experiment. The other two are about whether the run kept its RAW LOG COMPANION — the
+ * `{id, uploadtime, log}` row the store writes beside each game — which `mew.js --no-raw` deliberately
+ * does not write.
+ *
+ * SO A CORRECTLY PAIRED RUN WAS REFUSED FOR HAVING SMALLER FILES. R4's re-run (#281) was farmed with
+ * `--no-raw` because the raw log is the largest thing these runs produce and nothing downstream of R4
+ * reads it. It came back `id multiplicity {"1":880}, seed multiplicity {"2":440}` — every seed paired
+ * exactly as required, every id unique because there is no companion — and the generator threw.
+ *
+ * LOOSENING IT WOULD HAVE BEEN THE WRONG FIX, so it is not loosened: the layout is still asserted, it
+ * is just asserted against the layout the file actually has. `log_only_records` already told the
+ * reader which one that is, and both branches still demand internal consistency, so a file that is
+ * half-companioned — a genuinely torn merge — still fails.
+ *
+ * WHY THE OLD CHECK EXISTED AT ALL, because it must not be lost: the 2x line count has ALREADY caused
+ * a published error. docs/archive/HANDOFF-2026-08-04-r4-decided.md calls that run "5,248 games" when
+ * it is 5,248 LINES and 2,624 games. That is exactly why the ratio is asserted rather than assumed —
+ * the fix keeps that guarantee under both layouts instead of only under one. */
 const twiceOnly = (m) => Object.keys(m).length === 1 && m['2'] > 0;
-if (!twiceOnly(st.id_multiplicity) || !twiceOnly(st.seed_multiplicity) || st.lines !== 2 * st.records) {
-  throw new Error(`rollout_r4: the pairing invariants do not hold on ${CORPUS} — lines ${st.lines}, `
-    + `records ${st.records}, id multiplicity ${JSON.stringify(st.id_multiplicity)}, seed multiplicity `
-    + `${JSON.stringify(st.seed_multiplicity)}. Do not publish an n from a file that is not shaped the `
-    + 'way this generator claims it is.');
+const onceOnly = (m) => Object.keys(m).length === 1 && m['1'] > 0;
+
+/* (1) PAIRING. Always required, and it is the only clause that is about the experiment: the same
+ * matchup must have been played from both sides on the same seed, or there are no pairs to read. */
+if (!twiceOnly(st.seed_multiplicity)) {
+  throw new Error(`rollout_r4: the PAIRING invariant does not hold on ${CORPUS} — seed multiplicity `
+    + `${JSON.stringify(st.seed_multiplicity)}, and every seed must appear exactly twice (the same `
+    + 'matchup from both sides). Without that there are no pairs and nothing here may be published.');
+}
+
+/* (2) LAYOUT. Which shape is correct depends on whether the run kept raw logs, and the file says. */
+const companioned = st.log_only_records > 0;
+const layoutOk = companioned
+  ? (twiceOnly(st.id_multiplicity) && st.lines === 2 * st.records)
+  : (onceOnly(st.id_multiplicity) && st.lines === st.records);
+if (!layoutOk) {
+  throw new Error(`rollout_r4: the LAYOUT invariant does not hold on ${CORPUS} — lines ${st.lines}, `
+    + `records ${st.records}, log-only companions ${st.log_only_records}, id multiplicity `
+    + `${JSON.stringify(st.id_multiplicity)}. A run WITH raw logs must be 2 lines and 2 ids per game; `
+    + 'a run written with --no-raw must be exactly 1 of each. Neither holds here, so the file is not '
+    + 'shaped the way any generator claims — do not publish an n from it.');
 }
 
 const standing = engineStanding(CORPUS);

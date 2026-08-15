@@ -8839,6 +8839,54 @@ probe('item', 'extendsDuration', 'all four weather rocks extend to 8 turns and t
            detail: bad.length ? bad.join('; ') : 'all four extend to 8 turns and expire by turn 9' };
 });
 
+/* THE THREE GUARANTEED CRITS ARE PRICED AS CRITS WITHOUT BEING ASKED — pinned 2026-08-14 while
+ * CORRECTING #279, which filed this as a live damage defect. It is not one.
+ *
+ * #279 was opened off the middle arm's address dump: the authority draws no crit die for Flower Trick
+ * and this engine draws one, so the row concluded "a guaranteed crit that ROLLS is wrong on every use
+ * ... a DAMAGE error rather than a narration one". Measured through `dmgRange`, the function the
+ * battle loop and the pricer both call, that is FALSE — asking for a NON-crit on all three returns
+ * the crit number, because `dmgRangeOneHit` computes `_critHere` from `critChance(...) === 1` itself
+ * and the loop deliberately skips re-pricing a rate of exactly 1 so the 1.5 is not applied twice.
+ * The extra die is real and is deliberate (`_R.crit()` is consumed unconditionally so a Shell Armor
+ * arm and a plain arm draw the same stream); it costs an address in the differential and nothing in
+ * a game.
+ *
+ * THE CONTROL IS THE WHOLE PROBE. "plain equals crit" is also what an engine that IGNORED the isCrit
+ * flag entirely would print, and that engine would be badly broken. So an ordinary move must come
+ * back DIFFERENT by about 1.5x in the same call, or this probe is measuring nothing.
+ *
+ * AND IT IS HERE RATHER THAN WHERE IT ALREADY EXISTED. `tests/probe_red_demo.js` covers alwaysCrit in
+ * four places — and that file is #273, red with 31 stale reversals, which is a demonstration that has
+ * not run. A mechanic pinned only in a dead instrument is not pinned. */
+probe('move', 'alwaysCrit', 'the three guaranteed crits are already crit-priced, and ordinary moves are not', () => {
+  const ALWAYS = ['stormthrow', 'flowertrick', 'frostbreath'];
+  const CONTROL = ['flamethrower', 'surf'];
+  const att = bare('charizard'), def = bare('garchomp');
+  const priced = (id, isCrit) => {
+    const mv = MC.moves[id];
+    if (!mv) return null;
+    return M.dmgRange(att, def, mv, fresh(), false, isCrit, null).max;
+  };
+  const arms = {}; const bad = [];
+  for (const id of ALWAYS) {
+    const plain = priced(id, false), crit = priced(id, true);
+    arms[id] = { askedNoCrit: plain, askedCrit: crit };
+    if (plain === null) bad.push(`${id}: not in the move table`);
+    else if (plain !== crit) bad.push(`${id}: asked for no crit and got ${plain}, crit is ${crit} — the guaranteed crit is not being priced`);
+  }
+  for (const id of CONTROL) {
+    const plain = priced(id, false), crit = priced(id, true);
+    arms[id] = { askedNoCrit: plain, askedCrit: crit };
+    /* If this fails, "plain === crit" above proves nothing: the flag is being ignored. */
+    if (!(plain !== null && crit > plain)) bad.push(`CONTROL ${id}: ${plain} vs ${crit} — dmgRange is ignoring isCrit, so the arms above are meaningless`);
+  }
+  return { works: bad.length === 0, arms,
+           detail: bad.length ? bad.join('; ')
+             : `guaranteed ${ALWAYS.map((i) => i + ' ' + arms[i].askedNoCrit).join(', ')} `
+               + `(unchanged when a crit is requested); control ${CONTROL.map((i) => i + ' ' + arms[i].askedNoCrit + '->' + arms[i].askedCrit).join(', ')}` };
+});
+
 /* THE OFFENSIVE MULTIPLIERS, BOTH DIRECTIONS AND BOTH WEATHERS. A wire that boosted the matching type
  * and forgot the halve is the likelier bug and reads as working on a two-armed probe. */
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Six arms, all through a real turn; the weather
