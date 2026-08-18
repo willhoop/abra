@@ -1,37 +1,42 @@
 {
-  "generated": "2026-08-18T02:45:59.937Z",
+  "generated": "2026-08-18T06:35:43.891Z",
   "by": "engine/register_reality.js",
   "what": "Every register row that names the instrument deciding it, run, with its exit code compared to the row's open/closed status.",
   "why": "docs/ROADMAP.md is read by engine/quarantine.js as a GATE INPUT and nothing checked it against reality. On 2026-08-14 four rows were stale rather than live and two of them were put in front of a human as the place to start. A row nobody re-verifies is prose.",
   "weaker_than_it_looks": "A green instrument means THAT instrument sees nothing. It is not a derivation of the row's claim. It is strictly more than the register had, which was nothing.",
   "counts": {
-    "register_rows": 206,
-    "id_rows": 251,
-    "open_asserting_breakage": 4,
-    "marked": 19,
-    "open_asserting_breakage_and_marked": 1,
+    "register_rows": 220,
+    "id_rows": 265,
+    "open_asserting_breakage": 9,
+    "marked": 24,
+    "open_asserting_breakage_and_marked": 2,
     "stale_rows": 0,
-    "premature_closes": 0,
+    "premature_closes": 1,
     "unrunnable": 0,
-    "instrument_owed": 3,
-    "open_asserting_breakage_and_owed": 3,
-    "distinct_commands_run": 12
+    "instrument_owed": 4,
+    "open_asserting_breakage_and_owed": 4,
+    "distinct_commands_run": 16
   },
   "instrument_owed": [
     {
       "n": 241,
-      "owes": "a gate that FAILS on a `-fail` the authority emits and this engine does not. Nothing decides this row by exit code today — `engine/game_differential.js` MEASURES the class and deliberately exits 0 on it (*a divergence is a FINDING*, its own header), and `tests/test-game-differential.js` fails only when the INSTRUMENT is wrong. What is owed is a ratchet over the emission-gap count, and the artifact must be RE-RUN before it can carry one: `data/game-differential.json` is stamped 2026-08-13 against release 0c5bb83c5744, five landings ago on these very emission paths.",
+      "owes": "a gate that FAILS on a `-fail` the authority emits and this engine does not. Nothing decides this row by exit code today — `engine/game_differential.js` MEASURES the class and deliberately exits 0 on it (*a divergence is a FINDING*, its own header), and `tests/test-game-differential.js` fails only when the INSTRUMENT is wrong. What is owed is a ratchet over the emission-gap count, and the artifact must be RE-RUN before it can carry one: `data/game-differential.json` is stamped 2026-08-13 against release 0c5bb83c5744, five landings ago on these very emission paths. **PART (3) RE-MEASURED 2026-08-18 BY MEASURE, AND THE ROW'S OWN STALENESS CAVEAT IS NOW DISCHARGED.** The row said *at most eight, class confirmed live, exact count owed* off `data/game-differential.json` stamped 2026-08-13 against release `0c5bb83c5744`. That artifact has since been replaced (generated 2026-08-18T04:09Z, release `6875c8ace00e`, 1,230 games, arm A/middle). Counting the row's own shape — the AUTHORITY emits a bare `-fail` and this engine emits nothing, so the comparator lines our -fail against our next line — the class `event missing from medicham2` carries **3 causes over 3 games**: -fail vs a Taunt click, -fail vs an Encore click, and -fail vs the sandstorm upkeep. **8 -> 3 IS NOT A TREND AND MUST NOT BE READ AS ONE**: different pin, different arm, different pool, so the two numbers are two measurements and not a before/after. What the re-run establishes is that the CLASS IS STILL LIVE on current bytes and the count is now exact rather than an upper bound five landings old. Two of the three name Taunt and Encore, consistent with the row's Prankster lead. **AND THE RE-MEASUREMENT FOUND A `-fail` FAMILY SEVENTY-NINE TIMES LARGER THAT THIS ROW DOES NOT OWN**: the authority's `-fail` against our `-singleturn ... protect`, and its mirror, total **238 games of the 695** — the largest single family in the artifact — where the authority FAILS a consecutive Protect and this engine SUCCEEDS. That is #220, which is open and was invisible to the gate until 2026-08-18 (see #297). It is named here so nobody re-derives it as part of this row: it is a RULE, not an emission gap, and it belongs to #220. INSTRUMENT OWED: a ratchet over the -fail-and-silent cause count in `data/game-differential.json`, which can now carry one because the artifact has been re-run — 3 is the number it would be seeded at, and seeding a ratchet is a decision with an owner rather than a side effect of this measurement",
       "title": "PART (3) ONLY: EIGHT CAUSES WHERE THE AUTHORITY ANNOUNCES A FAILURE AND THIS ENGINE SAYS N"
     },
     {
-      "n": 276,
-      "owes": "a gate that sets a weather on the board, advances past `MEDI.weatherTurns`, and FAILS while `board.weather` still names it and `deadWeather` still reads false. `tests/test-seed-clock.js` is GREEN and decides #270 — the SEED clock — not the board own field, so a VERIFIED BY pointed at it would make a live defect read CONFIRMED.",
-      "title": "THE BOARD'S WEATHER NEVER EXPIRES FOR THE FEATURES EITHER, SO `deadWeather` AND EVERY WEAT"
+      "n": 286,
+      "owes": "an arm in `tests/test-board-clock-power.js` that stands a weather setter beside a partner of the boosted type with that weather ALREADY UP and FAILS while the feature still reads 1. `engine/feature_shift.js` is the instrument that would size it **CONFIRMED BY MEASUREMENT 2026-08-18 BY MEASURE — THE DEFECT IS STILL LIVE AND THE CHEAP GATE FOR IT IS UNSAFE.** Swept the live tree: `__weather` occurs **exactly once outside `data/releases/`** — the read at `engine/board.js:483` — with **265 further occurrences, every one the same line copied into a frozen release**, and **ZERO assignments anywhere**. So the guard evaluates as `'' !== w`, true for every non-empty `w`, and it has never bound. A second defect is visible in the same three lines and is recorded rather than fixed: the loop runs `[[A, B], [B, A]]` and reads `A.__weather` in BOTH passes, so even a populated field would ask about the wrong candidate. **THE OBVIOUS GATE WAS BUILT, MEASURED AND REJECTED**: a general static scan for `__`-prefixed fields read and never assigned fires on **8 fields in `engine/`** and only ONE of them is this defect — `__ABRA_DEX`, `__seed`, `__setDB`, `__unreadable`, `__ally`, `__onSetDB` and `__ABRA_BOARD_DATA` are all assigned through forms the scan cannot see. Seven false positives out of eight is a ratchet people learn to ignore, which is the failure this repository names by its own casualties, so it is NOT shipped. INSTRUMENT OWED, unchanged and now with the alternative ruled out: the FUNCTIONAL arm this row already specifies — stand a weather setter beside a partner of the boosted type with that weather ALREADY UP and FAIL while the feature still reads 1. A static scan cannot substitute for it",
+      "title": "`weatherSetupHelpsPartner` GUARDS ITSELF ON A FIELD NOTHING EVER WRITES, SO ITS \"ONLY IF T"
     },
     {
-      "n": 283,
-      "owes": "a gate that FAILS while `board.movePower` returns the printed floor for the 6 `basePowerCallback` moves `data/seed-source-audit.json` enumerates as reading state the stub does not build. `tests/test-rollout-fallen.js` is GREEN and decides #244/#245/#246 — the SEED roster — not the feature path; `engine/seed_source_audit.js` counts the class and always exits 0.",
-      "title": "`board.movePower` BUILDS NO `side.totalFainted`, SO THE FEATURE VECTOR PRICES A FALLEN-COU"
+      "n": 287,
+      "owes": "a check comparing the artifact's `readUnmodelledStateList` against `board.unmodelledBasePower(dex, board)` — asking the callbacks instead of their spelling, which is self-correcting where a fifteen-string list is the ban-list-of-four shape",
+      "title": "`data/seed-source-audit.json` NAMES THE `basePowerCallback` CLASS BY SUBSTRING-MATCHING A "
+    },
+    {
+      "n": 298,
+      "owes": "the same release comparison the other three clauses already make, plus a decision about whether a stale rate is WITHHELD or reported as `PRE-RELEASE`",
+      "title": "THE WHOLE-GAME CLAUSE PUBLISHES A RATE WITH NO RELEASE CHECK, SO TODAY'S HEADLINE `690 of "
     }
   ],
   "results": [
@@ -44,7 +49,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 1188,
+      "ms": 1536,
       "verdict": "CONFIRMED"
     },
     {
@@ -56,7 +61,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 2252,
+      "ms": 2870,
       "verdict": "CONFIRMED"
     },
     {
@@ -68,7 +73,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 1227,
+      "ms": 1539,
       "verdict": "CONFIRMED"
     },
     {
@@ -80,7 +85,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 642,
+      "ms": 739,
       "verdict": "CONFIRMED"
     },
     {
@@ -92,7 +97,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 198,
+      "ms": 216,
       "verdict": "CONFIRMED"
     },
     {
@@ -104,7 +109,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 198,
+      "ms": 216,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -117,7 +122,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 198,
+      "ms": 216,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -130,7 +135,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 705,
+      "ms": 798,
       "verdict": "CONFIRMED"
     },
     {
@@ -142,7 +147,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 705,
+      "ms": 798,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -155,7 +160,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 705,
+      "ms": 798,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -168,7 +173,7 @@
       "owed": null,
       "green": false,
       "why": "exit 1",
-      "ms": 592,
+      "ms": 690,
       "verdict": "CONFIRMED"
     },
     {
@@ -180,7 +185,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 738,
+      "ms": 828,
       "verdict": "CONFIRMED"
     },
     {
@@ -192,7 +197,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 738,
+      "ms": 828,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -205,7 +210,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 738,
+      "ms": 828,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -218,7 +223,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 738,
+      "ms": 828,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -231,7 +236,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 590,
+      "ms": 750,
       "verdict": "CONFIRMED"
     },
     {
@@ -241,9 +246,21 @@
       "saysBroken": false,
       "cmd": "node tests/probe_red_demo.js",
       "owed": null,
+      "green": false,
+      "why": "exit 1",
+      "ms": 6581,
+      "verdict": "PREMATURE CLOSE"
+    },
+    {
+      "n": 276,
+      "title": "THE BOARD'S WEATHER NEVER EXPIRES FOR THE FEATURES EITHER, SO `deadWeather` AND EVERY WEAT",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-board-clock-power.js",
+      "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 6008,
+      "ms": 1298,
       "verdict": "CONFIRMED"
     },
     {
@@ -255,7 +272,56 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 59,
+      "ms": 75,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 283,
+      "title": "`board.movePower` BUILDS NO `side.totalFainted`, SO THE FEATURE VECTOR PRICES A FALLEN-COU",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-board-clock-power.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 1298,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 290,
+      "title": "THE `ordering` FAMILY IS A REAL TURN-ORDER DEFECT, NOT THE RETIRED SPEED-TIE ARTEFACT — ME",
+      "closed": false,
+      "saysBroken": true,
+      "cmd": "node engine/quarantine.js --order-probe",
+      "owed": null,
+      "green": false,
+      "why": "exit 2",
+      "ms": 88,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 296,
+      "title": "THE GATE READ THREE KEY NAMES THE VERDICT ARTIFACT HAS NEVER WRITTEN, SO ZERO ROWS HAVE EV",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node engine/register_reality.js --selftest",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 219,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 297,
+      "title": "THE CLOSED-DETECTOR LET PROSE OUTRANK AN `open` STATUS CELL, HIDING THREE LIVE DEFECT ROWS",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node engine/quarantine.js --selftest",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 144,
       "verdict": "CONFIRMED"
     },
     {
@@ -267,9 +333,22 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 140,
+      "ms": 167,
       "verdict": "CONFIRMED"
     }
   ],
-  "unverifiable_open_defects": []
+  "unverifiable_open_defects": [
+    {
+      "n": 218,
+      "title": "THE WHOLE-GAME DIFFERENTIAL SAYS 39.6% OF GAMES DIVERGE, IT GATES NOTHING, AND I QUOTED TH"
+    },
+    {
+      "n": 220,
+      "title": "THE WEATHER RESIDUAL RAN IN SLOT ORDER WHILE THE CLOCK RESIDUAL HAD BEEN SPEED-SORTED SINC"
+    },
+    {
+      "n": 224,
+      "title": "THE `??:` SLOT PLACEHOLDER REACHES THE PROTOCOL STREAM, AND IT IS NOW THE LARGEST SINGLE F"
+    }
+  ]
 }

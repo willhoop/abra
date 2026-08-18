@@ -15,27 +15,27 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 24 unsafe, 1 void (declared), 92 possibly stale, 96 ok, 0 missing
+  provenance: 25 unsafe, 1 void (declared), 89 possibly stale, 98 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 12). Old hashes cannot be compared; restamp after checking board.js.
-    moved after the fit: engine/medicham2-browser.js  2026-08-18 00:57
+    moved after the fit: engine/medicham2-browser.js  2026-08-18 02:19
     moved after the fit: engine/board.js  2026-08-17 22:37
     moved after the fit: data/engine-data.js  2026-08-10 18:59
     moved after the fit: data/abra-tags.js  2026-08-13 20:18
 ```
 
-_stamped 2026-08-18 01:32_
+_stamped 2026-08-18 02:39_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,121 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 000000000000. THE REACH SHELF IS ONE ANCHOR AND A RATE, AND THE REGISTER WIRE HAD NEVER CARRIED A ROW — 2026-08-18
+
+`engine/quarantine.js` (`--reach`, `--order-probe`, `--selftest`), `engine/register_reality.js`,
+ROADMAP #295 / #296 / #297 / #298.
+
+**#295 — THE SHELF WAS TWO THRESHOLDS WEARING ONE NUMBER, AND FIXING IT MOVED NOTHING.** The literal
+25 was compared against CLICKS in a 64,846-game population and against TEAMS in a 13,116-game one, so
+one integer meant **0.0020% of clicks** or **0.095% of teams** — a move cleared the bar at roughly
+**48x lower relative usage** than an ability. Nobody decided that. The anchor is unchanged and now
+carries its unit in its name (`REACH_SHELF_CLICKS = 25`, from `tests/roster.js:1517`'s
+`USAGE_SHELF_BELOW`, applied at :1522 as `clicks >= USAGE_SHELF_BELOW` — a clicks threshold, ruled on
+as a clicks threshold; Will, 2026-08-18: *"leave it at 25"*). The common unit is **occurrences per
+stored game**, which both instruments already express: `clicks / click-counts.store_games` (64,846)
+and `teams / sheet-usage.sheet_games` (13,116). The teams threshold is derived at the anchor's rate —
+25 x 13,116 / 64,846 = **5.06 teams**, counting from 6 — and the comparison is integer
+cross-multiplication, so the move shelf is preserved bit-for-bit at `n < 25` and no float boundary can
+move a row.
+
+| | before | after |
+|---|---|---|
+| counted (played, uncleared) | **34** | **34** |
+| shelved by reach | **15** | **15** |
+| rows that moved | | **none, in either direction** |
+
+**IT REPRODUCES AND THAT IS STILL A NEW THRESHOLD.** No diverging ability sits between 6 and 24 teams
+— the lowest counted one is `angerpoint` at 25 — and every shelved row is a move decided by the
+unchanged anchor. So the equality is a property of today's population, not of the change: an ability
+diverging at 6–24 teams used to be shelved and now COUNTS, which is the direction the defect demanded.
+**Anchoring the other way does not reproduce**: take the ability figure as the anchor and the move
+shelf becomes 124 clicks, shelving twelve currently-counted moves from `move:ficklebeam` (112) down to
+`move:attract` (30). Same fix, opposite result — which is why the anchor is named rather than assumed.
+Measured on `data/all-mechanics-fire.json` release `488fd1bf3f7c`.
+
+**THE DENOMINATOR NOW TRAVELS WITH EVERY COUNT.** `reachOf` carries `denom`/`denomLabel`, the clause
+prints `2177 teams/13,116 open-sheet games`, and `--reach` prints the population, the rate per 10k
+games and the applicable shelf on every single row. That was the actual defect: a bare integer beside a
+name cannot carry its unit, and one header line is not a fix. Two further literals were untangled —
+`coverageClause` reads the CLICKS anchor because its loop walks `click-counts.json.moves` and nothing
+else, and the decision-impact sample floor became `DECISION_POINTS_FLOOR`, the same 25 in a THIRD unit.
+
+**#296 — THE GATE READ THREE KEY NAMES THE VERDICT ARTIFACT HAS NEVER WRITTEN.** The open-defect
+clause read `rr.rows`, `v.command` and `v.exit`; `engine/register_reality.js` writes `results`, `cmd`
+and `green`. **Zero rows had crossed that wire since the day it was built.** Every open row fell into
+the DEBT bucket, `withRed` was structurally empty, and the clause printed *"no open row names an
+instrument that is RED"* for the reason that should have made it loudest — while #258's instrument was
+exiting 1. That is `merge_mega_into_engine.js` to the letter: matched on nothing, reported success.
+The fix is a declared shape (`REGISTER_REALITY` + `registerRealityRows`) that the WRITER writes
+through, not a tolerant reader that would hide the next rename; an artifact carrying no recognised
+array now returns NULL and says which keys it found, because *no rows* and *I cannot see the rows* are
+the two answers this bug confused. **Consequence, stated plainly: the clause now FAILS.**
+
+**#297 — THE CLOSED-DETECTOR LET PROSE OUTRANK AN `open` STATUS CELL.** `roadmapRowIsClosed` honoured
+a cell saying `closed` and ignored a cell saying `open`, so a row whose narrative contains
+`CLOSED 2026-08-11` about a part that IS closed read as a closed ROW. Measured over all 217 register
+rows before changing it: **exactly five verdicts move, all closed → open, three of them asserting
+breakage — #218, #220, #224.** #220 is the expensive one: its `-fail` vs `-singleturn ... protect`
+family is **238 games of the 695** in `data/game-differential.json`, the largest single family in the
+whole-game differential, sitting in a row the gate could not see and `open_work.js` was not printing.
+The open-defect population went **5 → 8**.
+
+**#298 — FILED, NOT FIXED.** `wholeGameClause` publishes its rate with no release check while
+`mechanicsClause`, `decisionImpact` and the new `orderProbeClause` all refuse an artifact cut against
+other bytes. Today's `690 of 1230` was measured on release `6875c8ace00e`; the tree moved twice while
+this was written. Making the headline clause refuse withholds the project's most-quoted engine figure
+and is a judgement with an owner.
+
+### ROADMAP #290 — THE ORDER PROBE IS A GATE NOW, AND `ordering 229` IS NOT ONE POPULATION — 2026-08-18
+
+`node engine/quarantine.js --order-probe` is the instrument #290's `INSTRUMENT OWED` specified: it
+FAILS while any `order_probe` row carries `speed_tied: false` AND `same_priority: true`. Exit 1 = the
+defect is present, exit 2 = the clause CANNOT ANSWER (no artifact, no probe, or a probe cut against
+other bytes), 0 = clean. Both non-zero codes are RED to `register_reality.js` deliberately: a
+`VERIFIED BY` exiting 0 on a missing artifact would close a live defect.
+
+**ON THE LAST ANSWERABLE ARTIFACT (release `6875c8ace00e`, 1,230 games, arm A/middle): 26 move-vs-move
+pairs probed, 15 tied, 11 CARRYING THE CONJUNCTION across 11 distinct games.** Speed gaps of 10, 20,
+30, 32, 42, 56, 64, 76, 76, 147 and 213, every one at identical priority with every die pinned on both
+sides. Nine are Tailwind, three are Protect.
+
+**THE TWO NUMBERS ARE NOT THE SAME POPULATION AND THEY ARE ONE APART BY ARITHMETIC.** They are two
+different groupings of one run: `classes[].cls === 'ordering'` is **228 games**, while the gate's
+composition `ordering` is `divergence_shape.shapeOf(cause)` summed across ALL classes, which is
+**229**. Cross-tabbed:
+
+| | games |
+|---|---|
+| shape ORDERING **and** class `ordering` | **223** |
+| shape ORDERING inside class `event missing from medicham2` | **6** |
+| class `ordering` that shapes as EMISSION | **5** |
+
+223 + 6 = 229 and 223 + 5 = 228. **The counts differ by 1 while the sets differ by 11 games.** Reading
+them as one number was about to attribute a whole class to the wrong cause.
+
+**WHAT IS ESTABLISHED IS 11 GAMES, NOT 228.** The probe covers move-vs-move pairs only, so 11 is a
+FLOOR on the ordering class and never a count of it. Extrapolating 11/26 across 228 gives ~96 and is an
+extrapolation wearing a measurement's clothes; it is not published. The evidence is also one release
+stale — the differential ran at 04:09Z on `6875c8ace00e`, release `488fd1bf3f7c` (#294, the per-target
+accuracy roll) was cut at 05:05Z — so the gate exits 2 today and the count is WITHHELD rather than
+annotated.
+
+### THE FIVE UNMEASURED ROWS, WORKED — 2026-08-18
+
+| row | outcome | instrument | exit |
+|---|---|---|---|
+| #258 | **CONFIRMED** — open, red instrument | `node tests/test-no-silent-failure.js` | **1** |
+| #290 | **CONFIRMED** — gate built, defect demonstrated on the last answerable artifact | `node engine/quarantine.js --order-probe` | **2** (cannot answer: artifact one release stale) |
+| #241 | **CONFIRMED, re-measured** — part (3) is **3 causes / 3 games** on the current artifact, not the stale upper bound of 8 | INSTRUMENT OWED (a ratchet, which the re-run now makes possible) | — |
+| #286 | **CONFIRMED by measurement** — `__weather` has 1 read, 0 assignments, 265 frozen copies | INSTRUMENT OWED (the functional arm; the static scan was built, measured at 7 false positives of 8, and rejected) | — |
+| #287 | **CONFIRMED by measurement** — both directions reproduce, and the artifact still asserts closed #244 is open | INSTRUMENT OWED (compare against `board.unmodelledBasePower`, which exists at `board.js:3239`) | — |
+
+**A RED TEST FOUND IN PASSING AND NOT FILED AS A STATUS:** `register_reality.js` reports #273 as a
+**PREMATURE CLOSE** — the row is closed and `node tests/probe_red_demo.js` exits 1. `tests/` is
+ENGINE's and was live while this ran, so it is reported here by name rather than touched.
+
 
 ### 00000000000. THE MEDICHAM GATE'S FINISH LINE IS DECISION-EQUIVALENCE NOW, AND THE FILTER IS DERIVED FROM THE STORE — 2026-08-18
 

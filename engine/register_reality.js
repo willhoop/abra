@@ -228,6 +228,35 @@ if (has('--selftest')) {
     c2.cached === true && c1.cached !== true && c2.green === c1.green, { c1, c2 });
   ok('RED — a DIFFERENT command is not served from the first one cache entry',
     run('node tests/other-missing-xyz.js').cached !== true);
+  /* -- THE WIRE TO THE GATE, ROUND-TRIPPED THROUGH BOTH SHIPPING SIDES ----------------------
+   *
+   * The clause in `quarantine.js` reads this file's artifact. For its whole life it read `rr.rows`,
+   * `v.command` and `v.exit` against the `results`, `cmd` and `green` written here: three key names,
+   * none matching, zero rows carried, and the clause reported "no open row names an instrument that
+   * is RED" while #258's instrument exited 1. Nothing could catch it because nothing compared the two
+   * files — the `merge_mega_into_engine.js` shape exactly.
+   *
+   * So the artifact below is built with the SHIPPING key (`Q.REGISTER_REALITY.rowsKey`) and read back
+   * with the SHIPPING reader (`Q.registerRealityRows`). A rename on either side is RED here. The RED
+   * case is the one that matters: an artifact under any other key must come back NULL, never `[]`,
+   * because "no rows" and "I cannot see the rows" are the two answers this bug confused. */
+  const WIRE = { [Q.REGISTER_REALITY.rowsKey]: [
+    { n: 258, cmd: 'node tests/x.js', green: false, verdict: 'CONFIRMED' },
+    { n: 99, cmd: 'node tests/y.js', green: true, verdict: 'STALE ROW' },
+    { n: 98, cmd: null, green: null, verdict: 'UNVERIFIABLE' }] };
+  const back = Q.registerRealityRows(WIRE);
+  ok('THE WIRE — an artifact written with this file KEYS is READ by the gate reader, not dropped',
+    Array.isArray(back) && back.length === 3, back);
+  ok('THE WIRE — the command and the tri-state exit survive the crossing intact',
+    back && back[0].n === 258 && back[0].cmd === 'node tests/x.js' && back[0].green === false
+    && back[1].green === true && back[2].cmd === null && back[2].green === null, back);
+  ok('RED — an artifact under the OLD key comes back NULL, not an empty list: "no rows" and '
+    + '"I cannot see the rows" are the two answers this bug confused',
+    Q.registerRealityRows({ rows: [{ n: 1, cmd: 'node tests/x.js', green: false }] }) === null);
+  ok('RED — a row spelling its command the OLD way carries no command rather than a silent pass',
+    (Q.registerRealityRows({ [Q.REGISTER_REALITY.rowsKey]: [{ n: 1, command: 'node tests/x.js', exit: 1 }] })
+      || [{}])[0].cmd === null);
+
   console.log(`\nREGISTER-REALITY SELFTEST: ${ran - bad} passed, ${bad} failed`);
   process.exit(bad ? 1 : 0);
 }
@@ -272,7 +301,18 @@ const art = {
     distinct_commands_run: RUN_CACHE.size,
   },
   instrument_owed: owed.map(r => ({ n: r.n, owes: r.owed, title: r.title })),
-  results,
+  /* WRITTEN THROUGH THE READER'S OWN KEY, NEVER SPELLED AGAIN — 2026-08-18.
+   *
+   * This said `results,` and `engine/quarantine.js`'s open-defect clause read `rr.rows`, `v.command`
+   * and `v.exit` against this file's `results`, `cmd` and `green`. THREE key names, none matching, so
+   * the clause saw zero verdicts on every run it has ever made and printed *"no open row names an
+   * instrument that is RED"* — while #258's instrument was exiting 1. Nothing failed; the number was
+   * simply never true. That is the `merge_mega_into_engine.js` failure to the letter: 67 writes, zero
+   * matching keys, and no check comparing the two files.
+   *
+   * The key now comes from the consumer. The selftest above round-trips a built artifact back through
+   * `Q.registerRealityRows`, so a rename on either side is RED rather than silent. */
+  [Q.REGISTER_REALITY.rowsKey]: results,
   unverifiable_open_defects: openBroken.filter(r => !r.cmd && !r.owed).map(r => ({ n: r.n, title: r.title })),
 };
 fs.writeFileSync(OUT, JSON.stringify(art, null, 2) + '\n');

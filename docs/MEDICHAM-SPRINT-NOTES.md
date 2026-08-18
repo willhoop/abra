@@ -9685,3 +9685,60 @@ signature shape and the reason a capability must prove it ran.
 Census 595 -> 596 live, 0 missing. Dragon Darts is a real PP-only divergence, isolated with an
 Unnerve control, deliberately left for its own batch. `tests/staged_board.js` and
 `tests/test-volatile-duration.js` are both red, neither caused here, both stated rather than filed.
+
+---
+
+## 2026-08-18 (later still) — THE CLAUSE THAT SAYS "NO OPEN DEFECT IS RED" HAD NEVER READ A VERDICT
+
+**#296. Three field names, none of them matching, and nothing compared the two files.** `openDefectClause`
+read `rr.rows`, `v.command` and `v.exit`; `engine/register_reality.js` writes `results`, `cmd` and `green`.
+So `withRed` was **structurally empty**, and the clause printed *"no open row names an instrument that is
+RED"* on every run while #258's instrument was exiting 1. **This is `merge_mega_into_engine.js` to the
+letter** — a builder keyed `venusaurmega` against an artifact keyed `venusaur-mega`, zero of 67 writes
+matching, nothing noticing because nothing compared the two. The repo's own rule covers it and the rule
+was not applied here: *a derived artifact is not a fact until something compares it to its source.* Fixed
+with a **declared shape the writer writes through**, not a reader made tolerant of three spellings.
+
+**#297. Prose outranked the status cell.** The closed-detector could read a row as closed on the strength
+of narrative text while its status cell said `open`. Measured across all 217 rows BEFORE changing
+anything: **exactly five verdicts move, all closed -> open, three of them asserting breakage — #218, #220,
+#224.** Open-defect population 5 -> 8.
+
+**AND #220 IS THE LARGEST SINGLE FAMILY IN THE DIFFERENTIAL.** Its `-fail` versus
+`-singleturn ... protect` shape is **238 games of the 695**, and the gate could not see the row at all.
+The biggest identified cause of the 690 was hidden behind a closed-detector reading prose.
+
+**THE GATE GOT WORSE AND THAT IS THE POINT: `CLOSED — 2 of 8` became `CLOSED — 3 of 8`.** The open-defect
+clause fails for the first time, on #258 and #290, because it can finally read the verdicts it was always
+supposed to read. A clause that passes because it is blind is worth less than one that fails honestly.
+
+**#290 IS NOT THE LARGEST CAUSE, AND CHECKING KILLED THE LEAD.** The row states 228 games and the
+composition prints `ordering 229`; one apart, which looked like the same defect seen twice. It is not.
+They are two groupings of one run — class `ordering` is 228, the composition sums `shapeOf(cause)` across
+ALL classes to 229, and the cross-tab is **223 both, 6 shape-only, 5 class-only. The counts differ by 1;
+the SETS differ by 11 games.** The near-equality is arithmetic. What is actually established for #290 is
+**11 games, not 228** — 26 move-vs-move pairs probed, 11 carrying `speed_tied:false` and
+`same_priority:true` across 11 distinct games. That 11 is a FLOOR on the class, and the tempting
+`11/26 x 228 = 96` extrapolation is deliberately not published.
+
+**#295 IS FIXED AND MOVED NOTHING — WHICH WAS THE REQUIREMENT.** The shelf now carries its denominator
+everywhere and compares by integer cross-multiplication, so no float boundary can move a row. **The
+anchor is NAMED rather than assumed**: `REACH_SHELF_CLICKS = 25`, whose provenance is
+`tests/roster.js:1517`, because Will ruled on a clicks threshold. The ability shelf is derived at that
+rate — 25 x 13,116 / 64,846 = **5.06 teams, counting from 6**. Before: 34 counted, 15 shelved. After: 34
+counted, 15 shelved. **Anchoring the other way does not reproduce** — taking the ability figure as the
+anchor puts the move shelf at 124 clicks and moves twelve currently-counted rows. Same fix, opposite
+result, which is exactly why an anchor must be cited rather than chosen.
+
+**A gate REJECTED rather than shipped.** The cheap static scan for #286 — fields written `__x` that are
+read and never assigned — fires on 8 fields and **7 are false positives**. Not shipped. A check with a
+7-in-8 false-positive rate is a check people learn to ignore, which is #148's whole lesson.
+
+**#298, filed and not fixed:** `wholeGameClause` publishes `690 of 1230` with **no release check at
+all**, while three other clauses refuse an artifact measured against other bytes. The differential ran on
+`6875c8ace00e`; the tree is now `978ca8fe72c9`. CLAUDE.md already decides the principle — *the figure
+must be WITHHELD, not annotated* — but withholding this project's most-quoted engine number is a
+judgement with an owner, so it is stated rather than taken.
+
+**Named, not filed:** `register_reality.js` reports **#273 as a PREMATURE CLOSE** — a closed row whose
+`tests/probe_red_demo.js` exits 1. `tests/` was held by ENGINE and was not touched.

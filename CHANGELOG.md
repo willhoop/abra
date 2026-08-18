@@ -10,6 +10,101 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.38.0] — 2026-08-18
+
+### Fixed
+- **THE REACH SHELF WAS TWO THRESHOLDS WEARING ONE NUMBER, AND RE-UNITISING IT MOVED NOTHING (ROADMAP
+  #295).** `engine/quarantine.js`'s literal 25 was compared against CLICKS for a move (denominator
+  64,846 games / 1,259,717 clicks) and against TEAMS for an ability (13,116 open-sheet games / 26,232
+  teams), so one integer meant **0.0020% of clicks** or **0.095% of teams** — a move cleared the bar at
+  roughly **48x lower relative usage**. Nobody decided that; it fell out of two usage artifacts having
+  different denominators and was invisible because both printed as a bare integer beside a name. The
+  anchor is unchanged and now carries its unit in its name (`REACH_SHELF_CLICKS = 25`, from
+  `tests/roster.js:1517`, applied at :1522 as `clicks >= USAGE_SHELF_BELOW`; Will, 2026-08-18: *"leave
+  it at 25"*). The common unit is **occurrences per stored game**, which both instruments already
+  express, and the teams threshold is derived at the anchor's rate: 25 x 13,116 / 64,846 = **5.06
+  teams**, counting from 6. The comparison is integer cross-multiplication, so the move shelf is
+  preserved bit-for-bit at `n < 25`. **The split reproduces exactly — 34 counted, 15 shelved, no row
+  moving in either direction** (measured on `data/all-mechanics-fire.json`, release `488fd1bf3f7c`),
+  because no diverging ability sits between 6 and 24 teams and the lowest counted one is `angerpoint`
+  at 25. **A re-unitised threshold is still a new threshold** and that is stated rather than glossed:
+  an ability diverging at 6–24 teams used to be shelved and now counts. Anchoring the other way does
+  NOT reproduce — the ability figure as anchor puts the move shelf at 124 clicks and shelves twelve
+  currently-counted moves from `move:ficklebeam` (112) to `move:attract` (30).
+- **THE DENOMINATOR NOW TRAVELS WITH EVERY COUNT.** `reachOf` carries `denom`/`denomLabel`, the
+  mechanics clause prints `2177 teams/13,116 open-sheet games`, and `--reach` prints the population,
+  the rate per 10k games and the applicable shelf on every row. Two further literals were untangled:
+  `coverageClause` reads the CLICKS anchor because its loop walks `click-counts.json.moves`, and the
+  decision-impact sample floor became `DECISION_POINTS_FLOOR` — the same 25 in a third unit.
+- **THE GATE READ THREE KEY NAMES THE VERDICT ARTIFACT HAS NEVER WRITTEN, SO ZERO ROWS HAD EVER
+  CROSSED THAT WIRE (ROADMAP #296).** `openDefectClause` read `rr.rows`, `v.command` and `v.exit`;
+  `engine/register_reality.js` writes `results`, `cmd` and `green`. Every open row therefore fell into
+  the DEBT bucket, `withRed` was structurally empty, and the clause printed *"no open row names an
+  instrument that is RED — no open defect is backed by a failing measurement"* while #258's instrument
+  exited 1. That is `merge_mega_into_engine.js` to the letter. Fixed with a declared shape
+  (`REGISTER_REALITY` + `registerRealityRows`) that the writer writes through, never a tolerant reader;
+  an artifact carrying no recognised array returns NULL and the clause prints the keys it found,
+  because *no rows* and *I cannot see the rows* are the two answers this bug confused. `green` is
+  honoured as a tri-state and `null` is never read as agreement. **The clause now fails.**
+- **THE CLOSED-DETECTOR LET PROSE OUTRANK AN `open` STATUS CELL, HIDING THREE LIVE DEFECT ROWS
+  (ROADMAP #297).** `roadmapRowIsClosed` honoured a cell saying `closed` and ignored one saying `open`,
+  so a row whose narrative contains `CLOSED 2026-08-11` about a part that IS closed read as a closed
+  row. Measured over all 217 register rows before changing it: **exactly five verdicts move, all closed
+  → open, three asserting breakage — #218, #220, #224.** #220's `-fail` vs `-singleturn ... protect`
+  family is **238 games of the 695** in `data/game-differential.json`, the largest single family in the
+  whole-game differential, in a row the gate could not see and `open_work.js` was not printing. The
+  open-defect population went 5 → 8. The direction is safe: this can only make the gate more shut.
+
+### Added
+- **ROADMAP #290'S `INSTRUMENT OWED`, BUILT AND RUN: `node engine/quarantine.js --order-probe`.** It
+  FAILS while any `order_probe` row carries `speed_tied: false` AND `same_priority: true` — the
+  conjunction the row names, which is the defect itself and not a proxy for it. Exit 1 = present,
+  exit 2 = CANNOT ANSWER (no artifact, no probe array, or a probe cut against other bytes), 0 = clean;
+  both non-zero codes are RED to `register_reality.js` deliberately, since a `VERIFIED BY` exiting 0 on
+  a missing artifact would close a live defect. **On the last answerable artifact (release
+  `6875c8ace00e`, 1,230 games, arm A/middle): 26 pairs probed, 15 tied, 11 carrying the conjunction
+  across 11 distinct games**, gaps of 10 to 213 points at identical priority with every die pinned.
+- **`--order-probe` also kills the `ordering 229` coincidence.** The gate's composition figure and the
+  artifact's class count are two different groupings of one run: class `ordering` is **228 games**,
+  shape `ORDERING` (`divergence_shape.shapeOf` summed over ALL classes) is **229**. Cross-tabbed, 223
+  games are both, 6 are shape-ORDERING inside `event missing from medicham2`, and 5 are class-ordering
+  that shape as EMISSION. **The counts differ by 1; the sets differ by 11 games.** What is established
+  is 11 games, not 228 — the probe covers move-vs-move pairs only, so it is a floor on the class and
+  never a count of it, and no extrapolation is published.
+
+### Changed
+- **ROADMAP #241 re-measured on the current artifact.** Its part (3) said *at most eight, exact count
+  owed* off an artifact five landings stale. On release `6875c8ace00e` the shape is **3 causes over 3
+  games** — the authority emits a bare `-fail` and this engine emits nothing, against a Taunt click, an
+  Encore click and the sandstorm upkeep. 8 → 3 is not a trend (different pin, arm and pool); what the
+  re-run establishes is that the class is live on current bytes and the count is exact.
+- **ROADMAP #286 and #287 confirmed by direct measurement rather than by assertion.** `__weather`
+  occurs exactly once outside `data/releases/` — the read at `engine/board.js:483` — with 265 frozen
+  copies and **zero assignments anywhere**, so the guard has never bound; the loop also reads
+  `A.__weather` in both passes of `[[A, B], [B, A]]`. `data/seed-source-audit.json` still reports
+  `readUnmodelledState: 6` with `watershuriken -> [battle]` (the substring inside
+  `hasAbility(battlebond)`) and `ragefist` with `unmodelledReads: []`, and its `openAndNotFixed` block
+  still asserts that closed row #244 is open.
+
+### Notes
+- **A general static gate for #286 was built, measured and REJECTED.** Scanning for `__`-prefixed
+  fields read and never assigned fires on **8 fields in `engine/`** and only one is the defect;
+  `__ABRA_DEX`, `__seed`, `__setDB`, `__unreadable`, `__ally`, `__onSetDB` and `__ABRA_BOARD_DATA` are
+  assigned through forms the scan cannot see. Seven false positives of eight is a ratchet people learn
+  to ignore, so it is not shipped and the row keeps its functional `INSTRUMENT OWED`.
+- **ROADMAP #298 filed, not fixed.** `wholeGameClause` publishes its rate with no release check while
+  `mechanicsClause`, `decisionImpact` and `orderProbeClause` all refuse an artifact cut against other
+  bytes. Today's `690 of 1230` was measured on release `6875c8ace00e`. Making the headline clause
+  refuse withholds this project's most-quoted engine figure and is a judgement with an owner.
+- **`register_reality.js` reports #273 as a PREMATURE CLOSE** — the row is closed and
+  `node tests/probe_red_demo.js` exits 1. `tests/` belongs to ENGINE and was live while this ran, so
+  it is named here rather than touched.
+- Every change above was shown RED on a deliberate break before being trusted: reverting `below()` to
+  the bare integer, setting `REGISTER_REALITY.rowsKey` back to `rows`, removing the `open`-cell guard,
+  and dropping `same_priority` from the order-probe conjunction each turn named selftest cases red.
+  `node engine/quarantine.js --selftest` is 78 cases, 0 failing;
+  `node engine/register_reality.js --selftest` is 24 cases, 0 failing.
+
 ## [5.37.0] — 2026-08-18
 
 ### Fixed

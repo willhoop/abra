@@ -139,9 +139,52 @@ const ROSTER_STAGES = ['items', 'abilities', 'moves'];
  *                             26,232 teams) — *"The first honest store-derived ability usage this
  *                             project has had."*
  * `tests/roster.js`'s header says no honest store-derived ability usage exists and that was true when
- * it was written on 2026-08-10; `data/sheet-usage.json` was generated on 2026-08-11. The shelf is 25
- * OBSERVATIONS in the only unit the store has for that kind, and both denominators are printed beside
- * it so nobody reads 25 teams and 25 clicks as the same exposure. They are not.
+ * it was written on 2026-08-10; `data/sheet-usage.json` was generated on 2026-08-11.
+ *
+ * ROADMAP #295 — THE SHELF WAS ONE INTEGER COMPARED AGAINST TWO POPULATIONS, AND THAT IS TWO
+ * THRESHOLDS WEARING ONE NUMBER. Until 2026-08-18 the literal 25 was compared to CLICKS (denominator
+ * 1,259,717 clicks over 64,846 games) and to TEAMS (denominator 26,232 teams over 13,116 games). The
+ * same integer therefore meant **0.095% of teams** or **0.0020% of clicks**: a move cleared the bar at
+ * roughly **48x lower relative usage** than an ability. Nobody decided that. It fell out of two usage
+ * artifacts having different denominators, and it was invisible because both printed as a bare integer
+ * beside a name. Every one of this repository's expensive bugs has that shape — a value that looks
+ * authoritative because nothing next to it states what it is a value OF.
+ *
+ * THE FIX IS NOT A RETUNE. Will, 2026-08-18: *"leave it at 25"*, said after being shown that raising
+ * it to 100 moves 14 tail rows and touches none of the five holding the clause shut. So the 25 stays
+ * exactly where it was ruled, in the unit it was ruled in, and the OTHER population's threshold is
+ * derived from it rather than assumed equal to it.
+ *
+ *   THE ANCHOR      25 CLICKS. That is where the number comes from and what it has always meant:
+ *                   `tests/roster.js:1517` `const USAGE_SHELF_BELOW = 25`, applied at :1522 as
+ *                   `clicks >= USAGE_SHELF_BELOW`. A clicks threshold, ruled on as a clicks threshold.
+ *   THE COMMON UNIT OCCURRENCES PER STORED GAME. Both instruments can express it and neither has to
+ *                   be reinterpreted to get there: a move's rate is `clicks / click-counts.store_games`
+ *                   (64,846), an ability's is `teams / sheet-usage.sheet_games` (13,116). "How often
+ *                   does this come up in a game" is the reach question stated exactly.
+ *   THE DERIVED     TEAMS shelf = 25 x 13,116 / 64,846 = **5.06 teams**, so 6 teams is the smallest
+ *                   counting observation. Nothing is typed: both denominators are read off the
+ *                   artifacts, and the comparison is integer cross-multiplication so no float
+ *                   boundary can move a row.
+ *
+ * WHAT THIS MOVED ON THE DAY IT LANDED: NOTHING, AND THAT IS THE TEST IT HAD TO PASS. 34 counted and
+ * 15 shelved before, 34 counted and 15 shelved after. It reproduces because no diverging ability sits
+ * between 6 and 24 teams — the lowest counted one is `angerpoint` at 25 teams — and every shelved row
+ * is a move, decided by the unchanged anchor. **A RE-UNITISED THRESHOLD IS STILL A NEW THRESHOLD** and
+ * the equality is a measured coincidence of today's population, not a property of the change: an
+ * ability diverging at 6-24 teams used to be shelved and now COUNTS. That is the direction the defect
+ * demanded — abilities were being held to a 48x stricter bar than moves — and it is stated here rather
+ * than discovered later by whoever wonders why a row appeared.
+ *
+ * ANCHORING THE OTHER WAY DOES NOT REPRODUCE, WHICH IS WHY THE ANCHOR IS NAMED AND NOT ASSUMED. Take
+ * the ability figure as the anchor instead (25 teams = 1.906 per thousand games) and the move shelf
+ * becomes 124 clicks, shelving twelve currently-counted moves from `ficklebeam` (112) down to
+ * `attract` (30). Same "fix", opposite result. The anchor is a decision with an owner and it is
+ * recorded above.
+ *
+ * THE DENOMINATOR IS PRINTED BESIDE EVERY ROW, not once in a header. That is the actual defect being
+ * closed: a bare integer beside a name cannot carry its unit, and a reader who scrolls past one header
+ * line has no way back to it.
  *
  * `tags.json.uses` IS NOT AN AUTHORITY AND USING IT HERE WOULD HAVE BEEN A REAL ERROR. Measured
  * 2026-08-18 on the nine entities a briefing named as unplayed: `tags.json` reads bittermalice 0
@@ -157,7 +200,18 @@ const ROSTER_STAGES = ['items', 'abilities', 'moves'];
  * click in every stored game) is an observed zero and is a different thing. If the usage artifact for
  * a kind is missing altogether, every row of that kind is UNKNOWN and the filter shelves nothing —
  * a shelf that opens when its evidence disappears is not a shelf. */
-const REACH_SHELF = 25;
+
+/* THE ANCHOR, AND ITS UNIT IN THE NAME so no caller can compare it to something else by accident.
+ * `_CLICKS` is not decoration: the previous name was `REACH_SHELF`, and a name with no unit in it is
+ * exactly how one integer came to be compared against two populations. */
+const REACH_SHELF_CLICKS = 25;
+
+/* A THIRD USE OF THE SAME INTEGER, IN A THIRD UNIT, DECLARED RATHER THAN SHARED. `decisionImpact`
+ * needs a minimum number of PAIRED DECISION POINTS before a 0-flip row may excuse anything. That is a
+ * sample-size floor, not a usage rate, and it must NOT track the clicks anchor if the clicks anchor
+ * ever moves. It is the same 25 for the reason the header gives — 25 observations is this project's
+ * standing bar for "there is something here to look at" — and it says so on its own line. */
+const DECISION_POINTS_FLOOR = 25;
 const nid = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const SINGULAR = { moves: 'move', abilities: 'ability', items: 'item' };
 
@@ -186,27 +240,93 @@ function usageIndex() {
       teams: sheets ? `${(denomTeams || 0).toLocaleString()} teams from `
                     + `${(sheets.sheet_games || 0).toLocaleString()} open-sheet games` : null,
     },
+    /* THE RATE DENOMINATORS, NUMERIC AND IN ONE UNIT — GAMES. ROADMAP #295. The strings above are for
+     * a human; these are what the shelf is actually computed from, and they are the only pair in this
+     * file that may be divided into each other. Both are read off the artifacts. A missing or
+     * non-finite figure is `null` and the shelf for that kind then shelves NOTHING rather than
+     * silently falling back to the anchor's integer — which is the defect. */
+    games: {
+      moves: clicks && Number.isFinite(clicks.store_games) && clicks.store_games > 0 ? clicks.store_games : null,
+      teams: sheets && Number.isFinite(sheets.sheet_games) && sheets.sheet_games > 0 ? sheets.sheet_games : null,
+    },
+    gamesLabel: {
+      moves: clicks && clicks.store_games ? `${clicks.store_games.toLocaleString()} stored games` : null,
+      teams: sheets && sheets.sheet_games ? `${sheets.sheet_games.toLocaleString()} open-sheet games` : null,
+    },
     absent: [clicks ? null : 'data/click-counts.json (engine/click_counts.js)',
              sheets ? null : 'data/sheet-usage.json (engine/sheet_usage.js)'].filter(Boolean),
   };
 }
 
-/* Returns `{ known, n, unit, why }`. `known: false` means UNKNOWN and never means zero. */
+/* Returns `{ known, n, unit, denom, denomLabel, why }`. `known: false` means UNKNOWN and never means
+ * zero. `denom` and `denomLabel` travel WITH the count so that no consumer can print the number
+ * without its population — ROADMAP #295. */
 function reachOf(U, kind, id) {
   const k = nid(id);
   const unit = kind === 'moves' ? 'clicks' : 'teams';
+  const pop = kind === 'moves' ? 'moves' : 'teams';
+  const denom = (U.games && U.games[pop]) || null;
+  const denomLabel = (U.gamesLabel && U.gamesLabel[pop]) || (denom ? denom.toLocaleString() + ' games' : 'NO DENOMINATOR');
   const map = U[kind];
   if (!map) {
-    return { known: false, n: null, unit, why: 'NO USAGE INSTRUMENT for ' + kind
+    return { known: false, n: null, unit, denom, denomLabel, why: 'NO USAGE INSTRUMENT for ' + kind
       + ' — ' + (U.absent.join(', ') || 'the artifact is absent') + '. Unknown is not zero.' };
   }
   if (kind !== 'moves' && U.invisible.has(k)) {
-    return { known: false, n: null, unit, why: 'INVISIBLE TO THE INSTRUMENT — data/sheet-usage.json '
+    return { known: false, n: null, unit, denom, denomLabel, why: 'INVISIBLE TO THE INSTRUMENT — data/sheet-usage.json '
       + 'declares this one not countable (a team sheet shows the PRE-MEGA ability). Unknown is not zero.' };
   }
   const n = map.has(k) ? map.get(k) : 0;
-  return { known: true, n, unit,
-    why: n + ' ' + unit + ' (' + (U.denominators[kind === 'moves' ? 'moves' : 'teams'] || '?') + ')' };
+  return { known: true, n, unit, denom, denomLabel,
+    per10k: denom ? n * 10000 / denom : null,
+    why: n + ' ' + unit + ' in ' + denomLabel
+       + ' (' + (U.denominators[pop] || '?') + ')' };
+}
+
+/* THE SHELF ITSELF — ONE ANCHOR, ONE RATE, A THRESHOLD PER POPULATION. ROADMAP #295.
+ *
+ * `below(kind, n)` is the ONLY place a usage count is compared to a threshold. Three properties it
+ * has deliberately:
+ *
+ *   1. THE COMPARISON IS INTEGER CROSS-MULTIPLICATION, `n * AD < ANCHOR * denom`, never a float
+ *      threshold. `25 * 13116 / 64846 = 5.0566...` has no exact double, and a row is not going to be
+ *      decided by which side of a rounding error it lands on. For moves this reduces to `n < 25`
+ *      exactly, so the anchor is preserved bit-for-bit rather than approximately.
+ *   2. STRICTLY BELOW SHELVES, exactly as `tests/roster.js:1522`'s `clicks >= USAGE_SHELF_BELOW` does.
+ *      An ability sits at exactly 25 teams in today's artifact; a `<=` here would excuse a live row.
+ *   3. AN UNDERIVABLE SHELF SHELVES NOTHING. If either denominator is absent the threshold is not
+ *      computable, and the answer is that everything of that kind COUNTS — never that everything falls
+ *      back to the bare integer, which is the defect this function exists to remove. A shelf that
+ *      opens when its evidence disappears is not a shelf; a shelf that quietly changes unit when its
+ *      evidence disappears is worse, because it still prints a number. */
+function reachShelf(U) {
+  const AD = (U.games && U.games.moves) || null;          /* the anchor's own denominator, in games */
+  const of = (kind) => {
+    const pop = kind === 'moves' ? 'moves' : 'teams';
+    const unit = kind === 'moves' ? 'clicks' : 'teams';
+    const denom = (U.games && U.games[pop]) || null;
+    const denomLabel = (U.gamesLabel && U.gamesLabel[pop]) || null;
+    if (!AD || !denom) {
+      return { kind, unit, denom, denomLabel, derivable: false, exact: null, minCount: null,
+        why: 'NOT DERIVABLE — ' + (!AD ? 'the anchor population (data/click-counts.json store_games) '
+          : 'this population (data/sheet-usage.json sheet_games) ') + 'is absent, so no threshold in '
+          + unit + ' can be derived from ' + REACH_SHELF_CLICKS + ' clicks. NOTHING of this kind is '
+          + 'shelved; every row counts.' };
+    }
+    const exact = REACH_SHELF_CLICKS * denom / AD;
+    return { kind, unit, denom, denomLabel, derivable: true, exact, minCount: Math.ceil(exact),
+      why: REACH_SHELF_CLICKS + ' clicks in ' + AD.toLocaleString() + ' games = '
+         + exact.toFixed(2) + ' ' + unit + ' in ' + denom.toLocaleString() + ' games; smallest counting '
+         + 'observation is ' + Math.ceil(exact) + ' ' + unit };
+  };
+  const below = (kind, n) => {
+    const s = of(kind);
+    if (!s.derivable) return false;
+    return n * AD < REACH_SHELF_CLICKS * s.denom;
+  };
+  const rate10k = AD ? REACH_SHELF_CLICKS * 10000 / AD : null;
+  return { anchor: { n: REACH_SHELF_CLICKS, unit: 'clicks', denom: AD, kind: 'moves' },
+           rate10k, of, below };
 }
 
 /* THE ROSTER'S OWN SHELF, READ BACK OFF ITS ARTIFACT so the two numbers cannot drift in silence.
@@ -216,9 +336,12 @@ function reachDrift() {
   const rows = (rm && (rm.results || rm.rows || rm.entries)) || [];
   for (const r of rows) {
     const m = /under the shelf of (\d+)/.exec(String((r && r.why) || ''));
-    if (m) return +m[1] === REACH_SHELF ? null
-      : `tests/roster.js shelves below ${m[1]} and this clause shelves below ${REACH_SHELF} — two `
-      + `thresholds for one decision. Neither file can import the other's constant; say which is right.`;
+    /* THE ROSTER'S SHELF IS A CLICKS SHELF, so it is compared to the CLICKS ANCHOR and to nothing
+     * else. Comparing it to the derived teams threshold would be the #295 defect in reverse. */
+    if (m) return +m[1] === REACH_SHELF_CLICKS ? null
+      : `tests/roster.js shelves a move below ${m[1]} clicks and this clause anchors at `
+      + `${REACH_SHELF_CLICKS} clicks — two thresholds for one decision. Neither file can import the `
+      + `other's constant; say which is right.`;
   }
   return null;
 }
@@ -247,9 +370,12 @@ function reachDrift() {
  *   4. the row itself reports `flips: 0` over `paired >= 25` decision points AT WHICH THE MECHANIC WAS
  *      IN PLAY, and names the arm the fix landed in.
  *
- * WHY 25 AGAIN, AND WHAT IT IS AND IS NOT WORTH. It is the same shelf, used symmetrically: 25
- * observations is this project's standing bar for "there is something here to look at", so a claim
- * that a mechanic changes no decision should rest on at least as many. It is a FLOOR and a thin one —
+ * WHY 25 AGAIN, AND WHY IT IS ITS OWN CONSTANT RATHER THAN THE REACH SHELF. It is the same INTEGER
+ * and a different UNIT: PAIRED DECISION POINTS, not clicks and not teams. 25 observations is this
+ * project's standing bar for "there is something here to look at", so a claim that a mechanic changes
+ * no decision should rest on at least as many. It was written as `REACH_SHELF` — one name for three
+ * units — and ROADMAP #295 is what that costs, so it is now `DECISION_POINTS_FLOOR` and moves only
+ * when somebody decides to move it. It is a FLOOR and a thin one —
  * 0 flips in 25 is a 95% upper bound of about 11% by the rule of three — so the bound is COMPUTED FROM
  * THE ROW'S OWN n AND PRINTED beside every row this clears. Nobody gets to read a cleared row as proof
  * that the flip rate is zero. Raising the floor is a decision with an owner; picking a second number
@@ -287,7 +413,7 @@ function decisionImpact(curId) {
     if (!row) return null;
     const paired = +row.paired || 0, flips = +row.flips || 0;
     if (flips !== 0) return null;
-    if (paired < REACH_SHELF) return null;
+    if (paired < DECISION_POINTS_FLOOR) return null;
     const bound = 100 * 3 / paired;          /* rule of three: the 95% upper bound on a zero numerator */
     const out = { key, paired, bound, fixed_in: row.fixed_in || '(arm unnamed)' };
     if (!cleared.some((c) => c.key === key)) cleared.push(out);
@@ -545,6 +671,7 @@ function classifyMechanics(j, curId, inject) {
    * it undefined, so the real readers are the default. */
   const U = (inject && inject.U) || usageIndex();
   const DI = (inject && inject.DI) || decisionImpact(curId);
+  const SH = reachShelf(U);       /* one anchor, one rate, a threshold per population — #295 */
   const counted = [], belowShelf = [], unknown = [], excused = [];
   let rowsSeen = 0; const rowsMissing = [];
   for (const kind of ['moves', 'abilities', 'items']) {
@@ -555,15 +682,15 @@ function classifyMechanics(j, curId, inject) {
       rowsSeen++;
       const key = SINGULAR[kind] + ':' + nid(r.id);
       const reach = reachOf(U, kind, r.id);
-      const row = { kind, id: r.id, key, reach };
+      const row = { kind, id: r.id, key, reach, shelf: SH.of(kind) };
       if (!reach.known) { unknown.push(row); continue; }
-      if (reach.n < REACH_SHELF) { belowShelf.push(row); continue; }
+      if (SH.below(kind, reach.n)) { belowShelf.push(row); continue; }
       const c = DI.clear(key);
       if (c) { excused.push({ ...row, impact: c }); continue; }
       counted.push(row);
     }
   }
-  return { U, DI, counted, belowShelf, unknown, excused, rowsSeen, rowsMissing };
+  return { U, DI, SH, counted, belowShelf, unknown, excused, rowsSeen, rowsMissing };
 }
 
 function mechanicsClause() {
@@ -605,7 +732,8 @@ function mechanicsClause() {
    * The count above is the artifact's own summary and it stays printed, because the two filters may
    * only ever SUBTRACT from a number a reader can still see. What decides the clause is the set of
    * diverging entities that somebody plays and that no paired run has cleared. */
-  const { U, DI, counted, belowShelf, unknown, excused, rowsSeen, rowsMissing } = classifyMechanics(j, curId);
+  const C = classifyMechanics(j, curId);
+  const { U, DI, counted, belowShelf, unknown, excused, rowsSeen, rowsMissing } = C;
 
   /* A DERIVED SET IS NOT A FACT UNTIL SOMETHING COMPARES IT TO ITS SOURCE. If the per-entity rows and
    * the artifact's own summary disagree about how many diverged, the filter is being applied to a
@@ -624,11 +752,19 @@ function mechanicsClause() {
 
   const drift = reachDrift();
   const NL = String.fromCharCode(10);
+  /* THE DENOMINATOR TRAVELS WITH EVERY COUNT — #295. `1799 clicks` and `2177 teams` are figures in
+   * different populations and a bare integer beside a name cannot say which. */
   const show = (rs) => rs.sort((a, b) => (b.reach.n || 0) - (a.reach.n || 0))
-    .map((r) => r.key + ' (' + (r.reach.known ? r.reach.n + ' ' + r.reach.unit : 'no figure') + ')').join(', ');
+    .map((r) => r.key + ' (' + (r.reach.known
+      ? r.reach.n + ' ' + r.reach.unit + '/' + (r.reach.denomLabel || 'NO DENOMINATOR')
+      : 'no figure') + ')').join(', ');
+  const SH = C.SH;
+  const shelfOf = (kind) => { const s = SH.of(kind); return s.derivable
+    ? `${s.minCount}+ ${s.unit} in ${(s.denom || 0).toLocaleString()} games` : 'NOT DERIVABLE — nothing shelved'; };
   const reachLine = NL
-    + `  REACH — shelved below ${REACH_SHELF} observations, still staged and played, not counted `
-    + `[moves: ${U.denominators.moves || 'NO ARTIFACT'};  abilities/items: ${U.denominators.teams || 'NO ARTIFACT'}]:` + NL
+    + `  REACH — one anchor (${SH.anchor.n} clicks in ${(SH.anchor.denom || 0).toLocaleString()} stored games`
+    + `) carried to each population at the same rate; still staged and played, not counted `
+    + `[moves count at ${shelfOf('moves')};  abilities/items count at ${shelfOf('abilities')}]:` + NL
     + (belowShelf.length ? '    ' + show(belowShelf) : '    (none)');
   const unknownLine = unknown.length
     ? NL + `  NO USAGE FIGURE — ${unknown.length} diverging mechanic(s) the usage instrument cannot see. `
@@ -675,8 +811,10 @@ function coverageClause() {
   const shelved = new Set(rows.filter(r => r.verdict === 'DEFERRED-BY-OWNER').map(r => norm(r.id || r.name)));
 
   /* ONE SHELF, DECLARED ONCE. This carried its own literal 25 until 2026-08-18; the reach filter
-   * above needed the same number and two literals in one file is how they drift. */
-  const SHELF = REACH_SHELF;
+   * above needed the same number and two literals in one file is how they drift. It reads the CLICKS
+   * ANCHOR and not a per-population threshold, because this loop's population IS clicks — it walks
+   * `click-counts.json.moves` and nothing else. #295. */
+  const SHELF = REACH_SHELF_CLICKS;
   let above = 0;
   const uncovered = [];
   for (const [mv, n] of Object.entries(clicks.moves || {})) {
@@ -756,6 +894,23 @@ function roadmapRowIsClosed(l) {
   /* the row's STATUS CELL first — see #148's prescription below — then the prose scan, kept because
    * a row that says it is done in its title and forgets the cell should still drop out. */
   if (/\|\s*(closed|done|page closed)\b[^|]*\|\s*$/i.test(l)) return true;
+  /* AND THE CELL WINS IN THE OTHER DIRECTION TOO -- 2026-08-18. This was the CLOSED half of #148's
+   * prescription done once and only once: a cell saying `closed` outranked the prose, and a cell
+   * saying `open` did not. So the prose fallback below could close a row the register declares OPEN,
+   * by matching a `CLOSED 2026-08-11` inside the row's account of a part that IS closed.
+   *
+   * MEASURED BEFORE CHANGING IT, over all 217 register rows: EXACTLY FIVE verdicts move, every one of
+   * them from closed to open, and every one has a status cell beginning with the literal word `open`.
+   * THREE OF THE FIVE ASSERT BREAKAGE -- #218, #220 and #224 -- so the open-defect clause has been
+   * blind to three live engine-defect rows. #220 is the expensive one: its `-fail` vs
+   * `-singleturn|protect` family is 238 games of the 695 in data/game-differential.json, the LARGEST
+   * single family in the whole-game differential, sitting in a row the gate could not see. Its head
+   * says `CLOSED 2026-08-11` about the WEATHER RESIDUAL half; the row was reopened the next day and
+   * its cell has said `open -- engine DEFECT` ever since.
+   *
+   * The direction is the safe one -- this can only ever make the gate MORE shut -- and it is the same
+   * rule as `NOT A DEFECT`: an explicit ruling in the cell outranks a guess over prose. */
+  if (/^\s*\(?open\b/i.test(roadmapRowStatusCell(l))) return false;
   const head = l.slice(0, 600);
   /* THE DATED-CLOSURE TOKEN IS THE ONE THAT MUST IGNORE CASE, AND ONLY IT.
    *
@@ -1133,6 +1288,39 @@ function wholeGameClause(artifact, wgDecisionImpact) {
   };
 }
 
+/* ================================================================================================
+ * THE SHAPE OF data/register-reality.json, DECLARED ONCE AND WRITTEN THROUGH.
+ *
+ * `engine/register_reality.js` requires this file (for the one closed-detector), so the dependency
+ * runs writer -> reader and the contract can only live on this side of it. The writer imports these
+ * key names instead of spelling its own; its selftest round-trips a built artifact back through
+ * `registerRealityRows` below. Two files that both decide a fact will disagree eventually and the
+ * disagreement will be invisible because both keep working — that is not a hypothetical here, it is
+ * what this constant was introduced to repair. See openDefectClause for the receipt.
+ * ============================================================================================== */
+const REGISTER_REALITY = {
+  rowsFile: 'register-reality.json',
+  rowsKey: 'results',
+  /* per-row field names, in the writer's spelling */
+  idKey: 'n', cmdKey: 'cmd', greenKey: 'green',
+};
+
+/* Returns the row array, or NULL when the artifact parsed and carries no recognised array. NULL and
+ * `[]` mean different things and the caller prints them differently: `[]` is an empty register,
+ * `null` is a reader that cannot see one. Collapsing the two is the bug this file just paid for. */
+function registerRealityRows(rr) {
+  if (!rr || typeof rr !== 'object') return null;
+  const a = rr[REGISTER_REALITY.rowsKey];
+  if (!Array.isArray(a)) return null;
+  return a.map((r) => ({
+    n: r && r[REGISTER_REALITY.idKey],
+    cmd: (r && r[REGISTER_REALITY.cmdKey]) || null,
+    green: r && Object.prototype.hasOwnProperty.call(r, REGISTER_REALITY.greenKey)
+      ? r[REGISTER_REALITY.greenKey] : null,
+    verdict: (r && r.verdict) || null,
+  }));
+}
+
 function openDefectClause() {
   let lines;
   try { lines = fs.readFileSync(D('docs', 'ROADMAP.md'), 'utf8').split(/\r?\n/); }
@@ -1227,20 +1415,61 @@ function openDefectClause() {
    * A row whose instrument is RED still fails this clause exactly as before. The way to make a
    * defect block the gate is to write the test that proves it, which is the work anyway.
    * ============================================================================================ */
-  let _rrows = [];
-  try {
-    const rr = JSON.parse(fs.readFileSync(D("data", "register-reality.json"), "utf8"));
-    _rrows = rr.rows || rr.verdicts || [];
-  } catch (e) { _rrows = []; }
+  /* ==============================================================================================
+   * THE WIRE TO register_reality.js HAD NEVER CARRIED A SINGLE ROW — MEASURED 2026-08-18.
+   * ==============================================================================================
+   * This block read `rr.rows || rr.verdicts`, `v.command` and `v.exit`. `engine/register_reality.js`
+   * writes `results`, `cmd` and `green`. THREE key names, none of them matching, so `_rrows` was `[]`
+   * on every run this clause has ever made: every open row fell into `debt`, `withRed` was
+   * structurally empty, and the clause printed *"no open row names an instrument that is RED — no open
+   * defect is backed by a failing measurement"* for the reason that should have made it loudest.
+   * #258 has carried a `VERIFIED BY` since 2026-08-15 and its instrument exits 1 today.
+   *
+   * THIS IS THE MEGA-MERGE FAILURE, EXACTLY. `merge_mega_into_engine.js` keyed `venusaurmega` where
+   * the artifact keyed `venusaur-mega`, zero of 67 writes matched, and nothing compared the two files.
+   * CLAUDE.md's answer is that a generated file needs a check that its SOURCE's values are actually in
+   * it — so the SHAPE is now declared here, once, and `register_reality.js` WRITES THROUGH IT rather
+   * than spelling the keys again. Its selftest round-trips a built artifact back through this reader.
+   *
+   * AND IT IS NEVER SILENT AGAIN. An artifact that is present, parseable and carries no recognised row
+   * array now says so in the verdict instead of degrading into "everything is debt", which is
+   * indistinguishable from an honest empty register. */
+  const RR = (() => {
+    let raw = null;
+    try { raw = JSON.parse(fs.readFileSync(D('data', REGISTER_REALITY.rowsFile), 'utf8')); }
+    catch (e) {
+      return { rows: [], why: 'NO VERDICTS — ' + REGISTER_REALITY.rowsFile + ' could not be read ('
+        + String((e && e.message) || e).split(String.fromCharCode(10))[0] + '). Every open row below is DEBT because '
+        + 'nothing ran, NOT because nothing is broken. Run: node engine/register_reality.js' };
+    }
+    const rows = registerRealityRows(raw);
+    if (rows === null) {
+      return { rows: [], why: 'THE VERDICT ARTIFACT CARRIES NO `' + REGISTER_REALITY.rowsKey + '` ARRAY — '
+        + REGISTER_REALITY.rowsFile + ' parsed and has keys [' + Object.keys(raw).join(', ') + ']. '
+        + 'The reader and the writer disagree about the shape, which is how this wire carried zero rows '
+        + 'from the day it was built. Nothing below is evidence.' };
+    }
+    return { rows, why: null, generated: raw.generated || null };
+  })();
   const _byRow = new Map();
-  for (const r of _rrows) _byRow.set(String(r.row !== undefined ? r.row : r.n), r);
-  const withRed = [], debt = [], staleRows = [];
+  for (const r of RR.rows) _byRow.set(String(r.n), r);
+  const withRed = [], debt = [], staleRows = [], unrunnable = [];
   for (const r of open) {
     const v = _byRow.get(String(r.n));
-    const named = v && (v.instrument || v.command || v.verifiedBy);
-    if (!named) { debt.push(r); continue; }
-    if (v.exit !== 0) withRed.push(r); else staleRows.push(r);
+    if (!v || !v.cmd) { debt.push(r); continue; }
+    /* `green` IS TRI-STATE AND `null` IS NOT GREEN. An instrument that would not start says nothing
+     * about the row; calling that agreement is the "a capability was absent and everything reported
+     * success" shape. It is named on its own line rather than folded into either column. */
+    if (v.green === false) withRed.push(r);
+    else if (v.green === true) staleRows.push(r);
+    else unrunnable.push(r);
   }
+  const wireLine = RR.why ? '  ' + RR.why : '';
+  const unrunnableLine = unrunnable.length
+    ? '  ' + unrunnable.length + ' open row(s) name an instrument that WOULD NOT RUN — that is not '
+      + 'agreement and it is not evidence either: '
+      + unrunnable.map(function (r) { return '#' + r.n; }).join(', ') + '.'
+    : '';
   const debtLine = debt.length
     ? "  " + debt.length + " open row(s) assert breakage with NO instrument that decides them — DEBT, "
       + "not evidence, and they do not hold this clause shut: "
@@ -1256,14 +1485,105 @@ function openDefectClause() {
     + `excused from this clause` + (excused.length
       ? ': ' + excused.map(r => '#' + r.n + ' [' + r.cell + ']').join('; ') : '.');
   return {
-    name: 'no open, known engine defect', ok: withRed.length === 0, open, excused, withRed, debt, staleRows,
+    name: 'no open, known engine defect', ok: withRed.length === 0, open, excused, withRed, debt,
+    staleRows, unrunnable, verdicts_read: RR.rows.length, verdicts_generated: RR.generated || null,
     why: (withRed.length === 0
-      ? 'clean: no open row names an instrument that is RED — no open defect is backed by a failing measurement'
-      : `${withRed.length} OPEN roadmap row(s) name an instrument that is RED (${weight.toLocaleString()} `
-        + `named uses between them). A gate cannot report the engine correct while the register says `
-        + `otherwise — that is "known failure" filed one level up. Worst: `
-        + open.slice(0, 5).map(r => '#' + r.n + (r.uses ? ' (' + r.uses.toLocaleString() + ')' : '')).join(', '))
-      + receipt + debtLine + staleLine,
+      ? 'clean: no open row names an instrument that is RED — no open defect is backed by a failing '
+        + 'measurement (' + RR.rows.length + ' verdict(s) read)'
+      : `${withRed.length} OPEN roadmap row(s) name an instrument that is RED: `
+        + withRed.map(r => '#' + r.n + (r.uses ? ' (' + r.uses.toLocaleString() + ' uses)' : '')).join(', ')
+        + `. A gate cannot report the engine correct while the register says otherwise — that is `
+        + `"known failure" filed one level up.`)
+      + receipt + wireLine + unrunnableLine + debtLine + staleLine,
+  };
+}
+
+/* ================================================================================================
+ * THE ORDER PROBE, AS A CLAUSE — ROADMAP #290's `INSTRUMENT OWED`, BUILT.
+ *
+ * The row asked for exactly this and named it precisely: *"a gate that FAILS while any row of
+ * `data/game-differential.json`'s `order_probe` carries `speed_tied: false` AND `same_priority: true`
+ * — that conjunction is the defect itself rather than a proxy for it, and it reads zero the day the
+ * turn order is right."*
+ *
+ * WHY THE CONJUNCTION IS THE DEFECT AND NOT A PROXY. `ordering` is the shape "same event, different
+ * slot", and its biggest member is two `|move|` lines naming the same move in different slots — which
+ * is what the retired pinned speed tie also looked like, which is why the class was read as an
+ * artefact for weeks. `engine/game_differential.js` resolves that by ASKING: it reads both bodies'
+ * `getActionSpeed()` off the AUTHORITY and both moves' priority off the format. Two bodies that are
+ * NOT tied, clicking at IDENTICAL priority, in a run where every die is pinned on both sides, is a
+ * turn-order disagreement with nothing left to be. There is no threshold and no sample to argue
+ * about: one such row is one defect.
+ *
+ * IT READS AT THE TURN BOUNDARY, NOT AT QUEUE-BUILD TIME, and the artifact says so on every row. That
+ * makes an EQUAL reading weak evidence (Tailwind can have ended in between) and an UNEQUAL one strong
+ * — the asymmetry runs in the safe direction for a gate that only fires on UNEQUAL.
+ *
+ * FOUR WAYS TO BE RED, AND ONLY ONE WAY TO BE GREEN. A clause that cannot be computed FAILS, which is
+ * this file's standing rule everywhere else: no artifact, no probe array, a probe measured against
+ * other bytes, or one or more rows carrying the conjunction. GREEN means the probe ran on THIS tree's
+ * release and found none. "The probe is absent" must never read as "the turn order is right" — that
+ * is the capability-absent-and-everything-reports-success shape this repository is named for.
+ *
+ * AN EMPTY PROBE ARRAY IS NOT GREEN EITHER. `order_probe: []` on a real run means no move-vs-move
+ * ordering pair occurred, which is a fact about the pool rather than about the engine; it passes only
+ * when the artifact records a non-zero `games`, and the count of probed pairs is printed beside the
+ * verdict so nobody reads 0-of-0 as 0-of-1230.
+ * ============================================================================================== */
+function orderProbeClause(inject) {
+  const NAME = 'turn order / no unequal-speed pair at identical priority (ROADMAP #290)';
+  const j = inject !== undefined ? inject : readJson(D('data', 'game-differential.json'));
+  if (!j) {
+    return { name: NAME, ok: false, why: 'NO ARTIFACT — data/game-differential.json is absent, so the '
+      + 'order probe cannot be read. A clause that cannot be computed FAILS. Run engine/game_differential.js.' };
+  }
+  const probe = Array.isArray(j.order_probe) ? j.order_probe : null;
+  if (!probe) {
+    return { name: NAME, ok: false, why: 'NO ORDER PROBE — data/game-differential.json carries no '
+      + '`order_probe` array. The discriminator did not run, which says nothing about the turn order '
+      + 'and must not read as green.' };
+  }
+  const cur = readJson(D('data', 'engine-release.json'));
+  const curId = cur && (cur.id || cur.release || cur.current);
+  const ranOn = j.engine_release || j.release || null;
+  const bad = probe.filter((r) => r && r.speed_tied === false && r.same_priority === true);
+  if (ranOn && curId && ranOn !== curId) {
+    /* CANNOT ANSWER, AND IT SAYS WHICH KIND OF RED IT IS. The count is still PRINTED, because a
+     * listing is not a verdict and being able to see what the last answerable run found is worth
+     * having — but `cannot_answer` is what the exit code carries, and nobody may quote the number as a
+     * statement about this tree. */
+    return { name: NAME, ok: false, cannot_answer: true, ranOn, staleAgainst: curId,
+      probed: probe.length, unequal: bad.length,
+      why: `MEASURED AGAINST A DIFFERENT ENGINE — the probe ran on release ${ranOn} and the tree is `
+         + `${curId}. That is not a weaker answer to this question, it is an answer about other bytes. `
+         + `WITHHELD, not annotated: that run probed ${probe.length} pair(s) and ${bad.length} carried `
+         + `the conjunction, and neither figure describes this tree. Re-run engine/game_differential.js.` };
+  }
+  const games = +j.games || 0;
+  if (!probe.length) {
+    return { name: NAME, ok: games > 0, probed: 0, unequal: 0,
+      why: games > 0
+        ? `clean by absence: ${games} games produced NO move-vs-move ordering pair to probe. That is a `
+          + `fact about the pool, not a demonstration that the turn order is right.`
+        : 'AN EMPTY PROBE OVER ZERO GAMES DECIDES NOTHING and does not pass.' };
+  }
+  const NL = String.fromCharCode(10);
+  const seeds = new Set(bad.map((r) => r.seed));
+  return {
+    name: NAME, ok: bad.length === 0, probed: probe.length, unequal: bad.length,
+    games, generated: j.generated || null, engine_release: ranOn,
+    why: (bad.length === 0
+      ? `clean: ${probe.length} move-vs-move ordering pair(s) probed over ${games} games and every one `
+        + `was either speed-tied or at different priority.`
+      : `${bad.length} of ${probe.length} PROBED ORDERING PAIR(S) ARE A REAL TURN-ORDER DISAGREEMENT — `
+        + `bodies NOT speed-tied, priorities IDENTICAL, every die pinned on both sides. `
+        + `${seeds.size} distinct game(s).` + NL
+        + bad.slice(0, 12).map((r) => '    gap ' + r.speed_gap + '  ' + String(r.cause || '').slice(0, 64)
+          + '   [showdown moved ' + ((r.showdown_first || {}).body || '?') + ' @'
+          + ((r.showdown_first || {}).speed) + ', medicham2 moved '
+          + ((r.medicham_first || {}).body || '?') + ' @' + ((r.medicham_first || {}).speed) + ']').join(NL))
+      + NL + '    [the probe covers move-vs-move pairs only; it is a FLOOR on the ordering class, '
+      + 'never a count of it]',
   };
 }
 
@@ -1686,7 +2006,12 @@ module.exports = { medichamIsCorrect, classify, state, withholder, playLayer, so
                     * to ask "does anybody play this" or "has a paired run cleared this" imports these
                     * rather than re-deriving them — `buildMon("Scizor")` returned null because a second
                     * version of something that already existed got hand-rolled beside it. */
-                   REACH_SHELF, reachOf, usageIndex, reachDrift, decisionImpact, mechanicsClause,
+                   /* THE SHAPE CONTRACT FOR data/register-reality.json, EXPORTED SO ITS WRITER
+                    * WRITES THROUGH IT. Three mismatched key names carried zero rows across this
+                    * wire from the day it was built; see openDefectClause. */
+                   REGISTER_REALITY, registerRealityRows, orderProbeClause,
+                   REACH_SHELF_CLICKS, DECISION_POINTS_FLOOR, reachShelf,
+                   reachOf, usageIndex, reachDrift, decisionImpact, mechanicsClause,
                    classifyMechanics,
                    /* ROADMAP #292 — exported so a test can hand it a KNOWN artifact and read the
                     * composition it prints. Its `artifact` argument already existed; without the
@@ -1743,6 +2068,33 @@ if (require.main === module) {
     process.exit(0);
   }
 
+  /* ---- --order-probe: ROADMAP #290's GATE, RUNNABLE AND WITH AN EXIT CODE ----------------------
+   *
+   * `engine/register_reality.js` runs whatever a register row names in `VERIFIED BY` and compares the
+   * EXIT CODE to the row's open/closed status. #290 therefore needs a command, not a clause buried in
+   * a report — so this is the clause with a process exit attached and nothing else. It reads an
+   * artifact, runs no games and loads no simulator, so a register sweep can afford to call it.
+   *
+   * EXIT 1 ON EVERY RED, INCLUDING "CANNOT ANSWER". A `VERIFIED BY` whose command exited 0 because the
+   * artifact was missing would report the row STALE and close a live defect — the loudest failure this
+   * repository has, arriving through its own audit tool. */
+  if (has('--order-probe')) {
+    const r = orderProbeClause();
+    console.log('');
+    console.log((r.ok ? 'PASS  ' : 'FAIL  ') + r.name);
+    console.log('  ' + r.why);
+    if (r.engine_release) console.log('  artifact: data/game-differential.json  generated '
+      + (r.generated || '?') + '  release ' + r.engine_release);
+    console.log('');
+    /* TWO NON-ZERO CODES, AND BOTH ARE RED TO `register_reality.js` ON PURPOSE.
+     *   1  the defect is PRESENT — a pair not speed-tied at identical priority.
+     *   2  the clause CANNOT ANSWER — no artifact, no probe, or a probe cut against other bytes.
+     * Separating them is legibility, not leniency: a gate that cannot answer must never read as
+     * agreement, because a `VERIFIED BY` exiting 0 on a missing artifact would close a live defect.
+     * The register report prints the literal code, so the two are distinguishable there. */
+    process.exit(r.ok ? 0 : (r.cannot_answer ? 2 : 1));
+  }
+
   /* ---- --reach: THE MECHANICS CLAUSE'S POPULATION, SHOWN RATHER THAN SUMMARISED ----------------
    *
    * The clause prints a count. This prints the rows behind it, because a filter nobody can inspect is
@@ -1768,14 +2120,34 @@ if (require.main === module) {
       console.log('  STALE — the tree is ' + curId + '. These rows describe OTHER BYTES and the clause');
       console.log('  refuses them. They are printed because a listing is not a verdict.');
     }
-    console.log('  shelf: ' + REACH_SHELF + ' observations   [moves: ' + (C.U.denominators.moves || 'NO ARTIFACT')
-                + ';  abilities/items: ' + (C.U.denominators.teams || 'NO ARTIFACT') + ']');
+    /* THE SHELF, STATED AS WHAT IT IS: ONE RATE, TWO THRESHOLDS, EACH WITH ITS POPULATION. #295. */
+    const SH = C.SH;
+    const line = (kind) => { const s = SH.of(kind);
+      return s.derivable
+        ? `${s.exact.toFixed(2)} ${s.unit} in ${(s.denom || 0).toLocaleString()} games `
+          + `-> counts at ${s.minCount}+ ${s.unit}`
+        : 'NOT DERIVABLE — nothing of this kind is shelved'; };
+    console.log('  ANCHOR: ' + SH.anchor.n + ' clicks in '
+                + (SH.anchor.denom || 0).toLocaleString() + ' stored games = '
+                + (SH.rate10k == null ? '?' : SH.rate10k.toFixed(2)) + ' per 10k games'
+                + '   [tests/roster.js:1517 USAGE_SHELF_BELOW; Will 2026-08-18 "leave it at 25"]');
+    console.log('    moves           ' + line('moves'));
+    console.log('    abilities/items ' + line('abilities'));
+    console.log('    populations     moves: ' + (C.U.denominators.moves || 'NO ARTIFACT')
+                + ';  abilities/items: ' + (C.U.denominators.teams || 'NO ARTIFACT'));
+    /* EVERY ROW CARRIES ITS OWN DENOMINATOR AND ITS OWN THRESHOLD. That is the whole of #295: the
+     * unit can never again be implicit, and no reader has to scroll back to a header to learn which
+     * population an integer came out of. */
     const dump = (title, rows, extra) => {
       console.log('');
       console.log('  ' + title + ': ' + rows.length);
       for (const r of rows.slice().sort((a, b) => (b.reach.n || 0) - (a.reach.n || 0))) {
+        const sh = r.shelf || SH.of(r.kind);
         console.log('    ' + pad2(r.key, 28)
           + pad2(r.reach.known ? r.reach.n + ' ' + r.reach.unit : 'NO FIGURE', 14)
+          + pad2('in ' + (r.reach.denomLabel || 'NO DENOMINATOR'), 29)
+          + pad2(r.reach.per10k == null ? '' : r.reach.per10k.toFixed(2) + '/10k games', 20)
+          + pad2(sh.derivable ? 'shelf ' + sh.minCount + ' ' + sh.unit : 'shelf N/A', 18)
           + (extra ? extra(r) : ''));
       }
     };
@@ -1877,6 +2249,24 @@ if (require.main === module) {
       roadmapRowSaysBroken(row(252, 'THE FUTILITY GATE CARRIES A DECLARED PREDICTION.** Priority into '
         + 'an Armor Tail Farigiraf is dead only while that Farigiraf is still there',
         'deferred by decision — NOT A DEFECT, search')) === false);
+    /* -- THE CLOSED-DETECTOR, IN BOTH DIRECTIONS -- 2026-08-18 -------------------------------
+     *
+     * The cell outranked the prose when it said `closed` and did NOT when it said `open`, so a row
+     * whose narrative contains `CLOSED 2026-08-11` about a part that IS closed read as a closed ROW.
+     * Measured over the live register: five verdicts moved, three of them rows asserting breakage,
+     * including #220 -- 238 games of the 695 in the whole-game differential, invisible to the gate.
+     * The RED case is the one that matters: it fails the moment the cell stops outranking the prose. */
+    ok('RED - a cell that says OPEN outranks a `CLOSED 2026-08-11` inside the row narrative',
+      roadmapRowIsClosed(row(220, 'THE RESIDUAL - CLOSED 2026-08-11.** reopened the next day',
+        'open - engine DEFECT')) === false);
+    ok('a cell that says CLOSED still closes the row, and that half is unchanged',
+      roadmapRowIsClosed(row(90, 'A THING.** done', 'closed 2026-08-11')) === true);
+    ok('the prose fallback still closes a row whose cell states no disposition at all',
+      roadmapRowIsClosed(row(91, 'A THING - DONE, 3.72.0.** account', 'engine')) === true);
+    ok('RED - `open` must be the START of the cell, not a word buried in it: a closed row that '
+      + 'mentions an open question is still closed',
+      roadmapRowIsClosed(row(92, 'A THING - DONE.** x', 'closed; one open question remains')) === true);
+
     ok('NOT A DEFECT beats an explicit DEFECT token, so the escape hatch is unambiguous and visible',
       roadmapRowSaysBroken(row(9, 'X.**', 'NOT A DEFECT — measured green 2026-08-15, DEFECT')) === false);
     ok('every use of the override is recorded for the receipt, never silently applied',
@@ -1899,12 +2289,48 @@ if (require.main === module) {
       items: new Map(),
       invisible: new Set(['megaonly']),
       denominators: { moves: 'N games', teams: 'N teams' },
+      /* THE TWO RATE DENOMINATORS, DELIBERATELY DIFFERENT AND DELIBERATELY IN A 5:1 RATIO, so the
+       * translation below is a real division and not an identity that would pass either way. */
+      games: { moves: 1000, teams: 200 },
+      gamesLabel: { moves: '1,000 stored games', teams: '200 open-sheet games' },
       absent: [],
     };
     ok('REACH — a move above the shelf is KNOWN and not shelved',
-      reachOf(UIDX, 'moves', 'bigmove').known === true && reachOf(UIDX, 'moves', 'bigmove').n >= REACH_SHELF);
+      reachOf(UIDX, 'moves', 'bigmove').known === true && reachOf(UIDX, 'moves', 'bigmove').n >= REACH_SHELF_CLICKS);
     ok('REACH — a move below the shelf is KNOWN and below it',
-      reachOf(UIDX, 'moves', 'smallmove').n < REACH_SHELF);
+      reachOf(UIDX, 'moves', 'smallmove').n < REACH_SHELF_CLICKS);
+
+    /* -- ROADMAP #295: ONE ANCHOR, ONE RATE, A THRESHOLD PER POPULATION -----------------------
+     *
+     * The defect was that the literal 25 was compared to CLICKS in a 64,846-game population and to
+     * TEAMS in a 13,116-game one, so a move cleared the bar at ~48x lower relative usage than an
+     * ability. Every case below is driven through the SHIPPING `reachShelf` / `classifyMechanics`,
+     * and the RED ones are the ones that matter: each fails if the code reverts to a bare integer. */
+    const SHT = reachShelf(UIDX);
+    ok('#295 — the ANCHOR is unchanged and is in CLICKS, exactly where it was ruled',
+      SHT.anchor.n === REACH_SHELF_CLICKS && SHT.anchor.unit === 'clicks' && SHT.anchor.denom === 1000);
+    ok('#295 — the TEAMS threshold is DERIVED at the anchor rate, not copied from the integer',
+      Math.abs(SHT.of('abilities').exact - 5) < 1e-12 && SHT.of('abilities').minCount === 5,
+      SHT.of('abilities'));
+    ok('RED — an ability at 6 teams (above the derived shelf) COUNTS where the bare integer shelved it',
+      SHT.below('abilities', 6) === false && SHT.below('moves', 6) === true);
+    ok('RED — an ability at 4 teams is still shelved: the derived shelf is a shelf, not an amnesty',
+      SHT.below('abilities', 4) === true);
+    ok('#295 — the two thresholds carry the SAME rate per game, which is the whole point',
+      Math.abs(SHT.of('moves').exact / SHT.of('moves').denom
+             - SHT.of('abilities').exact / SHT.of('abilities').denom) < 1e-12);
+    ok('#295 — every row carries its own DENOMINATOR, so a bare integer can never stand alone',
+      reachOf(UIDX, 'abilities', 'bigability').denomLabel === '200 open-sheet games'
+      && reachOf(UIDX, 'moves', 'bigmove').denomLabel === '1,000 stored games');
+    /* THE SAFE DIRECTION WHEN THE EVIDENCE IS GONE. A threshold that cannot be derived must shelve
+     * NOTHING — never fall back to the anchor's integer in the wrong unit, which is the defect. */
+    const NOGAMES = reachShelf({ ...UIDX, games: { moves: 1000, teams: null } });
+    ok('RED — with the teams denominator absent the shelf is NOT DERIVABLE and shelves nothing',
+      NOGAMES.of('abilities').derivable === false && NOGAMES.below('abilities', 1) === false
+      && NOGAMES.below('moves', 1) === true);
+    const NOANCHOR = reachShelf({ ...UIDX, games: { moves: null, teams: 200 } });
+    ok('RED — with the ANCHOR population absent nothing is shelved at all, in either unit',
+      NOANCHOR.below('moves', 0) === false && NOANCHOR.below('abilities', 0) === false);
     /* THE CASE THE WHOLE FILTER TURNS ON, IN BOTH DIRECTIONS. */
     ok('RED — a move the instrument covers and never saw is an OBSERVED ZERO, not unknown',
       reachOf(UIDX, 'moves', 'neverclicked').known === true && reachOf(UIDX, 'moves', 'neverclicked').n === 0);
@@ -1924,7 +2350,7 @@ if (require.main === module) {
       { id: 'atexactly', diverged: true },
       { id: 'onebelow', diverged: true },
       { id: 'closeted', diverged: true, deferred: { by: 'Will' } }] } };
-    const EDGEU = { ...UIDX, moves: new Map([['atexactly', REACH_SHELF], ['onebelow', REACH_SHELF - 1],
+    const EDGEU = { ...UIDX, moves: new Map([['atexactly', REACH_SHELF_CLICKS], ['onebelow', REACH_SHELF_CLICKS - 1],
                                              ['closeted', 9999]]) };
     const EDGEC = classifyMechanics(EDGE, null, { U: EDGEU, DI: decisionImpact('nothing-on-disk') });
     ok('BOUNDARY — exactly at the shelf COUNTS, and one below it is shelved',
@@ -1933,6 +2359,53 @@ if (require.main === module) {
       { counted: EDGEC.counted.map(r => r.id), belowShelf: EDGEC.belowShelf.map(r => r.id) });
     ok('a row the OWNER closeted is in neither column, however heavily it is played',
       EDGEC.rowsSeen === 2 && !EDGEC.counted.concat(EDGEC.belowShelf).some(r => r.id === 'closeted'));
+
+    /* -- ROADMAP #290's GATE, RED AND GREEN, ON SYNTHETIC ARTIFACTS ---------------------------
+     *
+     * Driven through `orderProbeClause` itself — the function `--order-probe` exits on — with the
+     * artifact passed in rather than read off disk, so a change to the rule cannot pass by having its
+     * selftest restate the old one. The GREEN case matters as much as the red here: this gate is what
+     * closes #290 the day the turn order is right, and a gate that can only be red is a gate that
+     * cannot close anything.
+     *
+     * THE CURRENT RELEASE IS READ OFF DISK BY THE CLAUSE, so every synthetic artifact below carries
+     * NO release. An unstamped artifact is deliberately allowed to answer — the clause refuses only on
+     * a MISMATCH — which is the same rule `mechanicsClause` applies. */
+    const PROBE = (rows, extra) => ({ games: 100, order_probe: rows, ...(extra || {}) });
+    const PAIR = (tied, samePri) => ({ speed_tied: tied, same_priority: samePri, speed_gap: 40,
+      cause: 'ordering :: |move|p1a|tailwind <> |move|p2a|tailwind', seed: 's' + tied + samePri,
+      showdown_first: { body: 'A', speed: 300 }, medicham_first: { body: 'B', speed: 260 } });
+    ok('RED — a pair NOT speed-tied at IDENTICAL priority is a turn-order defect and FAILS the clause',
+      orderProbeClause(PROBE([PAIR(false, true)])).ok === false,
+      orderProbeClause(PROBE([PAIR(false, true)])).why);
+    ok('GREEN — a genuinely TIED pair is not a defect and the clause passes',
+      orderProbeClause(PROBE([PAIR(true, true)])).ok === true);
+    ok('GREEN — an UNTIED pair at DIFFERENT priority is not a defect either: both halves are required',
+      orderProbeClause(PROBE([PAIR(false, false)])).ok === true);
+    ok('the clause counts the conjunction rather than the array, and prints both',
+      orderProbeClause(PROBE([PAIR(false, true), PAIR(true, true), PAIR(false, false)])).unequal === 1
+      && orderProbeClause(PROBE([PAIR(false, true), PAIR(true, true), PAIR(false, false)])).probed === 3);
+    /* THE THREE WAYS TO BE UNABLE TO ANSWER. Each must be RED, and none of them may read as green —
+     * "the probe is absent" reading as "the turn order is right" is this project's signature bug. */
+    ok('RED — NO ARTIFACT is a FAILING clause, never a passing one',
+      orderProbeClause(null).ok === false && /NO ARTIFACT/.test(orderProbeClause(null).why));
+    ok('RED — an artifact with NO order_probe array FAILS rather than passing by absence',
+      orderProbeClause({ games: 100 }).ok === false
+      && /NO ORDER PROBE/.test(orderProbeClause({ games: 100 }).why));
+    ok('RED — an EMPTY probe over ZERO games decides nothing and does not pass',
+      orderProbeClause({ games: 0, order_probe: [] }).ok === false);
+    ok('an empty probe over REAL games passes, and says it is clean BY ABSENCE rather than by proof',
+      orderProbeClause({ games: 100, order_probe: [] }).ok === true
+      && /clean by absence/.test(orderProbeClause({ games: 100, order_probe: [] }).why));
+    /* THE RELEASE GUARD, WHICH IS THE ONE THAT FIRES TODAY. A probe cut against other bytes must fail,
+     * must be distinguishable from the defect (`cannot_answer`), and must still PRINT its count —
+     * withheld as a verdict, visible as a listing. */
+    const OTHER = orderProbeClause(PROBE([PAIR(true, true)], { engine_release: 'not-this-tree' }));
+    ok('RED — a probe measured against OTHER BYTES cannot answer, however clean it looks',
+      OTHER.ok === false && OTHER.cannot_answer === true, OTHER.why);
+    ok('the withheld run still reports what it found, so the figure is visible and unquotable',
+      OTHER.probed === 1 && /WITHHELD, not annotated/.test(OTHER.why));
+
 
     /* DECISION IMPACT — the contract, driven through the shipping reader by pointing it at a synthetic
      * artifact on disk. Every refusal below is a case where a real run's verdict must NOT be honoured. */
