@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-15T04:20:13.601Z",
+  "generated": "2026-08-18T02:12:34.065Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 584,
-  "live": 584,
+  "probed": 585,
+  "live": 585,
   "missing": 0,
-  "armed": 584,
+  "armed": 585,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -2996,7 +2996,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5847,6 +5847,16 @@
       "label": "a move-class immunity NAMES the ability that refused, and a TYPE immunity to the same move stays bare",
       "live": true,
       "detail": "the same Sleep Powder — a GRASS body [\"|-immune|p2a:chesnaught\"] (the type chart, announced bare by the authority too); an OVERCOAT body [\"|-immune|p2a:forretress|[from]ability:overcoat\"]. Before the fix both arms read the bare line. Soundproof and Bulletproof reach the same reader and were measured the same way (Bastiodon/Snarl, Chesnaught/Shadow Ball)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "volatileAnnounce",
+      "label": "a volatile announces its OWN condition's line — `-singleturn` for Endure, `-activate|trapped` for Block — and a guarded condition still gets the generic one",
+      "live": true,
+      "detail": "Taunt (guarded onStart, the control) [\"|-start|p2a:snorlax|move:taunt\"]; Endure [\"|-singleturn|p1a:abomasnow|move:endure\"]; Block [\"|-activate|p2a:snorlax|trapped\"]. Before the wire all three read `-start|move:<the move>`, which the authority writes for exactly one of them — and Block's said `block` where the authority says `trapped`",
       "hollow": false,
       "armed": true,
       "directCall": false

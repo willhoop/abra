@@ -4399,6 +4399,75 @@ const MOVE_TAGS = [
                  .map(x => x[1]))],
                alsoCuresSleep: /cureStatus\(\)/.test(src) };
     } },
+
+  /* ---- WHAT A VOLATILE SAYS WHEN IT STARTS, READ OFF THE CONDITION THAT OWNS IT ------------------
+   *
+   * `applyMoveVolatile` in medicham2 announced EVERY volatile as `|-start|BODY|move: <volatile>`. That
+   * is one guess applied to a family the authority narrates four different ways, and the guess is
+   * wrong for eleven of them:
+   *
+   *     Endure / Electrify   `-singleturn`, not `-start`          (conditions announce a SINGLE TURN)
+   *     Block / Mean Look    `-activate|BODY|trapped`             (the volatile is `trapped`, not the move)
+   *     Destiny Bond         `-singlemove`, which this engine does not claim -> emit NOTHING
+   *     Minimize / Sparkling Aria   the condition has no onStart at all -> the authority is SILENT
+   *     Aqua Ring / Magnet Rise / Salt Cure / Syrup Bomb   `-start` with a BARE label, no `move: `
+   *
+   * `Pokemon#addVolatile` runs `condition.onStart`, and that handler's own `this.add(...)` IS the line
+   * on the wire -- exactly the argument `immuneAttrIn` makes for `-immune`. So this is READ, per
+   * volatile, off `dex.conditions.get(vol)`, and never composed from the move's name.
+   *
+   * THE PREDICATE IS DELIBERATELY NARROW AND THE MEMBERSHIP WAS PRINTED BEFORE IT WAS WIRED. Only two
+   * shapes are claimed:
+   *
+   *   (1) the WHOLE handler is one unconditional `this.add(EVENT, BODY, "DESC")`  -> that line, verbatim
+   *   (2) the condition exists and has NO onStart                                 -> no line at all
+   *
+   * Anything else -- a guard, a second statement, an interpolated descriptor -- is LEFT ALONE and the
+   * engine keeps its pre-existing generic line. That is 23 of the 45 volatiles a legal move can apply,
+   * including taunt (`if (target.activeTurns …)`), smackdown (`let applies = false; …`), stockpile
+   * (three statements) and partiallytrapped (a template string). Taunt is the reason for the narrowness
+   * rather than an accident of it: its guarded handler still ends in the exact `-start|move: Taunt`
+   * this engine already emits, so a rule that read past the `if` would have had to be right about the
+   * guard too, and being wrong there is invisible.
+   *
+   * WHERE THE VOLATILE NAMES COME FROM: the move's own dex fields (`volatileStatus`, `self`, each
+   * secondary) plus every `addVolatile("X")` in any handler the move carries. The last clause is what
+   * finds `trapped`, which Block, Mean Look and Spirit Shackle apply from `onHit` and which appears in
+   * no dex FIELD at all. A composed protocol descriptor (`perish3`, `stockpile1`, `typechange`) can
+   * never enter this table, because it is not a volatile name and nothing here invents one. */
+  { tag: 'volatileAnnounce', param: 'the exact start line the authority writes for each volatile this move applies',
+    probe: 'volatileAnnounce',
+    why: 'the engine announced every volatile as `-start|move: <name>`. The authority uses -singleturn '
+       + 'for Endure and Electrify, -activate|trapped for Block and Mean Look, -singlemove for Destiny '
+       + 'Bond, a BARE label for Aqua Ring and Magnet Rise, and NOTHING at all for Minimize',
+    of: m => {
+      const vols = new Set();
+      const put = v => { if (typeof v === 'string' && v) vols.add(v); };
+      put(m.volatileStatus);
+      if (m.self) put(m.self.volatileStatus);
+      for (const s of (m.secondaries || [])) { put(s.volatileStatus); if (s.self) put(s.self.volatileStatus); }
+      /* every handler the move carries, including the ones hanging off a secondary -- Spirit Shackle's
+       * trap lives in `secondary.onHit` and is invisible to a scan of the move's own keys. */
+      const srcs = [];
+      const scan = (o, depth) => { if (!o || typeof o !== 'object' || depth > 2) return;
+        for (const k in o) { const v = o[k];
+          if (typeof v === 'function') srcs.push(fnsrc(v));
+          else if (v && typeof v === 'object') scan(v, depth + 1); } };
+      scan(m, 0);
+      for (const s of srcs) for (const g of s.matchAll(/\.addVolatile\(\s*["'](\w+)["']/g)) put(g[1]);
+      if (!vols.size) return null;
+      /* the WHOLE handler is one unconditional announcement, and nothing else */
+      const ONE = /^onStart\s*\(\s*[\w\s,]*\)\s*\{\s*this\.add\(\s*["'](-\w+)["']\s*,\s*[\w.]+\s*,\s*["']([^"']*)["']\s*\)\s*;?\s*\}$/;
+      const byVolatile = {};
+      for (const v of [...vols].sort()) {
+        const c = dex.conditions.get(v);
+        if (!c) continue;
+        if (!c.onStart) { byVolatile[v] = { event: null, desc: null, why: 'the condition declares no onStart' }; continue; }
+        const hit = fnsrc(c.onStart).match(ONE);
+        if (hit) byVolatile[v] = { event: hit[1], desc: hit[2], why: 'the condition\'s whole onStart is this one add()' };
+      }
+      return Object.keys(byVolatile).length ? { byVolatile } : null;
+    } },
 ];
 
 const ITEM_TAGS = [

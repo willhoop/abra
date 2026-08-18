@@ -19891,6 +19891,43 @@ probe('ability', 'immuneToMoveClass', 'a move-class immunity NAMES the ability t
                  + `same reader and were measured the same way (Bastiodon/Snarl, Chesnaught/Shadow Ball)` };
 });
 
+probe('move', 'volatileAnnounce', 'a volatile announces its OWN condition\'s line — `-singleturn` for Endure, `-activate|trapped` for Block — and a guarded condition still gets the generic one', () => {
+  /* ROADMAP #143. `applyMoveVolatile` announced every volatile in the format as
+   * `|-start|BODY|move: <volatile>`. `Pokemon#addVolatile` runs the CONDITION's `onStart`, and that
+   * handler's own `this.add(...)` is the line on the wire — three different events across this family:
+   *
+   *   endure    conditions: `onStart(target) { this.add("-singleturn", target, "move: Endure"); }`
+   *   trapped   conditions: `onStart(target) { this.add("-activate",   target, "trapped");      }`
+   *   taunt     `onStart(target) { if (target.activeTurns && …) …; this.add("-start", target, "move: Taunt"); }`
+   *
+   * TAUNT IS THE CONTROL AND IT IS THE WHOLE REASON THIS IS NOT A ONE-LINE PASTE. Its handler is
+   * GUARDED, so the derivation in engine/tag_dex.js deliberately refuses to read past the `if` and
+   * leaves the generic line standing — and the generic line happens to be exactly right for it. An
+   * engine that switched the whole family to `-singleturn` passes both test arms and fails here; an
+   * engine that left the family alone passes here and fails both test arms. Neither half can be passed
+   * by accident.
+   *
+   * BLOCK IS THE SECOND TEST ARM BECAUSE IT MOVES THE SUBJECT AS WELL AS THE EVENT: the volatile is
+   * `trapped`, not `block`, so an engine that only fixed the EVENT would still print the move's name.
+   *
+   * EVERY CARRIER IS DERIVED. Abomasnow/Endure, Gengar/Taunt and Feraligatr/Block are all
+   * `Dex.forFormat(gen9championsvgc2026regmb)` legal species holding a move their own learnset carries,
+   * and Snorlax is Normal — a GHOST target refuses `trapped` silently and would stage nothing at all. */
+  const starts = (user, mv) => attrRun([user, 'clefable', 'snorlax', 'milotic'], null, { mv }, null)
+    .filter(l => /^\|(-start|-singleturn|-activate)\|/.test(l)).map(M.traceCanon);
+  const control = starts('gengar', 'taunt');
+  const endure = starts('abomasnow', 'endure');
+  const block = starts('feraligatr', 'block');
+  return { works: JSON.stringify(control) === JSON.stringify(['|-start|p2a:snorlax|move:taunt'])
+                  && JSON.stringify(endure) === JSON.stringify(['|-singleturn|p1a:abomasnow|move:endure'])
+                  && JSON.stringify(block) === JSON.stringify(['|-activate|p2a:snorlax|trapped']),
+           arms: { control, test: [].concat(endure, block) },
+           detail: `Taunt (guarded onStart, the control) ${JSON.stringify(control)}; Endure `
+                 + `${JSON.stringify(endure)}; Block ${JSON.stringify(block)}. Before the wire all `
+                 + `three read \`-start|move:<the move>\`, which the authority writes for exactly one `
+                 + `of them — and Block's said \`block\` where the authority says \`trapped\`` };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');

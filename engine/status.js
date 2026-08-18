@@ -185,7 +185,19 @@ const PROV_RUN = (() => {
       NOTES.push('engine/provenance.js produced no verdict sidecar, so NO figure below is checked '
                + 'against its UNSAFE list: ' + PROV_VERDICTS.why);
     }
-    try { fs.unlinkSync(VOUT); } catch (e) { /* a leftover temp file is not a finding */ }
+    /* ROADMAP #258. The old comment here read *"a leftover temp file is not a finding"* and that is
+     * true of the ENOENT case and only of it: the sidecar is named after this pid, so a file we
+     * failed to delete is one we also failed to be sure we WROTE, and the branch above has already
+     * decided whether provenance spoke on the strength of reading it. Absent stays quiet; a delete
+     * that failed with the file still on disk is named, because a silence that covers both is the
+     * shape this ratchet exists to remove. */
+    try { fs.unlinkSync(VOUT); }
+    catch (e) {
+      if (e && e.code !== 'ENOENT' && fs.existsSync(VOUT)) {
+        NOTES.push('the provenance verdict sidecar could not be removed and is still on disk at '
+                 + VOUT + ': ' + String((e && e.message) || e).split('\n')[0]);
+      }
+    }
   };
   /* `--selftest` drives the refit-edge classifier and prints nothing from an artifact, so paying
    * fifteen seconds for provenance there would only make the selftest slower and likelier to be

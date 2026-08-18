@@ -494,14 +494,61 @@ function roadmapRowIsClosed(l) {
  * guard — the file says so about `roadmapRowIsClosed` and it is no less true here.
  *
  * IT STILL ERRS SHUT. A row that might be a wrong FIXTURE rather than a wrong ENGINE is marked anyway;
- * the gate reopens when somebody states plainly which it was, which is the correct direction. */
+ * the gate reopens when somebody states plainly which it was, which is the correct direction.
+ *
+ * ================= TWO REPAIRS, 2026-08-15, AND BOTH WERE MEASURED FIRST ==========================
+ *
+ * The clause read `7 OPEN roadmap row(s) describe a live engine defect`. Audited row by row, TWO of
+ * the seven were matched by the PROSE fallback alone and neither describes a defect of any kind:
+ *
+ *   #266  matched `does not exist` at character 2022 — inside *"`'dampro'` resolves to a row that does
+ *         not exist"*, which is the description of a FIXTURE bug this register already CLOSED, and at
+ *         5017 inside *"an item that does not exist in Gen 9"*, likewise.
+ *   #252  matched `IS DEAD` at character 575 — inside *"Priority into an Armor Tail Farigiraf is dead
+ *         only while that Farigiraf is still there"*, which is a METAPHOR for a futile click.
+ *
+ * That is #148's lesson for the third time in one detector, and the cost is no longer theoretical: a
+ * register that overstates its scope costs a whole agent, which is more than the defect it names.
+ *
+ * REPAIR 1 — THE PROSE FALLBACK READS THE ROW HEAD, NOT THE WHOLE ROW. `roadmapRowIsClosed` above
+ * already slices the first 600 characters, for exactly this reason, and the BROKEN half was never
+ * given the same treatment. These rows carry thousands of characters of history: quotes, retractions,
+ * and descriptions of bugs that were fixed weeks ago. Matching a defect vocabulary against a row's own
+ * account of a CLOSED defect is the detector reading its own archive as news. Measured over all 206
+ * open rows before the change (LESSONS §4 — print what it matches): exactly ONE verdict moves, #266,
+ * and it moves the right way. Nothing that reads broken in its title is affected.
+ *
+ * REPAIR 2 — `NOT A DEFECT` IN THE STATUS CELL IS AN EXPLICIT RULING AND OVERRIDES THE GUESS. The
+ * block above finished the CLOSED half of #148's prescription and left the BROKEN half half-done: a
+ * row could DECLARE that it is a defect and had no way to declare that it is not, so the only voice
+ * on that side was a guess over prose. #252 is the case — a modelling-soundness note about the search,
+ * deferred by Will *"much much later into the project"*, whose cell says `deferred by decision —
+ * search` and which asserts nothing about a mechanic being wrong. Err-shut is preserved exactly where
+ * it was designed to apply: the file's own words are that an AMBIGUOUS row keeps the gate closed
+ * "until somebody states plainly whether the thing is broken". This is how somebody states it.
+ *
+ * IT IS AN ESCAPE HATCH AND IT IS THEREFORE COUNTED IN PUBLIC. Every use is listed by number on every
+ * run of the clause, at zero as well as at seven — the `--accept <file> "reason"` shape from #258, for
+ * the same reason: a door into a gate that nobody can see being used is not a door, it is a hole. */
 function roadmapRowStatusCell(l) {
   const m = l.match(/\|\s*([^|]*)\|\s*$/);
   return m ? m[1] : '';
 }
+/* Rows whose cell exercises the override, filled by `roadmapRowSaysBroken` and printed by the clause.
+ * Module-level rather than returned, so a caller cannot use the detector and skip the receipt. */
+const NOT_A_DEFECT = [];
 function roadmapRowSaysBroken(l) {
-  if (/\bDEFECT\b/.test(roadmapRowStatusCell(l))) return true;
-  return /NEVER FIRED|NEVER FIRES|NOT IMPLEMENTED|DOES NOT WORK|DOES NOT ARM|DOES NOT FIRE|UNIMPLEMENTED|silent no-op|IS ABSENT|is not implemented|does not exist|never records|never record|resolve[sd]? to `\{kind:'pass'\}`|HAS NEVER FIRED|IS DEAD/i.test(l);
+  const cell = roadmapRowStatusCell(l);
+  if (/\bNOT A DEFECT\b/i.test(cell)) {
+    const n = (l.match(/^\|\s*#(\d+)/) || [, '?'])[1];
+    if (!NOT_A_DEFECT.some(r => r.n === n)) NOT_A_DEFECT.push({ n, cell: cell.trim().slice(0, 90) });
+    return false;
+  }
+  if (/\bDEFECT\b/.test(cell)) return true;
+  /* THE HEAD, NOT THE ROW — see REPAIR 1 above. The 600 is `roadmapRowIsClosed`'s number, deliberately
+   * the same one: two detectors reading the same table must not disagree about where a row's claim
+   * stops and its history starts. */
+  return /NEVER FIRED|NEVER FIRES|NOT IMPLEMENTED|DOES NOT WORK|DOES NOT ARM|DOES NOT FIRE|UNIMPLEMENTED|silent no-op|IS ABSENT|is not implemented|does not exist|never records|never record|resolve[sd]? to `\{kind:'pass'\}`|HAS NEVER FIRED|IS DEAD/i.test(l.slice(0, 600));
 }
 
 /* ---- THE WHOLE-GAME CLAUSE — WILL, 2026-08-12: "add the whole game comparison to the medicham its
@@ -680,14 +727,21 @@ function openDefectClause() {
   }
   open.sort((a, b) => b.uses - a.uses);
   const weight = open.reduce((s, r) => s + r.uses, 0);
+  /* THE ESCAPE HATCH IS PART OF THE VERDICT, AT ZERO AS WELL AS AT SEVEN. A guard that can only be
+   * seen when it fires is a guard nobody can tell has stopped running. */
+  const excused = NOT_A_DEFECT.slice().sort((a, b) => +a.n - +b.n);
+  const receipt = `  ${excused.length} open row(s) declare NOT A DEFECT in their status cell and are `
+    + `excused from this clause` + (excused.length
+      ? ': ' + excused.map(r => '#' + r.n + ' [' + r.cell + ']').join('; ') : '.');
   return {
-    name: 'no open, known engine defect', ok: open.length === 0, open,
-    why: open.length === 0
+    name: 'no open, known engine defect', ok: open.length === 0, open, excused,
+    why: (open.length === 0
       ? 'clean: the roadmap registers no open row describing a live engine defect'
       : `${open.length} OPEN roadmap row(s) describe a live engine defect (${weight.toLocaleString()} `
         + `named uses between them). A gate cannot report the engine correct while the register says `
         + `otherwise — that is "known failure" filed one level up. Worst: `
-        + open.slice(0, 5).map(r => '#' + r.n + (r.uses ? ' (' + r.uses.toLocaleString() + ')' : '')).join(', '),
+        + open.slice(0, 5).map(r => '#' + r.n + (r.uses ? ' (' + r.uses.toLocaleString() + ')' : '')).join(', '))
+      + receipt,
   };
 }
 
@@ -764,7 +818,11 @@ function stripComments(s) {
 function sources() {
   const src = {};
   for (const dir of ['engine', 'build']) {
-    let list = []; try { list = fs.readdirSync(D(dir)); } catch (e) { continue; }
+    /* ROADMAP #258: this was the one read in `sources()` that stayed silent while the read one line
+     * below it already reported. An unlistable `engine/` returns an EMPTY source map, and every
+     * membership test in this file is derived from that map — so the quarantine set would come back
+     * empty and the gate would read clean for the reason that should make it loudest. */
+    let list = []; try { list = fs.readdirSync(D(dir)); } catch (e) { SWALLOWED.push('list ' + dir + '/ for sources' + ': ' + why(e)); continue; }
     for (const f of list) {
       if (!/\.js$/.test(f)) continue;
       try { src[dir + '/' + f] = fs.readFileSync(D(dir, f), 'utf8'); } catch (e) { SWALLOWED.push('readSource ' + dir + '/' + f + ': ' + why(e)); }
@@ -840,7 +898,18 @@ function playProducts(src, play) {
   }
   {
     for (const rel of collectors) {
-      let s = ''; try { s = fs.readFileSync(D(rel), 'utf8'); } catch (e) { continue; }
+      /* ROADMAP #258: silence here has a DIRECTION and it is the expensive one. A collector we cannot
+       * read contributes no store names, so its stores stay classed as something one of our own runs
+       * produced — which is precisely the failure the comment above records, where `games.bo3.jsonl`
+       * quarantined every OPS figure counted off it. The absent case is still allowed (a checkout
+       * without `.github/` is legitimate); the UNREADABLE case is reported, because those two are not
+       * the same event and only the first one is benign. */
+      let s = '';
+      try { s = fs.readFileSync(D(rel), 'utf8'); }
+      catch (e) {
+        if (fs.existsSync(D(rel))) SWALLOWED.push('read collector ' + rel + ' for store names' + ': ' + why(e));
+        continue;
+      }
       for (const m of stripComments(s).matchAll(/(games\.[A-Za-z0-9_.\-]+?)(?:\.jsonl)\b/g)) {
         /* THE GREEDY CAPTURE ATE THE EXTENSION and produced `games.ladder.jsonl.jsonl`, so NOTHING was
          * ever removed from the product set and every store reader in the repository was quarantined —
@@ -1197,6 +1266,42 @@ if (require.main === module) {
       /top 0\/6000/.test(differentialClause(armArt(0, 0, 0)).why)
       && /bottom 0\/6000/.test(differentialClause(armArt(0, 0, 0)).why),
       differentialClause(armArt(0, 0, 0)).why);
+
+    /* -- THE ROW DETECTOR, ON SYNTHETIC ROWS — ROADMAP #148 FOR THE THIRD TIME -----------------
+     *
+     * `roadmapRowSaysBroken` is a GATE INPUT and had no test at all, which is how it came to report
+     * `7 OPEN roadmap row(s) describe a live engine defect` when two of the seven asserted nothing of
+     * the kind. Both false positives are here as RED cases, in the shape they actually occurred:
+     * a defect vocabulary matched against a row's account of an ALREADY-FIXED bug, and against a
+     * METAPHOR. Both are quoted from the real rows, so a re-widening cannot pass this block.
+     *
+     * THE POSITIVE CONTROLS ARE NOT OPTIONAL. A narrowing that also stops seeing real defects is the
+     * same failure pointed the other way, and this file has the receipt for it: the pattern once
+     * matched ZERO of ten registered `test-tag-wire` defects and printed `clean`. */
+    const row = (n, title, cell) => `| #${n} | **${title} | ${cell} |`;
+    const HEAD = 'A MECHANIC THAT NEVER FIRES — 8,524 uses.**';
+    ok('a row whose TITLE says the mechanic never fires counts, with no cell token',
+      roadmapRowSaysBroken(row(1, HEAD, 'open')) === true);
+    ok('a row whose CELL carries DEFECT counts, whatever the title says',
+      roadmapRowSaysBroken(row(2, 'A MEASUREMENT WE OWE.**', 'open — engine DEFECT')) === true);
+    ok('a row that is neither does NOT count',
+      roadmapRowSaysBroken(row(3, 'HAND MEDICHAM TO A FASTER RUNTIME.**', 'queued')) === false);
+    ok('RED — a defect word 2,000 characters deep, describing a bug this row already CLOSED, does '
+      + 'not count (#266: "`\'dampro\'` resolves to a row that does not exist")',
+      roadmapRowSaysBroken(row(266, 'FORTY-ONE ILLEGAL FIXTURE DECLARATIONS.** ' + 'x'.repeat(1800)
+        + " `'dampro'` resolves to a row that does not exist whose `.name` is `''`", 'PART TWO DONE')) === false);
+    ok('RED — a METAPHOR inside the head does not count when the cell states the row is not a defect '
+      + '(#252: "a Farigiraf is dead only while it is still there")',
+      roadmapRowSaysBroken(row(252, 'THE FUTILITY GATE CARRIES A DECLARED PREDICTION.** Priority into '
+        + 'an Armor Tail Farigiraf is dead only while that Farigiraf is still there',
+        'deferred by decision — NOT A DEFECT, search')) === false);
+    ok('NOT A DEFECT beats an explicit DEFECT token, so the escape hatch is unambiguous and visible',
+      roadmapRowSaysBroken(row(9, 'X.**', 'NOT A DEFECT — measured green 2026-08-15, DEFECT')) === false);
+    ok('every use of the override is recorded for the receipt, never silently applied',
+      NOT_A_DEFECT.some(r => r.n === '252') && NOT_A_DEFECT.some(r => r.n === '9'), NOT_A_DEFECT);
+    ok('the clause reports the override list on every run, at zero as well as at seven',
+      / open row\(s\) declare NOT A DEFECT in their status cell/.test(openDefectClause().why),
+      openDefectClause().why.slice(-160));
 
     /* -- membership, on a synthetic source tree ------------------------------------------------ */
     const src = {

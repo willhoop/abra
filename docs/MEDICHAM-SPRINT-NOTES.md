@@ -9449,3 +9449,38 @@ the fifth distinct place this sprint where a test asserted behaviour for somethi
 contain.
 
 Census **579 → 584 live, 0 missing**. Rows asserting breakage **11 → 7**.
+
+### THE REGISTER IS AN ARTIFACT AND NOTHING WAS CHECKING IT AGAINST REALITY. 2026-08-15
+
+Two agents were killed mid-run when the process exited, and both had already landed the important half.
+
+**MEASURE built `engine/register_reality.js`, and the argument for it is the whole repository's
+opening argument turned on itself.** Every other artifact here has something that compares it to its
+source — `provenance.js` to the files it declares it read, `artifact_audit.js` to the values
+it was built from, `quarantine.js` to whether its generator is downstream of a wrong simulator.
+**`docs/ROADMAP.md` had NOTHING.** A row was a sentence a person typed, and the only test applied
+to it was whether a later person remembered to type a different sentence.
+
+A row may now name the instrument that decides it — a `VERIFIED BY:` marker naming a gate — and
+the tool RUNS it and compares the exit code to the row's status. **STALE ROW** is open-and-green, the
+one that costs an agent. **PREMATURE CLOSE** is closed-and-red.
+
+**THE COVERAGE NUMBER IS THE POINT AND IT IS EMBARRASSING: 206 rows, 2 carry a marker.** Of the four
+rows the MEDICHAM gate currently counts, **one** names its instrument. The other three are still prose,
+and the tool prints them by name rather than letting the gap sit.
+
+**AND THE COUNT MOVED THE WAY THE AUDIT PREDICTED: 7 OPEN ENGINE-DEFECT ROWS -> 4.** One was fully
+closed and had been filed as red (#273 — 200 demonstrations, 0 failed). One was reclassified NOT A
+DEFECT with its reasoning written into the status cell (#252). **The gate had been holding shut partly
+on rows describing defects that no longer existed**, which is the failure `openDefectClause` was
+narrowed to prevent, arriving from the other direction.
+
+**ENGINE's half landed too**: `tag_dex.js` grew a derived field, `data/tags.json`
+regenerated, and a new `volatileAnnounce` probe asserts that a volatile announces its OWN
+condition's line — `-singleturn` for Endure, `-activate|trapped` for Block — with a
+guarded condition still getting the generic one.
+
+**THE MECHANICS CLAUSE WENT STALE IN THE SAME PASS AND THAT IS CORRECT BEHAVIOUR.** The artifact was
+re-run against release `4fe582c3c59a`; ENGINE then edited the simulator, so the tree is
+`4cbb1e6654c4` and the clause now reads *"an answer about other bytes"* rather than a weaker
+answer. The stamp is doing its job. Re-run owed.

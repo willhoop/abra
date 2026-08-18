@@ -1,0 +1,54 @@
+{
+  "generated": "2026-08-18T02:12:01.847Z",
+  "by": "engine/register_reality.js",
+  "what": "Every register row that names the instrument deciding it, run, with its exit code compared to the row's open/closed status.",
+  "why": "docs/ROADMAP.md is read by engine/quarantine.js as a GATE INPUT and nothing checked it against reality. On 2026-08-14 four rows were stale rather than live and two of them were put in front of a human as the place to start. A row nobody re-verifies is prose.",
+  "weaker_than_it_looks": "A green instrument means THAT instrument sees nothing. It is not a derivation of the row's claim. It is strictly more than the register had, which was nothing.",
+  "counts": {
+    "register_rows": 206,
+    "open_asserting_breakage": 4,
+    "marked": 2,
+    "open_asserting_breakage_and_marked": 1,
+    "stale_rows": 0,
+    "premature_closes": 0,
+    "unrunnable": 0
+  },
+  "results": [
+    {
+      "n": 258,
+      "title": "SEVENTY-FIVE SILENT CATCH BLOCKS ABOVE THE FLOOR, 41 OF THEM MANUFACTURING A VALUE, ALL IN",
+      "closed": false,
+      "saysBroken": true,
+      "cmd": "node tests/test-no-silent-failure.js",
+      "green": false,
+      "why": "exit 1",
+      "ms": 469,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 273,
+      "title": "`tests/probe_red_demo.js` IS RED WITH 31 STALE REVERSALS, AND A STALE REVERSAL IS A DEMONS",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/probe_red_demo.js",
+      "green": true,
+      "why": "exit 0",
+      "ms": 4764,
+      "verdict": "CONFIRMED"
+    }
+  ],
+  "unverifiable_open_defects": [
+    {
+      "n": 241,
+      "title": "PART (3) ONLY: EIGHT CAUSES WHERE THE AUTHORITY ANNOUNCES A FAILURE AND THIS ENGINE SAYS N"
+    },
+    {
+      "n": 276,
+      "title": "THE BOARD'S WEATHER NEVER EXPIRES FOR THE FEATURES EITHER, SO `deadWeather` AND EVERY WEAT"
+    },
+    {
+      "n": 283,
+      "title": "`board.movePower` BUILDS NO `side.totalFainted`, SO THE FEATURE VECTOR PRICES A FALLEN-COU"
+    }
+  ]
+}

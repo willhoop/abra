@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-13T03:11:17.140Z",
- "release": "e7e64db837b1",
+ "generated": "2026-08-15T04:45:26.020Z",
+ "release": "4fe582c3c59a",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -216,21 +216,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 10,
-     "cls": "-status field 4",
-     "detail": "-status[4] [from]static vs undefined",
-     "cause": "-status field 4 :: |-status|p2a|par|[from]static <> |-status|p2a|par",
-     "showdown": "|-status|p2a: Feraligatr|par|[from] ability: Static|[of] p1a: Ampharos",
-     "medicham": "|-status|p2a: Feraligatr|par",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -1089,21 +1076,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 15,
-     "cls": "-damage field 4",
-     "detail": "-damage[4] [from]bind vs [from]partiallytrapped",
-     "cause": "-damage field 4 :: |-damage|p2a|H/H|[from]bind|[partiallytrapped] <> |-damage|p2a|H/H|[from]partiallytrapped",
-     "showdown": "|-damage|p2a: Feraligatr|827/960|[from] move: Bind|[partiallytrapped]",
-     "medicham": "|-damage|p2a: Feraligatr|827/960|[from] partiallytrapped",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -1752,21 +1726,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 13,
-     "cls": "-start field 5",
-     "detail": "-start[5] [from]burnup vs undefined",
-     "cause": "-start field 5 :: |-start|p1a|typechange|???|[from]burnup <> |-start|p1a|typechange|???",
-     "showdown": "|-start|p1a: Arcanine|typechange|???|[from] move: Burn Up",
-     "medicham": "|-start|p1a: Arcanine|typechange|???",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -4365,21 +4326,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 16,
-     "cls": "-damage field 4",
-     "detail": "-damage[4] [from]firespin vs [from]partiallytrapped",
-     "cause": "-damage field 4 :: |-damage|p2a|H/H|[from]firespin|[partiallytrapped] <> |-damage|p2a|H/H|[from]partiallytrapped",
-     "showdown": "|-damage|p2a: Feraligatr|831/960|[from] move: Fire Spin|[partiallytrapped]",
-     "medicham": "|-damage|p2a: Feraligatr|831/960|[from] partiallytrapped",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -4872,21 +4820,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 12,
-     "cls": "-start field 5",
-     "detail": "-start[5] [from]forestscurse vs undefined",
-     "cause": "-start field 5 :: |-start|p2a|typeadd|grass|[from]forestscurse <> |-start|p2a|typeadd|grass",
-     "showdown": "|-start|p2a: Feraligatr|typeadd|Grass|[from] move: Forest's Curse",
-     "medicham": "|-start|p2a: Feraligatr|typeadd|Grass",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -6081,21 +6016,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 12,
-     "cls": "-status field 4",
-     "detail": "-status[4] [from]hypnosis vs undefined",
-     "cause": "-status field 4 :: |-status|p2a|slp|[from]hypnosis <> |-status|p2a|slp",
-     "showdown": "|-status|p2a: Feraligatr|slp|[from] move: Hypnosis",
-     "medicham": "|-status|p2a: Feraligatr|slp",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -6146,21 +6068,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 14,
-     "cls": "-curestatus field 4",
-     "detail": "-curestatus[4] [msg] vs undefined",
-     "cause": "-curestatus field 4 :: |-curestatus|p2a|frz|[msg] <> |-curestatus|p2a|frz",
-     "showdown": "|-curestatus|p2a: Feraligatr|frz|[msg]",
-     "medicham": "|-curestatus|p2a: Feraligatr|frz",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -6445,21 +6354,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 15,
-     "cls": "-damage field 4",
-     "detail": "-damage[4] [from]infestation vs [from]partiallytrapped",
-     "cause": "-damage field 4 :: |-damage|p2a|H/H|[from]infestation|[partiallytrapped] <> |-damage|p2a|H/H|[from]partiallytrapped",
-     "showdown": "|-damage|p2a: Feraligatr|828/960|[from] move: Infestation|[partiallytrapped]",
-     "medicham": "|-damage|p2a: Feraligatr|828/960|[from] partiallytrapped",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -9511,21 +9407,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 24,
-     "cls": "-status field 4",
-     "detail": "-status[4] [from]rest vs undefined",
-     "cause": "-status field 4 :: |-status|p1a|slp|[from]rest <> |-status|p1a|slp",
-     "showdown": "|-status|p1a: Abomasnow|slp|[from] move: Rest",
-     "medicham": "|-status|p1a: Abomasnow|slp",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -9940,21 +9823,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 15,
-     "cls": "-damage field 4",
-     "detail": "-damage[4] [from]sandtomb vs [from]partiallytrapped",
-     "cause": "-damage field 4 :: |-damage|p2a|H/H|[from]sandtomb|[partiallytrapped] <> |-damage|p2a|H/H|[from]partiallytrapped",
-     "showdown": "|-damage|p2a: Feraligatr|812/960|[from] move: Sand Tomb|[partiallytrapped]",
-     "medicham": "|-damage|p2a: Feraligatr|812/960|[from] partiallytrapped",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -10473,21 +10343,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 10,
-     "cls": "-status field 4",
-     "detail": "-status[4] [from]sing vs undefined",
-     "cause": "-status field 4 :: |-status|p2a|slp|[from]sing <> |-status|p2a|slp",
-     "showdown": "|-status|p2a: Feraligatr|slp|[from] move: Sing",
-     "medicham": "|-status|p2a: Feraligatr|slp",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -10603,21 +10460,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 12,
-     "cls": "-start field 4",
-     "detail": "-start[4] facade vs undefined",
-     "cause": "-start field 4 :: |-start|p1a|charge|facade|[from]electromorphosis <> |-start|p1a|charge",
-     "showdown": "|-start|p1a: Bellibolt|Charge|Facade|[from] ability: Electromorphosis",
-     "medicham": "|-start|p1a: Bellibolt|Charge",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -10642,21 +10486,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 10,
-     "cls": "-status field 4",
-     "detail": "-status[4] [from]sleeppowder vs undefined",
-     "cause": "-status field 4 :: |-status|p2a|slp|[from]sleeppowder <> |-status|p2a|slp",
-     "showdown": "|-status|p2a: Feraligatr|slp|[from] move: Sleep Powder",
-     "medicham": "|-status|p2a: Feraligatr|slp",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -10683,12 +10514,12 @@
     "medicham_why": "the move was never issued — Showdown emitted no |move| line for it",
     "diverged": true,
     "divergence": {
-     "at": 12,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |move|p1a|facade <> |-fail|p1b",
-     "showdown": "|move|p1a: Abomasnow|Facade|p2a: Feraligatr",
-     "medicham": "|-fail|p1b: Venusaur",
+     "at": 35,
+     "cls": "event missing from medicham2",
+     "detail": "move",
+     "cause": "event missing from medicham2 :: |move|p1a|sleeptalk <> |upkeep",
+     "showdown": "|move|p1a: Abomasnow|Sleep Talk|p1a: Abomasnow",
+     "medicham": "|upkeep",
      "subject_slot": "p1a",
      "segment_owner": null,
      "segment_move": null,
@@ -10837,21 +10668,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 16,
-     "cls": "-damage field 4",
-     "detail": "-damage[4] [from]snaptrap vs [from]partiallytrapped",
-     "cause": "-damage field 4 :: |-damage|p2a|H/H|[from]snaptrap|[partiallytrapped] <> |-damage|p2a|H/H|[from]partiallytrapped",
-     "showdown": "|-damage|p2a: Feraligatr|823/960|[from] move: Snap Trap|[partiallytrapped]",
-     "medicham": "|-damage|p2a: Feraligatr|823/960|[from] partiallytrapped",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -10904,12 +10722,12 @@
     "medicham_why": "the move was never issued — Showdown emitted no |move| line for it",
     "diverged": true,
     "divergence": {
-     "at": 12,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |move|p1a|facade <> |-fail|p1b",
-     "showdown": "|move|p1a: Abomasnow|Facade|p2a: Feraligatr",
-     "medicham": "|-fail|p1b: Venusaur",
+     "at": 35,
+     "cls": "event missing from medicham2",
+     "detail": "move",
+     "cause": "event missing from medicham2 :: |move|p1a|snore <> |upkeep",
+     "showdown": "|move|p1a: Abomasnow|Snore|p2a: Feraligatr",
+     "medicham": "|upkeep",
      "subject_slot": "p1a",
      "segment_owner": null,
      "segment_move": null,
@@ -11390,21 +11208,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 16,
-     "cls": "-damage field 4",
-     "detail": "-damage[4] [from]steelbeam vs [from]recoil",
-     "cause": "-damage field 4 :: |-damage|p1a|H/H|[from]steelbeam <> |-damage|p1a|H/H|[from]recoil",
-     "showdown": "|-damage|p1a: Aegislash|405/810|[from] steelbeam",
-     "medicham": "|-damage|p1a: Aegislash|405/810|[from] Recoil",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -11676,21 +11481,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 25,
-     "cls": "-heal field 4",
-     "detail": "-heal[4] undefined vs [from]strengthsap",
-     "cause": "-heal field 4 :: |-heal|p1a|H/H <> |-heal|p1a|H/H|[from]strengthsap",
-     "showdown": "|-heal|p1a: Polteageist|810/810",
-     "medicham": "|-heal|p1a: Polteageist|810/810|[from] move: strengthsap|[of] p2a: Feraligatr",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -13065,21 +12857,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 10,
-     "cls": "-start field 5",
-     "detail": "-start[5] [from]trickortreat vs undefined",
-     "cause": "-start field 5 :: |-start|p2a|typeadd|ghost|[from]trickortreat <> |-start|p2a|typeadd|ghost",
-     "showdown": "|-start|p2a: Feraligatr|typeadd|Ghost|[from] move: Trick-or-Treat",
-     "medicham": "|-start|p2a: Feraligatr|typeadd|Ghost",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -13585,21 +13364,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 16,
-     "cls": "-damage field 4",
-     "detail": "-damage[4] [from]whirlpool vs [from]partiallytrapped",
-     "cause": "-damage field 4 :: |-damage|p2a|H/H|[from]whirlpool|[partiallytrapped] <> |-damage|p2a|H/H|[from]partiallytrapped",
-     "showdown": "|-damage|p2a: Feraligatr|832/960|[from] move: Whirlpool|[partiallytrapped]",
-     "medicham": "|-damage|p2a: Feraligatr|832/960|[from] partiallytrapped",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -13728,21 +13494,8 @@
     "medicham_attempted": true,
     "medicham_resolved": false,
     "medicham_why": "the move executed and produced no consequence line at all",
-    "diverged": true,
-    "divergence": {
-     "at": 35,
-     "cls": "-heal field 5",
-     "detail": "-heal[5] [wisher]aromatisse vs undefined",
-     "cause": "-heal field 5 :: |-heal|p1a|H/H|[from]wish|[wisher]aromatisse <> |-heal|p1a|H/H|[from]wish",
-     "showdown": "|-heal|p1a: Aromatisse|1056/1056|[from] move: Wish|[wisher] Aromatisse",
-     "medicham": "|-heal|p1a: Aromatisse|1056/1056|[from] move: wish",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -13845,21 +13598,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 15,
-     "cls": "-damage field 4",
-     "detail": "-damage[4] [from]wrap vs [from]partiallytrapped",
-     "cause": "-damage field 4 :: |-damage|p2a|H/H|[from]wrap|[partiallytrapped] <> |-damage|p2a|H/H|[from]partiallytrapped",
-     "showdown": "|-damage|p2a: Feraligatr|828/960|[from] move: Wrap|[partiallytrapped]",
-     "medicham": "|-damage|p2a: Feraligatr|828/960|[from] partiallytrapped",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "preflight": {
      "ok": true,
@@ -13982,11 +13722,11 @@
     "name": "Adaptability",
     "carrier": "basculegion",
     "control": "Swift Swim",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Swift Swim changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -13997,10 +13737,29 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
-    "fixture_weather_repaired": false
+    "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "stab",
+      "values": [],
+      "handler": "onModifySTAB"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "aquajet"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "faced": [],
+    "faced_why": [
+     "handler onModifySTAB: the actor must supply stab"
+    ]
    },
    {
     "kind": "ability",
@@ -14074,7 +13833,9 @@
     "faced": [],
     "faced_why": [
      "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Illuminate) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -14152,6 +13913,16 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onStart",
+      "cue": "move.category"
+     },
+     {
+      "handler": "onStart",
+      "cue": "move.ohko"
+     }
+    ],
     "then_what": [
      "announcesOnEntry: DECLARED UNOBSERVABLE, and that is the point of the entry rather than an omission. Anticipation, Forewarn and Frisk emit a message and move no state, so NO consequence can make them visible to a board comparator. The roster already defers them; this says WHY in the same vocabulary as everything else, so the deferral rests on a derived fact"
     ],
@@ -14173,11 +13944,11 @@
     "name": "Armor Tail",
     "carrier": "farigiraf",
     "control": "Cud Chew",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Cud Chew changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -14188,10 +13959,25 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "priority",
+      "values": [],
+      "handler": "onFoeTryMove"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "aquajet"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -14203,7 +13989,8 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "blocksMove: same adversary as refusesStatusMoves — the block needs a move to block"
+     "blocksMove: same adversary as refusesStatusMoves — the block needs a move to block",
+     "handler onFoeTryMove: the receiver must supply priority"
     ]
    },
    {
@@ -14326,7 +14113,9 @@
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
      "preventsCrit: the three legal always-crit moves — no die needed, so Battle Armor, Shell Armor, Disguise and Ice Face are settled on ONE board"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Defiant) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -14349,7 +14138,28 @@
     },
     "fixture_weather": null,
     "fixture_status": null,
-    "fixture_weather_repaired": false
+    "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "multihit",
+      "values": [],
+      "handler": "onModifyMove"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "watershuriken"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "faced": [],
+    "faced_why": [
+     "handler onModifyMove: the actor must supply multihit"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Torrent) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -14378,8 +14188,21 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": false,
-    "divergence": null,
+    "diverged": true,
+    "divergence": {
+     "at": 17,
+     "cls": "ordering",
+     "detail": "-unboost before -boost",
+     "cause": "ordering :: |-boost|p1a|spa|1 <> |-unboost|p2a|def|1",
+     "showdown": "|-boost|p1a: Drampa|spa|1",
+     "medicham": "|-unboost|p2a: Feraligatr|def|1",
+     "subject_slot": "p1a",
+     "segment_owner": null,
+     "segment_move": null,
+     "shared_suspect": false,
+     "attributed": true,
+     "attribution_note": null
+    },
     "rung": "real-pool",
     "preflight": {
      "ok": true,
@@ -14392,10 +14215,28 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "multihit",
+      "values": [],
+      "handler": "onAfterMoveSecondary"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "scaleshot"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "boostsAtHPThreshold: Berserk pays on CROSSING half, so the bar must travel across the line in one hit — which needs the REAL hp pool, not the safe x6 one the gauntlet uses to stop anything fainting. This is the one entry whose adversary is the POOL"
-    ]
+     "boostsAtHPThreshold: Berserk pays on CROSSING half, so the bar must travel across the line in one hit — which needs the REAL hp pool, not the safe x6 one the gauntlet uses to stop anything fainting. This is the one entry whose adversary is the POOL",
+     "handler onAfterMoveSecondary: the receiver must supply multihit"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Sap Sipper) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -14403,11 +14244,11 @@
     "name": "Big Pecks",
     "carrier": "pidgeot",
     "control": "Keen Eye",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Keen Eye changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -14418,10 +14259,27 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "statDrop",
+      "values": [
+       "def"
+      ],
+      "handler": "onTryBoost"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "crunch"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -14433,8 +14291,11 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet"
-    ]
+     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet",
+     "handler onTryBoost: the receiver must supply statDrop (def)"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Keen Eye) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -14461,9 +14322,27 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Fire"
+      ],
+      "handler": "onModifyAtk"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "firepunch"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onModifyAtk: the actor must supply type (Fire)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Speed Boost) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -14474,11 +14353,11 @@
     "name": "Bulletproof",
     "carrier": "chesnaught",
     "control": "Overgrow",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Overgrow changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -14489,10 +14368,27 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "flag",
+      "values": [
+       "bullet"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "focusblast"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -14500,7 +14396,8 @@
      "Heat Wave"
     ],
     "faced_why": [
-     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove"
+     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
+     "handler onTryHit: the receiver must supply flag (bullet)"
     ]
    },
    {
@@ -14559,21 +14456,8 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 22,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |move|p2a|agility <> |-fail|p1a",
-     "showdown": "|move|p2a: Feraligatr|Agility|p2a: Feraligatr",
-     "medicham": "|-fail|p1a: Leafeon",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -14599,11 +14483,11 @@
     "name": "Clear Body",
     "carrier": "dragapult",
     "control": "Infiltrator",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Infiltrator changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -14614,10 +14498,25 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "statDrop",
+      "values": [],
+      "handler": "onTryBoost"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "breakingswipe"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -14629,7 +14528,8 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet"
+     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet",
+     "handler onTryBoost: the receiver must supply statDrop"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Infiltrator) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -14709,11 +14609,11 @@
     "name": "Competitive",
     "carrier": "empoleon",
     "control": "Torrent",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Torrent changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -14724,10 +14624,31 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
-    "fixture_weather_repaired": false
+    "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "statDrop",
+      "values": [],
+      "handler": "onAfterEachBoost"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "breakingswipe"
+     ]
+    },
+    "trigger_unstaged": null,
+    "faced": [],
+    "faced_why": [
+     "handler onAfterEachBoost: the receiver must supply statDrop"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Torrent) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -14754,6 +14675,21 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "subaccuracy",
+      "values": [],
+      "handler": "onSourceModifyAccuracy"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "aircutter"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Hydro Pump",
      "Focus Blast",
@@ -14761,8 +14697,11 @@
     ],
     "faced_why": [
      "writesAccuracy: No Guard makes a sub-100 move certain — against a 100-accuracy move it is indistinguishable from nothing",
-     "accuracyMod: Compound Eyes and Tangled Feet only move a SUB-100 accuracy; every move in the bare gauntlet is 100"
-    ]
+     "accuracyMod: Compound Eyes and Tangled Feet only move a SUB-100 accuracy; every move in the bare gauntlet is 100",
+     "handler onSourceModifyAccuracy: the actor must supply subaccuracy"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Shield Dust) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -14770,13 +14709,26 @@
     "name": "Contrary",
     "carrier": "malamar",
     "control": "Suction Cups",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Suction Cups changed neither game",
-    "diverged": false,
-    "divergence": null,
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": true,
+    "divergence": {
+     "at": 13,
+     "cls": "unrelated event mismatch",
+     "detail": "-boost vs -unboost",
+     "cause": "unrelated event mismatch :: |-boost|p1a|atk|1 <> |-unboost|p1a|atk|1",
+     "showdown": "|-boost|p1a: Malamar|atk|1",
+     "medicham": "|-unboost|p1a: Malamar|atk|1",
+     "subject_slot": "p1a",
+     "segment_owner": null,
+     "segment_move": null,
+     "shared_suspect": false,
+     "attributed": true,
+     "attribution_note": null
+    },
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -14785,10 +14737,25 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "statDrop",
+      "values": [],
+      "handler": "onChangeBoost"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "breakingswipe"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -14796,7 +14763,8 @@
      "Heat Wave"
     ],
     "faced_why": [
-     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove"
+     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
+     "handler onChangeBoost: the receiver must supply statDrop"
     ]
    },
    {
@@ -14899,7 +14867,9 @@
     "then_what_after": [
      "the item slot and the HP are read on the turn AFTER the eat, because two of the three act later than the eat itself"
     ],
-    "then_what_item": null
+    "then_what_item": null,
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Armor Tail) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -15113,11 +15083,11 @@
     "name": "Defiant",
     "carrier": "annihilape",
     "control": "Vital Spirit",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Vital Spirit changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -15128,10 +15098,29 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
-    "fixture_weather_repaired": false
+    "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "statDrop",
+      "values": [],
+      "handler": "onAfterEachBoost"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "breakingswipe"
+     ]
+    },
+    "trigger_unstaged": null,
+    "faced": [],
+    "faced_why": [
+     "handler onAfterEachBoost: the receiver must supply statDrop"
+    ]
    },
    {
     "kind": "ability",
@@ -15218,7 +15207,9 @@
     "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
-    "fixture_weather_repaired": false
+    "fixture_weather_repaired": false,
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Keen Eye) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -15278,14 +15269,70 @@
     "preflight": {
      "ok": true,
      "why": [],
-     "note": [],
-     "clauses": [],
+     "note": [
+      "\"Dry Skin\" is gated on type (Fire) in `onSourceBasePower`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Fire"
+        ],
+        "handler": "onSourceBasePower"
+       },
+       "got": {
+        "actor": [
+         "raindance",
+         "facade",
+         "endure",
+         "rest"
+        ],
+        "receiver": [
+         "aquajet",
+         "lowkick",
+         "icebeam",
+         "earthquake"
+        ]
+       }
+      }
+     ],
      "stubbed": false
     },
     "verdict_refined": "FIRED",
     "fixture_weather": "raindance",
     "fixture_status": null,
     "fixture_weather_repaired": true,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Water"
+      ],
+      "handler": "onTryHit"
+     },
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Fire"
+      ],
+      "handler": "onSourceBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "aquajet"
+     ]
+    },
+    "trigger_unstaged": [
+     "receiver:type=Fire"
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -15297,7 +15344,9 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "typeImmunity: Levitate and Eelevate are invisible until a GROUND move is thrown at them"
+     "typeImmunity: Levitate and Eelevate are invisible until a GROUND move is thrown at them",
+     "handler onTryHit: the receiver must supply type (Water)",
+     "handler onSourceBasePower: the receiver must supply type (Fire)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Sand Veil) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -15357,11 +15406,11 @@
     "name": "Earth Eater",
     "carrier": "orthworm",
     "control": "Sand Veil",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Sand Veil changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -15372,10 +15421,27 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Ground"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "bulldoze"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -15387,7 +15453,8 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "typeImmunity: Levitate and Eelevate are invisible until a GROUND move is thrown at them"
+     "typeImmunity: Levitate and Eelevate are invisible until a GROUND move is thrown at them",
+     "handler onTryHit: the receiver must supply type (Ground)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Sand Veil) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -15411,21 +15478,8 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 12,
-     "cls": "-status field 4",
-     "detail": "-status[4] [from]effectspore vs undefined",
-     "cause": "-status field 4 :: |-status|p2a|slp|[from]effectspore <> |-status|p2a|slp",
-     "showdown": "|-status|p2a: Feraligatr|slp|[from] ability: Effect Spore|[of] p1a: Vileplume",
-     "medicham": "|-status|p2a: Feraligatr|slp",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -15611,14 +15665,60 @@
     "preflight": {
      "ok": true,
      "why": [],
-     "note": [],
-     "clauses": [],
+     "note": [
+      "\"Flash Fire\" is gated on type (Fire) in `onTryHit`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Fire"
+        ],
+        "handler": "onTryHit"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "lowkick",
+         "icebeam",
+         "earthquake",
+         "bulldoze"
+        ]
+       }
+      }
+     ],
      "stubbed": false
     },
     "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Fire"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": []
+    },
+    "trigger_unstaged": [
+     "receiver:type=Fire"
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -15668,6 +15768,27 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "statDrop",
+      "values": [],
+      "handler": "onAllyTryBoost"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "bulldoze"
+     ]
+    },
+    "trigger_unstaged": null,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onAllyTryBoost",
+      "cue": "the boost handler also gates on the target's TYPE (`hasType`) — a stat-dropping move alone does not satisfy it"
+     }
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -15679,7 +15800,8 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet"
+     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet",
+     "handler onAllyTryBoost: the receiver must supply statDrop"
     ]
    },
    {
@@ -15688,25 +15810,81 @@
     "name": "Fluffy",
     "carrier": "houndstone",
     "control": "Sand Rush",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Sand Rush changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
      "why": [],
-     "note": [],
-     "clauses": [],
+     "note": [
+      "\"Fluffy\" is gated on type (Fire) in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Fire"
+        ],
+        "handler": "onSourceModifyDamage"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "aerialace",
+         "lowkick",
+         "icebeam",
+         "agility"
+        ]
+       }
+      }
+     ],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Fire"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "flag",
+      "values": [
+       "contact"
+      ],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": [
+     "receiver:type=Fire"
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -15714,7 +15892,9 @@
      "Heat Wave"
     ],
     "faced_why": [
-     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove"
+     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
+     "handler onSourceModifyDamage: the receiver must supply type (Fire)",
+     "handler onSourceModifyDamage: the receiver must supply flag (contact)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Sand Rush) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -15765,6 +15945,12 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onStart",
+      "cue": "move.ohko"
+     }
+    ],
     "then_what": [
      "announcesOnEntry: DECLARED UNOBSERVABLE, and that is the point of the entry rather than an omission. Anticipation, Forewarn and Frisk emit a message and move no state, so NO consequence can make them visible to a board comparator. The roster already defers them; this says WHY in the same vocabulary as everything else, so the deferral rests on a derived fact"
     ],
@@ -15958,7 +16144,9 @@
     "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
-    "fixture_weather_repaired": false
+    "fixture_weather_repaired": false,
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Sap Sipper) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -16061,7 +16249,9 @@
     "faced": [],
     "faced_why": [
      "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Sheer Force) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -16123,21 +16313,8 @@
     "showdown_moved": false,
     "medicham_moved": false,
     "why": "the gauntlet never reached its trigger — swapping it for Aroma Veil changed neither game",
-    "diverged": true,
-    "divergence": {
-     "at": 24,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |-weather|raindance|[upkeep] <> |-fail|p1a",
-     "showdown": "|-weather|RainDance|[upkeep]",
-     "medicham": "|-fail|p1a: Aromatisse",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -16210,14 +16387,75 @@
     "preflight": {
      "ok": true,
      "why": [],
-     "note": [],
-     "clauses": [],
+     "note": [
+      "\"Heatproof\" is gated on type (Fire) in `onSourceModifyAtk`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Fire"
+        ],
+        "handler": "onSourceModifyAtk"
+       },
+       "got": {
+        "actor": [
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "lowkick",
+         "icebeam",
+         "agility",
+         "facade"
+        ]
+       }
+      }
+     ],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "cannot_fire": true,
+    "cannot_fire_clause": "trigger-move",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Heatproof\" is gated on type (Fire) in `onSourceModifyAtk`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+    ],
+    "cannot_fire_need": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Fire"
+      ],
+      "handler": "onSourceModifyAtk"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Fire"
+      ],
+      "handler": "onSourceModifyAtk"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": []
+    },
+    "trigger_unstaged": [
+     "receiver:type=Fire"
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -16340,7 +16578,9 @@
     "faced": [],
     "faced_why": [
      "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Thick Fat) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -16388,6 +16628,27 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "subaccuracy",
+      "values": [],
+      "handler": "onSourceModifyAccuracy"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "airslash"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onSourceModifyAccuracy",
+      "cue": "move.category"
+     }
+    ],
     "faced": [
      "Hydro Pump",
      "Focus Blast",
@@ -16396,7 +16657,8 @@
     "faced_why": [
      "writesAccuracy: No Guard makes a sub-100 move certain — against a 100-accuracy move it is indistinguishable from nothing",
      "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
-     "accuracyMod: Compound Eyes and Tangled Feet only move a SUB-100 accuracy; every move in the bare gauntlet is 100"
+     "accuracyMod: Compound Eyes and Tangled Feet only move a SUB-100 accuracy; every move in the bare gauntlet is 100",
+     "handler onSourceModifyAccuracy: the actor must supply subaccuracy"
     ]
    },
    {
@@ -16410,21 +16672,8 @@
     "showdown_moved": false,
     "medicham_moved": false,
     "why": "the gauntlet never reached its trigger — swapping it for Sap Sipper changed neither game",
-    "diverged": true,
-    "divergence": {
-     "at": 24,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |-weather|raindance|[upkeep] <> |-fail|p1a",
-     "showdown": "|-weather|RainDance|[upkeep]",
-     "medicham": "|-fail|p1a: Goodra",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -16465,7 +16714,9 @@
     "faced": [],
     "faced_why": [
      "curesStatusResidual: Healer, Shed Skin and Hydration all cure a status that has to exist first; Hydration additionally needs the SKY, and a fixture that stages only the status silently tests two of the three"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Sap Sipper) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -16473,11 +16724,11 @@
     "name": "Hyper Cutter",
     "carrier": "crabominable",
     "control": "Iron Fist",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Iron Fist changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -16488,10 +16739,27 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "statDrop",
+      "values": [
+       "atk"
+      ],
+      "handler": "onTryBoost"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "breakingswipe"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -16503,8 +16771,11 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet"
-    ]
+     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet",
+     "handler onTryBoost: the receiver must supply statDrop (atk)"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Iron Fist) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -16556,11 +16827,11 @@
     "name": "Illuminate",
     "carrier": "starmie",
     "control": "Natural Cure",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Natural Cure changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -16571,10 +16842,27 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "statDrop",
+      "values": [
+       "accuracy"
+      ],
+      "handler": "onTryBoost"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "mudslap"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -16586,7 +16874,8 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet"
+     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet",
+     "handler onTryBoost: the receiver must supply statDrop (accuracy)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Natural Cure) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -16662,7 +16951,9 @@
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
      "statusImmune: Immunity, Limber, Insomnia and Vital Spirit each refuse ONE status, so the adversary carries several and the arm that matters is the one it can inflict"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Thick Fat) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -16754,6 +17045,12 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onTryBoost",
+      "cue": "the boost is gated on effect \"Intimidate\", not on a move — the ADVERSARY has to carry it"
+     }
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -16890,40 +17187,10 @@
     "name": "Iron Fist",
     "carrier": "conkeldurr",
     "control": "Guts",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Guts changed neither game",
-    "diverged": false,
-    "divergence": null,
-    "rung": "safe-pool",
-    "preflight": {
-     "ok": true,
-     "why": [],
-     "note": [],
-     "clauses": [],
-     "stubbed": false
-    },
-    "verdict_refined": "DID-NOT-FIRE",
-    "fixture_weather": null,
-    "fixture_status": null,
-    "fixture_weather_repaired": false,
-    "faced": [],
-    "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
-    ]
-   },
-   {
-    "kind": "ability",
-    "id": "justified",
-    "name": "Justified",
-    "carrier": "absol",
-    "control": "Pressure",
-    "verdict": "SHOWDOWN-ONLY",
-    "fired": false,
+    "verdict": "FIRED",
+    "fired": true,
     "showdown_moved": true,
-    "medicham_moved": false,
+    "medicham_moved": true,
     "why": null,
     "diverged": false,
     "divergence": null,
@@ -16935,28 +17202,44 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "SHOWDOWN-ONLY",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "flag",
+      "values": [
+       "punch"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "drainpunch"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "buffsHolderOnHit: Innards Out fires on the holder BEING KNOCKED OUT — Will's own fixture"
-    ],
-    "control_not_quiet": true,
-    "control_note": "the CONTROL ability (Pressure) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onBasePower: the actor must supply flag (punch)"
+    ]
    },
    {
     "kind": "ability",
-    "id": "keeneye",
-    "name": "Keen Eye",
-    "carrier": "lycanroc",
-    "control": "Sand Rush",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Sand Rush changed neither game",
+    "id": "justified",
+    "name": "Justified",
+    "carrier": "absol",
+    "control": "Pressure",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -16967,10 +17250,77 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Dark"
+      ],
+      "handler": "onDamagingHit"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "bite"
+     ]
+    },
+    "trigger_unstaged": null,
+    "faced": [],
+    "faced_why": [
+     "buffsHolderOnHit: Innards Out fires on the holder BEING KNOCKED OUT — Will's own fixture",
+     "handler onDamagingHit: the receiver must supply type (Dark)"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Pressure) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
+   },
+   {
+    "kind": "ability",
+    "id": "keeneye",
+    "name": "Keen Eye",
+    "carrier": "lycanroc",
+    "control": "Sand Rush",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "fixture_weather": null,
+    "fixture_status": null,
+    "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "statDrop",
+      "values": [
+       "accuracy"
+      ],
+      "handler": "onTryBoost"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "mudslap"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -16982,7 +17332,8 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet"
+     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet",
+     "handler onTryBoost: the receiver must supply statDrop (accuracy)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Sand Rush) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -17131,7 +17482,9 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Clear Body) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -17139,25 +17492,97 @@
     "name": "Lightning Rod",
     "carrier": "manectric",
     "control": "Static",
-    "verdict": "FIRED",
-    "fired": true,
-    "showdown_moved": true,
-    "medicham_moved": true,
-    "why": null,
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for Static changed neither game",
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
      "why": [],
-     "note": [],
-     "clauses": [],
+     "note": [
+      "\"Lightning Rod\" is gated on type (Electric) in `onTryHit`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Electric"
+        ],
+        "handler": "onTryHit"
+       },
+       "got": {
+        "actor": [
+         "discharge",
+         "facade",
+         "endure",
+         "rest"
+        ],
+        "receiver": [
+         "lowkick",
+         "icebeam",
+         "earthquake",
+         "bulldoze"
+        ]
+       }
+      }
+     ],
      "stubbed": false
     },
-    "verdict_refined": "FIRED",
+    "cannot_fire": true,
+    "cannot_fire_clause": "trigger-move",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Lightning Rod\" is gated on type (Electric) in `onTryHit`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+    ],
+    "cannot_fire_need": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Electric"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Electric"
+      ],
+      "handler": "onTryHit"
+     },
+     {
+      "by": "either",
+      "kind": "type",
+      "values": [
+       "Electric"
+      ],
+      "handler": "onAnyRedirectTarget"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "discharge"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": [
+     "receiver:type=Electric"
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -17169,7 +17594,9 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "typeImmunity: Levitate and Eelevate are invisible until a GROUND move is thrown at them"
+     "typeImmunity: Levitate and Eelevate are invisible until a GROUND move is thrown at them",
+     "handler onTryHit: the receiver must supply type (Electric)",
+     "handler onAnyRedirectTarget: the either must supply type (Electric)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Static) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -17204,11 +17631,11 @@
     "name": "Liquid Voice",
     "carrier": "primarina",
     "control": "Torrent",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Torrent changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -17219,10 +17646,33 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
-    "fixture_weather_repaired": false
+    "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "flag",
+      "values": [
+       "sound"
+      ],
+      "handler": "onModifyType"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "alluringvoice"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "faced": [],
+    "faced_why": [
+     "handler onModifyType: the actor must supply flag (sound)"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Torrent) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -17249,9 +17699,27 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "flag",
+      "values": [
+       "contact"
+      ],
+      "handler": "onModifyMove"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "acrobatics"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "removesOwnMoveFlag: Long Reach deletes `contact` from its own moves, and `contact` is only observable through a REACTOR — the same rule the move stage applies to the flag itself. Against a body that punishes nothing, deleting the flag deletes nothing"
+     "removesOwnMoveFlag: Long Reach deletes `contact` from its own moves, and `contact` is only observable through a REACTOR — the same rule the move stage applies to the flag itself. Against a body that punishes nothing, deleting the flag deletes nothing",
+     "handler onModifyMove: the actor must supply flag (contact)"
     ]
    },
    {
@@ -17260,13 +17728,26 @@
     "name": "Magic Bounce",
     "carrier": "espeon",
     "control": "Synchronize",
-    "verdict": "DID-NOT-FIRE",
+    "verdict": "SHOWDOWN-ONLY",
     "fired": false,
-    "showdown_moved": false,
+    "showdown_moved": true,
     "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Synchronize changed neither game",
-    "diverged": false,
-    "divergence": null,
+    "why": null,
+    "diverged": true,
+    "divergence": {
+     "at": 13,
+     "cls": "unrelated event mismatch",
+     "detail": "move vs -start",
+     "cause": "unrelated event mismatch :: |move|p1a|block <> |-start|p1a|block",
+     "showdown": "|move|p1a: Espeon|Block|p2a: Feraligatr|[from] ability: Magic Bounce",
+     "medicham": "|-start|p1a: Espeon|move: block",
+     "subject_slot": "p1a",
+     "segment_owner": null,
+     "segment_move": null,
+     "shared_suspect": false,
+     "attributed": true,
+     "attribution_note": null
+    },
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -17275,10 +17756,27 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "SHOWDOWN-ONLY",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "flag",
+      "values": [
+       "reflectable"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "block"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -17286,7 +17784,8 @@
      "Heat Wave"
     ],
     "faced_why": [
-     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove"
+     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
+     "handler onTryHit: the receiver must supply flag (reflectable)"
     ]
    },
    {
@@ -17300,21 +17799,8 @@
     "showdown_moved": false,
     "medicham_moved": false,
     "why": "the gauntlet never reached its trigger — swapping it for Synchronize changed neither game",
-    "diverged": true,
-    "divergence": {
-     "at": 24,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |upkeep <> |-fail|p1a",
-     "showdown": "|upkeep",
-     "medicham": "|-fail|p1a: Alakazam",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -17357,6 +17843,12 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onAfterMoveSecondarySelf",
+      "cue": "move.category"
+     }
+    ],
     "then_what": [
      "stealsItem: Magician (265 fields) and Pickpocket (104) move an item between two hands. With one hand empty nothing moves — and reading only the thief's slot passes on an engine that DUPLICATES the item instead of taking it"
     ],
@@ -17428,7 +17920,9 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Solid Rock) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -17496,7 +17990,9 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Competitive) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -17619,10 +18115,10 @@
     "name": "Mirror Armor",
     "carrier": "corviknight",
     "control": "Pressure",
-    "verdict": "SHOWDOWN-ONLY",
-    "fired": false,
+    "verdict": "FIRED",
+    "fired": true,
     "showdown_moved": true,
-    "medicham_moved": false,
+    "medicham_moved": true,
     "why": null,
     "diverged": false,
     "divergence": null,
@@ -17634,10 +18130,25 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "SHOWDOWN-ONLY",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "statDrop",
+      "values": [],
+      "handler": "onTryBoost"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "breakingswipe"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -17649,7 +18160,8 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet"
+     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet",
+     "handler onTryBoost: the receiver must supply statDrop"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Pressure) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -17739,14 +18251,60 @@
     "preflight": {
      "ok": true,
      "why": [],
-     "note": [],
-     "clauses": [],
+     "note": [
+      "\"Motor Drive\" is gated on type (Electric) in `onTryHit`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Electric"
+        ],
+        "handler": "onTryHit"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "lowkick",
+         "icebeam",
+         "earthquake",
+         "bulldoze"
+        ]
+       }
+      }
+     ],
      "stubbed": false
     },
     "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Electric"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": []
+    },
+    "trigger_unstaged": [
+     "receiver:type=Electric"
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -17865,21 +18423,8 @@
     "showdown_moved": true,
     "medicham_moved": false,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 11,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |move|p2a|agility <> |-fail|p1a",
-     "showdown": "|move|p2a: Feraligatr|Agility|p2a: Feraligatr",
-     "medicham": "|-fail|p1a: Altaria",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -17954,14 +18499,32 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "either",
+      "kind": "subaccuracy",
+      "values": [],
+      "handler": "onAnyAccuracy"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "chargebeam"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Hydro Pump",
      "Focus Blast",
      "Thunder"
     ],
     "faced_why": [
-     "writesAccuracy: No Guard makes a sub-100 move certain — against a 100-accuracy move it is indistinguishable from nothing"
-    ]
+     "writesAccuracy: No Guard makes a sub-100 move certain — against a 100-accuracy move it is indistinguishable from nothing",
+     "handler onAnyAccuracy: the either must supply subaccuracy"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Iron Fist) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -17996,6 +18559,12 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onTryBoost",
+      "cue": "the boost is gated on effect \"Intimidate\", not on a move — the ADVERSARY has to carry it"
+     }
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -18018,11 +18587,11 @@
     "name": "Opportunist",
     "carrier": "espathra",
     "control": "Frisk",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Frisk changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -18033,10 +18602,29 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
-    "fixture_weather_repaired": false
+    "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "statRaise",
+      "values": [],
+      "handler": "onFoeAfterBoost"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "agility"
+     ]
+    },
+    "trigger_unstaged": null,
+    "faced": [],
+    "faced_why": [
+     "handler onFoeAfterBoost: the receiver must supply statRaise"
+    ]
    },
    {
     "kind": "ability",
@@ -18063,14 +18651,76 @@
     "preflight": {
      "ok": true,
      "why": [],
-     "note": [],
-     "clauses": [],
+     "note": [
+      "\"Overcoat\" is gated on flag (powder) in `onTryHit`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "flag",
+        "values": [
+         "powder"
+        ],
+        "handler": "onTryHit"
+       },
+       "got": {
+        "actor": [
+         "sandstorm",
+         "facade",
+         "endure",
+         "rest"
+        ],
+        "receiver": [
+         "lowkick",
+         "icebeam",
+         "agility",
+         "facade"
+        ]
+       }
+      }
+     ],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "cannot_fire": true,
+    "cannot_fire_clause": "trigger-move",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Overcoat\" is gated on flag (powder) in `onTryHit`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+    ],
+    "cannot_fire_need": [
+     {
+      "by": "receiver",
+      "kind": "flag",
+      "values": [
+       "powder"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
     "fixture_weather": "sandstorm",
     "fixture_status": null,
     "fixture_weather_repaired": true,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "flag",
+      "values": [
+       "powder"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": []
+    },
+    "trigger_unstaged": [
+     "receiver:flag=powder"
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -18108,10 +18758,30 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Grass"
+      ],
+      "handler": "onModifyAtk"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bulletseed"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
-    ]
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onModifyAtk: the actor must supply type (Grass)"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Bulletproof) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -18138,6 +18808,12 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onTryBoost",
+      "cue": "the boost is gated on effect \"Intimidate\", not on a move — the ADVERSARY has to carry it"
+     }
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -18279,9 +18955,27 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Normal"
+      ],
+      "handler": "onModifyType"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bodyslam"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onModifyType: the actor must supply type (Normal)"
     ]
    },
    {
@@ -18327,21 +19021,8 @@
     "showdown_moved": false,
     "medicham_moved": false,
     "why": "the gauntlet never reached its trigger — swapping it for Hyper Cutter changed neither game",
-    "diverged": true,
-    "divergence": {
-     "at": 11,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |move|p2a|agility <> |-fail|p1a",
-     "showdown": "|move|p2a: Feraligatr|Agility|p2a: Feraligatr",
-     "medicham": "|-fail|p1a: Gliscor",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -18357,7 +19038,9 @@
     "faced": [],
     "faced_why": [
      "healsFromOwnStatus: Poison Heal turns ONE named status into a heal. On an unpoisoned body it is byte-identical to having no ability"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Hyper Cutter) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -18370,21 +19053,8 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 12,
-     "cls": "-status field 4",
-     "detail": "-status[4] [from]poisonpoint vs undefined",
-     "cause": "-status field 4 :: |-status|p2a|psn|[from]poisonpoint <> |-status|p2a|psn",
-     "showdown": "|-status|p2a: Feraligatr|psn|[from] ability: Poison Point|[of] p1a: Dragalge",
-     "medicham": "|-status|p2a: Feraligatr|psn",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -18419,21 +19089,8 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 15,
-     "cls": "-status field 4",
-     "detail": "-status[4] [from]poisontouch vs undefined",
-     "cause": "-status field 4 :: |-status|p2a|psn|[from]poisontouch <> |-status|p2a|psn",
-     "showdown": "|-status|p2a: Feraligatr|psn|[from] ability: Poison Touch|[of] p1a: Dragalge",
-     "medicham": "|-status|p2a: Feraligatr|psn",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -18583,7 +19240,9 @@
     "faced": [],
     "faced_why": [
      "typeBecomesMoveType: Protean changes the USER to the move type — the actor must click something off its own type for anything to move"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Torrent) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -18645,11 +19304,11 @@
     "name": "Purifying Salt",
     "carrier": "garganacl",
     "control": "Sturdy",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Sturdy changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -18674,21 +19333,27 @@
      ],
      "stubbed": false
     },
-    "cannot_fire": true,
-    "cannot_fire_clause": "status-present",
-    "cannot_fire_blocking": false,
-    "cannot_fire_why": [
-     "\"Purifying Salt\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
-    ],
-    "cannot_fire_need": [
-     {
-      "status": "any status on the body it reads"
-     }
-    ],
-    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Ghost"
+      ],
+      "handler": "onSourceModifyAtk"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "shadowclaw"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -18704,7 +19369,8 @@
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
      "refusesVolatile: Insomnia and Vital Spirit refuse a volatile, not damage",
-     "statusImmune: Immunity, Limber, Insomnia and Vital Spirit each refuse ONE status, so the adversary carries several and the arm that matters is the one it can inflict"
+     "statusImmune: Immunity, Limber, Insomnia and Vital Spirit each refuse ONE status, so the adversary carries several and the arm that matters is the one it can inflict",
+     "handler onSourceModifyAtk: the receiver must supply type (Ghost)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Sturdy) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -18723,11 +19389,11 @@
     "name": "Queenly Majesty",
     "carrier": "tsareena",
     "control": "Leaf Guard",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Leaf Guard changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -18738,10 +19404,25 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "priority",
+      "values": [],
+      "handler": "onFoeTryMove"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "aquajet"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -18753,7 +19434,8 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "blocksMove: same adversary as refusesStatusMoves — the block needs a move to block"
+     "blocksMove: same adversary as refusesStatusMoves — the block needs a move to block",
+     "handler onFoeTryMove: the receiver must supply priority"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Leaf Guard) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -18816,21 +19498,8 @@
     "showdown_moved": false,
     "medicham_moved": false,
     "why": "the gauntlet never reached its trigger — swapping it for Volt Absorb changed neither game",
-    "diverged": true,
-    "divergence": {
-     "at": 11,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |move|p2a|agility <> |-fail|p1a",
-     "showdown": "|move|p2a: Feraligatr|Agility|p2a: Feraligatr",
-     "medicham": "|-fail|p1a: Jolteon",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -18899,7 +19568,9 @@
     "fixture_status": null,
     "fixture_weather_repaired": true,
     "faced": [],
-    "faced_why": []
+    "faced_why": [],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Torrent) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -18941,7 +19612,9 @@
     "then_what_after": [
      "the subject is made to use the ability it inherited"
     ],
-    "then_what_item": null
+    "then_what_item": null,
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Defiant) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -18949,11 +19622,11 @@
     "name": "Reckless",
     "carrier": "emboar",
     "control": "Blaze",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Blaze changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -18964,13 +19637,29 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "recoil",
+      "values": [],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "doubleedge"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onBasePower: the actor must supply recoil"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Blaze) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -19000,9 +19689,27 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Normal"
+      ],
+      "handler": "onModifyType"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bodyslam"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onModifyType: the actor must supply type (Normal)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Snow Warning) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -19020,12 +19727,12 @@
     "why": null,
     "diverged": true,
     "divergence": {
-     "at": 13,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |upkeep <> |-fail|p1a",
-     "showdown": "|upkeep",
-     "medicham": "|-fail|p1a: Audino",
+     "at": 39,
+     "cls": "event missing from medicham2",
+     "detail": "-heal",
+     "cause": "event missing from medicham2 :: |-heal|p1a|H/H|[from]regenerator <> |switch|p1a|charizard,l50|H/H",
+     "showdown": "|-heal|p1a: Audino|1068/1068|[from] ability: Regenerator|[silent]",
+     "medicham": "|switch|p1a: Charizard|charizard, L50|918/918",
      "subject_slot": "p1a",
      "segment_owner": null,
      "segment_move": null,
@@ -19075,6 +19782,12 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onChangeBoost",
+      "cue": "the boost is gated on isBerry, not on a move"
+     }
+    ],
     "then_what": [
      "berry:doublesBerryEffect: all three are inert on a full-HP body holding nothing, and all three are reached by one staging. Cheek Pouch heals ON the eat, Cud Chew eats the SAME berry again a turn later, and Gluttony moves the threshold that decides WHETHER to eat — so the fixture has to cross the line AND run a turn past it, or one of the three is measured and the other two are not"
     ],
@@ -19226,8 +19939,21 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": false,
-    "divergence": null,
+    "diverged": true,
+    "divergence": {
+     "at": 46,
+     "cls": "-damage field 3",
+     "detail": "-damage[3] 702/960 vs 718/960",
+     "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:feraligatr|702/960 vs |-damage|p2a:feraligatr|718/960]",
+     "showdown": "|-damage|p2a: Feraligatr|702/960",
+     "medicham": "|-damage|p2a: Feraligatr|718/960",
+     "subject_slot": "p1a",
+     "segment_owner": null,
+     "segment_move": null,
+     "shared_suspect": false,
+     "attributed": true,
+     "attribution_note": null
+    },
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -19240,9 +19966,29 @@
     "fixture_weather": "sandstorm",
     "fixture_status": null,
     "fixture_weather_repaired": true,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Rock",
+       "Ground",
+       "Steel"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bulldoze"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onBasePower: the actor must supply type (Rock or Ground or Steel)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Sand Rush) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -19258,21 +20004,8 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 25,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |move|p2a|agility <> |-fail|p1a",
-     "showdown": "|move|p2a: Feraligatr|Agility|p2a: Feraligatr",
-     "medicham": "|-fail|p1a: Excadrill",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -19399,6 +20132,21 @@
     "fixture_weather": "sandstorm",
     "fixture_status": null,
     "fixture_weather_repaired": true,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "subaccuracy",
+      "values": [],
+      "handler": "onModifyAccuracy"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "aquatail"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -19411,7 +20159,8 @@
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
      "writesAccuracy: No Guard makes a sub-100 move certain — against a 100-accuracy move it is indistinguishable from nothing",
-     "accuracyMod: Compound Eyes and Tangled Feet only move a SUB-100 accuracy; every move in the bare gauntlet is 100"
+     "accuracyMod: Compound Eyes and Tangled Feet only move a SUB-100 accuracy; every move in the bare gauntlet is 100",
+     "handler onModifyAccuracy: the receiver must supply subaccuracy"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Rough Skin) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -19422,13 +20171,26 @@
     "name": "Sap Sipper",
     "carrier": "azumarill",
     "control": "Thick Fat",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Thick Fat changed neither game",
-    "diverged": false,
-    "divergence": null,
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": true,
+    "divergence": {
+     "at": 10,
+     "cls": "extra event emitted by medicham2",
+     "detail": "-immune",
+     "cause": "extra event emitted by medicham2 :: |-boost|p1a|atk|1 <> |-immune|p1a|[from]sapsipper",
+     "showdown": "|-boost|p1a: Azumarill|atk|1",
+     "medicham": "|-immune|p1a: Azumarill|[from] ability: sapsipper",
+     "subject_slot": "p1a",
+     "segment_owner": null,
+     "segment_move": null,
+     "shared_suspect": false,
+     "attributed": true,
+     "attribution_note": null
+    },
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -19437,10 +20199,27 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Grass"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "trailblaze"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -19452,8 +20231,11 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "typeImmunity: Levitate and Eelevate are invisible until a GROUND move is thrown at them"
-    ]
+     "typeImmunity: Levitate and Eelevate are invisible until a GROUND move is thrown at them",
+     "handler onTryHit: the receiver must supply type (Grass)"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Thick Fat) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -19488,6 +20270,12 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onTryBoost",
+      "cue": "the boost is gated on effect \"Intimidate\", not on a move — the ADVERSARY has to carry it"
+     }
+    ],
     "faced": [
      "Charm",
      "Growl",
@@ -19569,11 +20357,11 @@
     "name": "Sharpness",
     "carrier": "gallade",
     "control": "Steadfast",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Steadfast changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -19584,13 +20372,31 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "flag",
+      "values": [
+       "slicing"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "aerialace"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onBasePower: the actor must supply flag (slicing)"
     ]
    },
    {
@@ -19604,21 +20410,8 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 24,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |-weather|raindance|[upkeep] <> |-fail|p1a",
-     "showdown": "|-weather|RainDance|[upkeep]",
-     "medicham": "|-fail|p1a: Arbok",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -19658,11 +20451,11 @@
     "name": "Sheer Force",
     "carrier": "conkeldurr",
     "control": "Guts",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Guts changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -19673,13 +20466,29 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "secondary",
+      "values": [],
+      "handler": "onModifyMove"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bodyslam"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onModifyMove: the actor must supply secondary"
     ]
    },
    {
@@ -19719,7 +20528,9 @@
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
      "preventsCrit: the three legal always-crit moves — no die needed, so Battle Armor, Shell Armor, Disguise and Ice Face are settled on ONE board"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Sap Sipper) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -19727,11 +20538,11 @@
     "name": "Shield Dust",
     "carrier": "vivillon",
     "control": "Compound Eyes",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Compound Eyes changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -19742,10 +20553,25 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "secondary",
+      "values": [],
+      "handler": "onModifySecondaries"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "bodyslam"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Iron Head",
      "Air Slash",
@@ -19757,7 +20583,8 @@
     ],
     "faced_why": [
      "refusesSecondaries: Shield Dust only suppresses a secondary that was going to happen",
-     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove"
+     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
+     "handler onModifySecondaries: the receiver must supply secondary"
     ]
    },
    {
@@ -19782,11 +20609,11 @@
     "name": "Skill Link",
     "carrier": "toucannon",
     "control": "Keen Eye",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Keen Eye changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -19797,14 +20624,32 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "multihit",
+      "values": [],
+      "handler": "onModifyMove"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bulletseed"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "multihitAlwaysMax: Skill Link collapses a 2-5 distribution to 5. The subject must CLICK a multi-hit move; on a single-hit attack there is no distribution to collapse"
-    ]
+     "multihitAlwaysMax: Skill Link collapses a 2-5 distribution to 5. The subject must CLICK a multi-hit move; on a single-hit attack there is no distribution to collapse",
+     "handler onModifyMove: the actor must supply multihit"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Keen Eye) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -19825,21 +20670,8 @@
     "showdown_moved": false,
     "medicham_moved": false,
     "why": "the gauntlet never reached its trigger — swapping it for Snow Cloak changed neither game",
-    "diverged": true,
-    "divergence": {
-     "at": 24,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |-weather|snowscape|[upkeep] <> |-fail|p1a",
-     "showdown": "|-weather|Snowscape|[upkeep]",
-     "medicham": "|-fail|p1a: Beartic",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -19918,6 +20750,21 @@
     "fixture_weather": "snowscape",
     "fixture_status": null,
     "fixture_weather_repaired": true,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "subaccuracy",
+      "values": [],
+      "handler": "onModifyAccuracy"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "aquatail"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -19930,7 +20777,8 @@
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
      "writesAccuracy: No Guard makes a sub-100 move certain — against a 100-accuracy move it is indistinguishable from nothing",
-     "accuracyMod: Compound Eyes and Tangled Feet only move a SUB-100 accuracy; every move in the bare gauntlet is 100"
+     "accuracyMod: Compound Eyes and Tangled Feet only move a SUB-100 accuracy; every move in the bare gauntlet is 100",
+     "handler onModifyAccuracy: the receiver must supply subaccuracy"
     ]
    },
    {
@@ -20012,11 +20860,11 @@
     "name": "Solid Rock",
     "carrier": "camerupt",
     "control": "Magma Armor",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Magma Armor changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -20027,10 +20875,25 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "aquajet"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -20038,7 +20901,8 @@
      "Heat Wave"
     ],
     "faced_why": [
-     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove"
+     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
     ]
    },
    {
@@ -20074,6 +20938,23 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "flag",
+      "values": [
+       "sound"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "round"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -20081,7 +20962,8 @@
      "Heat Wave"
     ],
     "faced_why": [
-     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove"
+     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
+     "handler onTryHit: the receiver must supply flag (sound)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Snow Warning) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -20162,7 +21044,9 @@
     "then_what_after": [
      "both bodies act in a turn where the ORDER decides the board"
     ],
-    "then_what_item": null
+    "then_what_item": null,
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Keen Eye) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -20243,21 +21127,8 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 12,
-     "cls": "-status field 4",
-     "detail": "-status[4] [from]static vs undefined",
-     "cause": "-status field 4 :: |-status|p2a|par|[from]static <> |-status|p2a|par",
-     "showdown": "|-status|p2a: Feraligatr|par|[from] ability: Static|[of] p1a: Ampharos",
-     "medicham": "|-status|p2a: Feraligatr|par",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -20290,14 +21161,70 @@
     "preflight": {
      "ok": true,
      "why": [],
-     "note": [],
-     "clauses": [],
+     "note": [
+      "\"Steadfast\" is gated on flinch in `onFlinch`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "flinch",
+        "values": [],
+        "handler": "onFlinch"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "agility",
+         "facade",
+         "aquatail",
+         "hydropump"
+        ]
+       }
+      }
+     ],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "cannot_fire": true,
+    "cannot_fire_clause": "trigger-move",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Steadfast\" is gated on flinch in `onFlinch`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+    ],
+    "cannot_fire_need": [
+     {
+      "by": "receiver",
+      "kind": "flinch",
+      "values": [],
+      "handler": "onFlinch"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "flinch",
+      "values": [],
+      "handler": "onFlinch"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": []
+    },
+    "trigger_unstaged": [
+     "receiver:flinch"
+    ],
     "faced": [
      "Iron Head",
      "Air Slash",
@@ -20305,7 +21232,9 @@
     ],
     "faced_why": [
      "boostsOnFlinch: Steadfast needs an actual flinch; the pin makes the chance fail, so Fake Out is the one that flinches deterministically"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Sharpness) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -20356,6 +21285,25 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "secondary",
+      "values": [],
+      "handler": "onModifyMove"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "acidspray"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "faced": [],
+    "faced_why": [
+     "handler onModifyMove: the actor must supply secondary"
+    ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Weak Armor) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
@@ -20410,11 +21358,11 @@
     "name": "Strong Jaw",
     "carrier": "avalugghisui",
     "control": "Ice Body",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Ice Body changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -20425,13 +21373,31 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "flag",
+      "values": [
+       "bite"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bite"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onBasePower: the actor must supply flag (bite)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Ice Body) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -20474,6 +21440,12 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onTryHit",
+      "cue": "move.ohko"
+     }
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -20519,7 +21491,9 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Contrary) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -20619,7 +21593,9 @@
     "faced_why": [
      "boostsFromFallen: Supreme Overlord counts FALLEN allies, and the gauntlet is built so nothing ever faints",
      "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Defiant) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -20654,9 +21630,27 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Bug"
+      ],
+      "handler": "onModifyAtk"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bugbite"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onModifyAtk: the actor must supply type (Bug)"
     ]
    },
    {
@@ -20705,21 +21699,8 @@
     "showdown_moved": false,
     "medicham_moved": false,
     "why": "the gauntlet never reached its trigger — swapping it for Adaptability changed neither game",
-    "diverged": true,
-    "divergence": {
-     "at": 24,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-fail",
-     "cause": "extra event emitted by medicham2 :: |-weather|raindance|[upkeep] <> |-fail|p1a",
-     "showdown": "|-weather|RainDance|[upkeep]",
-     "medicham": "|-fail|p1a: Basculegion",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "rung": "safe-pool",
     "preflight": {
      "ok": true,
@@ -20735,7 +21716,9 @@
     "faced": [],
     "faced_why": [
      "speedCond: Quick Feet keys on the holder BEING statused; Surge Surfer on terrain"
-    ]
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Adaptability) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -20862,6 +21845,21 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "subaccuracy",
+      "values": [],
+      "handler": "onModifyAccuracy"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "aquatail"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -20874,7 +21872,8 @@
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
      "writesAccuracy: No Guard makes a sub-100 move certain — against a 100-accuracy move it is indistinguishable from nothing",
-     "accuracyMod: Compound Eyes and Tangled Feet only move a SUB-100 accuracy; every move in the bare gauntlet is 100"
+     "accuracyMod: Compound Eyes and Tangled Feet only move a SUB-100 accuracy; every move in the bare gauntlet is 100",
+     "handler onModifyAccuracy: the receiver must supply subaccuracy"
     ]
    },
    {
@@ -20996,11 +21995,11 @@
     "name": "Thick Fat",
     "carrier": "appletun",
     "control": "Ripen",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Ripen changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -21011,10 +22010,28 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Ice",
+       "Fire"
+      ],
+      "handler": "onSourceModifyAtk"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "avalanche"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -21022,7 +22039,8 @@
      "Heat Wave"
     ],
     "faced_why": [
-     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove"
+     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
+     "handler onSourceModifyAtk: the receiver must supply type (Ice or Fire)"
     ]
    },
    {
@@ -21039,14 +22057,14 @@
     "name": "Torrent",
     "carrier": "blastoise",
     "control": "Rain Dish",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Rain Dish changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
-    "rung": "safe-pool",
+    "rung": "real-pool",
     "preflight": {
      "ok": true,
      "why": [],
@@ -21054,13 +22072,31 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Water"
+      ],
+      "handler": "onModifyAtk"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "aquajet"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onModifyAtk: the actor must supply type (Water)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Rain Dish) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -21090,9 +22126,27 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "flag",
+      "values": [
+       "contact"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "assurance"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
     "faced": [],
     "faced_why": [
-     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn"
+     "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
+     "handler onBasePower: the actor must supply flag (contact)"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Sniper) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -21151,6 +22205,12 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onDamagingHit",
+      "cue": "move.category"
+     }
+    ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Corrosion) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
@@ -21418,14 +22478,76 @@
     "preflight": {
      "ok": true,
      "why": [],
-     "note": [],
-     "clauses": [],
+     "note": [
+      "\"Volt Absorb\" is gated on type (Electric) in `onTryHit`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Electric"
+        ],
+        "handler": "onTryHit"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "lowkick",
+         "icebeam",
+         "earthquake",
+         "bulldoze"
+        ]
+       }
+      }
+     ],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "cannot_fire": true,
+    "cannot_fire_clause": "trigger-move",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Volt Absorb\" is gated on type (Electric) in `onTryHit`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+    ],
+    "cannot_fire_need": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Electric"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Electric"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": []
+    },
+    "trigger_unstaged": [
+     "receiver:type=Electric"
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -21454,11 +22576,11 @@
     "name": "Water Absorb",
     "carrier": "araquanid",
     "control": "Water Bubble",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Water Bubble changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -21469,10 +22591,27 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "DID-NOT-FIRE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Water"
+      ],
+      "handler": "onTryHit"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "aquajet"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -21484,8 +22623,11 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "typeImmunity: Levitate and Eelevate are invisible until a GROUND move is thrown at them"
-    ]
+     "typeImmunity: Levitate and Eelevate are invisible until a GROUND move is thrown at them",
+     "handler onTryHit: the receiver must supply type (Water)"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Water Bubble) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -21493,11 +22635,11 @@
     "name": "Water Bubble",
     "carrier": "araquanid",
     "control": "Water Absorb",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for Water Absorb changed neither game",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
     "diverged": false,
     "divergence": null,
     "rung": "safe-pool",
@@ -21505,7 +22647,8 @@
      "ok": true,
      "why": [],
      "note": [
-      "\"Water Bubble\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+      "\"Water Bubble\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)",
+      "\"Water Bubble\" is gated on type (Fire) in `onSourceModifyAtk`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
      ],
      "clauses": [
       {
@@ -21518,25 +22661,67 @@
         "status": null,
         "targetStatus": null
        }
+      },
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Fire"
+        ],
+        "handler": "onSourceModifyAtk"
+       },
+       "got": {
+        "actor": [
+         "chillingwater",
+         "facade",
+         "endure",
+         "rest"
+        ],
+        "receiver": [
+         "lowkick",
+         "icebeam",
+         "agility",
+         "facade"
+        ]
+       }
       }
      ],
      "stubbed": false
     },
-    "cannot_fire": true,
-    "cannot_fire_clause": "status-present",
-    "cannot_fire_blocking": false,
-    "cannot_fire_why": [
-     "\"Water Bubble\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
-    ],
-    "cannot_fire_need": [
-     {
-      "status": "any status on the body it reads"
-     }
-    ],
-    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
+    "verdict_refined": "FIRED",
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Fire"
+      ],
+      "handler": "onSourceModifyAtk"
+     },
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Water"
+      ],
+      "handler": "onModifyAtk"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "chillingwater"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": [
+     "receiver:type=Fire"
+    ],
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -21550,8 +22735,12 @@
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
      "damageBoost: Analytic multiplies only when the holder moves LAST, and the gauntlet has it moving first every turn",
-     "statusImmune: Immunity, Limber, Insomnia and Vital Spirit each refuse ONE status, so the adversary carries several and the arm that matters is the one it can inflict"
-    ]
+     "statusImmune: Immunity, Limber, Insomnia and Vital Spirit each refuse ONE status, so the adversary carries several and the arm that matters is the one it can inflict",
+     "handler onSourceModifyAtk: the receiver must supply type (Fire)",
+     "handler onModifyAtk: the actor must supply type (Water)"
+    ],
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Water Absorb) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -21594,6 +22783,12 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onDamagingHit",
+      "cue": "move.category"
+     }
+    ],
     "faced": [],
     "faced_why": [
      "buffsHolderOnHit: Innards Out fires on the holder BEING KNOCKED OUT — Will's own fixture"
@@ -21634,6 +22829,21 @@
     "fixture_weather": null,
     "fixture_status": null,
     "fixture_weather_repaired": false,
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "statDrop",
+      "values": [],
+      "handler": "onTryBoost"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "breakingswipe"
+     ]
+    },
+    "trigger_unstaged": null,
     "faced": [
      "Grass Knot",
      "Low Kick",
@@ -21645,7 +22855,8 @@
     ],
     "faced_why": [
      "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet"
+     "preventsStatDrop: Illuminate refuses a stat DROP; nothing drops a stat in the bare gauntlet",
+     "handler onTryBoost: the receiver must supply statDrop"
     ],
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Drought) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -24184,24 +25395,24 @@
    "attempted": 496,
    "tried": 500,
    "resolved": 484,
-   "diverged": 76,
+   "diverged": 56,
    "resolution_disagreements": 17,
    "cannot_fire_in_this_fixture": 0,
-   "seconds": 6.9
+   "seconds": 4.6
   },
   "abilities": {
    "exist": 316,
    "tried": 316,
-   "fired": 70,
-   "showdown_only": 11,
+   "fired": 101,
+   "showdown_only": 10,
    "medicham_only": 0,
-   "did_not_fire": 89,
+   "did_not_fire": 59,
    "unreachable": 129,
-   "control_not_quiet": 72,
-   "cannot_fire_in_this_fixture": 13,
-   "did_not_fire_unexplained": 76,
-   "diverged": 33,
-   "seconds": 12.3
+   "control_not_quiet": 107,
+   "cannot_fire_in_this_fixture": 16,
+   "did_not_fire_unexplained": 43,
+   "diverged": 23,
+   "seconds": 8.5
   },
   "then_what": {
    "rows": 62,
@@ -24222,13 +25433,13 @@
    "cannot_fire_in_this_fixture": 6,
    "did_not_fire_unexplained": 55,
    "diverged": 3,
-   "seconds": 5.8
+   "seconds": 4.6
   },
   "preflight": {
    "checked": 759,
    "rows_checked": 740,
    "refused": 3,
-   "rows_labelled": 19,
+   "rows_labelled": 22,
    "over_matched": [
     {
      "id": "rivalry",
@@ -24242,6 +25453,7 @@
     "gender (blocking)": 3,
     "weather": 14,
     "weather-setter": 5,
+    "trigger-move": 12,
     "status-present": 23
    },
    "repaired_weather": 14,
@@ -24264,13 +25476,107 @@
     "solarpower -> sunnyday via sunnyday",
     "swiftswim -> raindance via raindance"
    ],
+   "trigger_rows": 61,
+   "trigger_needs": 65,
+   "trigger_staged": 55,
+   "trigger_unstaged": 10,
+   "trigger_examples": [
+    "adaptability stab -> actor:aquajet",
+    "armortail priority -> receiver:aquajet",
+    "battlebond multihit -> actor:watershuriken",
+    "berserk multihit -> receiver:scaleshot",
+    "bigpecks statDrop=def -> receiver:crunch",
+    "blaze type=Fire -> actor:firepunch",
+    "bulletproof flag=bullet -> receiver:focusblast",
+    "clearbody statDrop -> receiver:breakingswipe",
+    "competitive statDrop -> receiver:breakingswipe",
+    "compoundeyes subaccuracy -> actor:aircutter",
+    "contrary statDrop -> receiver:breakingswipe",
+    "defiant statDrop -> receiver:breakingswipe",
+    "dryskin type=Water -> receiver:aquajet",
+    "eartheater type=Ground -> receiver:bulldoze",
+    "flowerveil statDrop -> receiver:bulldoze",
+    "fluffy flag=contact -> receiver:aerialace",
+    "hustle subaccuracy -> actor:airslash",
+    "hypercutter statDrop=atk -> receiver:breakingswipe",
+    "illuminate statDrop=accuracy -> receiver:mudslap",
+    "ironfist flag=punch -> actor:drainpunch",
+    "justified type=Dark -> receiver:bite",
+    "keeneye statDrop=accuracy -> receiver:mudslap",
+    "lightningrod type=Electric -> actor:discharge",
+    "liquidvoice flag=sound -> actor:alluringvoice",
+    "longreach flag=contact -> actor:acrobatics",
+    "magicbounce flag=reflectable -> receiver:block",
+    "mirrorarmor statDrop -> receiver:breakingswipe",
+    "noguard subaccuracy -> actor:chargebeam",
+    "opportunist statRaise -> receiver:agility",
+    "overgrow type=Grass -> actor:bulletseed",
+    "pixilate type=Normal -> actor:bodyslam",
+    "purifyingsalt type=Ghost -> receiver:shadowclaw",
+    "queenlymajesty priority -> receiver:aquajet",
+    "reckless recoil -> actor:doubleedge",
+    "refrigerate type=Normal -> actor:bodyslam",
+    "sandforce type=Rock|Ground|Steel -> actor:bulldoze",
+    "sandveil subaccuracy -> receiver:aquatail",
+    "sapsipper type=Grass -> receiver:trailblaze",
+    "sharpness flag=slicing -> actor:aerialace",
+    "sheerforce secondary -> actor:bodyslam"
+   ],
+   "trigger": {
+    "rows": 61,
+    "needs": 65,
+    "staged": 55,
+    "unstaged": 10,
+    "examples": [
+     "adaptability stab -> actor:aquajet",
+     "armortail priority -> receiver:aquajet",
+     "battlebond multihit -> actor:watershuriken",
+     "berserk multihit -> receiver:scaleshot",
+     "bigpecks statDrop=def -> receiver:crunch",
+     "blaze type=Fire -> actor:firepunch",
+     "bulletproof flag=bullet -> receiver:focusblast",
+     "clearbody statDrop -> receiver:breakingswipe",
+     "competitive statDrop -> receiver:breakingswipe",
+     "compoundeyes subaccuracy -> actor:aircutter",
+     "contrary statDrop -> receiver:breakingswipe",
+     "defiant statDrop -> receiver:breakingswipe",
+     "dryskin type=Water -> receiver:aquajet",
+     "eartheater type=Ground -> receiver:bulldoze",
+     "flowerveil statDrop -> receiver:bulldoze",
+     "fluffy flag=contact -> receiver:aerialace",
+     "hustle subaccuracy -> actor:airslash",
+     "hypercutter statDrop=atk -> receiver:breakingswipe",
+     "illuminate statDrop=accuracy -> receiver:mudslap",
+     "ironfist flag=punch -> actor:drainpunch",
+     "justified type=Dark -> receiver:bite",
+     "keeneye statDrop=accuracy -> receiver:mudslap",
+     "lightningrod type=Electric -> actor:discharge",
+     "liquidvoice flag=sound -> actor:alluringvoice",
+     "longreach flag=contact -> actor:acrobatics",
+     "magicbounce flag=reflectable -> receiver:block",
+     "mirrorarmor statDrop -> receiver:breakingswipe",
+     "noguard subaccuracy -> actor:chargebeam",
+     "opportunist statRaise -> receiver:agility",
+     "overgrow type=Grass -> actor:bulletseed",
+     "pixilate type=Normal -> actor:bodyslam",
+     "purifyingsalt type=Ghost -> receiver:shadowclaw",
+     "queenlymajesty priority -> receiver:aquajet",
+     "reckless recoil -> actor:doubleedge",
+     "refrigerate type=Normal -> actor:bodyslam",
+     "sandforce type=Rock|Ground|Steel -> actor:bulldoze",
+     "sandveil subaccuracy -> receiver:aquatail",
+     "sapsipper type=Grass -> receiver:trailblaze",
+     "sharpness flag=slicing -> actor:aerialace",
+     "sheerforce secondary -> actor:bodyslam"
+    ]
+   },
    "over_matched_explained": [
     "rivalry"
    ],
    "over_matched_unexplained": []
   }
  },
- "games_played": 1401,
+ "games_played": 1343,
  "games_threw": 0,
  "sheets_unassembled": 0,
  "overlap": {
@@ -24326,8 +25632,8 @@
    "available": true,
    "file": "data/roster.abilities.json",
    "roster_fired": 120,
-   "here_fired": 70,
-   "both": 42,
+   "here_fired": 101,
+   "both": 67,
    "only_here": [
     "aftermath",
     "analytic",
@@ -24339,10 +25645,14 @@
     "effectspore",
     "galewings",
     "heavymetal",
+    "illuminate",
+    "justified",
+    "keeneye",
     "klutz",
     "leafguard",
     "minus",
     "moxie",
+    "opportunist",
     "pickpocket",
     "plus",
     "poisonpoint",
@@ -24350,7 +25660,9 @@
     "protean",
     "quickdraw",
     "rivalry",
+    "sharpness",
     "shedskin",
+    "skilllink",
     "sniper",
     "stalwart",
     "static",
@@ -24359,45 +25671,32 @@
     "trace"
    ],
    "only_roster": [
-    "adaptability",
-    "armortail",
     "aromaveil",
-    "bigpecks",
-    "bulletproof",
-    "clearbody",
-    "competitive",
-    "contrary",
     "curiousmedicine",
-    "defiant",
     "disguise",
-    "eartheater",
     "eelevate",
     "electricsurge",
     "fairyaura",
     "firemane",
     "flowerveil",
-    "fluffy",
     "friendguard",
     "goodasgold",
     "guts",
     "heatproof",
     "hospitality",
     "hungerswitch",
-    "hypercutter",
     "illusion",
     "immunity",
     "imposter",
     "innardsout",
     "innerfocus",
     "insomnia",
-    "ironfist",
     "levitate",
+    "lightningrod",
     "limber",
-    "liquidvoice",
     "magicbounce",
     "marvelscale",
     "megasol",
-    "mirrorarmor",
     "moldbreaker",
     "mummy",
     "oblivious",
@@ -24407,36 +25706,24 @@
     "parentalbond",
     "piercingdrill",
     "prankster",
-    "purifyingsalt",
-    "queenlymajesty",
-    "reckless",
     "regenerator",
     "rockhead",
-    "sapsipper",
     "scrappy",
     "shadowtag",
-    "sheerforce",
-    "shielddust",
-    "solidrock",
     "spicyspray",
     "stancechange",
-    "strongjaw",
     "suctioncups",
     "surgesurfer",
     "swarm",
     "sweetveil",
     "swiftswim",
     "technician",
-    "thickfat",
-    "torrent",
     "unburden",
     "unnerve",
     "unseenfist",
     "vitalspirit",
     "voltabsorb",
-    "wanderingspirit",
-    "waterabsorb",
-    "waterbubble"
+    "wanderingspirit"
    ],
    "neither": [
     "aerilate",
@@ -24503,11 +25790,8 @@
     "hydration",
     "iceface",
     "icescales",
-    "illuminate",
     "intrepidsword",
     "ironbarbs",
-    "justified",
-    "keeneye",
     "libero",
     "lightmetal",
     "lingeringaroma",
@@ -24529,7 +25813,6 @@
     "neutralizinggas",
     "noguard",
     "normalize",
-    "opportunist",
     "orichalcumpulse",
     "pastelveil",
     "perishbody",
@@ -24559,10 +25842,8 @@
     "seedsower",
     "serenegrace",
     "shadowshield",
-    "sharpness",
     "shieldsdown",
     "simple",
-    "skilllink",
     "slowstart",
     "slushrush",
     "soulheart",

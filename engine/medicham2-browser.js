@@ -859,6 +859,21 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                         `showdown=0 ours=4` turn-1 row. */
   volDurationApplied: 0, volDurationTicked: 0, volDurationExpired: 0,
   volRestartRefused: 0, volSealNoLastMove: 0,
+  /* ROADMAP #143 -- WHAT THE VOLATILE ANNOUNCED, four counters, because the four outcomes of the read
+   * are four different claims and one number cannot tell them apart:
+   *   volAnnounceFromTable       the artifact named an event this engine claims, and it was emitted;
+   *   volAnnounceSilent          the authority's condition has NO onStart, so the correct line is NO
+   *                              LINE. A zero here with Minimize on the board means the read is dead;
+   *   volAnnounceEventNotClaimed the authority announces an event TRACE_EVENTS does not list
+   *                              (`-singlemove`, declared un-emitted with its reason in
+   *                              data/protocol-events.json). Nothing is emitted, and that is a DECLARED
+   *                              gap rather than a swallowed one -- but it is counted, because the day
+   *                              the event is claimed this counter is the list of what starts working;
+   *   volAnnounceUntabled        no entry at all -- the condition's onStart is guarded or multi-line,
+   *                              so the caller keeps its pre-existing generic `-start|move: <vol>`.
+   *                              This is the COMMON case by design and a large number here is correct. */
+  volAnnounceFromTable: 0, volAnnounceSilent: 0, volAnnounceEventNotClaimed: 0, volAnnounceUntabled: 0,
+  volAnnounceEventNotClaimedFirst: '',
   /* WIRE 152 -- THE LAYER FAMILY, and it is the duration family's opposite number in every one of
    * these five slots, which is why it gets its own counters rather than borrowing theirs:
    *   layerAdded         a layer went ON. A duration volatile REFUSES a restart; a layered one is
@@ -10279,6 +10294,53 @@ function attractBeforeMove(m,rng,active){
   if(rng()<0.5){MEDSEEN.attractStoppedMove++;if(TR)TR.cant(m,'Attract');return true;}
   return false;
 }
+/* ROADMAP #143 -- WHAT A VOLATILE SAYS WHEN IT STARTS. ONE READER, AND IT IS READ RATHER THAN GUESSED.
+ *
+ * Every volatile in this engine was announced `|-start|BODY|move: <volatile>`, which is one guess over
+ * a family the authority narrates four ways. `Pokemon#addVolatile` runs the CONDITION's `onStart`, and
+ * that handler's own `this.add(...)` IS the line -- so `data/tags.json`'s `volatileAnnounce` carries it
+ * verbatim, per volatile, derived in engine/tag_dex.js from `dex.conditions.get(vol)`.
+ *
+ * MEASURED, ONE STAGED TURN PER LEGAL MOVE, BEFORE ANY OF IT WAS WIRED -- eight of the lines this
+ * engine emits move and none of the other 47 does:
+ *
+ *   endure/electrify   -start|move:X    ->  -singleturn|move:X     block/meanlook  ->  -activate|trapped
+ *   destinybond        -start           ->  (nothing: -singlemove is not claimed)
+ *   minimize           -start           ->  (nothing: the condition has no onStart)
+ *   aquaring magnetrise saltcure syrupbomb   the label loses its `move: ` prefix
+ *
+ * FOUR RETURNS, NOT TWO. `null` is "the artifact says nothing about this volatile" and keeps the
+ * caller's pre-existing line -- that is 23 of the 45 volatiles a legal move can apply and it is the
+ * correct answer for every one of them, taunt included. `{silent:true}` is the AUTHORITY SAYING
+ * NOTHING, which is a positive claim and not an absence, and collapsing the two would make Minimize
+ * indistinguishable from a volatile nobody derived. */
+const TRACE_CLAIMED=new Set(TRACE_EVENTS);
+function volAnnounce(mvId,vol){
+  if(!mvId||!vol)return null;
+  const _t=TAGS.param('move',mvId,'volatileAnnounce');
+  const _a=_t&&_t.byVolatile&&_t.byVolatile[vol];
+  if(!_a){MEDSEEN.volAnnounceUntabled++;return null;}
+  if(_a.event==null){MEDSEEN.volAnnounceSilent++;return {silent:true};}
+  /* THE AUTHORITY ANNOUNCES AN EVENT THIS ENGINE DOES NOT CLAIM. Destiny Bond's `-singlemove` is the
+   * only member today and data/protocol-events.json already declares it un-emitted WITH ITS REASON, so
+   * emitting nothing is the honest answer -- and it is strictly better than the `-start` that stood
+   * here, which was a line the authority never writes at all. Counted, never silent. */
+  if(!TRACE_CLAIMED.has(_a.event)){
+    MEDSEEN.volAnnounceEventNotClaimed++;
+    if(!MEDSEEN.volAnnounceEventNotClaimedFirst)MEDSEEN.volAnnounceEventNotClaimedFirst=vol+' -> '+_a.event;
+    return {silent:true};
+  }
+  MEDSEEN.volAnnounceFromTable++;
+  return {event:_a.event,desc:_a.desc};
+}
+/* The emitter, beside the reader for the same reason: a caller that had to map an event name onto a
+ * TRACE method would be a second place that decides what `-singleturn` means. */
+function volAnnounceEmit(who,a){
+  if(!TR||!a||a.silent)return;
+  if(a.event==='-singleturn')TR.st1(who,a.desc);
+  else if(a.event==='-activate')TR.act(who,a.desc);
+  else TR.vstart(who,a.desc);
+}
 function applyMoveVolatile(who,vol,src,mvId,field,opts){
   if(!who||!vol)return false;
   /* ROADMAP #212 -- THE SIDE'S VOLATILE VEIL, ASKED FIRST, AND AROMA VEIL IS WHY.
@@ -10401,8 +10463,13 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
   if(_dur!=null) MEDSEEN.volDurationApplied++;
   (who._vol=who._vol||{})[vol]=_tn;
   /* `|-start|p1b: Amoonguss|move: Taunt` -- the `move: ` prefix is what Showdown writes for
-   * a volatile whose source effect is a move, read off a real battle.log. */
-  if(TR)TR.vstart(who,'move: '+vol);
+   * a volatile whose source effect is a move, read off a real battle.log. IT IS THE FALLBACK NOW AND
+   * NOT THE RULE: `volAnnounce` reads the condition's OWN start line wherever the artifact carries
+   * one, and this line stands for the 23 volatiles whose `onStart` is guarded or multi-statement --
+   * Taunt among them, which is why the fallback is still exactly right for the case it names. */
+  {const _va=volAnnounce(mvId,vol);
+   if(!_va){ if(TR)TR.vstart(who,'move: '+vol); }
+   else volAnnounceEmit(who,_va);}
   /* `_sealed` is Disable's alone. Encore carries its move in `_encoreMove` and `_lock`, and
    * one field serving two volatiles is a field that expires the wrong one. */
   if(vol==='disable')who._sealed=who._lastMove||null;
@@ -14964,7 +15031,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          *     Mean Look -> Chandelure    showdown |-fail|p2a: Farigiraf   ours |-immune|p1a: Chandelure */
         if((t.types||[]).includes('Ghost')){MEDSEEN.ghostRefusedTrap++;mvFail(m);continue;}
         t._trapHard={by:m,mv:a.mv};
-        if(TR)TR.vstart(t,'move: '+a.mv);
+        /* ROADMAP #143 -- THE LINE BELONGS TO THE VOLATILE, NOT TO THE MOVE THAT APPLIED IT. Both
+         * members write `target.addVolatile("trapped", …)`, and the `trapped` condition's whole
+         * onStart is `this.add("-activate", target, "trapped")` -- so the authority names the TRAP on
+         * every one of them and this engine was naming the MOVE. Read through the same one reader the
+         * generic volatile applier uses; the old line is the fallback if the artifact goes quiet. */
+        {const _va=volAnnounce(a.mv,a.vol);
+         if(!_va){ if(TR)TR.vstart(t,'move: '+a.mv); }
+         else volAnnounceEmit(t,_va);}
         continue;
       }
       if(a.kind==='haze'){

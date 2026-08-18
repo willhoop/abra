@@ -1635,7 +1635,13 @@ for (const dir of ['engine', 'build']) {
   if (!fs.existsSync(d)) continue;
   for (const f of fs.readdirSync(d)) {
     if (!/\.(js|py)$/.test(f)) continue;
-    let src; try { src = fs.readFileSync(path.join(d, f), 'utf8'); } catch (e) { continue; }
+    /* ROADMAP #258: an unreadable generator EXEMPTS ITSELF from this check, which is the wrong way for
+     * the failure to point — the whole clause exists because the wrong DEFAULT, not a forgotten flag,
+     * is what trained a model on the raw archive. Absent stays quiet (ENOENT, handled in
+     * `logUnreadable`); unreadable is named. */
+    let src;
+    try { src = fs.readFileSync(path.join(d, f), 'utf8'); }
+    catch (e) { logUnreadable(dir + '/' + f, 'the --clean opt-in scan — it is exempted, not cleared', e); continue; }
     if (!/add_argument\(\s*["']--clean["']|includes\(\s*['"]--clean['"]\s*\)/.test(src)) continue;
     /* A file may keep the raw archive as its default if it DECLARES why, the same RAW-STORE-OK
      * convention engine/selftest.js already enforces on every raw reader. build_ability_blocks.js
