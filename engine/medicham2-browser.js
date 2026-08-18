@@ -728,6 +728,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * same mechanic (Showdown's `onDisableMove`). Counted apart from the execution refusal because the
    * two fire in different places and a merged counter cannot say which one is dead. */
   tauntRefusedAtSelection: 0,
+  /* ROADMAP #295 -- a move REFUSED at execution time by DISABLE's own seal (and by Cursed Body's,
+   * which lands through the same two fields). Counted apart from Taunt's because the two read
+   * different facts -- a category against a specific move id -- and a merged counter could not say
+   * which of them stopped firing. A zero here over a run holding a Disable or a Cursed Body means
+   * the same-turn refusal is dead again; the SELECTION half is `moveDisabledBy` and is separate. */
+  disableRefusedAtExecution: 0,
+  /* ROADMAP #295 -- the chooser handed back a move the body may not select right now, and the vet in
+   * `chooseAction` replaced it. NON-ZERO IS EXPECTED and is the leak being caught, not a failure: the
+   * priors sampler picks by name out of MC.priors and never reads `me.moves`. A zero over a run that
+   * contains a Disable, a Taunt or a Choice lock means the vet stopped being asked. */
+  chooserPickedDisabledMove: 0,
   /* ROADMAP #31 -- MEGA EVOLUTION AS A MID-TURN CHOICE. Four counters because four different things
    * can be dead and a merged one could not tell them apart, and because mega has already passed an
    * "at least one happened" check in this project while firing on 56% of the sides it should have.
@@ -8283,9 +8294,37 @@ function illegalMoveNow(me,id){ return !!moveDisabledBy(me,id); }
  * Stuff Cheeks and Gorilla Tactics are NOT here -- three of them are refused at EXECUTION already
  * (so the turn is spent rather than the menu shortened, which is the wrong shape but not a silent
  * one) and the rest have no carrier worth staging. Each is one clause when its probe exists. */
+/* ROADMAP #295 -- THE SEAL IS ONE FACT, AND IT WAS ONLY EVER ASKED AT SELECTION.
+ *
+ * Showdown answers Disable in TWO handlers off one condition, exactly as it answers Taunt:
+ * `onDisableMove` takes the sealed move off next turn's menu, and `onBeforeMove` (priority 7,
+ * data/moves.ts:3698-3704) FAILS the sealed move that was ALREADY CHOSEN when the Disable lands in
+ * the same turn -- `this.add('cant', attacker, 'Disable', move); return false;`. `data/mods/champions/
+ * moves.ts` does not override `disable`, so mainline is the authority here.
+ *
+ * This engine had the menu half (the clause below) and NOT the execution half, and the comment on the
+ * Taunt gate has said "taunt's and disable's onBeforeMove both return false" the whole time. Measured
+ * against the authority on two staged boards, every die pinned and shared, board read out of both
+ * engines at every boundary:
+ *
+ *     Disable on Snorlax's Body Slam, same turn
+ *       showdown   Alakazam 130/130          medicham2  Alakazam 0/130 FAINTED, replaced
+ *     Disable on Snorlax's Yawn, same turn
+ *       showdown   Alakazam no status, yawn pp spent 1
+ *       medicham2  Alakazam ASLEEP,          yawn pp spent 2
+ *
+ * The seal's IDENTITY and CLOCK were already right (`_sealed` matches `volatiles.disable.move`, the
+ * duration reads 3 then 2 on both sides) -- what was missing is the refusal. CURSED BODY LANDS
+ * THROUGH THESE SAME TWO FIELDS, so it inherits the fix without a second clause.
+ *
+ * SPLIT OUT AS ITS OWN FUNCTION RATHER THAN COPIED, on CLAUDE.md's facts-are-global rule and on the
+ * same argument `volatileForbidsMove` makes one screen up: two moments, one question, one reader. */
+function sealedMoveRefuses(me,id){
+  return !!(me&&id&&me._vol&&me._vol.disable>0&&me._sealed&&me._sealed===id);
+}
 function moveDisabledBy(me,id){
   if(!me||!id) return null;
-  if(me._vol&&me._vol.disable>0&&me._sealed===id)return 'disable';
+  if(sealedMoveRefuses(me,id))return 'disable';
   if(me._noSound>0&&TAGS.has('move',id,'sound'))return 'throatchop';
   if(me._noRepeat===id)return 'noRepeat';
   if(volatileForbidsMove(me,id)){ MEDSEEN.tauntRefusedAtSelection++; return _traceForbidder(me); }
@@ -8405,16 +8444,52 @@ function chooseAction(me,foes,ally,field,side,rng){
     const _sa=struggleAction(me,foes,field,rng,'menu');
     if(_sa) return _sa;
   }
+  /* ROADMAP #295 -- THE MENU FILTER BELOW IS A SUGGESTION, AND THAT WAS INVISIBLE UNTIL THE
+   * EXECUTION GATE STARTED ENFORCING IT.
+   *
+   * The filter narrows `me.moves` and hands the narrowed list down. `_chooseAction`'s priors sampler
+   * does NOT read `me.moves` -- it picks by NAME out of `MC.priors`, which the choiceLock probe's own
+   * comment has recorded as a leak ("a separate, pre-existing leak ... filed, not fixed here") since
+   * ROADMAP #119. So a Disabled body could still be handed its Disabled move, and NOTHING NOTICED
+   * BECAUSE EXECUTION PLAYED IT ANYWAY. Wiring disable's `onBeforeMove` turned the leak from a wrong
+   * move into a WASTED TURN, which is how it surfaced: `tests/test-mechanics.js` item/`choiceLock`
+   * flipped LIVE -> MISSING on the control arm where a Disabled body with a full menu played nothing.
+   *
+   * Showdown never OFFERS a disabled move (`Pokemon#getMoves` marks the slot, `Side#choose` rejects
+   * the click), so a chooser that returns one is this engine's bug in either direction. The vet is a
+   * POST-CHECK rather than a fix inside the sampler, deliberately: the sampler is shared by the
+   * priors, the heuristics and the lock paths, and the question "may this body select this move right
+   * now" already has exactly one owner in this file (`moveDisabledBy`). Asking it once more on the way
+   * out cannot disagree with itself.
+   *
+   * THE REPLACEMENT IS A REAL MOVE BEFORE IT IS STRUGGLE. One Disabled slot out of four leaves three
+   * buttons on the authority's screen, and answering that with Struggle would be a second wrong
+   * behaviour wearing the fix's clothes. `lockedAction` is the file's existing builder for "play THIS
+   * specific move at the best legal target" and is reused rather than copied. Struggle is reached only
+   * when no slot survives, which is `mustStruggle`'s own answer arriving one step later. */
+  const _vet=(a)=>{
+    const id=a&&actionMoveId(a);
+    if(!id||id==='struggle'||!_illegal(id)) return a;
+    MEDSEEN.chooserPickedDisabledMove++;
+    const _live=foes.filter(f=>f&&!f.fainted&&f.curHP>0);
+    for(const alt of (me.moves||[])){
+      if(_illegal(alt)) continue;
+      const b=lockedAction(me,alt,_live,field,rng);
+      if(b&&b.kind!=='pass') return b;
+    }
+    const _sa=struggleAction(me,foes,field,rng,'menu');
+    return _sa||a;
+  };
   if(me&&me.moves&&me.moves.length>1&&me.moves.some(_illegal)){
     const _save=me.moves;
     const _keep=_save.filter(id=>!_illegal(id));
     if(_keep.length){
       me.moves=_keep;
-      try{ return _chooseAction(me,foes,ally,field,side,rng); }
+      try{ return _vet(_chooseAction(me,foes,ally,field,side,rng)); }
       finally{ me.moves=_save; }
     }
   }
-  return _chooseAction(me,foes,ally,field,side,rng);
+  return _vet(_chooseAction(me,foes,ally,field,side,rng));
 }
 function _chooseAction(me,foes,ally,field,side,rng){
   // asleep? still pick a move — the turn loop applies Champions wake rules (33% turn 2, 100% turn 3)
@@ -14190,6 +14265,31 @@ function battleTurn(S,rng,actsForA,actsForB){
            * forbid table rather than typed, so a second category-forbidding volatile arrives labelled
            * with its own name instead of Taunt's. */
           if(TR)TR.cant(m,'move: '+_traceForbidder(m),_fid);
+          continue; }
+      }
+      /* ROADMAP #295 -- DISABLE AT EXECUTION TIME, WIRE 119's PLACE FOR WIRE 119's REASON.
+       *
+       * Beside Taunt because it is the same moment and the same shape: a body that chose the sealed
+       * move before a faster body's Disable landed does not get to use it. Above the kind dispatch
+       * because Disable seals a move of ANY kind -- the move it seals is whatever the target last
+       * used, which can be `attack`, `setup`, `status`, `tail`, `haze`, `hazard` or a pivot.
+       *
+       * ABOVE THE PP DEDUCTION, which is the half a "just refuse it" fix gets wrong. Showdown's
+       * `runMove` deducts PP AFTER the BeforeMove event (battle-actions.ts:282), so a move refused
+       * here spends nothing -- measured as `yawn` pp 1 on the authority against 2 here.
+       *
+       * `_lastMove` IS DELIBERATELY NOT SET, for Taunt's reason directly above: `pokemon.moveUsed()`
+       * is the only writer of `lastMove` and it runs after BeforeMove, so a move Disable refused
+       * never becomes the last move and cannot be what an Encore or a second Disable repeats.
+       *
+       * `sealedMoveRefuses` is the SAME reader the selection filter uses; see its header. */
+      {
+        const _sid=actionMoveId(a);
+        if(_sid&&sealedMoveRefuses(m,_sid)){ MEDSEEN.disableRefusedAtExecution++;
+          m._mvRes=false;   // ROADMAP #84 -- disable's onBeforeMove returns false
+          /* `cant|POKEMON|Disable|MOVE` -- data/moves.ts:3701. The effect is named `Disable` with no
+           * `move: ` prefix, unlike Taunt's line, because Showdown passes the CONDITION's name here. */
+          if(TR)TR.cant(m,'Disable',_sid);
           continue; }
       }
       /* ROADMAP #144 -- PP IS SPENT HERE, AND THE POSITION IS THE MECHANIC EXACTLY AS THE MOVE LINE'S

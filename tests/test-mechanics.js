@@ -4514,6 +4514,54 @@ probe('move', 'sealsMoves', 'Disable stops the target repeating that move', () =
                  + ', after Disable it clicked ' + (sealed.then || 'nothing') };
 });
 
+/* THE SAME SEAL, ONE TURN EARLIER — 2026-08-18, and the probe above structurally cannot see it.
+ *
+ * The probe above leaves the foe FREE on the turn after Disable lands, so it measures the CHOOSER:
+ * `chooseAction` filters the sealed move out of the list. That is a real half and it is not the half
+ * that costs a Pokemon. Showdown's disable condition carries `onBeforeMovePriority: 7` and an
+ * `onBeforeMove` that emits `|cant|<body>|Disable|<move>` and returns false (data/moves.ts:3698-3704,
+ * mainline — `data/mods/champions/moves.ts` does not override `disable`). So a body that ALREADY
+ * CHOSE the sealed move, and is Disabled by a faster body on that same turn, does not get to use it
+ * and does not spend its PP.
+ *
+ * MEASURED AGAINST THE AUTHORITY BEFORE THIS WAS WRITTEN, two staged boards, every die pinned and
+ * shared, `engine/board_state.js` read out of both engines at every turn boundary:
+ *
+ *   Alakazam Disables Snorlax's Body Slam on the turn Snorlax clicks it
+ *     showdown  Alakazam 130/130          medicham2  Alakazam 0/130, FAINTED, replaced by Milotic
+ *   Alakazam Disables Snorlax's Yawn on the turn Snorlax aims it at Alakazam
+ *     showdown  Alakazam no status, Yawn pp spent 1
+ *     medicham2 Alakazam ASLEEP,          Yawn pp spent 2
+ *
+ * The seal's IDENTITY and CLOCK are both right — `_sealed` reads "bodyslam"/"yawn" against Showdown's
+ * `volatiles.disable.move`, and the duration reads 3 then 2 on both sides. What is missing is the
+ * refusal at EXECUTION. Same shape for Cursed Body's seal, which lands through the same two fields.
+ *
+ * THE CONTROL IS THE IDENTICAL TURN WITH THE DISABLE CLICK REMOVED, so a zero here cannot be the
+ * chooser, the speed order or Earthquake missing. */
+probe('move', 'sealsMoves', 'Disable stops the move its target has ALREADY chosen this turn', () => {
+  const run = (disable) => {
+    const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'garchomp', 'garchomp');
+    /* turn 1 — the foe commits Earthquake, because Disable seals a body's LAST move and refuses
+     * outright against a body that has never moved. */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    const before = me.curHP;
+    /* turn 2 — BOTH clicks are made before either resolves. Whimsicott is faster, so the Disable
+     * lands first and the Earthquake underneath it is the thing being tested. */
+    M.battleTurn(S, rng5,
+      new Map([[me, disable ? M.playerAction(me, 'disable', f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { lost: before - me.curHP, sealed: f1._sealed || null, clock: (f1._vol || {}).disable || 0 };
+  };
+  const free = run(false), sealed = run(true);
+  return { works: free.lost > 0 && sealed.lost === 0,
+           arms: { control: free.lost, test: sealed.lost },
+           detail: 'HP the Earthquake took on the Disable turn: no Disable ' + free.lost
+                 + ', with Disable ' + sealed.lost + ' (the seal itself landed: _sealed='
+                 + sealed.sealed + ', clock ' + sealed.clock + ')' };
+});
+
 /* THE WHOLE HEALING CLASS IS INVISIBLE TO THE DIFFERENTIAL, and this file is its only guard.
  *
  * `tests/test-engine-diff.js` compares ONE call to `moveHit` against one call to `dmgRange` — a
@@ -16448,7 +16496,17 @@ const menuRun = (o) => {
   for (const b of [B.me, B.ally, B.f1, B.f2]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 60 }); b.curHP = b.st.hp; }
   B.me.item = o.item || '';
   const trace = []; B.S._trace = trace;
+  /* ---- PER TURN, NOT JUST IN ORDER — 2026-08-18 ------------------------------------------------
+   * `played` is every `|move|p1a` line in the whole run, and a caller that wants "what did it do on
+   * turn 3" was indexing it. That holds only while EVERY turn produces exactly one move line, which
+   * stopped being true the moment Disable's `onBeforeMove` was wired (ROADMAP #295): a body Disabled
+   * by a faster foe on the same turn emits `|cant|` and no `|move|`, the array shortens by one, and
+   * `played[2]` silently becomes turn 4's answer — or null. That read the FIX as a regression.
+   * `turnMoves[i]` is the first p1a move line of turn i and is null when the turn produced none, so
+   * a refused turn reads as a refused turn instead of shifting everything after it. */
+  const turnMoves = [];
   for (const t of o.turns) {
+    const _mark = trace.length;
     const mine = t.me === undefined ? undefined
       : new Map([[B.me, t.me === null ? { kind: 'pass' } : M.playerAction(B.me, t.me, B.f1, B.S.field)],
                  [B.ally, { kind: 'pass' }]]);
@@ -16456,8 +16514,11 @@ const menuRun = (o) => {
       : new Map([[B.f1, t.foe === null ? { kind: 'pass' } : M.playerAction(B.f1, t.foe, B.me, B.S.field)],
                  [B.f2, { kind: 'pass' }]]);
     M.battleTurn(B.S, rng5, mine, theirs);
+    const _mv = trace.slice(_mark).filter(l => /^\|move\|p1a/.test(l)).map(l => l.split('|')[3]);
+    turnMoves.push(_mv[0] || null);
   }
   return {
+    turnMoves,
     played: trace.filter(l => /^\|move\|p1a/.test(l)).map(l => l.split('|')[3]),
     /* CASE-INSENSITIVE SINCE ROADMAP #234, AND THE REASON IS THE AUTHORITY'S OWN INCONSISTENCY. This
      * read `\[from\] Recoil` exactly. Showdown spells the tag TWO ways: an ordinary recoil move takes
@@ -16515,7 +16576,12 @@ probe('item', 'choiceLock', 'a Choice lock onto a Disabled move empties the menu
   const test = run('choicescarf', 'disable');
   const noDisable = run('choicescarf', null);
   const noLock = run('', 'disable');
-  const third = (r) => r.played[2] || null;
+  /* TURN 3'S OWN ANSWER — 2026-08-18. This was `r.played[2]`, an index into the run's whole move
+   * list, and ROADMAP #295 made turn 2 legitimately emit no move line at all: the foe's Disable is
+   * faster than the Knock Off it seals, so the authority answers `|cant|p1a|Disable|Knock Off` and
+   * this engine now does too. The index then pointed at nothing and BOTH arms read null, which is the
+   * fix being reported as the defect. `turnMoves[2]` names the turn instead of counting lines. */
+  const third = (r) => r.turnMoves[2] || null;
   /* THE RECOIL IS ASSERTED ON THE TWO ARMS WHERE IT DISCRIMINATES AND NOT ON THE THIRD, and this
    * probe was WRONG here before the engine was. The no-lock control's chooser is free, it sampled
    * FLARE BLITZ, and Flare Blitz carries recoil of its own — so `noLock.recoil === 0` failed for a

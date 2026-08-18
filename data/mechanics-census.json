@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-18T05:02:54.132Z",
+  "generated": "2026-08-18T06:23:33.648Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 595,
-  "live": 595,
+  "probed": 596,
+  "live": 596,
   "missing": 0,
-  "armed": 595,
+  "armed": 596,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -1217,6 +1217,16 @@
       "label": "Disable stops the target repeating that move",
       "live": true,
       "detail": "committed earthquake; free choice repeated earthquake, after Disable it clicked dragonclaw",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "Disable stops the move its target has ALREADY chosen this turn",
+      "live": true,
+      "detail": "HP the Earthquake took on the Disable turn: no Disable 44, with Disable 0 (the seal itself landed: _sealed=earthquake, clock 3)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3026,7 +3036,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.9% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

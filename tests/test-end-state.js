@@ -148,35 +148,102 @@ if (!endRow) {
          + '(one side ended early) cannot be told from an agreement');
   else pass('both engines\' end-of-battle flags recorded (medi=' + endRow.endedMedi + ', sd=' + endRow.endedSd + ')');
 }
-
 /* ================= PART 3 — A PLANT THAT IS NEVER UNDONE, AGAINST A CLEAN CONTROL =============== */
 console.log('\nPART 3 — a planted board difference must survive to the end, and the control must not have it');
 if (!PAIRS.length) fail('no pairs — PART 3 did not run');
 else {
-  const pr = usedPair || PAIRS[0];
   /* THE ITEM IS THE PLANT, deliberately: an HP plant can be erased by a faint and a boost by a Haze,
    * and a plant the game can legally undo would make a false GREEN look like a false RED. An item slot
-   * that is emptied and never refilled stays different for the rest of the battle. */
+   * that is emptied and never refilled stays different for the rest of the battle.
+   *
+   * ---- THE FIXTURE IS CONSTRUCTED NOW, NOT FOUND — 2026-08-18 ----------------------------------
+   *
+   * This took `usedPair || PAIRS[0]` — PART 2's pair, chosen for parting EARLY and for nothing else.
+   * On 2026-08-18 it reported two failures that were both that fixture:
+   *
+   *     FAIL  caught but NOT LOCALISED to the item that was planted: p1.party.primarina.hp, ...
+   *     FAIL  THE CONTROL ALREADY DIFFERS ON AN ITEM — this pair cannot prove the plant was caught
+   *
+   * The clauses were right to refuse. What the file could not do is act on its own advice ("Choose
+   * another fixture"), because it never chose one. A COULD-NOT-STAGE VERDICT IS A CLAIM ABOUT THE
+   * FIXTURE AND NEVER ABOUT THE MECHANIC, and the answer is to BUILD the fixture.
+   *
+   * TWO SCREENS, AND THE SECOND ONE IS THE INTERESTING ONE:
+   *
+   *   1. the CONTROL must not already part on an item leaf, or the catch below is the game and not
+   *      the plant. (The clause that asserts this is unchanged; this only stops handing it a pair it
+   *      is bound to refuse.)
+   *
+   *   2. THE PLANTED BODY MUST STILL BE ON THE FIELD AT THE LAST BOUNDARY. `board_state.js`'s party
+   *      rows carry `{hp, maxhp, fainted}` and NOTHING ELSE — no item, no status, no ability — so an
+   *      item difference on a body that has walked to the bench is not compared by anything in this
+   *      repository. The first screened fixture demonstrated exactly that: control clean, plant
+   *      applied, verdict SAME-END-STATE with an EMPTY diff list. That is not the comparator missing
+   *      a difference it holds; it is a difference the board does not contain.
+   *
+   *      So a pair whose planted body leaves the field is REJECTED WITH THAT REASON PRINTED, and the
+   *      blind spot is stated here rather than absorbed into a green run. A pair where the body is
+   *      still standing and the diff is still missing is a REAL comparator failure and fails.
+   *
+   * NEITHER SCREEN CAN WEAKEN THE PROOF: both only discard pairs on which the assertions below could
+   * not mean anything, and every rejection is named. If the whole window is rejected that is a loud
+   * failure naming the window, not a pass. */
   const plantAt = 1;
-  const clean = G.playGame(pr.a, pr.b, 'baseline', 'endstate/control');
-  let applied = false;
-  const planted = G.playGame(pr.a, pr.b, 'baseline', 'endstate/planted', {
-    statePlant: (S, b, turnIdx) => {
-      if (turnIdx !== plantAt || applied) return;
-      const m = (S.actA || []).find(x => x && !x.fainted && x.curHP > 0);
-      if (!m) return;
-      m.item = m.item ? '' : 'leftovers';
-      applied = true;
-    } });
+  const SCAN = 24;
+  const CANDIDATES = [usedPair].concat(PAIRS).filter(Boolean).slice(0, SCAN + 1);
+  const rejected = [];
+  let pr = null, clean = null, planted = null, applied = false, stillActiveAtEnd = null;
+
+  for (const cand of CANDIDATES) {
+    const tag = String(cand.tag || '').slice(0, 26);
+    const c = G.playGame(cand.a, cand.b, 'baseline', 'endstate/control');
+    if (c.err) { rejected.push(tag + ' — the CONTROL threw'); continue; }
+    const cp = (c.finalBoard && c.finalBoard.diffs || []).map(d => d.path || '');
+    const dirty = cp.filter(p => p.indexOf('.item') >= 0);
+    if (dirty.length) { rejected.push(tag + ' — control already parts on ' + dirty.join(',')); continue; }
+
+    /* `statePlant` is the one hook handed the LIVE medicham board at every boundary. It plants once
+     * and then only READS, so "is the planted body still standing" is answered by the engine rather
+     * than inferred from the report. */
+    let body = null, appliedHere = false, lastSeenActive = false;
+    const p = G.playGame(cand.a, cand.b, 'baseline', 'endstate/planted', {
+      statePlant: (S, b, turnIdx) => {
+        if (turnIdx === plantAt && !appliedHere) {
+          const m = (S.actA || []).find(x => x && !x.fainted && x.curHP > 0);
+          if (!m) return;
+          m.item = m.item ? '' : 'leftovers';
+          body = m; appliedHere = true; lastSeenActive = true;
+          return;
+        }
+        if (appliedHere && body) lastSeenActive = (S.actA || []).indexOf(body) >= 0 && !body.fainted;
+      } });
+    if (p.err) { rejected.push(tag + ' — the PLANTED game threw'); continue; }
+    if (!appliedHere) { rejected.push(tag + ' — no living body on side A at boundary ' + plantAt); continue; }
+    if (!lastSeenActive) {
+      rejected.push(tag + ' — the planted body left the field, and a BENCHED body\'s item is not a '
+                        + 'compared leaf (board_state.js partyMap holds hp/maxhp/fainted only)');
+      continue;
+    }
+    pr = cand; clean = c; planted = p; applied = true; stillActiveAtEnd = true;
+    break;
+  }
+
+  if (rejected.length) {
+    note('control screen rejected ' + rejected.length + ' pair(s):');
+    for (const r of rejected.slice(0, 6)) note('    ' + r);
+  }
   if (!applied) {
-    fail('THE PLANT WAS NEVER APPLIED — a comparator that finds nothing has proved nothing. This is a '
-       + 'claim about the fixture (no living body on side A at boundary ' + plantAt + '), not about the engine.');
+    fail('NO USABLE FIXTURE IN THE SCANNED WINDOW (' + CANDIDATES.length + ' pairs) — see the '
+       + 'rejections above. A comparator that finds nothing has proved nothing, and this is a claim '
+       + 'about the fixture window rather than about the comparator. It is not a pass.');
   } else {
+    note('fixture ' + String(pr.tag || '').slice(0, 44));
     const cv = G.endStateVerdict(clean), pv = G.endStateVerdict(planted);
     note('control  ' + cv + '   (' + clean.turns + ' turns, ' + clean.boundaries + ' boards, '
          + clean.endReason + ')');
     note('planted  ' + pv + '   (' + planted.turns + ' turns, ' + planted.boundaries + ' boards, '
-         + planted.endReason + ')');
+         + planted.endReason + ')   planted body still on the field at the last boundary: '
+         + stillActiveAtEnd);
     const paths = (planted.finalBoard && planted.finalBoard.diffs || []).map(d => d.path || '');
     const cpaths = (clean.finalBoard && clean.finalBoard.diffs || []).map(d => d.path || '');
     if (pv !== 'DIFFERENT-END-STATE')

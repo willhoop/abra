@@ -9628,3 +9628,60 @@ number. Re-run at `--kind all`: moves 35, abilities 14, items 0.
 for a move (of 1,259,717), so the same literal is 0.095% or 0.0020% — a move clears it at ~48x lower
 relative usage. Two thresholds wearing one number. It is not load-bearing today and becomes so the
 moment anyone tunes it, which is exactly when nobody will check the units.
+
+---
+
+## 2026-08-18 (later) — WILL'S BAR MEASURED: HALF THE DIVERGENCE IS REAL, AND THE INSTRUMENT THAT SAYS SO CANNOT SEE THE BENCH
+
+Will set the standard earlier today — *"it looks at the game. the commentary can be different but it
+needs to lead to identical outcomes in all scenarios"* — and then named the way to test it:
+*"play those games out that differ from commentary, and see if it leads to identical board states"*.
+
+**The comparator already existed.** `--end-state` and `--state` are in `game_differential.js` and
+`board_state.js` reads engine state rather than the stream, so nothing had to be built and the
+line-classification risk was never real. Measured, middle arm, pinned 982-game pool:
+
+```
+546 games whose PROTOCOL parted
+    269  SAME end state       49.3%
+    264  DIFFERENT end state  48.4%
+     13  ended apart — a third answer, counted neither way
+CONTROL: of 436 games whose protocol NEVER parted — 431 SAME, 5 DIFFERENT
+```
+
+**Roughly half.** The hope that most of the 690 was cosmetic does not survive contact. **And the control
+row is the more important one: five games whose narration agreed the whole way still ended on different
+boards**, so protocol comparison misses state divergences as well as inventing them. Neither instrument
+is a superset of the other.
+
+**THE 269 IS AN UPPER BOUND, NOT A MEASUREMENT, AND THE REASON WAS FOUND BY MEASURING.**
+`board_state.js`'s `partyMap` carries `{hp, maxhp, fainted}` — **a benched body's item, status, ability
+and boosts are compared by nothing in this repository.** Three of five candidate pairs in the end-state
+test had a planted item laundered through exactly that gap. Also uncompared: the sealed move's identity,
+ability trapping, item disposition, yawn/attract/curse/healblock, destiny bond, and the
+magnetrise/syrupbomb clocks. Until that closes, "cosmetic" means "cosmetic in the fields we look at".
+
+**AND THE PUBLISHED 690 WAS MEASURED WITH THE BOARD COMPARISON SWITCHED OFF** — `data/game-differential.json`
+carries `state_mode: false, end_state: null`. The figures above are a different sample on a different
+setting. They are not a before and after and must never be subtracted.
+
+**REGENERATOR WAS THE ONE I BET ON AND IT WAS NOT A DEFECT.** It was singled out on the reasoning that
+`-heal|1068/1068|[silent]` is an HP change wearing announcement clothes. Measured: the HP is restored
+exactly on both sides, +61 on a 185 body, control unchanged. The reasoning was sound and the answer was
+no — which is what measuring is for.
+
+**DISABLE WAS THE DEFECT, AND NOT FOR THE REASON THE ROW GAVE.** The row said the sealed move's identity
+was missing from the line. The identity was already correct; what was missing was the REFUSAL AT
+EXECUTION — this engine had only the menu half, so a Disabled move that got chosen anyway played
+normally. In the fixture that is a fainted Alakazam where the authority has one at full HP, and a sleeping
+body where the authority has none. **A narration row was hiding a defect that kills a Pokemon.**
+
+**Fixing it exposed why nothing had ever noticed.** `item|choiceLock` flipped LIVE -> MISSING the instant
+execution started refusing, because `chooseAction`'s menu filter has always been a SUGGESTION — the priors
+sampler picks by NAME out of `MC.priors` and never reads `me.moves`. An illegal move could be handed to a
+body and execution played it regardless. **The two bugs concealed each other**, which is this project's
+signature shape and the reason a capability must prove it ran.
+
+Census 595 -> 596 live, 0 missing. Dragon Darts is a real PP-only divergence, isolated with an
+Unnerve control, deliberately left for its own batch. `tests/staged_board.js` and
+`tests/test-volatile-duration.js` are both red, neither caused here, both stated rather than filed.

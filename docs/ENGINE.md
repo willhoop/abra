@@ -37,7 +37,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  595/595 probed mechanics live, 0 missing   (census 2026-08-18 01:02)
+  596/596 probed mechanics live, 0 missing   (census 2026-08-18 02:23)
   0/6000 differential comparisons disagree with Showdown   (2026-08-14 23:54)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -50,15 +50,176 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 095e7b0dec5b now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 83745cacc8c0 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 2e3953f1f882 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 266/285 probed, 19 unprobed
 ```
 
-_stamped 2026-08-18 01:32_
+_stamped 2026-08-18 02:34_
 
 <!-- /GENERATED -->
+
+## ROADMAP #295 — SIX "SEMANTIC" DIVERGENCES, MEASURED AS STATE. FOUR WERE NARRATION, TWO WERE NOT. 2026-08-18.
+
+**Census 595 live / 0 missing -> 596 live / 0 missing.** The probe is `tests/test-mechanics.js`
+`move|sealsMoves` — *"Disable stops the move its target has ALREADY chosen this turn"*.
+
+### THE BAR WILL SET IS STATE EQUIVALENCE, AND THE PREMISE HELD
+
+Will, 2026-08-18: *"it looks at the game. the commentary can be different but it needs to lead to
+identical outcomes in all scenarios"*, and on being told MILTANK reads state rather than protocol,
+*"if so then it doesnt matter."*
+
+So the six top diverging rows of `data/all-mechanics-fire.json` on release `488fd1bf3f7c` were
+re-asked as a STATE question rather than a line question: both engines play the same scripted turns
+under one shared pin (`bottom-tie-first` — every sub-100 move hits, every secondary fires, MIN
+damage) and `engine/board_state.js` is read out of both at every turn boundary. 182–183 leaves per
+board. Showdown is the expectation; nothing is typed.
+
+| row | Showdown line vs ours | VERDICT | the state, measured |
+|---|---|---|---|
+| Regenerator | `-heal…[silent]` vs nothing | **ANNOUNCEMENT** | Reuniclus leaves at 104/185 and lands on the bench at **165/185 in BOTH** (+61 = floor(185/3)). The no-ability control leaves at 174/235 and stays 174/235 in BOTH. |
+| Cursed Body | `-start\|Disable\|Hydro Pump\|[from] cursedbody` vs an extra `-activate` | **ANNOUNCEMENT** | `medi _sealed="scald" disable=3` against `show volatiles.disable.move="scald" duration=3`, ticking 3→2 on both. Boards identical at every boundary. |
+| Toxic Debris | a missing `-activate` | **ANNOUNCEMENT** | toxicspikes 1 then 2 layers on both; the grounded switch-in is badly poisoned on both. Boards identical. |
+| Poltergeist | a missing `-activate\|Poltergeist\|Sitrus Berry` | **ANNOUNCEMENT** | into a Sitrus holder 173→72 on both (and the berry is consumed on both); into a body with NO item, 125/125 unchanged on both — the failure arm fires identically. |
+| Clangorous Soul | `-boost` before `-damage` vs after | **ANNOUNCEMENT** | four clicks: 150→101→52→3→3 and +1/+2/+3 on all five stats then a refusal, identical on both. The engine already charges `maxhp*33/100` (49), not a third (50), and refuses at the same floor. |
+| Soak | `-fail` vs `-start typechange` | **ANNOUNCEMENT, NARROWLY** | into a mono-Water body both end `water`; into a non-Water body both end `water`. See the caveat below — the *"the move failed"* flag itself is not a compared leaf. |
+| **Disable** | `-start\|Disable\|Agility` vs an unnamed `-start` | **STATE — REAL DEFECT** | the identity was never the problem. See below. |
+| **Dragon Darts** | `-crit` vs `-activate\|p2b\|Protect` | **STATE — REAL DEFECT, PP ONLY** | HP identical in both arms (Snorlax takes both darts at 61/235, the Protecting partner untouched). **PP: ours 1, Showdown 2** after turn one, ours 2 against 4 after turn two. |
+
+**The Dragon Darts knob is PRESSURE, and it was isolated with a control.** The identical board with
+`Unnerve` on the partner instead of `Pressure` is **BOARDS IDENTICAL AT EVERY BOUNDARY, PP included**.
+Dragon Darts is a `smartTarget` move, so the authority counts BOTH foes as targets and charges the
+Pressure surcharge for the one it did not aim at; this engine prices PP off the aimed body only. Not
+fixed here — it is a second wire and it belongs in its own batch.
+
+### DISABLE: THE SEAL IS RIGHT AND IT WAS NEVER ENFORCED ON THE TURN IT LANDS
+
+The identity and the clock were already correct — that is what makes this the interesting one, and it
+is why the missing move name in our `-start` line is **not** the defect it looks like. What was
+missing is Showdown's other handler. `disable`'s condition carries `onBeforeMovePriority: 7` and an
+`onBeforeMove` that emits `|cant|<body>|Disable|<move>` and returns false (`data/moves.ts:3698-3704`;
+`data/mods/champions/moves.ts` does not override `disable`, so mainline is the authority). This engine
+had the `onDisableMove` half — the menu filter in `chooseAction` — and not that one.
+
+Two staged boards, every die pinned and shared:
+
+|  | showdown | medicham2, before |
+|---|---|---|
+| Alakazam Disables Snorlax's **Body Slam** on the turn Snorlax clicks it | Alakazam **130/130** | Alakazam **0/130, FAINTED**, replaced by Milotic |
+| Alakazam Disables Snorlax's **Yawn**, aimed at Alakazam, same turn | no status, `yawn` pp spent **1** | **ASLEEP**, `yawn` pp spent **2** |
+
+A whole Pokemon in the first, a sleep and a wasted PP in the second. The refusal is now beside Taunt's
+at the same execution point, above the PP deduction (Showdown deducts PP *after* BeforeMove,
+`battle-actions.ts:282`), and `_lastMove` is deliberately not written, for the reason the Taunt gate
+already gives. `sealedMoveRefuses` is split out so the selection filter and the execution gate read
+ONE fact — CLAUDE.md's facts-are-global rule, and the same argument `volatileForbidsMove` makes one
+screen up. **Cursed Body's seal lands through the same two fields and inherits the fix.**
+
+### AND IT IMMEDIATELY EXPOSED A SECOND DEFECT, WHICH IS THE POINT OF ENFORCING A RULE
+
+`tests/test-mechanics.js` item/`choiceLock` flipped LIVE -> MISSING on the run that landed the gate.
+Not the gate: **`chooseAction`'s menu filter has always been a suggestion.** It narrows `me.moves` and
+hands the narrowed list down, and `_chooseAction`'s priors sampler picks by NAME out of `MC.priors`
+and never reads `me.moves` — a leak that probe's own comment has recorded as *"filed, not fixed here"*
+since ROADMAP #119. So a Disabled body could be handed its Disabled move, **and nothing noticed
+because execution played it anyway.** Enforcing the rule turned a wrong move into a wasted turn, which
+is how it surfaced.
+
+`chooseAction` now vets its own answer (`chooserPickedDisabledMove`, non-zero expected) and replaces a
+refused pick with a REAL legal move before it reaches for Struggle — one Disabled slot out of four
+leaves three buttons on the authority's screen, and answering that with Struggle would be a second
+wrong behaviour wearing the fix's clothes.
+
+**One probe read had to move with it, and it was the probe that was wrong.** `menuRun` returned every
+`|move|p1a` line in the run and the choiceLock probe indexed `played[2]` for "turn 3". That holds only
+while every turn emits exactly one move line — and turn 2 of that fixture is precisely a Disable
+landing before the Knock Off it seals, so the authority answers `|cant|` and now so do we. The index
+then pointed at nothing and BOTH arms read null, i.e. **the fix read as the defect**. `turnMoves[i]`
+names the turn instead of counting lines.
+
+### JOB 2 — THE COMPARATOR ALREADY EXISTS, AND ITS OWN RED DEMONSTRATION WAS FAILING
+
+The instruction was to make `engine/game_differential.js` align past announcement-only lines instead
+of truncating there. **It does not need a classification of protocol lines and it does not need to be
+built:** `--end-state` (ROADMAP #266) plays both engines to the turn cap WHATEVER either comparator
+already found and compares the LAST board, and `--state` stops at the first divergent BOARD and
+records the turn. `board_state.js` reads real state out of both engines — it never parses either
+engine's log — so the classification risk does not arise at all.
+
+**Measured, middle arm, `--team-store data/team-pool-frozen`, 982 games, 2m17s a side — BEFORE the
+Disable wire and AFTER it, same pinned pool, so the pair is comparable:**
+
+```
+  546 games whose PROTOCOL parted   (unchanged by the wire — it moves no LINE on this sample)
+      268 -> 269  SAME END STATE      — the mismatch was WORDING     49.3%
+      265 -> 264  DIFFERENT END STATE — a different battle           48.4%
+       13  ENDED APART         — one engine ended, one did not (a THIRD answer, counted neither way)
+        0  NO COMPARABLE BOARD      0  THREW
+  CONTROL: of the 436 games whose protocol NEVER parted — 431 SAME, 5 DIFFERENT
+  BY SHAPE (after):  ORDERING 75.5% wording   RULE 47.8%   FIELD 11.4%
+```
+
+Roughly **half** of the protocol divergence is wording, so the honest headline is that the second
+number is NOT much smaller than the first. Two things about that:
+
+- **`ORDERING` is 75.5% wording and `FIELD` is 10.5%.** *"Emission is mostly cosmetic"* is not a
+  single fact — it depends entirely on the family, which is why this is cross-tabbed and not pooled.
+- **THE CONTROL IS THE INTERESTING ROW. 5 of 436 games whose narration agreed all the way still
+  ended on different boards.** The protocol comparison misses state divergences too.
+
+**What would make the 268 wrong is an uncompared leaf, and one was found by measuring rather than
+guessed at.** `board_state.js`'s `partyMap` holds `{hp, maxhp, fainted}` and nothing else, so **a
+BENCHED body's item, status, ability and boosts are compared by nothing in this repository.** Three of
+the five candidate pairs in `tests/test-end-state.js` PART 3 had the planted item laundered exactly
+that way. Named leaves that are also not compared and could hide a real difference: Disable's own
+sealed move id, ability trapping, item disposition, `yawn`/`attract`/`curse`/`healblock`, destiny
+bond, the `magnetrise`/`syrupbomb` clocks, and which move a charge is committed to.
+
+**`tests/test-end-state.js` was RED, and it is the gate on that number.** PART 3 took
+`usedPair || PAIRS[0]` — PART 2's pair, chosen for parting EARLY and for nothing else — and that
+pair's CONTROL game already ended differing on `p2.active[0].item`, so the plant could not be
+attributed. The two clauses were right to refuse; the file simply had no way to act on its own advice
+(*"Choose another fixture"*) because it never chose one. The control is CONSTRUCTED now: candidates
+are screened for a clean control AND for the planted body still being on the field at the last
+boundary, and every rejection is printed with its reason. Shown RED on a deliberate break first —
+`item` forced to a constant in both readers gives `planted SAME-END-STATE … planted body still on the
+field: true` and two failures; reverted byte-for-byte, ALL GREEN.
+
+### THE HAND LIST
+
+**Leaving it:** the six rows above. Four are announcement-only with the state measured on both sides,
+and the two that are not now have owners.
+
+**Added, measured this pass and NOT fixed:**
+- **Dragon Darts does not pay Pressure for its second smart target.** PP only; HP is identical.
+  Isolated against an `Unnerve` control. One wire, its own batch.
+- **A benched body's item, status, ability and boosts are compared by nothing.** This is the leaf most
+  likely to be inflating the 268 SAME-END-STATE games, and it is a `board_state.js` change.
+- **The quarantine clause asks the wrong question.** `engine/status.js` fails
+  *"whole-game differential"* on **690 of 1230 = 56.1%** PROTOCOL divergences. Under Will's stated bar
+  the clause should be reading the END STATE, where about half of those reconverge. Changing it is a
+  MEASURE call, not an ENGINE one — the number below it moves by ~30 points and nothing gets better.
+- **Soak's *"the move failed"* flag** reaches Stomping Tantrum in the authority and is not a compared
+  leaf here. No legal Soak carrier in this format learns Stomping Tantrum, so it is filed rather than
+  probed.
+
+### NOT MINE, REPORTED — TWO RED GATES, NEITHER CAUSED BY THIS PASS
+
+- **`tests/staged_board.js` refuses to run.** Its fixture audit names **ten** illegal (species|move)
+  pairs across eight scenarios that are NOT on `data/fixture-learnset-baseline.json`'s seven:
+  clefable|trickroom, toxapex|swordsdance, weavile|uturn (×3), milotic|charm,
+  corviknight|allyswitch, snorlax|irondefense, kangaskhan|swordsdance, staraptor|swordsdance,
+  corviknight|swordsdance. *"THE SCENARIOS ARE WRONG. Nothing below would mean anything; refusing to
+  play them."* Each repair changes what its scenario measures, which is the file's own argument for
+  ratcheting — it is a batch, and it is stated here rather than filed.
+- **`tests/test-volatile-duration.js` reports 4/4 scenarios DIFFER.** Every difference is an HP
+  magnitude (`alakazam hp showdown=90 ours=86`), not a duration. **Confirmed pre-existing**: identical
+  output under `--engine release`, i.e. against a frozen snapshot that predates this pass.
+- `data/game-differential.json` carries `state_mode: false` and `end_state: null` — the published 690
+  was measured with the board comparison OFF entirely. The end-state figures above are from a run on
+  the PINNED pool (982 games), not that sample, and the two must not be read as the same denominator.
 
 ## ROADMAP #294 — THE ACCURACY ROLL IS PER TARGET. ROCK SLIDE CAN NOW HIT ONE AND MISS THE OTHER. 2026-08-18.
 

@@ -10,6 +10,64 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.37.0] — 2026-08-18
+
+### Fixed
+- **A DISABLED MOVE STILL EXECUTED, AND IT COST A WHOLE POKEMON IN THE STAGED FIXTURE.** Showdown's
+  `disable` condition carries `onBeforeMovePriority: 7` and an `onBeforeMove` that emits `|cant|` and
+  returns false (`data/moves.ts:3698-3704`; Champions does not override `disable`). This engine had only
+  the MENU half — the move was hidden from selection and, if chosen anyway, played normally. Measured
+  twice in different currencies: Disable on a Snorlax's Body Slam leaves the Alakazam at **130/130** in
+  the authority and at **0/130, FAINTED** here; Disable on its Yawn leaves no status in the authority
+  and an **ASLEEP** body here, with 2 PP spent against 1. `sealedMoveRefuses` is split out so the
+  selection filter and the new execution gate read ONE fact, and the gate sits beside Taunt's, above the
+  PP deduction. Cursed Body inherits it. Census **595 -> 596 live, 0 missing**; probe
+  `tests/test-mechanics.js` `move|sealsMoves`, shown RED first with both arms identical at 44 HP.
+- **AND THE FIX IMMEDIATELY EXPOSED WHY NOTHING HAD NOTICED.** `item|choiceLock` flipped LIVE -> MISSING
+  the moment execution started refusing: `chooseAction`'s menu filter has always been a SUGGESTION,
+  because the priors sampler picks a move by NAME out of `MC.priors` and never reads `me.moves`. A
+  Disabled — or Choice-locked — body could be handed an illegal move and **execution played it anyway,
+  so the two bugs concealed each other.** `chooseAction` now vets its own answer
+  (`chooserPickedDisabledMove`) and substitutes a legal move before reaching for Struggle.
+
+### Notes
+- **REGENERATOR IS NOT A DEFECT AND THE ROW THAT SAID SO WAS READ WRONG.** It was filed here as the one
+  "missing event" likely to be hiding a real state bug, on the reasoning that `-heal|1068/1068|[silent]`
+  is an HP change rather than an announcement. **Measured on both engines: the HP is restored exactly.**
+  A Reuniclus leaving at 104/185 arrives on the bench at **165/185 in BOTH** (+61 = `floor(185/3)`), and
+  the no-ability control is unchanged in both. The divergence is narration.
+- **THE STATE COMPARATOR ALREADY EXISTED AND DID NOT NEED BUILDING.** `--end-state` and `--state` are
+  both in `engine/game_differential.js`, and `engine/board_state.js` reads engine STATE rather than the
+  protocol stream, so the line-classification risk this work was briefed to avoid does not arise.
+- **HALF OF THE PROTOCOL DIVERGENCE IS REAL.** Middle arm, pinned 982-game pool, 2m17s: of **546 games
+  whose protocol parted**, 269 end on the **SAME** board (49.3%), 264 on a **DIFFERENT** one (48.4%), and
+  13 ended apart and are counted as neither. **The control row is the one to read: of 436 games whose
+  narration never parted at all, 5 still ended on different boards** — so the protocol comparison misses
+  state divergences as well as inventing them.
+- **AND THE BOARD COMPARISON HAS A HOLE BIG ENOUGH TO LAUNDER A PLANTED ITEM.** `board_state.js`'s
+  `partyMap` holds `{hp, maxhp, fainted}` only, so **a BENCHED body's item, status, ability and boosts
+  are compared by nothing in this repository** — three of five candidate pairs in the end-state test had
+  a planted item hidden exactly that way. Also uncompared: the sealed move's identity, ability trapping,
+  item disposition, yawn/attract/curse/healblock, destiny bond, and the magnetrise/syrupbomb clocks. The
+  269 is therefore an UPPER BOUND on "cosmetic", not a measurement of it.
+- `tests/test-end-state.js` was RED and is the gate on that number: PART 3 reused PART 2's pair, whose
+  control had already parted on `p2.active[0].item`. The control is constructed now, screened for a clean
+  control AND for the planted body still being on the field, with every rejection printed. Shown RED on a
+  deliberate break, then reverted byte-for-byte.
+- **DENOMINATORS DO NOT MATCH AND MUST NOT BE MERGED.** The published `data/game-differential.json`
+  carries `state_mode: false, end_state: null` — **the 690 was measured with the board comparison off
+  entirely** — and the figures above come from the pinned 982-game pool. They are two samples.
+- **Two red gates found, neither caused here, neither filed as "known":** `tests/staged_board.js` refuses
+  to run on ten illegal (species|move) fixture pairs absent from `data/fixture-learnset-baseline.json`,
+  and each repair changes what its scenario measures, so it is a batch of its own.
+  `tests/test-volatile-duration.js` reports 4/4 DIFFER and every difference is an HP magnitude rather
+  than a duration — confirmed pre-existing, identical output under `--engine release`.
+- **Dragon Darts is a real state divergence, PP only, and is NOT fixed here.** HP is identical in both
+  arms; PP reads 1 against the authority's 2 after turn one. Isolated with a control — the same board
+  with Unnerve instead of Pressure is boards-identical including PP. Its own batch.
+
+---
+
 ## [5.36.0] — 2026-08-18
 
 ### Changed
