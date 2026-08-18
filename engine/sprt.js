@@ -102,6 +102,13 @@ const LLR_LOSS = Math.log((1 - P1) / (1 - P0));
  *
  * So: read in chunks and keep the tail between them, and let a read error THROW. A tool that cannot
  * read its input must say that, not report zero. */
+/* TORN LINES ARE COUNTED, NOT DISCARDED (ROADMAP #258). An append-only store legitimately ends in a
+ * partial line, so a torn line must not throw — but "the store had 4,000 unparseable lines" and "the
+ * store was clean" arrived here as the same silence, and this file's own header records what that
+ * costs: a read failure reported as `no records read`. The count is exported so a caller that cares
+ * can assert on it, and the CLI prints it whenever it is non-zero. */
+const TORN = { lines: 0, files: 0 };
+
 function lineStream(file, onRow) {
   const CHUNK = 1 << 22;                                  // 4 MB
   const buf = Buffer.allocUnsafe(CHUNK);
@@ -117,17 +124,21 @@ function lineStream(file, onRow) {
       tail = lines.pop();                                 // possibly a partial line; carry it
       for (const line of lines) {
         const t = line.trim(); if (!t) continue;
-        let g; try { g = JSON.parse(t); } catch (e) { continue; }   // a torn line is not a read failure
+        let g; try { g = JSON.parse(t); } catch (e) { TORN.lines++; continue; }   // torn, not a read failure — but counted
         if (g && g.selfplay) onRow(g);
       }
     }
     const t = tail.trim();
-    if (t) { try { const g = JSON.parse(t); if (g && g.selfplay) onRow(g); } catch (e) { /* truncated */ } }
-  } finally { try { fs.closeSync(fd); } catch (e) { /* already closed */ } }
+    if (t) { try { const g = JSON.parse(t); if (g && g.selfplay) onRow(g); } catch (e) { TORN.lines++; TORN.files++; } }
+  } finally { try { fs.closeSync(fd); } catch (e) { console.error('sprt: could not close ' + file + ' — ' + e.message); } }
 }
 
 function filesFor(target) {
-  const st = (() => { try { return fs.statSync(target); } catch (e) { return null; } })();
+  /* AN ABSENT TARGET AND AN UNREADABLE ONE ARE DIFFERENT SITUATIONS. Both used to return null and
+   * both then fell through to `[target]`, so a directory that could not be listed was read as a
+   * single file and produced zero games — the shape this file's header is about. */
+  const st = (() => { try { return fs.statSync(target); }
+    catch (e) { if (e.code !== 'ENOENT') console.error('sprt: cannot stat ' + target + ' — ' + e.message); return null; } })();
   if (st && st.isDirectory()) {
     return fs.readdirSync(target)
       .filter(f => /\.jsonl$/.test(f) && !/raw-logs/.test(f))
@@ -251,6 +262,9 @@ function report(c, r, gamesSeen) {
   console.log(`  NEW  =  arm 1, --policy/--weights/--greedy    ${short(a.new)}`);
   console.log(`  OLD  =  arm 2, --policy2/--weights2/--greedy2 ${short(a.old)}\n`);
   console.log(`  games read        ${gamesSeen.toLocaleString()}`);
+  /* PRINTED ONLY WHEN NON-ZERO, and non-zero is a fact about the run rather than about the tool:
+   * a store that ends mid-line is normal, thousands of torn lines is a farm that died writing. */
+  if (TORN.lines) console.log(`  torn lines        ${TORN.lines.toLocaleString()}   unparseable and skipped (${TORN.files} at a file's end, which is normal)`);
   console.log(`  pairs             ${c.pairs.toLocaleString()}`);
   console.log(`  2-0 to NEW        ${String(c.both).padStart(7)}   ${pct(c.both, c.pairs)}`);
   console.log(`  1-1 split         ${String(c.split).padStart(7)}   ${pct(c.split, c.pairs)}   <- the team decided it, discarded`);

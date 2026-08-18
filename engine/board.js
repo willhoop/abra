@@ -545,6 +545,15 @@ const PRIOR_FLOOR = 0.0005;
  * a field that can silently drift out of sync with the simulator and produce features that look
  * plausible and are wrong.
  * ------------------------------------------------------------------------------------------- */
+/* PROOF THAT THE WEATHER CLOCK RAN — ROADMAP #276, and the rule is CLAUDE.md's: a capability that
+ * cannot prove it ran is assumed broken. `up` and `expired` are the two live answers; everything else
+ * is a REFUSAL to expire, and each one is a different reason the board must leave the sky alone.
+ * `setRockless` is the declared limitation from #270 arriving as a number rather than as prose: the
+ * store's `w` event names no setter, so a Heat Rock sun is clocked at its base length and ends three
+ * turns early. Erring SHORT is the direction #270 already chose and this counts what it costs. */
+const weatherCounters = { up: 0, expired: 0, unknownAge: 0, noEngine: 0, noLength: 0, lengthThrew: 0,
+                          setRockless: 0, reDeclared: 0, rockLearnedLate: 0 };
+
 class Board {
   constructor() {
     this.turn = 0;
@@ -617,11 +626,34 @@ class Board {
      * turns and pivoted out comes back two turns in and no deeper. */
     this.statusClock = { p1: {}, p2: {} };
     this.pseudoWeather = new Map();
-    this.weather = '';
     /* When the current weather was set, and what the setter was holding (ROADMAP #270). See
      * `setWeather` for why the LENGTH is not recorded here. */
     this.weatherSince = 0;
     this.weatherRock = '';
+    /* *** THE WEATHER EXPIRES FOR THE FEATURES TOO — ROADMAP #276. ***
+     *
+     * #270 gave the SEED a clock and deliberately left this field a bare string, so `deadWeather` and
+     * every weather-scaled read believed a five-turn sun was still up on turn forty. Sized on the same
+     * store scan as #270: a weather is up at 32.2% of decision points with a mean of 2.95 turns left,
+     * so the population where the board was wrong about the sky is large.
+     *
+     * IT IS AN ACCESSOR, THE SHAPE #271's ITEM USED, AND FOR THE IDENTICAL REASON. Expiring it by
+     * writing a second field — `weatherNow`, say — would leave the board holding two answers to one
+     * question, which is exactly what made a knocked-off Life Orb keep multiplying damage. Every
+     * existing reader of `board.weather` (`deadWeather`, `weatherKind`, `boardStub`, `monSpeedMult`,
+     * `entryEffects`, and every caller outside this file) asks the clock now without being edited.
+     *
+     * THE WORD IS STILL RECORDED. `weatherWord()` returns what was set whatever the clock says,
+     * because the SEED needs to tell "no weather" from "a weather that has run out" — and so does the
+     * counter that proves this fired. */
+    Object.defineProperty(this, '_weatherWord', {
+      enumerable: false, configurable: true, writable: true, value: '',
+    });
+    Object.defineProperty(this, 'weather', {
+      enumerable: true, configurable: true,
+      get: () => (this.weatherLeft() === 0 ? '' : this._weatherWord),
+      set: (v) => { this.setWeather(v); },
+    });
     /* Counted, not hidden: when a stored target name matches a species on both sides we cannot tell
      * which one was hit. The caller reports this so an ambiguity that grows is noticed. */
     this.ambiguousTargets = 0;
@@ -734,28 +766,92 @@ class Board {
    * gave the two weather paths different answers in the first place. The board says WHEN and WITH
    * WHAT; the seed asks the engine HOW LONG.
    *
-   * NOTHING ELSE MOVES. `this.weather` keeps meaning exactly what it meant, so every weather FEATURE
-   * — `deadWeather`, the weather-boost reads — is byte-identical and no refit is owed by this. That
-   * the board's weather never expires for those features either is a real and separate defect; it is
-   * filed rather than fixed here, because expiring it moves fitted values.
+   * SINCE #276 IT EXPIRES FOR THE FEATURES TOO. `this.weather` is the accessor defined in the
+   * constructor; what is recorded here is the WORD and the two facts the clock is computed from.
    *
    * THE ROCK IS KNOWN ONLY ON THE MOVE PATH. `noteMove` has the user in hand; the live `-weather`
    * event names no setter, so an ability-set weather is recorded rockless and reads its base length.
    * Erring SHORT is the safe direction — the playout ends the weather early rather than running it
-   * for the whole game, which is the defect this row is about. */
+   * for the whole game, which is the defect this row is about.
+   *
+   * *** RE-DECLARING A WEATHER THAT IS ALREADY UP DOES NOT RESTART IT, AND WITHOUT THAT #276 IS A
+   * NO-OP. *** Showdown's `Field#setWeather` refuses a weather that is already active
+   * (`sim/field.ts`, quoted at medicham2-browser.js:10745), and both of this project's worlds
+   * announce one weather twice: `noteMove` sets it from the CLICK and the store's own `w` event —
+   * or the live `|-weather|` line — sets it again in the same turn. Restarting `weatherSince` on
+   * that echo would reset the age to zero on the turn it was laid, every turn it was laid, and
+   * nothing would ever reach its length. The echo is also where the ROCK is lost, so a rock is
+   * adopted when one arrives and is never overwritten with the empty string.
+   *
+   * A weather that has already RUN OUT is not "already up", so setting the same weather again after
+   * it lapsed starts a fresh clock — which is the case the naive idempotence gets wrong. */
   setWeather(w, opts) {
-    this.weather = norm(w);
+    const word = norm(w);
+    const rock = norm((opts && opts.rock) || '');
+    if (word && word === this._weatherWord && this.weatherLeft() !== 0) {
+      weatherCounters.reDeclared++;
+      if (rock && !this.weatherRock) { this.weatherRock = rock; weatherCounters.rockLearnedLate++; }
+      return;
+    }
+    this._weatherWord = word;
     this.weatherSince = this.turn;
-    this.weatherRock = norm((opts && opts.rock) || '');
+    this.weatherRock = rock;
+    if (word && !rock) weatherCounters.setRockless++;
   }
+
+  /* THE WORD, WHATEVER THE CLOCK SAYS (ROADMAP #276). `weather` is the accessor and answers the
+   * feature's question — is there weather NOW. The seed and every counter need the other half, in
+   * exactly the shape `sideLeft` sits beside `hasSide`. */
+  weatherWord() { return this._weatherWord || ''; }
 
   /* How many turns this weather has already run, or null when the board never saw it start (a Board
    * built before this landed, or one whose weather was assigned directly). Null is not 0: the seed
    * must be able to tell "set this turn" from "no idea", and treating the second as the first is how
    * a defaulted clock becomes a silent one. */
   weatherAge() {
-    if (!this.weather) return null;
+    if (!this._weatherWord) return null;
     return typeof this.weatherSince === 'number' ? Math.max(0, this.turn - this.weatherSince) : null;
+  }
+
+  /* *** HOW MANY TURNS ARE LEFT ON THE WEATHER — ROADMAP #276, AND IT IS THE ONLY IMPLEMENTATION. ***
+   *
+   * `null` means "cannot say" and is NOT zero: no weather at all, an age the board never saw, or an
+   * engine that cannot state a length. Every one of those is a reason to leave the weather alone
+   * rather than to delete it, because inventing an expiry is the same class of error as never having
+   * one, and only one of the two is the defect being fixed.
+   *
+   * THE LENGTH IS ASKED OF THE ENGINE AND IS NOT ARITHMETIC THIS FILE OWNS. `MEDI.weatherTurns(word,
+   * rock, TAGS)` is the one implementation — `rollout_leaf.applyFieldClock` and
+   * `applyMegaWeather` both call it — so a Heat Rock, an Icy Rock or a regulation that re-lengths a
+   * weather moves the board, the seed and the playout together. A second copy here is the
+   * FACTS-ARE-GLOBAL breach that gave the two weather paths different answers in the first place.
+   *
+   * IT IS THE COUNT REMAINING, so 0 is "it has run out" and is what the accessor reads. The seed's
+   * own arithmetic (`full - age`, ROADMAP #270) is this expression and now calls it. */
+  weatherLeft() {
+    const w = this._weatherWord;
+    if (!w) return null;
+    const age = this.weatherAge();
+    if (age == null) { weatherCounters.unknownAge++; return null; }
+    /* MEMOISED ON (word, rock) BECAUSE THIS IS THE HOTTEST READ IN THE FILE. `board.weather` is asked
+     * once per candidate by `boardStub`, `weatherKind`, `monSpeedMult` and the dead-move family, and
+     * `weatherTurns` does a tag lookup every call. The key is the pair the answer depends on, so a new
+     * weather or a newly-learned rock invalidates it and nothing else can. */
+    const key = w + '|' + (this.weatherRock || '');
+    let full = this._wFullKey === key ? this._wFull : null;
+    if (full == null) {
+      const D = damageEngine();
+      if (!D || typeof D.weatherTurns !== 'function') { weatherCounters.noEngine++; return null; }
+      try { full = D.weatherTurns(w, this.weatherRock || '', tagsMod() || undefined) | 0; }
+      catch (e) { weatherCounters.lengthThrew++; return null; }
+      Object.defineProperty(this, '_wFullKey', { enumerable: false, configurable: true, writable: true, value: key });
+      Object.defineProperty(this, '_wFull', { enumerable: false, configurable: true, writable: true, value: full });
+    }
+    if (!(full > 0)) { weatherCounters.noLength++; return null; }
+    const left = full - age;
+    if (left > 0) { weatherCounters.up++; return left; }
+    weatherCounters.expired++;
+    return 0;
   }
 
   slot(side, letter) { return this.sides[side].active[letter] || null; }
@@ -1235,6 +1331,7 @@ const dmgFailures = { unavailable: 0, unknownSpecies: 0, weatherUntranslated: 0 
  * capped. */
 const probeFailures = {
   onModifyMove_accuracy: 0,   // moveAccuracy(): fell back to the PRINTED accuracy
+  onModifyMove_power: 0,      // movePower(): the ModifyMove handler threw before the callback ran
   onModifyType: 0,            // moveType(): fell back to the move's declared type
   onChangeBoost: 0,           // fell back to the UNMODIFIED boost table
   onStart_ability: 0,         // entry-effect probe produced nothing
@@ -2987,6 +3084,70 @@ function boardStub(board, dex) {
  * Iron Ball and Float Stone change weight and are not modelled: both are under 0.1% of held items
  * here, and inventing an item the target probably does not have would be a worse error than the one
  * being fixed. */
+/* *** AND THE STATE THE STUB DID NOT BUILD — ROADMAP #283, THE REMAINDER OF #244. ***
+ *
+ * The stub's `side` was the literal `{ sideConditions: {} }`, so Last Respects'
+ * `50 + 50 * pokemon.side.totalFainted` returned **NaN**, the `bp > 0` guard rejected it, and the
+ * printed 50 was used — in every damage FEATURE MAG ranks an action with, at every depth of the game,
+ * on 7,306 corpus uses. #244 closed the SEED; this is the other half and it is a CLASS.
+ *
+ * THE CLASS WAS DERIVED, NOT LISTED, AND THE LIST THAT EXISTED WAS WRONG IN BOTH DIRECTIONS.
+ * `data/seed-source-audit.json` named six members by SUBSTRING-MATCHING the callback source against a
+ * hand-typed set of fifteen field names — the ban-list-of-four shape CLAUDE.md warns about. It caught
+ * Water Shuriken on the `battle` inside `hasAbility("battlebond")` (the callback answers 15 perfectly
+ * well) and MISSED Triple Axel (899 uses), Rage Fist (585) and Avalanche (29), none of whose fields
+ * are in that set. `unmodelledBasePower()` below asks the callbacks instead: a member is a callback
+ * that THROWS or returns a non-number against this stub, which is the defect itself rather than a
+ * proxy for it, and it cannot go stale.
+ *
+ * WHAT IS SUPPLIED, and each one is a fact the board already holds:
+ *   totalFainted   `graveyard[side].size` — the side's own death record, which `faint()` writes before
+ *                  the replacement arrives, exactly as Showdown's `faintMessages()` increments
+ *                  `side.totalFainted` before anything asks for one. (Last Respects.)
+ *   side.pokemon   the party, so the format's OWN `onModifyMove` can build `move.allies`. Beat Up threw
+ *                  on `move.allies.shift()` and fell back to its printed **0**, so `damaging` was false
+ *                  and 337 corpus uses were scored as a STATUS MOVE — the Rock Slide bug again.
+ *   move.hit       1, the first hit. `20 * move.hit` is NaN without it. The ANSWER does not move (20
+ *                  either way); what moves is that the printed value stops being a silent fallback.
+ *
+ * `onModifyMove` IS RUN ON A COPY AND THE BLAST RADIUS WAS MEASURED RATHER THAN ASSUMED: of the 29
+ * legal moves carrying a `basePowerCallback`, **exactly one** also carries an `onModifyMove`, and it
+ * is Beat Up. Showdown runs ModifyMove before `getDamage` reads the callback, so this is the real
+ * order and not a special case; a regulation that adds a second such move is handled with no edit. The
+ * copy exists because `move.allies.shift()` MUTATES, and mutating the dex's own move object would
+ * corrupt it for every later reader in the process.
+ *
+ * WHAT IS REFUSED, BY NAME, WITH A REASON — because a silent omission and a considered one look
+ * identical in the code. `unmodelledBasePower()` prints these rather than this comment owning a list:
+ *   Rage Fist      `pokemon.timesAttacked`  — the board keeps no per-body hit ledger, and inventing
+ *                  one would need a write in the live adapter AND in the offline replay or the fit and
+ *                  the player would diverge, which is the error CLAUDE.md opens with.
+ *   Avalanche      `pokemon.attackedBy`     — same ledger, plus damage attribution within the turn.
+ *   Payback        `this.queue.willMove`    — whether the target has already acted is the TURN'S
+ *                  resolution order, which is the search's question and not a board fact. 7 uses.
+ *   Assurance      `target.hurtThisTurn`    — this one COMPUTES (60, the printed value) and is correct
+ *                  where it is asked: a decision point is the top of a turn, nothing has been hurt yet,
+ *                  and Showdown clears `hurtThisTurn` at `nextTurn`. Pricing the doubled case means
+ *                  predicting the turn, which is the same refusal as Payback's.
+ *   Spit Up        returns `false` — "the move fails" — which is CORRECT with no Stockpile up, and the
+ *                  board records no layer count, so supplying a volatile it cannot depth would invent
+ *                  a number. 0 corpus uses. */
+const bpCounters = { computed: 0, printed: 0, threw: 0, notANumber: 0, failed: 0,
+                     fallenSupplied: 0, sideUnknown: 0, alliesBuilt: 0, partyUnknown: 0 };
+
+/* WHICH SIDE IS THIS BODY ON. Identity against the four active slots, because the slot objects are the
+ * ones every caller passes and `switchIn` rebuilds them; a species match would answer wrongly in a
+ * mirror, and 58.63% of corpus games are one (engine/click_match.js). Null when it cannot be said, and
+ * the caller counts it rather than defaulting to p1. */
+function sideOfMon(board, mo) {
+  if (!board || !mo || !board.sides) return null;
+  for (const side of ['p1', 'p2']) {
+    const act = board.sides[side] && board.sides[side].active;
+    for (const L of Object.keys(act || {})) if (act[L] === mo) return side;
+  }
+  return null;
+}
+
 function movePower(m, board, dex, user, target) {
   if (!m) return 0;
   if (typeof m.basePowerCallback !== 'function') return m.basePower || 0;
@@ -2995,7 +3156,13 @@ function movePower(m, board, dex, user, target) {
     const bs = sp && sp.exists ? sp.baseStats : null;
     const lines = mo ? spreadLines(mo.species, dex, mo.nature) : null;
     const st = lines && lines.length ? lines[0].st : null;
-    return {
+    const sd = sideOfMon(board, mo);
+    if (mo && !sd) bpCounters.sideUnknown++;
+    /* THE SIDE IS THE BOARD'S, NOT A LITERAL (#283). `sideConditions` stays an empty object — the
+     * callbacks that read it are not in this regulation — and `totalFainted` is the graveyard. */
+    const fallen = (sd && board && board.graveyard && board.graveyard[sd]) ? board.graveyard[sd].size : 0;
+    if (fallen > 0) bpCounters.fallenSupplied++;
+    const self = {
       /* Showdown weighs in hectograms and getWeight returns exactly that. */
       getWeight: () => (sp && sp.exists ? (sp.weighthg || 1) : 1),
       getStat: (k) => {
@@ -3007,15 +3174,83 @@ function movePower(m, board, dex, user, target) {
       hp: Math.max(1, Math.round(100 * (mo && typeof mo.hp === 'number' ? mo.hp : 1))), maxhp: 100,
       positiveBoosts: () => 0, volatiles: {}, status: (mo && mo.status) || '',
       hasType: () => false, hasAbility: () => false, hasItem: () => false, getItem: () => ({}),
-      side: { sideConditions: {} }, species: { name: mo ? mo.species : '' },
+      fainted: !!(mo && mo.fainted),
+      /* `.set.species` is what Beat Up's callback reads off whatever it shifts, so the body has to
+       * carry it in the same shape a real one does. */
+      set: { species: mo ? mo.species : '' },
+      side: { sideConditions: {}, totalFainted: fallen, pokemon: [] },
+      species: { name: mo ? mo.species : '' },
     };
+    /* THE PARTY, so the FORMAT builds the ally list rather than this file re-implementing its filter.
+     * The user's own body is spliced in by identity, because Showdown's filter keeps `ally === pokemon`
+     * whatever its status, and a rebuilt copy would not be that object. */
+    if (sd && board.party && board.party[sd] && board.party[sd].length) {
+      const meBase = baseSpecies((mo && (mo.base || mo.species)) || '');
+      for (const spc of board.party[sd]) {
+        if (baseSpecies(spc) === meBase) { self.side.pokemon.push(self); continue; }
+        const onField = board.field().find(f => f.side === sd && baseSpecies(f.mon.species) === baseSpecies(spc));
+        const seen = (board.lastSeen && board.lastSeen[sd] && board.lastSeen[sd][baseSpecies(spc)]) || null;
+        self.side.pokemon.push({
+          set: { species: spc }, species: { name: spc },
+          fainted: !!(board.graveyard && board.graveyard[sd] && board.graveyard[sd].has(baseSpecies(spc))),
+          status: (onField && onField.mon.status) || (seen && seen.status) || '',
+        });
+      }
+      bpCounters.alliesBuilt++;
+    } else if (mo) { self.side.pokemon.push(self); bpCounters.partyUnknown++; }
+    return self;
   };
+  /* A COPY, because a callback may MUTATE it (`move.allies.shift()`) and because `hit` has to be
+   * written somewhere that is not the dex's own object. `Object.create` rather than a spread: a dex
+   * Move carries its data on the instance and its behaviour on the prototype, and a spread drops the
+   * second half. */
+  const mv = Object.create(m);
+  mv.hit = 1;
+  const ctx = boardStub(board, dex);
+  const u = mon(user), t = mon(target);
+  if (typeof m.onModifyMove === 'function') {
+    try { m.onModifyMove.call(ctx, mv, u, t); } catch (e) { probeFailures.onModifyMove_power++; }
+  }
   try {
-    const bp = m.basePowerCallback.call(boardStub(board, dex), mon(user), mon(target), m);
-    if (typeof bp === 'number' && bp > 0) return bp;
-    if (bp === false) return 0;
-  } catch (e) { /* fall through */ }
+    const bp = m.basePowerCallback.call(ctx, u, t, mv);
+    if (typeof bp !== 'number') {
+      if (bp === false) { bpCounters.failed++; return 0; }
+      bpCounters.notANumber++;
+    } else if (!isFinite(bp)) bpCounters.notANumber++;
+    else if (bp > 0) { bpCounters.computed++; return bp; }
+    else { bpCounters.failed++; return 0; }
+  } catch (e) { bpCounters.threw++; }
+  bpCounters.printed++;
   return m.basePower || 0;
+}
+
+/* *** WHICH CALLBACKS STILL FALL BACK, ASKED OF THE FORMAT — ROADMAP #283. ***
+ *
+ * The shape is `rollout_leaf.unseededVolatiles()`'s and the reason is the same one: a refusal that is
+ * only a comment is indistinguishable from an oversight. This walks every LEGAL move carrying a
+ * `basePowerCallback` (`x.exists && !x.isNonstandard && x.tier !== 'Illegal'` — an unfiltered walk is
+ * the National Dex wearing the format's name) and reports the ones whose callback cannot produce a
+ * number against the stub, so the printed value is a FALLBACK rather than an answer.
+ *
+ * `false` is NOT a member: it is the callback saying the move fails, which is a real answer.
+ *
+ * The board it asks on is the caller's, so this doubles as a live probe: on a position with two in the
+ * ground Last Respects must be absent from the result and must read 150. */
+function unmodelledBasePower(dex, board) {
+  if (!dex || typeof dex.moves !== 'object') return [];
+  const bd = board || new Board();
+  const u = bd.slot('p1', 'a'), t = bd.slot('p2', 'a');
+  const out = [];
+  for (const m of dex.moves.all()) {
+    if (!m.exists || m.isNonstandard || m.tier === 'Illegal') continue;
+    if (typeof m.basePowerCallback !== 'function') continue;
+    const before = bpCounters.threw + bpCounters.notANumber;
+    const got = movePower(m, bd, dex, u, t);
+    if (bpCounters.threw + bpCounters.notANumber > before) {
+      out.push({ id: m.id, name: m.name, printed: m.basePower || 0, used: got });
+    }
+  }
+  return out;
 }
 
 /* Accuracy AFTER the board has had its say. `true` means "cannot miss" and is not the number 1. */
@@ -4200,6 +4435,7 @@ const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDE
    * `choiceLockOn` is the one implementation of the lock that `candidates()` and the seed both ask.
    * `bodyCounters` is the proof-of-firing surface for all three, and `speedSideUnknown` counting up
    * means the seed is reading a Tailwind key from neither the format nor the tag. */
-  ppCounters, sideCounters, bodyCounters, speedSideKeys, roomFieldKey, choiceLockOn, PP: _PP };
+  ppCounters, sideCounters, bodyCounters, weatherCounters, bpCounters, unmodelledBasePower,
+  speedSideKeys, roomFieldKey, choiceLockOn, PP: _PP };
 if (typeof module !== 'undefined' && module.exports) module.exports = _EXPORTS;
 if (typeof globalThis !== 'undefined') globalThis.BOARD = _EXPORTS;

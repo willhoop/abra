@@ -1,28 +1,237 @@
 {
-  "generated": "2026-08-18T02:12:01.847Z",
+  "generated": "2026-08-18T02:45:59.937Z",
   "by": "engine/register_reality.js",
   "what": "Every register row that names the instrument deciding it, run, with its exit code compared to the row's open/closed status.",
   "why": "docs/ROADMAP.md is read by engine/quarantine.js as a GATE INPUT and nothing checked it against reality. On 2026-08-14 four rows were stale rather than live and two of them were put in front of a human as the place to start. A row nobody re-verifies is prose.",
   "weaker_than_it_looks": "A green instrument means THAT instrument sees nothing. It is not a derivation of the row's claim. It is strictly more than the register had, which was nothing.",
   "counts": {
     "register_rows": 206,
+    "id_rows": 251,
     "open_asserting_breakage": 4,
-    "marked": 2,
+    "marked": 19,
     "open_asserting_breakage_and_marked": 1,
     "stale_rows": 0,
     "premature_closes": 0,
-    "unrunnable": 0
+    "unrunnable": 0,
+    "instrument_owed": 3,
+    "open_asserting_breakage_and_owed": 3,
+    "distinct_commands_run": 12
   },
+  "instrument_owed": [
+    {
+      "n": 241,
+      "owes": "a gate that FAILS on a `-fail` the authority emits and this engine does not. Nothing decides this row by exit code today — `engine/game_differential.js` MEASURES the class and deliberately exits 0 on it (*a divergence is a FINDING*, its own header), and `tests/test-game-differential.js` fails only when the INSTRUMENT is wrong. What is owed is a ratchet over the emission-gap count, and the artifact must be RE-RUN before it can carry one: `data/game-differential.json` is stamped 2026-08-13 against release 0c5bb83c5744, five landings ago on these very emission paths.",
+      "title": "PART (3) ONLY: EIGHT CAUSES WHERE THE AUTHORITY ANNOUNCES A FAILURE AND THIS ENGINE SAYS N"
+    },
+    {
+      "n": 276,
+      "owes": "a gate that sets a weather on the board, advances past `MEDI.weatherTurns`, and FAILS while `board.weather` still names it and `deadWeather` still reads false. `tests/test-seed-clock.js` is GREEN and decides #270 — the SEED clock — not the board own field, so a VERIFIED BY pointed at it would make a live defect read CONFIRMED.",
+      "title": "THE BOARD'S WEATHER NEVER EXPIRES FOR THE FEATURES EITHER, SO `deadWeather` AND EVERY WEAT"
+    },
+    {
+      "n": 283,
+      "owes": "a gate that FAILS while `board.movePower` returns the printed floor for the 6 `basePowerCallback` moves `data/seed-source-audit.json` enumerates as reading state the stub does not build. `tests/test-rollout-fallen.js` is GREEN and decides #244/#245/#246 — the SEED roster — not the feature path; `engine/seed_source_audit.js` counts the class and always exits 0.",
+      "title": "`board.movePower` BUILDS NO `side.totalFainted`, SO THE FEATURE VECTOR PRICES A FALLEN-COU"
+    }
+  ],
   "results": [
+    {
+      "n": 90,
+      "title": "THE PERISH SONG KO IS PROVEN — CLOSED 2026-08-11, 5.4.0.** Will, 2026-08-07: *\"the counter",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-perish-song.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 1188,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 92,
+      "title": "THE DAMAGE-STAGE CLASS — DONE, 3.72.0.** We applied multipliers at the wrong STAGE and oft",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-damage-stages.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 2252,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 203,
+      "title": "THE FORME ASSERT-MODE IS BUILT AND IT FOUND A FOURTH ENGINE DEFECT ON ITS FIRST RUN — 2026",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-forme-assert.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 1227,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 242,
+      "title": "A DURATION-ONLY EFFECT EXPIRES FROM INSIDE THE RESIDUAL WALK AND OUR DERIVED ORDER TABLE C",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-residual-order-population.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 642,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 244,
+      "title": "THE ROLLOUT SEED DROPS THE DEAD, SO EVERY PLAYOUT BELIEVES NOBODY HAS DIED — WILL, 2026-08",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-rollout-fallen.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 198,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 245,
+      "title": "THE GUARD BUILT FOR THIS EXACT BUG CANNOT SEE IT, BECAUSE IT WATCHES FOR AN ABSENT ROSTER ",
+      "closed": true,
+      "saysBroken": true,
+      "cmd": "node tests/test-rollout-fallen.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 198,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 246,
+      "title": "`battleInit` STAMPS `fainted: 0` AND THE RECOUNT IS AT TURN END, SO THE FIRST TURN OF EVER",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-rollout-fallen.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 198,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 247,
+      "title": "SUPREME OVERLORD'S ENTRY SNAPSHOT IS UNSEEDABLE, SO EVERY SEEDED BODY ENTERS THE PLAYOUT W",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-rollout-seed.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 705,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 249,
+      "title": "THE SEEDED PLAYOUT HAS NO HAZARDS, NO SCREENS AND NO GRAVITY, AND NOTHING SAYS SO — 2026-0",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-rollout-seed.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 705,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 250,
+      "title": "EVERY SEEDED BODY CAN FAKE OUT, BECAUSE `_mvActs` IS 0 ON A BODY THAT HAS BEEN OUT FOR SIX",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-rollout-seed.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 705,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
     {
       "n": 258,
       "title": "SEVENTY-FIVE SILENT CATCH BLOCKS ABOVE THE FLOOR, 41 OF THEM MANUFACTURING A VALUE, ALL IN",
       "closed": false,
       "saysBroken": true,
       "cmd": "node tests/test-no-silent-failure.js",
+      "owed": null,
       "green": false,
       "why": "exit 1",
-      "ms": 469,
+      "ms": 592,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 267,
+      "title": "A STATUS IS SEEDED AND THE COUNTER HANGING OFF IT IS NOT, SO SLEEP RESTARTS AND TOXIC RESE",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-seed-clock.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 738,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 268,
+      "title": "THE BOARD GIVES A PERMANENT HAZARD A DURATION AND COUNTS NO LAYERS, SO THE SEED CAN ONLY S",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-seed-clock.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 738,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 269,
+      "title": "EVERY DURABLE VOLATILE IS STILL UNSEEDED, AND THE LIVE BOARD ALREADY HAS SOME OF THEM — SP",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-seed-clock.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 738,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 270,
+      "title": "THE SEEDED FIELD HAS NO CLOCK, SO A WEATHER WITH ONE TURN LEFT LASTS THE WHOLE PLAYOUT — F",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-seed-clock.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 738,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 271,
+      "title": "A KNOCKED-OFF ITEM IS STILL ON THE BOARD'S BODY, SO EVERY DAMAGE FEATURE AND EVERY ROLLOUT",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-seed-residue.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 590,
       "verdict": "CONFIRMED"
     },
     {
@@ -31,24 +240,36 @@
       "closed": true,
       "saysBroken": false,
       "cmd": "node tests/probe_red_demo.js",
+      "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 4764,
+      "ms": 6008,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 280,
+      "title": "NO MILTANK MEASUREMENT IN THIS PROJECT'S HISTORY HAS EVER RUN ON MORE THAN ONE CORE, AND T",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-farm-ram-guard.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 59,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 125,
+      "title": "THIRTY-TWO MOVES RESOLVED TO `{kind:'pass'}` — A WHOLE NO-OP TURN — AND THE LINE THAT RETU",
+      "closed": true,
+      "saysBroken": true,
+      "cmd": "node tests/test-unmodelled-clicks.js",
+      "owed": null,
+      "green": true,
+      "why": "exit 0",
+      "ms": 140,
       "verdict": "CONFIRMED"
     }
   ],
-  "unverifiable_open_defects": [
-    {
-      "n": 241,
-      "title": "PART (3) ONLY: EIGHT CAUSES WHERE THE AUTHORITY ANNOUNCES A FAILURE AND THIS ENGINE SAYS N"
-    },
-    {
-      "n": 276,
-      "title": "THE BOARD'S WEATHER NEVER EXPIRES FOR THE FEATURES EITHER, SO `deadWeather` AND EVERY WEAT"
-    },
-    {
-      "n": 283,
-      "title": "`board.movePower` BUILDS NO `side.totalFainted`, SO THE FEATURE VECTOR PRICES A FALLEN-COU"
-    }
-  ]
+  "unverifiable_open_defects": []
 }

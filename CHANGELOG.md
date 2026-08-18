@@ -10,6 +10,167 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.33.0] — 2026-08-17
+
+### Fixed
+- **The mechanics clause of the MEDICHAM gate: 69 disagreements -> 53, and not one of the sixteen was a
+  new mechanic.** Every one was already implemented and already probed; the BOARD was right and the
+  STREAM was wrong, which is the half a state-reading probe is structurally blind to. Measured by
+  `engine/all_mechanics_fire.js --release 1a9d81ca552c --kind all` (moves 49 -> 37, abilities 17 -> 15,
+  items 3 -> 1).
+  - **A self-KO writes `|faint|` alone.** `sim/pokemon.ts:1587 faint()` sets hp to 0 and emits nothing;
+    both `userFaints` sites wrote a `-damage` first, on all five members. The heal-descriptor site in the
+    same file already said so — the engine was disagreeing with itself.
+  - **Stockpile announces the layer before the boosts it pays** (`data/moves.ts:17954`), and `-end` after
+    its refund. One applier, so all three of Stockpile / Spit Up / Swallow parted on the Stockpile turn.
+  - **Skill Swap is ONE `-activate` carrying both abilities** (`sim/battle.ts:1326`) and contains no
+    `-ability` at all; **Transform has its own `-transform` event** (`sim/pokemon.ts:1352`).
+  - **The survivor names what saved it, and the priority nudge announces itself.** Six carriers of two
+    tags announce in four different shapes; the EVENT and the PREFIX are now derived in `tag_dex.js` from
+    each handler's own `this.add`. A Focus Band survivor used to announce the holder's unrelated ability.
+  - **Quick Claw's own gate**: the authority runs FractionalPriority for move actions at `priority <= 0`
+    only. The die stays where it was (moving it would shift every seeded stream); the result is gated.
+  - **The composed rider's declared inversion is paid.** Boosts before the volatile
+    (`battle-actions.ts:1197` vs :1236) for the three `setup` members — Charge, Minimize, No Retreat.
+
+### Added
+- `engine/tag_dex.js` `announceIn()` — reads the event and the namespace prefix off a handler's own
+  `this.add`, scoped to the two tags that ask for it. Membership printed over the whole legal format
+  first: the same regex over every `onDamage` also matches Disguise, Ice Face and Magic Guard.
+- `-transform` moves from `NOT_EMITTED` into `TRACE_EVENTS`, with a `tests/test-protocol-trace.js`
+  scenario that CLICKS it rather than a claim with nothing behind it. Its declared reason had quietly
+  become false, which is what that table exists to stop.
+- Six probes in `tests/test-mechanics.js`, each shown RED before its fix and each with a control that is
+  cleared explicitly: `userFaintsSilent`, `layeredVolatileOrder`, `swapsAbilitiesLine`,
+  `transformsIntoTargetLine`, `survivesFromFullAnnounce`, `fractionalPriorityAnnounce`. Census
+  **585 live / 0 missing -> 591 live / 0 missing**.
+
+### Notes
+- Fairy Lock, Teatime and Heal Bell STAY on the ENGINE hand list and their entry is corrected: the
+  2026-08-15 row called them a narration defect, and staged they are absent MECHANICS — no tag for Heal
+  Bell's team cure, none for Teatime, and `setsRoom` has no reader. Emitting the line without the effect
+  would be a working feature's costume on a no-op.
+- `tests/test-volatile-duration.js` reports 4/4 scenarios differing, and did so before this pass too
+  (verified by replaying release `4cbb1e6654c4` with `--engine release`). Every differing cell is an HP
+  magnitude, not a counter; it exits 0 and is not a gate clause.
+
+## [5.32.0] — 2026-08-17
+
+### Fixed
+- **The board's weather expires for the FEATURES now (ROADMAP #276).** `board.weather` was a bare string
+  that only changed when a new weather arrived, so `deadWeather` and every weather-scaled read believed a
+  five-turn sun was up on turn forty — on a population of **32.2% of decision points with a mean 2.95
+  turns left**. It is an accessor over `weatherLeft()` = `MEDI.weatherTurns(word, rock, TAGS) -
+  weatherAge()`, the one implementation, which `rollout_leaf.applyFieldClock` now calls instead of
+  keeping its own copy of the same subtraction. The WORD is still recorded (`weatherWord()`) because the
+  seed needs it and because emptying it upstream would make `fieldClockCounters.weatherExpired`
+  unreachable — a dead guard wearing the shape of a fixed one. **Re-declaring a weather that is already
+  up does not restart it**, without which the row is a no-op: both worlds announce one weather twice, and
+  a naive version resets the age every turn it is laid.
+- **`board.movePower` builds the state the callbacks read (ROADMAP #283).** `side.totalFainted` from the
+  graveyard (Last Respects, **7,306** corpus uses, 50 → 50/100/150/200), `side.pokemon` from the party so
+  the format's own `onModifyMove` builds `move.allies` (Beat Up, **337** uses, which threw and fell back
+  to its printed **0** — so `damaging` was false and the move was invisible to the ranking), and
+  `move.hit = 1` (Triple Axel, whose value does not move but whose printed 20 stops being a fallback).
+
+### Changed
+- **The `basePowerCallback` class is DERIVED now, and the six it replaces were wrong in both directions.**
+  `data/seed-source-audit.json` named that class by substring-matching a hand-typed list of fifteen field
+  names: it caught **Water Shuriken** on the `battle` inside `hasAbility("battlebond")`, and missed
+  **Triple Axel** (899 uses), **Rage Fist** (585) and **Avalanche** (29). `board.unmodelledBasePower()`
+  asks the callbacks — a member throws or returns a non-number — and the real class is **seven, carrying
+  9,163 uses**. Rage Fist, Avalanche and Payback stay refused, each with a printed reason.
+
+### Added
+- **`engine/feature_shift.js` → `data/feature-shift.json` — which fitted COLUMNS a landing change moved.**
+  Not `feature_fixture --check`, which answers "are these weights stale" against a quarantined file that
+  already owes a refit. This names the columns, which is the input a refit needs. It compiles a
+  textually-patched `board.js` into `require.cache` so nothing on disk moves under another agent, asserts
+  every patch APPLIED, and carries a PURITY control (head vs head = 0 columns).
+- **`tests/test-board-clock-power.js`** — 46 assertions over both rows, shown RED on four deliberate
+  breaks, with three behavioural arms and every value derived at run time.
+
+### Notes
+- **The frozen fixture cannot see EITHER row, and that is measured rather than assumed.**
+  `feature_fixture.buildScenario` sets `board.turn` and THEN `setWeather`, so every fixture weather is
+  zero turns old; and no fixture board carries Last Respects, Beat Up or Triple Axel. All 58 hashes are
+  byte-identical across both changes. **This corrects R19**, which reported that they move for #283 — it
+  had disabled the whole callback path, which reaches Low Kick and Gyro Ball.
+- **The fit-invalidation is named rather than warned about**: **32 of 58 features and 6 of 18 joint
+  features move**, on **1.576% of 51,399 candidate vectors across 41.67% of 300 fit games**. Every moved
+  column is inside the class its own row named. **No refit was run** — Will's ruling forbids running it
+  early, not fixing the features it will be run against, and `data/policy-weights.json` is already
+  quarantined and already owes one.
+- **ROADMAP #286 and #287 opened**: `weatherSetupHelpsPartner` guards itself on `A.__weather`, which
+  nothing in the live tree writes, so its "only if the weather is not already up" clause has never bound;
+  and `data/seed-source-audit.json` is stale, with an `openAndNotFixed` block that now states something
+  false. Neither is fixed here — the first moves a fitted joint column outside this batch, and
+  regenerating the second today would bake another division's in-flight `data/tags.json` into it.
+- The MEDICHAM gate's third clause — open rows asserting breakage — goes **4 → 2**.
+
+---
+
+## [5.31.0] — 2026-08-17
+
+### Added
+- **`INSTRUMENT OWED:` — a second register marker, for the rows nothing decides.** `VERIFIED BY:` needs a
+  gate whose EXIT CODE tracks the row's claim, and for most of this register no such gate exists. Three
+  OPEN rows asserting breakage — **#241, #276, #283** — each had a plausible candidate that decides
+  something else: `engine/game_differential.js` measures #241's missing `-fail` emissions and
+  deliberately exits **0** on them (*"a divergence is a FINDING"*); `tests/test-seed-clock.js` is green
+  and decides **#270**, the SEED's clock, not #276's board field; `tests/test-rollout-fallen.js` is green
+  and decides **#244/#245/#246**, the SEED's roster, not #283's `board.movePower` stub. A marker pointed
+  at any of those would have made a live defect read CONFIRMED-and-green. The new marker records that
+  nothing decides the row and names what would have to be built, and is counted **separately** from the
+  verified figure — a declared debt is not a measurement.
+- **`node tests/test-no-silent-failure.js --in <file>...`** — every silent catch in named files,
+  baselined ones included. The default run prints only what is NEW and `--dangerous` prints only the
+  repo-wide manufacturing subset, so a division wanting to clear its own files had to hand-roll a second
+  scanner over a 95-line list.
+
+### Changed
+- **Register coverage 2 of 206 → 19 verified + 3 declaring a debt.** Seventeen CLOSED rows whose status
+  column already NAMED the gate that closed them now carry `VERIFIED BY:`, so a regression on any of them
+  reads as **PREMATURE CLOSE** instead of going unnoticed: #90, #92, #125, #203, #242, #244, #245, #246,
+  #247, #249, #250, #267, #268, #269, #270, #271, #280. All 19 marked rows CONFIRMED against their
+  instruments; **0 stale rows, 0 premature closes.**
+- **`engine/register_reality.js` runs each distinct command once.** Four rows closed on
+  `tests/test-seed-clock.js` is the normal shape and cost four identical runs; 19 markers now resolve to
+  **12** instrument runs, ~15s total.
+
+### Fixed
+- **ROADMAP #258 — MEASURE's own files are clear and the floor fell 216 → 201.** Fifteen silent catch
+  blocks in `engine/provenance.js` (8), `engine/sprt.js` (4), `engine/mew.js` (1), `engine/stamp.js` (1)
+  and `tests/test-no-silent-failure.js` (1) now speak; `--update` locked in ten keys and laundered
+  nothing. **The gate stays RED and is not filed**: 75 remain above the floor, 41 manufacturing, all in
+  other divisions' files, ranked by file in `docs/MEASURE.md`.
+- **`engine/provenance.js`'s corpus classifier resolved `require('./x')` against `engine/` for every
+  generator, so it resolved nothing at all for any generator in `tests/`.** The read threw, a silent
+  catch returned `''`, and the `games.(ots|bo3).jsonl` test then ran against the empty string and
+  returned the same `'ladder'` default it returns for a generator that genuinely reads the ladder — a
+  capability absent and reporting success, inside the tool whose job is catching that. Found only because
+  the catch was made to speak, which is ROADMAP #258's entire argument. Now resolved against the
+  requiring file's own directory and read off the COMMENT-STRIPPED source (`engine_release.js` documents
+  its API with `require('./x.js')`, which was being resolved as a real dependency). **Verdicts are
+  byte-identical before and after on today's tree** — the fix removes a hole, it does not move a number.
+- **The silent-catch ratchet could not see its own blind spot.** A source file it failed to read was
+  skipped in silence, so `files scanned 333` and a clean bill for 333 files were indistinguishable from a
+  clean bill for 332 plus one nobody looked at. It now counts it, names it and FAILS. Shown red on a
+  deliberate break first.
+
+### Notes
+- Two red gates found while checking candidate markers, **reported and left** because neither is this
+  division's and neither red is the row's own claim: `tests/test-mc-key.js` exits 1 on *"no NEW file
+  hand-rolls the species lookup"* (5 files) while **#214** is closed, and
+  `tests/test-web-quarantine-loaders.js` exits 1 because the committed `web/quarantine-data.js` withholds
+  a different set from what the builder decides now. `tests/test-pinch-family.js` exits 1 on *"all five
+  0-use members are still in the ungated set"* — the ungated set is now **firemane** alone — while
+  **#112** is closed. No marker was attached to any of the three: the gate is red for a reason other than
+  the row's claim, and a `VERIFIED BY` there would produce a loud, wrong verdict.
+- **#266 carries no marker on purpose**, and the row already says why: `tests/test-fixture-legality.js` is
+  GREEN while the row's 22 verdicts sit in the baseline, so the instrument's green does not mean the
+  row's claim is false.
+
 ## [5.30.0] — 2026-08-15
 
 ### Fixed

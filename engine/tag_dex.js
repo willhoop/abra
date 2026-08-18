@@ -82,6 +82,39 @@ const immuneAttrIn = (h) => {
   return m ? m[1] : null;
 };
 
+/* ---- WHAT A HANDLER ANNOUNCES ABOUT ITSELF, READ OFF ITS OWN `this.add` -------------------------
+ *
+ * `immuneAttrIn` above answers this for ONE event and returns only the attribution string. Two tag
+ * families need the same question asked with the event left open, because the authority is NOT
+ * consistent across the members of one tag and any rule invented from a single member is wrong for
+ * its siblings. Measured over the whole legal format before a line of this was wired -- the four
+ * handlers the two tags actually read:
+ *
+ *     items      focusband   onDamage             -activate  prefix `item`
+ *                focussash   onDamage             (no add -- it goes through useItem(), so |-enditem|)
+ *                quickclaw   onFractionalPriority -activate  prefix `item`
+ *     abilities  sturdy      onDamage             -ability   NO PREFIX, bare
+ *                quickdraw   onFractionalPriority -activate  prefix `ability`
+ *                stall       onFractionalPriority (the hook is the bare NUMBER -0.1: no roll, no line)
+ *                myceliummight onFractionalPriority (no add)
+ *
+ * Three different shapes across three carriers of ONE tag. So the EVENT and the PREFIX are read, and
+ * the NAME is not: the engine holds ids and composes `<prefix>: <id>`, which `traceCanon` folds onto
+ * the authority's `item: Quick Claw` symmetrically. Reading the display name out of here and emitting
+ * it verbatim would put a Showdown-side spelling inside this engine's stream, which the medicham2
+ * trace header refuses on purpose.
+ *
+ * IT IS SCOPED INSIDE THE TAGS THAT CALL IT rather than run over every handler. The same regex over
+ * every legal `onDamage` also matches Disguise, Ice Face and Magic Guard -- correct lines, wrong tag,
+ * and a param bolted onto a rule that never asked for it is the over-match docs/LESSONS §4 is about.
+ * Only the four handlers above reach it, because only those rules call it. */
+const announceIn = (h) => {
+  const m = fnsrc(h).match(/add\(\s*["']([-\w]+)["']\s*,\s*[\w.]+\s*,\s*["']([^"']*)["']/);
+  if (!m) return null;
+  const arg = m[2], i = arg.indexOf(':');
+  return { event: m[1], prefix: i >= 0 ? arg.slice(0, i).trim() : null };
+};
+
 if (!process.env.SHOWDOWN_PATH) { console.error('set SHOWDOWN_PATH'); process.exit(2); }
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
@@ -4545,7 +4578,12 @@ const ITEM_TAGS = [
                onlyFromFullHP: /hp\s*===\s*\w+\.maxhp/.test(src),
                chance: rc ? (+rc[1]) / (+rc[2]) : null,
                movesOnly: /effectType\s*===\s*"Move"/.test(src),
-               consumesItem: /useItem\(\)/.test(src) };
+               consumesItem: /useItem\(\)/.test(src),
+               /* WHAT THE SURVIVOR SAYS. Focus Band writes `-activate|TARGET|item: Focus Band`; the
+                * Sash writes nothing here and reaches `|-enditem|` through `useItem()`. The engine had
+                * no way to tell those apart and announced the HOLDER'S ABILITY for both, so a Focus
+                * Band survivor named an ability that had nothing to do with it. */
+               announce: announceIn(it.onDamage) };
     } },
   { tag: 'choiceLock', param: 'the holder is locked into one move', probe: 'locking',
     why: 'the single strongest thing an open sheet tells you about what they can do next turn',
@@ -4857,7 +4895,24 @@ const ITEM_TAGS = [
   { tag: 'fractionalPriority', param: 'a CHANCE to move first inside the priority bracket', probe: 'onFractionalPriority',
     why: 'Quick Claw, 20% of turns. Speed order is what most kill features hang off, and this makes it '
        + 'probabilistic rather than determined',
-    of: it => it.onFractionalPriority ? { chance: 0.2 } : null },
+    /* THE CHANCE WAS THE LITERAL `0.2`, TYPED BESIDE THE NAME, and it is read now. Quick Claw's
+     * handler is `randomChance(1, 5)` (data/items.ts quickclaw), which IS 0.2 -- so nothing about the
+     * artifact moves and the value stops being a number somebody remembered. The ability rule three
+     * thousand lines down already read its own; this one did not, and a value typed next to a name
+     * looks exactly as authoritative as a value that was read (CLAUDE.md).
+     *
+     * AND THE ANNOUNCEMENT. `this.add('-activate', pokemon, 'item: Quick Claw')` sits above the
+     * `return 0.1`, so a claw that wins its roll SAYS SO and the engine emitted nothing. The number
+     * form of the hook (Stall's bare `-0.1`) has no body, no roll and no line -- which is why the
+     * announcement is read off the handler rather than attached to the tag. */
+    of: it => {
+      if (it.onFractionalPriority == null) return null;
+      if (typeof it.onFractionalPriority === 'number')
+        return { chance: 1, unconditional: true, announce: null };
+      const src = fnsrc(it.onFractionalPriority).replace(/\s+/g, ' ');
+      const c = src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+      return { chance: c ? +c[1] / +c[2] : 1, announce: announceIn(it.onFractionalPriority) };
+    } },
   { tag: 'accuracyMod', param: 'P(hit) is scaled, for or against the holder', probe: 'onModifyAccuracy',
     why: 'Bright Powder makes attacks against the holder 0.9x; Wide Lens (411 uses) makes the holder 1.1x. '
        + 'Feeds the same P(hit) the kill distribution consumes',
@@ -5067,7 +5122,11 @@ const ABILITY_TAGS = [
                onlyFromFullHP: /hp\s*===\s*\w+\.maxhp/.test(src),
                chance: rc ? (+rc[1]) / (+rc[2]) : null,
                movesOnly: /effectType\s*===\s*"Move"/.test(src),
-               consumesItem: /useItem\(\)/.test(src) };
+               consumesItem: /useItem\(\)/.test(src),
+               /* Sturdy's line is `-ability|TARGET|Sturdy` -- a DIFFERENT EVENT from Focus Band's
+                * `-activate|TARGET|item: Focus Band` and with no prefix at all. Three carriers of one
+                * tag, three announcement shapes; read, never inferred from the carrier's kind. */
+               announce: announceIn(a.onDamage) };
     } },
   /* ROADMAP #213 -- THE PARAM WAS A CONSTANT `2` FOR BOTH MEMBERS AND ONE OF THEM IS NOT A RATE AT
    * ALL, WHICH IS WHY THE ENGINE COULD NOT READ EITHER.
@@ -7281,14 +7340,22 @@ const ABILITY_TAGS = [
       if (a.onFractionalPriority == null) return null;
       if (typeof a.onFractionalPriority === 'number')
         return { chance: 1, bracket: a.onFractionalPriority, excludesStatus: false,
-                 unconditional: true };
+                 /* STALL IS THIS BRANCH AND IT ANNOUNCES NOTHING -- there is no handler body to hold
+                  * an `add`, which is the same fact `unconditional` already records seen from the
+                  * other side. It is written explicitly rather than left undefined, because an absent
+                  * field and a field that says "no line" read identically to a consumer. */
+                 unconditional: true, announce: null };
       const src = String(a.onFractionalPriority).replace(/\s+/g, ' ');
       if (!src) return null;
       const c = src.match(/randomChance\((\d+),\s*(\d+)\)/);
       const r = src.match(/return\s*(-?\d*\.\d+)/);
       return { chance: c ? +c[1] / +c[2] : 1, bracket: r ? +r[1] : null, unconditional: false,
                excludesStatus: /category\s*!==\s*["']Status["']/.test(src),
-               onlyStatus: /category\s*===\s*["']Status["']/.test(src) };
+               onlyStatus: /category\s*===\s*["']Status["']/.test(src),
+               /* `this.add('-activate', pokemon, 'ability: Quick Draw')` above the return. Mycelium
+                * Might's handler has no `add` and comes out null, which is the control that stops
+                * this becoming "every fractionalPriority carrier announces". */
+               announce: announceIn(a.onFractionalPriority) };
     } },
 
   /* SCREEN CLEANER — an entry that removes screens from BOTH sides, which is why the sides are read

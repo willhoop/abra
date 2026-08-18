@@ -9484,3 +9484,49 @@ guarded condition still getting the generic one.
 re-run against release `4fe582c3c59a`; ENGINE then edited the simulator, so the tree is
 `4cbb1e6654c4` and the clause now reads *"an answer about other bytes"* rather than a weaker
 answer. The stamp is doing its job. Re-run owed.
+
+### THE GATE COUNTED SENTENCES, AND SIXTEEN DEFECTS HID BEHIND A LIVE PROBE. 2026-08-15
+
+Four divisions, and the two findings are opposite shapes of the same thing.
+
+**THE CLAUSE THAT COULD NOT FINISH.** Three of the eight gate clauses measure MEDICHAM. One measured
+our own bookkeeping — it held the whole gate shut on the CONTENTS OF A MARKDOWN TABLE. On this day
+SEARCH closed #276 and #283 and filed #286 and #287 in the same pass: **4 -> 2 -> 4, while the
+simulator got strictly more correct.** Serious work inspects code nobody had inspected and finds
+things, so a clause that counts findings is driven UP by doing the work well. That is the wrong
+direction for a gate, and it is why this has felt endless.
+
+**IT NOW COUNTS EVIDENCE.** A row holds the gate shut when it names an instrument and that instrument
+is RED. A row with no instrument is DEBT — printed by name, counted, carried in the artifact, unable
+to hold a gate shut by assertion alone. That is the standard every other clause already met: the
+differential, the rosters and the census all fail on a MEASUREMENT. Gate: **3 of 8 failing -> 2**.
+
+**AND MEASURE REFUSED THE EASY VERSION OF THE SAME TASK**, which is what makes the change safe rather
+than a loosening. Asked to put `VERIFIED BY` markers on #241, #276 and #283, it found that none of
+the three has a gate that decides it — each had a plausible candidate deciding something adjacent
+(`test-seed-clock` is green and decides #270, the SEED clock, not the board field #276 is about).
+Marking them would have made three live defects read CONFIRMED-and-green. It built a second marker,
+`INSTRUMENT OWED`, counted separately, and named what would have to be built. **Coverage 2 -> 19
+verified, 0 stale, 0 premature.**
+
+**THE OPPOSITE SHAPE: SIXTEEN DEFECTS BEHIND A LIVE PROBE.** ENGINE took the mechanics clause 69 -> 53,
+and every one of the sixteen was **already implemented and already probed LIVE**. *The board was right
+and the stream was wrong.* A state-reading census is structurally blind to a wrong announcement, so a
+100% live census cleared all sixteen. Census went 585 -> **591 live / 0 missing**, never down.
+
+**IT ALSO REFUSED A ROW I HANDED IT.** I passed on its own earlier note calling Fairy Lock, Teatime and
+Heal Bell narration bugs. Staged, they are **absent mechanics** — no tag for Heal Bell's team cure, none
+for Teatime, and `setsRoom` has **no reader anywhere** in the simulator. Emitting the line would have
+closed the rows and left the engine *less* honest: a no-op in a working feature's costume.
+
+**AND IT CHECKED THE DICE BEFORE CALLING THE ITEMS DEFECTS.** I had flagged Focus Band, Quick Claw and
+Metronome as possibly diverging on an unpinned die. Derived: the arm is `bottom-tie-first`, Showdown's
+`chance(num,den)` is `random(den) < num` which at that corner is always true, and medicham sits at the
+same corner. **The die was pinned.** Two were real announcement defects; Metronome is a damage magnitude
+and stays open.
+
+**A DEFECT OUTLIVED ITS ROW, WHICH IS THE INVERSE OF THE NIGHT'S OTHER FAILURE.** `test-roadmap-register`
+caught `docs/ENGINE.md` citing **#67** — *"Illusion is not modelled"* — against a row that **did not**
+**exist**. The citation was right for weeks and the register never carried it. ENGINE's pass proves it
+live: `bittermalice` and `nightdaze` diverge because of Illusion, not the moves they are filed
+under. Row added with that evidence.

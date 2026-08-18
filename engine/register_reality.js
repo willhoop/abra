@@ -79,11 +79,44 @@ const TIMEOUT_MS = 10 * 60 * 1000;
  * accept an arbitrary shell string. Refused loudly rather than skipped — a marker that silently does
  * nothing is worse than no marker, because it reads as coverage. */
 const MARKER = /VERIFIED BY:\s*`([^`]+)`/;
+/* THE SECOND MARKER, AND IT IS THE HONEST ANSWER FOR MOST OF THIS REGISTER.
+ *
+ * `VERIFIED BY` needs a gate whose EXIT CODE tracks the row's claim, and for a great many rows no
+ * such gate exists. Three of them were looked at on 2026-08-17 and each had a plausible candidate
+ * that decided something else:
+ *
+ *   #241  `engine/game_differential.js` MEASURES the missing `-fail` emissions and deliberately
+ *         exits 0 on them — *"a divergence is a FINDING"*, stated in its own header and in
+ *         tests/test-game-differential.js, which fails only when the INSTRUMENT is wrong.
+ *   #276  `tests/test-seed-clock.js` is green and covers #270, the SEED's clock. #276 is the BOARD's
+ *         own `weather` field, which no gate reads.
+ *   #283  `tests/test-rollout-fallen.js` is green and covers #244/#245/#246, the SEED's roster.
+ *         #283 is `board.movePower`'s stub, which no gate reads.
+ *
+ * Pointing a `VERIFIED BY` at any of those three would have made a live defect read CONFIRMED-and-
+ * green, which is worse than the prose it replaced. So the alternative is not silence: a row may
+ * declare, in writing, that NOTHING decides it and name what would have to be built.
+ *
+ *     INSTRUMENT OWED: a gate asserting <the thing>, which does not exist
+ *
+ * It counts as coverage of a different KIND and is reported separately — never folded into the
+ * verified figure, because a debt is not a measurement. */
+const OWED = /INSTRUMENT OWED:\s*([^|]+?)(?:\s*\||$)/;
 const SAFE = /^node\s+((?:engine|tests|build)[\\/][A-Za-z0-9_.\-]+\.js)((?:\s+--[A-Za-z0-9_\-=]+)*)\s*$/;
 
+/* TWO OF MY OWN TOOLS PRINTED `register rows` AND DISAGREED — 206 HERE, 251 IN open_work.js.
+ * Neither was wrong and that is the problem: `docs/ROADMAP.md` holds 251 lines shaped `| #N | …`, of
+ * which 206 are DEFECT-REGISTER rows (a bolded claim and a status cell) and 45 are older planning
+ * tables with four different columns (`| #33 | record which GARY ran | why | trivial |`). A marker
+ * cannot be attached to those and they have no status to compare an exit code against. So the
+ * denominator is stated rather than left to be inferred — CLAUDE.md's rule is that two files
+ * deciding the same fact will disagree eventually and the disagreement will be invisible because
+ * both keep working. This one was visible for about a minute. */
 function parse(lines) {
   const rows = [];
+  let idRows = 0;
   for (const l of lines) {
+    if (/^\|\s*#\d+\s*\|/.test(l)) idRows++;
     const m = l.match(/^\|\s*#(\d+)\s*\|\s*\*\*(.{0,140})/);
     if (!m) continue;
     const mk = l.match(MARKER);
@@ -93,8 +126,10 @@ function parse(lines) {
       closed: Q.roadmapRowIsClosed(l),
       saysBroken: Q.roadmapRowSaysBroken(l),
       cmd: mk ? mk[1].trim() : null,
+      owed: (!mk && l.match(OWED)) ? l.match(OWED)[1].replace(/\s+/g, ' ').trim() : null,
     });
   }
+  rows.idRows = idRows;
   return rows;
 }
 
@@ -103,7 +138,7 @@ function parse(lines) {
  * and null is NOT green. An instrument that will not start says nothing about the row, and calling
  * that agreement is the "a capability was absent and everything reported success" shape. */
 function verdict(row, green) {
-  if (!row.cmd) return 'UNVERIFIABLE';
+  if (!row.cmd) return row.owed ? 'INSTRUMENT OWED' : 'UNVERIFIABLE';
   if (green === null) return 'INSTRUMENT UNRUNNABLE';
   if (!row.closed && green) return 'STALE ROW';
   if (row.closed && !green) return 'PREMATURE CLOSE';
@@ -111,7 +146,18 @@ function verdict(row, green) {
 }
 const BAD = new Set(['STALE ROW', 'PREMATURE CLOSE', 'INSTRUMENT UNRUNNABLE']);
 
+/* ONE RUN PER DISTINCT COMMAND. Four rows closed on tests/test-seed-clock.js is the normal shape —
+ * a gate is built for a defect and the defect splits — and running it four times costs four times as
+ * much for an identical answer. Cached on the exact command STRING, so `--flag` variants stay
+ * separate; there is no staleness risk because the whole cache lives for one process. */
+const RUN_CACHE = new Map();
 function run(cmd) {
+  if (RUN_CACHE.has(cmd)) return { ...RUN_CACHE.get(cmd), cached: true };
+  const r = runUncached(cmd);
+  RUN_CACHE.set(cmd, r);
+  return r;
+}
+function runUncached(cmd) {
   const m = cmd.match(SAFE);
   if (!m) return { green: null, why: 'the marker is not a plain `node <repo script>.js [--flags]` command, so it was NOT run' };
   const args = [path.join(ROOT, m[1])].concat((m[2] || '').trim() ? m[2].trim().split(/\s+/) : []);
@@ -129,7 +175,7 @@ function run(cmd) {
 if (has('--selftest')) {
   let ran = 0, bad = 0;
   const ok = (n, c, got) => { ran++; if (!c) bad++; console.log(`  ${c ? 'ok  ' : 'FAIL'} ${n}${c ? '' : '   got ' + JSON.stringify(got)}`); };
-  const R = (closed, cmd) => ({ n: 1, title: 't', closed, saysBroken: true, cmd });
+  const R = (closed, cmd, owes) => ({ n: 1, title: 't', closed, saysBroken: true, cmd, owed: owes || null });
   const C = 'node tests/x.js';
   ok('RED — an OPEN row whose instrument is GREEN is a STALE ROW, the case that costs an agent',
     verdict(R(false, C), true) === 'STALE ROW', verdict(R(false, C), true));
@@ -138,6 +184,13 @@ if (has('--selftest')) {
   ok('an OPEN row with a RED instrument is CONFIRMED', verdict(R(false, C), false) === 'CONFIRMED');
   ok('a CLOSED row with a GREEN instrument is CONFIRMED', verdict(R(true, C), true) === 'CONFIRMED');
   ok('a row with no marker is UNVERIFIABLE, never assumed fine', verdict(R(false, null), true) === 'UNVERIFIABLE');
+  ok('a row that DECLARES nothing decides it reads INSTRUMENT OWED, not UNVERIFIABLE',
+    verdict(R(false, null, 'a gate on board.movePower'), true) === 'INSTRUMENT OWED');
+  ok('RED — an INSTRUMENT OWED row is NOT counted as a failure; it is declared debt, not disagreement',
+    !BAD.has('INSTRUMENT OWED'));
+  ok('a VERIFIED BY marker WINS over an INSTRUMENT OWED note on the same row — a runnable gate is '
+    + 'always stronger than a declaration that none exists',
+    verdict(R(false, C, 'something'), false) === 'CONFIRMED');
   ok('RED — an instrument that will not run is NOT treated as agreement',
     verdict(R(false, C), null) === 'INSTRUMENT UNRUNNABLE' && BAD.has('INSTRUMENT UNRUNNABLE'));
   /* THE PARSER, ON SYNTHETIC ROWS. A marker that is not picked up reads as coverage that does not
@@ -155,6 +208,26 @@ if (has('--selftest')) {
     run('rm -rf /').green === null && /NOT run/.test(run('rm -rf /').why), run('rm -rf /'));
   ok('RED — a shell chain hidden after a legitimate script is refused too',
     run('node tests/a.js && curl evil').green === null);
+  /* THE OWED MARKER, THROUGH THE PARSER, because a marker that is not picked up reads as prose and a
+   * marker picked up off the wrong row reads as debt somebody else owes. */
+  const po = parse([
+    '| #4 | **NO GATE.** INSTRUMENT OWED: a gate asserting board.weather expires | open — DEFECT |',
+    '| #5 | **HAS ONE.** VERIFIED BY: `node tests/a.js` INSTRUMENT OWED: ignored | open — DEFECT |',
+    '| #6 | **NEITHER.** plain prose | open — DEFECT |',
+  ]);
+  ok('the owed note is parsed off a row and stops at the table cell boundary',
+    po[0].owed === 'a gate asserting board.weather expires', po[0]);
+  ok('a row with a real gate does NOT also read as owed — otherwise the debt figure double-counts',
+    po[1].owed === null && po[1].cmd === 'node tests/a.js', po[1]);
+  ok('a row with neither carries null for both', po[2].owed === null && po[2].cmd === null);
+  /* THE CACHE, because a wrong cache would report one gate's exit code under another gate's name. */
+  RUN_CACHE.clear();
+  const c1 = run('node tests/does-not-exist-xyz.js');
+  const c2 = run('node tests/does-not-exist-xyz.js');
+  ok('the same command runs once and the second read is served from the cache',
+    c2.cached === true && c1.cached !== true && c2.green === c1.green, { c1, c2 });
+  ok('RED — a DIFFERENT command is not served from the first one cache entry',
+    run('node tests/other-missing-xyz.js').cached !== true);
   console.log(`\nREGISTER-REALITY SELFTEST: ${ran - bad} passed, ${bad} failed`);
   process.exit(bad ? 1 : 0);
 }
@@ -162,6 +235,7 @@ if (has('--selftest')) {
 const lines = fs.readFileSync(path.join(ROOT, 'docs', 'ROADMAP.md'), 'utf8').split(/\r?\n/);
 const rows = parse(lines);
 const marked = rows.filter(r => r.cmd);
+const owed = rows.filter(r => !r.cmd && r.owed);
 const openBroken = rows.filter(r => !r.closed && r.saysBroken);
 
 const results = [];
@@ -183,15 +257,23 @@ const art = {
       + 'derivation of the row\'s claim. It is strictly more than the register had, which was nothing.',
   counts: {
     register_rows: rows.length,
+    id_rows: rows.idRows,
     open_asserting_breakage: openBroken.length,
     marked: marked.length,
     open_asserting_breakage_and_marked: openBroken.filter(r => r.cmd).length,
     stale_rows: results.filter(r => r.verdict === 'STALE ROW').length,
     premature_closes: results.filter(r => r.verdict === 'PREMATURE CLOSE').length,
     unrunnable: results.filter(r => r.verdict === 'INSTRUMENT UNRUNNABLE').length,
+    /* KEPT SEPARATE FROM `marked` ON PURPOSE. A row that has DECLARED nothing decides it is better
+     * than a row that says nothing at all, and it is not the same thing as a verified row. Folding
+     * the two into one coverage figure would be the caption-instead-of-a-quarantine move. */
+    instrument_owed: owed.length,
+    open_asserting_breakage_and_owed: openBroken.filter(r => !r.cmd && r.owed).length,
+    distinct_commands_run: RUN_CACHE.size,
   },
+  instrument_owed: owed.map(r => ({ n: r.n, owes: r.owed, title: r.title })),
   results,
-  unverifiable_open_defects: openBroken.filter(r => !r.cmd).map(r => ({ n: r.n, title: r.title })),
+  unverifiable_open_defects: openBroken.filter(r => !r.cmd && !r.owed).map(r => ({ n: r.n, title: r.title })),
 };
 fs.writeFileSync(OUT, JSON.stringify(art, null, 2) + '\n');
 
@@ -199,19 +281,31 @@ if (has('--json')) { console.log(JSON.stringify(art, null, 2)); process.exit(fai
 
 const c = art.counts;
 console.log('\nREGISTER REALITY — the register checked against the instruments, not against itself\n');
-console.log('  ' + String(c.register_rows).padStart(4) + '  register rows');
+console.log('  ' + String(c.register_rows).padStart(4) + '  defect-register rows  (of ' + c.id_rows
+  + ' `| #N |` rows in the file; the other ' + (c.id_rows - c.register_rows)
+  + ' are planning tables with no status cell to check an exit code against)');
 console.log('  ' + String(c.open_asserting_breakage).padStart(4) + '  OPEN and asserting breakage  (the MEDICHAM gate counts these)');
 console.log('  ' + String(c.open_asserting_breakage_and_marked).padStart(4) + '  of those, naming the instrument that decides them');
-console.log('  ' + String(c.marked).padStart(4) + '  rows carrying a VERIFIED BY marker in total\n');
+console.log('  ' + String(c.open_asserting_breakage_and_owed).padStart(4) + '  of those, DECLARING that nothing decides them (a debt, not coverage)');
+console.log('  ' + String(c.marked).padStart(4) + '  rows carrying a VERIFIED BY marker in total');
+console.log('  ' + String(c.instrument_owed).padStart(4) + '  rows declaring INSTRUMENT OWED — nothing decides them and they say so');
+console.log('  ' + String(c.distinct_commands_run).padStart(4) + '  distinct instrument(s) actually run\n');
 for (const r of results)
-  console.log('  ' + r.verdict.padEnd(22) + '#' + String(r.n).padEnd(5) + (r.why || '').padEnd(22) + r.title);
+  console.log('  ' + r.verdict.padEnd(22) + '#' + String(r.n).padEnd(5)
+    + ((r.why || '') + (r.cached ? ' (cached)' : '')).padEnd(22) + r.title);
 console.log('');
+if (owed.length) {
+  console.log('  INSTRUMENT OWED — no gate decides these, and the row now says what would have to be built:');
+  for (const r of owed) console.log('      #' + String(r.n).padEnd(5) + String(r.owed).slice(0, 110));
+  console.log('');
+}
 if (art.unverifiable_open_defects.length) {
   console.log('  NO INSTRUMENT NAMED — these rows are still prose, and that is the coverage number:');
   for (const r of art.unverifiable_open_defects) console.log('      #' + String(r.n).padEnd(5) + r.title);
   console.log('');
 }
 console.log('  Add one to a row with:   VERIFIED BY: `node tests/<the gate that decides it>.js`');
+console.log('  If nothing decides it:   INSTRUMENT OWED: <the gate that would have to exist>');
 console.log('  wrote data/register-reality.json\n');
 if (failing.length) {
   console.log('REGISTER REALITY: ' + failing.length + ' row(s) disagree with their own instrument. '

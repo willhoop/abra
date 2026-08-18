@@ -1,0 +1,234 @@
+{
+  "generated": "2026-08-18T02:41:39.086Z",
+  "by": "engine/feature_shift.js",
+  "what": "which per-feature columns move between the build before ROADMAP #276/#283 and the build after",
+  "rows": [
+    276,
+    283
+  ],
+  "age": 9,
+  "populations": {
+    "pre-276": {
+      "frozenFixture": {
+        "features": [],
+        "jointFeatures": []
+      },
+      "agedFixture": {
+        "features": [
+          "eff4",
+          "effHalf",
+          "effQuarter",
+          "stab",
+          "accuracy",
+          "chargeTurn",
+          "deadWeather",
+          "movesFirst",
+          "koTarget",
+          "dmgFrac",
+          "killIsRoll",
+          "killsThreat",
+          "koFirst",
+          "diesBeforeMoving",
+          "switchSurvives1",
+          "switchFaster",
+          "switchKOFast",
+          "switchKOSlow",
+          "switchDiesFirst",
+          "screenValue",
+          "benchRisk",
+          "setupTurns"
+        ],
+        "jointFeatures": [
+          "overkill",
+          "focusFireKills",
+          "partnerCoversMe"
+        ]
+      },
+      "fitCorpus": {
+        "games": 300,
+        "candidates": 51399,
+        "candidatesDiffering": 457,
+        "pctCandidates": 0.889,
+        "gamesTouched": 54,
+        "pctGames": 18,
+        "menuMismatch": 0,
+        "features": [
+          "chargeTurn",
+          "deadWeather",
+          "setupTurns",
+          "eff2",
+          "effHalf",
+          "stab",
+          "movesFirst",
+          "diesBeforeMoving",
+          "accuracy",
+          "koTarget",
+          "dmgFrac",
+          "killIsRoll",
+          "killsThreat",
+          "switchKOSlow",
+          "switchDiesFirst",
+          "koFirst",
+          "switchSurvives1",
+          "screenValue",
+          "switchKOFast",
+          "protectThreatened",
+          "immune",
+          "benchRisk",
+          "switchFaster",
+          "switchSurvives2",
+          "speedSwing",
+          "stallIntoEncore",
+          "abilityBlock"
+        ],
+        "jointFeatures": [
+          "partnerCoversMe",
+          "focusFireKills",
+          "overkill",
+          "doubleKO"
+        ]
+      }
+    },
+    "pre-283": {
+      "frozenFixture": {
+        "features": [],
+        "jointFeatures": []
+      },
+      "agedFixture": {
+        "features": [],
+        "jointFeatures": []
+      },
+      "fitCorpus": {
+        "games": 300,
+        "candidates": 51399,
+        "candidatesDiffering": 353,
+        "pctCandidates": 0.687,
+        "gamesTouched": 85,
+        "pctGames": 28.33,
+        "menuMismatch": 0,
+        "features": [
+          "eff2",
+          "bp",
+          "isStatus",
+          "tgtBulk",
+          "dmgFrac",
+          "tgtMayProtect",
+          "effHalf",
+          "defMismatch",
+          "koTarget",
+          "killIsRoll",
+          "koFirst",
+          "killsThreat"
+        ],
+        "jointFeatures": [
+          "redirectThenAttack",
+          "bothStatus",
+          "focusFireKills",
+          "overkill",
+          "partnerCoversMe",
+          "doubleKO"
+        ]
+      }
+    },
+    "pre-both": {
+      "frozenFixture": {
+        "features": [],
+        "jointFeatures": []
+      },
+      "agedFixture": {
+        "features": [
+          "eff4",
+          "effHalf",
+          "effQuarter",
+          "stab",
+          "accuracy",
+          "chargeTurn",
+          "deadWeather",
+          "movesFirst",
+          "koTarget",
+          "dmgFrac",
+          "killIsRoll",
+          "killsThreat",
+          "koFirst",
+          "diesBeforeMoving",
+          "switchSurvives1",
+          "switchFaster",
+          "switchKOFast",
+          "switchKOSlow",
+          "switchDiesFirst",
+          "screenValue",
+          "benchRisk",
+          "setupTurns"
+        ],
+        "jointFeatures": [
+          "overkill",
+          "focusFireKills",
+          "partnerCoversMe"
+        ]
+      },
+      "fitCorpus": {
+        "games": 300,
+        "candidates": 51399,
+        "candidatesDiffering": 810,
+        "pctCandidates": 1.576,
+        "gamesTouched": 125,
+        "pctGames": 41.67,
+        "menuMismatch": 0,
+        "features": [
+          "chargeTurn",
+          "eff2",
+          "bp",
+          "isStatus",
+          "tgtBulk",
+          "dmgFrac",
+          "tgtMayProtect",
+          "effHalf",
+          "defMismatch",
+          "deadWeather",
+          "setupTurns",
+          "koTarget",
+          "killIsRoll",
+          "koFirst",
+          "stab",
+          "movesFirst",
+          "diesBeforeMoving",
+          "accuracy",
+          "killsThreat",
+          "switchKOSlow",
+          "switchDiesFirst",
+          "switchSurvives1",
+          "screenValue",
+          "switchKOFast",
+          "protectThreatened",
+          "immune",
+          "benchRisk",
+          "switchFaster",
+          "switchSurvives2",
+          "speedSwing",
+          "stallIntoEncore",
+          "abilityBlock"
+        ],
+        "jointFeatures": [
+          "redirectThenAttack",
+          "bothStatus",
+          "focusFireKills",
+          "overkill",
+          "partnerCoversMe",
+          "doubleKO"
+        ]
+      }
+    }
+  },
+  "counts": {
+    "featuresInVector": 58,
+    "jointFeatures": 18,
+    "frozenCandidates": 384,
+    "frozenPairs": 1534,
+    "agedCandidates": 384,
+    "agedPairs": 1534
+  },
+  "purity": {
+    "features": [],
+    "jointFeatures": []
+  }
+}

@@ -37,7 +37,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  584/584 probed mechanics live, 0 missing   (census 2026-08-14 23:48)
+  591/591 probed mechanics live, 0 missing   (census 2026-08-17 23:04)
   0/6000 differential comparisons disagree with Showdown   (2026-08-14 23:54)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -49,16 +49,168 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is ec4bfd79451f now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 41184089df15 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f5b74111af42 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is eb10147a7e93 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 265/284 probed, 19 unprobed
+  tag coverage: 266/285 probed, 19 unprobed
 ```
 
-_stamped 2026-08-15 00:16_
+_stamped 2026-08-17 23:11_
 
 <!-- /GENERATED -->
+
+## THE MECHANICS CLAUSE, FIVE FAMILIES — 69 DISAGREEMENTS -> 53, AND NOT ONE OF THE SIXTEEN WAS A NEW MECHANIC. 2026-08-17.
+
+**Census 585 live / 0 missing -> 591 live / 0 missing. Gate clause 69 -> 53** (moves 49 -> 37,
+abilities 17 -> 15, items 3 -> 1), measured by `engine/all_mechanics_fire.js --release 1a9d81ca552c
+--kind all`, which builds a legal team per mechanic and plays it against the official engine.
+
+**Every one of the sixteen was already implemented and already probed.** The BOARD was right in all
+sixteen and the STREAM was wrong — a line the authority does not write, a line it writes and we did
+not, a line in the wrong order, or a line naming the wrong thing. That is the half a state-reading
+probe is structurally blind to, which is why they survived a census that reads 100% live.
+
+**Six new probes, each shown RED before the fix and each with a control arm that clears explicitly.**
+
+### 1. THE SELF-KO WROTE DAMAGE, AND `faint()` EMITS NOTHING
+
+`sim/pokemon.ts:1587 faint()` sets `hp = 0` and queues; the only line is the `|faint|` that
+`faintMessages` (sim/battle.ts:2532) writes afterwards. Both call sites reach it —
+`battle-actions.ts:500` for `selfdestruct: 'always'`, :1288 for `'ifHit'`.
+
+```
+showdown   |-damage|p2a: Feraligatr|835/960                                   |faint|p1a: Forretress
+medicham   |-damage|p2a: Feraligatr|835/960  |-damage|p1a: Forretress|0 fnt   |faint|p1a: Forretress
+```
+
+Both `userFaints` sites wrote `TR.dmg(m)` before `TR.faint(m)`. **The file already held the right
+answer and was disagreeing with itself**: the heal-descriptor site says in as many words that a
+self-KO writes no `-damage`, and Healing Wish had been emitting the faint alone all along. Closes
+**explosion, selfdestruct, mistyexplosion, memento, finalgambit**. Probe `move/userFaintsSilent`, and
+its control is a body that faints the ORDINARY way — a damage KO DOES carry both lines, so "never
+announce damage before a faint" cannot pass it.
+
+### 2. THE STOCKPILE LAYER ANNOUNCES BEFORE IT PAYS, AND `-end` AFTER
+
+`data/moves.ts:17954` — `onStart` and `onRestart` both put `this.add('-start', target, 'stockpile' +
+layers)` on the line ABOVE `this.boost({def:1, spd:1})`; `onEnd` does the reverse, refund then
+`-end`. The champions mod overrides none of stockpile/spitup/swallow. `applyLayeredVolatile` emitted
+its `-start` at the BOTTOM, so **all three members parted on the Stockpile turn and never reached a
+judgement of their own move**. Closes **stockpile, spitup, swallow**. Probe
+`move/layeredVolatileOrder` asserts the `-end` half in the OPPOSITE order off the same emitter, so
+"put the volatile line first" fails it.
+
+### 3. TWO MOVES WROTE A LINE THE PROTOCOL DOES NOT CONTAIN
+
+`sim/battle.ts:1326` — Skill Swap's whole announcement is ONE line carrying both abilities, and the
+`singleEvent('End'/'Start')` pair beside it emits nothing, so **a Skill Swap contains no `-ability`
+at all**. `sim/pokemon.ts:1352` — Transform has its own `-transform` event.
+
+```
+showdown   |-activate|p1a: Alakazam|Skill Swap|Torrent|Synchronize|[of] p2a: Feraligatr
+medicham   |-activate|p1a: Alakazam|move: skillswap  |-ability|…|torrent|…  |-ability|…|synchronize|…
+showdown   |-transform|p1a: Ditto|p2a: Feraligatr
+medicham   |-activate|p1a: Ditto|transform
+```
+
+`-transform` was in `NOT_EMITTED` with the reason *"Imposter/Transform is not modelled"*, and the
+first half of that stopped being true when `kind:'transform'` was wired — **a declaration whose
+reason has quietly become false**, which is what that table exists to stop. The reason is deleted
+rather than reworded, the event is claimed, and `tests/test-protocol-trace.js` gains a scenario that
+CLICKS it (Ditto, whose format learnset is one move, on LIMBER so an Imposter entry cannot supply
+the line instead of the click). Probes `move/swapsAbilitiesLine` (two disjoint ability pairs, so the
+two names must MOVE with the bodies, and field 4 and field 5 are asserted separately) and
+`move/transformsIntoTargetLine` (the two foe slots, so field 3 must move).
+
+### 4. THE THREE ITEM ROWS WERE NOT AN UNPINNED DIE — TWO WERE ANNOUNCEMENTS AND ONE IS DAMAGE
+
+Checked first, because a chance mechanic staged against an unpinned authority diverges for reasons
+that are not the engine: **the die is pinned on BOTH sides.** The arm is `bottom-tie-first`, where
+Showdown's `chance(num, den)` is `0 < num` (always TRUE) and medicham's scalar sits at the same
+corner, so Focus Band's 10% and Quick Claw's 20% both fire in both engines. The divergence was the
+line.
+
+The authority is **not consistent across the members of one tag**, which is why this became a
+derivation rather than a rule:
+
+| carrier | tag | what it writes |
+|---|---|---|
+| Focus Band | `survivesFromFull` | `-activate` &#124; TARGET &#124; `item: Focus Band` |
+| Focus Sash | `survivesFromFull` | nothing — `useItem()` writes `-enditem` |
+| Sturdy | `survivesFromFull` | `-ability` &#124; TARGET &#124; `Sturdy` — different EVENT, no prefix |
+| Quick Claw | `fractionalPriority` | `-activate` &#124; HOLDER &#124; `item: Quick Claw` |
+| Quick Draw | `fractionalPriority` | `-activate` &#124; HOLDER &#124; `ability: Quick Draw` |
+| Stall | `fractionalPriority` | nothing — the hook is the bare number `-0.1`, so no roll and no `add` |
+
+This engine hardcoded `'ability: ' + tg.ability` for the survivor, so **a Focus Band survivor
+announced an ability that had nothing to do with it** (`|-activate|p1a: Corviknight|ability:
+pressure` against the authority's `item: Focus Band`), and announced nothing at all for the priority
+nudge. `tag_dex.js` now reads the EVENT and the PREFIX off each handler's own `this.add`
+(`announceIn`); the NAME stays the engine's id and `traceCanon` folds the two symmetrically, so no
+Showdown display string enters the stream. **Membership was printed over the whole legal format
+before it was wired** — the same regex over every `onDamage` also matches Disguise, Ice Face and
+Magic Guard, which is why it is called only from inside the two rules that want it.
+
+**And Quick Claw's own gate came with it.** `sim/battle-queue.ts:249` runs the FractionalPriority
+event for `choice === 'move'` only, and the item's handler adds `priority <= 0`; this engine applied
+the claw to every action kind. That was inert for ORDER and stopped being inert the moment the roll
+announced itself — the constructed game caught `|-activate|…|item: quickclaw` on a REPLACEMENT
+SWITCH. The DIE is left exactly where it was (moving it would shift every seeded stream in the repo);
+only the RESULT is gated.
+
+Closes **focusband, quickclaw** (items) and **quickdraw, sturdy** (abilities). Probes
+`item/survivesFromFullAnnounce` (four arms; the Focus Band arm runs on a PRESSURE holder on purpose —
+that is the ability the broken line was naming) and `item/fractionalPriorityAnnounce` (Stall is the
+control that announces never, plus a switching arm and a +3-priority arm, both shown red on a
+deliberate break of the gate).
+
+### 5. A DECLARED INVERSION THAT COMMUTED ON THE BOARD AND NOT IN THE STREAM
+
+The composed-effect rider runs BEFORE the primary branch, and the comment above it said so, and said
+the two commute for every member *"because nothing reads `_vol.noretreat`, `_vol.minimize` or
+`_vol.charge`"* — **true of the board and false of the stream.** `spreadMoveHit` applies
+`moveData.boosts` at `battle-actions.ts:1197` and `moveData.volatileStatus` at :1236, so the boosts
+come first. The rider loop is hoisted and called where the authority calls it: after the boosts for a
+`setup` action, unchanged everywhere else. The whole set is five moves and only three are `setup` —
+Chilly Reception's sky is set in `onTry` ahead of everything and Shed Tail is not a boost move, so
+neither moved. Closes **charge, noretreat**.
+
+### THE HAND LIST
+
+**Fairy Lock, Teatime and Heal Bell STAY, and the entry is CORRECTED rather than removed.** The
+2026-08-15 row called them a narration defect in a different shape. Staged, that is not what they
+are: `data/tags.json` carries **no tag for Heal Bell's team-wide status cure and none for Teatime at
+all**, and `setsRoom` — Fairy Lock's pseudo-weather — **has no reader anywhere in
+`medicham2-browser.js`**. The missing `|-fieldactivate|` / `|-activate|` is the visible end of an
+absent MECHANIC, and emitting the line without it would be a working feature's costume on a no-op.
+Same for **Spite**: `removesPP` has a reader, but only on the damaging path (Eerie Spell), and Spite
+itself is still `{kind:'pass'}`.
+
+**Added, measured this pass and not fixed:**
+- **`tests/test-volatile-duration.js` reports 4/4 scenarios differing — and it did so BEFORE this
+  pass too**, verified by replaying release `4cbb1e6654c4` (the tree as handed over) with
+  `--engine release`. Every differing cell is an HP magnitude, not a counter or a duration, so the
+  family the file is named for is not what is failing in it. It exits 0 and is not a gate clause.
+- **`hustle`, `sandforce`, `metronome` and `shellsidearm` are one shape**: `-damage` field 3, ours
+  consistently HIGHER HP left than the authority's, i.e. we deal LESS. `tests/test-engine-diff.js`
+  reads 0/3000 on damage, so whatever this is sits in the modifier chain those four share and not in
+  the formula.
+- **`bittermalice` and `nightdaze` are ILLUSION**, not the moves: both carriers are Zoroark formes
+  and the divergence is the `|switch|` line naming the disguise. `replace` is declared not-emitted
+  with the reason "Illusion is not modelled (ROADMAP #67)", which is still true.
+- **`reflecttype` and `soak` are behaviour, not narration.** Reflect Type writes the type onto the
+  WRONG BODY here (`-start|p2a|typechange` where the authority writes `-start|p1a|typechange|[from]
+  move: Reflect Type|[of] p2a`), and Soak succeeds where the authority `-fail`s on a body that is
+  already pure Water.
+
+### NOT MINE, REPORTED
+
+- `data/tags.json` was regenerated for the two new derived fields. **6 `announce` fields are the
+  intended change; the other ~3,271 moved lines are `uses` counts** following the store, which the
+  ingest grows continuously.
+- One unexplained flake: a single `tests/test-mechanics.js` run reported `584 live, 3 missing` where
+  the 22 runs around it all read the same number. It has not recurred and I could not reproduce it.
 
 ## ROADMAP #259 / #256 / #241 — THE ANNOUNCEMENT-NAMING FAMILY, AND THE MISSING LINE WAS THE SMALL HALF TWICE. 2026-08-15.
 

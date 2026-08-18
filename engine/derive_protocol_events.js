@@ -179,7 +179,14 @@ const NOT_EMITTED = {
    * event to emit" -- an honest declaration of a real modelling limit, and the limit is gone:
    * megaEvolveNow() performs the evolution inside the turn and emits both lines in Showdown's own
    * order. They are in TRACE_EVENTS now, so leaving them here would double-count. */
-  '-transform': 'Imposter/Transform is not modelled; `formeChange` carriers are listed unconsumed.',
+  /* `-transform` MOVED OUT OF THIS LIST, 2026-08-17, and the reason is deleted rather than reworded.
+   * It said "Imposter/Transform is not modelled; `formeChange` carriers are listed unconsumed" and
+   * the first half stopped being true when `kind:'transform'` was wired: the COPY was modelled and
+   * probed, and the engine was writing `|-activate|USER|transform` beside it — an event the protocol
+   * does not contain, which is worse than the silence the declaration described, because it aligns
+   * against nothing and reads as an extra event on every Transform. The one shape is
+   * `sim/pokemon.ts:1352`, and `tests/test-protocol-trace.js` holds the claim with a scenario that
+   * clicks it. IMPOSTER is still absent and is a different trigger on the same line. */
   /* ROADMAP #151, 2026-08-11 -- `-formechange` HAS A CARRIER NOW AND ITS REASON IS DELETED RATHER
    * THAN REWORDED. What it said was true and is worth keeping once: "the only other forme change this
    * engine models is Zero to Hero, which rewrites the body silently in bringIn(). Mega evolution is a

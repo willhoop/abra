@@ -1153,18 +1153,32 @@ function applySpeedClocks(S, board, side) {
 function applyFieldClock(S, board, side) {
   if (!S || !S.field || !board) return;
   applySpeedClocks(S, board, side);
+  /* *** THE REMAINDER IS THE BOARD'S NOW — ROADMAP #276. ***
+   *
+   * This used to compute `full - age` here, and #276 made the board compute the same thing for the
+   * FEATURES. Two copies of one subtraction is the FACTS-ARE-GLOBAL breach that gave the two weather
+   * paths different answers in the first place, so this asks `board.weatherLeft()` and the board asks
+   * `MEDI.weatherTurns`. `null` from it means "cannot say" — no age, no engine, no length — and is not
+   * zero, so an unknown age still seeds the full clock exactly as it did.
+   *
+   * THE WORD COMES OFF `weatherWord()` AND NOT OFF `board.weather`, because since #276 the accessor
+   * already returns '' for a weather that has run out. Reading it here would make this branch — and
+   * `weatherExpired` with it — silently unreachable, which is a dead guard wearing the shape of a
+   * fixed one. A board that is one turn past its sun still arrives here as sun-with-zero-left and is
+   * DELETED, counted, and proved by the gate.
+   *
+   * The caller's own `S.field.weather` is honoured when it names a weather the board does not hold:
+   * `applyMegaWeather` legitimately hands over a weather that is about to be set. */
   const w = S.field.weather;
   if (w) {
-    const age = typeof board.weatherAge === 'function' ? board.weatherAge() : null;
-    const rock = (typeof board.weather === 'string' && MEDI.weatherId(board.weather) === w)
-      ? (board.weatherRock || '') : '';
-    const full = MEDI.weatherTurns(w, rock, TAGSMOD) | 0;
-    if (age == null) { fieldClockCounters.weatherUnknownAge++; S.field.weatherT = full; }
-    else {
-      const left = full - age;
-      if (left > 0) { fieldClockCounters.weatherKnown++; S.field.weatherT = left; }
-      else { fieldClockCounters.weatherExpired++; S.field.weather = ''; S.field.weatherT = 0; }
-    }
+    const word = typeof board.weatherWord === 'function' ? board.weatherWord() : (board.weather || '');
+    const mine = !!word && MEDI.weatherId(word) === w;
+    const left = mine && typeof board.weatherLeft === 'function' ? board.weatherLeft() : null;
+    if (!mine || left == null) {
+      fieldClockCounters.weatherUnknownAge++;
+      S.field.weatherT = MEDI.weatherTurns(w, mine ? (board.weatherRock || '') : '', TAGSMOD) | 0;
+    } else if (left > 0) { fieldClockCounters.weatherKnown++; S.field.weatherT = left; }
+    else { fieldClockCounters.weatherExpired++; S.field.weather = ''; S.field.weatherT = 0; }
   }
   /* THE TERRAIN HALF WAS ALREADY REPRESENTABLE and was simply never read: `board.startField` stores an
    * expiry and `board.fieldLeft` has read it back since ROADMAP #249 gave Gravity the same treatment.

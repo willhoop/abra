@@ -282,7 +282,13 @@ function realTeams() {
     try {
       const t = JSON.parse(fs.readFileSync(pool, 'utf8'));
       if (Array.isArray(t) && t.length) return t;
-    } catch (e) { /* fall through and compute it */ }
+    } catch (e) {
+      /* A POOL THAT IS PRESENT AND UNREADABLE IS NOT THE SAME AS NO POOL. MEW_TEAMS exists to skip
+       * a startup cost that dominated a 2,400-game run; falling silently back to computing it
+       * means the operator set the variable, paid the cost anyway, and was told nothing. */
+      console.error('  MEW_TEAMS points at ' + pool + ' and it could not be used (' + e.message
+        + '). Recomputing the team pool from the store instead — this is the slow path.');
+    }
   }
   const Q = require('./quality.js');
   const games = Q.loadGames();                 // clean only

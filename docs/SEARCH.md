@@ -14,21 +14,21 @@ mid-run silently invalidates the run, and the run still prints a result.
 SEARCH — does MILTANK choose better than MAG
   R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r1-explore1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js
   R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js
   R3 divergence: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js
   R4 does it win: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-14 23:44):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-17 23:03):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
     PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
     PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
@@ -36,9 +36,197 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-08-15 00:16_
+_stamped 2026-08-17 23:11_
 
 <!-- /GENERATED -->
+
+## R20 — THE SKY EXPIRES AND THE DEAD ARE COUNTED. #276 AND #283 CLOSED; THE GATE'S THIRD CLAUSE GOES 4 → 2. 2026-08-17.
+
+ROADMAP **#276 and #283 closed**; **#286 and #287 opened** by what the work found. Gate:
+**`tests/test-board-clock-power.js`**, 46 assertions, shown **RED on four separate deliberate breaks**.
+Artifact: **`data/feature-shift.json`** (`engine/feature_shift.js`). **No run was launched, no refit was
+run, and #275 is still unmeasured.**
+
+### The verdict in one line
+
+**Both rows are LIVE rather than stale, both are closed, and the fit-invalidation is now a NAMED LIST
+instead of a warning: 32 of 58 features and 6 of 18 joint features move, on 1.576% of 51,399 candidate
+vectors across 41.67% of 300 fit games. And the instrument everyone has been quoting for this — the 58
+frozen fixture hashes — CANNOT SEE EITHER ROW, which is measured here rather than assumed.**
+
+### WHY THEY WERE TAKEN, BECAUSE IT REVERSES AN EARLIER READING
+
+Will's ruling is that the MAG refit waits for MEDICHAM — *"i dont want to constantly come back to
+medicham"* — and R17, R18 and R19 each read that as "do not touch a fitted feature". That was the
+conservative reading and it was wrong: `data/policy-weights.json` is **already quarantined and already
+owes a refit**, so moving a fitted value adds to a debt that exists rather than creating a new one. What
+the rule forbids is RUNNING the refit early. Fixing these is what lets the refit, when it happens, be run
+ONCE against a correct board.
+
+### #276 — THE WEATHER EXPIRES FOR THE FEATURES, AND THE IDEMPOTENCE CLAUSE IS THE WHOLE ROW
+
+| | |
+|---|---|
+| what the board said | `weather` was a bare string that only changed when a NEW weather arrived |
+| what the position says | a weather is up at **32.2%** of decision points with a mean of **2.95** turns left |
+| the fix | `board.weather` is an accessor over `weatherLeft()` = `MEDI.weatherTurns(word, rock, TAGS) - weatherAge()` — #271's shape, and the ONE implementation |
+| what stopped being a second copy | `rollout_leaf.applyFieldClock` computed that same subtraction itself; it calls the board now |
+
+**THE WORD IS STILL RECORDED AND THAT IS LOAD-BEARING.** `weatherWord()` returns what was set whatever
+the clock says. Without it the accessor would hand the seed a pre-emptied string and
+`fieldClockCounters.weatherExpired` — #270's own proof-of-firing — would become **unreachable**: a dead
+guard wearing the shape of a fixed one. `engine/miltank.js`'s two field builds and
+`tests/test-seed-clock.js`'s harness both read the word now, and that gate went **133/1 → 134/0** on
+exactly that line.
+
+**RE-DECLARING A WEATHER THAT IS ALREADY UP DOES NOT RESTART IT, AND WITHOUT THAT CLAUSE THE WHOLE ROW
+IS A NO-OP.** Both worlds announce one weather twice — the click through `noteMove` (which is where the
+setter's ROCK is picked up), then the store's `w` event or the live `|-weather|` line. A naive version
+resets the age on the turn it is laid, every turn it is laid, and nothing ever reaches its length.
+Showdown's own `Field#setWeather` refuses an active weather, so the idempotence is the FACT rather than
+a choice. A weather that has **LAPSED** is not "already up", so re-laying it starts a fresh clock — the
+case naive idempotence gets wrong, and an asserted arm.
+
+### #283 — AND THE CLASS OF SIX WAS WRONG IN BOTH DIRECTIONS
+
+`data/seed-source-audit.json` derived its six by SUBSTRING-MATCHING each callback's source against
+`STUB_HAS_NO`, a hand-typed array of fifteen field names. That is the ban-list-of-four shape CLAUDE.md
+opens with, sitting inside the artifact that defined a register row's scope.
+
+| the audit said | the callbacks say |
+|---|---|
+| Water Shuriken reads `battle` | it reads `hasAbility("battlebond")`. It answers **15** and has never fallen back |
+| — | **Triple Axel** returns NaN (`20 * move.hit`), **899** uses |
+| — | **Rage Fist** returns NaN (`pokemon.timesAttacked`), **585** uses |
+| — | **Avalanche** THROWS (`pokemon.attackedBy`), **29** uses |
+
+Asked of the callbacks instead — a member is one that THROWS or returns a non-number — the real class is
+**seven, carrying 9,163 corpus uses**. `board.unmodelledBasePower(dex, board)` is that question, derived
+and printed on every gate run, the shape `rollout_leaf.unseededVolatiles()` uses.
+
+**WHAT IS SUPPLIED**
+
+| | |
+|---|---|
+| `side.totalFainted` | `board.graveyard[side].size`. Last Respects **7,306** uses: 50 → 50/100/150/200 |
+| `side.pokemon` | the party, so the FORMAT's own `onModifyMove` builds `move.allies`. Beat Up **337** uses: it THREW and fell back to its printed **0**, so `damaging` was false and the move was invisible to the ranking — the Rock Slide bug a fourth time |
+| `move.hit = 1` | Triple Axel. The ANSWER does not move — 20 either way — but the printed value stops being a silent fallback |
+
+**THE ALLY FILTER IS NOT RE-IMPLEMENTED.** `onModifyMove` runs on an `Object.create` copy, because
+`move.allies.shift()` MUTATES and mutating the dex's move would corrupt it for every later reader. The
+blast radius was measured rather than assumed: of the 29 legal callback moves, **exactly one** also
+carries an `onModifyMove`, and it is Beat Up. A regulation that adds a second is handled with no edit.
+
+**WHAT IS REFUSED, BY NAME** — Rage Fist (`timesAttacked`) and Avalanche (`attackedBy`) need a per-body
+hit ledger the board does not keep, and building one needs a write in the LIVE adapter **and** in the
+OFFLINE replay or the fit and the player diverge, which is the error CLAUDE.md opens with. Payback
+(`queue.willMove`, 7 uses) is asking the turn's resolution order, which is the search's question.
+Assurance COMPUTES its printed 60 and that is correct where it is asked: a decision point is the top of a
+turn and Showdown clears `hurtThisTurn` at `nextTurn`. Spit Up returns `false` — the move fails — which
+is right with no Stockpile up, and the board records no layer count.
+
+### THE FIT-INVALIDATION, MEASURED AND NAMED — AND THE FROZEN FIXTURE CANNOT SEE EITHER ROW
+
+`engine/feature_shift.js` compiles a textually-patched `board.js` into `require.cache` (#254's technique,
+so nothing on disk moves under another agent) and compares per-feature columns across three populations.
+Every patch is asserted to have applied; a patch that matched nothing would report "no columns moved",
+which is the most dangerous output this file could produce. **PURITY — head against head — is 0 columns.**
+
+| population | pre-276 | pre-283 |
+|---|---|---|
+| the FROZEN fixture, 384 candidates | **(none)** | **(none)** |
+| the same boards **aged +9 turns** | 22 features, 3 joint | (none) |
+| the FIT's own rows, 300 games / 51,399 candidate vectors | **27 features, 4 joint** — **0.889%** of vectors, **18%** of games | **12 features, 6 joint** — **0.687%** of vectors, **28.33%** of games |
+| **pooled** | — | **32 of 58 features, 6 of 18 joint — 1.576% of vectors, 41.67% of games** |
+
+**BOTH ZEROES IN THE FIRST ROW ARE R7 AGAIN AND THEY HAVE DIFFERENT CAUSES.**
+`feature_fixture.buildScenario` sets `board.turn` and THEN calls `setWeather`, so **every fixture weather
+is zero turns old** and no board in it can have one that has run out — #276 is inert there by
+construction. And **no fixture board carries Last Respects, Beat Up or Triple Axel**, so #283 is inert
+there too. Reading either "(none)" as "no refit is owed" would have been the sixth time a guard was
+trusted for something it does not exercise.
+
+**AND THAT CORRECTS R19 RATHER THAN LEAVING IT.** R19 reported that the 58 fixture hashes MOVE for #283.
+They do not. R19 disabled the WHOLE `movePower` callback path, which reaches Low Kick, Grass Knot, Gyro
+Ball and Acrobatics — moves the fixture DOES carry. The invalidation this row actually owes is real and
+lives in the corpus, not in the fixture.
+
+**THE COLUMNS, FOR THE REFIT.** #276: `deadWeather`, `stab`, `eff2`, `effHalf`, `immune`, `accuracy`,
+`chargeTurn`, `movesFirst`, `speedSwing`, `abilityBlock`, `setupTurns`, `screenValue`, `benchRisk`,
+`protectThreatened`, `stallIntoEncore`, `diesBeforeMoving`, `koTarget`, `dmgFrac`, `killIsRoll`,
+`killsThreat`, `koFirst`, `switchSurvives1`, `switchSurvives2`, `switchFaster`, `switchKOFast`,
+`switchKOSlow`, `switchDiesFirst`; joint `partnerCoversMe`, `focusFireKills`, `overkill`, `doubleKO`.
+#283: `bp`, `isStatus`, `dmgFrac`, `koTarget`, `killIsRoll`, `koFirst`, `killsThreat`, `eff2`, `effHalf`,
+`tgtBulk`, `tgtMayProtect`, `defMismatch`; joint `redirectThenAttack`, `bothStatus`, `focusFireKills`,
+`overkill`, `partnerCoversMe`, `doubleKO`. **Every one of them is inside the class its own row named** —
+a weather-scaled read, or a damage read downstream of a base power. Nothing outside that moved.
+
+**ENGINE WAS LIVE IN THE TREE AND THE TWO HALVES OF THIS RESULT ARE AFFECTED DIFFERENTLY — SAID
+PLAINLY.** `engine/medicham2-browser.js` moved at 02:55 and `data/tags.json` at 02:54; this run finished
+at 02:45. The **column SETS are unaffected**: both arms live in ONE process with ONE loaded simulator and
+one loaded tag artifact, so the diff is a property of the `board.js` change and of nothing else — that is
+the whole reason it is run in lockstep. The **absolute percentages are a reading of the tree at 02:41**
+and no more, because the damage features underneath them come from a simulator that has since moved. If
+the refit wants the reach figure rather than the column list, `engine/feature_shift.js` should be re-run
+against a frozen release.
+
+### The proof, red first — four breaks, four attributable reds
+
+| deliberate break | result |
+|---|---|
+| `weatherLeft()` always returns null — the pre-#276 board | **10 FAIL**, including both behavioural arms and both counters |
+| `setWeather` restarts on every re-declaration — the naive fix | **2 FAIL** |
+| the pre-#283 stub side (`{ sideConditions: {} }`, no allies) | **12 FAIL** |
+| `onModifyMove` never run and no `move.hit` | **6 FAIL** |
+
+After: **46 / 46**, and `tests/test-seed-clock.js` **134 / 134**.
+
+**THREE ARMS ARE BEHAVIOURAL, because reading `board.weather` back would only prove the accessor returned
+what the accessor returned**: `deadWeather` **1 → 0** across the expiry boundary; a weather-scaled damage
+column moving for a (weather move, attacking move) pair that is SWEPT FOR rather than chosen — the first
+version took the first weather-setting move the format offers, which is Sandstorm, which boosts no
+attacking type, and the arm went silent; and Beat Up's `isStatus` **1 → 0**, plus the Last Respects
+vector's `dmgFrac` **0.429 → 1.000** at three dead.
+
+**Nothing in the gate is typed.** The weather move, its length, the rock, Last Respects' `50 + 50N`, Beat
+Up's `5 + floor(baseAtk/10)` and the CARRIERS of both moves (out of `data/move-priors.json`, so every
+body standing there is one real teams bring) are all read at run time.
+
+### TWO THINGS FOUND AND NOT FIXED, FILED RATHER THAN CARRIED
+
+- **#286 — `weatherSetupHelpsPartner` guards itself on `A.__weather`, which NOTHING WRITES.** One
+  occurrence in the live tree and it is that read, so the comparison is `'' !== w` and the clause *"only
+  counted when the weather is not already up"* has never bound. The board holds the answer now —
+  `board.weather` is the expiry-aware accessor — but repairing it moves a fitted JOINT column that
+  neither #276 nor #283 names, and the standing instruction is to stop rather than widen a batch.
+- **#287 — `data/seed-source-audit.json` is stale and its `openAndNotFixed` block now states something
+  false**, since it says #244's remainder is unfixed. The repair is one line (call
+  `board.unmodelledBasePower`), and it is NOT taken because regenerating that artifact today would bake
+  ENGINE's in-flight `data/tags.json` into it. Until it is re-run, its `basePowerCallbackClass` and
+  `openAndNotFixed` blocks are WITHHELD.
+
+### A RED GATE THAT IS NOT MINE, REPORTED RATHER THAN FILED
+
+`tests/test-stadium-roster.js` is **1 FAILURE**: `engine/register_reality.js` →
+`data/register-reality.json` is in neither `docs/MODELS.md` nor the Stadium nor `NOT_A_MODEL`. It is
+MEASURE's new generator, untracked in the working tree at the start of this session. This pass's own new
+generator (`engine/feature_shift.js`) was declared in the same file, which is the action the check
+prescribes. **Routed to MEASURE; not fixed here, and not called known.**
+
+### What was deliberately NOT done
+
+- **NO REFIT WAS RUN.** That is the whole point of the reading above: the debt is named and sized so the
+  refit can be run once, after MEDICHAM, against a correct board.
+- **NO HEAD-TO-HEAD WAS PREPARED OR LAUNCHED, AND #275 IS STILL UNMEASURED.** This pass adds a second
+  unmeasured arm in the honest sense — the feature vector moved — and it is LABELLED as one here rather
+  than folded into #275's.
+- **`engine/medicham2-browser.js`, `engine/tag_dex.js`, `data/tags.json` and `engine/game_differential.js`
+  WERE NOT TOUCHED**, nor were MEASURE's four files.
+- **`engine/feature_fixture.js` WAS NOT EDITED.** Adding a scenario for an aged weather is the obvious
+  repair and it moves every stored hash at once, which is a refit-time decision rather than this pass's.
+  `feature_shift.js` ages the same boards instead, which takes nothing away from what is already there.
+- **The 58 fixture hashes were NOT restamped.** Restamping is what a refit does; doing it here would
+  hide exactly the invalidation this pass exists to name.
 
 ## R19 — THE GUARD MOVED FILES, AND THE WALK STOPPED BEING THE NATIONAL DEX. #245 AND #282 CLOSED, #244 CLOSED WITH ITS REMAINDER NAMED. 2026-08-14.
 

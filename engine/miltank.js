@@ -831,7 +831,12 @@ function install(bot, o) {
              * bare field even when one was up — the same hole as the in-game leaf, in a decision
              * where the terrain is often exactly the point (who is safe to send into Electric
              * Terrain). One call, same helper, no map in this file. */
-            weather: this.board.weather || '', terrain: RL.terrainOnBoard(this.board),
+            /* THE WORD, NOT THE ACCESSOR — ROADMAP #276. `board.weather` now returns '' for a
+             * weather whose clock has run out, which is what the FEATURES must see. The SEED wants
+             * the other half: `rollout_leaf.applyFieldClock` deletes an expired weather itself and
+             * COUNTS it, and handing it a pre-emptied string makes that guard unreachable. */
+            weather: (typeof this.board.weatherWord === 'function' ? this.board.weatherWord() : this.board.weather) || '',
+            terrain: RL.terrainOnBoard(this.board),
             /* ROADMAP #275 — TAILWIND AND TRICK ROOM ARE NO LONGER TYPED HERE. These two lines read
              * `hasSide(side,'tailwind') ? 4 : 0` and `hasField('trickroom') ? 5 : 0`, so a Tailwind
              * with one turn left was seeded with four and the search believed it outran the foe for
@@ -1024,7 +1029,8 @@ function install(bot, o) {
           if (!built[0] || !built[1]) return base(active, moves);
 
           const field = {
-            weather: board.weather || '',
+            /* The word rather than the accessor — see the note on the post-KO field above (#276). */
+            weather: (typeof board.weatherWord === 'function' ? board.weatherWord() : board.weather) || '',
             /* A THIRD SPELLING, AND IT MATCHED NOTHING. This read `hasField('electric')` — the
              * ENGINE's word — against a Board that stores the dex's `electricterrain`. ENGINE
              * measured the consequence directly: 0 of 863 terrain-carrying corpus boards ever

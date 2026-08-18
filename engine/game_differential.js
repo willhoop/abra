@@ -262,6 +262,11 @@ const BS = require('./board_state.js');
  * same rule per game. Two copies would have agreed the day they were written. Part of the INSTRUMENT,
  * so it is not loaded from the release, for the same reason `steering.js` and `board_state.js` are not. */
 const SHAPE = require('./divergence_shape.js');
+/* WHICH TABLE A PROTOCOL TOKEN BELONGS TO — the condition/move name collision, one implementation and
+ * not here. Same reason as `divergence_shape.js`: it is part of the INSTRUMENT (it decides what the
+ * run SAYS an entity is, not what the engines did), and a rule that can only be exercised by a
+ * four-minute run against the official simulator is a rule nobody will test. See effect_kind.js. */
+const EK = require('./effect_kind.js');
 /* HOW BAD, NOT HOW MANY — the end-state severity ladder. Part of the INSTRUMENT for the same reason
  * `board_state.js` and `divergence_shape.js` are: it decides what the run SAYS about a board, not what
  * the board is, so freezing it would score every rung of the release ladder by its own contemporaneous
@@ -449,12 +454,40 @@ function speciesUses(sp) {
 /* A cause is a protocol fragment, so the entity names in it are already normalised ids sitting between
  * pipes, colons and spaces. Split on everything that is not a letter or digit and test each token --
  * cheap, and it cannot miss one by guessing the wrong field position. */
+/* AND THE TOKEN HAS TO BE ASKED OF THE RIGHT TABLE. A CONDITION AND A MOVE MAY SHARE A NAME, and
+ * `entityStanding` walks moves FIRST, so `|-start|p2a|confusion|[fatigue]` — the volatile a locking
+ * move leaves behind, which Outrage, Petal Dance, Raging Fury and Thrash all cause and all of which
+ * are legal here — was published as `moves/confusion, legal: false, nonstandard: 'Past'`. A live
+ * mechanic, labelled as one this format cannot contain. The rule and its argument are in
+ * `engine/effect_kind.js`; the standalone condition table is the format's own, read once. */
+const CONDITION_TABLE = (() => {
+  try { return dex.data.Conditions || {}; }
+  catch (e) { STANDING_FAILS.dexLookup++; return {}; }
+})();
+const IS_CONDITION = (id) => Object.prototype.hasOwnProperty.call(CONDITION_TABLE, id);
+let CONDITION_SLOT_HITS = 0, CONDITION_SLOT_RESCUED = 0;
+
 function annotateCause(cause) {
   const seen = new Set(), out = [];
+  /* Computed ONCE per cause, because it is a property of the whole pair: `|move|pXy|<name>` is the
+   * one position that names a move as a move, and a token there stays a move wherever else it appears. */
+  const condSlots = EK.conditionSlotTokens(cause, IS_CONDITION);
   for (const tok of String(cause).split(/[^a-z0-9]+/i)) {
     const id = N.id(tok);
     if (!id || id.length < 4 || seen.has(id)) continue;
     seen.add(id);
+    if (condSlots.has(id)) {
+      CONDITION_SLOT_HITS++;
+      out.push(EK.conditionStanding(id));
+      /* A LEGAL move of the same name is kept BESIDE the condition, never instead of it: Showdown
+       * names a volatile after the move that sets it, so that move is a genuine setter and its corpus
+       * usage is real signal. An ILLEGAL one cannot be the setter — nothing here can click it — so the
+       * match is a coincidence of spelling. Dropping it is the whole fix, and it is counted so a run
+       * that rescues nothing cannot pass as a run that had nothing to rescue. */
+      const mv = entityStanding(id);
+      if (mv && mv.legal) out.push(mv); else if (mv) CONDITION_SLOT_RESCUED++;
+      continue;
+    }
     const st = entityStanding(id);
     if (st) out.push(st);
   }
@@ -5493,6 +5526,14 @@ console.log('    undeclared Showdown events dropped before alignment: ' + UNDECL
 console.log('    format-standing lookups that threw and fell back: '
   + Object.entries(STANDING_FAILS).map(([k, v]) => k + ' ' + v).join(', ')
   + (Object.values(STANDING_FAILS).some(v => v) ? '  <-- a UNKNOWN above is a FAILURE, not an absence' : ' (must all read 0)'));
+/* A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN. `rescued` is the count of misattributions
+ * this rule actually prevented, so "the collision no longer occurs" and "the rule never fired" cannot
+ * read the same. `condition_table` guards the other half: an empty table would silence the rule
+ * entirely and every count below would be a legitimate-looking zero. */
+console.log('    condition/move name collision: ' + CONDITION_SLOT_HITS + ' token(s) resolved as a '
+  + 'CONDITION rather than a move, ' + CONDITION_SLOT_RESCUED + ' of them rescued from a move this '
+  + 'format does not contain (table: ' + Object.keys(CONDITION_TABLE).length + ' standalone conditions'
+  + (Object.keys(CONDITION_TABLE).length ? '' : '  <-- EMPTY, so the rule cannot fire at all') + ')');
 console.log('');
 
 if (WRITE) {
@@ -5637,6 +5678,18 @@ if (WRITE) {
         keeps_the_meaning: (EQP.find(x => x.id === r.id) || {}).keeps_meaning,
         equal_pair: r.equal, distinct_pair: r.distinct })),
       total_lines_collapsed: [...NORM_COUNTS.values()].reduce((a, b) => a + b, 0),
+    },
+    /* WHICH TABLE EACH TOKEN WAS ASKED OF. A reader of `mentions` cannot otherwise tell a cause that
+     * names no condition from a run in which the condition rule never fired — and the difference is
+     * exactly the `moves/confusion, nonstandard: Past` misattribution that made this rule necessary. */
+    entity_annotation: {
+      by: 'engine/effect_kind.js',
+      rule: 'a token outside a `|move|SLOT|NAME` position that names an entry in the format\'s '
+          + 'standalone condition table is a CONDITION; a LEGAL move of the same name is kept beside '
+          + 'it as a setter, an ILLEGAL one is dropped because it cannot be the setter',
+      standalone_conditions: Object.keys(CONDITION_TABLE).length,
+      condition_slot_tokens: CONDITION_SLOT_HITS,
+      rescued_from_an_illegal_move: CONDITION_SLOT_RESCUED,
     },
     directed: DIR, damage_interior: INTERIOR,
     /* ROADMAP #80. The streams are dropped from the artifact — they are debugging context, not a

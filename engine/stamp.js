@@ -46,7 +46,16 @@ const FILTER = path.join(__dirname, '..', 'data', 'quality-filter.json');
 /* The filter's identity: its modification time, to the second. Enough to detect "this artifact
  * predates a rule change" without pretending to be a content hash. */
 function filterVersion() {
-  try { return new Date(fs.statSync(FILTER).mtimeMs).toISOString(); } catch (e) { return null; }
+  try { return new Date(fs.statSync(FILTER).mtimeMs).toISOString(); }
+  catch (e) {
+    /* NULL IS A REAL ANSWER HERE — no filter file means no filter version — but an UNREADABLE
+     * filter is a different thing wearing the same null, and every artifact stamped in that
+     * state silently claims it predates no rule change (ROADMAP #258). ENOENT stays quiet;
+     * anything else says so, once, on stderr, so a stamp run cannot look clean while blind. */
+    if (e.code !== 'ENOENT') console.error('stamp: cannot read ' + FILTER + ' — ' + e.message
+      + '. Every artifact stamped in this run records NO filter version.');
+    return null;
+  }
 }
 
 function stamp(o) {

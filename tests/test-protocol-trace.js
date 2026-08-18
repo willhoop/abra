@@ -364,6 +364,30 @@ const SCENARIOS = [
     [{ a: [{ m: 'protect' }, { m: 'protect' }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'waterpulse', t: 0 }] },
      { a: [{ m: 'painsplit', t: 0 }, { m: 'helpinghand' }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'waterpulse', t: 0 }] },
      { a: null, b: null }, { a: null, b: null }]],
+
+  /* 2026-08-17 — TRANSFORM, CLICKED ON PURPOSE, and it is here for exactly the reason the Haze and
+   * Pain Split scenarios above are. `|-transform|` moved out of `NOT_EMITTED` and into TRACE_EVENTS
+   * today: the copy itself has been modelled and probed for some time and the ENGINE was writing
+   * `|-activate|USER|transform`, an event the protocol does not contain. `sim/pokemon.ts:1352` is the
+   * one shape, and no scenario in this file brings a body that can produce it.
+   *
+   * DITTO IS THE WHOLE POPULATION AND IT IS DERIVED, NOT CHOSEN. `Dex.forFormat(...)` gives Ditto a
+   * one-move learnset — `transform` — so the set below is the only legal set this body has, and the
+   * ability is LIMBER (slot 0) rather than Imposter, because an Imposter Ditto would copy on ENTRY
+   * and the line would fire without the click that this scenario exists to exercise.
+   *
+   * THE FOE DOES NOT PROTECT ON THE TRANSFORM TURN. Transform is refused by a shield, and a scenario
+   * whose click is blocked is the coverage gap wearing the fix's clothes — that sentence is the Pain
+   * Split scenario's and it applies here unchanged. */
+  ['Transform: a Ditto copies the body in the aimed slot',
+    () => [mon('ditto', ['transform'], 'limber', ''),
+           mon('clefable', ['moonblast', 'protect', 'followme', 'helpinghand'], 'unaware', ''),
+           mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
+    () => [mon('garchomp', ['earthquake', 'dragonclaw', 'protect', 'rockslide'], 'roughskin', ''),
+           mon('milotic', ['scald', 'recover', 'protect', 'icywind'], 'marvelscale', ''),
+           mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
+    [{ a: [{ m: 'transform', t: 0 }, { m: 'moonblast', t: 1 }], b: [{ m: 'dragonclaw', t: 1 }, { m: 'scald', t: 1 }] },
+     { a: null, b: null }, { a: null, b: null }]],
 ];
 
 const seen = {};

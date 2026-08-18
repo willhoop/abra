@@ -9481,6 +9481,55 @@ probe('move', 'userFaintsStatusMove', 'Memento faints its user, and Charm does n
            detail: `user fainted / target atk — Charm ${control.join(' / ')}, Memento ${test.join(' / ')}` };
 });
 
+/* THE SELF-KO IS NOT DAMAGE, AND THIS ENGINE NARRATED IT AS DAMAGE.
+ *
+ * `sim/pokemon.ts:1587 faint()` sets `this.hp = 0`, raises `faintQueued` and pushes onto the queue.
+ * It emits NOTHING. The only line the authority writes is the `|faint|` that `faintMessages`
+ * (sim/battle.ts:2532) puts out afterwards. Both self-KO call sites reach it —
+ * `sim/battle-actions.ts:500` for `selfdestruct: 'always'` and :1288 for `'ifHit'` — so Explosion,
+ * Self-Destruct, Misty Explosion, Memento and Final Gambit all cost their user its whole HP bar with
+ * no `-damage` line at all. Measured against the authority inside a real game (`all_mechanics_fire.js
+ * --only explosion`):
+ *     showdown  |-damage|p2a: Feraligatr|835/960   |faint|p1a: Forretress
+ *     medicham  |-damage|p2a: Feraligatr|835/960   |-damage|p1a: Forretress|0 fnt   |faint|p1a: Forretress
+ * The heal-descriptor path in medicham2 already knew this and said so at its own emit site; the two
+ * `userFaints` sites did not, so all five moves carried an event the authority never writes.
+ *
+ * THE CONTROL IS A BODY THAT FAINTS THE ORDINARY WAY, and it is what stops the fix being "never
+ * announce damage before a faint": a KO by an attack DOES carry `|-damage|...|0 fnt` and THEN
+ * `|faint|`. Both arms are read off the same trace, on the same board, through the same reader. */
+probe('move', 'userFaintsSilent', 'a self-KO writes |faint| alone; a damage KO writes -damage then |faint|', () => {
+  const readOff = (name, trace) => {
+    const mine = trace.filter(l => l.indexOf(name) >= 0 && /^\|(faint|-damage)\|/.test(l));
+    return { faint: mine.filter(l => /^\|faint\|/.test(l)).length,
+             dmg: mine.filter(l => /^\|-damage\|/.test(l)).length, lines: mine.join(' ') };
+  };
+  const selfKO = () => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'milotic');
+    if (!MC.moves['explosion']) return { fainted: false, faint: 0, dmg: 0, lines: 'NO-MOVE' };
+    unfaintable(f1);
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'explosion', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return Object.assign({ fainted: !!me.fainted }, readOff('incineroar', trace));
+  };
+  const damageKO = () => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'milotic');
+    f1.curHP = 1;
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'crunch', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return Object.assign({ fainted: !!f1.fainted }, readOff('garchomp', trace));
+  };
+  const control = damageKO(), test = selfKO();
+  return { works: control.fainted && control.faint === 1 && control.dmg === 1
+                  && test.fainted && test.faint === 1 && test.dmg === 0,
+           arms: { control: control.dmg + ' -damage / ' + control.faint + ' faint',
+                   test: test.dmg + ' -damage / ' + test.faint + ' faint' },
+           detail: 'the DAMAGE KO must carry both lines — [' + control.lines + ']; the SELF-KO of '
+                 + 'Explosion must carry the faint ALONE — [' + test.lines + ']' };
+});
+
 /* WIRE 87. Order, not magnitude: Showdown drains INSIDE the move and pays the contact toll after, so
  * a full-HP drain move into Rough Skin gains nothing and still pays. medicham2 tolled first and then
  * healed the toll straight back. Only visible from FULL HP, which is why a matrix found it. */
@@ -9800,6 +9849,69 @@ probe('ability', 'fractionalPriority', 'Quick Draw jumps the bracket on its 30%,
                  + `${win.foeDead}), draw loses the roll ${lose.hurt}, no ability ${none.hurt}; `
                  + `Status click (excludesStatus) ability ${stAb.hp} hp vs control ${stNo.hp} hp -- equal `
                  + `means the roll was refused, 91 would mean the param was ignored` };
+});
+
+/* A NUDGE THAT WON ITS ROLL ANNOUNCES ITSELF, AND ONE THAT NEVER ROLLED DOES NOT.
+ *
+ * Both `fractionalPriority` carriers whose handler is a FUNCTION write a line before returning the
+ * bracket, and the engine wrote neither — so a Quick Claw turn diverged from the authority on the
+ * announcement even when the ORDER was right:
+ *     data/items.ts quickclaw       this.add('-activate', pokemon, 'item: Quick Claw');
+ *     data/abilities.ts quickdraw   this.add('-activate', pokemon, 'ability: Quick Draw');
+ * STALL IS THE CONTROL AND IT IS NOT AN OMISSION: its `onFractionalPriority` is the bare number
+ * `-0.1` with no handler body at all, so there is no roll and there is nothing to announce. The
+ * artifact carries that as `unconditional: true`, and the announcement is derived from the handler's
+ * own `this.add` — `announce: null` for Stall, which is why "announce whenever the tag is present"
+ * cannot pass this probe.
+ *
+ * THE ROLL IS FORCED IN BOTH DIRECTIONS on both carriers, so a line emitted unconditionally fails as
+ * loudly as a line never emitted. */
+probe('item', 'fractionalPriorityAnnounce', 'Quick Claw and Quick Draw announce the nudge they won; Stall, which never rolls, does not', () => {
+  const run = (item, ab, roll, click) => {
+    const me = bare('slowbro-galar');
+    me.item = item; me.ability = ab || 'none';
+    const ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('weavile');
+    f1.curHP = 40;
+    const bench = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, benchA: [bench] });
+    const trace = []; S._trace = trace;
+    let first = true;
+    const rng = () => { if (first) { first = false; return roll; } return 0.5; };
+    const act = click === 'switch' ? { kind: 'switch', to: (S.benchA || [])[0] }
+                                   : M.playerAction(me, click || 'psychic', f1, S.field);
+    M.battleTurn(S, rng, new Map([[me, act], [ally, { kind: 'pass' }]]),
+                 new Map([[f1, M.playerAction(f1, 'dragonclaw', me, S.field)], [f2, { kind: 'pass' }]]));
+    return trace.filter(l => /^\|-(activate|ability)\|/.test(l) && /slowbro/.test(l)).map(M.traceCanon);
+  };
+  const control = run('', '', 0.05);                    /* neither carrier: nothing to announce */
+  const clawIn = run('quickclaw', '', 0.05), clawOut = run('quickclaw', '', 0.90);
+  const drawIn = run('', 'quickdraw', 0.05), drawOut = run('', 'quickdraw', 0.90);
+  const stall = run('', 'stall', 0.05);                 /* fires ALWAYS and announces NEVER */
+  /* THE TWO ARMS THE CONSTRUCTED-GAME RUN CAUGHT. `sim/battle-queue.ts:249` runs the whole event for
+     `choice === 'move'` only, and Quick Claw's own handler adds `priority <= 0` — so a SWITCH and a
+     PRIORITY CLICK must both stay silent on a winning roll. The engine rolled on every action kind,
+     which was inert for order and stopped being inert once the roll announced itself. */
+  const clawSwitch = run('quickclaw', '', 0.05, 'switch');
+  const clawPrio = run('quickclaw', '', 0.05, 'fakeout');
+  const one = (rows, want) => rows.length === 1 && rows[0] === M.traceCanon(want);
+  return { works: control.length === 0
+                  && one(clawIn, '|-activate|p1a: slowbro-galar|item: quickclaw') && clawOut.length === 0
+                  && one(drawIn, '|-activate|p1a: slowbro-galar|ability: quickdraw') && drawOut.length === 0
+                  && stall.length === 0
+                  && clawSwitch.length === 0 && clawPrio.length === 0,
+           arms: { control: 'none held ' + JSON.stringify(control) + ', stall ' + JSON.stringify(stall)
+                          + ', switching ' + JSON.stringify(clawSwitch) + ', +priority click '
+                          + JSON.stringify(clawPrio),
+                   test: 'claw ' + JSON.stringify(clawIn) + ', draw ' + JSON.stringify(drawIn) },
+           detail: 'holding neither ' + JSON.stringify(control) + '; QUICK CLAW inside its roll '
+                 + JSON.stringify(clawIn) + ' and outside it ' + JSON.stringify(clawOut) + '; QUICK DRAW '
+                 + 'inside ' + JSON.stringify(drawIn) + ' and outside ' + JSON.stringify(drawOut)
+                 + '; STALL, whose handler is a bare -0.1 with no roll and no `add`, ' + JSON.stringify(stall)
+                 + ' (must stay empty — it nudges every turn). The same claw on a winning roll while '
+                 + 'SWITCHING ' + JSON.stringify(clawSwitch) + ' and while clicking a +3 move '
+                 + JSON.stringify(clawPrio) + ' — the authority runs the event for move actions at '
+                 + 'priority <= 0 and for nothing else' };
 });
 
 /* WIRE 103 -- King's Rock. */
@@ -11250,6 +11362,85 @@ probe('move', 'swapsAbilities', 'Skill Swap exchanges the two abilities, and Goo
            arms: { control: refused, test: swapped },
            detail: `[attacker ability, target ability] after Skill Swap -- into Intimidate ${swapped}; `
                  + `into Good as Gold ${refused} (refused, unchanged)` };
+});
+
+/* SKILL SWAP IS ONE LINE THAT CARRIES BOTH ABILITIES, AND THIS ENGINE WROTE THREE THAT CARRIED NONE.
+ *
+ * `sim/battle.ts:1311 skillSwap()` — the whole announcement is
+ *     this.add('-activate', source, 'Skill Swap', targetAbility.name, sourceAbility.name, `[of] ${target}`);
+ * with the ALLY / gen<=4 arm at :1325 blanking the two ability fields and keeping the empty pipes. The
+ * two abilities are then written by plain assignment and `singleEvent('End'/'Start')`, NEITHER of which
+ * emits — so there is no `|-ability|` anywhere in a Skill Swap. This engine emitted
+ * `|-activate|USER|move: skillswap` and then TWO `|-ability|` lines, i.e. one wrong line plus two
+ * events the authority never writes. Measured against the authority (`all_mechanics_fire.js --only
+ * skillswap`):
+ *     showdown  |-activate|p1a: Alakazam|Skill Swap|Torrent|Synchronize|[of] p2a: Feraligatr
+ *     medicham  |-activate|p1a: Alakazam|move: skillswap
+ *               |-ability|p1a: Alakazam|torrent|[from] move: skillswap
+ *               |-ability|p2a: Feraligatr|synchronize|[from] move: skillswap
+ *
+ * THE VARIED KNOB IS THE PAIR OF ABILITIES, so the two names inside the line have to MOVE with the
+ * bodies. A probe that swapped one fixed pair could be passed by a line with the names typed into it;
+ * two disjoint pairs cannot. Field 4 is what the USER receives and field 5 what the TARGET receives —
+ * the two are asserted separately, because an engine that emitted them the wrong way round would pass
+ * any test that only checked both names were present. */
+probe('move', 'swapsAbilitiesLine', 'Skill Swap emits ONE -activate carrying both abilities, and no -ability at all', () => {
+  const run = (mine, theirs) => {
+    const { me, ally, f1, f2, S } = board('alakazam', 'corviknight', 'garchomp', 'milotic');
+    me.ability = mine; f1.ability = theirs;
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'skillswap', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { act: trace.filter(l => /^\|-activate\|/.test(l)),
+             abLines: trace.filter(l => /^\|-ability\|/.test(l)).length,
+             held: me.ability + '/' + f1.ability };
+  };
+  const control = run('blaze', 'levitate'), test = run('synchronize', 'torrent');
+  const shape = (r, a, b) => r.act.length === 1 && r.abLines === 0
+    && M.traceCanon(r.act[0]) === M.traceCanon('|-activate|p1a: alakazam|Skill Swap|' + b + '|' + a
+                                              + '|[of] p2a: garchomp');
+  return { works: shape(control, 'blaze', 'levitate') && control.held === 'levitate/blaze'
+                  && shape(test, 'synchronize', 'torrent') && test.held === 'torrent/synchronize',
+           arms: { control: control.act.join(' ') + ' +' + control.abLines + ' -ability',
+                   test: test.act.join(' ') + ' +' + test.abLines + ' -ability' },
+           detail: 'Blaze <-> Levitate emitted [' + control.act.join(' ') + '] with ' + control.abLines
+                 + ' -ability lines and the bodies now hold ' + control.held + '; Synchronize <-> '
+                 + 'Torrent emitted [' + test.act.join(' ') + '] with ' + test.abLines + ' and now hold '
+                 + test.held + '. Field 4 must be what the USER received and field 5 what the TARGET '
+                 + 'received, so the two arms may not share a name in either slot' };
+});
+
+/* TRANSFORM HAS ITS OWN EVENT, AND THIS ENGINE BORROWED `-activate`.
+ *
+ * `sim/pokemon.ts:1352` — `this.battle.add('-transform', this, pokemon)`, with the :1350 variant
+ * appending `[from] <effect.fullname>` when something other than the move caused it. There is no
+ * `-activate|...|transform` in the protocol at all, so the line this engine wrote could never align.
+ *
+ * THE VARIED KNOB IS WHICH BODY IS COPIED, because field 3 of the line is the target: aiming at the
+ * two different foes must move it, and an engine that named the user twice would pass a one-armed
+ * version. The copy itself is asserted alongside the line — `transformsIntoTarget` owns the stats, and
+ * a line without a copy behind it is the announcement of a mechanic that did not happen. */
+probe('move', 'transformsIntoTargetLine', 'Transform emits |-transform|USER|TARGET, naming the body it copied', () => {
+  const run = (slotB) => {
+    const { me, ally, f1, f2, S } = board('ditto', 'corviknight', 'garchomp', 'milotic');
+    const tgt = slotB ? f2 : f1;
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'transform', tgt, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { lines: trace.filter(l => /^\|-(transform|activate)\|/.test(l) && /ditto/.test(l)),
+             sa: me.st.sa };
+  };
+  const control = run(false), test = run(true);
+  const ok = (r, who) => r.lines.length === 1
+    && M.traceCanon(r.lines[0]) === M.traceCanon('|-transform|p1a: ditto|' + who);
+  return { works: ok(control, 'p2a: garchomp') && ok(test, 'p2b: milotic')
+                  && control.sa !== test.sa,
+           arms: { control: control.lines.join(' '), test: test.lines.join(' ') },
+           detail: 'Transform into the foe in slot A emitted [' + control.lines.join(' ') + '] and left '
+                 + 'the user on ' + control.sa + ' Sp. Atk; into the foe in slot B [' + test.lines.join(' ')
+                 + '] and ' + test.sa + '. The event name is `-transform` and field 3 is the body that '
+                 + 'was copied — the two arms must differ there and in the stat, or nothing was read '
+                 + 'off the target at all' };
 });
 
 probe('move', 'readsOwnItem', 'Acrobatics doubles when the user holds nothing', () => {
@@ -14490,6 +14681,54 @@ probe('move', 'layeredVolatile', 'Stockpile stacks to three, raising Def and Sp.
                  + `CLIMB on re-use where every other volatile in this engine refuses a restart, and `
                  + `it must stop at three with the move itself failing — an engine that let the `
                  + `fourth click through reads 4:4/4 on the last cell` };
+});
+
+/* THE LAYER ANNOUNCES ITSELF BEFORE IT PAYS, AND THIS ENGINE PAID FIRST.
+ *
+ * `data/moves.ts:17954` — Stockpile's condition. `onStart` reads
+ *     this.add('-start', target, 'stockpile' + this.effectState.layers);
+ *     const [curDef, curSpD] = [target.boosts.def, target.boosts.spd];
+ *     this.boost({ def: 1, spd: 1 }, target, target);
+ * and `onRestart` has the identical pair in the identical order. The champions mod overrides neither
+ * (nothing in `data/mods/champions/moves.ts` names stockpile, spitup or swallow), so mainline holds.
+ * `applyLayeredVolatile` emitted its `-start` at the BOTTOM, after the boost loop, so all three
+ * members of the family — Stockpile, Spit Up and Swallow, which share the one applier — parted from
+ * the authority on the Stockpile turn and never got as far as being judged on their own turn.
+ *
+ * THE ARMS VARY THE LAYER, not the order, because an ordering probe whose two arms are the same click
+ * proves only that one line came out. One click must read `stockpile1` then the two boosts; two clicks
+ * must read `stockpile1` boosts `stockpile2` boosts — so the NUMBER inside the announcement moves with
+ * the knob and the relative position holds on both. The `-end` half is asserted in the same breath and
+ * in the OTHER order (`onEnd` boosts the refund back and THEN writes `-end`), which is what stops the
+ * fix being "put every volatile line first". */
+probe('move', 'layeredVolatileOrder', 'Stockpile announces the layer BEFORE the boosts it pays, and -end AFTER the refund', () => {
+  const run = (n, release) => {
+    const me = bare('toxapex'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(f1);
+    const trace = []; S._trace = trace;
+    for (let i = 0; i < n; i++) M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'stockpile', me, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    if (release) M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'spitup', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return trace.filter(l => /^\|-(start|end|boost|unboost)\|/.test(l) && /toxapex/.test(l))
+                .map(l => { const p = l.split('|'); return p[1].replace('-', '') + ':' + p.slice(3).join('|'); });
+  };
+  const control = run(1, false), test = run(2, false), spent = run(1, true);
+  const shape = rows => rows.join(' ');
+  const endIdx = spent.findIndex(l => /^end:/.test(l));
+  return { works: shape(control) === 'start:stockpile1 boost:def|1 boost:spd|1'
+                  && shape(test) === 'start:stockpile1 boost:def|1 boost:spd|1 '
+                                   + 'start:stockpile2 boost:def|1 boost:spd|1'
+                  /* the refund is paid and THEN the end is announced — the opposite order, off the
+                     same emitter, so "announce first, always" cannot pass this probe */
+                  && endIdx > 0 && /^unboost:/.test(spent[endIdx - 1]),
+           arms: { control: shape(control), test: shape(test) },
+           detail: 'one Stockpile click emits [' + shape(control) + '], two emit [' + shape(test)
+                 + '] — the layer line must PRECEDE the boosts it caused and carry the layer number; '
+                 + 'and Spit Up spending the stack emits [' + shape(spent) + '], where the -end must '
+                 + 'come AFTER its refund' };
 });
 
 probe('move', 'variablePower', 'Spit Up is 100 base power per stockpiled layer, and it empties the stack', () => {
@@ -18611,6 +18850,60 @@ probe('ability', 'critRatioUp', 'Merciless is a GUARANTEED crit into a poisoned 
  * so nothing here depends on luck: INSIDE the 10% it must survive AND KEEP THE ITEM (Showdown's
  * handler has no `useItem` — an engine that copied the Sash's consumption would pass the survival and
  * silently disarm the next hit), and OUTSIDE it the same body at the same HP must die. */
+/* THE SURVIVOR NAMES WHAT SAVED IT, AND THE THREE MEMBERS SAY IT IN THREE SHAPES.
+ *
+ * All three carriers of `survivesFromFull` announce, and no two announce the same way — the authority
+ * is not consistent here and a rule invented from one member is wrong for the other two:
+ *     data/items.ts focusband   this.add("-activate", target, "item: Focus Band");
+ *     data/items.ts focussash   useItem()  ->  |-enditem|, and no -activate at all
+ *     data/abilities.ts sturdy  this.add('-ability', target, 'Sturdy');   (an -ability line, bare)
+ * This engine emitted the `-enditem` correctly and, for the two that keep what saved them, wrote
+ * `|-activate|TARGET|ability: <whatever the body's ability happens to be>` — so a Focus Band survivor
+ * announced the holder's UNRELATED ability. Measured against the authority (`--only focusband`):
+ *     showdown  |-activate|p1a: Corviknight|item: Focus Band
+ *     medicham  |-activate|p1a: Corviknight|ability: pressure
+ * The event and the prefix are derived in `tag_dex.js` from each handler's own `this.add` call, so
+ * Sturdy's bare `-ability` and Focus Band's `item:` prefix come out of the source rather than a rule.
+ *
+ * FOUR ARMS, AND THE FOURTH IS A BODY THAT SIMPLY DIES. A survivor that announced nothing and one
+ * that announced everything both fail, and the Focus Band arm is run with a PRESSURE holder on
+ * purpose — that is the ability the broken line was naming. */
+probe('item', 'survivesFromFullAnnounce', 'the survivor names what saved it — item: for the band, a bare -ability for Sturdy, -enditem for the sash', () => {
+  const run = (item, ability, rngV) => {
+    const me = bare('machamp'); me.moves = ['closecombat', 'protect', 'knockoff', 'lowkick'];
+    const ally = bare('farigiraf');
+    const f1 = bare('corviknight'), f2 = bare('milotic');
+    f1.item = item; f1.ability = ability;
+    f1.st = Object.assign({}, f1.st, { hp: 60 }); f1.curHP = 60;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, () => rngV,
+      new Map([[me, M.playerAction(me, 'closecombat', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { lines: trace.filter(l => /^\|-(activate|ability|enditem)\|/.test(l) && /corviknight/.test(l))
+                         .map(M.traceCanon),
+             hp: f1.curHP, died: !!f1.fainted };
+  };
+  /* PRESSURE on the two item arms deliberately: it is the ability the broken line was naming, and it
+     emits nothing of its own on this board, so anything that appears came from the survival. */
+  const control = run('', 'pressure', 0.5);
+  const band = run('focusband', 'pressure', 0.05);
+  const sash = run('focussash', 'pressure', 0.5);
+  const sturdy = run('', 'sturdy', 0.5);
+  const one = (r, want) => r.lines.length === 1 && r.lines[0] === M.traceCanon(want) && r.hp === 1 && !r.died;
+  return { works: control.died && control.lines.length === 0
+                  && one(band, '|-activate|p2a: corviknight|item: focusband')
+                  && one(sash, '|-enditem|p2a: corviknight|focussash')
+                  && one(sturdy, '|-ability|p2a: corviknight|sturdy'),
+           arms: { control: JSON.stringify(control.lines) + ' died ' + control.died,
+                   test: JSON.stringify(band.lines) + ' / ' + JSON.stringify(sturdy.lines) },
+           detail: 'a lethal Close Combat into a 60 HP Pressure body. NOTHING held: died ' + control.died
+                 + ', lines ' + JSON.stringify(control.lines) + '. FOCUS BAND inside its 10%: hp ' + band.hp
+                 + ', ' + JSON.stringify(band.lines) + '. FOCUS SASH: hp ' + sash.hp + ', '
+                 + JSON.stringify(sash.lines) + '. STURDY: hp ' + sturdy.hp + ', '
+                 + JSON.stringify(sturdy.lines) + '. Three carriers, three different shapes' };
+});
+
 probe('item', 'survivesFromFull', 'Focus Band saves from ANY HP on its 10%, keeps the item, and Sash and Sturdy are untouched', () => {
   const run = (item, ability, hpFrac, rngV) => {
     const me = bare('machamp'); me.moves = ['closecombat', 'protect', 'knockoff', 'lowkick'];

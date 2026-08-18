@@ -37,6 +37,7 @@
  *   node tests/test-no-silent-failure.js                     check
  *   node tests/test-no-silent-failure.js --all               ... and list every new one with its body
  *   node tests/test-no-silent-failure.js --dangerous         the MANUFACTURE subset, by file
+ *   node tests/test-no-silent-failure.js --in <file>...     every silent catch in the files YOU own
  *   node tests/test-no-silent-failure.js --update            lock in FIXES (the floor may only fall)
  *   node tests/test-no-silent-failure.js --accept <file> "reason"    accept ONE file's new silence
  *
@@ -240,6 +241,7 @@ const hash = (s) => crypto.createHash('sha1').update(s.replace(/\s+/g, ' ').trim
 
 /* ---- scan --------------------------------------------------------------------------------------- */
 const silent = [];
+const unreadable = [];
 let scanned = 0, total = 0;
 for (const dir of DIRS) {
   const d = path.join(ROOT, dir);
@@ -247,7 +249,13 @@ for (const dir of DIRS) {
   for (const f of fs.readdirSync(d)) {
     if (!f.endsWith('.js')) continue;
     const rel = dir + '/' + f;
-    let src; try { src = fs.readFileSync(path.join(d, f), 'utf8'); } catch (e) { continue; }
+    /* THIS FILE'S OWN BLIND SPOT, AND IT HAD THE BUG IT EXISTS TO CATCH (ROADMAP #258). A source
+     * file that cannot be read is a file whose catch blocks were never examined, and skipping it
+     * in silence made `files scanned 333` and a clean bill of health for 333 files identical to
+     * a clean bill of health for 332 plus one nobody looked at. It is now counted, named, and
+     * the run FAILS on it: a ratchet that cannot see a file cannot vouch for it. */
+    let src; try { src = fs.readFileSync(path.join(d, f), 'utf8'); }
+    catch (e) { unreadable.push(rel + ': ' + e.message); continue; }
     scanned++;
     for (const c of catches(src)) {
       total++;
@@ -372,6 +380,39 @@ if (process.argv.includes('--dangerous')) {
   process.exit(0);
 }
 
+/* ---- --in <file>...: EVERY silent catch in the named files, baselined ones included --------------
+ *
+ * ROADMAP #258's unit of work is a FILE, owned by the division that owns it, and the two listings
+ * above cannot answer "what is left in mine": the default run prints only what is NEW, and
+ * `--dangerous` prints only the manufacturing subset across the whole repo. A division that wants to
+ * clear its own files had to eyeball a 97-line repo-wide list and grep, which is a second scanner
+ * built by hand — the failure mode CLAUDE.md names as how `buildMon("Scizor")` returned null.
+ *
+ * It reads the baseline so a block already in the floor is marked BASELINED rather than looking
+ * clean. Listing only; it changes nothing and exits 0. */
+if (process.argv.includes('--in')) {
+  const at = process.argv.indexOf('--in');
+  const want = process.argv.slice(at + 1).filter(a => !a.startsWith('--'))
+    .map(a => a.replace(/\\/g, '/').replace(/^\.\//, ''));
+  if (!want.length) { console.error('  usage: node tests/test-no-silent-failure.js --in engine/a.js tests/b.js'); process.exit(2); }
+  const b = readBaseline();
+  const floor = (b && b.entries) || {};
+  const seen = {};
+  const mine = silent.filter(s => want.includes(s.file));
+  console.log(`SILENT CATCHES IN ${want.length} NAMED FILE(S) — ${mine.length} found\n`);
+  for (const f of want) {
+    const list = mine.filter(s => s.file === f);
+    console.log(`  ${f}  (${list.length})`);
+    for (const s of list) {
+      const k = `${s.file}#${s.hash}`;
+      seen[k] = (seen[k] || 0) + 1;
+      const state = seen[k] <= (floor[k] || 0) ? 'BASELINED' : 'NEW      ';
+      console.log(`      :${String(s.line).padEnd(6)} ${state} ${s.manufactures ? 'MANUFACTURES' : 'skips       '}  ${s.body}`);
+    }
+  }
+  process.exit(0);
+}
+
 const base = readBaseline();
 if (!base) {
   console.error('NO BASELINE. data/silent-catch-baseline.json is absent or unreadable.');
@@ -395,6 +436,7 @@ const gone = Object.entries(known)
 
 console.log('SILENT FAILURE RATCHET — a catch block may not discard the reason\n');
 console.log(`  files scanned            ${scanned}`);
+if (unreadable.length) console.log(`  COULD NOT BE SCANNED     ${unreadable.length}   <- not vouched for by this gate`);
 console.log(`  catch blocks             ${total}`);
 const danger = silent.filter(s => s.manufactures);
 console.log(`  silent (say nothing)     ${silent.length}   of ${total}  (${(100 * silent.length / Math.max(1, total)).toFixed(0)}%)`);
@@ -443,5 +485,11 @@ if (fresh.length) {
   process.exit(1);
 }
 if (gone.length) console.log(`\n  ${gone.length} baselined block(s) now speak. Re-run with --update to lock the gain in.`);
+if (unreadable.length) {
+  console.log('\n  ' + unreadable.length + ' FILE(S) COULD NOT BE READ, so their catch blocks were never examined:');
+  for (const u of unreadable) console.log('    ' + u);
+  console.log('  A ratchet that cannot see a file may not report that file clean.');
+  process.exit(1);
+}
 console.log('\n  no NEW silent failures.');
 process.exit(0);

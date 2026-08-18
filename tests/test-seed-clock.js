@@ -135,7 +135,12 @@ const seedFrom = (bd, side, f) => {
       const bd = stood(baseBoard());
       B.noteMove(bd, 'p1', bd.slot('p1', 'a'), WMOVE, true);
       for (let i = 0; i < elapsed; i++) bd.endTurn();
-      const S = seedFrom(bd, 'p1', { weather: bd.weather, terrain: '' });
+      /* *** THE WORD, NOT THE ACCESSOR — ROADMAP #276, AND THIS LINE IS THE GATE'S OWN CALLER. ***
+       * Since #276 `board.weather` returns '' for a weather whose clock has run out, so a harness that
+       * passed it here would hand the leaf a pre-emptied string and make `weatherExpired` unreachable
+       * — a dead guard wearing the shape of a fixed one. `engine/miltank.js` passes `weatherWord()` for
+       * exactly this reason; this harness must ask the same question the player asks. */
+      const S = seedFrom(bd, 'p1', { weather: bd.weatherWord(), terrain: '' });
       return { w: S.field.weather, t: S.field.weatherT | 0 };
     };
 
@@ -169,7 +174,7 @@ const seedFrom = (bd, side, f) => {
       bd.setSheet('p1', MINE[0], { nature: 'Serious', item: ROCK, ability: '', moves: [WMOVE.id] });
       bd.switchIn('p1', 'a', MINE[0]);
       B.noteMove(bd, 'p1', bd.slot('p1', 'a'), WMOVE, true);
-      const S = seedFrom(bd, 'p1', { weather: bd.weather, terrain: '' });
+      const S = seedFrom(bd, 'p1', { weather: bd.weatherWord(), terrain: '' });
       ok((S.field.weatherT | 0) === MEDI.weatherTurns(W, ROCK, TAGS),
         'ROADMAP #270 — the SETTER\'s rock extends the seeded clock, derived not typed',
         `${ROCK}: weatherT ${S.field.weatherT} vs ${MEDI.weatherTurns(W, ROCK, TAGS)}`);

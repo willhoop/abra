@@ -1,9 +1,9 @@
 {
-  "generated": "2026-08-12 23:07:43",
+  "generated": "2026-08-18 02:47:30",
   "source": "engine/derive_protocol_events.js",
   "source_digests": {
-    "engine/derive_protocol_events.js": "4c744fc074d2",
-    "engine/medicham2-browser.js": "669872d33753"
+    "engine/derive_protocol_events.js": "64565dc21221",
+    "engine/medicham2-browser.js": "c94e1fca4bb2"
   },
   "showdown_pinned_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "derivedFrom": {
@@ -30,7 +30,7 @@
     "note": "the champions mod OVERRIDES two of the core emits (-supereffective, -resisted); its arity wins."
   },
   "showdownEvents": 91,
-  "emittedCount": 41,
+  "emittedCount": 42,
   "emitted": [
     "-ability",
     "-activate",
@@ -63,6 +63,7 @@
     "-start",
     "-status",
     "-supereffective",
+    "-transform",
     "-unboost",
     "-weather",
     "cant",
@@ -74,7 +75,7 @@
     "turn",
     "upkeep"
   ],
-  "notEmittedCount": 53,
+  "notEmittedCount": 52,
   "notEmitted": [
     {
       "event": "-anim",
@@ -175,10 +176,6 @@
     {
       "event": "-terastallize",
       "reason": "Terastal is not in Champions Reg M-B and this engine has no tera state."
-    },
-    {
-      "event": "-transform",
-      "reason": "Imposter/Transform is not modelled; `formeChange` carriers are listed unconsumed."
     },
     {
       "event": "-waiting",
@@ -1150,7 +1147,7 @@
         "SIM-PROTOCOL.md"
       ],
       "champions": false,
-      "medicham": "declared"
+      "medicham": "emitted"
     },
     {
       "name": "-unboost",

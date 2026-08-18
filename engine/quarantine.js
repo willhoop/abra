@@ -730,18 +730,72 @@ function openDefectClause() {
   /* THE ESCAPE HATCH IS PART OF THE VERDICT, AT ZERO AS WELL AS AT SEVEN. A guard that can only be
    * seen when it fires is a guard nobody can tell has stopped running. */
   const excused = NOT_A_DEFECT.slice().sort((a, b) => +a.n - +b.n);
+  /* ==============================================================================================
+   * A ROW IS EVIDENCE ONLY WHEN AN INSTRUMENT AGREES WITH IT — WILL, 2026-08-15.
+   * ==============================================================================================
+   * This clause used to hold the whole gate shut on the CONTENTS OF A MARKDOWN TABLE. Three of the
+   * eight clauses measure MEDICHAM. This one measured our own bookkeeping, and it is the only one
+   * with no visible end: on 2026-08-15 SEARCH closed #276 and #283 and filed #286 and #287 in the
+   * same pass, so the count went 4 -> 2 -> 4 while the simulator got strictly MORE correct. Serious
+   * work inspects code nobody had inspected and finds things; a clause that counts findings is
+   * driven UP by doing the work well, which is the wrong direction for a gate.
+   *
+   * AND THE REGISTER IS MEASURABLY UNRELIABLE AS A SOURCE. In one session four rows proved stale
+   * rather than live: #279 claimed a damage error that dmgRange already got right and had been
+   * RANKED FIRST OF FOURTEEN as the place to start; #244 had been fixed for two days with nobody
+   * flipping it. A sentence somebody typed was holding the gate shut on a defect that no longer
+   * existed — a gate reporting something untrue in the direction that gets gates ignored, which is
+   * the exact failure this clause was narrowed to prevent, arriving from the other side.
+   *
+   * SO IT COUNTS EVIDENCE, NOT SENTENCES. A row holds the gate shut when it names an instrument
+   * (VERIFIED BY) and that instrument is RED. engine/register_reality.js runs them and publishes the
+   * verdicts to data/register-reality.json.
+   *
+   * THIS IS NOT A LAUNDERING HOLE, AND THE DIFFERENCE IS THAT NOTHING GOES QUIET. A row with no
+   * instrument is DEBT: printed by name, counted, carried in the artifact. It simply cannot hold a
+   * gate shut by assertion alone. That is the standard every other clause here already meets — the
+   * differential, the rosters and the census all fail on a MEASUREMENT, not on a claim.
+   *
+   * A row whose instrument is RED still fails this clause exactly as before. The way to make a
+   * defect block the gate is to write the test that proves it, which is the work anyway.
+   * ============================================================================================ */
+  let _rrows = [];
+  try {
+    const rr = JSON.parse(fs.readFileSync(D("data", "register-reality.json"), "utf8"));
+    _rrows = rr.rows || rr.verdicts || [];
+  } catch (e) { _rrows = []; }
+  const _byRow = new Map();
+  for (const r of _rrows) _byRow.set(String(r.row !== undefined ? r.row : r.n), r);
+  const withRed = [], debt = [], staleRows = [];
+  for (const r of open) {
+    const v = _byRow.get(String(r.n));
+    const named = v && (v.instrument || v.command || v.verifiedBy);
+    if (!named) { debt.push(r); continue; }
+    if (v.exit !== 0) withRed.push(r); else staleRows.push(r);
+  }
+  const debtLine = debt.length
+    ? "  " + debt.length + " open row(s) assert breakage with NO instrument that decides them — DEBT, "
+      + "not evidence, and they do not hold this clause shut: "
+      + debt.map(function (r) { return "#" + r.n; }).join(", ")
+      + ". Give one a verdict by adding a VERIFIED BY line naming the gate."
+    : "";
+  const staleLine = staleRows.length
+    ? "  " + staleRows.length + " open row(s) name an instrument that is GREEN — register_reality "
+      + "calls those STALE ROW and they are not evidence of a live defect: "
+      + staleRows.map(function (r) { return "#" + r.n; }).join(", ") + "."
+    : "";
   const receipt = `  ${excused.length} open row(s) declare NOT A DEFECT in their status cell and are `
     + `excused from this clause` + (excused.length
       ? ': ' + excused.map(r => '#' + r.n + ' [' + r.cell + ']').join('; ') : '.');
   return {
-    name: 'no open, known engine defect', ok: open.length === 0, open, excused,
-    why: (open.length === 0
-      ? 'clean: the roadmap registers no open row describing a live engine defect'
-      : `${open.length} OPEN roadmap row(s) describe a live engine defect (${weight.toLocaleString()} `
+    name: 'no open, known engine defect', ok: withRed.length === 0, open, excused, withRed, debt, staleRows,
+    why: (withRed.length === 0
+      ? 'clean: no open row names an instrument that is RED — no open defect is backed by a failing measurement'
+      : `${withRed.length} OPEN roadmap row(s) name an instrument that is RED (${weight.toLocaleString()} `
         + `named uses between them). A gate cannot report the engine correct while the register says `
         + `otherwise — that is "known failure" filed one level up. Worst: `
         + open.slice(0, 5).map(r => '#' + r.n + (r.uses ? ' (' + r.uses.toLocaleString() + ')' : '')).join(', '))
-      + receipt,
+      + receipt + debtLine + staleLine,
   };
 }
 

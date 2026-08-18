@@ -1082,6 +1082,10 @@ const MEDFAILS = { encoreAction: 0,
    * tag_dex could not read a `return <number>` out of; the ITEM derivation states only a chance by
    * construction and is deliberately not counted here. */
   fractionalPriorityNoBracket: 0, fractionalPriorityNoBracketFirst: null,
+  /* 2026-08-17 -- an `announce` record naming an event `TRACE.announced` has no emitter for. The four
+   * carriers this format admits use `-activate` and `-ability` and nothing else; a fifth shape would
+   * be SILENT rather than approximated, so it is counted and named instead of guessed at. */
+  announceEventUnknown: 0, announceEventUnknownFirst: null,
   /* ROADMAP #197 -- an `addsOwnSecondary` carrier whose row names neither a volatile nor a status, so
    * there is no effect to add and the addition is REFUSED rather than given an invented one. */
   addedSecondaryEmpty: 0, addedSecondaryEmptyFirst: null,
@@ -1738,6 +1742,23 @@ const TRACE=(function(){
                                        '[from] ability: '+ab,'[of] '+ident(m)]); },
     miss(src,tgt){ this.push(['-miss',ident(src),tgt?ident(tgt):'']); },
     act(m,eff,extra){ this.push(['-activate',ident(m),eff,extra]); },
+    /* THE ANNOUNCEMENT A HANDLER MAKES ABOUT ITSELF, OFF THE ARTIFACT'S `announce` RECORD.
+     *
+     * Two tag families have carriers that announce in DIFFERENT SHAPES -- `survivesFromFull` is
+     * `-activate|TARGET|item: Focus Band` for the band and `-ability|TARGET|Sturdy` for Sturdy, and
+     * `fractionalPriority` is `-activate` with an `item:` prefix for the claw, an `ability:` prefix
+     * for Quick Draw and NOTHING AT ALL for Stall. `tag_dex.js` reads the EVENT and the PREFIX off
+     * each handler's own `this.add`; this composes the line with the engine's own id, so no Showdown
+     * display string enters the stream (see the trace header). A null record emits nothing, which is
+     * the whole reason it is a record rather than a boolean. */
+    announced(m,rec,id){
+      if(!rec||!rec.event)return;
+      const txt=rec.prefix?rec.prefix+': '+id:id;
+      if(rec.event==='-ability')this.ab(m,txt);
+      else if(rec.event==='-activate')this.act(m,txt);
+      else{ MEDFAILS.announceEventUnknown++;
+            if(!MEDFAILS.announceEventUnknownFirst)MEDFAILS.announceEventUnknownFirst=String(rec.event); }
+    },
     actOf(m,eff,of){ this.push(['-activate',ident(m),eff,of?'[of] '+ident(of):'']); },
     /* WIRE 133 -- `of` is Instruct's `[of] SOURCE`: `this.add('-singleturn', target, 'move: Instruct',
      * '[of] ' + source)` (data/moves.ts:9665). The instructed body is the SUBJECT and the instructor
@@ -1804,6 +1825,21 @@ const TRACE=(function(){
     item(m,it,from){ this.push(['-item',ident(m),it,from]); },
     enditem(m,it,tag,of){ this.push(['-enditem',ident(m),it,tag,of?'[of] '+ident(of):'']); },
     ab(m,a,extra){ this.push(['-ability',ident(m),a,extra]); },
+    /* `|-transform|USER|TARGET` -- sim/pokemon.ts:1352, with the :1350 variant appending
+     * `[from] <effect.fullname>` when something other than the move caused the copy. There is no
+     * `-activate|...|transform` anywhere in the protocol, which is what this engine used to write. */
+    xform(m,tgt,from){ this.push(['-transform',ident(m),ident(tgt),from]); },
+    /* `|-activate|SOURCE|Skill Swap|<what SOURCE receives>|<what TARGET receives>|[of] TARGET` --
+     * sim/battle.ts:1326, and ONE line: the abilities are written by plain assignment and the
+     * `singleEvent('End'/'Start')` pair announces nothing, so a Skill Swap carries no `-ability` at
+     * all. The ALLY arm (:1325, `gen <= 4 || source.isAlly(target)`) BLANKS the two ability fields and
+     * keeps the two empty pipes -- a shape `push`'s empty-field filter deletes rather than writes, so
+     * it is composed directly here. Filtering is right for every other emitter and wrong for this one,
+     * exactly as the `-damage` multi-hit note above says. */
+    abswap(src,tgt,gets,gives,ally){
+      if(ally) this.out.push('|-activate|'+ident(src)+'|Skill Swap|||[of] '+ident(tgt));
+      else this.push(['-activate',ident(src),'Skill Swap',gets,gives,'[of] '+ident(tgt)]);
+    },
     /* --- the field --- */
     wx(w,from,of,up){ this.push(['-weather',sdWeather(w),from,of?'[of] '+ident(of):'',up?'[upkeep]':'']); },
     wxNone(){ this.push(['-weather','none']); },
@@ -1958,7 +1994,8 @@ const TRACE_EVENTS=['turn','upkeep','move','cant','switch','drag','faint','detai
   '-damage','-heal','-status','-curestatus','-boost','-unboost','-clearallboost','-clearnegativeboost',
   '-ability','-item','-enditem','-weather','-fieldstart','-fieldend','-fieldactivate',
   '-sidestart','-sideend','-start','-end','-activate','-singleturn','-fail','-miss',
-  '-crit','-supereffective','-resisted','-immune','-prepare','-mustrecharge','-hitcount','-formechange'];
+  '-crit','-supereffective','-resisted','-immune','-prepare','-mustrecharge','-hitcount','-formechange',
+  '-transform'];
 /* ARM / DISARM. Returns the previous sink so a nested call restores rather than clobbers. */
 function traceBind(S){
   const t=S&&S._trace;
@@ -2640,6 +2677,18 @@ function applyLayeredVolatile(who,vol,p){
   if(at>=max){ MEDSEEN.layerClickAtCap++; return false; }
   v[vol]=at+1;
   MEDSEEN.layerAdded++;
+  /* `|-start|p1a: Toxapex|stockpile1` -- the authority's own `this.add('-start', target, 'stockpile' +
+   * this.effectState.layers)`, so the LAYER NUMBER is part of the name and there is no `move: ` prefix
+   * (which is what the generic path writes for a volatile whose source effect is a move).
+   *
+   * IT IS EMITTED BEFORE THE BOOSTS, AND IT USED TO BE EMITTED AFTER THEM. `data/moves.ts:17954` puts
+   * the `add` on the line ABOVE `this.boost({def:1, spd:1}, target, target)` in `onStart`, and again
+   * in `onRestart`; the champions mod overrides none of stockpile/spitup/swallow, so mainline holds.
+   * All three members of the family share this one applier, so all three parted from the authority on
+   * the STOCKPILE turn and never reached a judgement of their own move. `-end` keeps the OPPOSITE
+   * order (refund, then announce) because `onEnd` does -- tests/test-mechanics.js
+   * `layeredVolatileOrder` asserts both, so "put the volatile line first" cannot pass it. */
+  if(TR)TR.vstart(who,vol+v[vol]);
   const book=(who._volGave=who._volGave||{});
   const gave=(book[vol]=book[vol]||{});
   const sg=invSign(who);
@@ -2657,10 +2706,6 @@ function applyLayeredVolatile(who,vol,p){
       if(TR)TR.bst(who,s,got);
     }
   }
-  /* `|-start|p1a: Toxapex|stockpile1` -- the authority's own `this.add('-start', target, 'stockpile' +
-   * this.effectState.layers)`, so the LAYER NUMBER is part of the name and there is no `move: ` prefix
-   * (which is what the generic path writes for a volatile whose source effect is a move). */
-  if(TR)TR.vstart(who,vol+v[vol]);
   return true;
 }
 /* SPEND THE WHOLE STACK AND PAY THE REFUND. Both consumers spend ALL of it -- `removeVolatile` takes
@@ -13036,15 +13081,41 @@ function battleTurn(S,rng,actsForA,actsForB){
      * runs `onFractionalPriorityPriority` -1 (the ability) before -2 (the item) and the LAST handler
      * to return wins, so a claw that fires beats an ability that pushed the other way. The die is
      * drawn either way; only the result is conditional. */
+    /* AND A NUDGE THAT WON ITS ROLL SAYS SO. Both carriers whose hook is a FUNCTION write a line
+     * before returning the bracket -- `-activate|HOLDER|item: Quick Claw` and
+     * `-activate|HOLDER|ability: Quick Draw` -- and this loop emitted neither, so a claw turn parted
+     * from the authority on the announcement even when the ORDER it produced was right. STALL is the
+     * control and it is not an omission: its hook is the bare number `-0.1`, there is no roll and no
+     * `add`, and the artifact carries that as `announce: null`.
+     *
+     * THE DRAWS ARE UNMOVED AND THE ANNOUNCEMENTS ARE ORDERED. The item's die is still taken first,
+     * so every seeded run in this repo reads the same stream (the paragraph above is explicit that
+     * moving it is a separate change with its own probe). The LINES are emitted ability-then-item,
+     * which is `onFractionalPriorityPriority` -1 before -2 -- the order the authority writes them in
+     * when one body carries both, which Slowbro-Galar's usage set does. */
     for(const it of acts){
       const _fp=TAGS.param('item',it.mon.item,'fractionalPriority');
-      let _q=(_fp&&_fp.chance&&rng()<+_fp.chance)?1:0;
+      /* THE DIE IS DRAWN WHERE IT ALWAYS WAS AND THE RESULT IS NOW GATED, which are two different
+         changes and only the first one would move a seeded stream. The authority runs the whole
+         FractionalPriority event for `choice === 'move'` ONLY (sim/battle-queue.ts:249 -- the
+         `switch`/`instaswitch` branch beside it never reaches the line), and Quick Claw's own handler
+         adds `priority <= 0` (data/items.ts quickclaw). This loop applied the claw to every action
+         kind including a bare switch. That was inert for ORDER -- a switch does not sort against a
+         move here -- and stopped being inert the moment the roll started announcing itself: the
+         constructed-game run caught `|-activate|p1a: Corviknight|item: quickclaw` on a REPLACEMENT
+         SWITCH, against a `|switch|` line on the authority's side. */
+      const _fpMid=actionMoveId(it.a);
+      const _fpOk=!!_fp&&!!_fpMid&&actionPriority(it,field)<=0;
+      const _itHit=!!(_fp&&_fp.chance&&rng()<+_fp.chance)&&_fpOk;
+      let _q=_itHit?1:0;
       const _fa=TAGS.param('ability',it.mon.ability,'fractionalPriority');
+      let _abHit=false;
       if(_fa){
         const _mid=actionMoveId(it.a);
         const _isSt=_mid?TAGS.has('move',_mid,'statusCategory'):false;
         const _gate=!!_mid&&!(_fa.excludesStatus&&_isSt)&&!(_fa.onlyStatus&&!_isSt);
         const _hit=_gate&&(_fa.unconditional||rng()<+(_fa.chance==null?1:_fa.chance));
+        _abHit=_hit;
         if(_hit){
           if(_fa.bracket==null){ MEDFAILS.fractionalPriorityNoBracket++;
             if(!MEDFAILS.fractionalPriorityNoBracketFirst)
@@ -13053,6 +13124,10 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
       }
       it._qc=_q;
+      if(TR){
+        if(_abHit)TR.announced(it.mon,_fa.announce,it.mon.ability);
+        if(_itHit)TR.announced(it.mon,_fp.announce,it.mon.item);
+      }
     }
     /* WIRE 118 -- the bracket is FROZEN here, once, exactly as Showdown resolves an action's priority
        when it is queued and never again. The comparator, the Trick Room inversion and the tie now
@@ -14509,12 +14584,20 @@ function battleTurn(S,rng,actsForA,actsForB){
        * statements it always did. PROVED, not argued: all 500 moves in data/tags.json were run through
        * a real turn three ways -- the action object, the board with a target, the board with none --
        * before and after, and exactly the seven moves this wire is about differ. */
-      if(a.also&&a.also.length)for(const _r of a.also){
-        if(_r.fx==='weather'){
-          if(applyMoveWeather(m,a.mv,field)){MEDSEEN.composedRiderWeather++;
-            syncFieldTypes(field,[...actA,...actB]);}   // ROADMAP #175 -- Forecast follows this sky too
-        } else if(_r.fx==='si'){
-          for(const _e of (_r.effects||[])){
+      /* 2026-08-17 -- AND THE INVERSION THE PARAGRAPH ABOVE DECLARED IS NOW PAID FOR THE THREE MOVES
+       * IT NAMED. The claim was that the two effects COMMUTE for every member of the set because
+       * nothing reads `_vol.noretreat`, `_vol.minimize` or `_vol.charge` -- true of the BOARD and
+       * false of the STREAM, which is the half a state-reading probe cannot see. The authority's
+       * `spreadMoveHit` applies `moveData.boosts` at sim/battle-actions.ts:1197 and
+       * `moveData.volatileStatus` at :1236, so the boosts and their lines come FIRST:
+       *     showdown   |-boost|p1a: Falinks|atk|1 ... |-start|p1a: Falinks|move: No Retreat
+       *     medicham   |-start|p1a: Falinks|move: No Retreat  |-boost|p1a: Falinks|atk|1
+       * `_siRider` is the same loop, hoisted and called at the point the authority calls it: AFTER the
+       * boosts for a `setup` action, and where it always ran for everything else. The set is five
+       * moves and only three are `setup` -- Chilly Reception's sky is set in `onTry`, ahead of
+       * everything, and Shed Tail's substitute is not a boost move at all, so neither moves. */
+      const _siRider=(rider)=>{
+          for(const _e of (rider.effects||[])){
             /* The user is in hand; a target-directed rider resolves through the SAME shared slot
                reader every other branch uses (WIRE 139), and an empty slot is counted rather than
                guessed at -- see MEDFAILS.composedRiderNoTarget. */
@@ -14530,6 +14613,14 @@ function battleTurn(S,rng,actsForA,actsForB){
                  {alreadyMoved:!unresolved.has(_who)&&acts.some(x=>x.mon===_who)}))
               MEDSEEN.composedRiderVolatile++;
           }
+      };
+      if(a.also&&a.also.length)for(const _r of a.also){
+        if(_r.fx==='weather'){
+          if(applyMoveWeather(m,a.mv,field)){MEDSEEN.composedRiderWeather++;
+            syncFieldTypes(field,[...actA,...actB]);}   // ROADMAP #175 -- Forecast follows this sky too
+        } else if(_r.fx==='si'&&a.kind!=='setup'){
+          /* the SETUP arm is deferred to the tail of its own branch, where the authority runs it */
+          _siRider(_r);
         }
       }
       /* WIRE 19 -- REAL setup boosts. This applied a generic +1 to Attack, SpA AND Speed for every
@@ -14574,6 +14665,12 @@ function battleTurn(S,rng,actsForA,actsForB){
           m.boosts.at=clamp(m.boosts.at+1,-6,6);m.boosts.sa=clamp(m.boosts.sa+1,-6,6);m.boosts.sp=clamp(m.boosts.sp+1,-6,6);
           if(TR)for(const k of ['at','sa','sp'])TR.bst(m,k,m.boosts[k]-_b[k]);
         }
+        /* THE RIDER'S VOLATILE, AFTER THE BOOSTS -- `moveData.boosts` at sim/battle-actions.ts:1197,
+           `moveData.volatileStatus` at :1236. See the hoist comment above the dispatch: Charge,
+           Minimize and No Retreat are the three `setup` members and this is the authority's order for
+           all three. Nothing else reaches this line -- `also` is attached to five moves in the whole
+           format and the other two are not `setup`. */
+        if(a.also&&a.also.length)for(const _r of a.also)if(_r.fx==='si')_siRider(_r);
         continue;
       }
       /* THE GENERIC EFFECT APPLIER. Everything it does comes from the artifact, so a move added to
@@ -14875,7 +14972,14 @@ function battleTurn(S,rng,actsForA,actsForB){
              pass and the loop carries on, so this tail is reached whatever happened to any one target.
              `_landed` counts the bodies that got all the way through, and 0 is a move that did
              nothing -- the same claim, made by a number instead of by control flow. */
-          if(_landed&&_ufa&&_ufa.faints&&!m.fainted){m.curHP=0;m.fainted=true;if(TR){TR.dmg(m);TR.faint(m);}}
+          /* AND IT IS `|faint|` ALONE. `sim/pokemon.ts:1587 faint()` sets `this.hp = 0` and queues;
+             it emits nothing at all, and the only line the authority writes is the `|faint|` that
+             `faintMessages` (sim/battle.ts:2532) puts out afterwards. A `-damage` here was an event
+             Showdown never emits for a self-KO -- the heal-descriptor site further down already said
+             so in as many words and this one contradicted it. tests/test-mechanics.js
+             `userFaintsSilent` holds both halves, with a body that faints the ORDINARY way as the
+             control, because "never announce damage before a faint" is the wrong fix. */
+          if(_landed&&_ufa&&_ufa.faints&&!m.fainted){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
         }
         /* 2026-08-12 -- AND THE MOVE SAYS SO WHEN THE SEALER WAS THE WHOLE MOVE AND IT REFUSED.
          *
@@ -15150,7 +15254,11 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(m._transformed||_tt._transformed||_tt._sub>0){MEDSEEN.transformRefusedAlready++;mvFail(m);continue;}
         transformOnto(m,_tt);
         MEDSEEN.transformedByMove++;
-        if(TR)TR.act(m,'transform');
+        /* `|-transform|USER|TARGET` (sim/pokemon.ts:1352) and NOT `-activate`: the protocol has a
+           dedicated event for this and the `-activate|USER|transform` written here before could not
+           align with anything. The `[from]` argument is left off deliberately -- the :1350 arm is for
+           a transform caused by an EFFECT, and this one is caused by the move. */
+        if(TR)TR.xform(m,_tt);
         continue;
       }
       if(a.kind==='phaze'){
@@ -15623,7 +15731,13 @@ function battleTurn(S,rng,actsForA,actsForB){
           }
           const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))&&!moveClassBlocked(t,a.mv,m));
           if(_ok){const _ab=m.ability;m.ability=t.ability;t.ability=_ab;
-            if(TR){TR.act(m,'move: '+a.mv);TR.ab(m,m.ability,'[from] move: '+a.mv);TR.ab(t,t.ability,'[from] move: '+a.mv);}}
+            /* ONE LINE, AND IT CARRIES BOTH ABILITIES. `sim/battle.ts:1326` is the whole
+               announcement; the two `-ability` lines this used to write are events the authority
+               never emits for a swap, and the `-activate` it wrote named the MOVE where the
+               authority names the two abilities and the other body. Reads the post-swap holdings, so
+               `m.ability` IS `targetAbility.name` and `t.ability` IS `sourceAbility.name` -- the
+               authority's field order, off the same two variables the swap just wrote. */
+            if(TR)TR.abswap(m,t,m.ability,t.ability,!_isFoe);}
         }
         continue;
       }
@@ -18331,7 +18445,15 @@ function battleTurn(S,rng,actsForA,actsForB){
          * RNG stream — it takes an injected `rng()` — so aligning the draw would buy nothing and would
          * perturb every unrelated board that shares the callback. Stated rather than silently equated. */
         if(_arrive>=tg.curHP){
-          const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull');
+          /* WHICH CARRIER HELD THE TAG IS PART OF THE FACT, and collapsing the two with a `||` cost
+             the announcement below its subject: the line named `tg.ability` whatever had actually
+             saved the body, so a FOCUS BAND survivor announced the holder's unrelated ability
+             (measured against the authority: ours `|-activate|p1a: Corviknight|ability: pressure`,
+             theirs `|-activate|p1a: Corviknight|item: Focus Band`). The read is still one expression
+             with the item first, exactly as before; it just remembers what it found. */
+          const _svIt=TAGS.param('item',tg.item,'survivesFromFull');
+          const _sv=_svIt||TAGS.param('ability',tg.ability,'survivesFromFull');
+          const _svId=_svIt?tg.item:tg.ability;
           if(_sv&&(!_sv.onlyFromFullHP||tg.curHP===tg.st.hp)
              &&(_sv.chance==null||rng()<+_sv.chance)){
             /* The survivor is left on `leavesHP` BY THE FIRST PACKET, and whatever the rest of the
@@ -18344,8 +18466,14 @@ function battleTurn(S,rng,actsForA,actsForB){
              * off a real battle.log, where `-enditem Focus Sash` precedes `-damage 1/135`. */
             /* ROADMAP #175 -- a spent Focus Sash is an `AfterUseItem` too, and it is the one non-berry
              * spend with real corpus weight, so Symbiosis answers it here as well as in consumeBerry. */
+            /* AND THE ONE THAT KEEPS WHAT SAVED IT ANNOUNCES OFF THE ARTIFACT. The three carriers say
+               three different things -- Focus Band `-activate|TARGET|item: Focus Band`, Sturdy
+               `-ability|TARGET|Sturdy`, the Sash nothing at all because `useItem()` writes the
+               `-enditem` above instead. `announce` carries the event and the prefix, read in tag_dex
+               from each handler's own `this.add`; a hardcoded `'ability: '` here was right for one of
+               the three and wrong for the other two. */
             if(_sv.consumesItem){if(TR)TR.enditem(tg,tg.item);tg.item='';passItemFromAlly(tg);}
-            else if(TR)TR.act(tg,'ability: '+tg.ability);
+            else if(TR)TR.announced(tg,_sv.announce,_svId);
           }
         }
         /* WIRE 17 -- thaw on hit: a damaging Fire-type move thaws a frozen target (the game's own
@@ -20132,8 +20260,11 @@ function battleTurn(S,rng,actsForA,actsForB){
          a Final Gambit that drains would otherwise heal a corpse. */
       {
         const _uf=TAGS.param('move',a.move.id,'userFaints');
+        /* `|faint|` ALONE -- see the twin site in the `affect` branch. `battle.faint()` reaches
+           `sim/pokemon.ts:1587`, which sets hp to 0 and emits nothing; `faintMessages` writes the one
+           line. A `-damage` here parted the two streams on all five members of the family. */
         if(_uf&&_uf.faints&&(_uf.faints==='always'||dealt>0)&&!m.fainted){m.curHP=0;m.fainted=true;
-          if(TR){TR.dmg(m);TR.faint(m);}}
+          if(TR)TR.faint(m);}
       }
       /* WIRE 43 -- ARM THE RECHARGE.
        *

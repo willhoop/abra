@@ -113,6 +113,29 @@ function stripComments(s) {
           .replace(/(^|\n)([ \t]*)#[^\n]*/g, '$1$2');
 }
 
+/* ---- THIS TOOL DERIVES ITS GRAPH BY READING SOURCE, SO A FILE IT COULD NOT READ IS A HOLE IN THE
+ * GRAPH AND NOT A NEUTRAL EVENT (ROADMAP #258) -----------------------------------------------------
+ *
+ * Eight catch blocks in this file used to `continue` or return `''` on a failed read. Each one is a
+ * generator, a declared script or a local dependency that silently left the derivation — and the
+ * derivation is what decides which artifacts are stale. The worst of them is the corpus classifier:
+ * an unreadable dependency returned the empty string, the `games.(ots|bo3).jsonl` test then failed
+ * against nothing, and the artifact was declared LADDER. That is a wrong verdict produced by a
+ * missing capability reporting success, which is this repository's named failure mode, inside the
+ * tool whose whole job is catching it.
+ *
+ * Recorded rather than thrown: one unreadable file must not stop a whole-repo audit. The run prints
+ * the list, so a hole in the graph is visible instead of inferred.
+ *
+ * NAMED `failedToRead` DELIBERATELY. tests/test-no-silent-failure.js spots a failure-recorder by the
+ * name it is called under (`/fail\w*\s*\(/`), so a helper called `noteReadFailure` records the
+ * reason perfectly and still reads as silent to the gate. Matching the gate's convention is cheaper,
+ * and safer, than widening a regex that guards 794 catch blocks. */
+const READ_FAILURES = [];
+function failedToRead(what, e) {
+  READ_FAILURES.push(what + ': ' + ((e && e.message) || String(e)).split('\n')[0]);
+}
+
 function deriveGraph() {
   const gens = [];
   for (const dir of GEN_DIRS) {
@@ -120,7 +143,8 @@ function deriveGraph() {
     if (!fs.existsSync(d)) continue;
     for (const f of fs.readdirSync(d)) {
       if (!/\.(js|py)$/.test(f)) continue;
-      let src; try { src = fs.readFileSync(path.join(d, f), 'utf8'); } catch (e) { continue; }
+      let src; try { src = fs.readFileSync(path.join(d, f), 'utf8'); }
+      catch (e) { failedToRead('generator ' + dir + '/' + f + ' could not be read, so it is ABSENT from the derived graph', e); continue; }
       gens.push({ id: dir + '/' + f, src, code: stripComments(src) });
     }
   }
@@ -468,7 +492,8 @@ function deriveGraph() {
         const cands = dir ? (DECL_DIRS.includes(dir) ? [t] : []) : DECL_DIRS.map(d => d + '/' + t);
         for (const rel of cands) {
           if (!fs.existsSync(D(rel))) continue;
-          let src = ''; try { src = fs.readFileSync(D(rel), 'utf8'); } catch (e) { continue; }
+          let src = ''; try { src = fs.readFileSync(D(rel), 'utf8'); }
+          catch (e) { failedToRead('declared script ' + rel + ' EXISTS but could not be read — the declaration below will read as "no such script exists", which is the wrong reason', e); continue; }
           return { g: { id: rel, src, code: stripComments(src) }, claim: v.slice(0, 90) };
         }
         declFailures.push(`${file} declares "${v.slice(0, 60)}" and no such script exists`);
@@ -700,7 +725,20 @@ function deriveGraph() {
      * That is the identical failure this block's own comment already records for
      * policy-weights.json, recurring one require deeper. Deriving the graph fixed the hand-written
      * version; it did not make the derivation transitive. */
-    const localReqs = [...writers[0].src.matchAll(/require\(\s*'\.\/([A-Za-z0-9_.-]+?)(?:\.js)?'/g)].map(m => m[1]);
+    /* `./x` IS RELATIVE TO THE REQUIRING FILE, NOT TO engine/ — AND THIS RESOLVED IT AGAINST engine/
+     * FOR EVERY GENERATOR, WHICH MEANT IT RESOLVED NOTHING AT ALL FOR ANY GENERATOR IN tests/.
+     * Found 2026-08-17 by making the read failure speak (ROADMAP #258): the moment the catch below
+     * stopped returning '' in silence it named six files, and four of them were `engine/<name>.js`
+     * for a `require('./<name>')` written in `tests/`. The transitive corpus follow this block exists
+     * to perform was therefore a no-op outside engine/, and it reported the same 'ladder' default it
+     * reports when a generator genuinely reads the ladder. A capability absent, reporting success.
+     *
+     * Read off `.code`, not `.src`: the raw source includes comments, and `engine/engine_release.js`
+     * documents its API with `require('./x.js')` and `require('./literal.js')` in a block comment.
+     * Those were being resolved, failing, and are not dependencies at all. Same lesson this file
+     * already carries twice about `writesNear` — a comment is not code. */
+    const reqDir = writers[0].id.includes('/') ? writers[0].id.split('/')[0] : 'engine';
+    const localReqs = [...writers[0].code.matchAll(/require\(\s*'\.\/([A-Za-z0-9_.-]+?)(?:\.js)?'/g)].map(m => m[1]);
     /* NOT INTO engine/quality.js, and this is a NAMED exception with a reason rather than a list.
      * quality.js is the store DISPATCHER: it names every store in the project by construction, in
      * its own comments and in the error message that tells a caller how to choose one. Following
@@ -709,7 +747,8 @@ function deriveGraph() {
      * judged against the 8,173-game open-sheet ceiling for exactly that reason. A module whose
      * mention of a store carries no information about its caller must not be read as if it did. */
     const withDeps = writers[0].src + localReqs.filter(r => !/^quality(\.js)?$/.test(r)).map(r => {
-      try { return fs.readFileSync(D('engine', r + '.js'), 'utf8'); } catch (e) { return ''; }
+      try { return fs.readFileSync(D(reqDir, r + '.js'), 'utf8'); }
+      catch (e) { failedToRead('dependency ' + reqDir + '/' + r + '.js of ' + writers[0].id + ' could not be read, so the corpus test below runs against less source than it should and defaults to LADDER', e); return ''; }
     }).join('\n');
     const corpus = /games\.(ots|bo3)\.jsonl/.test(withDeps) ? 'opensheet' : 'ladder';
     /* IS THIS COUNTED OFF THE GAME STORE AT ALL?
@@ -977,8 +1016,9 @@ const digestOf = src => {
 };
 const FILTER_MT = (() => { for (const f of ['quality-filter.json']) { const m = mtime(f); if (m) return m; } return null; })();
 
-let cleanCount = null, openCleanCount = null;
-try { cleanCount = require('./quality.js').loadGames().length; } catch (e) {}
+let cleanCount = null, openCleanCount = null, torn = 0;
+try { cleanCount = require('./quality.js').loadGames().length; }
+catch (e) { failedToRead('the CLEAN game count could not be computed, so every artifact is compared against a null ceiling rather than a real one', e); }
 try {
   const Q = require('./quality.js'), cfg = Q.config();
   let n = 0;
@@ -986,12 +1026,15 @@ try {
     const p2 = D('data', f);
     if (!fs.existsSync(p2)) continue;
     for (const l of fs.readFileSync(p2, 'utf8').split('\n')) {
-      if (!l.trim()) continue; let g; try { g = JSON.parse(l); } catch (e) { continue; }
+      /* A TORN LINE IS THE ONE SILENCE THIS FILE ACCEPTS — the store is append-only and a partial
+       * final line is normal. It is COUNTED rather than discarded, because "the store had 400 torn
+       * lines" and "the store was fine" must not read identically. */
+      if (!l.trim()) continue; let g; try { g = JSON.parse(l); } catch (e) { torn++; continue; }
       if (g.openSheet && g.sheets && !Q.reasons(g, cfg, null).length) n++;
     }
   }
   openCleanCount = n;
-} catch (e) {}
+} catch (e) { failedToRead('the OPEN-SHEET clean game count could not be computed, so open-sheet artifacts are compared against a null ceiling', e); }
 
 /* Pull a declared game count out of whatever shape the artifact used.
  *
@@ -1039,10 +1082,12 @@ function coGenerated(fileA, fileB) {
   let hit = null;
   for (const dir of ['engine', 'build', 'tools', 'scripts']) {
     let entries = [];
-    try { entries = fs.readdirSync(D(dir)); } catch (e) { continue; }
+    try { entries = fs.readdirSync(D(dir)); }
+    catch (e) { if (fs.existsSync(D(dir))) failedToRead('directory ' + dir + '/ exists but could not be listed, so co-generation could not be checked in it', e); continue; }
     for (const f of entries) {
       if (!/\.(js|py)$/.test(f)) continue;
-      let src; try { src = fs.readFileSync(D(dir, f), 'utf8'); } catch (e) { continue; }
+      let src; try { src = fs.readFileSync(D(dir, f), 'utf8'); }
+      catch (e) { failedToRead('candidate co-generator ' + dir + '/' + f + ' could not be read, so it cannot be credited with writing either file', e); continue; }
       if (!src.includes(fileA) || !src.includes(fileB)) continue;
       let a = false, b = false;
       for (const ln of src.split('\n')) {
@@ -1657,6 +1702,15 @@ if (OPTIN.length) {
 } else {
   console.log('\n  No generator makes the quality filter opt-in. Clean is the default everywhere.');
 }
+
+/* WHAT THIS RUN COULD NOT READ. Printed rather than discarded (ROADMAP #258): every entry is a file
+ * that should have been in the derivation and was not, so a verdict below rests on less evidence than
+ * it appears to. Silence here means the graph was complete. */
+if (READ_FAILURES.length) {
+  console.log('\n  COULD NOT READ ' + READ_FAILURES.length + ' FILE(S) — the derivation below is incomplete by exactly that much:');
+  for (const r of READ_FAILURES) console.log('    ' + r);
+}
+if (torn) console.log('\n  ' + torn + ' torn line(s) in the open-sheet store were skipped while counting clean games.');
 
 /* THE VOID RATCHET. Checked here rather than beside the mtime one because it needs `prev`, which is
  * read further up. A void that is already on the list is a decision; a void that is NOT is a run that

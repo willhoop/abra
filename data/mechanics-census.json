@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-18T02:12:34.065Z",
+  "generated": "2026-08-18T03:13:59.117Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 585,
-  "live": 585,
+  "probed": 591,
+  "live": 591,
   "missing": 0,
-  "armed": 585,
+  "armed": 591,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -2973,6 +2973,16 @@
     },
     {
       "kind": "move",
+      "tag": "userFaintsSilent",
+      "label": "a self-KO writes |faint| alone; a damage KO writes -damage then |faint|",
+      "live": true,
+      "detail": "the DAMAGE KO must carry both lines — [|-damage|p2a: garchomp|0 fnt |faint|p2a: garchomp]; the SELF-KO of Explosion must carry the faint ALONE — [|faint|p1a: incineroar]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "drainThenPunishOrder",
       "label": "a full-HP drain move into Rough Skin still pays the toll",
       "live": true,
@@ -2996,7 +3006,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3097,6 +3107,16 @@
       "label": "Quick Draw jumps the bracket on its 30%, and never on a Status click",
       "live": true,
       "detail": "damage the slow holder took before acting -- draw wins the roll 0 (it KOd first: true), draw loses the roll 87, no ability 87; Status click (excludesStatus) ability 98 hp vs control 98 hp -- equal means the roll was refused, 91 would mean the param was ignored",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "fractionalPriorityAnnounce",
+      "label": "Quick Claw and Quick Draw announce the nudge they won; Stall, which never rolls, does not",
+      "live": true,
+      "detail": "holding neither []; QUICK CLAW inside its roll [\"|-activate|p1a:slowbrogalar|item:quickclaw\"] and outside it []; QUICK DRAW inside [\"|-activate|p1a:slowbrogalar|ability:quickdraw\"] and outside []; STALL, whose handler is a bare -0.1 with no roll and no `add`, [] (must stay empty — it nudges every turn). The same claw on a winning roll while SWITCHING [] and while clicking a +3 move [] — the authority runs the event for move actions at priority <= 0 and for nothing else",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3497,6 +3517,26 @@
       "label": "Skill Swap exchanges the two abilities, and Good as Gold refuses it",
       "live": true,
       "detail": "[attacker ability, target ability] after Skill Swap -- into Intimidate intimidate,blaze; into Good as Gold blaze,goodasgold (refused, unchanged)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "swapsAbilitiesLine",
+      "label": "Skill Swap emits ONE -activate carrying both abilities, and no -ability at all",
+      "live": true,
+      "detail": "Blaze <-> Levitate emitted [|-activate|p1a: alakazam|Skill Swap|levitate|blaze|[of] p2a: garchomp] with 0 -ability lines and the bodies now hold levitate/blaze; Synchronize <-> Torrent emitted [|-activate|p1a: alakazam|Skill Swap|torrent|synchronize|[of] p2a: garchomp] with 0 and now hold torrent/synchronize. Field 4 must be what the USER received and field 5 what the TARGET received, so the two arms may not share a name in either slot",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "transformsIntoTargetLine",
+      "label": "Transform emits |-transform|USER|TARGET, naming the body it copied",
+      "live": true,
+      "detail": "Transform into the foe in slot A emitted [|-transform|p1a: ditto|p2a: garchomp] and left the user on 90 Sp. Atk; into the foe in slot B [|-transform|p1a: ditto|p2b: milotic] and 170. The event name is `-transform` and field 3 is the body that was copied — the two arms must differ there and in the stat, or nothing was read off the target at all",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4447,6 +4487,16 @@
       "label": "Stockpile stacks to three, raising Def and Sp. Def each time, and the FOURTH click fails",
       "live": true,
       "detail": "[layers:def/spd after each of four turns] — four PASS turns 0:0/0 0:0/0 0:0/0 0:0/0; four Stockpile clicks 1:1/1 2:2/2 3:3/3 3:3/3 (turn-3 result true, turn-4 result false). The counter is LAYERS and not a duration: it must CLIMB on re-use where every other volatile in this engine refuses a restart, and it must stop at three with the move itself failing — an engine that let the fourth click through reads 4:4/4 on the last cell",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "layeredVolatileOrder",
+      "label": "Stockpile announces the layer BEFORE the boosts it pays, and -end AFTER the refund",
+      "live": true,
+      "detail": "one Stockpile click emits [start:stockpile1 boost:def|1 boost:spd|1], two emit [start:stockpile1 boost:def|1 boost:spd|1 start:stockpile2 boost:def|1 boost:spd|1] — the layer line must PRECEDE the boosts it caused and carry the layer number; and Spit Up spending the stack emits [start:stockpile1 boost:def|1 boost:spd|1 unboost:def|1 unboost:spd|1 end:stockpile], where the -end must come AFTER its refund",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5477,6 +5527,16 @@
       "label": "Merciless is a GUARANTEED crit into a poisoned target, not a raised rate",
       "live": true,
       "detail": "[crit line, HP lost] Liquidation at the LOSING roll, where an ordinary 1/24 never crits -- into a POISONED target with no ability false,191; with MERCILESS true,202; with MERCILESS into a CLEAN target false,21. The damage is only compared within the poisoned pair, because a poisoned body also takes residual chip on the same turn and reading across the two would be measuring the poison",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "survivesFromFullAnnounce",
+      "label": "the survivor names what saved it — item: for the band, a bare -ability for Sturdy, -enditem for the sash",
+      "live": true,
+      "detail": "a lethal Close Combat into a 60 HP Pressure body. NOTHING held: died true, lines []. FOCUS BAND inside its 10%: hp 1, [\"|-activate|p2a:corviknight|item:focusband\"]. FOCUS SASH: hp 1, [\"|-enditem|p2a:corviknight|focussash\"]. STURDY: hp 1, [\"|-ability|p2a:corviknight|sturdy\"]. Three carriers, three different shapes",
       "hollow": false,
       "armed": true,
       "directCall": false

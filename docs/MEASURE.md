@@ -15,27 +15,27 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 25 unsafe, 1 void (declared), 91 possibly stale, 93 ok, 0 missing
+  provenance: 25 unsafe, 1 void (declared), 93 possibly stale, 93 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 12). Old hashes cannot be compared; restamp after checking board.js.
-    moved after the fit: engine/medicham2-browser.js  2026-08-14 23:44
-    moved after the fit: engine/board.js  2026-08-14 23:37
+    moved after the fit: engine/medicham2-browser.js  2026-08-17 23:03
+    moved after the fit: engine/board.js  2026-08-17 22:37
     moved after the fit: data/engine-data.js  2026-08-10 18:59
     moved after the fit: data/abra-tags.js  2026-08-13 20:18
 ```
 
-_stamped 2026-08-15 00:16_
+_stamped 2026-08-17 23:11_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,81 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 000000000000. ROADMAP #258 — THE SILENT-CATCH RATCHET: MEASURE'S OWN FILES ARE CLEAR, THE FLOOR FELL 216 → 201, AND 75 REMAIN IN OTHER DIVISIONS' FILES — 2026-08-17
+
+`tests/test-no-silent-failure.js`, `data/silent-catch-baseline.json`.
+
+**THE GATE IS STILL RED AND I AM NOT FILING IT.** The row is CONFIRMED against its own instrument by
+`engine/register_reality.js`, which is the honest state: the row asserts breakage and the gate exits 1.
+What changed is that the remaining population is now entirely outside this division.
+
+**MEASURE TOOK EVERYTHING IT OWNS.** Fifteen silent catch blocks in `provenance.js` (8), `sprt.js` (4),
+`mew.js` (1), `stamp.js` (1) and the ratchet itself (1) now speak, and `--update` locked the fixes in:
+**baseline 216 → 201, ten keys removed, nothing laundered.** `node tests/test-no-silent-failure.js --in
+<file>...` lists what is left in any named file, so a division can work its own without grepping a
+repo-wide list — the second-scanner shape CLAUDE.md names.
+
+**ONE OF THEM WAS HIDING A LIVE DEFECT IN THE STALENESS CHECKER, WHICH IS THE ROW'S WHOLE ARGUMENT.**
+`provenance.js`'s corpus classifier follows one level of `require('./x')` to decide whether an artifact's
+game count should be judged against the LADDER or the OPEN-SHEET ceiling. It resolved every such token
+against `engine/`, so for any generator living in `tests/` it resolved nothing at all — the read threw,
+the catch returned `''`, and the `games.(ots|bo3).jsonl` test ran against the empty string and returned
+the same `'ladder'` it returns for a generator that genuinely reads the ladder. **A capability absent,
+reporting success**, inside the tool whose job is catching that. The moment the catch was made to speak
+it named six files. Fixed by resolving against the requiring file's own directory and by reading the
+comment-stripped source (`engine_release.js` documents its API with `require('./x.js')`, which was being
+resolved as a dependency). **Verdicts before and after are byte-identical on today's tree** — the fix
+removes a hole rather than moving a number.
+
+**THE RATCHET COULD NOT SEE ITS OWN BLIND SPOT.** A source file it failed to read was skipped in
+silence, so `files scanned 333` and a clean bill of health for 333 files were indistinguishable from a
+clean bill for 332 plus one nobody looked at. It now counts, names and FAILS on it. Shown red on a
+deliberate break before being trusted.
+
+**WHAT IS LEFT, RANKED, AND IT IS A HANDOVER RATHER THAN A LIST TO WORK THROUGH.** Re-measure on the day
+— `node tests/test-no-silent-failure.js --all` — never this paragraph; the population moved twice while
+this was being written as SEARCH added files. As of 2026-08-17 it is **75 above the floor, 41 of them
+manufacturing a value**, and the manufacturing ones go first because each hands a made-up answer to
+whatever reads it. By file, manufacturing-first:
+
+| owner | file | mfg | the shape |
+|---|---|---|---|
+| ENGINE | `tests/roster.js` | 5 | `buildableSpecies` returns **false** when `mcKey` throws, so *unbuildable* and *not in this format* are one answer — the `buildMon("Scizor")` shape; and a precondition that THROWS is reported as `COULD-NOT-STAGE`, a claim about the fixture |
+| ENGINE | `engine/mod_audit.js` | 3 | `return null` / `return []` — an empty override set reads as *Champions changed nothing* |
+| ENGINE | `engine/tag_dex.js` | 2 | `return _ptShape` / `return null` on the tag derivation |
+| ENGINE | `engine/game_differential.js` | 2 | `base = null`, `rt = null` |
+| ENGINE | `engine/mega_census.js` | 2 | `return null` — the comment already says null must never read as *nothing is a mega* |
+| ENGINE | `engine/champions_sim.js` | 1 | `ok = false` |
+| ENGINE | `engine/medicham2-browser.js` | 1 | `rows = null` |
+| ENGINE | `engine/merge_mega_into_engine.js` | 1 | `priors = null` — this is the builder whose 67 writes once all missed |
+| ENGINE | `engine/conformance.js`, `engine/scenario_catalogue.js`, `engine/fixture_legality.js`, `tests/staged_board.js`, `tests/probe_volatile_leaves.js`, `tests/test-switch-carry.js`, `tests/test-forme-assert.js` | 1 each | fixture and probe paths; `test-forme-assert.js:113` returns **false** from a `buildMon` throw |
+| SEARCH | `engine/million_run.js` | 2 | `return false`, `k = null` |
+| SEARCH | `engine/rollout_switch_census.js`, `engine/rollout_switch_probe.js`, `engine/click_counts.js` | 1 each | `return null` from a census reader |
+| MEASURE-adjacent, unclaimed | `engine/leaf_engine_contrast.js` (2), `engine/diff_swarm.js` (2), `engine/million_targets.js` (2) | 6 | these sit on the leaf/target path and no division ledger names them; routed on request rather than taken unasked |
+| WEB | `tests/test-web-quarantine-loaders.js`, `tests/test-web-quarantine.js` | 1 each | `w.ABRA_STATUS = null`, `age = '(mtime unreadable)'` |
+| OPS/infra | `tests/test-lownode.js`, `tests/test-farm-ram-guard.js`, `tests/test-roadmap-register.js`, `tests/test-unmodelled-clicks.js` | 1 each | **three of these four are false positives of the detector**: `sawFailure = true; code = e.status`, `threw = true` and `log = null` all record the failure and are asserted on the next line. The detector spots a recorder by NAME (`/fail\w*\s*\(/`), which `noteReadFailure` and `sawFailure` do not match. Not widened here: a regex guarding 801 catch blocks is not the place to buy four rows |
+
+### 0000000000000. ROADMAP #241 / #276 / #283 — THE THREE ROWS NOTHING DECIDES, NOW SAYING SO — 2026-08-17
+
+`engine/register_reality.js`, `data/register-reality.json`.
+
+Every one of the three is OPEN, asserts breakage, and had no instrument named — so the MEDICHAM gate was
+being held shut by three sentences. Each had a plausible-looking candidate gate that decides something
+else, and pointing a `VERIFIED BY` at any of them would have made a live defect read CONFIRMED-and-green,
+which is worse than the prose it replaced:
+
+- **#241** — `engine/game_differential.js` MEASURES the missing `-fail` emissions and deliberately exits
+  **0** on them (*"a divergence is a FINDING"*, its own header), and `tests/test-game-differential.js`
+  fails only when the INSTRUMENT is wrong. Nothing decides the row by exit code.
+- **#276** — `tests/test-seed-clock.js` is GREEN and decides **#270**, the SEED's clock. #276 is the
+  BOARD's own `weather` field, which no gate reads.
+- **#283** — `tests/test-rollout-fallen.js` is GREEN and decides **#244/#245/#246**, the SEED's roster.
+  #283 is `board.movePower`'s stub, which no gate reads.
+
+So `register_reality.js` gained a second marker, `INSTRUMENT OWED:`, which records that NOTHING decides a
+row and names what would have to exist. It is counted and printed **separately from the verified figure**,
+because a declared debt is not a measurement.
 
 ### 0000000000000. ROADMAP #285 — THE DOCS-CURRENCY CENSUS WAS EXEMPTING FIGURES ON THE STRENGTH OF ITS OWN COMPLAINT ABOUT THEM — 2026-08-15
 

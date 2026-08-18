@@ -147,6 +147,12 @@ const NOT_A_MODEL = {
   'engine/mod_audit.js':
     'answers "did the Champions mod change this entity?" for every legal entity — a derivation off '
     + 'the format, and the reason NO POKEMON VALUE MAY BE TYPED FROM MEMORY is enforceable',
+  'engine/register_reality.js':
+    'a CHECKER, not a model — it runs the instrument each register row names and compares the exit '
+    + 'code to the row status, so data/register-reality.json is a ledger of verdicts ABOUT the '
+    + 'register and carries no claim about the game. Built 2026-08-15 because docs/ROADMAP.md was the '
+    + 'one artifact here with nothing comparing it to its source, and four rows had gone stale '
+    + 'unnoticed — one of them ranked first of fourteen as the place to start work',
   'engine/publish_guard.js':
     'a WRITE GUARD, not a model — it holds the high-water mark of the sample size each published '
     + 'artifact was measured at, and refuses a republish below it. data/published-samples.json is '
@@ -232,6 +238,7 @@ const NOT_A_MODEL = {
   'engine/collinearity_audit.js':    'fits every MAG feature alone against its weight in the full model — a diagnosis of MAG',
   'engine/collinearity_fix.js':      'can the kill block be repaired, and does repairing it help — a diagnosis of MAG',
   'engine/feature_audit.js':         'does every feature in board.js actually do anything — a diagnosis of the feature set',
+  'engine/feature_shift.js':         'which per-feature COLUMNS moved between two builds of board.js — the input a refit needs, and a statement about our own code rather than about Champions (ROADMAP #276, #283)',
   'engine/weight_multiplicity.js':   'which fitted weights survive a multiplicity correction — a statement about MAG\'s fit, not about Champions',
   'engine/opponent_recall.js':       'can MAG narrow the OPPONENT\'s turn — MAG\'s score, reported for MAG',
   'engine/opponent_calibration.js':  'is MAG a usable SAMPLER even though it is a poor ranker — MAG\'s score',
