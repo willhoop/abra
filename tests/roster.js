@@ -9062,7 +9062,17 @@ function main() {
   return bad;
 }
 
-module.exports = { RULES, assign, runEntry, play, selftest, DELIVERY, QUIET, WEAK_TO, STATUS_MOVE };
+/* `DEFERRED` IS EXPORTED BECAUSE A SECOND INSTRUMENT NEEDS THE SAME SHELF, NOT A COPY OF IT.
+   ROADMAP #291. `engine/all_mechanics_fire.js` was counting `forewarn` and `metronome` inside the
+   MECHANICS clause while this file and `engine/quarantine.js` both had them shelved -- two
+   instruments disagreeing about what the owner decided, which is the two-implementations-of-one-fact
+   failure CLAUDE.md forbids. The map above stays the ONLY declaration; a reader imports it.
+   IT IS KEYED BY BARE ID AND NOT BY KIND, which is a real hazard and is stated rather than fixed
+   here: `metronome` names both an item and a move. In THIS regulation the move is
+   `isNonstandard: 'Past'` so the collision cannot occur, and a reader that could reach both kinds
+   must say what it does about it. */
+module.exports = { RULES, assign, runEntry, play, selftest, DELIVERY, QUIET, WEAK_TO, STATUS_MOVE,
+                   DEFERRED };
 
 if (require.main === module) {
   const bad = main();

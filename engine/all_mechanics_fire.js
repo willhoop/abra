@@ -1887,8 +1887,84 @@ const RED_OK = REDS.every(r => r.caught);
 if (!RED_OK) { console.log('    A PLANT WAS NOT CAUGHT. Every verdict below would be the instrument, not the engine.'); process.exitCode = 1; }
 if (RED) { if (WRITE) fs.writeFileSync(OUT || D('data', 'all-mechanics-fire.json'), JSON.stringify({ red: REDS }, null, 1)); return; }
 
+/* ---- THE CLOSET, READ FROM THE ONE PLACE IT IS DECLARED --------------------------------------
+ * ROADMAP #291. Will shelved seven entities BY NAME, with his own quote and date in each entry, and
+ * `tests/roster.js` states the contract: *"A row in here is still staged, still played against the
+ * authority, and still printed on every run with its reason and its date. The only thing it stops
+ * doing is holding the MEDICHAM gate shut."* `engine/quarantine.js` prints that shelf on every run
+ * and the three deliberate-roster clauses respect it.
+ *
+ * THE MECHANICS CLAUSE DID NOT, and that was two instruments disagreeing about a decision the owner
+ * had already made. Measured before this line existed: `abilities:forewarn` and `items:metronome`
+ * were inside the failing count of 53 -- and metronome was the ONLY item in it, so the item clause
+ * read 1 when the honest answer was 0.
+ *
+ * IMPORTED, NEVER RE-DECLARED. A second copy of seven names would agree on the day it was written
+ * and disagree the first time either moved -- the ban-list-of-four failure this repo has already
+ * paid for. `roster.js` owns the map; this reads it.
+ *
+ * A SHELVED ROW IS STILL STAGED, STILL PLAYED AND STILL PRINTED. It keeps its verdict, its
+ * divergence and its cause in the artifact; what it loses is its vote in `summary[kind].diverged`.
+ * Both numbers are published -- `diverged` (the gate's) and `diverged_including_shelved` -- so the
+ * shelf is a visible subtraction rather than a silent one.
+ *
+ * KEYED BY BARE ID, WHICH IS THE MAP'S OWN SHAPE AND A HAZARD WORTH NAMING: `metronome` is both an
+ * item and a move. In THIS regulation `D.moves.get('metronome').isNonstandard === 'Past'`, so the
+ * move is not in the population at all and the collision cannot occur. If it ever returns, this
+ * shelf would silently cover it too, and the fix belongs in the map rather than here. */
+const CLOSET = require('../tests/roster.js').DEFERRED;
+/* THE SECOND SHELF, AND IT IS A DIFFERENT ONE. `game_differential.js` shelves ILLUSION (ROADMAP #160)
+ * and drops any TEAM carrying a legal Illusion body from its sample, deriving the species from the
+ * ability so a carrier added next regulation is covered. That shelf never reached this file, and this
+ * file stages an entity on ONE carrier — so `bittermalice` gets Zoroark-Hisui and `nightdaze` gets
+ * Zoroark, the only two rows in the whole population whose carrier holds Illusion, and BOTH diverge
+ * with `switch: a different body`. That IS Illusion: the body is announced under another body's name.
+ * The reason the differential gives applies here word for word — *"a body pretending to be another
+ * body makes every divergence it causes unreadable as a rule defect"* — so these are shelved on the
+ * SAME decision rather than filed as two move defects. Imported from the differential, never
+ * re-derived. */
+const CLOSET_SPECIES = GD.CLOSET_SPECIES;
+const ILLUSION_SHELF = { by: 'Will', on: '2026-08-13',
+  why: 'ROADMAP #160 — ILLUSION IS IN THE CLOSET and the only carrier of this row holds it. Will: "we '
+     + 'banned zoroark remember for 5. its too confusing for our simple engine." The divergence is '
+     + '`switch: a different body`, which is Illusion announcing the body under another name, not a '
+     + 'defect in the move. Same shelf engine/game_differential.js applies to whole teams; derived '
+     + 'from the ABILITY (GD.CLOSET_SPECIES), not from a name list.' };
+const _sid = (x) => String(x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const shelvedRow = (r) => {
+  if (!r) return null;
+  if (CLOSET[r.id]) return CLOSET[r.id];
+  if (CLOSET_SPECIES && CLOSET_SPECIES.has(_sid(r.carrier))) return ILLUSION_SHELF;
+  return null;
+};
+/* Marks the rows in place and returns the count the GATE should not see. Printed by every caller. */
+/* TWO COUNTS, BECAUSE THEY ANSWER TWO QUESTIONS. `shelved_by_owner` is how many rows the shelf
+ * covers at all; `shelved_by_owner_diverging` is how many DIVERGING rows it removed from the gate's
+ * number. Publishing only the first would make the subtraction unreadable, and publishing only the
+ * second would hide the size of the shelf. */
+function applyCloset(kind, rows) {
+  const hit = [];
+  for (const r of rows || []) {
+    const d = shelvedRow(r);
+    if (!d) continue;
+    r.deferred = d;
+    r.counts_against_the_gate = false;
+    if (r.diverged) hit.push(r);
+  }
+  if (hit.length) {
+    console.log('    THE CLOSET — ' + hit.length + ' shelved ' + kind + ' row(s) DIVERGE and are NOT '
+              + 'counted. Still staged, still played, printed here with the owner reason:');
+    for (const r of hit) console.log('      ' + String(r.id).padEnd(16)
+      + String((r.divergence && r.divergence.cls) || r.verdict || '?').padEnd(30)
+      + '[' + r.deferred.by + ' ' + r.deferred.on + '] ' + String(r.deferred.why).slice(0, 120));
+  }
+  return { diverging: hit.length, total: (rows || []).filter(r => r.deferred).length };
+}
+
 const report = { generated: new Date().toISOString(), release: GD.REL.id || null, arm: ARM.id,
-                 format: CS.FORMAT, red: REDS, red_ok: RED_OK, rows: {}, summary: {} };
+                 format: CS.FORMAT, red: REDS, red_ok: RED_OK,
+                 closet: { source: 'tests/roster.js DEFERRED', ids: Object.keys(CLOSET) },
+                 rows: {}, summary: {} };
 
 if (KIND === 'moves' || KIND === 'all') {
   const list = pick(LEGAL_MOVES);
@@ -1898,10 +1974,15 @@ if (KIND === 'moves' || KIND === 'all') {
   report.rows.moves = rows;
   const resolved = rows.filter(r => r.resolved);
   const attempted = rows.filter(r => r.attempted);
-  const diverged = rows.filter(r => r.diverged);
+  const divergedAll = rows.filter(r => r.diverged);
+  const shelvedN = applyCloset('move', rows);
+  const diverged = divergedAll.filter(r => !r.deferred);
   const disagree = rows.filter(r => r.attempted && r.resolved !== r.medicham_resolved);
   report.summary.moves = { exist: LEGAL_MOVES.length, attempted: attempted.length, tried: rows.length,
                            resolved: resolved.length, diverged: diverged.length,
+                           diverged_including_shelved: divergedAll.length,
+                           shelved_by_owner: shelvedN.total,
+                           shelved_by_owner_diverging: shelvedN.diverging,
                            resolution_disagreements: disagree.length,
                            cannot_fire_in_this_fixture: rows.filter(r => r.cannot_fire).length,
                            seconds: +((Date.now() - t0) / 1000).toFixed(1) };
@@ -1931,6 +2012,7 @@ if (KIND === 'abilities' || KIND === 'all') {
   const rows = runAbilities(list);
   report.rows.abilities = rows;
   const fired = rows.filter(r => r.verdict === 'FIRED');
+  const _shelvedAb = applyCloset('ability', rows);
   report.summary.abilities = { exist: LEGAL_ABILITIES.length, tried: rows.length, fired: fired.length,
     showdown_only: rows.filter(r => r.verdict === 'SHOWDOWN-ONLY').length,
     medicham_only: rows.filter(r => r.verdict === 'MEDICHAM-ONLY').length,
@@ -1941,7 +2023,10 @@ if (KIND === 'abilities' || KIND === 'all') {
      * meaning for whatever already reads this artifact; these two partition it. */
     cannot_fire_in_this_fixture: rows.filter(r => r.cannot_fire).length,
     did_not_fire_unexplained: rows.filter(r => r.verdict === 'DID-NOT-FIRE' && !r.cannot_fire).length,
-    diverged: rows.filter(r => r.diverged).length, seconds: +((Date.now() - t0) / 1000).toFixed(1) };
+    diverged: rows.filter(r => r.diverged && !r.deferred).length,
+    diverged_including_shelved: rows.filter(r => r.diverged).length,
+    shelved_by_owner: _shelvedAb.total, shelved_by_owner_diverging: _shelvedAb.diverging,
+    seconds: +((Date.now() - t0) / 1000).toFixed(1) };
   console.log('    ' + JSON.stringify(report.summary.abilities));
   reportCannotFire(rows);
   /* ROADMAP #158 -- THE CONSEQUENCE LAYER'S OWN RECEIPT. A capability that cannot prove it ran is
@@ -1978,6 +2063,7 @@ if (KIND === 'items' || KIND === 'all') {
   const t0 = Date.now();
   const rows = runItems(list);
   report.rows.items = rows;
+  const _shelvedIt = applyCloset('item', rows);
   report.summary.items = { exist: LEGAL_ITEMS.length, tried: rows.length,
     fired: rows.filter(r => r.verdict === 'FIRED').length,
     showdown_only: rows.filter(r => r.verdict === 'SHOWDOWN-ONLY').length,
@@ -1986,7 +2072,10 @@ if (KIND === 'items' || KIND === 'all') {
     out_of_scope: rows.filter(r => r.out_of_scope).length,
     cannot_fire_in_this_fixture: rows.filter(r => r.cannot_fire).length,
     did_not_fire_unexplained: rows.filter(r => r.verdict === 'DID-NOT-FIRE' && !r.cannot_fire).length,
-    diverged: rows.filter(r => r.diverged).length, seconds: +((Date.now() - t0) / 1000).toFixed(1) };
+    diverged: rows.filter(r => r.diverged && !r.deferred).length,
+    diverged_including_shelved: rows.filter(r => r.diverged).length,
+    shelved_by_owner: _shelvedIt.total, shelved_by_owner_diverging: _shelvedIt.diverging,
+    seconds: +((Date.now() - t0) / 1000).toFixed(1) };
   console.log('    ' + JSON.stringify(report.summary.items));
   reportCannotFire(rows);
 }

@@ -1,16 +1,15 @@
 {
   "note": "RATCHET. citation_sites may SHRINK and may never grow while the MEDICHAM quarantine is closed. A new entry means a withheld figure was just published somewhere.",
   "source_digests": {
-    "engine/quarantine.js": "cd1ffecb27ba",
-    "engine/provenance.js": "09ffd224b408",
+    "engine/quarantine.js": "227f07d759dc",
+    "engine/provenance.js": "58ccb92d8075",
     "note": "Content, not mtime. A checkout moves an mtime without moving code."
   },
   "not_store_derived": "it records which artifacts are downstream of the simulator and where they are still cited. No game is counted anywhere in it, so the quality filter has no bearing.",
   "gate_open": false,
   "failing_clauses": [
     "whole-game differential / the same game on both engines",
-    "mechanics / each one staged and compared against showdown",
-    "no open, known engine defect"
+    "mechanics / each one staged and compared against showdown"
   ],
   "quarantined": [
     "ab-batch-effect.json",
@@ -28,6 +27,7 @@
     "exploitability.json",
     "feature-audit.json",
     "feature-engine-contrast.json",
+    "feature-shift.json",
     "ladder.json",
     "leaf-engine-contrast.json",
     "leaf-position-contrast.json",
@@ -48,6 +48,7 @@
     "quarantine-stamp.json",
     "recall-at-k.json",
     "redirect-audit.json",
+    "register-reality.json",
     "replay-differential-bo3-freezes.json",
     "replay-differential-bo3.json",
     "replay-differential-freezes.json",
@@ -63,6 +64,7 @@
     "rollout-switch-probe.json",
     "scoreboard.js",
     "scoreboard.json",
+    "seed-source-audit.json",
     "sheet-channel-value.json",
     "speed-vs-pokeenv.json",
     "weight-multiplicity.json",
@@ -74,5 +76,5 @@
     "web/build-status.js",
     "web/publish-rule.js"
   ],
-  "generated": "2026-08-15T03:02:10.207Z"
+  "generated": "2026-08-18T05:04:29.537Z"
 }

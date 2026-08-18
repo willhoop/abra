@@ -1,9 +1,9 @@
 {
-  "generated": "2026-08-18 02:47:30",
+  "generated": "2026-08-18 04:57:07",
   "source": "engine/derive_protocol_events.js",
   "source_digests": {
-    "engine/derive_protocol_events.js": "64565dc21221",
-    "engine/medicham2-browser.js": "c94e1fca4bb2"
+    "engine/derive_protocol_events.js": "87374017707a",
+    "engine/medicham2-browser.js": "3896526e716d"
   },
   "showdown_pinned_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "derivedFrom": {
@@ -322,7 +322,7 @@
     },
     {
       "event": "move",
-      "reason": "a SPREAD move emits no `[spread] ...` attribute: the target list is resolved after the move line is written, and this engine rolls accuracy ONCE for a spread move rather than per target (MEDSEEN.accSpreadNoDefender), so a per-target attribute would not be true anyway."
+      "reason": "a SPREAD move emits no `[spread] ...` attribute: the target list is resolved after the move line is written. THE SECOND HALF OF THIS REASON IS RETRACTED (ROADMAP #294, 2026-08-18) — it read \"and this engine rolls accuracy ONCE for a spread move rather than per target (MEDSEEN.accSpreadNoDefender), so a per-target attribute would not be true anyway\", and the roll is now per target (MEDSEEN.accDrawsOnSpread). Only the ORDERING half stands, and it is the half that was ever load-bearing: Showdown writes `[spread] p1b,p2a` by attributing the LAST move line after the hit steps (battle-actions.ts:618), which this engine cannot do while it writes the move line first."
     },
     {
       "event": "-crit",

@@ -9569,3 +9569,62 @@ regenerated from the live store, and the differential picks its teams by a STRID
 is provenance: an artifact stamps which BYTES OF CODE produced it and nothing about which GAMES, so two
 runs can differ entirely in corpus and look identical in stamp. Sequenced after the gate and before the
 refit — the refit is the one run where fitting against a moving corpus would be invisible.
+
+---
+
+## 2026-08-18 — THE ACCURACY ROLL LANDED, AND THE GATE LEARNED TO ASK WHETHER A DIVERGENCE MATTERS
+
+**The spread-accuracy defect is closed (#294).** The roll was one draw per MOVE where the authority
+rolls one per TARGET (`hitStepAccuracy(targets: Pokemon[], ...)`, `sim/battle-actions.ts:690-692`,
+which sets `activeTarget` per iteration). At 90 accuracy into two live bodies Showdown is **81 / 18 / 1**
+and this engine was **90 / 0 / 10** — Will's own case, *"rock slide and heat wave can hit one and miss
+the other"*, could not occur here at all. Rock Slide is 18,122 corpus clicks, Heat Wave 11,121.
+**The pinned corners are structurally blind to it** — at the top everything misses and at the bottom
+everything hits, so one draw and two are indistinguishable — which is why every corner run ever made
+agreed and the defect survived. Probe shown RED first with both off-diagonal cells unreachable.
+Census 594 → 595 live, 0 missing. `acc` address identity 97.7% → 98.8%.
+
+**AND THE LADDER PRODUCED THE CASE WHILE THE FIX WAS BEING WRITTEN.** In
+`gen9championsvgc2026regmb-2666580747`, a rated game, Heat Wave hit Gallade and missed Farigiraf on
+turn 3 and hit Torkoal and missed Farigiraf on turn 5 — the 18% cell, twice, in the game that decided
+the match. Worth recording because the probe for this is synthetic and this is not: the branch the old
+simulator could not represent is the branch a real opponent was living in.
+
+**The mechanics clause now asks a different question.** Will, 2026-08-17: *"medicham needs to be good
+enough that when miltank uses it, it wouldnt affect any decisions"*, with the worked example *"if trick
+or treat isnt working, that doesnt matter because no one uses gorgeist"*. REACH shelves a diverging row
+below 25 observations the way the closet shelves an unplayed entity — still staged, still played, still
+printed with its usage; DECISION IMPACT reads a paired-argmax verdict. **49 rows become 34 counted and
+15 shelved.**
+
+**THE SHELF DOES NOT DECIDE ANYTHING AND SHOULD NOT BE TUNED AS IF IT DID.** The five rows holding the
+clause shut are `cursedbody` (2,177 teams), `toxicdebris` (1,840), `disable` (1,799 clicks),
+`regenerator` (1,596) and `poltergeist` (1,383). Raising the shelf from 25 to 100 moves 14 tail rows and
+touches none of those five. Will: *"leave it at 25"*.
+
+**Three corrections the pass forced, each one a number that had been quoted:**
+
+- The reach figures were briefed from `data/tags.json`'s `uses`, **the source the coverage clause
+  already forbids** (#70, undercounts up to 8.6x). `bittermalice` reads **0 there and 519 real clicks**.
+  A filter built on it would have shelved a 519-click move as unused.
+- *"Six diverging rows have no usage figure"* — **it is zero.** `data/sheet-usage.json` has covered all
+  14 diverging abilities since 2026-08-11, and `tests/roster.js`'s header saying otherwise was true for
+  exactly one day. The unknown column is still built and still COUNTS.
+- **Will's own example does not clear the shelf.** Trick-or-Treat is **70 real clicks**, not the 10 it
+  was briefed as; Gourgeist-Super is 13 of 26,232 teams. The move outlives the body.
+
+**The `drag` entry drafted for `DECLARED_DIVERGENCE` is withdrawn.** A different body arriving on the
+field is a different position, and every decision after it is taken against a board the authority does
+not have — the largest decision impact a divergence can have, not an exemption from one. The clause got
+**stricter**: 679 undeclared with it, **690** without.
+
+**NEITHER FILTER OPENED A CLAUSE. The gate is `CLOSED — 2 of 8` before and after.** The mechanics
+artifact was re-run pinned to the settled tree (`488fd1bf3f7c`) so the count describes bytes that exist.
+**The first re-run reported 35 and that was not progress** — it defaulted to `--kind moves` and dropped
+the abilities and items legs, and the clause refused to apply reach rather than publish the smaller
+number. Re-run at `--kind all`: moves 35, abilities 14, items 0.
+
+**#295, filed and not fixed:** the shelf compares 25 against TEAMS for an ability (of 26,232) and CLICKS
+for a move (of 1,259,717), so the same literal is 0.095% or 0.0020% — a move clears it at ~48x lower
+relative usage. Two thresholds wearing one number. It is not load-bearing today and becomes so the
+moment anyone tunes it, which is exactly when nobody will check the units.

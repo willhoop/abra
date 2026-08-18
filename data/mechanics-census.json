@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-18T03:13:59.117Z",
+  "generated": "2026-08-18T05:02:54.132Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 591,
-  "live": 591,
+  "probed": 595,
+  "live": 595,
   "missing": 0,
-  "armed": 591,
+  "armed": 595,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -216,7 +216,7 @@
       "tag": "flinches",
       "label": "a secondary flinch fires at ITS OWN probability, not only at p=1",
       "live": true,
-      "detail": "over 4000 seeded turns each, the foe's own Knock Off is the receipt — Knock Off at the user 0.0% (no flinch on the move, must be 0), Fake Out 100.0% (must be 100), Rock Slide 26.2% (0.3 x 90% acc = 27), Iron Head 19.4% (this format's 0.2 x 100% = 20); and Rock Slide with the ATTACKER MOVING SECOND 0.0% (must be 0 — a flinch cannot reach a body that has already acted)",
+      "detail": "over 4000 seeded turns each, the foe's own Knock Off is the receipt — Knock Off at the user 0.0% (no flinch on the move, must be 0), Fake Out 100.0% (must be 100), Rock Slide 28.4% (0.3 x 90% acc = 27), Iron Head 19.4% (this format's 0.2 x 100% = 20); and Rock Slide with the ATTACKER MOVING SECOND 0.0% (must be 0 — a flinch cannot reach a body that has already acted)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -357,6 +357,16 @@
       "label": "Intimidate drops Attack",
       "live": true,
       "detail": "both foes' atk stage — LEADS: ability none 0,0, Intimidate -1,-1; MID-BATTLE SWITCH: none 0,0, Intimidate -1,-1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "onSwitchInDrop",
+      "label": "a stat change CLAMPED at the cap is still announced, magnitude 0",
+      "live": true,
+      "detail": "Intimidate into a foe at -5: [\"|-ability|p1a:incineroar|intimidate|boost\",\"|-unboost|p2a:garchomp|atk|1\",\"|-unboost|p2b:gallade|atk|1\"]; at -6 (clamped): [\"|-ability|p1a:incineroar|intimidate|boost\",\"|-unboost|p2a:garchomp|atk|0\",\"|-unboost|p2b:gallade|atk|1\"]. Swords Dance at +4: [\"|-boost|p1a:garchomp|atk|2\"]; at +6 (clamped): [\"|-boost|p1a:garchomp|atk|0\"]. Clear Body REFUSING the drop (must stay two -fail lines and gain no zero-magnitude unboost): [\"|-fail|p2a:metagross|unboost|[from]ability:clearbody|[of]p2a:metagross\",\"|-fail|p2b:gallade|unboost|attack|[from]ability:innerfocus|[of]p2b:gallade\"]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1507,6 +1517,16 @@
       "label": "Armor Tail refuses a priority move",
       "live": true,
       "detail": "no ability took 25, Armor Tail took 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "blocksMove",
+      "label": "a refused priority move names the ABILITY THAT REFUSED IT, not a neighbour",
+      "live": true,
+      "detail": "Scizor clicks Feint (Physical, priority +2) at a Good as Gold Gholdengo. Ally CUD CHEW (no priority bar, the control): [\"|move|p2a:scizor|feint|p1a:gholdengo\",\"|-immune|p1a:gholdengo\"] — the move must reach the type chart and no |cant| may appear. Ally ARMOR TAIL: [\"|move|p2a:scizor|feint||[still]\",\"|cant|p1b:farigiraf|ability:armortail|feint|[of]p2a:scizor\"] — the authority names p1b Farigiraf and blanks the move line’s target with [still]; this engine named p1a Gholdengo and its Good as Gold, which refuses STATUS moves and not priority",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3006,7 +3026,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.9% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3707,6 +3727,16 @@
       "label": "a spread move that misses names every target it missed",
       "live": true,
       "detail": "Heat Wave on a LOSING roll emitted 2 -miss line(s) [|-miss|p1a: gholdengo|p2a: garchomp |-miss|p1a: gholdengo|p2b: milotic] and 0 -fail, dealing 0/0; on a WINNING roll 0 -miss and 133/109 damage; with the target named 2",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spreadFoes",
+      "label": "a 90-accuracy spread move can hit one target and miss the other — all four outcomes",
+      "live": true,
+      "detail": "Heat Wave (printed 90, allAdjacentFoes) into two live bodies, acc stream scripted per target — [hit,hit] 31/18 miss[none]; [hit,miss] 31/0 miss[p2b: milotic]; [miss,hit] 0/18 miss[p2a: garchomp]; [miss,miss] 0/0 miss[p2a: garchomp,p2b: milotic]; draws 2/2/2/2 (one per live body)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4887,6 +4917,16 @@
       "label": "Pressure halves how often a foe-aimed move can be clicked",
       "live": true,
       "detail": "Close Combat (maxpp 8, aimed at a foe): 4 clicks into a Pressure foe against 8 into a Levitate one -- 2 PP a click against 1. Protect (self-targeting) leaves 3 against 3: Pressure charges it NOTHING, which is the pressureTargets rule and the arm a blanket doubling fails",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "targetClass",
+      "label": "an ally-aimed Helping Hand names the PARTNER in its own move line",
+      "live": true,
+      "detail": "the same Helping Hand at the same partner — partner with NO ability: {\"lines\":[\"|move|p1a:farigiraf|helpinghand|p1b:gholdengo\",\"|-singleturn|p1b:gholdengo|helpinghand\"],\"marked\":true}; partner with GOOD AS GOLD: {\"lines\":[\"|move|p1a:farigiraf|helpinghand|p1b:gholdengo\",\"|-immune|p1b:gholdengo|[from]ability:goodasgold\"],\"marked\":false}. Field 4 of the |move| line must name p1b Gholdengo on BOTH arms (the authority writes |move|p1a: Farigiraf|Helping Hand|p1b: Gholdengo); before the fix it named p1a Farigiraf, the user, because the action carried no target at all",
       "hollow": false,
       "armed": true,
       "directCall": false

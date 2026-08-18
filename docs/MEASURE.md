@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 25 unsafe, 1 void (declared), 93 possibly stale, 93 ok, 0 missing
+  provenance: 24 unsafe, 1 void (declared), 92 possibly stale, 96 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
@@ -29,13 +29,13 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 12). Old hashes cannot be compared; restamp after checking board.js.
-    moved after the fit: engine/medicham2-browser.js  2026-08-17 23:03
+    moved after the fit: engine/medicham2-browser.js  2026-08-18 00:57
     moved after the fit: engine/board.js  2026-08-17 22:37
     moved after the fit: data/engine-data.js  2026-08-10 18:59
     moved after the fit: data/abra-tags.js  2026-08-13 20:18
 ```
 
-_stamped 2026-08-17 23:11_
+_stamped 2026-08-18 01:32_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,102 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 00000000000. THE MEDICHAM GATE'S FINISH LINE IS DECISION-EQUIVALENCE NOW, AND THE FILTER IS DERIVED FROM THE STORE — 2026-08-18
+
+`engine/quarantine.js` (`--reach`, `--selftest`), `data/click-counts.json`, `data/sheet-usage.json`,
+and a contract for a `data/decision-impact.json` that does not exist yet.
+
+**THE BAR IS WILL'S.** *"medicham needs to be good enough that when miltank uses it, it wouldnt affect
+any decisions"*, with the worked example *"so like if trick or treat isnt working, that doesnt matter
+because no one uses gorgeist."* Two clauses were asking for something else. The mechanics clause
+counted every diverging entity whether or not anybody plays it; the whole-game clause demanded literal
+zero over a unit nothing was allowed to filter. Neither is a weaker bar now — they are a different
+question, and the answer to it can actually be delivered.
+
+**FILTER 1 — REACH, at the threshold the project already had.** A diverging mechanic below **25
+observations in the store** is shelved: still staged, still played, still printed with its usage, and
+it stops counting. 25 is `tests/roster.js`'s `USAGE_SHELF_BELOW` and the coverage clause's shelf, not a
+new number; `coverageClause` used to carry its own literal 25 and now reads the same constant.
+The unit is whatever the store can observe for that kind — **clicks** for moves
+(`engine/click_counts.js`, 64,846 games, 1,259,717 clicks), **teams** for abilities and items
+(`engine/sheet_usage.js`, 26,232 teams from 13,116 open-sheet games). Both denominators print on every
+run because 25 teams and 25 clicks are not the same exposure and must not be read as if they were.
+
+**`tests/roster.js`'s header says no honest store-derived ability usage exists. That was true on
+2026-08-10 and `data/sheet-usage.json` was generated on 2026-08-11** — *"The first honest store-derived
+ability usage this project has had."* The shelf reaches abilities and items because the instrument now
+exists, not because the rule was relaxed.
+
+**UNKNOWN IS NOT ZERO, and that half is what makes the filter honest.** An entity the usage instrument
+STRUCTURALLY CANNOT SEE is not below the shelf: it counts, and it is named in its own column.
+`data/sheet-usage.json` declares that set itself — a team sheet reveals the PRE-MEGA ability, so an
+ability that lives only on a mega forme can never appear in it. Absence from an instrument that covers
+the whole class (every move click in every stored game) is an observed zero and is a different thing.
+If a usage artifact is missing outright, every row of that kind is UNKNOWN and nothing is shelved.
+
+**THE FILTER HAD TO NOT USE `tags.json`, AND THIS ALMOST WENT WRONG.** The nine entities handed to me
+as unplayed carried `tags.json.uses` figures. Against `engine/click_counts.js`: bittermalice reads
+**0 there and 519 real clicks**, attract 2 against 30, fairylock 1 against 11. A reach filter run off
+`tags.json` would have shelved a 519-click move as unused — ROADMAP #70 landing on a live decision for
+the second time.
+
+**FILTER 2 — DECISION IMPACT, wired as a contract and refusing everything today.** For a mechanic
+people do play, the question is whether fixing it moves the argmax, and that is a measurement, not
+something a clause may guess. `engine/argmax_paired.js` (ROADMAP #278) is the instrument. The clause
+reads `data/decision-impact.json` and clears a row only when **all** of: the artifact exists;
+`null_demonstrated: true` (its identical-dice control reported exactly 0 flips); its `engine_release`
+equals the tree's; and the row reports `flips: 0` over `paired >= 25` decision points and names the arm
+the fix landed in. The 95% upper bound from the row's own n (rule of three) prints beside every cleared
+row — **0 flips in 25 is an 11% bound, a floor and not a zero.** The same contract serves the
+whole-game clause through `cause:` rows, which is the only filter that clause gets: a game is not an
+entity, 690 of its divergences are `ordering` and `field` classes naming no mechanic, and thresholding
+those on usage would be a fabrication.
+
+**NOTHING IS CLEARED TODAY.** There is no `data/decision-impact.json`, and the clause says so in the
+same sentence as the count — an exemption mechanism silent about being empty makes "0 were cleared" and
+"we did not check" the same line.
+
+**THE `drag: a different body` DECLARATION IS WITHDRAWN.** It was declared the same morning as "not a
+rule, a bench index", and the mechanism was right: `sim/battle.ts` `getRandomSwitchable` samples
+`side.pokemon` order, the authority takes one index under the pinned die and this engine takes another.
+The CONSEQUENCE was wrong for this bar. A different body arriving on the field is a different position,
+and every decision after it is taken against a board the authority does not have — the largest decision
+impact a divergence can have, not the smallest. It was never a claim that the authority is wrong, which
+is the only thing `DECLARED_DIVERGENCE` is for. **Supreme Overlord's `fallenundefined` stays**: an
+unguarded `onEnd` emitting a literal broken string on a `[silent]` line is a typo, and reproducing a
+typo is not correctness.
+
+**AND THE RECEIPT FOR KEEPING ALL THREE BARS NARROW.** `medicham2-browser.js:17440` carried a declared
+divergence whose stated reason was COST — *"a far larger change than this wire is buying"*. It hid the
+largest real defect in the engine: Showdown rolls spread accuracy per target, this engine rolled once
+per move, so Rock Slide (18,122 clicks) and Heat Wave (11,121) could never hit one body and miss the
+other. At 90 accuracy the exactly-one case is 18% of outcomes and did not exist here at all. **That one
+clears a reach filter without breaking stride.** Reach may never be the only filter, and no row may
+reach any of the three axes by a cost argument.
+
+**MEASURED, on `data/all-mechanics-fire.json` generated 2026-08-18T04:06Z (release `6875c8ace00e`;
+the tree is `29ddfe81594a`, so the clause refuses these rows as stale and `--reach` prints them
+anyway — a listing is not a verdict):**
+
+| | |
+|---|---|
+| diverging mechanics, closet excluded | **49** (moves 35, abilities 14, items 0) |
+| below the reach shelf | **15**, all moves, 0–22 clicks |
+| no usage figure | **0** — every diverging row has a store-derived number |
+| cleared on decision impact | **0** — no run exists |
+| **counted: played and uncleared** | **34** |
+
+**THE WORKED EXAMPLE DOES NOT CLEAR THE SHELF AND THAT IS REPORTED, NOT PAPERED OVER.** Trick-or-Treat
+is **70 real clicks**, not the 10 `tags.json` reports, so at a shelf of 25 it would hold the gate.
+Gourgeist-Super is **13 of 26,232 teams (0.05%)**, comfortably below. The move outlives the body that
+brings it. Raising the shelf to cover the example needs a number ≥ 71 and that is a decision with an
+owner; picking one here to fit one anecdote is not.
+
+**Shown RED on a deliberate break before being trusted**, all three: unknown-reads-as-zero,
+`null_demonstrated` ignored, and the shelf boundary moved to `<=` (an ability sits at exactly 25 teams
+today, so that off-by-one would have excused a live row). `node engine/quarantine.js --selftest` is 56
+cases, 0 failing.
 
 ### 000000000000. ROADMAP #258 — THE SILENT-CATCH RATCHET: MEASURE'S OWN FILES ARE CLEAR, THE FLOOR FELL 216 → 201, AND 75 REMAIN IN OTHER DIVISIONS' FILES — 2026-08-17
 

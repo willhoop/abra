@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-18T03:05:40.195Z",
- "release": "1a9d81ca552c",
+ "generated": "2026-08-18T05:31:33.643Z",
+ "release": "488fd1bf3f7c",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -44,6 +44,18 @@
   }
  ],
  "red_ok": true,
+ "closet": {
+  "source": "tests/roster.js DEFERRED",
+  "ids": [
+   "copycat",
+   "battlebond",
+   "stall",
+   "pickup",
+   "metronome",
+   "anticipation",
+   "forewarn"
+  ]
+ },
  "rows": {
   "moves": [
    {
@@ -1177,7 +1189,13 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "RESOLVED"
+    "verdict_refined": "RESOLVED",
+    "deferred": {
+     "by": "Will",
+     "on": "2026-08-13",
+     "why": "ROADMAP #160 — ILLUSION IS IN THE CLOSET and the only carrier of this row holds it. Will: \"we banned zoroark remember for 5. its too confusing for our simple engine.\" The divergence is `switch: a different body`, which is Illusion announcing the body under another name, not a defect in the move. Same shelf engine/game_differential.js applies to whole teams; derived from the ABILITY (GD.CLOSET_SPECIES), not from a name list."
+    },
+    "counts_against_the_gate": false
    },
    {
     "kind": "move",
@@ -2191,7 +2209,13 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "RESOLVED"
+    "verdict_refined": "RESOLVED",
+    "deferred": {
+     "by": "Will",
+     "on": "2026-08-10",
+     "why": "THE MECHANISM IS WIRED AND GREEN; THE ROW FAILS ON A DIFFERENT RULE. Showdown refuses `addVolatile` for a volatile already present whose condition has no `onRestart`, and a failed move never becomes `lastMove`. The fixture idles bodies on Focus Energy, whose second click FAILS in the authority and SUCCEEDS here, so our Copycat correctly repeats an inert click. Fixing the underlying refusal is its own batch: a blanket rule breaks Protect, Follow Me, Rage Powder and Helping Hand, all of which must be re-settable. Underlying verdict: DID-NOT-FIRE. Will: \"PUT COPYCAT INTO THE QUARANTINE IM NOT TOUCHING THAT.\""
+    },
+    "counts_against_the_gate": false
    },
    {
     "kind": "move",
@@ -7744,7 +7768,13 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "RESOLVED"
+    "verdict_refined": "RESOLVED",
+    "deferred": {
+     "by": "Will",
+     "on": "2026-08-13",
+     "why": "ROADMAP #160 — ILLUSION IS IN THE CLOSET and the only carrier of this row holds it. Will: \"we banned zoroark remember for 5. its too confusing for our simple engine.\" The divergence is `switch: a different body`, which is Illusion announcing the body under another name, not a defect in the move. Same shelf engine/game_differential.js applies to whole teams; derived from the ABILITY (GD.CLOSET_SPECIES), not from a name list."
+    },
+    "counts_against_the_gate": false
    },
    {
     "kind": "move",
@@ -13681,7 +13711,13 @@
     ],
     "then_what_needs": [],
     "then_what_after": [],
-    "then_what_item": null
+    "then_what_item": null,
+    "deferred": {
+     "by": "Will",
+     "on": "2026-08-10",
+     "why": "THE EFFECT IS A MESSAGE. Anticipation's whole content is a switch-in shudder — no HP, no stat stage, no volatile, no field change — so there is nothing a BOARD comparison can read, and this instrument compares boards. The only instrument that could ever test it is the PROTOCOL TRACE, which is a different comparison and does not exist here. Usage measured at 6, across two legal carriers in this format. Will: \"ANTICIPATION AND FOREWARN LETS PUT INTO THE QUARANTINE CLOSET NO ONE USES THEM.\""
+    },
+    "counts_against_the_gate": false
    },
    {
     "kind": "ability",
@@ -13912,7 +13948,13 @@
      "handler onModifyMove: the actor must supply multihit"
     ],
     "control_not_quiet": true,
-    "control_note": "the CONTROL ability (Torrent) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
+    "control_note": "the CONTROL ability (Torrent) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one.",
+    "deferred": {
+     "by": "Will",
+     "on": "2026-08-10",
+     "why": "ZERO of 26,232 declared-sheet teams, AND THE FORME IT EXISTS FOR IS BANNED HERE. Greninja-Bond and Greninja-Ash are both isNonstandard: 'Past' in this format. Standard Greninja still LISTS Battle Bond and is on 189 teams, but nobody takes it, because the thing it exists to do cannot happen. Will: \"only the special greninja gets battle bond, its not in the game.\" I gave two WRONG reasons for this shelf before measuring: first that the carrier was rare (it is not, 189 teams), then that it was a rejected choice (it is not a live choice at all). Deliberately not built. Underlying: COULD-NOT-STAGE."
+    },
+    "counts_against_the_gate": false
    },
    {
     "kind": "ability",
@@ -15670,7 +15712,13 @@
     ],
     "then_what_needs": [],
     "then_what_after": [],
-    "then_what_item": null
+    "then_what_item": null,
+    "deferred": {
+     "by": "Will",
+     "on": "2026-08-10",
+     "why": "THE EFFECT IS A MESSAGE, for the identical reason as Anticipation one row up: Forewarn names the foe's strongest move on entry and changes nothing on the board. A board comparison cannot see it and a green from one would be vacuous; the protocol trace is the only instrument that could. Usage measured at 4. Same quote, same date."
+    },
+    "counts_against_the_gate": false
    },
    {
     "kind": "ability",
@@ -16574,7 +16622,13 @@
     "name": "Illusion",
     "carrier": "zoroark",
     "fired": false,
-    "why": "NO CONTROL — every legal carrier has this as its only ability, so the A/B arm has nothing to swap it for. The row is not measurable by this instrument."
+    "why": "NO CONTROL — every legal carrier has this as its only ability, so the A/B arm has nothing to swap it for. The row is not measurable by this instrument.",
+    "deferred": {
+     "by": "Will",
+     "on": "2026-08-13",
+     "why": "ROADMAP #160 — ILLUSION IS IN THE CLOSET and the only carrier of this row holds it. Will: \"we banned zoroark remember for 5. its too confusing for our simple engine.\" The divergence is `switch: a different body`, which is Illusion announcing the body under another name, not a defect in the move. Same shelf engine/game_differential.js applies to whole teams; derived from the ABILITY (GD.CLOSET_SPECIES), not from a name list."
+    },
+    "counts_against_the_gate": false
    },
    {
     "kind": "ability",
@@ -18608,7 +18662,13 @@
     "verdict_refined": "DID-NOT-FIRE",
     "fixture_weather": null,
     "fixture_status": null,
-    "fixture_weather_repaired": false
+    "fixture_weather_repaired": false,
+    "deferred": {
+     "by": "Will",
+     "on": "2026-08-10",
+     "why": "SHELVED ON FIXTURE COST AGAINST 0.011% USAGE — 3 teams of 26,232, the rarest ability in this format with a legal carrier. Observing it needs a SECOND body to consume an item on an earlier turn so the holder has something to pick up, which is a three-body two-turn setup for a mechanic almost nobody brings. Deliberately NOT built, and said so rather than left to read as untested. NOT a general usage rule: Cud Chew (Farigiraf, 18.3% of teams) and Merciless (Toxapex, 5.0%) are equally rare ABILITIES on common BODIES and are built, because you face them without bringing them. Underlying verdict: COULD-NOT-STAGE."
+    },
+    "counts_against_the_gate": false
    },
    {
     "kind": "ability",
@@ -20721,7 +20781,13 @@
     ],
     "then_what_item": null,
     "control_not_quiet": true,
-    "control_note": "the CONTROL ability (Keen Eye) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
+    "control_note": "the CONTROL ability (Keen Eye) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one.",
+    "deferred": {
+     "by": "Will",
+     "on": "2026-08-10",
+     "why": "ZERO of 26,232 declared-sheet teams, AND IT IS NOT RARE — IT IS BAD. Will: 'why would you ever want this'. Stall makes the holder move LAST within its bracket, and its ONE legal carrier is Sableye, which is on 758 teams (2.9% of the format) and also has PRANKSTER — one of the strongest abilities in the game — plus a mega that overwrites the slot with Magic Bounce. Nobody chooses to move last when that is the alternative. The zero is a judgement the whole ladder has already made. Observing it would need a constructed speed pair where the order decides the board, and it carries no tag at all, so the rule would have to be written first. It moves the holder LAST within its bracket, so observing it needs a constructed speed pair where the order decides the board — the same build Will described for priority — for an ability nobody runs. It also carries no tag at all, so the rule would have to be written first. Deliberately not built. Underlying verdict: COULD-NOT-STAGE."
+    },
+    "counts_against_the_gate": false
    },
    {
     "kind": "ability",
@@ -24008,7 +24074,13 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "FIRED"
+    "verdict_refined": "FIRED",
+    "deferred": {
+     "by": "Will",
+     "on": "2026-08-10",
+     "why": "The Metronome ITEM (19 uses) climbs a damage ladder over consecutive uses of one move. Its tag is derived and correct (`damageMultOnRepeat`, the full 4096ths ladder off the condition); what is missing is the CONSUMER, which needs a per-body consecutive-use counter threaded through the turn loop and read inside dmgRange — a change that touches every move's damage path for the smallest row in the whole queue. Will: \"metronome is a joke dont worry about that just put it into a quarantined closet we can re examine once the project is successful.\""
+    },
+    "counts_against_the_gate": false
    },
    {
     "kind": "item",
@@ -25018,10 +25090,13 @@
    "attempted": 496,
    "tried": 500,
    "resolved": 484,
-   "diverged": 37,
+   "diverged": 35,
+   "diverged_including_shelved": 37,
+   "shelved_by_owner": 3,
+   "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 18,
    "cannot_fire_in_this_fixture": 0,
-   "seconds": 5.1
+   "seconds": 5
   },
   "abilities": {
    "exist": 316,
@@ -25034,7 +25109,10 @@
    "control_not_quiet": 107,
    "cannot_fire_in_this_fixture": 16,
    "did_not_fire_unexplained": 43,
-   "diverged": 15,
+   "diverged": 14,
+   "diverged_including_shelved": 15,
+   "shelved_by_owner": 6,
+   "shelved_by_owner_diverging": 1,
    "seconds": 10.1
   },
   "then_what": {
@@ -25055,8 +25133,11 @@
    "out_of_scope": 75,
    "cannot_fire_in_this_fixture": 6,
    "did_not_fire_unexplained": 55,
-   "diverged": 1,
-   "seconds": 5.3
+   "diverged": 0,
+   "diverged_including_shelved": 1,
+   "shelved_by_owner": 1,
+   "shelved_by_owner_diverging": 1,
+   "seconds": 5.7
   },
   "preflight": {
    "checked": 759,

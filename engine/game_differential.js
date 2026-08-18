@@ -730,6 +730,7 @@ function midCtx(parts) {
 }
 const midClearNth = () => MID_NTH.clear();
 let MID_CAT = 'any';
+let MID_ATT = '-';
 let MID_BATTLE = null;   /* set by the wrapper above; the prng override cannot see the battle */                  /* which KIND of roll Showdown is making right now */
 const MID_DRAWS = { sd: {}, me: {} }; /* per-category draw counts, per side, for the void check */
 /* THE CONTEXTS THEMSELVES, NOT JUST THE COUNTS. Under hashing a count mismatch is EXPECTED and
@@ -795,7 +796,7 @@ function midGameVoid() {
  * today; that is luck, not design — see ROADMAP #260). Wrapping the four owning methods is exact. */
 function midWrapShowdown(BattleActions) {
   if (!BattleActions || BattleActions.__midWrapped) return;
-  const around = (name, cat) => {
+  const around = (name, cat, attIdx) => {
     const fn = BattleActions.prototype[name];
     if (typeof fn !== 'function') throw new Error('MIDDLE ARM: BattleActions#' + name + ' is not a function — '
       + 'the authority moved and this wrapper is guessing. Fix the name rather than falling back.');
@@ -809,16 +810,23 @@ function midWrapShowdown(BattleActions) {
        * looking like it worked. `BattleActions` carries `.battle`, and this wrapper is the one
        * place that genuinely runs as a method on it. */
       MID_BATTLE = this.battle || null;
-      try { return fn.apply(this, a); } finally { MID_CAT = prev; MID_BATTLE = prevB; }
+      /* THE ATTACKER, WHICH THE ADDRESS DID NOT CARRY AND NEEDED — see the midCtx note.
+       * The position differs per method and is read from the signature rather than assumed:
+       * getDamage(source, target, move), hitStepAccuracy(targets, pokemon, move),
+       * secondaries(targets, source, move, ...). A draw with no attacker in scope keeps '-'. */
+      const prevA = MID_ATT;
+      const _att = (attIdx != null) ? a[attIdx] : null;
+      MID_ATT = (_att && _att.side && _att.position != null) ? (_att.side.id + _att.position) : '-';
+      try { return fn.apply(this, a); } finally { MID_CAT = prev; MID_BATTLE = prevB; MID_ATT = prevA; }
     };
   };
   /* THE BATTLE IS THE CONTEXT AND IT COSTS NOTHING TO READ. The override runs as a method, so the
    * turn, the active move and the active target are already in scope — the authority needs no call
    * site changed. Measured on three messy turns: 19 of 20 draws had a move in scope; the one that did
    * not had no event id either, so it is a single unnameable draw rather than a class of them. */
-  around('hitStepAccuracy', 'acc');
-  around('secondaries', 'sec');
-  around('getDamage', 'dmg');      /* the crit roll lives in here too and is split out below */
+  around('hitStepAccuracy', 'acc', 1);
+  around('secondaries', 'sec', 1);
+  around('getDamage', 'dmg', 0);      /* the crit roll lives in here too and is split out below */
   BattleActions.__midWrapped = true;
 }
 
@@ -2659,6 +2667,55 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * It only becomes a divergence once nothing more is coming. So the length test runs once, after the
    * loop. `reduce()` has already dropped the lines we declare we do not emit, so what is left is a
    * line the authority produced and we never did. */
+  /* ---- THE ORDERING DISCRIMINATOR -------------------------------------------------------------
+   * ROADMAP #290. `ordering` is the shape "same event, different slot", and the biggest member of it
+   * is two `|move|` lines naming the same move in different slots. THAT LOOKS EXACTLY LIKE THE PINNED
+   * SPEED TIE and this file's own header documents the history, so it has been read as an artefact.
+   *
+   * IT CANNOT BE ONE ANY MORE. CHANGELOG 3.74.0 (2026-08-07) fixed the tie AT THE ROOT — the selection
+   * sort is reproduced line for line and the residual tie is resolved by the per-action uniform key,
+   * which is the identity under a constant pinned die — and both arms of the current pin declare
+   * `speed_tie: "to the EARLIER body"`. So an ordering pair is either a real turn-order defect or the
+   * two bodies were genuinely tied and something else broke the agreement.
+   *
+   * SO ASK. The two bodies are named on the RAW lines; their speeds are read out of the AUTHORITY's
+   * own `getActionSpeed()`, and the priority of what each clicked out of the format's own move data.
+   * A pair whose bodies are NOT tied and whose priorities MATCH is a real turn-order disagreement and
+   * belongs above everything else on the worklist.
+   *
+   * IT IS READ AT THE TURN BOUNDARY, WHICH IS NOT THE MOMENT THE ACTIONS WERE ORDERED. Tailwind can
+   * have ended and a boost can have landed in between, so an EQUAL reading is weak evidence and an
+   * UNEQUAL one is strong: two bodies 40 points apart at the boundary were not tied when the queue was
+   * built. `speed_source` says so on every row rather than leaving the caveat in a comment here. */
+  const _bodyByName = (nm) => {
+    const t = String(nm || '').replace(/^p[12][ab]:\s*/, '').trim();
+    if (!t) return null;
+    for (const side of [battle.p1, battle.p2]) for (const q of side.pokemon)
+      if (q.name === t || q.species.name === t) return q;
+    return null;
+  };
+  const orderProbe = (sdRed, meRed, sdRawL, meRawL) => {
+    if (!/^\|move\|/.test(String(sdRed)) || !/^\|move\|/.test(String(meRed))) return null;
+    const A2 = String(sdRawL || '').split('|'), B2 = String(meRawL || '').split('|');
+    const pa = _bodyByName(A2[2]), pb = _bodyByName(B2[2]);
+    if (!pa || !pb) return null;
+    const spd = (q) => { try { return q.getActionSpeed(); } catch (e) { return null; } };
+    const mvid = (l) => String(l[3] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const pri = (mid) => { const mv = battle.dex.moves.get(mid); return (mv && mv.exists) ? mv.priority : null; };
+    const ma = mvid(A2), mb = mvid(B2);
+    const sa = spd(pa), sb = spd(pb);
+    return {
+      showdown_first: { slot: String(sdRed).split('|')[2], body: pa.species.name, speed: sa,
+                        move: ma, priority: pri(ma) },
+      medicham_first: { slot: String(meRed).split('|')[2], body: pb.species.name, speed: sb,
+                        move: mb, priority: pri(mb) },
+      same_move: ma === mb,
+      same_priority: pri(ma) === pri(mb),
+      speed_tied: sa != null && sb != null && sa === sb,
+      speed_gap: (sa != null && sb != null) ? Math.abs(sa - sb) : null,
+      speed_source: 'battle.getActionSpeed() at the TURN BOUNDARY, not at queue-build time',
+    };
+  };
   const alignAndCheck = (final, oneEngineEnded) => {
     /* `opts.plant` corrupts the MEDICHAM side and only the medicham side. It exists for the
      * planted-divergence proof and is undefined on every real run — a comparator that finds nothing
@@ -2678,6 +2735,8 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
     for (let i = 0; i < comparedWalked; i++) {
       if (a[i] !== b[i]) {
         return { index: i, sd: a[i], me: b[i],
+                 /* ROADMAP #290 — null unless BOTH lines are `|move|`; see orderProbe above. */
+                 orderProbe: orderProbe(a[i], b[i], sdRawAll[A.rawIdx[i]], raw[B.rawIdx[i]]),
                  /* THE RAW LINES, so a report shows what the engines EMITTED and not what the
                   * comparator reduced them to. The reduced form is what decided; the raw form is
                   * what a person has to go and fix. */
@@ -4190,6 +4249,15 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                                             firstMissing: scriptMoveFirstMissing,
                                             megaRefused: scriptMegaRefused }),
                    resetScriptCounters: () => { scriptMoveNotOnRequest = 0; scriptMoveFirstMissing = ''; },
+                   /* ROADMAP #291 -- THE ILLUSION CLOSET (ROADMAP #160), EXPORTED SO THE SECOND
+                    * INSTRUMENT READS IT RATHER THAN RE-DERIVING IT. `engine/all_mechanics_fire.js`
+                    * was staging Bitter Malice on Zoroark-Hisui and Night Daze on Zoroark -- the only
+                    * two rows in its whole population whose carrier holds Illusion -- and BOTH diverge
+                    * with `switch: a different body`, which is the ability renaming the body and not a
+                    * defect in either move. Derived from the ABILITY, so a carrier added next
+                    * regulation is covered without an edit; a name list is the failure this repo has a
+                    * standing rule about. */
+                   CLOSET_ABILITY, CLOSET_SPECIES,
                    plantedProof, pairsFor, COV_TARGETS, COV_UNMEASURABLE, PIN_CLAIMS, REL, SW,
                    runDirected, damageInterior, DIRECTED, EQUIV, equivProof, semantic, reduce, NORM_COUNTS,
                    knockOffArms, KO_TARGET_ITEMS,
@@ -5740,6 +5808,12 @@ if (WRITE) {
       cls, games: e.games,
       causes: [...e.causes].map(([cause, n]) => Object.assign({ cause, n }, annotateCause(cause))),
     })),
+    /* ROADMAP #290 — EVERY move-vs-move ordering pair, not a sample, with the discriminator attached.
+     * The question it answers is one line: were the two bodies actually speed-tied? If they were not,
+     * `ordering` is a real turn-order defect and not the retired tie artefact. */
+    order_probe: diverged.filter(r => r.div && r.div.orderProbe).map(r => Object.assign(
+      { config: r.config, seed: r.seed, cls: r._cls.cls, cause: r._cls.cause,
+        showdown: r.div.sdRaw, medicham: r.div.meRaw }, r.div.orderProbe)),
     first_divergences: diverged.slice(0, 60).map(r => ({
       config: r.config, seed: r.seed, index: r.div.index, agreed_lines: r.div.agreedLines,
       cls: r._cls.cls, cause: r._cls.cause, showdown: r.div.sdRaw, medicham: r.div.meRaw })),

@@ -292,8 +292,13 @@ const PARTIAL = [
   ['-heal', 'the pinch berries (Sitrus) fire in the END-OF-TURN residual here and on the `onUpdate` '
     + 'immediately after the hit in Showdown. Same turn, different position in the stream.'],
   ['move', 'a SPREAD move emits no `[spread] ...` attribute: the target list is resolved after the '
-    + 'move line is written, and this engine rolls accuracy ONCE for a spread move rather than per '
-    + 'target (MEDSEEN.accSpreadNoDefender), so a per-target attribute would not be true anyway.'],
+    + 'move line is written. THE SECOND HALF OF THIS REASON IS RETRACTED (ROADMAP #294, 2026-08-18) — '
+    + 'it read "and this engine rolls accuracy ONCE for a spread move rather than per target '
+    + '(MEDSEEN.accSpreadNoDefender), so a per-target attribute would not be true anyway", and the '
+    + 'roll is now per target (MEDSEEN.accDrawsOnSpread). Only the ORDERING half stands, and it is '
+    + 'the half that was ever load-bearing: Showdown writes `[spread] p1b,p2a` by attributing the '
+    + 'LAST move line after the hit steps (battle-actions.ts:618), which this engine cannot do while '
+    + 'it writes the move line first.'],
   ['-crit', 'a spread move\'s per-target effectiveness and crit lines INTERLEAVE with its damage '
     + 'lines here; Showdown batches all of them ahead of the damages (trySpreadMoveHit).'],
 ];

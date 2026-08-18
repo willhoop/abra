@@ -37,7 +37,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  591/591 probed mechanics live, 0 missing   (census 2026-08-17 23:04)
+  595/595 probed mechanics live, 0 missing   (census 2026-08-18 01:02)
   0/6000 differential comparisons disagree with Showdown   (2026-08-14 23:54)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -49,16 +49,312 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f5b74111af42 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is eb10147a7e93 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 095e7b0dec5b now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 83745cacc8c0 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 266/285 probed, 19 unprobed
 ```
 
-_stamped 2026-08-17 23:11_
+_stamped 2026-08-18 01:32_
 
 <!-- /GENERATED -->
+
+## ROADMAP #294 — THE ACCURACY ROLL IS PER TARGET. ROCK SLIDE CAN NOW HIT ONE AND MISS THE OTHER. 2026-08-18.
+
+**Census 594 live / 0 missing -> 595 live / 0 missing.** The probe is
+`tests/test-mechanics.js` `move|spreadFoes` — *"a 90-accuracy spread move can hit one target and miss
+the other — all four outcomes"*.
+
+### THE DEFECT WAS DECLARED IN THE ENGINE'S OWN FILE, IN TWO PLACES, AND IT WAS NOT A REPRESENTATION LIMIT
+
+> *"ONE ROLL PER MOVE, NOT PER TARGET, AND THAT IS A DECLARED DIVERGENCE. Showdown rolls accuracy
+> separately against each target of a spread move. Rolling per target here would change how much rng
+> every existing seeded run consumes, which is a far larger change than this wire is buying; so a
+> SPREAD move rolls once, against no defender, and gets the attacker's modifiers only."*
+
+The authority is `hitStepAccuracy(targets: Pokemon[], pokemon, move)` — `sim/battle-actions.ts:690`.
+It takes an ARRAY, opens `for (const [i, target] of targets.entries())`, sets
+`this.battle.activeTarget = target`, and ends every iteration in `randomChance(accuracy, 100)` at
+:737. One draw per target, each seeing that target's evasion stage, Bright Powder, Sand Veil and
+No Guard.
+
+**THE DISTRIBUTION WAS WRONG, NOT ONLY THE VARIANCE**, which is the half a "declared divergence" reads
+past. A 90-accuracy spread move into two live bodies:
+
+| outcome | Showdown | this engine, before |
+|---|---|---|
+| both hit | 81% | 90% |
+| **exactly one** | **18%** | **0%** |
+| neither | 1% | 10% |
+
+The eighteen-percent middle case **did not exist in this engine at all**. Will named it exactly:
+*"rock slide and heat wave can hit one and miss the other."* Rock Slide is 18,122 corpus clicks and
+Heat Wave 11,121, plus Dazzling Gleam, Hyper Voice, Matcha Gotcha and Eruption — spread moves are most
+of what doubles does and every sub-100-accuracy one was affected.
+
+### THE STATED OBJECTION HAD EXPIRED, AND THAT IS THE WHOLE REASON THIS WAS WORTH DOING NOW
+
+*"It would change how much rng every existing seeded run consumes"* was true when the dice were a
+SEQUENCE. It is true of neither arm that measures correctness today:
+
+- the **pinned corners** feed a CONSTANT — `mediRng`'s `scalar = () => spec.corner` in
+  `engine/game_differential.js` — so extra draws change nothing;
+- the **middle arm** feeds EVENT-ADDRESSED dice, `hash(seed|turn|category|move|target|nth)`, where a
+  draw is a function of WHAT is being rolled for and not of how many came before it.
+
+**MEASURED RATHER THAN ARGUED. Both corner arms are bit-identical across the change**, run in
+isolation on the same 260-game sample with the same census pin: `top-tie-first` 59/260 before and
+after, `bottom-tie-first` 75/260 before and after. **Middle arm:** 161/260 diverged before and after,
+VOID 113 -> 112, usable 147 -> 148, diverged-among-usable 144 -> 145, rate 98.0% both ways.
+
+**AND A CONTROL THAT HAD TO BE RUN: the three arms are NOT independent inside one process.** A single
+`--arm middle,top-tie-first,bottom-tie-first` invocation reported `bottom-tie-first` at 75 before and
+**71** after — which reads as a four-game improvement and is not one. Run alone, the arm is 75 in both
+trees. Something global leaks from the middle arm into the corner arms within a run; the per-arm rows
+of a multi-arm invocation are therefore not paired measurements. Filed as an INSTRUMENT observation,
+not fixed here.
+
+### WHERE IT DOES STILL BITE, STATED SO NOBODY READS AN OLD NUMBER ACROSS IT
+
+`rngStreams` is a SEQUENCE, and it is what MILTANK rollouts and self-play consume. A spread move now
+takes one `acc` draw per target, so **a seeded run plays a different game from the same seed after
+this change.** Every figure downstream of the simulator is already quarantined and owes a re-run
+(ROADMAP #57); this adds to that debt rather than creating a new one. **No self-play or rollout number
+may be compared across this commit.**
+
+### HOW IT SURFACED, BECAUSE IT SAYS WHAT ELSE TO LOOK FOR
+
+**The pinned corners are structurally blind to it.** At the top corner everything misses and at the
+bottom everything hits, so one roll and two rolls are indistinguishable — which is why this survived
+every corner run ever made, including the 6,000-comparison damage differential and 1,642 matrix pairs.
+Only REAL dice can see it, and the instrument that does is `tests/test-middle-identity.js`, which had
+already NAMED it as one of two standing shapes while staying GREEN. A green test that prints the
+defect in its own footer is the shape to look for next.
+
+Paired on one 900-game sample, the engine the only file that moved:
+
+| | before | after |
+|---|---|---|
+| `acc` addresses medicham2 asked | 131 | **163** (the authority asks 164) |
+| `acc` address identity | 97.7% | **98.8%** |
+| of the AUTHORITY's events, the share medicham2 also asks | 59.7% | **63.4%** |
+| pooled four-category identity | 95.1% over 594 | 95.9% over 629 |
+| `dmg` / `crit` / `sec` | 98.8 / 98.2 / 83.5% | 99.4 / 98.8 / 83.6% |
+
+The attributable half is the unmatched list: **every `acc` row in "the authority asked, medicham2 did
+not" is gone** — 10 `mortalspin p11`, 7 `matchagotcha p11`, 5 `mortalspin p21`, 2 `heatwave p11` -> none.
+`test-middle-identity` is still GREEN and its footer now records one standing shape instead of two.
+
+### THE SECOND STANDING SHAPE WAS CHECKED AND IS DELIBERATELY LEFT
+
+`BattleActions#secondaries` (`sim/battle-actions.ts:1336-1351`) loops `for (const target of targets)`
+and **never assigns `this.battle.activeTarget`**, so the authority addresses every target's secondary
+to whatever the previous step left active — the LAST target of the spread. Confirmed by reading the
+whole block, not a window. medicham2 addresses each secondary to its own body, which NAMES the event
+correctly; copying the authority would make the address stop naming what is being rolled for. Left
+alone, and the `sec` floor (70%) is unchanged at 83.6%.
+
+### AND A COMMENT IN THE ENGINE DESCRIBED A CHANGE THAT HAD BEEN REVERTED
+
+`midEventBase` carried *"THE ATTACKER IS PART OF THE EVENT AND WAS MISSING — ROADMAP #294"* in the
+present tense, with a measured 6-of-20 collision count. **Read the `join` on the next line: there is
+no attacker field in it.** The experiment was real and was measured to fail — adding it made all four
+category floors go RED — and the revert took the code out and left the paragraph. It is now written as
+the retraction it is, with the reason the authority cannot match an attacker field (`battle.turn` /
+`battle.activeMove` / `battle.activeTarget` exist; there is no `activeAttacker`). Same shape as the
+fourteen stale handoffs: prose kept past the thing it described.
+
+### WHAT ELSE MOVED, AND WHAT DID NOT
+
+- `MEDSEEN.accSpreadNoDefender` — the counter that MEASURED the divergence — is retired for
+  `accDrawsTaken` / `accDrawsOnSpread` / `accSpreadRowsStepped`, which measure the CAPABILITY. A spread
+  move drawing once for two live bodies now shows as `accDrawsOnSpread` at half `accSpreadRowsStepped`.
+- `data/protocol-events.json`'s `move` reason cited that counter to justify emitting no
+  `[spread] ...` attribute. **The second half of that reason is retracted** and regenerated; only the
+  ordering half stands, and it is the half that was ever load-bearing (Showdown attributes the line
+  after the hit steps, at `battle-actions.ts:618`).
+- `tests/test-game-differential.js` was RED before this task with 5 failures and is **claim-by-claim
+  identical** after it — same 5, same lines. Not mine, not moved.
+- `tests/test-engine-diff.js` 0 disagreements, `tests/test-protocol-trace.js` ALL PASSED.
+- **NOT CAUSED BY THIS PASS, OBSERVED WHILE RUNNING `status.js`:** `FEATURE SEMANTICS CHECK FAILED —
+  data/policy-weights.json ... the fixture itself changed (scenarios 10 -> 12)`. That is
+  `engine/feature_fixture.js` against a stamp in a MEASURE-owned artifact, it never loads medicham2,
+  and it is reported rather than touched.
+
+
+## THE DIVERGENCE CLAUSE — AND THE WORK ORDER I WAS HANDED WAS FIVE DAYS STALE. 2026-08-18.
+
+**Census 591 live / 0 missing -> 594 live / 0 missing. Mechanics clause 53 -> 49. Whole-game: the
+published 287/1539 is NOT the number this pass moved, and saying so is the first finding.**
+
+### THE WORK ORDER'S TOP THREE ITEMS WERE ALREADY CLOSED
+
+`data/game-differential.json` was generated 2026-08-13T07:36. Three of the five items ranked by
+measured impact had been fixed in the days after it, and the artifact could not know:
+
+| ranked item | state when I staged it |
+|---|---|
+| residual walk vs side-condition expiry, 23 games | **FIXED by ROADMAP #242 (2026-08-14).** The brief's premise — *"`data/residual-order.json` contains ZERO side-condition rows"* — is false against the file on disk: it holds an `expiry` namespace of 48 rows, `tailwind` at `order 26, subOrder 5`. Staged: sandstorm chip prints ABOVE `-sideend|tailwind` |
+| Good as Gold, the ally half | **FIXED by ROADMAP #255 (2026-08-13).** An ally's Helping Hand into a Gholdengo prints `\|-immune\|p1b: gholdengo\|[from] ability: goodasgold` and the mark never lands |
+| Sitrus `-enditem` ordered against damage/faint | same residual restructure; not reproducible on the current tree |
+
+**So the first thing this pass produced is a re-measurement, not a fix.** A work order derived from a
+five-day-old artifact ranks by what WAS wrong. Read the artifact's `generated` field before ranking
+off it.
+
+### THE ONE-LINE FIX WAS REAL AND IT IS THREE SITES, NOT ONE
+
+`bst(m,eng,d,from){ if(!d) return; }` — `d` is the delta that LANDED, so a body at a cap emitted
+nothing at all. `sim/battle.ts:2073-2078` emits; `msg` is decided at :2040-2044. Read off a real
+Champions battle rather than off the source alone — three Charms to -6, a Gallade to +6, Incineroar
+switches in:
+
+```
+|-ability|p1b: Incineroar|Intimidate|boost
+|-unboost|p2a: Garchomp|atk|0        <- the clamped one, and it IS written
+|-unboost|p2b: Gallade|atk|1
+|-boost|p2b: Gallade|atk|0           <- one turn later, a +6 body clicking Swords Dance
+```
+
+**Emission is opt-in per call site and the default is COUNTED**, because Showdown's two branches are
+not "always": an Ability boost that is neither a secondary nor a `self:` writes nothing, and neither
+does a move secondary. A blanket `emit when d === 0` would invent lines. `MEDFAILS.boostZeroSuppressed`
+reads **8** across the 594-probe census (first `p1a: incineroar/def`) — that is the list of sites still
+to be read, and it is printed rather than swallowed. Probe `ability/onSwitchInDrop`, shown RED first.
+
+### THE ORDERING QUESTION: REAL DEFECT, NOT ARTEFACT — 9 OF 25 PAIRS ARE NOT SPEED-TIED
+
+`order_probe` in the artifact now carries EVERY move-vs-move ordering pair with both bodies'
+`getActionSpeed()` read off the AUTHORITY and both moves' priority read off the format.
+
+```
+published run  26 pairs / 1,230 games    15 speed-tied   11 NOT TIED   26 of 26 at identical priority
+               gaps on the untied eleven: 10, 20, 30, 32, 42, 56, 64, 76, 76, 147, 213
+paired A/B run 25 pairs / 1,229 games    16 speed-tied    9 NOT TIED   25 of 25 at identical priority
+two of the untied are under TRICK ROOM with the sign inverted:
+    showdown moved Talonflame(-292) first, medicham2 moved Staraptor-Mega(-356)
+```
+
+A pair that is not tied and matches on priority cannot be the retired speed-tie artefact. The reading
+is at the TURN BOUNDARY and not at queue-build time, so an EQUAL reading is weak and an UNEQUAL one is
+strong — stated on every row rather than left in a comment. **`ordering` is 228 games, the
+second-largest class, and it belongs above the announcement families.** ROADMAP #290, open.
+
+### THE WHOLE-GAME NUMBERS, AND WHY THE HEADLINE MOVED THIRTY POINTS WITHOUT ANYTHING GETTING WORSE
+
+The published `287/1539 = 18.6%` was the **top-tie-first** arm. The current primary arm is **middle**
+(`A/middle/pins:1fd77b835ee2`), a different corner with a different die model. Those are two
+instruments. So the honest measurement is an A/B on the SAME sample and the SAME pin, differing only
+in the engine bytes — `data/game-differential-PRE.json` is release `1a9d81ca552c` (the tree as handed
+over), `data/game-differential.json` is mine:
+
+| arm | PRE `1a9d81ca552c` | POST `64d303a85997` | delta |
+|---|---|---|---|
+| middle (primary) | 761 / 1229 = 61.9% | **752 / 1229 = 61.2%** | **-9** |
+| top-tie-first — the arm comparable to the published 18.6% | 198 / 1229 = 16.1% | **181 / 1229 = 14.7%** | **-17** |
+| bottom-tie-first | 207 / 1229 = 16.8% | **197 / 1229 = 16.0%** | **-10** |
+
+Every arm improved and none regressed. The whole -9 on the primary arm sits in
+`event missing from medicham2` (54 -> 45), which is the zero-magnitude line no longer truncating those
+games.
+
+**THE PUBLISHED ARTIFACT IS A THIRD, LATER RUN AND IT IS NOT THE A/B.** `data/game-differential.json`
+is release `6875c8ace00e` (the A/B's POST bytes plus comment-only edits) and reads **695 / 1230 =
+56.5%** on the middle arm, **185 / 1230 = 15.0%** top, **208 / 1230 = 16.9%** bottom. The gap from 752
+to 695 is the SAMPLE, not the engine: `buildSwarm` reads the game store LIVE and OPS appends to it, so
+two runs minutes apart draw different teams — ROADMAP #288, filed the day before this pass, happening.
+**Only the paired table above is attributable.** The published run is the current state; the delta is
+the A/B.
+
+**THE NEW #1 BY A LONG WAY IS NOT MINE AND IS NAMED HERE RATHER THAN FILED**: `\|-fail\|p1a <>
+\|-singleturn\|p1a\|protect` — **235 games** in the paired run, and `unrelated event mismatch` is 249
+of the published run's 695, on Protect's 120,124 clicks. The authority FAILS a consecutive Protect
+where this engine succeeds. It is invisible in the top corner (the stall die is pinned there) and
+dominant in the middle arm.
+
+The published run's classes: `unrelated event mismatch` 249, `ordering` 228, `-damage field 3` 140,
+`event missing from medicham2` 44, `-boost field 3` 16, `drag: a different body` 11, `extra event
+emitted by medicham2` 6, `-boost: a different body` 1.
+
+### TWO INSTRUMENT DEFECTS, BOTH "TWO RUNS, ONE LINE"
+
+**The composition came from a different run than its headline.** `287 of 1539` off release
+`0c5bb83c5744` sat beside `emission 132, rule 91, ordering 39, unparsed 34, field 5` from a report
+recording **983 games, 303 diverged, release `a81663f17c0c`**. The current artifact shapes to
+EMISSION 116 / RULE 83 / ORDERING 52 / UNPARSED 35 / **FIELD 1** — field was wrong by 5x. Fixed
+STRUCTURALLY, not with a freshness check: the composition is computed from the artifact the headline
+came from, through `engine/divergence_shape.js`. There is no other run it could describe.
+
+**The rate was compared with a baseline stamped under a different pin.** Baseline
+`A/top-tie-first/pins:ef342837b791` at 30.8% against a run at `A/middle` 61.2%, and the clause printed
+`AND IT GOT WORSE` about a 30-point rise that is entirely the instrument changing corner. The trend is
+**WITHHELD** now, not annotated — CLAUDE.md's rule, applied to the gate that was breaking it. The
+verdict does not move: correctness decides it and zero is zero under any pin.
+
+**And `unparsed` is named for what it is.** Not a fifth kind of disagreement — the comparator saying
+it has no grammar for the pair. 12 of 12 are `drag: a different body`, one `\|drag\|` line rather than
+a pair. The dominant class is printed beside the count.
+
+### THE CLOSET NOW REACHES THE MECHANICS CLAUSE — 53 -> 49, ITEMS 1 -> 0
+
+`tests/roster.js` declares `DEFERRED` (seven entities, each with Will's quote and date) and
+`engine/game_differential.js` declares the ILLUSION shelf. **`engine/all_mechanics_fire.js` honoured
+neither.** `abilities:forewarn` and `items:metronome` were inside the 53 — metronome being the ONLY
+item, so the item clause read 1 where the honest answer is 0 — and `bittermalice` / `nightdaze` were
+in the moves count on Illusion carriers whose whole TEAMS the differential drops.
+
+Both shelves are **imported, never re-declared**: `roster.js` exports `DEFERRED`, `game_differential.js`
+exports `CLOSET_SPECIES` (derived from the ABILITY, so a carrier added next regulation is covered). A
+shelved row keeps its verdict, its divergence and its cause; it loses its vote. Both counts are
+published — `diverged` and `diverged_including_shelved` — so the subtraction is visible.
+
+**The two shelves have different SCOPES and both are right**, which nobody had checked: the
+differential rejects whole TEAMS carrying a closeted species, the mechanics runner shelves staged
+ENTITIES. `tests/test-closet-scope.js` now asserts they cannot drift apart. One hazard found and
+stated rather than fixed: `DEFERRED` is keyed by BARE ID and `metronome` names both an item and a
+move — in this regulation the move is `isNonstandard: 'Past'`, so the collision cannot occur today.
+
+### FIVE PROBES, EACH SHOWN RED FIRST
+
+| probe | red demonstration |
+|---|---|
+| `ability/onSwitchInDrop` — a clamped stat change is announced, magnitude 0 | `591 live, 1 missing` before the fix; control at -5 must still print magnitude 1; Clear Body arm must stay two `-fail` lines |
+| `ability/blocksMove` — a refused priority move names the ability that refused it | `592 live, 1 missing`; control is the same Gholdengo with a Cud Chew partner, where Feint must reach the type chart and no `\|cant\|` may appear |
+| `move/targetClass` — an ally-aimed Helping Hand names the PARTNER | `593 live, 1 missing`; both arms must name the partner, so an engine that drops the target fails both identically |
+| `tests/test-closet-scope.js` | 6 checks red on the pre-fix artifact, with a CONTROL asserting the shelf is 1.04% of rows and not a blanket |
+| `tests/test-divergence-composition.js` | pointing `shapes` back at the report file reprints the stale `emission 132, rule 91, …` for BOTH synthetic arms — identical output across a varied knob |
+
+### THE HAND LIST
+
+**Leaving it:** `bittermalice` and `nightdaze`. They were on the list as "ILLUSION, not the moves" and
+they now have a shelf rather than a note — ROADMAP #67 is rewritten to point at #160 as CLOSETED, and
+`engine/all_mechanics_fire.js` reads that shelf. **Do not model Illusion.**
+
+**Added, measured this pass and NOT fixed:**
+- **The consecutive-Protect refusal, 235 games** — the largest single cause in the format's most-clicked
+  move. Named above; it is the next thing anyone should take.
+- **`ordering`, 228 games, now known to be real** (ROADMAP #290). The discriminator is landed; the
+  defect is not. The Trick Room sign inversion is the sharpest handle on it.
+- **`-damage field 3`, 140 games.** A magnitude family that only exists in the
+  middle arm — `tests/test-engine-diff.js` reads 0/6000 at the corners, so whatever this is lives
+  between the corners and no corner test can see it.
+- **8 zero-magnitude stat changes are still suppressed** at call sites whose authority branch has not
+  been read (`MEDFAILS.boostZeroSuppressed`, first `p1a: incineroar/def`). Counted, not silent.
+- **The whole-game baseline is not arm-tagged in its own filename or its ratchet.** `--stamp-whole-game`
+  will happily overwrite a top-corner bar with a middle-arm one. The clause now refuses to COMPARE
+  across pins; it does not yet refuse to STAMP across them.
+
+### NOT MINE, REPORTED
+
+- `data/whole-game-baseline.json` records `mode: A/top-tie-first/pins:ef342837b791` and the run that
+  stamped it, and nothing has re-stamped it under the current primary arm. The trend is WITHHELD until
+  somebody decides which pin the bar is for. That is a MEASURE call, not an ENGINE one.
+- `data/game-differential-PRE.json` is mine and is left on disk deliberately: it is the control arm for
+  the A/B above and the only thing that makes the -9 / -17 / -10 attributable.
+- Six releases were cut today by `engine/game_differential.js` at module load, one per process that
+  merely REQUIRED it (03:04, 03:31, …). A test that imports the differential to read one exported
+  constant leaves a release behind. Harmless, but it makes `engine_release.js list` unreadable.
 
 ## THE MECHANICS CLAUSE, FIVE FAMILIES — 69 DISAGREEMENTS -> 53, AND NOT ONE OF THE SIXTEEN WAS A NEW MECHANIC. 2026-08-17.
 
@@ -198,7 +494,10 @@ itself is still `{kind:'pass'}`.
   the formula.
 - **`bittermalice` and `nightdaze` are ILLUSION**, not the moves: both carriers are Zoroark formes
   and the divergence is the `|switch|` line naming the disguise. `replace` is declared not-emitted
-  with the reason "Illusion is not modelled (ROADMAP #67)", which is still true.
+  with the reason "Illusion is not modelled (ROADMAP #67)", which is still true. **SUPERSEDED
+  2026-08-18:** they are CLOSETED, not open — ROADMAP #67 now points at #160, and
+  `engine/all_mechanics_fire.js` reads the differential's own Illusion shelf, so they no longer
+  hold the mechanics clause. Do not model Illusion.
 - **`reflecttype` and `soak` are behaviour, not narration.** Reflect Type writes the type onto the
   WRONG BODY here (`-start|p2a|typechange` where the authority writes `-start|p1a|typechange|[from]
   move: Reflect Type|[of] p2a`), and Soak succeeds where the authority `-fail`s on a body that is

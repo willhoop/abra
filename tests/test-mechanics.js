@@ -423,7 +423,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * spends up to three real turns through `battleTurn`, and it has to: the whole mechanic is a fact
  * carried ACROSS a turn boundary -- what the body CONSUMED on an earlier turn -- and the berry that
  * creates that fact fires at the residual, so nothing below the turn loop can see either end of it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bMISSRATE\(/;
+const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bMISSRATE\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -5413,6 +5413,55 @@ probe('ability', 'blocksMove', 'Armor Tail refuses a priority move', () => {
   const control = run('none'), test = run('armortail');
   return { works: control > 0 && test === 0, arms: { control, test },
            detail: 'no ability took ' + control + ', Armor Tail took ' + test };
+});
+
+/* THE REFUSAL NAMED THE WRONG BODY, AND IT NAMED AN ABILITY THAT DOES NOT REFUSE PRIORITY.
+ *
+ * `blocksMove` IS NOT ONE TAG'S WORTH OF MEANING. `priorityBlockAbilities()` reads it and keeps only
+ * the members whose param says `what === 'priority'`; the line that finds the HOLDER for the protocol
+ * announcement asked `TAGS.param('ability', x.ability, 'blocksMove')` with no such filter. Good as
+ * Gold carries `blocksMove {what: "status moves at the holder"}` — it refuses STATUS moves and has
+ * nothing to do with priority — so a Gholdengo standing beside the real refuser was named on the
+ * `|cant|` line. Two implementations of one fact, and the one that decided the OUTCOME was right
+ * while the one that decided the NARRATION was wrong.
+ *
+ * READ OFF THE AUTHORITY, one turn, Scizor clicking Feint (Physical, priority +2) into a Gholdengo
+ * with a Farigiraf beside it:
+ *
+ *     |move|p2a: Scizor|Feint||[still]
+ *     |cant|p1b: Farigiraf|ability: Armor Tail|Feint|[of] p2a: Scizor
+ *
+ * and medicham2 wrote `|move|p2a: Scizor|Feint|p1a: Gholdengo` followed by
+ * `|cant|p1a: Gholdengo|ability: goodasgold|Feint|…`. Both fields wrong on both lines.
+ *
+ * THE CONTROL IS THE SAME BOARD WITH THE SAME GHOLDENGO AND NO ARMOR TAIL, which is what makes this
+ * a test of the HOLDER and not of the refusal: Farigiraf keeps its slot and its Cud Chew, Good as
+ * Gold is still there, and Feint must go through to the type chart (Ghost is immune to Normal) with
+ * NO `|cant|` line at all. So an engine that refused priority with Good as Gold fails the control,
+ * and an engine that named nobody fails the test. */
+probe('ability', 'blocksMove', 'a refused priority move names the ABILITY THAT REFUSED IT, not a neighbour', () => {
+  const run = (allyAb) => {
+    const me = bare('gholdengo'), ally = bare('farigiraf');
+    const f1 = bare('scizor'), f2 = bare('garchomp');
+    me.ability = 'goodasgold'; ally.ability = allyAb;      // Good as Gold is present on BOTH arms
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    trace.length = 0;
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'feint', me, S.field)], [f2, { kind: 'pass' }]]));
+    return trace.filter(l => /^\|(move|cant|-immune)\|/.test(l)).map(M.traceCanon);
+  };
+  const control = run('cudchew'), test = run('armortail');
+  return { works: control.join(';') === '|move|p2a:scizor|feint|p1a:gholdengo;|-immune|p1a:gholdengo'
+                  && test.join(';') === '|move|p2a:scizor|feint||[still];'
+                                      + '|cant|p1b:farigiraf|ability:armortail|feint|[of]p2a:scizor',
+           arms: { control, test },
+           detail: 'Scizor clicks Feint (Physical, priority +2) at a Good as Gold Gholdengo. '
+                 + 'Ally CUD CHEW (no priority bar, the control): ' + JSON.stringify(control)
+                 + ' — the move must reach the type chart and no |cant| may appear. Ally ARMOR TAIL: '
+                 + JSON.stringify(test) + ' — the authority names p1b Farigiraf and blanks the move '
+                 + 'line’s target with [still]; this engine named p1a Gholdengo and its Good as '
+                 + 'Gold, which refuses STATUS moves and not priority' };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THE ROUTE IS THE POINT HERE. dmgRange
@@ -12090,6 +12139,93 @@ probe('move', 'spreadFoes', 'a spread move that misses names every target it mis
                  + `${hit.a}/${hit.b} damage; with the target named ${named.miss.length}` };
 });
 
+/* ROADMAP #294 — ROCK SLIDE CAN HIT ONE AND MISS THE OTHER, AND IT COULD NOT.
+ *
+ * Will: *"rock slide and heat wave can hit one and miss the other."* The probe above rolls ONE
+ * number for the whole move and is therefore blind to this: `rngLose` misses both bodies and
+ * `() => 0` hits both, so both of its arms are on the diagonal and an engine with a single shared
+ * roll passes it forever.
+ *
+ * THE AUTHORITY LOOPS. `hitStepAccuracy(targets: Pokemon[], pokemon, move)` — sim/battle-actions.ts
+ * :690 — opens `for (const [i, target] of targets.entries())`, sets `this.battle.activeTarget =
+ * target`, and ends each iteration in `randomChance(accuracy, 100)` at :737. One draw per target.
+ * medicham2 rolled once, against NO defender, with the attacker's modifiers only, and said so in a
+ * comment at its own roll site. So a 90-accuracy spread move into two live bodies was 90/0/10 where
+ * the authority is 81/18/1, and the eighteen-percent middle case did not exist here at all.
+ *
+ * THE PROBE ASSERTS REACHABILITY OF ALL FOUR OUTCOMES, WHICH IS THE ONLY ASSERTION THAT FAILS RED ON
+ * THE OLD ENGINE. "sometimes one of them misses" passes on an engine that can produce hit/hit and
+ * miss/miss and nothing else — both of the interesting cells are off the diagonal, so both must be
+ * named. The board is byte-identical across the four arms and the ONLY varied knob is the pair of
+ * to-hit draws, supplied as an explicit two-entry `acc` stream: the k-th draw is scripted, so a
+ * per-target engine maps each pair onto exactly one cell and a per-move engine collapses the two
+ * off-diagonal pairs onto the diagonal. Measured on the pre-fix tree: [0.10,0.99] -> 31/18 (hit,hit)
+ * and [0.99,0.10] -> 0/0 (miss,miss), one draw taken for two bodies.
+ *
+ * THE DICE ARE HANDED IN AS A STRUCT AND THAT IS DELIBERATE. `rngStreams` passes a `{any, acc}`
+ * object straight through (ROADMAP #222), so the accuracy stream is the ONLY thing scripted and the
+ * generic stream stays at the neutral 0.5 every other probe uses — nothing else in the turn can
+ * consume the scripted numbers and shift them under the second target. Heat Wave's 90 is READ, not
+ * typed: `Dex.forFormat('gen9championsvgc2026regmb').moves.get('heatwave').accuracy === 90`, target
+ * `allAdjacentFoes`; 0.10 wins that roll and 0.99 loses it.
+ *
+ * SPREAD 0.75 STILL APPLIES TO THE SURVIVOR AND THE PROBE PINS IT, because that is the half a
+ * plausible wrong fix breaks: `move.spreadHit` is set from the target array BEFORE the step list
+ * (battle-actions.ts:551) and a miss does not shrink that array, so the body that was hit takes the
+ * same damage it takes when both are hit. */
+const spreadPerTargetAcc = (moveId, rolls) => {
+  const me = bare('gholdengo'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('milotic');
+  unfaintable(f1); unfaintable(f2); unfaintable(ally);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  const h1 = f1.curHP, h2 = f2.curHP;
+  /* The scripted accuracy stream. It CLAMPS on the last entry rather than running off the end, so an
+   * engine taking a third draw is not handed `undefined` (which would compare false and read as a
+   * hit) — it is handed the same losing/winning number again and the outcome stays legible. */
+  let i = 0;
+  const acc = () => { const v = rolls[Math.min(i, rolls.length - 1)]; i++; return v; };
+  M.battleTurn(S, { any: rng5, acc },
+    new Map([[me, M.playerAction(me, moveId, null, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { a: h1 - f1.curHP, b: h2 - f2.curHP, draws: i,
+           miss: trace.filter(l => l.startsWith('|-miss|')) };
+};
+
+probe('move', 'spreadFoes', 'a 90-accuracy spread move can hit one target and miss the other — all four outcomes', () => {
+  const HIT = 0.10, MISS = 0.99;                 // against Heat Wave's printed 90
+  const hh = spreadPerTargetAcc('heatwave', [HIT, HIT]);
+  const hm = spreadPerTargetAcc('heatwave', [HIT, MISS]);
+  const mh = spreadPerTargetAcc('heatwave', [MISS, HIT]);
+  const mm = spreadPerTargetAcc('heatwave', [MISS, MISS]);
+  /* `|-miss|ATTACKER|TARGET`, four fields, and the fourth must name the body that actually missed —
+   * a per-target engine that emitted both lines whenever either roll lost would pass a count test. */
+  const missed = (r) => r.miss.map(l => l.split('|')[3]);
+  const ok = (r, slotA, slotB) =>
+    r.miss.every(l => l.split('|').length === 4) &&
+    JSON.stringify(missed(r)) === JSON.stringify([slotA, slotB].filter(Boolean));
+  const works =
+    hh.a > 0 && hh.b > 0 && ok(hh) &&
+    hm.a > 0 && hm.b === 0 && ok(hm, 'p2b: milotic') &&
+    mh.a === 0 && mh.b > 0 && ok(mh, 'p2a: garchomp') &&
+    mm.a === 0 && mm.b === 0 && ok(mm, 'p2a: garchomp', 'p2b: milotic') &&
+    /* the survivor of a partial miss takes the SAME damage as when both are hit — spreadHit is set
+     * from the pre-step target array, so a miss does not lift the 0.75 */
+    hm.a === hh.a && mh.b === hh.b &&
+    /* one draw per live body, in every arm */
+    [hh, hm, mh, mm].every(r => r.draws === 2);
+  return { works,
+           /* THE ARMS ARE THE TWO OFF-DIAGONAL CELLS, which is where a per-move roll and a per-target
+            * roll differ. A control of hit/hit against miss/miss cannot separate them at all. */
+           arms: { control: [hm.a, hm.b], test: [mh.a, mh.b] },
+           detail: `Heat Wave (printed 90, allAdjacentFoes) into two live bodies, acc stream scripted `
+                 + `per target — [hit,hit] ${hh.a}/${hh.b} miss[${missed(hh).join(',') || 'none'}]; `
+                 + `[hit,miss] ${hm.a}/${hm.b} miss[${missed(hm).join(',') || 'none'}]; `
+                 + `[miss,hit] ${mh.a}/${mh.b} miss[${missed(mh).join(',') || 'none'}]; `
+                 + `[miss,miss] ${mm.a}/${mm.b} miss[${missed(mm).join(',') || 'none'}]; `
+                 + `draws ${[hh, hm, mh, mm].map(r => r.draws).join('/')} (one per live body)` };
+});
+
 /* AND THE CLASS THE FIX OPENED. Making the family resolve made it reach code it had never reached:
  * the ladder's WIRE 9 rung grew a whole new divergence class (`-activate: a different body`, 18
  * games) because Wide Guard's announcement named NOBODY — `|-activate||move: Wide Guard`, an empty
@@ -16170,6 +16306,53 @@ probe('ability', 'deductsExtraPP', 'Pressure halves how often a foe-aimed move c
  *
  * THE PRESSURE ARM IS NOT THE ONLY CONTROL. Each move is also run into a real non-Pressure ability,
  * so a row reading 1 is shown to be 1 BECAUSE nobody charged rather than because the move is cheap. */
+/* AN ALLY-AIMED MOVE NAMED THE WRONG BODY IN ITS OWN `|move|` LINE.
+ *
+ * `playerAction` returned `{kind:'helpinghand', mv:id}` with NO target, so the dispatch's
+ * `TR.mv(m,_mid,_tt||m)` fell back to the USER and the mark-setter wrote itself into its own target
+ * field. This is WIRE 106 one branch over: the target already travels for `boostally`, and Decorate
+ * needed it for the same reason.
+ *
+ * READ OFF A REAL CHAMPIONS BATTLE, Farigiraf aiming Helping Hand at its own partner:
+ *     |move|p1a: Farigiraf|Helping Hand|p1b: Gholdengo
+ *     |-singleturn|p1b: Gholdengo|Helping Hand
+ * against this engine's `|move|p1a: farigiraf|helpinghand|p1a: farigiraf`. `targetClass.chooseable`
+ * is TRUE for this move (`adjacentAlly`), which is the authority's own rule for when field 4 names a
+ * body rather than being blanked — so the target is derived and not preferred.
+ *
+ * BOTH ARMS RUN THE SAME CLICK AT THE SAME PARTNER. The varied knob is the partner's ABILITY: with
+ * Good as Gold the mark is refused and the `-singleturn` never appears, without it the mark lands.
+ * The `|move|` line must name the PARTNER in both — which is what makes this a probe of the ADDRESS
+ * and not of the refusal, and an engine that dropped the target fails both arms identically. */
+probe('move', 'targetClass', 'an ally-aimed Helping Hand names the PARTNER in its own move line', () => {
+  const run = (allyAb) => {
+    const me = bare('farigiraf'), ally = bare('gholdengo');
+    const f1 = bare('garchomp'), f2 = bare('scizor');
+    ally.ability = allyAb;
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'helpinghand', ally, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { lines: trace.filter(l => /helpinghand|immune|singleturn/i.test(l)).map(M.traceCanon),
+             marked: !!ally._helpingHand };
+  };
+  const control = run('none'), test = run('goodasgold');
+  return { works: control.lines.join(';') === '|move|p1a:farigiraf|helpinghand|p1b:gholdengo;'
+                                            + '|-singleturn|p1b:gholdengo|helpinghand'
+                  && control.marked === true
+                  && test.lines.join(';') === '|move|p1a:farigiraf|helpinghand|p1b:gholdengo;'
+                                            + '|-immune|p1b:gholdengo|[from]ability:goodasgold'
+                  && test.marked === false,
+           arms: { control, test },
+           detail: 'the same Helping Hand at the same partner — partner with NO ability: '
+                 + JSON.stringify(control) + '; partner with GOOD AS GOLD: ' + JSON.stringify(test)
+                 + '. Field 4 of the |move| line must name p1b Gholdengo on BOTH arms (the authority '
+                 + 'writes |move|p1a: Farigiraf|Helping Hand|p1b: Gholdengo); before the fix it named '
+                 + 'p1a Farigiraf, the user, because the action carried no target at all' };
+});
+
 probe('move', 'targetClass', 'Pressure is priced off the move\'s TARGET CLASS, not off a named target', () => {
   const set = (ab) => (B) => { B.f1.ability = ab; B.f2.ability = ab; };
   const spent = (mv, ab) => ppRun(mv, 1, set(ab)).spent;

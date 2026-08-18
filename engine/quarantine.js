@@ -86,6 +86,217 @@ const why = e => (e && e.message) || String(e);
  * selftest) and `pairs`; neither is part of the condition, so neither is read here. */
 const ROSTER_STAGES = ['items', 'abilities', 'moves'];
 
+/* ================================================================================================
+ * THE BAR IS DECISION-EQUIVALENCE, NOT PROTOCOL-EQUALITY — WILL, 2026-08-18
+ * ================================================================================================
+ * *"medicham needs to be good enough that when miltank uses it, it wouldnt affect any decisions"*,
+ * and the worked example: *"so like if trick or treat isnt working, that doesnt matter because no one
+ * uses gorgeist."*
+ *
+ * That is a strictly better bar than the one two of these clauses were asking for, and it is not a
+ * relaxation of "if its not correct then it shouldnt pass". It is a different question. The mechanics
+ * clause counted every diverging entity whether or not anybody plays it; the whole-game clause
+ * demanded literal zero over a unit — the GAME — that nothing was allowed to filter. Both were asking
+ * for something that cannot be delivered, which is what made the open-defect clause endless until it
+ * started counting evidence instead of sentences.
+ *
+ * TWO FILTERS, ON TWO AXES, AND NEITHER IS "THIS IS HARD":
+ *
+ *   REACH           — nobody plays it, so a fix cannot move a decision that never comes up.
+ *   DECISION IMPACT — people play it, and a paired argmax run says fixing it does not change the
+ *                     click.
+ *
+ * A THIRD THING ALREADY EXISTS AND MUST NOT BECOME A DUMPING GROUND: `DECLARED_DIVERGENCE`, for the
+ * case where matching the authority would make this engine LESS correct. That bar is narrower than
+ * either of these and it is unchanged. `medicham2-browser.js:17440` is the receipt: a declaration
+ * whose stated reason was COST — *"a far larger change than this wire is buying"* — hid the largest
+ * real defect in the engine, spread accuracy rolled once per move where Showdown rolls it per target,
+ * so Rock Slide (18,122 clicks) and Heat Wave (11,121) could never hit one body and miss the other.
+ * At 90 accuracy the exactly-one case is 18% of outcomes and it did not exist here at all. **That one
+ * would have cleared a reach filter without breaking stride, which is precisely why reach may never be
+ * the only filter and why neither filter may ever be reached by a cost argument.**
+ * ================================================================================================ */
+
+/* ---- FILTER 1: REACH -----------------------------------------------------------------------------
+ *
+ * THE THRESHOLD IS THE PROJECT'S, NOT A NEW ONE. `tests/roster.js` shelves a move below 25 real
+ * clicks (`USAGE_SHELF_BELOW`, Will's call on 2026-08-10: *"if no one clicks them we can just put them
+ * on the to do list at some point but not holding back medicham from functioning"*), and the coverage
+ * clause below reads the same 25. Inventing a second number here would be the two-implementations-of-
+ * one-fact failure CLAUDE.md forbids, so this constant is the coverage clause's as well — it used to
+ * carry its own literal and no longer does.
+ *
+ * TWO LITERALS DO STILL EXIST IN THE REPOSITORY AND THAT IS STATED RATHER THAN HIDDEN.
+ * `tests/roster.js` does not export `USAGE_SHELF_BELOW` (it exports `DEFERRED` only) and belongs to
+ * another division, so this file cannot import it. `reachDrift()` reads the roster ARTIFACT's own
+ * shelved rows, which state their threshold in prose, and reports a mismatch on every run. Reported,
+ * not gated: failing a gate on a regex over prose is how a gate becomes something people argue with.
+ *
+ * THE UNIT IS WHATEVER THE STORE CAN ACTUALLY OBSERVE FOR THAT KIND, AND THE TWO ARE NOT
+ * INTERCHANGEABLE:
+ *   moves            CLICKS,  from `engine/click_counts.js` over both human stores (64,846 games).
+ *   abilities/items  TEAMS,   from `engine/sheet_usage.js` over declared open sheets (13,116 games,
+ *                             26,232 teams) — *"The first honest store-derived ability usage this
+ *                             project has had."*
+ * `tests/roster.js`'s header says no honest store-derived ability usage exists and that was true when
+ * it was written on 2026-08-10; `data/sheet-usage.json` was generated on 2026-08-11. The shelf is 25
+ * OBSERVATIONS in the only unit the store has for that kind, and both denominators are printed beside
+ * it so nobody reads 25 teams and 25 clicks as the same exposure. They are not.
+ *
+ * `tags.json.uses` IS NOT AN AUTHORITY AND USING IT HERE WOULD HAVE BEEN A REAL ERROR. Measured
+ * 2026-08-18 on the nine entities a briefing named as unplayed: `tags.json` reads bittermalice 0
+ * against **519 real clicks**, attract 2 against **30**, belch 0 against 2, snore 0 against 3. A reach
+ * filter run off that file would have shelved a 519-click move as unused. ROADMAP #70, landing on a
+ * live decision for the second time.
+ *
+ * UNKNOWN IS NOT ZERO, AND THIS IS THE HALF THAT DECIDES WHETHER THE FILTER IS HONEST. An entity the
+ * usage instrument STRUCTURALLY CANNOT SEE is not below the shelf; it is unmeasured, it counts, and it
+ * is named separately. `data/sheet-usage.json` declares that set itself — a team sheet reveals the
+ * PRE-MEGA ability, so an ability that exists only on a mega forme can never appear in it, and the
+ * artifact carries the list. Absence from an instrument that DOES cover the whole class (every move
+ * click in every stored game) is an observed zero and is a different thing. If the usage artifact for
+ * a kind is missing altogether, every row of that kind is UNKNOWN and the filter shelves nothing —
+ * a shelf that opens when its evidence disappears is not a shelf. */
+const REACH_SHELF = 25;
+const nid = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const SINGULAR = { moves: 'move', abilities: 'ability', items: 'item' };
+
+function usageIndex() {
+  const clicks = readJson(D('data', 'click-counts.json'));
+  const sheets = readJson(D('data', 'sheet-usage.json'));
+  const idx = (o) => { const m = new Map(); for (const [k, v] of Object.entries(o || {})) m.set(nid(k), v); return m; };
+  const teams = (o) => { const m = new Map(); for (const [k, v] of Object.entries(o || {})) m.set(nid(k), (v && v.teams) || 0); return m; };
+  const denomTeams = (() => {
+    /* DERIVED FROM THE ARTIFACT'S OWN NUMBERS rather than typed: any row carries teams and per_team,
+     * and their ratio is the denominator. Typing 26,232 here would be a figure with no source. */
+    for (const v of Object.values((sheets && sheets.abilities) || {})) {
+      if (v && v.teams > 0 && v.per_team > 0) return Math.round(v.teams / v.per_team * 100);
+    }
+    return null;
+  })();
+  return {
+    moves: clicks ? idx(clicks.moves) : null,
+    abilities: sheets ? teams(sheets.abilities) : null,
+    items: sheets ? teams(sheets.items) : null,
+    invisible: new Set(((sheets && sheets.not_countable) || []).map(nid)),
+    invisible_why: (sheets && sheets.not_countable_note) || null,
+    denominators: {
+      moves: clicks ? `${(clicks.store_games || 0).toLocaleString()} stored games, `
+                    + `${(clicks.total_clicks || 0).toLocaleString()} clicks` : null,
+      teams: sheets ? `${(denomTeams || 0).toLocaleString()} teams from `
+                    + `${(sheets.sheet_games || 0).toLocaleString()} open-sheet games` : null,
+    },
+    absent: [clicks ? null : 'data/click-counts.json (engine/click_counts.js)',
+             sheets ? null : 'data/sheet-usage.json (engine/sheet_usage.js)'].filter(Boolean),
+  };
+}
+
+/* Returns `{ known, n, unit, why }`. `known: false` means UNKNOWN and never means zero. */
+function reachOf(U, kind, id) {
+  const k = nid(id);
+  const unit = kind === 'moves' ? 'clicks' : 'teams';
+  const map = U[kind];
+  if (!map) {
+    return { known: false, n: null, unit, why: 'NO USAGE INSTRUMENT for ' + kind
+      + ' — ' + (U.absent.join(', ') || 'the artifact is absent') + '. Unknown is not zero.' };
+  }
+  if (kind !== 'moves' && U.invisible.has(k)) {
+    return { known: false, n: null, unit, why: 'INVISIBLE TO THE INSTRUMENT — data/sheet-usage.json '
+      + 'declares this one not countable (a team sheet shows the PRE-MEGA ability). Unknown is not zero.' };
+  }
+  const n = map.has(k) ? map.get(k) : 0;
+  return { known: true, n, unit,
+    why: n + ' ' + unit + ' (' + (U.denominators[kind === 'moves' ? 'moves' : 'teams'] || '?') + ')' };
+}
+
+/* THE ROSTER'S OWN SHELF, READ BACK OFF ITS ARTIFACT so the two numbers cannot drift in silence.
+ * Reported by the clause, never gated on — see the header above. */
+function reachDrift() {
+  const rm = readJson(D('data', 'roster.moves.json'));
+  const rows = (rm && (rm.results || rm.rows || rm.entries)) || [];
+  for (const r of rows) {
+    const m = /under the shelf of (\d+)/.exec(String((r && r.why) || ''));
+    if (m) return +m[1] === REACH_SHELF ? null
+      : `tests/roster.js shelves below ${m[1]} and this clause shelves below ${REACH_SHELF} — two `
+      + `thresholds for one decision. Neither file can import the other's constant; say which is right.`;
+  }
+  return null;
+}
+
+/* ---- FILTER 2: DECISION IMPACT -------------------------------------------------------------------
+ *
+ * For a mechanic that people DO play, the question is Will's exactly: would fixing it change what
+ * MILTANK clicks. That is not a thing a clause can decide by reading a divergence count, and it is not
+ * a thing this file may guess at. It is a MEASUREMENT, the instrument exists, and this is the wire to
+ * it rather than a second copy of it.
+ *
+ * `engine/argmax_paired.js` (ROADMAP #278) scores the same decision points twice under two arms with
+ * common random numbers keyed on CANDIDATE IDENTITY rather than index, and reports the ARGMAX FLIP
+ * RATE. It carries three zero-controls, one of which — identical dice — is asserted to be exactly 0
+ * flips and exactly 0 value gap, so its null is demonstrated rather than assumed.
+ *
+ * WHAT THIS FUNCTION IS: a CONTRACT, and a refusal by default. It reads `data/decision-impact.json`
+ * and clears a row only when every one of these holds:
+ *
+ *   1. the artifact exists;
+ *   2. `null_demonstrated: true` — the identical-dice control reported exactly 0 flips in that run.
+ *      Same discipline as the whole-game clause's planted-divergence proof: an instrument that cannot
+ *      reproduce itself says nothing about the rows it did not plant;
+ *   3. `engine_release` equals the tree's current release. An artifact cut against other bytes is not
+ *      a weaker answer to this question, it is an answer to a different one;
+ *   4. the row itself reports `flips: 0` over `paired >= 25` decision points AT WHICH THE MECHANIC WAS
+ *      IN PLAY, and names the arm the fix landed in.
+ *
+ * WHY 25 AGAIN, AND WHAT IT IS AND IS NOT WORTH. It is the same shelf, used symmetrically: 25
+ * observations is this project's standing bar for "there is something here to look at", so a claim
+ * that a mechanic changes no decision should rest on at least as many. It is a FLOOR and a thin one —
+ * 0 flips in 25 is a 95% upper bound of about 11% by the rule of three — so the bound is COMPUTED FROM
+ * THE ROW'S OWN n AND PRINTED beside every row this clears. Nobody gets to read a cleared row as proof
+ * that the flip rate is zero. Raising the floor is a decision with an owner; picking a second number
+ * here would not be.
+ *
+ * NOTHING IS CLEARED TODAY. There is no `data/decision-impact.json` in this tree, and the clause says
+ * so in the same sentence that reports the count — an exemption mechanism that is silent about being
+ * empty is how "0 of 49 were cleared" and "we did not check" become the same line. */
+function decisionImpact(curId) {
+  const inert = (why) => ({ active: false, why, cleared: [], clear: () => null });
+  const j = readJson(D('data', 'decision-impact.json'));
+  if (!j) {
+    return inert('NO DECISION-IMPACT RUN — data/decision-impact.json is absent, so nothing is excused '
+      + 'on decision impact and every played divergence counts. It is written by a paired argmax run '
+      + '(engine/argmax_paired.js, ROADMAP #278) with arms that differ by the FIX.');
+  }
+  if (j.null_demonstrated !== true) {
+    return inert('THE DECISION-IMPACT RUN DID NOT DEMONSTRATE ITS NULL — data/decision-impact.json '
+      + 'carries no `null_demonstrated: true`, so its identical-dice control did not report exactly 0 '
+      + 'flips. An instrument that cannot reproduce itself excuses nothing. Nothing is cleared.');
+  }
+  const ranOn = j.engine_release || null;
+  if (!ranOn || (curId && ranOn !== curId)) {
+    return inert('THE DECISION-IMPACT RUN DESCRIBES OTHER BYTES — it ran on release '
+      + (ranOn || '(unstamped)') + ' and the tree is ' + (curId || '(unknown)') + '. Nothing is cleared.');
+  }
+  const rows = Array.isArray(j.rows) ? j.rows : [];
+  const cleared = [];
+  const clear = (key) => {
+    const row = rows.find((r) => {
+      const rk = String((r && r.key) || '');
+      if (/^cause:/.test(rk)) return /^cause:/.test(key) && key.slice(6).startsWith(rk.slice(6));
+      return nid(rk) === nid(key);
+    });
+    if (!row) return null;
+    const paired = +row.paired || 0, flips = +row.flips || 0;
+    if (flips !== 0) return null;
+    if (paired < REACH_SHELF) return null;
+    const bound = 100 * 3 / paired;          /* rule of three: the 95% upper bound on a zero numerator */
+    const out = { key, paired, bound, fixed_in: row.fixed_in || '(arm unnamed)' };
+    if (!cleared.some((c) => c.key === key)) cleared.push(out);
+    return out;
+  };
+  return { active: true, cleared, clear, generated: j.generated || null,
+    why: `${rows.length} decision-impact row(s) read from data/decision-impact.json (release ${ranOn}).` };
+}
+
 /* WHERE A STAGE'S ARTIFACT LIVES, AND WHY THIS TAKES THREE GUESSES RATHER THAN ONE.
  *
  * `tests/roster.js --write` writes `data/roster.json` unconditionally, whatever stage it ran, so the
@@ -324,6 +535,37 @@ function differentialClause(artifact) {
  * happen is a HARNESS defect; a mechanic that happened and disagreed is an ENGINE defect. Those were
  * one bucket until the preflight split them, and folding them back together here would undo that. The
  * unfired count is REPORTED so it cannot be forgotten, and it fails nothing. */
+/* THE CLASSIFICATION IS ONE FUNCTION, CALLED BY THE CLAUSE AND BY `--reach`. The alternative was a
+ * probe script that re-derives the same split to print it, which is the second-implementation failure
+ * this repository names by its own casualty (`buildMon("Scizor")` returned null beside a working
+ * builder). The clause DECIDES on this; the printer only shows it. */
+function classifyMechanics(j, curId, inject) {
+  /* `inject` IS THE SELFTEST'S INJECTION POINT, on the same reasoning as `wholeGameClause`'s second
+   * argument: a parameter is visible in the caller where a flag is not. Every shipping caller leaves
+   * it undefined, so the real readers are the default. */
+  const U = (inject && inject.U) || usageIndex();
+  const DI = (inject && inject.DI) || decisionImpact(curId);
+  const counted = [], belowShelf = [], unknown = [], excused = [];
+  let rowsSeen = 0; const rowsMissing = [];
+  for (const kind of ['moves', 'abilities', 'items']) {
+    const list = Array.isArray(j && j.rows && j.rows[kind]) ? j.rows[kind] : null;
+    if (!list) { rowsMissing.push(kind); continue; }
+    for (const r of list) {
+      if (!r || !r.diverged || r.deferred) continue;   /* `deferred` is the owner's closet — #291 */
+      rowsSeen++;
+      const key = SINGULAR[kind] + ':' + nid(r.id);
+      const reach = reachOf(U, kind, r.id);
+      const row = { kind, id: r.id, key, reach };
+      if (!reach.known) { unknown.push(row); continue; }
+      if (reach.n < REACH_SHELF) { belowShelf.push(row); continue; }
+      const c = DI.clear(key);
+      if (c) { excused.push({ ...row, impact: c }); continue; }
+      counted.push(row);
+    }
+  }
+  return { U, DI, counted, belowShelf, unknown, excused, rowsSeen, rowsMissing };
+}
+
 function mechanicsClause() {
   const NAME = 'mechanics / each one staged and compared against showdown';
   const j = readJson(D('data', 'all-mechanics-fire.json'));
@@ -340,7 +582,17 @@ function mechanicsClause() {
   const unfired = ['abilities', 'items'].reduce((n, k) => n + (+((s[k] || {}).did_not_fire) || 0), 0);
   const parts = ['moves', 'abilities', 'items']
     .filter(k => s[k]).map(k => k + ' ' + ((s[k] || {}).diverged || 0));
-  const tail = `  [${parts.join(', ')};  ${unfired} never fired — a harness gap, not counted here]`;
+  /* ROADMAP #291 — THE CLOSET REACHES THIS CLAUSE TOO. `summary[k].diverged` now EXCLUDES the
+   * entities the owner shelved by name (tests/roster.js DEFERRED, the one declaration), exactly as
+   * the three deliberate-roster clauses already did. It was counting `abilities:forewarn` and
+   * `items:metronome` — and metronome was the only item in the failing count, so the item clause read
+   * 1 where the honest answer is 0. The subtraction is PRINTED rather than applied quietly; a shelf
+   * nobody can see is the invisible exception the roster's own header exists to prevent. */
+  const shelved = ['moves', 'abilities', 'items']
+    .reduce((n, k) => n + (+((s[k] || {}).shelved_by_owner_diverging) || 0), 0);
+  const tail = `  [${parts.join(', ')};  ${unfired} never fired — a harness gap, not counted here`
+             + (shelved ? `;  ${shelved} shelved by the owner — still staged and played, not counted` : '')
+             + `]`;
 
   if (ranOn && curId && ranOn !== curId) {
     return { name: NAME, ok: false, generated: j.generated || null, staleAgainst: curId, ranOn,
@@ -348,11 +600,58 @@ function mechanicsClause() {
          + `is ${curId}. That is not a weaker answer, it is an answer about other bytes. Re-run before `
          + `this clause can say anything.` + tail };
   }
-  return { name: NAME, ok: div === 0, generated: j.generated || null, diverged: div, unfired,
-    why: div === 0
-      ? `every staged mechanic agrees with the authority.` + tail
-      : `${div} MECHANICS DISAGREE with the authority when staged so they actually resolve. Each is a `
-        + `rule, not a sampling artefact — the teams are built from the mechanic list.` + tail };
+
+  /* ---- THE DECISION-EQUIVALENCE BAR, APPLIED PER ENTITY ----------------------------------------
+   * The count above is the artifact's own summary and it stays printed, because the two filters may
+   * only ever SUBTRACT from a number a reader can still see. What decides the clause is the set of
+   * diverging entities that somebody plays and that no paired run has cleared. */
+  const { U, DI, counted, belowShelf, unknown, excused, rowsSeen, rowsMissing } = classifyMechanics(j, curId);
+
+  /* A DERIVED SET IS NOT A FACT UNTIL SOMETHING COMPARES IT TO ITS SOURCE. If the per-entity rows and
+   * the artifact's own summary disagree about how many diverged, the filter is being applied to a
+   * population that is not the one the headline describes — and the honest answer is to fail saying
+   * so, never to publish whichever number is smaller. Absent rows are the same failure by omission:
+   * an older artifact with a `summary` and no `rows` must not read as "nothing to filter". */
+  if (rowsMissing.length || rowsSeen !== div) {
+    return { name: NAME, ok: div === 0, generated: j.generated || null, diverged: div, unfired,
+      why: (rowsMissing.length
+        ? `THE REACH FILTER CANNOT BE APPLIED — data/all-mechanics-fire.json carries no per-entity rows `
+          + `for ${rowsMissing.join(', ')}, so every divergence counts. `
+        : `THE ROWS AND THE SUMMARY DISAGREE — ${rowsSeen} diverging row(s) against a summary of ${div}. `
+          + `A filter applied to a population the headline does not describe is worse than no filter. `)
+        + `${div} MECHANICS DISAGREE with the authority.` + tail };
+  }
+
+  const drift = reachDrift();
+  const NL = String.fromCharCode(10);
+  const show = (rs) => rs.sort((a, b) => (b.reach.n || 0) - (a.reach.n || 0))
+    .map((r) => r.key + ' (' + (r.reach.known ? r.reach.n + ' ' + r.reach.unit : 'no figure') + ')').join(', ');
+  const reachLine = NL
+    + `  REACH — shelved below ${REACH_SHELF} observations, still staged and played, not counted `
+    + `[moves: ${U.denominators.moves || 'NO ARTIFACT'};  abilities/items: ${U.denominators.teams || 'NO ARTIFACT'}]:` + NL
+    + (belowShelf.length ? '    ' + show(belowShelf) : '    (none)');
+  const unknownLine = unknown.length
+    ? NL + `  NO USAGE FIGURE — ${unknown.length} diverging mechanic(s) the usage instrument cannot see. `
+      + `UNKNOWN IS NOT ZERO: these are NOT shelved and they DO count:` + NL
+      + '    ' + unknown.map((r) => r.key + ' — ' + r.reach.why).join(NL + '    ')
+    : NL + `  NO USAGE FIGURE: none — every diverging mechanic has a store-derived usage number.`;
+  const impactLine = NL + '  DECISION IMPACT — ' + (excused.length
+    ? `${excused.length} played divergence(s) cleared by a paired argmax run: `
+      + excused.map((r) => r.key + ' (0 flips in ' + r.impact.paired + ', 95% upper bound '
+        + r.impact.bound.toFixed(1) + '% — a floor, not a zero; fixed in ' + r.impact.fixed_in + ')').join(', ')
+    : DI.why);
+  const driftLine = drift ? NL + '  SHELF DRIFT — ' + drift : '';
+
+  return { name: NAME, ok: counted.length === 0, generated: j.generated || null,
+    diverged: div, unfired, counted: counted.length, shelved: belowShelf.length,
+    unknown_reach: unknown.length, decision_cleared: excused.length,
+    why: (counted.length === 0
+      ? `every mechanic anybody plays agrees with the authority: ${div} diverge, ${belowShelf.length} are `
+        + `below the reach shelf and ${excused.length} were cleared on decision impact, leaving 0.`
+      : `${counted.length} of ${div} DIVERGING MECHANICS ARE PLAYED AND UNCLEARED — each is a rule, not `
+        + `a sampling artefact, since the teams are built from the mechanic list. Worst: `
+        + show(counted.slice()).split(', ').slice(0, 6).join(', ')) + tail
+      + reachLine + unknownLine + impactLine + driftLine };
 }
 
 function coverageClause() {
@@ -375,7 +674,9 @@ function coverageClause() {
   const measured = new Set(rows.filter(r => /FIRED-AND-BOARDS/.test(r.verdict || '')).map(r => norm(r.id || r.name)));
   const shelved = new Set(rows.filter(r => r.verdict === 'DEFERRED-BY-OWNER').map(r => norm(r.id || r.name)));
 
-  const SHELF = 25;
+  /* ONE SHELF, DECLARED ONCE. This carried its own literal 25 until 2026-08-18; the reach filter
+   * above needed the same number and two literals in one file is how they drift. */
+  const SHELF = REACH_SHELF;
   let above = 0;
   const uncovered = [];
   for (const [mv, n] of Object.entries(clicks.moves || {})) {
@@ -583,7 +884,63 @@ function roadmapRowSaysBroken(l) {
  * one is the engine NARRATING the game differently, the other is it PLAYING the game differently. A
  * single blended percentage is the merged-number failure this file already learned once, when the
  * midpoint residual hid a range wrong at both ends. */
-function wholeGameClause(artifact) {
+/* ==================================================================================================
+ * DIVERGENCES WHERE MATCHING THE AUTHORITY WOULD MAKE THIS ENGINE LESS CORRECT — WILL, 2026-08-18.
+ * ==================================================================================================
+ * `ok = div === 0` is the right bar and the comment below defends it well: mode A pins every die, so
+ * the engines are deterministic functions of one input and every disagreement is a RULE. Will:
+ * *"so if its not correct then it shouldnt pass man"*. Nothing here weakens that.
+ *
+ * WHAT IT DOES NOT COVER is a disagreement where WE ARE RIGHT AND THE AUTHORITY IS NOT. Reproducing a
+ * bug in Showdown is not correctness, and a clause that demands zero without an exit for those is
+ * asking for something that cannot be delivered — which is exactly what made the open-defect clause
+ * endless until it started counting evidence instead of sentences.
+ *
+ * THE BAR IS DELIBERATELY NARROW, AND "THIS IS HARD" IS NOT ON IT. A row belongs here only when
+ * matching the authority would make this engine WORSE. It does NOT belong here because the fix is
+ * expensive, because nobody has got to it, or because it has been open a long time.
+ *
+ * THE RECEIPT FOR WHY THAT BAR MATTERS IS FRESH. `medicham2-browser.js:17440` carried a DECLARED
+ * divergence reading *"rolling per target here would change how much rng every existing seeded run
+ * consumes, which is a far larger change than this wire is buying"* — a COST argument. It hid the
+ * largest real defect in the engine: Showdown rolls spread accuracy per target and this engine rolled
+ * once per move, so Rock Slide (18,122 clicks) and Heat Wave (11,121) could never hit one body and
+ * miss the other. At 90 accuracy the exactly-one case is 18% of outcomes and it did not exist here at
+ * all. **A declaration whose reason is cost is a defect wearing a label.**
+ *
+ * Every row prints on every run with its reason, like the closet. A declared count is reported
+ * SEPARATELY from the verdict and never folded into it.
+ * ================================================================================================ */
+const DECLARED_DIVERGENCE = [
+  {
+    name: "Supreme Overlord `fallenundefined`",
+    match: (c) => /fallenundefined/.test(c),
+    why: "THE AUTHORITY IS WRONG AND THE LINE IS INVISIBLE. `data/abilities.ts` guards supremeoverlord's "
+       + "onStart on `pokemon.side.totalFainted` and does NOT guard its onEnd, so when nothing has fainted "
+       + "`effectState.fallen` is never set and the template emits the literal string `fallenundefined` on a "
+       + "`[silent]` line players never see. The ABILITY is correct — onBasePower is guarded and the "
+       + "multiplier table is right. Reproducing a typo is not correctness.",
+  },
+  /* ~~`drag: a different body` — declared 2026-08-18 as "not a rule, a bench index".~~ **WITHDRAWN THE
+   * SAME DAY, ON WILL'S BAR.** The reasoning was sound about MECHANISM and wrong about CONSEQUENCE:
+   * `sim/battle.ts` getRandomSwitchable takes `this.sample(canSwitchIn)` over `side.pokemon` order, the
+   * authority deterministically takes one index under the pinned die and this engine takes another, and
+   * nothing about phazing is in dispute. But the bar is *"good enough that when miltank uses it, it
+   * wouldnt affect any decisions"* — and A DIFFERENT BODY ARRIVING ON THE FIELD IS A DIFFERENT POSITION.
+   * Every decision after it is taken against a board the authority does not have. That is the largest
+   * decision impact a divergence can have, not the smallest.
+   *
+   * It was never a claim that the authority is WRONG, which is the only thing this list is for. It is an
+   * alignment gap between two benches, and it belongs on the decision-impact axis where a paired argmax
+   * run can price it — or in the harness's pin, where it can be removed. Left here as a comment rather
+   * than deleted, because a closet that silently loses rows teaches nobody, and because "declared" is a
+   * third axis that must not become a dumping ground for the two real ones. */
+];
+/* `wgDecisionImpact` IS THE SECOND INJECTION POINT AND IT EXISTS FOR THE SELFTEST ONLY, on the same
+ * reasoning as `artifact` above and as `withholder`'s gate argument: a `--force` flag anybody can pass
+ * on the command line eventually gets passed, and a parameter is visible in the caller where a flag is
+ * not. Left undefined by every shipping caller, which is what makes the real reader the default. */
+function wholeGameClause(artifact, wgDecisionImpact) {
   const NAME = 'whole-game differential / the same game on both engines';
   const j = artifact === undefined ? readJson(D('data', 'game-differential.json')) : artifact;
   if (!j) {
@@ -608,15 +965,47 @@ function wholeGameClause(artifact) {
   const base = readJson(D('data', 'whole-game-baseline.json'));
   const se = Math.sqrt(Math.max(rate, 1e-9) * (1 - rate) / games);
   const band = 2 * se;                                   /* derived from this run's own n */
+  /* ROADMAP #292 — THE COMPOSITION MUST COME FROM THE ARTIFACT THE HEADLINE CAME FROM.
+   *
+   * This read `data/divergence-report.json` — a SEPARATE file, written by a SEPARATE run — and printed
+   * its shape counts beside a headline taken from `j`. Measured 2026-08-17: the headline said
+   * `287 of 1539` off release `0c5bb83c5744`, and the composition beside it (`emission 132, rule 91,
+   * ordering 39, unparsed 34, field 5`) came from a report whose own `run` block records **983 games,
+   * 303 diverged, release `a81663f17c0c`**. Two runs, one line, and nothing said so. Shaping the
+   * CURRENT artifact gives EMISSION 116 / RULE 83 / ORDERING 52 / UNPARSED 35 / FIELD 1 — the FIELD
+   * count alone was off by 5x.
+   *
+   * It is now computed from `j.classes[].causes[]` through `engine/divergence_shape.js`, the one
+   * implementation of "what do these two lines disagree about". So the composition cannot describe a
+   * run other than the one the headline describes: there is no other file to read.
+   *
+   * AND `unparsed` IS NAMED FOR WHAT IT IS. It is NOT a fifth kind of disagreement — the shape module
+   * says so in as many words — it is the comparator admitting it could not shape the pair. 32 of the
+   * 35 are the `drag: a different body` class, whose cause is ONE `|drag|` line and not a pair, so
+   * there is no grammar for it rather than a mystery. The dominant class is printed beside the count
+   * so nobody reads it as 35 comparator gaps again. */
   const shapes = (() => {
-    const r = readJson(D('data', 'divergence-report.json'));
-    if (!r || !Array.isArray(r.worklist)) return null;
-    const g = {};
-    for (const x of r.worklist) { g[x.shape] = (g[x.shape] || 0) + (x.games || 0); }
-    return Object.entries(g).sort((a, b) => b[1] - a[1]);
+    const SHAPE = require('./divergence_shape.js');
+    const cls = Array.isArray(j.classes) ? j.classes : null;
+    if (!cls) return null;
+    const g = {}, unparsedBy = {};
+    for (const c of cls) for (const k of (c.causes || [])) {
+      const sh = SHAPE.shapeOf(k.cause).shape;
+      g[sh] = (g[sh] || 0) + (k.n || 0);
+      if (sh === 'UNPARSED') unparsedBy[c.cls] = (unparsedBy[c.cls] || 0) + (k.n || 0);
+    }
+    const worst = Object.entries(unparsedBy).sort((a, b) => b[1] - a[1])[0] || null;
+    return { rows: Object.entries(g).sort((a, b) => b[1] - a[1]), unparsedWorst: worst };
   })();
   const pct = (100 * rate).toFixed(1);
-  const shapeLine = shapes ? '  [' + shapes.map(([k, v]) => k.toLowerCase() + ' ' + v).join(', ') + ']' : '';
+  const shapeLine = shapes
+    ? '  [' + shapes.rows.map(([k, v]) => k.toLowerCase() + ' ' + v).join(', ')
+      + (shapes.unparsedWorst
+         ? ';  unparsed is not a disagreement — ' + shapes.unparsedWorst[1] + ' of it is `'
+           + shapes.unparsedWorst[0] + '`, a cause the comparator has no grammar for'
+         : '')
+      + ']'
+    : '';
   if (!base || typeof base.rate !== 'number') {
     return { name: NAME, ok: false, generated: j.generated || null, rate,
       why: `NO BASELINE — data/whole-game-baseline.json is absent, so nothing can say whether ${div} `
@@ -624,7 +1013,23 @@ function wholeGameClause(artifact) {
          + 'stamp it deliberately (node engine/quarantine.js --stamp-whole-game) so the number that '
          + 'becomes the bar is one somebody chose.' + shapeLine };
   }
-  const rose = rate > base.rate + band;
+  /* ROADMAP #292, THE SECOND HALF — A RATE MAY ONLY BE COMPARED WITH A RATE UNDER THE SAME PIN.
+   *
+   * The artifact's own `pins.why` says it in as many words: *"ONE PIN IS ONE CORNER."* The baseline
+   * carries the `mode` string it was stamped under and nothing compared it. Measured 2026-08-17: the
+   * baseline is `A/top-tie-first/pins:ef342837b791` at 30.8%, and the run beside it was
+   * `A/middle/pins:1fd77b835ee2` at 61.2% — a DIFFERENT ARM with a DIFFERENT die model, whose own
+   * top-tie-first arm read 14.7% on the same games. The clause printed `AND IT GOT WORSE` about a
+   * 30-point rise that is entirely the instrument changing corner.
+   *
+   * THE TREND IS WITHHELD, NOT ANNOTATED. CLAUDE.md: printing a figure with a caveat is the bug —
+   * `PRE-CHANGE` was rendered beside the quarantined numbers and they were quoted anyway. So when the
+   * modes differ there is no `progress` and no `regressed`, and the reason is stated in place of the
+   * comparison. The VERDICT does not move: correctness decides that, and zero is zero under any pin. */
+  const baseMode = String(base.mode || '');
+  const runMode = String(j.mode || '');
+  const comparable = !!baseMode && !!runMode && baseMode === runMode;
+  const rose = comparable && rate > base.rate + band;
   /* THE CLAUSE USED TO PRINT "NOT ZERO, AND THE RATCHET IS NOT A PASS" AND THEN REPORT PASS.
    *
    * Will, 2026-08-12: *"so if its not correct then it shouldnt pass man"*. He is right, and the old
@@ -644,22 +1049,85 @@ function wholeGameClause(artifact) {
    * SO CORRECTNESS DECIDES THE VERDICT AND THE RATCHET BECOMES PROGRESS. Both are still reported,
    * because direction of travel is genuinely useful — it just may not open a gate. A run that gets
    * WORSE is now named as a separate, louder failure rather than folded into the same red. */
-  const ok = div === 0;
+  /* SPLIT THE DIVERGENCE INTO DECLARED AND UNDECLARED. Games are attributed by CAUSE, so a class that
+   * is entirely declared removes its games and a class that is partly declared removes only its share. */
+  const declaredHits = [];
+  let declaredGames = 0;
+  /* THE SECOND AXIS REACHES THIS CLAUSE TOO, AND REACH DOES NOT. A game is not an entity: 695 of these
+   * are dominated by `ordering` and `field` classes that name no mechanic at all, so there is no usage
+   * figure to threshold and a reach filter here would be a fabrication. The question Will asked about a
+   * played divergence — does fixing it change the click — is answerable for a CAUSE as well as for a
+   * mechanic, and that is what a `cause:` row in data/decision-impact.json prices. Same contract, same
+   * refusal by default: no artifact, no null demonstrated, or a different release clears nothing. */
+  const DI = wgDecisionImpact === undefined
+    ? decisionImpact(((readJson(D('data', 'engine-release.json')) || {}).id) || null)
+    : wgDecisionImpact;
+  const impactHits = [];
+  let impactGames = 0;
+  for (const c of (Array.isArray(j.classes) ? j.classes : [])) {
+    for (const k of (c.causes || [])) {
+      const d = DECLARED_DIVERGENCE.find((x) => { try { return x.match(String(k.cause || "")); } catch (e) { return false; } });
+      if (d) {
+        declaredGames += (k.n || 0);
+        const row = declaredHits.find((r) => r.name === d.name);
+        if (row) row.n += (k.n || 0); else declaredHits.push({ name: d.name, why: d.why, n: (k.n || 0) });
+        continue;
+      }
+      const imp = DI.clear('cause:' + String(k.cause || ''));
+      if (!imp) continue;
+      impactGames += (k.n || 0);
+      const row = impactHits.find((r) => r.key === imp.key);
+      if (row) row.n += (k.n || 0); else impactHits.push({ ...imp, n: (k.n || 0) });
+    }
+  }
+  const undeclared = Math.max(0, div - declaredGames - impactGames);
+  const _NL = String.fromCharCode(10);
+  const declaredLine = declaredHits.length
+    ? _NL + "  DECLARED — matching the authority here would make this engine LESS correct, so these"
+      + " do not count:" + _NL
+      + declaredHits.map((r) => "    " + String(r.n).padStart(4) + "  " + r.name + _NL
+          + "           " + r.why).join(_NL)
+    : "";
+  const impactLine = _NL + "  DECISION IMPACT — " + (impactHits.length
+    ? impactGames + " game(s) across " + impactHits.length + " cause(s) cleared by a paired argmax run: "
+      + impactHits.map((r) => r.key.slice(6) + " (0 flips in " + r.paired + ", 95% upper bound "
+        + r.bound.toFixed(1) + "% — a floor, not a zero; fixed in " + r.fixed_in + ")").join("; ")
+    : DI.why);
+  const ok = undeclared === 0;
+
   return {
     name: NAME, ok, generated: j.generated || null, rate, baseline: base.rate,
     diverged: div, games,
-    /* kept so a reader can see the trend without the trend being able to pass anything */
-    progress: rose ? 'WORSE than the baseline' : (rate < base.rate ? 'better than the baseline' : 'level'),
-    regressed: rose,
+    /* kept so a reader can see the trend without the trend being able to pass anything — and set to
+     * null rather than guessed when the baseline was stamped under a different pin */
+    progress: !comparable ? null
+      : (rose ? 'WORSE than the baseline' : (rate < base.rate ? 'better than the baseline' : 'level')),
+    regressed: comparable ? rose : null,
+    baseline_mode: baseMode || null, run_mode: runMode || null, baseline_comparable: comparable,
+    declared: declaredGames, decision_cleared: impactGames, undeclared,
     why: ok
-      ? `ZERO divergences across ${games} games. Mode A pins every die on both sides, so this is the`
-        + ` real bar and it has been met.`
-      : `${div} of ${games} = ${pct}% DIVERGE — the two engines disagree about ${div} games.`
-        + ` Mode A pins every die on both sides, so each one is a RULE they disagree about, not noise.`
-        + ` This clause fails until that is zero.`
-        + (rose ? `  AND IT GOT WORSE: ${pct}% against a baseline of ${(100 * base.rate).toFixed(1)}%`
-                  + ` (band ±${(100 * band).toFixed(1)} pts, 2 SE at n=${games}).`
-                : `  Direction of travel: ${pct}% against a baseline of`
+      ? `ZERO divergences across ${games} games that anything is asked to answer for`
+        + (declaredGames || impactGames ? ` (${div} raw, ${declaredGames} declared, ${impactGames}`
+          + ` cleared on decision impact)` : '')
+        + `. Mode A pins every die on both sides, so this is the real bar and it has been met.`
+        + declaredLine + impactLine
+      : `${undeclared} of ${games} = ${(100 * undeclared / games).toFixed(1)}% DIVERGE — the two engines`
+        + ` disagree about ${undeclared} games`
+        + (declaredGames || impactGames ? ` (${div} raw, less ${declaredGames} declared and`
+          + ` ${impactGames} cleared on decision impact)` : '')
+        + `. Mode A pins every die on both sides, so each one is a RULE they disagree about, not noise.`
+        + ` This clause fails until that is zero.` + declaredLine + impactLine
+        + (!comparable
+             ? `  DIRECTION OF TRAVEL WITHHELD — the baseline was stamped under \`${baseMode}\` and this`
+               + ` run is \`${runMode}\`. One pin is one corner: those are two instruments, and`
+               + ` subtracting one rate from the other invents a trend. Re-stamp under this pin`
+               + ` (node engine/quarantine.js --stamp-whole-game) if it is the pin you mean to hold.`
+           : rose ? `  AND IT GOT WORSE: RAW ${pct}% against a raw baseline of`
+                  + ` ${(100 * base.rate).toFixed(1)}% (band ±${(100 * band).toFixed(1)} pts, 2 SE at`
+                  + ` n=${games}). The trend is RAW on both sides deliberately — the baseline was stamped`
+                  + ` before anything was declared or cleared, and subtracting today's exemptions from`
+                  + ` one side only would manufacture progress.`
+                : `  Direction of travel: RAW ${pct}% against a raw baseline of`
                   + ` ${(100 * base.rate).toFixed(1)}% — better, and better is not correct.`)
         + shapeLine,
   };
@@ -1213,7 +1681,18 @@ module.exports = { medichamIsCorrect, classify, state, withholder, playLayer, so
                     * CLAUDE.md: two files that both decide a fact will disagree eventually, and the
                     * disagreement will be invisible because both keep working. This gate and the work
                     * list must never differ on whether a row is closed. */
-                   roadmapRowIsClosed, roadmapRowSaysBroken, openDefectClause };
+                   roadmapRowIsClosed, roadmapRowSaysBroken, openDefectClause,
+                   /* THE TWO FILTERS, EXPORTED SO THE BAR IS ONE IMPLEMENTATION. Anything that wants
+                    * to ask "does anybody play this" or "has a paired run cleared this" imports these
+                    * rather than re-deriving them — `buildMon("Scizor")` returned null because a second
+                    * version of something that already existed got hand-rolled beside it. */
+                   REACH_SHELF, reachOf, usageIndex, reachDrift, decisionImpact, mechanicsClause,
+                   classifyMechanics,
+                   /* ROADMAP #292 — exported so a test can hand it a KNOWN artifact and read the
+                    * composition it prints. Its `artifact` argument already existed; without the
+                    * export the only way to check that the composition and the headline describe the
+                    * SAME run was to read the source, which is how they came to describe two. */
+                   wholeGameClause };
 
 /* ================================================================================================
  * 3. CLI — report, derivation, gate, selftest
@@ -1261,6 +1740,55 @@ if (require.main === module) {
     console.log('stamped whole-game baseline: ' + j.diverged + ' of ' + j.games
                 + ' = ' + (100 * rate).toFixed(1) + '%'
                 + (prev ? '   (was ' + (100 * prev.rate).toFixed(1) + '%)' : '   (first bar)'));
+    process.exit(0);
+  }
+
+  /* ---- --reach: THE MECHANICS CLAUSE'S POPULATION, SHOWN RATHER THAN SUMMARISED ----------------
+   *
+   * The clause prints a count. This prints the rows behind it, because a filter nobody can inspect is
+   * a filter people argue with — the closet learned that first. It calls `classifyMechanics`, the same
+   * function the clause decides on, so the two cannot disagree.
+   *
+   * IT SAYS WHEN THE ARTIFACT IS STALE AND IT DOES NOT REFUSE TO PRINT. The clause must refuse — a
+   * verdict about other bytes is a wrong verdict. A LISTING is not a verdict, and being able to see
+   * which mechanics are in play before paying for a re-run is the whole point of it. The staleness is
+   * printed first and in full so no reader can take these rows for the current engine. */
+  if (has('--reach')) {
+    const j = readJson(D('data', 'all-mechanics-fire.json'));
+    if (!j) { console.error('NO ARTIFACT — data/all-mechanics-fire.json is absent.'); process.exit(2); }
+    const cur = readJson(D('data', 'engine-release.json'));
+    const curId = cur && (cur.id || cur.release || cur.current);
+    const ranOn = j.release || j.engine_release || null;
+    const C = classifyMechanics(j, curId);
+    console.log('');
+    console.log('REACH AND DECISION IMPACT — the mechanics clause population, row by row');
+    console.log('  artifact: data/all-mechanics-fire.json  generated ' + (j.generated || '?')
+                + '  release ' + (ranOn || '(unstamped)'));
+    if (ranOn && curId && ranOn !== curId) {
+      console.log('  STALE — the tree is ' + curId + '. These rows describe OTHER BYTES and the clause');
+      console.log('  refuses them. They are printed because a listing is not a verdict.');
+    }
+    console.log('  shelf: ' + REACH_SHELF + ' observations   [moves: ' + (C.U.denominators.moves || 'NO ARTIFACT')
+                + ';  abilities/items: ' + (C.U.denominators.teams || 'NO ARTIFACT') + ']');
+    const dump = (title, rows, extra) => {
+      console.log('');
+      console.log('  ' + title + ': ' + rows.length);
+      for (const r of rows.slice().sort((a, b) => (b.reach.n || 0) - (a.reach.n || 0))) {
+        console.log('    ' + pad2(r.key, 28)
+          + pad2(r.reach.known ? r.reach.n + ' ' + r.reach.unit : 'NO FIGURE', 14)
+          + (extra ? extra(r) : ''));
+      }
+    };
+    dump('COUNTED — played, uncleared, and holding the clause shut', C.counted);
+    dump('SHELVED BY REACH — staged and played every run, not counted', C.belowShelf);
+    dump('NO USAGE FIGURE — unknown is not zero, these COUNT', C.unknown, (r) => r.reach.why);
+    dump('CLEARED ON DECISION IMPACT', C.excused,
+      (r) => '0 flips in ' + r.impact.paired + ', 95% upper bound ' + r.impact.bound.toFixed(1) + '%');
+    console.log('');
+    console.log('  ' + C.DI.why);
+    if (C.rowsMissing.length) console.log('  NO PER-ENTITY ROWS for: ' + C.rowsMissing.join(', ')
+      + ' — the filter cannot be applied and the clause counts every divergence.');
+    console.log('');
     process.exit(0);
   }
 
@@ -1356,6 +1884,113 @@ if (require.main === module) {
     ok('the clause reports the override list on every run, at zero as well as at seven',
       / open row\(s\) declare NOT A DEFECT in their status cell/.test(openDefectClause().why),
       openDefectClause().why.slice(-160));
+
+    /* -- THE TWO FILTERS, RED AND GREEN, ON SYNTHETIC INPUT -----------------------------------
+     *
+     * Both are shown RED on a deliberate break before either is trusted, and the RED cases are the
+     * ones that matter: a filter can only ever make a gate easier to pass, so its failure mode is
+     * silent leniency. Each pair below is the same input with one field moved.
+     *
+     * The reach cases drive `reachOf` — the shipping function — against a synthetic usage index, so a
+     * change to the rule cannot pass by having its selftest restate the old one. */
+    const UIDX = {
+      moves: new Map([['bigmove', 400], ['smallmove', 3]]),
+      abilities: new Map([['bigability', 900], ['smallability', 2]]),
+      items: new Map(),
+      invisible: new Set(['megaonly']),
+      denominators: { moves: 'N games', teams: 'N teams' },
+      absent: [],
+    };
+    ok('REACH — a move above the shelf is KNOWN and not shelved',
+      reachOf(UIDX, 'moves', 'bigmove').known === true && reachOf(UIDX, 'moves', 'bigmove').n >= REACH_SHELF);
+    ok('REACH — a move below the shelf is KNOWN and below it',
+      reachOf(UIDX, 'moves', 'smallmove').n < REACH_SHELF);
+    /* THE CASE THE WHOLE FILTER TURNS ON, IN BOTH DIRECTIONS. */
+    ok('RED — a move the instrument covers and never saw is an OBSERVED ZERO, not unknown',
+      reachOf(UIDX, 'moves', 'neverclicked').known === true && reachOf(UIDX, 'moves', 'neverclicked').n === 0);
+    ok('RED — an ability the instrument CANNOT see is UNKNOWN and is never read as zero',
+      reachOf(UIDX, 'abilities', 'megaonly').known === false && reachOf(UIDX, 'abilities', 'megaonly').n === null,
+      reachOf(UIDX, 'abilities', 'megaonly'));
+    ok('RED — with the usage artifact ABSENT, every row of that kind is UNKNOWN and nothing is shelved',
+      reachOf({ ...UIDX, items: null, absent: ['data/sheet-usage.json'] }, 'items', 'anything').known === false);
+    ok('the ability unit is TEAMS and the move unit is CLICKS — they are not interchangeable',
+      reachOf(UIDX, 'abilities', 'bigability').unit === 'teams'
+      && reachOf(UIDX, 'moves', 'bigmove').unit === 'clicks');
+    /* THE BOUNDARY, THROUGH `classifyMechanics` — the function the clause decides on, driven with an
+     * injected usage index rather than a re-statement of its rule. `below the shelf` means STRICTLY
+     * below, exactly as tests/roster.js's `clicks >= USAGE_SHELF_BELOW` does. Not pedantry: an ability
+     * sits at exactly 25 teams in today's artifact, so a `<=` here would silently excuse a live row. */
+    const EDGE = { rows: { moves: [
+      { id: 'atexactly', diverged: true },
+      { id: 'onebelow', diverged: true },
+      { id: 'closeted', diverged: true, deferred: { by: 'Will' } }] } };
+    const EDGEU = { ...UIDX, moves: new Map([['atexactly', REACH_SHELF], ['onebelow', REACH_SHELF - 1],
+                                             ['closeted', 9999]]) };
+    const EDGEC = classifyMechanics(EDGE, null, { U: EDGEU, DI: decisionImpact('nothing-on-disk') });
+    ok('BOUNDARY — exactly at the shelf COUNTS, and one below it is shelved',
+      EDGEC.counted.length === 1 && EDGEC.counted[0].id === 'atexactly'
+      && EDGEC.belowShelf.length === 1 && EDGEC.belowShelf[0].id === 'onebelow',
+      { counted: EDGEC.counted.map(r => r.id), belowShelf: EDGEC.belowShelf.map(r => r.id) });
+    ok('a row the OWNER closeted is in neither column, however heavily it is played',
+      EDGEC.rowsSeen === 2 && !EDGEC.counted.concat(EDGEC.belowShelf).some(r => r.id === 'closeted'));
+
+    /* DECISION IMPACT — the contract, driven through the shipping reader by pointing it at a synthetic
+     * artifact on disk. Every refusal below is a case where a real run's verdict must NOT be honoured. */
+    const diPath = D('data', 'decision-impact.json');
+    const diHad = fs.existsSync(diPath);
+    const diSaved = diHad ? fs.readFileSync(diPath, 'utf8') : null;
+    /* THE LIVE FILE IS NEVER CLOBBERED. If one exists it is read back byte-for-byte at the end, and
+     * this block refuses to run at all rather than risk it — a selftest that can destroy an artifact
+     * is a worse bug than the one it is testing. */
+    const diWrite = (o) => fs.writeFileSync(diPath, JSON.stringify(o, null, 2) + '\n');
+    const GOOD = { engine_release: 'REL', null_demonstrated: true, generated: 'now',
+      rows: [{ key: 'move:someplayedmove', flips: 0, paired: 60, fixed_in: 'arm-b' },
+             { key: 'move:thinevidence', flips: 0, paired: 4, fixed_in: 'arm-b' },
+             { key: 'move:itflipped', flips: 7, paired: 60, fixed_in: 'arm-b' },
+             { key: 'cause:drag: a different body', flips: 0, paired: 90, fixed_in: 'arm-b' }] };
+    try {
+      diWrite(GOOD);
+      const di = decisionImpact('REL');
+      ok('DECISION IMPACT — a 0-flip row over enough paired points clears',
+        !!di.clear('move:someplayedmove') && di.active === true);
+      ok('the cleared row carries the 95% upper bound from its OWN n, never a bare zero',
+        Math.abs(di.clear('move:someplayedmove').bound - 5) < 1e-9, di.clear('move:someplayedmove'));
+      ok('RED — a row that FLIPPED clears nothing', di.clear('move:itflipped') === null);
+      ok('RED — a 0-flip row over too few paired points clears nothing',
+        di.clear('move:thinevidence') === null);
+      ok('RED — a mechanic with no row at all clears nothing', di.clear('move:unmeasured') === null);
+      ok('a cause row matches by PREFIX, so the whole-game clause can use the same contract',
+        !!di.clear('cause:drag: a different body :: |drag|p1a|x <> |drag|p1a|y'));
+      diWrite({ ...GOOD, null_demonstrated: false });
+      ok('RED — an artifact that did not demonstrate its null clears NOTHING, however many rows it has',
+        decisionImpact('REL').clear('move:someplayedmove') === null
+        && decisionImpact('REL').active === false);
+      diWrite({ ...GOOD, engine_release: 'OTHER' });
+      ok('RED — an artifact cut against other bytes clears NOTHING',
+        decisionImpact('REL').clear('move:someplayedmove') === null);
+      diWrite({ ...GOOD, engine_release: null });
+      ok('RED — an UNSTAMPED artifact clears NOTHING (absence of a release is not a match)',
+        decisionImpact('REL').clear('move:someplayedmove') === null);
+      fs.unlinkSync(diPath);
+      ok('RED — with NO artifact, nothing is cleared and the clause says so rather than going quiet',
+        decisionImpact('REL').clear('move:someplayedmove') === null
+        && /NO DECISION-IMPACT RUN/.test(decisionImpact('REL').why));
+      /* THE WHOLE-GAME CLAUSE THROUGH ITS OWN INJECTION POINT: the same cause, cleared and not. */
+      const wgArt = { games: 100, diverged: 10, planted_divergence_proof_ok: true, mode: 'M',
+        classes: [{ cls: 'drag', causes: [{ cause: 'drag: a different body :: x', n: 10 }] }] };
+      diWrite(GOOD);
+      /* the reader closes over the rows it read, so the file is no longer needed after this line */
+      const wgDI = decisionImpact('REL');
+      ok('WHOLE GAME — a cause cleared by a paired run does not hold the clause shut',
+        wholeGameClause(wgArt, wgDI).ok === true, wholeGameClause(wgArt, wgDI).why);
+      ok('RED — the SAME artifact with an inert decision-impact reader still FAILS',
+        wholeGameClause(wgArt, decisionImpact('NOPE')).ok === false);
+      ok('the whole-game clause prints what was cleared and never folds it into the verdict silently',
+        /DECISION IMPACT/.test(wholeGameClause(wgArt, wgDI).why));
+    } finally {
+      if (diSaved !== null) fs.writeFileSync(diPath, diSaved);
+      else if (fs.existsSync(diPath)) fs.unlinkSync(diPath);
+    }
 
     /* -- membership, on a synthetic source tree ------------------------------------------------ */
     const src = {

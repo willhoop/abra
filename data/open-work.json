@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-18T02:55:58.821Z",
+  "generated": "2026-08-18T05:05:51.216Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 253,
-    "open": 130,
-    "closed": 123,
-    "open_asserting_breakage": 4,
+    "register_rows": 261,
+    "open": 135,
+    "closed": 126,
+    "open_asserting_breakage": 5,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -914,6 +914,51 @@
       "full": "`data/seed-source-audit.json` names the `basepowercallback` class by substring-matching a hand-typed list of fifteen field names, and it is wrong in both directions — filed 2026-08-17 by search while closing #283. `engine/seed_source_audit.js` `stub_has_no` is a literal array of fifteen strings tested with `src.includes(k)` against each callback's source text. measured: it reports water shuriken as reading `battle`, which is the substring inside `hasability(\"battlebond\")` — that callback answers 15 correctly and has never fallen back — and it misses triple axel (`move.hit`, 899 corpus uses), rage fist (`pokemon.timesattacked`, 585) and avalanche (`pokemon.attackedby`, 29), because none of those field names is in the list. so the artifact's `readunmodelledstate: 6` is neither an upper nor a lower bound on anything; the derived answer is seven callbacks that cannot produce a number, carrying 9,163 uses. this is the ban-list-of-four shape claude.md opens with, sitting inside the artifact that defined a register row's scope. and the artifact now carries a false claim: its `openandnotfixed` block states that #244's remainder is not fixed because it owes a refit, which stopped being true when #283 closed. the repair is one line — call `board.unmodelledbasepower(dex, board)`, which asks the callbacks instead of their spelling and is self-correcting — and it is filed rather than done because regenerating that artifact today would bake engine's in-flight `data/tags.json` into it, and a measurement is a photograph. until it is re-run, the file's `basepowercallbackclass` and `openandnotfixed` blocks are withheld, not annotated"
     },
     {
+      "n": 67,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "ILLUSION IS NOT MODELLED, AND TWO MECHANICS FILED UNDER OTHER NAMES ARE ACTUALLY THIS — ROW ADDED 2026-08-15, CITED SINC",
+      "full": "illusion is not modelled, and two mechanics filed under other names are actually this — row added 2026-08-15, cited since before it existed. `docs/engine.md:201` has been declaring a gap \"with the reason 'illusion is not modelled (roadmap #67)', which is still true\" against a register row that did not exist — `tests/test-roadmap-register.js` caught it as *\"1 item(s) a ledger schedules and the register does not name — these exist only in a file nobody opens\"*. the citation was right and the row was missing, which is the inverse of the failure the register-reality work spent the night on: there, rows outlived their defects; here, a defect outlived its row. it is live, and the evidence is fresh. engine's 2026-08-15 pass over the 69 diverging mechanics found `bittermalice` and `nightdaze` diverge because of illusion, not because of the moves they are filed under — the staged body is displaying as something it is not, so the comparison parts on the name before it ever reaches the move. both remain in the 53. what it would take: the display name and the true species must be separable in the stream, which touches every line that names a body, so this is not a tag wire — it is a change to how the engine identifies a pokemon to the protocol. not scoped here deliberately: sizing it belongs with whoever takes it, and a row that guesses its own cost is how #266 came to say 41 against a true 32"
+    },
+    {
+      "n": 290,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "THE `ordering` FAMILY IS A REAL TURN-ORDER DEFECT, NOT THE RETIRED SPEED-TIE ARTEFACT — MEASURED 2026-08-18 BY ENGINE. `",
+      "full": "the `ordering` family is a real turn-order defect, not the retired speed-tie artefact — measured 2026-08-18 by engine. `ordering` is the shape \"same event, different slot\", and its biggest member is two `|move|` lines naming the same move in different slots. that looks exactly like the pinned speed tie, `engine/game_differential.js`'s own header documents that history, and it has been read as an artefact. it cannot be one: changelog 3.74.0 (2026-08-07) fixed the tie at the root — the selection sort is reproduced line for line and the residual tie is resolved by the per-action uniform key, the identity under a constant pinned die — and every arm of the current pin declares `speed_tie: \"to the earlier body\"`. so the question was asked instead of argued: `order_probe` in the artifact now carries every move-vs-move pair with both bodies' `getactionspeed()` read off the authority and both moves' priority read off the format. the answer, 25 pairs over 1,229 games: 16 tied, 9 not tied, all 25 at identical priority. gaps of 20, 30, 32, 42, 56, 64, 76, 78 and 147 points. two of the nine are under trick room with the sign inverted (showdown moved the `-292` body first, medicham2 the `-356`). a pair whose bodies are not tied and whose priorities match is a real turn-order disagreement, so `ordering` — 220 games, the second-largest class — belongs above the announcement families. the reading is at the turn boundary, not at queue-build time, and the artifact says so on every row: an equal reading is weak evidence and an unequal one is strong instrument owed: a gate that fails while any row of `data/game-differential.json`'s `order_probe` carries `speed_tied: false` and `same_priority: true` — that conjunction is the defect itself rather than a proxy for it, and it reads zero the day the turn order is right."
+    },
+    {
+      "n": 293,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 6322,
+      "title": "A REFUSED PRIORITY MOVE NAMED A NEIGHBOUR'S ABILITY THAT DOES NOT REFUSE PRIORITY, AND AN ALLY-AIMED HELPING HAND NAMED ",
+      "full": "a refused priority move named a neighbour's ability that does not refuse priority, and an ally-aimed helping hand named its own user — fixed 2026-08-18 by engine. two dropped facts, both narration, both derived. (1) `priorityblockabilities()` reads the `blocksmove` tag and keeps only members whose param says `what === 'priority'`; the line that found the holder for the `|cant|` announcement asked `tags.param('ability', x.ability, 'blocksmove')` with no such filter. good as gold carries `blocksmove {what: \"status moves at the holder\"}` — it refuses status moves and never touches priority — so a gholdengo standing beside the real refuser was named on the line. two implementations of one fact: the one deciding the outcome was right, the one deciding the narration was wrong. read off a real battle, scizor clicking feint (physical, priority +2): `|move|p2a: scizor|feint||[still]` then `|cant|p1b: farigiraf|ability: armor tail|feint|[of] p2a: scizor`, against this engine's `|move|p2a: scizor|feint|p1a: gholdengo` then `|cant|p1a: gholdengo|ability: goodasgold|…` — both fields wrong on both lines, so `[still]` and the blanked target come with the fix. (2) `playeraction` returned `{kind:'helpinghand', mv:id}` with no target, so `tr.mv(m,_mid,_tt||m)` fell back to the user and the mark-setter wrote itself into its own target field. this is wire 106 one branch over. `targetclass.chooseable` is true for `adjacentally`, which is the authority's own rule for when field 4 names a body; the authority writes `|move|p1a: farigiraf|helping hand|p1b: gholdengo`. helping hand carries 6,322 uses; good as gold 3,454 | closed 2026-08-18 — engine; probes `ability/blocksmove` \"a refused priority move names the ability that refused it, not a neighbour\" (control: the same gholdengo with a cud chew partner, where feint must reach the type chart and no `|cant"
+    },
+    {
+      "n": 294,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 18122,
+      "title": "THE ACCURACY ROLL WAS ONE PER MOVE WHERE THE GAME ROLLS ONE PER TARGET, SO ROCK SLIDE COULD NOT HIT ONE AND MISS THE OTH",
+      "full": "the accuracy roll was one per move where the game rolls one per target, so rock slide could not hit one and miss the other — fixed 2026-08-18 by engine. will: *\"rock slide and heat wave can hit one and miss the other.\"* `engine/medicham2-browser.js` declared the divergence at its own roll site — *\"one roll per move, not per target… a spread move rolls once, against no defender, and gets the attacker's modifiers only\"* — and the authority is `hitstepaccuracy(targets: pokemon[], pokemon, move)` (sim/battle-actions.ts:690-692), which takes an array, sets `this.battle.activetarget = target` per iteration and ends each one in `randomchance(accuracy, 100)` at :737. the distribution was wrong, not only the variance: a 90-accuracy spread move into two live bodies is 81 / 18 / 1 in the authority and was 90 / 0 / 10 here, so the eighteen-percent middle case did not exist in this engine at all. reach: rock slide 18,122 clicks, heat wave 11,121, plus dazzling gleam, hyper voice, matcha gotcha, eruption — every sub-100-accuracy spread move in the format. the stated objection was obsolete and that is why it landed now: *\"it would change how much rng every existing seeded run consumes\"* was true of a sequence; the pinned corners feed a constant (`scalar = () => spec.corner`, so extra draws change nothing — measured, both corner arms bit-identical at 59/260 and 75/260 before and after) and the middle arm feeds event-addressed dice keyed on `hash(seed\\|turn\\|category\\|move\\|target\\|nth)`. the pinned corners are structurally blind to it — at the top corner everything misses and at the bottom everything hits, so one roll and two rolls are indistinguishable; only real dice can see it, which is why this survived every corner run ever made. measured, paired on one 900-game sample, the engine the only file that moved (`tests/test-middle-identity.js`): the authority-asked-and-medicham2-did-not list lost every `acc` row (10 mortalspin p11, 7 matchagotcha p11, 5 mortalspin p21, 2 heatwave p11 -> none); `acc` address identity 97.7% over 131 events -> 98.8% over 163; of the authority's events the share medicham2 also asks 59.7% -> 63.4%. and it moves seeded `rngstreams` runs: a spread move now consumes one `acc` draw per target, so a rollout or self-play game plays differently from the same seed. everything downstream of the simulator is already quarantined and owes a re-run (#57); this adds to that debt and no old self-play number may be read across it | closed 2026-08-18 — engine; probe `tests/test-mechanics.js` `move\\"
+    },
+    {
+      "n": 288,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "TESTING READS A CORPUS THAT MOVES UNDER IT, AND AN ARTIFACT RECORDS WHICH BYTES OF CODE MADE IT BUT NOT WHICH GAMES — WI",
+      "full": "testing reads a corpus that moves under it, and an artifact records which bytes of code made it but not which games — will, 2026-08-17: \"lets keep scraping games but for our testing purposes i just want a frozen corpus so it doesnt move\". ops appends continuously and should keep doing so — `data/games.bo3.jsonl` and `data/games.ladder.jsonl` both moved at 21:01 on the day this was filed. what must stop moving is what testing reads. two channels leak today. (1) the differential's team pool, already filed as #81 wire 5 and stated in `engine/game_differential.js:4037` in its own words: *\"`buildswarm` reads data/games.bo3.jsonl and data/games.ots.jsonl live, dedupes to distinct teams and picks by a stride over the matching set — so one appended game shifts the stride and changes which teams get played\"*, with the note that both files moved during that wire's own test runs. the mitigation there asserts which team keys were picked, so a moved pool is visible afterwards; it does not stop the pool moving. `data/team-pool-frozen` already exists and is half the mechanism. (2) every `uses` count, which lives in `data/tags.json` and is regenerated from the live store — two divisions reported it independently on 2026-08-15 as *\"~3,271 moved lines are `uses` counts following the store\"*. the cost is measured, not hypothetical and not large: the metronome closet entry states 19 uses and the artifact reads 25, with nobody having edited either — the corpus grew underneath a typed number, which is this repository's signature failure in miniature. every impact ranking built on `uses` — the divergence work order, the bring guide, the mechanics priority — is therefore against a moving target at the margin. the second half is the provenance gap and it is the reason nobody noticed: an artifact carries an `engine_release` id saying which bytes of code produced it and nothing saying which games, so two runs can differ entirely in corpus and look identical in provenance. a corpus snapshot id belongs beside the release id in every artifact that reads a game file. not a freeze of the store. ingest keeps running; testing reads a stamped snapshot. sequencing, deliberate: this lands before the mag refit and after the medicham gate closes. the refit is the run that most needs a stable corpus and is the one place where fitting against a moving target would be invisible; doing it before the gate closes would change the corpus definition under an in-flight measurement, which is the failure this row exists to prevent, committed while building the fix"
+    },
+    {
       "n": 47,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
@@ -1189,7 +1234,7 @@
     {
       "artifact": "data/interaction-matrix.json",
       "generated": "2026-08-11T22:00:06.336Z",
-      "age_days": 6.2
+      "age_days": 6.3
     }
   ]
 }

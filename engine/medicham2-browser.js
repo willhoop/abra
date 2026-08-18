@@ -88,7 +88,7 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
-  /* ROADMAP #240 -- a CLAMPED stat change announced with magnitude 0, the line Showdown writes and
+  /* ROADMAP #289 -- a CLAMPED stat change announced with magnitude 0, the line Showdown writes and
    * this engine could not. Zero on a run containing an Intimidate into a -6 body means the emitter
    * is unwired again. */
   boostZeroAnnounced: 0,
@@ -616,10 +616,18 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   megaKeyFromSuffix: 0, megaKeyFromSuffixFirst: '',
   megaMovesFromBase: 0, megaMovesFromBaseFirst: '',
   megaAbilityFromSibling: 0, megaAbilityFromSiblingFirst: '',
-  /* WIRE 129 -- a SPREAD move rolled to hit with no defender in hand, so the target's evasion stage,
-   * Bright Powder and Sand Veil did not apply to it. A declared divergence from Showdown, which rolls
-   * per target; counted rather than commented so the size of it is readable rather than argued. */
-  accSpreadNoDefender: 0,
+  /* ~~WIRE 129 -- a SPREAD move rolled to hit with no defender in hand~~ RETRACTED, ROADMAP #294.
+   * The divergence is closed: the roll is now taken once PER TARGET against that target's own
+   * modifiers, exactly as `hitStepAccuracy(targets: Pokemon[], ...)` does (battle-actions.ts:690-692,
+   * `for (const [i, target] of targets.entries())`). The counter that used to measure the divergence
+   * is replaced by two that measure the CAPABILITY, because a capability that cannot prove it ran is
+   * assumed broken: `accDrawsTaken` is every to-hit draw the step list took, and
+   * `accDrawsOnSpread` is the subset taken for a spread move; `accSpreadRowsStepped` is how many
+   * spread TARGET ROWS reached the step at all. A spread move that draws once for two live bodies
+   * leaves `accDrawsOnSpread` at half of `accSpreadRowsStepped`, which is visible rather than
+   * argued. They are not required equal -- a row whose accuracy is `true` (No Guard, Lock-On, a
+   * Poison-type Toxic) legitimately takes no draw, exactly as the authority takes none. */
+  accDrawsTaken: 0, accDrawsOnSpread: 0, accSpreadRowsStepped: 0,
   /* ROADMAP #81 WIRE 9 -- a SPREAD click that arrived with no target named (which is every one of
    * them from a driver reading Showdown's request) and was aimed off the board instead of falling
    * through to a no-op. A zero after real games means the fix is not on the path. */
@@ -1055,7 +1063,7 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
-  /* ROADMAP #240 -- a stat change that landed ZERO stages and whose call site has not yet had its
+  /* ROADMAP #289 -- a stat change that landed ZERO stages and whose call site has not yet had its
    * authority branch read, so no line was written. Showdown writes one whenever the change was
    * CLAMPED at a cap and the effect is not an ability-without-secondary or a move secondary/self
    * rider (sim/battle.ts:2074-2078). Non-zero is not a defect by itself -- it is the list of sites
@@ -1813,7 +1821,7 @@ const TRACE=(function(){
     heal(m,from,of){ this.push(['-heal',ident(m),health(m),from,of?'[of] '+ident(of):'']); },
     faint(m){ if(m._traceFainted)return; m._traceFainted=true; this.push(['faint',ident(m)]); },
     /* --- stages, status, volatiles --- */
-    /* ROADMAP #240 -- A CLAMPED STAT CHANGE IS STILL ANNOUNCED, AND ITS MAGNITUDE IS ZERO.
+    /* ROADMAP #289 -- A CLAMPED STAT CHANGE IS STILL ANNOUNCED, AND ITS MAGNITUDE IS ZERO.
      *
      * `if(!d)return;` meant this engine could never emit a zero-magnitude stat line, and Showdown
      * emits them. sim/battle.ts:2073-2078, the branch taken when `boostBy` is falsy:
@@ -9827,7 +9835,7 @@ function applyStatDrop(f,stat,n,eff,src){
   const _amp=TAGS.param('ability',ab,'amplifiesBoosts');
   const _b1=f.boosts[stat];
   f.boosts[stat]=clamp(f.boosts[stat]-n*((_amp&&+_amp.mult)||(ab==='simple'?2:1)),-6,6);
-  /* ROADMAP #240 -- ZERO IS ANNOUNCED HERE. Every caller of applyStatDrop takes an emitting branch
+  /* ROADMAP #289 -- ZERO IS ANNOUNCED HERE. Every caller of applyStatDrop takes an emitting branch
    * of sim/battle.ts:2074-2078, checked one by one rather than assumed: Intimidate and Supersweet
    * Syrup pass `this.boost(..., null, true)` (data/abilities.ts) -- an Ability with isSecondary, so
    * the first branch fires; Mirror Armor does the same (`this.boost(negativeBoost, source, target,
@@ -12795,7 +12803,7 @@ function midEventValue(ctx) { return midEventHash(ctx) / 4294967296; }
  * They are plain string assignments and they run whether or not anyone is using the event dice, which
  * is deliberate: a mode flag would mean the instrumented engine and the shipped engine take different
  * branches, and then the thing being measured is not the thing that plays. */
-let MID_S = null, MID_TURN = 0, MID_MOVE = '-', MID_TGT = '-';
+let MID_S = null, MID_TURN = 0, MID_MOVE = '-', MID_TGT = '-', MID_ATT = '-';
 const MID_NTH = new Map();
 const MID_LOG = [];
 /* `p1`/`p2` + the 0-based active position, which is exactly Showdown's `target.side.id + target.position`.
@@ -12809,6 +12817,18 @@ function midEventSlot(m) {
 /* The address WITHOUT its repeat index -- exported so a caller can see what the engine thinks it is
  * rolling for without taking a draw (and so a probe can prove the field writes actually happen). */
 function midEventBase(cat, seed) {
+  /* ~~THE ATTACKER IS PART OF THE EVENT AND WAS MISSING.~~ **THIS COMMENT DESCRIBED A CHANGE THAT WAS
+   * REVERTED, AND IT SAT HERE IN THE PRESENT TENSE.** Read the `join` on the next line: there is no
+   * attacker field in it. The experiment was real — two bodies clicking the SAME move at the SAME
+   * target on one turn do build the same address, and 6 of 20 authority draws shared a context —
+   * but ADDING the attacker was measured and made ALL FOUR category floors in
+   * `tests/test-middle-identity.js` FAIL where they had been passing, so it was taken out and this
+   * paragraph was not. The reason it fails is the authority: Showdown's address is derived from
+   * `battle.turn` / `battle.activeMove` / `battle.activeTarget`, and there is no `activeAttacker`
+   * for the other side to name — a field only one engine writes cannot make two engines agree.
+   * `MID_ATT` is still assigned at the four write sites and is deliberately NOT joined; the
+   * collision it would fix is the `nth>0` population the test prints on every run.
+   * Retracted 2026-08-18 by ROADMAP #294 while working next door. */
   return [(seed == null ? MID_EVENT_SEED : seed), MID_TURN, cat, MID_MOVE, MID_TGT].join('|');
 }
 function midEventDraw(cat, seed) {
@@ -12854,7 +12874,7 @@ function battleTurn(S,rng,actsForA,actsForB){
   /* ROADMAP #262 -- the event address's outer two fields. Showdown prints `|turn|N` for the turn it is
    * about to play and `S.turn` is incremented at the BOTTOM of this function, so the turn now running
    * is `S.turn + 1` -- the same arithmetic the trace on the next few lines already uses. */
-  MID_S=S; MID_TURN=(S&&S.turn!=null?S.turn:0)+1; MID_MOVE='-'; MID_TGT='-';
+  MID_S=S; MID_TURN=(S&&S.turn!=null?S.turn:0)+1; MID_MOVE='-'; MID_TGT='-'; MID_ATT='-';
   /* ROADMAP #222 -- the five named dice. `rng` below remains the GENERIC stream, so every call
    * site not named in RNG_STREAMS is untouched and a plain-function caller sees no change at all. */
   const _R=rngStreams(rng); rng=_R.any;
@@ -13676,6 +13696,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * announcement site below writes the address a second time from the action as it finally
        * stands. Two writes, both cheap, and the later one wins. */
       MID_MOVE=actionMoveId(it.a)||'-';
+      MID_ATT=midEventSlot(m);
       MID_TGT=(MID_MOVE==='-')?'-':midEventSlot(reaimToSlot(it.a&&it.a.target,it,actA,actB,MID_MOVE,true)||m);
       /* Marked BEFORE the body runs, so a move cannot flinch the Pokemon using it. */
       unresolved.delete(m);
@@ -14485,8 +14506,20 @@ function battleTurn(S,rng,actsForA,actsForB){
              * priority-refusing tag; Psychic Terrain's bar has no holder and emits nothing, which is
              * declared in data/protocol-events.json rather than approximated with the terrain's name
              * on a body that did not refuse. */
-            if(TR){const _h=_pf.find(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksMove'));
-                   if(_h)TR.cant(_h,'ability: '+_h.ability,_pmv,m);}
+            /* ROADMAP #293 -- THROUGH `priorityBlockAbilities()`, THE SAME TABLE THAT DECIDED THE
+             * REFUSAL. This asked `TAGS.param('ability', x.ability, 'blocksMove')` with no filter,
+             * and `blocksMove` is not one tag's worth of meaning: the bar keeps only the members
+             * whose param says `what === 'priority'`. Good as Gold carries
+             * `blocksMove {what: "status moves at the holder"}` -- it refuses STATUS moves and never
+             * touches priority -- so a Gholdengo standing beside the real refuser was named on the
+             * `|cant|` line, and the authority named the Farigiraf. Two implementations of one fact:
+             * the one deciding the OUTCOME was right, the one deciding the NARRATION was wrong.
+             * `[still]` and the blanked target are the authority's own on this line -- read off a
+             * real battle, `|move|p2a: Scizor|Feint||[still]` above the `|cant|`. */
+            if(TR){const _bar=priorityBlockAbilities();
+                   const _h=_pf.find(x=>x&&!x.fainted&&x.curHP>0
+                     &&_bar.has(String(x.ability||'').toLowerCase().replace(/[^a-z0-9]/g,'')));
+                   if(_h){TR.attrStill();TR.cant(_h,'ability: '+_h.ability,_pmv,m);}}
             continue;}
           /* ROADMAP #126 -- AND THE SIDE-CONDITION SOURCE OF THE SAME REFUSAL, WIRED ONTO THE SAME
            * GATE. Will: *"its like armor tail"*. It is: same question, same `+_pk` Prankster term,
@@ -14729,7 +14762,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _sg=invSign(m);          // WIRE 100b
           for(const k in _bo){const _s2=SD2ENG[k];if(_s2&&m.boosts[_s2]!=null){
             const _b0=m.boosts[_s2];m.boosts[_s2]=clamp(m.boosts[_s2]+_bo[k]*_sg,-6,6);
-            /* ROADMAP #240 -- a move's PRIMARY boost table is `this.boost(moveData.boosts, target,
+            /* ROADMAP #289 -- a move's PRIMARY boost table is `this.boost(moveData.boosts, target,
              * pokemon, move, isSecondary, isSelf)` at sim/battle-actions.ts with both flags false
              * for the primary hit, so the clamped case takes the `!isSecondary && !isSelf` branch
              * and IS written. Read off a real battle: a +6 Gallade clicking Swords Dance prints
@@ -17970,28 +18003,44 @@ function battleTurn(S,rng,actsForA,actsForB){
        * there is no defender yet. BELOW THE SHIELD (ROADMAP #81), because Showdown's step 4 runs
        * after its step 1 and a blocked move never reaches the roll at all.
        *
-       * ONE ROLL PER MOVE, NOT PER TARGET, AND THAT IS A DECLARED DIVERGENCE THIS WIRE DOES NOT WIDEN.
-       * Showdown rolls accuracy separately against each target of a spread move. Rolling per target
-       * here would change how much rng every existing seeded run consumes, which is a far larger
-       * change than this wire is buying; so a SPREAD move rolls once, against no defender, and gets
-       * the attacker's modifiers only. Single-target moves -- where every evasion item and ability in
-       * this format actually lives -- get the real defender. The roll is taken on the FIRST surviving
-       * target and cached, so the rng is consumed exactly once however many bodies are left. */
-      let _mvMissed=null;
+       * ~~ONE ROLL PER MOVE, NOT PER TARGET, AND THAT IS A DECLARED DIVERGENCE.~~ CLOSED, ROADMAP
+       * #295. THE ROLL IS NOW PER TARGET, AGAINST THAT TARGET'S OWN MODIFIERS.
+       *
+       * `hitStepAccuracy(targets: Pokemon[], pokemon, move)` takes an ARRAY and loops it
+       * (battle-actions.ts:690-692), setting `this.battle.activeTarget = target` and ending each
+       * iteration in `randomChance(accuracy, 100)` at :737. One draw per target, and each draw sees
+       * that target's evasion stage, its Bright Powder, its Sand Veil and its No Guard.
+       *
+       * THE DISTRIBUTION WAS WRONG, NOT ONLY THE VARIANCE. A 90-accuracy spread move into two live
+       * bodies is 81 / 18 / 1 in the authority; one shared roll makes it 90 / 0 / 10, so the
+       * eighteen-percent MIDDLE CASE -- Rock Slide hits one and misses the other -- could not occur
+       * in this engine at all. Rock Slide is 18,122 corpus clicks and Heat Wave 11,121.
+       *
+       * THE OLD OBJECTION WAS RNG CONSUMPTION AND IT NO LONGER HOLDS FOR EITHER CORRECTNESS ARM: the
+       * pinned corners of `game_differential.js` feed a CONSTANT, so extra draws change nothing, and
+       * its middle arm feeds EVENT-ADDRESSED dice -- `hash(seed|turn|category|move|target|nth)` --
+       * where a draw is a function of WHAT is being rolled for and not of how many came before it.
+       *
+       * WHERE IT DOES STILL BITE, STATED RATHER THAN DISCOVERED LATER: `rngStreams` is a SEQUENCE, so
+       * a seeded rollout or self-play game now consumes a different number of `acc` draws and plays a
+       * different game from the same seed. Every figure downstream of this simulator is already
+       * quarantined and owes a re-run; this adds to that debt rather than creating a new one. */
       const _stepAccuracy=(R)=>{const tg=R.tg;
-        if(_mvMissed===null){
-          const _acc1=_rows.filter(x=>!x.out);
-          const _accDef=(!a.move.spread&&_acc1.length===1)?_acc1[0].tg:null;
-          if(a.move.spread)MEDSEEN.accSpreadNoDefender++;
-          const _mvAcc=hitChance(m,_accDef,a.move.id,field,
-                                 {targetAlreadyMoved:!!(_accDef&&!unresolved.has(_accDef))});
+        {
+          /* THE DEFENDER IS THE ROW'S OWN BODY, UNCONDITIONALLY. `a.move.spread` is not consulted:
+           * the authority does not branch on it here either, and a branch is exactly what let the
+           * spread case pick up the attacker's modifiers and nobody else's. */
+          const _mvAcc=hitChance(m,tg,a.move.id,field,
+                                 {targetAlreadyMoved:!!(tg&&!unresolved.has(tg))});
           /* ROADMAP #264 -- accMustRoll, not `_mvAcc<100`. A printed-100 move into a +2 evasion body
            * already rolled here (hitChance returns 60); what did NOT roll is the same move under a
            * Wide Lens or a Coil, where the modifier lands the number at or above 100 and the
            * authority draws anyway. See accMustRoll. */
-          _mvMissed=(accMustRoll(_mvAcc)&&_R.acc()*100>_mvAcc);   // ROADMAP #222
+          if(a.move.spread)MEDSEEN.accSpreadRowsStepped++;
+          if(!accMustRoll(_mvAcc))return;                          // no draw, and no miss
+          MEDSEEN.accDrawsTaken++; if(a.move.spread)MEDSEEN.accDrawsOnSpread++;
+          if(!(_R.acc()*100>_mvAcc))return;                        // ROADMAP #222
         }
-        if(!_mvMissed)return;
         /* ROADMAP #81 WIRE 9 -- ONE `|-miss|` PER TARGET, AND EACH ONE NAMES THE BODY IT MISSED.
          * `hitStepAccuracy` writes `this.battle.add('-miss', pokemon, target)` inside the per-target
          * loop (sim/battle-actions.ts:738), so a spread move that misses two bodies writes two lines.
@@ -21967,7 +22016,16 @@ function playerActionPrimary(me,moveId,target,field){
   /* HELPING HAND. The rulebook names the volatile and the +5 priority, and movePriority reads the
      priority, so the only thing written here is the multiplier -- x1.5, which no artifact this engine
      reads carries. Same call as DOUBLES_SCREEN above: state the constant and say why it is stated. */
-  if(fx&&fx.volatile==='helpinghand')return {kind:'helpinghand',mv:id};
+  /* ROADMAP #293 -- THE TARGET TRAVELS, exactly as WIRE 106 made it travel for `boostally` one branch
+   * down and for the identical reason. This returned no `target` at all, so the dispatch's
+   * `TR.mv(m,_mid,_tt||m)` fell back to the USER and wrote the mark-setter into its own move line's
+   * target field. Read off a real Champions battle, Farigiraf aiming at its partner:
+   *     |move|p1a: Farigiraf|Helping Hand|p1b: Gholdengo
+   * against this engine's `|move|p1a: farigiraf|helpinghand|p1a: farigiraf`. `targetClass.chooseable`
+   * is true for this move, so naming the ally is the authority's shape and not a guess. The BRANCH
+   * still resolves the partner itself from the live slot -- the action is built before the sort and
+   * the body it names can have left -- so nothing about WHO gets the mark changes here. */
+  if(fx&&fx.volatile==='helpinghand')return {kind:'helpinghand',mv:id,target};
   /* BOOSTS ON AN ALLY. All six boostsTarget moves carry an explicit table -- Coaching {atk:1,def:1},
      Decorate {atk:2,spa:2}, Howl, Aromatic Mist, Flatter, Swagger -- so the stages come from the
      artifact and nothing is guessed. Contrast lowersTarget, which says readFrom:"m.boosts" and is
