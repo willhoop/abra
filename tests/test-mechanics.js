@@ -4103,20 +4103,39 @@ probe('move', 'spreadAll', 'Earthquake hits your own partner too', () => {
  *     garchomp(roughskin) Flamethrower -> kingambit(defiant)            58-70   single target
  *     garchomp(roughskin) Heat Wave    -> kingambit(defiant)  SPREAD    46-56   the naive float: 44-54
  *
- * so the seeded turn (rng 0.5 picks min + floor(span/2)) must read 64 and 51, and a truncating
- * engine reads 64 and 49. THE CONTROL IS IDENTICAL ON BOTH ENGINES BY CONSTRUCTION -- a single-target
- * Fire special move on the same board -- which is what makes the second arm the multiplier and
- * nothing else. The item is cleared on both arms because buildMon hands out a usage item and a
- * Life Orb underneath this would be a second modifier in the same chain. */
+ * THE EXPECTATION WAS RE-DERIVED FOR ROADMAP #304, AND THE OLD ONE WAS PINNING A DEFECT.
+ *
+ * It read `control === 64 && test === 51`, and 51 came from the engine's own arithmetic rather than
+ * from the authority: rng 0.5 used to mean `min + floor(span/2)` = 46 + floor(11/2). The authority
+ * cannot emit 51 AT ANY ROLL. Its whole support for this hit is {46,48,50,52,54,56} — sixteen
+ * indices landing on six values — so the probe was demanding a number the real game never produces,
+ * and it would have gone RED against a corrected engine and GREEN against the broken one.
+ *
+ * rng 0.5 now selects INDEX 7 (`damageRollIndex(0.5)` = 15 - floor(8) = 7). Re-derived against the
+ * authority at these exact bodies, all sixteen indices, `battle.actions.moveHit` with
+ * `battle.random(16)` pinned per index (scratchpad derivation, 2026-08-18):
+ *
+ *     Flamethrower  70,68,68,66,66,66,64,64,64,62,62,62,60,60,60,58    index 7 -> 64
+ *     Heat Wave     56,54,54,54,52,52,52,52,50,50,50,48,48,48,48,46    index 7 -> 52
+ *
+ * AND THE TRUNCATING ENGINE WAS MEASURED, NOT ARGUED: `md4096(base,0.75)` was replaced by
+ * `Math.floor(base*0.75)` in a throwaway edit and this staging read **50** at the same die. So the
+ * row still separates the two arithmetics — 52 correct, 50 truncating — which is the only reason it
+ * is allowed to keep its slot in a number that may never fall.
+ *
+ * THE CONTROL IS IDENTICAL ON BOTH ENGINES BY CONSTRUCTION -- a single-target Fire special move on
+ * the same board -- which is what makes the second arm the multiplier and nothing else. The item is
+ * cleared on both arms because buildMon hands out a usage item and a Life Orb underneath this would
+ * be a second modifier in the same chain. */
 probe('move', 'spreadFoes', 'a spread move takes Showdown\'s x0.75 rounded half up, not a truncation', () => {
   const run = (mv) => turnDamageBig(['garchomp', 'milotic', 'kingambit', 'incineroar'],
     (B) => { B.me.item = ''; B.f1.item = ''; }, mv);
   const control = run('flamethrower'), test = run('heatwave');
-  return { works: control === 64 && test === 51,
+  return { works: control === 64 && test === 52,
            arms: { control, test },
            detail: `Garchomp -> Kingambit, item cleared: single-target Flamethrower ${control} (must be 64, `
-                 + `the authority's 58-70 at this roll — identical on a truncating engine), spread Heat Wave `
-                 + `${test} (must be 51; the authority is 46-56, a truncating x0.75 gives 44-54 and reads 49)` };
+                 + `the authority's index-7 value — identical on a truncating engine), spread Heat Wave `
+                 + `${test} (must be 52, the authority's index-7 value; a truncating x0.75 was MEASURED at 50)` };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). The two `moveAccuracy` reads proved the LOOKUP
@@ -4358,18 +4377,29 @@ probe('item', 'damageMultAll', 'Life Orb raises damage', () => {
  *     incineroar(intimidate) Close Combat -> garchomp(roughskin)             73-86
  *     the same click holding a Life Orb                                      95-112   the naive float: 94-111
  *
- * so the seeded turn must read 80 and 104, where the truncating engine reads 80 and 103. THE CONTROL
- * IS IDENTICAL ON BOTH ENGINES BY CONSTRUCTION, which is the whole point: an off-by-one is only
- * legible against an arm that does not move. */
+ * RE-DERIVED FOR ROADMAP #304, SAME REASON AS `spreadFoes` ABOVE. The old `80 / 104` came from the
+ * engine's span draw (`min + floor(span/2)`), not from a die index; rng 0.5 now selects INDEX 7.
+ * Re-derived against the authority at these exact bodies, all sixteen indices:
+ *
+ *     no item     86,85,84,83,82,81,80,79,79,78,77,76,75,74,73,73     index 7 -> 79
+ *     Life Orb   112,110,109,108,107,105,104,103,103,101,100,99,97,96,95,95   index 7 -> 103
+ *
+ * AND THE FLOAT ENGINE WAS MEASURED RATHER THAN INFERRED, because 103 is the number the OLD comment
+ * named as the WRONG answer and a reader is owed proof that it is now the right one for a different
+ * reason. `mdChain(d,mod)` was replaced by `Math.floor(mdChain(d,mod)*1.3)` in a throwaway edit and
+ * this staging read **102** at the same die. 103 correct, 102 float — the row still separates them.
+ *
+ * THE CONTROL IS IDENTICAL ON BOTH ENGINES BY CONSTRUCTION, which is the whole point: an off-by-one
+ * is only legible against an arm that does not move. */
 probe('item', 'damageMultAll', 'Life Orb is 5324/4096 rounded half up, not a float 1.3', () => {
   const hit = (item) => turnDamageBig(['incineroar', 'corviknight', 'garchomp', 'garchomp'],
     (B) => { B.me.item = item; B.f1.item = ''; }, 'closecombat');
   const control = hit(''), test = hit('lifeorb');
-  return { works: control === 80 && test === 104,
+  return { works: control === 79 && test === 103,
            arms: { control, test },
-           detail: `Close Combat into Garchomp: no item ${control} (must be 80, the authority's 73-86 at `
-                 + `this roll — identical on a truncating engine), Life Orb ${test} (must be 104; the `
-                 + `authority is 95-112, a float x1.3 gives 94-111 and reads 103)` };
+           detail: `Close Combat into Garchomp: no item ${control} (must be 79, the authority's index-7 `
+                 + `value — identical on a float engine), Life Orb ${test} (must be 103, the authority's `
+                 + `index-7 value; a float x1.3 was MEASURED at 102)` };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). THE SECOND ARM IS THE ONE THAT MATTERS. An

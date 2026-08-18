@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-18T13:52:12.907Z",
+  "generated": "2026-08-18T15:00:04.878Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
   "probed": 596,
@@ -66,7 +66,7 @@
       "tag": "megaSheetAbility",
       "label": "a sheet's pre-mega ability does not override the mega's",
       "live": true,
-      "detail": "sheet says Swarm -> scizor-mega ability=\"technician\" 61; sheet silent -> ability=\"technician\" 61; same body with no ability 41",
+      "detail": "sheet says Swarm -> scizor-mega ability=\"technician\" 60; sheet silent -> ability=\"technician\" 60; same body with no ability 40",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -86,7 +86,7 @@
       "tag": "megaStone",
       "label": "a stone-holder is built as its BASE forme and evolves on a CHOICE, mid-turn",
       "live": true,
-      "detail": "[forme, ability, SpA] as BUILT gengar,cursedbody,200 (base forme, base ability, holding the stone); never told to mega gengar,cursedbody,200 dealing 95; told to mega gengar-mega,shadowtag,240 dealing 113",
+      "detail": "[forme, ability, SpA] as BUILT gengar,cursedbody,200 (base forme, base ability, holding the stone); never told to mega gengar,cursedbody,200 dealing 96; told to mega gengar-mega,shadowtag,240 dealing 114",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -116,7 +116,7 @@
       "tag": "megaEntryAbility",
       "label": "an entry ability on the MEGA forme fires on evolution",
       "live": true,
-      "detail": "[ability, foe A atk stage, foe B atk stage, Earthquake taken] — no mega lightningrod,0,0,232; mega intimidate,-1,-1,124 (Intimidate arrived WITH the evolution and both foes are at -1, so the Earthquake that follows in the same turn hits softer)",
+      "detail": "[ability, foe A atk stage, foe B atk stage, Earthquake taken] — no mega lightningrod,0,0,234; mega intimidate,-1,-1,122 (Intimidate arrived WITH the evolution and both foes are at -1, so the Earthquake that follows in the same turn hits softer)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -226,7 +226,7 @@
       "tag": "flinches",
       "label": "Fake Out's flinch is a SECONDARY — Shield Dust and Sheer Force delete it",
       "live": true,
-      "detail": "Fake Out at a Vivillon that clicked Bug Buzz back — quiet abilities: the foe dealt 0 (flinched, must be 0); the foe holds SHIELD DUST: 61 (must be >0); the user holds SHEER FORCE: 61 (must be >0, and equal to the Shield Dust arm because both delete the same secondary)",
+      "detail": "Fake Out at a Vivillon that clicked Bug Buzz back — quiet abilities: the foe dealt 0 (flinched, must be 0); the foe holds SHIELD DUST: 60 (must be >0); the user holds SHEER FORCE: 60 (must be >0, and equal to the Shield Dust arm because both delete the same secondary)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -256,7 +256,7 @@
       "tag": "damageBoost",
       "label": "Reckless pays 1.2x for the recoil moves ONLY, and the recoil grows with it",
       "live": true,
-      "detail": "Staraptor into a Garchomp — BRAVE BIRD (recoil) 123 with no ability and 147 with RECKLESS, x1.195 against the handler's 4915/4096 = 1.200; DRILL PECK (same type, same category, same accuracy, NO recoil) 83 and 83 — IDENTICAL is the claim, and it is what separates a recoil boost from a blanket one; HIGH JUMP KICK (hasCrashDamage, not recoil) 89 and 106 — the handler's condition is move.recoil || move.hasCrashDamage and both halves are read. The recoil the USER pays goes up with it, 41 -> 49, because recoil is a fraction of damage dealt; Drill Peck costs its user 0 either way",
+      "detail": "Staraptor into a Garchomp — BRAVE BIRD (recoil) 123 with no ability and 147 with RECKLESS, x1.195 against the handler's 4915/4096 = 1.200; DRILL PECK (same type, same category, same accuracy, NO recoil) 82 and 82 — IDENTICAL is the claim, and it is what separates a recoil boost from a blanket one; HIGH JUMP KICK (hasCrashDamage, not recoil) 89 and 106 — the handler's condition is move.recoil || move.hasCrashDamage and both halves are read. The recoil the USER pays goes up with it, 41 -> 49, because recoil is a fraction of damage dealt; Drill Peck costs its user 0 either way",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -346,7 +346,7 @@
       "tag": "conditionalPower",
       "label": "Facade doubles when statused, and ignores its own burn penalty",
       "live": true,
-      "detail": "Facade clean 47, paralysed 93, burned 93 (must NOT be halved); control Body Slam clean 57 -> burned 29 (must be halved)",
+      "detail": "Facade clean 47, paralysed 93, burned 93 (must NOT be halved); control Body Slam clean 57 -> burned 28 (must be halved)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -416,7 +416,7 @@
       "tag": "damageReduce",
       "label": "Multiscale halves the hit at FULL HP and does nothing once the body is chipped",
       "live": true,
-      "detail": "[at FULL hp, at HALF hp] Dragon Claw taken — no ability 173,173, Multiscale 87,173 (only the full-HP one may move)",
+      "detail": "[at FULL hp, at HALF hp] Dragon Claw taken — no ability 174,174, Multiscale 87,174 (only the full-HP one may move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -526,7 +526,7 @@
       "tag": "removesItem",
       "label": "Knock Off gets its x1.5 only when the item could actually be taken",
       "live": true,
-      "detail": "Knock Off into the SAME Charizard — holding a Life Orb 137 and the item is gone; holding its OWN Charizardite Y 92 and the stone is still there. The identical stone on a SNORLAX: 112 against 74 for an empty-handed one, stone taken — the refusal is keyed on the body, not on the item class",
+      "detail": "Knock Off into the SAME Charizard — holding a Life Orb 138 and the item is gone; holding its OWN Charizardite Y 93 and the stone is still there. The identical stone on a SNORLAX: 112 against 75 for an empty-handed one, stone taken — the refusal is keyed on the body, not on the item class",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -536,7 +536,7 @@
       "tag": "flingable",
       "label": "the thrown item's OWN base power is what lands, item by item",
       "live": true,
-      "detail": "the same Sceptile throwing three different items at the same Snorlax — leftovers (10 BP declared) dealt 5, lightball (30 BP declared) dealt 11, ironball (130 BP declared) dealt 43; empty-handed dealt 0. The order comes out of data/tags.json, not out of this probe",
+      "detail": "the same Sceptile throwing three different items at the same Snorlax — leftovers (10 BP declared) dealt 4, lightball (30 BP declared) dealt 11, ironball (130 BP declared) dealt 42; empty-handed dealt 0. The order comes out of data/tags.json, not out of this probe",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -546,7 +546,7 @@
       "tag": "flingsOwnItem",
       "label": "Fling throws the held item — its power, its status, and it is gone",
       "live": true,
-      "detail": "Fling from the same Sceptile at the same Snorlax — Light Ball 11 and the target is par (the item's own status), Iron Ball 43 (130 base power against 30, so the power IS the item), empty-handed 0 (the move fails). A Charizard throwing its OWN Charizardite Y: 0 and the stone is kept; the identical stone on a Sceptile: 27 and it is gone",
+      "detail": "Fling from the same Sceptile at the same Snorlax — Light Ball 11 and the target is par (the item's own status), Iron Ball 42 (130 base power against 30, so the power IS the item), empty-handed 0 (the move fails). A Charizard throwing its OWN Charizardite Y: 0 and the stone is kept; the identical stone on a Sceptile: 26 and it is gone",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -606,7 +606,7 @@
       "tag": "oneTurnGuard",
       "label": "Wide Guard blocks a spread move",
       "live": true,
-      "detail": "ally took 92 without  ->  0 behind Wide Guard",
+      "detail": "ally took 93 without  ->  0 behind Wide Guard",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -636,7 +636,7 @@
       "tag": "ignoresProtect",
       "label": "Feint goes through Quick Guard; a flagged priority move does not",
       "live": true,
-      "detail": "behind one Quick Guard — Bullet Punch (+1, carries flags.protect) dealt 0 (must be 0), Feint (+2, no protect flag) dealt 29 (must be > 0 and equal to the 29 it deals with no guard up at all)",
+      "detail": "behind one Quick Guard — Bullet Punch (+1, carries flags.protect) dealt 0 (must be 0), Feint (+2, no protect flag) dealt 28 (must be > 0 and equal to the 28 it deals with no guard up at all)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -686,7 +686,7 @@
       "tag": "piercesProtect",
       "label": "Piercing Drill AND Unseen Fist go through Protect on CONTACT only",
       "live": true,
-      "detail": "into one Protect — no ability + Close Combat 0 (must be 0); Piercing Drill + Close Combat 20 (>0); Piercing Drill + Stone Edge (physical, NO contact) 0 (must be 0); Unseen Fist + Close Combat 20 (>0); Unseen Fist + Draining Kiss (SPECIAL contact) 9 (>0); the same Close Combat with no shield deals 80, so the pierced hit is 0.250 of it (must be ~0.25)",
+      "detail": "into one Protect — no ability + Close Combat 0 (must be 0); Piercing Drill + Close Combat 20 (>0); Piercing Drill + Stone Edge (physical, NO contact) 0 (must be 0); Unseen Fist + Close Combat 20 (>0); Unseen Fist + Draining Kiss (SPECIAL contact) 9 (>0); the same Close Combat with no shield deals 79, so the pierced hit is 0.253 of it (must be ~0.25)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -706,7 +706,7 @@
       "tag": "weightBased",
       "label": "Grass Knot scales with target weight",
       "live": true,
-      "detail": "same Garchomp, only its weight moves -- 5 kg takes 23, 400 kg takes 133",
+      "detail": "same Garchomp, only its weight moves -- 5 kg takes 22, 400 kg takes 133",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -716,7 +716,7 @@
       "tag": "swapsStat",
       "label": "Body Press attacks with Defense",
       "live": true,
-      "detail": "Body Press: base Def 37 -> double Def 72; Iron Head, which reads Attack: 74 -> 74 (must not move)",
+      "detail": "Body Press: base Def 37 -> double Def 72; Iron Head, which reads Attack: 75 -> 75 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -726,7 +726,7 @@
       "tag": "ignoresStatStages",
       "label": "Sacred Sword ignores a Defense boost and Close Combat does not",
       "live": true,
-      "detail": "[Sacred Sword, Close Combat] into the same Corviknight — unboosted 60,80, +4 Def 60,28 (Sacred Sword must not move, Close Combat must fall)",
+      "detail": "[Sacred Sword, Close Combat] into the same Corviknight — unboosted 60,79, +4 Def 60,27 (Sacred Sword must not move, Close Combat must fall)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -756,7 +756,7 @@
       "tag": "stabBoost",
       "label": "Adaptability raises same-type damage",
       "live": true,
-      "detail": "Wave Crash (STAB Water off a Water body): none 118 -> Adaptability 157; Crunch (not this body's type): 53 -> 53 (must not move)",
+      "detail": "Wave Crash (STAB Water off a Water body): none 118 -> Adaptability 158; Crunch (not this body's type): 53 -> 53 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -926,7 +926,7 @@
       "tag": "needsTargetToAttack",
       "label": "Avalanche doubles after the target hits it this turn",
       "live": true,
-      "detail": "Avalanche (-4 priority, so it lands last): foe passed 150, foe clicked Dragon Claw into it first 296 (must be about double)",
+      "detail": "Avalanche (-4 priority, so it lands last): foe passed 152, foe clicked Dragon Claw into it first 296 (must be about double)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -936,7 +936,7 @@
       "tag": "needsUntrackedState",
       "label": "Gyro Ball scales with the speed gap",
       "live": true,
-      "detail": "same Archaludon, only its Speed moves — 30 Spe deals 82, 150 Spe deals 18 (Gyro Ball must get WEAKER as the user gets faster)",
+      "detail": "same Archaludon, only its Speed moves — 30 Spe deals 81, 150 Spe deals 18 (Gyro Ball must get WEAKER as the user gets faster)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -946,7 +946,7 @@
       "tag": "redirectsType",
       "label": "Lightning Rod pulls an Electric move",
       "live": true,
-      "detail": "no ability: aimed 171 / other 0 / spa 0   |   Lightning Rod: aimed 0 / rod 0 / spa 1",
+      "detail": "no ability: aimed 170 / other 0 / spa 0   |   Lightning Rod: aimed 0 / rod 0 / spa 1",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1026,7 +1026,7 @@
       "tag": "priority",
       "label": "Bullet Punch moves before a faster foe",
       "live": true,
-      "detail": "slow user took 125 with a 0-priority move, 0 with Bullet Punch",
+      "detail": "slow user took 126 with a 0-priority move, 0 with Bullet Punch",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1056,7 +1056,7 @@
       "tag": "spreadAll",
       "label": "Earthquake hits your own partner too",
       "live": true,
-      "detail": "[own partner, foe 1, foe 2] — Rock Slide (spreadFoes) 0,85,85 (my partner must take 0); Earthquake (spreadAll) 92,167,167",
+      "detail": "[own partner, foe 1, foe 2] — Rock Slide (spreadFoes) 0,84,84 (my partner must take 0); Earthquake (spreadAll) 93,168,168",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1066,7 +1066,7 @@
       "tag": "spreadFoes",
       "label": "a spread move takes Showdown's x0.75 rounded half up, not a truncation",
       "live": true,
-      "detail": "Garchomp -> Kingambit, item cleared: single-target Flamethrower 64 (must be 64, the authority's 58-70 at this roll — identical on a truncating engine), spread Heat Wave 51 (must be 51; the authority is 46-56, a truncating x0.75 gives 44-54 and reads 49)",
+      "detail": "Garchomp -> Kingambit, item cleared: single-target Flamethrower 64 (must be 64, the authority's index-7 value — identical on a truncating engine), spread Heat Wave 52 (must be 52, the authority's index-7 value; a truncating x0.75 was MEASURED at 50)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1086,7 +1086,7 @@
       "tag": "thawsTarget",
       "label": "Flare Blitz thaws a frozen target",
       "live": true,
-      "detail": "a frozen Garchomp — Crunch (Dark, no thaw) dealt 80 and left it frz; Flare Blitz (Fire, thaws by TYPE) dealt 59 and left it none; Matcha Gotcha (Grass, thaws by TAG) dealt 22 and left it none",
+      "detail": "a frozen Garchomp — Crunch (Dark, no thaw) dealt 79 and left it frz; Flare Blitz (Fire, thaws by TYPE) dealt 59 and left it none; Matcha Gotcha (Grass, thaws by TAG) dealt 22 and left it none",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1096,7 +1096,7 @@
       "tag": "thawsUser",
       "label": "a frozen body thaws by USING a defrost move",
       "live": true,
-      "detail": "a frozen user on a LOSING thaw roll — Crunch (no flag) {\"status\":\"frz\",\"dealt\":0} must stay frozen and deal 0; Flare Blitz (defrost) {\"status\":\"none\",\"dealt\":59} must thaw AND land; Scald (defrost, WATER) {\"status\":\"none\",\"dealt\":80} must too, which is the arm a type-based fix fails",
+      "detail": "a frozen user on a LOSING thaw roll — Crunch (no flag) {\"status\":\"frz\",\"dealt\":0} must stay frozen and deal 0; Flare Blitz (defrost) {\"status\":\"none\",\"dealt\":59} must thaw AND land; Scald (defrost, WATER) {\"status\":\"none\",\"dealt\":79} must too, which is the arm a type-based fix fails",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1116,7 +1116,7 @@
       "tag": "thawsTarget",
       "label": "a frozen TARGET thaws by TAG and by TYPE, and by nothing else",
       "live": true,
-      "detail": "a frozen Garchomp — Crunch (Dark, neither flag) {\"status\":\"frz\",\"dealt\":80} must land and leave the ice; Scald (Water, thawsTarget) {\"status\":\"none\",\"dealt\":80} thaws by TAG; Fire Fang (Fire, neither flag) {\"status\":\"none\",\"dealt\":32} thaws by TYPE",
+      "detail": "a frozen Garchomp — Crunch (Dark, neither flag) {\"status\":\"frz\",\"dealt\":79} must land and leave the ice; Scald (Water, thawsTarget) {\"status\":\"none\",\"dealt\":79} thaws by TAG; Fire Fang (Fire, neither flag) {\"status\":\"none\",\"dealt\":31} thaws by TYPE",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1146,7 +1146,7 @@
       "tag": "resistBerry",
       "label": "Chople Berry halves a super-effective Fighting hit",
       "live": true,
-      "detail": "no item took 175  ->  Chople took 131",
+      "detail": "no item took 175  ->  Chople took 132",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1156,7 +1156,7 @@
       "tag": "damageMultAll",
       "label": "Life Orb raises damage",
       "live": true,
-      "detail": "Close Combat into Garchomp -- no item 80  ->  Life Orb 104",
+      "detail": "Close Combat into Garchomp -- no item 79  ->  Life Orb 103",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1166,7 +1166,7 @@
       "tag": "damageMultAll",
       "label": "Life Orb is 5324/4096 rounded half up, not a float 1.3",
       "live": true,
-      "detail": "Close Combat into Garchomp: no item 80 (must be 80, the authority's 73-86 at this roll — identical on a truncating engine), Life Orb 104 (must be 104; the authority is 95-112, a float x1.3 gives 94-111 and reads 103)",
+      "detail": "Close Combat into Garchomp: no item 79 (must be 79, the authority's index-7 value — identical on a float engine), Life Orb 103 (must be 103, the authority's index-7 value; a float x1.3 was MEASURED at 102)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1176,7 +1176,7 @@
       "tag": "damageMultType",
       "label": "Black Glasses raises Dark damage only",
       "live": true,
-      "detail": "Dark 80->95, Fighting 80->80 (must not move)",
+      "detail": "Dark 79->96, Fighting 79->79 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1196,7 +1196,7 @@
       "tag": "doublesSideSpeed",
       "label": "Tailwind speeds the PARTNER up inside the same turn",
       "live": true,
-      "detail": "partner (Incineroar 80) took 115 from a Milotic (101) that outran it, and 0 after the ally clicked Tailwind on the same turn",
+      "detail": "partner (Incineroar 80) took 116 from a Milotic (101) that outran it, and 0 after the ally clicked Tailwind on the same turn",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1236,7 +1236,7 @@
       "tag": "drain",
       "label": "Drain Punch heals the user",
       "live": true,
-      "detail": "Close Combat dealt 80 and returned 0 hp (must be 0); Drain Punch dealt 51 and returned 26 hp",
+      "detail": "Close Combat dealt 79 and returned 0 hp (must be 0); Drain Punch dealt 51 and returned 26 hp",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1276,7 +1276,7 @@
       "tag": "redirects",
       "label": "Follow Me pulls the attack onto the partner",
       "live": true,
-      "detail": "no Follow Me: aimed 92 / partner 0   |   Follow Me: aimed 0 / partner 101",
+      "detail": "no Follow Me: aimed 91 / partner 0   |   Follow Me: aimed 0 / partner 100",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1286,7 +1286,7 @@
       "tag": "ignoresRedirection",
       "label": "Stalwart is not drawn by Follow Me or by Lightning Rod",
       "live": true,
-      "detail": "Follow Me — without Stalwart the aimed foe takes 0 (drawn away, the partner took 56); WITH Stalwart the aimed foe takes 99 (must be > 0). Lightning Rod — without Stalwart 0, with Stalwart 86. Equal arms on either redirector would mean the gate is unread",
+      "detail": "Follow Me — without Stalwart the aimed foe takes 0 (drawn away, the partner took 57); WITH Stalwart the aimed foe takes 98 (must be > 0). Lightning Rod — without Stalwart 0, with Stalwart 86. Equal arms on either redirector would mean the gate is unread",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1306,7 +1306,7 @@
       "tag": "halvesDamage",
       "label": "Reflect halves physical damage",
       "live": true,
-      "detail": "took 167 with no screen  ->  111 behind Reflect",
+      "detail": "took 168 with no screen  ->  112 behind Reflect",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1316,7 +1316,7 @@
       "tag": "halvesDamage",
       "label": "a second Reflect does not extend the first",
       "live": true,
-      "detail": "turn-6 Earthquake — one Reflect on turn 1: 167 (expired); re-clicked on turn 2: 167 (must equal 167 — the re-set is refused); the SAME turn-2 click alone: 111 (halved, so the measurement can see a screen that really is up on turn 6)",
+      "detail": "turn-6 Earthquake — one Reflect on turn 1: 168 (expired); re-clicked on turn 2: 168 (must equal 168 — the re-set is refused); the SAME turn-2 click alone: 112 (halved, so the measurement can see a screen that really is up on turn 6)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1326,7 +1326,7 @@
       "tag": "halvesDamage",
       "label": "Aurora Veil still goes up on a side that already has Reflect",
       "live": true,
-      "detail": "Reflect up since turn 1. Turn-3 SPECIAL hit: 72 with no veil -> 48 after an Aurora Veil on turn 2 (it must LAND — a per-category refusal would have failed it). Physical unchanged at 111/111",
+      "detail": "Reflect up since turn 1. Turn-3 SPECIAL hit: 72 with no veil -> 48 after an Aurora Veil on turn 2 (it must LAND — a per-category refusal would have failed it). Physical unchanged at 112/112",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1366,7 +1366,7 @@
       "tag": "pivotStatus",
       "label": "Parting Shot does NOT jump the queue — the user eats the hit before it leaves",
       "live": true,
-      "detail": "pivot user (80 spe) took 115, its replacement took 0, pivoted=true",
+      "detail": "pivot user (80 spe) took 116, its replacement took 0, pivoted=true",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1376,7 +1376,7 @@
       "tag": "pivotDamaging",
       "label": "U-turn damages and then switches the user out",
       "live": true,
-      "detail": "Crunch dealt 80 and left incineroar,corviknight standing; U-turn dealt 47 and left milotic,corviknight",
+      "detail": "Crunch dealt 79 and left incineroar,corviknight standing; U-turn dealt 47 and left milotic,corviknight",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1396,7 +1396,7 @@
       "tag": "reversesSpeed",
       "label": "Trick Room lets the slow user move first",
       "live": true,
-      "detail": "field.tr=3; slow user took 125 normally, 0 under Trick Room",
+      "detail": "field.tr=3; slow user took 126 normally, 0 under Trick Room",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1406,7 +1406,7 @@
       "tag": "chargeTurn",
       "label": "Fly deals nothing on the turn it is clicked and lands on the next",
       "live": true,
-      "detail": "Brave Bird turn 1 dealt 123; Fly dealt 0 on the charge turn and 92 on the next",
+      "detail": "Brave Bird turn 1 dealt 123; Fly dealt 0 on the charge turn and 93 on the next",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1426,7 +1426,7 @@
       "tag": "chargeTurn",
       "label": "Electro Shot keeps its +1 Special Attack when rain skips the charge",
       "live": true,
-      "detail": "in rain the turn is NOT spent (185 damage on turn 1) and Special Attack is +1; the same click from −1 nets 0 and deals 123 (must be lower — equal arms would mean the boost is not applied); out of rain it charges (0 damage) and still takes +1",
+      "detail": "in rain the turn is NOT spent (186 damage on turn 1) and Special Attack is +1; the same click from −1 nets 0 and deals 124 (must be lower — equal arms would mean the boost is not applied); out of rain it charges (0 damage) and still takes +1",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1446,7 +1446,7 @@
       "tag": "failsIfTargetNotAttacking",
       "label": "Sucker Punch ALSO fails into a target that owes a recharge (the clause beside the other two)",
       "live": true,
-      "detail": "after Giga Impact the target owes a recharge (true) and Sucker Punch deals 0 (must be 0); after Dragon Claw it owes nothing (false) and the SAME click deals 86 — equal arms would mean the recharge clause is unread",
+      "detail": "after Giga Impact the target owes a recharge (true) and Sucker Punch deals 0 (must be 0); after Dragon Claw it owes nothing (false) and the SAME click deals 85 — equal arms would mean the recharge clause is unread",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1546,7 +1546,7 @@
       "tag": "typeImmunity",
       "label": "Levitate takes nothing from Earthquake",
       "live": true,
-      "detail": "Earthquake: no ability 84 -> Levitate 0 (must be 0); Dragon Claw: 183 -> 183 (must not move)",
+      "detail": "Earthquake: no ability 84 -> Levitate 0 (must be 0); Dragon Claw: 182 -> 182 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1556,7 +1556,7 @@
       "tag": "convertsMoveType",
       "label": "Aerilate makes Body Slam hit a Ghost",
       "live": true,
-      "detail": "Body Slam into a Ghost -- no ability 0 (Normal cannot touch it)  ->  Aerilate 149",
+      "detail": "Body Slam into a Ghost -- no ability 0 (Normal cannot touch it)  ->  Aerilate 150",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1566,7 +1566,7 @@
       "tag": "multiHit",
       "label": "Rock Blast lands more than one hit",
       "live": true,
-      "detail": "one hit 16  ->  Rock Blast as the engine prices it 47 (real average is about 3.2 hits)",
+      "detail": "one hit 15  ->  Rock Blast as the engine prices it 45 (real average is about 3.2 hits)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1636,7 +1636,7 @@
       "tag": "powerFromFallen",
       "label": "Last Respects grows with fallen allies",
       "live": true,
-      "detail": "[fallen allies, Last Respects damage] — nobody died 0,51, one ally really fainted first 1,101",
+      "detail": "[fallen allies, Last Respects damage] — nobody died 0,51, one ally really fainted first 1,100",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1646,7 +1646,7 @@
       "tag": "powerFromFallen",
       "label": "Last Respects counts an ally that died EARLIER IN THE SAME TURN",
       "live": true,
-      "detail": "[ally dead?, Last Respects damage] — ally survives the same turn 0,51; the ally is KOd EARLIER IN THE SAME TURN 1,101. The authority prices this at BP 50 -> BP 100 (measured on Showdown: 36 -> 69, x1.917), so the damage must double",
+      "detail": "[ally dead?, Last Respects damage] — ally survives the same turn 0,51; the ally is KOd EARLIER IN THE SAME TURN 1,100. The authority prices this at BP 50 -> BP 100 (measured on Showdown: 36 -> 69, x1.917), so the damage must double",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1656,7 +1656,7 @@
       "tag": "powerFromFallen",
       "label": "Last Respects prices the already-fallen on the FIRST action of a seeded battle",
       "live": true,
-      "detail": "Last Respects on the FIRST action of a battle seeded with 0/1/2/3 of the roster already fallen — damage 51/101/151/201. The authority reads 50 + 50n live, so the ladder must be 1x/2x/3x/4x of 51",
+      "detail": "Last Respects on the FIRST action of a battle seeded with 0/1/2/3 of the roster already fallen — damage 51/100/151/201. The authority reads 50 + 50n live, so the ladder must be 1x/2x/3x/4x of 51",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1666,7 +1666,7 @@
       "tag": "overridesEffectiveness",
       "label": "Freeze-Dry beats Ice Beam into a Water type",
       "live": true,
-      "detail": "into a WATER body -- Ice Beam 14, Freeze-Dry 46 (must be HIGHER, the override); into a non-Water body -- Ice Beam 11, Freeze-Dry 9 (must be LOWER, 70 BP against 90 with no override)",
+      "detail": "into a WATER body -- Ice Beam 14, Freeze-Dry 44 (must be HIGHER, the override); into a non-Water body -- Ice Beam 11, Freeze-Dry 9 (must be LOWER, 70 BP against 90 with no override)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1676,7 +1676,7 @@
       "tag": "reducesAllyDamage",
       "label": "Friend Guard cuts what the partner takes",
       "live": true,
-      "detail": "took 80 with a plain partner  ->  60 with Friend Guard",
+      "detail": "took 79 with a plain partner  ->  59 with Friend Guard",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1706,7 +1706,7 @@
       "tag": "boostsMoveClass",
       "label": "Iron Fist raises a punch and nothing else",
       "live": true,
-      "detail": "[Drain Punch (punch), Close Combat (not a punch)] — no ability 51,80, Iron Fist 60,80 (only the punch may move)",
+      "detail": "[Drain Punch (punch), Close Combat (not a punch)] — no ability 51,79, Iron Fist 60,79 (only the punch may move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1716,7 +1716,7 @@
       "tag": "writesAccuracy",
       "label": "No Guard makes an 80%-accurate move land on a losing roll",
       "live": true,
-      "detail": "roll 0.9 vs 80% accuracy: no ability dealt 0, No Guard dealt 119",
+      "detail": "roll 0.9 vs 80% accuracy: no ability dealt 0, No Guard dealt 118",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1726,7 +1726,7 @@
       "tag": "accuracyMod",
       "label": "Sand Veil makes the attacker miss a roll it would have hit",
       "live": true,
-      "detail": "roll 0.7 in sand: no ability took 115, Sand Veil took 0",
+      "detail": "roll 0.7 in sand: no ability took 114, Sand Veil took 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1836,7 +1836,7 @@
       "tag": "partialTrap",
       "label": "Infestation chips at the end of each turn",
       "live": true,
-      "detail": "Bug Bite dealt 41 then chipped 0 on the idle turn (must be 0); Infestation dealt 30 then chipped 22",
+      "detail": "Bug Bite dealt 40 then chipped 0 on the idle turn (must be 0); Infestation dealt 30 then chipped 22",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1856,7 +1856,7 @@
       "tag": "clearsScreens",
       "label": "Brick Break removes the opposing Reflect",
       "live": true,
-      "detail": "screen up 53  ->  after Brick Break 80",
+      "detail": "screen up 53  ->  after Brick Break 79",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1866,7 +1866,7 @@
       "tag": "blocksSoundMoves",
       "label": "Throat Chop stops the target using a sound move",
       "live": true,
-      "detail": "sound move dealt 27 normally, 0 after Throat Chop",
+      "detail": "sound move dealt 26 normally, 0 after Throat Chop",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1876,7 +1876,7 @@
       "tag": "ignoresBoosts",
       "label": "Darkest Lariat ignores a Defense boost",
       "live": true,
-      "detail": "into a +4 Def Corviknight -- Darkest Lariat 79 -> 79 (equal = ignored); Crunch 74 -> 26 (must fall, or nothing reads boosts)",
+      "detail": "into a +4 Def Corviknight -- Darkest Lariat 79 -> 79 (equal = ignored); Crunch 75 -> 25 (must fall, or nothing reads boosts)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1886,7 +1886,7 @@
       "tag": "failsWithoutWeather",
       "label": "Aurora Veil fails when it is not snowing",
       "live": true,
-      "detail": "took 167 after Aurora Veil in clear weather (must be unreduced), 111 in snow",
+      "detail": "took 168 after Aurora Veil in clear weather (must be unreduced), 112 in snow",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1936,7 +1936,7 @@
       "tag": "breaksProtect",
       "label": "Feint takes the shield down, so the PARTNER lands on the same body",
       "live": true,
-      "detail": "Incineroar behind Protect, Garchomp Dragon Claw second in both arms, Milotic shielding beside it — Ice Punch opener: lost 0, shield refused 2 clicks, still up=true   |   FEINT opener: lost 110, shield refused 0 clicks, still up=false, break announced 1x   |   the UNAIMED Milotic beside it: shield up=true/true, stall counter 1/1 (both must be up with the counter still armed — the break follows the TARGET)",
+      "detail": "Incineroar behind Protect, Garchomp Dragon Claw second in both arms, Milotic shielding beside it — Ice Punch opener: lost 0, shield refused 2 clicks, still up=true   |   FEINT opener: lost 108, shield refused 0 clicks, still up=false, break announced 1x   |   the UNAIMED Milotic beside it: shield up=true/true, stall counter 1/1 (both must be up with the counter still armed — the break follows the TARGET)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1946,7 +1946,7 @@
       "tag": "breaksProtect",
       "label": "Phantom Force vanishes, then breaks the shield on the STRIKE turn with [broken]",
       "live": true,
-      "detail": "turn 1 (charge): Dragapult took 0, foe missed 1x, _charging=phantomforce, breaks announced 0   |   turn 2 (strike): Incineroar lost 140, shield refused 0 clicks, still up=false, line |-activate|p2a: incineroar|move: Phantom Force|[broken]",
+      "detail": "turn 1 (charge): Dragapult took 0, foe missed 1x, _charging=phantomforce, breaks announced 0   |   turn 2 (strike): Incineroar lost 139, shield refused 0 clicks, still up=false, line |-activate|p2a: incineroar|move: Phantom Force|[broken]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1956,7 +1956,7 @@
       "tag": "breaksProtect",
       "label": "a Feint the type chart refused leaves the shield standing",
       "live": true,
-      "detail": "Feint into a GHOST behind Protect: immune lines 1, breaks 0, shield still up=true and it refused the partner 1x, stall counter 1   |   the same Feint into Incineroar: breaks 1, shield up=false, body lost 110",
+      "detail": "Feint into a GHOST behind Protect: immune lines 1, breaks 0, shield still up=true and it refused the partner 1x, stall counter 1   |   the same Feint into Incineroar: breaks 1, shield up=false, body lost 108",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1986,7 +1986,7 @@
       "tag": "critRatioUp",
       "label": "Night Slash crits on a roll Crunch does not",
       "live": true,
-      "detail": "roll 0.1 (above 1/24, below 1/8): Night Slash plain 100 / Shell Armor 67   |   Crunch plain 77 / Shell Armor 77 (must be equal)",
+      "detail": "roll 0.1 (above 1/24, below 1/8): Night Slash plain 100 / Shell Armor 66   |   Crunch plain 76 / Shell Armor 76 (must be equal)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2026,7 +2026,7 @@
       "tag": "terrainScaled",
       "label": "Expanding Force gains power on Psychic Terrain",
       "live": true,
-      "detail": "Expanding Force dealt: no terrain 97, 'psychic' 188, 'psychicterrain' 188 (the board's own word), 'electric' 97 (must equal no terrain)",
+      "detail": "Expanding Force dealt: no terrain 97, 'psychic' 189, 'psychicterrain' 189 (the board's own word), 'electric' 97 (must equal no terrain)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2036,7 +2036,7 @@
       "tag": "setsTerrain",
       "label": "Electric Terrain raises an ELECTRIC move and nothing else",
       "live": true,
-      "detail": "Thunderbolt dealt: no terrain 20, Electric Terrain 26, Misty Terrain 20 (must equal no terrain); Alluring Voice, a NON-Electric move off the same body: 48 -> 48 (must not move)",
+      "detail": "Thunderbolt dealt: no terrain 19, Electric Terrain 26, Misty Terrain 19 (must equal no terrain); Alluring Voice, a NON-Electric move off the same body: 48 -> 48 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2046,7 +2046,7 @@
       "tag": "setsTerrain",
       "label": "Psychic Terrain raises a PSYCHIC move and nothing else",
       "live": true,
-      "detail": "Psychic dealt: no terrain 120, Psychic Terrain 155, Misty Terrain 120 (must equal no terrain); Dazzling Gleam off the same body: 160 -> 160 (must not move)",
+      "detail": "Psychic dealt: no terrain 120, Psychic Terrain 156, Misty Terrain 120 (must equal no terrain); Dazzling Gleam off the same body: 158 -> 158 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2066,7 +2066,7 @@
       "tag": "setsTerrain",
       "label": "Misty Terrain HALVES a DRAGON move and nothing else",
       "live": true,
-      "detail": "Dragon Claw dealt: no terrain 157, Misty Terrain 79 (must be lower), Electric Terrain 157 (must equal no terrain); Rock Slide off the same body: 37 -> 37 (must not move)",
+      "detail": "Dragon Claw dealt: no terrain 158, Misty Terrain 78 (must be lower), Electric Terrain 158 (must equal no terrain); Rock Slide off the same body: 37 -> 37 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2076,7 +2076,7 @@
       "tag": "damageBoost",
       "label": "Water Bubble raises a WATER move and nothing else",
       "live": true,
-      "detail": "Liquidation dealt: no ability 32, Water Bubble 64; Leech Life, a NON-Water move off the same body: 62 -> 62 (must not move -- the tag names a type and a wire that ignored it would boost both)",
+      "detail": "Liquidation dealt: no ability 32, Water Bubble 64; Leech Life, a NON-Water move off the same body: 61 -> 61 (must not move -- the tag names a type and a wire that ignored it would boost both)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2086,7 +2086,7 @@
       "tag": "damageBoost",
       "label": "Blaze fires ONLY under a third of maximum HP, and the line is exact",
       "live": true,
-      "detail": "Charizard maxhp 153, gate hp<=51. Flamethrower [no ability, Blaze]: at FULL HP 32,32 (must be EQUAL -- the negative); at 51 HP 32,48 (must PART). THE LINE: Blaze at 51 48 vs at 52 32 (must fall back to the unboosted 32). Air Slash, a NON-Fire move off the same body at 51 HP: 56 -> 56 (must not move)",
+      "detail": "Charizard maxhp 153, gate hp<=51. Flamethrower [no ability, Blaze]: at FULL HP 32,32 (must be EQUAL -- the negative); at 51 HP 32,48 (must PART). THE LINE: Blaze at 51 48 vs at 52 32 (must fall back to the unboosted 32). Air Slash, a NON-Fire move off the same body at 51 HP: 55 -> 55 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2096,7 +2096,7 @@
       "tag": "swapsStat",
       "label": "Foul Play attacks with the TARGET Attack",
       "live": true,
-      "detail": "Foul Play: target at base Attack 31 -> at triple Attack 92; Crunch, same user and type: 47 -> 47 (must not move)",
+      "detail": "Foul Play: target at base Attack 31 -> at triple Attack 93; Crunch, same user and type: 46 -> 46 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2106,7 +2106,7 @@
       "tag": "formeChange",
       "label": "Disguise eats the first hit",
       "live": true,
-      "detail": "no ability took 92, Disguise took 16 (must be exactly maxhp/8 = 16)",
+      "detail": "no ability took 93, Disguise took 16 (must be exactly maxhp/8 = 16)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2116,7 +2116,7 @@
       "tag": "untagged",
       "label": "Marvel Scale raises Defense while statused",
       "live": true,
-      "detail": "Earthquake into a Milotic, [no ability, Marvel Scale] — clean 92,92 (must be equal: the ability does nothing on a healthy body), burned 177,149 (the Marvel Scale one must take less; both readings carry the same burn chip)",
+      "detail": "Earthquake into a Milotic, [no ability, Marvel Scale] — clean 93,93 (must be equal: the ability does nothing on a healthy body), burned 178,148 (the Marvel Scale one must take less; both readings carry the same burn chip)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2146,7 +2146,7 @@
       "tag": "variablePower",
       "label": "Acrobatics doubles with no item held",
       "live": true,
-      "detail": "holding a Life Orb (which is itself worth 1.3x) 73  ->  empty-handed 112",
+      "detail": "holding a Life Orb (which is itself worth 1.3x) 74  ->  empty-handed 112",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2166,7 +2166,7 @@
       "tag": "statSwap",
       "label": "Psyshock is scored against the target Defense",
       "live": true,
-      "detail": "target Defence tripled -- Psyshock 102 -> 36 (must fall); Psychic, which reads Sp. Def: 62 -> 62 (must not move)",
+      "detail": "target Defence tripled -- Psyshock 102 -> 36 (must fall); Psychic, which reads Sp. Def: 61 -> 61 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2186,7 +2186,7 @@
       "tag": "extendsDuration",
       "label": "Light Clay keeps Reflect up past turn five",
       "live": true,
-      "detail": "turn 7 damage: no item 167  ->  Light Clay 111",
+      "detail": "turn 7 damage: no item 168  ->  Light Clay 112",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2256,7 +2256,7 @@
       "tag": "semiInvulnerable",
       "label": "a Pokemon in the air cannot be hit",
       "live": true,
-      "detail": "flier speed 159 vs attacker 130; on the ground took 62, on the Fly charge turn took 0",
+      "detail": "flier speed 159 vs attacker 130; on the ground took 61, on the Fly charge turn took 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2276,7 +2276,7 @@
       "tag": "halvesTypeDamage",
       "label": "Dry Skin takes 1.25x from Fire",
       "live": true,
-      "detail": "[Flamethrower (Fire, must rise about 1.25x), Body Slam (Normal, must not move)] — no ability 46,91, Dry Skin 56,91",
+      "detail": "[Flamethrower (Fire, must rise about 1.25x), Body Slam (Normal, must not move)] — no ability 45,91, Dry Skin 55,91",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2286,7 +2286,7 @@
       "tag": "ignoresDefenderAbility",
       "label": "Mold Breaker ignores Levitate, in the calc AND in the turn",
       "live": true,
-      "detail": "[dmgRange max, HP the Levitate body actually lost] — no ability 0,0, Mold Breaker 60,42",
+      "detail": "[dmgRange max, HP the Levitate body actually lost] — no ability 0,0, Mold Breaker 60,41",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2326,7 +2326,7 @@
       "tag": "forcesSwitch",
       "label": "Dragon Tail drags the target out",
       "live": true,
-      "detail": "Dragon Claw dealt 92 and left incineroar,milotic; Dragon Tail dealt 69 and left whimsicott,milotic",
+      "detail": "Dragon Claw dealt 91 and left incineroar,milotic; Dragon Tail dealt 69 and left whimsicott,milotic",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2366,7 +2366,7 @@
       "tag": "boostsSuperEffective",
       "label": "Expert Belt raises only super-effective damage",
       "live": true,
-      "detail": "Flamethrower into [Corviknight (Steel/Flying, super-effective), Garchomp (resisted)] — no item 95,24, Expert Belt 114,24 (only the first may move)",
+      "detail": "Flamethrower into [Corviknight (Steel/Flying, super-effective), Garchomp (resisted)] — no item 96,24, Expert Belt 115,24 (only the first may move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2496,7 +2496,7 @@
       "tag": "reordersTurn",
       "label": "After You lets the partner move next",
       "live": true,
-      "detail": "slow partner took 133 with no help, 0 after After You (the 1-HP foe died first), and 133 after INSTRUCT -- which shares {sends:next} and must not reorder",
+      "detail": "slow partner took 132 with no help, 0 after After You (the 1-HP foe died first), and 132 after INSTRUCT -- which shares {sends:next} and must not reorder",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2506,7 +2506,7 @@
       "tag": "quashSendsLast",
       "label": "Quash makes the target act last",
       "live": true,
-      "detail": "partner took 133 without Quash, 0 with the attacker quashed to the back (it was KOd before its demoted action came up)",
+      "detail": "partner took 132 without Quash, 0 with the attacker quashed to the back (it was KOd before its demoted action came up)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2576,7 +2576,7 @@
       "tag": "multiAccuracy",
       "label": "Triple Axel is priced below three full hits, and the 90% is not counted twice",
       "live": true,
-      "detail": "Triple Axel priced 478 against 548 for three UNDISCOUNTED hits at 20/40/60 BP — x0.872, which is the 1 + p + p^2 = 2.71 discount carried on escalating hits (its first hit alone is 96);  Rock Blast 10 x3.10 = 31 (no per-hit roll, must stay x3.1);  through a real turn it deals 504 on a winning roll and 0 on a losing one (so the 90% is a to-hit roll, not a second discount)",
+      "detail": "Triple Axel priced 478 against 548 for three UNDISCOUNTED hits at 20/40/60 BP — x0.872, which is the 1 + p + p^2 = 2.71 discount carried on escalating hits (its first hit alone is 96);  Rock Blast 10 x3.10 = 31 (no per-hit roll, must stay x3.1);  through a real turn it deals 496 on a winning roll and 0 on a losing one (so the 90% is a to-hit roll, not a second discount)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2586,7 +2586,7 @@
       "tag": "boardWeatherLanguage",
       "label": "a board's Showdown weather name reaches the damage formula",
       "live": true,
-      "detail": "applyField('sunnyday') -> \"sun\"; Flamethrower through a real turn: clear 52, 'sun' 78, as landed 78",
+      "detail": "applyField('sunnyday') -> \"sun\"; Flamethrower through a real turn: clear 51, 'sun' 78, as landed 78",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2596,7 +2596,7 @@
       "tag": "boardTerrainLanguage",
       "label": "a board's Showdown terrain name reaches the engine",
       "live": true,
-      "detail": "applyField('electricterrain') -> \"electric\"; Surf under Hadron Engine through a real turn: clear 67, 'electric' 90, as landed 90; Ice Shard into a grounded Garchomp: clear 170, 'psychic' 0, 'psychicterrain' 0",
+      "detail": "applyField('electricterrain') -> \"electric\"; Surf under Hadron Engine through a real turn: clear 67, 'electric' 90, as landed 90; Ice Shard into a grounded Garchomp: clear 168, 'psychic' 0, 'psychicterrain' 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2616,7 +2616,7 @@
       "tag": "setsTerrain",
       "label": "Psychic Terrain refuses priority only against a GROUNDED target",
       "live": true,
-      "detail": "Fake Out damage, clear -> Psychic Terrain: Garchomp 28->0 (must be 0), Talonflame 34->34 (must not move), Levitate 28->28 (must not move), Earth Eater 28->0 (grounded, must be 0), Flying+Iron Ball 34->0 (grounded, must be 0); seen.terrainSparedAirborne +4 (must be > 0)",
+      "detail": "Fake Out damage, clear -> Psychic Terrain: Garchomp 27->0 (must be 0), Talonflame 34->34 (must not move), Levitate 27->27 (must not move), Earth Eater 27->0 (grounded, must be 0), Flying+Iron Ball 34->0 (grounded, must be 0); seen.terrainSparedAirborne +4 (must be > 0)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2636,7 +2636,7 @@
       "tag": "moveClass",
       "label": "Iron Fist boosts a punch and leaves a non-punch alone",
       "live": true,
-      "detail": "Mach Punch (punch): none 28 -> Iron Fist 32; Flare Blitz (not punch): none 59 -> Iron Fist 59 (must not move)",
+      "detail": "Mach Punch (punch): none 27 -> Iron Fist 32; Flare Blitz (not punch): none 59 -> Iron Fist 59 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2656,7 +2656,7 @@
       "tag": "sound",
       "label": "Soundproof refuses a sound move and takes a normal one",
       "live": true,
-      "detail": "Hyper Voice (sound): none 30, Soundproof 0; Moonblast (not sound): none 64, Soundproof 64 (must still land)",
+      "detail": "Hyper Voice (sound): none 29, Soundproof 0; Moonblast (not sound): none 63, Soundproof 63 (must still land)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2746,7 +2746,7 @@
       "tag": "weatherDamageMult",
       "label": "sun raises Fire and halves Water, rain does the reverse",
       "live": true,
-      "detail": "Flamethrower clear/sun/rain 52/78/25;  Surf clear/sun/rain 52/26/78",
+      "detail": "Flamethrower clear/sun/rain 51/78/25;  Surf clear/sun/rain 52/26/78",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2756,7 +2756,7 @@
       "tag": "weatherDefenceMult",
       "label": "sand raises a Rock SpD and snow raises an Ice Def",
       "live": true,
-      "detail": "Shadow Ball into Rock clear/sand 29/19 (into Water 123/123, must not move);  Earthquake into Ice clear/snow 109/73 (into Fire 167/167, must not move)",
+      "detail": "Shadow Ball into Rock clear/sand 28/19 (into Water 124/124, must not move);  Earthquake into Ice clear/snow 109/73 (into Fire 168/168, must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2766,7 +2766,7 @@
       "tag": "weatherAccuracy",
       "label": "Thunder never misses in rain and is worse in sun",
       "live": true,
-      "detail": "Thunder on a LOSING roll (0.99): clear 0, rain 98 (must land), sun 0; on a winning roll in clear skies 91; the printed accuracies are clear 70, rain 100, sun 50",
+      "detail": "Thunder on a LOSING roll (0.99): clear 0, rain 98 (must land), sun 0; on a winning roll in clear skies 90; the printed accuracies are clear 70, rain 100, sun 50",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2796,7 +2796,7 @@
       "tag": "solarPower",
       "label": "Solar Power raises a special move in sun and not a physical one",
       "live": true,
-      "detail": "in sun, Flamethrower 78 -> 116; Earthquake 26 -> 26 (must not move); no sun, Flamethrower 52 -> 52 (must not move)",
+      "detail": "in sun, Flamethrower 78 -> 117; Earthquake 26 -> 26 (must not move); no sun, Flamethrower 51 -> 51 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2816,7 +2816,7 @@
       "tag": "weatherSuppression",
       "label": "Cloud Nine stops the sun boosting Fire",
       "live": true,
-      "detail": "Flamethrower in sun: plain defender 78, Cloud Nine defender 52; the same click in CLEAR skies 52 (the suppressed arm must equal it exactly)",
+      "detail": "Flamethrower in sun: plain defender 78, Cloud Nine defender 51; the same click in CLEAR skies 51 (the suppressed arm must equal it exactly)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2856,7 +2856,7 @@
       "tag": "convertsMoveTypeByFlag",
       "label": "Liquid Voice makes a sound move Water",
       "live": true,
-      "detail": "Psychic Noise: no ability 112, Liquid Voice 42; Body Slam: no ability 27, Pixilate 24 (the TYPE half must still work)",
+      "detail": "Psychic Noise: no ability 112, Liquid Voice 42; Body Slam: no ability 26, Pixilate 24 (the TYPE half must still work)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3036,7 +3036,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3226,7 +3226,7 @@
       "tag": "ignoresStatStages",
       "label": "Unaware ignores the attacker's +6 when defending and the defender's +6 when attacking",
       "live": true,
-      "detail": "+6 attacker into: plain wall 371, Unaware wall 92 (equals unboosted 92); into a +6 Def wall: plain attacker 25, Unaware attacker 92",
+      "detail": "+6 attacker into: plain wall 373, Unaware wall 93 (equals unboosted 93); into a +6 Def wall: plain attacker 24, Unaware attacker 93",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3236,7 +3236,7 @@
       "tag": "priorityModFlying",
       "label": "Gale Wings puts a full-HP Flying move in front, and not a chipped one",
       "live": true,
-      "detail": "damage taken before acting -- no ability 61, Gale Wings at full HP 0 (its Flying move went first), Gale Wings at 60% 61 (the condition is the artifact's)",
+      "detail": "damage taken before acting -- no ability 60, Gale Wings at full HP 0 (its Flying move went first), Gale Wings at 60% 60 (the condition is the artifact's)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3286,7 +3286,7 @@
       "tag": "privateWeather",
       "label": "Mega Sol's own Fire move fires under a sun only it can see",
       "live": true,
-      "detail": "Flamethrower on a clear field: ability none 120, Mega Sol 179 (the private sun's x1.5); the field after the turn is CLEAR (must be CLEAR); an ALLY holding it shoots for 120 (must equal the no-ability number)",
+      "detail": "Flamethrower on a clear field: ability none 120, Mega Sol 180 (the private sun's x1.5); the field after the turn is CLEAR (must be CLEAR); an ALLY holding it shoots for 120 (must equal the no-ability number)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3326,7 +3326,7 @@
       "tag": "halvesTypeDamage",
       "label": "Purifying Salt halves a GHOST move and leaves the others alone",
       "live": true,
-      "detail": "Shadow Ball into Garganacl: no ability 92 -> Purifying Salt 47; Sludge Bomb must NOT move: 51 -> 51",
+      "detail": "Shadow Ball into Garganacl: no ability 91 -> Purifying Salt 46; Sludge Bomb must NOT move: 51 -> 51",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3376,7 +3376,7 @@
       "tag": "accuracyMod",
       "label": "Coil lands an 80% move on a losing roll; Minimize makes a 100% one miss",
       "live": true,
-      "detail": "Hydro Pump (80) at roll 0.85 after Howl 0 / after Coil 118; Ice Beam (100) at roll 0.85 into a foe that clicked Protect 258 / Minimize 0",
+      "detail": "Hydro Pump (80) at roll 0.85 after Howl 0 / after Coil 117; Ice Beam (100) at roll 0.85 into a foe that clicked Protect 256 / Minimize 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3386,7 +3386,7 @@
       "tag": "accuracyMod",
       "label": "Wide Lens lands an 80% move on a losing roll; Bright Powder makes it miss on a winning one",
       "live": true,
-      "detail": "Hydro Pump (80) at roll 0.85 — no item 0, Wide Lens 118; at roll 0.75 — no item 116, foe's Bright Powder 0",
+      "detail": "Hydro Pump (80) at roll 0.85 — no item 0, Wide Lens 117; at roll 0.75 — no item 115, foe's Bright Powder 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3396,7 +3396,7 @@
       "tag": "accuracyMod",
       "label": "Sand Veil makes the attacker miss a roll it would have hit, and only in sand",
       "live": true,
-      "detail": "Hydro Pump (80) at roll 0.70 into a Garchomp — Sand Veil, clear sky 115; no ability, sand 115; Sand Veil, SAND 0",
+      "detail": "Hydro Pump (80) at roll 0.70 into a Garchomp — Sand Veil, clear sky 114; no ability, sand 114; Sand Veil, SAND 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3456,7 +3456,7 @@
       "tag": "formeFollowsWeather",
       "label": "Forecast retypes Castform per sky — Ice in snow, Water in rain, back to Normal when it clears",
       "live": true,
-      "detail": "Flamethrower into Castform [damage, its types] — SNOW no ability 122,Normal vs Forecast 243,Ice (must roughly DOUBLE, Ice); RAIN no ability 61,Normal vs Forecast 30,Water (must roughly HALVE, Water); clear sky with Forecast 122,Normal; snow then ALLOWED TO CLEAR 122,Normal (must match the clear-sky arm exactly)",
+      "detail": "Flamethrower into Castform [damage, its types] — SNOW no ability 121,Normal vs Forecast 242,Ice (must roughly DOUBLE, Ice); RAIN no ability 60,Normal vs Forecast 30,Water (must roughly HALVE, Water); clear sky with Forecast 121,Normal; snow then ALLOWED TO CLEAR 121,Normal (must match the clear-sky arm exactly)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3476,7 +3476,7 @@
       "tag": "inheritsAllyAbility",
       "label": "Receiver takes the ability of the partner that just fainted, and it is LIVE",
       "live": true,
-      "detail": "Flamethrower into Passimian the turn after its Flash Fire partner was hit [partner died, Passimian's ability, damage] — no ability true,none,116 (must take damage); Receiver but the partner LIVED false,receiver,116 (must take damage); Receiver and the partner FAINTED true,flashfire,0 (must be flashfire and 0 — the inherited ability has to actually absorb)",
+      "detail": "Flamethrower into Passimian the turn after its Flash Fire partner was hit [partner died, Passimian's ability, damage] — no ability true,none,117 (must take damage); Receiver but the partner LIVED false,receiver,117 (must take damage); Receiver and the partner FAINTED true,flashfire,0 (must be flashfire and 0 — the inherited ability has to actually absorb)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3496,7 +3496,7 @@
       "tag": "boostsAlliesWithAbility",
       "label": "Magnetic Flux raises Def/SpD on the Plus and Minus bodies only — the user included",
       "live": true,
-      "detail": "Magnetic Flux clicked on all three arms [user's Def stage, partner's Def stage, Dragon Claw taken next turn] — Static/Static 0,0,95 (nothing must move); PLUS/Static 1,0,64 (the USER rises and the partner must NOT); PLUS/MINUS 1,1,64 (both rise)",
+      "detail": "Magnetic Flux clicked on all three arms [user's Def stage, partner's Def stage, Dragon Claw taken next turn] — Static/Static 0,0,96 (nothing must move); PLUS/Static 1,0,63 (the USER rises and the partner must NOT); PLUS/MINUS 1,1,63 (both rise)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3576,7 +3576,7 @@
       "tag": "readsOwnItem",
       "label": "Acrobatics doubles when the user holds nothing",
       "live": true,
-      "detail": "Acrobatics -- holding Leftovers 16, holding nothing 30 (the tag says x2)",
+      "detail": "Acrobatics -- holding Leftovers 15, holding nothing 29 (the tag says x2)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3586,7 +3586,7 @@
       "tag": "ohko",
       "label": "Fissure kills a body no damage roll could reach, and misses on a losing roll",
       "live": true,
-      "detail": "into a Garchomp on 8x max HP -- Fissure at roll 0.1 fainted=true; at roll 0.9 dealt 0; Ice Beam at roll 0.1 fainted=false dealing 228",
+      "detail": "into a Garchomp on 8x max HP -- Fissure at roll 0.1 fainted=true; at roll 0.9 dealt 0; Ice Beam at roll 0.1 fainted=false dealing 224",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3686,7 +3686,7 @@
       "tag": "healsAtThreshold",
       "label": "the Sitrus is eaten BETWEEN the two attackers, so the second hit is survived",
       "live": true,
-      "detail": "a Corviknight on 81% taking TWO Scalds in one turn — no item FAINTED; Sitrus 23 hp, berry spent",
+      "detail": "a Corviknight on 81% taking TWO Scalds in one turn — no item FAINTED; Sitrus 25 hp, berry spent",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3706,7 +3706,7 @@
       "tag": "typeBecomesMoveType",
       "label": "Protean gives the move it converts into its STAB",
       "live": true,
-      "detail": "Earthquake (Ground — a type Meowscarada does not have) into an unfaintable Ceruledge: no ability 123, Protean 184 (must be ~x1.5, the STAB the conversion buys)",
+      "detail": "Earthquake (Ground — a type Meowscarada does not have) into an unfaintable Ceruledge: no ability 124, Protean 186 (must be ~x1.5, the STAB the conversion buys)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3746,7 +3746,7 @@
       "tag": "spreadFoes",
       "label": "a 90-accuracy spread move can hit one target and miss the other — all four outcomes",
       "live": true,
-      "detail": "Heat Wave (printed 90, allAdjacentFoes) into two live bodies, acc stream scripted per target — [hit,hit] 31/18 miss[none]; [hit,miss] 31/0 miss[p2b: milotic]; [miss,hit] 0/18 miss[p2a: garchomp]; [miss,miss] 0/0 miss[p2a: garchomp,p2b: milotic]; draws 2/2/2/2 (one per live body)",
+      "detail": "Heat Wave (printed 90, allAdjacentFoes) into two live bodies, acc stream scripted per target — [hit,hit] 31/17 miss[none]; [hit,miss] 31/0 miss[p2b: milotic]; [miss,hit] 0/17 miss[p2a: garchomp]; [miss,miss] 0/0 miss[p2a: garchomp,p2b: milotic]; draws 2/2/2/2 (one per live body)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3756,7 +3756,7 @@
       "tag": "oneTurnGuard",
       "label": "Wide Guard names each body it shielded, one line per body",
       "live": true,
-      "detail": "Heat Wave into a Wide Guard — 2 -activate line(s) [|-activate|p2a: garchomp|move: Wide Guard |-activate|p2b: milotic|move: Wide Guard] and 0 damage dealt; with no Wide Guard 0 line(s) and 65 damage",
+      "detail": "Heat Wave into a Wide Guard — 2 -activate line(s) [|-activate|p2a: garchomp|move: Wide Guard |-activate|p2b: milotic|move: Wide Guard] and 0 damage dealt; with no Wide Guard 0 line(s) and 64 damage",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3766,7 +3766,7 @@
       "tag": "spreadAll",
       "label": "a quake resolves against your own partner FIRST, then the foes",
       "live": true,
-      "detail": "-damage order — Earthquake (spreadAll) [p1b,p2a,p2b] dealing 403 in total; Rock Slide (spreadFoes, no ally packet) [p2a,p2b] dealing 83",
+      "detail": "-damage order — Earthquake (spreadAll) [p1b,p2a,p2b] dealing 405 in total; Rock Slide (spreadFoes, no ally packet) [p2a,p2b] dealing 83",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3796,7 +3796,7 @@
       "tag": "spreadFoes",
       "label": "a target that faints to a spread hit does not interrupt the other target",
       "live": true,
-      "detail": "Dazzling Gleam into a 1 HP Milotic beside a healthy one — [dmg,dmg,faint], the survivor taking 30; with both healthy [dmg,dmg], the same body taking 30",
+      "detail": "Dazzling Gleam into a 1 HP Milotic beside a healthy one — [dmg,dmg,faint], the survivor taking 29; with both healthy [dmg,dmg], the same body taking 29",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3846,7 +3846,7 @@
       "tag": "formeTypedMove",
       "label": "Raging Bull's type follows the user's Tauros forme, and Aura Wheel's follows Morpeko's",
       "live": true,
-      "detail": "Raging Bull into an unfaintable Kingambit (Dark/Steel), one defender, four formes: tauros 33 (Normal, resisted), PALDEA-COMBAT 288 (Fighting, the -supereffective line reads x2 — FOUR times), PALDEA-BLAZE 144 (Fire, x2), PALDEA-AQUA 80 (Water, neutral). The twin: base Morpeko's Aura Wheel into a Milotic deals 226, super-effective true — Electric, which is the handler's explicit else branch",
+      "detail": "Raging Bull into an unfaintable Kingambit (Dark/Steel), one defender, four formes: tauros 33 (Normal, resisted), PALDEA-COMBAT 288 (Fighting, the -supereffective line reads x2 — FOUR times), PALDEA-BLAZE 144 (Fire, x2), PALDEA-AQUA 79 (Water, neutral). The twin: base Morpeko's Aura Wheel into a Milotic deals 228, super-effective true — Electric, which is the handler's explicit else branch",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3916,7 +3916,7 @@
       "tag": "firstTurnOnly",
       "label": "Fake Out is legal on the first MOVE after arriving, including after a switch",
       "live": true,
-      "detail": "[who clicked : HP off an unfaintable Ninetales]. LEAD on turn 1 milotic:14. SWITCHED IN on turn 1, clicking on turn 2 sneasler:39 — it must LAND (activeMoveActions is 0; a switch is not a move action). The SAME body clicking again on turn 3 sneasler:0, which must be 0 — that is the arm separating this from \"Fake Out always works\"",
+      "detail": "[who clicked : HP off an unfaintable Ninetales]. LEAD on turn 1 milotic:13. SWITCHED IN on turn 1, clicking on turn 2 sneasler:39 — it must LAND (activeMoveActions is 0; a switch is not a move action). The SAME body clicking again on turn 3 sneasler:0, which must be 0 — that is the arm separating this from \"Fake Out always works\"",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3926,7 +3926,7 @@
       "tag": "variablePower",
       "label": "a FLINCHED Stomping Tantrum doubles next turn and a RECHARGING one does not",
       "live": true,
-      "detail": "Stomping Tantrum into the same Milotic — after a clean turn 101; after a Fake Out FLINCH 200 (BeforeMove returned false, so it counts); after a RECHARGE turn 101 (BeforeMove returned null, so it must not)",
+      "detail": "Stomping Tantrum into the same Milotic — after a clean turn 100; after a Fake Out FLINCH 199 (BeforeMove returned false, so it counts); after a RECHARGE turn 100 (BeforeMove returned null, so it must not)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3936,7 +3936,7 @@
       "tag": "variablePower",
       "label": "a MISSED Stomping Tantrum doubles the next one, and the counter says so",
       "live": true,
-      "detail": "[Stomping Tantrum damage, MEDSEEN.powerDoubledAfterFailure delta] — after a High Horsepower that LANDED [101,0] (the counter must be EXACTLY 0)   |   after one that MISSED [200,2] (double, and the counter must have moved — a miss sets moveThisTurnResult to false, not null. The delta counts base-power EVALUATIONS, not clicks, so it is asserted >= 1)",
+      "detail": "[Stomping Tantrum damage, MEDSEEN.powerDoubledAfterFailure delta] — after a High Horsepower that LANDED [100,0] (the counter must be EXACTLY 0)   |   after one that MISSED [199,2] (double, and the counter must have moved — a miss sets moveThisTurnResult to false, not null. The delta counts base-power EVALUATIONS, not clicks, so it is asserted >= 1)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4016,7 +4016,7 @@
       "tag": "alwaysCrit",
       "label": "a crit ignores the ATTACKER's negative Attack stages",
       "live": true,
-      "detail": "Meowscarada into Garchomp — Knock Off (no crit) 70 unintimidated / 47 Intimidated (the stage MUST cost it); Flower Trick (pCrit 1) 113 / 113 (the crit must ignore the same -1). Attack stage read back as -1",
+      "detail": "Meowscarada into Garchomp — Knock Off (no crit) 70 unintimidated / 46 Intimidated (the stage MUST cost it); Flower Trick (pCrit 1) 114 / 114 (the crit must ignore the same -1). Attack stage read back as -1",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4026,7 +4026,7 @@
       "tag": "alwaysCrit",
       "label": "a crit ignores the DEFENDER's positive Defense stages",
       "live": true,
-      "detail": "Meowscarada into Garchomp — Knock Off 70 at def+0 / 36 at def+2; Flower Trick 113 / 113 (a crit must not see the +2). And a crit still DOES see a MINUS: Flower Trick 113 at def+0 / 224 at def-2",
+      "detail": "Meowscarada into Garchomp — Knock Off 70 at def+0 / 36 at def+2; Flower Trick 114 / 114 (a crit must not see the +2). And a crit still DOES see a MINUS: Flower Trick 114 at def+0 / 225 at def-2",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4036,7 +4036,7 @@
       "tag": "alwaysCrit",
       "label": "a crit ignores Reflect",
       "live": true,
-      "detail": "Meowscarada into Garchomp — Knock Off 70 no screen / 47 under Reflect (the screen MUST cost it); Flower Trick 113 / 113 (a crit goes through)",
+      "detail": "Meowscarada into Garchomp — Knock Off 70 no screen / 47 under Reflect (the screen MUST cost it); Flower Trick 114 / 114 (a crit goes through)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4046,7 +4046,7 @@
       "tag": "alwaysCrit",
       "label": "a crit does NOT ignore a burn",
       "live": true,
-      "detail": "Meowscarada into Garchomp — Knock Off 70 healthy / 35 burned; Flower Trick 113 / 56 (the crit must STILL be halved — burn is a multiplier, not a stage)",
+      "detail": "Meowscarada into Garchomp — Knock Off 70 healthy / 35 burned; Flower Trick 114 / 57 (the crit must STILL be halved — burn is a multiplier, not a stage)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4056,7 +4056,7 @@
       "tag": "auraBoost",
       "label": "Fairy Aura raises the HOLDER own Fairy move by 5448/4096",
       "live": true,
-      "detail": "Floette-Mega Moonblast into an unfaintable Swampert — no ability 122, Fairy Aura 161, ratio 1.320 (5448/4096 = 1.3301). Checked against the authority at pinned rolls: 111-132 -> 147-174, exact on both ends",
+      "detail": "Floette-Mega Moonblast into an unfaintable Swampert — no ability 121, Fairy Aura 160, ratio 1.322 (5448/4096 = 1.3301). Checked against the authority at pinned rolls: 111-132 -> 147-174, exact on both ends",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4066,7 +4066,7 @@
       "tag": "auraBoost",
       "label": "Fairy Aura on the FOE raises MY Fairy move by the same amount",
       "live": true,
-      "detail": "Moonblast into Swampert — nobody has the aura 122; the AURA IS ON THE TARGET 161; the aura is on the attacker 161. The last two must be EQUAL: the field does not care which side the carrier stands on",
+      "detail": "Moonblast into Swampert — nobody has the aura 121; the AURA IS ON THE TARGET 160; the aura is on the attacker 160. The last two must be EQUAL: the field does not care which side the carrier stands on",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4166,7 +4166,7 @@
       "tag": "condStatMult",
       "label": "Marvel Scale raises Defence only while the body is statused",
       "live": true,
-      "detail": "[unstatused, paralysed] — PHYSICAL Iron Head into Milotic 34,22; SPECIAL Flamethrower into the same body 9,9. The physical pair must part and the special pair must NOT — Marvel Scale is Defence, not a blanket bulk multiplier",
+      "detail": "[unstatused, paralysed] — PHYSICAL Iron Head into Milotic 33,22; SPECIAL Flamethrower into the same body 9,9. The physical pair must part and the special pair must NOT — Marvel Scale is Defence, not a blanket bulk multiplier",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4196,7 +4196,7 @@
       "tag": "instructsTarget",
       "label": "Instruct makes an ally that has already moved attack again",
       "live": true,
-      "detail": "Garchomp clicks Iron Head, Clefable clicks Instruct at it — Clefable FASTER (the ally has not moved, so Instruct must fail) 34; Clefable SLOWER (the ally already swung, so it swings again) 68. Must be about double",
+      "detail": "Garchomp clicks Iron Head, Clefable clicks Instruct at it — Clefable FASTER (the ally has not moved, so Instruct must fail) 33; Clefable SLOWER (the ally already swung, so it swings again) 66. Must be about double",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4236,7 +4236,7 @@
       "tag": "swapsDefences",
       "label": "Wonder Room swaps Defence and Special Defence",
       "live": true,
-      "detail": "Milotic is 99 Def / 187 SpD — [no room, Wonder Room] PHYSICAL 34,18, SPECIAL 9,18. Physical must get WEAKER and special must get STRONGER; an engine that merely raised a defence moves both the same way",
+      "detail": "Milotic is 99 Def / 187 SpD — [no room, Wonder Room] PHYSICAL 33,18, SPECIAL 9,17. Physical must get WEAKER and special must get STRONGER; an engine that merely raised a defence moves both the same way",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4326,7 +4326,7 @@
       "tag": "randomTarget",
       "label": "a randomNormal click with NO named target still lands",
       "live": true,
-      "detail": "both clicked with the target withheld, which is what a driver reading Showdown's request supplies: single-target Dragon Claw dealt 0 across both foes (the authority refuses that choice), randomNormal Outrage dealt 85 at p2a",
+      "detail": "both clicked with the target withheld, which is what a driver reading Showdown's request supplies: single-target Dragon Claw dealt 0 across both foes (the authority refuses that choice), randomNormal Outrage dealt 84 at p2a",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4346,7 +4346,7 @@
       "tag": "locksIntoMove",
       "label": "turn 2 repeats the move whatever the caller clicked",
       "live": true,
-      "detail": "turn 2 clicked Dragon Claw at a named body in both arms — after a turn-1 Dragon Claw the engine played dragonclaw, after a turn-1 Outrage it played outrage for 85 (a free choice on turn 2 is the defect)",
+      "detail": "turn 2 clicked Dragon Claw at a named body in both arms — after a turn-1 Dragon Claw the engine played dragonclaw, after a turn-1 Outrage it played outrage for 84 (a free choice on turn 2 is the defect)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4376,7 +4376,7 @@
       "tag": "locksIntoMove",
       "label": "a locked body is TRAPPED — the switch is refused",
       "live": true,
-      "detail": "the identical switch to the identical bench body on turn 2 — after a Dragon Claw slot p1a holds milotic, after an Outrage it still holds goodra-hisui and the forced outrage ran for 85",
+      "detail": "the identical switch to the identical bench body on turn 2 — after a Dragon Claw slot p1a holds milotic, after an Outrage it still holds goodra-hisui and the forced outrage ran for 84",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4726,7 +4726,7 @@
       "tag": "terrainScaled",
       "label": "Terrain Pulse takes the terrain's type and doubles its base power, for a GROUNDED user only",
       "live": true,
-      "detail": "[HP taken off unfaintable defenders] — THE TYPE, into Dragapult (Dragon/GHOST): clear field 0 (Normal does nothing to a Ghost), ELECTRIC TERRAIN 26. THE POWER, into Farigiraf (Normal/Psychic, where Fairy and Normal are both neutral): clear 22, MISTY TERRAIN 43, ratio 1.95 — the 50 -> 100 doubling with the type multiplier held fixed. THE GROUND: an AIR BALLOON on the user under Electric Terrain reads 0 into the Ghost, i.e. neither half applies",
+      "detail": "[HP taken off unfaintable defenders] — THE TYPE, into Dragapult (Dragon/GHOST): clear field 0 (Normal does nothing to a Ghost), ELECTRIC TERRAIN 26. THE POWER, into Farigiraf (Normal/Psychic, where Fairy and Normal are both neutral): clear 22, MISTY TERRAIN 42, ratio 1.91 — the 50 -> 100 doubling with the type multiplier held fixed. THE GROUND: an AIR BALLOON on the user under Electric Terrain reads 0 into the Ghost, i.e. neither half applies",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4766,7 +4766,7 @@
       "tag": "callsAnotherMove",
       "label": "Copycat re-uses the last move anyone clicked, and fails with nothing to copy",
       "live": true,
-      "detail": "[HP an unfaintable Milotic loses on the COPY turn] — after an Earthquake on turn one, Copycat deals 92; with NOTHING clicked on turn one it deals 0 and the click FAILS (result false); and the same board with the copy turn passed deals 0. The last move is committed when a move FINISHES, not when it starts — read at the announcement, Copycat copies ITSELF",
+      "detail": "[HP an unfaintable Milotic loses on the COPY turn] — after an Earthquake on turn one, Copycat deals 93; with NOTHING clicked on turn one it deals 0 and the click FAILS (result false); and the same board with the copy turn passed deals 0. The last move is committed when a move FINISHES, not when it starts — read at the announcement, Copycat copies ITSELF",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4876,7 +4876,7 @@
       "tag": "noExtraHit",
       "label": "a move flagged noExtraHit takes NO second hit from Parental Bond",
       "live": true,
-      "detail": "[HP an unfaintable Farigiraf loses over the two turns of the move] — PHANTOM FORCE (charge flag, so `noExtraHit`): 44 without Parental Bond and 44 with — IDENTICAL, which is the claim. CONTROL, Zen Headbutt off the same body with the same two abilities: 104 then 128, so the ability is demonstrably live on the same board. 17 moves carry this tag and Phantom Force alone is 1,606 stored clicks",
+      "detail": "[HP an unfaintable Farigiraf loses over the two turns of the move] — PHANTOM FORCE (charge flag, so `noExtraHit`): 44 without Parental Bond and 44 with — IDENTICAL, which is the claim. CONTROL, Zen Headbutt off the same body with the same two abilities: 104 then 130, so the ability is demonstrably live on the same board. 17 moves carry this tag and Phantom Force alone is 1,606 stored clicks",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4996,7 +4996,7 @@
       "tag": "breakable",
       "label": "Mold Breaker breaks a BREAKABLE ability and leaves a non-breakable one alone",
       "live": true,
-      "detail": "INNER FOCUS (breakable): the victim strikes back for 167 under a plain attacker and 0 under Mold Breaker -- it flinched. STEADFAST (NOT breakable): +1 Speed plain, +1 under Mold Breaker, unchanged, which is the arm a suppress-everything engine fails. ROUGH SKIN (NOT breakable): the attacker loses 195 either way, against 0 with no ability at all",
+      "detail": "INNER FOCUS (breakable): the victim strikes back for 168 under a plain attacker and 0 under Mold Breaker -- it flinched. STEADFAST (NOT breakable): +1 Speed plain, +1 under Mold Breaker, unchanged, which is the arm a suppress-everything engine fails. ROUGH SKIN (NOT breakable): the attacker loses 195 either way, against 0 with no ability at all",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5006,7 +5006,7 @@
       "tag": "ignoresDefenderAbility",
       "label": "Mold Breaker breaks four DIFFERENT KINDS of breakable ability",
       "live": true,
-      "detail": "LEVITATE (immunity) 0 -> 167; FILTER (x0.75 on a 4x hit) 191 -> 254; SHELL ARMOR (refuses Frost Breath's certain crit) 172 -> 258; SHIELD DUST (filters a 100% secondary) \"none\" -> \"par\", against \"par\" with no ability at all. Every left-hand number is a plain attacker into the SAME ability, which is the control that says the ability is live rather than absent",
+      "detail": "LEVITATE (immunity) 0 -> 168; FILTER (x0.75 on a 4x hit) 192 -> 256; SHELL ARMOR (refuses Frost Breath's certain crit) 172 -> 260; SHIELD DUST (filters a 100% secondary) \"none\" -> \"par\", against \"par\" with no ability at all. Every left-hand number is a plain attacker into the SAME ability, which is the control that says the ability is live rather than absent",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5066,7 +5066,7 @@
       "tag": "groundsField",
       "label": "Gravity brings a Flying type down and Earthquake reaches it",
       "live": true,
-      "detail": "Earthquake into a Flying Corviknight: 0 with nothing up, 148 after a real Gravity CLICK. CONTROL, the other direction: 167 into a grounded Incineroar, so this is not an engine that stopped refusing Ground",
+      "detail": "Earthquake into a Flying Corviknight: 0 with nothing up, 150 after a real Gravity CLICK. CONTROL, the other direction: 168 into a grounded Incineroar, so this is not an engine that stopped refusing Ground",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5096,7 +5096,7 @@
       "tag": "statusInflict",
       "label": "Magnet Rise lifts a grounded body out of Earthquake",
       "live": true,
-      "detail": "Earthquake into a grounded Incineroar: 167 normally, 0 after it clicked Magnet Rise",
+      "detail": "Earthquake into a grounded Incineroar: 168 normally, 0 after it clicked Magnet Rise",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5106,7 +5106,7 @@
       "tag": "perTurnHP",
       "label": "Ingrain plants a Flying body on the floor",
       "live": true,
-      "detail": "Earthquake into a Flying Corviknight: 0 untouched, 138 after Ingrain",
+      "detail": "Earthquake into a Flying Corviknight: 0 untouched, 140 after Ingrain",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5116,7 +5116,7 @@
       "tag": "typeImmunity",
       "label": "Gravity and Smack Down ground a LEVITATE body, and the absorb gate honours it",
       "live": true,
-      "detail": "Earthquake into a LEVITATE Incineroar: 0 with nothing up (must be 0), 167 after a real Gravity click, 93 after Smack Down. CONTROL, the other direction: 167 into the same body with its own ability (must be > 0). OVER-MATCH CONTROL: 0 into an EARTH EATER body with Gravity up — it carries the same `typeImmunity {type:Ground}` tag and is NOT airborne, so it must stay 0 or the fix grounded the wrong third of the tag",
+      "detail": "Earthquake into a LEVITATE Incineroar: 0 with nothing up (must be 0), 168 after a real Gravity click, 92 after Smack Down. CONTROL, the other direction: 168 into the same body with its own ability (must be > 0). OVER-MATCH CONTROL: 0 into an EARTH EATER body with Gravity up — it carries the same `typeImmunity {type:Ground}` tag and is NOT airborne, so it must stay 0 or the fix grounded the wrong third of the tag",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5136,7 +5136,7 @@
       "tag": "semiInvulnerable",
       "label": "Hurricane pierces Fly WITHOUT doubling — the two lists are not one list",
       "live": true,
-      "detail": "Hurricane into a flying body 94 -> 94 (pierces, NORMAL damage); Surf into a diving body 29 -> 57 (pierces AND doubles). Same mechanic, two different lists",
+      "detail": "Hurricane into a flying body 94 -> 94 (pierces, NORMAL damage); Surf into a diving body 28 -> 56 (pierces AND doubles). Same mechanic, two different lists",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5276,7 +5276,7 @@
       "tag": "boostsAtHPThreshold",
       "label": "Berserk fires on the hit that CROSSES half, and only then",
       "live": true,
-      "detail": "Drampa at 707 (half is 612) takes a Dragon Claw to 517 — SpA stage 1, control 0. Already UNDER the line at 517 it takes the same hit to 327 and reads 0: the ability is a crossing, not a state",
+      "detail": "Drampa at 708 (half is 612) takes a Dragon Claw to 516 — SpA stage 1, control 0. Already UNDER the line at 516 it takes the same hit to 324 and reads 0: the ability is a crossing, not a state",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5356,7 +5356,7 @@
       "tag": "readsTargetItem",
       "label": "Poltergeist FAILS against a target holding no item",
       "live": true,
-      "detail": "[target HP lost] no item 0 (the authority REFUSES the click outright) |  Focus Sash 46 (it resolves).  The control must be EXACTLY 0 — an engine that merely scaled the damage down would pass \"held > none\"",
+      "detail": "[target HP lost] no item 0 (the authority REFUSES the click outright) |  Focus Sash 45 (it resolves).  The control must be EXACTLY 0 — an engine that merely scaled the damage down would pass \"held > none\"",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5396,7 +5396,7 @@
       "tag": "fixedDamage",
       "label": "Mirror Coat answers the SPECIAL hitter and Counter the PHYSICAL one, on the same board",
       "live": true,
-      "detail": "[HP taken back by the physical hitter, by the special hitter] — COUNTER {\"physHitter\":122,\"specHitter\":0}  |  MIRROR COAT {\"physHitter\":0,\"specHitter\":184}.  Both attackers hit on the SAME turn, so an engine holding one category-blind \"who hit me last\" answers the same body for both moves",
+      "detail": "[HP taken back by the physical hitter, by the special hitter] — COUNTER {\"physHitter\":122,\"specHitter\":0}  |  MIRROR COAT {\"physHitter\":0,\"specHitter\":182}.  Both attackers hit on the SAME turn, so an engine holding one category-blind \"who hit me last\" answers the same body for both moves",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5426,7 +5426,7 @@
       "tag": "preventsStatDrop",
       "label": "Keen Eye AND Illuminate refuse Mud-Slap's guaranteed accuracy drop",
       "live": true,
-      "detail": "[accuracy stage, HP lost] Mud-Slap (Ground, so it connects) -- a ROCK Lycanroc reads -1,37 with no ability and 0,37 with KEEN EYE; a Water/Psychic Starmie reads -1,16 and 0,16 with ILLUMINATE. Four of the ten Keen Eye carriers are FLYING and immune to Ground, which would have made both arms agree; the equal damage in each pair is the control that says the move still landed",
+      "detail": "[accuracy stage, HP lost] Mud-Slap (Ground, so it connects) -- a ROCK Lycanroc reads -1,36 with no ability and 0,36 with KEEN EYE; a Water/Psychic Starmie reads -1,15 and 0,15 with ILLUMINATE. Four of the ten Keen Eye carriers are FLYING and immune to Ground, which would have made both arms agree; the equal damage in each pair is the control that says the move still landed",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5506,7 +5506,7 @@
       "tag": "damageByGender",
       "label": "Rivalry boosts into the SAME gender, weakens into the opposite, and does nothing genderless",
       "live": true,
-      "detail": "[HP off an unfaintable Milotic from one Wild Charge] no ability 235 (and 235 across genders, so the gender alone moves nothing); RIVALRY male-into-male 294, male-into-female 177, GENDERLESS 235. The third arm is the fixture this repo has always built — the ability is correctly inert there, which is not the same as absent, and reading it as \"untestable\" was ROADMAP #205's error",
+      "detail": "[HP off an unfaintable Milotic from one Wild Charge] no ability 236 (and 236 across genders, so the gender alone moves nothing); RIVALRY male-into-male 294, male-into-female 176, GENDERLESS 236. The third arm is the fixture this repo has always built — the ability is correctly inert there, which is not the same as absent, and reading it as \"untestable\" was ROADMAP #205's error",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5526,7 +5526,7 @@
       "tag": "modifiesWeight",
       "label": "Heavy Metal and Light Metal move a weight-read base power in OPPOSITE directions",
       "live": true,
-      "detail": "Aggron (360 kg) Heavy Slams a Meganium (100.5 kg), whose base power comes from the weight RATIO -- no ability 74, HEAVY METAL 112 (ratio 3.58 -> 7.16, two brackets up), LIGHT METAL 38 (-> 1.79, two brackets down). Iron Head, which reads no weight, is 74 and 74 -- the control that says nothing else on the body changed. And on the legal Light Metal carrier as a TARGET: Low Kick into a Scizor 103 -> 83",
+      "detail": "Aggron (360 kg) Heavy Slams a Meganium (100.5 kg), whose base power comes from the weight RATIO -- no ability 75, HEAVY METAL 112 (ratio 3.58 -> 7.16, two brackets up), LIGHT METAL 39 (-> 1.79, two brackets down). Iron Head, which reads no weight, is 75 and 75 -- the control that says nothing else on the body changed. And on the legal Light Metal carrier as a TARGET: Low Kick into a Scizor 103 -> 82",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5546,7 +5546,7 @@
       "tag": "refusesAllyDamage",
       "label": "Telepathy takes NOTHING from its own partner's Surf, and still takes a Helping Hand",
       "live": true,
-      "detail": "[HP off the holder, off foe 1, off foe 2] from ONE partner Surf (allAdjacent, so it hits the partner too) -- no ability 53,67,95; TELEPATHY 0,67,95. The two FOE numbers must be unchanged: that is what says the move resolved rather than fizzling, and it comes free from the same click. A partner HELPING HAND still lands on the holder (true, against true with no ability) — the handler exempts Status, and reading this as \"immune to allies\" would be a better ability than the real one",
+      "detail": "[HP off the holder, off foe 1, off foe 2] from ONE partner Surf (allAdjacent, so it hits the partner too) -- no ability 52,67,96; TELEPATHY 0,67,96. The two FOE numbers must be unchanged: that is what says the move resolved rather than fizzling, and it comes free from the same click. A partner HELPING HAND still lands on the holder (true, against true with no ability) — the handler exempts Status, and reading this as \"immune to allies\" would be a better ability than the real one",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5556,7 +5556,7 @@
       "tag": "damageBoost",
       "label": "Analytic pays only when it moves LAST, and the queue is the condition",
       "live": true,
-      "detail": "[HP off an unfaintable Garchomp from one Psychic] with every body on the field clicking a move -- Starmie pinned to Speed 1 so it acts LAST: no ability 58, ANALYTIC 74. Pinned to Speed 999 so it acts FIRST: no ability 58, ANALYTIC 58. The two no-ability readings must be EQUAL — that is what says the Speed pin alone moves nothing and the condition really is the queue",
+      "detail": "[HP off an unfaintable Garchomp from one Psychic] with every body on the field clicking a move -- Starmie pinned to Speed 1 so it acts LAST: no ability 58, ANALYTIC 75. Pinned to Speed 999 so it acts FIRST: no ability 58, ANALYTIC 58. The two no-ability readings must be EQUAL — that is what says the Speed pin alone moves nothing and the condition really is the queue",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5616,7 +5616,7 @@
       "tag": "damageBoost",
       "label": "Plus and Minus need a PARTNER, either of the two, and only on the special side",
       "live": true,
-      "detail": "[HP off an unfaintable Milotic] Ampharos clicks Thunderbolt beside a Dedenne. No abilities 121; PLUS with NO qualifying partner 121 (equal — the gate is on the ALLY, which is what the roster mistook for the ability being inert); PLUS beside PLUS 183; PLUS beside MINUS 183; MINUS beside PLUS 183. hasAbility([minus,plus]) is symmetric, so all three pairings must agree. IRON TAIL, physical, on the same pair: 18 and 18 — EQUAL, because both handlers are onModifySpA only",
+      "detail": "[HP off an unfaintable Milotic] Ampharos clicks Thunderbolt beside a Dedenne. No abilities 120; PLUS with NO qualifying partner 120 (equal — the gate is on the ALLY, which is what the roster mistook for the ability being inert); PLUS beside PLUS 182; PLUS beside MINUS 182; MINUS beside PLUS 182. hasAbility([minus,plus]) is symmetric, so all three pairings must agree. IRON TAIL, physical, on the same pair: 18 and 18 — EQUAL, because both handlers are onModifySpA only",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5626,7 +5626,7 @@
       "tag": "overridesEffectiveness",
       "label": "Flying Press multiplies Fighting BY Flying, and on a Flying-resistant body it does LESS",
       "live": true,
-      "detail": "machamp (Fighting): Flying Press 222 vs Brick Break 83 = x2.67, chart predicts x2.67 (base-power ratio 1.33 times Flying's own x2)   ;   beedrill (Bug/Poison): Flying Press 92 vs Brick Break 34 = x2.71, chart predicts x2.67 (base-power ratio 1.33 times Flying's own x2)   ;   aggron (Steel/Rock): Flying Press 46 vs Brick Break 136 = x0.34, chart predicts x0.33 (base-power ratio 1.33 times Flying's own x0.25).  On Aggron the 100 BP move does LESS than the 75 BP one, which is the arm an engine ignoring the added type — or hardcoding a flat x2 — fails",
+      "detail": "machamp (Fighting): Flying Press 222 vs Brick Break 82 = x2.71, chart predicts x2.67 (base-power ratio 1.33 times Flying's own x2)   ;   beedrill (Bug/Poison): Flying Press 91 vs Brick Break 34 = x2.68, chart predicts x2.67 (base-power ratio 1.33 times Flying's own x2)   ;   aggron (Steel/Rock): Flying Press 45 vs Brick Break 136 = x0.33, chart predicts x0.33 (base-power ratio 1.33 times Flying's own x0.25).  On Aggron the 100 BP move does LESS than the 75 BP one, which is the arm an engine ignoring the added type — or hardcoding a flat x2 — fails",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5796,7 +5796,7 @@
       "tag": "instructsTarget",
       "label": "Instruct repeats the move of whoever is standing in the aimed slot — and a fresh body has none",
       "live": true,
-      "detail": "turn 1 the snorlax Body Slams so it has a move to repeat. CONTROL — the slot still holds snorlax and turn 2 costs my side 130 HP (the Body Slam AND its repeat). PIVOT — the slot holds garchomp, which has not moved at all, so the Instruct finds no last move and my side loses 0: the benched snorlax gets no free action",
+      "detail": "turn 1 the snorlax Body Slams so it has a move to repeat. CONTROL — the slot still holds snorlax and turn 2 costs my side 129 HP (the Body Slam AND its repeat). PIVOT — the slot holds garchomp, which has not moved at all, so the Instruct finds no last move and my side loses 0: the benched snorlax gets no free action",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5836,7 +5836,7 @@
       "tag": "partialTrap",
       "label": "the trap chip names the MOVE that bound the body, not the condition",
       "live": true,
-      "detail": "two turns of chip each — Infestation [\"|-damage|p2a:snorlax|193/235|[from]move:infestation|[partiallytrapped]\",\"|-damage|p2a:snorlax|151/235|[from]move:infestation|[partiallytrapped]\"]; Fire Spin [\"|-damage|p2a:snorlax|184/235|[from]move:firespin|[partiallytrapped]\",\"|-damage|p2a:snorlax|133/235|[from]move:firespin|[partiallytrapped]\"]. The two must NAME DIFFERENT MOVES: sim/battle.ts:2141 reads the volatile's own sourceEffect, so an engine writing the literal \"[from] partiallytrapped\" prints the same string for both",
+      "detail": "two turns of chip each — Infestation [\"|-damage|p2a:snorlax|193/235|[from]move:infestation|[partiallytrapped]\",\"|-damage|p2a:snorlax|151/235|[from]move:infestation|[partiallytrapped]\"]; Fire Spin [\"|-damage|p2a:snorlax|185/235|[from]move:firespin|[partiallytrapped]\",\"|-damage|p2a:snorlax|135/235|[from]move:firespin|[partiallytrapped]\"]. The two must NAME DIFFERENT MOVES: sim/battle.ts:2141 reads the volatile's own sourceEffect, so an engine writing the literal \"[from] partiallytrapped\" prints the same string for both",
       "hollow": false,
       "armed": true,
       "directCall": false

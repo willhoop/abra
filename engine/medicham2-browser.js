@@ -88,6 +88,11 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* ROADMAP #304 -- how many damaging hits SELECTED one of the authority's sixteen rolls instead of
+   * interpolating a position in the span. A capability that cannot prove it ran is assumed broken:
+   * zero on a run containing any damaging move means the band never reached the battle loop and the
+   * old draw is silently back. Its partner is MEDFAILS.damageBandMissing. */
+  damageBandSelected: 0,
   /* ROADMAP #289 -- a CLAMPED stat change announced with magnitude 0, the line Showdown writes and
    * this engine could not. Zero on a run containing an Intimidate into a -6 body means the emitter
    * is unwired again. */
@@ -1074,6 +1079,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* ROADMAP #304 -- a damaging hit whose sixteen-entry band did NOT arrive, so the loop fell back to
+   * the old uniform draw over the span. Never expected: the battle loop asks for `rolls` on every hit
+   * context. Non-zero means dmgRange grew a return path that does not fill the out-parameter, and the
+   * fallback would otherwise hide it behind a perfectly plausible number. */
+  damageBandMissing: 0, damageBandMissingFirst: '',
+  /* ROADMAP #304 -- set to 1 for the whole run when MEDI_DAMAGE_SPAN_DRAW=1 puts the defect back on
+   * purpose. Counted apart from `damageBandMissing` so a deliberate restore arm and a broken engine
+   * can never be read as the same thing. */
+  damageSpanDrawRestored: 0,
   /* ROADMAP #289 -- a stat change that landed ZERO stages and whose call site has not yet had its
    * authority branch read, so no line was written. Showdown writes one whenever the change was
    * CLAMPED at a cap and the effect is not an ability-without-secondary or a move secondary/self
@@ -7587,6 +7601,37 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
  * which are plan shapes here. The smartTarget half is the BATTLE LOOP's, because only it knows how
  * many bodies survived to take a dart. Measured in the authority: Beat Up prints `|-hitcount|...|4`
  * and a Parental Bond Body Slam prints `|-hitcount|...|2`. */
+/* ==================== ROADMAP #304 -- THE DAMAGE DIE IS AN INDEX INTO SIXTEEN ====================
+ *
+ * `sim/battle.ts:2390` is the authority's whole damage die and it selects a PERCENTAGE, not a point:
+ *
+ *     randomizer(baseDamage) { const tr = this.trunc; return tr(tr(baseDamage * (100 - this.random(16))) / 100); }
+ *
+ * Sixteen indices, percent 100 down to 85, index 0 the MAXIMUM. Everything applied afterwards in
+ * `data/mods/champions/scripts.ts#modifyDamage` works on the truncated integer, so the reachable set
+ * has repeats and holes and is never wider than sixteen.
+ *
+ * `damageRollIndex` is the ONE owner of "which of the sixteen did this die land on". The expression is
+ * duplicated in `engine/game_differential.js` as `midDamageIndex` ON PURPOSE and must stay that way:
+ * the differential is an INSTRUMENT that reads this engine, and an engine that requires its own
+ * instrument cannot be measured by it. `tests/test-damage-roll-support.js` proves the two agree
+ * end-to-end -- it drives this engine at the position the differential maps onto index i and compares
+ * against the AUTHORITY at index i -- which is a stronger statement than sharing a line would be.
+ *
+ * INCREASING IN u, which is what keeps the pinned arms' declarations true: u ~ 0 is index 15, the
+ * minimum (`CORNER_BOTTOM` sits beside `damageIndex: 15`); u ~ 1 is index 0, the maximum.
+ *
+ * THE RESTORE FLAG IS AN ENV VAR AND IT STAMPS A FAILURE COUNTER. `MEDI_DAMAGE_SPAN_DRAW=1` puts back
+ * the uniform draw over the integer span, so the defect is reachable at runtime for a paired
+ * measurement without swapping a file -- and any run carrying it also carries a non-zero
+ * `MEDFAILS.damageSpanDrawRestored`, because a switch that silently makes the engine wrong is the
+ * silent default this repo keeps paying for. Same shape as MEDI_RESIDUAL_COLLAPSE. */
+const DAMAGE_ROLL_SIDES=16;
+const DAMAGE_SPAN_DRAW_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DAMAGE_SPAN_DRAW==='1');
+function damageRollIndex(u){
+  const i=DAMAGE_ROLL_SIDES-1-Math.floor(u*DAMAGE_ROLL_SIDES);
+  return i<0?0:(i>DAMAGE_ROLL_SIDES-1?DAMAGE_ROLL_SIDES-1:i);
+}
 function dmgRange(att,def,mv,field,spread,isCrit,hit){
   const _plan=hitPlanOf(att,mv,hit,spread);
   if(hit&&+hit.hits>0)MEDSEEN.multiHitRolledCount++;
@@ -18323,18 +18368,60 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* WIRE 147 -- Fickle Beam's drawn double, absent for every move that has no chance clause,
            * so `dmgRange` keeps its expectation for a pure PRICE and takes the DRAW for a real turn. */
           if(_condPowerThisUse!==null&&_condPowerThisUse!==undefined)c.condPower=_condPowerThisUse;
+          /* ROADMAP #304 -- ASK dmgRange FOR THE WHOLE SIXTEEN-ENTRY BAND, because the roll is a
+           * SELECTION out of it and not a position between its ends. The out-parameter has existed
+           * since ROADMAP #92 with one caller (tests/test-damage-stages.js, which proves it exact
+           * against the authority at all sixteen indices, 1696/1696); nothing had ever handed it to
+           * the battle loop, which is the only place a real turn spends a die. */
+          c.rolls=[];
           return c;
         })();
         const _price=(isCrit)=>dmgRange(m,tg,mv,field,_spreadHit,isCrit,_hitCtx);
         let d=_price(false);
-        /* THE ROLL IS AN INDEX, NOT A NUMBER, and that is what makes the crit re-price free of rng.
-         * One `rng()` is drawn exactly where it was drawn before; if the crit lands, the SAME index is
-         * read off the crit range instead. So a crit that ignores nothing produces a byte-identical
-         * result to the old arithmetic (the two ranges are equal), and only a crit that actually
-         * ignores a stage or a screen moves. Clamped, because the two ranges need not be the same
-         * length once A or D has changed. */
-        const _roll=Math.floor(_R.dmg()*(d.max-d.min+1));   // ROADMAP #222 -- its own die
-        let dmg=d.min+_roll;
+        /* ROADMAP #304 -- THE AUTHORITY'S DAMAGE DIE IS AN INDEX INTO SIXTEEN, NOT A POSITION IN A SPAN.
+         *
+         *     sim/battle.ts:2390   randomizer(d) { return tr(tr(d * (100 - this.random(16))) / 100); }
+         *
+         * `random(16)` picks one of SIXTEEN percentages, 100 down to 85, and everything after it in
+         * data/mods/champions/scripts.ts#modifyDamage -- STAB at :262 through `modify`, the type chart
+         * at :270-284 (`*2` up, `tr(/2)` down), burn at :285, the ModifyDamage chain at :293 -- is
+         * applied to an ALREADY-TRUNCATED integer. So the authority's support has REPEATS (two
+         * neighbouring indices that truncated together stay equal for ever) and HOLES (the survivors
+         * are then scaled apart). It is never more than 16 values and is usually far fewer.
+         *
+         * This line drew a position in the span instead: `d.min + floor(u * (d.max - d.min + 1))`,
+         * every integer between the two ends, each with probability 1/W. MEASURED, nine staged hits,
+         * tests/test-damage-roll-support.js: Ice Shard into Garchomp is FIVE values in the authority
+         * and TWENTY-FIVE here; Ice Beam is 9 against 33; the published knock-off row is 12 against 18.
+         * Six of nine rows emit HP values the authority CANNOT PRODUCE AT ALL, and all nine spend the
+         * wrong value for the same die.
+         *
+         * NO CORNER INSTRUMENT COULD SEE IT AND THAT IS BY CONSTRUCTION, not by bad luck.
+         * `rolls[0]` IS `roll(100)` IS `d.max` and `rolls[15]` IS `roll(85)` IS `d.min`, so the two
+         * conventions agree at exactly the two points tests/test-engine-diff.js compares -- which is
+         * why it reads 0 of 6000 at each corner while every interior roll is wrong.
+         *
+         * THE MAPPING IS THE ONE THE PINNED ARMS ALREADY DECLARE (ROADMAP #303): u ~ 0 is medicham2's
+         * MINIMUM and Showdown's index 15; u ~ 1 is the maximum and index 0. Damage stays INCREASING in
+         * u, so game_differential.js's middle arm needs no change -- its `midDamageIndex` is the same
+         * expression on the other side of the wire, deliberately duplicated rather than imported,
+         * because an engine that requires its own instrument cannot be measured by it. The two are
+         * checked against each other end-to-end by the probe, never by sharing a line. */
+        const _u=_R.dmg();                                  // ROADMAP #222 -- its own die
+        const _idx=damageRollIndex(_u);
+        /* THE FALLBACK IS LOUD. A band that did not arrive means dmgRange took a path that does not
+         * fill the out-parameter, and the old interpolation would hide that behind a plausible number
+         * -- the silent default this repo keeps paying for. It is counted, named once, and the probe
+         * asserts the counter stays at zero across its fixture. */
+        let _band=(_hitCtx.rolls&&_hitCtx.rolls.length===DAMAGE_ROLL_SIDES)?_hitCtx.rolls.slice():null;
+        if(DAMAGE_SPAN_DRAW_RESTORED){MEDFAILS.damageSpanDrawRestored=1;_band=null;}   // the restore flag, counted apart
+        else if(!_band){
+          MEDFAILS.damageBandMissing++;
+          if(!MEDFAILS.damageBandMissingFirst)MEDFAILS.damageBandMissingFirst=String(a.move.id);
+        }
+        let _roll,dmg;
+        if(_band){MEDSEEN.damageBandSelected++;dmg=_band[_idx];_roll=dmg-d.min;}
+        else{_roll=Math.floor(_u*(d.max-d.min+1));dmg=d.min+_roll;}
         /* WIRE 35 -- THE CRIT ROLL READS A RATE. It was a flat `rng()<1/24` for every move and every
          * defender: Night Slash and Psycho Cut got no more crits than Tackle, a Scope Lens did
          * nothing, and Shell Armor took them like anything else. The rng is consumed
@@ -18360,7 +18447,15 @@ function battleTurn(S,rng,actsForA,actsForB){
             * the crit at the right place, and Sniper -- `onModifyDamage`, never part of a plain
             * multiply -- rides dmgRange's final chain with it. */
            const _dc=_price(true);
-           dmg=_dc.min+Math.min(_roll,Math.max(0,_dc.max-_dc.min));
+           /* ROADMAP #304 -- THE SAME INDEX, READ OFF THE CRIT'S OWN BAND. This is what the paragraph
+            * above always meant by "the SAME index is read off the crit range instead": `_price(true)`
+            * refills the out-parameter, so the crit's sixteen values are already here and the clamp
+            * that existed because the two SPANS could differ in length is not needed -- an index into
+            * sixteen is an index into sixteen whatever the range underneath it does. The clamped
+            * interpolation stays as the loud fallback's arithmetic and nothing else. */
+           const _cb=(_hitCtx.rolls&&_hitCtx.rolls.length===DAMAGE_ROLL_SIDES)?_hitCtx.rolls:null;
+           if(_cb&&_band){dmg=_cb[_idx];_roll=dmg-_dc.min;}
+           else dmg=_dc.min+Math.min(_roll,Math.max(0,_dc.max-_dc.min));
          }
          /* ROADMAP #68 -- THE EFFECTIVENESS AND THE CRIT, IN SHOWDOWN'S OWN ORDER: effectiveness,
           * then crit, then damage (data/mods/champions/scripts.ts:270-284, and confirmed line for

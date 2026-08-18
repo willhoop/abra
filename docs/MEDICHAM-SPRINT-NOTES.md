@@ -9845,3 +9845,67 @@ Census 596/596 live, 0 missing. **`medicham2-browser.js` did not move a byte in 
 were all the MEASURING INSTRUMENT. The engine was never touched. Every one of them was found by asking the
 instrument to explain a number rather than by trusting the number, and three of the four were invisible
 until something PRINTED the cause instead of the total.
+
+---
+
+## 2026-08-18 (afternoon) — #304: WE WERE SAMPLING A SET OF DAMAGE VALUES THAT DOES NOT EXIST, AND THREE GATES WERE PINNING IT
+
+**The first genuine `medicham2-browser.js` defect in two days.** Everything before it today — the Protect
+family, the void population, the repeat-index leak, the damage-die inversion — was the measuring
+instrument. This one is the engine, and it moved every damage number in every rollout.
+
+**THE CAUSE IS SUPPORT GENERATION, NOT A ROUNDING STAGE, AND THE ARITHMETIC SAYS SO RATHER THAN THE COUNT.**
+`sim/battle.ts:2390` is `randomizer(baseDamage) { return tr(tr(baseDamage * (100 - this.random(16))) / 100); }`
+— **sixteen is a hard ceiling.** Repeats come from the randomizer's own floor (consecutive indices are
+`baseDamage/100` apart, so under 100 they truncate together); holes come from every stage after it in
+`data/mods/champions/scripts.ts#modifyDamage`, each scaling an already-truncated integer. On the published
+row 16 indices collapse to **14** inside an 18-integer span, and medicham2 produced all 18.
+**Twenty exceeding sixteen was the tell: it was sampling a set that cannot exist.** The damage STAGES were
+never wrong — `test-damage-stages.js` reads 1696/1696 exact against the authority on all sixteen rolls.
+
+**AND THE ONE STAGED HIT UNDERSTATED IT BADLY.** Nine TeamValidator-checked rows, endpoints agreeing on all
+nine as the control: Ice Shard into Garchomp is **5 authority values against 25**; Ice Beam 9 against 33;
+Flash Cannon with Life Orb 9 against 32. **Two rows whose supports already MATCHED still failed the paired
+clause on 3 and 4 indices of 16**, so a support count alone is not the measurement.
+
+**Paired, 797 games, one environment variable the only difference:** `-damage field 3` **137 -> 8**,
+diverged 409 -> 330, diverged/usable 51.1% -> **41.1%**. **The corner arms did not move by one game**
+(163/191 in both), which was the prediction rather than a relief — `rolls[0]` IS `d.max`. `ordering`
+175->188 and `event missing` 49->69 are the damage class **stepping aside** under first-divergence-per-game,
+not regressions. Standing artifact: **969 games, 344 diverged, 2 void, 35.4%** against 450 / 7 / 46.1%.
+Census 596 live / 0 missing, unchanged.
+
+**ONE CAUSE, NOT MANY** — the question that decided whether this was one fix or a family. The 34 remaining
+`-damage field` first divergences are **all 1 or 2 HP, median 0.71% of max**, against #303's plus-or-minus
+18 and median 5: one or two steps inside a sixteen-entry band rather than scattered. 137 -> 8 on a single
+change is the population answer.
+
+**THREE OF THE FIVE RED CLAUSES IN `test-game-differential.js` WERE PINNING THE DEFECT — A GATE THAT WOULD
+HAVE FAILED A CORRECT ENGINE AND PASSED THE BROKEN ONE.**
+
+- **PART 3b failed if the interior was IDENTICAL**, on the reasoning that *"11 uniform integers cannot match
+  16 separately-floored ones"*. Inverted, and shown red on the deliberate break on both hits — including the
+  one whose support matched and whose MULTIPLICITIES did not. Its measurement half was reading `dmgRange`'s
+  min..max and would have gone on publishing six impossible values against a fixed engine.
+- **`contact punish — Rough Skin`** declares `predicts: 'ordering'` and has **never once diverged on an
+  ordering cause** in any artifact on disk. Its `expect: 'diverge'` was being satisfied by #304's bug.
+- **`only 0 classified as "ordering"`** required *two scenarios to still be wrong* to pass. Restated as: every
+  `predicts: 'ordering'` scenario must diverge in that class or carry a named `closed_by`. **Eight
+  replacement stagings were tried first and all eight agreed.**
+- **Two census probes were pinning it too**: `spreadFoes` demanded **51 — a value the authority cannot emit
+  at any roll** — and `damageMultAll` demanded 80/104. Re-derived at index 7 (52, and 79/103), with the
+  wrong arithmetic MEASURED rather than assumed (truncating x0.75 gives 50; float x1.3 gives 102), so both
+  still discriminate.
+
+**#34 narrowed, not closed.** `driverReset()` runs at the top of BOTH arm loops, so `CLICKS`/`COV_*` cannot
+leak; three-arm invocations read 163/191 in both arms of a change that altered every damage number. The one
+coupling left is the `--until-covered` path, where `played` is set by the primary arm and every other arm
+replays exactly that count — which fits the original 75/75/71 facts exactly. **Hypothesis, testable, not
+tested**; the standing artifact runs the fixed-count path.
+
+**Named, not filed as known: `tests/test-nature-differential.js` is RED on 2 clauses, and it is the
+dangerous shape.** Both engines AGREE on a stat line the authority does not (atk 144 vs 112, spe 123 vs 88).
+A shared blind spot cancels out in every head-to-head and every self-play game by construction, which is the
+failure mode this project has a whole section about. Pre-existing, identical under the pre-fix arm, and it
+is a spread/EV staging question with no path to the damage roll. **Its own batch, and it should be the next
+one.**

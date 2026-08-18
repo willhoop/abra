@@ -145,15 +145,69 @@ for (const d of DIR) {
  * Electro Shot's charge announcement against the boost it grants, the largest surviving ordering
  * cause in the release ladder's own top rung. Lowering a bar to fit the news is how a check stops
  * being one. */
+/* RESTATED 2026-08-18 (ROADMAP #304), AND THE OLD FORM WAS A GATE THAT ASSERTED A DEFECT.
+ *
+ * It required TWO staged scenarios to CLASSIFY as `ordering` — i.e. two of them still had to be
+ * WRONG. Every time an ordering wire landed the count fell, and the file's own history is three
+ * rounds of staging a replacement to keep the number up (WIRE 7, then WIRE 8, then this). That is not
+ * a bar being held; it is a check that can only be satisfied by the engine being broken, which is the
+ * exact shape this pass was sent to remove from PART 3b one screen down.
+ *
+ * AND ONE OF THE TWO WAS NEVER REAL. `contact punish` declared `predicts: 'ordering'` and diverged in
+ * class `-damage field 3` in EVERY artifact on disk — a damage NUMBER, at a line before the ordering
+ * question is reached. The clause was being kept green by ROADMAP #304's defect standing in for an
+ * ordering finding it never made.
+ *
+ * WHAT REPLACES IT IS STRICTLY STRONGER AND CANNOT ROT, because it separates the two claims the old
+ * one confused:
+ *
+ *   (a) CAN THE INSTRUMENT SEE AN ORDERING DIVERGENCE AT ALL? Asserted by PART 2's PLANT — two
+ *       agreeing events SWAPPED, caught at the exact planted line, in the `ordering` class. A plant
+ *       is immune to the engine getting better, which is precisely why it is the right home for this.
+ *   (b) IS THE ORDERING FAMILY STILL REPRESENTED AND STILL WATCHED? Asserted here: every scenario
+ *       that declares `predicts: 'ordering'` must either still diverge in that class, or be CLOSED
+ *       with a named `closed_by`. A scenario the aligner silently stopped reaching has neither, and
+ *       fails exactly as loudly as before. The count of ordering-predicting scenarios is also floored
+ *       at two, so deleting one rather than closing it is still caught.
+ *
+ * The remaining live population is NOT hidden by this: `ordering` is 188 games of 797 in the paired
+ * ROADMAP #304 run and is now the largest class in the whole-game differential. It is unstaged
+ * because seven further stagings were tried in this pass — Stamina, Justified, Weak Armor, Sand Spit,
+ * Electromorphosis, Berserk, Anger Point, plus a two-sided switch turn — and ALL EIGHT AGREED. The
+ * live ordering population comes from states a one-turn script does not reach, which is a scoping
+ * fact about the directed block and not a reason to demand that a closed scenario re-open. */
 {
-  const ord = DIR.filter(d => d.cls === 'ordering');
-  if (ord.length < 2) fail('only ' + ord.length + ' of the staged scenarios classified as "ordering". '
-    + 'The order-within-a-hit finding is the alignment\'s own acceptance test.');
-  else pass(ord.length + ' staged scenarios classify as "ordering" — the two engines emit the SAME '
-    + 'events in a DIFFERENT order, which is what a state comparison cannot see');
+  const ordPredicting = DIR.filter(d => d.predicts === 'ordering');
+  const ordLive = ordPredicting.filter(d => d.cls === 'ordering');
+  const ordClosed = ordPredicting.filter(d => !d.diverged && d.closed_by);
+  const unaccounted = ordPredicting.filter(d => d.cls !== 'ordering' && !(!d.diverged && d.closed_by));
+  if (ordPredicting.length < 2)
+    fail('only ' + ordPredicting.length + ' staged scenario(s) predict the "ordering" class. The '
+      + 'order-within-a-hit finding is the alignment\'s own acceptance test and it needs at least two '
+      + 'scenarios watching it, open or closed.');
+  else if (unaccounted.length)
+    fail(unaccounted.length + ' scenario(s) predict "ordering" and neither diverge in that class nor '
+      + 'declare a closed_by: ' + unaccounted.map(d => '"' + d.name.slice(0, 40) + '" (cls '
+      + (d.cls || 'none') + ')').join(', ') + '. An unreached scenario looks exactly like a closed one.');
+  else
+    pass(ordPredicting.length + ' scenarios watch the "ordering" class — ' + ordLive.length
+      + ' still diverging in it, ' + ordClosed.length + ' closed with a named wire. PART 2\'s planted '
+      + 'swap is what proves the class is still REACHABLE; this clause proves it is still WATCHED.');
 }
 
-/* THE DAMAGE INTERIOR — the second filed prediction, measured rather than quoted. */
+/* THE DAMAGE INTERIOR — the second filed prediction, measured rather than quoted.
+ *
+ * THIS CLAUSE ASSERTED THE DEFECT UNTIL ROADMAP #304 CLOSED IT, AND THAT IS WORTH SAYING OUT LOUD.
+ * It read `if (interior is IDENTICAL) fail('… 11 uniform integers cannot match 16 separately-floored
+ * ones')` — a gate that would have FAILED the correct engine and PASSED the broken one, which is
+ * worse than a stale test. It was right about the engine of the day: the loop drew a uniform position
+ * in the span. It is wrong about an engine that selects `rolls[damageRollIndex(u)]`, and both halves
+ * had to move together — `damageInterior` was reading `dmgRange`'s min..max rather than what the loop
+ * emits, so it would have gone on reporting six impossible values against a fixed engine.
+ *
+ * The direction is now the other way and the reason is the same one: sixteen indices in, sixteen
+ * draws out, so any value only one engine can produce is a real disagreement about the damage a turn
+ * deals. The endpoint clause below is unchanged — it was never the thing that was wrong. */
 console.log('\nPART 3b — the damage interior');
 for (const sc of G.DIRECTED.filter(s => /knock-off|contact/.test(s.name))) {
   const it = G.damageInterior(sc);
@@ -165,15 +219,23 @@ for (const sc of G.DIRECTED.filter(s => /knock-off|contact/.test(s.name))) {
   else {
     const onlyMe = it.values_medicham_can_produce_that_showdown_cannot;
     const onlySd = it.values_showdown_can_produce_that_medicham_cannot;
-    pass('"' + it.name.slice(0, 40) + '": endpoints agree (' + it.sd_span.join('..') + '), '
-      + it.sd_distinct + ' distinct showdown values against ' + it.me_distinct + ' medicham values');
-    note('the INTERIOR is not the same: ' + onlyMe.length + ' value(s) only medicham can roll ['
-      + onlyMe.join(',') + '], ' + onlySd.length + ' only showdown can ['
-      + onlySd.join(',') + '], worst per-value probability gap '
-      + (100 * it.worst_probability_gap).toFixed(2) + ' points at ' + it.worst_at);
-    if (!onlyMe.length && !onlySd.length && it.worst_probability_gap === 0)
-      fail('the interior is IDENTICAL, which contradicts §5a — 11 uniform integers cannot match 16 '
-        + 'separately-floored ones. Check that the medicham span is being read and not swept.');
+    if (onlyMe.length || onlySd.length || it.worst_probability_gap !== 0)
+      fail('the interior of "' + it.name.slice(0, 40) + '" is NOT the authority\'s. ' + onlyMe.length
+        + ' value(s) only medicham can roll [' + onlyMe.join(',') + '], ' + onlySd.length
+        + ' only showdown can [' + onlySd.join(',') + '], worst per-value probability gap '
+        + (100 * it.worst_probability_gap).toFixed(2) + ' points at ' + it.worst_at
+        + '.\n          ROADMAP #304: the loop must select rolls[damageRollIndex(u)], not interpolate '
+        + 'a position between d.min and d.max.');
+    else {
+      pass('"' + it.name.slice(0, 40) + '": endpoints agree (' + it.sd_span.join('..') + ') AND the '
+        + 'interior is the authority\'s — ' + it.sd_distinct + ' distinct values on both sides, from '
+        + '16 indices, with every multiplicity equal (ROADMAP #304)');
+      /* THE ROW MUST NOT BE VACUOUS. If the authority's sixteen indices all landed on one value there
+       * is nothing here to agree about, and "identical" would be free. */
+      if (it.sd_distinct < 2)
+        fail('the authority produced only ' + it.sd_distinct + ' distinct value(s) for "'
+          + it.name.slice(0, 40) + '", so this row proves nothing about a roll. Re-stage it.');
+    }
   }
 }
 

@@ -11,14 +11,17 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-volatile-duration.js`, `engine/divergence_shape.js`, `tests/test-end-state.js`,
 `tests/test-coverage-stop.js`, `tests/probe_volatile_leaves.js`, `tests/test-middle-identity.js`,
 `tests/test-middle-stall-address.js`, `tests/test-middle-draw-scope.js`,
-`tests/test-middle-damage-roll.js`
+`tests/test-middle-damage-roll.js`, `tests/test-damage-roll-support.js`
 
-**Twelve instruments, and none substitutes for another:**
+**Thirteen instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
+this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18, and a
+number typed in prose beside a table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
 | `test-mechanics.js` | is ONE mechanic live | tag x tag; and whether a LIVE verdict rests on a probe that asserts rather than proves |
-| `test-engine-diff.js` | is ONE HIT's damage right | every turn counter |
+| `test-engine-diff.js` | is ONE HIT's damage right | every turn counter — and the INTERIOR of the damage roll, by construction: it compares index 0 against `d.max` and index 15 against `d.min`, the two points where an index and a span coincide (ROADMAP #304) |
+| `test-damage-roll-support.js` | can the battle loop emit the authority's damage VALUES, and the same one for the same die — nine staged hits, support and per-index pairing, endpoints asserted first as the control | anything multi-hit (declared out of scope: the authority draws a randomizer per hit and this engine spends one index across a summed range), and whether the FORMULA under the band is right — `test-damage-stages.js` owns that |
 | `test-game-diff.js` | do the two engines hold the same STATE after every turn | damage magnitude |
 | `test-interaction-matrix.js` | does every carrier x reactor pair resolve the way the official engine says | anything the generator refuses to emit — printed on every run |
 | `test-protocol-trace.js` | does the engine EMIT what it did, in Showdown's own protocol shapes, and does every event it claims actually FIRE | whether a MECHANIC is right — it is a stream, not an oracle; the comparison driver over two streams is ROADMAP #68's next step |
@@ -39,8 +42,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  596/596 probed mechanics live, 0 missing   (census 2026-08-18 09:52)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-14 23:54)
+  596/596 probed mechanics live, 0 missing   (census 2026-08-18 11:00)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-18 10:52)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -52,15 +55,218 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 3b1a1212a678 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 73cd8929b567 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 1caee6a52a81 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 266/285 probed, 19 unprobed
 ```
 
-_stamped 2026-08-18 10:16_
+_stamped 2026-08-18 11:02_
 
 <!-- /GENERATED -->
+
+## ROADMAP #304 — THE DAMAGE DIE IS AN INDEX INTO SIXTEEN AND THIS ENGINE DREW A POSITION IN A SPAN. 2026-08-18.
+
+**Census 596 live / 0 missing -> 596 live / 0 missing.** This is the first pass in twelve hours where
+`medicham2-browser.js` MOVED — 104 lines. The probe is `tests/test-damage-roll-support.js`;
+`MEDI_DAMAGE_SPAN_DRAW=1` restores the defect at runtime, and the file re-runs itself with it and
+FAILS IF THAT ARM GOES GREEN.
+
+### WHICH OF THE TWO SHAPES IT IS, DERIVED BEFORE ANYTHING WAS WRITTEN
+
+The brief asked whether 20-against-14 is a rounding-stage mismatch or something generating positions
+the band does not contain. **It is the second, and the arithmetic says so rather than the count.**
+
+`sim/battle.ts:2390` is the authority's entire damage die:
+
+```js
+randomizer(baseDamage) { const tr = this.trunc; return tr(tr(baseDamage * (100 - this.random(16))) / 100); }
+```
+
+`random(16)` is an INDEX, the percentage is `100 - i`, and **sixteen indices is a hard ceiling on the
+number of values one staged hit can produce.** Two stages then act on that ceiling, in
+`data/mods/champions/scripts.ts#modifyDamage`, and they act in opposite directions:
+
+- **REPEATS come from the randomizer itself** (`:226`). Consecutive indices are `baseDamage/100`
+  apart, so whenever `baseDamage < 100` neighbours truncate together and stay equal for ever.
+- **HOLES come from everything after it** — STAB through `modify` (`:262`), the type chart's `*2` and
+  `tr(/2)` (`:270-284`), burn (`:285`), the `ModifyDamage` chain (`:293`). Each scales an
+  already-truncated integer, spreading the survivors apart.
+
+So the authority's support is **fewer than sixteen values inside a wider span.** Measured on the
+published row: 16 indices collapse to 14 — indices 4, 8, 11 and 15 repeat the one below them — inside
+a span of 18 integers. medicham2 produced **all 18**. It was not rounding at a different stage; it was
+sampling a set that does not exist. Nothing about the stages was wrong: `tests/test-damage-stages.js`
+compares `dmgRange`'s sixteen `rolls` against the authority exactly and reads **1696/1696**.
+
+### THE 14/20 SHAPE HOLDS EVERYWHERE, AND IT IS WORSE THAN THE PUBLISHED ROW
+
+One staged hit is one attacker, one defender and one move, so the fixture was widened to nine: both
+categories, a resist, a 4x, an item that lands after the die, two spread hits, base powers 40 to 120.
+**Every row was put to the official `TeamValidator` before it ran.** Endpoints agreed on all nine —
+that is the control — and every one of the nine was wrong in the interior:
+
+| staged hit | authority | medicham2 | only we can emit |
+|---|---|---|---|
+| Ice Shard into Garchomp (40 BP, 4x) | **5** distinct | **25** | 20 |
+| Ice Beam into Garchomp (90 BP, 4x) | 9 | 33 | 24 |
+| Flash Cannon + Life Orb into Clefable | 9 | 32 | 23 |
+| Earthquake into Snorlax (spread) | 10 | 14 | 4 |
+| Knock Off into a body holding an item | 12 | 18 | 6 |
+| Rock Slide into Corviknight (spread) | 6 | 8 | 2 |
+| Moonblast into Snorlax | 7 | 10 | 3 |
+| Close Combat into Garchomp | 11 | **11** | 0 |
+| Brave Bird into Archaludon (resisted) | 6 | **6** | 0 |
+
+**AND THE TWO ROWS WHERE THE SUPPORTS MATCHED WERE STILL WRONG**, which is the part a support count
+cannot see: all nine failed the PAIRED clause — the same die handed the two engines different damage —
+Close Combat on 3 indices of 16 and Brave Bird on 4. A shared support with a different mapping is
+still a different number on the board.
+
+### THE PAIR, 797 GAMES, THE ENGINE THE ONLY THING THAT MOVED
+
+Same census pin, same frozen team pool, same 797 games, `MEDI_DAMAGE_SPAN_DRAW=1` the only difference:
+
+| | span draw restored | index selection |
+|---|---|---|
+| **`-damage field 3`** | **137** | **8** |
+| diverged (middle arm) | 409 | **330** |
+| diverged / usable | 51.1% | **41.1%** |
+| VOID | 4 | 4 |
+| `top-tie-first` arm | 163 | **163** |
+| `bottom-tie-first` arm | 191 | **191** |
+| ordering | 175 | 188 |
+| event missing from medicham2 | 49 | 69 |
+
+**THE PRE ARM REPRODUCES ROADMAP #303'S PUBLISHED POST EXACTLY** — 409 diverged, 4 VOID, 51.1% — so
+the two passes sit on one ladder rather than on two samples. **The 137-game residual #303 left
+unexplained was this, and it is now 8.**
+
+**THE PAIR LEFT NO JSON AND THAT IS A GAP, SAID RATHER THAN HIDDEN.** Both arms were run with `--out`
+and WITHOUT `--write`, and `--out` is only read inside the `if (WRITE)` block
+(`game_differential.js:6307`) — so the figures above come off the console. The run is reproducible in
+two commands and the restore flag makes it re-runnable on any later tree:
+
+```bash
+MEDI_DAMAGE_SPAN_DRAW=1 node engine/game_differential.js --games 982 --census data/_r220-census-pin.json \
+    --team-store data/team-pool-frozen --write --out data/_r304-pair-PRE.json
+                         node engine/game_differential.js --games 982 --census data/_r220-census-pin.json \
+    --team-store data/team-pool-frozen --write --out data/_r304-pair-POST.json
+```
+
+**THE CORNER ARMS DID NOT MOVE BY A SINGLE GAME**, and that is the prediction rather than a comfort:
+`rolls[0]` IS `d.max` and `rolls[15]` IS `d.min`, so a corner is the one place the two conventions
+already agreed. The instrument that cannot see the fix is the same instrument that could not see the
+defect.
+
+**`ordering` 175 -> 188 and `event missing` 49 -> 69 ARE NOT REGRESSIONS AND MUST NOT BE READ AS ONE.**
+The differential reports the FIRST divergence per game and discards everything after it, so removing
+129 damage divergences uncovers whatever those games part on next. Net is **79 games closed**.
+
+Standing artifact republished on the live tree, 969 games: **344 diverged, 2 VOID, 967 usable, 35.4%
+of the usable population** (was 450 / 7 / 46.1%). `-damage field 3` **163 -> 10**. `ordering` (186) is
+the largest class. `tests/test-engine-diff.js --n 6000` republished: **0 disagreements at the midpoint
+and 0 at each corner.**
+
+### ONE CAUSE, NOT MANY — ASKED BEFORE THE SIZE WAS CLAIMED
+
+161 games sharing the shape `-damage field N` share only *"both engines emitted `-damage` and the
+numbers differ"*, which is equally compatible with several unrelated arithmetic defects. Two
+discriminators, both measured before the fix:
+
+- **The delta has a signature.** Every one of the 34 `-damage field` first divergences the standing
+  artifact carries is **1 or 2 HP** — median 0.71% of max HP, worst 1.60%. #303's pre-fix deltas ran
+  both signs to +/-18 with a median of 5, the width of the span. One or two steps inside a
+  sixteen-entry band is what an index defect looks like; a wrong stage or a missing multiplier scales
+  with the number. *(34 sampled first divergences, NOT the 161 — the artifact carries 60.)*
+- **The shape reproduced in every configuration** of the widened fixture above.
+
+Then it was not left as an inference: **137 -> 8 on one change** is the population answer.
+
+### THE 8 THAT SURVIVE, SAID PLAINLY
+
+Deltas of 1 to 4 HP, on Charizard, Sinistcha, Metagross and Basculegion. The standing DECLARED
+divergence that fits is `dmgRange`'s own — Showdown draws a randomizer PER HIT and this engine spends
+one index across a summed multi-hit range — but **which moves those 8 games clicked was not measured**,
+so that is a candidate and not a finding.
+
+### THE TWO PROBES THAT WERE PINNING THE DEFECT, AND THE ONE THAT ASSERTED IT
+
+Landing the fix took the census DOWN to 594 live / 2 missing before it came back to 596 / 0, and the
+two that fell are the finding rather than the cost:
+
+- `move spreadFoes` demanded `test === 51`. **51 is not in the authority's support at any roll** — it
+  is `min + floor(span/2)`, the old engine's own arithmetic. Re-derived against the authority at all
+  sixteen indices, index 7 is **52**; a truncating `x0.75` was MEASURED at **50** by putting
+  `Math.floor(base*0.75)` back for one run, so the row still separates the two arithmetics.
+- `item damageMultAll` demanded `80 / 104`, both from the span draw. Index 7 is **79 / 103**, and a
+  float `x1.3` was MEASURED at **102**. Worth reading twice: 103 is the number the OLD comment named
+  as the WRONG answer, which is exactly why it was re-measured rather than retuned.
+- `tests/test-game-differential.js` PART 3b **failed if the interior was IDENTICAL** —
+  *"11 uniform integers cannot match 16 separately-floored ones"*. A gate that fails a correct engine
+  and passes the broken one. It is inverted now, and shown red under `MEDI_DAMAGE_SPAN_DRAW=1` on BOTH
+  staged hits — including the one whose support already matched and whose MULTIPLICITIES did not,
+  which the old form could never have seen. Its measurement half moved with it: `damageInterior` was
+  reading `dmgRange`'s min..max, so it would have gone on publishing six impossible values against a
+  fixed engine. It now drives the battle loop at all sixteen die positions with the other four streams
+  held inert.
+
+### THE OTHER RED CLAUSES IN `test-game-differential.js`, WITH THEIR DISPOSITIONS
+
+The file is **GREEN, exit 0.** Measured paired rather than remembered: with the defect restored it is
+4 red, with the fix 3, and all three that remained were pre-existing.
+
+| clause | asserted before | asserts now |
+|---|---|---|
+| `Intimidate x guaranteed crit` | closed; PARTS AGAIN at line 14, class `-damage field 3` | closed and agreeing — **#304 closed it** |
+| `contact punish — Rough Skin` | `expect: 'diverge'` | `expect: 'agree'`, `closed_by` #304 |
+| `the sandstorm residual is speed-sorted` | `expect: 'diverge'` | `expect: 'agree'`, `closed_by` #218 |
+| `only 0 of the staged scenarios classified as "ordering"` | **two scenarios must still be WRONG** | every `predicts: 'ordering'` scenario must diverge in that class **or** carry a named `closed_by`; REACHABILITY is proved by PART 2's planted swap |
+
+**`contact punish` is the one worth reading twice.** It declares `predicts: 'ordering'` and has never
+once diverged on an ordering cause: `_r220-gd-pre.json`, `_r220-gd-post.json` and
+`game-differential-PRE.json` all record it in class **`-damage field 3`**, a NUMBER, at a line before
+the ordering question is reached. **Its `expect: 'diverge'` was being satisfied by #304's defect** — so
+the acceptance test that counted it was resting on the bug this pass removed. With #304 landed the
+whole scripted turn agrees, which is the first time that scenario has answered the question it was
+staged to ask.
+
+**THE ORDERING CLAUSE WAS NOT LOWERED TO FIT THE NEWS, AND THE ALTERNATIVE WAS TRIED FIRST.** Eight
+replacement stagings were built and run — a two-sided switch turn, Stamina, Justified, Weak Armor,
+Sand Spit, Electromorphosis, Berserk, Anger Point — and **all eight AGREED**. The live `ordering`
+population (186 of 969, the largest class) comes from states a one-turn script does not reach.
+
+### #34 — NARROWED, NOT CLOSED
+
+The obvious mechanism is ruled out: `driverReset()` is called at the top of **both** arm loops
+(`game_differential.js:4791` and `:4803`), so the coverage-seeking `CLICKS`/`COV_*` state does not
+carry from one arm into the next. This pass's own three-arm invocations are the evidence: across a
+change that altered every damage number and changed the middle arm's games (tie groups 64,438 against
+66,118), **`top-tie-first` read 163 and `bottom-tie-first` 191 in BOTH arms.** No leak manifested.
+
+One structural coupling remains and it fits #34's reported facts exactly: on the `--until-covered`
+path (`:4789`) `played` is decided by the PRIMARY arm's coverage stall and every other arm replays
+exactly that many games, while an arm run ALONE is its own primary and stops on its own coverage. A
+change that alters the primary's coverage growth then moves every other arm's denominator.
+**Hypothesis, testable, NOT tested** — the standing artifact runs the fixed-count path
+(`coverage_stop: null`), so it is not the explanation there.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous list that is not named below.
+
+**Removed — they are probes now:**
+- ~~medicham2's damage roll is a uniform draw over the integer span; Showdown's is one of 16 floored
+  indices~~ — `tests/test-damage-roll-support.js`, nine staged hits, support AND per-index pairing,
+  re-running itself against the restored defect.
+- ~~the 137-game `-damage field 3` residual~~ — it was the line above. 137 -> 8, paired.
+
+**Added, measured this pass and NOT fixed:**
+- **8 surviving `-damage field 3` games** in the pair (10 in the standing artifact), deltas 1 to 4 HP.
+  The declared multi-hit divergence — one index across a summed range against the authority's per-hit
+  randomizer — is the candidate; the moves were not read.
+- **`ordering` is now the largest class at 186 of 969 and NOTHING IN THE DIRECTED BLOCK STAGES IT.**
+  Eight attempted stagings all agreed, so the live population needs a multi-turn scenario to reach.
 
 ## ROADMAP #303 — THE LARGEST CLASS IN THE DIFFERENTIAL WAS A SHARED DIE READ BACKWARDS ON ONE SIDE. 2026-08-18.
 

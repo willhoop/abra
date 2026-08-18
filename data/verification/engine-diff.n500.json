@@ -1,0 +1,90 @@
+{
+  "generated": "2026-08-18T14:39:13.326Z",
+  "by": "tests/test-engine-diff.js",
+  "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
+  "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
+  "seed": 20260804,
+  "requested": 500,
+  "compared": 500,
+  "agreed": 500,
+  "disagreed": 0,
+  "worst": [],
+  "plant": null,
+  "arms": [
+    {
+      "arm": "top",
+      "what": "Showdown damage roll index 0 (MAXIMUM) against MEDICHAM's `max`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 500,
+      "agreed": 500,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "bottom",
+      "what": "Showdown damage roll index 15 (MINIMUM) against MEDICHAM's `min`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 500,
+      "agreed": 500,
+      "disagreed": 0,
+      "worst": []
+    }
+  ],
+  "arms_why": "A MIDPOINT CANNOT SEE A RANGE THAT IS WRONG BY THE SAME AMOUNT AT BOTH ENDS. `--plant spread` widens MEDICHAM's range symmetrically and leaves `disagreed` at exactly its unplanted value while both arms light up, which is the demonstration that these two numbers are not restatements of the one above them.",
+  "skipped_non_finite": 0,
+  "skipped_moves": {},
+  "skipped_multihit": 19,
+  "skipped_multihit_moves": {
+    "bulletseed": 3,
+    "populationbomb": 1,
+    "rockblast": 2,
+    "dualwingbeat": 6,
+    "tripleaxel": 4,
+    "dragondarts": 1,
+    "pinmissile": 1,
+    "watershuriken": 1
+  },
+  "dropped_by_exception": 12,
+  "dropped_where": {
+    "showdown moveHit Salazzle Heat Wave -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Conkeldurr Mach Punch -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Torkoal Solar Beam -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Mawile Iron Head -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Hatterene Mystical Fire -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Spiritomb Struggle -> Bellibolt: Cannot read properties of null (reading 'name')": 2
+  },
+  "controls": "both leads are really sent out on the Showdown side, so MEDICHAM is given the same switch-in (Intimidate, weather setters) through the engine's own applyEntryEffects/applyIntimidate; and the defender ability's onTryHit is asked directly, because Showdown's moveHit entry point does not run it.",
+  "touched": {
+    "intimidate": 26,
+    "weather": 8,
+    "absorbMon": 28,
+    "absorbFired": 3,
+    "bpCallback": 16
+  },
+  "NOT_PUBLISHED": {
+    "why": "this run's compared=500 is smaller than the published 6000",
+    "published_artifact": "data/engine-diff.json",
+    "published_sample": 6000,
+    "this_sample": 500,
+    "how_to_publish": "re-run at at least 6000, or pass --republish-smaller to replace the published figure deliberately",
+    "roadmap": "#257"
+  },
+  "accuracy_conformance": {
+    "compared": 500,
+    "disagreed": 0,
+    "unknown_accuracy": 0,
+    "worst": []
+  },
+  "accuracy_modifier_conformance": {
+    "handlers": 13,
+    "rows": 14,
+    "disagreed": 0,
+    "problems": []
+  },
+  "substitute_bypass_conformance": {
+    "compared": 500,
+    "inSet": 51,
+    "missing": [],
+    "extra": []
+  }
+}

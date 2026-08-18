@@ -10,6 +10,77 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.42.0] — 2026-08-18
+
+### Fixed
+- **THE DAMAGE DIE IS AN INDEX INTO SIXTEEN AND THIS ENGINE DREW A POSITION IN A SPAN (ROADMAP #304).**
+  `sim/battle.ts:2390` is the whole authority die — `tr(tr(baseDamage * (100 - this.random(16))) / 100)`
+  — so **sixteen indices is a hard ceiling on the values one staged hit can produce.** The randomizer's
+  own floor creates REPEATS below that ceiling (consecutive indices are `baseDamage/100` apart), and
+  every stage after it in `data/mods/champions/scripts.ts#modifyDamage` — STAB `:262`, the type chart
+  `:270-284`, burn `:285`, the `ModifyDamage` chain `:293` — scales the survivors apart into HOLES.
+  `medicham2-browser.js:18336` computed `d.min + floor(u * (d.max - d.min + 1))`: **every integer in
+  the span, including values the real game cannot emit.** It now selects
+  `rolls[damageRollIndex(u)]` off the sixteen-entry band `dmgRange` has handed back since ROADMAP #92
+  and which `tests/test-damage-stages.js` proves exact against the authority at **1696/1696**.
+  **NO CORNER INSTRUMENT COULD SEE IT, BY CONSTRUCTION** — `rolls[0]` IS `d.max` and `rolls[15]` IS
+  `d.min`, so `tests/test-engine-diff.js` reads 0/6000 at each corner while every interior roll is
+  wrong. **The shape holds across a widened fixture of nine staged hits** (both categories, a resist,
+  a 4x, an item after the die, two spreads, BP 40–120), and it is worse than the one published row:
+  Ice Shard into Garchomp is **5 authority values against 25**, Ice Beam 9 against 33. **The two rows
+  whose SUPPORTS matched still failed the paired clause**, so a support count alone understates it.
+  **PAIRED, 797 games, same census pin and frozen team pool, `MEDI_DAMAGE_SPAN_DRAW=1` the only
+  difference: `-damage field 3` 137 → 8, diverged 409 → 330, 51.1% → 41.1%, VOID 4 → 4, and BOTH
+  CORNER ARMS UNMOVED at 163 and 191.** The PRE arm reproduces ROADMAP #303's published POST exactly
+  (409 / 4 / 51.1%), so the two passes sit on one ladder. `ordering` 175 → 188 and `event missing`
+  49 → 69 are the damage class stepping aside — the differential reports the FIRST divergence per game
+  — not a regression. VERIFIED BY `tests/test-damage-roll-support.js`.
+
+### Changed
+- **TWO CENSUS PROBES AND ONE GATE CLAUSE WERE PINNING THE DEFECT, and the census fell to 594 live / 2
+  missing before it came back to 596 / 0.** `move spreadFoes` demanded `test === 51` — **51 is not in
+  the authority's support at any roll**, it is `min + floor(span/2)`, the old engine's own arithmetic.
+  `item damageMultAll` demanded `80 / 104`, from the same draw. Both re-derived against the authority
+  at all sixteen indices (52, and 79 / 103 at index 7), and the WRONG arithmetic was MEASURED rather
+  than argued in each case — a truncating `x0.75` reads 50, a float `x1.3` reads 102 — so both rows
+  still separate the two arithmetics they exist to separate.
+- **`tests/test-game-differential.js` PART 3b FAILED IF THE DAMAGE INTERIOR WAS IDENTICAL** — *"11
+  uniform integers cannot match 16 separately-floored ones"* — a gate that would have failed the
+  correct engine and passed the broken one. Inverted, and shown red under `MEDI_DAMAGE_SPAN_DRAW=1` on
+  both staged hits, **including the one whose support already matched and whose multiplicities did
+  not**, which the old form could never have seen. Its measurement half moved with it:
+  `game_differential.js`'s `damageInterior` was reading `dmgRange`'s min..max and would have gone on
+  publishing six impossible values against a fixed engine; it now drives the BATTLE LOOP at all
+  sixteen die positions with the other four rng streams held where they cannot fire.
+- **The remaining red clauses in `tests/test-game-differential.js` are green, with dispositions.**
+  Measured paired: 4 red with the defect restored, 3 with the fix. `Intimidate x guaranteed crit` was
+  closed by #304 itself. `contact punish — Rough Skin` and `the sandstorm residual is speed-sorted`
+  declared `expect: 'diverge'` and now agree — the first because **its divergence was `-damage field 3`
+  in every artifact on disk, a NUMBER, never the ordering it predicts**, the second because ROADMAP
+  #218 speed-sorted the weather residual. The `ordering` acceptance clause required **two scenarios to
+  still be WRONG**; it now requires every `predicts: 'ordering'` scenario to diverge in that class or
+  carry a named `closed_by`, with the class's REACHABILITY proved by PART 2's planted swap. Eight
+  replacement stagings were tried first — a two-sided switch turn, Stamina, Justified, Weak Armor,
+  Sand Spit, Electromorphosis, Berserk, Anger Point — and **all eight agreed**.
+
+### Notes
+- Standing artifacts republished on the live tree: `data/game-differential.json` at 969 games —
+  **344 diverged, 2 VOID, 967 usable, 35.4%** (was 450 / 7 / 46.1%), `-damage field 3` **163 → 10**,
+  `ordering` (186) now the largest class; and `tests/test-engine-diff.js --n 6000` at **0
+  disagreements at the midpoint and 0 at each corner**.
+- **8 games survive the `-damage field 3` class in the pair (10 in the standing artifact), deltas 1 to
+  4 HP.** The declared multi-hit divergence — the authority draws a randomizer per hit, this engine
+  spends one index across a summed range — is the candidate. The moves those games clicked were NOT
+  read, so it is a candidate and not a finding.
+- **ROADMAP #34 narrowed, not closed.** `driverReset()` at the top of both arm loops
+  (`game_differential.js:4791`, `:4803`) rules out the coverage-seeking `CLICKS`/`COV_*` state leaking
+  between arms, and this pass's own three-arm invocations show `top-tie-first` at 163 and
+  `bottom-tie-first` at 191 in BOTH arms of a change that altered every damage number. The one
+  structural coupling left is the `--until-covered` path, where `played` is set by the PRIMARY arm and
+  every other arm replays exactly that many games. Hypothesis, testable, NOT tested.
+
+---
+
 ## [5.41.0] — 2026-08-18
 
 ### Fixed

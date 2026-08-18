@@ -4009,8 +4009,25 @@ const DIRECTED = [
     A: stage([['incineroar', '', 'Blaze', ['Knock Off', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'garchomp')),
     B: stage([['snorlax', 'Leftovers', 'Thick Fat', [TAKE_IT, 'Protect']]]).concat(BENCH('toxapex', 'corviknight', 'weavile')),
     script: [{ p1: [{ m: 'knockoff', t: 0 }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }] },
+  /* CLOSED 2026-08-18 (ROADMAP #304), AND THE WAY IT WAS BEING KEPT OPEN IS THE FINDING.
+   *
+   * This scenario declares `predicts: 'ordering'`. It has never once diverged on an ORDERING cause.
+   * Every artifact that recorded it — `data/_r220-gd-pre.json`, `_r220-gd-post.json`,
+   * `game-differential-PRE.json` — has it diverging in class **`-damage field 3`**, a NUMBER, at a
+   * line before the ordering question is even reached. So `expect: 'diverge'` was being satisfied by
+   * the damage-roll defect, and the clause would have gone red the moment that defect was fixed while
+   * saying nothing at all about Rough Skin's position in the hit.
+   *
+   * With #304 landed the whole scripted turn agrees, which is the FIRST time this scenario has been
+   * able to answer the question it was staged to ask. The aligner is demonstrably still live on it:
+   * PART 2 of tests/test-game-differential.js plants a wrong field, a deleted event and a swapped
+   * pair into this same driver and catches all three at the exact planted line. */
   { name: 'contact punish — Rough Skin resolves against the attacker (§5a)',
-    predicts: 'ordering', expect: 'diverge',
+    predicts: 'ordering', expect: 'agree',
+    closed_by: 'ROADMAP #304 — the damage divergence that was standing in for this scenario\'s '
+             + 'prediction is gone (the loop selects the authority\'s roll index instead of '
+             + 'interpolating a position in the span), and with it out of the way the contact punish '
+             + 'resolves at the same point in the hit on both engines',
     A: stage([['incineroar', '', 'Blaze', ['Close Combat', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'weavile')),
     B: stage([['garchomp', '', 'Rough Skin', [TAKE_IT, 'Protect']]]).concat(BENCH('toxapex', 'corviknight', 'snorlax')),
     script: [{ p1: [{ m: 'closecombat', t: 0 }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }] },
@@ -4046,8 +4063,19 @@ const DIRECTED = [
    * its sand chip before the slower Incineroar; medicham2 walks its own slots in order. Tyranitar
    * and Garchomp are Rock and Ground, so only the two bodies whose speeds differ are chipped, and
    * every click is a Protect — nothing here rolls a die. */
+  /* CLOSED 2026-08-18, AND IT HAD BEEN CLOSED FOR SOME TIME WITH NOBODY UPDATING THE ROW. `diverged`
+   * reads FALSE in every artifact on disk that carries a directed block, including
+   * `data/_r220-gd-pre.json`. ROADMAP #218 is what closed it: Showdown resolves BOTH end-of-turn
+   * passes in speed order (`sandstorm.onFieldResidual -> eachEvent('Weather')` speed-sorts
+   * `getAllActive()`, battle.ts:465) and this engine had speed-sorted the CLOCK pass only, walking
+   * `[...actA, ...actB]` in the WEATHER pass. Both loops now ask one function.
+   *
+   * THE STAGING STILL SEPARATES SLOT ORDER FROM SPEED ORDER — Whimsicott sits in slot B behind a
+   * slower Incineroar — so a regression to a slot walk re-opens this row rather than hiding in it. */
   { name: 'the sandstorm residual is speed-sorted, not slot-ordered',
-    predicts: 'ordering', expect: 'diverge',
+    predicts: 'ordering', expect: 'agree',
+    closed_by: 'ROADMAP #218 — the weather residual is speed-sorted through the same function as the '
+             + 'clock residual, so the faster body takes its sand chip first on both engines',
     A: stage([['incineroar', '', 'Blaze', ['Protect', 'Knock Off']],
               ['whimsicott', '', 'Chlorophyll', ['Protect', 'Dazzling Gleam']]]).concat(BENCH('milotic', 'clefable')),
     B: stage([['tyranitar', '', 'Sand Stream', ['Protect', 'Rock Slide']],
@@ -4180,6 +4208,18 @@ const gLogOf = () => _lastSdLog;
  * For one staged hit: enumerate all 16 Showdown rolls by pinning `random(16)` to each index in turn,
  * and all of medicham2's values by pinning its rng to each of its own integers. Then compare the two
  * as MULTISETS — the design's claim is about multiplicities, not about the span. */
+/* ONE STREAM SWEEPS, THE OTHER FOUR ARE HELD WHERE THEY CANNOT FIRE — ROADMAP #304.
+ * `rngStreams` takes a struct, so this is the honest way to move one die: `acc` is compared `< chance`
+ * so 0 always hits, `crit` is compared `< critChance` so 0.999 never crits (no rolled crit rate in
+ * this format is above 1/2), `sec` likewise, `stall` decides a shield nobody raises in these scripts.
+ * The alternative — one scalar for everything — is what this file's own header records as having
+ * silently critted the bottom of a damage sweep. */
+function inertExcept(which, u) {
+  const S = { any: () => 0.5, acc: () => 0, crit: () => 0.999, sec: () => 0.999,
+              dmg: () => 0.5, stall: () => 0.999, split: true, seed: null };
+  S[which] = () => u;
+  return S;
+}
 function damageInterior(sc) {
   const a = buildPair(sc.A), b = buildPair(sc.B);
   if (!a || !b) return null;
@@ -4188,25 +4228,41 @@ function damageInterior(sc) {
     const v = oneHitDamage(a, b, sc.script, { sdRoll: roll });
     if (v != null) sdVals.push(v);
   }
-  /* MEDICHAM'S SPAN IS ASKED FOR, NOT SWEPT. The first version swept its scalar `rng` across [0,1)
-   * and got 37..55 where the true span is 37..44 — because the SAME scalar drives the crit roll
-   * (`rng() < 1/24`), so the bottom of the damage sweep was silently critting. A sweep that has to
-   * dodge the instrument's own side effects is not a measurement of the thing it names.
-   * `dmgRange` IS the fact, and every rollout in this engine reads it. */
-  const meSpan = mediSpan(a, b, sc.script);
-  if (!meSpan) return null;
+  /* MEDICHAM'S SIDE IS THE BATTLE LOOP, SWEPT BY DIE POSITION — ROADMAP #304, AND IT USED TO BE THE
+   * SPAN, WHICH IS NOW THE WRONG QUESTION.
+   *
+   * It read `dmgRange`'s min..max and enumerated every integer between them with the comment
+   * "sampled UNIFORMLY by the engine". That WAS true and it is not any more: the loop selects
+   * `rolls[damageRollIndex(u)]`, one of the authority's sixteen, so the RANGE is still min..max while
+   * the reachable set is the band inside it. Left as it was, this block would have gone on publishing
+   * "6 values only medicham can roll" for ever — a defect report that outlived the defect, which is
+   * exactly the shape CLAUDE.md keeps recording. It is now what the LOOP emits.
+   *
+   * THE SCALAR SWEEP THIS FUNCTION ABANDONED IS NOT BEING REINTRODUCED. The old comment is right that
+   * one scalar drives the crit roll too, so its bottom silently critted. The streams are held APART
+   * instead: `dmg` sweeps, `crit`/`acc`/`sec`/`stall` sit where they cannot fire. That is a
+   * measurement of the thing it names.
+   *
+   * THIS IS A SUMMARY, NOT THE GATE. tests/test-damage-roll-support.js is the outcome-level probe for
+   * #304 — nine staged hits, both categories, a resist, a 4x, an item after the die, a spread — and
+   * it stages its own Showdown side. This block exists so the ARTIFACT carries the same claim. */
   const meVals = [];
-  for (let v = meSpan.min; v <= meSpan.max; v++) meVals.push(v);   // sampled UNIFORMLY by the engine
+  for (let i = 0; i < 16; i++) {
+    const u = (16 - 1 - i + 0.5) / 16;                     // the position that selects index i
+    const v = oneHitDamage(a, b, sc.script, { mediStreams: inertExcept('dmg', u) });
+    if (v == null) return null;
+    meVals.push(v);
+  }
   const uniq = arr => [...new Set(arr)].sort((x, y) => x - y);
   const sdSet = uniq(sdVals), meSet = uniq(meVals);
   const count = arr => { const m2 = new Map(); for (const v of arr) m2.set(v, (m2.get(v) || 0) + 1); return m2; };
   const sdC = count(sdVals), meC = count(meVals);
-  /* medicham2 draws its span UNIFORMLY, so its probability for value v is 1/|span|; Showdown's is
-   * (times v appears among 16 rolls)/16. Reported as the largest absolute difference in probability
-   * over the union of the two spans. */
+  /* BOTH SIDES ARE NOW SIXTEEN DRAWS, so the probability of a value is its multiplicity over 16 in
+   * each engine and the comparison is between two distributions of the same shape. Reported as the
+   * largest absolute difference over the union of the two supports. */
   let worstP = 0, worstAt = null;
   for (const v of uniq([...sdSet, ...meSet])) {
-    const p1 = (sdC.get(v) || 0) / sdVals.length, p2 = (meC.get(v) || 0) / meSet.length;
+    const p1 = (sdC.get(v) || 0) / sdVals.length, p2 = (meC.get(v) || 0) / meVals.length;
     if (Math.abs(p1 - p2) > worstP) { worstP = Math.abs(p1 - p2); worstAt = v; }
   }
   return { name: sc.name, sd_span: [sdSet[0], sdSet[sdSet.length - 1]], me_span: [meSet[0], meSet[meSet.length - 1]],
@@ -4270,7 +4326,10 @@ function oneHitDamage(pairA, pairB, script, opt) {
       if (!w) { map.set(mon, { kind: 'pass' }); return; }
       map.set(mon, M.playerAction(mon, w.m, w.t != null ? foes[w.t] : (foes[0] || null), S.field)); });
     return map; };
-  M.battleTurn(S, () => opt.mediRoll, mk(S.actA, S.actB, step.p1), mk(S.actB, S.actA, step.p2));
+  /* `mediStreams` (ROADMAP #304) hands over a per-category struct instead of one scalar, so a caller
+   * can move ONE die and leave the other four inert. `mediRoll` still works and still means "every
+   * stream is this number", which is what every caller before #304 asked for. */
+  M.battleTurn(S, opt.mediStreams || (() => opt.mediRoll), mk(S.actA, S.actB, step.p1), mk(S.actB, S.actA, step.p2));
   return before - S.actB[0].curHP;
 }
 
