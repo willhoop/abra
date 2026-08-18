@@ -88,6 +88,10 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* ROADMAP #240 -- a CLAMPED stat change announced with magnitude 0, the line Showdown writes and
+   * this engine could not. Zero on a run containing an Intimidate into a -6 body means the emitter
+   * is unwired again. */
+  boostZeroAnnounced: 0,
   /* ROADMAP #231 -- THE AUTHORITY ENDS THE BATTLE. Four counters, not one, because "the turn stopped"
    * and "it stopped at the right MOMENT" are different claims and only the split can tell them apart:
    *   turnEndedSideWiped      the total -- a zero on a run with any KO in it means this is unwired
@@ -1051,6 +1055,16 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* ROADMAP #240 -- a stat change that landed ZERO stages and whose call site has not yet had its
+   * authority branch read, so no line was written. Showdown writes one whenever the change was
+   * CLAMPED at a cap and the effect is not an ability-without-secondary or a move secondary/self
+   * rider (sim/battle.ts:2074-2078). Non-zero is not a defect by itself -- it is the list of sites
+   * still to be read -- but it must never be the reason a differential game truncates, so it is
+   * printed rather than swallowed. `boostZeroNotAtCap` is the narrower one: d === 0 with the body
+   * NOT at +6 or -6, which is a refusal or a no-op multiplier and gets no line in the authority
+   * either. */
+  boostZeroSuppressed: 0, boostZeroSuppressedFirst: '',
+  boostZeroNotAtCap: 0, boostZeroNotAtCapFirst: '',
   /* ROADMAP #238 -- a shield is up, a Status move is aimed at its holder, and `shieldsUser` carries
    * no readable `blocksStatus` for the move that raised it. The move is REFUSED (the pre-change
    * behaviour) rather than being guessed through, and the refusal is counted so the guess is not
@@ -1799,7 +1813,56 @@ const TRACE=(function(){
     heal(m,from,of){ this.push(['-heal',ident(m),health(m),from,of?'[of] '+ident(of):'']); },
     faint(m){ if(m._traceFainted)return; m._traceFainted=true; this.push(['faint',ident(m)]); },
     /* --- stages, status, volatiles --- */
-    bst(m,eng,d,from){ if(!d)return;
+    /* ROADMAP #240 -- A CLAMPED STAT CHANGE IS STILL ANNOUNCED, AND ITS MAGNITUDE IS ZERO.
+     *
+     * `if(!d)return;` meant this engine could never emit a zero-magnitude stat line, and Showdown
+     * emits them. sim/battle.ts:2073-2078, the branch taken when `boostBy` is falsy:
+     *
+     *     } else if (effect?.effectType === 'Ability') {
+     *       if (isSecondary || isSelf) this.add(msg, target, boostName, boostBy);
+     *     } else if (!isSecondary && !isSelf) {
+     *       this.add(msg, target, boostName, boostBy);
+     *     }
+     *
+     * with `msg` decided at :2040-2044 -- `-unboost` when `boost[boostName] < 0 ||
+     * target.boosts[boostName] === -6`, `-boost` otherwise. Champions' scripts.ts does not override
+     * `boost`. It sits on Intimidate (16,962 sheets) and on every setup move clicked at the cap.
+     *
+     * THE COST WAS NEVER THE MISSING LINE. A line the authority writes and this engine does not
+     * TRUNCATES the whole-game differential at that point, so those games threw away every
+     * comparison after it -- 20 of them in data/game-differential.json.
+     *
+     * THE SIGN IS DERIVED FROM THE BODY, NOT GUESSED. `d === 0` means the change was CLAMPED, and a
+     * clamp only happens at a cap: at +6 the request was positive (`-boost`), at -6 it was negative
+     * (`-unboost`). Showdown's two conditions collapse to exactly that. `boostBy` is a bare fourth
+     * field with no `[from]` -- the zero branch passes no fifth argument, and the `-ability|...|boost`
+     * line the ability half writes is a SEPARATE emission this engine already makes.
+     *
+     * ZERO EMISSION IS OPT-IN PER CALL SITE AND THE DEFAULT IS COUNTED, because Showdown's two
+     * branches above are NOT "always": an Ability boost that is neither a secondary nor a `self:`
+     * (Download, Intrepid Sword) writes nothing, and neither does a MOVE secondary or a `self:`
+     * rider. A blanket `emit whenever d === 0` would invent lines in those cases. So a site opts in
+     * only once its authority branch has been read, and every suppressed zero is counted -- a silent
+     * default here would look exactly like the feature working.
+     *
+     * AND A ZERO THAT IS NOT AT A CAP IS NOT A CLAMP. A refusal (Clear Body) or a no-op multiplier
+     * also lands here with d === 0, and the authority emits a `-fail` for the first and nothing at
+     * all for the second. Those are counted separately and still emit nothing. */
+    bst(m,eng,d,from,zero){
+      if(!d){
+        if(!zero){ MEDFAILS.boostZeroSuppressed++;
+                   if(!MEDFAILS.boostZeroSuppressedFirst)
+                     MEDFAILS.boostZeroSuppressedFirst=ident(m)+'/'+sdStat(eng);
+                   return; }
+        const at=(m&&m.boosts)?m.boosts[eng]:null;
+        if(at!==6&&at!==-6){ MEDFAILS.boostZeroNotAtCap++;
+                             if(!MEDFAILS.boostZeroNotAtCapFirst)
+                               MEDFAILS.boostZeroNotAtCapFirst=ident(m)+'/'+sdStat(eng)+'@'+at;
+                             return; }
+        MEDSEEN.boostZeroAnnounced++;
+        this.push([at===6?'-boost':'-unboost',ident(m),sdStat(eng),0]);
+        return;
+      }
       this.push([d>0?'-boost':'-unboost',ident(m),sdStat(eng),Math.abs(d),from]); },
     clearAll(){ this.push(['-clearallboost']); },
     /* ROADMAP #81 WIRE 11 -- `[silent]` is the item handler's own third field:
@@ -9757,14 +9820,21 @@ function applyStatDrop(f,stat,n,eff,src){
   if(invSign(f)===-1){
     const _b0=f.boosts[stat];
     f.boosts[stat]=clamp(f.boosts[stat]+n,-6,6);
-    if(TR)TR.bst(f,stat,f.boosts[stat]-_b0); return 'contrary';
+    if(TR)TR.bst(f,stat,f.boosts[stat]-_b0,'',true); return 'contrary';
   }
   /* Simple DOUBLES the drop (official engine: Intimidate into Simple is -2). By shape from the
    * staged `amplifiesBoosts {mult:2}`; the name is the pre-regeneration bridge, WIRE 113. */
   const _amp=TAGS.param('ability',ab,'amplifiesBoosts');
   const _b1=f.boosts[stat];
   f.boosts[stat]=clamp(f.boosts[stat]-n*((_amp&&+_amp.mult)||(ab==='simple'?2:1)),-6,6);
-  if(TR)TR.bst(f,stat,f.boosts[stat]-_b1);
+  /* ROADMAP #240 -- ZERO IS ANNOUNCED HERE. Every caller of applyStatDrop takes an emitting branch
+   * of sim/battle.ts:2074-2078, checked one by one rather than assumed: Intimidate and Supersweet
+   * Syrup pass `this.boost(..., null, true)` (data/abilities.ts) -- an Ability with isSecondary, so
+   * the first branch fires; Mirror Armor does the same (`this.boost(negativeBoost, source, target,
+   * null, true)`); and Sticky Web passes `this.dex.getActiveMove('stickyweb')` with neither flag
+   * (data/moves.ts stickyweb.condition.onSwitchIn), so the second fires. There is no caller that
+   * lands in the silent case. */
+  if(TR)TR.bst(f,stat,f.boosts[stat]-_b1,'',true);
   /* WIRE 138 -- THROUGH THE SHARED READER. This block used to be the only place the retaliation
    * happened, which is why every move-driven drop escaped it. `src` is optional and `undefined` keeps
    * the pre-wire behaviour with a counter, so no existing caller changes meaning silently. */
@@ -14659,11 +14729,16 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _sg=invSign(m);          // WIRE 100b
           for(const k in _bo){const _s2=SD2ENG[k];if(_s2&&m.boosts[_s2]!=null){
             const _b0=m.boosts[_s2];m.boosts[_s2]=clamp(m.boosts[_s2]+_bo[k]*_sg,-6,6);
-            if(TR)TR.bst(m,_s2,m.boosts[_s2]-_b0);}}
+            /* ROADMAP #240 -- a move's PRIMARY boost table is `this.boost(moveData.boosts, target,
+             * pokemon, move, isSecondary, isSelf)` at sim/battle-actions.ts with both flags false
+             * for the primary hit, so the clamped case takes the `!isSecondary && !isSelf` branch
+             * and IS written. Read off a real battle: a +6 Gallade clicking Swords Dance prints
+             * `|-boost|p2b: Gallade|atk|0`. */
+            if(TR)TR.bst(m,_s2,m.boosts[_s2]-_b0,'',true);}}
         } else {
           const _b={at:m.boosts.at,sa:m.boosts.sa,sp:m.boosts.sp};
           m.boosts.at=clamp(m.boosts.at+1,-6,6);m.boosts.sa=clamp(m.boosts.sa+1,-6,6);m.boosts.sp=clamp(m.boosts.sp+1,-6,6);
-          if(TR)for(const k of ['at','sa','sp'])TR.bst(m,k,m.boosts[k]-_b[k]);
+          if(TR)for(const k of ['at','sa','sp'])TR.bst(m,k,m.boosts[k]-_b[k],'',true);
         }
         /* THE RIDER'S VOLATILE, AFTER THE BOOSTS -- `moveData.boosts` at sim/battle-actions.ts:1197,
            `moveData.volatileStatus` at :1236. See the hoist comment above the dispatch: Charge,

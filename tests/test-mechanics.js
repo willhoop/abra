@@ -1804,6 +1804,96 @@ probe('ability', 'onSwitchInDrop', 'Intimidate drops Attack', () => {
                  + `MID-BATTLE SWITCH: none ${swControl}, Intimidate ${swTest}` };
 });
 
+/* A STAT CHANGE CLAMPED TO ZERO IS STILL ANNOUNCED, AND THE ENGINE COULD NOT SAY IT AT ALL.
+ *
+ * `bst()` opened `if(!d) return;` — the magnitude is the delta that actually landed, so a body already
+ * at a cap produced NO protocol line. Showdown emits one. sim/battle.ts:2073-2078, the `boostBy`
+ * falsy branch:
+ *
+ *     } else if (effect?.effectType === 'Ability') {
+ *       if (isSecondary || isSelf) this.add(msg, target, boostName, boostBy);
+ *     } else if (!isSecondary && !isSelf) {
+ *       this.add(msg, target, boostName, boostBy);
+ *     }
+ *
+ * and `msg` two lines above is `-unboost` when `boost[boostName] < 0 || target.boosts[boostName] ===
+ * -6`, `-boost` otherwise. Champions' `scripts.ts` does not override `boost` (grepped: no `boost(`
+ * in data/mods/champions/scripts.ts). It sits on Intimidate, 16,962 sheets.
+ *
+ * READ OFF A REAL CHAMPIONS BATTLE rather than off the source alone. Clefable Charms a Garchomp three
+ * times to -6 while Gallade Swords-Dances to +6, then Incineroar switches in:
+ *
+ *     |-ability|p1b: Incineroar|Intimidate|boost
+ *     |-unboost|p2a: Garchomp|atk|0        <- the clamped one, and it IS written
+ *     |-unboost|p2b: Gallade|atk|1
+ *   and one turn later, a +6 Gallade clicking Swords Dance:
+ *     |-boost|p2b: Gallade|atk|0
+ *
+ * THE SECOND COST IS BIGGER THAN THE FIRST. A line the authority writes and this engine does not
+ * TRUNCATES the whole-game differential at that point, so every comparison after it in the game is
+ * discarded. 20 games in `data/game-differential.json` part here and threw away their remainder.
+ *
+ * THREE ARMS, AND THE THIRD IS THE ONE THAT MATTERS. The control is the SAME board one stage off the
+ * cap, which must still print magnitude 1 — so "always print zero" cannot pass it. The negative arm
+ * is a REFUSED drop (Clear Body): a refusal is a `-fail` and must NOT become a zero-magnitude
+ * `-unboost`, which is the over-match a state-blind "emit on d===0" would produce. */
+probe('ability', 'onSwitchInDrop', 'a stat change CLAMPED at the cap is still announced, magnitude 0', () => {
+  const intim = (at0) => {
+    const me = bare('corviknight'), ally = bare('milotic'), inc = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('gallade');
+    inc.ability = 'intimidate';
+    const trace = [];
+    const S = M.battleInit([me, ally, inc], [f1, f2], { seeded: true, trace });
+    f1.boosts.at = at0;                     // the varied knob, explicit on both arms
+    trace.length = 0;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: inc }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return trace.filter(l => /boost/.test(l)).map(M.traceCanon);
+  };
+  /* the MOVE half — a primary self-boost is `!isSecondary && !isSelf`, so it takes the second branch */
+  const sd = (at0) => {
+    const me = bare('garchomp'), ally = bare('milotic');
+    const f1 = bare('gallade'), f2 = bare('corviknight');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    me.boosts.at = at0;
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'swordsdance', me, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return trace.filter(l => /boost/.test(l)).map(M.traceCanon);
+  };
+  /* THE NEGATIVE: a drop the ability REFUSED is not a clamped drop and gets no zero line. */
+  const refused = () => {
+    const me = bare('corviknight'), ally = bare('milotic'), inc = bare('incineroar');
+    const f1 = bare('metagross'), f2 = bare('gallade');
+    inc.ability = 'intimidate'; f1.ability = 'clearbody'; f2.ability = 'innerfocus';
+    const trace = [];
+    const S = M.battleInit([me, ally, inc], [f1, f2], { seeded: true, trace });
+    /* AT THE CAP AS WELL, so the refusal has to BEAT the clamp rather than merely precede it. */
+    f1.boosts.at = -6; f2.boosts.at = -6;
+    trace.length = 0;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: inc }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return trace.filter(l => /^\|-(fail|boost|unboost)\|/.test(l)).map(M.traceCanon);
+  };
+  const c1 = intim(-5), t1 = intim(-6);
+  const c2 = sd(4), t2 = sd(6);
+  const neg = refused();
+  return { works: c1.join(';') === '|-ability|p1a:incineroar|intimidate|boost;'
+                                + '|-unboost|p2a:garchomp|atk|1;|-unboost|p2b:gallade|atk|1'
+                  && t1.join(';') === '|-ability|p1a:incineroar|intimidate|boost;'
+                                    + '|-unboost|p2a:garchomp|atk|0;|-unboost|p2b:gallade|atk|1'
+                  && c2.join(';') === '|-boost|p1a:garchomp|atk|2'
+                  && t2.join(';') === '|-boost|p1a:garchomp|atk|0'
+                  && neg.length === 2 && neg.every(l => /^\|-fail\|/.test(l)),
+           arms: { control: [c1, c2], test: [t1, t2] },
+           detail: 'Intimidate into a foe at -5: ' + JSON.stringify(c1) + '; at -6 (clamped): '
+                 + JSON.stringify(t1) + '. Swords Dance at +4: ' + JSON.stringify(c2) + '; at +6 '
+                 + '(clamped): ' + JSON.stringify(t2) + '. Clear Body REFUSING the drop (must stay '
+                 + 'two -fail lines and gain no zero-magnitude unboost): ' + JSON.stringify(neg) };
+});
+
 /* WIRE 157 -- SUPERSWEET SYRUP IS ONCE PER BATTLE, AND THIS ENGINE FIRED IT ONCE PER ENTRY.
  *
  * IT IS THE ODD ONE OUT OF THE SEVEN THIS WIRE CLOSED, and the difference is worth stating: the other

@@ -9530,3 +9530,42 @@ caught `docs/ENGINE.md` citing **#67** — *"Illusion is not modelled"* — agai
 **exist**. The citation was right for weeks and the register never carried it. ENGINE's pass proves it
 live: `bittermalice` and `nightdaze` diverge because of Illusion, not the moves they are filed
 under. Row added with that evidence.
+
+### THE CLOSET WAS CARRYING A ROW FOR THE WRONG REASON, AND ONE CLAUSE WAS NOT READING IT. 2026-08-17
+
+Will, on the #67 row I had filed an hour earlier: *"weve sent illusion and zoroark to the closet
+remember"*. He was right and I was wrong twice.
+
+**I FILED A DECISION AS A DEFECT.** ROADMAP #67 went in as `open — engine DEFECT` on the strength of
+ENGINE finding that `bittermalice` and `nightdaze` diverge because of Illusion. The finding is
+right; the conclusion is not. Illusion is **#160**, deliberately shelved, and the reasoning was already
+written into `game_differential.js`: *"a body pretending to be another body makes every divergence it
+causes unreadable as a rule defect. Derived from the ABILITY so a carrier added next regulation is
+covered without an edit."* `closetRejects()` drops any team carrying a closeted species, and
+`fit_policy.js` has its own `illusion_closeted` key. **The runner already knew**:
+`all_mechanics_fire.js:928` documents that Zoroark-Hisui is the first Bitter Malice carrier and has
+Illusion. I spent the night arguing that rows overstating their scope cost a whole agent, then wrote
+one against a decision the owner had already made and recorded.
+
+**AND THE MECHANICS CLAUSE DOES NOT READ THE SHELF THE ROSTER CLAUSE READS.** `tests/roster.js` states
+the contract exactly — *"still staged, still played against the authority, still printed on every run
+with its reason and its date. The only thing it stops doing is holding the MEDICHAM gate shut."*
+Measured against the artifact: `abilities:forewarn` and `items:metronome` are both closeted and both
+inside the failing count of 53. **Metronome is the ONE remaining item**, so that sub-count should read
+0 rather than 1. Two instruments, one shelf, one of them reading it.
+
+**THE SHELF ENTRY ITSELF WAS DECIDED ON THE WRONG ENTITY.** Will: *"metronome the move not the item"* —
+and the Metronome MOVE is `isNonstandard: 'Past'`, not in this format at all. The item is legal
+(25 uses). So an item was shelved on the strength of an objection to a move that cannot be played here.
+**And the stated cost is overstated**: the entry says it *"needs a per-body consecutive-use counter
+threaded through the turn loop"*, but `who._lastMove` already exists per body, is maintained across
+turns, is cleared correctly on switch-out, and is already read by Encore, Disable and the choice lock.
+The tag is already derived and correct. What is missing is a counter and one read in `dmgRange`.
+
+**AND THE CORPUS MOVES UNDER THE TESTS — FILED AS #288.** The closet says Metronome has 19 uses; the
+artifact says 25; nobody edited either. Every `uses` count lives in `data/tags.json` and is
+regenerated from the live store, and the differential picks its teams by a STRIDE over a live read, so
+**one appended game changes which teams get played** (#81 WIRE 5, stated in that file). The deeper half
+is provenance: an artifact stamps which BYTES OF CODE produced it and nothing about which GAMES, so two
+runs can differ entirely in corpus and look identical in stamp. Sequenced after the gate and before the
+refit — the refit is the one run where fitting against a moving corpus would be invisible.
