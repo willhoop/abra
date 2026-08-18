@@ -43,7 +43,12 @@ const CANDIDATES = [
   { vol: 'torment', move: 'torment', target: 'foe' },
   { vol: 'imprison', move: 'imprison', target: 'self' },
   { vol: 'attract', move: 'attract', target: 'foe' },
-  { vol: 'curse', move: 'curse', target: 'self' },
+  /* CURSE IS TYPE-CONDITIONAL AND THE FIRST CARRIER FOUND WAS NOT A GHOST. `data/moves.ts` curse
+   * `onModifyMove` gives the Ghost branch (the volatile + the half-HP cost) only to a user that HAS
+   * the Ghost type; every other user gets three stat stages and no volatile at all. So a probe that
+   * takes the first legal carrier in dex order measures the stat branch and then reports the volatile
+   * "never produced", which is a claim about the CARRIER and reads as a claim about the engines. */
+  { vol: 'curse', move: 'curse', target: 'self', userType: 'Ghost' },
   { vol: 'healblock', move: 'psychicnoise', target: 'foe' },
   { vol: 'destinybond', move: 'destinybond', target: 'self' },
   { vol: 'saltcure', move: 'saltcure', target: 'foe' },
@@ -56,8 +61,9 @@ const CANDIDATES = [
  * staged — a scenario built on an illegal set measures nothing. */
 const legal = x => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const SPECIES = dex.species.all().filter(legal).filter(s => !s.forme || !/mega/i.test(s.forme));
-function carrierOf(moveId) {
+function carrierOf(moveId, wantType) {
   for (const s of SPECIES) {
+    if (wantType && !(s.types || []).includes(wantType)) continue;
     let ls;
     try { ls = dex.species.getLearnsetData(s.id); } catch (e) { continue; }
     if (ls && ls.learnset && ls.learnset[moveId]) return s;
@@ -84,7 +90,7 @@ const rows = [];
 for (const c of CANDIDATES) {
   const mv = dex.moves.get(c.move);
   if (!mv || !mv.exists || mv.isNonstandard) { rows.push({ ...c, verdict: 'MOVE NOT IN FORMAT' }); continue; }
-  const sp = carrierOf(c.move);
+  const sp = carrierOf(c.move, c.userType);
   if (!sp) { rows.push({ ...c, verdict: 'NO LEGAL CARRIER — the fixture, not the mechanic' }); continue; }
   const A = [{ species: N.id(sp.id), item: '', ability: '', moves: [mv.name, 'Protect'] }].concat(bench(...FILLER));
   /* THE FOE CLICKS RECYCLE, NOT AGILITY — 2026-08-14. Snorlax cannot learn Agility in this
@@ -97,17 +103,34 @@ for (const c of CANDIDATES) {
   const a = G.buildPair(A), b = G.buildPair(B);
   if (!a || !b) { rows.push({ ...c, carrier: sp.name, verdict: 'COULD NOT BUILD THE PAIR' }); continue; }
   let medi = '', sd = '';
+  const seenMedi = [], seenSd = [];
   const script = [{ p1: [{ m: c.move, t: c.target === 'foe' ? 0 : undefined }, { m: 'protect' }],
                     p2: [{ m: 'recycle' }, { m: 'protect' }] },
                   { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }];
+  /* ---- EVERY BOUNDARY, NOT THE LAST ONE — 2026-08-18 -------------------------------------------
+   * This read `if (turnIdx < 1) return`, i.e. the board AFTER the second turn, and then reported
+   * `NEITHER — the fixture never produced it` for yawn, attract and heal block. THAT VERDICT WAS THE
+   * PROBE'S, NOT THE ENGINES'. Yawn's condition is `duration: 2` (data/moves.ts:21142): applied on
+   * turn 1, it ENDS at the residual of turn 2 and puts the target to sleep, so by the only boundary
+   * this probe looked at, the volatile is correctly gone in BOTH engines. A probe that samples one
+   * boundary is asserting that the mechanic is still there when it looks.
+   *
+   * So both engines are now read at EVERY boundary and a leaf is credited if either engine held it at
+   * ANY of them, with the boundary recorded. That can only ADD rows; it cannot turn a real BOTH into
+   * a NEITHER. */
   const r = G.playGame(a, b, 'directed', 'volprobe/' + c.vol, { script,
     onBoundary: (snap, turnIdx, S, battle) => {
-      if (turnIdx < 1) return;
       const bodies = [...(S.actA || []), ...(S.actB || [])].filter(Boolean);
       const keys = new Set();
       for (const m of bodies) {
         for (const k of Object.keys(m._vol || {})) if (m._vol[k]) keys.add(k + '=' + JSON.stringify(m._vol[k]));
-        for (const k of ['_yawn', '_charging', '_invuln', '_seededBy', '_sub', '_perish'])
+        /* `_healBlock` ADDED 2026-08-18, AND ITS ABSENCE WAS THIS PROBE REPORTING A DEFECT THAT DOES
+         * NOT EXIST. The row read `healblock  SHOWDOWN ONLY`, which reads as "our engine drops Psychic
+         * Noise's lock". It does not: `applyMoveVolatile` explicitly refuses the generic `_vol` write
+         * for this one (`if (vol === 'healblock') return applyHealBlock(who, mvId)`) because the field
+         * every consumer asks about is `_healBlock`. The probe was looking in the one place the engine
+         * deliberately does not write. A leaf list that is not derived from the engine will do this. */
+        for (const k of ['_yawn', '_charging', '_invuln', '_seededBy', '_sub', '_perish', '_healBlock'])
           if (m[k]) keys.add(k + '=' + JSON.stringify(m[k]).slice(0, 12));
       }
       const sk = new Set();
@@ -116,12 +139,22 @@ for (const c of CANDIDATES) {
         for (const [k, v] of Object.entries(p.volatiles || {}))
           sk.add(k + (v && v.duration != null ? '(d' + v.duration + ')' : ''));
       }
-      medi = [...keys].join(' '); sd = [...sk].join(' ');
+      /* KEPT PER BOUNDARY AND UNIONED, so a volatile that expires before the last board is still
+       * seen. The boundary index is carried so a reader can tell "held on turn 1 only" from "held
+       * throughout" — two different facts about the same leaf. */
+      const mline = [...keys].join(' '), sline = [...sk].join(' ');
+      seenMedi.push('b' + turnIdx + ': ' + (mline || '-'));
+      seenSd.push('b' + turnIdx + ': ' + (sline || '-'));
+      medi = [medi, mline].filter(Boolean).join(' ');
+      sd = [sd, sline].filter(Boolean).join(' ');
     } });
   const wantMedi = new RegExp(c.vol.split('/')[0].replace(/[^a-z0-9]/g, ''), 'i');
-  const inMedi = wantMedi.test(medi.replace(/[^a-zA-Z0-9=]/g, '')) || (c.vol === 'twoturnmove/charge' && /_charging/.test(medi));
+  /* the engine's name for the fact, where it is not the authority's name for it */
+  const MEDI_FIELD = { healblock: /_healBlock/ };
+  const inMedi = wantMedi.test(medi.replace(/[^a-zA-Z0-9=]/g, '')) || (c.vol === 'twoturnmove/charge' && /_charging/.test(medi))
+    || (MEDI_FIELD[c.vol] ? MEDI_FIELD[c.vol].test(medi) : false);
   const inSd = wantMedi.test(sd) || (c.vol === 'twoturnmove/charge' && /twoturnmove/.test(sd));
-  rows.push({ ...c, carrier: sp.name, medi, sd, err: r.err,
+  rows.push({ ...c, carrier: sp.name, medi, sd, err: r.err, seenMedi, seenSd,
               verdict: inMedi && inSd ? 'BOTH' : inMedi ? 'MEDICHAM ONLY' : inSd ? 'SHOWDOWN ONLY' : 'NEITHER — the fixture never produced it' });
   console.log('  ' + c.vol.padEnd(20) + String(sp.name).slice(0, 15).padEnd(16)
     + (inMedi ? 'yes' : 'no ').padEnd(4) + medi.slice(0, 29).padEnd(30)

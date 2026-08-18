@@ -1104,6 +1104,50 @@ function wholeGameClause(artifact, wgDecisionImpact) {
          + 'FAILS. Run: SHOWDOWN_PATH=... node engine/game_differential.js --release <id> '
          + '--games 1200 --write' };
   }
+  /* ==============================================================================================
+   * THE HEADLINE IS WITHHELD WHEN IT DESCRIBES BYTES THE TREE NO LONGER HAS — ROADMAP #298.
+   * ==============================================================================================
+   * `mechanicsClause` has refused a mismatched release since it was built (*"that is not a weaker
+   * answer, it is an answer about other bytes"*), `decisionImpact` refuses one, and `orderProbeClause`
+   * refuses one. THIS CLAUSE — the one whose number gets quoted — compared nothing at all. Measured
+   * 2026-08-18: `data/game-differential.json` was stamped release `6875c8ace00e` while the tree had
+   * moved twice, through `488fd1bf3f7c` (#294, the per-target accuracy roll — the largest behaviour
+   * change of the day, landing directly on spread moves) to `978ca8fe72c9`. The clause published
+   * `695 of 1230`, its class composition, the 228-game `ordering` class and the 238-game Protect
+   * family, and said nothing.
+   *
+   * THE FIGURE IS WITHHELD, NOT CAPTIONED, AND CLAUDE.md HAD ALREADY DECIDED THAT. `status.js` printed
+   * `PRE-CHANGE` and `[engine moved since; transfer assumed, not measured]` beside the quarantined
+   * numbers and they were quoted anyway, including by the agent that printed them — *"the figure must
+   * be WITHHELD, not annotated. Printing it with a caveat is the bug."* So nothing measured comes back
+   * on this branch: no `rate`, no `diverged`, no `games`, no class composition. What comes back is
+   * WHICH RELEASE IT WANTED AND WHICH IT GOT, because that is the only fact this artifact still
+   * supports, and the command that repairs it.
+   *
+   * YES, THIS REMOVES THE PROJECT'S MOST-QUOTED ENGINE NUMBER UNTIL IT IS RE-MEASURED. That is the
+   * intended consequence of the rule rather than a side effect of it: a number quoted from a dead
+   * release is worse than no number, and the differential is ~3 minutes of wall clock to re-run.
+   *
+   * CONSISTENT WITH ITS SIBLINGS ON THE UNSTAMPED CASE TOO. It refuses only on a MISMATCH: an
+   * artifact carrying no release at all is allowed to answer, exactly as `orderProbeClause` allows
+   * one, and the selftest's injected artifacts rely on that. A tree with no `engine-release.json`
+   * likewise compares nothing — there is no id to disagree with.
+   * ============================================================================================ */
+  {
+    const cur = readJson(D('data', 'engine-release.json'));
+    const curId = cur && (cur.id || cur.release || cur.current);
+    const ranOn = j.engine_release || j.release || null;
+    if (ranOn && curId && ranOn !== curId) {
+      return { name: NAME, ok: false, cannot_answer: true, withheld: true,
+        generated: j.generated || null, ranOn, staleAgainst: curId,
+        why: `MEASURED AGAINST A DIFFERENT ENGINE — this artifact ran on release ${ranOn} and the tree `
+           + `is ${curId}. That is not a weaker answer, it is an answer about other bytes. THE RATE, `
+           + `THE DIVERGED COUNT, THE GAME COUNT AND THE CLASS COMPOSITION ARE ALL WITHHELD rather `
+           + `than printed with a caveat — a figure beside a warning is what got the PRE-CHANGE `
+           + `numbers quoted for days. Re-run before this clause can say anything: `
+           + `SHOWDOWN_PATH=... node engine/game_differential.js --games 1200 --write` };
+    }
+  }
   const games = +j.games || 0, div = +j.diverged || 0;
   if (!games) {
     return { name: NAME, ok: false, generated: j.generated || null,
@@ -2017,7 +2061,25 @@ module.exports = { medichamIsCorrect, classify, state, withholder, playLayer, so
                     * composition it prints. Its `artifact` argument already existed; without the
                     * export the only way to check that the composition and the headline describe the
                     * SAME run was to read the source, which is how they came to describe two. */
-                   wholeGameClause };
+                   wholeGameClause, clauseExit };
+
+/* THE ONE PLACE A CLAUSE BECOMES AN EXIT CODE — `--order-probe`, `--whole-game` and anything added
+ * after them. It was two copies of one expression the moment the second command existed, and this
+ * repository's rule is that two implementations of one fact disagree eventually and the disagreement
+ * is invisible because both keep working.
+ *
+ *   0  the clause passes.
+ *   1  the defect is PRESENT.
+ *   2  the clause CANNOT ANSWER — no artifact, or one measured against other bytes (#298).
+ *
+ * BOTH NON-ZERO CODES ARE RED TO `register_reality.js`, deliberately. Separating them is legibility,
+ * not leniency: a `VERIFIED BY` exiting 0 because the artifact was missing would report the row STALE
+ * and close a live defect, which is the loudest failure an audit tool has. */
+function clauseExit(r) {
+  if (!r) return 2;
+  if (r.ok === true) return 0;
+  return (r.cannot_answer || r.withheld) ? 2 : 1;
+}
 
 /* ================================================================================================
  * 3. CLI — report, derivation, gate, selftest
@@ -2089,10 +2151,35 @@ if (require.main === module) {
     /* TWO NON-ZERO CODES, AND BOTH ARE RED TO `register_reality.js` ON PURPOSE.
      *   1  the defect is PRESENT — a pair not speed-tied at identical priority.
      *   2  the clause CANNOT ANSWER — no artifact, no probe, or a probe cut against other bytes.
-     * Separating them is legibility, not leniency: a gate that cannot answer must never read as
-     * agreement, because a `VERIFIED BY` exiting 0 on a missing artifact would close a live defect.
-     * The register report prints the literal code, so the two are distinguishable there. */
-    process.exit(r.ok ? 0 : (r.cannot_answer ? 2 : 1));
+     * The mapping itself is `clauseExit`, one implementation for every command here. */
+    process.exit(clauseExit(r));
+  }
+
+  /* ---- --whole-game: ROADMAP #218's GATE, RUNNABLE AND WITH AN EXIT CODE -----------------------
+   *
+   * #218 is *"the whole-game differential says 39.6% of games diverge, IT GATES NOTHING"*. The gating
+   * half landed in 2026-08-12 as clause 7 of 7 — and a clause inside a four-minute report is not a
+   * thing `engine/register_reality.js` can run, so the row went on having no instrument and #297's
+   * closed-detector repair reopened it. This is the same clause with a process exit attached and
+   * nothing else: it reads an artifact, runs no games and loads no simulator, so a register sweep can
+   * afford to call it.
+   *
+   * IT CALLS `wholeGameClause` AND DOES NOT RESTATE IT. Two implementations of one verdict disagree
+   * eventually and the disagreement is invisible because both keep working.
+   *
+   * EXIT 2 IS THE #298 BRANCH AND IT IS RED. An artifact measured against other bytes withholds every
+   * figure, so this cannot answer — and a `VERIFIED BY` that exited 0 there would report the row STALE
+   * and close a live defect on the strength of a run nobody could read. */
+  if (has('--whole-game')) {
+    const r = wholeGameClause();
+    console.log('');
+    console.log((r.ok ? 'PASS  ' : 'FAIL  ') + r.name);
+    console.log('  ' + r.why);
+    console.log('');
+    console.log('  exit ' + clauseExit(r)
+              + '   [0 the two engines agree on every game, 1 they do not, 2 cannot answer]');
+    console.log('');
+    process.exit(clauseExit(r));
   }
 
   /* ---- --reach: THE MECHANICS CLAUSE'S POPULATION, SHOWN RATHER THAN SUMMARISED ----------------
@@ -2463,6 +2550,60 @@ if (require.main === module) {
     } finally {
       if (diSaved !== null) fs.writeFileSync(diPath, diSaved);
       else if (fs.existsSync(diPath)) fs.unlinkSync(diPath);
+    }
+
+    /* -- ROADMAP #298 — THE HEADLINE REFUSES AN ARTIFACT CUT AGAINST OTHER BYTES ---------------
+     *
+     * Driven through `wholeGameClause` itself, on artifacts injected through its first parameter, so
+     * these assert the SHIPPING function rather than a restatement of it. The release id is read off
+     * the real `data/engine-release.json` and never written — a selftest that moves the release
+     * pointer would invalidate every run on the machine.
+     *
+     * THE RED CASE IS THE ONE THAT MATTERS AND IT IS ASSERTED TWICE: the clause must fail, AND the
+     * measured figures must be ABSENT from what it returns. `PRE-CHANGE` was a caption beside a real
+     * number and the number got quoted for days; a withheld figure that is still in the string is the
+     * same bug with a different word in front of it. */
+    {
+      const relCur = readJson(D('data', 'engine-release.json'));
+      const relId = relCur && (relCur.id || relCur.release || relCur.current);
+      const WG = (extra) => ({ games: 1230, diverged: 695, planted_divergence_proof_ok: true,
+        mode: 'M', generated: 'then', classes: [], ...extra });
+      const stale = wholeGameClause(WG({ engine_release: '__not-this-tree__' }), decisionImpact('NOPE'));
+      if (!relId) {
+        ok('#298 — no engine-release.json on this tree, so the clause has no id to disagree with and '
+          + 'is inert BY DESIGN (same as its siblings)', stale.withheld !== true, stale.why);
+      } else {
+        ok('RED — #298 — an artifact stamped to ANOTHER release FAILS the whole-game clause',
+          stale.ok === false && stale.withheld === true && stale.cannot_answer === true, stale.why);
+        ok('RED — #298 — and the FIGURE IS GONE, not captioned: no rate, no diverged, no games, and '
+          + 'none of the three numbers appears in the verdict string',
+          stale.rate === undefined && stale.diverged === undefined && stale.games === undefined
+          && !/1230|695|56\.5/.test(stale.why), stale);
+        ok('#298 — the withheld verdict names WHICH release it wanted and WHICH it got, because that '
+          + 'is the only fact the artifact still supports',
+          stale.ranOn === '__not-this-tree__' && stale.staleAgainst === relId
+          && stale.why.indexOf(relId) >= 0, stale);
+        const fresh = wholeGameClause(WG({ engine_release: relId }), decisionImpact('NOPE'));
+        ok('#298 — an artifact stamped to THIS tree is answered normally, so the check refuses a '
+          + 'mismatch and nothing else', fresh.withheld !== true && fresh.games === 1230, fresh.why);
+      }
+      const unstamped = wholeGameClause(WG({}), decisionImpact('NOPE'));
+      ok('#298 — an UNSTAMPED artifact is allowed to answer, exactly as orderProbeClause allows one: '
+        + 'the clause refuses a MISMATCH, not an absence',
+        unstamped.withheld !== true && unstamped.games === 1230, unstamped.why);
+
+      /* -- AND THE EXIT CODE THE WITHHOLD TURNS INTO, because a verdict object nobody maps is not a
+       * gate. `--whole-game` (ROADMAP #218's instrument) and `--order-probe` (#290's) share ONE
+       * mapping, so a withheld figure cannot exit 0 through one command and 2 through the other. */
+      ok('RED — #298/#218 — a WITHHELD whole-game verdict exits 2, never 0: a `VERIFIED BY` that '
+        + 'exited 0 because the artifact described other bytes would close a live defect',
+        clauseExit(stale) === 2, clauseExit(stale));
+      ok('a passing clause exits 0 and a failing-but-answerable one exits 1',
+        clauseExit({ ok: true }) === 0 && clauseExit({ ok: false }) === 1);
+      ok('RED — a clause that returned NOTHING AT ALL exits 2, never 0',
+        clauseExit(null) === 2 && clauseExit(undefined) === 2);
+      ok('RED — `cannot_answer` alone is enough for 2, without `withheld`',
+        clauseExit({ ok: false, cannot_answer: true }) === 2);
     }
 
     /* -- membership, on a synthetic source tree ------------------------------------------------ */

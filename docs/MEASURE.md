@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 25 unsafe, 1 void (declared), 89 possibly stale, 98 ok, 0 missing
+  provenance: 25 unsafe, 1 void (declared), 90 possibly stale, 100 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
@@ -35,7 +35,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-13 20:18
 ```
 
-_stamped 2026-08-18 02:39_
+_stamped 2026-08-18 09:09_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,98 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 0000000000000. THE HEADLINE WITHHOLDS, THE FIGURE WAS RE-TAKEN, AND FIVE ROWS THAT ASSERTED BREAKAGE NOW HAVE GATES — 2026-08-18
+
+`engine/quarantine.js` (`--whole-game`, `clauseExit`), `engine/gate_fail_and_silent.js`,
+`engine/gate_weather_guard.js`, `engine/gate_seed_source_audit.js`,
+`engine/gate_offfield_target.js`. ROADMAP #298 / #241 / #286 / #287 / #218 / #224, and #299 / #300 /
+#301 filed.
+
+**#298 — THE MOST-QUOTED ENGINE NUMBER IS WITHHELD ON A RELEASE MISMATCH, AND CLAUDE.md HAD ALREADY
+DECIDED THAT.** `wholeGameClause` was the only one of four clauses that compared no releases at all;
+`mechanicsClause`, `decisionImpact` and `orderProbeClause` have all refused an artifact cut against
+other bytes since they were built. It now refuses too, and on a mismatch **nothing measured comes
+back** — no rate, no `diverged`, no `games`, no class composition, and none of those numbers inside
+the verdict string either, because a withheld figure still sitting in the prose is the same bug with
+a different word in front of it. What comes back is which release it wanted, which it got, and the
+command that repairs it. It refuses a MISMATCH and not an ABSENCE: an unstamped artifact still
+answers, exactly as `orderProbeClause` allows one. The exit mapping is now `clauseExit`, one
+implementation shared by `--whole-game` and `--order-probe`, so a withheld verdict cannot exit 0
+through one command and 2 through the other. `node engine/quarantine.js --selftest` is **87 cases, 0
+failing**, four of them new and two of them asserting the red case twice over.
+
+**AND THEN IT WAS RE-MEASURED RATHER THAN LEFT WITHHELD.** `engine/game_differential.js` on the
+tree's own release: **696 of 995 = 69.9%** (`data/game-differential.json`, release `978ca8fe72c9`,
+arm A/middle, 700 raw less 4 declared, 0 cleared on decision impact, planted-divergence proof
+caught, 0 threw). `node engine/quarantine.js --whole-game` prints it and exits 1. **READ THAT
+DENOMINATOR AS WHAT IT IS: every game played, including the ones where the instrument itself
+desynced.** It is not the rate among games the comparison was valid for, and #299 below is that
+finding.
+
+**IT IS NOT A BEFORE/AFTER AGAINST THE `690 of 1230` THIS WAS FILED ABOUT, AND THE PAIRED ARM IS WHY
+RATHER THAN A HEDGE.** The driver steers off a census that is regenerated and draws pairs from a team
+pool read live from the store, so two runs a day apart do not play the same games — the same request
+for 1,230 games returned 995. `--release 6875c8ace00e` replays the OLD engine bytes under TODAY's
+steering, which is the comparison that isolates the engine, and the two arms are the same run to the
+game: identical primary-arm counts, identical class composition, identical `event missing from
+medicham2` block. **The engine moved by one game in one tie arm and by nothing at all in the primary
+one.** Every difference between 56.5% and 69.9% is the sample.
+
+**#299 — FILED, AND IT IS THE FINDING THIS RE-RUN ACTUALLY BOUGHT.** The driver's own rule is that a
+game whose per-category draw counts diverge is VOID, not a divergence. Its stdout says so in three
+numbers; the artifact persists two of them. By the run's own arithmetic **72 of the 700 diverged
+games are themselves void**, and on the games where the instrument is valid the engines disagree
+about **628 of 645 = 97.4%** rather than 69.9%. The honest figure is worse, not better, and neither
+one can be published today because the void count lives only in a console line nothing parses. The
+clause is green only at zero either way; what is wrong is that the published ratio is over two
+populations that are not the same one.
+
+**THE FIVE UNGATED ROWS, EACH WITH ITS INSTRUMENT AND ITS EXIT CODE.** Every gate refuses a stale
+artifact with exit 2 rather than passing, and every one was shown red on its own selftest before
+being trusted.
+
+| row | instrument | exit | what it measured |
+|---|---|---|---|
+| #241(3) | `node engine/gate_fail_and_silent.js` | **1** | 30 causes / 51 games, green only at zero |
+| #286 | `node engine/gate_weather_guard.js` | **1** | 2 of 2 staged pairs still fire with the weather already up |
+| #287 | `node engine/gate_seed_source_audit.js` | **1** | both directions plus the false claim about a closed row |
+| #218 | `node engine/quarantine.js --whole-game` | **1** | the gating half, runnable at last |
+| #224 | `node engine/gate_offfield_target.js` | **0** | the defect is ABSENT on a current artifact |
+
+**#241 — THE PIN WAS SEEDED AT 3 AND RE-SEEDED AT 30 THE SAME DAY, AND THAT IS THE LESSON RATHER
+THAN A CORRECTION.** The gate exited 3 and said *this got WORSE*. It had not: the paired `--release`
+arm shows the class byte-identical across both releases under one sample. The population moved, not
+the engine. So the pin now carries the census digest and the team-pool digest out of the run's own
+steering block, and **a REGRESSION verdict is WITHHELD whenever they differ** — still red, still
+LIVE, but no movement attributed to a lever nobody measured. A pin without its sample stamp is a
+coincidence, and one integer is exactly as good at hiding that as the bare `25` in #295 was.
+
+**#286 — THE FUNCTIONAL ARM, AND THE STATIC SCAN STAYS REJECTED.** The gate finds the pairs the
+shipping `jointFeaturesFor` itself scores as a weather synergy with no weather up, then re-asks the
+same boards with `board.setWeather` through the Board's own door and the candidates rebuilt through
+`B.candidates`. It names no move, no type and no weather — it reads them off the candidate it was
+handed. A third pass populates the guard field BY HAND and requires the feature to drop, which is not
+a pass condition and not a fix: it is the proof the gate is not stuck red, because a check no repair
+can clear is decoration.
+
+**#224 — CLOSED ON A MEASUREMENT, AND GATED ANYWAY.** It had closed on the right kind of claim and
+then nothing re-took it for six days while the simulator was rewritten nightly. A measurement taken
+once and quoted afterwards is prose about a number. The gate reads the engine's own
+`traceBodyOffField` counter as well as the artifact text, and **does not count a stale artifact**:
+`data/divergence-turns.json` is stamped five releases back and is named and excluded rather than
+contributing an old zero.
+
+**TWO MORE ENGINE FINDINGS, FILED AND NOT TOUCHED.** #300: the catch that reports a failed Showdown
+wrap assigns a `let` declared five hundred lines below it, so a bad `SHOWDOWN_PATH` kills the run
+with a temporal-dead-zone error naming neither the path nor the require — the failure REPORT is the
+part that does not work. #301: `switch lookups that MISSED: medicham 22, showdown 0`, on a line the
+run itself marks MUST READ 0, identical on both releases, caught today only by a human reading
+stdout.
+
+**NOT TOUCHED, DELIBERATELY:** #220 (with ENGINE), and #273, whose `tests/probe_red_demo.js` exits 1
+and reads PREMATURE CLOSE in `register_reality.js` — `tests/` is ENGINE's. `register_reality.js`
+exits 1 today for that row and that row alone.
 
 ### 000000000000. THE REACH SHELF IS ONE ANCHOR AND A RATE, AND THE REGISTER WIRE HAD NEVER CARRIED A ROW — 2026-08-18
 

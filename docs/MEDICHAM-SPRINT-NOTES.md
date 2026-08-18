@@ -9742,3 +9742,53 @@ judgement with an owner, so it is stated rather than taken.
 
 **Named, not filed:** `register_reality.js` reports **#273 as a PREMATURE CLOSE** — a closed row whose
 `tests/probe_red_demo.js` exits 1. `tests/` was held by ENGINE and was not touched.
+
+---
+
+## 2026-08-18 (morning) — THE BIGGEST ENGINE DEFECT IN THE PROJECT WAS THE INSTRUMENT, AND THE DIRECTION HAD BEEN BACKWARDS THE WHOLE TIME
+
+**#220 is not a mechanic defect and never was.** The authority's half of the middle arm's shared die was
+being addressed with **no battle in scope** — `midDraw` reads its address off `MID_BATTLE`, set only
+inside `hitStepAccuracy`, `secondaries` and `getDamage`, while `protect.onPrepareHit` runs one level up
+in `useMoveInner`. So the two engines drew from independent coins on a 1/3 event and disagreed 4/9 of the
+time. **`medicham2-browser.js` did not move a byte. Census 596 live / 0 missing before and after.**
+
+**AND THE DIRECTION WAS BACKWARDS IN THE ROW, IN MY BRIEFS, AND IN WHAT I TOLD WILL.** This was worked for
+days as *"we refuse a Protect the authority allows."* Verified against `first_divergences`: **229 of 240
+are `|-fail| <> |-singleturn|protect` — SHOWDOWN refuses and WE allow.** Only 11 go the other way. Three
+hypotheses died in a row because every one of them was aimed at the wrong end of the disagreement. **A
+sign error in a cause string cost more than any of the mechanics did.**
+
+`willAct()` is dead, and it was killed by a **positive control** rather than by an absence: the probe
+stages the slowest body holding the turn's last action, reads `|-fail|` off the authority's own stream so
+the gate is proven exercised, and the boards are identical across 546 leaves. Two further controls
+identical, including 7 consecutive Protects whose outcomes run
+success/success/fail/success/fail/success/fail — so the counter genuinely escalates and resets in both.
+
+**240 -> 111, we-refuse/authority-allows 11 -> 0, diverging games 703 -> 643.** The total fell by 60
+rather than 129 because games that used to stop at their turn-2 Protect line now survive it and part
+later — `-damage field 3` rose 145 -> 187. **That is what fixing a truncation looks like and it must not
+be read as a regression.**
+
+**AND TWO AGENTS RAN DIFFERENTIALS WHILE ONE OF THEM WAS EDITING THE DIFFERENTIAL DRIVER. THAT IS MY
+ROUTING ERROR.** `data/game-differential.json` was written at 08:45:38; `engine/game_differential.js` was
+fixed at 08:58:52, thirteen minutes later. The published `700 of 995` therefore describes a driver that
+no longer exists. Nothing was corrupted — the engine release genuinely was read from a snapshot, so the
+photograph rule held for the ENGINE bytes — but **the DRIVER is not in the release, and freezing the
+engine does not freeze the instrument reading it.** The rule as written says a measurement reads a frozen
+release; it does not say the measuring code itself must be still. It does now.
+
+**#299 IS WORSE THAN THE HEADLINE AND WAS FOUND BY RE-RUNNING RATHER THAN BY READING.** The driver's own
+rule voids a game whose per-category draw counts diverge. Its stdout says **`VOID: 350 of 995`** and
+**`DIVERGED among the 645 usable games: 628 (97.4%)`** — but the artifact persists only `games` and
+`diverged`, and by the run's own arithmetic 72 of the 700 are themselves void. **The published rate is a
+ratio over two populations that are not the same one, and the honest number is 97.4%, not 69.9%.**
+Neither is publishable by the clause today, because the void count exists only in a console line nothing
+parses.
+
+**The rise from 56.5% to 69.9% is NOT the engine, and that was measured rather than assumed:** replaying
+the OLD engine bytes under today's steering returns **700 of 995 with an identical class composition** —
+one game moved, in one tie arm. Every point of difference is the SAMPLE. The driver steers off a
+regenerated census and draws pairs from a pool read live from the store, so the same request for 1,230
+games returned 995. **Two whole-game rates measured either side of a census regeneration are not a before
+and after**, which this project already learned once at #242 and has now paid for twice.

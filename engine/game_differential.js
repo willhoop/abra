@@ -737,6 +737,19 @@ const MID_DRAWS = { sd: {}, me: {} }; /* per-category draw counts, per side, for
  * harmless — that is the whole point — so the void check changes question: of the events BOTH engines
  * asked about, did they compute the same identity? Anything only one side asked is fine. */
 const MID_CTX_SEEN = { sd: [], me: [] };
+/* ---- ROADMAP #220 -- THE AUTHORITY'S ADDRESSES, KEPT ACROSS THE GAME BOUNDARY -------------------
+ *
+ * `MID_CTX_SEEN.sd` is emptied by `midGameVoid` after every game, which is right for the void check
+ * and useless to anything that wants to LOOK at an address. A test that needs to compare the two
+ * sides' strings for one staged turn had nowhere to read them from, so the only evidence available
+ * about the arm's wiring was a percentage. `midAddresses()` hands both logs out; the cap keeps a
+ * 1,200-game run from carrying a list nobody reads. */
+const MID_CTX_ALL = { sd: [], me: [] };
+const MID_CTX_ALL_CAP = 20000;
+/* HOW MANY DRAWS WERE ADDRESSED WITH NO BATTLE IN SCOPE. Such a draw gets `turn 0`, `move -` and
+ * `target -`, so it is not an address at all -- it is a global sequence wearing one. Counted and
+ * published, because a silent fallback here looks exactly like a synchronised arm. */
+let MID_NO_BATTLE_DRAWS = 0;
 const midReset = () => { for (const k of ['sd', 'me']) { MID_DRAWS[k] = {}; for (const c of MID_CATS.concat('any')) MID_DRAWS[k][c] = 0; } };
 midReset();
 let MID_VOID_GAMES = 0, MID_VOID_DETAIL = [], MID_SAMPLE = [];
@@ -867,9 +880,11 @@ function makeArm(spec) {
     MID_DRAWS.sd[cat] = (MID_DRAWS.sd[cat] || 0) + 1;
     const b = battle && battle.activeMove !== undefined ? battle : MID_BATTLE;
     const mv = b && b.activeMove, tg = b && b.activeTarget;
+    if (!b) MID_NO_BATTLE_DRAWS++;
     const ctx = midCtx([MID_SEED, b ? b.turn : 0, cat,
                         mv ? mv.id : '-', tg ? (tg.side.id + tg.position) : '-']);
     MID_CTX_SEEN.sd.push(ctx);
+    if (MID_CTX_ALL.sd.length < MID_CTX_ALL_CAP) MID_CTX_ALL.sd.push(ctx);
     return midValue(ctx);
   };
   const random = function pinRandom(m, n) {
@@ -2530,6 +2545,32 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
   }
   battle.prng.random = ARM.random;
   battle.prng.randomChance = ARM.chance;
+  /* ---- ROADMAP #220 — THE BATTLE IS BOUND HERE, NOT ONLY INSIDE THREE `BattleActions` METHODS -----
+   *
+   * The address builder reads its five fields off `MID_BATTLE`, and `midWrapShowdown` set that inside
+   * `hitStepAccuracy`, `secondaries` and `getDamage` and NOWHERE ELSE. Every authority draw made
+   * outside those three therefore had no battle in scope and was addressed `<seed>|0|any|-|-|<nth>` —
+   * turn 0, no move, no target, and only the repeat index moving. That is a GLOBAL SEQUENCE wearing an
+   * address, and it is the exact object ROADMAP #262 replaced the sequence design to get rid of.
+   *
+   * WHAT IT COST, MEASURED. `protect.onPrepareHit` is `!!willAct() && runEvent('StallMove')`, and the
+   * roll behind it runs in `useMoveInner`, above all three wrapped methods. So the consecutive-Protect
+   * die was two INDEPENDENT coins: medicham2 drawing `<seed>|<turn>|any|protect|<slot>|0` and the
+   * authority drawing entry n of one sequence. Two independent coins on a 1/3 event disagree 4/9 of the
+   * time, and because our side is a pure hash our answer at a (turn, slot) is the same in EVERY game —
+   * turn 2 reads 0.3033 at p1a and 0.3099 at p2b (we always succeed) against 0.8716 at p1b and 0.3782
+   * at p2a (we always fail). The `-fail` vs `-singleturn|protect` family split 129 p1a / 92 p2b in the
+   * we-allow direction and 4 p1b / 4 p2a in the we-refuse direction. The fingerprint is the mechanism.
+   *
+   * AND IT IS NOT A MECHANIC DEFECT, WHICH IS WHY NO AMOUNT OF WORK ON THE SHIELD FOUND IT. The family
+   * is 240 of 703 diverging games in the `middle` arm and **ZERO in both pinned arms over their
+   * complete populations** (185/185 and 203/203) — a pin does not change `willAct()`, so a disagreement
+   * that exists only where the die is a real draw is a disagreement about the DIE.
+   *
+   * BOUND AT INSTALL RATHER THAN AT EACH CALL SITE: this is the one line that already knows which
+   * battle these dice belong to, and the wrapper above saves and restores `MID_BATTLE` around itself,
+   * so binding here is what its `prevB` restores to instead of `null`. */
+  MID_BATTLE = battle;
   /* THE SPEED-TIE RESOLVER IS REPLACED AS A FUNCTION, not steered through `random(m,n)` — that form is
    * also the sleep duration, a multi-hit count and a queue insertion index, and moving it would have
    * made the tie arm differ from the baseline in four ways at once. See the pin header. */
@@ -4277,7 +4318,18 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                     * AUTHORITY's stream — a resolution judged from medicham2's own narration would
                     * be the engine grading its own homework. Returned as a COPY so a caller cannot
                     * mutate the buffer the next game overwrites. */
-                   lastSdLog: () => _lastSdLog.slice() };
+                   lastSdLog: () => _lastSdLog.slice(),
+                   /* ROADMAP #220 -- THE MIDDLE ARM'S ADDRESSES, BOTH SIDES, SO A TEST CAN READ THE
+                    * STRINGS RATHER THAN A RATE. `sd` is this file's own log kept across the game
+                    * boundary; `me` is the engine's, taken live because `midEventDice` clears it per
+                    * game. `no_battle` is the count of draws made with no battle in scope -- every one
+                    * of those is addressed `<seed>|0|any|-|-|<nth>`, which is a sequence and not an
+                    * address, and it is the difference between an arm that is synchronised and one
+                    * that only looks it. */
+                   midAddresses: () => ({ sd: MID_CTX_ALL.sd.slice(),
+                                          me: (typeof M.midEventLog === 'function') ? M.midEventLog() : [],
+                                          no_battle: MID_NO_BATTLE_DRAWS }),
+                   midResetAddresses: () => { MID_CTX_ALL.sd.length = 0; MID_NO_BATTLE_DRAWS = 0; } };
 
 if (require.main !== module) return;
 

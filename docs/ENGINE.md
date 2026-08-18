@@ -9,7 +9,8 @@
 `tests/roster.js`, `data/roster.{items,abilities,moves,all}.json` (+ `data/roster.json`, a convenience
 copy of whatever stage ran last — **it is not the roster**), `tests/test-nature-differential.js`,
 `tests/test-volatile-duration.js`, `engine/divergence_shape.js`, `tests/test-end-state.js`,
-`tests/test-coverage-stop.js`, `tests/probe_volatile_leaves.js`, `tests/test-middle-identity.js`
+`tests/test-coverage-stop.js`, `tests/probe_volatile_leaves.js`, `tests/test-middle-identity.js`,
+`tests/test-middle-stall-address.js`
 
 **Twelve instruments, and none substitutes for another:**
 
@@ -37,7 +38,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  596/596 probed mechanics live, 0 missing   (census 2026-08-18 02:23)
+  596/596 probed mechanics live, 0 missing   (census 2026-08-18 09:05)
   0/6000 differential comparisons disagree with Showdown   (2026-08-14 23:54)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -49,16 +50,193 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 095e7b0dec5b now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 2e3953f1f882 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 3b1a1212a678 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 8aa34784f0c5 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 266/285 probed, 19 unprobed
 ```
 
-_stamped 2026-08-18 02:39_
+_stamped 2026-08-18 09:09_
 
 <!-- /GENERATED -->
+
+## ROADMAP #220 — THE PROTECT FAMILY WAS NEVER A MECHANIC. THE AUTHORITY'S HALF OF THE SHARED DIE HAD NO BATTLE IN SCOPE. 2026-08-18.
+
+**Census 596 live / 0 missing -> 596 live / 0 missing.** Nothing in `medicham2-browser.js` moved and
+nothing was meant to: the defect is in `engine/game_differential.js`, and the probe that proves it is
+`tests/test-middle-stall-address.js` — *"the authority addressed a draw to `protect` and a real slot"*
+and *"the two engines built the SAME address for the same draw"*, both RED on the pre-fix tree.
+
+### 1. THE FAMILY, RE-MEASURED. THE ROW SAID 32, MEASURE SAID 238, IT IS 240 — AND IT POINTS THE OTHER WAY
+
+Re-derived on the current tree before anything was touched, because 32 and 238 came off different
+samples and different releases. Release `978ca8fe72c9`, 1,194 games, census pinned to a copy of
+`data/mechanics-census.json` (digest `2e3953f1f882`), team store pinned to `data/team-pool-frozen`,
+`--dump-games 900`. Artifacts: `data/_r220-gd-pre.json`, `data/_r220-dump-pre.json`.
+
+| | |
+|---|---|
+| diverging games (primary = `middle` arm) | **703** of 1,194 |
+| the `-fail` / `-singleturn\|protect` family | **240**, the largest single family — `ordering` is 217, `-damage field 3` is 145 |
+| **direction** | **229 games where SHOWDOWN emits `-fail` and WE allow the shield.** 11 the other way |
+
+**THE ROW AND THE BRIEF BOTH STATE THE DIRECTION BACKWARDS.** They say *"Showdown emits
+`-singleturn|Protect` where this engine emits `-fail`… we refuse a Protect the authority allows"*. The
+cause strings are `showdown <> medicham` (verified against `first_divergences`, whose `showdown`/
+`medicham` keys carry the same pair), and 229 of the 240 read `|-fail|pXY <> |-singleturn|pXY|protect`.
+**We OVER-PERMIT.** That is not a quibble: every hypothesis about "why do we refuse" was aimed at the
+wrong end of the mechanic.
+
+### 2. CASCADE: ZERO, AND THE SPLIT THAT MATTERS IS NOT CASCADE-VERSUS-GENUINE
+
+**First-divergence cascade is zero by construction and can be stated as such rather than measured.**
+`classes` and `causes` are built from `classify(r.div)`, and `r.div` is the FIRST divergence of the
+game — so every one of the 240 has an identical agreeing prefix on both sides. A game "diverging at an
+earlier line and only appearing as a Protect disagreement" is not a thing this artifact can contain.
+
+**The split that DOES partition the family is the ARM, and it is a complete population, not a sample.**
+The dump holds every diverging game from both pinned arms (185/185 and 203/203) and 512 of 703 from the
+middle arm:
+
+| arm | diverging games | of those, the Protect family |
+|---|---|---|
+| `middle` (real, event-addressed dice) | 703 | **204 of the 512 dumped** |
+| `top-tie-first` (every die pinned high) | 185 | **0 of 185** |
+| `bottom-tie-first` (every die pinned low) | 203 | **0 of 203** |
+
+### 3. `willAct()` IS DEAD, AND IT IS KILLED BY A POSITIVE CONTROL RATHER THAN BY AN ABSENCE
+
+`protect.onPrepareHit` is `!!this.queue.willAct() && this.runEvent('StallMove', pokemon)`
+(`data/moves.ts:13975`; `data/mods/champions/moves.ts:755` inherits and changes only `pp: 5`).
+`BattleQueue#willAct` (`sim/battle-queue.ts:310-317`) scans `this.list` for the first action whose
+`choice` is `move`, `switch`, `instaswitch` or `shift`. **It contains no dice whatsoever** — so a
+membership disagreement would show at every corner, and the table above says it shows at none.
+
+Absence is not a verdict in this repository, so §5 of the probe stages the refusal and reads the
+authority's own stream for it. Four bodies click Protect; Snorlax (base Speed 30) is slowest, so it
+holds the last action of turn 1 and the authority answers
+`|move|p2b: Snorlax|Protect||[still]` + `|-fail|p2b: Snorlax` while the other three shields go up. On
+turn 2 Snorlax Protects again into a Close Combat — a refused shield never reaches `onHit`, so `stall`
+is never added and turn 2 is a free 100%, whereas an engine that wrongly allowed turn 1 has to roll.
+**Boards IDENTICAL at every boundary, 546 leaves over 3 boundaries** (`tests/staged_board.js`'s driver,
+Showdown as the expectation, nothing typed). The gate is exercised, both engines answer it the same
+way, and **`willAct()` is not the cause.**
+
+Two further controls, same driver, both **IDENTICAL**: one body Protecting on 7 consecutive turns
+(1,464 leaves / 8 boundaries; outcomes read success, success, fail, success, fail, success, fail — the
+counter escalates and resets and both engines follow it), and all four bodies shielding every turn for
+8 turns (1,647 leaves / 9 boundaries). **The counter's value and its reset rules survive a third
+attempt to blame them.**
+
+### 4. THE CAUSE: THE AUTHORITY'S SIDE OF THE ADDRESS HAD NO BATTLE IN SCOPE
+
+The `middle` arm's whole design (ROADMAP #262) is that the die is an ADDRESS, not a sequence:
+
+```
+value = FNV1a(seed | turn | category | move id | target slot | nth) -> [0,1)
+```
+
+Both sides must compute the same string. `midDraw` reads its five fields off `MID_BATTLE`, and
+`midWrapShowdown` sets `MID_BATTLE = this.battle` inside exactly three `BattleActions` methods —
+`hitStepAccuracy`, `secondaries`, `getDamage`. The address builder is installed as
+`battle.prng.random`, and `Battle#random` is `this.prng.random(m, n)`, so `this` there is the PRNG and
+carries no turn, no `activeMove` and no `activeTarget`. **Every authority draw made outside those three
+methods was addressed `<seed>|0|any|-|-|<nth>`** — turn 0, no move, no target, only the repeat index
+moving. That is a global sequence wearing an address, which is the exact object #262 replaced the
+sequence design to be rid of.
+
+`protect.onPrepareHit` runs in `useMoveInner`, above all three. Read off the pre-fix tree by the probe:
+
+|  | address for the same consecutive-Protect roll |
+|---|---|
+| medicham2 | `20260813\|2\|any\|protect\|p10\|0` |
+| the authority | `20260813\|0\|any\|-\|-\|1000` |
+
+**Two independent coins on a 1/3 event disagree 4/9 of the time**, and our side is a pure hash, so our
+answer at a (turn, slot) is the SAME IN EVERY GAME. Turn 2 reads 0.3033 at p1a and 0.3099 at p2b (both
+below 1/3 — we always succeed) against 0.8716 at p1b and 0.3782 at p2a (both fail). The measured family
+splits **129 p1a / 92 p2b** in the we-allow direction and **4 p1b / 4 p2a** in the we-refuse direction.
+The fingerprint predicts the slot distribution; it is the mechanism, not a coincidence.
+
+**THE FIX IS ONE LINE, AT THE PLACE THAT ALREADY KNOWS WHICH BATTLE THESE DICE BELONG TO:**
+`MID_BATTLE = battle` beside `battle.prng.random = ARM.random` in `playGame`. `midWrapShowdown`
+saves and restores `MID_BATTLE` around itself, so binding here is simply what its `prevB` restores to
+instead of `null`. A `MID_NO_BATTLE_DRAWS` counter is added beside it and asserted at zero, because a
+silent fallback here looks exactly like a synchronised arm.
+
+### 5. THE PAIRED BEFORE/AFTER — SAME RELEASE, SAME PINS, THE INSTRUMENT THE ONLY FILE THAT MOVED
+
+Both arms run `--release 978ca8fe72c9`, so the frozen `medicham2-browser.js` is bit-identical across
+them; same `--census` pin, same `--team-store data/team-pool-frozen`, same 1,194 games.
+`data/_r220-gd-pre.json` against `data/_r220-gd-post.json`.
+
+| | before | after |
+|---|---|---|
+| **the Protect family** | **240** | **111** |
+| … we allow, the authority refuses | 229 | 111 |
+| … we refuse, the authority allows | 11 | **0** |
+| `unrelated event mismatch` (the class it sits in) | 249 | 124 |
+| **diverging games, all causes** | **703** | **643** |
+| `top-tie-first` diverging | 185 | 184 |
+| `bottom-tie-first` diverging | 203 | 203 |
+
+**THE OTHER CLASSES GREW AND THAT IS THE FIX WORKING, NOT A REGRESSION.** `-damage field 3` reads
+145 -> 187 and `event missing from medicham2` 57 -> 72. A game that used to end at its Protect line on
+turn 2 now survives it and parts later on something else; the family fell by 129 and the total by only
+60 for exactly that reason. The pinned arms are unchanged but for one game — the driver's coverage
+credit is accumulated on the primary arm and steers what gets clicked in later games in every arm, so
+a different `middle` arm perturbs the others by that much and no more.
+
+`tests/test-middle-identity.js` and `tests/test-game-diff.js` were both re-run and are **GREEN**. Its
+floored figures moved the right way — of the AUTHORITY's events the share medicham2 also asks is
+63.4% -> 65.0%, the pooled backstop 95.9% -> 96.1%, and the excluded `any-` bucket's shared count
+34/1231 -> 75/1242. **Its unfloored `any*` bucket reads 20 of 31 (64.5%) -> 17 of 85 (20.0%) and that
+is NOT an improvement to hide behind a rate**: the sample is a different one (the arm's dice changed,
+so different games are played), and the drop is dominated by a shape that is now printed by name —
+**57 medicham2 draws at `any move=yawn tgt=p20/p10` that the authority never makes.** That is its own
+finding and it is on the hand list below, not averaged away.
+
+### 6. WHAT IS LEFT — 111 GAMES, CHARACTERISED, NOT EXPLAINED
+
+The residual is a different population from the one that was fixed and it is stated rather than
+guessed at:
+
+- **all 111 are late**: `agreed_lines` min **75**, median 86, max 110. The pre-fix family reached down
+  to 23 (turn 2); nothing below 75 survives.
+- **104 of 111 are `p2b`**, 7 are `p1b`. **Zero on either `a` slot.**
+- **only two configurations**: `pair-protect-bust` (54) and `pair-redirect-priority` (57).
+- every one has more than one Protect click in its 16-line context; 28 have a non-Protect shield.
+- **no `-mega` line in any of their contexts.**
+
+Not fixed and no direction is asserted, per the row's own standing instruction. The `b`-slot
+concentration together with `pair-redirect-priority` makes **slot identity under a swap** the obvious
+next thing to stage — `midEventSlot` names a body by its index in `S.actA`/`S.actB` and the authority
+names it by `pokemon.position` — but that is a hypothesis with no failing probe on it yet, and this row
+has been closed twice on a story that read well.
+
+### THE STANDING ARTIFACT WAS DELIBERATELY NOT REPUBLISHED
+
+`data/game-differential.json` still holds the 04:09 run (1,230 games / 695 diverged) whose
+`medicham2-browser.js` digest no longer matches the tree. It is the input `engine/quarantine.js` reads,
+MEASURE is live on that file this session, and CLAUDE.md's rule is that a measurement is a photograph.
+Regenerating it is a two-command follow-up and is MEASURE's to schedule, not mine to do underneath
+them.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous list that is not named below.
+
+**Removed — it is a probe now:**
+- ~~the `-fail` / `-singleturn|protect` family~~ — `tests/test-middle-stall-address.js` carries it,
+  including the `willAct()` control, and the census is unmoved at 596/0 because the defect was never in
+  the simulator.
+
+**Added, measured this pass and NOT fixed:**
+- **medicham2 draws a die for Yawn that the authority never draws.** 57 events at
+  `any move=yawn tgt=p20/p10 nth=0` in `tests/test-middle-identity.js`'s printed shapes, against zero on
+  the authority's side. A roll only one engine takes is a mechanic only one engine has.
+- **The 111-game Protect residual above**, with its measured shape and one unconfirmed candidate.
 
 ## ROADMAP #295 — SIX "SEMANTIC" DIVERGENCES, MEASURED AS STATE. FOUR WERE NARRATION, TWO WERE NOT. 2026-08-18.
 

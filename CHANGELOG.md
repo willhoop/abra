@@ -10,6 +10,135 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.40.0] — 2026-08-18
+
+### Fixed
+- **THE LARGEST "ENGINE DEFECT" IN THE PROJECT WAS THE MEASURING INSTRUMENT, AND `medicham2-browser.js`
+  DID NOT MOVE A BYTE.** ROADMAP #220's Protect family — the biggest single family in the whole-game
+  differential — was the authority's half of the middle arm's shared die being addressed **with no
+  battle in scope**. `midDraw` reads its address fields off `MID_BATTLE`, which `midWrapShowdown` sets
+  inside only `hitStepAccuracy`, `secondaries` and `getDamage`; `protect.onPrepareHit` runs in
+  `useMoveInner`, above all three. Measured, pre-fix:
+
+  ```
+  medicham2      20260813|2|any|protect|p10|0
+  the authority  20260813|0|any|-|-|1000
+  ```
+
+  Two independent coins on a 1/3 event disagree 4/9 of the time, **and our side being a pure hash means
+  our answer at a (turn, slot) is identical in every game** — turn 2 hashes below 1/3 at `p1a` and `p2b`
+  (we always succeed) and above it at `p1b` and `p2a` (we always fail). The family splits **129 p1a /
+  92 p2b** we-allow against **4 p1b / 4 p2a** we-refuse: the fingerprint predicts the slot distribution.
+  Fix is `MID_BATTLE = battle` beside `battle.prng.random = ARM.random` in `playGame`, plus a
+  `MID_NO_BATTLE_DRAWS` counter asserted at zero so the fallback cannot go quiet again. Probe
+  `tests/test-middle-stall-address.js`, RED on three claims pre-fix.
+
+### Changed
+- **THE DIRECTION IN THE ROW AND IN EVERY BRIEF WRITTEN ABOUT IT WAS BACKWARDS.** #220 was worked for
+  days as *"we refuse a Protect the authority allows"*. Verified against `first_divergences`, whose own
+  keys carry the same pair: **229 of 240 read `|-fail|pXY <> |-singleturn|pXY|protect` — SHOWDOWN
+  refuses and WE allow.** Only 11 go the other way. Every hypothesis was aimed at the wrong end of the
+  disagreement, which is why three of them died.
+
+### Notes
+- **`willAct()` is dead, killed by a POSITIVE CONTROL rather than by an absence.** It contains no dice
+  (`sim/battle-queue.ts:310-317`), so a membership disagreement would surface at every corner and it
+  surfaces at none — but absence is not a verdict, so the probe stages it: four Protects with the
+  slowest body holding the turn's last action, the authority answering `|move|...|Protect||[still]` +
+  `|-fail|` **read off its own stream so the gate is proven exercised**, and the boards **IDENTICAL
+  across 546 leaves over 3 boundaries**. Two further controls identical: 7 consecutive Protects by one
+  body (1,464 leaves, outcomes success/success/fail/success/fail/success/fail, so the counter really
+  does escalate and reset in both engines) and all four bodies shielding for 8 turns (1,647 leaves).
+- **Cascade is zero BY CONSTRUCTION, not by measurement** — `classes`/`causes` are built from each
+  game's FIRST divergence, so all 240 have an identical agreeing prefix. The partition that does apply
+  is the arm: `middle` 204 of 512, `top-tie-first` **0 of 185**, `bottom-tie-first` **0 of 203**.
+- **Paired, same release, same pins, the instrument the only file that moved:** Protect family
+  **240 -> 111**; we-refuse/authority-allows **11 -> 0**; `unrelated event mismatch` 249 -> 124;
+  diverging games **703 -> 643**. `-damage field 3` ROSE 145 -> 187 and `event missing` 57 -> 72,
+  because games that used to stop at their turn-2 Protect line now survive it and part later — which is
+  why the total fell by only 60 rather than by 129. **Census 596 live / 0 missing before and after.**
+- **A new shape found and NOT averaged away:** the unfloored `any*` bucket moved 64.5% (20/31) to 20.0%
+  (17/85) on a different sample, dominated by **57 medicham2 draws at `any move=yawn` that the authority
+  never makes**. On the hand list, printed by name.
+- **The residual 111 is characterised, not explained.** All late (`agreed_lines` median 86, nothing
+  below 75 survives against 23 pre-fix), **104 on `p2b`, 7 on `p1b`, zero on either `a` slot**, only in
+  `pair-protect-bust` and `pair-redirect-priority`. `midEventSlot` names a body by index in
+  `S.actA/actB` and the authority by `pokemon.position`, which makes slot identity under a swap the
+  obvious next fixture — deliberately NOT asserted, because this row has already been closed once on a
+  tidy story that was wrong.
+
+---
+
+## [5.39.0] — 2026-08-18
+
+### Fixed
+- **THE WHOLE-GAME HEADLINE PUBLISHED A RATE WITH NO RELEASE CHECK, AND NOW WITHHOLDS EVERY FIGURE ON
+  A MISMATCH (ROADMAP #298).** `wholeGameClause` was the only one of four clauses comparing no
+  releases at all — `mechanicsClause`, `decisionImpact` and `orderProbeClause` have refused an
+  artifact cut against other bytes since they were built. On a mismatch **nothing measured comes
+  back**: no rate, no `diverged`, no `games`, no class composition, and none of those numbers inside
+  the verdict string either, because a withheld figure still sitting in the prose is the same bug with
+  a different word in front of it. What comes back is which release it wanted, which it got, and the
+  command that repairs it. It refuses a MISMATCH and not an ABSENCE — an unstamped artifact still
+  answers, exactly as `orderProbeClause` allows one. This is CLAUDE.md's existing ruling applied
+  rather than re-argued: *the figure must be WITHHELD, not annotated.*
+- **THE EXIT MAPPING IS ONE IMPLEMENTATION.** `clauseExit` is now the single place a clause becomes a
+  process exit code (0 pass, 1 defect present, 2 cannot answer), shared by `--whole-game` and
+  `--order-probe`, so a withheld verdict cannot exit 0 through one command and 2 through the other.
+  Asserted in the selftest, which is **87 cases, 0 failing**.
+
+### Added
+- **`node engine/quarantine.js --whole-game`** — ROADMAP #218's instrument. The whole-game clause with
+  a process exit attached and nothing else; it calls `wholeGameClause` rather than restating it, so a
+  register sweep can run it in a second without playing a game.
+- **`engine/gate_fail_and_silent.js`** — ROADMAP #241 part (3). Counts the causes whose AUTHORITY half
+  is a bare `-fail` this engine never emits, parsing that half with `engine/divergence_shape.js`'s own
+  `LINE` rather than a second regex. Green only at zero; exit 1 LIVE, 2 CANNOT ANSWER, 3 REGRESSION.
+  **The pin carries its SAMPLE** — the census digest and the team-pool digest out of the run's own
+  steering block — and a REGRESSION verdict is withheld whenever they differ.
+- **`engine/gate_weather_guard.js`** — ROADMAP #286, the functional arm the row specified. Finds the
+  pairs the shipping `jointFeaturesFor` itself scores as a weather synergy with no weather up, then
+  re-asks the same canonical fixture boards with `board.setWeather` and the candidates rebuilt through
+  `B.candidates`. A third pass populates the guard field by hand and requires the feature to drop —
+  not a pass condition, but the proof the gate is not stuck red. The static `__`-field scan stays
+  rejected at 7 false positives of 8.
+- **`engine/gate_seed_source_audit.js`** — ROADMAP #287. Compares `readUnmodelledStateList` against
+  `board.unmodelledBasePower(dex, board)` in both directions, and checks the artifact's
+  `openAndNotFixed` block against the register's closed-detector, which is imported from
+  `quarantine.js` and never copied.
+- **`engine/gate_offfield_target.js`** — ROADMAP #224. Reads the engine's own `traceBodyOffField`
+  counter and the literal `??:` in the artifact text; scans no source file, because the row says the
+  remaining literals are the fallback and must stay visible. **A stale artifact is NOT COUNTED** —
+  named, excluded, and with no current artifact at all it exits 2 rather than reporting clean.
+
+### Changed
+- **THE WHOLE-GAME DIFFERENTIAL WAS RE-RUN ON THE TREE'S OWN RELEASE**: **696 of 995 = 69.9%**
+  (`data/game-differential.json`, release `978ca8fe72c9`, arm A/middle, 700 raw less 4 declared, 0
+  cleared on decision impact, planted proof caught, 0 threw). **It is not a before/after against the
+  690 of 1230 that #298 was filed about**, and the paired arm is the reason rather than a hedge:
+  replaying release `6875c8ace00e` under today's steering gives the same run to the game — identical
+  primary-arm counts and identical class composition. The engine moved by one game in one tie arm and
+  by nothing in the primary one; every difference between the two rates is the sample.
+- Five register rows that asserted breakage with no instrument now name one and are CONFIRMED against
+  it: #241 (exit 1), #286 (exit 1), #287 (exit 1), #218 (exit 1) and #224 (exit 0 — the defect is
+  measured ABSENT and the row is closed on that measurement, not on prose).
+
+### Notes
+- **ROADMAP #299 filed — the published rate is over a denominator that includes 350 void games.** The
+  driver's own rule is that a game whose per-category draw counts diverge is VOID, not a divergence;
+  its stdout reports all three numbers and the artifact persists two. By the run's own arithmetic 72
+  of the 700 diverged games are themselves void, and on the games where the instrument is valid the
+  engines disagree about **628 of 645 = 97.4%**. The honest figure is worse, not better, and neither
+  can be published today because the void count lives only in a console line nothing parses.
+- **ROADMAP #300 filed** — `engine/game_differential.js:244` assigns a `let` declared at :743 inside
+  the catch that reports a failed Showdown wrap, so a bad `SHOWDOWN_PATH` kills the run with a
+  temporal-dead-zone error naming neither the path nor the require. The failure REPORT is the part
+  that does not work. Reproduced, not inferred.
+- **ROADMAP #301 filed** — `switch lookups that MISSED: medicham 22, showdown 0`, on a line the run
+  itself marks MUST READ 0, identical on both releases, caught only by a human reading stdout.
+- #300 and #301 are ENGINE's files and were live while this ran, so they are filed and not touched.
+  #220 and #273 are likewise untouched by name.
+
 ## [5.38.0] — 2026-08-18
 
 ### Fixed
