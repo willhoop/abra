@@ -10,7 +10,8 @@
 copy of whatever stage ran last — **it is not the roster**), `tests/test-nature-differential.js`,
 `tests/test-volatile-duration.js`, `engine/divergence_shape.js`, `tests/test-end-state.js`,
 `tests/test-coverage-stop.js`, `tests/probe_volatile_leaves.js`, `tests/test-middle-identity.js`,
-`tests/test-middle-stall-address.js`
+`tests/test-middle-stall-address.js`, `tests/test-middle-draw-scope.js`,
+`tests/test-middle-damage-roll.js`
 
 **Twelve instruments, and none substitutes for another:**
 
@@ -38,7 +39,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  596/596 probed mechanics live, 0 missing   (census 2026-08-18 09:05)
+  596/596 probed mechanics live, 0 missing   (census 2026-08-18 09:52)
   0/6000 differential comparisons disagree with Showdown   (2026-08-14 23:54)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -51,15 +52,225 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 3b1a1212a678 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 8aa34784f0c5 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 73cd8929b567 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 266/285 probed, 19 unprobed
 ```
 
-_stamped 2026-08-18 09:09_
+_stamped 2026-08-18 10:16_
 
 <!-- /GENERATED -->
+
+## ROADMAP #303 — THE LARGEST CLASS IN THE DIFFERENTIAL WAS A SHARED DIE READ BACKWARDS ON ONE SIDE. 2026-08-18.
+
+**Census 596 live / 0 missing -> 596 live / 0 missing.** `medicham2-browser.js` did not move a byte.
+The probe is `tests/test-middle-damage-roll.js`; `--mid-damage-uninverted` restores the defect and the
+file re-runs itself with it and fails if that arm goes green.
+
+### THE CONTRADICTION WAS ALREADY WRITTEN DOWN IN THE DRIVER'S OWN HEADER
+
+`-damage field 3` was **226 of 491 diverging games**, the largest single class — while
+`test-engine-diff --n 6000` reads **0 disagreements at each corner** and the header says plainly
+*"the engines agree about damage"*. Both cannot be true. They were both true, because the corner is
+exactly where the defect cannot show:
+
+| | Showdown | medicham2 |
+|---|---|---|
+| what the die means | `random(16)` is an INDEX `i`; `randomizer` is `tr(tr(d*(100-i))/100)` | `dmg = d.min + floor(u * (d.max - d.min + 1))` (`medicham2-browser.js:18336`) |
+| direction | **i=0 is the MAXIMUM**, i=15 the minimum | **increasing in u** |
+
+**THE PINNED ARMS ALREADY ENCODE THE CORRESPONDENCE AND THE MIDDLE ARM DID NOT.** `top-tie-first` is
+`corner: CORNER_TOP` paired with `damageIndex: 0`; `bottom-tie-first` is `CORNER_BOTTOM` paired with
+`damageIndex: 15`. The middle arm handed Showdown `Math.floor(u * 16)` — so at u~1 medicham2 took
+its MAXIMUM and Showdown took index 15, its MINIMUM, **from the same draw**. A shared die read
+backwards on one side is an ANTI-CORRELATED die, which is worse than two independent ones.
+
+The arm split is the evidence, and it is a complete population rather than a sample — all three arms
+in one 969-game run: **`-damage field 3` 226 in `middle`, 2 of 155 in `top-tie-first`, 0 of 183 in
+`bottom-tie-first`.** A damage defect in the engine cannot hide from both corners. The sampled HP
+deltas run **both signs to +/-18 with a median of 5** — that is the width of the span, not a
+rounding step.
+
+**THE FIX IS NARROWED TO `getDamage`**, where `midWrapShowdown` has already answered who is asking:
+`MID_CAT === 'dmg' && m === DAMAGE_ROLL_SIDES` — because `random(16)` elsewhere is a 1-in-16 chance
+and a bare denominator test would invert it wrongly (the header's own ROADMAP #260 point). The
+mapping lives in one exported function, `midDamageIndex`, and the probe checks it against the PINNED
+ARMS' DECLARATIONS rather than against a number typed in the test.
+
+### THE PAIR, SAME 797 GAMES, THE MAPPING THE ONLY THING THAT MOVED
+
+| | backwards index | corrected |
+|---|---|---|
+| **`-damage field 3`** | **204** | **137** |
+| diverged, all causes | 452 | **409** |
+| VOID | 8 | **4** |
+| diverged / usable | 56.3% | **51.1%** |
+| damage draws that took the inversion | 0 | 922 |
+
+Standing artifact, live tree, 969 games: **450 diverged (was 491 before this fix and 526 in the
+13:16 artifact), `-damage field 3` 163, 7 VOID, 962 usable, 46.1% of the usable population.**
+`ordering` (172) is now the largest class.
+
+### AND 137 OF THE 204 ARE NOT EXPLAINED. SAID PLAINLY.
+
+The lead was right in kind and **not** in size: two thirds of the family survived the fix. One
+measured, published candidate for the residual is already in the artifact and is a REAL medicham2
+defect rather than an instrument one — `damage_interior`, on a staged hit:
+
+```
+showdown 108..127 (14 distinct)   medicham 108..127 (20 distinct)   endpoints AGREE
+values only medicham can produce: [110,113,116,119,122,125]      worst per-value gap 7.50 points
+```
+
+Showdown floors each of 16 indices separately, so its support has holes and repeats; medicham2 draws
+a position uniformly over the integer span, so it can produce HP values **Showdown cannot**. That is
+invisible to every corner instrument by construction, it is on the hand list below, and it is NOT
+fixed here — changing the damage draw is a deep change on the hottest path and belongs in its own
+pass with its own probe.
+
+### THE HAND LIST
+
+**Added, measured this pass and NOT fixed:**
+- **medicham2's damage roll is a uniform draw over the integer span; Showdown's is one of 16 floored
+  indices.** 20 producible values against 14 on the staged hit above, 6 of them values the authority
+  can never emit, worst per-value probability gap 7.5 points. `dmgRangeOneHit` ALREADY has a `rolls`
+  OUT parameter *"in Showdown's own `random(16)` index order"* with one caller
+  (`tests/test-damage-stages.js`), so the fix is to select `rolls[index]` at
+  `medicham2-browser.js:18336` rather than to interpolate — and it moves every damage number in
+  every rollout, so it wants its own pass.
+- **The 137-game `-damage field 3` residual** above, unexplained.
+
+## ROADMAP #302 / #299 — HALF THE DIFFERENTIAL WAS UNREADABLE, AND THE VOID RULE WAS MEASURING THE WRONG THING TWICE. 2026-08-18.
+
+**Census 596 live / 0 missing -> 596 live / 0 missing.** `medicham2-browser.js` did not move a byte
+again; the defect is in `engine/game_differential.js`. The probe is `tests/test-middle-draw-scope.js`
+— *"the authority computed the SAME addresses in both games"* — RED on the pre-fix driver, and its
+§6 re-runs the whole file with `--mid-carry-nth` and FAILS IF THE BROKEN ARM PASSES.
+
+### 1. FIRST, THE QUESTION I WAS SENT TO ANSWER: DID THE #220 FIX RAISE THE VOID COUNT? NO.
+
+The two runs it was suspected from — MEASURE's 08:45 (995 games, 350 void) and mine at 13:16 (982
+games, 495 void) — differ in sample, pool and census, so neither is a before/after. Run paired, same
+release `978ca8fe72c9`, same `--census data/_r220-census-pin.json`, same `--team-store
+data/team-pool-frozen`, same `--games 982` (797 played — the pool truncates), **the `MID_BATTLE`
+binding the only thing that differs**, reachable by `--mid-unbound` rather than by swapping a file:
+
+| | PRE (`--mid-unbound`) | POST |
+|---|---|---|
+| diverged | 523 | **487** |
+| VOID | 350 | **351** |
+| usable | 447 | 446 |
+| diverged / usable | 98.9% | **90.8%** |
+
+**+1 void game in 797.** The #220 fix converted disagreements into agreements and not into
+unreadable games. The 145-game jump between the two unpaired runs is sample, not the fix.
+
+**AND THE PAIR IS RE-RUNNABLE ON TODAY'S TREE RATHER THAN QUOTED FROM A CONSOLE.** Every fix in this
+pass has a restore flag, so the whole ladder is reachable without swapping a file:
+`--mid-unbound` (#220), `--void-empty-is-void` (#299), `--mid-carry-nth` (#302),
+`--mid-damage-uninverted` (#303). Both arms above were re-run with the later three restored and
+reproduced to the game — `data/_r220-void-pair-PRE.json` and `data/_r220-void-pair-POST.json`.
+
+### 2. THE VOID RULE VOIDED 340 GAMES FOR NOT HAVING ROLLED A DIE
+
+The rule's own header is right that under event-addressed dice a COUNT difference is expected and
+harmless, and the check was changed to shared-address IDENTITY for that reason. Its first clause was
+never changed with it: `if (!sd.length || !me.length) return VOID`. Under counts an empty side meant
+the streams had parted. Under identity there is nothing to disagree about — and the rule already
+says exactly that two clauses down for the OUTCOME log, which returns NOT VOID on the same condition.
+
+Nothing said so because the artifact carried no reason. It carries them now (#299), and the
+population is not what the number implied:
+
+| verdict | games | of those, diverged | median turns |
+|---|---|---|---|
+| `no-addresses:neither-drew` | 275 | 26 | **12 — the cap** |
+| `no-addresses:sd-empty` | 47 | 39 | 10 |
+| `no-addresses:me-empty` | 18 | 6 | 12 |
+| `low-identity` | 10 | 10 | 1 |
+
+**275 games ran to the turn cap and NEITHER engine rolled anything** — status moves, setup,
+switches, shields. A dice-free game is the most trustworthy evidence in the run, not the least, and
+26 of them diverge deterministically. They are counted as usable now, by cause, and the one-sided
+populations are printed as shapes rather than discarded as a number.
+
+### 3. AND THEN THE REAL DESYNC, WHICH WAS THE SAME BUG AS #220 ONE FIELD OVER
+
+With the causes visible, `low-identity` came back **846 of 878 unshared addresses differing in `nth`
+AND IN NOTHING ELSE**. `nth` is the repeat index and IT IS A FIELD OF THE HASH, so it decides the
+VALUE. medicham2 clears its map once per GAME (`midEventDice`). The driver's `MID_NTH` — and its
+authority address log — were cleared by the VOID CHECK, which runs once per PAIR, **after both the
+stones-removed control game and the measured one**. Every address the control game touched was left
+at nth=1,2,3...; the measured game's authority draws continued from there; medicham2 started at 0.
+
+The log half made the check **too lenient, not too harsh, which is why nothing noticed**: `shared` is
+`meO.filter(a => sdSet.has(a))`, so an address the authority only asked in the CONTROL game counted
+as agreement. Game one of a run measured `sd=1075 me=11` — one game of medicham2 addresses against
+the control game plus 2,000 startup uniformity contexts.
+
+The reset now happens at the top of `playGame`, beside `ARM.mediRng()`, which is the one place that
+already knows a game is starting — so the control game, the planted-divergence proof and the
+directed scenarios get it too, and "which game in the pair gets a clean map" stops being a question.
+
+**Paired on the same 797 games, `--mid-carry-nth` restoring the leak and nothing else:**
+
+| | leak restored | fixed |
+|---|---|---|
+| diverged | 487 | **452** |
+| VOID | 11 | **8** |
+| games positively verified as naming the same events | 208 | **231** |
+
+`tests/test-middle-identity.js` is GREEN and its floored figures moved the right way — of the
+AUTHORITY's events the share medicham2 also asks reads 66.5% (63.4% before #220, 65.0% after it),
+pooled backstop 96.1%.
+
+### 4. THE HEADLINE, RE-MEASURED, AND WHAT IT IS A RATIO OF
+
+Standing artifact republished on the live tree (`--games 1200 --write`, 969 games): **491 diverged,
+11 VOID, 958 usable, 50.1% of the usable population.** The 13:16 artifact it replaces read 526 of 982
+with 495 void — a rate whose denominator held 495 games the instrument could not read. `mid_void`
+now travels in the artifact, so no reader has to take that on trust. **(Superseded within the hour by
+ROADMAP #303 above, which republished the same 969 games at 450 diverged / 7 void / 46.1%. Both
+figures are kept so the two fixes can be read apart.)**
+
+### 5. WHAT THE REMAINING DESYNC IS, BY CAUSE — SO IT CAN BE ATTACKED RATHER THAN QUOTED
+
+8 void games of 797, and the field that disagrees is printed: **8 `target+nth`, 3 `target`, 3
+no-counterpart**, on `sec|matchagotcha`, `sec`/`crit`/`dmg` on `hurricane`, `acc`/`crit`/`dmg` on
+`outrage`, and `heatwave`. That is the spread-move secondary shape `test-middle-identity.js` already
+declares and deliberately leaves — `BattleActions#secondaries` does not set `activeTarget` in its
+own loop, so the authority addresses every target's secondary to the LAST target of the spread.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous list that is not named below.
+
+**Removed — it is a probe now:**
+- ~~the void population is one number with no causes~~ — `tests/test-middle-draw-scope.js` carries
+  the repeat-index leak, and `mid_void` in `data/game-differential.json` carries every verdict by
+  cause, per category and per field of the address.
+
+**Added, measured this pass and NOT fixed:**
+- **34 `acc quash` draws the authority makes and medicham2 never does**, plus 1 `acc soak`, in games
+  where medicham2 rolled nothing at all. A roll only one engine takes is a mechanic only one engine
+  has — the same shape as the Yawn finding, from the other side.
+- **`dmg` / `crit` / `sec` on `upperhand` drawn by medicham2 in a game where the authority drew
+  nothing**, and 392 `any move=-` draws medicham2 makes alone against 57 the authority makes alone.
+  `any` is the bucket with no move in scope — target selection, sleep timers, multihit counts — and
+  it is the largest unshared population left.
+- **The 8-game `target+nth` residual** above, which is the declared spread-secondary addressing shape
+  and would need the authority's own loop to change to close.
+
+### NOT MINE, REPORTED
+- `tests/test-game-differential.js` is RED on 5 clauses (staged scenarios whose recorded expectation
+  no longer matches: knock-off order, resist berry, the sandstorm residual, Intimidate x crit, and
+  *"only 0 of the staged scenarios classified as ordering"*). **Not caused by this pass** — the
+  identical 5 come back with `--mid-carry-nth`, i.e. with this pass's behaviour reverted at runtime.
+- `data/all-mechanics-fire.json` ran on release `488fd1bf3f7c` while the tree is `978ca8fe72c9`, so
+  `quarantine.js`'s mechanics clause is WITHHELD. It needs
+  `node engine/all_mechanics_fire.js --kind all --write`; the engine bytes have not moved since, so
+  it is a re-run and not a defect.
 
 ## ROADMAP #220 — THE PROTECT FAMILY WAS NEVER A MECHANIC. THE AUTHORITY'S HALF OF THE SHARED DIE HAD NO BATTLE IN SCOPE. 2026-08-18.
 

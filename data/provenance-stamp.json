@@ -174,11 +174,19 @@
   "void_files": [
     "exploitability.json"
   ],
-  "verified": 5,
+  "verified": 13,
   "graph_files": [
+    "_dmg-inverted.json",
     "_r220-census-pin.json",
     "_r220-gd-post.json",
     "_r220-gd-pre.json",
+    "_r220-void-pair-POST.json",
+    "_r220-void-pair-PRE.json",
+    "_void-fields.json",
+    "_void-fields2.json",
+    "_void-final.json",
+    "_void-leak.json",
+    "_void-pair-POST-newrule.json",
     "ab-batch-effect.json",
     "ability-blocks.json",
     "abra-meta.js",
@@ -803,5 +811,5 @@
       ]
     }
   ],
-  "generated": "2026-08-18T13:09:27.937Z"
+  "generated": "2026-08-18T14:16:43.724Z"
 }

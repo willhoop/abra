@@ -10,6 +10,67 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.41.0] — 2026-08-18
+
+### Fixed
+- **THE MIDDLE ARM'S SHARED DAMAGE DIE WAS READ BACKWARDS ON ONE SIDE, AND IT WAS THE LARGEST CLASS IN
+  THE WHOLE-GAME DIFFERENTIAL (ROADMAP #303).** Showdown's `random(16)` is an INDEX — `randomizer` is
+  `tr(tr(d*(100-i))/100)`, so **i=0 is the MAXIMUM** — while medicham2 draws a POSITION in its own
+  span, `d.min + floor(u*(d.max-d.min+1))`, **increasing in u**. The PINNED arms already encode that
+  correspondence (`CORNER_TOP` beside `damageIndex: 0`, `CORNER_BOTTOM` beside `damageIndex: 15`); the
+  middle arm handed Showdown `floor(u*16)`, the inverse, so the same draw gave one engine its maximum
+  and the other its minimum. **An anti-correlated shared die is worse than two independent ones.** The
+  arm split is the proof and it is a complete population: `-damage field 3` **226 of 491 in `middle`,
+  2 of 155 in `top-tie-first`, 0 of 183 in `bottom-tie-first`** — a damage defect in the ENGINE cannot
+  hide from both corners, and `tests/test-engine-diff.js` reads 0/6000 at each corner precisely because
+  a corner is where the two conventions coincide. Paired on 797 games, the mapping the only thing that
+  moved: `-damage field 3` **204 -> 137**, diverged 452 -> 409. Probe
+  `tests/test-middle-damage-roll.js`, which derives the mapping from the pinned arms' own declarations
+  rather than from a typed number, and re-runs itself with `--mid-damage-uninverted`.
+  **TWO THIRDS OF THE FAMILY SURVIVES AND IS NOT EXPLAINED** — filed as #304, with a measured
+  candidate that is a real medicham2 defect rather than an instrument one.
+- **THE AUTHORITY'S REPEAT INDEX SURVIVED THE GAME BOUNDARY, SO THE TWO ENGINES DREW DIFFERENT VALUES
+  FOR THE SAME EVENT IN EVERY MEASURED GAME (ROADMAP #302).** The address is
+  `seed|turn|category|move|target|nth` and **`nth` is a field of the hash**. medicham2 clears its map
+  once per GAME inside `midEventDice`; the driver's `MID_NTH` and its authority address log were
+  cleared by the VOID CHECK, which runs once per PAIR — after both the stones-removed control game and
+  the measured one. **846 of 878 unshared addresses in a 260-game run differed in `nth` and in nothing
+  else.** The log half made the check too LENIENT, not too harsh, which is why nothing noticed: an
+  address the authority asked only in the CONTROL game counted as agreement (`sd=1075 me=11` on game
+  one). The reset moved to the top of `playGame`, beside `ARM.mediRng()`. Paired on 797 games:
+  diverged **487 -> 452**, games positively verified as naming the same events 208 -> 231. Probe
+  `tests/test-middle-draw-scope.js` — the same staged game played twice must produce the same
+  addresses and the same trace; `--mid-carry-nth` restores the leak and the file fails if that arm
+  does not go red.
+
+### Changed
+- **THE VOID RULE VOIDED 340 GAMES FOR NOT HAVING ROLLED A DIE (ROADMAP #299).** Under the old
+  count-based check an empty address log meant the streams had parted; under shared-address IDENTITY
+  there is nothing to disagree about — and the rule already said exactly that two clauses down for the
+  OUTCOME log while contradicting itself for the full one. **275 of the voided games ran to the turn
+  cap with NEITHER engine rolling anything** (status moves, setup, switches, shields) and 26 of them
+  diverge deterministically, which makes them the most trustworthy evidence in the run rather than the
+  least. `data/game-differential.json` now carries `mid_void`: `void_games`, `usable_games`,
+  `diverged_among_usable`, `diverged_rate_over_usable`, every verdict BY CAUSE with its diverged count
+  and median turns, which outcome CATEGORY carried an unshared address, **which FIELD of the address
+  disagreed**, and the one-sided draw populations as shapes.
+- **The `--mid-unbound` before-arm** makes ROADMAP #220's pre-fix binding reachable without swapping a
+  file, on the same argument as `--nature serious`. Run paired on 797 games, it answers the question it
+  was built for: the #220 fix moved VOID by **+1 game**, not by 145 — diverged 523 -> 487, void
+  350 -> 351, diverged/usable 98.9% -> 90.8%. The 145-game jump between the two unpaired runs was
+  sample, not the fix.
+
+### Notes
+- `medicham2-browser.js` did not move a byte in this version. The census reads **596 live / 0 missing**
+  before and after; all three defects were in the measuring instrument.
+- Standing artifact republished twice on the live tree, 969 games: 491 diverged / 11 void after #302,
+  **450 diverged / 7 void / 962 usable / 46.1% of the usable population** after #303. The 13:16
+  artifact it replaces read 526 of 982 with 495 void.
+- RED and not caused by this pass: `tests/test-game-differential.js`, 5 clauses — the identical five
+  come back with `--mid-carry-nth`, i.e. with this pass reverted at runtime.
+  `data/all-mechanics-fire.json` ran on release `488fd1bf3f7c` while the tree is `978ca8fe72c9`, so
+  `quarantine.js`'s mechanics clause is WITHHELD until it is re-run.
+
 ## [5.40.0] — 2026-08-18
 
 ### Fixed

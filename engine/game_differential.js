@@ -151,6 +151,17 @@ const OUT = flag('--out', null);
  *
  * Declared here, up with the other arguments, because `MODE` is built long before buildPair and a
  * `const` further down the file is in its temporal dead zone when MODE reads it. */
+/* `--mid-unbound` — THE BEFORE-ARM OF ROADMAP #220, REACHABLE WITHOUT SWAPPING A FILE.
+ *
+ * The fix was one line: `MID_BATTLE = battle` beside the prng install in `playGame`, so that an
+ * authority draw made outside `hitStepAccuracy`/`secondaries`/`getDamage` is addressed with a real
+ * turn, move and target instead of `<seed>|0|any|-|-|<nth>`. It moved `diverged` and it may also have
+ * moved VOID, and those two must be read off the SAME pins or the pair says nothing — the same
+ * argument as `--nature serious` above. This flag restores the pre-fix binding and NOTHING else.
+ *
+ * It is LOUD: the run prints the arm it is in, and `mid_battle_bound` goes into the artifact, so a
+ * before-arm can never be mistaken for a current measurement. */
+const MID_UNBOUND = has('--mid-unbound');
 const NATURE_MODE = (() => {
   const v = String(flag('--nature', 'real')).toLowerCase();
   if (v !== 'real' && v !== 'serious') {
@@ -629,6 +640,13 @@ function annotateCause(cause) {
  * place 16 separately-floored indices and 11 uniformly-sampled integers can agree at all. */
 const crypto = require('crypto');
 const DAMAGE_ROLL_SIDES = 16;
+/* THE ONE PLACE THAT KNOWS HOW medicham2'S ROLL POSITION MAPS ONTO SHOWDOWN'S ROLL INDEX. Exported
+ * so `tests/test-middle-damage-roll.js` can check it against the PINNED ARMS' OWN DECLARATIONS
+ * rather than against a number somebody typed here: `damageIndex: 0` sits beside `CORNER_TOP` and
+ * `damageIndex: 15` beside `CORNER_BOTTOM`, and those two pairs fix the mapping completely. */
+const midDamageIndex = (u) => DAMAGE_ROLL_SIDES - 1 - Math.floor(u * DAMAGE_ROLL_SIDES);
+/* how many draws took the inversion — a fix that stops firing looks exactly like one that works */
+let MID_DAMAGE_INDEX_FLIPS = 0;
 
 /* ==================================================================================================
  * MIDDLE ARM — REAL DICE THAT BOTH ENGINES AGREE ON, ADDRESSED BY CATEGORY (ROADMAP #262)
@@ -754,6 +772,41 @@ const midReset = () => { for (const k of ['sd', 'me']) { MID_DRAWS[k] = {}; for 
 midReset();
 let MID_VOID_GAMES = 0, MID_VOID_DETAIL = [], MID_SAMPLE = [];
 let MID_WRAP_ERROR = null;
+/* ---- WHY A GAME WAS VOIDED, BY CAUSE AND BY CATEGORY -------------------------------------------
+ *
+ * Half a run being unreadable was published as ONE number for as long as this check has existed, and
+ * a population of 495 games with no cause breakdown cannot be attacked — it can only be quoted. The
+ * check already knows the category and both sides' addresses at the moment it decides; it simply
+ * threw them away. These three maps keep them:
+ *
+ *   MID_VOID_BY_REASON   how many games each verdict claimed
+ *   MID_VOID_BY_CAT      for a low-identity game, which outcome category the unshared addresses were
+ *                        in, counted per GAME (a game that parts on `acc` and `dmg` counts in both)
+ *   MID_VOID_SHAPES      the address shapes present on ONE side only, `cat move side-only`, so the
+ *                        population can be read as mechanics rather than as a percentage
+ */
+/* `--void-empty-is-void` KEEPS THE PRE-2026-08-18 VERDICT ON A GAME WITH NO ADDRESSES ON A SIDE, so
+ * the arm that was measured at 13:16 stays reachable and the change to the rule can be shown as a
+ * paired delta rather than asserted. Default is the corrected rule. */
+const VOID_EMPTY_IS_VOID = has('--void-empty-is-void');
+/* `--void-debug` prints one line per game: the two address-log sizes, the turns, the verdict. */
+const VOID_DEBUG = has('--void-debug');
+/* `--mid-carry-nth` RESTORES THE LEAK, so the fix above can be shown RED rather than asserted. It
+ * makes the authority's repeat index and address log survive from one game into the next exactly as
+ * they did before 2026-08-18. `tests/test-middle-draw-scope.js` runs both arms and fails if the
+ * broken one does NOT break — a control that cannot fail proves nothing. */
+const MID_CARRY = has('--mid-carry-nth');
+/* `--mid-damage-uninverted` RESTORES THE BACKWARDS DAMAGE INDEX, so the mapping fix can be shown RED
+ * instead of asserted. `tests/test-middle-damage-roll.js` runs both arms. */
+const MID_NO_INVERT = has('--mid-damage-uninverted');
+const MID_VOID_BY_REASON = new Map();
+const MID_VOID_BY_CAT = new Map();
+const MID_VOID_SHAPES = new Map();
+/* which FIELD of `seed|turn|cat|move|target|nth` the two engines disagreed about */
+const MID_VOID_FIELDS = new Map();
+/* the addresses of a game where ONE engine drew and the other did not draw at all */
+const MID_ONE_SIDED_SHAPES = new Map();
+const vbump = (m, k) => m.set(k, (m.get(k) || 0) + 1);
 
 /* THE VOID CHECK. Called after each game in the middle arm: if the two engines drew a different
  * number of values from any category while they were still agreeing, the streams have parted and any
@@ -772,10 +825,44 @@ let MID_WRAP_ERROR = null;
  * thin has nothing to compare and is voided; a game where the two engines named the same moments
  * differently is voided LOUDLY, because that is the instrument failing and not the engine. */
 const MID_OVERLAP_FLOOR = 0.90;
+/* THE VERDICT OF THE LAST GAME, VOID OR NOT. The reason a game was READABLE is as much a part of the
+ * population as the reason one was not, and without it the cross-tab below cannot be built. */
+let MID_LAST_WHY = null;
+/* authority addresses discarded because they belong to the control game or to the startup claims */
+let MID_SD_LOG_DROPPED = 0;
+/* RETURNS THE REASON, NOT A BOOLEAN. Every caller only ever asked `!!`, and the cost of that was
+ * that the whole population arrived as one integer. A string is truthy in exactly the same places. */
 function midGameVoid() {
   const sd = MID_CTX_SEEN.sd, me = (typeof M.midEventLog === 'function') ? M.midEventLog() : [];
-  if (!sd.length || !me.length) { MID_VOID_GAMES++; if (MID_VOID_DETAIL.length < 40)
-    MID_VOID_DETAIL.push('no addresses on one side: sd=' + sd.length + ' me=' + me.length); return true; }
+  /* A GAME WITH NO ADDRESSES ON A SIDE IS NOT A DESYNC, AND CALLING IT ONE IS A LEFTOVER FROM THE
+   * COUNT-BASED CHECK. Under counts, an empty side meant the streams had parted. Under shared-address
+   * identity the question is "of the addresses BOTH engines computed, did they agree", and a game
+   * with none has nothing to disagree about — its divergence was reached without either engine
+   * drawing a die, which makes it the most trustworthy evidence in the run rather than the least.
+   * The rule two clauses below already says exactly this for the OUTCOME log (`!sdO.length` returns
+   * NOT VOID); this clause contradicted it for the full log. Measured before it moved. */
+  if (!sd.length || !me.length) {
+    const why = 'no-addresses:' + (sd.length ? 'me-empty' : me.length ? 'sd-empty' : 'neither-drew');
+    vbump(MID_VOID_BY_REASON, why);
+    /* AND IT LEAKED. The old early return did not clear `MID_CTX_SEEN.sd`, so a game where the
+     * authority drew and medicham2 did not carried the authority's addresses into the NEXT game's
+     * check. Both other exits clear; this one did not. */
+    MID_CTX_SEEN.sd = [];
+    if (MID_VOID_DETAIL.length < 40)
+      MID_VOID_DETAIL.push('no addresses on one side: sd=' + sd.length + ' me=' + me.length);
+    /* ---- A DRAW ONLY ONE ENGINE TAKES IS A MECHANIC ONLY ONE ENGINE HAS ------------------------
+     * These games are not void — there is no shared address to disagree about — but they are not
+     * nothing either. One engine rolled dice all game and the other rolled none, which means one of
+     * them treats an event as chance and the other as determined. The shapes are collected so the
+     * population arrives as a list of moves rather than as a count. */
+    for (const a of (sd.length ? sd : me)) {
+      const p2 = String(a).split('|');
+      vbump(MID_ONE_SIDED_SHAPES, p2[2] + ' ' + p2[3] + '  [' + (sd.length ? 'authority' : 'medicham2') + ' only, the other drew nothing]');
+    }
+    MID_LAST_WHY = why;
+    if (VOID_EMPTY_IS_VOID) { MID_VOID_GAMES++; return why; }
+    return null;
+  }
   /* OUTCOME CATEGORIES ONLY, AND THE ENGINE AGENT SAID SO BEFORE I IGNORED IT. The address is
    * `seed|turn|cat|move|target|nth`, and the `any` bucket is every draw with no move in scope --
    * target selection, sleep timers, multihit counts. It was measured at 95.2% on one sample and
@@ -785,7 +872,11 @@ function midGameVoid() {
   const OUT = new Set(['acc', 'crit', 'sec', 'dmg', 'stall']);
   const cat = a => String(a).split('|')[2];
   const sdO = sd.filter(a => OUT.has(cat(a))), meO = me.filter(a => OUT.has(cat(a)));
-  if (!sdO.length || !meO.length) { MID_CTX_SEEN.sd = []; return false; }
+  if (!sdO.length || !meO.length) {
+    MID_LAST_WHY = 'no-outcome-addresses:' + (sdO.length ? 'me-empty' : meO.length ? 'sd-empty' : 'neither-drew');
+    vbump(MID_VOID_BY_REASON, MID_LAST_WHY);
+    MID_CTX_SEEN.sd = []; return null;
+  }
   const S = new Set(sdO), shared = meO.filter(x => S.has(x));
   /* the overlap is over the SMALLER side: one engine asking more questions is not a disagreement */
   const denom = Math.min(sdO.length, meO.length);
@@ -799,8 +890,47 @@ function midGameVoid() {
   }
   if (rate < MID_OVERLAP_FLOOR) { MID_VOID_GAMES++; if (MID_VOID_DETAIL.length < 40)
     MID_VOID_DETAIL.push('outcome-address identity ' + (100*rate).toFixed(1) + '% (sd ' + sdO.length + ', me ' + meO.length + ')');
-    return true; }
-  return false;
+    /* ---- WHICH CATEGORY, AND ON WHICH MOVE. The rate said a game was unreadable and nothing said
+     * what made it unreadable. An address present on ONE side only is the whole content of the
+     * failure, so it is attributed here: per game, which outcome categories carried an unshared
+     * address, and per address, the `cat move side` shape. Counted per game for the category (a game
+     * that parts on `acc` and on `dmg` belongs to both populations) and per address for the shape. */
+    vbump(MID_VOID_BY_REASON, 'low-identity');
+    const M2 = new Set(meO);
+    const cats = new Set();
+    const shape = a => { const p = String(a).split('|'); return p[2] + ' ' + p[3]; };
+    const sdOnly = sdO.filter(a => !M2.has(a)), meOnly = meO.filter(a => !S.has(a));
+    for (const a of sdOnly) { cats.add(cat(a)); vbump(MID_VOID_SHAPES, shape(a) + '  [sd only]'); }
+    for (const a of meOnly) { cats.add(cat(a)); vbump(MID_VOID_SHAPES, shape(a) + '  [me only]'); }
+    for (const c of cats) vbump(MID_VOID_BY_CAT, c);
+    /* ---- WHICH FIELD OF THE ADDRESS DISAGREES, WHICH IS THE ONLY QUESTION WORTH ASKING -----------
+     *
+     * `cat move [side]` came out symmetric on the first run that could print it — 59 `acc psychicfangs
+     * [me only]` beside 58 `acc psychicfangs [sd only]` — which says both engines rolled accuracy for
+     * the same move and named the moment differently. The address is `seed|turn|cat|move|target|nth`,
+     * so the disagreement is in TURN, TARGET or NTH and nothing else. Each unshared address is matched
+     * against the other side's unshared addresses of the same category and move, and the differing
+     * fields are counted. An address with no counterpart at all is a draw only one engine takes, which
+     * is a different finding and is counted as `no-counterpart`. */
+    const FI = { turn: 1, target: 4, nth: 5 };
+    const key = a => { const p = String(a).split('|'); return p[2] + '|' + p[3]; };
+    const idx = new Map();
+    for (const b of meOnly) { const k = key(b); if (!idx.has(k)) idx.set(k, []); idx.get(k).push(String(b).split('|')); }
+    for (const a of sdOnly) {
+      const pa = String(a).split('|'), cands = idx.get(key(a)) || [];
+      if (!cands.length) { vbump(MID_VOID_FIELDS, 'no-counterpart on the authority side  (' + key(a) + ')'); continue; }
+      let best = null, bestN = 99;
+      for (const pb of cands) {
+        const d = Object.keys(FI).filter(f => pa[FI[f]] !== pb[FI[f]]);
+        if (d.length < bestN) { bestN = d.length; best = d; }
+      }
+      vbump(MID_VOID_FIELDS, (best.length ? best.join('+') : 'identical?') + ' differs  (' + key(a) + ')');
+    }
+    MID_LAST_WHY = 'low-identity';
+    return 'low-identity'; }
+  MID_LAST_WHY = 'shared-addresses-agree';
+  vbump(MID_VOID_BY_REASON, MID_LAST_WHY);
+  return null;
 }
 
 /* THE CATEGORY IS DERIVED FROM WHICH METHOD IS EXECUTING, NOT FROM THE ARGUMENTS — because the
@@ -896,7 +1026,36 @@ function makeArm(spec) {
       const u = midDraw(cat === 'any' ? 'any' : cat, this);
       if (n === undefined) {
         if (m === undefined) return u;                       // random() -> float in [0,1)
-        return Math.floor(u * m);                            // random(m) -> 0..m-1, damage roll included
+        /* ---- THE DAMAGE ROLL IS INVERTED BETWEEN THE TWO ENGINES, AND THE PINNED ARMS SAY SO -----
+         *
+         * Showdown's `random(16)` is an INDEX i, and `randomizer` is `tr(tr(d*(100-i))/100)` — so
+         * i=0 is MAXIMUM damage and i=15 is MINIMUM. medicham2 draws a POSITION in its own span:
+         * `dmg = d.min + floor(u * (d.max - d.min + 1))` (medicham2-browser.js:18336), which is
+         * INCREASING in u. The two conventions run opposite ways.
+         *
+         * THE PINNED ARMS ALREADY ENCODE THAT AND THIS BRANCH DID NOT. `top-tie-first` is
+         * `corner: CORNER_TOP` (medicham2's u ~ 1, its MAXIMUM) paired with `damageIndex: 0`
+         * (Showdown's MAXIMUM); `bottom-tie-first` is `CORNER_BOTTOM` paired with `damageIndex: 15`.
+         * The middle arm handed Showdown `floor(u*16)` — which at u~1 is index 15, the MINIMUM, while
+         * medicham2 took its maximum from the same draw. **A shared die that is read backwards on one
+         * side is an ANTI-CORRELATED die**, and it is worse than an independent one.
+         *
+         * MEASURED, and it is the largest class in the whole-game differential: `-damage field 3` is
+         * 226 of 491 diverging games in the MIDDLE arm, 2 of 155 in `top-tie-first` and 0 of 183 in
+         * `bottom-tie-first` — a damage defect in the engine cannot hide from both corners. The
+         * sampled HP deltas run both signs to +/-18 with a median of 5, which is the span, not a
+         * rounding step.
+         *
+         * NARROWED TO `getDamage`, WHERE THE WRAPPER HAS ALREADY ANSWERED WHO IS ASKING. `random(16)`
+         * elsewhere is a 1-in-16 chance and would be inverted wrongly by a bare denominator test —
+         * the same argument the header makes about `random(16)` being undiscriminable from its
+         * arguments alone (ROADMAP #260). `MID_CAT === 'dmg'` is set by `midWrapShowdown` around
+         * `getDamage` and nowhere else. */
+        if (MID_CAT === 'dmg' && m === DAMAGE_ROLL_SIDES && !MID_NO_INVERT) {
+          MID_DAMAGE_INDEX_FLIPS++;
+          return midDamageIndex(u);
+        }
+        return Math.floor(u * m);                            // random(m) -> 0..m-1
       }
       return m + Math.floor(u * (n - m));                    // random(m, n) -> m..n-1
     }
@@ -2451,6 +2610,30 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * running under exactly the pin it was written against. */
   const ARM = opts.arm || PRIMARY_ARM;
   const armRng = ARM.mediRng();          // a FRESH sequence per game; see makeArm
+  /* ---- THE AUTHORITY'S HALF OF THE MIDDLE ARM IS RESET HERE, BESIDE MEDICHAM2'S ------------------
+   *
+   * `ARM.mediRng()` above calls `M.midEventDice`, which clears medicham2's repeat map AND its address
+   * log — once per GAME. The authority's two equivalents were cleared by the void check instead, which
+   * runs once per PAIR, after both the stones-removed CONTROL game and the measured one. So:
+   *
+   *   - `MID_CTX_SEEN.sd` carried the control game's addresses (and, on the first game of a run, the
+   *     2,000 startup uniformity contexts) into the measured game's identity check. Measured on game
+   *     one as `sd=1075 me=11`. It made the check TOO LENIENT — `shared` is `meO.filter(a =>
+   *     sdSet.has(a))`, so an address the authority only asked in the CONTROL game counted as
+   *     agreement. Clearing it alone took low-identity voids from 11 to 210 in 797 games.
+   *
+   *   - `MID_NTH` is worse, because `nth` is a FIELD OF THE ADDRESS AND THEREFORE AN INPUT TO THE
+   *     HASH. Every address the control game touched was left at nth=1,2,3..., the measured game's
+   *     authority draws continued from there, and medicham2 started every address at 0 — so the two
+   *     engines drew DIFFERENT VALUES for the same event, all game, in every game that had a control.
+   *     846 of 878 unshared addresses in a 260-game run differed in `nth` and nothing else. Clearing
+   *     it took void 147 -> 17 and `shared-addresses-agree` 4 -> 134 on that same sample.
+   *
+   * PUT AT THE TOP OF `playGame` RATHER THAN BESIDE THE MEASURED CALL, because "which of the games in
+   * this pair gets a clean map" is not a question that should have an answer: the control game, the
+   * planted-divergence proof and the directed scenarios are all games too, and all of them were
+   * playing with an inherited index. */
+  if (ARM.middle && !MID_CARRY) { MID_SD_LOG_DROPPED += MID_CTX_SEEN.sd.length; MID_CTX_SEEN.sd = []; midClearNth(); }
   const axis = DRIVER_AXES[cfgId] || {};
   const trace = [];
   /* FRESH BODIES EVERY GAME. `battleInit` takes the team BY REFERENCE and the battle then damages it,
@@ -2570,7 +2753,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * BOUND AT INSTALL RATHER THAN AT EACH CALL SITE: this is the one line that already knows which
    * battle these dice belong to, and the wrapper above saves and restores `MID_BATTLE` around itself,
    * so binding here is what its `prevB` restores to instead of `null`. */
-  MID_BATTLE = battle;
+  MID_BATTLE = MID_UNBOUND ? null : battle;
   /* THE SPEED-TIE RESOLVER IS REPLACED AS A FUNCTION, not steered through `random(m,n)` — that form is
    * also the sleep duration, a multi-hit count and a queue insertion index, and moving it would have
    * made the tie arm differ from the baseline in four ways at once. See the pin header. */
@@ -4329,7 +4512,10 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                    midAddresses: () => ({ sd: MID_CTX_ALL.sd.slice(),
                                           me: (typeof M.midEventLog === 'function') ? M.midEventLog() : [],
                                           no_battle: MID_NO_BATTLE_DRAWS }),
-                   midResetAddresses: () => { MID_CTX_ALL.sd.length = 0; MID_NO_BATTLE_DRAWS = 0; } };
+                   midResetAddresses: () => { MID_CTX_ALL.sd.length = 0; MID_NO_BATTLE_DRAWS = 0; },
+                   /* the damage-roll mapping and the arms it is derived from, for tests/test-middle-damage-roll.js */
+                   midDamageIndex, DAMAGE_ROLL_SIDES, CORNER_TOP, CORNER_BOTTOM,
+                   midDamageFlips: () => MID_DAMAGE_INDEX_FLIPS };
 
 if (require.main !== module) return;
 
@@ -4454,7 +4640,13 @@ if (!has('--proof')) {
     /* `midReset()` clears COUNTS. The nth map is a separate thing and must clear too: `turn` is
      * in the address, so without this turn 1 of game 2 keeps counting from game 1 and every
      * address after the first game is unreachable by the other engine. */
-    if (arm.middle) { r._mid_void = midGameVoid(); midReset(); midClearNth(); }
+    if (arm.middle) {
+      const _sdN = MID_CTX_SEEN.sd.length, _meN = (typeof M.midEventLog === 'function') ? M.midEventLog().length : -1;
+      MID_LAST_WHY = null; r._mid_void = midGameVoid(); r._mid_why = MID_LAST_WHY; midReset(); midClearNth();
+      if (VOID_DEBUG) console.log('   VOIDDBG cfg=' + cfgId + ' tag=' + String(pr.tag).slice(0, 28)
+        + ' turns=' + r.turns + ' div=' + (r.div ? 'Y' : 'n') + ' err=' + (r.err ? String(r.err).slice(0, 30) : '-')
+        + ' sd=' + _sdN + ' me=' + _meN + ' why=' + r._mid_why);
+    }
     armResults.push(r);
     /* SUMMED OVER THE PRIMARY MEASURED ARM ONLY, and that is not fussiness. `playGame` is also
      * called by the planted-divergence proof (four extra games on the baseline pair) and by the
@@ -4885,14 +5077,78 @@ console.log('  DIVERGED (primary arm ' + PRIMARY_ARM.id + '): ' + diverged.lengt
 /* THE MIDDLE ARM REPORTS ITS OWN FAILURE BESIDE ITS RESULT, NOT INSTEAD OF IT. A divergence count
  * from an arm whose streams desynchronised is not a smaller truth, it is a different number
  * entirely -- so the void games are separated and the rate is quoted over what is left. */
+/* THE VOID BLOCK GOES IN THE ARTIFACT. It was printed to a console and nowhere else for as long as
+ * the middle arm has existed, so `data/game-differential.json` published a `diverged` whose
+ * denominator INCLUDED every game the instrument could not read, and no reader could tell. */
+let MID_VOID_SUMMARY = null;
 if (PRIMARY_ARM.middle) {
   const voided = results.filter(r => r._mid_void).length;
   const usable = results.filter(r => !r._mid_void);
   const divUsable = usable.filter(r => r.div).length;
+  MID_VOID_SUMMARY = {
+    void_games: voided, usable_games: usable.length,
+    diverged_among_usable: divUsable,
+    diverged_rate_over_usable: usable.length ? +(divUsable / usable.length).toFixed(4) : null,
+    mid_battle_bound_at_install: !MID_UNBOUND,
+    empty_address_games_counted_void: VOID_EMPTY_IS_VOID,
+    overlap_floor: MID_OVERLAP_FLOOR,
+    by_reason: Object.fromEntries([...MID_VOID_BY_REASON].sort((a, b) => b[1] - a[1])),
+    /* THE CROSS-TAB THAT DECIDES WHETHER A VOID RULE IS THROWING AWAY EVIDENCE OR NOISE. Per verdict:
+     * how many of those games DIVERGED, and how many turns they lasted. A population that is 100%
+     * diverged at a median of 0 completed turns is not a desync — it is a deterministic disagreement
+     * reached before either engine rolled anything, which is the strongest evidence this run holds. */
+    by_reason_detail: Object.fromEntries([...MID_VOID_BY_REASON.keys()].map(k => {
+      const g = results.filter(r => r._mid_why === k);
+      const t = g.map(r => r.turns).sort((a, b) => a - b);
+      return [k, { games: g.length, diverged: g.filter(r => r.div).length,
+                   median_turns: t.length ? t[Math.floor(t.length / 2)] : null,
+                   max_turns: t.length ? t[t.length - 1] : null }];
+    })),
+    low_identity_by_category: Object.fromEntries([...MID_VOID_BY_CAT].sort((a, b) => b[1] - a[1])),
+    unshared_address_shapes: Object.fromEntries([...MID_VOID_SHAPES].sort((a, b) => b[1] - a[1]).slice(0, 40)),
+    unshared_address_field: Object.fromEntries([...MID_VOID_FIELDS].sort((a, b) => b[1] - a[1]).slice(0, 40)),
+    one_sided_game_shapes: Object.fromEntries([...MID_ONE_SIDED_SHAPES].sort((a, b) => b[1] - a[1]).slice(0, 40)),
+    unshared_address_field_rollup: (() => { const r = {};
+      for (const [k, n] of MID_VOID_FIELDS) { const f = k.split('  (')[0]; r[f] = (r[f] || 0) + n; }
+      return Object.fromEntries(Object.entries(r).sort((a, b) => b[1] - a[1])); })(),
+    no_battle_draws: MID_NO_BATTLE_DRAWS,
+    damage_roll_index_inversions: MID_DAMAGE_INDEX_FLIPS,
+    sd_addresses_dropped_as_not_this_game: MID_SD_LOG_DROPPED,
+  };
   console.log('  VOID (instrument desync): ' + voided + ' of ' + results.length
-    + '   -- per-category draw counts differed between the engines; these are NOT divergences');
+    + '   -- the two engines did not name the same events; these are NOT divergences');
   console.log('  DIVERGED among the ' + usable.length + ' usable games: ' + divUsable
     + (usable.length ? '  (' + (100 * divUsable / usable.length).toFixed(1) + '%)' : ''));
+  console.log('  MID_BATTLE bound at install: ' + (MID_UNBOUND ? 'NO — --mid-unbound, this is the '
+    + 'ROADMAP #220 BEFORE-ARM and is not a current measurement' : 'yes'));
+  console.log('  empty-address games counted VOID: ' + (VOID_EMPTY_IS_VOID ? 'YES — --void-empty-is-void, '
+    + 'the pre-2026-08-18 rule' : 'no (they drew no dice, so there is no desync to have)'));
+  /* WHY, BY CAUSE — a population of several hundred games published as one integer can be quoted and
+   * cannot be attacked. Every verdict this check reached is counted, including the ones that are NOT
+   * void, so the denominators are visible rather than inferred. */
+  console.log('  every verdict the void check reached, by cause:');
+  for (const [k, n] of [...MID_VOID_BY_REASON].sort((a, b) => b[1] - a[1]))
+    console.log('      ' + String(n).padStart(5) + '  ' + k + (k === 'low-identity' || VOID_EMPTY_IS_VOID && k.startsWith('no-addresses') ? '   <-- VOID' : ''));
+  if (MID_VOID_BY_CAT.size) {
+    console.log('  of the low-identity games, which outcome category carried an unshared address (per game):');
+    for (const [k, n] of [...MID_VOID_BY_CAT].sort((a, b) => b[1] - a[1]))
+      console.log('      ' + String(n).padStart(5) + '  ' + k);
+    console.log('  WHICH FIELD of `seed|turn|cat|move|target|nth` the two sides disagreed about:');
+    { const r = new Map();
+      for (const [k, n] of MID_VOID_FIELDS) { const f = k.split('  (')[0]; r.set(f, (r.get(f) || 0) + n); }
+      for (const [k, n] of [...r].sort((a, b) => b[1] - a[1])) console.log('      ' + String(n).padStart(6) + '  ' + k); }
+    console.log('  and by move, top 12:');
+    for (const [k, n] of [...MID_VOID_FIELDS].sort((a, b) => b[1] - a[1]).slice(0, 12))
+      console.log('      ' + String(n).padStart(6) + '  ' + k);
+    console.log('  the unshared addresses themselves, `category move [side]`, top 15:');
+    for (const [k, n] of [...MID_VOID_SHAPES].sort((a, b) => b[1] - a[1]).slice(0, 15))
+      console.log('      ' + String(n).padStart(6) + '  ' + k);
+  }
+  if (MID_ONE_SIDED_SHAPES.size) {
+    console.log('  games where ONE engine drew and the other drew NOTHING — not void, but not nothing either:');
+    for (const [k, n] of [...MID_ONE_SIDED_SHAPES].sort((a, b) => b[1] - a[1]).slice(0, 12))
+      console.log('      ' + String(n).padStart(6) + '  ' + k);
+  }
   if (MID_VOID_DETAIL.length) {
     console.log('  which stream parted, first few:');
     for (const d of MID_VOID_DETAIL.slice(0, 6)) console.log('      ' + d);
@@ -5822,6 +6078,12 @@ if (WRITE) {
                               + 'before the item is stripped. What differs is the item DISPOSITION: Showdown '
                               + 'records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF.' },
     diverged: diverged.length, threw: threw.length,
+    /* `diverged` ABOVE IS OVER EVERY GAME PLAYED, INCLUDING THE ONES THE INSTRUMENT COULD NOT READ.
+     * That is the number this file has always published and it is kept, but on its own it is a ratio
+     * whose denominator contains games that were never evidence. `mid_void` carries the readable
+     * population and the rate over it, plus why each unreadable game was unreadable. `null` when the
+     * primary arm is a pinned one, whose constant die cannot desynchronise. */
+    mid_void: MID_VOID_SUMMARY,
     /* THE STATE DIFFERENTIAL, in the same artifact as the protocol one so the two rates describe the
      * SAME games rather than two runs somebody has to hope were comparable. `null` when the run was
      * not asked for it, which is a different claim from zero. */

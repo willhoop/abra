@@ -9792,3 +9792,56 @@ one game moved, in one tie arm. Every point of difference is the SAMPLE. The dri
 regenerated census and draws pairs from a pool read live from the store, so the same request for 1,230
 games returned 995. **Two whole-game rates measured either side of a census regeneration are not a before
 and after**, which this project already learned once at #242 and has now paid for twice.
+
+---
+
+## 2026-08-18 (afternoon) — THE VOID RATE WAS NEVER MEASURING WHAT IT CLAIMED, AND THE DAMAGE DIE WAS READ BACKWARDS
+
+**First, the question that had to be answered before anything could be built on the #220 fix: did that fix
+raise the void count?** It did not. Paired on one sample, same release, same census pin, same pool, the
+`MID_BATTLE` binding the only difference and reachable by a flag rather than a file swap:
+
+| | PRE (`--mid-unbound`) | POST |
+|---|---|---|
+| diverged | 523 | **487** |
+| VOID | 350 | **351** |
+| diverged / usable | 98.9% | **90.8%** |
+
+**One game in 797.** The 350 -> 495 jump between the 08:45 and 13:16 runs was SAMPLE, exactly as the
+pool-rebuild warning implied and contrary to the one-for-one trade it looked like. Recorded because the
+alternative reading — that the fix had converted disagreements into games the instrument refuses to look
+at — would have made a good result into a bad one, and nothing short of a paired run could tell them apart.
+
+**AND THEN THE VOID RULE TURNED OUT TO BE WRONG.** Its first clause was never updated when the rest was:
+`if (!sd.length || !me.length) return VOID`. **275 of the 350 voided games ran to the 12-turn cap with
+NEITHER engine rolling a single die** — status, setup, switch and shield turns — and **26 of those diverge
+deterministically, which makes them the most trustworthy evidence in the entire run.** They were being
+discarded as instrument desync. The file already said so two clauses down for the outcome log while
+contradicting itself for the full one. **Void 495 -> 7, usable 487 -> 962.**
+
+**#302 — THE REPEAT INDEX LEAKED ACROSS GAMES.** `nth` is a field of the hash, so it decides the VALUE, not
+merely the label. medicham2 clears its map per game; the driver cleared its per PAIR, after the
+stones-removed control game — so the authority's draws continued from nth=1,2,3 while medicham2 restarted
+at 0. **846 of 878 unshared addresses differed in `nth` AND IN NOTHING ELSE.** The log half of the check
+was simultaneously too lenient (`sd=1075 me=11` on game one and it passed). Paired: diverged **487 -> 452**.
+
+**#303 — THE SHARED DAMAGE DIE WAS READ BACKWARDS ON ONE SIDE, AND THE ARM SPLIT GAVE IT AWAY.**
+Showdown's `random(16)` is an INDEX where `i=0` is the MAXIMUM roll; medicham2 draws a position increasing
+in `u`. The pinned arms already encode the pairing (`CORNER_TOP` <-> `damageIndex 0`) and the middle arm
+handed Showdown `floor(u*16)` — the inverse. **The signature was visible before the cause was:
+`-damage field 3` is 226 games in the middle arm, 2 of 155 at the top corner and 0 of 183 at the bottom.**
+A real arithmetic defect cannot hide at both corners. Paired: the damage family **204 -> 137**.
+
+**TWO THIRDS OF THE DAMAGE FAMILY SURVIVES AND IT IS A REAL ENGINE DEFECT — #304, FILED NOT FIXED.**
+On one staged hit the authority produces **14 distinct HP values and medicham2 produces 20, six of which
+Showdown can never emit.** This is the first thing in days that is genuinely `medicham2-browser.js` and not
+the instrument, and it **moves every damage number in every rollout**.
+
+**Standing: 969 games, 450 diverged, 7 void, 962 usable — 46.1% of usable, against 88.1% this morning.**
+Census 596/596 live, 0 missing. **`medicham2-browser.js` did not move a byte in any of this.**
+
+**THE PATTERN OF THE LAST TWELVE HOURS, STATED PLAINLY SO IT IS NOT LEARNED A FOURTH TIME:** four separate
+"engine defects" — the Protect family, the void population, the repeat-index leak and the damage family —
+were all the MEASURING INSTRUMENT. The engine was never touched. Every one of them was found by asking the
+instrument to explain a number rather than by trusting the number, and three of the four were invisible
+until something PRINTED the cause instead of the total.
