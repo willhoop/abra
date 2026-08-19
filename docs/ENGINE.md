@@ -42,7 +42,7 @@ number typed in prose beside a table is exactly what CLAUDE.md records going sta
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  601/601 probed mechanics live, 0 missing   (census 2026-08-19 02:03)
+  603/603 probed mechanics live, 0 missing   (census 2026-08-19 03:06)
   0/6000 differential comparisons disagree with Showdown   (2026-08-18 10:52)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -54,16 +54,180 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 367363ffe7ca now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 40241321e64c now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 6ea3e570fed2 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 00740d182726 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 266/285 probed, 19 unprobed
+  tag coverage: 267/286 probed, 19 unprobed
 ```
 
-_stamped 2026-08-19 02:16_
+_stamped 2026-08-19 03:11_
 
 <!-- /GENERATED -->
+
+## THE EFFECTIVENESS EVENT IS PER DEFENDING TYPE, AND TWO HANDLERS IGNORE THE TYPE. `staged_board.js` HAS BEEN DARK FOR A WEEK AND RUNS. 2026-08-19.
+
+**Census 601 live / 0 missing -> 603 live / 0 missing.** Two probes added, both RED on the engine as
+handed over. `tests/staged_board.js` went from REFUSING TO PLAY to **24 of 24 clean and
+board-identical**, and its fixture audit now reads *"all 244 clicks are guaranteed hits carried by the
+body that clicks them"*.
+
+### IRON BALL IS NOT ONE ROW. IT IS A FAMILY OF TWO, AND THE ROW THAT WAS NAMED IS THE SMALL HALF.
+
+`runEffectiveness` (`sim/pokemon.ts:2214`) raises `Effectiveness` ONCE PER DEFENDING TYPE and sums
+what comes back. A handler that READS the `type` it was handed is answering per defending type;
+one that ignores it answers about the move and the WHOLE BODY, so its return lands on every
+iteration and the total is that value repeated. For a return of 0 that is a flat NEUTRAL whatever
+the chart said about any defending type.
+
+**MEMBERSHIP DERIVED AND PRINTED BEFORE A LINE WAS WIRED.** Over every legal item, every ability with
+a legal carrier and every move in this format, `onEffectiveness` exists on **five** rows and the
+predicate splits them 2/3:
+
+| | reads the iterated `type`? | verdict |
+|---|---|---|
+| **Iron Ball** (`data/items.ts:3052`) | no | **MATCH** — 0 when the move is Ground and the body has Flying, unless Ingrain / Smack Down / Gravity |
+| **Disguise** (`data/mods/champions/abilities.ts:14` — the CHAMPIONS copy) | no | **MATCH** — 0 for any non-Status move on an intact Mimikyu, and it BAILS on a type immunity |
+| Freeze-Dry, Flying Press | yes | skip — the per-type family, already `overridesEffectiveness` |
+| Ice Face | n/a | **dropped by `LEGAL_CARRIED`** — Eiscue is `isNonstandard: 'Past'`, `tier: 'Illegal'`, so no body in this regulation can carry it |
+
+Delta Stream, Tar Shot, Thousand Arrows and the Inverse Mod ruleset all carry the handler in
+mainline and none is reachable here — derived, not assumed: Tar Shot and Thousand Arrows are
+`isNonstandard: 'Past'`, and no legal species carries Delta Stream or Tera Shell.
+
+The tag is `flattensTypeMatchup`, one `of()` shared by `ITEM_TAGS` and `ABILITY_TAGS` because the
+FACT is one — `runEffectiveness` does not care which table the handler came out of.
+
+### THE SEVEN ROUTES, STAGED ON THE AUTHORITY, EACH WITH A CLEARED CONTROL
+
+Will asked *"shouldnt bulldoze be able to hit flying types that hold an iron ball? or that have
+roosted? or when gravity is up"*, and the routes genuinely differ. Nothing below is inferred from the
+source; every line is what Showdown emitted at the pinned commit (Corviknight 173 max, Talonflame 153):
+
+| route | Showdown's line | HP |
+|---|---|---|
+| nothing | `\|-immune\|` | 0 |
+| **IRON BALL alone** | **no effectiveness line** | 173 -> 137 — **NEUTRAL** |
+| IRON BALL + Gravity | `\|-supereffective\|` | 173 -> 101 — x2 |
+| Gravity alone | `\|-supereffective\|` | 173 -> 101 — identical |
+| Smack Down alone | `\|-supereffective\|` | 173 -> 88 — x2 |
+| IRON BALL + Smack Down | **no effectiveness line** | 173 -> 142 — NEUTRAL |
+| Roost (Talonflame) | `\|-supereffective\|` | 153 -> 53 — x2 |
+| Roost control, Taunt instead | `\|-immune\|` | 0 |
+
+72 damage against 36 is exactly x2 on the same body, so route 1 really is x1 and routes 2/3 really
+are x2. **The first cut of the Roost arm read `-immune` and would have been filed as "Roost does not
+remove the type" — a Roost at FULL HP fails and applies nothing.** The first cut of its control was
+`default`, which for a body whose only move is Roost IS Roost; the two arms came back byte-identical.
+
+**ROUTE 5 LOOKS LIKE THE AUTHORITY CONTRADICTING ITSELF AND IS NOT.** Iron Ball's handler bails under
+ingrain / smackdown / gravity (`data/items.ts:3054`) and Smack Down's condition **refuses to apply at
+all** to a body holding an Iron Ball (`data/moves.ts:16963`) — two mirrored three-item lists in two
+files, so the two mechanisms can never double up.
+
+**Will settled the disposition:** *"wdym matching the authority makes us worse? its the law we need to
+match it"*. Showdown is the game that is played; an engine scoring this hit super-effective tells
+MILTANK a KO exists that does not. Every gate is read off the handler, so a member added upstream
+arrives with its own conditions; a member whose constant cannot be read is skipped and COUNTED
+(`MEDFAILS.effFlattenUnreadable`, zero over this format's two members).
+
+### THE MEASURED REACH, AND IT INVERTS WHICH HALF MATTERS
+
+Over **17,547 stored games / 209,880 sheet bodies**:
+
+| | reach |
+|---|---|
+| Iron Ball, any holder | 320 bodies, led by Gallade (181) and Sneasler (31) |
+| Iron Ball on a **Flying** body — the only shape the defect needs | **6**, all Toucannon, **0.03% of games** |
+| ...and Toucannon is **Normal**/Flying, so Ground is 1x off the second type either way | **the defect changes nothing for the one body that carries it** |
+| **Disguise** | **226 sheets in 226 games — 1.29% of games** |
+
+So the named row's corpus reach is effectively zero and its family member's is 38x larger, on a
+trigger that is every first non-Status hit on the Mimikyu rather than one move type. Corviknight
+never holds an Iron Ball in the corpus at all.
+
+### THE THREE DAMAGE ROWS ARE ROOT-CAUSED SEPARATELY, AND THEY ARE THREE MECHANISMS
+
+Not batched, and no single fix moves them — which is what the brief asked to be checked.
+
+**SHELL SIDE ARM — A MOVE WITH A RUNTIME CATEGORY, AND WE USE THE DECLARED ONE.** `data/moves.ts:16223`
+recomputes a physical and a special estimate from the attacker's raw Atk/SpA against the target's raw
+Def/SpD (`getStat(x, false, true)` — boosted, UNMODIFIED) and flips `move.category` to Physical if
+physical > special, coin-flipping a tie, **and sets `move.flags.contact = 1` with it**. The staged
+game proves it rather than the source: Showdown emits `[anim] Shell Side Arm Physical` and
+`-hint|Physical Shell Side Arm` and deals 99; we deal 88 off the declared `category: "Special"`.
+`data/tags.json` carries no tag for this — `dualPurpose` is about ally-versus-foe, not category.
+
+**SAND FORCE — THE TAG SAYS ONE TYPE AND THE HANDLER IS A DISJUNCTION.** `data/abilities.ts:3950` is
+`move.type === 'Rock' || move.type === 'Ground' || move.type === 'Steel'`. `engine/tag_dex.js`'s
+`onType` is `(src.match(/move\.type\s*===?\s*"(\w+)"/) || [])[1]` — the FIRST alternative only — so
+the artifact says `onType: "Rock"`. The fixture clicks **Bulldoze**, which is Ground, and the
+consumer's `_db.onType === mvT` is false, so the 1.3x never lands. **`engine/fixture_preflight.js`
+derives all three types off the same handler and prints `sandforce type=Rock|Ground|Steel`** — two
+derivations of one fact, disagreeing, which is FACTS ARE GLOBAL broken between two producers.
+
+**METRONOME (THE ITEM) — THE TAG IS COMPLETE AND NOTHING READS IT.** `data/items.ts:4023` is
+`onModifyDamage` over the ladder `[4096,4915,5734,6553,7372,8192]` indexed by `numConsecutive`
+(capped at 5), incremented only when `effectState.lastMove === move.id && pokemon.moveLastTurnResult`.
+`damageMultOnRepeat` carries the whole ladder, the cap and the denominator — and
+`grep damageMultOnRepeat engine/` matches **nothing in `medicham2-browser.js`**. An unreferenced
+derived fact, which `tests/roster.js:1102` already says out loud.
+
+**HUSTLE IS DIAGNOSED AND DELIBERATELY NOT FINISHED HERE.** The tag is now true (1.5) and
+`dmgRange`'s stat-stage branch still refuses it: it wants an `onType` or an `allyHasAbility`
+condition AND `tags.length === 1`, and Hustle is unconditional, type-less and carries three tags.
+Widening that branch is a new shape across 44 `damageBoost` carriers **and it is the same consumer
+Sand Force needs** — Sand Force is a `basePower`-stage member with BOTH a type and a weather, which
+neither existing branch serves. Landing them together would make a bad result unattributable, which
+is the batch rule. Left, named, with the shape written down.
+
+### `tests/staged_board.js` — NINE ILLEGAL PAIRS REPAIRED, NOT BASELINED, AND A TENTH THE AUDIT COULD NOT SEE
+
+The instrument refused to play at all. Every replacement was chosen from the species' own learnset
+and confirmed by Showdown's `TeamValidator` through `champions_sim.checkLegal`, never by ours; the
+baseline file was not touched, and its seven grandfathered pairs are untouched.
+
+| scenario | was | is | what changed about the measurement |
+|---|---|---|---|
+| `trickroom-order` | Clefable / Trick Room | **Oranguru** / Trick Room | nothing — the setter never attacks, and turn 1's negative is Weavile against Incineroar |
+| `regenerator-switchout` | Toxapex / U-turn + Swords Dance | **Slowking** / **Chilly Reception** + Iron Defense | **NO Regenerator body in this regulation can learn U-turn** — the nine carriers know exactly ONE self-switch move between them. Snowscape does no residual damage (`data/conditions.ts:696-727`) and neither body is Ice, so the HP reading is untouched |
+| `speedboost-entry-gate` | Weavile / U-turn | **Talonflame** / U-turn | the pivot is FASTER (126 v 125), so the ordering only strengthens |
+| `pivot-then-the-slot-is-hit` | Milotic / **Charm**, Weavile / U-turn | Milotic / **Tickle**, **Talonflame** / U-turn | Tickle is the ONE stat-drop Milotic is allowed, so the drop reads -1 Atk / -1 Def instead of -2 Atk. Same question: does it land on the SLOT |
+| `allyswitch-follows-the-slot` | Corviknight / Ally Switch, Snorlax / Iron Defense | **Spiritomb** / Ally Switch + Nasty Plot, Snorlax / **Amnesia** | Spiritomb takes Crunch at 2 x 0.5 = NEUTRAL exactly as Flying/Steel did, and carries PRESSURE, the same ability — which matters because PP is in the verdict |
+| `mega-forme-on-the-board` | Kangaskhan / Swords Dance | Kangaskhan / **Focus Energy** | **Kangaskhan has no legal self-boosting status move at all.** Focus Energy is the only one of its thirteen Status moves that touches neither HP, nor the field, nor another body |
+| `mawile-mega-swaps-the-ability` | Staraptor + Corviknight / Swords Dance | **Agility** + **Nasty Plot** | Nasty Plot on the TARGET on purpose: its Defence must not move or the damage arm measures the idle click instead of the installed ability |
+| `imposter-copies-the-body-opposite` | Weavile / U-turn | **Talonflame** / U-turn | **the audit never printed this one** — the learnset clause reports TURN 1 clicks and this U-turn is on turn 2. Found by repairing the others and then looking |
+
+**THE ALLY SWITCH REPAIR WAS WRONG ONCE AND THE INSTRUMENT SAID SO.** Shipped first with turn 2 reading
+`nastyplot, amnesia` in slot order, and the scenario THREW: after the swap, slot 0 holds SNORLAX, and a
+script addresses SLOTS. The original avoided this by giving both bodies the same Iron Defense — which
+is precisely the move Snorlax cannot learn.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous list that is not named below.
+
+**Removed — they are probes now:**
+- ~~Iron Ball keeps a type multiplier the authority zeroes~~ — `flattensTypeMatchup`, seven arms,
+  and the `all_mechanics_fire` row went 1 divergence to 0.
+- ~~`tests/staged_board.js` refuses to play~~ — 24 of 24, audit clean.
+- ~~Shell Side Arm / Sand Force / Metronome undiagnosed~~ — root-caused above with file and line.
+  They are still OPEN as FIXES; what has gone is "undiagnosed".
+
+**Added, measured this pass and NOT fixed:**
+- **SHELL SIDE ARM picks its CATEGORY at `onModifyMove` and this engine uses the declared one.** Also
+  sets `flags.contact`, so a contact punisher is a second consequence. No tag exists yet.
+- **SAND FORCE's `onType` is a scalar over a three-way disjunction** — one regex in `tag_dex.js`.
+  The fix changes the tag's SHAPE, which both `damageBoost` consumers compare with `===`, and it needs
+  a new consumer branch (basePower stage + type + weather) that no member has today.
+- **METRONOME (the item) has a complete tag and no consumer at all.**
+- **HUSTLE's x1.5 still reaches no damage** — the stat-stage branch refuses an unconditional,
+  type-less, multi-tag member. Same consumer as Sand Force; deliberately one batch, not two.
+- **ROUTE 5 — Iron Ball + Smack Down.** The authority is NEUTRAL because Smack Down's condition
+  refuses to apply to an Iron Ball holder (`data/moves.ts:16963`); this engine applies the volatile
+  and then correctly declines to flatten, so it reads x2. It is a defect in the VOLATILE APPLIER, not
+  in the effectiveness family — the generic `statusInflict` path has no notion of a condition's
+  `onStart` returning false. It did not regress this pass: it read x2 before and after.
 
 ## CONTRARY WROTE THE OPPOSITE SIGN, SOAK NEVER REFUSED, AND A TRACED ABILITY OUTLIVED THE BENCH. 2026-08-19.
 

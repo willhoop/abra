@@ -10047,3 +10047,50 @@ at a boundary — including a **CONTROL that is planted with nothing and must co
 them. Against the unwired-knob rule, `--trailing 3` moved boundaries 2 → 5 on 12 of 14 rows and all 14 held;
 the two that threw (`chillyreception`, `uproar`) are reported rather than averaged, and their verdicts still
 rest on a single board.
+
+---
+
+## 2026-08-19 — THE ROW THAT GOT FILED WAS THE HARMLESS MEMBER, AND THE ONE THAT MATTERS WAS STANDING BEHIND IT
+
+**Iron Ball is a family of two and the named row is the small half.** Membership derived and PRINTED before
+wiring: `onEffectiveness` exists on five rows in this format, and the predicate *"does the handler read the
+`type` it was handed?"* splits them 2/3. Iron Ball and **Disguise** read the whole type SET; Freeze-Dry and
+Flying Press read `type`; Ice Face is dropped because Eiscue is not in this regulation.
+
+**And the reach inverts the premise the row was filed on.** Iron Ball on a Flying body — the only shape the
+defect needs — is **6 bodies, all Toucannon, 0.03% of games**, and Toucannon is Normal/Flying, so Ground is
+1x off the second type either way: **the defect changes nothing for the one body that carries it.**
+Corviknight never holds an Iron Ball in this corpus. **Disguise is 226 sheets, 1.29%, thirty-eight times
+larger**, and it was invisible until somebody derived the membership instead of working the row as written.
+
+**A CORRECTION TO MY OWN BRIEF.** I told the agent Iron Ball + Smack Down was a fourth code path where the
+authority disagrees with itself. It is not reachable: `data/moves.ts:16963` **refuses to apply the smackdown
+volatile to an Iron Ball holder**, mirroring Iron Ball's guard list across two files. Seven routes were
+staged on the authority with a cleared control each, and **two fixture faults were caught before any of them
+counted** — a Roost at full HP fails, and a `default` control for a body whose only move is Roost *is* Roost.
+
+**Will's ruling on the disposition, which was the important thing about the whole exercise.** I framed this
+as a possible declared divergence because the authority looked inconsistent. He said: *"wdym matching the
+authority makes us worse? its the law we need to match it."* **Showdown is not an approximation of Pokemon
+we are free to out-correct — it is the game he plays.** MILTANK's decisions execute on that server, so an
+engine that predicts a super-effective hit the server scores as neutral hands it a KO that does not exist.
+`DECLARED_DIVERGENCE`'s only member is a typo on a `[silent]` line **nothing observes**; the test for that
+category is not "is the authority self-consistent" but **"does anything observe this at all"**, and a type
+multiplier fails it immediately.
+
+**`tests/staged_board.js` went from refusing to play to 24 of 24 clean and board-identical.** Nine illegal
+pairs repaired one at a time and **none baselined** — every replacement chosen from the species' own
+learnset, confirmed by `TeamValidator`, **which overruled two of the first picks**, and each chosen to
+preserve what its scenario measured. A tenth illegal pair exists that the audit **cannot see**, because it
+sits on turn 2 and the audit only reports turn 1.
+
+**The three surviving damage rows are three different mechanisms — which is why they were not batched.**
+Shell Side Arm flips `move.category` from RAW stats and sets `flags.contact` (authority 99, us 88, proven
+from the staged game). Sand Force's handler is a DISJUNCTION and `tag_dex`'s regex takes **the first
+alternative only**, so the artifact says `"Rock"` while `fixture_preflight` derives all three off the same
+handler — **two producers of one fact, disagreeing.** Metronome's tag is complete and correct and **has no
+consumer at all**. Hustle stays diagnosed and unfixed on purpose: its widening is the same consumer Sand
+Force needs, and landing both at once makes a bad result unattributable.
+
+Census 601 -> **603 live / 0 missing**. Two status clauses now read `MEASURED AGAINST A DIFFERENT ENGINE`,
+which is the staleness rule working rather than a regression.

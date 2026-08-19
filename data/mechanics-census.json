@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-19T06:17:18.834Z",
+  "generated": "2026-08-19T07:06:46.521Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 601,
-  "live": 601,
+  "probed": 603,
+  "live": 603,
   "missing": 0,
-  "armed": 601,
+  "armed": 603,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -2123,6 +2123,16 @@
     },
     {
       "kind": "ability",
+      "tag": "flattensTypeMatchup",
+      "label": "the hit a Disguise eats is NEUTRAL, and a type immunity stays immune",
+      "live": true,
+      "detail": "Shadow Ball into Mimikyu, twice. WITH Disguise: hit 1 announced [nothing — correct] and cost 130 (must be the maxhp/8 chip, 130), hit 2 announced [-supereffective]. CONTROL, the same body with no ability: [-supereffective] then [-supereffective]. Body Slam, a Normal move into a Ghost body: [-immune] with Disguise, [-immune] without",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
       "tag": "untagged",
       "label": "Marvel Scale raises Defense while statused",
       "live": true,
@@ -3076,7 +3086,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5107,6 +5117,16 @@
       "label": "Gravity brings a Flying type down and Earthquake reaches it",
       "live": true,
       "detail": "Earthquake into a Flying Corviknight: 0 with nothing up, 150 after a real Gravity CLICK. CONTROL, the other direction: 168 into a grounded Incineroar, so this is not an engine that stopped refusing Ground",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "flattensTypeMatchup",
+      "label": "Iron Ball makes a Ground move NEUTRAL on a Flying body, and Gravity takes that back",
+      "live": true,
+      "detail": "Garchomp Earthquake into Corviknight (Flying/Steel): 0 airborne, 75 holding an IRON BALL (must be NEUTRAL), 150 with the ball AND Gravity and 150 with Gravity alone (must be EQUAL, and x2 of the ball arm — ratio 2.00). Tinkaton (Fairy/Steel, NOT Flying) 192 -> 192 and Fire Blast into the same Corviknight 78 -> 78 (both must not move). Toucannon (Normal/Flying, the only Flying Iron Ball holder in 17,547 stored games) 97 vs 97 under Gravity — neutral either way",
       "hollow": false,
       "armed": true,
       "directCall": false

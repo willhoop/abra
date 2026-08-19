@@ -7237,6 +7237,76 @@ probe('ability', 'formeChange', 'Disguise eats the first hit', () => {
            detail: 'no ability took ' + none + ', Disguise took ' + dis + ' (must be exactly maxhp/8 = ' + eighth + ')' };
 });
 
+/* THE SECOND MEMBER OF THE SAME FAMILY AS IRON BALL, AND THE ONE WITH THE REACH.
+ *
+ * `runEffectiveness` (sim/pokemon.ts:2214) raises `Effectiveness` once per DEFENDING TYPE. Disguise's
+ * handler (data/mods/champions/abilities.ts:14 — the CHAMPIONS copy, not mainline's) never reads the
+ * type it was handed; it returns 0 for any non-Status move on an intact Mimikyu. So every iteration
+ * returns 0, the total is 0, and the hit the disguise eats is NEUTRAL — no `-supereffective`.
+ *
+ * MEASURED ON THE AUTHORITY FIRST, two Shadow Balls into one Mimikyu:
+ *     hit 1, disguise intact   |-activate|…Disguise, then the maxhp/8 chip   NO effectiveness line
+ *     hit 2, Mimikyu-Busted    |-supereffective|p2a: Mimikyu|1
+ *     control, quiet ability   |-supereffective| on BOTH hits
+ *     Body Slam, disguise intact                                             |-immune| — unchanged
+ *
+ * THE IMMUNITY ARM IS NOT DECORATION. The handler's last guard is `if (!target.runImmunity(move))
+ * return;` — it BAILS on a type immunity rather than flattening it, so Normal into a Ghost body stays
+ * immune. A fix that made "intact Disguise => neutral" unconditional would turn Body Slam into a
+ * legal hit on a Mimikyu, which is a worse engine than the one being fixed.
+ *
+ * WHY THIS PROBE READS THE STREAM AND THE OTHER READS HP. With the disguise intact the damage is
+ * nullified either way, so the board cannot see this and only the narration can — the same argument
+ * the Trick Room announcement probe makes. The HP half of Disguise is already covered by the
+ * `formeChange` probe above and is deliberately not restated here. */
+probe('ability', 'flattensTypeMatchup', 'the hit a Disguise eats is NEUTRAL, and a type immunity stays immune', () => {
+  /* UNFAINTABLE, AND IT IS LOAD-BEARING RATHER THAN TIDY: a bare Gholdengo's Shadow Ball takes a
+   * Mimikyu from 130 to 0 in one hit, so the SECOND hit — the whole point of the control — had
+   * nothing to land on and read as "announced nothing", which is the answer the fix is supposed to
+   * produce. A saturated arm agreeing with the expected result is the failure this file records
+   * about the clamped damage ratios. The maxhp/8 chip is read off the body AS STAGED for the same
+   * reason: unfaintable moves it, and a hard 16 typed here would be a number, not a measurement. */
+  const run = (ability, hits, mv) => {
+    const me = bare('gholdengo'), ally = bare('snorlax');
+    const f1 = bare('mimikyu'), f2 = bare('milotic');
+    f1.ability = ability;
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    const out = [];
+    for (let i = 0; i < hits; i++) {
+      const trace = []; S._trace = trace;
+      const before = f1.curHP;
+      M.battleTurn(S, rng5,
+        new Map([[me, mv === 'bodyslam' ? { kind: 'pass' } : M.playerAction(me, 'shadowball', f1, S.field)],
+                 [ally, mv === 'bodyslam' ? M.playerAction(ally, 'bodyslam', f1, S.field) : { kind: 'pass' }]]),
+        PASS2(f1, f2));
+      out.push({ eff: trace.filter(l => /^\|-(supereffective|resisted|immune)\|p2a/.test(l))
+                             .map(l => l.split('|')[1]).join(','),
+                 lost: before - f1.curHP, eighth: Math.floor(f1.st.hp / 8) });
+    }
+    return out;
+  };
+  const dis = run('disguise', 2);
+  const plain = run('none', 2);
+  const immune = run('disguise', 1, 'bodyslam');
+  const immuneControl = run('none', 1, 'bodyslam');
+  const eighth = dis[0].eighth;
+  const works = dis[0].eff === '' && dis[0].lost === eighth      // the eaten hit: neutral, and it IS the eaten hit
+             && dis[1].eff === '-supereffective'                 // once busted the chart is back
+             && plain[0].eff === '-supereffective'               // the control says the move really is x2
+             && plain[1].eff === '-supereffective'
+             && immune[0].eff === '-immune'                      // runImmunity bails — Normal stays nothing
+             && immuneControl[0].eff === '-immune';
+  return { works,
+           arms: { control: [plain[0].eff, plain[1].eff, immuneControl[0].eff],
+                   test: [dis[0].eff, dis[1].eff, immune[0].eff] },
+           detail: `Shadow Ball into Mimikyu, twice. WITH Disguise: hit 1 announced `
+                 + `[${dis[0].eff || 'nothing — correct'}] and cost ${dis[0].lost} (must be the maxhp/8 `
+                 + `chip, ${eighth}), hit 2 announced [${dis[1].eff}]. CONTROL, the same body with no `
+                 + `ability: [${plain[0].eff}] then [${plain[1].eff}]. Body Slam, a Normal move into a `
+                 + `Ghost body: [${immune[0].eff}] with Disguise, [${immuneControl[0].eff}] without` };
+});
+
 probe('ability', 'untagged', 'Marvel Scale raises Defense while statused', () => {
   /* `untagged` is a BUCKET, not a mechanic -- 45 abilities carry it, worth 2,129 clicks between
    * them. Probed here under that name because that is what the artifact says, with the mechanic
@@ -17150,6 +17220,94 @@ probe('move', 'groundsField', 'Gravity brings a Flying type down and Earthquake 
            detail: 'Earthquake into a Flying Corviknight: ' + control + ' with nothing up, ' + test
                  + ' after a real Gravity CLICK. CONTROL, the other direction: ' + floorControl
                  + ' into a grounded Incineroar, so this is not an engine that stopped refusing Ground' };
+});
+
+/* IRON BALL DOES NOT ONLY GROUND THE BODY — IT FLATTENS THE WHOLE MATCHUP, AND THE SECOND TYPE IS
+ * WHERE THAT SHOWS.
+ *
+ * `runEffectiveness` (sim/pokemon.ts:2214) raises `Effectiveness` ONCE PER DEFENDING TYPE and sums
+ * what comes back. Iron Ball's handler (data/items.ts:3052) never looks at the type it was handed:
+ * it returns 0 whenever the move is Ground and the body has Flying. So on a Flying/STEEL Corviknight
+ * the Flying iteration returns 0 AND SO DOES THE STEEL ONE, the total is 0, and Bulldoze is NEUTRAL.
+ * This engine dropped the Flying entry — correct, Ground immunity is `isGrounded` and not the chart —
+ * and kept Steel's x2, emitting a `-supereffective` the authority does not.
+ *
+ * Will, 2026-08-19: *"wdym matching the authority makes us worse? its the law we need to match it"*.
+ * Showdown is the game that is actually played. An engine that scores this hit super-effective tells
+ * MILTANK a KO exists that does not.
+ *
+ * THE GRAVITY ARM IS THE ONE THAT MATTERS, and it is why this cannot be "Iron Ball means neutral".
+ * The handler's FIRST line bails under Ingrain, Smack Down or Gravity, so a Corviknight held down by
+ * Gravity takes the chart's honest x2 whether or not it is also holding the ball. EVERY EXPECTED
+ * VALUE BELOW WAS STAGED ON THE AUTHORITY FIRST, with a cleared control, and none of it was inferred
+ * from the source (Garchomp Bulldoze, Corviknight 173 max, Talonflame 153):
+ *
+ *   nothing                  |-immune|                                      0
+ *   IRON BALL alone          (no effectiveness line)                173 -> 137   NEUTRAL
+ *   IRON BALL + Gravity      |-supereffective|                      173 -> 101   x2
+ *   Gravity alone            |-supereffective|                      173 -> 101   x2, identical
+ *   Smack Down alone         |-supereffective|                      173 ->  88   x2
+ *   Roost (Talonflame)       |-supereffective|                      153 ->  53   x2
+ *   Roost control (Taunt)    |-immune|                                          0
+ *
+ * SEVEN ARMS BECAUSE THERE ARE SEVEN WAYS TO BE WRONG HERE. An engine that neutralises every Iron
+ * Ball holder fails the Tinkaton arm; one that neutralises every move off the holder fails the Fire
+ * Blast arm; one that special-cases the item fails the Gravity arm; one that stopped grounding Flying
+ * bodies at all fails the first arm.
+ *
+ * THE TOUCANNON ARM IS THE CORPUS, AND IT IS DELIBERATELY A NULL. Across 17,547 stored games Iron
+ * Ball is held 320 times and exactly SIX of those bodies are Flying — all six Toucannon, which is
+ * Normal/Flying, and Ground does 1x to Normal. So the one body that really carries this item in this
+ * format is neutral either way and this defect changes nothing for it. That is the measured reach and
+ * it is written into the probe rather than into a sentence somebody has to remember. */
+probe('item', 'flattensTypeMatchup', 'Iron Ball makes a Ground move NEUTRAL on a Flying body, and Gravity takes that back', () => {
+  const hit = (foeSp, item, gravity, mv) => {
+    /* Clefable holds the Gravity click: Garchomp cannot learn it (Showdown's own TeamValidator says
+     * "Garchomp can't learn Gravity"), and a fixture built on a set that cannot exist measures a game
+     * we do not play. Both arms spend the same two turns so only the click on turn 1 differs. */
+    const B = board('garchomp', 'clefable', foeSp, 'farigiraf');
+    unfaintable(B.f1);
+    if (item) B.f1.item = item;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, { kind: 'pass' }],
+               [B.ally, gravity ? M.playerAction(B.ally, 'gravity', null, B.S.field) : { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, mv || 'earthquake', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { dealt: before - B.f1.curHP, gravityUp: B.S.field.gravity | 0 };
+  };
+  const airborne = hit('corviknight', '', false).dealt;        // must be 0 — still immune
+  const ball = hit('corviknight', 'ironball', false);          // NEUTRAL
+  const ballGrav = hit('corviknight', 'ironball', true);       // the ball's own exemption: x2
+  const grav = hit('corviknight', '', true).dealt;             // x2, and identical
+  const tinkPlain = hit('tinkaton', '', false).dealt;          // not Flying: x2
+  const tinkBall = hit('tinkaton', 'ironball', false).dealt;   // not Flying: the item changes nothing
+  const firePlain = hit('corviknight', '', false, 'fireblast').dealt;
+  const fireBall = hit('corviknight', 'ironball', false, 'fireblast').dealt;
+  const toucan = hit('toucannon', 'ironball', false).dealt;    // Normal/Flying — neutral either way
+  const toucanGrav = hit('toucannon', 'ironball', true).dealt;
+  /* The Gravity CLICK really landed — without this the two Gravity arms could be passing by having
+   * done nothing at all, which is exactly how a null result reads as agreement. */
+  const gravityReallyUp = ballGrav.gravityUp > 0 && hit('corviknight', 'ironball', false).gravityUp === 0;
+  const ratio = ball.dealt > 0 ? ballGrav.dealt / ball.dealt : 0;
+  const works = airborne === 0
+             && ball.dealt > 0 && Math.abs(ratio - 2) < 0.12       // NEUTRAL against the chart's x2
+             && ballGrav.dealt === grav                            // Gravity hands the chart back
+             && tinkBall === tinkPlain && tinkPlain > 0            // keyed on Flying, not on the item
+             && fireBall === firePlain && firePlain > 0            // keyed on the move being Ground
+             && toucan === toucanGrav && toucan > 0                // Normal/Flying: neutral either way
+             && gravityReallyUp;
+  return { works,
+           arms: { control: [airborne, grav, tinkPlain, firePlain], test: [ball.dealt, ballGrav.dealt, tinkBall, fireBall] },
+           detail: `Garchomp Earthquake into Corviknight (Flying/Steel): ${airborne} airborne, `
+                 + `${ball.dealt} holding an IRON BALL (must be NEUTRAL), ${ballGrav.dealt} with the ball `
+                 + `AND Gravity and ${grav} with Gravity alone (must be EQUAL, and x2 of the ball arm — `
+                 + `ratio ${ratio.toFixed(2)}). Tinkaton (Fairy/Steel, NOT Flying) ${tinkPlain} -> `
+                 + `${tinkBall} and Fire Blast into the same Corviknight ${firePlain} -> ${fireBall} `
+                 + `(both must not move). Toucannon (Normal/Flying, the only Flying Iron Ball holder in `
+                 + `17,547 stored games) ${toucan} vs ${toucanGrav} under Gravity — neutral either way` };
 });
 
 probe('move', 'typeRemovedForTurn', 'a Roosting body loses Flying for the turn and Earthquake lands', () => {

@@ -267,8 +267,14 @@ const SCENARIOS = [
     negative: 'turn 1 is the negative — Trick Room is not up yet when the choices resolve, so the FAST '
             + 'body must move first. An engine that reversed the order a turn early parts there. The '
             + 'clock is also on the board, so an expiry that runs long or short parts too.',
+    /* THE SETTER IS ORANGURU AND IT USED TO BE A CLEFABLE THAT CANNOT SET TRICK ROOM. Showdown's own
+     * TeamValidator: "Clefable can't learn Trick Room." Oranguru is a legal carrier (validator-checked
+     * with this exact set) and Inner Focus is its slot-0 ability, which does nothing on this board —
+     * nothing flinches. It is SLOWER than the Clefable it replaces (29 against 60), which does not
+     * matter: the setter never attacks, and turn 1's negative is that the FAST body moves first,
+     * which is about Weavile against Incineroar. */
     A: [mon('incineroar', '', 'Blaze', ['Swords Dance', 'Close Combat', 'Protect']),
-        mon('clefable', '', 'Unaware', ['Trick Room', 'Protect'])].concat(FILL('milotic', 'snorlax')),
+        mon('oranguru', '', 'Inner Focus', ['Trick Room', 'Protect'])].concat(FILL('milotic', 'snorlax')),
     B: [mon('weavile', '', 'Pressure', ['Night Slash', 'Swords Dance', 'Protect']),
         mon('corviknight', '', 'Pressure', ['Iron Defense', 'Protect'])].concat(FILL('toxapex', 'garchomp')),
     script: [
@@ -458,18 +464,26 @@ const SCENARIOS = [
   { id: 'regenerator-switchout',
     kind: 'ability', shape: 'switch-out heal (read off the bench)',
     census: 'ability/healsOnSwitchOut — "Regenerator heals a third on the way out"',
-    what: 'Both of the facing bodies are chipped by an Earthquake on turn 1 and both pivot out with '
-        + 'U-turn on turn 2. Toxapex has Regenerator; Snorlax beside it does not. The healed HP is '
-        + 'read off the PARTY, because by the boundary both bodies are on the bench.',
+    what: 'Both of the facing bodies are chipped by an Earthquake on turn 1 and both pivot out on '
+        + 'turn 2. Slowking has Regenerator and leaves with Chilly Reception; Snorlax beside it does '
+        + 'not and leaves with U-turn. The healed HP is read off the PARTY, because by the boundary '
+        + 'both bodies are on the bench.',
     negative: 'the partner is the negative and it is on the same board — a body without the ability '
             + 'must come off the field on exactly the HP it left with.',
     A: [mon('garchomp', '', 'Rough Skin', ['Earthquake', 'Swords Dance', 'Protect']),
         mon('clefable', '', 'Unaware', ['Protect'])].concat(FILL('milotic', 'weavile')),
-    B: [mon('toxapex', '', 'Regenerator', ['U-turn', 'Swords Dance', 'Protect']),
+    /* THE PIVOT HAD TO CHANGE WITH THE BODY, AND THE BODY HAD TO CHANGE. Toxapex was carrying BOTH
+     * `uturn` and `swordsdance` and the authority refuses both — and no Regenerator body in this
+     * regulation can learn U-turn at all: put to the validator, the nine Regenerator carriers between
+     * them know exactly ONE self-switch move, Slowking's and Slowking-Galar's Chilly Reception.
+     * SNOWSCAPE DOES NO RESIDUAL DAMAGE (data/conditions.ts:696-727 — an Ice-type Defence multiplier
+     * and nothing else) and neither body here is Ice, so the HP readings this scenario exists for are
+     * untouched by the weather it now sets. Snorlax keeps U-turn and stays the negative. */
+    B: [mon('slowking', '', 'Regenerator', ['Chilly Reception', 'Iron Defense', 'Protect']),
         mon('snorlax', '', 'Thick Fat', ['U-turn', 'Swords Dance', 'Protect'])].concat(FILL('corviknight', 'incineroar')),
     script: [
-      { p1: [{ m: 'earthquake' }, { m: 'protect' }], p2: [{ m: 'swordsdance' }, { m: 'swordsdance' }] },
-      { p1: [{ m: 'swordsdance' }, { m: 'protect' }], p2: [{ m: 'uturn', t: 0 }, { m: 'uturn', t: 0 }] },
+      { p1: [{ m: 'earthquake' }, { m: 'protect' }], p2: [{ m: 'irondefense' }, { m: 'swordsdance' }] },
+      { p1: [{ m: 'swordsdance' }, { m: 'protect' }], p2: [{ m: 'chillyreception' }, { m: 'uturn', t: 0 }] },
     ],
     break: { why: 'the switch-out heal is skipped',
       patch: [["{const _hs=TAGS.param('ability',out.ability,'healsOnSwitchOut');",
@@ -508,7 +522,7 @@ const SCENARIOS = [
     kind: 'ability', shape: 'per-turn boost + the turn it may not fire on',
     census: 'ability/boostsEachTurn — "Speed Boost raises Speed every turn"',
     what: 'TWO Speed Boost bodies on the same side and the same board. Espathra stands in slot 1 from '
-        + 'the leads and must gain a stage at the end of every turn. Weavile pivots out with U-turn on '
+        + 'the leads and must gain a stage at the end of every turn. Talonflame pivots out with U-turn on '
         + 'turn 1 and the Speed Boost body that replaces it arrives MID-TURN — Showdown gates the '
         + 'ability on `activeTurns` (data/abilities.ts:4447), which a body switched in this turn reads '
         + 'as 0, so the entrant must gain NOTHING at the end of the turn it walked in on.',
@@ -520,7 +534,11 @@ const SCENARIOS = [
             + 'latched would part there.',
     A: [mon('garchomp', '', 'Rough Skin', ['Swords Dance', 'Protect']),
         mon('clefable', '', 'Unaware', ['Protect'])].concat(FILL('milotic', 'snorlax')),
-    B: [mon('weavile', '', 'Pressure', ['U-turn', 'Protect']),
+    /* THE PIVOT IS A TALONFLAME AND IT USED TO BE A WEAVILE THAT CANNOT LEARN U-TURN — Showdown's own
+     * TeamValidator: "Weavile can't learn U-turn". Talonflame is a legal carrier of it, is FASTER than
+     * the Weavile it replaces (126 against 125) so nothing about the ordering weakens, and its slot-0
+     * Flame Body sits on the body USING the contact move rather than taking one, so it cannot fire. */
+    B: [mon('talonflame', '', 'Flame Body', ['U-turn', 'Protect']),
         mon('espathra', '', 'Speed Boost', ['Protect']),
         mon('sharpedo', '', 'Speed Boost', ['Protect']),
         mon('scolipede', '', 'Speed Boost', ['Protect'])],
@@ -541,25 +559,30 @@ const SCENARIOS = [
   { id: 'pivot-then-the-slot-is-hit',
     kind: 'move', shape: 'target resolution across a mid-turn switch',
     census: 'no census row — this is Will\'s slot-first question asked as a BOARD question',
-    what: 'Weavile (125 Speed) pivots out with U-turn and its replacement walks in MID-TURN. Milotic '
-        + '(81 Speed) has already clicked CHARM at that slot and moves afterwards. Showdown resolves '
+    what: 'Talonflame (126 Speed) pivots out with U-turn and its replacement walks in MID-TURN. Milotic '
+        + '(81 Speed) has already clicked TICKLE at that slot and moves afterwards. Showdown resolves '
         + 'a move\'s target from its `targetLoc` at EXECUTION time (`Battle#getTarget`), so the Charm '
-        + 'must land on WHOEVER IS STANDING THERE — the replacement — at -2 Attack. An engine holding '
+        + 'must land on WHOEVER IS STANDING THERE — the replacement — at -1 Attack and -1 Defence. An engine holding '
         + 'the Pokemon OBJECT it aimed at follows the body onto the bench and the slot shows 0.',
-    negative: 'turn 2 — the identical Charm into the same slot with NOBODY pivoting; the replacement '
+    negative: 'turn 2 — the identical Tickle into the same slot with NOBODY pivoting; the replacement '
             + 'clicks Iron Defense rather than Protect so the drop is not blocked, and it must go to '
-            + '-4. A re-aim that fires when nothing moved, or that stopped landing at all, parts '
-            + 'there. THE PARTNER IS THE SECOND NEGATIVE and is on every board: Charm is '
+            + '-2 Attack. A re-aim that fires when nothing moved, or that stopped landing at all, parts '
+            + 'there. THE PARTNER IS THE SECOND NEGATIVE and is on every board: Tickle is '
             + 'single-target, so p2b must never be dropped.',
-    A: [mon('milotic', '', 'Marvel Scale', ['Charm', 'Protect']),
+    /* THE DROP IS TICKLE AND IT USED TO BE A CHARM MILOTIC CANNOT LEARN ("Milotic can't learn
+     * Charm"). Of every stat-dropping status move in this regulation, Tickle is the ONE Milotic is
+     * allowed — so the scenario reads -1 Attack / -1 Defence where it used to read -2 Attack, which is
+     * a smaller number and the IDENTICAL question: does the drop land on the SLOT or follow the body.
+     * The pivot is a Talonflame for the same reason it is one scenario up. */
+    A: [mon('milotic', '', 'Marvel Scale', ['Tickle', 'Protect']),
         mon('clefable', '', 'Unaware', ['Protect'])].concat(FILL('garchomp', 'snorlax')),
-    B: [mon('weavile', '', 'Pressure', ['U-turn', 'Protect']),
+    B: [mon('talonflame', '', 'Flame Body', ['U-turn', 'Protect']),
         mon('corviknight', '', 'Pressure', ['Iron Defense', 'Protect']),
         mon('toxapex', '', 'Regenerator', ['Iron Defense', 'Protect']),
         mon('incineroar', '', 'Blaze', ['Iron Defense', 'Protect'])],
     script: [
-      { p1: [{ m: 'charm', t: 0 }, { m: 'protect' }], p2: [{ m: 'uturn', t: 0 }, { m: 'irondefense' }] },
-      { p1: [{ m: 'charm', t: 0 }, { m: 'protect' }], p2: [{ m: 'irondefense' }, { m: 'irondefense' }] },
+      { p1: [{ m: 'tickle', t: 0 }, { m: 'protect' }], p2: [{ m: 'uturn', t: 0 }, { m: 'irondefense' }] },
+      { p1: [{ m: 'tickle', t: 0 }, { m: 'protect' }], p2: [{ m: 'irondefense' }, { m: 'irondefense' }] },
     ],
     break: { why: 'the generic effect branch stops re-aiming at the slot and follows the Pokemon '
                 + 'object onto the bench, which is what it did before WIRE 139',
@@ -572,20 +595,32 @@ const SCENARIOS = [
     what: 'Ally Switch (priority +2) swaps the two bodies on p2 BETWEEN SLOTS without either leaving '
         + 'the field, and Garchomp\'s Crunch — aimed at p2 slot 0 before the swap — resolves '
         + 'afterwards. This is the case the two models cannot both pass by accident: a slot-first '
-        + 'engine hits the body that arrived in slot 0, a Pokemon-first engine follows Corviknight to '
+        + 'engine hits the body that arrived in slot 0, a Pokemon-first engine follows Spiritomb to '
         + 'slot 1. Both bodies are on the field the whole time, so "has my target left" — the weaker '
         + 'rule this engine carried until 2026-08-08 — answers NO and changes nothing.',
     negative: 'turn 2 — the identical Crunch at the identical slot with NO Ally Switch clicked. The '
             + 'hit must stay on whoever the swap left standing there, so an engine that re-aims when '
             + 'nothing moved, or that swapped a second time, parts. The UNHIT body is the second '
             + 'negative and is on every board: exactly one of the two may lose HP per turn.',
+    /* THE SWAPPER IS A SPIRITOMB AND IT USED TO BE A CORVIKNIGHT THAT CANNOT LEARN ALLY SWITCH
+     * ("Corviknight can't learn Ally Switch"), BESIDE A SNORLAX THAT CANNOT LEARN IRON DEFENSE.
+     * Spiritomb was picked so the DAMAGE READING does not move: Ghost/Dark takes Crunch at 2 x 0.5 =
+     * NEUTRAL, exactly as Flying/Steel did, so the hit is still a clean survivable number rather than
+     * a KO -- and it carries PRESSURE, the same ability, which matters because PP is in this
+     * instrument's verdict. Both idle clicks become the boost each body is actually allowed: Nasty
+     * Plot on Spiritomb, Amnesia on Snorlax. Neither touches Defence, so neither moves the damage. */
     A: [mon('garchomp', '', 'Rough Skin', ['Crunch', 'Protect']),
         mon('clefable', '', 'Unaware', ['Protect'])].concat(FILL('milotic', 'weavile')),
-    B: [mon('corviknight', '', 'Pressure', ['Ally Switch', 'Iron Defense', 'Protect']),
-        mon('snorlax', '', 'Thick Fat', ['Iron Defense', 'Protect'])].concat(FILL('toxapex', 'incineroar')),
+    B: [mon('spiritomb', '', 'Pressure', ['Ally Switch', 'Nasty Plot', 'Protect']),
+        mon('snorlax', '', 'Thick Fat', ['Amnesia', 'Protect'])].concat(FILL('toxapex', 'incineroar')),
     script: [
-      { p1: [{ m: 'crunch', t: 0 }, { m: 'protect' }], p2: [{ m: 'allyswitch' }, { m: 'irondefense' }] },
-      { p1: [{ m: 'crunch', t: 0 }, { m: 'protect' }], p2: [{ m: 'irondefense' }, { m: 'irondefense' }] },
+      { p1: [{ m: 'crunch', t: 0 }, { m: 'protect' }], p2: [{ m: 'allyswitch' }, { m: 'amnesia' }] },
+      /* THE TURN-2 IDLES ARE THE OTHER WAY ROUND BECAUSE THE SWAP REALLY HAPPENED — after Ally
+       * Switch, slot 0 holds SNORLAX and slot 1 holds SPIRITOMB, and a script addresses SLOTS. The
+       * pair that shipped first read `nastyplot, amnesia` in slot order and the scenario THREW:
+       * Snorlax, standing in slot 0, has no Nasty Plot. The original avoided this by giving both
+       * bodies the same Iron Defense, which is exactly the move Snorlax cannot learn. */
+      { p1: [{ m: 'crunch', t: 0 }, { m: 'protect' }], p2: [{ m: 'amnesia' }, { m: 'nastyplot' }] },
     ],
     break: { why: 'the shared target reader stops asking the slot and hands back the body it was '
                 + 'given — the Pokemon-first model, restored exactly',
@@ -606,13 +641,19 @@ const SCENARIOS = [
             + 'engine that megas whatever holds a stone parts there. The second is turn 2, where the '
             + 'same Kangaskhan clicks again WITHOUT asking: a forme that changed twice, or reverted, '
             + 'parts there.',
-    A: [mon('kangaskhan', 'Kangaskhanite', 'Scrappy', ['Protect', 'Swords Dance']),
+    /* THE IDLE CLICK IS FOCUS ENERGY AND IT USED TO BE A SWORDS DANCE KANGASKHAN CANNOT LEARN
+     * ("Kangaskhan can't learn Swords Dance"). Kangaskhan has NO legal self-boosting status move at
+     * all -- put to the validator, its whole Status pool is Attract, Disable, Endure, Focus Energy,
+     * Helping Hand, Protect, Rain Dance, Rest, Safeguard, Sandstorm, Sleep Talk, Substitute and Sunny
+     * Day. Focus Energy is the one that touches neither HP, nor the field, nor another body, and this
+     * scenario reads SPECIES, MAXHP and the held stone -- none of which a crit-rate volatile moves. */
+    A: [mon('kangaskhan', 'Kangaskhanite', 'Scrappy', ['Protect', 'Focus Energy']),
         mon('gardevoir', 'Gardevoirite', 'Synchronize', ['Calm Mind', 'Protect'])].concat(FILL('milotic', 'snorlax')),
     B: [mon('snorlax', '', 'Thick Fat', ['Swords Dance', 'Protect']),
         mon('corviknight', '', 'Pressure', ['Iron Defense', 'Protect'])].concat(FILL('toxapex', 'weavile')),
     script: [
-      { p1: [{ m: 'swordsdance', mega: true }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
-      { p1: [{ m: 'swordsdance' }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
+      { p1: [{ m: 'focusenergy', mega: true }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
+      { p1: [{ m: 'focusenergy' }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
     ],
     break: { why: 'the mega transformation is skipped — the choice is still made and still accepted, '
                 + 'so only the FORME goes missing',
@@ -622,7 +663,7 @@ const SCENARIOS = [
   { id: 'imposter-copies-the-body-opposite',
     kind: 'ability', shape: 'species + stats + boosts, copied off a body the table has no row about',
     census: 'ability/imposter — "Ditto becomes the body it faces on entry"',
-    what: 'Weavile pivots out with U-turn on turn 2 and Ditto walks in. Imposter copies the body it '
+    what: 'Talonflame pivots out with U-turn on turn 2 and Ditto walks in. Imposter copies the body it '
         + 'faces — Showdown reads `pokemon.side.foe.active[len - 1 - position]` (data/abilities.ts'
         + ':2111), which in doubles is the DIAGONAL slot, so a Ditto arriving in p2 slot 0 becomes p1 '
         + 'slot 1. Clefable has spent turn 1 on Calm Mind, so the copy has to bring the CURRENT STAT '
@@ -639,7 +680,10 @@ const SCENARIOS = [
      * slot, and after a transform medicham2's body NO LONGER ANSWERS TO ITS OWN SPECIES — so the
      * species lookup misses and the mirror falls through to the first healthy bench member. Ditto is
      * that member on both sides, which is what keeps the two engines playing the same game. */
-    B: [mon('weavile', '', 'Pressure', ['U-turn', 'Protect']),
+    /* THE PIVOT IS A TALONFLAME, AND THIS ONE THE AUDIT NEVER PRINTED: the learnset clause reports
+     * TURN 1 clicks and this scenario's U-turn is on turn 2. Same illegal pair as the three scenarios
+     * above ("Weavile can't learn U-turn"), found by repairing the others and then looking. */
+    B: [mon('talonflame', '', 'Flame Body', ['U-turn', 'Protect']),
         mon('corviknight', '', 'Pressure', ['Iron Defense', 'Protect']),
         mon('ditto', '', 'Imposter', ['Protect']),
         mon('toxapex', '', 'Regenerator', ['Protect'])],
@@ -675,11 +719,16 @@ const SCENARIOS = [
     /* CORVIKNIGHT IS THE TARGET BECAUSE IT SURVIVES. Fighting is exactly neutral on Steel/Flying
      * (2 x 0.5), so the hit is a clean damage reading rather than a KO — and a KO clamps both engines
      * to the same number, which is the shape that makes a damage arm agree for the wrong reason. */
-    B: [mon('staraptor', '', 'Intimidate', ['Swords Dance', 'Protect']),
-        mon('corviknight', '', 'Pressure', ['Swords Dance', 'Protect'])].concat(FILL('toxapex', 'weavile')),
+    /* BOTH IDLE CLICKS USED TO BE A SWORDS DANCE NEITHER BODY CAN LEARN ("Staraptor can't learn
+     * Swords Dance", "Corviknight can't learn Swords Dance"). Each is replaced by a boost that body IS
+     * allowed and that cannot disturb the reading: Agility on Staraptor, which never attacks, and
+     * NASTY PLOT on Corviknight, which is the TARGET -- its Defence must not move or the damage arm
+     * would be measuring the idle click instead of the ability the mega installed. */
+    B: [mon('staraptor', '', 'Intimidate', ['Agility', 'Protect']),
+        mon('corviknight', '', 'Pressure', ['Nasty Plot', 'Protect'])].concat(FILL('toxapex', 'weavile')),
     script: [
-      { p1: [{ m: 'brickbreak', t: 1, mega: true }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'swordsdance' }] },
-      { p1: [{ m: 'brickbreak', t: 1 }, { m: 'calmmind' }], p2: [{ m: 'swordsdance' }, { m: 'swordsdance' }] },
+      { p1: [{ m: 'brickbreak', t: 1, mega: true }, { m: 'calmmind' }], p2: [{ m: 'agility' }, { m: 'nastyplot' }] },
+      { p1: [{ m: 'brickbreak', t: 1 }, { m: 'calmmind' }], p2: [{ m: 'agility' }, { m: 'nastyplot' }] },
     ],
     break: { why: 'the mega forme\'s ability is NOT installed — the species, the stats and the stone '
                 + 'all change exactly as before, so only the ability replacement goes missing',
@@ -689,7 +738,7 @@ const SCENARIOS = [
   { id: 'hungerswitch-flips-every-turn',
     kind: 'ability', shape: 'species, alternating at the residual with no trigger at all',
     census: 'ability/formeCycleResidual — "Hunger Switch flips Morpeko every turn"',
-    what: 'Weavile pivots out with U-turn and MORPEKO walks in. Hunger Switch is an `onResidual` at '
+    what: 'Talonflame pivots out with U-turn and MORPEKO walks in. Hunger Switch is an `onResidual` at '
         + 'order 29 — one slot after Speed Boost\'s 28 — and it flips Morpeko to Morpeko-Hangry at the '
         + 'END OF THE VERY TURN IT ARRIVED ON, triggered by nothing. Three boundaries are read after '
         + 'the entry because the flip ALTERNATES: Hangry, then back to Morpeko, then Hangry again.',
@@ -701,7 +750,9 @@ const SCENARIOS = [
             + 'guard means a flip that keyed on the tag alone would rename a body that must not move.',
     A: [mon('garchomp', '', 'Rough Skin', ['Swords Dance', 'Protect']),
         mon('clefable', '', 'Unaware', ['Calm Mind', 'Protect'])].concat(FILL('milotic', 'snorlax')),
-    B: [mon('weavile', '', 'Pressure', ['U-turn', 'Protect']),
+    /* THE PIVOT IS A TALONFLAME for the same reason as the two scenarios above -- "Weavile can't
+     * learn U-turn", and Talonflame can. */
+    B: [mon('talonflame', '', 'Flame Body', ['U-turn', 'Protect']),
         mon('corviknight', '', 'Pressure', ['Iron Defense', 'Protect']),
         mon('morpeko', '', 'Hunger Switch', ['Protect']),
         mon('toxapex', '', 'Regenerator', ['Protect'])],

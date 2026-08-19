@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-19T06:02:55.270Z",
+ "generated": "2026-08-19T06:37:43.638Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2329,6 +2329,19 @@
    ]
   },
   {
+   "tag": "flattensTypeMatchup",
+   "kind": "item",
+   "param": "the effectiveness handler ignores the iterated defending type, so its return lands on EVERY one and the total is flat",
+   "why": "Iron Ball on a Flying body makes a Ground move NEUTRAL, not super-effective off the second type; Disguise makes the hit it eats neutral. Both were emitting a -supereffective the authority does not, on 6 corpus bodies and 226 respectively",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 227,
+   "examples": [
+    "Iron Ball"
+   ]
+  },
+  {
    "tag": "restoresPP",
    "kind": "item",
    "param": "PP put back into one move slot when eaten",
@@ -2729,6 +2742,19 @@
    "uses": 46,
    "examples": [
     "Light Ball"
+   ]
+  },
+  {
+   "tag": "flattensTypeMatchup",
+   "kind": "ability",
+   "param": "the effectiveness handler ignores the iterated defending type, so its return lands on EVERY one and the total is flat",
+   "why": "Iron Ball on a Flying body makes a Ground move NEUTRAL, not super-effective off the second type; Disguise makes the hit it eats neutral. Both were emitting a -supereffective the authority does not, on 6 corpus bodies and 226 respectively",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 201,
+   "examples": [
+    "Disguise"
    ]
   },
   {
@@ -34232,11 +34258,27 @@
   "ironball": {
    "name": "Iron Ball",
    "tags": [
+    "flattensTypeMatchup",
     "speedMult",
     "flingable"
    ],
    "uses": 227,
    "params": {
+    "flattensTypeMatchup": {
+     "returns": 0,
+     "whenMoveType": "Ground",
+     "whenTargetHasType": "Flying",
+     "skipsStatus": false,
+     "unlessVolatile": [
+      "ingrain",
+      "smackdown"
+     ],
+     "unlessPseudoWeather": [
+      "gravity"
+     ],
+     "onlySpecies": [],
+     "bailsOnImmunity": false
+    },
     "speedMult": {
      "mult": 0.5,
      "readFrom": "onModifySpe"
@@ -35230,6 +35272,7 @@
   "disguise": {
    "name": "Disguise",
    "tags": [
+    "flattensTypeMatchup",
     "breakable",
     "formeOnHit",
     "preventsCrit",
@@ -35238,6 +35281,21 @@
    ],
    "uses": 201,
    "params": {
+    "flattensTypeMatchup": {
+     "returns": 0,
+     "whenMoveType": null,
+     "whenTargetHasType": null,
+     "skipsStatus": true,
+     "unlessVolatile": [
+      "substitute"
+     ],
+     "unlessPseudoWeather": [],
+     "onlySpecies": [
+      "mimikyu",
+      "mimikyutotem"
+     ],
+     "bailsOnImmunity": true
+    },
     "breakable": {
      "breakable": true
     },

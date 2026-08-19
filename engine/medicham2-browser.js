@@ -850,6 +850,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #217 -- a second attacking type folded into the chart (`overridesEffectiveness.addsType`;
      Flying Press is the only member). Zero unless Hawlucha clicks it. */
   effTypeAdded: 0,
+  /* THE TOTAL FLATTENED BY A HANDLER THAT IGNORES THE ITERATED DEFENDING TYPE
+     (`flattensTypeMatchup`; Iron Ball on a Flying body, Disguise on an intact Mimikyu). Zero unless
+     one of those two is actually on the field and its own gates pass. */
+  effFlattened: 0,
   /* ROADMAP #223 -- a switch-out heal applied with NO protocol line, which is what the authority
      does (Regenerator calls the silent `Pokemon#heal`). Counted so the capability still proves it
      ran now that it no longer announces itself. */
@@ -1610,6 +1614,10 @@ const MEDFAILS = { encoreAction: 0,
   /* ROADMAP #217 -- an `addsType` naming a type the chart table does not carry. Zero; loud if a
      regulation ever adds a type this engine's MC.C does not know. */
   effAddTypeUnknown: 0, effAddTypeUnknownFirst: '',
+  /* A `flattensTypeMatchup` member whose handler returned two different constants, so tag_dex could
+     not say WHICH value lands on every iteration. Guessing one would be a silent default on the
+     damage path, so the member is skipped and counted. Zero over this format's two members. */
+  effFlattenUnreadable: 0, effFlattenUnreadableFirst: '',
   /* WIRE 93 -- a `priorityMod` whose `condition` prose this engine cannot evaluate. The only value in
      the artifact today is Gale Wings' 'only at full HP', which IS evaluated; anything else fails
      closed (no shift) and is counted, because a silently applied conditional shift is a wrong number
@@ -9403,7 +9411,97 @@ function typeEffAgainst(att,def,mv,mvT){
     const _cat=(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status';
     eff=isGrounded(def,att,_cat)?mcEff('Ground',def.types.filter(t=>MC.C.Ground[t]!==0)):0;
   }
+  /* THE EFFECTIVENESS EVENT IS RAISED ONCE PER DEFENDING TYPE, AND SOME HANDLERS IGNORE THE TYPE.
+   *
+   *     sim/pokemon.ts:2214   for (const type of this.getTypes()) {
+   *                             let typeMod = dex.getEffectiveness(move, type);
+   *                             totalTypeMod += this.battle.runEvent('Effectiveness', this, type, move, typeMod);
+   *
+   * Iron Ball's handler (data/items.ts:3052) returns 0 whenever the move is Ground and the body has
+   * Flying, WITHOUT looking at the type it was handed. So on a Flying/Steel Corviknight the Steel
+   * iteration returns 0 as well, the total is 0, and Bulldoze is NEUTRAL. Everything above this line
+   * was already right — the chart, then the `isGrounded` recomputation that correctly drops Flying
+   * because Ground immunity is not a chart fact — and it still ended at x2 off Steel and emitted a
+   * `-supereffective` the authority does not. Disguise (data/mods/champions/abilities.ts:14) is the
+   * same shape and the same fix: the hit it eats is neutral.
+   *
+   * LAST, because it is a claim about the TOTAL and not about one defending type. It has to see the
+   * number every earlier clause produced — `bailsOnImmunity` is exactly the guard that must not fire
+   * on a chart that already said 0, so a Normal move into a Ghost Mimikyu stays immune instead of
+   * being flattened into a legal hit.
+   *
+   * EVERY GATE IS READ OFF THE HANDLER, none is named here. A member added upstream arrives with its
+   * own conditions and needs no edit to this function; a member whose constant this could not read is
+   * SKIPPED AND COUNTED rather than guessed. */
+  {const _fl=flattenedTotal(att,def,mv,mvT,eff);
+   if(_fl!=null)eff=_fl;}
   return eff;
+}
+/* ---- THE SPECIFICATION: SEVEN ROUTES, STAGED ON THE AUTHORITY, NOT INFERRED FROM THE SOURCE ----
+ *
+ * Will, 2026-08-19: *"wdym matching the authority makes us worse? its the law we need to match it"*.
+ * Showdown is the game that is actually played, so its answer is the answer. An engine that scores
+ * this hit super-effective tells MILTANK a KO exists that does not.
+ *
+ * Bulldoze into a Flying/Steel Corviknight, every route staged with a cleared control, damage read
+ * off the omniscient stream (Corviknight 173 max, Talonflame 153):
+ *
+ *   0  nothing                  |-immune|                                          0
+ *   1  IRON BALL alone          (no effectiveness line)                    173 -> 137   NEUTRAL
+ *   2  IRON BALL + Gravity      |-supereffective|                          173 -> 101   x2
+ *   3  Gravity alone            |-supereffective|                          173 -> 101   x2, identical to 2
+ *   4  Smack Down alone         |-supereffective|                          173 ->  88   x2
+ *   5  IRON BALL + Smack Down   (no effectiveness line)                    173 -> 142   NEUTRAL
+ *   6  Roost (Talonflame)       |-supereffective|                          153 ->  53   x2
+ *   6c control, Taunt instead   |-immune|                                            0
+ *
+ * 72 damage against 36 is exactly x2 on the same body, so route 1 really is x1 and 2/3 really are x2.
+ *
+ * ROUTE 5 IS THE ONE THAT LOOKS LIKE A CONTRADICTION AND IS NOT, and it is why the guard is read off
+ * the handler rather than typed. Iron Ball's own handler bails under ingrain / smackdown / gravity
+ * (data/items.ts:3054), and Smack Down's condition REFUSES TO APPLY AT ALL to a body holding an Iron
+ * Ball (data/moves.ts:16963) -- two mirrored three-item lists in two files, so the two mechanisms can
+ * never double up. Getting only route 1 right would trade one divergence for three. */
+/* Returns the flat total this body's handler forces, or null when nothing flattens. Split out of
+ * typeEffAgainst so the gate list reads as a list; the caller applies it. */
+function flattenedTotal(att,def,mv,mvT,eff){
+  if(!def)return null;
+  const cands=[];
+  if(def.item){const p=TAGS.param('item',def.item,'flattensTypeMatchup');if(p)cands.push({p,id:def.item});}
+  /* THE SUPPRESSED ABILITY, not the declared one. Disguise carries `breakable`, so a Mold Breaker's
+   * click sees no ability at all -- and asking `def.ability` here would be the second reader of "does
+   * this body have that ability right now" that WIRE 128 already had to unpick one clause up. */
+  const _cat=(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status';
+  const _ab=suppressedAbility(att,def,_cat);
+  if(_ab){const p=TAGS.param('ability',_ab,'flattensTypeMatchup');if(p)cands.push({p,id:_ab});}
+  const g=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  for(const c of cands){
+    const p=c.p;
+    if(p.returns==null){MEDFAILS.effFlattenUnreadable++;
+      if(!MEDFAILS.effFlattenUnreadableFirst)MEDFAILS.effFlattenUnreadableFirst=String(c.id);
+      continue;}
+    if(p.skipsStatus&&_cat==='Status')continue;
+    if(p.whenMoveType&&String(mvT)!==String(p.whenMoveType))continue;
+    if(p.whenTargetHasType&&(def.types||[]).indexOf(p.whenTargetHasType)<0)continue;
+    /* `if (!target.runImmunity(move)) return;` -- the handler declines a type immunity rather than
+     * flattening it. A chart that already says 0 is that immunity. */
+    if(p.bailsOnImmunity&&!(eff>0))continue;
+    /* `target.species.id` against the handler's own list. Once the disguise breaks the body IS
+     * Mimikyu-Busted -- in this engine too, `formeSwap` renames it -- so this one test carries the
+     * "still intact" half without a second reader of that state. */
+    if((p.onlySpecies||[]).length&&p.onlySpecies.indexOf(g(def.name))<0)continue;
+    const fld=fieldOfBody(def),vol=def._vol||{};
+    let blocked=false;
+    for(const w of (p.unlessPseudoWeather||[]))if(fld&&fld[w]>0)blocked=true;
+    for(const v of (p.unlessVolatile||[])){
+      if(v==='substitute'){if(def._sub>0)blocked=true;}
+      else if(vol[v]>0)blocked=true;
+    }
+    if(blocked)continue;
+    MEDSEEN.effFlattened++;
+    return Math.pow(2,+p.returns);
+  }
+  return null;
 }
 /* WIRE 11 -- typeImmunity, from the artifact instead of a 12-name table. The tag carries the
  * TYPE (checked against the weather-effective type, so a sand Weather Ball sails past Volt Absorb)

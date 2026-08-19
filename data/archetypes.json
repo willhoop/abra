@@ -1,73 +1,85 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_team_sides": 31752,
-  "n_games": 15876,
+  "n_team_sides": 31830,
+  "n_games": 15915,
   "unit_note": "The clustering runs on TEAM SIDES, up to two per game. n_team_sides is the sample size for every share and silhouette below; n_games is the number of clean games they were drawn from.",
-  "k_selected": 6,
-  "silhouette": 0.113,
+  "k_selected": 12,
+  "silhouette": 0.126,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Raichu-Sableye",
-      "share": 0.35,
+      "n": "Sableye-Aerodactyl",
+      "share": 0.247,
       "core": [
-        "raichu",
         "sableye",
         "aerodactyl",
-        "talonflame"
+        "metagross",
+        "grimmsnarl"
       ],
       "signature": [],
-      "w_usage": 0.35
-    },
-    {
-      "n": "Garchomp-Kingambit",
-      "share": 0.171,
-      "core": [
-        "garchomp",
-        "kingambit",
-        "whimsicott",
-        "basculegion"
-      ],
-      "signature": [
-        "basculegion"
-      ],
-      "w_usage": 0.171
+      "w_usage": 0.254
     },
     {
       "n": "Incineroar-Sinistcha",
-      "share": 0.165,
+      "share": 0.117,
       "core": [
         "incineroar",
         "sinistcha",
-        "gengar",
-        "sneasler"
+        "sneasler",
+        "kingambit"
       ],
       "signature": [],
-      "w_usage": 0.165
+      "w_usage": 0.12
     },
     {
-      "n": "Trick Room",
-      "share": 0.152,
+      "n": "Archaludon-Pelipper",
+      "share": 0.1,
       "core": [
-        "farigiraf",
-        "kingambit",
-        "torkoal",
-        "staraptor"
-      ],
-      "signature": [],
-      "w_usage": 0.152
-    },
-    {
-      "n": "Pelipper-Archaludon",
-      "share": 0.098,
-      "core": [
-        "pelipper",
         "archaludon",
+        "pelipper",
         "swampert",
         "grimmsnarl"
       ],
       "signature": [],
-      "w_usage": 0.098
+      "w_usage": 0.103
+    },
+    {
+      "n": "Farigiraf-Incineroar",
+      "share": 0.083,
+      "core": [
+        "farigiraf",
+        "incineroar",
+        "camerupt",
+        "blastoise"
+      ],
+      "signature": [],
+      "w_usage": 0.085
+    },
+    {
+      "n": "Kingambit-Basculegion",
+      "share": 0.08,
+      "core": [
+        "kingambit",
+        "basculegion",
+        "sneasler",
+        "froslass"
+      ],
+      "signature": [
+        "froslass"
+      ],
+      "w_usage": 0.082
+    },
+    {
+      "n": "Raichu-Incineroar",
+      "share": 0.066,
+      "core": [
+        "raichu",
+        "incineroar",
+        "sinistcha",
+        "whimsicott"
+      ],
+      "signature": [],
+      "w_usage": 0.068
     },
     {
       "n": "Sand",
@@ -75,11 +87,61 @@
       "core": [
         "tyranitar",
         "excadrill",
-        "sinistcha",
-        "milotic"
+        "garchomp",
+        "corviknight"
       ],
       "signature": [],
-      "w_usage": 0.065
+      "w_usage": 0.067
+    },
+    {
+      "n": "Whimsicott-Staraptor",
+      "share": 0.062,
+      "core": [
+        "whimsicott",
+        "staraptor",
+        "garchomp",
+        "kingambit"
+      ],
+      "signature": [],
+      "w_usage": 0.064
+    },
+    {
+      "n": "Whimsicott-Charizard",
+      "share": 0.055,
+      "core": [
+        "whimsicott",
+        "charizard",
+        "garchomp",
+        "basculegion"
+      ],
+      "signature": [],
+      "w_usage": 0.056
+    },
+    {
+      "n": "Trick Room",
+      "share": 0.051,
+      "core": [
+        "torkoal",
+        "farigiraf",
+        "incineroar",
+        "mawile"
+      ],
+      "signature": [],
+      "w_usage": 0.052
+    },
+    {
+      "n": "Sylveon-Kingambit",
+      "share": 0.048,
+      "core": [
+        "sylveon",
+        "kingambit",
+        "farigiraf",
+        "garchomp"
+      ],
+      "signature": [
+        "charizard"
+      ],
+      "w_usage": 0.049
     }
   ]
 }

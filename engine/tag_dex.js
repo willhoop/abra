@@ -4543,7 +4543,74 @@ const MOVE_TAGS = [
     } },
 ];
 
+/* ---- THE EFFECTIVENESS EVENT IS RAISED ONCE PER DEFENDING TYPE, AND SOME HANDLERS IGNORE THE TYPE --
+ *
+ * `sim/pokemon.ts:2214` — `runEffectiveness` loops `for (const type of this.getTypes())` and raises
+ * `Effectiveness` inside the loop, summing what comes back. A handler that reads the `type` it was
+ * handed is answering PER DEFENDING TYPE and is the `overridesEffectiveness` family (Freeze-Dry
+ * replaces Water's step; Flying Press adds an attacking type across the chart). A handler that
+ * IGNORES it answers about the move and the WHOLE BODY, so its return lands on every iteration and
+ * the total is that value repeated — which for a return of 0 is a flat NEUTRAL, whatever the chart
+ * said about any of the defending types.
+ *
+ * That is not a nuance. Bulldoze into an Iron-Ball Corviknight: the Flying iteration returns 0 and so
+ * does the STEEL one, so the authority's total is 0 and the hit is neutral. medicham2 dropped the
+ * Flying entry (correctly — Ground immunity is `isGrounded`, not the chart) and kept Steel's x2, and
+ * emitted a `-supereffective` the authority does not.
+ *
+ * MEMBERSHIP WAS PRINTED BEFORE THIS WAS WIRED, because a new derived tag over-matching is this
+ * repository's most repeated mistake. Over every legal item, every ability with a legal carrier and
+ * every move in this format, `onEffectiveness` exists on FIVE rows and this predicate splits them 2/3:
+ *
+ *     MATCH  Iron Ball   returns 0 when the move is Ground and the body has Flying, unless Ingrain,
+ *                        Smack Down or Gravity already grounded it        (data/items.ts:3052)
+ *     MATCH  Disguise    returns 0 for any non-Status move on an intact Mimikyu, and BAILS on a type
+ *                        immunity so Body Slam stays immune  (data/mods/champions/abilities.ts:14)
+ *     skip   Freeze-Dry, Flying Press — both read `type`, both already carry overridesEffectiveness
+ *     skip   Ice Face    — an ability, and `LEGAL_CARRIED` drops it: Eiscue is `isNonstandard: 'Past'`
+ *                          and `tier: 'Illegal'`, so no body in this regulation can carry it
+ *
+ * The gates are read out of the handler rather than named here, so a member added upstream arrives
+ * with its own conditions. `returns: null` means the handler returned two different constants and
+ * this could not read it — the consumer must refuse rather than guess (#92). */
+function flattensTypeMatchup(o) {
+  const raw = o && o.onEffectiveness;
+  if (!raw) return null;
+  const src = String(raw).replace(/\s+/g, ' ');
+  const body = src.slice(src.indexOf('{'));
+  /* Every OTHER spelling of the word is about the move or the whole body, so they come out before
+   * the test — otherwise `move.type === 'Ground'` would read as "this handler is per-type". */
+  const stripped = body.replace(/move\.type|\.hasType\s*\(|\.getTypes\s*\(\s*\)|typeMod/g, '');
+  if (/\btype\b/.test(stripped)) return null;
+  const rets = [...body.matchAll(/return\s+(-?\d+)\s*;/g)].map(m => +m[1]);
+  if (!rets.length) return null;
+  const uniq = [...new Set(rets)];
+  return {
+    returns: uniq.length === 1 ? uniq[0] : null,
+    whenMoveType: (body.match(/move\.type\s*===\s*['"]([A-Za-z]+)['"]/) || [])[1] || null,
+    whenTargetHasType: (body.match(/\.hasType\s*\(\s*['"]([A-Za-z]+)['"]\s*\)/) || [])[1] || null,
+    skipsStatus: /move\.category\s*===\s*['"]Status['"]/.test(body),
+    unlessVolatile: [...body.matchAll(/volatiles\s*\[\s*['"]([a-z]+)['"]\s*\]/g)].map(m => m[1]),
+    unlessPseudoWeather: [...body.matchAll(/getPseudoWeather\s*\(\s*['"]([a-z]+)['"]\s*\)/g)].map(m => m[1]),
+    onlySpecies: [...body.matchAll(/species\.id\s*(?:!==|===)\s*['"]([a-z0-9]+)['"]/g)].map(m => m[1])
+      .concat([...body.matchAll(/\[([^\]]*)\]\s*\.includes\s*\(\s*target\.species\.id/g)]
+        .flatMap(m => [...m[1].matchAll(/['"]([a-z0-9]+)['"]/g)].map(x => x[1]))),
+    bailsOnImmunity: /runImmunity/.test(body),
+  };
+}
+const FLATTENS_TAG = {
+  tag: 'flattensTypeMatchup',
+  param: 'the effectiveness handler ignores the iterated defending type, so its return lands on '
+       + 'EVERY one and the total is flat',
+  probe: 'flattensTypeMatchup',
+  why: 'Iron Ball on a Flying body makes a Ground move NEUTRAL, not super-effective off the second '
+     + 'type; Disguise makes the hit it eats neutral. Both were emitting a -supereffective the '
+     + 'authority does not, on 6 corpus bodies and 226 respectively',
+  of: flattensTypeMatchup,
+};
+
 const ITEM_TAGS = [
+  FLATTENS_TAG,
   /* ROADMAP #144 -- THE BERRY THAT GIVES PP BACK, and it could not have a tag before PP existed
    * because there was nothing for it to restore. Derived from the `onEat` handler's own arithmetic
    * (`moveSlot.pp = Math.min(moveSlot.pp + addedPP, moveSlot.maxpp)`, data/items.ts:3367), including
@@ -4994,6 +5061,11 @@ const ITEM_TAGS = [
 ];
 
 const ABILITY_TAGS = [
+  /* THE SAME DERIVATION, THE SAME FUNCTION. Iron Ball is an item and Disguise is an ability and the
+   * FACT is one — `runEffectiveness` does not care which table the handler came out of — so the two
+   * lists share the object rather than each holding a copy. Two readers of one rule is the seam
+   * CLAUDE.md's FACTS ARE GLOBAL rule exists to close. */
+  FLATTENS_TAG,
   /* ROADMAP #139 -- SUCTION CUPS, AND IT IS THE MIRROR OF `escapesTrap` RATHER THAN A SECOND COPY OF
    * IT. The two are opposite ends of the same axis and an engine holding one boolean for "can this
    * body change slots" cannot express both:

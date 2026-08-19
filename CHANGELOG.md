@@ -10,6 +10,78 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.45.0] — 2026-08-19
+
+### Fixed
+- **IRON BALL WAS A FAMILY OF TWO AND THE NAMED ROW WAS THE SMALL HALF.** The row was filed as "Bulldoze
+  into an Iron-Balled Corviknight". Membership was derived and **printed before anything was wired**: over
+  every legal item, every ability with a legal carrier and every move in the format, `onEffectiveness`
+  exists on **five** rows, and the predicate *"does the handler read the `type` it was handed?"* splits
+  them 2/3 — **Iron Ball** (`data/items.ts:3052`) and **Disguise** (`data/mods/champions/abilities.ts:14`,
+  the Champions copy) read the target's whole type SET; Freeze-Dry and Flying Press read `type` and are the
+  already-modelled per-type family; Ice Face is dropped because Eiscue is `isNonstandard: 'Past'`.
+  **THE REACH INVERTS THE PREMISE THE ROW WAS FILED ON**, measured over 17,547 stored games / 209,880 sheet
+  bodies:
+
+  | | reach |
+  |---|---|
+  | Iron Ball, any holder | 320 bodies |
+  | Iron Ball on a **Flying** body — the only shape the defect needs | **6, all Toucannon, 0.03% of games** |
+  | and Toucannon is **Normal**/Flying, so Ground is 1x off the second type either way | the defect changes **nothing** for the one body that carries it |
+  | **Disguise** | **226 sheets in 226 games, 1.29% — 38x larger** |
+
+  **Corviknight never holds an Iron Ball in this corpus.** The row that got filed was the harmless member;
+  the one that matters was standing behind it. Fixed with a derived `flattensTypeMatchup` tag shared by
+  `ITEM_TAGS` and `ABILITY_TAGS`, consumed LAST in `typeEffAgainst` because it is a claim about the TOTAL
+  rather than about one type. Every gate read off the handler; an unreadable constant is skipped and
+  counted (`MEDFAILS.effFlattenUnreadable` = 0). `all_mechanics_fire --only ironball`: **1 divergence -> 0**.
+- **`tests/staged_board.js` WENT FROM REFUSING TO PLAY TO 24 OF 24 CLEAN AND BOARD-IDENTICAL.** Nine
+  illegal `(species, move)` pairs repaired one at a time and **none baselined** —
+  `data/fixture-learnset-baseline.json` is untouched, because adding the pairs would have laundered ten
+  wrong fixtures. Every replacement was chosen from the species' own learnset and confirmed by
+  `TeamValidator`, **which overruled two of the first picks**. Each was chosen to preserve what the
+  scenario measured: Corviknight -> Spiritomb because Ghost/Dark takes Crunch at 2 x 0.5 = neutral, the
+  same as Flying/Steel, and carries the same Pressure so PP is unmoved; Kangaskhan's Swords Dance became
+  Focus Energy because it has **no** legal self-boost; Staraptor and Corviknight took Agility and Nasty
+  Plot so Defence does not move on the damage target. **A tenth pair exists that the audit cannot see** —
+  `imposter-copies-the-body-opposite` carries the same illegal click on TURN 2 and the audit only reports
+  turn 1.
+
+### Notes
+- **A CORRECTION TO THE BRIEF I WROTE: route 5 is not the authority contradicting itself.**
+  `data/moves.ts:16963` **refuses to apply the smackdown volatile to an Iron Ball holder**, mirroring Iron
+  Ball's own guard list across two files. I had characterised Iron Ball + Smack Down as a fourth
+  disagreeing code path; it is not reachable. Seven routes were staged on the authority with a cleared
+  control each and nothing inferred from source, and **two fixture faults were caught before any of them
+  counted**: a Roost at full HP fails, and a `default` control for a body whose only move is Roost *is*
+  Roost.
+- **Route 5 still differs and did not regress** (x2 before and after): the generic `statusInflict` applier
+  has no notion of a condition's `onStart` returning false. That is a defect in the volatile applier rather
+  than in this family, and it is on the hand list.
+- **THE THREE SURVIVING DAMAGE ROWS ARE THREE DIFFERENT MECHANISMS, ROOT-CAUSED AND DELIBERATELY NOT
+  FIXED** — which is why they were worked separately rather than batched:
+  - **Shell Side Arm** (`data/moves.ts:16223`) — `onModifyMove` recomputes physical against special from
+    RAW stats and flips `move.category`, **also setting `flags.contact`**. Proven from the staged game
+    rather than the source: the authority emits `[anim] Shell Side Arm Physical` and deals **99**; we deal
+    **88** off the declared `"Special"`. No tag exists for this shape.
+  - **Sand Force** (`data/abilities.ts:3950`) — the handler is a **disjunction** (Rock or Ground or Steel)
+    and `engine/tag_dex.js`'s `onType` regex takes the **first alternative only**, so the artifact says
+    `"Rock"`. The fixture clicks Bulldoze and the consumer's `_db.onType === mvT` is false.
+    **`engine/fixture_preflight.js` derives all three off the same handler** — two producers of one fact,
+    disagreeing, which is the `artifact_audit` shape in a new place.
+  - **Metronome (item)** (`data/items.ts:4023`) — the tag `damageMultOnRepeat` is **complete and correct**,
+    and `grep` finds **no consumer** in `medicham2-browser.js`. A derived fact nothing reads.
+- **Hustle stays diagnosed and unfixed on purpose.** Widening `dmgRange`'s stat-stage branch is a new shape
+  across 44 `damageBoost` carriers, **and it is the same consumer Sand Force needs** — base-power stage
+  plus type plus weather, which no branch serves today. Landing both at once would make a bad result
+  unattributable.
+- **Census 601 live / 0 missing -> 603 live / 0 missing**, 0 probes threw, tag coverage 267/286 with the
+  unprobed count unchanged at 19. **Two status clauses now read `MEASURED AGAINST A DIFFERENT ENGINE`** —
+  the whole-game differential and the mechanics artifact — which is the staleness rule firing correctly
+  because the simulator moved underneath them. Both owe a re-run.
+
+---
+
 ## [5.44.0] — 2026-08-19
 
 ### Fixed
