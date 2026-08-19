@@ -42,7 +42,7 @@ number typed in prose beside a table is exactly what CLAUDE.md records going sta
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  596/596 probed mechanics live, 0 missing   (census 2026-08-19 01:16)
+  601/601 probed mechanics live, 0 missing   (census 2026-08-19 02:03)
   0/6000 differential comparisons disagree with Showdown   (2026-08-18 10:52)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -55,15 +55,305 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 367363ffe7ca now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 0a70cc31a897 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 40241321e64c now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 266/285 probed, 19 unprobed
 ```
 
-_stamped 2026-08-19 01:18_
+_stamped 2026-08-19 02:16_
 
 <!-- /GENERATED -->
+
+## CONTRARY WROTE THE OPPOSITE SIGN, SOAK NEVER REFUSED, AND A TRACED ABILITY OUTLIVED THE BENCH. 2026-08-19.
+
+**Census 596 live / 0 missing -> 601 live / 0 missing.** Five probes added, three of them RED on the
+engine before anything was fixed. `data/tags.json` regenerated twice (the shape diff is five rows the
+first time and one the second; everything else that moved is `uses`, which the corpus grew on its own).
+
+### CONTRARY WAS UNWIRED ON THE ONE ROUTE THAT MATTERS MOST, AND BOTH ARMS SAID SO
+
+`data/all-mechanics-fire.json`, class `unrelated event mismatch`, carrier Malamar:
+`|-boost|p1a|atk|1` against our `|-unboost|p1a|atk|1`. **The opposite outcome, not a narration
+difference.** The rule is READ — `node engine/mod_audit.js` says Champions does not override the
+ability, so it is mainline `data/abilities.ts:668-679`, `boost[i] *= -1` over the WHOLE table whoever
+supplied it — and `sim/battle.ts:2029-2030` fixes the ORDER: `ChangeBoost` first, `getCappedBoost`
+second, `TryBoost` third.
+
+**Measured on the authority before a line changed**, one Battle per row, both teams put to the official
+`TeamValidator`, Malamar's stage after the turn:
+
+| | authority | medicham2 BEFORE | medicham2 AFTER |
+|---|---|---|---|
+| a FOE's Breaking Swipe, no ability | -1 | -1 | -1 |
+| the same, **CONTRARY** | **+1** | **-1** | **+1** |
+| CONTRARY already at +6 | 6 | **5** | 6 |
+| CONTRARY already at -6 | **-5** | **-6** | -5 |
+| its own Nasty Plot, CONTRARY | -2 | -2 | -2 |
+| its own Superpower, CONTRARY | +1 | +1 | +1 |
+
+**TWO ARMS IDENTICAL ACROSS THE VARIED KNOB IS AN UNWIRED KNOB, and that is exactly what -1 / -1
+was.** Every other stat-change site in the file asks `invSign`; the secondary-`targetBoosts` branch
+never did — while the branch DIRECTLY BELOW IT carried the comment *"CONTRARY IS APPLIED, matching the
+target-side reader two branches up."* The reader two branches up was the one that did not. The refusal
+moved with the sign, because `TryBoost` runs after `ChangeBoost`: Clear Body is now asked about the
+value that will actually be written, not about the raw drop. `|-unboost|p2a:malamar|atk|1` becomes
+`|-boost|p2a:malamar|atk|1`, with the ally in the same spread still `-unboost`.
+
+### SOAK IS ANNOUNCEMENT-ONLY, AND THE BRIEF CALLING IT STATE WAS WORTH CHECKING RATHER THAN ACCEPTING
+
+`|-fail|p2a: Feraligatr` against our `|-start|p2a: Feraligatr|typechange|Water`. **Writing [Water] onto
+a body already carrying exactly [Water] is a no-op**, so this could only ever have been a line. Proved
+rather than assumed: on the authority, across a refused turn and a written one, `types`, `addedType`,
+`apparentType`, `knownType`, `hp`, `status`, the user's `lastMove` and its Soak PP all match. Same
+disposition family as Cursed Body. Fixed anyway, because the protocol trace is a compared stream.
+
+**THE GUARD IS AN EXACT LIST MATCH AND A GUESS GETS THAT HALF WRONG.** `data/moves.ts:17190` is
+`target.getTypes().join() === 'Water'`, so a **Water/Poison body is still soaked**; only a body whose
+whole typing is that one type refuses. The `adds` pair asks `hasType`, which is membership. Both are
+now derived rather than collapsed, and so is WHO the `-fail` names: Soak alone carries
+`this.add('-fail', target); return null;` and names the TARGET, every other member returns false and
+takes the generic mover-named line.
+
+**AND THE SAME DERIVATION WAS MIS-ROUTING REFLECT TYPE, which is a state defect and was found on the
+way.** `replaces` matched any `setType`, and Reflect Type's handler is `source.setType(newBaseTypes)`
+— it copies the TARGET's typing onto the USER. Measured on a real turn: an Araquanid's Reflect Type at
+a Feraligatr left the **Feraligatr `["Normal"]`** — wrong body and wrong types. `writesToSelf` now
+separates the shapes; the wrong write is gone and the move is an honest unmodelled pass that says so
+(`MEDFAILS.typeWriterCopyUnmodelled`), because "not implemented" and "implemented backwards" must not
+read alike.
+
+### A TRACED ABILITY SURVIVED THE BENCH, AND SO DID EVERY OTHER MID-BATTLE REWRITE
+
+The suspect filed on 2026-08-18 and correctly not wired. **The authority's rule is not about Trace:**
+`clearVolatile` is `this.ability = this.baseAbility` (`sim/pokemon.ts:1528`; the Champions override at
+`data/mods/champions/scripts.ts:138` is the identical line) and `switchIn` calls it on the body going
+out, while `setAbility` never touches `baseAbility` — `sim/pokemon.ts:1495` writes it only on a
+PERMANENT forme change, which is why a mega keeps its ability across a pivot and a Trace does not.
+
+One helper, called from every rewrite site — Trace, Receiver, Skill Swap (both ends), Worry Seed /
+Entrainment / Simple Beam — and one restore in `switchOut` beside the type restore. It deliberately
+does NOT use the `baseAbility` field this engine already carries: `buildMonFromSet` fills that from the
+MC ROW while `ability` comes from the SHEET, so restoring it would overwrite a declared ability with a
+dex default on the first pivot of every team.
+
+**THE REACH, MEASURED FIRST BECAUSE THE CLAIM HAS TO MATCH IT.** 347 of 26,370 sheets in the frozen
+pool carry a Trace body — **1.32%**, one body each. On the bench leaf, the same 64-game population both
+ways:
+
+| `ability` on a benched body, 64 games / 3,280 comparisons (3,026 living) | differs |
+|---|---|
+| restore ABSENT | **7**, every one on a LIVING body — a Gardevoir wearing a traced Flower Veil, a Rotom-Heat wearing a Plus it had been given |
+| restore PRESENT | **0 of 3,280**, non-empty every time |
+
+The Rotom-Heat is the receipt for the generic fix: it is the one-ended rewriter family, not Trace, and
+the same defect. **The leaf is wired now** — `board_state.js` `partyMap` carries `ability`, held
+post-faint with `item`/`boosts`/`status_counter` for the same `faintMessages` housekeeping reason, its
+`NOT_COMPARED` row retired, and a 42nd plant in `STATE_PLANTS` that catches at the planted boundary.
+
+### THE FOUR DAMAGE ROWS SURVIVE #304 — CHECKED, NOT ASSUMED
+
+Re-run read-only against the LIVE tree with `--only shellsidearm,hustle,sandforce,metronome`, and the
+numbers come back **byte-identical to the artifact** (Shell Side Arm `861/960` against `872/960`). They
+are not #304 residue and they are not one defect either — the deltas are 6%, 9%, 11% and **33%** of the
+damage dealt, and a roll-index defect does not reach 33%.
+
+**HUSTLE IS ROOT-CAUSED AND IT IS A DERIVATION GAP, NOT A ROLL.** Staged through `probe_pair`, Flapple's
+Acrobatics into a Feraligatr: authority **80**, medicham **54**, against a quiet-ability control that
+agrees at 54/54 and a SPECIAL move that agrees in both arms — 80/54 is the missing x1.5.
+`data/tags.json` carried `damageBoost.mult: null`, because `multiplierIn` read `chainModify` and Hustle
+is `this.modify(atk, 1.5)` — and the authority explains itself on the line above
+(`data/abilities.ts:1899`): *"This should be applied directly to the stat as opposed to chaining with
+the others."* The read is widened, membership printed first over every legal ability (**it changes
+exactly one row**, `hustle` null to 1.5, and touches no other), and `tests/test-damage-stages.js` still
+reads 1696/1696 with the narrowed consumer matching the same five carriers.
+
+**THE MULTIPLIER IS NOW TRUE IN THE ARTIFACT AND STILL REFUSED BY THE CONSUMER, WHICH IS SAID RATHER
+THAN LEFT TO LOOK LIKE A FIX.** `dmgRange`'s stat-stage `damageBoost` branch demands either an
+`onType` or an `allyHasAbility` condition AND `tags.length === 1`; Hustle is unconditional, type-less
+and carries three tags, so it fails all three. Widening that branch is a new shape across 44
+`damageBoost` carriers and is the next pass's work, not this one's. **Shell Side Arm, Sand Force and
+Metronome are not diagnosed at all** — they were checked and they survive; nothing here says why.
+
+### THE DIFFERENTIAL DID NOT MOVE, AND THE STANDING NUMBER DID — THOSE ARE TWO DIFFERENT SENTENCES
+
+A **matched PRE/POST pair** was run over the same 173 games with only the four engine edits reverted
+between them, and it is **identical in every figure**: 73 of 172 usable diverged on both arms, and the
+class table matches row for row (`ordering` 35, `event missing` 19, `-damage field 3` 6, `unrelated
+event mismatch` 5, `drag` 5, `extra event` 3, `-boost field 3` 1). **None of the three mechanics is
+reached before a first divergence in that population**, so the instrument is blind to all three at this
+sample size — which is the honest reading and not a disappointment.
+
+The STANDING artifact was republished because the tree moved past release `bb59e9a263c5` and the
+quarantine gate withheld it: `--games 1200 --write`, **969 games, 352 diverged of 967 usable, 36.4%**,
+against the previous 344 / 967 / 35.4%. **That delta is SELECTION, not the engine**, and the pair above
+is why it can be said: the census gained five rows this pass and the census is what steers which games
+play. `tests/test-engine-diff.js` was run as a verification (150 comparisons, **0 disagreements**) and
+correctly REFUSED to republish `data/engine-diff.json` at a smaller sample — the standing 6,000 is
+untouched, and the run left `data/verification/engine-diff.n150.json` behind by design.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous list that is not named below.
+
+**Removed — they are probes now:**
+- ~~medicham2 KEEPS A TRACED ABILITY AFTER THE BODY LEAVES THE FIELD~~ — one restore at every rewrite
+  site, the bench leaf wired, 7 to 0 on 3,280 comparisons.
+
+**Added, measured this pass and NOT fixed:**
+- **HUSTLE'S x1.5 REACHES NO DAMAGE**, root-caused above. The tag is right now; the consumer's
+  stat-stage branch refuses an unconditional, type-less, multi-tag member. Authority 80 / medicham 54.
+- **SHELL SIDE ARM, SAND FORCE AND METRONOME still diverge on a damage NUMBER** against the current
+  engine (861/872, 702/718, 859/868 out of 960). Re-checked this pass; not diagnosed.
+- **`tests/staged_board.js` REFUSES TO PLAY — its fixture audit is red on ten scripted clicks the
+  format's learnsets do not allow** (Clefable/Trick Room, Toxapex/Swords Dance, Weavile/U-turn,
+  Milotic/Charm, Corviknight/Ally Switch and Snorlax/Iron Defense among them). It is NOT caused by this
+  pass: the instrument reads its engine out of a frozen release, and `data/fixture-learnset-baseline.json`
+  has held only seven pairs since 2026-08-12 while the scenario list grew past it. Reported, not
+  baselined — adding the pairs to the baseline would launder ten wrong fixtures.
+
+
+## THE ITEM GAUNTLET FIRED 12 OF 73 AND COULD NOT SAY WHY FOR 55 OF THEM. THE DIAGNOSIS MECHANISM WAS BUILT, AND ONE CALL SITE NEVER FED IT. 2026-08-19.
+
+**Census 596 live / 0 missing -> 600 live / 0 missing** (the four are another agent's; nothing fell).
+This pass touched `engine/all_mechanics_fire.js` and `engine/fixture_preflight.js` only — it does not
+add a census probe and does not claim one.
+
+**Verdict.** `data/all-mechanics-fire.json`'s item leg fired **12 of the 73 in-scope items** and every
+one of the twelve is an item that needs NO constructed condition. The other 61 were sorted into 6
+explained and **55 `did_not_fire_unexplained`** — the bucket that reads as an engine gap. It is now
+**50 fired, 23 explained, ZERO unexplained.** The abilities leg went **43 unexplained -> 28**, so the
+two legs together went **98 -> 28**.
+
+Run at a pinned release throughout (`--release bb59e9a263c5`, 0 of 25 files moved at cut time) because
+another ENGINE agent held `medicham2-browser.js`. Every run wrote a named `--out`;
+`data/all-mechanics-fire.json` was NOT written. Figures below are off
+`data/_fire-items-{BASE,A,B,C,D,E,F}.json` and `data/_fire-abil-{A,B,C}.json`.
+
+### THE DIAGNOSIS CAME FIRST, AND FIXING FIRST WOULD HAVE MEASURED THE WRONG POPULATION
+
+Order was diagnosis -> re-count -> fixtures, and the re-count is why: fixing before it fixes whichever
+rows happen to be legible, which is selection bias wearing the costume of progress.
+
+**The mechanism was not missing. `runItems` never passed `stagedMoves`.** `fixture_preflight`'s
+`trigger-move` clause — the whole apparatus written on 2026-08-12 to tell a fixture gap apart from an
+engine gap — **could not have fired on one of the 61**, because the item call site handed it a scenario
+with no staged moves in it. `runAbilities` passes it. That single argument took the item leg from
+**55 unexplained to 3** and changed no game whatsoever.
+
+### THE LAST THREE WERE THREE SEPARATE DERIVATION DEFECTS, AND ONE OF THEM WAS SILENT-PASSING
+
+`mentalherb`, `twistedspoon`, `wiseglasses` survived the wiring, and each for its own reason:
+
+| row | what the derivation did | why |
+|---|---|---|
+| `twistedspoon` | said the need was **MET** | its `onBasePower` wants a Psychic move and **REST IS PSYCHIC**. Rest is in the gauntlet, `satisfiesNeed` reads `move.type`, and a status move never enters `getDamage`. The need read satisfied on every board and no clause was emitted — the one failure direction that hides itself |
+| `wiseglasses` | derived nothing | `move.category` was retired to the undetermined pile in August with Telepathy as the worked example. `polarity` was built AFTER that and answers it exactly: Telepathy's is a bare-return guard (exclusion), Wise Glasses' is a guard that acts (requirement) |
+| `mentalherb` | derived nothing | it writes `const conditions = [...]; for (const c of conditions) if (pokemon.volatiles[c])`, so no literal ever appears inside a `volatiles[...]` subscript |
+
+`DAMAGE_PATH` now marks the events only a damaging move reaches, read off the simulator's call sites
+like `EVENT_ROLE` beside it. **34 of 116 ability needs and 58 of 62 item needs are damage-path**, and
+none of the ability results moved.
+
+### FOUR NEW OVER-MATCHES, ALL FOUND BY PRINTING AND NONE BY RUNNING
+
+Every clause was printed over all 316 abilities and all 73 in-scope items before it was wired.
+
+- `volatile-present` matched **8 mechanics reading their OWN mark** — `flashfire.onEnd` removes
+  `flashfire`, Choice Scarf's `onStart` reads `choicelock`. Fixed by subtracting whatever the entity
+  `addVolatile`s itself.
+- `trapped` matched **Arena Trap, Magnet Pull and Shadow Tag**, which DO the trapping. The prefix is
+  the polarity: `onFoeTrapPokemon` is the opposite mechanic from `onTrapPokemon`.
+- `heal-effect` matched **Damp's `["explosion","mindblown",…]`** — `[...].includes(effect.id)` is a
+  shape, not a meaning. Restricted to heal-shaped handlers; the rest are undetermined cues.
+- `ally-only` matched **26 abilities and most mean the opposite** — Competitive's
+  `if (!source || target.isAlly(source)) return;` EXCLUDES an ally. `polarity` recovered most and still
+  cleared Queenly Majesty, Dazzling, Armor Tail, Mummy and Toxic Debris, whose `isAlly` sits in a
+  nested call the guard splitter does not bracket. **A wrong explanation is worse than none**, so the
+  clause takes only the unambiguous route (the `Ally` prefix) and **Friend Guard and Telepathy are
+  declared NOT covered** rather than wrongly labelled.
+
+### THE FIXTURES: THE HOLDER WAS ONE SPECIES FOR ALL 73, AND THAT IS THE WHOLE OF THE 12
+
+`runItems` fixed the carrier at Corviknight and said fixing it "is what makes the A/B honest". The
+second half is right and the first does not follow: the A/B needs the two arms to differ in the ITEM,
+which is a statement about ONE ROW. Corviknight is Flying/Steel, so Chople (Fighting) could have
+worked and Rindo (Grass, 0.25x into that body) could not — same board, no way to tell which apart.
+
+The holder is now derived from the item's own `moveNeeds`, default tried first. **12 -> 35 fired.**
+
+**AND TEN ROWS THEN STAGED A TRIGGER AND STILL DID NOT FIRE, WHICH IS THE WORST LABEL THIS INSTRUMENT
+HAS.** Nine were resist berries. The guard is a CONJUNCTION —
+`if (move.type === "Fighting" && target.getMoveHitData(move).typeMod > 0)` — and satisfying the two
+needs SEPARATELY staged a Fighting move and some other super-effective move, neither of which is a
+super-effective Fighting move. Chople was handed Brick Break into a Venusaur. Needs are now grouped by
+their HANDLER, because a handler body is one boolean; the same grouping was wrong on the diagnosis side
+and is fixed there too. The tenth was Twisted Spoon staged with **Mirror Coat** — base power 0, damage
+from a `damageCallback`, so `onBasePower` modifies nothing. **35 -> 45.**
+
+The last five were the ADVERSARY, not the holder: **Feraligatr has no Poison, Fire, Fairy, Bug or
+Electric attacking move in its entire legal pool**, so Kebia, Occa, Roseli, Tanga and Wacan had no
+thrower whatever body held them. The receiver's fixed-ness was never about Feraligatr — it is about
+carrying no type immunity — so the fallback is computed against the authority's own chart.
+**45 -> 50, all 16 resist berries firing, runtime unchanged at ~5 s.**
+
+### THE PROOF IS `--break-triggers`, AND IT LANDS ON THE BASELINE EXACTLY
+
+`--break-triggers` suppresses the handler-derived needs and drops the item leg to **12 fired with all
+61 falling back to `trigger-move`** — the pre-change number, reproduced to the row. `--break-preflight`
+collapses all 23 explanations back into `did_not_fire_unexplained`. Neither is asserted; both were run.
+
+### AN ENGINE DEFECT FELL OUT, AND IT IS FILED RATHER THAN FIXED
+
+**IRON BALL: `onEffectiveness` NEUTRALISES THE WHOLE MATCHUP AND MEDICHAM2 NEUTRALISES ONE HALF.**
+Reproducible on one row (`--only ironball`): Bulldoze into an Iron-Balled Corviknight. The authority
+emits no `-supereffective`; medicham2 emits one. `runEffectiveness` (`sim/pokemon.ts:2214`) calls the
+event **once per defending type**, and Iron Ball's handler returns `0` whenever
+`move.type === 'Ground' && target.hasType('Flying')` — so the STEEL iteration returns 0 as well and the
+total is neutral. medicham2 keeps Steel's 2x. `medicham2-browser.js` is held by another agent this
+session, so this is handed over and not touched.
+
+### THE MEGA EXEMPTION: THE COVERAGE HOLDS, THE SENTENCE NAMED THE WRONG INSTRUMENT
+
+75 of the 148 item rows are excused with *"a mega stone — measured by the mega counters, not here"*,
+and nothing had ever checked that sentence.
+
+- **The coverage is real.** `data/roster.items.json` carries **all 75 stones individually, every one
+  `FIRED-AND-BOARDS-MATCH`**.
+- **The mega counters cannot answer it.** `data/game-differential.json`'s `mega` block is aggregate —
+  `rates` over 965 games, `MEGA_CHOICES`/`MEGA_MEDI`/`MEGA_SD` totals — and `coverage.distinct_items`
+  is a COUNT (137) with **no names**. Nothing in that artifact can say whether one stone was carried.
+- **It is now computed, not believed.** The run prints `EXEMPTION RECONCILED: 75 of 75`, names the
+  artifact, and stamps its release and date — which is how it also says the coverage is from
+  `96361d523e20` on 2026-08-11 and **not this run's release**.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous list that is not named below.
+
+**Removed — they are probes now:**
+- ~~55 of 61 non-firing item rows are `did_not_fire_unexplained`~~ — zero, and `--break-preflight`
+  restores all 23 explanations to unexplained on demand.
+- ~~the item gauntlet fires 12 of 73 and everything needing a constructed condition fails~~ — 50, and
+  `--break-triggers` reproduces the 12 exactly.
+- ~~the 75 mega-stone rows are excused to an instrument nobody reconciles them against~~ — reconciled
+  on every run, and the instrument it named turned out to be the wrong one.
+
+**Added, measured this pass and NOT fixed:**
+- **IRON BALL — medicham2 emits `-supereffective` where the authority does not.** Above. One row,
+  reproducible, another agent's file.
+- **28 abilities still cannot explain a DID-NOT-FIRE**, and the largest readable classes in them are
+  named: `onEatItem`-shaped rows with no berry on the board, `onDamage` rows needing INDIRECT damage
+  (Magic Guard, Poison Heal), and Friend Guard and Telepathy, which the ally clause deliberately
+  refuses to claim.
+- **FOCUS SASH IS EXPLAINED AND STILL DOES NOT FIRE.** It is 81.8% of 2,126 Arcanine-Hisui sheets in
+  the live bo3 store. The board need — full HP plus a hit that would take all of it — is derived and
+  reported; no rung of this gauntlet builds it, and building it needs a holder chosen so one staged hit
+  is lethal from full. Same for `whiteherb` (45.1% of 6,984 Sneasler sheets), `shedshell`, `leppaberry`,
+  `bigroot`, `mentalherb`, `persimberry`.
+- **The five status-curing berries and the five duration rocks are explained and unstageable here.**
+  The rocks extend a clock from 5 turns to 8 (`data/conditions.ts:481/551/633/671`,
+  `data/moves.ts:846/10331/14850`) and the longest rung plays 7 turns.
 
 ## THE NATURE GATE WAS RED ON THE PROBE, NOT THE ENGINE — AND THE BENCH WAS COMPARED BY NOTHING. 2026-08-19.
 

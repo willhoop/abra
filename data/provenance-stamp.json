@@ -402,7 +402,18 @@
     "xatu.json"
   ],
   "no_writer_files": [
+    "_fire-abil-A.json",
+    "_fire-abil-B.json",
+    "_fire-abil-C.json",
+    "_fire-all-FINAL.json",
+    "_fire-ironball.json",
+    "_fire-items-A.json",
+    "_fire-items-B.json",
     "_fire-items-BASE.json",
+    "_fire-items-C.json",
+    "_fire-items-D.json",
+    "_fire-items-E.json",
+    "_fire-items-F.json",
     "_r220-dump-post.json",
     "_r220-dump-pre.json",
     "artifact-accessors.json",
@@ -812,5 +823,5 @@
       ]
     }
   ],
-  "generated": "2026-08-19T05:18:48.849Z"
+  "generated": "2026-08-19T06:16:13.902Z"
 }

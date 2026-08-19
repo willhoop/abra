@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-19T05:16:27.613Z",
+  "generated": "2026-08-19T06:17:18.834Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 596,
-  "live": 596,
+  "probed": 601,
+  "live": 601,
   "missing": 0,
-  "armed": 596,
+  "armed": 601,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -647,6 +647,16 @@
       "label": "Trace copies a foe ability AND the copy fires; `notrace` refuses it",
       "live": true,
       "detail": "[the holder's ability, the FOE's Attack stage] on the lead turn — no ability \"none\",0 (the foe must be at 0: nothing dropped it, and my own -1 proves its Intimidate is live); TRACE \"intimidate\",-1 (the copy must be \"intimidate\" AND the foe must be at -1, which only happens if the COPIED ability's own entry handler ran); TRACE into ILLUSION (carries Showdown's `notrace` flag) \"trace\",0 (must still be trace); TRACE into Rough Skin \"roughskin\". traceCopied 0 -> 2",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "copiesFoeAbility",
+      "label": "a traced ability does NOT survive the bench, and Trace fires again on the way back in",
+      "live": true,
+      "detail": "the holder's ability [on the lead, after returning] — TRACE, pivoted out and back while the foe slot was swapped from an Intimidate Incineroar to a Rough Skin Snorlax: intimidate -> roughskin (it must be \"roughskin\": the copy is dropped on the way out and Trace runs again against whoever is standing there NOW; before the wire it read \"intimidate\", the ability of a body no longer on the field). CONTROLS: never left the field intimidate -> intimidate (the copy must PERSIST while the body stays); the same round trip with no ability at all none -> none (nothing restored over a body that never copied)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2403,6 +2413,36 @@
     },
     {
       "kind": "ability",
+      "tag": "invertsBoosts",
+      "label": "Contrary turns a FOE's stat drop into a boost",
+      "live": true,
+      "detail": "the TARGET's atk stage after Breaking Swipe — no ability -1 (the authority reads -1), Contrary 1 (the authority reads +1)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "invertsBoosts",
+      "label": "Contrary turns the body's own boosting move into a drop",
+      "live": true,
+      "detail": "own spa stage after Nasty Plot — no ability 2 (the authority reads +2), Contrary -2 (the authority reads -2)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "invertsBoosts",
+      "label": "a Contrary body at a stat cap clamps AFTER the sign is reversed",
+      "live": true,
+      "detail": "[atk stage from -6, from +6] after Breaking Swipe — no ability [-6,5] (floor holds, the +6 body falls to 5), Contrary [-5,6] (the authority: rises off the floor to -5, and the +6 body is clamped at 6)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
       "tag": "blocksExplosion",
       "label": "Damp stops Explosion happening at all",
       "live": true,
@@ -3036,7 +3076,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5857,6 +5897,16 @@
       "label": "a type change names the move where the authority does (Forest's Curse) and stays bare where it does not (Soak)",
       "live": true,
       "detail": "Forest's Curse [\"|-start|p2a:snorlax|typeadd|grass|[from]move:forestscurse\"]; Soak [\"|-start|p2a:snorlax|typechange|water\"]. Both write a type onto the same Snorlax and only one of the two handlers passes a [from] — so an engine that attributes every type change fails the control",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "changesTargetType",
+      "label": "Soak is refused by a body that is ALREADY exactly that type, and says so on the target",
+      "live": true,
+      "detail": "the same Soak at three bodies — a NORMAL body [\"|-start|p2a:snorlax|typechange|water\"]; a WATER/POISON body [\"|-start|p2a:toxapex|typechange|water\"] (it is still soaked — the guard is an exact list match, not membership); a mono-WATER body [\"|-fail|p2a:feraligatr\"]. Before the wire the third read the same -start as the first two",
       "hollow": false,
       "armed": true,
       "directCall": false

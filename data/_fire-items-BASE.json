@@ -1,0 +1,2708 @@
+{
+ "generated": "2026-08-19T05:18:06.518Z",
+ "release": "bb59e9a263c5",
+ "arm": "bottom-tie-first",
+ "format": "gen9championsvgc2026regmb",
+ "red": [
+  {
+   "plant": "a move clicked into a TYPE IMMUNITY must not be credited (thunderbolt into Swampert)",
+   "staged": true,
+   "resolved": false,
+   "why": "-immune",
+   "caught": true
+  },
+  {
+   "plant": "CONTROL — the same move into a legal target MUST be credited",
+   "staged": true,
+   "resolved": true,
+   "why": null,
+   "caught": true
+  },
+  {
+   "plant": "a mechanic swapped for ITSELF must read DID-NOT-FIRE — a FIRED here is noise",
+   "staged": true,
+   "verdict": "DID-NOT-FIRE",
+   "why": "the gauntlet never reached its trigger — swapping it for (itself) changed neither game",
+   "caught": true
+  },
+  {
+   "plant": "a corrupted medicham2 damage line must be caught as a divergence",
+   "clean_diverged": false,
+   "bent_diverged": true,
+   "bent_cause": "-damage field 3",
+   "caught": true
+  },
+  {
+   "plant": "the PREFLIGHT must REFUSE a genderless board for a gender-gated mechanic (rivalry), CLEAR the same board once genders are declared, and CLEAR an ungated one (adaptability) — a blanket NO is not a detector",
+   "why": "\"Rivalry\" READS `.gender` and this board declares N against N — the authority's own guard ",
+   "caught": true
+  },
+  {
+   "plant": "THE SAME A/B ASKED TWICE MUST GIVE THE SAME VERDICT — the instrument failed this once",
+   "verdict": "DID-NOT-FIRE then DID-NOT-FIRE",
+   "caught": true
+  }
+ ],
+ "red_ok": true,
+ "closet": {
+  "source": "tests/roster.js DEFERRED",
+  "ids": [
+   "copycat",
+   "battlebond",
+   "stall",
+   "pickup",
+   "metronome",
+   "anticipation",
+   "forewarn"
+  ]
+ },
+ "rows": {
+  "items": [
+   {
+    "kind": "item",
+    "id": "abomasite",
+    "name": "Abomasite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "absolite",
+    "name": "Absolite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "aerodactylite",
+    "name": "Aerodactylite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "aggronite",
+    "name": "Aggronite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "alakazite",
+    "name": "Alakazite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "altarianite",
+    "name": "Altarianite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "ampharosite",
+    "name": "Ampharosite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "aspearberry",
+    "name": "Aspear Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Aspear Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+     ],
+     "clauses": [
+      {
+       "clause": "status-present",
+       "blocking": false,
+       "need": {
+        "status": "any status on the body it reads"
+       },
+       "got": {
+        "status": null,
+        "targetStatus": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "status-present",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Aspear Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+    ],
+    "cannot_fire_need": [
+     {
+      "status": "any status on the body it reads"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "audinite",
+    "name": "Audinite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "babiriberry",
+    "name": "Babiri Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "banettite",
+    "name": "Banettite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "barbaracite",
+    "name": "Barbaracite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "beedrillite",
+    "name": "Beedrillite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "bigroot",
+    "name": "Big Root",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "blackbelt",
+    "name": "Black Belt",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "blackglasses",
+    "name": "Black Glasses",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "blastoisinite",
+    "name": "Blastoisinite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "blazikenite",
+    "name": "Blazikenite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "brightpowder",
+    "name": "Bright Powder",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "cameruptite",
+    "name": "Cameruptite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "chandelurite",
+    "name": "Chandelurite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "charcoal",
+    "name": "Charcoal",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "charizarditex",
+    "name": "Charizardite X",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "charizarditey",
+    "name": "Charizardite Y",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "chartiberry",
+    "name": "Charti Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "cheriberry",
+    "name": "Cheri Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Cheri Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+     ],
+     "clauses": [
+      {
+       "clause": "status-present",
+       "blocking": false,
+       "need": {
+        "status": "any status on the body it reads"
+       },
+       "got": {
+        "status": null,
+        "targetStatus": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "status-present",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Cheri Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+    ],
+    "cannot_fire_need": [
+     {
+      "status": "any status on the body it reads"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "chesnaughtite",
+    "name": "Chesnaughtite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "chestoberry",
+    "name": "Chesto Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Chesto Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+     ],
+     "clauses": [
+      {
+       "clause": "status-present",
+       "blocking": false,
+       "need": {
+        "status": "any status on the body it reads"
+       },
+       "got": {
+        "status": null,
+        "targetStatus": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "status-present",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Chesto Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+    ],
+    "cannot_fire_need": [
+     {
+      "status": "any status on the body it reads"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "chilanberry",
+    "name": "Chilan Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "chimechite",
+    "name": "Chimechite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "choicescarf",
+    "name": "Choice Scarf",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "chopleberry",
+    "name": "Chople Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "clefablite",
+    "name": "Clefablite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "cobaberry",
+    "name": "Coba Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "colburberry",
+    "name": "Colbur Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "crabominite",
+    "name": "Crabominite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "damprock",
+    "name": "Damp Rock",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "delphoxite",
+    "name": "Delphoxite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "dragalgite",
+    "name": "Dragalgite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "dragonfang",
+    "name": "Dragon Fang",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "dragoninite",
+    "name": "Dragoninite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "drampanite",
+    "name": "Drampanite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "eelektrossite",
+    "name": "Eelektrossite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "emboarite",
+    "name": "Emboarite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "excadrite",
+    "name": "Excadrite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "expertbelt",
+    "name": "Expert Belt",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "fairyfeather",
+    "name": "Fairy Feather",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "falinksite",
+    "name": "Falinksite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "feraligite",
+    "name": "Feraligite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "floettite",
+    "name": "Floettite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "focusband",
+    "name": "Focus Band",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "real-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "focussash",
+    "name": "Focus Sash",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "froslassite",
+    "name": "Froslassite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "galladite",
+    "name": "Galladite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "garchompite",
+    "name": "Garchompite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "gardevoirite",
+    "name": "Gardevoirite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "gengarite",
+    "name": "Gengarite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "glalitite",
+    "name": "Glalitite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "glimmoranite",
+    "name": "Glimmoranite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "golurkite",
+    "name": "Golurkite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "greninjite",
+    "name": "Greninjite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "gyaradosite",
+    "name": "Gyaradosite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "habanberry",
+    "name": "Haban Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "hardstone",
+    "name": "Hard Stone",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "hawluchanite",
+    "name": "Hawluchanite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "heatrock",
+    "name": "Heat Rock",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "heracronite",
+    "name": "Heracronite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "houndoominite",
+    "name": "Houndoominite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "icyrock",
+    "name": "Icy Rock",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "ironball",
+    "name": "Iron Ball",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "kangaskhanite",
+    "name": "Kangaskhanite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "kasibberry",
+    "name": "Kasib Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "kebiaberry",
+    "name": "Kebia Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "kingsrock",
+    "name": "King's Rock",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "leftovers",
+    "name": "Leftovers",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "leppaberry",
+    "name": "Leppa Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "lifeorb",
+    "name": "Life Orb",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "lightball",
+    "name": "Light Ball",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "lightclay",
+    "name": "Light Clay",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "lopunnite",
+    "name": "Lopunnite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "lucarionite",
+    "name": "Lucarionite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "lumberry",
+    "name": "Lum Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Lum Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+     ],
+     "clauses": [
+      {
+       "clause": "status-present",
+       "blocking": false,
+       "need": {
+        "status": "any status on the body it reads"
+       },
+       "got": {
+        "status": null,
+        "targetStatus": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "status-present",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Lum Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+    ],
+    "cannot_fire_need": [
+     {
+      "status": "any status on the body it reads"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "magnet",
+    "name": "Magnet",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "malamarite",
+    "name": "Malamarite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "manectite",
+    "name": "Manectite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "mawilite",
+    "name": "Mawilite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "medichamite",
+    "name": "Medichamite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "meganiumite",
+    "name": "Meganiumite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "mentalherb",
+    "name": "Mental Herb",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "meowsticite",
+    "name": "Meowsticite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "metagrossite",
+    "name": "Metagrossite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "metalcoat",
+    "name": "Metal Coat",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "metronome",
+    "name": "Metronome",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": true,
+    "divergence": {
+     "at": 27,
+     "cls": "-damage field 3",
+     "detail": "-damage[3] 859/960 vs 868/960",
+     "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:feraligatr|859/960 vs |-damage|p2a:feraligatr|868/960]",
+     "showdown": "|-damage|p2a: Feraligatr|859/960",
+     "medicham": "|-damage|p2a: Feraligatr|868/960",
+     "subject_slot": "p1a",
+     "segment_owner": null,
+     "segment_move": null,
+     "shared_suspect": false,
+     "attributed": true,
+     "attribution_note": null
+    },
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "deferred": {
+     "by": "Will",
+     "on": "2026-08-10",
+     "why": "The Metronome ITEM (19 uses) climbs a damage ladder over consecutive uses of one move. Its tag is derived and correct (`damageMultOnRepeat`, the full 4096ths ladder off the condition); what is missing is the CONSUMER, which needs a per-body consecutive-use counter threaded through the turn loop and read inside dmgRange — a change that touches every move's damage path for the smallest row in the whole queue. Will: \"metronome is a joke dont worry about that just put it into a quarantined closet we can re examine once the project is successful.\""
+    },
+    "counts_against_the_gate": false
+   },
+   {
+    "kind": "item",
+    "id": "miracleseed",
+    "name": "Miracle Seed",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "muscleband",
+    "name": "Muscle Band",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "mysticwater",
+    "name": "Mystic Water",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "nevermeltice",
+    "name": "Never-Melt Ice",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "occaberry",
+    "name": "Occa Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "oranberry",
+    "name": "Oran Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "real-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "passhoberry",
+    "name": "Passho Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "payapaberry",
+    "name": "Payapa Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "pechaberry",
+    "name": "Pecha Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Pecha Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+     ],
+     "clauses": [
+      {
+       "clause": "status-present",
+       "blocking": false,
+       "need": {
+        "status": "any status on the body it reads"
+       },
+       "got": {
+        "status": null,
+        "targetStatus": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "status-present",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Pecha Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+    ],
+    "cannot_fire_need": [
+     {
+      "status": "any status on the body it reads"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "persimberry",
+    "name": "Persim Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "pidgeotite",
+    "name": "Pidgeotite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "pinsirite",
+    "name": "Pinsirite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "poisonbarb",
+    "name": "Poison Barb",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "pyroarite",
+    "name": "Pyroarite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "quickclaw",
+    "name": "Quick Claw",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "raichunitex",
+    "name": "Raichunite X",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "raichunitey",
+    "name": "Raichunite Y",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "rawstberry",
+    "name": "Rawst Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Rawst Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+     ],
+     "clauses": [
+      {
+       "clause": "status-present",
+       "blocking": false,
+       "need": {
+        "status": "any status on the body it reads"
+       },
+       "got": {
+        "status": null,
+        "targetStatus": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "status-present",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Rawst Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+    ],
+    "cannot_fire_need": [
+     {
+      "status": "any status on the body it reads"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "rindoberry",
+    "name": "Rindo Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "roseliberry",
+    "name": "Roseli Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "sablenite",
+    "name": "Sablenite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "sceptilite",
+    "name": "Sceptilite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "scizorite",
+    "name": "Scizorite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "scolipite",
+    "name": "Scolipite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "scopelens",
+    "name": "Scope Lens",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "scovillainite",
+    "name": "Scovillainite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "scraftinite",
+    "name": "Scraftinite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "sharpbeak",
+    "name": "Sharp Beak",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "sharpedonite",
+    "name": "Sharpedonite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "shedshell",
+    "name": "Shed Shell",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "shellbell",
+    "name": "Shell Bell",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "shucaberry",
+    "name": "Shuca Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "silkscarf",
+    "name": "Silk Scarf",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "silverpowder",
+    "name": "Silver Powder",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "sitrusberry",
+    "name": "Sitrus Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "real-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "skarmorite",
+    "name": "Skarmorite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "slowbronite",
+    "name": "Slowbronite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "smoothrock",
+    "name": "Smooth Rock",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "softsand",
+    "name": "Soft Sand",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "spelltag",
+    "name": "Spell Tag",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "staraptite",
+    "name": "Staraptite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "starminite",
+    "name": "Starminite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "steelixite",
+    "name": "Steelixite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "swampertite",
+    "name": "Swampertite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "tangaberry",
+    "name": "Tanga Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "twistedspoon",
+    "name": "Twisted Spoon",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "tyranitarite",
+    "name": "Tyranitarite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "venusaurite",
+    "name": "Venusaurite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "victreebelite",
+    "name": "Victreebelite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "wacanberry",
+    "name": "Wacan Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "whiteherb",
+    "name": "White Herb",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "widelens",
+    "name": "Wide Lens",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "wiseglasses",
+    "name": "Wise Glasses",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "yacheberry",
+    "name": "Yache Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   },
+   {
+    "kind": "item",
+    "id": "zoomlens",
+    "name": "Zoom Lens",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE"
+   }
+  ]
+ },
+ "summary": {
+  "items": {
+   "exist": 148,
+   "tried": 148,
+   "fired": 12,
+   "showdown_only": 0,
+   "medicham_only": 0,
+   "did_not_fire": 61,
+   "out_of_scope": 75,
+   "cannot_fire_in_this_fixture": 6,
+   "did_not_fire_unexplained": 55,
+   "diverged": 0,
+   "diverged_including_shelved": 1,
+   "shelved_by_owner": 1,
+   "shelved_by_owner_diverging": 1,
+   "seconds": 6.1
+  },
+  "preflight": {
+   "checked": 76,
+   "rows_checked": 73,
+   "refused": 1,
+   "rows_labelled": 6,
+   "over_matched": [],
+   "by_clause": {
+    "gender (blocking)": 1,
+    "status-present": 6
+   },
+   "repaired_weather": 0,
+   "weather_unrepairable": 0,
+   "faces_weather_noop": 0,
+   "faces_status_noop": 0,
+   "repairs": [],
+   "trigger_rows": 0,
+   "trigger_needs": 0,
+   "trigger_staged": 0,
+   "trigger_unstaged": 0,
+   "trigger_examples": []
+  }
+ },
+ "games_played": 282,
+ "games_threw": 0,
+ "sheets_unassembled": 0,
+ "overlap": {
+  "items": {
+   "available": true,
+   "file": "data/roster.items.json",
+   "roster_fired": 139,
+   "here_fired": 12,
+   "both": 9,
+   "only_here": [
+    "focusband",
+    "metronome",
+    "quickclaw"
+   ],
+   "only_roster": [
+    "abomasite",
+    "absolite",
+    "aerodactylite",
+    "aggronite",
+    "alakazite",
+    "altarianite",
+    "ampharosite",
+    "audinite",
+    "babiriberry",
+    "banettite",
+    "barbaracite",
+    "beedrillite",
+    "bigroot",
+    "blackbelt",
+    "blackglasses",
+    "blastoisinite",
+    "blazikenite",
+    "brightpowder",
+    "cameruptite",
+    "chandelurite",
+    "charcoal",
+    "charizarditex",
+    "charizarditey",
+    "chartiberry",
+    "cheriberry",
+    "chesnaughtite",
+    "chestoberry",
+    "chimechite",
+    "chopleberry",
+    "clefablite",
+    "cobaberry",
+    "colburberry",
+    "crabominite",
+    "damprock",
+    "delphoxite",
+    "dragalgite",
+    "dragonfang",
+    "dragoninite",
+    "drampanite",
+    "eelektrossite",
+    "emboarite",
+    "excadrite",
+    "expertbelt",
+    "fairyfeather",
+    "falinksite",
+    "feraligite",
+    "floettite",
+    "focussash",
+    "froslassite",
+    "galladite",
+    "garchompite",
+    "gardevoirite",
+    "gengarite",
+    "glalitite",
+    "glimmoranite",
+    "golurkite",
+    "greninjite",
+    "gyaradosite",
+    "habanberry",
+    "hardstone",
+    "hawluchanite",
+    "heatrock",
+    "heracronite",
+    "houndoominite",
+    "icyrock",
+    "ironball",
+    "kangaskhanite",
+    "kasibberry",
+    "kebiaberry",
+    "lightball",
+    "lightclay",
+    "lopunnite",
+    "lucarionite",
+    "lumberry",
+    "magnet",
+    "malamarite",
+    "manectite",
+    "mawilite",
+    "medichamite",
+    "meganiumite",
+    "mentalherb",
+    "meowsticite",
+    "metagrossite",
+    "metalcoat",
+    "miracleseed",
+    "mysticwater",
+    "nevermeltice",
+    "occaberry",
+    "passhoberry",
+    "payapaberry",
+    "pechaberry",
+    "persimberry",
+    "pidgeotite",
+    "pinsirite",
+    "poisonbarb",
+    "pyroarite",
+    "raichunitex",
+    "raichunitey",
+    "rindoberry",
+    "roseliberry",
+    "sablenite",
+    "sceptilite",
+    "scizorite",
+    "scolipite",
+    "scovillainite",
+    "scraftinite",
+    "sharpbeak",
+    "sharpedonite",
+    "shucaberry",
+    "silverpowder",
+    "skarmorite",
+    "slowbronite",
+    "smoothrock",
+    "softsand",
+    "spelltag",
+    "staraptite",
+    "starminite",
+    "steelixite",
+    "swampertite",
+    "tangaberry",
+    "twistedspoon",
+    "tyranitarite",
+    "venusaurite",
+    "victreebelite",
+    "wacanberry",
+    "whiteherb",
+    "widelens",
+    "wiseglasses",
+    "yacheberry",
+    "zoomlens"
+   ],
+   "neither": [
+    "aspearberry",
+    "kingsrock",
+    "leppaberry",
+    "rawstberry",
+    "scopelens",
+    "shedshell"
+   ],
+   "what_neither_means": "NEITHER the staged single-turn roster nor a real game has made this fire. This is the set nothing in the project tests."
+  }
+ }
+}

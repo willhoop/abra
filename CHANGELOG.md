@@ -10,6 +10,89 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.44.0] — 2026-08-19
+
+### Fixed
+- **CONTRARY WROTE THE DROP INSTEAD OF THE RISE, AND A COMMENT DESCRIBED THE FIX THAT WAS NOT THERE.**
+  `invSign` was asked at every stat-change site in `engine/medicham2-browser.js` **except the
+  secondary-`targetBoosts` branch** — while the branch immediately below it carried the comment
+  *"CONTRARY IS APPLIED, matching the target-side reader two branches up."* **The reader two branches up
+  was the one that did not.** Measured on the authority first, one `Battle` per row with both teams
+  through the official `TeamValidator`, Malamar's atk stage after a Breaking Swipe:
+
+  | | authority | before | after |
+  |---|---|---|---|
+  | foe drop, no ability | -1 | -1 | -1 |
+  | foe drop, **Contrary** | **+1** | **-1** | **+1** |
+  | Contrary at +6 | 6 | **5** | 6 |
+  | Contrary at -6 | **-5** | **-6** | -5 |
+  | own Nasty Plot, Contrary | -2 | -2 | -2 |
+  | own Superpower, Contrary | +1 | +1 | +1 |
+
+  **`-1` in both arms is an unwired knob**, which is exactly what it was. The refusal moved with the sign
+  (`TryBoost` runs *after* `ChangeBoost`, `sim/battle.ts:2029-2031`), so Clear Body is now asked about the
+  value that actually gets written. Three probes, two red pre-fix; the own-raise row was already correct
+  and serves as the both-directions control.
+- **REFLECT TYPE WROTE `["Normal"]` ONTO THE TARGET.** Found while deriving Soak: the `replaces` tag
+  matched any `setType`, and Reflect Type's handler is `source.setType(...)` — it copies the target's
+  typing onto the **user**. It was routed as a target rewriter. Measured on a real turn, separated by
+  `writesToSelf`; the wrong write is gone and the move is a counted no-op.
+- **THE GAUNTLET'S DIAGNOSIS APPARATUS HAD NEVER BEEN FED.** `runItems` never passed `stagedMoves` to the
+  preflight, so `trigger-move` — the whole mechanism built on 2026-08-12 to tell a FIXTURE gap from an
+  ENGINE gap — **could not have fired on a single one of the 61 non-firing items.** One argument.
+  Items firing **12 -> 50**; rows that cannot say why they did not fire **98 -> 28** across both legs; all
+  **16 resist berries** now fire. `--break-triggers` reproduces the old 12 to the row.
+- **TRACE WAS NEVER GIVEN BACK.** The authority's `clearVolatile` is `this.ability = this.baseAbility` and
+  `setAbility` never touches `baseAbility`; this engine kept a copied ability through a switch-out and
+  never re-Traced on re-entry. One helper at every rewrite site (Trace, Receiver, both ends of Skill Swap,
+  Worry Seed / Entrainment / Simple Beam), one restore in `switchOut`. **Reach measured: 347 of 26,370
+  frozen-pool sheets carry a Trace body, 1.32%.** Bench leaf over the same 64-game / 3,280-comparison
+  population: **7 differences, all on living bodies, -> 0.** One was a Rotom-Heat wearing a *given* Plus,
+  which is the receipt that the general fix was right rather than a Trace special case.
+
+### Notes
+- **SOAK WAS BRIEFED AS STATE AND IT IS ANNOUNCEMENT-ONLY — that was my error, corrected by measurement.**
+  Writing `[Water]` onto a body already carrying exactly `[Water]` is a no-op, and it was proved rather
+  than argued: refused turn against written turn on the authority, with `types`, `addedType`,
+  `apparentType`, `knownType`, `hp`, `status`, the user's `lastMove` and Soak's PP all matching. Fixed
+  anyway, because the protocol trace is a compared stream. The guard is an **exact list match** — a
+  Water/Poison body is still soakable — which a guess gets wrong in the safe-looking direction.
+- **THE FOUR DAMAGE ROWS SURVIVE #304 AND ARE NOT ITS RESIDUE.** Re-run read-only against the live tree,
+  **byte-identical to the artifact** (Shell Side Arm 861/960 against 872/960). Deltas are 6, 9, 11 and
+  **33%** of damage dealt — a roll-index defect does not reach 33%. **Hustle is root-caused**:
+  `damageBoost.mult` was `null` because `multiplierIn` read `chainModify` and Hustle is
+  `this.modify(atk, 1.5)`. Widened, with membership printed BEFORE the change (it moves exactly one row).
+  **The tag is now true and `dmgRange`'s stat-stage branch still refuses it**, which is said plainly here
+  rather than left looking finished. Shell Side Arm, Sand Force and Metronome survive and are **not
+  diagnosed**.
+- **A NEW ENGINE DEFECT, FILED NOT FIXED — Iron Ball (ROADMAP #41 in the task list).** Bulldoze into an
+  Iron-Ball-holding Corviknight: the authority emits no `-supereffective` and this engine does.
+  `runEffectiveness` (`sim/pokemon.ts:2214`) raises the event **once per defending type**, and Iron Ball
+  returns 0 whenever the move is Ground and the target has Flying — so the **Steel** iteration returns 0
+  as well and the total is neutral. We keep Steel's 2x. **It is the ONE new divergence among the 38 rows
+  that started firing**; every other newly-firing row is clean, `showdown_only: 0`, `medicham_only: 0`.
+- **Four over-matched explanations were rejected rather than shipped.** `ally-only` matched 26 abilities
+  and **most of them mean the opposite** — Competitive's `if (!source || target.isAlly(source)) return;`
+  EXCLUDES an ally. The clause was narrowed to the unambiguous route and **Friend Guard and Telepathy are
+  declared not covered**, because a wrong explanation is worse than none. Also caught: Twisted Spoon's
+  need read *satisfied on every board* because **Rest is a Psychic move**, so no clause was ever emitted —
+  a silent pass.
+- **The mega exemption reconciles, but not from the instrument it named.** 75 of 148 item rows are excused
+  to "the mega counters"; the coverage is real — `data/roster.items.json` carries all 75 stones
+  individually, every one `FIRED-AND-BOARDS-MATCH` — but `coverage.distinct_items` is the number 137 with
+  **no names**. `EXEMPTION RECONCILED: 75 of 75` is now computed every run, and stamps that the coverage
+  came from a **different release**.
+- **Census 596 live / 0 missing -> 601 live / 0 missing.** The standing differential was republished
+  because the tree moved past `bb59e9a263c5`: **969 games, 352 diverged of 967 usable, 36.4%** against
+  344 / 967 / 35.4%. **That delta is SELECTION, not regression** — a matched PRE/POST pair over the same
+  173 games with only this pass's engine edits reverted is **identical in every figure and every class**
+  (73/172 both arms), and the census gained five rows this pass while the census steers which games play.
+- **`tests/staged_board.js` still refuses to run and was deliberately NOT baselined.** Ten scripted clicks
+  the format's learnsets disallow; `data/fixture-learnset-baseline.json` has held seven pairs since
+  2026-08-12 while the scenario list grew past it. **Adding the pairs would launder ten wrong fixtures.**
+
+---
+
 ## [5.43.0] — 2026-08-19
 
 ### Fixed

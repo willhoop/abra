@@ -600,6 +600,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #256 -- a failure whose `|-fail|` the CALLER already wrote on the target, so `mvFail`'s
    * second line on the mover would have been an event the authority never emits. */
   mvFailAnnouncedByCaller: 0,
+  /* ROADMAP #306 -- a type writer refused by a target that already carries the type. A zero in a run
+   * that clicked one is the guard never reaching its condition, not proof there was nothing to refuse. */
+  typeWriteRefused: 0,
+  /* ROADMAP #307 -- a mid-battle ability rewrite undone because the body left the field. A zero in a
+   * run that copied one means the restore is dead again, not that nothing needed restoring. */
+  abilityRestoredOnSwitchOut: 0,
   /* ROADMAP #256 -- an unmodelled click that KEPT the body it was aimed at (only the target classes
    * the authority lets a player name one for), and how often one of those was refused at onTryHit.
    * A zero on the first with Role Play or Spite in the game means the target is being dropped again
@@ -1124,6 +1130,15 @@ const MEDFAILS = { encoreAction: 0,
    * `adds` members name their move and the two `replaces` members do not; a third shape has no
    * derived answer and is counted rather than guessed at. */
   typeWriterShapeUnknown: 0, typeWriterShapeUnknownFirst: '',
+  /* ROADMAP #306 -- a `changesTargetType` row with no refusal fields on it, i.e. an artifact generated
+   * before the enrichment. The guard cannot fire, so the branch behaves as it did before the wire; a
+   * refusal that quietly stops happening is indistinguishable from a target that never qualified,
+   * which is why this is counted and not defaulted. */
+  typeWriterRefusalUnderived: 0, typeWriterRefusalUnderivedFirst: '',
+  /* ROADMAP #306 -- the COPY shape (`writesToSelf`), which writes the TARGET's typing onto the USER.
+   * It is deliberately not routed to the target rewriter any more and is not modelled anywhere else,
+   * so it is an honest no-op turn that announces itself. */
+  typeWriterCopyUnmodelled: 0, typeWriterCopyUnmodelledFirst: '',
   /* ROADMAP #197 -- a `fractionalPriority` ABILITY whose row states no bracket, so the SIGN of the
    * nudge is unknown and it is treated as the forward one. Non-zero means a carrier arrived that
    * tag_dex could not read a `return <number>` out of; the ITEM derivation states only a chance by
@@ -11096,7 +11111,12 @@ function megaEvolveNow(S,m,auto){
   if(megRow&&megRow.bs&&megRow.bs.atk)m._bsAtk=megRow.bs.atk;                 // WIRE 83, Beat Up
   if(TR){TR.detailschange(m);TR.mega(m,apparent,m.item);}
   const ab=normAb(megaRowAbility(key,megRow));
-  m.ability=ab; m.baseAbility=ab;
+  /* ROADMAP #307 -- A MEGA IS THE ONE ABILITY WRITE THAT SURVIVES THE BENCH, and the authority says so
+   * in the same file the restore is read from: `formeChange` with `isPermanent` writes
+   * `this.baseAbility = toID(ability)` (`sim/pokemon.ts:1495`, Champions `scripts.ts:115`), which is
+   * precisely the field `clearVolatile` restores FROM. So any snapshot taken by an earlier rewrite is
+   * discarded here rather than restored over the mega on the next pivot. */
+  m.ability=ab; m.baseAbility=ab; m._preAb=undefined;
   const own=sd==='B'?S.actB:S.actA, foes=sd==='B'?S.actA:S.actB;
   applyEntryEffects(m,S.field,own.find(x=>x&&x!==m));
   applyEntryDrops(m,_live(foes));
@@ -11621,6 +11641,45 @@ function imposterCopy(m,foes,slot){
  * THE COPIED ABILITY'S ENTRY EFFECT IS RUN, because the caller runs `applyEntryEffects` immediately
  * after this -- the same ordering `imposterCopy` relies on and for the same reason. A Trace that
  * copied Intimidate and did not drop Attack would be a second, quieter bug. */
+/* ROADMAP #307 -- ONE FUNCTION REWRITES AN ABILITY MID-BATTLE, AND IT REMEMBERS WHAT WAS THERE.
+ *
+ * `Pokemon#clearVolatile` (`sim/pokemon.ts:1528`; the Champions override at
+ * `data/mods/champions/scripts.ts:138` is the identical line) is `this.ability = this.baseAbility`,
+ * and `switchIn` calls it on the body that is leaving. `setAbility` NEVER writes `baseAbility` --
+ * `sim/pokemon.ts:1495` writes it only on a PERMANENT forme change, which is exactly why a mega keeps
+ * its ability across a pivot and a Trace does not. So the authority's rule is not about Trace at all:
+ * EVERY mid-battle ability rewrite is undone by leaving the field.
+ *
+ * MEASURED, before a line was written: `tests/probe_bench_leaves.js` over 42 differential games found
+ * `ability` disagreeing on 3 of 2,029 benched comparisons, every one on a LIVING body and every one a
+ * Gardevoir -- the authority reading `trace` and this engine the copied ability. The reach on teams is
+ * 347 of 26,370 sheets in the frozen pool (1.32%), one Trace body each.
+ *
+ * IT DOES NOT USE THE `baseAbility` FIELD THIS ENGINE ALREADY CARRIES, and that is deliberate rather
+ * than an oversight. `buildMonFromSet` sets `baseAbility` from the MC ROW and `ability` from the
+ * SHEET'S DECLARED one (`:4901`), so the two differ from the first instant on any body whose player
+ * chose the second ability -- restoring `baseAbility` there would overwrite a declared ability with a
+ * dex default on the first pivot, on every team, which is a far bigger wrong than the one being fixed.
+ * What is restored is the ability the body was ACTUALLY holding at the moment something rewrote it.
+ *
+ * SNAPSHOT ONCE, NOT PER REWRITE. Two rewrites in a row (a Trace, then a Skill Swap) must still return
+ * the body to what it entered with, which is the authority's single `baseAbility` and not a stack. */
+function abRewrite(m,ab){
+  if(!m)return;
+  if(m._preAb===undefined)m._preAb=m.ability;
+  m.ability=ab;
+}
+/* The other half, called from `switchOut` beside the type restore and for the same reason: leaving the
+ * field REBUILDS the body. Counted, because a restore that silently stops happening is invisible --
+ * every leaf that reads an ability keeps working either way. */
+function abRestoreOnLeave(m){
+  if(!m||m._preAb===undefined)return false;
+  const was=m.ability, back=m._preAb;
+  m._preAb=undefined;
+  if(String(was)===String(back))return false;
+  m.ability=back; MEDSEEN.abilityRestoredOnSwitchOut++;
+  return true;
+}
 function traceCopy(m,foes){
   if(!m||m.fainted||m.curHP<=0)return false;
   const p=TAGS.param('ability',m.ability,'copiesFoeAbility');
@@ -11640,7 +11699,7 @@ function traceCopy(m,foes){
   if(!eligible.length){MEDSEEN.traceFoundNothing++;return false;}
   if(eligible.length>1)MEDSEEN.traceAmbiguousChoice++;
   const t=eligible[0];
-  m.ability=String(t.ability);
+  abRewrite(m,String(t.ability));          // ROADMAP #307 -- the copy is undone by leaving the field
   MEDSEEN.traceCopied++;
   /* Showdown writes `|-ability|HOLDER|Intimidate|[from] ability: Trace|[of] FOE`. This trace sink
    * carries four fields, so the `[of]` is not emitted and the shape is PARTIAL rather than absent --
@@ -11699,7 +11758,7 @@ function receiverSweep(bodies){
       if(_rc&&_rc.noreceiver){dead._receiverTaken=true;MEDSEEN.inheritRefused++;continue;}
       dead._receiverTaken=true;
       const _via=String(m.ability||'');   // read BEFORE the overwrite -- the line names the COPIER
-      m.ability=ab;
+      abRewrite(m,ab);                    // ROADMAP #307 -- undone by leaving the field
       MEDSEEN.abilityInherited++;
       MEDFAILS.inheritedAbilityStartNotFired++;
       /* Showdown's `setAbility` writes `|-ability|HOLDER|Flash Fire|[from] ability: Receiver|[of] ALLY`.
@@ -12436,6 +12495,13 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    if(_row&&Array.isArray(_row.t)&&out.types&&out.types.join('/')!==_row.t.join('/')){
      out.types=_row.t.slice(); MEDSEEN.typesRestoredOnSwitchOut++;
    }}
+  /* ROADMAP #307 -- AND SO DOES A REWRITTEN ABILITY, by the same line of the same function the type
+   * restore two blocks up is read from: `clearVolatile` is `this.ability = this.baseAbility`
+   * (`sim/pokemon.ts:1528`). Measured on the bench leaf before this was written -- 3 of 2,029 benched
+   * comparisons, every one a Gardevoir still wearing an ability it had TRACED. The second half is
+   * free: the restored Trace is an entry ability again, so `bringIn` re-runs it against whoever is
+   * standing opposite on the way back in. */
+  abRestoreOnLeave(out);
   out._healBlock=0;
   /* WIRE 133 -- THE BODY TAKES ITS ITEM WITH IT. Magic Room suppresses the item of a body ON THE
    * FIELD; a benched one holds what it held, and a room that expires while it sits there must not
@@ -15859,8 +15925,42 @@ function battleTurn(S,rng,actsForA,actsForB){
            * TYPE)` with nothing after it. Both `adds` members name their move, both `replaces` members
            * do not, so the shape the tag already carries IS the discriminator and no move is named
            * here. A third shape has no derived answer and is counted rather than guessed. */
-          if(_ct.adds){ if(t.types.indexOf(_ty)<0){t.types=[...t.types,_ty];
-            if(TR)TR.vstart(t,'typeadd',_ty+'|'+ATTR.from(ATTR.move(a.mv)));} }
+          /* ROADMAP #306 -- THE REFUSAL, WHICH THIS BRANCH DID NOT HAVE. Every member of this family
+           * opens with a guard and the engine had none: Soak into a body that is ALREADY exactly that
+           * type wrote the type anyway, where the authority refuses and says so
+           * (`data/moves.ts:17190`, and the comment on the next line -- "Soak should animate even when
+           * it fails" -- is why it announces at all).
+           *
+           * THE TWO GUARDS ARE DIFFERENT AND THE TAG NOW SAYS WHICH. `replaces` asks
+           * `target.getTypes().join() === '<T>'`, an EXACT list match -- so a Water/Poison body IS
+           * still soaked, and only a body whose whole typing is that one type refuses. `adds` asks
+           * `target.hasType('<T>')`, which is membership. Reading them as one flag would have made a
+           * dual-typed body refuse Soak, which the authority does not do -- measured, both ways.
+           *
+           * WHAT THE REFUSAL COSTS ON THE BOARD IS NOTHING, AND THAT IS SAID RATHER THAN LEFT TO BE
+           * DISCOVERED: writing [Water] onto a body already carrying exactly [Water] is a no-op, so
+           * this divergence is ANNOUNCEMENT-ONLY. It is fixed because the protocol trace is a compared
+           * stream, not because a board moved.
+           *
+           * WHO THE `-fail` NAMES IS READ, NOT PICKED. Soak alone carries `this.add('-fail', target);
+           * return null;` and names the TARGET; every other member returns false and takes the generic
+           * mover-named line out of `useMoveInner`. `failNamesTarget` is that line's presence in the
+           * handler. A pre-enrichment artifact carries neither flag, so the guards simply do not fire
+           * and the branch behaves exactly as it did -- and THAT is counted, because a refusal that
+           * silently stops happening looks identical to a target that never qualified. */
+          const _tRefused = (_ct.adds&&_ct.refuseIfHasType&&t.types.indexOf(_ty)>=0)
+                         || (_ct.replaces&&_ct.refuseIfExactType&&t.types.length===1&&t.types[0]===_ty);
+          if(_ct.refuseIfHasType===undefined&&_ct.refuseIfExactType===undefined){
+            MEDFAILS.typeWriterRefusalUnderived++;
+            if(!MEDFAILS.typeWriterRefusalUnderivedFirst)MEDFAILS.typeWriterRefusalUnderivedFirst=String(a.mv);
+          }
+          if(_tRefused){
+            if(_ct.failNamesTarget){ if(TR)TR.fail(t); mvFailAnnouncedByCaller(m); }
+            else mvFail(m);
+            MEDSEEN.typeWriteRefused++;
+          }
+          else if(_ct.adds){ t.types=[...t.types,_ty];
+            if(TR)TR.vstart(t,'typeadd',_ty+'|'+ATTR.from(ATTR.move(a.mv))); }
           else if(_ct.replaces){ t.types=[_ty]; if(TR)TR.vstart(t,'typechange',_ty); }
           else { MEDFAILS.typeWriterShapeUnknown++;
             if(!MEDFAILS.typeWriterShapeUnknownFirst)MEDFAILS.typeWriterShapeUnknownFirst=String(a.mv); }
@@ -15983,7 +16083,9 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
           const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))&&!moveClassBlocked(t,a.mv,m));
-          if(_ok){const _ab=m.ability;m.ability=t.ability;t.ability=_ab;
+          /* ROADMAP #307 -- BOTH ENDS remember. A swap is two rewrites and `clearVolatile` undoes
+             whichever body leaves first, independently of the other. */
+          if(_ok){const _ab=m.ability;abRewrite(m,t.ability);abRewrite(t,_ab);
             /* ONE LINE, AND IT CARRIES BOTH ABILITIES. `sim/battle.ts:1326` is the whole
                announcement; the two `-ability` lines this used to write are events the authority
                never emits for a swap, and the `-activate` it wrote named the MOVE where the
@@ -16023,7 +16125,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             ||String(t.ability||'')===String(_want);
           if(_blocked){mvFail(m);}
           else{
-            t.ability=_want;
+            abRewrite(t,_want);          // ROADMAP #307 -- undone by leaving the field
             MEDSEEN.abilityRewritten++;
             if(TR)TR.ab(t,t.ability,'[from] move: '+a.mv);
             /* Worry Seed's own second clause: writing Insomnia over a sleeping body wakes it. Read
@@ -19604,17 +19706,40 @@ function battleTurn(S,rng,actsForA,actsForB){
                * SECONDARY flag: the block still happens, the `-fail` line does not. */
               /* ROADMAP #161 -- and the same `!tg.fainted`, sim/battle.ts:2026. Icy Wind's Speed drop
                  does not land on a body the same click just killed. */
+              /* ROADMAP #305 -- AND CONTRARY, WHICH THIS BRANCH NEVER ASKED ABOUT. The comment on the
+               * `selfBoosts` branch immediately below said "CONTRARY IS APPLIED, matching the
+               * target-side reader two branches up", and the target-side reader here did not apply it:
+               * this was the ONE stat-change site in the file that wrote a raw table without
+               * `invSign`. A foe's Breaking Swipe into a Malamar read -1 with the ability and -1
+               * without it -- two arms identical across the varied knob, which is what an UNWIRED knob
+               * looks like, and the authority reads +1.
+               *
+               * THE SIGN COMES FIRST AND THE CAP COMES SECOND, which is the authority's own order and
+               * is where a sign error hides: `sim/battle.ts:2029` runs `runEvent('ChangeBoost')` and
+               * :2030 runs `getCappedBoost` on the table it returned. So a Contrary body sitting at -6
+               * that takes a stat drop climbs to -5. `data/abilities.ts:668-679` inverts the WHOLE
+               * boost table whoever supplied it, so a foe-inflicted drop is reversed exactly as the
+               * body's own is; `node engine/mod_audit.js` says Champions does not override it.
+               *
+               * THE REFUSAL MOVED WITH THE SIGN, and that is the same order: `TryBoost` (:2031) runs
+               * AFTER `ChangeBoost`, so Clear Body is asked about the value that will actually be
+               * written. Asking it about the raw drop would have a Contrary body's rise refused by an
+               * ability that only refuses drops. Same shape as the `a.sc.target` reader, deliberately
+               * -- these are one fact and it now has one spelling on both roads. */
               else if(s.targetBoosts&&tg.boosts&&!tg.fainted){
+                const _sgT=invSign(tg);          // WIRE 100b
                 for(const k in s.targetBoosts){
                   const _st=SD2ENG[k];
-                  if(_st&&tg.boosts[_st]!=null&&s.targetBoosts[k]<0){
-                    if(refuseStatDrop(tg,_st,a.move.id,true,m,Math.abs(s.targetBoosts[k]))) continue;   // WIRE 157
+                  if(_st&&tg.boosts[_st]!=null&&s.targetBoosts[k]){
+                    const _d=s.targetBoosts[k]*_sgT;
+                    if(_d<0&&refuseStatDrop(tg,_st,a.move.id,true,m,Math.abs(_d))) continue;   // WIRE 157
                     const _b0=tg.boosts[_st];
-                    tg.boosts[_st]=clamp(tg.boosts[_st]+s.targetBoosts[k],-6,6);
+                    tg.boosts[_st]=clamp(tg.boosts[_st]+_d,-6,6);
                     if(TR)TR.bst(tg,_st,tg.boosts[_st]-_b0);
               /* WIRE 138 -- ONCE PER STAT LOWERED. `retaliateWhenLowered` is the shared reader; the
-                 attacker is named so an ALLY's drop does not trigger it. */
-                    if(tg.boosts[_st]!==_b0)retaliateWhenLowered(tg,m);}
+                 attacker is named so an ALLY's drop does not trigger it. AND ONLY WHEN THE STAT WENT
+                 DOWN: an inverted rise is not a lowering, so Defiant must not answer it. */
+                    if(_d<0&&tg.boosts[_st]!==_b0)retaliateWhenLowered(tg,m);}
                 }
               }
               /* WIRE 81 -- THE SECONDARY THAT BOOSTS THE *USER*, and this block read every other kind.
@@ -22320,6 +22445,17 @@ function playerActionPrimary(me,moveId,target,field){
   {
     const _ct=TAGS.param('move',id,'changesTargetType');
     if(_ct&&(_ct.adds||_ct.replaces))return {kind:'typechange',mv:id,target};
+    /* ROADMAP #306 -- THE COPY SHAPE IS NOT A TARGET REWRITER AND IT USED TO BE ROUTED AS ONE. The
+     * derivation matched any `setType`, and Reflect Type's handler is `source.setType(newBaseTypes)`
+     * -- it copies the TARGET's typing onto the USER. So this engine wrote the move's own type
+     * (Normal) onto the TARGET: wrong body and wrong types, measured on a real turn (Araquanid at a
+     * Feraligatr left the Feraligatr `["Normal"]`). `writesToSelf` now separates the shapes, the wrong
+     * write is gone, and the move is an honest unmodelled pass that SAYS SO -- a counter rather than a
+     * silence, because "not implemented" and "implemented backwards" must not read alike. */
+    if(_ct&&_ct.writesToSelf){
+      MEDFAILS.typeWriterCopyUnmodelled++;
+      if(!MEDFAILS.typeWriterCopyUnmodelledFirst)MEDFAILS.typeWriterCopyUnmodelledFirst=String(id);
+    }
   }
   /* WIRE 109 -- AFTER YOU and QUASH (`reordersTurn`). INSTRUCT carries the identical {sends:'next'}
      and does something completely different -- it makes the target REPEAT its move -- and the

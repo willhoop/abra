@@ -418,7 +418,22 @@ function multiplierIn(src) {
   const m = src.match(/chainModify\(\s*([\d.]+)\s*\)/);
   if (m) return +m[1];
   const a = src.match(/chainModify\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]\s*\)/);
-  return a ? +(((+a[1]) / (+a[2])).toFixed(3)) : null;
+  if (a) return +(((+a[1]) / (+a[2])).toFixed(3));
+  /* 2026-08-19 -- AND A THIRD WAY, `this.modify(stat, 1.5)`, WHICH IS NOT AN ALTERNATIVE SPELLING.
+   * The authority explains itself on the line above the one that was being missed
+   * (`data/abilities.ts:1899`): *"This should be applied directly to the stat as opposed to chaining
+   * with the others."* So the multiplier is real and the STAGE is the point -- which `damageBoost`
+   * already carries as `stage: 'attackStat'`, read off which handler held it.
+   *
+   * IT READ `null` AND `null` MEANS UNCONDITIONAL-NO-MULTIPLIER TO EVERY CONSUMER, so medicham2
+   * applied nothing at all: staged through `tests/probe_pair.js`, Flapple's Acrobatics into a
+   * Feraligatr reads authority 80 / medicham 54 with Hustle and 54 / 54 with the quiet control -- the
+   * knob moved on the authority and not here, which is this repository's definition of unwired.
+   *
+   * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over every legal ability in the format: the widened read
+   * changes exactly ONE row, `hustle` null -> 1.5, and touches no other. */
+  const d = src.match(/this\.modify\(\s*\w+\s*,\s*([\d.]+)\s*\)/);
+  return d ? +d[1] : null;
 }
 /* ROADMAP #112 -- THE HP GATE IS A STRUCTURE NOW, NOT A SENTENCE.
  *
@@ -1879,7 +1894,32 @@ const MOVE_TAGS = [
     of: m => {
       const src = String(m.onHit || '') + String(m.onTryHit || '');
       if (!/setType|addType/.test(src)) return null;
-      return { replaces: /setType/.test(src), adds: /addType/.test(src) };
+      /* 2026-08-19 -- FIVE FIELDS THAT WERE ALL COLLAPSED INTO TWO BOOLEANS, and the collapse cost two
+       * defects that a consumer could not have avoided:
+       *
+       *   1. `replaces` matched ANY `setType`, so Reflect Type -- whose handler is
+       *      `source.setType(newBaseTypes)`, i.e. it copies the TARGET's typing onto the USER -- read
+       *      as an ordinary target rewriter. medicham2 wrote the move's OWN type (Normal) onto the
+       *      TARGET: wrong body and wrong types. `writesToSelf` is read off `source.setType` and
+       *      `copiesTargetTypes` off `getTypes(true)` feeding it, so a consumer can tell the two
+       *      shapes apart instead of guessing from a name.
+       *   2. THE REFUSAL WAS NOT CARRIED AT ALL. Every member of this family opens with a guard, and
+       *      the two guards are DIFFERENT: the `replaces` pair asks
+       *      `target.getTypes().join() === '<T>'` -- an EXACT list match, so a Water/Poison body is
+       *      still soaked -- and the `adds` pair asks `target.hasType('<T>')`, which is membership.
+       *      Read as two flags rather than one, because collapsing them is exactly the mistake above.
+       *   3. AND WHAT THE REFUSAL SAYS DIFFERS INSIDE ONE FLAG. Soak alone writes
+       *      `this.add('-fail', target); return null;` ("Soak should animate even when it fails" --
+       *      data/moves.ts:17191) and names the TARGET; every other member returns false and takes the
+       *      generic mover-named `-fail`. `failNamesTarget` is that line's presence, so no consumer
+       *      has to name a move to get the subject right. */
+      const self = /source\s*\.\s*setType/.test(src);
+      return { replaces: /setType/.test(src) && !self, adds: /addType/.test(src),
+               writesToSelf: self,
+               copiesTargetTypes: self && /target\s*\.\s*getTypes\s*\(/.test(src),
+               refuseIfExactType: /getTypes\s*\(\s*\)\s*\.\s*join\s*\(\s*\)\s*===/.test(src),
+               refuseIfHasType: /hasType\s*\(/.test(src),
+               failNamesTarget: /add\s*\(\s*["']-fail["']\s*,\s*target/.test(src) };
     } },
   /* Will: "high jump kick needs an if-miss-then-bad-things-happen tag." The crash is the whole
    * reason the move is a gamble -- miss and the user takes half its max HP for nothing. A scorer

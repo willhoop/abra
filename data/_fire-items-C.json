@@ -1,0 +1,4729 @@
+{
+ "generated": "2026-08-19T05:35:45.334Z",
+ "release": "bb59e9a263c5",
+ "arm": "bottom-tie-first",
+ "format": "gen9championsvgc2026regmb",
+ "red": [
+  {
+   "plant": "a move clicked into a TYPE IMMUNITY must not be credited (thunderbolt into Swampert)",
+   "staged": true,
+   "resolved": false,
+   "why": "-immune",
+   "caught": true
+  },
+  {
+   "plant": "CONTROL — the same move into a legal target MUST be credited",
+   "staged": true,
+   "resolved": true,
+   "why": null,
+   "caught": true
+  },
+  {
+   "plant": "a mechanic swapped for ITSELF must read DID-NOT-FIRE — a FIRED here is noise",
+   "staged": true,
+   "verdict": "DID-NOT-FIRE",
+   "why": "the gauntlet never reached its trigger — swapping it for (itself) changed neither game",
+   "caught": true
+  },
+  {
+   "plant": "a corrupted medicham2 damage line must be caught as a divergence",
+   "clean_diverged": false,
+   "bent_diverged": true,
+   "bent_cause": "-damage field 3",
+   "caught": true
+  },
+  {
+   "plant": "the PREFLIGHT must REFUSE a genderless board for a gender-gated mechanic (rivalry), CLEAR the same board once genders are declared, and CLEAR an ungated one (adaptability) — a blanket NO is not a detector",
+   "why": "\"Rivalry\" READS `.gender` and this board declares N against N — the authority's own guard ",
+   "caught": true
+  },
+  {
+   "plant": "THE SAME A/B ASKED TWICE MUST GIVE THE SAME VERDICT — the instrument failed this once",
+   "verdict": "DID-NOT-FIRE then DID-NOT-FIRE",
+   "caught": true
+  }
+ ],
+ "red_ok": true,
+ "closet": {
+  "source": "tests/roster.js DEFERRED",
+  "ids": [
+   "copycat",
+   "battlebond",
+   "stall",
+   "pickup",
+   "metronome",
+   "anticipation",
+   "forewarn"
+  ]
+ },
+ "rows": {
+  "items": [
+   {
+    "kind": "item",
+    "id": "abomasite",
+    "name": "Abomasite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "absolite",
+    "name": "Absolite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "aerodactylite",
+    "name": "Aerodactylite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "aggronite",
+    "name": "Aggronite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "alakazite",
+    "name": "Alakazite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "altarianite",
+    "name": "Altarianite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "ampharosite",
+    "name": "Ampharosite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "aspearberry",
+    "name": "Aspear Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Aspear Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+     ],
+     "clauses": [
+      {
+       "clause": "status-present",
+       "blocking": false,
+       "need": {
+        "status": "any status on the body it reads"
+       },
+       "got": {
+        "status": null,
+        "targetStatus": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "status-present",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Aspear Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+    ],
+    "cannot_fire_need": [
+     {
+      "status": "any status on the body it reads"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "audinite",
+    "name": "Audinite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "babiriberry",
+    "name": "Babiri Berry",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Steel"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "irontail",
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Steel)",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "banettite",
+    "name": "Banettite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "barbaracite",
+    "name": "Barbaracite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "beedrillite",
+    "name": "Beedrillite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "bigroot",
+    "name": "Big Root",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Big Root\" needs a heal from drain or leechseed or ingrain or aquaring or strengthsap (`onTryHeal`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+     ],
+     "clauses": [
+      {
+       "clause": "board-state",
+       "blocking": false,
+       "need": {
+        "state": "heal-effect",
+        "values": [
+         "drain",
+         "leechseed",
+         "ingrain",
+         "aquaring",
+         "strengthsap"
+        ],
+        "handler": "onTryHeal"
+       },
+       "got": {
+        "declared": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "board-state",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Big Root\" needs a heal from drain or leechseed or ingrain or aquaring or strengthsap (`onTryHeal`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+    ],
+    "cannot_fire_need": [
+     {
+      "state": "heal-effect",
+      "values": [
+       "drain",
+       "leechseed",
+       "ingrain",
+       "aquaring",
+       "strengthsap"
+      ],
+      "handler": "onTryHeal"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "blackbelt",
+    "name": "Black Belt",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Fighting"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bodypress"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Fighting)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "blackglasses",
+    "name": "Black Glasses",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Dark"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "assurance"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Dark)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "blastoisinite",
+    "name": "Blastoisinite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "blazikenite",
+    "name": "Blazikenite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "brightpowder",
+    "name": "Bright Powder",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Bright Powder\" does nothing but move the ACCURACY number, and this run's arm resolves that roll as a CONSTANT — every check has the same answer whatever the number is. The mechanic cannot change a line of either log under this arm, however correct both are"
+     ],
+     "clauses": [
+      {
+       "clause": "arm-constant-roll",
+       "blocking": false,
+       "need": {
+        "arm": "an arm that rolls this die"
+       },
+       "got": {
+        "roll": "accuracy-roll",
+        "handler": "onModifyAccuracy"
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "arm-constant-roll",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Bright Powder\" does nothing but move the ACCURACY number, and this run's arm resolves that roll as a CONSTANT — every check has the same answer whatever the number is. The mechanic cannot change a line of either log under this arm, however correct both are"
+    ],
+    "cannot_fire_need": [
+     {
+      "arm": "an arm that rolls this die"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "subaccuracy",
+      "values": [],
+      "handler": "onModifyAccuracy"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "aquatail"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onModifyAccuracy: the receiver must supply subaccuracy"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "cameruptite",
+    "name": "Cameruptite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "chandelurite",
+    "name": "Chandelurite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "charcoal",
+    "name": "Charcoal",
+    "carrier": "charizard",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Fire"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "firepunch"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Fire)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "charizarditex",
+    "name": "Charizardite X",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "charizarditey",
+    "name": "Charizardite Y",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "chartiberry",
+    "name": "Charti Berry",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Rock"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "ancientpower",
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Rock)",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "cheriberry",
+    "name": "Cheri Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Cheri Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+     ],
+     "clauses": [
+      {
+       "clause": "status-present",
+       "blocking": false,
+       "need": {
+        "status": "any status on the body it reads"
+       },
+       "got": {
+        "status": null,
+        "targetStatus": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "status-present",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Cheri Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+    ],
+    "cannot_fire_need": [
+     {
+      "status": "any status on the body it reads"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "chesnaughtite",
+    "name": "Chesnaughtite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "chestoberry",
+    "name": "Chesto Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Chesto Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+     ],
+     "clauses": [
+      {
+       "clause": "status-present",
+       "blocking": false,
+       "need": {
+        "status": "any status on the body it reads"
+       },
+       "got": {
+        "status": null,
+        "targetStatus": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "status-present",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Chesto Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+    ],
+    "cannot_fire_need": [
+     {
+      "status": "any status on the body it reads"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "chilanberry",
+    "name": "Chilan Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Normal"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "flag",
+      "values": [
+       "bypasssub"
+      ],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "bodyslam",
+      "round"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Normal)",
+     "handler onSourceModifyDamage: the receiver must supply flag (bypasssub)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "chimechite",
+    "name": "Chimechite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "choicescarf",
+    "name": "Choice Scarf",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "chopleberry",
+    "name": "Chople Berry",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Fighting"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "brickbreak",
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Fighting)",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "clefablite",
+    "name": "Clefablite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "cobaberry",
+    "name": "Coba Berry",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Flying"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "aerialace",
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Flying)",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "colburberry",
+    "name": "Colbur Berry",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Dark"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "bite",
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Dark)",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "crabominite",
+    "name": "Crabominite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "damprock",
+    "name": "Damp Rock",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Damp Rock\" owns no handler; its whole effect is a DURATION, extended to 8 turns at data/conditions.ts:481 — and this fixture plays 7 turns. The two arms cannot part before the shorter clock runs out"
+     ],
+     "clauses": [
+      {
+       "clause": "duration-extension",
+       "blocking": false,
+       "need": {
+        "turns": 8
+       },
+       "got": {
+        "turns": 7
+       },
+       "read_at": [
+        "data/conditions.ts:481"
+       ]
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "duration-extension",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Damp Rock\" owns no handler; its whole effect is a DURATION, extended to 8 turns at data/conditions.ts:481 — and this fixture plays 7 turns. The two arms cannot part before the shorter clock runs out"
+    ],
+    "cannot_fire_need": [
+     {
+      "turns": 8
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "delphoxite",
+    "name": "Delphoxite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "dragalgite",
+    "name": "Dragalgite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "dragonfang",
+    "name": "Dragon Fang",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Dragon"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "outrage"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Dragon)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "dragoninite",
+    "name": "Dragoninite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "drampanite",
+    "name": "Drampanite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "eelektrossite",
+    "name": "Eelektrossite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "emboarite",
+    "name": "Emboarite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "excadrite",
+    "name": "Excadrite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "expertbelt",
+    "name": "Expert Belt",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bulletseed"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onModifyDamage: the actor must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "fairyfeather",
+    "name": "Fairy Feather",
+    "carrier": "pikachu",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Fairy"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "alluringvoice"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Fairy)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "falinksite",
+    "name": "Falinksite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "feraligite",
+    "name": "Feraligite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "floettite",
+    "name": "Floettite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "focusband",
+    "name": "Focus Band",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "real-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Focus Band\" needs a hit that would take the holder's LAST HP (`onDamage`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+     ],
+     "clauses": [
+      {
+       "clause": "board-state",
+       "blocking": false,
+       "need": {
+        "state": "ko-hit",
+        "values": [],
+        "handler": "onDamage"
+       },
+       "got": {
+        "declared": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "focussash",
+    "name": "Focus Sash",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Focus Sash\" needs a hit that would take the holder's LAST HP, thrown while it is at FULL HP (`onDamage`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+     ],
+     "clauses": [
+      {
+       "clause": "board-state",
+       "blocking": false,
+       "need": {
+        "state": "ko-hit",
+        "values": [],
+        "handler": "onDamage"
+       },
+       "got": {
+        "declared": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "board-state",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Focus Sash\" needs a hit that would take the holder's LAST HP, thrown while it is at FULL HP (`onDamage`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+    ],
+    "cannot_fire_need": [
+     {
+      "state": "ko-hit",
+      "values": [],
+      "handler": "onDamage"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "froslassite",
+    "name": "Froslassite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "galladite",
+    "name": "Galladite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "garchompite",
+    "name": "Garchompite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "gardevoirite",
+    "name": "Gardevoirite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "gengarite",
+    "name": "Gengarite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "glalitite",
+    "name": "Glalitite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "glimmoranite",
+    "name": "Glimmoranite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "golurkite",
+    "name": "Golurkite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "greninjite",
+    "name": "Greninjite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "gyaradosite",
+    "name": "Gyaradosite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "habanberry",
+    "name": "Haban Berry",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Dragon"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "breakingswipe",
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Dragon)",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "hardstone",
+    "name": "Hard Stone",
+    "carrier": "charizard",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Rock"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "ancientpower"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Rock)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "hawluchanite",
+    "name": "Hawluchanite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "heatrock",
+    "name": "Heat Rock",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Heat Rock\" owns no handler; its whole effect is a DURATION, extended to 8 turns at data/conditions.ts:551 — and this fixture plays 7 turns. The two arms cannot part before the shorter clock runs out"
+     ],
+     "clauses": [
+      {
+       "clause": "duration-extension",
+       "blocking": false,
+       "need": {
+        "turns": 8
+       },
+       "got": {
+        "turns": 7
+       },
+       "read_at": [
+        "data/conditions.ts:551"
+       ]
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "duration-extension",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Heat Rock\" owns no handler; its whole effect is a DURATION, extended to 8 turns at data/conditions.ts:551 — and this fixture plays 7 turns. The two arms cannot part before the shorter clock runs out"
+    ],
+    "cannot_fire_need": [
+     {
+      "turns": 8
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "heracronite",
+    "name": "Heracronite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "houndoominite",
+    "name": "Houndoominite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "icyrock",
+    "name": "Icy Rock",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Icy Rock\" owns no handler; its whole effect is a DURATION, extended to 8 turns at data/conditions.ts:671, data/conditions.ts:701 — and this fixture plays 7 turns. The two arms cannot part before the shorter clock runs out"
+     ],
+     "clauses": [
+      {
+       "clause": "duration-extension",
+       "blocking": false,
+       "need": {
+        "turns": 8
+       },
+       "got": {
+        "turns": 7
+       },
+       "read_at": [
+        "data/conditions.ts:671",
+        "data/conditions.ts:701"
+       ]
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "duration-extension",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Icy Rock\" owns no handler; its whole effect is a DURATION, extended to 8 turns at data/conditions.ts:671, data/conditions.ts:701 — and this fixture plays 7 turns. The two arms cannot part before the shorter clock runs out"
+    ],
+    "cannot_fire_need": [
+     {
+      "turns": 8
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "ironball",
+    "name": "Iron Ball",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": true,
+    "divergence": {
+     "at": 12,
+     "cls": "extra event emitted by medicham2",
+     "detail": "-supereffective",
+     "cause": "extra event emitted by medicham2 :: |-crit|p1a <> |-supereffective|p1a|1",
+     "showdown": "|-crit|p1a: Corviknight",
+     "medicham": "|-supereffective|p1a: Corviknight|1",
+     "subject_slot": "p1a",
+     "segment_owner": null,
+     "segment_move": null,
+     "shared_suspect": false,
+     "attributed": true,
+     "attribution_note": null
+    },
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Ground"
+      ],
+      "handler": "onEffectiveness"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "bulldoze"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onEffectiveness: the receiver must supply type (Ground)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "kangaskhanite",
+    "name": "Kangaskhanite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "kasibberry",
+    "name": "Kasib Berry",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Ghost"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "shadowclaw",
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Ghost)",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "kebiaberry",
+    "name": "Kebia Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Kebia Berry\" is gated on type (Poison) in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic",
+      "\"Kebia Berry\" is gated on supereffective in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Poison"
+        ],
+        "handler": "onSourceModifyDamage"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "agility",
+         "facade",
+         "aquatail",
+         "hydropump"
+        ]
+       }
+      },
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "supereffective",
+        "values": [],
+        "handler": "onSourceModifyDamage"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "agility",
+         "facade",
+         "aquatail",
+         "hydropump"
+        ]
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "trigger-move+trigger-move",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Kebia Berry\" is gated on type (Poison) in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic",
+     "\"Kebia Berry\" is gated on supereffective in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+    ],
+    "cannot_fire_need": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Poison"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Poison"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": null,
+    "trigger_unstaged": [
+     "receiver:type=Poison",
+     "receiver:supereffective"
+    ],
+    "carrier_derived": false
+   },
+   {
+    "kind": "item",
+    "id": "kingsrock",
+    "name": "King's Rock",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "secondary",
+      "values": [],
+      "handler": "onModifyMove"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bodyslam"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onModifyMove: the actor must supply secondary"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "leftovers",
+    "name": "Leftovers",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "leppaberry",
+    "name": "Leppa Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Leppa Berry\" needs one of the holder's moves to be at 0 PP (`onUpdate`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+     ],
+     "clauses": [
+      {
+       "clause": "board-state",
+       "blocking": false,
+       "need": {
+        "state": "pp-exhausted",
+        "values": [],
+        "handler": "onUpdate"
+       },
+       "got": {
+        "declared": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "board-state",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Leppa Berry\" needs one of the holder's moves to be at 0 PP (`onUpdate`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+    ],
+    "cannot_fire_need": [
+     {
+      "state": "pp-exhausted",
+      "values": [],
+      "handler": "onUpdate"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "lifeorb",
+    "name": "Life Orb",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "lightball",
+    "name": "Light Ball",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": false,
+     "why": [
+      "\"Light Ball\" only functions on Pikachu (`onModifyAtk` reads `baseSpecies.baseSpecies`) and this board carries Corviknight — the mechanic is switched off by the CARRIER, not by the engine"
+     ],
+     "note": [],
+     "clauses": [
+      {
+       "clause": "species-gated",
+       "blocking": true,
+       "need": {
+        "species": [
+         "Pikachu"
+        ]
+       },
+       "got": {
+        "species": "corviknight"
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "species-gated",
+    "cannot_fire_blocking": true,
+    "cannot_fire_why": [
+     "\"Light Ball\" only functions on Pikachu (`onModifyAtk` reads `baseSpecies.baseSpecies`) and this board carries Corviknight — the mechanic is switched off by the CARRIER, not by the engine"
+    ],
+    "cannot_fire_need": [
+     {
+      "species": [
+       "Pikachu"
+      ]
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "lightclay",
+    "name": "Light Clay",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Light Clay\" owns no handler; its whole effect is a DURATION, extended to 8 turns at data/moves.ts:846, data/moves.ts:10331, data/moves.ts:14850 — and this fixture plays 7 turns. The two arms cannot part before the shorter clock runs out"
+     ],
+     "clauses": [
+      {
+       "clause": "duration-extension",
+       "blocking": false,
+       "need": {
+        "turns": 8
+       },
+       "got": {
+        "turns": 7
+       },
+       "read_at": [
+        "data/moves.ts:846",
+        "data/moves.ts:10331",
+        "data/moves.ts:14850"
+       ]
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "duration-extension",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Light Clay\" owns no handler; its whole effect is a DURATION, extended to 8 turns at data/moves.ts:846, data/moves.ts:10331, data/moves.ts:14850 — and this fixture plays 7 turns. The two arms cannot part before the shorter clock runs out"
+    ],
+    "cannot_fire_need": [
+     {
+      "turns": 8
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "lopunnite",
+    "name": "Lopunnite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "lucarionite",
+    "name": "Lucarionite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "lumberry",
+    "name": "Lum Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Lum Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)",
+      "\"Lum Berry\" needs the volatile confusion already on the body (`onEat`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+     ],
+     "clauses": [
+      {
+       "clause": "status-present",
+       "blocking": false,
+       "need": {
+        "status": "any status on the body it reads"
+       },
+       "got": {
+        "status": null,
+        "targetStatus": null
+       }
+      },
+      {
+       "clause": "board-state",
+       "blocking": false,
+       "need": {
+        "state": "volatile-present",
+        "values": [
+         "confusion"
+        ],
+        "handler": "onEat"
+       },
+       "got": {
+        "declared": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "status-present+board-state",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Lum Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)",
+     "\"Lum Berry\" needs the volatile confusion already on the body (`onEat`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+    ],
+    "cannot_fire_need": [
+     {
+      "status": "any status on the body it reads"
+     },
+     {
+      "state": "volatile-present",
+      "values": [
+       "confusion"
+      ],
+      "handler": "onEat"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "magnet",
+    "name": "Magnet",
+    "carrier": "charizard",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Electric"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "thunderpunch"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Electric)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "malamarite",
+    "name": "Malamarite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "manectite",
+    "name": "Manectite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "mawilite",
+    "name": "Mawilite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "medichamite",
+    "name": "Medichamite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "meganiumite",
+    "name": "Meganiumite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "mentalherb",
+    "name": "Mental Herb",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Mental Herb\" needs the volatile attract or taunt or encore or torment or disable or healblock already on the body (`onUpdate`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+     ],
+     "clauses": [
+      {
+       "clause": "board-state",
+       "blocking": false,
+       "need": {
+        "state": "volatile-present",
+        "values": [
+         "attract",
+         "taunt",
+         "encore",
+         "torment",
+         "disable",
+         "healblock"
+        ],
+        "handler": "onUpdate"
+       },
+       "got": {
+        "declared": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "board-state",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Mental Herb\" needs the volatile attract or taunt or encore or torment or disable or healblock already on the body (`onUpdate`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+    ],
+    "cannot_fire_need": [
+     {
+      "state": "volatile-present",
+      "values": [
+       "attract",
+       "taunt",
+       "encore",
+       "torment",
+       "disable",
+       "healblock"
+      ],
+      "handler": "onUpdate"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "meowsticite",
+    "name": "Meowsticite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "metagrossite",
+    "name": "Metagrossite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "metalcoat",
+    "name": "Metal Coat",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Steel"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "flashcannon"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Steel)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "metronome",
+    "name": "Metronome",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": true,
+    "divergence": {
+     "at": 27,
+     "cls": "-damage field 3",
+     "detail": "-damage[3] 859/960 vs 868/960",
+     "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:feraligatr|859/960 vs |-damage|p2a:feraligatr|868/960]",
+     "showdown": "|-damage|p2a: Feraligatr|859/960",
+     "medicham": "|-damage|p2a: Feraligatr|868/960",
+     "subject_slot": "p1a",
+     "segment_owner": null,
+     "segment_move": null,
+     "shared_suspect": false,
+     "attributed": true,
+     "attribution_note": null
+    },
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "deferred": {
+     "by": "Will",
+     "on": "2026-08-10",
+     "why": "The Metronome ITEM (19 uses) climbs a damage ladder over consecutive uses of one move. Its tag is derived and correct (`damageMultOnRepeat`, the full 4096ths ladder off the condition); what is missing is the CONSUMER, which needs a per-body consecutive-use counter threaded through the turn loop and read inside dmgRange — a change that touches every move's damage path for the smallest row in the whole queue. Will: \"metronome is a joke dont worry about that just put it into a quarantined closet we can re examine once the project is successful.\""
+    },
+    "counts_against_the_gate": false
+   },
+   {
+    "kind": "item",
+    "id": "miracleseed",
+    "name": "Miracle Seed",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Grass"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bulletseed"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Grass)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "muscleband",
+    "name": "Muscle Band",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "category",
+      "values": [
+       "Physical"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "aerialace"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply category (Physical)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "mysticwater",
+    "name": "Mystic Water",
+    "carrier": "blastoise",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Water"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "aquajet"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Water)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "nevermeltice",
+    "name": "Never-Melt Ice",
+    "carrier": "blastoise",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Ice"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "avalanche"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Ice)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "occaberry",
+    "name": "Occa Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Occa Berry\" is gated on type (Fire) in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic",
+      "\"Occa Berry\" is gated on supereffective in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Fire"
+        ],
+        "handler": "onSourceModifyDamage"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "agility",
+         "facade",
+         "aquatail",
+         "hydropump"
+        ]
+       }
+      },
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "supereffective",
+        "values": [],
+        "handler": "onSourceModifyDamage"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "agility",
+         "facade",
+         "aquatail",
+         "hydropump"
+        ]
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "trigger-move+trigger-move",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Occa Berry\" is gated on type (Fire) in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic",
+     "\"Occa Berry\" is gated on supereffective in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+    ],
+    "cannot_fire_need": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Fire"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Fire"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": null,
+    "trigger_unstaged": [
+     "receiver:type=Fire",
+     "receiver:supereffective"
+    ],
+    "carrier_derived": false
+   },
+   {
+    "kind": "item",
+    "id": "oranberry",
+    "name": "Oran Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "real-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "passhoberry",
+    "name": "Passho Berry",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Water"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "aquajet",
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Water)",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "payapaberry",
+    "name": "Payapa Berry",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Psychic"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "psychicfangs",
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Psychic)",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "pechaberry",
+    "name": "Pecha Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Pecha Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+     ],
+     "clauses": [
+      {
+       "clause": "status-present",
+       "blocking": false,
+       "need": {
+        "status": "any status on the body it reads"
+       },
+       "got": {
+        "status": null,
+        "targetStatus": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "status-present",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Pecha Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+    ],
+    "cannot_fire_need": [
+     {
+      "status": "any status on the body it reads"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "persimberry",
+    "name": "Persim Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Persim Berry\" needs the volatile confusion already on the body (`onEat`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+     ],
+     "clauses": [
+      {
+       "clause": "board-state",
+       "blocking": false,
+       "need": {
+        "state": "volatile-present",
+        "values": [
+         "confusion"
+        ],
+        "handler": "onEat"
+       },
+       "got": {
+        "declared": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "board-state",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Persim Berry\" needs the volatile confusion already on the body (`onEat`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+    ],
+    "cannot_fire_need": [
+     {
+      "state": "volatile-present",
+      "values": [
+       "confusion"
+      ],
+      "handler": "onEat"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "pidgeotite",
+    "name": "Pidgeotite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "pinsirite",
+    "name": "Pinsirite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "poisonbarb",
+    "name": "Poison Barb",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Poison"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "acidspray"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Poison)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "pyroarite",
+    "name": "Pyroarite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "quickclaw",
+    "name": "Quick Claw",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_cues_undetermined": [
+     {
+      "handler": "onFractionalPriority",
+      "cue": "move.category (read, and not required)"
+     }
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "raichunitex",
+    "name": "Raichunite X",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "raichunitey",
+    "name": "Raichunite Y",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "rawstberry",
+    "name": "Rawst Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Rawst Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+     ],
+     "clauses": [
+      {
+       "clause": "status-present",
+       "blocking": false,
+       "need": {
+        "status": "any status on the body it reads"
+       },
+       "got": {
+        "status": null,
+        "targetStatus": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "status-present",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Rawst Berry\" reads a status — a board whose bodies are healthy shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical leaves for exactly this reason)"
+    ],
+    "cannot_fire_need": [
+     {
+      "status": "any status on the body it reads"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "rindoberry",
+    "name": "Rindo Berry",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Grass"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "trailblaze",
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Grass)",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "roseliberry",
+    "name": "Roseli Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Roseli Berry\" is gated on type (Fairy) in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic",
+      "\"Roseli Berry\" is gated on supereffective in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Fairy"
+        ],
+        "handler": "onSourceModifyDamage"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "agility",
+         "facade",
+         "aquatail",
+         "hydropump"
+        ]
+       }
+      },
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "supereffective",
+        "values": [],
+        "handler": "onSourceModifyDamage"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "agility",
+         "facade",
+         "aquatail",
+         "hydropump"
+        ]
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "trigger-move+trigger-move",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Roseli Berry\" is gated on type (Fairy) in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic",
+     "\"Roseli Berry\" is gated on supereffective in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+    ],
+    "cannot_fire_need": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Fairy"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Fairy"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": null,
+    "trigger_unstaged": [
+     "receiver:type=Fairy",
+     "receiver:supereffective"
+    ],
+    "carrier_derived": false
+   },
+   {
+    "kind": "item",
+    "id": "sablenite",
+    "name": "Sablenite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "sceptilite",
+    "name": "Sceptilite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "scizorite",
+    "name": "Scizorite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "scolipite",
+    "name": "Scolipite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "scopelens",
+    "name": "Scope Lens",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Scope Lens\" does nothing but move the CRIT-RATIO number, and this run's arm resolves that roll as a CONSTANT — every check has the same answer whatever the number is. The mechanic cannot change a line of either log under this arm, however correct both are"
+     ],
+     "clauses": [
+      {
+       "clause": "arm-constant-roll",
+       "blocking": false,
+       "need": {
+        "arm": "an arm that rolls this die"
+       },
+       "got": {
+        "roll": "crit-roll",
+        "handler": "onModifyCritRatio"
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "arm-constant-roll",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Scope Lens\" does nothing but move the CRIT-RATIO number, and this run's arm resolves that roll as a CONSTANT — every check has the same answer whatever the number is. The mechanic cannot change a line of either log under this arm, however correct both are"
+    ],
+    "cannot_fire_need": [
+     {
+      "arm": "an arm that rolls this die"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "scovillainite",
+    "name": "Scovillainite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "scraftinite",
+    "name": "Scraftinite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "sharpbeak",
+    "name": "Sharp Beak",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Flying"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "aerialace"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Flying)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "sharpedonite",
+    "name": "Sharpedonite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "shedshell",
+    "name": "Shed Shell",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Shed Shell\" needs the holder to be TRAPPED by something (`onTrapPokemon`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+     ],
+     "clauses": [
+      {
+       "clause": "board-state",
+       "blocking": false,
+       "need": {
+        "state": "trapped",
+        "values": [],
+        "handler": "onTrapPokemon"
+       },
+       "got": {
+        "declared": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "board-state",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Shed Shell\" needs the holder to be TRAPPED by something (`onTrapPokemon`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+    ],
+    "cannot_fire_need": [
+     {
+      "state": "trapped",
+      "values": [],
+      "handler": "onTrapPokemon"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "shellbell",
+    "name": "Shell Bell",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "shucaberry",
+    "name": "Shuca Berry",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Ground"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "bulldoze",
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Ground)",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "silkscarf",
+    "name": "Silk Scarf",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Normal"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bodyslam"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Normal)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "silverpowder",
+    "name": "Silver Powder",
+    "carrier": "beedrill",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Bug"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bugbite"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Bug)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "sitrusberry",
+    "name": "Sitrus Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "real-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED"
+   },
+   {
+    "kind": "item",
+    "id": "skarmorite",
+    "name": "Skarmorite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "slowbronite",
+    "name": "Slowbronite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "smoothrock",
+    "name": "Smooth Rock",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Smooth Rock\" owns no handler; its whole effect is a DURATION, extended to 8 turns at data/conditions.ts:633 — and this fixture plays 7 turns. The two arms cannot part before the shorter clock runs out"
+     ],
+     "clauses": [
+      {
+       "clause": "duration-extension",
+       "blocking": false,
+       "need": {
+        "turns": 8
+       },
+       "got": {
+        "turns": 7
+       },
+       "read_at": [
+        "data/conditions.ts:633"
+       ]
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "duration-extension",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Smooth Rock\" owns no handler; its whole effect is a DURATION, extended to 8 turns at data/conditions.ts:633 — and this fixture plays 7 turns. The two arms cannot part before the shorter clock runs out"
+    ],
+    "cannot_fire_need": [
+     {
+      "turns": 8
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "softsand",
+    "name": "Soft Sand",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Ground"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "bulldoze"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Ground)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "spelltag",
+    "name": "Spell Tag",
+    "carrier": "charizard",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Ghost"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "shadowclaw"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Ghost)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "staraptite",
+    "name": "Staraptite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "starminite",
+    "name": "Starminite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "steelixite",
+    "name": "Steelixite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "swampertite",
+    "name": "Swampertite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "tangaberry",
+    "name": "Tanga Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Tanga Berry\" is gated on type (Bug) in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic",
+      "\"Tanga Berry\" is gated on supereffective in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Bug"
+        ],
+        "handler": "onSourceModifyDamage"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "agility",
+         "facade",
+         "aquatail",
+         "hydropump"
+        ]
+       }
+      },
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "supereffective",
+        "values": [],
+        "handler": "onSourceModifyDamage"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "agility",
+         "facade",
+         "aquatail",
+         "hydropump"
+        ]
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "trigger-move+trigger-move",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Tanga Berry\" is gated on type (Bug) in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic",
+     "\"Tanga Berry\" is gated on supereffective in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+    ],
+    "cannot_fire_need": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Bug"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Bug"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": null,
+    "trigger_unstaged": [
+     "receiver:type=Bug",
+     "receiver:supereffective"
+    ],
+    "carrier_derived": false
+   },
+   {
+    "kind": "item",
+    "id": "twistedspoon",
+    "name": "Twisted Spoon",
+    "carrier": "blastoise",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "DID-NOT-FIRE",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "type",
+      "values": [
+       "Psychic"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "mirrorcoat"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply type (Psychic)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "tyranitarite",
+    "name": "Tyranitarite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "venusaurite",
+    "name": "Venusaurite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "victreebelite",
+    "name": "Victreebelite",
+    "fired": false,
+    "out_of_scope": true,
+    "why": "a mega stone — measured by the mega counters, not here"
+   },
+   {
+    "kind": "item",
+    "id": "wacanberry",
+    "name": "Wacan Berry",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Wacan Berry\" is gated on type (Electric) in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic",
+      "\"Wacan Berry\" is gated on supereffective in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+     ],
+     "clauses": [
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "type",
+        "values": [
+         "Electric"
+        ],
+        "handler": "onSourceModifyDamage"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "agility",
+         "facade",
+         "aquatail",
+         "hydropump"
+        ]
+       }
+      },
+      {
+       "clause": "trigger-move",
+       "blocking": false,
+       "need": {
+        "by": "receiver",
+        "kind": "supereffective",
+        "values": [],
+        "handler": "onSourceModifyDamage"
+       },
+       "got": {
+        "actor": [
+         "facade",
+         "endure",
+         "rest",
+         "substitute"
+        ],
+        "receiver": [
+         "agility",
+         "facade",
+         "aquatail",
+         "hydropump"
+        ]
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "trigger-move+trigger-move",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Wacan Berry\" is gated on type (Electric) in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic",
+     "\"Wacan Berry\" is gated on supereffective in `onSourceModifyDamage`, and the receiver throws nothing that supplies it — the trigger cannot be reached on this board, which reads exactly like a dead mechanic"
+    ],
+    "cannot_fire_need": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Electric"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Electric"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": null,
+    "trigger_unstaged": [
+     "receiver:type=Electric",
+     "receiver:supereffective"
+    ],
+    "carrier_derived": false
+   },
+   {
+    "kind": "item",
+    "id": "whiteherb",
+    "name": "White Herb",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"White Herb\" needs a stat already DROPPED on the holder (`onStart`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+     ],
+     "clauses": [
+      {
+       "clause": "board-state",
+       "blocking": false,
+       "need": {
+        "state": "own-stat-dropped",
+        "values": [],
+        "handler": "onStart"
+       },
+       "got": {
+        "declared": null
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "board-state",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"White Herb\" needs a stat already DROPPED on the holder (`onStart`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
+    ],
+    "cannot_fire_need": [
+     {
+      "state": "own-stat-dropped",
+      "values": [],
+      "handler": "onStart"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE"
+   },
+   {
+    "kind": "item",
+    "id": "widelens",
+    "name": "Wide Lens",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Wide Lens\" does nothing but move the ACCURACY number, and this run's arm resolves that roll as a CONSTANT — every check has the same answer whatever the number is. The mechanic cannot change a line of either log under this arm, however correct both are"
+     ],
+     "clauses": [
+      {
+       "clause": "arm-constant-roll",
+       "blocking": false,
+       "need": {
+        "arm": "an arm that rolls this die"
+       },
+       "got": {
+        "roll": "accuracy-roll",
+        "handler": "onSourceModifyAccuracy"
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "arm-constant-roll",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Wide Lens\" does nothing but move the ACCURACY number, and this run's arm resolves that roll as a CONSTANT — every check has the same answer whatever the number is. The mechanic cannot change a line of either log under this arm, however correct both are"
+    ],
+    "cannot_fire_need": [
+     {
+      "arm": "an arm that rolls this die"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "subaccuracy",
+      "values": [],
+      "handler": "onSourceModifyAccuracy"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "aircutter"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyAccuracy: the actor must supply subaccuracy"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "wiseglasses",
+    "name": "Wise Glasses",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "category",
+      "values": [
+       "Special"
+      ],
+      "handler": "onBasePower"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "flashcannon"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onBasePower: the actor must supply category (Special)"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "yacheberry",
+    "name": "Yache Berry",
+    "carrier": "venusaur",
+    "control": "(no item)",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [],
+     "clauses": [],
+     "stubbed": false
+    },
+    "verdict_refined": "FIRED",
+    "trigger_needs": [
+     {
+      "by": "receiver",
+      "kind": "type",
+      "values": [
+       "Ice"
+      ],
+      "handler": "onSourceModifyDamage"
+     },
+     {
+      "by": "receiver",
+      "kind": "supereffective",
+      "values": [],
+      "handler": "onSourceModifyDamage"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [],
+     "receiver": [
+      "avalanche",
+      "aerialace"
+     ]
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": true,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyDamage: the receiver must supply type (Ice)",
+     "handler onSourceModifyDamage: the receiver must supply supereffective"
+    ]
+   },
+   {
+    "kind": "item",
+    "id": "zoomlens",
+    "name": "Zoom Lens",
+    "carrier": "corviknight",
+    "control": "(no item)",
+    "verdict": "DID-NOT-FIRE",
+    "fired": false,
+    "showdown_moved": false,
+    "medicham_moved": false,
+    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
+    "diverged": false,
+    "divergence": null,
+    "rung": "safe-pool",
+    "preflight": {
+     "ok": true,
+     "why": [],
+     "note": [
+      "\"Zoom Lens\" does nothing but move the ACCURACY number, and this run's arm resolves that roll as a CONSTANT — every check has the same answer whatever the number is. The mechanic cannot change a line of either log under this arm, however correct both are"
+     ],
+     "clauses": [
+      {
+       "clause": "arm-constant-roll",
+       "blocking": false,
+       "need": {
+        "arm": "an arm that rolls this die"
+       },
+       "got": {
+        "roll": "accuracy-roll",
+        "handler": "onSourceModifyAccuracy"
+       }
+      }
+     ],
+     "stubbed": false
+    },
+    "cannot_fire": true,
+    "cannot_fire_clause": "arm-constant-roll",
+    "cannot_fire_blocking": false,
+    "cannot_fire_why": [
+     "\"Zoom Lens\" does nothing but move the ACCURACY number, and this run's arm resolves that roll as a CONSTANT — every check has the same answer whatever the number is. The mechanic cannot change a line of either log under this arm, however correct both are"
+    ],
+    "cannot_fire_need": [
+     {
+      "arm": "an arm that rolls this die"
+     }
+    ],
+    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
+    "trigger_needs": [
+     {
+      "by": "actor",
+      "kind": "subaccuracy",
+      "values": [],
+      "handler": "onSourceModifyAccuracy"
+     }
+    ],
+    "trigger_staged": {
+     "actor": [
+      "aircutter"
+     ],
+     "receiver": []
+    },
+    "trigger_unstaged": null,
+    "carrier_derived": false,
+    "faced": [],
+    "faced_why": [
+     "handler onSourceModifyAccuracy: the actor must supply subaccuracy"
+    ]
+   }
+  ]
+ },
+ "summary": {
+  "items": {
+   "exist": 148,
+   "tried": 148,
+   "fired": 35,
+   "showdown_only": 0,
+   "medicham_only": 0,
+   "did_not_fire": 38,
+   "out_of_scope": 75,
+   "cannot_fire_in_this_fixture": 28,
+   "did_not_fire_unexplained": 10,
+   "diverged": 1,
+   "diverged_including_shelved": 2,
+   "shelved_by_owner": 1,
+   "shelved_by_owner_diverging": 1,
+   "seconds": 4.8
+  },
+  "preflight": {
+   "checked": 76,
+   "rows_checked": 73,
+   "refused": 2,
+   "rows_labelled": 28,
+   "over_matched": [],
+   "by_clause": {
+    "gender (blocking)": 1,
+    "status-present": 6,
+    "board-state": 9,
+    "arm-constant-roll": 4,
+    "duration-extension": 5,
+    "trigger-move": 10,
+    "species-gated (blocking)": 1
+   },
+   "repaired_weather": 0,
+   "weather_unrepairable": 0,
+   "faces_weather_noop": 0,
+   "faces_status_noop": 0,
+   "repairs": [],
+   "trigger_rows": 44,
+   "trigger_needs": 62,
+   "trigger_staged": 52,
+   "trigger_unstaged": 10,
+   "trigger_examples": [
+    "babiriberry type=Steel+supereffective -> venusaur [ | irontail,aerialace]",
+    "blackbelt type=Fighting -> corviknight [bodypress | ]",
+    "blackglasses type=Dark -> corviknight [assurance | ]",
+    "brightpowder subaccuracy -> corviknight [ | aquatail]",
+    "charcoal type=Fire -> charizard [firepunch | ]",
+    "chartiberry type=Rock+supereffective -> venusaur [ | ancientpower,aerialace]",
+    "chilanberry type=Normal+flag=bypasssub -> corviknight [ | bodyslam,round]",
+    "chopleberry type=Fighting+supereffective -> venusaur [ | brickbreak,aerialace]",
+    "cobaberry type=Flying+supereffective -> venusaur [ | aerialace,aerialace]",
+    "colburberry type=Dark+supereffective -> venusaur [ | bite,aerialace]",
+    "dragonfang type=Dragon -> venusaur [outrage | ]",
+    "expertbelt supereffective -> venusaur [bulletseed | ]",
+    "fairyfeather type=Fairy -> pikachu [alluringvoice | ]",
+    "habanberry type=Dragon+supereffective -> venusaur [ | breakingswipe,aerialace]",
+    "hardstone type=Rock -> charizard [ancientpower | ]",
+    "ironball type=Ground -> corviknight [ | bulldoze]",
+    "kasibberry type=Ghost+supereffective -> venusaur [ | shadowclaw,aerialace]",
+    "kingsrock secondary -> corviknight [bodyslam | ]",
+    "magnet type=Electric -> charizard [thunderpunch | ]",
+    "metalcoat type=Steel -> corviknight [flashcannon | ]",
+    "miracleseed type=Grass -> venusaur [bulletseed | ]",
+    "muscleband category=Physical -> corviknight [aerialace | ]",
+    "mysticwater type=Water -> blastoise [aquajet | ]",
+    "nevermeltice type=Ice -> blastoise [avalanche | ]",
+    "passhoberry type=Water+supereffective -> venusaur [ | aquajet,aerialace]",
+    "payapaberry type=Psychic+supereffective -> venusaur [ | psychicfangs,aerialace]",
+    "poisonbarb type=Poison -> venusaur [acidspray | ]",
+    "rindoberry type=Grass+supereffective -> venusaur [ | trailblaze,aerialace]",
+    "sharpbeak type=Flying -> corviknight [aerialace | ]",
+    "shucaberry type=Ground+supereffective -> venusaur [ | bulldoze,aerialace]",
+    "silkscarf type=Normal -> corviknight [bodyslam | ]",
+    "silverpowder type=Bug -> beedrill [bugbite | ]",
+    "softsand type=Ground -> venusaur [bulldoze | ]",
+    "spelltag type=Ghost -> charizard [shadowclaw | ]",
+    "twistedspoon type=Psychic -> blastoise [mirrorcoat | ]",
+    "widelens subaccuracy -> corviknight [aircutter | ]",
+    "wiseglasses category=Special -> corviknight [flashcannon | ]",
+    "yacheberry type=Ice+supereffective -> venusaur [ | avalanche,aerialace]",
+    "zoomlens subaccuracy -> corviknight [aircutter | ]"
+   ]
+  }
+ },
+ "games_played": 236,
+ "games_threw": 0,
+ "sheets_unassembled": 0,
+ "overlap": {
+  "items": {
+   "available": true,
+   "file": "data/roster.items.json",
+   "roster_fired": 139,
+   "here_fired": 35,
+   "both": 31,
+   "only_here": [
+    "focusband",
+    "kingsrock",
+    "metronome",
+    "quickclaw"
+   ],
+   "only_roster": [
+    "abomasite",
+    "absolite",
+    "aerodactylite",
+    "aggronite",
+    "alakazite",
+    "altarianite",
+    "ampharosite",
+    "audinite",
+    "babiriberry",
+    "banettite",
+    "barbaracite",
+    "beedrillite",
+    "bigroot",
+    "blastoisinite",
+    "blazikenite",
+    "brightpowder",
+    "cameruptite",
+    "chandelurite",
+    "charizarditex",
+    "charizarditey",
+    "chartiberry",
+    "cheriberry",
+    "chesnaughtite",
+    "chestoberry",
+    "chimechite",
+    "chopleberry",
+    "clefablite",
+    "colburberry",
+    "crabominite",
+    "damprock",
+    "delphoxite",
+    "dragalgite",
+    "dragoninite",
+    "drampanite",
+    "eelektrossite",
+    "emboarite",
+    "excadrite",
+    "falinksite",
+    "feraligite",
+    "floettite",
+    "focussash",
+    "froslassite",
+    "galladite",
+    "garchompite",
+    "gardevoirite",
+    "gengarite",
+    "glalitite",
+    "glimmoranite",
+    "golurkite",
+    "greninjite",
+    "gyaradosite",
+    "habanberry",
+    "hawluchanite",
+    "heatrock",
+    "heracronite",
+    "houndoominite",
+    "icyrock",
+    "kangaskhanite",
+    "kasibberry",
+    "kebiaberry",
+    "lightball",
+    "lightclay",
+    "lopunnite",
+    "lucarionite",
+    "lumberry",
+    "malamarite",
+    "manectite",
+    "mawilite",
+    "medichamite",
+    "meganiumite",
+    "mentalherb",
+    "meowsticite",
+    "metagrossite",
+    "occaberry",
+    "passhoberry",
+    "pechaberry",
+    "persimberry",
+    "pidgeotite",
+    "pinsirite",
+    "pyroarite",
+    "raichunitex",
+    "raichunitey",
+    "rindoberry",
+    "roseliberry",
+    "sablenite",
+    "sceptilite",
+    "scizorite",
+    "scolipite",
+    "scovillainite",
+    "scraftinite",
+    "sharpedonite",
+    "shucaberry",
+    "skarmorite",
+    "slowbronite",
+    "smoothrock",
+    "staraptite",
+    "starminite",
+    "steelixite",
+    "swampertite",
+    "tangaberry",
+    "twistedspoon",
+    "tyranitarite",
+    "venusaurite",
+    "victreebelite",
+    "wacanberry",
+    "whiteherb",
+    "widelens",
+    "zoomlens"
+   ],
+   "neither": [
+    "aspearberry",
+    "leppaberry",
+    "rawstberry",
+    "scopelens",
+    "shedshell"
+   ],
+   "what_neither_means": "NEITHER the staged single-turn roster nor a real game has made this fire. This is the set nothing in the project tests."
+  }
+ }
+}

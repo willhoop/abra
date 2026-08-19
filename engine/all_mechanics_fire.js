@@ -272,6 +272,28 @@ const SETS_WEATHER_ID = new Map();
  * event-for-event under it (see game_differential's pin header). */
 const ARM = GD.ARM_BY_ID.get('bottom-tie-first');
 if (!ARM) { console.error('the `bottom-tie-first` arm is gone from game_differential — refusing to guess'); process.exit(2); }
+/* ---- WHICH OF THIS ARM'S DICE ARE CONSTANTS, MEASURED OFF THE ARM ITSELF ------------------------
+ *
+ * A pinned corner replaces `random(m)` with a constant, and two whole families of mechanic become
+ * unobservable when it does: an ACCURACY multiplier cannot change `random(100) < accuracy` when the
+ * left side never moves, and a CRIT-RATIO change cannot change `randomChance(1, ratio)` when the same
+ * is true of the denominator. Brightpowder, Wide Lens, Zoom Lens and Scope Lens are four of the 55
+ * unexplained item rows and this is the whole of their explanation.
+ *
+ * IT IS MEASURED, NOT ASSERTED FROM THE ARM'S NAME. The claim "every accuracy check has the same
+ * answer" is exactly the claim `ARM.random` can be asked, so it is asked: the roll is forced only if
+ * the comparison comes out the same at both ends of the accuracy range. Under the TOP corner it does
+ * NOT (`99 < 1` is false and `99 < 100` is true), so a name-based test would have been wrong for one
+ * of the two shipped corners. */
+const ARM_FORCES = (() => {
+  const r = ARM.random(100);
+  const accuracy = typeof r === 'number' && ((r < 1) === (r < 100));
+  const crit = ARM.chance(1, 24) === ARM.chance(1, 8) && ARM.chance(1, 24) === ARM.chance(1, 2);
+  return { accuracy, crit, sample: r };
+})();
+console.log('  ARM ' + ARM.id + ': accuracy roll ' + (ARM_FORCES.accuracy ? 'is a CONSTANT' : 'varies')
+  + ', crit roll ' + (ARM_FORCES.crit ? 'is a CONSTANT' : 'varies') + ' (measured, random(100)='
+  + ARM_FORCES.sample + ') — a mechanic whose only effect is one of those two cannot be seen here.');
 
 /* ================= THE POPULATION ================================================================
  * Every entity the FORMAT admits, asked of the format rather than of a list (CLAUDE.md: the ban is a
@@ -1074,7 +1096,13 @@ function pickForNeed(need, pool, ctx) {
     /* A move the far body is IMMUNE to has not been thrown — `fixture_preflight` clause 5, one level
      * down. Ranked rather than refused, so a need with only immune answers still stages something and
      * the row reports what happened instead of nothing. */
-    + (ctx.targetTypes && m.category !== 'Status' && !dex.getImmunity(m.type, ctx.targetTypes) ? 4 : 0);
+    + (ctx.targetTypes && m.category !== 'Status' && !dex.getImmunity(m.type, ctx.targetTypes) ? 4 : 0)
+    /* A FIXED-DAMAGE MOVE CANNOT SHOW A DAMAGE-PATH MULTIPLIER. Twisted Spoon's need is "a Psychic
+     * move thrown by the holder" and the pool's first Psychic answer was MIRROR COAT — base power 0,
+     * damage from a `damageCallback`, so `getDamage` returns before `onBasePower` modifies anything.
+     * The trigger was staged, the row read DID-NOT-FIRE, and nothing on it said why. Ranked rather
+     * than refused, so a need whose only answers are fixed-damage still stages something. */
+    + (need.damagingOnly && !m.basePower ? 3 : 0);
   cands.sort((a, b) => score(a) - score(b) || a.id.localeCompare(b.id));
   return cands[0].id;
 }
@@ -1448,7 +1476,14 @@ function runAbilities(list) {
                    teamSize: 4, switchesOut: true,
                    /* `buildPair` writes `gender: 'N'` on every body of both sides and says why:
                     * medicham2 has no gender at all, so a declared one parts the streams on line one. */
-                   gender: 'N', targetGender: 'N' };
+                   gender: 'N', targetGender: 'N',
+                   /* THE TWO ROLLS THIS ARM TURNS INTO CONSTANTS, and the BOARD STATES the gauntlet
+                    * provably reaches. Both were missing here for the same reason `stagedMoves` was
+                    * missing from `runItems`: the clause existed and nobody fed it. `itemConsumed` is
+                    * true exactly when a `thenWhat` row put an item on both bodies — anything else
+                    * would be the fixture asserting a state it does not build. */
+                   armForcesAccuracy: ARM_FORCES.accuracy, armForcesCrit: ARM_FORCES.crit,
+                   boardState: { itemConsumed: !!twItem, allyIsLive: false } };
       if (twItem) sc.item = twItem;
       if (wx) sc.weather = wx;
       /* undefined, NOT null — the preflight's status clause tests `=== undefined`, so a null would
@@ -1567,6 +1602,121 @@ function runAbilities(list) {
  * something to modify) and must not be the receiver. Chosen once and named, so every item row is the
  * same game with one field changed. */
 const ITEM_HOLDER = 'corviknight';
+/* ---- WHO HOLDS IT, AND WHY THAT IS NOT ALLOWED TO BE ONE SPECIES FOR ALL 73 ----------------------
+ *
+ * The comment above used to end "so it is FIXED, and fixing it is what makes the A/B honest". The
+ * second half of that is right and the first half does not follow: what the A/B needs is that the two
+ * arms differ in the ITEM and in nothing else, which is a statement about ONE ROW. A holder chosen per
+ * row is just as honest and it is the difference between a fixture and a wall.
+ *
+ * MEASURED at release bb59e9a263c5: 12 of the 73 in-scope items fire, and every one of the twelve is
+ * an item that needs NO constructed condition — Leftovers, Life Orb, Choice Scarf, Muscle Band, Silk
+ * Scarf, Shell Bell, Quick Claw, Focus Band, Metronome, Chilan/Oran/Sitrus Berry. Everything that
+ * needs a fixture built for it failed, and the largest two families failed for a reason that is one
+ * sentence long:
+ *
+ *   SEVENTEEN RESIST BERRIES need a SUPER-EFFECTIVE hit of their own type. Corviknight is Flying/Steel,
+ *     so Chople (Fighting) and Occa (Fire) could have worked and Rindo (Grass, 0.25x into that body)
+ *     could not — on the same board, for the same reason, with no way to tell which from the artifact.
+ *   EIGHTEEN TYPE-BOOST ITEMS need a move of their own type thrown BY the holder, and Corviknight can
+ *     learn a Psychic, Fairy, Grass, Electric or Fire attack for none of them.
+ *
+ * So the holder is DERIVED FROM THE ITEM'S OWN NEED, by the same `moveNeeds` the abilities arm has used
+ * since 2026-08-12, and the default is tried first so a row that already worked keeps the board it
+ * worked on. A row whose need no legal body can supply keeps its `trigger-move` clause and says so.
+ *
+ * THE SEARCH IS OVER THE FORMAT AND NOT OVER A SHORTLIST. `LEGAL_SPECIES` is already filtered by the
+ * authority's own `isNonstandard`/`tier` (CLAUDE.md: `.all()` is the National Dex), and the chosen body
+ * still goes to `TeamValidator` inside `playScenario` like every other. */
+/* ---- AND WHEN THE ADVERSARY IS THE ONE WHO CANNOT THROW IT -------------------------------------
+ *
+ * MEASURED after the holder became derived: five resist berries still could not be staged, and not one
+ * of them was about the holder. **Feraligatr has no Poison, Fire, Fairy, Bug or Electric attacking
+ * move in its entire legal pool** — so Kebia, Occa, Roseli, Tanga and Wacan had no thrower, whatever
+ * body held them.
+ *
+ * The receiver is fixed for a stated reason — it must be immune to NOTHING, or a whole type silently
+ * vanishes from the measurement — and that reason is a property of its TYPING, not of Feraligatr. So
+ * the fallback is any legal body carrying no type immunity at all, computed against the authority's own
+ * chart rather than from the seven types listed in the RECEIVER comment. Grass is excluded on top,
+ * exactly as the fixed receiver's comment excludes it, because Grass refuses the powder moves.
+ *
+ * ITS ABILITY CANNOT MANUFACTURE A FALSE FIRED and that is why this is safe: both arms of the A/B get
+ * the identical body and differ in the ITEM alone, so anything the receiver's ability does cancels. The
+ * one thing it could do is BLOCK the trigger, so a body whose ability confers an immunity is skipped. */
+const ALT_RECEIVERS = LEGAL_SPECIES.filter(s => {
+  if ((s.types || []).includes('Grass')) return false;
+  for (const t of dex.types.names()) if (!dex.getImmunity(t, s.types)) return false;
+  const ab = dex.abilities.get(Object.values(s.abilities || {})[0] || '');
+  const src = ab && ab.exists ? Object.entries(ab).filter(([k, v]) => /^on/.test(k) && typeof v === 'function')
+    .map(([, v]) => String(v)).join(' ') : '';
+  return !/getImmunity|isImmune|return null|return false/.test(src);
+}).map(s => s.id);
+function holderFor(needs, receiverSp) {
+  /* The default receiver first, always. A row that already staged keeps the board it staged on. */
+  for (const rs of [id(receiverSp)].concat(ALT_RECEIVERS.filter(x => x !== id(receiverSp)))) {
+    const r = holderForReceiver(needs, rs);
+    if (r) return r;
+  }
+  return null;
+}
+function holderForReceiver(needs, receiverSp) {
+  const rTypes = (dex.species.get(receiverSp) || {}).types || [];
+  const recvPool = POOL.get(id(receiverSp)) || new Set();
+  const tryHolder = (h) => {
+    if (id(h) === id(receiverSp)) return null;
+    const sp = dex.species.get(h);
+    if (!sp || !sp.exists) return null;
+    const pool = POOL.get(sp.id);
+    if (!pool) return null;
+    const aTypes = sp.types || [];
+    const A = [], R = [];
+    /* ---- TWO NEEDS FROM ONE HANDLER ARE ONE MOVE, AND THE FIRST BUILD OF THIS GOT IT WRONG ---------
+     *
+     * A resist berry's guard is a CONJUNCTION:
+     *
+     *     if (move.type === "Fighting" && target.getMoveHitData(move).typeMod > 0)
+     *
+     * `moveNeeds` returns that as two needs, and satisfying them SEPARATELY stages a Fighting move and
+     * some other super-effective move — neither of which is a super-effective Fighting move. MEASURED:
+     * nine of the sixteen resist berries came back with a staged trigger and DID-NOT-FIRE, which is the
+     * worst label in this instrument (it reads as an engine gap). Chople was handed Brick Break into a
+     * Venusaur, and Fighting into Grass/Poison is NEUTRAL.
+     *
+     * The grouping key is the HANDLER, because a handler body is one boolean and needs from different
+     * handlers are genuinely independent. It is read off the need rather than assumed. */
+    const groups = new Map();
+    for (const n of needs) {
+      const k = n.by + '|' + n.handler;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(n);
+    }
+    const pickForGroup = (g, mpool, ctx) => {
+      const ok = [];
+      for (const mid of mpool) if (g.every(n => PRE.satisfiesNeed(mid, n, ctx))) ok.push(mid);
+      /* ranked by `pickForNeed`, over the restricted pool, so the harness-breaking filter and the
+       * scoring stay in ONE place rather than being reimplemented here */
+      return ok.length ? pickForNeed(g[0], new Set(ok), ctx) : null;
+    };
+    for (const g of groups.values()) {
+      const sides = g[0].by === 'either' ? ['actor', 'receiver'] : [g[0].by];
+      let got = null;
+      for (const side of sides) {
+        const ctx = side === 'actor' ? { userTypes: aTypes, targetTypes: rTypes }
+                                     : { userTypes: rTypes, targetTypes: aTypes };
+        const m = pickForGroup(g, side === 'actor' ? pool : recvPool, ctx);
+        if (!m) continue;
+        (side === 'actor' ? A : R).push(m);
+        got = side;
+        break;
+      }
+      if (!got) return null;              /* this body cannot supply every need */
+    }
+    return { carrier: sp.id, actor: A, receiver: R, receiverSpecies: id(receiverSp) };
+  };
+  return tryHolder(ITEM_HOLDER) || LEGAL_SPECIES.map(s => s.id).reduce(
+    (acc, s) => acc || tryHolder(s), null);
+}
 function runItems(list) {
   const rows = [];
   for (const it of list) {
@@ -1576,26 +1726,93 @@ function runItems(list) {
      * Declared, not silently skipped. */
     if (di.megaStone || di.zMove || di.isPokeball) {
       rows.push({ kind: 'item', id: it, name: di.name, fired: false, out_of_scope: true,
-                  why: (di.megaStone ? 'a mega stone — measured by the mega counters, not here'
+                  why: (di.megaStone
+                        ? 'a mega stone — the mechanism is the MEGA, and the per-stone answer is in '
+                          + 'data/roster.items.json, which this run reconciles against (see '
+                          + '`overlap.items.exemption`). It is NOT the differential\'s mega counters: '
+                          + 'those are aggregate and cannot name a stone.'
                         : 'not a held item this format uses in battle') });
       continue;
     }
-    /* AN ITEM'S CARRIER IS FREE — any legal body may hold any legal item — so it is FIXED, and fixing
-     * it is what makes the A/B honest: the two arms then differ in the item and in nothing else. */
-    const c = ITEM_HOLDER;
-    const mkActor = (item) => bodyOf(c, '', item, GAUNTLET_ACTOR_MOVES);
-    const receiver = bodyOf(RECEIVER.species, RECEIVER.ability, RECEIVER.item, RECEIVER_MOVES);
+    /* AN ITEM'S CARRIER IS FREE — any legal body may hold any legal item. It is chosen FROM THE ITEM'S
+     * OWN NEED (see `holderFor`), default first, and it is the same body in both arms — which is the
+     * property the A/B actually depends on. */
+    const NEEDS = BREAK_TRIGGERS ? { needs: [], undetermined: [] } : PRE.moveNeeds(di);
+    const chosen = NEEDS.needs.length ? holderFor(NEEDS.needs, RECEIVER.species) : null;
+    if (NEEDS.needs.length) {
+      PREFLIGHT.trigger_rows++;
+      PREFLIGHT.trigger_needs += NEEDS.needs.length;
+      if (chosen) { PREFLIGHT.trigger_staged += NEEDS.needs.length;
+        if (PREFLIGHT.trigger_examples.length < 60)
+          PREFLIGHT.trigger_examples.push(it + ' ' + NEEDS.needs.map(n => n.kind
+            + (n.values.length ? '=' + n.values.join('|') : '')).join('+') + ' -> ' + chosen.carrier
+            + ' [' + chosen.actor.join(',') + ' | ' + chosen.receiver.join(',') + ']');
+      } else PREFLIGHT.trigger_unstaged += NEEDS.needs.length;
+    }
+    const c = (chosen && chosen.carrier) || ITEM_HOLDER;
+    /* THE DERIVED MOVE GOES AT THE FRONT OF THE WANT LIST AND THE GAUNTLET'S OWN STAY BEHIND IT —
+     * `bodyOf` keeps the front when the list overflows four slots. The trigger turn is ADDED by
+     * `gauntletScript` rather than substituted for a beat turn, which is the rule the abilities arm
+     * had to learn twice (Hustle and Torrent both regressed when it was a swap). */
+    const actorWants = ((chosen && chosen.actor) || []).map(mvName).concat(GAUNTLET_ACTOR_MOVES);
+    const recvWants = ((chosen && chosen.receiver) || []).map(mvName).concat(RECEIVER_MOVES);
+    const mkActor = (item) => bodyOf(c, '', item, actorWants);
+    const recvSp = (chosen && chosen.receiverSpecies) || RECEIVER.species;
+    const receiver = bodyOf(recvSp, recvSp === RECEIVER.species ? RECEIVER.ability : '',
+                            RECEIVER.item, recvWants);
+    const facesUsed = (chosen && (chosen.actor.length || chosen.receiver.length))
+      ? { recv: [], actorDerived: chosen.actor.map(mvName), recvDerived: chosen.receiver.map(mvName),
+          why: NEEDS.needs.map(n => 'handler ' + n.handler + ': the ' + n.by + ' must supply '
+            + n.kind + (n.values.length ? ' (' + n.values.join(' or ') + ')' : '')) }
+      : null;
     /* THE SAME QUESTION, ASKED OF THE ITEM'S OWN HANDLERS. `fixture_preflight`'s trigger clauses read
      * only an ABILITY's handlers until 2026-08-12 — the derivation was never ability-specific, the
      * source it was pointed at was. Over the 73 in-scope items it matches 6, all of them status-curing
      * berries on a board where nothing is ever statused, which is precisely a DID-NOT-FIRE that is not
-     * an engine gap. */
+     * an engine gap.
+     *
+     * ---- AND FOR SIX DAYS AFTER THAT IT STILL COULD NOT EXPLAIN 55 OF THE 61 -----------------------
+     *
+     * MEASURED 2026-08-18 at release bb59e9a263c5: 12 items fire, 61 do not, and 55 of those 61 read
+     * `did_not_fire_unexplained`. The `trigger-move` clause — the whole mechanism written in August to
+     * tell a fixture gap apart from an engine gap — COULD NOT HAVE FIRED ON ONE OF THEM, because this
+     * call site never passed `stagedMoves`. `runAbilities` passes it; `runItems` did not. The clause
+     * was not missing, it was unfed, which reads exactly the same from the artifact.
+     *
+     * Everything below is DECLARED rather than intended, the same rule `scOf` states for abilities:
+     * `stagedMoves` is read back off the BUILT bodies, and the arm's two constant rolls are MEASURED
+     * off the arm's own functions rather than inferred from its name. */
+    const _built = mkActor(di.name);
+    /* HOW LONG THE LONGEST RUNG ACTUALLY RUNS, BUILT RATHER THAN COUNTED FROM THE RUNG TABLE. The
+     * `duration-extension` clause compares this against a clock read out of the authority's source, so
+     * an arithmetic copy of `gauntletScript`'s shape here would be a second implementation of a fact —
+     * the thing CLAUDE.md names as the way two files come to disagree invisibly. `stageBodies` does no
+     * validation, so this costs nothing. */
+    const GAUNTLET_TURNS = (_built && receiver)
+      ? Math.max(...AB_RUNGS.map(r => gauntletScript(stageBodies(_built, receiver), r.beats, facesUsed).length))
+      : 0;
     const pre = preflight({ species: dex.species.get(c).name, item: di.name,
-                            target: dex.species.get(RECEIVER.species).name,
-                            teamSize: 4, switchesOut: true, gender: 'N', targetGender: 'N' });
+                            target: dex.species.get(recvSp).name,
+                            teamSize: 4, switchesOut: true, gender: 'N', targetGender: 'N',
+                            stagedMoves: { actor: ((_built || {}).moves || []).map(id),
+                                           receiver: ((receiver || {}).moves || []).map(id) },
+                            turns: GAUNTLET_TURNS,
+                            armForcesAccuracy: ARM_FORCES.accuracy, armForcesCrit: ARM_FORCES.crit });
     const row = abLadder('item', it, di.name, c, '(no item)',
-                         () => mkActor(di.name), () => mkActor(''), receiver);
+                         () => mkActor(di.name), () => mkActor(''), receiver, facesUsed);
     labelRow(row, pre, !!(row && row.verdict && row.verdict !== 'DID-NOT-FIRE'));
+    /* WHAT THE HANDLER ASKED FOR AND WHAT THE BOARD SUPPLIED, ON THE ROW — the same fields the ability
+     * rows carry, and the only ones that can FALSIFY this derivation. A row with a staged need that
+     * still reads DID-NOT-FIRE is either an engine defect or a wrong need, and both are findings. */
+    if (row && NEEDS.needs.length) {
+      row.trigger_needs = NEEDS.needs.map(n => ({ by: n.by, kind: n.kind, values: n.values, handler: n.handler }));
+      row.trigger_staged = chosen ? { actor: chosen.actor, receiver: chosen.receiver } : null;
+      row.trigger_unstaged = chosen ? null : NEEDS.needs.map(n => n.by + ':' + n.kind
+        + (n.values.length ? '=' + n.values.join('|') : ''));
+      row.carrier_derived = c !== ITEM_HOLDER;
+    }
+    if (row && NEEDS.undetermined.length) row.trigger_cues_undetermined = NEEDS.undetermined;
+    if (row && facesUsed) { row.faced = facesUsed.recv; row.faced_why = facesUsed.why; }
     rows.push(row);
   }
   return rows;
@@ -1789,9 +2006,36 @@ function rosterOverlap(kind, rows) {
   const onlyHere = [...mine].filter(x => !staged.has(x));
   const onlyRoster = [...staged].filter(x => !mine.has(x));
   const neither = [...notStaged].filter(x => !mine.has(x));
+  /* ---- THE EXEMPTION, RECONCILED AGAINST THE THING IT DEFERS TO --------------------------------
+   *
+   * 75 of the 148 item rows are excused here with *"a mega stone — measured by the mega counters, not
+   * here"*, and until 2026-08-18 NOTHING CHECKED THAT SENTENCE against any artifact. That is the
+   * `engine/artifact_audit.js` shape exactly: a deferral nobody reconciles is indistinguishable from a
+   * gap. Two things came out of asking:
+   *
+   *   THE COVERAGE IS REAL. `data/roster.items.json` carries all 75 stones INDIVIDUALLY, every one of
+   *     them `FIRED-AND-BOARDS-MATCH`.
+   *   THE SENTENCE NAMED THE WRONG INSTRUMENT. The "mega counters" live in
+   *     `data/game-differential.json` and are AGGREGATE — `mega.rates` over 965 games, `MEGA_CHOICES`,
+   *     `MEGA_MEDI`, `MEGA_SD`, and a `coverage.distinct_items` that is a COUNT (137) with no names.
+   *     Nothing in that artifact can say whether any ONE stone was ever carried.
+   *
+   * So the excuse now points at the roster, and the reconciliation is COMPUTED on every run rather
+   * than believed: an excused row with no roster verdict is reported as UNRECONCILED. */
+  const excused = rows.filter(r => r.out_of_scope).map(r => r.id);
+  const byId = new Map((roster.results || []).map(r => [r.id, String(r.verdict)]));
+  const unreconciled = excused.filter(x => !byId.has(x) || !/^FIRED/.test(byId.get(x) || ''));
   return { available: true, file: ROSTER_FILE[kind], roster_fired: staged.size, here_fired: mine.size,
            both: both.length, only_here: onlyHere.sort(), only_roster: onlyRoster.sort(),
            neither: neither.sort(),
+           exemption: excused.length ? {
+             excused: excused.length,
+             covered_by: ROSTER_FILE[kind], roster_release: roster.engine_release || null,
+             roster_generated: roster.generated || null,
+             reconciled: excused.length - unreconciled.length, unreconciled: unreconciled.sort(),
+             note: 'the deferral names the mega counters and the mega counters CANNOT answer it — they '
+                 + 'are aggregate. The per-entity answer is the deliberate roster, and it is checked here.',
+           } : null,
            what_neither_means: 'NEITHER the staged single-turn roster nor a real game has made this fire. '
                              + 'This is the set nothing in the project tests.' };
 }
@@ -2168,6 +2412,15 @@ for (const k of Object.keys(report.rows)) {
     + (o.only_here.length > 30 ? ' …' : ''));
   if (o.neither.length) console.log('      NEITHER reaches: ' + o.neither.slice(0, 40).join(' ')
     + (o.neither.length > 40 ? ' …' : ''));
+  /* AN EXEMPTION THAT IS NOT PRINTED IS AN EXEMPTION NOBODY CHECKS. */
+  if (o.exemption) {
+    const e = o.exemption;
+    console.log('      EXEMPTION RECONCILED: ' + e.reconciled + ' of ' + e.excused
+      + ' out-of-scope rows carry a FIRED verdict in ' + e.covered_by
+      + (e.unreconciled.length ? '  <-- UNRECONCILED: ' + e.unreconciled.join(' ') : '')
+      + '\n        that artifact was cut at release ' + e.roster_release + ' on '
+      + String(e.roster_generated).slice(0, 10) + ' — the coverage is per-entity and it is NOT this run\'s release');
+  }
 }
 console.log('\n  ' + GAMES + ' games played, ' + THREW + ' threw, ' + SHEET_FAILS + ' sheets could not be assembled');
 if (WRITE) {

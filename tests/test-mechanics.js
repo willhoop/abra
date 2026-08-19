@@ -423,7 +423,15 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * spends up to three real turns through `battleTurn`, and it has to: the whole mechanic is a fact
  * carried ACROSS a turn boundary -- what the body CONSUMED on an earlier turn -- and the berry that
  * creates that fact fires at the residual, so nothing below the turn loop can see either end of it. */
-const REALTURN = /battleTurn|battleInit|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bMISSRATE\(/;
+/* `traceRoundTrip(` added 2026-08-19 with ROADMAP #307, declared HERE and with its reason, exactly as
+ * the paragraph above requires -- the ratchet caught it as a direct call on its first run, which is
+ * the guard working. It stages a real doubles board through `battleInit` WITH A BENCH ON BOTH SIDES
+ * and spends up to three real turns through `battleTurn`, and it has to have all three: the fact it
+ * measures is carried ACROSS a switch boundary in BOTH directions (the copy is dropped on the way
+ * out and REMADE on the way in, against a foe slot that was itself swapped while the holder sat on
+ * the bench), so a probe without a bench cannot leave the field and a single-turn one cannot come
+ * back. */
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bMISSRATE\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -2825,6 +2833,72 @@ probe('ability', 'copiesFoeAbility', 'Trace copies a foe ability AND the copy fi
                  + 'handler ran); TRACE into ILLUSION (carries Showdown\'s `notrace` flag) "'
                  + refused.holder + '",' + refused.foeAtk + ' (must still be trace); TRACE into Rough '
                  + 'Skin "' + plain.holder + '". traceCopied ' + c0 + ' -> ' + c1 };
+});
+
+/* ================= AND THE COPY DOES NOT SURVIVE THE BENCH. 2026-08-19. ==========================
+ *
+ * `tests/probe_bench_leaves.js` measured it on 2,029 benched comparisons over 42 differential games:
+ * `ability` disagreed on 3, every one on a LIVING body and every one a Gardevoir, with the authority
+ * reading `trace` and this engine reading the COPIED ability. It was filed and deliberately not wired
+ * as a leaf, because wiring a leaf already known to disagree makes a defect into a permanently red
+ * instrument.
+ *
+ * THE AUTHORITY'S RULE IS ONE LINE AND IT IS NOT ABOUT TRACE. `Pokemon#clearVolatile`
+ * (`sim/pokemon.ts:1528`, and the Champions override at `data/mods/champions/scripts.ts:138`, which is
+ * the same line) is `this.ability = this.baseAbility`, and `switchIn` calls it on the body going out.
+ * So EVERY mid-battle ability rewrite is undone by leaving the field -- Trace, Receiver, Skill Swap,
+ * Worry Seed, Entrainment, Simple Beam -- and `setAbility` never touches `baseAbility`
+ * (`sim/pokemon.ts:1495` writes it only on a PERMANENT forme change, which is why a mega keeps its
+ * ability across a pivot). Trace is merely the member with a visible second half: the restored Trace
+ * fires again on the way back in and copies whoever is standing opposite THEN.
+ *
+ * THE PROBE IS THE FULL ROUND TRIP, not the string. It reads the FOE'S Attack stage, so the arm that
+ * matters can only pass if the re-copied Intimidate's own entry handler ran on re-entry -- and the
+ * foe is SWAPPED while the Gardevoir is on the bench, so an engine that merely kept the old copy and
+ * an engine that re-Traced the ORIGINAL foe are separated too. */
+const traceRoundTrip = (holderAb, pivot, swapFoe) => {
+  const me = bare('gardevoir'), ally = bare('corviknight'), meBench = bare('milotic');
+  const f1 = bare('incineroar'), f2 = bare('milotic'), fBench = bare('snorlax');
+  me.ability = holderAb; f1.ability = 'intimidate'; f2.ability = 'none'; fBench.ability = 'roughskin';
+  /* NOT `seeded: true` — that skips the entry pass, which is the only moment Trace exists. */
+  const S = M.battleInit([me, ally, meBench], [f1, f2, fBench], {});
+  const afterLead = me.ability;
+  const turn = (mine, theirs) => M.battleTurn(S, rng5,
+    new Map([[S.actA[0], mine || { kind: 'pass' }], [S.actA[1], { kind: 'pass' }]]),
+    new Map([[S.actB[0], theirs || { kind: 'pass' }], [S.actB[1], { kind: 'pass' }]]));
+  if (swapFoe) turn(null, { kind: 'switch', to: fBench });
+  if (pivot) {
+    turn({ kind: 'switch', to: meBench }, null);
+    const onBench = me.ability;
+    turn({ kind: 'switch', to: me }, null);
+    /* THE PIVOT IS ASSERTED BY SLOT OCCUPANT — a switch the engine refuses is a silent no-op and the
+     * probe would then be watching a body that never left. */
+    return { afterLead, onBench, now: me.ability, backIn: S.actA[0] && S.actA[0].name,
+             foeAtk: S.actB[0] && S.actB[0].boosts.at, foe: S.actB[0] && S.actB[0].name };
+  }
+  return { afterLead, onBench: me.ability, now: me.ability, backIn: S.actA[0] && S.actA[0].name,
+           foeAtk: S.actB[0] && S.actB[0].boosts.at, foe: S.actB[0] && S.actB[0].name };
+};
+
+probe('ability', 'copiesFoeAbility', 'a traced ability does NOT survive the bench, and Trace fires again on the way back in', () => {
+  const test = traceRoundTrip('trace', true, true);      // trace, pivot out, foe swapped, pivot back
+  const stayed = traceRoundTrip('trace', false, true);   // never left the field
+  const noAbility = traceRoundTrip('none', true, true);  // the same round trip with nothing to restore
+  return { works: test.afterLead === 'intimidate' && test.backIn === 'gardevoir'
+                  && test.foe === 'snorlax' && test.now === 'roughskin'
+                  && stayed.now === 'intimidate'
+                  && noAbility.afterLead === 'none' && noAbility.now === 'none',
+           arms: { control: stayed.afterLead + ' -> ' + stayed.now,
+                   test: test.afterLead + ' -> ' + test.now },
+           detail: "the holder's ability [on the lead, after returning] — TRACE, pivoted out and back "
+                 + 'while the foe slot was swapped from an Intimidate Incineroar to a Rough Skin '
+                 + 'Snorlax: ' + test.afterLead + ' -> ' + test.now + ' (it must be "roughskin": the '
+                 + 'copy is dropped on the way out and Trace runs again against whoever is standing '
+                 + 'there NOW; before the wire it read "intimidate", the ability of a body no longer '
+                 + 'on the field). CONTROLS: never left the field ' + stayed.afterLead + ' -> '
+                 + stayed.now + ' (the copy must PERSIST while the body stays); the same round trip '
+                 + 'with no ability at all ' + noAbility.afterLead + ' -> ' + noAbility.now
+                 + ' (nothing restored over a body that never copied)' };
 });
 
 /* ROADMAP #157 -- THREE MOVES THAT SPENT THE TURN AND DID NOTHING, 939 STORED CLICKS.
@@ -7974,6 +8048,91 @@ probe('ability', 'invertsBoosts', 'Contrary turns a self-drop into a boost', () 
   return { works: control < 0 && test > 0, arms: { control, test },
            detail: 'own def stage after Close Combat — no ability ' + control + ' (must fall), Contrary '
                  + test + ' (must rise)' };
+});
+
+/* ================= CONTRARY, THE OTHER THREE DIRECTIONS. 2026-08-19. =============================
+ *
+ * The probe above asks ONE of the four things Contrary does — the user's own move lowering the user's
+ * own stat. `data/all-mechanics-fire.json` (class `unrelated event mismatch`, carrier Malamar) had the
+ * engine emitting `-unboost` where the authority emits `-boost`, which is the OPPOSITE OUTCOME and not
+ * a narration difference, and no probe in this file could see it because no probe pointed a FOE at a
+ * Contrary body.
+ *
+ * THE RULE IS READ, NOT REMEMBERED. `node engine/mod_audit.js` says Champions does not override this
+ * ability, so it is mainline `data/abilities.ts:668-679`:
+ *
+ *     contrary: { onChangeBoost(boost, target, source, effect) {
+ *       if (effect && effect.id === 'zpower') return;
+ *       let i: BoostID; for (i in boost) { boost[i]! *= -1; } } }
+ *
+ * `boost` is the WHOLE table, whoever supplied it — so the direction is reversed for a foe-inflicted
+ * drop and for the body's own raise exactly as it is for its own drop. `sim/battle.ts:2029-2030` fixes
+ * the ORDER: `runEvent('ChangeBoost', ...)` runs FIRST and `getCappedBoost` runs on the ALREADY
+ * INVERTED table, so a Contrary body sitting at -6 that gets hit by a stat drop climbs to -5, and one
+ * sitting at +6 does not move.
+ *
+ * MEASURED ON THE AUTHORITY BEFORE A LINE OF ENGINE CHANGED — one Battle per row, both teams put to
+ * the official TeamValidator, Garchomp's Breaking Swipe into a Malamar (atk stage after the turn):
+ *
+ *     no ability -1  |  CONTRARY +1  |  CONTRARY at +6 -> 6  |  CONTRARY at -6 -> -5  |  no ability at -6 -> -6
+ *     Malamar's own Nasty Plot:  no ability +2  |  CONTRARY -2  |  CONTRARY at -6 -> -6
+ *
+ * and medicham2 read -1 / -1 / 5 / -6 on the first four. TWO ARMS THAT AGREE ACROSS THE VARIED KNOB
+ * MEAN THE KNOB IS UNWIRED: the secondary-`targetBoosts` branch was the one stat-change site in the
+ * file that never asked `invSign`, while its own comment claimed it matched "the target-side reader
+ * two branches up".
+ * ============================================================================================== */
+
+probe('ability', 'invertsBoosts', "Contrary turns a FOE's stat drop into a boost", () => {
+  /* ARMED. The control is the same Malamar with no ability and it MUST FALL — an engine that had lost
+   * Breaking Swipe's secondary altogether would read 0 in both arms and prove nothing about Contrary. */
+  const run = (ab) => {
+    const { me, ally, f1, f2, S } = board('garchomp', 'snorlax', 'malamar', 'toxapex');
+    f1.ability = ab;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'breakingswipe', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.boosts.at;
+  };
+  const control = run('none'), test = run('contrary');
+  return { works: control === -1 && test === 1, arms: { control, test },
+           detail: "the TARGET's atk stage after Breaking Swipe — no ability " + control
+                 + ' (the authority reads -1), Contrary ' + test + ' (the authority reads +1)' };
+});
+
+probe('ability', 'invertsBoosts', "Contrary turns the body's own boosting move into a drop", () => {
+  /* THE OTHER SIGN. Every arm above is a drop becoming a rise; this is a rise becoming a drop, and an
+   * engine that flipped only negatives would pass all of them. Nasty Plot is +2 SpA on the user. */
+  const run = (ab) => {
+    const { me, ally, f1, f2, S } = board('malamar', 'toxapex', 'garchomp', 'snorlax');
+    me.ability = ab;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'nastyplot', null, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return me.boosts.sa;
+  };
+  const control = run('none'), test = run('contrary');
+  return { works: control === 2 && test === -2, arms: { control, test },
+           detail: 'own spa stage after Nasty Plot — no ability ' + control + ' (the authority reads +2), '
+                 + 'Contrary ' + test + ' (the authority reads -2)' };
+});
+
+probe('ability', 'invertsBoosts', 'a Contrary body at a stat cap clamps AFTER the sign is reversed', () => {
+  /* WHERE A SIGN ERROR HIDES. `sim/battle.ts:2029` runs ChangeBoost and :2030 caps the result, so the
+   * clamp sees the INVERTED table. A Contrary body at -6 taking a stat drop goes UP to -5; the same
+   * body at +6 does not move. An engine that capped first, or that never inverted, reads -6 and 5. */
+  const run = (ab, pre) => {
+    const { me, ally, f1, f2, S } = board('garchomp', 'snorlax', 'malamar', 'toxapex');
+    f1.ability = ab; f1.boosts.at = pre;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'breakingswipe', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.boosts.at;
+  };
+  const control = [run('none', -6), run('none', 6)];
+  const test = [run('contrary', -6), run('contrary', 6)];
+  return { works: control[0] === -6 && control[1] === 5 && test[0] === -5 && test[1] === 6,
+           arms: { control, test },
+           detail: '[atk stage from -6, from +6] after Breaking Swipe — no ability ' + JSON.stringify(control)
+                 + ' (floor holds, the +6 body falls to 5), Contrary ' + JSON.stringify(test)
+                 + ' (the authority: rises off the floor to -5, and the +6 body is clamped at 6)' };
 });
 
 /* ARMS DECLARED, 2026-08-06 (#42/#45 part 3). ON THE CARVE-OUT LIST: a refusal or a redirection
@@ -20289,6 +20448,41 @@ probe('move', 'changesType', 'a type change names the move where the authority d
            detail: `Forest's Curse ${JSON.stringify(fc)}; Soak ${JSON.stringify(sk)}. Both write a type `
                  + `onto the same Snorlax and only one of the two handlers passes a [from] — so an `
                  + `engine that attributes every type change fails the control` };
+});
+
+/* ================= SOAK IS REFUSED BY A BODY THAT IS ALREADY THAT TYPE. 2026-08-19. ==============
+ *
+ * `data/all-mechanics-fire.json` had the authority writing `|-fail|p2a: Feraligatr` where this engine
+ * wrote `|-start|p2a: Feraligatr|typechange|Water`. THE BOARD IS THE SAME EITHER WAY and that is said
+ * here rather than left to be found: writing [Water] onto a body already carrying exactly [Water] is a
+ * no-op, and every other field was compared on the authority across a refused turn and a written one
+ * (types, addedType, apparentType, knownType, hp, status, the user's lastMove and its Soak PP) and all
+ * eight matched. So this is an ANNOUNCEMENT-ONLY divergence -- the same disposition already recorded
+ * for Cursed Body -- and it is fixed because the protocol trace is a compared stream.
+ *
+ * THE GUARD IS AN EXACT LIST MATCH, WHICH IS THE HALF A GUESS GETS WRONG. `data/moves.ts:17190` reads
+ * `if (target.getTypes().join() === 'Water' || !target.setType('Water'))`, so a WATER/POISON body is
+ * still soaked down to pure Water and only a body whose whole typing is Water refuses. Measured on the
+ * authority: Feraligatr Water -> Water with `-fail`; Toxapex Poison/Water -> Water with `-start`.
+ * ============================================================================================== */
+probe('move', 'changesTargetType', 'Soak is refused by a body that is ALREADY exactly that type, and says so on the target', () => {
+  /* THREE ARMS, because two would pass on an engine that refused every Water body. The middle arm is
+   * the one that separates "already has Water" from "IS Water", and it must still be soaked. */
+  const lines = (def) => {
+    const t = attrRun(['milotic', 'clefable', def, 'garchomp'], null, { mv: 'soak' }, null);
+    return attrPick(t, '-start').concat(attrPick(t, '-fail'));
+  };
+  const control = [lines('snorlax'), lines('toxapex')];
+  const test = lines('feraligatr');
+  return { works: control[0].length === 1 && control[0][0] === '|-start|p2a:snorlax|typechange|water'
+                  && control[1].length === 1 && control[1][0] === '|-start|p2a:toxapex|typechange|water'
+                  && test.length === 1 && test[0] === '|-fail|p2a:feraligatr',
+           arms: { control, test },
+           detail: 'the same Soak at three bodies — a NORMAL body ' + JSON.stringify(control[0])
+                 + '; a WATER/POISON body ' + JSON.stringify(control[1])
+                 + ' (it is still soaked — the guard is an exact list match, not membership); a '
+                 + 'mono-WATER body ' + JSON.stringify(test)
+                 + '. Before the wire the third read the same -start as the first two' };
 });
 
 probe('move', 'delayedHeal', 'the Wish payout names the move AND the wisher', () => {

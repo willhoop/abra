@@ -4015,6 +4015,15 @@ const STATE_PLANTS = [
    S => { const m = benchedLivingEither(S, 'A'); if (!m) return false;
           m.boosts = m.boosts || {}; m.boosts.at = (m.boosts.at || 0) + 1;
           return 'party.' + id(m.name) + '.boosts.atk'; }],
+  /* ROADMAP #307 -- THE SIXTH BENCH LEAF, wired the day the defect under it was fixed rather than the
+   * day it was found. `board_state.js` refused this one on purpose while medicham2 kept a traced
+   * ability across a switch; with the restore in, the leaf reads 0 of 3,280 benched comparisons and
+   * carries its own plant like the other five. The plant writes an ability the body cannot have, so a
+   * body that already holds one of the two still moves. */
+  ['an ABILITY on a BENCHED body that is not its own', 'party.',
+   S => { const m = benchedLivingEither(S, 'B'); if (!m) return false;
+          m.ability = id(m.ability) === 'levitate' ? 'sturdy' : 'levitate';
+          return 'party.' + id(m.name) + '.ability'; }],
 ];
 
 function plantedStateProof(pairA, pairB) {

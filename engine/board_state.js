@@ -126,18 +126,6 @@ const NOT_COMPARED = [
   /* ---- THE BENCH SWEEP OF 2026-08-18. Same treatment as the volatile sweep above: the candidates
    * that were NOT wired are named with the reason, because "we looked and did not add it" and "we
    * never looked" are different sentences and only one of them is honest. */
-  { field: 'the ABILITY of a body on the bench',
-    why: 'IT DISAGREES ON A LIVING BODY, so it is a SUSPECT and not a leaf. `tests/probe_bench_leaves.js` '
-       + 'over 42 games / 2,029 benched bodies: 3 of the 11 differences are on a body that has NOT '
-       + 'fainted, and every one of them is a Gardevoir reading `trace` in Showdown and the TRACED '
-       + 'ability (`speedboost`, `hypercutter`) in medicham2. The authority restores the base ability '
-       + 'when a body leaves the field — `sim/pokemon.ts:1528`, `this.ability = this.baseAbility` '
-       + 'inside `clearVolatile` — so it re-Traces on its next entry; medicham2 keeps what it copied. '
-       + 'Wiring it now would present a candidate ENGINE DEFECT as a comparison leaf, which is the '
-       + 'mistake the Destiny Bond row above records. The ability of an ACTIVE body IS compared '
-       + '(ROADMAP #225), so nothing here is unwatched while it stands.',
-    next: 'a directed scenario: Trace a foe, switch out, switch back in, and compare — then either fix '
-        + 'medicham2\'s switch-out restore or declare the difference and wire the leaf' },
   { field: 'a benched body\'s volatiles, Substitute HP and Leech Seed',
     why: 'NOT A JUDGEMENT ABOUT THE ENGINES — a claim about the FIXTURE, the same distinction as the '
        + 'yawn/attract/curse row above. Over 2,029 benched bodies `tests/probe_bench_leaves.js` never '
@@ -520,14 +508,26 @@ function sdScreens(side) {
  * `status` is NOT in that group because `statusOf` already answers `fnt` for a fainted body in both
  * engines (the `fainted-is-not-a-status` mapping), which is why the probe — reading `m.status` raw —
  * saw a difference this comparator cannot. */
-const PARTY_POST_FAINT = ['item', 'status_counter', 'boosts'];
+/* `ability` JOINED THE POST-FAINT GROUP ON 2026-08-19, WITH ROADMAP #307, and the reason is the same
+ * housekeeping as the other three: `faintMessages` runs `clearVolatile(false)` (`sim/battle.ts:2560`),
+ * whose `this.ability = this.baseAbility` (`sim/pokemon.ts:1528`) restores a CORPSE's ability too, and
+ * `sim/battle.ts:2558` re-reads `baseAbility` off the SET first on a forme regression. medicham2 keeps
+ * whatever the body was holding when it died.
+ *
+ * THE LEAF ITSELF WAS THE ONE THIS FILE REFUSED TO WIRE, and it is wired now because the DEFECT is
+ * fixed rather than because the standard moved. Measured on 64 games / 3,280 benched comparisons, the
+ * same population both ways: with medicham2's switch-out restore ABSENT the leaf differs 7 times, all
+ * 7 on a LIVING body (a Gardevoir still wearing a traced Flower Veil, a Rotom-Heat still wearing a
+ * Plus it had been given); with it present, 0 of 3,280, non-empty every time. */
+const PARTY_POST_FAINT = ['item', 'status_counter', 'boosts', 'ability'];
 /* THE PROJECTION OF A FULL BODY ONTO A BENCH ROW. Deliberately built FROM `mediBody`/`sdBody` rather
  * than by re-reading the engines here: `statusOf`, the boost key mapping and `getTypes()` are FACTS,
  * and a second copy of any of them in this file is the two-implementations breach CLAUDE.md names. */
 function benchRow(b) {
   if (!b) return null;
   return { species: b.species, hp: b.hp, maxhp: b.maxhp, fainted: b.fainted, status: b.status,
-           types: b.types, item: b.item, status_counter: b.status_counter, boosts: b.boosts };
+           types: b.types, item: b.item, status_counter: b.status_counter, boosts: b.boosts,
+           ability: b.ability };
 }
 function partyMap(rows, fails) {
   const out = {};
@@ -539,7 +539,7 @@ function partyMap(rows, fails) {
     }
     out[r.species] = { hp: r.hp, maxhp: r.maxhp, fainted: r.fainted, status: r.status,
                        types: r.types, item: r.item, status_counter: r.status_counter,
-                       boosts: r.boosts };
+                       boosts: r.boosts, ability: r.ability };
   }
   return out;
 }

@@ -9949,3 +9949,57 @@ trapping, the magnet-rise and syrup-bomb clocks, and the Protect stall counter.
 
 Census 596/596 either side. **No mechanic landed and none is claimed.** Gate `CLOSED — 3 of 8`, mechanics
 clause READ rather than withheld at 34 of 49 — unchanged, which is the honest outcome.
+
+---
+
+## 2026-08-19 — A COMMENT DESCRIBED THE FIX THAT WAS NOT THERE, AND THE HARNESS HAD NEVER BEEN FED
+
+**Contrary wrote the drop instead of the rise.** `invSign` was asked at every stat-change site except the
+secondary-`targetBoosts` branch — and the branch immediately below it carried the comment *"CONTRARY IS
+APPLIED, matching the target-side reader two branches up."* **The reader two branches up was the one that
+did not.** Prose describing behaviour that did not exist, sitting one line from the defect, which is the
+same shape as the fourteen stale handoffs and the ban list of four.
+
+The tell was in the measurement rather than the code: **`-1` in both arms is an unwired knob.** A wired
+knob set wrongly would have produced something; identical output on both sides of an ability meant the
+ability was never consulted. Authority read first, one `Battle` per row through the official
+`TeamValidator`: foe drop under Contrary is **+1** and we wrote **-1**; at +6 the authority says 6 and we
+said 5; at -6 it says -5 and we said -6. The refusal moved with the sign too — `TryBoost` runs *after*
+`ChangeBoost`, so Clear Body is now asked about the value that gets written.
+
+**THE GAUNTLET'S DIAGNOSIS APPARATUS HAD NEVER BEEN FED.** `runItems` never passed `stagedMoves` to the
+preflight, so `trigger-move` — the entire mechanism built on 2026-08-12 to distinguish a FIXTURE gap from
+an ENGINE gap — **could not have fired on a single one of the 61 non-firing items.** One argument. Items
+firing **12 -> 50**, unexplained rows **98 -> 28**, all sixteen resist berries live. And the widening
+surfaced almost nothing: **one new divergence across 38 newly-firing rows**, which is evidence the engine
+was already right about the mechanics nobody had ever been able to test.
+
+**Two corrections to me, both by measurement.** I briefed **Soak** as unambiguously state; it is
+announcement-only — writing `[Water]` onto a body already exactly `[Water]` is a no-op, with types,
+`addedType`, `apparentType`, `knownType`, hp, status, `lastMove` and PP all matching across the refused and
+written turns. And I listed the **four damage rows** as probably #304 residue; they are byte-identical to
+the pre-#304 artifact, with deltas up to **33% of damage dealt** — a roll-index defect does not reach 33%.
+
+**Deriving Soak found a real one anyway:** the `replaces` tag matched any `setType`, and **Reflect Type**'s
+handler is `source.setType(...)` — it copies the target's typing onto the USER. It was routed as a target
+rewriter and **wrote `["Normal"]` onto the target.**
+
+**Four over-matched explanations were REJECTED rather than shipped.** `ally-only` matched 26 abilities and
+**most mean the opposite** (Competitive's `if (!source || target.isAlly(source)) return;` EXCLUDES an ally);
+the clause was narrowed and Friend Guard and Telepathy are **declared not covered**. Twisted Spoon read
+*satisfied on every board* because **Rest is Psychic**, so no clause was ever emitted at all. A wrong
+explanation is worse than none, and both of those would have looked like coverage.
+
+**The differential moved and it is SELECTION, said before anyone could read it as regression.** Standing
+went 344/967 to 352/967, and a matched PRE/POST over the same 173 games with this pass's engine edits
+reverted is **identical in every figure and every class**. The census gained five rows and the census steers
+which games play.
+
+**An incident worth recording.** A stray `ins.py` left in the shared scratchpad by an earlier session was
+executed by a probe that expected a no-op, and it duplicated 191 lines of the #304 section inside
+`docs/ENGINE.md`. Caught, confirmed a strict subset, and exactly 12,064 characters removed; `## ROADMAP
+#304` appears once. **The scratchpad is shared across sessions and its contents are not inert.**
+
+Census 596 live / 0 missing -> **601 live / 0 missing.** `tests/staged_board.js` still refuses to run on
+ten fixtures the learnsets disallow and was deliberately NOT baselined: adding the pairs would launder ten
+wrong fixtures.

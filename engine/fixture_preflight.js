@@ -268,20 +268,150 @@ function triggerClauses(sc, sp, why, note, cl) {
     const thT = (tg && tg.types) || [];
     const A = (sc.stagedMoves.actor || []).map(id);
     const R = (sc.stagedMoves.receiver || []).map(id);
+    /* ONE HANDLER IS ONE BOOLEAN, SO ITS NEEDS MUST BE MET BY ONE MOVE. Asking them separately clears
+     * a board that holds a Fighting move AND a super-effective move and no super-effective Fighting
+     * move — which is exactly the board nine of the sixteen resist berries were staged on, and the
+     * clause said nothing because each half was satisfied by a different click. Needs from DIFFERENT
+     * handlers stay independent, because they are. */
+    const groups = new Map();
     for (const n of nd.needs) {
-      const tries = n.by === 'actor' ? [[A, myT, thT]]
-                  : n.by === 'receiver' ? [[R, thT, myT]]
+      const k = n.by + '|' + n.handler;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(n);
+    }
+    for (const g of groups.values()) {
+      const by = g[0].by;
+      const tries = by === 'actor' ? [[A, myT, thT]]
+                  : by === 'receiver' ? [[R, thT, myT]]
                   : [[A, myT, thT], [R, thT, myT]];
       const met = tries.some(([list, u, t]) =>
-        list.some(m => satisfiesNeed(m, n, { userTypes: u, targetTypes: t })));
+        list.some(m => g.every(n => satisfiesNeed(m, n, { userTypes: u, targetTypes: t }))));
       if (met) continue;
-      const what = n.kind + (n.values.length ? ' (' + n.values.join(' or ') + ')' : '');
-      note.push('"' + subj + '" is gated on ' + what + ' in `' + n.handler + '`, and the '
-        + n.by + ' throws nothing that supplies it — the trigger cannot be reached on this board, '
-        + 'which reads exactly like a dead mechanic');
+      const what = g.map(n => n.kind + (n.values.length ? ' (' + n.values.join(' or ') + ')' : ''))
+                    .join(' AND ');
+      note.push('"' + subj + '" is gated on ' + what + ' in `' + g[0].handler + '`, and the '
+        + by + ' throws no ONE move that supplies all of it — the trigger cannot be reached on this '
+        + 'board, which reads exactly like a dead mechanic');
       cl.push({ clause: 'trigger-move', blocking: false,
-                need: { by: n.by, kind: n.kind, values: n.values, handler: n.handler },
+                need: { by, kinds: g.map(n => n.kind), values: g[0].values, handler: g[0].handler },
                 got: { actor: A, receiver: R } });
+    }
+  }
+
+  /* 6. A HANDLER GATED ON A BOARD STATE NEEDS THAT STATE PUT ON THE BOARD.
+   *
+   * Clause 5 stages a MOVE. This one cannot be satisfied by anything anybody clicks: Focus Sash needs
+   * a full-HP body taking a lethal hit, Shed Shell a trapped one, Mental Herb a volatile already
+   * present, White Herb a stat already dropped, Leppa Berry a move at 0 PP, Light Ball a Pikachu.
+   *
+   * The caller declares what its fixture PROVABLY puts on the board in `sc.boardState`; anything it
+   * does not declare is unmet, exactly as an undeclared `weather` is. Advisory, for the same reason
+   * clause 3 and clause 5 are — it explains a row that did not fire and says nothing about one that
+   * did. `species-gated` is the exception and BLOCKS, because no turn can make a Corviknight a
+   * Pikachu. */
+  const BN = boardNeeds((ab && ab.exists && ab) || (itemE && itemE.exists && itemE) || null);
+  const BS = sc.boardState || {};
+  for (const n of BN) {
+    if (n.kind === 'species-gated') {
+      const want = n.values.map(id);
+      const got = sp && sp.exists ? id(sp.baseSpecies || sp.name) : null;
+      if (want.includes(got)) continue;
+      why.push('"' + subj + '" only functions on ' + n.values.join('/') + ' (`' + n.handler
+        + '` reads `baseSpecies.baseSpecies`) and this board carries ' + (sp && sp.name || 'nothing')
+        + ' — the mechanic is switched off by the CARRIER, not by the engine');
+      cl.push({ clause: 'species-gated', blocking: true, need: { species: n.values }, got: { species: got } });
+      continue;
+    }
+    if (n.kind === 'accuracy-roll' || n.kind === 'crit-roll') {
+      /* THE ONE CLAUSE THAT READS A PROPERTY OF THE RUN RATHER THAN OF THE BOARD, and it is declared
+       * by the caller rather than assumed, because it is false under real dice. */
+      const forced = n.kind === 'accuracy-roll' ? sc.armForcesAccuracy : sc.armForcesCrit;
+      if (!forced) continue;
+      note.push('"' + subj + '" does nothing but move the '
+        + (n.kind === 'accuracy-roll' ? 'ACCURACY' : 'CRIT-RATIO') + ' number, and this run\'s arm '
+        + 'resolves that roll as a CONSTANT — every check has the same answer whatever the number is. '
+        + 'The mechanic cannot change a line of either log under this arm, however correct both are');
+      cl.push({ clause: 'arm-constant-roll', blocking: false,
+                need: { arm: 'an arm that rolls this die' }, got: { roll: n.kind, handler: n.handler } });
+      continue;
+    }
+    if (n.kind === 'speed-order') {
+      /* COMPUTED, NOT DECLARED. Both bodies are 0 SP under a neutral nature everywhere this clause is
+       * used, so the two BASE speeds decide the order and the question "does the multiplier cross it"
+       * has an arithmetic answer. If the caller cannot supply a target, the clause stays quiet rather
+       * than guessing. */
+      const tg = sc.target ? D.species.get(sc.target) : null;
+      if (!legal(sp) || !legal(tg) || !n.multiplier) continue;
+      const mine = sp.baseStats.spe, theirs = tg.baseStats.spe;
+      if ((mine > theirs) !== (mine * n.multiplier > theirs)) continue;   /* it DOES cross — fine */
+      note.push('"' + subj + '" does nothing but multiply Speed by ' + n.multiplier + ', and on this '
+        + 'board ' + sp.name + ' (' + mine + ') is ' + (mine > theirs ? 'already faster than ' : 'still slower than ')
+        + tg.name + ' (' + theirs + ') either way — the order does not change, so neither log can');
+      cl.push({ clause: 'speed-order', blocking: false,
+                need: { crossing: theirs }, got: { base: mine, multiplier: n.multiplier } });
+      continue;
+    }
+    const met = n.kind === 'ko-hit' ? !!BS.koHit
+              : n.kind === 'trapped' ? !!BS.trapped
+              : n.kind === 'pp-exhausted' ? !!BS.ppExhausted
+              : n.kind === 'own-stat-dropped' ? !!BS.ownStatDropped
+              : n.kind === 'item-consumed' ? !!BS.itemConsumed
+              : n.kind === 'ally-only' ? !!BS.allyIsLive
+              : n.kind === 'volatile-present' ? n.values.some(v => (BS.volatiles || []).map(id).includes(v))
+              : n.kind === 'heal-effect' ? n.values.some(v => (BS.healEffects || []).map(id).includes(v))
+              : false;
+    if (met) continue;
+    const what = n.kind === 'ko-hit' ? 'a hit that would take the holder\'s LAST HP'
+                   + (n.atFullHp ? ', thrown while it is at FULL HP' : '')
+               : n.kind === 'trapped' ? 'the holder to be TRAPPED by something'
+               : n.kind === 'pp-exhausted' ? 'one of the holder\'s moves to be at 0 PP'
+               : n.kind === 'own-stat-dropped' ? 'a stat already DROPPED on the holder'
+               : n.kind === 'item-consumed' ? 'an item on the holder for it to lose or eat'
+               : n.kind === 'ally-only' ? 'a PARTNER that is actually played — every handler it owns '
+                   + 'fires on an ally, and this fixture\'s ally clicks Protect and is never touched'
+               : n.kind === 'volatile-present' ? 'the volatile ' + n.values.join(' or ') + ' already on the body'
+               : n.kind === 'heal-effect' ? 'a heal from ' + n.values.join(' or ')
+               : n.kind;
+    note.push('"' + subj + '" needs ' + what + ' (`' + n.handler + '`), and this board does not '
+      + 'declare it — a board that never reaches the state shows nothing whatever the engine does');
+    cl.push({ clause: 'board-state', blocking: false,
+              need: { state: n.kind, values: n.values, handler: n.handler },
+              got: { declared: Object.keys(BS).length ? BS : null } });
+  }
+
+  /* 7. THE MECHANIC WHOSE CODE IS SOMEBODY ELSE'S, AND WHOSE EFFECT IS A CLOCK.
+   *
+   * Six in-scope items expose no functional handler at all. A derivation that read only what an entity
+   * OWNS would report them as untriggerable; the reverse scan says otherwise, with a citation. Every
+   * reading site for the rocks and the clay is a `durationCallback` returning 8 instead of 5, so the
+   * mechanic is a DURATION EXTENSION and it is invisible in a game that never reaches turn 6 of the
+   * thing being extended. That is a fixture limit with a NUMBER on it. */
+  const handlerless = (itemE && itemE.exists && !handlerSrc(itemE).trim() && ['item', itemE.id])
+                   || (ab && ab.exists && !handlerSrc(ab).trim() && ['ability', ab.id]) || null;
+  if (handlerless) {
+    const sites = readByOthers(handlerless[1], handlerless[0]);
+    if (!sites.length) {
+      note.push('"' + subj + '" exposes no handler AND nothing in the authority\'s own sources reads '
+        + 'it by name — this instrument cannot say what would trigger it');
+      cl.push({ clause: 'read-by-nobody', blocking: false, got: { entity: handlerless[1] } });
+    } else {
+      const durs = sites.filter(s => s.durations.length);
+      const longest = Math.max(...durs.map(s => Math.max(...s.durations)), 0);
+      const turns = +sc.turns || 0;
+      if (durs.length === sites.length && (!turns || turns < longest)) {
+        note.push('"' + subj + '" owns no handler; its whole effect is a DURATION, extended to '
+          + longest + ' turns at ' + durs.map(s => s.file + ':' + s.line).join(', ')
+          + (turns ? ' — and this fixture plays ' + turns + ' turns' : '')
+          + '. The two arms cannot part before the shorter clock runs out');
+        cl.push({ clause: 'duration-extension', blocking: false,
+                  need: { turns: longest }, got: { turns: turns || null },
+                  read_at: durs.map(s => s.file + ':' + s.line) });
+      } else {
+        note.push('"' + subj + '" owns no handler — its effect lives in '
+          + sites.map(s => s.file + ':' + s.line + ' (' + s.fn + ')').join(', '));
+        cl.push({ clause: 'read-elsewhere', blocking: false,
+                  read_at: sites.map(s => s.file + ':' + s.line + ' (' + s.fn + ')') });
+      }
     }
   }
 }
@@ -337,6 +467,20 @@ const EVENT_ROLE = {
   invulnerability: 'defender', modifysecondaries: 'defender', flinch: 'defender',
   tryboost: 'defender', changeboost: 'defender', aftereachboost: 'defender', afterboost: 'defender',
 };
+/* THE EVENTS THAT ONLY A DAMAGING MOVE EVER REACHES, AND A STATUS MOVE OF THE RIGHT TYPE WAS
+ * SATISFYING THEM.
+ *
+ * MEASURED 2026-08-18, and it is the shape of every over-match this file has already had: Twisted
+ * Spoon's `onBasePower` needs a PSYCHIC move, `satisfiesNeed('type')` reads `move.type`, and **REST IS
+ * A PSYCHIC MOVE**. It is in `GAUNTLET_ACTOR_MOVES`, so the need read as SATISFIED on every board, no
+ * clause was emitted, and the row sat in `did_not_fire_unexplained` — the one bucket the whole
+ * preflight exists to empty. `onBasePower` runs inside `getDamage` and a status move never enters it.
+ *
+ * Read off the simulator's call sites like `EVENT_ROLE` beside it, and for the same reason: it is a
+ * property of where the event is RAISED, not of any mechanic. An event absent from this set is treated
+ * as reachable by anything, which is the permissive direction and matches the previous behaviour. */
+const DAMAGE_PATH = new Set(['basepower', 'modifydamage', 'damaginghit', 'afterdamage',
+  'criticalhit', 'effectiveness', 'modifystab', 'weathermodifydamage', 'sourcemodifydamage']);
 /* The events whose very NAME is the requirement — no literal in the body to read. */
 const EVENT_CUE = {
   modifystab: 'stab', modifyaccuracy: 'subaccuracy', accuracy: 'subaccuracy',
@@ -499,8 +643,24 @@ function cuesOf(base, src) {
         + '(`hasType`) — a stat-dropping move alone does not satisfy it');
     }
   } else if (EVENT_CUE[base]) out.push({ kind: EVENT_CUE[base], values: [] });
-  /* THE CUES WHOSE SIGN CANNOT BE READ. Recorded, never acted on — see the header. */
-  if (/move\.category\s*===/.test(src)) undet.push('move.category');
+  /* CATEGORY. The header retired this to the undetermined pile in August with Telepathy as the worked
+   * example — `if (!target.isAlly(source) || move.category === "Status") return;` names Status and
+   * requires the OPPOSITE. That was right at the time and it is no longer, because `polarity` was
+   * built afterwards and answers exactly this question: Telepathy's guard is a BARE RETURN so the
+   * literal is an exclusion, while Wise Glasses' `if (move.category === "Special") return
+   * this.chainModify(…)` is a guard that DOES something, so the literal is a requirement. Same helper,
+   * same rule as the flags directly above, and Wise Glasses was one of the last three unexplained item
+   * rows. PRINTED over all 316 abilities and all 73 items before it was wired: 4 abilities and 1 item,
+   * every one of them a positive guard, and Telepathy is correctly not among them. */
+  {
+    const cats = new Set();
+    for (const m of src.matchAll(/move\.category\s*[!=]==\s*["'](Physical|Special|Status)["']/g)) {
+      const p = polarity(src, G, new RegExp('move\\.category\\s*[!=]==\\s*["\']' + m[1] + '["\']', 'g'));
+      if (p.required) cats.add(m[1]);
+    }
+    if (cats.size) out.push({ kind: 'category', values: [...cats] });
+    else if (/move\.category\s*===/.test(src)) undet.push('move.category (read, and not required)');
+  }
   if (/move\.ohko/.test(src)) undet.push('move.ohko');
   if (/move\.willCrit/.test(src)) undet.push('move.willCrit');
   /* dedupe by kind: a handler naming two types is ONE need with two acceptable values */
@@ -523,8 +683,10 @@ function moveNeeds(entity) {
     const role = EVENT_ROLE[h.base];
     const by = whoClicks(h.prefix, role);
     const c = cuesOf(h.base, String(v));
+    const damaging = DAMAGE_PATH.has(h.base);
     for (const u of c.undet) undetermined.push({ handler: k, cue: u });
     for (const n of c.needs) {
+      if (damaging) n.damagingOnly = true;
       /* THE BOOST FAMILY DOES NOT TAKE THE ATTACKER/DEFENDER FLIP, and pretending it did put
        * Opportunist on the wrong side of the field. A boost EVENT names the body whose stats moved; a
        * DROP is thrown at it by the other side, a RAISE is something it did to itself. */
@@ -551,8 +713,13 @@ function moveNeeds(entity) {
 function satisfiesNeed(moveId, need, ctx) {
   const mv = D.moves.get(moveId);
   if (!mv || !mv.exists) return false;
+  /* A DAMAGE-PATH HANDLER IS NOT REACHED BY A STATUS MOVE, WHATEVER TYPE IT IS. See `DAMAGE_PATH` —
+   * Rest is Psychic, and it was clearing Twisted Spoon's requirement without ever entering the code
+   * that reads it. Applied here rather than inside each case so no kind can forget it. */
+  if (need.damagingOnly && mv.category === 'Status') return false;
   switch (need.kind) {
     case 'type': return need.values.includes(mv.type);
+    case 'category': return need.values.includes(mv.category);
     case 'flag': return need.values.some(f => !!(mv.flags || {})[f]);
     case 'recoil': return !!(mv.recoil || mv.hasCrashDamage);
     case 'multihit': return Array.isArray(mv.multihit);
@@ -593,6 +760,244 @@ function satisfiesNeed(moveId, need, ctx) {
     default: return false;
   }
 }
+/* ================= WHAT THE BOARD MUST HOLD, AS OPPOSED TO WHAT SOMEBODY MUST CLICK ================
+ *
+ * `moveNeeds` above answers "which MOVE reaches this trigger". A whole family of mechanics — and it is
+ * the family the ITEMS arm is made of — needs nothing clicked at all. It needs the board to be in a
+ * STATE: Focus Sash needs a body at full HP taking a lethal hit, Shed Shell needs a trapped body,
+ * Mental Herb needs one of six volatiles present, White Herb needs a stat already dropped, Leppa Berry
+ * needs a move at 0 PP, Light Ball needs the holder to BE Pikachu.
+ *
+ * MEASURED 2026-08-18: 55 of the 73 in-scope item rows read `did_not_fire_unexplained`, and the
+ * `trigger-move` clause could not have explained one of them, because `runItems` never handed the
+ * preflight a `stagedMoves` at all. The mechanism was built for abilities and pointed at abilities.
+ *
+ * DERIVED FROM THE HANDLER, SAME RULE AS EVERY CLAUSE ABOVE. A board need is a literal the handler
+ * reads that no move supplies, so it is a different SHAPE of requirement, not a different source of
+ * truth. Each kind below names the regex that finds it, and the whole set was PRINTED over all 316
+ * abilities and all 73 in-scope items before it was wired to anything — the `refusesStatusMoves`
+ * lesson, which this file has already had to learn twice inside `cuesOf`. */
+function boardNeeds(entity) {
+  const out = [], undet = [];
+  if (!entity || !entity.exists) return out;
+  const add = (kind, values, handler, extra) =>
+    out.push(Object.assign({ kind, values: values || [], handler }, extra || {}));
+  const handlers = Object.entries(entity).filter(([k, v]) => /^on/.test(k) && typeof v === 'function');
+  const allSrc = handlers.map(([, v]) => String(v)).join(' ');
+  /* A VOLATILE THE MECHANIC APPLIES ITSELF IS NOT A PRECONDITION, AND THE FIRST PRINT OF THIS
+   * DERIVATION GOT THAT WRONG ON EIGHT ROWS. `flashfire.onEnd` removes `flashfire`, `truant.onStart`
+   * reads `truant`, Choice Scarf's `onStart` reads `choicelock` — every one of them is the mechanic
+   * looking at its OWN mark, which it puts there. Reading those as "the board must already hold this"
+   * would have labelled eight working mechanics as fixture gaps. Derived, not listed: anything the
+   * entity `addVolatile`s anywhere in its own handlers is its own. */
+  const selfVol = new Set([...allSrc.matchAll(/addVolatile\(\s*["']([a-z]+)["']/g)].map(m => m[1]));
+  for (const [k, v] of handlers) {
+    const src = String(v);
+    const h = splitHandler(k);
+    const base = h ? h.base : '';
+    const prefix = h ? h.prefix : '';
+    /* THE HOLDER MUST BE THAT SPECIES. `pokemon.baseSpecies.baseSpecies === "Pikachu"` is Light Ball's
+     * entire guard, and it is the one board need that BLOCKS: no turn, no sky and no status can make a
+     * Corviknight a Pikachu. */
+    for (const m of src.matchAll(/baseSpecies\.baseSpecies\s*===\s*["']([A-Za-z-]+)["']/g))
+      add('species-gated', [m[1]], k, { blocking: true });
+    /* A LETHAL HIT ON A FULL-HP BODY. Focus Sash and Sturdy both read it; the fixture's rung 1 is built
+     * so nothing can faint and its rung 2 beats a body down over several turns, so "full HP AND a hit
+     * that would take all of it" is a state neither rung reaches by accident. */
+    if (/damage\s*>=\s*target\.hp/.test(src))
+      add('ko-hit', [], k, { atFullHp: /target\.hp\s*===\s*target\.maxhp/.test(src) });
+    /* TRAPPED, AND THE PREFIX IS THE POLARITY. `onTrapPokemon` with no prefix means the HOLDER is the
+     * one being trapped and is escaping — Shed Shell. `onFoeTrapPokemon` is the opposite mechanic
+     * entirely: Arena Trap, Magnet Pull and Shadow Tag DO the trapping and need no trapped body at all.
+     * The first print handed all four the same need, which is a requirement invented for three rows
+     * that already work. */
+    if ((base === 'trappokemon' || base === 'maybetrappokemon') && !prefix) add('trapped', [], k);
+    /* A HEAL FROM ONE OF A NAMED SET OF EFFECTS. Big Root lists five by `effect.id`, which is not a
+     * move id: `drain` is the sub-effect the simulator passes when a drain move heals
+     * (sim/battle-actions.ts — `this.battle.heal(..., 'drain')`), so a drain move supplies it.
+     *
+     * RESTRICTED TO A HEAL-SHAPED HANDLER, because `[...].includes(effect.id)` is a shape and not a
+     * meaning. The first print matched Damp's `["explosion","mindblown",…]` in `onAnyTryMove` and Cud
+     * Chew's `["bugbite","pluck"]` in `onEatItem` — neither is a heal, and both would have been handed
+     * a requirement about healing. Those are recorded as UNDETERMINED cues, which is what this file
+     * already does with `move.category` and `move.ohko`: a match whose meaning cannot be read is
+     * reported so the gap is visible, never acted on. */
+    for (const m of src.matchAll(/\[([^\]]{0,200}?)\]\s*(?:\.includes\(\s*effect\.id\s*\)|;[\s\S]{0,80}?includes\(effect\.id\))/g)) {
+      const vals = [...m[1].matchAll(/["']([a-z]+)["']/g)].map(x => x[1]);
+      if (/heal/.test(base)) add('heal-effect', vals, k);
+      else undet.push({ handler: k, cue: 'a list of effect ids (' + vals.join('|')
+        + ') outside a heal handler — the sign and the supplier are not readable here' });
+    }
+    /* A MOVE AT 0 PP. Leppa Berry's whole mechanism. */
+    if (/\.pp\s*===?\s*0/.test(src)) add('pp-exhausted', [], k);
+    /* A VOLATILE ALREADY ON THE BODY. Mental Herb reads six and Persim Berry one; both cure rather
+     * than read a `status`, so the `status-present` clause above cannot see either of them. */
+    {
+      const vs = new Set();
+      for (const m of src.matchAll(/(?:removeVolatile|volatiles)\s*[([]\s*["']([a-z]+)["']/g)) vs.add(m[1]);
+      for (const m of src.matchAll(/\[([^\]]{0,200}?)\]\s*\.(?:filter|some|forEach)\(/g))
+        if (/removeVolatile|volatiles/.test(src.slice(m.index, m.index + 400)))
+          for (const x of m[1].matchAll(/["']([a-z]+)["']/g)) vs.add(x[1]);
+      /* AND THE ONE THAT READS THE LIST THROUGH A LOOP VARIABLE. Mental Herb — six volatiles, the only
+       * item in the format whose whole mechanism they are — writes
+       * `const conditions = ["attract", …]; for (const c of conditions) if (pokemon.volatiles[c])`, so
+       * NO literal ever appears inside a `volatiles[...]` subscript and the two matchers above find
+       * nothing. It was the last unexplained item row on the 2026-08-18 run. The array literal is
+       * bound to a name and the subscript is that name, so both halves are read. */
+      for (const m of src.matchAll(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*\[([^\]]{0,300}?)\]/g))
+        if (new RegExp('volatiles\\[\\s*\\w*' + m[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                       + '\\w*\\s*\\]|volatiles\\[\\s*(?:first|second)?[A-Za-z]*\\s*\\]').test(src))
+          for (const x of m[2].matchAll(/["']([a-z]+)["']/g)) vs.add(x[1]);
+      for (const v of selfVol) vs.delete(v);
+      if (vs.size && /removeVolatile|cureStatus/.test(src)) add('volatile-present', [...vs], k);
+    }
+    /* A STAT ALREADY DROPPED ON THE HOLDER. White Herb restores it; with nothing dropped it restores
+     * nothing and the two arms are identical. */
+    if (/boosts\[[^\]]+\]\s*<\s*0/.test(src)) add('own-stat-dropped', [], k);
+  }
+  /* AN ACCURACY OR CRIT-RATIO MULTIPLIER, AND THE JUDGEMENT IS ABOUT THE WHOLE ENTITY RATHER THAN ONE
+   * HANDLER. Under a CORNER arm of the differential the accuracy roll is a constant — `random(m)`
+   * returns 0 at the bottom corner and `m-1` at the top (game_differential.js `makeArm`), so
+   * `random(100) < accuracy` has the same answer whatever the accuracy is, and `randomChance(1,ratio)`
+   * has the same answer whatever the ratio is. A mechanic whose ONLY effect is to move one of those two
+   * numbers therefore cannot change a single line of either engine's log, however correct both are.
+   *
+   * "ONLY" IS LOAD-BEARING AND THE FIRST PRINT PROVED IT. Hustle carries `onSourceModifyAccuracy` AND
+   * `onModifyAtk`; per-handler, it looked arm-inert, and Hustle is one of the rows that FIRES. So the
+   * need is emitted only when every functional handler the entity owns is in this family. */
+  const ACC = /^(?:modifyaccuracy|accuracy)$/, CRIT = /^modifycritratio$/;
+  const bases = handlers.map(([k]) => (splitHandler(k) || { base: '' }).base);
+  if (bases.length && bases.every(b => ACC.test(b) || CRIT.test(b))) {
+    add(bases.some(b => ACC.test(b)) ? 'accuracy-roll' : 'crit-roll', [], handlers[0][0],
+        { onlyEffect: true, alsoCrit: bases.some(b => CRIT.test(b)) });
+  }
+  /* AN ITEM THE HOLDER HAS TO CONSUME. Cheek Pouch, Cud Chew, Ripen, Unburden and Symbiosis all key on
+   * an item leaving a body; the abilities arm builds both of its bodies with `item: ''` unless a
+   * `thenWhat` row asks otherwise, so there is nothing to eat. Per-handler and event-named, the same
+   * shape as `trapped`, not an entity-level guess. */
+  /* NO PREFIX AND NOT `tryeatitem`, AND BOTH RESTRICTIONS WERE MEASURED. The first print matched 11
+   * abilities: `onFoeTryEatItem` (As One, Unnerve) is the holder STOPPING somebody else's berry, and
+   * `onTryEatItem` on Berserk and Anger Shell is a veto hook beside an `onDamage` that is the real
+   * mechanism. Neither is "this ability needs an item to be consumed", and labelling Berserk that way
+   * would have parked a threshold ability in the item column. */
+  for (const [k] of handlers) {
+    const h = splitHandler(k) || { base: '', prefix: '' };
+    if (h.prefix || !/^(?:eatitem|afteruseitem|takeitem|useitem)$/.test(h.base)) continue;
+    add('item-consumed', [], k);
+    break;
+  }
+  /* EVERYTHING IT DOES, IT DOES TO ITS PARTNER. Aroma Veil, Flower Veil, Sweet Veil, Friend Guard,
+   * Symbiosis, Telepathy and Receiver are ally mechanics, and this fixture's ally is a pad that clicks
+   * Protect every turn and is never hit, statused or dropped. Entity-level and `every`, because a
+   * mechanic with one ally handler among several is not an ally mechanic — the same "only" that
+   * Hustle forced onto the accuracy clause. `Ally` in the handler NAME or an `isAlly`/`hasAlly`/
+   * `allies()` gate in its body; Friend Guard is `onAnyModifyDamage` and is only findable the second
+   * way.
+   *
+   * THE SOURCE-GATE ROUTE IS DELIBERATELY NOT TAKEN, AND THAT IS A NAMED GAP RATHER THAN AN OVERSIGHT.
+   * Matching `isAlly`/`hasAlly` in a handler body caught 26 abilities and most of them mean the
+   * OPPOSITE: Competitive's `if (!source || target.isAlly(source)) return;` EXCLUDES an ally, while
+   * Telepathy's `if (!target.isAlly(source) …) return;` requires one — identical text, opposite sign.
+   * `polarity` recovered most of it and still cleared Queenly Majesty, Dazzling, Armor Tail, Mummy and
+   * Toxic Debris, whose `isAlly` sits in a nested call the guard splitter does not bracket cleanly.
+   * A WRONG EXPLANATION IS WORSE THAN NONE — it moves a row out of the unexplained column while
+   * explaining nothing, which is the exact failure this whole clause set exists to undo. So the clause
+   * takes only the route that cannot be misread, the `Ally` PREFIX in the handler's own name, and
+   * FRIEND GUARD AND TELEPATHY ARE NOT COVERED BY IT. They stay unexplained and are visible as such. */
+  if (handlers.length && handlers.every(([k]) => /^onAlly/.test(k)))
+    add('ally-only', [], handlers[0][0], { onlyEffect: true });
+  /* A SPEED MULTIPLIER IS OBSERVABLE ONLY WHERE IT CHANGES WHO MOVES FIRST. Swift Swim and Slush Rush
+   * double Speed and do nothing else; both bodies here are built at 0 SP under a neutral nature, so
+   * base Speed is the whole order and a doubling that leaves the order alone changes not one line of
+   * either log. The MULTIPLIER is read off the handler rather than assumed to be 2. */
+  if (bases.length && bases.every(b => b === 'modifyspe')) {
+    const m = /chainModify\(\s*([\d.]+)\s*\)/.exec(allSrc);
+    add('speed-order', [], handlers[0][0], { onlyEffect: true, multiplier: m ? +m[1] : null });
+  }
+  const key = n => n.kind + '/' + n.values.slice().sort().join(',');
+  const uniq = new Map();
+  for (const n of out) if (!uniq.has(key(n))) uniq.set(key(n), n);
+  const needs = [...uniq.values()];
+  needs.undetermined = undet;
+  return needs;
+}
+
+/* ================= AND THE HALF A HANDLER SCAN CANNOT SEE =========================================
+ *
+ * SIX IN-SCOPE ITEMS EXPOSE NO FUNCTIONAL HANDLER WHATSOEVER — `smoothrock`, `heatrock`, `icyrock`,
+ * `damprock`, `lightclay`, and `ironball` exposes two that are not where its grounding rule lives. A
+ * derivation that reads only what the entity OWNS would report "this cannot be triggered", confidently
+ * and wrongly. Their effect lives in somebody else's code:
+ *
+ *     data/conditions.ts:633   sandstorm.durationCallback -> `if (source?.hasItem('smoothrock'))`
+ *
+ * So the scan runs in BOTH directions. This half greps the authority's own sources for who READS
+ * `hasItem('<id>')`, and reports the reading site with its file and line, so the finding is a citation
+ * rather than a claim. `data/items.ts` is excluded because the item's own definition is already read
+ * off the dex above; every other file is fair game.
+ *
+ * WHERE IT IS READ DECIDES WHAT THE FIXTURE NEEDS. Every one of the five rocks and clays is read
+ * inside a `durationCallback` that returns 8 instead of 5 — so the mechanic is a DURATION EXTENSION,
+ * and it is invisible in any game that does not reach turn 6 of that weather or screen. That is a
+ * fixture limit with a number attached, which is a different thing from an unexplained inert row. */
+const SRC_FILES = [
+  'data/mods/champions/abilities.ts', 'data/mods/champions/moves.ts',
+  'data/mods/champions/conditions.ts', 'data/mods/champions/scripts.ts',
+  'data/mods/champions/rulesets.ts',
+  'data/abilities.ts', 'data/moves.ts', 'data/conditions.ts', 'data/scripts.ts', 'data/rulesets.ts',
+  'sim/pokemon.ts', 'sim/battle.ts', 'sim/battle-actions.ts', 'sim/field.ts', 'sim/side.ts',
+];
+let SRC_CACHE = null;
+function srcCorpus() {
+  if (SRC_CACHE) return SRC_CACHE;
+  const fs = require('fs'), path = require('path');
+  SRC_CACHE = [];
+  for (const rel of SRC_FILES) {
+    const p = path.join(SD, rel);
+    let txt; try { txt = fs.readFileSync(p, 'utf8'); } catch (e) { continue; }
+    SRC_CACHE.push({ rel, lines: txt.split(/\r?\n/) });
+  }
+  /* LOUD, NOT SILENT. A corpus that failed to load would report "nothing reads this item" for every
+   * row — a silent default wearing the costume of a measurement, which is the failure this repo is
+   * named after. */
+  if (!SRC_CACHE.length) throw new Error('fixture_preflight: could not read ANY authority source under '
+    + SD + ' — the reverse item scan would silently report "read by nobody" for every row');
+  return SRC_CACHE;
+}
+/** readByOthers(id, kind) -> [{file,line,text,fn}] — who else's code reads this item or ability.
+ *  `kind` is 'item' (default) or 'ability'. Early Bird and Stall expose no handler either, and their
+ *  rules live in `conditions.ts` and in the queue sorter respectively — the same shape as the rocks. */
+function readByOthers(itemId, kind) {
+  const k = id(itemId);
+  if (!k) return [];
+  const re = kind === 'ability'
+    ? new RegExp('(?:hasAbility|getAbility)\\s*\\(\\s*["\']' + k + '["\']'
+               + '|ability\\s*===\\s*["\']' + k + '["\']'
+               + '|ability\\.id\\s*===\\s*["\']' + k + '["\']', 'g')
+    : new RegExp('(?:hasItem|getItem|useItem|takeItem)\\s*\\(\\s*["\']' + k + '["\']'
+                      + '|item\\s*===\\s*["\']' + k + '["\']'
+                      + '|item\\.id\\s*===\\s*["\']' + k + '["\']', 'g');
+  const out = [];
+  for (const f of srcCorpus()) {
+    for (let i = 0; i < f.lines.length; i++) {
+      if (!re.test(f.lines[i])) { re.lastIndex = 0; continue; }
+      re.lastIndex = 0;
+      /* THE ENCLOSING FUNCTION, walked backwards to the nearest declaration at a shallower indent.
+       * `durationCallback` is the one that matters and it is read, not assumed. */
+      let fn = null;
+      for (let j = i; j >= 0 && j > i - 40; j--) {
+        const m = /^\s*(?:async\s+)?([A-Za-z_$][\w$]*)\s*\(/.exec(f.lines[j]);
+        if (m && !/^(if|for|while|switch|return|catch)$/.test(m[1])) { fn = m[1]; break; }
+      }
+      const after = f.lines.slice(i, i + 8).join(' ');
+      const rets = [...after.matchAll(/return\s+(\d+)\s*;/g)].map(x => +x[1]);
+      out.push({ file: f.rel, line: i + 1, text: f.lines[i].trim(), fn,
+                 durations: fn === 'durationCallback' ? rets : [] });
+    }
+  }
+  return out;
+}
+
 /* THE CLAUSE RECORD — THE SAME VERDICT, SHAPED SO A HARNESS CAN ACT ON IT.
  *
  * `why` and `note` are PROSE, written for a person reading a refusal. A caller that wants to REPAIR the
@@ -697,7 +1102,8 @@ function check(sc) {
 }
 
 module.exports = { check, legal, learnable, statusOf,
-                   moveNeeds, satisfiesNeed, learnsetOf, EVENT_ROLE };
+                   moveNeeds, satisfiesNeed, learnsetOf, EVENT_ROLE,
+                   boardNeeds, readByOthers };
 
 if (require.main === module) {
   const S = [
