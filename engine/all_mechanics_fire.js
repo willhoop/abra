@@ -89,6 +89,22 @@ const RED = has('--red');
 const VERBOSE = has('--verbose');
 const DUMPLOG = has('--dumplog');
 const OUT = flag('--out', null);
+/* ---- `--trailing N` — KEEP PLAYING AFTER THE CLICK (2026-08-19) ---------------------------------
+ *
+ * A MOVE ROW'S SCRIPT ENDS ON THE CLICK TURN, so the board comparison gets exactly ONE boundary after
+ * the mechanic resolves. That is enough for a mechanic that acts immediately and NOT ENOUGH for one
+ * whose consequence lands later — a lock that blocks the NEXT turn's switch, a multi-turn shout, a
+ * counter that ticks. On such a row "the boards agreed" would be true and would mean nothing, because
+ * the game ended before the state could exist. It is the same failure `su.trailing` was already added
+ * for on the heal family, generalised so it can be asked of any row.
+ *
+ * IT IS A DIFFERENT SAMPLE AND IS NEVER POOLED WITH A RUN WITHOUT IT. A longer game has more chances
+ * to part for reasons that have nothing to do with the row, so the artifact records the number and the
+ * report says so. Default 0 — the fixture is unchanged unless a caller asks. */
+const TRAILING = +flag('--trailing', 0) || 0;
+if (TRAILING) console.log('  --trailing ' + TRAILING + ': every MOVE row plays ' + TRAILING + ' extra turn(s) '
+  + 'after its click, so a mechanic whose consequence lands later has a board taken after it. THIS IS A '
+  + 'DIFFERENT SAMPLE from a run without it and its rows must not be pooled with one.');
 
 if (!process.env.SHOWDOWN_PATH) {
   console.error('NOT RUN — the official simulator is absent. Set SHOWDOWN_PATH. This is not a pass.');
@@ -123,6 +139,11 @@ console.log('  --state is ON (forced): a game runs past its first divergent LINE
           + 'turns cannot eat its click turn. The first protocol divergence is still recorded where it was found.');
 
 const GD = require('./game_differential.js');
+/* THE BOARD READER, LOADED LIVE AND NOT FROM THE RELEASE — the same decision game_differential.js
+ * makes about it one file over, and for the same reason: freezing the INSTRUMENT would score every
+ * ladder rung by its own contemporary comparator instead of by one comparator. The ENGINE is what the
+ * release pins. */
+const BS = require('./board_state.js');
 const CS = require('./champions_sim.js');
 const { Dex, TeamValidator } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
@@ -812,11 +833,176 @@ function playScenario(spec) {
   const a = a6.slice(0, 4), b = b6.slice(0, 4);
   let g;
   GAMES++;
-  try { g = GD.playGame(a, b, 'all-mechanics-fire', spec.tag, { script: spec.script, arm: ARM }); }
+  /* ---- THE BOARD, COLLECTED AT EVERY BOUNDARY THIS GAME TAKES (2026-08-19) ---------------------
+   *
+   * `--state` HAS BEEN FORCED ON SINCE THIS FILE WAS WRITTEN (see the block at the top), so the
+   * driver has been taking a full `board_state.js` snapshot at every turn boundary of every gauntlet
+   * game all along AND THROWING IT AWAY: `playScenario` returned only `sdLog`, `mediTrace` and `div`.
+   * That is why thirty rows could sit in the artifact classed `event missing from medicham2` or
+   * `ordering` with nobody able to say whether they moved a board — the answer was being computed and
+   * discarded on every run.
+   *
+   * `onBoundary` IS THE DRIVER'S OWN HOOK and it is read-only. It is used rather than a second
+   * build/init/choose harness here for the reason its own comment gives: a second copy is how two
+   * files come to disagree about what a boundary is. Nothing about the game changes by observing it.
+   *
+   * THE RECEIPTS TRAVEL WITH THE BOARD AND ARE NOT OPTIONAL. `pp_comparable`,
+   * `party_post_faint_skipped` and `screens_named_comparable` are the three places `board_state.js`
+   * can be UNABLE to answer, and an unanswered leaf reads exactly like an agreeing one — the failure
+   * docs/LESSONS.md §1 is about. They are carried per boundary so a verdict can never be quoted
+   * without them.
+   *
+   * THE DIFFS ARE KEPT ONLY WHERE A BOARD PARTED, which is bounded: the driver stops the game at the
+   * FIRST divergent board, so at most one boundary in a state-mode game carries any. */
+  const boards = [];
+  const onBoundary = (snap, turnIdx) => {
+    boards.push({ turn: turnIdx, identical: snap.identical, leaves_compared: snap.leaves_compared,
+                  party_post_faint_skipped: snap.party_post_faint_skipped,
+                  pp_comparable: snap.pp_comparable,
+                  screens_named_comparable: snap.screens_named_comparable,
+                  diffs: snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap)) });
+  };
+  try { g = GD.playGame(a, b, 'all-mechanics-fire', spec.tag,
+                        { script: spec.script, arm: ARM, onBoundary,
+                          /* undefined on every real run; the board red demonstration is its only caller */
+                          statePlant: spec.statePlant }); }
   catch (e) { THREW++; return { staged: false, why: 'the game threw: ' + String(e.message || e).slice(0, 120) }; }
   const sdLog = GD.lastSdLog();
   return { staged: true, sdLog, mediTrace: g.mediTrace, div: g.div, turns: g.turns, err: g.err,
-           validator_ok: true };
+           validator_ok: true,
+           boards, boundaries: g.boundaries, boundariesAgreed: g.boundariesAgreed,
+           stateDiv: g.stateDiv, divTurn: g.divTurn, endReason: g.endReason };
+}
+
+/* ---- WHAT A ROW'S BOARDS SAY, AS A VERDICT ------------------------------------------------------
+ *
+ * WILL'S STANDARD, 2026-08-18: *"it looks at the game. the commentary can be different but it needs
+ * to lead to identical outcomes in all scenarios"*, and the method: *"play those games out that differ
+ * from commentary, and see if it leads to identical board states."*
+ *
+ * FOUR VERDICTS, AND THE TWO THAT ARE NOT ANSWERS ARE NAMED RATHER THAN FOLDED INTO ONE OF THE TWO
+ * THAT ARE. A row whose game never reached a boundary AFTER the line parted has not been asked the
+ * question at all, and reporting it as ANNOUNCEMENT-ONLY would be exactly the silent default this
+ * repository keeps paying for.
+ *
+ *   STATE             a board parted. The turn is recorded and the row STOPS THERE — the driver's own
+ *                     stop rule — because past that point the two games have branched and every later
+ *                     difference is a consequence of this one rather than a finding of its own.
+ *   ANNOUNCEMENT-ONLY the protocol parted, at least one board was taken at or after the turn it parted
+ *                     on, and every compared leaf of every board agreed.
+ *   NOT-ASKED         no board was taken at or after the diverging turn (the game ended first, or
+ *                     threw). NOT a pass.
+ *   NO-DIVERGENCE     this row's streams did not part in this run, so there is nothing to explain.
+ *
+ * `boards_after_the_parting` IS THE LOAD-BEARING NUMBER. Boundary indices are turn numbers — index 0
+ * is the leads, index t is the board after turn t — and `divTurn` is the turn the protocol parted on,
+ * both assigned by the same driver. So the first board that could carry the consequence is index
+ * `divTurn`, and a verdict rests on there being at least one. */
+/* ---- WHICH LEAVES THIS ROW COULD WRITE THAT THE BOARD DOES NOT READ (2026-08-19) ----------------
+ *
+ * THE RULE THIS EXISTS FOR: **a leaf you cannot compare reads as agreement.** An ANNOUNCEMENT-ONLY
+ * verdict is a claim that the boards are identical IN THE FIELDS WE LOOK AT, and it is worth very
+ * little without the list of fields we do not — especially when the field we do not look at IS THE
+ * MECHANIC. Measured on the first run of this instrument: Fairy Lock's entire effect is a `fairylock`
+ * pseudo-weather, Uproar's is an `uproar` volatile and Spirit Shackle's is a `trapped` volatile, and
+ * `board_state.js` reads none of the three — nor did any of them appear in its `NOT_COMPARED`, which
+ * only ever listed the omissions somebody thought to write down.
+ *
+ * DERIVED FROM THE AUTHORITY'S OWN ENTRY, NEVER FROM A LIST HERE. The entry is walked recursively —
+ * `volatileStatus`, `sideCondition`, `slotCondition`, `pseudoWeather` at any depth, plus every
+ * function anywhere in it stringified and scanned for `addVolatile` / `addSideCondition` /
+ * `addPseudoWeather`. A shallow version of this walk missed three rows outright (Spirit Shackle's
+ * trap is inside `secondaries[0].onHit`; Beak Blast's and Focus Punch's own volatiles come from a
+ * `priorityChargeCallback`), and a derivation that UNDER-reports blind spots is worse than none.
+ *
+ * AND IT OVER-MATCHED FIRST, WHICH IS WHY THE FALSY GUARD IS THERE AND SAID OUT LOUD. Every dex entry
+ * carries `volatileStatus: undefined` as a real key, so the first walk reported `volatile:undefined`
+ * on twelve of twenty-one rows. docs/ENGINE.md: a new derived predicate over-matches; print what it
+ * matched before wiring it.
+ *
+ * THE COMPARED SETS COME FROM `board_state.js`'s OWN READERS and are not restated here — see
+ * `SD_VOLATILE_KEYS` there. A second copy would agree the day it was written and rot after. */
+const _lnorm = (v) => String(v).toLowerCase().replace(/[^a-z0-9]/g, '');
+function writtenLeaves(entry) {
+  const acc = { volatile: new Set(), side: new Set(), slot: new Set(), pseudo: new Set(), src: [] };
+  const seen = new Set();
+  (function walk(e, depth) {
+    if (!e || depth > 4) return;
+    if (typeof e === 'function') { acc.src.push(String(e)); return; }
+    if (typeof e !== 'object') return;
+    if (seen.has(e)) return; seen.add(e);
+    for (const [k, v] of Object.entries(e)) {
+      if (v === undefined || v === null || v === false || v === '') continue;   // the over-match guard
+      if (k === 'volatileStatus') acc.volatile.add(_lnorm(v));
+      else if (k === 'sideCondition') acc.side.add(_lnorm(v));
+      else if (k === 'slotCondition') acc.slot.add(_lnorm(v));
+      else if (k === 'pseudoWeather') acc.pseudo.add(_lnorm(v));
+      walk(v, depth + 1);
+    }
+  })(entry, 0);
+  const src = acc.src.join('\n');
+  for (const m of src.matchAll(/addVolatile\(\s*['"]([a-z0-9]+)['"]/gi)) acc.volatile.add(_lnorm(m[1]));
+  for (const m of src.matchAll(/addSideCondition\(\s*['"]([a-z0-9]+)['"]/gi)) acc.side.add(_lnorm(m[1]));
+  for (const m of src.matchAll(/addSlotCondition\(\s*[^,]+,\s*['"]([a-z0-9]+)['"]/gi)) acc.slot.add(_lnorm(m[1]));
+  for (const m of src.matchAll(/addPseudoWeather\(\s*['"]([a-z0-9]+)['"]/gi)) acc.pseudo.add(_lnorm(m[1]));
+  return acc;
+}
+const _VOL_OK = new Set(BS.SD_VOLATILE_KEYS), _SIDE_OK = new Set(BS.SD_SIDE_KEYS),
+      _PSEUDO_OK = new Set(BS.SD_PSEUDO_KEYS);
+function uncomparableLeaves(kind, key) {
+  const e = kind === 'move' ? dex.moves.get(key) : (kind === 'ability' ? dex.abilities.get(key) : dex.items.get(key));
+  if (!e || !e.exists) return [];
+  const w = writtenLeaves(e);
+  const out = [];
+  for (const v of w.volatile) if (!_VOL_OK.has(v)) out.push('volatile:' + v);
+  for (const v of w.side) if (!_SIDE_OK.has(v)) out.push('sideCondition:' + v);
+  for (const v of w.pseudo) if (!_PSEUDO_OK.has(v)) out.push('pseudoWeather:' + v);
+  for (const v of w.slot) out.push('slotCondition:' + v);   // board_state.js reads no slot condition
+  return out.sort();
+}
+
+function boardVerdict(r, kind, key) {
+  if (!r || !r.staged) return { verdict: 'NOT-STAGED', boundaries: 0,
+                                uncomparable_leaves: kind ? uncomparableLeaves(kind, key) : [] };
+  const boards = r.boards || [];
+  const last = boards.length ? boards[boards.length - 1].turn : null;
+  const dt = r.divTurn;
+  const after = dt == null ? null : boards.filter(b => b.turn >= dt).length;
+  const parted = boards.find(b => !b.identical) || null;
+  /* THE RECEIPTS, POOLED OVER THE BOUNDARIES THIS ROW ACTUALLY TOOK. A leaf held on ANY boundary
+   * qualifies the whole row's verdict, so these are maxima and minima rather than averages. */
+  const receipts = {
+    leaves_compared_min: boards.length ? Math.min(...boards.map(b => b.leaves_compared)) : 0,
+    leaves_compared_max: boards.length ? Math.max(...boards.map(b => b.leaves_compared)) : 0,
+    party_post_faint_skipped: boards.reduce((s, b) => s + (b.party_post_faint_skipped || 0), 0),
+    pp_slots_occupied: boards.reduce((s, b) => s + ((b.pp_comparable || {}).slots_occupied || 0), 0),
+    pp_slots_compared: boards.reduce((s, b) => s + ((b.pp_comparable || {}).slots_compared || 0), 0),
+    screens_named_comparable: boards.every(b => b.screens_named_comparable),
+  };
+  /* THE BOARD IS ASKED FIRST AND THE PROTOCOL SECOND, AND THE ORDER IS NOT COSMETIC. A board can part
+   * with the two streams in perfect agreement — that is a SILENT state defect and the most dangerous
+   * thing this instrument can find — and an earlier draft of this function tested `divTurn == null`
+   * first and reported exactly that case as NO-DIVERGENCE. It was caught by the board red plants,
+   * which are precisely a state difference with no line difference. */
+  let verdict;
+  if (parted) verdict = 'STATE';
+  else if (dt == null) verdict = 'NO-DIVERGENCE';
+  else if (after > 0) verdict = 'ANNOUNCEMENT-ONLY';
+  else verdict = 'NOT-ASKED';
+  const uncomparable = kind ? uncomparableLeaves(kind, key) : [];
+  return { verdict, state_parted_without_a_line: !!parted && dt == null,
+           uncomparable_leaves: uncomparable,
+           /* THE QUALIFIER ON AN ANNOUNCEMENT-ONLY VERDICT, AND IT IS SET RATHER THAN LEFT TO A
+            * READER. "The boards agreed" plus "the leaf this mechanic writes is not in the board" is
+            * not a clean row; it is an UNASKED question wearing a clean row's clothes. */
+           core_leaf_unchecked: verdict === 'ANNOUNCEMENT-ONLY' && uncomparable.length > 0,
+           boundaries: boards.length, boundaries_agreed: boards.filter(b => b.identical).length,
+           last_boundary_turn: last, protocol_parted_on_turn: dt,
+           boards_after_the_parting: after,
+           state_parted_on_turn: parted ? parted.turn : null,
+           diffs: parted ? parted.diffs : [],
+           end_reason: r.endReason || null,
+           receipts };
 }
 
 /* The script: `pre` turns then the click turn. EVERY SLOT GETS A STEP EVERY TURN, because Showdown
@@ -889,7 +1075,10 @@ function scriptFor(su, clickMove, bodies) {
   /* A CHARGE MOVE SPENDS TURN ONE CHARGING; the RESOLUTION is on turn two, and Showdown LOCKS the
    * second click (no target field at all), which `scripted()` already handles. */
   if (su.charge) T(click, { m: foe, t: 0 });
-  for (let k = 0; k < (su.trailing || 0); k++) T({ m: actorHit, t: 0 }, { m: inert });
+  /* THE TAG-DERIVED TRAILING TURNS AND THE CALLER'S ARE THE SAME TURNS, so the larger of the two wins
+   * rather than the two being added — otherwise a Wish row asked for one extra turn would silently get
+   * two and be a different fixture from every other row in the same run. */
+  for (let k = 0; k < Math.max(su.trailing || 0, TRAILING); k++) T({ m: actorHit, t: 0 }, { m: inert });
   return turns;
 }
 
@@ -1005,7 +1194,11 @@ function runMoves(list) {
                     attempted: sd.attempted, resolved: sd.resolved, why: sd.why,
                     medicham_attempted: me.attempted, medicham_resolved: me.resolved, medicham_why: me.why,
                     diverged: !!r.div, divergence: divOf(r.div, who, r.sdLog, mv),
-                    err: r.err };
+                    err: r.err,
+                    /* THE BOARD ANSWER, BESIDE THE PROTOCOL ONE AND NEVER INSTEAD OF IT. Whether the
+                     * streams parted and whether the BOARDS parted are two different findings and the
+                     * artifact carries both, on the same game. */
+                    board: boardVerdict(r, 'move', mv) };
       if (DUMPLOG) {
         console.log('  ---- ' + mv + ' [' + rung.id + ']  carrier ' + chosen + '  script ' + JSON.stringify(script));
         console.log('  SHOWDOWN:'); for (const l of r.sdLog) console.log('    ' + l);
@@ -1859,7 +2052,13 @@ function abRow(kind, key, name, carrier, control, on, off) {
             * class exactly where Friend Guard lives, which is an open defect in this very run. The
             * ability arm therefore keeps its previous behaviour and attributes everything; when an
             * ability row needs finer attribution it needs a reach derived from its TAG, not a guess. */
-           divergence: divOf(on.div, "p1a", on.sdLog, null) };
+           divergence: divOf(on.div, "p1a", on.sdLog, null),
+           /* THE BOARD ANSWER IS READ OFF THE `ON` GAME, which is the same game `divergence` above is
+            * read off. The `off` game is the A/B CONTROL — it is a different game with a different
+            * ability on the board, so its boards answer a different question and are carried
+            * separately rather than pooled. */
+           board: boardVerdict(on, kind, key),
+           board_control_arm: boardVerdict(off, kind, key) };
 }
 
 /* ================= THE RED DEMONSTRATION ========================================================== */
@@ -1979,6 +2178,86 @@ function red() {
                verdict: a.verdict + ' then ' + b.verdict,
                caught: a.verdict === b.verdict && a.showdown_moved === b.showdown_moved
                     && a.medicham_moved === b.medicham_moved });
+  }
+  /* 6. A STATE DIFFERENCE THAT PRODUCES NO LINE DIFFERENCE MUST BE CAUGHT (2026-08-19).
+   *
+   * THIS IS THE ONE PLANT THAT DEFENDS THE ANNOUNCEMENT-ONLY VERDICT, and without it every such
+   * verdict would be worth nothing. Plants 1-5 all attack the PROTOCOL arm; every one of them would
+   * still pass with the board comparison entirely unwired, because they are all read off the streams.
+   * The claim "the commentary differs and the boards do not" is a claim about a comparison that has
+   * never been shown catching anything, which is the exact shape docs/LESSONS.md §1 is about.
+   *
+   * SO THE PLANT IS APPLIED TO THE LIVE MEDICHAM STATE AT A BOUNDARY, THROUGH THE DRIVER'S OWN
+   * `statePlant` HOOK — the same hook game_differential's own state plants use — so it travels through
+   * `board_state.js`'s reader exactly as a real defect would. A plant applied to the snapshot would
+   * prove only that `compare` can subtract.
+   *
+   * EVERY PLANT CARRIES A CONTROL AND THE CONTROL IS THE HALF THAT WAS NEARLY LEFT OUT. The scenario
+   * is played FIRST with no plant at all, and that run must come back protocol-clean AND board-clean.
+   * Without it, "the planted run parted" is compatible with "this fixture parts anyway".
+   *
+   * AND EACH PLANT ASSERTS THE PROTOCOL DID NOT MOVE. That is what makes it the right plant: a state
+   * difference the STREAM would have caught proves nothing about a comparison built to see past the
+   * stream. `no_new_line` below is checked, not assumed.
+   *
+   * FOUR LEAVES, CHOSEN BECAUSE THEY ARE FOUR DIFFERENT PLACES A BOARD CAN BE WRONG — an active
+   * body's HP, an active body's stat stage, a FIELD/SIDE CLOCK, and A BENCHED BODY'S HP. The last one
+   * is deliberate: the bench is where a planted item was laundered once before, and a comparison that
+   * caught the first three and missed the fourth would read as healthy. */
+  {
+    const stage = (plant) => {
+      const b = stageBodies(actorOf(), bodyOf(RECEIVER.species, RECEIVER.ability, RECEIVER.item, RECEIVER_MOVES));
+      const script = scriptFor({ pre: [], extra: [], receiverAttacks: null, selfDamage: false, charge: false },
+                               PLANT_MOVE, b);
+      return playScenario(Object.assign({ script, tag: 'red/board', statePlant: plant }, b));
+    };
+    /* THE BOUNDARY THE PLANT LANDS ON. Index 0 is the leads and index 1 is the board after the click
+     * turn; the plant is aimed at 1 so it lands on a board the scenario actually produced. */
+    const AT = 1;
+    /* A BENCHED BODY IS FOUND, NEVER ASSUMED TO BE AT AN INDEX. `S.sfA.team` is the whole party and
+     * the two actives are in it; the plant needs a member that is NOT standing, and if there is none
+     * the plant reports that rather than silently planting on an active body and passing. */
+    const benched = (S) => {
+      const act = new Set((S.actA || []).filter(Boolean));
+      return ((S.sfA && S.sfA.team) || []).find(m => m && !act.has(m)) || null;
+    };
+    const PLANTS = [
+      { what: 'an ACTIVE body loses 7 HP with no line to say so', want: 'hp',
+        f: (S) => { const m = (S.actA || [])[0]; if (!m) return false; m.curHP = Math.max(1, m.curHP - 7); return true; } },
+      { what: 'an ACTIVE body gains a +1 Attack stage with no line to say so', want: 'boosts.atk',
+        f: (S) => { const m = (S.actA || [])[0]; if (!m || !m.boosts) return false; m.boosts.at += 1; return true; } },
+      { what: 'a SIDE CLOCK is set — 3 turns of Tailwind nobody announced', want: 'tailwind',
+        f: (S) => { if (!S.field) return false; S.field.twA = 3; return true; } },
+      { what: 'a BENCHED body loses 5 HP — the half a stream can never see', want: 'party.hp',
+        f: (S) => { const m = benched(S); if (!m) return false; m.curHP = Math.max(1, m.curHP - 5); return true; } },
+    ];
+    const control = stage(undefined);
+    const cv = boardVerdict(control);
+    const controlClean = control.staged && !control.div
+                      && cv.boundaries > 0 && cv.boundaries_agreed === cv.boundaries;
+    out.push({ plant: 'CONTROL FOR THE BOARD PLANTS — this scenario must be protocol-clean AND '
+                    + 'board-clean before any plant below means anything',
+               staged: !!control.staged, boundaries: cv.boundaries, agreed: cv.boundaries_agreed,
+               why: control.div ? 'the control scenario ALREADY diverges on the protocol' : null,
+               caught: controlClean });
+    for (const p of PLANTS) {
+      let applied = false;
+      const r = stage((S, battle, turnIdx) => { if (turnIdx === AT) applied = p.f(S) || applied; });
+      const v = boardVerdict(r);
+      const hit = (v.diffs || []).map(d => d.field);
+      /* THE PLANT MUST BE CAUGHT, ON THE LEAF IT WAS AIMED AT, WITH NO NEW LINE. All three, because
+       * a catch on the wrong leaf is a coincidence and a catch that came with a protocol divergence
+       * is the STREAM's catch rather than the BOARD's. */
+      const onTarget = hit.some(f => String(f).indexOf(p.want) >= 0);
+      const noNewLine = !r.div;
+      out.push({ plant: 'A STATE DIFFERENCE WITH NO LINE DIFFERENCE MUST BE CAUGHT — ' + p.what,
+                 applied, staged: !!r.staged, verdict: v.verdict, no_new_line: noNewLine,
+                 leaves: hit.slice(0, 4),
+                 why: !applied ? 'THE PLANT NEVER LANDED — the board it was aimed at was not reached'
+                    : (v.verdict !== 'STATE' && v.verdict !== 'NO-DIVERGENCE' ? v.verdict : null),
+                 caught: controlClean && applied && noNewLine && !!r.staged
+                      && v.state_parted_on_turn === AT && onTarget });
+    }
   }
   return out;
 }
@@ -2206,7 +2485,7 @@ function applyCloset(kind, rows) {
 }
 
 const report = { generated: new Date().toISOString(), release: GD.REL.id || null, arm: ARM.id,
-                 format: CS.FORMAT, red: REDS, red_ok: RED_OK,
+                 format: CS.FORMAT, red: REDS, red_ok: RED_OK, trailing_turns_forced: TRAILING,
                  closet: { source: 'tests/roster.js DEFERRED', ids: Object.keys(CLOSET) },
                  rows: {}, summary: {} };
 
@@ -2422,6 +2701,76 @@ for (const k of Object.keys(report.rows)) {
       + String(e.roster_generated).slice(0, 10) + ' — the coverage is per-entity and it is NOT this run\'s release');
   }
 }
+/* ================= DID THE PARTED COMMENTARY REACH THE SAME BOARD? (2026-08-19) ====================
+ *
+ * WILL'S OWN STANDARD: *"it looks at the game. the commentary can be different but it needs to lead to
+ * identical outcomes in all scenarios"* — so the protocol classes above (`event missing from
+ * medicham2`, `ordering`) are the QUESTION and this block is the ANSWER.
+ *
+ * EVERY VERDICT HERE IS BOUNDED BY WHAT `board_state.js` COMPARES, and the bound is printed with it
+ * rather than left as an absence, because an uncomparable leaf reads exactly like an agreeing one.
+ * `board_state.js`'s own `NOT_COMPARED` list is republished into the artifact for the same reason. */
+const BOARD_SUMMARY = {};
+{
+  console.log('\n  DID THE PARTED COMMENTARY REACH THE SAME BOARD?');
+  console.log('    every verdict below is bounded by what engine/board_state.js compares — a leaf it does');
+  console.log('    not read cannot make a board differ, and NOT_COMPARED is republished in the artifact');
+  const order = ['STATE', 'NOT-ASKED', 'ANNOUNCEMENT-ONLY', 'NO-DIVERGENCE', 'NOT-STAGED'];
+  for (const k of Object.keys(report.rows)) {
+    const rows = (report.rows[k] || []).filter(r => r.board);
+    if (!rows.length) continue;
+    const tally = {};
+    for (const r of rows) tally[r.board.verdict] = (tally[r.board.verdict] || 0) + 1;
+    console.log('    ' + k.padEnd(10) + order.filter(v => tally[v]).map(v => v + ' ' + tally[v]).join('   '));
+    BOARD_SUMMARY[k] = { tally, rows: rows.length };
+    /* THE THREE THAT ARE FINDINGS, NAMED. A tally alone is the boolean this whole pass replaces. */
+    const state = rows.filter(r => r.board.verdict === 'STATE');
+    const silent = rows.filter(r => r.board.state_parted_without_a_line);
+    const notAsked = rows.filter(r => r.board.verdict === 'NOT-ASKED');
+    for (const r of state) {
+      console.log('      STATE  ' + String(r.id).padEnd(18) + 'boards parted at turn ' + r.board.state_parted_on_turn
+        + ' (protocol parted at turn ' + r.board.protocol_parted_on_turn + ')'
+        + (r.board.state_parted_without_a_line ? '  — WITH NO LINE DIFFERENCE AT ALL' : ''));
+      for (const d of (r.board.diffs || []).slice(0, 6))
+        console.log('        ' + [d.side, d.slot, d.body].filter(Boolean).join(' ') + '  ' + d.field
+          + '   showdown ' + JSON.stringify(d.sd) + '   we ' + JSON.stringify(d.us) + '   [' + d.bucket + ']');
+    }
+    for (const r of notAsked)
+      console.log('      NOT-ASKED  ' + String(r.id).padEnd(18) + 'no board was taken at or after turn '
+        + r.board.protocol_parted_on_turn + ' — ' + (r.board.end_reason || 'no reason recorded')
+        + '. THIS IS NOT A PASS.');
+    if (silent.length) console.log('      ' + silent.length + ' row(s) parted on the BOARD with the two '
+      + 'streams in agreement — a silent state defect, which the protocol arm structurally cannot see.');
+    /* THE QUALIFIED CLEAN ROWS. Printed BESIDE the announcement-only tally and never inside it: a row
+     * whose own volatile is absent from the comparison has not been cleared, it has not been asked. */
+    const qualified = rows.filter(r => r.board.core_leaf_unchecked);
+    if (qualified.length) {
+      console.log('      ' + qualified.length + ' of the ANNOUNCEMENT-ONLY rows WRITE A LEAF THE BOARD DOES');
+      console.log('      NOT READ. Their boards agreed in the fields we look at; the field this mechanic');
+      console.log('      actually writes is not one of them, so they are UNASKED rather than clean:');
+      for (const r of qualified) console.log('        ' + String(r.id).padEnd(18) + r.board.uncomparable_leaves.join(', '));
+    }
+    BOARD_SUMMARY[k].core_leaf_unchecked_rows = qualified.map(r => ({ id: r.id, leaves: r.board.uncomparable_leaves }));
+    BOARD_SUMMARY[k].state_rows = state.map(r => r.id);
+    BOARD_SUMMARY[k].not_asked_rows = notAsked.map(r => r.id);
+    BOARD_SUMMARY[k].silent_state_rows = silent.map(r => r.id);
+    /* THE RECEIPTS, POOLED, so "identical" is never read as "identical in every field there is". */
+    const held = rows.filter(r => r.board.receipts && (r.board.receipts.party_post_faint_skipped
+      || r.board.receipts.pp_slots_compared < r.board.receipts.pp_slots_occupied
+      || !r.board.receipts.screens_named_comparable));
+    if (held.length) console.log('      ' + held.length + ' row(s) had at least one leaf HELD rather than '
+      + 'compared (a fainted party member, an inexpressible PP slot, or a screen shape one engine cannot '
+      + 'name). Per-row receipts are in the artifact.');
+    BOARD_SUMMARY[k].rows_with_a_held_leaf = held.map(r => r.id);
+  }
+  BOARD_SUMMARY.not_compared = BS.NOT_COMPARED.map(x => x.field);
+  console.log('    LEAVES NOTHING HERE CAN COMPARE — a verdict of ANNOUNCEMENT-ONLY means identical IN');
+  console.log('    THE FIELDS WE LOOK AT, and these are the fields we do not:');
+  for (const x of BS.NOT_COMPARED) console.log('      ' + x.field + (x.measured_by ? '   [measured by ' + x.measured_by + ']' : ''));
+  report.summary.boards = BOARD_SUMMARY;
+  report.board_not_compared = BS.NOT_COMPARED;
+}
+
 console.log('\n  ' + GAMES + ' games played, ' + THREW + ' threw, ' + SHEET_FAILS + ' sheets could not be assembled');
 if (WRITE) {
   const f = OUT || D('data', 'all-mechanics-fire.json');

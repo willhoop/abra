@@ -1,0 +1,100 @@
+{
+ "red": [
+  {
+   "plant": "a move clicked into a TYPE IMMUNITY must not be credited (thunderbolt into Swampert)",
+   "staged": true,
+   "resolved": false,
+   "why": "-immune",
+   "caught": true
+  },
+  {
+   "plant": "CONTROL — the same move into a legal target MUST be credited",
+   "staged": true,
+   "resolved": true,
+   "why": null,
+   "caught": true
+  },
+  {
+   "plant": "a mechanic swapped for ITSELF must read DID-NOT-FIRE — a FIRED here is noise",
+   "staged": true,
+   "verdict": "DID-NOT-FIRE",
+   "why": "the gauntlet never reached its trigger — swapping it for (itself) changed neither game",
+   "caught": true
+  },
+  {
+   "plant": "a corrupted medicham2 damage line must be caught as a divergence",
+   "clean_diverged": false,
+   "bent_diverged": true,
+   "bent_cause": "-damage field 3",
+   "caught": true
+  },
+  {
+   "plant": "the PREFLIGHT must REFUSE a genderless board for a gender-gated mechanic (rivalry), CLEAR the same board once genders are declared, and CLEAR an ungated one (adaptability) — a blanket NO is not a detector",
+   "why": "\"Rivalry\" READS `.gender` and this board declares N against N — the authority's own guard ",
+   "caught": true
+  },
+  {
+   "plant": "THE SAME A/B ASKED TWICE MUST GIVE THE SAME VERDICT — the instrument failed this once",
+   "verdict": "DID-NOT-FIRE then DID-NOT-FIRE",
+   "caught": true
+  },
+  {
+   "plant": "CONTROL FOR THE BOARD PLANTS — this scenario must be protocol-clean AND board-clean before any plant below means anything",
+   "staged": true,
+   "boundaries": 2,
+   "agreed": 2,
+   "why": null,
+   "caught": true
+  },
+  {
+   "plant": "A STATE DIFFERENCE WITH NO LINE DIFFERENCE MUST BE CAUGHT — an ACTIVE body loses 7 HP with no line to say so",
+   "applied": true,
+   "staged": true,
+   "verdict": "STATE",
+   "no_new_line": true,
+   "leaves": [
+    "party.hp",
+    "hp"
+   ],
+   "why": null,
+   "caught": true
+  },
+  {
+   "plant": "A STATE DIFFERENCE WITH NO LINE DIFFERENCE MUST BE CAUGHT — an ACTIVE body gains a +1 Attack stage with no line to say so",
+   "applied": true,
+   "staged": true,
+   "verdict": "STATE",
+   "no_new_line": true,
+   "leaves": [
+    "party.boosts.atk",
+    "boosts.atk"
+   ],
+   "why": null,
+   "caught": true
+  },
+  {
+   "plant": "A STATE DIFFERENCE WITH NO LINE DIFFERENCE MUST BE CAUGHT — a SIDE CLOCK is set — 3 turns of Tailwind nobody announced",
+   "applied": true,
+   "staged": true,
+   "verdict": "STATE",
+   "no_new_line": true,
+   "leaves": [
+    "tailwind"
+   ],
+   "why": null,
+   "caught": true
+  },
+  {
+   "plant": "A STATE DIFFERENCE WITH NO LINE DIFFERENCE MUST BE CAUGHT — a BENCHED body loses 5 HP — the half a stream can never see",
+   "applied": true,
+   "staged": true,
+   "verdict": "STATE",
+   "no_new_line": true,
+   "leaves": [
+    "party.hp"
+   ],
+   "why": null,
+   "caught": true
+  }
+ ]
+}

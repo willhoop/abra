@@ -10003,3 +10003,47 @@ executed by a probe that expected a no-op, and it duplicated 191 lines of the #3
 Census 596 live / 0 missing -> **601 live / 0 missing.** `tests/staged_board.js` still refuses to run on
 ten fixtures the learnsets disallow and was deliberately NOT baselined: adding the pairs would launder ten
 wrong fixtures.
+
+---
+
+## 2026-08-19 — THIRTY ROWS ASKED WILL'S QUESTION: TEN MOVE A BOARD, THIRTEEN DO NOT, AND SEVEN WERE NEVER ASKED
+
+Will's bar, 2026-08-18: *"the commentary can be different but it needs to lead to identical outcomes in all
+scenarios"*, and his method: *"play those games out that differ from commentary, and see if it leads to
+identical board states."* Thirty diverging mechanics were line-level and nobody had ever asked it of them.
+
+**THE SNAPSHOTS WERE ALREADY BEING COMPUTED AND THROWN AWAY.** `--state` has been forced on inside
+`all_mechanics_fire.js` since the file was written, and `playScenario` returned only the streams. That is
+why thirty rows could sit classified for weeks with nobody able to say whether any of them mattered — not a
+missing capability, an unread one.
+
+**TEN ARE REAL ENGINE DEFECTS**, each parting at the first boundary after its own turn, all attributed,
+none shelved: `corrosivegas` (the target still holds its berry), `stuffcheeks` and `teatime` (the berries
+are never eaten — `teatime` leaves BOTH sides holding), **`spite` removes no PP at all** (authority 6 spent,
+we 2), `focuspunch` spends a PP on a move that never executed, `sleeptalk` and `snore` differ in PP AND HP,
+**`syrupbomb` applies no Speed drop**, `berserk` lands +2 where the authority lands +1, and `fling` deals 8
+HP more.
+
+**THIRTEEN ARE GENUINELY ANNOUNCEMENT-ONLY** and cannot change what MILTANK clicks. Both controls reproduced
+— `regenerator` 5 boundaries 5 agreed, `cursedbody` 4 and 4 — which is what makes the other verdicts worth
+anything.
+
+**AND SEVEN OF THE TWENTY "CLEAN" ROWS WERE UNASKED, NOT CLEAN.** They write a leaf `board_state.js` does
+not read, and for four of them that leaf IS the mechanic: `fairylock`'s `pseudoWeather:fairylock` is the
+two-turn switch lock, `spiritshackle`'s `volatile:trapped` is the trap, `uproar`'s volatile is the lock and
+the sleep prevention, `electromorphosis`'s `volatile:charge` is the stored boost. **Only `attract` was
+declared in `NOT_COMPARED`; the other six were unlisted omissions** — the failure mode that reads as
+agreement. They are now DERIVED per row from the authority's own entry and printed every run, and
+`board_state.js` derives its key lists **by reading its own readers' source** with a load-time throw if the
+derivation reads nothing.
+
+**`syrupbomb` is the warning about reading any of this too kindly**: it came back STATE on the Speed stage,
+AND its own clock is not compared at all. The row is at least that wrong and possibly more.
+
+**The red proof is the part that makes the twenty trustworthy.** Five plants applied to LIVE medicham2 state
+at a boundary — including a **CONTROL that is planted with nothing and must come back clean**, and a
+**benched body losing 5 HP**, the exact gap that laundered a planted item last week. All four plants assert
+`no_new_line: true`: the protocol did not part, so a board comparison that was not wired would have passed
+them. Against the unwired-knob rule, `--trailing 3` moved boundaries 2 → 5 on 12 of 14 rows and all 14 held;
+the two that threw (`chillyreception`, `uproar`) are reported rather than averaged, and their verdicts still
+rest on a single board.

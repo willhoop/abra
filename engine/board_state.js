@@ -979,7 +979,39 @@ function snapshot(S, battle, ctx) {
            })() };
 }
 
+/* ---- WHICH OF THE AUTHORITY'S OWN NAMES THIS FILE READS, DERIVED FROM THE READERS THEMSELVES -----
+ *
+ * WHY THIS EXISTS (2026-08-19). A caller that wants to say "these boards are identical" honestly has
+ * to be able to say WHICH leaves it looked at, and a caller that wants to qualify an
+ * ANNOUNCEMENT-ONLY verdict has to be able to ask "is the volatile this mechanic writes even in the
+ * comparison?" `NOT_COMPARED` answers that only for the omissions somebody thought to write down —
+ * and the whole argument of this file is that an UNLISTED omission reads exactly like agreement.
+ * Fairy Lock's `fairylock` pseudo-weather, Uproar's `uproar` and Spirit Shackle's `trapped` are all
+ * absent from the comparison AND absent from `NOT_COMPARED`.
+ *
+ * IT IS READ OUT OF THE READER'S OWN SOURCE AND NOT TYPED BESIDE IT. A hand-kept list of the keys
+ * `sdBody` reads would agree with `sdBody` on the day it was written and diverge the first time
+ * either moved — the ban-list-of-four failure CLAUDE.md records, and the two-copies-of-one-fact rule
+ * it states. Reading `String(sdBody)` cannot drift, because there is only one thing to read.
+ *
+ * THE AUTHORITY'S VOCABULARY, DELIBERATELY. A caller asks this question holding a Showdown move or
+ * ability entry, whose `volatileStatus` is Showdown's name; medicham2's spelling would be the wrong
+ * key. */
+const _srcKeys = (fn, re) => [...new Set([...String(fn).matchAll(re)].map(m => m[1]))].sort();
+const SD_VOLATILE_KEYS = _srcKeys(sdBody, /\bv\.([a-z][a-z0-9]*)/g);
+const SD_SIDE_KEYS = _srcKeys(readShowdown, /sideConditions\s*\|\|\s*\{\}\)\.([a-z][a-z0-9]*)/g)
+  .concat(GAME_RULES.SCREEN_KEYS).sort();
+const SD_PSEUDO_KEYS = _srcKeys(readShowdown, /pseudoWeather\s*\|\|\s*\{\}\)\.([a-z][a-z0-9]*)/g);
+/* A DERIVATION THAT SILENTLY RETURNS NOTHING IS A SILENT DEFAULT, and this one would then tell every
+ * caller that no leaf is compared — which reads as "everything is uncomparable" and is just as wrong
+ * in the other direction. It is asserted at load, loudly, rather than checked by whoever remembers. */
+if (!SD_VOLATILE_KEYS.length || !SD_SIDE_KEYS.length) {
+  throw new Error('board_state.js: the compared-key derivation read NOTHING out of its own readers. '
+    + 'Every caller asking "is this leaf compared?" would get a wrong answer. Not a pass.');
+}
+
 module.exports = { readMedi, readShowdown, compare, snapshot, family, mappingProof, locate, bucket,
                    explain, MAPPINGS, NOT_COMPARED, PHYSICAL_SCREENS, SPECIAL_SCREENS,
+                   SD_VOLATILE_KEYS, SD_SIDE_KEYS, SD_PSEUDO_KEYS,
                    _internals: { num, layers, dur, sleptTurns, frozenTurns, mediBoosts, sdBoosts,
                                  mediScreens, sdScreens, sdPP } };
