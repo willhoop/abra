@@ -54,6 +54,18 @@ const CANDIDATES = [
   { vol: 'saltcure', move: 'saltcure', target: 'foe' },
   { vol: 'syrupbomb', move: 'syrupbomb', target: 'foe' },
   { vol: 'twoturnmove/charge', move: 'solarbeam', target: 'foe' },
+  /* ROADMAP #308 -- THE THREE PER-BODY LEAVES THE `all_mechanics_fire` RUN NAMED, staged here first
+   * for the reason this whole file exists: a leaf wired without printing what BOTH engines hold is a
+   * leaf that parts every board at once.
+   *   uproar    the three-turn lock and the sleep prevention ARE the move; the row came back
+   *             ANNOUNCEMENT-ONLY because nothing read it
+   *   trapped   Spirit Shackle's whole point, and a different volatile from `partiallytrapped`
+   *             (which IS compared) -- this one has no chip and no clock
+   *   charge    Electromorphosis banks it, and the move CHARGE applies the identical volatile; the
+   *             move is staged because this probe clicks moves, and the leaf is the same one */
+  { vol: 'uproar', move: 'uproar', target: 'foe' },
+  { vol: 'trapped', move: 'spiritshackle', target: 'foe' },
+  { vol: 'charge', move: 'charge', target: 'self' },
 ];
 
 /* A LEGAL CARRIER, DERIVED. Never typed: `.all()` is the National Dex and the regulation is a filter

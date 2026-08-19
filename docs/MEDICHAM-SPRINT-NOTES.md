@@ -10094,3 +10094,50 @@ Force needs, and landing both at once makes a bad result unattributable.
 
 Census 601 -> **603 live / 0 missing**. Two status clauses now read `MEASURED AGAINST A DIFFERENT ENGINE`,
 which is the staleness rule working rather than a regression.
+
+---
+
+## TEN STATE DEFECTS CLOSED, FOUR BOARD LEAVES WIRED, AND TWO OF THE FOUR WERE MOVES WE DID NOT PLAY. 2026-08-19.
+
+Census **603 -> 618 live / 0 missing**, fifteen probes, every one RED on the engine as handed over. The
+ten rows `all_mechanics_fire.js` reported as **STATE** are now **8 NO-DIVERGENCE and 2
+ANNOUNCEMENT-ONLY**; the gate went from **4 of 8 clauses failing to 3**, with both artifacts re-run on
+one frozen release (`926e810dd8a0`) so neither is a claim about other bytes: mechanics **47 -> 34
+diverging** (moves 34 -> 21) and the whole-game differential **353/982 = 35.9% -> 342/972 = 35.2%**.
+
+**THE `fling` DIAGNOSIS IN THE WORK ORDER WAS WRONG, AND THAT IS THE most useful thing in this batch.**
+It was handed over as *"a damage divergence, not the known-unmodelled berry branch"*. The two engines'
+damage lines are IDENTICAL — `|-damage|p2a: Feraligatr|952/960` on both — and the authority then writes
+`|-heal|…|[from] item: Sitrus Berry|[of] p1a: Abomasnow`. `fling.onPrepareHit` REPLACES `move.onHit` for
+a berry, so the TARGET eats it, threshold and all bypassed. A pass aimed at the damage formula would
+have found nothing.
+
+**THE THREE BERRY ROWS DID NOT SHARE A CAUSE.** Corrosive Gas is a spread-targeting failure of an
+existing branch (`allAdjacent`, so the click carries no target and `trickitem` resolved nobody); Stuff
+Cheeks is the USER eating its own berry after its own boost lands, and it was handing out +2 Defence
+with NO berry held; Teatime is an `onHitField` walk of the whole field. Two of them share one new
+primitive and the third does not touch it.
+
+**A NEW TAG OVER-MATCHED AND THE PRINT CAUGHT IT.** `sleepMove`'s first predicate — `status === 'slp'`
+anywhere in `onTry` — selected THREE moves, and the third was **REST**, which asks the identical
+question with the OPPOSITE sign. A consumer given that row would have made Rest unusable on an awake
+body. The discriminator is the RETURN, not the test.
+
+**WIRING A LEAF FOUND A DEFECT NOTHING ELSE COULD SEE.** The moment `vol.trapped` became compared,
+`magicbounce` parted: the authority trapped the BLOCK'S USER and this engine trapped the Espeon. Two
+faults in `trapmove`, both absent from the `affect` branch beside it — `reaimToSlot` was handed the
+BOUNCED body and looked it up by the action's own foe slot, undoing the bounce; and a `t === m` guard
+refused the one case a bounce always produces. The existing `reflectsStatusMoves` probe stages Charm,
+which resolves through `affect`, so it was green throughout.
+
+**AND ONE OF MY OWN NEW TAGS TURNED THE COVERAGE CLAUSE RED.** `callRefusalFlags` landed on 75 moves
+including STRUGGLE, and that clause requires every tag on a move above the shelf to be probed — so
+adding a tag with no probe made a covered move uncovered. Closed by probing what the tag is for.
+
+**FILED, NOT FIXED: `tests/staged_board.js`'s proof plant cannot apply, and correcting it is worse.**
+The anchor spans a line break, so it matches zero times and the run prints `THE QUIETENING MECHANISM IS
+NOT TRUSTWORTHY` — verified against `b7179d2`, this predates the pass. Shorten the anchor and the plant
+lands and all three machinery checks read `ok`, and then **every one of the 24 scenarios reports
+`CLEAN ENGINE -> DIFFERS`**: the patched module survives `harness(null)`, which reloads
+`game_differential.js`, and that binds through `REL.require` in `engine/engine_release.js` — MEASURE's
+file. Left exactly as found, with the measurement written at the plant.

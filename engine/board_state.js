@@ -109,6 +109,16 @@ const NOT_COMPARED = [
        + 'the leaf is almost certainly comparable — it is left out because wiring a leaf whose two '
        + 'shapes have never been SEEN is how a comparator starts manufacturing divergences.',
     next: 'give probe_volatile_leaves.js a fixture that actually lands each one, then wire it' },
+  /* ROADMAP #308 -- THE SOURCE HALF OF A MOVE TRAP, and it is an omission rather than an oversight.
+   * Showdown puts `trapped` on the victim AND `trapper` on whoever laid it; medicham2 keeps the
+   * trapper INSIDE the victim's own `_trapHard` record and writes nothing on the source at all. The
+   * VICTIM's half is compared (`vol.trapped`, wired this pass) and is the half that decides whether a
+   * switch is legal. Comparing the source half would report a divergence on every trap in the game --
+   * a manufactured one, off two representations of one fact. */
+  { field: 'the TRAPPER mark a move trap leaves on its source (Showdown `volatiles.trapper`)',
+    why: 'one fact, two shapes: medicham2 stores the trapper inside the VICTIM own `_trapHard` record '
+       + 'and has no field on the source at all. The victim half (`trapped`) IS compared and is the '
+       + 'half a switch decision reads.' },
   { field: 'destiny bond',
     why: 'ONE-SIDED IN THE PROBE AND THEREFORE A SUSPECT, NOT A LEAF. At the last boundary of a '
        + 'two-turn script medicham2 still held `_vol.destinybond = 1` after its user had moved again '
@@ -616,6 +626,27 @@ function mediBody(m, id) {
        * NOT_COMPARED — because the two engines name it in different places and a mismatch there would
        * be a reader question rather than a rule one. */
       charging: m._charging ? 1 : 0,
+      /* ---- ROADMAP #308 -- THREE LEAVES THAT ARE THE WHOLE MECHANIC OF THE MOVE THAT WRITES THEM.
+       * Each was reported ANNOUNCEMENT-ONLY by `all_mechanics_fire.js` -- identical in the fields this
+       * file looked at -- and each was measured through `tests/probe_volatile_leaves.js` BEFORE being
+       * wired, because a leaf one engine cannot express parts every board at once.
+       *
+       *   trapped   Spirit Shackle's point, and a DIFFERENT volatile from `partiallytrapped` above:
+       *             no chip, no clock, ends with its source. medicham2 keeps it in `_trapHard`
+       *             (which carries the trapper) rather than in `_vol`, so the two shapes are read
+       *             through their own fields and compared as PRESENCE -- Showdown carries no duration
+       *             on it either, so nothing is being collapsed.
+       *   uproar    the three-turn lock AND the sleep prevention. medicham2 holds it in `_mtLock`,
+       *             the rampage lock, alongside Outrage and Petal Dance -- so the read is gated on
+       *             `vol === 'uproar'` and NOT on the presence of a lock, or every Outrage would
+       *             report as an Uproar. It IS compared as a clock: measured at the turn-1 boundary
+       *             the authority holds `uproar(d2)` and this engine holds `left: 2`.
+       *   charge    the stored Electric boost Electromorphosis banks and the move Charge applies.
+       *             Both engines hold the identical bare volatile; `probe_volatile_leaves.js` prints
+       *             them side by side as `charge=1` against `charge`. */
+      trapped: m._trapHard ? 1 : 0,
+      uproar: (m._mtLock && m._mtLock.vol === 'uproar') ? num(m._mtLock.left) : 0,
+      charge: num(vol.charge) ? 1 : 0,
     },
   };
 }
@@ -658,6 +689,13 @@ function sdBody(p, id) {
       saltcure: v.saltcure ? 1 : 0,
       syrupbomb: v.syrupbomb ? 1 : 0,
       charging: v.twoturnmove ? 1 : 0,
+      /* ROADMAP #308 -- the authority's side of the three. `trapper` sits on the SOURCE of a Spirit
+       * Shackle and is deliberately NOT read: medicham2 keeps the trapper inside the victim's own
+       * `_trapHard` record and has no field on the source at all, so comparing it would manufacture a
+       * divergence on every trap. That omission is in NOT_COMPARED with this reason. */
+      trapped: v.trapped ? 1 : 0,
+      uproar: dur(v.uproar),
+      charge: v.charge ? 1 : 0,
     },
   };
 }
@@ -688,7 +726,14 @@ function readMedi(S, ctx) {
     engine: 'medicham2',
     field: { weather: String(F.weather || ''), weather_turns: num(F.weatherT),
              terrain: String(F.terrain || ''), terrain_turns: num(F.terrainT),
-             trickroom_turns: num(F.tr) },
+             trickroom_turns: num(F.tr),
+             /* ROADMAP #308 -- FAIRY LOCK, a pseudo-weather nobody compared and nothing implemented.
+              * The two-turn switch lock IS the move, it announces `-fieldactivate` when it starts and
+              * NOTHING when it ends (`announces: false` on its own artifact row), so a clock that ran
+              * on for ever would be invisible to every stream instrument. Measured on both engines
+              * before it was wired: the authority holds `fairylock(d1)` at the boundary of the turn it
+              * was set and this engine holds 1. */
+             fairylock_turns: num(F.fairylock) },
     sides: { p1: side(S.actA || [], S.sfA, F.twA), p2: side(S.actB || [], S.sfB, F.twB) },
   };
 }
@@ -727,7 +772,8 @@ function readShowdown(battle, ctx) {
     engine: 'showdown',
     field: { weather: xl('weather', F.weather), weather_turns: dur(F.weatherState),
              terrain: xl('terrain', F.terrain), terrain_turns: dur(F.terrainState),
-             trickroom_turns: dur((F.pseudoWeather || {}).trickroom) },
+             trickroom_turns: dur((F.pseudoWeather || {}).trickroom),
+             fairylock_turns: dur((F.pseudoWeather || {}).fairylock) },
     sides: { p1: side(battle.p1), p2: side(battle.p2) },
   };
 }
@@ -986,8 +1032,13 @@ function snapshot(S, battle, ctx) {
  * ANNOUNCEMENT-ONLY verdict has to be able to ask "is the volatile this mechanic writes even in the
  * comparison?" `NOT_COMPARED` answers that only for the omissions somebody thought to write down —
  * and the whole argument of this file is that an UNLISTED omission reads exactly like agreement.
- * Fairy Lock's `fairylock` pseudo-weather, Uproar's `uproar` and Spirit Shackle's `trapped` are all
- * absent from the comparison AND absent from `NOT_COMPARED`.
+ *
+ * THE THREE THIS PARAGRAPH NAMED ARE COMPARED NOW (ROADMAP #308), and the sentence is corrected here
+ * rather than deleted because it is the record of how the hole was found: it used to read *"Fairy
+ * Lock's `fairylock` pseudo-weather, Uproar's `uproar` and Spirit Shackle's `trapped` are all absent
+ * from the comparison AND absent from `NOT_COMPARED`"*, and each of those three rows was coming back
+ * ANNOUNCEMENT-ONLY for exactly that reason. Two of them turned out to be unimplemented MECHANICS
+ * rather than unread leaves, which is the thing a comparison silently agreeing cannot tell you.
  *
  * IT IS READ OUT OF THE READER'S OWN SOURCE AND NOT TYPED BESIDE IT. A hand-kept list of the keys
  * `sdBody` reads would agree with `sdBody` on the day it was written and diverge the first time

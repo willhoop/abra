@@ -174,7 +174,7 @@
   "void_files": [
     "exploitability.json"
   ],
-  "verified": 2,
+  "verified": 3,
   "graph_files": [
     "_dmg-inverted.json",
     "_r220-census-pin.json",
@@ -416,6 +416,7 @@
     "_fire-items-F.json",
     "_r220-dump-post.json",
     "_r220-dump-pre.json",
+    "_scratch-jobs3.json",
     "artifact-accessors.json",
     "battle-formes.json",
     "conditional-audit.json",
@@ -823,5 +824,5 @@
       ]
     }
   ],
-  "generated": "2026-08-19T07:11:47.922Z"
+  "generated": "2026-08-19T23:16:48.775Z"
 }

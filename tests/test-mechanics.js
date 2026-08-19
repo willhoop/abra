@@ -431,7 +431,15 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * out and REMADE on the way in, against a foe slot that was itself swapped while the holder sat on
  * the bench), so a probe without a bench cannot leave the field and a single-turn one cannot come
  * back. */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bMISSRATE\(/;
+/* `berryBoard(` added 2026-08-19 with ROADMAP #308, declared HERE and with its reason, exactly as the
+ * paragraph above requires. It stages a real doubles board through `battleInit` and spends a real turn
+ * through `battleTurn`, and it has to: the three mechanics it serves all resolve inside the action
+ * loop against a TARGET LIST the loop builds (Corrosive Gas's `allAdjacent` set, Teatime's whole
+ * field), and `playerAction` hands back the same action object whatever that list turns out to be —
+ * so an action-reading probe is structurally blind to the defect. Its full reason is written at the
+ * helper itself.
+ */
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bMISSRATE\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -7237,6 +7245,66 @@ probe('ability', 'formeChange', 'Disguise eats the first hit', () => {
            detail: 'no ability took ' + none + ', Disguise took ' + dis + ' (must be exactly maxhp/8 = ' + eighth + ')' };
 });
 
+/* ROADMAP #308 - THE FOUR LINES A BUSTING DISGUISE WRITES, AND THIS ENGINE WROTE TWO OF THEM.
+ *
+ * The board was already right (both engines land on maxhp/8) and the effectiveness flattening was
+ * already live - the two probes around this one cover both. What nothing asserted is the SHAPE of the
+ * event, and two of its four lines were absent. Measured on the authority, Corviknight's Iron Head
+ * into an intact Mimikyu at the pinned commit:
+ *
+ *     |-activate|p1a: Mimikyu|ability: Disguise
+ *     |-damage|p1a: Mimikyu|134/134                                   <- MISSING here
+ *     |detailschange|p1a: Mimikyu|Mimikyu-Busted, L50, M
+ *     |-damage|p1a: Mimikyu|118/134|[from] pokemon: Mimikyu-Busted    <- the [from] was MISSING
+ *
+ * Both come straight out of the handlers. `onDamage` RETURNS 0 rather than cancelling the event, so
+ * `spreadDamage` still emits a `-damage` at unchanged health; and the chip is
+ * `this.damage(pokemon.baseMaxhp / 8, pokemon, pokemon, this.dex.species.get(speciesid))`, whose
+ * fourth argument is what makes the `[from]` name the BUSTED FORME rather than the ability.
+ *
+ * A STREAM CLAIM, SO IT READS THE STREAM. `board_state.js` compares HP and species and both already
+ * agreed; only the protocol trace can see this, which is the same argument the probe below makes
+ * about the effectiveness line. */
+probe('ability', 'formeOnHit', 'a busting Disguise writes FOUR lines, and two of them name what the board cannot show', () => {
+  /* THE CONTROL IS THE SAME BODY WITH THE ABILITY BLANKED, taking the same click from the same
+   * attacker on the same turn - so the arms differ by the ability and by nothing else. It must show
+   * a REAL damage line at a reduced HP, which is what says the click connects at all; an "intact
+   * Disguise emits nothing" engine would pass a control that only asked for silence. */
+  const run = (ability) => {
+    const me = bare('corviknight'), ally = bare('skarmory');
+    const f1 = bare('mimikyu'), f2 = bare('milotic');
+    f1.ability = ability;
+    unfaintable(f1);
+    me.moves = ['ironhead', 'bodyslam', 'bravebird', 'protect'];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    const trace = []; S._trace = trace;
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'ironhead', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { lines: trace.filter(l => /^\|(-activate|-damage|detailschange|-supereffective)\|p2a/.test(l)).join(' '),
+             lost: before - f1.curHP, eighth: Math.floor(f1.st.hp / 8), name: f1.name, max: f1.st.hp };
+  };
+  const dis = run('disguise'), plain = run('none');
+  /* The zero line is READ AGAINST THE BODY's own maximum rather than a typed number, so a stat
+   * change upstream cannot make this probe green by accident. */
+  const zeroLine = '-damage|p2a: mimikyu|' + dis.max + '/' + dis.max;
+  return { works: dis.lost === dis.eighth && dis.name === 'mimikyu-busted'
+                  && /-activate\|p2a: mimikyu\|ability: disguise/.test(dis.lines)
+                  && dis.lines.indexOf(zeroLine) >= 0
+                  && /-damage\|p2a: mimikyu\|\d+\/\d+\|\[from\] pokemon: mimikyu-busted/.test(dis.lines)
+                  && dis.lines.indexOf(zeroLine) < dis.lines.indexOf('detailschange')
+                  && !/-supereffective/.test(dis.lines)
+                  && plain.lost > dis.lost && /-supereffective/.test(plain.lines)
+                  && !/\[from\] pokemon/.test(plain.lines),
+           arms: { control: [plain.lost, plain.lines], test: [dis.lost, dis.lines] },
+           detail: 'Iron Head into an intact DISGUISE: lost ' + dis.lost + ' (maxhp/8 = ' + dis.eighth
+                 + '), body now "' + dis.name + '", lines "' + dis.lines + '" - the zero-damage line '
+                 + 'at FULL HP comes before the detailschange because onDamage returns 0 rather than '
+                 + 'cancelling, and the chip names the BUSTED FORME. CONTROL, the ability blanked: '
+                 + 'lost ' + plain.lost + ', lines "' + plain.lines + '"' };
+});
+
 /* THE SECOND MEMBER OF THE SAME FAMILY AS IRON BALL, AND THE ONE WITH THE REACH.
  *
  * `runEffectiveness` (sim/pokemon.ts:2214) raises `Effectiveness` once per DEFENDING TYPE. Disguise's
@@ -9108,6 +9176,43 @@ probe('ability', 'punishesAttacker', 'Rough Skin tolls a contact hit and not a s
  * requires it to carry a machine-checked control. Both arms were already computed here; what was
  * missing was declaring them, which is the difference between a control a reader can see and one
  * the harness can check. */
+/* ROADMAP #308 - AND IT SENDS A TRAP BACK TOO, WHICH IS A DIFFERENT BRANCH OF THIS ENGINE.
+ *
+ * The probe below stages CHARM, which resolves through `affect` - and `affect` has always handled the
+ * bounce. Block and Mean Look resolve through `trapmove`, which had the two halves in the wrong order
+ * (`bounceOff` first, then `reaimToSlot`, which looked the bounced body up by the action own foe SLOT
+ * and resolved straight back to the original target) AND a `t === m` guard that treats "the target is
+ * the mover" as a caller mistake - which is exactly what a bounce produces. Both had to move.
+ *
+ * IT WAS INVISIBLE UNTIL `vol.trapped` BECAME A COMPARED LEAF, in this same pass: the two engines
+ * trapped OPPOSITE BODIES on the staged game and every board read as agreeing. */
+probe('ability', 'reflectsStatusMoves', 'Magic Bounce sends a TRAP back, and the trap lands on the trapper', () => {
+  /* THE CONTROL IS SYNCHRONIZE - another of Espeon own legal abilities, on the same body taking the
+   * same Block from the same Feraligatr. So the arms differ by the ability and by nothing else, and
+   * the control must show the trap landing NORMALLY: an engine that had simply stopped trapping would
+   * pass a control that only asked for the Espeon to be free. */
+  const run = (ability) => {
+    const B = board('espeon', 'venusaur', 'feraligatr', 'charizard');
+    B.me.ability = ability;
+    const trace = []; B.S._trace = trace;
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, 'block', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    return { me: B.me._trapHard ? 1 : 0, foe: B.f1._trapHard ? 1 : 0,
+             lines: trace.filter(l => /trapped|-fail/.test(l)).join(' ') };
+  };
+  const bounce = run('magicbounce'), plain = run('synchronize');
+  return { works: bounce.me === 0 && bounce.foe === 1
+                  && plain.me === 1 && plain.foe === 0
+                  && /-activate\|p2a: feraligatr\|trapped/.test(bounce.lines)
+                  && /-activate\|p1a: espeon\|trapped/.test(plain.lines),
+           arms: { control: [plain.me, plain.foe], test: [bounce.me, bounce.foe] },
+           detail: '[is the Espeon trapped, is the Feraligatr trapped] after a Block aimed at the '
+                 + 'Espeon - MAGIC BOUNCE [' + bounce.me + ',' + bounce.foe + '] and the line reads "'
+                 + bounce.lines + '"; CONTROL SYNCHRONIZE on the same body [' + plain.me + ','
+                 + plain.foe + '] "' + plain.lines + '". Before the fix BOTH arms trapped the Espeon '
+                 + 'and no board could see it, because vol.trapped was not a compared leaf' };
+});
+
 probe('ability', 'reflectsStatusMoves', 'Magic Bounce sends Charm back at its user', () => {
   const run = (ab) => {
     const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'espathra', 'garchomp');
@@ -15804,6 +15909,48 @@ probe('move', 'perTurnHP', 'Salt Cure chips every turn, and takes DOUBLE off a W
                  + `flat 1/16 gives Corviknight ${Math.trunc(steel[0].f1.max / 16)} a turn` };
 });
 
+/* ROADMAP #308 — SYRUP BOMB'S RESIDUAL. THE COUNT OF DROPS IS THE MECHANIC, NOT THE FIRST ONE.
+ *
+ * The engine applied the volatile, announced its `-start`, and then did nothing with it: the target's
+ * Speed stage read +2 against the authority's +1 on the very first turn. Wiring only the drop would
+ * have been half a fix in the expensive direction — an unending -1 a turn is a strictly stronger move
+ * than the real one, which is the one-directional error this project keeps being caught by.
+ *
+ * THE EXPECTED TRAJECTORY IS MEASURED, NOT REASONED. Hydrapple's Syrup Bomb into a Feraligatr on the
+ * pinned commit, six scripted turns, all Protect after the click:
+ *     turn 1  -start Syrup Bomb  then  -unboost spe 1
+ *     turn 2  -unboost spe 1
+ *     turn 3  -unboost spe 1
+ *     turn 4  -end Syrup Bomb [silent]      <- and NO unboost on this turn
+ * THREE drops off a `duration: 4`, because `residualEvent` spends the clock BEFORE it calls the
+ * handler and the fourth residual runs `onEnd` and skips `onResidual` entirely. An engine that read
+ * the duration as "four ticks" is a full stage wrong by turn four, and the FIRST turn cannot tell the
+ * two apart — which is exactly what the whole-game instrument compares.
+ *
+ * THIS PROBE IS THE ONLY THING THAT CAN SEE THE CLOCK. `board_state.js` lists "the DURATIONS on magnet
+ * rise and syrup bomb" among the leaves it does not compare, and the expiry line is `[silent]`, so
+ * neither the board comparison nor the protocol stream can catch a clock that runs on forever. */
+probe('move', 'perTurnBoost', 'Syrup Bomb drops Speed on THREE residuals and then stops', () => {
+  /* THE CONTROL IS GIGA DRAIN: the same Hydrapple, the same Feraligatr, another legal special click
+   * that connects and applies no volatile (both validated by Showdown's own TeamValidator for this
+   * format). So the arms differ by WHICH move was clicked and by nothing else — not by whether
+   * anything landed, and not by whether the residual walk ran at all. */
+  const run = (mv) => mvRun({ user: 'hydrapple', foe: 'feraligatr', big: true,
+    script: [{ me: { mv, at: 'f1' } }, {}, {}, {}, {}, {}] });
+  const test = run('syrupbomb'), control = run('gigadrain');
+  const spe = (r) => r.map(x => x.f1.bo.split('/')[4]).join(',');
+  const vol = (r) => r.map(x => /syrupbomb/.test(x.f1.vol) ? 'y' : 'n').join('');
+  return { works: spe(test) === '-1,-2,-3,-3,-3,-3' && spe(control) === '0,0,0,0,0,0'
+             && vol(test) === 'yyynnn' && vol(control) === 'nnnnnn',
+           arms: { control: [spe(control), vol(control)], test: [spe(test), vol(test)] },
+           detail: `[the target's Speed stage at the end of each of six turns] — SYRUP BOMB `
+                 + `${spe(test)} (the volatile present on turns "${vol(test)}"); CONTROL GIGA DRAIN, `
+                 + `the same body at the same target, ${spe(control)} ("${vol(control)}"). Three `
+                 + `drops off a duration of four, because the authority spends the clock before it `
+                 + `calls the handler — an engine that ticks four times reads -4 and matches on turn `
+                 + `one, which is the only turn a game differential compares here` };
+});
+
 /* AQUA RING AND INGRAIN — the HEAL half of the same map, and they were as unwired as Salt Cure was.
  * Probed here rather than left to the roster's deferred list because the map is one implementation
  * and a reader with one live member is a special case wearing a tag's clothes. */
@@ -17147,8 +17294,312 @@ probe('item', 'restoresPP', 'Leppa Berry puts a spent move back on the menu', ()
                  + 'is HELD and does not restore PP, so the knob is the item\'s tag and not the slot' };
 });
 
-const spiteRun = (mv) => {
-  const B = board('farigiraf', 'farigiraf', 'garchomp', 'farigiraf');
+/* ROADMAP #308 — THE THREE ROWS THAT LEFT A BERRY WHERE THE AUTHORITY HAD TAKEN IT.
+ *
+ * They came back with ONE symptom — a held item this engine still had and Showdown did not — and they
+ * are THREE MECHANISMS, which is why they get three probes rather than one:
+ *   corrosivegas  TAKES an item (any item) off every ADJACENT body — the item is destroyed, not eaten
+ *   stuffcheeks   the USER EATS its own berry, and only after its own boost lands
+ *   teatime       every body on the FIELD that holds a berry eats it, both sides
+ * `berryBoard` is the one staging helper the three share: a real doubles board through `battleInit`,
+ * one real turn through `battleTurn`, every item declared explicitly on every body so nothing is
+ * inherited from `buildMon`'s usage item — the Choice Scarf lesson at the top of this file, applied
+ * to the exact family it would be easiest to repeat it in. */
+/* ROADMAP #308 - THE SLEEP FAMILY, FOCUS PUNCH AND FLING. One staging helper, four claims.
+ *
+ * `sleepBoard` stages a real doubles board through `battleInit` and spends a real turn through
+ * `battleTurn`, and it has to: every claim below is about a gate INSIDE the action loop - the sleep
+ * refusal, the pre-turn shield, the PP deduction, the re-queued call - and `playerAction` returns the
+ * same action object whichever way each of those goes. The whole family is invisible to a direct call.
+ */
+const sleepBoard = (o) => {
+  const B = board(o.user || 'abomasnow', 'venusaur', 'feraligatr', 'charizard');
+  if (o.moves) B.me.moves = o.moves;
+  B.me.item = o.item || '';
+  unfaintable(B.f1); unfaintable(B.f2);
+  if (o.asleep) { B.me.status = 'slp'; B.me.slpTurns = 0; }
+  const trace = []; B.S._trace = trace;
+  const hp0 = B.f1.curHP, hp2 = B.f2.curHP;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, o.mv, o.at === 'self' ? B.me : B.f1, B.S.field)],
+             [B.ally, { kind: 'pass' }]]),
+    new Map([[B.f1, o.foe ? M.playerAction(B.f1, o.foe, B.me, B.S.field) : { kind: 'pass' }],
+             [B.f2, { kind: 'pass' }]]));
+  return { dealt: hp0 - B.f1.curHP, dealtAny: (hp0 - B.f1.curHP) + (hp2 - B.f2.curHP),
+           status: B.me.status || '-', item: B.me.item || '-',
+           pp: Object.assign({}, B.me._pp),
+           lines: trace.filter(l => !/^\|(turn|upkeep)/.test(l)).join(' ') };
+};
+
+probe('move', 'sleepMove', 'Snore is the one attack a SLEEPING body can make, and it fails awake', () => {
+  /* TWO CONTROLS AND THEY PULL IN OPPOSITE DIRECTIONS. The AWAKE arm says the move is gated on sleep
+   * at all (`onTry` returns `source.status === 'slp'`), and the SLEEPING-BODY-CLICKING-ICE-BEAM arm
+   * says the sleep refusal is still working for everything else - an engine that simply stopped
+   * refusing sleeping bodies would pass the first control and fail the second. */
+  const asleep = sleepBoard({ mv: 'snore', asleep: true, moves: ['snore', 'icebeam', 'rest', 'protect'] });
+  const awake = sleepBoard({ mv: 'snore', asleep: false, moves: ['snore', 'icebeam', 'rest', 'protect'] });
+  const other = sleepBoard({ mv: 'icebeam', asleep: true, moves: ['snore', 'icebeam', 'rest', 'protect'] });
+  return { works: asleep.dealt > 0 && /\|cant\|p1a: abomasnow\|slp/.test(asleep.lines)
+                  && awake.dealt === 0 && /\|-fail\|/.test(awake.lines)
+                  && other.dealt === 0 && /\|cant\|p1a: abomasnow\|slp/.test(other.lines),
+           arms: { control: [awake.dealt, other.dealt], test: [asleep.dealt, asleep.dealt] },
+           detail: '[HP the foe loses] - ASLEEP with SNORE ' + asleep.dealt + ', after its own '
+                 + '|cant|slp (the authority writes the cant line AND then uses the move: '
+                 + '"if (move.sleepUsable) return;" sits below "this.add(cant)"); CONTROL awake with '
+                 + 'SNORE ' + awake.dealt + ' and a -fail; CONTROL asleep with ICE BEAM ' + other.dealt
+                 + ' - the sleep refusal is intact for every move that is not sleepUsable' };
+});
+
+probe('move', 'callsAnotherMove', 'Sleep Talk calls one of the user OWN moves, free, without waking it', () => {
+  /* THE POOL IS ONE MOVE WIDE ON PURPOSE. The body carries exactly two moves and Sleep Talk excludes
+   * itself (its own `nosleeptalk` flag, read through `callRefusalFlags`), so Ice Beam is the only
+   * candidate and the uniform draw cannot pick something else - the damage is attributable. The TARGET
+   * is still a uniform draw over the living foes, which is `getRandomTarget`, so the reading is the
+   * PAIR's HP and not one slot's. FOUR claims in one arm, each of which
+   * was separately wrong: the call happens at all, the CALLED move pays no PP (`if (!externalMove)`
+   * wraps `deductPP`), Sleep Talk own slot DOES pay, and the sleep counter ticks ONCE - the called
+   * move used to re-enter the BeforeMove gate and spend a second tick, waking the body a turn early. */
+  const asleep = sleepBoard({ mv: 'sleeptalk', at: 'self', asleep: true,
+    moves: ['sleeptalk', 'icebeam'] });
+  const awake = sleepBoard({ mv: 'sleeptalk', at: 'self', asleep: false,
+    moves: ['sleeptalk', 'icebeam'] });
+  return { works: asleep.dealtAny > 0 && asleep.status === 'slp'
+                  && asleep.pp.sleeptalk === 11 && asleep.pp.icebeam === undefined
+                  && /\|move\|p1a: abomasnow\|icebeam/.test(asleep.lines)
+                  && awake.dealtAny === 0 && /\|-fail\|/.test(awake.lines),
+           arms: { control: [awake.dealtAny, awake.status], test: [asleep.dealtAny, asleep.status] },
+           detail: '[HP the foe pair loses, the user status] - ASLEEP ' + asleep.dealtAny + '/'
+                 + asleep.status + ', Sleep Talk own slot at ' + asleep.pp.sleeptalk + ' and the '
+                 + 'CALLED Ice Beam slot untouched (' + asleep.pp.icebeam + '); CONTROL awake '
+                 + awake.dealtAny + '/' + awake.status + ' with a -fail. The status must still read slp: '
+                 + 'the called move used to re-enter the sleep gate and spend a second tick' };
+});
+
+probe('move', 'callRefusalFlags', 'Sleep Talk will not reach for a CHARGE move, and says so', () => {
+  /* THE POOL FILTER, MEASURED BY ITS OUTCOME RATHER THAN BY ITS MEMBERSHIP. `callsAnotherMove` carries
+   * `refusesFlags: ['nosleeptalk','charge']`, read off the handler own walk of `pokemon.moveSlots`,
+   * and the engine had NO WAY TO ASK a candidate whether it carried one: the lookup was
+   * `TAGS.has('move', x, '<flagname>')` and no tag is named after a flag, so it could never return
+   * and the pool was every move on the body. Solar Beam carries BOTH flags.
+   *
+   * THE ARMS DIFFER BY THE SECOND MOVE ON THE SHEET AND BY NOTHING ELSE. With Solar Beam the pool is
+   * EMPTY and the authority own handler returns false - `if (!randomMove) return false;` - so the
+   * move fails; with Ice Beam in the same slot the pool is one wide and the call lands. A probe that
+   * asserted "Solar Beam was not chosen" would pass on an engine that chose nothing ever. */
+  const charge = sleepBoard({ mv: 'sleeptalk', at: 'self', asleep: true, moves: ['sleeptalk', 'solarbeam'] });
+  const ok = sleepBoard({ mv: 'sleeptalk', at: 'self', asleep: true, moves: ['sleeptalk', 'icebeam'] });
+  return { works: charge.dealtAny === 0 && /\|-fail\|p1a: abomasnow/.test(charge.lines)
+                  && !/\|move\|p1a: abomasnow\|solarbeam/.test(charge.lines)
+                  && ok.dealtAny > 0 && /\|move\|p1a: abomasnow\|icebeam/.test(ok.lines),
+           arms: { control: [ok.dealtAny, /icebeam/.test(ok.lines)], test: [charge.dealtAny, /solarbeam/.test(charge.lines)] },
+           detail: '[HP the foe pair loses] - the only other slot is SOLAR BEAM, which carries the '
+                 + 'charge and nosleeptalk flags: ' + charge.dealtAny + ' and a -fail, and no |move| '
+                 + 'line for it at all. CONTROL, the same body with ICE BEAM in that slot instead: '
+                 + ok.dealtAny + ' and the call lands. Before the wire the flag test could never '
+                 + 'return, so Sleep Talk would have reached for the Solar Beam' };
+});
+
+probe('move', 'preTurnShield', 'Focus Punch announces at the top of the turn and pays NO PP when it loses focus', () => {
+  /* THE KNOB IS WHETHER THE FOE ATTACKS, and nothing else: same body, same click, same board. The PP
+   * is the half a "just refuse it" fix gets wrong - `beforeMoveCallback` returns above `deductPP`, so
+   * a punch that lost its focus costs nothing at all. */
+  const hit = sleepBoard({ mv: 'focuspunch', moves: ['focuspunch', 'icebeam', 'rest', 'protect'], foe: 'facade' });
+  const clean = sleepBoard({ mv: 'focuspunch', moves: ['focuspunch', 'icebeam', 'rest', 'protect'] });
+  return { works: /\|-singleturn\|p1a: abomasnow\|move: Focus Punch/.test(hit.lines)
+                  && /\|-singleturn\|p1a: abomasnow\|move: Focus Punch/.test(clean.lines)
+                  && hit.dealt === 0 && hit.pp.focuspunch === undefined
+                  && !/\|move\|p1a: abomasnow\|focuspunch/.test(hit.lines)
+                  && /\|cant\|p1a: abomasnow\|focuspunch/.test(hit.lines)
+                  && clean.dealt > 0 && clean.pp.focuspunch === 19,
+           arms: { control: [clean.dealt, clean.pp.focuspunch], test: [hit.dealt, hit.pp.focuspunch] },
+           detail: '[HP dealt, PP left in the slot] - HIT before it fires [' + hit.dealt + ','
+                 + hit.pp.focuspunch + ' (never touched)]: a |cant| line, NO |move| line at all, and '
+                 + 'the slot unspent; CONTROL, the same click with the foe passing, [' + clean.dealt
+                 + ',' + clean.pp.focuspunch + ']. Both arms carry the -singleturn the shield writes '
+                 + 'at the top of the turn, which this engine emitted on neither' };
+});
+
+probe('move', 'flingsOwnItem', 'a flung BERRY is eaten by the body it was thrown at', () => {
+  /* THE CONTROL IS ANOTHER FLINGABLE ITEM ON THE SAME BODY throwing the same move at the same target,
+   * so the arms differ by whether the thrown item is a BERRY and by nothing else. Fling own
+   * `onPrepareHit` REPLACES `move.onHit` for a berry, so the target runs the berry `onEat` directly
+   * - the pinch threshold is bypassed and the `-heal` names the THROWER. */
+  const berry = sleepBoard({ mv: 'fling', item: 'sitrusberry', moves: ['fling', 'icebeam', 'rest', 'protect'] });
+  const ball = sleepBoard({ mv: 'fling', item: 'ironball', moves: ['fling', 'icebeam', 'rest', 'protect'] });
+  return { works: berry.item === '-' && ball.item === '-'
+                  && /-heal\|p2a: feraligatr\|.*\[from\] item: sitrusberry\|\[of\] p1a: abomasnow/.test(berry.lines)
+                  && !/-heal/.test(ball.lines)
+                  && berry.lines.indexOf('-damage|p2a') < berry.lines.indexOf('-enditem|p1a')
+                  && ball.dealt > berry.dealt,
+           arms: { control: [ball.dealt, /-heal/.test(ball.lines)], test: [berry.dealt, /-heal/.test(berry.lines)] },
+           detail: '[HP the target is left down by, did it heal] - SITRUS BERRY flung: ' + berry.dealt
+                 + ' net, and the target EATS it (' + berry.lines + '); CONTROL an IRON BALL off the '
+                 + 'same body at the same target: ' + ball.dealt + ' net and no heal at all. The '
+                 + '-enditem must come AFTER the -damage - the item is spent by the fling volatile '
+                 + 'own onUpdate, which runs when the action is over' };
+});
+
+/* ROADMAP #308 - THE THREE LEAVES `board_state.js` DID NOT READ, AND TWO OF THEM WERE NOT LEAVES.
+ *
+ * All three rows came back ANNOUNCEMENT-ONLY from `engine/all_mechanics_fire.js`, which reads as "the
+ * boards agree". They did agree, in the fields that were looked at - and for Fairy Lock and Spirit
+ * Shackle the field that was NOT looked at is the whole move, so the agreement was between an engine
+ * that plays it and an engine that does not. That is the shape this file exists to catch and the
+ * shape a comparison cannot catch on its own.
+ *
+ * `lockBoard` stages a real doubles board through `battleInit` and spends real turns through
+ * `battleTurn`, and it has to: two of the three claims are about a SWITCH being refused on a LATER
+ * turn, which is a fact carried across a boundary and evaluated inside the action loop.
+ */
+const lockBoard = (o) => {
+  /* THE FOE SIDE CARRIES A BENCH, and it is load-bearing rather than tidy: `board()` builds two
+   * bodies a side and a side with nobody to bring in cannot switch AT ALL, so both arms read "did not
+   * move" and the probe measures the fixture. The first cut of this probe did exactly that. */
+  const me = bare(o.user || 'klefki'), ally = bare('venusaur');
+  const f1 = bare('corviknight'), f2 = bare('skarmory'), fBench = bare('milotic');
+  const S = M.battleInit([me, ally], [f1, f2, fBench], { seeded: true });
+  const B = { me, ally, f1, f2, S };
+  if (o.moves) B.me.moves = o.moves;
+  unfaintable(B.f1);
+  const trace = []; B.S._trace = trace;
+  const seen = [];
+  for (let t = 0; t < (o.turns || 1); t++) {
+    const mine = (t === 0 || o.repeat)
+      ? M.playerAction(B.me, o.mv, B.f1, B.S.field) : { kind: 'pass' };
+    /* THE FOE'S SWITCH IS THE READING. It is asked on every turn after the click, and a bare
+     * `{kind:'switch'}` is what the trap branches gate on - a pivot MOVE is deliberately exempt. */
+    const theirs = (t >= 1 && o.foeSwitch) ? { kind: 'switch' } : { kind: 'pass' };
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, mine], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, theirs], [B.f2, { kind: 'pass' }]]));
+    seen.push({ foeSlot: (B.S.actB[0] && B.S.actB[0].name) || '-',
+                field: B.S.field.fairylock | 0,
+                trapped: B.S.actB[0] && B.S.actB[0]._trapHard ? 1 : 0 });
+  }
+  return { seen, lines: trace.filter(l => !/^\|(turn|upkeep|switch)/.test(l)).join(' ') };
+};
+
+probe('move', 'setsRoom', 'Fairy Lock pins EVERYBODY to the field for two turns', () => {
+  /* THE CONTROL IS REFLECT off the same Klefki: another Status click that sets a field/side effect and
+   * traps nobody, so the arms differ by which move was clicked and not by whether a turn was spent.
+   * The foe is asked to SWITCH on turn 2 in both arms; the slot must change in the control and must
+   * not change under the lock, which is the outcome rather than the flag. */
+  const lock = lockBoard({ mv: 'fairylock', moves: ['fairylock', 'reflect'], turns: 3, foeSwitch: true });
+  const ctrl = lockBoard({ mv: 'reflect', moves: ['fairylock', 'reflect'], turns: 3, foeSwitch: true });
+  const slots = (r) => r.seen.map(x => x.foeSlot).join(',');
+  const clock = (r) => r.seen.map(x => x.field).join(',');
+  return { works: clock(lock) === '1,0,0' && clock(ctrl) === '0,0,0'
+                  && /-fieldactivate\|move: Fairy Lock/.test(lock.lines)
+                  && !/-fieldactivate/.test(ctrl.lines)
+                  && lock.seen[1].foeSlot === 'corviknight'
+                  && ctrl.seen[1].foeSlot !== 'corviknight',
+           arms: { control: [clock(ctrl), slots(ctrl)], test: [clock(lock), slots(lock)] },
+           detail: '[the field clock after each of three turns, then who is standing in the foe slot] '
+                 + '- FAIRY LOCK ' + clock(lock) + ' / ' + slots(lock) + ': the clock reads 1 at the '
+                 + 'boundary of the turn it was set (2 set, one spent by the field residual, which is '
+                 + 'what the authority holds too) and the foe cannot leave on turn 2. CONTROL REFLECT '
+                 + 'off the same body ' + clock(ctrl) + ' / ' + slots(ctrl) + ' - the switch goes '
+                 + 'through. Before the wire the click was a whole no-op turn' };
+});
+
+probe('move', 'trapsTarget', 'Spirit Shackle traps through a SECONDARY, where Block traps through the move', () => {
+  /* THE CONTROL IS SHADOW CLAW: the same Decidueye, the same target, the same Ghost type and the same
+   * physical category - so the arms differ by which move was clicked and not by whether the hit
+   * landed. Both deal damage; only one leaves the target unable to leave. */
+  const shackle = lockBoard({ user: 'decidueye', mv: 'spiritshackle',
+    moves: ['spiritshackle', 'shadowclaw'], turns: 3, foeSwitch: true });
+  const ctrl = lockBoard({ user: 'decidueye', mv: 'shadowclaw',
+    moves: ['spiritshackle', 'shadowclaw'], turns: 3, foeSwitch: true });
+  const slots = (r) => r.seen.map(x => x.foeSlot).join(',');
+  const trap = (r) => r.seen.map(x => x.trapped).join(',');
+  return { works: trap(shackle) === '1,1,1' && trap(ctrl) === '0,0,0'
+                  && /-activate\|p2a: corviknight\|trapped/.test(shackle.lines)
+                  && !/trapped/.test(ctrl.lines)
+                  && shackle.seen[1].foeSlot === 'corviknight'
+                  && ctrl.seen[1].foeSlot !== 'corviknight',
+           arms: { control: [trap(ctrl), slots(ctrl)], test: [trap(shackle), slots(shackle)] },
+           detail: '[is the target trapped after each of three turns, then who is standing in the foe '
+                 + 'slot] - SPIRIT SHACKLE ' + trap(shackle) + ' / ' + slots(shackle)
+                 + '; CONTROL SHADOW CLAW off the same body ' + trap(ctrl) + ' / ' + slots(ctrl)
+                 + '. The trap is a `secondary.onHit`, not the move own onHit, so the derivation that '
+                 + 'served Block and Mean Look could not see it and the move dealt 80 base power and '
+                 + 'nothing else' };
+});
+
+const berryBoard = (userSp, mv, items) => {
+  const B = board(userSp, 'venusaur', 'feraligatr', 'charizard');
+  for (const k of ['me', 'ally', 'f1', 'f2']) B[k].item = (items && items[k]) || '';
+  const trace = []; B.S._trace = trace;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  return { items: ['me', 'ally', 'f1', 'f2'].map(k => B[k].item || '-').join(','),
+           def: B.me.boosts.df,
+           lines: trace.filter(l => !/^\|(turn|upkeep)/.test(l)).join(' ') };
+};
+
+probe('move', 'takesTargetItem', 'Corrosive Gas strips EVERY adjacent body, the user\'s own partner included', () => {
+  /* THE CONTROL IS TRICK OFF THE SAME GARBODOR AT THE SAME SLOT: also `takesTargetItem`, also a Status
+   * click, and `normal` rather than `allAdjacent` — so the arms differ by the move's TARGET CLASS and
+   * by nothing else. A "does anything happen" control would pass on the engine that was here, which
+   * resolved no body at all and left every item where it was. */
+  const gas = berryBoard('garbodor', 'corrosivegas',
+    { me: 'leftovers', ally: 'sitrusberry', f1: 'sitrusberry', f2: 'lumberry' });
+  const trick = berryBoard('garbodor', 'trick',
+    { me: 'leftovers', ally: 'sitrusberry', f1: 'sitrusberry', f2: 'lumberry' });
+  return { works: gas.items === 'leftovers,-,-,-' && trick.items === 'sitrusberry,sitrusberry,leftovers,lumberry'
+                  && (gas.lines.match(/-enditem/g) || []).length === 3,
+           arms: { control: trick.items, test: gas.items },
+           detail: '[user,ally,foeA,foeB items after one turn] — CORROSIVE GAS ' + gas.items
+                 + ' (three -enditem lines: the ally and BOTH foes, and the user keeps its own); '
+                 + 'CONTROL TRICK off the same body at the same slot ' + trick.items + ' — one body, '
+                 + 'and it SWAPS rather than destroys. Before the wire the gas arm read '
+                 + 'leftovers,sitrusberry,sitrusberry,lumberry: an allAdjacent click carries no '
+                 + 'target, so the branch resolved nobody' };
+});
+
+probe('move', 'forcesBerryEat', 'Stuff Cheeks eats the user\'s berry, and FAILS with no berry to eat', () => {
+  /* THREE ARMS, AND THE THIRD IS THE ONE THAT MATTERS. "No item" alone would pass on an engine that
+   * demanded any held item; LEFTOVERS — an item, held, on the same body, through the same click —
+   * says the gate is BERRY-NESS. The authority's guard is `onTry(source) { return
+   * source.getItem().isBerry; }`, so the Leftovers arm must fail exactly as the empty one does. */
+  const berry = berryBoard('simipour', 'stuffcheeks', { me: 'sitrusberry' });
+  const none = berryBoard('simipour', 'stuffcheeks', {});
+  const other = berryBoard('simipour', 'stuffcheeks', { me: 'leftovers' });
+  return { works: berry.def === 2 && berry.items === '-,-,-,-' && /-enditem\|p1a: simipour\|sitrusberry\|\[eat\]/.test(berry.lines)
+                  && none.def === 0 && /\|-fail\|p1a: simipour/.test(none.lines) && /\|\[still\]/.test(none.lines)
+                  && other.def === 0 && other.items === 'leftovers,-,-,-' && /\|-fail\|/.test(other.lines),
+           arms: { control: [none.def, other.def, other.items], test: [berry.def, berry.items] },
+           detail: '[the user\'s Defence stage, its item] — with a SITRUS BERRY ' + berry.def + ', "'
+                 + berry.items.split(',')[0] + '", and the line "' + berry.lines + '"; CONTROL no item '
+                 + none.def + ' with a -fail and the move line blanked by [still]; CONTROL LEFTOVERS '
+                 + other.def + ' and the item still there — an item that is not a berry fails exactly '
+                 + 'as an empty hand does. The engine used to hand out +2 Defence on all three' };
+});
+
+probe('move', 'forcesBerryEat', 'Teatime empties every berry on the FIELD, both sides', () => {
+  /* THE CONTROL IS THE SAME CLICK ON A FIELD WITH NO BERRY ON IT, which is the authority's own second
+   * branch rather than a different move: it still writes `-fieldactivate` and then FAILS. And the
+   * ally deliberately holds LEFTOVERS in the test arm, so a body that is on the field and holds an
+   * item that is not a berry proves the move eats berries rather than everything. */
+  const tea = berryBoard('polteageist', 'teatime',
+    { me: 'sitrusberry', ally: 'leftovers', f1: 'sitrusberry', f2: 'lumberry' });
+  const dry = berryBoard('polteageist', 'teatime', { me: 'leftovers' });
+  return { works: tea.items === '-,leftovers,-,-'
+                  && (tea.lines.match(/-enditem/g) || []).length === 3
+                  && /-fieldactivate/.test(tea.lines) && !/-fail/.test(tea.lines)
+                  && dry.items === 'leftovers,-,-,-'
+                  && /-fieldactivate/.test(dry.lines) && /\|-fail\|p1a: polteageist\|move: Teatime/.test(dry.lines),
+           arms: { control: [dry.items, /-fail/.test(dry.lines)], test: [tea.items, /-fail/.test(tea.lines)] },
+           detail: '[user,ally,foeA,foeB items after one turn] — TEATIME ' + tea.items + ' (three '
+                 + '-enditem lines, one of them on the OTHER side; the ally\'s Leftovers survives '
+                 + 'because it is not a berry); CONTROL, the same click with no berry anywhere, '
+                 + dry.items + ' — the field line is still written and then it fails. Before the wire '
+                 + 'both arms left every berry where it was and emitted nothing at all' };
+});
+
+const spiteRun = (mv, userSp) => {
+  const B = board(userSp || 'farigiraf', 'farigiraf', 'garchomp', 'farigiraf');
   B.f1.moves = ['earthquake'];
   for (const b of [B.me, B.ally, B.f1, B.f2]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 60 }); b.curHP = b.st.hp; }
   /* THE VICTIM MOVES FIRST, deliberately: `removesPP` takes from the target's LAST move, and a body
@@ -17156,10 +17607,16 @@ const spiteRun = (mv) => {
    * anything. Staging it the other way round would read 0 on both arms and look like a null result. */
   B.me.st = Object.assign({}, B.me.st, { sp: 10 });
   B.f1.st = Object.assign({}, B.f1.st, { sp: 200 });
+  const trace = []; B.S._trace = trace;
   M.battleTurn(B.S, rng5,
     new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
     new Map([[B.f1, M.playerAction(B.f1, 'earthquake', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
-  return B.f1._pp ? B.f1._pp.earthquake : null;
+  const pp = B.f1._pp ? B.f1._pp.earthquake : null;
+  /* THE ANNOUNCEMENT IS PART OF THE MECHANIC HERE and is handed back beside the number, because the
+   * authority's line names WHICH slot was emptied and BY HOW MUCH — a board that agrees while the
+   * line says nothing is still a divergence in a compared stream. */
+  pp.toString();                                          // a null slot must fail loudly, not silently
+  return { pp, act: trace.filter(l => /^\|-activate\|/.test(l)).join(' ') };
 };
 
 probe('move', 'removesPP', 'Eerie Spell takes 3 PP off the move the target just used', () => {
@@ -17168,17 +17625,45 @@ probe('move', 'removesPP', 'Eerie Spell takes 3 PP off the move the target just 
    * anything connected. Earthquake is maxpp 12; the victim spends one on its own click, so the
    * control must read 11 and the test 8.
    *
-   * SPITE CARRIES THE SAME TAG AND IS NOT PROBED HERE, DELIBERATELY: `playerAction` resolves it to
-   * `{kind:\'pass\'}` — it is one of the 32 moves ROADMAP #125 counts as a whole no-op turn — so the
-   * reader is live for it and the ROAD into the reader is not. Probing it would mean asserting a
-   * result the engine reaches by accident. */
+   * SPITE CARRIES THE SAME TAG AND HAS ITS OWN PROBE DIRECTLY BELOW, since ROADMAP #308. This
+   * comment used to say it was deliberately NOT probed because `playerAction` resolved it to
+   * `{kind:\'pass\'}` — the reader was live and the ROAD into the reader was not — and that stayed
+   * true for as long as it stood. The road exists now; the two arms are separate probes because they
+   * enter the engine through two different doors (a secondary on a hit, and a status action). */
   const eerie = spiteRun('eeriespell');
   const ctrl = spiteRun('psychic');
-  return { works: eerie === 8 && ctrl === 11,
-           arms: { control: ctrl, test: eerie },
-           detail: 'the target\'s Earthquake (maxpp 12) reads ' + eerie + ' after EERIE SPELL and '
-                 + ctrl + ' after PSYCHIC — the same body, the same turn order, the same one PP the '
-                 + 'victim spends on its own click, and 3 more taken off the slot it last used' };
+  return { works: eerie.pp === 8 && ctrl.pp === 11
+                  && /move: eeriespell\|earthquake\|3/.test(eerie.act) && ctrl.act === '',
+           arms: { control: [ctrl.pp, ctrl.act], test: [eerie.pp, eerie.act] },
+           detail: 'the target\'s Earthquake (maxpp 12) reads ' + eerie.pp + ' after EERIE SPELL and '
+                 + ctrl.pp + ' after PSYCHIC — the same body, the same turn order, the same one PP the '
+                 + 'victim spends on its own click, and 3 more taken off the slot it last used. The '
+                 + 'line names the slot and the amount: "' + eerie.act + '" against the control\'s "'
+                 + ctrl.act + '"' };
+});
+
+/* ROADMAP #308 — SPITE, AND IT IS A SEPARATE PROBE FROM EERIE SPELL ON PURPOSE.
+ *
+ * They carry ONE tag and reach the engine by two doors: Eerie Spell has base power and rides the
+ * damaging-secondary loop; Spite is a Status click and had to be routed as an action kind. A single
+ * probe over the tag would have gone green on the damaging member and said nothing about the other,
+ * which is exactly the state this file was in — the note above used to record it.
+ *
+ * THE CONTROL IS TAUNT, not "no move". Both are Status, both are aimed at the same Garchomp on the
+ * same turn by the same Annihilape, both are legal on it (TeamValidator, Champions Reg M-B), and
+ * neither deals damage — so the ONLY thing that differs between the arms is which status move was
+ * clicked. A "does anything spend the target's PP" control could pass on an engine that emptied a
+ * slot whenever any status move landed. */
+probe('move', 'removesPP', 'Spite takes 4 PP off the move the target just used', () => {
+  const spite = spiteRun('spite', 'annihilape');
+  const ctrl = spiteRun('taunt', 'annihilape');
+  return { works: spite.pp === 7 && ctrl.pp === 11
+                  && /move: spite\|earthquake\|4/.test(spite.act),
+           arms: { control: [ctrl.pp, ctrl.act], test: [spite.pp, spite.act] },
+           detail: 'Annihilape into a Garchomp that has just clicked Earthquake (maxpp 12, one spent '
+                 + 'on its own click): SPITE leaves ' + spite.pp + ' and announces "' + spite.act
+                 + '"; CONTROL TAUNT — the same body, the same target, the same turn, another legal '
+                 + 'Status move — leaves ' + ctrl.pp + ' and announces "' + ctrl.act + '"' };
 });
 
 /* ---- ROADMAP #147 — THE GROUNDED AXIS ------------------------------------------------------------
@@ -17981,16 +18466,20 @@ probe('ability', 'healsFromOwnStatus', 'Poison Heal takes the Toxic and is PAID 
  * this probe did neither: a Dragon Claw took Drampa from 94 straight to 0, so BOTH arms read spa 0 and
  * the probe was measuring a KO. `place` is null on the measuring run (start at full HP) and a number
  * on the staged ones. */
-const berserkRun = (ab, place) => {
+const berserkRun = (ab, place, mv) => {
   const B = board('drampa', 'skeledirge', 'garchomp', 'farigiraf');
   B.me.ability = ab;
   unfaintable(B.me);
   if (place != null) B.me.curHP = place;
-  B.f1.moves = ['dragonclaw', 'protect', 'snarl', 'flamethrower'];
+  B.f1.moves = [mv || 'dragonclaw', 'protect', 'snarl', 'flamethrower'];
   const hp0 = B.me.curHP;
+  const trace = []; B.S._trace = trace;
   M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
-    new Map([[B.f1, M.playerAction(B.f1, 'dragonclaw', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
-  return { spa: B.me.boosts.sa, hp0, hp: B.me.curHP, half: B.me.st.hp / 2, dmg: hp0 - B.me.curHP };
+    new Map([[B.f1, M.playerAction(B.f1, mv || 'dragonclaw', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+  return { spa: B.me.boosts.sa, hp0, hp: B.me.curHP, half: B.me.st.hp / 2, dmg: hp0 - B.me.curHP,
+           hits: (trace.filter(l => /^\|-damage\|p1a/.test(l))).length,
+           boosts: (trace.filter(l => /^\|-boost\|p1a: drampa\|sa|^\|-boost\|p1a: drampa\|spa/.test(l))).length,
+           lines: trace.filter(l => /drampa\|(spa|sa)|-ability\|p1a/.test(l)).join(' ') };
 };
 probe('ability', 'boostsAtHPThreshold', 'Berserk fires on the hit that CROSSES half, and only then', () => {
   const gauge = berserkRun('none', null);
@@ -18007,6 +18496,47 @@ probe('ability', 'boostsAtHPThreshold', 'Berserk fires on the hit that CROSSES h
                  + ' — SpA stage ' + on.spa + ', control ' + off.spa + '. Already UNDER the line at '
                  + under.hp0 + ' it takes the same hit to ' + under.hp + ' and reads ' + under.spa
                  + ': the ability is a crossing, not a state' };
+});
+
+/* ROADMAP #308 — AND THE SAME ABILITY UNDER A MULTI-HIT MOVE, WHICH THE PROBE ABOVE CANNOT SEE.
+ *
+ * The probe above is green and was green while a three-hit Scale Shot paid +3 Special Attack, because
+ * it stages a SINGLE-HIT Dragon Claw — and one hit cannot tell "fires on the crossing" from "fires on
+ * every packet of the move that crossed". The consumer sat inside the WIRE 84 per-hit reaction loop
+ * and read the WHOLE MOVE's damage, so every packet satisfied `hp <= half && hp + dmg > half`.
+ *
+ * `onAfterMoveSecondary` runs ONCE per move (data/abilities.ts:420) and reads `move.totalDamage` for
+ * a multihit. Measured on the authority — Feraligatr's Scale Shot into a Berserk Drampa:
+ *     |-damage|129/157  |-damage|103/157  |-damage|75/157  |-hitcount|3
+ *     |-ability|p1a: Drampa|Berserk|boost
+ *     |-boost|p1a: Drampa|spa|1
+ * ONE boost off three hits, and the pair of lines is `-ability` then a BARE `-boost` — this engine
+ * wrote no `-ability` line and hung `[from] ability: berserk` on the boost, which is the shape
+ * `Battle#boost` writes for a MOVE-caused boost and not for an ability-caused one.
+ *
+ * THE HIT COUNT IS READ OFF THE STREAM AND ASSERTED, so "more than one packet landed" is a receipt
+ * rather than an assumption — a probe whose multi-hit move happened to roll one hit would be the
+ * single-hit probe again wearing a different move's name. */
+probe('ability', 'boostsAtHPThreshold', 'Berserk pays ONCE for a multi-hit move that crosses half', () => {
+  const gauge = berserkRun('none', null, 'scaleshot');
+  const halfHP = Math.floor(gauge.half);
+  /* Placed so the WHOLE volley crosses the line: above the half by less than the volley's total. */
+  const atLine = halfHP + Math.max(1, Math.floor(gauge.dmg / 2));
+  const off = berserkRun('none', atLine, 'scaleshot');
+  const on = berserkRun('berserk', atLine, 'scaleshot');
+  const single = berserkRun('berserk', halfHP + Math.max(1, Math.floor(gauge.dmg / 2)), 'dragonclaw');
+  return { works: on.hits >= 2 && on.spa === 1 && on.boosts === 1 && off.spa === 0 && off.boosts === 0
+                  && /-ability\|p1a: drampa\|berserk\|boost/.test(on.lines)
+                  && !/\[from\] ability/.test(on.lines)
+                  && single.spa === 1,
+           arms: { control: [off.hits, off.spa, off.boosts], test: [on.hits, on.spa, on.boosts] },
+           detail: '[hits landed, SpA stage, -boost lines on the carrier] — SCALE SHOT into a BERSERK '
+                 + 'Drampa [' + on.hits + ',' + on.spa + ',' + on.boosts + ']; CONTROL, the same '
+                 + 'volley into the same body with the ability blanked, [' + off.hits + ',' + off.spa
+                 + ',' + off.boosts + ']. A single-hit Dragon Claw on the same crossing still reads '
+                 + single.spa + ', so the fix did not turn the ability off. The lines are "' + on.lines
+                 + '" — the authority writes -ability then a BARE -boost, and this engine used to '
+                 + 'write ' + on.hits + ' boosts each carrying [from] ability: berserk' };
 });
 
 /* ROADMAP #175 -- SKILL LINK. `multihitAlwaysMax {takesIndex:1, removesMultiaccuracy:true}`.

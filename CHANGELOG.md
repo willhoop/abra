@@ -10,6 +10,80 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.46.0] — 2026-08-19
+
+### Fixed
+- **ALL TEN STATE DEFECTS FROM THE BOARD RUN ARE CLOSED.** Each was isolated by playing its mechanic past
+  the line divergence and comparing ~285 board leaves; each is re-asked on its own fixture and confirmed in
+  a full re-run on frozen release `926e810dd8a0`. **Eight NO-DIVERGENCE, two ANNOUNCEMENT-ONLY, none still
+  parts a board.** Fifteen probes added, **every one RED on the engine as handed over**.
+
+  | row | before | after |
+  |---|---|---|
+  | `spite` | **0 PP taken** — target's move 2 spent against the authority's 6 | 4 taken, `-activate\|move: spite\|earthquake\|4` |
+  | `syrupbomb` | **no Speed drop at all**, stage +2 against +1 | `-1,-2,-3,-3,-3,-3` over six turns, clock asserted |
+  | `corrosivegas` | nothing removed — an `allAdjacent` click carried no target | ally and both foes stripped |
+  | `stuffcheeks` | berry kept, **and +2 Def with no berry held** | eaten after the boost; fails with no berry |
+  | `teatime` | both sides kept their berries, nothing announced | `-fieldactivate`, then every holder eats |
+  | `berserk` | **+3 off a 3-hit Scale Shot** | +1, `-ability` then a bare `-boost` |
+  | `sleeptalk` | never happened; PP 0 against 1 | calls a legal own move, free, sleep ticks once |
+  | `snore` | refused while asleep, **and hit for full damage awake** | usable asleep, refused awake |
+  | `focuspunch` | a `\|move\|` line the authority never writes, 1 PP against 0 | refused above the PP deduction, `-singleturn` emitted |
+  | `fling` | receiver 8 HP down | identical |
+
+- **`berserk`'s existing probe was green throughout** because it stages a SINGLE hit; the defect only appears
+  on a multi-hit move (+3 off a 3-hit Scale Shot). The new probe stages the multi-hit case.
+- **`snore` was wrong in BOTH directions** — refused while asleep, where it is the one attack a sleeping body
+  can make, and usable while awake, where it must fail. Two opposed controls.
+- **MAGIC BOUNCE WAS TRAPPING THE WRONG BODY, and only wiring an unrelated leaf could see it.** Adding
+  `vol.trapped` to the compared board exposed two faults in `trapmove`: the bounce was computed and then
+  undone by `reaimToSlot`, and a `t === m` guard refused the one case a bounce always produces. The existing
+  `reflectsStatusMoves` probe stages Charm, which resolves through a different branch, so it was green the
+  whole time.
+- **TWO OF THE FOUR "UNREAD LEAVES" WERE NOT UNREAD — THEY WERE UNIMPLEMENTED MOVES.** Fairy Lock was a whole
+  no-op turn (`setsRoom` carried a name and nothing else) and Spirit Shackle's trap is a `secondary.onHit`
+  the `trapsTarget` derivation could not see. `fairylock`, `spiritshackle`, `uproar` and `beakblast` are now
+  NO-DIVERGENCE; `electromorphosis` is ANNOUNCEMENT-ONLY with its `charge` leaf compared and agreeing.
+  `attract` and `chillyreception` remain **unasked and declared as such**.
+- **Disguise's family was already live; the event SHAPE was not.** `onDamage` returns 0 rather than
+  cancelling, so the authority writes a `-damage` at **unchanged health** before the `detailschange`, and the
+  maxhp/8 chip carries `[from] pokemon: Mimikyu-Busted`. Both were absent. A `formeOnHit` probe now asserts
+  the four-line sequence.
+
+### Notes
+- **THE `fling` DIAGNOSIS IN THE BRIEF WAS WRONG, AND THE CORRECTION IS LOAD-BEARING.** It was briefed as a
+  damage divergence explicitly separate from the known-unmodelled berry branch. **The damage lines are
+  IDENTICAL on both engines** (`|-damage|p2a: Feraligatr|952/960`); the authority then writes
+  `|-heal|p2a: Feraligatr|960/960|[from] item: Sitrus Berry|[of] p1a: Abomasnow`. **It IS the berry
+  branch** — `fling.onPrepareHit` REPLACES `move.onHit` for a berry so the target eats it with the pinch
+  threshold bypassed. A pass aimed at the damage formula would have found nothing. The reach measured
+  yesterday stands (2 of 68 Fling carriers hold a berry); the mechanism was misattributed, not the size.
+- **THE THREE BERRY ROWS DID NOT SHARE A CAUSE**, which is why they were checked before being batched.
+  Corrosive Gas was spread targeting (`trickitem` now uses the `affect` branch's resolver, one shared
+  `statusMoveTargets`); Stuff Cheeks is the user eating its own berry gated on its own boost landing;
+  Teatime is an `onHitField` walk. Two share one new primitive (`eatHeldBerry`); the third never touches it.
+- **One of the new tags turned the coverage clause RED mid-pass** — `callRefusalFlags` landed on 75 moves
+  including Struggle, and that clause requires every tag on a move above the shelf to be probed. Closed by
+  probing what the tag exists for. PASS again.
+- **Census 603 live / 0 missing -> 618 live / 0 missing**, 0 hollow, 0 threw, 0 unarmed.
+- **GATE: `CLOSED — 3 of 8` (was 4 of 8)**, with both artifacts re-run on ONE frozen release so **no clause
+  is stale**. Mechanics **47 -> 34 diverging** (moves 34 -> 21, abilities 13, items 0), uncleared 32 -> 28.
+  Whole-game **353/982 = 35.9% -> 342/972 = 35.2%**, VOID 2 either side. Still failing: whole-game,
+  mechanics, and six roadmap rows naming red instruments (#218, #241, #258, #286, #287, #290), untouched here.
+- **CAVEAT THAT MUST SURVIVE THE HEADLINE: 47 -> 34 IS NOT A BEFORE/AFTER ON IDENTICAL SCENARIOS.**
+  `all_mechanics_fire.js`'s sample is steered by the census (`census-coverage-seeking/v1`) and the census
+  gained fifteen rows this pass. **The thirteen named rows were re-asked individually on their own fixtures
+  — those are the attributable ones.**
+- **`tests/staged_board.js`'s proof plant cannot apply, and correcting it is worse. Filed, not fixed, routed
+  to MEASURE.** The anchor spans a line break and matches zero times, so the run prints *"THE QUIETENING
+  MECHANISM IS NOT TRUSTWORTHY"* on every invocation — verified against `b7179d2` that this predates this
+  pass. Shortening the anchor makes it plant, all three machinery checks read `ok`, and then **all 24
+  scenarios report `CLEAN ENGINE -> DIFFERS`**. The patched module survives `harness(null)`, which reloads
+  `game_differential.js`, which binds through `REL.require` in `engine/engine_release.js` — MEASURE's file.
+  Left exactly as found at 24/24 clean, with the measurement written at the plant. ROADMAP #308.
+
+---
+
 ## [5.45.0] — 2026-08-19
 
 ### Fixed

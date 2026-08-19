@@ -2011,6 +2011,99 @@ const MOVE_TAGS = [
                immuneType: imm,
                fraction: frac ? '1/' + frac : (tern ? '1/' + tern[3] : null) };
     } },
+  /* ROADMAP #308 -- A VOLATILE CAN MOVE A STAT STAGE EVERY RESIDUAL, AND NOTHING SAID SO.
+   *
+   * `perTurnHP` next door covers a volatile that moves HP at the residual. Syrup Bomb moves a STAT
+   * STAGE at the residual instead -- `data/moves.ts:18776`,
+   * `onResidual(pokemon) { this.boost({ spe: -1 }, pokemon, this.effectState.source); }`, on a
+   * condition with `duration: 4` -- and no tag in this file described that shape, so the engine
+   * applied the volatile, announced its `-start`, and then did nothing with it for four turns. The
+   * authority's `|-unboost|p2a: Feraligatr|spe|1` was the missing line and the target's Speed stage
+   * the parted board (engine/all_mechanics_fire.js `--only syrupbomb`: showdown +1, us +2).
+   *
+   * MEMBERSHIP DERIVED AND PRINTED BEFORE ANYTHING WAS WIRED. Over every legal move, ability and item
+   * in this format, a residual handler calling `this.boost(` exists on FOUR rows and only one of them
+   * is a move:
+   *     move     syrupbomb     this.boost({spe:-1}, pokemon, this.effectState.source)
+   *     ability  speedboost    already the `boosts` residual step
+   *     ability  moody         already the `moody` residual step
+   *     ability  opportunist   not a residual CLOCK -- it replays a boost it recorded, and is a
+   *                            control-arm row in the deliberate roster
+   * The other three are ABILITIES and this tag is on MOVE_TAGS, so the predicate cannot reach them
+   * even by accident. One member is a family of one TODAY; the shape is what is matched, so a second
+   * arrives without an edit here.
+   *
+   * THE DURATION IS PART OF THE MECHANIC AND IS CARRIED. A -1 that never stops is a different move.
+   * `endsSilently` is the `[silent]` on the condition's own `onEnd` line, which is why the expiry
+   * produces no protocol event to compare and the CLOCK has to be probed directly. */
+  /* ROADMAP #308 -- A MOVE THAT MAKES A BODY EAT ITS OWN BERRY, WHICH IS NOT "TAKING AN ITEM".
+   *
+   * `takesTargetItem` covers Trick, Switcheroo and Corrosive Gas -- the item MOVES or VANISHES. Stuff
+   * Cheeks and Teatime do something else: the berry is EATEN, so its effect happens and the holder
+   * ends up with `lastItem` set, which is what Recycle, Harvest and Cud Chew all read. Stuff Cheeks
+   * carried `takesTargetItem {consumesAndGainsEffect:true, swaps:false, removes:false}` -- a row whose
+   * only two consumers both test `swaps||removes`, so it described the move and reached nothing --
+   * and TEATIME CARRIED NO ITEM TAG AT ALL.
+   *
+   * MEMBERSHIP DERIVED AND PRINTED BEFORE A LINE WAS WIRED. Over every legal move, ability and item in
+   * this format, `.eatItem(` appears in a handler on 30 rows and 28 of them are the BERRIES THEMSELVES
+   * eating on their own trigger (`onUpdate`, `onSourceModifyDamage`). This tag is on MOVE_TAGS, so the
+   * predicate cannot reach an item even by accident, and over the 500 legal moves it selects exactly
+   * two: `stuffcheeks` (target self) and `teatime` (target all).
+   *
+   * WHAT THE CONSUMER NEEDS IS ALL DERIVED, because each clause was a separate defect:
+   *   requiresBerry   Stuff Cheeks' `onTry(source) { return source.getItem().isBerry; }` -- this
+   *                   engine boosted +2 Defence off a body holding NOTHING, measured against the
+   *                   authority's `|move|...||[still]` + `|-fail|`
+   *   gatedOnBoost    `if (!this.boost({def:2})) return null;` -- the eat is BELOW the boost and does
+   *                   not happen if the boost is refused outright
+   *   onlyBerryHolders / fieldAnnounce / failLabel / failStill
+   *                   Teatime's field pass: collect the berry holders, announce `-fieldactivate|move:
+   *                   Teatime` WHETHER OR NOT anybody qualifies, and on an empty set write
+   *                   `-fail|SOURCE|move: Teatime` and blank the move line with `[still]`
+   * The compiled handler text uses double quotes where the TypeScript source uses single, so every
+   * pattern below admits both -- reading only one is how a derivation quietly matches nothing. */
+  { tag: 'forcesBerryEat',
+    param: 'the move makes a body EAT a held berry: whose, whether it fails without one, and what it announces',
+    probe: 'forcesBerryEat',
+    why: 'Stuff Cheeks left its user holding the berry it had just eaten and boosted with no berry at '
+       + 'all; Teatime left BOTH sides holding theirs and announced nothing',
+    of: m => {
+      const keys = Object.keys(m).filter(k => typeof m[k] === 'function' && /\.eatItem\(/.test(String(m[k])));
+      if (!keys.length) return null;
+      const src = keys.map(k => String(m[k])).join('\n');
+      const fa = src.match(/add\(\s*['"]-fieldactivate['"]\s*,\s*['"]([^'"]*)['"]/);
+      const fl = src.match(/add\(\s*['"]-fail['"]\s*,\s*\w+\s*,\s*['"]([^'"]*)['"]/);
+      return { scope: m.target === 'self' ? 'user' : (m.target === 'all' ? 'allActive' : m.target),
+               requiresBerry: /getItem\(\)\.isBerry/.test(String(m.onTry || '')),
+               onlyBerryHolders: /getItem\(\)\.isBerry/.test(src),
+               gatedOnBoost: /if\s*\(\s*!this\.boost\(/.test(src),
+               fieldAnnounce: fa ? fa[1] : null,
+               failLabel: fl ? fl[1] : null,
+               failStill: /attrLastMove\(\s*['"]\[still\]['"]\s*\)/.test(src) };
+    } },
+  { tag: 'perTurnBoost',
+    param: 'a stat stage moved at EVERY residual by a volatile, and for how many turns',
+    probe: 'perTurnBoost',
+    why: 'Syrup Bomb drops the target 1 Speed stage per residual for four turns. Nothing consumed '
+       + 'it, so the whole point of the move was absent while its 60 base power landed',
+    of: m => {
+      const c = m.condition || {};
+      const call = String(c.onResidual || '').match(/this\.boost\(\s*\{([^}]*)\}\s*,\s*(\w+)/);
+      if (!call) return null;
+      const boosts = {};
+      for (const mm of call[1].matchAll(/(\w+)\s*:\s*(-?\d+)/g)) boosts[mm[1]] = +mm[2];
+      if (!Object.keys(boosts).length) return null;
+      /* The volatile's NAME is what a consumer keys on, and for this family it lives on the
+       * secondary rather than on the move -- the same place `statusInflict` reads it from. */
+      const vol = m.volatileStatus || (m.secondary && m.secondary.volatileStatus)
+               || (m.secondaries || []).map(s => s && s.volatileStatus).find(Boolean) || null;
+      if (!vol) return null;
+      return { volatile: vol, boosts,
+               on: call[2] === 'pokemon' ? 'holder' : call[2],
+               duration: c.duration != null ? +c.duration : null,
+               endsSilently: /\[silent\]/.test(String(c.onEnd || '')) };
+    } },
   /* THE COUNTER AND THE FEELING ARE TWO DIFFERENT NUMBERS, AND THIS TAG CARRIED THE FEELING.
    *
    * `{ turns: '4-5' }` was typed here, and it is the folk description — how many turns of chip the
@@ -2279,10 +2372,22 @@ const MOVE_TAGS = [
     why: 'Block and Mean Look: the authority REFUSES the switch and this engine allowed it, because '
        + 'neither move carried any trapping tag at all',
     of: m => {
-      const src = String(m.onHit || '').replace(/\s+/g, ' ');
-      const mt = src.match(/addVolatile\(\s*["'](trapped)["']/);
+      /* ROADMAP #308 -- THE SECONDARY'S `onHit` COUNTS, AND IT IS WHERE THE DAMAGING MEMBER LIVES.
+       * This read `m.onHit` only, so it matched Block and Mean Look -- two status moves -- and MISSED
+       * SPIRIT SHACKLE entirely: its trap is `secondary: {chance:100, onHit(target, source, move) {
+       * if (source.isActive) target.addVolatile('trapped', source, move, 'trapper'); }}`
+       * (data/moves.ts:17623-17628). The move carried no trapping tag at all, so the engine dealt its
+       * 80 base power and the trap -- the whole reason anybody clicks it -- did not exist.
+       * `viaSecondary` is carried because the two shapes reach the engine by different doors: a status
+       * click routes to an action kind, a damaging one has to ride the hit. */
+      const own = String(m.onHit || '').replace(/\s+/g, ' ');
+      const secs = [m.secondary, ...(m.secondaries || [])].filter(Boolean)
+        .map(x => String(x.onHit || '').replace(/\s+/g, ' ')).join(' ');
+      const mt = own.match(/addVolatile\(\s*["'](trapped)["']/)
+              || secs.match(/addVolatile\(\s*["'](trapped)["']/);
       if (!mt) return null;
-      return { volatile: mt[1], to: 'target', endsWithSource: true };
+      return { volatile: mt[1], to: 'target', endsWithSource: true,
+               viaSecondary: !/addVolatile\(\s*["']trapped["']/.test(own) };
     } },
   { tag: 'sharesHP', param: 'both bodies end on the same HP -- the average of the two',
     probe: 'sharesHP',
@@ -2769,10 +2874,28 @@ const MOVE_TAGS = [
   { tag: 'suppressesItems', param: 'held items stop working, field-wide', probe: 'magicroom',
     why: 'Magic Room. Kills Focus Sash, Choice items, Assault Vest and the berries at once',
     of: m => /magicroom/.test(norm(m.id)) ? { suppress: true } : null },
-  { tag: 'setsRoom', param: 'another pseudo-weather', probe: 'pseudoWeather',
-    why: 'whatever is left after Trick Room, Wonder Room, Magic Room and Gravity are split out',
-    of: m => (m.pseudoWeather && !/trickroom|wonderroom|magicroom|gravity/.test(norm(m.id)))
-             ? { pseudoWeather: m.pseudoWeather } : null },
+  /* ROADMAP #308 -- THE PARAM WAS A NAME AND NOTHING ELSE, so it could never be consumed. `setsRoom`
+   * has one member in this format -- FAIRY LOCK -- and `{pseudoWeather:'fairylock'}` says which field
+   * key to write and nothing about HOW LONG, WHAT IT ANNOUNCES or WHAT IT DOES, so `playerAction`
+   * dropped it on the terminal `{kind:'pass'}` and the whole move was a wasted turn.
+   *
+   * All three are read off the condition rather than typed: `duration: 2`, `onFieldStart` writing
+   * `this.add('-fieldactivate', 'move: Fairy Lock')`, and `onTrapPokemon(pokemon) { pokemon.tryTrap();
+   * }` -- which is the mechanic and is why `trapsEveryone` is a derived boolean and not a name test. */
+  { tag: 'setsRoom', param: 'another pseudo-weather: which key, for how long, what it announces, what it does',
+    probe: 'pseudoWeather',
+    why: 'whatever is left after Trick Room, Wonder Room, Magic Room and Gravity are split out -- '
+       + 'today that is Fairy Lock, whose two-turn switch lock IS the move',
+    of: m => {
+      if (!(m.pseudoWeather && !/trickroom|wonderroom|magicroom|gravity/.test(norm(m.id)))) return null;
+      const c = m.condition || {};
+      const fs = String(c.onFieldStart || '');
+      const ann = fs.match(/add\(\s*['"]([-\w]+)['"]\s*,\s*['"]([^'"]*)['"]/);
+      return { pseudoWeather: m.pseudoWeather,
+               duration: c.duration != null ? +c.duration : null,
+               announce: ann ? { event: ann[1], desc: ann[2] } : null,
+               trapsEveryone: /tryTrap\(/.test(String(c.onTrapPokemon || '')) };
+    } },
   /* Will: "are there accuracy boosting tags, thats where gravity would go". There were not -- only
    * neverMisses on the move itself. Gravity raises every move's accuracy by 5/3 AND grounds Flying
    * types, so it belongs in both places; this is the accuracy half. P(hit) is already a parameter
@@ -4340,6 +4463,76 @@ const MOVE_TAGS = [
    * Blast), a lostFocus flag is a failure condition (Focus Punch), a gotHit flag is the inverse
    * (Shell Trap fails UNLESS hit). `trigger` and `foesOnly` come from the same body, so a consumer
    * never has to know which move it is holding. */
+  /* ROADMAP #308 -- A MOVE YOU CAN CLICK WHILE ASLEEP, AND ONE YOU CAN *ONLY* CLICK WHILE ASLEEP.
+   *
+   * Two facts, one family, and this engine had neither. The sleep condition
+   * (`data/mods/champions/conditions.ts`, `slp.onBeforeMove`) writes `|cant|POKEMON|slp` and then:
+   *
+   *     if (move.sleepUsable) return;      // the move HAPPENS ANYWAY
+   *     return false;
+   *
+   * so a sleeping body clicking Sleep Talk or Snore emits the `cant` line AND then uses the move --
+   * measured on the authority, three scripted turns, Abomasnow put to sleep by its own Rest:
+   *     |cant|p1a: Abomasnow|slp
+   *     |move|p1a: Abomasnow|Sleep Talk|p1a: Abomasnow
+   *     |move|p1a: Abomasnow|Facade|p2a: Feraligatr|[from] move: Sleep Talk
+   *     |-damage|p2a: Feraligatr|864/960
+   * This engine stopped at the `cant`, so the ONE state in which either move does anything was the
+   * one state in which it refused them.
+   *
+   * The other half is the mirror: both carry `onTry(source) { return source.status === 'slp' ||
+   * source.hasAbility('comatose'); }`, so an AWAKE user fails outright. That half already behaved
+   * correctly here and is derived anyway, because a consumer that opened the sleep gate without it
+   * would make Snore a free 50 BP sound move on an awake body.
+   *
+   * MEMBERSHIP DERIVED AND PRINTED BEFORE ANYTHING WAS WIRED: over the 500 legal moves in this format
+   * `sleepUsable` is true on exactly TWO, `sleeptalk` and `snore`, and both carry the same `onTry`.
+   * `comatose` is read off the same handler rather than named here; no legal body carries it in this
+   * regulation (Komala is not in the format), so the clause is carried and inert, which is a fact
+   * about the regulation and not a gap. */
+  /* ROADMAP #308 -- WHICH MOVES A *CALLER* MAY NOT REACH FOR, and it is a fact about the CANDIDATE.
+   *
+   * `callsAnotherMove` already carries `refusesFlags` -- Sleep Talk's is `['nosleeptalk','charge']`,
+   * read off its own handler -- and the engine had no way to ASK a candidate whether it carries one.
+   * `moveClass` looks like the place and is not: it is a curated subset (contact, punch, sound, wind,
+   * bullet, slicing, reflectable) chosen for the abilities that key on it, and `nosleeptalk` is not in
+   * it. So the pool filter was a lookup that could never return, i.e. a silent default -- Sleep Talk
+   * would happily have called a Solar Beam or a Focus Punch.
+   *
+   * IT IS A SHAPE RULE, NOT A LIST OF NAMES: every flag whose name begins `no` or `fail`, plus
+   * `charge`. That definitionally covers nosleeptalk, noassist, failcopycat, failinstruct, failmefirst
+   * and failmimic without any of them being typed here, so a seventh added upstream arrives on its
+   * own. The count and usage share are printed by this file's coverage table on every run. */
+  { tag: 'callRefusalFlags',
+    param: 'the flags a move-calling move checks before it may reach for this one',
+    probe: 'callRefusalFlags',
+    why: 'Sleep Talk refuses `nosleeptalk` and `charge` and this engine could not read either, so '
+       + 'the pool it sampled from was every move on the body',
+    of: m => {
+      const f = m.flags || {};
+      const hits = Object.keys(f).filter(k => f[k] && (/^(no|fail)/.test(k) || k === 'charge'));
+      return hits.length ? { flags: hits.sort() } : null;
+    } },
+  { tag: 'sleepMove',
+    param: 'the move survives the sleep refusal, and/or fails unless the user is asleep',
+    probe: 'sleepUsable',
+    why: 'Sleep Talk and Snore are the only two clicks a sleeping body has, and this engine refused '
+       + 'both with |cant|slp — so the move did nothing in the only state it exists for',
+    of: m => {
+      const onTry = String(m.onTry || '').replace(/\s+/g, ' ');
+      /* THE FIRST CUT OF THIS PREDICATE CAUGHT REST, AND IT IS PRINTED HERE BECAUSE THAT IS THE RULE.
+       * Testing for `status === 'slp'` anywhere in `onTry` matched three moves, and the third was
+       * REST -- whose handler asks the SAME question with the OPPOSITE sign
+       * (`if (source.status === 'slp' || source.hasAbility('comatose')) return false;` -- it fails if
+       * you are ALREADY asleep). A consumer given that row would have made Rest unusable on an awake
+       * body, which is the whole move. The discriminator is the RETURN: Sleep Talk and Snore RETURN
+       * the predicate, Rest returns `false` INSIDE an `if` on it. */
+      const returnsIt = /return\s+source\.status\s*===\s*["']slp["']/.test(onTry);
+      if (!m.sleepUsable && !returnsIt) return null;
+      return { usableWhileAsleep: !!m.sleepUsable,
+               failsIfAwake: returnsIt,
+               alsoAbility: (onTry.match(/hasAbility\(\s*["'](\w+)["']/) || [])[1] || null };
+    } },
   { tag: 'preTurnShield', param: 'acts at the START of the turn, then reacts to what hit it: mode + trigger',
     probe: 'preTurnShield',
     why: 'Focus Punch fails if you touch it, Beak Blast burns you for touching it. Both were '
@@ -4361,6 +4554,15 @@ const MOVE_TAGS = [
       else if (/gotHit\s*=\s*true/.test(onHit))      out.mode = 'failsUnlessHit';
       else return null;
       if (/prioritizeAction/.test(onHit)) out.thenMovesNext = true;
+      /* ROADMAP #308 -- THE LINE THE SHIELD WRITES WHEN IT GOES UP, off the condition's OWN `onStart`.
+       * Both members write `this.add('-singleturn', pokemon, 'move: <Name>')` at the top of the turn
+       * (data/moves.ts:6025 focuspunch, and beakblast's condition), and this engine emitted neither --
+       * so a turn in which a Focus Punch was committed looked, in the stream, exactly like a turn in
+       * which it was not. Read rather than composed from the move's name, because the effect that
+       * announces is the CONDITION and nothing guarantees the two strings match. */
+      const onStart = String((m.condition && m.condition.onStart) || '');
+      const ann = onStart.match(/this\.add\(\s*['"]([-\w]+)['"]\s*,\s*\w+\s*,\s*['"]([^'"]*)['"]/);
+      if (ann) out.announce = { event: ann[1], desc: ann[2] };
       return out;
     } },
 
@@ -4616,6 +4818,23 @@ const ITEM_TAGS = [
    * (`moveSlot.pp = Math.min(moveSlot.pp + addedPP, moveSlot.maxpp)`, data/items.ts:3367), including
    * the Ripen doubling and the "first EMPTY slot, else the first below max" choice, which are both
    * mechanic and neither is guessable from the name. Membership over the format: Leppa Berry. */
+  /* ROADMAP #308 -- IS THIS ITEM A BERRY. A CLASS THE ENGINE HAD NO WAY TO ASK ABOUT.
+   *
+   * Every berry consumer here gates on a berry-SPECIFIC tag instead -- `healsAtThreshold` for Sitrus,
+   * `curesStatus` for Lum, `restoresPP` for Leppa -- so "is a berry" was only ever answerable as "does
+   * it do the one thing I was about to do". That is exactly the wrong shape for Stuff Cheeks and
+   * Teatime, whose handlers ask `pokemon.getItem().isBerry` and then eat WHATEVER it is: a Chople
+   * Berry is eaten by Teatime and matches none of the three tags above.
+   *
+   * `isBerry` IS A DEX FIELD, so this is a read and not a probe -- and that is the point: it is the
+   * same boolean the authority branches on, rather than a membership assembled here. Its membership
+   * and usage share are printed by this file's own coverage table on every run (28 items, 20.7% of
+   * sheets at the run that added it) — read them there, never from this sentence. */
+  { tag: 'isBerry', param: 'the item is a Berry — the class Teatime, Stuff Cheeks, Harvest and Unnerve all key on',
+    probe: 'isBerry',
+    why: 'Two moves EAT a held berry whatever it is, and this engine could only recognise the three '
+       + 'berries whose effect it already had a tag for',
+    of: i => (i && i.isBerry) ? { berry: true } : null },
   { tag: 'restoresPP', param: 'PP put back into one move slot when eaten', probe: 'restoresPP',
     why: 'Leppa Berry. One of the three things PP made testable at all (the others are Struggle and Last Resort)',
     of: i => {

@@ -2230,6 +2230,19 @@ function red() {
         f: (S) => { if (!S.field) return false; S.field.twA = 3; return true; } },
       { what: 'a BENCHED body loses 5 HP — the half a stream can never see', want: 'party.hp',
         f: (S) => { const m = benched(S); if (!m) return false; m.curHP = Math.max(1, m.curHP - 5); return true; } },
+      /* ROADMAP #308 -- ONE PLANT PER LEAF WIRED THIS PASS, because a leaf added to board_state.js
+       * with nothing planting on it is a leaf that has never been shown to catch anything. Each is a
+       * state difference with NO protocol line, which is exactly the class these four rows
+       * (fairylock, spiritshackle, uproar, electromorphosis) came back ANNOUNCEMENT-ONLY on. */
+      { what: 'FAIRY LOCK is on the field for 2 more turns and nothing announced it', want: 'fairylock_turns',
+        f: (S) => { if (!S.field) return false; S.field.fairylock = 2; return true; } },
+      { what: 'an ACTIVE body is TRAPPED by a move and no line says so', want: 'trapped',
+        f: (S) => { const m = (S.actA || [])[0]; if (!m) return false; m._trapHard = { by: m, mv: 'spiritshackle' }; return true; } },
+      { what: 'an ACTIVE body is locked into an UPROAR for 3 turns, silently', want: 'uproar',
+        f: (S) => { const m = (S.actA || [])[0]; if (!m) return false;
+                    m._mtLock = { move: 'uproar', left: 3, confuse: false, vol: 'uproar', blockSleep: true }; return true; } },
+      { what: 'an ACTIVE body is holding a banked CHARGE nobody mentioned', want: 'charge',
+        f: (S) => { const m = (S.actA || [])[0]; if (!m) return false; (m._vol = m._vol || {}).charge = 1; return true; } },
     ];
     const control = stage(undefined);
     const cv = boardVerdict(control);

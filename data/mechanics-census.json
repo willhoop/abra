@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-19T07:06:46.521Z",
+  "generated": "2026-08-19T23:06:32.031Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 603,
-  "live": 603,
+  "probed": 618,
+  "live": 618,
   "missing": 0,
-  "armed": 603,
+  "armed": 618,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -2123,6 +2123,16 @@
     },
     {
       "kind": "ability",
+      "tag": "formeOnHit",
+      "label": "a busting Disguise writes FOUR lines, and two of them name what the board cannot show",
+      "live": true,
+      "detail": "Iron Head into an intact DISGUISE: lost 130 (maxhp/8 = 130), body now \"mimikyu-busted\", lines \"|-activate|p2a: mimikyu|ability: disguise |-damage|p2a: mimikyu|1040/1040 |detailschange|p2a: mimikyu|mimikyu-busted, L50 |-damage|p2a: mimikyu|910/1040|[from] pokemon: mimikyu-busted\" - the zero-damage line at FULL HP comes before the detailschange because onDamage returns 0 rather than cancelling, and the chip names the BUSTED FORME. CONTROL, the ability blanked: lost 170, lines \"|-supereffective|p2a: mimikyu|1 |-damage|p2a: mimikyu|870/1040\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
       "tag": "flattensTypeMatchup",
       "label": "the hit a Disguise eats is NEUTRAL, and a type immunity stays immune",
       "live": true,
@@ -2724,6 +2734,16 @@
     {
       "kind": "ability",
       "tag": "reflectsStatusMoves",
+      "label": "Magic Bounce sends a TRAP back, and the trap lands on the trapper",
+      "live": true,
+      "detail": "[is the Espeon trapped, is the Feraligatr trapped] after a Block aimed at the Espeon - MAGIC BOUNCE [0,1] and the line reads \"|-activate|p2a: feraligatr|trapped\"; CONTROL SYNCHRONIZE on the same body [1,0] \"|-activate|p1a: espeon|trapped\". Before the fix BOTH arms trapped the Espeon and no board could see it, because vol.trapped was not a compared leaf",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "reflectsStatusMoves",
       "label": "Magic Bounce sends Charm back at its user",
       "live": true,
       "detail": "atk stages (target/user): ability none -2/0, Magic Bounce 0/-2",
@@ -3086,7 +3106,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3696,7 +3716,7 @@
       "tag": "statusCategory",
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
-      "detail": "45/45 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "detail": "48/48 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4753,6 +4773,16 @@
     },
     {
       "kind": "move",
+      "tag": "perTurnBoost",
+      "label": "Syrup Bomb drops Speed on THREE residuals and then stops",
+      "live": true,
+      "detail": "[the target's Speed stage at the end of each of six turns] — SYRUP BOMB -1,-2,-3,-3,-3,-3 (the volatile present on turns \"yyynnn\"); CONTROL GIGA DRAIN, the same body at the same target, 0,0,0,0,0,0 (\"nnnnnn\"). Three drops off a duration of four, because the authority spends the clock before it calls the handler — an engine that ticks four times reads -4 and matches on turn one, which is the only turn a game differential compares here",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "perTurnHP",
       "label": "Aqua Ring and Ingrain restore a sixteenth of the holder every turn",
       "live": true,
@@ -5103,10 +5133,120 @@
     },
     {
       "kind": "move",
+      "tag": "sleepMove",
+      "label": "Snore is the one attack a SLEEPING body can make, and it fails awake",
+      "live": true,
+      "detail": "[HP the foe loses] - ASLEEP with SNORE 37, after its own |cant|slp (the authority writes the cant line AND then uses the move: \"if (move.sleepUsable) return;\" sits below \"this.add(cant)\"); CONTROL awake with SNORE 0 and a -fail; CONTROL asleep with ICE BEAM 0 - the sleep refusal is intact for every move that is not sleepUsable",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "callsAnotherMove",
+      "label": "Sleep Talk calls one of the user OWN moves, free, without waking it",
+      "live": true,
+      "detail": "[HP the foe pair loses, the user status] - ASLEEP 96/slp, Sleep Talk own slot at 11 and the CALLED Ice Beam slot untouched (undefined); CONTROL awake 0/- with a -fail. The status must still read slp: the called move used to re-enter the sleep gate and spend a second tick",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "callRefusalFlags",
+      "label": "Sleep Talk will not reach for a CHARGE move, and says so",
+      "live": true,
+      "detail": "[HP the foe pair loses] - the only other slot is SOLAR BEAM, which carries the charge and nosleeptalk flags: 0 and a -fail, and no |move| line for it at all. CONTROL, the same body with ICE BEAM in that slot instead: 96 and the call lands. Before the wire the flag test could never return, so Sleep Talk would have reached for the Solar Beam",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "preTurnShield",
+      "label": "Focus Punch announces at the top of the turn and pays NO PP when it loses focus",
+      "live": true,
+      "detail": "[HP dealt, PP left in the slot] - HIT before it fires [0,undefined (never touched)]: a |cant| line, NO |move| line at all, and the slot unspent; CONTROL, the same click with the foe passing, [58,19]. Both arms carry the -singleturn the shield writes at the top of the turn, which this engine emitted on neither",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "flingsOwnItem",
+      "label": "a flung BERRY is eaten by the body it was thrown at",
+      "live": true,
+      "detail": "[HP the target is left down by, did it heal] - SITRUS BERRY flung: 0 net, and the target EATS it (|move|p1a: abomasnow|fling|p2a: feraligatr |-damage|p2a: feraligatr|1275/1280 |-heal|p2a: feraligatr|1280/1280|[from] item: sitrusberry|[of] p1a: abomasnow |-enditem|p1a: abomasnow|sitrusberry|[from] move: fling); CONTROL an IRON BALL off the same body at the same target: 51 net and no heal at all. The -enditem must come AFTER the -damage - the item is spent by the fling volatile own onUpdate, which runs when the action is over",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "setsRoom",
+      "label": "Fairy Lock pins EVERYBODY to the field for two turns",
+      "live": true,
+      "detail": "[the field clock after each of three turns, then who is standing in the foe slot] - FAIRY LOCK 1,0,0 / corviknight,corviknight,milotic: the clock reads 1 at the boundary of the turn it was set (2 set, one spent by the field residual, which is what the authority holds too) and the foe cannot leave on turn 2. CONTROL REFLECT off the same body 0,0,0 / corviknight,milotic,milotic - the switch goes through. Before the wire the click was a whole no-op turn",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "trapsTarget",
+      "label": "Spirit Shackle traps through a SECONDARY, where Block traps through the move",
+      "live": true,
+      "detail": "[is the target trapped after each of three turns, then who is standing in the foe slot] - SPIRIT SHACKLE 1,1,1 / corviknight,corviknight,corviknight; CONTROL SHADOW CLAW off the same body 0,0,0 / corviknight,milotic,milotic. The trap is a `secondary.onHit`, not the move own onHit, so the derivation that served Block and Mean Look could not see it and the move dealt 80 base power and nothing else",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "takesTargetItem",
+      "label": "Corrosive Gas strips EVERY adjacent body, the user's own partner included",
+      "live": true,
+      "detail": "[user,ally,foeA,foeB items after one turn] — CORROSIVE GAS leftovers,-,-,- (three -enditem lines: the ally and BOTH foes, and the user keeps its own); CONTROL TRICK off the same body at the same slot sitrusberry,sitrusberry,leftovers,lumberry — one body, and it SWAPS rather than destroys. Before the wire the gas arm read leftovers,sitrusberry,sitrusberry,lumberry: an allAdjacent click carries no target, so the branch resolved nobody",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "forcesBerryEat",
+      "label": "Stuff Cheeks eats the user's berry, and FAILS with no berry to eat",
+      "live": true,
+      "detail": "[the user's Defence stage, its item] — with a SITRUS BERRY 2, \"-\", and the line \"|move|p1a: simipour|stuffcheeks|p1a: simipour |-boost|p1a: simipour|def|2 |-enditem|p1a: simipour|sitrusberry|[eat]\"; CONTROL no item 0 with a -fail and the move line blanked by [still]; CONTROL LEFTOVERS 0 and the item still there — an item that is not a berry fails exactly as an empty hand does. The engine used to hand out +2 Defence on all three",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "forcesBerryEat",
+      "label": "Teatime empties every berry on the FIELD, both sides",
+      "live": true,
+      "detail": "[user,ally,foeA,foeB items after one turn] — TEATIME -,leftovers,-,- (three -enditem lines, one of them on the OTHER side; the ally's Leftovers survives because it is not a berry); CONTROL, the same click with no berry anywhere, leftovers,-,-,- — the field line is still written and then it fails. Before the wire both arms left every berry where it was and emitted nothing at all",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "removesPP",
       "label": "Eerie Spell takes 3 PP off the move the target just used",
       "live": true,
-      "detail": "the target's Earthquake (maxpp 12) reads 8 after EERIE SPELL and 11 after PSYCHIC — the same body, the same turn order, the same one PP the victim spends on its own click, and 3 more taken off the slot it last used",
+      "detail": "the target's Earthquake (maxpp 12) reads 8 after EERIE SPELL and 11 after PSYCHIC — the same body, the same turn order, the same one PP the victim spends on its own click, and 3 more taken off the slot it last used. The line names the slot and the amount: \"|-activate|p2a: garchomp|move: eeriespell|earthquake|3\" against the control's \"\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "removesPP",
+      "label": "Spite takes 4 PP off the move the target just used",
+      "live": true,
+      "detail": "Annihilape into a Garchomp that has just clicked Earthquake (maxpp 12, one spent on its own click): SPITE leaves 7 and announces \"|-activate|p2a: garchomp|move: spite|earthquake|4\"; CONTROL TAUNT — the same body, the same target, the same turn, another legal Status move — leaves 11 and announces \"\"",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5337,6 +5477,16 @@
       "label": "Berserk fires on the hit that CROSSES half, and only then",
       "live": true,
       "detail": "Drampa at 708 (half is 612) takes a Dragon Claw to 516 — SpA stage 1, control 0. Already UNDER the line at 516 it takes the same hit to 324 and reads 0: the ability is a crossing, not a state",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsAtHPThreshold",
+      "label": "Berserk pays ONCE for a multi-hit move that crosses half",
+      "live": true,
+      "detail": "[hits landed, SpA stage, -boost lines on the carrier] — SCALE SHOT into a BERSERK Drampa [3,1,1]; CONTROL, the same volley into the same body with the ability blanked, [3,0,0]. A single-hit Dragon Claw on the same crossing still reads 1, so the fix did not turn the ability off. The lines are \"|-ability|p1a: drampa|berserk|boost |-boost|p1a: drampa|spa|1\" — the authority writes -ability then a BARE -boost, and this engine used to write 3 boosts each carrying [from] ability: berserk",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5706,7 +5856,7 @@
       "tag": "passiveHeal",
       "label": "Leftovers heals at order 5 and the burn chips at order 10 — a full-HP burned holder still loses the tick",
       "live": true,
-      "detail": "Snorlax at full HP (235) holding Leftovers, one passing turn. NOT burned 235 (the heal has nothing to do); BURNED 221 = 235 - 14. Under a body-major walk the chip runs first and Leftovers restores the identical 1/16 after it, so the burned arm reads 235 and the status is free. The two orders differ ONLY at the top and bottom of the bar, which is why no damage differential can see this. The walk itself is counted on the same turn: 14 groups entered (of 14) and 72 step slots (of 72 = every step on all four living bodies) — a zero on either is the loop not running, not a mechanic being absent",
+      "detail": "Snorlax at full HP (235) holding Leftovers, one passing turn. NOT burned 235 (the heal has nothing to do); BURNED 221 = 235 - 14. Under a body-major walk the chip runs first and Leftovers restores the identical 1/16 after it, so the burned arm reads 235 and the status is free. The two orders differ ONLY at the top and bottom of the bar, which is why no damage differential can see this. The walk itself is counted on the same turn: 15 groups entered (of 15) and 76 step slots (of 76 = every step on all four living bodies) — a zero on either is the loop not running, not a mechanic being absent",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5986,7 +6136,7 @@
       "tag": "pivotStatus",
       "label": "a frozen body clicking a PIVOT move is refused like any other move — the pivot is a move, not a switch",
       "live": true,
-      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 40 to 42",
+      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 37 to 39",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -252,6 +252,26 @@ const SCENARIOS = [
       { p1: [{ m: 'fakeout', t: 0 }, { m: 'protect' }], p2: [{ m: 'bodyslam', t: 0 }, { m: 'protect' }] },
       { p1: [{ m: 'swordsdance' }, { m: 'protect' }], p2: [{ m: 'bodyslam', t: 0 }, { m: 'protect' }] },
     ],
+    /* THE ANCHOR IS BROKEN AND THE HARNESS SAYS SO ON EVERY RUN. FILED 2026-08-19, NOT FIXED HERE,
+     * AND THE REASON IS THE SECOND DEFECT UNDERNEATH IT.
+     *
+     * The string below spans a line break in medicham2-browser.js -- `if(m._flinch){` is on its own
+     * line and `m._flinch=false;...` on the next -- so it matches ZERO times and this run reports
+     * "the proof fixture could not be planted / THE QUIETENING MECHANISM IS NOT TRUSTWORTHY". The
+     * mismatch PREDATES the ROADMAP #308 pass: the same two-line shape is in release b7179d2's bytes.
+     *
+     * SHORTENING IT TO `if(m._flinch){` MAKES THE PLANT APPLY -- and then every one of the 24
+     * scenarios reports `CLEAN ENGINE -> DIFFERS`, on HP, with the three machinery checks above them
+     * all reading `ok`. Measured both ways, minutes apart, same release, same engine: with the plant
+     * unapplied it is 24 of 24 clean and with it applied it is 0. So the PATCHED module is not being
+     * unloaded before the clean arms run -- `harness(null)` deletes `require.cache` and reloads
+     * `game_differential.js`, which binds through `REL.require`, and that is where the stale copy
+     * survives. Correcting the anchor without that turns a loud, printed FAIL into 24 silent false
+     * divergences, which is strictly worse.
+     *
+     * IT IS FILED RATHER THAN FIXED because the second half lives in `engine/engine_release.js` --
+     * MEASURE's file, and docs/DIVISIONS.md's rule is that you file another division's bug rather
+     * than patch it mid-run. */
     break: { why: 'the engine stops HONOURING a flinch: the body that was flinched takes its turn anyway',
       patch: [['if(m._flinch){m._flinch=false;m._mvRes=false;',
                'if(false&&m._flinch){m._flinch=false;m._mvRes=false;']] } },

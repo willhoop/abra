@@ -42,7 +42,7 @@ number typed in prose beside a table is exactly what CLAUDE.md records going sta
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  603/603 probed mechanics live, 0 missing   (census 2026-08-19 03:06)
+  618/618 probed mechanics live, 0 missing   (census 2026-08-19 19:06)
   0/6000 differential comparisons disagree with Showdown   (2026-08-18 10:52)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -54,16 +54,180 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 6ea3e570fed2 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 00740d182726 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 2d334f5c01e0 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 8d5c4aa099d8 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 267/286 probed, 19 unprobed
+  tag coverage: 273/291 probed, 18 unprobed
 ```
 
-_stamped 2026-08-19 03:11_
+_stamped 2026-08-19 19:13_
 
 <!-- /GENERATED -->
+
+## TEN STATE DEFECTS, ALL TEN CLOSED — AND TWO OF THE FOUR "UNREAD LEAVES" WERE UNIMPLEMENTED MOVES. 2026-08-19.
+
+**Census 603 live / 0 missing -> 618 live / 0 missing.** Fifteen probes added, every one of them RED
+on the engine as handed over. Ten rows that `engine/all_mechanics_fire.js` reported as **STATE** — the
+boards genuinely parted — are now **8 NO-DIVERGENCE and 2 ANNOUNCEMENT-ONLY**, and the four rows that
+came back ANNOUNCEMENT-ONLY because `board_state.js` did not read the leaf they write are now four
+compared leaves with four planted red proofs.
+
+**THE GATE MOVED, AND BOTH ARTIFACTS WERE RE-RUN ON ONE FROZEN RELEASE (`926e810dd8a0`) SO NEITHER IS
+A CLAIM ABOUT OTHER BYTES.** `node engine/quarantine.js`: **CLOSED, 3 of 8 clauses fail, down from 4.**
+
+| clause | before (release 66e7abac9d90) | after (release 926e810dd8a0) |
+|---|---|---|
+| mechanics | 47 diverging — moves 34, abilities 13, items 0 | **34 diverging — moves 21, abilities 13, items 0**; 28 played and uncleared, down from 32 |
+| whole-game differential | 353 of 982 = 35.9%, VOID 2 | **342 of 972 = 35.2%, VOID 2** |
+| coverage | clean | went RED mid-pass on `callRefusalFlags` (Struggle, 639 clicks) and is **clean again** — a new tag with no probe is an uncovered move |
+| the other five | unchanged | unchanged; `no open, known engine defect` still fails on six roadmap rows that are not ENGINE's to close |
+
+**THE MECHANICS SAMPLE IS STEERED BY THE CENSUS, so 47 -> 34 is not a before/after on identical
+scenarios.** `all_mechanics_fire.js` prints its selection policy as `census-coverage-seeking/v1` and the
+census gained fifteen rows in this pass, which moves which entity sets get staged. The thirteen rows
+named below WERE re-asked individually, on the same fixtures, and those are the attributable ones.
+
+### THE TEN, EACH WITH THE MEASUREMENT THAT CLOSED IT
+
+| row | was | is |
+|---|---|---|
+| `spite` | 0 PP removed; the target's Agility read 2 spent against the authority's 6 | 4 taken off the target's last move, `-activate\|move: spite\|earthquake\|4` |
+| `syrupbomb` | no Speed drop at all; target Speed stage +2 against +1 | -1 on THREE residuals then the volatile ends |
+| `corrosivegas` | nothing removed at all — an `allAdjacent` click carries no target and the branch resolved nobody | ally AND both foes stripped, each behind its own Protect |
+| `stuffcheeks` | the berry stayed, and +2 Defence was handed out with NO berry held | eaten after the boost, and the move fails without one |
+| `teatime` | both sides kept their berries and nothing was announced | `-fieldactivate` then every berry holder on the field eats |
+| `berserk` | +3 Special Attack off a three-hit Scale Shot | +1, once, with `-ability` then a BARE `-boost` |
+| `sleeptalk` | the move never happened — the sleep gate refused it | the called move lands, pays no PP, and the sleep counter ticks once |
+| `snore` | same refusal, and it also hit for full damage while AWAKE | usable asleep, refused awake |
+| `focuspunch` | a `\|move\|` line the authority never writes, 1 PP spent against its 0 | refused above the PP deduction, and the `-singleturn` is emitted |
+| `fling` | the `-enditem` came BEFORE the hit, and the target was 8 HP down | spent at the update pass, and the target EATS the flung berry |
+
+**THE `fling` DIAGNOSIS IN THE WORK ORDER WAS WRONG AND THE CORRECTION MATTERS.** It was handed over as
+*"a damage divergence, not the known-unmodelled berry branch"*. The two engines' damage lines are
+**identical** — `|-damage|p2a: Feraligatr|952/960` on both — and the authority then writes
+`|-heal|p2a: Feraligatr|960/960|[from] item: Sitrus Berry|[of] p1a: Abomasnow`. It is exactly the berry
+branch: `fling.onPrepareHit` REPLACES `move.onHit` for a berry so the TARGET runs its `onEat` directly,
+bypassing the pinch threshold. Fixing the damage formula would have found nothing.
+
+**THE THREE BERRY ROWS DID NOT SHARE A CAUSE, and the brief was right to say not to assume it.** Three
+mechanisms: Corrosive Gas TAKES any item off every adjacent body (a spread-targeting failure of an
+existing branch); Stuff Cheeks makes the USER eat its own berry after its own boost lands; Teatime is
+an `onHitField` walk of every active body. Two of them do share ONE new primitive — `eatHeldBerry`,
+this engine's `Pokemon#eatItem(true)` — and the third does not touch it.
+
+### WHAT MOVED IN THE INSTRUMENTS
+
+- `statusMoveTargets` is lifted verbatim out of the `affect` branch and now has TWO callers. Its own
+  comment had named this gap by name: *"corrosivegas is `allAdjacent` too and `playerAction` classifies
+  it `trickitem`, so it never arrives here"*.
+- `board_state.js` compares four more leaves — `vol.trapped`, `vol.uproar`, `vol.charge` and
+  `field.fairylock_turns` — each shown RED first by a plant in `all_mechanics_fire.js --red` that moves
+  state and writes NO protocol line. All four CAUGHT.
+- `tests/probe_volatile_leaves.js` gained three candidates and printed what both engines hold before
+  anything was wired. Two came back NEITHER, and that was a claim about the FIXTURE: staged directly,
+  Spirit Shackle's trap was unimplemented here and Fairy Lock was a whole no-op turn.
+
+### FIVE NEW TAGS, EVERY MEMBERSHIP PRINTED BEFORE A LINE WAS WIRED
+
+`perTurnBoost` (1 move: syrupbomb — the other three residual `this.boost` rows are abilities and this
+tag is on MOVE_TAGS), `forcesBerryEat` (2: stuffcheeks, teatime — 28 of the 30 `.eatItem(` rows in the
+format are the berries themselves), `isBerry` (28 items, 20.7% of sheets), `sleepMove` (2), and
+`callRefusalFlags` (75 moves, a shape rule over flags beginning `no`/`fail` plus `charge`).
+
+**`sleepMove` OVER-MATCHED ON ITS FIRST CUT AND THE PRINT CAUGHT IT.** Testing for `status === 'slp'`
+anywhere in `onTry` selected THREE moves, and the third was **REST** — whose handler asks the identical
+question with the opposite sign (it fails if you are ALREADY asleep). A consumer given that row would
+have made Rest unusable on an awake body. The discriminator is the RETURN, not the test.
+
+### DISGUISE'S DISPOSITION: THE FAMILY WAS ALREADY LIVE; TWO OF ITS FOUR LINES WERE NOT
+
+The `flattensTypeMatchup` half landed with Iron Ball — one `of()` shared by `ITEM_TAGS` and
+`ABILITY_TAGS`, one consumer that asks the SUPPRESSED ability — and `tests/test-mechanics.js` has
+carried a live probe for it since. Staged on the authority over four routes (Iron Head super-effective,
+Body Slam immune, Brave Bird neutral, each against a control with the ability blanked) this engine
+already matched on the board and on the effectiveness line. What did NOT match was the SHAPE of the
+event: `onDamage` RETURNS 0 rather than cancelling, so the authority writes a `-damage` at UNCHANGED
+health before the `detailschange`, and the maxhp/8 chip carries `[from] pokemon: Mimikyu-Busted`. Both
+were absent. Line-for-line now, with a probe.
+
+### THE THREE ROWS THAT REMAIN, AND THEY ARE ANNOUNCEMENT-ONLY
+
+`attract` and `chillyreception` still write a leaf nothing compares (`volatile:attract`,
+`volatile:chillyreception`) and each is also missing a line. `beakblast` closed itself — the
+`-singleturn` the pre-turn shield writes was the whole of its divergence. `corrosivegas` and `berserk`
+are ANNOUNCEMENT-ONLY on ORDER: the authority runs each hit STEP across all targets before the next
+step, and this engine runs each TARGET through the whole gauntlet. That is one shape, it is shared with
+the `affect` branch, and it is not a state defect.
+
+### THE FOURTEENTH AND FIFTEENTH PROBES CAME OUT OF THE WIRING, WHICH IS WHAT WIRING A LEAF IS FOR
+
+**MAGIC BOUNCE WAS TRAPPING THE WRONG BODY, AND `vol.trapped` IS WHAT SAW IT.** The moment the leaf
+became compared, `magicbounce` parted: the authority trapped the BLOCK'S USER and this engine trapped
+the Espeon. Two faults in the `trapmove` branch, both absent from the `affect` branch beside it — the
+bounce was computed and then thrown away by `reaimToSlot`, which was handed the bounced body and looked
+it up by the action's own foe SLOT; and a `t === m` guard written for "a caller aimed this at itself"
+refused the one case a bounce always produces. The existing `reflectsStatusMoves` probe stages CHARM,
+which resolves through `affect`, so it was green throughout.
+
+**AND THE COVERAGE CLAUSE WENT RED ON MY OWN NEW TAG.** `callRefusalFlags` landed on 75 moves including
+STRUGGLE (639 clicks), and the clause's rule is that every tag on a move above the shelf must be probed
+— so adding a tag with no probe made a covered move uncovered. Closed by probing the thing the tag
+exists for: Sleep Talk with SOLAR BEAM as the only other slot must FAIL, because Solar Beam carries
+`charge` and `nosleeptalk`; with Ice Beam in that slot the call lands.
+
+### FILED, NOT FIXED — `tests/staged_board.js`'s PROOF PLANT CANNOT APPLY, AND CORRECTING IT IS WORSE
+
+The run prints `FAIL the proof fixture could not be planted / THE QUIETENING MECHANISM IS NOT
+TRUSTWORTHY` on every invocation. The anchor spans a line break in `medicham2-browser.js`, so it matches
+zero times; the same two-line shape is in release `b7179d2`'s bytes, so this predates this pass.
+Shortening the anchor to `if(m._flinch){` makes it plant and all three machinery checks read `ok` — and
+then **every one of the 24 scenarios reports `CLEAN ENGINE -> DIFFERS` on HP**. Measured both ways
+minutes apart against the same release: plant unapplied 24 of 24 clean, plant applied 0 of 24. The
+patched module is surviving `harness(null)`, which reloads `game_differential.js` — and that binds
+through `REL.require` in `engine/engine_release.js`, MEASURE's file. Left exactly as found, with the
+reason written at the plant.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous list that is not named below.
+
+**Removed — they are probes now:**
+- ~~Spite removes no PP~~ — `removesPP` has a status road; Eerie Spell's line gained its two fields too.
+- ~~Syrup Bomb applies no Speed drop~~ — `perTurnBoost`, three drops off a duration of four.
+- ~~Corrosive Gas / Stuff Cheeks / Teatime leave the berry~~ — three separate probes, three mechanisms.
+- ~~Berserk pays per packet~~ — once per move, `-ability` then a bare `-boost`.
+- ~~Sleep Talk and Snore are refused by the sleep gate~~ — `sleepMove`, both directions.
+- ~~Focus Punch spends PP and writes a move line when it loses focus~~ — refused at the authority's own
+  position, and the `-singleturn` is emitted.
+- ~~A flung berry~~ — the target eats it; the spend moved to the update pass.
+- ~~Fairy Lock is a no-op turn~~ — `setsRoom` carries the clock, the line and `trapsEveryone`.
+- ~~Spirit Shackle's trap~~ — `trapsTarget` reads a SECONDARY's `onHit` now.
+- ~~Uproar / charge / trapped / fairylock are leaves nothing compares~~ — four leaves, four red plants.
+- ~~Magic Bounce reflects Charm and not a TRAP~~ — the `trapmove` branch bounces now, with a probe.
+- ~~`callRefusalFlags` has a consumer and no probe~~ — Solar Beam is refused by Sleep Talk's pool.
+
+**Added, measured this pass and NOT fixed:**
+- **`attract` and `chillyreception` write a leaf `board_state.js` does not read.** Both are also
+  missing a line (`-immune` and `-prepare` respectively). `attract`'s two shapes have never been SEEN
+  together — `probe_volatile_leaves.js` reports NEITHER on a fixture that needs opposite genders.
+- **THE STEP/TARGET ORDER.** The authority runs a hit STEP across every target and then the next step;
+  this engine runs each target through the whole gauntlet. Visible as ANNOUNCEMENT-ONLY on
+  `corrosivegas` (protect activations before the enditem) and `berserk` (the carrier's boost before the
+  attacker's self-drops). No board moves.
+- **FLING BOOKS NOTHING WHEN IT SPENDS.** The authority's `fling` condition sets `lastItem` and
+  `usedItemThisTurn` and runs `AfterUseItem`; this engine's does none of the three, so Recycle, Harvest
+  and Symbiosis cannot see a flung item. Counted as `flingSpendNotBooked`.
+- **A CALLED MOVE STILL BECOMES `lastMove` HERE.** `runMove` writes `moveUsed()` under
+  `if (!externalMove)`, so Sleep Talk's Ice Beam is not what a later Spite, Encore or Disable reaches
+  for. The PP half of that same guard IS fixed; this half is not.
+- **UPROAR'S SLEEP BREAK EMITS `-end`.** `lockedmove.onResidual` DELETES the volatile when the holder
+  falls asleep, so `onEnd` never runs and the authority is silent. Pre-existing; unchanged.
+- **A BOUNCED MOVE IS NOT NARRATED.** The authority re-issues the reflected move as a real `|move|`
+  line off the bouncer; this engine emits only the consequence. `magicbounce` is still STATE for a
+  SECOND reason as well: at turn 4 the authority has released the trap and this engine still holds it,
+  which is `endsWithSource` under a source that is the trapped body itself. Both measured this pass,
+  neither fixed — the row went from "trapped the wrong body" to "traps the right one, releases late".
 
 ## THE EFFECTIVENESS EVENT IS PER DEFENDING TYPE, AND TWO HANDLERS IGNORE THE TYPE. `staged_board.js` HAS BEEN DARK FOR A WEEK AND RUNS. 2026-08-19.
 
