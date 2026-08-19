@@ -9909,3 +9909,43 @@ A shared blind spot cancels out in every head-to-head and every self-play game b
 failure mode this project has a whole section about. Pre-existing, identical under the pre-fix arm, and it
 is a spread/EV staging question with no path to the damage roll. **Its own batch, and it should be the next
 one.**
+
+---
+
+## 2026-08-19 — THE SHARED BLIND SPOT WAS THE PROBE, AND A TEST WAS GREEN BECAUSE IT ASKED NOTHING
+
+**The scare was worth having and the answer is zero.** Both engines agreeing on a stat line the authority
+rejects is the one failure shape that cancels out in every head-to-head by construction, so it was right to
+stop everything for it. It was the FIXTURE: `game_differential.js` hands both sides a Champions SP spread
+(`spreadFor`, added 2026-08-12) and `test-nature-differential.js`'s oracle was still built with
+`evs: {0,0,0,0,0,0}` — **the probe was asking the authority about a Pokemon nobody in the run builds.**
+Handed the identical declared set, the authority answers **atk 144 / spe 123** and so does medicham2,
+digit-exact on all four bodies and through the mega. Arithmetic read from
+`data/mods/champions/scripts.ts:10-39`, not recalled: 92 + 32 + 20 = 144. **Reach: zero.**
+
+**AND THE HALF THAT COST MORE THAN THE RED CLAUSES: PART 3 WAS GREEN THROUGHOUT, ON A LINE NO BODY IN THE
+RUN HAS.** It compared `flatL50` — no investment — against a zero-investment oracle. Both sides ignored the
+spread, so both agreed, so it passed. **A test can be green because it is asking a question nothing depends
+on**, and that is strictly worse than a red one because nobody looks. It now checks the BUILT body against
+the authority holding the same set.
+
+**The bench is compared.** `partyMap` held `{hp, maxhp, fainted}` and now carries `types`, `item`, `status`,
+`status_counter` and `boosts`, with the post-faint group HELD and the hold published as
+`party_post_faint_skipped` instead of being silent. **The first run would have wired a disagreement** —
+`item` agrees on 4 games and disagrees twice across 42 games / 2,029 bodies. Five plants, all 41 green, and
+**shown RED by restoring the narrow map**, whereupon they report *caught at boundary 5 but planted at 4*.
+That is what "laundered" looks like, printed rather than argued.
+
+**A CANDIDATE ENGINE DEFECT FELL OUT AND WAS DELIBERATELY NOT WIRED.** A benched body's ability differs on
+3 of 2,029 — all Gardevoir, the authority reading `trace` and this engine the copied ability. The authority
+restores `baseAbility` in `clearVolatile` (`sim/pokemon.ts:1528`); **we keep a traced ability after
+switching out and never re-Trace on re-entry.** Left off the compared leaves on purpose: wiring a leaf
+already known to disagree converts a defect into a permanently red instrument instead of a row someone
+fixes.
+
+**Still uncomparable and NAMED, so the widened board does not read as complete:** benched `volatiles` /
+`sub` / `seeded` (never non-empty across 2,029 — a fixture claim, not a proof), item disposition, ability
+trapping, the magnet-rise and syrup-bomb clocks, and the Protect stall counter.
+
+Census 596/596 either side. **No mechanic landed and none is claimed.** Gate `CLOSED — 3 of 8`, mechanics
+clause READ rather than withheld at 34 of 49 — unchanged, which is the honest outcome.

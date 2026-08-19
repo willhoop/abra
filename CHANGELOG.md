@@ -10,6 +10,70 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.43.0] — 2026-08-19
+
+### Fixed
+- **THE "SHARED BLIND SPOT" WAS THE PROBE, AND ITS REACH IS ZERO.** `tests/test-nature-differential.js`
+  read RED on two clauses with both engines agreeing on a stat line the authority did not (atk 144 vs
+  112, spe 123 vs 88) — the one shape that cancels out in every head-to-head by construction, and
+  therefore the one worth stopping for. **It was the fixture.** `engine/game_differential.js` gained a
+  Champions SP spread on 2026-08-12 (`spreadFor`: 66 points, 32 cap, a descending Speed ladder per slot)
+  and hands the same numbers to both sides; the probe's oracle was still built with
+  `evs: {0,0,0,0,0,0}`, so it was asking the authority about a Pokemon nobody in the run builds.
+  Settled by handing the authority the identical declared set rather than by reasoning about formulas:
+
+  | | hp | atk | def | spa | spd | spe |
+  |---|---|---|---|---|---|---|
+  | authority, **declared** set | 165 | **144** | 95 | 100 | 107 | **123** |
+  | authority, zero-EV set (what the probe asked) | 165 | 112 | 95 | 100 | 105 | 88 |
+  | medicham2 | 165 | **144** | 95 | 100 | 107 | **123** |
+
+  Digit-exact on all four bodies and through the mega. Arithmetic READ rather than recalled —
+  `data/mods/champions/scripts.ts:10-39`: no `levelclausemod`, so HP is `stat + evs + 75` and every
+  other stat `stat + evs + 20`, nature applied after. 92 + 32 + 20 = 144.
+- **AND THE EXPENSIVE HALF IS THAT PART 3 WAS GREEN THE WHOLE TIME, ON A LINE NO BODY IN THE RUN HAS.**
+  It compared `flatL50` — no investment — against a zero-investment oracle, so both sides ignored the
+  spread and agreed. **A test can be green because it is asking a question nothing depends on.** The
+  built body is now checked against the authority holding the same declared set; deliberate breaks
+  named all four bodies for a medicham-only drift, and a spread dropped on BOTH sides left the new
+  clause green and fired the control instead.
+
+### Added
+- **THE BENCH IS COMPARED.** `engine/board_state.js`'s `partyMap` held `{hp, maxhp, fainted}`, so a
+  benched body's item, status, boosts and types were compared by nothing — three of five candidate
+  pairs in the end-state test had a planted item laundered through exactly that gap. Now wired:
+  `types` unconditionally, and `item` / `status` / `status_counter` / `boosts` with the post-faint group
+  HELD where either engine calls the body down (`sim/battle.ts:2560` -> `sim/pokemon.ts:1515-1541`;
+  `sim/battle-actions.ts:126`), the hold published as `party_post_faint_skipped` rather than left
+  implicit. **The first run would have wired a disagreement**: `item` agrees everywhere on 4 games and
+  disagrees twice across 42 games / 2,029 bodies. Five plants, one per leaf, each naming its own
+  species-keyed path; all 41 green, and **shown RED by restoring the narrow map** — the five then report
+  *caught at boundary 5 but planted at 4*, invisible where written and surfacing later as a
+  consequence, which is what "laundered" looks like.
+
+### Notes
+- **A CANDIDATE ENGINE DEFECT FOUND WHILE WIDENING THE BOARD, FILED AND DELIBERATELY NOT WIRED:** a
+  benched body's **ability** differs on 3 of 2,029 — all Gardevoir, the authority reading `trace` and
+  medicham2 the copied ability. The authority restores `baseAbility` in `clearVolatile`
+  (`sim/pokemon.ts:1528`); **this engine keeps a traced ability after switching out and will not
+  re-Trace on re-entry.** Left off the compared leaves on purpose, because wiring a leaf that is
+  already known to disagree turns a defect into a permanently red instrument instead of a row.
+- **Still uncomparable and NAMED rather than implied**, so the widened board does not read as complete:
+  benched `volatiles` / `sub` / `seeded` (never non-empty across 2,029 — that is a fixture claim, not a
+  proof), item disposition, ability trapping, the magnet-rise and syrup-bomb clocks, and the Protect
+  stall counter.
+- Two instruments were red before this work and are not caused by it: `test-end-state.js` was rejecting
+  four fixtures on a sentence this change made false — retired, and it immediately used a pair it had
+  been discarding, catching the plant against a cleaner control; `test-state-differential.js` PART 2 was
+  red on four `NOT APPLIED` plants because at the plant boundary side A's bench is entirely fainted.
+  Cause measured rather than guessed; plants now cross sides and are counted per plant.
+- **Census 596 live / 0 missing, before and after. No mechanic landed — this is instrument work and is
+  not claimed as anything else.** Gate `CLOSED — 3 of 8`; the mechanics artifact was re-run at
+  `--kind all` pinned to release `bb59e9a263c5`, so that clause is READ rather than withheld and reports
+  **34 of 49** — unchanged, which is the honest outcome.
+
+---
+
 ## [5.42.0] — 2026-08-18
 
 ### Fixed

@@ -1,27 +1,53 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_team_sides": 31374,
-  "n_games": 15687,
+  "n_team_sides": 31752,
+  "n_games": 15876,
   "unit_note": "The clustering runs on TEAM SIDES, up to two per game. n_team_sides is the sample size for every share and silhouette below; n_games is the number of clean games they were drawn from.",
-  "k_selected": 12,
-  "silhouette": 0.123,
+  "k_selected": 6,
+  "silhouette": 0.113,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Aerodactyl-Talonflame",
-      "share": 0.214,
+      "n": "Raichu-Sableye",
+      "share": 0.35,
       "core": [
+        "raichu",
+        "sableye",
         "aerodactyl",
-        "talonflame",
-        "grimmsnarl",
-        "metagross"
+        "talonflame"
       ],
       "signature": [],
-      "w_usage": 0.22
+      "w_usage": 0.35
+    },
+    {
+      "n": "Garchomp-Kingambit",
+      "share": 0.171,
+      "core": [
+        "garchomp",
+        "kingambit",
+        "whimsicott",
+        "basculegion"
+      ],
+      "signature": [
+        "basculegion"
+      ],
+      "w_usage": 0.171
+    },
+    {
+      "n": "Incineroar-Sinistcha",
+      "share": 0.165,
+      "core": [
+        "incineroar",
+        "sinistcha",
+        "gengar",
+        "sneasler"
+      ],
+      "signature": [],
+      "w_usage": 0.165
     },
     {
       "n": "Trick Room",
-      "share": 0.119,
+      "share": 0.152,
       "core": [
         "farigiraf",
         "kingambit",
@@ -29,35 +55,11 @@
         "staraptor"
       ],
       "signature": [],
-      "w_usage": 0.122
-    },
-    {
-      "n": "Incineroar-Gengar",
-      "share": 0.097,
-      "core": [
-        "incineroar",
-        "gengar",
-        "sinistcha",
-        "politoed"
-      ],
-      "signature": [],
-      "w_usage": 0.1
-    },
-    {
-      "n": "Whimsicott-Staraptor",
-      "share": 0.096,
-      "core": [
-        "whimsicott",
-        "staraptor",
-        "garchomp",
-        "kingambit"
-      ],
-      "signature": [],
-      "w_usage": 0.099
+      "w_usage": 0.152
     },
     {
       "n": "Pelipper-Archaludon",
-      "share": 0.088,
+      "share": 0.098,
       "core": [
         "pelipper",
         "archaludon",
@@ -65,83 +67,19 @@
         "grimmsnarl"
       ],
       "signature": [],
-      "w_usage": 0.09
-    },
-    {
-      "n": "Kingambit-Basculegion",
-      "share": 0.082,
-      "core": [
-        "kingambit",
-        "basculegion",
-        "sneasler",
-        "froslass"
-      ],
-      "signature": [
-        "froslass"
-      ],
-      "w_usage": 0.084
-    },
-    {
-      "n": "Charizard-Garchomp",
-      "share": 0.075,
-      "core": [
-        "charizard",
-        "garchomp",
-        "whimsicott",
-        "kingambit"
-      ],
-      "signature": [
-        "sylveon"
-      ],
-      "w_usage": 0.077
+      "w_usage": 0.098
     },
     {
       "n": "Sand",
-      "share": 0.066,
+      "share": 0.065,
       "core": [
         "tyranitar",
         "excadrill",
-        "garchomp",
-        "corviknight"
-      ],
-      "signature": [],
-      "w_usage": 0.068
-    },
-    {
-      "n": "Gholdengo-Whimsicott",
-      "share": 0.054,
-      "core": [
-        "gholdengo",
-        "whimsicott",
-        "incineroar",
-        "garchomp"
-      ],
-      "signature": [],
-      "w_usage": 0.055
-    },
-    {
-      "n": "Sableye-Aerodactyl",
-      "share": 0.045,
-      "core": [
-        "sableye",
-        "aerodactyl",
-        "metagross",
-        "delphox"
-      ],
-      "signature": [],
-      "w_usage": 0.046
-    },
-    {
-      "n": "Sneasler-Sinistcha",
-      "share": 0.038,
-      "core": [
-        "sneasler",
         "sinistcha",
-        "incineroar",
-        "delphox"
+        "milotic"
       ],
       "signature": [],
-      "w_usage": 0.039
+      "w_usage": 0.065
     }
   ]
 }

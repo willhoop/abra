@@ -42,7 +42,7 @@ number typed in prose beside a table is exactly what CLAUDE.md records going sta
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  596/596 probed mechanics live, 0 missing   (census 2026-08-18 11:00)
+  596/596 probed mechanics live, 0 missing   (census 2026-08-19 01:16)
   0/6000 differential comparisons disagree with Showdown   (2026-08-18 10:52)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -54,16 +54,134 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 3b1a1212a678 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 1caee6a52a81 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 367363ffe7ca now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 0a70cc31a897 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 266/285 probed, 19 unprobed
 ```
 
-_stamped 2026-08-18 11:02_
+_stamped 2026-08-19 01:18_
 
 <!-- /GENERATED -->
+
+## THE NATURE GATE WAS RED ON THE PROBE, NOT THE ENGINE — AND THE BENCH WAS COMPARED BY NOTHING. 2026-08-19.
+
+Three things, and the first mattered most because of the shape it wore.
+
+### `tests/test-nature-differential.js` PART 4 — THE FIXTURE, SETTLED. NOT THE ENGINES.
+
+It read *"BEFORE the mega both engines agree on a line the AUTHORITY does not: atk 144 vs 112, spe 123
+vs 88"*. **A defect both engines share cancels out in every comparison built on them**, and a Speed
+value wrong by 40% changes who moves first — so this was the most dangerous sentence in the tree.
+
+**It was the probe.** Settled by handing the authority the IDENTICAL declared set rather than arguing
+about which formula is right: `game_differential.js` gained a Champions SP spread on 2026-08-12
+(`spreadFor`, 66 points, 32 cap, a descending Speed ladder per slot) and hands the same numbers to
+both sides — `evs` on the Showdown set, `spec.sp` on the medicham spec. The probe's oracle was still
+built with `evs: {0,0,0,0,0,0}`, so it was asking about a Pokemon nobody builds.
+
+| Abomasnow, slot 0, Jolly, spread `{atk:32, spd:2, spe:32}` | hp | atk | def | spa | spd | spe |
+|---|---|---|---|---|---|---|
+| authority, **the declared set** | 165 | **144** | 95 | 100 | 107 | **123** |
+| authority, zero-EV set — what the probe asked | 165 | 112 | 95 | 100 | 105 | 88 |
+| medicham2 | 165 | **144** | 95 | 100 | 107 | **123** |
+
+All four bodies matched to the digit, and so did the mega line (`165/184/125/136/127/90`). The
+arithmetic is READ, not remembered: `data/mods/champions/scripts.ts:10-39` — with `levelclausemod`
+absent (Reg M-B carries `adjustlevel`, which `assertSpreadSemantics()` checks every run) the else
+branch is `hp -> stat + evs + 75`, every other stat `stat + evs + 20`, and the nature multiply lands
+AFTERWARDS. Base Atk 92 + 32 + 20 = 144. **Reach of the defect: zero. There was no defect.**
+
+**THE EXPENSIVE HALF IS THAT PART 3 WAS GREEN THE WHOLE TIME, ON A LINE NO BODY IN THE RUN HAS.** It
+compared `flatL50` (nature, no investment) against the zero-investment oracle — an internally
+consistent check of arithmetic nobody plays under. PART 4 went red only because it reads a REAL body
+out of a REAL battle. The built body is now checked against the authority holding the same declared
+set, with a control that the spread is wired at all. Both shown RED on a deliberate break: a
+medicham-only spread drift named all four bodies and the stat it moved; a spread dropped on BOTH sides
+left the new clause perfectly green and fired the control instead — which is exactly why the control
+is there.
+
+### THE BENCH: `partyMap` HELD `{hp, maxhp, fainted}`, SO FOUR LEAVES READ AS AGREEMENT
+
+`tests/probe_bench_leaves.js` printed the candidates before any was wired, and **the first run would
+have wired a disagreement.** On 4 games / 156 benched bodies `item` read AGREES EVERYWHERE. On 42
+games / 2,029 bodies it disagrees twice. The comfortable answer was the small sample's.
+
+| leaf | of 2,029 (1,761 on a living body) | verdict |
+|---|---|---|
+| `types` | 0 differ, non-empty every time | wired unconditionally |
+| `item` | 0 of 1,761 living, 2 on a corpse | wired, post-faint held |
+| `status` / `status_counter` | 0 of 1,761 living, 9 on a corpse | wired, post-faint held |
+| `boosts` | 0 of 1,761 living, 28 on a corpse | wired, post-faint held |
+| `ability` | **3 differ on a LIVING benched body** | NOT wired — see the hand list |
+| `volatiles`, `sub`, `seeded` | never once non-empty | NOT wired — a fixture claim |
+
+Every disagreement except ability's is the authority doing housekeeping, read rather than recalled:
+`sim/battle.ts:2560` runs `clearVolatile(false)` inside `faintMessages`, `sim/pokemon.ts:1515-1541` is
+what that clears, and `sim/battle-actions.ts:126` blanks the status when the corpse is replaced.
+medicham2 keeps all of it. So the post-faint group is compared only where BOTH engines say the body is
+standing — the same rule as `screens.named` and `pp` — and the skip is a published receipt
+(`party_post_faint_skipped`), never a silence.
+
+**Five new plants in `STATE_PLANTS`, one per leaf, each naming its own species-keyed path** (a static
+`party.` prefix would be satisfied by the HP plant one row up and would prove nothing about the leaf
+it aimed at). All 41 plants applied, caught at the planted boundary and localised. Shown RED by
+restoring the narrow map: the five report *caught at boundary 5 but planted at 4* — invisible where
+the difference was written and surfacing a turn later as a downstream consequence, which is precisely
+what "laundered through the gap" looks like.
+
+**AND IT RETIRED A SCREEN THAT WAS DISCARDING GOOD FIXTURES.** `tests/test-end-state.js` PART 3
+rejected four candidate pairs saying *"a BENCHED body's item is not a compared leaf (partyMap holds
+hp/maxhp/fainted only)"* — true when written, false as of this pass, and still rejecting. It now
+rejects only a CORPSE, and immediately picked a pair it had been throwing away (`still on the field at
+the last boundary: false`), catching the plant at `p1.party.venusaur.item` against a **cleaner**
+control (`SAME-END-STATE` where the old fixture's control was already `DIFFERENT`).
+
+### FOUR PLANTS HAD NEVER BEEN APPLIED, AND THE FIXTURE WAS THE REASON
+
+`tests/test-state-differential.js` PART 2 was red on four `NOT APPLIED` rows — status, the toxic stage,
+the sleep counter and the untouched-PP blind spot — so four compared field families had no live
+demonstration behind them. All four read `living(S.actB)`, and the plant boundary is the LAST AGREEING
+board, which on a game ending in a sweep has no living body on side B at all. Printed rather than
+guessed at: at boundary 4 side A's bench is `primarina[FNT] froslassmega[FNT]` and side B's is
+`sableye gholdengo`. **The side was never the claim; the leaf is.** They now cross to the other side,
+the crossing is counted and published per plant (`fell_back_to_the_other_side`), and a plant that finds
+no living body on EITHER side still returns false and still fails the proof.
+
+### THE MECHANICS ARTIFACT WAS STAMPED AGAINST A TREE THAT HAD MOVED FOUR TIMES
+
+`data/all-mechanics-fire.json` re-run with `--kind all` — not the default `moves`, which silently
+produces a narrower artifact that reports a smaller number and looks like progress — and pinned to
+release `bb59e9a263c5`, the current tree at 0 of 25 files moved. The quarantine gate's mechanics clause
+is READ again rather than WITHHELD. The figures did not move (moves 35, abilities 14, items 0), which
+is the honest outcome: nothing about the engine changed, only what the artifact is entitled to
+describe.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous list that is not named below.
+
+**Removed — they are probes now:**
+- ~~a benched body's item, status, typing and boosts are compared by nothing~~ — `partyMap` widened,
+  five plants in `STATE_PLANTS`, shown red on the restored narrow map.
+- ~~the nature differential is red on two clauses and nobody knows whether it is the fixture~~ — it was
+  the fixture; the BUILT body is now checked against the authority's line for the declared set.
+- ~~four `STATE_PLANTS` rows have never been applied~~ — they cross sides, loudly.
+
+**Added, measured this pass and NOT fixed:**
+- **medicham2 KEEPS A TRACED ABILITY AFTER THE BODY LEAVES THE FIELD.** 3 of 2,029 benched
+  comparisons, every one on a LIVING body, every one a Gardevoir: Showdown reads `trace` and medicham2
+  reads the copied ability (`speedboost`, `hypercutter`). The authority restores the base ability in
+  `clearVolatile` (`sim/pokemon.ts:1528`), so it re-Traces on its next entry and this engine does not.
+  Deliberately NOT wired as a leaf — wiring a suspect presents a candidate engine defect as a
+  comparator question. Needs a directed scenario: Trace, switch out, switch back in.
+- **`item` disagrees on a fainted Ceruledge carrying a Colbur Berry** — Showdown reads it consumed and
+  medicham2 still holds it. Inside the post-faint hold, so it costs nothing today; same disposition
+  family `board_state.js` already declares under `knock_off_roadmap_80`.
+- **a benched body's volatiles, Substitute HP and Leech Seed were never once non-empty** across 2,029
+  comparisons. A claim about the FIXTURE and not about the engines — nothing to wire until something
+  puts a volatile on a body that then leaves the field.
 
 ## ROADMAP #304 — THE DAMAGE DIE IS AN INDEX INTO SIXTEEN AND THIS ENGINE DREW A POSITION IN A SPAN. 2026-08-18.
 

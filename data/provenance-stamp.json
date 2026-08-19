@@ -402,6 +402,7 @@
     "xatu.json"
   ],
   "no_writer_files": [
+    "_fire-items-BASE.json",
     "_r220-dump-post.json",
     "_r220-dump-pre.json",
     "artifact-accessors.json",
@@ -811,5 +812,5 @@
       ]
     }
   ],
-  "generated": "2026-08-18T15:02:24.741Z"
+  "generated": "2026-08-19T05:18:48.849Z"
 }

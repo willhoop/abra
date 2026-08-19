@@ -29,6 +29,15 @@
  * SO WHAT IS RED HERE IS NEVER "the two engines disagree about a game". This file goes red when the
  * NATURE does not reach one of the two sides, when the two arithmetics part, or when the mega path
  * loses the nature.
+ *
+ * AND SINCE 2026-08-12 THE SHEET CARRIES A SPREAD AS WELL AS A NATURE, which this file did not know.
+ * `game_differential.js` supplies the one field an open sheet never shows — Champions SP, 66 points
+ * with a 32 cap, `spreadFor` — to BOTH sides. Two clauses here were still asking the authority about
+ * a zero-investment body and reported *"both engines agree on a line the AUTHORITY does not"* on a
+ * 29% Atk and a 40% Speed gap. That is the most dangerous sentence this repo can print, so it was
+ * settled the only way it can be: by handing the authority the IDENTICAL declared set and reading
+ * the line it builds (`oracleSet`). It matched both engines on every stat of every body, before and
+ * after a mega. THE PROBE WAS WRONG AND THE ENGINES WERE RIGHT — see the `oracleSet` header.
  */
 'use strict';
 const path = require('path');
@@ -81,6 +90,36 @@ const oracleLine = (bs, nature) => {
            df: ORACLE.statModify(bs, set, 'def'), sa: ORACLE.statModify(bs, set, 'spa'),
            sd: ORACLE.statModify(bs, set, 'spd'), sp: ORACLE.statModify(bs, set, 'spe') };
 };
+/* THE SECOND ORACLE, AND THE ONE THAT ACTUALLY DESCRIBES A BODY IN THE RUN — added 2026-08-18.
+ *
+ * `oracleLine` above asks the authority about a set with NO investment, and that is the right
+ * question for PART 1/2/5, which are about the NATURE ARITHMETIC and nothing else. It is the WRONG
+ * question about a body `buildPair` produced, and asking it there put this file red on two clauses
+ * reading *"both engines agree on a line the AUTHORITY does not: atk 144 vs 112, spe 123 vs 88"* —
+ * a 29% and a 40% error, which is the exact shape (a defect BOTH engines share, invisible to every
+ * comparison built on them) that the differential exists to catch. It was not that.
+ *
+ * `game_differential.js` gained a Champions SP SPREAD on 2026-08-12 (`spreadFor`, 66 points, 32 cap,
+ * a descending Speed ladder per slot) and hands the SAME numbers to both sides — `evs` on the
+ * Showdown set, `spec.sp` on the medicham spec. Both engines were right and agreed with the
+ * authority to the digit; the PROBE was asking the authority about a Pokemon nobody built.
+ *
+ * SETTLED BY ASKING THE AUTHORITY TO BUILD THE DECLARED BODY, not by reasoning about which formula
+ * is right. `data/mods/champions/scripts.ts:10-39` overrides `statModify`: with `levelclausemod`
+ * absent — and Reg M-B carries `adjustlevel` instead, which `game_differential.js`'s
+ * `assertSpreadSemantics()` checks every run — the else branch is `hp -> stat + evs + 75`, every
+ * other stat `stat + evs + 20`, and the nature multiply lands AFTER the addition. Abomasnow's base
+ * 92 Atk under the slot-0 spread of 32 is 92 + 32 + 20 = 144, which is what both engines said.
+ *
+ * So this oracle takes the WHOLE declared set — nature AND spread — and it is what PART 3 and PART 4
+ * compare against. `oracleLine` stays, unchanged, because a zero-investment line is still the honest
+ * authority for a claim about `natureL50`. */
+const oracleSet = (bs, set) => ({
+  hp: ORACLE.statModify(bs, set, 'hp'), at: ORACLE.statModify(bs, set, 'atk'),
+  df: ORACLE.statModify(bs, set, 'def'), sa: ORACLE.statModify(bs, set, 'spa'),
+  sd: ORACLE.statModify(bs, set, 'spd'), sp: ORACLE.statModify(bs, set, 'spe') });
+const ZERO_EVS = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+const unspread = set => Object.assign({}, set, { evs: ZERO_EVS });
 const SKEYS = ['hp', 'at', 'df', 'sa', 'sd', 'sp'];
 const lineStr = l => SKEYS.map(k => k + ' ' + l[k]).join(' / ');
 const lineEq = (a, b) => SKEYS.every(k => a[k] === b[k]);
@@ -179,6 +218,46 @@ const SHEET = [
     if (!bad) pass('all four bodies carry their declared nature on BOTH sides, and the medicham line '
                    + 'matches the authority exactly');
 
+    /* AND THE BODY THAT IS ACTUALLY BUILT, WHICH IS NOT THAT LINE — 2026-08-18.
+     *
+     * Everything above compares `flatL50` (nature, NO investment) against a zero-investment oracle,
+     * so all four clauses pass on a line NO BODY IN THIS RUN HAS: `freshBodies` builds with
+     * `spreadL50(bs, spec.sp, nature)` and the Showdown set carries the same numbers as `evs`. The
+     * check was green about arithmetic nobody plays under, and PART 4 — which reads a REAL body out
+     * of a REAL battle — went red for exactly that reason. So the built body is checked here too,
+     * against the authority holding THE SAME DECLARED SET. */
+    const built = G.freshBodies(pair);
+    let sbad = 0;
+    for (let i = 0; i < pair.length; i++) {
+      const set = pair[i].sd, bs = pair[i].spec.bs;
+      const want = oracleSet(bs, set);
+      if (!built[i]) { sbad++; fail('the ' + SHEET[i].species + ' body could not be freshly built'); continue; }
+      if (!lineEq(built[i].st, want)) {
+        sbad++; fail('the BUILT medicham body for ' + SHEET[i].species + ' is ' + lineStr(built[i].st)
+                     + ', the authority holding the same declared set (' + set.nature + ', evs '
+                     + JSON.stringify(set.evs) + ') says ' + lineStr(want));
+      }
+    }
+    if (!sbad) pass('all four BUILT bodies match the authority asked about the identical declared set '
+                    + '— nature AND Champions SP spread');
+
+    /* THE CONTROL FOR THE SPREAD, EXPLICITLY, on the same argument as the nature control below: if
+     * the spread were dropped on both sides the clause above would still be perfectly green, because
+     * both engines would be flat together. So the built line must DIFFER from the same set with the
+     * investment removed, per body, and the budget must be the one the format allows. */
+    let flatSame = 0, budgetBad = 0;
+    for (let i = 0; i < pair.length; i++) {
+      const set = pair[i].sd, bs = pair[i].spec.bs;
+      const total = Object.values(set.evs).reduce((a, b) => a + b, 0);
+      if (total !== 66) { budgetBad++; fail(SHEET[i].species + ' was built on ' + total
+        + ' stat points, not the 66 Champions allows: ' + JSON.stringify(set.evs)); }
+      if (lineEq(oracleSet(bs, set), oracleSet(bs, unspread(set)))) flatSame++;
+    }
+    if (flatSame) fail(flatSame + ' of ' + pair.length + ' bodies read the SAME line spread as unspread '
+      + '— an unwired spread, not a spread that does not matter');
+    else if (!budgetBad) pass('every one of the four differs from its own zero-investment line, on the '
+      + 'full 66-point budget — the spread is wired too');
+
     /* THE CONTROL, EXPLICITLY. A knob that changes nothing looks exactly like a knob that is not
      * wired, so the natured build must be DIFFERENT from the flat one — and it is checked per body,
      * because one body differing would carry three that did not. */
@@ -242,7 +321,6 @@ console.log('\nPART 4 — the nature survives a mega evolution, in BOTH engines,
      * and the mega lands short — a divergence of one or two points on exactly the stat the nature
      * moved. This is the arithmetic that fails silently, so it is checked before the battle runs. */
     const bs = picked.base.baseStats, ms = picked.mega.baseStats;
-    const wantMega = oracleLine(ms, picked.nature);
     const sheet = SHEET.slice(1).concat([{ species: picked.base.name, item: picked.stone,
       ability: Object.values(picked.base.abilities || {})[0] || '', nature: picked.nature,
       moves: ['Protect'] }]);
@@ -252,6 +330,27 @@ console.log('\nPART 4 — the nature survives a mega evolution, in BOTH engines,
     const foe = G.buildPair(SHEET);
     if (!pair || !foe) { fail('the mega probe pair could not be built'); }
     else {
+      /* THE AUTHORITY IS ASKED ABOUT THE SET THAT WAS ACTUALLY BUILT — nature and Champions SP
+       * spread — and it has to be read AFTER buildPair, because only buildPair knows which slot's
+       * spread this body drew. Comparing against a zero-investment line here is what put this clause
+       * red on `atk 144 vs 112`; see the `oracleSet` header. */
+      const megaSet = pair[0].sd;
+      const wantBefore = oracleSet(bs, megaSet), wantMega = oracleSet(ms, megaSet);
+      note('the declared set the authority is asked about: ' + megaSet.nature + ', evs '
+           + JSON.stringify(megaSet.evs));
+      /* AND THE TRAP IS RE-READ UNDER THAT SPREAD. The case was SELECTED on zero-investment lines
+       * (a claim about base stats), so the number printed above describes a body this probe does not
+       * build. If the trap does not bite under the real spread the probe proves nothing, and that is
+       * a FAILURE rather than a footnote. */
+      const flatAnchors = { b: oracleSet(bs, unspread(Object.assign({}, megaSet, { nature: 'Serious' }))),
+                            g: oracleSet(ms, unspread(Object.assign({}, megaSet, { nature: 'Serious' }))) };
+      const wrongSp = flatAnchors.g.sp + (wantBefore.sp - flatAnchors.b.sp);
+      if (wrongSp === wantMega.sp)
+        fail('under the spread this body actually draws, the unnatured-anchor delta gives the SAME '
+             + 'Speed as the authority (' + wantMega.sp + ') — the case no longer bites and the mega '
+             + 'clause below would be green on an engine that dropped the nature');
+      else note('under that spread the trap still bites: unnatured anchors give ' + wrongSp
+                + ', the authority says ' + wantMega.sp);
       const A = G.freshBodies(pair), B = G.freshBodies(foe);
       const trace = [];
       const S = M.battleInit(A, B, { trace, autoMega: false });
@@ -267,9 +366,9 @@ console.log('\nPART 4 — the nature survives a mega evolution, in BOTH engines,
       const before = sdOf(p0);
       if (!lineEq(before, m0.st)) fail('BEFORE the mega the two engines already disagree: showdown '
         + lineStr(before) + ' vs medicham ' + lineStr(m0.st));
-      else if (!lineEq(before, oracleLine(bs, picked.nature)))
+      else if (!lineEq(before, wantBefore))
         fail('BEFORE the mega both engines agree on a line the AUTHORITY does not: '
-             + lineStr(before) + ' vs ' + lineStr(oracleLine(bs, picked.nature)));
+             + lineStr(before) + ' vs ' + lineStr(wantBefore));
       else pass('before the mega: both engines and the authority agree — ' + lineStr(before));
 
       const logMark = battle.log.length;

@@ -123,6 +123,29 @@ const NOT_COMPARED = [
        + 'medicham2 and is stated here rather than absorbed into a `!!`. Likewise the two-turn lock: '
        + 'medicham2 names the move in `_charging` and Showdown in a separate volatile keyed by the '
        + 'move id, and a mismatch there would be a reader question.' },
+  /* ---- THE BENCH SWEEP OF 2026-08-18. Same treatment as the volatile sweep above: the candidates
+   * that were NOT wired are named with the reason, because "we looked and did not add it" and "we
+   * never looked" are different sentences and only one of them is honest. */
+  { field: 'the ABILITY of a body on the bench',
+    why: 'IT DISAGREES ON A LIVING BODY, so it is a SUSPECT and not a leaf. `tests/probe_bench_leaves.js` '
+       + 'over 42 games / 2,029 benched bodies: 3 of the 11 differences are on a body that has NOT '
+       + 'fainted, and every one of them is a Gardevoir reading `trace` in Showdown and the TRACED '
+       + 'ability (`speedboost`, `hypercutter`) in medicham2. The authority restores the base ability '
+       + 'when a body leaves the field — `sim/pokemon.ts:1528`, `this.ability = this.baseAbility` '
+       + 'inside `clearVolatile` — so it re-Traces on its next entry; medicham2 keeps what it copied. '
+       + 'Wiring it now would present a candidate ENGINE DEFECT as a comparison leaf, which is the '
+       + 'mistake the Destiny Bond row above records. The ability of an ACTIVE body IS compared '
+       + '(ROADMAP #225), so nothing here is unwatched while it stands.',
+    next: 'a directed scenario: Trace a foe, switch out, switch back in, and compare — then either fix '
+        + 'medicham2\'s switch-out restore or declare the difference and wire the leaf' },
+  { field: 'a benched body\'s volatiles, Substitute HP and Leech Seed',
+    why: 'NOT A JUDGEMENT ABOUT THE ENGINES — a claim about the FIXTURE, the same distinction as the '
+       + 'yawn/attract/curse row above. Over 2,029 benched bodies `tests/probe_bench_leaves.js` never '
+       + 'once saw ANY of the three non-empty in EITHER engine, which is what the authority\'s own '
+       + '`clearVolatile` on switch-out predicts. A leaf whose two shapes have never been seen carrying '
+       + 'anything is wired for free and catches nothing, and it is exactly how a comparator starts '
+       + 'manufacturing divergences the day one of them does.',
+    next: 'nothing to do until a fixture puts a volatile on a body that then leaves the field' },
   { field: 'the stall counter behind consecutive Protect',
     why: 'medicham2 holds `tookProtectTurns` (a count UP of consecutive successful shields) and '
        + 'Showdown holds a `stall` volatile with a `counter` that is a DENOMINATOR (3, 9, 27). They '
@@ -458,14 +481,65 @@ function sdScreens(side) {
  *
  * Keyed by species instead. Species Clause makes that unique in this format; a team that breaks it is
  * COUNTED as a harness fault rather than silently collapsing two bodies into one row. */
+/* ---- WHAT A BENCHED BODY IS COMPARED ON — WIDENED 2026-08-18, AND MEASURED FIRST ----------------
+ *
+ * This map held `{hp, maxhp, fainted}` and NOTHING ELSE, so a benched body's item, status, typing and
+ * boosts were compared by nothing in this repository and a divergence in one of them read as
+ * AGREEMENT. `tests/test-end-state.js` PART 3 had to REJECT a candidate pair whose planted body
+ * walked to the bench, in its own words *"a planted item difference on a body that has walked to the
+ * bench is not compared by anything in this repository"* — three of five candidates were rejected on
+ * exactly that.
+ *
+ * THE LEAVES WERE PRINTED BEFORE THEY WERE WIRED, per ENGINE's standing rule, by
+ * `tests/probe_bench_leaves.js` — and THE FIRST RUN WOULD HAVE WIRED A DISAGREEMENT. On 4 games /
+ * 156 benched bodies `item` read AGREES EVERYWHERE. On 42 games / 2,029 bodies it disagrees twice.
+ * The comfortable answer was the small sample's.
+ *
+ * Over 2,029 comparisons (1,761 of them on a body that had NOT fainted):
+ *
+ *     types            0 differ of 2,029, non-empty every time  -> wired unconditionally
+ *     item             0 differ of 1,761 living, 2 on a fainted body
+ *     status           0 differ of 1,761 living, 9 on a fainted body
+ *     status_counter   0 differ of 2,029
+ *     boosts           0 differ of 1,761 living, 28 on a fainted body
+ *     ability          3 differ ON A LIVING BENCHED BODY   -> NOT WIRED, see NOT_COMPARED
+ *     volatiles/sub/seeded   never once non-empty  -> NOT WIRED, see NOT_COMPARED
+ *
+ * EVERY DISAGREEMENT EXCEPT ABILITY'S IS ON A BODY THAT HAS FAINTED, AND IT IS THE AUTHORITY DOING
+ * HOUSEKEEPING RATHER THAN EITHER ENGINE PLAYING A RULE. Read, not remembered:
+ * `sim/battle.ts:2560` runs `pokemon.clearVolatile(false)` inside `faintMessages`, and
+ * `sim/pokemon.ts:1515-1541` is what that clears — the seven boost stages and every volatile;
+ * `sim/battle-actions.ts:126` then runs `if (oldActive.fainted) oldActive.status = ''` when the
+ * corpse is replaced. medicham2 keeps all of it on a dead body. Comparing there would part boards on
+ * the READER'S bookkeeping, which is the manufactured divergence this function's own header records
+ * paying for once already (index-keying, 123 of 179 games).
+ *
+ * So the POST-FAINT GROUP is compared only where BOTH engines say the body is standing — the same
+ * rule, and the same reason, as `screens.named` and `pp` in `compare()`. It is SKIPPED LOUDLY:
+ * `party_post_faint_skipped` rides on every snapshot, so "not asked" can never be read as "agreed".
+ * `status` is NOT in that group because `statusOf` already answers `fnt` for a fainted body in both
+ * engines (the `fainted-is-not-a-status` mapping), which is why the probe — reading `m.status` raw —
+ * saw a difference this comparator cannot. */
+const PARTY_POST_FAINT = ['item', 'status_counter', 'boosts'];
+/* THE PROJECTION OF A FULL BODY ONTO A BENCH ROW. Deliberately built FROM `mediBody`/`sdBody` rather
+ * than by re-reading the engines here: `statusOf`, the boost key mapping and `getTypes()` are FACTS,
+ * and a second copy of any of them in this file is the two-implementations breach CLAUDE.md names. */
+function benchRow(b) {
+  if (!b) return null;
+  return { species: b.species, hp: b.hp, maxhp: b.maxhp, fainted: b.fainted, status: b.status,
+           types: b.types, item: b.item, status_counter: b.status_counter, boosts: b.boosts };
+}
 function partyMap(rows, fails) {
   const out = {};
   for (const r of rows) {
+    if (!r) continue;
     if (out[r.species] && fails) {
       fails.duplicate_species_in_party = (fails.duplicate_species_in_party || 0) + 1;
       fails.duplicate_species_first = fails.duplicate_species_first || r.species;
     }
-    out[r.species] = { hp: r.hp, maxhp: r.maxhp, fainted: r.fainted };
+    out[r.species] = { hp: r.hp, maxhp: r.maxhp, fainted: r.fainted, status: r.status,
+                       types: r.types, item: r.item, status_counter: r.status_counter,
+                       boosts: r.boosts };
   }
   return out;
 }
@@ -600,9 +674,7 @@ function readMedi(S, ctx) {
     tailwind: num(tw),
     hazards: { stealthrock: num(sf && sf.hz && sf.hz.stealthrock), spikes: num(sf && sf.hz && sf.hz.spikes),
                toxicspikes: num(sf && sf.hz && sf.hz.toxicspikes), stickyweb: num(sf && sf.hz && sf.hz.stickyweb) },
-    party: partyMap(((sf && sf.team) || []).map(m => ({ species: id(m.name), hp: Math.max(0, num(m.curHP)),
-                                                        maxhp: num(m.st && m.st.hp), fainted: !!m.fainted })),
-                    ctx.fails),
+    party: partyMap(((sf && sf.team) || []).map(m => benchRow(mediBody(m, id))), ctx.fails),
     active: [0, 1].map(i => mediBody(act[i], id)),
     /* PP SITS BESIDE THE BODY AND NOT INSIDE IT, exactly as `screens.named` does, because it is the
      * one leaf an engine may be UNABLE TO EXPRESS. A release cut before ROADMAP #144 has no `_pp` and
@@ -644,9 +716,7 @@ function readShowdown(battle, ctx) {
                spikes: layers((sd.sideConditions || {}).spikes),
                toxicspikes: layers((sd.sideConditions || {}).toxicspikes),
                stickyweb: layers((sd.sideConditions || {}).stickyweb) },
-    party: partyMap((sd.pokemon || []).map(p => ({ species: id(p.species && p.species.id),
-                                                   hp: Math.max(0, num(p.hp)), maxhp: num(p.maxhp),
-                                                   fainted: !!p.fainted })), ctx.fails),
+    party: partyMap((sd.pokemon || []).map(p => benchRow(sdBody(p, id))), ctx.fails),
     active: [0, 1].map(i => sdBody((sd.active || [])[i], id)),
     /* HELD ON BOTH SIDES OR NEITHER. A hold that only silenced OUR side would leave Showdown's map
      * walking against `null` and report every move as present-in-one-engine-only — a manufactured
@@ -686,6 +756,27 @@ function walk(a, b, path, out, stats) {
   for (const k of keys) walk(a[k], b[k], path ? path + '.' + k : k, out, stats);
 }
 
+/* THE PARTY, WITH THE POST-FAINT GROUP HELD WHERE EITHER ENGINE SAYS THE BODY IS DOWN. Written as a
+ * walk of its own rather than as a `null` in the two maps, because a one-sided null would REPORT as a
+ * difference on `item` the moment the two engines disagreed about `fainted` — turning one finding
+ * (they disagree about who is alive, which `fainted` already carries) into four, on an already-parted
+ * board. The skip is counted, never assumed. */
+function walkParty(a, b, path, out, stats) {
+  const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+  for (const k of keys) {
+    const A = (a || {})[k], B = (b || {})[k];
+    if (!A || !B) { walk(A, B, path + '.' + k, out, stats); continue; }   // missing member: unchanged
+    const standing = !A.fainted && !B.fainted;
+    for (const leaf of new Set([...Object.keys(A), ...Object.keys(B)])) {
+      if (!standing && PARTY_POST_FAINT.indexOf(leaf) >= 0) {
+        if (stats) stats.party_post_faint_skipped = (stats.party_post_faint_skipped || 0) + 1;
+        continue;
+      }
+      walk(A[leaf], B[leaf], path + '.' + k + '.' + leaf, out, stats);
+    }
+  }
+}
+
 function compare(medi, sd, stats) {
   const out = [];
   walk(medi.field, sd.field, 'field', out, stats);
@@ -699,7 +790,7 @@ function compare(medi, sd, stats) {
     if (A.screens.named && B.screens.named) walk(A.screens.named, B.screens.named, s + '.screens.named', out, stats);
     walk(A.tailwind, B.tailwind, s + '.tailwind', out, stats);
     walk(A.hazards, B.hazards, s + '.hazards', out, stats);
-    walk(A.party, B.party, s + '.party', out, stats);
+    walkParty(A.party, B.party, s + '.party', out, stats);
     walk(A.active, B.active, s + '.active', out, stats);
     /* PP, PER SLOT, ONLY WHERE BOTH ENGINES CAN EXPRESS IT — the same rule and the same reason as
      * `screens.named` two lines up. Skipped LOUDLY: `pp_comparable` rides on every snapshot, so an
@@ -835,6 +926,14 @@ function explain(loc, v, pretty) {
   if (f === 'party.hp') return P(loc.body) + ' on the team is on ' + v + ' HP';
   if (f === 'party.maxhp') return P(loc.body) + ' on the team has ' + v + ' maximum HP';
   if (f === 'party.fainted') return P(loc.body) + ' on the team ' + (v ? 'has fainted' : 'is still standing');
+  /* THE BENCH LEAVES, 2026-08-18. Each says "on the bench" out loud, because the same difference on
+   * an ACTIVE body is a different finding and the two must not read alike in a report. */
+  if (f === 'party.item') return P(loc.body) + ' on the bench ' + (v ? 'is holding ' + P(v) : 'is holding nothing');
+  if (f === 'party.status') return P(loc.body) + ' on the bench is ' + (STATUS_NAME[String(v || '')] || String(v));
+  if (f === 'party.status_counter') return P(loc.body) + ' on the bench is on status counter ' + v;
+  if (f === 'party.types') return P(loc.body) + ' on the bench is typed ' + String(v);
+  if (f.indexOf('party.boosts.') === 0)
+    return P(loc.body) + ' on the bench is at ' + stage(v) + ' ' + (BOOST_NAME[f.slice(13)] || f.slice(13));
   if (f.indexOf('party.') === 0) return P(loc.body) + ' on the team: ' + f.slice(6) + ' is ' + v;
   if (f === 'tailwind') return v ? 'Tailwind has ' + v + ' turn(s) left' : 'there is no Tailwind';
   if (f.indexOf('hazards.') === 0) return v ? v + ' layer(s) of ' + f.slice(8) : 'no ' + f.slice(8);
@@ -850,11 +949,15 @@ function explain(loc, v, pretty) {
 /* ---- THE SNAPSHOT PAIR, WHICH IS WHAT A CALLER WANTS ------------------------------------------- */
 function snapshot(S, battle, ctx) {
   const medi = readMedi(S, ctx), sd = readShowdown(battle, ctx);
-  const stats = { compared: 0 };
+  const stats = { compared: 0, party_post_faint_skipped: 0 };
   const diffs = compare(medi, sd, stats);
   return { medi, sd, diffs,
            identical: diffs.length === 0,
            leaves_compared: stats.compared,
+           /* THE BENCH RECEIPT (2026-08-18). "The post-faint leaves were not asked" and "the
+            * post-faint leaves agreed" are different sentences, and only one of them is honest —
+            * exactly the argument `pp_comparable` two entries down was built on. */
+           party_post_faint_skipped: stats.party_post_faint_skipped,
            screens_shape_medicham: medi.sides.p1.screens.shape,
            screens_named_comparable: !!(medi.sides.p1.screens.named && sd.sides.p1.screens.named),
            /* THE PP RECEIPT. Counted over every occupied slot on both sides, so "PP agreed" and "PP

@@ -91,6 +91,20 @@ console.log('\nPART 2 — one plant per compared field family, written into the 
     }
     if (!bad) pass('all ' + P.plants.length + ' plants applied, caught at the planted boundary, and '
       + 'localised to the planted field');
+    /* THE FIXTURE RECEIPT, PRINTED WHETHER OR NOT ANYTHING IS WRONG. A bench plant crosses to the
+     * other side when the side it asked for has no LIVING benched body at the plant boundary — which
+     * on this pair is the normal case, because the last agreeing board is late in the game. Silence
+     * here would let "the plant went where it was aimed" and "the plant went somewhere else" read
+     * alike, which is the silent-default shape this whole file is built against. */
+    const flipped = P.plants.filter(p => p.fell_back_to_the_other_side);
+    note(flipped.length + ' of ' + P.plants.length + ' plants had to cross to the other side (the '
+       + 'requested side had no LIVING benched body at boundary ' + P.clean.planted_at_boundary + ')'
+       + (flipped.length ? ': ' + flipped.map(p => p.what).join('; ') : ''));
+    /* AND THE BENCH LEAVES ARE NAMED, so a report cannot say "all plants passed" while the bench half
+     * silently ran zero. */
+    const bench = P.plants.filter(p => /BENCHED/.test(p.what));
+    note('bench leaves exercised: ' + bench.length + ' — '
+       + bench.map(p => p.planted_field + (p.applied && p.caught && p.localised ? ' OK' : ' **BAD**')).join(', '));
   }
 }
 

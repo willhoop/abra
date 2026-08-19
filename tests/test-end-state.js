@@ -174,16 +174,24 @@ else {
    *      the plant. (The clause that asserts this is unchanged; this only stops handing it a pair it
    *      is bound to refuse.)
    *
-   *   2. THE PLANTED BODY MUST STILL BE ON THE FIELD AT THE LAST BOUNDARY. `board_state.js`'s party
-   *      rows carry `{hp, maxhp, fainted}` and NOTHING ELSE — no item, no status, no ability — so an
-   *      item difference on a body that has walked to the bench is not compared by anything in this
-   *      repository. The first screened fixture demonstrated exactly that: control clean, plant
-   *      applied, verdict SAME-END-STATE with an EMPTY diff list. That is not the comparator missing
-   *      a difference it holds; it is a difference the board does not contain.
+   *   2. THE PLANTED BODY MUST STILL BE COMPARABLE AT THE LAST BOUNDARY — AND THAT NOW MEANS SOMETHING
+   *      WEAKER THAN "STILL ON THE FIELD", WHICH IS THE POINT.
    *
-   *      So a pair whose planted body leaves the field is REJECTED WITH THAT REASON PRINTED, and the
-   *      blind spot is stated here rather than absorbed into a green run. A pair where the body is
-   *      still standing and the diff is still missing is a REAL comparator failure and fails.
+   *      THIS SCREEN USED TO SAY the planted body left the field and a BENCHED body's item is not a
+   *      compared leaf, because partyMap held hp/maxhp/fainted only — and it rejected FOUR candidate
+   *      pairs on that sentence. It was true when written and STOPPED BEING TRUE on 2026-08-18, when
+   *      `partyMap` was widened to carry item, status, status_counter, types and boosts on a benched
+   *      body: measured first by `tests/probe_bench_leaves.js` over 2,029 benched bodies, with each
+   *      new leaf carrying its own plant in `STATE_PLANTS`. A screen that keeps discarding valid
+   *      fixtures on a RETIRED blind spot is this repository's most expensive recurring failure (the
+   *      fourteen stale handoffs, the ban list of four) arriving inside a green test.
+   *
+   *      WHAT STILL DISQUALIFIES A PAIR IS A CORPSE, NOT A BENCH. `board_state.js` deliberately HOLDS
+   *      the post-faint leaves — the authority runs `clearVolatile` on a faint (`sim/battle.ts:2560`)
+   *      and blanks the status when the body is replaced (`sim/battle-actions.ts:126`) while medicham2
+   *      keeps all of it — so an item planted onto a body that then FAINTS is compared by nothing, and
+   *      such a pair is rejected WITH THAT REASON PRINTED. A pair whose body is alive, on the field or
+   *      on the bench, and whose diff is still missing is a REAL comparator failure and fails.
    *
    * NEITHER SCREEN CAN WEAKEN THE PROOF: both only discard pairs on which the assertions below could
    * not mean anything, and every rejection is named. If the whole window is rejected that is a loud
@@ -205,26 +213,33 @@ else {
     /* `statePlant` is the one hook handed the LIVE medicham board at every boundary. It plants once
      * and then only READS, so "is the planted body still standing" is answered by the engine rather
      * than inferred from the report. */
-    let body = null, appliedHere = false, lastSeenActive = false;
+    let body = null, appliedHere = false, lastSeenActive = false, lastSeenComparable = false;
     const p = G.playGame(cand.a, cand.b, 'baseline', 'endstate/planted', {
       statePlant: (S, b, turnIdx) => {
         if (turnIdx === plantAt && !appliedHere) {
           const m = (S.actA || []).find(x => x && !x.fainted && x.curHP > 0);
           if (!m) return;
           m.item = m.item ? '' : 'leftovers';
-          body = m; appliedHere = true; lastSeenActive = true;
+          body = m; appliedHere = true; lastSeenActive = true; lastSeenComparable = true;
           return;
         }
-        if (appliedHere && body) lastSeenActive = (S.actA || []).indexOf(body) >= 0 && !body.fainted;
+        if (appliedHere && body) {
+          lastSeenActive = (S.actA || []).indexOf(body) >= 0 && !body.fainted;
+          /* THE ITEM LEAF IS COMPARED ON THE FIELD AND ON A LIVING BENCH, AND HELD ON A CORPSE. Two
+           * separate facts, tracked separately, because collapsing them is what let the old screen
+           * discard four good fixtures. */
+          lastSeenComparable = !body.fainted;
+        }
       } });
     if (p.err) { rejected.push(tag + ' — the PLANTED game threw'); continue; }
     if (!appliedHere) { rejected.push(tag + ' — no living body on side A at boundary ' + plantAt); continue; }
-    if (!lastSeenActive) {
-      rejected.push(tag + ' — the planted body left the field, and a BENCHED body\'s item is not a '
-                        + 'compared leaf (board_state.js partyMap holds hp/maxhp/fainted only)');
+    if (!lastSeenComparable) {
+      rejected.push(tag + ' — the planted body FAINTED, and board_state.js HOLDS the post-faint '
+                        + 'leaves (the authority clears them on a faint and medicham2 does not), so '
+                        + 'its item is compared by nothing. A benched but LIVING body is now fine.');
       continue;
     }
-    pr = cand; clean = c; planted = p; applied = true; stillActiveAtEnd = true;
+    pr = cand; clean = c; planted = p; applied = true; stillActiveAtEnd = lastSeenActive;
     break;
   }
 

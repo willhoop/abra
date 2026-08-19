@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-18T15:00:04.878Z",
+  "generated": "2026-08-19T05:16:27.613Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
   "probed": 596,
@@ -3036,7 +3036,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

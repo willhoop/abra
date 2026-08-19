@@ -3788,17 +3788,75 @@ const living = (list, from) => {
   for (let i = 0; i < (from || 0); i++) if (list[i] && !list[i].fainted && list[i].curHP > 0) return list[i];
   return null;
 };
+/* EITHER SIDE, PREFERRING THE FOE'S — 2026-08-18, AND IT WAS FOUR RED CLAUSES.
+ *
+ * Four plants read `living(S.actB)` and the plant boundary is the LAST AGREEING one, which on a game
+ * that ends in a sweep is a board where SIDE B HAS NO LIVING ACTIVE BODY AT ALL. All four reported
+ * NOT APPLIED — status, the toxic stage, the sleep counter and the untouched-PP blind spot — so four
+ * compared field families had NO live demonstration behind them, which `tests/test-state-differential.js`
+ * correctly refuses to score as a pass.
+ *
+ * THE SIDE WAS NEVER THE CLAIM. Each of those plants asserts that the COMPARATOR catches a difference
+ * in one leaf; `p2` was variety, not meaning. Falling back to `p1` keeps the demonstration and changes
+ * nothing about what is being demonstrated. It is a FALLBACK, so it is loud rather than silent: the
+ * side actually used is reported per plant (`planted_on`), and a plant that can find no living body on
+ * EITHER side still returns false and still fails the proof. */
+const livingEither = (S) => {
+  const b = living(S.actB || []);
+  if (b) return b;
+  PLANT_FELL_BACK_TO_P1++;
+  return living(S.actA || []);
+};
+let PLANT_FELL_BACK_TO_P1 = 0;
+/* A body on the BENCH that has NOT fainted, which is the population the widened party map compares.
+ * `board_state.js` holds the post-faint leaves where either engine calls the body down (the authority
+ * clears boosts, volatiles and status on a faint and medicham2 does not), so a plant onto a corpse
+ * would be correctly IGNORED and would read as a broken comparator. */
+const benchedLiving = (S, side) => {
+  const sf = side === 'B' ? S.sfB : S.sfA, act = (side === 'B' ? S.actB : S.actA) || [];
+  for (const m of ((sf && sf.team) || [])) {
+    if (act.indexOf(m) >= 0) continue;
+    if (m.fainted || !(m.curHP > 0)) continue;
+    return m;
+  }
+  return null;
+};
+/* AND IT HAS TO BE ABLE TO CROSS SIDES, FOR THE REASON `livingEither` DOES — MEASURED, NOT ASSUMED.
+ *
+ * The plant boundary is the LAST AGREEING board, which is late in the game by construction. Staged on
+ * the proof pair and printed rather than guessed at: at boundary 4 side A's bench is
+ * `primarina[FNT]  froslassmega[FNT]` and side B's is `sableye hp125  gholdengo hp162`. So the three
+ * plants aimed at side A reported NOT APPLIED and the two aimed at side B applied — a split that
+ * reads like a broken comparator and is a fact about the FIXTURE. (Will has taught this twice: a
+ * COULD-NOT-STAGE verdict is a claim about the fixture, never about the mechanic.)
+ *
+ * THE SIDE IS NOT THE CLAIM. Each plant asserts the comparator catches a difference in ONE LEAF on a
+ * BENCHED, LIVING body; which side that body sits on carries no meaning. A dead bench cannot serve,
+ * because `board_state.js` deliberately holds the post-faint leaves — so a plant onto a corpse would
+ * be correctly IGNORED and would read as a comparator that failed.
+ *
+ * LOUD, NOT SILENT: the flip is recorded per plant and published as `fell_back_to_the_other_side`, and
+ * a plant that finds no living benched body on EITHER side still returns false and still fails the
+ * proof. */
+let BENCH_PLANT_SIDE_FLIP = false;
+const benchedLivingEither = (S, side) => {
+  const first = benchedLiving(S, side);
+  if (first) return first;
+  const other = benchedLiving(S, side === 'B' ? 'A' : 'B');
+  if (other) BENCH_PLANT_SIDE_FLIP = true;
+  return other;
+};
 const STATE_PLANTS = [
   ['HP off by one on an active body', 'active',
    S => { const m = living(S.actA); return !!m && ((m.curHP = Math.max(0, m.curHP - 1)), true); }],
   ['a stat stage off by one', 'boosts.atk',
    S => !!S.actA[0] && ((S.actA[0].boosts.at += 1), true)],
   ['a status that is not there', 'status',
-   S => { const m = living(S.actB); return !!m && ((m.status = m.status === 'brn' ? 'par' : 'brn'), true); }],
+   S => { const m = livingEither(S); return !!m && ((m.status = m.status === 'brn' ? 'par' : 'brn'), true); }],
   ['the TOXIC stage off by one', 'status_counter',
-   S => { const m = living(S.actB); return !!m && ((m.status = 'tox'), (m.toxTurns = (m.toxTurns || 0) + 3), true); }],
+   S => { const m = livingEither(S); return !!m && ((m.status = 'tox'), (m.toxTurns = (m.toxTurns || 0) + 3), true); }],
   ['the SLEEP counter off by one', 'status_counter',
-   S => { const m = living(S.actB, 1); return !!m && ((m.status = 'slp'), (m.slpTurns = (m.slpTurns || 0) + 2), true); }],
+   S => { const m = living(S.actB, 1) || livingEither(S); return !!m && ((m.status = 'slp'), (m.slpTurns = (m.slpTurns || 0) + 2), true); }],
   ['an item that is not held', 'active[1].item',
    S => !!S.actA[1] && ((S.actA[1].item = S.actA[1].item ? '' : 'leftovers'), true)],
   ['a body marked fainted that is not', 'active[1].fainted',
@@ -3899,7 +3957,7 @@ const STATE_PLANTS = [
           const mx = M.ppMax(k); if (mx == null) return false;
           m._pp = m._pp || {}; m._pp[k] = Math.max(0, (k in m._pp ? m._pp[k] : mx) - 1); return true; }],
   ['PP SPENT on a slot NOTHING has touched — the lazy-table blind spot', 'pp[',
-   S => { const m = living(S.actB); if (!m) return false;
+   S => { const m = livingEither(S); if (!m) return false;
           const mv = (m.moves || []);
           if (!M.ppMax) return false;
           for (let i = mv.length - 1; i >= 0; i--) {
@@ -3915,6 +3973,48 @@ const STATE_PLANTS = [
   ['a BENCHED party member marked fainted', 'party.',
    S => { const t = S.sfB.team || []; const m = t[t.length - 1]; if (!m) return false;
           m.fainted = !m.fainted; return true; }],
+  /* ---- THE BENCH SWEEP OF 2026-08-18: ONE PLANT PER LEAF ADDED, OR THE LEAF IS UNPROVEN ---------
+   *
+   * `board_state.js`'s party map held `{hp, maxhp, fainted}` and nothing else, so a benched body's
+   * item, status, typing and boosts were compared by NOTHING and a difference in one read as
+   * agreement — `tests/test-end-state.js` PART 3 had to reject three of five candidate pairs because
+   * *"a planted item difference on a body that has walked to the bench is not compared by anything in
+   * this repository"*. The map is now wider (the leaves were printed by `tests/probe_bench_leaves.js`
+   * over 2,029 benched bodies before any of them was wired), and a leaf with no plant behind it is a
+   * leaf nobody has ever seen catch anything — the same rule the volatile sweep above was held to.
+   *
+   * EACH RETURNS ITS OWN PATH. The party is keyed by SPECIES, so the path is
+   * `p1.party.<species>.item` and the species is not knowable when this table is written. A static
+   * `party.` would be satisfied by ANY party difference, including the HP one two rows up, and the
+   * plant would prove nothing about the leaf it aimed at.
+   *
+   * EVERY ONE OF THESE IS SILENT IN THE PROTOCOL. Nothing on a bench emits a line; that is exactly
+   * why the gap existed and exactly what a STATE comparison is for. */
+  ['an ITEM on a BENCHED body that is not held', 'party.',
+   S => { const m = benchedLivingEither(S, 'A'); if (!m) return false;
+          m.item = m.item ? '' : 'leftovers';
+          return 'party.' + id(m.name) + '.item'; }],
+  ['a STATUS on a BENCHED body that is not there', 'party.',
+   S => { const m = benchedLivingEither(S, 'B'); if (!m) return false;
+          m.status = m.status === 'brn' ? 'par' : 'brn';
+          return 'party.' + id(m.name) + '.status'; }],
+  ['the TOXIC stage off by one on a BENCHED body', 'party.',
+   S => { const m = benchedLivingEither(S, 'A'); if (!m) return false;
+          m.status = 'tox'; m.toxTurns = (m.toxTurns || 0) + 3;
+          return 'party.' + id(m.name) + '.status_counter'; }],
+  /* THE TYPING PLANT WRITES A TYPE THE BODY DOES NOT HAVE, chosen from the two it cannot both be, so
+   * a body that is already one of them still moves. This is the leaf ROADMAP #225 records as having
+   * made the comparison unable to see the worst defect in the register — on the field. On the bench it
+   * was uncompared until this pass. */
+  ['a TYPING on a BENCHED body that is not its own', 'party.',
+   S => { const m = benchedLivingEither(S, 'B'); if (!m) return false;
+          const has = (m.types || []).map(t => id(t));
+          m.types = has.indexOf('ghost') >= 0 ? ['Normal'] : ['Ghost'];
+          return 'party.' + id(m.name) + '.types'; }],
+  ['a STAT STAGE off by one on a BENCHED body', 'party.',
+   S => { const m = benchedLivingEither(S, 'A'); if (!m) return false;
+          m.boosts = m.boosts || {}; m.boosts.at = (m.boosts.at || 0) + 1;
+          return 'party.' + id(m.name) + '.boosts.atk'; }],
 ];
 
 function plantedStateProof(pairA, pairB) {
@@ -3934,13 +4034,28 @@ function plantedStateProof(pairA, pairB) {
   }
   const plants = STATE_PLANTS.map(([what, wantPath, mutate]) => {
     let applied = false;
+    /* A PLANT MAY NAME ITS OWN PATH, and the party plants have to. `mutate` returning `true` keeps the
+     * static `wantPath` — which is every plant written before 2026-08-18 — while a returned STRING
+     * replaces it. The party map is keyed by SPECIES, so `p1.party.<species>.item` is not knowable
+     * when the table is written, and a static `party.` prefix would be satisfied by ANY party
+     * difference: the plant would report LOCALISED while proving nothing about its own leaf. */
+    let path = wantPath;
+    BENCH_PLANT_SIDE_FLIP = false;
     const r = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'stateproof/' + what.slice(0, 14), {
-      statePlant: (S2, b2, turnIdx) => { if (turnIdx === lastAgreeing) applied = !!mutate(S2); } }));
+      statePlant: (S2, b2, turnIdx) => { if (turnIdx !== lastAgreeing) return;
+        const res = mutate(S2); applied = !!res;
+        if (typeof res === 'string') path = res; } }));
+    const flipped = BENCH_PLANT_SIDE_FLIP;
     const at = r.stateDiv ? r.stateDiv.turn : null;
     const paths = r.stateDiv ? r.stateDiv.diffs.map(d => d.path) : [];
-    return { what, planted_field: wantPath, applied, caught: !!r.stateDiv, at, expected_at: lastAgreeing,
+    const wantPath2 = path;
+    return { what, planted_field: wantPath2, applied, caught: !!r.stateDiv, at, expected_at: lastAgreeing,
+             /* THE FIXTURE RECEIPT. A plant that had to cross to the other side did so because the
+              * requested side's bench was all corpses at the plant boundary — a fact about this pair,
+              * printed rather than absorbed. */
+             fell_back_to_the_other_side: flipped,
              at_the_planted_boundary: at === lastAgreeing,
-             localised: paths.some(p => p.indexOf(wantPath) >= 0),
+             localised: paths.some(p => p.indexOf(wantPath2) >= 0),
              /* WHAT IT ACTUALLY REPORTED, kept so a "localised: false" can be read rather than
               * guessed at. Capped: one plant on an active body legitimately moves the party row too,
               * because they are the same object. */
