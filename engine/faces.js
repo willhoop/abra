@@ -440,6 +440,13 @@ function thenWhatFor(tags, params) {
     out.why.push(key + ': ' + t.why);
   };
   for (const t of (tags || [])) take(t, THEN_WHAT[t]);
+  /* A DECLARED UNOBSERVABLE ROW, HOISTED SO A CALLER CAN READ IT AS A FIELD RATHER THAN AS PROSE.
+   * `announcesOnEntry` sets `stage: null` AND `unobservable: true` because Anticipation, Forewarn and
+   * Frisk emit a MESSAGE and move no state — no number of turns can make one visible to a board
+   * comparator. That is a DECLARED gap, and until 2026-08-19 it existed only inside a `why` sentence,
+   * so the rows it covers sat in the caller's `did_not_fire_unexplained` bucket beside genuine engine
+   * gaps. A sentence a machine cannot read is not an explanation. */
+  for (const t of (tags || [])) if (THEN_WHAT[t] && THEN_WHAT[t].unobservable) out.unobservable = t;
   /* the volatile keys, resolved out of the entity's OWN params rather than from its name */
   const eff = ((params || {}).statusInflict || {}).effects || [];
   for (const e of eff) if (e.volatile) take('volatile:' + e.volatile, VOLATILE_THEN_WHAT[e.volatile]);

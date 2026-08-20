@@ -133,6 +133,28 @@ function handlerSrc(e) {
         .map(([, v]) => String(v)).join(' ')
     : '';
 }
+/* WHICH STATUS A HANDLER READS, read off the handler rather than named here. `pokemon.status === "par"`
+ * is Cheri Berry's whole guard; Lum Berry's is `pokemon.status || pokemon.volatiles["confusion"]`, which
+ * names none and takes any — reported as `any` rather than as an empty answer, because an empty answer
+ * reads like "no status is involved" and that is the opposite of the truth.
+ *
+ * BOTH QUOTE STYLES, as everywhere in this file: the handler is read off the COMPILED `dist/sim`. */
+const STATUS_IDS = /["'](brn|par|psn|tox|slp|frz)["']/;
+function statusesFromSrc(src) {
+  const out = new Set();
+  for (const m of String(src).matchAll(/\.status\s*===\s*["'](brn|par|psn|tox|slp|frz)["']/g)) out.add(m[1]);
+  if (!out.size && /\.status\b/.test(String(src))) out.add('any');
+  return [...out];
+}
+/** statusesRead(entity) -> ['par'] | ['any'] | [] — for a caller that wants to STAGE the status rather
+ *  than only be told one is missing. Reads the entity's own handlers, including a berry's `onEat`. */
+function statusesRead(entity) {
+  if (!entity || !entity.exists) return [];
+  const src = handlerSrc(entity)
+    + ' ' + (typeof entity.onEat === 'function' ? String(entity.onEat) : '');
+  return statusesFromSrc(src);
+}
+void STATUS_IDS;
 function triggerClauses(sc, sp, why, note, cl) {
   const ab = sc.ability ? D.abilities.get(sc.ability) : null;
   const itemE = sc.item ? D.items.get(sc.item) : null;
@@ -198,12 +220,22 @@ function triggerClauses(sc, sp, why, note, cl) {
     }
   }
 
-  /* 3. A MECHANIC THAT READS OR CURES A STATUS NEEDS ONE PRESENT. */
+  /* 3. A MECHANIC THAT READS OR CURES A STATUS NEEDS ONE PRESENT.
+   *
+   * THE CLAUSE SAID *WHICH KIND* OF PRECONDITION WAS MISSING AND NEVER *WHICH ONE*, and that is the
+   * difference between a reader knowing a row is unstageable and a HARNESS being able to stage it.
+   * Cheri Berry's handler is `if (pokemon.status === "par")` — the status is written in the source and
+   * was being thrown away. `statusesRead` returns it, so `need.values` now names the status a fixture
+   * has to land, and `['any']` is the honest answer for Lum Berry's `if (pokemon.status || …)`. */
   if (/cureStatus|\.status\b/.test(src) && sc.targetStatus === undefined && sc.status === undefined) {
-    note.push('"' + subj + '" reads a status — a board whose bodies are healthy '
+    const want = statusesFromSrc(src);
+    note.push('"' + subj + '" reads a status'
+      + (want.length && want[0] !== 'any' ? ' (' + want.join('/') + ')' : '')
+      + ' — a board whose bodies are healthy '
       + 'shows nothing whatever the engine does. Declare `status` (Natural Cure read 419 identical '
       + 'leaves for exactly this reason)');
-    cl.push({ clause: 'status-present', blocking: false, need: { status: 'any status on the body it reads' },
+    cl.push({ clause: 'status-present', blocking: false,
+              need: { status: 'any status on the body it reads', values: want },
               got: { status: null, targetStatus: null } });
   }
 
@@ -343,12 +375,31 @@ function triggerClauses(sc, sp, why, note, cl) {
       const tg = sc.target ? D.species.get(sc.target) : null;
       if (!legal(sp) || !legal(tg) || !n.multiplier) continue;
       const mine = sp.baseStats.spe, theirs = tg.baseStats.spe;
-      if ((mine > theirs) !== (mine * n.multiplier > theirs)) continue;   /* it DOES cross — fine */
+      /* ---- A SPEED TIE IS ALREADY WON, AND THE CLAUSE COULD NOT SEE THAT (2026-08-19) -------------
+       *
+       * "Does the multiplier change who moves first" is a question about the ORDER, and the order at
+       * equal Speed is decided by the ARM'S TIE RULE rather than by arithmetic. `bottom-tie-first`
+       * declares `tieToSecondBody: false` — *"the tie goes to the earlier body"* — and every subject
+       * this harness stages is the earlier body, p1a.
+       *
+       * MEASURED: SWIFT SWIM's carrier is Basculegion at base 78 and the receiver is Feraligatr at
+       * base 78. A strict `>` reads that as "slower, then faster" — a crossing — so the clause stayed
+       * quiet and the row sat in `did_not_fire_unexplained`, reading as an engine gap. Under the arm
+       * actually being played the subject moves first at 78 AND at 156, and doubling changes not one
+       * line. The tie rule is DECLARED by the caller off the arm's own field, never assumed, because
+       * it is false for an arm that hands ties to the later body. */
+      const first = (a, b) => (sc.armTieFirst ? a >= b : a > b);
+      if (first(mine, theirs) !== first(mine * n.multiplier, theirs)) continue;   /* it DOES cross — fine */
+      const tied = mine === theirs && sc.armTieFirst;
       note.push('"' + subj + '" does nothing but multiply Speed by ' + n.multiplier + ', and on this '
-        + 'board ' + sp.name + ' (' + mine + ') is ' + (mine > theirs ? 'already faster than ' : 'still slower than ')
-        + tg.name + ' (' + theirs + ') either way — the order does not change, so neither log can');
+        + 'board ' + sp.name + ' (' + mine + ') is '
+        + (tied ? 'TIED with ' : first(mine, theirs) ? 'already faster than ' : 'still slower than ')
+        + tg.name + ' (' + theirs + ') either way'
+        + (tied ? ' — and this run\'s arm gives the tie to the EARLIER body, which is the subject' : '')
+        + ' — the order does not change, so neither log can');
       cl.push({ clause: 'speed-order', blocking: false,
-                need: { crossing: theirs }, got: { base: mine, multiplier: n.multiplier } });
+                need: { crossing: theirs }, got: { base: mine, multiplier: n.multiplier,
+                                                   tie: tied || null, armTieFirst: !!sc.armTieFirst } });
       continue;
     }
     const met = n.kind === 'ko-hit' ? !!BS.koHit
@@ -359,6 +410,10 @@ function triggerClauses(sc, sp, why, note, cl) {
               : n.kind === 'ally-only' ? !!BS.allyIsLive
               : n.kind === 'volatile-present' ? n.values.some(v => (BS.volatiles || []).map(id).includes(v))
               : n.kind === 'heal-effect' ? n.values.some(v => (BS.healEffects || []).map(id).includes(v))
+              /* DECLARED AS A FRACTION THE FIXTURE PROVABLY DROVE THE BAR BELOW — `hpBelow: 1/3` means
+               * "a body on this board reached a third or less". Anything smaller than the handler's
+               * own fraction satisfies it; anything larger does not. */
+              : n.kind === 'hp-threshold' ? (+BS.hpBelow > 0 && +BS.hpBelow <= 1 / (n.fraction || 3))
               : false;
     if (met) continue;
     const what = n.kind === 'ko-hit' ? 'a hit that would take the holder\'s LAST HP'
@@ -371,6 +426,10 @@ function triggerClauses(sc, sp, why, note, cl) {
                    + 'fires on an ally, and this fixture\'s ally clicks Protect and is never touched'
                : n.kind === 'volatile-present' ? 'the volatile ' + n.values.join(' or ') + ' already on the body'
                : n.kind === 'heal-effect' ? 'a heal from ' + n.values.join(' or ')
+               : n.kind === 'hp-threshold' ? 'the holder\'s HP bar to have travelled BELOW a '
+                   + (n.fraction || 3) + 'rd/th of its maximum — the safe rung multiplies the pool by '
+                   + 'six so nothing can faint, and the real-pool rung\'s beats do not reliably get a '
+                   + 'bulky carrier there'
                : n.kind;
     note.push('"' + subj + '" needs ' + what + ' (`' + n.handler + '`), and this board does not '
       + 'declare it — a board that never reaches the state shows nothing whatever the engine does');
@@ -854,6 +913,22 @@ function boardNeeds(entity) {
     /* A STAT ALREADY DROPPED ON THE HOLDER. White Herb restores it; with nothing dropped it restores
      * nothing and the two arms are identical. */
     if (/boosts\[[^\]]+\]\s*<\s*0/.test(src)) add('own-stat-dropped', [], k);
+    /* ---- THE HP BAR HAS TO HAVE TRAVELLED (2026-08-19) --------------------------------------------
+     *
+     * `if (attacker.hp <= attacker.maxhp / 3)` is Overgrow's entire guard and Swarm's, and it is the
+     * one precondition the fixture's two rungs cannot promise: `safe-pool` multiplies the HP pool by
+     * SIX precisely so nothing can faint, and `real-pool`'s three beats do not reliably take a bulky
+     * carrier past a third. Both rows sat in `did_not_fire_unexplained` — which reads as an engine gap
+     * — with nothing anywhere saying that the board never got low enough to ask.
+     *
+     * BLAZE AND TORRENT CARRY THE IDENTICAL GUARD AND BOTH FIRE, which is what makes this safe: an
+     * advisory clause is only ever applied to a row that did NOT fire (see `labelRow` in the caller),
+     * so the two that reach the threshold are never argued with and the two that do not can say why.
+     * The DENOMINATOR is read out of the handler rather than assumed to be 3. */
+    {
+      const hg = /\.hp\s*<=?\s*\w+\.maxhp\s*\/\s*(\d+)/.exec(src);
+      if (hg) add('hp-threshold', [hg[1]], k, { fraction: +hg[1] });
+    }
   }
   /* AN ACCURACY OR CRIT-RATIO MULTIPLIER, AND THE JUDGEMENT IS ABOUT THE WHOLE ENTITY RATHER THAN ONE
    * HANDLER. Under a CORNER arm of the differential the accuracy roll is a constant — `random(m)`
@@ -1103,7 +1178,7 @@ function check(sc) {
 
 module.exports = { check, legal, learnable, statusOf,
                    moveNeeds, satisfiesNeed, learnsetOf, EVENT_ROLE,
-                   boardNeeds, readByOthers };
+                   boardNeeds, readByOthers, statusesRead };
 
 if (require.main === module) {
   const S = [

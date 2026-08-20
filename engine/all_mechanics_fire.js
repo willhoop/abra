@@ -514,7 +514,12 @@ function segments(log) {
        * and then a segment of its own. Both, in that order. */
       if (cur && /\[from\]/.test(raw)) cur.lines.push(raw);
       if (cur) segs.push(cur);
-      cur = { who: p[2], move: id(p[3]), still: raw.indexOf('[still]') >= 0, lines: [] };
+      cur = { who: p[2], move: id(p[3]), still: raw.indexOf('[still]') >= 0,
+              /* THE AUTHORITY'S OWN MARKER THAT THE CLICK REACHED MORE THAN ONE BODY —
+               * `|move|p1a: Audino|Life Dew||[still]|[spread] p1a,p1b`. Read here rather than
+               * re-derived from `move.target`, because it is the log that says what actually
+               * happened; see the `-fail` split in `verdictFor`. */
+              spread: raw.indexOf('[spread]') >= 0, lines: [] };
       continue;
     }
     if (ev === 'cant') { if (cur) { segs.push(cur); cur = null; } segs.push({ who: p[2], move: id(p[4] || ''), cant: p[3], lines: [] }); continue; }
@@ -641,7 +646,23 @@ function verdictFor(log, who, moveId) {
     for (const raw of s.lines) {
       const p = String(raw).split('|');
       const ev = p[1];
-      if (ev === '-fail') { hard = hard || ('-fail' + (p[3] ? ' ' + p[3] : '')); continue; }
+      /* ---- A `-fail` ON ONE BODY OF A SPREAD MOVE IS PER-TARGET, AND THIS WAS A FALSE NEGATIVE ----
+       * The block above says `-fail` NAMES THE USER, and for a single-target move it does. LIFE DEW
+       * heals the user AND the ally, and Showdown's log for it reads:
+       *     |move|p1a: Audino|Life Dew||[still]|[spread] p1a,p1b
+       *     |-heal|p1a: Audino|1068/1068          <- it worked
+       *     |-fail|p1b: Venusaur|heal             <- the ALLY was already full
+       * The row was filed as `-fail heal` — the move plainly resolved and the instrument said it did
+       * not. Same shape as the `-activate|p2b|move: Protect` false negative the block above already
+       * records for spread attacks, arriving through the one refusal that was still unconditional.
+       * HARD when it names the USER or when the move reached one body; PER-TARGET otherwise, which
+       * means it counts only if the segment produced no consequence at all. */
+      if (ev === '-fail') {
+        const namesUser = !p[2] || p[2] === s.who;
+        if (namesUser || !s.spread) hard = hard || ('-fail' + (p[3] ? ' ' + p[3] : ''));
+        else soft = soft || ('-fail on ' + p[2] + (p[3] ? ' ' + p[3] : '') + ' — one body of a spread move');
+        continue;
+      }
       if (REFUSAL.has(ev)) { soft = soft || (ev + (p[3] ? ' ' + p[3] : '')); continue; }
       if (ev === '-activate' && GUARDS.test(raw)) { soft = soft || 'blocked by a guard: ' + raw; continue; }
       if (NOT_A_CONSEQUENCE.has(ev)) continue;
@@ -721,6 +742,117 @@ for (const [mid, row] of Object.entries(TAGS.moves || {})) {
   if (t && !SETS_TERRAIN.has(t)) SETS_TERRAIN.set(t, mid);
 }
 
+/* ================= WHAT THE MOVE'S OWN ENTRY REQUIRES (2026-08-19) ================================
+ *
+ * TEN MOVE ROWS WERE FILED AS "THE AUTHORITY REFUSED IT" AND EVERY ONE OF THEM IS A FIXTURE BUG. Will
+ * has taught this twice and `memory/construct-the-fixture-dont-find-it` records it: *a COULD-NOT-STAGE
+ * verdict is a claim about the FIXTURE, never about the mechanic.* The scenario was built so the move
+ * could not work, Showdown said so in its own words, and the words were recorded as the finding.
+ *
+ * `setupFor` already derives from `data/tags.json`. THIS READS THE AUTHORITY'S ENTRY DIRECTLY, and it
+ * has to, for two reasons the rows themselves supplied:
+ *
+ *   THE TAG CAN BE THE WRONG WAY ROUND. `focuspunch` carries `needsTargetToAttack`, so the fixture
+ *     dutifully made the receiver ATTACK — and Focus Punch is the one move in the format that FAILS
+ *     when it is hit (`beforeMoveCallback` -> `add("cant")`). The harness was building the exact board
+ *     the move cannot survive. The polarity is legible in the guard: Focus Punch cancels on a POSITIVE
+ *     read of its own volatile (`volatiles["focuspunch"]?.lostFocus`), Shell Trap on a NEGATED one
+ *     (`!pokemon.volatiles["shelltrap"]?.gotHit`). Same helper idea as `fixture_preflight.polarity`.
+ *   THE TAG CAN BE SILENT. `soak` says `refuseIfExactType` and does not say WHICH type; the entry says
+ *     `target.setType("Water")` — and this harness's receiver is a PURE WATER Feraligatr, so the one
+ *     move that changes a type was clicked at the one body it cannot change.
+ *
+ * NOTHING HERE IS A MOVE NAME. Each field is a regex over the entry's own compiled source, and a move
+ * added next regulation is picked up without editing this file. */
+/* HANDLER NAME -> ITS SOURCE, kept as a MAP rather than one blob, because two of the tests below are
+ * about WHICH handler a guard sits in — a `cant` in `beforeMoveCallback` refuses the click, the same
+ * word in a residual does not — and splitting one concatenated string back apart is how a scan comes
+ * to read the wrong function's body. */
+function moveEntry(dm) {
+  const out = {};
+  for (const [k, v] of Object.entries(dm || {})) if (typeof v === 'function') out[k] = String(v);
+  const cond = (dm && dm.condition) || {};
+  for (const [k, v] of Object.entries(cond)) if (typeof v === 'function') out['cond.' + k] = String(v);
+  return out;
+}
+function moveEntryNeeds(dm) {
+  const H = moveEntry(dm);
+  const src = Object.values(H).join(' ');
+  const out = {};
+  /* THE CANCEL GUARD. Only a handler that can refuse the click outright is read — `beforeMoveCallback`
+   * and `onTryMove` — because those are the two the simulator consults before the move runs. */
+  const cancel = (H.beforeMoveCallback || '') + ' ' + (H.onTryMove || '');
+  /* AND THE GUARD MUST BE READING THE MOVE'S **OWN** MARK. The first print of this caught POLLEN PUFF
+   * beside Focus Punch: its `onTryMove` cancels on `source.volatiles["healblock"]`, which is somebody
+   * else's condition and says nothing about being attacked. Requiring the volatile id to be the MOVE
+   * ID leaves exactly the two moves whose whole mechanism is a pre-turn mark — the narrowest test that
+   * still keeps Shell Trap, and a move added later with the same shape is caught without a list. */
+  const ownVolSrc = 'volatiles\\[\\s*["\\\']' + id((dm && dm.id) || 'zzz') + '["\\\']';
+  const ownVol = new RegExp(ownVolSrc);
+  if (/["\']cant["\']/.test(cancel) && ownVol.test(cancel)) {
+    const neg = new RegExp('!\\s*\\w+\\.' + ownVolSrc).test(cancel);
+    if (neg) out.receiverMustAttack = true;        /* Shell Trap: cancelled unless it was hit */
+    else out.receiverMustNotAttack = true;         /* Focus Punch: cancelled BECAUSE it was hit */
+  }
+  const st = /setType\(\s*["']([A-Za-z]+)["']\s*\)/.exec(src);
+  if (st && /getTypes\(\)\.join\(\)\s*===|-fail/.test(src)) out.setsType = st[1];
+  /* THE TARGET MUST STILL BE ABOUT TO MOVE. `this.queue.willMove(target)` returns null once it has
+   * acted, so the subject has to be FASTER — Quash's whole failure, and Upper Hand's too. */
+  if (/queue\.willMove\(\s*target\s*\)/.test(src)) {
+    out.actorMustMoveFirst = true;
+    /* …AND WITH A PRIORITY ATTACK QUEUED, when the guard reads the queued move's own priority. */
+    if (/move\.priority\s*<=?/.test(src) && /move\.category\s*===\s*["']Status["']/.test(src))
+      out.receiverPriorityAttack = true;
+  }
+  /* AN ABILITY LIST READ **OFF THE ALLIES**, not off whatever body is in front. SMACKDOWN also names
+   * two abilities (`levitate`, `eelevate`) and reads them on its TARGET — building the partner with
+   * one of them would stage nothing and change a row that already works. `side.allies()` in the same
+   * handler is the whole distinction, and it is Magnetic Flux's own first line. */
+  for (const [hk, hv] of Object.entries(H)) {
+    if (!/allies\(\)/.test(hv)) continue;
+    const ab = /hasAbility\(\s*\[([^\]]*)\]\s*\)/.exec(hv);
+    if (!ab) continue;
+    const list = [...ab[1].matchAll(/["']([a-z]+)["']/g)].map(m => m[1]);
+    if (list.length) { out.allyAbilities = list; out.allyAbilityHandler = hk; }
+    break;
+  }
+  if (/moveSlot\.used|moveSlots\b[\s\S]{0,120}\.used/.test(src)) out.otherMovesUsed = true;
+  if (/cureStatus|clearStatus/.test(src)) out.curesStatus = true;
+  /* A GENDER GATE IS NOT REPAIRABLE HERE AND IS REPORTED AS SUCH — every body this harness builds is
+   * `gender:'N'` because medicham2 has no gender at all. Read one hop down, exactly as
+   * `fixture_preflight`'s gender clause does: Attract's own entry never mentions gender, the ATTRACT
+   * CONDITION it applies does. */
+  let reach = src;
+  for (const m of src.matchAll(/(?:addVolatile|volatileStatus["']?\s*[:=]\s*)["']([a-z]+)["']/g)) {
+    const c = dex.conditions.get(m[1]);
+    if (c && c.exists) reach += ' ' + Object.entries(c).filter(([k, v]) => /^on/.test(k) && typeof v === 'function')
+      .map(([, v]) => String(v)).join(' ');
+  }
+  if (dm && dm.volatileStatus) {
+    const c = dex.conditions.get(dm.volatileStatus);
+    if (c && c.exists) reach += ' ' + Object.entries(c).filter(([k, v]) => /^on/.test(k) && typeof v === 'function')
+      .map(([, v]) => String(v)).join(' ');
+  }
+  if (/\.gender\b/.test(reach)) out.genderGated = true;
+  return out;
+}
+
+/* PRINT WHAT IT MATCHED BEFORE WIRING IT — docs/ENGINE.md, and this file has paid for it twice
+ * (`refusesStatusMoves` caught Telepathy and Wonder Guard; `speedOnItemLoss` caught Sticky Hold). Run
+ * `--print-move-needs` and the whole match set over the 500 legal moves is on one screen, per field,
+ * so an over-match is visible before a single game is played. */
+if (has('--print-move-needs')) {
+  const tally = {};
+  for (const m of LEGAL_MOVES) {
+    const n = moveEntryNeeds(dex.moves.get(m));
+    for (const [k, v] of Object.entries(n))
+      (tally[k] = tally[k] || []).push(m + (v === true ? '' : '=' + [].concat(v).join('|')));
+  }
+  for (const [k, v] of Object.entries(tally).sort((a, b) => b[1].length - a[1].length))
+    console.log('  ' + String(v.length).padStart(4) + '  ' + k + '   ' + v.join(' '));
+  return;
+}
+
 /* The SETUP a move needs before it can resolve, derived. Each entry returns extra moves the actor (or
  * its ally) must carry and extra script turns to play first. */
 function setupFor(moveId, pool) {
@@ -729,6 +861,13 @@ function setupFor(moveId, pool) {
   const extra = [];          // moves the actor must also carry
   let receiverAttacks = null;  // 'physical' | 'special' — what p2a clicks on the CLICK turn
   let selfDamage = false;      // the receiver hits p1a first, so a heal has something to heal
+  /* A DECLARED PRECONDITION THIS CARRIER CANNOT SUPPLY. `pre` being empty is ambiguous — it means
+   * both "nothing was needed" and "something was needed and no setter is in this pool" — and the
+   * carrier loop below could only see the first reading. STEEL ROLLER needs a terrain and Aggron, the
+   * alphabetically first carrier, can set none: `pre` came back empty, the carrier passed the "can it
+   * hold the setup" test on a technicality, and Showdown answered `-fail` for a board that was never
+   * built. Flagged so the carrier choice can prefer a body that CAN. */
+  let needsSetter = false;
 
   /* A MOVE THAT SPENDS A VOLATILE CANNOT RESOLVE WITHOUT IT. `requires: true` is the artifact's own
    * word for the precondition; the granting move is found by inverting `statusInflict`. */
@@ -751,11 +890,20 @@ function setupFor(moveId, pool) {
     const g = fw.weather && SETS_WEATHER.has(fw.weather) ? SETS_WEATHER.get(fw.weather)
             : [...SETS_WEATHER.values()].find(x => pool.has(x));
     if (g && pool.has(g)) { extra.push(g); pre.push({ actor: g }); }
+    else needsSetter = true;
   }
+  /* `failsWithoutTerrain` DOES NOT ALWAYS NAME A TERRAIN EITHER, AND THAT COST A ROW. Steel Roller's
+   * params read `{needsTerrain: true, clears: true}` with no `terrain` field — its own guard is
+   * `onTry() { return !this.field.isTerrain(""); }`, i.e. ANY terrain — so a rule keyed on the name
+   * staged nothing and Showdown answered `-fail`, which was filed as the move being refused. This is
+   * the identical hole the weather branch four lines up already documents for Aurora Veil, in the
+   * clause beside it; unnamed means ANY, and the setter is the first one the carrier can learn. */
   const ft = pars.failsWithoutTerrain;
-  if (ft && ft.terrain && SETS_TERRAIN.has(ft.terrain)) {
-    const g = SETS_TERRAIN.get(ft.terrain);
-    if (pool.has(g)) { extra.push(g); pre.push({ actor: g }); }
+  if (ft && (ft.terrain || ft.needsTerrain)) {
+    const g = ft.terrain && SETS_TERRAIN.has(ft.terrain) ? SETS_TERRAIN.get(ft.terrain)
+            : [...SETS_TERRAIN.values()].find(x => pool.has(x));
+    if (g && pool.has(g)) { extra.push(g); pre.push({ actor: g }); }
+    else needsSetter = true;
   }
   /* A MOVE THAT FAILS UNLESS THE TARGET IS ATTACKING. Sucker Punch, Counter, Mirror Coat, Metal Burst,
    * Comeuppance. `failsIfTargetNotAttacking` is the tag; the CATEGORY it must be hit by is the move's
@@ -787,7 +935,23 @@ function setupFor(moveId, pool) {
    * handles. */
   const charge = tags.indexOf('chargeTurn') >= 0 || tags.indexOf('semiInvulnerable') >= 0;
   const recharge = tags.indexOf('recharge') >= 0;
-  return { pre, extra, receiverAttacks, selfDamage, charge, recharge, trailing };
+  /* ---- AND WHAT THE MOVE'S OWN ENTRY SAYS, WHICH IS NOT ALWAYS WHAT THE TAG SAYS ------------------
+   * `moveEntryNeeds` is read AFTER the tag block and overrides it where the two disagree, because one
+   * of them is a derived summary and the other is the authority's source. The measured disagreement is
+   * FOCUS PUNCH: its tag is `needsTargetToAttack`, so the block above set `receiverAttacks` and the
+   * fixture built the one board on which the move CANNOT resolve — it is cancelled by being hit. */
+  const me = moveEntryNeeds(dex.moves.get(moveId));
+  if (me.receiverMustNotAttack) receiverAttacks = null;
+  if (me.receiverMustAttack && !receiverAttacks) receiverAttacks = 'physical';
+  return { pre, extra, receiverAttacks, selfDamage, charge, recharge, trailing, needsSetter,
+           receiverIdle: !!me.receiverMustNotAttack,
+           receiverPriority: !!me.receiverPriorityAttack,
+           setsType: me.setsType || null,
+           allyAbilities: me.allyAbilities || null,
+           otherMovesUsed: !!me.otherMovesUsed,
+           curesStatus: !!me.curesStatus,
+           actorMustMoveFirst: !!me.actorMustMoveFirst,
+           genderGated: !!me.genderGated };
 }
 
 /* ================= PLAYING ONE ROW ================================================================ */
@@ -797,9 +961,14 @@ let GAMES = 0, THREW = 0;
  * move whose verdict is wanted. Returns the authority's verdict, medicham2's, and the divergence. */
 /* THE FOUR BODIES ON THE FIELD, with distinct species so no sheet has a duplicate and no `switch`
  * ask is ambiguous. The two allies are pads and are chosen from the generated pool. */
-function stageBodies(actor, receiver) {
+/* `allyOverride` RE-CASTS THE PARTNER, and it exists because a mechanic can be gated on WHO stands
+ * beside the subject rather than on what anybody clicks. Magnetic Flux boosts only allies that hold
+ * Plus or Minus and returns false with none; the pads are chosen for being able to click Protect and
+ * hold neither. It is the SAME body on every rung of a row, so nothing about a comparison changes. */
+function stageBodies(actor, receiver, allyOverride) {
   const used = new Set([id(actor.species), id(receiver.species)]);
   const pads = [];
+  if (allyOverride && !used.has(id(allyOverride.species))) { pads.push(allyOverride); used.add(id(allyOverride.species)); }
   for (const pid of PAD_POOL) {
     if (pads.length >= 2) break;
     if (used.has(pid)) continue;
@@ -1053,8 +1222,36 @@ function scriptFor(su, clickMove, bodies) {
   /* RUNG 3 — EVERYBODY HAS TAKEN DAMAGE. A heal aimed at a full-HP body fails, and which body needs
    * the hole depends on the move (self, ally, or an arbitrary target). Rather than deriving three
    * separate rules, one turn puts a hole in all four. */
-  if (su.everyoneHurt) T({ m: actorHit, t: 0 }, { m: phys, t: 0 }, { m: clickOf(ally, ['Rest', 'Protect']) },
-                         { m: allyHit, t: 1 });
+  /* `hurtTurns` REPEATS IT. One hit on a x6 HP pool is a scratch; a THRESHOLD — a Sitrus Berry at a
+   * half, which is the only board on which Belch and Recycle can resolve — needs the bar to actually
+   * travel, and that takes the real pool AND repetition. Same argument `AB_RUNGS`' `real-pool` makes
+   * for the ability arm, which the move ladder never had. */
+  for (let k = 0; k < Math.max(su.everyoneHurt ? 1 : 0, su.hurtTurns || 0); k++)
+    T({ m: actorHit, t: 0 }, { m: phys, t: 0 }, { m: clickOf(ally, ['Rest', 'Protect']) },
+      { m: allyHit, t: 1 });
+  /* A BODY ON THE ACTOR'S OWN SIDE CARRIES A STATUS. Heal Bell cures the whole party and FAILS when
+   * nobody is statused — and no receiver in this fixture can inflict one (Feraligatr's legal pool has
+   * no status move at all, which `PREFLIGHT.faces_status_noop` already counts one arm over). The ALLY
+   * can do it to itself: it is a pad holding Rest, `everyoneHurt` has already put the hole in it that
+   * Rest needs, and a sleeping partner is a status on the actor's side. */
+  if (su.allyStatused) { const r = clickOf(ally, ['Rest']);
+    if (r === 'rest') {
+      /* THE HOLE IN THE ALLY IS PUNCHED BY THE RECEIVER, and the first build had the FOE'S PAD do it —
+       * which never happened, because a pad is built from Protect/Endure/Rest and `clickOf` fell
+       * through to Protect. Rest at full HP fails, so the partner never slept and Heal Bell still had
+       * nothing to cure. The receiver is the only body on the far side that can actually attack. */
+      /* AND THE PARTNER MAY NOT PROTECT ON THAT TURN — the default ally click is Protect and it blocked
+       * the very hit meant to make the hole. It clicks REST both turns instead: at full HP that fails
+       * harmlessly and leaves it hittable, and once the hit has landed the same click puts it to
+       * sleep. One move, two turns, no guard anywhere near the staging. */
+      T({ m: actorHit, t: 0 }, { m: phys, t: 1 }, { m: r });
+      T({ m: actorHit, t: 0 }, { m: inert }, { m: r });
+    } }
+  /* EVERY OTHER MOVE THE ACTOR KNOWS HAS BEEN USED. Last Resort's `onTry` walks its own `moveSlots`
+   * and refuses while any of them is unused; nothing else in this fixture makes that true. The turns
+   * are the actor's OWN moves, read off the built body, so the rung cannot ask for a move it lacks. */
+  if (su.otherMovesFirst) for (const m of ((actor || {}).moves || []).map(id))
+    if (m !== id(clickMove)) T({ m, t: 0 }, { m: inert });
   for (const p of su.pre) T({ m: p.actor, t: 0 }, { m: inert });
   /* A HEAL AT FULL HP FAILS, so the receiver punches the hole one turn early. THE ACTOR SPENDS THAT
    * TURN ATTACKING, not on a filler, and that is the third fixture choice this file has had to make
@@ -1069,7 +1266,15 @@ function scriptFor(su, clickMove, bodies) {
    * rather than clicking whatever came back instead: `clickOf` falls back to slot 1, which is the
    * move under test, and spending it on a setup turn would measure the wrong turn. */
   if (su.asleep) { const rest = clickOf(actor, ['Rest']); if (rest === 'rest') T({ m: rest }, { m: inert }); }
-  const foe = su.receiverAttacks === 'physical' ? phys : su.receiverAttacks === 'special' ? spec : inert;
+  /* UPPER HAND'S GUARD READS THE MOVE THE TARGET HAS QUEUED — `move.priority <= 0.1 ||
+   * move.category === "Status"` — so the receiver has to be about to throw a PRIORITY ATTACK, and the
+   * bare fixture's Agility satisfies neither half. Picked out of the receiver's own built moves, so a
+   * body that cannot supply one degrades to the ordinary click and the row reports why. */
+  const prio = ((receiver || {}).moves || []).map(id)
+    .find(m => { const d = dex.moves.get(m); return d && d.exists && (d.priority || 0) > 0 && d.category !== 'Status'; });
+  const foe = su.receiverPriority && prio ? prio
+            : su.receiverIdle ? inert
+            : su.receiverAttacks === 'physical' ? phys : su.receiverAttacks === 'special' ? spec : inert;
   const click = { m: clickMove, t: 0 };
   T(click, { m: foe, t: 0 });
   /* A CHARGE MOVE SPENDS TURN ONE CHARGING; the RESOLUTION is on turn two, and Showdown LOCKS the
@@ -1110,6 +1315,31 @@ const RUNGS = [
   { id: 'asleep', what: 'the actor Rests itself to sleep first — Sleep Talk and Snore require it and '
                       + 'no receiver in this fixture carries a sleep move',
     apply: (su) => { su.everyoneHurt = true; su.asleep = true; } },
+  /* ---- THE FOUR RUNGS THE REFUSED MOVE ROWS NEEDED (2026-08-19) ---------------------------------
+   *
+   * Each carries a `when`, so it is built ONLY for a row whose own entry asks for it — a rung that
+   * ran for every move would add turns to 500 rows to serve one, and a longer game has more chances
+   * to part for reasons that are not the row's. They are LAST, so a move that already resolves on an
+   * earlier rung never reaches them and cannot regress into one. */
+  { id: 'real-pool', what: 'the REAL HP pool and three damage turns — the only board on which a '
+                         + 'held berry is actually EATEN, which is what Belch and Recycle read',
+    /* x2 AND NOT x1, AND THE DIFFERENCE WAS MEASURED. At the true pool three crit turns KILLED the
+     * actor before its own click turn and the row read "the move was never issued" — an instrument
+     * limit wearing a finding's clothes, which is exactly what this rung set out to remove. x2 still
+     * crosses the HALF that a Sitrus Berry reads and leaves the body standing to click afterwards. */
+    apply: (su) => { su.everyoneHurt = true; su.hurtTurns = 3; su.hpBoost = 2;
+                     su.actorItem = 'Sitrus Berry'; su.receiverItem = 'Sitrus Berry'; } },
+  { id: 'ally-statused', when: (su) => su.curesStatus,
+    what: 'the PARTNER Rests itself asleep — a status-curing move fails with nothing to cure, and '
+        + 'no receiver in this fixture can inflict one',
+    apply: (su) => { su.everyoneHurt = true; su.allyStatused = true; } },
+  { id: 'moves-used', when: (su) => su.otherMovesUsed,
+    what: 'the actor first clicks every OTHER move it knows — Last Resort refuses while any slot of '
+        + 'its own is unused',
+    apply: (su) => { su.otherMovesFirst = true; } },
+  { id: 'fast-carrier', when: (su) => su.actorMustMoveFirst, fasterCarrier: true,
+    what: 'the carrier is re-picked FASTER than the receiver — a move reading '
+        + '`queue.willMove(target)` gets null once the target has already acted' },
 ];
 
 function runMoves(list) {
@@ -1130,6 +1360,8 @@ function runMoves(list) {
       const pool = POOL.get(c);
       const s = setupFor(mv, pool);
       if (s.pre.length && !s.pre.every(p => pool.has(p.actor))) continue;
+      /* AND IT MUST BE ABLE TO SUPPLY WHAT THE MOVE DECLARES IT NEEDS — see `needsSetter`. */
+      if (s.needsSetter) continue;
       chosen = c; su = s; break;
     }
     if (!chosen) { chosen = carriers[0]; su = setupFor(mv, POOL.get(carriers[0])); }
@@ -1175,25 +1407,78 @@ function runMoves(list) {
      * a clause that starts biting must be visible the day it does. */
     const preMove = preflight({ species: dex.species.get(chosen).name, move: dm.name,
                                 target: dex.species.get(RECEIVER.species).name, teamSize: 4 });
+    /* ---- WHO STANDS OPPOSITE, AND WHO STANDS BESIDE (2026-08-19) --------------------------------
+     *
+     * BOTH ARE PROPERTIES OF THE MOVE, AND BOTH WERE FIXED FOR ALL 500 ROWS. Two refused rows were
+     * refused by the fixture's own casting:
+     *
+     *   SOAK sets the target's type to Water, and its `onHit` opens with
+     *     `if (target.getTypes().join() === "Water" ...) { this.add("-fail", target); return null; }`
+     *     — and the receiver this harness has always used is a PURE WATER Feraligatr. The one move in
+     *     the format that rewrites a typing was clicked at the one body it cannot rewrite. The swap is
+     *     made ONLY when the default receiver already IS that exact type, so `magicpowder` (Psychic,
+     *     into a Water body) keeps the board it already resolves on.
+     *   MAGNETIC FLUX boosts `side.allies().filter(ally => ally.hasAbility(["plus","minus"]))` and
+     *     returns false with none — and the partner is a Protect pad chosen for being able to Protect.
+     *     The ally is re-cast as a legal body that HAS the ability the handler reads.
+     *
+     * Both are derived from the move's own entry (`moveEntryNeeds`) and neither names a species. */
+    let recvSp = id(RECEIVER.species), recvAb = RECEIVER.ability;
+    if (su.setsType && ((dex.species.get(recvSp) || {}).types || []).join() === su.setsType) {
+      const alt = ALT_RECEIVERS.concat(LEGAL_SPECIES.map(s => s.id))
+        .find(x => ((dex.species.get(x) || {}).types || []).join() !== su.setsType && x !== id(chosen));
+      if (alt) { recvSp = alt; recvAb = ''; }
+    }
+    /* A +PRIORITY ATTACK ON THE RECEIVER, when the move's guard reads the target's queued priority.
+     * Added to the FRONT of the want list so `bodyOf` keeps it, and only for a row that asks. */
+    const recvWants = (su.receiverPriority
+      ? [mvName(pickMove(POOL.get(recvSp) || new Set(),
+          (m) => (m.priority || 0) > 0 && m.category !== 'Status' && hitsFoe(m))) ].filter(Boolean)
+      : []).concat(RECEIVER_MOVES);
+    const allyBody = su.allyAbilities ? (() => {
+      const sp = LEGAL_SPECIES.find(s => Object.values(s.abilities || {})
+        .some(a => su.allyAbilities.includes(id(a))) && s.id !== id(chosen) && s.id !== recvSp);
+      if (!sp) return null;
+      const ab = Object.values(sp.abilities).find(a => su.allyAbilities.includes(id(a)));
+      return bodyOf(sp.id, ab, '', PAD_MOVES);
+    })() : null;
     let best = null;
+    const attempts = [];
     for (const rung of RUNGS) {
+      if (rung.when && !rung.when(su)) continue;
       const s = Object.assign({}, su, { pre: su.pre.slice() });
       if (rung.apply) rung.apply(s);
-      const actor2 = bodyOf(chosen, useAbility, s.actorItem || '', wants);
-      const receiver = bodyOf(RECEIVER.species, RECEIVER.ability, s.receiverItem || RECEIVER.item, RECEIVER_MOVES);
+      /* THE FASTER CARRIER IS A RUNG, NOT A GLOBAL. Ten moves read `queue.willMove(target)` and eight
+       * of them already resolve on the bare board; re-picking every one of their carriers to serve the
+       * two that do not is exactly the swap-instead-of-add mistake the ability arm paid for twice. */
+      let carrier = chosen, ab2 = useAbility;
+      if (rung.fasterCarrier) {
+        const theirs = (dex.species.get(recvSp) || {}).baseStats.spe;
+        const faster = carriers.find(c => dex.species.get(c).baseStats.spe > theirs
+          && cleanAb(c) && (!su.pre.length || su.pre.every(p => POOL.get(c).has(p.actor))));
+        if (!faster) continue;
+        carrier = faster; ab2 = cleanAb(faster) || Object.values(dex.species.get(faster).abilities)[0];
+      }
+      const actor2 = bodyOf(carrier, ab2, s.actorItem || '', wants);
+      const receiver = bodyOf(recvSp, recvAb, s.receiverItem || RECEIVER.item, recvWants);
       if (!actor2 || !receiver) break;
-      const bodies = stageBodies(actor2, receiver);
+      const bodies = stageBodies(actor2, receiver, allyBody);
       const script = scriptFor(s, mv, bodies);
-      const r = playScenario(Object.assign({ script, tag: 'move/' + mv + '/' + rung.id }, bodies));
+      const r = playScenario(Object.assign({ script, hpBoost: s.hpBoost,
+                                             tag: 'move/' + mv + '/' + rung.id }, bodies));
       if (!r.staged) { best = best || { kind: 'move', id: mv, name: dm.name, carrier: chosen, resolved: false,
                                         attempted: false, rung: rung.id, why: r.why, validator: r.validator }; continue; }
-      const sd = verdictFor(r.sdLog, who, mv);
-      const me = verdictFor(r.mediTrace, who, mv);
-      const row = { kind: 'move', id: mv, name: dm.name, carrier: chosen, rung: rung.id,
+      /* THE SUBJECT'S SLOT NAME FOLLOWS THE RUNG'S CARRIER, not the row's default one — the
+       * `fast-carrier` rung stands a different body in p1a and a verdict read against the old name
+       * would report "the move was never issued" on the one rung built to make it issue. */
+      const who2 = 'p1a: ' + (dex.species.get(carrier).baseSpecies || dex.species.get(carrier).name);
+      const sd = verdictFor(r.sdLog, who2, mv);
+      const me = verdictFor(r.mediTrace, who2, mv);
+      const row = { kind: 'move', id: mv, name: dm.name, carrier, rung: rung.id,
                     setup: s.pre.map(p => p.actor), turns: script.length,
                     attempted: sd.attempted, resolved: sd.resolved, why: sd.why,
                     medicham_attempted: me.attempted, medicham_resolved: me.resolved, medicham_why: me.why,
-                    diverged: !!r.div, divergence: divOf(r.div, who, r.sdLog, mv),
+                    diverged: !!r.div, divergence: divOf(r.div, who2, r.sdLog, mv),
                     err: r.err,
                     /* THE BOARD ANSWER, BESIDE THE PROTOCOL ONE AND NEVER INSTEAD OF IT. Whether the
                      * streams parted and whether the BOARDS parted are two different findings and the
@@ -1207,10 +1492,40 @@ function runMoves(list) {
       /* THE FIRST RUNG THAT RESOLVES WINS AND THE LADDER STOPS. A row that never resolves keeps the
        * FIRST rung's reason, because the bare board's reason is the one that describes the move — the
        * richer boards' reasons describe the fixture. */
+      attempts.push({ rung: rung.id, resolved: !!sd.resolved, why: sd.why || null });
       best = best || row;
       if (sd.resolved) { best = row; break; }
     }
-    if (best) { labelRow(best, preMove, !!best.resolved); rows.push(best); }
+    /* WHAT EVERY RUNG SAID, NOT JUST THE FIRST. `best` deliberately keeps the BARE board's reason
+     * because that is the one describing the move — but a reader trying to repair the fixture needs to
+     * know what the richer boards said, and until now the artifact threw it away. A row that failed on
+     * six different boards for six different reasons looked identical to one that failed once. */
+    if (best) best.rung_attempts = attempts;
+    /* ---- THE ONE REFUSED MOVE ROW THAT IS NOT A FIXTURE BUG, AND IT NOW SAYS SO ------------------
+     *
+     * ATTRACT reads `.gender` one hop down, in the ATTRACT CONDITION rather than in its own entry —
+     * the exact shape `fixture_preflight`'s gender clause documents for Cute Charm. Every body this
+     * harness builds is `gender: 'N'`, because `buildPair` writes it and says why: medicham2 has no
+     * gender at all, so a declared one parts the two streams on line one. So the authority's `-immune`
+     * is CORRECT and unrepairable here, and it belongs in the explained column beside the 9 item rows
+     * rather than in the unexplained one.
+     *
+     * `PRE.check` READS ABILITIES AND ITEMS, NOT MOVES, so the clause is raised here from the same
+     * derivation (`moveEntryNeeds.genderGated`) rather than by widening that function's `src` to
+     * include every move handler — which would let its weather, status and trigger clauses loose on
+     * 500 rows they were never printed against. MEASURED over the 500 legal moves: it matches ONE. */
+    if (best) labelRow(best, preMove, !!best.resolved);
+    if (best && !best.resolved && su.genderGated) {
+      best.cannot_fire = true;
+      best.cannot_fire_clause = 'gender';
+      best.cannot_fire_blocking = true;
+      best.cannot_fire_why = ['"' + dm.name + '" reads `.gender` (one hop down, in the volatile it '
+        + 'applies) and every body this fixture builds is declared genderless — `buildPair` writes '
+        + 'gender N on both sides because medicham2 has no gender at all. The authority is right to '
+        + 'refuse it; this board cannot ask the question.'];
+      best.verdict_refined = 'CANNOT-FIRE-IN-THIS-FIXTURE';
+    }
+    if (best) rows.push(best);
     if (VERBOSE && best) console.log('    ' + mv + '  ' + (best.resolved ? 'RESOLVED [' + best.rung + ']' : 'NOT: ' + best.why));
   }
   return rows;
@@ -1370,8 +1685,27 @@ function gauntletScript(bodies, beats, faces, thenWhat) {
   const dR = ((F_.recvDerived || []).length) ? clickOf(receiver, F_.recvDerived) : null;
   const A = { m: clickOf(ally, ['Protect', 'Endure']) };
   const F = { m: clickOf(foeAlly, ['Protect', 'Endure']) };
-  const phys = clickOf(receiver, [].concat(want, ['Facade', 'Aqua Tail']));
-  const spec = clickOf(receiver, [].concat(want, ['Hydro Pump', 'Round']));
+  /* ---- THE BEATING HAS TO ACTUALLY LAND, AND FOR SEVEN CARRIERS IT NEVER HAS (2026-08-19) --------
+   *
+   * `scriptFor` has had a `canReach` test since the move arm was written — *"A move the actor is
+   * IMMUNE to is not a hit, and a scenario built on 'the target attacked me' then measures nothing"* —
+   * and the ABILITY gauntlet, one function away, has never had one. Its `phys` is Facade, which is
+   * NORMAL, and this format admits Ghost-type carriers: Chandelure, Banette, Trevenant, Sinistcha,
+   * Golurk, Decidueye-Hisui and Basculegion all stood through the whole gauntlet reading `-immune`.
+   * FLAME BODY's entire mechanism is `onDamagingHit` with a contact flag, and it has never once been
+   * touched by anything on any board this repository has built — it sat in `did_not_fire_unexplained`,
+   * which is the bucket that reads as an engine gap.
+   *
+   * The authority's own type chart decides, per body, exactly as it does in the move arm; a receiver
+   * with no reaching move at all keeps its old click and the row reports what happened. */
+  const canReach = (mvid) => { const d = dex.moves.get(mvid); const sp = dex.species.get(id(actor.species));
+    return !d || !sp || d.category === 'Status' ? true : dex.getImmunity(d.type, sp.types); };
+  const pickHit = (prefs) => { const have = ((receiver || {}).moves || []).map(id);
+    for (const p of prefs) { const k = id(p); if (have.includes(k) && canReach(k)) return k; }
+    for (const k of have) { const d = dex.moves.get(k); if (d && d.category !== 'Status' && canReach(k)) return k; }
+    return clickOf(receiver, prefs); };
+  const phys = pickHit([].concat(want, ['Facade', 'Aqua Tail']));
+  const spec = pickHit([].concat(want, ['Hydro Pump', 'Round']));
   const inert = clickOf(receiver, ['Agility', 'Endure']);
   const turns = [];
   /* ---- SETUP TURNS THE TRIGGER NEEDS BEFORE THE BEATING STARTS -------------------------------------
@@ -1490,16 +1824,26 @@ const AB_RUNGS = [
   { id: 'safe-pool', hpBoost: HP_BOOST, beats: 1 },
   { id: 'real-pool', hpBoost: 1, beats: 3 },
 ];
-function abLadder(kind, key, name, carrier, control, mkOn, mkOff, receiver, faces, thenWhat) {
+/* `extra` IS APPENDED, NEVER SUBSTITUTED — a row that fires on `safe-pool` or `real-pool` stops before
+ * it is reached, so nothing already working can regress into it. Each extra rung carries its own
+ * bodies AND its own script, because a board-state rung may need a different holder and a different
+ * body opposite it (an OHKO thrower, a Spite thrower) than the two standard rungs do. */
+function abLadder(kind, key, name, carrier, control, mkOn, mkOff, receiver, faces, thenWhat, extra, onRung) {
   let best = null;
-  for (const rung of AB_RUNGS) {
-    const onB = stageBodies(mkOn(), receiver), offB = stageBodies(mkOff(), receiver);
-    const on = playScenario(Object.assign({ script: gauntletScript(onB, rung.beats, faces, thenWhat), hpBoost: rung.hpBoost,
+  for (const rung of AB_RUNGS.concat(extra || [])) {
+    const rOn = rung.mkOn || mkOn, rOff = rung.mkOff || mkOff, rRecv = rung.receiver || receiver;
+    const bOn = rOn(), bOff = rOff();
+    if (!bOn || !bOff || !rRecv) continue;
+    const onB = stageBodies(bOn, rRecv), offB = stageBodies(bOff, rRecv);
+    const mk = (b) => rung.script ? rung.script(b) : gauntletScript(b, rung.beats, faces, thenWhat);
+    const on = playScenario(Object.assign({ script: mk(onB), hpBoost: rung.hpBoost,
                                             tag: kind + '/' + key + '/on/' + rung.id }, onB));
-    const off = playScenario(Object.assign({ script: gauntletScript(offB, rung.beats, faces, thenWhat), hpBoost: rung.hpBoost,
+    const off = playScenario(Object.assign({ script: mk(offB), hpBoost: rung.hpBoost,
                                              tag: kind + '/' + key + '/off/' + rung.id }, offB));
     const row = abRow(kind, key, name, carrier, control, on, off);
     row.rung = rung.id;
+    if (rung.carrier) row.carrier = rung.carrier;
+    if (onRung) onRung(rung, on, off, row);
     best = best || row;
     if (row.verdict && row.verdict !== 'DID-NOT-FIRE') { best = row; break; }
   }
@@ -1676,6 +2020,12 @@ function runAbilities(list) {
                     * true exactly when a `thenWhat` row put an item on both bodies — anything else
                     * would be the fixture asserting a state it does not build. */
                    armForcesAccuracy: ARM_FORCES.accuracy, armForcesCrit: ARM_FORCES.crit,
+                   /* WHO WINS A SPEED TIE, read off the arm's own field rather than from its name.
+                    * `bottom-tie-first` declares `tieToSecondBody: false` and every subject this
+                    * harness stages is p1a, the earlier body — so a tie is already a win and a Speed
+                    * multiplier over it changes nothing. Undeclared, the clause read a tie as a
+                    * crossing and Swift Swim came out unexplained. */
+                   armTieFirst: ARM.tieToSecondBody === false,
                    boardState: { itemConsumed: !!twItem, allyIsLive: false } };
       if (twItem) sc.item = twItem;
       if (wx) sc.weather = wx;
@@ -1749,6 +2099,51 @@ function runAbilities(list) {
     /* THE PREFLIGHT'S VERDICT IS ATTACHED AFTER THE GAME, AND FALSIFIED BY IT. `fired` is the only
      * thing that can prove a refusal wrong, so it is passed in rather than assumed. */
     labelRow(row, pre, !!(row && row.verdict && row.verdict !== 'DID-NOT-FIRE'));
+    /* ---- TWO EXPLANATIONS THAT ALREADY EXISTED AS PROSE AND NOT AS A FIELD (2026-08-19) ------------
+     *
+     * `engine/faces.js` has said, in a `why` sentence, WHY several of these rows are inert since the
+     * table was written — and a `why` sentence is not readable by the report that partitions
+     * `did_not_fire`, so the rows it covers sat in `did_not_fire_unexplained` beside genuine engine
+     * gaps. Two of its statements are structural rather than rhetorical and are hoisted here:
+     *
+     *   DECLARED UNOBSERVABLE  `announcesOnEntry` sets `unobservable: true` on purpose — Anticipation
+     *     and Frisk emit a MESSAGE and move no state, so NO turn can make them visible to a board
+     *     comparator. That is a declared gap, which is a different thing from an unexplained one.
+     *   THE ADVERSARY NEVER REACHED THE BOARD  a `faces` entry names what the subject must be up
+     *     against, and `clickOf` falls back to the body's first move when it does not hold the ask —
+     *     the identical silent fallback `PREFLIGHT.faces_status_noop` already counts in aggregate.
+     *     SYNCHRONIZE must be STATUSED by the adversary and the receiver fixture (Feraligatr) has no
+     *     status move in its whole legal pool, so the intent has never once reached a board. Judged on
+     *     the BUILT receiver, never on the want list — the distinction `scOf` makes one block up.
+     *
+     * BOTH ARE APPLIED ONLY TO A ROW THAT DID NOT FIRE, exactly as an advisory preflight clause is: a
+     * subject that fired for some other reason is never argued with. */
+    if (row && row.verdict === 'DID-NOT-FIRE' && !row.cannot_fire) {
+      const held = new Set((((receiver || {}).moves) || []).map(id));
+      const wanted = ((facesUsed && facesUsed.recv) || []).map(id);
+      let clause = null, why = null;
+      if (tw && tw.unobservable) {
+        clause = 'announces-only';
+        why = '"' + da.name + '" is DECLARED unobservable by engine/faces.js (`' + tw.unobservable
+            + '`): it emits a MESSAGE and moves no state, so no number of turns can make it visible to '
+            + 'a board comparator. A declared gap, not an unexplained one.';
+      } else if (wanted.length && !wanted.some(m => held.has(m))) {
+        clause = 'adversary-unstaged';
+        why = '"' + da.name + '" must be up against ' + wanted.join('/') + ' (engine/faces.js) and the '
+            + 'BUILT receiver holds none of them — ' + dex.species.get(RECEIVER.species).name
+            + '\'s legal pool cannot supply it, so `clickOf` fell back to its first move and the intent '
+            + 'reached no board. A fixture limit with a name on it, not an engine gap.';
+      }
+      if (clause) {
+        row.cannot_fire = true;
+        row.cannot_fire_clause = clause;
+        row.cannot_fire_blocking = false;
+        row.cannot_fire_why = [why];
+        row.cannot_fire_need = [clause === 'announces-only' ? { observable: false }
+                                                           : { adversary: wanted }];
+        row.verdict_refined = 'CANNOT-FIRE-IN-THIS-FIXTURE';
+      }
+    }
     if (row) { row.fixture_weather = weatherStaged; row.fixture_status = statusStaged;
                row.fixture_weather_repaired = !!(weatherStaged && (!faces || id(faces.setsWeather || '') !== id((facesUsed && facesUsed.setsWeather) || ''))); }
     /* WHAT THE HANDLER ASKED FOR AND WHAT THE BOARD SUPPLIED, ON THE ROW. An inert verdict is only
@@ -1910,6 +2305,348 @@ function holderForReceiver(needs, receiverSp) {
   return tryHolder(ITEM_HOLDER) || LEGAL_SPECIES.map(s => s.id).reduce(
     (acc, s) => acc || tryHolder(s), null);
 }
+
+/* ================= THE BOARD-STATE RUNG (2026-08-19) ==============================================
+ *
+ * `fixture_preflight` clause 6 has been able to SAY what a row needed since it was written — "Focus
+ * Sash needs a full-HP body taking a lethal hit, Shed Shell a trapped one, Mental Herb a volatile
+ * already present" — and its own comment says the quiet part: *"This one cannot be satisfied by
+ * anything anybody clicks."* That sentence was true of the two rungs that existed and it is not true
+ * of the game. **Every one of those states is reachable; no rung built one.**
+ *
+ * MEASURED at release 926e810dd8a0: 50 of the 73 in-scope items fire and 23 do not, and every one of
+ * the 23 is EXPLAINED and untested. FOCUS SASH is 81.8% of 2,126 Arcanine-Hisui sheets and 72.5% of
+ * 7,717 Whimsicott sheets in the live store — one of the most-held items in the format, and this
+ * harness had never once made it do anything. An explained row is not a tested row, and a row nothing
+ * tests is not evidence that the engine is right about it.
+ *
+ * ---- THE RULE THIS FOLLOWS, AND THE ONE IT REFUSES ------------------------------------------------
+ *
+ * DERIVED FROM THE MECHANIC'S OWN NEED, NEVER FROM ITS NAME. `PRE.boardNeeds` already reads the state
+ * out of the handler; this turns each state into a CLICK, by asking the authority's own move data
+ * which move produces it. Nothing below names an item, and the only move names are read off `dex`:
+ *
+ *   ko-hit            a move with `ohko` — `getDamage` returns `target.maxhp` for it, so `damage >=
+ *                     target.hp` holds AT FULL HP with no damage arithmetic anywhere in this file.
+ *                     Reimplementing the damage formula to find "a hit that is lethal from full"
+ *                     would be a second copy of a FACT, which CLAUDE.md names as how two files come
+ *                     to disagree invisibly.
+ *   own-stat-dropped  the existing `statDrop` need predicate, thrown by the receiver
+ *   volatile-present  a move whose `volatileStatus` (or a non-self secondary's) is one the handler reads
+ *   status-present    a move whose `status` (or a non-self secondary's) is the one the handler reads —
+ *                     `PRE.statusesRead` says WHICH, off the same source the clause reads
+ *   heal-effect       `move.drain` for the `drain` sub-effect; the other four values ARE move ids
+ *   trapped           `volatileStatus: 'partiallytrapped'`, or a move whose own source sets `.trapped`
+ *   pp-exhausted      a move whose source calls `deductPP`, thrown twice at a 5-PP move
+ *
+ * THE DECLARATION IS A RECEIPT, NOT AN INTENTION. `boardState` is handed to the preflight only for a
+ * need whose staging move RESOLVED in SHOWDOWN'S OWN LOG — read by `verdictFor`, the same reader the
+ * move arm's verdict comes from. A fixture that declares a state it failed to build would clear the
+ * clause and leave the row in `did_not_fire_unexplained`, which is the one bucket this whole mechanism
+ * exists to empty; declaring from the authority's log is the only version that cannot do that.
+ *
+ * IT IS A THIRD RUNG, ADDED AFTER THE OTHER TWO AND NEVER INSTEAD OF THEM. That is the rule the
+ * abilities arm had to learn twice (Hustle and Torrent both regressed when a trigger was a SWAP): a
+ * row that already fires on `safe-pool` or `real-pool` never reaches this code, so no row can regress
+ * by construction rather than by measurement. */
+const _SRC_SEEN = new WeakSet();
+function entrySrc(e) {
+  const parts = [];
+  (function walk(x, d) {
+    if (!x || d > 3) return;
+    if (typeof x === 'function') { parts.push(String(x)); return; }
+    if (typeof x !== 'object') return;
+    if (_SRC_SEEN.has(x)) { /* a shared sub-object is still walked once per entry */ }
+    for (const v of Object.values(x)) walk(v, d + 1);
+  })(e, 0);
+  return parts.join('\n');
+}
+/* A move that would rewrite the board the rung is standing on. Same list as `pickForNeed`'s, minus
+ * `ohko` — an OHKO move is not harness-breaking here, it is the entire `ko-hit` staging — and PLUS
+ * `stallingMove`, which cost the headline row on the first run of this rung.
+ *
+ * MEASURED: Focus Sash's board staged perfectly (Pinsir's Guillotine landed on a full-HP Corviknight)
+ * and the row still read DID-NOT-FIRE, because the HOLDER'S filler click was ENDURE — which survives a
+ * lethal hit at 1 HP in BOTH arms and is therefore Focus Sash's own effect, granted to the control.
+ * Leppa Berry failed the other way round on the same flag: the filler was PROTECT, which blocked the
+ * very Spite that was supposed to drain its PP. `stallingMove` is the authority's own flag on Protect,
+ * Detect, Endure and their family, so both are refused by one derived test rather than two names. */
+const stateBreaking = (m) => !!(m.selfdestruct || m.selfSwitch || m.forceSwitch || m.stallingMove
+  || (m.flags || {}).charge || (m.flags || {}).recharge || m.isZ || m.isMax);
+const FOE_TARGETS = new Set(['normal', 'any', 'adjacentFoe', 'allAdjacentFoes', 'allAdjacent',
+                             'randomNormal', 'scripted']);
+const hitsFoe = (m) => FOE_TARGETS.has(m.target);
+const secOf = (m) => [].concat(m.secondaries || [], m.secondary ? [m.secondary] : []).filter(Boolean);
+function pickMove(pool, pred) {
+  const out = [];
+  for (const mid of pool) {
+    const mv = dex.moves.get(mid);
+    if (!mv || !mv.exists || mv.isNonstandard) continue;
+    if (stateBreaking(mv)) continue;
+    if (!pred(mv)) continue;
+    out.push(mv.id);
+  }
+  return out.sort()[0] || null;   /* deterministic: a re-run stages the same game */
+}
+/* ONE NEED -> THE CLICKS THAT PUT IT ON THE BOARD. `H` and `R` are {sp, types, pool}. Returns null when
+ * this pair cannot supply it, which is what makes the pair search below meaningful. */
+function stageStateNeed(n, H, R) {
+  const reachesH = (m) => dex.getImmunity(m.type, H.types);
+  const reachesR = (m) => dex.getImmunity(m.type, R.types);
+  const one = (recvMoves, steps, extra) => Object.assign(
+    { actorMoves: [], recvMoves, steps, hpBoost: null, declares: {} }, extra || {});
+  switch (n.kind) {
+    case 'ko-hit': {
+      /* THE HOLDER'S OWN ABILITY MUST NOT ALREADY DO THIS. Sturdy reads the identical guard, so a
+       * Sturdy holder survives in BOTH arms and Focus Sash reads DID-NOT-FIRE off a board where it was
+       * simply pre-empted. Derived by asking the ability the same question, never by naming Sturdy. */
+      const abs = Object.values(dex.species.get(H.sp).abilities || {});
+      const slot0 = dex.abilities.get(abs[0] || '');
+      if (slot0 && slot0.exists && PRE.boardNeeds(slot0).some(x => x.kind === 'ko-hit')) return null;
+      const m = pickMove(R.pool, (mv) => mv.ohko && reachesH(mv));
+      if (!m) return null;
+      return one([m], [{ r: m, rT: 0 }],
+                 { hpBoost: 1, declares: { koHit: true },
+                   receipt: { kind: 'ko-hit', by: 'receiver', move: m } });
+    }
+    case 'own-stat-dropped': {
+      const m = pickForNeed({ kind: 'statDrop', values: n.values || [], by: 'receiver' }, R.pool,
+                            { userTypes: R.types, targetTypes: H.types });
+      if (!m) return null;
+      return one([m], [{ r: m, rT: 0 }],
+                 { declares: { ownStatDropped: true },
+                   receipt: { kind: 'own-stat-dropped', by: 'receiver', move: m } });
+    }
+    case 'volatile-present': {
+      /* `attract` IS DELIBERATELY NOT STAGED AND SAYS SO. Every body this harness builds is `gender:'N'`
+       * — `buildPair` writes it because medicham2 has no gender at all and a declared one parts the
+       * streams on line one — and attract's own condition refuses a genderless pair. Staging it would
+       * produce a move that resolves into nothing, which is worse than not staging it. */
+      const want = (n.values || []).filter(v => v !== 'attract');
+      for (const v of want) {
+        const m = pickMove(R.pool, (mv) => reachesH(mv) && hitsFoe(mv)
+          && (mv.volatileStatus === v || secOf(mv).some(s => s.volatileStatus === v && !s.self)));
+        /* A WARM-UP TURN IN FRONT, AND IT WAS MEASURED RATHER THAN ADDED FOR SAFETY. Mental Herb's
+         * plan staged ENCORE, and Encore fails against a body that has not used a move yet — so the
+         * only receiver-side staging in this rung that needed a history did not have one, and the row
+         * came back with an unmet receipt on the first run that could report one. Same rung the move
+         * arm already calls `warm-up`, for the same three moves (Disable, Encore, Spite). Harmless
+         * where it is not needed: the holder simply throws its filler a turn early. */
+        if (m) return one([m], [{}, { r: m, rT: 0 }],
+                          { declares: { volatiles: [v] },
+                            receipt: { kind: 'volatile-present', by: 'receiver', move: m } });
+      }
+      return null;
+    }
+    case 'heal-effect': {
+      const vals = (n.values || []).map(id);
+      /* `drain` is the SUB-EFFECT the simulator passes when a drain move heals (battle-actions.ts —
+       * `this.battle.heal(…, 'drain')`), so any `move.drain` supplies it. The other four values are
+       * MOVE IDS and are looked up as such. */
+      let m = vals.includes('drain')
+        ? pickMove(H.pool, (mv) => mv.drain && reachesR(mv) && hitsFoe(mv)) : null;
+      let self = false;
+      if (!m) { m = vals.find(v => v !== 'drain' && H.pool.has(v)) || null; self = true; }
+      if (!m) return null;
+      /* A HEAL AT FULL HP HEALS NOTHING, so the receiver punches the hole one turn early. Same rule
+       * `scriptFor`'s `selfDamage` follows, one arm over. */
+      const hit = pickMove(R.pool, (mv) => mv.category !== 'Status' && reachesH(mv) && hitsFoe(mv));
+      if (!hit) return null;
+      return one([hit], [{ r: hit, rT: 0 }, { a: m, aT: 0 }],
+                 { actorMoves: [m], declares: { healEffects: [vals.includes('drain') && !self ? 'drain' : id(m)] },
+                   receipt: { kind: 'heal-effect', by: 'actor', move: m } });
+    }
+    case 'trapped': {
+      const m = pickMove(R.pool, (mv) => reachesH(mv) && hitsFoe(mv)
+        && (mv.volatileStatus === 'partiallytrapped' || /\.trapped\s*=\s*true/.test(entrySrc(mv))));
+      if (!m) return null;
+      /* AND THEN THE HOLDER TRIES TO LEAVE, because the trap is only observable in the attempt.
+       * WITHOUT the item Showdown REFUSES that choice and `playGame` throws — which `playScenario`
+       * catches and reports as `could not stage`, so the row keeps its earlier CANNOT-FIRE verdict
+       * rather than turning into a crash. That is the intended failure mode and it is why this rung is
+       * last: a throw here can never take a verdict away from a row that already had one. */
+      return one([m], [{ r: m, rT: 0 }, { sw: true }],
+                 { declares: { trapped: true },
+                   receipt: { kind: 'trapped', by: 'receiver', move: m } });
+    }
+    case 'pp-exhausted': {
+      const spite = pickMove(R.pool, (mv) => hitsFoe(mv) && /deductPP/.test(entrySrc(mv)));
+      /* THE SLOT THAT RUNS DRY. 5 base PP is 8 at full, and two `deductPP(…, 4)` plus the holder's own
+       * clicks take it to zero inside four turns. Read off `mv.pp`, never a move name. */
+      const low = pickMove(H.pool, (mv) => mv.pp === 5 && !mv.ohko);
+      if (!spite || !low) return null;
+      return one([spite], [{ a: low, aT: 0 }, { a: low, aT: 0, r: spite, rT: 0 },
+                           { a: low, aT: 0, r: spite, rT: 0 }, { a: low, aT: 0 }],
+                 { actorMoves: [low], declares: { ppExhausted: true },
+                   receipt: { kind: 'pp-exhausted', by: 'receiver', move: spite, watch: low } });
+    }
+    default: return null;
+  }
+}
+/* THE STATUS CLAUSE IS NOT A `boardNeeds` ROW — it is clause 3 — so it is turned into a need-shaped
+ * object here and staged by the same machinery. Its VALUES come from `PRE.statusesRead`, off the same
+ * handler text the clause reads, so the two can never disagree about which status is wanted. */
+function stageStatusNeed(values, H, R) {
+  const any = !values.length || values.includes('any');
+  const want = any ? ['par', 'brn', 'psn', 'slp', 'frz', 'tox'] : values;
+  for (const s of want) {
+    const m = pickMove(R.pool, (mv) => hitsFoe(mv) && dex.getImmunity(mv.type, H.types)
+      && ((mv.status === s) || secOf(mv).some(x => x.status === s && !x.self)));
+    if (!m) continue;
+    /* THE STATUS MUST BE ABLE TO LAND ON THIS BODY, and the authority already answers that: an Electric
+     * type refuses paralysis, a Fire type a burn, a Steel or Poison type poison. Asked through the
+     * preflight's own legality clauses rather than re-derived here. */
+    /* `PRE.check` DIRECTLY AND NOT THIS FILE'S `preflight()` WRAPPER: this is the plan SEARCH, which
+     * asks hundreds of candidate boards per row, and routing them through the counted wrapper would
+     * bury the run's real clause tally under the search's own rejects (measured: 133 spurious
+     * `target-status-immune` on a 14-row probe). The wrapper counts what was ASKED OF A ROW. */
+    if (!PRE.check({ species: dex.species.get(R.sp).name, move: dex.moves.get(m).name,
+                     target: dex.species.get(H.sp).name }).ok) continue;
+    return { actorMoves: [], recvMoves: [m], steps: [{ r: m, rT: 0 }], hpBoost: null,
+             declares: { status: s }, receipt: { kind: 'status-present', by: 'receiver', move: m } };
+  }
+  return null;
+}
+/* THE ORDER THE STATES ARE PUT ON THE BOARD IN, and only one of them is load-bearing: `ko-hit` reads
+ * `target.hp === target.maxhp`, so its turn has to be the FIRST one or the fixture has already spent
+ * the precondition it is staging. */
+const STATE_ORDER = ['ko-hit', 'status-present', 'own-stat-dropped', 'volatile-present',
+                     'heal-effect', 'trapped', 'pp-exhausted'];
+const STATE_STAGEABLE = new Set(STATE_ORDER);
+const STATE_PLAN = { rows: 0, planned: 0, unplanned: 0, declared: 0, receipts_failed: 0,
+                     by_kind: {}, unplanned_kinds: {}, examples: [], pairs_searched: 0 };
+/* WHO MAY STAND OPPOSITE. The default receiver first — a row that already staged keeps the board it
+ * staged on — then the immunity-free alternates the item arm already computes, then the whole legal
+ * roster, because a state need is a claim about ONE move being throwable and nothing else. */
+let STATE_RECEIVER_ORDER = null;
+function stateReceivers() {
+  if (!STATE_RECEIVER_ORDER) {
+    const seen = new Set();
+    STATE_RECEIVER_ORDER = [id(RECEIVER.species), ...ALT_RECEIVERS, ...LEGAL_SPECIES.map(s => s.id)]
+      .filter(x => (seen.has(x) ? false : (seen.add(x), true)));
+  }
+  return STATE_RECEIVER_ORDER;
+}
+const bodyCtx = (sid) => ({ sp: id(sid), types: (dex.species.get(sid) || {}).types || [],
+                            pool: POOL.get(id(sid)) || new Set() });
+/** boardPlanFor(entity, preferredHolder) -> a plan, or null when nothing here is stageable.
+ *  `needs` are `PRE.boardNeeds` filtered to the kinds this file can build, plus the status clause. */
+function boardPlanFor(entity, preferredHolder) {
+  const bn = PRE.boardNeeds(entity) || [];
+  const wanted = bn.filter(n => STATE_STAGEABLE.has(n.kind));
+  const statusVals = PRE.statusesRead(entity);
+  const speciesGate = bn.find(n => n.kind === 'species-gated');
+  if (!wanted.length && !statusVals.length && !speciesGate) return null;
+  STATE_PLAN.rows++;
+  /* A SPECIES GATE IS NOT A TURN, IT IS A CASTING DECISION — the one board need the preflight calls
+   * BLOCKING, because no click can make one body another. It is answered by holding the item on the
+   * species the handler names, when this format admits it. */
+  const gateSp = speciesGate ? (dex.species.all().find(s => PRE.legal(s)
+    && id(s.baseSpecies || s.name) === id(speciesGate.values[0])) || null) : null;
+  const holders = [];
+  if (gateSp) holders.push(gateSp.id);
+  else { if (preferredHolder) holders.push(id(preferredHolder)); holders.push(ITEM_HOLDER); }
+  const order = [].concat(
+    statusVals.length ? [{ kind: 'status-present', values: statusVals }] : [],
+    wanted).sort((a, b) => STATE_ORDER.indexOf(a.kind) - STATE_ORDER.indexOf(b.kind));
+  const holderList = gateSp ? [gateSp.id] : holders.concat(LEGAL_SPECIES.map(s => s.id));
+  /* THE HOLDER IS THE OUTER LOOP AND THE PREFERRED ONE IS FIRST, so the common case — a receiver-side
+   * need that the default pair already supplies — costs one pass and the search never runs wide. The
+   * cap is a stated bound rather than a hope: a row that exhausts it is COUNTED and reported, because
+   * a search that quietly gave up looks exactly like a state that cannot be built. */
+  const CAP = 4000;
+  let searched = 0;
+  for (const hs of holderList) {
+    const H = bodyCtx(hs);
+    for (const rs of stateReceivers()) {
+      const R = bodyCtx(rs);
+      if (id(hs) === R.sp) continue;
+      if (++searched > CAP) { STATE_PLAN.capped = (STATE_PLAN.capped || 0) + 1; break; }
+      STATE_PLAN.pairs_searched++;
+      const parts = [];
+      let ok = true;
+      for (const n of order) {
+        const p = n.kind === 'status-present' ? stageStatusNeed(n.values, H, R) : stageStateNeed(n, H, R);
+        if (!p) { ok = false; break; }
+        parts.push(Object.assign({ need: n }, p));
+      }
+      if (!ok || (!parts.length && !gateSp)) continue;
+      const plan = { holder: H.sp, receiverSpecies: R.sp,
+                     actorMoves: [], recvMoves: [], steps: [], declares: {}, receipts: [],
+                     hpBoost: null, kinds: order.map(n => n.kind), species_gated: !!gateSp };
+      for (const p of parts) {
+        for (const m of p.actorMoves) if (!plan.actorMoves.includes(m)) plan.actorMoves.push(m);
+        for (const m of p.recvMoves) if (!plan.recvMoves.includes(m)) plan.recvMoves.push(m);
+        plan.steps = plan.steps.concat(p.steps);
+        if (p.hpBoost) plan.hpBoost = p.hpBoost;
+        if (p.receipt) plan.receipts.push(Object.assign({ declares: p.declares }, p.receipt));
+        else Object.assign(plan.declares, p.declares);   /* a gate has nothing to read back */
+      }
+      /* A SETTLE TURN, so an `onUpdate`/`onResidual` consequence has a boundary to land on — EXCEPT
+       * after a `ko-hit`, where the control arm's holder is dead and a further turn would be the
+       * harness choosing a replacement rather than the mechanic showing itself. */
+      if (!plan.receipts.some(r => r.kind === 'ko-hit')) plan.steps.push({ settle: true });
+      STATE_PLAN.planned++;
+      for (const k of plan.kinds) STATE_PLAN.by_kind[k] = (STATE_PLAN.by_kind[k] || 0) + 1;
+      if (STATE_PLAN.examples.length < 40)
+        STATE_PLAN.examples.push((entity.id || entity.name) + ' [' + plan.kinds.join('+') + '] '
+          + plan.holder + ' vs ' + plan.receiverSpecies + '  a:[' + plan.actorMoves.join(',')
+          + '] r:[' + plan.recvMoves.join(',') + ']');
+      return plan;
+    }
+    if (searched > CAP) break;
+  }
+  STATE_PLAN.unplanned++;
+  for (const n of order) STATE_PLAN.unplanned_kinds[n.kind] = (STATE_PLAN.unplanned_kinds[n.kind] || 0) + 1;
+  return null;
+}
+/* THE PLAN AS A SCRIPT. Both allies click Protect exactly as the gauntlet's do, so the only thing that
+ * differs between the two arms is the mechanic under test. */
+function statePlanScript(bodies, plan) {
+  const { actor, ally, receiver, foeAlly } = bodies;
+  const A = { m: clickOf(ally, ['Protect', 'Endure']) };
+  const F = { m: clickOf(foeAlly, ['Protect', 'Endure']) };
+  /* THE HOLDER'S FILLER MAY NOT BE A GUARD — see `stateBreaking`. An ordinary attack is preferred
+   * because it is the one filler that cannot survive, block or heal anything the rung is staging, and
+   * the last resort is any non-stalling move the body actually holds. IDENTICAL IN BOTH ARMS, so the
+   * A/B still differs in the item and in nothing else. */
+  const aIdle = (() => {
+    const have = ((actor || {}).moves || []).map(id);
+    const ok = (k) => { const m = dex.moves.get(k); return m && m.exists && !m.stallingMove; };
+    for (const p of ['Facade', 'Body Slam', 'Round', 'Rest']) if (have.includes(id(p)) && ok(id(p))) return id(p);
+    return have.find(ok) || have[0] || 'protect';
+  })();
+  const rIdle = clickOf(receiver, ['Agility', 'Endure', 'Protect']);
+  const turns = [];
+  for (const s of plan.steps) {
+    if (s.sw) { turns.push({ p1: [{ sw: id(bodies.benchKey) }, A], p2: [{ m: rIdle }, F] }); continue; }
+    if (s.settle) { turns.push({ p1: [{ m: aIdle }, A], p2: [{ m: rIdle }, F] }); continue; }
+    turns.push({ p1: [s.a ? { m: s.a, t: s.aT == null ? 0 : s.aT } : { m: aIdle }, A],
+                 p2: [s.r ? { m: s.r, t: s.rT == null ? 0 : s.rT } : { m: rIdle }, F] });
+  }
+  return turns;
+}
+/* DID THE FIXTURE ACTUALLY BUILD THE STATE? Read off SHOWDOWN'S OWN LOG with `verdictFor`, the same
+ * reader the whole move arm's verdict comes from — never off medicham2, and never off the intention.
+ * The two arms are both consulted because a `ko-hit` shows in the CONTROL arm (the holder dies) and a
+ * cure shows in the LIVE one. */
+function stateReceipts(plan, on, off, who) {
+  const out = { declared: {}, met: [], unmet: [] };
+  if (!plan) return out;
+  Object.assign(out.declared, plan.declares);
+  const logs = [on && on.staged ? on.sdLog : null, off && off.staged ? off.sdLog : null].filter(Boolean);
+  for (const r of plan.receipts) {
+    const thrower = r.by === 'receiver' ? 'p2a: ' + (dex.species.get(plan.receiverSpecies).baseSpecies
+                                                  || dex.species.get(plan.receiverSpecies).name)
+                                        : who;
+    const landed = logs.some(l => (verdictFor(l, thrower, r.move) || {}).resolved);
+    if (landed) { Object.assign(out.declared, r.declares); out.met.push(r.kind + ':' + r.move); }
+    else { out.unmet.push(r.kind + ':' + r.move); STATE_PLAN.receipts_failed++; }
+  }
+  if (out.met.length) STATE_PLAN.declared++;
+  return out;
+}
+
 function runItems(list) {
   const rows = [];
   for (const it of list) {
@@ -1984,16 +2721,80 @@ function runItems(list) {
     const GAUNTLET_TURNS = (_built && receiver)
       ? Math.max(...AB_RUNGS.map(r => gauntletScript(stageBodies(_built, receiver), r.beats, facesUsed).length))
       : 0;
-    const pre = preflight({ species: dex.species.get(c).name, item: di.name,
-                            target: dex.species.get(recvSp).name,
-                            teamSize: 4, switchesOut: true, gender: 'N', targetGender: 'N',
-                            stagedMoves: { actor: ((_built || {}).moves || []).map(id),
-                                           receiver: ((receiver || {}).moves || []).map(id) },
-                            turns: GAUNTLET_TURNS,
-                            armForcesAccuracy: ARM_FORCES.accuracy, armForcesCrit: ARM_FORCES.crit });
+    /* ---- THE BOARD-STATE RUNG, BUILT FROM THE ITEM'S OWN `boardNeeds` (see the block above) --------
+     * It is the LAST rung and carries its own bodies, so a row that fires on either standard rung
+     * never reaches it and no row can regress into it. */
+    const plan = BREAK_TRIGGERS ? null : boardPlanFor(di, c);
+    let stateRungs = [], stateOn = null, stateOff = null, stateOutcome = null;
+    if (plan) {
+      const pActorWants = plan.actorMoves.map(mvName).concat(actorWants);
+      const pRecvWants = plan.recvMoves.map(mvName).concat(recvWants);
+      const pRecv = bodyOf(plan.receiverSpecies,
+                           plan.receiverSpecies === id(RECEIVER.species) ? RECEIVER.ability : '',
+                           RECEIVER.item, pRecvWants);
+      const pOn = () => bodyOf(plan.holder, '', di.name, pActorWants);
+      const pOff = () => bodyOf(plan.holder, '', '', pActorWants);
+      if (pRecv && pOn() && pOff()) stateRungs = [{ id: 'board-state', hpBoost: plan.hpBoost || HP_BOOST,
+        mkOn: pOn, mkOff: pOff, receiver: pRecv, carrier: plan.holder,
+        script: (b) => statePlanScript(b, plan) }];
+      /* THE DECLARATION IS READ BACK OFF THE BUILT BODIES, exactly as `stagedMoves` is. A plan whose
+       * moves did not survive `bodyOf` is an intention, and an intention that clears a clause is the
+       * silent default this whole mechanism exists to remove. */
+      if (stateRungs.length) {
+        const heldA = new Set((pOn().moves || []).map(id)), heldR = new Set((pRecv.moves || []).map(id));
+        plan.built = { actor: [...heldA], receiver: [...heldR] };
+        plan.receipts = plan.receipts.filter(r => (r.by === 'actor' ? heldA : heldR).has(id(r.move)));
+      }
+    }
     const row = abLadder('item', it, di.name, c, '(no item)',
-                         () => mkActor(di.name), () => mkActor(''), receiver, facesUsed);
+                         () => mkActor(di.name), () => mkActor(''), receiver, facesUsed, null,
+                         stateRungs, (rung, on, off, r) => {
+                           if (rung.id !== 'board-state') return;
+                           stateOn = on; stateOff = off;
+                           /* THE RUNG'S OWN OUTCOME, KEPT EVEN WHEN A LATER LINE DISCARDS THE ROW. A
+                            * rung that could not stage returns a verdict-less row and `abLadder`
+                            * silently keeps the earlier one — which reads exactly like a rung that ran
+                            * and found nothing. */
+                           stateOutcome = { staged: !!(on.staged && off.staged),
+                                            why: on.why || off.why || null,
+                                            verdict: r.verdict || null,
+                                            showdown_moved: r.showdown_moved, medicham_moved: r.medicham_moved };
+                         });
+    /* THE PREFLIGHT IS ASKED AFTER THE GAMES, BECAUSE THE ANSWER DEPENDS ON THEM. `boardState` is a
+     * claim about what the fixture PUT ON THE BOARD, and the only honest source for that is the
+     * authority's own log — so the receipts are read first and handed in here. Before this rung existed
+     * the call site declared nothing at all, which is why all 23 non-firing items read `board-state`. */
+    const who = 'p1a: ' + (dex.species.get((plan && plan.holder) || c).baseSpecies
+                        || dex.species.get((plan && plan.holder) || c).name);
+    const receipts = stateReceipts(plan, stateOn, stateOff, who);
+    if (DUMPLOG && stateOn && stateOn.staged) {
+      console.log('  ---- ' + it + ' [board-state] ' + JSON.stringify(plan.steps));
+      console.log('  ON  (holding it):'); for (const l of stateOn.sdLog) console.log('    ' + l);
+      console.log('  OFF (control):');    for (const l of stateOff.sdLog) console.log('    ' + l);
+    }
+    const sc = { species: dex.species.get((plan && plan.holder) || c).name, item: di.name,
+                 target: dex.species.get((plan && plan.receiverSpecies) || recvSp).name,
+                 teamSize: 4, switchesOut: true, gender: 'N', targetGender: 'N',
+                 stagedMoves: { actor: ((_built || {}).moves || []).map(id)
+                                 .concat((plan && plan.built ? plan.built.actor : [])),
+                                receiver: ((receiver || {}).moves || []).map(id)
+                                 .concat((plan && plan.built ? plan.built.receiver : [])) },
+                 turns: GAUNTLET_TURNS,
+                 armForcesAccuracy: ARM_FORCES.accuracy, armForcesCrit: ARM_FORCES.crit,
+                 armTieFirst: ARM.tieToSecondBody === false,
+                 boardState: receipts.declared };
+    /* `undefined`, NOT `null` — clause 3 tests `=== undefined`, so a null would silently suppress the
+     * very clause a row with no staged status needs. */
+    if (receipts.declared.status) sc.status = receipts.declared.status;
+    const pre = preflight(sc);
     labelRow(row, pre, !!(row && row.verdict && row.verdict !== 'DID-NOT-FIRE'));
+    if (row && plan) {
+      row.board_state_plan = { kinds: plan.kinds, holder: plan.holder, receiver: plan.receiverSpecies,
+                               actor_moves: plan.actorMoves, receiver_moves: plan.recvMoves,
+                               staged: stateRungs.length > 0, outcome: stateOutcome,
+                               declared: receipts.declared, receipts_met: receipts.met,
+                               receipts_unmet: receipts.unmet };
+    }
     /* WHAT THE HANDLER ASKED FOR AND WHAT THE BOARD SUPPLIED, ON THE ROW — the same fields the ability
      * rows carry, and the only ones that can FALSIFY this derivation. A row with a staged need that
      * still reads DID-NOT-FIRE is either an engine defect or a wrong need, and both are findings. */
@@ -2611,9 +3412,31 @@ if (KIND === 'items' || KIND === 'all') {
     diverged: rows.filter(r => r.diverged && !r.deferred).length,
     diverged_including_shelved: rows.filter(r => r.diverged).length,
     shelved_by_owner: _shelvedIt.total, shelved_by_owner_diverging: _shelvedIt.diverging,
+    board_state_staged: rows.filter(r => r.board_state_plan && r.board_state_plan.staged).length,
+    board_state_fired: rows.filter(r => r.rung === 'board-state' && r.verdict === 'FIRED').length,
     seconds: +((Date.now() - t0) / 1000).toFixed(1) };
   console.log('    ' + JSON.stringify(report.summary.items));
   reportCannotFire(rows);
+  /* ---- THE BOARD-STATE RUNG'S OWN RECEIPT. A capability that cannot prove it ran is assumed broken,
+   * and this one is silent by construction: a rung that staged nothing produces exactly the artifact a
+   * rung that does not exist produces. `planned` is how many rows got a board built for them, and the
+   * rows that FIRED ON IT are named, because that is the whole claim. */
+  report.summary.board_state = Object.assign({}, STATE_PLAN);
+  console.log('    BOARD-STATE RUNG — ' + STATE_PLAN.rows + ' item rows carry a state need, '
+    + STATE_PLAN.planned + ' got a board built, ' + STATE_PLAN.unplanned + ' could not '
+    + '(' + (Object.entries(STATE_PLAN.unplanned_kinds).map(([k, v]) => k + ' x' + v).join(', ') || 'none') + ')'
+    + (STATE_PLAN.capped ? ', ' + STATE_PLAN.capped + ' HIT THE PAIR-SEARCH CAP' : ''));
+  const bsFired = rows.filter(r => r.rung === 'board-state' && r.verdict === 'FIRED');
+  console.log('      FIRED ON IT: ' + (bsFired.map(r => r.id).join(' ') || '(none)'));
+  /* ONLY WHERE THE RUNG WAS ACTUALLY PLAYED. A row that fires on an earlier rung never reaches this
+   * one, so its receipts are trivially unmet — reporting that would read as a staging failure on a row
+   * that needed no staging at all (measured: `focusband`, which fires on `safe-pool`). */
+  const bsUnmet = rows.filter(r => r.board_state_plan && r.board_state_plan.outcome
+    && r.board_state_plan.receipts_unmet.length);
+  if (bsUnmet.length) console.log('      RECEIPT NOT MET — the staging move did not resolve in the '
+    + 'authority\'s log, so the state is NOT declared: '
+    + bsUnmet.map(r => r.id + ' [' + r.board_state_plan.receipts_unmet.join(',') + ']').join(' '));
+  if (STATE_PLAN.examples.length) console.log('      e.g. ' + STATE_PLAN.examples.slice(0, 12).join('; '));
 }
 
 /* ---- THE PREFLIGHT'S OWN RECEIPT. A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN, and this

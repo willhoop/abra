@@ -10,6 +10,81 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.48.0] — 2026-08-19
+
+### Added
+- **THE HARNESS CAN NOW BUILD A BOARD, AND FOCUS SASH FIRES FOR THE FIRST TIME.**
+  `engine/fixture_preflight.js` clause 6 carried its own admission — *"This one cannot be satisfied by
+  anything anybody clicks"* — which was true of the two rungs that existed and not of the game. A third
+  rung, `board-state`, is derived per row from `PRE.boardNeeds` and appended after `safe-pool`/`real-pool`
+  so nothing already firing can reach it.
+  **Focus Sash's staging is an OHKO move, not damage arithmetic**: `getDamage` returns `target.maxhp` for
+  `move.ohko`, so `damage >= target.hp` holds at full HP **with no second copy of the damage formula
+  anywhere in this repo**. Corviknight takes a Guillotine; with the Sash it survives at 1, without it it
+  faints. Fourteen rows now fire on it — `focussash whiteherb shedshell leppaberry bigroot mentalherb
+  persimberry lightball cheriberry aspearberry chestoberry pechaberry rawstberry lumberry`.
+
+  | leg | before | after |
+  |---|---|---|
+  | items fired | 50 | **64** |
+  | items DID-NOT-FIRE | 23 | **9** (all explained, structurally unreachable under this arm) |
+  | moves resolved | 484 / 500 | **495 / 500** |
+  | moves unresolved and unexplained | 12 | **0** |
+  | abilities `did_not_fire_unexplained` | 28 | **20** |
+
+- **TWO FIXTURES HANDED THE CONTROL THE VERY EFFECT BEING TESTED, AND THE MEASUREMENT CAUGHT BOTH.**
+  Focus Sash staged perfectly and still read DID-NOT-FIRE because the holder's filler click was
+  **Endure** — which survives a lethal hit at 1 HP in BOTH arms. Leppa Berry failed the mirror image: its
+  filler was **Protect**, which blocked the Spite meant to drain its PP. One derived test refuses both,
+  reading the authority's own `stallingMove` flag.
+
+### Fixed
+- **ELEVEN OF THE TWELVE REFUSED MOVE ROWS WERE FIXTURE BUGS.** Will's rule, taught twice: *a
+  COULD-NOT-STAGE verdict is a claim about the FIXTURE, never about the mechanic.* The worst was
+  **`focuspunch`** — its tag says `needsTargetToAttack`, so the fixture made the receiver attack, and Focus
+  Punch is **cancelled by being hit**. **The harness was building the one board on which the move cannot
+  survive.** Polarity is now read off the move's own `beforeMoveCallback` guard, which keeps Shell Trap
+  working in the opposite direction. Also repaired: `soak` (the fixed receiver is Feraligatr and Soak
+  refuses a body that already IS pure Water), `steelroller` (`failsWithoutTerrain` names no terrain and the
+  setter branch keyed on the name), `lastresort`, `magneticflux`, `quash`, `upperhand`, `belch`, `recycle`
+  and `healbell`.
+- **`lifedew` WAS NOT A FIXTURE BUG — IT WAS AN INSTRUMENT BUG.** `verdictFor` treated any `-fail` as a hard
+  refusal, and Life Dew's log is `-heal|p1a` followed by `-fail|p1b: Venusaur|heal`. A per-target `-fail` on
+  a `[spread]` move is now soft, which is what the code's own comment already claimed it did.
+- **`attract` is NOT repairable and now says so.** It reads `.gender` one hop down inside the attract
+  condition, and every body here is `gender:'N'` because medicham2 has no gender. Labelled
+  `cannot_fire_clause: gender`, with the derivation printed first — over 500 legal moves it matches exactly
+  one.
+- **FLAME BODY HAD NEVER BEEN TOUCHED ON ANY BOARD THIS REPO HAS EVER BUILT.** The ability gauntlet had no
+  immunity test, so its staging move was `-immune` into all seven Ghost carriers and the ability simply
+  never ran. It fires now. Also newly explained: `overgrow` and `swarm` (a new `hp-threshold` need read out
+  of `attacker.hp <= attacker.maxhp / N`), `swiftswim` (the `speed-order` need could not see that **a tie is
+  already a win** under an arm that declares `tieToSecondBody: false`), `anticipation`, `frisk`, `scrappy`
+  and `synchronize`.
+
+### Notes
+- **All 26 newly firing rows were compared, and THREE produce a new divergence — all ANNOUNCEMENT-ONLY,
+  boards agree.** Filed, not fixed, because `medicham2-browser.js` was held by another agent:
+  `leppaberry` emits the item as a raw id instead of its display name and omits the restored MOVE and
+  `[consumed]` fields; `mentalherb` emits `-enditem` and `-end … encore` in the opposite order to the
+  authority; `recycle` skips the `|-activate|…|ability: Ripen` the authority writes before the berry is
+  eaten.
+- **Two new predicates over-matched and were narrowed by printing them over the full population first** —
+  `receiverMustNotAttack` also caught `pollenpuff`, whose `cant` line belongs to Heal Block rather than to
+  itself, and `allyAbilities` also caught `smackdown`, which reads those abilities on its TARGET.
+  **`ally-only` was deliberately NOT re-derived by the `isAlly` route**, holding last pass's line: it
+  matched 26 abilities where most mean the opposite.
+- **Twenty abilities still cannot say why they did not fire.** The largest coherent group is ally mechanics
+  — `friendguard`, `telepathy`, `hospitality`, `curiousmedicine` — which need a rung where the partner is a
+  live participant rather than another explanation. **`slushrush` is the one that looks like a genuine
+  engine gap**: Beartic at 50 x 2 = 100 clears Feraligatr's 78, so the order really should change once snow
+  is up.
+- Measured against frozen release `926e810dd8a0` and written to `data/all-mechanics-fire.boardstate.json`;
+  **`data/all-mechanics-fire.json` was not touched**, and the census figure standing today belongs to a
+  concurrent pass rather than to this one.
+
+---
+
 ## [5.47.0] — 2026-08-19
 
 ### Fixed

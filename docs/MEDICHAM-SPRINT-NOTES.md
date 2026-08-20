@@ -10141,3 +10141,51 @@ lands and all three machinery checks read `ok`, and then **every one of the 24 s
 `CLEAN ENGINE -> DIFFERS`**: the patched module survives `harness(null)`, which reloads
 `game_differential.js`, and that binds through `REL.require` in `engine/engine_release.js` — MEASURE's
 file. Left exactly as found, with the measurement written at the plant.
+
+---
+
+## 2026-08-19 — FOCUS SASH FIRED FOR THE FIRST TIME, AND TWO FIXTURES HAD HANDED THE CONTROL THE EFFECT UNDER TEST
+
+**The item leg went 50 -> 64 firing out of 73 in scope** (the other 75 rows are mega stones, measured
+elsewhere), and the unexplained-and-untested residue went 23 -> 9. **The nine that remain are all explained
+and structurally unreachable under this arm** — five want a weather-duration extension, four want a roll a
+pinned corner cannot produce.
+
+**`fixture_preflight` clause 6 carried its own admission**: *"This one cannot be satisfied by anything
+anybody clicks."* True of the two rungs that existed; false of the game. A third rung, `board-state`,
+derived per row from `PRE.boardNeeds`, was the whole fix.
+
+**AND FOCUS SASH'S STAGING IS AN OHKO MOVE RATHER THAN DAMAGE ARITHMETIC** — `getDamage` returns
+`target.maxhp` for `move.ohko`, so *damage >= hp* holds at full HP **with no second copy of the damage
+formula anywhere in this repo.** That is the difference between a fixture that works and one that has to be
+maintained against the engine it is testing.
+
+**TWO FIXTURES HANDED THE CONTROL ARM THE VERY EFFECT UNDER TEST, AND ONLY THE MEASUREMENT CAUGHT IT.**
+Focus Sash staged perfectly and still read DID-NOT-FIRE, because the holder's filler click was **Endure** —
+which survives a lethal hit at 1 HP in BOTH arms. Leppa Berry failed the mirror image: its filler was
+**Protect**, which blocked the Spite meant to drain its PP. One derived test refuses both, off the
+authority's own `stallingMove` flag. **A control that reproduces the treatment is not a control**, and
+neither would ever have been found by reading the fixture.
+
+**ELEVEN OF TWELVE REFUSED MOVE ROWS WERE FIXTURE BUGS.** The worst: **`focuspunch`**'s tag says
+`needsTargetToAttack`, so the harness made the receiver attack — and Focus Punch is **cancelled by being
+hit.** **It was building the one board on which the move cannot survive.** `soak` was handed a Feraligatr,
+which is already pure Water and which Soak therefore refuses. `lifedew` was **not a fixture bug at all but
+an instrument one**: `verdictFor` treated any `-fail` as a hard refusal when Life Dew's log carries a
+per-target `-fail` on a spread heal.
+
+**`attract` IS NOT REPAIRABLE AND NOW SAYS SO** — it reads `.gender` one hop inside its condition and every
+body here is `gender:'N'`, because medicham2 has no gender. Derivation printed first: over 500 legal moves
+it matches exactly one.
+
+**FLAME BODY HAD NEVER BEEN TOUCHED ON ANY BOARD THIS REPO HAS EVER BUILT.** The ability gauntlet had no
+immunity test, so its staging move came back `-immune` against all seven Ghost carriers and the ability
+never ran once. `swiftswim` was similar in shape: the `speed-order` need could not see that **a tie is
+already a win** under an arm declaring `tieToSecondBody: false`.
+
+**All 26 newly-firing rows were compared and three diverge — every one ANNOUNCEMENT-ONLY, boards agree.**
+`leppaberry` prints a raw item id instead of a display name and drops the restored move and `[consumed]`;
+`mentalherb` orders `-enditem` against `-end … encore` the wrong way; `recycle` skips the Ripen activation.
+Filed rather than fixed, because the simulator was held by another agent. **Twenty abilities still cannot
+explain themselves**, the largest group being ally mechanics, and `slushrush` looks like a real engine gap
+rather than a fixture one.
