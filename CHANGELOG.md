@@ -10,6 +10,70 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.49.0] — 2026-08-19
+
+### Fixed
+- **`ordering` WAS NEVER MAINLY A SORT DEFECT AND ITS BIGGEST MEMBER WAS NEVER MOVE-VERSUS-MOVE.** Re-measured
+  on the current tree: **205 games, 153 of them `|switch| <> |switch|`** — three quarters — while
+  `order_probe` covers move-versus-move only and sees 24. **The switch case was staged first and it PASSES**
+  (four bodies, four speeds, interleaved across sides, all switching at once): voluntary switch order is not
+  the defect. So the question was split — *did they order differently*, or *do they disagree about the number
+  they sorted on* — and `game_differential.js` now asks the second directly at the top of every turn on an
+  undiverged game, Showdown's `getActionSpeed()` against `effSpeed()`. **They disagree about the number.**
+  Paired before/after, same 240-game ask, same census and pool steering, 210 played: **DIVERGED 87 -> 57**,
+  speed disagreements **247 readings across 49 games -> 0 across 0**.
+
+- **THE SPEED MODIFIER CHAIN WAS TRUNCATED, AND IT WAS NOT COSMETIC** — 231 readings across 45 of 210 games,
+  **every single one a Choice Scarf reading `N` against `N.5`.** `effSpeed` now reproduces
+  `chainModify`/`Battle#modify` (`sim/battle.ts:2337`), boosts go through `statWithBoost`, and paralysis
+  floors after `finalModify`. **163 against 163 is a coin flip the game rolls; 163.5 against 163 handed the
+  Scarf holder every one of those turns.**
+- **Unburden is a volatile and was stamped once at battle start.** `_hadItem` is re-stamped at `bringIn` —
+  16 readings across 6 games.
+- **The speed-tie coin was being flipped against a no-op shuffle**, and `tests/test-speed-tie.js` was RED on
+  3 of 5 arrangements **before this session began**. `tie` is now its own named stream; the middle arm pins
+  it and the scalar arms stay bit-identical. Green.
+- **GALE WINGS, and the mechanism is the interesting part.** After the artifact re-ran, `--order-probe`
+  reported **7 of 9 pairs real, six of them Talonflame with Tailwind**, one with the authority moving a body
+  **156 Speed points slower** first. **Tailwind is a Flying-type STATUS move**; Gale Wings tests type and HP
+  and says nothing about category. This engine's `priorityMod` reader applied the type shift only under
+  `isAtk` and handed the status side a null move id. Membership printed first: two carriers, four newly
+  reached moves (`defog`, `featherdance`, `roost`, `tailwind`). `--order-probe` **7 of 9 over 7 games -> 1 of
+  3 over 1 game.**
+- Substitute's `-fail` names itself — three fields where this engine wrote two. Found by the #241 fixture hunt.
+
+### Notes
+- **THE PROBE WAS WRONG BEFORE THE ENGINE WAS, EXACTLY AS THE BRIEF WARNED.** Its first run reported 571
+  disagreements, of which **61 were phantom Trick Room rows** reading `showdown 10091 / medicham 91`.
+  **Champions OVERRIDES `getActionSpeed`** (`data/mods/champions/scripts.ts:46`, *"Remove Trick Room
+  underflow"*): `if (trickRoomCheck) speed = -speed;` — a negation, with no `trunc`. The agent had read
+  `sim/pokemon.ts`, which is mainline. **This is the exact trap CLAUDE.md names — reading mainline where the
+  mod overrides — and it cost a wrong number before it cost anything else.**
+- **#241 PART (3): THE REAL COUNT IS 20 GAMES, AND THE STANDING LEAD WAS BACKWARDS.** A generic `-fail` names
+  the mover and never the move, so the driver now prints the authority's own `|move|` line behind each one.
+  Over 897 games the population is **overwhelmingly ENCORE**, plus Role Play — and the cast-based hypothesis
+  was simply wrong: five of six staged field-move refusals (Sunny Day into Drought's sun, Snowscape into
+  snow, a second Tailwind / Light Screen / Safeguard) **already agree.**
+  **Measured, and it inverts the 2026-08-12 retraction's lead:** Encore's gate is `lastMove`, and the
+  disagreement is **22 readings across 10 of 592 games, every one the authority holding NONE while this
+  engine holds a move.** So this engine **applies Encores the authority refuses**, and shipping the missing
+  announcement would have made it print `-fail` for a refusal it does not make. Clearing `_lastMove` at
+  `bringIn` moved the count by nothing across 700 games, so it was **reverted rather than shipped
+  unmeasured**. #241(3) stays open with a live instrument (`lastMoveRows`) instead of a wrong lead.
+- **Census 618 live / 0 missing -> 621 live / 0 missing.** Gate still `CLOSED — 3 of 8`; the whole-game clause
+  wants zero and reads 205 of 897.
+- **A RED TEST THAT IS A ROUTING ITEM RATHER THAN AN ENGINE ONE.** `tests/test-mod-conformance.js` is RED and
+  pre-existing: **22 values in `data/move-effects.js` are MAINLINE where Champions differs** — Growth typed
+  Normal against **Grass**, Snap Trap typed Grass against **Steel**, Moonblast's secondary at 30 against
+  **10**, plus 19 base powers and accuracies. The file's own header says it is generated from **CHOMP's**
+  `data/move-effects.json`, so the wrong values enter from another project. Reported, not filed as an ENGINE
+  defect.
+- Also red and pre-existing, reported not filed: `tests/test-prng.js` (a float LCG constant in three test
+  files; replacing `rng5` re-rolls every seeded census probe, and batching that with two mechanics landings
+  would make neither attributable) and `tests/test-no-silent-failure.js`.
+
+---
+
 ## [5.48.0] — 2026-08-19
 
 ### Added

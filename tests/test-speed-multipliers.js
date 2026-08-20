@@ -83,8 +83,27 @@ function dexSpeedMult(handler, ctxExtra, pokemon) {
  * overridable through buildMon at all (it is derived from the dataset via megaAbility), so it is
  * assigned on the returned object. Written out here because getting it wrong produced a confident
  * wrong answer, which is the failure mode this whole file is about. */
-const withItem = (item) => M.buildMon(NAME, { [NAME]: item });
-const withAbility = (ability) => { const m = M.buildMon(NAME, {}); m.ability = ability; return m; };
+/* ---- THE PROBE BODY IS PUT ON AN EXACTLY-DIVISIBLE SPEED, AND THAT IS NOT A CONVENIENCE ---------
+ *
+ * ROADMAP #290, 2026-08-20. `effSpeed` no longer multiplies by 1.5 — it reproduces the authority's
+ * fixed-point chain, `trunc((trunc(value * modifier) + 2048 - 1) / 4096)` (sim/battle.ts:2337), so
+ * the number it returns is an INTEGER exactly as `Pokemon#getStat` is. That is the fix; it is also
+ * fatal to a test that recovers a multiplier by DIVIDING two speeds, because the ratio of two
+ * truncated integers is not the multiplier. Measured the day it landed: this file reported
+ * `Choice Scarf: medicham2 1.496 == dex 1.5` and `paralysis 0.496 == dex 0.5` — two FAILs that were
+ * the engine becoming correct.
+ *
+ * A TOLERANCE WOULD HAVE BEEN THE WRONG FIX. `Math.abs(a - b) < 0.01` passes 1.496 and it also
+ * passes a genuine drift of the same size, which is the whole thing this file exists to catch. The
+ * ratio identity is EXACT wherever the fixed point is exact, so the probe body is put on a Speed
+ * divisible by 4: x2, x1.5 and x0.5 of it are all whole numbers and every comparison below stays at
+ * 1e-9. What is given up is that this file no longer sees the truncation at all — that half is
+ * `tests/test-mechanics.js`'s `speedMult` sweep, which walks five consecutive base stats and reads
+ * the STEP pattern, and which fails if the engine ever goes back to a float. */
+const PROBE_SPE = 200;
+const atProbeSpeed = (m) => { m.st = Object.assign({}, m.st, { sp: PROBE_SPE }); return m; };
+const withItem = (item) => atProbeSpeed(M.buildMon(NAME, { [NAME]: item }));
+const withAbility = (ability) => { const m = atProbeSpeed(M.buildMon(NAME, {})); m.ability = ability; return m; };
 
 /* Pick a real species from the artifact rather than naming one — a typed species name is the same
  * hand-maintained-state failure this file exists to catch, one level up. */
@@ -95,7 +114,7 @@ const NAME = (() => {
 })();
 
 const FIELD = () => ({ weather: '', twA: 0, twB: 0, tr: 0 });
-const base = () => M.buildMon(NAME, {});
+const base = () => atProbeSpeed(M.buildMon(NAME, {}));
 
 console.log('SPEED MULTIPLIERS — medicham2 hardcodes them; the dex is the source of truth\n');
 

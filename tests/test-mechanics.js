@@ -490,6 +490,81 @@ probe('item', 'speedMult', 'Choice Scarf raises Speed', () => {
                  + `(slower, so it got hit), Choice Scarf ${test} (faster, so the foe never acted)` };
 });
 
+/* ROADMAP #290 — THE SPEED MODIFIER CHAIN IS TRUNCATED, AND THE HALF-POINT DELETED A COIN FLIP.
+ *
+ * The probe above proves the Scarf makes a body faster. It cannot see WHAT NUMBER the engine put in
+ * the sort key, and that number was wrong: Showdown answers every `ModifySpe` through `chainModify`,
+ * `runEvent` spends the accumulated chain once through `Battle#modify`, and `modify` is
+ * `trunc((trunc(value * modifier) + 2048 - 1) / 4096)` (sim/battle.ts:2337). So the authority's
+ * Speed is an INTEGER; this engine multiplied by 1.5 and kept the fraction. A 109-Speed body holding
+ * a Scarf read 163 there and 163.5 here — and 163 against a 163-Speed foe is a SPEED TIE, which the
+ * real game settles with a coin. The half-point did not make the Scarf slightly fast; it handed it
+ * every one of those turns for free.
+ *
+ * NOTHING HERE NAMES 1.5, AND THAT IS THE POINT OF THE SWEEP. The multiplier is read out of the
+ * artifact by the engine, not by this probe. What is asserted is the SHAPE of the sequence as the
+ * base stat walks up one point at a time: `floor(1.5B)` steps 1,2,1,2 from an even B; a rounding
+ * implementation steps 2,1,2,1; and an untruncated float steps 1.5,1.5,1.5,1.5 — three
+ * implementations, three different answers, and the probe never has to be told which one is right.
+ * The control is the same sweep with no item, which must step 1,1,1,1. */
+probe('item', 'speedMult', 'the Speed modifier chain is TRUNCATED, so a x1.5 tie is still a tie', () => {
+  const run = (item) => {
+    const out = [];
+    for (let sp = 108; sp <= 112; sp++) {
+      const { me, S } = board('basculegion', 'incineroar', 'garchomp', 'milotic');
+      me.st = Object.assign({}, me.st, { sp });
+      me.item = item;
+      out.push(M.effSpeed(me, S.field, 'A'));
+    }
+    return out;
+  };
+  const step = (a) => a.slice(1).map((v, i) => v - a[i]).join(',');
+  const control = run(''), test = run('choicescarf');
+  return { works: control.every(Number.isInteger) && test.every(Number.isInteger)
+                  && step(control) === '1,1,1,1' && step(test) === '1,2,1,2',
+           arms: { control, test },
+           detail: '[Speed at base 108..112] — no item ' + control + ' (steps ' + step(control)
+                 + '); Choice Scarf ' + test + ' (steps ' + step(test)
+                 + ' — floor. A rounding engine steps 2,1,2,1 and an untruncated one 1.5,1.5,1.5,1.5)' };
+});
+
+/* ROADMAP #290 — GALE WINGS DOES NOT CARE WHETHER THE MOVE IS AN ATTACK, AND THIS ENGINE DID.
+ *
+ * `if (move?.type === "Flying" && pokemon.hp === pokemon.maxhp) return priority + 1` — one type test,
+ * one HP test, and NO category test. TAILWIND IS A FLYING-TYPE STATUS MOVE (derived, not recalled:
+ * `Dex.forFormat('gen9championsvgc2026regmb').moves.get('tailwind').type` is `Flying`), so a full-HP
+ * Talonflame's Tailwind is +1 on the authority. The engine's `priorityMod` reader applied a
+ * type-named shift only when `isAtk`, AND handed the status side a null move id, so it was 0 here.
+ *
+ * IT WAS THE LARGEST REMAINING MEMBER OF THIS ROW'S OWN INSTRUMENT: `quarantine.js --order-probe`
+ * reported 7 of 9 move-vs-move pairs as real turn-order disagreements and SIX were Talonflame
+ * clicking Tailwind — one of them with the authority putting the body 156 Speed points SLOWER first.
+ *
+ * THE OUTCOME IS WHETHER THE TAILWIND EXISTS, not who is named first in a list. A faster foe Taunts
+ * the Talonflame: with the bracket the Tailwind resolves first and the side is hastened; without it
+ * the Taunt lands first and the Tailwind is refused outright. The control is the SAME Talonflame at
+ * the SAME Speed with a different ability, so an engine that ignored the Taunt fails both arms. */
+probe('ability', 'priorityMod', 'Gale Wings gives a FLYING-type STATUS move its bracket', () => {
+  const run = (ab) => {
+    const { me, ally, f1, f2, S } = board('talonflame', 'incineroar', 'whimsicott', 'garchomp');
+    me.ability = ab;
+    me.st = Object.assign({}, me.st, { sp: 100 });
+    f1.st = Object.assign({}, f1.st, { sp: 200 });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'tailwind', null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'taunt', me, S.field)], [f2, { kind: 'pass' }]]));
+    return [S.field.twA > 0, me._vol && me._vol.taunt > 0];
+  };
+  const control = run('flamebody'), test = run('galewings');
+  return { works: control[0] === false && test[0] === true
+                  && control[1] === true && test[1] === true,
+           arms: { control, test },
+           detail: '[a Tailwind is up on my side, I am Taunted] — a 100-Speed Talonflame clicking '
+                 + 'Tailwind into a 200-Speed Whimsicott clicking Taunt. Flame Body ' + control
+                 + ' (Taunted first, so no Tailwind); Gale Wings ' + test
+                 + ' (the +1 got the Tailwind out, and the Taunt still landed afterwards)' };
+});
+
 probe('item', 'passiveHeal', 'Leftovers heals at end of turn', () => {
   const run = (item) => {
     const me = bare('incineroar'), ally = bare('incineroar');
@@ -3517,6 +3592,45 @@ probe('ability', 'speedOnItemLoss', 'Unburden doubles Speed once the item is gon
  * hand; only one of them puts the item in MINE. A control that did nothing at all would be satisfied
  * by an engine that treats every item-touching move as a knock -- which is the likelier bug, and the
  * one that costs a Life Orb's worth of damage on every Covet in the corpus. */
+/* ROADMAP #290 — UNBURDEN IS A VOLATILE, AND A VOLATILE DOES NOT SURVIVE A SWITCH.
+ *
+ * The probe above is the POSITIVE and it passed throughout: the item goes and the Speed doubles.
+ * What it cannot ask is when the doubling STOPS. Showdown's Unburden adds `pokemon.addVolatile(
+ * 'unburden')` on `onAfterUseItem`/`onTakeItem` and removes it in `onEnd`, which is what a
+ * switch-out is (data/abilities.ts; data/mods/champions/abilities.ts carries no `unburden` entry, so
+ * mainline's is what this format runs). This engine stamped `_hadItem` ONCE at battleInit and read
+ * it as "once had an item, has none now" — so a body that lost its item, pivoted out and came back
+ * kept double Speed for the rest of the game.
+ *
+ * THE CONTROL IS THE SAME BODY, THE SAME LOST ITEM AND THE SAME TWO SWITCHES WITH THE ABILITY OFF,
+ * so an engine that simply forgot the whole mechanic on a switch passes neither arm rather than
+ * accidentally passing this one. Measured against the authority as well: `tests/probe_turn_order.js`
+ * ARM B plays this fixture through both engines and was shown RED on it. */
+probe('ability', 'speedOnItemLoss', 'the Unburden doubling does NOT survive a switch out and back', () => {
+  const run = (ab) => {
+    const lead = bare('sneasler'), ally = bare('milotic'), bench = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    lead.ability = ab; lead.item = 'focussash';
+    const S = M.battleInit([lead, ally, bench], [f1, f2], { seeded: true });
+    const held = M.effSpeed(lead, S.field, 'A');
+    lead.item = '';                                        // the Sash is spent, on the field
+    const lost = M.effSpeed(lead, S.field, 'A');
+    M.battleTurn(S, rng5, new Map([[lead, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    M.battleTurn(S, rng5, new Map([[bench, { kind: 'switch', to: lead }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return [held, lost, M.effSpeed(lead, S.field, 'A'), S.actA[0] === lead];
+  };
+  const control = run('none'), test = run('unburden');
+  return { works: control[3] === true && test[3] === true
+                  && control[1] === control[0] && control[2] === control[0]
+                  && test[1] === test[0] * 2 && test[2] === test[0],
+           arms: { control, test },
+           detail: '[holding, item gone, after switching out and back, did it really come back] — '
+                 + 'ability none ' + control + ' (never moves); Unburden ' + test
+                 + ' (doubles while it is out, and the volatile dies with the switch)' };
+});
+
 probe('move', 'takesTargetItem', 'Covet steals the item', () => {
   const run = (mv) => {
     const me = bare('incineroar'), ally = bare('corviknight');

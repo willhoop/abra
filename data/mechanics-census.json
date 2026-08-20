@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-19T23:06:32.031Z",
+  "generated": "2026-08-20T00:47:56.051Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 618,
-  "live": 618,
+  "probed": 621,
+  "live": 621,
   "missing": 0,
-  "armed": 618,
+  "armed": 621,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -17,6 +17,26 @@
       "label": "Choice Scarf raises Speed",
       "live": true,
       "detail": "[own Speed, damage taken from a 130-Speed foe on 1 HP] — no item 100,79 (slower, so it got hit), Choice Scarf 150,0 (faster, so the foe never acted)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "speedMult",
+      "label": "the Speed modifier chain is TRUNCATED, so a x1.5 tie is still a tie",
+      "live": true,
+      "detail": "[Speed at base 108..112] — no item 108,109,110,111,112 (steps 1,1,1,1); Choice Scarf 162,163,165,166,168 (steps 1,2,1,2 — floor. A rounding engine steps 2,1,2,1 and an untruncated one 1.5,1.5,1.5,1.5)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "priorityMod",
+      "label": "Gale Wings gives a FLYING-type STATUS move its bracket",
+      "live": true,
+      "detail": "[a Tailwind is up on my side, I am Taunted] — a 100-Speed Talonflame clicking Tailwind into a 200-Speed Whimsicott clicking Taunt. Flame Body false,true (Taunted first, so no Tailwind); Gale Wings true,true (the +1 got the Tailwind out, and the Taunt still landed afterwards)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -837,6 +857,16 @@
       "label": "Unburden doubles Speed once the item is gone",
       "live": true,
       "detail": "[speed holding, speed once the item is gone] — ability none 187,187 (must not move); Unburden 187,374",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "speedOnItemLoss",
+      "label": "the Unburden doubling does NOT survive a switch out and back",
+      "live": true,
+      "detail": "[holding, item gone, after switching out and back, did it really come back] — ability none 165,165,165,true (never moves); Unburden 165,330,165,true (doubles while it is out, and the volatile dies with the switch)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3106,7 +3136,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -88,6 +88,10 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* ROADMAP #290 -- a Speed multiplier that is NOT an exact multiple of 1/4096, so the ORDER of the
+   * chain starts to matter. Zero across this format today (x1.5 is 6144, x2 is 8192), and the whole
+   * point of the counter is that a future one arrives loudly instead of as a rounding drift. */
+  speedChainInexact: 0,
   /* ROADMAP #304 -- how many damaging hits SELECTED one of the authority's sixteen rolls instead of
    * interpolating a position in the span. A capability that cannot prove it ran is assumed broken:
    * zero on a run containing any damaging move means the band never reached the battle loop and the
@@ -1096,6 +1100,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* ROADMAP #241 -- a move whose own `-fail` names itself, asked of a tag record that carries no
+     display name. Must read 0: `tag_dex` writes `name` on every record, so a non-zero means the
+     artifact was regenerated without it and a three-field line silently became a two-field one. */
+  failLabelNoName: 0,
   /* ROADMAP #304 -- a damaging hit whose sixteen-entry band did NOT arrive, so the loop fell back to
    * the old uniform draw over the span. Never expected: the battle loop asks for `rolls` on every hit
    * context. Non-zero means dmgRange grew a return path that does not fill the out-parameter, and the
@@ -8824,6 +8832,51 @@ function _chooseAction(me,foes,ally,field,side,rng){
   {const _sa=struggleAction(me,live,field,rng,'fallback'); if(_sa)return _sa;}
   return{kind:'struggle'};
 }
+/* ===== THE AUTHORITY'S FIXED-POINT MODIFIER CHAIN ==============================================
+ *
+ * ROADMAP #290. Showdown does NOT multiply a stat by 1.5. Every `ModifySpe` handler answers with
+ * `chainModify`, the chain accumulates in 4096ths, and `runEvent` applies it ONCE at the end
+ * through `Battle#modify` -- which truncates. So the authority's Speed is always an INTEGER, and
+ * this engine's was a float: a 109-Speed body holding a Choice Scarf reads 163 there and read
+ * 163.5 here.
+ *
+ * THAT IS NOT COSMETIC, AND THE REASON IS THE TIE. 163 against a 163-Speed foe is a SPEED TIE, which
+ * the real game settles with a coin (speedSort's Fisher-Yates). 163.5 against 163 is a deterministic
+ * win. The half-point does not make this engine slightly fast; it deletes a coin flip and hands the
+ * turn to the Scarf every time.
+ *
+ * MEASURED before this landed, on the differential's own primary arm at 210 games: 231 disagreeing
+ * readings across 45 games -- 21.4% of games -- every one of them `showdown N / medicham N.5`, and
+ * every one of them a Choice Scarf. See `speedAgree` in engine/game_differential.js.
+ *
+ * THE THREE LINES, transcribed from sim/battle.ts at the pinned commit:
+ *     chainModify   previousMod = trunc(event.modifier * 4096)
+ *                   nextMod     = trunc(numerator * 4096 / denominator)
+ *                   modifier    = ((previousMod * nextMod + 2048) >> 12) / 4096      (:2319-2326)
+ *     modify        modifier = trunc(numerator * 4096 / denominator)
+ *                   return trunc((trunc(value * modifier) + 2048 - 1) / 4096)        (:2337-2339)
+ *     trunc         bits ? (num >>> 0) % 2**bits : num >>> 0                         (sim/dex.ts:391)
+ *
+ * ORDER-INDEPENDENT FOR EVERY MULTIPLIER THIS FORMAT HAS, and that is a measured property rather
+ * than an assumption worth relying on quietly: x1.5 is 6144/4096 and x2 is 8192/4096, both exact in
+ * 4096ths, so the chain step introduces no rounding at all and only the final `modify` truncates.
+ * A future multiplier that is NOT exact (x1.3, say) would make the chain order matter, and the
+ * counter below is what would say so rather than it arriving as a silent drift. */
+const _sdTrunc = n => n >>> 0;
+function sdChain(mults){
+  let mod = 1;
+  for(const m of mults){
+    if(!(m > 0)) continue;
+    const previousMod = _sdTrunc(mod * 4096), nextMod = _sdTrunc(m * 4096);
+    if(nextMod !== m * 4096) MEDSEEN.speedChainInexact++;
+    mod = ((previousMod * nextMod + 2048) >> 12) / 4096;
+  }
+  return mod;
+}
+function sdModify(value, mod){
+  const modifier = _sdTrunc(mod * 4096);
+  return _sdTrunc((_sdTrunc(value * modifier) + 2048 - 1) / 4096);
+}
 function effSpeed(m,field,side){
   /* WIRE 83 -- THE SIDE MAY BE OMITTED, and then it is READ off the body rather than assumed. Gyro
      Ball and Electro Ball are base-power-from-a-speed-RATIO, computed inside dmgRange, which is
@@ -8837,14 +8890,21 @@ function effSpeed(m,field,side){
   /* WIRE 91 -- the item speed multiplier is the artifact's (`speedMult`, Choice Scarf x1.5), not a
    * name. The only carrier in the format is the Scarf, so behaviour is identical today; what changes
    * is that a future speed item arrives without an edit here. */
-  let s=m.st.sp*boostMul(m.boosts.sp);
-  {const _sm=TAGS.param('item',m.item,'speedMult');if(_sm&&_sm.mult)s*=+_sm.mult;}
+  /* THE BOOST STEP IS THE AUTHORITY'S: MULTIPLY ON A POSITIVE STAGE, DIVIDE ON A NEGATIVE ONE, AND
+   * FLOOR. `statWithBoost` is that line already, written for Strength Sap, and its own comment says
+   * why `boostMul` is not interchangeable -- `floor(x * 2/(2-s))` and `floor(x / ((2-s)/2))` give 1
+   * and 2 at s=-1, x=3. This function used the multiply form and did not floor at all. */
+  let s=statWithBoost(m,'sp');
+  /* EVERY `ModifySpe` MULTIPLIER GOES IN ONE CHAIN AND IS APPLIED ONCE, which is what the authority
+   * does and is the whole of ROADMAP #290's arithmetic half. See sdChain/sdModify above. */
+  const _mods=[];
+  {const _sm=TAGS.param('item',m.item,'speedMult');if(_sm&&_sm.mult)_mods.push(+_sm.mult);}
   /* UNBURDEN. Speed doubles once the item is GONE, from the speedOnItemLoss param -- which was
    * itself wrong until today: it matched any onTakeItem and so included STICKY HOLD, whose handler
    * exists to refuse the loss. Reading that would have doubled the Speed of an ability that does
    * the opposite. */
-  if(m._hadItem&&!m.item){const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)s*=_ub.speedMult;}
-if((side==='A'?field.twA:field.twB)>0)s*=2;
+  if(m._hadItem&&!m.item){const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)_mods.push(+_ub.speedMult);}
+if((side==='A'?field.twA:field.twB)>0)_mods.push(2);
   /* WIRE 78 — a suppressed sky does not haste anybody. effSpeed sees ONE body, so it reads the
      field's own answer (set by battleTurn over all four actives) as well as this body's ability. */
   {const _w=(field&&field.wSup)||suppressesWeather(m)?'':(field&&field.weather);
@@ -8878,7 +8938,7 @@ if((side==='A'?field.twA:field.twB)>0)s*=2;
      /* QUICK FEET TAKES ANY STATUS, and the burn's Attack drop is NOT cancelled by it -- that is a
       * different handler and stays where it is. */
      if(!_hit&&_scp.whenStatus&&m.status)_hit=true;
-     if(_hit)s*=+_scp.speedMult;
+     if(_hit)_mods.push(+_scp.speedMult);
      else if(!(Array.isArray(_scp.inWeather)&&_scp.inWeather.length)
              &&!(Array.isArray(_scp.inTerrain)&&_scp.inTerrain.length)
              &&!_scp.whenStatus){
@@ -8889,7 +8949,15 @@ if((side==='A'?field.twA:field.twB)>0)s*=2;
        if(!MEDFAILS.speedCondUnconditionalFirst)MEDFAILS.speedCondUnconditionalFirst=m.ability;
      }
    }}
-  if(m.status==='par')s*=0.5;return s;}
+  s=sdModify(s,sdChain(_mods));
+  /* PARALYSIS IS NOT IN THE CHAIN, AND THE AUTHORITY IS EXPLICIT ABOUT WHY. `par.onModifySpe` sits
+   * at priority -101 with the comment *"Paralysis occurs after all other Speed modifiers, so
+   * evaluate all modifiers up to this point first"*; it calls `finalModify` -- which spends the
+   * whole accumulated chain -- and only then returns `Math.floor(spe * 50 / 100)` (data/conditions.ts,
+   * inherited unchanged by data/mods/champions/conditions.ts, whose `par` overrides `onBeforeMove`
+   * ONLY). So it is a floor applied to the already-modified integer, not another chain entry. */
+  if(m.status==='par')s=Math.floor(s*50/100);
+  return s;}
 
 /* ===== WHO MOVES FIRST — ONE IMPLEMENTATION, AND EVERY ENGINE CALLS IT ==========================
  *
@@ -8967,7 +9035,22 @@ function actionPriority(it, field){
       }
     }
     if(_pm.movesOfClass==='status')return isAtk?0:+_pm.shift;
-    if(isAtk&&moveId){const _mvR=MC.moves[moveId];
+    /* ROADMAP #290 -- A TYPE-NAMED SHIFT DOES NOT CARE WHETHER THE MOVE IS AN ATTACK, AND THIS LINE
+       READ `isAtk &&`. Gale Wings is `if (move?.type === "Flying" && pokemon.hp === pokemon.maxhp)
+       return priority + 1` -- one type test and one HP test, and NO category test. TAILWIND IS A
+       FLYING-TYPE STATUS MOVE, so a full-HP Talonflame's Tailwind is +1 on the authority and was 0
+       here.
+       IT IS THE LARGEST REMAINING MEMBER OF THIS ROW'S OWN PROBE. `node engine/quarantine.js
+       --order-probe` reported 7 of 9 move-vs-move pairs as real turn-order disagreements and SIX of
+       the seven are Talonflame clicking Tailwind -- including `showdown moved Talonflame @160,
+       medicham2 moved Whimsicott @316`, where the authority put the SLOWER body first by 156 points
+       because it had the bracket. The probe reads `move.priority` off the format and therefore
+       cannot see an ability-granted one, which is why the pair looked like equal priority.
+       MEMBERSHIP PRINTED BEFORE THIS WAS WIRED, per docs/LESSONS §4. The artifact holds exactly two
+       `priorityMod` carriers -- Prankster (movesOfClass 'status', unaffected by this line) and Gale
+       Wings -- and the moves this widening newly reaches are the four legal Flying-type STATUS moves
+       in the regulation: defog, featherdance, roost, tailwind. */
+    if(moveId){const _mvR=MC.moves[moveId];
       if(_mvR&&String(_mvR.t||'').toLowerCase()===String(_pm.movesOfClass||'').toLowerCase())return +_pm.shift;}
     return 0;
   };
@@ -8982,7 +9065,15 @@ function actionPriority(it, field){
   /* PRANKSTER, +1 TO ANY STATUS CLICK (now via the tag above). Every kind below is a status
      move; only 'attack' is not, and it returns above. The Dark-type immunity stays in
      pranksterBlocked -- that half is Prankster-specific in the real engine too. */
-  const pk=_pmOf(it.mon,null,false,null);
+  /* ROADMAP #290 -- AND THE STATUS SIDE HAS TO HAND OVER THE MOVE, which it never did: this call
+     passed `null` for the id, so even with the gate above removed a type-named shift had nothing to
+     compare. The id is resolved exactly the way the kind branches below resolve it -- `_selMv` first
+     (a lock overrode the choice; the authority reads the pre-override move for the bracket), then
+     the action's own `mv`, then the two backstops the branches keep for a bare hand-built action.
+     A BARE SWITCH STILL PASSES NOTHING and is unchanged: it carries no move, so the type branch
+     cannot fire and only Prankster's status clause reaches it, exactly as before. */
+  const _pkMv=it._selMv||it.a.mv||(k==='tail'?'tailwind':k==='trickroom'?'trickroom':null);
+  const pk=_pmOf(it.mon,null,false,_pkMv);
   /* A VOLUNTARY SWITCH RESOLVES BEFORE ANY MOVE. Not a priority bracket in the real game -- it
      is a separate phase that happens first (Showdown expresses it as `order` 103, below a move's
      200) -- but this engine orders everything through one comparator, so it sits above Protect's
@@ -12237,6 +12328,31 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry){
      (sim/battle-actions.ts:138) -- the body that just arrived has taken no move action, whatever it
      did before it left. Fake Out and First Impression are the readers; see firstTurnOnlyRefused. */
   nx._turnsOut=0; nx._mvActs=0; nx._fallenStuck=sf.fainted; act[i]=nx;
+  /* ROADMAP #290 -- UNBURDEN IS A VOLATILE AND A VOLATILE DIES ON THE WAY OUT.
+   *
+   * `_hadItem` was stamped ONCE, in battleInit, off the body's starting item, and effSpeed read it
+   * as "this body once had an item and has none now". The authority's rule is narrower: Unburden's
+   * `onAfterUseItem`/`onTakeItem` add `pokemon.addVolatile('unburden')`, the condition doubles only
+   * while that volatile is present AND `!pokemon.item`, and `onEnd(pokemon)` removes it when the
+   * ability ends -- which a switch-out is (data/abilities.ts; data/mods/champions/abilities.ts has
+   * no `unburden` entry, so mainline's is what this format runs).
+   *
+   * SO IT IS RE-STAMPED AT EVERY ENTRY, and `bringIn` is the one door: a voluntary switch, a faint
+   * replacement, a Roar drag and a U-turn pivot all arrive here and none of them goes through
+   * `switchOut`, which is the same argument the toxic reset immediately below makes.
+   *
+   * MEASURED: a Sneasler whose Sitrus Berry is knocked off, pivoted out and brought back reads 172
+   * on the authority and read 344 here -- a permanent double Speed on a body the authority has put
+   * back to normal. `tests/probe_turn_order.js` ARM B is that fixture and was shown RED on it; ARM A
+   * is the positive, and it agreed before this line and after it.
+   *
+   * THE GAP THAT REMAINS IS NAMED RATHER THAN LEFT TO BE FOUND: a body that walks in with NO item,
+   * is HANDED one mid-stint (Trick, Bestow, Thief, Pickup) and then loses it again gets the volatile
+   * on the authority and does not get the boost here, because nothing arms this flag except an
+   * entry. Six separate sites grant an item and there is no funnel through which to arm it once; a
+   * flag set at five of six would be the silent default this repo is built around. It is the
+   * narrower error of the two -- under-firing rather than a boost that never ends. */
+  nx._hadItem=!!nx.item;
   /* 2026-08-12 -- THE BADLY-POISON RAMP RESTARTS ON THE WAY BACK IN, AND IT IS THE ONLY STATUS THAT
    * DOES ANYTHING AT ALL ON A SWITCH.
    *
@@ -13210,7 +13326,14 @@ function scriptedAimOf(m,mvId){
  * timers, Ally Switch's stall and the forme cycles all keep reading the generic stream. The brief
  * named five knobs; inventing more would be manufacturing independence the authority may not have,
  * which is the same error in the other direction. They stay on `any`. */
-const RNG_STREAMS = ['acc', 'crit', 'sec', 'dmg', 'stall'];
+/* `tie` JOINED THE LIST 2026-08-20, ROADMAP #290, AND IT IS THE SAME ARGUMENT #222 MADE FOR
+ * `stall`. The speed-tie coin was drawn from the GENERIC stream, so under a harness that pins
+ * the generic stream to a live sequence this engine flipped a coin for a tied group while the
+ * authority's `speedSort` shuffle was a NO-OP — two engines that cannot agree on a tie by
+ * construction, which is what `tests/test-speed-tie.js` was red about. A named stream lets an
+ * instrument neutralise the one draw it has neutralised on the other side WITHOUT touching the
+ * four pin claims beside it, and leaves live play and every rollout flipping a real coin. */
+const RNG_STREAMS = ['acc', 'crit', 'sec', 'dmg', 'stall', 'tie'];
 function rngStreams(src) {
   /* ALREADY A STRUCT: pass it through, but fill any missing stream from `any` so a partial struct
    * degrades to today's behaviour rather than to undefined. */
@@ -13355,6 +13478,8 @@ function battleTurn(S,rng,actsForA,actsForB){
   /* ROADMAP #222 -- the five named dice. `rng` below remains the GENERIC stream, so every call
    * site not named in RNG_STREAMS is untouched and a plain-function caller sees no change at all. */
   const _R=rngStreams(rng); rng=_R.any;
+  /* ROADMAP #290 — the tied-group key, on its own stream. See RNG_STREAMS. */
+  const _tieRng=_R.tie||rng;
   rng=rng||Math.random;
   if(battleOver(S))return S;
   /* ROADMAP #68 -- bound at entry and released at every exit, so a nested rollout that shares this
@@ -13701,7 +13826,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        live in compareTurnOrder/sortTurnOrder at module scope, next to movePriority and effSpeed,
        because board.js calls the same rule. See the block above effSpeed. */
     for(const it of acts) it._pri=actionPriority(it,field);
-    sortTurnOrder(acts,field,rng);
+    sortTurnOrder(acts,field,_tieRng);
     /* ROADMAP #232 -- `BattleQueue.willAct()`, AND IT IS ONE FUNCTION BECAUSE IT IS ONE FACT.
      *
      *     willAct() { for (const action of this.list)
@@ -13980,7 +14105,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(from<0||from>=acts.length-1)return;          // a one-element tail sorts to itself
       if(sdChoiceOf(acts[from].a)!=='move'){MEDSEEN.queueResortHeldNotAMove++;return;}
       const _was=acts[from];
-      const _rest=sortTurnOrder(acts.slice(from),field,rng);
+      const _rest=sortTurnOrder(acts.slice(from),field,_tieRng);
       for(let _k=0;_k<_rest.length;_k++)acts[from+_k]=_rest[_k];
       MEDSEEN.queueResorted++;
       if(acts[from]!==_was)MEDSEEN.queueResortChangedOrder++;
@@ -15218,7 +15343,25 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* WIRE 130 -- A SECOND SUBSTITUTE FAILS AND COSTS NOTHING. Showdown's Substitute returns
              early when the volatile is already up, so the HP is never paid. Checked BEFORE the
              deduction, because paying for a doll you do not get is worse than either outcome. */
-          if(m._sub>0&&TAGS.has('move',a.mv||a.move.id,'substitute')){m._lastMove=a.mv||a.move.id;mvFail(m);continue;}
+          /* ROADMAP #241 -- AND IT SAYS SO, NAMING THE MOVE. `substitute.onTryHit` is
+             `if (source.volatiles['substitute']) { this.add('-fail', source, 'move: Substitute');
+             return this.NOT_FAIL; }` (data/moves.ts) -- a THREE-field line, where `mvFail`'s generic
+             announcement writes two. Staged in tests/probe_fail_and_silent.js and shown red:
+             showdown `|-fail|p1a: Snorlax|move: Substitute`, ours `|-fail|p1a: Snorlax`.
+             THE LABEL IS THE ARTIFACT'S OWN DISPLAY NAME, not a string typed here, so a move that
+             joins this family arrives with its own label; a record with no name is COUNTED rather
+             than papered over with a bare line, because a silent fallback here would look exactly
+             like the two-field bug being fixed.
+             STILL `mvFail` AND NOT `mvFailAnnouncedByCaller`: the authority returns NOT_FAIL, so
+             Stomping Tantrum must NOT see this as a failed move. That half is a REFUSAL-semantics
+             defect rather than an emission one, it has no probe on it, and it is named here rather
+             than half-fixed inside an announcement pass. */
+          if(m._sub>0&&TAGS.has('move',a.mv||a.move.id,'substitute')){
+            const _sid=a.mv||a.move.id;
+            const _srec=TAGS.tagsFor?TAGS.tagsFor('move',_sid):null;
+            if(_srec&&_srec.name){ if(TR){TR.fail(m,'move: '+_srec.name);TR.attrStill();} mvFailAnnouncedByCaller(m); }
+            else { MEDFAILS.failLabelNoName++; mvFail(m); }
+            m._lastMove=_sid; continue;}
           /* ROADMAP #81 WIRE 12 -- THE ROUNDING IS THE ARTIFACT'S. `costsUserHP.rounds` is read off
              the handler: Substitute and Clangorous Soul pay `directDamage(maxhp / n)` which truncs,
              Shed Tail pays `directDamage(Math.ceil(maxhp / 2))`. One shared floor was wrong for one

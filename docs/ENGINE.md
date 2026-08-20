@@ -42,7 +42,7 @@ number typed in prose beside a table is exactly what CLAUDE.md records going sta
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  618/618 probed mechanics live, 0 missing   (census 2026-08-19 19:06)
+  621/621 probed mechanics live, 0 missing   (census 2026-08-19 20:47)
   0/6000 differential comparisons disagree with Showdown   (2026-08-18 10:52)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -55,15 +55,195 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 2d334f5c01e0 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 8d5c4aa099d8 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 387d8064147a now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 273/291 probed, 18 unprobed
 ```
 
-_stamped 2026-08-19 19:13_
+_stamped 2026-08-19 21:00_
 
 <!-- /GENERATED -->
+
+## ROADMAP #290 — THE `ordering` FAMILY WAS THE SPEED NUMBER, NOT THE SORT. AND ITS BIGGEST MEMBER WAS NOT MOVE-VS-MOVE. 2026-08-20.
+
+**Census 618 live / 0 missing -> 621 live / 0 missing.** Five fixes, every one shown RED on a
+deliberate break first. **Paired before/after on the same 240-game ask, same census and team-pool
+steering, 210 games played: DIVERGED 87 of 210 -> 57 of 210, and speed disagreements 247 readings in
+49 games -> 0 in 0.**
+
+**THE ROW'S HEADLINE WAS ABOUT A POPULATION THAT IS NO LONGER THE BIG ONE.** #290 is written about
+"two `|move|` lines naming the same move in different slots", and `order_probe` covers move-vs-move
+pairs only. Re-measured on the current tree, the `ordering` class is **205 games and 153 of them are
+`|switch| <> |switch|`** — three quarters of it, and the probe cannot see any of it, because a
+`|switch|` line names the body ARRIVING and the queue was ordered on the body LEAVING. Move-vs-move
+is 24. So the first thing built was a staged switch-order fixture, and **it passed**: four bodies at
+four different speeds interleaved across the sides, all switching at once, ordered identically by
+both engines (`tests/probe_turn_order.js`). Voluntary switch order is not the defect.
+
+**SO THE QUESTION WAS SPLIT IN TWO, AND THE ANSWER WAS THE OTHER HALF.** "The two engines ordered
+differently" and "the two engines disagree about how fast something is" are different defects with
+different fixes, and no class table can tell them apart. `engine/game_differential.js` now asks the
+second one directly at the top of every turn, of every active body, on an undiverged game: Showdown's
+`pokemon.getActionSpeed()` against medicham2's `effSpeed()`. That is one FACT with two
+implementations, so a difference is a defect whatever the sort does with it.
+
+**THE PROBE WAS WRONG BEFORE THE ENGINE WAS, AND IT MANUFACTURED A WHOLE FAMILY.** The first run
+reported 571 disagreeing readings and 61 of them were Trick Room turns reading `showdown 10091 /
+medicham 91` — a missing inversion, apparently. There is no missing inversion. **Champions overrides
+`getActionSpeed`** (`data/mods/champions/scripts.ts:46`, comment *"Remove Trick Room underflow"*):
+the whole body is `let speed = this.getStat('spe', false, false); if (trickRoomCheck) speed = -speed;
+return speed;` — a NEGATION, not `10000 - speed`, and no `trunc` on the way out. The probe had read
+`sim/pokemon.ts`, which is MAINLINE. 571 -> 247 the moment it read the mod.
+
+### THE FOUR FIXES
+
+**1. THE SPEED MODIFIER CHAIN IS TRUNCATED, AND THE HALF-POINT DELETED A COIN FLIP.** 231 of the 247
+readings, across 45 of 210 games — 21.4% — every one of them `showdown N / medicham N.5`, and every
+one a Choice Scarf. Showdown answers every `ModifySpe` through `chainModify`, `runEvent` spends the
+accumulated chain ONCE through `Battle#modify`, and `modify` is `trunc((trunc(value * modifier) +
+2048 - 1) / 4096)` (`sim/battle.ts:2337`) — so the authority's Speed is an INTEGER. This engine
+multiplied floats. **It is not a rounding nicety: 163 against a 163-Speed foe is a SPEED TIE, which
+the real game settles with a coin; 163.5 against 163 is a deterministic win.** `effSpeed` now
+reproduces the chain, the boost step goes through `statWithBoost` (multiply on a positive stage,
+DIVIDE on a negative one, and floor — the authority's own line, which this function had never used),
+and paralysis is applied where the authority applies it: after `finalModify` has spent the chain,
+as `Math.floor(spe * 50 / 100)`, not as another chain entry.
+
+**2. UNBURDEN IS A VOLATILE AND A VOLATILE DIES ON THE WAY OUT.** 16 readings in 6 games. `_hadItem`
+was stamped ONCE in `battleInit` and read as "once had an item, has none now"; the authority adds
+`unburden` on `onAfterUseItem`/`onTakeItem` and REMOVES it in `onEnd`, which is what a switch-out is.
+So a Sneasler whose berry is knocked off, pivoted out and brought back read 172 there and 344 here —
+permanent double Speed on a body the authority had put back to normal. Re-stamped at `bringIn`, the
+one door every entry uses. The remaining gap is NAMED in the code: a body that walks in with no item,
+is HANDED one mid-stint and loses it again is not covered, because six sites grant an item and a flag
+set at five of six is the silent default this repo is built around.
+
+**3. THE SPEED-TIE COIN WAS BEING FLIPPED AGAINST A SHUFFLE THAT IS A NO-OP.** `tests/test-speed-tie.js`
+was RED on 3 of its 5 arrangements **before this session started**, and the cause is the pin, not the
+comparator. `pinShuffle` neutralises the authority's Fisher-Yates in every shipped arm, so Showdown
+always keeps the permutation its selection sort produced; medicham2 drew its tied-group key from the
+GENERIC stream, and in the middle arm — the primary — that stream is a live address-keyed die. Two
+engines that cannot agree on a tie by construction. `tie` is now its own named stream (the same
+argument #222 made for `stall`), the middle arm pins it to a constant and the scalar arms name it
+explicitly so their runs stay bit-identical. **It does not hardcode the answer**: the engine still
+resolves the group by its own selection sort, and under real dice a tie is a coin flip again.
+
+**4. SUBSTITUTE'S OWN `-fail` NAMES ITSELF.** Found by the #241(3) fixture hunt below. The authority's
+`onTryHit` writes `this.add('-fail', source, 'move: Substitute')` — three fields; `mvFail`'s generic
+announcement writes two. The label is read off the tag record's own display name, so a move that joins
+this family arrives with its own label, and a record with no name is COUNTED rather than papered over.
+**Still `mvFail` and not the announced-by-caller road**: the authority returns `NOT_FAIL`, so Stomping
+Tantrum must not see this as a failed move. That half is a refusal-semantics defect with no probe on
+it and is named rather than half-fixed inside an emission pass.
+
+**5. GALE WINGS DOES NOT CARE WHETHER THE MOVE IS AN ATTACK, AND THIS ENGINE DID — AND IT IS THE
+LARGEST REMAINING MEMBER OF #290's OWN PROBE.** With the four fixes above landed, the artifact was
+re-run and `node engine/quarantine.js --order-probe` answered for the first time in this pass:
+**7 of 9 move-vs-move pairs are real turn-order disagreements, and SIX of the seven are Talonflame
+clicking Tailwind.** One of them reads *"showdown moved Talonflame @160, medicham2 moved Whimsicott
+@316"* — the authority putting the body 156 Speed points SLOWER first, which is a bracket and cannot
+be anything else.
+
+**TAILWIND IS A FLYING-TYPE STATUS MOVE.** Derived, not recalled:
+`Dex.forFormat('gen9championsvgc2026regmb').moves.get('tailwind')` is `type: Flying, category:
+Status`. Gale Wings is `if (move?.type === "Flying" && pokemon.hp === pokemon.maxhp) return priority
++ 1` — one type test, one HP test, **no category test**. `actionPriority`'s `priorityMod` reader
+applied a type-named shift only under `isAtk`, and the status side of the same function handed it a
+`null` move id, so a full-HP Talonflame's Tailwind went in speed order here and at +1 there. **The
+probe could not see it**: `order_probe` reads `move.priority` off the format, so an ability-granted
+bracket makes the pair look like equal priority — which is precisely why the row's conjunction found
+it and could not explain it.
+
+**MEMBERSHIP PRINTED BEFORE IT WAS WIRED** (docs/LESSONS §4). The artifact holds exactly two
+`priorityMod` carriers — Prankster, whose `movesOfClass` is `status` and is untouched by this line,
+and Gale Wings — and the widening newly reaches the four legal Flying-type STATUS moves in the
+regulation: **defog, featherdance, roost, tailwind.**
+
+The staged arms are in `tests/probe_turn_order.js`, and the FIRST DRAFT OF THEM PROVED NOTHING: the
+other three slots clicked Protect, which is +4, so Talonflame went last with or without the bracket
+and both arms matched. Every other click is priority 0 now, Talonflame sits in the slot `spreadFor`
+gives less Speed, and the two arms produce DIFFERENT orders that both match the authority.
+
+### ROADMAP #241 PART (3) — RE-MEASURED, AND THE ANNOUNCEMENT IS THE WRONG HALF TO FIX FIRST
+
+**The gate could only ever count.** `engine/gate_fail_and_silent.js` reads the class out of the
+artifact, and a generic failure is `add('-fail', pokemon)` with `attrLastMove('[still]')` — the line
+names the MOVER and never the move. Twenty-one causes were on record and not one of them said what
+was clicked. The first fixture hunt therefore went at the CAST (Whimsicott x6, Ninetales x4, Torkoal,
+Sableye — a set of field-setters failing before `|upkeep|`) and **five of six staged field-move
+refusals already agreed**: Sunny Day into Drought's sun, Snowscape into Snow Warning's snow, a second
+Tailwind, a second Light Screen, a second Safeguard. Only Substitute parted, and on its third field.
+
+**So the driver was made to name the move**, from the authority's own `|move|` line two lines above
+the `-fail`. **On a 592-game run: 11 games — 9 ENCORE, 1 Taunt, 1 Role Play.**
+
+**AND THE STATE UNDER THE ANNOUNCEMENT IS WRONG IN THE OPPOSITE DIRECTION TO THE ONE ON RECORD.**
+Encore's `condition.onStart` opens `let move = target.lastMove; if (!move) return false`
+(`data/mods/champions/moves.ts:291`), so `lastMove` IS the gate. The 2026-08-12 retraction inside
+medicham2's affect branch — which pulled the `-fail` because it manufactured 4 and 6 games — left the
+lead *"`_lastMove` being null here where Showdown's `lastMove` is set"*. **Measured: it is entirely
+the other way.** 22 readings across 10 of 592 games, and in every single one the authority holds NONE
+and this engine holds a move (Baton Pass x4, Focus Blast x3, Electro Ball x3, Rage Powder, Dire Claw,
+Thunderbolt, Solar Beam, Protect, Electro Shot, Parting Shot). **This engine APPLIES Encores the
+authority REFUSES**, so shipping the announcement would have made it say `-fail` for a refusal it does
+not make — the retraction was right to pull the line and wrong about why.
+
+**The door has NOT been found and nothing was shipped on a guess.** `switchOut` already clears
+`_lastMove`; clearing it at `bringIn` as well — the door a pivot, a drag and a faint replacement all
+use — was tried and moved the count by NOTHING on a 700-game run, so it was **reverted rather than
+shipped unmeasured**. The live instrument is `lastMoveRows`, printed by every differential run.
+**#241(3) stays open.**
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous list that is not named below.
+
+**Removed — they are probes now:**
+- ~~`ordering` is a real turn-order defect and nobody has staged it~~ — `tests/probe_turn_order.js`
+  stages seven order arms and three speed-oracle arms; the switch half of the class is asked for the
+  first time and passes.
+- ~~A Flying-type STATUS move gets no Gale Wings bracket~~ — census `priorityMod`, the outcome being
+  whether the Tailwind exists at all after a faster foe's Taunt.
+- ~~The Speed number is a float where the authority truncates~~ — census `speedMult`, a five-step
+  sweep whose STEP PATTERN separates floor from round from no-truncation without naming 1.5.
+- ~~Unburden never stops~~ — census `speedOnItemLoss`, the negative arm being a switch out and back.
+- ~~The pinned speed tie disagrees on 3 of 5 arrangements~~ — `tests/test-speed-tie.js` is green.
+- ~~#241(3) is a count with no fixtures~~ — `tests/probe_fail_and_silent.js` stages six refusals, and
+  the differential now names the move behind every silent `-fail` it finds.
+
+**Added, measured this pass and NOT fixed:**
+- **`lastMove` SURVIVES SOMETHING IT SHOULD NOT.** 22 readings in 10 of 592 games, always the same
+  direction. It is Encore's gate and therefore #241(3)'s real half. The door is not `switchOut` and is
+  not `bringIn`; both were checked.
+- **A SUBSTITUTE REFUSED BY ITS OWN VOLATILE RETURNS `NOT_FAIL` ON THE AUTHORITY** and `mvFail` here,
+  so Stomping Tantrum sees a failed move where the authority sees none. Announcement fixed, semantics
+  not.
+- **FIVE GAMES IN 897 CARRY A SPEED GAP THAT IS MOSTLY NOT A SPEED DEFECT.** Four of the seven
+  readings sit on a body the two engines disagree about the STATE of — `status=-/sd:fnt` (Showdown's
+  copy has fainted) or `item=-/sd:whiteherb` — so the speed follows the state and belongs to whatever
+  killed or stripped the body. **The exception is real and is left open: a full-HP Excadrill in sand
+  reads `showdown 140 / medicham 280` at turn 0, so Sand Rush doubles here and not there while both
+  engines agree the weather is sandstorm.** Two readings, one game.
+- **ONE PROBED ORDERING PAIR SURVIVES:** `phantomforce <> roleplay`, showdown moving Dragapult @173
+  and this engine Meowstic @146. Role Play is a status move and Meowstic is a Prankster carrier, so
+  the shape is the one Gale Wings just turned out to be — an ability-granted bracket the probe cannot
+  read off `move.priority` — but pointing the OTHER way, and it has not been staged.
+- **`tests/test-mod-conformance.js` IS RED AND WAS RED BEFORE THIS SESSION, AND IT IS NOT ENGINE'S TO
+  FIX.** 22 values in `data/move-effects.js` are MAINLINE where Champions differs — Growth is Normal
+  here and Grass there, Snap Trap is Grass here and Steel there, Moonblast's secondary is 30 here and
+  10 there, and nineteen more base powers and accuracies. The file's own header says it is generated
+  by `build/build_browser_data.js` from **CHOMP's** `data/move-effects.json`, so the fix is upstream
+  of this repository and is named rather than half-applied here.
+- **`tests/test-no-silent-failure.js` IS RED AND WAS RED BEFORE THIS SESSION.** 63 catches new since
+  the baseline across `tests/roster.js`, `engine/tag_dex.js`, `engine/medicham2-browser.js` and
+  others. The four this pass introduced in `game_differential.js` were made loud (`failedSpeedRead`)
+  and the file's own new-manufacturing count went 4 -> 2, both of which are pre-existing.
+- **`tests/test-prng.js` IS RED AND WAS RED BEFORE THIS SESSION.** It scans for a float LCG constant
+  and finds it in `tests/bench-medicham.js`, `tests/test-mechanics.js` and
+  `tests/test-protocol-trace.js`. Replacing `rng5` re-rolls every seeded probe in the census, which
+  would move the census in the same pass as two mechanics landings and make neither attributable.
+  Named, not filed.
 
 ## TEN STATE DEFECTS, ALL TEN CLOSED — AND TWO OF THE FOUR "UNREAD LEAVES" WERE UNIMPLEMENTED MOVES. 2026-08-19.
 

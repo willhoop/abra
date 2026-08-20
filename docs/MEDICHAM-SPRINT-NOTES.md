@@ -10189,3 +10189,48 @@ already a win** under an arm declaring `tieToSecondBody: false`.
 Filed rather than fixed, because the simulator was held by another agent. **Twenty abilities still cannot
 explain themselves**, the largest group being ally mechanics, and `slushrush` looks like a real engine gap
 rather than a fixture one.
+
+---
+
+## 2026-08-19 — `ordering` WAS NEVER A SORT DEFECT: THEY DISAGREED ABOUT THE NUMBER THEY WERE SORTING ON
+
+**The row's headline described the small half.** Re-measured: `ordering` is **205 games, 153 of them
+`|switch| <> |switch|`** — three quarters — while the probe built for it covers move-versus-move only and
+sees 24. **The switch case was staged first and it PASSES.** Voluntary switch order was never the defect.
+
+So the question got split, and that split is the whole result: *did they order differently*, or *do they
+disagree about the number they sorted on*. The driver now asks the second directly at the top of every
+undiverged turn — Showdown's `getActionSpeed()` against `effSpeed()`. **They disagreed about the number.**
+Speed disagreements **247 readings across 49 games -> 0 across 0**; DIVERGED **87 -> 57** on the paired ask.
+
+**THE BIGGEST ONE WAS TRUNCATION, AND ITS COST IS THE SENTENCE WORTH KEEPING:** 231 readings, every single
+one a Choice Scarf reading `N` against `N.5`. **163 against 163 is a coin flip the game rolls; 163.5 against
+163 handed the Scarf holder every one of those turns.** A rounding error had been silently converting a
+fifty-fifty into a certainty.
+
+**GALE WINGS was the one that needed a mechanism rather than a number.** Six of seven real probe pairs were
+Talonflame with **Tailwind — a Flying-type STATUS move.** Gale Wings tests type and HP and says nothing about
+category; this engine's reader applied the type shift only under `isAtk` and handed the status side a null
+move id. One pair had the authority moving a body **156 Speed points slower** first.
+
+**AND THE PROBE WAS WRONG BEFORE THE ENGINE WAS.** Its first run reported 571 disagreements, 61 of them
+phantom Trick Room rows reading `showdown 10091 / medicham 91`. **Champions overrides `getActionSpeed`**
+(`data/mods/champions/scripts.ts:46`, *"Remove Trick Room underflow"*) with a plain negation and no `trunc`;
+the agent had read `sim/pokemon.ts`, which is mainline. **That is the exact trap this file names — reading
+mainline where the mod overrides — and it produced a confident wrong number first.**
+
+**#241(3): the real count is 20 games, and the standing lead was BACKWARDS.** A generic `-fail` names the
+mover and never the move, so the driver now prints the authority's own `|move|` line behind each. The
+population is overwhelmingly **Encore**, and the cast-based hypothesis was wrong outright — five of six
+staged field-move refusals already agree. Then the measurement inverted the lead: Encore's gate is
+`lastMove`, and the disagreement is **22 readings across 10 of 592 games, EVERY ONE the authority holding
+NONE while this engine holds a move.** **We apply Encores the authority refuses**, so shipping the missing
+announcement would have made this engine print `-fail` for a refusal it does not make. The candidate fix
+moved nothing across 700 games and was **reverted rather than shipped unmeasured**. The row stays open with a
+live instrument instead of a wrong lead — which is the correct outcome and not a failure.
+
+Census 618 -> **621 live / 0 missing**. `tests/test-speed-tie.js` was RED on 3 of 5 arrangements before this
+session and is green. **`tests/test-mod-conformance.js` is RED for a reason that is not ENGINE's**: 22 values
+in `data/move-effects.js` are mainline where Champions differs — Growth typed Normal against **Grass**, Snap
+Trap Grass against **Steel**, Moonblast's secondary 30 against **10** — and the file is generated from
+**CHOMP's** data, so the wrong values enter from another project.

@@ -1163,10 +1163,32 @@ function makeArm(spec) {
         return () => { MID_DRAWS.me[cat] = (MID_DRAWS.me[cat] || 0) + 1; return f(); }; };
       const o = { split: true, seed: spec.middleSeed, any: wrap('any') };
       for (const c of MID_CATS) o[c] = wrap(c);
+      /* ---- THE SPEED-TIE COIN IS NEUTRALISED HERE, BECAUSE IT IS NEUTRALISED ON THE OTHER SIDE ----
+       * ROADMAP #290. `pinShuffle` above is a NO-OP in every shipped arm — `sdShuffleReverses` is
+       * false — so the authority NEVER re-orders a tied group and always keeps whatever permutation
+       * its selection sort produced. medicham2 drew its tied-group key from the generic stream, and
+       * in THIS arm the generic stream is a live address-keyed die: it flipped a coin for a group
+       * the authority had already frozen. Two engines that cannot agree on a tie by construction,
+       * and `tests/test-speed-tie.js` was red on 3 of its 5 arrangements because of it.
+       *
+       * A CONSTANT IS THE HONEST MIRROR OF A NO-OP SHUFFLE, and it is what the scalar arms have
+       * always supplied — see the `tie: scalar` line below, and medicham2's own `sortTurnOrder`
+       * comment, which says in as many words that the design is "the identity under a constant
+       * pinned die". The middle arm simply never supplied one.
+       *
+       * IT DOES NOT HARDCODE THE ANSWER. The engine still resolves the group by its own selection
+       * sort, exactly as the authority does; what is removed is a die the authority does not roll.
+       * Under real dice `rngStreams` gives `tie` its own sequence and a tie is a coin flip again. */
+      o.tie = () => 0;
       return o;
     }
     return Object.assign({}, streams, {
       any: scalar, acc: scalar, crit: scalar, sec: scalar, dmg: scalar, stall: scalar, split: false,
+      /* ROADMAP #290 — NAMED EXPLICITLY RATHER THAN INHERITED. `streams` now carries a `tie` LCG,
+       * and letting it through would give the scalar arms a live tie coin that they have never had:
+       * every run since 2026-08-07 resolved a tied group by the selection sort alone, because the
+       * generic scalar returned the corner constantly. This line keeps those runs bit-identical. */
+      tie: scalar,
     });
   };
   return Object.assign({ sdShuffleReverses: false }, spec, { top, random, chance, shuffle, mediRng });
@@ -2418,6 +2440,14 @@ let BAN_FALLBACKS = 0;   // a config banned everything this body could click —
  * The fallback is `move 1`, which is what Showdown expects for a locked or recharging body, and it is
  * COUNTED because a silent one looks exactly like a working feature. */
 let FORCED_FIRST_SLOT = 0;
+/* ROADMAP #290 — WHEN A SPEED READING THREW, AND WHY IT IS NOT A CATCH-AND-CONTINUE. A probe whose
+ * reader throws reports "no disagreement", which is the answer an instrument must never manufacture.
+ * Module-level so the summary can print it once for the whole run. */
+const SPEED_THREW = { n: 0, first: '' };
+function failedSpeedRead(what, e) {
+  SPEED_THREW.n++;
+  if (!SPEED_THREW.first) SPEED_THREW.first = what + ': ' + String((e && e.message) || e).slice(0, 120);
+}
 
 /* ---- WHO THE CLICK NAMED — ONE TRANSLATION, EVERY DIRECTION (2026-08-10) -------------------------
  *
@@ -2923,7 +2953,9 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
     const A2 = String(sdRawL || '').split('|'), B2 = String(meRawL || '').split('|');
     const pa = _bodyByName(A2[2]), pb = _bodyByName(B2[2]);
     if (!pa || !pb) return null;
-    const spd = (q) => { try { return q.getActionSpeed(); } catch (e) { return null; } };
+    /* SAME RULE AS `speedAgree`: a reader that throws must not be able to look like a reading that
+     * agreed. The row it feeds carries `speed: null`, and the count says so out loud. */
+    const spd = (q) => { try { return q.getActionSpeed(); } catch (e) { failedSpeedRead('orderProbe getActionSpeed', e); return null; } };
     const mvid = (l) => String(l[3] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const pri = (mid) => { const mv = battle.dex.moves.get(mid); return (mv && mv.exists) ? mv.priority : null; };
     const ma = mvid(A2), mb = mvid(B2);
@@ -2939,6 +2971,119 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
       speed_gap: (sa != null && sb != null) ? Math.abs(sa - sb) : null,
       speed_source: 'battle.getActionSpeed() at the TURN BOUNDARY, not at queue-build time',
     };
+  };
+  /* ---- DO THE TWO ENGINES AGREE ABOUT HOW FAST A BODY IS? ---------------------------------------
+   * ROADMAP #290. `orderProbe` above answers "who acted first" and cannot say WHY, and the two
+   * candidate whys need completely different fixes: the SORT is wrong, or the two engines disagree
+   * about the SPEED they sorted on. `|switch| <> |switch|` is three quarters of the current
+   * `ordering` class and `orderProbe` does not cover it at all — a `|switch|` line names the body
+   * ARRIVING and the queue was ordered on the body LEAVING, so nothing readable off the line pair
+   * can answer it.
+   *
+   * SO ASK THE ENGINES DIRECTLY, at the turn boundary, about every body on the field:
+   *   the authority   `pokemon.getActionSpeed()`  (sim/pokemon.ts) — the exact number
+   *                   `Battle#getActionSpeed` writes into `action.speed`
+   *   this engine     `M.effSpeed(mon, field, side)` — the exact number `turnOrderKey` puts in `spe`
+   * These are the two halves of ONE FACT in CLAUDE.md's sense, so a difference here is a defect
+   * whatever the sort does with it, and it is attributable to a body rather than to a turn.
+   *
+   * IT IS INDEX-PARALLEL, on the same assumption `aimBody` already makes, and it CHECKS that rather
+   * than trusting it: a row whose two engines name different species is reported as `desync` and
+   * never as a speed disagreement, because a mismatched pairing would manufacture differences. */
+  const speedRows = [];
+  let speedDesync = 0;
+  /* EVERY READING, NOT JUST THE DISAGREEING ONES, AND ONLY WHEN A CALLER ASKS. A staged arm that
+   * finds no disagreement has proved nothing until it can show the truncation had something to bite
+   * on: x1.5 of an EVEN stat is exact, so an arm whose Choice Scarf happens to sit on an even-Speed
+   * body is green under the deliberate break too. Two of the three arms in tests/probe_turn_order.js
+   * were exactly that when they were first written. Off by default because a 972-game run would pay
+   * for an array nothing reads. */
+  const speedCensus = [];
+  const lastMoveRows = [];
+  const speedAgree = (when) => {
+    if (typeof M.effSpeed !== 'function') return;      // an old release; loud, not silent
+    for (const [sd, acts, tag] of [[battle.p1, S.actA, 'A'], [battle.p2, S.actB, 'B']]) {
+      for (let i = 0; i < Math.max(sd.active.length, acts.length); i++) {
+        const q = sd.active[i], m = acts[i];
+        if (!q || !m) continue;
+        if (id(q.species.id) !== id(m.name)) { speedDesync++; continue; }
+        /* ---- ROADMAP #241(3) — DO THE TWO ENGINES AGREE ABOUT `lastMove`? ------------------------
+         * The retraction inside medicham2's own affect branch names this as the lead it did not
+         * follow: the Encore announcement was pulled because it manufactured 4 and 6 games, and the
+         * note says *"the likely place to look is `_lastMove` being null here where Showdown's
+         * `lastMove` is set"*. Encore's `condition.onStart` opens `let move = target.lastMove; if
+         * (!move) return false`, so `lastMove` IS the gate — an engine that disagrees about it
+         * refuses Encores the authority applies and applies Encores the authority refuses, and
+         * announcing the refusal only makes the disagreement audible. Asked here rather than
+         * reasoned about. */
+        {
+          const sdLast = (q.lastMove && id(q.lastMove.id)) || '';
+          const meLast = id(m._lastMove || '');
+          if (sdLast !== meLast) {
+            lastMoveRows.push({ when, slot: 'p' + (tag === 'A' ? 1 : 2) + (i ? 'b' : 'a'),
+                                body: id(m.name), showdown: sdLast || '(none)', medicham: meLast || '(none)' });
+          }
+        }
+        /* A THROW HERE IS NOT A "NO READING". `tests/test-no-silent-failure.js` is right about this
+         * shape: a swallowed reason hands a made-up answer downstream, and the answer this probe
+         * hands downstream is "the two engines agree", which is the worst possible default for an
+         * instrument whose whole job is to find disagreement. Counted and NAMED, and the run prints
+         * it beside the verdict. */
+        let a = null, b = null;
+        try { a = q.getActionSpeed(); } catch (e) { failedSpeedRead('showdown getActionSpeed', e); }
+        try { b = M.effSpeed(m, S.field, tag); } catch (e) { failedSpeedRead('medicham effSpeed', e); }
+        if (a == null || b == null) continue;
+        if (opts.speedCensus) {
+          let stored = null;
+          try { stored = q.storedStats && q.storedStats.spe; }
+          catch (e) { failedSpeedRead('showdown storedStats.spe', e); }
+          speedCensus.push({ when, slot: 'p' + (tag === 'A' ? 1 : 2) + (i ? 'b' : 'a'),
+                             body: id(m.name), item: id(m.item || ''), showdown: a, stored });
+        }
+        /* TRICK ROOM IS AN INVERSION IN ONE ENGINE AND A COMPARATOR FLIP IN THE OTHER, so the two
+         * numbers are not on the same scale under it. Undone here rather than declared a divergence:
+         * this probe is about the STAT.
+         *
+         * AND THE INVERSION IS `-speed`, NOT `10000 - speed`. THIS PROBE HAD MAINLINE'S RULE AND
+         * MANUFACTURED A WHOLE FAMILY OF PHANTOM ENGINE DEFECTS BEFORE IT WAS READ: every Trick Room
+         * row printed `showdown 10091 / medicham 91` and looked like a missing inversion. Champions
+         * overrides `getActionSpeed` in data/mods/champions/scripts.ts:46, comment *"Remove Trick
+         * Room underflow"*, and the whole body is
+         *     let speed = this.getStat('spe', false, false);
+         *     if (trickRoomCheck) speed = -speed;
+         *     return speed;
+         * so it is a NEGATION, and there is NO `trunc` on the way out either. Reading sim/pokemon.ts
+         * for this is reading MAINLINE, which is the failure CLAUDE.md names by name. */
+        const sdRaw = a, sdStat = (() => {
+          try { return q.getStat('spe', false, false); }
+          catch (e) { failedSpeedRead('showdown getStat spe', e); return null; } })();
+        if ((S.field.tr || 0) > 0) a = -a;
+        /* THE AUTHORITY'S NUMBER IS STILL AN INTEGER, and the reason is `getStat` rather than
+         * `getActionSpeed`: every `ModifySpe` handler is a `chainModify`, and `Battle#modify`
+         * applies the accumulated chain in 4096ths with a `trunc`. `effSpeed`'s x1.5 / x0.5 / x2 is
+         * plain floating point and keeps the fraction. A fractional difference IS reportable — it
+         * turns a genuine speed TIE into a deterministic win — so it is kept and FLAGGED rather than
+         * rounded away, and `same_when_floored` says which kind of difference this row is. */
+        if (a === b) continue;
+        speedRows.push({ when, slot: 'p' + (tag === 'A' ? 1 : 2) + (i ? 'b' : 'a'),
+                         body: id(m.name), showdown: a, medicham: b, gap: a - b,
+                         same_when_floored: Math.floor(a) === Math.floor(b),
+                         sd_raw: sdRaw, sd_stat: sdStat,
+                         ability: id(m.ability || ''), sd_ability: id(q.ability || ''),
+                         item: id(m.item || ''), sd_item: id(q.item || ''),
+                         status: id(m.status || ''), sd_status: id(q.status || ''),
+                         boost_spe_me: (m.boosts && m.boosts.sp) || 0,
+                         boost_spe_sd: (q.boosts && q.boosts.spe) || 0,
+                         /* `weatherId` takes the WEATHER, not the field. Passing `S.field` returned ''
+                          * on every row and printed "medicham has no weather" beside a Showdown that
+                          * did — a probe defect that read exactly like an engine one. */
+                         weather: String(M.weatherId ? M.weatherId(S.field.weather) : ''),
+                         sd_weather: id(battle.field.weather || ''),
+                         tailwind_me: tag === 'A' ? (S.field.twA || 0) : (S.field.twB || 0),
+                         trickroom: S.field.tr || 0,
+                         sd_trickroom: battle.field.getPseudoWeather('trickroom') ? 1 : 0 });
+      }
+    }
   };
   const alignAndCheck = (final, oneEngineEnded) => {
     /* `opts.plant` corrupts the MEDICHAM side and only the medicham side. It exists for the
@@ -2975,6 +3120,13 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
                  before: b.slice(Math.max(0, i - 16), i),
                  sdAfter: a.slice(i, i + 10), meAfter: b.slice(i, i + 10),
                  sdAfterRaw: A.rawIdx.slice(i, i + 10).map(j => sdRawAll[j]),
+                 /* ROADMAP #241(3) — THE AUTHORITY'S OWN LEAD-IN, WHICH IS THE ONLY PLACE THE MOVE
+                  * IS NAMED. A generic failure is `add('-fail', pokemon)` plus
+                  * `attrLastMove('[still]')`, so the `-fail` line carries the MOVER and never the
+                  * move; the artifact recorded twenty-one of them and could not say what any of
+                  * them clicked, which sent a fixture hunt at the CAST instead — six staged field
+                  * moves, five of which already agreed. The `|move|` line two lines up names it. */
+                 sdBeforeRaw: A.rawIdx.slice(Math.max(0, i - 6), i).map(j => sdRawAll[j]),
                  meAfterRaw: B.rawIdx.slice(i, i + 10).map(j => raw[j]),
                  /* the RAW lead-in too: `before` is the reduced form, and the reduced form is where a
                   * `|-mega|` can have been normalised away before a person ever sees it. */
@@ -3042,6 +3194,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
   playGame._mediRawIdx = () => reduce(trace).rawIdx;
 
   try {
+    speedAgree(0);                  // before a single choice — the leads as they stand
     firstDiv = alignAndCheck();     // the leads, entry abilities and entry weather, before turn 1
     if (firstDiv) divTurn = 0;
     stateCheck(0);                  // the board as the leads stand, before a choice is made
@@ -3065,6 +3218,12 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
         break;
       }
       if (battle.requestState !== 'move') { endReason = 'showdown stopped asking for a move'; break; }
+      /* ROADMAP #290 — READ THE SPEEDS AT THE TOP OF THE TURN, WHICH IS WHEN THE QUEUE IS ORDERED,
+       * AND ONLY WHILE THE TWO ENGINES STILL AGREE. Reading at turn END records the boundary the
+       * divergence was found at, and at that boundary the boards may legitimately differ — so a
+       * disagreement there is downstream of something else and cannot be attributed to speed. The
+       * loop's own stop rule guarantees every reading below is taken on an undiverged game. */
+      speedAgree(t + 1);
       /* ROADMAP #81 WIRE 7 — A DIRECTED SCENARIO ENDS WHEN ITS SCRIPT DOES.
        *
        * Every entry in DIRECTED carries a ONE-turn script, and the loop only ever ran one turn because
@@ -3335,6 +3494,9 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
   const megaSd = battle.log.filter(l => /^\|-mega\|/.test(String(l)));
   const capable = [pairA, pairB].filter(p => p.some(x => isStone(x.spec.item))).length;
   return { config: cfgId, seed: seedTag, arm: ARM.id, turns, lines: trace.length, err, div: firstDiv, mediTrace: trace,
+           /* ROADMAP #290 — see `speedAgree`. `speedDesync` is NOT a finding about speed; it is the
+            * index-parallel assumption failing, and it is reported apart so it cannot be read as one. */
+           speedRows, speedDesync, speedCensus, lastMoveRows,
            /* the number of REDUCED line pairs the aligner actually walked. `lines` above is the RAW
             * medicham count and is not a substitute: see plantedProof. */
            comparedWalked,
@@ -5257,6 +5419,101 @@ if (!SHUFFLE_TIE_GROUPS) console.log('    ZERO TIED GROUPS — the tie arms test
 console.log('');
 console.log('  DIVERGED (primary arm ' + PRIMARY_ARM.id + '): ' + diverged.length + ' of ' + results.length + ' games'
   + (threw.length ? '   (' + threw.length + ' threw)' : ''));
+
+/* ---- ROADMAP #241(3) — WHAT DID THE BODY CLICK WHEN THE AUTHORITY FAILED IT? --------------------
+ * `engine/gate_fail_and_silent.js` COUNTS this class and, by construction, cannot say what is in it:
+ * a generic failure is `add('-fail', pokemon)` with `attrLastMove('[still]')`, so the line names the
+ * MOVER and never the move. Twenty-one causes were recorded that way and the first fixture hunt went
+ * at the CAST instead — six staged field moves, five of which already agreed. The authority's own
+ * `|move|` line, two lines up, is where the move is named, so it is printed here beside the count. */
+{
+  const rows = [];
+  for (const r of diverged) {
+    if (!r.div || !/^\|-fail\|/.test(String(r.div.sdRaw || ''))) continue;
+    if (r._cls.cls !== 'event missing from medicham2') continue;
+    const lead = (r.div.sdBeforeRaw || []).filter(l => /^\|move\|/.test(String(l))).pop() || '';
+    const f = String(lead).split('|');
+    rows.push({ move: id(f[3] || '(no |move| line in the six before it)'),
+                who: String(r.div.sdRaw).split('|')[2] || '', seed: r.seed, config: r.config });
+  }
+  console.log('');
+  const lm = [];
+  for (const r of results) for (const x of (r.lastMoveRows || [])) lm.push(x);
+  const lmGames = results.filter(r => (r.lastMoveRows || []).length).length;
+  console.log('    lastMove DISAGREEMENTS (the gate Encore reads): ' + lm.length + ' readings in '
+    + lmGames + ' of ' + results.length + ' games');
+  {
+    const by = {};
+    for (const x of lm) (by[x.showdown + ' <> ' + x.medicham] = (by[x.showdown + ' <> ' + x.medicham] || 0) + 1);
+    for (const [k, v] of Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 12))
+      console.log('      ' + String(v).padStart(4) + '  showdown ' + k.split(' <> ')[0]
+        + '   medicham ' + k.split(' <> ')[1]);
+    for (const x of lm.slice(0, 8))
+      console.log('        e.g. turn ' + x.when + '  ' + x.slot + ' ' + x.body
+        + '   showdown ' + x.showdown + '   medicham ' + x.medicham);
+  }
+  console.log('  -fail AND SILENT (ROADMAP #241(3)): ' + rows.length
+    + ' games where the authority emitted a bare `-fail` and this engine emitted nothing');
+  if (!rows.length) {
+    console.log('    zero in this run.');
+  } else {
+    const by = {};
+    for (const x of rows) (by[x.move] = by[x.move] || []).push(x);
+    for (const [mv, v] of Object.entries(by).sort((a, b) => b[1].length - a[1].length)) {
+      console.log('    ' + String(v.length).padStart(4) + '  ' + mv
+        + '   e.g. ' + v[0].who + '  [' + v[0].config + ']');
+    }
+  }
+}
+
+/* ---- ROADMAP #290 — DO THE TWO ENGINES AGREE ABOUT SPEED? --------------------------------------
+ * See `speedAgree` in playGame. This is the FACT under the `ordering` class: if the two engines put
+ * a different number in the sort key, the sort being right cannot save the order. Reported as its
+ * own block rather than folded into a class, because a speed disagreement is not a narration event
+ * and would otherwise be attributed to whichever line happened to move. */
+{
+  const rows = [];
+  let desync = 0;
+  for (const r of results) { for (const x of (r.speedRows || [])) rows.push(x); desync += (r.speedDesync || 0); }
+  const games = results.filter(r => (r.speedRows || []).length).length;
+  console.log('');
+  if (SPEED_THREW.n) console.log('  SPEED READINGS THAT THREW: ' + SPEED_THREW.n
+    + '   first: ' + SPEED_THREW.first + '   (these are NOT agreements)');
+  console.log('  SPEED AGREEMENT (getActionSpeed vs effSpeed, every active body at every boundary): '
+    + rows.length + ' disagreeing readings in ' + games + ' of ' + results.length + ' games'
+    + (desync ? '   [' + desync + ' index-parallel desyncs, NOT speed findings]' : ''));
+  if (!rows.length) {
+    console.log('    zero — the two engines put the same number in the sort key everywhere this run looked.');
+  } else {
+    /* THE SPLIT FIRST, because the two halves are different defects. A ROUNDING-ONLY row is
+     * `Math.floor` apart and turns a genuine speed TIE into a deterministic win; a REAL GAP is a
+     * multiplier one engine applied and the other did not. */
+    const ro = rows.filter(x => x.same_when_floored), rg = rows.filter(x => !x.same_when_floored);
+    const gamesOf = pred => results.filter(r => (r.speedRows || []).some(pred)).length;
+    console.log('    ROUNDING ONLY ' + String(ro.length).padStart(4) + ' readings in '
+      + gamesOf(x => x.same_when_floored) + ' games');
+    console.log('    REAL GAP      ' + String(rg.length).padStart(4) + ' readings in '
+      + gamesOf(x => !x.same_when_floored) + ' games');
+    const by = {};
+    for (const x of rows) {
+      const k = (x.same_when_floored ? 'ROUNDING ONLY  ' : 'REAL GAP       ')
+        + 'ability=' + (x.ability || '-') + (x.ability === x.sd_ability ? '' : '/sd:' + x.sd_ability)
+        + '  item=' + (x.item || '-') + (x.item === x.sd_item ? '' : '/sd:' + x.sd_item)
+        + '  status=' + (x.status || '-') + (x.status === x.sd_status ? '' : '/sd:' + x.sd_status)
+        + '  weather=' + (x.weather || '-') + '/sd:' + (x.sd_weather || '-')
+        + '  tw=' + x.tailwind_me + '  boost=' + x.boost_spe_me + '/sd:' + x.boost_spe_sd
+        + '  tr=' + x.trickroom + '/sd:' + x.sd_trickroom;
+      (by[k] = by[k] || []).push(x);
+    }
+    for (const [k, v] of Object.entries(by).sort((a, b) => b[1].length - a[1].length).slice(0, 40)) {
+      const e = v[0];
+      console.log('    ' + String(v.length).padStart(4) + '  ' + k);
+      console.log('          e.g. ' + e.slot + ' ' + e.body + '  showdown ' + e.showdown
+        + '  medicham ' + e.medicham + '  (turn ' + e.when + ')'
+        + '   [getActionSpeed raw ' + e.sd_raw + ', getStat spe ' + e.sd_stat + ']');
+    }
+  }
+}
 /* THE MIDDLE ARM REPORTS ITS OWN FAILURE BESIDE ITS RESULT, NOT INSTEAD OF IT. A divergence count
  * from an arm whose streams desynchronised is not a smaller truth, it is a different number
  * entirely -- so the void games are separated and the rate is quoted over what is left. */
@@ -6313,7 +6570,10 @@ if (WRITE) {
         showdown: r.div.sdRaw, medicham: r.div.meRaw }, r.div.orderProbe)),
     first_divergences: diverged.slice(0, 60).map(r => ({
       config: r.config, seed: r.seed, index: r.div.index, agreed_lines: r.div.agreedLines,
-      cls: r._cls.cls, cause: r._cls.cause, showdown: r.div.sdRaw, medicham: r.div.meRaw })),
+      cls: r._cls.cls, cause: r._cls.cause, showdown: r.div.sdRaw, medicham: r.div.meRaw,
+      /* ROADMAP #241(3) — see `sdBeforeRaw` at the divergence record. A bare `-fail` names the mover
+       * and never the move; this is where the move is named. */
+      showdown_before: r.div.sdBeforeRaw || null })),
     errors: threw.map(r => ({ config: r.config, seed: r.seed, err: r.err })),
     /* ROADMAP #91 — THE CREDIT RULE AND WHAT IT COST, IN THE ARTIFACT SO THE DROP IS A MEASUREMENT
      * RATHER THAN A MYSTERY. `exercised` below is the OLD, click-and-presence number and is kept
