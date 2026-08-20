@@ -1066,6 +1066,11 @@ function roadmapRowSaysBroken(l) {
  * Every row prints on every run with its reason, like the closet. A declared count is reported
  * SEPARATELY from the verdict and never folded into it.
  * ================================================================================================ */
+/* ROADMAP #258 — every `match` that THREW while classifying a cause. A throw here silently moves the
+ * cause into the UNDECLARED pile and inflates the divergence rate this file publishes, so it is
+ * recorded and printed beside the declared count rather than absorbed into it. Empty is the claim
+ * that every matcher answered. */
+const MATCHER_THREW = [];
 const DECLARED_DIVERGENCE = [
   {
     name: "Supreme Overlord `fallenundefined`",
@@ -1265,7 +1270,18 @@ function wholeGameClause(artifact, wgDecisionImpact) {
   let impactGames = 0;
   for (const c of (Array.isArray(j.classes) ? j.classes : [])) {
     for (const k of (c.causes || [])) {
-      const d = DECLARED_DIVERGENCE.find((x) => { try { return x.match(String(k.cause || "")); } catch (e) { return false; } });
+      const d = DECLARED_DIVERGENCE.find((x) => {
+        try { return x.match(String(k.cause || "")); }
+        catch (e) {
+          /* ROADMAP #258 — A MATCHER THAT THREW IS NOT A CAUSE THAT IS UNDECLARED. This returned
+           * `false` silently, which moves the cause into the UNDECLARED pile and inflates the
+           * divergence rate this file publishes. `false` is still the safe direction — an undeclared
+           * divergence is the conservative reading — but it is counted and named now. */
+          MATCHER_THREW.push({ cause: String(k.cause || ""),
+                               error: String((e && e.message) || e).split(String.fromCharCode(10))[0] });
+          return false;
+        }
+      });
       if (d) {
         declaredGames += (k.n || 0);
         const row = declaredHits.find((r) => r.name === d.name);
@@ -1281,6 +1297,14 @@ function wholeGameClause(artifact, wgDecisionImpact) {
   }
   const undeclared = Math.max(0, div - declaredGames - impactGames);
   const _NL = String.fromCharCode(10);
+  /* ROADMAP #258 — printed at zero as well, because "every matcher answered" is the claim that makes
+   * the declared count mean anything. A matcher that throws pushes its cause into UNDECLARED, so this
+   * line has to sit beside the number it would distort. */
+  const matcherLine = MATCHER_THREW.length
+    ? _NL + "  A DECLARED-DIVERGENCE MATCHER THREW on " + MATCHER_THREW.length + " cause(s), each of"
+      + " which is therefore counted as UNDECLARED and is INFLATING the rate above:" + _NL
+      + MATCHER_THREW.map((r) => "    " + r.cause + "  ->  " + r.error).join(_NL)
+    : "";
   const declaredLine = declaredHits.length
     ? _NL + "  DECLARED — matching the authority here would make this engine LESS correct, so these"
       + " do not count:" + _NL
@@ -1304,18 +1328,19 @@ function wholeGameClause(artifact, wgDecisionImpact) {
     regressed: comparable ? rose : null,
     baseline_mode: baseMode || null, run_mode: runMode || null, baseline_comparable: comparable,
     declared: declaredGames, decision_cleared: impactGames, undeclared,
+    declared_matcher_threw: MATCHER_THREW,
     why: ok
       ? `ZERO divergences across ${games} games that anything is asked to answer for`
         + (declaredGames || impactGames ? ` (${div} raw, ${declaredGames} declared, ${impactGames}`
           + ` cleared on decision impact)` : '')
         + `. Mode A pins every die on both sides, so this is the real bar and it has been met.`
-        + declaredLine + impactLine
+        + declaredLine + impactLine + matcherLine
       : `${undeclared} of ${games} = ${(100 * undeclared / games).toFixed(1)}% DIVERGE — the two engines`
         + ` disagree about ${undeclared} games`
         + (declaredGames || impactGames ? ` (${div} raw, less ${declaredGames} declared and`
           + ` ${impactGames} cleared on decision impact)` : '')
         + `. Mode A pins every die on both sides, so each one is a RULE they disagree about, not noise.`
-        + ` This clause fails until that is zero.` + declaredLine + impactLine
+        + ` This clause fails until that is zero.` + declaredLine + impactLine + matcherLine
         + (!comparable
              ? `  DIRECTION OF TRAVEL WITHHELD — the baseline was stamped under \`${baseMode}\` and this`
                + ` run is \`${runMode}\`. One pin is one corner: those are two instruments, and`

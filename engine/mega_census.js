@@ -70,6 +70,11 @@ function megaFormeSet() {
     const D = Dex.forFormat(CS.FORMAT);
     return new Set(D.species.all().filter(s => /-Mega/.test(s.name)).map(s => s.id));
   } catch (e) {
+    /* ROADMAP #258 — the null is correct and the SILENCE was not. Every caller has to tell "I could
+     * not open the dex" from "this format has no megas", and a bare return told them nothing. */
+    console.error('  CANNOT CLASSIFY MEGAS — the format dex would not open (' 
+                + String((e && e.message) || e).split(String.fromCharCode(10))[0]
+                + '). This is NOT the claim that nothing is a mega.');
     return null;      // null means CANNOT CLASSIFY — never "nothing is a mega"
   }
 }
@@ -198,6 +203,16 @@ async function main() {
   console.log('\n  wrote ' + path.relative(ROOT, OUT).replace(/\\/g, '/'));
 }
 
-function load() { try { return JSON.parse(fs.readFileSync(OUT, 'utf8')); } catch (e) { return null; } }
+function load() {
+  try { return JSON.parse(fs.readFileSync(OUT, 'utf8')); }
+  catch (e) {
+    /* ROADMAP #258 — NEVER BUILT is silent on purpose; EXISTS AND WILL NOT PARSE is not. */
+    if (!(e && e.code === 'ENOENT')) {
+      console.error('  mega census artifact EXISTS AND COULD NOT BE PARSED — '
+                  + String((e && e.message) || e).split(String.fromCharCode(10))[0] + ' (returning null)');
+    }
+    return null;
+  }
+}
 module.exports = { load, OUT_PATH: OUT };
 if (require.main === module) main().catch(e => { console.error(e); process.exit(1); });

@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 25 unsafe, 1 void (declared), 103 possibly stale, 95 ok, 0 missing
+  provenance: 26 unsafe, 1 void (declared), 101 possibly stale, 96 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
@@ -29,13 +29,13 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 12). Old hashes cannot be compared; restamp after checking board.js.
-    moved after the fit: engine/medicham2-browser.js  2026-08-19 19:05
-    moved after the fit: engine/board.js  2026-08-17 22:37
+    moved after the fit: engine/medicham2-browser.js  2026-08-19 19:59
+    moved after the fit: engine/board.js  2026-08-19 19:52
     moved after the fit: data/engine-data.js  2026-08-10 18:59
     moved after the fit: data/abra-tags.js  2026-08-19 18:41
 ```
 
-_stamped 2026-08-19 19:13_
+_stamped 2026-08-19 20:00_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,98 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 00000000000000. TWO OF THE THREE ROWS HOLDING THE THIRD GATE CLAUSE SHUT ARE FIXED AND CLOSED; THE THIRD IS RED FOR A NAMED REASON — 2026-08-19
+
+`engine/board.js` (`stampSky`, `jointFeaturesFor`), `engine/magnemite.js` (`_candsFor`),
+`engine/seed_source_audit.js`, `engine/gate_weather_guard.js`, `engine/gate_seed_source_audit.js`,
+and twenty-four catch blocks across eighteen files. ROADMAP **#286 CLOSED**, **#287 CLOSED**, **#258
+still open**. The clause `no open, known engine defect` went from naming **six** rows to naming
+**four** (#218, #241, #258, #290).
+
+**#286 — A GUARD THAT HAD NEVER BOUND, ON A FIELD NOTHING WROTE.** `weatherSetupHelpsPartner` read
+`norm(A.__weather || '') !== w`, and `__weather` occurred exactly once in the live tree — that read.
+So the comparison was `'' !== w` and the "only if the weather is not already up" clause had never
+bound in the history of the file. `board.stampSky(cands, board)` is the assignment, and **both**
+candidate producers call it: `board.candidates` for the fitter, the fixtures and the rollouts, and
+`magnemite._candsFor`, which builds its menu from the live REQUEST and does not route through the
+first. Stamping one of the two would have been the fitting/playing mismatch this project has already
+paid for twice. The value is `board.weather`, the expiry-aware accessor #276 built.
+
+**THE SECOND DEFECT THE ROW RECORDED IS ALSO FIXED, AND THE EXISTING ARM COULD NOT SEE IT.** The loop
+runs `[[A,B],[B,A]]` and asked `A.__weather` on both passes. Reverting that left
+`gate_weather_guard.js` at **exit 0** — because both candidates of a real pair come off the same
+board and carry the same stamp, so the wrong-half read agrees by accident. A fourth pass was added:
+with only the SETTER's field populated, the feature must answer the same in either argument position.
+That is exact rather than sampled, so it cannot false-positive — the bar the row's rejected static
+scan failed. Both halves were shown RED on a deliberate break before being trusted.
+
+**REACH, MEASURED WEIGHT-FREE, BECAUSE THE WEIGHTS ARE QUARANTINED.** Over **2,000 corpus games,
+21,757 joint decision points and 1,211,091 pair evaluations**, through `joint_rows.build` with a ZERO
+ranker and K above the longest candidate list so that no pair is dropped by a quarantined number, and
+with both arms taken from ONE process so ENGINE editing the simulator underneath could not separate
+them: the feature fired **344 times before the repair and 219 after — 125 suppressed, 36.3% of every
+firing of this column was a redundant weather setup** — on 64 of 21,757 decision points (0.29%). At
+300 games the same quantity reads 49.2% of 59 fires, which is what a sample that small is worth.
+**THE ARGMAX-FLIP RATE IS WITHHELD RATHER THAN UNMEASURED**: each flipped pair's score moves by
+exactly the fitted weight for this column, and publishing a rank change would be quoting the
+quarantined vector.
+
+**AND THE LIVE HALF IS PROVEN, NOT ASSUMED.** A 4-game self-play through the joint path reports
+`skyStamped=6779`, `jointSkyUnstamped=0`, `skyStampNotAnArray=0`. `tests/test-wiring.js` caught the
+first attempt outright — `_dropDeadVolatiles` returns `{cands, user, doubles}`, not an array — which
+is precisely the class of defect that file exists for.
+
+**A SEARCH-OWNED FILE WAS EDITED UNDER A MEASURE BRIEF.** `engine/board.js` and
+`engine/magnemite.js`, on the router's instruction. It is on the record here rather than implied.
+
+**IT MOVES A FITTED JOINT COLUMN, AND NO REFIT WAS RUN.** `weatherSetupHelpsPartner` means a different
+quantity after this than before it, so it joins the set the refit owes. The refit was ALREADY owed and
+is gated behind MEDICHAM rather than behind compute, so this adds a column to a debt that exists; it
+does not create a new one. Nothing was fitted, and nothing downstream of the weights was re-quoted.
+
+**#287 — AN AUDIT THAT SUBSTRING-MATCHED A HAND-TYPED LIST.** `STUB_HAS_NO` is gone.
+`seed_source_audit.js` derives the class by calling `board.unmodelledBasePower(dex, board)` — asking
+each callback to produce a number and recording the ones that cannot — over a union of an empty
+board, its own staged board and every canonical fixture board, with the board count recorded and a
+fixture that will not build REPORTED rather than swallowed. Nothing reads a callback's spelling any
+more. The derived class is **four: avalanche, beatup, payback, ragefist**; the row's earlier seven,
+including Triple Axel, is exactly the figure a derivation corrects with no edit, because #283's
+`mv.hit = 1` made Triple Axel answerable after that list was typed.
+
+**THE ARTIFACT'S FALSE CLAIM IS GONE AND ITS STATE IS DERIVED.** `openAndNotFixed` keeps its AUTHORED
+caveat text and reads OPEN/CLOSED from `docs/ROADMAP.md` through `quarantine.roadmapRowIsClosed`,
+imported and never copied. #244 reads CLOSED, so the caveat is DROPPED with its reason recorded
+rather than annotated; an unreadable register WITHHOLDS every caveat instead of publishing on an
+unchecked premise.
+
+**THE ROW'S REASON FOR NOT REGENERATING WAS MEASURED AND IS FALSE.** It said regenerating today would
+bake ENGINE's in-flight `data/tags.json` into the artifact. With `engine/tags.js` and
+`data/tags.json` both made unreadable by a preload, the regenerated artifact is BYTE-IDENTICAL apart
+from its timestamp. The file's header already declared it does not read tags; that declaration is now
+checked rather than trusted, which is the difference between a claim and a measurement.
+
+**AND THE GATE ITSELF HAD THE LESSON.** Arm 2 read `.row` off a single object. When the repair turned
+`openAndNotFixed` into `{checkedAgainst, rows, dropped}` the arm found ZERO assertions and went GREEN
+— a check that stops looking and calls the silence a pass, inside the gate written to catch exactly
+that. It was found by breaking the artifact deliberately and noticing the arm did not shout. It now
+accepts three shapes and REFUSES anything else with exit 2.
+
+**#258 — RE-MEASURED ON THE DAY, AND IT IS STILL RED.** Both figures the row carried were stale.
+Today: **827 catch blocks, 291 silent (35%), 102 manufacturing; 201 baselined, 1 fixed, 91 NEW, 48 of
+those manufacturing.** All **24 of the new-manufacturing blocks reachable this session are fixed**,
+taking NEW 91 -> 67 and new-manufacturing **48 -> 24**. Each repair keeps the conservative value and
+adds the reason — a counter, a named `console.error`, or both — because inventing a different answer
+is a second defect rather than a fix. The most consequential were `mod_audit.js` x3 (three reads
+whose EMPTY answer read as *"Champions changes nothing"* inside the tool whose whole job is that
+question), `champions_sim.js` (a `checkCanLearn` exception became a LEGALITY CLAIM about this format)
+and `quarantine.js` (a declared-divergence matcher that threw silently moved its cause into
+UNDECLARED and INFLATED the rate this file publishes).
+
+**THE 24 THAT REMAIN ARE NAMED, AND EVERY ONE IS IN A FILE ANOTHER DIVISION HELD THIS SESSION**:
+`engine/game_differential.js` (6), `engine/tag_dex.js` (2), `engine/medicham2-browser.js` (1) and
+fifteen across `tests/`. **This is not a filed failure.** The gate is RED, the reason is stated, the
+reason is ownership, and the next holder of those files closes it. NOT re-baselined.
 
 ### 0000000000000. THE HEADLINE WITHHOLDS, THE FIGURE WAS RE-TAKEN, AND FIVE ROWS THAT ASSERTED BREAKAGE NOW HAVE GATES — 2026-08-18
 

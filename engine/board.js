@@ -480,9 +480,26 @@ function jointFeaturesFor(A, B, xa, xb) {
   const partnerType = c => (c && c.move ? norm(c.move.type || '') : '');
   for (const [setter, other] of [[A, B], [B, A]]) {
     const w = setsWx(setter);
-    if (w && WX_HELPS[w] && partnerType(other) === WX_HELPS[w] && norm(A.__weather || '') !== w) {
-      set('weatherSetupHelpsPartner', 1);
-    }
+    if (!w || !WX_HELPS[w] || partnerType(other) !== WX_HELPS[w]) continue;
+    /* *** THE GUARD, NOW THAT SOMETHING WRITES THE FIELD IT GUARDS ON — ROADMAP #286. ***
+     *
+     * This read was `norm(A.__weather || '') !== w` and `__weather` occurred EXACTLY ONCE outside
+     * `data/releases/` — here — with zero assignments anywhere, so the comparison was `'' !== w`,
+     * true for every non-empty w, and the clause the comment above describes had never bound in the
+     * history of the file. `stampSky` (below `candidates`) is the assignment; both producers call it.
+     *
+     * IT ALSO READ THE WRONG CANDIDATE. The loop runs [[A,B],[B,A]] and this asked `A.__weather` on
+     * BOTH passes, so even a populated field would have answered about the wrong half of the pair on
+     * the second one. It reads the SETTER, which is whose click is being judged.
+     *
+     * ABSENT IS NOT EMPTY, the same distinction `weatherLeft` makes between null and 0. `undefined`
+     * means this candidate came from a producer that does not stamp; that is counted and left at the
+     * pre-#286 behaviour, because inventing "no weather" for a candidate nobody asked the board
+     * about would be a silent default in the one place this row is about. */
+    const sky = setter.__weather;
+    if (sky === undefined) weatherCounters.jointSkyUnstamped++;
+    else if (norm(sky) === w) { weatherCounters.jointGuardBound++; continue; }
+    set('weatherSetupHelpsPartner', 1);
   }
 
   /* Life Dew, Hospitality, Jungle Healing. A move aimed at your own side that restores health --
@@ -552,7 +569,16 @@ const PRIOR_FLOOR = 0.0005;
  * store's `w` event names no setter, so a Heat Rock sun is clocked at its base length and ends three
  * turns early. Erring SHORT is the direction #270 already chose and this counts what it costs. */
 const weatherCounters = { up: 0, expired: 0, unknownAge: 0, noEngine: 0, noLength: 0, lengthThrew: 0,
-                          setRockless: 0, reDeclared: 0, rockLearnedLate: 0 };
+                          setRockless: 0, reDeclared: 0, rockLearnedLate: 0,
+                          /* ROADMAP #286 — the sky reaching the joint layer, proved rather than
+                           * assumed. `skyStamped` counts candidates carrying the board's weather;
+                           * `jointGuardBound` counts the times the "weather is already up" clause
+                           * actually suppressed the feature (it was 0 for the life of the file);
+                           * `jointSkyUnstamped` counts pairs asked by a producer that did not stamp,
+                           * which is the pre-#286 behaviour arriving as a NUMBER rather than as a
+                           * silent restoration of the defect. */
+                          skyStamped: 0, jointGuardBound: 0, jointSkyUnstamped: 0,
+                          skyStampNotAnArray: 0 };
 
 class Board {
   constructor() {
@@ -4232,7 +4258,47 @@ function candidates(moves, user, board, side, dex) {
    * roughly the right NUMBER of switches and the wrong ones, which is worse than not switching at
    * all: you take a free hit on the way in and land in a matchup you did not choose. */
   for (const sp of board.bench(side)) out.push({ move: null, targetMon: null, switchTo: sp, targetKey: 's:' + sp });
-  return out;
+  return stampSky(out, board);
+}
+
+/* *** THE SKY HAS TO REACH THE JOINT LAYER, AND NOTHING CARRIED IT — ROADMAP #286. ***
+ *
+ * `jointFeaturesFor(A, B, xa, xb)` takes no board, so the ONLY channel by which it can learn the
+ * weather is the candidate objects it is handed. It guarded `weatherSetupHelpsPartner` on
+ * `A.__weather`, a field with exactly one occurrence in the live tree — that read — so the pair
+ * scored "my partner sets the sun for your Fire move" even with the sun already up and the click
+ * doing nothing. This is the assignment.
+ *
+ * IT IS ONE FUNCTION AND BOTH PRODUCERS CALL IT. `candidates()` above builds the menu for the fitter,
+ * the fixtures and the rollouts; `magnemite._candsFor` builds it from the live REQUEST, which is
+ * authoritative about legality, and does not route through this file. Stamping in one of the two
+ * would be the fitting/playing mismatch CLAUDE.md names by its casualties — MAG fitted with the sheet
+ * visible and played without it, MACHAMP trained under broken mega.
+ *
+ * THE VALUE IS `board.weather`, THE EXPIRY-AWARE ACCESSOR (#276), never `_weatherWord`. A sun that
+ * has run out is not up, and suppressing a Sunny Day because of a lapsed one would be the opposite
+ * defect wearing this row's fix.
+ *
+ * NON-ENUMERABLE ON PURPOSE. Candidates are cloned with `Object.assign` and serialised in places this
+ * function cannot see; a hidden field cannot move a key, a hash or a JSON payload. It stays writable
+ * so a caller can still populate it by hand, which is how `gate_weather_guard.js` proves its own
+ * repair control.
+ *
+ * COUNTED, because a capability that cannot prove it ran is assumed broken. */
+function stampSky(cands, board) {
+  /* NOT AN ARRAY IS COUNTED, NOT THROWN AND NOT SWALLOWED. `magnemite._candsFor` hands its list back
+   * inside a `{cands, user, doubles}` wrapper, and stamping the wrapper crashed every self-play game
+   * on the first attempt. Throwing is louder but it kills a live ladder game over a feature guard;
+   * silently returning would restore the defect invisibly. So it counts, and `jointSkyUnstamped` on
+   * the reading side counts the consequence — two numbers rather than a crash or a silence. */
+  if (!Array.isArray(cands)) { weatherCounters.skyStampNotAnArray++; return cands; }
+  const w = board ? norm(board.weather || '') : '';
+  for (const c of cands) {
+    if (!c || typeof c !== 'object') continue;
+    Object.defineProperty(c, '__weather', { value: w, enumerable: false, configurable: true, writable: true });
+    weatherCounters.skyStamped++;
+  }
+  return cands;
 }
 
 /* The feature vector for bringing something else in. Deliberately short: the only things knowable
@@ -4421,7 +4487,7 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
  * stone that belongs to another species. One resolver, per CLAUDE.md's facts-are-global rule. */
 /* PUBLISHED BOTH WAYS. In node this is the module; in a browser it is globalThis.BOARD, so the page
  * can call the same featuresFor() the engine calls instead of maintaining a second scorer. */
-const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, sideFor, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, effSpecies, effective, effAbility, effTypes, effStats, effWeight, SELF_TARGETS, dmgFailures, probeFailures, damageEngine, dmgMon, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData,
+const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, stampSky, noteMove, fieldKey, sideFor, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, effSpecies, effective, effAbility, effTypes, effStats, effWeight, SELF_TARGETS, dmgFailures, probeFailures, damageEngine, dmgMon, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData,
   /* ROADMAP #145. `ppCounters` is exported for the same reason `dmgFailures` is: a capability that
    * cannot prove it ran is assumed broken, and `spent: 0` after a real game means this wire is inert.
    * `PP` is re-exported so the 40 files that already require board.js can reach the one PP fact

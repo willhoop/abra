@@ -242,7 +242,15 @@ try {
   SCORER_SAYS = execFileSync(process.execPath, ['engine/leaf_scoring.js', '--verify'],
     { cwd: D(), encoding: 'utf8' }).trim();
   SCORER_OK = /ALL MATCH/.test(SCORER_SAYS);
-} catch (e) { SCORER_SAYS = String((e && e.stdout) || '') + String((e && e.stderr) || ''); }
+} catch (e) {
+  /* ROADMAP #258 — the failure IS reported by the `if (!SCORER_OK)` block below, and this keeps the
+   * child's own output so the reason survives; what was missing was any statement that the verifier
+   * did not merely disagree, it did not RUN. */
+  SCORER_SAYS = String((e && e.stdout) || '') + String((e && e.stderr) || '');
+  console.error('  engine/leaf_scoring.js --verify DID NOT RUN TO COMPLETION — '
+              + String((e && e.message) || e).split(String.fromCharCode(10))[0]
+              + ' (this is not the same as it failing to match)');
+}
 if (!SCORER_OK) {
   console.error('engine/leaf_scoring.js does NOT reproduce the published data/winrate-backtest.json.\n'
     + 'Every number below would be computed by an unverified scorer. Refusing.\n' + SCORER_SAYS);
@@ -394,7 +402,17 @@ const INSTRUMENT = ['engine/leaf_engine_contrast.js', 'engine/leaf_scoring.js',
                     'engine/champions_sim.js', 'engine/quality.js', 'engine/miltank.js',
                     'engine/run_stamp.js', 'data/protocol-events.json', CENSUS];
 const stampInstrument = () => { const o = {};
-  for (const f of INSTRUMENT) { try { o[f] = sha12(D(f)); } catch (e) { o[f] = 'UNREADABLE'; } } return o; };
+  for (const f of INSTRUMENT) {
+    try { o[f] = sha12(D(f)); }
+    catch (e) {
+      /* ROADMAP #258 — 'UNREADABLE' is a real value and will never compare equal to a digest, which
+       * is the point; the reason is now printed too, so an instrument file that has gone missing
+       * mid-run does not simply appear as a string in a stamp nobody reads. */
+      o[f] = 'UNREADABLE';
+      console.error('  INSTRUMENT NOT STAMPED — ' + f + ' (' + String((e && e.message) || e).split(String.fromCharCode(10))[0] + ')');
+    }
+  }
+  return o; };
 
 function runShards(kind, rel, extra, tag) {
   const outs = [];

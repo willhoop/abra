@@ -134,7 +134,18 @@ async function main() {
  * one fact, per the FACTS ARE GLOBAL rule. Returns null if the artifact was never built, and the
  * caller must treat that as "cannot defer", never as "zero clicks". */
 function load() {
-  try { return JSON.parse(fs.readFileSync(OUT, 'utf8')); } catch (e) { return null; }
+  try { return JSON.parse(fs.readFileSync(OUT, 'utf8')); }
+  catch (e) {
+    /* ROADMAP #258 — NEVER BUILT and CORRUPT are different accidents and this returned the same null
+     * for both. The null stays (the caller's contract is "cannot defer"), but the reason is now said
+     * out loud, because a truncated artifact silently answering "not built" is how a caller ends up
+     * deferring on data it actually has. */
+    if (!(e && e.code === 'ENOENT')) {
+      console.error('  data/click-counts.json EXISTS AND COULD NOT BE PARSED — ' + String((e && e.message) || e).split(String.fromCharCode(10))[0]
+                  + '  (returning null, which the caller must read as CANNOT DEFER, never as zero clicks)');
+    }
+    return null;
+  }
 }
 function clicksFor(moveId) {
   const a = load();

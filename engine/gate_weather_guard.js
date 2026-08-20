@@ -17,7 +17,7 @@
  *
  * ================= WHAT IT ACTUALLY DOES ========================================================
  *
- * Three passes over `engine/feature_fixture.js`'s own staged boards — the canonical fixture, not a
+ * Four passes over `engine/feature_fixture.js`'s own staged boards — the canonical fixture, not a
  * second one written here, because a board hand-rolled in a gate is a claim about the fixture rather
  * than about the mechanic:
  *
@@ -41,6 +41,16 @@
  *                            It fails to drop -> exit 2, because then the gate no longer knows what
  *                            it is measuring.
  *
+ *   THE ORDER ARM          the same pair with only the SETTER's field populated, asked in BOTH
+ *                            argument positions. `jointFeaturesFor` already loops [[A,B],[B,A]], so
+ *                            its answer cannot depend on which argument the setter arrives in; this
+ *                            is exact, not sampled, so it cannot false-positive. It exists because
+ *                            the staged arm STRUCTURALLY CANNOT see #286's second defect — both
+ *                            candidates of a real pair come off the same board and carry the same
+ *                            stamp, so a guard reading the wrong half of the pair agrees by accident
+ *                            and looks fixed. Demonstrated: reverting `setter.__weather` to
+ *                            `A.__weather` leaves the staged arm at exit 0 and turns this one red.
+ *
  * WHY THE ARM GOES THROUGH THE CALLER AND NOT THROUGH THE FIELD. `jointFeaturesFor(A, B, xa, xb)`
  * takes no board, so the only channel by which it can learn the sky is the CANDIDATE OBJECTS. Setting
  * `A.__weather` here and calling it green would be this project's founding failure — a capability
@@ -50,8 +60,11 @@
  * pipeline, and it goes green for a repair at either end — the caller populating the field, or the
  * feature reading `board.weather` (the expiry-aware accessor #276 built) instead.
  *
- * IT FIXES NOTHING. `engine/board.js` is fit-invalidating and belongs to the divisions that own the
- * weights; #286 is filed against it and stays filed. This measures.
+ * IT FIXED NOTHING WHEN IT WAS BUILT, AND THE REPAIR LANDED AFTERWARDS — 2026-08-19. `board.js`
+ * `stampSky()` is the assignment the field never had, called by BOTH candidate producers
+ * (`board.candidates` for the fitter/fixtures/rollouts, `magnemite._candsFor` for live play), and the
+ * guard now reads the SETTER rather than always `A`. This file still only measures: it was red before
+ * that landed and green after, and it was shown red again on a deliberate revert of each half.
  *
  *   node engine/gate_weather_guard.js            the verdict, with every staged pair named
  *   node engine/gate_weather_guard.js --json
@@ -94,10 +107,20 @@ function verdict(m) {
          + 'pipeline carries the sky into the joint layer, so `\'\' !== w` is true for every '
          + 'non-empty w. The repair control drops to 0, so this gate goes green on a fix.' };
   }
+  if (m.orderAsymmetric > 0) {
+    return { code: 1, tag: 'LIVE (ARGUMENT ORDER)',
+      why: m.orderAsymmetric + ' of ' + m.orderChecked + ' staged pair(s) answer DIFFERENTLY when the '
+         + 'setter is handed as the second argument instead of the first. `jointFeaturesFor` loops '
+         + '[[A,B],[B,A]] and the guard read `A.__weather` on BOTH passes, so a populated field '
+         + 'answered about the wrong half of the pair — the second defect #286 recorded and did not '
+         + 'fix. It is invisible to the staged arm above, because both candidates of a real pair come '
+         + 'off the same board and therefore carry the same stamp.' };
+  }
   return { code: 0, tag: 'CLEAN',
     why: 'all ' + m.staged + ' staged pair(s) score 0 with the weather already up, and all '
        + m.controls + ' of them scored 1 with it down — so the guard binds and the control is not '
-       + 'vacuous.' };
+       + 'vacuous; and all ' + m.orderChecked + ' of them answer the same with the setter in either '
+       + 'argument position, so the guard reads the half of the pair it is about.' };
 }
 
 /* ---- the measurement ------------------------------------------------------------------------- */
@@ -186,7 +209,37 @@ function measure() {
         with_weather_down: 1, with_weather_up: j[IDX], with_field_populated: j2[IDX] });
     }
   }
-  return { controls: controls.length, staged, stillFiring, rows,
+  /* PASS 3 — THE ARGUMENT-ORDER ARM, WHICH THE STAGED ARM STRUCTURALLY CANNOT SEE.
+   *
+   * #286 recorded a SECOND defect in the same three lines and did not fix it: the loop runs
+   * [[A,B],[B,A]] and the guard read `A.__weather` on BOTH passes, so it asked about the wrong half
+   * of the pair whenever the setter was the second argument. PASS 2 cannot detect that, and saying so
+   * is the point — both candidates of a real pair come off the SAME board and therefore carry the
+   * same stamp, so the two reads agree by accident and a broken guard looks fixed.
+   *
+   * SO THIS ARM ASSERTS A PROPERTY OF THE FUNCTION, NOT A STAGED WORLD, and it is careful to be the
+   * former: `jointFeaturesFor(X, Y, ...)` already considers both orderings internally, so its answer
+   * MUST NOT depend on which argument the setter arrives in. That is exact — there is no threshold
+   * and no sampling — so it cannot false-positive, which is the bar this row's rejected static scan
+   * failed. The boards carry NO weather here, so only the setter's hand-populated stamp differs, and
+   * that is exactly the asymmetry the wrong-half read turns into a wrong answer. */
+  let orderChecked = 0, orderAsymmetric = 0;
+  {
+    const slots = FIX.build(dex);
+    for (const c of controls) {
+      const A = slots.find((s) => s.label === c.label);
+      const P = A && partnerOf(slots, A);
+      if (!A || !P || !A.cands[c.ia] || !P.cands[c.ib]) continue;
+      const setter = Object.assign(Object.create(Object.getPrototypeOf(A.cands[c.ia]) || Object.prototype), A.cands[c.ia]);
+      setter.__weather = c.w;                       /* the setter knows the sky; the partner does not */
+      const first = B.jointFeaturesFor(setter, P.cands[c.ib], A.feats[c.ia], P.feats[c.ib])[IDX];
+      const second = B.jointFeaturesFor(P.cands[c.ib], setter, P.feats[c.ib], A.feats[c.ia])[IDX];
+      orderChecked++;
+      if (first !== second) orderAsymmetric++;
+    }
+  }
+
+  return { controls: controls.length, staged, stillFiring, rows, orderChecked, orderAsymmetric,
     repairProved: repairChecked > 0 && repairDropped === repairChecked,
     repair_checked: repairChecked, repair_dropped: repairDropped };
 }
@@ -195,7 +248,8 @@ function measure() {
 if (has('--selftest')) {
   let ran = 0, bad = 0;
   const ok = (n, c, got) => { ran++; if (!c) bad++; console.log(`  ${c ? 'ok  ' : 'FAIL'} ${n}${c ? '' : '   got ' + JSON.stringify(got)}`); };
-  const M = (o) => Object.assign({ controls: 2, staged: 2, stillFiring: 0, repairProved: true }, o);
+  const M = (o) => Object.assign({ controls: 2, staged: 2, stillFiring: 0, repairProved: true,
+                                   orderChecked: 2, orderAsymmetric: 0 }, o);
 
   ok('GREEN only when every staged pair reads 0 with the weather up',
     verdict(M({})).code === 0, verdict(M({})));
@@ -213,6 +267,12 @@ if (has('--selftest')) {
     verdict({ error: 'board.js renamed the feature' }).code === 2 && verdict(null).code === 2);
   ok('the LIVE verdict names the count and the denominator, so a partial regression is legible',
     /1 of 2 staged/.test(verdict(M({ stillFiring: 1 })).why));
+  ok('RED — the guard reading the WRONG HALF of the pair is exit 1 even when every staged pair is '
+    + 'clean: the staged arm cannot see it, so it gets its own verdict rather than none',
+    verdict(M({ orderAsymmetric: 1 })).code === 1
+    && /ARGUMENT ORDER/.test(verdict(M({ orderAsymmetric: 1 })).tag));
+  ok('the staged defect outranks the order defect, so the headline names the one that is firing',
+    verdict(M({ stillFiring: 1, orderAsymmetric: 1 })).tag === 'LIVE');
 
   console.log(`\nWEATHER-GUARD GATE SELFTEST: ${ran - bad} passed, ${bad} failed`);
   process.exit(bad ? 1 : 0);
@@ -230,6 +290,7 @@ const out = {
   control_pairs: m.controls || 0, staged_pairs: m.staged || 0, still_firing: m.stillFiring || 0,
   repair_control: m.repairProved ? (m.repair_dropped + '/' + m.repair_checked + ' drop to 0 when the '
     + 'guard field is populated by hand') : 'NOT PROVED',
+  order_checked: m.orderChecked || 0, order_asymmetric: m.orderAsymmetric || 0,
   verdict: v.tag, exit: v.code, why: v.why, rows: m.rows || [],
 };
 
@@ -241,6 +302,8 @@ console.log('  fixture   engine/feature_fixture.js (the canonical staged boards)
 console.log('  control   ' + out.control_pairs + ' pair(s) score 1 with the weather DOWN'
           + '   staged with it UP: ' + out.staged_pairs);
 console.log('  repair    ' + out.repair_control);
+console.log('  order     ' + (out.order_checked - out.order_asymmetric) + '/' + out.order_checked
+          + ' answer the same with the setter in either argument position');
 console.log('');
 console.log('  ' + v.tag + '   ' + v.why);
 for (const r of out.rows) {

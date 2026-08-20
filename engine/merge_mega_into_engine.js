@@ -208,7 +208,18 @@ const megaMv = { sheet: [], smogon: [], emptied: [], kept: [] };
 async function applySheetMovesets() {
   const { sets, stats } = await SHEETS.collect();
   let priors = null;
-  try { priors = JSON.parse(fs.readFileSync(D('smogon-priors.json'), 'utf8')); } catch (e) { priors = null; }
+  try { priors = JSON.parse(fs.readFileSync(D('smogon-priors.json'), 'utf8')); }
+  catch (e) {
+    /* ROADMAP #258 — no priors is a real state and it must not be reachable by accident. The null
+     * stays; the reason is printed, so a corrupt priors file cannot masquerade as a deliberate
+     * sheet-only pass. */
+    priors = null;
+    if (!(e && e.code === 'ENOENT')) {
+      console.error('  data/smogon-priors.json EXISTS AND COULD NOT BE READ — '
+                  + String((e && e.message) || e).split(String.fromCharCode(10))[0]
+                  + '; this pass proceeds with NO priors');
+    }
+  }
   /* A SHEET PASS THAT OBSERVED NOTHING MUST NOT EMPTY THE TABLE. A missing store and a store with no
    * sheets are different accidents from "this forme is genuinely unobserved", and only the last one
    * justifies clearing a row. Refuse rather than destroy. */

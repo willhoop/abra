@@ -1,26 +1,26 @@
 {
-  "generated": "2026-08-18T13:09:40.382Z",
+  "generated": "2026-08-19T23:57:44.050Z",
   "by": "engine/register_reality.js",
   "what": "Every register row that names the instrument deciding it, run, with its exit code compared to the row's open/closed status.",
   "why": "docs/ROADMAP.md is read by engine/quarantine.js as a GATE INPUT and nothing checked it against reality. On 2026-08-14 four rows were stale rather than live and two of them were put in front of a human as the place to start. A row nobody re-verifies is prose.",
   "weaker_than_it_looks": "A green instrument means THAT instrument sees nothing. It is not a derivation of the row's claim. It is strictly more than the register had, which was nothing.",
   "counts": {
-    "register_rows": 223,
-    "id_rows": 268,
-    "open_asserting_breakage": 10,
+    "register_rows": 227,
+    "id_rows": 272,
+    "open_asserting_breakage": 7,
     "marked": 30,
-    "open_asserting_breakage_and_marked": 6,
+    "open_asserting_breakage_and_marked": 4,
     "stale_rows": 0,
-    "premature_closes": 1,
+    "premature_closes": 2,
     "unrunnable": 0,
     "instrument_owed": 3,
-    "open_asserting_breakage_and_owed": 3,
+    "open_asserting_breakage_and_owed": 2,
     "distinct_commands_run": 21
   },
   "instrument_owed": [
     {
       "n": 299,
-      "owes": "the artifact must persist `void` and `usable` beside `games` and `diverged`, and then `wholeGameClause` must publish the usable rate — a clause cannot derive a denominator that was never written down",
+      "owes": "the artifact must persist `void` and `usable` beside `games` and `diverged`, and then `wholeGameClause` must publish the usable rate — a clause cannot derive a denominator that was never written down. **LANDED 2026-08-18 BY ENGINE, AND THE POPULATION WAS NOT WHAT THE VOID RULE SAID IT WAS.** `mid_void` is now in the artifact — `void_games`, `usable_games`, `diverged_among_usable`, `diverged_rate_over_usable`, and every verdict the check reached BY CAUSE. Printing the causes killed the headline: **340 of 350 voided games had drawn no comparable address at all**, 275 of them because NEITHER engine rolled a die in the whole game (median 12 turns, the cap). Under the count-based check an empty side meant the streams had parted; under shared-address identity there is nothing to disagree about, and the rule already said so two clauses down for the OUTCOME log while contradicting itself for the full one. A dice-free game is the most trustworthy evidence in the run, not the least. **AND THE REAL DESYNC WAS #302, ONE FILE OVER.** Void on the same 797-game sample: 350 (old rule) -> 11 (rule corrected) -> 8 (#302 fixed). VERIFIED BY tests/test-middle-draw-scope.js, whose §6 re-runs itself with `--mid-carry-nth` and fails if the broken arm passes",
       "title": "THE WHOLE-GAME HEADLINE IS COMPUTED OVER A DENOMINATOR THAT INCLUDES 350 VOID GAMES, AND T"
     },
     {
@@ -44,7 +44,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 1407,
+      "ms": 1512,
       "verdict": "CONFIRMED"
     },
     {
@@ -56,7 +56,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 2791,
+      "ms": 2604,
       "verdict": "CONFIRMED"
     },
     {
@@ -68,7 +68,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 1641,
+      "ms": 1407,
       "verdict": "CONFIRMED"
     },
     {
@@ -79,8 +79,8 @@
       "cmd": "node engine/quarantine.js --whole-game",
       "owed": null,
       "green": false,
-      "why": "exit 1",
-      "ms": 126,
+      "why": "exit 2",
+      "ms": 71,
       "verdict": "CONFIRMED"
     },
     {
@@ -90,10 +90,10 @@
       "saysBroken": true,
       "cmd": "node engine/gate_offfield_target.js",
       "owed": null,
-      "green": true,
-      "why": "exit 0",
-      "ms": 80,
-      "verdict": "CONFIRMED"
+      "green": false,
+      "why": "exit 2",
+      "ms": 73,
+      "verdict": "PREMATURE CLOSE"
     },
     {
       "n": 241,
@@ -103,8 +103,8 @@
       "cmd": "node engine/gate_fail_and_silent.js",
       "owed": null,
       "green": false,
-      "why": "exit 1",
-      "ms": 77,
+      "why": "exit 2",
+      "ms": 68,
       "verdict": "CONFIRMED"
     },
     {
@@ -116,7 +116,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 705,
+      "ms": 647,
       "verdict": "CONFIRMED"
     },
     {
@@ -128,7 +128,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 212,
+      "ms": 191,
       "verdict": "CONFIRMED"
     },
     {
@@ -140,7 +140,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 212,
+      "ms": 191,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -153,7 +153,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 212,
+      "ms": 191,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -166,7 +166,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 701,
+      "ms": 661,
       "verdict": "CONFIRMED"
     },
     {
@@ -178,7 +178,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 701,
+      "ms": 661,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -191,7 +191,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 701,
+      "ms": 661,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -204,7 +204,7 @@
       "owed": null,
       "green": false,
       "why": "exit 1",
-      "ms": 588,
+      "ms": 638,
       "verdict": "CONFIRMED"
     },
     {
@@ -216,7 +216,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 744,
+      "ms": 746,
       "verdict": "CONFIRMED"
     },
     {
@@ -228,7 +228,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 744,
+      "ms": 746,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -241,7 +241,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 744,
+      "ms": 746,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -254,7 +254,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 744,
+      "ms": 746,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -267,7 +267,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 649,
+      "ms": 659,
       "verdict": "CONFIRMED"
     },
     {
@@ -279,7 +279,7 @@
       "owed": null,
       "green": false,
       "why": "exit 1",
-      "ms": 5399,
+      "ms": 6051,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -291,7 +291,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 1094,
+      "ms": 1193,
       "verdict": "CONFIRMED"
     },
     {
@@ -303,7 +303,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 62,
+      "ms": 68,
       "verdict": "CONFIRMED"
     },
     {
@@ -315,32 +315,32 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 1094,
+      "ms": 1193,
       "cached": true,
       "verdict": "CONFIRMED"
     },
     {
       "n": 286,
       "title": "`weatherSetupHelpsPartner` GUARDS ITSELF ON A FIELD NOTHING EVER WRITES, SO ITS \"ONLY IF T",
-      "closed": false,
-      "saysBroken": true,
+      "closed": true,
+      "saysBroken": false,
       "cmd": "node engine/gate_weather_guard.js",
       "owed": null,
-      "green": false,
-      "why": "exit 1",
-      "ms": 905,
+      "green": true,
+      "why": "exit 0",
+      "ms": 1063,
       "verdict": "CONFIRMED"
     },
     {
       "n": 287,
       "title": "`data/seed-source-audit.json` NAMES THE `basePowerCallback` CLASS BY SUBSTRING-MATCHING A ",
-      "closed": false,
-      "saysBroken": true,
+      "closed": true,
+      "saysBroken": false,
       "cmd": "node engine/gate_seed_source_audit.js",
       "owed": null,
-      "green": false,
-      "why": "exit 1",
-      "ms": 811,
+      "green": true,
+      "why": "exit 0",
+      "ms": 810,
       "verdict": "CONFIRMED"
     },
     {
@@ -351,8 +351,8 @@
       "cmd": "node engine/quarantine.js --order-probe",
       "owed": null,
       "green": false,
-      "why": "exit 1",
-      "ms": 79,
+      "why": "exit 2",
+      "ms": 72,
       "verdict": "CONFIRMED"
     },
     {
@@ -364,7 +364,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 234,
+      "ms": 193,
       "verdict": "CONFIRMED"
     },
     {
@@ -376,7 +376,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 144,
+      "ms": 139,
       "verdict": "CONFIRMED"
     },
     {
@@ -388,7 +388,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 144,
+      "ms": 139,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -401,7 +401,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 161,
+      "ms": 143,
       "verdict": "CONFIRMED"
     }
   ],

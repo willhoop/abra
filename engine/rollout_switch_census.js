@@ -163,7 +163,13 @@ function walk(log) {
 
 function digestOf(f) {
   try { return crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex').slice(0, 16); }
-  catch (e) { return null; }
+  catch (e) {
+    /* ROADMAP #258 — a null digest is stamped so an unreadable file can never compare EQUAL to a
+     * present one, and the reason is printed so a stamp that has quietly lost a file is visible. */
+    console.error('  NO DIGEST — ' + f + ' (' + String((e && e.message) || e).split(String.fromCharCode(10))[0]
+                + '); stamped null, which is NOT "unchanged"');
+    return null;
+  }
 }
 
 async function censusOne(store) {

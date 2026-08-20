@@ -83,7 +83,17 @@ function readCurrentRelease() {
   try {
     const c = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'engine-release.json'), 'utf8'));
     return c.id || c.release || c.current || null;
-  } catch (e) { return null; }
+  } catch (e) {
+    /* ROADMAP #258 — NO RELEASE POINTER and A RELEASE POINTER I COULD NOT READ are different, and
+     * only the second one is a broken checkout. Null still means "cannot compare releases", which
+     * every caller of this already treats as an absence rather than as a match. */
+    if (!(e && e.code === 'ENOENT')) {
+      console.error('  data/engine-release.json EXISTS AND COULD NOT BE READ — '
+                  + String((e && e.message) || e).split(String.fromCharCode(10))[0]
+                  + '; this gate will report NO CURRENT RELEASE, which is not the same as a match');
+    }
+    return null;
+  }
 }
 
 function measure(curId) {

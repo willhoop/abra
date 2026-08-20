@@ -680,6 +680,11 @@ function checkLegal(o) {
  * learnset walk found 7 carriers where the validator finds 26.
  * ============================================================================================== */
 let _roster = null, _abilityCarriers = null;
+/* ROADMAP #258 — the learnset validator's REFUSALS, counted. `canLearn` answers a FACT about this
+ * format and used to return `false` on an exception with nothing said, so a validator that started
+ * throwing would look exactly like a format that had forgotten its learnsets. Exported so a caller
+ * can assert it is zero. */
+const learnCounters = { validatorThrew: 0, firstThrow: '' };
 const _learn = new Map(), _moveCarriers = new Map();
 const _id = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -717,7 +722,20 @@ function canLearn(species, move) {
   if (_learn.has(k)) return _learn.get(k);
   if (!_validator) _validator = new TeamValidator(FORMAT);
   let ok = false;
-  try { ok = _validator.checkCanLearn(mv, sp, _validator.allSources(sp), {}) == null; } catch (e) { ok = false; }
+  /* ROADMAP #258 — A VALIDATOR THAT THREW IS NOT A MOVE THAT CANNOT BE LEARNED. This returned `false`
+   * on any exception, so a TeamValidator failure became a LEGALITY CLAIM about this format, published
+   * with the same confidence as a real answer. `false` stays (refusing to teach a move we cannot
+   * confirm is the safe direction) but it is now COUNTED and named, so a validator that starts
+   * throwing shows up as a number instead of as a format that quietly forgot its learnsets. */
+  try { ok = _validator.checkCanLearn(mv, sp, _validator.allSources(sp), {}) == null; }
+  catch (e) {
+    ok = false;
+    learnCounters.validatorThrew++;
+    if (!learnCounters.firstThrow) {
+      learnCounters.firstThrow = sp.id + '/' + mv.id + ': ' + String((e && e.message) || e).split(String.fromCharCode(10))[0];
+      console.error('  checkCanLearn THREW and the answer was recorded as CANNOT LEARN — ' + learnCounters.firstThrow);
+    }
+  }
   _learn.set(k, ok);
   return ok;
 }
@@ -750,7 +768,7 @@ function unreachable(kind, id) {
 
 module.exports = { FORMAT, PINNED_COMMIT, PINNED_DATE, actualCommit, verify, packTeam, battle, winProb, sim,
                    snapshot, forkBattle, checkLegal, firstLegalMove, LEGAL_SPREAD, INERT_MOVE,
-                   legalRoster, abilityCarriers, moveCarriers, canLearn, unreachable };
+                   legalRoster, abilityCarriers, moveCarriers, canLearn, unreachable, learnCounters };
 
 if (require.main === module) {
   const v = verify();

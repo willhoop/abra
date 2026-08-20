@@ -60,7 +60,13 @@ const D = Dex.forFormat(CS.FORMAT);
 const TAGS = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'tags.json'), 'utf8'));
 const CLICKS = (() => {
   try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'click-counts.json'), 'utf8')); }
-  catch (e) { return null; }
+  catch (e) {
+    /* ROADMAP #258 — a null here reaches every scenario as "no click data", which reads exactly like
+     * "nobody clicks this". Said out loud rather than manufactured. */
+    console.error('  UNREADABLE — data/click-counts.json (' + String((e && e.message) || e).split(String.fromCharCode(10))[0]
+                + '); scenario usage is UNKNOWN in this run, not zero');
+    return null;
+  }
 })();
 
 /* ---- THE ARCHETYPE RULES ------------------------------------------------------------------------

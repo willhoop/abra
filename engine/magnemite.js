@@ -863,7 +863,18 @@ function makeScoringPlayer(opts = {}) {
         });
       }
 
-      return this._dropDeadVolatiles(cands, user, doubles);
+      /* ROADMAP #286 — THE SKY IS STAMPED HERE TOO, AND THAT IS THE WHOLE POINT OF THE ROW.
+       * `jointFeaturesFor` takes no board, so it learns the weather only from the candidate objects.
+       * `board.stampSky` is the one implementation and `board.candidates` calls it as well; this menu
+       * comes from the live REQUEST and never routes through that function, so stamping only there
+       * would fix the fitter and leave the PLAYER guarding on a field nothing writes — fitting and
+       * playing environments diverging, which is the failure CLAUDE.md names twice. */
+      /* `_dropDeadVolatiles` hands back `{cands, user, doubles}` or null — NOT an array. Stamping the
+       * wrapper is what a first attempt did and `tests/test-wiring.js` caught it in one run, which is
+       * exactly what that file exists for. */
+      const built = this._dropDeadVolatiles(cands, user, doubles);
+      if (built) B.stampSky(built.cands, this.board);
+      return built;
     }
 
     /* ---- A MOVE WHOSE ONLY EFFECT IS A VOLATILE THE TARGET ALREADY HAS --------------------------

@@ -79,9 +79,21 @@ const CS = require('./champions_sim.js');
 const ROOT = path.join(__dirname, '..');
 const SKIP_DIRS = new Set(['node_modules', '.git', 'data', 'docs', 'dist', 'coverage']);
 
+/* ROADMAP #258 — A DIRECTORY THIS SCAN COULD NOT OPEN IS NOT A DIRECTORY WITH NOTHING IN IT.
+ * `return out` on a read failure makes a legality scan pass by looking at less, which is the exact
+ * shape of the defect the scan exists to catch. The walk still continues (one unreadable directory
+ * must not kill the run), and the skipped directories are recorded so the caller can refuse. */
+const UNWALKED = [];
 function walk(dir, out) {
   let ents;
-  try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return out; }
+  try { ents = fs.readdirSync(dir, { withFileTypes: true }); }
+  catch (e) {
+    const msg = String((e && e.message) || e).split(String.fromCharCode(10))[0];
+    UNWALKED.push({ dir, error: msg });
+    console.error('  UNWALKED — ' + dir + ' could not be listed (' + msg + '); this scan covers LESS '
+                + 'than it appears to');
+    return out;
+  }
   for (const e of ents) {
     if (SKIP_DIRS.has(e.name)) continue;
     const p = path.join(dir, e.name);

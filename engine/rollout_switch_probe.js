@@ -48,7 +48,18 @@ const FP = require('./fit_policy.js');
 const JR = require('./joint_rows.js');
 const B = require('./board.js');
 const RL = require('./rollout_leaf.js');
-const RS = (() => { try { return require('./run_stamp.js'); } catch (e) { return null; } })();
+/* ROADMAP #258 — run_stamp is optional, and "it is not installed" must not look like "it is broken".
+ * The null is kept; the reason is printed, because an artifact silently losing its run stamp is
+ * exactly the provenance hole this repository has paid for twice. */
+const RS = (() => {
+  try { return require('./run_stamp.js'); }
+  catch (e) {
+    console.error('  NO RUN STAMP — engine/run_stamp.js would not load ('
+                + String((e && e.message) || e).split(String.fromCharCode(10))[0]
+                + '); this run will publish WITHOUT a stamp');
+    return null;
+  }
+})();
 
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);

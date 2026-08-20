@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-15T03:51:47.955Z",
+  "generated": "2026-08-19T23:39:08.760Z",
   "by": "engine/seed_source_audit.js",
   "what": "every derived table on the seeding path, audited against the regulation — ROADMAP #282 and the open remainder of #244",
   "format": "gen9championsvgc2026regmb",
@@ -69,46 +69,32 @@
     ]
   },
   "basePowerCallbackClass": {
+    "derivedBy": "engine/board.js unmodelledBasePower(dex, board) — the callbacks are ASKED, never grepped. See ROADMAP #287 for what the fifteen-string list got wrong.",
+    "boardsInTheUnion": 14,
+    "boardUnionIncomplete": null,
     "legalCallbackMoves": 29,
-    "fellThroughOnACleanBoard": 19,
-    "readUnmodelledState": 6,
+    "fellThroughOnACleanBoard": 18,
+    "readUnmodelledState": 4,
     "readUnmodelledStateList": [
       {
-        "id": "assurance",
-        "reads": [
-          "hurtThisTurn"
-        ]
+        "id": "avalanche",
+        "name": "Avalanche",
+        "firstSeenOn": "an empty board"
       },
       {
         "id": "beatup",
-        "reads": [
-          "allies"
-        ]
-      },
-      {
-        "id": "lastrespects",
-        "reads": [
-          "totalFainted"
-        ]
+        "name": "Beat Up",
+        "firstSeenOn": "an empty board"
       },
       {
         "id": "payback",
-        "reads": [
-          "queue",
-          "newlySwitched"
-        ]
+        "name": "Payback",
+        "firstSeenOn": "an empty board"
       },
       {
-        "id": "spitup",
-        "reads": [
-          "stockpile"
-        ]
-      },
-      {
-        "id": "watershuriken",
-        "reads": [
-          "battle"
-        ]
+        "id": "ragefist",
+        "name": "Rage Fist",
+        "firstSeenOn": "an empty board"
       }
     ],
     "rows": [
@@ -118,7 +104,7 @@
         "printed": 65,
         "computed": 65,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "ragefist",
@@ -126,7 +112,7 @@
         "printed": 50,
         "computed": 50,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": true
       },
       {
         "id": "acrobatics",
@@ -134,7 +120,7 @@
         "printed": 55,
         "computed": 110,
         "fellThrough": false,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "assurance",
@@ -142,9 +128,7 @@
         "printed": 60,
         "computed": 60,
         "fellThrough": true,
-        "unmodelledReads": [
-          "hurtThisTurn"
-        ]
+        "cannotProduceANumber": false
       },
       {
         "id": "avalanche",
@@ -152,17 +136,15 @@
         "printed": 60,
         "computed": 60,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": true
       },
       {
         "id": "beatup",
         "name": "Beat Up",
         "printed": 0,
-        "computed": 0,
-        "fellThrough": true,
-        "unmodelledReads": [
-          "allies"
-        ]
+        "computed": 13,
+        "fellThrough": false,
+        "cannotProduceANumber": true
       },
       {
         "id": "electroball",
@@ -170,7 +152,7 @@
         "printed": 0,
         "computed": 60,
         "fellThrough": false,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "eruption",
@@ -178,7 +160,7 @@
         "printed": 150,
         "computed": 150,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "flail",
@@ -186,7 +168,7 @@
         "printed": 0,
         "computed": 20,
         "fellThrough": false,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "grassknot",
@@ -194,7 +176,7 @@
         "printed": 0,
         "computed": 40,
         "fellThrough": false,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "gyroball",
@@ -202,7 +184,7 @@
         "printed": 0,
         "computed": 22,
         "fellThrough": false,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "hardpress",
@@ -210,7 +192,7 @@
         "printed": 0,
         "computed": 100,
         "fellThrough": false,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "heatcrash",
@@ -218,7 +200,7 @@
         "printed": 0,
         "computed": 120,
         "fellThrough": false,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "heavyslam",
@@ -226,7 +208,7 @@
         "printed": 0,
         "computed": 120,
         "fellThrough": false,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "hex",
@@ -234,7 +216,7 @@
         "printed": 65,
         "computed": 65,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "lastrespects",
@@ -242,9 +224,7 @@
         "printed": 50,
         "computed": 50,
         "fellThrough": true,
-        "unmodelledReads": [
-          "totalFainted"
-        ]
+        "cannotProduceANumber": false
       },
       {
         "id": "lowkick",
@@ -252,7 +232,7 @@
         "printed": 0,
         "computed": 40,
         "fellThrough": false,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "payback",
@@ -260,10 +240,7 @@
         "printed": 50,
         "computed": 50,
         "fellThrough": true,
-        "unmodelledReads": [
-          "queue",
-          "newlySwitched"
-        ]
+        "cannotProduceANumber": true
       },
       {
         "id": "powertrip",
@@ -271,7 +248,7 @@
         "printed": 20,
         "computed": 20,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "reversal",
@@ -279,7 +256,7 @@
         "printed": 0,
         "computed": 20,
         "fellThrough": false,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "risingvoltage",
@@ -287,7 +264,7 @@
         "printed": 70,
         "computed": 70,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "round",
@@ -295,7 +272,7 @@
         "printed": 60,
         "computed": 60,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "spitup",
@@ -303,9 +280,7 @@
         "printed": 0,
         "computed": 0,
         "fellThrough": true,
-        "unmodelledReads": [
-          "stockpile"
-        ]
+        "cannotProduceANumber": false
       },
       {
         "id": "stompingtantrum",
@@ -313,7 +288,7 @@
         "printed": 75,
         "computed": 75,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "storedpower",
@@ -321,7 +296,7 @@
         "printed": 20,
         "computed": 20,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "temperflare",
@@ -329,7 +304,7 @@
         "printed": 75,
         "computed": 75,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "tripleaxel",
@@ -337,7 +312,7 @@
         "printed": 20,
         "computed": 20,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       },
       {
         "id": "watershuriken",
@@ -345,9 +320,7 @@
         "printed": 15,
         "computed": 15,
         "fellThrough": true,
-        "unmodelledReads": [
-          "battle"
-        ]
+        "cannotProduceANumber": false
       },
       {
         "id": "waterspout",
@@ -355,13 +328,18 @@
         "printed": 150,
         "computed": 150,
         "fellThrough": true,
-        "unmodelledReads": []
+        "cannotProduceANumber": false
       }
     ]
   },
   "openAndNotFixed": {
-    "row": 244,
-    "what": "board.movePower builds no side.totalFainted, so Last Respects is scored at its printed floor in every FEATURE MAG ranks with, whatever the position says",
-    "whyNotFixed": "it moves fitted feature values. engine/feature_fixture.js's 58 per-feature column hashes MOVE when movePower's callback path is disabled — measured, not argued — so a fix here owes data/policy-weights.json a refit, and the refit is gated behind MEDICHAM by Will's own instruction"
+    "checkedAgainst": "docs/ROADMAP.md via quarantine.roadmapRowIsClosed",
+    "rows": [],
+    "dropped": [
+      {
+        "row": 244,
+        "why": "the register reads this row CLOSED — the caveat outlived what it described and is dropped, not annotated"
+      }
+    ]
   }
 }

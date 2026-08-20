@@ -53,14 +53,22 @@ const CS = require('./champions_sim.js');
 const { Dex } = CS.sim();
 const D = Dex.forFormat(CS.FORMAT);
 const TAGS = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'tags.json'), 'utf8'));
-const CLICKS = (() => {
-  try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'click-counts.json'), 'utf8')).moves || {}; }
-  catch (e) { return null; }
-})();
-const SHEETS = (() => {
-  try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'sheet-usage.json'), 'utf8')); }
-  catch (e) { return null; }
-})();
+/* ROADMAP #258 — AN ARTIFACT THAT COULD NOT BE READ SAYS SO. Both of these returned a bare `null` on
+ * any failure, and `null` here reaches every row as "no usage data", which is indistinguishable from
+ * "this move is never clicked" in a file whose whole job is to say where each number came from. */
+const UNREADABLE_INPUTS = [];
+const readOrSay = (rel, pick) => {
+  try { return pick(JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf8'))); }
+  catch (e) {
+    const msg = String((e && e.message) || e).split(String.fromCharCode(10))[0];
+    UNREADABLE_INPUTS.push({ file: rel, error: msg });
+    console.error('  UNREADABLE — ' + rel + ' (' + msg + '); every row that needed it will say so, '
+                + 'and NONE of them will read as zero usage');
+    return null;
+  }
+};
+const CLICKS = readOrSay('data/click-counts.json', (j) => j.moves || {});
+const SHEETS = readOrSay('data/sheet-usage.json', (j) => j);
 
 /* ===== EVERY ROW MUST SAY WHERE ITS NUMBER CAME FROM. THIS IS THE RULE, NOT A FIELD. ===============
  *

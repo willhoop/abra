@@ -10,6 +10,78 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.47.0] — 2026-08-19
+
+### Fixed
+- **`weatherSetupHelpsPartner` GUARDED ITSELF ON A FIELD NOTHING WROTE, AND NOW SOMETHING WRITES IT
+  (ROADMAP #286).** `engine/board.js` gained `stampSky(cands, board)` — the assignment `__weather`
+  never had — and **both** candidate producers call it: `board.candidates` (fitter, fixtures,
+  rollouts) and `magnemite._candsFor`, which builds from the live REQUEST and never routed through
+  the first. Stamping one would have been the fitting/playing mismatch this project names by its
+  casualties. The value is `board.weather`, the expiry-aware accessor, never `_weatherWord`. The
+  second defect the row recorded is fixed too: the guard reads `setter.__weather`, not always
+  `A.__weather`. `engine/gate_weather_guard.js` went **exit 1 -> exit 0**, and gained a fourth pass
+  because the staged arm structurally could not see the wrong-half read — both candidates of a real
+  pair share a board and therefore a stamp, so it agreed by accident. Both halves shown RED on a
+  deliberate break first; selftest 9 cases, 0 failing.
+- **`data/seed-source-audit.json` NAMED A CLASS BY SUBSTRING-MATCHING FIFTEEN TYPED STRINGS
+  (ROADMAP #287).** `STUB_HAS_NO` is gone. The class is derived by calling
+  `board.unmodelledBasePower(dex, board)` — asking each callback to produce a number — over a union
+  of an empty board, the audit's staged board and every canonical fixture board, with the board
+  count recorded and a fixture that will not build REPORTED rather than swallowed. The artifact's
+  `openAndNotFixed` block keeps its authored caveat text but reads OPEN/CLOSED from `docs/ROADMAP.md`
+  through `quarantine.roadmapRowIsClosed`, imported and never copied; #244 reads CLOSED so the
+  caveat is dropped with its reason, and an unreadable register WITHHOLDS every caveat instead of
+  publishing on an unchecked premise. `engine/gate_seed_source_audit.js` went **exit 1 -> exit 0**.
+- **THE #287 GATE'S SECOND ARM WENT BLIND WHEN THE ARTIFACT CHANGED SHAPE.** It read `.row` off a
+  single object; the repair made `openAndNotFixed` an envelope, the arm found zero assertions and
+  reported GREEN — a check that stops looking and calls the silence a pass. It now accepts three
+  shapes and REFUSES anything else with exit 2. Found by breaking the artifact deliberately.
+- **TWENTY-FOUR SILENT CATCH BLOCKS THAT MANUFACTURED A VALUE (ROADMAP #258).** Every one that was
+  reachable this session: `mod_audit` x3, `champions_sim` (a `checkCanLearn` exception became a
+  legality claim about this format), `million_targets` x2, `click_counts`, `scenario_catalogue`,
+  `mega_census` x2, `fixture_legality` (a legality scan that passed by walking less),
+  `conformance`, `diff_swarm` x2, `quarantine` (a declared-divergence matcher that threw moved its
+  cause into UNDECLARED and inflated the published rate), `gate_offfield_target`,
+  `merge_mega_into_engine`, `rollout_switch_census`, `rollout_switch_probe`, `million_run` x2,
+  `leaf_engine_contrast` x2, `seed_source_audit`. Each keeps the conservative value and adds the
+  reason — a counter, a named `console.error`, or both.
+
+### Changed
+- `engine/board.js` exports `stampSky`, and `weatherCounters` gained `skyStamped`,
+  `jointGuardBound`, `jointSkyUnstamped` and `skyStampNotAnArray`, so the capability can prove it
+  ran. Measured on a 4-game self-play through the live joint path: `skyStamped=6779`,
+  `jointSkyUnstamped=0`, `skyStampNotAnArray=0`.
+- `engine/champions_sim.js` exports `learnCounters`; `engine/quarantine.js` publishes
+  `declared_matcher_threw` beside the declared count.
+- `data/seed-source-audit.json` and `data/mod-audit.json` regenerated.
+
+### Notes
+- **REACH OF THE #286 REPAIR, MEASURED WEIGHT-FREE.** Over **2,000 corpus games, 21,757 joint
+  decision points, 1,211,091 pair evaluations** through `joint_rows.build` with a ZERO ranker and K
+  above the longest candidate list, so no pair is dropped by a quarantined number, and both arms
+  taken from one process so a moving simulator cannot separate them: the feature fired **344 times
+  before and 219 after — 125 suppressed, 36.3% of every firing of this column was a redundant
+  weather setup** — on 64 of 21,757 decision points (0.29%). At 300 games the same figure reads
+  49.2% of 59 fires; treat the small sample as noise around the large one. **The argmax-flip rate is
+  WITHHELD, not unmeasured**: each flipped pair's score moves by exactly the fitted weight for this
+  column and that vector is quarantined.
+- **THE #287 ROW'S STATED REASON FOR NOT REGENERATING WAS MEASURED AND IS FALSE.** With
+  `engine/tags.js` and `data/tags.json` both made unreadable by a preload, the regenerated artifact
+  is byte-identical apart from its timestamp. The file's header already declared it does not read
+  tags; that declaration is now checked rather than trusted.
+- **ROADMAP #258 IS STILL RED AND THAT IS STATED, NOT FILED.** 91 NEW silent blocks became 67, and
+  48 NEW-manufacturing became 24. All 24 that remain are in files another division held this
+  session: `engine/game_differential.js` (6), `engine/tag_dex.js` (2),
+  `engine/medicham2-browser.js` (1) and fifteen across `tests/`. Not re-baselined.
+- **A SEARCH-OWNED FILE WAS EDITED UNDER A MEASURE BRIEF.** `engine/board.js` and
+  `engine/magnemite.js`, on the router's instruction. Recorded here rather than implied.
+- `tests/test-wiring.js` caught the first attempt at the live-play stamp outright —
+  `_dropDeadVolatiles` returns `{cands, user, doubles}`, not an array — which is exactly what that
+  file exists for.
+
+---
+
 ## [5.46.0] — 2026-08-19
 
 ### Fixed

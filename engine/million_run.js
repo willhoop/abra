@@ -1049,11 +1049,25 @@ const engStat = s => ENG_STAT[s] || s;
 /* A TRIAL IS CLEAN ONLY IF NOTHING IN THE WORLD MOVED THE NUMBER. The engine's own printedAccuracy
  * under the live field is asked first: Thunder is 70 in the open, never-miss in rain, and pooling
  * those two is exactly what the target row's denominator sentence forbids. */
+/* ROADMAP #258 — the two probes that DROP a trial when they throw. Both directions are conservative,
+ * and both used to be invisible: a probe that starts throwing shrinks the clean population silently
+ * and every downstream row simply reports a smaller n with no reason attached. */
+const CLEANLINESS_THREW = { printedAccuracy: 0, first: '', mcKey: 0, firstKey: '' };
 function isCleanAccuracy(mid, declared, att, def, field) {
   try {
     const pa = M.printedAccuracy(mid, field);
     if (pa !== declared) return false;
-  } catch (e) { return false; }
+  } catch (e) {
+    /* ROADMAP #258 — `false` here EXCLUDES the trial, which is the conservative direction and the
+     * right one; the silence was not. An engine that starts throwing on printedAccuracy would empty
+     * the clean population one trial at a time and every row would simply report fewer samples. */
+    CLEANLINESS_THREW.printedAccuracy++;
+    if (!CLEANLINESS_THREW.first) {
+      CLEANLINESS_THREW.first = mid + ': ' + String((e && e.message) || e).split(String.fromCharCode(10))[0];
+      console.error('  printedAccuracy THREW and the trial was dropped as NOT CLEAN — ' + CLEANLINESS_THREW.first);
+    }
+    return false;
+  }
   return noAccuracyModifier(att, def, field);
 }
 /* THE MODIFIER HALF ON ITS OWN, because the OHKO family needs it and cannot use the half above.
@@ -1646,7 +1660,18 @@ function stagedDex() {
   const rowKey = (sp) => {
     const MAY = { mayMiss: 'a staged fixture skips a species the engine has no row for' };
     let k = null;
-    try { k = mcKey(sp.id, MAY); } catch (e) { k = null; }
+    /* ROADMAP #258 — falling back to `sp.id` is deliberate (the resolver below decides membership),
+     * but a resolver that has started throwing for everything would look identical to a dex that
+     * happens to key by species id. Counted so the two can be told apart. */
+    try { k = mcKey(sp.id, MAY); }
+    catch (e) {
+      k = null;
+      CLEANLINESS_THREW.mcKey++;
+      if (!CLEANLINESS_THREW.firstKey) {
+        CLEANLINESS_THREW.firstKey = sp.id + ': ' + String((e && e.message) || e).split(String.fromCharCode(10))[0];
+        console.error('  mcKey THREW; falling back to the raw species id — ' + CLEANLINESS_THREW.firstKey);
+      }
+    }
     k = k || sp.id;
     /* MEMBERSHIP THROUGH THE RESOLVER. This used to read `MC.mons[k] ? k : null`, which is the one
      * doorway tests/test-mc-key.js bans — and the ban is right even here, where `k` came from

@@ -54,9 +54,24 @@ const MAIN = Dex.forGen(9);
  * without an edit, which is the whole point — a hand-listed set of eight is how this gap was created. */
 const MOD_DIR = path.join(process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown',
                           'data', 'mods', 'champions');
+/* *** A READ THAT FAILED MAY NOT LOOK LIKE A MOD THAT CHANGES NOTHING — ROADMAP #258. ***
+ *
+ * Every one of the three reads below used to answer with an EMPTY ANSWER on failure: no file list, no
+ * conditions, no script methods. In the tool whose entire job is "did Champions change this?", an
+ * empty answer is not a missing answer — it reads as "mainline is correct here", which is the sentence
+ * that put `healer` at mainline's 30% inside a generated artifact. `UNREADABLE` is the record; the run
+ * prints it, INCLUDING at zero, and the artifact carries it. */
+const UNREADABLE = [];
+const logUnreadable = (what, where, e) => {
+  const msg = String((e && e.message) || e).split('\n')[0];
+  UNREADABLE.push({ what, where, error: msg });
+  console.error('  UNREADABLE — ' + what + ' (' + where + '): ' + msg);
+  return null;
+};
+
 const modFiles = (() => {
   try { return fs.readdirSync(MOD_DIR).filter(f => f.endsWith('.ts')).sort(); }
-  catch (e) { return null; }
+  catch (e) { return logUnreadable('the mod DIRECTORY listing', MOD_DIR, e); }
 })();
 
 /* Compare by VALUE across every own field either side declares. Listing fields is what made
@@ -115,7 +130,7 @@ const conditionIds = (() => {
   try {
     const src = fs.readFileSync(path.join(MOD_DIR, 'conditions.ts'), 'utf8');
     return [...src.matchAll(/^\t([a-z0-9]+): \{/gm)].map(m => m[1]);
-  } catch (e) { return []; }
+  } catch (e) { logUnreadable('conditions.ts, so NO condition was compared at all', path.join(MOD_DIR, 'conditions.ts'), e); return []; }
 })();
 const conditions = conditionIds.map(id => {
   const a = FMT.conditions.get(id), b = MAIN.conditions.get(id);
@@ -130,7 +145,7 @@ const scriptMethods = (() => {
     const src = fs.readFileSync(path.join(MOD_DIR, 'scripts.ts'), 'utf8');
     return [...src.matchAll(/^\t{1,2}([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/gm)].map(m => m[1])
       .filter(n => n !== 'if' && n !== 'for' && n !== 'while' && n !== 'return');
-  } catch (e) { return []; }
+  } catch (e) { logUnreadable('scripts.ts, so NO overridden method was named at all', path.join(MOD_DIR, 'scripts.ts'), e); return []; }
 })();
 
 const byField = {};
@@ -148,6 +163,9 @@ const art = {
   cannot_verify: 'scripts.ts overrides FUNCTIONS. A value diff names them and stops. Reading them is '
                + 'human work and is registered, not implied.',
   mod_dir: MOD_DIR,
+  /* COUNTED, NOT HIDDEN, AND PRESENT AT ZERO (#258). An empty list here is the claim that every input
+   * was read; its absence would leave "read nothing" and "found nothing" looking identical. */
+  unreadable: UNREADABLE,
   mod_files: modFiles,
   mod_files_note: modFiles === null ? 'THE MOD DIRECTORY COULD NOT BE READ — this run proves nothing'
                                     : 'read from disk, so a file added tomorrow appears without an edit here',
@@ -185,4 +203,7 @@ if (VERBOSE) {
                 + JSON.stringify(d.mainline) + ' -> ' + JSON.stringify(d.champions));
   }
 }
+console.log('\n  inputs that could not be read: ' + UNREADABLE.length
+  + (UNREADABLE.length ? ' — THIS RUN PROVES LESS THAN IT LOOKS LIKE IT DOES' : ''));
+for (const u of UNREADABLE) console.log('      ' + u.what + '  (' + u.where + ')  ' + u.error);
 console.log('\n  wrote ' + path.relative(ROOT, OUT).replace(/\\/g, '/'));

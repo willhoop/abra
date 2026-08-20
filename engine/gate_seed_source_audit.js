@@ -34,8 +34,16 @@
  * disagreement is invisible because both keep working, and this repository has already paid for that
  * detector twice.
  *
- * WHAT IT DOES NOT DO. It does not regenerate the artifact, and the row explains why: doing so today
- * bakes ENGINE's in-flight `data/tags.json` into it, and a measurement is a photograph. It reads.
+ * ARM 2 GOT ITS OWN LESSON ON 2026-08-19 AND IT IS THE WHOLE POINT OF THIS FILE. It read `.row` off a
+ * single object. #287's repair turned `openAndNotFixed` into `{checkedAgainst, rows, dropped}`, the
+ * loop found no `.row`, and the arm reported ZERO ASSERTIONS AND WENT GREEN — a check that stops
+ * looking and calls the silence a pass. It now accepts three shapes and REFUSES anything else with
+ * exit 2. Found by breaking the artifact deliberately and noticing the arm did not shout.
+ *
+ * WHAT IT DOES NOT DO. It does not regenerate the artifact. `engine/seed_source_audit.js` does that,
+ * and the two derive the class through the SAME function in board.js while sampling their board union
+ * independently: the FACT has one implementation, and an auditor that borrowed the audit's sampling
+ * could only ever agree with it. It reads.
  *
  *   node engine/gate_seed_source_audit.js            the verdict, with every disagreement named
  *   node engine/gate_seed_source_audit.js --json
@@ -124,10 +132,30 @@ function measure() {
   const Q = require('./quarantine.js');
   const lines = fs.readFileSync(path.join(ROOT, 'docs', 'ROADMAP.md'), 'utf8').split(/\r?\n/);
   const rowLine = (n) => lines.find((l) => new RegExp('^\\|\\s*#' + n + '\\s*\\|').test(l)) || null;
-  const asserts = [];
+  /* THE SHAPE IS RECOGNISED OR THE GATE REFUSES — IT DOES NOT QUIETLY FIND NOTHING.
+   *
+   * This read `oanf.row` off a single object. When #287's repair turned `openAndNotFixed` into
+   * `{ checkedAgainst, rows, dropped }` the loop found no `.row`, reported ZERO assertions and went
+   * green on this arm — a check that stops looking and calls the silence a pass, which is the exact
+   * failure mode the whole gate exists to catch. Caught by breaking the artifact deliberately and
+   * watching the arm stay quiet.
+   *
+   * Three shapes are accepted: the bare object (pre-#287), an array of them, and the `{rows,dropped}`
+   * envelope. `dropped` entries are NOT assertions — the artifact is saying it withheld them — but
+   * they are carried through so the report can say so. Anything else is CANNOT ANSWER. */
   const oanf = j.openAndNotFixed;
-  for (const e of (Array.isArray(oanf) ? oanf : (oanf ? [oanf] : []))) {
-    if (e && e.row != null) asserts.push({ row: +e.row, what: String(e.what || '') });
+  let asserts = null, dropped = [];
+  if (oanf == null) asserts = [];
+  else if (Array.isArray(oanf)) asserts = oanf.filter((e) => e && e.row != null).map((e) => ({ row: +e.row }));
+  else if (Array.isArray(oanf.rows)) {
+    asserts = oanf.rows.filter((e) => e && e.row != null).map((e) => ({ row: +e.row }));
+    dropped = (Array.isArray(oanf.dropped) ? oanf.dropped : []).map((e) => ({ row: +e.row, why: String(e.why || '') }));
+  } else if (oanf.row != null) asserts = [{ row: +oanf.row }];
+  if (!asserts) {
+    return { error: 'THE ARTIFACT\'S `openAndNotFixed` IS A SHAPE THIS GATE DOES NOT RECOGNISE (keys: '
+                  + Object.keys(oanf).join(', ') + '). It is refusing rather than reporting zero '
+                  + 'assertions — an arm that goes quiet when the artifact changes shape passes by '
+                  + 'looking at nothing, which is the defect this gate is about.' };
   }
   const falseClaims = [];
   for (const a of asserts) {
@@ -137,7 +165,7 @@ function measure() {
   }
 
   return { generated: j.generated || null, derived, claimed, falsePositives, misses, falseClaims,
-    asserts: asserts.map((a) => a.row), boards, claimedCount: cls.readUnmodelledState };
+    asserts: asserts.map((a) => a.row), dropped, boards, claimedCount: cls.readUnmodelledState };
 }
 
 /* ---- selftest ---------------------------------------------------------------------------------- */
@@ -178,7 +206,8 @@ const out = {
               + (m.boards || 0) + ' canonical fixture board(s)',
   derived: m.derived || [], claimed: m.claimed || [],
   claimed_and_not_derived: m.falsePositives || [], derived_and_not_claimed: m.misses || [],
-  open_rows_asserted: m.asserts || [], false_claims: m.falseClaims || [],
+  open_rows_asserted: m.asserts || [], caveats_the_artifact_withheld: m.dropped || [],
+  false_claims: m.falseClaims || [],
   verdict: v.tag, exit: v.code, why: v.why,
 };
 
@@ -194,6 +223,7 @@ console.log('    derived from the engine   ' + (out.derived.join(', ') || '(none
 console.log('');
 console.log('  ' + v.tag + '   ' + v.why);
 for (const f of out.false_claims) console.log('      #' + f.row + ' — ' + f.why);
+for (const d of out.caveats_the_artifact_withheld) console.log('      withheld by the artifact: #' + d.row + ' — ' + d.why);
 console.log('');
 console.log('  exit ' + v.code + '   [0 clean, 1 the artifact disagrees with the engine, 2 cannot answer]');
 console.log('');

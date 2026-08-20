@@ -285,7 +285,18 @@ function poolKey(storeDir) {
 
 function readPoolCache(key) {
   if (process.argv.includes('--rebuild-pool')) return null;
-  let j; try { j = JSON.parse(fs.readFileSync(POOL_CACHE, 'utf8')); } catch (e) { return null; }
+  /* ROADMAP #258 — A CORRUPT CACHE AND AN ABSENT ONE BOTH REBUILD, AND ONLY ONE OF THEM IS NORMAL.
+   * The null stays; the reason is said, so a cache that has started failing to parse every run is
+   * visible instead of looking like a first run, forever. */
+  let j;
+  try { j = JSON.parse(fs.readFileSync(POOL_CACHE, 'utf8')); }
+  catch (e) {
+    if (!(e && e.code === 'ENOENT')) {
+      console.error('  POOL CACHE UNREADABLE — ' + POOL_CACHE + ' (' + String((e && e.message) || e).split(String.fromCharCode(10))[0]
+                  + '); rebuilding as though it had never been written');
+    }
+    return null;
+  }
   if (!j || j.key !== key || !Array.isArray(j.teams)) return null;
   return j;
 }
@@ -298,7 +309,13 @@ function writePoolCache(key, teams, storeDir) {
   for (const f of ['data/games.bo3.jsonl', 'data/games.ots.jsonl']) {
     const fp = storeDir ? path.join(storeDir, path.basename(f)) : D(f);
     try { digests[path.basename(f)] = crypto.createHash('sha1').update(fs.readFileSync(fp)).digest('hex').slice(0, 12); }
-    catch (e) { digests[path.basename(f)] = null; }
+    catch (e) {
+      /* ROADMAP #258 — a null digest is written deliberately so a missing store cannot compare equal
+       * to a present one, and the reason is now printed rather than swallowed. */
+      digests[path.basename(f)] = null;
+      console.error('  NO STORE DIGEST — ' + fp + ' (' + String((e && e.message) || e).split(String.fromCharCode(10))[0]
+                  + '); the pool key records null, which will never match a real digest');
+    }
   }
   const pool = crypto.createHash('sha1').update(teams.map(t => t.key).join(String.fromCharCode(10))).digest('hex').slice(0, 12);
   try {

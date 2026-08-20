@@ -489,7 +489,20 @@ function fingerprint(v) {
  * is the conservative direction and it is the correct one to be wrong in.
  * ------------------------------------------------------------------------------------------- */
 const RS_ = require('./run_stamp.js');
-const sha = rel => { try { return RS_.sha12(rel); } catch (e) { return null; } };
+/* ROADMAP #258 — a digest that could not be taken is not a digest of nothing. `null` still goes into
+ * the stamp (the caller compares stamps and a missing one must not equal a present one), but the
+ * reason is said, because a subject surface silently losing a file is a scan that verifies less. */
+const SHA_FAILURES = [];
+const sha = rel => {
+  try { return RS_.sha12(rel); }
+  catch (e) {
+    const msg = String((e && e.message) || e).split(String.fromCharCode(10))[0];
+    SHA_FAILURES.push({ file: rel, error: msg });
+    console.error('  NO DIGEST — ' + rel + ' (' + msg + '); it is stamped null, which is NOT the same '
+                + 'as unchanged');
+    return null;
+  }
+};
 
 /* The scan's whole subject surface: every source file it read, and every data file S13 looked at. */
 function scopeMap() {
