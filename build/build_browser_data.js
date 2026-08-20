@@ -18,6 +18,66 @@ const fs = require('fs');
 const path = require('path');
 
 const ABRA = path.join(__dirname, '..');
+
+/* ================= THE CHAMPIONS OVERLAY (2026-08-19) =================================
+ *
+ * WILL, on being handed test-mod-conformance's 22 failures: "its because you yoinked gen 9 values
+ * and not champions specific data, weve been over htis like a dozen times".
+ *
+ * CHOMP/data/move-effects.json is built from Showdown's MAINLINE moves.json. Its own header claims
+ * the values are "the same server data that runs the format" and that sentence is false: the format
+ * runs `/data/mods/champions/`. So this generator was faithfully copying the wrong numbers -- Growth
+ * typed Normal instead of GRASS, Snap Trap Grass instead of STEEL, Moonblast's secondary at 30
+ * instead of 10, Make It Rain at 100 accuracy instead of 95, and eighteen more.
+ *
+ * THE FIELD LIST IS NOT HAND-CHOSEN, WHICH IS THE WHOLE POINT. `mod_audit.js`'s header already
+ * warned that a hand-chosen list makes any field nobody thought of invisible. So the overlay asks
+ * the CHAMPIONS DEX for each move and takes its answer for every field this shape carries. A field
+ * the mapping cannot reach keeps CHOMP's value -- no worse than today -- and stays visible to
+ * tests/test-mod-conformance.js, which derives its own comparison from the two dexes.
+ *
+ * The DRY argument in CHOMP's header was right and it picked the wrong single source. CHOMP still
+ * owns the SHAPE; the Champions dex owns the VALUES. */
+require(path.join(__dirname, '..', 'engine', 'showdown_path.js'));
+const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
+const CHAMPIONS = Dex.forFormat('gen9championsvgc2026regmb');
+
+function championsOverlay(moves) {
+  const changed = [];  let seen = 0, absent = 0;
+  for (const id of Object.keys(moves)) {
+    const row = moves[id];
+    const m = CHAMPIONS.moves.get(id);
+    if (!m || !m.exists) { absent++; continue; }
+    seen++;
+    const put = (key, was, now) => {
+      if (now === undefined || JSON.stringify(was) === JSON.stringify(now)) return;
+      changed.push(`${m.name}  ${key}  ${JSON.stringify(was)} -> ${JSON.stringify(now)}`);
+      row[key] = now;
+    };
+    put('name', row.name, m.name);
+    put('type', row.type, m.type);
+    put('category', row.category, m.category);
+    put('bp', row.bp, m.basePower);
+    put('accuracy', row.accuracy, m.accuracy);
+    put('target', row.target, m.target);
+    if (row.priority !== undefined || m.priority) put('priority', row.priority, m.priority || undefined);
+    if (row.critRatio !== undefined || (m.critRatio && m.critRatio !== 1)) put('critRatio', row.critRatio, (m.critRatio && m.critRatio !== 1) ? m.critRatio : undefined);
+    /* The secondary CHANCE is the field Champions moves most (Moonblast 30->10, Iron Head 30->20,
+     * Dire Claw 50->30) and Freeze-Dry loses its secondary entirely. Positional, and only when the
+     * two agree on how many there are -- a shape mismatch is REPORTED rather than guessed at. */
+    if (Array.isArray(row.secondary)) {
+      const sec = m.secondaries || (m.secondary ? [m.secondary] : []);
+      if (!sec.length && row.secondary.length) put('secondary', row.secondary, []);
+      else if (sec.length === row.secondary.length) {
+        const next = row.secondary.map((e, i) => (sec[i] && sec[i].chance !== undefined && sec[i].chance !== e.chance)
+          ? Object.assign({}, e, { chance: sec[i].chance }) : e);
+        put('secondary', row.secondary, next);
+      } else changed.push(`SHAPE MISMATCH (left alone)  ${m.name}  secondary ${row.secondary.length} vs champions ${sec.length}`);
+    }
+  }
+  return { changed, seen, absent };
+}
+
 const CHOMP = path.join(ABRA, '..', 'CHOMP');
 
 const TARGETS = [
@@ -40,6 +100,11 @@ for (const t of TARGETS) {
   }
   const j = JSON.parse(fs.readFileSync(t.json, 'utf8'));
   const payload = t.pick(j);
+  if (t.global === 'MOVE_EFFECTS' && payload) {
+    const o = championsOverlay(payload);
+    console.log(`  CHAMPIONS OVERLAY: ${o.changed.length} value(s) corrected across ${o.seen} moves (${o.absent} not in the Champions dex)`);
+    for (const line of o.changed) console.log(`     ${line}`);
+  }
   if (!payload || !Object.keys(payload).length) {
     console.error(`  EMPTY payload from ${path.basename(t.json)} — refusing to write an empty file`);
     process.exitCode = 1;
