@@ -54,16 +54,130 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 2d334f5c01e0 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 7e010fd97de8 now
     COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 387d8064147a now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 273/291 probed, 18 unprobed
 ```
 
-_stamped 2026-08-19 21:00_
+_stamped 2026-08-19 22:13_
 
 <!-- /GENERATED -->
+
+## WILL'S QUESTION ASKED OF THE WHOLE CORPUS: HALF THE PROTOCOL DIVERGENCES END ON A DIFFERENT BOARD. AND "EMISSION IS MOSTLY COSMETIC" IS REFUTED. 2026-08-19.
+
+**Nothing was fixed and the census did not move — 621 live / 0 missing, before and after.** This is a
+measurement of the population that had only ever been asked 30 hand-picked mechanics at a time, and
+the answer to *"the commentary can be different but it needs to lead to identical outcomes"* is that
+**it does not, about half the time.**
+
+**BOTH NUMBERS, NEITHER REPLACING THE OTHER.** One run, `--end-state`, engine release `94a84744346d`,
+census pinned to `387d8064147a`, team store pinned to `data/team-pool-frozen`, arm `middle`:
+
+| turn cap | games | protocol PARTED | SAME end board | DIFFERENT end board | ENDED-APART |
+|---|---|---|---|---|---|
+| 12 (the published run's cap) | 797 | **145** | 69 | **75 (51.7%)** | 1 |
+| 30 (games actually finish: 72 of them) | 797 | **206** | 88 | **104 (50.5%)** | 14 |
+
+`data/verification/gd-endstate-982.json` and `…-t30.json`. **The sample is not the published run's
+982 games and must not be quoted as a breakdown of it**: `--end-state` plays every game to the cap, so
+the coverage credit that STEERS the driver accumulates differently and the swarm picked 1,632 pairs
+where the protocol-mode run picked 2,017. Same census, same pool, same pins, same release, different
+games — 797 with a parted rate of 18.2% against 982 at 18.5%.
+
+**THE PRIOR THAT SENT US HERE IS WRONG IN BOTH DIRECTIONS.** `emission` is not mostly announcement,
+and `rule` — the class that sounds most serious — is the most cosmetic of the five.
+
+| shape | games (cap 12) | different end board | | games (cap 30) | different |
+|---|---|---|---|---|---|
+| EMISSION | 71 | 29 — **41%** | | 107 | 49 — 46% |
+| UNPARSED (`X: a different body`) | 26 | 22 — **85%** | | 32 | 23 — 72% |
+| RULE | 22 | 6 — **27%** | | 34 | 11 — 32% |
+| FIELD | 14 | 11 — **79%** | | 18 | 14 — 78% |
+| ORDERING | 12 | 7 — 58% | | 15 | 7 — 47% |
+
+**`UNPARSED` IS NOT A FIFTH KIND OF DISAGREEMENT, IT IS A REGEX.** `divergence_shape.js` strips the
+class name with `^[^:]*:: `, which cannot pass a class name that itself contains a colon — so every
+`drag: a different body`, `-damage: a different body` and `switch: a different body` falls out of the
+shaper. The 26 are 22 drags, 2 `-damage: a different body` and 2 truncations. Not fixed here; it is
+the instrument's classifier, and it changes a published table.
+
+### HOW `drag` WAS COUNTED, BECAUSE A DIFFERENT BODY ARRIVING IS A DIFFERENT BOARD
+
+By the board comparator and by nothing else — `active[].species` is a compared leaf whose plant is
+caught and localised on 8 of 8 pairs. **All 22 drag games part the BOARD at exactly the turn the
+protocol parts**, so none of them fell into "same" by default. **19 of the 22 are still different at
+the end; 3 reconverge by turn 12** and are named in `data/verification/endstate-by-cause.json`.
+
+### THE HALF THAT MATTERS MOST HAS NO PROTOCOL DIVERGENCE AT ALL
+
+**16 games (cap 12) and 23 (cap 30) narrate identically and end on a different board.** Read game by
+game, that population is two mechanisms and both are named for the fix batch, not fixed here:
+
+- **TRACE COPIES A DIFFERENT ABILITY IN THE TWO ENGINES.** Nine of the fifteen, every one a Gardevoir
+  or an Alakazam-Mega, both engines calling the body ALIVE: `medicham regenerator / showdown levitate`,
+  `medicham liquidvoice / showdown goodasgold`, `medicham hypercutter / showdown drizzle`. The protocol
+  says nothing because the semantic normaliser's `ability-announcement` rule collapses exactly that
+  line. **This is what a state comparison is for and it is the first defect only it could find.**
+- **A CORPSE KEEPS ITS BOOSTS HERE AND LOSES THEM THERE.** `board_state.js` skips the post-faint group
+  on the BENCH (`walkParty`) and does not skip it on the ACTIVE slot (`walk(A.active, …)`), so the
+  authority's `clearVolatile` on a faint parts the board on a body both engines agree is dead. **23 of
+  890 differing leaves sit on such a body, and 7 of 92 different-end-board games are nothing else.**
+  A reader question, and it makes the different-board count 7 games too high.
+
+### THE COMPARATOR WAS SHOWN RED FIRST, AND THE RUN'S OWN PROOF LINE IS A FIXTURE CLAIM
+
+Every `--state` run prints `THE STATE COMPARATOR FAILED ITS OWN PROOF — every state number below is
+worthless`, because six bench plants report NOT APPLIED. **That is the fixture, not the comparator**:
+the plants go at the LAST BOARD THE CLEAN ARM AGREED AT, which on a pair that agrees all the way is
+boundary 12 — a board where neither side has a living body on the bench. `tests/probe_bench_plants.js`
+runs the same `plantedStateProof` over 8 pairs and separates the two sentences:
+
+- **all 42 plants are APPLIED on at least one pair, and 41 of 42 are caught, at the planted boundary,
+  and localised, every time they were applied** — including all six bench leaves (item, status, toxic
+  stage, typing, stat stage, ability) at 5/5;
+- the one hole is the plant's own: `a BENCHED party member's HP off by one` takes the LAST team member
+  rather than a living one, and `Math.max(0, curHP - 1)` on a body already at 0 changes nothing. 7 of
+  8 pairs catch it; the pair that does not is the pair whose bench is dead.
+- the CONTROL is the clean arm of every pair, printed per pair, and it reaches the plant boundary with
+  the boards agreeing.
+
+`tests/test-end-state.js` PART 3 is the same demonstration at the END board rather than at a
+boundary — a planted item on a benched body flips SAME-END-STATE to DIFFERENT-END-STATE and the
+control planted with nothing does not — and it is GREEN.
+
+### WHAT IS NOT COMPARED, SO NO VERDICT ABOVE MEANS MORE THAN IT SAYS
+
+Every SAME-END-STATE above means *identical in the fields we look at*. `board_state.js` publishes
+eight uncomparable leaves with every artifact and they are: ability trapping; item DISPOSITION (eaten
+vs knocked off vs used); yawn / attract / curse / heal block; the TRAPPER mark on a move trap's
+source; destiny bond; the magnet-rise and syrup-bomb durations and which move a charge is committed
+to; a benched body's volatiles, Substitute HP and Leech Seed; the Protect stall counter. Two more are
+skipped by construction and counted rather than assumed: the party's post-faint group, and
+`screens.named` on a release that cannot express it. `duplicate_species_in_party` read 4 on this run.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous list that is not named below.
+
+**Added, measured this pass and NOT fixed** (MAG is out of scope until MEDICHAM is finished, so
+nothing here was routed through an argmax and no downstream number is quoted):
+
+- **TRACE PICKS A DIFFERENT FOE'S ABILITY FROM THE AUTHORITY'S**, silently, on 9 of 15 games that
+  narrate identically. The likely mechanism is the random choice among eligible foes in doubles; it
+  has not been staged and no fixture exists yet.
+- **THE ACTIVE-SLOT POST-FAINT ASYMMETRY** in `board_state.js`: the bench skips the post-faint group
+  and the active slot does not, so a corpse's boosts, volatiles and PP part the board. It inflates
+  the different-board count by 7 games of 92.
+- **`divergence_shape.js` CANNOT SHAPE A CLASS NAME CONTAINING A COLON**, so 26 of 145 divergences are
+  reported as UNPARSED when 24 of them are the FIELD-2 shape (same event, same slot, a different body).
+- **`tests/test-state-differential.js` IS RED — 7 failures — AND ONE OF THEM IS A FINDING, NOT AN
+  INDEXING BUG.** Six are the NOT-APPLIED fixture case above. PART 3 asserts that a board differing
+  only in the party is index-matching returning, and what it actually caught is
+  `p1.party.aggronmega.ability  medicham wanderingspirit / showdown filter` — keyed by species, so not
+  an index at all, and the same family as the Trace row above. The assertion over-matches and the
+  engine question underneath it is real.
 
 ## ROADMAP #290 — THE `ordering` FAMILY WAS THE SPEED NUMBER, NOT THE SORT. AND ITS BIGGEST MEMBER WAS NOT MOVE-VS-MOVE. 2026-08-20.
 

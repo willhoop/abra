@@ -10,6 +10,87 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.52.0] — 2026-08-20
+
+### Notes
+- **WILL'S QUESTION, ASKED OF THE CORPUS INSTEAD OF THIRTY HAND-PICKED MECHANICS: ABOUT HALF OF THE
+  PROTOCOL DIVERGENCES END ON A DIFFERENT BOARD.** *"the commentary can be different but it needs to lead
+  to identical outcomes in all scenarios."* Measured with `--end-state`, release `94a84744346d`, census
+  pinned `387d8064147a`, team store pinned:
+
+  | cap | games | protocol parted | SAME end board | **DIFFERENT** | ended apart |
+  |---|---|---|---|---|---|
+  | 12 | 797 | 145 | 69 | **75 (51.7%)** | 1 |
+  | 30 | 797 | 206 | 88 | **104 (50.5%)** | 14 |
+
+  **This is not a "mostly cosmetic" result, and the prediction that motivated the run was wrong.**
+- **THE PRIOR IS REFUTED IN BOTH DIRECTIONS, AND THE ORDERING IS STABLE ACROSS BOTH CAPS.** `emission` was
+  assumed announcement-only on the strength of the thirty-mechanic run; `rule` sounds the most serious of
+  the five. Both readings are backwards:
+
+  | shape | games (cap 12) | different board |
+  |---|---|---|
+  | UNPARSED (`X: a different body`) | 26 | **85%** |
+  | FIELD | 14 | **79%** |
+  | ORDERING | 12 | 58% |
+  | EMISSION | 71 | **41%** |
+  | RULE | 22 | **27% — the most cosmetic of the five** |
+
+- **`UNPARSED` IS NOT A FIFTH KIND OF DISAGREEMENT. IT IS A REGEX.** `engine/divergence_shape.js` strips
+  the class name with `^[^:]*:: `, which cannot pass a class name that itself contains a colon — so every
+  `drag: a different body`, `-damage: a different body` and `switch: a different body` falls out of the
+  shaper and lands in a bucket that reads like a category. **Filed, not fixed: it changes a published
+  table.**
+- **`drag` was counted by the board comparator and by nothing else.** `active[].species` is a compared leaf
+  with a plant caught and localised on 8 of 8 pairs. **All 22 drag games part the board at exactly the turn
+  the protocol parts** — none fell into "same" by default; 19 of 22 are still different at the end and the
+  3 that reconverge are named individually.
+- **THE RUN'S OWN ALARM WAS A FIXTURE CLAIM AND NOT A COMPARATOR ONE.** It printed *"THE STATE COMPARATOR
+  FAILED ITS OWN PROOF — every state number below is worthless"*, and that was **not** accepted at face
+  value: plants are applied at the last board the clean arm agreed at, which on a pair that agrees all the
+  way is boundary 12, where neither bench has a living body. `tests/probe_bench_plants.js` (new) separates
+  the two sentences — **41 of 42 plants are caught at the planted boundary and localised every time they
+  were applied**, including all six bench leaves at 5/5. The one hole is the plant's own code
+  (`t[t.length-1]` takes a corpse and `Math.max(0, curHP-1)` on a 0-HP body changes nothing), a hazard the
+  driver's own comments already document for the active-HP plant.
+
+### Fixed
+- Nothing. **This was a measurement pass and no engine byte moved**; census stands at **621 live / 0 missing**.
+
+### Notes — two defects only a state comparison could find
+- **TRACE COPIES A DIFFERENT ABILITY IN THE TWO ENGINES, AND THE PROTOCOL SAYS NOTHING.** Nine of fifteen
+  identically-narrated games that still end differently, every one a Gardevoir or Alakazam-Mega with both
+  engines calling the body alive: `medicham regenerator / showdown levitate`,
+  `medicham liquidvoice / showdown goodasgold`, `medicham hypercutter / showdown drizzle`. The normaliser's
+  `ability-announcement` rule collapses exactly that line, so no protocol comparison could ever have seen
+  it. **This is the first defect in this project found only by comparing state.** It is also what
+  `tests/test-state-differential.js` PART 3 is really catching while calling it an index-matching
+  regression — that test is RED with 7 failures, six of them the fixture case above and **one a real
+  finding wearing the wrong assertion**.
+- **A CORPSE KEEPS ITS BOOSTS ON ONE SIDE AND LOSES THEM ON THE OTHER, AND IT INFLATES THE HEADLINE.**
+  `engine/board_state.js` skips the post-faint group on the bench (`walkParty`) and does not skip it on the
+  active slot (`walk(A.active, ...)`). 23 of 890 differing leaves sit on a body both engines call dead, and
+  **7 of the 92 different-end-board games are nothing else — so the different-board count is about seven
+  games too high.**
+
+### Notes — the context the headline needs
+- **686 of 797 games (86.1%) never part on the board at any boundary**, turn-boundary agreement is **94.55%
+  across 10,291 boundaries**, and the median first board divergence is **turn 7**. Of the 145 games whose
+  protocol parted, **56 never part on the board at all**, and **12 of the 69 same-end-board games DID part
+  and reconverged** — "same end board" is not "agreed throughout".
+- **Severity of the 91 different-end-board games at cap 12: ONE different winner.** Then 7 different bodies
+  alive, 12 HP beyond a typical hit, **40 different identity on a live body** (largely the Trace defect
+  above), 19 other, 12 small-HP-or-boost-only.
+- **THE SAMPLE IS NOT THE PUBLISHED RUN'S AND MUST NOT BE READ AS A BREAKDOWN OF IT.** `--end-state` plays
+  every game to the cap, so coverage credit accumulates differently and the swarm picked 1,632 pairs where
+  the protocol-mode run picked 2,017: **797 games at an 18.2% parted rate against 982 at 18.5%.** Same
+  census, same pool, same pins, same release — different games.
+- **The brief's `178` was one run stale**; `data/game-differential.json` on disk reports **182**.
+- `data/verification/gd-endstate-trial.json` and `endstate-by-cause-smoke.json` are 8- and 18-game smoke
+  runs, **not measurements**, left in place and named so nobody quotes them.
+
+---
+
 ## [5.51.0] — 2026-08-19
 
 ### Removed

@@ -1,0 +1,453 @@
+{
+ "what": "THE PLANTED-STATE PROOF OVER MANY PAIRS. Separates \"the fixture could not place it\" from \"the comparator did not see it\" — the differential prints one run and cannot.",
+ "generated": "2026-08-20T02:03:58.660Z",
+ "engine_release": "94a84744346d",
+ "pairs": [
+  {
+   "config": "baseline",
+   "clean": {
+    "what": "the CLEAN arm of the same game",
+    "boundaries": 9,
+    "boundaries_agreed": 9,
+    "first_state_divergence_at_turn": null,
+    "planted_at_boundary": 8
+   },
+   "applied": 35,
+   "plants": 42,
+   "unproven": []
+  },
+  {
+   "config": "baseline",
+   "clean": {
+    "what": "the CLEAN arm of the same game",
+    "boundaries": 13,
+    "boundaries_agreed": 13,
+    "first_state_divergence_at_turn": null,
+    "planted_at_boundary": 12
+   },
+   "applied": 35,
+   "plants": 42,
+   "unproven": [
+    "a BENCHED party member's HP off by one"
+   ]
+  },
+  {
+   "config": "omit-protect",
+   "clean": {
+    "what": "the CLEAN arm of the same game",
+    "boundaries": 13,
+    "boundaries_agreed": 5,
+    "first_state_divergence_at_turn": 5,
+    "planted_at_boundary": 4
+   },
+   "applied": 42,
+   "plants": 42,
+   "unproven": []
+  },
+  {
+   "config": "omit-protect",
+   "clean": {
+    "what": "the CLEAN arm of the same game",
+    "boundaries": 6,
+    "boundaries_agreed": 6,
+    "first_state_divergence_at_turn": null,
+    "planted_at_boundary": 5
+   },
+   "applied": 36,
+   "plants": 42,
+   "unproven": []
+  },
+  {
+   "config": "omit-priority",
+   "clean": {
+    "what": "the CLEAN arm of the same game",
+    "boundaries": 13,
+    "boundaries_agreed": 13,
+    "first_state_divergence_at_turn": null,
+    "planted_at_boundary": 12
+   },
+   "applied": 42,
+   "plants": 42,
+   "unproven": []
+  },
+  {
+   "config": "omit-priority",
+   "clean": {
+    "what": "the CLEAN arm of the same game",
+    "boundaries": 5,
+    "boundaries_agreed": 3,
+    "first_state_divergence_at_turn": 3,
+    "planted_at_boundary": 2
+   },
+   "applied": 42,
+   "plants": 42,
+   "unproven": []
+  },
+  {
+   "config": "omit-weather",
+   "clean": {
+    "what": "the CLEAN arm of the same game",
+    "boundaries": 10,
+    "boundaries_agreed": 4,
+    "first_state_divergence_at_turn": 4,
+    "planted_at_boundary": 3
+   },
+   "applied": 42,
+   "plants": 42,
+   "unproven": []
+  },
+  {
+   "config": "omit-weather",
+   "clean": {
+    "what": "the CLEAN arm of the same game",
+    "boundaries": 9,
+    "boundaries_agreed": 3,
+    "first_state_divergence_at_turn": 3,
+    "planted_at_boundary": 2
+   },
+   "applied": 42,
+   "plants": 42,
+   "unproven": []
+  }
+ ],
+ "per_plant": [
+  {
+   "what": "HP off by one on an active body",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a stat stage off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a status that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "the TOXIC stage off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "the SLEEP counter off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "an item that is not held",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a body marked fainted that is not",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a different species on the field",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "the WEATHER counter off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a weather that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "the TERRAIN counter off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "the TRICK ROOM counter off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "the TAILWIND counter off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a SCREEN counter off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a HAZARD layer off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a Substitute that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a Taunt counter off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "an Encore counter off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a Disable counter off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a Leech Seed that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a confusion counter off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a Perish count off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "an AQUA RING that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "an INGRAIN that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a MAGNET RISE that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a FOCUS ENERGY that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a TORMENT that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "an IMPRISON that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a SALT CURE that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a SYRUP BOMB that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a TWO-TURN CHARGE LOCK that is not there",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "a MOVE TRAP counter off by one",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "PP SPENT off by one on a slot the body has already used",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "PP SPENT on a slot NOTHING has touched — the lazy-table blind spot",
+   "applied": 6,
+   "caught": 6,
+   "at_boundary": 6,
+   "localised": 6,
+   "pairs": 8
+  },
+  {
+   "what": "a BENCHED party member's HP off by one",
+   "applied": 8,
+   "caught": 7,
+   "at_boundary": 7,
+   "localised": 7,
+   "pairs": 8
+  },
+  {
+   "what": "a BENCHED party member marked fainted",
+   "applied": 8,
+   "caught": 8,
+   "at_boundary": 8,
+   "localised": 8,
+   "pairs": 8
+  },
+  {
+   "what": "an ITEM on a BENCHED body that is not held",
+   "applied": 5,
+   "caught": 5,
+   "at_boundary": 5,
+   "localised": 5,
+   "pairs": 8
+  },
+  {
+   "what": "a STATUS on a BENCHED body that is not there",
+   "applied": 5,
+   "caught": 5,
+   "at_boundary": 5,
+   "localised": 5,
+   "pairs": 8
+  },
+  {
+   "what": "the TOXIC stage off by one on a BENCHED body",
+   "applied": 5,
+   "caught": 5,
+   "at_boundary": 5,
+   "localised": 5,
+   "pairs": 8
+  },
+  {
+   "what": "a TYPING on a BENCHED body that is not its own",
+   "applied": 5,
+   "caught": 5,
+   "at_boundary": 5,
+   "localised": 5,
+   "pairs": 8
+  },
+  {
+   "what": "a STAT STAGE off by one on a BENCHED body",
+   "applied": 5,
+   "caught": 5,
+   "at_boundary": 5,
+   "localised": 5,
+   "pairs": 8
+  },
+  {
+   "what": "an ABILITY on a BENCHED body that is not its own",
+   "applied": 5,
+   "caught": 5,
+   "at_boundary": 5,
+   "localised": 5,
+   "pairs": 8
+  }
+ ],
+ "holes": 1,
+ "never_applied": 0
+}

@@ -10234,3 +10234,54 @@ session and is green. **`tests/test-mod-conformance.js` is RED for a reason that
 in `data/move-effects.js` are mainline where Champions differs — Growth typed Normal against **Grass**, Snap
 Trap Grass against **Steel**, Moonblast's secondary 30 against **10** — and the file is generated from
 **CHOMP's** data, so the wrong values enter from another project.
+
+---
+
+## 2026-08-20 — HALF THE PROTOCOL DIVERGENCES ARE REAL, AND THE CLASS EVERYONE ASSUMED WAS COSMETIC IS NOT
+
+Will's question, asked of the corpus rather than of thirty hand-picked mechanics. **Of the games whose
+protocol parts, about half end on a different board — 75 of 145 at the 12-turn cap, 104 of 206 at 30.**
+The prediction that motivated the run was that most of it would be narration. **It was wrong.**
+
+**AND THE PRIOR IS REFUTED IN BOTH DIRECTIONS, WITH THE ORDERING STABLE ACROSS BOTH CAPS.** `emission` — the
+class inferred to be announcement-only from the thirty-mechanic run, and the biggest one — is **41%** real.
+`rule`, which sounds the most serious of the five, is **27%** and is the most cosmetic of them. The
+inference from thirty rows did not survive contact with 145.
+
+**`UNPARSED` IS NOT A CLASS. IT IS A REGEX.** `divergence_shape.js` strips the class name with `^[^:]*:: `,
+which cannot pass a class name containing a colon — so every `drag: a different body` falls out of the
+shaper into a bucket that reads like a category. It is 85% real. Filed rather than fixed, because it changes
+a published table.
+
+**THE RUN'S OWN ALARM SAID THE MEASUREMENT WAS WORTHLESS AND THAT WAS NOT TAKEN AT FACE VALUE.** It printed
+*"THE STATE COMPARATOR FAILED ITS OWN PROOF — every state number below is worthless"*; the claim is about
+the FIXTURE, not the comparator. Plants land at the last board the clean arm agreed at, which on a pair that
+agrees throughout is the final boundary, where neither bench has a living body. A new probe separates the
+two sentences: **41 of 42 plants caught at the planted boundary and localised every time they were
+applied**, all six bench leaves at 5/5. The single hole is the plant's own code taking a corpse.
+
+**THE FIRST DEFECT IN THIS PROJECT THAT ONLY A STATE COMPARISON COULD FIND.** Nine of fifteen games that
+narrate IDENTICALLY and still end differently are **Trace copying a different ability in the two engines** —
+`medicham regenerator / showdown levitate`, `medicham liquidvoice / showdown goodasgold` — with both engines
+calling the body alive. The normaliser's `ability-announcement` rule collapses exactly that line, so no
+protocol comparison could ever have seen it. Every mechanics pass, every differential, every census run for
+months: structurally blind to it.
+
+**AND THE COMPARATOR INFLATES ITS OWN HEADLINE BY ABOUT SEVEN GAMES.** `board_state.js` skips the post-faint
+group on the bench and does NOT skip it on the active slot, so a corpse keeps its boosts on one side and
+loses them on the other. 23 of 890 differing leaves sit on a body both engines call dead, and 7 of 92
+different-end-board games are nothing else.
+
+**THE CONTEXT THE HEADLINE NEEDS, because 51.7% is a rate over the parted games and not over the corpus.**
+**686 of 797 games (86.1%) never part on the board at any boundary.** Turn-boundary agreement is **94.55%
+over 10,291 boundaries** and the median first board divergence is **turn 7**. Of the 145 parted games, 56
+never part on the board at all, and **12 of the 69 same-end-board games DID part and reconverged** — same
+end board is not agreed throughout.
+
+**Severity of the 91 different-end-board games: ONE different winner.** Then 7 different bodies alive, 12 HP
+beyond a typical hit, **40 different identity on a live body** — largely the Trace defect — 19 other, and 12
+small-HP-or-boost-only.
+
+**The sample is 797 games, not the published 982, and is not a breakdown of it.** `--end-state` plays every
+game to the cap so coverage credit accumulates differently: 1,632 pairs picked against 2,017, at an 18.2%
+parted rate against 18.5%. Same census, same pool, same pins, same release, different games.
