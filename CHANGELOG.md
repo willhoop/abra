@@ -10,6 +10,47 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.51.0] — 2026-08-19
+
+### Removed
+- **CHOMP IS NO LONGER A DATA SOURCE FOR THIS REPO.** Will: *"stop using chomp that data is old and bad /
+  just like i said to stop using mag."* `build/build_browser_data.js` copied both of its outputs out of
+  `CHOMP/data/*.json`; it now derives both from `Dex.forFormat('gen9championsvgc2026regmb')` and has **no
+  CHOMP dependency at all**. The 5.50.0 overlay kept CHOMP for the shape — that was half the fix and this
+  is the rest of it.
+
+### Fixed
+- **`data/move-effects.js`: 954 entries -> 500 legal moves.** The other 454 were Z-moves, Max moves and
+  Past moves — the National Dex wearing the format's name, which is the failure CLAUDE.md names against
+  itself. Every walk is now filtered `x.exists && !x.isNonstandard`.
+- **`data/mega-formes.js`: 95 entries -> 75 legal mega stones**, same shape of error, and **one row was
+  MISMATCHED**: Meowsticite carried `forme: meowsticfmega` under `base: meowstic` — the female mega filed
+  against the male base. Meowsticite is the one stone with two pairings (Meowstic and Meowstic-F, identical
+  in types, base stats and ability); the primary keeps the shape every consumer reads and the second
+  travels in a new `alt` field rather than being dropped or guessed at. **Deriving it from the item's own
+  `megaStone` map cannot produce the mismatch.**
+- **Two more Champions values the 5.50.0 overlay missed, found only because the derivation was DIFFED
+  rather than trusted:** **Make It Rain's self-drop is -2, not -1**, and **Toxic Thread drops Speed by 2,
+  not 1**. Both live in `self.boosts` / `boosts`, which the overlay's field mapping did not reach. The
+  conformance test had listed them as UNMODELLED rather than wrong, so nothing was going to catch them.
+
+### Notes
+- **THE METHOD IS THE PART WORTH KEEPING.** The field list was not chosen: it was **read off the file being
+  replaced** (23 fields), every field reproduced, and the derived output **diffed against the old file
+  before the generator was trusted**. On the 500 moves present in both, **five fields differed and every
+  one was explained** — two real Champions values (above), two a chance-less secondary the dex leaves
+  implicit, one an empty array against an absent key. `mod_audit.js`'s header already warned that *"a field
+  nobody thought to list is invisible to it"*; a diff has no such blind spot.
+- A chance-less secondary is emitted as `chance: 100`, because Showdown applies one unconditionally and
+  leaving it undefined would read as *never* to anything that multiplies by it. Ceaseless Edge and Stone
+  Axe are the two members.
+- Verified after the switch: `test-mod-conformance` **passed** (0 drifted values), `test-board-browser`
+  14/0, `test-engine-consistency` all passed, `test-artifact-keys` 4/0, `test-docs-current` 21/0.
+- **CHOMP's JSON is still mainline**, so anything in that repo reading it is still wrong there. Out of
+  scope for ABRA and stated rather than silently left.
+
+---
+
 ## [5.50.0] — 2026-08-19
 
 ### Fixed
