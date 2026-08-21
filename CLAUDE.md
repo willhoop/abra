@@ -207,6 +207,44 @@ could point at a release stamped minutes *after* the run that used it. Cuts are 
 Now ENGINE may rewrite the simulator all night while SEARCH measures. **That is the point of the
 divisions, and it only works because the measurement is not reading those bytes.**
 
+**A RELEASE FREEZES CODE. IT DOES NOT FREEZE THE STORE, THE POOL, OR THE ARTIFACTS — AND ALL THREE MOVE.**
+*(2026-08-19/20. This cost three published figures in one day and a whole tail analysis in another.)*
+
+The photograph rule above is necessary and it is not sufficient. A frozen release pins the twenty-three
+SOURCE files. It does not pin:
+
+- **the store.** OPS appends `games.ladder.jsonl` and `games.bo3.jsonl` hourly, and
+  `game_differential.js` draws its team pool **live** from them. Ask for 1,230 games an hour apart and you
+  get two different samples — 995 and 982 — with no warning. An agent reported `897 games / 205 diverged`
+  and had to withdraw it; the same run read `982 / 182` an hour later. **Neither was wrong. They were not
+  the same question.**
+- **the census.** `all_mechanics_fire.js` is steered by `data/mechanics-census.json`, so a census that
+  gained fifteen rows changes WHICH scenarios play. A mechanics count taken either side of a census
+  regeneration is **not a before/after**, and 47 -> 34 was reported with exactly that caveat attached.
+- **the artifacts.** `data/game-differential.json` and `data/all-mechanics-fire.json` are rewritten by any
+  run. A release does not protect them.
+
+So a measurement pins **three** things, not one: `--release <id>`, a census pin, and
+`--team-store data/team-pool-frozen`. **Then prove the samples are identical** rather than assuming —
+same protocol classes, same first-divergence list, same coverage block. One agent did exactly that after
+its pinned census bytes had aged out, and its number survived because of it.
+
+**NEVER READ AN ARTIFACT ANOTHER PROCESS IS WRITING. A TORN READ IS NOT AN ERROR — IT IS A PLAUSIBLE,
+WELL-FORMED, COMPLETELY FICTITIOUS ANSWER.** Reading `data/game-differential.json` mid-rewrite produced a
+class table with `344 attributed games` where the settled artifact had 450, and a `switch vs switch`
+family of 148 that does not exist. It looked like a finding and was nearly reported as one. **The rule
+above says a measuring agent may not run beside a writing agent; this is narrower and nastier — I was only
+READING, and reading was enough to be wrong.** Check the mtime against the clock before trusting any
+artifact while an agent is live, and prefer `git show HEAD:<file>` for a stable read.
+
+**THE SESSION SCRATCHPAD IS SHARED ACROSS SESSIONS AND ITS CONTENTS ARE NOT INERT.** An agent ran
+`python <scratch>/ins.py 2>/dev/null` expecting a no-op, executed a leftover script from an earlier
+session, and silently duplicated 191 lines of a `docs/ENGINE.md` section. It printed *"inserted 12064
+chars"* and was caught only because someone read the output. **Execute nothing in the scratchpad you did
+not write this session**, and treat a filename you recognise as evidence that a previous session was here,
+not that the file is yours.
+
+
 **The router owns this, not the agent.** SEARCH could not have known; it was told the engine was
 wrapped, and the census moved 157/165 → 164/171 while it worked. A subagent cannot see what it was
 dispatched alongside — so the guard belongs at the measurement, not in a dispatch rule someone has
