@@ -529,7 +529,65 @@ function sdScreens(side) {
  * same population both ways: with medicham2's switch-out restore ABSENT the leaf differs 7 times, all
  * 7 on a LIVING body (a Gardevoir still wearing a traced Flower Veil, a Rotom-Heat still wearing a
  * Plus it had been given); with it present, 0 of 3,280, non-empty every time. */
-const PARTY_POST_FAINT = ['item', 'status_counter', 'boosts', 'ability'];
+/* ---- THE GROUP IS ONE GROUP AND IT IS HELD IN EVERY PLACE A BODY IS COMPARED (2026-08-20, MEASURE)
+ *
+ * IT WAS HELD ON THE BENCH AND NOT ON THE ACTIVE SLOT, AND THAT INFLATED THIS INSTRUMENT'S OWN
+ * HEADLINE. `compare()` ran `walkParty` for the party and a bare `walk(A.active, …)` for the field, so
+ * a corpse standing in the active slot kept its boosts, its volatiles and its spent PP on one side of
+ * the comparison and lost them on the other — the authority's `clearVolatile` against medicham2
+ * keeping everything. Measured on the 797-game end-state run (`data/verification/endstate-by-cause.
+ * json`, release `94a84744346d`): **52 differing leaves sat on a body BOTH engines call dead, and 7 of
+ * the 92 different-end-board games were nothing else** — 7.6% of the number that is now the
+ * most-quoted figure in the project, contributed by the reader.
+ *
+ * WHICH WAY THEY AGREE, AND WHY THAT DIRECTION. Skip, both sides. A dead body's stat stages, volatiles
+ * and remaining PP are not state anybody can act on — nothing will ever read them again — while the
+ * authority's housekeeping on them is real and unilateral. Comparing them measures the READER, which
+ * is the manufactured divergence `walkParty`'s own header records paying for once already (index
+ * keying, 123 of 179 games). Unskipping the bench instead would have re-imported 28 boost differences
+ * that were already measured as housekeeping.
+ *
+ * THE GROUP IS DERIVED FROM WHAT THE AUTHORITY REWRITES ON A FAINT, READ AND CITED, NEVER RECALLED:
+ *   sim/battle.ts:2560          `faintMessages` calls `pokemon.clearVolatile(false)` on the corpse
+ *   sim/pokemon.ts:1515-1523    all seven boost stages are zeroed          -> `boosts`
+ *   sim/pokemon.ts:1525         `moveSlots = baseMoveSlots.slice()`        -> `pp` (we compare SPENT)
+ *   sim/pokemon.ts:1528         `ability = baseAbility`                    -> `ability`
+ *   sim/pokemon.ts:1540         `volatiles = {}`                           -> `vol`
+ *   sim/battle-actions.ts:126   `if (oldActive.fainted) oldActive.status = ''` on replacement, which
+ *                               takes `statusState` with it                -> `status_counter`
+ * `item` is not on that list and is in the group anyway: it was put there by MEASUREMENT (2 of 2,029
+ * benched bodies differ, both dead) rather than by derivation, and taking it out to tidy the
+ * derivation would be a second change wearing this one's clothes.
+ *
+ * `species`, `maxhp` AND `types` ARE **NOT** IN THE GROUP AND STILL PART BOARDS ON CORPSES, which is a
+ * FINDING and not an omission: `sim/battle.ts:2554-2557` and `:2568-2571` regress a fainted mega's
+ * forme (`baseSpecies` off the SET, then `updateMaxHp()`), and medicham2 does not. That is 3 species,
+ * 2 maxhp and 2 types of the 52 above. It is reported rather than skipped, because a body arriving as
+ * a different Pokemon is the one thing on a corpse a later board can still be wrong about.
+ *
+ * THE NEW HOLD IS SCOPED TO A CROSS-ENGINE PAIR, AND THAT IS A DELIBERATE LIMIT RATHER THAN A HEDGE.
+ * The whole justification above is that the TWO ENGINES keep house differently, so it is a claim about
+ * a medicham2-vs-Showdown board. `tests/roster.js` and the differential's own turn-to-turn coverage
+ * credit call `compare()` with two boards from the SAME engine, where no reader mismatch exists —
+ * `changedFamilies` asks "what moved this turn" and a held leaf is signal it does not get.
+ *
+ * AND MOVING THEM WOULD HAVE BROKEN THE MEASUREMENT THIS CHANGE EXISTS TO CORRECT. The swarm's game
+ * selection is STEERED by that credit, so a comparator that reports different leaves to it plays
+ * different games — and the corrected different-board count would then be a number about another
+ * sample, which is the "same predicate, different games" failure `engine/gate_fail_and_silent.js`
+ * records paying for (3 causes -> 30, entirely the sample). One change at a time, attributable.
+ *
+ * SO THE PARTY'S EXISTING BEHAVIOUR IS UNTOUCHED FOR EVERYONE — it holds on a same-engine pair exactly
+ * as it has since 2026-08-18 — and only the two paths being brought into line with it are scoped. The
+ * remaining asymmetry is therefore between CALLERS and not between LEAVES, it is declared here, and it
+ * is COUNTED: `post_faint_not_held_same_engine` rides on every snapshot beside the three skip counters,
+ * so a same-engine caller can never read "the rule did not apply" as "there was nothing to hold".
+ * Whether the party should also stop holding for those callers is a SEPARATE change with its own
+ * before/after cost, and it is not smuggled in here. */
+const POST_FAINT = ['item', 'status_counter', 'boosts', 'ability', 'vol'];
+/* The bench row has no `vol` key, so the party's group is unchanged by that entry: this is one list
+ * because it is one rule, not because the two projections hold the same leaves. */
+const PARTY_POST_FAINT = POST_FAINT;
 /* THE PROJECTION OF A FULL BODY ONTO A BENCH ROW. Deliberately built FROM `mediBody`/`sdBody` rather
  * than by re-reading the engines here: `statusOf`, the boost key mapping and `getTypes()` are FACTS,
  * and a second copy of any of them in this file is the two-implementations breach CLAUDE.md names. */
@@ -802,29 +860,64 @@ function walk(a, b, path, out, stats) {
   for (const k of keys) walk(a[k], b[k], path ? path + '.' + k : k, out, stats);
 }
 
-/* THE PARTY, WITH THE POST-FAINT GROUP HELD WHERE EITHER ENGINE SAYS THE BODY IS DOWN. Written as a
- * walk of its own rather than as a `null` in the two maps, because a one-sided null would REPORT as a
- * difference on `item` the moment the two engines disagreed about `fainted` — turning one finding
- * (they disagree about who is alive, which `fainted` already carries) into four, on an already-parted
- * board. The skip is counted, never assumed. */
+/* THE PARTY AND THE ACTIVE SLOTS, WITH THE POST-FAINT GROUP HELD WHERE EITHER ENGINE SAYS THE BODY IS
+ * DOWN. Written as walks of their own rather than as a `null` in the two maps, because a one-sided
+ * null would REPORT as a difference on `item` the moment the two engines disagreed about `fainted` —
+ * turning one finding (they disagree about who is alive, which `fainted` already carries) into four,
+ * on an already-parted board. Every skip is counted, never assumed. */
+/* ONE BODY, WITH THE POST-FAINT GROUP HELD WHERE EITHER ENGINE SAYS IT IS DOWN. Shared by the party
+ * and by the active slot, because they are the same rule about the same group and two copies of it
+ * would agree today and part the first time one was edited — which is the state this function was
+ * written to end.
+ *
+ * `hold` DECIDES WHETHER THE GROUP IS HELD and `count` names the counter. The party passes `true`
+ * always — that is its behaviour since 2026-08-18 and this change does not move it — and the active
+ * slot passes the cross-engine test, for the reason written out in the POST_FAINT block. A leaf that
+ * is NOT held on a corpse is counted under `post_faint_not_held_same_engine`, so the population the
+ * rule deliberately does not cover is a number rather than an assumption. */
+function walkBody(A, B, path, out, stats, hold, count) {
+  const standing = !A.fainted && !B.fainted;
+  for (const leaf of new Set([...Object.keys(A), ...Object.keys(B)])) {
+    if (!standing && POST_FAINT.indexOf(leaf) >= 0) {
+      if (hold) {
+        if (stats) stats[count] = (stats[count] || 0) + 1;
+        continue;
+      }
+      if (stats) stats.post_faint_not_held_same_engine = (stats.post_faint_not_held_same_engine || 0) + 1;
+    }
+    walk(A[leaf], B[leaf], path + '.' + leaf, out, stats);
+  }
+}
 function walkParty(a, b, path, out, stats) {
   const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
   for (const k of keys) {
     const A = (a || {})[k], B = (b || {})[k];
     if (!A || !B) { walk(A, B, path + '.' + k, out, stats); continue; }   // missing member: unchanged
-    const standing = !A.fainted && !B.fainted;
-    for (const leaf of new Set([...Object.keys(A), ...Object.keys(B)])) {
-      if (!standing && PARTY_POST_FAINT.indexOf(leaf) >= 0) {
-        if (stats) stats.party_post_faint_skipped = (stats.party_post_faint_skipped || 0) + 1;
-        continue;
-      }
-      walk(A[leaf], B[leaf], path + '.' + k + '.' + leaf, out, stats);
-    }
+    walkBody(A, B, path + '.' + k, out, stats, true, 'party_post_faint_skipped');
+  }
+}
+/* THE ACTIVE SLOTS, ON THE SAME RULE. An empty slot walks unchanged, exactly as a missing party
+ * member does: `null` against a body is one finding — nobody is standing there — and expanding it
+ * into a leaf-by-leaf diff would be the same over-counting `walkParty` refuses. */
+function walkActive(a, b, path, out, stats, cross) {
+  const n = Math.max((a || []).length, (b || []).length);
+  for (let i = 0; i < n; i++) {
+    const A = (a || [])[i], B = (b || [])[i];
+    if (!A || !B) { walk(A, B, path + '[' + i + ']', out, stats); continue; }
+    walkBody(A, B, path + '[' + i + ']', out, stats, cross, 'active_post_faint_skipped');
   }
 }
 
 function compare(medi, sd, stats) {
   const out = [];
+  /* THE PAIR DECIDES WHETHER THE POST-FAINT GROUP IS HELD — see the POST_FAINT block. Two boards from
+   * the SAME engine do the same housekeeping, so there is nothing to protect against and holding a
+   * leaf would only throw information away; `tests/roster.js` and the differential's turn-to-turn
+   * credit are both that shape. A board with no `engine` stamp is treated as CROSS, which preserves
+   * the behaviour every caller had before this rule existed, and it is counted rather than assumed. */
+  const nameA = (medi && medi.engine) || '', nameB = (sd && sd.engine) || '';
+  const cross = !(nameA && nameB && nameA === nameB);
+  if (stats && !(nameA && nameB)) stats.post_faint_engine_unstamped = 1;
   walk(medi.field, sd.field, 'field', out, stats);
   for (const s of ['p1', 'p2']) {
     const A = medi.sides[s], B = sd.sides[s];
@@ -837,13 +930,27 @@ function compare(medi, sd, stats) {
     walk(A.tailwind, B.tailwind, s + '.tailwind', out, stats);
     walk(A.hazards, B.hazards, s + '.hazards', out, stats);
     walkParty(A.party, B.party, s + '.party', out, stats);
-    walk(A.active, B.active, s + '.active', out, stats);
+    walkActive(A.active, B.active, s + '.active', out, stats, cross);
     /* PP, PER SLOT, ONLY WHERE BOTH ENGINES CAN EXPRESS IT — the same rule and the same reason as
      * `screens.named` two lines up. Skipped LOUDLY: `pp_comparable` rides on every snapshot, so an
-     * engine that cannot answer is a receipt and never an agreement. */
+     * engine that cannot answer is a receipt and never an agreement.
+     *
+     * AND ON THE POST-FAINT RULE TOO, WHICH IS WHY THE BODY IS READ HERE. PP sits BESIDE the body
+     * rather than inside it (see `readMedi`), so a slot holding a corpse would otherwise escape the
+     * hold that the body two lines up now gets — the identical asymmetry, one field over.
+     * `clearVolatile` restores `moveSlots` from `baseMoveSlots` (`sim/pokemon.ts:1525`) and we compare
+     * PP as SPENT, so every move the corpse ever used parts the board. */
     for (let i = 0; i < 2; i++) {
       const ap = (A.pp || [])[i], bp = (B.pp || [])[i];
-      if (ap && bp) walk(ap, bp, s + '.pp[' + i + ']', out, stats);
+      if (!(ap && bp)) continue;
+      const ab = (A.active || [])[i], bb = (B.active || [])[i];
+      const onACorpse = !!(ab && bb && (ab.fainted || bb.fainted));
+      if (onACorpse) {
+        const n = new Set([...Object.keys(ap), ...Object.keys(bp)]).size;
+        if (cross) { if (stats) stats.pp_post_faint_skipped = (stats.pp_post_faint_skipped || 0) + n; continue; }
+        if (stats) stats.post_faint_not_held_same_engine = (stats.post_faint_not_held_same_engine || 0) + n;
+      }
+      walk(ap, bp, s + '.pp[' + i + ']', out, stats);
     }
   }
   return out;
@@ -995,7 +1102,9 @@ function explain(loc, v, pretty) {
 /* ---- THE SNAPSHOT PAIR, WHICH IS WHAT A CALLER WANTS ------------------------------------------- */
 function snapshot(S, battle, ctx) {
   const medi = readMedi(S, ctx), sd = readShowdown(battle, ctx);
-  const stats = { compared: 0, party_post_faint_skipped: 0 };
+  const stats = { compared: 0, party_post_faint_skipped: 0,
+                  active_post_faint_skipped: 0, pp_post_faint_skipped: 0,
+                  post_faint_not_held_same_engine: 0 };
   const diffs = compare(medi, sd, stats);
   return { medi, sd, diffs,
            identical: diffs.length === 0,
@@ -1004,6 +1113,23 @@ function snapshot(S, battle, ctx) {
             * post-faint leaves agreed" are different sentences, and only one of them is honest —
             * exactly the argument `pp_comparable` two entries down was built on. */
            party_post_faint_skipped: stats.party_post_faint_skipped,
+           /* THE OTHER TWO THIRDS OF THE SAME RECEIPT (2026-08-20). The bench half rode on every
+            * snapshot for a day while the active slot and the PP map were compared on corpses and
+            * said nothing — so the hold was published and the ASYMMETRY was not, which is the shape
+            * of an unlisted omission reading as agreement. All three are separate numbers because
+            * they answer separate questions: a run whose active count is zero and whose bench count
+            * is not has no bodies dying on the field, and that is worth being able to see. */
+           active_post_faint_skipped: stats.active_post_faint_skipped,
+           pp_post_faint_skipped: stats.pp_post_faint_skipped,
+           /* AND THE POPULATION THE HOLD DELIBERATELY DOES NOT COVER. Two boards from one engine are
+            * compared in full; this counts the leaves that WOULD have been held on a cross-engine
+            * pair, so "the rule did not apply here" can never be read as "there was nothing to
+            * hold". Non-zero on `tests/roster.js` and on the differential's turn-to-turn credit. */
+           post_faint_not_held_same_engine: stats.post_faint_not_held_same_engine,
+           /* AND A BOARD THAT CANNOT SAY WHICH ENGINE MADE IT. Such a pair is treated as CROSS — the
+            * behaviour every caller had before the scoping existed — and says so, because a silent
+            * fallback is how a rule ends up applying somewhere nobody meant it to. */
+           post_faint_engine_unstamped: !!stats.post_faint_engine_unstamped,
            screens_shape_medicham: medi.sides.p1.screens.shape,
            screens_named_comparable: !!(medi.sides.p1.screens.named && sd.sides.p1.screens.named),
            /* THE PP RECEIPT. Counted over every occupied slot on both sides, so "PP agreed" and "PP

@@ -22,6 +22,28 @@
  * `PINNED` marks a cause naming a mechanic that reads one of Mode A's pinned dice. It is a SUSPECT
  * flag and never an exclusion: the Protect case proved a coupling suspect can still be a real
  * disagreement, because the authority was pinned the same way and the divergence survived anyway.
+ *
+ * ---- THE CLASS NAME IS STRIPPED AT THE SEPARATOR, NOT AT A COLON (2026-08-20, MEASURE) -----------
+ *
+ * `stripClass` was `String(cause).replace(/^[^:]*:: /, '')`, and `[^:]*` cannot pass a class name
+ * that CONTAINS a colon. `classify()` in `engine/game_differential.js` builds
+ * `<class> :: <line> <> <line>`, and one of its classes is `sdEv + ': a different body'` — so every
+ * `drag:`, `switch:` and `-damage: a different body` fell out of the shaper with its class name still
+ * attached, failed `startsWith('|')`, and landed in UNPARSED.
+ *
+ * THAT MADE UNPARSED READ AS A CLASS OF DISAGREEMENT WHEN IT IS THIS FILE'S OWN GAP, which is exactly
+ * what the header above says it must never be read as. Measured on the 797-game end-state run
+ * (`data/verification/gd-endstate-982.json`, release `94a84744346d`): **26 of 145 parted games** were
+ * shaped UNPARSED and 22 of them ended on a different board — 85%, the highest rate of the five, and
+ * the reason a bucket meaning "could not tell" was being quoted as the most dangerous shape.
+ *
+ * The separator is ` :: ` and no class classify() writes contains it (`ordering`, `turn order`,
+ * `unrelated event mismatch`, `<event>: a different body`, `<event> field <n>`, the two truncation
+ * classes, and the two emission classes). Splitting there passes a colon inside the class name and
+ * leaves a genuine non-pair — a TRUNCATION cause carries ONE line — still UNPARSED, which is the only
+ * thing that word should ever mean. The old regex is kept as a fallback for a cause written by
+ * something older that used `<class>:: ` with no leading space; it is tried second, so it can no
+ * longer eat a class name it cannot parse.
  */
 'use strict';
 
@@ -34,8 +56,18 @@ const LINE = (s) => {
 
 const PINNED = /accuracy|acc\b|crit|secondar|damage|protect|stall|miss|-fail/i;
 
+/* THE SEPARATOR `classify()` WRITES, ONE PLACE. A second spelling of it here and in the differential
+ * would agree on the day it was written and part the first time either moved. */
+const SEP = ' :: ';
+function stripClass(cause) {
+  const s = String(cause == null ? '' : cause);
+  const i = s.indexOf(SEP);
+  if (i >= 0) return s.slice(i + SEP.length);
+  return s.replace(/^[^:]*:: /, '');
+}
+
 function shapeOf(cause) {
-  const body = String(cause).replace(/^[^:]*:: /, '');
+  const body = stripClass(cause);
   const half = body.split(' <> ');
   const a = LINE(half[0]), b = LINE(half[1]);
   if (!a || !b) return { shape: 'UNPARSED', key: body.slice(0, 40) };
@@ -45,4 +77,46 @@ function shapeOf(cause) {
   return { shape: 'EMISSION', key: a.event + ' vs ' + b.event };
 }
 
-module.exports = { LINE, PINNED, shapeOf, SHAPES: ['ORDERING', 'RULE', 'FIELD', 'EMISSION', 'UNPARSED'] };
+/* ---- THE SELF-PROOF, ON SYNTHETIC CAUSES, IN MILLISECONDS ---------------------------------------
+ *
+ * Every row is a REAL cause shape `classify()` writes — the first four are copied from
+ * `data/game-differential.json`. Two of them are the whole point and each FAILS BY NAME under the old
+ * `^[^:]*:: ` strip: a class name carrying a colon must shape as the pair it is, and its key must be
+ * the EVENT rather than the class, so a half fix that strips the wrong amount is caught too.
+ *
+ * AND THE OTHER DIRECTION IS PROVEN, because the danger of a looser strip is that UNPARSED stops
+ * meaning anything: a TRUNCATION cause carries ONE line and MUST stay UNPARSED, and so must a string
+ * that is not a cause at all. A strip that turned those into pairs would be silently inventing
+ * disagreements — the opposite error, and equally invisible in a count.
+ *
+ *   node engine/divergence_shape.js --selftest
+ */
+const PROOF = [
+  ['a class with no colon still strips', 'ordering :: |move|p1a|protect <> |move|p2b|protect', 'ORDERING', 'move'],
+  ['A CLASS NAME CONTAINING A COLON — the defect', 'drag: a different body :: |drag|p1a|talonflame,l50|H/H <> |drag|p1a|sableye,l50|H/H', 'FIELD', 'drag'],
+  ['the same, one event over', '-damage: a different body :: |-damage|p2a|H/H <> |-damage|p2b|H/H', 'ORDERING', '-damage'],
+  ['a TRUNCATION carries one line and stays UNPARSED', 'showdown stopped emitting while medicham2 continued :: |switch|p1b|klefki,l50|H/H', 'UNPARSED', null],
+  ['one side has a line the other does not', 'x :: |-damage|p1a|H/H <> |-sideend|p2|tailwind', 'EMISSION', null],
+  ['same slot, different event', 'x :: |-activate|p1a|x <> |-damage|p1a|H/H', 'RULE', null],
+  ['a string that is not a cause at all', 'nothing parseable here', 'UNPARSED', null],
+  ['the legacy `<class>:: ` spelling, no leading space', 'ordering:: |move|p1a|protect <> |move|p2b|protect', 'ORDERING', 'move'],
+];
+function selfProof() {
+  return PROOF.map(([what, cause, want, wantKey]) => {
+    const got = shapeOf(cause);
+    return { what, cause, want, got: got.shape, key: got.key,
+             ok: got.shape === want && (wantKey == null || got.key === wantKey) };
+  });
+}
+
+module.exports = { LINE, PINNED, shapeOf, stripClass, selfProof, SEP,
+                   SHAPES: ['ORDERING', 'RULE', 'FIELD', 'EMISSION', 'UNPARSED'] };
+
+if (require.main === module && process.argv.includes('--selftest')) {
+  const rows = selfProof();
+  for (const r of rows) console.log('  ' + (r.ok ? 'ok   ' : 'FAIL ') + r.want.padEnd(9)
+    + (r.ok ? '' : 'got ' + r.got + ' key=' + JSON.stringify(r.key) + '  ') + r.what);
+  const bad = rows.filter(r => !r.ok).length;
+  console.log('\n  ' + (bad ? bad + ' FAILURE(S)' : 'all ' + rows.length + ' shapes as declared'));
+  process.exit(bad ? 1 : 0);
+}

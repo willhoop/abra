@@ -10,6 +10,78 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.54.0] — 2026-08-20
+
+### Fixed
+- **THE COMPARATOR WAS COUNTING A CORPSE'S BOOKKEEPING AS A DIFFERENCE: 91 -> 83 DIFFERENT-END-BOARD
+  GAMES.** `engine/board_state.js` skipped the post-faint group on the BENCH and not on the ACTIVE slot, so
+  a dead body kept its stat stages on one side of the comparison and lost them on the other. Paired on **the
+  same 797 games**, frozen release `94a84744346d`, census pinned, team store pinned:
+
+  | | before | after |
+  |---|---|---|
+  | DIFFERENT-END-STATE | 91 | **83** |
+  | of the 145 that parted on protocol | 75 (51.7%) | **74 (51.0%)** |
+  | of the 652 that NEVER parted | 16 | **9** |
+
+  **Seven of the eight corrected games were in the "narrate identically, end differently" population** —
+  the population the Trace defect was found in. The headline survives; the tail beside it was inflated.
+  Which way the two paths agree was **derived and cited, not chosen**: `sim/battle.ts:2560`
+  (`clearVolatile(false)` in `faintMessages`), `sim/pokemon.ts:1515-1523` boosts, `:1525`
+  `moveSlots = baseMoveSlots.slice()`, `:1528` ability, `:1540` volatiles, `sim/battle-actions.ts:126`
+  status on replacement. **`item` stays in the group on a 2026-08-18 measurement rather than on
+  derivation, and that is said out loud rather than implied.**
+  Deliberately NOT held: **`species`, `maxhp` and `types`** — `sim/battle.ts:2554-2557` and `:2568-2571`
+  regress a fainted mega's forme and medicham2 does not, which is a **finding** (3 species / 2 maxhp / 2
+  types leaves in the run) and the one thing about a corpse a later board can still be wrong about.
+  Internal check: **61 leaf families fell, every one inside the post-faint group, none rose.**
+- **`tests/test-state-differential.js`: 7 failures -> 0, and the real one was NOT fixed into silence.** Six
+  were the NOT-APPLIED bench-plant fixture; PART 2 now runs pairs until every plant lands and all 42 apply
+  across 6 pairs. **The seventh was a genuine finding wearing an index-matching assertion** — PART 3 now
+  asserts the hazard itself (Showdown's side permuted a second time must return an identical diff set), so
+  it **cannot fire on an engine defect**, and the benched-body ability divergences it used to fail on print
+  as `FIND` lines with leaf and both values. That defect stays open and stays ENGINE's.
+
+### Changed
+- **`UNPARSED` WAS A REGEX, NOT A CLASS, AND A PUBLISHED CLAIM IS RETRACTED.** `engine/divergence_shape.js`
+  stripped at the first colon, which cannot pass a class name containing one. The separator is ` :: `.
+  Row sizes are a pure shape fix — a cause's shape does not depend on a verdict — so these are exact:
+
+  | shape (cap 12) | published | now |
+  |---|---|---|
+  | UNPARSED | 26 | **2** (both truncations — one line, not a pair) |
+  | FIELD | 14 | **35** |
+  | ORDERING | 12 | **15** |
+  | EMISSION / RULE | 71 / 22 | unchanged |
+
+  **RETRACTED: "UNPARSED is 26 games and 85% of them are real board divergences, the highest rate of the
+  five shapes"** (CHANGELOG 5.52.0, `docs/ENGINE.md` lines 95 and 174). It was a mixed bucket and its
+  population is now FIELD. **The cap-30 table's `UNPARSED 32 / 23 different` is WITHHELD rather than
+  adjusted** — that run has not been repeated.
+  `engine/quarantine.js`'s whole-game composition moves with it: `unparsed 27 -> 1`, `field 14 -> 39`,
+  `ordering 23 -> 24`, and the *"unparsed is not a disagreement"* clause all but disappears.
+- **ROADMAP #292's parenthetical is wrong on both halves** and is corrected: the `drag` causes are
+  **pairs** (`|drag|p1a|talonflame,l50|H/H <> |drag|p1a|sableye,l50|H/H`), not a single line, and there is
+  no "the comparator has no grammar for it".
+
+### Notes
+- **The check caught a bug in itself before it caught one in the code.** The first version of the shape
+  guard asked `stripClass` whether `stripClass` worked — and passed while broken. Its live half now reads
+  from the cause's first pipe instead. Every fix was shown RED on a deliberate break first, and reverting
+  the strip fails the guard **on the fixtures and on 26 live causes**.
+- **Filed to ENGINE, not touched:** `STATE_PLANTS` aims at slots without checking anyone is standing there
+  (22 instances across 18 plants land on a corpse and now prove nothing); `applied` means "the callback
+  returned truthy", not "the board moved", so the bench-HP plant's `Math.max(0, 0-1)` changes nothing; and
+  **a fainted mega's forme regresses in Showdown and not here.**
+- **`node engine/status.js --write` was NOT run and the stamp is OWED**, along with the `docs/MEASURE.md`
+  ledger entry — `--write` rewrites generated blocks in all five ledgers including `docs/ENGINE.md`, which
+  another agent was editing. Two writers on one file is the failure CLAUDE.md names.
+- The published census bytes (`387d8064147a`) no longer existed, so today's were pinned — and **the two
+  samples were then PROVED identical**: same protocol classes, same 60 first divergences, same coverage and
+  void blocks, byte for byte.
+
+---
+
 ## [5.53.0] — 2026-08-20
 
 ### Fixed
