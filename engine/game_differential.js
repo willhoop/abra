@@ -2697,7 +2697,13 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * which is right for a rollout and wrong here: this driver has to issue the SAME choice to both
    * engines, so the choice is the driver's and the engine is told. An engine deciding for itself
    * beside a Showdown that was told is two different games. */
-  const S = M.battleInit(A, B, { trace, autoMega: false });
+  /* ROADMAP #310 — THE LEAD-IN NEEDS THE ARM'S DICE, AND UNTIL NOW IT NEVER GOT THEM. Every other
+   * draw in the game arrives through `battleTurn(S, armRng, …)` below; the entry abilities resolve
+   * INSIDE `battleInit`, before that call exists. Trace samples uniformly among its eligible foes at
+   * exactly that moment, so on a lead the engine had no die to read and took slot 0 while the
+   * authority read the pin. `medicham2.battleInit` assigns null when this is absent, so every other
+   * caller is unchanged and the fallback is counted (`MEDSEEN.traceChoiceNoDie`) rather than silent. */
+  const S = M.battleInit(A, B, { trace, autoMega: false, rng: armRng });
   /* ---- MEDICHAM2 HAS ITS OWN 20-TURN HORIZON, AND ABOVE IT THE END-STATE COMPARISON IS NONSENSE ---
    *
    * `battleOver` is `S.turn >= (S.maxTurns || 20) || …`, and this driver had never set `maxTurns`. So

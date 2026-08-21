@@ -2984,6 +2984,130 @@ probe('ability', 'copiesFoeAbility', 'a traced ability does NOT survive the benc
                  + ' (nothing restored over a body that never copied)' };
 });
 
+/* ================= AND TRACE DOES NOT GIVE UP. ROADMAP #310, 2026-08-21. =========================
+ *
+ * Read the authority's two handlers together (data/abilities.ts:5110-5138; the Champions mod's
+ * abilities.ts is 100 lines and has no `trace` entry, so Champions inherits mainline -- checked with a
+ * grep, not assumed):
+ *
+ *     onStart   this.effectState.seek = true; ... if (seek) singleEvent('Update', ...)
+ *     onUpdate  if (!seek) return;
+ *               possibleTargets = adjacentFoes().filter(t => !t.getAbility().flags['notrace'] && ...)
+ *               if (!possibleTargets.length) return;        <-- `seek` IS NEVER CLEARED ANYWHERE
+ *               pokemon.setAbility(this.sample(possibleTargets).getAbility(), target)
+ *
+ * So a lead that finds nothing to copy has DEFERRED, not failed: `onUpdate` runs on every
+ * `eachEvent('Update')` and the copy lands the instant a traceable body is standing opposite. This
+ * engine called `traceCopy` at switch-in and nowhere else, so such a Trace stayed Trace for the whole
+ * game. Staged on all three pinned arms first (`tests/probe_trace_choice.js`, arm `re-attempt`):
+ * Showdown copied `roughskin` under every pin, medicham copied NOTHING under every pin.
+ *
+ * THE PROBE READS A CONSEQUENCE, NOT A STRING, and the consequence is a PASSIVE one on purpose. The
+ * copied ability's own `Start` handler does NOT fire on a retry in this engine -- the identical,
+ * already-declared shortfall `receiverSweep` records one function up -- so an Intimidate arm would be
+ * asserting something the engine deliberately does not do. Levitate has no Start handler at all: its
+ * whole effect is the Ground immunity, which is live the moment the ability is on the body. The test
+ * arm therefore takes ZERO from an Earthquake it takes full damage from in the control.
+ *
+ * THE CONTROL IS THE SAME BOARD WITH THE TRACEABLE BODY NEVER ARRIVING, so an engine that copied
+ * something on the lead (there is nothing to copy: both foes carry `notrace` abilities) or that
+ * granted the immunity for any other reason parts from it. */
+probe('ability', 'copiesFoeAbility', 'a Trace that found nothing on entry copies the moment a traceable foe arrives', () => {
+  const run = (bringLevitate) => {
+    const me = bare('gardevoir'), ally = bare('corviknight');
+    const f1 = bare('incineroar'), f2 = bare('milotic'), fBench = bare('snorlax');
+    /* BOTH LEADS CARRY `notrace` ABILITIES, so the entry attempt has nothing to take. Forecast's
+     * refusal is read out of data/tags.json's `refusesCopy` by the engine itself, and it does
+     * nothing on this board -- there is no weather. */
+    me.ability = 'trace'; f1.ability = 'forecast'; f2.ability = 'forecast';
+    fBench.ability = 'levitate';
+    /* NOT `seeded: true` -- that skips the entry pass, which is where the deferral begins. */
+    const S = M.battleInit([me, ally], [f1, f2, fBench], {});
+    const afterLead = me.ability;
+    const turn = (theirs) => M.battleTurn(S, rng5,
+      new Map([[S.actA[0], { kind: 'pass' }], [S.actA[1], { kind: 'pass' }]]),
+      new Map([[S.actB[0], theirs || { kind: 'pass' }], [S.actB[1], { kind: 'pass' }]]));
+    if (bringLevitate) turn({ kind: 'switch', to: fBench });
+    else turn(null);
+    const afterSwitch = me.ability;
+    const hp0 = me.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[S.actA[0], { kind: 'pass' }], [S.actA[1], { kind: 'pass' }]]),
+      new Map([[S.actB[0], { kind: 'pass' }],
+               [S.actB[1], M.playerAction(S.actB[1], 'earthquake', S.actA[0], S.field)]]));
+    return { afterLead, afterSwitch, took: hp0 - me.curHP, slot0: S.actB[0] && S.actB[0].name };
+  };
+  const r0 = M.seen.traceRetryCopied;
+  const control = run(false);
+  const test = run(true);
+  const r1 = M.seen.traceRetryCopied;
+  return { works: control.afterLead === 'trace' && control.afterSwitch === 'trace' && control.took > 0
+                  && test.afterLead === 'trace' && test.afterSwitch === 'levitate'
+                  && test.took === 0 && test.slot0 === 'snorlax' && r1 > r0,
+           arms: { control: [control.afterSwitch, control.took], test: [test.afterSwitch, test.took] },
+           detail: "[the holder's ability after turn 1, the Earthquake it then took] - CONTROL, both "
+                 + 'foes keep their `notrace` Forecast: "' + control.afterSwitch + '", took '
+                 + control.took + ' (it must STILL be trace, and it must take real damage). TEST, a '
+                 + 'Levitate body switches into slot 0 on turn 1: "' + test.afterSwitch + '", took '
+                 + test.took + ' (the copy lands on the retry sweep and the Ground immunity comes with '
+                 + 'it - before the wire this read "trace" and took the same damage as the control). '
+                 + 'traceRetryCopied ' + r0 + ' -> ' + r1 };
+});
+
+/* ================= AND THE CHOICE AMONG TWO ELIGIBLE FOES IS A DIE. ROADMAP #310. ================
+ *
+ * `this.sample(possibleTargets)` is `PRNG#sample`, i.e. `items[this.random(items.length)]` -- a
+ * UNIFORM INDEX INTO THE ELIGIBLE LIST. This engine took `eligible[0]` unconditionally and counted
+ * `traceAmbiguousChoice` as "the honest size of what is guessed".
+ *
+ * MEASURED BEFORE THE WIRE, AND IT IS THE `docs/LESSONS.md` KNOB TEST EXACTLY. The same staged board
+ * played under both pinned corners (`tests/probe_trace_choice.js`): the authority answered `roughskin`
+ * on the bottom corner and `pressure` on the top, and medicham answered `roughskin` twice. Identical
+ * results across a varied knob mean the knob is UNWIRED.
+ *
+ * THE PROBE TURNS THE SAME KNOB FROM INSIDE. `battleInit` now takes `opts.rng`, so the die is a
+ * parameter of the fixture: 0 must select the FIRST eligible foe and a value just under 1 the SECOND.
+ * Both arms are the identical board, so nothing but the die can move the answer.
+ *
+ * AND THE FOES ARE THEN SWAPPED, because "it follows the die" and "it follows the ability" are
+ * different claims and one arm cannot separate them. After the swap the same two rng values must
+ * return the OTHER two abilities.
+ *
+ * THE CONTROL IS THE SAME BOARD WITH NO DIE AT ALL. Every caller that predates `opts.rng` -- every
+ * rollout in this repository -- lands there, and it must keep the old fixed index AND say so on
+ * `traceChoiceNoDie`. A fallback that could not be distinguished from the feature working is this
+ * project's signature failure. */
+probe('ability', 'copiesFoeAbility', 'Trace samples UNIFORMLY among the eligible foes - the die picks the slot', () => {
+  const lead = (abs, rng) => {
+    const me = bare('gardevoir'), ally = bare('corviknight');
+    const f1 = bare('incineroar'), f2 = bare('milotic');
+    me.ability = 'trace'; f1.ability = abs[0]; f2.ability = abs[1];
+    M.battleInit([me, ally], [f1, f2], rng ? { rng } : {});
+    return me.ability;
+  };
+  const AB = ['roughskin', 'levitate'];
+  const SW = [AB[1], AB[0]];
+  const low = () => 0, high = () => 1 - 1e-9;
+  const d0 = M.seen.traceChoiceDie, n0 = M.seen.traceChoiceNoDie;
+  const first = lead(AB, low), second = lead(AB, high);
+  const swFirst = lead(SW, low), swSecond = lead(SW, high);
+  const noDie = lead(AB, null);
+  const d1 = M.seen.traceChoiceDie, n1 = M.seen.traceChoiceNoDie;
+  return { works: first === AB[0] && second === AB[1]
+                  && swFirst === SW[0] && swSecond === SW[1]
+                  && first !== second && noDie === AB[0]
+                  && d1 - d0 === 4 && n1 - n0 === 1,
+           arms: { control: [noDie, n1 - n0], test: [first, second] },
+           detail: 'the copied ability off two eligible foes carrying [' + AB.join(', ') + '] - die 0 '
+                 + '"' + first + '", die 1-1e-9 "' + second + '" (they must DIFFER, and each must be '
+                 + 'the ability of the foe at that index). THE SAME TWO DICE with the foes SWAPPED to '
+                 + '[' + SW.join(', ') + ']: "' + swFirst + '", "' + swSecond + '" - the answer '
+                 + 'follows the SLOT, not the ability, which is what `items[random(len)]` means. '
+                 + 'CONTROL, no rng handed to battleInit at all: "' + noDie + '" and traceChoiceNoDie '
+                 + 'rose by ' + (n1 - n0) + ' (the pre-#310 fixed index, counted rather than silent). '
+                 + 'traceChoiceDie rose by ' + (d1 - d0) };
+});
+
 /* ROADMAP #157 -- THREE MOVES THAT SPENT THE TURN AND DID NOTHING, 939 STORED CLICKS.
  *
  * Entrainment (342), Simple Beam (380) and Worry Seed (217) carried `[pp, moveClass, statusCategory]`
@@ -2998,11 +3122,31 @@ probe('ability', 'copiesFoeAbility', 'a traced ability does NOT survive the benc
  *
  * AND THE THIRD ARM IS THE ONE THAT SEPARATES THIS FROM SKILL SWAP. These moves OVERWRITE the target
  * and leave the USER alone; an implementation that reused the swap branch would strip the user's
- * ability every time. So the user's ability is read on both arms and must not move. */
+ * ability every time. So the user's ability is read on both arms and must not move.
+ *
+ * ~~THE USER WAS A GARDEVOIR WITH `me.ability = 'trace'`~~ AND THAT ARM WAS ASSERTING A SECOND
+ * MECHANIC'S ABSENCE. 2026-08-21: Trace was given the authority's re-attempt (`onUpdate` never clears
+ * `seek`, data/abilities.ts:5127), so a Trace body opposite a Rough Skin Garchomp now copies Rough
+ * Skin on the first sweep -- which is what the game does, and which made `user === 'trace'` false on
+ * every arm. The FIXTURE was wrong, not the engine: "the user's ability must not move" needs a user
+ * whose ability nothing on the board rewrites, and Trace rewrites ITSELF by design.
+ *
+ * AND THE OLD FIXTURE WAS WRONG A SECOND TIME, WHICH IS WHY THIS IS A CORRECTION AND NOT A
+ * CONVENIENCE. Entrainment's own `onTryHit` (data/moves.ts:4874, no Champions override) refuses when
+ * `source.getAbility().flags['noentrain']`, and Trace carries `noentrain: 1` -- so on the authority a
+ * Trace user's Entrainment FAILS OUTRIGHT and the target keeps its own ability. The probe asserted
+ * the opposite: `entrain.target === 'trace'`. It passed because this engine does not read that
+ * refusal, so a wrong fixture and a wrong engine agreed.
+ *
+ * SO THE USER'S ABILITY IS MARVEL SCALE. It carries NO copy-refusal flags at all -- `refusesCopy` is
+ * absent from its `data/tags.json` row, checked rather than recalled -- so it is a legitimate
+ * Entrainment source, and it is inert on this board because nothing statuses the user and nothing
+ * attacks it. THE ASSERTIONS STILL DO NOT TYPE IT: every arm is compared against the NO-CLICK arm's
+ * own reading, so the fixture declares its input in one place and the comparison derives the rest. */
 probe('move', 'rewritesTargetAbility', 'Worry Seed / Simple Beam / Entrainment overwrite the TARGET only', () => {
   const write = (mv) => {
-    const { me, ally, f1, f2, S } = board('gardevoir', 'corviknight', 'garchomp', 'milotic');
-    me.ability = 'trace'; f1.ability = 'roughskin';
+    const { me, ally, f1, f2, S } = board('milotic', 'corviknight', 'garchomp', 'milotic');
+    me.ability = 'marvelscale'; f1.ability = 'roughskin';
     if (mv) M.battleTurn(S, rng5,
       new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
       new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
@@ -3014,17 +3158,20 @@ probe('move', 'rewritesTargetAbility', 'Worry Seed / Simple Beam / Entrainment o
   };
   const none = write(null), worry = write('worryseed');
   const simple = write('simplebeam'), entrain = write('entrainment');
-  return { works: none.target === 'roughskin' && none.slept === true
-                  && worry.target === 'insomnia' && worry.slept === false && worry.user === 'trace'
-                  && simple.target === 'simple' && simple.user === 'trace'
-                  && entrain.target === 'trace' && entrain.user === 'trace',
+  /* THE USER'S ABILITY IS READ OFF THE NO-CLICK ARM, never typed. Same fixture, same builder, so a
+   * change to the MC row moves both sides of the comparison and the probe keeps asking its question. */
+  const U = none.user;
+  return { works: none.target === 'roughskin' && none.slept === true && U !== 'roughskin'
+                  && worry.target === 'insomnia' && worry.slept === false && worry.user === U
+                  && simple.target === 'simple' && simple.user === U
+                  && entrain.target === U && entrain.user === U,
            arms: { control: none.slept, test: worry.slept },
            detail: 'the target\'s ability then a Spore at it — NO click "' + none.target + '", slept '
                  + none.slept + ' (must be true, or the consequence proves nothing); WORRY SEED "'
                  + worry.target + '", slept ' + worry.slept + ' (must be false — Insomnia refuses it);'
                  + ' SIMPLE BEAM "' + simple.target + '"; ENTRAINMENT "' + entrain.target
                  + '" (the user\'s own). The USER\'s ability across all three: ' + worry.user + '/'
-                 + simple.user + '/' + entrain.user + ' — it must stay "trace", which is what '
+                 + simple.user + '/' + entrain.user + ' — it must stay "' + U + '", which is what '
                  + 'separates these from Skill Swap' };
 });
 
@@ -17293,18 +17440,61 @@ const frzRate = (moveId, n) => {
   return Math.round(1000 * frz / n) / 10;
 };
 
+/* ~~AND THE REFUSAL COUNTER MUST FIRE~~ -- THE POPULATION IT COUNTS WAS EMPTIED UPSTREAM, AND THE
+ * PROBE WENT RED WITHOUT THE ENGINE MOVING. 2026-08-21.
+ *
+ * `MEDSEEN.secondaryRefusedByFormat` is incremented at medicham2-browser.js's secondaries loop, and
+ * that loop only runs over `data/move-effects.js`'s `secondary` array. So the counter can only fire
+ * for a move that (a) the FORMAT says has no secondaries and (b) the ARTIFACT still hands the engine
+ * one -- i.e. only while the two disagree. `data/move-effects.js` was regenerated on 2026-08-20 from
+ * `Dex.forFormat` and Freeze-Dry now carries no `secondary` key at all, which is right: the Champions
+ * mod's own line is `freezedry: { inherit: true, secondary: undefined, // no inherit }`
+ * (data/mods/champions/moves.ts:394-396). DERIVED ON THIS RUN and printed below: the number of legal
+ * moves in that disagreeing state is now ZERO, out of 380 whose format secondary count is 0.
+ *
+ * THE COUNTER IS THEREFORE NOT A HEALTH SIGNAL ANY MORE, IT IS A CONTRADICTION SIGNAL, and the probe
+ * asks it that way instead of dropping it. `fired > 0` is required exactly when the derived
+ * population is non-empty and `fired === 0` exactly when it is empty -- so an artifact regression that
+ * puts mainline's secondary back turns this red again, and so does an engine that stops refusing.
+ * A flat `fired > 0` would have been a claim about an artifact rather than about the engine.
+ *
+ * WHAT STILL CARRIES THE MECHANIC IS THE PAIRED OUTCOME, and it is the stronger half either way:
+ * Freeze-Dry and Ice Beam are the same Ice special attack into the same body off the same seeds, and
+ * they must part -- one at 0% and one at the format's 10%. An engine reading mainline for both (the
+ * pre-wire state) reads 11.2% twice; an engine that lost its freeze path entirely reads 0% twice. */
 probe('move', 'formatSecondaryCount', 'a secondary THIS FORMAT REMOVED never rolls', () => {
+  /* THE POPULATION THE COUNTER CAN SEE, derived from the two artifacts the engine itself reads --
+   * never a list, and never a number typed beside this probe. */
+  require(D('data', 'move-effects.js'));   // idempotent; the engine already loaded it
+  const FX = globalThis.MOVE_EFFECTS || {};
+  const TG = require(D('data', 'tags.json'));
+  let zeroCount = 0, reachable = [];
+  for (const [id, fx] of Object.entries(FX)) {
+    const t = TG.moves[id] && TG.moves[id].params && TG.moves[id].params.formatSecondaryCount;
+    if (!t || t.count !== 0) continue;
+    zeroCount++;
+    if (fx.secondary && fx.secondary.length) reachable.push(id);
+  }
   const before = M.MEDSEEN.secondaryRefusedByFormat;
   const dry = frzRate('freezedry', 600);
   const fired = M.MEDSEEN.secondaryRefusedByFormat - before;
   const beam = frzRate('icebeam', 600);
-  return { works: dry === 0 && beam >= 7 && beam <= 14 && fired > 0,
+  const counterRight = reachable.length ? fired > 0 : fired === 0;
+  /* AN EMPTY ARTIFACT WOULD MAKE `reachable` EMPTY FOR THE WRONG REASON and read as a pass, which is
+   * the silent-default shape this whole file exists to refuse. It is a condition of the probe. */
+  const derivable = Object.keys(FX).length > 0 && zeroCount > 0;
+  return { works: dry === 0 && beam >= 7 && beam <= 14 && counterRight && derivable,
            arms: { control: [beam, 1], test: [dry, fired] },
            detail: 'Freeze-Dry froze on ' + dry + '% of 600 real turns (Champions deletes its '
-                 + 'secondary outright; must be 0) and the refusal fired ' + fired + ' times, so it '
-                 + 'is a refusal and not a mechanic that quietly went missing. CONTROL, same body, '
-                 + 'same seeds, same Ice special attack: Ice Beam ' + beam + '% (the format keeps its '
-                 + '10% freeze). Before the wire both arms read 11.2%' };
+                 + 'secondary outright -- data/mods/champions/moves.ts:396 `secondary: undefined`; '
+                 + 'must be 0). CONTROL, same body, same seeds, same Ice special attack: Ice Beam '
+                 + beam + '% (the format keeps its 10% freeze). Before the wire both arms read 11.2%. '
+                 + 'THE ENGINE-SIDE REFUSAL fired ' + fired + ' times, and it must fire exactly when '
+                 + 'there is something to refuse: derived this run, ' + reachable.length + ' of the '
+                 + zeroCount + ' moves whose format secondary count is 0 still carry a secondary in '
+                 + 'data/move-effects.js' + (reachable.length ? ' (' + reachable.slice(0, 5).join(', ')
+                 + ')' : ' -- the artifact now agrees with the format, so the branch has no population '
+                 + 'and 0 is the correct reading') };
 });
 
 /* ROADMAP #187, THE SELF-BOOST HALF — AND A PROBE THAT HAD TO VARY THE ARTIFACT, BECAUSE COMPARING

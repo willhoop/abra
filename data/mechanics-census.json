@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-20T00:47:56.051Z",
+  "generated": "2026-08-21T06:40:40.894Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 621,
-  "live": 621,
+  "probed": 623,
+  "live": 623,
   "missing": 0,
-  "armed": 621,
+  "armed": 623,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -682,11 +682,31 @@
       "directCall": false
     },
     {
+      "kind": "ability",
+      "tag": "copiesFoeAbility",
+      "label": "a Trace that found nothing on entry copies the moment a traceable foe arrives",
+      "live": true,
+      "detail": "[the holder's ability after turn 1, the Earthquake it then took] - CONTROL, both foes keep their `notrace` Forecast: \"trace\", took 26 (it must STILL be trace, and it must take real damage). TEST, a Levitate body switches into slot 0 on turn 1: \"levitate\", took 0 (the copy lands on the retry sweep and the Ground immunity comes with it - before the wire this read \"trace\" and took the same damage as the control). traceRetryCopied 0 -> 1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "copiesFoeAbility",
+      "label": "Trace samples UNIFORMLY among the eligible foes - the die picks the slot",
+      "live": true,
+      "detail": "the copied ability off two eligible foes carrying [roughskin, levitate] - die 0 \"roughskin\", die 1-1e-9 \"levitate\" (they must DIFFER, and each must be the ability of the foe at that index). THE SAME TWO DICE with the foes SWAPPED to [levitate, roughskin]: \"levitate\", \"roughskin\" - the answer follows the SLOT, not the ability, which is what `items[random(len)]` means. CONTROL, no rng handed to battleInit at all: \"roughskin\" and traceChoiceNoDie rose by 1 (the pre-#310 fixed index, counted rather than silent). traceChoiceDie rose by 4",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "move",
       "tag": "rewritesTargetAbility",
       "label": "Worry Seed / Simple Beam / Entrainment overwrite the TARGET only",
       "live": true,
-      "detail": "the target's ability then a Spore at it — NO click \"roughskin\", slept true (must be true, or the consequence proves nothing); WORRY SEED \"insomnia\", slept false (must be false — Insomnia refuses it); SIMPLE BEAM \"simple\"; ENTRAINMENT \"trace\" (the user's own). The USER's ability across all three: trace/trace/trace — it must stay \"trace\", which is what separates these from Skill Swap",
+      "detail": "the target's ability then a Spore at it — NO click \"roughskin\", slept true (must be true, or the consequence proves nothing); WORRY SEED \"insomnia\", slept false (must be false — Insomnia refuses it); SIMPLE BEAM \"simple\"; ENTRAINMENT \"marvelscale\" (the user's own). The USER's ability across all three: marvelscale/marvelscale/marvelscale — it must stay \"marvelscale\", which is what separates these from Skill Swap",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3136,7 +3156,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5136,7 +5156,7 @@
       "tag": "formatSecondaryCount",
       "label": "a secondary THIS FORMAT REMOVED never rolls",
       "live": true,
-      "detail": "Freeze-Dry froze on 0% of 600 real turns (Champions deletes its secondary outright; must be 0) and the refusal fired 600 times, so it is a refusal and not a mechanic that quietly went missing. CONTROL, same body, same seeds, same Ice special attack: Ice Beam 7.7% (the format keeps its 10% freeze). Before the wire both arms read 11.2%",
+      "detail": "Freeze-Dry froze on 0% of 600 real turns (Champions deletes its secondary outright -- data/mods/champions/moves.ts:396 `secondary: undefined`; must be 0). CONTROL, same body, same seeds, same Ice special attack: Ice Beam 7.7% (the format keeps its 10% freeze). Before the wire both arms read 11.2%. THE ENGINE-SIDE REFUSAL fired 0 times, and it must fire exactly when there is something to refuse: derived this run, 0 of the 380 moves whose format secondary count is 0 still carry a secondary in data/move-effects.js -- the artifact now agrees with the format, so the branch has no population and 0 is the correct reading",
       "hollow": false,
       "armed": true,
       "directCall": false

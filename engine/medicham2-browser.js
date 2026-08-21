@@ -491,11 +491,22 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * state these 939 + 100 clicks were in until 2026-08-11. */
   abilityRewritten: 0, statRewired: 0,
   /* WIRE 160 -- TRACE. `traceCopied` is the mechanic; `traceFoundNothing` is a legitimate board (every
-   * foe carries an untraceable ability); `traceAmbiguousChoice` is THE HONEST SIZE OF WHAT IS GUESSED --
-   * Showdown samples uniformly among the eligible foes and this engine takes the first in slot order,
-   * so every increment there is a board where the copy may be the wrong one. A zero on the first means
-   * 274 sheet fields of ability are dead again. */
+   * foe carries an untraceable ability); `traceAmbiguousChoice` is THE HONEST SIZE OF WHAT IS GUESSED.
+   *
+   * 2026-08-21 -- THE GUESS IS NOW A DIE, AND THE COUNTERS SAY WHICH BOARDS GOT ONE. `this.sample`
+   * (data/abilities.ts:5135) is `prng.random(possibleTargets.length)`, and this engine took
+   * `eligible[0]` unconditionally. `tests/probe_trace_choice.js` turned the die into a knob by playing
+   * the same board under both pinned corners: the authority answered `roughskin` on one and `pressure`
+   * on the other, and medicham answered `roughskin` twice -- the knob was UNWIRED, which is exactly
+   * what docs/LESSONS.md says identical results across a varied knob mean.
+   *
+   *   traceRetryCopied     a copy that landed on a LATER sweep, not at switch-in -- the authority's
+   *                        `seek` flag is never cleared, so a Trace that found nothing keeps trying
+   *   traceChoiceDie       eligible.length > 1 AND a die was available: the choice was drawn
+   *   traceChoiceNoDie     eligible.length > 1 and NO die was in scope, so slot 0 was taken. A SILENT
+   *                        DEFAULT WOULD LOOK EXACTLY LIKE THE DIE WORKING, so it is counted apart. */
   traceCopied: 0, traceFoundNothing: 0, traceAmbiguousChoice: 0,
+  traceRetryCopied: 0, traceChoiceDie: 0, traceChoiceNoDie: 0,
   /* ROADMAP #92 -- CONFUSION, which did not exist in this engine at all until this pass, so every
    * one of these was structurally zero and there was nothing to notice. Each is a different event and
    * a zero on each says a different thing:
@@ -12056,6 +12067,20 @@ function abRestoreOnLeave(m){
   m.ability=back; MEDSEEN.abilityRestoredOnSwitchOut++;
   return true;
 }
+/* ---- THE GENERIC DIE, REACHABLE FROM A SWITCH-IN ------------------------------------------------
+ *
+ * `battleTurn` already builds the five named streams and `battleInit` was "handed no rng" -- its own
+ * words, in the entry-order-tie comment a few hundred lines down. That is fine for every mechanic that
+ * resolves inside a turn and it is NOT fine for Trace, whose die is rolled at switch-in and whose
+ * commonest board is a LEAD. `runEntryPass` is four calls deep from either entry point and threading a
+ * parameter through both would touch every caller of `bringIn`.
+ *
+ * SO THE STREAM IS STASHED, EXACTLY AS `MID_S` IS, and by the same two writers: `battleInit` (from
+ * `opts.rng`, which a caller may not pass) and `battleTurn` (from the streams it already built). It is
+ * ASSIGNED unconditionally at both -- including to null -- so a battle cannot inherit the previous
+ * battle's sequence, which would be a silent cross-game coupling and far worse than having no die. */
+let MED_RNG=null;
+function medRng(){ return MED_RNG; }
 function traceCopy(m,foes){
   if(!m||m.fainted||m.curHP<=0)return false;
   const p=TAGS.param('ability',m.ability,'copiesFoeAbility');
@@ -12073,8 +12098,28 @@ function traceCopy(m,foes){
     eligible.push(t);
   }
   if(!eligible.length){MEDSEEN.traceFoundNothing++;return false;}
+  /* THE CHOICE IS A DIE, AND IT IS THE AUTHORITY'S OWN INDEX. `this.sample(possibleTargets)` is
+   * `PRNG#sample`, which is `items[this.random(items.length)]` -- a UNIFORM INDEX INTO THE ELIGIBLE
+   * LIST, not into the slots. `tests/probe_trace_choice.js` proves both halves of that on a staged
+   * board: swapping the two foes swaps the authority's answer (so it is positional), and moving the
+   * pinned corner moves it too (so it is a die). Same arithmetic on this side -- `floor(u * len)` --
+   * so under a pinned corner the two engines land on the same index by construction rather than by
+   * coincidence: the top corner's u is 1-1e-9 and Showdown's pinned `random(len)` is `len-1`; the
+   * bottom corner's u is 0 and Showdown's is 0.
+   *
+   * NO DIE IN SCOPE IS NOT SILENT. `medRng()` returns null for a caller that never handed this engine
+   * an rng (battleInit without `opts.rng`, and every rollout that predates it), and that path keeps
+   * the old fixed index -- counted apart, because a fallback that looks like the feature working is
+   * this repo's signature failure. */
   if(eligible.length>1)MEDSEEN.traceAmbiguousChoice++;
-  const t=eligible[0];
+  let _ti=0;
+  if(eligible.length>1){
+    const _r=medRng();
+    if(_r){ _ti=Math.floor(_r()*eligible.length); if(_ti>=eligible.length)_ti=eligible.length-1;
+            MEDSEEN.traceChoiceDie++; }
+    else MEDSEEN.traceChoiceNoDie++;
+  }
+  const t=eligible[_ti];
   abRewrite(m,String(t.ability));          // ROADMAP #307 -- the copy is undone by leaving the field
   MEDSEEN.traceCopied++;
   /* Showdown writes `|-ability|HOLDER|Intimidate|[from] ability: Trace|[of] FOE`. This trace sink
@@ -12082,6 +12127,47 @@ function traceCopy(m,foes){
    * declared here rather than left to be found in a divergence report. */
   if(TR)TR.ab(m,m.ability,'[from] ability: trace');
   return true;
+}
+/* ---- ROADMAP #310 -- TRACE DOES NOT GIVE UP, AND THIS ENGINE DID -------------------------------
+ *
+ * Read the authority's two handlers together (data/abilities.ts:5110; `data/mods/champions/abilities.ts`
+ * is 100 lines and has no `trace` entry, so Champions inherits mainline -- checked, not assumed):
+ *
+ *     onStart   this.effectState.seek = true;  ... if (seek) singleEvent('Update', ...)
+ *     onUpdate  if (!seek) return;
+ *               const possibleTargets = adjacentFoes().filter(...);
+ *               if (!possibleTargets.length) return;            <-- `seek` IS NEVER CLEARED HERE
+ *               pokemon.setAbility(this.sample(possibleTargets).getAbility(), target);
+ *
+ * `seek` is set once and cleared by NOTHING. So an entry that finds no eligible foe is not a failure,
+ * it is a deferral: `onUpdate` runs on every `eachEvent('Update')` -- i.e. constantly -- and the copy
+ * lands the moment a traceable body is opposite. This engine called `traceCopy` at switch-in and
+ * nowhere else, so a Trace that found nothing on entry never copied for the rest of the game.
+ *
+ * MEASURED BEFORE IT WAS WRITTEN, on all three pins (`tests/probe_trace_choice.js`, arm `re-attempt`):
+ * Gardevoir leads into Aegislash (Stance Change) and Castform (Forecast), both `notrace`; Garchomp
+ * (Rough Skin) switches in on turn 2. Showdown copied `roughskin` under every pin; medicham copied
+ * NOTHING under every pin.
+ *
+ * `seek` NEEDS NO FIELD, and that is the reason this is a sweep rather than a flag. The condition the
+ * authority expresses as "seek is still true" is expressed here by the body STILL HOLDING an ability
+ * tagged `copiesFoeAbility` -- a successful copy replaces it, so the sweep stops firing on its own,
+ * and a body that leaves the field and returns gets Trace back through `abRestoreOnLeave` and is
+ * eligible again. That is the authority's shape, not an approximation of it.
+ *
+ * IT RUNS AT `receiverSweep`'S BOUNDARIES AND ONE MORE. Both are the same argument that function's
+ * header already makes -- an event this engine sets at twenty sites is swept, not hooked -- and the
+ * extra one is `refill`, because a REPLACEMENT walking into an empty foe slot is the single commonest
+ * way a board goes from "nothing eligible" to "something eligible". */
+function traceSweep(bodies){
+  for(const m of bodies||[]){
+    if(!m||m.fainted||m.curHP<=0)continue;
+    if(!TAGS.param('ability',m.ability,'copiesFoeAbility'))continue;
+    const sf=m._sf, S=sf&&sf._S;
+    if(!S)continue;
+    const foes=(sf===S.sfA)?S.actB:S.actA;
+    if(traceCopy(m,_live(foes)))MEDSEEN.traceRetryCopied++;
+  }
 }
 /* ---- ROADMAP #175 -- RECEIVER: THE ABILITY OF THE ALLY THAT JUST DIED --------------------------
  *
@@ -13032,6 +13118,19 @@ function battleInit(teamA,teamB,opts){
    * Both paths are counted apart (MEDSEEN.megaEvolvedAuto) so an auto-mega can never be mistaken for
    * a decision somebody made. */
   S._autoMega=!(opts&&opts.autoMega===false);
+  /* ROADMAP #310 -- THE LEAD-IN'S DIE. Trace rolls its die at switch-in and the commonest Trace
+   * board in this format is a LEAD, so a die that only exists inside `battleTurn` is a die that
+   * never reaches the case that matters. `opts.rng` is optional and is ASSIGNED EITHER WAY: a
+   * caller that passes nothing gets `null`, `traceCopy` falls back to the fixed index and counts
+   * `traceChoiceNoDie`. Inheriting the previous battle's stream would be a silent cross-game
+   * coupling, which is why this is an assignment and not a conditional one.
+   *
+   * THE EVENT ADDRESS IS SET HERE TOO, and it is the authority's own value rather than a stale one:
+   * Showdown emits `|turn|1` from `nextTurn()` AFTER the lead-in, so `battle.turn` is 0 while the
+   * entry abilities resolve. Without this line the first draw of a game would be addressed with
+   * whatever turn the PREVIOUS game left behind, which is a sequence wearing an address's clothes. */
+  MED_RNG=(opts&&opts.rng)?rngStreams(opts.rng).any:null;
+  MID_S=S; MID_TURN=0; MID_MOVE='-'; MID_TGT='-'; MID_ATT='-';
   /* ROADMAP #68 -- THE TRACE IS ARMED HERE AND NOWHERE ELSE IS IT DEFAULTED ON. `opts.trace` is any
    * pushable sink (an Array is what callers pass). Absent, `S._trace` is undefined, traceBind() sets
    * TR to null, and every emit site in this file is a falsy test. */
@@ -13478,6 +13577,7 @@ function battleTurn(S,rng,actsForA,actsForB){
   /* ROADMAP #222 -- the five named dice. `rng` below remains the GENERIC stream, so every call
    * site not named in RNG_STREAMS is untouched and a plain-function caller sees no change at all. */
   const _R=rngStreams(rng); rng=_R.any;
+  MED_RNG=_R.any;   // ROADMAP #310 -- the switch-in die, reachable from four calls down
   /* ROADMAP #290 — the tied-group key, on its own stream. See RNG_STREAMS. */
   const _tieRng=_R.tie||rng;
   rng=rng||Math.random;
@@ -14279,6 +14379,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * compares against is taken below, immediately before the action runs. */
       opportunistSettle(actA,actB,_oppSnap); _oppSnap=null;
       receiverSweep([...actA,...actB]);   // ROADMAP #175 -- the previous action's faint, answered
+      traceSweep([...actA,...actB]);      // ROADMAP #310 -- and a Trace still seeking, re-attempted
       /* ROADMAP #243 -- AND THE PREVIOUS ACTION'S FAINT REACHES THE SIDE'S DEATH COUNTER HERE, which
        * is the same boundary and the same reason: `side.totalFainted++` lives inside the authority's
        * `faintMessages()`, and `faintMessages()` runs at the end of every move. Placed ABOVE the
@@ -21666,6 +21767,7 @@ function battleTurn(S,rng,actsForA,actsForB){
     flushAfterMoveSpends([...actA,...actB]);   // WIRE 152 -- the LAST action's debt, same reason
     opportunistSettle(actA,actB,_oppSnap); _oppSnap=null;   // ROADMAP #212 -- and the LAST action's copy
     receiverSweep([...actA,...actB]);          // ROADMAP #175 -- and the LAST action's faint
+    traceSweep([...actA,...actB]);             // ROADMAP #310 -- and the LAST action's arrivals
     fallenSettle(S);                           // ROADMAP #243 -- and the LAST action's death counter
     /* ROADMAP #231 -- and the LAST action's win check, in the same position relative to the settles
      * and to `_updateAll` as the loop-top copy. This is the one that fires in the ordinary case: the
@@ -22817,8 +22919,12 @@ function battleTurn(S,rng,actsForA,actsForB){
      * (dist/sim/battle.js:2093 and :2127), so Receiver and Power of Alchemy do take the ability off
      * the last body to die. What must not happen is the REPLACEMENT. */
     receiverSweep([...actA,...actB]);
+    traceSweep([...actA,...actB]);   // ROADMAP #310 -- same boundary, same reason
     if(_wipedAtResidual){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedAtUpkeep++;break _TURN;}
     refill();
+    /* ROADMAP #310 -- AFTER the replacements walk in. `refill` is the one place a foe slot goes
+     * from empty to occupied, which is the commonest way a Trace that found nothing gets a target. */
+    traceSweep([...actA,...actB]);
   }
   S.turn++;
   traceRelease(_trPrev);

@@ -42,7 +42,7 @@ number typed in prose beside a table is exactly what CLAUDE.md records going sta
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  621/621 probed mechanics live, 0 missing   (census 2026-08-19 20:47)
+  623/623 probed mechanics live, 0 missing   (census 2026-08-21 02:40)
   0/6000 differential comparisons disagree with Showdown   (2026-08-18 10:52)
     seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
@@ -54,16 +54,185 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 7e010fd97de8 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 387d8064147a now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is b4a4d296de54 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 2cab3179f5fc now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 273/291 probed, 18 unprobed
 ```
 
-_stamped 2026-08-19 22:13_
+_stamped 2026-08-21 02:46_
 
 <!-- /GENERATED -->
+
+## ROADMAP #310 — TRACE'S CHOICE IS A DIE AND IT WAS A FIXED INDEX, AND TRACE NEVER GIVES UP AND THIS ENGINE DID. 2026-08-21.
+
+**Census 621 live / 0 missing -> 623 live / 0 missing.** Two engine defects, each shown RED on a
+deliberate break of its own before being trusted, plus **one pre-existing census drop that had nothing
+to do with either and was found by running the number rather than quoting it.**
+
+**THE RULE WAS READ, NOT RECALLED.** `data/abilities.ts:5110-5138`. `data/mods/champions/abilities.ts`
+is 100 lines and contains no `trace` entry at all, so Champions inherits mainline here — grepped, not
+assumed, because the standing rule is to read the WHOLE mod block before concluding it did not
+override something.
+
+```
+onStart   seek = true
+          if any adjacentFoe has ability 'noability'   seek = false     (Hackmons only)
+          if pokemon.hasItem('Ability Shield')          seek = false, and `-block` is announced
+          if (seek) singleEvent('Update', ...)
+onUpdate  if (!seek) return
+          possibleTargets = adjacentFoes().filter(t => !t.getAbility().flags['notrace']
+                                                       && t.ability !== 'noability')
+          if (!possibleTargets.length) return          <-- `seek` IS NEVER CLEARED ANYWHERE
+          pokemon.setAbility(this.sample(possibleTargets).getAbility(), target)
+```
+
+Three claims fall out and they were staged separately, on all three pinned arms, before a line was
+written — `tests/probe_trace_choice.js`. **NOBODY TYPES THE ANSWER**: Showdown plays the identical
+script and its own `|-ability|` line is the expectation.
+
+### THE DIE: THE AUTHORITY MOVED WITH THE CORNER AND THIS ENGINE DID NOT
+
+`this.sample` is `PRNG#sample` — `items[this.random(items.length)]`, a **uniform index into the
+ELIGIBLE list**. Under a pinned corner `random(len)` is a constant (`len-1` on the top, `0` on the
+bottom), so playing one board under both corners turns the die into a knob. Measured, before the fix:
+
+| arm | pin | showdown | medicham |
+|---|---|---|---|
+| Rough Skin slot 0, Pressure slot 1 | bottom-tie-first | `roughskin` | `roughskin` |
+| Rough Skin slot 0, Pressure slot 1 | **top-tie-first** | **`pressure`** | **`roughskin`** |
+| the two foes SWAPPED | bottom-tie-first | `pressure` | `pressure` |
+| the two foes SWAPPED | **top-tie-first** | **`roughskin`** | **`pressure`** |
+
+The swap arm is what separates *"it picks a slot"* from *"it picks an ability"*, and the authority's
+answer follows the SLOT. **medicham answered the same thing under both corners — the knob was
+UNWIRED**, which is exactly what `docs/LESSONS.md` says identical results across a varied knob mean.
+`traceCopy` took `eligible[0]` and counted `traceAmbiguousChoice` as "the honest size of what is
+guessed"; the guess is now the same `floor(u * len)` the authority makes.
+
+**THE LEAD-IN HAD NO DICE AT ALL, AND THAT IS WHERE TRACE MOSTLY HAPPENS.** `battleInit`'s own comment
+says it "is handed no rng", which is fine for everything that resolves inside a turn and useless for
+an ability that rolls at switch-in on a body that LEADS. `battleInit` now takes `opts.rng` and
+`engine/game_differential.js` passes the arm's stream; **every other caller passes nothing, keeps the
+old fixed index, and increments `MEDSEEN.traceChoiceNoDie`** — counted apart, because a fallback that
+cannot be told from the feature working is this project's signature failure.
+
+### THE RE-ATTEMPT: `seek` IS SET ONCE AND CLEARED BY NOTHING
+
+A lead that finds nothing to copy has DEFERRED, not failed. Staged: Gardevoir leads into Aegislash
+(Stance Change) and Castform (Forecast), both `notrace`; Garchomp switches in on turn 2.
+**Showdown copied `roughskin` under all three pins. medicham copied NOTHING under all three.** It
+called `traceCopy` at switch-in and nowhere else, so such a Trace stayed Trace for the rest of the
+game. `traceSweep` now runs at `receiverSweep`'s three boundaries and once after `refill` — a
+replacement walking into an empty foe slot being the commonest way a board acquires a target. **It
+needs no `seek` field**: the condition is that the body still holds an ability tagged
+`copiesFoeAbility`, and a successful copy replaces it, so the sweep stops on its own.
+
+### THE REFUSAL WAS ALREADY RIGHT, AND IT WAS CHECKED RATHER THAN ASSUMED
+
+34 abilities in the format table carry Showdown's `notrace` flag; **10 have a legal Reg M-B carrier**
+(disguise, battlebond, forecast, hungerswitch, illusion, imposter, receiver, stancechange, trace,
+zerotohero) and `data/tags.json` carries `refusesCopy.notrace` for **10 of 10**. The other 24 are
+absent from the artifact because ROADMAP #175 drops an ability no legal body can carry — verified per
+ability, not inferred. The staged arm with the untraceable body in SLOT 0 agrees on all three pins.
+
+### THE STATE-DIVERGENCE POPULATION THIS CAME FROM IS NOT RE-MEASURED HERE, AND THAT IS SAID PLAINLY
+
+The 9-of-15 figure in the section below is what sent this pass here. **It is not re-run and no new
+number replaces it**: the whole-game end-state run reads the team pool LIVE and OPS appends hourly, so
+a figure taken now would describe a pool that no longer exists by the time it is quoted. What is
+claimed here is what was staged: the two mechanisms are real, both are fixed, and the fixes agree with
+the authority on 12 of 12 staged games across three pins. Whether the corpus population shrinks is a
+re-run, and it is owed.
+
+### THE CENSUS DROPPED BY TWO BEFORE IT ROSE, AND ONE HALF WAS NOT THIS PASS'S DOING
+
+The first re-run read **619 live / 2 missing**. Both are worth recording because neither is what it
+looked like.
+
+**`formatSecondaryCount` — THE ENGINE NEVER MOVED; THE ARTIFACT UNDER IT DID.** The probe required
+`MEDSEEN.secondaryRefusedByFormat > 0`, and that counter can only fire for a move where the FORMAT
+says there are no secondaries AND `data/move-effects.js` still hands the engine one — i.e. only while
+the two disagree. `data/move-effects.js` was regenerated on 2026-08-20 (stamped in its own header) and
+Freeze-Dry now carries no `secondary` key at all, which is RIGHT: the mod's line is
+`freezedry: { inherit: true, secondary: undefined, // no inherit }` at
+`data/mods/champions/moves.ts:394-396`. **Derived on the current artifacts: 0 of the 380 moves whose
+format secondary count is 0 still carry a secondary — the branch has no population left.** The
+committed census of 621 was generated at 2026-08-20T00:47Z and the artifact moved at 01:29Z, so it had
+been stale-red since before this session opened.
+
+**PROVEN RATHER THAN ARGUED, because "the engine is fine" is exactly the comfortable answer.** With the
+artifact as shipped, Freeze-Dry freezes 0% over 300 turns and the refusal fires 0 times. With
+mainline's secondary put back into the loaded artifact by hand, **Freeze-Dry still freezes 0% and the
+refusal fires 300 times** — the branch is intact and does the work the instant there is work. The probe
+now requires `fired > 0` exactly when the derived population is non-empty and `fired === 0` exactly
+when it is empty, so an artifact regression turns it red again and so does an engine that stops
+refusing. A flat `fired > 0` was a claim about an artifact wearing a claim about the engine.
+
+**`rewritesTargetAbility` — THE FIXTURE WAS ASSERTING A SECOND MECHANIC'S ABSENCE, AND IT WAS WRONG A
+SECOND WAY TOO.** Its user was a Gardevoir with `me.ability = 'trace'` and it asserted the user's
+ability *must stay `"trace"`* — the arm that separates these moves from Skill Swap. With Trace given
+its re-attempt, that Gardevoir now copies the Rough Skin standing opposite it, which is what the game
+does. **And the arm underneath it was already wrong on its own terms:** Entrainment's `onTryHit`
+refuses when `source.getAbility().flags['noentrain']` (`data/moves.ts:4874`, no Champions override) and
+Trace carries `noentrain: 1`, so on the authority a Trace user's Entrainment FAILS OUTRIGHT — while
+the probe asserted `entrain.target === 'trace'`, i.e. that it succeeds. A wrong fixture and an engine
+that does not read that refusal agreed with each other. The user's ability is now Marvel Scale, which
+carries no copy-refusal flags at all (read out of `data/tags.json`, not recalled), and **every arm is
+compared against the NO-CLICK arm's own reading** so no ability name is asserted from memory.
+
+### THE TWO NEW PROBES, AND BOTH WERE SHOWN RED ON THEIR OWN BREAK
+
+Neither reads a string back, because a string is what an engine writes when nothing consults it.
+
+- **`copiesFoeAbility` — "a Trace that found nothing on entry copies the moment a traceable foe
+  arrives."** The consequence is PASSIVE on purpose: a retry in this engine does not fire the copied
+  ability's own `Start` handler — the same already-declared shortfall `receiverSweep` records — so an
+  Intimidate arm would assert something the engine deliberately does not do. Levitate has no `Start`
+  handler at all. **CONTROL, both foes keep their `notrace` Forecast: still `trace`, and it takes 26
+  from the Earthquake. TEST, a Levitate body switches into slot 0: `levitate`, and it takes 0.**
+  Break: `traceSweep` returns immediately -> RED, and only this row.
+- **`copiesFoeAbility` — "Trace samples UNIFORMLY among the eligible foes — the die picks the slot."**
+  The die is a fixture parameter through the new `opts.rng`: 0 -> the first eligible foe, 1-1e-9 ->
+  the second, **and with the two foes swapped the same two dice return the other two abilities**.
+  Control: no rng handed to `battleInit` at all -> the pre-#310 fixed index AND `traceChoiceNoDie`
+  rises by exactly 1. Break: the die branch is disabled -> RED, and only this row.
+
+### WHAT IS NOT CLAIMED
+
+No downstream number. MAG is out of scope until MEDICHAM is finished, so nothing here was routed
+through an argmax and no strength gain is claimed — landing the mechanic is the result. The re-attempt
+lands at a sweep boundary rather than in the instant a foe arrives, and the copied ability's `Start`
+does not fire on that path; both are counted, not assumed absent. `game_differential.js`'s
+`battleInit` call now passes the arm's stream, which means the middle arm consumes one address-keyed
+draw at a Trace that has more than one eligible foe — the authority consumes one there too, so the two
+move together, but the whole-game differential has not been re-run to confirm the arm's void rate did
+not move.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — they are probes now:**
+- ~~TRACE PICKS A DIFFERENT FOE'S ABILITY FROM THE AUTHORITY'S, and it has not been staged and no
+  fixture exists yet~~ — staged in `tests/probe_trace_choice.js` (4 arms x 3 pins, 12 of 12 agreeing)
+  and carried by two census rows under `copiesFoeAbility`. The mechanism was TWO mechanisms: a fixed
+  index where the authority rolls a die, and no re-attempt where the authority never stops trying.
+
+**Added, measured this pass and NOT fixed:**
+- **THE COPIED ABILITY'S `Start` HANDLER DOES NOT FIRE ON A RETRY.** `setAbility` runs
+  `singleEvent('Start', ...)`, so a Trace that inherits Intimidate on a sweep should intimidate on the
+  spot. Firing `applyEntryEffects` from inside a sweep would also re-set weather and re-run entry
+  drops mid-turn, which is a bigger and less certain change. The PASSIVE half of every copied ability
+  is live and that is what the probe measures. Identical to `receiverSweep`'s standing shortfall.
+- **`MEDSEEN.traceChoiceNoDie` IS NON-ZERO FOR EVERY CALLER THAT IS NOT THE DIFFERENTIAL.** Every
+  rollout in this repository builds its battle through `battleInit` without an rng, so Trace still
+  takes the fixed index there. It is loud rather than silent, and closing it means giving those
+  callers a stream — which moves every seeded run in the repo and belongs in its own pass.
+- **THE WHOLE-GAME END-STATE POPULATION IS OWED A RE-RUN** against a cut release and a frozen pool.
+  The 9-of-15 Trace figure below stands as the reason this pass happened and must not be quoted as a
+  post-fix number.
 
 ## WILL'S QUESTION ASKED OF THE WHOLE CORPUS: HALF THE PROTOCOL DIVERGENCES END ON A DIFFERENT BOARD. AND "EMISSION IS MOSTLY COSMETIC" IS REFUTED. 2026-08-19.
 
@@ -164,9 +333,12 @@ skipped by construction and counted rather than assumed: the party's post-faint 
 **Added, measured this pass and NOT fixed** (MAG is out of scope until MEDICHAM is finished, so
 nothing here was routed through an argmax and no downstream number is quoted):
 
-- **TRACE PICKS A DIFFERENT FOE'S ABILITY FROM THE AUTHORITY'S**, silently, on 9 of 15 games that
+- ~~**TRACE PICKS A DIFFERENT FOE'S ABILITY FROM THE AUTHORITY'S**, silently, on 9 of 15 games that
   narrate identically. The likely mechanism is the random choice among eligible foes in doubles; it
-  has not been staged and no fixture exists yet.
+  has not been staged and no fixture exists yet.~~ **CLOSED 2026-08-21 by ROADMAP #310 at the top of
+  this file — it was staged, and the guess about the mechanism was half right: a fixed index where the
+  authority rolls a die, AND no re-attempt where the authority never stops trying. The 9-of-15 figure
+  is PRE-FIX and is not re-measured; it stays here as the reason, not as a result.**
 - **THE ACTIVE-SLOT POST-FAINT ASYMMETRY** in `board_state.js`: the bench skips the post-faint group
   and the active slot does not, so a corpse's boosts, volatiles and PP part the board. It inflates
   the different-board count by 7 games of 92.

@@ -10285,3 +10285,48 @@ small-HP-or-boost-only.
 **The sample is 797 games, not the published 982, and is not a breakdown of it.** `--end-state` plays every
 game to the cap so coverage credit accumulates differently: 1,632 pairs picked against 2,017, at an 18.2%
 parted rate against 18.5%. Same census, same pool, same pins, same release, different games.
+
+---
+
+## 2026-08-20 — TRACE WAS WRONG THREE WAYS AND THE PROTOCOL COULD NEVER HAVE SHOWN ANY OF THEM
+
+The end-state run found that **9 of the 15 games that narrate IDENTICALLY and still end on a different
+board** were Trace copying a different ability. The normaliser's `ability-announcement` rule collapses
+exactly that line, so every differential, every mechanics pass and every census run for months was
+structurally blind to it. **All three defects below were invisible to a protocol comparison by
+construction.**
+
+**THE DIE PICKS THE SLOT, AND THE KNOB WAS UNWIRED.** `this.sample` is `items[this.random(items.length)]`
+over the ELIGIBLE foes. Under a pinned corner that index is a constant, which turns the corners into a
+test: with Rough Skin in slot 0 and Pressure in slot 1, the authority answers `roughskin` at one corner and
+**`pressure`** at the other, and **swapping the two foes swaps its answer** — so it follows the SLOT, not
+the ability. medicham answered `roughskin` under both corners. **Identical output across a varied knob is
+an unwired knob**, the same signature that gave away Contrary; `traceCopy` was taking `eligible[0]`.
+
+**IT RE-ATTEMPTS AND WE GAVE UP.** Gardevoir leads into two untraceable foes, a Garchomp switches in on turn
+2: **Showdown copies `roughskin` under all three pins, medicham copies nothing under all three.** `traceCopy`
+fired at switch-in only. The retry needs no `seek` field, because the condition is "the body still holds a
+`copiesFoeAbility` ability" and a successful copy destroys it.
+
+**The untraceable case was already right and was CHECKED rather than assumed** — 34 abilities carry
+`notrace`, 10 have a legal carrier here, and the artifact carries `refusesCopy.notrace` for 10 of 10.
+12 of 12 staged games agree now, all three pins. Census 621 -> **623 live / 0 missing**.
+
+**A CENSUS ROW WENT HOLLOW BECAUSE OF MY OWN MOVE-EFFECTS REGENERATION, NOT BECAUSE THE ENGINE MOVED.**
+`formatSecondaryCount` requires the format-refusal branch to fire, and once `data/move-effects.js` was
+rebuilt from the Champions dex, Freeze-Dry correctly carries **no secondary at all** — so **0 of the 380
+count-0 moves still hand the engine one, and the branch has no population.** Proven both ways: as shipped
+the refusal fires 0 times; with mainline's secondary restored by hand it fires **300**. The census was
+generated 00:47Z and the artifact moved at 01:29Z. **A probe can be measuring an input that gets corrected
+underneath it, and the failure looks exactly like a regression.** It now requires the branch to fire exactly
+when the derived population is non-empty.
+
+**And a fixture was asserting a second mechanic's absence while being wrong about that mechanic.**
+`rewritesTargetAbility` set the user to Trace and asserted the ability must stay `trace` — but Entrainment
+refuses a source carrying `noentrain`, and Trace carries it, so on the authority a Trace user's Entrainment
+**fails outright** where the probe asserted success.
+
+**OWED, AND NOT TO BE QUOTED AS DONE: no release was cut and no corpus measurement was taken. The 9-of-15
+figure is PRE-FIX.** The middle arm now takes one more address-keyed draw at a multi-eligible Trace and the
+void rate has not been re-measured. `MEDSEEN.traceChoiceNoDie` is non-zero for every caller that is not the
+differential — every rollout still takes the fixed index, and closing that moves every seeded run in the repo.

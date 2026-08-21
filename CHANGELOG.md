@@ -10,6 +10,78 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.53.0] — 2026-08-20
+
+### Fixed
+- **TRACE WAS WRONG IN THREE SEPARATE WAYS, AND THE PROTOCOL COULD NEVER HAVE SHOWN ANY OF THEM.** The
+  end-state run found that **9 of the 15 games narrating IDENTICALLY and still ending on a different board**
+  were Trace copying a different ability — the normaliser's `ability-announcement` rule collapses exactly
+  that line. Selection rule read off `data/abilities.ts:5110-5138`; `data/mods/champions/abilities.ts` was
+  **grepped and contains no `trace` entry at all**, so Champions inherits mainline here.
+
+  1. **THE DIE PICKS THE SLOT, AND THE KNOB WAS UNWIRED.** `this.sample` is
+     `items[this.random(items.length)]` over the ELIGIBLE foes, so under a pinned corner the index is a
+     constant and the corners turn it into a testable knob. Staged with Rough Skin in slot 0 and Pressure
+     in slot 1:
+
+     | arm | bottom-tie-first | top-tie-first |
+     |---|---|---|
+     | showdown | `roughskin` | **`pressure`** |
+     | medicham, before | `roughskin` | **`roughskin`** |
+
+     **Swapping the two foes swapped the authority's answer, so it follows the SLOT rather than the
+     ability** — and medicham gave the same answer under both corners, which is the signature of an unwired
+     knob. `traceCopy` took `eligible[0]`. Now the same `floor(u * len)`; `battleInit` accepts `opts.rng`
+     (its own comment noted it "is handed no rng", and a lead is where Trace mostly happens) and
+     `game_differential.js` passes the arm's stream.
+  2. **IT RE-ATTEMPTS AND THIS ENGINE GAVE UP.** A Gardevoir leading into two untraceable foes, with a
+     Garchomp switching in on turn 2: **Showdown copied `roughskin` under all three pins and medicham
+     copied nothing under all three.** `traceCopy` fired at switch-in only. `traceSweep` now runs at
+     `receiverSweep`'s three boundaries and after `refill`, and needs no `seek` field — the condition is
+     "the body still holds a `copiesFoeAbility` ability", which a successful copy destroys.
+  3. **The untraceable case was already correct and was CHECKED rather than assumed.** 34 abilities carry
+     `notrace`, **10 have a legal Reg M-B carrier**, and `data/tags.json` carries `refusesCopy.notrace` for
+     **10 of 10**; the other 24 are absent because ROADMAP #175 drops abilities with no legal carrier,
+     verified per ability.
+
+  **After: 12 of 12 staged games agree across all three pins.** Census **621 -> 623 live / 0 missing**.
+
+### Notes
+- **A CENSUS ROW WENT HOLLOW BECAUSE OF THE MOVE-EFFECTS REGENERATION IN 5.51.0, NOT BECAUSE THE ENGINE
+  MOVED.** `formatSecondaryCount` requires `secondaryRefusedByFormat > 0`, and after `data/move-effects.js`
+  was rebuilt from the Champions dex, Freeze-Dry correctly carries **no `secondary` at all**
+  (`data/mods/champions/moves.ts:394-396` is `secondary: undefined, // no inherit`) — so **0 of the 380
+  count-0 moves still hand the engine a secondary and the branch has no population.** Proven rather than
+  argued: with the artifact as shipped the refusal fires 0 times, and with mainline's secondary put back by
+  hand it fires **300** times. The probe now requires `fired > 0` exactly when the derived population is
+  non-empty. **The committed census was generated 00:47Z and the artifact moved at 01:29Z** — the row was
+  measuring an input that had been corrected underneath it.
+- **A fixture was asserting a second mechanic's absence, and was wrong about that mechanic too.**
+  `rewritesTargetAbility` set the user to Trace and asserted the ability must stay `"trace"`. Entrainment's
+  `onTryHit` (`data/moves.ts:4874`) refuses when the source carries `noentrain` — and Trace carries it — so
+  on the authority a Trace user's Entrainment **fails outright** while the probe asserted it succeeds. The
+  user is now Marvel Scale, chosen by reading the artifact for copy-refusal flags rather than by picking one.
+- Both new census rows were shown RED on their own deliberate break, one at a time, each turning **only**
+  its own row red (622/1). The retry probe is a passive consequence on purpose — a retry does not fire the
+  copied ability's `Start`, the same declared shortfall `receiverSweep` already carries — so its control is
+  *both foes keep Forecast, ability stays `trace`, body takes 26 from Earthquake* against *a Levitate body
+  arrives, ability becomes `levitate`, body takes 0*.
+
+### Notes — owed, and not to be quoted as done
+- **NO RELEASE WAS CUT AND NO CORPUS MEASUREMENT WAS TAKEN. The 9-of-15 figure is PRE-FIX and must not be
+  read as a result.** The whole-game end-state re-run is owed; it reads the team pool live and the machine
+  had just been freed for memory.
+- The middle arm now consumes one address-keyed draw at a Trace with more than one eligible foe — the
+  authority consumes one there too — **but the arm's void rate has not been re-measured.**
+- **`MEDSEEN.traceChoiceNoDie` is non-zero for every caller that is not the differential**: every rollout
+  still takes the fixed index. Closing that means handing those callers a stream, which moves every seeded
+  run in the repo.
+- **Not started, reported rather than half-landed:** the mega-forme ordering lead, and Shell Side Arm /
+  Sand Force / Metronome with the shared base-power-plus-type-plus-weather consumer that Hustle and Sand
+  Force both want.
+
+---
+
 ## [5.52.0] — 2026-08-20
 
 ### Notes
