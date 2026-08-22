@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-22T19:08:07.320Z",
+ "generated": "2026-08-22T21:14:22.955Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "13ba05093aa3",
+ "engine_release": "39631097fcc7",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -12217,6 +12217,12 @@
     {
      "turn": 2,
      "path": "p2.party.altaria.ability",
+     "with": "naturalcure",
+     "without": "cloudnine"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].ability",
      "with": "naturalcure",
      "without": "cloudnine"
     }

@@ -10,6 +10,40 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.71.1] — 2026-08-22
+
+### Changed
+- **The gate's own artifacts now carry the Fur Coat, bench-order and `-fail` fixes.** Release
+  `39631097fcc7`, cut on the tree that has all three, census pinned to `gate-census.pin.json`, team
+  store pinned to `data/team-pool-frozen`:
+
+  | instrument | before | after |
+  |---|---|---|
+  | whole-game differential | 126 of 961 diverged, 124 of 959 usable = **12.93%** | **95 of 961, 93 of 959 usable = 9.7%** |
+  | roster / items | 2 DIFFER, 0 DID-NOT-FIRE | 2 DIFFER, 0 DID-NOT-FIRE |
+  | roster / abilities | 0 DIFFER, 0 DID-NOT-FIRE | **0 DIFFER, 0 DID-NOT-FIRE** |
+  | roster / moves | 5 DIFFER, 0 DID-NOT-FIRE | 5 DIFFER, 0 DID-NOT-FIRE |
+
+- **5.71.0 said the 89 was not in the gate and must not be quoted as if it were. This is the entry
+  that puts a number in the gate, and it is 95, not 89.** Both are honest and they are not the same
+  measurement: 89 came from the fixing agent's own paired before/after on its pinned sample, which is
+  the right instrument for ATTRIBUTING a fix; 95 is the gate's 1,200-game artifact on
+  `39631097fcc7`, which is the right instrument for STATING the rate. Quoting the smaller one because
+  it flatters the day would have been the whole failure this project is built against.
+
+### Notes
+- The roster is unchanged across the release boundary — 2 / 0 / 5 — which is the expected result and
+  is worth stating rather than passing over: the bench-order and `-fail` fixes are whole-game
+  mechanisms, and the roster stages the entity in isolation, so a change there would have needed
+  explaining.
+- Reported from the run and not acted on: **0 games have a `|-mega|` line as their first divergence**,
+  so nothing in this run is attributable to mega evolution itself; 2 first-diverge on
+  `|detailschange|` (any permanent forme change, Zero to Hero among them); and **519 of 1,751 sides
+  that brought a stone evolved, 29.6% — which is NOT a floor**, because a game stops at its first
+  divergence and a benched stone-holder is never offered the choice.
+
+---
+
 ## [5.71.0] — 2026-08-22
 
 ### Fixed

@@ -1,16 +1,19 @@
 {
- "generated": "2026-08-22T06:38:22.236Z",
+ "generated": "2026-08-22T19:07:58.401Z",
  "by": "tests/roster.js",
  "stage": "items",
- "engine_release": "603d9a69d5a3",
+ "engine_release": "13ba05093aa3",
  "format": "gen9championsvgc2026regmb",
  "counts": {
-  "FIRED-AND-BOARDS-DIFFER": 3,
+  "FIRED-AND-BOARDS-DIFFER": 2,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 1,
-  "FIRED-AND-BOARDS-MATCH": 136,
+  "FIRED-AND-BOARDS-MATCH": 137,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 8
+ },
+ "arms_played": {
+  "top-tie-first": 280
  },
  "scope": {
   "total": 148,
@@ -18,8 +21,8 @@
   "out_of_scope_by": {},
   "in_scope": 148,
   "tested": 139,
-  "matched": 136,
-  "differ": 3,
+  "matched": 137,
+  "differ": 2,
   "silent": 0,
   "deferred": 1,
   "unattributable": 0,
@@ -1261,14 +1264,14 @@
     {
      "turn": 1,
      "path": "p2.party.rhyperior.hp",
-     "with": 1100,
-     "without": 1060
+     "with": 1098,
+     "without": 1056
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1100,
-     "without": 1060
+     "with": 1098,
+     "without": 1056
     }
    ],
    "diffs": []
@@ -1739,8 +1742,8 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 525,
-     "without": 518
+     "with": 693,
+     "without": 688
     },
     {
      "turn": 2,
@@ -1751,14 +1754,14 @@
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 525,
-     "without": 518
+     "with": 693,
+     "without": 688
     },
     {
      "turn": 3,
      "path": "p2.party.kangaskhan.hp",
-     "with": 464,
-     "without": 450
+     "with": 714,
+     "without": 704
     },
     {
      "turn": 3,
@@ -1769,8 +1772,8 @@
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 464,
-     "without": 450
+     "with": 714,
+     "without": 704
     }
    ],
    "diffs": [
@@ -1779,8 +1782,8 @@
      "slot": "",
      "body": "kangaskhan",
      "field": "party.hp",
-     "showdown": 525,
-     "ours": 524,
+     "showdown": 693,
+     "ours": 692,
      "bucket": "off-by-one"
     },
     {
@@ -1788,9 +1791,27 @@
      "slot": "p2a",
      "body": "kangaskhan",
      "field": "hp",
-     "showdown": 525,
-     "ours": 524,
+     "showdown": 693,
+     "ours": 692,
      "bucket": "off-by-one"
+    },
+    {
+     "turn": 3,
+     "slot": "",
+     "body": "kangaskhan",
+     "field": "party.hp",
+     "showdown": 714,
+     "ours": 712,
+     "bucket": "off-by-2-or-3"
+    },
+    {
+     "turn": 3,
+     "slot": "p2a",
+     "body": "kangaskhan",
+     "field": "hp",
+     "showdown": 714,
+     "ours": 712,
+     "bucket": "off-by-2-or-3"
     }
    ]
   },
@@ -1843,14 +1864,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 800,
-     "without": 816
+     "with": 930,
+     "without": 946
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 800,
-     "without": 816
+     "with": 930,
+     "without": 946
     }
    ],
    "diffs": []
@@ -1886,14 +1907,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1002,
-     "without": 1015
+     "with": 1001,
+     "without": 1014
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1002,
-     "without": 1015
+     "with": 1001,
+     "without": 1014
     },
     {
      "turn": 2,
@@ -1904,14 +1925,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 824,
-     "without": 837
+     "with": 953,
+     "without": 966
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 824,
-     "without": 837
+     "with": 953,
+     "without": 966
     }
    ],
    "diffs": []
@@ -2242,15 +2263,39 @@
     },
     {
      "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1080,
+     "without": 1032
+    },
+    {
+     "turn": 1,
      "path": "p2.party.kangaskhan.item",
      "with": "brightpowder",
      "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1080,
+     "without": 1032
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1080,
+     "without": 984
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.item",
      "with": "brightpowder",
      "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 1080,
+     "without": 984
     }
    ],
    "diffs": []
@@ -2576,14 +2621,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1032,
-     "without": 1040
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1032,
-     "without": 1040
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 2,
@@ -2594,14 +2639,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 854,
-     "without": 862
+     "with": 975,
+     "without": 984
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 854,
-     "without": 862
+     "with": 975,
+     "without": 984
     }
    ],
    "diffs": []
@@ -2957,7 +3002,7 @@
     {
      "turn": 1,
      "path": "p2.party.vivillon.hp",
-     "with": 39,
+     "with": 35,
      "without": 0
     },
     {
@@ -2981,7 +3026,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 39,
+     "with": 35,
      "without": 173
     },
     {
@@ -3303,14 +3348,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1052,
-     "without": 1023
+     "with": 1047,
+     "without": 1014
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1052,
-     "without": 1023
+     "with": 1047,
+     "without": 1014
     }
    ],
    "diffs": []
@@ -3484,21 +3529,111 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.scizor.hp",
-     "with": 145,
+     "path": "p1.party.liepard.hp",
+     "with": 0,
+     "without": 139
+    },
+    {
+     "turn": 1,
+     "path": "p1.party.liepard.fainted",
+     "with": true,
+     "without": false
+    },
+    {
+     "turn": 1,
+     "path": "p1.party.liepard.status",
+     "with": "fnt",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].species",
+     "with": "milotic",
+     "without": "liepard"
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 170,
+     "without": 139
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].maxhp",
+     "with": 170,
+     "without": 139
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].types",
+     "with": "water",
+     "without": "dark"
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].ability",
+     "with": "marvelscale",
+     "without": "prankster"
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].flamethrower",
+     "with": null,
      "without": 1
     },
     {
      "turn": 1,
-     "path": "p2.party.scizor.item",
-     "with": "choicescarf",
-     "without": ""
+     "path": "p2.party.scizor.hp",
+     "with": 145,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.scizor.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.scizor.status",
+     "with": "",
+     "without": "fnt"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "scizor",
+     "without": "milotic"
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
      "with": 145,
-     "without": 1
+     "without": 170
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].maxhp",
+     "with": 145,
+     "without": 170
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].types",
+     "with": "bug/steel",
+     "without": "water"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ability",
+     "with": "technician",
+     "without": "marvelscale"
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].xscissor",
+     "with": 1,
+     "without": null
     }
    ],
    "diffs": []
@@ -3770,7 +3905,7 @@
     {
      "turn": 1,
      "path": "p2.party.decidueyehisui.hp",
-     "with": 55,
+     "with": 39,
      "without": 0
     },
     {
@@ -3794,7 +3929,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 55,
+     "with": 39,
      "without": 173
     },
     {
@@ -3855,14 +3990,14 @@
     {
      "turn": 1,
      "path": "p2.party.metagross.hp",
-     "with": 887,
-     "without": 844
+     "with": 886,
+     "without": 842
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 887,
-     "without": 844
+     "with": 886,
+     "without": 842
     }
    ],
    "diffs": []
@@ -4406,14 +4541,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1004,
-     "without": 1016
+     "with": 999,
+     "without": 1011
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1004,
-     "without": 1016
+     "with": 999,
+     "without": 1011
     },
     {
      "turn": 2,
@@ -4424,14 +4559,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 826,
-     "without": 838
+     "with": 951,
+     "without": 963
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 826,
-     "without": 838
+     "with": 951,
+     "without": 963
     }
    ],
    "diffs": []
@@ -5198,14 +5333,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 12,
-     "without": 29
+     "with": 29,
+     "without": 46
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 12,
-     "without": 29
+     "with": 29,
+     "without": 46
     }
    ],
    "diffs": []
@@ -5241,14 +5376,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1023,
-     "without": 1033
+     "with": 1019,
+     "without": 1029
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1023,
-     "without": 1033
+     "with": 1019,
+     "without": 1029
     },
     {
      "turn": 2,
@@ -5259,14 +5394,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 845,
-     "without": 855
+     "with": 971,
+     "without": 981
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 845,
-     "without": 855
+     "with": 971,
+     "without": 981
     }
    ],
    "diffs": []
@@ -5834,13 +5969,13 @@
      "turn": 3,
      "path": "p2.party.corviknight.hp",
      "with": 173,
-     "without": 151
+     "without": 156
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
      "with": 173,
-     "without": 151
+     "without": 156
     },
     {
      "turn": 3,
@@ -7417,14 +7552,14 @@
     {
      "turn": 1,
      "path": "p2.party.dragalge.hp",
-     "with": 795,
-     "without": 750
+     "with": 792,
+     "without": 744
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 795,
-     "without": 750
+     "with": 792,
+     "without": 744
     }
    ],
    "diffs": []
@@ -7460,14 +7595,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1031,
-     "without": 1039
+     "with": 1029,
+     "without": 1037
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1031,
-     "without": 1039
+     "with": 1029,
+     "without": 1037
     },
     {
      "turn": 2,
@@ -7478,14 +7613,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 853,
-     "without": 861
+     "with": 981,
+     "without": 989
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 853,
-     "without": 861
+     "with": 981,
+     "without": 989
     }
    ],
    "diffs": []
@@ -8374,14 +8509,14 @@
     {
      "turn": 1,
      "path": "p2.party.metagross.hp",
-     "with": 881,
-     "without": 832
+     "with": 872,
+     "without": 814
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 881,
-     "without": 832
+     "with": 872,
+     "without": 814
     }
    ],
    "diffs": []
@@ -8411,7 +8546,7 @@
     {
      "turn": 1,
      "path": "p2.party.whimsicott.hp",
-     "with": 43,
+     "with": 35,
      "without": 0
     },
     {
@@ -8435,7 +8570,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 43,
+     "with": 35,
      "without": 173
     },
     {
@@ -8514,8 +8649,8 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 630,
-     "without": 586
+     "with": 717,
+     "without": 672
     },
     {
      "turn": 1,
@@ -8526,14 +8661,14 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 630,
-     "without": 586
+     "with": 717,
+     "without": 672
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 585,
-     "without": 496
+     "with": 720,
+     "without": 672
     },
     {
      "turn": 2,
@@ -8544,14 +8679,14 @@
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 585,
-     "without": 496
+     "with": 720,
+     "without": 672
     },
     {
      "turn": 3,
      "path": "p2.party.kangaskhan.hp",
-     "with": 540,
-     "without": 406
+     "with": 720,
+     "without": 672
     },
     {
      "turn": 3,
@@ -8562,8 +8697,8 @@
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 540,
-     "without": 406
+     "with": 720,
+     "without": 672
     }
    ],
    "diffs": []
@@ -8629,14 +8764,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 888,
-     "without": 901
+     "with": 1018,
+     "without": 1032
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 888,
-     "without": 901
+     "with": 1018,
+     "without": 1032
     },
     {
      "turn": 2,
@@ -8659,14 +8794,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 697,
-     "without": 723
+     "with": 956,
+     "without": 984
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 697,
-     "without": 723
+     "with": 956,
+     "without": 984
     }
    ],
    "diffs": []
@@ -8696,14 +8831,14 @@
     {
      "turn": 1,
      "path": "p1.party.kangaskhan.hp",
-     "with": 1391,
-     "without": 1415
+     "with": 1384,
+     "without": 1411
     },
     {
      "turn": 1,
      "path": "p1.active[0].hp",
-     "with": 1391,
-     "without": 1415
+     "with": 1384,
+     "without": 1411
     },
     {
      "turn": 1,
@@ -9137,63 +9272,9 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 155,
-     "without": 137
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].hp",
-     "with": 155,
-     "without": 137
-    },
-    {
-     "turn": 1,
      "path": "p2.active[0].vol.confusion",
      "with": 0,
-     "without": 3
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 155,
-     "without": 119
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].hp",
-     "with": 155,
-     "without": 119
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].vol.confusion",
-     "with": 0,
-     "without": 2
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.pp[0].focusenergy",
-     "with": 2,
-     "without": 0
+     "without": 1
     }
    ],
    "diffs": []
@@ -9229,14 +9310,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1030,
-     "without": 1038
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1030,
-     "without": 1038
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 2,
@@ -9247,14 +9328,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 987,
-     "without": 995
+     "with": 975,
+     "without": 984
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 987,
-     "without": 995
+     "with": 975,
+     "without": 984
     }
    ],
    "diffs": []
@@ -10402,14 +10483,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1009,
-     "without": 1021
+     "with": 1006,
+     "without": 1018
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1009,
-     "without": 1021
+     "with": 1006,
+     "without": 1018
     },
     {
      "turn": 2,
@@ -10420,14 +10501,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 831,
-     "without": 843
+     "with": 958,
+     "without": 970
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 831,
-     "without": 843
+     "with": 958,
+     "without": 970
     }
    ],
    "diffs": []
@@ -10463,14 +10544,14 @@
     {
      "turn": 2,
      "path": "p1.party.dragapult.hp",
-     "with": 947,
-     "without": 950
+     "with": 949,
+     "without": 952
     },
     {
      "turn": 2,
      "path": "p1.active[0].hp",
-     "with": 947,
-     "without": 950
+     "with": 949,
+     "without": 952
     },
     {
      "turn": 2,
@@ -10481,14 +10562,14 @@
     {
      "turn": 3,
      "path": "p1.party.dragapult.hp",
-     "with": 947,
-     "without": 950
+     "with": 949,
+     "without": 952
     },
     {
      "turn": 3,
      "path": "p1.active[0].hp",
-     "with": 947,
-     "without": 950
+     "with": 949,
+     "without": 952
     },
     {
      "turn": 3,
@@ -10503,8 +10584,8 @@
      "slot": "",
      "body": "dragapult",
      "field": "party.hp",
-     "showdown": 947,
-     "ours": 950,
+     "showdown": 949,
+     "ours": 952,
      "bucket": "off-by-2-or-3"
     },
     {
@@ -10512,8 +10593,8 @@
      "slot": "p1a",
      "body": "dragapult",
      "field": "hp",
-     "showdown": 947,
-     "ours": 950,
+     "showdown": 949,
+     "ours": 952,
      "bucket": "off-by-2-or-3"
     },
     {
@@ -10521,8 +10602,8 @@
      "slot": "",
      "body": "dragapult",
      "field": "party.hp",
-     "showdown": 947,
-     "ours": 950,
+     "showdown": 949,
+     "ours": 952,
      "bucket": "off-by-2-or-3"
     },
     {
@@ -10530,8 +10611,8 @@
      "slot": "p1a",
      "body": "dragapult",
      "field": "hp",
-     "showdown": 947,
-     "ours": 950,
+     "showdown": 949,
+     "ours": 952,
      "bucket": "off-by-2-or-3"
     }
    ]
@@ -10567,14 +10648,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1026,
-     "without": 1035
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1026,
-     "without": 1035
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 2,
@@ -10585,14 +10666,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 848,
-     "without": 857
+     "with": 975,
+     "without": 984
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 848,
-     "without": 857
+     "with": 975,
+     "without": 984
     }
    ],
    "diffs": []
@@ -10628,14 +10709,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 123,
-     "without": 128
+     "with": 112,
+     "without": 118
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 123,
-     "without": 128
+     "with": 112,
+     "without": 118
     },
     {
      "turn": 2,
@@ -10646,14 +10727,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 58,
-     "without": 63
+     "with": 64,
+     "without": 70
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 58,
-     "without": 63
+     "with": 64,
+     "without": 70
     }
    ],
    "diffs": []
@@ -10689,14 +10770,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1005,
-     "without": 1017
+     "with": 1001,
+     "without": 1014
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1005,
-     "without": 1017
+     "with": 1001,
+     "without": 1014
     },
     {
      "turn": 2,
@@ -10707,14 +10788,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 827,
-     "without": 839
+     "with": 953,
+     "without": 966
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 827,
-     "without": 839
+     "with": 953,
+     "without": 966
     }
    ],
    "diffs": []
@@ -10750,14 +10831,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1027,
-     "without": 1035
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1027,
-     "without": 1035
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 2,
@@ -10768,14 +10849,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 849,
-     "without": 857
+     "with": 975,
+     "without": 984
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 849,
-     "without": 857
+     "with": 975,
+     "without": 984
     }
    ],
    "diffs": []
@@ -10805,7 +10886,7 @@
     {
      "turn": 1,
      "path": "p2.party.scizor.hp",
-     "with": 65,
+     "with": 49,
      "without": 0
     },
     {
@@ -10829,7 +10910,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 65,
+     "with": 49,
      "without": 173
     },
     {
@@ -10886,18 +10967,6 @@
      "path": "p2.party.beedrill.item",
      "with": "oranberry",
      "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.beedrill.hp",
-     "with": 17,
-     "without": 7
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].hp",
-     "with": 17,
-     "without": 7
     }
    ],
    "diffs": []
@@ -10927,14 +10996,14 @@
     {
      "turn": 1,
      "path": "p2.party.avalugghisui.hp",
-     "with": 989,
-     "without": 958
+     "with": 987,
+     "without": 954
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 989,
-     "without": 958
+     "with": 987,
+     "without": 954
     }
    ],
    "diffs": []
@@ -10964,7 +11033,7 @@
     {
      "turn": 1,
      "path": "p2.party.toxicroak.hp",
-     "with": 60,
+     "with": 46,
      "without": 0
     },
     {
@@ -10988,7 +11057,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 60,
+     "with": 46,
      "without": 173
     },
     {
@@ -11121,63 +11190,9 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 155,
-     "without": 137
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].hp",
-     "with": 155,
-     "without": 137
-    },
-    {
-     "turn": 1,
      "path": "p2.active[0].vol.confusion",
      "with": 0,
-     "without": 3
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 155,
-     "without": 119
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].hp",
-     "with": 155,
-     "without": 119
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].vol.confusion",
-     "with": 0,
-     "without": 2
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.pp[0].focusenergy",
-     "with": 2,
-     "without": 0
+     "without": 1
     }
    ],
    "diffs": []
@@ -11515,14 +11530,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 893,
-     "without": 901
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 893,
-     "without": 901
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 2,
@@ -11533,14 +11548,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 692,
-     "without": 700
+     "with": 954,
+     "without": 963
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 692,
-     "without": 700
+     "with": 954,
+     "without": 963
     }
    ],
    "diffs": []
@@ -12065,7 +12080,7 @@
     {
      "turn": 1,
      "path": "p2.party.rhyperior.hp",
-     "with": 72,
+     "with": 64,
      "without": 0
     },
     {
@@ -12089,7 +12104,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 72,
+     "with": 64,
      "without": 173
     },
     {
@@ -12150,7 +12165,7 @@
     {
      "turn": 1,
      "path": "p2.party.pangoro.hp",
-     "with": 68,
+     "with": 60,
      "without": 0
     },
     {
@@ -12174,7 +12189,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 68,
+     "with": 60,
      "without": 173
     },
     {
@@ -13189,14 +13204,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1015,
-     "without": 1026
+     "with": 1006,
+     "without": 1018
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1015,
-     "without": 1026
+     "with": 1006,
+     "without": 1018
     },
     {
      "turn": 2,
@@ -13207,14 +13222,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 837,
-     "without": 848
+     "with": 958,
+     "without": 970
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 837,
-     "without": 848
+     "with": 958,
+     "without": 970
     }
    ],
    "diffs": []
@@ -13389,7 +13404,7 @@
    "rule": "item/heal-on-attack",
    "reads": "onAfterMoveSecondarySelf without a damage modifier",
    "note": "chipped on turn 1, attacking on turns 2 and 3",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -13413,8 +13428,8 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 768,
-     "without": 766
+     "with": 1033,
+     "without": 1032
     },
     {
      "turn": 2,
@@ -13425,14 +13440,14 @@
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 768,
-     "without": 766
+     "with": 1033,
+     "without": 1032
     },
     {
      "turn": 3,
      "path": "p2.party.kangaskhan.hp",
-     "with": 635,
-     "without": 631
+     "with": 1034,
+     "without": 1032
     },
     {
      "turn": 3,
@@ -13443,30 +13458,11 @@
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 635,
-     "without": 631
+     "with": 1034,
+     "without": 1032
     }
    ],
-   "diffs": [
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "kangaskhan",
-     "field": "party.hp",
-     "showdown": 635,
-     "ours": 634,
-     "bucket": "off-by-one"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "kangaskhan",
-     "field": "hp",
-     "showdown": 635,
-     "ours": 634,
-     "bucket": "off-by-one"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "item",
@@ -13493,7 +13489,7 @@
     {
      "turn": 1,
      "path": "p2.party.glimmora.hp",
-     "with": 66,
+     "with": 62,
      "without": 0
     },
     {
@@ -13517,7 +13513,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 66,
+     "with": 62,
      "without": 173
     },
     {
@@ -13584,14 +13580,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1012,
-     "without": 1023
+     "with": 1001,
+     "without": 1014
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1012,
-     "without": 1023
+     "with": 1001,
+     "without": 1014
     },
     {
      "turn": 2,
@@ -13602,14 +13598,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 834,
-     "without": 845
+     "with": 953,
+     "without": 966
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 834,
-     "without": 845
+     "with": 953,
+     "without": 966
     }
    ],
    "diffs": []
@@ -13645,14 +13641,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1029,
-     "without": 1037
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1029,
-     "without": 1037
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 2,
@@ -13663,14 +13659,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 851,
-     "without": 859
+     "with": 975,
+     "without": 984
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 851,
-     "without": 859
+     "with": 975,
+     "without": 984
     }
    ],
    "diffs": []
@@ -13696,18 +13692,6 @@
      "path": "p2.party.beedrill.item",
      "with": "sitrusberry",
      "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.beedrill.hp",
-     "with": 42,
-     "without": 7
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].hp",
-     "with": 42,
-     "without": 7
     }
    ],
    "diffs": []
@@ -14106,14 +14090,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1026,
-     "without": 1034
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1026,
-     "without": 1034
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 2,
@@ -14124,14 +14108,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 848,
-     "without": 856
+     "with": 975,
+     "without": 984
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 848,
-     "without": 856
+     "with": 975,
+     "without": 984
     }
    ],
    "diffs": []
@@ -14167,14 +14151,14 @@
     {
      "turn": 1,
      "path": "p2.party.goodrahisui.hp",
-     "with": 891,
-     "without": 897
+     "with": 884,
+     "without": 891
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 891,
-     "without": 897
+     "with": 884,
+     "without": 891
     },
     {
      "turn": 2,
@@ -14185,14 +14169,14 @@
     {
      "turn": 2,
      "path": "p2.party.goodrahisui.hp",
-     "with": 852,
-     "without": 858
+     "with": 842,
+     "without": 849
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 852,
-     "without": 858
+     "with": 842,
+     "without": 849
     }
    ],
    "diffs": []
@@ -14814,7 +14798,7 @@
     {
      "turn": 1,
      "path": "p2.party.malamar.hp",
-     "with": 71,
+     "with": 61,
      "without": 0
     },
     {
@@ -14838,7 +14822,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 71,
+     "with": 61,
      "without": 173
     },
     {
@@ -14905,14 +14889,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1030,
-     "without": 1038
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1030,
-     "without": 1038
+     "with": 1023,
+     "without": 1032
     },
     {
      "turn": 2,
@@ -14923,14 +14907,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 852,
-     "without": 860
+     "with": 975,
+     "without": 984
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 852,
-     "without": 860
+     "with": 975,
+     "without": 984
     }
    ],
    "diffs": []
@@ -15383,14 +15367,14 @@
     {
      "turn": 1,
      "path": "p2.party.blastoise.hp",
-     "with": 890,
-     "without": 856
+     "with": 885,
+     "without": 846
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 890,
-     "without": 856
+     "with": 885,
+     "without": 846
     }
    ],
    "diffs": []
@@ -15468,15 +15452,99 @@
     },
     {
      "turn": 1,
+     "path": "p1.party.dragapult.hp",
+     "with": 943,
+     "without": 978
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 943,
+     "without": 978
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1032,
+     "without": 492
+    },
+    {
+     "turn": 1,
      "path": "p2.party.kangaskhan.item",
      "with": "widelens",
      "without": ""
     },
     {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1032,
+     "without": 492
+    },
+    {
      "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "widelens",
-     "without": ""
+     "path": "p1.party.dragapult.hp",
+     "with": 908,
+     "without": 978
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 908,
+     "without": 978
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 984,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.status",
+     "with": "",
+     "without": "fnt"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "kangaskhan",
+     "without": "milotic"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 984,
+     "without": 1020
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].maxhp",
+     "with": 1080,
+     "without": 1020
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].types",
+     "with": "normal",
+     "without": "water"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].ability",
+     "with": "earlybird",
+     "without": "marvelscale"
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].supercellslam",
+     "with": 2,
+     "without": null
     }
    ],
    "diffs": []
@@ -15512,14 +15580,14 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 110,
-     "without": 114
+     "with": 127,
+     "without": 132
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 110,
-     "without": 114
+     "with": 127,
+     "without": 132
     },
     {
      "turn": 2,
@@ -15530,14 +15598,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 34,
-     "without": 38
+     "with": 65,
+     "without": 70
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 34,
-     "without": 38
+     "with": 65,
+     "without": 70
     }
    ],
    "diffs": []
@@ -15567,7 +15635,7 @@
     {
      "turn": 1,
      "path": "p2.party.torterra.hp",
-     "with": 84,
+     "with": 78,
      "without": 0
     },
     {
@@ -15591,7 +15659,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 84,
+     "with": 78,
      "without": 173
     },
     {
@@ -15651,15 +15719,99 @@
     },
     {
      "turn": 1,
+     "path": "p1.party.dragapult.hp",
+     "with": 943,
+     "without": 978
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 943,
+     "without": 978
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 1032,
+     "without": 492
+    },
+    {
+     "turn": 1,
      "path": "p2.party.kangaskhan.item",
      "with": "zoomlens",
      "without": ""
     },
     {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1032,
+     "without": 492
+    },
+    {
      "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "zoomlens",
-     "without": ""
+     "path": "p1.party.dragapult.hp",
+     "with": 908,
+     "without": 978
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 908,
+     "without": 978
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 984,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.status",
+     "with": "",
+     "without": "fnt"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "kangaskhan",
+     "without": "milotic"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 984,
+     "without": 1020
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].maxhp",
+     "with": 1080,
+     "without": 1020
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].types",
+     "with": "normal",
+     "without": "water"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].ability",
+     "with": "earlybird",
+     "without": "marvelscale"
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].supercellslam",
+     "with": 2,
+     "without": null
     }
    ],
    "diffs": []
