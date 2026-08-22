@@ -11028,3 +11028,58 @@ reverted nothing and shown a green arm proving nothing. Fixed by normalising bot
 **And two red gates I reported were my own quoting bug, not the tests.** A backslash before the loop
 variable escaped the dollar, so node was handed a literal filename with an unexpanded variable in it.
 Every exit=1 from a loop was that. Verified afterwards one at a time: eight gates, all exit 0.
+
+---
+
+## 2026-08-22 — TWO DERIVED TOOLS, ONE QUESTION, DIFFERENT COUNTS (5.63.0)
+
+The gate re-run cleared the staleness: five clauses that read *MEASURED AGAINST A DIFFERENT ENGINE*
+now answer on their own merits against release `603d9a69d5a3`. Roster items **3 differ**, abilities
+**8 differ / 1 never fired**, moves **157 differ** of 455 tested; whole-game **121 of 961 = 12.6%**;
+mechanics fire moves 22, abilities 12, items 2.
+
+### THE 157 WAS ALREADY IN THE REGISTER, AND THE VERDICT CAME BACK CALLING IT NEW
+
+The run was reported as *"much worse than the superseded artifacts said"*. Against the ARTIFACT that
+is true — it said 0 DIFFER. But ROADMAP #319 already carried **157 / 0 / 306** on `b240433ae8af`,
+filed explicitly against that same 0-DIFFER artifact. So the re-run **reproduces a registered figure
+and refutes the artifact**, which is a different claim from finding new breakage, and the difference
+decides whether anyone goes hunting a regression that is not there. Caught by checking the verdict
+against the row before relaying it.
+
+### WHAT IS ACTUALLY NEW: THE SHAPE, AND THE GATE THAT CANNOT SEE IT
+
+131 of the 157 are HP-only and the direction is **symmetric** — 156 leaves under-damaged against 153
+over-damaged, median |delta| 2, under dice pinned on both sides. A formula error does not look like
+that; a damage-roll **INDEX** error does.
+
+**And the differential clause PASSES beside it.** It reads 0/6000 at the midpoint, 0/6000 top, 0/6000
+bottom — three points of a sixteen-index band. An error strictly between the corners cannot appear at
+the corners. **A passing clause is not evidence about the interval it never samples**, and this one
+has been sitting next to a 157-row red the whole time.
+
+### THE THIRD COPY OF A FACT
+
+`engine/where.js --gates` and `engine/status.js` disagreed about which rows have a deciding
+instrument — the classification the `no open, known engine defect` clause is computed from.
+`where.js` held a hand-rolled closed-detector, its third implementation in the repo, disagreeing with
+the canonical `roadmapRowIsClosed` on **24 of 292 rows in both directions**: 18 open-here/closed-there
+because the register spells a finished row `done` rather than `closed`, and 6 closed-here/open-there
+because it scanned the whole line and a `| closed 2026-…` inside a long row shut it. Now imported, and
+it reports UNKNOWN rather than falling back to a worse detector.
+
+### AND THE FEATURE-SEMANTICS CHECK COULD NOT REACH ITS OWN VERDICT
+
+Unreachable since 2026-08-13: the fixture gate returned first and swallowed a fixture-independent one,
+substituting *"restamp after checking board.js"* — the single action that erases the evidence. Gates
+accumulate now. **`board.js` is clean** (0 of 76 columns move across the stamp era), yet 11 of 76 moved
+anyway because the damage table itself was regenerated: **a moved damage table means REFIT, not
+RESTAMP**, and `REFIT OWED` now rests on that rather than on a dead instrument.
+
+### OWED
+
+The damage-roll index defect; whether `status.js` and `where.js` now agree on the two move-stage rows;
+`docs/CARD-REVIEW-2026-08-22.md` reconciled against the register (one finding — `onSwitchInPriority`,
+*not modelled at all* — was spot-checked and has no row); the web figure audit. Three agents were
+stopped mid-run when the machine was needed, so none of those four is partially landed — they are
+unstarted or their finished half is in 5.63.0.

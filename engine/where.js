@@ -48,15 +48,56 @@ function sources() {
 /* ---- EVERY GATE AND THE ROW IT DECIDES ----------------------------------------------------------
  * The register names its instruments in `VERIFIED BY: \`<cmd>\`` markers — the same regex
  * engine/register_reality.js runs them by. Reading it here means the list is whatever the register
- * actually says today, not whatever someone wrote in a doc. */
+ * actually says today, not whatever someone wrote in a doc.
+ *
+ * THE CLOSED TEST IS IMPORTED, AND IT WAS HAND-ROLLED HERE UNTIL 2026-08-22.
+ *
+ * This file tested `/\|\s*closed/i` against the whole line. `engine/quarantine.js` exports
+ * `roadmapRowIsClosed` — *"EXPORTED FOR engine/open_work.js SO THERE IS ONE CLOSED-DETECTOR, NOT
+ * TWO"* — and `engine/register_reality.js` already imports it. This file quietly made it three, and
+ * the third one disagreed with the other two on **24 of 292 register rows, in both directions**:
+ *
+ *   - 18 rows read OPEN here and CLOSED everywhere else, because this register's house spelling for
+ *     a finished row is `done`, `DONE 2026-08-11` or `page closed 2026-08-10` — none of which is the
+ *     bare token `closed` sitting immediately after a pipe. **#92 is the visible instance**: its
+ *     title says `THE DAMAGE-STAGE CLASS — DONE, 3.72.0`, its status cell says
+ *     `done — kept here because docs/ENGINE.md cites it`, and `--gates` listed it as an OPEN row
+ *     naming a gate. It printed 6 open gated rows where the canonical detector gives 5.
+ *   - 6 rows read CLOSED here and OPEN everywhere else, which is the dangerous direction: the test
+ *     scanned the WHOLE line, so any `| closed 2026-…` appearing inside a long row's own account of
+ *     a part that IS finished shut the row. #167, #172, #196, #282, #293 and #294 are all live.
+ *
+ * The canonical detector reads the STATUS CELL first and only then guesses from the row's first 600
+ * characters, and it carries two measured repairs (2026-08-15 and 2026-08-18) that this copy had
+ * neither of. A second implementation of a fact is CLAUDE.md's named failure mode, and it behaved
+ * exactly as advertised: both copies kept working and only the answers differed.
+ *
+ * IT DOES NOT FALL BACK. A tool whose whole claim is that it derives rather than remembers must not
+ * degrade to a worse detector in silence — that is the silent-default shape. If quarantine cannot be
+ * loaded, every row is reported UNKNOWN and the reason is printed. */
+let _closedFn = null, _closedWhy = null;
+function rowIsClosed(line) {
+  if (!_closedFn) {
+    try {
+      const Q = require('./quarantine.js');
+      if (typeof Q.roadmapRowIsClosed !== 'function') throw new Error('quarantine.js exports no roadmapRowIsClosed');
+      _closedFn = Q.roadmapRowIsClosed;
+    } catch (e) {
+      _closedWhy = String((e && e.message) || e).split('\n')[0];
+      _closedFn = () => null;              /* null, never false — UNKNOWN is not OPEN */
+    }
+  }
+  return _closedFn(line);
+}
 function gates() {
   const md = rd(D('docs', 'ROADMAP.md')) || '';
   const out = [];
   for (const line of md.split('\n')) {
     const row = line.match(/^\|\s*#(\d+)\s*\|/);
     const mk = line.match(/VERIFIED BY:\s*`([^`]+)`/);
-    if (row && mk) out.push({ row: +row[1], cmd: mk[1], closed: /\|\s*closed/i.test(line) });
+    if (row && mk) out.push({ row: +row[1], cmd: mk[1], closed: rowIsClosed(line) });
   }
+  out.closedDetectorWhy = _closedWhy;
   return out;
 }
 
@@ -127,11 +168,54 @@ const mark = f => (FROZEN.has(f) ? '  [frozen]' : '');
 if (has('--gates')) {
   const g = gates();
   console.log('\nEVERY INSTRUMENT THE REGISTER NAMES — read from VERIFIED BY markers, not from a doc\n');
-  const open = g.filter(x => !x.closed), shut = g.filter(x => x.closed);
+  const open = g.filter(x => x.closed === false);
+  const shut = g.filter(x => x.closed === true);
+  const unk = g.filter(x => x.closed === null);
   console.log('  ' + open.length + ' open row(s) name a gate:');
   for (const x of open) console.log('    #' + String(x.row).padEnd(5) + x.cmd);
   console.log('\n  ' + shut.length + ' closed row(s) still name one (kept — a closed row\'s gate is its regression test):');
   for (const x of shut.slice(0, 12)) console.log('    #' + String(x.row).padEnd(5) + x.cmd);
+  if (unk.length) {
+    console.log('\n  ' + unk.length + ' row(s) could not be classified at all — the canonical closed-detector '
+      + 'would not load (' + (g.closedDetectorWhy || 'reason unknown') + ').');
+    console.log('  These are UNKNOWN, not open. Nothing below this line is a coverage claim.');
+  }
+  /* NAMING A GATE IS NOT THE SAME QUESTION AS HAVING A VERDICT, AND THE TWO WERE READ AS ONE.
+   *
+   * 2026-08-22: this list said six open rows name a gate; `engine/quarantine.js`'s `no open, known
+   * engine defect` clause counted #318 and #319 among *"13 open rows that assert breakage with NO
+   * instrument that decides them"*. Neither was lying. This file reads the REGISTER — does a row name
+   * an instrument. The clause reads `data/register-reality.json` — has that instrument been RUN and
+   * what did it exit with. A row can name a gate and still have no verdict, and #318/#319 are exactly
+   * that: their marker is `SHOWDOWN_PATH=... node tests/roster.js --stage moves`, which
+   * register_reality.js's SAFE pattern refuses to execute (it accepts `node <repo script> [--flags]`
+   * and nothing else), so no verdict exists for them and none ever will while the marker is spelled
+   * that way. #316 is the same refusal, already recorded in the artifact.
+   *
+   * So the line below is printed here rather than left to be inferred: the artifact's own age against
+   * the register's, because a clause reading a stale artifact states a claim about the register in
+   * the present tense. It is a caption on a difference, not a merge — the two questions stay two. */
+  const rr = rj(D('data', 'register-reality.json'));
+  const mdRows = ((rd(D('docs', 'ROADMAP.md')) || '').match(/^\|\s*#\d+\s*\|/gm) || []).length;
+  if (!rr) {
+    console.log('\n  data/register-reality.json is MISSING or unreadable, so no row in this list has a '
+      + 'verdict. Run: node engine/register_reality.js');
+  } else {
+    const seen = new Set((rr.results || []).map(r => String(r.n)));
+    const noVerdict = g.filter(x => !seen.has(String(x.row)));
+    console.log('\n  NAMING A GATE IS NOT HAVING A VERDICT — those are two questions and two readers:');
+    console.log('    this list          the register: does the row NAME an instrument  -> ' + g.length + ' row(s) do');
+    console.log('    quarantine clause  data/register-reality.json: was it RUN, and did it exit 0');
+    console.log('    register-reality.json: generated ' + (rr.generated || 'UNSTAMPED') + ', '
+      + ((rr.counts || {}).id_rows || '?') + ' id rows then vs ' + mdRows + ' in docs/ROADMAP.md now'
+      + (((rr.counts || {}).id_rows || 0) < mdRows ? '  <- STALE, the register has grown since' : ''));
+    if (noVerdict.length) {
+      console.log('    ' + noVerdict.length + ' row(s) here have NO verdict in that artifact: '
+        + noVerdict.map(x => '#' + x.row).join(', ') + '.');
+      console.log('    The quarantine clause counts those as DEBT. That is a statement about the '
+        + 'artifact, not about the register.');
+    }
+  }
   console.log('\n  Run them all and compare against the register: node engine/register_reality.js');
   process.exit(0);
 }

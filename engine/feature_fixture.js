@@ -789,7 +789,38 @@ function hashes(dex) {
 /* ---- THE CHECK, called from magnemite.js when weights load ------------------------------------ */
 /* Returns null when the file agrees with the code, or a message naming the features that moved.
  * A file with no hashes at all returns a message too -- silence about a missing guard is how the
- * original defect survived. `which` is 'features' or both, so the joint file can check both blocks. */
+ * original defect survived. `which` is 'features' or both, so the joint file can check both blocks.
+ *
+ * IT ACCUMULATES. IT USED TO RETURN AT THE FIRST FAILING GATE, AND THAT LOST A VERDICT — 2026-08-13
+ * to 2026-08-22.
+ *
+ * The gates were ordered identity(2), bodies(3), table(4), columns(5) and each one RETURNED. When the
+ * legality sweep grew the fixture from 10 scenarios to 12 on 2026-08-13, gate 2 began firing for every
+ * stamp written before that date, and gates 3-5 became unreachable for those files. The live instance
+ * is `data/policy-weights.json`: stamped against 10 scenarios and against damage-table digest
+ * 405c836793d1, while the table on disk is 1bda9df11d73 over 322 species. For nine days the only
+ * thing this check would say about that file was
+ *
+ *     "the fixture itself changed ... restamp after checking board.js"
+ *
+ * and a restamp WRITES THE NEW TABLE DIGEST INTO THE BASELINE — i.e. the one action the swallowed
+ * verdict exists to prevent. The loss is observed rather than inferred: `web/status-data.js` holds a
+ * status.js snapshot from 2026-08-10 21:32 that still carries the table verdict this check used to
+ * give. Nothing broke on 2026-08-13; the check went on passing and failing in all the same places and
+ * simply stopped saying the one thing it was still entitled to say.
+ *
+ * WHY ACCUMULATING IS SOUND, GATE BY GATE, rather than as a general preference for more output:
+ *   - the TABLE gate reads `mcKey.all()` and never touches SCENARIOS. It is fixture-independent by
+ *     construction, so a moved fixture is not a reason to stop asking it. This is the whole fix.
+ *   - the IDENTITY and BODIES gates are statements about the fixture and are always answerable.
+ *   - the COLUMN gate is the ONE block that genuinely cannot be evaluated across a changed fixture —
+ *     the stored hashes describe boards that no longer exist — so it stays withheld exactly as before.
+ *     Reporting it anyway is the false accusation against board.js this file's header is about.
+ *
+ * WHEN ONE GATE FIRES THE STRING IS BYTE-IDENTICAL TO WHAT IT ALWAYS WAS. Only the multi-gate case is
+ * new, and it appends a GATES THAT FIRED line — because `engine/status.js:389` renders the last three
+ * non-empty lines of this message and ordering alone would decide which verdict a reader ever sees.
+ * A summary line is read no matter which block sits last. */
 function verify(stored, dex, opts) {
   const want = (opts && opts.blocks) || ['features'];
   if (!stored || !stored.features) {
@@ -798,47 +829,71 @@ function verify(stored, dex, opts) {
       + '  and refit if board.js has changed since the file was written.';
   }
   const now = hashes(dex);
+  const gates = [], blocks = [];
+  const fire = (gate, text) => { gates.push(gate); blocks.push(text); };
+
   if (stored.round !== now.round || (stored.scenarios || []).join(',') !== now.scenarios.join(',')) {
-    return `the fixture itself changed (rounding ${stored.round} -> ${now.round}, scenarios `
-      + `${(stored.scenarios || []).length} -> ${now.scenarios.length}). Old hashes cannot be compared; restamp after checking board.js.`;
+    fire('fixture identity',
+      `the fixture itself changed (rounding ${stored.round} -> ${now.round}, scenarios `
+      + `${(stored.scenarios || []).length} -> ${now.scenarios.length}). Old hashes cannot be compared; restamp after checking board.js.`);
   }
   /* THE BODIES, not just the labels. A stamp written before this block carries no `bodies`, and that
    * is an OLDER STAMP rather than a mismatch — announcing it as staleness would make every existing
    * file cry wolf on the first run, which is the failure the `table` block above already records. */
   if (stored.bodies && stored.bodies.digest && stored.bodies.digest !== now.bodies.digest) {
-    return `the fixture's BOARDS changed while its scenario labels stayed the same `
+    fire('fixture boards',
+      `the fixture's BOARDS changed while its scenario labels stayed the same `
       + `(${stored.bodies.boards} boards, digest ${stored.bodies.digest} -> ${now.bodies.digest}).\n`
       + '  A species, item, ability, nature, move or pre-set state was edited inside a scenario that kept its name.\n'
       + '  The feature columns below WILL have moved and that is NOT evidence that board.js changed meaning —\n'
-      + '  it is a different fixture. Restamp: node engine/feature_fixture.js --stamp <file>';
+      + '  it is a different fixture. Restamp: node engine/feature_fixture.js --stamp <file>');
   }
-  /* THE TABLE CHECK RUNS FIRST AND REPORTS SEPARATELY. A weight file stamped before this block
-   * existed carries no `table`, and that is not a mismatch — it is an older stamp, which must not
-   * be announced as staleness or every pre-existing file cries wolf on the first run. */
+  const fixtureMoved = gates.length > 0;
+
+  /* THE TABLE CHECK REPORTS SEPARATELY, AND IS ASKED WHETHER OR NOT THE FIXTURE MOVED. A weight file
+   * stamped before this block existed carries no `table`, and that is not a mismatch — it is an older
+   * stamp, which must not be announced as staleness or every pre-existing file cries wolf. */
   if (stored.table && stored.table.digest && now.table && now.table.digest !== 'UNAVAILABLE'
       && stored.table.digest !== now.table.digest) {
-    return 'the DAMAGE TABLE these weights were fitted against has been regenerated '
+    fire('damage table',
+      'the DAMAGE TABLE these weights were fitted against has been regenerated '
       + `(${stored.table.species} species -> ${now.table.species}, digest ${stored.table.digest} -> ${now.table.digest}).\n`
       + '  The feature hashes below may still match and that is NOT reassurance: the fixture stands on a\n'
       + '  fixed handful of species, so a set change to any species it does not contain moves nothing here.\n'
       + '  Measure what it touches before deciding — how many corpus games contain a changed species —\n'
       + '  then refit (node engine/fit_policy.js, then node engine/fit_joint.js) if it reaches the fit,\n'
-      + '  or restamp with: node engine/feature_fixture.js --stamp <file>';
+      + '  or restamp with: node engine/feature_fixture.js --stamp <file>');
   }
-  const moved = [];
-  for (const blk of want) {
-    const a = stored[blk] || {}, b = now[blk] || {};
-    for (const f of Object.keys(b)) {
-      if (a[f] === undefined) moved.push(`${f} (not in the stored hashes)`);
-      else if (a[f] !== b[f]) moved.push(`${f} (${a[f]} -> ${b[f]})`);
+
+  /* COLUMNS ONLY WHEN THE FIXTURE IS THE SAME FIXTURE. Stored hashes describe boards that no longer
+   * exist; comparing them would report a fixture edit as a board.js meaning change. */
+  if (!fixtureMoved) {
+    const moved = [];
+    for (const blk of want) {
+      const a = stored[blk] || {}, b = now[blk] || {};
+      for (const f of Object.keys(b)) {
+        if (a[f] === undefined) moved.push(`${f} (not in the stored hashes)`);
+        else if (a[f] !== b[f]) moved.push(`${f} (${a[f]} -> ${b[f]})`);
+      }
+    }
+    if (moved.length) {
+      fire('feature columns',
+        'these features changed MEANING since the weights were fitted — same name, different value '
+        + 'on the fixture board:\n    ' + moved.join('\n    ')
+        + '\n  The weights were fitted against the old definition and no longer describe these quantities.'
+        + '\n  Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was'
+        + '\n  merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>');
     }
   }
-  if (!moved.length) return null;
-  return 'these features changed MEANING since the weights were fitted — same name, different value '
-    + 'on the fixture board:\n    ' + moved.join('\n    ')
-    + '\n  The weights were fitted against the old definition and no longer describe these quantities.'
-    + '\n  Refit (node engine/fit_policy.js, then node engine/fit_joint.js), or if a derived table was'
-    + '\n  merely re-ingested, restamp with: node engine/feature_fixture.js --stamp <file>';
+
+  if (!blocks.length) return null;
+  if (blocks.length === 1) return blocks[0];
+  let out = blocks.join('\n\n  ') + '\n  GATES THAT FIRED: ' + gates.join(', ') + '.';
+  if (fixtureMoved && gates.includes('damage table')) {
+    out += ' A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE —\n'
+      + '  settle the table verdict first, or the evidence for the refit is written over.';
+  }
+  return out;
 }
 
 module.exports = { SCENARIOS, ROUND, build, columns, hashes, verify };

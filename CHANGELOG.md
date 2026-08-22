@@ -10,6 +10,52 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.63.0] — 2026-08-22
+
+### Fixed
+- **The feature-semantics check could not report its own damage-table verdict, and had not been able
+  to since 2026-08-13.** The fixture-identity gate returned FIRST, so a moved fixture swallowed a
+  fixture-independent gate and the check substituted *"restamp after checking board.js"* — which names
+  the one action that erases the evidence. `tableDigest()` does not depend on the fixture, so the gates
+  now ACCUMULATE instead of returning early, and the verdict states outright that **a restamp answers
+  the fixture gate and SILENCES the table gate**. Verified after the fix: the check prints
+  `GATES THAT FIRED: fixture identity, damage table` where it printed only the fixture before.
+  `tests/test-feature-semantics.js` gained the red-first coverage it never had — 24 pass, and the new
+  cases assert that a moved fixture does not swallow the table verdict, that a moved bodies digest does
+  not either, and that the feature COLUMNS are withheld rather than reported as meaning changes across
+  a changed fixture.
+- **`engine/where.js` carried a THIRD closed-detector for register rows, and it disagreed with the
+  other two on 24 of 292 rows, in both directions.** `engine/quarantine.js` exports
+  `roadmapRowIsClosed` precisely so there is one detector rather than two, and
+  `engine/register_reality.js` already imports it; this file quietly made it three by testing
+  `/\|\s*closed/i` against the whole line.
+  - **18 rows read OPEN here and CLOSED everywhere else**, because this register's house spelling for
+    a finished row is `done`, `DONE 2026-08-11` or `page closed 2026-08-10` — none of which is a bare
+    token sitting after a pipe. ROADMAP #92 is the visible instance: its title says
+    `THE DAMAGE-STAGE CLASS — DONE, 3.72.0` and its status cell says `done`, yet `--gates` listed it as
+    an OPEN row naming a gate, printing **6** where the canonical detector gives **5**. Verified after
+    the fix: 5.
+  - **6 rows read CLOSED here and OPEN everywhere else**, which is the dangerous direction: scanning
+    the whole line let a `| closed 2026-…` inside a long row's own account of a part that IS finished
+    shut the entire row. ROADMAP #167, #172, #196, #282, #293 and #294 are all live.
+
+  It now imports the canonical detector, which carries two measured repairs this copy had neither of.
+  **It does NOT fall back**: if `quarantine.js` cannot be loaded, every row reports UNKNOWN and the
+  reason is printed, because a tool whose whole claim is that it derives rather than remembers must not
+  silently degrade to a worse detector.
+
+### Notes
+- This is a second implementation of a fact behaving exactly as CLAUDE.md says it will: **both copies
+  kept working and only the answers differed.** It surfaced only because two derived tools were asked
+  the same question and returned different counts — not because anything failed.
+- Session paused here at Will's request, the machine being needed for something else. Three division
+  agents were stopped mid-run; this records the work they had already finished and that was verified
+  after the stop, not a partial state. **Still owed:** whether `engine/status.js` and `engine/where.js`
+  now agree about the two move-stage rows, the reconciliation of `docs/CARD-REVIEW-2026-08-22.md`
+  against the register, the damage-roll index defect, and the web figure audit.
+
+---
+
 ## [5.62.0] — 2026-08-22
 
 ### Changed

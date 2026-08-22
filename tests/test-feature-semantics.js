@@ -160,6 +160,65 @@ ok(/allyHit/.test(msg), 'the rejection message names the feature that moved');
     'and the digest stays quiet when the table has not moved');
 }
 
+/* ---- 6b. TWO GATES AT ONCE — the verdict the check LOST on 2026-08-13 -------------------------
+ *
+ * Everything in section 6 builds its stamp from `now`, so `round`, `scenarios` and `bodies` always
+ * agree and the fixture-identity gate is never exercised. That is exactly how the regression below
+ * survived unseen for nine days.
+ *
+ * `verify()` returned at the FIRST failing gate, and identity is gate 2 while the table is gate 4.
+ * When the fixture grew from 10 scenarios to 12 on 2026-08-13, gate 2 began returning for every
+ * pre-existing stamp and the table verdict became UNREACHABLE. `data/policy-weights.json` is the
+ * live instance: it is stamped against 10 scenarios AND against damage-table digest 405c836793d1,
+ * the table is now 1bda9df11d73 over 322 species, and the only thing the check would say is
+ *
+ *     "the fixture itself changed ... restamp after checking board.js"
+ *
+ * which points at the one action that ERASES the table evidence. `web/status-data.js`, a snapshot of
+ * status.js from 2026-08-10, still carries the table verdict this check used to give — so the loss is
+ * observed, not inferred.
+ *
+ * The two gates are independent by construction: `tableDigest()` reads `mcKey.all()` and never looks
+ * at SCENARIOS, so a moved fixture is no reason at all to stop asking whether the damage table moved.
+ * The feature COLUMNS are the one block that genuinely cannot be compared across a changed fixture,
+ * and the last assertion here pins that they are still withheld rather than reported as meaning
+ * changes — which is the false accusation against board.js this file's header is about.
+ *
+ * RED ON THE TREE BEFORE THE FIX: assertions 2 and 3 below fail, with the message naming only the
+ * fixture. A test that was never red is not evidence. */
+{
+  const both = JSON.parse(JSON.stringify(now));
+  both.scenarios = now.scenarios.slice(0, Math.max(1, now.scenarios.length - 2));
+  delete both.bodies;                       /* an old stamp, exactly like the live weight file */
+  both.table = { species: (now.table || {}).species, digest: 'deadbeefdead' };
+
+  const v = FF.verify(both, dex, { blocks: ['features', 'jointFeatures'] });
+  ok(typeof v === 'string', 'a stamp whose fixture AND damage table both moved is rejected');
+  ok(typeof v === 'string' && /fixture itself changed/.test(v),
+    'the verdict still reports the fixture change');
+  ok(typeof v === 'string' && /DAMAGE TABLE/.test(v),
+    'AND it still reports the DAMAGE TABLE — a moved fixture must not swallow a fixture-independent gate');
+  ok(typeof v === 'string' && !/changed MEANING/.test(v),
+    'but the feature COLUMNS are withheld, not reported as meaning changes, across a changed fixture');
+
+  /* The same, through the BODIES gate rather than the labels gate — a board edited inside a scenario
+   * that kept its name. Gate 3 swallowed the table verdict for the same reason gate 2 did. */
+  const viaBodies = JSON.parse(JSON.stringify(now));
+  viaBodies.bodies = { boards: now.bodies.boards, digest: 'feedfacefeed' };
+  viaBodies.table = { species: (now.table || {}).species, digest: 'deadbeefdead' };
+  const vb = FF.verify(viaBodies, dex, { blocks: ['features', 'jointFeatures'] });
+  ok(typeof vb === 'string' && /BOARDS changed/.test(vb) && /DAMAGE TABLE/.test(vb),
+    'a moved BODIES digest does not swallow the table verdict either');
+
+  /* SPECIFICITY, so this does not become a check that always says everything. A moved fixture with an
+   * unmoved table must not mention the table at all. */
+  const fixtureOnly = JSON.parse(JSON.stringify(now));
+  fixtureOnly.scenarios = now.scenarios.slice(0, Math.max(1, now.scenarios.length - 2));
+  const vf = FF.verify(fixtureOnly, dex, { blocks: ['features', 'jointFeatures'] });
+  ok(typeof vf === 'string' && /fixture itself changed/.test(vf) && !/DAMAGE TABLE/.test(vf),
+    'a moved fixture over an UNMOVED table says nothing about the table');
+}
+
 /* ---- 7. THE HAZARD CLASS — the blind spot this guard had until 2026-08-13 ----------------------
  *
  * ROADMAP #254. `board.js` put every side condition on the MOVER's side. Seven of the eleven legal
