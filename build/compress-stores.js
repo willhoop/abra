@@ -35,8 +35,53 @@ const zlib = require('zlib');
 const D = path.join(__dirname, '..', 'data');
 const STORES = ['games.ladder.jsonl', 'games.ots.jsonl', 'games.bo3.jsonl'];
 const CHECK = process.argv.includes('--check');
+const SYNC  = process.argv.includes('--sync');
 
 const mb = b => (b / 1048576).toFixed(1) + ' MB';
+/* Counted on the buffer rather than by splitting a 288 MB string into an array of 64,000. */
+const countLines = buf => {
+  let n = 0;
+  for (let i = 0; i < buf.length; i++) if (buf[i] === 10) n++;
+  return buf.length && buf[buf.length - 1] !== 10 ? n + 1 : n;
+};
+
+/* ---- `--sync` — PULL ORIGIN'S GAMES DOWN INTO THE LOCAL STORE -----------------------------------
+ *
+ * The repaired ingest Action appends on GitHub every six hours; the local plain .jsonl only grows
+ * when someone runs the ingest here. So the two diverge in BOTH directions, and neither is a superset
+ * of the other. This merges them the same way the Action's reconcile loop does, and for the same
+ * reason: take both sides, concatenate, keep the FIRST occurrence of each id.
+ *
+ * IT IS AN APPEND, NEVER A REPLACE. A plain "restore from .gz" would discard local games origin has
+ * not seen — the exact loss this file now refuses to commit — so the local store is a source here,
+ * not a casualty. Dedupe by id is idempotent, so running it twice is a no-op, and the result cannot
+ * be smaller than either input. */
+if (SYNC) {
+  let grew = 0;
+  for (const name of STORES) {
+    const src = path.join(D, name), gz = src + '.gz';
+    if (!fs.existsSync(gz)) { console.log(`  ${name.padEnd(20)} no .gz — nothing to sync from`); continue; }
+    const fromGz = zlib.gunzipSync(fs.readFileSync(gz)).toString('utf8').split('\n');
+    const local  = fs.existsSync(src) ? fs.readFileSync(src, 'utf8').split('\n') : [];
+    const seen = new Set(); const out = [];
+    for (const line of [...fromGz, ...local]) {          // origin first, so its copy wins a tie
+      if (!line.trim()) continue;
+      const m = line.match(/"id":"([^"]+)"/);
+      const key = m ? m[1] : line;
+      if (seen.has(key)) continue;
+      seen.add(key); out.push(line);
+    }
+    const before = local.filter(l => l.trim()).length;
+    fs.writeFileSync(src, out.join('\n') + '\n');
+    /* The .gz must not now look stale relative to the file it just fed, or --check would demand a
+     * recompress that has nothing to add. Only safe because `out` is a superset of both sides. */
+    fs.utimesSync(gz, new Date(), new Date());
+    grew += out.length - before;
+    console.log(`  ${name.padEnd(20)} ${before} -> ${out.length}  (+${out.length - before} from origin)`);
+  }
+  console.log(`\nsynced: ${grew} game(s) pulled down from the tracked archive.`);
+  process.exit(0);
+}
 let stale = 0, wrote = 0, missing = 0;
 
 for (const name of STORES) {
@@ -54,6 +99,34 @@ for (const name of STORES) {
   stale++;
   if (CHECK) { console.log(`  ${name.padEnd(20)} STALE — .gz is older than the store`); continue; }
   const raw = fs.readFileSync(src);
+
+  /* THE LOCAL SHRINK GUARD — 2026-08-21. The ingest Action already refuses to commit a store that
+   * lost records, twice. This is the same claim on the LOCAL path, and without it the repaired
+   * collector creates a brand-new way to lose data: the Action now appends on GitHub every six
+   * hours, so origin's .gz routinely holds MORE games than a laptop's plain .jsonl, which only
+   * grows when someone runs the ingest here. Recompressing from the older local file and committing
+   * would silently overwrite the newer archive.
+   *
+   * MEASURED THE DAY THIS WAS WRITTEN: the first green Action run took the ladder store 64,021 ->
+   * 64,491 while the local plain file sat at 64,021. A plain `node build/compress-stores.js; git
+   * commit` at that moment would have thrown away 470 games and reported success.
+   *
+   * These stores are append-only and deduped by id, so record count is monotonic BY CONSTRUCTION.
+   * A .gz holding more lines than its source is therefore never a legitimate state — it is proof
+   * the local file is behind. Refuse, and say exactly how to reconcile. */
+  if (fs.existsSync(gz)) {
+    const gzLines = countLines(zlib.gunzipSync(fs.readFileSync(gz)));
+    const srcLines = countLines(raw);
+    if (gzLines > srcLines) {
+      console.error(`\n  ${name.padEnd(20)} REFUSING TO COMPRESS — the tracked .gz holds MORE records `
+        + `than the local store: ${gzLines} vs ${srcLines}.`);
+      console.error(`  Writing it would discard ${gzLines - srcLines} game(s) that are already on origin.`);
+      console.error(`  These stores are append-only and deduped by id, so this is never a legitimate`);
+      console.error(`  update — the local file is BEHIND. Reconcile first:\n`);
+      console.error(`      node build/compress-stores.js --sync    # merge origin's .gz into the local store\n`);
+      process.exit(1);
+    }
+  }
   fs.writeFileSync(gz, zlib.gzipSync(raw, { level: 9 }));
   wrote++;
   const g = fs.statSync(gz).size;
