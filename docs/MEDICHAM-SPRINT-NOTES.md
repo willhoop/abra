@@ -10454,3 +10454,60 @@ reaches `dmgRange`. **A `tag_dex.js` DERIVATION gap, the same shape as #312's Sa
 simulator branch.** 8 corpus sheets. It appeared in all three arms including both controls, so it could
 not have flipped the regain verdict; the cast was swapped to Snorlax so `stateDiv === null` could be
 *asserted* rather than excused.
+
+---
+
+## THE COLLECTOR HAD BEEN DEAD FOR 24 DAYS AND SENT A NOTIFICATION EVERY HOUR SAYING SO — 2026-08-21
+
+Not MEDICHAM work, recorded here because it happened in this sprint and because the shape is the one
+this file exists to catch.
+
+**Will: "we are continually pulling new uploaded games from showdown right?"** We were not. The ingest
+GitHub Action has failed on **every scheduled run since 2026-07-28 — ~570 consecutive failures**. It
+fetched the replays correctly every hour and then died on one line:
+
+```
+git add data/games.ladder.jsonl   ->   "paths are ignored by one of your .gitignore files"   ->   exit 1
+```
+
+`acf7124` (2026-07-28) moved the stores to being tracked **compressed** because the plain ladder file
+was nearing GitHub's hard 100 MB limit, and added the plain paths to `.gitignore`. **The workflow's
+`git add` was never updated.** The commit that fixed the size problem is what broke the collector.
+
+**IT FAILED SAFELY, AND THAT IS THE ONLY REASON THE CORPUS SURVIVED.** A fresh runner has no plain
+`.jsonl` — it is gitignored, so only the `.gz` is checked out — and `durable-ingest.js` therefore
+creates a NEW file holding just that run's fetch. **Had `git add` succeeded, every hour would have
+committed ~300 games over 64,021.** The bug protected the data it was destroying access to.
+
+**WHAT IT COST.** Showdown's replay pool is a rolling **~1,250 per format**; anything that ages out
+between pulls is unrecoverable. Ladder days: 1307, 1660, 1553, **303**, 1071, 1279, 773, 1034, **662**,
+1308 — the low days have 14–18 hours *entirely absent* at hour granularity, which is absence, not a
+quiet day. **Estimated 2,500–3,000 ladder games permanently lost.**
+
+**INTEGRITY IS CLEAN, MEASURED:** 64,021 ladder lines / 64,021 unique ids, 19,104 bo3 / 19,104 unique.
+Zero duplicates. The `merge=union` defect is not present in this data.
+
+**CADENCE IS NOW DERIVED RATHER THAN ASSUMED.** Measured arrival: ladder ~1,100/day (1,660 peak), bo3
+~650/day (880 peak). Against the 1,250 window that is ~18 h of headroom at peak on the ladder. So
+**daily is unsafe** (24 h at peak = ~1,660 into a 1,250 slot, silently dropping ~400), hourly is 4% of
+capacity per run, and **six hours** is ~830 at peak with margin to survive a missed run. `PAGES` also
+went 6 → 25 on both formats; 6 pages is ~300 replays, which under-reaches the window at a 6-hour beat.
+
+**THREE GUARDS, BECAUSE "NEVER DEAL WITH THIS AGAIN" IS A PROPERTY OF CHECKS AND NOT OF A FIX:**
+1. `tests/test-workflow-paths.js` — every `git add` path in every workflow must be committable.
+   **Static, no network, no runner, milliseconds — it would have failed on `acf7124` itself.** Shown
+   RED on the exact historical bug before being trusted, and named `test-*.js` so `run-all.js`
+   discovers it (the roster's own broken clause hid for ten days by not being in the runner).
+2. **A shrink guard, twice** — before the commit and again on the reconciled result. A store here is
+   append-only and deduped by id, so its record count is monotonic *by construction*; a fall means
+   history was lost upstream and committing it would overwrite the good copy on origin. Refuse loudly.
+3. The workflow now **restores the plain store from the `.gz` before ingesting** and recompresses
+   after, so the runner appends to the full corpus instead of to an empty file.
+
+**And the failure is no longer swallowed.** The final `exit 0` ("a transient push race is not an
+error") is now `exit 1`: a push that never lands is silent data loss, which is precisely what the last
+24 days were.
+
+**THE PROSE WAS WRONG TOO.** `status.js` printed *"collected hourly"* beside a file nothing was
+collecting into — the same present-tense-past-its-truth shape as the fourteen handoffs, the ban list of
+four, and the auto-commit. A gap read as a quiet day rather than as data loss.

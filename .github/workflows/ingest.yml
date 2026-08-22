@@ -1,8 +1,19 @@
 name: ingest
 # Continually collect new ladder games as they are played.
+#
+# CADENCE — WHY SIX HOURS AND NOT ONE, AND NOT A DAY (2026-08-21, measured).
+# Showdown's public replay pool is a ROLLING ~1,250 per format. Anything that ages out between
+# pulls is gone: no later pull can reach it. Measured arrival rates on the two formats we collect:
+#
+#     ladder   ~1,100 games/day average, 1,660 peak   -> window fills in ~27 h average, ~18 h at peak
+#     bo3        ~650 games/day average,   880 peak   -> window fills in ~46 h average, ~34 h at peak
+#
+# Ladder binds at ~18 hours. So DAILY IS NOT SAFE — 24 h at peak is ~1,660 games into a 1,250 slot
+# and silently drops ~400. Hourly is 4% of capacity per run and pointless. Six hours is ~830 games
+# at peak against 1,250: comfortable margin, and it survives a missed run.
 on:
   schedule:
-    - cron: '17 * * * *'      # hourly (GitHub may delay on low-activity repos; that's fine)
+    - cron: '17 */6 * * *'     # 00:17, 06:17, 12:17, 18:17 UTC
   workflow_dispatch:           # allow a manual run from the Actions tab
 permissions:
   contents: write              # so the job can commit the refreshed data back
@@ -16,12 +27,40 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
+
+      # THE STEP WHOSE ABSENCE KILLED THIS WORKFLOW FOR 24 DAYS.
+      #
+      # The plain .jsonl stores are GITIGNORED — git tracks `<store>.jsonl.gz` instead (acf7124,
+      # 2026-07-28, because the plain ladder file was approaching GitHub's hard 100 MB per-file
+      # limit). So a fresh runner has NO plain store. Without this step `durable-ingest.js` creates
+      # a brand-new file holding only this run's fetch, and any commit of it would replace the whole
+      # corpus with ~300 games.
+      #
+      # That is not hypothetical: it is exactly what the old `git add data/games.ladder.jsonl` would
+      # have done had it succeeded. It failed instead — "paths are ignored by one of your .gitignore
+      # files", exit 1 under `bash -e` — every hour for ~570 runs. THE BUG IS THE ONLY REASON THE
+      # DATA SURVIVED. Restore first, and record the baseline every guard below compares against.
+      - name: Restore the plain stores from the tracked .gz
+        run: |
+          set -eu
+          for s in games.ladder games.bo3 games.ots; do
+            if [ -f "data/$s.jsonl.gz" ]; then
+              gunzip -c "data/$s.jsonl.gz" > "data/$s.jsonl"
+              echo "$s restored: $(wc -l < "data/$s.jsonl") records"
+            else
+              echo "::error::data/$s.jsonl.gz is missing from the checkout — refusing to run"
+              exit 1
+            fi
+          done
+          wc -l < data/games.ladder.jsonl > "$RUNNER_TEMP/base-ladder"
+          wc -l < data/games.bo3.jsonl    > "$RUNNER_TEMP/base-bo3"
+
       # A collection job must never page the owner. Showdown can rate-limit, time out, or serve a
       # malformed log; none of that is a defect in this repo, and failing the run emailed a failure
       # notice every hour. These steps report their error and the run carries on.
       - name: Pull new replays (only appends games not already stored)
         continue-on-error: true
-        run: PAGES=6 CONC=20 node engine/durable-ingest.js data/games.ladder.jsonl
+        run: PAGES=25 CONC=20 node engine/durable-ingest.js data/games.ladder.jsonl
       # THE BEST-OF-3 LADDER, INTO ITS OWN STORE. NEVER POOLED.
       #
       # gen9championsvgc2026regmbbo3 carries "Force Open Team Sheets" in its ruleset, so EVERY game
@@ -36,15 +75,42 @@ jobs:
       # SEPARATE FILE, DELIBERATELY. Bo3 is a different information regime and a different metagame;
       # pooling it into games.ladder.jsonl would silently change every behavioural statistic in the
       # project. The format id comes from data/regulations.json, so a regulation rotation carries it.
+      #
+      # PAGES=25 on both, not 6: 6 pages is ~300 replays, which at a 6-hour cadence and ~1,100
+      # games/day would under-reach the window on the ladder. 25 exhausts the public pool and
+      # auto-stops when a page comes back empty, so it costs nothing when there is less to take.
       - name: Pull the Bo3 open-team-sheet ladder (separate store, never pooled)
         continue-on-error: true
         run: |
           BO3=$(node -e "const r=require('./data/regulations.json');process.stdout.write((r.regulations[r.active]||{}).bo3Format||'')")
           if [ -n "$BO3" ]; then
-            PAGES=6 CONC=20 FORMATS="$BO3" node engine/durable-ingest.js data/games.bo3.jsonl
+            PAGES=25 CONC=20 FORMATS="$BO3" node engine/durable-ingest.js data/games.bo3.jsonl
           else
             echo "no bo3Format for the active regulation; nothing to pull"
           fi
+
+      # A STORE THAT SHRANK IS A BUG, NEVER AN UPDATE — AND IT IS THE ONLY FAILURE THIS PIPELINE
+      # CANNOT UNDO. Every store here is append-only and deduped by id, so the record count is
+      # monotonic by construction. If it ever falls, something upstream lost history (an empty
+      # restore, a truncated fetch, a bad dedupe) and committing that would overwrite the good copy
+      # on origin with the damaged one. Refuse, loudly, before anything is written.
+      - name: Refuse to proceed if a store shrank
+        run: |
+          set -eu
+          fail=0
+          for pair in "ladder:data/games.ladder.jsonl" "bo3:data/games.bo3.jsonl"; do
+            k="${pair%%:*}"; f="${pair#*:}"
+            was=$(cat "$RUNNER_TEMP/base-$k")
+            now=$(wc -l < "$f")
+            if [ "$now" -lt "$was" ]; then
+              echo "::error::$f SHRANK: $was -> $now records. Refusing to commit."
+              fail=1
+            else
+              echo "$k: $was -> $now (+$((now - was)))"
+            fi
+          done
+          [ "$fail" -eq 0 ]
+
       - name: Rebuild the meta model
         continue-on-error: true
         run: node engine/analyze.js data/games.ladder.jsonl
@@ -56,21 +122,14 @@ jobs:
       # The raw protocol logs are gitignored (~1GB), so this runner cannot recompute the two
       # log-derived figures; refresh-site-data.py carries those forward rather than zeroing them.
       # THE DERIVED PRIORS MUST TRACK THE META, NOT THE DAY THEY WERE LAST RUN BY HAND.
-      # Smogon's half of the model already auto-updates (monthly workflow, month auto-detected) and
-      # the ladder store grows hourly -- but move-priors and bring-priors were regenerated only when
-      # somebody remembered. That is the same defect as the hand-maintained site counts: a number
-      # derived once is a hardcode with extra steps, and these two drift as the metagame moves.
       # Both read the store through the clean filter, so they never learn from bot games.
       - name: Re-derive the behaviour priors from the current clean store
         continue-on-error: true
         run: |
           node engine/policy.js data/games.ladder.jsonl data/move-priors.json
           node engine/bring_priors.js
-      # ORIENTATION is the entry point and carried its key figures as typed text, which went stale
-      # the moment the store grew. Same rule as everything else here: derived, never typed.
       # Two things that must happen on a CONDITION nobody is watching for: re-run the CHOMP proof
-      # once the clean corpus can actually resolve it, and shout if the regulation rotates. Both are
-      # derived from data we already have. --fire lets it re-run chomp_ev itself when due.
+      # once the clean corpus can actually resolve it, and shout if the regulation rotates.
       - name: Conditional triggers (CHOMP power, regulation rotation)
         continue-on-error: true
         run: node build/triggers.js --fire
@@ -80,15 +139,25 @@ jobs:
       - name: Recount the site's clean-game stats
         continue-on-error: true
         run: python3 engine/refresh-site-data.py
+
       - name: Commit if the store or model changed
         run: |
           git config user.name  "abra-bot"
           git config user.email "abra-bot@users.noreply.github.com"
-          git add data/games.ladder.jsonl data/games.bo3.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json data/chomp-ev.json docs/ORIENTATION.md
+
+          # COMMIT THE .gz, NOT THE PLAIN FILE. The plain .jsonl is gitignored; naming it here is
+          # what broke this workflow for 24 days. build/compress-stores.js writes the .gz that git
+          # actually tracks, and `--check` exits 1 if one lags its store.
+          node build/compress-stores.js
+
+          git add data/games.ladder.jsonl.gz data/games.bo3.jsonl.gz data/games.ots.jsonl.gz \
+                  data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json \
+                  data/chomp-ev.json docs/ORIENTATION.md
           if git diff --cached --quiet; then
             echo "no new games this run"; exit 0
           fi
           git commit -m "ingest: new ladder games $(date -u +%Y-%m-%dT%H:%MZ)"
+
           # Manual pushes move origin between runs, so a plain push is rejected (non-fast-forward).
           #
           # This used to rely on `.gitattributes` marking the stores `merge=union` so appends never
@@ -101,28 +170,47 @@ jobs:
           # origin's store, append ours, dedupe by id (idempotent, keeps the first occurrence), and
           # commit that on top of origin. The result always fast-forwards, so there is no merge at
           # all and no driver is involved.
+          #
+          # NOTE THE .gz ROUND-TRIP. `git reset --hard origin/main` restores origin's COMPRESSED
+          # store and deletes nothing else, so ours must be saved as plain text first, origin's
+          # decompressed, ours appended, the result deduped and recompressed. Skipping the
+          # decompress would append our text to origin's stale copy and lose everything between.
           for i in 1 2 3; do
             git fetch origin main || { echo "fetch failed"; sleep 5; continue; }
             cp data/games.ladder.jsonl "$RUNNER_TEMP/ours.jsonl"
-            # The Bo3 store is append-only under git too, so it is reconciled the SAME way:
-            # keep ours across the reset, append, dedupe by id. Omitting it here would have
-            # thrown away every Bo3 game this run collected on the first push race.
-            cp data/games.bo3.jsonl "$RUNNER_TEMP/ours-bo3.jsonl" 2>/dev/null || true
+            cp data/games.bo3.jsonl    "$RUNNER_TEMP/ours-bo3.jsonl" 2>/dev/null || true
             git reset --hard origin/main
+            gunzip -c data/games.ladder.jsonl.gz > data/games.ladder.jsonl
+            gunzip -c data/games.bo3.jsonl.gz    > data/games.bo3.jsonl
+            gunzip -c data/games.ots.jsonl.gz    > data/games.ots.jsonl || true
             cat "$RUNNER_TEMP/ours.jsonl" >> data/games.ladder.jsonl
             # `|| true` is load-bearing: GitHub runs this block under `bash -e`, so a bare
             # `[ -f x ] && cat x` returns 1 on the very first run (when the file does not exist yet)
-            # and would abort the step BEFORE the push, silently losing the whole hour's ingest.
+            # and would abort the step BEFORE the push, silently losing the whole run's ingest.
             if [ -f "$RUNNER_TEMP/ours-bo3.jsonl" ]; then cat "$RUNNER_TEMP/ours-bo3.jsonl" >> data/games.bo3.jsonl; fi || true
             python3 engine/dedupe_store.py --write || true
             python3 engine/dedupe_store.py data/games.bo3.jsonl --write || true
+
+            # THE SHRINK GUARD AGAIN, ON THE RECONCILED RESULT. The append-and-dedupe above is the
+            # step that could silently lose history in a push race, so it is checked on its own
+            # output rather than trusted because the earlier check passed.
+            for pair in "ladder:data/games.ladder.jsonl" "bo3:data/games.bo3.jsonl"; do
+              k="${pair%%:*}"; f="${pair#*:}"
+              if [ "$(wc -l < "$f")" -lt "$(cat "$RUNNER_TEMP/base-$k")" ]; then
+                echo "::error::$f shrank during reconcile — refusing to push"; exit 1
+              fi
+            done
+
             node engine/analyze.js data/games.ladder.jsonl || true
             node engine/policy.js data/games.ladder.jsonl data/move-priors.json || true
             node engine/bring_priors.js || true
             node build/triggers.js --fire || true
             node build/sync_orientation.js || true
             python3 engine/refresh-site-data.py || true
-            git add data/games.ladder.jsonl data/games.bo3.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json data/chomp-ev.json docs/ORIENTATION.md
+            node build/compress-stores.js
+            git add data/games.ladder.jsonl.gz data/games.bo3.jsonl.gz data/games.ots.jsonl.gz \
+                    data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json \
+                    data/chomp-ev.json docs/ORIENTATION.md
             if git diff --cached --quiet; then
               echo "origin already has everything from this run"; exit 0
             fi
@@ -130,5 +218,5 @@ jobs:
             git push origin main && exit 0
             echo "push attempt $i failed; retrying"; sleep 5
           done
-          echo "::warning::ingest could not push after 3 attempts; will retry next hour"
-          exit 0   # do not fail the workflow — a transient push race is not an error
+          echo "::error::ingest could not push after 3 attempts"
+          exit 1   # a push that never lands is a SILENT DATA LOSS, not a transient — fail loudly
