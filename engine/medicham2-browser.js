@@ -452,6 +452,21 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   queueResortChangedOrder  and the re-sort actually MOVED the next body -- a trigger whose sorts
    *                            are all no-ops is indistinguishable from no trigger at all. */
   queueResorted: 0, queueResortHeldNotAMove: 0, queueResortChangedOrder: 0,
+  /* ROADMAP #311 -- THE PRIORITY BRACKET IS RE-DERIVED ON EVERY RE-SORT, and these are split apart
+   * because one merged counter could not tell a fix from a no-op.
+   *   bracketRederived         a queued action whose bracket was recomputed at a re-sort. This is the
+   *                            PATH counter: a zero after real games means the re-derivation is off
+   *                            the path entirely, which is the state #240 left it in.
+   *   bracketRederiveMoved     ...and the recomputed value DIFFERED from the frozen one. THIS IS THE
+   *                            COUNTER THAT PROVES #311 DOES SOMETHING. A zero here with a non-zero
+   *                            above means every re-derivation this run agreed with the turn-top
+   *                            freeze -- the fix ran and changed nothing, which is exactly what an
+   *                            unwired knob looks like, so it is never merged into the line above.
+   *   bracketHeldFrozen        actions left with their turn-top bracket because the re-sort trigger
+   *                            REFUSED (the head of the queue is a bare switch). This is the path the
+   *                            authority does not re-derive either, counted apart so "we matched
+   *                            Showdown by not firing" is visible rather than assumed. */
+  bracketRederived: 0, bracketRederiveMoved: 0, bracketRederiveMovedFirst: '', bracketHeldFrozen: 0,
   /* ROADMAP #162 / #60 -- Upper Hand refused because the target's committed move was not priority.
    * A zero after real games means nobody clicked it (89 corpus uses), not that the branch is absent. */
   priorityConditionRefused: 0,
@@ -9120,9 +9135,20 @@ function actionPriority(it, field){
   if(k==='trickroom') return movePriority('trickroom', field)+pk;
   return movePriority(it.a.mv, field)+pk;
 }
-/* The sort key for one queued action. `_pri` frozen at turn start, `_qc` rolled once per turn
- * (WIRE 101), `_order` written only by After You / Quash, `_tie` rolled once on first demand. SPEED
- * is the one field re-read on every re-sort, which is exactly what makes the order dynamic. */
+/* The sort key for one queued action. `_qc` is rolled once per turn (WIRE 101), `_order` is written
+ * only by After You / Quash, `_tie` is rolled once on first demand.
+ *
+ * TWO FIELDS ARE DYNAMIC, NOT ONE, AND THIS COMMENT SAID ONE UNTIL ROADMAP #311. `spe` is re-read
+ * through `effSpeed` on every key built -- and so now is `pri`, because `_resortTail` recomputes
+ * `_pri` before it sorts. That is the authority's shape: `getActionSpeed` recomputes the bracket
+ * through ModifyPriority (sim/battle.ts:2639-2644) and the re-sort loop calls it on every queued
+ * action (:2919-2920), so a mid-turn ability change moves the ORDER and not only the speed. The
+ * previous wording -- that Showdown resolves an action's priority when it is queued and never again
+ * -- is FALSE for gen >= 8, and it is why the defect survived every reader of this line.
+ *
+ * `_pri` is still a CACHE and is still read here rather than recomputed, because a key builder that
+ * re-derived would run ModifyPriority on every comparison inside the sort. Showdown does it once per
+ * re-sort, not once per compare, and so does this. */
 function turnOrderKey(it, field){
   return { order: it._order==null?TURN_ORDER.move:it._order,
            pri:   it._pri==null?actionPriority(it,field):it._pri,
@@ -13921,10 +13947,25 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_itHit)TR.announced(it.mon,_fp.announce,it.mon.item);
       }
     }
-    /* WIRE 118 -- the bracket is FROZEN here, once, exactly as Showdown resolves an action's priority
-       when it is queued and never again. The comparator, the Trick Room inversion and the tie now
-       live in compareTurnOrder/sortTurnOrder at module scope, next to movePriority and effSpeed,
-       because board.js calls the same rule. See the block above effSpeed. */
+    /* WIRE 118 -- the bracket is resolved here for the TOP-OF-TURN sort, which is the authority's
+       `commitChoices` sort (sim/battle.ts:3015) and is NOT the last word on it.
+
+       ROADMAP #311 CORRECTED WHAT THIS COMMENT CLAIMED ABOUT THE AUTHORITY. It used to read "the
+       bracket is FROZEN here, once, exactly as Showdown resolves an action's priority when it is
+       queued and never again", and that sentence is FALSE: `getActionSpeed` re-derives
+       `action.priority` through ModifyPriority (sim/battle.ts:2639-2644) and the post-action re-sort
+       calls it on every queued action (:2919-2920). The re-derivation lives in `_resortTail`, the one
+       site that re-sorts; this line is its initial value.
+
+       STAGED BEFORE IT WAS BELIEVED -- tests/probe_mega_priority.js plays one board twice with
+       `mega: true` as the only bit changed: a Banette that GAINS Prankster on evolving must move
+       first on the turn it megas although it is the slowest body on the field, and a Sableye that
+       LOSES Prankster must stop moving first on the turn it megas. Both were wrong here, in OPPOSITE
+       directions, which is what a frozen bracket looks like and what a missing ability does not.
+
+       The comparator, the Trick Room inversion and the tie live in compareTurnOrder/sortTurnOrder at
+       module scope, next to movePriority and effSpeed, because board.js calls the same rule. See the
+       block above effSpeed. */
     for(const it of acts) it._pri=actionPriority(it,field);
     sortTurnOrder(acts,field,_tieRng);
     /* ROADMAP #232 -- `BattleQueue.willAct()`, AND IT IS ONE FUNCTION BECAUSE IT IS ONE FACT.
@@ -14194,17 +14235,77 @@ function battleTurn(S,rng,actsForA,actsForB){
      *   this is the TRIGGER and not a rule about switches or a rule about weather -- either of those
      *   patches gets one of those two lines wrong, and no test that stages only one would notice.
      *
-     * WHAT IS RE-DERIVED, AND WHAT IS NOT. `updateSpeed` + `getActionSpeed` recompute SPEED; that is
-     * what `sortTurnOrder` re-reads through `effSpeed` on every key it builds. `order` and `_pri` are
-     * left alone here -- see the note above `turnOrderKey`, and the correction filed with #240 about
-     * `getActionSpeed` re-running ModifyPriority, which is a separate defect with no probe on it yet.
+     * WHAT IS RE-DERIVED, AND WHAT IS NOT -- REWRITTEN 2026-08-21 BY ROADMAP #311, WHICH IS THE
+     * DEFECT THIS PARAGRAPH USED TO DECLARE AND LEAVE OPEN. `getActionSpeed` recomputes BOTH halves
+     * of a move action's sort key, not just Speed:
+     *
+     *     let priority = this.dex.moves.get(move.id).priority;                     sim/battle.ts:2639
+     *     priority = this.singleEvent('ModifyPriority', move, null, ...);                      :2642
+     *     priority = this.runEvent('ModifyPriority', action.pokemon, target, move, priority);  :2643
+     *     action.priority = priority + action.fractionalPriority;                              :2644
+     *
+     * and the re-sort loop calls it on EVERY queued action (:2919-2920) before `queue.sort()`. So the
+     * BRACKET is dynamic on the authority and this engine froze it at turn top. Champions overrides
+     * `canMegaEvo` and nothing else in this path (data/mods/champions/scripts.ts:183), so the mainline
+     * lines above are the ones that run.
+     *
+     * SPEED WAS NEVER THE BUG HERE AND IT CAME ALONG FREE: `turnOrderKey` already re-read `effSpeed`
+     * on every key it built, which is why ROADMAP #240's trigger worked at all and why the PURE-SPEED
+     * arm of tests/probe_mega_priority.js (Aerodactyl 182 -> 202 straddling a Dragapult at 194)
+     * already agreed with the authority before this change.
+     *
+     * THE FRACTIONAL HALF IS NOT RE-ROLLED, AND THAT IS THE AUTHORITY'S SHAPE RATHER THAN AN OMISSION.
+     * `action.fractionalPriority` is written once, in `resolveAction` (sim/battle-queue.ts:240), and
+     * :2644 ADDS the stored value instead of re-running the event -- so a Quick Claw that rolled at
+     * turn top keeps its roll across every re-sort. `_qc` is a separate field in `turnOrderKey` for
+     * exactly that reason and is untouched here. Re-rolling it would draw dice the authority does not
+     * draw and desynchronise every seeded run.
+     *
+     * `_order` is untouched for a different reason: After You and Quash move an action by rewriting
+     * the LIST (`prioritizeAction`), not by rewriting its key.
      *
      * `runDynamax`, the trigger's other passing choice, cannot occur in gen 9 -- stated at sdChoiceOf.
      */
     const _resortTail=(from)=>{
       if(from<0||from>=acts.length-1)return;          // a one-element tail sorts to itself
-      if(sdChoiceOf(acts[from].a)!=='move'){MEDSEEN.queueResortHeldNotAMove++;return;}
+      if(sdChoiceOf(acts[from].a)!=='move'){
+        MEDSEEN.queueResortHeldNotAMove++;
+        /* THE AUTHORITY DOES NOT RE-DERIVE HERE EITHER, and that agreement is COUNTED rather than
+         * assumed -- a branch that matches Showdown by NOT firing is indistinguishable from a branch
+         * that is absent, unless something says how often it held. */
+        MEDSEEN.bracketHeldFrozen+=acts.length-from;
+        return;
+      }
       const _was=acts[from];
+      /* ROADMAP #311 -- THE BRACKET, RE-DERIVED BEFORE THE SORT READS IT. This is the whole fix.
+       *
+       * EVERY REMAINING ACTION, NOT A NAMED CLASS. Showdown loops the whole queue and lets
+       * `getActionSpeed` decide (it recomputes priority only for `choice === 'move'`); here
+       * `actionPriority` is the same one function the turn-top sort calls, and a BARE SWITCH resolves
+       * through it to a constant 6, so re-deriving one is a no-op BY CONSTRUCTION rather than by a
+       * list this file would then have to maintain.
+       *
+       * WHAT THIS PICKS UP BEYOND THE MEGA IT WAS STAGED ON: any ModifyPriority input that has moved
+       * since the turn opened. Gale Wings is the loud one -- it tests full HP, so a Talonflame struck
+       * before its own action loses the bracket on the authority mid-turn and used to keep it here.
+       * Grassy Glide (the one legal move in this regulation carrying its own onModifyPriority) and an
+       * ability rewritten by Skill Swap, Entrainment, Simple Beam or Worry Seed are the same shape.
+       *
+       * IT CONSUMES NO RNG. `actionPriority` is pure over (action, mon, field); the dice in this
+       * neighbourhood are `_qc` (rolled once per turn, above) and `_tie` (rolled once on demand), and
+       * neither is touched. That matters because a re-derivation that drew would move every seeded
+       * run for a reason that has nothing to do with turn order. */
+      for(let _k=from;_k<acts.length;_k++){
+        const _it=acts[_k]; if(!_it)continue;
+        const _now=actionPriority(_it,field);
+        MEDSEEN.bracketRederived++;
+        if(_it._pri!==_now){
+          MEDSEEN.bracketRederiveMoved++;
+          if(!MEDSEEN.bracketRederiveMovedFirst)
+            MEDSEEN.bracketRederiveMovedFirst=String((_it.mon&&_it.mon.name)||'?')+' '+_it._pri+'->'+_now;
+        }
+        _it._pri=_now;
+      }
       const _rest=sortTurnOrder(acts.slice(from),field,_tieRng);
       for(let _k=0;_k<_rest.length;_k++)acts[from+_k]=_rest[_k];
       MEDSEEN.queueResorted++;

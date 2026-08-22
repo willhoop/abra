@@ -10330,3 +10330,75 @@ refuses a source carrying `noentrain`, and Trace carries it, so on the authority
 figure is PRE-FIX.** The middle arm now takes one more address-keyed draw at a multi-eligible Trace and the
 void rate has not been re-measured. `MEDSEEN.traceChoiceNoDie` is non-zero for every caller that is not the
 differential — every rollout still takes the fixed index, and closing that moves every seeded run in the repo.
+
+---
+
+## THE PRIORITY BRACKET WAS FROZEN AT THE TOP OF THE TURN, AND A COMMENT ABOUT THE AUTHORITY IS WHY IT SURVIVED — 2026-08-21
+
+**The lead said "mega" and the lead was the symptom.** Four surviving `--order-probe` pairs all named a
+mega forme, which reads as a mega-evolution timing bug. It is not. `medicham2` resolved each action's
+priority ONCE, in `commitChoices`' sort, and never again: `turnOrderKey` re-read `effSpeed` on every
+compare and took `pri` from the cache. Showdown re-derives at the tail of EVERY `runAction` for gen >= 8 —
+`updateSpeed()`, then `getActionSpeed()` over every queued action, **which recomputes priority through
+`ModifyPriority`** (`sim/battle.ts:2916-2923`, `:2639-2644`) — and then sorts.
+
+**MEGA WAS ONLY THE VISIBLE CASE, AND THE NUMBER SAYS SO.** Walking `D.abilities.all()` filtered to the
+regulation for `onModifyPriority`/`onFractionalPriority`, exactly **3 of the 76 legal base->mega pairs**
+change a priority-touching ability: Banettite GAINS Prankster, Sablenite and Meowsticite LOSE it. All four
+surviving pairs name one of those three, each with the sign a frozen bracket predicts. That is not what a
+mega-heavy format looks like by chance — it is the only mid-turn ability change that resolves BEFORE moves.
+
+**THE COMMENT WAS THE BUG'S HABITAT.** `WIRE 118` asserted the turn-top sort was *"exactly as Showdown
+resolves an action's priority when it is queued and never again"*. That sentence is false about the
+authority, and a reader would have re-derived the same wrong behaviour from it. All three sites are
+rewritten and cite the lines; the block now quotes the sentence it replaces so the correction is visible
+rather than silent. `_resortTail`'s header had **already declared this defect and left it open**.
+
+**THE FIX IS ONE FUNCTION, NOT A SECOND OPINION.** `_resortTail` re-derives `_pri` over the remaining queue
+through `actionPriority` — the same function the turn-top sort calls, per the one-fact rule. Every remaining
+action rather than a named class: a bare switch resolves to a constant 6, so re-deriving one is a no-op by
+construction. `_qc` and `_order` are deliberately untouched, cited: `fractionalPriority` is written once in
+`resolveAction` (`battle-queue.ts:240`) and `battle.ts:2644` **adds** the stored value rather than re-running
+the event, so re-rolling would draw dice the authority does not draw.
+
+**RED PROOF, TAKEN WITH THE FINAL PROBE FILE.** `tests/probe_mega_priority.js` exits 0 on this tree and
+exits 1 with two arms failing against release `c26511b6d812` (pre-fix bytes). **The controls still
+discriminate** — ARM 3 still moves the order on both engines, both PLAIN arms still differ from their MEGA
+arms — so this is not a test fixed into silence. `test-engine-consistency` green including *"board.js ASKS
+medicham2 who moves first"*; `probe_turn_order` 12 staged / 0 not matching; `test-rollout-seed` 48/0;
+`test-wiring` green.
+
+**THE COUNTER FOUND A SECOND MECHANISM NOBODY PREDICTED.** 200 self-play games: `bracketRederived` **7038**,
+`bracketRederiveMoved` **21**, `bracketHeldFrozen` **0**. The movements name TWO causes — `banette-mega 0->1`
+is the diagnosed mega case, and **`talonflame 1->0` is Gale Wings losing its bracket after taking damage
+mid-turn**, a correctness gain #311 did not predict and the same line covers.
+
+**A BAR WAS SET WRONG AND IS RECORDED RATHER THAN QUIETLY DROPPED.** The probe first asserted
+`bracketHeldFrozen > 0`. It reads zero because this cast never puts a bare switch at the head of the queue —
+**a claim about the FIXTURE, not about the branch** (Will has taught this twice). It now prints with that
+sentence attached instead of being asserted, and the two counters are cross-checked against each other
+because one branch writes both.
+
+**`board.js` DOES NOT SHARE IT, CHECKED RATHER THAN ASSUMED.** Zero occurrences of `_pri`, no action queue,
+no turn loop; `effectivePriority` is recomputed per candidate from the board it is handed, so there is
+nothing to freeze. It already asks medicham2 for the fact through `D2.priorityRefusedAbove` and
+`D4.compareTurnOrder`. The legitimate-difference case, same shape as expected-vs-exact Speed.
+
+### OWED, AND NOT TO BE QUOTED AS DONE
+
+**Everything seeded moves, because turn order decides which die lands where.** `data/game-differential.json`
+and `data/all-mechanics-fire.json` are stamped `9b216aeeaa84` = medicham2 `bc86e30b86d1`, which is **pre-fix**,
+and both were re-run only hours earlier. **The census is NOT regenerated, so the ENGINE prime directive is
+UNVERIFIED for this change and it is not clear until it is** — `tests/test-mechanics.js` has no no-write mode.
+
+**AND THREE GATE CLAUSES THAT READ `PASS` ARE MEASURING NOTHING.** `tests/roster.js` exits 1 on all three
+stages at the FIXTURE AUDIT, before a game is played — *"a shape rule is emitting a click that would stage
+nothing"*, 88 of the first ~106 being `can't learn Focus Energy`. The roster clauses in `quarantine.js` are
+therefore reading artifacts dated **2026-08-11** while their instrument refuses to run. **A green clause
+resting on a stale artifact is worse than a red one, because nothing about it looks wrong.**
+
+**A RELEASE CUT IS A READ OF ALL 25 SOURCES, AND ONE LANDED MID-EDIT.** Another agent re-cut through the real
+store at `2026-08-22T00:49:49Z` while the simulator was being edited. It landed on the unchanged id so
+nothing was frozen half-written — but a cut taken a few minutes later would have **photographed a
+half-edited engine**. That is the measuring-agent-beside-a-writing-agent rule arriving through the release
+cut rather than through a file conflict, and no rule in CLAUDE.md currently covers it.
