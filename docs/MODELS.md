@@ -1216,10 +1216,20 @@ sun is a real archetype), while Torkoal and Charizard-Mega-Y show *no* Sunny Day
 by ability. Both routes captured, neither invented.
 
 **Regenerated on 4,910 clean games** (was 2,653), **344 species tagged** (was 280), 200 with a
-capability set, 1,101 matchup cells, median n=69. **The null holds:** held-out log-loss
-`roles=0.6933` against a coin's `0.6931`, CI (0.6880, 0.6981), accuracy 0.508 — role-level winner
-prediction still ties a coin on 1.85× the data. The capability layer is team-building **vocabulary**,
-not prediction, and does not change that.
+capability set, 1,101 matchup cells, median n=69. The capability layer is team-building
+**vocabulary**, not prediction, and does not change the null below.
+
+**The null holds.** Read from `data/roles-eval.json`: held-out log-loss `roles` 0.6935 against a
+`coin` 0.6931 and a `rating_baseline` 0.6967, `role_logloss_ci` 0.6885 to 0.6986, `accuracy_roles`
+0.5154. Role-level winner prediction still ties a coin.
+
+*(Corrected 2026-08-22. Every figure in the sentence above was stale against its own artifact —
+`0.6933` for `0.6935`, CI `(0.6880, 0.6981)` for `(0.6885, 0.6986)`, accuracy `0.508` for `0.5154`,
+and "4,910 clean games" against `n_games` 5,269 — and the rating baseline was omitted entirely. It
+survived because `tests/test-docs-current.js` calls a figure traceable when the digits appear in ANY
+artifact, and `0.6981` collided with `0.69817…` inside an unrelated file. The collision broke when
+that file was regenerated, which is the only reason this was caught. **A number matching something,
+somewhere, is not a citation** — the paragraph now names its artifact and its fields.)*
 
 **Known downstream staleness:** `xatu-context-sets.json` and CHOMP-EV are built on this artifact and
 `roles` moved with the larger corpus. Regenerate in dependency order (roles → context → CHOMP-EV)

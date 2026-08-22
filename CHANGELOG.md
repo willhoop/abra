@@ -10,6 +10,89 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.67.0] — 2026-08-22
+
+### Changed
+- **All three roster stages re-measured on release `13ba05093aa3`, cut on the current tree after the
+  arm-pin fix. The ABILITIES stage is CLEAN.**
+
+  | stage | before (release `603d9a69d5a3`, broken arm resolution) | after |
+  |---|---|---|
+  | items | 3 DIFFER, 0 DID-NOT-FIRE | **2 DIFFER, 0 DID-NOT-FIRE** |
+  | abilities | 8 DIFFER, 1 DID-NOT-FIRE, 47 CONTROL-NOT-QUIET | **0 DIFFER, 0 DID-NOT-FIRE** |
+  | moves | 157 DIFFER, 0 DID-NOT-FIRE | **5 DIFFER, 0 DID-NOT-FIRE** |
+
+  **169 accusations against MEDICHAM reduce to 7.** Every artifact carries a real `arms_played`
+  receipt: items `{"top-tie-first":280}`, abilities `{"top-tie-first":444,"bottom-tie-first":19}`,
+  moves `{"top-tie-first":741,"bottom-tie-first":246}`. The five surviving move rows are Dragon Cheer,
+  Fake Out, Matcha Gotcha, Psych Up and Transform.
+
+### Notes
+- **A SCHEDULED JOB WRITES A FROZEN ENGINE SOURCE, AND THE GATE IS RIGHT TO WITHHOLD WHEN IT DOES.**
+  `data/move-priors.json` is one of the 26 files `engine/engine_release.js` freezes as an engine
+  SOURCE, and the ingest workflow rewrites it. Verified against release `e12ef20e7910`: it is the
+  **only** frozen source that moved since that release was cut — `32f9ef1687d7` → `e667fe8ab457`,
+  1 of 26 — and that alone withholds five artifacts feeding six of eight gate clauses, including
+  `data/roster.moves.json` at 5 DIFFER / 469 MATCH.
+
+  **THREE CLAIMS MADE IN THE FIRST DRAFT OF THIS ENTRY WERE WRONG AND ARE CORRECTED HERE**, because a
+  retracted diagnosis that is quietly deleted is how a wrong story survives:
+  - *"hourly"* — the schedule is `cron: '17 */6 * * *'`, **six-hourly**, read from
+    `.github/workflows/ingest.yml`.
+  - *"a difference that may carry no behavioural meaning"* — **false. It changes a board.** Three live
+    readers sit among the frozen sources, two of them unconditional. The decisive one is
+    `engine/set_priors.js` `movePriors()` → `sampleMoves()`, called from `engine/champions_sim.js:203`
+    inside `packTeam()`: it decides which moves an unrevealed set is filled with, **on the team the
+    Showdown reference engine plays**. Also `engine/board.js` `protectOdds`/`movePriorOdds`, and
+    `engine/rollout_leaf.js` `pickByPrior`. Today's writes were not inert either: 259 of 345 species
+    moved, **36 pool-membership changes**, 4 modal-move flips, `protectOdds` moved for 196 species.
+  - *"the gate may be unsatisfiable"* — **it has never over-fired.** Across 331 releases since
+    2026-08-04 this file has **4 distinct digests**, and exactly one group of otherwise-identical
+    releases is split by it: `603d9a69d5a3` → `e12ef20e7910` → `13ba05093aa3`, two transitions, both
+    today, both behaviourally live. It sat on ONE digest for 321 consecutive releases. **Zero past
+    measurements were invalidated without cause.**
+
+  The real shape is a supply-chain one, and it is narrower and more fixable than "the engine changes
+  hourly": a six-hourly job can force a re-run of a twelve-hour measurement chain, so **the gate window
+  is shorter than the measurement**. It surfaced now because the ingest had been broken for 24 days and
+  was repaired on 2026-08-21 — a side effect of a repair, not a latent hole.
+
+  **Recommended, not yet applied:** the scheduler writes `data/move-priors.observed.json` and an
+  explicit `engine/policy.js --promote` moves it into place and prints the delta — the pattern
+  `data/residual-order.json` and `data/switchin-order.json` already use. `SOURCES` is untouched, no
+  release changes meaning, no snapshot loses a file. `move-priors` is **the only one of the 26 sources
+  any scheduled job has ever written**. A `code_id`/corpus-digest split was considered and rejected: it
+  would encode at schema level the claim that a corpus change cannot move a number, which §1 measures
+  that it can.
+- The gate reads 7 of 8 clauses failing, up from 6, and the increase is an IMPROVEMENT: the
+  game-differential clause flipped PASS → FAIL at 24/6000 because the band sweep landed and it can now
+  see the fourteen interior indices it never sampled.
+- **The whole-game differential is UNCHANGED at 126 of 961 diverged on `13ba05093aa3`** (`mid_void`:
+  2 void, 959 usable, 124 diverged among usable, 12.93%), and the mechanics census re-ran over 1,281
+  games, 0 threw, 0 sheets unassembled. **That the whole-game number did not move is the correct
+  result and is evidence, not a null:** the arm defect was `tests/roster.js` asking by omission, while
+  `engine/game_differential.js` names its arms explicitly, so only the roster was ever affected. The
+  121 non-declared whole-game divergences stand as real, and the wire-queue triage of them stands.
+
+### Fixed
+- **`docs/MODELS.md`'s roles paragraph was stale against its own artifact on every figure**, and the
+  living-docs gate caught it only by accident. `data/roles-eval.json` reads `log_loss.roles` **0.6935**
+  (doc said 0.6933), `role_logloss_ci` **[0.6885, 0.6986]** (doc said 0.6880–0.6981), `accuracy_roles`
+  **0.5154** (doc said 0.508), `n_games` **5,269** (doc said "4,910 clean games"), and the
+  `rating_baseline` of 0.6967 was omitted entirely. Now read from the artifact and named by field.
+- **How it survived, which is the part worth keeping:** `tests/test-docs-current.js` calls a figure
+  traceable when its digits appear in ANY artifact, and `0.6981` collided with `0.69817…` inside an
+  unrelated file. The collision broke when that file was regenerated, which is the only reason this
+  surfaced. **A number matching something, somewhere, is not a citation.** Noted rather than fixed:
+  the traceability rule can be satisfied by coincidence.
+- Recorded because the first attempt at this fix made it worse in a different way: citing the artifact
+  put the WHOLE paragraph under the harder citation rule, so the species and matchup-cell counts —
+  which come from other artifacts — became "figures a cited artifact does not contain", 66 → 70. The
+  paragraph was split so the citation covers only its own figures. Gate green, 21/21, and untraceable
+  figures fell 38 → 37.
+
+---
+
 ## [5.66.0] — 2026-08-22
 
 ### Fixed

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-22T06:47:04.496Z",
+  "generated": "2026-08-22T19:15:31.391Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:1fd77b835ee2/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -311,7 +311,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 301.6,
+  "elapsed_s": 344.8,
   "planted_divergence_proof": [
     {
       "what": "a wrong FIELD on the last agreeing line",
@@ -13785,9 +13785,9 @@
     "team_store_pinned_to": "data\\team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "603d9a69d5a3",
-  "engine_release_cut": "2026-08-22T06:22:09.969Z",
-  "engine_release_cuts": 3,
+  "engine_release": "13ba05093aa3",
+  "engine_release_cut": "2026-08-22T19:07:43.810Z",
+  "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
     "engine/medicham2-browser.js": "5514d05c531d",
@@ -13814,7 +13814,7 @@
     "data/tags.json": "a98dbd1a195a",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
-    "data/move-priors.json": "4ae4509da65f",
+    "data/move-priors.json": "e667fe8ab457",
     "engine/pp.js": "30b12a4ef623"
   }
 }
