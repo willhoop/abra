@@ -54,14 +54,14 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is b4a4d296de54 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 555979fd2cce now
     COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 2cab3179f5fc now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 273/291 probed, 18 unprobed
 ```
 
-_stamped 2026-08-21 02:46_
+_stamped 2026-08-21 20:50_
 
 <!-- /GENERATED -->
 
@@ -303,9 +303,19 @@ the plants go at the LAST BOARD THE CLEAN ARM AGREED AT, which on a pair that ag
 boundary 12 — a board where neither side has a living body on the bench. `tests/probe_bench_plants.js`
 runs the same `plantedStateProof` over 8 pairs and separates the two sentences:
 
-- **all 42 plants are APPLIED on at least one pair, and 41 of 42 are caught, at the planted boundary,
-  and localised, every time they were applied** — including all six bench leaves (item, status, toxic
-  stage, typing, stat stage, ability) at 5/5;
+- ~~**all 42 plants are APPLIED on at least one pair, and 41 of 42 are caught, at the planted boundary,
+  and localised, every time they were applied**~~ — **RETRACTED 2026-08-21, CONTRADICTED BY ITS OWN
+  INSTRUMENT.** Re-run on the current tree, `probe_bench_plants.js` over 8 pairs reports **19 plants
+  APPLIED AND NOT CAUGHT, 0 never applied** (`data/verification/bench-plants-309.json`). The half of
+  this sentence that survives is the bench one: all six bench leaves (item, status, toxic stage, typing,
+  stat stage, ability) are still **PROVEN 5/5**, so the NOT-APPLIED complaint the section is named for is
+  genuinely a fixture artefact. **The other half is not.** Whether the 19 are comparator blind spots or
+  ROADMAP #314's false-`applied` (the plant callback returns truthy without moving the board) is
+  UNDECIDED, and the probe cannot tell them apart — so they are INDETERMINATE, never "clean".
+  **Consequence: `planted_state_proof_ok` is false in every `--state` / `--end-state` artifact, and
+  DIFFERENT-END-STATE is a LOWER BOUND wherever it is quoted — including the 83 published in CHANGELOG
+  5.54.0, which did not disclose it.** A paired DELTA across two runs of the same ruler still stands;
+  a LEVEL does not;
 - the one hole is the plant's own: `a BENCHED party member's HP off by one` takes the LAST team member
   rather than a living one, and `Math.max(0, curHP - 1)` on a body already at 0 changes nothing. 7 of
   8 pairs catch it; the pair that does not is the pair whose bench is dead.

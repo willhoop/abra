@@ -1,21 +1,21 @@
 {
-  "generated": "2026-08-19T23:57:44.050Z",
+  "generated": "2026-08-22T00:49:50.731Z",
   "by": "engine/register_reality.js",
   "what": "Every register row that names the instrument deciding it, run, with its exit code compared to the row's open/closed status.",
   "why": "docs/ROADMAP.md is read by engine/quarantine.js as a GATE INPUT and nothing checked it against reality. On 2026-08-14 four rows were stale rather than live and two of them were put in front of a human as the place to start. A row nobody re-verifies is prose.",
   "weaker_than_it_looks": "A green instrument means THAT instrument sees nothing. It is not a derivation of the row's claim. It is strictly more than the register had, which was nothing.",
   "counts": {
-    "register_rows": 227,
-    "id_rows": 272,
-    "open_asserting_breakage": 7,
-    "marked": 30,
-    "open_asserting_breakage_and_marked": 4,
+    "register_rows": 234,
+    "id_rows": 279,
+    "open_asserting_breakage": 12,
+    "marked": 31,
+    "open_asserting_breakage_and_marked": 5,
     "stale_rows": 0,
     "premature_closes": 2,
     "unrunnable": 0,
     "instrument_owed": 3,
     "open_asserting_breakage_and_owed": 2,
-    "distinct_commands_run": 21
+    "distinct_commands_run": 22
   },
   "instrument_owed": [
     {
@@ -44,7 +44,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 1512,
+      "ms": 20970,
       "verdict": "CONFIRMED"
     },
     {
@@ -56,7 +56,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 2604,
+      "ms": 5963,
       "verdict": "CONFIRMED"
     },
     {
@@ -68,7 +68,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 1407,
+      "ms": 3133,
       "verdict": "CONFIRMED"
     },
     {
@@ -79,8 +79,8 @@
       "cmd": "node engine/quarantine.js --whole-game",
       "owed": null,
       "green": false,
-      "why": "exit 2",
-      "ms": 71,
+      "why": "exit 1",
+      "ms": 160,
       "verdict": "CONFIRMED"
     },
     {
@@ -91,8 +91,8 @@
       "cmd": "node engine/gate_offfield_target.js",
       "owed": null,
       "green": false,
-      "why": "exit 2",
-      "ms": 73,
+      "why": "exit 1",
+      "ms": 142,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -103,8 +103,8 @@
       "cmd": "node engine/gate_fail_and_silent.js",
       "owed": null,
       "green": false,
-      "why": "exit 2",
-      "ms": 68,
+      "why": "exit 1",
+      "ms": 141,
       "verdict": "CONFIRMED"
     },
     {
@@ -116,7 +116,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 647,
+      "ms": 1565,
       "verdict": "CONFIRMED"
     },
     {
@@ -128,7 +128,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 191,
+      "ms": 559,
       "verdict": "CONFIRMED"
     },
     {
@@ -140,7 +140,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 191,
+      "ms": 559,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -153,7 +153,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 191,
+      "ms": 559,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -166,7 +166,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 661,
+      "ms": 4126,
       "verdict": "CONFIRMED"
     },
     {
@@ -178,7 +178,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 661,
+      "ms": 4126,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -191,7 +191,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 661,
+      "ms": 4126,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -204,7 +204,7 @@
       "owed": null,
       "green": false,
       "why": "exit 1",
-      "ms": 638,
+      "ms": 1807,
       "verdict": "CONFIRMED"
     },
     {
@@ -216,7 +216,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 746,
+      "ms": 1762,
       "verdict": "CONFIRMED"
     },
     {
@@ -228,7 +228,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 746,
+      "ms": 1762,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -241,7 +241,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 746,
+      "ms": 1762,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -254,7 +254,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 746,
+      "ms": 1762,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -267,7 +267,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 659,
+      "ms": 1607,
       "verdict": "CONFIRMED"
     },
     {
@@ -279,7 +279,7 @@
       "owed": null,
       "green": false,
       "why": "exit 1",
-      "ms": 6051,
+      "ms": 15012,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -291,7 +291,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 1193,
+      "ms": 1021,
       "verdict": "CONFIRMED"
     },
     {
@@ -303,7 +303,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 68,
+      "ms": 50,
       "verdict": "CONFIRMED"
     },
     {
@@ -315,7 +315,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 1193,
+      "ms": 1021,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -328,7 +328,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 1063,
+      "ms": 901,
       "verdict": "CONFIRMED"
     },
     {
@@ -340,7 +340,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 810,
+      "ms": 751,
       "verdict": "CONFIRMED"
     },
     {
@@ -351,8 +351,8 @@
       "cmd": "node engine/quarantine.js --order-probe",
       "owed": null,
       "green": false,
-      "why": "exit 2",
-      "ms": 72,
+      "why": "exit 1",
+      "ms": 59,
       "verdict": "CONFIRMED"
     },
     {
@@ -364,7 +364,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 193,
+      "ms": 167,
       "verdict": "CONFIRMED"
     },
     {
@@ -376,7 +376,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 139,
+      "ms": 113,
       "verdict": "CONFIRMED"
     },
     {
@@ -388,8 +388,20 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 139,
+      "ms": 113,
       "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 311,
+      "title": "THE SURVIVING TURN-ORDER DIVERGENCES ALL NAME A MEGA FORME — A LEAD, NOT A FINDING.** Afte",
+      "closed": false,
+      "saysBroken": true,
+      "cmd": "node tests/probe_mega_priority.js",
+      "owed": null,
+      "green": false,
+      "why": "exit 1",
+      "ms": 1218,
       "verdict": "CONFIRMED"
     },
     {
@@ -401,7 +413,7 @@
       "owed": null,
       "green": true,
       "why": "exit 0",
-      "ms": 143,
+      "ms": 119,
       "verdict": "CONFIRMED"
     }
   ],
@@ -409,6 +421,22 @@
     {
       "n": 220,
       "title": "THE WEATHER RESIDUAL RAN IN SLOT ORDER WHILE THE CLOCK RESIDUAL HAD BEEN SPEED-SORTED SINC"
+    },
+    {
+      "n": 310,
+      "title": "EVERY ROLLOUT STILL TAKES A FIXED TRACE INDEX; ONLY THE DIFFERENTIAL GOT A STREAM.** `batt"
+    },
+    {
+      "n": 312,
+      "title": "THREE DAMAGE ROWS ROOT-CAUSED AND UNFIXED, AND TWO OF THEM WANT THE SAME CONSUMER.** All t"
+    },
+    {
+      "n": 314,
+      "title": "`STATE_PLANTS` AIMS AT SLOTS WITHOUT CHECKING ANYBODY IS STANDING THERE, AND `applied` MEA"
+    },
+    {
+      "n": 315,
+      "title": "A FAINTED MEGA'S FORME REGRESSES IN SHOWDOWN AND NOT HERE.** `sim/battle.ts:2554-2557` and"
     }
   ]
 }

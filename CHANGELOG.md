@@ -10,6 +10,97 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.55.0] — 2026-08-21
+
+### Fixed
+- **ROADMAP #309 ANSWERED — THE TRACE FIX TOOK THE "NARRATE IDENTICALLY, END DIFFERENTLY" POPULATION TO
+  ZERO.** Re-run on release `9b216aeeaa84`, census pinned `38da8c3e9005`, team store
+  `data/team-pool-frozen`, `--baseline` cleared. **Paired on the same 797 games** — swarm, coverage,
+  `speed_ties` and `end_reasons` blocks byte-identical to the baseline:
+
+  | | 2026-08-20 | re-run |
+  |---|---|---|
+  | DIFFERENT-END-STATE | 83 | **72** |
+  | of the protocol-parted | 74 of 145 (51.0%) | **72 of 143 (50.3%)** |
+  | of the protocol-NEVER-parted | 9 | **0** |
+
+  The only `SOURCES` file differing between the two releases is `engine/medicham2-browser.js`, and every
+  one of its 9 real hunks is the #310 Trace work, so **the −11 is the Trace fix and nothing else**. The
+  mechanism is corroborated three independent ways rather than asserted: end-state families
+  `active[].ability` 44→32 and `party.ability` 16→4 (**−24 ability leaves, and essentially nothing else
+  moved**); `traceChoiceDie=215 / traceChoiceNoDie=0`, so the die reached the run with **zero** silent
+  slot-0 fallbacks; turn-1 board identity 778/797 → **783/797**. Artifact
+  `data/verification/gd-endstate-309.json`.
+
+### Changed
+- **THE WHOLE-GAME AND MECHANICS GATE CLAUSES NOW FAIL ON EVIDENCE INSTEAD OF ON STALENESS.** Both were
+  reading artifacts stamped `94a84744346d` against a tree of `9b216aeeaa84` and were **withheld**, which
+  is not a weaker answer but an answer about other bytes. Both re-run with all three pins:
+  - whole-game protocol differential: **961 games, 149 diverged**, planted proof green → the clause now
+    computes **144 of 961 = 15.0%** (149 raw, less 5 declared Supreme Overlord `fallenundefined`).
+  - `all_mechanics_fire --kind all`: 1,281 games, complete artifact (500 moves / 316 abilities / 148
+    items) → the clause now reads **28 of 35 diverging mechanics**.
+  **DIRECTION OF TRAVEL IS WITHHELD BY THE INSTRUMENT ITSELF** — the prior artifact was stamped
+  `A/top-tie-first/pins:ef342837b791` and this run is `A/middle/pins:1fd77b835ee2`. One pin is one corner;
+  those are two instruments, so **182 → 149 is not a delta** and is not published as one.
+- **ROADMAP #311 CONFIRMED AND RE-AIMED — IT IS NOT THE MEGA, IT IS THE FROZEN PRIORITY BRACKET.**
+  Showdown re-sorts at the tail of every `runAction` for gen ≥ 8 (`sim/battle.ts:2916-2923`), and the
+  re-sort re-runs `getActionSpeed`, which **recomputes priority through `ModifyPriority`**
+  (`:2639-2646`). medicham2 freezes the bracket once per turn (`medicham2-browser.js:13928`) and
+  `turnOrderKey` (`:9126-9132`) re-reads only `spe`. **The comment above that line asserts Showdown
+  resolves priority "when it is queued and never again" — that claim about the authority is the defect.**
+  Mega was the visible case, not the mechanism: of the **76 legal base→mega pairs, exactly 3** change a
+  priority-touching ability (Banettite gains Prankster; Sablenite and Meowsticite lose it), and all four
+  surviving `--order-probe` pairs name one of those three with the sign a frozen bracket predicts. Probe
+  `tests/probe_mega_priority.js` exits 1, with a passing repair control and two passing no-mega controls.
+  Champions overrides `canMegaEvo` only and does not touch `runMegaEvo`, `runAction` or the queue.
+
+### Notes
+- **RETRACTION: `DIFFERENT-END-STATE` IS A LOWER BOUND WHEREVER IT HAS BEEN QUOTED, INCLUDING THE 83
+  PUBLISHED IN 5.54.0.** `planted_state_proof_ok` is **false** in both the baseline and the re-run, and
+  5.54.0 published its figure without disclosing that. `tests/probe_bench_plants.js` on the current tree
+  reports **19 plants applied and not caught, 0 never applied**. The six BENCH plants #314 was filed
+  about are now **proven 5/5** — that half is fixed — but `docs/ENGINE.md`'s standing sentence, *"41 of
+  42 are caught… the one hole is the benched-HP plant"*, is **contradicted by its own instrument** and
+  must not be read as current. The 19 are **indeterminate, not confirmed blind**: #314's second hole —
+  `applied` means the callback returned truthy, not that the board moved — makes the label unreliable.
+  **The #309 delta survives this** (same ruler, blind in identical places, paired deterministic replay,
+  and the families that moved are ones the comparator demonstrably reads: `a different species on the
+  field` 8/8, `an ABILITY on a BENCHED body` 5/5). The LEVEL does not.
+- **#314 STAYS DEBT, AND THE ATTEMPT TO PROMOTE IT IS THE LESSON.** A `VERIFIED BY` was pointed at
+  `tests/probe_bench_plants.js` and withdrawn in the same pass: the probe prints `19 plant(s) applied
+  and not caught` and **exits 0**, so `engine/register_reality.js` immediately graded the row
+  `STALE ROW` — **a live instrument defect rendered as fixed**, which is the exact hazard that file
+  documents at its own line 96, and this project's signature failure (a green test that asks nothing)
+  arriving through the register instead of through a test. `stale_rows` went 0 → 1 → 0 across the two
+  regenerations. **The owed work is an exit code**: the probe must exit 1 while any plant is
+  applied-and-not-caught before any row may name it.
+- **#311 DOES carry a marker, and its instrument is RED.** `register_reality.js` grades it `exit 1 /
+  CONFIRMED`, so the *"no open, known engine defect"* clause correctly moved **4 → 5** red rows
+  (#218, #241, #258, #290, #311) and debt rows fell 8 → 6. **The gate reads worse and is more honest**:
+  a confirmed defect that was previously invisible to it now holds it shut.
+- **`all_mechanics_fire.js --write` REPLACES THE ARTIFACT WHOLESALE AND `--kind` DEFAULTS TO `moves`.**
+  A run without `--kind all` writes a moves-only file over a complete one. That happened during this
+  session and was caught immediately by the gate, which stopped reporting a rate and started reporting
+  *"THE REACH FILTER CANNOT BE APPLIED — carries no per-entity rows for abilities, items"*. Nothing was
+  lost (the complete artifact was in git) and the run was repeated with `--kind all`. **The clause
+  refusing to filter a population its headline does not describe is exactly why it exists.**
+- **`tools/lownode.cmd` IS SOUND; A CLAIM THAT IT SILENTLY SWALLOWS FAILURE DID NOT REPRODUCE.**
+  `tests/test-lownode.js` passes 4/4, including *"exit 3 propagates as failure, code intact — a red test
+  still reads red"*, and measured directly the wrapper returned 7 for `process.exit(7)` and 1 for a
+  module-not-found, with stdout and stderr both reaching the caller. The real hazard is narrower and is
+  **an argument-quoting one at the Bash→`cmd` boundary**: an absolute Windows path is split on its drive
+  colon, and a quoted `--why` string is truncated at the first space (an engine-release cut this session
+  recorded its reason as `"#309`). Prefer repo-relative paths through the wrapper.
+- Two must-read-zero lines are non-zero in the new differential and are findings, not noise:
+  `switch lookups that MISSED: medicham 39, showdown 0` (#301, filed at 22 — it has grown) and
+  `MEDFAILS.traceBodyOffField = 4`, which `tests/test-protocol-trace.js` PART 6 says must read 0.
+- The MEDICHAM gate remains **CLOSED at 3 of 8**. What changed is that no failing clause is withheld any
+  more: whole-game 15.0%, mechanics 28 of 35, and four register rows backed by red instruments
+  (#218, #241, #258, #290).
+
+---
+
 ## [5.54.0] — 2026-08-20
 
 ### Fixed

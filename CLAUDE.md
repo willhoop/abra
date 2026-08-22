@@ -178,17 +178,19 @@ const MEDI = REL.require('engine/medicham2-browser.js');   // the SNAPSHOT's byt
 artifact = { ...REL.stamp(), ...result };                  // says exactly what was measured
 ```
 
-**Twenty-three** files are frozen — the simulator, the board, the leaf, the features, the tags, the
+**Twenty-five** files are frozen — the simulator, the board, the leaf, the features, the tags, the
 loader closure, the lazily-read data files, **and the weights**, because "can anything beat MAG" is a
 claim about one specific vector and the weights are what actually moved. It is a **copy, not a
 checksum**: verifying digests afterwards only tells you the run was wasted.
 `tests/test-engine-release.js` proves it by editing a live file while a release is open and asserting
 the release still serves the old bytes.
 
-*(This said "twelve" until 2026-08-05. The set grew twice, each time because a release that was a
-valid DIGEST SET turned out not to be a loadable — then not a runnable — engine: +6 loader deps so
-`REL.require` resolves, +5 lazily-read data files so a snapshot can actually play a game. Read the
-count from `SOURCES` in `engine/engine_release.js`, never from this sentence.)*
+*(This said "twelve" until 2026-08-05 and "twenty-three" until 2026-08-21. The set has grown three
+times, each time because a release that was a valid DIGEST SET turned out not to be a loadable — then
+not a runnable — engine: +6 loader deps so `REL.require` resolves, +5 lazily-read data files so a
+snapshot can actually play a game, +2 more since (`engine/pp.js`, commit `f8f2c67`). **The prose went
+stale a third time, which is the point: read the count from `SOURCES` in `engine/engine_release.js`,
+never from this sentence.**)*
 
 **A RELEASE FREEZES THE ENGINE AND NOT THE READER, AND THE READER KEEPS MOVING.** Every symbol added to a
 caller’s eed list retroactively strands every release cut before it — the snapshot still verifies and
@@ -210,7 +212,7 @@ divisions, and it only works because the measurement is not reading those bytes.
 **A RELEASE FREEZES CODE. IT DOES NOT FREEZE THE STORE, THE POOL, OR THE ARTIFACTS — AND ALL THREE MOVE.**
 *(2026-08-19/20. This cost three published figures in one day and a whole tail analysis in another.)*
 
-The photograph rule above is necessary and it is not sufficient. A frozen release pins the twenty-three
+The photograph rule above is necessary and it is not sufficient. A frozen release pins the twenty-five
 SOURCE files. It does not pin:
 
 - **the store.** OPS appends `games.ladder.jsonl` and `games.bo3.jsonl` hourly, and
