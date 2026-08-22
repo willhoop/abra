@@ -10,6 +10,70 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.56.0] — 2026-08-21
+
+### Fixed
+- **THE PRIORITY BRACKET WAS FROZEN AT THE TOP OF THE TURN, AND A COMMENT ABOUT THE AUTHORITY IS WHY
+  IT SURVIVED.** `medicham2` resolved each action's priority once, in `commitChoices`' sort, and never
+  again — `turnOrderKey` re-read `effSpeed` on every compare and took `pri` from the cache. Showdown
+  re-derives at the tail of **every** `runAction` for gen ≥ 8: `updateSpeed()`, then `getActionSpeed()`
+  over every queued action, **which recomputes priority through `ModifyPriority`**
+  (`sim/battle.ts:2916-2923`, `:2639-2644`), then sorts. `_resortTail` now re-derives `_pri` over the
+  remaining queue through `actionPriority` — **the same one function the turn-top sort calls**, per the
+  one-fact rule. Every remaining action rather than a named class: a bare switch resolves to a constant
+  6, so re-deriving one is a no-op by construction. `_qc` and `_order` are deliberately untouched and
+  cited: `fractionalPriority` is written once in `resolveAction` and `battle.ts:2644` **adds** the
+  stored value rather than re-running the event, so re-rolling would draw dice the authority does not.
+- **ALL THREE COMMENT SITES REWRITTEN, BECAUSE THE COMMENT WAS THE DEFECT'S HABITAT.** `WIRE 118` said
+  the turn-top sort was *"exactly as Showdown resolves an action's priority when it is queued and never
+  again"*. That is **false about the authority**, and a reader would have re-derived the same wrong
+  behaviour from it. It now quotes the sentence it replaces so the correction is visible rather than
+  silent. `_resortTail`'s header had **already declared this defect and left it open**.
+
+### Changed
+- **#311 IS RE-AIMED AND ITS "MEGA" SIGNATURE WAS THE SYMPTOM.** Of the **76 legal base→mega pairs,
+  exactly 3** change a priority-touching ability (Banettite gains Prankster; Sablenite and Meowsticite
+  lose it), and all four surviving `--order-probe` pairs name one of the three with the sign a frozen
+  bracket predicts. Mega is simply the only mid-turn ability change that resolves *before* moves.
+
+### Notes
+- **RED PROOF, TAKEN WITH THE FINAL PROBE FILE.** `tests/probe_mega_priority.js` exits **0** on this
+  tree and **1, two arms failing**, against release `c26511b6d812` (pre-fix bytes). **The controls still
+  discriminate** — ARM 3 still moves the order on both engines and both no-mega arms still differ from
+  their mega arms — so this is a fix, not a test silenced. `test-engine-consistency` green including
+  *"board.js ASKS medicham2 who moves first"*; `probe_turn_order` 12 staged / 0 not matching;
+  `test-rollout-seed` 48/0; `test-wiring` green.
+- **THE COUNTER FOUND A SECOND MECHANISM NOBODY PREDICTED.** 200 self-play games: `bracketRederived`
+  **7038**, `bracketRederiveMoved` **21**, `bracketHeldFrozen` **0**. The movements name two causes —
+  `banette-mega 0→1`, the diagnosed mega case, and **`talonflame 1→0`, Gale Wings losing its bracket
+  after taking damage mid-turn**, a correctness gain #311 did not predict and the same line covers.
+- **A BAR WAS SET WRONG AND IS RECORDED RATHER THAN DROPPED.** The probe first asserted
+  `bracketHeldFrozen > 0`; it reads zero because this cast never puts a bare switch at the head of the
+  queue. **That is a claim about the fixture, not the branch**, so it prints with that sentence attached
+  instead of being asserted.
+- **`board.js` DOES NOT SHARE IT — checked, not assumed.** Zero occurrences of `_pri`, no action queue,
+  no turn loop; it already asks medicham2 for the fact through `D2.priorityRefusedAbove` and
+  `D4.compareTurnOrder`. The legitimate-difference case, same shape as expected-vs-exact Speed.
+- **NEW ROW #316 — THREE `PASS` CLAUSES ARE MEASURING NOTHING.** `tests/roster.js` exits 1 on all three
+  stages at its FIXTURE AUDIT (88 of the first ~106 are `can't learn Focus Energy`), while
+  `quarantine.js` reports the three roster clauses as PASS off artifacts dated **2026-08-11**. **A green
+  clause resting on a stale artifact is worse than a red one, because nothing about it looks wrong.**
+  Three of the five clauses currently passing are in this state, so "5 of 8" overstates what is verified.
+  The row asks for two separate things: repair the shape rule, and make `quarantine.js` REFUSE a roster
+  clause older than the engine it describes, exactly as the whole-game and mechanics clauses already do.
+- **OWED AND NOT TO BE QUOTED AS DONE.** Turn order decides which die lands where, so **everything
+  seeded moves.** `data/game-differential.json` and `data/all-mechanics-fire.json` are stamped
+  `9b216aeeaa84` = medicham2 `bc86e30b86d1`, which is **pre-fix**, despite being re-run hours earlier.
+  **The census is NOT regenerated, so the ENGINE prime directive is unverified for this change and it is
+  not clear until it is.**
+- **A RELEASE CUT IS A READ OF ALL 25 SOURCES, AND ONE LANDED MID-EDIT.** A cut went through the real
+  store at `2026-08-22T00:49:49Z` while the simulator was being edited. It landed on the unchanged id so
+  nothing was frozen half-written, but a cut minutes later would have **photographed a half-edited
+  engine**. That is the measuring-agent-beside-a-writing-agent rule arriving through the release cut
+  rather than through a file conflict, and no rule in CLAUDE.md currently covers it.
+
+---
+
 ## [5.55.0] — 2026-08-21
 
 ### Fixed
