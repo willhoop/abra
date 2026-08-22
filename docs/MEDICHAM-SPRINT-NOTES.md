@@ -10977,3 +10977,54 @@ closed by ordinary engine work; 28 reclassified; 11 became fixture-limited; 105 
 Also fixed rather than filed: `tests/test-docs-current.js` was RED on `docs/CLICK-CENSORING-FIX.md`
 carrying a bare `5,917` matching no artifact anywhere. The figure is **downstream of MEDICHAM**, so it
 is **WITHHELD rather than cited** - a caption is not a quarantine.
+
+---
+
+## THE DICE, THE FORMES, AND A LINE ENDING THAT DISARMED EVERY RED PROOF - 2026-08-22
+
+**B1 CONFIRMED as the #304 residue, read from the code rather than inferred.** `spreadMoveHit` runs
+once per hit and `randomizer` runs inside each pass; we spent **one** index and split the total
+**greedily**. Why #304 missed it: `tests/test-damage-roll-support.js` **declared multi-hit out of scope
+and asserts no fixture row is multi-hit.** Twin Beam emitted a per-arrival 26 the authority cannot
+produce and never its 25 or 27, while **all sixteen TOTALS agreed before and after** - which is why
+nothing caught it and why both pinned corners are blind. Over-fire by trace delta: 23 games, 19
+byte-identical, 4 parted-before/agree-now, 0 moved where they must not.
+
+**B4 - the distribution was right and REST was not, and it flips a board.** Champions samples [2,3,3]
+at application; Champions does NOT override rest, so mainline's statusState.time = 3 overwrites it. Our
+coin sat at the *wake* site, so there was nothing to overwrite: **a Rested body got up a turn early one
+time in three**, at full HP, with its move. tags.json carried healDescriptor.setsStatus {slp, turns:3}
+**with no reader** - the same shape as Life Orb's recoil-as-prose.
+
+**B2 RETRACTED as an engine defect.** Moving the draw to the dmg stream made the divergence smaller,
+not zero. getConfusionDamage calls randomizer() **directly**, never getDamage, so the authority's
+category is `any` - which we already used. Reverted; addresses match exactly and the values still
+differ. **The residual is the instrument**: game_differential.js inverts random(16) only for
+MID_CAT === 'dmg'. Not patched; other divisions are reading that file.
+
+**B3 DID NOT REPRODUCE.** The secondary is already per-target. What is not per target is the **accuracy
+roll** - one |-miss| for a whole spread - which is #294. B3 does not subsume B4.
+
+**THE FORMES: rows CONFIRMED, the Morpeko link REFUTED.** Five formes added by brace-matched splice,
+not regeneration: rows lost 0, changed 0, added 5, zero keys normalising alike either side. Against a
+control release with the rows excised, **only mimikyu-busted is actually read**; the other four close
+the hasRow gate. merge_mega_into_engine.js skipped all five on a base-stats-only predicate while its
+comment claims it checks *"stats and types"*, and Castform differs in TYPE. **But the card is not a
+switch-order divergence:** medicham2 emits **no line** for that slot, which is why its class is
+`event missing`. Speed, comparePriority and switchin_order.js are irrelevant to it.
+
+### THE LINE ENDING, WHICH IS THE ONE EVERYONE SHOULD READ
+
+`core.autocrlf` is **true** here, so git rewrites the working tree to CRLF on a checkout, a stash pop
+or a checkout of a single file. The surgical-revert anchors in test-resolution-order.js are JS template
+literals carrying **LF**. **A multi-line anchor therefore matches ZERO times against the very file it
+was written from, and every anchor-based red proof in the repo is disarmed at once** - the mechanism
+that makes these fixes provable rather than asserted.
+
+It failed **loudly** only because that file makes a zero-match a hard error. A looser plant would have
+reverted nothing and shown a green arm proving nothing. Fixed by normalising both sides in the matcher;
+**loosening the exactly-once rule would have been the wrong fix and is recorded as such.**
+
+**And two red gates I reported were my own quoting bug, not the tests.** A backslash before the loop
+variable escaped the dollar, so node was handed a literal filename with an unexpanded variable in it.
+Every exit=1 from a loop was that. Verified afterwards one at a time: eight gates, all exit 0.

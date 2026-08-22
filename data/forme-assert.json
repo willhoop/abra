@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-22T01:54:58.937Z",
+ "generated": "2026-08-22T06:22:12.056Z",
  "by": "tests/test-forme-assert.js",
- "what": "the forme absolute-assertion mode — three assertions against the authority, no control arm",
+ "what": "the forme absolute-assertion mode — four assertions against the authority, no control arm",
  "refuses_copy": [
   "disguise",
   "battlebond",
@@ -98,7 +98,8 @@
    ]
   }
  ],
- "uncoverable_for_want_of_an_engine_data_row": 5,
+ "uncoverable_for_want_of_an_engine_data_row": 0,
+ "known_open_rows": 1,
  "rows": [
   {
    "id": "stancechange",
@@ -107,7 +108,8 @@
    "assertions": {
     "A1": [],
     "A2": [],
-    "A3": []
+    "A3": [],
+    "A4": []
    },
    "observed": {
     "neutral": {
@@ -142,8 +144,17 @@
      "sd": 72,
      "sp": 112
     },
-    "nature": "Adamant"
+    "nature": "Adamant",
+    "types": [
+     "steel",
+     "ghost"
+    ],
+    "types_authority": [
+     "steel",
+     "ghost"
+    ]
    },
+   "known_open": {},
    "verdict": "AGREES"
   },
   {
@@ -153,7 +164,8 @@
    "assertions": {
     "A1": [],
     "A2": [],
-    "A3": []
+    "A3": [],
+    "A4": []
    },
    "observed": {
     "neutral": {
@@ -188,8 +200,15 @@
      "sd": 109,
      "sp": 152
     },
-    "nature": "Adamant"
+    "nature": "Adamant",
+    "types": [
+     "water"
+    ],
+    "types_authority": [
+     "water"
+    ]
    },
+   "known_open": {},
    "verdict": "AGREES"
   },
   {
@@ -199,7 +218,8 @@
    "assertions": {
     "A1": [],
     "A2": [],
-    "A3": []
+    "A3": [],
+    "A4": []
    },
    "observed": {
     "neutral": {
@@ -234,9 +254,196 @@
      "sd": 127,
      "sp": 90
     },
-    "nature": "Jolly"
+    "nature": "Jolly",
+    "types": [
+     "grass",
+     "ice"
+    ],
+    "types_authority": [
+     "grass",
+     "ice"
+    ]
    },
+   "known_open": {},
    "verdict": "AGREES"
+  },
+  {
+   "id": "disguise",
+   "ability": "Disguise",
+   "trigger": "MID-BATTLE — the first damaging hit taken",
+   "assertions": {
+    "A1": [],
+    "A2": [],
+    "A3": [],
+    "A4": []
+   },
+   "observed": {
+    "neutral": {
+     "hp": 130,
+     "at": 142,
+     "df": 100,
+     "sa": 70,
+     "sd": 127,
+     "sp": 148
+    },
+    "neutral_authority": {
+     "hp": 130,
+     "at": 142,
+     "df": 100,
+     "sa": 70,
+     "sd": 127,
+     "sp": 148
+    },
+    "natured": {
+     "hp": 130,
+     "at": 156,
+     "df": 100,
+     "sa": 63,
+     "sd": 127,
+     "sp": 148
+    },
+    "natured_authority": {
+     "hp": 130,
+     "at": 156,
+     "df": 100,
+     "sa": 63,
+     "sd": 127,
+     "sp": 148
+    },
+    "nature": "Adamant",
+    "types": [
+     "ghost",
+     "fairy"
+    ],
+    "types_authority": [
+     "ghost",
+     "fairy"
+    ]
+   },
+   "known_open": {},
+   "verdict": "AGREES"
+  },
+  {
+   "id": "hungerswitch",
+   "ability": "Hunger Switch",
+   "trigger": "RESIDUAL — every turn, both ways",
+   "assertions": {
+    "A1": [],
+    "A2": [],
+    "A3": [],
+    "A4": []
+   },
+   "observed": {
+    "neutral": {
+     "hp": 133,
+     "at": 147,
+     "df": 78,
+     "sa": 90,
+     "sd": 80,
+     "sp": 149
+    },
+    "neutral_authority": {
+     "hp": 133,
+     "at": 147,
+     "df": 78,
+     "sa": 90,
+     "sd": 80,
+     "sp": 149
+    },
+    "natured": {
+     "hp": 133,
+     "at": 147,
+     "df": 78,
+     "sa": 81,
+     "sd": 80,
+     "sp": 163
+    },
+    "natured_authority": {
+     "hp": 133,
+     "at": 147,
+     "df": 78,
+     "sa": 81,
+     "sd": 80,
+     "sp": 163
+    },
+    "nature": "Jolly",
+    "types": [
+     "electric",
+     "dark"
+    ],
+    "types_authority": [
+     "electric",
+     "dark"
+    ]
+   },
+   "known_open": {},
+   "verdict": "AGREES"
+  },
+  {
+   "id": "forecast",
+   "ability": "Forecast",
+   "trigger": "THE SKY — a foe's Drought, from turn zero",
+   "assertions": {
+    "A1": [],
+    "A2": [],
+    "A3": [],
+    "A4": []
+   },
+   "observed": {
+    "neutral": {
+     "hp": 145,
+     "at": 122,
+     "df": 90,
+     "sa": 90,
+     "sd": 92,
+     "sp": 122
+    },
+    "neutral_authority": {
+     "hp": 145,
+     "at": 122,
+     "df": 90,
+     "sa": 90,
+     "sd": 92,
+     "sp": 122
+    },
+    "natured": {
+     "hp": 145,
+     "at": 109,
+     "df": 90,
+     "sa": 99,
+     "sd": 92,
+     "sp": 122
+    },
+    "natured_authority": {
+     "hp": 145,
+     "at": 109,
+     "df": 90,
+     "sa": 99,
+     "sd": 92,
+     "sp": 122
+    },
+    "nature": "Modest",
+    "types": [
+     "fire"
+    ],
+    "types_authority": [
+     "fire"
+    ]
+   },
+   "known_open": {
+    "A1": {
+     "measured": [
+      "active slot: ours castform, authority castformsunny",
+      "party row: the authority carries castformsunny on its bench list"
+     ],
+     "owed": "medicham2-browser.js syncWeatherFormes models Forecast as a RETYPE and leaves the species label alone (counted as formeWeatherNameUnchanged). The three castform-* rows now exist, so the retype can become a formeSwap — engine change, not a data change.",
+     "observed": [
+      "active slot: ours castform, authority castformsunny",
+      "party row: the authority carries castformsunny on its bench list [castformsunny corviknight garchomp milotic] and ours does not [castform corviknight garchomp milotic]"
+     ]
+    }
+   },
+   "verdict": "KNOWN-OPEN"
   }
  ],
  "reds_run": false,

@@ -97,6 +97,19 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * zero on a run containing any damaging move means the band never reached the battle loop and the
    * old draw is silently back. Its partner is MEDFAILS.damageBandMissing. */
   damageBandSelected: 0,
+  /* ROADMAP #322 -- THE NOUN IS AN ARRIVAL, NOT A DRAW AND NOT A VOLLEY.
+   *
+   * How many individual ARRIVALS of a multi-hit volley read their damage off THEIR OWN sixteen-entry
+   * band at THEIR OWN drawn index. `sim/battle-actions.ts:947` runs `spreadMoveHit` -- and therefore
+   * `randomizer` -- once per hit, so an N-hit volley must address N arrivals.
+   *
+   * A COUNT OF DRAWS WOULD NOT SEE THE DEFECT. The broken loop drew once and split the number
+   * greedily across the packets; a loop that drew N times and still split one of them would raise a
+   * draw counter and stay wrong. What has to be true is that each ARRIVAL was addressed, so the
+   * arrival is what is counted. Zero on a run containing any multi-hit move means the per-arrival
+   * band never reached the loop and the shared index is silently back. Its partner is
+   * MEDFAILS.packetBandMissing. */
+  perArrivalDamageIndex: 0,
   /* ROADMAP #289 -- a CLAMPED stat change announced with magnitude 0, the line Showdown writes and
    * this engine could not. Zero on a run containing an Intimidate into a -6 body means the emitter
    * is unwired again. */
@@ -781,6 +794,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * capability counters: a zero after games with a Salazzle, a Glimmora, a Kangaskhan or a Houndoom
    * on the field is the finding. */
   statusImmunityIgnoredByAbility: 0, sleepTickAccelerated: 0,
+  /* ROADMAP #323 -- THREE NOUNS, AND THEY ARE THREE DIFFERENT EVENTS. See SLEEP_START_TIMES.
+   *
+   *   sleepDurationDrawn        SLEEPS whose length was sampled AT APPLICATION, which is where the
+   *                             authority samples it (`slp.onStart`). Not turns, not bodies, not
+   *                             wake-ups: one per sleep that STARTED while this engine was watching.
+   *                             Zero on a run containing a landed sleep means the draw moved back to
+   *                             the wake site and the distribution is being flipped a turn too late.
+   *   sleepDurationFixedByMove  SLEEPS whose sampled length was then OVERWRITTEN by the move's own
+   *                             `healDescriptor.setsStatus.turns` — Rest, and only Rest today. This
+   *                             is the counter that can see the defect: a natural sleep and a Rest
+   *                             both raise `sleepDurationDrawn`, and only the override tells them
+   *                             apart. Zero on a run containing a successful Rest means the tag's
+   *                             `turns: 3` is unread again and a Rested body can wake early.
+   *   sleepDurationDrawnLate    SLEEPS this engine met ALREADY IN PROGRESS — a body seeded asleep,
+   *                             whose duration was never sampled here. A legitimate third state,
+   *                             counted apart so it cannot be mistaken for either of the two above. */
+  sleepDurationDrawn: 0, sleepDurationFixedByMove: 0, sleepDurationDrawnLate: 0,
   /* ROADMAP #175 -- `suppressesOwnItem`. Klutz, which had no consumer, so a Lopunny, an Audino or a
    * Golurk was priced with a Leftovers, a Life Orb or a Focus Sash that does nothing. Counted per
    * SYNC rather than per suppression event, so it ticks every turn a carrier is on the field. */
@@ -1236,6 +1266,20 @@ const MEDFAILS = { encoreAction: 0,
    * purpose. Counted apart from `damageBandMissing` so a deliberate restore arm and a broken engine
    * can never be read as the same thing. */
   damageSpanDrawRestored: 0,
+  /* ROADMAP #322 -- an ARRIVAL of a multi-hit volley that carried no sixteen-entry band, so the loop
+   * fell back to spending one shared index greedily across the packets. Never expected: both paths
+   * through dmgRange attach a band to every packet they hand back. Non-zero means a third path was
+   * added that does not, and the fallback is a perfectly plausible total with wrong arrivals -- the
+   * exact shape that hid this defect for as long as it existed. */
+  packetBandMissing: 0, packetBandMissingFirst: '',
+  /* ROADMAP #322 -- set to 1 for the whole run when MEDI_MULTIHIT_ONE_INDEX=1 puts the shared-index
+   * split back on purpose, so a deliberate restore arm and a broken engine can never be read as the
+   * same thing. Same shape as damageSpanDrawRestored. */
+  multiHitOneIndexRestored: 0,
+  /* ROADMAP #323 -- set to 1 for the whole run when MEDI_SLEEP_WAKE_COIN=1 puts the wake-site coin
+   * back on purpose, so a deliberate restore arm and a broken engine can never be read as the same
+   * thing. Same shape as damageSpanDrawRestored and multiHitOneIndexRestored. */
+  sleepWakeCoinRestored: 0,
   /* ROADMAP #289 -- a stat change that landed ZERO stages and whose call site has not yet had its
    * authority branch read, so no line was written. Showdown writes one whenever the change was
    * CLAMPED at a cap and the effect is not an ability-without-secondary or a move secondary/self
@@ -7898,11 +7942,21 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * a far smaller error than the full 120 it replaces. */
   if(formeOnHitAbsorbs(def)){
     if(hit&&Array.isArray(hit.rolls)){hit.rolls.length=0;for(let i=0;i<16;i++)hit.rolls.push(0);}
+    if(hit&&Array.isArray(hit.rollsUnit)){hit.rollsUnit.length=0;for(let i=0;i<16;i++)hit.rollsUnit.push(0);}
     return {min:0,max:0,eff};
   }
   if(hit&&Array.isArray(hit.rolls)){
     hit.rolls.length=0;
-    for(let i=0;i<16;i++){const v=roll(100-i);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);}
+    /* ROADMAP #322 -- `rollsUnit` IS THE BAND OF ONE ARRIVAL, AND `rolls` IS THE BAND OF THE VOLLEY.
+     * They differ only by the `*_hits` on the line below, and separating them is the whole of the
+     * flat path's half of this wire: the battle loop needs a sixteen-entry band PER ARRIVAL, because
+     * the authority draws `randomizer` inside `spreadMoveHit` and `spreadMoveHit` runs once per hit
+     * (sim/battle-actions.ts:947). Summing `rollsUnit[i]` n times reproduces `rolls[i]` exactly --
+     * `roll()` returns an integer, so `floor(v*n)` IS `v*n` -- which is why a pinned corner arm sees
+     * no change at all and why the TOTAL was right while every arrival was wrong. */
+    const _unit=(hit&&Array.isArray(hit.rollsUnit))?hit.rollsUnit:null;
+    if(_unit)_unit.length=0;
+    for(let i=0;i<16;i++){const v=roll(100-i);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}
   }
   if(_hits>1)return {min:Math.floor(roll(85)*_hits),max:Math.floor(roll(100)*_hits),eff};
   return {min:roll(85),max:roll(100),eff};
@@ -7984,6 +8038,20 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
  * silent default this repo keeps paying for. Same shape as MEDI_RESIDUAL_COLLAPSE. */
 const DAMAGE_ROLL_SIDES=16;
 const DAMAGE_SPAN_DRAW_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DAMAGE_SPAN_DRAW==='1');
+/* ROADMAP #322 -- THE MULTI-HIT RESIDUE OF #304, AND ITS OWN RESTORE FLAG.
+ *
+ * #304 converted the SINGLE-HIT path and its own probe declares multi-hit out of scope. The volley
+ * kept drawing ONE index across the summed range and spending it greedily -- first arrival to
+ * saturation, remainder to the second -- which is arithmetically impossible in the authority for a
+ * constant-base move: `randomizer` runs inside `spreadMoveHit` (sim/battle-actions.ts:947) and
+ * `spreadMoveHit` runs once per hit, so one base and one index give one number twice. Twin Beam read
+ * 60/50 here against 55/55 there.
+ *
+ * `MEDI_MULTIHIT_ONE_INDEX=1` puts the shared-index split back at runtime, so the defect is reachable
+ * for a paired measurement without swapping a file, and any run carrying it also carries a non-zero
+ * `MEDFAILS.multiHitOneIndexRestored`. Same shape as MEDI_DAMAGE_SPAN_DRAW and MEDI_RESIDUAL_COLLAPSE:
+ * a switch that silently makes the engine wrong is the silent default this repo keeps paying for. */
+const MULTIHIT_ONE_INDEX_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_MULTIHIT_ONE_INDEX==='1');
 function damageRollIndex(u){
   const i=DAMAGE_ROLL_SIDES-1-Math.floor(u*DAMAGE_ROLL_SIDES);
   return i<0?0:(i>DAMAGE_ROLL_SIDES-1?DAMAGE_ROLL_SIDES-1:i);
@@ -7996,12 +8064,22 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
     hit.hitcountable=!!(_plan.alliesPlan||_plan.bondPlan||(mv&&mv.id&&TAGS.has('move',mv.id,'multiHit')));
   }
   if(!_plan.perHitPower){
+    /* ROADMAP #322 -- ASK FOR THE ONE-ARRIVAL BAND TOO, and only when the caller wants packets. A
+     * price (winProb2, board.js, every rollout leaf) passes no `packets` field and therefore pays
+     * nothing for this. */
+    if(hit&&hit.wantPackets&&!Array.isArray(hit.rollsUnit)&&Array.isArray(hit.rolls))hit.rollsUnit=[];
     const _flat=dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,1,_plan.total);
     if(hit&&hit.wantPackets){
       const _n=Math.round(_plan.total);
       if(_n>1&&Math.abs(_plan.total-_n)<1e-9&&_flat.max>0&&_flat.min%_n===0&&_flat.max%_n===0){
         hit.packets=[];
-        for(let i=0;i<_n;i++)hit.packets.push({min:_flat.min/_n,max:_flat.max/_n});
+        /* EVERY ARRIVAL OF A FLAT VOLLEY SHARES ONE BASE, so they share one band -- that is exactly
+         * the fact that makes Twin Beam's 60/50 arithmetically impossible in the authority. Each
+         * packet gets its OWN COPY rather than a shared reference, because the crit re-price refills
+         * `rollsUnit` in place and a shared array would be rewritten under the packets that had
+         * already read it. */
+        const _ub=(Array.isArray(hit.rollsUnit)&&hit.rollsUnit.length===DAMAGE_ROLL_SIDES)?hit.rollsUnit:null;
+        for(let i=0;i<_n;i++)hit.packets.push({min:_flat.min/_n,max:_flat.max/_n,band:_ub?_ub.slice():null});
       }
     }
     return _flat;
@@ -8016,7 +8094,7 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
     /* A FRESH `rolls` PER HIT so the sixteen-roll out-parameter can be accumulated rather than
      * overwritten; every other field on the hit context (Helping Hand, Friend Guard, the drawn
      * conditional power) is carried through untouched. */
-    const _sub=_wantRolls?Object.assign({},hit,{rolls:[]}):hit;
+    const _sub=_wantRolls?Object.assign({},hit,{rolls:[],rollsUnit:null}):hit;
     /* ROADMAP #139 -- A TENTH ARGUMENT, AND IT IS DELIBERATELY NOT `hitsOverride`. That one is a
      * COUNT (`+hitsOverride > 0 ? ... : 1`) and Parental Bond's quarter is a MODIFIER on one packet;
      * smuggling an object through a numeric parameter would have worked by accident of coercion and
@@ -8034,7 +8112,12 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
      * unweighted packets are real arrivals: a `w` below 1 is a PROBABILITY of the hit happening at all
      * (the price path's `hitWeightsOf`), and a fractional packet is not something a turn can deal. */
     if(hit&&Array.isArray(hit.packets)){
-      if(_w===1)hit.packets.push({min:_r.min,max:_r.max});
+      /* ROADMAP #322 -- THE PER-HIT LOOP'S ARRIVAL BAND IS `_sub.rolls` ITSELF. This sub-call passes
+       * `hitsOverride = 1`, so `dmgRangeOneHit` writes the UNMULTIPLIED sixteen values -- Triple
+       * Axel's third hit has its own base and therefore its own band, which is the difference
+       * between this path and the flat one. */
+      if(_w===1)hit.packets.push({min:_r.min,max:_r.max,
+        band:(_wantRolls&&_sub.rolls.length===DAMAGE_ROLL_SIDES)?_sub.rolls.slice():null});
       else hit.packets=null;
     }
     _eff=_r.eff;_mn+=_w*_r.min;_mx+=_w*_r.max;
@@ -8223,6 +8306,61 @@ const recoilOf=mv=>(mv&&mv.rc)?mv.rc[0]/mv.rc[1]:0;
  * so a mid-game click sees ~5 more. */
 const EXPOSURE_HORIZON=5;
 const SLEEP_TURNS_LOST=1+2/3, FREEZE_TURNS_LOST=0.75+0.75*0.75, FULL_PARA=0.125;
+/* ==== ROADMAP #323 -- HOW LONG A SLEEP LASTS IS DECIDED WHEN IT LANDS, NOT WHEN IT ENDS ==========
+ *
+ * CHAMPIONS OVERRIDES `slp` (data/mods/champions/conditions.ts:11-29) and its `onStart` reads
+ *
+ *     // 1/3 chance for a Pokemon to wake up on turn 2
+ *     this.effectState.startTime = this.sample([2, 3, 3]);
+ *     this.effectState.time = this.effectState.startTime;
+ *
+ * where MAINLINE uses `this.random(2, 5)` -> {2,3,4}. Reading data/conditions.ts here is the
+ * documented way to be wrong. `Battle#sample` is `items[this.random(items.length)]`, so this is ONE
+ * draw of `random(3)` and the table is indexed by it -- which is why the table is written out below
+ * rather than collapsed into "1/3 chance": index 0 is 2 and indices 1 and 2 are 3, and a pinned die
+ * has to land on the same entry the authority's does.
+ *
+ * THIS ENGINE'S DISTRIBUTION WAS ALREADY RIGHT AND ITS DRAW SITE WAS NOT. The wake check was
+ * `slpTurns >= 3 || (slpTurns === 2 && rng() < 1/3)` -- a coin flipped at the SECOND sleeping turn.
+ * Over a population that is the same 5/3 expected turns lost, which is why every rate check passed.
+ *
+ * IT IS NOT THE SAME THING FOR **REST**, AND THAT IS BOARD-MATERIAL. Champions does NOT override
+ * `rest` (no `rest:` key in data/mods/champions/moves.ts), so mainline's own `onHit` applies:
+ *
+ *     const result = target.setStatus('slp', source, move);   // slp.onStart samples 2/3/3 ...
+ *     target.statusState.time = 3;                            // ... and this OVERWRITES it
+ *     target.statusState.startTime = 3;
+ *
+ * A Rest sleeps for exactly TWO missed turns and can never wake early. With the coin at the wake
+ * site there was nothing for that override to write onto, so a Rested body got up a turn early one
+ * time in three -- at full HP, with its move. Staged at the `bottom-tie-first` corner, where the coin
+ * is pinned true, and the two streams part on exactly that line:
+ *
+ *     me  |-curestatus|p2a: Snorlax|slp|[msg]
+ *     sd  |cant|p2a: Snorlax|slp
+ *
+ * The `turns: 3` was ALREADY IN THE ARTIFACT -- data/tags.json gives rest
+ * `healDescriptor.setsStatus {status:'slp', turns:3}` -- and nothing read it. Same shape as the Life
+ * Orb recoil stored as prose: a derived fact with no consumer.
+ *
+ * THE TABLE IS THE AUTHORITY'S, NOT A PROBABILITY. `medRng()` is the generic stream; the sleep timer
+ * is one of the draws ROADMAP #222 deliberately did NOT split out, and the authority calls it from
+ * `slp.onStart`, which is none of `hitStepAccuracy`/`secondaries`/`getDamage` and is therefore `any`
+ * on its side too. */
+const SLEEP_START_TIMES=[2,3,3];
+/* THE RESTORE FLAG, AND IT STAMPS A FAILURE COUNTER. `MEDI_SLEEP_WAKE_COIN=1` puts the wake-site coin
+ * back -- no draw at application, `slpTurns >= 3 || (slpTurns === 2 && rng() < 1/3)` at the end, and
+ * no Rest override -- so the defect is reachable at runtime for a paired measurement without swapping
+ * a file. Any run carrying it also carries a non-zero `MEDFAILS.sleepWakeCoinRestored`, because a
+ * switch that silently makes the engine wrong is the silent default this repo keeps paying for. Same
+ * shape as MEDI_DAMAGE_SPAN_DRAW, MEDI_MULTIHIT_ONE_INDEX and MEDI_RESIDUAL_COLLAPSE. */
+const SLEEP_WAKE_COIN_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SLEEP_WAKE_COIN==='1');
+function sleepDurationDraw(){
+  const r=medRng();
+  const u=(typeof r==='function')?r():0.5;
+  const i=Math.floor(u*SLEEP_START_TIMES.length);
+  return SLEEP_START_TIMES[i<0?0:(i>SLEEP_START_TIMES.length-1?SLEEP_START_TIMES.length-1:i)];
+}
 function physicalShare(att){
   let p=0,n=0;
   for(const id of (att.moves||[])){const mv=MC.moves[id];if(!mv||!mv.bp)continue;n++;if(mv.c==='P')p++;}
@@ -10891,7 +11029,10 @@ function applyStatus(t,st,src,eff,why){
      _ignTypeImm=true;MEDSEEN.statusImmunityIgnoredByAbility++;}}
   if(!canTakeStatus(t,st,_ignTypeImm,src,why))return false;t.status=st;
   if(TR){const _a=ATTR.status(st,eff);TR.sta(t,st,_a.from,_a.of);}
-  if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;
+  if(st==='slp'){t.slpTurns=0;
+    if(SLEEP_WAKE_COIN_RESTORED){MEDFAILS.sleepWakeCoinRestored=1;t.slpTime=0;}
+    else{t.slpTime=sleepDurationDraw();MEDSEEN.sleepDurationDrawn++;}}
+  if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;
   /* ROADMAP #175 -- SYNCHRONIZE, and it is `onAfterSetStatus` so it belongs at the BOTTOM of this
    * function rather than at any one call site. data/abilities.ts:4849-4858, no Champions override:
    *
@@ -11557,10 +11698,43 @@ function confusionSelfDamage(m,rng){
    * not is an `onModifyAtk` ability (a burned Guts body hits itself harder); declared rather than
    * modelled, and it needs a burn and a Guts body and a confusion at once. */
   const base=Math.floor(Math.floor(22*CONFUSION_SELF_HIT_BP*A/D)/50)+2;
-  /* THE SAME ROLL IDIOM THE ATTACK PATH USES, so the two cannot pin differently: 16 sides, the top
-   * corner is the maximum roll and the bottom corner is 85%. */
-  const r=Math.min(15,Math.floor(rng()*16));
-  return Math.max(1,Math.floor(base*(85+r)/100));
+  /* ==== THE ROLL, WRITTEN THROUGH THE ONE OWNER OF THE SIXTEEN-INDEX CONVENTION ==================
+   *
+   * `damageRollIndex(u)` returns index i and the percentage is `100 - i`, which is character for
+   * character the `85 + floor(u*16)` this line used to spell out -- identical output, one
+   * implementation. That is the FACTS-ARE-GLOBAL rule; a second copy of the expression is how two
+   * readers eventually disagree.
+   *
+   * ==== AND THE DIE IS THE GENERIC ONE, DELIBERATELY. THIS WAS CHANGED AND CHANGED BACK. ==========
+   *
+   * The 2026-08-22 card review filed this as "the confusion self-hit draws a different roll", with
+   * 108 -> 75 on the authority against 108 -> 78 here (33 vs 30, and 30/33 = 0.909, inside the
+   * 85-100% band -- a different INDEX, not a different multiplier). The obvious reading is that this
+   * belongs on the `dmg` stream, because it IS a damage roll. IT WAS MOVED THERE AND THE DIVERGENCE
+   * GOT SMALLER RATHER THAN GOING AWAY (30 -> 33 against 34), which is the shape of a wrong fix.
+   *
+   * THE ADDRESSES SAY WHY, AND THEY WERE DUMPED RATHER THAN REASONED ABOUT. Confuse Ray into a
+   * Snorlax that then clicks Amnesia, middle arm, via game_differential.js's `midAddresses()`:
+   *
+   *     SD   |1|acc|confuseray|p20|0   |1|any|confuseray|p20|0   |1|any|amnesia|p20|0   |1|any|amnesia|p20|1
+   *     ME   |1|acc|confuseray|p20|0   (no counterpart)          |1|any|amnesia|p20|0   |1|dmg|amnesia|p20|0
+   *
+   * `getConfusionDamage` does NOT call `getDamage`. It calls `this.battle.randomizer(damage)` DIRECTLY
+   * (sim/battle-actions.ts:1859), so the instrument's method wrapper never fires and the authority's
+   * draw is category `any` -- which is what this engine was already using. The generic stream is the
+   * matching address; the `dmg` stream is not.
+   *
+   * WHAT REMAINS IS AN INSTRUMENT GAP, NOT AN ENGINE ONE, and it is left alone here on purpose.
+   * `game_differential.js` inverts `random(16)` only when `MID_CAT === 'dmg'` -- its own comment says
+   * `random(16)` "is a damage roll or a 1-in-16 chance with no way to know which" -- so this one
+   * damage roll is read UN-inverted against an engine whose damage is increasing in u. Both PINNED
+   * CORNERS agree (a corner arm answers `random(16)` with its `damageIndex` whatever the category
+   * says), so this engine's direction is the right one and inverting it here would BREAK them.
+   *
+   * THE MISSING DRAW IN THAT DUMP IS OURS AND IS A SEPARATE, REAL GAP: the authority spends
+   * `any|confuseray|p20|0` inside `confusion.onStart` (`this.effectState.time = this.random(2, 6)`)
+   * and this engine takes the duration from the tag as a constant, so it never draws at all. */
+  return Math.max(1,Math.floor(base*(100-damageRollIndex(rng()))/100));
 }
 function confusionBeforeMove(m,rng){
   if(!m||!m._vol||!(m._vol.confusion>0))return false;
@@ -12933,7 +13107,7 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry){
        * calls `target.clearStatus()`, which is `setStatus('')` and emits NOTHING -- the staged game
        * above shows a paralysed Garchomp arriving, ending with no status, and NO `-curestatus` line
        * anywhere. Emitting one here would put a line in the stream the real engine never writes. */
-      if(_rec.cures&&nx.status){nx.status='';nx.slpTurns=0;nx.frzTurns=0;nx.toxTurns=0;
+      if(_rec.cures&&nx.status){nx.status='';nx.slpTurns=0;nx.slpTime=0;nx.frzTurns=0;nx.toxTurns=0;
         MEDSEEN.healDescriptorStatus++;}
       nx.curHP=_rec.full?nx.st.hp:Math.min(nx.st.hp,nx.curHP+(_rec.hp||0));
       delete _sc[i];
@@ -13325,7 +13499,7 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
         * :2874). The `[silent]` field is the authority's own and is reproduced rather than dropped;
         * the doubles disambiguation above it (`onCheckShow`) resolves to showCure = true whenever the
         * cured body is the only statused one on its side, which is every case this engine can stage. */
-       if(out.status){const _s0=out.status;out.status='';out.frzTurns=0;out.slpTurns=0;out._toxN=0;
+       if(out.status){const _s0=out.status;out.status='';out.frzTurns=0;out.slpTurns=0;out.slpTime=0;out._toxN=0;
          MEDSEEN.switchOutCure++;
          if(TR)TR.cure(out,_s0,'[from] ability: '+out.ability,'[silent]');}
      } else if(_sot.does==='forme'){
@@ -15347,7 +15521,18 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _est=TAGS.param('ability',m.ability,'nameImplementedBySim');
         const _tick=(_est&&_est.extraStatusTicks&&+_est.extraStatusTicks.slp)||0;
         if(_tick)MEDSEEN.sleepTickAccelerated++;
-        if(m.slpTurns>=3-_tick||(m.slpTurns===2-_tick&&rng()<1/3)){m.status='';if(TR)TR.cure(m,'slp',ATTR.cured(false).from);}
+        /* ROADMAP #323 -- THE DURATION WAS DECIDED WHEN THE SLEEP LANDED. See SLEEP_START_TIMES.
+         * `slpTime` is the authority's `statusState.startTime`, and Rest overwrites it to 3.
+         *
+         * A BODY THAT ARRIVED ALREADY ASLEEP HAS NO STORED DURATION, and that is a legitimate third
+         * state rather than a defect: a rollout can be seeded from a live battle in which the sleep
+         * started before we were looking. It draws one here and is COUNTED APART, so "the wire is not
+         * running" and "this body's sleep began off-camera" can never be read as the same thing. */
+        if(!SLEEP_WAKE_COIN_RESTORED&&!(+m.slpTime>0)){m.slpTime=sleepDurationDraw();MEDSEEN.sleepDurationDrawnLate++;}
+        const _wake=SLEEP_WAKE_COIN_RESTORED
+          ? (m.slpTurns>=3-_tick||(m.slpTurns===2-_tick&&rng()<1/3))   // the restore arm's coin
+          : (m.slpTurns>=(+m.slpTime)-_tick);
+        if(_wake){m.status='';if(TR)TR.cure(m,'slp',ATTR.cured(false).from);}
         else {
           if(TR)TR.cant(m,'slp');
           /* ROADMAP #308 -- THE `cant` LINE IS NOT THE END OF THE TURN FOR TWO MOVES.
@@ -18524,8 +18709,19 @@ function battleTurn(S,rng,actsForA,actsForB){
             const _prev=_t.status; _t.status='';
             if(!applyStatus(_t,_hd.setsStatus.status,m,ATTR.move(a.mv))){_t.status=_prev;mvFail(m);continue;}
             MEDSEEN.healDescriptorStatus++;
+            /* ROADMAP #323 -- AND THE DESCRIPTOR'S `turns` OVERWRITES THE SAMPLED DURATION, which is
+             * mainline `rest.onHit` line for line: `setStatus('slp', ...)` runs the condition's own
+             * `onStart` (which samples 2/3/3 in Champions) and the two lines after it assign
+             * `statusState.time = 3` and `startTime = 3` unconditionally. The number is the TAG's --
+             * `healDescriptor.setsStatus.turns` has been in data/tags.json all along with no reader --
+             * so a move the format gives a different fixed duration needs no edit here.
+             * Read as a SHAPE: a descriptor with no `turns` leaves the draw alone, which is every
+             * other member of this family. */
+            if(+_hd.setsStatus.turns>0&&_hd.setsStatus.status==='slp'&&!SLEEP_WAKE_COIN_RESTORED){
+              _t.slpTime=+_hd.setsStatus.turns;MEDSEEN.sleepDurationFixedByMove++;
+            }
           } else if(_hd.curesStatus&&_t.status){
-            const _s0=_t.status;_t.status='';_t.slpTurns=0;_t.frzTurns=0;_t.toxTurns=0;
+            const _s0=_t.status;_t.status='';_t.slpTurns=0;_t.slpTime=0;_t.frzTurns=0;_t.toxTurns=0;
             MEDSEEN.healDescriptorStatus++;if(TR)TR.cure(_t,_s0,ATTR.cured(false).from);
           }
           _t.curHP=Math.min(_t.st.hp,_t.curHP+_amt);
@@ -20034,6 +20230,11 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(!MEDFAILS.damageBandMissingFirst)MEDFAILS.damageBandMissingFirst=String(a.move.id);
         }
         let _roll,dmg;
+        /* ROADMAP #322 -- WHICH RANGE THE ROLL IS AN OFFSET INTO. It is `d` until the crit branch
+         * re-prices, and `_roll` is read after that branch by three separate blocks. It was `d.min`
+         * in one of them and `_dc.min` in another, which was correct only because the two were used
+         * in disjoint cases; the per-arrival sum below needs the one actually in force. */
+        let _rmin=d.min;
         if(_band){MEDSEEN.damageBandSelected++;dmg=_band[_idx];_roll=dmg-d.min;}
         else{_roll=Math.floor(_u*(d.max-d.min+1));dmg=d.min+_roll;}
         /* WIRE 35 -- THE CRIT ROLL READS A RATE. It was a flat `rng()<1/24` for every move and every
@@ -20068,6 +20269,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             * sixteen is an index into sixteen whatever the range underneath it does. The clamped
             * interpolation stays as the loud fallback's arithmetic and nothing else. */
            const _cb=(_hitCtx.rolls&&_hitCtx.rolls.length===DAMAGE_ROLL_SIDES)?_hitCtx.rolls:null;
+           _rmin=_dc.min;                                       // ROADMAP #322 -- the range now in force
            if(_cb&&_band){dmg=_cb[_idx];_roll=dmg-_dc.min;}
            else dmg=_dc.min+Math.min(_roll,Math.max(0,_dc.max-_dc.min));
          }
@@ -20101,6 +20303,44 @@ function battleTurn(S,rng,actsForA,actsForB){
          const _multiPk=Array.isArray(_hitCtx.packets)&&_hitCtx.packets.length>1;
          R.effShow=damageIsComputed(a.move.id)?d.eff:0;
          if(TR&&!_multiPk){TR.eff(tg,R.effShow);if(R.crit)TR.crit(tg);}}
+        /* ==== ROADMAP #322 -- ONE INDEX PER ARRIVAL, WHICH IS WHAT THE AUTHORITY DRAWS ============
+         *
+         * `hitStepMoveHitLoop` calls `spreadMoveHit` once per hit (sim/battle-actions.ts:947) and
+         * `randomizer` runs inside each pass, so an N-hit volley spends N INDEPENDENT indices. This
+         * loop spent ONE and split the resulting total greedily -- saturate arrival 1, remainder to
+         * arrival 2 -- which cannot be produced by any single base under the authority's scheme.
+         *
+         * IT SITS AFTER THE CRIT BRANCH ON PURPOSE. `_price(true)` refills `_hitCtx.packets`, so the
+         * bands read below are the crit's own when a crit was rolled. The CRIT ITSELF is still one
+         * decision for the whole volley; the authority rolls it per hit too, and that is a separate
+         * defect which this wire deliberately does not touch rather than bundle.
+         *
+         * ARRIVAL 0 SPENDS `_u`, THE DIE ALREADY DRAWN. The extra draws are arrivals 1..N-1, so the
+         * first `dmg` address of a click is unchanged and a single-hit move takes exactly the draws
+         * it always took. Under a pinned corner every arrival reads the same index and the summed
+         * number is byte-identical to the greedy split -- `rollsUnit[i]*n === rolls[i]` -- which is
+         * why both corner arms of the differential are blind to this and only the interior moves. */
+        let _pkArr=null;
+        {
+          const _pks=_hitCtx.packets;
+          const _multi=Array.isArray(_pks)&&_pks.length>1;
+          const _banded=_multi&&_pks.every(p=>p&&Array.isArray(p.band)&&p.band.length===DAMAGE_ROLL_SIDES);
+          if(_multi&&MULTIHIT_ONE_INDEX_RESTORED)MEDFAILS.multiHitOneIndexRestored=1;
+          else if(_multi&&_band&&!_banded){
+            MEDFAILS.packetBandMissing+=_pks.length;
+            if(!MEDFAILS.packetBandMissingFirst)MEDFAILS.packetBandMissingFirst=String(a.move.id);
+          }
+          if(_banded&&_band&&!MULTIHIT_ONE_INDEX_RESTORED){
+            _pkArr=[];
+            for(let i=0;i<_pks.length;i++){
+              const _au=(i===0)?_u:_R.dmg();                    // ROADMAP #222 -- the damage stream, once per arrival
+              _pkArr.push(_pks[i].band[damageRollIndex(_au)]);
+            }
+            MEDSEEN.perArrivalDamageIndex+=_pkArr.length;
+            dmg=_pkArr.reduce((x,y)=>x+y,0);
+            _roll=dmg-_rmin;
+          }
+        }
         /* WIRE 4 -- `modifyDamage` spends this one through `modify` too (battle-actions.ts:1821),
          * and x0.25 is NOT a value where a truncation and a round-half-up agree. */
         /* WIRE 158 -- THE QUARTER IS THE TAG'S `damageMult`, and the pierce PREDICATE gates it. It
@@ -20110,7 +20350,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          * protected body for another reason would be quartered for nothing.
          * `modify(baseDamage, 0.25)` in champions/scripts.ts -- so md4096, not a truncation. */
         if(tg.protect&&!_thruProtect&&_pierceP){
-          dmg=md4096(dmg,+_pierceP.damageMult||0.25);
+          /* ROADMAP #322 -- QUARTERED PER ARRIVAL WHEN THE ARRIVALS ARE REAL. `modify(baseDamage,
+           * 0.25)` sits inside `modifyDamage`, which runs inside `getDamage`, which runs inside
+           * `spreadMoveHit` -- so the authority quarters each hit, not the total. Quartering the sum
+           * and then splitting it would round once instead of N times. */
+          const _q=+_pierceP.damageMult||0.25;
+          if(_pkArr){for(let i=0;i<_pkArr.length;i++)_pkArr[i]=md4096(_pkArr[i],_q);dmg=_pkArr.reduce((x,y)=>x+y,0);}
+          else dmg=md4096(dmg,_q);
           /* AND THE AUTHORITY ANNOUNCES IT, ON THE ATTACKER, AT EXACTLY THIS POINT. From a real
            * champions battle, Golurk-Mega's Draining Kiss into a Protecting Garchomp:
            *     |-supereffective|p2a: B|1
@@ -20128,7 +20374,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          * Triple Axel -- and the same roll INDEX is read off it, so the split cannot exceed the total
          * or drift from it. Absent for every other move, which is what keeps the single-packet family
          * (and the 2-5 family, which this engine prices as one packet) byte-identical. */
-        if(_hitCtx.firstMax!=null){
+        /* ROADMAP #322 -- WHEN THE ARRIVALS ARE REAL, THE FIRST ONE IS NOT AN INTERPOLATION. The
+         * Focus Sash question is "how much arrived FIRST", and with a per-arrival index that is a
+         * number this loop already holds. The old arithmetic below stays for every plan that could
+         * not be split. */
+        if(_pkArr)R.first=_pkArr[0];
+        else if(_hitCtx.firstMax!=null){
           const _fr=Math.min(_roll,Math.max(0,_hitCtx.firstMax-_hitCtx.firstMin));
           R.first=Math.min(dmg,_hitCtx.firstMin+_fr);
         }
@@ -20146,7 +20397,8 @@ function battleTurn(S,rng,actsForA,actsForB){
          * rolls differ between packets while this spends one index across them. That is the same
          * range-versus-sample divergence `dmgRange`'s own header already declares for the summed
          * form, unchanged by making the packets visible. */
-        if(Array.isArray(_hitCtx.packets)&&_hitCtx.packets.length>1){
+        if(_pkArr){R.pk=_pkArr;if(R.first==null)R.first=_pkArr[0];}
+        else if(Array.isArray(_hitCtx.packets)&&_hitCtx.packets.length>1){
           const _pk=_hitCtx.packets.map(p=>p.min);
           let _left=dmg-_pk.reduce((x,y)=>x+y,0);
           for(let i=0;i<_pk.length&&_left>0;i++){
@@ -22518,7 +22770,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * anything asleep -- including its own user's partner. Read off `wakesSleepers`, which tag_dex
          * derives from that handler, so it is a property of the move rather than of its name. */
         if(_lk&&_lk.wakesSleepers)for(const _b of [...actA,...actB]){
-          if(_b&&!_b.fainted&&_b.status==='slp'){_b.status='';_b.slpTurns=0;
+          if(_b&&!_b.fainted&&_b.status==='slp'){_b.status='';_b.slpTurns=0;_b.slpTime=0;
             MEDSEEN.uproarWokeSleeper++; if(TR)TR.cure(_b,'slp',ATTR.cured(false).from);}
         }
       }
@@ -23024,7 +23276,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                  if(!MEDFAILS.cureScopeUnknownFirst)MEDFAILS.cureScopeUnknownFirst=String(_cr.scope);}
            for(const _t of _who){
              if(!_t||_t.fainted||_t.curHP<=0||!_t.status)continue;
-             const _was=_t.status; _t.status=''; _t.toxTurns=0; _t.slpTurns=0; _t.frzTurns=0;
+             const _was=_t.status; _t.status=''; _t.toxTurns=0; _t.slpTurns=0; _t.slpTime=0; _t.frzTurns=0;
              MEDSEEN.statusCuredByResidual++;
              /* ROADMAP #234 -- the ANNOUNCEMENT names the ability and the CURE does not: Healer is
               * `add('-activate', pokemon, 'ability: Healer'); allyActive.cureStatus();`

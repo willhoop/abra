@@ -195,10 +195,25 @@ const BREAKS = {
              'residualUpdatePass(actA,actB,field,_gi);']] },
 };
 
+/* LINE ENDINGS ARE NOT COSMETIC HERE, AND THIS COST A VERIFICATION PASS (2026-08-22).
+ *
+ * `core.autocrlf` is TRUE in this checkout, so git rewrites the working tree to CRLF on a checkout,
+ * a stash pop, or a `git checkout -- <file>`. The anchors below are JS template literals and carry
+ * LF. A multi-line anchor therefore matches ZERO times against the very file it was written from,
+ * and every surgical revert in this file becomes unrunnable at once.
+ *
+ * It surfaced as `PLANT FAILED ... anchor matched 0 times` on two A3 arms whose engine code was
+ * untouched and byte-identical in substance. THE FAILURE IS THE GUARD WORKING -- a plant that
+ * matched nothing would otherwise have "reverted" nothing and shown a green arm proving nothing,
+ * which is the exact shape this repo calls a test that asks nothing. Normalising both sides is the
+ * fix; loosening the exactly-once rule would NOT be. */
+const eol = t => String(t).replace(/\r\n/g, '\n');
+
 function applyBreak(id) {
   const b = BREAKS[id];
-  let src = CLEAN_SRC;
-  for (const [from, to] of b.edits) {
+  let src = eol(CLEAN_SRC);
+  for (const [rawFrom, to] of b.edits) {
+    const from = eol(rawFrom);
     const n = src.split(from).length - 1;
     if (n !== 1) return { err: 'anchor matched ' + n + ' times (must be exactly 1): ' + from.slice(0, 60) };
     src = src.replace(from, to);
