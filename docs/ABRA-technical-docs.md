@@ -1090,9 +1090,18 @@ is asserted.
 An engine release is a copy of every file whose content can change a measured number. A measurement
 reads the copy. Other work on the repository does not change the copy.
 
-Twelve files are in a release: `medicham2-browser.js`, `board.js`, `rollout_leaf.js`,
-`position_features.js`, `tags.js`, `champions_sim.js`, `engine-data.js`, `abra-tags.js`, `tags.json`,
-`policy-weights.json`, `policy-weights-joint.json` and `move-priors.json`.
+The set of frozen files is declared as `SOURCES` in `engine/engine_release.js`. Read it from there.
+
+```bash
+node -e "console.log(require('./engine/engine_release.js').SOURCES.join('\n'))"
+```
+
+**Do not copy that list into this page.** It has grown four times — loader dependencies were added so
+`REL.require` can resolve, lazily-read data files were added so a snapshot can actually play a game,
+and the fitted weights were added because "can anything beat MAG" is a claim about one specific
+vector. This paragraph said **twelve** and named twelve files until 2026-08-22, by which point the
+declaration held more than twice that many. A release that is a valid digest set but not a loadable
+engine is the failure the additions each fixed, and a typed list here cannot track them.
 
 The release identifier is a digest of the file digests. If the files do not change, the identifier does
 not change. A second cut of the same files makes no second copy.
@@ -1106,7 +1115,8 @@ not change. A second cut of the same files makes no second copy.
 node engine/engine_release.js cut "why this release exists"
 ```
 
-3. Read the twelve digests in the output. Confirm the Showdown commit is not `UNKNOWN`.
+3. Read the digests in the output — one per entry in `SOURCES`, and the count is whatever that
+   declaration currently holds. Confirm the Showdown commit is not `UNKNOWN`.
 
 ### Procedure — measure against a release
 

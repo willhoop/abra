@@ -510,7 +510,12 @@ numbers it produces are worth more than they were.
 
 **PORY** also beats a coin flip mid-game, using how many Pokémon each side has left and their health,
 and it's *calibrated* — when it says 70% it's really about 70%. It's live on the site as a per-turn
-"you're at X%".
+"you're at X%". **Read the retraction on slide 4 with this, and not after it:** `data/pory-eval.json`
+ends its own verdict with the sentence *"It does beat a coin … and neither of those is evidence of a
+learned value function."* Beating a coin is not the bar; PORY ties a model that only counts Pokémon
+and health, which is the same two things this paragraph credits it with using. The calibration is
+real and the *learning* is what was withdrawn. (Added 2026-08-22: this slide previously stated the
+win and the calibration with the retraction two slides away, which reads as a result.)
 
 ---
 
@@ -537,11 +542,19 @@ Two things we tested and reported straight, even though they're negatives:
   genuinely weren't working, 1,901 uses. Fixed.
 - **The number we quote for "how often we disagree with the real game" wasn't repeatable.** It
   picked its test matchups at random and never wrote down which ones. Two runs on identical code
-  gave 6 and then 3. It now uses a fixed list, and the honest figure is 4 disagreements in 400.
-- **The part of the bot that judges "am I winning?" is no better than a coin flip.** We had measured
-  this before on 350 games — too few to support the claim either way. On 6,886 games it's decisive:
-  when it says it's 94% to win, it wins 54%; when it says 6%, it also wins 54%. Worse, the version
-  we had been measuring wasn't the one the bot actually uses.
+  gave 6 and then 3. It now uses a fixed list. *(Corrected 2026-08-22: this used to end "and the
+  honest figure is 4 disagreements in 400". That test has been rebuilt twice since — it is far
+  larger, and it now checks the whole spread of a damage roll rather than only its two ends — so the
+  old score is not comparable and is not restated. The current one is printed by
+  `node engine/status.js`.)*
+- **The part of the bot that judges "am I winning?" — the figures are WITHHELD as of 2026-08-22.**
+  This bullet used to give the reliability curve in plain words: what the bot wins when it says it is
+  almost certain, and what it wins when it says it is almost lost. Those come from a measurement made
+  by playing games in our own simulator, and that simulator is currently known to be wrong in ways we
+  are still fixing — so every number that came out of it is set aside until it is re-run, rather than
+  printed with a warning label next to it. Two things in this bullet do *not* depend on the numbers
+  and still stand: the earlier reading rested on far too few games to support any claim either way,
+  and the version being measured was not the one the bot actually uses.
 
 **Added 3.33.0 — we went looking for the same mistake everywhere else, and found it twice more.**
 
@@ -553,16 +566,18 @@ had.
 
 So we checked the other three tests in the same series.
 
-- **"The new search picks a different move 73% of the time" is a headline with its control missing.**
+- **"The new search picks a different move much of the time" is a headline with its control missing.**
   A search that's just guessing disagrees with *everything* — including with itself. So the test
   measures that too: run the same search twice with different dice and see how often it contradicts
   itself. That number is the yardstick, and the test printed it to the screen and never saved it. On
-  an early version the yardstick was *higher* than the headline. We believe the 73% is real, because
-  the yardstick shrinks as you give the search more thinking time and this run had plenty — but
-  believing and having measured are different things, and it's the second one we publish.
-- **"A leaf costs 5.83 milliseconds" was timing something the bot doesn't do.** The measurement
-  quietly used the settings the code falls back to when you don't say, and the bot uses different
-  ones — a randomised playout at triple the length. Not wrong arithmetic; the wrong thing measured.
+  an early version the yardstick was *higher* than the headline. Believing and having measured are
+  different things, and it's the second one we publish. *(The headline percentage is withheld as of
+  2026-08-22 — it came out of the simulator that is currently being fixed. The point of the bullet is
+  the missing yardstick, which does not need it.)*
+- **"A single look-ahead costs N milliseconds" was timing something the bot doesn't do.** The
+  measurement quietly used the settings the code falls back to when you don't say, and the bot uses
+  different ones — a randomised playout at triple the length. Not wrong arithmetic; the wrong thing
+  measured. *(The timing itself is withheld as of 2026-08-22, same reason as the two bullets above.)*
 
 Every one of these tests now writes a small companion file recording exactly what it did: how many
 rollouts, what randomness, what horizon, which version of every file it read, and whether anything was

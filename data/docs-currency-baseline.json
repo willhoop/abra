@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-22T22:43:25.419Z",
+  "generated": "2026-08-22T23:11:53.589Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.73.0",
+  "changelog_top_at_baseline": "5.74.0",
   "version_pins": {
     "docs/ABRA-deck-plain-english.md": {
       "version": "3.98.0",
@@ -215,7 +215,6 @@
       "docs/ABRA-whitepaper.md|19,589|data/quality-filter.json",
       "docs/ABRA-whitepaper.md|236|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|31%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
-      "docs/ABRA-whitepaper.md|31|data/damage-validation.json",
       "docs/ABRA-whitepaper.md|4.54|data/xatu.json,data/policy-eval.json",
       "docs/ABRA-whitepaper.md|47%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|51%|data/slowking-eval.json,data/slowking-playstyle-eval.json",

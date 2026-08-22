@@ -721,10 +721,18 @@ available, and the store grows ~18k/week, so every model below sharpens on its o
 
 The one component that is *not* a coin flip is the damage engine. MEDICHAM's Gen-9 doubles damage
 pipeline (`engine/medicham2-browser.js`) is validated against the Smogon damage calculator (the community
-ground-truth) on 31 meta scenarios: **within 5% on 100% of scenarios, median error 0%, worst 3%**
-(16-roll rounding). This is gated in CI (`engine/validate_damage.js` → `data/damage-validation.json`).
+ground-truth). This is gated in CI (`engine/validate_damage.js` → `data/damage-validation.json`).
 Every model that reasons about damage builds on this, and "will this move KO?" is a *winnable*
 prediction, unlike "who wins the game."
+
+Read from `data/damage-validation.json`: **36 scenarios compared, within 5% on 100% of them, worst
+0%**, at level 50 in gen 9.
+
+**This paragraph read "31 meta scenarios … median error 0%, worst 3%" until 2026-08-22, and both
+halves were superseded rather than wrong when written.** The harness gained scenarios (31 → 36) and
+the worst relative error fell to 0%; the artifact has said so since 2026-08-08 and the sentence did
+not move with it. The artifact's own caveat still governs what the agreement means: it is agreement
+on the DAMAGE FORMULA only, and says nothing about move selection, the accuracy model, or mechanics.
 
 ### 3.0 Why a hand-written engine exists at all, and the corrected speed figure (3.62.2)
 
@@ -782,7 +790,15 @@ about **what the existing instruments cannot see**:
 
 Neither is fixed here. Changing how a damage roll is drawn moves every seeded run in the repository.
 
-## 4. The models and their validated results
+**Finding 1's limitation was closed on 2026-08-22, and the closure is recorded rather than written
+over the sentence above.** The differential no longer speaks only for the two corners.
+`data/engine-diff.json` now reads **6000 requested, 6000 compared, 5995 agreed, 5 disagreed,
+`band_missing` 0**. The artifact states the rule the sweep enforces in its own `band_why` field:
+*"THREE SAMPLED POINTS OF A SIXTEEN-INDEX BAND CANNOT SPEAK FOR THE THIRTEEN THEY NEVER SAMPLE"* —
+and its `arms_why` field records the separate demonstration that a midpoint cannot see a range wrong
+by the same amount at both ends, because `--plant spread` leaves `disagreed` at its unplanted value
+while both corner arms light up. So the paragraph above is now history: it was a true statement about
+an endpoint-only instrument, and the instrument changed.
 
 Every probability ships a **proper score** (log-loss and/or Brier), a **confidence interval**
 (clustered by game where states within a game are correlated), and an **honest baseline**, persisted
@@ -949,15 +965,21 @@ cores beat which" and for quantifying how cyclic the meta really is.
 5. **Champions rule specifics** (sleep/paralysis edge cases) are flagged, not yet fully modelled.
 6. **A result that does not record its own configuration is not reproducible, and three of the four
    rollout gates were in that state.** This is a methodological limitation, added 3.33.0, and it cost
-   a published result. The R1 gate reported *"68.18% against material's 65.26%, +2.91 [1.79, 4.04]"*;
-   recomputed from the only committed evidence it is **+0.456, 95% CI [−0.717, +1.630] — UNDECIDED**.
-   No number was falsified. The row dump recorded `{gid, turn, p, mpy, y, aliveDiff, hpDiff}` and no
-   sample size, no exploration rate and no build digest, so a dump taken at `explore=0` and a dump
-   taken at `explore=1` were byte-compatible while differing by nearly four accuracy points. Only the
-   surviving calibration shape distinguished them, in hindsight.
+   a published result. The R1 gate reported a PASS; recomputed from the only committed evidence it is
+   **UNDECIDED**. No number was falsified. The row dump recorded
+   `{gid, turn, p, mpy, y, aliveDiff, hpDiff}` and no sample size, no exploration rate and no build
+   digest, so a dump taken at `explore=0` and a dump taken at `explore=1` were byte-compatible while
+   the two configurations do not give the same answer. Only the surviving calibration shape
+   distinguished them, in hindsight.
+
+   **THE RATES AND INTERVALS THIS ITEM USED TO QUOTE ARE WITHHELD, 2026-08-22.** R1, R2 and R3 read
+   artifacts downstream of MEDICHAM, and `node engine/status.js` names each one QUARANTINED. The
+   limitation being described is about the CONFIGURATION RECORD and survives without them; a
+   quarantined figure printed with a caveat beside it is the failure this section is about, one level
+   up.
 
    Auditing the other rungs against the same standard produced two further findings. **The R3
-   divergence gate publishes 72.9% over 70 decisions and records no control.** Its own script computes
+   divergence gate publishes a rate and records no control.** Its own script computes
    the quantity that makes a divergence rate mean anything — the same search on a different seed
    disagreeing with *itself*, whose true value is 0 by construction — writes it to standard output,
    and does not store it; the script's verdict branches on that comparison, so the artifact cannot
@@ -1523,9 +1545,12 @@ was still destroyed: the defender's own weight vector was refitted between the t
 simulator showed four distinct content digests inside eight minutes. Nothing failed and nothing crashed.
 
 The correction is not scheduling — serialising the divisions forfeits the parallelism they exist for.
-A measurement now opens an **immutable snapshot** (`engine/engine_release.js`) of the twelve files whose
+A measurement now opens an **immutable snapshot** (`engine/engine_release.js`) of every file whose
 content can change a reported number, the weights included, and reads those bytes rather than the live
-tree. It is a copy and not a checksum: verifying digests afterwards establishes only that the run was
+tree. The membership of that set is declared as `SOURCES` in `engine/engine_release.js` and is read
+from there, never counted in prose: this sentence said **twelve** until 2026-08-22 and the declaration
+had grown well past it, each addition made because a release that was a valid digest set turned out
+not to be a loadable — then not a runnable — engine. It is a copy and not a checksum: verifying digests afterwards establishes only that the run was
 wasted. `engine/provenance.js` correspondingly stopped deciding staleness by **mtime** — the method this
 project's own rules discredit by name — and now compares content digests, honours a self-declared
 `void: true`, and prints how many artifacts still rest on timestamps alone (**0 verified, 92 by mtime**),

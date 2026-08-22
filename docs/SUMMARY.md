@@ -544,18 +544,24 @@ disagreements. They were plumbing.
 
 **A third lesson, 2026-08-04, and it is about the rulers rather than the models.** A result that does
 not record its own configuration cannot be checked by anyone, including the person who produced it.
-The R1 gate published *"+2.91 [1.79, 4.04]"*; recomputed from the only committed evidence it is
-**+0.456 [−0.717, +1.630] — UNDECIDED**. Nothing was falsified: the row dump recorded the answers and
-not the settings, so a run at exploration 0 and a run at exploration 1 left byte-compatible files that
-differ by nearly four accuracy points.
+The R1 gate published a PASS; recomputed from the only committed evidence it is **UNDECIDED**. Nothing
+was falsified: the row dump recorded the answers and not the settings, so a run at exploration 0 and a
+run at exploration 1 left byte-compatible files, and the two configurations do not give the same
+answer.
 
 Auditing the sibling gates against the same standard found two more.
 
 | gate | published | what the evidence supports |
 |---|---|---|
-| R1 leaf accuracy | +2.91 [1.79, 4.04], PASSED | **+0.456 [−0.717, +1.630], UNDECIDED** |
-| R2 leaf cost | 5.83 ms median | reproduces only as arithmetic on itself, and it timed `explore=0` at a 20-turn horizon while the shipped leaf runs `explore=1.0` at 60 |
-| R3 divergence | 72.9% over 70 decisions | recomputes exactly — from two fields in the same file. **Its control was printed and never stored**, and the gate's own verdict branches on that control |
+| R1 leaf accuracy | PASSED | **UNDECIDED** |
+| R2 leaf cost | a median leaf time | reproduces only as arithmetic on itself, and it timed `explore=0` at a 20-turn horizon while the shipped leaf runs `explore=1.0` at 60 |
+| R3 divergence | a divergence rate | recomputes exactly — from two fields in the same file. **Its control was printed and never stored**, and the gate's own verdict branches on that control |
+
+**THE FIGURES IN THIS TABLE ARE WITHHELD, 2026-08-22, AND THE VERDICTS ARE NOT.** R1, R2 and R3 all
+read artifacts downstream of MEDICHAM, and `node engine/status.js` names each of them QUARANTINED. A
+caption is not a quarantine, so the rates, medians and intervals are cut rather than annotated; what
+this table is actually about — that a gate which does not stamp its own configuration cannot be
+audited — does not need them. They become re-runnable, not true, when the gate opens.
 
 Every gate now writes a sidecar (`engine/run_stamp.js`) recording budget, exploration rate, horizon,
 content digests of every source it reads, the commit, and whether the tree was dirty. Older artifacts
@@ -565,7 +571,7 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 
 | Model | What it is | Status | Headline result |
 |---|---|---|---|
-| **MEDICHAM** | Hand-written doubles doubles-battle simulator. **Its justification is now falsifiable (ADR-003, 3.62.2): it exists so per-turn re-solving is affordable, so the engine work is justified if and only if search pays — gated by ROADMAP #62.** The speed ratio that originally justified it is corrected in the section above | ⚠️ **Being replaced** | Within 5% of the Smogon calculator on 31 scenarios, but disagrees with the OFFICIAL Champions engine by 31.1 points of win probability. ADR-001: becomes a lookup over precomputed tables. **Mechanics census 231 live of 232 probed, 1 missing with a reason** (`data/mechanics-census.json`, wires 82–130 landed 3.40.0–3.56.0; **129 is the whole of accuracy** — Coil, Wide Lens, Sand Veil and No Guard all measured IDENTICAL with and without, ~5,000 uses, three unrelated causes, now one `hitChance(att,def,id,field,ctx)`; **130 is Substitute, charged for and never built**, 1,976 clicks of a move strictly worse than passing; 117 is Psychic Terrain refusing priority against airborne bodies, and the shared `isGrounded` that replaced three hand-written copies of the predicate; 118 is dynamic speed; **119 is TAUNT, which the simulator had never implemented at all** — 1,503 clicks, the volatile written and read by nothing — and 120–122 are a pivot move resolving at the bare-switch priority, Volt Switch pivoting out of an absorbed hit, and Yawn passing through Good as Gold); **generated interaction matrix 98.8% — 1,624 of 1,643 live carrier x reactor cases**, PLUS the artifact's own `off_gate` count of **53** disagreements in buckets the gate discards — read both, because 3.50.0 moved the second while the rate did not move of 2,300 staged from a theoretical 8,795, i.e. **26.2% coverage** (3.43.0 closed the generator’s own arithmetic — `theoretical = staged + dropped`, asserted per axis, which found an understated denominator, a depth-cap off-by-one and outcome buckets that were not a partition; 3.45.0 then recovered the 902 pairs dropped for “having a probability” and found that the harness’s two pinned dice were not the same die, so every sub-100-accuracy move had been MISSING in the reference engine while medicham2 hit. The agreement figure has fallen twice while the engine did not change — both falls are the denominator becoming honest), **multi-turn field axis 156/156** (`data/interaction-matrix.json`); damage differential **1/150**, the one row a documented harness-layer artifact (Disguise); two-rulebook collision ratchet **2 clashes / 151 comparable facts** (`data/rulebook-collision.json`); DEAD-tag ratchet **61 → 38**; mutation tier (`data/mutation-coverage.json`) **163 class-A operators over 56 carrier × tag rows** — the 97 "defect candidates" of 3.49.0 were triaged A/B/C/D from a parse of the engine source and **none of them is class A**, so the ratchet counts class A only |
+| **MEDICHAM** | Hand-written doubles battle simulator. **Its justification is now falsifiable (ADR-003, 3.62.2): it exists so per-turn re-solving is affordable, so the engine work is justified if and only if search pays — gated by ROADMAP #62.** The speed ratio that originally justified it is corrected in the section above | **Being replaced; the MEDICHAM gate is open against it** | **EVERY COUNT IN THIS CELL WAS SUPERSEDED AND IS NOW CUT (2026-08-22).** It stated a mechanics census, an interaction-matrix agreement and coverage fraction, a damage-differential ratio, a scenario count, a win-probability gap against the official engine, a two-rulebook collision ratchet, a DEAD-tag ratchet and a mutation-tier count. Every one of those instruments has been re-run since the cell was written and every artifact now reads something else. This is a CURRENT-STATE table, so a figure in it that is a release old reads as a claim about tonight — which is the failure the whole document set exists to prevent. State is printed, not typed: run **`node engine/status.js`** for the gate, the census, the differentials and the withheld set, and **`node engine/quarantine.js`** for the full derivation. ADR-001 stands: MEDICHAM becomes a lookup over precomputed tables. The win-probability gap against the official Champions engine is additionally QUARANTINED — it is a rollout figure — so it is withheld rather than restated. |
 | **GURU** | Meta matchup matrix from real outcomes | ⚠️ **No decisive cells that survive multiplicity** | `data/guru-matchups.json`, 2026-07-31, **5,265 clean games / 12 archetypes / 144 cells**. **6 directed = 3 distinct** matchups clear a 95% test one at a time, and **ZERO survive FDR at q=0.05 or Bonferroni** — 66 pairs, 3.3 expected by chance, 3 observed, smallest exact p 6.1e-3 against a BH threshold of 7.6e-4. Predictive test **0.7124** vs a coin 0.6931 over 1,053 held-out games — **worse than a coin**. Descriptive structure only. (This row read *1,124 clean games, 11 archetypes, 0.735* until 2026-08-04, from a superseded run; the verdict is unchanged.) |
 | **XATU** | Opponent set + next-move belief | ✅ Built | Top-1 36% / top-3 72% on held-out human moves (beats its baselines) |
 | **PORY** | Mid-game win-probability value net | ⚠️ **Contribution unclear** | Log-loss **0.6236** 95% CI [0.6070, 0.6387] vs coin 0.6931 and vs the material heuristic 0.6428 (regenerated 2026-08-05 on 5,883 clean games; the previously published 0.567 predated the current quality filter) — but its features ARE the material state, and it **loses to a two-feature baseline** (alive_diff+hp_diff 0.5822 vs PORY 0.5840, same estimator). Report the gain over MATERIAL, not over a coin. See engine/pory_baseline.py |
@@ -664,11 +670,14 @@ Most results here are also **underpowered**: 1,124 clean games can only detect a
 accuracy points, and a 2-point effect needs ~4,900. `engine/eval_harness.py` now refuses to report a
 null without stating what it could have seen.
 
-The one load-bearing win is the **validated damage engine** — **36 scenarios, 100% within 5% of
-`@smogon/calc`, 97% within 2%, median error 0%, worst 3%** (`data/damage-validation.json`,
-2026-08-05). This line previously read "31/31 within 2%", which overstated the project's single
-load-bearing result in both the count and the tolerance; the artifact is the authority and the
-whitepaper's "within 5%, worst 3%" was the correct statement all along. PORY was the other, until 2026-07-25 showed it loses to a two-feature material baseline.
+The one load-bearing win is the **validated damage engine** — **36 scenarios compared, 100% within 5%
+of `@smogon/calc`, worst 0%** (`data/damage-validation.json`).
+
+This line has now been corrected twice and both corrections are kept. It first read "31/31 within
+2%", which overstated the single load-bearing result in both the count and the tolerance. It then
+read "97% within 2%, median error 0%, worst 3%" against the 2026-08-05 artifact; the 2026-08-08
+regeneration reports worst 0% and states no median or 2% band, so those three figures are cut rather
+than carried. The artifact is the authority. PORY was the other load-bearing win, until 2026-07-25 showed it loses to a two-feature material baseline.
 The project's two genuine contributions are the ones it treats as plumbing: **behavioural bot
 detection**, and the **measurement discipline** that dissolved WAR, the 55% ceiling and GURU's matchup
 matrix in a single day.
@@ -696,11 +705,11 @@ bias is large, and the closed-sheet Bo1 store carries the latter.
 
 | item | state |
 |---|---|
-| engine release | `5fc1f711a0e3`, 12 files frozen, Showdown `20ad99ff`. A measurement reads the snapshot, not the live tree, so the divisions can run concurrently. |
-| provenance method | **content digests**, no longer mtime. 0 artifacts verified by content, **92 by mtime alone** — printed every run, ratcheted downward by a named list. |
+| engine release | A measurement reads the snapshot, not the live tree, so the divisions can run concurrently. The current release id and the set of frozen files are printed by `node engine/engine_release.js list` and declared as `SOURCES` in `engine/engine_release.js`. *(This cell named a release id and "12 files frozen" until 2026-08-22. Both had moved: the id is a digest of the frozen tree and changes whenever it does, and the file set has grown several times since.)* |
+| provenance method | **content digests**, no longer mtime. The counts are read from `data/provenance-stamp.json` (`verified` and `mtime_only`) and printed on every run, ratcheted downward by a NAMED LIST rather than a count — the stamp's own note records why: the first time the ratchet fired it could only say "one more than last time" and nobody could tell which file. *(This cell read "0 verified by content, 92 by mtime alone" until 2026-08-22. Both had moved, in opposite directions, and neither was reread.)* |
 | exploitability | **no figure.** 63.2% retracted on its own merits; the 2026-08-04 re-run is `void: true`. |
 | mirror control | **49.7% [46.2, 53.2]**, n=782 — survives the void run and retires the seat-asymmetry worry. |
 | MAG refit | ran; **moved nothing measurable.** Weather fix +0.048 top-1 [0.009, 0.093]; the refit itself −0.074 [−0.155, +0.004] against a 0.192-point noise floor. |
 | open, needs a decision | the fit sees `{nature, item}`; the player sees `{nature, item, ability, moves}`. **50.47% of trained decisions**, 99.75% of games. |
-| click censoring (3.42.0, re-measured 3.47.0) | **1,475 of 270,022 recorded actions were never clicks** (Encore 1,243, `\|drag\|` 232) and were being fitted as human choices. Removed and counted. **3,526 redirected attacks (1.3180%)** now enter as a two-member candidate set instead of a certainty on the redirector. Paired on 48,274 held-out decisions: on coerced turns P(the fabricated action) **−0.002613 [−0.003650, −0.001672]**; on redirection turns **no improvement**; corpus top-1 flat. Both artifacts were re-run under the current engine after four simulator wires landed underneath them, on a corpus grown to 10,009 games, and every 3.42.0 figure reproduced inside its interval — the smaller run's numbers are in `CHANGELOG.md` 3.42.0. `data/click-censoring-census.json`, `data/censoring-value.json` |
+| click censoring | **FIGURES WITHHELD — QUARANTINED, 2026-08-22.** `data/click-censoring-census.json` is downstream of MEDICHAM (`engine/click_census.js` reaches the simulator through `require`) and `node engine/status.js` names it withheld. This cell used to state the count of recorded actions that were never clicks, the redirected-attack share and the paired held-out effect; those are cut rather than captioned. The QUALITATIVE finding does not depend on them and stands: actions the game FORCED — Encore, `\|drag\|` — were being fitted as if a human had chosen them, and a redirected attack now enters the fit as a two-member candidate set instead of a certainty on the redirector. `data/click-censoring-census.json`, `data/censoring-value.json` |
 

@@ -10,6 +10,63 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.75.0] — 2026-08-22
+
+### Fixed
+- **37 superseded or untraceable figures found across the five living documents: 15 corrected, 12
+  WITHHELD, 10 left as dated history.** Withheld means removed, not captioned — a caption is not a
+  quarantine.
+
+  | document | found | corrected | withheld | left (dated) |
+  |---|---|---|---|---|
+  | `docs/ABRA-whitepaper.md` | 7 | 3 | 2 | 2 |
+  | `docs/SUMMARY.md` | 7 | 4 | 2 | 1 |
+  | `docs/MODELS.md` | 13 | 4 | 5 | 4 |
+  | `docs/ABRA-deck-plain-english.md` | 5 | 2 | 3 | 0 |
+  | `docs/ABRA-technical-docs.md` | 5 | 2 | 0 | 3 |
+
+- **`docs/MODELS.md` printed a full leaf-reliability curve as CURRENT FACT** — Brier deltas, both
+  bucket rates, the decisive-call rate, the noise-floor margin — read out of `data/winrate-backtest.json`,
+  which `engine/status.js` withholds because it is downstream of MEDICHAM. **Cut, not captioned.**
+  R1–R4 and click censoring the same.
+- **`docs/SUMMARY.md`'s MEDICHAM cell in "The components at a glance" is a CURRENT-STATE table and held
+  eleven counts, every one of them moved** — census 231/232 against 629/629; interaction matrix
+  "98.8%, 1,624/1,643" against `agreement_pct` 100 and 1642/1642; 26.2% coverage against 31.7%;
+  differential 1/150 against 5/6000. All cut and replaced with **the two commands that print it**,
+  which is the only form that cannot go stale.
+- **`docs/ABRA-technical-docs.md`'s how-to said "Twelve files are in a release" and listed twelve.
+  `SOURCES` holds 26** — verified independently: a release cut tonight reported `26 files frozen`. A
+  reader following that procedure freezes fourteen files they believe are frozen and are not, which is
+  precisely the stranding failure LESSONS §12 exists for.
+
+### Notes
+- **THE DOCS GATE WAS GREEN THROUGHOUT AND CAUGHT NONE OF IT, FOR A REASON ALREADY SEEN TONIGHT.**
+  Clause 3b(b) matched *"231 live of 232 probed"* against a 308 KB census file because the digits `231`
+  occur somewhere inside it — **the same coincidental-collision failure as `0.6981` against `0.69817…`
+  in 5.65.0.** And nothing in `tests/test-docs-current.js` asks the quarantine what is withheld: **a
+  clause that failed when a living document states a figure `quarantine.js` lists as WITHHELD would have
+  caught all twelve.** Proposed, not built.
+- **PDFs: NOT REBUILT, TOOLCHAIN ABSENT.** `weasyprint` is installed; **`pandoc` is not** — not on PATH,
+  not in Program Files, not in LOCALAPPDATA, and `where.exe` finds nothing. No `wkhtmltopdf` either. The
+  three PDFs stamped 2026-08-06 are now **older than the `.md` beside them**. Install pandoc before
+  publishing any of them. Stated plainly rather than faked: a stale PDF next to a corrected source is
+  worse than an admitted gap.
+- **THESE FIVE DOCUMENTS ARE UNDER AN OWNER-DECLARED PAUSE, PINNED AT 3.98.0** — *"WE PUT A PAUSE ON
+  DOCS UNTIL MEDICHAM IS FUNCTIONAL"*, with the owed write-up going to `docs/MEDICHAM-SPRINT-NOTES.md`.
+  **The coordinator dispatched this work without checking that**, which was an error. No version header
+  was bumped and no write-up was written; the pass removed **false assertions and quarantined figures
+  only**, which is repair rather than the paused authoring work. Recorded so the pause is not quietly
+  treated as lifted.
+- **The figures handed to this audit were already stale when it received them — four of six superseded
+  inside about two hours by the concurrently-running ENGINE agent.** The tree it measured is
+  `59bb68aa89a9`, not the `39631097fcc7` in the brief; the whole-game differential reads 777 games / 96
+  diverged; the census reads 629/629/0; **all three roster stages are WITHHELD again** as "an answer
+  about other bytes"; and the gate is **1 of 8 passing, not 2**. Only the damage differential reproduced
+  (5 of 6000, `band_missing` 0), and that was read from the artifact rather than taken from the brief.
+  **An agent that had trusted its brief would have written five stale numbers into five documents.**
+
+---
+
 ## [5.74.0] — 2026-08-22
 
 ### Fixed
