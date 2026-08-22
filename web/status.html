@@ -237,6 +237,40 @@ body{
 .rrbanner .cl div{color:#e4d2a4}
 .rrbanner code{border-color:#8a6410}
 
+/* ---- SUPERSEDED — the SIXTH state, added 2026-08-22 ---------------------------------------------
+   THIS PAGE IS A SNAPSHOT AND NOTHING ON IT COULD EVER SAY THE SNAPSHOT HAD EXPIRED. The header
+   printed "board built <date>" and "this is a snapshot", and web/status-data.js then sat at
+   2026-08-11 for eleven days while the census went 423 -> 623, the store went 52,089 -> 64,702, the
+   interaction matrix went 1624/1643 -> 1642/1642 and the quarantine gate went from 1 of 6 clauses
+   failing to 6 of 8. Every one of those was rendered as a MEASURED figure, in green, with a source
+   chip under it. tests/test-web-status.js was red on all eleven the whole time.
+
+   A DATE IN THE HEADER IS A CAPTION, AND CLAUDE.md is explicit that a caption is not a quarantine —
+   "the figure must be WITHHELD, not annotated. Printing it with a caveat is the bug." So the page now
+   refuses to print the value at all once the bundle is known to be superseded.
+
+   IT IS NOT NOT-MEASURED (somebody measured it), NOT QUARANTINED (the engine is not why), and NOT
+   RE-RUN OWED (nothing needs re-measuring — the number exists in the artifact and this page's COPY
+   of it is old). It is the house water blue so it cannot be confused with the other five, and the
+   plate is the same 30px/800 as a figure, per docs/WEB.md. */
+.fig.sup{border-color:#1d5c8a;background:linear-gradient(var(--card),#12212e)}
+.fig.sup::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.11;
+  background:repeating-linear-gradient(135deg,var(--water) 0 11px,transparent 11px 22px);
+}
+.supplate{
+  position:relative;display:block;background:#05080f;border:2px solid #1d5c8a;border-radius:7px;
+  padding:5px 10px;font-size:30px;font-weight:800;line-height:1.03;letter-spacing:.02em;
+  color:var(--water);word-break:break-word;
+}
+.fig.sup .qsub{color:#bfe2ff}
+.fig.sup .qwhy{color:#a9c8de} .fig.sup .qwhy b{color:#bfe2ff}
+.fig.sup .qrerun{border-color:#1d5c8a;color:var(--water)}
+.supbanner{background:linear-gradient(#0e2c42,#081a26);border-color:#1d5c8a}
+.supbanner b.hd{color:var(--water)}
+.supbanner p{color:#d6ecfb}
+.supbanner code{border-color:#1d5c8a}
+
 /* The gate banner. It sits above every division because the withholding is global, and a reader who
    meets a redacted card halfway down the page with no context reads it as a defect. */
 .qbanner{
@@ -326,6 +360,33 @@ footer a{color:var(--water)}
 var B = window.ABRA_BOARD;
 if (!B) return;                                     /* leave the fatal panel standing */
 
+/* ============ THE SNAPSHOT EXPIRY. Read the .fig.sup comment in the stylesheet first. ============
+   THIS IS A DECLARATION, NOT A MEASUREMENT, and the distinction is the whole reason it is allowed to
+   live in this file. It carries no figure. It says: on this date a WEB pass ran `node engine/status.js`
+   and `node tests/test-web-status.js` and found that the committed board no longer matched the
+   artifacts it names. It does not say by how much — that is the artifacts' business, and every figure
+   this file would have printed is suppressed rather than corrected, because correcting one here would
+   be this division authoring it.
+
+   IT SELF-CLEARS AND THAT IS THE POINT. `node web/build-status.js` stamps a new `built_at`; the moment
+   that stamp is at or after the date below, every card comes back on its own. There is no flag to
+   unset and nothing to remember — the same shape as engine/quarantine.js's gate, which CLAUDE.md
+   insists is READ and never remembered. Moving the date without rebuilding the board is the only way
+   to defeat it, and that is a deliberate edit somebody has to justify.
+
+   A DATE IS A STAMP, NOT A FIGURE — web/figure-audit.js masks ISO dates before it extracts figures for
+   exactly this reason, so this line cannot be read as a claim about the world. */
+var SUPERSEDED_ON = '2026-08-22';
+var SUPERSEDED_WHY =
+  'A WEB pass on 2026-08-22 ran node engine/status.js and node tests/test-web-status.js against the '
++ 'committed board and found eleven of its scalars no longer equal to the artifacts they name, and '
++ 'the quarantine gate it renders describing a different set of clauses. The board has not been '
++ 'rebuilt here on purpose: ENGINE was mid-run on the artifacts underneath it, and baking a second '
++ 'snapshot out of a moving tree is the defect this state exists to stop, not the fix for it.';
+/* ISO-8601 sorts lexically, so this is a comparison and not a computed age. The page still never
+   subtracts one time from another — see when() below. */
+var SUPERSEDED = !B.built_at || String(B.built_at).slice(0, 10) < SUPERSEDED_ON;
+
 var E = function(s){ return String(s === undefined || s === null ? '' : s)
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
 
@@ -395,8 +456,12 @@ function qBody(f, small){
 function figCard(f, opt){
   opt = opt || {};
   if (!f) f = { state:'notmeasured', why:'the build produced no entry for this slot' };
+  /* A card that would print a VALUE becomes SUPERSEDED when the board is. The three withheld states
+     are left alone — see the branch below for why. */
+  var valueState = f.state !== 'notmeasured' && f.state !== 'quarantined' && f.state !== 'rerunnable';
   var cls = 'fig ' + (f.state === 'notmeasured' ? 'nm' : f.state === 'quarantined' ? 'q'
-                    : f.state === 'rerunnable' ? 'rr' : f.state || 'ok')
+                    : f.state === 'rerunnable' ? 'rr'
+                    : (SUPERSEDED && valueState) ? 'sup' : (f.state || 'ok'))
           + (opt.wide ? ' wide' : '');
   var h = '<div class="' + cls + '">';
   /* A SLOT WITH NO `v` MUST NEVER REACH THE VALUE BRANCH. Both withheld states are caught here; if a
@@ -418,6 +483,24 @@ function figCard(f, opt){
     if (opt.label || f.label) h += '<div class="lab">' + E(opt.label || f.label) + '</div>';
     h += '<div class="nmwhy">' + E(f.why || 'no artifact says it') + '</div>';
     if (f.owner) h += '<div class="nmowner">' + E(f.owner) + ' owns this gap</div>';
+  } else if (SUPERSEDED) {
+    /* THE VALUE BRANCH IS THE ONLY ONE THAT IS SUPPRESSED, and that asymmetry is deliberate. A
+       QUARANTINED, RE-RUN OWED or NOT MEASURED card carries no number, so there is nothing on it that
+       can have gone stale — those three are still exactly as true as when the board was built, and
+       blanking them would hide the withholding rather than the value. Only a printed figure can be
+       superseded, so only a printed figure is withheld here.
+       The LABEL and the SOURCE survive, for the same reason the QUARANTINED plate keeps them: a bar
+       with nothing naming it is a hole, and the artifact path is what a reader follows instead. */
+    if (opt.label || f.label) h += '<div class="lab" style="margin:0 0 7px;font-size:12.5px">' + E(opt.label || f.label) + '</div>';
+    h += '<div class="supplate">SUPERSEDED</div>'
+      +  '<div class="qsub">this page&rsquo;s copy of the figure is old. The artifact is not.</div>'
+      +  '<div class="qwhy">The board was built <b>' + E(when(B.built_at)) + '</b> and has not been '
+      +  'rebuilt since. The value that stood here is not printed, because printing it with a date '
+      +  'beside it is the caption CLAUDE.md says is not a quarantine.</div>'
+      +  '<div class="qwhy">Read it from <b>' + E(f.src || '(no source)') + '</b>' + (f.label ? ' &mdash; ' + E(f.label) : '') + '.</div>'
+      +  '<div class="qrerun">node web/build-status.js</div>';
+    h += srcChip(f);
+    return h + '</div>';
   } else {
     var v = f.v + (f.unit ? f.unit : '');
     h += '<div class="v' + (String(v).length > 22 ? ' small' : '') + '">' + E(v) + '</div>';
@@ -455,6 +538,27 @@ out.push(
  + '<a class="backlink" href="stadium.html">the STADIUM &rarr;</a>'
  + '</div>');
 
+/* ============================== THE SUPERSESSION BANNER ==============================
+   ABOVE the quarantine banner, because it is a statement about the WHOLE PAGE and the quarantine
+   banner is a statement about part of it. A reader who meets a blue plate halfway down with no
+   explanation reads it as a broken page — the same argument the quarantine banner already makes. */
+if (SUPERSEDED){
+  out.push('<div class="qbanner supbanner">'
+   + '<b class="hd">THIS BOARD IS A SNAPSHOT AND THE SNAPSHOT IS OUT OF DATE</b>'
+   + '<p>' + E(SUPERSEDED_WHY) + '</p>'
+   + '<p>Every figure below that this page would have printed as a <b>value</b> is shown as '
+   + '<b>SUPERSEDED</b> instead, with the artifact it should be read from. Nothing has been corrected '
+   + 'in place: WEB renders numbers and never authors one, and a figure typed here to patch a stale '
+   + 'bundle is authored no matter how carefully it was copied.</p>'
+   + '<p>The <b>withheld</b> cards below are untouched and still true — a QUARANTINED or NOT MEASURED '
+   + 'card carries no number, so there is nothing on it that can have gone stale.</p>'
+   + '<p>One command puts the values back, and it is the only thing that does:</p>'
+   + '<div class="qrerun">node web/build-status.js</div>'
+   + '<p style="margin-top:10px">The guard that measures this drift artifact-by-artifact is '
+   + '<code>node tests/test-web-status.js</code>.</p>'
+   + '</div>');
+}
+
 if (!B.status_js_ok){
   out.push('<div class="fatal"><b>engine/status.js DID NOT RUN AT BUILD TIME</b><p>'
     + E(B.status_js_error || 'no error recorded')
@@ -478,15 +582,30 @@ if (qz && qz.state === 'notmeasured'){
    + '<p>Anything computed <i>through</i> the simulator is withheld until the simulator is correct. '
    + 'A withheld figure is <b>absent</b>, not captioned: <span class="mono">engine/status.js</span> printed '
    + '<span class="mono">PRE-CHANGE</span> beside these same numbers for days and they went on being quoted anyway. '
-   + '<b>' + E(qz.n_quarantined) + ' of ' + E(qz.n_artifacts) + '</b> classified artifacts are downstream of '
-   + '<span class="mono">engine/medicham2-browser.js</span>. The ones this board would have shown are redacted below, '
-   + 'each with the command that re-runs it.</p>'
-   + '<p>The gate is <b>read, not remembered</b> — there is no flag anybody can set to silence it. It lifts when '
-   + 'these clauses pass, and on nothing else:</p>'
-   + '<div class="cl">' + (qz.clauses||[]).map(function(c){
-       return '<div><span class="st ' + (c.ok?'p':'f') + '">' + (c.ok?'PASS':'FAIL') + '</span> <b>'
-            + E(c.name) + '</b> &mdash; ' + E(c.why) + '</div>';
-     }).join('') + '</div>'
+   /* THE GATE'S OWN COUNTS AND CLAUSE VERDICTS ARE THEMSELVES SNAPSHOT FIGURES, and they are the most
+      dangerous ones on the page: a stale clause list does not merely misreport a number, it reports
+      the SIMULATOR AS CLEAN. On 2026-08-22 this board still said 1 of 6 clauses failed and that
+      items, abilities and moves were all clean; the gate had moved to 6 of 8 failing with all three
+      of those red. So when the board is superseded the counts and the verdicts go, and only the
+      sentence that is still structurally true — the gate is shut, figures are withheld — stays. */
+   + (SUPERSEDED
+       ? 'How many artifacts are downstream, and which clauses are failing, are figures on this board '
+         + 'like any other and are <b>SUPERSEDED</b> with the rest of it. What is not superseded is that '
+         + 'the gate is <b>shut</b>: every card this board redacted is still redacted below.</p>'
+         + '<div class="fig sup wide" style="margin:10px 0 0"><div class="supplate">SUPERSEDED</div>'
+         + '<div class="qsub">the clause list this banner used to print is not shown.</div>'
+         + '<div class="qwhy">A stale clause list is worse than a stale number: it reports the '
+         + 'simulator as correct. Read the live gate instead.</div>'
+         + '<div class="qrerun">node engine/quarantine.js</div></div>'
+       : '<b>' + E(qz.n_quarantined) + ' of ' + E(qz.n_artifacts) + '</b> classified artifacts are downstream of '
+         + '<span class="mono">engine/medicham2-browser.js</span>. The ones this board would have shown are redacted below, '
+         + 'each with the command that re-runs it.</p>'
+         + '<p>The gate is <b>read, not remembered</b> — there is no flag anybody can set to silence it. It lifts when '
+         + 'these clauses pass, and on nothing else:</p>'
+         + '<div class="cl">' + (qz.clauses||[]).map(function(c){
+             return '<div><span class="st ' + (c.ok?'p':'f') + '">' + (c.ok?'PASS':'FAIL') + '</span> <b>'
+                  + E(c.name) + '</b> &mdash; ' + E(c.why) + '</div>';
+           }).join('') + '</div>')
    + '<p style="margin-top:10px">Full derivation, and every artifact in the set: <code>' + E(qz.derivation) + '</code></p>'
    + '<div class="src"><span>source</span><code>engine/quarantine.js</code><span class="when">read at build time</span></div>'
    + '</div>');
@@ -528,6 +647,7 @@ out.push('<div class="legend">'
  + '<div class="lg nm"><b>NOT MEASURED</b><p>No artifact answers the question. Rendered at full weight, never greyed, with the division that owns the gap.</p></div>'
  + '<div class="lg" style="border-color:#7a3418"><b style="color:var(--fight)">QUARANTINED</b><p>Somebody measured it and the answer may not be published. Downstream of the simulator, withheld until the simulator is correct. Redacted, never captioned — the card carries what re-runs it instead.</p></div>'
  + '<div class="lg" style="border-color:#8a6410"><b style="color:var(--stale)">RE-RUN OWED</b><p>The gate has OPENED and this number has not caught up. The simulator is correct now; this figure was measured through the version that was not. Not withheld, not current — one command away, and the card carries it.</p></div>'
+ + '<div class="lg" style="border-color:#1d5c8a"><b style="color:var(--water)">SUPERSEDED</b><p>The artifact is fine and this page&rsquo;s COPY of it is old. Nothing needs re-measuring — the board needs rebuilding. Added 2026-08-22, after the bundle sat eleven days while eleven of its scalars moved underneath it and every one kept rendering in green.</p></div>'
  + '</div>');
 
 /* ============================== ENGINE ============================== */
@@ -893,7 +1013,25 @@ out.push('</div>');
    an artifact this board is withholding, and records why in its place. Rendering that reason at full
    weight rather than showing an empty section is the same rule as everywhere else on this page: an
    absent thing must say it is absent. */
-if (B.status_raw){
+if (B.status_raw && SUPERSEDED){
+  /* THE RAW DUMP IS THE DENSEST CONCENTRATION OF SUPERSEDED FIGURES ON THE PAGE and it used to be
+     <details OPEN> — a full terminal transcript, unlabelled, sitting under a board whose header said
+     only "snapshot". It is not deleted, because deleting a claim hides that it was ever made; it is
+     shut, plated, and named as a transcript of one run on one date. This is the same treatment the
+     strike-out-with-a-title element gives a withdrawn figure in the other rooms. (Spelled out rather
+     than written as a tag: web/figure-audit.js scans this file as TEXT and reads a literal one in a
+     comment as an untitled withdrawal.) */
+  out.push('<div class="div"><div class="divhd"><h2 style="color:var(--dim);font-size:18px">THE RAW OUTPUT</h2>'
+    + '<span class="q">a transcript of one run &mdash; not the current state of the project</span></div>'
+    + '<div class="fig sup wide"><div class="supplate">SUPERSEDED</div>'
+    + '<div class="qsub">every figure in the transcript below was true when it was printed and is not being published as current.</div>'
+    + '<div class="qwhy">This is <b>node engine/status.js</b> as captured on <b>' + E(when(B.built_at)) + '</b>. '
+    + 'It is kept rather than deleted, and shut rather than open, because a retracted claim left plainly '
+    + 'on a page keeps asserting itself &mdash; docs/WEB.md. Run the command below for the current state.</div>'
+    + '<div class="qrerun">node engine/status.js</div>'
+    + '<details><summary>show the superseded transcript anyway</summary>'
+    + '<div class="inner"><pre>' + E(B.status_raw) + '</pre></div></details></div></div>');
+} else if (B.status_raw){
   out.push('<div class="div"><div class="divhd"><h2 style="color:var(--dim);font-size:18px">THE RAW OUTPUT</h2>'
     + '<span class="q">everything above, unformatted, exactly as the terminal prints it</span></div>'
     + '<details open><summary>node engine/status.js &mdash; captured verbatim when this board was built</summary>'

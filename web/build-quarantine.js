@@ -346,8 +346,19 @@ if (require.main === module) {
   const payload = buildQuarantine(withhold, gate, cls.rows, null, cls.play);
   const text = emit(payload);
 
-  const stamp = (a, b) => a.replace(/"generated": "[^"]*"/, '"generated": "X"') ===
-                          b.replace(/"generated": "[^"]*"/, '"generated": "X"');
+  /* LINE ENDINGS ARE NOT DRIFT, AND TREATING THEM AS DRIFT MADE THIS GUARD CRY WOLF.
+     This repo is checked out with `core.autocrlf=true`, so the working copy of web/stadium.html is
+     CRLF; this builder writes LF. The moment anybody hand-edits the page for any reason — a cabinet's
+     caption, a colour — the editor rewrites the file in its native CRLF, the generated block comes
+     back with CRs, and --check reported the WITHHOLDING as stale when not one character of it had
+     changed. Observed 2026-08-22: the block was byte-identical to web/quarantine-data.js once CRs were
+     stripped, and --check called it drift anyway.
+     That matters more here than in most guards, because this one is the site's quarantine. CLAUDE.md
+     (#148): an over-firing gate is the one people learn to ignore, and the thing this one guards is
+     whether the front door is telling a visitor the simulator is clean. Git normalises to LF in the
+     index, so the two forms are the same commit; the comparison now says so. */
+  const norm = s => s.replace(/\r\n/g, '\n').replace(/"generated": "[^"]*"/, '"generated": "X"');
+  const stamp = (a, b) => norm(a) === norm(b);
 
   let bad = 0;
   const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '';

@@ -526,13 +526,43 @@ svg{width:100%;height:auto;display:block}
     if (v === undefined || v === null) return;      /* leave NOT MEASURED standing */
     el.textContent = Number(v).toLocaleString();
   }
+  /* ============ THE BUNDLE THIS PAGE READS FROM IS A SNAPSHOT AND A SNAPSHOT CAN EXPIRE ============
+     WIRING A FIGURE TO A BUNDLE IS NOT THE SAME AS WIRING IT TO AN ARTIFACT, and this page learned the
+     difference the expensive way. Both boxes below were deliberately moved off typed literals and onto
+     web/status-data.js so they could not drift — and then the bundle itself went eleven days without a
+     rebuild while data/mechanics-census.json went 423 -> 623 and data/interaction-matrix.json went
+     1624/1643 -> 1642/1642. The page rendered the old pair the whole time, in green, with the artifact
+     path printed underneath it, which is worse than a typed number because the citation vouches for it.
+
+     So the read is now conditional on the bundle not being known-superseded. This is a DECLARATION with
+     a date, not a measurement — it carries no figure, and web/figure-audit.js masks ISO dates before it
+     extracts figures for exactly that reason. It self-clears: `node web/build-status.js` stamps a newer
+     built_at and both boxes fill again with no edit here. The same stamp and the same reasoning live in
+     web/status.html; when one moves, move the other.
+
+     WHEN IT IS SUPERSEDED THE PLACEHOLDER DOES NOT STAY AT "NOT MEASURED", because that would be false —
+     somebody measured it, and the artifact says so today. It says SUPERSEDED and names the rebuild. */
+  var SUPERSEDED_ON = '2026-08-22';
+  var BOARD = window.ABRA_BOARD;
+  var BOARD_SUPERSEDED = !BOARD || !BOARD.built_at || String(BOARD.built_at).slice(0, 10) < SUPERSEDED_ON;
+  if (BOARD_SUPERSEDED) {
+    [['mCensus', 'data/mechanics-census.json'], ['mMatrix', 'data/interaction-matrix.json']].forEach(function(p){
+      var el = document.getElementById(p[0]);
+      if (!el) return;
+      el.textContent = 'SUPERSEDED — web/status-data.js is older than ' + p[1];
+      el.setAttribute('fill', '#9a2b2b');
+      var sib = el.nextElementSibling;
+      if (sib) sib.textContent = 'the artifact has moved; rebuild: node web/build-status.js';
+    });
+  }
+
   put('nUsable', window.LIVE && window.LIVE.usable);
   /* The mechanics census, as a sentence rather than three numbers, because the interesting part is
      the RATIO and the gap. If any of the three scalars is missing the whole line stays NOT
      MEASURED — a half-filled sentence would read as a smaller gap than there is. */
   (function(){
     var E = window.ABRA_BOARD && window.ABRA_BOARD.engine, el = document.getElementById('mCensus');
-    if (!el || !E) return;
+    if (!el || !E || BOARD_SUPERSEDED) return;   /* the SUPERSEDED text set above stands */
     var live = E.live && E.live.v, probed = E.probed && E.probed.v, miss = E.missing_n && E.missing_n.v;
     if (typeof live !== 'number' || typeof probed !== 'number' || typeof miss !== 'number') return;
     el.textContent = live + ' of ' + probed + ' mechanics probes live — ' + miss + ' declared and not firing';
@@ -542,7 +572,7 @@ svg{width:100%;height:auto;display:block}
      percentage is not computed here — see the comment beside the box. */
   (function(){
     var E = window.ABRA_BOARD && window.ABRA_BOARD.engine, el = document.getElementById('mMatrix');
-    if (!el || !E) return;
+    if (!el || !E || BOARD_SUPERSEDED) return;   /* the SUPERSEDED text set above stands */
     var ag = E.matrix_agree && E.matrix_agree.v, lv = E.matrix_live && E.matrix_live.v;
     if (typeof ag !== 'number' || typeof lv !== 'number') return;
     el.textContent = 'medicham2 agrees on ' + ag.toLocaleString() + ' of ' + lv.toLocaleString() + ' live pairs';

@@ -10,6 +10,37 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.64.0] — 2026-08-22
+
+### Fixed
+- **The site's quarantine guard was crying wolf on line endings, and that guard is the front door.**
+  This repo is checked out with `core.autocrlf=true`, so the working copy of `web/stadium.html` is CRLF
+  while `web/build-quarantine.js` writes LF. Any hand-edit to the page for any reason — a caption, a
+  colour — brought the generated block back with CRs, and `--check` reported the WITHHOLDING as stale
+  when it was byte-identical once CRs were stripped. Observed 2026-08-22. The comparison normalises
+  line endings now. It matters more here than in most guards because what this one protects is whether
+  a visitor is told the simulator is clean, and CLAUDE.md #148 is explicit that an over-firing gate is
+  the one people learn to ignore.
+- **Two figures on `web/models.html` were wired to a BUNDLE rather than to an artifact**, which is not
+  the same thing: a bundle is a snapshot and a snapshot can expire. Documented in place, because moving
+  a number off a typed literal and onto a stale snapshot looks like a fix and is not one.
+- **`web/index.html` no longer states a damage-validation worst case that the artifact contradicts.**
+  It read *worst 3%*; `data/damage-validation.json` `result.worst_pct` says the worst case is 16-roll
+  quantisation rounding rather than a formula error. The page now cites the artifact and the field.
+
+### Notes
+- The site currently holds back **33 of 33 page figures** with the gate CLOSED at 6 of 8 clauses, and
+  the withheld root is `engine/medicham2-browser.js` plus the 83 files that reach it — a room that
+  LOADS one of those computes its figures live and is withheld whole. That is the correct behaviour,
+  not a regression.
+- **The sweep is PARTIAL and is recorded as partial.** Will's direction was *"no need to update web we
+  just want medicham done"*, so the audit was stopped part-way through `web/models.html` and no further
+  web work is planned. What is here is what was already finished and verified; the remaining files under
+  `web/` were not swept for hardcoded figures. A partial audit labelled partial is useful; one that
+  reads complete is not.
+
+---
+
 ## [5.63.0] — 2026-08-22
 
 ### Fixed
