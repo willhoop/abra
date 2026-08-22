@@ -64,6 +64,47 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.57.0] — 2026-08-21
+
+### Fixed
+- **#290 AND #311 BOTH CLOSED — THE TURN-ORDER PROBE POPULATION IS EMPTY.** The corpus re-runs the
+  bracket fix owed are taken, on release `b240433ae8af`, with the census pin (`2cab3179f5fc`) and the
+  frozen team pool **unchanged from the pre-fix run**, so the engine is the only variable. `node
+  engine/quarantine.js --order-probe` now **exits 0**: *"clean: 3 move-vs-move ordering pair(s) probed
+  over 961 games and every one was either speed-tied or at different priority."* Real disagreements —
+  not speed-tied AND at identical priority — went **9 of 25 (2026-08-18) → 4 (pre-fix) → 0**.
+- **The cause was never what #290 first suspected.** Not the Speed arithmetic, and not the retired
+  speed-tie artefact it spent its life ruling out: a pair only looked "identical priority" because our
+  side never re-derived the bracket. Fixing #311 emptied #290 without #290 being touched.
+
+### Changed
+- **THE GATE'S DEFECT CLAUSE FELL 5 → 3 RED ROWS** (#218, #241, #258 remain). Whole-game moved
+  **144 → 142 of 961 = 14.8%**; mechanics unchanged at 28 of 35.
+- **THE ENGINE PRIME DIRECTIVE HOLDS ACROSS THE FIX.** Census regenerated after the bracket change:
+  **623/623 probed mechanics live, 0 missing** — identical to pre-fix. Coverage did not drop.
+
+### Notes
+- **THE HONEST NUMBER IS SMALL AND IS NOT DRESSED UP: the `ordering` CLASS MOVED ONLY 31 → 29 GAMES**
+  on a paired sample of the same 961. The probe population #311 targeted is now empty; **the class is
+  not**, and the instrument says why itself — *"the probe covers move-vs-move pairs only; it is a FLOOR
+  on the ordering class, never a count of it."* **The remaining 29 have a different cause, and they want
+  their own row rather than #311 being widened to cover them.** A fix that empties its own probe and
+  moves the class by two is a real fix with a narrow blast radius, and reporting it as more than that
+  would be the failure this project keeps writing rules about.
+- Whole-game divergence is **147 raw / 142 after declared exclusions**, planted proof green. Class
+  ranking now: `event missing from medicham2` 55, `ordering` 29, `drag: a different body` 22,
+  `unrelated event mismatch` 16, `-damage field 3` 7, `extra event emitted` 7, `-boost field 3` 6.
+  **The largest class is untouched by any of this work and is where the next grind goes.**
+- Two must-read-zero lines remain non-zero and unchanged by the fix: `switch lookups that MISSED:
+  medicham 39, showdown 0` (#301) and `MEDFAILS.traceBodyOffField = 4`.
+- `register_reality` graded #311 `STALE ROW` the moment its instrument went green while the row still
+  asserted breakage — correctly, since the row was being held open only for these re-runs. Closing it
+  on the completed re-runs took `stale_rows` back to 0. **The register catching its own row going stale
+  within minutes is the mechanism working**, and is the same check that caught a bad `VERIFIED BY`
+  earlier today.
+
+---
+
 ## [5.56.0] — 2026-08-21
 
 ### Fixed
