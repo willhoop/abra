@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-22T05:27:21.520Z",
+  "generated": "2026-08-22T06:33:28.374Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 286,
-    "open": 152,
-    "closed": 134,
-    "open_asserting_breakage": 13,
+    "register_rows": 292,
+    "open": 157,
+    "closed": 135,
+    "open_asserting_breakage": 16,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -650,7 +650,7 @@
       "saysBroken": false,
       "uses": 0,
       "title": "THREE FORMES HAVE NO BODY TO BECOME, AND IT IS A DATA GAP RATHER THAN AN ENGINE ONE. `data/engine-data.js` carries no ro",
-      "full": "three formes have no body to become, and it is a data gap rather than an engine one. `data/engine-data.js` carries no row for `mimikyu-busted`, `morpeko-hangry` or `castform-sunny/rainy/snowy`, so disguise, hunger switch and forecast cannot be asserted at all — there is no target forme to compare against. the new forme instrument prints this on every run and never as a pass, which is the correct handling of an absence (an unprinted gap reads exactly like an agreeing one). `engine/engine-data.js` was not regenerated — a previous agent hit the same wall wiring `formefollowsweather` and it is explicitly not to be rebuilt. and the sprint notes' table of nine forme-changers is wrong for this regulation: derived from `dex.forformat`, exactly five `formechange(`-calling abilities have a legal carrier. ice face, shields down, schooling, power construct, zen mode, gulp missile, flower gift and tera shift have none, and mimicry changes type, not forme. `refusescopy` holds ten members, not the 34/37 the spec quotes — that count predates the carrier toss and is stale"
+      "full": "three formes have no body to become, and it is a data gap rather than an engine one. `data/engine-data.js` carries no row for `mimikyu-busted`, `morpeko-hangry` or `castform-sunny/rainy/snowy`, so disguise, hunger switch and forecast cannot be asserted at all — there is no target forme to compare against. the new forme instrument prints this on every run and never as a pass, which is the correct handling of an absence (an unprinted gap reads exactly like an agreeing one). `engine/engine-data.js` was not regenerated — a previous agent hit the same wall wiring `formefollowsweather` and it is explicitly not to be rebuilt. and the sprint notes' table of nine forme-changers is wrong for this regulation: derived from `dex.forformat`, exactly five `formechange(`-calling abilities have a legal carrier. ice face, shields down, schooling, power construct, zen mode, gulp missile, flower gift and tera shift have none, and mimicry changes type, not forme. `refusescopy` holds ten members, not the 34/37 the spec quotes — that count predates the carrier toss and is stale. the five rows landed 2026-08-22 (engine) and the instrument moved from 5 uncoverable to 0: `disguise` and `hungerswitch` now agree with the authority on all four assertions, `forecast` is declared known-open on a1 alone. every field derived from `dex.forformat` and spliced in beside its base row by brace-matching — not a regeneration; the field-by-field diff reads `rows lost 0 | rows changed 0 | rows added 5`. the builder that owns these rows skipped them for a reason its own comment says should not apply: `merge_mega_into_engine.js`'s `addableforme` gates on `bodydiffers` (base stats only) while its comment claims *“a forme whose stats and types match its base needs no row”* — castform-sunny/rainy/snowy differ in type and the predicate never looks. three of the five rows are inert to the simulator and that is measured, not assumed: against a control release with the rows excised, `disguise` moves `formerenamednorow` → `formeswapped` while `hungerswitch` (rename branch first, deliberately) and `forecast` (`syncweatherformes` never calls `formeswap`) are byte-identical. a fourth assertion a4 — the type line was added because castform's formes move no stat and a1/a2/a3 are blind to it; shown red by its own plant with no leak. remaining: a1 for forecast — `syncweatherformes` can become a `formeswap` now the rows exist, which is an edit to `engine/medicham2-browser.js`. full account: `docs/_reports/2026-08-22-formes.md`"
     },
     {
       "n": 205,
@@ -1094,6 +1094,51 @@
       "full": "kingambit announces the end of its fallen counter and this engine does not — 5 games, 31.4% of real games, and it is pure commentary. filed 2026-08-21, not fixed. `|-end|p2b: kingambit|fallenundefined|[silent]` fires on every switch-out of a supreme overlord carrier (mainline `data/abilities.ts:4732`, not overridden by `/data/mods/champions/`; the literal `fallenundefined` is the authority own quirk — `onend` runs unconditionally while `effectstate.fallen` is set only once an ally has died). the differential compares it because its `display-flags` rule drops the `[silent]` flag and keeps the line. medicham2 already holds the state correctly — `_fallenstuck`, stamped at `bringin` and frozen for the stay, exactly as the handler freezes `effectstate.fallen` — so emitting the line clears 5 games and changes nothing about the game being played. it outranks every other family in this class on corpus exposure (kingambit is brought in 26,113 of 83,125 stored games) and was deliberately not taken, because the bar is state and not protocol. the decision this row wants is a general one: does this engine mirror announcements that carry no board? answer it once rather than five games at a time"
     },
     {
+      "n": 323,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "CLASS A OF `data/mutation-coverage.json` SAYS \"NOTHING IN THE SIMULATOR IMPLEMENTS THIS FACT\" AND IT IS WRONG ON AT LEAS",
+      "full": "class a of `data/mutation-coverage.json` says \"nothing in the simulator implements this fact\" and it is wrong on at least one row i checked by hand — measured 2026-08-22 on release `6fb9ebd3b704`. the a/b/c/d classifier decides a from exactly two things: no `tags.param/has/withtag/reactorsto` call names the tag, and no name branch names the carrier. it does not look at the other tags on the same carrier, and a sibling tag is a third route it cannot see. `move:leechseed / immunitygate` is graded a with the string *\"nothing in the simulator implements this fact\"*, and the grass immunity is implemented — `medicham2-browser.js:18616` reads `perturnhp.immunetype` and refuses the seed on a grass body. the same shape covers most of the class: `move:lowkick / weightbased` sits beside a read `variablepower {kind:'targetweightkg'}`, `move:acrobatics / readsownitem` beside a read `variablepower {kind:'usernoitem'}`, `move:heatwave / inflictsburn` beside a read `statusinflict`, `move:closecombat / lowersuser` beside a read `statchange`. 31 of the 36 class-a carrier x tag rows carry an armed census probe that proves the mechanic works, which is the artifact telling you the same thing from the other side. the file's own `cannotsee` block says a third route exists; the per-row `defectwhy` contradicts it, and the per-row string is the one that gets read into a report. that is the caption-is-not-a-quarantine failure at row scale. the fix is to the string and to the ranking, not to the rule: a means \"this tag is a second, unread copy of the fact\", never \"this mechanic is missing\", and a sibling-tag column belongs in `defectevidence` beside `namebranchat`"
+    },
+    {
+      "n": 324,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "119 VALUES IN `data/tags.json` ARE READ BY NOTHING, AND THAT — NOT CLASS A — IS WHAT THE MUTATION ARTIFACT HAS BEEN HOLD",
+      "full": "119 values in `data/tags.json` are read by nothing, and that — not class a — is what the mutation artifact has been holding. measured 2026-08-22, release `6fb9ebd3b704`, 198,840 sheet entries. classes b and c of the sweep name a param the artifact carries and the simulator dereferences nowhere: it consumes the tag's membership and substitutes its own number. 130 carrier x tag x param rows, of which 11 are provenance metadata (see #325) and 119 are facts. ranked by share of corpus sheet entries: `move:protect / shieldsuser.{volatile,duration,bypassable}` and `stallcounterchecks.{counter,duration,deletesonfailure}` and `targetclass.{target,mustpressure}` at 67.75%; `move:fakeout / firstturnonly.{menudisable,whileactivemoveactions}` and `targetclass.*` at 12.44%; `item:lifeorb / damagemultall.costsperattack` at 10.69% — the row rediscovered the expensive way on 2026-08-21 after sitting here for sixteen days; `move:suckerpunch / needstargettoattack.needs` 7.11%; `move:flareblitz|wavecrash / recoil.readfrom` 6.42% and 5.74%; `move:matchagotcha / drain.{num,den}` 4.36% and `move:gigadrain / drain.{num,den}` 1.22%; `move:knockoff / readstargetitem.mult = 1.5` 2.65%; `move:lightscreen|reflect / halvesdamage.mult = 0.5` (deliberate and documented — the doubles engine uses 2732/4096); `item:lightclay|damprock / extendsduration.insteadof = 5`; `ability:regenerator / switchouttrigger.heal = 0.333`; `move:infestation / partialtrap.durationrange = [5,6]`. none of these is a behavioural defect on its own — the mutation moved nothing, so the engine's number currently agrees or does not matter — and that is exactly the problem: this is claude.md's *a derived artifact is not a fact until something compares it to its source* at 119 live sites, with no comparison anywhere. life orb is the proof that the failure mode is real rather than theoretical. the unit of work is a comparator, not 119 fixes: something that reads each of these params and asserts the engine's constant equals it, with a declared exception list carrying a reason (light screen's is written down already)"
+    },
+    {
+      "n": 325,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "THE MUTATION BATTERY PERTURBS PROVENANCE FIELDS AND SCORES THE RESULT AS `READ-AND-IGNORED`, WHICH IS PURE NOISE IN THE ",
+      "full": "the mutation battery perturbs provenance fields and scores the result as `read-and-ignored`, which is pure noise in the defect count — measured 2026-08-22. 11 of the 130 shadowed-param rows mutate a field that is not a fact about the game at all: `move:toxic / nevermissesfromusertype.from = \"derived:battleactions.prototype.hitstepaccuracy\"`, `move:feint|phantomforce / breaksprotect.from`, `move:solarbeam|knockoff / conditionalpower.note = \"condition not derivable here -- carried by another tag\"`, `ability:levitate / typeimmunity.via = \"not derivable -- no handler\"`, `ability:earlybird / nameimplementedbysim.{what,cite}`. a `from`/`note`/`cite` field is the tag_dex citation required by the no-typing-from-memory rule; nothing should ever read it, so \"mutating it changed nothing\" carries no information and inflates read-and-ignored by 11. small, but it is the same class of error as counting a corpse's bookkeeping: the denominator has rows in it that cannot be anything else. skip param names in the provenance set the way `nestedparamsskipped` and `nullparamsskipped` are already skipped — counted, not silent"
+    },
+    {
+      "n": 327,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 467,
+      "title": "THREE MECHANICS ARE GENUINELY ABSENT FROM medicham2 AND ALL THREE ARE WORTH LESS THAN 0.3% OF THE CORPUS — MEASURED 2026",
+      "full": "three mechanics are genuinely absent from medicham2 and all three are worth less than 0.3% of the corpus — measured 2026-08-22, filed so they are not re-discovered, not so they are fixed. after hand-reading every class-a row of `data/mutation-coverage.json` that the census cannot prove (5 of 36), exactly three survive as real gaps and one — `move:leechseed / immunitygate` — is a false positive (see #323). what is real: (a) `immunitygate` on `move:trick` — the simulator contains no lookup for the tag and the string `stickyhold` appears nowhere in it, so trick succeeds against sticky hold; sticky hold has 0 uses in 198,840 corpus sheet entries, and `refusesitemloss`, the other tag that would carry it, is also unread. (b) `punishesminimize` on `move:heavyslam` (467 uses) and `move:bodyslam` (215) — neither the tag nor the string `minimize` appears in the simulator, so the never-miss and the x2 into a minimized body are both absent; minimize is 32 sheet entries, 0.016%, and the mechanic only fires against one. (c) `damagemultonrepeat` on `item:metronome` — the escalating `[4096,4915,5734,6553,7372,8192]` table is unread; 27 sheet entries. the carrier's own usage is the wrong ruler here and it is the trap this row exists to name: heavy slam is clicked 467 times, but the mechanic's reach is minimize's 32, not heavy slam's 467. do not schedule these against #324, which is worth two orders of magnitude more"
+    },
+    {
+      "n": 328,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "THE MORPEKO SWITCH DIVERGENCE IS NOT A FORME-DATA GAP AND NOT AN ORDERING ONE — REFUTED WITH A CONTROL, AND THE REAL CAU",
+      "full": "the morpeko switch divergence is not a forme-data gap and not an ordering one — refuted with a control, and the real cause is three defects on one shape. 2026-08-22, engine. #204 was routed on the premise that ten `event missing from medicham2` games name morpeko and that the missing forme rows caused them. three of the 40 cards in `data/divergence-turns.json` mention morpeko and one is the switch case, and it is not a switch order divergence at all: medicham2 emits no line for that slot, which is why the class is `event missing from medicham2`. speed, `comparepriority`, `switchin_order.js` and `data/switchin-order.json` are all irrelevant — those govern the order entry abilities resolve in, not which `|switch|` lines are emitted. refuted: the same board played against two releases identical but for the five forme rows gives byte-identical output. c1, engine — a non-permanent forme change is not reverted when the body leaves the field; measured off the bench, `ours morpeko-hangry` against `the authority morpeko`. showdown's `formechange` takes an `ispermanent` flag, hunger switch passes nothing, `clearvolatile` puts it back. c2, instrument — `game_differential.js` stamps `_switchkey` in `buildpair` (:2213) *precisely* so a rename cannot orphan a body (*“that body can never be switched to again”*), and `freshbodies` (:2362) — what every played game is built from — drops it: `buildpair [\"morpeko\",\"dragonite\",\"espathra\",\"garchomp\"]` against `freshbodies [null,null,null,null]`. the resolver falls to `id(x.name)`, misses, answers `pass`. one fact, two construction paths, one of them fixed. sufficiency proved without editing the file: restamping from `onboundary` one boundary before the ask brings the subject back. c3, a different defect and said so — a mega is a permanent rename, so both engines hold `abomasnow-mega` while the ask still says `abomasnow`; the showdown branch (:3436) matches on `id(q.species.id)` and misses too, and the game throws rather than diverging. restamping does not clear it. over-fire control: the identical board asked as `{sw:'abomasnowmega'}` completes on both engines. nothing was fixed here on purpose — c1 is in `medicham2-browser.js` (owned by the damage-die agent that day) and c2/c3 are in `game_differential.js`, which is not in `sources` and is therefore read live by every run, so editing it moves a file under a measuring agent. full account: `docs/_reports/2026-08-22-formes.md`"
+    },
+    {
       "n": 288,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
@@ -1387,7 +1432,7 @@
     {
       "artifact": "data/interaction-matrix.json",
       "generated": "2026-08-11T22:00:06.336Z",
-      "age_days": 10.3
+      "age_days": 10.4
     }
   ]
 }

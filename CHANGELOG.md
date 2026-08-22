@@ -10,6 +10,67 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.62.0] — 2026-08-22
+
+### Changed
+- **The five stale gate instruments were re-measured on frozen release `603d9a69d5a3`**, census pinned
+  to `80e648f34d56`, team store pinned to `data/team-pool-frozen`. Before this run five of the six
+  failing gate clauses read *MEASURED AGAINST A DIFFERENT ENGINE* and said nothing at all — the roster
+  ran on `96361d523e20`, the whole-game differential on `6a05dd9ad60d`, the mechanics census on
+  `b240433ae8af`, all of them cut before the overnight simulator change. **Every clause now answers on
+  its own merits.** Roster: items **3 FIRED-AND-BOARDS-DIFFER / 0 DID-NOT-FIRE** of 139 tested,
+  abilities **8 / 1** of 125 tested, moves **157 / 0** of 455 tested. Whole-game differential:
+  **121 of 961 = 12.6%** diverge (126 raw, less 5 declared where matching the authority would make this
+  engine LESS correct). Mechanics fire: moves 22, abilities 12, items 2.
+
+### Fixed
+- Nothing in the engine. This release records a MEASUREMENT, and the fixes it points at are owed.
+
+### Notes
+- **THE 157 IS NOT NEWS AND CALLING IT NEWS WOULD HAVE BEEN THE ERROR.** The re-run was reported back as
+  *"much worse than the superseded artifacts said"*, and the artifact half of that is true — the readable
+  roster artifact said **0 DIFFER**. But ROADMAP #319 already carried **157 FIRED-AND-BOARDS-DIFFER / 0
+  DID-NOT-FIRE / 306 FIRED-AND-BOARDS-MATCH**, measured on `b240433ae8af`, explicitly against that same
+  0-DIFFER artifact. So the re-run **reproduces a registered figure on the current release and refutes the
+  artifact**, which is a materially different claim from discovering new breakage. The register was right
+  and the artifact was the lie. Recorded because relaying the agent verdict unchecked would have put a
+  wrong causal story into the record wearing a receipt.
+- **What IS new is the diagnosis, and it is a good one.** Of the 157, **131 are HP-only**, and the
+  direction is SYMMETRIC — 156 leaves under-damaged against 153 over-damaged, median |delta| = 2. A
+  formula error does not look like that; **a damage-roll INDEX error does.** The engine draws a different
+  index out of the sixteen-roll band than the authority, under dice the roster pins on both sides.
+- **AND THE CLEAN DIFFERENTIAL IS STRUCTURALLY BLIND TO IT, WHICH IS WHY IT SURVIVED A GREEN GATE.**
+  `game differential` reads **0 of 6000 at the midpoint, 0/6000 top, 0/6000 bottom** and still PASSES
+  beside a 157-row red. It samples three points of a sixteen-index band; an index error strictly between
+  the corners cannot show up at the corners. A passing clause is not evidence about the interval it never
+  samples.
+- **ROADMAP #299 is answered by the artifact rather than argued.** The whole-game headline was suspected of
+  including 350 void games in its denominator. The artifact now carries the split explicitly:
+  `mid_void` = **2 void, 959 usable, 124 diverged among usable, 12.93% over usable**. Void is 2 games.
+- **The 67 never-fired rows are a HARNESS gap, not an engine one** — all 67 (58 abilities, 9 items) carry
+  the identical declared reason, *the gauntlet never reached its trigger*. Moves: 1 (`struggle`).
+- **The feature-semantics check was NOT restamped, deliberately, and the refusal is the result.** The
+  fixture’s two new scenarios are genuine new coverage and `board.js` is clean — the stamp-era fixture run
+  against both the stamp-era and current `board.js` differs in **0 of 76 columns**. But **11 of the 76 have
+  moved anyway**, ten of them damage-derived, because the damage table itself grew and was rewritten. A
+  restamp would have written that digest into the baseline and silenced a live signal: **a moved damage
+  table means REFIT, not RESTAMP.** `REFIT OWED` now rests on a measured cause instead of a dead instrument.
+- **`data/wire-ladder.json` is STRANDED, not stale.** Provenance offers `node engine/wire_ladder.js` as the
+  remedy; every release the ladder is built from lacks a symbol that generator requires, so the remedy names
+  a command that exits before it plays a game. The figure is withheld permanently rather than re-run. A
+  re-run would not have cleared it in any case: **five of its eight moved inputs are files the run
+  demonstrably never read**, because it stamps a watch-list digest and thereby conflates a drift detector
+  with a provenance declaration.
+- **The provenance ratchet is moving the wrong way and has never once shrunk.** `mtime_only` 90 -> **169**
+  since 2026-08-04, every one of the 36 growths admitted through the `discoveries` escape hatch. As a
+  fraction it is roughly flat because the denominator grew too, and the statement that survives both
+  readings is that **three quarters of a 224-artifact graph is still checked by mtime alone** — the method
+  that cleared the void 7,100-game run as `ok`.
+- **The `/start` skill was refined twice against its own first real use**, including the defect that it told
+  the coordinator HOW to run heavy work and never told it to route the work. Full account in the commits.
+
+---
+
 ## [5.61.0] — 2026-08-22
 
 ### Added

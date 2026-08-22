@@ -2,9 +2,9 @@
   "current": "603d9a69d5a3",
   "cut": "2026-08-22T06:22:09.969Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 2,
-  "latest_cut": "2026-08-22T06:22:11.370Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-22T06:22:11.379Z",
+  "cuts": 3,
+  "latest_cut": "2026-08-22T06:34:13.297Z",
+  "latest_why": "gate re-run 2026-08-22 — the roster, the whole-game differential and the mechanics census were all measured against older bytes; this freezes the tree they will be re-measured on",
+  "pointer_written": "2026-08-22T06:34:13.308Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
