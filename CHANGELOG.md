@@ -10,7 +10,7 @@ silently rewritten; what changed and why is stated.
 
 ---
 
-## [5.57.0] — 2026-08-21
+## [5.58.0] — 2026-08-22
 
 ### Fixed
 - **THE ENTRY TRANSFORM COPIED A BODY AND NEVER ANNOUNCED IT (ROADMAP #320).** `event missing from
@@ -71,6 +71,68 @@ silently rewritten; what changed and why is stated.
   written. This pass's delta is exactly **zero**, measured against `git show HEAD:` (273 before, 273
   after).
 
+### Notes — the paired re-run that measured this fix
+- **THE CORPUS MOVED BY THIRTEEN.** Release `6a05dd9ad60d`, census pin `2cab3179f5fc`, frozen team
+  pool — the same 961 games and the same pins as the run before it, so the engine is the only
+  variable: `event missing from medicham2` **55 → 42**, total diverged **147 → 133**, rate
+  **15.3% → 13.8%**. Against a predicted ~10. The extra three are games that had been parting ON the
+  missing line and now get further before parting on something else — an absent line shifted every
+  subsequent line, so several games were failing later for a reason that was never their own.
+- **RE-DERIVED CLASS RANKING:** 42 event missing, **29 ordering**, 24 drag, 13 unrelated event
+  mismatch, 9 extra event emitted, 6 `-boost field 3`, 5 `-damage field 3`. `event missing` is still
+  numerically first but is a 50-cause long tail; **`ordering` is 29 games of one shape and is now the
+  largest coherent target.** `drag` reads 24 against 22 — re-classification as games survive longer,
+  not growth in the cause, and it is said rather than absorbed.
+- **WHAT `ordering` IS NOT IS MOST OF WHAT IS KNOWN ABOUT IT.** Not the retired speed-tie artefact,
+  and no longer the frozen bracket: `--order-probe` real disagreements went **9 of 25 → 4 → 0** while
+  the class moved only **31 → 29**. The survivors have an unnamed cause and the probe is blind to it
+  by construction — *"move-vs-move pairs only; a FLOOR on the ordering class, never a count of it."*
+  The families it cannot see — a move against a switch, a mega, an item or ability activation, a
+  residual, a replacement — are where nobody has looked.
+
+---
+
+## [5.57.0] — 2026-08-21
+
+### Fixed
+- **#290 AND #311 BOTH CLOSED — THE TURN-ORDER PROBE POPULATION IS EMPTY.** The corpus re-runs the
+  bracket fix owed are taken, on release `b240433ae8af`, with the census pin (`2cab3179f5fc`) and the
+  frozen team pool **unchanged from the pre-fix run**, so the engine is the only variable. `node
+  engine/quarantine.js --order-probe` now **exits 0**: *"clean: 3 move-vs-move ordering pair(s) probed
+  over 961 games and every one was either speed-tied or at different priority."* Real disagreements —
+  not speed-tied AND at identical priority — went **9 of 25 (2026-08-18) → 4 (pre-fix) → 0**.
+- **The cause was never what #290 first suspected.** Not the Speed arithmetic, and not the retired
+  speed-tie artefact it spent its life ruling out: a pair only looked "identical priority" because our
+  side never re-derived the bracket. Fixing #311 emptied #290 without #290 being touched.
+
+### Changed
+- **THE GATE'S DEFECT CLAUSE FELL 5 → 3 RED ROWS** (#218, #241, #258 remain). Whole-game moved
+  **144 → 142 of 961 = 14.8%**; mechanics unchanged at 28 of 35.
+- **THE ENGINE PRIME DIRECTIVE HOLDS ACROSS THE FIX.** Census regenerated after the bracket change:
+  **623/623 probed mechanics live, 0 missing** — identical to pre-fix. Coverage did not drop.
+
+### Notes
+- **THE HONEST NUMBER IS SMALL AND IS NOT DRESSED UP: the `ordering` CLASS MOVED ONLY 31 → 29 GAMES**
+  on a paired sample of the same 961. The probe population #311 targeted is now empty; **the class is
+  not**, and the instrument says why itself — *"the probe covers move-vs-move pairs only; it is a FLOOR
+  on the ordering class, never a count of it."* **The remaining 29 have a different cause, and they want
+  their own row rather than #311 being widened to cover them.** A fix that empties its own probe and
+  moves the class by two is a real fix with a narrow blast radius, and reporting it as more than that
+  would be the failure this project keeps writing rules about.
+- Whole-game divergence is **147 raw / 142 after declared exclusions**, planted proof green. Class
+  ranking now: `event missing from medicham2` 55, `ordering` 29, `drag: a different body` 22,
+  `unrelated event mismatch` 16, `-damage field 3` 7, `extra event emitted` 7, `-boost field 3` 6.
+  **The largest class is untouched by any of this work and is where the next grind goes.**
+- Two must-read-zero lines remain non-zero and unchanged by the fix: `switch lookups that MISSED:
+  medicham 39, showdown 0` (#301) and `MEDFAILS.traceBodyOffField = 4`.
+- `register_reality` graded #311 `STALE ROW` the moment its instrument went green while the row still
+  asserted breakage — correctly, since the row was being held open only for these re-runs. Closing it
+  on the completed re-runs took `stale_rows` back to 0. **The register catching its own row going stale
+  within minutes is the mechanism working**, and is the same check that caught a bad `VERIFIED BY`
+  earlier today.
+
+---
+
 ## [5.56.1] — 2026-08-21
 
 ### Added
@@ -122,47 +184,6 @@ silently rewritten; what changed and why is stated.
   simulator branch. It appeared in **all three arms including both controls**, so it could not have
   flipped that verdict. **8 corpus sheets.** Filed, not fixed — the cast was changed to a body with an
   inert ability so `stateDiv === null` could be asserted rather than excused.
-
----
-
-## [5.57.0] — 2026-08-21
-
-### Fixed
-- **#290 AND #311 BOTH CLOSED — THE TURN-ORDER PROBE POPULATION IS EMPTY.** The corpus re-runs the
-  bracket fix owed are taken, on release `b240433ae8af`, with the census pin (`2cab3179f5fc`) and the
-  frozen team pool **unchanged from the pre-fix run**, so the engine is the only variable. `node
-  engine/quarantine.js --order-probe` now **exits 0**: *"clean: 3 move-vs-move ordering pair(s) probed
-  over 961 games and every one was either speed-tied or at different priority."* Real disagreements —
-  not speed-tied AND at identical priority — went **9 of 25 (2026-08-18) → 4 (pre-fix) → 0**.
-- **The cause was never what #290 first suspected.** Not the Speed arithmetic, and not the retired
-  speed-tie artefact it spent its life ruling out: a pair only looked "identical priority" because our
-  side never re-derived the bracket. Fixing #311 emptied #290 without #290 being touched.
-
-### Changed
-- **THE GATE'S DEFECT CLAUSE FELL 5 → 3 RED ROWS** (#218, #241, #258 remain). Whole-game moved
-  **144 → 142 of 961 = 14.8%**; mechanics unchanged at 28 of 35.
-- **THE ENGINE PRIME DIRECTIVE HOLDS ACROSS THE FIX.** Census regenerated after the bracket change:
-  **623/623 probed mechanics live, 0 missing** — identical to pre-fix. Coverage did not drop.
-
-### Notes
-- **THE HONEST NUMBER IS SMALL AND IS NOT DRESSED UP: the `ordering` CLASS MOVED ONLY 31 → 29 GAMES**
-  on a paired sample of the same 961. The probe population #311 targeted is now empty; **the class is
-  not**, and the instrument says why itself — *"the probe covers move-vs-move pairs only; it is a FLOOR
-  on the ordering class, never a count of it."* **The remaining 29 have a different cause, and they want
-  their own row rather than #311 being widened to cover them.** A fix that empties its own probe and
-  moves the class by two is a real fix with a narrow blast radius, and reporting it as more than that
-  would be the failure this project keeps writing rules about.
-- Whole-game divergence is **147 raw / 142 after declared exclusions**, planted proof green. Class
-  ranking now: `event missing from medicham2` 55, `ordering` 29, `drag: a different body` 22,
-  `unrelated event mismatch` 16, `-damage field 3` 7, `extra event emitted` 7, `-boost field 3` 6.
-  **The largest class is untouched by any of this work and is where the next grind goes.**
-- Two must-read-zero lines remain non-zero and unchanged by the fix: `switch lookups that MISSED:
-  medicham 39, showdown 0` (#301) and `MEDFAILS.traceBodyOffField = 4`.
-- `register_reality` graded #311 `STALE ROW` the moment its instrument went green while the row still
-  asserted breakage — correctly, since the row was being held open only for these re-runs. Closing it
-  on the completed re-runs took `stale_rows` back to 0. **The register catching its own row going stale
-  within minutes is the mechanism working**, and is the same check that caught a bad `VERIFIED BY`
-  earlier today.
 
 ---
 
@@ -1286,6 +1307,8 @@ silently rewritten; what changed and why is stated.
   `data/all-mechanics-fire.json` ran on release `488fd1bf3f7c` while the tree is `978ca8fe72c9`, so
   `quarantine.js`'s mechanics clause is WITHHELD until it is re-run.
 
+---
+
 ## [5.40.0] — 2026-08-18
 
 ### Fixed
@@ -1415,6 +1438,8 @@ silently rewritten; what changed and why is stated.
 - #300 and #301 are ENGINE's files and were live while this ran, so they are filed and not touched.
   #220 and #273 are likewise untouched by name.
 
+---
+
 ## [5.38.0] — 2026-08-18
 
 ### Fixed
@@ -1509,6 +1534,8 @@ silently rewritten; what changed and why is stated.
   and dropping `same_priority` from the order-probe conjunction each turn named selftest cases red.
   `node engine/quarantine.js --selftest` is 78 cases, 0 failing;
   `node engine/register_reality.js --selftest` is 24 cases, 0 failing.
+
+---
 
 ## [5.37.0] — 2026-08-18
 
@@ -1685,7 +1712,6 @@ silently rewritten; what changed and why is stated.
 
 ---
 
-
 ## [5.34.0] — 2026-08-18
 
 ### Fixed
@@ -1778,6 +1804,8 @@ silently rewritten; what changed and why is stated.
   Protect's 120,124 clicks. Invisible in the top corner because the stall die is pinned
   there; dominant in the middle arm.
 
+---
+
 ## [5.33.0] — 2026-08-17
 
 ### Fixed
@@ -1821,6 +1849,8 @@ silently rewritten; what changed and why is stated.
 - `tests/test-volatile-duration.js` reports 4/4 scenarios differing, and did so before this pass too
   (verified by replaying release `4cbb1e6654c4` with `--engine release`). Every differing cell is an HP
   magnitude, not a counter; it exits 0 and is not a gate clause.
+
+---
 
 ## [5.32.0] — 2026-08-17
 
@@ -1939,6 +1969,8 @@ silently rewritten; what changed and why is stated.
   GREEN while the row's 22 verdicts sit in the baseline, so the instrument's green does not mean the
   row's claim is false.
 
+---
+
 ## [5.30.0] — 2026-08-15
 
 ### Fixed
@@ -1985,6 +2017,8 @@ silently rewritten; what changed and why is stated.
   sentences that existed when the check was added are recorded; anything outside them must be
   repaired or declared DELIBERATE with a reason, and an UNREACHABLE entity may never be DELIBERATE.
   Shown RED on the full laundering attempt.
+
+---
 
 ## [5.29.0] — 2026-08-14
 
@@ -2047,6 +2081,8 @@ silently rewritten; what changed and why is stated.
   19,299 corpus uses, #245's row quoted 6,650, and `data/tags.json` says **6,970**. Three numbers,
   one fact, none derived at read time. It is in `medicham2-browser.js`, which SEARCH may not edit.
 
+---
+
 ## [5.28.0] — 2026-08-14
 
 ### Added
@@ -2099,6 +2135,8 @@ silently rewritten; what changed and why is stated.
   at five turns where the format's only legal carrier says two. Filed rather than fixed: it is the
   live adapter's, and adding the filter alone leaves the table empty and falling back to a bare 3.
 - `engine/medicham2-browser.js`, `engine/magnemite.js` and `engine/mag_bot.js` were not edited.
+
+---
 
 ## [5.27.0] — 2026-08-14
 
@@ -2165,6 +2203,8 @@ silently rewritten; what changed and why is stated.
   MEASURES the simulator rather than consuming it. It is, however, older than
   `engine/medicham2-browser.js` by 43 minutes, so 0-of-6000 describes the 02:36 build.
 
+---
+
 ## [5.26.0] — 2026-08-14
 
 ### Changed
@@ -2189,6 +2229,8 @@ silently rewritten; what changed and why is stated.
   absent, it was dead**: `tests/probe_red_demo.js` pins `alwaysCrit` in four places and is #273, red
   with 31 stale reversals — a mechanic pinned only in an instrument that does not run is not pinned.
   The new probe is in `tests/test-mechanics.js`, which runs.
+
+---
 
 ## [5.25.0] — 2026-08-14
 
@@ -2229,6 +2271,8 @@ silently rewritten; what changed and why is stated.
   `Promise.all` in one process and cannot overlap CPU-bound simulation (`mew_farm`'s header has said
   **"CONC MUST BE 1"** since 2026-07-25); the farm was not used; and `sprt.js --watch` was not used —
   run 1 was decided at 625 games of 2,326 and run 2 at **84 of 880**.
+
+---
 
 ## [5.24.0] — 2026-08-14
 
@@ -2279,6 +2323,8 @@ silently rewritten; what changed and why is stated.
   `condition:` rows, so they cannot appear in that list however wrong their position is.
 - **Reported, not fixed, because it is rendering and not ordering:** `|-sideend|p2: |move: Tailwind`
   has a blank player name where the authority emits `p2: B`.
+
+---
 
 ## [5.23.0] — 2026-08-14
 
@@ -2374,6 +2420,8 @@ silently rewritten; what changed and why is stated.
   with its TRIGGER for the new generator — the only gate this work turned red, and it was fixed rather
   than filed.
 
+---
+
 ## [5.22.0] — 2026-08-14
 
 ### Fixed
@@ -2424,6 +2472,8 @@ silently rewritten; what changed and why is stated.
 - No SPRT was prepared and no leaf value was re-measured: three other agents were editing the tree.
   With the R14 sweep now closed or declared in full, the paired argmax run against a frozen release is
   the next thing SEARCH owes.
+
+---
 
 ## [5.21.0] — 2026-08-14
 
@@ -2509,6 +2559,8 @@ silently rewritten; what changed and why is stated.
 - Living-docs pass is deferred to `docs/MEDICHAM-SPRINT-NOTES.md` under the sprint rule; that file
   carries the full row.
 
+---
+
 ## [5.20.0] — 2026-08-14
 
 ### Fixed
@@ -2567,6 +2619,8 @@ silently rewritten; what changed and why is stated.
 - **The published 22-game figure was not re-measured.** `data/game-differential.json` is a 1,539-game
   run against this 258-pair one; −5 games per corner here is the same order, and that is the whole
   claim.
+
+---
 
 ## [5.19.0] — 2026-08-14
 
@@ -2691,6 +2745,8 @@ silently rewritten; what changed and why is stated.
 - Red and NOT mine: `tests/test-effective-identity.js` (raw-read ratchet, every file in its delta
   belongs to another division) and `tests/test-tag-consumed.js` (`punishesMinimize [STILL DEAD]`).
 
+---
+
 ## [5.17.0] — 2026-08-13
 
 ### Fixed
@@ -2762,6 +2818,8 @@ silently rewritten; what changed and why is stated.
   stashing this change and re-running to an identical 41/2 — and `tests/test-effective-identity.js`
   18/1, whose ten contributing files include none of `board.js`, `rollout_leaf.js` or the new gate.
 
+---
+
 ## [5.16.0] — 2026-08-13
 
 ### Added
@@ -2829,6 +2887,8 @@ silently rewritten; what changed and why is stated.
 - `tests/test-nature-differential.js` is RED on two natured-mega stat lines and it **predates this
   pass**: it fails identically against release `011b91b3749b`, cut before any of this work. Reported,
   not filed.
+
+---
 
 ## [5.15.0] — 2026-08-13
 
@@ -3037,6 +3097,8 @@ silently rewritten; what changed and why is stated.
   one, so any artifact measured on `0c5bb83c5744` or earlier describes an engine that plays one
   interaction differently.
 
+---
+
 ## [5.14.0] — 2026-08-13
 
 ### Fixed
@@ -3097,6 +3159,8 @@ silently rewritten; what changed and why is stated.
   timing movement unattributable; #247 needs the board to remember the fallen count at each
   switch-in, which is upstream of ENGINE.
 
+---
+
 ## [5.13.0] — 2026-08-13
 
 ### Fixed
@@ -3139,6 +3203,8 @@ silently rewritten; what changed and why is stated.
   `_isFoe`-gated; Role Play and Spite reach `kind:'pass'`, which carries no target; Heal Pulse emits a
   second `|-fail|<mover>` on the ordinary full-HP path; Soundproof and Overcoat announce bare.
   ROADMAP #241 part (3) and the attribution case are untouched.
+
+---
 
 ## [5.12.0] — 2026-08-13
 
@@ -3534,6 +3600,8 @@ than pruned from the log or waved through by raising a ratchet twice in one day.
 - The shape prior holds as a rate and not as a headline: RULE reaches band 2 on 14.9% / 16.2% of its
   games against ORDERING's 7.1% / 4.8%, but EMISSION supplies the majority of band-2 games because it is
   the largest bucket. ORDERING is not zero — one game per arm.
+
+---
 
 ## [5.7.0] — 2026-08-11
 
@@ -4645,6 +4713,8 @@ supersedes the first and adds the grounded axis.)*
 - Full working: `docs/MEDICHAM-SPRINT-NOTES.md`. Living-docs pass deferred under the sprint rule
   recorded at the top of that file.
 
+---
+
 ## [3.96.0] — 2026-08-10
 
 ### Fixed
@@ -5065,6 +5135,8 @@ supersedes the first and adds the grounded axis.)*
   branch (`random(min, max+1)`), which the 2-5 family does not take. No verdict rests on it. Filed for
   whoever holds that file.
 
+---
+
 ## [3.89.0] — 2026-08-09
 
 ### Fixed
@@ -5249,6 +5321,8 @@ supersedes the first and adds the grounded axis.)*
   scope for this pass and the sentence is named in `docs/ENGINE.md` rather than left to read as
   current.
 
+---
+
 ## [3.86.0] — 2026-08-09
 
 ### Fixed
@@ -5418,6 +5492,8 @@ supersedes the first and adds the grounded axis.)*
   so it never re-opens an old release. ROADMAP #99's quarantine lift condition does depend on the
   differential, and the differential can now only be run against 5 of the 65 releases.
 
+---
+
 ## [3.83.0] — 2026-08-09
 
 ### Fixed
@@ -5499,6 +5575,8 @@ supersedes the first and adds the grounded axis.)*
 - **`tests/probe_red_demo.js` is RED at 3 of 188**, none of them this wire's: two STALE ROADMAP #81
   WIRE 11 reversals and one genuine `ARM sealsMoves` row whose stripped arm still holds. Named here
   rather than filed.
+
+---
 
 ## [3.82.0] — 2026-08-08
 
@@ -5855,6 +5933,8 @@ supersedes the first and adds the grounded axis.)*
   is 110 written declarations of why each read is correct by construction, and authoring those for
   code I did not walk is how a justification gets laundered.
 
+---
+
 ## [3.77.0] — 2026-08-08
 
 ### Fixed
@@ -5903,6 +5983,8 @@ supersedes the first and adds the grounded axis.)*
 - Misty Terrain's confusion refusal (9 uses) is counted as `MEDFAILS.confusionMistyUnmodelled` rather
   than silently allowed.
 
+---
+
 ## [3.76.3] — 2026-08-08
 
 ### Added
@@ -5942,6 +6024,8 @@ supersedes the first and adds the grounded axis.)*
 - Stage 4 (500 moves) deliberately not started — it needs its own shape-rule set and the agent stopped
   rather than half-build one. That is the correct call and the same judgement it made last round.
 
+---
+
 ## [3.76.2] — 2026-08-08
 
 ### Added
@@ -5965,6 +6049,8 @@ supersedes the first and adds the grounded axis.)*
   Splash, then not Safeguard, then a one-body bring where `buildPair` requires four. This is exactly why
   `tests/roster.js` built a `fixtureAudit` before trusting a single green, and why the roster's own
   `--reds` caught its prose claiming to stage a gate it could not reach.
+
+---
 
 ## [3.76.1] — 2026-08-08
 
@@ -6006,6 +6092,8 @@ supersedes the first and adds the grounded axis.)*
   owed rather than assumed.
 - Stage 4 (500 moves) is NOT started; the agent stopped on context rather than time, which is the right
   call — a half-built arm reporting confidently is the failure this file exists to prevent.
+
+---
 
 ## [3.76.0] — 2026-08-08
 
@@ -6050,6 +6138,8 @@ supersedes the first and adds the grounded axis.)*
 - The harness caught its own author: a multi-line break anchor matched 0 times because the files are
   CRLF, and `patchedSource` REFUSED it rather than skipping.
 
+---
+
 ## [3.75.1] — 2026-08-08
 
 ### Fixed
@@ -6073,6 +6163,8 @@ supersedes the first and adds the grounded axis.)*
   Disguise, Zero to Hero and Hunger Switch is a roster full of renamed bodies.
 - Instrument change, not an engine change: it alters what a measurement SEES, so a run after this is
   not strictly comparable with one before it on any switch-heavy sample.
+
+---
 
 ## [3.75.0] — 2026-08-08
 ### Added
@@ -6245,6 +6337,8 @@ supersedes the first and adds the grounded axis.)*
   the artifact states the pair is identical in stats and types; Ice Face's pair is not, and is refused
   and counted rather than renamed wrongly. That file is downstream of this division.
 
+---
+
 ## [3.73.0] — 2026-08-07
 
 ### Changed
@@ -6296,6 +6390,8 @@ supersedes the first and adds the grounded axis.)*
 - `trace_body_off_field` reads 231 (was 82 earlier today). `tests/test-protocol-trace.js` PART 6 says
   it must read 0; that test is green because it plays its own shorter games, and the 12-turn state-mode
   games reach it.
+
+---
 
 ## [3.72.0] — 2026-08-07
 
@@ -6576,6 +6672,8 @@ supersedes the first and adds the grounded axis.)*
 - **FILED, NOT FIXED:** `engine/status.js` reads `data/wire-ladder.json` and knows nothing about
   `data/state-ladder.json`, so its generated block still reports the protocol ladder alone. `status.js`
   belongs to MEASURE.
+
+---
 
 ## [3.69.0] — 2026-08-07
 
@@ -6998,6 +7096,8 @@ supersedes the first and adds the grounded axis.)*
   `arms_comparable.js` declares — the driver itself and `data/protocol-events.json` — are now digested
   before and after every arm and recorded in the artifact.
 
+---
+
 ## [3.62.2] — 2026-08-07
 
 ### Fixed
@@ -7354,6 +7454,8 @@ supersedes the first and adds the grounded axis.)*
   (3) `data/interaction-matrix.json` is stale against `data/tags.json`, which moved after it was
   published, so the shrink guard correctly refuses a re-publish — a re-run at `--full` on this engine
   reads 1,557 / 1,574 and loses exactly the two "crash damage on a blocked move" rows.
+
+---
 
 ## [3.61.0] — 2026-08-06
 
@@ -7765,6 +7867,8 @@ after `5da0b0d` regenerated it mid-session. `unarmed` 0, `directCall` 0, `hollow
 Differential **1/150**. `test-game-diff.js --all` agrees on all five scripted games and 0 of 40
 generated pairs part. `test-engine-consistency.js` all passed.
 
+---
+
 ## [3.57.1] — 2026-08-06
 
 ### Fixed
@@ -7821,6 +7925,8 @@ Medicine, Steely Spirit and Leppa Berry all hold their counts exactly.
 - Verified read-only: `test-tag-wire` 104 checks pass and the artifact reaches the damage calculation;
   NaN guard clean; conformance ratchet 0 new; silent-failure ratchet 0 new. **The full suite was not
   run** — it regenerates the census and interaction matrix, which the ENGINE agent has open.
+
+---
 
 ## [3.57.0] — 2026-08-06
 
@@ -7983,6 +8089,8 @@ legality check can ever see them, because everything in them is legal.
   the conformance fixes). The remaining five are named in `docs/MEASURE.md`; three sit on the refit
   path, two do not.
 
+---
+
 ## [3.56.0] — 2026-08-06
 
 ### Fixed
@@ -8073,6 +8181,8 @@ same session on Will's open-sheet directive, dropping `games.ots.jsonl` — **41
 That was the right call for the *fit*; nobody traced that `tag_dex.js` reads the same `loadCorpus()`
 and would lose entities by it. **A corpus decision is not local to the model it was made for.**
 
+---
+
 ## [3.55.0] — 2026-08-06
 
 ### Fixed
@@ -8156,6 +8266,8 @@ accepting what an engine ignoring *all* stat stages would print, and `privateWea
   it. Nothing overlapped, but **a `run-all` taken while another agent is writing is not a
   photograph** — the same lesson as the frozen release, one level up.
 
+---
+
 ## [3.54.0] — 2026-08-06
 
 ### Fixed — three real bugs, every one of them under a probe the census graded LIVE
@@ -8209,6 +8321,8 @@ accepting what an engine ignoring *all* stat stages would print, and `privateWea
 - `data/move-effects.js` disagrees with the format dex on four accuracies (crabhammer, makeitrain,
   syrupbomb, clangoroussoul). Corrected locally; the generator is `build/build_browser_data.js` over
   CHOMP's JSON and is still wrong upstream.
+
+---
 
 ## [3.53.0] — 2026-08-06
 
@@ -8290,6 +8404,8 @@ accepting what an engine ignoring *all* stat stages would print, and `privateWea
   1630-cutoff file has Farigiraf running it **99.06%** of the time. It needs no carve-out; it clears
   any threshold on usage alone. That it is unarmed at rank 8 makes the gap worse, not more excusable.
 
+---
+
 ## [3.52.0] — 2026-08-06
 
 ### Fixed
@@ -8356,6 +8472,8 @@ accepting what an engine ignoring *all* stat stages would print, and `privateWea
 - **The new probe was shown RED before it was shown green**, and the red is permanent:
   `tests/probe_red_demo.js` carries a `demoSource` arm whose known-bad comparator replaces the entry
   sort with `sort(() => 0)`. **35 demonstrations, 0 failed.**
+
+---
 
 ## [3.51.0] — 2026-08-06
 
@@ -8447,6 +8565,8 @@ found.**
   files. First question is an ENGINE correctness one — does MEDICHAM order entry abilities by speed
   at all. (#43)
 
+---
+
 ## [3.50.0] — 2026-08-06
 
 ### Taunt did not exist, and the #1 disagreement by volume was not a harness fault
@@ -8522,6 +8642,8 @@ branch was the tenth site and had no check.
   generator gives both sides Alakazam); `voltswitch -> lightningrod` is still STAGED TWICE under one
   key; `refusesStatusMoves` wants one predicate and has ten call sites.
 
+---
+
 ## [3.49.1] — 2026-08-06
 
 ### The 97 "defect candidates" were triaged. Nought of them is a defect.
@@ -8584,6 +8706,8 @@ could not see a **deliberate override**, and that was the gap.
   49 of the 56 rows have no ARMED census probe, and that is the number that is a defect claim.
 - No engine file was read for behaviour and none was edited. Measured against frozen release
   **`032b4a2979dd`** and stamped with it, while a second ENGINE agent held `medicham2-browser.js` open.
+
+---
 
 ## [3.49.0] — 2026-08-05
 
@@ -8831,6 +8955,8 @@ a Psychic Terrain with a Levitate body the frozen engines return `0` and the liv
   corpus definition changed by a third in the same twenty minutes, so a third run would publish a
   different population under the same headline. Re-run both against a still tree.
 
+---
+
 ## [3.46.0] — 2026-08-05
 
 ### The harness was defending against its own experiment: 379 of 2,300 cases gave the holder Protect
@@ -9064,6 +9190,8 @@ threw 0, unarmed **146 → 145**.
   `{ability, fainted}`, so a Flying-type foe is still over-refused in the FEATURE vector. Changing
   that is a refit edge, which MEASURE owns. The gap is loud rather than silent.
 
+---
+
 ## [3.43.0] — 2026-08-05
 
 ### The interaction matrix now checks its own arithmetic, and it was wrong three ways
@@ -9268,6 +9396,8 @@ contain them** and **86 traceable to nothing at all**; these four were verified 
 Every verdict is unchanged by these corrections. XATU still clears zero and is still the strongest
 model in the project; the damage engine is still validated. Only the numbers move — which is the
 argument for citing an artifact instead of retyping one.
+
+---
 
 ## [3.41.0] — 2026-08-05
 
@@ -9534,6 +9664,8 @@ have all the tags and such."*
   a confident wrong answer first: Protect's 8 PP, Sturdy on the control arm, a fainted body reading as
   zero damage, and an inertness test that deleted its own evidence.
 
+---
+
 ## [3.37.0] — 2026-08-04
 
 ### WOBBUFFET was re-run, the tree moved under it, and the result is VOID — so ABRA now has no exploitability number at all
@@ -9604,6 +9736,8 @@ not a seat or pairing asymmetry biasing every other row. `mew.js`'s side alterna
   the file is current and provenance calls it `ok`, and it is *still* not quotable. **WEB's item.**
 - `docs/MEASURE.md` and `docs/WEB.md` also cite 63.2% and are their divisions' ledgers; flagged, not
   edited.
+
+---
 
 ## [3.36.0] — 2026-08-04
 
@@ -9765,6 +9899,8 @@ weight **0.169 → 0.377**. **Said plainly: both intervals clear zero and the ef
 the 1.87-point split-half floor for an UNPAIRED comparison, and 61.4% is below the 66.92% in-sample
 ceiling for this feature class and the live leaf's 67.97%.** A correctness fix, not a capability
 change. A 1.7% residual remains, 1,613 of 1,625 of it Floette, filed to ENGINE as a dex-data gap.
+
+---
 
 ## [3.34.0] — 2026-08-04
 
@@ -12466,6 +12602,8 @@ Pokémon using base-forme moves. Mechanically valid, but not this format. Regene
 
 Full write-up: `docs/FINDINGS-2026-07-26.md`.
 
+---
+
 ## [3.4.0] — 2026-07-25
 
 ### Fixed — six defects in MEW, every one found by testing the chain before the first large run
@@ -13071,6 +13209,8 @@ mechanism that noticed when the homes disagreed.**
   file and parsed with `eval()`. That is the reason the wrong-artifact fault was possible, and it is
   the top of the remaining list in `ARCHITECTURE.md` §5.
 
+---
+
 ## [2.10.1] — 2026-07-24
 
 ### Changed — every model re-run on the deduplicated store
@@ -13095,6 +13235,8 @@ Re-run on the 7,315 unique games. What survived, and what did not:
   already borderline (the playstyle equilibrium gap, the tech-lift) lost the significance they had
   been credited with.
 - Site data regenerated from the clean store (7,315 games, 48,326 turns, 11 archetypes).
+
+---
 
 ## [2.10.0] — 2026-07-24
 
@@ -13142,6 +13284,8 @@ Re-run on the 7,315 unique games. What survived, and what did not:
   is a per-slot information state that starts as the legal possibility set and collapses on each
   reveal. That is XATU's job, and it is the next thing to build properly.
 
+---
+
 ## [2.9.0] — 2026-07-24
 
 ### Fixed — the extractor never knew mega evolution existed
@@ -13184,6 +13328,8 @@ Re-run on the 7,315 unique games. What survived, and what did not:
   dex (certain where a species has only one) rather than from observation; not done yet.
 - The store still needs a **reparse** before any of the new mega/weather events exist historically.
 
+---
+
 ## [2.8.1] — 2026-07-24
 
 ### Notes — a wrong diagnosis, corrected
@@ -13200,6 +13346,8 @@ Re-run on the 7,315 unique games. What survived, and what did not:
 ### Kept
 - `push-all.bat` stays disarmed (requires the `GO` argument) and now refuses to act on a repo that is
   mid-rebase. That guard is the durable fix and is unrelated to the misdiagnosis.
+
+---
 
 ## [2.8.0] — 2026-07-24
 
@@ -13248,6 +13396,8 @@ Re-run on the 7,315 unique games. What survived, and what did not:
 - Winner-prediction from preview roles is unchanged at the coin (0.6935 vs 0.6931); WAR still beats
   it (0.6867, accuracy 54.4%). Neither headline conclusion moved.
 
+---
+
 ## [2.7.0] — 2026-07-24
 
 ### Changed
@@ -13290,6 +13440,8 @@ Re-run on the 7,315 unique games. What survived, and what did not:
 - The hourly **ingest** workflow no longer fails the run when Showdown rate-limits or serves a bad
   log (`continue-on-error` on the fetch/rebuild steps) — it was emailing a failure notice every hour.
 
+---
+
 ## [2.6.0] — 2026-07-24
 
 ### Added
@@ -13324,6 +13476,8 @@ Re-run on the 7,315 unique games. What survived, and what did not:
 - Still local + (about to) push. Site booth added; white paper / deck / technical docs for the role
   family remain to be written in a dedicated docs pass.
 
+---
+
 ## [2.5.0] — 2026-07-24
 
 ### Added
@@ -13355,6 +13509,8 @@ Re-run on the 7,315 unique games. What survived, and what did not:
   ridge-shrunk and flagged exploratory.
 - White paper / deck / technical docs and the site grid are **not yet** updated for this model — code and
   reports are written and tested locally; the doc + site pass is the next step (flagged, not silently skipped).
+
+---
 
 ## [2.4.0] — 2026-07-23
 
@@ -13488,47 +13644,6 @@ core). Also a strict self-review that reshaped the roadmap.
 
 ---
 
-## [1.0.0] — 2026-07-22
-
-### Added
-- **ABRA is born**, split out from CHOMP as its own project: the Automated Battle Replay Analyzer.
-  CHOMP stays the bring-4/lead-2 engine; ABRA is the meta-analysis brain that feeds it.
-- **Durable, incremental, no-redo ingest** (`engine/durable-ingest.js`): pulls public Champions
-  Reg M-B replays from the Showdown API (paginated, ~200 logs/sec, concurrent), stores every game
-  raw and tagged — both teams' six, brings, leads, observed moves/items/abilities, result, both
-  ratings, and a bot flag. Appends only new games (dedup by id). Tested on 1,501 real ladder games.
-- **Analysis over the store** (`engine/analyze.js`): usage model at any rating cutoff / humans-only,
-  plus a personal split by Showdown username. Writes `data/meta-usage.json` for CHOMP.
-- **`ME` alias list** so a Showdown rename is a one-word edit, never a re-pull.
-- `tests/test-parse.js` — 12 hand-derived checks on the replay extractor (teams, leads, brings,
-  observed set fields, bot flag, rating, date).
-- Governance: LICENSE (MIT), SECURITY.md, CONTRIBUTING.md, .gitignore, CI workflow.
-
-### Validated
-- High-ladder filter (humans, 1300+) reveals real signal distinct from the raw ladder — e.g.
-  Kingambit 62% win, Incineroar 65% — confirming the tag-and-filter design earns its keep.
-
-## [1.1.0] — 2026-07-22
-
-### Changed
-- **Reframed to its true scope.** ABRA is documented as the live-data platform whose purpose is to
-  feed a simulator that models games and teams — a self-improving flywheel (collect → simulate →
-  optimise teams → play with CHOMP → auto-ingest enemy teams → improve). CHOMP is one small early
-  consumer, not the point. White paper §8 states the flywheel and the honest built-vs-roadmap status.
-
-## [1.2.0] — 2026-07-22
-
-### Added
-- **Simulator research white paper** (`docs/ABRA-simulator-whitepaper.md`): an MIT-level treatment of
-  learning a VGC battle simulator from logged replays. Formalises the game (POSG, imperfect info,
-  simultaneous moves), derives three modelling tiers with their estimators and failure modes, frames
-  team optimisation and the self-improving flywheel, and grounds every claim in the 2025 literature
-  (PokéChamp, Metamon, VGC-Bench, ReBeL/Player-of-Games, Sampled/Gumbel MuZero, offline RL). Names the
-  model family in the CHOMP/ABRA tradition — **JOLTEON** (fastest, win-prob),
-  **MEDICHAM** (Rapidash, rollouts), **SLOWKING** (slow deep learned dynamics), **DITTO** (team
-  optimiser) — speed of the Pokémon matches the cost of the model. Folds in CHOMP's pKO threat scoring
-  as JOLTEON's features and MEDICHAM's dynamics (grey-box modelling).
-
 ## [1.6.0] — 2026-07-23
 
 ### Major finding
@@ -13566,6 +13681,8 @@ core). Also a strict self-review that reshaped the roadmap.
   reliably as the docs grow.
 - New docs sewn into the Special Cut: predictability study, SLOWKING white paper + roadmap,
   architecture notes.
+
+---
 
 ## [1.5.0] — 2026-07-23
 
@@ -13615,6 +13732,8 @@ core). Also a strict self-review that reshaped the roadmap.
   (moves/items/EVs) and the opponent's revealed team from the live battle so there's nothing to type
   mid-game; opens in its own tab.
 
+---
+
 ## [1.4.0] — 2026-07-22
 
 ### Added — the model family (the simulator, stages 2–3, now has working v1s)
@@ -13658,6 +13777,8 @@ core). Also a strict self-review that reshaped the roadmap.
   models (MEDICHAM, DITTO), with the tiered vetting (Tier-1 proposes, Tier-2 checks) demonstrated
   end-to-end. Tier-3 depth (SLOWKING) remains roadmap.
 
+---
+
 ## [1.3.0] — 2026-07-22
 
 ### Added
@@ -13673,3 +13794,50 @@ core). Also a strict self-review that reshaped the roadmap.
 - The first training on 1,501 games did **not** beat the baseline; more data (5,000) and a min-sample
   floor were what cleared it. Recorded honestly: this is why the flywheel (more games over time) and
   damage-grounded features (§4.3.1) matter, not species identity alone.
+
+---
+
+## [1.2.0] — 2026-07-22
+
+### Added
+- **Simulator research white paper** (`docs/ABRA-simulator-whitepaper.md`): an MIT-level treatment of
+  learning a VGC battle simulator from logged replays. Formalises the game (POSG, imperfect info,
+  simultaneous moves), derives three modelling tiers with their estimators and failure modes, frames
+  team optimisation and the self-improving flywheel, and grounds every claim in the 2025 literature
+  (PokéChamp, Metamon, VGC-Bench, ReBeL/Player-of-Games, Sampled/Gumbel MuZero, offline RL). Names the
+  model family in the CHOMP/ABRA tradition — **JOLTEON** (fastest, win-prob),
+  **MEDICHAM** (Rapidash, rollouts), **SLOWKING** (slow deep learned dynamics), **DITTO** (team
+  optimiser) — speed of the Pokémon matches the cost of the model. Folds in CHOMP's pKO threat scoring
+  as JOLTEON's features and MEDICHAM's dynamics (grey-box modelling).
+
+---
+
+## [1.1.0] — 2026-07-22
+
+### Changed
+- **Reframed to its true scope.** ABRA is documented as the live-data platform whose purpose is to
+  feed a simulator that models games and teams — a self-improving flywheel (collect → simulate →
+  optimise teams → play with CHOMP → auto-ingest enemy teams → improve). CHOMP is one small early
+  consumer, not the point. White paper §8 states the flywheel and the honest built-vs-roadmap status.
+
+---
+
+## [1.0.0] — 2026-07-22
+
+### Added
+- **ABRA is born**, split out from CHOMP as its own project: the Automated Battle Replay Analyzer.
+  CHOMP stays the bring-4/lead-2 engine; ABRA is the meta-analysis brain that feeds it.
+- **Durable, incremental, no-redo ingest** (`engine/durable-ingest.js`): pulls public Champions
+  Reg M-B replays from the Showdown API (paginated, ~200 logs/sec, concurrent), stores every game
+  raw and tagged — both teams' six, brings, leads, observed moves/items/abilities, result, both
+  ratings, and a bot flag. Appends only new games (dedup by id). Tested on 1,501 real ladder games.
+- **Analysis over the store** (`engine/analyze.js`): usage model at any rating cutoff / humans-only,
+  plus a personal split by Showdown username. Writes `data/meta-usage.json` for CHOMP.
+- **`ME` alias list** so a Showdown rename is a one-word edit, never a re-pull.
+- `tests/test-parse.js` — 12 hand-derived checks on the replay extractor (teams, leads, brings,
+  observed set fields, bot flag, rating, date).
+- Governance: LICENSE (MIT), SECURITY.md, CONTRIBUTING.md, .gitignore, CI workflow.
+
+### Validated
+- High-ladder filter (humans, 1300+) reveals real signal distinct from the raw ladder — e.g.
+  Kingambit 62% win, Incineroar 65% — confirming the tag-and-filter design earns its keep.
