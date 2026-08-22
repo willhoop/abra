@@ -1,14 +1,155 @@
 {
-  "generated": "2026-08-18T03:06:45.947Z",
+  "generated": "2026-08-22T05:59:03.690Z",
   "by": "tests/test-engine-diff.js",
   "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
   "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
   "seed": 20260804,
   "requested": 3000,
   "compared": 3000,
-  "agreed": 3000,
-  "disagreed": 0,
-  "worst": [],
+  "agreed": 2986,
+  "disagreed": 14,
+  "worst": [
+    {
+      "att": "aerodactyl",
+      "mv": "rockslide",
+      "def": "furfrou",
+      "showdown": "48-57",
+      "medicham": "93-111",
+      "rel": 0.9428571428571428,
+      "uses": 22134,
+      "suspect": false
+    },
+    {
+      "att": "garchomp",
+      "mv": "earthquake",
+      "def": "furfrou",
+      "showdown": "72-85",
+      "medicham": "142-152",
+      "rel": 0.8726114649681529,
+      "uses": 12766,
+      "suspect": false
+    },
+    {
+      "att": "aurorus",
+      "mv": "hypervoice",
+      "def": "aggron",
+      "showdown": "18-21",
+      "medicham": "64-76",
+      "rel": 2.58974358974359,
+      "uses": 8106,
+      "suspect": false
+    },
+    {
+      "att": "aurorus",
+      "mv": "hypervoice",
+      "def": "gallade",
+      "showdown": "43-51",
+      "medicham": "76-91",
+      "rel": 0.776595744680851,
+      "uses": 8106,
+      "suspect": false
+    },
+    {
+      "att": "aurorus",
+      "mv": "hypervoice",
+      "def": "tauros",
+      "showdown": "64-76",
+      "medicham": "115-136",
+      "rel": 0.7928571428571428,
+      "uses": 8106,
+      "suspect": false
+    },
+    {
+      "att": "aurorus",
+      "mv": "hypervoice",
+      "def": "roserade",
+      "showdown": "46-55",
+      "medicham": "137-137",
+      "rel": 1.7128712871287128,
+      "uses": 8106,
+      "suspect": false
+    },
+    {
+      "att": "garbodor",
+      "mv": "stompingtantrum",
+      "def": "furfrou",
+      "showdown": "29-35",
+      "medicham": "57-68",
+      "rel": 0.953125,
+      "uses": 5810,
+      "suspect": false
+    },
+    {
+      "att": "scolipede",
+      "mv": "poisonjab",
+      "def": "furfrou",
+      "showdown": "54-64",
+      "medicham": "106-126",
+      "rel": 0.9661016949152542,
+      "uses": 2744,
+      "suspect": false
+    },
+    {
+      "att": "annihilape",
+      "mv": "drainpunch",
+      "def": "furfrou",
+      "showdown": "102-120",
+      "medicham": "152-152",
+      "rel": 0.36936936936936937,
+      "uses": 1507,
+      "suspect": false
+    },
+    {
+      "att": "banette",
+      "mv": "gunkshot",
+      "def": "furfrou",
+      "showdown": "57-68",
+      "medicham": "114-135",
+      "rel": 0.992,
+      "uses": 783,
+      "suspect": false
+    },
+    {
+      "att": "azumarill",
+      "mv": "waterfall",
+      "def": "furfrou",
+      "showdown": "39-46",
+      "medicham": "76-90",
+      "rel": 0.9529411764705882,
+      "uses": 508,
+      "suspect": false
+    },
+    {
+      "att": "arcanine",
+      "mv": "wildcharge",
+      "def": "furfrou",
+      "showdown": "39-46",
+      "medicham": "77-91",
+      "rel": 0.9764705882352941,
+      "uses": 195,
+      "suspect": false
+    },
+    {
+      "att": "mudsdale",
+      "mv": "lashout",
+      "def": "furfrou",
+      "showdown": "39-46",
+      "medicham": "76-90",
+      "rel": 0.9529411764705882,
+      "uses": 101,
+      "suspect": false
+    },
+    {
+      "att": "flapple",
+      "mv": "aerialace",
+      "def": "furfrou",
+      "showdown": "26-31",
+      "medicham": "51-61",
+      "rel": 0.9649122807017544,
+      "uses": 62,
+      "suspect": false
+    }
+  ],
   "plant": null,
   "arms": [
     {
@@ -16,73 +157,346 @@
       "what": "Showdown damage roll index 0 (MAXIMUM) against MEDICHAM's `max`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 3000,
-      "agreed": 3000,
-      "disagreed": 0,
-      "worst": []
+      "agreed": 2986,
+      "disagreed": 14,
+      "worst": [
+        {
+          "att": "aerodactyl",
+          "mv": "rockslide",
+          "def": "furfrou",
+          "showdown": "57",
+          "medicham": "111",
+          "rel": 0.9473684210526315,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "85",
+          "medicham": "152",
+          "rel": 0.788235294117647,
+          "uses": 12766,
+          "suspect": false
+        },
+        {
+          "att": "aurorus",
+          "mv": "hypervoice",
+          "def": "aggron",
+          "showdown": "21",
+          "medicham": "76",
+          "rel": 2.619047619047619,
+          "uses": 8106,
+          "suspect": false
+        },
+        {
+          "att": "aurorus",
+          "mv": "hypervoice",
+          "def": "gallade",
+          "showdown": "51",
+          "medicham": "91",
+          "rel": 0.7843137254901961,
+          "uses": 8106,
+          "suspect": false
+        },
+        {
+          "att": "aurorus",
+          "mv": "hypervoice",
+          "def": "tauros",
+          "showdown": "76",
+          "medicham": "136",
+          "rel": 0.7894736842105263,
+          "uses": 8106,
+          "suspect": false
+        },
+        {
+          "att": "aurorus",
+          "mv": "hypervoice",
+          "def": "roserade",
+          "showdown": "55",
+          "medicham": "137",
+          "rel": 1.490909090909091,
+          "uses": 8106,
+          "suspect": false
+        },
+        {
+          "att": "garbodor",
+          "mv": "stompingtantrum",
+          "def": "furfrou",
+          "showdown": "35",
+          "medicham": "68",
+          "rel": 0.9428571428571428,
+          "uses": 5810,
+          "suspect": false
+        },
+        {
+          "att": "scolipede",
+          "mv": "poisonjab",
+          "def": "furfrou",
+          "showdown": "64",
+          "medicham": "126",
+          "rel": 0.96875,
+          "uses": 2744,
+          "suspect": false
+        },
+        {
+          "att": "annihilape",
+          "mv": "drainpunch",
+          "def": "furfrou",
+          "showdown": "120",
+          "medicham": "152",
+          "rel": 0.26666666666666666,
+          "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "banette",
+          "mv": "gunkshot",
+          "def": "furfrou",
+          "showdown": "68",
+          "medicham": "135",
+          "rel": 0.9852941176470589,
+          "uses": 783,
+          "suspect": false
+        },
+        {
+          "att": "azumarill",
+          "mv": "waterfall",
+          "def": "furfrou",
+          "showdown": "46",
+          "medicham": "90",
+          "rel": 0.9565217391304348,
+          "uses": 508,
+          "suspect": false
+        },
+        {
+          "att": "arcanine",
+          "mv": "wildcharge",
+          "def": "furfrou",
+          "showdown": "46",
+          "medicham": "91",
+          "rel": 0.9782608695652174,
+          "uses": 195,
+          "suspect": false
+        },
+        {
+          "att": "mudsdale",
+          "mv": "lashout",
+          "def": "furfrou",
+          "showdown": "46",
+          "medicham": "90",
+          "rel": 0.9565217391304348,
+          "uses": 101,
+          "suspect": false
+        },
+        {
+          "att": "flapple",
+          "mv": "aerialace",
+          "def": "furfrou",
+          "showdown": "31",
+          "medicham": "61",
+          "rel": 0.967741935483871,
+          "uses": 62,
+          "suspect": false
+        }
+      ]
     },
     {
       "arm": "bottom",
       "what": "Showdown damage roll index 15 (MINIMUM) against MEDICHAM's `min`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 3000,
-      "agreed": 3000,
-      "disagreed": 0,
-      "worst": []
+      "agreed": 2986,
+      "disagreed": 14,
+      "worst": [
+        {
+          "att": "aerodactyl",
+          "mv": "rockslide",
+          "def": "furfrou",
+          "showdown": "48",
+          "medicham": "93",
+          "rel": 0.9375,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "72",
+          "medicham": "142",
+          "rel": 0.9722222222222222,
+          "uses": 12766,
+          "suspect": false
+        },
+        {
+          "att": "aurorus",
+          "mv": "hypervoice",
+          "def": "aggron",
+          "showdown": "18",
+          "medicham": "64",
+          "rel": 2.5555555555555554,
+          "uses": 8106,
+          "suspect": false
+        },
+        {
+          "att": "aurorus",
+          "mv": "hypervoice",
+          "def": "gallade",
+          "showdown": "43",
+          "medicham": "76",
+          "rel": 0.7674418604651163,
+          "uses": 8106,
+          "suspect": false
+        },
+        {
+          "att": "aurorus",
+          "mv": "hypervoice",
+          "def": "tauros",
+          "showdown": "64",
+          "medicham": "115",
+          "rel": 0.796875,
+          "uses": 8106,
+          "suspect": false
+        },
+        {
+          "att": "aurorus",
+          "mv": "hypervoice",
+          "def": "roserade",
+          "showdown": "46",
+          "medicham": "137",
+          "rel": 1.9782608695652173,
+          "uses": 8106,
+          "suspect": false
+        },
+        {
+          "att": "garbodor",
+          "mv": "stompingtantrum",
+          "def": "furfrou",
+          "showdown": "29",
+          "medicham": "57",
+          "rel": 0.9655172413793104,
+          "uses": 5810,
+          "suspect": false
+        },
+        {
+          "att": "scolipede",
+          "mv": "poisonjab",
+          "def": "furfrou",
+          "showdown": "54",
+          "medicham": "106",
+          "rel": 0.9629629629629629,
+          "uses": 2744,
+          "suspect": false
+        },
+        {
+          "att": "annihilape",
+          "mv": "drainpunch",
+          "def": "furfrou",
+          "showdown": "102",
+          "medicham": "152",
+          "rel": 0.49019607843137253,
+          "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "banette",
+          "mv": "gunkshot",
+          "def": "furfrou",
+          "showdown": "57",
+          "medicham": "114",
+          "rel": 1,
+          "uses": 783,
+          "suspect": false
+        },
+        {
+          "att": "azumarill",
+          "mv": "waterfall",
+          "def": "furfrou",
+          "showdown": "39",
+          "medicham": "76",
+          "rel": 0.9487179487179487,
+          "uses": 508,
+          "suspect": false
+        },
+        {
+          "att": "arcanine",
+          "mv": "wildcharge",
+          "def": "furfrou",
+          "showdown": "39",
+          "medicham": "77",
+          "rel": 0.9743589743589743,
+          "uses": 195,
+          "suspect": false
+        },
+        {
+          "att": "mudsdale",
+          "mv": "lashout",
+          "def": "furfrou",
+          "showdown": "39",
+          "medicham": "76",
+          "rel": 0.9487179487179487,
+          "uses": 101,
+          "suspect": false
+        },
+        {
+          "att": "flapple",
+          "mv": "aerialace",
+          "def": "furfrou",
+          "showdown": "26",
+          "medicham": "51",
+          "rel": 0.9615384615384616,
+          "uses": 62,
+          "suspect": false
+        }
+      ]
     }
   ],
   "arms_why": "A MIDPOINT CANNOT SEE A RANGE THAT IS WRONG BY THE SAME AMOUNT AT BOTH ENDS. `--plant spread` widens MEDICHAM's range symmetrically and leaves `disagreed` at exactly its unplanted value while both arms light up, which is the demonstration that these two numbers are not restatements of the one above them.",
   "skipped_non_finite": 0,
   "skipped_moves": {},
-  "skipped_multihit": 113,
+  "skipped_multihit": 90,
   "skipped_multihit_moves": {
-    "bulletseed": 6,
-    "populationbomb": 6,
-    "rockblast": 14,
-    "dualwingbeat": 26,
-    "tripleaxel": 22,
-    "dragondarts": 6,
-    "pinmissile": 5,
-    "watershuriken": 10,
-    "scaleshot": 15,
-    "twinbeam": 1,
-    "iciclespear": 2
+    "dualwingbeat": 33,
+    "tripleaxel": 9,
+    "scaleshot": 13,
+    "twinbeam": 5,
+    "watershuriken": 3,
+    "pinmissile": 8,
+    "rockblast": 10,
+    "dragondarts": 2,
+    "iciclespear": 4,
+    "populationbomb": 2,
+    "bulletseed": 1
   },
-  "dropped_by_exception": 54,
+  "dropped_by_exception": 34,
   "dropped_where": {
-    "showdown moveHit Salazzle Heat Wave -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Conkeldurr Mach Punch -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Torkoal Solar Beam -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Mawile Iron Head -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Hatterene Mystical Fire -> Bellibolt: Cannot read properties of null (reading 'name')": 4,
-    "showdown moveHit Spiritomb Struggle -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Quaquaval Close Combat -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Toxicroak Fake Out -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Glimmora Power Gem -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Typhlosion Heat Wave -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Ampharos Flamethrower -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Meganium Solar Beam -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Toucannon Beak Blast -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Annihilape Rage Fist -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Metagross Iron Head -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Camerupt Earthquake -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Mawile Play Rough -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Sharpedo Crunch -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Houndstone Last Respects -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Oranguru Psychic -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Pelipper Hurricane -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Basculegion Liquidation -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Noivern Dark Pulse -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Hydrapple Giga Drain -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Kommo-o Iron Head -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Medicham Bullet Punch -> Bellibolt: Cannot read properties of null (reading 'name')": 2
+    "showdown moveHit Aurorus Ancient Power -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Heliolisk Electroweb -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Quaquaval Wave Crash -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Milotic Icy Wind -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Gourgeist Power Whip -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Wyrdeer Psychic Noise -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Froslass Shadow Ball -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Emboar Wild Charge -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Pidgeot Facade -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Luxray Wild Charge -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Vivillon Air Slash -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Sceptile Leaf Storm -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Palafin Jet Punch -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Glalie Chilling Water -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Basculegion Aqua Jet -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Goodra Muddy Water -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Krookodile Throat Chop -> Bellibolt: Cannot read properties of null (reading 'name')": 2
   },
   "controls": "both leads are really sent out on the Showdown side, so MEDICHAM is given the same switch-in (Intimidate, weather setters) through the engine's own applyEntryEffects/applyIntimidate; and the defender ability's onTryHit is asked directly, because Showdown's moveHit entry point does not run it.",
   "touched": {
-    "intimidate": 121,
-    "weather": 48,
+    "intimidate": 101,
+    "weather": 55,
     "absorbMon": 187,
-    "absorbFired": 10,
-    "bpCallback": 80
+    "absorbFired": 12,
+    "bpCallback": 75
   },
   "NOT_PUBLISHED": {
     "why": "this run's compared=3000 is smaller than the published 6000",

@@ -10,6 +10,111 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.61.0] — 2026-08-22
+
+### Added
+- **`data/engine-data.js` gained the five battle-forme rows it never had** — `mimikyu-busted`,
+  `morpeko-hangry`, `castform-sunny`, `castform-rainy`, `castform-snowy` (ROADMAP #204). Every field
+  DERIVED from `Dex.forFormat('gen9championsvgc2026regmb')` and spliced in beside its base row by
+  brace-matching, so the diff is five insertions and nothing else: `rows lost 0 | rows changed 0 |
+  rows added 5`, `mon FIELD differences on pre-existing rows: 0`, mons `317 -> 322`, and zero keys
+  that normalise alike either before or after. `st` is the base row's level-50 line and that is legal
+  only because `bs` is **asserted** byte-identical to the base first. **`data/engine-data.js` is a
+  frozen release SOURCE — every release cut from now on contains these rows.**
+- **`tests/test-switch-back-renamed.js`** — a new instrument asking whether a body medicham2 renamed
+  mid-battle can be switched back in. Subject and control on the same board, same turn, same ask.
+- **A fourth assertion in `tests/test-forme-assert.js`: A4, the TYPE line.** Castform's three formes
+  move no stat and only the type, so A1/A2/A3 were structurally blind to them. Shown red by its own
+  plant with no leak into the other three.
+
+### Changed
+- **`tests/test-forme-assert.js` moved from 5 UNCOVERABLE to 0**, and gained rows for `disguise`,
+  `hungerswitch` and `forecast`. Disguise and Hunger Switch AGREE with the authority on all four
+  assertions; Forecast is DECLARED KNOWN-OPEN on A1 alone (`syncWeatherFormes` applies the right TYPE
+  and does not move the species label — deliberate, counted as `formeWeatherNameUnchanged`).
+
+### Notes
+- **THREE OF THE FIVE ROWS ARE INERT TO THE SIMULATOR, AND THAT IS MEASURED RATHER THAN ASSUMED.**
+  Against a control release with the rows excised, `disguise` moves `formeRenamedNoRow` ->
+  `formeSwapped`; `hungerswitch` (rename branch first, deliberately) and `forecast`
+  (`syncWeatherFormes` never calls `formeSwap`) are byte-identical. The rows still close the `hasRow`
+  gate that made three abilities unassertable.
+- **THE BUILDER THAT OWNS THESE ROWS SKIPPED THEM FOR A REASON ITS OWN COMMENT SAYS SHOULD NOT
+  APPLY.** `merge_mega_into_engine.js`'s `addableForme` gates on base stats alone while its comment
+  claims it checks *"stats and types"*; Castform's formes differ in TYPE.
+- **THE MORPEKO DIVERGENCE LINK IS REFUTED (ROADMAP #328).** The card is not a switch-ORDER
+  divergence — medicham2 emits no line at all for that slot — and the same board played against both
+  releases is byte-identical. Real causes: a non-permanent forme change that is not reverted on
+  switch-out (`medicham2-browser.js`), and `game_differential.js`'s `freshBodies` dropping the
+  `_switchKey` stamp `buildPair` writes. Neither was fixed here: the first file was owned by another
+  agent and the second is read LIVE by every run, so editing it moves a file under a measuring agent.
+- **`engine/artifact_audit.js` went from exit 1 to exit 0 and the clear is worth nothing** — its
+  staleness clause flipped because this pass WROTE `engine-data.js`. The audit prints that caveat
+  itself.
+- **`tests/test-forme-assert.js --reds` is RED and was RED at HEAD** (`A3-spread ... LEAKED into A2`),
+  reproduced against `git show HEAD:` before anything here was believed. Not introduced, not fixed.
+- Full account: `docs/_reports/2026-08-22-formes.md`.
+
+## [5.60.0] — 2026-08-22
+
+### Changed
+- **`data/mutation-coverage.json` RE-RUN AFTER SIXTEEN DAYS, ON A FRESHLY CUT RELEASE
+  `6fb9ebd3b704`, AND THE HEADLINE IT WAS QUOTED FOR IS RETRACTED.** The file was being read as
+  *"163 class-A rows — tag never read"*. Class A is now **148 operators over 36 carrier x tag rows**,
+  and it is **not a defect list**. 31 of the 36 rows carry an ARMED census probe that PROVES the
+  mechanic works; the classifier decides A from tag lookups and carrier NAME branches only and cannot
+  see a SIBLING tag carrying the same fact. Hand-verified counterexample: `move:leechseed /
+  immunityGate` is graded A with *"Nothing in the simulator implements this fact"* while
+  `medicham2-browser.js:18616` refuses the seed on a Grass body through `perTurnHP.immuneType`.
+  ROADMAP #323.
+- **The before/after is reported per operator key, not as a delta, because the two counts are not
+  comparable.** The tag corpus grew 182 -> 292, moving the battery scope `620f24df16ff` ->
+  `c5c9acf2cc9d`; the ratchet correctly declined the comparison and recorded a new ceiling. Of the 163
+  old class-A operators: 10 NOW-LIVE (Taunt, Knock Off `failsIfNone`, Substitute, Poltergeist, Pollen
+  Puff, Shed Tail), 28 reclassified to B/C/D, 11 UNREACHED-BY-THIS-BATTERY, 3 downgraded, 6 no longer
+  emitted, **105 still class A**; 43 of the current 148 are new rows the old battery never had.
+
+### Fixed
+- **THE BATTERY'S HAND-DECIDED CONSTANTS WERE PINNED TO ENGINE TEXT THAT MOVED, AND IT REFUSED TO RUN
+  TWICE.** The triage calibration expected `taunt / forbidsStatusMoves` to grade A — true against
+  release `032b4a2979dd`, false since ENGINE wired `forbidByVolatile()`. The planted `speedMult` stub
+  anchored on `s*=+_sm.mult`, now `_mods.push(+_sm.mult)`. Both refusals were CORRECT and neither
+  could say whether the rule or the case was stale, because a calibration case recorded no build.
+  Every case now carries `decidedAgainst`, the refusal message says to check it first, and the A
+  branch is calibrated on a synthetic tag and carrier that exist nowhere — no lookup and no name
+  branch is the DEFINITION of A, so that case cannot be closed by a fix. There is no genuine class-A
+  exemplar left in this engine to pin, which is itself the news. ROADMAP #326.
+
+### Notes
+- **The vein is class B and C, not class A: 119 values in `data/tags.json` that nothing reads.** The
+  engine consumes tag MEMBERSHIP and substitutes its own number. By share of the 198,840 corpus sheet
+  entries: Protect's `shieldsUser` / `stallCounterChecks` / `targetClass` at 67.75%, Fake Out 12.44%,
+  **Life Orb's `damageMultAll.costsPerAttack` at 10.69%** — the row rediscovered the expensive way on
+  2026-08-21 after sixteen days in this artifact — Sucker Punch 7.11%, Flare Blitz / Wave Crash
+  `recoil.readFrom`, Knock Off `readsTargetItem.mult = 1.5`, `drain.num`/`den` on Matcha Gotcha and
+  Giga Drain. None is a behavioural defect today, which is the point: it is *A DERIVED ARTIFACT IS NOT
+  A FACT UNTIL SOMETHING COMPARES IT TO ITS SOURCE* at 119 live sites with no comparator. The unit of
+  work is one comparator, not 119 fixes. ROADMAP #324.
+- **Three mechanics are genuinely absent and all three are worth under 0.3% of the corpus**, filed LOW
+  so they are not re-discovered rather than so they are fixed: Trick vs Sticky Hold (Sticky Hold has
+  **0** corpus uses), `punishesMinimize` on Heavy Slam and Body Slam (Minimize is **32** of 198,840
+  sheet entries), item Metronome's `damageMultOnRepeat` (**27**). The carrier's own usage is the wrong
+  ruler — Heavy Slam is clicked 467 times and the mechanic's reach is Minimize's 32. ROADMAP #327.
+- **A CORRECTION TO THE BRIEF THIS RUN ANSWERED.** The Life Orb recoil was described as having
+  *silently failed to fire in real games*, with this artifact said to have known it. Checked against
+  the 2026-08-06 release: the branch `if(m.item==='lifeorb'&&a.move.d.max>0)` existed then
+  (`medicham2-browser.js:3844`). The mutation row said something narrower and true — the engine's Life
+  Orb numbers do not come from the artifact — and it could not have said the recoil never fired.
+  Today the engine still hardcodes `Math.floor(m.st.hp*0.1)` beside a structured `cost` object the
+  artifact now carries.
+- **Not defects, said out loud because these counts grew fastest**: 98 UNREACHED-BY-THIS-BATTERY (was
+  32), 44 UNSTAGEABLE tags (was 25), 9 NO-CARRIER. The fixture did not keep up with a tag corpus that
+  grew 60%. A COULD-NOT-STAGE verdict is a claim about the fixture, never about the mechanic.
+- The battery is **not census-steered**: `censusCrossRef()` reads `data/mechanics-census.json` only to
+  ORDER class-A rows. `data/mechanics-census.json` was digest `80e648f34d56` and was NOT regenerated.
+
+---
+
 ## [5.59.0] — 2026-08-22
 
 ### Fixed

@@ -10920,3 +10920,60 @@ how a wrong figure enters the record wearing a receipt. Today one agent's report
 that was an Encore card, and the coordinator's own urgent "critical refinement" to another agent was
 false because it had not read the reducer. Verifying is one command; the report is what gets skipped,
 never the check.
+
+---
+
+## CLASS A IS NOT DEAD TAGS AND NOT LIVE DEFECTS - IT IS A SECOND, UNREAD COPY OF A FACT THAT WORKS - 2026-08-22
+
+Will: *"what else have we caught that we aren't reading"*. `data/mutation-coverage.json` had sat unread
+since 2026-08-06 with 785 operators, 463 READ-AND-IGNORED and 97 declared defect candidates. Re-run
+against a fresh release; **the answer refuted the expectation I wrote into the brief, and the
+artifact's own per-row headline with it.**
+
+**31 of the 36 class-A rows carry an ARMED CENSUS PROBE THAT PROVES THE MECHANIC.** The classifier
+decides class A from exactly two things - no `TAGS.*` lookup names the tag, no NAME branch names the
+carrier - **and it never looks at sibling tags on the same carrier.** One row proves it:
+`move:leechseed / immunityGate` is graded A with the string *"Nothing in the simulator implements this
+fact"*, and the Grass immunity **is** implemented - medicham2 reads `_pt.immuneType` and refuses the
+seed on a Grass body, verified independently at line 18811. Same shape throughout. **The file's own
+`cannotSee` block says this; the per-row `defectWhy` contradicts it, and the per-row string is what
+gets read into a report.** Filed #323.
+
+**GENUINELY ABSENT: three mechanics, all under 0.3% corpus reach.** Trick vs Sticky Hold - `stickyhold`
+appears **nowhere** in the simulator (verified, 0 occurrences) and Sticky Hold has **0 uses in 198,840
+sheet entries**. `punishesMinimize` - the string `minimize` occurs only in comments, several saying
+outright that nothing reads `_vol.minimize`, and **Minimize is 32 sheet entries, 0.016%**, which is the
+mechanic's real reach rather than Heavy Slam's 467 clicks: the ranking trap made concrete. And item
+Metronome's `damageMultOnRepeat`, 27 entries. Filed #327, LOW.
+
+**THE REAL VEIN IS CLASS B/C, NOT A: 119 values in `data/tags.json` that nothing reads.** The engine
+consumes the tag's MEMBERSHIP and substitutes its own number. By share of 198,840 sheet entries:
+Protect 67.75%, Fake Out 12.44%, Life Orb 10.69%, Sucker Punch 7.11%, Flare Blitz 6.42%, Matcha Gotcha
+4.36%, Knock Off 2.65%, Light Screen and Reflect (deliberate and documented), Regenerator 1/3. **None
+is a behavioural defect today - that is the point.** It is *a derived artifact is not a fact until
+something compares it to its source* at 119 live sites with no comparator. **One comparator, not 119
+fixes.** Filed #324.
+
+**A CORRECTION TO MY OWN BRIEF.** I wrote that Life Orb's recoil *"silently failed to fire"* and that
+this artifact had caught it. Checked against the 2026-08-06 release, the lifeorb branch was already
+there. The mutation row said something narrower and true - **the engine's Life Orb numbers do not come
+from the artifact** - and that is still true: it hardcodes `Math.floor(m.st.hp*0.1)` beside the
+structured `cost` object the artifact now carries. My framing overstated what the instrument said.
+
+**IT REFUSED TO RUN TWICE AND BOTH REFUSALS WERE RIGHT.** The calibration expected
+`taunt/forbidsStatusMoves` to grade A; ENGINE wired it since, so the rule correctly returned D. And the
+planted `speedMult` stub anchored on a line that has since changed, so `plant()` **threw rather than
+planting nothing** - a hand answer is a claim about a BUILD and neither constant recorded which.
+**There is no genuine class-A exemplar left in this engine to calibrate against, which is itself the
+news** (#326, closed).
+
+**NOT DEFECTS, STATED SEPARATELY:** 98 UNREACHED-BY-THIS-BATTERY (was 32) and 44 UNSTAGEABLE tags (was
+25). The fixture did not keep pace with a 60% larger tag corpus.
+
+**AND THE COUNTS ARE NOT COMPARABLE:** the tag corpus grew 182 to 292, moving the battery scope, and
+**the ratchet correctly declined the comparison.** Of the 163 old class-A operators, **10 are NOW-LIVE**,
+closed by ordinary engine work; 28 reclassified; 11 became fixture-limited; 105 stand.
+
+Also fixed rather than filed: `tests/test-docs-current.js` was RED on `docs/CLICK-CENSORING-FIX.md`
+carrying a bare `5,917` matching no artifact anywhere. The figure is **downstream of MEDICHAM**, so it
+is **WITHHELD rather than cited** - a caption is not a quarantine.

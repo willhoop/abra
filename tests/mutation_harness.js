@@ -905,15 +905,42 @@ function defectClassifier(src, db) {
 }
 
 /* THE STANDING GATE APPLIES TO THE TRIAGE ITSELF. A new check does not ship until it has been shown
- * producing the KNOWN answers on KNOWN input, and these three were decided BY HAND, by reading the
- * engine, before the rule existed. If the rule cannot reproduce them the RULE is wrong — the three
- * answers are not adjusted to fit it. The sweep refuses to run if any of them moves. */
+ * producing the KNOWN answers on KNOWN input, and these were decided BY HAND, by reading the
+ * engine, before the rule existed. If the rule cannot reproduce them the RULE is wrong — the
+ * answers are not adjusted to fit it. The sweep refuses to run if any of them moves.
+ *
+ * A CALIBRATION CASE IS A CLAIM ABOUT A BUILD, AND THE BUILD MOVES. That is the one failure mode
+ * the paragraph above did not anticipate, and it fired on 2026-08-22: `taunt / forbidsStatusMoves`
+ * was hand-decided A against release 032b4a2979dd, when nothing in the simulator named the tag.
+ * ENGINE then WIRED IT — `forbidByVolatile()` calls `TAGS.withTag('move','forbidsStatusMoves')` and
+ * dereferences `.forbids` (medicham2-browser.js ~2445-2449 in 6fb9ebd3b704) — so the rule now
+ * returns D and the sweep refused to run at all. The rule was not wrong; the INPUT had changed
+ * under a constant that could not say so.
+ *
+ * So every case carries `decidedAgainst`, the release its hand answer was read out of. When a case
+ * fails, that field is what tells a reader whether they are looking at a broken rule or at a fixed
+ * engine — and re-deciding by hand against the NEW bytes is a different act from adjusting the
+ * expected answer to whatever came out, which is still forbidden.
+ *
+ * THE `A` BRANCH IS NOW CALIBRATED ON A SYNTHETIC, NOT ON AN EXEMPLAR, and deliberately so. There
+ * is no genuine class-A exemplar left in this engine to pin: swept for it on 2026-08-22 and every
+ * source-only A row is a tag whose fact a SIBLING tag on the same carrier already implements
+ * (`lowkick/weightBased` beside `variablePower`, `acrobatics/readsOwnItem` beside `variablePower`,
+ * `heatwave/inflictsBurn` beside `statusInflict`). An exemplar that keeps getting fixed is a gate
+ * that keeps going stale; a tag name and a carrier that exist nowhere satisfy A's definition — no
+ * lookup, no name branch — by construction, and cannot be repaired out from under it. */
 const TRIAGE_CALIBRATION = [
-  { kind: 'move', id: 'taunt', tag: 'forbidsStatusMoves', param: 'forbids', mustBe: 'A',
-    decidedByHand: 'the interaction matrix found a Taunted body still lands Hypnosis; no lookup for the tag exists' },
+  { kind: 'move', id: 'zz-no-such-carrier-zz', tag: 'zzNoSuchTagZz', param: 'zzp', mustBe: 'A',
+    decidedAgainst: 'any',
+    decidedByHand: 'a tag and a carrier that appear nowhere in the simulator: no lookup and no name branch is the DEFINITION of A, so this case cannot be closed by a fix' },
+  { kind: 'move', id: 'taunt', tag: 'forbidsStatusMoves', param: 'forbids', mustBe: 'D',
+    decidedAgainst: '6fb9ebd3b704',
+    decidedByHand: 'WAS A against 032b4a2979dd (interaction matrix: a Taunted body still landed Hypnosis, and no lookup existed). ENGINE wired it since: forbidByVolatile() reads TAGS.withTag(\'move\',\'forbidsStatusMoves\') and dereferences .forbids, so the param IS read and only the battery can now say whether the branch is reached' },
   { kind: 'move', id: 'lightscreen', tag: 'halvesDamage', param: 'mult', mustBe: 'B',
+    decidedAgainst: '032b4a2979dd',
     decidedByHand: 'the engine keeps separate P/S counters and substitutes the DOUBLES 2732/4096 for the tag\'s SINGLES 0.5, on purpose' },
   { kind: 'item', id: 'lifeorb', tag: 'damageMultAll', param: 'costsPerAttack', mustBe: 'C',
+    decidedAgainst: '032b4a2979dd',
     decidedByHand: 'the damage half reads the tag; only the RECOIL branches on m.item===\'lifeorb\'' },
 ];
 function runTriageCalibration(cf) {
@@ -1021,9 +1048,14 @@ const STUBS = [
     /* Reads the tag, then writes a literal. `asked()` counts it, the census sees Choice Scarf working,
      * and the artifact's own number is never consulted. */
     op: /^item:choicescarf:speedMult\.mult:/,
+    /* THE ANCHOR IS ENGINE TEXT AND ENGINE TEXT MOVES. This read `s*=+_sm.mult` until the speed
+     * modifiers became an accumulated `_mods` list (release 6fb9ebd3b704), and `plant()` did the
+     * right thing: it THREW rather than quietly planting nothing, which would have shown a harness
+     * that catches stubs while catching none. Repairing the anchor is a fixture repair; the stub
+     * itself is unchanged — read the tag, then write the literal the artifact happens to hold. */
     make: src => plant(src,
-      "{const _sm=TAGS.param('item',m.item,'speedMult');if(_sm&&_sm.mult)s*=+_sm.mult;}",
-      "{const _sm=TAGS.param('item',m.item,'speedMult');if(_sm&&_sm.mult)s*=1.5;}",
+      "{const _sm=TAGS.param('item',m.item,'speedMult');if(_sm&&_sm.mult)_mods.push(+_sm.mult);}",
+      "{const _sm=TAGS.param('item',m.item,'speedMult');if(_sm&&_sm.mult)_mods.push(1.5);}",
       'speedMult literal'),
     mustBe: 'READ-AND-IGNORED',
   },
@@ -1254,21 +1286,26 @@ function main() {
   console.log('  every verdict below describes THOSE bytes, not the live tree.');
 
   const t0 = Date.now();
-  /* THE TRIAGE IS A CHECK TOO, SO IT IS GATED LIKE ONE. Three cases were decided BY HAND — by reading
-   * the engine, before the A/B/C/D rule existed — and the rule must reproduce all three. It runs first
+  /* THE TRIAGE IS A CHECK TOO, SO IT IS GATED LIKE ONE. The cases were decided BY HAND — by reading
+   * the engine, before the A/B/C/D rule existed — and the rule must reproduce all of them. It runs first
    * because it is instant and because a wrong classifier makes every number after it meaningless. */
   const cfGate = defectClassifier(SHIPPED_SRC, SHIPPED_DB);
   const cal = runTriageCalibration(cfGate);
-  console.log('\n  THE TRIAGE CALIBRATION — the A/B/C/D rule against three cases decided by hand.\n');
+  console.log(`\n  THE TRIAGE CALIBRATION — the A/B/C/D rule against ${cal.rows.length} cases decided by hand.\n`);
   for (const r of cal.rows) {
-    console.log(`  ${r.ok ? 'MATCH  ' : 'WRONG  '} ${(r.tag + ' / ' + r.id).padEnd(34)} expected ${r.mustBe}, got ${r.got}`);
+    console.log(`  ${r.ok ? 'MATCH  ' : 'WRONG  '} ${(r.tag + ' / ' + r.id).padEnd(34)} expected ${r.mustBe}, got ${r.got}`
+      + `   [hand-read against release ${r.decidedAgainst}]`);
     console.log(`           by hand: ${r.decidedByHand}`);
     console.log(`           by rule: ${r.why}`);
   }
   if (cal.failures) {
     console.log('\n  THE TRIAGE CALIBRATION FAILED. The sweep is NOT run and no artifact is written.');
-    console.log('  If the rule cannot reproduce the three known answers, the RULE is wrong — the answers are not');
-    console.log('  adjusted to fit it.\n');
+    console.log('  If the rule cannot reproduce the known answers, the RULE is wrong — the answers are not');
+    console.log('  adjusted to fit it.');
+    console.log('  BUT CHECK `decidedAgainst` FIRST. A hand answer is a claim about the BUILD it was read out');
+    console.log('  of. If the engine has been fixed since, the rule is right and the CASE is stale: re-read the');
+    console.log('  engine, re-decide by hand, and restamp decidedAgainst. That is not the same act as writing');
+    console.log('  down whatever the rule just returned. It happened once, to taunt/forbidsStatusMoves.\n');
     process.exit(1);
   }
   const gate = runGate();
@@ -1499,7 +1536,7 @@ function main() {
           'B cannot tell a DELIBERATE override from an accidental one. That is why it prints the site instead of a verdict.',
           'C says the id appears as a literal SOMEWHERE in the simulator, not that the literal is what implements this param.',
         ],
-        calibration: cal.rows.map(r => ({ tag: r.tag, carrier: r.kind + ':' + r.id, param: r.param, mustBe: r.mustBe, got: r.got, ok: r.ok, decidedByHand: r.decidedByHand, ruleSaid: r.why })),
+        calibration: cal.rows.map(r => ({ tag: r.tag, carrier: r.kind + ':' + r.id, param: r.param, mustBe: r.mustBe, got: r.got, ok: r.ok, decidedAgainst: r.decidedAgainst, decidedByHand: r.decidedByHand, ruleSaid: r.why })),
         counts: { A: summary.classA_tagNeverRead, B: summary.classB_paramOverridden, C: summary.classC_hardcodedByName, D: summary.classD_batteryGap },
       },
       formatOracle: { consulted: oracle.consulted, format: oracle.format || null, legalAbilityCount: oracle.legalAbilityCount || null },

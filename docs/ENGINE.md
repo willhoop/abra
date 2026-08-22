@@ -72,9 +72,352 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 273/292 probed, 19 unprobed
 ```
 
-_stamped 2026-08-22 01:11_
+_stamped 2026-08-22 02:13_
 
 <!-- /GENERATED -->
+
+## THE DICE PASS — THE FORMULA WAS RIGHT AND THE DRAW WAS NOT, IN TWO PLACES OUT OF FOUR. 2026-08-22.
+
+**Census 623 live / 0 missing -> 623 live / 0 missing.** No probe count moved and none could: both
+mechanics landed here were already LIVE and were spending the wrong die. The census was re-run TWICE
+as a regression check, diffed row by row against the pinned bytes and **restored byte-identical both
+times** (`80e648f34d56`), because the coordinator holds a census pin. `probed`, `live`, `missing`,
+`armed`, `unarmed`, `directCall`, `threw` and `hollow` all identical; exactly one row's `detail` moved
+on each run — `move::formatSecondaryChance`, whose probe calls `Math.random` directly and reports a
+6,000-turn RATE, so it differs run to run on an unchanged engine (20.6% -> 19.4% -> 19.4%).
+
+New gates: **`tests/test-multihit-roll.js`**, **`tests/test-multihit-damage-game.js`**,
+**`tests/test-sleep-duration.js`**.
+
+### B1 — MULTI-HIT DAMAGE IS THE UNCONVERTED RESIDUE OF #304, CONFIRMED BY READING THE CODE
+
+`hitStepMoveHitLoop` runs `spreadMoveHit` once per hit (`sim/battle-actions.ts:947`) and `randomizer`
+runs inside each pass, so an N-hit volley spends **N independent indices**. This engine spent ONE and
+split the resulting total **greedily** — saturate arrival 1, remainder to arrival 2 — at
+`medicham2-browser.js`'s `_stepDamage`. That is the residue of ROADMAP #304, and the answer to "why
+did the #304 fix not reach it" is that **it was never in scope and the file says so**:
+`tests/test-damage-roll-support.js`'s own header declares multi-hit out of scope and *asserts no row
+of its fixture is multi-hit*. So the gap was by construction, not by oversight.
+
+The card's arithmetic contradiction reproduces exactly. Twin Beam, both hits 40 BP, one base:
+
+```
+  idx 1..5   sd [27,27]   me [28,26]        <- greedy: packet 1 saturates first
+  idx 6..10  sd [25,25]   me [26,24]
+```
+
+**Every one of the sixteen TOTALS agreed before the fix and agrees after it**, which is Will's "it
+evens out" and the reason nothing caught it: `rolls[i]` for the flat path is `floor(v_i * n)` with
+`v_i` an integer, so the sum is exact and only the arrivals scatter. **Both pinned corners are blind
+by construction too** — at damageIndex 0 every packet saturates and at 15 every packet is its minimum,
+so the greedy split and the per-arrival draw agree at both. Only the interior moves.
+
+**The wire.** `dmgRangeOneHit` now fills `rollsUnit` (the band of ONE arrival) beside `rolls` (the band
+of the volley); both paths through `dmgRange` attach a 16-entry `band` to every packet they hand back;
+the battle loop draws one index per arrival, arrival 0 spending the `_u` it already drew so a
+single-hit click takes exactly the draws it always took. The Protect quarter is now applied per
+arrival, which is where `modify(baseDamage, 0.25)` sits in the authority.
+
+**RED FIRST.** `tests/test-multihit-roll.js`, five staged rows, sixteen pinned indices each, arrival
+for arrival against the official simulator. Before: **4 of 5 rows disagreed**, 3 of them on SUPPORT as
+well (Twin Beam could emit a per-arrival 26 the authority cannot, and could never emit its 25 or 27).
+After: 0. The single-hit CONTROL row passed both before and after, which is what rules out the
+u->index mapping as the explanation. §0 also derives the constant-base premise from the authority on
+each run rather than trusting the header.
+
+**OVER-FIRE, BY TRACE DELTA.** `tests/test-multihit-damage-game.js` plays 23 scripted whole games
+across three arms and re-plays the identical fixture in a child process under
+`MEDI_MULTIHIT_ONE_INDEX=1`, comparing **game by game**, not by tally:
+
+```
+  23 games compared: 19 byte-identical, 4 parted-before/agree-now, 0 moved where they must not
+    middle :: twinbeam      was  me |-damage|…|201/235  sd |-damage|…|202/235
+    middle :: dualwingbeat  was  me …|194/235           sd …|196/235
+    middle :: doublehit     was  me …|202/235           sd …|204/235
+    middle :: beatup        was  me …|210/235           sd …|213/235
+```
+
+Both corner arms and all three controls are byte-identical between the two runs — turns, raw line
+count, compared-line count and first divergence — which is the arithmetic claim `rollsUnit[i]*n ===
+rolls[i]` measured rather than argued.
+
+**THE COUNTER NAMES ITS NOUN.** `MEDSEEN.perArrivalDamageIndex` counts **ARRIVALS** that read their own
+band at their own drawn index — not draws, not volleys, not multi-hit clicks. A DRAW counter cannot see
+this defect: a loop that drew N times and still split one of them would raise it and stay wrong.
+Asserted at **exact 4,752** in the staged probe, derived from the fixture (arrivals x indices swept).
+`MEDFAILS.packetBandMissing` is the loud fallback and is asserted at 0.
+
+**TRIPLE AXEL CANNOT RUN ON THE INTERIOR ARM, AND THAT IS A SECOND DEFECT, NOT THIS ONE.** It is the
+only *escalating* per-hit-power move, it is 90 accuracy AND carries `multiaccuracy`, and on the middle
+arm the two engines part on the HIT COUNT before any damage line: `me |upkeep` vs
+`sd |-hitcount|p2a: Snorlax|1`. The authority re-rolls accuracy for every hit after the first
+(`sim/battle-actions.ts:910-937`); this engine folds `multiAccuracy` into the expected hit COUNT. So
+Triple Axel runs at the two corners and **Beat Up** — 100 accuracy, no `multiaccuracy`, one packet per
+eligible ally — carries the per-hit-power path on the interior.
+
+### B4 — THE SLEEP DISTRIBUTION WAS ALREADY RIGHT. REST WAS NOT, AND IT FLIPS A BOARD
+
+Champions overrides `slp` (`data/mods/champions/conditions.ts:11-29`): `sample([2, 3, 3])`, one
+`random(3)` indexing a table, drawn **when the sleep lands**. This engine's wake check was
+`slpTurns >= 3 || (slpTurns === 2 && rng() < 1/3)` — a coin at the SECOND sleeping turn. Same 5/3
+expected turns lost, so **every rate check passed and could only ever pass**.
+
+**Champions does NOT override `rest`** (no `rest:` key in the mod's `moves.ts`), so mainline's
+`rest.onHit` applies: `setStatus('slp', …)` runs `slp.onStart` — which samples — and the next two
+lines assign `statusState.time = 3` and `startTime = 3` **unconditionally**. A Rest is a fixed two
+missed turns. With the coin at the wake site there was nothing for that override to write onto, so a
+Rested body got up a turn early one time in three, at full HP, with its move.
+
+**The number had been in the artifact the whole time and nothing read it**: `data/tags.json` gives
+rest `healDescriptor.setsStatus {status:'slp', turns:3}`. Same shape as the Life Orb recoil stored as
+prose — a derived fact with no consumer.
+
+**RED FIRST, AND DETERMINISTIC.** At `bottom-tie-first` the authority's `random(3)` returns 0 (startTime
+2) and the old coin returned TRUE, so a NATURAL sleep agrees; a Rest does not:
+
+```
+  me  |-curestatus|p2a: Snorlax|slp|[msg]
+  sd  |cant|p2a: Snorlax|slp
+```
+
+`tests/test-sleep-duration.js` stages it, plus the natural-sleep control (which must not move) and a
+no-sleep control. Over-fire by trace delta against `MEDI_SLEEP_WAKE_COIN=1`: **5 games compared, 4
+byte-identical, 1 parted-before/agree-now, 0 moved where they must not.** Counters at exact equality,
+derived from the fixture rather than typed: `sleepDurationDrawn` = 3, `sleepDurationFixedByMove` = 2,
+`sleepDurationDrawnLate` = 0. The middle arm is **excluded and the reason is measured, not assumed** —
+the authority's `sample` runs in `slp.onStart`, which is none of the three methods the instrument
+wraps, so it addresses as `<seed>|0|any|-|-` and nothing on this side can be made to match it.
+
+Four premises are re-derived on every run: that `slp.onStart` still samples `[2,3,3]`, that
+`rest.onHit` still pins `time = 3`, that `tags.json` still carries `{slp, 3}`, and that no
+100-accuracy sleep move has a legal carrier (Spore: **0** in Reg M-B) — which is what confines the
+natural-sleep control to one corner.
+
+### B2 — NOT AN ENGINE DEFECT. IT WAS FIXED, MEASURED, AND CHANGED BACK
+
+The card is right that the confusion self-hit reads a different index (staged: `me 205/235` vs
+`sd 201/235` on the middle arm, 30 against 34, ratio inside the 85-100% band). The obvious fix is to
+move the draw to the `dmg` stream, since it IS a damage roll. **That was done, and the divergence got
+SMALLER instead of going away — 30 became 33 against 34 — which is the shape of a wrong fix.**
+
+The addresses were then dumped rather than reasoned about, via `game_differential.js`'s
+`midAddresses()`:
+
+```
+  SD   |1|acc|confuseray|p20|0   |1|any|confuseray|p20|0   |1|any|amnesia|p20|0   |1|any|amnesia|p20|1
+  ME   |1|acc|confuseray|p20|0   (no counterpart)          |1|any|amnesia|p20|0   |1|dmg|amnesia|p20|0
+```
+
+`getConfusionDamage` does **not** call `getDamage`. It calls `this.battle.randomizer(damage)` directly
+(`sim/battle-actions.ts:1859`), so `midWrapShowdown`'s method wrapper never fires and the authority's
+draw is category `any` — **which is what this engine was already using.** The change was reverted; the
+addresses now match exactly, and the values still differ.
+
+**What remains is an INSTRUMENT gap and it is filed, not patched.** `game_differential.js` inverts
+`random(16)` only when `MID_CAT === 'dmg'`, and its own comment says `random(16)` *"is a damage roll or
+a 1-in-16 chance with no way to know which"*. This is the one damage roll the authority makes outside
+`getDamage`, so it is read UN-inverted against an engine whose damage is increasing in u. **Both pinned
+corners agree** (a corner arm answers `random(16)` from its `damageIndex` whatever the category says),
+so this engine's direction is the right one and inverting it here would BREAK them. The one thing kept
+from the attempt is the arithmetic written through `damageRollIndex` — identical output, one owner of
+the sixteen-index convention instead of two copies.
+
+### B3 — DID NOT REPRODUCE, AND THE LIKELY ROOT IS #294 RATHER THAN THE SECONDARY
+
+Muddy Water was staged into a Snorlax + Spiritomb side, both slot orders, on all three arms, up to
+eight turns. **Every arm agreed**, and both accuracy drops landed on the right bodies
+(`|-unboost|p2a: Toxapex|accuracy|1`, `|-unboost|p2b: Snorlax|accuracy|1`). The secondary is ALREADY
+per-target here: `_stepEffects` runs inside `for (const _step of _STEPS) for (const R of _rows)` with
+`MID_TGT` reset per row.
+
+What is not per target is the **accuracy roll**, and the engine declares it in as many words: *"ONE
+ROLL PER MOVE, NOT PER TARGET, AND THAT IS A DECLARED DIVERGENCE."* A staged Muddy Water emits a single
+`|-miss|p1a: Milotic|p2a: Snorlax` for the whole spread. That is ROADMAP **#294**, it is the mechanism
+by which a secondary can end up on the other body, and converting it *"would change how much rng every
+existing seeded run consumes"* — a re-baseline, not a fix to bundle into a dice pass.
+
+**B3 DOES NOT SUBSUME B4.** The card guessed the sleep half of card 40 was downstream of the secondary.
+It is not: the Rest defect is deterministic, provable at a pinned corner with no spread move anywhere
+near it, and was found and fixed on its own evidence.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — they are tests now:**
+- ~~B1: multi-hit damage does not use the authority's roll scheme~~ — `tests/test-multihit-roll.js`
+  (staged, sixteen indices, arrival for arrival) and `tests/test-multihit-damage-game.js` (whole
+  games, three arms, over-fire by trace delta).
+- ~~B4: sleep — verify the draw~~ — `tests/test-sleep-duration.js`. The distribution was right; Rest's
+  fixed duration was the defect.
+
+**Added, measured this pass and NOT fixed:**
+- **`multiaccuracy` is folded into the expected hit COUNT, not re-rolled per hit.** Triple Axel is the
+  only legal carrier. Measured: on the middle arm the two engines part on `-hitcount` before any damage
+  line. The authority re-rolls at `sim/battle-actions.ts:910-937`.
+- **The confusion self-hit's `random(16)` is read un-inverted by the middle arm.** ENGINE is correct at
+  both corners; the fix belongs in `game_differential.js`'s `MID_CAT` inference, which cannot currently
+  tell a `random(16)` damage roll made outside `getDamage` from a 1-in-16 chance. Filed rather than
+  patched because that file is an instrument other divisions are reading right now.
+- **B3 is #294 wearing a secondary's clothes** — the spread accuracy roll, one per move where the
+  authority rolls one per target. Not opened here; it is a seeded-run re-baseline.
+
+**Observed, not caused, and reported rather than touched:**
+- **Another agent was writing to the tree throughout this pass.** `data/engine-data.js`,
+  `data/engine-release.json`, `data/forme-assert.json`, `tests/mutation_harness.js` and
+  `tests/test-forme-assert.js` all changed under it. This showed up as a **SNAPSHOT ROT** throw out of
+  the shared `_live_release.js` scratch store (`os.tmpdir()/abra-live-release-store`), which two
+  concurrent agents share by construction. Worked around by isolating `TEMP`/`TMP` per run; nothing was
+  deleted and nothing of theirs was touched.
+- `tests/test-engine-diff.js --n 3000` exits **3** with **14 of 3,000 disagreeing at each corner**.
+  The rows are the already-filed Fur Coat family (#317 — twelve Furfrou rows, `showdown 48-57` against
+  `medicham 93-111`, i.e. we deal double through it) plus two Aurorus Hyper Voice bodies. **NOT this
+  pass's**, and that is measured rather than asserted: re-run with `MEDI_MULTIHIT_ONE_INDEX=1
+  MEDI_SLEEP_WAKE_COIN=1` — both of this pass's changes reverted at runtime — it reads **exactly 14
+  again**, at both corners, on the same rows.
+- **AND RUNNING IT REWROTE A COMMITTED ARTIFACT.** `data/verification/engine-diff.n3000.json` was a
+  smoke check that turned out to be a write, exactly as `tests/mechanics_rank.js` was in the previous
+  pass. It moved `agreed 3000 / disagreed 0` (generated 2026-08-18) to `agreed 2986 / disagreed 14`.
+  **It is left as written rather than reverted, deliberately**: the new figure is a true measurement of
+  the tree as it stands, and `git checkout`-ing the old one would reinstate a `0` that describes bytes
+  that no longer exist — which is the stale-figure failure this repo is built around. The most likely
+  cause of the move is neither engine change here: `data/engine-data.js` was regenerated by another
+  agent during this pass (it is a single line, so git reports 1 insertion / 1 deletion), and the
+  fixture draws its rows from it, so the sample now contains Furfrou rows the 2026-08-18 sample did
+  not. Stated as the likely cause, not as a finding — nobody re-ran the old artifact's sample.
+
+
+## ROADMAP #204 — THE FIVE FORME ROWS LANDED, AND THE DIVERGENCE THEY WERE ROUTED TO FIX IS SOMETHING ELSE ENTIRELY. 2026-08-22.
+
+**`data/engine-data.js` now carries `mimikyu-busted`, `morpeko-hangry`, `castform-sunny`,
+`castform-rainy` and `castform-snowy`.** That artifact is normally out of this division's hands; the
+addition was routed explicitly, and it is a frozen release SOURCE, so every release cut from now on
+contains those five rows. Said plainly rather than buried.
+
+Full account: `docs/_reports/2026-08-22-formes.md`.
+
+### THE ROWS — ADDED, NOT REGENERATED, AND THE DIFF IS THE PROOF
+
+Each row was spliced in beside its base row by brace-matching inside the single-line `MC` object, so
+the git diff is five insertions and nothing else. Field-by-field against the pre-edit artifact:
+
+```
+rows lost 0 | rows changed 0 | rows added 5   mon FIELD differences on pre-existing rows: 0
+mons 317 -> 322   top-level keys unchanged
+EXISTING keys that normalise alike: 0   (checked before AND after — spellings may differ, duplicates never)
+```
+
+`t`, `bs`, `wt` and `ab` are DERIVED from `Dex.forFormat('gen9championsvgc2026regmb')`. `st` is the
+BASE row's level-50 line and that is legal ONLY because `bs` is **asserted byte-identical** to the base
+before it is copied — the script throws if it is not. `mv` is the base row's moveset and is ASSUMED,
+which is the same call `aegislash-blade` and `palafin-hero` already make.
+
+### THE BUILDER THAT OWNS THESE ROWS SKIPPED THEM FOR A REASON ITS OWN COMMENT SAYS SHOULD NOT APPLY
+
+`engine/merge_mega_into_engine.js` gates a non-mega forme on `addableForme = !isMega && !MC.mons[key]
+&& f.in_our_store && bodyDiffers`, and `bodyDiffers` compares **base stats only**. Its comment says
+*"a forme whose stats **and types** match its base needs no row"*. All five are in
+`data/mega-dex-official.json` with `in_our_store: true`; Castform-Sunny/Rainy/Snowy differ in TYPE and
+match in stats, so the predicate never looked at the thing the comment claims it checks.
+
+### THE INSTRUMENT MOVED, WHICH IS THE ONLY PROOF A ROW IS READ
+
+```
+BEFORE   5 UNCOVERABLE   3 of 3 rows agree ... 5 forme(s) uncoverable for want of an engine-data row
+AFTER    0 UNCOVERABLE   5 of 6 rows agree on all FOUR assertions; 1 DECLARED KNOWN-OPEN
+```
+
+`tests/test-forme-assert.js` gained three rows — `disguise` (the foe clicks, not the subject),
+`hungerswitch` (nobody clicks anything; a residual, both directions) and `forecast` (a foe's Drought,
+up before turn one) — and a fourth assertion:
+
+**A4 — THE TYPE LINE, AND IT IS NOT TIDINESS.** A1 asks for the NAME, A2/A3 for the STATS. Castform's
+three formes move no stat and only the type, so all three existing assertions are blind to them and a
+Forecast row could only ever have been judged on its species label. `--reds` shows A4 caught by A4
+alone with no leak. The obvious plant — *keep the old forme's types* — is **INERT** on every original
+row (Aegislash/Blade both Steel/Ghost, Palafin/Hero both Water, Abomasnow/Mega both Grass/Ice), so the
+plant is a type line no forme in the file carries.
+
+### THREE OF THE FIVE ROWS ARE INERT TO THE SIMULATOR, MEASURED AGAINST A CONTROL
+
+Two releases in the scratch store, identical but for the five rows, same boards, medicham2's counters:
+
+| board | rows PRESENT | rows EXCISED |
+|---|---|---|
+| disguise | `formeSwapped +1` | `formeRenamedNoRow +1` |
+| hungerswitch | `formeRenamedNoRow +2, formeCycled +2` | **identical** |
+| forecast | `weatherRetyped +1, formeWeatherNameUnchanged +1` | **identical** |
+
+`mimikyu-busted` IS read. `morpeko-hangry` is not — the Hunger Switch block takes its rename branch
+first, deliberately, because rebuilding would replace the body's live spread with the dataset's on
+every flip. `castform-*` are not — `syncWeatherFormes` never calls `formeSwap`. They still close the
+`hasRow` gate that made three abilities unassertable, and a body named `morpeko-hangry` now resolves
+through `pasteKey`/`monRow` where before it resolved to nothing.
+
+**THE INSTRUMENT WAS WRONG TWICE BEFORE THE ENGINE WAS**, both times reading as *the knob does
+nothing*: `SB.harness()` deletes medicham2 from the require cache, so a reference taken before the
+first call is a dead module; and `game_differential` plays `REL.require(...)`, a SNAPSHOT copy, so
+`require(<live path>)` is a different object entirely. Both printed `{}`.
+
+### FORECAST IS DECLARED KNOWN-OPEN — A1 RED WITH A4 GREEN IS THE WHOLE DIAGNOSIS
+
+medicham2 applies the right TYPE and does not move the species LABEL. Deliberate, documented at
+`syncWeatherFormes`, counted as `formeWeatherNameUnchanged` on every application. The rows now exist so
+the retype can become a `formeSwap` — an edit to `engine/medicham2-browser.js`, owned by the damage-die
+agent that day. The declaration is matched **pairwise and exhaustively** against the measured text, so
+it cannot swallow a second failure that turns up later on the same assertion.
+
+### AND THE MORPEKO LINK IS REFUTED, WITH THE REAL CAUSE — ROADMAP #328
+
+The card is not a switch ORDER divergence: medicham2 emits **no line at all** for that slot, which is
+why its class is `event missing from medicham2`. Played against both releases the output is
+byte-identical, so the forme rows are not the cause. `tests/test-switch-back-renamed.js` stages it:
+
+- **C1, ENGINE** — a NON-permanent forme change is not reverted when the body leaves the field. Off the
+  bench: `ours morpeko-hangry`, `the authority morpeko`.
+- **C2, INSTRUMENT** — `game_differential.js` stamps `_switchKey` in `buildPair` (:2213) *precisely* so
+  a rename cannot orphan a body, and `freshBodies` (:2362) — what every PLAYED game is built from —
+  drops it. `buildPair ["morpeko",...]` against `freshBodies [null,null,null,null]`. Restamping from
+  `onBoundary` brings the subject back, which is sufficiency proved without editing the file.
+- **C3, A DIFFERENT DEFECT** — a MEGA is a permanent rename, both engines hold `abomasnow-mega`, the
+  ask still says `abomasnow`, the Showdown branch (:3436) misses too and the game **THROWS**.
+  Restamping does not clear it. The over-fire control asks `{sw:'abomasnowmega'}` and completes.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — they are tests now:**
+- ~~`data/engine-data.js` has no `mimikyu-busted` row, and it is the one thing WIRE 136 owes MEASURE~~
+  — the row exists and `tests/test-forme-assert.js` row `disguise` AGREES on all four assertions.
+- ~~Three formes cannot be covered and it is a data gap~~ — `UNCOVERABLE` is 0 and all three abilities
+  carry a verdict.
+
+**Added, measured this pass and NOT fixed:**
+- **Forecast does not move the species label** (`syncWeatherFormes` retypes and counts
+  `formeWeatherNameUnchanged`). Declared KNOWN-OPEN on `test-forme-assert.js` row `forecast`, A1.
+- **A non-permanent forme change is not reverted on switch-out** (C1 above). `medicham2-browser.js`.
+- **`freshBodies` drops the `_switchKey` stamp** and **the Showdown branch cannot resolve a permanently
+  renamed body** (C2, C3). `engine/game_differential.js` — NOT edited, because that file is not in
+  `SOURCES` and is therefore read LIVE by every run, so touching it moves a file under a measuring
+  agent.
+- **Ten rows carry no `wt`**: `victreebel-mega, feraligatr-mega, skarmory-mega, barbaracle-mega,
+  falinks-mega, aegislash-blade, gourgeist-small, gourgeist-large, gourgeist-super, palafin-hero`.
+  Weight is what Low Kick, Grass Knot, Heavy Slam and Heat Crash scale on, and a null makes them
+  uncomputable rather than wrong. The five new rows all carry it.
+
+**Red, and it was red before this pass:**
+- `tests/test-forme-assert.js --reds` exits 1 on `A3-spread ... LEAKED into A2`. Reproduced on
+  `git show HEAD:tests/test-forme-assert.js` before anything here was believed. Not introduced, not
+  fixed, not filed as "known" — it is simply not this pass's, and it is named so nobody re-discovers it.
+
+**Cleared, and the clear is worth nothing — say so:**
+- `engine/artifact_audit.js` went from exit 1 (*"engine-data.js is older than builder
+  merge_mega_into_engine.js"*) to exit 0. **That clause flipped because this pass WROTE the file.** The
+  audit prints the caveat itself: *"newer is NOT proof of correct."* Do not attribute it here.
+
+**A release was cut into the real store** — `46ea93e2c278`, by the first baseline run before
+`-r ./tests/_live_release.js` was in use. Every run after that went to the scratch store.
 
 ## THE DERIVATION GAP: A FACT THAT LIVES IN A HANDLER DOES NOT REACH THE ARTIFACT, AND SIX MOVES HAD NO IMMUNITY AT ALL. 2026-08-22.
 

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-22T04:43:39.215Z",
+  "generated": "2026-08-22T05:27:21.520Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",

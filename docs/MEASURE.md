@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 24 unsafe, 1 void (declared), 105 possibly stale, 95 ok, 0 missing
+  provenance: 24 unsafe, 1 void (declared), 116 possibly stale, 85 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
@@ -29,13 +29,13 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 12). Old hashes cannot be compared; restamp after checking board.js.
-    moved after the fit: engine/medicham2-browser.js  2026-08-22 00:53
+    moved after the fit: engine/medicham2-browser.js  2026-08-22 02:05
     moved after the fit: engine/board.js  2026-08-19 19:52
-    moved after the fit: data/engine-data.js  2026-08-10 18:59
+    moved after the fit: data/engine-data.js  2026-08-22 01:46
     moved after the fit: data/abra-tags.js  2026-08-22 00:49
 ```
 
-_stamped 2026-08-22 01:11_
+_stamped 2026-08-22 02:13_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,54 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 000000000000000. THE MUTATION ARTIFACT WAS SIXTEEN DAYS STALE, AND WHAT IT WAS HOLDING WAS NOT WHAT IT SAID — RE-RUN 2026-08-22 ON RELEASE `6fb9ebd3b704`
+
+`data/mutation-coverage.json` had not moved since 2026-08-06 and was quoted as *"163 class-A rows,
+tag never read"*. Re-run against a fresh cut of the current tree. **The count is 148 and the count is
+the least useful thing in the file.**
+
+**It could not run at first, twice, and both refusals were correct.** The triage calibration
+hand-decided `taunt / forbidsStatusMoves` as class A against release `032b4a2979dd`; ENGINE has
+wired it since, so the rule returned D and the sweep refused. The planted `speedMult` stub anchored
+on `s*=+_sm.mult`, which is now `_mods.push(+_sm.mult)`, and `plant()` threw rather than planting
+nothing. A hand answer is a claim about a BUILD; neither constant recorded which. Both repaired,
+`decidedAgainst` added, and the A branch moved to a synthetic that no fix can close — ROADMAP #326.
+
+**The two counts are not comparable and the per-key story is.** The tag corpus grew 182 -> 292, so
+the battery scope moved `620f24df16ff -> c5c9acf2cc9d` and the ratchet correctly declined to compare
+them. Of the 163 old class-A operators: **10 NOW-LIVE** (Taunt, Knock Off's `failsIfNone`,
+Substitute, Poltergeist, Pollen Puff, Shed Tail — closed by ordinary engine work), **28 reclassified**
+to B/C/D, **11** became UNREACHED-BY-THIS-BATTERY, **3** downgraded, **6** no longer emitted, and
+**105 still class A**. 43 of the 148 are rows the old battery never had.
+
+**CLASS A IS NOT A DEFECT LIST, AND SAYING SO IS THE FINDING.** 31 of its 36 carrier x tag rows carry
+an ARMED census probe that PROVES the mechanic works. I hand-read the other five: `move:leechseed /
+immunityGate` is graded A with *"Nothing in the simulator implements this fact"* and the Grass
+immunity is implemented at `medicham2-browser.js:18616` through a SIBLING tag the classifier cannot
+see. ROADMAP #323. Three real gaps survive — Trick vs Sticky Hold (**0 corpus uses**),
+`punishesMinimize` (Minimize is **32 of 198,840 sheet entries**), item Metronome (**27**) — total
+reach under 0.3%, filed LOW as ROADMAP #327 so they are not re-discovered rather than so they are
+fixed.
+
+**THE VEIN IS CLASS B AND C: 119 VALUES IN `data/tags.json` THAT NOTHING READS.** The engine consumes
+the tag's membership and substitutes its own number. Protect's `shieldsUser` / `stallCounterChecks` /
+`targetClass` at **67.75%** of sheet entries, Fake Out at 12.44%, **Life Orb's `costsPerAttack` at
+10.69%** — the row rediscovered the expensive way on 2026-08-21 after sitting in this file for sixteen
+days — Sucker Punch 7.11%, Flare Blitz and Wave Crash `recoil.readFrom`, Knock Off's `mult = 1.5`,
+the drain `num`/`den` on Matcha Gotcha and Giga Drain. None is a behavioural defect today; that is the
+point. It is *A DERIVED ARTIFACT IS NOT A FACT UNTIL SOMETHING COMPARES IT TO ITS SOURCE* at 119 live
+sites with no comparator. **The unit of work is one comparator, not 119 fixes** — ROADMAP #324.
+
+**And what is NOT a defect, said out loud because the counts grew fastest here.** 98
+UNREACHED-BY-THIS-BATTERY (was 32), 44 UNSTAGEABLE tags (was 25), 9 NO-CARRIER. The fixture did not
+keep up with a tag corpus that grew 60%. A COULD-NOT-STAGE verdict is a claim about the fixture, never
+about the mechanic, and none of these may be reported as breakage.
+
+*Pinned: engine release `6fb9ebd3b704` (26 files). The battery is NOT census-steered — `censusCrossRef()`
+reads `data/mechanics-census.json` only to ORDER class-A rows, so no census pin is needed for the
+sample; the census was digest `80e648f34d56` and was not regenerated. ENGINE cut `136a9894af62` while
+this ran, which is exactly what a release is for.*
 
 ### 00000000000000. TWO OF THE THREE ROWS HOLDING THE THIRD GATE CLAUSE SHUT ARE FIXED AND CLOSED; THE THIRD IS RED FOR A NAMED REASON — 2026-08-19
 

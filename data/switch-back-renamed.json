@@ -1,0 +1,129 @@
+{
+ "generated": "2026-08-22T06:15:17.977Z",
+ "by": "tests/test-switch-back-renamed.js",
+ "what": "can a body medicham2 renamed mid-battle be switched back in — subject against a control on the same board and turn",
+ "switchkey_written_by_buildpair": [
+  "morpeko",
+  "dragonite",
+  "espathra",
+  "garchomp"
+ ],
+ "switchkey_on_played_bodies": [
+  null,
+  null,
+  null,
+  null
+ ],
+ "arms": [
+  {
+   "id": "hungerswitch",
+   "what": "Morpeko is renamed to Morpeko-Hangry by a RESIDUAL, leaves, and is asked back by the name the driver names every candidate by — its base species.",
+   "ask": "morpeko",
+   "err": null,
+   "observed": {
+    "after_the_ask": [
+     "espathra",
+     "dragonite"
+    ],
+    "authority": [
+     "morpekohangry",
+     "dragonite"
+    ],
+    "bench_while_away": [
+     "morpeko-hangry",
+     "dragonite"
+    ],
+    "bench_while_away_authority": [
+     "morpeko",
+     "dragonite"
+    ]
+   },
+   "control_returned": true,
+   "known_open": {
+    "measured": [
+     "medicham2 did not bring the subject back: active [espathra,dragonite], the authority [morpekohangry,dragonite]",
+     "the bench body kept its flipped name: ours morpeko-hangry, the authority morpeko"
+    ],
+    "owed": "TWO fixes, EITHER of which closes the switch. (C1, engine/medicham2-browser.js) revert a NON-PERMANENT forme change when the body leaves the field — Hunger Switch passes no isPermanent, so Showdown reverts and this engine does not. (C2, engine/game_differential.js freshBodies, :2362) carry the `_switchKey` stamp buildPair writes at :2213; PART 2 of this file proves it is sufficient on its own."
+   },
+   "problems": [],
+   "verdict": "KNOWN-OPEN"
+  },
+  {
+   "id": "hungerswitch-restamped",
+   "what": "THE SUFFICIENCY ARM. Identical board, with the stamp `freshBodies` drops put back on the bench bodies one boundary before the ask — no file edited, the fix simulated in place. If the ask then resolves, the missing stamp is the mechanism.",
+   "ask": "morpeko",
+   "err": null,
+   "observed": {
+    "after_the_ask": [
+     "morpeko",
+     "dragonite"
+    ],
+    "authority": [
+     "morpekohangry",
+     "dragonite"
+    ],
+    "bench_while_away": [
+     "morpeko-hangry",
+     "dragonite"
+    ],
+    "bench_while_away_authority": [
+     "morpeko",
+     "dragonite"
+    ]
+   },
+   "control_returned": true,
+   "known_open": {
+    "measured": [
+     "the bench body kept its flipped name: ours morpeko-hangry, the authority morpeko"
+    ],
+    "owed": "C1 only — engine/medicham2-browser.js must revert a non-permanent forme change on the way out. The switch itself is already closed on this arm, which is what makes C2 sufficient for the divergence card and C1 a separate, still-open engine defect."
+   },
+   "problems": [],
+   "verdict": "KNOWN-OPEN"
+  },
+  {
+   "id": "mega-base-key",
+   "what": "A MEGA is a permanent rename, so BOTH engines hold abomasnow-mega and the ask still says abomasnow. This is the arm that THROWS rather than diverging.",
+   "ask": "abomasnow",
+   "err": "p1 choice rejected p1 \"pass, switch 4\": Can't pass: Your Espathra must make a move (or switch)",
+   "known_open": {
+    "measured": [
+     "the game THREW: p1 choice rejected p1 \"pass, switch 4\": Can't pass: Your Espathra must make a move (or switch)"
+    ],
+    "owed": "engine/game_differential.js — the Showdown branch at :3436 resolves a bench ask against `id(q.species.id)` and a mega'd body never reverts, so the ask must also try `baseSpecies.id` (or the driver must name the candidate by its CURRENT forme). NOT the same defect as the arm above: restamping `_switchKey` leaves it throwing."
+   },
+   "problems": [],
+   "verdict": "KNOWN-OPEN"
+  },
+  {
+   "id": "mega-forme-key",
+   "what": "THE OVER-FIRE CONTROL FOR THE ARM ABOVE. The same board asked by the forme key instead of the base key. It must SUCCEED — otherwise the mega arm proves nothing about the KEY.",
+   "ask": "abomasnowmega",
+   "err": null,
+   "observed": {
+    "after_the_ask": [
+     "abomasnow-mega",
+     "dragonite"
+    ],
+    "authority": [
+     "abomasnowmega",
+     "dragonite"
+    ],
+    "bench_while_away": [
+     "dragonite",
+     "abomasnow-mega"
+    ],
+    "bench_while_away_authority": [
+     "abomasnowmega",
+     "dragonite"
+    ]
+   },
+   "control_returned": true,
+   "known_open": null,
+   "problems": [],
+   "verdict": "AGREES"
+  }
+ ],
+ "known_open": 3
+}

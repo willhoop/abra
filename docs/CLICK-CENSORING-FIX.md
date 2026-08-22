@@ -168,8 +168,13 @@ Card are all `isNonstandard: 'Past'`), and `data/tags.json`'s `redirects` / `red
 set refuses to be empty.
 
 **THE CLASSIFIER'S OWN ERROR RATE, measured against the protocol rather than asserted.** The census
-scores the event-stream classifier per (game, turn, slot) against the raw log on the 5,917 games that
-have one:
+scores the event-stream classifier per (game, turn, slot) against the raw log on every game that has
+one. **THE DENOMINATOR IS WITHHELD RATHER THAN PRINTED (2026-08-22).** It was a bare figure matching
+no artifact anywhere — `tests/test-docs-current.js` caught it as untraceable — and the census it comes
+from, `data/click-censoring-census.json`, is QUARANTINED: its generator reaches
+`engine/medicham2-browser.js`, so it is downstream of an engine that is not correct. A caption is not
+a quarantine, so the number is removed rather than annotated. It becomes quotable again when the
+MEDICHAM gate opens AND `node engine/click_census.js` is re-run:
 
 | class | protocol says | classifier flagged | both | recall | precision |
 |---|---|---|---|---|---|
