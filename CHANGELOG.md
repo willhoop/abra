@@ -10,6 +10,55 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.73.0] — 2026-08-22
+
+### Notes
+- **THE GATE RUNNER'S COVERAGE ASSERTION DOES NOT ASSERT. Its comment claims the opposite of its own
+  code, which is the SECOND instance found today.** `tests/run-all.js:152-154` states that if a check
+  turns up which is neither a listed gate nor in `tests/`, *"this runner fails rather than quietly
+  ignoring it."* It does not fail: `unrun` is printed as a `WARNING` at L284-288, and L303 reads
+  `process.exit(fail.length ? 1 : 0)` — **`unrun.length` is not in the exit expression.** Verified at
+  both lines. (The other instance today: the engine's failed-Roost comment claimed the `self` volatile
+  was applied while the code skipped it — 5.71.0.)
+- **And the warning it does print is buried.** It currently carries 27 `engine/` names of which roughly
+  18 are not checks at all — `ditto.js`, `mag_bot.js`, `ladder.js`, `fit_policy.js`,
+  `game_differential.js` among them — so the six real gates inside it are invisible in the noise. That
+  is #148 exactly: an over-firing gate is the one people learn to ignore. **The fix is a by-name
+  exemption list with reasons, plus `unrun.length` in the exit expression — NOT a narrowed predicate.**
+- **The runner's blind spot, measured: 15 unrun checks exist under `tests/`, and the current detector
+  sees 3 of them.** A widened exit clause — `process.exit(<expr> ? 1 : 0)` rather than a bare
+  `process.exit(1)` — sees all 15. Shown red first as required: the current predicate does **not** flag
+  `tests/staged_board.js` and the widened one does, demonstrated on this tree before being trusted.
+
+### Changed
+- **NOTHING WAS LANDED, AND THAT IS THE RESULT.** `tests/run-all.js` is byte-unchanged. Wiring the 15
+  in would take the runner from 1 red to 5–6, and **none of those reds belongs to the division that
+  found them.** CLAUDE.md allows exactly two states for a red test — fixed in the session that saw it,
+  or waived by Will by name — so wiring in a batch nobody could fix tonight would have manufactured the
+  normalisation this project has already paid for twice. Cost was never the blocker: the whole set runs
+  in about 20 seconds.
+- **The four reds, and what each needs first:** `mutation_harness.js`; `probe_red_demo.js` (10 of 200,
+  8 of them stale reversals needing re-aiming); `staged_board.js` (the three known, all one
+  species-name-keyed mirror defect in `engine/game_differential.js`); and `staged_status_counters.js`,
+  whose BEFORE arm on release `6155acc0fb26` is **STRANDED** (`M.midEventDice is not a function`) —
+  LESSONS §12, so that figure is withheld and re-pinned, never resurrected. `tests/roster.js` is a
+  fifth candidate and is honestly recorded as **unmeasured**. Two more exit 2, which is a real SKIP.
+- **The ordering is settle-the-tree-first:** `engine/medicham2-browser.js` is mid-rewrite (+144 lines,
+  Life Orb) and three of the four reds land on exactly those bytes (`damageMultAll / lifeorb`, WIRE 4
+  `chainModify`, `ORB_STALE_RANGE is not defined`). Wiring a coverage gate into a tree that is moving
+  would have measured the wrong thing.
+
+### Fixed
+- Nothing in the engine this entry. It records a measurement and a deliberate refusal.
+
+### Notes (integrity)
+- **A GATE CHANGED VERDICT WITHOUT THE TREE CHANGING.** `tests/test-state-differential.js` was red
+  earlier this evening and is **green now on the same tree**. That is a test whose answer is not a
+  function of the code, and it is the clearest possible argument for not wiring anything in mid-pass.
+  Recorded, not explained — the cause is not known yet and guessing at it would be worse than saying so.
+
+---
+
 ## [5.72.0] — 2026-08-22
 
 ### Fixed
