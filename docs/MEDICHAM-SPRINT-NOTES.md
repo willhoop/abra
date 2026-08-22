@@ -11083,3 +11083,55 @@ The damage-roll index defect; whether `status.js` and `where.js` now agree on th
 *not modelled at all* — was spot-checked and has no row); the web figure audit. Three agents were
 stopped mid-run when the machine was needed, so none of those four is partially landed — they are
 unstarted or their finished half is in 5.63.0.
+
+---
+
+## 2026-08-22 — 162 OF 169 ACCUSATIONS AGAINST THE ENGINE WERE THE RULER (5.66.0)
+
+The roster asked for its pinned dice BY OMISSION. Since 2026-08-13 the driver default arm has been
+`middle` — real, event-addressed dice — so the stage whose whole job is to freeze every roll was
+rolling, and charging every difference to the engine. `PRIMARY_ARM = ARMS[0]`, and commit `cf7a2c5`
+prepended an arm its own registration calls *"opt-in and deliberately NOT in the default set"*.
+
+**And the artifact named an arm it had not played.** Every row printed `arm: "top-tie-first"`. That is
+why nine days passed. The one arm fetched BY ID was fine — 1 differ of 115; the one that fell through
+read 156 of 340.
+
+Re-measured on release `603d9a69d5a3` with the fix as the only difference:
+
+```
+  moves      157 DIFFER  ->    5 DIFFER      (469 MATCH, 0 DID-NOT-FIRE, 23 COULD-NOT-STAGE)
+  items        3 DIFFER  ->    2
+  abilities    8 + 1 sil ->    0
+```
+
+The five survivors: Dragon Cheer, Fake Out, Matcha Gotcha, Psych Up, Transform.
+
+### THE LESSON IS ONE THIS PROJECT HAS ALREADY PAID FOR
+
+*Suspect the instrument before the engine.* It cost five false defects last time. This time it cost
+**169 accusations, 162 of them the ruler** — and a whole morning spent believing MEDICHAM was badly
+broken when it was not.
+
+### AND THE INDEX HYPOTHESIS WAS REFUTED TWICE BEFORE THIS LANDED
+
+`medicham2-browser.js:8055` and the differential middle arm derive the damage index with the SAME
+function, so two engines cannot disagree about it; 2,635 inversions fired with no damage divergence.
+On the 121 whole-game divergences it explained at most 1, against 226 of 491 for the genuinely
+anti-correlated die. It was relayed to Will as a good diagnosis before it was checked. It was not one.
+
+### THE DIFFERENTIAL CAN SEE THE BAND NOW
+
+14 interior arms (`idx01`…`idx14`) are swept into `data/engine-diff.json` and therefore into the gate,
+with `--plant band` as their own red. 6,000 rows: midpoint 24, top 24, bottom 24, interior 24–25 per
+index, `band_missing` 0. **The clause flips PASS -> FAIL at 24/6000 and the FAIL is true** — the old
+`0/6000` was generated 2026-08-18, before the engine moved. The 24 are 19 Fur Coat rows plus 5 already
+on file.
+
+### OWED, NOT DONE
+
+27 other `playGame` callers omit `arm` and have been on the middle arm since 2026-08-13, including
+`staged_board.js`, `test-speed-tie.js` and `test-bracket-regain.js`. Listed and filed, deliberately not
+fixed in the same pass — changing the dice under twenty-seven instruments at once cannot be attributed
+if it goes wrong. The whole-game differential and the mechanics census have NOT been re-run against the
+fixed instrument. `data/register-reality.json` is 33 rows behind.

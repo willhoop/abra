@@ -824,13 +824,47 @@ const turn = (p1, p2) => ({ p1, p2 });
  * A rule DECLARES the arm it needs and the arm is PRINTED on every entry staged under it, because a
  * result read against the wrong corner is a result nobody can compare. */
 const PRIMARY_ARM_ID = 'top-tie-first';
+/* ---- THE ARM IS RESOLVED BY NAME, ALWAYS, AND THE ONE THAT RAN IS COUNTED --------------------------
+ *
+ * THIS LINE USED TO READ `if (armId && armId !== PRIMARY_ARM_ID)`, so a scenario that asked for this
+ * file's primary arm passed `arm: undefined` and took the DRIVER'S default. That was correct until
+ * 2026-08-13, when `engine/game_differential.js` prepended the `middle` arm to `ARMS` (commit
+ * cf7a2c5) and `PRIMARY_ARM = ARMS[0]` silently stopped meaning `top-tie-first`. The commit's own
+ * message says the middle arm is *"deliberately NOT in the default set"*; it is the default for every
+ * caller that omits `arm`, and this file was one.
+ *
+ * WHAT IT COST, MEASURED: release 603d9a69d5a3, `data/roster.moves.json` reads **156 of 340
+ * FIRED-AND-BOARDS-DIFFER on `top-tie-first` (45.9%) against 1 of 115 on `bottom-tie-first`
+ * (0.87%)** — and `bottom-tie-first` is the arm the old branch DID resolve by id. A damage defect
+ * cannot know which label a row carries. Under the middle arm the damage die is event-addressed and
+ * real, so the identical click on the identical board dealt 12, 13, 12, 13, 13 across five turns
+ * (`|-damage|p2a: Goodra|1228 -> 1215 -> 1203 -> 1190 -> 1177` of 1240) while every one of this
+ * file's rules is written against a CONSTANT corner: "the pin makes every sub-100 move miss", "no
+ * crit lands", "the maximum roll is the roll the pin selects". None of that was true of the games
+ * that were played, and every row still printed `arm: "top-tie-first"`.
+ *
+ * SO THE ARM IS FETCHED BY ID IN EVERY CASE. `arm: undefined` is no longer reachable from this file,
+ * which is what makes the label on a row a receipt rather than a hope.
+ *
+ * THE RESTORE FLAG IS AN ENV VAR, on the same rule as MEDI_DAMAGE_SPAN_DRAW: the defect stays
+ * reachable at runtime for a paired measurement without swapping a file, and a run carrying it says
+ * so out loud. */
+const ARM_FALLS_THROUGH = (typeof process !== 'undefined' && process.env
+                           && process.env.ROSTER_ARM_FALLS_THROUGH === '1');
+/* WHICH ARM ACTUALLY REACHED THE DRIVER, counted per id. A LABEL IS NOT A RECEIPT — every row of the
+ * 156 above carried the right label and the wrong dice — so this counts the object that was handed
+ * over, and `tests/test-roster-arm-pin.js` asserts the set of ids seen here is exactly the set of ids
+ * declared. A zero for a declared arm, or any count at all on `middle`, is a red run. */
+const ARM_PLAYED = new Map();
 function play(sc, src, armId) {
   const G = SB.harness(src);
-  let ARM = null;
-  if (armId && armId !== PRIMARY_ARM_ID) {
-    ARM = G.ARM_BY_ID.get(armId);
-    if (!ARM) return { bad: 'NO-SUCH-ARM', why: 'the scenario asks for pin arm "' + armId
-      + '" and game_differential.js publishes only ' + [...G.ARM_BY_ID.keys()].join(', ') };
+  let ARM = G.ARM_BY_ID.get(armId || PRIMARY_ARM_ID);
+  if (!ARM) return { bad: 'NO-SUCH-ARM', why: 'the scenario asks for pin arm "' + (armId || PRIMARY_ARM_ID)
+    + '" and game_differential.js publishes only ' + [...G.ARM_BY_ID.keys()].join(', ') };
+  if (ARM_FALLS_THROUGH && (armId || PRIMARY_ARM_ID) === PRIMARY_ARM_ID) ARM = null;   // the defect, restored
+  {
+    const seen = ARM ? ARM.id : ('DRIVER-DEFAULT:' + (G.PRIMARY_ARM ? G.PRIMARY_ARM.id : '?'));
+    ARM_PLAYED.set(seen, (ARM_PLAYED.get(seen) || 0) + 1);
   }
   let a, b;
   try {
@@ -9157,10 +9191,24 @@ function main() {
     console.log('    ' + scope.attributed_by_second_control.length + ' row(s) were RELEASED OR NARROWED BY '
       + 'A SECOND CONTROL: ' + scope.attributed_by_second_control.join(', '));
 
+  /* THE PIN'S RECEIPT, PRINTED. A row's `arm` is a LABEL; this is the object that reached the driver.
+   * A `DRIVER-DEFAULT:` line here means this file asked for an arm by omission and got whatever
+   * game_differential.js's ARMS[0] happens to be — which stopped being `top-tie-first` on 2026-08-13
+   * and cost 156 false differs. */
+  console.log('');
+  console.log('  THE ARM THAT ACTUALLY REACHED THE DRIVER (a label is not a receipt):');
+  for (const [k, n] of [...ARM_PLAYED.entries()].sort((a, b) => b[1] - a[1]))
+    console.log('    ' + String(n).padStart(5) + '  ' + k
+      + (k.startsWith('DRIVER-DEFAULT:') ? '   <-- NOT PINNED BY NAME. This run is not the arm it says it is.' : ''));
+
   if (JSONOUT || HAS('--write')) {
     const art = { generated: new Date().toISOString(), by: 'tests/roster.js', stage: STAGE,
       engine_release: REL.id, format: CS.FORMAT,
       counts: Object.fromEntries(VERDICT_ORDER.map(v => [v, (by[v] || []).length])),
+      /* THE ARM THAT ACTUALLY RAN, counted per id rather than copied off the row's label. A row's
+       * `arm` is what the RULE asked for; this is what `play()` handed the driver. They were not the
+       * same thing between 2026-08-13 and 2026-08-22 and nothing could see it — see `ARM_PLAYED`. */
+      arms_played: Object.fromEntries([...ARM_PLAYED.entries()].sort((a, b) => b[1] - a[1])),
       /* THE DENOMINATOR TRAVELS WITH THE COUNTS. engine/quarantine.js reads this rather than
        * re-deriving it, so the clause and the run cannot come to disagree about what 84 is out of. */
       scope,

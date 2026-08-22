@@ -13,13 +13,15 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-middle-stall-address.js`, `tests/test-middle-draw-scope.js`,
 `tests/test-middle-damage-roll.js`, `tests/test-damage-roll-support.js`, `tests/test-bracket-regain.js`,
 `tests/test-encore-fail-silent.js`, `tests/test-resolution-order.js`, `engine/switchin_order.js`,
-`data/switchin-order.json`, `tests/test-immunity-gate.js`, `tests/test-tag-params-derived.js`
+`data/switchin-order.json`, `tests/test-immunity-gate.js`, `tests/test-tag-params-derived.js`,
+`tests/test-roster-arm-pin.js`
 
-**Eighteen instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
+**Nineteen instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
 "thirteen" until `test-bracket-regain.js` on 2026-08-21, "fourteen" until
-`test-encore-fail-silent.js` on 2026-08-22 and "fifteen" until `test-immunity-gate.js` and
-`test-tag-params-derived.js` and "seventeen" until `test-resolution-order.js`, all on
+`test-encore-fail-silent.js` on 2026-08-22, "fifteen" until `test-immunity-gate.js` and
+`test-tag-params-derived.js`, "seventeen" until `test-resolution-order.js` and "eighteen" until
+`test-roster-arm-pin.js`, all on
 2026-08-22, and a number typed in prose beside a table is exactly what
 CLAUDE.md records going stale three times over.)*
 
@@ -39,6 +41,7 @@ CLAUDE.md records going stale three times over.)*
 | `test-middle-identity.js` | do the two engines NAME the same event — the address the middle arm's dice are keyed on, diffed over real games, per category, with the shapes that cannot match printed rather than averaged | whether either engine plays the game right; it compares the QUESTIONS asked, never the answers. And `nth`: two engines that take a different NUMBER of draws at one address line up on entry 0 and part after it — the size of that population is printed, not solved |
 | `test-bracket-regain.js` | can a priority bracket be REGAINED mid-turn, not just lost — one staged board, three arms, the authority's own `\|move\|` order as the expectation, and the heal receipt (`hp === maxhp`, landing BEFORE the re-sort) asserted rather than inferred | anything about a bracket nobody staged: it is ONE board carrying the format's ONE Gale Wings body, so it says nothing about Grassy Glide, Skill Swap or any other `ModifyPriority` input that can move mid-turn. And `bracketRederiveMoved` is corroboration, never the bar — it counts a bracket NOTICED, not APPLIED, and rises on a broken engine |
 | `test-encore-fail-silent.js` | does a move that FAILED say so exactly where the authority says so, and stay silent exactly where the authority stays silent — ten staged arms, four of them the defect and six of them the over-fire control, judged by two protocol streams with no typed expectation, plus five engine counters at exact equality | whether the refusal itself is right (both engines refusing for different reasons still agree here), and any member whose refusal this engine cannot classify as the authority's `false` or `null` — those are silenced by construction and counted, never guessed |
+| `test-roster-arm-pin.js` | does the arm a scenario NAMES actually reach the dice — six identical clicks on one staged board must deal the SAME damage under a named corner and must NOT under `middle` (the over-fire control), plus the roster's own `arms_played` receipt asserted against the arm every compared row DECLARED, and the whole check re-run under `ROSTER_ARM_FALLS_THROUGH=1` where it MUST go red | whether an arm's dice are the RIGHT dice (that is `PIN_CLAIMS`, asserted in `game_differential.js`), and every OTHER caller of `playGame` that omits `arm` — `staged_board.js` and 26 more are in exactly the position the roster was in and this file says nothing about them |
 | `test-nature-differential.js` | is the two engines' Pokemon the SAME Pokemon — chart, arithmetic, the sheet's declared nature reaching both sides, and the line surviving a mega mid-turn | whether either engine plays the game right; it compares BODIES, not turns. The SPREADS, permanently — an open team sheet does not show them |
 | `test-immunity-gate.js` | does `data/tags.json` carry the move-specific immunity, and does its derived CONDITION predict the authority — membership asserted as an EQUALITY both ways, every row required readable, twelve staged arms in the official simulator with the gate closed AND open, and a `--red` arm that inverts every condition | whether MEDICHAM honours the tag: it loads no part of the simulator and compares an ARTIFACT against the AUTHORITY. And any immunity that is not `onTryImmunity` — type immunity, Prankster and the powder rule live in other arms of the same step and are out of scope by construction |
 | `test-tag-params-derived.js` | is a tag's parameter a NUMBER a consumer can use or a sentence — Life Orb's recoil predicted from `cost.divisor` and read off the battle, a spread drain's per-target schedule proved by the interleaving in the stream AND by a searched-for turn where the merged model is 1 HP wrong, and the `onDragOut` set asserted equal both ways | anything whose param it does not name; it is three blocks, not a sweep. The prose-quantity SWEEP is a separate scan and its four remaining hits are listed below, unfixed |
@@ -75,6 +78,175 @@ ENGINE — does the simulator do what Pokémon does
 _stamped 2026-08-22 02:57_
 
 <!-- /GENERATED -->
+
+## THE 157 WAS NEVER A DAMAGE DEFECT — THE ROSTER ASKED FOR ITS PIN BY OMISSION AND GOT REAL DICE FOR NINE DAYS. 2026-08-22.
+
+**Census unmoved: 623 live / 0 missing.** No probe count could move — nothing in
+`medicham2-browser.js` was edited this pass, and the finding is that 162 of 169 roster accusations
+against it were never the engine. Full account: `docs/_reports/2026-08-22-damage-roll-index.md`.
+
+New gate: **`tests/test-roster-arm-pin.js`**. Widened: **`tests/test-engine-diff.js`** now sweeps all
+sixteen indices of the damage roll instead of the two endpoints.
+
+### THE BRIEF SAID "AN INDEX ERROR". IT IS AN ARM THAT WAS NEVER RESOLVED
+
+`tests/roster.js` declares `PRIMARY_ARM_ID = 'top-tie-first'` and every rule in it is written against
+that corner. `play()` only ever *fetched* an arm when the scenario asked for a DIFFERENT one:
+
+```js
+let ARM = null;
+if (armId && armId !== PRIMARY_ARM_ID) ARM = G.ARM_BY_ID.get(armId);   // the primary is never resolved
+G.playGame(a, b, 'directed', 'roster:' + sc.id, { arm: ARM || undefined, ... });
+```
+
+`arm: undefined` takes `PRIMARY_ARM = ARMS[0]` (`game_differential.js:1263`), and commit **cf7a2c5,
+2026-08-13**, prepended the `middle` arm to `ARMS` — the arm whose own registration says it is
+*"opt-in and deliberately NOT in the default set"*. Every row went on printing `arm: "top-tie-first"`.
+
+**THE ARM SPLIT IS THE WHOLE DIAGNOSIS AND IT WAS SITTING IN THE ARTIFACT.** `bottom-tie-first` is
+fetched by id, so it really was pinned; `top-tie-first` was asked for by omission, so it was not:
+
+```
+data/roster.moves.json, by arm             DIFFER   MATCH    rate
+  top-tie-first    (fell through)            156      184     45.9% of 340 tested
+  bottom-tie-first (resolved by id)            1      114      0.87% of 115 tested
+```
+
+All 3 item differs and all 8 ability differs plus the one `DID-NOT-FIRE` are `top-tie-first` too. **A
+damage defect cannot know which label a row carries.**
+
+**AND THE TWO INSTRUMENTS WERE NEVER IN CONTRADICTION.** `test-engine-diff.js` reads 0/6000 at the
+corners because it really is at the corners — it calls `dmgRange` directly and plays no game. The
+roster believed it was at a corner and was not. `engine/all_mechanics_fire.js` resolves
+`bottom-tie-first` BY ID and refuses to guess if it is gone, which is exactly why the gate re-run saw
+it "barely move" (+1 mechanic) on the day the roster's move stage lost a third of its rows.
+
+### RED FIRST, AND THE PROBE WAS ONE LINE OF ENGINE INTERNALS
+
+`aerialace` staged as the artifact stages it: the same click on the same board dealt **12 then 13**.
+A constant die cannot do that. Patching the release's own bytes through `staged_board.harness(src)`:
+
+```
+  DBG u=0.33557984861545265  idx=10  band=[14,13,13,13,13,13,13,13,12,12,12,12,12,12,12,11]  dmg=12
+  DBG u=0.9253654214553535   idx=1   band=[...]                                              dmg=13
+  under top-tie-first:  u=0.999999999  idx=0  dmg=14, six turns, identical
+```
+
+`u = 0.999999999` is `CORNER_TOP = 1 - 1e-9`. The band was always right; the die was never pinned.
+
+### PAIRED, ON ONE PIN, WITH THE ARM RESOLUTION THE ONLY DIFFERENCE
+
+Release `603d9a69d5a3`, `--json` so no committed artifact was overwritten:
+
+```
+                    restored defect      arm resolved by id
+  moves     DIFFER      157                    5
+            DEFERRED     25                    3
+            MATCH       298                  469
+  items     DIFFER        3                    2
+  abilities DIFFER    8 + 1 SILENT             0 + 0
+```
+
+**The restored-defect run reproduces the committed artifact on 500 of 500 rows, verdict for verdict.**
+That is the attribution, not an inference from a count.
+
+The seven survivors are the real leads: `dragoncheer`, `fakeout`, `psychup`, `transform` (all
+`vol.focusenergy` — the control click IS Focus Energy, so these four are ONE mechanism),
+`matchagotcha` (hp off-by-one, and the only differ on the genuinely-pinned arm), `bigroot`
+(hp off-by-one), `greninjite` (Protean does not reach the mega forme).
+
+### THE FIX IS A RECEIPT, NOT A LABEL
+
+`play()` resolves the arm by id in every case. **`ARM_PLAYED`** counts the arm OBJECT that reached the
+driver, per id, printed on every run and published as `arms_played`: a `DRIVER-DEFAULT:` key prints
+`<-- NOT PINNED BY NAME. This run is not the arm it says it is.` Every one of the 157 rows carried the
+right label and the wrong dice, which is precisely why nothing could see it. `ROSTER_ARM_FALLS_THROUGH=1`
+restores the defect at runtime for a paired measurement, on the same rule as `MEDI_DAMAGE_SPAN_DRAW`.
+
+`tests/test-roster-arm-pin.js` asserts it four ways, and **two of its own bugs were cleared before the
+engine was believed**: aiming both of side A's bodies at slot 0 put two hits a turn on p2a and read
+`33 12 33 12` under a *correctly pinned* corner, and treating the roster's non-zero exit (its verdict,
+not a crash) as a failure made §2 and §3 red on a good run.
+
+### THE DIFFERENTIAL CAN NOW SEE THE BAND — AND THE BAND IS CLEAN
+
+`status.js` printed this clause **PASS** — *"midpoint 0 of 6000, top 0/6000, bottom 0/6000"* — beside
+a 157-row red. Three sampled points of a sixteen-index band cannot speak for the thirteen they never
+sample. `dmgRange` has filled a sixteen-entry `rolls` band since #304 and `showdownDamage` already
+took the index as a parameter, so the interior was one out-parameter away and nobody had asked.
+
+Fourteen new arms `idx01`…`idx14`, same 12% band, same cap, same worst-of-branches rule.
+`quarantine.js` iterates whatever `arms` the artifact carries, so **the gate picked them up with no
+change on that side.** `--plant band` is their own red demonstration, and the three plants are
+orthogonal (n=200, seed 20260804):
+
+```
+                  midpoint   top   bottom   interior/index
+  no plant             1       1      1          1
+  --plant spread       1     135    143          1
+  --plant band         1       1      1        135
+```
+
+`--n 6000 --seed 20260804`: **midpoint 24, top 24, bottom 24, interior 24-25 at every index,
+`band_missing` 0.** The 24 are 19 Furfrou rows (#317) and 5 Aurorus Hyper Voice rows — the same two
+families this file recorded yesterday as 14/3,000. **The interior adds no rows the corners do not
+already have**, which is a positive result about #304's landing over ~96,000 comparisons.
+
+**THE CLAUSE THEREFORE FLIPS PASS -> FAIL AND THE FAIL IS TRUE.** The `0/6000` was generated
+2026-08-18, before the engine moved. Control: a paired n=200 run reads `199 agreed / 1 disagreed`
+both before and after the band was wired, so passing `{rolls: []}` moved no published number.
+
+### A MOVE WITH NO RANDOMIZER IS NOT A MISSING BAND, AND GETTING THAT WRONG SHRANK A DENOMINATOR
+
+`dmgRangeOneHit` returns before filling `rolls` for exactly the cases the authority also settles above
+its randomizer — an immunity, a type-chart zero, the fixed-damage family. Those are one value at all
+sixteen indices, so they are compared at `min` and the interior keeps its full denominator; only a row
+with a real SPAN and no band counts as `band_missing`. Reading "is this flat?" AFTER `--plant spread`
+widened the range turned ten fixed-damage rows into ten missing ones and quietly took the interior
+denominator to 190 of 200. Caught by the plant, which is what a plant is for.
+
+### THE BLAST RADIUS IS 27 CALLERS AND IT IS FILED, NOT FIXED
+
+`PRIMARY_ARM = ARMS[0]` was left alone deliberately: the whole-game differential *intends* `middle`
+(`data/game-differential.json` carries `mode: A/middle/...`, and #303 and #304 were both measured on
+it), so changing `ARMS[0]` moves a published headline and every artifact keyed to `PIN_DIGEST` — a
+re-baseline, not a batch. **But every caller of `playGame` that omits `arm` has been on the middle arm
+since 2026-08-13**, and there are 27 with no `arm:` mention anywhere in the file, including
+`tests/staged_board.js`, `tests/test-speed-tie.js` and `tests/test-bracket-regain.js` — ordering tests
+whose design assumes a deterministic board. Auditing 27 at once makes a bad result unattributable, so
+the list is in the report and owed to the register.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — they are tests now:**
+- ~~the roster's 157 differing move rows, 3 item rows and 8+1 ability rows~~ — `tests/test-roster-arm-pin.js`.
+  They were the instrument. 162 of 169.
+- ~~`test-engine-diff.js` cannot see the INTERIOR of the damage roll, by construction~~ — it can now:
+  fourteen interior arms in the artifact and in the gate, with `--plant band` as their red.
+
+**Added, measured this pass and NOT fixed:**
+- **27 `playGame` callers omit `arm` and are therefore on the middle arm.** Listed in the report.
+  Some legitimately want real dice; the ordering tests certainly do not.
+- **`CONTROL-NOT-QUIET` on the abilities stage is NOT the arm** — 46 with the fix against 47 in the
+  committed artifact, so the 13 -> 47 movement the gate re-run flagged still has no cause.
+- **The four `vol.focusenergy` rows are one mechanism** (`dragoncheer`, `fakeout`, `psychup`,
+  `transform`) and are the next batch, not this one. **`--selftest` prints the control's exemption as
+  exactly `[pp.focusenergy, vol.focusenergy]` — the same leaf these four part on**, so confirm the
+  exemption is not producing the verdict before charging the engine. The selftest is green after this
+  pass, which says the control does what it claims and does NOT say these four are engine defects.
+
+**Observed, not caused, and reported rather than touched:**
+- **A release was cut under this pass at 08:28.** `data/move-priors.json` — a SOURCE file — changed on
+  the live tree and the pointer moved `603d9a69d5a3` -> `e12ef20e7910`. Nothing here writes it.
+  Consequence: an UNPINNED roster run now silently measures the newer engine, and `status.js` reports
+  all three roster clauses and the whole-game differential as `MEASURED AGAINST A DIFFERENT ENGINE`.
+  Every figure above carries an explicit `--release 603d9a69d5a3`, which `verify` reads as intact.
+- **`node engine/status.js --write` was NOT run**, so the GENERATED block above is one restamp behind
+  the `24/6000` differential figure. It rewrites `data/open-work.json` and `data/provenance-stamp.json`,
+  which are not outputs of this work, and two other agents were live in `docs/`.
+
 
 ## THE DICE PASS — THE FORMULA WAS RIGHT AND THE DRAW WAS NOT, IN TWO PLACES OUT OF FOUR. 2026-08-22.
 

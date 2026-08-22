@@ -91,8 +91,16 @@ const PLANT = (() => {
   const i = process.argv.indexOf('--plant');
   if (i < 0) return null;
   const k = process.argv[i + 1];
-  if (k !== 'spread') {
-    console.error('  --plant takes: spread   (widen MEDICHAM\'s range symmetrically, midpoint unmoved)');
+  /* ROADMAP #304 — `band` IS THE INTERIOR ARMS' OWN RED DEMONSTRATION, and it is the exact inverse of
+   * `spread`. `spread` widens the RANGE, so the midpoint cannot move and the two corners must; `band`
+   * perturbs the FOURTEEN INTERIOR ROLLS and leaves indices 0 and 15 alone, so the midpoint AND both
+   * corners must read their unplanted values while the interior arms light up. An arm with no plant
+   * that can move it is an arm nobody has checked. */
+  if (k !== 'spread' && k !== 'band') {
+    console.error('  --plant takes:\n'
+      + '    spread   widen MEDICHAM\'s range symmetrically — midpoint unmoved, BOTH CORNERS light up\n'
+      + '    band     perturb the 14 INTERIOR rolls only — midpoint and both corners unmoved, the\n'
+      + '             interior arms light up');
     process.exit(2);
   }
   return k;
@@ -390,6 +398,31 @@ const bad = [];
  * `engine/game_differential.js` states for its pinned arms. */
 const armBad = { top: [], bottom: [] };
 const armAgreed = { top: 0, bottom: 0 };
+/* ---- ROADMAP #304 / #322 — THE FOURTEEN INDICES BETWEEN THE CORNERS -----------------------------
+ *
+ * The two arms above are index 0 and index 15, and this file's own scope note says it "structurally
+ * cannot see the INTERIOR of the damage roll". That was true for a reason that has since gone away:
+ * the corners were the only two points where an INDEX and a SPAN coincide, so they were the only two
+ * a range-versus-range comparison could ask about. Since #304 landed, `dmgRangeOneHit` fills a
+ * sixteen-entry `rolls` band in the authority's own index order, so index i has a MEDICHAM
+ * counterpart and the question can simply be asked.
+ *
+ * IT IS NOT A THEORETICAL GAP. On 2026-08-22 `engine/status.js` printed this clause as PASS —
+ * "clean at BOTH corners of the damage roll: midpoint 0 of 6000, top 0/6000, bottom 0/6000" — beside
+ * a 157-row red in `data/roster.moves.json`. Three sampled points of a sixteen-index band cannot
+ * speak for the thirteen they never sampled, and a passing clause is not evidence about an interval
+ * it never visits.
+ *
+ * `engine/quarantine.js`'s `differentialClause` iterates whatever `arms` the artifact carries, so
+ * these fourteen join the gate with no change on that side. */
+const BAND_IDX = [];
+for (let i = 1; i <= 14; i++) BAND_IDX.push(i);
+const bandKey = (i) => 'idx' + String(i).padStart(2, '0');
+for (const i of BAND_IDX) { armBad[bandKey(i)] = []; armAgreed[bandKey(i)] = 0; }
+/* THE LOUD FALLBACK. A row whose `rolls` band did not arrive is UNMEASURED at every interior index,
+ * and counting it as agreement is the silent default this repository is named after. It is counted,
+ * named once, printed on every run, and carried into the artifact. */
+const bandMissing = { n: 0, first: '' };
 const seen = new Set();
 const touched = { intimidate: 0, weather: 0, absorbMon: 0, absorbFired: 0, bpCallback: 0 };
 let guard = 0;
@@ -499,18 +532,33 @@ function compareRow(attId, mvId, defId) {
   /* ONE PER CORNER, WORST-OF-BRANCHES exactly as the midpoint is, so a carrier that is right on its
    * 70% face cannot pay for being wrong on its 30% one at either endpoint either. */
   let worstTop = null, worstBottom = null;
+  /* ROADMAP #304 — the interior, worst-of-branches on the same rule as the two corners. */
+  const worstBand = {};
   for (const pin of branches) {
     let m;
+    const rollsOut = [];
     try {
       /* THE SEVENTH ARGUMENT IS THE BRANCH, AND IT IS ABSENT FOR A NON-CARRIER. Absent means "nobody
        * drew", which is the PURE PRICE -- and after WIRE 155 that is the un-procced branch and not an
        * expectation, so the two paths deliberately return different numbers and this file compares the
        * DRAWN one. Passing it here is the same call `battleTurn`'s `_hitCtx` makes. */
+      /* ROADMAP #304 — `rolls` IS AN OUT-PARAMETER AND IT IS THE WHOLE BAND SWEEP. `dmgRangeOneHit`
+       * fills it only when the caller hands over an array, so a caller that does not ask pays
+       * nothing; asking is what turns "min and max" into "the sixteen values the authority can
+       * emit". The seventh argument was already this object — the conditional-power branch rides on
+       * it — so nothing about the existing call changes except that it now carries the array. */
       m = MEDI.dmgRange(A, B, MC.moves[mvId], { weather: '', terrain: '', twA: 0, twB: 0, tr: 0 },
-                        false, false, pin == null ? undefined : { condPower: pin });
+                        false, false, Object.assign({ rolls: rollsOut },
+                                                    pin == null ? {} : { condPower: pin }));
     } catch (e) { logDroppedRow('medicham dmgRange ' + attId + ' ' + mvId + ' -> ' + defId, e); return null; }
     if (!m) return null;
 
+    /* READ BEFORE THE PLANT TOUCHES IT. "This move has no randomizer" is a property of the MOVE and
+     * `--plant spread` widens every range by construction, so asking after the plant turns ten
+     * fixed-damage rows into ten `band_missing` ones and quietly shrinks the interior denominator —
+     * which is what the first version of this block did, 190 of 200 under the plant and 200 without. */
+    const noRandomizer = (m.min === m.max);
+    const flatValue = m.min;      // the constant such a move deals, read before `--plant spread` widens it
     let hi, lo;
     try {
       hi = showdownDamage(attSp.name, dexMove.name, defSp.name, 0, stats, B.ability, pin);
@@ -547,6 +595,46 @@ function compareRow(attId, mvId, defId) {
       worstBottom = { rel: rB, suspect: sBot === 0 && mBot > 0,
                       showdown: label + String(sBot), medicham: String(mBot) };
     }
+    /* ---- ROADMAP #304 — THE FOURTEEN INDICES THE CORNERS CANNOT SPEAK FOR --------------------
+     *
+     * `rollsOut[i]` is MEDICHAM's value at the authority's index i and `showdownDamage(..., i, ...)`
+     * is the authority's, because `battle.random = (n) => (n === 16 ? roll : 0)` makes the index a
+     * PARAMETER of the reference call. Same 12% band, same cap, same worst-of-branches rule as the
+     * corners — the only thing that changes is WHICH of the sixteen is being asked about.
+     *
+     * A MISSING BAND IS NOT AGREEMENT. `dmgRange` fills `rolls` on both of its paths, but a third
+     * path (or a release predating #304) would leave it empty, and treating that as "nothing
+     * disagreed" is the silent default. It is counted and named instead, and the interior arms are
+     * skipped for that row rather than credited. */
+    /* A MOVE WITH NO RANDOMIZER HAS NO BAND, AND THAT IS NOT A MISSING ONE. `dmgRangeOneHit` returns
+     * before it fills `rolls` for exactly the cases the authority also decides above its randomizer:
+     * an immunity (`{0,0}`), a type-chart zero, and the fixed-damage family (Seismic Toss, Super
+     * Fang, the OHKO moves — `getDamage`'s four early returns sit above `randomizer`). For those the
+     * value IS the same at all sixteen indices, so `min` is the right counterpart and the interior
+     * keeps its full denominator. A row with a real SPAN and no band is the genuine fault and is the
+     * only thing counted below. */
+    const flat = rollsOut.length !== 16 && noRandomizer;
+    if (rollsOut.length !== 16 && !flat) {
+      bandMissing.n++;
+      if (!bandMissing.first) bandMissing.first = attId + ' ' + mvId + ' -> ' + defId
+        + ' (medicham ' + m.min + '-' + m.max + ')';
+    } else {
+      for (const i of BAND_IDX) {
+        let sIdx;
+        try { sIdx = showdownDamage(attSp.name, dexMove.name, defSp.name, i, stats, B.ability, pin); }
+        catch (e) { logDroppedRow('showdownDamage idx' + i + ' ' + attId + ' ' + mvId + ' -> ' + defId, e); sIdx = null; }
+        if (sIdx == null || sIdx === NOT_FINITE) continue;
+        /* THE PLANT PERTURBS THE INTERIOR AND NOTHING ELSE — see `--plant band` above. */
+        const mRaw = (flat ? flatValue : rollsOut[i]) + (PLANT === 'band' ? PLANT_HALFWIDTH : 0);
+        const sV = cap(sIdx), mV = cap(mRaw);
+        const rI = corner(sV, mV);
+        const k = bandKey(i);
+        if (!worstBand[k] || rI > worstBand[k].rel) {
+          worstBand[k] = { rel: rI, suspect: sV === 0 && mV > 0,
+                           showdown: label + String(sV), medicham: String(mV) };
+        }
+      }
+    }
   }
   if (!worst) return null;
   const rel = worst.rel;
@@ -582,7 +670,7 @@ function compareRow(attId, mvId, defId) {
   const suspect = worst.suspect;
   return { att: attId, mv: mvId, def: defId, A, B, dexMove, rel, suspect,
            showdown: worst.showdown, medicham: worst.medicham,
-           top: worstTop, bottom: worstBottom,
+           top: worstTop, bottom: worstBottom, band: worstBand,
            uses: ((tags.moves[mvId] || {}).uses) || 0 };
 }
 
@@ -629,7 +717,12 @@ while (compared < N && guard++ < N * 40) {
   if (typeof r.dexMove.basePowerCallback === 'function') touched.bpCallback++;
   /* THE CORNERS ARE COUNTED BEFORE THE MIDPOINT'S `continue`, or a row that agreed on the midpoint
    * would never reach the corner arms — which is the exact blindness this pass exists to remove. */
-  for (const [arm, w] of [['top', r.top], ['bottom', r.bottom]]) {
+  const armRows = [['top', r.top], ['bottom', r.bottom]];
+  /* ROADMAP #304 — the interior joins the same accumulator on the same rule. A row whose band did
+   * not arrive contributes NOTHING here (no `w`), which is why `band_missing` is published beside
+   * the counts: an interior arm's denominator is not automatically `compared`. */
+  for (const i of BAND_IDX) armRows.push([bandKey(i), r.band ? r.band[bandKey(i)] : null]);
+  for (const [arm, w] of armRows) {
     if (!w) continue;
     if (w.rel <= 0.12) { armAgreed[arm]++; continue; }
     armBad[arm].push({ att: r.att, mv: r.mv, def: r.def, showdown: w.showdown, medicham: w.medicham,
@@ -656,10 +749,39 @@ for (const arm of ['top', 'bottom']) {
     + (arm === 'top' ? 'Showdown roll index 0 = MAXIMUM vs MEDICHAM max'
                      : 'Showdown roll index 15 = MINIMUM vs MEDICHAM min') + ')');
 }
-if (PLANT) {
-  console.log('  *** --plant ' + PLANT + ' IS ON (halfwidth ' + PLANT_HALFWIDTH + '). MEDICHAM\'s range was');
+/* ---- ROADMAP #304 — THE FOURTEEN INDICES BETWEEN THEM ----------------------------------------- */
+console.log('\n  AND THE ROLL IS SIXTEEN INDICES, NOT TWO. The two lines above are the ENDPOINTS, which');
+console.log('  are the only points where an index and a span coincide — so they cannot speak for the');
+console.log('  thirteen values between them. Each row below compares Showdown at index i against');
+console.log('  MEDICHAM\'s own `rolls[i]`, the band dmgRange fills in the authority\'s index order.');
+console.log('     compared  agreed  disagreed   index');
+{
+  let interiorBad = 0;
+  for (const i of BAND_IDX) {
+    const k = bandKey(i), d = armBad[k].length;
+    interiorBad += d;
+    const n = armAgreed[k] + d;
+    console.log('  ' + String(n).padStart(9) + '  ' + String(armAgreed[k]).padStart(6) + '  '
+      + String(d).padStart(9) + '   ' + k + '  (roll ' + (100 - i) + '%)');
+  }
+  console.log('  ' + (interiorBad ? '  INTERIOR TOTAL ' + interiorBad + ' disagreement(s) across the 14 indices'
+                                  : '  the interior is clean across all 14 indices'));
+  if (bandMissing.n) {
+    console.log('  *** ' + bandMissing.n + ' row(s) HANDED BACK NO SIXTEEN-ENTRY BAND and are UNMEASURED at every');
+    console.log('  *** interior index — not counted as agreement. First: ' + bandMissing.first);
+  }
+}
+if (PLANT === 'spread') {
+  console.log('  *** --plant spread IS ON (halfwidth ' + PLANT_HALFWIDTH + '). MEDICHAM\'s range was');
   console.log('  *** deliberately widened symmetrically. THE MIDPOINT LINE ABOVE IS UNMOVED BY');
   console.log('  *** CONSTRUCTION; if either corner arm also reads 0 the arm is not wired.');
+  console.log('  *** It does NOT touch `rolls`, so the interior arms are unmoved BY CONSTRUCTION too —');
+  console.log('  *** their own red demonstration is --plant band.');
+}
+if (PLANT === 'band') {
+  console.log('  *** --plant band IS ON (halfwidth ' + PLANT_HALFWIDTH + '). The FOURTEEN INTERIOR rolls');
+  console.log('  *** were shifted and indices 0 and 15 were left alone. THE MIDPOINT AND BOTH CORNER');
+  console.log('  *** ARMS ARE UNMOVED BY CONSTRUCTION; if the interior rows also read 0 they are not wired.');
 }
 for (const arm of ['top', 'bottom']) {
   if (!armBad[arm].length) continue;
@@ -755,15 +877,30 @@ const PUBLISHED = GUARD.publish({
   plant: PLANT ? { kind: PLANT, halfwidth: PLANT_HALFWIDTH,
                    warning: 'THIS RUN WAS DELIBERATELY BROKEN. It is a red demonstration of the corner '
                           + 'arms and NOTHING in it may be quoted as a measurement.' } : null,
-  arms: ['top', 'bottom'].map(arm => ({
+  arms: ['top', 'bottom'].concat(BAND_IDX.map(bandKey)).map(arm => ({
     arm,
     what: arm === 'top' ? 'Showdown damage roll index 0 (MAXIMUM) against MEDICHAM\'s `max`'
-                        : 'Showdown damage roll index 15 (MINIMUM) against MEDICHAM\'s `min`',
+        : arm === 'bottom' ? 'Showdown damage roll index 15 (MINIMUM) against MEDICHAM\'s `min`'
+        : 'Showdown damage roll index ' + +arm.slice(3) + ' (roll ' + (100 - +arm.slice(3))
+          + '%) against MEDICHAM\'s own `rolls[' + +arm.slice(3) + ']`',
     tolerance: 'the same 12% relative band the midpoint uses — this pass changed WHICH quantity is '
              + 'compared, not how close it must be',
-    compared, agreed: armAgreed[arm], disagreed: armBad[arm].length,
+    /* THE INTERIOR ARMS CARRY THEIR OWN DENOMINATOR. A row whose band did not arrive is UNMEASURED
+     * at every interior index, so `compared` for those arms is what was actually asked, never the
+     * run's row count. */
+    compared: (arm === 'top' || arm === 'bottom') ? compared : armAgreed[arm] + armBad[arm].length,
+    agreed: armAgreed[arm], disagreed: armBad[arm].length,
     worst: armBad[arm].slice().sort((x, y) => y.uses - x.uses).slice(0, 40),
   })),
+  /* ROADMAP #304 — rows that handed back no sixteen-entry band. Must be 0; a non-zero means some
+   * path through `dmgRange` does not fill the out-parameter and the interior is partly unmeasured. */
+  band_missing: bandMissing.n, band_missing_first: bandMissing.first || null,
+  band_why: 'THREE SAMPLED POINTS OF A SIXTEEN-INDEX BAND CANNOT SPEAK FOR THE THIRTEEN THEY NEVER '
+          + 'SAMPLE. On 2026-08-22 this clause read PASS — midpoint 0/6000, top 0/6000, bottom '
+          + '0/6000 — beside a 157-row red in data/roster.moves.json. The corners are the only two '
+          + 'points where an index and a span coincide, which is exactly why they agreed. `--plant '
+          + 'band` is the interior arms\' own red demonstration and leaves the midpoint and both '
+          + 'corners at their unplanted values.',
   arms_why: 'A MIDPOINT CANNOT SEE A RANGE THAT IS WRONG BY THE SAME AMOUNT AT BOTH ENDS. `--plant '
           + 'spread` widens MEDICHAM\'s range symmetrically and leaves `disagreed` at exactly its '
           + 'unplanted value while both arms light up, which is the demonstration that these two '

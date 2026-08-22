@@ -10,6 +10,86 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.66.0] — 2026-08-22
+
+### Fixed
+- **THE 157 MOVE ROWS WERE THE INSTRUMENT, NOT THE ENGINE. 162 OF 169 ACCUSATIONS AGAINST MEDICHAM
+  WERE `tests/roster.js` MEASURING WITH THE WRONG DICE.** The roster asked for its primary pin arm **by
+  omission**, and since 2026-08-13 the driver's default arm has been `middle` — real, event-addressed
+  dice — rather than `top-tie-first`. So the stage that is supposed to pin every die to one corner was
+  rolling live dice, and calling every difference an engine defect.
+  - **Root cause:** `PRIMARY_ARM = ARMS[0]` in `engine/game_differential.js:1263`, plus commit
+    `cf7a2c5` prepending `middle` to `ARMS` — the arm whose own registration describes it as *"opt-in
+    and deliberately NOT in the default set"*. `bottom-tie-first` is fetched BY ID and was fine
+    (1 differ of 115). `top-tie-first` fell through to `ARMS[0]` and read 156 of 340.
+  - **And the receipt lied.** Every row still printed `arm: "top-tie-first"`. The artifact named an arm
+    it had not played, which is why the defect survived a green-looking artifact for nine days.
+  - **Evidence, paired on release `603d9a69d5a3` with arm resolution the only difference:** the
+    restored defect (`ROSTER_ARM_FALLS_THROUGH=1`) reproduces the committed artifact on **500 of 500
+    rows, verdict for verdict**. Resolved by id: moves **157 → 5**, items **3 → 2**, abilities
+    **8 differ + 1 silent → 0**.
+  - **The red-first probe:** the same click on the same board dealt 12, then 13. A patched-engine dump
+    showed `u` arriving as a fresh random float per turn instead of `CORNER_TOP = 1 - 1e-9`.
+  - **RE-MEASURED AND CONFIRMED INDEPENDENTLY**, coordinator, release `603d9a69d5a3`, the instrument
+    fix the only difference: `data/roster.moves.json` reads **5 FIRED-AND-BOARDS-DIFFER, 469
+    FIRED-AND-BOARDS-MATCH, 0 DID-NOT-FIRE, 23 COULD-NOT-STAGE**, against 157/298/0/20 before. The
+    five survivors are **Dragon Cheer, Fake Out, Matcha Gotcha, Psych Up and Transform** — and Matcha
+    Gotcha is one of the mechanisms Will named on sight reading the divergence cards. `arms_played`
+    now reads `{"top-tie-first":741,"bottom-tie-first":246}`.
+  - **TWO COORDINATOR RUNS RETURNED SUCCESS HAVING DONE NOTHING BEFORE THIS ONE LANDED**, and the
+    first was nearly reported as a confirmation of 157. `cmd /c "tools\lownode.cmd …"` with the whole
+    command quoted as one argument, from Git Bash, starts `cmd` with NO arguments: it prints its banner
+    and **exits 0**. The artifact kept its 06:40 timestamp both times. What caught it was not the number
+    — 157 looked like a plausible answer — but `arms_played` being ABSENT from an artifact the fix is
+    supposed to stamp it into. The receipt built in this same commit caught a bad run within minutes of
+    existing. Run it from PowerShell, and check the artifact's `generated` stamp moved before reading a
+    figure out of it.
+- **The arm is resolved by id always, and the roster now publishes what it actually played.**
+  `ARM_PLAYED` is emitted as `arms_played` and printed, so an arm the artifact DECLARES can be checked
+  against the arm that ran. `ROSTER_ARM_FALLS_THROUGH=1` restores the defect on demand, on the same
+  rule as `MEDI_DAMAGE_SPAN_DRAW`: the defect stays reachable so the test that catches it can be shown
+  red.
+- **`tests/test-roster-arm-pin.js` — NEW, four sections, shown red first**, including a CONTROL clause
+  that fails if the file is asking nothing: the same script under `middle` must vary, or the pin
+  assertions prove nothing.
+
+### Added
+- **THE DIFFERENTIAL CAN SEE THE MIDDLE OF THE DAMAGE BAND NOW, AND THE BAND IS CLEAN.** `0/6000 at the
+  midpoint, top and bottom` samples three points of a sixteen-index band; an error strictly between the
+  corners could not appear at the corners. `tests/test-engine-diff.js` sweeps **14 interior arms**
+  (`idx01`…`idx14`), they are written to `data/engine-diff.json` and are therefore IN the gate, and
+  `--plant band` is their own red demonstration. 6,000 rows: midpoint 24, top 24, bottom 24, interior
+  24–25 per index, `band_missing` **0**.
+
+### Changed
+- **The game-differential gate clause flips PASS → FAIL at 24/6000, and the FAIL is the true reading.**
+  The `0/6000` it had been printing was generated 2026-08-18, before the engine moved. A paired n=200
+  control reads 199/1 both before and after the band was wired, so the change is the measurement
+  catching up, not a regression. The 24 are **19 Furfrou rows (#317, Fur Coat carrying no defence
+  multiplier) plus 5 Aurorus rows already on file** — known defects, now visible to the gate.
+
+### Notes
+- **The damage-roll INDEX hypothesis is refuted, and it was refuted twice from different directions.**
+  `engine/medicham2-browser.js:8055` and the differential's middle arm derive the index with the same
+  function, so two engines cannot disagree about it; 2,635 inversions fired this run without producing
+  damage divergences. On the 121 whole-game divergences it explains at most **1**, against **226 of
+  491** for the genuinely anti-correlated die (#303). It was relayed to Will as a good diagnosis before
+  it was checked, and that relay was wrong.
+- **SUSPECT THE INSTRUMENT BEFORE THE ENGINE.** This is the same lesson the project already paid for
+  once — five "engine defects" that turned out to be the measurement, and clearing them is what made the
+  real ones visible. It recurred at nine times the scale: **169 accusations, 162 of them the ruler.**
+- **27 other `playGame` callers omit `arm` and have been on the middle arm since 2026-08-13** —
+  including `engine/staged_board.js`, `tests/test-speed-tie.js` and `tests/test-bracket-regain.js`.
+  Listed and filed, deliberately NOT fixed in the same pass: a batch that changes the dice under
+  twenty-seven instruments at once cannot be attributed if it goes wrong.
+- **A release was cut under the run at 08:28** (`data/move-priors.json` moved; pointer
+  `603d9a69d5a3` → `e12ef20e7910`), so an UNPINNED run now measures different bytes. Every figure above
+  carries an explicit `--release`.
+- `engine/status.js --write` was deliberately not run: it restamps generated blocks from artifacts that
+  were moving while two agents were live in `docs/`.
+
+---
+
 ## [5.65.0] — 2026-08-22
 
 ### Added
