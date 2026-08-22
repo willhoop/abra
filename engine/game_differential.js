@@ -2440,6 +2440,64 @@ let BAN_FALLBACKS = 0;   // a config banned everything this body could click —
  * The fallback is `move 1`, which is what Showdown expects for a locked or recharging body, and it is
  * COUNTED because a silent one looks exactly like a working feature. */
 let FORCED_FIRST_SLOT = 0;
+/* ---- THE AUTHORITY REFUSED WHAT THE HARNESS SAID, AND NOBODY HEARD IT ---------------------------
+ *
+ * THE NOUN IS A `battle.choose()` CALL THAT SHOWDOWN RETURNED FALSE FOR. Not a game, not a turn, not
+ * a slot — one call to the authority that the authority would not take. It is counted at EVERY
+ * choose() in the play loop, so "0 refusals" is a claim about the whole run and not about the one
+ * path somebody remembered to instrument.
+ *
+ * WHY IT HAD TO EXIST. `playGame` threw on a rejected MOVE and DISCARDED the return value on the
+ * forced-switch path, so a replacement Showdown would not accept was swallowed whole: no protocol
+ * line (a refused choice emits none), no exception, `requestState` stuck on `switch`, and the next
+ * turn's guard reporting "showdown stopped asking for a move" — this instrument MANUFACTURING a
+ * divergence and filing it against the engine. That is the repo's signature failure exactly: a
+ * capability absent while everything reports success.
+ *
+ * IT BOTH COUNTS AND THROWS, and the two are not redundant. The THROW is what stops the game: past a
+ * refusal the two engines are on different boards and every later line is the harness talking to
+ * itself, so continuing would publish fiction — and `playGame`'s catch already turns a throw into a
+ * THREW verdict, which is counted, printed and never dropped. The COUNT is what survives the throw:
+ * module-level, so the run summary and the artifact can both assert 0 across a whole corpus rather
+ * than trusting that nobody swallowed the exception. */
+const CHOICE_REFUSED = { n: 0, first: '' };
+function refusedChoice(sd, input, err) {
+  CHOICE_REFUSED.n++;
+  const what = sd + ' "' + input + '": ' + (err || '?');
+  if (!CHOICE_REFUSED.first) CHOICE_REFUSED.first = what;
+  return what;
+}
+/* THE NOUN HERE IS A FORCED-SWITCH SLOT — one entry of Showdown's `forceSwitch` array, on one side,
+ * on one turn. Not a choice and not a game. `switched` is a slot filled by mirroring medicham2's
+ * occupant; `passed` is a slot medicham2 ALSO could not fill (its body there is absent or fainted),
+ * answered `pass`. `passed` is expected to be non-zero and is not a defect: Showdown's own
+ * `clearChoice` allows exactly `canSwitchOut - min(canSwitchOut, canSwitchIn)` passes, which is the
+ * double-KO-on-the-last-body case. A slot where medicham2 has a LIVE body and Showdown's bench holds
+ * no unclaimed match is NOT counted here — it is a lookup miss and goes to SWITCH_LOOKUP_MISS.sd,
+ * whose printed caption ("that side PASSED while the other switched") already says what it means. */
+const FORCED_SWITCH_MIRROR = { switched: 0, passed: 0 };
+/* THE THIRD ANSWER, AND IT IS NOT A DEFECT IN EITHER ENGINE OR IN THIS HARNESS.
+ *
+ * THE NOUN IS A FORCED SWITCH THAT COULD NOT BE EXPRESSED TO SHOWDOWN AT ALL, because the two engines
+ * no longer agree about which of that side's bodies are alive. It was found by measurement and not by
+ * argument: with the `claimed` set in place, 43 games produced one `p1 "pass, pass"` that Showdown
+ * refused with *"You need to switch in a Pokémon to replace Liepard"* — and Liepard was FAINTED in
+ * Showdown and at 139 HP in medicham2 ON TURN 1. The boards had already parted; no answer to that
+ * request reproduces medicham2's placement, because medicham2's placement does not exist on
+ * Showdown's board.
+ *
+ * WHY IT MUST NOT THROW. `playGame`'s catch turns a throw into the verdict THREW, which this file
+ * defines as *"a fact about the instrument"*. Labelling a real engine divergence as an instrument
+ * failure is a misattribution, and a worse one than the bug being fixed here — it would move genuine
+ * findings into the harness's error column. The game is STOPPED with a named end reason instead, and
+ * the comparator then reports the EARLIER, real divergence that caused the parting, exactly as it
+ * would have if the forced switch had never come up.
+ *
+ * WHY IT MUST NOT BE FOLDED INTO CHOICE_REFUSED EITHER. That counter has to be assertable at exactly
+ * 0 to be worth anything. A counter that is allowed to be non-zero for a good reason is a counter
+ * nobody can gate on — which is how "one of the two known failures" happened. Two nouns, two
+ * counters, and only one of them is a defect. */
+const MIRROR_IMPOSSIBLE = { n: 0, first: '' };
 /* ROADMAP #290 — WHEN A SPEED READING THREW, AND WHY IT IS NOT A CATCH-AND-CONTINUE. A probe whose
  * reader throws reports "no disagreement", which is the answer an instrument must never manufacture.
  * Module-level so the summary can print it once for the whole run. */
@@ -3383,28 +3441,57 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
         }).join(', ');
       };
       const c1 = str('p1', chosen.p1), c2 = str('p2', chosen.p2);
-      if (!battle.choose('p1', c1)) throw new Error('p1 choice rejected "' + c1 + '": ' + (battle.p1.choice.error || '?'));
-      if (!battle.choose('p2', c2)) throw new Error('p2 choice rejected "' + c2 + '": ' + (battle.p2.choice.error || '?'));
+      /* COUNTED AND THEN THROWN — see CHOICE_REFUSED. These two already threw; they did not COUNT,
+       * so a run could not state how often the authority refused this harness. */
+      if (!battle.choose('p1', c1)) throw new Error('p1 choice rejected ' + refusedChoice('p1', c1, battle.p1.choice.error));
+      if (!battle.choose('p2', c2)) throw new Error('p2 choice rejected ' + refusedChoice('p2', c2, battle.p2.choice.error));
 
       /* A FORCED SWITCH IS MIRRORED FROM MEDICHAM2, never chosen independently. medicham2 refills a
        * dead slot itself; if Showdown picked its own replacement the two engines would be playing
        * different games from the next line on and every later divergence would be the harness. */
-      let guard = 0;
-      while (battle.requestState === 'switch' && guard++ < 8) {
+      let guard = 0, mirrorImpossible = null;
+      while (battle.requestState === 'switch' && guard++ < 8 && !mirrorImpossible) {
         for (const sd of ['p1', 'p2']) {
           const side = sd === 'p1' ? battle.p1 : battle.p2;
           if (!side.activeRequest || !side.activeRequest.forceSwitch) continue;
           const mine = sd === 'p1' ? S.actA : S.actB;
-          const picks = side.activeRequest.forceSwitch.map((need, i) => {
-            if (!need) return 'pass';
-            const want = mine[i] ? id(mine[i].name) : null;
-            let j = want == null ? -1
-              : side.pokemon.findIndex(q => !q.isActive && !q.fainted && id(q.species.id) === want);
-            if (j < 0) j = side.pokemon.findIndex(q => !q.isActive && !q.fainted);
-            return j >= 0 ? 'switch ' + (j + 1) : 'pass';
-          });
-          battle.choose(sd, picks.join(', '));
+          /* THE DECISION IS `mirrorForcedSwitch`, ONE LEVEL UP AND EXPORTED. It is not inline here for
+           * one reason: the shape that broke it — a DOUBLE KO on a side down to its last usable body —
+           * is reached by roughly one game in a hundred and cannot be summoned on demand, so an inline
+           * decision could only ever be tested by hunting the corpus for a game that happens to reach
+           * it. Corpus games move; a constructed one does not. tests/test-forced-switch-mirror.js hands
+           * it the exact shape as data. */
+          const mr = mirrorForcedSwitch(side.activeRequest.forceSwitch, mine, side.pokemon);
+          FORCED_SWITCH_MIRROR.switched += mr.switched;
+          FORCED_SWITCH_MIRROR.passed += mr.passed;
+          SWITCH_LOOKUP_MISS.sd += mr.lookupMiss;
+          if (mr.cannot) { mirrorImpossible = sd + ': ' + mr.cannot; break; }
+          const cs = mr.picks.join(', ');
+          if (!battle.choose(sd, cs)) {
+            const why = (side.choice && side.choice.error) || '?';
+            /* SHOWDOWN REFUSED A CHOICE EVERY SLOT OF WHICH MIRRORED CLEANLY. There are two ways that
+             * can happen and they are told apart by evidence rather than by assumption:
+             *   - the two engines still agree about which of this side's bodies are alive -> the
+             *     harness said something illegal, which is a DEFECT IN THIS FILE. Counted and thrown.
+             *   - they do not agree -> medicham2 is out of bodies and Showdown is not (or the reverse),
+             *     so the number of replacements the request wants is not the number medicham2 made.
+             *     Parted board again, reached from the other side. Stopped, not thrown.
+             * The alive-set comparison is not a second copy of a Showdown rule; it is the one question
+             * this whole instrument exists to ask, asked about a roster instead of a protocol line. */
+            const aliveSd = new Set(side.pokemon.filter(q => !q.fainted).map(q => id(q.species.id)));
+            const aliveMe = new Set([...(sd === 'p1' ? S.actA : S.actB), ...(sd === 'p1' ? S.benchA : S.benchB)]
+              .filter(m => m && !m.fainted).map(m => id(m.name)));
+            const agree = aliveSd.size === aliveMe.size && [...aliveSd].every(x => aliveMe.has(x));
+            if (agree) throw new Error('forced-switch choice rejected ' + refusedChoice(sd, cs, why));
+            mirrorImpossible = sd + ' "' + cs + '" refused (' + why + '); alive showdown ['
+                             + [...aliveSd].join(' ') + '] vs medicham2 [' + [...aliveMe].join(' ') + ']';
+            break;
+          }
         }
+      }
+      if (mirrorImpossible) {
+        MIRROR_IMPOSSIBLE.n++;
+        if (!MIRROR_IMPOSSIBLE.first) MIRROR_IMPOSSIBLE.first = mirrorImpossible;
       }
       turns++;
       for (const m of [...S.actA, ...S.actB]) if (m) bodiesSeen.push(m);
@@ -3437,6 +3524,16 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
         }
       }
       stateCheck(t + 1, play);
+      /* STOPPED HERE AND NOT AT THE CHOOSE(), so that this turn's bookkeeping still happens: the
+       * comparator call four statements up is what RECORDS the earlier, real divergence that parted
+       * the boards in the first place. Breaking out at the choose() would throw that away and the game
+       * would report a stop with no divergence attached — the instrument losing the finding it just
+       * proved it had. */
+      if (mirrorImpossible) {
+        endReason = 'the boards parted — medicham2\'s placement cannot be expressed to showdown ('
+                  + mirrorImpossible + ')';
+        break;
+      }
     }
     /* THE LOOP RAN OUT RATHER THAN BREAKING. In end-state mode that is the turn cap; in the other two
      * it is whichever comparator's stop rule fired, and saying which one is not optional — "the boards
@@ -3605,6 +3702,68 @@ let scriptMoveNotOnRequest = 0, scriptMoveFirstMissing = '';
 
 /* Pick ONE action for one active slot. Legal actions come from Showdown's request; the choice among
  * them is the coverage rule. */
+/* ---- MIRRORING A FORCED SWITCH ------------------------------------------------------------------
+ *
+ * ANSWER SHOWDOWN'S REPLACEMENT REQUEST WITH WHAT MEDICHAM2 ACTUALLY DID, or say it cannot be done.
+ * `forceSwitch` is Showdown's own array (one entry per active slot); `mine` is medicham2's actives
+ * for that side AFTER `battleTurn` has refilled what it could; `roster` is `side.pokemon`.
+ *
+ * TWO EMPTY SLOTS MAY NOT BE FILLED FROM ONE BODY, and until 2026-08-22 this had no memory of what
+ * the other slot had just taken. `chooseAction` carries a `claimed` set for exactly this reason; this
+ * did not — so on a DOUBLE KO against a side down to its last usable body both slots resolved to the
+ * same bench index and the harness said "switch 4, switch 4". Showdown refuses that outright ("The
+ * Pokémon in slot 4 can only switch in once"), eight times, once per the caller's `guard++ < 8`, and
+ * every refusal was discarded. `requestState` stayed `switch` and the next turn reported *"showdown
+ * stopped asking for a move"* — an instrument manufacturing a divergence and filing it against the
+ * engine. One reproduced game, `2654714554 vs 2654812667` / baseline / middle, was published as a
+ * 128-line divergence on exactly that; answered `pass, switch 4` the two engines agree on all 136
+ * lines and both end the battle.
+ *
+ * CLAIMED BY BENCH INDEX, not by species id as `chooseAction` claims. Same shape, stricter key: the
+ * constraint is SHOWDOWN'S and Showdown states it about a SLOT. Species-keying would be sound only
+ * for as long as Species Clause holds, which is a fact about the format taken from memory rather than
+ * from the request in hand.
+ *
+ * THERE IS NO BLIND FALLBACK, and its removal is the substance of the fix rather than tidying. The
+ * old `roster.findIndex(q => !q.isActive && !q.fainted)` is SHOWDOWN PICKING ITS OWN REPLACEMENT —
+ * the one thing the caller's header says must never happen — and it manufactured a divergence in both
+ * directions: a duplicate when the two slots collided, and a body medicham2 never brought in when
+ * they did not.
+ *
+ * THE THREE ANSWERS FOR A SLOT, and they are counted apart because they mean different things:
+ *   `switch n`  medicham2 put a live body there and Showdown can put it there too.
+ *   `pass`      medicham2 could not fill it either — its slot is empty, or holds a corpse. Showdown
+ *               budgets exactly this many passes (`clearChoice`: canSwitchOut - min(out, in)), so it
+ *               is legal precisely when it is true.
+ *   cannot      medicham2 has a LIVE body there that Showdown will not put on the field. Either the
+ *               species is not on Showdown's side at all (the two engines disagree about the body's
+ *               NAME — the alias failure `lookupMiss` counts, and it must read 0), or it is there and
+ *               fainted/active (they disagree about what is ALIVE — the boards have parted). Neither
+ *               has an answer that reproduces our placement, so the caller stops the game. */
+function mirrorForcedSwitch(forceSwitch, mine, roster) {
+  const claimed = new Set();
+  const out = { picks: [], switched: 0, passed: 0, lookupMiss: 0, cannot: null };
+  (forceSwitch || []).forEach((need, i) => {
+    if (!need) { out.picks.push('pass'); return; }
+    const body = mine && mine[i];
+    const live = !!(body && !body.fainted);
+    const want = live ? id(body.name) : null;
+    const j = want == null ? -1
+      : roster.findIndex((q, n) => !claimed.has(n) && !q.isActive && !q.fainted
+                                   && id(q.species.id) === want);
+    if (j >= 0) { claimed.add(j); out.switched++; out.picks.push('switch ' + (j + 1)); return; }
+    if (!live) { out.passed++; out.picks.push('pass'); return; }
+    const named = roster.some(q => id(q.species.id) === want);
+    if (!named) out.lookupMiss++;
+    if (!out.cannot) {
+      out.cannot = 'slot ' + (i + 1) + ' holds ' + want + ', which showdown '
+                 + (named ? 'has but cannot switch in (fainted/active)' : 'does not have under that name');
+    }
+    out.picks.push('pass');
+  });
+  return out;
+}
+
 function chooseAction(battle, side, i, act, axis, claimed) {
   claimed = claimed || new Set();
   const p = side.active[i];
@@ -4824,6 +4983,29 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                                             firstMissing: scriptMoveFirstMissing,
                                             megaRefused: scriptMegaRefused }),
                    resetScriptCounters: () => { scriptMoveNotOnRequest = 0; scriptMoveFirstMissing = ''; },
+                   /* 2026-08-22 — THE REFUSAL COUNTERS, exported for exactly the reason the nature and
+                    * aim counters are: a caller proving "the authority took everything this harness
+                    * said" must read THIS DRIVER'S OWN answer. A test that wrapped
+                    * `Battle.prototype.choose` itself would be a second implementation of the count and
+                    * would keep passing after this one was removed. `reset` exists because a test file
+                    * plays several games in one process and needs a per-case reading.
+                    *
+                    * NAME THE NOUN: `refused` is `battle.choose()` calls returning false, and it must
+                    * be asserted EXACTLY 0 — never `>= 1`, which is the shape that let three counters
+                    * in this repo be blind by construction. `switched`/`passed` are forced-switch
+                    * SLOTS; `passed` is legitimately non-zero and must NOT be asserted at 0. */
+                   /* the mirror decision itself, so a test can hand it the exact shape that broke it
+                    * (a double KO on a side down to one usable body) as DATA rather than hunting a
+                    * corpus game that happens to reach it. */
+                   mirrorForcedSwitch,
+                   choiceCounters: () => ({ refused: CHOICE_REFUSED.n, first: CHOICE_REFUSED.first,
+                                            switched: FORCED_SWITCH_MIRROR.switched,
+                                            passed: FORCED_SWITCH_MIRROR.passed,
+                                            unmirrorable: MIRROR_IMPOSSIBLE.n,
+                                            unmirrorableFirst: MIRROR_IMPOSSIBLE.first }),
+                   resetChoiceCounters: () => { CHOICE_REFUSED.n = 0; CHOICE_REFUSED.first = '';
+                                                FORCED_SWITCH_MIRROR.switched = 0; FORCED_SWITCH_MIRROR.passed = 0;
+                                                MIRROR_IMPOSSIBLE.n = 0; MIRROR_IMPOSSIBLE.first = ''; },
                    /* ROADMAP #291 -- THE ILLUSION CLOSET (ROADMAP #160), EXPORTED SO THE SECOND
                     * INSTRUMENT READS IT RATHER THAN RE-DERIVING IT. `engine/all_mechanics_fire.js`
                     * was staging Bitter Malice on Zoroark-Hisui and Night Daze on Zoroark -- the only
@@ -6338,6 +6520,25 @@ console.log('    clicks by AIM: ' + AIM.foe + ' at a foe, ' + AIM.ally + ' at an
   + AIM.miss + ' named a slot with NO BODY in it' + (AIM.miss ? '  <-- MUST READ 0' : ' (must read 0)'));
 console.log('    ' + BAN_FALLBACKS + ' clicks where the configuration had banned every legal action (fell through, counted).');
 console.log('    ' + FORCED_FIRST_SLOT + ' requests this driver could build no candidate for (a recharge or a lock) — answered `move 1`, counted.');
+/* PRINTED BECAUSE A REFUSAL EMITS NO PROTOCOL LINE. It is invisible in BOTH streams by construction,
+ * so the only place it can ever be seen is a counter — and until 2026-08-22 the forced-switch path
+ * discarded `battle.choose`'s return value and there was no counter either. The noun is one
+ * `battle.choose()` call the authority returned false for. */
+console.log('    ' + CHOICE_REFUSED.n + ' choice(s) Showdown REFUSED — one `battle.choose()` call returning false'
+  + (CHOICE_REFUSED.n ? '  <-- MUST READ 0. first: ' + CHOICE_REFUSED.first
+                        + '   (each one also THREW its game; see the THREW list)' : ' (must read 0)'));
+/* The noun is a forced-switch SLOT, not a game and not a choice. `pass` here is CORRECT and expected:
+ * it is a slot medicham2 could not fill either, which is what Showdown's own forcedPassesLeft budget
+ * is for. A non-zero `pass` count is not a defect; a non-zero refusal count above is. */
+console.log('    forced-switch SLOTS mirrored from medicham2: ' + FORCED_SWITCH_MIRROR.switched
+  + ' filled, ' + FORCED_SWITCH_MIRROR.passed + ' answered `pass` because medicham2 had no live body there either.');
+/* NOT A DEFECT AND NOT ZERO-GATED. The noun is a forced switch that could not be expressed because
+ * the two engines already disagree about which bodies are alive. Printed beside the refusal count so
+ * the two are never read as one number: the line above must be 0, this one need not be. */
+console.log('    ' + MIRROR_IMPOSSIBLE.n + ' forced switch(es) UNMIRRORABLE — the boards had already parted, '
+  + 'so the game was stopped rather than answered'
+  + (MIRROR_IMPOSSIBLE.n ? '.  first: ' + MIRROR_IMPOSSIBLE.first
+      + '   (each of these games keeps its own EARLIER divergence; this is not a class of its own)' : '.'));
 console.log('    MEDFAILS.traceBodyOffField = ' + M.fails.traceBodyOffField
   + (M.fails.traceBodyOffField ? '  <-- a `??` identifier reached the stream, first: ' + M.fails.traceBodyOffFieldFirst
                                  + '. tests/test-protocol-trace.js PART 6 says this must read 0.' : ' (must read 0)'));
@@ -6678,6 +6879,18 @@ if (WRITE) {
         + 'ROADMAP #68 is narrowed by the nature and is not closed.',
       teams_unbuildable: TEAMS_UNBUILDABLE, sets_unbuildable: MONS_UNBUILDABLE,
       ban_fallbacks: BAN_FALLBACKS, forced_first_slot: FORCED_FIRST_SLOT,
+      /* 2026-08-22 — THE HARNESS ANSWERING THE AUTHORITY. `choices_refused` counts `battle.choose()`
+       * calls Showdown returned false for and MUST READ 0: a refusal emits no protocol line, so a run
+       * with a non-zero here published divergences the instrument invented. `forced_switch_slots_*`
+       * count SLOTS: `_passed` is a slot medicham2 could not fill either and is expected to be
+       * non-zero. */
+      choices_refused: CHOICE_REFUSED.n, choices_refused_first: CHOICE_REFUSED.first || null,
+      forced_switch_slots_mirrored: FORCED_SWITCH_MIRROR.switched,
+      forced_switch_slots_passed: FORCED_SWITCH_MIRROR.passed,
+      /* NOT a defect count — see the printed caption. A game counted here stopped early ON PURPOSE
+       * and carries the real, earlier divergence that parted the boards. */
+      forced_switch_unmirrorable: MIRROR_IMPOSSIBLE.n,
+      forced_switch_unmirrorable_first: MIRROR_IMPOSSIBLE.first || null,
       /* 2026-08-10 — the driver's ally aim. `aim_ally` at 0 on a run that staged one means the
        * translation is blind again; `aim_slot_empty` is a named slot with no body and must be 0. */
       aim_foe: AIM.foe, aim_ally: AIM.ally, aim_self: AIM.self,

@@ -10630,3 +10630,138 @@ at require time unless `--release` is in argv**. Run in a batch without the prel
 `a875091966c4`. Pointer restored to `6a05dd9ad60d`, `git status` clean, directory left in place. The
 new test now requires `tests/_live_release.js` itself when `--release` is absent, so `run-all.js` can
 spawn it bare without cutting anything.
+
+---
+
+## THE HARNESS WAS MANUFACTURING A DIVERGENCE AND FILING IT AGAINST THE ENGINE (2026-08-22, MEASURE)
+
+`engine/game_differential.js` mirrors medicham2's actives into Showdown's forced-switch request. The
+lookup had a blind fallback — *"the first live body on the bench"* — **with no memory of what the other
+slot had just taken**. On a **double KO against a side down to its last usable body** both slots
+resolved to the same bench index and the harness said `"switch 4, switch 4"`. Showdown refuses that
+outright (*"The Pokémon in slot 4 can only switch in once"*), **eight times, once per `guard++ < 8`** —
+and **the return value of `battle.choose` was DISCARDED on that path**, so every refusal was swallowed.
+`requestState` stayed `switch` and the next turn's guard reported *"showdown stopped asking for a
+move"*.
+
+A refused choice **emits no protocol line**. It is invisible in both streams by construction, so the
+only place it could ever have been seen is a counter, and there was no counter either. This is the
+repo's signature failure exactly: a capability absent while everything reports success.
+
+**PROVEN ON ONE REPRODUCED GAME, BOTH DIRECTIONS.** `2654714554 vs 2654812667`, config `baseline`, arm
+`middle`, release `6a05dd9ad60d`, census pinned to `census-pin-2cab3179f5fc.json`, team store
+`data/team-pool-frozen`:
+
+| | before | after |
+|---|---|---|
+| reduced lines agreed | 128, then a split | **136 of 136 — the two streams never parted** |
+| stop reason | showdown stopped asking for a move | **both engines ended the battle** (winner A) |
+| choices sent / refused | 33 / **8 REFUSED** | 28 / **0 refused** |
+| the answer at turn 10–11 | `"switch 4, switch 4"` | `"pass, switch 4"` |
+
+`engine/replay_one.js` prints **NOT REPRODUCED** on the repaired game, and that is the honesty check
+working rather than a failure: the artifact recorded the broken game, and the fix changes it.
+
+### WHAT CHANGED
+
+- `mirrorForcedSwitch(forceSwitch, mine, roster)` — lifted OUT of `playGame` to module level and
+  exported. It carries a `claimed` set, keyed by **bench INDEX** rather than by species id as
+  `chooseAction` keys its own: the constraint is Showdown's and Showdown states it about a SLOT.
+  Species-keying would be sound only for as long as Species Clause holds, which is a fact about the
+  format taken from memory rather than from the request in hand.
+- **The blind fallback is gone, and that removal is the substance of the fix.** It was Showdown picking
+  its own replacement — the one thing the block's own header says must never happen — and it
+  manufactured a divergence in BOTH directions: a duplicate when the two slots collided, and a body
+  medicham2 never brought in when they did not.
+- A slot medicham2 could not fill is answered `pass`. That is legal precisely when it is true:
+  Showdown budgets `canSwitchOut - min(canSwitchOut, canSwitchIn)` passes (`sim/side.ts` `clearChoice`,
+  `choosePass` at `:1317`), which is exactly the double-KO-on-the-last-body case.
+
+### THE COUNTERS, AND THE NOUN EACH ONE COUNTS
+
+- `choices_refused` — **one `battle.choose()` call the authority returned false for.** Not a game, not
+  a turn, not a slot. Counted at EVERY choose() in the play loop, so a zero is a claim about the whole
+  run and not about the one path somebody remembered to instrument. **MUST READ 0.** It **counts AND
+  throws**: the throw stops the game, because past a refusal every later line is the harness talking to
+  itself; the count survives the throw, so the summary and the artifact can assert 0 without trusting
+  that nobody swallowed the exception.
+- `forced_switch_slots_mirrored` / `_passed` — **one entry of Showdown's `forceSwitch` array, on one
+  side, on one turn.** `_passed` is expected to be non-zero and is deliberately NOT gated.
+- `forced_switch_unmirrorable` — see below. Expected non-zero, not a defect.
+
+### A SECOND CAUSE, FOUND BY MEASUREMENT AND NOT BY ARGUMENT
+
+With the `claimed` set in and the refusal made loud, a 43-game batch immediately threw:
+
+```
+forced-switch choice rejected p1 "pass, pass": Can't pass: You need to switch in a Pokémon to replace Liepard
+```
+
+**Liepard was FAINTED in Showdown and at 139 HP in medicham2, on TURN 1.** The boards had already
+parted; no answer to that request reproduces medicham2's placement, because that placement does not
+exist on Showdown's board. **Throwing there would have been a misattribution** — `playGame`'s catch
+turns a throw into the verdict `THREW`, which this file defines as *"a fact about the instrument"*, and
+it would have moved real engine divergences into the harness's error column.
+
+So the mirror now has a **third answer**: `cannot`. The game is **stopped with a named end reason**
+after the turn's bookkeeping has run — which is load-bearing, because the comparator call four
+statements later is what records the earlier, real divergence. Measured on both instances found:
+
+| arm / config | end reason | first divergence it kept |
+|---|---|---|
+| middle / omit-protect | boards parted (`slot 2 holds liepard`) | `-damage: a different body` @ 10 lines |
+| bottom-tie-first / baseline | boards parted (`slot 1 holds primarina`) | `-damage field 3` @ 39 lines |
+
+Neither invented a class, neither became `THREW`, and both kept the real finding.
+
+A live medicham2 body that Showdown holds under **no such name** is a different thing again — an alias
+failure — and stays charged to `SWITCH_LOOKUP_MISS.sd`, which must read 0.
+
+### THE GATE
+
+`tests/test-forced-switch-mirror.js`. Parts 2–6 hand `mirrorForcedSwitch` the exact shapes as **data**
+— the double KO, both slots empty, the parted board, the alias miss — because the shape that broke it
+occurs in roughly one corpus game in a hundred and cannot be summoned on demand. Part 7 **sabotages the
+harness on purpose** (rewrites one forced-switch answer into the duplicate) and asserts the counter
+reads **exactly 1**, which is the only way to know a zero means *nothing was refused* rather than
+*nothing was counted*. Part 8 plays real games and asserts **exactly 0**.
+
+**SHOWN RED FIRST.** Restoring the blind fallback turns **seven** checks red, parts 2 and 4 printing the
+defect's own strings (`got "switch 4, switch 4"`, `got "switch 3, switch 3"`). **Part 8 stayed GREEN
+under that break** — forty real games never reached the shape — which is the whole argument for
+constructing the fixture instead of hunting it.
+
+Measured across the pinned pool, 43 games in each of the three arms (129 total): **0 refused, 0 threw,
+89 slots filled, 0 mirrored passes, 2 unmirrorable.**
+
+### WHAT THE CORPUS RE-RUN SHOULD MOVE — AND THE CAVEAT THAT MATTERS MORE
+
+In the current `data/game-differential.json` (961 games, 133 diverged, middle arm) the class
+**`showdown stopped emitting while medicham2 continued` holds exactly 1 game with 1 distinct cause**,
+and that game is the one reproduced above. It should go to **0**. If it does not, there is a second
+cause wearing the same class name and it is a finding.
+
+**BUT THE RE-RUN IS A NEW SAMPLE, NOT A ONE-GAME DELTA.** `chooseAction` ranks candidate clicks by
+`covWant` and `CLICKS`, both of which **accumulate across the whole run**. The repaired game runs 11
+turns instead of 10 and makes 28 clicks instead of 25, so from baseline pair #12 onward **every
+subsequent game may play differently**. Class counts either side of this fix are not comparable
+game-by-game; only the whole distribution is, and `arms_comparable.js` should be the judge of that.
+
+### DEBRIS REPORTED, NOT TOUCHED
+
+**Sixteen files in `tests/` require `engine/game_differential.js` bare** — no `--release`, no
+`tests/_live_release.js` preload — so each **cuts a release into the real store and repoints
+`data/engine-release.json`** at require time. `run-all.js` spawns every one of them with no extra
+arguments. The sprint notes already record `tests/test-effect-kind.js` doing this once; it is not one
+file:
+
+```
+test-closet-scope, test-coverage-stop, test-damage-roll-support, test-effect-credit,
+test-end-state-severity, test-end-state, test-game-differential, test-middle-damage-roll,
+test-middle-draw-scope, test-middle-identity, test-middle-stall-address, test-nature-differential,
+test-pin-arms, test-speed-tie, test-state-differential, test-switch-carry
+```
+
+Not fixed here — sixteen files owned elsewhere, and a MEASURE agent editing them mid-sprint is the
+collision the divisions exist to prevent. `data/releases/` currently holds **324** directories and the
+pointer was `6a05dd9ad60d` before and after this session's work.
