@@ -205,12 +205,22 @@ damage — 25.0% of two-target spread drains — and we heal 1 HP less.**
 Legal spread-drain moves: **Matcha Gotcha (8,182 uses)** and **Parabolic Charge (151)**; Parabolic
 Charge is `allAdjacent`, so up to three drains.
 
-### C4. Guard Dog is absent from `tags.json`
-Derived: exactly two abilities and one move carry `onDragOut` in the whole authority — **Suction Cups**
-(legal, one carrier: **Malamar**), **Guard Dog** (legal ability, **zero legal carriers**), and
-**Ingrain** (legal move, but **zero legal species can learn it** in Reg M-B). `tags.json` derives
-`refusesForcedSwitch` on `suctioncups` only. Harmless today; **a regulation rotation that brings a
-Guard Dog carrier gets a silently missing refusal with nothing to catch it.**
+### C4. Guard Dog — RETRACTED, NOT A GAP
+
+I filed this as a missing derivation. **It is not.** `tests/test-tag-params-derived.js` proves the
+predicate already covers it: *"Guard Dog's `onDragOut` is byte-identical to Suction Cups' once the name
+is stripped — so the derivation already covers it, and its absence is the legality filter (0 legal
+carriers)."* The row is absent because Guard Dog has **zero legal carriers in Reg M-B**, and a
+regulation that brings one would pick it up automatically.
+
+**Adding the row by hand would have REVERSED ROADMAP #175** — this repo's rule is match on tag SHAPE,
+never on a name, precisely so an entity added later needs no edit. My "fix" would have been the defect.
+
+The derived facts in C4 stand and are worth keeping: exactly two abilities and one move carry
+`onDragOut` in the whole authority — **Suction Cups** (legal, one carrier: **Malamar**), **Guard Dog**
+(zero legal carriers), **Ingrain** (legal move, zero legal species can learn it here). Champions
+overrides none. That is why E2 — Dragon Tail and Circle Throw ignoring Suction Cups — is the only
+member of this family that can actually fire.
 
 ---
 

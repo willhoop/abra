@@ -261,6 +261,136 @@ function STEP_LIST_BREAK_PROTECT() {
   return _STEP_BREAK_PROTECT;
 }
 
+/* ---- CARD 35 -- WHAT `onTryImmunity` COSTS THE CALLER LIVES IN THE STEP LIST, NOT ON THE MOVE ----
+ *
+ * Six legal moves carry `onTryImmunity` and NOT ONE of them had any representation in
+ * data/tags.json. Endeavor's whole gate is `onTryImmunity(target, pokemon) { return pokemon.hp <
+ * target.hp; }` and its row read
+ *
+ *     ["pp","fixedDamage","targetClass","contact","noExtraHit","formatSecondaryCount","callRefusalFlags"]
+ *
+ * -- `fixedDamage` and no condition at all. Two bodies at 135/135 (this format's Whimsicott and
+ * Raichu share max HP at L50/0EV) makes `135 < 135` FALSE, which is an IMMUNITY: the authority writes
+ * `|-immune|` and never reaches the move. A consumer reading only `fixedDamage` runs the
+ * `damageCallback` (`target.hp - pokemon.hp` = 0) and narrates a zero-damage hit.
+ *
+ * THE THREE FACTS A CONSUMER NEEDS ARE IN THREE DIFFERENT PLACES, so all three are read here:
+ *
+ *   the CONDITION      on the move            `m.onTryImmunity`            -- per-move, six shapes
+ *   the ANNOUNCEMENT   in the step list       `hitStepTryImmunity`         -- `-immune`, BARE
+ *   the ROLE BINDING   in the event system    `Battle#singleEvent`         -- args are (target, source, sourceEffect)
+ *
+ * THE ROLE BINDING IS THE HALF THAT IS EASY TO GET BACKWARDS AND IMPOSSIBLE TO SEE. Every handler
+ * names its own parameters -- `(target, source)` in Attract, `(target, pokemon)` in Endeavor, bare
+ * `(target)` in three more -- so a reader that matched on the NAME `pokemon` would silently mis-role
+ * Attract. `singleEvent` calls with `hasRelayVar` false, so the argument list is POSITIONAL:
+ * `const args = [target, source, sourceEffect]`. That line is read, not remembered; if it ever stops
+ * saying that, this reader prints why and every immunity row disappears rather than quietly inverting.
+ *
+ * WHY THE STEP INDEX IS CARRIED. `hitStepTryImmunity` is step 3 of 8, and the four steps that come
+ * AFTER it are the ones a consumer must not run: accuracy, break-protect, steal-boosts and the hit
+ * loop. Recording "this blocks at step 3" is what tells an engine that a `damageCallback` at step 7
+ * never executes -- which is exactly the line we emitted. */
+let _STEP_TRY_IMMUNITY;
+function STEP_TRY_IMMUNITY() {
+  if (_STEP_TRY_IMMUNITY !== undefined) return _STEP_TRY_IMMUNITY;
+  _STEP_TRY_IMMUNITY = null;
+  try {
+    const BA = require(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim', 'battle-actions.js')).BattleActions;
+    const { Battle } = require(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim', 'battle.js'));
+    const fn = BA && BA.prototype && BA.prototype.hitStepTryImmunity;
+    if (!fn) { console.error('  STEP_TRY_IMMUNITY: BattleActions.prototype.hitStepTryImmunity is absent'); return null; }
+    /* THE STEP ORDER, in source order out of `trySpreadMoveHit`'s own array. */
+    const arr = /const moveSteps = \[([^\]]*)\]/.exec(fnsrc(BA.prototype.trySpreadMoveHit));
+    const steps = arr ? (arr[1].match(/this\.(hitStep\w+)/g) || []).map(s => s.slice(5)) : [];
+    const step = steps.indexOf('hitStepTryImmunity');
+    if (step < 0) { console.error('  STEP_TRY_IMMUNITY: hitStepTryImmunity is not in the moveSteps array'); return null; }
+    /* THE ARM THAT THIS EVENT TAKES, and only that arm: the same method also announces the natural
+     * powder and Prankster immunities, which belong to other mechanics and would be a wrong `-immune`
+     * bolted onto a move tag. Split on `else if` and keep the chunk that names the event. */
+    const arm = fnsrc(fn).split(/else if/).find(a => /singleEvent\(\s*["']TryImmunity["']/.test(a));
+    if (!arm) { console.error('  STEP_TRY_IMMUNITY: no arm of hitStepTryImmunity runs the TryImmunity event'); return null; }
+    if (!/!\s*this\.battle\.singleEvent\(\s*["']TryImmunity["']/.test(arm)) {
+      console.error('  STEP_TRY_IMMUNITY: the TryImmunity arm is not a NEGATED test — the polarity changed'); return null; }
+    const add = /this\.battle\.add\(\s*["'](-\w+)["']\s*([^)]*)\)/.exec(arm);
+    if (!add) { console.error('  STEP_TRY_IMMUNITY: the TryImmunity arm announces nothing'); return null; }
+    /* BARE OR ATTRIBUTED, COUNTED RATHER THAN ASSUMED. `add("-immune", target)` is two arguments and
+     * carries no `[from]`; an attributed line would have a third. `immuneAttrIn` at the top of this
+     * file answers the same question for an ABILITY's own handler — this is the STEP's answer, and
+     * the two are different sites, so both are read. */
+    const args = add[2].split(',').map(s => s.trim()).filter(Boolean);
+    /* THE ROLE BINDING. */
+    const argline = /const args = \[([^\]]*)\]/.exec(fnsrc(Battle.prototype.singleEvent));
+    const roles = argline ? argline[1].split(',').map(s => s.trim()) : [];
+    if (roles[0] !== 'target' || roles[1] !== 'source') {
+      console.error('  STEP_TRY_IMMUNITY: singleEvent no longer assembles [target, source, sourceEffect] — read '
+        + JSON.stringify(roles)); return null; }
+    _STEP_TRY_IMMUNITY = {
+      step, of: steps.length, blocksBefore: steps.slice(step + 1),
+      announces: add[1], attribution: args.length > 1 ? args.slice(1).join(',') : null,
+      roles: ['target', 'user', 'move'],
+      from: 'DERIVED:BattleActions.prototype.hitStepTryImmunity + Battle.prototype.singleEvent',
+    };
+  } catch (e) { console.error('  STEP_TRY_IMMUNITY: could not read the step list — ' + e.message); }
+  return _STEP_TRY_IMMUNITY;
+}
+
+/* ---- CARD 1 -- A DRAIN HEALS PER TARGET, AND "PER TARGET" IS ARITHMETIC, NOT NARRATION ----------
+ *
+ * The `drain` tag carried `{ readFrom: 'm.drain', fraction: 0.5, unusual: false }`. A fraction and
+ * nothing that says WHEN it is applied, so a consumer is free to sum the damage across a spread and
+ * heal once at the end -- which is what happens here, and it is wrong by 1 HP on
+ * 25.0% of two-target spread drains, because the authority rounds INSIDE the per-target loop:
+ *
+ *     for (const [i, curDamage] of damage.entries()) {          // sim/battle.ts:2095
+ *        ...
+ *        const amount = Math.round(targetDamage * effect.drain[0] / effect.drain[1]);   // :2168
+ *        this.heal(amount, source, target, "drain");
+ *     }
+ *
+ * round(a/2) + round(b/2) != round((a+b)/2) exactly when a and b are both odd. Matcha Gotcha is 8,182
+ * corpus uses and hits both foes; Parabolic Charge is `allAdjacent`, so up to three drains.
+ *
+ * "INSIDE THE LOOP" IS DERIVED, NOT ASSERTED. The loop header is found, its body is brace-matched to
+ * its end, and the drain heal's offset is checked to lie between them. A refactor that hoists the
+ * heal out of the loop makes this print `perTarget: false` instead of silently keeping a stale true.
+ *
+ * THE FRACTION IS CARRIED AS A RATIONAL AND NOT ONLY AS A FLOAT for the same reason the rounding is
+ * carried at all: the authority computes `dmg * drain[0] / drain[1]` and then rounds, so a consumer
+ * that rounds a pre-divided float is doing different arithmetic. 1/2 and 3/4 happen to be exact in
+ * binary; a future 1/3 would not be, and nothing would report it. */
+let _DRAIN_APPLICATION;
+function DRAIN_APPLICATION() {
+  if (_DRAIN_APPLICATION !== undefined) return _DRAIN_APPLICATION;
+  _DRAIN_APPLICATION = null;
+  try {
+    const { Battle } = require(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim', 'battle.js'));
+    const src = fnsrc(Battle.prototype.spreadDamage);
+    if (!src) { console.error('  DRAIN_APPLICATION: Battle.prototype.spreadDamage is absent'); return null; }
+    const loop = /for \(const \[\s*\w+\s*,\s*\w+\s*\] of (\w+)\.entries\(\)\) \{/.exec(src);
+    if (!loop) { console.error('  DRAIN_APPLICATION: no per-target loop in spreadDamage'); return null; }
+    let i = loop.index + loop[0].length, depth = 1;
+    while (i < src.length && depth > 0) { if (src[i] === '{') depth++; else if (src[i] === '}') depth--; i++; }
+    if (depth !== 0) { console.error('  DRAIN_APPLICATION: the per-target loop body does not close'); return null; }
+    const dr = /const (\w+) = Math\.(round|floor|ceil|trunc)\((\w+) \* effect\.drain\[0\] \/ effect\.drain\[1\]\)/.exec(src);
+    if (!dr) { console.error('  DRAIN_APPLICATION: no modern-gen drain heal found in spreadDamage'); return null; }
+    const heal = /this\.heal\(\s*(\w+)\s*,\s*(\w+)\s*,\s*(\w+)\s*,\s*["']([a-z]+)["']/.exec(src.slice(dr.index));
+    if (!heal || heal[1] !== dr[1]) { console.error('  DRAIN_APPLICATION: the drain amount is not the healed amount'); return null; }
+    const gate = /if \(this\.gen > (\d+) && effect\.drain/.exec(src);
+    _DRAIN_APPLICATION = {
+      perTarget: dr.index > loop.index && dr.index < i,
+      over: dr[3] === 'targetDamage' ? 'damageDealtToThatTarget' : dr[3],
+      rounding: dr[2], heals: heal[2] === 'source' ? 'user' : heal[2],
+      attributedTo: heal[3], ofBody: heal[3] === 'drain' ? 'thatTarget' : null,
+      minGen: gate ? +gate[1] + 1 : null,
+      from: 'DERIVED:Battle.prototype.spreadDamage',
+    };
+    if (!_DRAIN_APPLICATION.perTarget) console.error('  DRAIN_APPLICATION: the drain heal is OUTSIDE the '
+      + 'per-target loop — the authority changed, and every drain row now says so');
+  } catch (e) { console.error('  DRAIN_APPLICATION: could not read Battle — ' + e.message); }
+  return _DRAIN_APPLICATION;
+}
+
 /* ---- MAX PP, READ OFF A CONSTRUCTED BATTLE IN THE FORMAT ---------------------------------------
  *
  * ROADMAP #144. Will: *"CHAMPIONS STANDARDIZED IT AND LOWERED SOME PP OF MOVES LIKE PROTECT TO 8"*.
@@ -874,6 +1004,84 @@ const MOVE_TAGS = [
       const w = src.match(/move\.type\s*=\s*['"]([^'"]+)['"]/g) || [];
       if (w.length !== 1) return null;
       return { type: /['"]([^'"]+)['"]/.exec(w[0])[1] };
+    } },
+  /* CARD 35 -- THE MOVE-SPECIFIC IMMUNITY, AND EACH OF THE SIX HAS ITS OWN CONDITION.
+   *
+   * See STEP_TRY_IMMUNITY above for what the authority does with a false. What this predicate does is
+   * turn the six handlers into ONE structured fact, and the reason that is a derivation rather than a
+   * transcription is that TWO DIFFERENT CODE IDIOMS COLLAPSE ONTO THE SAME FACT:
+   *
+   *     switcheroo/trick  return !target.hasAbility("stickyhold");                    -> lacksAbility
+   *     worryseed         if (target.ability === "truant" || ... ) { return false; }  -> lacksAbility
+   *
+   * A rule that matched on the SHAPE of the first would have missed the second entirely and left
+   * Worry Seed with no gate; a rule that named the moves would have to be edited the day a seventh
+   * arrives. Five recognisers, each extracting its OPERANDS from the source -- the type name, the
+   * ability ids, the comparison operator, the gender pairs -- so none of those values is typed here.
+   *
+   * A HANDLER THIS CANNOT READ IS LOUD, NOT ABSENT. Every move with the hook gets a row; one whose
+   * body matches no recogniser gets `condition: null`, `readable: false` and its own source in
+   * `handler`, and the run prints it. That is deliberate and it is the opposite of the usual "no tag
+   * -> no consumer" rule: silence here reads as "this move has no immunity", which is the exact
+   * false statement that produced the zero-damage Endeavor line.
+   *
+   * TRICK AND SWITCHEROO ARE THE BOARD-MATERIAL HALF. A missing gate there is an item swap that
+   * should have been refused and went through — Sticky Hold, on a body that keeps its item. */
+  { tag: 'immunityGate', param: 'a move-specific immunity, checked BEFORE accuracy and before any hit',
+    probe: 'immunityGate',
+    why: 'Endeavor at equal HP is IMMUNE on the authority (`|-immune|`), and its row carried no '
+       + 'condition at all — so a consumer ran the damageCallback and narrated a 0-damage hit. '
+       + 'Trick and Switcheroo are the same hole against Sticky Hold, and that one moves the board',
+    of: m => {
+      const raw = fnsrc(m.onTryImmunity);
+      if (!raw) return null;
+      const st = STEP_TRY_IMMUNITY();
+      if (!st) return null;                       /* the reader already printed why */
+      const sig = /^\s*\w+\s*\(([^)]*)\)\s*\{([\s\S]*)\}\s*$/.exec(raw);
+      if (!sig) return { hook: 'onTryImmunity', condition: null, readable: false, handler: raw,
+                         announces: st.announces, attribution: st.attribution, step: st.step,
+                         blocksBefore: st.blocksBefore, from: st.from };
+      /* POSITIONAL, per `singleEvent`'s own argument assembly — never by parameter NAME. */
+      const names = sig[1].split(',').map(s => s.trim()).filter(Boolean);
+      const role = n => { const i = names.indexOf(n); return (i >= 0 && i < st.roles.length) ? st.roles[i] : n; };
+      const body = sig[2].trim();
+      let g = null, mm;
+      if ((mm = /^return\s*!\s*(\w+)\.hasType\(\s*["'](\w+)["']\s*\)\s*;?$/.exec(body))) {
+        g = { pass: 'lacksType', who: role(mm[1]), types: [mm[2]] };
+      } else if ((mm = /^return\s*!\s*(\w+)\.hasAbility\(\s*["'](\w+)["']\s*\)\s*;?$/.exec(body))) {
+        g = { pass: 'lacksAbility', who: role(mm[1]), abilities: [mm[2]] };
+      } else if ((mm = /^if\s*\((.+?)\)\s*\{\s*return false;\s*\}\s*$/.exec(body))) {
+        const abis = []; let who = null, ok = true;
+        for (const t of mm[1].split('||')) {
+          const q = /^\s*(\w+)\.ability\s*===?\s*["'](\w+)["']\s*$/.exec(t);
+          if (!q) { ok = false; break; }
+          who = role(q[1]); abis.push(q[2]);
+        }
+        if (ok && abis.length) g = { pass: 'lacksAbility', who, abilities: abis };
+      }
+      if (!g && (mm = /^return\s*(\w+)\.hp\s*(<=|>=|<|>)\s*(\w+)\.hp\s*;?$/.exec(body))) {
+        g = { pass: 'hpCompare', left: role(mm[1]), op: mm[2], right: role(mm[3]) };
+      }
+      if (!g && /^return\s+[^;]*\.gender\s*===?/.test(body)) {
+        const inner = /^return\s+([\s\S]*?);?$/.exec(body)[1];
+        const anyOf = []; let ok = true;
+        for (const alt of inner.split('||')) {
+          const pair = [];
+          for (const t of alt.split('&&')) {
+            const q = /^\s*\(?\s*(\w+)\.gender\s*===?\s*["'](\w)["']\s*\)?\s*$/.exec(t);
+            if (!q) { ok = false; break; }
+            pair.push({ who: role(q[1]), gender: q[2] });
+          }
+          if (!ok) break;
+          anyOf.push(pair);
+        }
+        if (ok && anyOf.length) g = { pass: 'genderPairs', anyOf };
+      }
+      if (!g) console.error(`  immunityGate: ${m.id}'s onTryImmunity matches no recogniser — `
+        + `the row is emitted UNREADABLE rather than dropped: ${body}`);
+      return { hook: 'onTryImmunity', condition: g, readable: !!g, handler: raw,
+               announces: st.announces, attribution: st.attribution,
+               step: st.step, blocksBefore: st.blocksBefore, from: st.from };
     } },
   { tag: 'removesPP', param: 'PP taken off the TARGET\'s last move', probe: 'removesPP',
     why: 'Spite (4) and Eerie Spell (3). Untestable and unmodellable until PP existed at all',
@@ -3654,8 +3862,24 @@ const MOVE_TAGS = [
    * distribution in one boolean. But a consumer must never have to infer 0.5 from `unusual:false` --
    * that is a silent default wearing a flag, and it would still leave Draining Kiss (3/4, 814 uses)
    * with nothing to read. */
-    of: m => m.drain ? { readFrom: 'm.drain', fraction: m.drain[0] / m.drain[1],
-                         unusual: (m.drain[0] / m.drain[1]) !== 0.5 } : null },
+  /* CARD 1, 2026-08-22 -- AND `perTarget` IS THE HALF THAT CHANGES THE NUMBER. A fraction alone lets
+   * a consumer sum a spread move's damage and heal once; the authority heals inside the per-target
+   * loop and rounds each time. See DRAIN_APPLICATION above — every field below `unusual` is read out
+   * of `Battle.prototype.spreadDamage` on the run, so a consumer never has to assume the schedule.
+   * `num`/`den` are the rational the authority actually multiplies by, kept beside the float because
+   * `round(d * 1/3)` and `round(d * 0.333)` are not the same arithmetic. */
+    of: m => {
+      if (!m.drain) return null;
+      const app = DRAIN_APPLICATION();
+      const base = { readFrom: 'm.drain', fraction: m.drain[0] / m.drain[1],
+                     unusual: (m.drain[0] / m.drain[1]) !== 0.5,
+                     num: m.drain[0], den: m.drain[1] };
+      /* NO SILENT DEFAULT: if the schedule could not be read the fields are ABSENT, so a consumer
+       * that needs them fails loudly instead of inheriting a guessed `perTarget: true`. */
+      return app ? { ...base, perTarget: app.perTarget, over: app.over, rounding: app.rounding,
+                     heals: app.heals, ofBody: app.ofBody, appliedIn: 'spreadDamage',
+                     from: app.from } : base;
+    } },
   /* Will: "some recoil moves have more recoil than others we need to modify". The FRACTION is the
    * parameter, and it ranges widely: Head Smash pays 1/2, Flare Blitz and Wave Crash 33/100, Wild
    * Charge 1/4. Flare Blitz (4,032) and Wave Crash (4,052) are top-tier moves in this format and the
@@ -4953,15 +5177,59 @@ const ITEM_TAGS = [
   { tag: 'damageMultAll', param: 'x damage on everything, and what it charges for it', probe: 'onModifyDamage',
     why: 'Life Orb is x1.3 (6,301 sheets) and costs 1/10 max HP per attack. Scored as a free '
        + 'multiplier it makes the holder look like it wins races it actually loses',
+  /* CARD 24 / 2026-08-22 -- THE COST WAS STORED AS ENGLISH AND THEREFORE READ BY NOBODY.
+   *
+   * `costsPerAttack: "1/10 max HP"` is a sentence. The divisor was ALREADY being read off the handler
+   * and then formatted away into prose, so the one machine-usable number this tag had about the cost
+   * was thrown out on the last line. `tests/mutation_harness.js` measured the consequence exactly:
+   * mutating that string to `"ZZ-MUTANT-ZZ"` changed 0 of 40 games — verdict READ-AND-IGNORED,
+   * DEFECT-CANDIDATE — because the recoil branches on `m.item === 'lifeorb'` BY NAME while the tag
+   * sits unread beside it. A prose param cannot fail a mutation and cannot drive a consumer.
+   *
+   * WHAT IS READ NOW, all of it off the handler and none of it typed:
+   *   the DIVISOR and the BASE     `this.damage(source.baseMaxhp / 10, ...)` — and `baseMaxhp` is not
+   *                                `maxhp`, which the old `/maxhp\s*\/(\d+)/i` matched either way
+   *   the GATES                    `source !== target && move.category !== "Status" && !forceSwitchFlag`
+   *                                — the third is why a Life Orb attack that drags the user out pays
+   *                                nothing, and no consumer could have known that from a sentence
+   *   the ROUNDING                 `Pokemon#damage` truncs and `spreadDamage` clamps to a floor of 1
+   *
+   * `costsPerAttack` STAYS, and is now RENDERED FROM THE NUMBERS rather than parsed alongside them,
+   * so the sentence and the arithmetic cannot drift apart. Removing it outright would break any
+   * reader of the old shape for no gain; deriving both from one place is what stops them disagreeing.
+   *
+   * MEMBERSHIP WAS PRINTED BEFORE THIS WAS WIDENED. Over every legal item, the shape "an
+   * `onAfterMoveSecondarySelf` that damages the USER by a fraction of the USER's own max HP" matches
+   * EXACTLY ONE: Life Orb. Shell Bell carries the same hook and HEALS (`this.heal(move.totalDamage /
+   * 8, ...)`), so it is not caught. The naive shape — anything that damages a body by a fraction of
+   * max HP — matches eight abilities (Aftermath, Rough Skin, Iron Barbs, Solar Power, Bad Dreams, Dry
+   * Skin, Disguise, Gulp Missile) and every one of them would be a wrong param on a right tag. */
     of: it => {
       const md = String(it.onModifyDamage || '');
       if (!md || /typeMod|Effectiveness/i.test(md)) return null;
       const m = md.match(/chainModify\(\[?\s*(\d+)/);
       const mult = m ? +(m[1] / 4096).toFixed(2) : null;
-      const c = String(it.onAfterMoveSecondarySelf || '');
-      const cost = (c.match(/maxhp\s*\/\s*(\d+)/i) || [])[1];
       if (!mult) return null;
-      return { mult, costsPerAttack: cost ? '1/' + cost + ' max HP' : null };
+      const c = fnsrc(it.onAfterMoveSecondarySelf);
+      /* THE SELF-DAMAGE, and "self" is checked: the damaged body must be the handler's own first
+       * parameter, so an item that chipped the TARGET here would not be recorded as a holder cost. */
+      const sig = /^\s*\w+\s*\(([^)]*)\)/.exec(c);
+      const self = sig ? (sig[1].split(',')[0] || '').trim() : null;
+      let cost = null;
+      if (self) {
+        const hit = new RegExp('this\\.damage\\(\\s*' + self + '\\.(baseMaxhp|maxhp)\\s*/\\s*(\\d+)').exec(c);
+        if (hit) {
+          const gates = /if\s*\(([^)]*)\)/.exec(c);
+          cost = { of: hit[1], divisor: +hit[2], fraction: 1 / +hit[2],
+                   rounding: 'trunc', min: 1, hook: 'onAfterMoveSecondarySelf',
+                   /* the conjuncts, verbatim from the handler's own guard — a consumer that cannot
+                    * evaluate one of them knows it is missing a condition instead of guessing. */
+                   onlyWhen: gates ? gates[1].split('&&').map(s => s.trim()).filter(Boolean) : [],
+                   from: 'DERIVED:dex.items.get(id).onAfterMoveSecondarySelf' };
+        }
+      }
+      return { mult, cost,
+               costsPerAttack: cost ? `1/${cost.divisor} ${cost.of === 'baseMaxhp' ? 'base max' : 'max'} HP` : null };
     } },
   /* WAS A 24-NAME REGEX. Will: "NO HARDCODE." He is right and this was the worst offender left --
    * charcoal|blackglasses|mysticwater|fairyfeather|magnet|nevermeltice|sharpbeak|... listing every
@@ -8204,6 +8472,35 @@ const abils = collect('ability', dex.abilities.all().filter(a => LEGAL_CARRIED.h
   ABILITY_TAGS, U.ability);
 console.log(`  abilities: ${LEGAL_CARRIED.size} of ${dex.abilities.all().length} have a legal carrier in `
   + `this regulation; the rest are not derived (ROADMAP #175 — "if no legal species, then toss it").`);
+
+/* ---- CARD 35's C4 -- WHAT THE LEGALITY FILTER DROPPED THAT WOULD OTHERWISE HAVE CARRIED A TAG ----
+ *
+ * Guard Dog was reported as a DERIVATION GAP: an identical `onDragOut` to Suction Cups, absent from
+ * data/tags.json, with "a regulation rotation that brings a carrier gets a silently missing refusal".
+ * It is not a gap. `refusesForcedSwitch` matches on the handler shape, and run against Guard Dog's own
+ * body it returns `{refuses:'forcedSwitch', announces:true}` — the same row Suction Cups gets. The
+ * only reason there is no row is ROADMAP #175, which Will asked for in as many words, and the day a
+ * legal carrier exists the row appears with NO EDIT HERE. That is the derivation working.
+ *
+ * What was genuinely missing is that the drop was INVISIBLE PER ENTITY. The line above prints a count;
+ * it never said WHICH facts about the game the artifact stopped carrying, so "absent because
+ * inapplicable" and "absent because the predicate broke" looked identical from the outside — the
+ * silent-default shape this file exists to refuse. Now every dropped ability that WOULD have matched
+ * is named with the tags it would have carried, so the two cases can never be confused again. */
+{
+  const dropped = [];
+  for (const a of dex.abilities.all()) {
+    if (!a || !a.exists || a.isNonstandard) continue;
+    if (LEGAL_CARRIED.has(norm(a.id || a.name))) continue;
+    const would = [];
+    for (const t of ABILITY_TAGS) { let v = null; try { v = t.of(a); } catch (e) { v = null; } if (v) would.push(t.tag); }
+    if (would.length) dropped.push([a.name, would]);
+  }
+  console.log(`  ${dropped.length} ability/ies WOULD have carried a tag and have NO legal carrier, so no row `
+    + 'is written. Named, not counted — an inapplicable fact and a broken predicate must not look alike:');
+  for (const [name, would] of dropped.sort((x, y) => x[0].localeCompare(y[0])))
+    console.log(`    ${name.padEnd(22)} ${would.join(', ')}`);
+}
 
 /* ---- LINKAGE ---------------------------------------------------------------------------------
  * Will, 2026-07-29: "i want to tie as many of these tags as possible to the move tags like the

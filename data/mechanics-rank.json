@@ -1,17 +1,17 @@
 {
-  "generated": "2026-08-13T03:16:51.095Z",
+  "generated": "2026-08-22T04:51:15.203Z",
   "by": "tests/mechanics_rank.js",
   "method": "tag name appearing as a quoted string in medicham2-browser.js or board.js",
   "caveat": "An UPPER bound on inert tags: a mechanic can be implemented without consulting its tag, and three such were confirmed by probe (Choice Scarf, Fake Out flinch, Filter). Ranking is by corpus `uses` because carrier count is the wrong order to work in.",
-  "total_tags": 277,
-  "inert_tags": 19,
-  "move_uses_total": 4195988,
+  "total_tags": 290,
+  "inert_tags": 20,
+  "move_uses_total": 6090212,
   "ranked": [
     {
       "kind": "move",
       "tag": "neverMisses",
       "carriers": 124,
-      "uses": 195182,
+      "uses": 260523,
       "examples": [
         "banefulbunker",
         "clangoroussoul",
@@ -22,7 +22,7 @@
       "kind": "move",
       "tag": "stalling",
       "carriers": 6,
-      "uses": 106263,
+      "uses": 143322,
       "examples": [
         "banefulbunker",
         "kingsshield",
@@ -33,7 +33,7 @@
       "kind": "move",
       "tag": "inflictsBurn",
       "carriers": 15,
-      "uses": 32012,
+      "uses": 42966,
       "examples": [
         "beakblast",
         "infernalparade",
@@ -44,7 +44,7 @@
       "kind": "move",
       "tag": "lowersUser",
       "carriers": 13,
-      "uses": 24155,
+      "uses": 32692,
       "examples": [
         "makeitrain",
         "armorcannon",
@@ -55,7 +55,7 @@
       "kind": "move",
       "tag": "boostsUser",
       "carriers": 23,
-      "uses": 15166,
+      "uses": 20572,
       "examples": [
         "clangoroussoul",
         "growth",
@@ -66,7 +66,7 @@
       "kind": "move",
       "tag": "lowersTarget",
       "carriers": 22,
-      "uses": 13550,
+      "uses": 17196,
       "examples": [
         "toxicthread",
         "babydolleyes",
@@ -77,7 +77,7 @@
       "kind": "move",
       "tag": "neverMissesAttack",
       "carriers": 8,
-      "uses": 10377,
+      "uses": 14856,
       "examples": [
         "aerialace",
         "aurasphere",
@@ -86,20 +86,9 @@
     },
     {
       "kind": "move",
-      "tag": "inflictsParalysis",
-      "carriers": 13,
-      "uses": 9120,
-      "examples": [
-        "bodyslam",
-        "bounce",
-        "discharge"
-      ]
-    },
-    {
-      "kind": "move",
       "tag": "inflictsPoison",
       "carriers": 11,
-      "uses": 9106,
+      "uses": 12447,
       "examples": [
         "banefulbunker",
         "toxicthread",
@@ -110,7 +99,7 @@
       "kind": "move",
       "tag": "inflictsFreeze",
       "carriers": 4,
-      "uses": 8986,
+      "uses": 12215,
       "examples": [
         "blizzard",
         "icebeam",
@@ -119,9 +108,20 @@
     },
     {
       "kind": "move",
+      "tag": "inflictsParalysis",
+      "carriers": 13,
+      "uses": 12087,
+      "examples": [
+        "bodyslam",
+        "bounce",
+        "discharge"
+      ]
+    },
+    {
+      "kind": "move",
       "tag": "locksTarget",
       "carriers": 3,
-      "uses": 7436,
+      "uses": 10032,
       "examples": [
         "encore",
         "disable",
@@ -132,7 +132,7 @@
       "kind": "move",
       "tag": "needsUntrackedState",
       "carriers": 4,
-      "uses": 7165,
+      "uses": 9856,
       "examples": [
         "ragefist",
         "electroball",
@@ -143,7 +143,7 @@
       "kind": "move",
       "tag": "weightBased",
       "carriers": 4,
-      "uses": 6201,
+      "uses": 8768,
       "examples": [
         "grassknot",
         "heatcrash",
@@ -154,7 +154,7 @@
       "kind": "move",
       "tag": "inflictsConfusion",
       "carriers": 9,
-      "uses": 4484,
+      "uses": 5871,
       "examples": [
         "axekick",
         "confuseray",
@@ -165,7 +165,7 @@
       "kind": "move",
       "tag": "inflictsSleep",
       "carriers": 4,
-      "uses": 2609,
+      "uses": 3438,
       "examples": [
         "hypnosis",
         "sing",
@@ -176,7 +176,7 @@
       "kind": "move",
       "tag": "inflictsToxic",
       "carriers": 2,
-      "uses": 1213,
+      "uses": 1665,
       "examples": [
         "poisonfang",
         "toxic"
@@ -184,9 +184,31 @@
     },
     {
       "kind": "move",
+      "tag": "immunityGate",
+      "carriers": 6,
+      "uses": 1365,
+      "examples": [
+        "attract",
+        "endeavor",
+        "leechseed"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "punishesMinimize",
+      "carriers": 6,
+      "uses": 945,
+      "examples": [
+        "bodyslam",
+        "dragonrush",
+        "flyingpress"
+      ]
+    },
+    {
+      "kind": "move",
       "tag": "readsOwnItem",
       "carriers": 1,
-      "uses": 219,
+      "uses": 302,
       "examples": [
         "acrobatics"
       ]
@@ -195,18 +217,9 @@
       "kind": "item",
       "tag": "damageMultOnRepeat",
       "carriers": 1,
-      "uses": 20,
+      "uses": 27,
       "examples": [
         "metronome"
-      ]
-    },
-    {
-      "kind": "move",
-      "tag": "setsRoom",
-      "carriers": 1,
-      "uses": 1,
-      "examples": [
-        "fairylock"
       ]
     }
   ]

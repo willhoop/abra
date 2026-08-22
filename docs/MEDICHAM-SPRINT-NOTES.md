@@ -10765,3 +10765,64 @@ test-pin-arms, test-speed-tie, test-state-differential, test-switch-carry
 Not fixed here — sixteen files owned elsewhere, and a MEASURE agent editing them mid-sprint is the
 collision the divisions exist to prevent. `data/releases/` currently holds **324** directories and the
 pointer was `6a05dd9ad60d` before and after this session's work.
+
+---
+
+## THREE FACTS THE ARTIFACT COULD NOT CARRY, AND ONE I FILED THAT WAS NEVER A DEFECT — 2026-08-22
+
+**The recurring shape, now named:** when a fact lives in a **handler** rather than a declarative field,
+`tag_dex` does not pick it up. The tag exists carrying no usable parameter, the engine has nothing to
+read, and **the roster credits the entity CLEAN because nothing staged the condition.** Joins #317
+(Fur Coat carries `breakable` and no multiplier, so we deal DOUBLE through it) and #312.
+
+**A CONTROL COPY OF `data/tags.json` WAS TAKEN FIRST**, by running the *unmodified* `tag_dex.js`, so
+every later structural difference is attributable to this pass. The control moved **1,995 lines and
+ZERO structural fields** — sheet entries 186,576 → 198,840, because the store grows under the artifact.
+Without that control the diff would have been unreadable.
+
+**`immunityGate` — new tag, 6 moves.** Endeavor's gate returns a **type-immunity-style block**: the
+authority emits `|-immune|`, not `|-fail|`. Both bodies sat at 135/135 (Whimsicott and Raichu share max
+HP at L50/0EV) so `135 < 135` is false; we ran the `damageCallback`, got 0, and announced a zero-damage
+line. Attract, Endeavor, Leech Seed, **Switcheroo**, **Trick**, Worry Seed — **each with a different
+condition, each derived from its own handler.** Trick and Switcheroo are the board-material half.
+
+**`lifeorb.damageMultAll.cost` — the recoil was English.** The multiplier was machine-readable and the
+cost was the string `"1/10 max HP"`. **And `data/mutation-coverage.json` ALREADY HELD IT AS A
+DEFECT-CANDIDATE** — `costsPerAttack := "ZZ-MUTANT-ZZ"` read `READ-AND-IGNORED, changed 0 / same 40`.
+An existing instrument had flagged it and nobody had read the row.
+
+**`drain.perTarget` — 8 moves.** The authority heals per target, interleaved; we accumulate `dealt` and
+heal once. Disagrees **exactly when both hits deal odd damage — 25.0% of two-target spread drains**.
+
+**GUARD DOG WAS NOT A GAP AND FILING IT WAS THE ERROR.** Its `onDragOut` is byte-identical to Suction
+Cups' once the name is stripped, so the derivation already covers it; the row is absent because it has
+**zero legal carriers**. **Adding it by hand would have REVERSED ROADMAP #175** — match on tag SHAPE,
+never on a name, precisely so an entity added later needs no edit. The "fix" would have been the defect.
+
+**OVER-MATCH ASSERTED BOTH DIRECTIONS**, because a census count cannot detect one (#178). The naive
+Life Orb shape — *"damages a body by a fraction of max HP"* — was printed first and matched **eight
+abilities**; scoped to item + `onAfterMoveSecondarySelf` + damages-itself it matches exactly Life Orb,
+where Shell Bell shares the hook and heals.
+
+**TWO ERRORS CAUGHT BEFORE THEY BECAME FINDINGS, both toward a comfortable answer.** The gate was first
+evaluated on LIVE objects *after* the turn, by which point Endeavor had equalised HP and Worry Seed had
+written Insomnia — **two arms read RED and both would have been filed as engine defects.** And
+spread-drain damage read from before/after HP folded Matcha Gotcha's 20% burn residue into "damage
+dealt", while `|split|` duplicates every HP line, so an undeduplicated count reports four heals for two
+targets and "per target" looks refuted.
+
+**THE PROSE SWEEP — four more params are the sole carrier of their number:**
+`typeImmunity.gain.heal` `"1/4"` (Dry Skin, Earth Eater, Volt Absorb, Water Absorb),
+`healsAtThreshold.triggersBelow` `"1/2"` (Oran, **Sitrus**), `healsAtThreshold.restores` `"1/4"`
+(**Sitrus**), `damageBoost.costsPerTurn` `"1/8 max HP"` (Solar Power). Not taken — each needs its own
+oracle and Sitrus has a Gluttony branch. **Sitrus matters twice: it is also the berry in the
+upkeep-ordering defect.**
+
+**Wiring is routed, not assumed.** `immunityGate` must be evaluated before accuracy and before any hit
+— it carries `step` and `blocksBefore` so a consumer knows the `damageCallback` must not run — and emit
+a **bare** `|-immune|`; an unknown `pass` shape must **throw**, never default to not-immune.
+`drain.perTarget` heals inside the per-target loop. Life Orb's cost charges at
+`onAfterMoveSecondarySelf` gated on every conjunct including `!source.forceSwitchFlag` (an attack that
+drags its user out pays nothing) and stops branching on the item's name.
+
+`tests/mechanics_rank.js` **writes** `data/mechanics-rank.json` when run as a smoke check.
