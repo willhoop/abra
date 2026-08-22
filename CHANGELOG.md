@@ -10,6 +10,66 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.72.0] — 2026-08-22
+
+### Fixed
+- **THE "27 WRONG-ARM CALLERS" FIGURE IS WRONG IN BOTH DIRECTIONS, AND THE GREP IS WHY.** Re-derived by
+  parsing each `playGame` call site on the current tree instead of grepping for `arm:`.
+  - **It is 22, not 27.** Five were never affected: `engine/replay_one.js`, `tests/probe_trace_choice.js`
+    and `tests/test-resolution-order.js` all pin the arm BY ID using ES6 shorthand — `{ script, arm }`,
+    no colon, **invisible to a grep for `arm:`** — and all three predate the report.
+    `engine/lookahead_divergence.js` declares its own local `playGame`, and `engine/replay_differential.js`
+    has no `playGame` at all: the match was the substring inside `re**playGame**`.
+  - **And it is also BIGGER than 27**, in two classes the original sweep could not reach: **four
+    indirect gates** through `tests/staged_board.js`'s exported `runOne(sc, patchedSrc)`, which has **no
+    arm parameter at all** (`test-assert-mode`, `test-perish-song`, `test-volatile-duration`,
+    `test-middle-stall-address`), and **the driver's own seven internal sites** — `plantedProof`,
+    `statePlantedProof`, the directed runner and the KO/Sitrus probes. **Three published blocks of
+    `data/game-differential.json` ride those**, and a planted red demonstration on live dice is a
+    weaker red than one on a corner.
+  - `docs/ENGINE.md` publishes the 27 in two places and **owes a correction** — not edited here because
+    an ENGINE agent is live in that file.
+
+### Changed
+- **14 of the 22 publish a figure; 8 emit only a verdict.** Eight were screened by injecting a named arm
+  into the exported `playGame` and diffing whole stdout across `middle` / `top` / `bottom`:
+  **seven byte-identical → INERT, with evidence**, and **one moves** — `tests/test-precharge-order.js`
+  produces four more protocol lines under `bottom-tie-first` (11→12, 14→16, 12→13, 10→11), so its
+  published *"83 checks"* was measured on a board where fewer secondaries fired.
+  - **The inertness claim carries an over-fire control**, which is what makes it a claim rather than a
+    hope: the same harness reads `Incineroar 110/170 · 94/170 · 112/170` across the three arms, so the
+    instrument demonstrably COULD have seen a difference.
+  - **Fourteen files are unscreened and are explicitly NOT called inert.** "It probably doesn't matter"
+    is the reasoning that let this sit for nine days.
+- **Nine withdrawal candidates, three already cleared by measurement — which is the argument for Will's
+  one-at-a-time rule.** A blanket withdrawal would have taken `test-bracket-regain`,
+  `test-encore-fail-silent` and `test-imposter-transform-line` down with the rest. **No ratchet is
+  exposed:** the four baselines naming these instruments are written by `conformance.js` /
+  `fixture_legality.js`, neither of which plays a game.
+
+### Notes
+- **THE THREE UNGATED `staged_board` FAILURES ARE NOT THE ARM — THEY ARE ONE INSTRUMENT DEFECT WEARING
+  THREE FACES.** `imposter-copies-the-body-opposite`, `hungerswitch-flips-every-turn` and
+  `roar-drags-whoever-is-standing-there` return the identical SHORT verdict at the identical turn under
+  all four arms, and `playGame` names the cause: `err=null`, `stateDiv=null`,
+  `boundariesAgreed == boundaries` — **the engines agreed on every board** — with
+  `endReason: medicham2's placement cannot be expressed to showdown`. The driver's Showdown mirror is
+  **keyed by species name** and cannot express a body that was renamed (transform, forme change) or one
+  already on the field. Same class as the arm fall-through: the instrument, not the engine.
+- **"GATED BY NOTHING" IS EXACT, AND WIDER THAN ONE FILE.** `tests/run-all.js:42` discovers only
+  `/^test-.*\.(js|py)$/`, so `tests/staged_board.js` **plus ten `probe_*.js` files are invisible to the
+  runner**. Worse, the `looksLikeACheck` detector that exists to catch exactly this hazard is applied to
+  `engine/` only (`run-all.js:167`) — and even scoped correctly it would still miss `staged_board.js`,
+  which ends `process.exit(bad ? 1 : 0)` rather than a bare `process.exit(1)`. Verified at both lines.
+- **Two more red gates found, both arm-independent and neither previously reported:**
+  `tests/test-end-state-severity.js` (PART 5 could not be staged, and its message varies run to run
+  because the team pool is drawn LIVE from the store) and `tests/test-state-differential.js` (3
+  failures, including *"the clean game's very first board already differs, so there is no agreeing board
+  to plant into"*). **Recorded RED, not filed** — they are neither fixed nor waived, and naming them is
+  the minimum this project's own rule allows.
+
+---
+
 ## [5.71.1] — 2026-08-22
 
 ### Changed
