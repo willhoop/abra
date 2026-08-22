@@ -70,6 +70,57 @@ do not invent a home for it.
 Report back **one answer**, not a transcript. Lead with the verdict. If the news is bad, give it
 plainly — softening a result is the failure this whole structure exists to prevent.
 
+## THE COORDINATOR IS THE BOTTLENECK, NOT THE REPOSITORY
+
+*(Will, 2026-08-22: **"this project is huge and it just destroys your context window... can we create a
+skill or a knowledge base or memory that can be easily handed between sessions"**.)*
+
+**IT IS NOT THE DOCUMENTATION.** `status.js` and `open_work.js` cost about 6k tokens once and pay for
+themselves. Audited on the session that prompted this, the context went three places: ~25 separate
+"grep the Showdown source for X" excursions at 500-2000 tokens each, a dozen `node -e` probes at
+artifacts whose shape was guessed wrong first, and ten agent reports of ~3k each that were read once
+and then re-summarised. **The work was done inline that should have been delegated, and relayed in
+full that should have been a verdict.**
+
+**AND THE ANSWER IS NOT A KNOWLEDGE BASE OF FACTS.** Anything that stores what the engine *does* rots
+exactly like the fourteen handoffs and the ban list of four. The rules above already forbid it: state
+is PRINTED, never typed, and no Pokemon value may be recalled. What is missing is an index of WHERE
+facts live, and discipline about WHO reads them.
+
+### 1. AN AGENT REPORTS A VERDICT AND WRITES THE REPORT TO A FILE
+
+Every division brief must say: **write the full account to `docs/_reports/<YYYY-MM-DD>-<topic>.md` and
+return a verdict of a few lines plus that path.** The verdict carries what routes the next decision —
+confirmed or refuted, what landed, what is owed, what is red. Everything else is a file the coordinator
+reads only when it matters.
+
+`docs/_reports/` is historical by construction, like `docs/HANDOFF-*.md`: **never maintained, never
+cited as current state, superseded by the register rows it feeds.** Exempt it in
+`data/docs-currency-baseline.json` rather than versioning it — a dated findings record given a version
+header becomes a LIVING document and is then judged by the untraceable-figures check, which a page of
+raw measurements cannot pass. That was tried and the gate said so.
+
+### 2. `node engine/where.js <thing>` — THE INDEX IS DERIVED, NEVER WRITTEN
+
+Answers *which file owns this fact*, *which instrument decides this question*, *which tag governs this
+mechanic*, by reading `SOURCES`, the tests and `data/tags.json` at run time. Because it derives, it
+cannot go stale — the same reason `status.js` exists. A written map of this repository would be wrong
+within a day.
+
+### 3. DELEGATE EVERY DERIVATION. THE COORDINATOR ROUTES AND VERIFIES.
+
+*"What does Champions do with Encore?"* is a 100-token answer that costs 1,500 tokens to produce by
+hand. Hand it to the division that owns it. **Verify what comes back — agents are wrong often enough
+to matter** (on the session that prompted this, one agent's report contained a Roost card that was an
+Encore card, and the coordinator's own urgent "critical refinement" to another agent was false because
+it had not read the reducer) — but verifying a claim is cheap and producing it is not.
+
+### 4. WHAT MAY NOT BE COMPRESSED
+
+**The verification step.** Relaying an agent's number without checking it is how a wrong figure enters
+the record wearing a receipt. Verification is usually one command; the report is what gets skipped, not
+the check.
+
 ## Cowork handoff
 
 Cowork drafts docs and analysis; Claude Code applies, tests and pushes.

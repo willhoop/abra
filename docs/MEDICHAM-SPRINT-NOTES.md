@@ -10877,3 +10877,46 @@ would rise identically under the revert.
 **Census 623/623 live, 0 missing, before and after**, diffed row-by-row and restored byte-identical.
 `data/switchin-order.json` registered in `SOURCES` (now 26) after it briefly broke release cutting
 tree-wide; `test-artifact-rerunnable.js` reports nothing stranded.
+
+---
+
+## THE COORDINATOR WAS THE BOTTLENECK, NOT THE REPOSITORY - 2026-08-22
+
+Will: *"this project is huge and it just destroys your context window... can we create a skill or a
+knowledge base or memory that can be easily handed between sessions"*.
+
+**AUDITED RATHER THAN GUESSED.** The context did not go to documentation - `status.js` and
+`open_work.js` cost about 6k once and paid for themselves. It went to: ~25 separate "grep the Showdown
+source for X" excursions at 500-2000 tokens each, a dozen `node -e` probes at artifacts whose shape was
+guessed wrong first, and ten agent reports of ~3k each that were read once and re-summarised. **The
+work was done inline that should have been delegated, and relayed in full that should have been a
+verdict.**
+
+**AND THE ANSWER IS NOT A KNOWLEDGE BASE.** Anything storing what the engine *does* rots exactly like
+the fourteen handoffs, the ban list of four, and CLAUDE.md's own "twenty-three files are frozen" when
+`SOURCES` held 25. What was missing is an index of WHERE facts live and discipline about WHO reads them.
+
+Four things landed:
+
+1. **`docs/_reports/`** - an agent writes its full account to a dated file and returns a verdict plus
+   the path. Historical by construction like `docs/HANDOFF-*.md`: never maintained, never cited as
+   current state, superseded by the register rows it feeds. **Exempted in docs-currency rather than
+   versioned** - a dated findings record given a version header becomes a LIVING document and is then
+   judged by the untraceable-figures check, which a page of raw measurements cannot pass. That was
+   tried today and the gate said so.
+2. **`engine/where.js`** - answers *where does this live* and *what would tell me if it were wrong*, by
+   reading `SOURCES`, the tests, the register's `VERIFIED BY` markers and `data/tags.json` **at run
+   time**. It cannot go stale for the same reason `status.js` cannot. **It answers WHERE, never WHAT** -
+   a cached Pokemon value would be the knowledge base this project bans. When nothing in `tests/` names
+   the query it says so, because a mechanic no instrument mentions is one whose breakage nothing would
+   announce.
+3. **`.claude/skills/start`** - the session-start procedure, so orientation is a command rather than a
+   habit.
+4. **Delegate every derivation.** *"What does Champions do with Encore?"* is a 100-token answer that
+   costs 1,500 to produce by hand.
+
+**WHAT MAY NOT BE COMPRESSED IS THE VERIFICATION.** Relaying an agent's number without checking it is
+how a wrong figure enters the record wearing a receipt. Today one agent's report contained a Roost card
+that was an Encore card, and the coordinator's own urgent "critical refinement" to another agent was
+false because it had not read the reducer. Verifying is one command; the report is what gets skipped,
+never the check.
