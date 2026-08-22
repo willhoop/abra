@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-22T20:06:04.241Z",
+  "generated": "2026-08-22T21:04:00.780Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 626,
-  "live": 626,
+  "probed": 628,
+  "live": 628,
   "missing": 0,
-  "armed": 626,
+  "armed": 628,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -2413,6 +2413,16 @@
     },
     {
       "kind": "move",
+      "tag": "forcesSwitch",
+      "label": "a drag indexes into the bench in the AUTHORITY's order — a body that switches out takes the incoming body's party slot",
+      "live": true,
+      "detail": "[p2 bench, then who a Roar drags in at die index 0 / index 1] — CONTROL, nobody switched first: bench [snorlax,weavile], drags \"snorlax\" / \"weavile\". TEST, p2a switched to the FIRST bench member on turn 1: bench [corviknight,weavile] (the authority's own party after that pivot is snorlax,milotic,corviknight,weavile, so its bench is corviknight,weavile), drags \"corviknight\" / \"weavile\". An engine that removes-and-appends reads bench [weavile,corviknight] here and drags the wrong body at BOTH indices",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "crashOnMiss",
       "label": "High Jump Kick hurts the user when it misses",
       "live": true,
@@ -3166,7 +3176,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.2% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5347,6 +5357,16 @@
       "label": "a Roosting body loses Flying for the turn and Earthquake lands",
       "live": true,
       "detail": "a half-HP Talonflame, Earthquake on the same turn: passing it moves 0 HP (airborne, correct); Roosting it moves -76 HP — the heal MINUS an Earthquake that now lands. Types after the turn: Fire/Flying, so the deletion is given back",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "typeRemovedForTurn",
+      "label": "a Roost that heals NOTHING grounds nothing — the self-rider is skipped when the primary failed",
+      "live": true,
+      "detail": "[HP moved on a Talonflame over one turn] — HALF HP, Roost and nobody attacks: +76 (the heal, sized). HALF HP, Roost into an Earthquake: -77 — less than the heal, so the deletion happened and the Ground move landed. FULL HP, Roost into the same Earthquake: 0; the heal fails (`|-fail|p1a: Talonflame|heal` on both engines) so the self-rider must never be applied and the body must stay airborne. The OVER-FIRE CONTROL is the same full-HP body clicking TAILWIND instead: 0. The two must be EQUAL — before this they read -153 and 0, a whole Earthquake through a Flying type",
       "hollow": false,
       "armed": true,
       "directCall": false

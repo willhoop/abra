@@ -10,6 +10,65 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.71.0] — 2026-08-22
+
+### Fixed
+- **THE BENCH ORDER (#340) — the largest single mechanism in the whole-game differential.** The
+  authority **SWAPS** (`sim/battle-actions.ts:118-132`): the outgoing body takes the arriving body's
+  party index, and `possibleSwitches` walks that array — **so the party order IS the drag die's index
+  space.** We did `bench.push(out)` + `bench.splice(indexOf(nx), 1)`, which is a different list.
+  `switchOut` now hands the outgoing body to `bringIn`, which writes it into the arriving body's slot.
+  - **The faint case is DERIVED, not skipped.** A faint replacement passes no `outgoing`; that is
+    correct because the corpse is skipped by `possibleSwitches` and a swap moves no other element, so
+    the live order is identical either way. Stated rather than assumed.
+  - **Probe:** `tests/test-mechanics.js` `move/forcesSwitch`, four arms reading BOTH die faces. Red
+    first at `626 live, 1 missing`, and red again on demand under `MEDI_BENCH_APPEND=1`.
+  - **Two-engine proof** (`tests/probe_drag_body.js`): before, Showdown held
+    `[corviknight, weavile]` against our `[weavile, corviknight]` and the die dragged a different body;
+    after, same order and the **same body at every boundary**.
+- **THE `-fail` CONTRACT, BOARD-MATERIAL HALF (#343) — and the engine's own comment claimed the
+  opposite of what its code did.** `runMoveEffects` writes `damage[i] = false` on a full-HP heal,
+  `spreadMoveHit` sets `targets[i] = false`, and step 4 `selfDrops` skips it — so **a failed Roost
+  never applies `self: {volatileStatus: 'roost'}`** and the user stays Flying-typed here while the
+  authority grounds it. Cost measured, not asserted: **153 HP off a 155-HP Talonflame, from a move the
+  authority answers with `|-immune|`.**
+  - Membership printed before wiring: **25 legal moves carry `self`, exactly one is a heal-primary
+    Status move.** The **22 damaging members fail through a door that was not measured, and are
+    DECLARED OPEN rather than swept in** — the scope of a fix is the scope that was probed.
+  - **Probes:** census `move/typeRemovedForTurn`, whose bar is an equality against an over-fire
+    control, plus `tests/staged_board.js a-failed-roost-grounds-nothing` — CLEAN 293/293 at every
+    boundary, CAUGHT AND LOCALISED under its declared break, DIFFERS on the pre-fix release.
+
+### Changed
+- **Whole-game divergences 129 → 89 on one proven-identical pinned sample**; `drag: a different body`
+  **19 → 1**; `extra event emitted by medicham2` **13 → 7**. Census **626 live / 0 missing → 628 / 0**.
+  Nothing in the ENGINE block of `status.js` went down. **20 of 20 engine gates PASS.**
+- **THAT 89 IS NOT IN THE GATE YET, AND MUST NOT BE QUOTED AS IF IT WERE.** `data/game-differential.json`
+  still holds the 19:15Z run on release `13ba05093aa3` — 961 games, 126 diverged, 124 among 959 usable.
+  The 89 is the agent's own paired before/after, which is the right way to attribute a fix and is NOT
+  the gate's artifact. The clause re-reads only after a release is cut on this tree and the 1,200-game
+  differential is re-run.
+
+### Notes
+- **SUCTION CUPS (#341) IS NOT THE SAME DERIVATION AND WAS DELIBERATELY LEFT.** #340 is a list order;
+  #341 is a `refusesForcedSwitch` read missing from the DAMAGING branch. Re-probed red on this tree.
+  Clearing its differential row also needs the display name (`suctioncups` vs `Suction Cups`) — two
+  more changes at a site **shared with the phaze branch**, which would have destroyed the attribution
+  the drag measurement rests on. `probe_drag_body.js` exits 1 on that one clause only, so it stays
+  visible instead of being forgotten.
+- **A TEST WENT RED BECAUSE THE ENGINE GOT RIGHT, WHICH IS A REAL FAILURE MODE AND NOT A JOKE.**
+  `tests/test-end-state.js` PART 2 searches for a turn-1 protocol divergence, and the supply ran out
+  as divergences were fixed. Isolated with census and pool held byte-identical: **GREEN on HEAD, RED on
+  the fix.** Repaired to take the earliest-parting pair, with the honest fix declared rather than
+  implied — a `protoPlant` hook in `game_differential.js`, so the test plants what it needs instead of
+  fishing for it.
+- Reported, not filed, and none of it swept into this pass: `tests/staged_board.js` carries **three
+  pre-existing CLEAN failures**, byte-identical on both releases and **gated by nothing**.
+  `MEDFAILS.traceBodyOffField = 4` is unchanged across all three runs. VOID rose 5 → 7. The residual
+  drag row is a different-SLOT shape, not a bench-order one.
+
+---
+
 ## [5.70.0] — 2026-08-22
 
 ### Changed

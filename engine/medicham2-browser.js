@@ -1141,11 +1141,21 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                           rather than the drop alone.
    *   groundedByVolatile      Ingrain or Smack Down put a body on the floor that was not on it. */
   gravitySet: 0, gravityGroundedCharge: 0, roostTypeDropped: 0, roostTypeRestored: 0,
+  /* ROADMAP #343 -- a self-rider that was NOT applied because the move's primary effect failed on the
+   * user (a Roost at full HP). The authority reaches step 4 only for a target step 3 left standing;
+   * this is that skip, counted, so the fix cannot become a silent no-op the way its own comment did. */
+  selfRiderSkippedOnFailedPrimary: 0,
   /* ROADMAP #242 -- the SUBSET of the restores above that happened because the body died rather than
    * because the order-25 step reached it. `faintMessages()` clears volatiles, so the authority gives
    * the type back to a corpse too; a rise here with a flat `roostTypeRestored` would mean the step in
    * the walk has stopped firing and this is covering for it. */
   roostTypeRestoredOnFaint: 0,
+  /* ROADMAP #343 -- a `typeRemovedForTurn` move that declared no heal primary at all, so the step-4
+   * gate had nothing to read. There is no such move in Reg M-B today (25 legal moves carry `self`,
+   * exactly one of them -- roost -- is a heal-primary Status move), so a non-zero here means the
+   * family grew and the gate is guessing. */
+  roostRiderNoPrimary: 0,
+
   groundedByVolatile: 0,
   /* ROADMAP #186 -- the branch where the ABSORB gate deferred to `isGrounded` and let a Ground move
    * through a Levitate body that Gravity or Smack Down had put on the floor. It did not exist before
@@ -1293,6 +1303,11 @@ const MEDFAILS = { encoreAction: 0,
    * back on purpose, so a deliberate restore arm and a broken engine can never be read as the same
    * thing. Same shape as damageSpanDrawRestored and multiHitOneIndexRestored. */
   sleepWakeCoinRestored: 0,
+  /* ROADMAP #340 -- counts every switch-out that was put back on the END of the bench instead of into
+   * the arriving body's slot, which MEDI_BENCH_APPEND=1 asks for on purpose. A run carrying the old
+   * remove-and-append behaviour therefore says so out loud instead of looking exactly like the fix.
+   * Same shape as damageSpanDrawRestored, multiHitOneIndexRestored and sleepWakeCoinRestored. */
+  benchOrderAppendRestored: 0,
   /* ROADMAP #289 -- a stat change that landed ZERO stages and whose call site has not yet had its
    * authority branch read, so no line was written. Showdown writes one whenever the change was
    * CLAMPED at a cap and the effect is not an ability-without-secondary or a move secondary/self
@@ -8393,6 +8408,15 @@ const SLEEP_START_TIMES=[2,3,3];
  * switch that silently makes the engine wrong is the silent default this repo keeps paying for. Same
  * shape as MEDI_DAMAGE_SPAN_DRAW, MEDI_MULTIHIT_ONE_INDEX and MEDI_RESIDUAL_COLLAPSE. */
 const SLEEP_WAKE_COIN_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SLEEP_WAKE_COIN==='1');
+/* ROADMAP #340 -- MEDI_BENCH_APPEND=1 PUTS REMOVE-AND-APPEND BACK. The party order is the drag die's
+ * index space (sim/battle.ts:1572 `possibleSwitches` walks `side.pokemon`, `getRandomSwitchable`
+ * samples it), and the authority SWAPS the outgoing body into the arriving body's slot
+ * (sim/battle-actions.ts:118-132) where this engine appended. The full derivation is at the placement
+ * inside bringIn(); this flag exists so `tests/test-mechanics.js move/forcesSwitch` can be shown
+ * MISSING on demand without swapping a file. Any run carrying it also carries a non-zero
+ * `MEDFAILS.benchOrderAppendRestored`. Same shape as MEDI_DAMAGE_SPAN_DRAW, MEDI_MULTIHIT_ONE_INDEX,
+ * MEDI_SLEEP_WAKE_COIN and MEDI_RESIDUAL_COLLAPSE. */
+const BENCH_APPEND_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BENCH_APPEND==='1');
 function sleepDurationDraw(){
   const r=medRng();
   const u=(typeof r==='function')?r():0.5;
@@ -12973,7 +12997,7 @@ function sweepField(rm,user,ownSf,foeSf,field,acts){
    and the honest first version reuses the existing one rather than inventing a matchup heuristic
    here -- the engine's job is to make the switch possible, and choosing well is the searcher's.
    Stated because "it picks the first healthy body" is a real limitation, not a detail. */
-function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry){
+function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
   /* WHICH mon, when the caller knows. live(bench)[0] is the right default for a FAINT replacement --
      nobody chose it -- but a voluntary switch is a choice, and a search that cannot say WHO it is
      bringing in is not evaluating a switch, it is evaluating "leave". Will: switching is
@@ -13018,7 +13042,39 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry){
       if(nx.name===_key&&!nx._formeAnnounced)_announceForme=true;
     }
   }
-  bench.splice(bench.indexOf(nx),1);
+  /* ROADMAP #340 -- THE OUTGOING BODY TAKES THE INCOMING BODY'S PARTY SLOT. IT IS A SWAP, NOT A
+   * REMOVE-AND-APPEND, AND THE DRAG DIE IS THE ONE THING THAT INDEXES INTO THE RESULT.
+   *
+   *     oldActive.position = pokemon.position;
+   *     pokemon.position   = pos;
+   *     side.pokemon[pokemon.position]   = pokemon;
+   *     side.pokemon[oldActive.position] = oldActive;      (sim/battle-actions.ts:118-132)
+   *
+   * `possibleSwitches` then walks `side.pokemon` from `active.length` upward skipping only the
+   * fainted (sim/battle.ts:1572-1581) and `getRandomSwitchable` SAMPLES that list, so the party
+   * order IS the drag's index space. This engine did `switchOut: bench.push(out)` +
+   * `bringIn: bench.splice(indexOf(nx),1)` -- same members, different order, from the first switch on.
+   *
+   * MEASURED BEFORE IT WAS TOUCHED, on real games: 34.8% of side-boundaries held the same bench in a
+   * different order and 0 of 3,118 index positions mapped to the same body. Zero fixed points, so a
+   * uniform index over a desynced list disagrees with probability 1 -- which is why this is 23 of the
+   * 121 whole-game divergences, the largest single mechanism on that board.
+   *
+   * THE DIE WAS THE FIRST HYPOTHESIS AND IT IS REFUTED: `tests/probe_drag_body.js` shows both engines
+   * roll a uniform die, consume exactly one draw, and draw the SAME value at the SAME address.
+   *
+   * `outgoing` IS ABSENT ON A FAINT REPLACEMENT AND THAT IS NOT AN OMISSION. The authority swaps the
+   * corpse into the arriving body's slot too (`if (oldActive.fainted) oldActive.status = ''` sits
+   * INSIDE the same block), but `possibleSwitches` skips the fainted, and a swap moves no OTHER
+   * element -- so the LIVE order the die indexes is identical whether the corpse is parked at that
+   * index or dropped. It is dropped here because that is what this engine has always done and
+   * `fallenCount` reads `sf.team`, not the arrays. The blast radius is stated rather than assumed:
+   * the two differ only in a full-party walk that includes corpses, and nothing indexes one.
+   *
+   * THE REVERT IS NAMED SO THE PROBE CAN BE SHOWN RED ON DEMAND: MEDI_BENCH_APPEND=1 restores
+   * remove-and-append. `tests/test-mechanics.js move/forcesSwitch` goes MISSING under it. */
+  {const _j=bench.indexOf(nx);
+   if(outgoing)bench[_j]=outgoing; else bench.splice(_j,1);}
   /* `_mvActs` IS `activeMoveActions` AND IT IS ZEROED HERE, which is where `switchIn` zeroes it
      (sim/battle-actions.ts:138) -- the body that just arrived has taken no move action, whatever it
      did before it left. Fake Out and First Impression are the readers; see firstTurnOnlyRefused. */
@@ -13607,8 +13663,25 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * FIELD; a benched one holds what it held, and a room that expires while it sits there must not
    * leave it empty-handed. */
   itemRoomShow(out);
-  bench.push(out);
-  return bringIn(act,i,bench,foes,sf,field,wanted,_carry);
+  /* ROADMAP #340 -- THE OUTGOING BODY IS HANDED TO bringIn RATHER THAN APPENDED, so it can be
+   * placed in the ARRIVING body's bench slot. The full derivation, the measurement and why a faint
+   * replacement needs no `outgoing` are written at the placement itself, inside bringIn().
+   *
+   * IT WAS NEVER SELECTABLE FROM THE END OF THE BENCH EITHER, so nothing about WHO arrives changes:
+   * `bench.push(out)` ran below the `if(!_live(bench).length) return null` guard at the top of this
+   * function, which is computed BEFORE the push -- so `_live(bench)[0]` could not fall through to
+   * `out` even when every original bench member was fainted, and the drag's `wanted` is drawn from a
+   * list built before this call.
+   *
+   * MEDI_BENCH_APPEND=1 IS THE NAMED SURGICAL REVERT and it restores BOTH halves at once -- the
+   * append here and, by passing no `outgoing`, the splice there. A flag that reverted only one half
+   * would drop the body off the team entirely, which is not the old behaviour and would make the
+   * red arm prove something else. */
+  if(BENCH_APPEND_RESTORED){
+    bench.push(out); MEDFAILS.benchOrderAppendRestored++;
+    return bringIn(act,i,bench,foes,sf,field,wanted,_carry);
+  }
+  return bringIn(act,i,bench,foes,sf,field,wanted,_carry,undefined,out);
 }
 /* `opts.seeded` starts the battle from a position that is ALREADY UNDER WAY, which is what a rollout
    leaf needs. The difference is entry effects: a fresh battle applies weather/terrain reactions and
@@ -18528,6 +18601,13 @@ function battleTurn(S,rng,actsForA,actsForB){
        * ally is not resurrected. */
       if(a.kind==='heal'){
         const _hp=healParam(a.mv);
+        /* ROADMAP #343 -- DID THE PRIMARY EFFECT ACTUALLY DO ANYTHING TO THE USER? The self-rider
+         * below (`self: {volatileStatus:'roost'}`) is spent at step 4 of the authority's step list and
+         * step 4 is only reached for a target step 3 did not kill off. Declared out here, above
+         * `if(_hp)`, because the reader is outside that block -- and initialised `null` rather than
+         * `false` so "this move has no heal primary at all" and "the heal failed" are distinguishable
+         * to anything that reads it later. */
+        let _healLanded=null;
         if(_hp){
           /* Max HP is `st.hp` — a mon carries curHP plus its stat block, and there is no maxHP field.
            * Written as maxHP first, which produced NaN on every heal rather than a wrong number, so
@@ -18604,6 +18684,10 @@ function battleTurn(S,rng,actsForA,actsForB){
           };
           const amt=x=>{if(x&&x.st&&!healBlocked(x)){const _h0=x.curHP;
             x.curHP=Math.min(x.st.hp,x.curHP+_size(x));
+            /* ROADMAP #343 -- THE SAME BOOLEAN THE `-fail` LINE IS ALREADY DRAWN FROM. This branch
+             * has always known whether the heal moved the bar; only the trace read it. Recorded for
+             * the USER only, because that is the body the `self` rider is spent on. */
+            if(x===m)_healLanded=(x.curHP>_h0);
             if(TR){if(x.curHP>_h0)TR.heal(x);else TR.fail(x,'heal');}}};
           /* ROADMAP #255 -- LIFE DEW IS A STATUS MOVE THAT TARGETS BODIES, so the authority runs
            * TryHit on each and a Gholdengo partner refuses its share while everyone else is healed.
@@ -18653,6 +18737,36 @@ function battleTurn(S,rng,actsForA,actsForB){
          * emits `|-fail|...|heal` and the body stays airborne. Measured against the authority, which is
          * why this sits inside the `if(_hp)`-bearing branch and after `amt(m)` rather than at the top.
          *
+         * ROADMAP #343 -- AND THE PARAGRAPH DIRECTLY ABOVE WAS TRUE OF THE AUTHORITY AND FALSE OF THIS
+         * CODE FOR AS LONG AS IT HAS BEEN WRITTEN. Sitting after `amt(m)` is not the same as being
+         * CONDITIONAL on it: the rider was applied whenever the tag existed, so a Roost at full HP
+         * emitted `|-fail|...|heal` and then ALSO `|-singleturn|`, and grounded the body. Staged
+         * against the authority through `game_differential.js`, both streams printed side by side:
+         *     showdown  |move|p1a: Corviknight|Roost||[still]   |-fail|p1a: Corviknight|heal
+         *     medicham  |move|p1a: Corviknight|roost|p1a: ...   |-fail|p1a: Corviknight|heal   |-singleturn|p1a: Corviknight|move: roost
+         * The cost is not the line. A full-HP Talonflame took 153 of its 155 HP from an Earthquake the
+         * authority answers `|-immune|`.
+         *
+         * THE RULE IS THE STEP LIST AND IT NAMES NO MOVE. `runMoveEffects` writes `damage[i] = false`
+         * and `continue` when `target.hp >= target.maxhp` (sim/battle-actions.ts:1203-1208);
+         * `spreadMoveHit` then runs `if (!damage[i] && damage[i] !== 0) targets[i] = false;` and step 4
+         * `selfDrops` opens `if (target === false) continue` (:1290, :1317-1325). So the gate is "did
+         * the primary land on the USER", which is the boolean `amt` already computes for the `-fail`
+         * line, and it is read here rather than re-derived.
+         *
+         * MEMBERSHIP, PRINTED BEFORE IT WAS WIRED, over `Dex.forFormat('gen9championsvgc2026regmb')`:
+         * 25 legal moves carry `self`. Exactly ONE is a heal-primary Status move -- `roost`. `batonpass`
+         * and `shedtail` carry `self:{}` and have nothing to apply. THE OTHER 22 ARE DAMAGING MOVES
+         * WHOSE PRIMARY FAILS THROUGH A DIFFERENT DOOR (a miss, an immunity, a shield) AND THIS PASS
+         * DID NOT MEASURE THAT DOOR -- Close Combat's own -1/-1, Draco Meteor's -2, the four
+         * `mustrecharge` movesized and the three `lockedmove` ones are all still applied unconditionally
+         * here. That is stated as OPEN rather than swept in, because a sweep across the damage branch is
+         * a different blast radius and would have ridden in on this fix unmeasured.
+         *
+         * A `typeRemovedForTurn` MOVE WITH NO HEAL PRIMARY WOULD FALL THROUGH LOUDLY rather than
+         * silently taking either answer -- there is none in this format today and `roostRiderNoPrimary`
+         * is what says so if one arrives.
+         *
          * PURE FLYING BECOMES NORMAL, NOT TYPELESS. `Pokemon#getTypes` ends
          * `return [this.battle.gen >= 5 ? 'Normal' : '???']` for an empty list, so a Tornadus that
          * Roosts is a Normal type and takes Ghost for nothing. Mirrored rather than guessed.
@@ -18660,7 +18774,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          * THE RESTORE IS AT THE RESIDUAL, and the pair is counted rather than the drop alone: a
          * deletion with no restore is a permanently retyped Pokemon, which is worse than the bug. */
         {const _trt=TAGS.param('move',a.mv,'typeRemovedForTurn');
-         if(_trt&&Array.isArray(_trt.removes)&&_trt.removes.length&&m.types&&!m._typeWas){
+         /* ROADMAP #343 -- THE STEP-4 GATE. `_healLanded` is `true` only when the primary moved the
+          * user's own HP bar; `false` says it failed (full HP), and `null` says this move declared no
+          * heal primary at all, which is a shape nothing in this format has and which is counted
+          * rather than guessed. */
+         if(_trt&&_healLanded===null)MEDFAILS.roostRiderNoPrimary++;
+         if(_trt&&_healLanded!==true)MEDSEEN.selfRiderSkippedOnFailedPrimary++;
+         if(_healLanded===true&&_trt&&Array.isArray(_trt.removes)&&_trt.removes.length&&m.types&&!m._typeWas){
            const _left=m.types.filter(t=>_trt.removes.indexOf(t)<0);
            if(_left.length!==m.types.length){
              m._typeWas=m.types.slice();

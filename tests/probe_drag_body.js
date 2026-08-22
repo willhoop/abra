@@ -70,6 +70,29 @@ if (!process.argv.includes('--release')) {
   process.exit(2);
 }
 
+/* ---- THE VERDICT WAS INVERTED WHEN #340 LANDED, 2026-08-22 --------------------------------------
+ *
+ * Everything above is the DIAGNOSIS and it stands: the die was the offered hypothesis, it was refuted
+ * here, and the ORDER was the cause. What changed is that the cause is now FIXED — `switchOut` hands
+ * the outgoing body to `bringIn`, which places it in the ARRIVING body's bench slot instead of on the
+ * end (medicham2-browser.js, ROADMAP #340). So the clauses at the bottom of this file used to assert
+ * that the two engines DISAGREE and now assert that they AGREE.
+ *
+ * THE RED IS NOT LOST, because the defect is still reachable at runtime:
+ *
+ *     MEDI_BENCH_APPEND=1 SHOWDOWN_PATH=... node tests/probe_drag_body.js --release <id>
+ *
+ * puts remove-and-append back and every SUBJECT clause below inverts with it. The run that was
+ * measured before the fix landed printed, on this exact cast:
+ *
+ *     ELIGIBLE   showdown [corviknight, weavile]      medicham [weavile, corviknight]
+ *     DRAGGED    showdown=weavile                     medicham=corviknight
+ *
+ * The census carries the same fact engine-side as `tests/test-mechanics.js move/forcesSwitch`
+ * ("a drag indexes into the bench in the AUTHORITY's order"), which reads BOTH die faces rather than
+ * one — a probe that reads a single index cannot tell a reordered list from a reversed one. */
+const APPEND = process.env.MEDI_BENCH_APPEND === '1';
+
 const CS = require(D('engine', 'champions_sim.js'));
 const G = require(D('engine', 'game_differential.js'));
 
@@ -276,12 +299,32 @@ if (bothDragged(control) && bothDragged(subject)) {
   const sLast = subject.seen[subject.seen.length - 2] || subject.seen[0];
   const ordSame = e => e.sd_elig.length === e.me_elig.length && e.sd_elig.every((v, i) => v === e.me_elig[i]);
   ok(ordSame(cLast), 'CONTROL: the two eligible lists are in the SAME order (the knob is at rest)');
-  ok(!ordSame(sLast), 'SUBJECT: one pivot puts the two eligible lists in a DIFFERENT order',
-    ordSame(sLast) ? 'the knob did not move — identical output across a varied knob means the knob is unwired' : '');
+  /* THE KNOB IS ASSERTED SEPARATELY FROM THE VERDICT, 2026-08-22, and it has to be now that the
+   * verdict expects AGREEMENT. Until #340 landed, "the subject differs from the control" and "the
+   * two engines differ from each other" were the same sentence, so one clause carried both. It no
+   * longer is: the fix makes the two ENGINES agree, and a fixture whose pivot silently stopped
+   * happening would agree too — trivially, on the control's own board. So the pivot must be shown to
+   * have MOVED THE BENCH before agreement is worth anything. */
+  const cSet = cLast.sd_elig.join(','), sSet = sLast.sd_elig.join(',');
+  ok(cSet !== sSet, 'THE KNOB MOVED: one pivot changed the authority\'s own eligible list',
+    cSet === sSet ? `control [${cSet}] and subject [${sSet}] are identical — the pivot did not happen, `
+                  + 'and identical output across a varied knob means the knob is unwired' : '');
+  ok(APPEND ? !ordSame(sLast) : ordSame(sLast),
+    APPEND ? 'SUBJECT under MEDI_BENCH_APPEND=1: the two eligible lists are in a DIFFERENT order (the defect, restored)'
+           : 'SUBJECT: after a pivot the two eligible lists are STILL in the same ORDER (ROADMAP #340)',
+    ordSame(sLast) === !!APPEND
+      ? (APPEND ? 'the revert did not revert — MEDI_BENCH_APPEND is not reaching bringIn'
+                : `showdown [${sLast.sd_elig.join(', ')}] vs medicham [${sLast.me_elig.join(', ')}] — the `
+                  + 'outgoing body is not taking the arriving body\'s party slot')
+      : '');
   ok(control.agree, 'CONTROL: both engines drag the SAME body (so the DIE agrees)',
     control.agree ? '' : 'the die ALSO disagrees — the order is not the only cause');
-  ok(!subject.agree, 'SUBJECT: the two engines drag a DIFFERENT body',
-    subject.agree ? 'the order differs and the outcome does not — this hypothesis is REFUTED' : '');
+  ok(APPEND ? !subject.agree : subject.agree,
+    APPEND ? 'SUBJECT under MEDI_BENCH_APPEND=1: the two engines drag a DIFFERENT body (the defect, restored)'
+           : 'SUBJECT: both engines drag the SAME body after a pivot (ROADMAP #340)',
+    subject.agree === !APPEND ? ''
+      : (APPEND ? 'the revert did not revert'
+                : `showdown=${subject.sdBody} medicham=${subject.meBody}`));
 }
 
 /* ---- THE REFUSAL ARMS, PRINTED AS A SEPARATE FINDING --------------------------------------------- */

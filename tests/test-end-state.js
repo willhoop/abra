@@ -119,22 +119,54 @@ console.log('\nPART 1 — the verdict function, every branch, on fabricated rows
   }
 }
 
-/* ================= PART 2 — THE STOP RULE ACTUALLY MOVED ======================================== */
-console.log('\nPART 2 — a game whose protocol parts on turn 1 must keep playing');
+/* ================= PART 2 — THE STOP RULE ACTUALLY MOVED ========================================
+ *
+ * ---- THE FIXTURE STARVED WHEN THE ENGINE GOT RIGHT — 2026-08-22 -------------------------------
+ *
+ * This asked for a pair that parted at `divTurn <= 1` inside the first 12, and on 2026-08-22 it
+ * reported `PART 2 COULD NOT BE STAGED` for the first time. ISOLATED RATHER THAN ASSUMED: the same
+ * census bytes (626 rows, digest 5f4cb6861c5d) and the same pinned pool (9e0af19d6449, 87 teams)
+ * were held fixed and only `engine/medicham2-browser.js` was swapped between its HEAD bytes and the
+ * tree carrying ROADMAP #340 and #343 — GREEN on HEAD, RED on the fix. The pair that used to satisfy
+ * it (`...2634739144`) simply stopped parting at turn 1.
+ *
+ * `pairsFor('baseline')` returns FIVE pairs here, not twelve, and on the fixed engine their earliest
+ * protocol divergence is turn 2. A window of 12 over a pool of 5 was never the constraint; the
+ * constraint was that a turn-1 divergence had to EXIST, and removing those is the entire purpose of
+ * the engine this file measures. AN INSTRUMENT WHOSE FIXTURE IS FOUND RATHER THAN CONSTRUCTED
+ * STARVES AS ITS SUBJECT IMPROVES — PART 3 below already learned exactly this on 2026-08-18 and
+ * writes it out at length.
+ *
+ * WHAT THE CLAUSE ACTUALLY NEEDS is a game whose protocol parted STRICTLY BEFORE the last turn it
+ * played. `turn 1` was never the assertion, only the most dramatic instance of it: if the stop rule
+ * had not moved, `turns` would equal `divTurn` for ANY parting pair, which is the same red. So this
+ * now takes the EARLIEST-parting pair in the whole pool and prints which turn that was, so a reader
+ * can see the demonstration weakening rather than have it disappear.
+ *
+ * IT IS STILL A FOUND FIXTURE AND THAT IS DECLARED, NOT HIDDEN. The proper repair is to PLANT a
+ * protocol divergence at a named line the way `statePlant` plants a board one — the driver already
+ * does exactly that for its own `--proof` arm — but there is no `protoPlant` hook on `playGame`, so
+ * building one is a change to `engine/game_differential.js` and belongs in its own pass with its own
+ * red. Until then, "no pair parted at all" is still a LOUD failure and never a pass. */
+console.log('\nPART 2 — a game whose protocol parts must keep playing past the mismatched line');
 const PAIRS = G.pairsFor('baseline');
 if (!PAIRS.length) fail('no baseline pairs could be built — nothing below ran');
 let usedPair = null, endRow = null;
-for (const pr of PAIRS.slice(0, 12)) {
+for (const pr of PAIRS) {
   const r = G.playGame(pr.a, pr.b, 'baseline', 'endstate/' + pr.tag.slice(0, 24));
   if (r.err) continue;
-  if (r.div && r.divTurn != null && r.divTurn <= 1) { usedPair = pr; endRow = r; break; }
+  if (r.div && r.divTurn != null && (!endRow || r.divTurn < endRow.divTurn)) { usedPair = pr; endRow = r; }
+  if (endRow && endRow.divTurn <= 1) break;
 }
 if (!endRow) {
-  note('no pair in the first 12 parted at or before turn 1 without throwing — PART 2 could not be');
-  note('staged, which is a claim about the FIXTURE and not about the stop rule.');
+  note('NO pair in the pool of ' + PAIRS.length + ' parted on the protocol at all without throwing —');
+  note('PART 2 could not be staged, which is a claim about the FIXTURE and not about the stop rule.');
   fail('PART 2 COULD NOT BE STAGED — see the note above; it is not a pass');
 } else {
   note(usedPair.tag);
+  note('the earliest protocol divergence in a pool of ' + PAIRS.length + ' pairs is turn '
+       + endRow.divTurn + '. This clause used to demand turn 1 and the engine stopped supplying one;'
+       + ' see the header.');
   note('protocol parted at turn ' + endRow.divTurn + ', the game ran ' + endRow.turns + ' turn(s), '
        + endRow.boundaries + ' board(s) compared, end reason: ' + endRow.endReason);
   if (endRow.turns <= endRow.divTurn)

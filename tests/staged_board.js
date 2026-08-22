@@ -888,6 +888,43 @@ const SCENARIOS = [
        * reason. */
       patch: [['const _t=reaimToSlot(a.target,it,actA,actB,a.mv);', 'const _t=a.target;']] } },
 
+  { id: 'a-failed-roost-grounds-nothing',
+    kind: 'move', shape: 'a self-rider is skipped when the move\'s primary effect failed',
+    census: 'move/typeRemovedForTurn — "a Roost that heals NOTHING grounds nothing"; Roost 2,808 clicks',
+    what: 'ROADMAP #343. Roost is `heal:[1,2]` with `self:{volatileStatus:"roost"}`, and the rider is '
+        + 'spent at STEP 4 of the authority\'s step list. Step 3 (`runMoveEffects`) answers a heal at '
+        + 'full HP with `add("-fail", target, "heal")`, `damage[i] = false` and `continue`; '
+        + '`spreadMoveHit` then writes `targets[i] = false` and `selfDrops` opens `if (target === '
+        + 'false) continue`. So a Roost that healed nothing must leave the body FLYING. This engine '
+        + 'applied the rider whenever the tag existed — a comment three lines above the code claimed '
+        + 'the opposite and nothing compared the two. Talonflame is 126 and Mudsdale 35, so the Roost '
+        + 'always resolves first and the Ground move always arrives after it. BULLDOZE RATHER THAN '
+        + 'EARTHQUAKE, and the reason is written down rather than swapped quietly: the Earthquake on '
+        + 'this Mudsdale is a clean OHKO on a full-HP Talonflame, so the POSITIVE turn ended in a '
+        + 'faint the script cannot answer and the whole scenario reported THREW. A fixture that kills '
+        + 'its own subject tests nothing.',
+    negative: 'turn 1 IS the negative and it is the defect: Talonflame Roosts at FULL HP, so the heal '
+            + 'fails and the Bulldoze behind it must find a Flying body and do nothing. Turn 2 is '
+            + 'the second negative — Talonflame clicks Brave Bird instead, takes its own recoil, and '
+            + 'the same Bulldoze must STILL do nothing, because no Roost was clicked at all. Turn 3 '
+            + 'is the positive: the body is now damaged, the Roost succeeds, and the identical '
+            + 'Bulldoze must LAND. An engine that grounds unconditionally parts on turn 1; one that '
+            + 'stopped grounding altogether parts on turn 3.',
+    A: [mon('talonflame', '', 'Flame Body', ['Roost', 'Brave Bird', 'Protect']),
+        mon('clefable', '', 'Unaware', ['Calm Mind', 'Protect'])].concat(FILL('milotic', 'garchomp')),
+    B: [mon('mudsdale', '', 'Own Tempo', ['Bulldoze', 'Iron Defense', 'Protect']),
+        mon('milotic', '', 'Marvel Scale', ['Protect'])].concat(FILL('snorlax', 'weavile')),
+    script: [
+      { p1: [{ m: 'roost' }, { m: 'calmmind' }], p2: [{ m: 'bulldoze' }, { m: 'protect' }] },
+      { p1: [{ m: 'bravebird', t: 0 }, { m: 'calmmind' }], p2: [{ m: 'bulldoze' }, { m: 'protect' }] },
+      { p1: [{ m: 'roost' }, { m: 'calmmind' }], p2: [{ m: 'bulldoze' }, { m: 'protect' }] },
+    ],
+    break: { why: 'the type deletion stops asking whether the heal landed and fires on the tag alone — '
+                + 'the exact code that shipped before ROADMAP #343, restored one condition at a time',
+      /* SINGLE-LINE ANCHOR, for the reason written at the Roar scenario above. */
+      patch: [['if(_healLanded===true&&_trt&&Array.isArray(_trt.removes)',
+               'if(_trt&&Array.isArray(_trt.removes)']] } },
+
   /* ============================ BEYOND THE TWELVE ==============================================
    * Two scenarios staged for a DIFFERENT question: not "does the staged board agree with the census",
    * but "does it see something the census could not". They are marked `extra: true` and are reported

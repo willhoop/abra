@@ -11256,3 +11256,55 @@ exempt from the rule** — a peek line is indistinguishable from a claim about t
 The name is RECORDED, not merely deleted: the store profiles that species with real clicks, so those
 games are not Reg M-B. Deleting the line quietly would have destroyed the only visible symptom of the
 corpus contamination. Filed as OPS/ENGINE territory, not fixed here.
+
+---
+
+## 2026-08-22 — THE PARTY ORDER *IS* THE DRAG DIE'S INDEX SPACE (5.71.0)
+
+The authority SWAPS (`sim/battle-actions.ts:118-132`): the outgoing body takes the arriving body's
+party index, and `possibleSwitches` walks that array. We did `push` + `splice`, which is a different
+list — so the drag die indexed into an order the authority never had.
+
+```
+  whole-game divergences   129 -> 89     (one proven-identical pinned sample)
+  drag: a different body    19 -> 1
+  extra event emitted        13 -> 7
+  census            626 live -> 628 live, 0 missing
+  20 of 20 engine gates PASS
+```
+
+Two-engine proof: before, Showdown held `[corviknight, weavile]` against our `[weavile, corviknight]`
+and the die dragged a different body. After: same order, same body at every boundary.
+
+**The 89 is NOT in the gate.** `data/game-differential.json` still holds the pre-fix 19:15Z run. A
+paired before/after is the right way to attribute a fix and is not the gate's artifact.
+
+### THE ENGINE'S OWN COMMENT CLAIMED THE OPPOSITE OF WHAT ITS CODE DID
+
+`runMoveEffects` writes `damage[i]=false` on a full-HP heal, `spreadMoveHit` sets `targets[i]=false`,
+and `selfDrops` skips it — so a failed Roost never applies `self:{volatileStatus:"roost"}`. The user
+stays Flying here while the authority grounds it. **153 HP off a 155-HP Talonflame, from a move the
+authority answers `|-immune|`.**
+
+25 legal moves carry `self`; exactly one is heal-primary Status. **The 22 damaging members fail through
+a door that was not measured and are DECLARED OPEN rather than swept in** — the scope of a fix is the
+scope that was probed.
+
+### WHAT WAS DELIBERATELY *NOT* DONE, AND WHY THAT IS THE SKILL
+
+Suction Cups (#341) looked adjacent and is a different derivation — a `refusesForcedSwitch` read
+missing from the DAMAGING branch, plus a display-name mismatch, at a site **shared with the phaze
+branch**. Doing it here would have destroyed the attribution the drag measurement rests on. Left red,
+and `probe_drag_body.js` exits 1 on that one clause so it stays visible.
+
+### A TEST WENT RED BECAUSE THE ENGINE GOT RIGHT
+
+`tests/test-end-state.js` PART 2 hunts for a turn-1 protocol divergence, and the supply ran out as
+divergences were fixed. Isolated with census and pool byte-identical: GREEN on HEAD, RED on the fix.
+Repaired to take the earliest-parting pair, with the honest fix declared — a `protoPlant` hook so the
+test PLANTS what it needs instead of fishing for it. **Expect more of these as the engine converges.**
+
+### REPORTED, NOT SWEPT IN
+
+`tests/staged_board.js` carries three pre-existing CLEAN failures, byte-identical on both releases and
+**gated by nothing**. `MEDFAILS.traceBodyOffField = 4` unchanged. VOID rose 5 -> 7.

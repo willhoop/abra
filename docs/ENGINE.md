@@ -56,7 +56,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  626/626 probed mechanics live, 0 missing   (census 2026-08-22 16:06)
+  628/628 probed mechanics live, 0 missing   (census 2026-08-22 17:04)
   5/6000 differential comparisons disagree with Showdown   (2026-08-22 16:08)
     seed 20260804, requested 6000, 212 not comparable (multihit 154, non-finite 0, threw 58)
     aurorus hypervoice -> aggron: showdown 18-21, medicham 64-76  (8106 uses)
@@ -74,15 +74,124 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is fec7b02ddf16 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is c7bdd9efaf28 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 273/292 probed, 19 unprobed
 ```
 
-_stamped 2026-08-22 16:13_
+_stamped 2026-08-22 17:08_
 
 <!-- /GENERATED -->
+
+## THE BENCH WAS IN THE WRONG ORDER AND THE DRAG DIE INDEXED INTO IT; A ROOST THAT HEALED NOTHING STILL GROUNDED ITS USER. 2026-08-22.
+
+**Census 626 live / 0 missing -> 628 live / 0 missing. Whole-game divergences 129 -> 89 on ONE PINNED
+SAMPLE, drag 19 -> 1 and `extra event emitted by medicham2` 13 -> 7.** Two batches, landed and
+measured one at a time. Full account: `docs/_reports/2026-08-22-drag-and-fail.md`. Releases:
+`18b227eee69f` (before), `fda4b805651e` (after batch 1), `39631097fcc7` (after batch 2).
+
+### BATCH 1 — THE PARTY IS A SWAP, NOT A REMOVE-AND-APPEND (ROADMAP #340)
+
+`sim/battle-actions.ts:118-132` writes `oldActive.position = pokemon.position; pokemon.position = pos;
+side.pokemon[...] = ...` — the outgoing body takes the ARRIVING body's party index.
+`possibleSwitches` (sim/battle.ts:1572-1581) then walks `side.pokemon` from `active.length` upward and
+`getRandomSwitchable` samples it, so the party ORDER **is** the drag's index space. This engine did
+`switchOut: bench.push(out)` + `bringIn: bench.splice(indexOf(nx),1)`.
+
+- **the die was the first hypothesis and it is REFUTED** — both engines roll a uniform die, spend one
+  draw, and draw the SAME value at the SAME address. Only the list differed.
+- **invisible to both instruments by construction**: `board_state.js`'s `partyMap` keys the party BY
+  SPECIES (correctly — index-keying manufactured a divergence in 123 of 179 games), and the protocol
+  comparison sees no line at all.
+- **the fix is one placement**: `switchOut` hands the outgoing body to `bringIn`, which writes it into
+  the arriving body's bench slot. A FAINT REPLACEMENT PASSES NO `outgoing` AND THAT IS DERIVED, NOT
+  SKIPPED — the authority swaps the corpse in too, but `possibleSwitches` skips the fainted and a swap
+  moves no other element, so the LIVE order the die indexes is identical either way.
+- **probe**: `tests/test-mechanics.js` `move/forcesSwitch` — *"a drag indexes into the bench in the
+  AUTHORITY's order"*. Four arms, BOTH die faces, because a probe that reads one index cannot tell a
+  reordered list from a reversed one. Control (nobody switched) bench `snorlax,weavile`, drags
+  `snorlax`/`weavile`; test (p2a switched to the first bench member) bench `corviknight,weavile`,
+  drags `corviknight`/`weavile`.
+- **shown red first**: the census read `626 live, 1 missing` on the shipped tree.
+  `MEDI_BENCH_APPEND=1` restores remove-and-append and puts it back to `626 live, 1 missing`.
+- **two-engine proof**: `tests/probe_drag_body.js`. Before — showdown eligible `[corviknight, weavile]`
+  against medicham `[weavile, corviknight]`, dragged `weavile` against `corviknight`. After — same
+  order, same body, at every boundary; every clause inverts again under `MEDI_BENCH_APPEND=1`.
+
+### BATCH 2 — A FAILED PRIMARY DOES NOT SPEND ITS `self` RIDER (ROADMAP #343)
+
+`runMoveEffects` answers a heal at full HP with `add('-fail', target, 'heal')`, `damage[i] = false` and
+`continue` (sim/battle-actions.ts:1203-1208); `spreadMoveHit` then writes `targets[i] = false` and step
+4 `selfDrops` opens `if (target === false) continue` (:1290, :1317-1325). So Roost's
+`self:{volatileStatus:'roost'}` is never applied and the body KEEPS FLYING.
+
+- **the code's own comment already said so and the code did the opposite.** *"A FAILED ROOST APPLIES
+  NOTHING … which is why this sits inside the `if(_hp)`-bearing branch and after `amt(m)`"* — sitting
+  after `amt(m)` is not being conditional on it. Same shape as the fourteen stale handoffs, inside a
+  function.
+- **membership printed before wiring**: 25 legal moves carry `self`; exactly ONE is a heal-primary
+  Status move (`roost`). `batonpass` and `shedtail` carry `self:{}`. **The other 22 are damaging moves
+  whose primary fails through a different door and THAT DOOR WAS NOT MEASURED** — Close Combat's own
+  -1/-1, Draco Meteor's -2, four `mustrecharge` and three `lockedmove` riders are still applied
+  unconditionally. Declared open below rather than swept in.
+- **the gate is the boolean the `-fail` line was already drawn from**, read rather than re-derived, and
+  a `typeRemovedForTurn` move with no heal primary falls through into `MEDFAILS.roostRiderNoPrimary`
+  rather than taking either answer silently.
+- **probe**: `tests/test-mechanics.js` `move/typeRemovedForTurn` — half-HP Roost alone `+76`; half-HP
+  Roost into a Ground move `-77` (less than the heal, so the deletion happened); FULL-HP Roost into the
+  same Ground move must EQUAL the over-fire control (the same full-HP body clicking Tailwind). Before
+  the fix they read **-153 and 0** — a whole Earthquake through a Flying type on a 155-HP body.
+- **shown red first**: `627 live, 1 missing`.
+- **two-engine proof with no typed expectation**: `tests/staged_board.js
+  a-failed-roost-grounds-nothing`, three turns, two negatives and a positive. CLEAN 293/293 identical
+  at every boundary; under its declared break (the one condition removed) CAUGHT AND LOCALISED on
+  turn 1. On release `18b227eee69f` the same scenario reads DIFFERS.
+
+### THE INSTRUMENT THAT STARVED BECAUSE THE ENGINE GOT RIGHT
+
+`tests/test-end-state.js` PART 2 went red, and it is not a regression: it SEARCHED the first 12 pairs
+for a game whose protocol parted at `divTurn <= 1`, and after these two fixes no pair in the pool
+(which is FIVE pairs, not twelve) parts before turn 2. Isolated with the census and the team pool held
+byte-identical and only `medicham2-browser.js` swapped between HEAD and the fixed tree: GREEN on HEAD,
+RED on the fix. The clause never needed turn 1 — it needs a divergence STRICTLY BEFORE the last turn
+played, which is the same red if the stop rule had not moved. It now takes the earliest-parting pair
+in the whole pool and PRINTS which turn that was, so the demonstration can be seen weakening instead
+of vanishing. **It is still a FOUND fixture and that is declared:** the proper repair is a `protoPlant`
+hook on `playGame` alongside `statePlant`, which is a change to `engine/game_differential.js` and
+belongs in its own pass.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — they are tests now:**
+- ~~the bench is in a different order from the authority's (ROADMAP #340)~~ — census
+  `move/forcesSwitch`, `tests/probe_drag_body.js`, and the differential's drag class is 19 -> 1.
+- ~~a failed Roost leaves the user grounded (ROADMAP #343)~~ — census `move/typeRemovedForTurn` and
+  `tests/staged_board.js a-failed-roost-grounds-nothing`.
+
+**Added, measured this pass and NOT fixed:**
+- **Dragon Tail and Circle Throw still ignore Suction Cups (ROADMAP #341).** Probed red again on this
+  tree: the authority emits `-activate ... Suction Cups` and nobody moves; we drag Snorlax.
+  DELIBERATELY NOT BATCHED WITH #340 — it is a different derivation (a tag read missing from the
+  damaging branch, not a list order), and clearing its differential row also needs the `-activate`
+  DISPLAY NAME fixed, since we print the raw id `suctioncups` where the authority prints
+  `Suction Cups`. That is two more changes and would have destroyed the attribution the drag
+  measurement rests on. `tests/probe_drag_body.js` exits 1 on that one clause and on nothing else.
+- **the `self` rider on the 22 DAMAGING members is still unconditional.** #343's gate is the heal
+  branch's; the damage branch was not measured.
+- **`tests/staged_board.js` has three CLEAN scenarios that part, and they are not from this pass** —
+  `imposter-copies-the-body-opposite`, `hungerswitch-flips-every-turn`,
+  `roar-drags-whoever-is-standing-there`, all `SHORT`, byte-identical on releases `18b227eee69f` and
+  `39631097fcc7`. That file is not in `tests/run-all.js`, so nothing gates it.
+- **`MEDFAILS.traceBodyOffField = 4` on all three differential runs**, unchanged by either batch. It is
+  the wire queue's "ROAR emitted by an OFF-FIELD body" row, and `#224` is CLOSED — a regression with no
+  open row.
+- **the residual `drag: a different body` row is NOT a bench-order row.** It reads
+  `|drag|p1b|froslass <> |drag|p1a|sinistcha` — a different SLOT, which is an ordering shape.
+- **VOID (instrument desync) rose 5 -> 7 of 777.** Games that used to stop at a drag divergence now run
+  longer and have more chances to desync an address. Expected, stated, not investigated.
 
 ## FUR COAT WAS 19 OF 24 DISAGREEMENTS AND A SILENT `when` COMPARISON; THE FAINT QUEUE PUTS THE USER FIRST. 2026-08-22.
 

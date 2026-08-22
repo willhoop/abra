@@ -8309,6 +8309,79 @@ probe('move', 'forcesSwitch', 'Dragon Tail drags the target out', () => {
                  + '; Dragon Tail dealt ' + test.dealt + ' and left ' + test.front };
 });
 
+/* ROADMAP #340 — THE DRAG DIE IS THE ONLY THING THAT INDEXES INTO THE BENCH, AND THE BENCH WAS IN
+ * THE WRONG ORDER.
+ *
+ * The die was the first hypothesis and `tests/probe_drag_body.js` REFUTED it: both engines roll a
+ * uniform die, consume exactly one draw, and under pinned dice draw the SAME value at the SAME
+ * address. What differs is the ORDER OF THE LIST the die indexes into.
+ *
+ *   AUTHORITY  sim/battle-actions.ts:118-132  `switchIn` SWAPS. `oldActive.position =
+ *              pokemon.position; pokemon.position = pos; side.pokemon[pokemon.position] = pokemon;
+ *              side.pokemon[oldActive.position] = oldActive;` — the outgoing body takes the incoming
+ *              body's party index. `possibleSwitches` (sim/battle.ts:1572) then walks `side.pokemon`
+ *              from `active.length` upward, skipping only the fainted, and `getRandomSwitchable`
+ *              samples that list.
+ *   THIS FILE  before this probe: `switchOut` did `bench.push(out)` and `bringIn` did
+ *              `bench.splice(bench.indexOf(nx),1)` — REMOVE AND APPEND. Same members, different
+ *              order, from the first switch on.
+ *
+ * WHY NOTHING ELSE COULD SEE IT. `engine/board_state.js`'s `partyMap` keys the party BY SPECIES —
+ * correctly, because index-keying manufactured a divergence in 123 of 179 games — and the protocol
+ * comparison sees no line at all. The order becomes observable only when something INDEXES into it.
+ * Measured on real games before this landed: 34.8% of side-boundaries held the same bench in a
+ * different order, and 0 of 3,118 index positions mapped to the same body — ZERO fixed points, so a
+ * uniform index disagrees with probability 1.
+ *
+ * THE OUTCOME IS WHO IS STANDING IN THE SLOT, never the array: each arm plays a real Roar and reads
+ * the body that arrived. THE KNOB IS ONE CLICK — the control never switches, so its bench is still
+ * in build order and both engines have always agreed there; the test switches slot 0 to the FIRST
+ * bench member, which is the one placement remove-and-append gets wrong. BOTH DIE FACES ARE ASSERTED
+ * (index 0 and index 1), because a probe that reads one index cannot tell a reordered list from a
+ * reversed one.
+ *
+ * THE EXPECTED BODIES ARE THE AUTHORITY'S OWN, read off `tests/probe_drag_body.js` on this exact
+ * cast rather than typed: after p2a pivots to Snorlax the official party is
+ * `snorlax,milotic,corviknight,weavile` (bench `corviknight,weavile`), and its Roar at die index 1
+ * drags Weavile. */
+probe('move', 'forcesSwitch', 'a drag indexes into the bench in the AUTHORITY\'s order — a body that switches out takes the incoming body\'s party slot', () => {
+  /* `die` IS THE RAW rng VALUE, and the engine spends it as `Math.floor(rng()*n)` over a bench of
+   * two: 0.01 -> index 0, 0.9 -> index 1. Nothing else in the turn is chance-gated (Roar cannot
+   * miss and neither side's click has a secondary), so the only thing this value moves is the
+   * drag. */
+  const run = (pivot, die) => {
+    const me = bare('arcanine'), ally = bare('clefable');
+    const f1 = bare('corviknight'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    S.benchB = [bare('snorlax'), bare('weavile')];
+    if (pivot) {
+      M.battleTurn(S, rng5,
+        new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'switch', to: S.benchB[0] }], [f2, { kind: 'pass' }]]));
+    }
+    const bench = S.benchB.map(x => x && x.name).join(',');
+    M.battleTurn(S, () => die,
+      new Map([[me, M.playerAction(me, 'roar', S.actB[0], S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[S.actB[0], { kind: 'pass' }], [S.actB[1], { kind: 'pass' }]]));
+    return { bench, arrived: S.actB[0] && S.actB[0].name };
+  };
+  const c0 = run(false, 0.01), c1 = run(false, 0.9);
+  const t0 = run(true, 0.01), t1 = run(true, 0.9);
+  return { works: c0.bench === 'snorlax,weavile' && c0.arrived === 'snorlax'
+                  && c1.bench === 'snorlax,weavile' && c1.arrived === 'weavile'
+                  && t0.bench === 'corviknight,weavile' && t0.arrived === 'corviknight'
+                  && t1.bench === 'corviknight,weavile' && t1.arrived === 'weavile',
+           arms: { control: c0.bench + '|' + c0.arrived + '/' + c1.arrived,
+                   test: t0.bench + '|' + t0.arrived + '/' + t1.arrived },
+           detail: `[p2 bench, then who a Roar drags in at die index 0 / index 1] — CONTROL, nobody `
+                 + `switched first: bench [${c0.bench}], drags "${c0.arrived}" / "${c1.arrived}". `
+                 + `TEST, p2a switched to the FIRST bench member on turn 1: bench [${t0.bench}] `
+                 + `(the authority's own party after that pivot is snorlax,milotic,corviknight,weavile, `
+                 + `so its bench is corviknight,weavile), drags "${t0.arrived}" / "${t1.arrived}". `
+                 + `An engine that removes-and-appends reads bench [weavile,corviknight] here and `
+                 + `drags the wrong body at BOTH indices` };
+});
+
 probe('move', 'crashOnMiss', 'High Jump Kick hurts the user when it misses', () => {
   /* THE ROLL IS PINNED ABOVE THE MOVE'S ACCURACY so the miss is guaranteed. At rng 0.5 it would
    * connect and the probe would report a working crash whatever the engine does. */
@@ -18236,6 +18309,65 @@ probe('move', 'typeRemovedForTurn', 'a Roosting body loses Flying for the turn a
                  + ' HP (airborne, correct); Roosting it moves ' + test.net
                  + ' HP — the heal MINUS an Earthquake that now lands. Types after the turn: '
                  + test.types + ', so the deletion is given back' };
+});
+
+/* ROADMAP #343 — A FAILED ROOST LEFT THE USER GROUNDED, AND THE COMMENT ABOVE ALREADY SAID IT MUST
+ * NOT. The probe above carries the sentence *"a Roost at full HP fails and applies nothing, measured
+ * against the authority"* and the engine did the opposite; nothing compared the two, which is this
+ * repository's own recurring shape — prose kept past what it described.
+ *
+ * THE AUTHORITY'S RULE IS THE STEP LIST, NOT A ROOST CLAUSE. `runMoveEffects` answers a heal at full
+ * HP with `add('-fail', target, 'heal')`, `damage[i] = false` and `continue`
+ * (sim/battle-actions.ts:1203-1208). `spreadMoveHit` then runs
+ * `for (const i of targets.keys()) { if (!damage[i] && damage[i] !== 0) targets[i] = false; }`
+ * immediately after step 3, and step 4 is `selfDrops`, whose loop opens `if (target === false)
+ * continue` (:1317-1325). So the `self:{volatileStatus:'roost'}` rider is never applied and the body
+ * KEEPS ITS FLYING TYPE.
+ *
+ * MEMBERSHIP, PRINTED BEFORE IT WAS WIRED, over `Dex.forFormat('gen9championsvgc2026regmb')`:
+ * 25 legal moves carry `self`, and exactly ONE of them is a heal-primary Status move — `roost`
+ * (`heal:[1,2]`, `self:{volatileStatus:'roost'}`). `batonpass` and `shedtail` are the other two Status
+ * members and both carry `self:{}`, which has nothing to apply. The remaining 22 are damaging moves
+ * whose primary fails through a different door, and THIS PASS DID NOT MEASURE THAT DOOR — the gate
+ * below is the heal branch's, not a sweep, and the damaging half is declared open rather than
+ * assumed correct.
+ *
+ * WHAT IT COST: 153 HP off a 155-HP Talonflame, from a move the authority answers `|-immune|`. That
+ * is an Earthquake connecting through a Flying type on a turn the authority never removed it, and
+ * every damage and speed read for that turn is taken against the wrong type. */
+probe('move', 'typeRemovedForTurn', 'a Roost that heals NOTHING grounds nothing — the self-rider is skipped when the primary failed', () => {
+  /* SAME FIXTURE AS THE PROBE ABOVE, and the varied knob is the ROOSTER'S HP. Talonflame is 126 and
+   * Garchomp 102, so the Roost always resolves first and the Earthquake always arrives afterwards;
+   * the only thing that changes between the arms is whether the heal had anywhere to go. */
+  const run = (frac, click, attack) => {
+    const B = board('garchomp', 'skeledirge', 'talonflame', 'farigiraf');
+    B.f1.curHP = Math.max(1, Math.round(B.f1.st.hp * frac));
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, attack ? M.playerAction(B.me, 'earthquake', B.f1, B.S.field) : { kind: 'pass' }],
+               [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, M.playerAction(B.f1, click, null, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    return B.f1.curHP - before;
+  };
+  /* FOUR ARMS, and the last two are the whole test. `healAlone` sizes the heal with nobody attacking,
+   * so `landed` can be shown to be the heal MINUS a real Earthquake rather than merely "some number".
+   * `failed` is the defect. `noRoost` is the OVER-FIRE CONTROL — the same full-HP body clicking a
+   * move with no self-rider at all — and the bar is that `failed` must EQUAL it. An engine that
+   * simply stopped grounding anything would pass `failed === 0` and fail `landed`. */
+  const healAlone = run(0.5, 'roost', false);
+  const landed = run(0.5, 'roost', true);
+  const failed = run(1.0, 'roost', true);
+  const noRoost = run(1.0, 'tailwind', true);
+  return { works: healAlone > 0 && landed < healAlone && noRoost === 0 && failed === noRoost,
+           arms: { control: [healAlone, landed], test: [failed, noRoost] },
+           detail: `[HP moved on a Talonflame over one turn] — HALF HP, Roost and nobody attacks: `
+                 + `+${healAlone} (the heal, sized). HALF HP, Roost into an Earthquake: ${landed} — `
+                 + `less than the heal, so the deletion happened and the Ground move landed. `
+                 + `FULL HP, Roost into the same Earthquake: ${failed}; the heal fails `
+                 + `(\`|-fail|p1a: Talonflame|heal\` on both engines) so the self-rider must never be `
+                 + `applied and the body must stay airborne. The OVER-FIRE CONTROL is the same full-HP `
+                 + `body clicking TAILWIND instead: ${noRoost}. The two must be EQUAL — before this `
+                 + `they read -153 and 0, a whole Earthquake through a Flying type` };
 });
 
 probe('move', 'statusInflict', 'Smack Down grounds the target, and the volatile is the move own', () => {
