@@ -10826,3 +10826,54 @@ a **bare** `|-immune|`; an unknown `pass` shape must **throw**, never default to
 drags its user out pays nothing) and stops branching on the item's name.
 
 `tests/mechanics_rank.js` **writes** `data/mechanics-rank.json` when run as a smoke check.
+
+---
+
+## IT IS THREE TABLES, NOT ONE, AND THE ONE-DERIVATION FRAME WOULD HAVE MISPLACED A FIX - 2026-08-22
+
+Four ordering defects, all found by Will reading divergence cards. I dispatched them as "one order
+table"; **that framing was wrong and the agent said so.**
+
+| defect | the authority's table | citation |
+|---|---|---|
+| A1 `onDamagingHit` | `spreadMoveHit`'s six numbered steps, then `DamagingHit`, then `AfterHit` | `battle-actions.ts:1060-1130` |
+| A2 `onSwitchInPriority` | `comparePriority` - a five-key **sort**, not a sequence | `battle.ts:404-411` |
+| A3 faint + A4 berry | `runAction`'s tail: `add('upkeep')` then `faintMessages()` then `eachEvent('Update')` | `battle.ts:2807-2865` |
+
+A3 and A4 genuinely are one table. **A3's `-mustrecharge` half is not** - it comes from
+`self:{volatileStatus:'mustrecharge'}`, applied by `selfDrops` at **step 4 of A1's table**. Treating
+all four as one derivation would have put that fix in the wrong place.
+
+**THE A4 CONTROL NEARLY WENT WRONG, AND WAS SAVED BY MEASURING THE AUTHORITY BEFORE WRITING A LINE.**
+Every weather's `onFieldResidual` calls `eachEvent('Weather')`, and `eachEvent` closes by calling
+`eachEvent('Update')` for gen >= 7 (`battle.ts:473-475`). **So a berry eaten off a sandstorm chip is
+eaten BEFORE `|upkeep|`.** My brief implied moving every berry below the marker; that would have broken
+it. It also pins the granularity - both bodies chip, *then* the berry, so a per-body Update would part.
+
+**12 arms, each played twice**: clean, then under a named surgical revert of exactly one fix, where the
+anchor must match exactly once or the run FAILS. Attribution by trace delta, not tally. Every defect has
+a red arm that agrees clean and parts under its break, and a control that holds under that same break.
+
+**`a1-multihit-frequency` is a declared KNOWN-OPEN arm** with its own verdict word - neither pass nor
+regression. The *count* is already right (WIRE 84); the *interleaving* needs the whole step list looped
+per hit, which is WIRE 20's declared granularity divergence and a restructure, not an ordering fix. It
+also surfaced a smaller gap: we emit no `-activate` for Toxic Debris.
+
+**TWO INSTRUMENT TRAPS THAT WOULD HAVE MADE THE WHOLE FILE MEANINGLESS:**
+1. **`PRIMARY_ARM` is the MIDDLE arm**, and the same Brave Bird read `67/170` on the authority against
+   `71/170` here - a shifted damage-index address, nothing to do with ordering. Pinned to
+   `bottom-tie-first`, **not** `top-tie-first`, because the top corner's `PIN_CHANCE` returns false for
+   every roll and the authority gates even a chance-100 secondary on a chance roll, so a guaranteed drop
+   would not fire. **Every caller of `playGame` that does not name an arm is on real seeded dice.**
+2. **`open(null)` takes the NEWEST release in the store**, which under `_live_release.js` is whatever a
+   previous instrument froze. `CLEAN_SRC` came back predating the change, every counter read
+   `undefined`, every break hit the wrong engine - **and the arms still agreed.**
+
+**Counters name their noun**, all asserted as exact per-arm deltas. `buffOnHitAfterSecondaries` counts
+*invocations that applied a boost table on a row whose secondaries step had already run* - because an
+*application* counter cannot see a position: moving the buff does not change how many land, so a count
+would rise identically under the revert.
+
+**Census 623/623 live, 0 missing, before and after**, diffed row-by-row and restored byte-identical.
+`data/switchin-order.json` registered in `SOURCES` (now 26) after it briefly broke release cutting
+tree-wide; `test-artifact-rerunnable.js` reports nothing stranded.

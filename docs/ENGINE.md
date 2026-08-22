@@ -12,12 +12,15 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-coverage-stop.js`, `tests/probe_volatile_leaves.js`, `tests/test-middle-identity.js`,
 `tests/test-middle-stall-address.js`, `tests/test-middle-draw-scope.js`,
 `tests/test-middle-damage-roll.js`, `tests/test-damage-roll-support.js`, `tests/test-bracket-regain.js`,
-`tests/test-encore-fail-silent.js`
+`tests/test-encore-fail-silent.js`, `tests/test-resolution-order.js`, `engine/switchin_order.js`,
+`data/switchin-order.json`, `tests/test-immunity-gate.js`, `tests/test-tag-params-derived.js`
 
-**Fifteen instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
+**Eighteen instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
-"thirteen" until `test-bracket-regain.js` on 2026-08-21 and "fourteen" until
-`test-encore-fail-silent.js` on 2026-08-22, and a number typed in prose beside a table is exactly what
+"thirteen" until `test-bracket-regain.js` on 2026-08-21, "fourteen" until
+`test-encore-fail-silent.js` on 2026-08-22 and "fifteen" until `test-immunity-gate.js` and
+`test-tag-params-derived.js` and "seventeen" until `test-resolution-order.js`, all on
+2026-08-22, and a number typed in prose beside a table is exactly what
 CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
@@ -37,6 +40,9 @@ CLAUDE.md records going stale three times over.)*
 | `test-bracket-regain.js` | can a priority bracket be REGAINED mid-turn, not just lost — one staged board, three arms, the authority's own `\|move\|` order as the expectation, and the heal receipt (`hp === maxhp`, landing BEFORE the re-sort) asserted rather than inferred | anything about a bracket nobody staged: it is ONE board carrying the format's ONE Gale Wings body, so it says nothing about Grassy Glide, Skill Swap or any other `ModifyPriority` input that can move mid-turn. And `bracketRederiveMoved` is corroboration, never the bar — it counts a bracket NOTICED, not APPLIED, and rises on a broken engine |
 | `test-encore-fail-silent.js` | does a move that FAILED say so exactly where the authority says so, and stay silent exactly where the authority stays silent — ten staged arms, four of them the defect and six of them the over-fire control, judged by two protocol streams with no typed expectation, plus five engine counters at exact equality | whether the refusal itself is right (both engines refusing for different reasons still agree here), and any member whose refusal this engine cannot classify as the authority's `false` or `null` — those are silenced by construction and counted, never guessed |
 | `test-nature-differential.js` | is the two engines' Pokemon the SAME Pokemon — chart, arithmetic, the sheet's declared nature reaching both sides, and the line surviving a mega mid-turn | whether either engine plays the game right; it compares BODIES, not turns. The SPREADS, permanently — an open team sheet does not show them |
+| `test-immunity-gate.js` | does `data/tags.json` carry the move-specific immunity, and does its derived CONDITION predict the authority — membership asserted as an EQUALITY both ways, every row required readable, twelve staged arms in the official simulator with the gate closed AND open, and a `--red` arm that inverts every condition | whether MEDICHAM honours the tag: it loads no part of the simulator and compares an ARTIFACT against the AUTHORITY. And any immunity that is not `onTryImmunity` — type immunity, Prankster and the powder rule live in other arms of the same step and are out of scope by construction |
+| `test-tag-params-derived.js` | is a tag's parameter a NUMBER a consumer can use or a sentence — Life Orb's recoil predicted from `cost.divisor` and read off the battle, a spread drain's per-target schedule proved by the interleaving in the stream AND by a searched-for turn where the merged model is 1 HP wrong, and the `onDragOut` set asserted equal both ways | anything whose param it does not name; it is three blocks, not a sweep. The prose-quantity SWEEP is a separate scan and its four remaining hits are listed below, unfixed |
+| `test-resolution-order.js` | does an event happen WHERE the authority puts it — four orderings, twelve staged arms judged by two protocol streams with no typed expectation, each arm played twice (clean, then under a NAMED surgical revert of exactly one fix), five reds that must part under their own revert and six controls that must NOT, plus seven engine counters at exact equality as per-arm deltas | anything whose consequence the reducer normalises away, and any ordering nobody staged: it is twelve boards, not a sweep. The multi-hit LOOP, by construction — the authority wraps the whole step list once per hit and this engine wraps it once per move, which is staged as a declared KNOWN-OPEN arm and never as a pass |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -63,12 +69,497 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 80e648f34d56 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 273/291 probed, 18 unprobed
+  tag coverage: 273/292 probed, 19 unprobed
 ```
 
-_stamped 2026-08-22 00:18_
+_stamped 2026-08-22 01:11_
 
 <!-- /GENERATED -->
+
+## THE DERIVATION GAP: A FACT THAT LIVES IN A HANDLER DOES NOT REACH THE ARTIFACT, AND SIX MOVES HAD NO IMMUNITY AT ALL. 2026-08-22.
+
+**Census 623 live / 0 missing -> 623 live / 0 missing, UNCHANGED and deliberately so.** Nothing here
+touched `medicham2-browser.js` — two other agents held it and `game_differential.js` — so no probe could
+move, and `data/mechanics-census.json` was NOT regenerated. **Tag coverage moved 273/291 -> 273/292**:
+one new tag, no probe, because a probe belongs with the consumer and the consumer is not this pass.
+Saying that plainly is the point; a coverage figure that quietly improved would be the lie.
+
+**This is the DERIVATION half of four filed cards. Wiring a consumer is explicitly not in it.** What
+each one needs from a consumer is written down at the bottom so it can be routed.
+
+### THE SHAPE, WHICH IS WHY FOUR UNRELATED CARDS WERE ONE PASS
+
+When a fact lives in a HANDLER rather than a declarative field, `tag_dex` does not pick it up. The tag
+then exists carrying no usable parameter, the engine has nothing to read, and **the deliberate roster
+credits the entity CLEAN, because nothing ever staged the condition.** Joins #317 (Fur Coat: a
+`breakable` tag and no defence multiplier) and #312 (Sand Force).
+
+### C1 — `onTryImmunity` WAS NOT DERIVED. SIX LEGAL MOVES, ZERO ROWS.
+
+Endeavor's whole gate is `onTryImmunity(target, pokemon) { return pokemon.hp < target.hp; }`. Two bodies
+at equal HP make `135 < 135` false, and a false here is a **type-immunity-style block**: the authority
+writes `|-immune|` at step 3 of 8 and never reaches the move. Its tag row was
+
+```
+["pp","fixedDamage","targetClass","contact","noExtraHit","formatSecondaryCount","callRefusalFlags"]
+```
+
+— `fixedDamage` and no condition anywhere. A consumer reading that runs the `damageCallback` at step 7
+(`target.hp - pokemon.hp` = **0**) and narrates a zero-damage hit, which renders as *"drops to 100%"*.
+
+**The membership was derived and it is exactly six: Attract, Endeavor, Leech Seed, Switcheroo, Trick,
+Worry Seed.** No item and no ability carries the hook, and Champions overrides none of the six —
+checked in `data/mods/champions/moves.ts`, which mentions only `megadrain` and `trickortreat`.
+
+**EACH OF THE SIX HAS A DIFFERENT CONDITION, and TWO CODE IDIOMS COLLAPSE ONTO ONE FACT** — which is
+what makes this a derivation rather than a transcription:
+
+| move | handler | derived |
+|---|---|---|
+| Attract | `target.gender === "M" && source.gender === "F" \|\| ...` | `genderPairs` |
+| Endeavor | `pokemon.hp < target.hp` | `hpCompare {left:user, op:'<', right:target}` |
+| Leech Seed | `!target.hasType("Grass")` | `lacksType {who:target, types:[Grass]}` |
+| Switcheroo / Trick | `!target.hasAbility("stickyhold")` | `lacksAbility {abilities:[stickyhold]}` |
+| Worry Seed | `if (target.ability === "truant" \|\| ... ) return false;` | `lacksAbility {abilities:[truant, insomnia]}` |
+
+A rule shaped on the fourth row misses the fifth entirely; a rule that named the moves needs editing
+the day a seventh arrives. Five recognisers, each extracting its OPERANDS from the source, so no type
+name, ability id, comparison operator or gender pair is typed here.
+
+**THE ROLE BINDING IS THE HALF THAT IS INVISIBLE WHEN IT IS WRONG.** Every handler names its own
+parameters — `(target, source)` in Attract, `(target, pokemon)` in Endeavor, bare `(target)` in three
+more — so matching on the NAME `pokemon` silently mis-roles Attract. `singleEvent` calls with
+`hasRelayVar` false, so the list is POSITIONAL: `const args = [target, source, sourceEffect]`. That line
+is READ on every run and the reader refuses (loudly, emitting nothing) if it ever stops saying it.
+
+**AND `undefined` IS NOT `false` HERE.** Worry Seed's handler returns nothing on the ordinary path.
+`singleEvent` defaults `relayVar` to `true` when it is undefined and returns `returnVal === undefined ?
+relayVar : returnVal`, so a bare fall-through is NOT an immunity. Reading it as one would have made
+Worry Seed immune against every body in the format.
+
+### C2 — LIFE ORB'S COST WAS STORED AS ENGLISH, AND AN INSTRUMENT HAD ALREADY PROVED NOBODY READ IT
+
+`{"mult":1.3,"costsPerAttack":"1/10 max HP"}`. The multiplier is machine-readable and the cost is a
+sentence. **The divisor was already being read off the handler and then formatted away into prose on
+the last line of the deriver.**
+
+The red proof did not have to be built — `tests/mutation_harness.js` had already measured it:
+
+```
+key      item:lifeorb:damageMultAll.costsPerAttack:="ZZ-MUTANT-ZZ"
+verdict  READ-AND-IGNORED    changed 0, same 40    class DEFECT-CANDIDATE
+why      "the tag is read, the param .costsPerAttack is dereferenced nowhere, and
+          \"lifeorb\" drives a branch by NAME"
+```
+
+Life Orb is in **17,168 of 19,401 bo3 games** and the roster credits it `FIRED | diverged false`.
+
+Now derived, all of it off the handler: `{of:"baseMaxhp", divisor:10, fraction:0.1, rounding:"trunc",
+min:1, hook:"onAfterMoveSecondarySelf", onlyWhen:[...]}`. **`baseMaxhp` is not `maxhp`** and the old
+regex `/maxhp\s*\/(\d+)/i` matched either indifferently. **`onlyWhen` carries the handler's own guard
+conjuncts**, including `!source.forceSwitchFlag` — a Life Orb attack that drags its user out pays
+NOTHING, and no consumer could have learned that from a sentence.
+
+`costsPerAttack` stays and is now RENDERED FROM THE NUMBERS rather than parsed beside them, so the
+prose and the arithmetic cannot drift apart. Its text changes `"1/10 max HP"` -> `"1/10 base max HP"`,
+which is the correction the precision forced.
+
+**MEMBERSHIP WAS PRINTED BEFORE THE SHAPE WAS WIDENED.** Over every legal item, "an
+`onAfterMoveSecondarySelf` that damages the USER by a fraction of the USER's own max HP" matches
+**exactly one: Life Orb.** Shell Bell shares the hook and HEALS, so it is not caught. The naive shape —
+anything that damages a body by a fraction of max HP — matches **eight abilities** (Aftermath, Rough
+Skin, Iron Barbs, Solar Power, Bad Dreams, Dry Skin, Disguise, Gulp Missile), every one of them a wrong
+param on a right tag.
+
+### C3 — A SPREAD DRAIN'S SCHEDULE WAS ABSENT, AND THE SCHEDULE IS ARITHMETIC
+
+`drain` carried `{readFrom:"m.drain", fraction:0.5, unusual:false}` — a fraction and nothing that says
+WHEN it applies, so a consumer is free to sum a spread's damage and heal once. The authority heals
+INSIDE the per-target loop of `spreadDamage` and rounds each time, and
+
+```
+round(a/2) + round(b/2)  !=  round((a+b)/2)      whenever a and b are both odd
+```
+
+**`perTarget` IS DERIVED, NOT ASSERTED.** The loop header is found, its body is brace-matched to its
+end, and the drain heal's offset is checked to lie between them; a refactor that hoists the heal out
+prints `perTarget:false` rather than keeping a stale true. `num`/`den` are carried beside the float
+because the authority multiplies by the RATIONAL and then rounds — 1/2 and 3/4 are exact in binary and a
+future 1/3 would not be, and nothing would report it.
+
+The oracle found the parting case rather than assuming it: staged Matcha Gotcha, damages **15 and 35**,
+**authority healed 26**, per-target model 26, **merged model 25.** The stream also shows the schedule
+directly — the first target's `-heal` lands BEFORE the second target's `-damage`, which a merged heal
+cannot produce.
+
+### C4 — GUARD DOG IS NOT A DERIVATION GAP, AND SAYING SO IS THE RESULT
+
+It was filed as one: an identical `onDragOut` to Suction Cups, absent from `data/tags.json`, *"a
+regulation rotation that brings a carrier gets a silently missing refusal with nothing to catch it"*.
+
+**Run against Guard Dog's own body, the existing `refusesForcedSwitch` predicate returns
+`{refuses:'forcedSwitch', announces:true}` — the same row Suction Cups gets.** The only reason there is
+no row is ROADMAP #175, which Will asked for in as many words (*"if no legal species, then toss it
+man"*), and the day a legal carrier exists the row appears **with no edit**. Adding it by hand would
+have reversed a deliberate decision and put a fact about a body nobody can bring into an artifact that
+23 things read.
+
+**What WAS genuinely missing is that the drop was invisible per entity.** The run printed a COUNT — "93
+of 294 have no legal carrier" — so *absent because inapplicable* and *absent because the predicate
+broke* looked identical from outside, which is the silent-default shape. The run now NAMES every dropped
+ability with the tags it would have carried:
+
+```
+  93 ability/ies WOULD have carried a tag and have NO legal carrier, so no row is written.
+     ...
+     Guard Dog              refusesForcedSwitch, breakable, preventsStatDrop
+```
+
+### THE PROOF, AND BOTH FILES WERE SHOWN RED BEFORE THEY WERE BELIEVED
+
+A CONTROL copy of `data/tags.json` was taken by running the UNMODIFIED `tag_dex.js` first, so every
+structural difference afterwards is this pass and none of it is corpus drift. That control run moved
+**1,995 lines and ZERO structural fields** — sheet entries 186,576 -> 198,840, which is the store
+growing under the artifact and is exactly the hazard CLAUDE.md records.
+
+| instrument | against the control | against the new artifact |
+|---|---|---|
+| `test-immunity-gate.js` | **24 FAIL** — six `the gate is UNDERIVED`, six `no immunityGate param`, twelve arms `no readable immunityGate` | **PASS** — 6 gates, 12 arms |
+| `test-immunity-gate.js --red` | — | **12 of 12 arms move** under an inverted condition |
+| `test-tag-params-derived.js` | **3 FAIL** — Life Orb `no machine-readable cost`, two drain moves `says nothing about WHEN` | **PASS** |
+
+**MY PROBE WAS WRONG BEFORE THE ARTIFACT WAS, TWICE, AND BOTH TIMES TOWARD A COMFORTABLE ANSWER.**
+
+- The gate was first evaluated on the LIVE Pokemon objects **after** the turn. Endeavor had already
+  equalised the HP, so `user.hp < target.hp` was false and the tag "predicted" an immunity that never
+  happened; Worry Seed had already written Insomnia, so its ability gate closed retroactively. Two arms
+  read RED and **both would have been filed as engine defects.** A snapshot taken before the choice is
+  the only honest input.
+- The spread-drain damage was first read from before/after HP. Matcha Gotcha carries a 20% burn, so a
+  burned target's END-OF-TURN residue was folded into "how much the move dealt" — 21 where the move had
+  dealt 12 — and the per-target model looked broken. The damage now comes off the move's own `-damage`
+  lines.
+- And `|split|` duplicates every HP line (one exact, one a percentage), so an undeduplicated count
+  reports **four** drain heals for two targets and "per target" looks refuted.
+
+### THE EXACT DIFF TO `data/tags.json` — 15 STRUCTURAL CHANGES, ALL ADDITIVE, NOTHING DROPPED
+
+```
++ TAG DEF  immunityGate                                        (299 -> 300 tag definitions)
+~ TAGS     6 moves gain immunityGate   attract, endeavor, leechseed, switcheroo, trick, worryseed
+~ PARAM    8 moves' drain gains        num, den, perTarget, over, rounding, heals, ofBody,
+                                       appliedIn, from
+                                       bitterblade, drainingkiss, drainpunch, gigadrain,
+                                       hornleech, leechlife, matchagotcha, paraboliccharge
+~ PARAM    items.lifeorb.damageMultAll gains cost{...};
+                                       costsPerAttack "1/10 max HP" -> "1/10 base max HP"
+```
+
+**No row was removed, no tag definition was lost, and NO EXISTING TAG'S MEMBERSHIP COUNT MOVED** —
+asserted mechanically against the control, not eyeballed. `data/abra-tags.js` was regenerated from it
+in the same pass and verified byte-equal, because two files carrying the rulebook that disagree is the
+`engine-data.js` failure this repo has already paid for once.
+
+### THE OVER-MATCH CHECK, BOTH DIRECTIONS, BECAUSE A COUNT CANNOT SEE ONE
+
+ROADMAP #178: an over-match and a correct derivation both make the number go UP. So the tests assert
+EQUALITY, never containment.
+
+- `immunityGate`: the authority's legal `onTryImmunity` set == the artifact's tagged set, **6 == 6**,
+  checked in both directions and printed on every run.
+- `refusesForcedSwitch`: every `onDragOut` ability WITH a legal carrier has a row; every row's ability
+  HAS an `onDragOut`; every carrier-less one is absent. **1 == 1.**
+- `drain` and `damageMultAll` gained parameters and **not members**: n = 8 and n = 1, unchanged.
+
+### THE SWEEP C2 ASKED FOR — THREE MORE INSTANCES OF THE SAME DEFECT, FOUND AND NOT FIXED
+
+Every string param in `data/tags.json` carrying a quantity, scanned. Seven distinct shapes; three are
+harmless because a machine-readable sibling sits beside them (`perTurnHP.fraction` next to `per`,
+`damageBoost.onlyWhen.says` next to `cond/of/cmp/num/den`, and Life Orb's now-rendered
+`costsPerAttack`). **Four are the ONLY carrier of their number and are the identical defect:**
+
+| param | carriers | the string |
+|---|---|---|
+| `typeImmunity.gain.heal` | Dry Skin, Earth Eater, Volt Absorb, Water Absorb | `"1/4"` |
+| `healsAtThreshold.triggersBelow` | Oran Berry, **Sitrus Berry** | `"1/2"` |
+| `healsAtThreshold.restores` | **Sitrus Berry** | `"1/4"` |
+| `damageBoost.costsPerTurn` | Solar Power | `"1/8 max HP"` |
+
+NOT TAKEN, deliberately: each needs its own oracle, and Sitrus Berry's threshold has a Gluttony branch
+(`triggersBelowWithAbility`) that is a larger derivation than it looks. One family per pass keeps the
+attribution readable.
+
+### WHAT EACH NEW TAG NEEDS FROM A CONSUMER — THE WIRING, WHICH IS NOT THIS PASS
+
+- **`immunityGate`** — evaluate `condition` BEFORE accuracy and before any hit. The param carries
+  `step: 3` and `blocksBefore: [hitStepAccuracy, hitStepBreakProtect, hitStepStealBoosts,
+  hitStepMoveHitLoop]` precisely so the consumer knows the `damageCallback` must not run. On a block,
+  emit a BARE `|-immune|<target>` (`attribution: null`) and stop the move. **Trick and Switcheroo are
+  the board-material half** — a missing gate there is an item swap that should have been refused and
+  went through. The four `pass` shapes a consumer must implement are `lacksType`, `lacksAbility`,
+  `hpCompare` and `genderPairs`, and an unknown one must THROW rather than default to "not immune",
+  which is the bug wearing a fallback.
+- **`drain.perTarget`** — heal inside the per-target loop, `Math.round(damageToThatTarget * num / den)`
+  each time, attributed `[from] drain|[of] <that target>`. Do not accumulate `dealt` across targets and
+  heal once at the end.
+- **`damageMultAll.cost`** — charge `max(1, trunc(baseMaxhp / divisor))` at `onAfterMoveSecondarySelf`,
+  gated on every conjunct in `cost.onlyWhen`, and stop branching on `m.item === 'lifeorb'` by name.
+- **`refusesForcedSwitch`** — nothing. It is already right and already covers Guard Dog.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — they are tests now:**
+- ~~`onTryImmunity` is not derived at all — 6 legal moves~~ — `tests/test-immunity-gate.js`.
+- ~~Life Orb's recoil is stored as English~~ and ~~spread-drain heals are merged~~ and ~~Guard Dog is
+  absent from `tags.json`~~ — `tests/test-tag-params-derived.js`, blocks A, B and C.
+
+**Added, measured this pass and NOT fixed:**
+- **Four tag params are still prose that nothing can read** — the table above. Same shape as Life Orb,
+  same instrument will take them, one family per pass.
+- **`immunityGate` has no census probe**, so tag coverage reads 19 unprobed rather than 18. A probe
+  belongs beside the consumer; adding one now would assert a mechanic this engine does not yet have.
+
+**Observed, not caused, and reported rather than touched:**
+- `engine/artifact_audit.js` exits 1 on `data/engine-data.js is older than builder
+  engine/merge_mega_into_engine.js`. Neither file was touched here and neither is ENGINE's to write.
+- `engine/status.js` opens with `FEATURE SEMANTICS CHECK FAILED — data/policy-weights.json (the fixture
+  itself changed, scenarios 10 -> 12)`. That is MEASURE's restamp, not this pass.
+- Running `tests/mechanics_rank.js` as a smoke check REWROTE `data/mechanics-rank.json`. It was a read
+  that turned out to be a write; said out loud rather than left in the tree unexplained.
+
+
+## THE ORDERING PASS — IT IS THREE TABLES AND NOT ONE, AND THE ONE THAT MOVES A BOARD IS THE BERRY. 2026-08-22.
+
+**Census 623 live / 0 missing -> 623 live / 0 missing.** No probe count moved and none could: every
+mechanic in this pass was already LIVE and was doing its work in the wrong slot. The census was re-run
+as a REGRESSION check, diffed row by row against the pinned bytes, and **restored byte-identical**
+(`80e648f34d56`) because the coordinator holds a census pin. **Zero verdict changes, zero rows gained
+or lost; `probed`, `live`, `missing`, `armed`, `unarmed`, `directCall`, `threw` and `hollow` all
+identical.** Exactly one row's `detail` moved — `move::formatSecondaryChance`, the unseeded
+Monte-Carlo probe this ledger already records as not reproducible run to run.
+
+**The proof is `tests/test-resolution-order.js`** — 12 arms, 5 of them RED, 6 of them over-fire
+controls, 1 declared KNOWN-OPEN. Every arm is played twice: once against the tree and once against the
+same bytes under a named surgical revert of exactly one fix.
+
+### THE VERDICT ASKED FOR: THREE TABLES, NOT ONE
+
+The four defects were handed over as "one derivation". They are not, and merging them here would have
+been a fiction. Read off the authority:
+
+| defect | the authority's table | where it lives |
+|---|---|---|
+| A1 `onDamagingHit` order | `spreadMoveHit`'s six NUMBERED steps, then `DamagingHit`, then `AfterHit` | `sim/battle-actions.ts:1060-1130` |
+| A2 `onSwitchInPriority` | `comparePriority` — a five-key SORT, not a sequence | `sim/battle.ts:404-411` |
+| A3 faint / A4 berry | `runAction`'s tail: `add('upkeep')`, `faintMessages()`, `eachEvent('Update')` | `sim/battle.ts:2807-2865` |
+
+**A3 and A4 really are one table** — three consecutive statements in one function — and that is the
+useful half of the answer. **A3's other half is not**: `-mustrecharge` comes from
+`self: {volatileStatus:'mustrecharge'}`, which `selfDrops` applies at **step 4 of A1's table**. So the
+"one table" frame would have put the recharge fix in the wrong file's worth of reasoning.
+
+There is a fourth table this pass deliberately did not touch: the multi-hit LOOP, which wraps the
+whole of A1's table once per hit. See KNOWN-OPEN below.
+
+### THE FOUR, EACH WITH ITS RED AND ITS OVER-FIRE PROOF
+
+Every fixture below is a card in `data/divergence-turns.json` (release `6a05dd9ad60d`) rebuilt, not a
+case somebody imagined. All arms run on the `bottom-tie-first` pin — see THE ARM, below.
+
+**A1 — `buffsHolderOnHit` ran two steps early.** `secondaries` is step 5 and `runEvent('DamagingHit')`
+is at `:1121` below it; the Stamina family sat at the TOP of `_stepEffects`, which IS step 5. **The
+engine had already said so**: `_stepDamagingHit`'s header has read *"WHAT IS STILL OUT OF ORDER, SAID
+PLAINLY: buffsHolderOnHit is left inside _stepEffects … it IS observable against a secondary on the
+same body"* since 2026-08-12, and card 18 is that sentence happening — a Flare Blitz into an
+Archaludon, `-status brn` and `-boost def 1` in opposite orders. Moved into its own step
+`_stepBuffOnHit`, beside `_stepDamagingHit` and above `_stepAfterHit`.
+
+- **red** `a1-red` — Low Sweep (a 100%-chance Speed drop, so the dice are out of it) into Stamina.
+  Agrees clean; parts under `buff-above-secondaries`.
+- **over-fire** `a1-control-no-secondary` — Brick Break, which has no secondary at all, into the same
+  body. Agrees under the break too: the change is a reorder, not a rewrite.
+- **over-fire** `a1-control-roughskin` — Low Sweep into Rough Skin, the OTHER half of the same hook,
+  which has been below the secondaries since 2026-08-12. Agrees under the break.
+- The two families cannot collide, and that is **derived rather than hoped**: no entity in
+  `data/tags.json` carries both `buffsHolderOnHit` and `punishesAttacker` (the sets are 6 and 12 and
+  disjoint), so a body holding one never holds the other and the authority's single `DamagingHit`
+  event is faithfully reproduced by two adjacent steps.
+
+**A2 — `onSwitchInPriority` was not modelled at all.** `comparePriority` is order -> PRIORITY -> speed
+-> subOrder -> effectOrder and this engine implemented the third key and skipped the second. Card 5 is
+the proof and the trap: a double KO refills both sides at once, Torkoal is base Speed 20 and Sinistcha
+is 70, and the authority runs **Drought first** because Hospitality carries `-2`.
+
+- **red** `a2-red` — the card rebuilt with two Mementos (one per side) and a Brave Bird on the way
+  through, so Hospitality's heal lands on a DAMAGED ally and produces a line instead of clamping to a
+  no-op. Parts under `entry-sort-speed-only`.
+- **over-fire** `a2-control-equal-priority` — the identical refill with Vanilluxe (Snow Warning, no
+  declared priority) in Sinistcha's place, so both arrivals are priority 0 and SPEED decides. Agrees
+  under the break: the new key is inert where the authority declares none. An entry sort that had
+  merely become unstable would part here.
+
+**A3 — the faint line's two neighbours.** Not "we announce at the moment of lethal damage": the move
+path already defers through `_stepFaint`. What the corpus actually holds is two lines in the wrong
+place relative to it, and both are now fixed.
+
+- `-mustrecharge` was armed BELOW the whole step list; the authority applies it at step 4. Cards 9 and
+  28. **red** `a3-recharge-red` (a Hyper Beam that kills), **over-fire** `a3-recharge-control` (the
+  same Hyper Beam into a body that survives — no faint, so nothing may move).
+- `-hitcount` was emitted INSIDE the packet loop; the authority writes it at `:978`, two lines below
+  `faintMessages()` at `:976` — **and `faintMessages` sets `isActive = false` at `battle.ts:2563`, so
+  the authority's line names a corpse.** `Pokemon#toString()` (`sim/pokemon.ts:531-534`) writes
+  `p2: Tsareena` once the body is not active. Card 39 is both halves at once. **red**
+  `a3-hitcount-red`, **over-fire** `a3-hitcount-control` (two volleys nothing dies to).
+- The corpse ident is **narrow on purpose**: `ident()` itself is untouched and only `TR.hitcount` picks
+  the de-activated form. A global rule would rewrite every attribution naming a corpse, which is a far
+  larger claim than the authority makes.
+
+**A4 — the berry, and it is the only one that changes who is alive.** `eachEvent('Update')` has
+exactly TWO positions in the authority's turn end and "after every residual group" is neither.
+ROADMAP #221's own note got the right half and the wrong conclusion — *"Sitrus and Lum are `onUpdate`,
+which Showdown runs after EVERY damage event"*. It does not, at the turn end. It runs it at
+`battle.ts:2858`, **below `add('upkeep')` at `:2814` and below `faintMessages()` at `:2832`** — plus
+once inside the walk, off the weather.
+
+- **red** `a4-red` — a Toxic'd Snorlax holding Sitrus; the order-9 chip crosses the threshold and the
+  authority eats AFTER `|upkeep|`. Card 22 exactly: `|upkeep <> |-enditem|p2b|sitrusberry|[eat]`.
+- **over-fire** `a4-control-sandstorm` — **the arm that nearly went wrong, and it was measured on the
+  authority BEFORE a line of the fix was written.** Every weather condition ends its `onFieldResidual`
+  with `eachEvent('Weather')`, and `eachEvent` closes with `if (eventid === 'Weather' && gen >= 7)
+  this.eachEvent('Update')` (`battle.ts:473-475`). So a Sitrus eaten off the sand chip is eaten
+  **before** `|upkeep|`, and moving every berry below the marker would have broken it. It also pins
+  the GRANULARITY: both bodies take their sand chip and THEN the berry is eaten, so a per-body Update
+  would part here.
+- The board consequence, stated because it is the reason this one was the priority: a body a later
+  chip in the same walk would kill is dead before the berry can be eaten on the authority, and healed
+  above zero here.
+
+**NOT touched, checked first:** the residual ORDER itself. `data/residual-order.json` is read by the
+walk rather than hardcoded and sandstorm-before-Leftovers is already right.
+
+### WHAT THE INSTRUMENT CAN ACTUALLY SEE, PER DEFECT — CHECKED AGAINST THE REDUCER, NOT ASSUMED
+
+`game_differential.js`'s reducer erases more than a reader expects, and the card review records two
+findings retracted for exactly this. Read before anything here was called a defect:
+
+| | visible? | why |
+|---|---|---|
+| A1 | YES | `-boost`/`-unboost` keep body, stat, direction, amount; only the `[from] ability:` tag is stripped. Two adjacent KEPT lines in the opposite order part. |
+| A2 | YES | `-weather` and `-heal` are both kept whole. |
+| A3 | YES, both halves | `\|faint\|`, `\|-mustrecharge\|` and `\|-hitcount\|` are all kept. The corpse ident survives BY ACCIDENT OF THE RULE rather than by design: `traceCanon` folds `p2: Tsareena` to `p2:` and leaves `p2a: Tsareena` as `p2a:tsareena`, so the two forms are different strings. |
+| A4 | YES | `\|upkeep\|` is in `TRACE_EVENTS`, both engines emit it, and it carries **no fields at all** — so it is the one marker the reducer cannot normalise. The comparison is a POSITION against it. |
+
+### THE COUNTERS, AND THE NOUN EACH ONE COUNTS
+
+Every one is asserted `=== n` as a DELTA around a single arm, never a whole-run total and never `>= 1`.
+
+| counter | the noun |
+|---|---|
+| `buffOnHitAfterSecondaries` | `_stepBuffOnHit` INVOCATIONS that applied a boost table on a row whose secondaries step had ALREADY run. Not buffs, not stages, not hits. |
+| `switchInPrioritySeparated` | entry-order COMPARISONS decided on the priority key, i.e. where the two bodies' `onSwitchInPriority` differed. Not entrants, not turns, and not "a carrier was on the field". |
+| `rechargeArmedAtSelfDrops` | recharges armed AT STEP 4. Not Hyper Beams clicked — one every target refused arms nothing and lands in `rechargeSkippedNoTarget` instead. |
+| `hitCountLinesDeferred` | `\|-hitcount\|` LINES written from below the faint. Lines, not volleys and not packets. |
+| `hitCountNamedACorpse` | the subset of those whose subject was already fainted, so the line carried the `p2:` ident. |
+| `residualUpdatePasses` / `residualUpdateAfterUpkeep` | CALLS to the `onUpdate` pass, and the subset made below `\|upkeep\|`. They count PASSES, so they are non-zero on a turn where nobody holds a berry — which is what makes them a receipt that the pass RAN. |
+| `residualBerryAteAfterUpkeep` | BERRIES CONSUMED in that pass. A berry eaten off the weather chip is in `residualBerryAte` and NOT in this one, which is the exact split the two authority call sites make. |
+
+**`buffOnHitAfterSecondaries` exists because an application counter cannot see a position.** Moving the
+buff below the secondaries does not change how many buffs are applied, so a count of applications rises
+identically under the deliberate revert — the "identical output across a varied knob" blindness
+arriving as a counter instead of as a probe. `R.fxDone` is the witness, and the counter reads 0 the
+moment the two steps swap back.
+
+### TWO THINGS ABOUT THE INSTRUMENT THAT COST TIME AND WOULD HAVE MADE THIS FILE MEANINGLESS
+
+**THE ARM. `playGame` defaults to `PRIMARY_ARM`, which is the MIDDLE arm.** Its own header says a game
+whose per-category draw counts disagree is VOID rather than a divergence, and every damage-bearing arm
+hit exactly that: the SAME Brave Bird read `67/170` on the authority and `71/170` here, purely because
+the two engines drew a different damage INDEX at a shifted address. That is `test-middle-identity.js`'s
+open `nth` population and it is nothing to do with ordering. This file pins a corner — and
+**`bottom-tie-first`, not `top-tie-first`**, because the top corner's `PIN_CHANCE` returns false for
+every roll and the authority gates even a chance-100 secondary on `randomChance(100, 100)`. Under the
+top corner Low Sweep's guaranteed Speed drop **does not fire** and A1's red arm would stage nothing.
+
+**THE SNAPSHOT. `open(null)` takes the NEWEST release in the store**, which under `_live_release.js` is
+whatever a previous run of some other instrument happened to freeze. Measured while building this file:
+`CLEAN_SRC` came back as bytes predating the change under test, so every engine counter read
+`undefined` and every break was applied to the wrong engine — **and the arms still agreed**, which is
+precisely the shape of a green test that is asking nothing. The tree is now frozen by the test itself
+and the id pushed onto `argv` so the driver opens the same one.
+
+### A NEW DERIVED ARTIFACT, AND IT IS IN `SOURCES` — THE ESCAPE CHECK CAUGHT IT AT THE CUT
+
+`engine/switchin_order.js` -> `data/switchin-order.json`, on the same rule and for the same reason as
+`data/residual-order.json`: sixteen numbers beside sixteen names is prose, and prose goes stale here
+three times over. It records, per row, whether `/data/mods/champions/abilities.ts` carries the ability
+at all — so **"Champions overrides none of these" is a measurement in the artifact rather than a claim
+in a comment**. Derived, filtered to the regulation:
+
+```
+ +1  klutz          3 carriers   Audino, Golurk, Lopunny
+ +1  unnerve        6            Aerodactyl, Arbok, Corviknight, Houndoom, Pyroar, Tyranitar
+ -1  mimicry        1            Stunfisk-Galar
+ -2  forecast       4            Castform + three formes
+ -2  hospitality    2            Sinistcha, Sinistcha-Masterpiece
+16 abilities declare onSwitchInPriority; 5 have a legal carrier. championsOverride=false on all 16.
+ 8 ITEMS declare one — Booster Energy, the four seeds, Room Service, the two orbs — and every one is
+   isNonstandard:'Past'. The engine models no item here and THAT number is the reason.
+```
+
+**It required a `SOURCES` entry and release cutting was refused tree-wide until it got one.** That is
+the escape check working exactly as built — the second time it has caught a dependency at the cut
+rather than mid-flight — and it is why the artifact is frozen: a snapshot that plays a DIFFERENT entry
+order from the tree it claims to freeze is a photograph of something else. A release cut before today
+lacks the file, falls back to a speed-only sort, and stamps `MEDFAILS.switchInPriorityTableMissing`,
+which is loud rather than silent. **Read the frozen count off `SOURCES`, never off prose.**
+
+### KNOWN-OPEN, MEASURED AND DECLARED — A1's OTHER HALF
+
+`a1-multihit-frequency` stages Dual Wingbeat into a Toxic Debris Glimmora and **is expected to part on
+the live tree**. It has its own verdict word so it can be read neither as a pass nor as a regression.
+
+```
+SHOWDOWN  -damage  -activate Toxic Debris  -sidestart Toxic Spikes  -damage  -activate  -sidestart
+MEDICHAM  -damage  -damage  -sidestart  -sidestart
+```
+
+The reaction COUNT is already right (WIRE 84 — two layers, not one). What is wrong is the
+INTERLEAVING, and it cannot be fixed from here: the authority runs the ENTIRE step list once per hit
+and this engine runs it once per move. That is WIRE 20's declared granularity divergence and it is a
+restructure, not an ordering fix. A second, smaller gap is visible in the same card: this engine emits
+no `-activate` line for Toxic Debris at all.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — they are one test now (`tests/test-resolution-order.js`):**
+- ~~`onDamagingHit` resolves ABOVE the secondaries~~ — arm `a1-red`, with two over-fire controls.
+- ~~`onSwitchInPriority` is not modelled at all~~ — arm `a2-red`, plus a derived artifact and an
+  equal-priority control.
+- ~~`-mustrecharge` is printed below the faint~~ — arm `a3-recharge-red`.
+- ~~`-hitcount` is printed above the faint and names a live body~~ — arm `a3-hitcount-red`.
+- ~~an `onUpdate` berry is eaten before `\|upkeep\|` and before the faints~~ — arm `a4-red`, with the
+  sandstorm arm as its over-fire control.
+
+**Added, measured this pass and NOT fixed:**
+- **The multi-hit loop does not wrap the step list** — the KNOWN-OPEN arm above, running on every
+  invocation of the test so the claim carries a measurement instead of a sentence. Taking it means
+  converting `_stepApply`'s packet loop into a loop over `_STEPS`, which is WIRE 20 and is a pass of
+  its own.
+- **Toxic Debris emits no `-activate` line.** Found inside the KNOWN-OPEN arm; independent of the
+  interleaving and much smaller.
+- **`PRIMARY_ARM` is the middle arm.** Every caller of `playGame` that does not name an arm — and that
+  is most of them, including `tests/staged_board.js` and `tests/test-encore-fail-silent.js` — is
+  running on real seeded dice whose damage indices can desynchronise. That is not ENGINE's file to
+  change and is reported rather than touched.
+
+**Observed, not caused, and reported rather than touched:**
+- `data/residual-order.json` and the residual walk were checked and are CORRECT; the KO-flipping hazard
+  Will raised is the switch-in and berry halves, not the residual order.
+
 
 ## ROADMAP #241(3) — `null` MEANS "SAY NOTHING" AND `false` MEANS "ANNOUNCE IT", AND THIS ENGINE HELD ONLY ONE OF THEM. 2026-08-22.
 

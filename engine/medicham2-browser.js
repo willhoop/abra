@@ -269,6 +269,49 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * The second counter is the subset that could not have happened before. */
   residualGroupsWalked: 0, residualStepsRun: 0,
   residualBerryAte: 0, residualBerryAteOffOldSlot: 0,
+  /* 2026-08-22 -- THE `onUpdate` PASS ITSELF, so "the berry moved" can be told from "the berry never
+   * ran". THE NOUNS, because four counters in this repo were caught counting the wrong one in two
+   * days:
+   *   residualUpdatePasses         CALLS to residualUpdatePass in a turn -- 1 with no weather up
+   *                                (the post-upkeep one) and 2 with a weather up (order 1 as well).
+   *                                It counts PASSES, not bodies and not berries: it is non-zero on a
+   *                                turn where nobody holds a berry at all, which is what makes it a
+   *                                receipt that the pass RAN.
+   *   residualUpdateAfterUpkeep    the subset of those calls made from BELOW `|upkeep|`. Exactly one
+   *                                per residual that did not wipe a side.
+   *   residualBerryAteAfterUpkeep  BERRIES CONSUMED in that pass -- an item that was held before it
+   *                                and gone after. Not bodies checked, and not eats anywhere else in
+   *                                the turn: a berry eaten off the weather chip at order 1 is in
+   *                                `residualBerryAte` and NOT in this one, which is the exact split
+   *                                the two authority call sites make. */
+  residualUpdatePasses: 0, residualUpdateAfterUpkeep: 0, residualBerryAteAfterUpkeep: 0,
+  /* 2026-08-22 -- ENTRY-ORDER PAIRS SEPARATED BY PRIORITY RATHER THAN BY SPEED. THE NOUN: it counts
+   * COMPARISONS in which the two bodies carried DIFFERENT `onSwitchInPriority` values, so the sort
+   * returned on the priority key and never consulted speed. Not entrants, not turns, and not "a
+   * carrier was on the field" -- a lone Sinistcha with no simultaneous entrant beside it scores ZERO
+   * here, correctly, because nothing was reordered. It rises only where the wire actually changed an
+   * answer, which is what makes a `=== n` assertion on it mean something. */
+  switchInPrioritySeparated: 0,
+  /* 2026-08-22 -- THE OTHER THREE ORDERING RECEIPTS, and each names the noun it counts because four
+   * counters in this repo were caught blind by construction in two days.
+   *   buffOnHitAfterSecondaries  `_stepBuffOnHit` INVOCATIONS that applied a boost table on a row
+   *                              whose secondaries step had ALREADY run. Not buffs, not stages, and
+   *                              not hits -- one per (row, step). It is a POSITION counter on purpose:
+   *                              an application counter would read the same under the deliberate
+   *                              revert, because the revert changes when the buff lands and not
+   *                              whether it lands.
+   *   rechargeArmedAtSelfDrops   RECHARGES ARMED AT STEP 4 (`selfDrops`). Not Hyper Beams clicked --
+   *                              a Hyper Beam every target refused arms nothing and is counted by
+   *                              `rechargeSkippedNoTarget` instead. Reads 0 the moment the arming
+   *                              falls back to the block below the step list.
+   *   hitCountLinesDeferred      `|-hitcount|` LINES put on the wire by `_stepHitCount`, i.e. from
+   *                              BELOW the faint. Lines, not volleys and not packets.
+   *   hitCountNamedACorpse       the subset of those whose subject was already fainted, so the line
+   *                              carried the de-activated `p2:` ident rather than `p2a:`. A multi-hit
+   *                              that did not kill scores in the first and NOT in this one, which is
+   *                              the whole distinction card 39 turns on. */
+  buffOnHitAfterSecondaries: 0, rechargeArmedAtSelfDrops: 0,
+  hitCountLinesDeferred: 0, hitCountNamedACorpse: 0,
   /* ROADMAP #242 -- THE EXPIRIES THAT RUN FROM INSIDE THE WALK. A side or field clock is in the
    * authority's residual on its `duration` alone (no handler), at an order it DECLARES, and this
    * engine used to spend every one of them ABOVE the walk. `residualExpiryTicked` counts a clock
@@ -1675,6 +1718,10 @@ const MEDFAILS = { encoreAction: 0,
    * table rather than one sky. */
   residualTerrainExpiryUnplaced: 0, residualTerrainExpiryUnplacedFirst: '',
   residualExpiryTableMissing: 0, residualExpiryTableMissingWhy: '',
+  /* 2026-08-22 -- the entry-order table. A speed-only entry sort looks EXACTLY like a correct one on
+   * every board that holds none of the five carriers, which is most boards, so an absent artifact has
+   * to shout. Same shape and same reason as `residualExpiryTableMissing` above. */
+  switchInPriorityTableMissing: 0, switchInPriorityTableMissingWhy: '',
   /* A `critRatioUp` carrier this engine deliberately does NOT read (WIRE 35). The tag's only param is
    * `critRatio: 2`, which cannot express Merciless's condition -- it is a GUARANTEED crit into a
    * poisoned target, not a permanent stage bump -- and Super Luck, which genuinely is a permanent
@@ -1951,7 +1998,17 @@ const TRACE=(function(){
      * volley IS a sequence of arrivals -- the reason `data/protocol-events.json` gave for declaring
      * it un-emitted ("emitting a count beside a single `-damage` line would be an invented number")
      * was exactly right and has stopped being true. */
-    hitcount(m,n){ this.push(['-hitcount',ident(m),n]); },
+    /* 2026-08-22 -- AND IT NAMES A BODY THAT IS NO LONGER ACTIVE, WHICH IS A DIFFERENT IDENT.
+     * `Pokemon#toString()` (sim/pokemon.ts:531-534) writes `p2a: Name` while the body is active and a
+     * bare `p2: Name` once it is not, and `faintMessages` sets `isActive = false` (sim/battle.ts:2563)
+     * BEFORE this line is written (battle-actions.ts:976 then :978). So a volley that kills its target
+     * closes over a corpse: `|-hitcount|p2: Azumarill|2`, where this engine wrote `p2a:`. Card 39 of
+     * data/divergence-turns.json is both halves of that at once -- the order AND the ident.
+     * NARROW ON PURPOSE: `ident` itself is untouched, because the de-activation happens INSIDE
+     * faintMessages and this is the only line in this engine that is emitted after it about the body
+     * it killed. A global rule here would rewrite every `[of]` and every attribution naming a corpse,
+     * which is a far larger claim than the authority makes. */
+    hitcount(m,n){ this.push(['-hitcount',(m&&m.fainted)?(sideOf(m)+': '+identName(m)):ident(m),n]); },
     /* ROADMAP #151 -- THE NON-PERMANENT FORME LINE, and it carries a FOURTH FIELD THAT IS EMPTY.
      * `sim/pokemon.ts`'s formeChange takes the else branch when `isPermanent` is falsy and writes
      * `add('-formechange', this, species.name, message)` with `message` undefined, which reaches the
@@ -4642,6 +4699,54 @@ const RESIDUAL_HAS = RESIDUAL_GROUPS.map(g => new Set(g.steps));
  * loud direction rather than the flattering one. */
 const RESIDUAL_OLD_BERRY_GI = RESIDUAL_HAS.findIndex(s => s.has('leftovers'));
 
+/* ---- 2026-08-22 -- `onSwitchInPriority`: THE KEY `comparePriority` SORTS *BEFORE* SPEED -----------
+ *
+ * `Battle#comparePriority` (sim/battle.ts:404-411) is order -> PRIORITY -> speed -> subOrder ->
+ * effectOrder, and `resolvePriority` (:950-1017) fills the priority key from
+ * `effect['onSwitchInPriority']` for this event. `fieldEvent('SwitchIn', switchersIn)` (:484) sorts
+ * every entering body's handlers with it. THIS ENGINE SORTED ENTRANTS ON SPEED ALONE, so it could not
+ * reach the authority's answer on any board holding one of the five abilities that declare a number.
+ *
+ * IT IS CARD 5 OF data/divergence-turns.json: a double KO brings Torkoal (Drought, base Speed 20) and
+ * Sinistcha (Hospitality, base Speed 70) in together and the authority runs DROUGHT FIRST -- the
+ * slower body -- because Hospitality is -2.
+ *
+ * THE NUMBERS ARE NOT WRITTEN HERE. `engine/switchin_order.js` derives them from the format on demand
+ * and `data/switchin-order.json` carries them, on the same rule and for the same reason as
+ * `data/residual-order.json`: sixteen numbers beside sixteen names is prose, and prose goes stale.
+ * The artifact also records, per row, whether `/data/mods/champions/abilities.ts` carries the ability
+ * at all -- so "Champions overrides none of these" is a measurement in the file rather than a claim
+ * in this comment.
+ *
+ * A MISSING ARTIFACT IS LOUD AND NOT SILENT. An engine that quietly fell back to a speed-only sort
+ * would be indistinguishable from one that never had this wire; `MEDFAILS.switchInPriorityTableMissing`
+ * is the receipt, exactly as `residualExpiryTableMissing` is for the walk above. */
+const SWITCHIN_PRIORITY = (() => {
+  let rows = null;
+  try { rows = require('../data/switchin-order.json').rows; } catch (e) { rows = null; }
+  if (!rows || !rows.length) {
+    MEDFAILS.switchInPriorityTableMissing = 1;
+    MEDFAILS.switchInPriorityTableMissingWhy = 'data/switchin-order.json is absent or carries no rows'
+      + ' — every entry ability is being resolved on SPEED ALONE, which is what this table exists to'
+      + ' stop. Regenerate: SHOWDOWN_PATH=... node engine/switchin_order.js --write';
+    return new Map();
+  }
+  return new Map(rows.map(r => [String(r.id), +r.priority || 0]));
+})();
+const switchInPriorityOf = m => (m && m.ability
+  ? (SWITCHIN_PRIORITY.get(String(m.ability).toLowerCase().replace(/[^a-z0-9]/g,'')) || 0) : 0);
+/* ONE COMPARATOR FOR BOTH ENTRY SITES -- the lead pass in `battleInit` and the faint-replacement pass
+ * at the turn end. Two copies of "who resolves first on entry" is the FACTS-ARE-GLOBAL breach that
+ * produced the residual's two-loop bug (ROADMAP #218), so there is one.
+ * PRIORITY IS NOT TRICK-ROOM-INVERTED AND SPEED IS: the inversion lives inside `getActionSpeed()`
+ * (sim/pokemon.ts:641-648, `speed = 10000 - speed`), which feeds key 3 only. `compareTurnOrder` reads
+ * the field and already carries it, so the tail of this comparator is unchanged. */
+function compareEntryOrder(x,y,field){
+  const px=switchInPriorityOf(x.mon!==undefined?x.mon:x.nx), py=switchInPriorityOf(y.mon!==undefined?y.mon:y.nx);
+  if(px!==py){MEDSEEN.switchInPrioritySeparated++;return py-px;}
+  return compareTurnOrder({spe:x.spe},{spe:y.spe},field);
+}
+
 function residualOrder(actA,actB,field){
   const list=[...actA,...actB].filter(Boolean);
   for(const x of list)x._resSpe=effSpeed(x,field,actA.indexOf(x)>=0?'A':'B');
@@ -5786,6 +5891,64 @@ function berryPPUpdate(m,foes){
   consumeBerry(m,_it);           // ROADMAP #128 -- the one consumption site
   MEDSEEN.ppRestoredByItem++;
   if(TR){TR.enditem(m,_it,'[eat]');TR.act(m,'item: '+_it);}
+}
+/* ---- 2026-08-22 -- `eachEvent('Update')`, WHICH IS WHERE AN `onUpdate` BERRY IS ACTUALLY EATEN ----
+ *
+ * ROADMAP #221 established the right half of this and placed it wrong. Its own note reads "BERRIES ARE
+ * NOT IN [the residual table], AND THAT IS THE RULE RATHER THAN AN OMISSION. Sitrus and Lum are
+ * `onUpdate`, which Showdown runs after EVERY damage event, not at a fixed residual position." The
+ * first sentence is right and the second is the mistake: Showdown does NOT run `Update` after every
+ * damage event at the turn end. It runs it at exactly two places in `runAction`'s residual tail, and
+ * the whole of the difference is read off sim/battle.ts:
+ *
+ *     case 'residual':
+ *       this.fieldEvent('Residual');        :2813   <- order 1 is the weather, and IT calls Update
+ *       if (!this.ended) this.add('upkeep'); :2814
+ *       break;
+ *     ...
+ *     this.faintMessages();                 :2832   <- deaths announced HERE
+ *     if (this.ended) return true;          :2833
+ *     ...
+ *     if (this.gen >= 5 && action.choice !== 'start') {
+ *       this.eachEvent('Update');           :2858   <- and the berry HERE
+ *
+ * The only Update INSIDE the walk is the weather's, through `eachEvent`'s own tail
+ * (`if (eventid === 'Weather' && this.gen >= 7) this.eachEvent('Update')`, :473-475). Every other
+ * residual -- Leech Seed at order 8, the status chips at 9-10, Curse at 12, Salt Cure at 13 -- is
+ * followed by `faintMessages()` (fieldEvent's own `this.faintMessages()` after every handler, :565)
+ * and by NOTHING ELSE until the two lines above.
+ *
+ * SO IT CHANGES WHO IS ALIVE, WHICH IS WHY IT IS NOT A NARRATION FIX. A body that a later chip in the
+ * same walk would kill is dead on the authority before the berry can be eaten; eating it mid-walk
+ * heals it above zero and it lives. And it is visible in the protocol on any turn a berry is eaten off
+ * a non-weather residual: card 22 of data/divergence-turns.json is `|upkeep <> |-enditem|p2b|
+ * sitrusberry|[eat]` -- the authority's marker against our berry, in that slot, on that turn.
+ *
+ * `gi` IS THE GROUP INDEX FOR THE WEATHER PASS AND -1 FOR THE POST-UPKEEP PASS, so
+ * `residualBerryAteOffOldSlot` goes on meaning exactly what #221 defined it to mean -- an eat somewhere
+ * other than the fixed slot the pre-#221 loop used -- rather than quietly becoming a different number.
+ * SPEED ORDER, through `residualOrder`, because `eachEvent` speed-sorts `getAllActive()` (:468). */
+function residualUpdatePass(actA,actB,field,gi){
+  MEDSEEN.residualUpdatePasses++;
+  if(gi<0)MEDSEEN.residualUpdateAfterUpkeep++;
+  for(const m of residualOrder(actA,actB,field)){
+    if(!m||m.fainted||m.curHP<=0)continue;
+    const _foes=(actA.indexOf(m)>=0?actB:actA), _it0=m.item;
+    /* WIRE 14 -- healsAtThreshold, from the artifact instead of a Sitrus name check. The tag
+     * carries the threshold AND the restore as the handler states them ('1/2' -> '1/4'), so a
+     * future pinch berry joins by existing rather than by someone remembering.
+     * Under Heal Block the berry is not eaten AT ALL -- it is still there afterwards -- so the
+     * gate wraps the whole block rather than only the HP line.
+     * WIRE 58 -- UNNERVE, 1,949 sheets, stops the OTHER SIDE eating a berry at all, on the same
+     * whole-block rule. The side is found by identity because this walk covers both sides. */
+    berryPinchUpdate(m,_foes);   // ROADMAP #81 WIRE 7 -- one implementation
+    berryPPUpdate(m,_foes);      // ROADMAP #144 -- Leppa, on the same clock
+    if(m.item!==_it0){
+      MEDSEEN.residualBerryAte++;
+      if(gi!==RESIDUAL_OLD_BERRY_GI)MEDSEEN.residualBerryAteOffOldSlot++;
+      if(gi<0)MEDSEEN.residualBerryAteAfterUpkeep++;
+    }
+  }
 }
 /* WHAT GOES THROUGH A SUBSTITUTE. Showdown's flag is `bypasssub` and NO artifact this engine reads
  * carries it -- data/move-effects.js has no flags block and data/abra-tags.js has no tag for it. So
@@ -13413,7 +13576,11 @@ function battleInit(teamA,teamB,opts){
     for(const m of S.actA)if(m)entrants.push({mon:m,side:'A',slot:S.actA.indexOf(m),ally:S.actA.find(x=>x&&x!==m),foes:S.actB});
     for(const m of S.actB)if(m)entrants.push({mon:m,side:'B',slot:S.actB.indexOf(m),ally:S.actB.find(x=>x&&x!==m),foes:S.actA});
     for(const e of entrants)e.spe=effSpeed(e.mon,S.field,e.side);
-    entrants.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},S.field));
+    /* 2026-08-22 -- THROUGH `compareEntryOrder`, which is `comparePriority`'s key 2 ahead of its
+     * key 3. See the comparator for the derivation. A lead is the commonest board there is and it is
+     * the one this used to get wrong whenever a Forecast, Hospitality, Mimicry, Unnerve or Klutz body
+     * walked in beside anything. */
+    entrants.sort((x,y)=>compareEntryOrder(x,y,S.field));
     /* A SPEED TIE IS A COIN FLIP IN SHOWDOWN (speedSort's Fischer-Yates) AND A STABLE ARRAY ORDER
      * HERE, because battleInit is handed no rng and inventing one would move every seeded run in the
      * repo for a reason that has nothing to do with entry abilities. That is an approximation, so it
@@ -20294,7 +20461,11 @@ function battleTurn(S,rng,actsForA,actsForB){
             tg.curHP-=_packets[i];_landed++;MEDSEEN.multiHitPacketsDealt++;
             if(TR)TR.dmg(tg);
           }
-          if(TR&&R.hitcount&&_landed>0)TR.hitcount(tg,_landed);
+          /* 2026-08-22 -- COUNTED HERE, ANNOUNCED IN `_stepHitCount`. Only this loop knows how many
+           * arrivals actually landed before the volley stopped at a KO, so the NUMBER stays here; the
+           * authority writes the line below `faintMessages` (battle-actions.ts:976-978) and so does
+           * this engine now. */
+          if(R.hitcount&&_landed>0)R.hitLanded=_landed;
         }else{ tg.curHP-=dmg;
           /* ROADMAP #308 -- `_chipFrom` is the formeOnHit chip's attribution and is consumed once. */
           if(TR){const _cf=tg._chipFrom;tg._chipFrom=null;TR.dmg(tg,_cf||undefined);} }
@@ -20769,99 +20940,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          * body on its first line. The two boost sites below and applyMoveVolatile carry the first
          * two; that is where the authority puts them. */
         if(!R.hit&&!R.fainted)return;
+        /* 2026-08-22 -- THE POSITION WITNESS FOR `_stepBuffOnHit`, AND IT EXISTS BECAUSE AN
+         * APPLICATION COUNTER CANNOT SEE A POSITION. Moving the buff below the secondaries does not
+         * change how many buffs are applied, so a counter of applications rises identically under the
+         * deliberate revert -- the "identical output across a varied knob" blindness, arriving as a
+         * counter instead of as a probe. This flag says the row's SECONDARIES step has already run,
+         * so `buffOnHitAfterSecondaries` reads 0 the moment the two steps swap back. */
+        R.fxDone=true;
         {
-          /* WIRE 4 of N -- buffsHolderOnHit and punishesAttacker, ONE dispatch through the `contact`
-           * linkage key. Both were entirely absent from this engine.
-           *
-           * THIS IS WILL'S BELLIBOLT TURN. Discharge into Archaludon was resisted AND handed it a
-           * free Stamina boost, and the bot could not see either half: it had no notion that hitting
-           * something can make it STRONGER. buffsHolderOnHit compounds -- every hit makes the next
-           * worse -- while punishesAttacker is a flat toll you can pay. Opposite decisions, which is
-           * exactly why Will had them split into two tags.
-           *
-           * The order matters: the buff lands on a target that survived (checked above), and the
-           * attacker toll is paid whether or not the target survived, so it sits outside this else.
-           * Contact is read from the move's own flag via the linkage key rather than a name list. */
-          /* ROADMAP #101 -- AND THE CONDITION IS NOW READ. The block below applied `_buff.boosts` on
-           * EVERY connecting hit, because the tag carried WHAT the holder gains and never WHEN. That
-           * is a family that fails OPEN, which is the opposite of the pinch family WIRE 112 landed:
-           * nothing was missing, a WRONG ANSWER was being produced on every hit. Measured before a
-           * line changed, on one Knock Off into a 20x-HP Garchomp --
-           *     angerpoint  atk +6 on a NON-crit, and IDENTICAL on a crit  (an unwired knob)
-           *     justified   atk +1 off CLOSE COMBAT, a Fighting move
-           *     weakarmor   def -1 / spe +2 off DARK PULSE, a special move
-           *     stamina     def +1                                        (correct, and the control)
-           * Stamina is 2,773 of the family's 2,972 uses and carries `when: null`, which is exactly
-           * why nothing ever noticed the other eleven.
-           *
-           * `condHolds` is the same one reader ROADMAP #112 built; NULL means "this engine cannot
-           * evaluate that shape" and REFUSES the buff, counted. A guessed condition on a family that
-           * compounds is the boolean-in-a-fraction's-clothing defect with interest. */
-          const _buff=TAGS.param('ability',tg.ability,'buffsHolderOnHit');
-          /* `R.crit` IS PASSED RAW, NOT COERCED. `!!R.crit` would turn "the damage step never ran, so
-           * nobody knows" into a confident `false` and Anger Point would silently never fire again --
-           * the same silent default one shape over. condHolds refuses a non-boolean and counts it. */
-          const _bHit=_buff?{crit:R.crit,moveType:effMoveType(mv,a.move.id,field,m),
-                             category:mv.c==='P'?'Physical':mv.c==='S'?'Special':'Status',
-                             moveId:a.move.id}:null;
-          const _bw=_buff?condHolds(_buff.when,tg,_bHit):false;
-          if(_buff&&_bw===null){MEDFAILS.buffOnHitUnknownCond++;
-            if(!MEDFAILS.buffOnHitUnknownCondFirst)
-              MEDFAILS.buffOnHitUnknownCondFirst=String(tg.ability)+'/'+JSON.stringify(_buff.when);}
-          /* THE VOLATILE HALF, WHICH THE OLD GUARD DROPPED ENTIRELY. `_buff.boosts && tg.boosts` also
-           * refused every member whose payload is `gainsVolatile` -- electromorphosis (98 uses),
-           * windpower, perishbody.
-           *
-           * WIRE 157 -- `charge` IS NOW BANKED, BECAUSE IT NOW HAS A CONSUMER. The sentence that stood
-           * here ("this engine has no consumer for `charge`") was the honest reason to refuse it and it
-           * stopped being true one block down, in the base-power chain: a banked Charge doubles the
-           * holder's next ELECTRIC move, exactly as the move Charge itself has always been able to
-           * (`applyMoveVolatile` writes the same `_vol.charge`). Granting it without the consumer would
-           * have been a flag nobody reads; wiring the consumer without granting it would have left
-           * Electromorphosis and Wind Power dead. They land together.
-           *
-           * `perishsong` IS STILL REFUSED AND STILL COUNTED, and the reason is unchanged: the clock
-           * exists but its DURATION is carried by the MOVE's `perishClock` tag and no ability states
-           * one, so granting it would mean inventing the number. The counter therefore keeps meaning
-           * what it meant -- "buffs this engine owed and did not pay" -- for the members that are
-           * genuinely still owed, instead of covering one that is now paid. */
-          if(_buff&&_bw===true&&_buff.gainsVolatile&&!_buff.boosts){
-            if(_buff.gainsVolatile==='charge'&&tg.curHP>0&&!tg.fainted){
-              const _cv=(tg._vol=tg._vol||{});
-              /* `onRestart` re-announces and does NOT stack: the volatile is a boolean in Showdown
-               * (no duration, no layers), so a second hit re-banks the same one charge. */
-              const _had=_cv.charge>0;
-              _cv.charge=1;
-              MEDSEEN.chargeBanked++;
-              /* ROADMAP #234 -- `add('-start', pokemon, 'Charge', this.activeMove.name,
-               * '[from] ability: ' + effect.name)` (data/moves.ts charge condition onStart/onRestart).
-               * The MOVE THAT HIT is field 4 and the ability is field 5; the CHARGE MOVE's own line
-               * is the other branch of that same `if` and stays bare, which is why the two cannot
-               * share an emitter call. */
-              if(TR&&!_had)TR.vstart(tg,'Charge',a.move.id+'|'+ATTR.from(ATTR.ability(tg.ability)));
-            } else {
-              MEDFAILS.buffOnHitVolatileUnwired++;
-              if(!MEDFAILS.buffOnHitVolatileUnwiredFirst)
-                MEDFAILS.buffOnHitVolatileUnwiredFirst=String(tg.ability)+'/'+String(_buff.gainsVolatile);
-            }
-          }
-          /* ROADMAP #161 -- `!tg.fainted` IS THE AUTHORITY'S OWN FIRST LINE, sim/battle.ts:2026
-             (`if (!target?.hp) return 0`). It could not matter until this step began running for a
-             target that died to the hit; a Stamina body that faints does not get its Defence. */
-          if(_buff&&_bw===true&&_buff.boosts&&tg.boosts&&!tg.fainted){
-            /* The tag names the stats and the sizes, read from the handler's own this.boost({...}).
-             * Showdown spells them atk/def/spa/spd/spe; this engine uses at/df/sa/sd/sp. That map is
-             * a naming convention, not a mechanic, so it lives here rather than in the artifact.
-             * WIRE 84: once PER HIT, the same count the punish block uses -- Weak Armor off a
-             * Bullet Seed is -3/+6, not -1/+2. `compounds` is what the tag calls this and it is
-             * true for every member that reaches here. */
-            for(let _bh=0;_bh<_react;_bh++)for(const k in _buff.boosts){
-              const st=SD2ENG[k]; if(!st||tg.boosts[st]==null)continue;
-              const _b0=tg.boosts[st];
-              tg.boosts[st]=clamp(tg.boosts[st]+_buff.boosts[k],-6,6);
-              if(TR)TR.bst(tg,st,tg.boosts[st]-_b0,'[from] ability: '+tg.ability);
-            }
-          }
           /* SECONDARY EFFECTS, from the shared rulebook. Rolled once per connecting hit, after
            * damage, and only on a target still standing. Previously ONLY Fake Out could flinch and
            * no attacking move could ever inflict a status, so Rock Slide, Iron Head, Scald, Nuzzle
@@ -21587,6 +21673,23 @@ function battleTurn(S,rng,actsForA,actsForB){
            if(TR)TR.bst(m,_key,m.boosts[_key]-_b0,'[from] ability: '+m.ability);
          }}
       };
+      /* STEP 9 -- `|-hitcount|`, AND IT IS BELOW THE FAINT. 2026-08-22.
+       *
+       *     this.battle.faintMessages(false, false, !pokemon.hp);              battle-actions.ts:976
+       *     if (move.multihit && typeof move.smartTarget !== 'boolean')        :977
+       *         this.battle.add('-hitcount', targets[0], hit - 1);             :978
+       *
+       * Two lines apart in the authority and in the opposite order here. The COUNT is still taken
+       * inside `_stepApply`'s packet loop, where the arrivals are; only the announcement moved, and
+       * `R.hitLanded` carries it across. `TR.hitcount` picks the de-activated ident for a body the
+       * step above just announced dead -- see its own note.
+       *
+       * IT IS A STEP RATHER THAN A LINE INSIDE `_stepFaint` because `_stepFaint` returns early on a
+       * survivor, and the overwhelmingly common multi-hit is one nobody died to. */
+      const _stepHitCount=(R)=>{ if(!R.hitLanded)return;
+        MEDSEEN.hitCountLinesDeferred++;
+        if(R.tg&&R.tg.fainted)MEDSEEN.hitCountNamedACorpse++;
+        if(TR)TR.hitcount(R.tg,R.hitLanded); R.hitLanded=0; };
       /* STEP 7e -- `runEvent('DamagingHit')`, sim/battle-actions.ts:951, AND STEP 7f -- the `AfterHit`
        * singleEvent on the NEXT LINE, :954. Two hooks, two steps, in that order. 2026-08-12.
        *
@@ -21629,6 +21732,141 @@ function battleTurn(S,rng,actsForA,actsForB){
        * fire on it -- but it IS observable against a secondary on the same body (Icy Wind's Speed drop
        * into Stamina). Measured and named rather than assumed absent. */
       const _stepDamagingHit=(R)=>{ if(!R._dh)return; const _f=R._dh; R._dh=null; _f(); };
+      /* STEP 7e, THE SECOND HALF -- `buffsHolderOnHit` (Stamina, Weak Armor, Justified, Anger
+       * Point, Electromorphosis) IS AN `onDamagingHit` HANDLER AND IT RAN TWO STEPS EARLY. 2026-08-22.
+       *
+       * THE POSITION IS THE AUTHORITY'S OWN NUMBERED LIST, sim/battle-actions.ts:1060-1130 read whole:
+       *     1. getDamage  2. spreadDamage  3. runMoveEffects  4. selfDrops  5. secondaries
+       *     6. forceSwitch   then runEvent('DamagingHit') (:1121)   then AfterHit (:1123)
+       * `secondaries` is step 5 and `DamagingHit` is BELOW it. This block sat at the TOP of
+       * `_stepEffects`, which IS step 5, so every buff landed above the secondary that arrived
+       * with the same hit.
+       *
+       * THE ENGINE ALREADY SAID SO AND NOTHING COULD SEE IT. `_stepDamagingHit`'s own header, one
+       * screen down, has read "WHAT IS STILL OUT OF ORDER, SAID PLAINLY: buffsHolderOnHit is left
+       * inside _stepEffects ... It is unobservable against punishesAttacker -- a body has ONE ability,
+       * so the two can never both fire on it -- but it IS observable against a secondary on the same
+       * body (Icy Wind's Speed drop into Stamina)" since 2026-08-12. It is card 18 of
+       * data/divergence-turns.json -- a Blaziken Flare Blitz into an Archaludon -- and the two streams
+       * part on exactly those two lines:
+       *     SHOWDOWN  |-damage|p2a: Archaludon|36/165  |-status|...|brn  |-boost|...|def|1
+       *     MEDICHAM  |-damage|p2a: Archaludon|36/165  |-boost|...|def|1  |-status|...|brn
+       *
+       * IT IS A STEP OF ITS OWN RATHER THAN A LINE INSIDE `_damagingHit`, and the reason is a gate
+       * rather than tidiness: `_damagingHit` is a closure built inside `_stepApply` and stored on the
+       * row, so it exists only where the DAMAGE branch ran, while this block's gate has always been
+       * `R.hit || R.fainted`. Folding one into the other would change WHICH ROWS the buff fires on
+       * -- a second change wearing the first one's clothes. Nothing below is re-gated: the `if` on the
+       * next line is the line that was cut from the top of `_stepEffects`, character for character.
+       *
+       * ITS ORDER AGAINST `_stepDamagingHit` IS UNOBSERVABLE, AND THAT IS DERIVED RATHER THAN HOPED:
+       * both read the TARGET's ability, a body holds one ability, and no entity in data/tags.json
+       * carries both `buffsHolderOnHit` and `punishesAttacker` (checked over the whole artifact --
+       * Cursed Body carries `punishesAttacker` + `disablesAttacker` and no buff). So the two can never
+       * both fire on one body, and the authority's single `DamagingHit` event is faithfully
+       * reproduced by two adjacent steps.
+       *
+       * IT STAYS ABOVE `_stepAfterHit`, which is where it already was and where the authority puts
+       * it -- the five staged Knock Off turns in `_stepDamagingHit`'s header measured the reaction
+       * above the `-enditem` on all five, and none of that moved. */
+      const _stepBuffOnHit=(R)=>{const tg=R.tg;const _react=R.react;
+        if(!R.hit&&!R.fainted)return;
+        {
+          /* WIRE 4 of N -- buffsHolderOnHit and punishesAttacker, ONE dispatch through the `contact`
+           * linkage key. Both were entirely absent from this engine.
+           *
+           * THIS IS WILL'S BELLIBOLT TURN. Discharge into Archaludon was resisted AND handed it a
+           * free Stamina boost, and the bot could not see either half: it had no notion that hitting
+           * something can make it STRONGER. buffsHolderOnHit compounds -- every hit makes the next
+           * worse -- while punishesAttacker is a flat toll you can pay. Opposite decisions, which is
+           * exactly why Will had them split into two tags.
+           *
+           * The order matters: the buff lands on a target that survived (checked above), and the
+           * attacker toll is paid whether or not the target survived, so it sits outside this else.
+           * Contact is read from the move's own flag via the linkage key rather than a name list. */
+          /* ROADMAP #101 -- AND THE CONDITION IS NOW READ. The block below applied `_buff.boosts` on
+           * EVERY connecting hit, because the tag carried WHAT the holder gains and never WHEN. That
+           * is a family that fails OPEN, which is the opposite of the pinch family WIRE 112 landed:
+           * nothing was missing, a WRONG ANSWER was being produced on every hit. Measured before a
+           * line changed, on one Knock Off into a 20x-HP Garchomp --
+           *     angerpoint  atk +6 on a NON-crit, and IDENTICAL on a crit  (an unwired knob)
+           *     justified   atk +1 off CLOSE COMBAT, a Fighting move
+           *     weakarmor   def -1 / spe +2 off DARK PULSE, a special move
+           *     stamina     def +1                                        (correct, and the control)
+           * Stamina is 2,773 of the family's 2,972 uses and carries `when: null`, which is exactly
+           * why nothing ever noticed the other eleven.
+           *
+           * `condHolds` is the same one reader ROADMAP #112 built; NULL means "this engine cannot
+           * evaluate that shape" and REFUSES the buff, counted. A guessed condition on a family that
+           * compounds is the boolean-in-a-fraction's-clothing defect with interest. */
+          const _buff=TAGS.param('ability',tg.ability,'buffsHolderOnHit');
+          /* `R.crit` IS PASSED RAW, NOT COERCED. `!!R.crit` would turn "the damage step never ran, so
+           * nobody knows" into a confident `false` and Anger Point would silently never fire again --
+           * the same silent default one shape over. condHolds refuses a non-boolean and counts it. */
+          const _bHit=_buff?{crit:R.crit,moveType:effMoveType(mv,a.move.id,field,m),
+                             category:mv.c==='P'?'Physical':mv.c==='S'?'Special':'Status',
+                             moveId:a.move.id}:null;
+          const _bw=_buff?condHolds(_buff.when,tg,_bHit):false;
+          if(_buff&&_bw===null){MEDFAILS.buffOnHitUnknownCond++;
+            if(!MEDFAILS.buffOnHitUnknownCondFirst)
+              MEDFAILS.buffOnHitUnknownCondFirst=String(tg.ability)+'/'+JSON.stringify(_buff.when);}
+          /* THE VOLATILE HALF, WHICH THE OLD GUARD DROPPED ENTIRELY. `_buff.boosts && tg.boosts` also
+           * refused every member whose payload is `gainsVolatile` -- electromorphosis (98 uses),
+           * windpower, perishbody.
+           *
+           * WIRE 157 -- `charge` IS NOW BANKED, BECAUSE IT NOW HAS A CONSUMER. The sentence that stood
+           * here ("this engine has no consumer for `charge`") was the honest reason to refuse it and it
+           * stopped being true one block down, in the base-power chain: a banked Charge doubles the
+           * holder's next ELECTRIC move, exactly as the move Charge itself has always been able to
+           * (`applyMoveVolatile` writes the same `_vol.charge`). Granting it without the consumer would
+           * have been a flag nobody reads; wiring the consumer without granting it would have left
+           * Electromorphosis and Wind Power dead. They land together.
+           *
+           * `perishsong` IS STILL REFUSED AND STILL COUNTED, and the reason is unchanged: the clock
+           * exists but its DURATION is carried by the MOVE's `perishClock` tag and no ability states
+           * one, so granting it would mean inventing the number. The counter therefore keeps meaning
+           * what it meant -- "buffs this engine owed and did not pay" -- for the members that are
+           * genuinely still owed, instead of covering one that is now paid. */
+          if(_buff&&_bw===true&&_buff.gainsVolatile&&!_buff.boosts){
+            if(_buff.gainsVolatile==='charge'&&tg.curHP>0&&!tg.fainted){
+              const _cv=(tg._vol=tg._vol||{});
+              /* `onRestart` re-announces and does NOT stack: the volatile is a boolean in Showdown
+               * (no duration, no layers), so a second hit re-banks the same one charge. */
+              const _had=_cv.charge>0;
+              _cv.charge=1;
+              MEDSEEN.chargeBanked++;
+              /* ROADMAP #234 -- `add('-start', pokemon, 'Charge', this.activeMove.name,
+               * '[from] ability: ' + effect.name)` (data/moves.ts charge condition onStart/onRestart).
+               * The MOVE THAT HIT is field 4 and the ability is field 5; the CHARGE MOVE's own line
+               * is the other branch of that same `if` and stays bare, which is why the two cannot
+               * share an emitter call. */
+              if(TR&&!_had)TR.vstart(tg,'Charge',a.move.id+'|'+ATTR.from(ATTR.ability(tg.ability)));
+            } else {
+              MEDFAILS.buffOnHitVolatileUnwired++;
+              if(!MEDFAILS.buffOnHitVolatileUnwiredFirst)
+                MEDFAILS.buffOnHitVolatileUnwiredFirst=String(tg.ability)+'/'+String(_buff.gainsVolatile);
+            }
+          }
+          /* ROADMAP #161 -- `!tg.fainted` IS THE AUTHORITY'S OWN FIRST LINE, sim/battle.ts:2026
+             (`if (!target?.hp) return 0`). It could not matter until this step began running for a
+             target that died to the hit; a Stamina body that faints does not get its Defence. */
+          if(_buff&&_bw===true&&_buff.boosts&&tg.boosts&&!tg.fainted){
+            /* The tag names the stats and the sizes, read from the handler's own this.boost({...}).
+             * Showdown spells them atk/def/spa/spd/spe; this engine uses at/df/sa/sd/sp. That map is
+             * a naming convention, not a mechanic, so it lives here rather than in the artifact.
+             * WIRE 84: once PER HIT, the same count the punish block uses -- Weak Armor off a
+             * Bullet Seed is -3/+6, not -1/+2. `compounds` is what the tag calls this and it is
+             * true for every member that reaches here. */
+            if(R.fxDone)MEDSEEN.buffOnHitAfterSecondaries++;
+            for(let _bh=0;_bh<_react;_bh++)for(const k in _buff.boosts){
+              const st=SD2ENG[k]; if(!st||tg.boosts[st]==null)continue;
+              const _b0=tg.boosts[st];
+              tg.boosts[st]=clamp(tg.boosts[st]+_buff.boosts[k],-6,6);
+              if(TR)TR.bst(tg,st,tg.boosts[st]-_b0,'[from] ability: '+tg.ability);
+            }
+          }
+        }
+      };
       /* `AfterHit` -- `if (moveData.onAfterHit && pokemon.hp)` at battle-actions.ts:953. The item
        * strip, moved out of `_stepApply` unchanged. Its own header there records WHAT it takes and the
        * three refusals; nothing about that moved. */
@@ -21688,6 +21926,11 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `tests/probe_red_demo.js` patches that exact line to revert WIRE 10's loop order, and a
        * second driver would silently stop that demonstration working. */
       let _selfPaid=false;
+      /* 2026-08-22 -- set by `_stepSelfPay` when it has answered the recharge question, so WIRE 43's
+       * block below the step list can tell "already armed at step 4" from "no row ever reached step
+       * 4" and only act in the second case. A plain `m._recharge` read would not do it: the SKIPPED
+       * branch arms nothing and still has to stop the backstop double-counting. */
+      let _rechargeArmed=false;
       const _stepSelfPay=()=>{
         if(_selfPaid)return; _selfPaid=true;
         {
@@ -21729,6 +21972,20 @@ function battleTurn(S,rng,actsForA,actsForB){
           for(const k in sdrop){const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null){const _b0=m.boosts[_st];
             m.boosts[_st]=clamp(m.boosts[_st]+sdrop[k]*sgn,-6,6);
             if(TR)TR.bst(m,_st,m.boosts[_st]-_b0);}}}
+        /* 2026-08-22 -- AND THE OTHER THING `selfDrops` APPLIES: `self: {volatileStatus:'mustrecharge'}`.
+         * WIRE 43's block far below this step list derived exactly that -- "the recharge is
+         * `self: {volatileStatus: 'mustrecharge'}` on the move, self effects are applied by
+         * `selfDrops`" -- and then armed it below `_stepFaint`, which is four steps too late. Cards 9
+         * and 28 of data/divergence-turns.json are the same Hyper Beam KO in two different games, with
+         * `|-mustrecharge|` and `|faint|` in opposite orders. The CONDITIONS are WIRE 43's, unchanged
+         * and uncopied in spirit: `_reached > 0` is "targets[i] !== false at the point selfDrops runs",
+         * which is the sentence that block already used to justify itself.
+         * It sits at the BOTTOM of this step because `selfDrops` calls `moveHit(source, source, ...)`
+         * and that applies the self boost table before the self volatile. */
+        if(!m.fainted&&_reached>0&&TAGS.has('move',a.move.id,'recharge')){
+          m._recharge=true;_rechargeArmed=true;MEDSEEN.rechargeArmedAtSelfDrops++;if(TR)TR.recharge(m);}
+        else if(!m.fainted&&TAGS.has('move',a.move.id,'recharge')){
+          MEDSEEN.rechargeSkippedNoTarget++;_rechargeArmed=true;}
       };
       /* ---- THE STEP LIST, IN SHOWDOWN'S ORDER, AND THE DRIVER UNDER IT ----------------------------
        *
@@ -21744,7 +22001,21 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _STEPS=[_stepInvuln,_stepTryHit,_stepTypeImm,_stepTryImm,_stepAccuracy,
                     _stepBreakProtect,                                   // ROADMAP #272 -- step 5
                     _stepDamage,_stepApply,_stepSelfPay,_stepEffects,
-                    _stepDamagingHit,_stepAfterHit,_stepFaint];
+                    _stepDamagingHit,_stepBuffOnHit,                  // 2026-08-22 -- ONE `DamagingHit`
+                    _stepAfterHit,_stepFaint,
+                    /* 2026-08-22 -- `-hitcount` IS BELOW THE FAINT, sim/battle-actions.ts:976-978:
+                     *     this.battle.faintMessages(false, false, !pokemon.hp);
+                     *     if (move.multihit && ...) this.battle.add('-hitcount', targets[0], hit - 1);
+                     * so the count is announced over a body the authority has already killed AND
+                     * already de-activated -- `Pokemon#toString()` (sim/pokemon.ts:531) writes
+                     * `p2: Azumarill` once `isActive` is false and `faintMessages` sets it false at
+                     * :2563. That is card 39 of data/divergence-turns.json, both halves at once:
+                     *     SHOWDOWN  |faint|p2a: Azumarill   |-hitcount|p2: Azumarill|2
+                     *     MEDICHAM  |-hitcount|p2a: Azumarill|2   |faint|p2a: Azumarill
+                     * The line used to be emitted inside `_stepApply`'s packet loop; the loop still
+                     * COUNTS there (`R.hitLanded`) because only it knows how many packets landed
+                     * before the volley stopped, and only the ANNOUNCEMENT moved. */
+                    _stepHitCount];
       /* ROADMAP #262 -- THE PER-TARGET HALF OF THE ADDRESS, IN THE ONE PLACE THE TARGET CHANGES.
        * `hitStepAccuracy` and `getSpreadDamage` both open with `this.battle.activeTarget = target`
        * inside their per-target loop, so the authority's address moves target by target within a
@@ -22188,8 +22459,23 @@ function battleTurn(S,rng,actsForA,actsForB){
        * invulnerability, type immunity, an absorbing ability and the accuracy roll all sit above it
        * in the step list. A MISS is therefore covered by the same clause; only the immunity arms are
        * measured above, because the harness pins the dice and cannot stage a miss. */
-      if(!m.fainted&&_reached>0&&TAGS.has('move',a.move.id,'recharge')){m._recharge=true;if(TR)TR.recharge(m);}
-      else if(!m.fainted&&TAGS.has('move',a.move.id,'recharge'))MEDSEEN.rechargeSkippedNoTarget++;
+      /* 2026-08-22 -- THE ARMING MOVED UP INTO `_stepSelfPay`, WHICH IS STEP 4, AND THIS SITE IS THE
+       * BACKSTOP FOR THE ROWS THAT NEVER REACHED A STEP AT ALL.
+       *
+       * The paragraph above is the reason: the recharge is `self: {volatileStatus:'mustrecharge'}` and
+       * self effects are applied by `selfDrops`, which is step 4 of `spreadMoveHit`
+       * (battle-actions.ts:1093). The whole step list -- including `_stepFaint`, which writes
+       * `|faint|` -- runs BELOW step 4, and this engine armed the recharge below all of it. Cards 9
+       * and 28 of data/divergence-turns.json are both that, on two different games:
+       *     SHOWDOWN  |-damage|p2a: Pelipper|0 fnt  |-mustrecharge|p1b: Sylveon  |faint|p2a: Pelipper
+       *     MEDICHAM  |-damage|p2a: Pelipper|0 fnt  |faint|p2a: Pelipper  |-mustrecharge|p1b: Sylveon
+       * `_rechargeArmed` is the flag the step sets, so a move whose rows all fell out above
+       * `_stepSelfPay` (nothing was aimed at, every target refused it) still reaches the counter here
+       * and the counter goes on meaning what it meant. */
+      if(!_rechargeArmed){
+        if(!m.fainted&&_reached>0&&TAGS.has('move',a.move.id,'recharge')){m._recharge=true;if(TR)TR.recharge(m);}
+        else if(!m.fainted&&TAGS.has('move',a.move.id,'recharge'))MEDSEEN.rechargeSkippedNoTarget++;
+      }
       /* WIRE 144 -- ARM THE LOCK-IN, and it is WIRE 43's neighbour because it is WIRE 43's mirror
        * image: both are `self: { volatileStatus: ... }` on the move, one spends the NEXT turn and this
        * one sells the next TWO.
@@ -23090,26 +23376,21 @@ function battleTurn(S,rng,actsForA,actsForB){
        * case -- a berry eaten in a group other than the one the old fixed call sat in -- so the change
        * proves it fired instead of being asserted. */
       if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
-      if(!m.fainted&&m.curHP>0){
-        const _foes=(actA.indexOf(m)>=0?actB:actA), _it0=m.item;
-        /* WIRE 14 -- healsAtThreshold, from the artifact instead of a Sitrus name check. The tag
-         * carries the threshold AND the restore as the handler states them ('1/2' -> '1/4'), so a
-         * future pinch berry joins by existing rather than by someone remembering.
-         * *(This said "Oran restores a FLAT 10 HP ... its param is honestly null and it stays unwired
-         * (0 uses)". True when written, and CLOSED 2026-08-10: `restoresFlat` is derived beside
-         * `restores`, so a flat heal arms the berry too.)*
-         * Under Heal Block the berry is not eaten AT ALL -- it is still there afterwards -- so the
-         * gate wraps the whole block rather than only the HP line.
-         * WIRE 58 -- UNNERVE, 1,949 sheets, stops the OTHER SIDE eating a berry at all, on the same
-         * whole-block rule. The side is found by identity because this walk covers both sides. */
-        berryPinchUpdate(m,_foes);   // ROADMAP #81 WIRE 7 -- one implementation
-        berryPPUpdate(m,_foes);      // ROADMAP #144 -- Leppa, on the same clock
-        if(m.item!==_it0){
-          MEDSEEN.residualBerryAte++;
-          if(_gi!==RESIDUAL_OLD_BERRY_GI)MEDSEEN.residualBerryAteOffOldSlot++;
-        }
-      }
     }
+    /* 2026-08-22 -- `eachEvent('Update')` HAS EXACTLY TWO POSITIONS IN THE AUTHORITY'S TURN END, AND
+     * "AFTER EVERY GROUP" IS NEITHER OF THEM. See `residualUpdatePass` for the derivation; this is
+     * the FIRST of the two. `sandstorm.onFieldResidual` (data/conditions.ts, no Champions override --
+     * `data/mods/champions/conditions.ts` declares no weather) is
+     *     this.add('-weather','Sandstorm','[upkeep]');
+     *     if (this.field.isWeather('sandstorm')) this.eachEvent('Weather');
+     * and `eachEvent` closes with `if (eventid === 'Weather' && this.gen >= 7) this.eachEvent('Update')`
+     * (sim/battle.ts:473-475). So a weather -- ANY of the four; sun and rain call it too and neither
+     * deals damage -- runs an Update at residual order 1, in the middle of the walk. THIS IS THE
+     * OVER-FIRE CONTROL FOR THE WHOLE CHANGE, and it was measured on the authority BEFORE the second
+     * pass was moved: a Snorlax taken to 121/235 by a Brave Bird and then to 107 by the sand chip eats
+     * its Sitrus BEFORE `|upkeep|` on both engines and the two streams agree line for line. Moving all
+     * berries below `|upkeep|` would have broken that. */
+    if(_G.has('weather')&&field.weather&&!field.wSup)residualUpdatePass(actA,actB,field,_gi);
     /* ROADMAP #242 -- AND THE SIDE AND FIELD CLOCKS OF THIS GROUP, AFTER ITS BODIES. A Side or a
      * Field has no speed, so `comparePriority`'s speed term (which sits BETWEEN order and subOrder)
      * puts every one of them below every body at the same order. It is called for EVERY group, not
@@ -23397,7 +23678,12 @@ function battleTurn(S,rng,actsForA,actsForB){
        * walked onto -- a Tailwind or a Trick Room that is already up counts, which is what
        * `getActionSpeed()` reads too. */
       for(const e of _arrived)e.spe=effSpeed(e.nx,field,e.act===actA?'A':'B');
-      _arrived.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field));
+      /* 2026-08-22 -- SAME COMPARATOR AS THE LEAD PASS, and this is the site card 5 of
+       * data/divergence-turns.json actually lands on: a double KO refills both sides at once and the
+       * authority coalesces the queued `runSwitch` actions into ONE `fieldEvent('SwitchIn')`
+       * (battle-actions.ts:175-184), which is why the two arrivals are sorted against each other at
+       * all rather than resolving in the order the bodies were placed. */
+      _arrived.sort((x,y)=>compareEntryOrder(x,y,field));
       for(let k=1;k<_arrived.length;k++)
         if(_arrived[k].spe===_arrived[k-1].spe)MEDFAILS.entryOrderTie++;
       for(const e of _arrived)runEntryPass(e.nx,e.foes,e.act,e.i,field);
@@ -23422,6 +23708,20 @@ function battleTurn(S,rng,actsForA,actsForB){
     receiverSweep([...actA,...actB]);
     traceSweep([...actA,...actB]);   // ROADMAP #310 -- same boundary, same reason
     if(_wipedAtResidual){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedAtUpkeep++;break _TURN;}
+    /* 2026-08-22 -- THE SECOND `eachEvent('Update')`, sim/battle.ts:2857-2859. See
+     * `residualUpdatePass` for the derivation. THREE THINGS ABOUT THIS POSITION ARE LOAD-BEARING and
+     * each is a line of the authority rather than a preference:
+     *   BELOW `|upkeep|`   -- `add('upkeep')` closes `case 'residual'` at :2814 and this is at :2858.
+     *   BELOW THE FAINTS   -- `faintMessages()` is at :2832. In this engine every residual faint is
+     *                         already announced inside the walk (`fieldEvent` runs `faintMessages()`
+     *                         after every handler, :565), so there is nothing left to drain here; the
+     *                         ORDER is what matters and a berry may not rescue a body already dead.
+     *   ABOVE `refill()`   -- the replacements are issued past this point (`makeRequest('switch')`,
+     *                         :2909), so the body that eats is the one that survived the turn and
+     *                         never the one that walked in after it.
+     * AND IT IS BELOW THE WIPE BREAK, which is `if (this.ended) return true;` at :2833 -- a residual
+     * that took a side's last body ends the battle and this Update never runs. */
+    residualUpdatePass(actA,actB,field,-1);
     refill();
     /* ROADMAP #310 -- AFTER the replacements walk in. `refill` is the one place a foe slot goes
      * from empty to occupied, which is the commonest way a Trace that found nothing gets a target. */

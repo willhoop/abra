@@ -119,6 +119,19 @@ const SOURCES = [
    * It is DERIVED — regenerate with `node engine/residual_order.js --write` — so freezing it does not
    * freeze a hand-typed order. It freezes WHICH derivation the run used, which is the point. */
   'data/residual-order.json',
+  /* THE SWITCH-IN PRIORITY TABLE, added 2026-08-22. Identical in kind to the residual table directly
+   * above and added for the identical reason: `medicham2-browser.js` builds `SWITCHIN_PRIORITY` from
+   * `data/switchin-order.json` and sorts every entering body with it, so the table is not
+   * documentation ABOUT the engine, it IS part of the engine — an entry order is a different battle.
+   * A release without it does not crash; it falls back to a speed-only sort and stamps
+   * `MEDFAILS.switchInPriorityTableMissing`, which is the loud direction, but a snapshot that plays a
+   * DIFFERENT entry order from the tree it claims to freeze is a photograph of something else.
+   *
+   * The escape check refused the cut before a single game was played against it — the second time
+   * that guard has caught a dependency at the cut rather than mid-flight (the first was
+   * residual-order.json). It is DERIVED — `SHOWDOWN_PATH=... node engine/switchin_order.js --write` —
+   * so freezing it freezes WHICH derivation the run used, never a hand-typed order. */
+  'data/switchin-order.json',
   'engine/mc_key.js',
   'engine/lookup.js',
   'engine/set_priors.js',

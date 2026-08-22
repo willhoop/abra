@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 24 unsafe, 1 void (declared), 100 possibly stale, 99 ok, 0 missing
+  provenance: 24 unsafe, 1 void (declared), 105 possibly stale, 95 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
@@ -29,13 +29,13 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED: Command failed: C:\Program Files\nodejs\node.exe C:\Users\willj\Projects\Pokemon\ABRA\engine\feature_fixture.js --check C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json | FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json |   the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 12). Old hashes cannot be compared; restamp after checking board.js.
-    moved after the fit: engine/medicham2-browser.js  2026-08-21 23:42
+    moved after the fit: engine/medicham2-browser.js  2026-08-22 00:53
     moved after the fit: engine/board.js  2026-08-19 19:52
     moved after the fit: data/engine-data.js  2026-08-10 18:59
-    moved after the fit: data/abra-tags.js  2026-08-19 18:41
+    moved after the fit: data/abra-tags.js  2026-08-22 00:49
 ```
 
-_stamped 2026-08-22 00:18_
+_stamped 2026-08-22 01:11_
 
 <!-- /GENERATED -->
 
