@@ -10,6 +10,60 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.65.0] — 2026-08-22
+
+### Added
+- **`docs/CARD-REVIEW-2026-08-22.md` is reconciled against the register, and 20 of the 21 non-retracted
+  findings had no row that said what the card said.** Will read 40 divergence cards by hand and found
+  ~20 distinct root causes in about an hour, where the automated class rollup over the same run yielded
+  none. The file said each finding was "destined for a ROADMAP row". **16 had no row at all**, and 4 had
+  only a CLOSED or adjacent row that does not carry the claim — B1 under #304, whose own cell names it
+  as the residue; B3 under #294; C2 and C3 under #324, which states in writing that none of its 119 rows
+  is a behavioural defect, and card 24 is the counterexample. Exactly one was properly covered: **E5 →
+  #328**, and that row has moved *past* the card, refuting the ordering framing with a control.
+- **22 rows filed, #329–#350** — 18 open defects, 2 closed with receipts, 2 carrying `NOT A DEFECT` in
+  the status cell because they were never probed (B4's sleep-draw addressing, E4's corpse in an active
+  slot). A row that overclaims is worse than a missing row.
+  - **C4 (Guard Dog) and the whole of section D were NOT filed**, because both were retracted in the
+    card review itself. A retraction re-entered as a defect is a fabricated bug. Guard Dog appears in
+    #341 only as the other ability carrying `onDragOut`, which is a fact about the mechanism.
+  - **F1 is confirmed closed, not assumed** — its receipt is commit `ff7a2bc` and its ROADMAP diff is
+    empty. **F4** is fixed and verified at `engine/explain_divergence.js:226`; no row filed, stated as
+    a judgement rather than left implicit.
+  - Recovered along the way and not on any card: **a failed Roost leaves the user Flying on the
+    authority and grounded here** — board-material, landed in `11bab14` with no row. Filed as #343.
+
+### Fixed
+- **`engine/status.js` and `engine/where.js` are both right about ROADMAP #318/#319, and one printed
+  sentence is false.** They ask different questions: `where.js --gates` asks *does the row NAME an
+  instrument* and reads `docs/ROADMAP.md` live, where both rows do; `openDefectClause` asks *is there a
+  VERDICT* and reads `data/register-reality.json`, where neither has one — that artifact was written at
+  02:33Z and commit `76e4a67` added the #318 row **38 minutes later**. The classification is correct;
+  the line *"assert breakage with NO instrument that decides them"* is a claim about the register while
+  the computation is about the artifact. **The gate should keep using the verdict artifact** — a row
+  that merely names a gate is not evidence. Filed as #350. **This is NOT #108**: same shape, different
+  pair (#108 is `status.js` vs `provenance.js`).
+- Second, independent cause on the same pair: `engine/register_reality.js`'s `SAFE` guard only runs a
+  plain `node <repo script>.js`, and the roster marker begins `SHOWDOWN_PATH=... node …`, so a fresh run
+  moves those two rows to `unrunnable` and never to `withRed`.
+
+### Notes
+- **The gate verdict did not move, and the reason matters:** `withRed` is the same 3 (#218, #241, #258),
+  but `data/register-reality.json` was NOT regenerated, so the artifact that decides the clause has not
+  seen any of the 22 new rows. It is **33 register rows behind**. Filing rows correctly does not open or
+  close a gate; re-running the verdict does, and that is owed.
+- Open rows went 16 → 34 and declared debt 13 → 31. The register holds 312 items, up from 292.
+  `tests/test-roadmap-register.js` green (3/3), `tests/test-docs-current.js` green.
+- **INCIDENT — the session scratchpad has a concurrent writer, and this is the second time.** A file the
+  agent created as `probe1.js` had been replaced by another agent's staged-board script, and the agent
+  executed it. No repo damage: `data/engine-release.json`'s mtime predates the run and nothing was
+  deleted. CLAUDE.md already records this exact hazard from an earlier session, where a leftover script
+  silently duplicated 191 lines of `docs/ENGINE.md` and printed a success message. **The standing rule —
+  execute nothing in the scratchpad you did not write this session — is not sufficient when a filename
+  you DID write this session is overwritten underneath you.**
+
+---
+
 ## [5.64.0] — 2026-08-22
 
 ### Fixed
