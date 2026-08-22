@@ -54,8 +54,17 @@ silently rewritten; what changed and why is stated.
 - **`board.js` DOES NOT SHARE IT — checked, not assumed.** Zero occurrences of `_pri`, no action queue,
   no turn loop; it already asks medicham2 for the fact through `D2.priorityRefusedAbove` and
   `D4.compareTurnOrder`. The legitimate-difference case, same shape as expected-vs-exact Speed.
-- **NEW ROW #316 — THREE `PASS` CLAUSES ARE MEASURING NOTHING.** `tests/roster.js` exits 1 on all three
-  stages at its FIXTURE AUDIT (88 of the first ~106 are `can't learn Focus Energy`), while
+- **NEW ROW #316 — THREE `PASS` CLAUSES ARE MEASURING NOTHING, AND THE CONTROL CLICK IS WHY.**
+  `tests/roster.js` exits 1 on all three stages at its FIXTURE AUDIT with ONE failing line — *"the inert
+  click focusenergy moves NO board leaf in either engine over 3 turns"* — immediately followed by *"ok —
+  and the two engines agree on all 288 leaves while doing it"*. **It is not an engine defect.** The roster
+  needs a control click that moves nothing so a board difference can be attributed to the entity under
+  test; Focus Energy applies `vol.focusenergy` and spends PP, **both leaves the comparator reads**. The
+  likely trigger is that the comparator got BETTER — once it began reading volatiles and PP, a click that
+  had always set a volatile stopped qualifying as inert. **The control did not change; the ruler did.**
+  *(This entry first reported "88 of the first ~106 are `can't learn Focus Energy`" — a subagent's
+  learnset diagnosis published without being checked. Measured directly, `can't learn` appears ZERO times
+  in any stage. Corrected same day.)* Meanwhile
   `quarantine.js` reports the three roster clauses as PASS off artifacts dated **2026-08-11**. **A green
   clause resting on a stale artifact is worse than a red one, because nothing about it looks wrong.**
   Three of the five clauses currently passing are in this state, so "5 of 8" overstates what is verified.
