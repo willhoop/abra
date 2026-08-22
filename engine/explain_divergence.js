@@ -223,7 +223,14 @@ for (const d of fd) {
     console.log('    they agreed for ' + d.agreed_lines + ' lines, then:');
   } else {
     console.log('    BOARD UNAVAILABLE — the artifact stores the divergent line, not the stream.');
-    console.log('    Re-run the differential with --explain to capture context. Lines only:');
+    /* THIS USED TO SAY "re-run the differential with --explain". THERE IS NO `--explain` FLAG IN
+     * game_differential.js AND THERE NEVER WAS — an instruction pointing at a feature nobody built,
+     * which is this repo's signature failure wearing prose. Corrected 2026-08-21 to name the two
+     * things that actually exist. */
+    console.log('    For the WHOLE game from both engines, replay it:');
+    console.log('      node engine/replay_one.js --release <id> --team-store data/team-pool-frozen');
+    console.log('           --games <the size the dump was run at> --arm <arm> --config <cfg> --seed "<seed>"');
+    console.log('    For a windowed HTML view of a dump: node engine/divergence_cards.js. Lines only here:');
   }
   console.log('');
   console.log('    SHOWDOWN   ' + (d.showdown || '(nothing)'));

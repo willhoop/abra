@@ -57,32 +57,13 @@ const esc = s => String(s == null ? '' : s)
  * A slot code is not a name and `140/170` is not a health bar. Every line is parsed into a shape a
  * person reads: WHO (side + species), WHAT (the event, in words), and HOW MUCH (a bar + percent). */
 const SIDE = { p1: 'yours', p2: 'theirs' };
-function who(tok) {
-  const m = /^(p[12])([ab]):?\s*(.*)$/.exec(String(tok || '').trim());
-  if (!m) return null;
-  const name = (m[3] || '').trim() || m[1] + m[2];
-  return { side: m[1], slot: m[2], name, label: name };
-}
-function hp(tok) {
-  const m = /^(\d+)\s*\/\s*(\d+)(.*)$/.exec(String(tok || '').trim());
-  if (!m) return null;
-  const cur = +m[1], max = +m[2];
-  return { cur, max, pct: max ? Math.round(cur / max * 100) : 0, tail: (m[3] || '').trim() };
-}
-/* the event, said in words rather than in protocol */
-const VERB = {
-  move: 'uses', switch: 'sends in', drag: 'is dragged in', faint: 'faints',
-  '-damage': 'drops to', '-heal': 'heals to', '-sethp': 'is set to',
-  '-status': 'is', '-curestatus': 'is cured of', '-immune': 'is IMMUNE', '-miss': 'misses',
-  '-fail': 'fails', '-crit': 'critical hit', '-resisted': 'resists', '-supereffective': "it's super effective",
-  '-boost': 'raises', '-unboost': 'lowers', '-start': 'gains', '-end': 'loses',
-  '-singleturn': 'braces with', '-activate': 'triggers', '-enditem': 'uses up',
-  '-item': 'reveals', '-ability': 'reveals', '-weather': 'weather', '-fieldstart': 'field',
-  '-fieldend': 'field ends', '-sidestart': 'side', '-sideend': 'side ends',
-  '-mega': 'MEGA EVOLVES', detailschange: 'becomes', '-formechange': 'becomes',
-  '-hitcount': 'hits', '-prepare': 'charges', '-transform': 'transforms into',
-  cant: "can't move", upkeep: 'end of turn', turn: 'turn',
-};
+/* THE VERB TABLE AND THE TWO FIELD PARSERS NOW LIVE IN engine/protocol_words.js, AND THIS FILE READS
+ * THEM RATHER THAN OWNING THEM. engine/replay_one.js needs the identical translation for a terminal,
+ * and CLAUDE.md's rule is that a FACT — what `-enditem` means in English — has one implementation
+ * while a RENDERING is per-caller. This file keeps the HTML; the words are shared. Behaviour here is
+ * unchanged: `VERB`, `who` and `hp` are byte-for-byte what they were, moved. */
+const WORDS = require('./protocol_words.js');
+const VERB = WORDS.VERB, who = WORDS.who, hp = WORDS.hp;
 
 /* WHO WAS IN THAT SLOT BEFORE — WILL, 2026-08-13: *"and include the clear switch ins"*.
  *

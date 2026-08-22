@@ -10544,3 +10544,89 @@ error") is now `exit 1`: a push that never lands is silent data loss, which is p
 **THE PROSE WAS WRONG TOO.** `status.js` printed *"collected hourly"* beside a file nothing was
 collecting into — the same present-tense-past-its-truth shape as the fourteen handoffs, the ban list of
 four, and the auto-commit. A gap read as a quiet day rather than as data loss.
+
+---
+
+## `null` VERSUS `false` WAS THE ROOT, AND TWO OF MY OWN FINDINGS WERE RAW-STREAM NOISE — 2026-08-22
+
+**Will read the 40 divergence cards one by one and found roughly twenty distinct root causes in about
+an hour.** The class rollup over the same run had them as *"`-fail` 7 games"* and *"ordering 29
+games"*. The full account is in [docs/CARD-REVIEW-2026-08-22.md](CARD-REVIEW-2026-08-22.md); this
+records what landed and what I got wrong.
+
+### THE FIX: a four-valued move result, and we modelled none of it
+
+Showdown documents it at `sim/battle-actions.ts:1156-1170`, and **three independent sites branch on
+it**. Between them they produce the missing `-fail` AND the spurious one:
+
+| site | value | the authority writes |
+|---|---|---|
+| `runMoveEffects :1303-1309` | `false` | `-fail` on the source + `attrLastMove('[still]')` |
+| same | `null` | **nothing** |
+| `forceSwitch :1358-1363` | `false` | `-fail` + `[still]` |
+| same | `null` (Suction Cups `onDragOut`) | **nothing** — the `-activate` is the whole story |
+
+**`null` means handled-stay-silent; `false` means failed-announce-it.** We were silent where we should
+speak (Encore, Yawn) and speaking where we should be silent (the phaze refusal) — one root, opposite
+symptoms. `applyMoveVolatile` now classifies every refusal as `VOLRES.FAIL` or `VOLRES.SILENT`, and a
+caller that cannot classify one **announces nothing**.
+
+**RED FIRST, 5 of 10 arms**: Encore into a body that has not moved; a second Encore onto the volatile
+it just made; Encore into a body whose last move was Encore — **that one was a STATE bug, we actually
+applied the Encore**; a second Yawn; and the phaze case running the other way. All 10 green, five
+counters at exact equality.
+
+**THE OVER-FIRE PROOF IS THE PART THAT MATTERS**, because over-firing is what got the previous attempt
+retracted. 355 games, pool pinned identically, arms differing only in `medicham2-browser.js`,
+**attributed by trace delta rather than by the tally**: of the 44 games whose first delta is our
+failed-move line, **0 agreed-then-parted**. The 3 that flipped are `MEGA_PREFER_B` parity that
+`driverReset()` does not clear. And each silent arm was shown red by the clause it defends — the
+obvious caricature (*"announce whenever the volatile did not apply"*) caught only **1 of 3**, which is
+why one plant is not enough.
+
+**Yawn does NOT fall out for free** and was wired at its own site, narrowly. **Its `onTryHit` half is
+deliberately left undone**: our `canTakeStatus` is wider than `runStatusImmunity` and includes
+Safeguard, where the authority is silent — announcing there is precisely the over-fire that cost the
+last attempt. A third defect fell out of the Yawn control: a Yawn a Protect turned away emitted
+nothing, and now writes `-activate`.
+
+**Roost was staged and NOT fixed.** We emit `|-fail|…|heal` correctly *and then also* the
+`-singleturn` — the authority emits neither, because `runMoveEffects` marks the target false and
+`selfDrops` skips false targets. **So a failed Roost leaves the user still Flying on the authority and
+grounded here** — board-material, on the hand list, one family per pass.
+
+### TWO OF MY FINDINGS WERE WRONG, AND THE REASON IS REUSABLE
+
+**A RAW-STREAM DIFFERENCE IS NOT A DIVERGENCE.** `game_differential.js`'s reducer carries ~20 declared
+rules, each with worked `equal`/`distinct` pairs, and it erases exactly what I had filed:
+
+- **`display-flags` (`:1623`)** strips `[silent]`, `[still]`, `[miss]`, `[spread]`, `[anim]`.
+- **`move-target-field` (`:1631`)** does `f.slice(0,4)` on any `|move|` line. **Its own `equal` example
+  IS the Mortal Spin case** — `|move|…|Rock Slide|p1b: Kingambit|[spread] p1a,p1b` is declared equal to
+  `|move|…|Rock Slide|p2b: Garchomp`, because who was actually hit lives in the `-damage` lines that
+  follow and a redirection bug is caught one line later.
+- The `-sidestart` rule (`:1620`) declares `|p1: A|Reflect` equal to `|p1: |move: Reflect`.
+
+So the missing `[spread]`, the different nominal target and the missing side name are **real in the raw
+stream and cannot cause a divergence**. Worth fixing for a human reading a card; for nothing else.
+
+**Worse, I sent the agent an urgent "critical refinement" arguing its fix would measure as no
+improvement because the `|move|` line differs one line before the `-fail`. That was false for the same
+reason, and the agent checked rather than believing me.** Two of twenty findings were noise because I
+read raw lines without reading the reducer that decides what counts.
+
+**The rollup's ranking is misleading twice over, both measured:** `max_uses` is the max over BOTH lines
+of a pair (its head read *"126,170 clicks, Protect"* when the missing line was Protean's typechange),
+and a species carries `uses: null` printed as **0**, so the Kingambit `fallen` family sat at the bottom
+of a usage-ordered list while covering **31.4%** of games.
+
+**ACTION: raise `--dump-games`.** We sampled 40 of 378 diverging games. A card costs a few hundred
+bytes; a missed root cause costs an evening.
+
+### ONE RELEASE CUT BY ACCIDENT
+
+`tests/test-effect-kind.js` requires `game_differential.js`, which **cuts a release into the real store
+at require time unless `--release` is in argv**. Run in a batch without the preload, it cut
+`a875091966c4`. Pointer restored to `6a05dd9ad60d`, `git status` clean, directory left in place. The
+new test now requires `tests/_live_release.js` itself when `--release` is absent, so `run-all.js` can
+spawn it bare without cutting anything.

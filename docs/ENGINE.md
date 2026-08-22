@@ -11,12 +11,14 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-volatile-duration.js`, `engine/divergence_shape.js`, `tests/test-end-state.js`,
 `tests/test-coverage-stop.js`, `tests/probe_volatile_leaves.js`, `tests/test-middle-identity.js`,
 `tests/test-middle-stall-address.js`, `tests/test-middle-draw-scope.js`,
-`tests/test-middle-damage-roll.js`, `tests/test-damage-roll-support.js`, `tests/test-bracket-regain.js`
+`tests/test-middle-damage-roll.js`, `tests/test-damage-roll-support.js`, `tests/test-bracket-regain.js`,
+`tests/test-encore-fail-silent.js`
 
-**Fourteen instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
-this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18 and
-"thirteen" until `test-bracket-regain.js` on 2026-08-21, and a number typed in prose beside a table is
-exactly what CLAUDE.md records going stale three times over.)*
+**Fifteen instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
+this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
+"thirteen" until `test-bracket-regain.js` on 2026-08-21 and "fourteen" until
+`test-encore-fail-silent.js` on 2026-08-22, and a number typed in prose beside a table is exactly what
+CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
@@ -33,6 +35,7 @@ exactly what CLAUDE.md records going stale three times over.)*
 | `test-coverage-stop.js` | does the run stop on COVERAGE rather than on a number somebody picked, and does a truncation announce itself | whether the coverage that was reached is enough; a stall is the rule firing, not proof the census is covered |
 | `test-middle-identity.js` | do the two engines NAME the same event — the address the middle arm's dice are keyed on, diffed over real games, per category, with the shapes that cannot match printed rather than averaged | whether either engine plays the game right; it compares the QUESTIONS asked, never the answers. And `nth`: two engines that take a different NUMBER of draws at one address line up on entry 0 and part after it — the size of that population is printed, not solved |
 | `test-bracket-regain.js` | can a priority bracket be REGAINED mid-turn, not just lost — one staged board, three arms, the authority's own `\|move\|` order as the expectation, and the heal receipt (`hp === maxhp`, landing BEFORE the re-sort) asserted rather than inferred | anything about a bracket nobody staged: it is ONE board carrying the format's ONE Gale Wings body, so it says nothing about Grassy Glide, Skill Swap or any other `ModifyPriority` input that can move mid-turn. And `bracketRederiveMoved` is corroboration, never the bar — it counts a bracket NOTICED, not APPLIED, and rises on a broken engine |
+| `test-encore-fail-silent.js` | does a move that FAILED say so exactly where the authority says so, and stay silent exactly where the authority stays silent — ten staged arms, four of them the defect and six of them the over-fire control, judged by two protocol streams with no typed expectation, plus five engine counters at exact equality | whether the refusal itself is right (both engines refusing for different reasons still agree here), and any member whose refusal this engine cannot classify as the authority's `false` or `null` — those are silenced by construction and counted, never guessed |
 | `test-nature-differential.js` | is the two engines' Pokemon the SAME Pokemon — chart, arithmetic, the sheet's declared nature reaching both sides, and the line surviving a mega mid-turn | whether either engine plays the game right; it compares BODIES, not turns. The SPREADS, permanently — an open team sheet does not show them |
 
 **Its one number:** mechanics live. **It must never go down.**
@@ -63,9 +66,360 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 273/291 probed, 18 unprobed
 ```
 
-_stamped 2026-08-21 22:45_
+_stamped 2026-08-22 00:18_
 
 <!-- /GENERATED -->
+
+## ROADMAP #241(3) — `null` MEANS "SAY NOTHING" AND `false` MEANS "ANNOUNCE IT", AND THIS ENGINE HELD ONLY ONE OF THEM. 2026-08-22.
+
+**Census 623 live / 0 missing -> 623 live / 0 missing.** No probe count moved and none could: every
+mechanic here was already LIVE and was saying the wrong thing about itself. The census was re-run as a
+REGRESSION check, compared row by row against the pinned bytes, and **restored byte-identical**
+(`80e648f34d56`) because the coordinator holds a census pin for the corpus re-run. Exactly one row's
+`detail` moved — `move::formatSecondaryChance`, the unseeded Monte-Carlo probe this ledger already
+records as not reproducible run to run. **Zero verdict changes; `armed`, `unarmed`, `directCall`,
+`threw` and `hollow` all identical.**
+
+### THE ROW, MEASURED, AND IT IS NOT A DIFFUSE `-fail` FAMILY
+
+`data/divergence-turns.json` at release `6a05dd9ad60d` — 40 cards off 378 diverged games. **18 of the
+40 are a `|-fail|` the authority emits and this engine does not.** Walking each card's `before_raw`
+back to the last `|move|` line, the move in front of that `-fail` is **encore x16, yawn x2**.
+
+### THE VERDICT: ONE DISTINCTION, THREE INDEPENDENT SITES, BOTH SYMPTOMS
+
+Showdown's move pipeline carries a four-valued result and its own comment spells it out
+(`sim/battle-actions.ts:1156-1170`): a number is damage, `undefined` is "carry on", **`false` is "it
+failed, say so"**, **`null` is "it ended, and a handler has already said whatever needed saying"**.
+Three separate sites read exactly that distinction, and between them they produce BOTH halves of what
+this row looked like:
+
+| site | the value | what the authority writes |
+|---|---|---|
+| `runMoveEffects` bottom, `:1303-1309` | `didAnything === false` | `-fail` on the SOURCE + `attrLastMove('[still]')` |
+| the same line | `didAnything === null` | nothing |
+| `forceSwitch`, `:1358-1363` | `hitResult === false` | `-fail` + `[still]` |
+| the same line | `null` (Suction Cups' `onDragOut`) | nothing — the ability's own `-activate` is the whole story |
+| `aromaveil.onAllyTryAddVolatile` (`data/abilities.ts`) | returns `null` after its own `-block` | nothing |
+
+So the missing `-fail` on Encore and the SPURIOUS `-fail` under a Suction Cups `-activate` are **one
+root**, and the fix is the distinction rather than either symptom. `applyMoveVolatile` now classifies
+every refusal it makes as `VOLRES.FAIL` or `VOLRES.SILENT`, a caller that cannot classify one
+announces NOTHING, and `mvFailSilent` is the third `-fail` shape beside `mvFail` and
+`mvFailAnnouncedByCaller` — the state write with no line at all.
+
+### THE 2026-08-12 RETRACTION'S LEAD WAS HALF WRONG, AND FOLLOWING IT WOULD HAVE RETRACTED THIS TWICE
+
+The retraction inside `medicham2-browser.js` guessed *"`_lastMove` being null here where Showdown's
+`lastMove` is set"*. `game_differential.js:3016-3032` was then built to ASK, and over 592 games the
+answer was **22 readings in 10 games, EVERY ONE THE OTHER WAY** — the authority holds none and this
+engine holds a move. The old gate did not over-fire on that; it fired on a one-bit flag
+(`_sealNoLastMove`) that could see ONE of Encore's five failure clauses. What is new here is the
+tri-state, not a wider trigger.
+
+### THE THREE CLAUSES ENCORE WAS MISSING, DERIVED
+
+**Champions overrides `encore`** (`data/mods/champions/moves.ts:286-320`) — mainline is the wrong file
+to read — and the mod rewrites only the SUCCESS path (`:303-318`, the action re-queue). The failure
+half is byte-identical to mainline, and this engine had one of its four clauses:
+
+| clause | citation | had it |
+|---|---|---|
+| `!target.lastMove` | `:292` | yes — the shared `volNeedsLastMove` guard |
+| `move.flags['failencore']` | `:297` | **no** |
+| `!moveSlot` — the move is not in the target's own slots | `:296-297` | **no** |
+| `moveSlot.pp <= 0` | `:297` | **no** |
+| already carrying the volatile | `sim/pokemon.ts:1994-1997`, a DIFFERENT layer, the same line | refused, unannounced |
+| `isZ` / `isMax` / `dynamax` | `:292`, `:297` | **excluded rather than unimplemented** — unreachable in Reg M-B |
+
+**MEMBERSHIP PRINTED BEFORE IT WAS WIRED.** `failencore` is read off `data/tags.json`'s
+`callRefusalFlags` (derived by `tag_dex` from each move's own flags), and over the legal table it
+selects exactly FIVE moves — **Encore, Copycat, Sleep Talk, Struggle, Transform** — which is the same
+five `Dex.forFormat(...).moves.all().filter(legal).filter(m => m.flags.failencore)` returns. The two
+were checked against each other rather than either being trusted. PP is asked through `ppLeft`, whose
+`null` means "this engine has no number" and is deliberately NOT zero.
+
+The `failencore` clause is a **state** bug as well as a narration one: measured on a staged board,
+this engine APPLIED an Encore into a body whose last move was Encore and wrote
+`-start|p2a: Whimsicott|move: encore` where the authority wrote `-fail`.
+
+### THE MOVE LINE, WHICH DECIDES WHETHER THE `-fail` IS WORTH ANYTHING
+
+`attrLastMove('[still]')` (`sim/battle.ts:3128-3134`) blanks field 4 — *"if no animation plays, the
+target should never be known"* — and appends the tag, so a failed Encore reads
+`|move|p1a: Whimsicott|Encore||[still]` on the authority against this engine's
+`|move|p1a: Whimsicott|encore|p2a: Garchomp`. The new site calls `TR.attrStill()` first and the raw
+line now matches. **It does not change any divergence count and that was checked rather than assumed:**
+`game_differential.js`'s reducer declares `display-flags` (`:1622-1628`, strips `[silent] [still]
+[miss] [spread] [anim]`) and `move-target-field` (`:1630-1640`, `f.slice(0, 4)` on a `|move|` line),
+so both halves are invisible to the comparator. The `[still]` is correctness for a HUMAN reading a
+divergence card — which is how this row was found — not a divergence the instrument can see.
+
+### THE OVER-FIRE PROOF, WHICH IS THE ONLY THING THAT MATTERS HERE
+
+The previous attempt was pulled for buying **four and six** extra diverging games. Two arms, 355 games,
+`--team-store data/team-pool-frozen`, pool digest `4b94804d900d` identical on both, one process per arm,
+the arms differing ONLY in `engine/medicham2-browser.js` (the git INDEX copy against the working tree).
+**Attributed by TRACE DELTA, not by the headline tally**, because the tally cannot be attributed:
+
+| the medicham stream | games | parted LATER | closed outright | **AGREED -> PARTED** |
+|---|---|---|---|---|
+| **byte-identical** | 290 | 0 | 0 | 0 |
+| **first delta is OUR failed-move line** | 44 | 35 | 8 | **0** |
+| first delta is a DIFFERENT BODY MEGA-EVOLVING | 21 | 5 | 1 | 3 |
+
+**Zero over-fires on every game this change touches.** The 3 that flipped from agreeing to parting all
+sit in the mega group: `MEGA_PREFER_B` (`game_differential.js:2074`) is a module-level parity toggle
+the driver alternates on every mega and `driverReset()` does not clear, so a game that megas a
+different number of times flips the parity of every game after it. Nothing in that group is the engine.
+
+Headline, for completeness and NOT as the attribution: 281 -> 275 diverged. Counters over the run:
+**65 `-fail` lines written** (57 of them the `!lastMove` clause, **1** from the new `onStart` clauses),
+0 `mvFailSilentNoLine`, 0 `yawnShieldAnnounced`.
+
+### TWO INSTRUMENT FAILURES WERE FOUND AND CLEARED BEFORE THE ENGINE WAS BELIEVED
+
+Both would have been reported as engine defects, and the FIRST reading of each looked exactly like one.
+
+1. **Two arms in one process do not play the same dice.** The first harness reloaded
+   `game_differential.js` twice with two engines. Run with the **same bytes in both arms** it reported
+   *25 diverged against 47, and 22 games "agreed then parted"* — an over-fire five times the
+   retraction's, manufactured entirely by the require cache retaining the driver's dependencies. Each
+   arm is now its own process.
+2. **`chooseAction` is COVERAGE-SEEKING and `CLICKS` accumulates across games.** With that state left
+   alone, 99 of 355 games differed between the arms and **only the first one differed for my reason**;
+   every other first-delta was a different SWITCH or MEGA. `driverReset()` (already exported, and the
+   driver says so itself beside `withFrozenDriver` — *"right for the swarm and fatal for a proof"*) is
+   now called per game.
+
+Three controls, each run at full scale: identical-bytes vs identical-bytes, `before` vs `before`, and
+`after` vs `after`. All three read **0 / 0 / 0 / 0** across 355 games with every game on the same line.
+
+### EVERY SILENT-SIDE ARM HAS BEEN SHOWN RED, AND ONE PLANT WAS NOT ENOUGH — WHICH IS THE FINDING
+
+The four RED arms were seen red before the fix. The silent arms had not been seen red at all, and an
+over-fire control nobody has watched catch anything is the same evidence the 2026-08-12 attempt had.
+So the guard was broken deliberately, in memory, against the snapshot's own bytes — and **the obvious
+single caricature caught 1 of 3**:
+
+| plant | what it removes | the arm that catches it |
+|---|---|---|
+| drop `_volFail===_landed` and `!_volSilent` | the `false`-vs-`null` distinction itself | Aroma Veil |
+| drop `!_volApplied` | "nothing succeeded" — a move that LANDED now announces a failure | the Encore that lands |
+| read `_tl.length` instead of `_landed` | targets NAMED instead of targets REACHED, so a Protect turns into a `-fail` | the Protect arm |
+
+*"Announce whenever the volatile did not apply"* — the shape the retracted line is a caricature of —
+left **two of the three green**, because a Protected target never reaches `_landed` at all and a
+successful Encore sets `_volApplied`. Three clauses, three arms, one plant each; all three agree on
+the clean engine. An anchor that does not match exactly once is a failure here, not a skip.
+
+### YAWN DOES NOT INHERIT THE ENCORE FIX, AND THAT IS A MEASUREMENT
+
+Yawn is 2 of the 18 cards and **it never touches `applyMoveVolatile`**: it has its own branch and keeps
+its counter in `_yawn` rather than in `_vol`. So the tri-state cannot reach it, and the already-drowsing
+refusal is wired at ITS site instead. Asserted rather than described — `volRefusedSilent` reads **1**
+across the ten staged arms, not 2, because the Aroma Veil arm goes through `applyMoveVolatile` and the
+Sweet Veil arm does not.
+
+**Yawn's `onTryHit` half is deliberately NOT done and the reason is Safeguard.** The authority's
+`if (target.status || !target.runStatusImmunity('slp')) return false` is a real `-fail` — but
+`runStatusImmunity` is types and abilities, while this engine's `canTakeStatus` is WIDER and includes
+Safeguard, which the authority applies the drowse through. Announcing on that clause would fire where
+the authority is silent, which is the exact over-fire that cost the last attempt.
+
+A third defect fell out of the Yawn silent-side control and was fixed with it: **a Yawn a Protect
+turned away emitted NOTHING**. Every other status route in the turn loop writes
+`|-activate|TARGET|move: Protect`; this branch read a bare `t.protect` as a silent conjunct. It now
+answers through `shieldRefuses`, which is the one place `ignoresProtect` lives.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — it is a test now:**
+- ~~Encore fails and this engine says nothing, and the one attempt at it was retracted the same day~~ —
+  `tests/test-encore-fail-silent.js`: ten arms, four of them RED before the fix, six of them staging a
+  case where the AUTHORITY IS SILENT, plus five engine counters at EXACT equality. Nothing in it
+  declares an expected line; both engines play one script and Showdown is the expectation.
+
+**Added, measured this pass and NOT fixed:**
+- **A FULL-HP ROOST APPLIES ITS VOLATILE HERE AND NOT ON THE AUTHORITY — a BOARD-MATERIAL defect, not
+  a narration one.** Staged (Corviknight at full HP, foes only Protect): this engine writes
+  `|-fail|p1a: Corviknight|heal` — the right line WITH the right reason token, from the ROADMAP #256
+  machinery — and then writes `|-singleturn|p1a: Corviknight|move: roost` under it. The authority
+  writes neither: `runMoveEffects` marks the target false at `sim/battle-actions.ts:1206` and
+  `selfDrops` skips false targets, so a failed Roost leaves the user **still Flying**. Here it loses
+  its Ground immunity for the turn. NOT TAKEN: one family per pass, and a type change is exactly the
+  kind of state move that would have made this pass's 44-game attribution unreadable.
+- **`mvFail` writes `[still]` at 5 of its ~50 call sites; the authority writes it at 10 of its 12.**
+  The two that do not are `[notarget]` (`sim/battle-actions.ts:463, 512`). Putting `attrStill()` inside
+  `mvFail` is the shared-machinery version of this fix and it is NOT landed here for two reasons, both
+  of them about being unable to measure it: the differential comparator strips `[still]` and the move
+  target field (above), so **no instrument in this repo can see the change**; and `TR._mvLine` is never
+  reset, so a `mvFail` from a site that wrote no move line this action would blank an EARLIER body's
+  target. It needs an instrument first.
+
+**Corrected, because it was quoted to this division as a finding:**
+- **There is no Roost card in `data/divergence-turns.json`.** Card index 13, cause
+  `event missing from medicham2 :: |-fail|p2b <> |move|p1a|roost`, is an **ENCORE** card: its
+  `before_raw` ends `|move|p2b: Ninetales|encore|p1a: Staraptor` against a Staraptor that had just
+  mega-evolved and not yet moved. The right half of a cause is OUR NEXT LINE, not the failing move —
+  `engine/gate_fail_and_silent.js` says so in as many words (*"the comparator lines the authority's
+  orphan against OUR NEXT LINE"*). Reading the right half as the subject turns 16 Encore cards into a
+  cast of unrelated moves.
+
+
+## ROADMAP #322 — THE `ordering` CLASS'S LARGEST FAMILY WAS ONE LINE AT ORDER 0 THAT THE AUTHORITY PUTS AT 107. 2026-08-21.
+
+**Census 623 live / 0 missing -> 623 live / 0 missing.** No probe count moved and none was expected
+to: this is a POSITION fix on a line the engine already wrote, so the mechanic was always LIVE and
+always in the wrong place. The census was re-run as a REGRESSION check, compared row by row against
+the pinned bytes, and **restored byte-identical** (`80e648f34d56`) because the coordinator holds a
+census pin for the corpus re-run. Exactly one row's `detail` string moved —
+`move::formatSecondaryChance`, 20.6% -> 19.2% — and it is an unseeded Monte-Carlo probe:
+`tests/test-mechanics.js:10390` passes `Math.random` into `battleTurn`, so its detail is not
+reproducible run to run. **Zero verdict changes.**
+
+### RANKING THE CLASS PROPERLY, AND THE TWO TRAPS THAT WOULD HAVE SENT THIS SOMEWHERE ELSE
+
+`node engine/divergence_report.js --class ordering --all` at release `6a05dd9ad60d`: **29 games, 28
+distinct causes.** It does not collapse into a handful of bugs. Its `BY SHAPE` rollup does:
+
+| games | causes | shape | uses |
+|---|---|---|---|
+| **5** | 5 | `switch` vs `-singleturn` — every one naming `focuspunch` | 18 |
+| **2** | 2 | `detailschange` vs `-singleturn` — the same | 18 |
+| 2 each | | `upkeep` vs `-enditem`, `-enditem` vs `faint`, `-enditem` vs `-damage` — a Sitrus Berry, three different timing questions, two pin-suspect | 20,595 |
+| 2 | 2 | `move` — Protect against Protect/Detect, both pin-suspect | 126,170 |
+| 2 | 1 | `-sideend` — Tailwind | 20,030 |
+
+**The charge family is 7 of 29 — the largest, and the only one that is ONE cause.** The Sitrus rows
+outrank it 1,100-to-1 on corpus usage and are at least three separate questions with two pin-suspects
+in them, so a result there could not have been attributed. `max_uses` ranks the head of this class at
+Protect on 126,170 clicks and that is the trap the previous pass recorded: it is the max over BOTH
+lines of a pair, and Protect is what one engine emitted INSTEAD.
+
+**AND #290's OWN PROBE COULD NOT SEE ANY OF IT.** `--order-probe` covers move-vs-move pairs only and
+says so; after the #311 bracket fix it reads 0 real disagreements while the class still stands at 29.
+Every one of these seven pairs is a move against a SWITCH or a MEGA.
+
+### WHAT WAS WRONG — A DECLARED POSITION THAT WAS HALF TRUE
+
+Showdown does not announce a charging move from a pre-pass. It queues a `priorityChargeMove` ACTION
+with an explicit order number (`sim/battle-queue.ts:174-197`):
+
+```
+runSwitch: 101,   switch: 103,   megaEvo: 104,   megaEvoX/Y: 104,
+runDynamax: 105,  terastallize: 106,
+priorityChargeMove: 107,
+shift: 200,       // default is 200 (for moves)
+```
+
+`resolveAction` inserts one in front of any move carrying a `priorityChargeCallback` (:242-248);
+`runAction` calls it (`sim/battle.ts:2736-2742`); for Focus Punch it is
+`pokemon.addVolatile('focuspunch')` (`data/moves.ts:6013-6015`) and the volatile's `onStart` writes
+`-singleturn` (:6024-6026). Champions overrides **none** of it — `data/mods/champions/moves.ts` has no
+`focuspunch` key at all, its `beakblast` is `{ inherit: true, basePower: 120, pp: 5 }` (:47-51), and
+`data/mods/champions/scripts.ts` contains no queue, no `resolveAction` and no order table. Checked
+both ways.
+
+This engine ran it from the WIRE 82 pre-pass above the action loop — order **0** — and ROADMAP #308's
+comment stated the position in as many words:
+
+> Measured on the authority: the line is written at the TOP of the turn, **above every `|move|`**,
+> which is exactly where this pre-pass runs.
+
+Above every `|move|` is TRUE. A pre-pass is above the SWITCHES and the MEGAS as well, and 107 is not
+0. **The measurement behind that sentence was real and it asked one question of two.**
+
+### THE FIX
+
+The stamp and the announcement both moved out of the pre-pass into `_chargePhase`, fired at the same
+trigger as the mega phase and strictly after it (104 then 107); what is left in the pre-pass is a
+CLEAR that names no move. Candidates sort by `compareTurnOrder`, not by the queue's order, because a
+charge action carries no priority at all — `getActionSpeed` runs its priority block only for
+`choice === 'move'` (`sim/battle.ts:2617`) — so `comparePriority` falls straight through to speed
+(`:404-410`), which under Trick Room means slowest first. The authority's `isActive`/`fainted` gate
+(`:2737-2738`) is mirrored and kept LOUD as `MEDFAILS.preTurnChargeSkippedOffField`.
+
+**THE MEGA PHASE RE-SORTS THE TAIL ON ITS WAY OUT AND THE AUTHORITY DOES NOT** — its post-action
+guard passes only when `peek()` is a `move`, and a queued `priorityChargeMove` is not one
+(`sim/battle.ts:2916`). That is not a divergence and the code says why: the re-sort changes the ORDER
+of `acts` and this phase reads only MEMBERSHIP, then sorts its own candidates itself.
+
+### THE PROOF
+
+`tests/test-precharge-order.js` — five arms, 83 checks, both engines playing one script, and every
+expected ORDER read out of SHOWDOWN's stream rather than out of the file. The authority's own relation
+is asserted FIRST in each arm, so a fixture that stopped staging the mechanic goes red instead of
+passing.
+
+| arm | staged | authority | this engine, before | after |
+|---|---|---|---|---|
+| **A** SWITCH | a slot switches while another clicks Focus Punch | `switch` then `-singleturn` | `-singleturn` then `switch` | matches |
+| **B** MEGA | the puncher mega-evolves | `detailschange`, `-mega`, then `-singleturn` | `-singleturn` first | matches |
+| **C** NEITHER | no switch, no mega | `-singleturn` above every `move` | already correct | unchanged |
+| **D** NEGATIVE | nobody charges; a Protect IS clicked | no charge line | none | none |
+| **E** BEAK BLAST | the tag's other member, behind a switch | `switch` then `-singleturn` | `-singleturn` first | matches |
+
+**RED TWICE, IN OPPOSITE DIRECTIONS.** Against the engine as it was: **9 failures**, arms A/B/E
+parting on the first line of the turn with `preTurnChargeSwitchesAhead` reading 0 against an expected
+1, and arms C and D **fully green** — the defect and nothing else. Against a deliberate
+over-correction (defer the phase one action further, `actIdx > 0` on the trigger): **arms B and C
+red**, the line landing BELOW the first move, while A and E stay green because their switch is action
+0. Restored byte-identical, sha256 `a5778e20323f0e00` before and after.
+
+**THE PROBE WAS WRONG BEFORE THE ENGINE WAS, AGAIN.** The first draft matched `move: Focus Punch`
+literally; `traceCanon` lowercases and strips spaces, so every arm reported `showdown=0` — which reads
+as a fixture that never staged the mechanic and was really a reader that could not see it. The matcher
+is now DERIVED by running a specimen line through the same canonicaliser, and two pre-flight checks
+assert a charge line and a Protect line stay distinguishable, because arm D rests entirely on that.
+
+**AND THE COUNTER THAT ALREADY EXISTED COULD NOT HAVE CAUGHT ANY OF IT.**
+`MEDSEEN.preTurnShieldAnnounced` counts LINES WRITTEN and read non-zero throughout — the line was
+always written, in the wrong place. Three counters that can see a POSITION were added and every arm
+asserts all three for EXACT equality, zeros included: `preTurnChargeSwitchesAhead` (switch ACTIONS
+already resolved), `preTurnChargeMegasAhead` (MEGA EVOLUTIONS already done), `preTurnChargePhaseRan`
+(TURNS in which somebody committed) — the third being what makes the zeros readable, since a phase
+that never fires reports `switchesAhead = 0` too.
+
+### TWO THINGS THIS PASS DID TO THE TREE THAT SOMEBODY ELSE HAS TO KNOW ABOUT
+
+- **`tests/test-game-diff.js` CUT A RELEASE INTO THE REAL STORE AND REPOINTED
+  `data/engine-release.json`** — `a7dfb5d2cd7d`, cut 2026-08-22T02:59:42Z with
+  `game_differential.js`'s own reason string, during an otherwise ordinary gate run. The file names
+  `game_differential.js` nowhere, so the require reaches it transitively and the guard the last pass
+  added (`tests/_live_release.js`) is not on it. **The pointer was restored to `6a05dd9ad60d` and
+  `git status` is clean on it**; the stray release directory is LEFT IN PLACE and reported rather than
+  deleted, and it holds a correct engine, not a broken one. `tests/probe_turn_order.js` and
+  `tests/test-speed-tie.js` have the same exposure and were run through
+  `node -r ./tests/_live_release.js` instead.
+- **`data/game-diff.json` and `data/docs-currency-baseline.json` are modified in the working tree** by
+  the gate runs above, not by hand.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — it is a test now:**
+- ~~The `ordering` class's largest family is a charge announcement in the wrong place and nothing
+  probes it~~ — staged and asserted in `tests/test-precharge-order.js` (5 arms, 83 checks,
+  authority-compared, shown red in two opposite directions).
+
+**Added, measured this pass and NOT fixed:**
+- **THE FAINT-TIMING FAMILY — the coordinator's read of the same 12 sampled rows makes it 4 of 12.**
+  This engine emits `|faint|` inline the instant HP reaches 0; the authority finishes the move's own
+  consequences first and batches faints afterwards (`-mustrecharge`, `-sidestart|…stealthrock`,
+  `-enditem|…fling` all land BEFORE the `faint` there), and on Final Gambit it faints the USER before
+  the TARGET where we do the reverse. `faintMessages()` in `sim/battle.ts` is the thing to read.
+  **NOT TAKEN, deliberately: one family per pass, so a bad result can be attributed.** It is the more
+  interesting of the two — a faint announced early shifts every later line, so it may be inflating
+  other classes as well.
+- **THE SITRUS BERRY TIMING GROUP — 6 games, 20,595 clicks, and it is at least three questions.**
+  `upkeep` vs `-enditem`, `-enditem` vs `faint`, `-enditem` vs `-damage|[from] recoil` and
+  `[from] lifeorb`. Two of the six are pin-suspect. Highest corpus exposure left in the class by a
+  wide margin, and the reason it was not taken is attribution, not size.
+
 
 ## ROADMAP #316 — THE ROSTER HAD NOT RUN FOR TEN DAYS, THE CONTROL NEVER CHANGED, AND THE COMMAND IN THE BRIEF WAS NOT ONE THE FILE READS. 2026-08-21.
 

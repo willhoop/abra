@@ -922,6 +922,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * mechanic that never fired is exactly the silent default this project keeps meeting. */
   formeCycled: 0, flingThrown: 0, flingRefused: 0, flingSpentAtUpdate: 0, flungBerryEaten: 0,
   preTurnShieldAnnounced: 0, preTurnShieldRefused: 0, sleepMoveUsedAsleep: 0, callMoveOwnRandom: 0,
+  /* ROADMAP #322 -- THE THREE THAT CAN SEE A POSITION, which `preTurnShieldAnnounced` cannot: it
+   * counts LINES WRITTEN and read non-zero for the whole period the line was written at order 0
+   * instead of order 107. `preTurnChargeSwitchesAhead` counts switch ACTIONS ALREADY RESOLVED when
+   * the charge phase fired, `preTurnChargeMegasAhead` counts MEGA EVOLUTIONS ALREADY DONE, and
+   * `preTurnChargePhaseRan` counts TURNS in which somebody actually committed a charging move. The
+   * first two were 0 in every arm before the fix, by construction. */
+  preTurnChargeSwitchesAhead: 0, preTurnChargeMegasAhead: 0, preTurnChargePhaseRan: 0,
   moveTrapAppliedBySecondary: 0, fairyLockSet: 0, fairyLockBlockedSwitch: 0, uproarUpkeepAnnounced: 0,
   trapBouncedBackAtUser: 0,
   beforeMoveGateSkippedExternal: 0, ppFreeOnCalledMove: 0, calledMoveTargetDrawn: 0,
@@ -942,6 +949,39 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   volDurationFromBoostTag: 0, perTurnVolatileBoost: 0, perTurnVolatileBoostEnded: 0,
   forcedBerryEaten: 0, forcedBerryEffectUnexpressed: 0, teatimeFieldPass: 0, stuffCheeksNoBerry: 0,
   volRestartRefused: 0, volSealNoLastMove: 0,
+  /* ROADMAP #241(3) -- `null` MEANS "HANDLED, SAY NOTHING"; `false` MEANS "FAILED, ANNOUNCE IT", and
+   * this engine had no way to hold the difference. See `VOLRES` beside applyMoveVolatile for the
+   * authority's own sites. Four counters, and each names a DIFFERENT noun on purpose, because three
+   * counters in this repo were caught in one day counting the wrong one:
+   *   volRefusedAnnounceOwed  REFUSALS classified as the authority's `false`. It counts refusals, not
+   *                           lines: a refusal on a target the move never reached, or on a move
+   *                           carrying a second payload, is still counted here and is NOT announced;
+   *   volRefusedSilent        REFUSALS classified as the authority's `null` -- Aroma Veil, which
+   *                           writes its own `-block` and then makes the move say nothing;
+   *   volFailLinesWritten     `|-fail|` LINES this rule actually put on the wire -- from the affect
+   *                           branch AND from the yawn branch, which is a separate site reaching the
+   *                           same authority line. It is the EMITTED-LINE count and nothing else, so
+   *                           it may be compared for EXACT equality against a staged arm's expected
+   *                           line count. It is deliberately NOT `volRefusedAnnounceOwed`: refusals
+   *                           and lines differ by every refusal the move-level gate suppresses, and
+   *                           counting one while claiming the other is how three counters in this
+   *                           repo went blind in a single day;
+   *   encoreRefusedByOnStart  Encore refusals that come from a clause of champions/moves.ts:292-299
+   *                           OTHER than the shared `!lastMove` guard -- failencore, the move not
+   *                           being in the target's slots, or that slot being out of PP. A zero here
+   *                           after a game with an Encore-into-an-Encore in it means the new clauses
+   *                           are unreachable, which is exactly how they would look if they were. */
+  volRefusedAnnounceOwed: 0, volRefusedSilent: 0, volFailLinesWritten: 0, encoreRefusedByOnStart: 0,
+  /* ROADMAP #241(3) -- FAILURES RECORDED WITH NO LINE AT ALL, because the authority's handler
+   * returned `null` and wrote its own. Counts CALLS to mvFailSilent -- i.e. `|-fail|` lines this
+   * engine used to write and no longer does -- and not refusals, and not turns. Today its only caller
+   * is the Suction Cups drag refusal. */
+  mvFailSilentNoLine: 0,
+  /* ROADMAP #241(3) -- `|-activate|TARGET|move: Protect` LINES the yawn branch wrote. It counts LINES
+   * EMITTED, not shields noticed and not yawns refused: before this the branch turned a shielded Yawn
+   * away with no line at all, so a zero here on a board with a Protect and a Yawn on it is the branch
+   * having gone silent again, not the shield having failed to matter. */
+  yawnShieldAnnounced: 0,
   /* ROADMAP #143 -- WHAT THE VOLATILE ANNOUNCED, four counters, because the four outcomes of the read
    * are four different claims and one number cannot tell them apart:
    *   volAnnounceFromTable       the artifact named an event this engine claims, and it was emitted;
@@ -1134,6 +1174,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* ROADMAP #322 -- a body that clicked a charging move and was no longer on the field, or was
+     fainted, when the charge phase reached it. The authority's own guard (sim/battle.ts:2737-2738),
+     kept LOUD: nothing between the top of the turn and order 107 can currently faint a body that
+     clicked a move, so a non-zero here names a door this reasoning did not cover rather than
+     silently dropping a shield. */
+  preTurnChargeSkippedOffField: 0,
   /* ROADMAP #241 -- a move whose own `-fail` names itself, asked of a tag record that carries no
      display name. Must read 0: `tag_dex` writes `name` on every record, so a non-zero means the
      artifact was regenerated without it and a three-field line silently became a two-field one. */
@@ -8343,6 +8389,20 @@ function mvFail(mon){ if(mon)mon._mvRes=false; if(TR)TR.fail(mon); }
  * the way a protocol line can. Changing it on a code read is exactly what this row's parent (#241)
  * got wrong twice on 2026-08-13. This function changes the LINE and nothing else. */
 function mvFailAnnouncedByCaller(mon){ if(mon)mon._mvRes=false; MEDSEEN.mvFailAnnouncedByCaller++; }
+/* ROADMAP #241(3) -- THE THIRD SHAPE: THE AUTHORITY SAYS NOTHING AT ALL, AND IT IS A SEPARATE
+ * FUNCTION FOR THE REASON `mvFailAnnouncedByCaller` IS ONE -- so a call site cannot silently lose a
+ * `|-fail|` it owes, or silently gain one it does not.
+ *
+ * `mvFailAnnouncedByCaller` is "one line reached the wire, and the TARGET carries it". This is "no
+ * `-fail` reaches the wire at all", which is what a handler returning **`null`** means:
+ *
+ *     } else if (hitResult === false && move.category === 'Status') {   // sim/battle-actions.ts:1358
+ *         this.battle.add('-fail', source);
+ *
+ * Suction Cups' `onDragOut` returns null, so a Roar it refuses leaves only the ability's own
+ * `-activate`. The state write is IDENTICAL to `mvFail`'s -- see the call site for why that half is
+ * deliberately unchanged. */
+function mvFailSilent(mon){ if(mon)mon._mvRes=false; MEDSEEN.mvFailSilentNoLine++; }
 function liveFoesOf(me){
   const _s=me&&me._sf, _S=_s&&_s._S;
   if(!_S)return [];
@@ -11006,6 +11066,83 @@ function statusMoveTargets(m,mvId,aTarget,it,actA,actB){
   return _tl;
 }
 
+/* ROADMAP #241(3) -- `null` IS NOT `false`, AND THIS ENGINE HELD ONLY ONE OF THEM.
+ *
+ * Showdown's move pipeline carries a FOUR-valued result, and its own comment (sim/battle-actions.ts
+ * :1156-1170) spells out what each one means: a number is damage, `undefined` is "nothing happened,
+ * carry on", **`false` is "it failed, say so"** and **`null` is "it ended, and a handler has ALREADY
+ * said whatever needed saying"**. `runMoveEffects` then reads exactly that distinction at the bottom
+ * (sim/battle-actions.ts:1303-1309):
+ *
+ *     if (!didAnything && didAnything !== 0 && !moveData.self && !moveData.selfdestruct) {
+ *       if (!isSelf && !isSecondary) {
+ *         if (didAnything === false) { this.battle.add('-fail', source);
+ *                                      this.battle.attrLastMove('[still]'); } } }
+ *
+ * `false` writes the line. `null` writes nothing. THE SAME RULE APPEARS AGAIN, VERBATIM, IN
+ * `forceSwitch` (:1358-1363) -- `hitResult === false` announces, `null` does not -- which is why one
+ * missing distinction produced BOTH halves of this row's symptom:
+ *
+ *   - MISSING `-fail`: Encore's `onStart` returns **false**, so `addVolatile` returns false, so
+ *     `didAnything` is false and the authority announces. This engine refused the volatile and said
+ *     nothing. 16 of the 40 divergence cards in data/divergence-turns.json.
+ *   - SPURIOUS `-fail`: Suction Cups' `onDragOut` returns **null**, so the authority emits its
+ *     `-activate` and stops. This engine emitted the `-activate` AND a `-fail` under it.
+ *
+ * So a refusal now says WHICH KIND it is, and a caller that cannot classify one announces NOTHING --
+ * the conservative direction, and the one the 2026-08-12 retraction was pulled for missing. It is
+ * carried on `opts.why` rather than on a module-level flag, so the only caller that can read it is
+ * the caller that asked. */
+const VOLRES={ FAIL:'fail', SILENT:'silent' };
+function volRefuse(opts,kind,reason){
+  if(kind===VOLRES.FAIL)MEDSEEN.volRefusedAnnounceOwed++; else if(kind===VOLRES.SILENT)MEDSEEN.volRefusedSilent++;
+  if(opts&&opts.why){opts.why.res=kind; if(reason)opts.why.reason=reason;}
+  return false;
+}
+/* ENCORE'S OWN `onStart`, THE THREE CLAUSES THIS ENGINE DID NOT HAVE. CHAMPIONS OVERRIDES `encore`
+ * (data/mods/champions/moves.ts:286-320) and the FAILURE half is byte-identical to mainline; what the
+ * mod rewrites is the SUCCESS path (it re-queues the target's action, :303-318). The clauses:
+ *
+ *     let move = target.lastMove;
+ *     if (!move || target.volatiles['dynamax']) return false;                            // :292
+ *     const moveSlot = target.getMoveData(move.id);                                      // :296
+ *     if (move.isZ || move.isMax || move.flags['failencore'] || !moveSlot || moveSlot.pp <= 0)
+ *         return false;                                                                  // :297-299
+ *
+ * `!move` is the shared `volNeedsLastMove` guard and stays there -- Disable refuses on the same read
+ * and the membership is derived. THIS function owns the three that are Encore's alone.
+ *
+ * `isZ`, `isMax` and `dynamax` are EXCLUDED RATHER THAN UNIMPLEMENTED: no Z-move, Max move or Dynamax
+ * exists in Reg M-B, so no legal board can reach those three clauses. Named here so the gap is a
+ * decision with a reason instead of an omission somebody rediscovers.
+ *
+ * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, as this file's rule requires. `callRefusalFlags` is derived
+ * by tag_dex from each move's own `flags` (every flag matching /^(no|fail)/ plus `charge`), and over
+ * the legal table `failencore` selects exactly FIVE moves: Encore, Copycat, Sleep Talk, Struggle and
+ * Transform. That is the same five `Dex.forFormat(...).moves.all().filter(legal).filter(m =>
+ * m.flags.failencore)` returns, checked against each other rather than either being trusted.
+ *
+ * PP IS ASKED THROUGH `ppLeft`, WHICH RETURNS `null` FOR "THIS ENGINE HAS NO NUMBER" -- and that is
+ * deliberately NOT zero. Its own header says so: treating an unknown as empty would refuse an Encore
+ * because the tagger had a gap, which is a silent default wearing a mechanic's clothes. Unknown means
+ * this clause does not fire. */
+function encoreOnStartRefusal(target){
+  const _lm=target&&target._lastMove;
+  if(!_lm)return null;                       // the shared volNeedsLastMove guard owns this one
+  const _crf=TAGS.param('move',_lm,'callRefusalFlags');
+  if(_crf&&Array.isArray(_crf.flags)&&_crf.flags.indexOf('failencore')>=0)return 'failencore';
+  /* `getMoveData(move.id)` walks the body's OWN slots, so a `lastMove` that is not on them -- a move
+   * called by another move, or one a transform has since taken away -- has no slot and Encore fails.
+   * `_pp` is consulted as well as `moves` because Mimic and Transform can put a slot on a body that
+   * `moves` does not list, which is the same reason `ppSpentMap` walks both. */
+  const _k=String(_lm).toLowerCase().replace(/[^a-z0-9]/g,'');
+  const _onBody=((target.moves||[]).some(x=>String(x).toLowerCase().replace(/[^a-z0-9]/g,'')===_k))
+              ||!!(target._pp&&(_k in target._pp));
+  if(!_onBody)return 'noslot';
+  const _pp=ppLeft(target,_lm);
+  if(_pp===0)return 'nopp';
+  return null;
+}
 function applyMoveVolatile(who,vol,src,mvId,field,opts){
   if(!who||!vol)return false;
   /* ROADMAP #212 -- THE SIDE'S VOLATILE VEIL, ASKED FIRST, AND AROMA VEIL IS WHY.
@@ -11025,7 +11162,11 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
      /* Showdown writes `-block|TARGET|ability: Aroma Veil|[of] HOLDER`, and `-block` is not in
       * TRACE_EVENTS -- counted rather than papered over with a `-fail`, exactly as applyStatus does. */
      MEDFAILS.blockLineUnannounced++;
-     return false;}}
+     /* AND THE MOVE ITSELF STAYS SILENT. `onAllyTryAddVolatile` returns **null** (data/abilities.ts
+      * aromaveil), so `addVolatile` hands null back out of its `TryAddVolatile` runEvent and
+      * `didAnything` is null -- battle-actions.ts:1305 never runs. This is the `null` half of the
+      * distinction, staged as its own arm in tests/test-encore-fail-silent.js. */
+     return volRefuse(opts,VOLRES.SILENT,'allyveil');}}
   /* ROADMAP #197 -- ATTRACT IS OWNED, exactly as substitute, confusion, partiallytrapped and
    * healblock are, and for the same reason: the generic write below would put a bare `_vol.attract`
    * on a body of ANY gender, which the authority refuses outright, and it would not record WHO the
@@ -11036,7 +11177,9 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
      this family declares `affectsFainted`. It sat unwritten while the effects step refused to run at
      all on a KO'd target; now that the step runs (see _stepEffects), the refusal has to be where the
      authority keeps it -- in the applier, so every caller inherits it. */
-  if(who.fainted||who.curHP<=0){ MEDSEEN.volRefusedOnFainted++; return false; }
+  if(who.fainted||who.curHP<=0){ MEDSEEN.volRefusedOnFainted++;
+    /* `return false` in the authority's own words, so the announcement is owed. */
+    return volRefuse(opts,VOLRES.FAIL,'fainted'); }
   /* WIRE 69 -- A MOVE-SEALING VOLATILE FAILS AGAINST A TARGET WITH NO LAST MOVE, and this
      guard has to come BEFORE the volatile is written. The first version sat two lines lower,
      after the assignment, so it skipped the bookkeeping and left the volatile on -- the pair
@@ -11054,8 +11197,18 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
      volatile; only one of them says so. `opts.why` is filled rather than a module-level flag being
      set, so the caller that asked is the only caller that can read it. */
   if(volNeedsLastMove(vol)&&!who._lastMove){ MEDSEEN.volSealNoLastMove++;
-    if(opts&&opts.why)opts.why.reason='nolastmove';
-    return false; }
+    return volRefuse(opts,VOLRES.FAIL,'nolastmove'); }
+  /* ROADMAP #241(3) -- AND THE THREE CLAUSES OF ENCORE'S `onStart` THAT COME AFTER `!lastMove`.
+   * See encoreOnStartRefusal for the citation and for why `isZ`/`isMax`/`dynamax` are excluded.
+   * IT IS GATED ON THE VOLATILE NAME, not on the seal family: Disable reads `lastMove` through its
+   * own `onTryHit` and does NOT ask any of these three, so sharing the guard would refuse Disables
+   * the authority applies -- the exact over-fire the 2026-08-12 retraction was pulled for.
+   * `failencore` was the live half: a Sableye whose last click was Encore took a second Encore here
+   * and refused it on the authority, and this engine wrote the volatile. */
+  if(vol==='encore'){
+    const _er=encoreOnStartRefusal(who);
+    if(_er){ MEDSEEN.encoreRefusedByOnStart++; return volRefuse(opts,VOLRES.FAIL,_er); }
+  }
   /* WIRE 152 -- A LAYERED VOLATILE IS OWNED, and the guard has to come ABOVE the no-restart rule
      three lines below, not below it. That rule is written for a DURATION -- a Taunt re-clicked on
      turn 2 must not refresh its clock -- and a layer counter is the exact opposite: being re-applied
@@ -11075,7 +11228,12 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
      per-turn volatiles that MUST be re-settable, and a blanket no-restart rule would have
      caught all four (docs/LESSONS §4 -- print what the rule matches before wiring it). */
   if(durationVolatiles().has(vol)&&who._vol&&who._vol[vol]>0){
-    MEDSEEN.volRestartRefused++; return false; }
+    MEDSEEN.volRestartRefused++;
+    /* ROADMAP #241(3) -- AND IT IS THE AUTHORITY'S `false`, SO THE ANNOUNCEMENT IS OWED. This is the
+     * second-Encore card: `sim/pokemon.ts:1994-1997` returns a bare false for a present volatile whose
+     * condition has no `onRestart`, which is the SAME value Encore's `onStart` returns and reaches
+     * `didAnything` by the same road. It is a different LAYER from onStart and the same LINE. */
+    return volRefuse(opts,VOLRES.FAIL,'alreadyon'); }
   /* ROADMAP #81 WIRE 7 -- THE SUBSTITUTE VOLATILE IS ALREADY OWNED, AND THIS LOOP WAS
      ANNOUNCING IT A SECOND TIME. `grantSubstitute` holds the doll's size, its failure rule
      and its `-start`; this generic path then wrote `_vol.substitute = 1` and emitted a
@@ -14173,22 +14331,13 @@ function battleTurn(S,rng,actsForA,actsForB){
      * priority action comes round, everything that could touch it has already gone.
      *
      * From `preTurnShield`, derived from Showdown's `priorityChargeCallback` plus the volatile's own
-     * onHit. No move is named here; `mode`, `trigger` and `status` all come out of the tag. */
-    for(const it of acts){
-      const _pid=it.a&&it.a.kind==='attack'&&it.a.move&&it.a.move.id;
-      const _pt=_pid&&TAGS.param('move',_pid,'preTurnShield');
-      it.mon._preTurn=_pt?{id:_pid,p:_pt,hit:false,hitSide:null}:null;
-      /* ROADMAP #308 -- AND IT SAYS SO. Both members' conditions open with
-       * `this.add('-singleturn', pokemon, 'move: <Name>')` (data/moves.ts:6025 for Focus Punch), which
-       * is the ONLY thing in the stream that distinguishes a turn where the punch was committed from
-       * one where it was not -- and this engine emitted nothing. Measured on the authority: the line
-       * is written at the TOP of the turn, above every `|move|`, which is exactly where this pre-pass
-       * runs. The event and the text are the condition's own, off the tag, so a third member arrives
-       * with its own line rather than with Focus Punch's. */
-      if(TR&&_pt&&_pt.announce&&_pt.announce.event==='-singleturn'){
-        TR.st1(it.mon,_pt.announce.desc); MEDSEEN.preTurnShieldAnnounced++;
-      }
-    }
+     * onHit. No move is named here; `mode`, `trigger` and `status` all come out of the tag.
+     *
+     * ROADMAP #322 -- AND "THE START OF THE TURN" IS NOT ZERO. IT IS ORDER 107. The stamp and the
+     * announcement both moved OUT of this pre-pass and into `_chargePhase` below; what is left here
+     * is a CLEAR, which names no move and is turn hygiene rather than the mechanic. See the header on
+     * `_chargePhase` for the order table and for the seven games this cost. */
+    for(const it of acts)it.mon._preTurn=null;
     /* WIRE 118 -- DYNAMIC SPEED. THE REMAINING ACTIONS ARE RE-SORTED BEFORE EACH ONE RESOLVES, which
        is what the official engine does after every action (sim/battle.ts, gen >= 8: "speed is updated
        dynamically so update the queue's speed properties and sort it"). Only the tail [i..] is
@@ -14361,7 +14510,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       MEDSEEN.queueResorted++;
       if(acts[from]!==_was)MEDSEEN.queueResortChangedOrder++;
     };
-    let _megaPhaseDone=false;
+    let _megaPhaseDone=false,_megasDone=0;
     const _megaPhase=(from)=>{
       if(_megaPhaseDone)return;
       _megaPhaseDone=true;
@@ -14400,7 +14549,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _run=_cand.filter(c=>c.want||!_asked.has(c.side));
       for(const c of _run)c.spe=effSpeed(c.mon,field,c.side);
       _run.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field));
-      for(const c of _run)if(megaEvolveNow(S,c.mon,!c.want))any=true;
+      for(const c of _run)if(megaEvolveNow(S,c.mon,!c.want)){any=true;_megasDone++;}
       if(!any)return;
       /* ROADMAP #240 -- THROUGH THE ONE TRIGGER, not a second copy of the sort. In the authority the
        * megaEvo actions sit at order 104 between the switches (103) and the moves (200), so the
@@ -14410,6 +14559,91 @@ function battleTurn(S,rng,actsForA,actsForB){
        * passes here too -- but it is ASKED rather than assumed, because an assumption that happens to
        * hold is how the two halves of #232/#240 came apart in the first place. */
       _resortTail(from);
+    };
+    /* ===== ROADMAP #322 -- THE PRE-TURN CHARGE PHASE, AT ORDER 107 ==============================
+     *
+     * WIRE 82 raised the shield and ROADMAP #308 gave it its line, and BOTH ran from a pre-pass above
+     * the action loop -- i.e. at order ZERO. #308's own comment said why: *"the line is written at the
+     * TOP of the turn, above every `|move|`, which is exactly where this pre-pass runs."* The first
+     * half of that is true and the second half does not follow. A pre-pass is above the SWITCHES too.
+     *
+     * THE AUTHORITY QUEUES IT AS ITS OWN ACTION WITH ITS OWN ORDER NUMBER (sim/battle-queue.ts:174-197):
+     *
+     *     runSwitch: 101,  switch: 103,  megaEvo: 104,  megaEvoX/Y: 104,
+     *     runDynamax: 105, terastallize: 106,
+     *     priorityChargeMove: 107,
+     *     shift: 200,      // default is 200 (for moves)
+     *
+     * `resolveAction` inserts a `priorityChargeMove` action in front of any move carrying a
+     * `priorityChargeCallback` (:242-248); `runAction` calls that callback (sim/battle.ts:2736-2742);
+     * for Focus Punch it is `pokemon.addVolatile('focuspunch')` (data/moves.ts:6013-6015) and the
+     * volatile's `onStart` writes `-singleturn` (:6024-6026). So the whole thing -- stamp AND line --
+     * sits BELOW the switches and the megas and ABOVE every move. Champions overrides none of it:
+     * `data/mods/champions/moves.ts` has no `focuspunch` key at all and its `beakblast` is
+     * `{ inherit: true, basePower: 120, pp: 5 }` (:47-51); `data/mods/champions/scripts.ts` contains
+     * no queue, no `resolveAction` and no order table. Checked both ways.
+     *
+     * IT COST SEVEN GAMES. `ordering` is 29 of the 133 diverging games at release `6a05dd9ad60d` and
+     * splits into 28 causes; grouped by shape, its LARGEST single family is this one line in the
+     * wrong place -- 5 games `switch <> -singleturn|focuspunch` and 2 games
+     * `detailschange <> -singleturn|focuspunch`, every one of them the same way round.
+     *
+     * ENTERED AT THE SAME TRIGGER AS THE MEGA AND STRICTLY AFTER IT, which is 104 then 107. The
+     * authority does NOT re-sort between them (its post-action guard passes only when `peek()` is a
+     * `move`, and a queued `priorityChargeMove` is not one -- sim/battle.ts:2916), while `_megaPhase`
+     * here re-sorts the tail on its way out. That is not a divergence: the re-sort changes the ORDER
+     * of `acts`, and this phase reads only MEMBERSHIP, then sorts its own candidates itself.
+     *
+     * ORDER 107 SORTS AMONG ITSELF ON SPEED ALONE. `getActionSpeed` runs its priority block only for
+     * `choice === 'move'` (sim/battle.ts:2617), so a charge action carries no priority at all and
+     * `comparePriority` falls straight through to `speed` (sim/battle.ts:404-410). Two bodies both
+     * committing on the same turn therefore announce fastest-first -- and slowest-first under Trick
+     * Room, which is why this goes through `compareTurnOrder`, the same comparator the mega phase and
+     * WIRE 118 use, rather than a bare speed sort.
+     *
+     * THE ACTIVE GATE IS THE AUTHORITY'S OWN, and it is LOUD rather than silent: `runAction` opens
+     * `if (!action.pokemon.isActive) return false; if (action.pokemon.fainted) return false;`
+     * (sim/battle.ts:2737-2738). Nothing between the top of the turn and 107 can currently faint a
+     * body that clicked a move, so a non-zero `preTurnChargeSkippedOffField` names a case this
+     * reasoning did not cover instead of quietly dropping a shield. */
+    let _chargePhaseDone=false;
+    const _chargePhase=(from)=>{
+      if(_chargePhaseDone)return;
+      _chargePhaseDone=true;
+      const _cand=[];
+      for(let k=from;k<acts.length;k++){
+        const it=acts[k];
+        if(!it||!it.mon)continue;
+        const _pid=it.a&&it.a.kind==='attack'&&it.a.move&&it.a.move.id;
+        const _pt=_pid&&TAGS.param('move',_pid,'preTurnShield');
+        if(!_pt)continue;
+        const _sideB=S.actB.indexOf(it.mon)>=0,_on=_sideB||S.actA.indexOf(it.mon)>=0;
+        if(!_on||it.mon.fainted||it.mon.curHP<=0){MEDFAILS.preTurnChargeSkippedOffField++;continue;}
+        _cand.push({mon:it.mon,id:_pid,p:_pt,side:_sideB?'B':'A'});
+      }
+      if(!_cand.length)return;
+      for(const c of _cand)c.spe=effSpeed(c.mon,field,c.side);
+      _cand.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field));
+      /* WHAT WAS ALREADY BEHIND US WHEN THIS FIRED -- the two counters that can see a POSITION, which
+       * is the thing `preTurnShieldAnnounced` structurally cannot: it counts LINES WRITTEN and read
+       * non-zero throughout the whole period the line was written in the wrong place. Everything in
+       * `acts` below `from` has resolved and is a bare switch by construction (`_pri >= 6`), and
+       * `_megasDone` is the mega phase's own success count. Both were 0 in every arm before this
+       * change; `tests/test-precharge-order.js` asserts them for EXACT equality, zeros included. */
+      let _sw=0;
+      for(let k=0;k<from;k++)if(acts[k]&&sdChoiceOf(acts[k].a)==='switch')_sw++;
+      MEDSEEN.preTurnChargeSwitchesAhead+=_sw;
+      MEDSEEN.preTurnChargeMegasAhead+=_megasDone;
+      MEDSEEN.preTurnChargePhaseRan++;
+      for(const c of _cand){
+        c.mon._preTurn={id:c.id,p:c.p,hit:false,hitSide:null};
+        /* ROADMAP #308's LINE, unchanged except for where it is written from. The event and the text
+         * are the condition's own, off the tag, so a third member of `preTurnShield` arrives with its
+         * own line rather than with Focus Punch's. */
+        if(TR&&c.p.announce&&c.p.announce.event==='-singleturn'){
+          TR.st1(c.mon,c.p.announce.desc); MEDSEEN.preTurnShieldAnnounced++;
+        }
+      }
     };
     /* ROADMAP #232 -- THE SHIELD FAMILY'S GATE, ASKED WHERE THE AUTHORITY ASKS IT.
      *
@@ -14503,6 +14737,10 @@ function battleTurn(S,rng,actsForA,actsForB){
     };
     for(let actIdx=0;actIdx<acts.length;actIdx++){
       if(!_megaPhaseDone&&acts[actIdx]&&(acts[actIdx]._pri||0)<6)_megaPhase(actIdx);
+      /* ROADMAP #322 -- 104 THEN 107. Same trigger as the mega phase, strictly after it: the first
+       * action that is not a bare switch is exactly "the switches are done", and the mega phase runs
+       * on the line above. See the header on `_chargePhase`. */
+      if(!_chargePhaseDone&&acts[actIdx]&&(acts[actIdx]._pri||0)<6)_chargePhase(actIdx);
       /* ROADMAP #240 -- the post-action re-sort, gated on the head of the live queue. `actIdx > 0`
        * because nothing has happened yet before the first action: the top-of-turn sort IS the
        * authority's `commitChoices` sort, and `runAction` has not run. See `_resortTail`. */
@@ -15844,11 +16082,15 @@ function battleTurn(S,rng,actsForA,actsForB){
            move every target refused reads 0 and is a move that did nothing -- which is what the old
            straight-line branch expressed by skipping the tail with a `continue`. */
         let _landed=0;
-        /* 2026-08-12 -- THE TWO HALVES OF "DID THE SEALER LAND", kept apart from `_landed` on purpose.
+        /* 2026-08-12 -- THE HALVES OF "DID THE SEALER LAND", kept apart from `_landed` on purpose.
            `_landed` counts BODIES THE MOVE REACHED and is read by Memento and by the `to:'user'`
            once-per-move rule; it is 1 for an Encore that reached a body and did nothing, which is the
-           right answer to its own question and the wrong one to this one. */
-        let _volApplied=false, _sealNoLastMove=false;
+           right answer to its own question and the wrong one to this one.
+           ROADMAP #241(3) -- `_volFail` REPLACES `_sealNoLastMove`, and the widening is the point: the
+           old flag could only see ONE of Encore's five failure clauses, so the second-Encore card and
+           the failencore card were invisible to it. These three now hold the authority's `didAnything`
+           for the volatile payload -- applied, `false` (announce), `null` (say nothing). */
+        let _volApplied=false, _volFail=0, _volSilent=0;
         for(const _t of _tl){
           /* A body that has left or died since the list was built. Nothing in this branch can faint a
              TARGET today -- Memento kills its user -- so this is a guard rather than a live path, and
@@ -15999,8 +16241,13 @@ function battleTurn(S,rng,actsForA,actsForB){
               const _vw={};
               const _vok=applyMoveVolatile(_who,_e.volatile,m,a.mv,field,
                 {alreadyMoved:!unresolved.has(_who)&&acts.some(x=>x.mon===_who),why:_vw});
+              /* A REFUSAL WITH NO CLASSIFICATION FALLS INTO NEITHER BUCKET, and that is deliberate:
+                 the announcement below requires `_volFail === _landed`, so an unclassified refusal
+                 (Substitute, confusion, a partial trap -- volatiles owned by another handler that
+                 return a bare false from here) silences it rather than being guessed at. */
               if(_vok)_volApplied=true;
-              else if(_vw.reason==='nolastmove')_sealNoLastMove=true;
+              else if(_vw.res===VOLRES.FAIL)_volFail++;
+              else if(_vw.res===VOLRES.SILENT)_volSilent++;
             }
           }
           _landed++;
@@ -16074,7 +16321,55 @@ function battleTurn(S,rng,actsForA,actsForB){
          * from the number above and a plumbed reason rather than from scratch. The likely place to
          * look is `_lastMove` being null here where Showdown's `lastMove` is set -- our move line also
          * carries a target field where the authority's failed Encore carries none and `[still]`. */
-        void _sealNoLastMove; void _volApplied;
+        /* ================= LANDED AGAIN 2026-08-22, ROADMAP #241(3), AND WHAT IS DIFFERENT =========
+         *
+         * THE RETRACTION ABOVE STANDS AS A RECORD AND ITS LEAD WAS HALF WRONG, which is worth saying
+         * before the new rule, because a wrong lead followed confidently is how this row would have
+         * been retracted twice. It guessed `_lastMove` null here where Showdown's is set. The driver
+         * was then taught to ASK (`lastMoveRows`, game_differential.js:3016-3032) and the answer over
+         * 592 games was 22 readings in 10 games, EVERY ONE THE OTHER WAY -- the authority holds none
+         * and this engine holds a move. So the old gate did not over-fire on THAT; it fired on a
+         * narrow flag and nothing here modelled the authority's tri-state at all.
+         *
+         * WHAT IS NEW IS THE TRI-STATE, not a wider trigger. `applyMoveVolatile` now classifies every
+         * refusal it makes as the authority's `false` (announce) or `null` (say nothing) -- see
+         * VOLRES -- and this site reproduces `runMoveEffects`' own bottom line rather than guessing
+         * from a flag. FIVE clauses have to hold, and each one is a case the previous attempt could
+         * not have expressed:
+         *
+         *   _landed > 0        SOMEBODY GOT PAST THE GAUNTLET. A Protect, a Magic Bounce or a Good as
+         *                      Gold removes the body from `targets` in `hitStepTryHitEvent` before the
+         *                      effects step runs, so the authority never reaches its `-fail` at all.
+         *                      This is the clause a blanket `if(!_landed) fail` gets exactly backwards.
+         *   _volFail===_landed EVERY reached body's volatile was refused with the authority's `false`.
+         *                      One `null` (Aroma Veil), or one refusal this engine cannot classify,
+         *                      and nothing is said.
+         *   !_volApplied       nothing succeeded. `didAnything` would be true.
+         *   !_volSilent        stated separately from the clause above rather than folded into it,
+         *                      because "no body was silenced" and "every body failed" are different
+         *                      claims and the day a spread sealer exists they come apart.
+         *   THE VOLATILE IS THE WHOLE MOVE  -- exactly one effect, aimed at the target, at 100%, and
+         *                      no `sc` stat payload. Showdown reads `didAnything` over the WHOLE
+         *                      effect list; a move whose boost could have landed is not a move that
+         *                      did nothing. Encore, Yawn, Disable, Taunt and Torment all pass this;
+         *                      a mixed sealer does not exist in this format and is left uncovered
+         *                      rather than assumed absent.
+         *
+         * AND THE MOVE LINE IS BLANKED FIRST. `attrLastMove('[still]')` (sim/battle.ts:3128-3134)
+         * empties field 4 -- "if no animation plays, the target should never be known" -- and appends
+         * the tag, so the authority's failed Encore reads `|move|p1a: Whimsicott|Encore||[still]`
+         * against this engine's `|move|p1a: Whimsicott|encore|p2a: Garchomp`. Emitting the `-fail`
+         * and leaving the move line alone would move the first divergence one line EARLIER instead of
+         * removing it. `TR.attrStill()` already reproduces the authority's splice exactly and four
+         * other failure sites in this loop already call it; this is the fifth. */
+        if(_landed>0&&_volFail>0&&_volFail===_landed&&!_volApplied&&!_volSilent&&!a.sc
+           &&((a.si&&a.si.effects)||[]).length===1
+           &&a.si.effects[0].volatile&&a.si.effects[0].to!=='user'
+           &&!(a.si.effects[0].chance<100)){
+          MEDSEEN.volFailLinesWritten++;
+          if(TR)TR.attrStill();
+          mvFail(m);
+        }
         continue;
       }
       /* WIRE 39 -- HAZE. BOTH SIDES, including the user's own, which is the whole shape of the move:
@@ -16407,7 +16702,22 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_rfs&&_rfs.refuses==='forcedSwitch'){
           MEDSEEN.forcedSwitchRefused++;
           if(TR&&_rfs.announces)TR.act(_t,'ability: '+_t.ability);
-          mvFail(m);m._lastMove=a.mv;continue;
+          /* ROADMAP #241(3) -- THE `-activate` AND NOTHING UNDER IT. The paragraph five lines up has
+           * said *"which is `onDragOut` returning null"* since ROADMAP #139 and the code did not
+           * honour it: `forceSwitch` writes the `-fail` only on the OTHER value --
+           *     } else if (hitResult === false && move.category === 'Status') {
+           *         this.battle.add('-fail', source); this.battle.attrLastMove('[still]');
+           *     }                                            (sim/battle-actions.ts:1358-1363)
+           * -- so a `null` from Suction Cups leaves the ability's own line as the whole story. This
+           * engine printed both, which is the MIRROR of the missing `-fail` this row is about and the
+           * evidence that one distinction was behind both.
+           *
+           * `_mvRes` IS LEFT EXACTLY AS IT WAS, and that is a scope decision rather than an oversight.
+           * `mvFailSilent` writes the same state `mvFail` did and emits no line, so this change is
+           * protocol-only. What the authority does to `moveThisTurnResult` on a `null` drag -- which
+           * is what Stomping Tantrum reads next turn -- was NOT staged in this pass, and the 2026-08-12
+           * retraction is what happens when a state change rides in on a narration fix. */
+          mvFailSilent(m);m._lastMove=a.mv;continue;
         }
         /* the `refusesStatusMoves` clause that stood in this conjunction is now the WIRE 241 gate
          * above, which announces it; leaving a second copy here would be the private-answer problem
@@ -17217,7 +17527,47 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _rf=tryHitRefusal(m,t,a.mv);
           if(_rf){announceTryHitRefusal(_rf,t);m._lastMove=a.mv;continue;}
         }
-        if(t&&!_vv&&!t.fainted&&!t.protect&&t._yawn==null&&canTakeStatus(t,'slp')&&!pranksterBlocked(m,t,a.mv))
+        /* ROADMAP #241(3) -- A SECOND YAWN INTO A BODY THAT IS ALREADY DROWSING FAILS, AND THE
+         * AUTHORITY SAYS SO. Yawn is 2 of the 18 `-fail`-and-silent cards and it does NOT inherit the
+         * Encore fix, because it never touches `applyMoveVolatile`: this branch owns it and keeps its
+         * counter in `_yawn` rather than in `_vol`. The road to the line is nevertheless identical --
+         * `volatileStatus: 'yawn'` (data/moves.ts; Champions does NOT override yawn, there is no
+         * `yawn` key in data/mods/champions/moves.ts), and `Pokemon#addVolatile` returns a bare
+         * **false** for a volatile already present with no `onRestart` (sim/pokemon.ts:1994-1997),
+         * which `runMoveEffects` turns into `-fail` + `[still]` at :1303-1309.
+         *
+         * THE CONJUNCTION IS SPLIT AND THE SET IT ADMITS IS UNCHANGED. It was one six-clause `&&`, so
+         * the branch could not say WHICH clause turned the yawn away -- and the clauses mean three
+         * different things to the authority. Every predicate is the same predicate and the apply path
+         * admits exactly the same bodies; what is new is that the already-drowsing clause now has a
+         * consequence.
+         *
+         * `canTakeStatus` IS DELIBERATELY LEFT SILENT, AND SAFEGUARD IS THE REASON. Yawn's
+         * `onTryHit(target) { if (target.status || !target.runStatusImmunity('slp')) return false; }`
+         * is a REAL `-fail` on the authority -- but it is `runStatusImmunity`, which is types and
+         * abilities, and `canTakeStatus` here is wider than that: SAFEGUARD is an `onSetStatus`, so a
+         * Safeguarded body takes the drowse in the authority and only fails the SLEEP two turns later.
+         * Announcing on this clause would therefore fire where the authority is silent -- the exact
+         * over-fire that got the 2026-08-12 attempt retracted. It is left undone and named, not
+         * assumed absent. */
+        /* AND THE SHIELD ANNOUNCES ITSELF HERE TOO, WHICH THIS BRANCH ALONE DID NOT DO. Every other
+         * status route in this loop writes `|-activate|TARGET|move: Protect` when a shield turns it
+         * away -- the affect branch, sharehp, phaze -- and this one read a bare `t.protect` as a
+         * silent conjunct, so a Yawn into a Protect emitted NOTHING where the authority emits the
+         * `-activate`. Found by this row's own silent-side control, which is what those controls are
+         * for. `shieldRefuses` rather than `t.protect` for the WIRE 151 reason: `ignoresProtect` is
+         * half of that fact and a second copy of the other half is how the two drift apart. */
+        if(t&&!t.fainted&&shieldRefuses(t,a.mv)){
+          if(TR)TR.act(t,'move: Protect');
+          MEDSEEN.yawnShieldAnnounced++;
+          m._lastMove=a.mv;continue;
+        }
+        const _yBlocked=!t||_vv||t.fainted||t.protect||pranksterBlocked(m,t,a.mv);
+        if(!_yBlocked&&t._yawn!=null){
+          MEDSEEN.volFailLinesWritten++;
+          if(TR)TR.attrStill();
+          mvFail(m);
+        } else if(!_yBlocked&&canTakeStatus(t,'slp'))
           /* +1 because the end-of-turn tick below fires on the APPLICATION turn too. Without it a
              delay of 1 puts the target to sleep on the turn Yawn was clicked, which is a turn early
              and turns a telegraphed threat into an instant one. Same correction the sealsMoves wire

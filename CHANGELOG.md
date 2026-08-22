@@ -10,6 +10,96 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.59.0] — 2026-08-22
+
+### Fixed
+- **`null` MEANS "SAY NOTHING" AND `false` MEANS "ANNOUNCE IT", AND MEDICHAM2 HELD ONLY ONE OF THEM
+  (ROADMAP #241 part 3).** **18 of the 40 cards** in `data/divergence-turns.json` are a `|-fail|` the
+  authority emits and this engine does not, and walking each card's `before_raw` back to the last
+  `|move|` line the move in front of it is **encore x16, yawn x2**. Showdown's move pipeline carries a
+  four-valued result and says so in its own comment (`sim/battle-actions.ts:1156-1170`); three separate
+  sites branch on it — `runMoveEffects` (`:1303-1309`), `forceSwitch` (`:1358-1363`) and Aroma Veil's
+  `onAllyTryAddVolatile`, which returns `null` after writing its own `-block`. That single missing
+  distinction produced **both** symptoms at once: a MISSING `-fail` on a refused Encore, and a SPURIOUS
+  `-fail` printed under the `-activate` of a Suction Cups body refusing a Roar. `applyMoveVolatile` now
+  classifies every refusal it makes as the authority's `false` or its `null`, and a caller that cannot
+  classify one announces nothing.
+- **Encore had one of its four failure clauses.** Champions overrides `encore`
+  (`data/mods/champions/moves.ts:286-320`) and rewrites only the SUCCESS path, so the failure half is
+  mainline's: `!target.lastMove` (had it), `move.flags['failencore']`, the move not being in the
+  target's own slots, and that slot being out of PP (none of the three). `failencore` is read off
+  `data/tags.json`'s derived `callRefusalFlags` and selects exactly five legal moves — Encore, Copycat,
+  Sleep Talk, Struggle, Transform — checked against `Dex.forFormat` rather than either being trusted.
+  This half was a STATE bug as well as a narration one: staged, the engine APPLIED an Encore into a
+  body whose last move was Encore. `isZ`/`isMax`/`dynamax` are excluded with a reason rather than left
+  unimplemented — no legal Reg M-B board reaches them.
+- **A second Yawn into a body already drowsing now fails and says so, and a Yawn a Protect turned away
+  now writes the `-activate` it always owed.** Yawn does NOT inherit the Encore fix — measured, not
+  assumed: it has its own branch and keeps its counter in `_yawn` rather than in `_vol`, so it never
+  touches `applyMoveVolatile`. Its `onTryHit` half (already statused / immune to sleep) is deliberately
+  NOT done, because this engine's `canTakeStatus` is wider than the authority's `runStatusImmunity` and
+  includes Safeguard, where the authority is silent.
+
+### Added
+- **`tests/test-encore-fail-silent.js`** — ten staged arms, four RED before this change, **six staging
+  a case where the AUTHORITY IS SILENT** (an Encore that lands, an Encore a Protect turned away, an
+  Encore an Aroma Veil blocked, a Yawn a Protect turned away, a Yawn a Sweet Veil blocked, and the
+  Suction Cups drag that runs the other way). Nothing declares an expected line; both engines play one
+  script and Showdown is the expectation. **That balance is the point**: the 2026-08-12 attempt at this
+  row passed a test that only proved the line APPEARS and was retracted the same day for manufacturing
+  four and six diverging games.
+- **Five engine counters, each asserted at EXACT equality and each naming a different noun**:
+  `volFailLinesWritten` (LINES put on the wire), `volRefusedAnnounceOwed` and `volRefusedSilent`
+  (REFUSALS classified, which differ from lines by every refusal the move-level gate suppresses),
+  `encoreRefusedByOnStart` (refusals from a clause other than the shared `!lastMove` guard) and
+  `mvFailSilentNoLine` (`-fail` lines this engine used to write and no longer does).
+
+### Changed
+- **`mvFailSilent` is a third `-fail` shape beside `mvFail` and `mvFailAnnouncedByCaller`** — the state
+  write with no line at all — and it is a separate function for the same reason its sibling is: so a
+  call site cannot silently lose a `|-fail|` it owes, or silently gain one it does not.
+
+### Notes
+- **THE OVER-FIRE PROOF, WHICH IS WHAT THIS ROW ACTUALLY TURNED ON.** Two arms, 355 games, team pool
+  pinned to `data/team-pool-frozen` with digest `4b94804d900d` identical on both, one process per arm,
+  the arms differing only in `engine/medicham2-browser.js`. Attributed by TRACE DELTA rather than by
+  the headline tally: **290 games byte-identical**, **44 games whose first delta is our failed-move
+  line — 35 parted later, 8 closed outright, and ZERO that went from agreeing to parting**, and 21
+  whose first delta is a different body mega-evolving. All three AGREED-to-PARTED games sit in that
+  last group: `MEGA_PREFER_B` is a module-level parity toggle `driverReset()` does not clear.
+- **Every silent-side arm has been shown RED by the clause it defends, and one plant was not enough.**
+  The guard was broken deliberately in memory, three ways. *"Announce whenever the volatile did not
+  apply"* — the shape the retracted line is a caricature of — caught only **1 of the 3** silent arms,
+  because a Protected target never reaches `_landed` and a successful Encore sets `_volApplied`.
+  Dropping the false/null distinction is caught by the Aroma Veil arm, dropping `!_volApplied` by the
+  Encore that lands, and reading targets NAMED instead of targets REACHED by the Protect arm.
+- **Two instrument failures were found and cleared before the engine was believed, and each first read
+  as an engine defect.** A harness holding two arms in ONE process reported *25 diverged against 47 and
+  22 games "agreed then parted"* **with the same bytes in both arms**. And `chooseAction` is
+  coverage-seeking off a `CLICKS` map that accumulates across games, so without `driverReset()` per
+  game 99 of 355 games differed and only the FIRST differed for the right reason. Three full-scale
+  controls now read 0/0/0/0.
+- **The 2026-08-12 retraction's lead was half wrong and is corrected rather than deleted.** It guessed
+  `_lastMove` null here where Showdown's is set; `game_differential.js:3016-3032` was built to ask, and
+  over 592 games the answer was 22 readings in 10 games, every one the OTHER way.
+- **The mechanics census did not move: 623 live / 0 missing, before and after.** Re-run as a regression
+  check, compared row by row, and **restored byte-identical** (`80e648f34d56`) because the corpus pin is
+  held elsewhere. One `detail` string moved — the unseeded Monte-Carlo `formatSecondaryChance` probe.
+- **Measured and NOT fixed, on the hand list**: a full-HP Roost applies its volatile here and not on the
+  authority, so a failed Roost loses its user's Flying type for a turn where Showdown keeps it
+  (`sim/battle-actions.ts:1206` marks the target false and `selfDrops` skips false targets). One family
+  per pass, and a type change would have made this pass's 44-game attribution unreadable.
+- **Correction to a reading quoted into this work**: there is no Roost card in
+  `data/divergence-turns.json`. Card 13 is an ENCORE card — the right half of a cause is OUR NEXT LINE,
+  not the failing move, exactly as `engine/gate_fail_and_silent.js` states.
+- **An unintended release, reported rather than hidden.** `tests/test-effect-kind.js` requires
+  `engine/game_differential.js`, which CUTS a release at require time unless `--release` is on the
+  command line, and it was run in a batch without the `tests/_live_release.js` preload. Release
+  `a875091966c4` was cut into `data/releases/` at 04:05:15Z. The pointer has been restored to
+  `6a05dd9ad60d` and `git status` is clean on `data/engine-release.json`; **the directory is LEFT IN
+  PLACE and reported, not deleted** — it holds a correct engine, and an untracked file is
+  unrecoverable.
+
 ## [5.58.0] — 2026-08-22
 
 ### Fixed
