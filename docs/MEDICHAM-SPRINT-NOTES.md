@@ -11186,3 +11186,73 @@ faint-order defect and is left open because its authority site sits above the Pr
 change with unmeasured blast radius. The reason is real. **It is still a red arm being carried, which
 CLAUDE.md bans by name:** fixed in the session that saw it, or waived by Will out loud. **It has not
 been waived**, and it is written here so it cannot quietly become "one of the known failures".
+
+### THE SCHEDULER STOPS REDEFINING THE ENGINE (MEASURE, promote step)
+
+Will was asked and chose the promote step. `.github/workflows/ingest.yml` now derives to
+`data/move-priors.observed.json` at both call sites; `node engine/policy.js --promote` lands it on
+`data/move-priors.json` and prints what it does to the engine. **`SOURCES` is untouched** — no
+release changes meaning, no snapshot loses a file. It is the pattern `data/residual-order.json` and
+`data/switchin-order.json` already use.
+
+Today's transition, re-measured as a dry run that wrote nothing (frozen `32f9ef1687d7` -> live
+`e667fe8ab457`): 259 of 345 species, 1,477 of 2,712 move cells, 36 pool-membership cells over 18
+species, 3 modal flips, 4 lead-modal flips, `protectOdds` on 196 species, mean |delta| 0.00397.
+**Correction to 5.69.0's Notes: "4 modal-move flips" is 3 modal and 4 LEAD, two distributions.**
+
+The dangerous half was the workflow, not the engine: a `git add` on a path that matches nothing exits
+1 under `bash -e` and the commit never happens — the 24-day failure. The staging list is now walked
+and a missing entry is a `::warning::`. `tests/test-policy-promote.js` extracts that block from the
+workflow and RUNS it in a throwaway repo; with the tolerant form removed it reports the pathspec error
+and, once the path is tracked, that a failed derivation would commit the artifact's DELETION.
+
+Shown red on four deliberate breaks, one per guard. The guards overlap: with every explicit refusal
+deleted, the shrink band alone still refused the blank, the unparsable and the zero-cell fixtures, so
+an arm asserting only a non-zero exit proves nothing. Each arm asserts its own REASON now.
+
+
+---
+
+## 2026-08-22 — THE SCHEDULER NO LONGER WRITES THE ENGINE (5.70.0)
+
+`data/move-priors.json` is one of the 26 frozen engine SOURCES and a six-hourly cron was rewriting it.
+It genuinely changes a board — `set_priors.js` `movePriors()` → `sampleMoves()` is called from
+`champions_sim.js:203` inside `packTeam()` and decides which moves an unrevealed set is filled with, on
+the team the SHOWDOWN REFERENCE engine plays — so it belongs in SOURCES. Only the *writer* was wrong.
+
+It bit twice in four hours: it withheld a correct roster re-measurement (157 → 5), and it made a
+same-seed differential re-run walk a different sample (`skipped_multihit` 170 vs 154).
+
+Now: the workflow derives `data/move-priors.observed.json`; `engine/policy.js --promote` lands it and
+prints the delta. `SOURCES` untouched, no release changes meaning.
+
+### THE INGEST PROOF WAS RUN, NOT ARGUED, AND THE NAIVE RENAME WOULD HAVE KILLED IT
+
+The test extracts the workflow's staging block and executes it in a throwaway repo. 9/9 stage; a
+missing untracked path warns and the other 8 still stage; a tracked-then-missing path does NOT stage a
+deletion. **With the tolerant form removed it reports `fatal: pathspec … did not match any files` and
+`A FAILED DERIVATION WOULD COMMIT THE DELETION`** — the obvious rename would have stopped the ingest on
+its first run, in the exact 24-day shape that hid this problem to begin with.
+
+### THE REFUSAL IS THE GOOD KIND
+
+It declined to actually promote today: the local plain store is 5 ingest-hours behind the `.gz`, and a
+local derivation reproduces the 06:22Z table bit-for-bit, so promoting would have moved the engine
+**backward**.
+
+### AN ARM THAT ONLY CHECKS THE EXIT CODE PROVES NOTHING
+
+Shown red on four deliberate breaks, one per guard — and the finding is that arms asserting only a
+non-zero exit **passed with their own guard deleted**, because the shrink band covered for them. Each
+arm now matches a phrase unique to its own refusal. That is the same shape as a green test asking
+nothing, one level down.
+
+### AND AN ILLEGAL SPECIES WAS SITTING IN THE CODE
+
+`engine/policy.js:364` printed `amoonguss` in a human-peek block. Derived: `isNonstandard: "Past"`,
+`tier: "Illegal"`, where `whimsicott` / `incineroar` / `torkoal` all read `null`. **A diagnostic is not
+exempt from the rule** — a peek line is indistinguishable from a claim about the game we are playing.
+
+The name is RECORDED, not merely deleted: the store profiles that species with real clicks, so those
+games are not Reg M-B. Deleting the line quietly would have destroyed the only visible symptom of the
+corpus contamination. Filed as OPS/ENGINE territory, not fixed here.
