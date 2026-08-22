@@ -10,6 +10,78 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.74.0] — 2026-08-22
+
+### Fixed
+- **THE 9.7% PUBLISHED IN 5.71.1 WAS MEASURED ON THE LIVE STORE, NOT THE FROZEN POOL, AND THAT ENTRY
+  SAYS OTHERWISE. The pinned figure is 11.69%.** The coordinator's run passed
+  `--team-store data\team-pool-frozen` and the flag did not take: the run played **961** games, which
+  is the live store's sample, where the frozen pool yields **777**. The claim of a pinned pool was
+  therefore false, and the rate was flattered by a sample nobody had frozen.
+
+  | | 5.71.1 published | corrected, pinned pool |
+  |---|---|---|
+  | games | 961 | **777** |
+  | diverged | 95 | **96** |
+  | usable | 959 | **770** |
+  | diverged among usable | 93 | **90** |
+  | **rate over usable** | **9.7%** | **11.69%** |
+
+  The correction is worse than the number it replaces, which is exactly why it is here.
+- **`data/game-differential.json` RECORDS NO TEAM-STORE FIELD AT ALL**, so an artifact cannot say which
+  pool it drew from and a wrong pin is invisible in the record. That is the same shape as the roster
+  artifact printing an arm it never played — **a label is not a receipt** — and it is why this took a
+  division agent's independent re-run to catch rather than a reader's eye. Filed.
+- **SUCTION CUPS (#341).** The authority has ONE refusal site (`sim/battle-actions.ts:1353 forceSwitch`
+  → `runEvent('DragOut')`) reached from two doors, `:1104` damaging and `:1260` status; we read
+  `refusesForcedSwitch` only in the phaze branch. The damaging branch is wired now, with no `-fail` —
+  derived, not assumed: the authority writes one only on `hitResult === false && category === 'Status'`
+  and Suction Cups returns `null`. Display name via a new `abilityLabel()`.
+  - **Membership printed first:** exactly three `onDragOut` entities in the whole authority —
+    `suctioncups` (1 legal carrier), `guarddog` (**0** legal carriers), and the move `ingrain`, which is
+    a volatile and unreachable through this lookup, **declared open rather than quietly skipped**.
+  - Before: `tests/probe_drag_body.js` exit 1 on one clause; census extended with a Dragon Tail arm read
+    **627 live / 1 missing**. After: exit 0, and both doors print
+    `|-activate|p2a: Malamar|ability: Suction Cups` character for character.
+  - **The phaze branch did not move, and that was MEASURED rather than asserted:** the pinned
+    before/after artifacts are byte-identical in `classes`, `first_divergences` and `coverage`, and
+    `MEDI_BENCH_APPEND=1` still inverts every #340 clause.
+- **LIFE ORB (#338) — THE NAMED PREMISE WAS WRONG AND THE LINE WAS RIGHT.** The card said the recoil was
+  *"stored as prose"*; that is already fixed upstream — the tag carries a DERIVED
+  `cost{divisor:10, rounding:'trunc', min:1}` — and reading it moves **no number in this regulation**.
+  The real defect was `a.move.d.max > 0`: a damage range built against whoever stood in the aimed slot
+  at the **top** of the turn. Switches resolve first, so a type-immune body that is aimed at and then
+  switched out leaves `d.max` at 0 while the move hits the ARRIVING body for real damage. Replaced with
+  the authority's own clause (`!statusCategory`), with the exact complement asserted: **0 of 325
+  damaging moves carry it, 0 of 175 Status moves lack it.**
+  - Corpus sweep over 499 real Life-Orb pairs: **39 vs 41 tolls, 2 sequences differ** → after,
+    **41 vs 41, 0 differ.** Census **628 live / 0 missing → 629 / 0**.
+
+### Notes
+- **THE PRIMARY ARM WENT UP BY ONE, 95 → 96, AND IT IS ATTRIBUTED PER GAME RATHER THAN EXPLAINED AWAY:**
+  one game stops diverging, one has its Life Orb row closed and parts later instead, and one newly
+  diverges on a board whose sheets both carry a Life Orb. The other two pinned arms fell —
+  `top-tie-first` **85 → 77**, `bottom-tie-first` **117 → 114**.
+- **THREE PROBE ERRORS SURFACED BEFORE THE REAL DEFECT, EACH READING AS AN ENGINE VERDICT:** Showdown's
+  `|split|` pair counted as two tolls; a control whose aimed body clicked Protect staged nothing while
+  reporting agreement; and a `lockedmove` release was given a target. Fourteen single-engine stagings
+  and four two-engine boards all agreed. **A corpus sweep, not another staged board, is what found it** —
+  worth keeping, because the instinct is always to stage one more board.
+- **The brief's "4 of the 95" is 2 defects and 1 mis-attribution.** The third `[from]lifeorb` row is
+  `|-weather|sandstorm|[from]sandspit` against `|-damage|p1b|H/H|[from]lifeorb` — the missing event is
+  **Sand Spit's**, not Life Orb's.
+- **MALAMAR TRAFFIC IS ABOUT 1%, NOT 1,340.** The register row's "brought 1,340 times" counts sheet
+  entries; **191 Malamar entries declare an ability across both stores and 2 of them are Suction Cups.**
+  `data/team-pool-frozen` contains **zero**, which is why no differential row could move on this fix.
+  The mechanic is still correct to fix; the usage weight attached to it was not.
+- **`tests/test-no-silent-failure.js` IS RED AND IT IS NOT THIS PASS'S DOING** — 81 new silent catches
+  since baseline, 31 of them manufacturing a value, across `roster.js`, `where.js`, `tag_dex.js`,
+  `game_differential.js`, `policy.js` and `switchin_order.js`. Isolated: `medicham2-browser.js` and
+  `test-mechanics.js` carry identical catch-block counts on HEAD and on this tree. **Said out loud as
+  red, not filed** — it is neither fixed nor waived, and it is ROADMAP #258's own instrument.
+
+---
+
 ## [5.73.0] — 2026-08-22
 
 ### Notes

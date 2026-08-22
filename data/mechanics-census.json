@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-22T21:04:00.780Z",
+  "generated": "2026-08-22T22:40:30.216Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 628,
-  "live": 628,
+  "probed": 629,
+  "live": 629,
   "missing": 0,
-  "armed": 628,
+  "armed": 629,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -3176,7 +3176,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4292,6 +4292,16 @@
       "directCall": false
     },
     {
+      "kind": "item",
+      "tag": "damageMultAll",
+      "label": "the Life Orb toll is owed by a move that CONNECTED, not by the range it was built with",
+      "live": true,
+      "detail": "[Garchomp holding a Life Orb clicks Dragon Claw at slot 0] — TEST: a Whimsicott (Grass/FAIRY, immune to Dragon) is aimed at and SWITCHES OUT for gholdengo, which takes 56 and the Orb pays 18. CONTROL, the same board with the Whimsicott STAYING: 0 dealt, 0 paid — nothing connected, so nothing is owed. SECOND CONTROL, gholdengo standing from the start with no switch at all: 56 dealt, 18 paid. The test and the second control must pay the SAME toll, because the toll is 1/10 of the USER's max HP and has nothing to do with who was hit",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "ability",
       "tag": "terrainSetter",
       "label": "Electric Surge sets the terrain as the body arrives",
@@ -5014,9 +5024,9 @@
     {
       "kind": "ability",
       "tag": "refusesForcedSwitch",
-      "label": "Suction Cups cannot be dragged out by Roar, and Mold Breaker ignores it",
+      "label": "Suction Cups cannot be dragged out by Roar OR by Dragon Tail, and Mold Breaker ignores it",
       "live": true,
-      "detail": "[who holds the foe's slot after a Roar] — SUCTION CUPS \"milotic\" (it stays); CONTROL, ability blank, \"kangaskhan\" (dragged); a SECOND control, Contrary — an unrelated ability on the same body — \"kangaskhan\", which says the drag is not being stopped by \"the defender has an ability\". MOLD BREAKER on the phazer: \"kangaskhan\", dragged, because an ignored ability refuses nothing",
+      "detail": "[who holds the foe's slot after a Roar] — SUCTION CUPS \"milotic\" (it stays); CONTROL, ability blank, \"kangaskhan\" (dragged); a SECOND control, Contrary — an unrelated ability on the same body — \"kangaskhan\", which says the drag is not being stopped by \"the defender has an ability\". MOLD BREAKER on the phazer: \"kangaskhan\", dragged, because an ignored ability refuses nothing. THE DAMAGING DOOR, same refusal through Dragon Tail on a target that cannot faint: SUCTION CUPS \"milotic\" (it must stay), CONTROL \"kangaskhan\" (dragged, so the door is open at all), MOLD BREAKER \"kangaskhan\" (dragged)",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -14512,6 +14512,54 @@ probe('item', 'damageMultAll', 'the Life Orb toll is refused by a move that MISS
                  + `item at all a landed Scald costs ${noItem.paid}. The authority pays 13 / 0 / 0` };
 });
 
+/* ROADMAP #338 — THE TOLL IS OWED BY A MOVE THAT CONNECTED, NOT BY THE RANGE IT WAS BUILT WITH.
+ *
+ * The probe above proves the toll is refused by a move that reached NOBODY. This is the other side
+ * of the same gate, and it is the one that was wrong: the engine asked `a.move.d.max > 0`, which is
+ * the damage RANGE computed when the ACTION WAS BUILT — against whoever stood in the aimed slot at
+ * the top of the turn. Switches resolve before moves, so if the aimed body was type-immune and then
+ * SWITCHED OUT, `d.max` is 0 while the move hits the ARRIVING body for real damage. The authority's
+ * own clause is `move.category !== 'Status'` past a `moveResult` gate (data/items.ts:3410,
+ * sim/battle-actions.ts:523) and says nothing about a damage number.
+ *
+ * SHOWN RED ON DEMAND: MEDI_ORB_STALE_RANGE=1 restores the old gate and this row reads MISSING.
+ * The two-engine proof is tests/probe_lifeorb_toll.js `aimed-body-replaced-by-a-switch`. */
+probe('item', 'damageMultAll', 'the Life Orb toll is owed by a move that CONNECTED, not by the range it was built with', () => {
+  /* Dragon into Whimsicott (Grass/FAIRY) is an IMMUNITY and into Gholdengo (Steel/Ghost) is 0.5x —
+   * both read off the format's own chart in tests/probe_lifeorb_toll.js rather than recalled here. */
+  const run = (foeSp, switchOut) => {
+    const me = bare('garchomp'), ally = bare('incineroar');
+    const f1 = bare(foeSp), f2 = bare('milotic');
+    me.item = 'lifeorb';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    /* THE ARRIVING BODY IS THE HITTABLE ONE. Without a bench member the switch cannot happen and the
+     * arm would be inert while still reporting a number. */
+    S.benchB = [bare('gholdengo')];
+    unfaintable(f1); unfaintable(S.benchB[0]);
+    const h0 = me.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'dragonclaw', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, switchOut ? { kind: 'switch' } : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const held = S.actB[0];
+    return { paid: h0 - me.curHP, dealt: held.st.hp - held.curHP, who: held.name || held.species };
+  };
+  const test = run('whimsicott', true);      // immune body aimed at, then replaced by a hittable one
+  const stays = run('whimsicott', false);    // the immune body stays: nothing connects, nothing owed
+  const plain = run('gholdengo', false);     // hittable from the start: the ordinary toll
+  return { works: test.dealt > 0 && test.paid > 0 && test.paid === plain.paid
+                  && stays.dealt === 0 && stays.paid === 0
+                  && plain.dealt > 0 && plain.paid > 0,
+           arms: { control: [stays.dealt, stays.paid], test: [test.dealt, test.paid] },
+           detail: `[Garchomp holding a Life Orb clicks Dragon Claw at slot 0] — TEST: a Whimsicott `
+                 + `(Grass/FAIRY, immune to Dragon) is aimed at and SWITCHES OUT for ${test.who}, `
+                 + `which takes ${test.dealt} and the Orb pays ${test.paid}. CONTROL, the same board `
+                 + `with the Whimsicott STAYING: ${stays.dealt} dealt, ${stays.paid} paid — nothing `
+                 + `connected, so nothing is owed. SECOND CONTROL, ${plain.who} standing from the `
+                 + `start with no switch at all: ${plain.dealt} dealt, ${plain.paid} paid. The test `
+                 + `and the second control must pay the SAME toll, because the toll is 1/10 of the `
+                 + `USER's max HP and has nothing to do with who was hit` };
+});
+
 /* =================================================================================================
  *  THE TEN WITH NO PROBE, plus the SWITCH-OUT TRIGGER — 2026-08-07
  *
@@ -16881,26 +16929,50 @@ probe('move', 'trapsTarget', 'Block holds the target in its slot, and a Shed She
 
 /* SUCTION CUPS — the MIRROR of Shed Shell: one restores the choice to leave, the other refuses being
  * thrown out. There was no `suctioncups` row in data/tags.json at all, so no reader could precede it. */
-probe('ability', 'refusesForcedSwitch', 'Suction Cups cannot be dragged out by Roar, and Mold Breaker ignores it', () => {
-  const run = (ability, attAbility) => {
+/* THE REFUSAL HAS TWO DOORS AND ONLY ONE OF THEM WAS PROBED, 2026-08-22 (ROADMAP #341).
+ *
+ * `forcesSwitch` splits in this engine: a STATUS phaze (Roar, Whirlwind) resolves in the `phaze`
+ * branch and a DAMAGING phaze (Dragon Tail, Circle Throw) resolves as an ordinary attack and drags
+ * afterwards, in a completely separate block. The authority has ONE door —
+ * `sim/battle-actions.ts:1353 forceSwitch` runs `runEvent('DragOut')` for both, and `moveData
+ * .forceSwitch` reaches it from `:1104` for the damaging half and `:1260` for the status half — so a
+ * refusal that only the status branch honours is a body the authority refuses to move and this
+ * engine moves anyway. Malamar is the ONLY legal Suction Cups carrier in this regulation (derived:
+ * one species, slot 1) and is brought 1,340 times across the two human stores.
+ *
+ * THE DAMAGING ARM MAKES ITS TARGET UNFAINTABLE and the status arm does not, deliberately: the
+ * authority guards the drag with `target.hp > 0`, so a Dragon Tail that KOs never reaches the
+ * refusal at all and BOTH arms would read "did not move" for the wrong reason — an inert staging
+ * scoring as a pass. */
+probe('ability', 'refusesForcedSwitch', 'Suction Cups cannot be dragged out by Roar OR by Dragon Tail, and Mold Breaker ignores it', () => {
+  const run = (ability, attAbility, mv) => {
     const B = board('garchomp', 'incineroar', 'milotic', 'torterra');
     B.S.benchB = [bare('kangaskhan')];
     B.f1.ability = ability; B.me.ability = attAbility || 'none';
+    if (mv && mv !== 'roar') unfaintable(B.f1);
     M.battleTurn(B.S, rng5,
-      new Map([[B.me, M.playerAction(B.me, 'roar', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.me, M.playerAction(B.me, mv || 'roar', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
       PASS2(B.f1, B.f2));
     return B.S.actB[0].name || B.S.actB[0].species;
   };
   const test = run('suctioncups'), control = run('none'), other = run('contrary');
   const broken = run('suctioncups', 'moldbreaker');
+  /* Garchomp / Dragon Tail is TeamValidator-legal in this format (champions_sim.canLearn -> true). */
+  const dtTest = run('suctioncups', null, 'dragontail');
+  const dtControl = run('none', null, 'dragontail');
+  const dtBroken = run('suctioncups', 'moldbreaker', 'dragontail');
   return { works: test === 'milotic' && control === 'kangaskhan' && other === 'kangaskhan'
-             && broken === 'kangaskhan',
+             && broken === 'kangaskhan'
+             && dtTest === 'milotic' && dtControl === 'kangaskhan' && dtBroken === 'kangaskhan',
            arms: { control, test },
            detail: `[who holds the foe's slot after a Roar] — SUCTION CUPS "${test}" (it stays); `
                  + `CONTROL, ability blank, "${control}" (dragged); a SECOND control, Contrary — an `
                  + `unrelated ability on the same body — "${other}", which says the drag is not being `
                  + `stopped by "the defender has an ability". MOLD BREAKER on the phazer: "${broken}", `
-                 + `dragged, because an ignored ability refuses nothing` };
+                 + `dragged, because an ignored ability refuses nothing. THE DAMAGING DOOR, same `
+                 + `refusal through Dragon Tail on a target that cannot faint: SUCTION CUPS `
+                 + `"${dtTest}" (it must stay), CONTROL "${dtControl}" (dragged, so the door is `
+                 + `open at all), MOLD BREAKER "${dtBroken}" (dragged)` };
 });
 
 /* IMPOSTER — ROADMAP #95 said "a transform never reverts on switch-out". The copy has worked since it

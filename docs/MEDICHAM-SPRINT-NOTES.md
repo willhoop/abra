@@ -11308,3 +11308,77 @@ test PLANTS what it needs instead of fishing for it. **Expect more of these as t
 
 `tests/staged_board.js` carries three pre-existing CLEAN failures, byte-identical on both releases and
 **gated by nothing**. `MEDFAILS.traceBodyOffField = 4` unchanged. VOID rose 5 -> 7.
+
+---
+
+## 2026-08-22 — I PUBLISHED A RATE ON THE WRONG STORE (5.74.0)
+
+5.71.1 published **9.7%** and stated the team pool was pinned. It was not. The run played **961** games,
+which is the LIVE store; the frozen pool yields **777**. The `--team-store` flag did not take, and
+nothing caught it because **data/game-differential.json records no team-store field at all** — an
+artifact cannot say which pool it drew from. Same shape as the roster artifact printing an arm it never
+played: a label is not a receipt.
+
+```
+  published   95 of 961, 93 of 959 usable  ->   9.7%    LIVE store
+  corrected   96 of 777, 90 of 770 usable  ->  11.69%   frozen pool
+```
+
+**The correction is worse than the number it replaces, which is the only reason worth trusting it.** It
+took a division agent re-running on the pin to find. No reader could have caught it in the record.
+
+### SUCTION CUPS — one refusal site, two doors
+
+The authority refuses at `sim/battle-actions.ts:1353 forceSwitch` -> `runEvent("DragOut")`, reached from
+`:1104` (damaging) and `:1260` (status). We read `refusesForcedSwitch` in the phaze branch only.
+Damaging branch wired; **no `-fail`, derived rather than assumed** — the authority writes one only on
+`hitResult === false && category === "Status"` and Suction Cups returns `null`.
+
+Membership printed first: three `onDragOut` entities exist in the whole authority — `suctioncups`
+(1 legal carrier), `guarddog` (**0** legal carriers), and the move `ingrain`, which is a volatile,
+unreachable through this lookup, and **declared open rather than quietly skipped**.
+
+**The phaze branch was MEASURED unmoved**: pinned before/after artifacts byte-identical in `classes`,
+`first_divergences` and `coverage`.
+
+### LIFE ORB — the named premise was wrong and the line was right
+
+The card said the recoil was "stored as prose". That is already fixed upstream, and reading the tag
+moves **no number in this regulation**. The real defect was `a.move.d.max > 0`: a damage range built
+against whoever stood in the aimed slot at the **top of the turn**. Switches resolve first, so a
+type-immune body that is aimed at and then switched out leaves `d.max` at 0 while the move hits the
+ARRIVING body for real damage. Replaced with the authority's own clause, complement asserted exactly:
+0 of 325 damaging moves carry it, 0 of 175 Status moves lack it.
+
+Corpus sweep, 499 real Life-Orb pairs: **39 vs 41 tolls, 2 sequences differ -> 41 vs 41, 0 differ.**
+Census 628 -> **629 live / 0 missing**.
+
+### THREE PROBE ERRORS CAME FIRST, EACH READING AS AN ENGINE VERDICT
+
+Showdown's `|split|` pair counted as two tolls; a control whose aimed body clicked Protect staged
+nothing while reporting agreement; a `lockedmove` release was given a target. Fourteen single-engine
+stagings and four two-engine boards all agreed with each other. **A corpus sweep, not another staged
+board, is what found the real defect** — worth keeping, because the instinct is always to stage one more
+board.
+
+### A USAGE WEIGHT WAS WRONG BY TWO ORDERS
+
+The register says Malamar is "brought 1,340 times". That counts sheet entries. **191 declare an ability
+and 2 of them are Suction Cups**, and `data/team-pool-frozen` holds **zero** — which is why no
+differential row could move on this fix. The mechanic was still right to fix; the weight was not.
+
+### RED, SAID OUT LOUD, NOT FILED
+
+`tests/test-no-silent-failure.js` — 81 new silent catches since baseline, 31 manufacturing a value,
+across `roster.js`, `where.js`, `tag_dex.js`, `game_differential.js`, `policy.js`, `switchin_order.js`.
+Isolated as NOT this pass: `medicham2-browser.js` and `test-mechanics.js` carry identical counts on HEAD
+and on this tree. It is ROADMAP #258's own instrument. **Neither fixed nor waived.**
+
+### AND A SCRATCHPAD SCRIPT WAS RE-RUN AND DUPLICATED 46 LINES OF THIS FILE
+
+The coordinator re-invoked a previous, non-idempotent append script and silently added the 5.70.0 note a
+second time. Caught by `grep -c` on its own heading, reverted with `git checkout HEAD --`. **This is the
+hazard CLAUDE.md already records** — a leftover scratchpad script that ran and reported success. The rule
+"execute nothing in the scratchpad you did not write this session" did not cover it, because the script
+WAS written this session. The missing property is idempotence: this note's script refuses if its own
+heading is already present.

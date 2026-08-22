@@ -360,6 +360,16 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   moveTrapBlockedSwitch: 0, shedShellEscapedTrap: 0,
   /* ROADMAP #139 -- Suction Cups / Guard Dog refusing a Roar. */
   forcedSwitchRefused: 0,
+  /* ROADMAP #341 -- THE SAME REFUSAL THROUGH THE OTHER DOOR, counted separately because the total
+   * above cannot tell the two apart and the DAMAGING door is the one that was unwired for as long as
+   * the tag has existed. The authority has one `forceSwitch` (sim/battle-actions.ts:1353) reached
+   * from two places -- `:1104` for a damaging phaze and `:1260` for a status one -- so a non-zero
+   * `forcedSwitchRefused` with a ZERO here is exactly the state this row was opened on. */
+  forcedSwitchRefusedDamaging: 0,
+  /* ROADMAP #338 -- a Life Orb toll actually PAID, off the derived `cost`. A zero on a run
+   * containing any damaging click by an Orb holder means the gate above it stopped firing, which is
+   * the failure a stale `a.move.d.max` produced silently for as long as it existed. */
+  orbTollPaid: 0,
   /* ROADMAP #95 -- a transformed body restored to itself on the way out. A zero beside a non-zero
    * `transformedOnEntry` is a Ditto that is somebody else for the rest of the battle. */
   transformReverted: 0,
@@ -1280,6 +1290,33 @@ const MEDFAILS = { encoreAction: 0,
      display name. Must read 0: `tag_dex` writes `name` on every record, so a non-zero means the
      artifact was regenerated without it and a three-field line silently became a two-field one. */
   failLabelNoName: 0,
+  /* ROADMAP #341 -- an ABILITY asked for its display name and the tag record carried none, so the
+     `-activate` line fell back to the bare id. Same shape and same reason as `failLabelNoName` one
+     line up: `tag_dex` writes `name` on every record, and a silent fallback here would look exactly
+     like the `ability: suctioncups` / `ability: Suction Cups` mismatch this counter exists beside.
+     Read by `abilityLabel()`, which is deliberately used at the TWO forced-switch refusal sites only
+     -- thirteen other `'ability: '+x.ability` emissions in this file are still bare ids and are
+     DECLARED OPEN rather than swept in behind one probe. */
+  abilityLabelNoName: 0, abilityLabelNoNameFirst: '',
+  /* ROADMAP #338 -- THE LIFE ORB TOLL, READ OFF THE TAG INSTEAD OF TYPED. Four counters, because
+     four different things could go wrong and a single total could not tell them apart. All four
+     must read 0 in this regulation and each names its first arrival rather than falling back
+     quietly, which is what `Math.floor(m.st.hp*0.1)` was doing by construction:
+       orbCostMissing    an item carries `damageMultAll` and NO `cost` -- it then pays nothing, so a
+                         second carrier arriving without a derived cost reads as a gap, not as
+                         "Life Orb is the only one"
+       orbCostRounding   the derived rounding is not `trunc`, so `Math.floor` is the wrong operator
+       orbCostBase       the derived base is not `baseMaxhp`, so `m.st.hp` is the wrong number
+       orbLabelNoName    the record carries no display name, so `[from] item: <id>` went out where
+                         the authority writes `[from] item: Life Orb` */
+  orbCostMissing: 0, orbCostMissingFirst: '',
+  orbCostRounding: 0, orbCostRoundingFirst: '',
+  orbCostBase: 0, orbCostBaseFirst: '',
+  orbLabelNoName: 0,
+  /* ROADMAP #338 -- set to 1 for the whole run when MEDI_ORB_STALE_RANGE=1 puts the stale
+     `a.move.d.max>0` gate back on purpose, so a deliberate restore arm and a broken engine can never
+     be read as the same thing. Same shape as benchOrderAppendRestored. */
+  orbStaleRangeRestored: 0,
   /* ROADMAP #304 -- a damaging hit whose sixteen-entry band did NOT arrive, so the loop fell back to
    * the old uniform draw over the span. Never expected: the battle loop asks for `rolls` on every hit
    * context. Non-zero means dmgRange grew a return path that does not fill the out-parameter, and the
@@ -3516,6 +3553,27 @@ function moveDisplayName(id){
   return (rec && rec.name) || String(id || '');
 }
 function sideGuardName(gid){ return moveDisplayName(gid); }
+/* ROADMAP #341 -- THE ABILITY'S DISPLAY NAME, off the same artifact and for the same reason.
+ * `this.add('-activate', pokemon, 'ability: Suction Cups')` (data/abilities.ts:4686) writes the
+ * NAME; this engine held only the id, so the two streams read `ability: Suction Cups` against
+ * `ability: suctioncups` and the game differential's `effect-namespace` rule strips the namespace
+ * and keeps the name -- so the mismatch survives normalisation and is a real row.
+ *
+ * LOUD, WHERE `moveDisplayName` ABOVE IS SILENT. A missing `name` here returns the bare id, which is
+ * indistinguishable from the bug, so it is COUNTED and the first one is named. (`moveDisplayName`
+ * falling back silently is a pre-existing gap in the same shape; it is DECLARED, not fixed here.)
+ *
+ * USED AT TWO SITES ONLY -- the phaze and the damaging forced-switch refusals, which are the two
+ * doors ROADMAP #341 probed. Thirteen other `'ability: '+x.ability` emissions in this file still
+ * write the id; sweeping them in behind one probe is exactly the scope creep this repo has a rule
+ * about, so they are named in docs/ENGINE.md and left open. */
+function abilityLabel(id){
+  const rec = (TAGS.tagsFor && TAGS.tagsFor('ability', id)) || null;
+  if (rec && rec.name) return rec.name;
+  MEDFAILS.abilityLabelNoName++;
+  if (!MEDFAILS.abilityLabelNoNameFirst) MEDFAILS.abilityLabelNoNameFirst = String(id || '');
+  return String(id || '');
+}
 /* Which guard standing on the TARGETED side refuses this move -- the guard's move id, or null.
  * `guard` is the side's `sgA`/`sgB` map: guard move id -> true, one entry per guard raised this turn.
  * The STATE stores which guard is up; the CLASS is re-derived from the artifact on every read, so a
@@ -8417,6 +8475,12 @@ const SLEEP_WAKE_COIN_RESTORED=(typeof process!=='undefined'&&process.env&&proce
  * `MEDFAILS.benchOrderAppendRestored`. Same shape as MEDI_DAMAGE_SPAN_DRAW, MEDI_MULTIHIT_ONE_INDEX,
  * MEDI_SLEEP_WAKE_COIN and MEDI_RESIDUAL_COLLAPSE. */
 const BENCH_APPEND_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BENCH_APPEND==='1');
+/* ROADMAP #338 -- MEDI_ORB_STALE_RANGE=1 PUTS `a.move.d.max>0` BACK ON THE LIFE ORB TOLL. The
+ * derivation is at the toll itself; this flag exists so the census row
+ * `item/damageMultAll — the toll is owed by a move that CONNECTED, not by the range it was built
+ * with` can be shown MISSING on demand without swapping a file. Any run carrying it also carries a
+ * non-zero `MEDFAILS.orbStaleRangeRestored`. Same shape as MEDI_BENCH_APPEND above. */
+const ORB_STALE_RANGE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ORB_STALE_RANGE==='1');
 function sleepDurationDraw(){
   const r=medRng();
   const u=(typeof r==='function')?r():0.5;
@@ -17164,7 +17228,11 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _rfs=TAGS.param('ability',suppressedAbility(m,_t),'refusesForcedSwitch');
         if(_rfs&&_rfs.refuses==='forcedSwitch'){
           MEDSEEN.forcedSwitchRefused++;
-          if(TR&&_rfs.announces)TR.act(_t,'ability: '+_t.ability);
+          /* ROADMAP #341 -- THE NAME, NOT THE ID. `abilityLabel` reads the artifact's own display
+           * name; this line wrote `ability: suctioncups` where the authority writes
+           * `ability: Suction Cups`, and the differential's namespace rule strips `ability:` and
+           * compares what is left, so the mismatch survived normalisation. */
+          if(TR&&_rfs.announces)TR.act(_t,'ability: '+abilityLabel(_t.ability));
           /* ROADMAP #241(3) -- THE `-activate` AND NOTHING UNDER IT. The paragraph five lines up has
            * said *"which is `onDragOut` returning null"* since ROADMAP #139 and the code did not
            * honour it: `forceSwitch` writes the `-fail` only on the OTHER value --
@@ -22780,15 +22848,68 @@ function battleTurn(S,rng,actsForA,actsForB){
          `_reached` rather than `connected`: `connected` is set inside the substitute-aware damage
          path, and Showdown's rule is `AfterMoveSecondarySelf` running inside `spreadMoveHit`, which
          is "at least one body was hit" -- exactly what `_reached` counts. */
-      if(m.item==='lifeorb'&&a.move.d.max>0&&_reached>0){
+      /* ROADMAP #338 -- `a.move.d.max>0` WAS A STALE NUMBER, AND THE AUTHORITY ASKS A DIFFERENT
+       * QUESTION. The handler's own clause is `move.category !== 'Status'` (data/items.ts:3410) and
+       * the connection gate above it is `moveResult` (sim/battle-actions.ts:523). NEITHER looks at
+       * how much damage the move would deal.
+       *
+       * `a.move.d` is the range computed when the ACTION WAS BUILT, against whoever was standing in
+       * the aimed slot at the TOP of the turn. Switches resolve before moves. So when the aimed body
+       * is replaced by a switch on the same turn AND the body that left was type-immune, `d.max` is
+       * 0 while the move goes on to hit the ARRIVING body for real damage -- and the toll was
+       * silently skipped. Measured over 499 real pairs from data/team-pool-frozen, this is the ONLY
+       * shape in which the two engines' toll sequences part, and it accounted for both of them:
+       *   bo3-2653713441:p2  Whimsicott (Grass/FAIRY) aimed at, out for Gholdengo; Dragon Darts
+       *   bo3-2654018395:p1  Krookodile (Ground/DARK) aimed at, out for Abomasnow; Psychic Fangs
+       * Staged in tests/probe_lifeorb_toll.js with two over-fire controls beside it.
+       *
+       * `statusCategory` IS THE EXACT COMPLEMENT AND IT WAS ASSERTED BOTH WAYS BEFORE BEING WIRED:
+       * of the 325 legal damaging moves ZERO carry it, and of the 175 legal Status moves ZERO lack
+       * it. So this is the authority's clause and not a proxy for it.
+       *
+       * AND THE TOLL IS READ, NOT TYPED. `docs/CARD-REVIEW-2026-08-22.md` C2 is right that the cost
+       * was prose: the tag now carries `cost {of:'baseMaxhp', divisor:10, rounding:'trunc', min:1}`
+       * derived from the handler itself, and `Math.floor(m.st.hp*0.1)` was a second copy of it.
+       * `damageMultAll` WITH a cost has exactly ONE legal carrier in this regulation (Life Orb,
+       * 21,257 sheets) -- printed before wiring -- so this is not a widening. `min` and the
+       * `baseMaxhp`/maxhp distinction change no number at L50 (the smallest legal maxhp is Pikachu's
+       * 110, and nothing in this format has two different max HPs), and that is stated rather than
+       * implied: the derivation is here so the FACT lives in one place, not because it moves a
+       * board today. */
+      const _loP=TAGS.param('item',m.item,'damageMultAll');
+      const _loC=_loP&&_loP.cost;
+      if(_loP&&!_loC){ MEDFAILS.orbCostMissing++;
+        if(!MEDFAILS.orbCostMissingFirst)MEDFAILS.orbCostMissingFirst=String(m.item); }
+      /* MEDI_ORB_STALE_RANGE=1 PUTS THE STALE GATE BACK ON PURPOSE, so the defect stays REACHABLE
+       * after the fix and the census row below can be shown red on demand rather than only in a
+       * commit message. Same shape and same reason as MEDI_BENCH_APPEND, MEDI_DAMAGE_SPAN_DRAW,
+       * MEDI_MULTIHIT_ONE_INDEX and MEDI_SLEEP_WAKE_COIN. It announces itself in MEDFAILS so a run
+       * carrying the old behaviour can never be mistaken for a run carrying the fix. */
+      if(ORB_STALE_RANGE)MEDFAILS.orbStaleRangeRestored=1;
+      if(_loC&&_reached>0&&!TAGS.has('move',a.move.id,'statusCategory')
+         &&!(ORB_STALE_RANGE&&!(a.move.d&&a.move.d.max>0))){
         const _ros2=TAGS.param('ability',m.ability,'removesOwnSecondaries');
         const _sfB=_ros2&&(()=>{const f=moveFx(a.move.id);return !!(f&&f.secondary&&f.secondary.length);})();
         /* ROADMAP #175 -- the Orb's toll is `this.damage(..., this.dex.items.get('lifeorb'))`, an
          * Item and not a Move, so `refusesIndirectDamage` refuses it. The BOOST is untouched: Magic
          * Guard does not stop the item working, only the recoil, which is why the ability is played
          * with one at all. */
-        if(!_sfB&&!refusesIndirect(m)){m.curHP-=Math.floor(m.st.hp*0.1);
-          if(TR)TR.dmg(m,'[from] item: Life Orb');
+        if(!_sfB&&!refusesIndirect(m)){
+          /* EVERY DEPARTURE FROM THE DERIVED PARAM IS COUNTED, NOT ASSUMED AWAY. A silent fallback
+           * to trunc/maxhp here would look exactly like the derivation working. */
+          if(_loC.rounding&&_loC.rounding!=='trunc'){ MEDFAILS.orbCostRounding++;
+            if(!MEDFAILS.orbCostRoundingFirst)MEDFAILS.orbCostRoundingFirst=String(_loC.rounding); }
+          if(_loC.of&&_loC.of!=='baseMaxhp'){ MEDFAILS.orbCostBase++;
+            if(!MEDFAILS.orbCostBaseFirst)MEDFAILS.orbCostBaseFirst=String(_loC.of); }
+          const _div=+_loC.divisor>0?+_loC.divisor:10;
+          let _toll=Math.floor(m.st.hp/_div);
+          if(_loC.min!=null&&_toll<_loC.min)_toll=_loC.min;
+          m.curHP-=_toll;
+          MEDSEEN.orbTollPaid++;
+          const _loRec=TAGS.tagsFor?TAGS.tagsFor('item',m.item):null;
+          let _loName=(_loRec&&_loRec.name)||'';
+          if(!_loName){ MEDFAILS.orbLabelNoName++; _loName=String(m.item); }
+          if(TR)TR.dmg(m,'[from] item: '+_loName);
           if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
       }
       /* ROADMAP #175 -- MAGICIAN. The `takesFrom:'target'` HALF of `stealsItem`.
@@ -22875,6 +22996,38 @@ function battleTurn(S,rng,actsForA,actsForB){
           for(const tg of targets){
             if(!tg||tg.fainted||tg.curHP<=0)continue;
             const _i=_foes.indexOf(tg); if(_i<0)continue;
+            /* ROADMAP #341 -- SUCTION CUPS REFUSES THIS DOOR TOO, and until now it did not.
+             *
+             * The authority has ONE refusal site for both halves of `forcesSwitch`:
+             *     sim/battle-actions.ts:1353  forceSwitch() -> runEvent('DragOut', target, source, move)
+             *     sim/battle-actions.ts:1104  `if (moveData.forceSwitch) damage = this.forceSwitch(...)`
+             *                                 -- the DAMAGING half, inside spreadMoveHit
+             *     sim/battle-actions.ts:1260  the STATUS half, in the same function's other arm
+             * so a refusal honoured only by the phaze branch is a body the authority leaves standing
+             * and this engine throws out. `data/abilities.ts:4684-4694 suctioncups` is the whole of
+             * it (`this.add('-activate', pokemon, 'ability: Suction Cups'); return null;`) and
+             * Champions does NOT override that ability -- data/mods/champions/abilities.ts has no
+             * `suctioncups` key, checked rather than assumed.
+             *
+             * MEMBERSHIP, DERIVED AND SMALL. Exactly three entities in the whole authority carry
+             * `onDragOut`: abilities `suctioncups` and `guarddog`, and the move `ingrain` (through
+             * its condition). Of the two abilities, `guarddog` has ZERO legal carriers in this
+             * regulation and `suctioncups` has exactly one -- Malamar, slot 1 -- so this branch can
+             * only ever fire for Malamar today, and it is brought 1,340 times across the two human
+             * stores. `ingrain` is a VOLATILE and not an ability, so it is not reachable through this
+             * lookup at all; that is a declared gap, not a claim it never happens.
+             *
+             * NO `-fail` AND NO `mvFailSilent`, WHICH IS THE HALF THAT IS EASY TO GET WRONG. The
+             * authority writes `-fail` only on `hitResult === false && move.category === 'Status'`.
+             * Suction Cups returns `null`, not `false`, and Dragon Tail is Physical -- so BOTH
+             * clauses fail and the ability's own `-activate` is the whole story. The damage this move
+             * already dealt stands; only the drag is refused. */
+            const _rfsd=TAGS.param('ability',suppressedAbility(m,tg),'refusesForcedSwitch');
+            if(_rfsd&&_rfsd.refuses==='forcedSwitch'){
+              MEDSEEN.forcedSwitchRefused++; MEDSEEN.forcedSwitchRefusedDamaging++;
+              if(TR&&_rfsd.announces)TR.act(tg,'ability: '+abilityLabel(tg.ability));
+              continue;
+            }
             /* WIRE 102 -- the drag target is a DIE here too, same as the phaze branch. */
             const _lb=_live(_fb);
             if(TR)TR.drag=true;

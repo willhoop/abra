@@ -12,7 +12,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-coverage-stop.js`, `tests/probe_volatile_leaves.js`, `tests/test-middle-identity.js`,
 `tests/test-middle-stall-address.js`, `tests/test-middle-draw-scope.js`,
 `tests/test-middle-damage-roll.js`, `tests/test-damage-roll-support.js`, `tests/test-bracket-regain.js`,
-`tests/test-encore-fail-silent.js`, `tests/test-resolution-order.js`, `engine/switchin_order.js`,
+`tests/test-encore-fail-silent.js`, `tests/probe_drag_body.js`, `tests/probe_lifeorb_toll.js`,
+`tests/test-resolution-order.js`, `engine/switchin_order.js`,
 `data/switchin-order.json`, `tests/test-immunity-gate.js`, `tests/test-tag-params-derived.js`,
 `tests/test-roster-arm-pin.js`
 
@@ -56,7 +57,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  628/628 probed mechanics live, 0 missing   (census 2026-08-22 17:04)
+  629/629 probed mechanics live, 0 missing   (census 2026-08-22 18:40)
   5/6000 differential comparisons disagree with Showdown   (2026-08-22 16:08)
     seed 20260804, requested 6000, 212 not comparable (multihit 154, non-finite 0, threw 58)
     aurorus hypervoice -> aggron: showdown 18-21, medicham 64-76  (8106 uses)
@@ -74,15 +75,127 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is c7bdd9efaf28 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is ecdf0eed7771 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 273/292 probed, 19 unprobed
 ```
 
-_stamped 2026-08-22 17:08_
+_stamped 2026-08-22 18:58_
 
 <!-- /GENERATED -->
+
+## THE REFUSAL HAD TWO DOORS AND ONE READ THE TAG; THE LIFE ORB TOLL ASKED A QUESTION THE AUTHORITY DOES NOT ASK. 2026-08-22.
+
+**Census 628 live / 0 missing -> 629 live / 0 missing.** Whole-game, ONE PINNED SAMPLE (777 games,
+pool `b2b61ec40281`, `--census data/gate-census.pin.json`): middle **95 -> 96**, top-tie-first
+**85 -> 77**, bottom-tie-first **117 -> 114**. Two batches, landed and measured one at a time. Full
+account: `docs/_reports/2026-08-22-suctioncups-and-lifeorb.md`. Releases: `39631097fcc7` (before),
+`7719a4110299` (after batch 1), `fc266861386e` (after batch 2), `59bb68aa89a9` (final).
+
+**THE PUBLISHED ARTIFACT CHANGED SAMPLE AND 64 IS NOT AN IMPROVEMENT ON 95.** `b26c2d4` published
+`95 of 961` taken against the **LIVE** game store; the same invocation now gives `64 of 798` on a
+different pool digest, because OPS appends hourly. The artifact published here is the **pinned-store**
+run CLAUDE.md requires, whose own before-arm is 95 and which now reads **96 of 777**.
+
+### BATCH 1 — SUCTION CUPS THROUGH THE DAMAGING DOOR (ROADMAP #341)
+
+`sim/battle-actions.ts:1353 forceSwitch()` runs `runEvent('DragOut')` and is reached from `:1104`
+(the DAMAGING half) and `:1260` (the STATUS half). One refusal site, two doors. This engine read
+`refusesForcedSwitch` in the `phaze` branch and not in the damaging one, so Dragon Tail and Circle
+Throw dragged a body `data/abilities.ts:4684-4694` refuses to move (no Champions override — checked).
+
+- **membership printed before wiring**: exactly three entities in the whole authority carry
+  `onDragOut` — `suctioncups` (**1** legal carrier, Malamar slot 1), `guarddog` (**0**), and the move
+  `ingrain` (a VOLATILE, not reachable through an ability lookup — declared, not fixed).
+- **the traffic figure in the brief is too generous, and the derived one is 1%**: across both human
+  stores there are **191** Malamar sheet entries declaring an ability and **2** of them are Suction
+  Cups (187 Contrary, 2 Infiltrator). `data/team-pool-frozen` contains **zero**, which is why no
+  differential row could move on this.
+- **no `-fail`**: the authority writes one only on `hitResult === false && move.category === 'Status'`
+  and Suction Cups returns `null` while Dragon Tail is Physical, so the `-activate` is the whole story.
+- **the DISPLAY NAME, at these two sites only.** `abilityLabel()` reads the artifact's `name`, so both
+  doors now write `ability: Suction Cups` where they wrote `ability: suctioncups`. The differential's
+  `effect-namespace` rule strips `ability:` and KEEPS the name, so the mismatch survived normalisation.
+- **shown red first**: `tests/probe_drag_body.js --release 39631097fcc7` exits 1 on that one clause
+  (`medicham |drag|p2a: Snorlax`); the census row was EXTENDED with a Dragon Tail arm on an unfaintable
+  target and read **627 live / 1 missing** before the fix.
+- **the phaze branch did not move — measured, not assumed**: the before/after differential artifacts
+  are byte-identical in `classes`, `first_divergences` and `coverage`.
+
+### BATCH 2 — THE TOLL IS OWED BY A MOVE THAT CONNECTED, NOT BY THE RANGE IT WAS BUILT WITH (ROADMAP #338)
+
+`data/items.ts:3409-3413` asks `move.category !== 'Status'` past `moveResult`
+(`sim/battle-actions.ts:523`) and says **nothing about a damage number**. This engine asked
+`a.move.d.max > 0` — the range computed when the ACTION was BUILT, against whoever stood in the aimed
+slot at the top of the turn. Switches resolve first, so a type-immune body that is aimed at and then
+switched out leaves `d.max` at 0 while the move hits the ARRIVING body for real damage.
+
+- **the card's premise was half right and the wrong half was the named one.** C2 calls the recoil
+  *"stored as prose"*; the tag already carries a DERIVED `cost {of:'baseMaxhp', divisor:10,
+  rounding:'trunc', min:1}`, and reading it changes **no number in this regulation** — the smallest
+  legal maxhp at L50 is Pikachu's 110 and nothing here has a `baseMaxhp` unequal to its maxhp. It was
+  read anyway so the fact lives in one place, and that is stated rather than implied.
+- **suspecting the instrument was right and then it was wrong.** Fourteen single-engine stagings and
+  four two-engine boards all AGREED, as did a replay of the exact pair named in a differential row.
+  A **sweep** settled it: 499 real pairs restricted to teams carrying a Life Orb, tolls
+  **39 vs 41 with 2 sequences differing** before, **41 vs 41 with 0** after.
+- **three probe errors were found before the engine was touched**, each reading as an engine verdict:
+  Showdown's `|split|` pair counted as two tolls; a control arm whose aimed body clicked Protect and
+  staged nothing while reporting agreement; and a `lockedmove` release given a target, which the
+  authority refuses.
+- **membership printed before wiring**: `statusCategory` is the EXACT complement — 0 of 325 legal
+  damaging moves carry it, 0 of 175 legal Status moves lack it. `damageMultAll` **with a cost** has
+  exactly ONE legal carrier.
+- **shown red first**: `tests/probe_lifeorb_toll.js --release 7719a4110299` exits 1 on the one arm
+  (`showdown [p2a:165/183]  medicham [-]`, identical move damage) with three controls green beside it,
+  and the NEW census row reads MISSING under `MEDI_ORB_STALE_RANGE=1` (**628 live / 1 missing**).
+- **the +1 is attributed per game, not averaged**: one game stops diverging entirely, one has its Life
+  Orb row closed and parts later at `showdown stopped emitting`, one newly diverges at a
+  `decorate`/switch row on a board both sheets of which carry a Life Orb. 58 rows unchanged.
+- **the third `[from]lifeorb` row is not a Life Orb row.** `|-weather|sandstorm|[from]sandspit <>
+  |-damage|p1b|H/H|[from]lifeorb` — the MISSING event is Sand Spit's. The brief's "4 of the 95" is
+  **2 defects and 1 mis-attribution**.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — they are tests now:**
+- ~~Dragon Tail and Circle Throw ignore Suction Cups (ROADMAP #341)~~ — census
+  `ability/refusesForcedSwitch` (Dragon Tail arm) and `tests/probe_drag_body.js`, which now exits 0.
+- ~~the Life Orb recoil is stored as prose / fires in two cards and not a third (ROADMAP #338)~~ —
+  census `item/damageMultAll — owed by a move that CONNECTED`, `tests/probe_lifeorb_toll.js`, and the
+  499-game sweep at 41/41 with 0 differing.
+
+**Added, measured this pass and NOT fixed:**
+- **`tests/test-no-silent-failure.js` is RED and it is not from this pass.** 281 of 860 catch blocks
+  silent, **81 NEW since the baseline, 31 of them MANUFACTURING a value**, across `tests/roster.js`,
+  `engine/where.js`, `engine/tag_dex.js`, `engine/game_differential.js`, `engine/policy.js`,
+  `engine/switchin_order.js` and eleven test files. Isolated: `medicham2-browser.js` and
+  `test-mechanics.js` carry the IDENTICAL catch-block count on HEAD and on this tree (26 and 4), so
+  this pass added none. Saying it is red, not filing it.
+- **thirteen `'ability: '+x.ability` sites still write the ID.** `abilityLabel()` was applied at the
+  two forced-switch refusal sites and nowhere else. Each of the other thirteen is a real
+  `ability: <id>` where the authority writes `ability: <Name>`.
+- **`moveDisplayName()` falls back to the id SILENTLY** where `abilityLabel()` counts. Same shape,
+  one function away.
+- **the Suction Cups refusal announces itself with an EMPTY bench, in BOTH doors.** The authority
+  guards `forceSwitch` with `canSwitch(target.side)` and never runs the DragOut event when there is
+  nobody to bring in. The new damaging branch MIRRORS the phaze branch's existing placement
+  deliberately — an asymmetry between the doors is the bug this batch just fixed. One line, both doors.
+- **the Life Orb toll is paid on a body the authority has already fainted.** `selfdestruct:'always'`
+  faints the user at `sim/battle-actions.ts:499-501`, before the move resolves, so the authority emits
+  no toll line; same for a user killed by its own recoil or by Rough Skin mid-move. Explosion 43 /
+  Self-Destruct 16 / Misty Explosion 6 corpus uses. **Protocol only — the body faints either way.**
+- **`ingrain` carries `onDragOut` and is a VOLATILE**, so it is not reachable through the ability
+  lookup either door uses. Zero legal species learn it here, so nothing can be staged today.
+- **the census probe `ability/refusesForcedSwitch` stages Garchomp clicking Roar and
+  `champions_sim.canLearn('garchomp','roar')` is FALSE.** The probe calls `playerAction` directly so it
+  still measures the mechanic, but the fixture names a click this format does not allow. The Dragon
+  Tail arm added this pass IS validator-legal.
+- **`MEDFAILS.traceBodyOffField = 4`** on every differential run in this pass, unchanged by either
+  batch — still a regression with no open row, and still not mine.
 
 ## THE BENCH WAS IN THE WRONG ORDER AND THE DRAG DIE INDEXED INTO IT; A ROOST THAT HEALED NOTHING STILL GROUNDED ITS USER. 2026-08-22.
 
