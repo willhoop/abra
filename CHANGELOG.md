@@ -10,6 +10,63 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.68.0] — 2026-08-22
+
+### Added
+- **The 13 whole-game mechanisms with no register row are filed: 11 new rows `#351`–`#361`, plus 3
+  REOPENS rather than new rows.** Verified with the canonical detectors themselves
+  (`quarantine.js`'s `roadmapRowIsClosed` / `roadmapRowSaysBroken`): all 14 read OPEN, `NOT_A_DEFECT`
+  empty, `tests/test-roadmap-register.js` 3/3.
+- **Six were filed with NO VERDICT, deliberately** — `#351` Moody, `#353` `|switch|` order, `#354`
+  flinch, `#355` Tailwind two-side expiry, `#358` Substitute, `#361` multi-hit count. Each cell reads
+  *"DIVERGENCE OBSERVED, N of 121, cause unprobed / no verdict filed"* and carries no `DEFECT` token,
+  so the open-defect clause does not count them as asserted breakage. A row that overclaims is worse
+  than a row that is missing.
+
+### Changed
+- **THE QUARANTINE BAR IS NOW BOARD-MATERIAL ZERO, WITH NARRATION AS A SECOND GATE — Will's call,
+  2026-08-22.** Asked whether "MEDICHAM is correct" requires literally zero divergences or zero that
+  change a board, he chose board-material first with narration kept as its own gate afterwards so the
+  work is not silently abandoned. Recorded in `CLAUDE.md` rather than in a session note, because it
+  changes what the gate MEANS and the next session must read it rather than re-derive it. What it
+  removes from the critical path is measured, not assumed: of the 121 non-declared divergences, at
+  least 18 write no board leaf, and Morpeko's ~10 were proven with a control to be the instrument.
+
+### Fixed
+- **`#223` REGENERATOR WAS CLOSED ON THE WRONG FILE.** Its closure argued *"the authority is silent by
+  construction"*, read from mainline `data/abilities.ts`. **`data/mods/champions/abilities.ts:77-84`
+  overrides Regenerator specifically to add `this.add('-heal', …, '[from] ability: Regenerator',
+  '[silent]')`** — verified in the checkout, which has not moved. This is the exact failure CLAUDE.md
+  names: reading `/data/*.ts` is reading MAINLINE, and Champions overrides eight files. Reopened. The
+  80-game improvement previously attributed to suppressing our line is **not explained by its stated
+  mechanism**; it is NOT called false, and the row says UNPROBED.
+- **`#289` zero-magnitude boost reopened**, not refiled. It closed 2026-08-18 with an
+  opt-in-per-call-site fix, and two move-primary sites never opted in: Parting Shot (the authority
+  emits `-unboost atk 0`, we emit only the `spa 1` half) and Charm (we emit nothing).
+- **`#224` reopened**, not refiled: `trace_body_off_field = 4`, first offender `farigiraf`, one `??:`
+  cause, both of its gate's arms red. A closed row that is live again keeps its history; filing it
+  fresh would lose the fact that it was once fixed.
+
+### Notes
+- **Moody lost its second instrument and correctly lost its verdict with it.** The wire queue ranked it
+  5th partly because the roster corroborated it; `data/roster.abilities.json`, regenerated 19:08Z on
+  the same release, now reads `FIRED-AND-BOARDS-MATCH` — the DIFFER it was corroborated by had a live
+  control. The claim that "both engines draw the same value at the same address" is also unsupported:
+  the arm derives a die address from exactly three wrapped methods (`hitStepAccuracy`, `secondaries`,
+  `getDamage`) and a residual ability draw is in none of them. Same shape as Morpeko, so no verdict.
+- **Every count was re-derived against the CURRENT artifact rather than the report's**, because the one
+  the wire queue read is gone: `data/game-differential.json` is now release `13ba05093aa3` at 19:15Z,
+  where the report read `603d9a69d5a3` at 06:47Z. Ten of eleven mechanisms reproduce exactly; multi-hit
+  count does not, which is why `#361` exists with no verdict. Honest headline from the current artifact:
+  **124 of 959 usable games diverge, 12.93%**, 2 void.
+- **`data/register-reality.json` was NOT refreshed, deliberately.** Stamped 2026-08-21 21:55, so rows
+  `#329`–`#350` and `#351`–`#361` are all invisible to the `no open, known engine defect` clause.
+  Refreshing it RUNS the instruments the register names — a measurement — and the engine moved twice in
+  40 minutes while this was being written. It waits for a quiet engine, a release cut first so every
+  verdict names one set of bytes, and a re-read of `openDefectClause` against the 8 new `DEFECT` cells.
+
+---
+
 ## [5.67.0] — 2026-08-22
 
 ### Changed

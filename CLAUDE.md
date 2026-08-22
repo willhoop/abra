@@ -584,6 +584,23 @@ remembered state is worth here. The condition is that the differential shows no 
 deliberate roster shows no `FIRED-AND-BOARDS-DIFFER` and no `DID-NOT-FIRE` across items, abilities
 and moves. `engine/status.js` computes it and says which clause is failing.
 
+**THE BAR IS BOARD-MATERIAL ZERO, AND NARRATION IS A SECOND GATE — WILL'S CALL, 2026-08-22.** Asked
+whether "MEDICHAM is correct" requires literally zero divergences or zero that change a board, he chose
+**board-material now, narration as its own separate gate afterwards** — so that the narration work is
+not silently abandoned once quarantine lifts.
+
+This is not a relaxation and it must not be read as one. It is the same distinction the engine already
+enforces elsewhere: *commentary may differ; boards may not.* What it removes from the critical path is
+measured, not assumed — of the 121 non-declared whole-game divergences on release `13ba05093aa3`, **at
+least 18 write no board leaf at all**, and Morpeko's ~10 were proven with a control to be the
+INSTRUMENT (`game_differential.js`'s `freshBodies` dropping `_switchKey`) rather than the game.
+
+Two things this does NOT license, both of which the project has already paid for:
+- **A divergence is narration-only when something MEASURED it as narration-only**, never when it looks
+  cosmetic. "No board leaf written" is a fact an instrument reports; "that's just a message" is a guess.
+- **The narration gate is a GATE, not a backlog.** It gets a clause and a count like every other, so
+  that "we'll do narration later" cannot become the fourteen stale handoffs in a new costume.
+
 **Re-running is not optional once it lifts.** A quarantined number does not become true when MEDICHAM
 becomes correct; it becomes re-runnable. The re-run list is ROADMAP #57.
 
