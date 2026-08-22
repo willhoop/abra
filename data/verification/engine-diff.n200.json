@@ -1,0 +1,396 @@
+{
+  "generated": "2026-08-22T18:48:21.269Z",
+  "by": "tests/test-engine-diff.js",
+  "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
+  "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
+  "seed": 20260804,
+  "requested": 200,
+  "compared": 200,
+  "agreed": 199,
+  "disagreed": 1,
+  "worst": [
+    {
+      "att": "garchomp",
+      "mv": "earthquake",
+      "def": "furfrou",
+      "showdown": "72-85",
+      "medicham": "142-152",
+      "rel": 0.8726114649681529,
+      "uses": 12766,
+      "suspect": false
+    }
+  ],
+  "plant": null,
+  "arms": [
+    {
+      "arm": "top",
+      "what": "Showdown damage roll index 0 (MAXIMUM) against MEDICHAM's `max`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "85",
+          "medicham": "152",
+          "rel": 0.788235294117647,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "bottom",
+      "what": "Showdown damage roll index 15 (MINIMUM) against MEDICHAM's `min`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "72",
+          "medicham": "142",
+          "rel": 0.9722222222222222,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx01",
+      "what": "Showdown damage roll index 1 (roll 99%) against MEDICHAM's own `rolls[1]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "84",
+          "medicham": "152",
+          "rel": 0.8095238095238095,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx02",
+      "what": "Showdown damage roll index 2 (roll 98%) against MEDICHAM's own `rolls[2]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "82",
+          "medicham": "152",
+          "rel": 0.8536585365853658,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx03",
+      "what": "Showdown damage roll index 3 (roll 97%) against MEDICHAM's own `rolls[3]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "82",
+          "medicham": "152",
+          "rel": 0.8536585365853658,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx04",
+      "what": "Showdown damage roll index 4 (roll 96%) against MEDICHAM's own `rolls[4]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "81",
+          "medicham": "152",
+          "rel": 0.8765432098765432,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx05",
+      "what": "Showdown damage roll index 5 (roll 95%) against MEDICHAM's own `rolls[5]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "81",
+          "medicham": "152",
+          "rel": 0.8765432098765432,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx06",
+      "what": "Showdown damage roll index 6 (roll 94%) against MEDICHAM's own `rolls[6]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "79",
+          "medicham": "152",
+          "rel": 0.9240506329113924,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx07",
+      "what": "Showdown damage roll index 7 (roll 93%) against MEDICHAM's own `rolls[7]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "79",
+          "medicham": "152",
+          "rel": 0.9240506329113924,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx08",
+      "what": "Showdown damage roll index 8 (roll 92%) against MEDICHAM's own `rolls[8]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "78",
+          "medicham": "152",
+          "rel": 0.9487179487179487,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx09",
+      "what": "Showdown damage roll index 9 (roll 91%) against MEDICHAM's own `rolls[9]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "76",
+          "medicham": "151",
+          "rel": 0.9868421052631579,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx10",
+      "what": "Showdown damage roll index 10 (roll 90%) against MEDICHAM's own `rolls[10]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "76",
+          "medicham": "150",
+          "rel": 0.9736842105263158,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx11",
+      "what": "Showdown damage roll index 11 (roll 89%) against MEDICHAM's own `rolls[11]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "75",
+          "medicham": "148",
+          "rel": 0.9733333333333334,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx12",
+      "what": "Showdown damage roll index 12 (roll 88%) against MEDICHAM's own `rolls[12]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "75",
+          "medicham": "147",
+          "rel": 0.96,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx13",
+      "what": "Showdown damage roll index 13 (roll 87%) against MEDICHAM's own `rolls[13]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "73",
+          "medicham": "145",
+          "rel": 0.9863013698630136,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx14",
+      "what": "Showdown damage roll index 14 (roll 86%) against MEDICHAM's own `rolls[14]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "73",
+          "medicham": "144",
+          "rel": 0.9726027397260274,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    }
+  ],
+  "band_missing": 0,
+  "band_missing_first": null,
+  "band_why": "THREE SAMPLED POINTS OF A SIXTEEN-INDEX BAND CANNOT SPEAK FOR THE THIRTEEN THEY NEVER SAMPLE. On 2026-08-22 this clause read PASS — midpoint 0/6000, top 0/6000, bottom 0/6000 — beside a 157-row red in data/roster.moves.json. The corners are the only two points where an index and a span coincide, which is exactly why they agreed. `--plant band` is the interior arms' own red demonstration and leaves the midpoint and both corners at their unplanted values.",
+  "arms_why": "A MIDPOINT CANNOT SEE A RANGE THAT IS WRONG BY THE SAME AMOUNT AT BOTH ENDS. `--plant spread` widens MEDICHAM's range symmetrically and leaves `disagreed` at exactly its unplanted value while both arms light up, which is the demonstration that these two numbers are not restatements of the one above them.",
+  "skipped_non_finite": 0,
+  "skipped_moves": {},
+  "skipped_multihit": 7,
+  "skipped_multihit_moves": {
+    "dualwingbeat": 3,
+    "tripleaxel": 1,
+    "scaleshot": 1,
+    "twinbeam": 1,
+    "watershuriken": 1
+  },
+  "dropped_by_exception": 0,
+  "dropped_where": {},
+  "controls": "both leads are really sent out on the Showdown side, so MEDICHAM is given the same switch-in (Intimidate, weather setters) through the engine's own applyEntryEffects/applyIntimidate; and the defender ability's onTryHit is asked directly, because Showdown's moveHit entry point does not run it.",
+  "touched": {
+    "intimidate": 7,
+    "weather": 2,
+    "absorbMon": 13,
+    "absorbFired": 1,
+    "bpCallback": 4
+  },
+  "NOT_PUBLISHED": {
+    "why": "this run's compared=200 is smaller than the published 6000",
+    "published_artifact": "data/engine-diff.json",
+    "published_sample": 6000,
+    "this_sample": 200,
+    "how_to_publish": "re-run at at least 6000, or pass --republish-smaller to replace the published figure deliberately",
+    "roadmap": "#257"
+  },
+  "accuracy_conformance": {
+    "compared": 500,
+    "disagreed": 0,
+    "unknown_accuracy": 0,
+    "worst": []
+  },
+  "accuracy_modifier_conformance": {
+    "handlers": 13,
+    "rows": 14,
+    "disagreed": 0,
+    "problems": []
+  },
+  "substitute_bypass_conformance": {
+    "compared": 500,
+    "inSet": 51,
+    "missing": [],
+    "extra": []
+  }
+}

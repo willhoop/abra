@@ -1,0 +1,1180 @@
+{
+  "generated": "2026-08-22T18:48:24.329Z",
+  "by": "tests/test-engine-diff.js",
+  "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
+  "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
+  "seed": 20260804,
+  "requested": 200,
+  "compared": 200,
+  "agreed": 199,
+  "disagreed": 1,
+  "worst": [
+    {
+      "att": "garchomp",
+      "mv": "earthquake",
+      "def": "furfrou",
+      "showdown": "72-85",
+      "medicham": "130-152",
+      "rel": 0.7961783439490446,
+      "uses": 12766,
+      "suspect": false
+    }
+  ],
+  "plant": {
+    "kind": "spread",
+    "halfwidth": 12,
+    "warning": "THIS RUN WAS DELIBERATELY BROKEN. It is a red demonstration of the corner arms and NOTHING in it may be quoted as a measurement."
+  },
+  "arms": [
+    {
+      "arm": "top",
+      "what": "Showdown damage roll index 0 (MAXIMUM) against MEDICHAM's `max`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 65,
+      "disagreed": 135,
+      "worst": [
+        {
+          "att": "grimmsnarl",
+          "mv": "fakeout",
+          "def": "simisear",
+          "showdown": "42",
+          "medicham": "54",
+          "rel": 0.2857142857142857,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "toxicroak",
+          "mv": "fakeout",
+          "def": "noivern",
+          "showdown": "35",
+          "medicham": "47",
+          "rel": 0.34285714285714286,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "simisage",
+          "mv": "fakeout",
+          "def": "vaporeon",
+          "showdown": "27",
+          "medicham": "39",
+          "rel": 0.4444444444444444,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "liepard",
+          "mv": "fakeout",
+          "def": "meowscarada",
+          "showdown": "32",
+          "medicham": "44",
+          "rel": 0.375,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "blastoise",
+          "mv": "fakeout",
+          "def": "rhyperior",
+          "showdown": "6",
+          "medicham": "18",
+          "rel": 2,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "raichu",
+          "mv": "fakeout",
+          "def": "garchomp",
+          "showdown": "17",
+          "medicham": "29",
+          "rel": 0.7058823529411765,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "salazzle",
+          "mv": "fakeout",
+          "def": "emboar",
+          "showdown": "17",
+          "medicham": "29",
+          "rel": 0.7058823529411765,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "pikachu",
+          "mv": "fakeout",
+          "def": "garganacl",
+          "showdown": "4",
+          "medicham": "16",
+          "rel": 3,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "simisage",
+          "mv": "rockslide",
+          "def": "houndstone",
+          "showdown": "47",
+          "medicham": "59",
+          "rel": 0.2553191489361702,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "scolipede",
+          "mv": "rockslide",
+          "def": "dragapult",
+          "showdown": "66",
+          "medicham": "78",
+          "rel": 0.18181818181818182,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "mamoswine",
+          "mv": "rockslide",
+          "def": "metagross",
+          "showdown": "25",
+          "medicham": "37",
+          "rel": 0.48,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "hippowdon",
+          "mv": "rockslide",
+          "def": "rampardos",
+          "showdown": "84",
+          "medicham": "96",
+          "rel": 0.14285714285714285,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "camerupt",
+          "mv": "rockslide",
+          "def": "aurorus",
+          "showdown": "90",
+          "medicham": "102",
+          "rel": 0.13333333333333333,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "arbok",
+          "mv": "rockslide",
+          "def": "medicham",
+          "showdown": "28",
+          "medicham": "40",
+          "rel": 0.42857142857142855,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "lycanroc",
+          "mv": "closecombat",
+          "def": "decidueye",
+          "showdown": "0",
+          "medicham": "12",
+          "rel": 12,
+          "uses": 18305,
+          "suspect": true
+        },
+        {
+          "att": "hawlucha",
+          "mv": "closecombat",
+          "def": "starmie",
+          "showdown": "68",
+          "medicham": "80",
+          "rel": 0.17647058823529413,
+          "uses": 18305,
+          "suspect": false
+        },
+        {
+          "att": "tauros",
+          "mv": "closecombat",
+          "def": "gyarados",
+          "showdown": "45",
+          "medicham": "57",
+          "rel": 0.26666666666666666,
+          "uses": 18305,
+          "suspect": false
+        },
+        {
+          "att": "quaquaval",
+          "mv": "closecombat",
+          "def": "salazzle",
+          "showdown": "95",
+          "medicham": "107",
+          "rel": 0.12631578947368421,
+          "uses": 18305,
+          "suspect": false
+        },
+        {
+          "att": "annihilape",
+          "mv": "closecombat",
+          "def": "garbodor",
+          "showdown": "72",
+          "medicham": "84",
+          "rel": 0.16666666666666666,
+          "uses": 18305,
+          "suspect": false
+        },
+        {
+          "att": "grimmsnarl",
+          "mv": "suckerpunch",
+          "def": "dragonite",
+          "showdown": "78",
+          "medicham": "90",
+          "rel": 0.15384615384615385,
+          "uses": 14131,
+          "suspect": false
+        },
+        {
+          "att": "flareon",
+          "mv": "weatherball",
+          "def": "arbok",
+          "showdown": "24",
+          "medicham": "36",
+          "rel": 0.5,
+          "uses": 13316,
+          "suspect": false
+        },
+        {
+          "att": "froslass",
+          "mv": "weatherball",
+          "def": "drampa",
+          "showdown": "31",
+          "medicham": "43",
+          "rel": 0.3870967741935484,
+          "uses": 13316,
+          "suspect": false
+        },
+        {
+          "att": "bastiodon",
+          "mv": "ironhead",
+          "def": "hippowdon",
+          "showdown": "49",
+          "medicham": "61",
+          "rel": 0.24489795918367346,
+          "uses": 13184,
+          "suspect": false
+        },
+        {
+          "att": "tauros",
+          "mv": "ironhead",
+          "def": "zoroark",
+          "showdown": "75",
+          "medicham": "87",
+          "rel": 0.16,
+          "uses": 13184,
+          "suspect": false
+        },
+        {
+          "att": "corviknight",
+          "mv": "ironhead",
+          "def": "milotic",
+          "showdown": "47",
+          "medicham": "59",
+          "rel": 0.2553191489361702,
+          "uses": 13184,
+          "suspect": false
+        },
+        {
+          "att": "falinks",
+          "mv": "ironhead",
+          "def": "samurott",
+          "showdown": "32",
+          "medicham": "44",
+          "rel": 0.375,
+          "uses": 13184,
+          "suspect": false
+        },
+        {
+          "att": "tyrantrum",
+          "mv": "earthquake",
+          "def": "whimsicott",
+          "showdown": "40",
+          "medicham": "52",
+          "rel": 0.3,
+          "uses": 12766,
+          "suspect": false
+        },
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "85",
+          "medicham": "152",
+          "rel": 0.788235294117647,
+          "uses": 12766,
+          "suspect": false
+        },
+        {
+          "att": "quaquaval",
+          "mv": "wavecrash",
+          "def": "goodra",
+          "showdown": "60",
+          "medicham": "72",
+          "rel": 0.2,
+          "uses": 11414,
+          "suspect": false
+        },
+        {
+          "att": "skeledirge",
+          "mv": "shadowball",
+          "def": "heliolisk",
+          "showdown": "0",
+          "medicham": "12",
+          "rel": 12,
+          "uses": 9826,
+          "suspect": true
+        },
+        {
+          "att": "beartic",
+          "mv": "aquajet",
+          "def": "talonflame",
+          "showdown": "80",
+          "medicham": "92",
+          "rel": 0.15,
+          "uses": 9211,
+          "suspect": false
+        },
+        {
+          "att": "pyroar",
+          "mv": "hypervoice",
+          "def": "basculegion",
+          "showdown": "0",
+          "medicham": "12",
+          "rel": 12,
+          "uses": 8106,
+          "suspect": true
+        },
+        {
+          "att": "hydreigon",
+          "mv": "earthpower",
+          "def": "slowbro",
+          "showdown": "86",
+          "medicham": "98",
+          "rel": 0.13953488372093023,
+          "uses": 7830,
+          "suspect": false
+        },
+        {
+          "att": "ninetales",
+          "mv": "solarbeam",
+          "def": "glimmora",
+          "showdown": "88",
+          "medicham": "100",
+          "rel": 0.13636363636363635,
+          "uses": 7474,
+          "suspect": false
+        },
+        {
+          "att": "chimecho",
+          "mv": "psychic",
+          "def": "azumarill",
+          "showdown": "97",
+          "medicham": "109",
+          "rel": 0.12371134020618557,
+          "uses": 7200,
+          "suspect": false
+        },
+        {
+          "att": "chimecho",
+          "mv": "psychic",
+          "def": "alcremie",
+          "showdown": "55",
+          "medicham": "67",
+          "rel": 0.21818181818181817,
+          "uses": 7200,
+          "suspect": false
+        },
+        {
+          "att": "meowstic",
+          "mv": "psychic",
+          "def": "araquanid",
+          "showdown": "42",
+          "medicham": "54",
+          "rel": 0.2857142857142857,
+          "uses": 7200,
+          "suspect": false
+        },
+        {
+          "att": "zoroark",
+          "mv": "sludgebomb",
+          "def": "gliscor",
+          "showdown": "40",
+          "medicham": "52",
+          "rel": 0.3,
+          "uses": 7029,
+          "suspect": false
+        },
+        {
+          "att": "florges",
+          "mv": "dazzlinggleam",
+          "def": "scovillain",
+          "showdown": "45",
+          "medicham": "57",
+          "rel": 0.26666666666666666,
+          "uses": 6597,
+          "suspect": false
+        },
+        {
+          "att": "clefable",
+          "mv": "dazzlinggleam",
+          "def": "feraligatr",
+          "showdown": "87",
+          "medicham": "99",
+          "rel": 0.13793103448275862,
+          "uses": 6597,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "bottom",
+      "what": "Showdown damage roll index 15 (MINIMUM) against MEDICHAM's `min`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 57,
+      "disagreed": 143,
+      "worst": [
+        {
+          "att": "grimmsnarl",
+          "mv": "fakeout",
+          "def": "simisear",
+          "showdown": "35",
+          "medicham": "23",
+          "rel": 0.34285714285714286,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "toxicroak",
+          "mv": "fakeout",
+          "def": "noivern",
+          "showdown": "29",
+          "medicham": "17",
+          "rel": 0.41379310344827586,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "simisage",
+          "mv": "fakeout",
+          "def": "vaporeon",
+          "showdown": "22",
+          "medicham": "10",
+          "rel": 0.5454545454545454,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "liepard",
+          "mv": "fakeout",
+          "def": "meowscarada",
+          "showdown": "27",
+          "medicham": "15",
+          "rel": 0.4444444444444444,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "blastoise",
+          "mv": "fakeout",
+          "def": "rhyperior",
+          "showdown": "5",
+          "medicham": "-7",
+          "rel": 2.4,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "raichu",
+          "mv": "fakeout",
+          "def": "garchomp",
+          "showdown": "14",
+          "medicham": "2",
+          "rel": 0.8571428571428571,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "salazzle",
+          "mv": "fakeout",
+          "def": "emboar",
+          "showdown": "14",
+          "medicham": "2",
+          "rel": 0.8571428571428571,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "pikachu",
+          "mv": "fakeout",
+          "def": "garganacl",
+          "showdown": "3",
+          "medicham": "-9",
+          "rel": 4,
+          "uses": 24726,
+          "suspect": false
+        },
+        {
+          "att": "simisage",
+          "mv": "rockslide",
+          "def": "houndstone",
+          "showdown": "39",
+          "medicham": "27",
+          "rel": 0.3076923076923077,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "scolipede",
+          "mv": "rockslide",
+          "def": "dragapult",
+          "showdown": "56",
+          "medicham": "44",
+          "rel": 0.21428571428571427,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "mamoswine",
+          "mv": "rockslide",
+          "def": "metagross",
+          "showdown": "21",
+          "medicham": "9",
+          "rel": 0.5714285714285714,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "hippowdon",
+          "mv": "rockslide",
+          "def": "rampardos",
+          "showdown": "71",
+          "medicham": "59",
+          "rel": 0.16901408450704225,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "camerupt",
+          "mv": "rockslide",
+          "def": "aurorus",
+          "showdown": "76",
+          "medicham": "64",
+          "rel": 0.15789473684210525,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "arbok",
+          "mv": "rockslide",
+          "def": "medicham",
+          "showdown": "24",
+          "medicham": "12",
+          "rel": 0.5,
+          "uses": 22134,
+          "suspect": false
+        },
+        {
+          "att": "lycanroc",
+          "mv": "closecombat",
+          "def": "decidueye",
+          "showdown": "0",
+          "medicham": "-12",
+          "rel": 12,
+          "uses": 18305,
+          "suspect": false
+        },
+        {
+          "att": "sharpedo",
+          "mv": "closecombat",
+          "def": "glimmora",
+          "showdown": "86",
+          "medicham": "74",
+          "rel": 0.13953488372093023,
+          "uses": 18305,
+          "suspect": false
+        },
+        {
+          "att": "hawlucha",
+          "mv": "closecombat",
+          "def": "starmie",
+          "showdown": "57",
+          "medicham": "45",
+          "rel": 0.21052631578947367,
+          "uses": 18305,
+          "suspect": false
+        },
+        {
+          "att": "tauros",
+          "mv": "closecombat",
+          "def": "gyarados",
+          "showdown": "38",
+          "medicham": "26",
+          "rel": 0.3157894736842105,
+          "uses": 18305,
+          "suspect": false
+        },
+        {
+          "att": "quaquaval",
+          "mv": "closecombat",
+          "def": "salazzle",
+          "showdown": "80",
+          "medicham": "68",
+          "rel": 0.15,
+          "uses": 18305,
+          "suspect": false
+        },
+        {
+          "att": "annihilape",
+          "mv": "closecombat",
+          "def": "garbodor",
+          "showdown": "61",
+          "medicham": "49",
+          "rel": 0.19672131147540983,
+          "uses": 18305,
+          "suspect": false
+        },
+        {
+          "att": "grimmsnarl",
+          "mv": "suckerpunch",
+          "def": "dragonite",
+          "showdown": "66",
+          "medicham": "54",
+          "rel": 0.18181818181818182,
+          "uses": 14131,
+          "suspect": false
+        },
+        {
+          "att": "pyroar",
+          "mv": "heatwave",
+          "def": "garbodor",
+          "showdown": "94",
+          "medicham": "82",
+          "rel": 0.1276595744680851,
+          "uses": 14090,
+          "suspect": false
+        },
+        {
+          "att": "flareon",
+          "mv": "weatherball",
+          "def": "arbok",
+          "showdown": "20",
+          "medicham": "8",
+          "rel": 0.6,
+          "uses": 13316,
+          "suspect": false
+        },
+        {
+          "att": "froslass",
+          "mv": "weatherball",
+          "def": "drampa",
+          "showdown": "26",
+          "medicham": "14",
+          "rel": 0.46153846153846156,
+          "uses": 13316,
+          "suspect": false
+        },
+        {
+          "att": "bastiodon",
+          "mv": "ironhead",
+          "def": "hippowdon",
+          "showdown": "42",
+          "medicham": "30",
+          "rel": 0.2857142857142857,
+          "uses": 13184,
+          "suspect": false
+        },
+        {
+          "att": "tauros",
+          "mv": "ironhead",
+          "def": "zoroark",
+          "showdown": "63",
+          "medicham": "51",
+          "rel": 0.19047619047619047,
+          "uses": 13184,
+          "suspect": false
+        },
+        {
+          "att": "corviknight",
+          "mv": "ironhead",
+          "def": "milotic",
+          "showdown": "39",
+          "medicham": "27",
+          "rel": 0.3076923076923077,
+          "uses": 13184,
+          "suspect": false
+        },
+        {
+          "att": "falinks",
+          "mv": "ironhead",
+          "def": "samurott",
+          "showdown": "27",
+          "medicham": "15",
+          "rel": 0.4444444444444444,
+          "uses": 13184,
+          "suspect": false
+        },
+        {
+          "att": "tyrantrum",
+          "mv": "earthquake",
+          "def": "whimsicott",
+          "showdown": "34",
+          "medicham": "22",
+          "rel": 0.35294117647058826,
+          "uses": 12766,
+          "suspect": false
+        },
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "72",
+          "medicham": "130",
+          "rel": 0.8055555555555556,
+          "uses": 12766,
+          "suspect": false
+        },
+        {
+          "att": "quaquaval",
+          "mv": "wavecrash",
+          "def": "goodra",
+          "showdown": "51",
+          "medicham": "39",
+          "rel": 0.23529411764705882,
+          "uses": 11414,
+          "suspect": false
+        },
+        {
+          "att": "skeledirge",
+          "mv": "shadowball",
+          "def": "heliolisk",
+          "showdown": "0",
+          "medicham": "-12",
+          "rel": 12,
+          "uses": 9826,
+          "suspect": false
+        },
+        {
+          "att": "beartic",
+          "mv": "aquajet",
+          "def": "talonflame",
+          "showdown": "68",
+          "medicham": "56",
+          "rel": 0.17647058823529413,
+          "uses": 9211,
+          "suspect": false
+        },
+        {
+          "att": "pyroar",
+          "mv": "hypervoice",
+          "def": "basculegion",
+          "showdown": "0",
+          "medicham": "-12",
+          "rel": 12,
+          "uses": 8106,
+          "suspect": false
+        },
+        {
+          "att": "hydreigon",
+          "mv": "earthpower",
+          "def": "slowbro",
+          "showdown": "73",
+          "medicham": "61",
+          "rel": 0.1643835616438356,
+          "uses": 7830,
+          "suspect": false
+        },
+        {
+          "att": "ninetales",
+          "mv": "solarbeam",
+          "def": "glimmora",
+          "showdown": "74",
+          "medicham": "62",
+          "rel": 0.16216216216216217,
+          "uses": 7474,
+          "suspect": false
+        },
+        {
+          "att": "chimecho",
+          "mv": "psychic",
+          "def": "azumarill",
+          "showdown": "82",
+          "medicham": "70",
+          "rel": 0.14634146341463414,
+          "uses": 7200,
+          "suspect": false
+        },
+        {
+          "att": "chimecho",
+          "mv": "psychic",
+          "def": "alcremie",
+          "showdown": "46",
+          "medicham": "34",
+          "rel": 0.2608695652173913,
+          "uses": 7200,
+          "suspect": false
+        },
+        {
+          "att": "meowstic",
+          "mv": "psychic",
+          "def": "araquanid",
+          "showdown": "34",
+          "medicham": "22",
+          "rel": 0.35294117647058826,
+          "uses": 7200,
+          "suspect": false
+        },
+        {
+          "att": "zoroark",
+          "mv": "sludgebomb",
+          "def": "gliscor",
+          "showdown": "34",
+          "medicham": "22",
+          "rel": 0.35294117647058826,
+          "uses": 7029,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx01",
+      "what": "Showdown damage roll index 1 (roll 99%) against MEDICHAM's own `rolls[1]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "84",
+          "medicham": "152",
+          "rel": 0.8095238095238095,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx02",
+      "what": "Showdown damage roll index 2 (roll 98%) against MEDICHAM's own `rolls[2]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "82",
+          "medicham": "152",
+          "rel": 0.8536585365853658,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx03",
+      "what": "Showdown damage roll index 3 (roll 97%) against MEDICHAM's own `rolls[3]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "82",
+          "medicham": "152",
+          "rel": 0.8536585365853658,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx04",
+      "what": "Showdown damage roll index 4 (roll 96%) against MEDICHAM's own `rolls[4]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "81",
+          "medicham": "152",
+          "rel": 0.8765432098765432,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx05",
+      "what": "Showdown damage roll index 5 (roll 95%) against MEDICHAM's own `rolls[5]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "81",
+          "medicham": "152",
+          "rel": 0.8765432098765432,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx06",
+      "what": "Showdown damage roll index 6 (roll 94%) against MEDICHAM's own `rolls[6]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "79",
+          "medicham": "152",
+          "rel": 0.9240506329113924,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx07",
+      "what": "Showdown damage roll index 7 (roll 93%) against MEDICHAM's own `rolls[7]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "79",
+          "medicham": "152",
+          "rel": 0.9240506329113924,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx08",
+      "what": "Showdown damage roll index 8 (roll 92%) against MEDICHAM's own `rolls[8]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "78",
+          "medicham": "152",
+          "rel": 0.9487179487179487,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx09",
+      "what": "Showdown damage roll index 9 (roll 91%) against MEDICHAM's own `rolls[9]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "76",
+          "medicham": "151",
+          "rel": 0.9868421052631579,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx10",
+      "what": "Showdown damage roll index 10 (roll 90%) against MEDICHAM's own `rolls[10]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "76",
+          "medicham": "150",
+          "rel": 0.9736842105263158,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx11",
+      "what": "Showdown damage roll index 11 (roll 89%) against MEDICHAM's own `rolls[11]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "75",
+          "medicham": "148",
+          "rel": 0.9733333333333334,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx12",
+      "what": "Showdown damage roll index 12 (roll 88%) against MEDICHAM's own `rolls[12]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "75",
+          "medicham": "147",
+          "rel": 0.96,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx13",
+      "what": "Showdown damage roll index 13 (roll 87%) against MEDICHAM's own `rolls[13]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "73",
+          "medicham": "145",
+          "rel": 0.9863013698630136,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    },
+    {
+      "arm": "idx14",
+      "what": "Showdown damage roll index 14 (roll 86%) against MEDICHAM's own `rolls[14]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 200,
+      "agreed": 199,
+      "disagreed": 1,
+      "worst": [
+        {
+          "att": "garchomp",
+          "mv": "earthquake",
+          "def": "furfrou",
+          "showdown": "73",
+          "medicham": "144",
+          "rel": 0.9726027397260274,
+          "uses": 12766,
+          "suspect": false
+        }
+      ]
+    }
+  ],
+  "band_missing": 0,
+  "band_missing_first": null,
+  "band_why": "THREE SAMPLED POINTS OF A SIXTEEN-INDEX BAND CANNOT SPEAK FOR THE THIRTEEN THEY NEVER SAMPLE. On 2026-08-22 this clause read PASS — midpoint 0/6000, top 0/6000, bottom 0/6000 — beside a 157-row red in data/roster.moves.json. The corners are the only two points where an index and a span coincide, which is exactly why they agreed. `--plant band` is the interior arms' own red demonstration and leaves the midpoint and both corners at their unplanted values.",
+  "arms_why": "A MIDPOINT CANNOT SEE A RANGE THAT IS WRONG BY THE SAME AMOUNT AT BOTH ENDS. `--plant spread` widens MEDICHAM's range symmetrically and leaves `disagreed` at exactly its unplanted value while both arms light up, which is the demonstration that these two numbers are not restatements of the one above them.",
+  "skipped_non_finite": 0,
+  "skipped_moves": {},
+  "skipped_multihit": 7,
+  "skipped_multihit_moves": {
+    "dualwingbeat": 3,
+    "tripleaxel": 1,
+    "scaleshot": 1,
+    "twinbeam": 1,
+    "watershuriken": 1
+  },
+  "dropped_by_exception": 0,
+  "dropped_where": {},
+  "controls": "both leads are really sent out on the Showdown side, so MEDICHAM is given the same switch-in (Intimidate, weather setters) through the engine's own applyEntryEffects/applyIntimidate; and the defender ability's onTryHit is asked directly, because Showdown's moveHit entry point does not run it.",
+  "touched": {
+    "intimidate": 7,
+    "weather": 2,
+    "absorbMon": 13,
+    "absorbFired": 1,
+    "bpCallback": 4
+  },
+  "NOT_PUBLISHED": {
+    "why": "this run's compared=200 is smaller than the published 300",
+    "published_artifact": "data/engine-diff-PLANTED-spread.json",
+    "published_sample": 300,
+    "this_sample": 200,
+    "how_to_publish": "re-run at at least 300, or pass --republish-smaller to replace the published figure deliberately",
+    "roadmap": "#257"
+  },
+  "accuracy_conformance": {
+    "compared": 500,
+    "disagreed": 0,
+    "unknown_accuracy": 0,
+    "worst": []
+  },
+  "accuracy_modifier_conformance": {
+    "handlers": 13,
+    "rows": 14,
+    "disagreed": 0,
+    "problems": []
+  },
+  "substitute_bypass_conformance": {
+    "compared": 500,
+    "inSet": 51,
+    "missing": [],
+    "extra": []
+  }
+}

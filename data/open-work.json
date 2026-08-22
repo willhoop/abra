@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-22T06:33:28.374Z",
+  "generated": "2026-08-22T18:43:09.523Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 292,
-    "open": 157,
-    "closed": 135,
-    "open_asserting_breakage": 16,
+    "register_rows": 314,
+    "open": 177,
+    "closed": 137,
+    "open_asserting_breakage": 34,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -1157,6 +1157,186 @@
       "full": "fur coat carries no defence multiplier, so medicham2 deals double physical damage through it — found 2026-08-21 by engine, by accident, not fixed. furfrou was the first draft of `tests/test-bracket-regain.js`'s second foe and the board parted on the very first physical hit: `p2.party.furfrou.hp medicham 90 showdown 120` on a talonflame facade, medicham dealing exactly double. `data/abra-tags.js` gives `furcoat` a single tag, `breakable`, with no multiplier param at all, so the halving never reaches `dmgrange` — this is a `engine/tag_dex.js` derivation gap and not a missing branch in the simulator, the same shape as #312's sand force, where the derivation read one alternative of a disjunction and the artifact then looked complete. it appeared in all three arms of that file including both controls, so it could not have flipped that verdict, and the cast was changed to a body with an inert ability so `statediv === null` could be asserted rather than excused. 8 corpus sheets, so it is small — and small is exactly the size at which a defect survives, since nothing in the ranked queues will ever surface it. the derivation must be shown its own membership before it is wired: `breakable` is carried by a large family and the multiplier is not, so a predicate that over-matches here would silently halve damage through abilities that do no such thing"
     },
     {
+      "n": 350,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "THE OPEN-DEFECT CLAUSE CALLS A ROW \"NO INSTRUMENT DECIDES IT\" WHEN WHAT IT MEANS IS \"MY VERDICT ARTIFACT IS OLDER THAN T",
+      "full": "the open-defect clause calls a row \"no instrument decides it\" when what it means is \"my verdict artifact is older than that row\" — measured 2026-08-22 on #318 and #319. `engine/where.js --gates` reads `docs/roadmap.md` live and reports that both rows name an instrument. `opendefectclause` in `engine/quarantine.js` reads `data/register-reality.json` and reports both under `debt`, whose line reads *\"open row(s) assert breakage with no instrument that decides them\"*. both tools are computing the right answer to their own question and one of the two sentences is false. `data/register-reality.json` was generated 2026-08-22t01:55:12z; commit `76e4a67` put the #318 row into the register at 02:33z, thirty-eight minutes later, so the clause has no verdict for a row that has carried a `verified by` marker since it was written. a second, independent cause sits under it: `register_reality.js`'s `safe` guard accepts only a plain `node <repo script>.js [--flags]`, and the marker on both rows begins `showdown_path=... node tests/roster.js --stage moves`, so a fresh run would classify them `instrument unrunnable` rather than giving them a verdict — moving them out of `debt` into the clause's third bucket, never into `withred`. neither reading changes the gate: `ok` is `withred.length === 0`, currently 3 rows (#218, #241, #258) out of 16 open-and-asserting-breakage, and `debt` has never held the clause shut. the defect is the bookkeeping, and `where.js` already does its half: since commit `cac12fa` it prints *\"naming a gate is not having a verdict\"*, names the artifact's age, and lists the rows with no verdict. the quarantine side says nothing. what would decide it: `opendefectclause` reads the row it is already parsing for a `verified by` marker and splits `debt` into \"names nothing\" and \"names an instrument, no verdict recorded\", and compares `register-reality.json`'s `generated` against the mtime of `docs/roadmap.md`, printing stale when the artifact is older. related and not the same row: #108 is `status.js` against `provenance.js` over artifact safety; this is the open-defect clause against `where.js` over the register's own coverage. same shape, second pair — which is itself the argument for fixing the shape rather than the instance. account: `docs/_reports/2026-08-22-register-reconciliation.md`"
+    },
+    {
+      "n": 349,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 126170,
+      "title": "THE DIVERGENCE ROLLUP'S RANKING CAN NAME THE LINE WE EMITTED RATHER THAN THE ONE THAT DIFFERS, AND A HUMAN READING 40 CA",
+      "full": "the divergence rollup's ranking can name the line we emitted rather than the one that differs, and a human reading 40 cards found ~20 root causes where the rollup over the same run found none — measured 2026-08-22. the class name describes the comparator, not the defect. `event missing from medicham2` means \"the authority emitted a line and we did not\", which is a property of the diff and is the same sentence whether the cause is encore's failure condition, imposter's transform announcement or a life orb recoil. two defects with nothing in common land in one bucket and one defect lands in several depending on which line differed first, so the rollup can only ever report how the comparator classified things. over the same 961-game run its buckets were *\"`-fail` 7 games\"* and *\"ordering 29 games\"*; will grouped by mechanism instead and recognised encore, roost, toxic debris and matcha gotcha on sight. two concrete ranking defects. (1) `max_uses` is `math.max` over the entities named by both lines of a pair, so the head of a usage-ordered list can name the line we emitted: the report's own head read *\"126,170 clicks, protect\"* when the differing line was `-start|typechange|[from] protean`. that half is confirmed against the current file — `entitystanding` collects mentions from both sides and `max_uses` is a max over all of them. (2) the card review also records a species carrying `uses: null` printed as 0, putting the kingambit `fallen` family at the bottom of a usage-ordered list while covering 31.4% of games; that half is not confirmed against the current file — a `species_uses` block reading `data/meta-usage.json` exists and may already supply it, and the observation may predate it or belong to a different renderer. recorded as observed-and-unconfirmed rather than asserted. the action will asked for is cheaper than either fix: dump far more cards. `--dump-games 40` sampled 40 of 378 diverging games; a card costs a few hundred bytes and a missed root cause costs an evening. raise it to the low hundreds and render with `engine/divergence_cards.js`. what would decide it: print the ranking key beside each cause — which entity, from which side's line — so a reader can see whether the head names the divergent line or ours"
+    },
+    {
+      "n": 347,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "THE ROSTER CREDITS SPIKY SHIELD ON A SCENARIO THAT CANNOT FAIL — OBSERVED 2026-08-22, INSTRUMENT WEAKNESS, MECHANIC BELI",
+      "full": "the roster credits spiky shield on a scenario that cannot fail — observed 2026-08-22, instrument weakness, mechanic believed covered elsewhere. `all_mechanics_fire` reports `spikyshield` as resolved / no-divergence with `setup: []` — nothing attacks into it — and marks both `volatile:spikyshield` and `volatile:stall` uncomparable. so `punishescontact` (`oncontact: true, fraction: 8`, correctly derived) never fires in that row, and a green there is a green about nothing. the mechanic itself is well covered and this row is not a claim that it is broken: 40 census rows touch protect/shield/stall, including *\"spiky shield hurts the attacker it blocked\"* with a protect control that must toll 0 while spiky shield tolls 22, *\"a spiky shield answers before the type chart\"*, and *\"spiky shield and baneful bunker refuse encore exactly as protect does\"* for the status half (#238). the census is the strong instrument; the roster row is the weak one. note also that the authority itself announces spiky shield as `move: protect` on both `-singleturn` and `-activate`, so our naming there is correct and the renderer is faithful — that is not a defect and is recorded here so it is not filed as one later. what would decide it: the roster's scenario builder must refuse to credit a mechanic whose `setup` is empty, or must stage a contact attacker into the shield; a row that cannot fail is a test that cannot fail, which is #314's lesson applied to a different instrument. source `docs/card-review-2026-08-22.md` §f2"
+    },
+    {
+      "n": 348,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "`tools/lownode.cmd` IS SOUND AND ITS ARGUMENT QUOTING IS A LIVE HAZARD THAT HAS ALREADY TRUNCATED A RELEASE REASON — OBS",
+      "full": "`tools/lownode.cmd` is sound and its argument quoting is a live hazard that has already truncated a release reason — observed 2026-08-22. the wrapper itself passes: `tests/test-lownode.js` is 4/4 including exit-code propagation, and measured directly it returned 7 for `process.exit(7)` and 1 for a module-not-found with stdout and stderr intact. the hazard is the arguments. an absolute windows path splits on its drive colon across the bash-to-`cmd` boundary, and `start` mis-parses a quoted argument containing spaces — `--seed \"a vs b\"` launches `cmd` rather than `node`. it has already cost something: a quoted `--why` string was truncated to a fragment on an engine-release cut, so a release carries a reason that is not the reason anybody typed. the workaround is repo-relative paths and no spaces in a quoted argument, and that is a rule somebody has to remember, which is what this register exists to replace. what would decide it: an arm in `tests/test-lownode.js` that passes an argument containing a space and an argument containing a drive-letter path and asserts the child received them byte-identically — shown red against the current wrapper before any change. related and not the same: #300, the differential's unreachable catch block on a bad `showdown_path`. source `docs/card-review-2026-08-22.md` §f3"
+    },
+    {
+      "n": 345,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "THE AUTHORITY ANNOUNCES A VOLATILE COUNTER'S EXPIRY AND WE ARE SILENT, AND NOTHING PROVES THE TWO ENGINES END ON THE SAM",
+      "full": "the authority announces a volatile counter's expiry and we are silent, and nothing proves the two engines end on the same turn — observed 2026-08-22 by will across three cards. three cards, three counters, one question: do they tick and expire on the same turn? showdown emits `-end ... infestation [partiallytrapped] [silent]` twice and `-end ... throat chop` once, and we emit nothing. the state behind them is compared — `board_state.js:661` reads `trapped_by_move`, and the file notes the victim's half is *\"the half that decides whether a switch is legal\"* — but the comparator's own proof is not clean: `probe_bench_plants.js` lists a move trap counter off by one among its 19 applied-and-not-caught plants (7 of 8 pairs catch it), which is #314's second hole. so the field is read, a lie about it is mostly detected, and the instrument cannot say so with authority. an unannounced expiry at the right moment is cosmetic; one a turn late is a body that cannot switch when it should. infestation blocks switching, and perish song's last tick kills — `duration: 4`, the cast-time `perish3` is `[silent]`, and the residual prints whatever the counter now reads, one step per end of turn. not covered by #242, which is closed and settled the residual order and which of 90 walk participants announce; and not covered by #234, closed, which fixed the `[from]` attribution naming the condition where showdown names the move. neither asserts that a counter expires on the same turn. what would decide it: stage infestation, throat chop and perish song separately, run each to expiry on both engines, and assert both end on the same turn and emit the same `-end` line — with perish song's arm asserting the body dies on the same turn, since that is the one where a tick off by one is a game"
+    },
+    {
+      "n": 343,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "A FAILED ROOST LEAVES THE USER STILL FLYING ON THE AUTHORITY AND GROUNDED HERE, AND IT IS BOARD-MATERIAL — STAGED AND DE",
+      "full": "a failed roost leaves the user still flying on the authority and grounded here, and it is board-material — staged and deliberately not fixed 2026-08-22. found while landing #342's `null`-against-`false` classification and stated in that commit's own account, with no register row until now. we emit the `-fail ... heal` line correctly and then also the `-singleturn`; the authority emits neither, because `runmoveeffects` marks the target `false` and `selfdrops` skips false targets. the consequence is not the two lines: it is that the roost user's flying type is suppressed here on a turn the authority leaves it flying, so a ground move that should be refused connects, and every damage and speed read for that turn is taken against the wrong type. left undone on purpose — the rule in this repository is one family per pass, and the roost family wants its own hand list rather than a free ride inside the encore/yawn batch. what would decide it: stage a roost that fails (a user already at full hp) on both engines and assert (a) neither line is emitted and (b) a ground move into that user is refused on both. source `docs/card-review-2026-08-22.md` §e3 and commit `11bab14`. adjacent: #147 wired roost's grounding in the first place; #242 records that roost is residual order 25, announces nothing, and gives its type back twenty orders above the grassy terrain heal"
+    },
+    {
+      "n": 344,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "A FAINTED BODY STAYS IN ONE OF OUR ACTIVE SLOTS WHERE SHOWDOWN CLEARS IT INSIDE `faintMessages` — OBSERVED 2026-08-22, C",
+      "full": "a fainted body stays in one of our active slots where showdown clears it inside `faintmessages` — observed 2026-08-22, confirmed as real state, consequence unmeasured. a dragonite read `fainted=true` together with `where=active`. showdown sets `pokemon.isactive = false` inside `faintmessages` (`sim/battle.ts:2563`); we leave the body in the active array until something replaces it. confirmed to be real state rather than a labelling artifact — `rostersnapshot` reads membership of the active array itself, not a flag. it is not the cause of card 25 (see #346, which was entirely the harness) and in the repaired game it produced zero divergent lines, so it is recorded as an observation and not asserted as a defect. it is nevertheless the same `faintmessages` region as #331 (the batching) and #315 (a fainted mega's forme), and `isactive = false` at `:2563` is what makes the authority's `tostring()` print a bare side id — so if #331 is fixed this may fall out with it. what would decide it: a boundary comparison asserting no body with `fainted=true` is a member of either active array at the moment the authority has already cleared it, plus a search for a read path (`bringin`, targeting, spread-move target selection) that would behave differently with a corpse in the slot. until one of those produces a consequence this row makes no claim about a mechanic. source `docs/card-review-2026-08-22.md` §e4"
+    },
+    {
+      "n": 341,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "DRAGON TAIL AND CIRCLE THROW IGNORE SUCTION CUPS — CONFIRMED, PROBED RED 2026-08-22. The phaze branch reads `refusesForc",
+      "full": "dragon tail and circle throw ignore suction cups — confirmed, probed red 2026-08-22. the phaze branch reads `refusesforcedswitch`; the damaging branch does not, so a damaging phaze move drags a body the authority refuses to move. staged: tyranitar's dragon tail into malamar — the authority emits `-activate p2a: malamar / ability: suction cups` and nobody moves; we emit a `drag` of snorlax. malamar is the only legal carrier of suction cups in reg m-b and is brought 1,340 times across the two human stores. the membership is derived and small, which is why it can be closed cleanly: exactly two abilities and one move carry `ondragout` in the whole authority — suction cups (legal, one carrier), guard dog (zero legal carriers) and ingrain (a legal move that zero legal species can learn here). champions overrides none of the three. that is why this is the only member of the family that can fire, and it is why #175's rule holds: do not add a guard dog row by hand — `tests/test-tag-params-derived.js` proves the predicate already covers it, its absence is the legality filter, and a regulation that brings a carrier would pick it up with no edit. what would decide it: the staged tyranitar-into-malamar pair above, asserting no body moves and the `-activate` line is present, with a non-carrier control that must still be dragged"
+    },
+    {
+      "n": 340,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "THE BENCH IS IN A DIFFERENT ORDER FROM THE AUTHORITY'S, AND BOTH OF OUR INSTRUMENTS ARE BLIND TO IT BY CONSTRUCTION — DI",
+      "full": "the bench is in a different order from the authority's, and both of our instruments are blind to it by construction — diagnosed 2026-08-22, die hypothesis refuted, landed as a diagnosis with no row until now. the drag divergence was hypothesised to be the die and it is not: both engines roll a uniform die, consume exactly one draw, and under pinned dice draw the same value at the same address. what differs is the order of the list the die indexes into. `sim/battle-actions.ts:125-132` swaps the outgoing body into the arriving body's party slot; we remove-and-append. measured: 34.8% of side-boundaries hold the same bench in a different order, and 0 of 3,118 index positions map to the same body — zero fixed points, so a uniform index disagrees with probability 1. invisible to both instruments, and that is the important part: the protocol comparison sees no line, and `board_state.js`'s `partymap` keys the party by species — correctly, because index-keying manufactured a divergence in 123 of 179 games — and the same correct choice makes it blind to where a body is standing. blast radius is larger than the drag: `bringin`'s default replacement is `_live(bench)[0]`, so a reordered bench moves every faint replacement and every pivot with no explicit target, in rollouts and in `board.js` features. measure it; do not assume it neutral. what would decide it: a boundary-by-boundary comparison of the two party arrays by index (not by species) on a pinned run, asserting the same body stands at the same index, with the 3,118 positions as the denominator. source `docs/card-review-2026-08-22.md` §e1; the diagnosis landed in commit `11bab14` and carried no register row"
+    },
+    {
+      "n": 338,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "LIFE ORB RECOIL DID NOT FIRE FOR A WHOLE TURN IN A REAL GAME, WHICH IS THE BEHAVIOURAL HALF #324 EXPLICITLY EXCLUDES — O",
+      "full": "life orb recoil did not fire for a whole turn in a real game, which is the behavioural half #324 explicitly excludes — observed 2026-08-22 by will reading card 24 (index 37); not probed since. `data/tags.json` gives `lifeorb` a `damagemultall` of `mult 1.3` plus `costsperattack: \"1/10 max hp\"` — the multiplier is machine-readable and the cost is an english string, so nothing can derive the recoil from the tag and whatever applies it is hardcoded elsewhere, which is why it fires in two cards and not in a third. on this card gholdengo landed a resisted shadow ball and never paid its 16 hp; the stream runs to the `upkeep` marker with no life orb line at all, so it is absent for the turn, not merely late. life orb appears in 17,168 of 19,401 bo3 games and the roster credits it `fired / diverged false`, so two live instruments both call it clean. not covered by #324, and the distinction is the point: #324 registers `item:lifeorb / damagemultall.costsperattack` as one of 119 tag values read by nothing and says in its own words that *\"none of these is a behavioural defect on its own — the mutation moved nothing\"*. this row is the counterexample to that sentence for one member of the 119. what would decide it: replay card 24's index 37 on both engines and assert the recoil line is present, then stage a resisted hit, a super-effective hit and a hit that would leave the holder at 1 hp — a recoil applied conditionally is what the two-of-three card pattern suggests"
+    },
+    {
+      "n": 339,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 8182,
+      "title": "A SPREAD DRAIN HEALS ONCE OVER THE SUMMED DAMAGE WHERE THE AUTHORITY HEALS AND ROUNDS PER TARGET, SO WE HEAL 1 HP LESS O",
+      "full": "a spread drain heals once over the summed damage where the authority heals and rounds per target, so we heal 1 hp less on a quarter of them — observed 2026-08-22 by will reading card 1 (index 0). showdown heals per target, interleaved, with an `[of]` attribution on each; we heal once at the end and drop the attribution. the arithmetic is merged too, and that half is not narration: `dealt` accumulates across targets and the drain heals half of the accumulated total once, where the authority rounds per target (`battle.ts:2168`). the two disagree exactly when both hits deal odd damage — 25.0% of two-target spread drains — and we heal 1 hp less. legal spread-drain moves in this regulation: matcha gotcha (8,182 uses) and parabolic charge (151); parabolic charge is `alladjacent`, so up to three drains and three roundings. partially adjacent to #324, which lists `move:matchagotcha / drain.{num,den}` at 4.36% of corpus sheet entries as a param the simulator dereferences nowhere — that is the derivation half; this is the arithmetic half and #324 asserts nothing about it. what would decide it: a staged two-target matcha gotcha whose per-target damage is odd on both bodies, asserting the healer's hp matches the authority to the point, with an even-damage control that must agree both before and after the fix"
+    },
+    {
+      "n": 337,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "`onTryImmunity` IS NOT DERIVED, SO SIX LEGAL MOVES CARRY NO IMMUNITY GATE AT ALL — OBSERVED 2026-08-22 BY WILL READING C",
+      "full": "`ontryimmunity` is not derived, so six legal moves carry no immunity gate at all — observed 2026-08-22 by will reading card 35. endeavor's gate is `ontryimmunity(target, pokemon) { return pokemon.hp < target.hp; }`, and returning false produces a type-immunity-style block (`-immune`), not `-fail`. on card 35 both bodies were at 135/135 — whimsicott and raichu share max hp at l50 and 0 ev — so `135 < 135` is false and the authority answered `-immune`; we ran the `damagecallback` (`target.hp - pokemon.hp` = 0) and announced a zero-damage line reading \"drops to 100%\". our tags for `endeavor` carry no immunity condition at all. legal moves on this hook: attract, endeavor, leech seed, switcheroo, trick, worry seed. trick and switcheroo matter most — a missing immunity gate means an item swap that should be blocked goes through, which is board-material. recurring shape: a fact that lives in a handler rather than a declarative field is not picked up by `tag_dex`, and the roster then credits the entity clean because nothing staged the condition — joins #317 (fur coat) and #312 (sand force). adjacent and not the same rows: #327 covers `immunitygate` on `move:trick` against sticky hold specifically (0 corpus uses), and #323 records `move:leechseed / immunitygate` as a classifier false positive because the grass immunity is implemented through a sibling tag. neither covers the hook. will's requirement, and it is the discipline that got the last `-fail` attempt retracted: stage the positive arm too. three cases, all three asserted: user hp greater than target hp gives `-immune` with no damage line; user hp equal to target hp gives `-immune` as well, because the gate is a strict less-than (the 135/135 case, easy to miss); user hp less than target hp works, the target drops to exactly the user's hp with a real `-damage` line. a test that only proves the immunity is a test that ships an endeavor which never works"
+    },
+    {
+      "n": 336,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "SLEEP: THE DISTRIBUTION IS MODELLED CORRECTLY AND WHETHER THE DRAW IS ADDRESSED IDENTICALLY HAS NEVER BEEN CHECKED — RAI",
+      "full": "sleep: the distribution is modelled correctly and whether the draw is addressed identically has never been checked — raised 2026-08-22, verification owed, no claim of breakage made. champions overrides `slp` and uses `this.sample([2, 3, 3])` (*\"1/3 chance for a pokemon to wake up on turn 2\"*) where mainline uses `this.random(2, 5)` giving 2, 3 or 4 — a different distribution and a different draw shape, since `sample` calls `random(3)`. our `sleep_turns_lost = 1 + 2/3` is exactly the expected value of `sample([2,3,3])`, one third times one plus two thirds times two, so the distribution half is right. what is unverified is the address: whether both engines consume the same number of draws at the same point, which is what decides every later die in a pinned game. reading mainline here is the documented way to be wrong. what would decide it: a pinned staged sleep on both engines printing the draw count and the address consumed, against the champions override read from the mod and cited by line. this row asserts nothing about a mechanic being wrong and deliberately carries no defect token in its cell: a row that overstates its scope costs a whole agent, which is more than the defect it names"
+    },
+    {
+      "n": 334,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "THE CONFUSION SELF-HIT DRAWS A DIFFERENT INDEX FROM THE AUTHORITY, AND THE FORMULA IS RULED OUT AS THE CAUSE — OBSERVED ",
+      "full": "the confusion self-hit draws a different index from the authority, and the formula is ruled out as the cause — observed 2026-08-22 by will reading card 36; root cause unprobed. our formula is correct and documented: no stab, no type chart, no crit, no screen, no burn, sixteen sides at `85+r`, matching `getconfusiondamage` (`battle-actions.ts:1850`), with one gap declared rather than hidden — an `onmodifyatk` ability, so a burned guts body hits itself harder. the move is typed with the wildcard category, so no item or type boost can reach it; that hypothesis is ruled out. authority `108 -> 75` against our `108 -> 78` is 33 against 30, and `30/33 = 0.909` sits inside the 85-100% band, so it is a different index, not a different multiplier. note the authority takes two draws here — `randomchance(33,100)` for whether to self-hit, then `randomizer(damage)` — so a different order or category shifts every later die address too, and this may be an addressing defect rather than a damage one. what would decide it: pin the dice and print the index each engine selected for the same staged self-hit, plus the draw count consumed at that address. do not fold this into #333 until the index is read: one is a scheme and the other is an address"
+    },
+    {
+      "n": 335,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "A PER-TARGET SECONDARY LANDS ON THE WRONG BODY — #294 FIXED THE ACCURACY ROLL AND NOT THE SECONDARY ROLL. OBSERVED 2026-",
+      "full": "a per-target secondary lands on the wrong body — #294 fixed the accuracy roll and not the secondary roll. observed 2026-08-22 by will reading card 40; not probed since. muddy water is a spread move with a 30% accuracy-drop secondary that the authority rolls per target. showdown dropped spiritomb's accuracy; we dropped snorlax's. same shape as #294 — *\"the accuracy roll was one per move where the game rolls one per target\"* — one hook over, and #294 is closed, so its row must not be read as covering this. the sleep difference in the same card is probably downstream of this: once a secondary fires on a different body every later die address shifts, so it must not be treated as an independent defect until this is fixed. what would decide it: a scripted per-target secondary stream on a spread move with a sub-100% secondary, asserting all four outcomes (neither, first only, second only, both) are reachable — the exact discriminator #294 used for the accuracy roll, shown red on the pre-fix tree there, and never run for secondaries"
+    },
+    {
+      "n": 333,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "THE MULTI-HIT DAMAGE PATH WAS NEVER CONVERTED TO THE SIXTEEN-INDEX ROLL, SO #304'S FIX COVERS SINGLE HITS ONLY — PROVED ",
+      "full": "the multi-hit damage path was never converted to the sixteen-index roll, so #304's fix covers single hits only — proved by arithmetic 2026-08-22 from cards 38 and 39. `battle#randomizer` is `tr(tr(base * (100 - random(16))) / 100)`: sixteen discrete values between 85% and 100% of the base. twin beam is the clean case because both hits are 40 bp, so the base is identical for both. authority `185 -> 130 -> 75`, hits of 55 and 55 — one base, the same index twice. medicham2 `185 -> 125 -> 75`, hits of 60 and 50. no single base can produce both under that scheme: 60 requires `b >= 60` and 50 requires `trunc(b x 0.85) <= 50`, i.e. `b < 60`. contradiction. so either our base changes between hits of a constant-bp move or our draw is not the sixteen-index one. this is the unconverted residue of #304, whose own status cell already names it — *\"8 games survive, candidate is the declared per-hit multi-hit randomizer\"* — and a uniform draw would produce 60 and 50 from one base because it can hit any integer in the interval. it also explains will's observation that multi-hit damage \"evens out\": a uniform draw is unbiased about the same mean, so totals converge while individual hits scatter. what would decide it: a staged constant-bp two-hit move on both engines under pinned dice, asserting the two hits are equal whenever the authority's two are equal, plus a per-hit support count in the style of #304's `damage_interior` block"
+    },
+    {
+      "n": 329,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "`onDamagingHit` IS WRONG TWICE ON ONE HOOK — IT RESOLVES BEFORE THE MOVE'S OWN SECONDARIES WHERE THE AUTHORITY RESOLVES ",
+      "full": "`ondamaginghit` is wrong twice on one hook — it resolves before the move's own secondaries where the authority resolves it after, and it fires once per move where the authority fires once per hit. observed 2026-08-22 by will reading divergence cards 29 and 37; not probed since. two defects, filed as one row because they are one derivation. order: `sim/battle-actions.ts:1099` runs `secondaries()` and `:1121` runs `runevent('damaginghit')`, so secondaries resolve first; card 29 is flare blitz's burn against a stamina defense boost in the opposite order here. frequency: card 37 has the authority laying one toxic debris layer per hit of dual wingbeat where we lay one after the move completes. twenty legal abilities ride this hook — aftermath, cursed body, cute charm, effect spore, electromorphosis, flame body, gooey, illusion, innards out, justified, mummy, poison point, rough skin, sand spit, spicy spray, stamina, static, toxic debris, wandering spirit, weak armor — and several are board-material rather than cosmetic: aftermath and innards out deal damage, so the attacker's hp when the secondary lands differs; weak armor changes speed and therefore turn order; cursed body disables a move; and mummy overwrites the attacker's ability, so running it before a secondary the new ability would have modified resolves that secondary under the wrong ability entirely. what would decide it: two staged pairs run on both engines — (a) a contact flare blitz into a stamina carrier, asserting the same relative order of the burn and the boost, and (b) a two-hit contact move into a toxic debris carrier, asserting two layers rather than one. source `docs/card-review-2026-08-22.md` §a1, release `6a05dd9ad60d`, census pin `2cab3179f5fc`, 961 games / 133 diverged"
+    },
+    {
+      "n": 330,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "`onSwitchInPriority` IS NOT MODELLED AT ALL — WE SORT SWITCH-IN EFFECTS BY SPEED AND THE AUTHORITY SORTS BY A DECLARED P",
+      "full": "`onswitchinpriority` is not modelled at all — we sort switch-in effects by speed and the authority sorts by a declared per-ability priority first. observed 2026-08-22 by will reading cards 26 and 27; not probed since. `battle#comparepriority` is order, then priority, then speed — speed is only the third tiebreak — and this engine sorts entry effects on speed alone. sixteen abilities declare the field in mainline, champions overrides none, and five have legal carriers in reg m-b: unnerve `+1` (6 carriers incl. tyranitar), klutz `+1` (3), mimicry `-1` (1, stunfisk-galar), forecast `-2` (4, castform + formes), hospitality `-2` (2, sinistcha and sinistcha-masterpiece). card 26 is the proof and it runs the wrong way round from speed: torkoal is base-20 speed and sinistcha base-70, yet drought fired first on the authority because hospitality carries `-2`. we put the faster body first and got the reverse. same family as the intimidate-vs-drizzle card. what would decide it: a staged entry pair on both engines with a hospitality carrier faster than a weather setter, asserting the weather setter resolves first; plus the derived membership printed before wiring, because a name-matched implementation of five carriers is the shape this repository bans. source `docs/card-review-2026-08-22.md` §a2"
+    },
+    {
+      "n": 331,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "WE ANNOUNCE A FAINT AT THE MOMENT OF LETHAL DAMAGE AND THE AUTHORITY BATCHES IT UNTIL THE ACTION COMPLETES. OBSERVED 202",
+      "full": "we announce a faint at the moment of lethal damage and the authority batches it until the action completes. observed 2026-08-22 by will reading cards 28 and 34; not probed since. `this.add('faint', pokemon)` lives inside `faintmessages()` (`sim/battle.ts:2549`), which `runaction` calls at `:2832` after the action finishes, so showdown completes the move's own consequences — the recharge flag, stone axe's hazard, fling's item — and announces deaths afterwards. two consequences beyond the ordering itself. (1) `faintmessages(lastfirst = false, …)`: the `lastfirst` argument is why final gambit faints the user before the target on the authority and the reverse here. (2) it also explains a wording difference for free — `pokemon#tostring()` returns `p2a: name` while active and bare `p2: name` once not, and `faintmessages` sets `isactive = false` at `:2563`, so the authority's `-hitcount` names an already-dead body (`p2: azumarill`) where ours names a live one (`p2a: azumarill`). one root, two visible symptoms. likely worth more than its card count: a faint announced early shifts every line after it, so games currently filed under other classes may be downstream of this one. imposter (#320) predicted ~10 and delivered 13 for exactly that reason. what would decide it: stage a lethal stone axe and a lethal final gambit on both engines and assert the `|faint|` line's position relative to the hazard line and to the target's faint. source `docs/card-review-2026-08-22.md` §a3. adjacent and not the same row: #315, a fainted mega's forme regression, which is the other half of the same `faintmessages` region"
+    },
+    {
+      "n": 332,
+      "section": "Solving — DUSK, and the retrograde idea",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "A BERRY IS EATEN BEFORE the `upkeep` MARKER AND\\|upkeep` AND BEFORE FAINT PROCESSING HERE, AND AFTER BOTH IN THE AUTHORI",
+      "full": "a berry is eaten before the `upkeep` marker and\\|upkeep` and before faint processing here, and after both in the authority — this one changes who survives. observed 2026-08-22 by will reading card 30; not probed since. the authority's residual case runs `fieldevent('residual')`, then `add('upkeep')`, then `faintmessages()`, and only then `eachevent('update')` — and sitrus hooks `onupdate`, so it eats after the turn-end marker and after deaths are processed. we eat during the residual sequence. two ways that moves the board rather than the narration. (a) a body that residual damage would kill is dead before the berry can be eaten on the authority; eating mid-sequence heals it above zero and it lives. (b) with several residuals in sequence, eating mid-sequence gives a larger hp pool to every residual that follows — body at 20, poison 15 then sandstorm 7: authority 20 -> 5 -> 0 dead, ours 20 -> 5 -> berry 36 -> 29 alive. the residual order itself is checked and correct and is not part of this row: `data/residual-order.json` carries sandstorm at order 1 / `onfieldresidual` and leftovers at order 5 / suborder 4, derived from the authority, and the simulator reads the numbers from that file rather than hardcoding them (#221, #242). will raised this as the ko-flipping hazard; the residual half is sound and the berry half is where it bites. what would decide it: stage a sitrus holder at an hp the residual chain exactly kills, on both engines, and assert the body is dead on both. source `docs/card-review-2026-08-22.md` §a4"
+    },
+    {
       "n": 47,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
@@ -1432,7 +1612,7 @@
     {
       "artifact": "data/interaction-matrix.json",
       "generated": "2026-08-11T22:00:06.336Z",
-      "age_days": 10.4
+      "age_days": 10.9
     }
   ]
 }
