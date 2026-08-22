@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-22T01:45:03.449Z",
+  "generated": "2026-08-22T20:06:04.241Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 623,
-  "live": 623,
+  "probed": 626,
+  "live": 626,
   "missing": 0,
-  "armed": 623,
+  "armed": 626,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -3133,6 +3133,16 @@
     },
     {
       "kind": "move",
+      "tag": "userFaints",
+      "label": "Final Gambit writes the USER's faint before the TARGET it just killed",
+      "live": true,
+      "detail": "Basculegion (195) Final Gambit into a Weavile (145). OPEN — the trace reads [|-damage|p2a: weavile|0 fnt  |faint|p1a: basculegion  |faint|p2a: weavile], so the target's damage is announced first and the USER's faint comes out of the queue ahead of the body it killed; self-KOs queued at the callback 1. BEHIND A PROTECT — [] (must be empty), user 195/195, foe 145/145: `ifHit` means a blocked Gambit costs nothing, so an engine that fainted the user unconditionally fails here",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "drainThenPunishOrder",
       "label": "a full-HP drain move into Rough Skin still pays the toll",
       "live": true,
@@ -3156,7 +3166,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.2% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4287,6 +4297,16 @@
       "label": "Marvel Scale raises Defence only while the body is statused",
       "live": true,
       "detail": "[unstatused, paralysed] — PHYSICAL Iron Head into Milotic 33,22; SPECIAL Flamethrower into the same body 9,9. The physical pair must part and the special pair must NOT — Marvel Scale is Defence, not a blanket bulk multiplier",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "condStatMult",
+      "label": "Fur Coat halves physical damage with no condition at all, and Mold Breaker takes it back",
+      "live": true,
+      "detail": "[ability blanked, Fur Coat] — PHYSICAL Iron Head into Furfrou 83,42 (x1.98, must be ~2); SPECIAL Flamethrower 31,31 (must NOT part — it is Defence, not bulk); a MOLD BREAKER Iron Head through the same Fur Coat 83, which must equal the 83 the blanked body took, because the ability is breakable and the spend reads the SUPPRESSED ability",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5937,6 +5957,16 @@
       "label": "a Sitrus eats in the group that dropped it — the order-8 seed, not next turn",
       "live": true,
       "detail": "Snorlax on 118, one point above its Sitrus threshold (117), holding the berry. UNSEEDED nothing happens: hp 118, item \"sitrusberry\", off-slot eats 0. SEEDED, the order-8 drain of 29 takes it under half and the berry is eaten IN THAT GROUP: hp 147 = 118 - 29 + 58, item \"\", off-slot eats 1. The old fixed call sat above the seed, so the berry waited a full turn and the body spent it under half",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "healsAtThreshold",
+      "label": "a body the residual chain kills is DEAD before its Sitrus is reachable",
+      "live": true,
+      "detail": "Froslass on 73/145, one point above its Sitrus threshold. SEEDED: the order-8 drain of 18 takes it to 55 — under half, berry now due — and the order-9 toxic chip of 63 behind it is lethal, so hp 0, fainted true, item \"sitrusberry\" (never eaten), post-upkeep eats 0. UNSEEDED control: the same chip alone leaves 10, the berry IS eaten below |upkeep| for 46, item \"\", post-upkeep eats 1. With the eat back inside the walk the lethal arm reads 28 HP ALIVE — that is the whole defect",
       "hollow": false,
       "armed": true,
       "directCall": false

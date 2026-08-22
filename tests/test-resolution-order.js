@@ -187,6 +187,20 @@ const BREAKS = {
     edits: [['if(R.hitcount&&_landed>0)R.hitLanded=_landed;',
              'if(TR&&R.hitcount&&_landed>0)TR.hitcount(tg,_landed);']] },
 
+  /* ROADMAP #331, THE HALF THAT DID REPRODUCE (2026-08-22). The first draft of the arm below had the
+   * TARGET protecting, so nothing fainted and it agreed while staging nothing — the `selfdestruct:
+   * 'ifHit'` control arm wearing the red arm's name. With the Gambit connecting the streams part on
+   * two adjacent lines in the opposite order. */
+  'selfko-below-the-target': {
+    what: 'deletes the `damageCallback` self-KO from `_stepApply`, so `userFaints` is spent by WIRE '
+        + '46 far below the step list again — i.e. exactly the engine as it stood, with the TARGET\'s '
+        + '`|faint|` printed before the USER\'s. The move still kills its user; only the position '
+        + 'moves, which is what makes the red arm\'s parting attributable to the position.',
+    edits: [[`{const _ufd=TAGS.param('move',a.move.id,'userFaints');
+         const _fdc=TAGS.param('move',a.move.id,'fixedDamage');
+         if(_ufd&&_ufd.faints==='ifHit'&&_fdc&&_fdc.source==='myRemainingHP'&&!m.fainted){
+           m.curHP=0;m.fainted=true;_selfKOPending=true;MEDSEEN.selfKOAtDamageCallback++;}}`, ';']] },
+
   'berry-at-every-group': {
     what: 'runs the `onUpdate` pass after EVERY residual group instead of only after the weather, '
         + 'which is where ROADMAP #221 left it. The post-upkeep pass still runs and simply finds '
@@ -409,6 +423,66 @@ const CASES = [
         ['toxapex', '', 'Regenerator', ['Protect']], ['weavile', '', 'Pressure', ['Protect']]],
     script: [T([{ m: 'irondefense' }, { m: 'irondefense' }], [{ m: 'curse', t: 0 }, { m: 'calmmind' }]),
              T([{ m: 'irondefense' }, { m: 'irondefense' }], [PROT, { m: 'calmmind' }])] },
+
+  /* =============================== A3 — THE FAINT QUEUE'S OWN ORDER ============================= */
+  { id: 'a3-gambit-red', group: 'A3', kind: 'red', brk: 'selfko-below-the-target',
+    what: 'ROADMAP #331\'s remaining half. FINAL GAMBIT (378 corpus uses) kills the user AND the '
+        + 'target out of ONE action, so the two `|faint|` lines are adjacent and their order is the '
+        + 'whole question. On the authority the USER is queued first — `damageCallback(pokemon) '
+        + '{ const damage = pokemon.hp; pokemon.faint(); return damage; }` (data/moves.ts:5306-5310) '
+        + 'runs while the damage is being COMPUTED, so `faintQueue` holds the user before the target '
+        + 'is ever hit, and `faintMessages()` drains it in order. Basculegion is 195 HP against a '
+        + 'Weavile on 145, so the kill needs no roll.',
+    A: [['basculegion', '', 'Adaptability', ['Final Gambit', 'Protect']],
+        ['corviknight', '', 'Pressure', ['Protect']],
+        ['clefable', '', 'Unaware', ['Protect']], ['milotic', '', 'Marvel Scale', ['Protect']]],
+    B: [['weavile', '', 'Pressure', ['Ice Shard', 'Protect']],
+        ['snorlax', '', 'Thick Fat', ['Protect']],
+        ['garchomp', '', 'Rough Skin', ['Protect']], ['toxapex', '', 'Regenerator', ['Protect']]],
+    /* THE TARGET MUST NOT PROTECT, AND THE FIRST DRAFT OF THIS ARM HAD IT PROTECTING — which is the
+     * `selfdestruct: 'ifHit'` control arm below wearing the red arm's name, and it agreed cleanly
+     * while staging no faint at all. Weavile clicks Ice Shard so the Gambit connects. */
+    script: [T([{ m: 'finalgambit', t: 0 }, PROT], [{ m: 'iceshard', t: 0 }, PROT])] },
+
+  { id: 'a3-gambit-control-blocked', group: 'A3', kind: 'control', brk: 'selfko-below-the-target',
+    what: 'the SAME Final Gambit into a PROTECT. `selfdestruct: \'ifHit\'` (data/moves.ts:5311) means '
+        + 'a blocked Final Gambit costs its user nothing, so NOBODY faints and there is no position '
+        + 'for the break to move — it must agree clean AND under the break. That is what makes the '
+        + 'red arm\'s parting attributable to the POSITION rather than to the edit touching the turn '
+        + 'at all, and it is a second claim in its own right: the new site sits in `_stepApply`, '
+        + 'below every refusal gate, so an engine that spent the user on a blocked click would part '
+        + 'here.',
+    A: [['basculegion', '', 'Adaptability', ['Final Gambit', 'Protect']],
+        ['corviknight', '', 'Pressure', ['Protect']],
+        ['clefable', '', 'Unaware', ['Protect']], ['milotic', '', 'Marvel Scale', ['Protect']]],
+    B: [['weavile', '', 'Pressure', ['Ice Shard', 'Protect']],
+        ['snorlax', '', 'Thick Fat', ['Protect']],
+        ['garchomp', '', 'Rough Skin', ['Protect']], ['toxapex', '', 'Regenerator', ['Protect']]],
+    script: [T([{ m: 'finalgambit', t: 0 }, PROT], [PROT, PROT])],
+    /* the Protect has to be UP when the Gambit lands, so the shield is clicked on the same turn and
+     * the arm relies on Protect's own +4 bracket rather than on a second scripted turn */ },
+
+  { id: 'a3-boom-probe', group: 'A3', kind: 'known-open', brk: null,
+    what: 'A DECLARED, MEASURED, UNFIXED ROW — the `always` half of ROADMAP #331, staged rather than '
+        + 'assumed and then deliberately NOT fixed in the same pass as the `ifHit` half. Explosion '
+        + '(43 corpus uses), Self-Destruct (16) and Misty Explosion (6) faint their user at a '
+        + 'DIFFERENT authority site — `if (move.selfdestruct === \'always\') this.battle.faint(...)` at '
+        + 'battle-actions.ts:499, ABOVE the whole hit — so the user is on `faintQueue` before any '
+        + 'target and is announced first, exactly as Final Gambit now is. This engine still spends '
+        + 'them at WIRE 46, below the step list. MEASURED HERE on 2026-08-22, Metagross booming into '
+        + 'a Weavile with its own partner behind a Protect: '
+        + 'showdown `|faint|p1a: Metagross` then `|faint|p2a: Weavile`, medicham the reverse. '
+        + 'WHY IT IS NOT FIXED WITH ITS TWIN: `:499` is above the Protect step, so being faithful '
+        + 'means the user is at 0 HP for the WHOLE hit — a Spiky Shield must not toll it and a '
+        + 'boostsOnKO must not fire off it — and that is a state change with a blast radius this pass '
+        + 'has not measured. The `ifHit` fix is a position inside one step and this is not.',
+    A: [['metagross', '', 'Clear Body', ['Explosion', 'Protect']],
+        ['corviknight', '', 'Pressure', ['Protect']],
+        ['clefable', '', 'Unaware', ['Protect']], ['milotic', '', 'Marvel Scale', ['Protect']]],
+    B: [['weavile', '', 'Pressure', ['Ice Shard', 'Protect']],
+        ['snorlax', '', 'Thick Fat', ['Body Slam', 'Protect']],
+        ['garchomp', '', 'Rough Skin', ['Protect']], ['toxapex', '', 'Regenerator', ['Protect']]],
+    script: [T([{ m: 'explosion' }, PROT], [{ m: 'iceshard', t: 0 }, { m: 'bodyslam', t: 0 }])] },
 
   /* =============================== THE HALF THAT IS NOT FIXED ================================== */
   { id: 'a1-multihit-frequency', group: 'A1', kind: 'known-open', brk: null,

@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-22T04:44:15.847Z",
+ "generated": "2026-08-22T19:29:03.461Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -4016,13 +4016,14 @@
   {
    "tag": "condStatMult",
    "kind": "ability",
-   "param": "a DEFENSIVE stat x N while a body condition holds",
-   "why": "Marvel Scale (36 uses): Defense x1.5 while statused. The census carried it as MISSING with \"no artifact describes it\" -- this is the artifact describing it",
+   "param": "a DEFENSIVE stat x N, unconditionally or while a body condition holds",
+   "why": "Marvel Scale (36 uses): Defense x1.5 while statused. The census carried it as MISSING with \"no artifact describes it\" -- this is the artifact describing it. FUR COAT (8 uses) is the unconditional member and had no defensive tag at all: 19 of 24 differential disagreements",
    "consumedBy": null,
    "used": false,
-   "n": 1,
-   "uses": 51,
+   "n": 2,
+   "uses": 59,
    "examples": [
+    "Fur Coat",
     "Marvel Scale"
    ]
   },
@@ -37515,12 +37516,18 @@
   "furcoat": {
    "name": "Fur Coat",
    "tags": [
-    "breakable"
+    "breakable",
+    "condStatMult"
    ],
    "uses": 8,
    "params": {
     "breakable": {
      "breakable": true
+    },
+    "condStatMult": {
+     "stat": "def",
+     "mult": 2,
+     "when": "always"
     }
    }
   },

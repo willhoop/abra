@@ -7688,16 +7688,43 @@ const ABILITY_TAGS = [
    * two lines and states both the condition and the chainModify. DEFENSIVE stats only, on purpose --
    * the offensive twin of this shape is GUTS, which is already consumed by name in dmgRange and
    * carries `damageBoost`; deriving it here too would double-apply the 1.5. Consumer: WIRE 112. */
-  { tag: 'condStatMult', param: 'a DEFENSIVE stat x N while a body condition holds', probe: 'onModifyDef',
+  /* ROADMAP #317 -- AND THE UNCONDITIONAL MEMBER OF THE SAME HANDLER, WHICH IS FUR COAT.
+   *
+   * The block above reads `onModifyDef`/`onModifySpD` and REQUIRED an `if (pokemon.status)`, so a
+   * handler with no branch at all fell through to `null` and the ability carried only `breakable`.
+   * Fur Coat is that handler -- `onModifyDef(def) { return this.chainModify(2); }`, derived from
+   * Dex.forFormat('gen9championsvgc2026regmb').abilities.get('furcoat'), not typed -- and its
+   * absence is 19 of the 24 rows in data/engine-diff.json: medicham2 dealt roughly DOUBLE physical
+   * damage through every Furfrou (aerodactyl rockslide 57 there / 111 here).
+   *
+   * `when: 'always'` is a degenerate condition rather than a second tag, because the consumer is the
+   * same DCH spend at the same stage and CLAUDE.md's facts-are-global rule is about exactly this: two
+   * sites deciding "a defensive stat is multiplied" will disagree eventually.
+   *
+   * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over every non-Past ability the format defines:
+   *     onModifyDef/onModifySpD [3]: furcoat, grasspelt, marvelscale
+   *       furcoat     no branch                                   -> when 'always',   x2   (NEW)
+   *       marvelscale if (pokemon.status)                          -> when 'statused', x1.5 (unmoved)
+   *       grasspelt   if (this.field.isTerrain("grassyterrain"))   -> REFUSED, still untagged
+   * Grass Pelt is the reason the third arm is a REFUSAL and not a fallthrough: a derivation that
+   * treated "no status branch" as unconditional would have handed it a permanent x1.5 Defence off
+   * the grass. A condition this derivation cannot NAME gets no tag, which is the same failing-closed
+   * rule the consumer applies at the other end. It is a real gap and it is left open rather than
+   * guessed at. */
+  { tag: 'condStatMult', param: 'a DEFENSIVE stat x N, unconditionally or while a body condition holds', probe: 'onModifyDef',
     why: 'Marvel Scale (36 uses): Defense x1.5 while statused. The census carried it as MISSING with '
-       + '"no artifact describes it" -- this is the artifact describing it',
+       + '"no artifact describes it" -- this is the artifact describing it. FUR COAT (8 uses) is the '
+       + 'unconditional member and had no defensive tag at all: 19 of 24 differential disagreements',
     of: a => {
       for (const [h, stat] of [['onModifyDef', 'def'], ['onModifySpD', 'spd']]) {
-        const src = String(a[h] || '');
+        const src = String(a[h] || '').replace(/\s+/g, ' ');
         if (!src) continue;
-        if (!/if\s*\(\s*\w+\.status\s*\)/.test(src)) continue;
         const mult = multiplierIn(src);
-        if (mult > 1) return { stat, mult, when: 'statused' };
+        if (!(mult > 1)) continue;
+        if (/if\s*\(\s*\w+\.status\s*\)/.test(src)) return { stat, mult, when: 'statused' };
+        /* the handler is one `return this.chainModify(n)` and nothing else */
+        if (!/\bif\s*\(/.test(src)) return { stat, mult, when: 'always' };
+        return null;                      /* a condition this derivation cannot name -- refuse */
       }
       return null;
     } },

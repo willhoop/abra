@@ -10342,6 +10342,69 @@ probe('move', 'userFaintsSilent', 'a self-KO writes |faint| alone; a damage KO w
                  + 'Explosion must carry the faint ALONE — [' + test.lines + ']' };
 });
 
+/* ROADMAP #331 — AND WHICH BODY'S `|faint|` IS WRITTEN FIRST WHEN A MOVE KILLS BOTH ENDS OF ITSELF.
+ *
+ * The probe above proves a self-KO writes `|faint|` and no `-damage`. It reads ONE body's lines out
+ * of the trace and is structurally blind to the question this one asks: Final Gambit kills its user
+ * AND its target out of one action, and the two lines are adjacent.
+ *
+ * THE AUTHORITY PUTS THE USER FIRST, and the mechanism is a QUEUE rather than a sequence of prints:
+ * `Pokemon#faint()` (sim/pokemon.ts:1587-1598) sets hp to 0 and pushes onto `faintQueue` writing
+ * nothing at all; `faintMessages()` drains that queue afterwards. Final Gambit's own handler queues
+ * the user while the damage is still being COMPUTED —
+ *     damageCallback(pokemon) { const damage = pokemon.hp; pokemon.faint(); return damage; }
+ *     (data/moves.ts:5306-5310)
+ * — so the user is in the queue before the target has been touched, and comes out of it first.
+ *
+ * MEASURED RED on 2026-08-22 through tests/test-resolution-order.js `a3-gambit-red`, which plays the
+ * same board on the official simulator and compares the two protocol streams with nothing typed:
+ *     showdown  |-damage|p2a: Weavile|0 fnt   |faint|p1a: Basculegion   |faint|p2a: Weavile
+ *     medicham  |-damage|p2a: Weavile|0 fnt   |faint|p2a: Weavile       |faint|p1a: Basculegion
+ * 378 corpus uses. This probe is the single-engine half of that arm, so the ORDER cannot regress
+ * without a census row going missing.
+ *
+ * THE CONTROL IS A PROTECT, and it is not decoration: `selfdestruct: 'ifHit'` (data/moves.ts:5311)
+ * means a blocked Final Gambit costs its user NOTHING, so the arm that would pass by fainting the
+ * user unconditionally is exactly the arm this refuses. Both bodies must still be at full HP and the
+ * trace must carry no faint at all.
+ *
+ * THE `-damage` LINE IS ASSERTED TO COME FIRST, because the first attempt at this fix emitted the
+ * user's faint AT the callback rather than queueing it — one line too early, above the authority's
+ * own `|-damage|p2a: Weavile|0 fnt`. That is the same defect mirrored and it passes a probe that only
+ * checks which faint precedes which. */
+probe('move', 'userFaints', 'Final Gambit writes the USER\'s faint before the TARGET it just killed', () => {
+  const run = (shield) => {
+    const { me, ally, f1, f2, S } = board('basculegion', 'incineroar', 'weavile', 'corviknight');
+    const trace = []; S._trace = trace;
+    const before = M.seen.selfKOAtDamageCallback;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'finalgambit', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, shield ? M.playerAction(f1, 'protect', f1, S.field) : { kind: 'pass' }],
+               [f2, { kind: 'pass' }]]));
+    const lines = trace.filter(l => /^\|(faint|-damage)\|/.test(l));
+    return { lines, faints: lines.filter(l => /^\|faint\|/.test(l)),
+             firstIsDamage: /^\|-damage\|p2a:/.test(lines[0] || ''),
+             userHP: me.curHP, userFull: me.st.hp, foeHP: f1.curHP, foeFull: f1.st.hp,
+             queued: M.seen.selfKOAtDamageCallback - before };
+  };
+  const control = run(true), test = run(false);
+  return { works: test.faints.length === 2
+                  && /^\|faint\|p1a:/.test(test.faints[0])      /* the USER, and it is first */
+                  && /^\|faint\|p2a:/.test(test.faints[1])      /* the target it just killed */
+                  && test.firstIsDamage && test.queued === 1
+                  && test.userHP === 0 && test.foeHP === 0
+                  && control.faints.length === 0 && control.queued === 0
+                  && control.userHP === control.userFull && control.foeHP === control.foeFull,
+           arms: { control: control.lines.length, test: test.faints.length },
+           detail: 'Basculegion (195) Final Gambit into a Weavile (145). OPEN — the trace reads ['
+                 + test.lines.join('  ') + '], so the target\'s damage is announced first and the '
+                 + 'USER\'s faint comes out of the queue ahead of the body it killed; self-KOs queued '
+                 + 'at the callback ' + test.queued + '. BEHIND A PROTECT — [' + control.lines.join('  ')
+                 + '] (must be empty), user ' + control.userHP + '/' + control.userFull + ', foe '
+                 + control.foeHP + '/' + control.foeFull + ': `ifHit` means a blocked Gambit costs '
+                 + 'nothing, so an engine that fainted the user unconditionally fails here' };
+});
+
 /* WIRE 87. Order, not magnitude: Showdown drains INSIDE the move and pays the contact toll after, so
  * a full-HP drain move into Rough Skin gains nothing and still pays. medicham2 tolled first and then
  * healed the toll straight back. Only visible from FULL HP, which is why a matrix found it. */
@@ -14438,6 +14501,57 @@ probe('ability', 'condStatMult', 'Marvel Scale raises Defence only while the bod
            detail: `[unstatused, paralysed] — PHYSICAL Iron Head into Milotic ${phys}; SPECIAL `
                  + `Flamethrower into the same body ${spec}. The physical pair must part and the `
                  + `special pair must NOT — Marvel Scale is Defence, not a blanket bulk multiplier` };
+});
+
+/* ROADMAP #317 — FUR COAT, THE UNCONDITIONAL MEMBER OF THE SAME TAG, AND IT WAS 19 OF THE 24 ROWS IN
+ * data/engine-diff.json.
+ *
+ * The probe above proves the CONDITIONAL half. It cannot see the unconditional one, and the engine
+ * did not have it: `condStatMult` was consumed as `when === 'statused'`, so Fur Coat's
+ * `onModifyDef(def) { return this.chainModify(2); }` — read off
+ * Dex.forFormat('gen9championsvgc2026regmb'), never typed — matched no branch and was dropped with
+ * no counter. Measured on the shipped tree before the fix: Garchomp's Iron Head into Furfrou dealt
+ * 83 with the ability and 83 with it blanked. The knob did not move, which is this repository's
+ * definition of unwired.
+ *
+ * THE CONTROL IS EXPLICIT ON BOTH ARMS. `bare()` blanks the ability, but Furfrou's slot-0 ability IS
+ * Fur Coat and every other route into this engine supplies it — comparing "Furfrou" against
+ * "Furfrou" is the Choice Scarf trap docs/LESSONS.md records, so the ability is SET on both arms.
+ *
+ * THREE KNOBS, and each one has to move the right way:
+ *   - PHYSICAL must roughly HALVE. Direction alone would pass on an engine that applied any
+ *     reduction at all, so the ratio is asserted inside a band around 2 (truncation moves it a
+ *     little; a x1.5 or a x4 falls outside).
+ *   - SPECIAL must be UNTOUCHED. Fur Coat is Defence, not bulk — an engine that read `stat` wrongly
+ *     passes the physical arm.
+ *   - MOLD BREAKER must get the FULL damage back. Fur Coat carries `breakable`, and this arm is what
+ *     proves the multiplier arrived through the tag route rather than through a name: it is spent on
+ *     `defAb`, the SUPPRESSED ability, so a hardcoded `def.ability === 'furcoat'` would still halve
+ *     it here. */
+probe('ability', 'condStatMult', 'Fur Coat halves physical damage with no condition at all, and Mold Breaker takes it back', () => {
+  const run = (defAb, attAb, moveId) => {
+    const B = board('garchomp', 'incineroar', 'furfrou', 'corviknight');
+    unfaintable(B.f1);
+    B.f1.ability = defAb; B.me.ability = attAb;
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return before - B.f1.curHP;
+  };
+  const phys  = [run('none', 'none', 'ironhead'), run('furcoat', 'none', 'ironhead')];
+  const spec  = [run('none', 'none', 'flamethrower'), run('furcoat', 'none', 'flamethrower')];
+  const broke = run('furcoat', 'moldbreaker', 'ironhead');
+  const ratio = phys[1] > 0 ? phys[0] / phys[1] : 0;
+  return { works: phys[1] > 0 && ratio > 1.8 && ratio < 2.2
+                  && spec[0] === spec[1] && spec[0] > 0
+                  && broke === phys[0],
+           arms: { control: phys[0], test: phys[1] },
+           detail: `[ability blanked, Fur Coat] — PHYSICAL Iron Head into Furfrou ${phys} `
+                 + `(x${ratio.toFixed(2)}, must be ~2); SPECIAL Flamethrower ${spec} (must NOT part — `
+                 + `it is Defence, not bulk); a MOLD BREAKER Iron Head through the same Fur Coat `
+                 + `${broke}, which must equal the ${phys[0]} the blanked body took, because the `
+                 + `ability is breakable and the spend reads the SUPPRESSED ability` };
 });
 
 /* 3. switchInForme — ZERO TO HERO, AND THE PROBE IS ABOUT THE MOMENT.
@@ -20882,6 +20996,77 @@ probe('item', 'healsAtThreshold', 'a Sitrus eats in the group that dropped it �
                  + test.drain + ' + ' + test.restore + ', item ' + JSON.stringify(test.item)
                  + ', off-slot eats ' + test.offSlot + '. The old fixed call sat above the seed, so '
                  + 'the berry waited a full turn and the body spent it under half' };
+});
+
+/* ROADMAP #332 — AND THE ONE QUESTION THE PROBE ABOVE CANNOT ASK: WHO IS STILL ALIVE.
+ *
+ * The probe above proves the berry is eaten in the walk rather than a turn late, and its whole
+ * verdict is an HP total on a body that survives either way. The register's own decisive test is a
+ * different sentence — *"stage a Sitrus holder at an HP the residual chain exactly kills, on both
+ * engines, and assert the body is dead on both"* — and nothing asserted it. Will's note on the card
+ * is *"this one changes who survives"*, and Sitrus is on 66.9% of teams.
+ *
+ * THE AUTHORITY'S TAIL, read off sim/battle.ts and not from memory:
+ *     case 'residual': this.fieldEvent('Residual');   :2813   <- every chip, and faintMessages
+ *       if (!this.ended) this.add('upkeep');          :2814      after each one (:565)
+ *     this.faintMessages();                           :2832
+ *     if (this.gen >= 5 ...) this.eachEvent('Update'); :2858   <- and ONLY here is a berry eaten
+ * Sitrus is `onUpdate` (data/items.ts:5748), so a body the walk kills is dead two statements before
+ * the berry is reachable. An engine that eats mid-walk heals it above zero and it lives.
+ *
+ * THE FIXTURE IS ARITHMETIC, NOT A DAMAGE ROLL. Froslass on `floor(max/2)+1` — one point above its
+ * own Sitrus threshold, the same idiom the probe above uses — carrying LEECH SEED (order 8, max/8)
+ * and BADLY POISONED at counter 7 (order 9, 7 x max/16). The seed crosses the threshold and the
+ * toxic chip behind it is lethal, so the eat position decides whether the body is standing.
+ *
+ * THE CONTROL IS THE SAME BOARD WITH THE SEED REMOVED, and it has to be: an engine that had simply
+ * stopped eating berries would pass the lethal arm for the wrong reason. Unseeded, the toxic chip
+ * alone crosses the threshold without killing, the berry IS eaten after `|upkeep|`, and the body
+ * stands. Both arms also assert the counter — the eat is counted in the post-upkeep pass on one arm
+ * and nowhere at all on the other.
+ *
+ * SHOWN RED ON A DELIBERATE BREAK before it was believed, by compiling medicham2 with the one-line
+ * revert `tests/test-resolution-order.js` calls `berry-at-every-group` (the `onUpdate` pass back
+ * after EVERY residual group, where ROADMAP #221 left it): the lethal arm then reads
+ * `{hp:28, fainted:false, item:''}` — alive, healed, berry spent — and the control is UNMOVED at 46.
+ * That is the defect this register row describes, reproduced, and it is the position and nothing
+ * else that separates the two. */
+probe('item', 'healsAtThreshold', 'a body the residual chain kills is DEAD before its Sitrus is reachable', () => {
+  const run = (seed) => {
+    const { me, ally, f1, f2, S } = board('garchomp', 'incineroar', 'froslass', 'corviknight');
+    const max = f1.st.hp, half = Math.floor(max / 2);
+    f1.item = 'sitrusberry'; f1.status = 'tox'; f1.toxTurns = 6; f1.curHP = half + 1;
+    /* the seeder is a real body in a real slot — `_seededBy.slot`/`.side` are what the drain is
+     * re-aimed through, and leaving them off would take the counted `leechSeedDrainNoSlot` path */
+    if (seed) f1._seededBy = { per: 8, by: me, slot: 0, side: 'A' };
+    const before = M.seen.residualBerryAteAfterUpkeep;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    return { hp: f1.curHP, fainted: !!f1.fainted, item: f1.item, max, half,
+             drain: Math.floor(max / 8), tox: Math.max(1, Math.floor(max / 16)) * 7,
+             restore: Math.floor(max / 4),
+             ateAfterUpkeep: M.seen.residualBerryAteAfterUpkeep - before };
+  };
+  const lives = run(false), dies = run(true);
+  const afterSeed = dies.half + 1 - dies.drain;
+  return { works: dies.fainted && dies.hp === 0 && dies.item === 'sitrusberry' && dies.ateAfterUpkeep === 0
+                  && !lives.fainted && lives.item === '' && lives.ateAfterUpkeep === 1
+                  && lives.hp === lives.half + 1 - lives.tox + lives.restore
+                  /* the fixture is really the fixture: the seed crosses the threshold, the chip
+                     behind it is lethal, and the berry WOULD have saved it — without this last
+                     clause the two arms could differ for any reason at all */
+                  && afterSeed > 0 && afterSeed <= dies.half
+                  && dies.tox >= afterSeed && afterSeed + dies.restore > dies.tox,
+           arms: { control: [lives.hp, lives.item], test: [dies.hp, dies.item] },
+           detail: 'Froslass on ' + (dies.half + 1) + '/' + dies.max + ', one point above its Sitrus '
+                 + 'threshold. SEEDED: the order-8 drain of ' + dies.drain + ' takes it to '
+                 + afterSeed + ' — under half, berry now due — and the order-9 toxic chip of '
+                 + dies.tox + ' behind it is lethal, so hp ' + dies.hp + ', fainted ' + dies.fainted
+                 + ', item ' + JSON.stringify(dies.item) + ' (never eaten), post-upkeep eats '
+                 + dies.ateAfterUpkeep + '. UNSEEDED control: the same chip alone leaves '
+                 + (lives.half + 1 - lives.tox) + ', the berry IS eaten below |upkeep| for '
+                 + lives.hp + ', item ' + JSON.stringify(lives.item) + ', post-upkeep eats '
+                 + lives.ateAfterUpkeep + '. With the eat back inside the walk the lethal arm reads '
+                 + (afterSeed + dies.restore - dies.tox) + ' HP ALIVE — that is the whole defect' };
 });
 
 /* ================================================================================================

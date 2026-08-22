@@ -10,6 +10,61 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.69.0] — 2026-08-22
+
+### Fixed
+- **FUR COAT (#317) — the differential goes 24/6000 → 5/6000, paired on one sample.** `condStatMult`
+  was derived only for handlers carrying `if (pokemon.status)` and consumed only as
+  `when === 'statused'`, so Fur Coat's `onModifyDef(def){ return this.chainModify(2); }` — derived
+  from `Dex.forFormat('gen9championsvgc2026regmb')` — was dropped at **both** ends, **with no counter
+  at all.** A capability that cannot prove it ran is assumed broken; this one could not even be asked.
+  - **Red first:** Iron Head into Furfrou read **83 with the ability and 83 with it blanked**, and the
+    census reported `623 live, 1 missing` before the tag existed.
+  - **Membership printed before wiring, not after:** `furcoat` added, `marvelscale` unmoved,
+    `grasspelt` **REFUSED** — it is conditioned on terrain and the derivation will not guess it.
+  - **Probe** `tests/test-mechanics.js` `ability/condStatMult`: 83 → 42 physical (×1.98), 31 → 31
+    special, and a **Mold Breaker arm back at 83** — which proves the multiplier arrives through the
+    TAG rather than through a name.
+  - Result: **19 Furfrou rows gone, 0 new.** Census 623 live / 0 missing → **626 live / 0 missing**,
+    nothing lost, no verdict flipped.
+- **FINAL GAMBIT'S FAINT ORDER (#331, 378 uses).** Showdown emits `|faint|p1a: Basculegion` then
+  `|faint|p2a: Weavile`; ours was the reverse. The state now moves at the `damageCallback` moment and
+  the line drains at `_stepFaint`. The first attempt emitted it **one line too early**, above the
+  authority's `|-damage| … 0 fnt`, and was corrected rather than shipped.
+  `tests/test-resolution-order.js`: 14 arms — **6 RED PROVEN, 7 CONTROL HELD, 1 KNOWN-OPEN, 0 failing.**
+
+### Added
+- **The Sitrus question the register never actually asked: WHO SURVIVES.** #332's ordering fix landed
+  this morning, but nothing tested the consequence Will's card review named — *"this one changes who
+  survives"*. New probe `item/healsAtThreshold`: a seeded, badly-poisoned Sitrus holder **dies with the
+  berry still in hand**; under the `berry-at-every-group` revert the same board reads
+  `{hp: 28, fainted: false, item: ''}`, and the control is unmoved. Sitrus is on 66.9% of teams.
+
+### Notes
+- **THE 24 → 5 NEARLY WAS NOT A BEFORE/AFTER, AND CATCHING THAT IS THE SECOND MEASUREMENT OF WHY THE
+  INGEST FIX MATTERS.** The committed `data/engine-diff.json` was stamped 18:49Z; ingest commit
+  `1fe3ab3` rewrote `data/move-priors.json` at 18:53Z. The sampler draws its species and moves from
+  that file, so a same-seed re-run walks a **different sample** — `skipped_multihit` 170 against 154.
+  The sampler was proven deterministic, then the CONTROL was re-measured on today's inputs by
+  restoring `data/tags.json` and `data/abra-tags.js` to HEAD. **24 → 5 on the identical sample.**
+  This is the same hazard as §5.67.0 and it bit a second time inside four hours.
+- **AN UNEXPECTED NUMBER, REPORTED RATHER THAN ITERATED AGAINST: the residual 5 are probably the
+  REFERENCE being wrong, not MEDICHAM.** All five are `aurorus hypervoice`, and `aurorus icebeam`
+  agrees exactly. Refrigerate's `onModifyType` runs at `sim/battle-actions.ts:438` inside
+  `useMoveInner` — **above** the `moveHit` entry point `showdownDamage` must use. Filed, **not fixed**:
+  it is a control change that moves this file's own headline, and that is not a change to make quietly
+  in the same pass as the thing it would flatter.
+- **DECLARED OPEN, NOT FIXED, AND IT NEEDS A DECISION.** The `always` family — Explosion, Self-Destruct,
+  Misty Explosion, 65 uses — carries the same faint-order defect as Final Gambit. It is staged as
+  `a3-boom-probe` and left open because its authority site sits **above the Protect step**, which is a
+  state change with an unmeasured blast radius. **That is a red arm carried as a status, which CLAUDE.md
+  bans** — it is either fixed in the session that saw it, or waived by Will, by name, out loud. It is
+  named here so it cannot become "one of the known failures". It has not been waived.
+- Observed and left alone: another agent rewrote `data/docs-currency-baseline.json` at 19:48Z
+  mid-session.
+
+---
+
 ## [5.68.0] — 2026-08-22
 
 ### Added

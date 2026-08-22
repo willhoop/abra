@@ -11135,3 +11135,54 @@ on file.
 fixed in the same pass — changing the dice under twenty-seven instruments at once cannot be attributed
 if it goes wrong. The whole-game differential and the mechanics census have NOT been re-run against the
 fixed instrument. `data/register-reality.json` is 33 rows behind.
+
+---
+
+## 2026-08-22 — FUR COAT WAS DROPPED AT BOTH ENDS WITH NO COUNTER (5.69.0)
+
+`condStatMult` was derived only for handlers carrying `if (pokemon.status)` and consumed only as
+`when === "statused"`. Fur Coat's `onModifyDef(def){ return this.chainModify(2); }` matched neither,
+so it was dropped at BOTH ends — **and there was no counter, so nothing could even ask.** That is the
+project's named failure mode exactly: a capability was absent and everything reported success.
+
+```
+  engine-diff   24 / 6000  ->  5 / 6000     (5995 agreed, band_missing 0)
+  census        623 live / 0 missing  ->  626 live / 0 missing
+  19 Furfrou rows gone, 0 new
+```
+
+Red first: Iron Head into Furfrou read **83 with the ability and 83 with it blanked**. Membership was
+printed BEFORE wiring — `furcoat` added, `marvelscale` unmoved, `grasspelt` **refused** because it is
+conditioned on terrain and the derivation will not guess. The probe carries a **Mold Breaker arm back
+at 83**, which is what proves the multiplier arrives through the TAG rather than through a name.
+
+### THE BEFORE/AFTER NEARLY WAS NOT ONE, FOR THE SECOND TIME TODAY
+
+The committed `engine-diff.json` was stamped 18:49Z. Ingest commit `1fe3ab3` rewrote
+`data/move-priors.json` at 18:53Z, and the sampler draws its species and moves from that file — so a
+same-seed re-run walks a DIFFERENT sample (`skipped_multihit` 170 vs 154). The sampler was proven
+deterministic, then the CONTROL was re-measured on today's inputs by restoring the tag files to HEAD:
+**24 → 5 on the identical sample.** Same hazard as 5.67.0, four hours apart. The promote-step fix Will
+approved is now motivated by two independent near-misses, not one argument.
+
+### THE RESIDUAL 5 ARE PROBABLY THE REFERENCE, NOT US
+
+All five are `aurorus hypervoice`; `aurorus icebeam` agrees exactly. Refrigerate's `onModifyType` runs
+at `sim/battle-actions.ts:438` inside `useMoveInner`, **above** the `moveHit` entry point
+`showdownDamage` must use. **Filed, not fixed** — it is a control change that would move this file's
+own headline, and that is not a change to make in the same pass as the thing it would flatter.
+
+### WHO SURVIVES — the question the register never asked
+
+#332's ordering fix landed this morning; nothing tested the consequence Will wrote on the card. New
+probe `item/healsAtThreshold`: a seeded, badly-poisoned Sitrus holder **dies with the berry still in
+hand**. Under the revert the same board reads `{hp:28, fainted:false, item:""}`, control unmoved.
+Sitrus is on 66.9% of teams.
+
+### ONE RED ARM IS CARRIED AS A STATUS AND THAT IS BANNED
+
+The `always` family — Explosion, Self-Destruct, Misty Explosion, 65 uses — has Final Gambit's
+faint-order defect and is left open because its authority site sits above the Protect step, a state
+change with unmeasured blast radius. The reason is real. **It is still a red arm being carried, which
+CLAUDE.md bans by name:** fixed in the session that saw it, or waived by Will out loud. **It has not
+been waived**, and it is written here so it cannot quietly become "one of the known failures".

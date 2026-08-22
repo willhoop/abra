@@ -298,6 +298,19 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                                `residualBerryAte` and NOT in this one, which is the exact split
    *                                the two authority call sites make. */
   residualUpdatePasses: 0, residualUpdateAfterUpkeep: 0, residualBerryAteAfterUpkeep: 0,
+  /* ROADMAP #331 -- SELF-KOs SPENT AT THE `damageCallback`, i.e. above the target's own faint rather
+   * than below it. THE NOUN: it counts USERS killed by their own move at that site, once per action,
+   * never targets and never `|faint|` lines in general. It rises only for a move whose damage IS the
+   * user's remaining HP (`fixedDamage.source === 'myRemainingHP'` — Final Gambit is the format's only
+   * member) and only when the move got past every refusal, so a Final Gambit into a Protect scores
+   * ZERO here, correctly. The `always` family (Explosion, Self-Destruct, Misty Explosion) is a
+   * DIFFERENT authority call site and is not counted here. */
+  selfKOAtDamageCallback: 0,
+  /* ROADMAP #331 -- the subset of those whose `|faint|` line was written by the backstop below WIRE
+   * 46 rather than by `_stepFaint`, i.e. the hit never reached the faint step because a SUBSTITUTE
+   * absorbed it. Reads zero on any board without one, and a rise is a fact about the doll, not an
+   * error. */
+  selfKOLineFromBackstop: 0,
   /* 2026-08-22 -- ENTRY-ORDER PAIRS SEPARATED BY PRIORITY RATHER THAN BY SPEED. THE NOUN: it counts
    * COMPARISONS in which the two bodies carried DIFFERENT `onSwitchInPriority` values, so the sort
    * returned on the priority key and never consulted speed. Not entrants, not turns, and not "a
@@ -1776,6 +1789,12 @@ const MEDFAILS = { encoreAction: 0,
    * `damageMult: 0.5, onlyWhen: null` and is not a damage cut at all -- it DOUBLES berry effects --
    * so the derivation over-matched and the consumer refuses anything it cannot name a condition for. */
   damageReduceUnknown: 0, damageReduceUnknownFirst: '',
+  /* ROADMAP #317 -- a `condStatMult` carrier whose `when` this engine cannot evaluate. The consumer
+   * used to compare `when` to the single string 'statused' and drop everything else on the floor with
+   * no receipt, which is exactly how Fur Coat's unconditional x2 Defence stayed unwired. Reads zero
+   * today: the artifact holds two members, 'always' (Fur Coat) and 'statused' (Marvel Scale), and
+   * both are evaluated. It exists so the third one cannot arrive silently. */
+  condStatMultUnknownWhen: 0, condStatMultUnknownWhenFirst: '',
   /* ROADMAP #112 -- the same refusal on the OTHER side of the damage chain. A `damageBoost` carrier
    * whose `onlyWhen` this engine cannot evaluate is refused, not guessed.
    *
@@ -7275,9 +7294,28 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * the probe injects the staged tag through TAGS.__setDB. `when` values this engine cannot
    * evaluate fail CLOSED (no multiplier) -- a guessed condition is the boolean-in-a-fraction's-
    * clothing defect. Reads defAb, so Mold Breaker punches through it, which is the real rule. */
+  /* ROADMAP #317 -- AND FUR COAT, WHICH IS THE SAME SPEND WITH NO CONDITION AT ALL.
+   *
+   * The `when==='statused'` equality above was not a bug for Marvel Scale and WAS the whole defect
+   * for Fur Coat: an unconditional x2 Defence read as an unrecognised condition and was dropped
+   * silently, so every physical hit into a Furfrou landed at roughly DOUBLE the authority's damage
+   * (19 of the 24 rows in data/engine-diff.json, aerodactyl rockslide 57 there / 111 here).
+   *
+   * `when` is now READ rather than compared to one string, and anything it cannot name still fails
+   * CLOSED -- but LOUDLY, through MEDFAILS.condStatMultUnknownWhen. That distinction is the point:
+   * the old line failed closed SILENTLY, which is why an ability with eight sheet uses and a x2 on
+   * the most-clicked category in the format sat unwired without a single counter moving. Grass Pelt
+   * is the condition this engine will meet next (terrain-gated x1.5 Defence); the derivation refuses
+   * to tag it, so it arrives here as no tag at all rather than as a wrong one. */
   {const _cs=TAGS.param('ability',defAb,'condStatMult');
-   if(_cs&&_cs.mult&&_cs.when==='statused'&&def.status&&def.status!=='none'){
-     if(_cs.stat===(phys?'def':'spd'))DCH(+_cs.mult);
+   if(_cs&&_cs.mult&&_cs.stat===(phys?'def':'spd')){
+     const _w=_cs.when==='always'?true
+            :_cs.when==='statused'?!!(def.status&&def.status!=='none')
+            :null;
+     if(_w===null){MEDFAILS.condStatMultUnknownWhen++;
+       if(!MEDFAILS.condStatMultUnknownWhenFirst)
+         MEDFAILS.condStatMultUnknownWhenFirst=String(defAb)+'/'+String(_cs.when);}
+     else if(_w)DCH(+_cs.mult);
    }}
   // Ruin abilities lower everyone-else's stat (field-wide; handled pairwise)
   if(phys&&att.ability==='swordofruin')DCH(0.75);
@@ -19781,6 +19819,15 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the move into a miss. The whole block below now lives in `_stepAccuracy`, in the step list,
        * with its own comments carried down with it. */
       let dealt=0,connected=false;
+      /* ROADMAP #331 -- THE USER'S OWN FAINT IS QUEUED DURING THE MOVE AND ANNOUNCED AFTER IT, and
+       * holding those two apart is the whole fix. `Pokemon#faint()` (sim/pokemon.ts:1587-1598) sets
+       * hp to 0 and PUSHES onto `faintQueue`; it writes nothing. The `|faint|` lines are written
+       * later, by `faintMessages()`, in queue order. So a self-KO that happens early does NOT print
+       * early -- it prints FIRST, after the target's `|-damage|`. Measured, both halves, on
+       * `tests/test-resolution-order.js a3-gambit-red`: emitting the line at the callback put it one
+       * line ABOVE the authority's `|-damage|p2a: Weavile|0 fnt`, which is the same defect mirrored.
+       * `true` means "the user is dead and its line is still owed". */
+      let _selfKOPending=false;
       /* ROADMAP #72 -- DID A SUBSTITUTE EAT IT. `connected` is deliberately true when a doll absorbed
        * the hit (it is set above the substitute's early return), which is right for every consumer it
        * already has -- but "the move connected" and "the move reached the BODY" are two different
@@ -20425,6 +20472,48 @@ function battleTurn(S,rng,actsForA,actsForB){
        * and only now. `d` and `dmg` are carried on the row rather than recomputed, because the price
        * was fixed at the previous step -- which is the whole of this wire. */
       const _stepApply=(R)=>{const tg=R.tg;let d=R.d,dmg=R.dmg;
+        /* ROADMAP #331 -- A `damageCallback` THAT KILLS ITS OWN USER RUNS BEFORE THE TARGET IS HIT,
+         * SO THE USER'S `|faint|` COMES FIRST. MEASURED, not reasoned: staged as
+         * `tests/test-resolution-order.js a3-gambit-red` on the tree of 2026-08-22 --
+         *     showdown  |faint|p1a: Basculegion   |faint|p2a: Weavile
+         *     medicham  |faint|p2a: Weavile       |faint|p1a: Basculegion
+         * two adjacent lines in the opposite order, on 378 corpus uses of Final Gambit.
+         *
+         * THE AUTHORITY'S ORDER IS A QUEUE, WHICH IS WHY THE FIX IS A POSITION AND NOT A SORT.
+         * `Pokemon#faint()` (sim/pokemon.ts:1587) sets hp to 0 and PUSHES onto `faintQueue`; the line
+         * itself is written later, by `faintMessages()` draining that queue. Final Gambit's own
+         * handler queues the user while the damage is still being COMPUTED --
+         *     damageCallback(pokemon) { const damage = pokemon.hp; pokemon.faint(); return damage; }
+         *     (data/moves.ts:5306-5310)
+         * -- so the user is in the queue before the target has been touched. WIRE 46 far below spends
+         * `userFaints` after recoil, drain and Life Orb, which is the right place for the `always`
+         * family and one step list too late for this one.
+         *
+         * THE POSITION IS EXACT AND IT IS THE ONLY ONE THAT WORKS: the damage is already priced in
+         * `_stepDamage` (which reads the user's CURRENT HP for `myRemainingHP`, so fainting any
+         * earlier would price the move at zero), and the target's HP has not moved yet. That is
+         * `damageCallback`'s own moment, both halves of it.
+         *
+         * NOTHING HERE NAMES FINAL GAMBIT. The gate is `userFaints.faints === 'ifHit'` AND
+         * `fixedDamage.source === 'myRemainingHP'` -- the second half is what makes it a
+         * damage-callback rather than the `:1287` site, and it is read out of data/tags.json.
+         * Membership printed over the artifact before it was wired:
+         *     userFaints [6]: finalgambit(ifHit) memento(ifHit) healingwish(ifHit)
+         *                     explosion(always) selfdestruct(always) mistyexplosion(always)
+         *     ... of those, fixedDamage.source === 'myRemainingHP' [1]: finalgambit
+         * Memento and Healing Wish are `ifHit` and deal NO damage, so they can never race a target's
+         * faint and correctly keep WIRE 46's position; a future damaging `ifHit` move with no
+         * callback belongs at battle-actions.ts:1287, which is where WIRE 46 already puts it. The
+         * `always` family faints at battle-actions.ts:499 -- ABOVE the whole hit -- and is NOT moved
+         * here: that is a different call site and it is measured and reported separately.
+         *
+         * IT IS GATED ON REACHING THIS STEP, which is `faints: 'ifHit'` exactly. Every refusal --
+         * Protect, an immunity, a miss -- returns above `_stepApply`, so a blocked Final Gambit costs
+         * its user nothing, and `a3-gambit-control-blocked` is the arm that holds it to that. */
+        {const _ufd=TAGS.param('move',a.move.id,'userFaints');
+         const _fdc=TAGS.param('move',a.move.id,'fixedDamage');
+         if(_ufd&&_ufd.faints==='ifHit'&&_fdc&&_fdc.source==='myRemainingHP'&&!m.fainted){
+           m.curHP=0;m.fainted=true;_selfKOPending=true;MEDSEEN.selfKOAtDamageCallback++;}}
         /* ROADMAP #81 WIRE 11 -- assigned after the HP moves, read by the `onFaintOnly` gate inside
          * `_damagingHit`. A `let` rather than a `const` at the assignment because the revert in
          * `tests/probe_red_demo.js` sets it to the OLD reading (`dmg >= tg.curHP`, taken before the
@@ -21909,6 +21998,10 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the first body of a spread move cannot be holding a Beast Boost when the second body is
        * priced -- `AfterFaint` is run at battle.ts:2598, two steps after getSpreadDamage. */
       const _stepFaint=(R)=>{const tg=R.tg;
+        /* ROADMAP #331 -- THE QUEUE IS DRAINED HERE, AND THE USER IS AT THE FRONT OF IT. Above the
+         * `!R.fainted` early return on purpose: the user's line is owed whether or not the target
+         * died, and it is owed BEFORE the target's, because `faintQueue` holds it first. */
+        if(_selfKOPending){_selfKOPending=false;if(TR)TR.faint(m);}
         if(!R.fainted)return;
         if(TR)TR.faint(tg);
         /* WIRE 104 -- `boostsOnKO` (Eelevate on Eelektross-Mega; Beast Boost's carriers are not in
@@ -22683,6 +22776,11 @@ function battleTurn(S,rng,actsForA,actsForB){
            line. A `-damage` here parted the two streams on all five members of the family. */
         if(_uf&&_uf.faints&&(_uf.faints==='always'||dealt>0)&&!m.fainted){m.curHP=0;m.fainted=true;
           if(TR)TR.faint(m);}
+        /* ROADMAP #331 -- THE BACKSTOP, AND IT IS NOT DEAD CODE. `_stepFaint` drains the pending
+         * self-KO line, and a hit a SUBSTITUTE ate returns out of `_stepApply` before it, so the
+         * state change would otherwise stand with no line at all. Counted, because a backstop that
+         * fires silently is the shape this project keeps being caught by. */
+        if(_selfKOPending){_selfKOPending=false;MEDSEEN.selfKOLineFromBackstop++;if(TR)TR.faint(m);}
       }
       /* WIRE 43 -- ARM THE RECHARGE.
        *

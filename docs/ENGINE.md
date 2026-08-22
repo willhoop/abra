@@ -56,10 +56,15 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  623/623 probed mechanics live, 0 missing   (census 2026-08-21 21:45)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-18 10:52)
-    seed 20260804, requested 6000, 268 not comparable (multihit 187, non-finite 0, threw 81)
-    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000
+  626/626 probed mechanics live, 0 missing   (census 2026-08-22 16:06)
+  5/6000 differential comparisons disagree with Showdown   (2026-08-22 16:08)
+    seed 20260804, requested 6000, 212 not comparable (multihit 154, non-finite 0, threw 58)
+    aurorus hypervoice -> aggron: showdown 18-21, medicham 64-76  (8106 uses)
+    aurorus hypervoice -> gallade: showdown 43-51, medicham 76-91  (8106 uses)
+    aurorus hypervoice -> tauros: showdown 64-76, medicham 115-136  (8106 uses)
+    aurorus hypervoice -> roserade: showdown 46-55, medicham 137-137  (8106 uses)
+    aurorus hypervoice -> swampert: showdown 52-62, medicham 94-112  (8106 uses)
+    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 5/6000,  bottom 5/6000,  idx01 5/6000,  idx02 6/6000,  idx03 5/6000,  idx04 6/6000,  idx05 5/6000,  idx06 5/6000,  idx07 5/6000,  idx08 5/6000,  idx09 5/6000,  idx10 5/6000,  idx11 6/6000,  idx12 6/6000,  idx13 5/6000,  idx14 5/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1642/1642 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 18:00)
     2250 of 7103 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 7103
@@ -69,15 +74,139 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 80e648f34d56 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is fec7b02ddf16 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 273/292 probed, 19 unprobed
 ```
 
-_stamped 2026-08-22 02:57_
+_stamped 2026-08-22 16:13_
 
 <!-- /GENERATED -->
+
+## FUR COAT WAS 19 OF 24 DISAGREEMENTS AND A SILENT `when` COMPARISON; THE FAINT QUEUE PUTS THE USER FIRST. 2026-08-22.
+
+**Census 623 live / 0 missing -> 626 live / 0 missing. Differential 24/6000 -> 5/6000, PAIRED on one
+sample.** Two batches, landed and measured one at a time. Full account:
+`docs/_reports/2026-08-22-furcoat-and-residual.md`. Engine release **`18b227eee69f`**.
+
+### BATCH 1 — FUR COAT (ROADMAP #317), AND THE DEFECT WAS A CONSUMER THAT FAILED CLOSED IN SILENCE
+
+`condStatMult` was derived only for a handler carrying `if (pokemon.status)` and consumed only as
+`when === 'statused'`. Fur Coat's handler is
+`onModifyDef(def) { return this.chainModify(2); }` — derived from
+`Dex.forFormat('gen9championsvgc2026regmb')`, never typed — so it matched no branch at either end and
+was dropped with **no counter at all**. Every physical hit into a Furfrou landed at roughly double.
+
+- **derivation widened, membership printed first**: `onModifyDef`/`onModifySpD` over the legal format
+  is exactly three — `furcoat` (no branch -> `when: 'always'`, x2, NEW), `marvelscale`
+  (`if (pokemon.status)` -> unmoved), `grasspelt` (`isTerrain("grassyterrain")` -> **REFUSED**, still
+  untagged). Treating "no status branch" as unconditional would have handed Grass Pelt a permanent
+  x1.5 off the grass; the refusal is the derivation, not an omission.
+- **the exact diff to `data/tags.json` is one ability row plus the tag's own summary line.** Nothing
+  dropped, `marvelscale` byte-identical.
+- **the consumer now READS `when` and counts what it cannot name** (`MEDFAILS.condStatMultUnknownWhen`,
+  0 today, and it exists so the third condition cannot arrive silently).
+- **probe**: `tests/test-mechanics.js` `ability/condStatMult` — *"Fur Coat halves physical damage with
+  no condition at all, and Mold Breaker takes it back"*. Iron Head into Furfrou 83 -> 42 (x1.98),
+  Flamethrower 31 -> 31 (it is Defence, not bulk), and a MOLD BREAKER Iron Head back at 83 — the third
+  arm is what proves the multiplier arrives through the tag rather than through a name, because it is
+  spent on the SUPPRESSED ability.
+- **shown red first**: on the shipped tree both arms read 83. The census was run with the probe and
+  without the tag and reported `623 live, 1 missing`.
+
+### THE 24 -> 5 IS PAIRED, AND IT WOULD NOT HAVE BEEN IF IT HAD BEEN READ OFF THE COMMITTED ARTIFACT
+
+The committed `data/engine-diff.json` was generated 18:49Z; the ingest commit `1fe3ab3` rewrote
+**`data/move-priors.json` at 18:53Z**, and the sampler draws its species and moves from that file. A
+re-run on the same seed therefore walks a different sample — `skipped_multihit` 170 against 154 — so
+"24 -> 5" across those two runs is not a before/after. **The sampler itself is deterministic** (two
+runs on one tree agree on every field), so the control was re-measured properly: `data/tags.json` and
+`data/abra-tags.js` restored to HEAD, the same command re-run, **24 disagreements on the identical
+sample** (same multihit-move counts, same `dropped_where`), then the artifacts restored. 19 Furfrou
+rows gone, 5 remaining, **0 new**.
+
+### THE RESIDUAL 5 ARE ONE ATTACKER AND THEY LOOK LIKE THE INSTRUMENT, NOT THE ENGINE
+
+All five are `aurorus hypervoice`, and `aurorus icebeam -> aggron` AGREES exactly. Aurorus's slot-0
+ability is **Refrigerate**, whose `onModifyType` runs in `runEvent('ModifyType')` at
+`sim/battle-actions.ts:438` — inside `useMoveInner`, **one level above the `moveHit` entry point the
+harness must use**, which is the same layer gap `CONTROL FIX 5` already records for `onTryHit`. The
+authority's number is consistent with an un-converted NORMAL Hyper Voice to within a percent
+(`(90 x 0.25) / (95 x 1.5 x 0.5) = 0.316` against the measured `21/63 = 0.33`), so MEDICHAM is
+probably right on all five and the reference is wrong. **Filed, not fixed:** it is a control fix that
+moves this file's headline number and it belongs in its own batch with its own red.
+
+### BATCH 2 — #332 WAS ALREADY LANDED AND HAD NEVER BEEN ASKED THE QUESTION THAT MATTERS
+
+The `eachEvent('Update')` position was fixed earlier the same day. What no instrument asserted is the
+register's own decisive test — *"stage a Sitrus holder at an HP the residual chain exactly kills and
+assert the body is dead"*. `a4-red` compares the `|upkeep|` POSITION; the HP total in the existing
+`healsAtThreshold` probe is identical either way, because that body survives on both engines.
+
+- **probe**: `tests/test-mechanics.js` `item/healsAtThreshold` — Froslass on 73/145 (one point above
+  its own threshold), LEECH SEEDED (order 8, 18) and badly poisoned at counter 7 (order 9, 63). The
+  seed crosses the threshold and the chip behind it is lethal: **hp 0, fainted, item still
+  `sitrusberry` — never eaten**, post-upkeep eats 0. Unseeded control: the same chip alone leaves 10,
+  the berry IS eaten below `|upkeep|` for 46, post-upkeep eats 1.
+- **shown red on a deliberate break**: recompiled with the `berry-at-every-group` revert, the lethal
+  arm reads **`{hp: 28, fainted: false, item: ''}` — alive, healed, berry spent** — and the control is
+  UNMOVED at 46. The probe's own predicate is `true` on the tree and `false` under the revert.
+
+### #331's FINAL GAMBIT HALF IS REAL, AND THE FIRST VERSION OF THE ARM PROVED NOTHING
+
+The first draft had the TARGET protecting, so nothing fainted, and it agreed cleanly while staging no
+faint at all — the `ifHit` control arm wearing the red arm's name. With the Gambit connecting:
+
+```
+showdown  |-damage|p2a: Weavile|0 fnt   |faint|p1a: Basculegion   |faint|p2a: Weavile
+medicham  |-damage|p2a: Weavile|0 fnt   |faint|p2a: Weavile       |faint|p1a: Basculegion
+```
+
+378 corpus uses. **The authority's order is a QUEUE, which is why the fix is a position and not a
+sort**: `Pokemon#faint()` (`sim/pokemon.ts:1587`) sets hp to 0 and pushes, writing nothing;
+`faintMessages()` drains it afterwards. Final Gambit's `damageCallback` queues the user while the
+damage is still being computed, so the user is in the queue before the target is touched.
+
+- the STATE change moved to `_stepApply`, above the target's HP and below the pricing that reads the
+  user's own HP — `damageCallback`'s exact moment, both halves of it;
+- the LINE is drained at `_stepFaint`, not at the callback. **The first attempt emitted it at the
+  callback and was one line too early**, above the authority's own `|-damage|...0 fnt`. The census
+  probe asserts the `-damage` comes first for exactly that reason.
+- gate: `userFaints.faints === 'ifHit'` AND `fixedDamage.source === 'myRemainingHP'`, both read out of
+  `data/tags.json`. Membership printed: 6 `userFaints` members, of which **one** carries the callback.
+- **probe**: `tests/test-mechanics.js` `move/userFaints`; **arm**: `tests/test-resolution-order.js`
+  `a3-gambit-red` (RED PROVEN) with `a3-gambit-control-blocked` (CONTROL HELD) on the same break. The
+  whole file: 14 arms, 6 RED PROVEN, 7 CONTROL HELD, 1 KNOWN-OPEN, 0 failing.
+
+### AND THE `always` HALF IS MEASURED, DECLARED AND NOT FIXED
+
+`a3-boom-probe` is a KNOWN-OPEN arm: Explosion/Self-Destruct/Misty Explosion (65 uses between them)
+faint their user at `battle-actions.ts:499`, above the whole hit, and this engine still spends them at
+WIRE 46 below the step list — `showdown |faint|p1a: Metagross` then `|faint|p2a: Weavile`, ours the
+reverse. It is NOT fixed with its twin because `:499` sits above the Protect step, so being faithful
+means the user is at 0 HP for the whole hit — a Spiky Shield must not toll it and a `boostsOnKO` must
+not fire off it — and that is a state change with a blast radius this pass has not measured.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — they are tests now:**
+- ~~Fur Coat carries no defence multiplier (ROADMAP #317)~~ — census `ability/condStatMult`, and the
+  differential's Furfrou family is gone.
+- ~~a berry is eaten before upkeep and before faints (ROADMAP #332)~~ — the POSITION was already
+  `a4-red`; the BOARD CONSEQUENCE is now census `item/healsAtThreshold`.
+- ~~the faint line's order for a move that kills both ends (ROADMAP #331, the `ifHit` half)~~ —
+  census `move/userFaints` and `tests/test-resolution-order.js a3-gambit-red`.
+
+**Added, measured this pass and NOT fixed:**
+- **the differential's remaining 5 of 6000 are the harness, on the evidence above.** `showdownDamage`
+  enters at `moveHit`, so no ability `onModifyType` fires on the reference side. Refrigerate is the
+  only carrier the sampler reached; Pixilate, Aerilate, Galvanize and Normalize are the same shape.
+- **the `always` self-KO family** — `a3-boom-probe`, above.
+- **Grass Pelt has no tag at all.** The `condStatMult` derivation refuses a terrain condition rather
+  than guessing it. A terrain-gated defensive multiplier is a real gap and it is open.
 
 ## THE 157 WAS NEVER A DAMAGE DEFECT — THE ROSTER ASKED FOR ITS PIN BY OMISSION AND GOT REAL DICE FOR NINE DAYS. 2026-08-22.
 

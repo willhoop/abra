@@ -1,10 +1,10 @@
 {
-  "current": "13ba05093aa3",
-  "cut": "2026-08-22T19:07:43.810Z",
-  "why": "post-arm-fix re-measure: the roster instrument was resolving its arm by omission until 9f81760; every stage re-runs against these bytes",
-  "cuts": 1,
-  "latest_cut": "2026-08-22T19:07:43.810Z",
-  "latest_why": "post-arm-fix re-measure: the roster instrument was resolving its arm by omission until 9f81760; every stage re-runs against these bytes",
-  "pointer_written": "2026-08-22T19:07:43.820Z",
+  "current": "18b227eee69f",
+  "cut": "2026-08-22T20:00:18.021Z",
+  "why": "ROADMAP #331 Final Gambit self-KO queued at the callback, announced at the faint step",
+  "cuts": 3,
+  "latest_cut": "2026-08-22T20:08:09.257Z",
+  "latest_why": "ENGINE 2026-08-22: Fur Coat (#317) + Final Gambit faint order (#331); census 623 -> 626",
+  "pointer_written": "2026-08-22T20:08:09.266Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
