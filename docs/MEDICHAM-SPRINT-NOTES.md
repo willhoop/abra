@@ -10402,3 +10402,55 @@ store at `2026-08-22T00:49:49Z` while the simulator was being edited. It landed 
 nothing was frozen half-written — but a cut taken a few minutes later would have **photographed a
 half-edited engine**. That is the measuring-agent-beside-a-writing-agent rule arriving through the release
 cut rather than through a file conflict, and no rule in CLAUDE.md currently covers it.
+
+---
+
+## THE BRACKET COMES BACK, AND A `>= 1` COUNTER ASSERTION WOULD HAVE STAYED GREEN ON A BROKEN ENGINE — 2026-08-21
+
+**Will's question, asked of the format rather than of memory:** can Talonflame regain Gale Wings by
+healing back to full? `galewings` is **not** overridden by Champions, so it inherits mainline's
+`onModifyPriority` — `move.type === 'Flying' && pokemon.hp === pokemon.maxhp` — **a live check each time
+the event fires, with no latch.** So yes on the authority, and after #311 yes here too, because the
+re-derivation now runs in the tail sort behind the heal.
+
+**STAGED, NOT INFERRED — the symmetry argument was refused deliberately.** "The code is stateless so it
+must work in both directions" is an argument, not a receipt, and CLAUDE.md assumes a capability that
+cannot prove it ran is broken. Talonflame (168) is **slower** than Jolteon (182), so moving ahead of it
+is possible **only** on the bracket:
+
+```
+T2  SHOWDOWN  Roserade -> Talonflame -> Jolteon -> Snorlax   |-heal|p1b: Talonflame|153/153
+    MEDICHAM  Roserade -> Talonflame -> Jolteon -> Snorlax   bracketRederiveMoved 1: talonflame 0->1
+```
+
+**The knob turns twice**, one bit at a time on the same board: remove the heal and Talonflame falls
+behind Jolteon; remove the ability and it falls behind **while still healing to exactly 153/153**, so
+Gale Wings is the only difference in that arm. `stateDiv === null` throughout.
+
+**THE ORDERING TRAP IS ASSERTED RATHER THAN SURVIVED BY LUCK.** Roserade at Choice Scarf reads 213 and is
+the fastest body on the field by construction, so the heal is action 0 and the Flying move sits in the
+tail `_resortTail` re-sorts. The test asserts the `|-heal|` line **precedes** Talonflame's `|move|` line
+and lands on `hp === maxhp`, and fails naming THE ORDERING TRAP if that ever stops holding — instead of
+passing quietly on a board where the heal came too late to matter, which is a test that asks nothing.
+
+**AND THE BREAK TAUGHT MORE THAN THE TEST DID.** Deleting `_it._pri=_now;` from `_resortTail` — the one
+line that *is* #311's fix — turned the file red, and **`bracketRederiveMoved` went UP, 1 → 2.** The
+increment sits *before* the write, so it counts a bracket being **NOTICED**, not **APPLIED**; with the
+write gone the same change is re-noticed at every later re-sort. **A counter asserted as `>= 1` would
+have stayed green on a completely broken engine.** This is the "a green test can be asking nothing"
+shape arriving through a capability counter — the very instrument this repo uses to prove capabilities
+ran. The count is now asserted EXACTLY, with the authority's own `|move|` order as the primary clause
+and the counter only corroborating.
+
+Named `test-bracket-regain.js` on purpose: `run-all.js` discovers `^test-.*\.js$` and nothing else, so
+`probe_mega_priority.js` and `probe_bracket_counters.js` run only when somebody remembers them.
+
+**Census 623/623 live, 0 missing — before and after.** Unchanged, and not regenerated.
+
+**NEW ROW #317, FILED NOT FIXED: Fur Coat has no defence multiplier and medicham2 deals double through
+it.** `furfrou` reads 90 where the authority reads 120 on a plain physical hit — exactly double.
+`data/abra-tags.js` gives `furcoat` only `breakable`, with no multiplier param, so the halving never
+reaches `dmgRange`. **A `tag_dex.js` DERIVATION gap, the same shape as #312's Sand Force, not a missing
+simulator branch.** 8 corpus sheets. It appeared in all three arms including both controls, so it could
+not have flipped the regain verdict; the cast was swapped to Snorlax so `stateDiv === null` could be
+*asserted* rather than excused.

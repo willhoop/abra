@@ -10,6 +10,60 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.56.1] — 2026-08-21
+
+### Added
+- **A STANDING TEST FOR THE GAIN DIRECTION OF A PRIORITY BRACKET, WHICH HAD NEVER BEEN OBSERVED.**
+  Will: *"can Talonflame REGAIN Gale Wings mid-turn if it heals back to full HP — and does our engine
+  do the regain direction, not just the loss?"* **Yes, on the authority and in medicham2.**
+  `tests/test-bracket-regain.js` stages one board three times: a Choice Scarf Roserade (Speed **213**,
+  the fastest body on the field, so its heal is action 0) Life Dews a Talonflame (**168**) from 138/153
+  back to **exactly 153/153**, and both engines then move Talonflame AHEAD of a Jolteon at **182** —
+  which it can only do on the bracket, never on Speed. `MEDSEEN.bracketRederiveMoved` records exactly
+  one `talonflame 0->1`. Removing the HEAL and removing the ABILITY each put Talonflame back behind
+  Jolteon on both engines, so the reorder is the conjunction and not either half.
+- The file is named `test-` rather than `probe_` deliberately: `tests/run-all.js` discovers
+  `^test-.*\.js$` and nothing else, so `probe_mega_priority.js` and `probe_bracket_counters.js` run
+  only when somebody remembers them. It costs ~1.5s, writes no artifact, and freezes the LIVE tree into
+  a throwaway store under the OS temp dir, so `data/releases/` and `data/engine-release.json` are
+  untouched.
+
+### Notes
+- **THE CENSUS DID NOT MOVE AND WAS NOT REGENERATED — 623 live / 0 missing, before and after.** This
+  pass answers a question and repairs nothing.
+- **THE DELIBERATE BREAK TAUGHT SOMETHING THE TEST HAD TO ABSORB.** Deleting `_it._pri=_now;` from
+  `_resortTail` — the one line that IS ROADMAP #311's fix — turned the file red on the order
+  comparison, and **`bracketRederiveMoved` went UP, 1 → 2**: the increment sits before the write, so it
+  counts a bracket being NOTICED rather than APPLIED, and with the write gone the same change is
+  re-noticed at every later re-sort. **A `>= 1` counter assertion stays GREEN on a completely broken
+  engine.** The count is asserted exactly, and the authority's own `|move|` order is the primary
+  clause with the counter corroborating. The engine was restored byte-identical.
+- **THE ORDERING TRAP IS ASSERTED, NOT ASSUMED.** If the heal resolved after the last re-sort that
+  could see it, both engines would agree by producing no regain and the test would pass while asking
+  nothing. The file checks that the `|-heal|` line precedes Talonflame's `|move|` line and that it
+  lands on `hp === maxhp`.
+
+### Fixed
+- **NOTHING. Two register rows were corrected instead.** ROADMAP #311 read `open — engine DEFECT,
+  CONFIRMED` and named only `probe_mega_priority.js`, because `e3313a0` landed the repair and touched
+  no register row and no ledger — its account went to `docs/MEDICHAM-SPRINT-NOTES.md`. The row now says
+  the defect is FIXED, carries both probes, and stays open on the corpus re-runs it declares owed.
+
+### Removed
+- Nothing.
+
+### Changed
+- **NEW ROADMAP ROW #317 — FUR COAT CARRIES NO DEFENCE MULTIPLIER AND medicham2 DEALS DOUBLE THROUGH
+  IT.** Found by accident: Furfrou was the first draft's second foe and the board parted on the first
+  physical hit — `p2.party.furfrou.hp medicham 90 showdown 120`, exactly double. `data/abra-tags.js`
+  gives `furcoat` only `breakable`, with no multiplier param, so the halving never reaches `dmgRange`;
+  it is an `engine/tag_dex.js` derivation gap of the same shape as #312's Sand Force, not a missing
+  simulator branch. It appeared in **all three arms including both controls**, so it could not have
+  flipped that verdict. **8 corpus sheets.** Filed, not fixed — the cast was changed to a body with an
+  inert ability so `stateDiv === null` could be asserted rather than excused.
+
+---
+
 ## [5.56.0] — 2026-08-21
 
 ### Fixed

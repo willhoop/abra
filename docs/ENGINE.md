@@ -11,11 +11,12 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-volatile-duration.js`, `engine/divergence_shape.js`, `tests/test-end-state.js`,
 `tests/test-coverage-stop.js`, `tests/probe_volatile_leaves.js`, `tests/test-middle-identity.js`,
 `tests/test-middle-stall-address.js`, `tests/test-middle-draw-scope.js`,
-`tests/test-middle-damage-roll.js`, `tests/test-damage-roll-support.js`
+`tests/test-middle-damage-roll.js`, `tests/test-damage-roll-support.js`, `tests/test-bracket-regain.js`
 
-**Thirteen instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
-this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18, and a
-number typed in prose beside a table is exactly what CLAUDE.md records going stale three times over.)*
+**Fourteen instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
+this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18 and
+"thirteen" until `test-bracket-regain.js` on 2026-08-21, and a number typed in prose beside a table is
+exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
@@ -31,6 +32,7 @@ number typed in prose beside a table is exactly what CLAUDE.md records going sta
 | `test-end-state.js` | can the differential say whether a diverged game ENDS in the same board — every branch of the verdict, the stop rule really moving, and a plant that survives to the last board against a cleared control | whether a SAME-END-STATE is right; it is exactly as strong as what `board_state.js` compares, and it says nothing about the turns between the mismatch and the end |
 | `test-coverage-stop.js` | does the run stop on COVERAGE rather than on a number somebody picked, and does a truncation announce itself | whether the coverage that was reached is enough; a stall is the rule firing, not proof the census is covered |
 | `test-middle-identity.js` | do the two engines NAME the same event — the address the middle arm's dice are keyed on, diffed over real games, per category, with the shapes that cannot match printed rather than averaged | whether either engine plays the game right; it compares the QUESTIONS asked, never the answers. And `nth`: two engines that take a different NUMBER of draws at one address line up on entry 0 and part after it — the size of that population is printed, not solved |
+| `test-bracket-regain.js` | can a priority bracket be REGAINED mid-turn, not just lost — one staged board, three arms, the authority's own `\|move\|` order as the expectation, and the heal receipt (`hp === maxhp`, landing BEFORE the re-sort) asserted rather than inferred | anything about a bracket nobody staged: it is ONE board carrying the format's ONE Gale Wings body, so it says nothing about Grassy Glide, Skill Swap or any other `ModifyPriority` input that can move mid-turn. And `bracketRederiveMoved` is corroboration, never the bar — it counts a bracket NOTICED, not APPLIED, and rises on a broken engine |
 | `test-nature-differential.js` | is the two engines' Pokemon the SAME Pokemon — chart, arithmetic, the sheet's declared nature reaching both sides, and the line surviving a mega mid-turn | whether either engine plays the game right; it compares BODIES, not turns. The SPREADS, permanently — an open team sheet does not show them |
 
 **Its one number:** mechanics live. **It must never go down.**
@@ -61,9 +63,98 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 273/291 probed, 18 unprobed
 ```
 
-_stamped 2026-08-21 21:18_
+_stamped 2026-08-21 21:41_
 
 <!-- /GENERATED -->
+
+## WILL'S QUESTION: CAN A PRIORITY BRACKET COME BACK, OR ONLY GO AWAY? IT COMES BACK, ON BOTH ENGINES. 2026-08-21.
+
+**Nothing was fixed and the census did not move — 623 live / 0 missing, before and after.** This pass
+answers a question, and the answer is a receipt rather than a repair.
+
+Will, 2026-08-21: *"can Talonflame REGAIN Gale Wings mid-turn if it heals back to full HP — and does
+our engine do the regain direction, not just the loss?"*
+
+**THE ANSWER IS YES ON BOTH ENGINES, AND UNTIL THIS PASS NOTHING IN THE TREE COULD HAVE SAID SO.**
+ROADMAP #311's re-derivation is direction-agnostic by construction, and its counter had observed
+`talonflame 1->0` (chipped, bracket lost) and `banette-mega 0->1` (a forme change) in 200 self-play
+games — **never a Talonflame 0->1.** The two census rows carrying Gale Wings both read the bracket at
+the TOP of a turn. So the gain direction rested entirely on the source looking stateless, which is an
+argument and not a receipt: the mega that fired only from the left slot and the joint layer that fell
+back on 100% of turns both looked obviously fine in source too.
+
+**THE AUTHORITY, READ RATHER THAN RECALLED.** `data/mods/champions/abilities.ts` has no `galewings`
+entry at all, so Champions inherits mainline `data/abilities.ts` — `onModifyPriority` tests
+`pokemon.hp === pokemon.maxhp` live on every firing, with no latch — and `sim/battle.ts:2919-2920`
+re-runs the event over every queued action before each post-action sort. Talonflame is the **only**
+legal carrier of Gale Wings in Reg M-B; a filtered walk of `D.species.all()` returns exactly one row,
+so there is no second body to cross-check against.
+
+**THE BOARD, AND THE TRAP THAT WOULD HAVE MADE IT A FORMALITY.** The heal has to land BEFORE the
+re-sort that re-derives the Flying move's bracket. A fixture whose heal resolves after the last
+re-sort makes BOTH engines agree by producing no regain at all — green, asking nothing. So the healer
+is the fastest body on the field and the heal is action 0:
+
+| slot | body | speed both engines read | clicks |
+|---|---|---|---|
+| p1a | Roserade, Choice Scarf | **213** | the heal |
+| p2a | Jolteon | 182 | Eerie Impulse |
+| p1b | **Talonflame**, Life Orb | **168** | the Flying move |
+| p2b | Snorlax | 72 | Charm |
+
+Talonflame is SLOWER than Jolteon, so on turn 2 it can only move ahead of it on the BRACKET. Turn 1
+chips exactly one Life Orb toll — `floor(153/10)`, 153 -> 138 — off a Normal-type click, so the
+bracket cannot move on it. Turn 2's Life Dew restores `floor(153/4) = 38`, capped by `heal()`, landing
+on **exactly 153/153**. Nothing here depends on a die.
+
+```
+   T1  SHOWDOWN  Roserade -> Jolteon -> Talonflame -> Snorlax      (Talonflame chipped to 138/153)
+   T2  SHOWDOWN  Roserade -> Talonflame -> Jolteon -> Snorlax      |-heal|p1b: Talonflame|153/153
+       MEDICHAM  Roserade -> Talonflame -> Jolteon -> Snorlax      bracketRederiveMoved 1: talonflame 0->1
+```
+
+**THE KNOB IS TURNED TWICE, BECAUSE ONE ARM PROVES NOTHING.** Same board, one bit changed:
+removing the HEAL (Roserade clicks Charm) and removing the ABILITY (Talonflame runs Flame Body) each
+put Talonflame back BEHIND Jolteon, on both engines. Arm C still heals to exactly full, so the two
+controls differ from arm A in one bit each and in nothing else. `stateDiv === null` in all three.
+
+**THE DELIBERATE BREAK TAUGHT SOMETHING THE PROBE HAD TO ABSORB.** Deleting `_it._pri=_now;` from
+`_resortTail` — the one line that IS #311's fix — turned the file red on the order comparison, and
+**`bracketRederiveMoved` went UP, from 1 to 2.** The increment sits before the write, so it counts a
+bracket being NOTICED and not one being APPLIED; with the write gone the same change is re-noticed at
+every later re-sort. **A `>= 1` counter assertion stays GREEN on a completely broken engine.** The
+count is therefore asserted EXACTLY, and the authority comparison is the primary clause with the
+counter corroborating — never the other way round.
+
+**IT IS A `test-` FILE ON PURPOSE.** `tests/run-all.js` discovers `^test-.*\.js$` and nothing else, so
+`probe_mega_priority.js` and `probe_bracket_counters.js` are run only when somebody remembers them. A
+standing assertion has to be in the suite. It costs ~1.5s, needs no artifact, and freezes the LIVE
+tree into a throwaway store under the OS temp dir — `data/releases/` and `data/engine-release.json`
+are untouched, which is what lets it run on every engine edit without repointing a release another
+division is measuring against.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — it is a test now:**
+- ~~THE GAIN DIRECTION OF A PRIORITY BRACKET HAS NEVER BEEN OBSERVED — `bracketRederiveMoved` has seen
+  `talonflame 1->0` and `banette-mega 0->1` and no 0->1 on a Gale Wings body~~ — staged and asserted in
+  `tests/test-bracket-regain.js` (3 arms, authority-compared, shown red on the break twice over).
+
+**Added, measured this pass and NOT fixed:**
+- **FUR COAT HAS NO DEFENCE MULTIPLIER AND medicham2 DEALS DOUBLE THROUGH IT.** Found by accident:
+  Furfrou was the first draft's second foe and produced `p2.party.furfrou.hp medicham 90 showdown 120`
+  on a plain physical hit, in ALL THREE arms including the control, so it could not have flipped this
+  verdict. `data/abra-tags.js` gives `furcoat` only `breakable` — no multiplier param — so the
+  halving never reaches `dmgRange`. It is a `tag_dex.js` derivation gap of the same shape as #312's
+  Sand Force, not a missing branch in the simulator. **8 corpus sheets**, so it is small; it is real,
+  and it is filed as ROADMAP #317 rather than fixed in a pass that was answering a different question.
+- **#311'S REGISTER ROW STILL READS `open — engine DEFECT, CONFIRMED` AND STILL NAMES ONLY
+  `probe_mega_priority.js`.** The fix landed in `e3313a0` and that commit touched no register row and
+  no ledger — the account went to `docs/MEDICHAM-SPRINT-NOTES.md`. The row now carries this test as a
+  second `VERIFIED BY`, but whether #311 is closable depends on the corpus re-runs it declares owed,
+  which are not this pass's to take.
 
 ## ROADMAP #310 — TRACE'S CHOICE IS A DIE AND IT WAS A FIXED INDEX, AND TRACE NEVER GIVES UP AND THIS ENGINE DID. 2026-08-21.
 
