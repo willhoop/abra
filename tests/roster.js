@@ -187,8 +187,106 @@ const mon = (species, item, ability, moves) => ({ species, item: item || '', abi
  * AND THE SELFTEST NOW CHECKS THE THING THAT ACTUALLY WENT WRONG, not the thing that was easy to
  * check: a body is made to CONSUME an item and then clicks nothing else, and an item that comes back
  * from empty in either engine is a hard failure. That check is RED under Recycle. */
-const INERT = 'focusenergy';
-const INERT_RAISES_CRIT_STAGES = 2;
+/* AND THE THIRD THING THAT WENT WRONG WAS NOT THE CONTROL AT ALL — THE RULER MOVED. (ROADMAP #316,
+ * 2026-08-21.) Focus Energy was picked in a world where nothing it did was on the board. Twice since,
+ * a measuring surface grew underneath it and turned a control that had not changed into a control
+ * that fails its own audit:
+ *
+ *   2026-08-11  PP became a compared leaf (the roster's own hold was lifted at c42b066), so EVERY
+ *               click moves `pp[slot].<move>` — and a control has to click something.
+ *   2026-08-12  `board_state.js` began comparing nine per-body volatiles, `focusenergy` among them
+ *               (13e94cb), so the control's whole effect became a leaf the comparator reads.
+ *
+ * A CONTROL THAT MOVES NO LEAF AT ALL IS NO LONGER AVAILABLE AND THAT IS A FACT ABOUT PP, not a
+ * choice made here: `pass` is refused for a healthy active body, so the control clicks a move, and a
+ * move spends PP. So the assertion is narrowed instead of the control being swapped, and it is
+ * narrowed by DERIVATION — `INERT_SELF` below reads the control move's OWN declared effects and
+ * exempts those two leaves and nothing else. Swapping the control later cannot silently widen it:
+ * a control that declares anything beyond a self-volatile FAILS the selftest by name.
+ *
+ * `--inert <moveid>` overrides the control FOR THE SELFTEST ONLY, so the red demonstration — a
+ * control that really does move a foreign leaf, and an audit that catches it — is a command anybody
+ * can run rather than a claim in a comment. It refuses to write an artifact. */
+const INERT = (() => {
+  const o = ARG('--inert');
+  if (!o) return 'focusenergy';
+  if (!HAS('--selftest')) { console.log('--inert is a SELFTEST-ONLY override (it changes the control '
+    + 'arm of every entity); run it with --selftest'); process.exit(2); }
+  const m = dex.moves.get(o);
+  if (!m || !m.exists || m.isNonstandard) { console.log('--inert names no move legal in ' + CS.FORMAT
+    + ': "' + o + '"'); process.exit(2); }
+  console.log('\n  *** CONTROL CLICK OVERRIDDEN: ' + m.name + '. THIS RUN IS A FIXTURE DEMONSTRATION, '
+    + 'NOT A MEASUREMENT. ***');
+  return m.id;
+})();
+const INERT_MOVE = dex.moves.get(INERT);
+/* DERIVED, NOT TYPED. Focus Energy's condition is `critRatio + 2`; calling it with 0 asks the
+ * authority for its own delta instead of this file remembering one. A control whose condition
+ * touches the crit ratio in a shape this cannot read is a hard stop rather than a silent 0 — a
+ * silent default here would disarm `critRatioAudit` and `controlQuietAudit` at once. */
+const INERT_RAISES_CRIT_STAGES = (() => {
+  const c = INERT_MOVE.condition;
+  if (!c || typeof c.onModifyCritRatio !== 'function') return 0;
+  let n;
+  try { n = Number(c.onModifyCritRatio.call({}, 0)); } catch (e) { n = NaN; }
+  if (!Number.isFinite(n)) throw new Error('the control click ' + INERT_MOVE.name + ' modifies the '
+    + 'critical-hit ratio in a way this file cannot read off the format (onModifyCritRatio threw or '
+    + 'returned a non-number). Refusing to guess: critRatioAudit and controlQuietAudit both price '
+    + 'off this number.');
+  return n;
+})();
+
+/* ---- WHAT THE CONTROL CLICK NECESSARILY WRITES ON THE BODY THAT CLICKS IT ----------------------
+ *
+ * Two leaves, both DERIVED from the control move itself, both bookkeeping of the control arm rather
+ * than anything an entity could be credited for:
+ *
+ *   pp.<the control move's id>     a click spends PP, and PP is compared (board_state.js compare()).
+ *                                  There is no click that spends none, so this one is unavoidable.
+ *   vol.<its declared volatile>    the control's whole effect, if it declares one.
+ *
+ * THE CAP IS THE POINT. Only those two SHAPES are exemptible. A control move that declares a boost,
+ * a status, a heal, a side condition, a weather, a switch — anything a board comparator can see
+ * beyond its own volatile — is refused by `inertShapeComplaint()` and the selftest says so by name,
+ * because the exemption would then be incomplete AND wider than anybody had checked. That is the
+ * hazard an exclusion list carries and it is closed by refusing to grow rather than by trusting a
+ * list. Handlers are deliberately NOT inspected: `substitute` declares only a volatile and takes a
+ * quarter of the user's HP inside `onHit`, and catching that is the AUDIT's job, not the cap's —
+ * `--selftest --inert substitute` is the red demonstration. */
+const INERT_SELF = (() => {
+  /* WHOLE PATHS, ANCHORED, NOT SUFFIXES. `board_state.js` writes a spent-PP leaf as
+   * `p1.pp[0].focusenergy` and a volatile as `p1.active[0].vol.focusenergy` — two different shapes,
+   * and the first version of this matched on `.pp.focusenergy`, which exists nowhere. It exempted the
+   * volatile, left all 24 PP leaves in, and the selftest stayed red and said so. Anchored regexes
+   * over side and slot, so nothing outside the two named leaves can match: a party row, a field
+   * effect or another body's volatile of the same name would all fail to match by construction. */
+  const out = [];
+  out.push({ field: 'pp.' + INERT, re: new RegExp('^p[12]\\.pp\\[\\d+\\]\\.' + INERT + '$') });
+  if (INERT_MOVE.volatileStatus) {
+    const v = idOf(INERT_MOVE.volatileStatus);
+    out.push({ field: 'vol.' + v, re: new RegExp('^p[12]\\.active\\[\\d+\\]\\.vol\\.' + v + '$') });
+  }
+  out.names = out.map(x => x.field);
+  return out;
+})();
+const inertSelfLeaf = (p) => INERT_SELF.some(x => x.re.test(String(p)));
+function inertShapeComplaint() {
+  const m = INERT_MOVE;
+  const seen = [];
+  if (m.category !== 'Status') seen.push('category ' + m.category);
+  if (!(m.accuracy === true)) seen.push('accuracy ' + m.accuracy + ' (it can miss, so the control arm '
+    + 'is not the same arm twice)');
+  if (m.target !== 'self') seen.push('target ' + m.target + ' (a control must not reach another body)');
+  for (const k of ['boosts', 'status', 'heal', 'drain', 'recoil', 'self', 'sideCondition',
+                   'slotCondition', 'weather', 'terrain', 'pseudoWeather', 'forceSwitch', 'selfSwitch',
+                   'selfdestruct', 'multihit', 'ohko', 'stallingMove'])
+    if (m[k]) seen.push(k + ' ' + JSON.stringify(m[k]));
+  if (m.basePower > 0) seen.push('basePower ' + m.basePower);
+  if (!seen.length) return null;
+  return 'the control click ' + m.name + ' declares ' + seen.join('; ') + '. This file can only exempt '
+    + 'a control\'s OWN PP row and its OWN declared volatile; anything else is a board leaf the '
+    + 'exemption would not cover and the inertness assertion would be asking about the wrong thing.';
+}
 
 /* THE QUIET ABILITIES — every legal ability in the format that registers NO handler at all, minus
  * the four that do something anyway through a field the engine reads directly. Derived, then the
@@ -8259,10 +8357,29 @@ function assign(kind) {
  * ================================================================================================= */
 function selftest() {
   const out = [];
+  /* 0. THE CONTROL CLICK IS A SHAPE THIS FILE CAN ACTUALLY EXEMPT. Checked FIRST and printed with the
+   *    exemption spelled out, because test 1 below is only as strong as this is narrow — an exemption
+   *    that grew to cover a boost or a heal would turn the inertness assertion into a formality. See
+   *    INERT_SELF. */
+  {
+    const complaint = inertShapeComplaint();
+    out.push({ id: 'the control click ' + pretty(INERT) + ' declares nothing this file cannot exempt, '
+                 + 'and the exemption is exactly [' + INERT_SELF.names.join(', ') + '] — derived from '
+                 + 'the move, not typed',
+               ok: !complaint, note: complaint || '' });
+  }
   /* 1. THE INERT CLICK IS ACTUALLY INERT, IN BOTH ENGINES. Four bodies, three turns, nothing but the
    *    control click. Every board must equal the board at the leads — in medicham2 AND in Showdown,
    *    separately, because a control that quietly did something would be added to every subject arm
-   *    in this file and would cancel out of the comparison invisibly. */
+   *    in this file and would cancel out of the comparison invisibly.
+   *
+   *    EXCEPT THE CONTROL'S OWN TWO LEAVES, AND THE LIST IS DERIVED (ROADMAP #316). `INERT_SELF`
+   *    holds `pp.<the control move>` — a click spends PP and PP is compared, so no control can avoid
+   *    it — and `vol.<the control move's declared volatileStatus>`. EVERY OTHER LEAF IS STILL IN THE
+   *    ASSERTION, which is the whole difference between this and switching the check off. Proven by
+   *    `--selftest --inert substitute`: Substitute declares only its own volatile, so the exemption
+   *    covers exactly `vol.substitute` and `pp.substitute` — and the quarter of the user's HP it
+   *    takes inside a handler is caught, on 8 hp leaves, in both engines. */
   {
     const sc = scaffold({ a0: { ...CAST.ATTACKER(), moves: [INERT] },
                           b0: { ...CAST.BAG(), moves: [INERT] },
@@ -8275,9 +8392,15 @@ function selftest() {
     else {
       const first = r.boards[0];
       let moved = [];
+      let own = 0;
       for (const b of r.boards.slice(1)) for (const [who, key] of [['showdown', 'sd'], ['ours', 'medi']])
-        moved = moved.concat(BS.compare(first[key], b[key], { compared: 0 }).map(d => who + ' ' + d.path));
-      out.push({ id: 'the inert click ' + INERT + ' moves NO board leaf in either engine over 3 turns',
+        for (const d of BS.compare(first[key], b[key], { compared: 0 })) {
+          if (inertSelfLeaf(d.path)) { own++; continue; }
+          moved.push(who + ' ' + d.path);
+        }
+      out.push({ id: 'the inert click ' + INERT + ' moves NO board leaf in either engine over 3 turns, '
+                   + 'beyond its own ' + own + ' derived leaf-movement(s) on ['
+                   + INERT_SELF.names.join(', ') + ']',
                  ok: moved.length === 0, note: moved.join(', ') });
       out.push({ id: 'and the two engines agree on all ' + first.compared + ' leaves while doing it',
                  ok: r.boards.every(b => !b.diffs.length),
@@ -8600,11 +8723,72 @@ function main() {
     arm: e.scenario.arm,
     script: e.scenario.script.map(st => ({ p1: st.p1.map(a => (a && a.sw ? null : a)),
                                            p2: st.p2.map(a => (a && a.sw ? null : a)) })) }));
-  const fx = SB.fixtureAudit(shells).concat(critRatioAudit(shells));
   console.log('\n  THE FIXTURE AUDIT — every derived click, before a game is played:');
+  /* THE CONTROL CLICK IS EXEMPT FROM THE LEARNSET CLAUSE AND NOTHING ELSE IS (ROADMAP #316).
+   *
+   * The clause landed 2026-08-12 (staged_board.js b61230a) and shut this file down completely without
+   * anybody seeing it, because the roster is not in tests/run-all.js. MEASURED 2026-08-21 on release
+   * b240433ae8af: items refused 239 clicks, abilities 440, moves 1,290 — and the line on almost every
+   * one of them was `<species> can't learn Focus Energy`. Derived rather than remembered: of the 347
+   * species this format holds, 55 can learn Focus Energy and 292 cannot.
+   *
+   * WHY THE CONTROL AND ONLY THE CONTROL. The clause's own argument is that a staged fixture should be
+   * a position the game could produce, and it is right about the MOVE UNDER TEST on the carrier this
+   * file derived for it — that pair is a claim about the game and it stays inside the clause. The
+   * control click is the opposite: it is the arm that must move no board, chosen for doing nothing,
+   * and never what an entity is credited for. This rig is already not a validatable team by
+   * construction — `scaffold` multiplies HP by 4, 6 or 8 to reach a boundary — so legality of the
+   * do-nothing click was never a claim it made.
+   *
+   * AND IT IS NOT A LIST. `fixtureAudit` takes ONE move id, demands a written reason, and prints the
+   * exempted pairs on every run. A set would be a place a genuine illegal carrier could hide, which
+   * is what data/fixture-learnset-baseline.json exists to make visible rather than to license. */
+  const fx = SB.fixtureAudit(shells, { learnsetExempt: INERT,
+    learnsetExemptWhy: 'It is the roster\'s CONTROL CLICK (ROADMAP #316): the arm that must move no '
+      + 'board, handed to every derived body so it has something to do when it must do nothing. Only '
+      + '55 of this format\'s 347 legal species can learn it. Every other click, including the move '
+      + 'under test on its derived carrier, is still inside the clause.',
+    /* ---- AND THE REST OF THE CLAUSE IS REPORT-ONLY HERE, WHICH IS A JUDGEMENT AND IS DECLARED ----
+     *
+     * With the control click exempt, 632 refusals remain across the three stages and 87% of them sit
+     * on FOUR fixed cast bodies: Goodra-Hisui 349, Dragapult 106, Weavile 77, Torterra 26. That is
+     * not 421 accidents, it is two design decisions seen many times — the move stage hands EVERY move
+     * in the format to one bulky QUIET carrier so the comparison is about the move and not about the
+     * body, and the delivery table picks one boring vehicle per type without asking who is throwing
+     * it.
+     *
+     * THE CLAUSE IS ASKING SOMETHING THIS RIG DOES NOT CLAIM. Its own argument is that a staged
+     * fixture should be a position the game could produce. This one is not, deliberately and by
+     * construction: `scaffold` multiplies HP by 4, 6 or 8 to put a boundary where a rule needs it,
+     * and `buildPair` constructs the bodies directly in both engines. No validator would pass this
+     * rig with every learnset in order, so learnset legality was never the property it rested on.
+     *
+     * WHAT IT COSTS, SAID PLAINLY: a shape rule that derives a carrier which cannot legally hold the
+     * entity is no longer refused here. The repair is real and it is a BATCH OF ITS OWN — deriving
+     * the move stage's carrier from the move's own learnset changes the carrier's types, bulk and
+     * speed, so it changes what every move scenario measures, and folding that into the pass that
+     * un-breaks the instrument would make both unattributable. That is the same reasoning, in the
+     * same words, as data/fixture-learnset-baseline.json's own header. Filed, not fixed here.
+     *
+     * IT IS PRINTED WITH ITS CONCENTRATION ON EVERY RUN and it is the number that must fall to zero
+     * when that batch lands. */
+    learnsetMode: 'report',
+    learnsetModeWhy: 'THE ROSTER DOES NOT BUILD TEAMS, IT BUILDS BOARDS: scaffold() multiplies HP by '
+      + '4, 6 or 8 and buildPair() constructs bodies directly in both engines, so this rig is already '
+      + 'a position no validator would pass and legality of a declared moveset is not a property it '
+      + 'rests on. 87% of these sit on four fixed cast bodies — one controlled carrier per stage, by '
+      + 'design. The repair (derive the move stage\'s carrier from the move\'s own learnset) changes '
+      + 'what every move scenario measures and is its own batch; this count must fall to zero when it '
+      + 'lands, and the clause can then be put back to FAIL.' })
+    .concat(critRatioAudit(shells));
   if (fx.length) {
-    for (const f of fx.slice(0, 40)) console.log('    ' + f);
-    if (fx.length > 40) console.log('    ... and ' + (fx.length - 40) + ' more');
+    /* THE HEAD OF THE LIST IS NOT THE LIST, and a truncated audit sent one reader to the wrong
+     * diagnosis: 40 alphabetically-first lines all said the same thing, so "88 of the first ~106" was
+     * reported as the shape of a failure that was actually 239. `--verbose` prints every one. */
+    const show = VERBOSE ? fx : fx.slice(0, 40);
+    for (const f of show) console.log('    ' + f);
+    if (fx.length > show.length) console.log('    ... and ' + (fx.length - show.length)
+      + ' more (--verbose prints all ' + fx.length + ')');
     console.log('    THE DERIVED SCENARIOS ARE WRONG — a shape rule is emitting a click that would '
       + 'stage nothing. Refusing to play them.');
     return fx.length;

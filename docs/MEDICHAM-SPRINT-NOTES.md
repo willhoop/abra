@@ -21,6 +21,39 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ROADMAP #320 — THE ENTRY TRANSFORM NEVER ANNOUNCED ITSELF, AND THE COPY COUNTERS COULD NOT SEE IT. 2026-08-21 (ENGINE).
+
+**The largest family of the largest whole-game divergence class, closed.** `event missing from
+medicham2` is 55 of 147 diverging games at release `b240433ae8af`. Grouped by the SHOWDOWN-side event
+— the line we do not write — its joint-largest family is **10 games, 10 causes, every one
+`-transform … [from] ability: Imposter`**, and medicham2 emitted nothing at all.
+
+**The engine had DECLARED the silence and the declaration had stopped being true.** The
+`transformsOnEntry` header read *"NO `|-transform|` LINE IS EMITTED"* — correct when written, because
+neither caller emitted one. ROADMAP #210 then gave the MOVE Transform its line **at that call site**,
+so `transformOnto` — the shared primitive extracted under #210 precisely so the two rules could not
+diverge — copied a body without announcing it, and the entry caller kept the silence. The authority
+emits inside the primitive (`sim/pokemon.ts:1350/1352`).
+
+**The counters were blind by construction.** `transformedOnEntry` and `transformedByMove` read
+non-zero the whole time: the copy landed, only the announcement was missing. `MEDSEEN.transformLineEmitted`
+counts LINES WRITTEN and is asserted for EQUALITY against the authority's own count per arm.
+
+**Proof:** `tests/test-imposter-transform-line.js`, 3 arms, 36 checks. Shown RED twice on disk —
+emission deleted (A and C red, B green), then emission restored at the move call site only, the exact
+pre-fix state (A alone red) — and the engine restored byte-identical both times.
+
+**Owed to the living docs when the sprint closes:** the divergence-class table (50 causes, five named
+families with their corpus exposure) and the two ranking traps that would have misdirected it —
+`max_uses` being the maximum over BOTH lines of a pair, and a species carrying `uses: null`, which
+prints as 0 and buries Kingambit's 31.4%.
+
+**Filed, not fixed:** #321, the `fallen` `-end` line — the highest-usage family in the class and pure
+`[silent]` commentary over state medicham2 already holds.
+
+---
+
+
 ## ROADMAP #278 — THE PAIRED ARGMAX RUN. REACH BECOMES EFFECT, AND IT IS 47.3%. 2026-08-14 (SEARCH).
 
 **Every prevalence R13 through R16 published was a ceiling on REACH and each report said so. This is

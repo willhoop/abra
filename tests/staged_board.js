@@ -991,10 +991,69 @@ function _canLearn(mv, speciesName) {
   return why;
 }
 
-function fixtureAudit(list) {
+/* ---- THE ONE CLICK A CALLER MAY EXEMPT FROM THE LEARNSET CLAUSE, AND WHY IT IS NOT A LIST -------
+ *
+ * The learnset clause (below) broke `tests/roster.js` outright on the day it landed, 2026-08-12, and
+ * nobody saw it because the roster is not in `tests/run-all.js`. MEASURED 2026-08-21 on release
+ * b240433ae8af: all three stages exit at the fixture audit — items 239 refusals, abilities 440,
+ * moves 1,290 — and the failing line on almost every one of them is the same, `<species> can't learn
+ * Focus Energy`. Focus Energy is the roster's CONTROL CLICK, handed to every body it stages as the
+ * thing to do when it must do nothing, and only 55 of the format's 347 legal species can learn it.
+ *
+ * THE EXEMPTION IS THE CONTROL CLICK AND NOTHING ELSE, and that is the whole reason it is safe:
+ * the control click is the arm that must move no board, so it is never what an entity is credited
+ * for. Every OTHER click — above all the move under test, on the carrier the roster derived for it —
+ * stays inside the clause, which is the half that carries a claim about the game.
+ *
+ * IT IS A SINGLE MOVE ID, NOT A SET, AND IT DEMANDS A WRITTEN REASON. A set is a place a genuine
+ * illegal pair can hide, which is the failure `data/fixture-learnset-baseline.json` exists to make
+ * visible rather than to license. `learnsetExemptWhy` is REQUIRED — an exemption nobody had to
+ * justify is the hand-maintained list of four this repository opens on.
+ *
+ * AND IT IS LOUD. Every exempted pair is counted and the count is printed with the reason on every
+ * run, so a run that quietly exempted six hundred pairs cannot look like a run that exempted none.
+ *
+ * ---- AND THE SECOND KNOB, WHICH IS A DIFFERENT JUDGEMENT AND HAS A DIFFERENT FUTURE ------------
+ *
+ * `learnsetMode: 'report'` moves the whole clause from FAIL to REPORT for one caller. It exists for
+ * `tests/roster.js` and the argument is that the clause is asking a question that rig does not
+ * answer: the roster does not build teams, it builds BOARDS. `scaffold` multiplies a body's HP by 4,
+ * 6 or 8 to put a boundary where a rule needs it, and `buildPair` constructs the bodies directly in
+ * both engines — so the position is already one no validator would pass, deliberately, and legality
+ * of a declared moveset was never a claim it made.
+ *
+ * MEASURED 2026-08-21, and the shape is why this is a judgement and not 421 accidents: 632 refusals
+ * across the three stages, 87% of them on FOUR fixed cast bodies — 349 on Goodra-Hisui alone, which
+ * is the "bulkiest quiet body" the move stage hands EVERY move in the format to. It is one design
+ * decision (a controlled carrier, so the comparison is about the move rather than about the body)
+ * seen 349 times.
+ *
+ * THE TWO KNOBS ARE KEPT APART ON PURPOSE, because merging them would destroy the only signal that
+ * matters later. The control-click exemption is PERMANENT — derived 2026-08-21, the only moves ~every
+ * legal species can learn are Protect, Endure, Rest, Sleep Talk and Substitute, and every one of them
+ * changes the game, so no universally-learnable control exists to switch to. The carrier reports are
+ * REPAIRABLE and should fall to zero when the move stage derives its carrier from the move's own
+ * learnset. Merged, that repair would leave a permanent floor of 145 and nobody could tell the floor
+ * from a regression. Apart, one goes to zero and can then be ratcheted to FAIL. */
+function fixtureAudit(list, opts) {
   const bad = [];
   /* pairs already on the baseline: reported, never failed. See the learnset clause below. */
   const known = [];
+  const exemptMove = (opts && opts.learnsetExempt) ? _dex.moves.get(opts.learnsetExempt) : null;
+  if (opts && opts.learnsetExempt) {
+    if (!exemptMove || !exemptMove.exists)
+      throw new Error('fixtureAudit: learnsetExempt names no such move "' + opts.learnsetExempt + '"');
+    if (!opts.learnsetExemptWhy)
+      throw new Error('fixtureAudit: learnsetExempt requires learnsetExemptWhy — an exemption with no '
+        + 'written reason is exactly the invisible exception this clause exists to prevent');
+  }
+  const exemptId = exemptMove ? exemptMove.id : null;
+  const exempt = new Set();
+  const reportOnly = !!(opts && opts.learnsetMode === 'report');
+  if (reportOnly && !opts.learnsetModeWhy)
+    throw new Error('fixtureAudit: learnsetMode "report" requires learnsetModeWhy — moving a clause '
+      + 'from FAIL to REPORT without a written reason is how "KNOWN FAILURE" gets invented');
+  const reported = new Set();
   for (const sc of list) {
     for (const [side, team] of [['p1', sc.A], ['p2', sc.B]]) {
       const carried = team.map(m => new Set((m.moves || []).map(x => _dex.moves.get(x).id)));
@@ -1051,7 +1110,12 @@ function fixtureAudit(list) {
                  * appears in nine scenarios, and a ratchet keyed on position would let someone move
                  * Snorlax|Swords Dance to a tenth scenario and call it new. */
                 const key = String(sp).toLowerCase().replace(/[^a-z0-9]/g, '') + '|' + mv.id;
-                (_LEARNSET_KNOWN.has(key) ? known : bad).push(
+                /* THE CONTROL CLICK, AND ONLY THE CONTROL CLICK — see the header on this function.
+                 * Collected by PAIR so the print is a count of distinct bodies rather than a count of
+                 * scenarios, which is what a reader needs to judge whether the exemption grew. */
+                if (exemptId && mv.id === exemptId) exempt.add(key);
+                else if (reportOnly) reported.add(key);
+                else (_LEARNSET_KNOWN.has(key) ? known : bad).push(
                   sc.id + ' turn 1 ' + side + '[' + i + ']: ' + sp + why
                   + '  — the fixture declares a moveset the game cannot produce'
                   + (_LEARNSET_KNOWN.has(key) ? '   [KNOWN — on the baseline, not failing]' : ''));
@@ -1077,6 +1141,28 @@ function fixtureAudit(list) {
    * went into ad instead and fails by name. */
   if (known.length) {
     for (const k of known) console.log('      ' + k);
+  }
+  /* LOUD, ALWAYS, AND WITH THE CALLER'S OWN REASON. A silent exemption looks exactly like nothing to
+   * exempt, which is this repository's signature failure. Zero is printed too, on the same rule. */
+  if (exemptId) {
+    console.log('      LEARNSET EXEMPTION: ' + exempt.size + ' distinct body/move pair(s) carrying '
+      + exemptMove.name + ' are exempt from the learnset clause. ' + opts.learnsetExemptWhy);
+    const bodies = [...exempt].map(k => k.split('|')[0]).sort();
+    if (bodies.length) console.log('      exempt bodies: ' + bodies.slice(0, 24).join(', ')
+      + (bodies.length > 24 ? ', +' + (bodies.length - 24) + ' more' : ''));
+  }
+  /* THE REPORT-ONLY BUCKET, WITH ITS CONCENTRATION. A bare count of 427 reads as 427 problems; the
+   * per-body split is what shows it is one design decision seen many times, and it is the number that
+   * has to fall when the carrier derivation is repaired. */
+  if (reportOnly) {
+    const byBody = {};
+    for (const k of reported) { const b = k.split('|')[0]; byBody[b] = (byBody[b] || 0) + 1; }
+    const top = Object.entries(byBody).sort((a, b) => b[1] - a[1]);
+    console.log('      LEARNSET CLAUSE IS REPORT-ONLY FOR THIS CALLER: ' + reported.size
+      + ' body/move pair(s) the authority would refuse, over ' + top.length + ' bodies. '
+      + opts.learnsetModeWhy);
+    if (top.length) console.log('      ' + top.slice(0, 8).map(([b, n]) => b + ' ' + n).join(', ')
+      + (top.length > 8 ? ', +' + (top.length - 8) + ' more bodies' : ''));
   }
   return bad;
 }

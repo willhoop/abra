@@ -438,11 +438,39 @@ function decisionImpact(curId) {
  *   data/roster.json           the shared file, and ONLY when its `stage` field matches
  * Anything else is MISSING, and MISSING FAILS. tests/roster.js is held by another division as this is
  * written, so the per-stage filename is a convention this reader accepts rather than one it imposes. */
-function rosterStage(stage) {
+/* ---- AND IT MUST REFUSE AN ARTIFACT CUT AGAINST OTHER BYTES (ROADMAP #316) ----------------------
+ *
+ * The three clauses above were the last ones in this file that would still answer off an artifact
+ * older than the engine it describes, and on 2026-08-21 they were doing exactly that: PASS, PASS,
+ * PASS, read out of files generated 2026-08-11 on release 96361d523e20 — while `tests/roster.js`
+ * itself had been unable to run AT ALL since 2026-08-12, when a learnset clause landed in
+ * `tests/staged_board.js` and refused every fixture the roster stages. Ten days of green on an
+ * instrument that could not start.
+ *
+ * The whole-game clause (#298) and the order probe already refuse this, in these words: *"that is
+ * not a weaker answer, it is an answer about other bytes."* There is no argument for the roster
+ * being different — it is the SAME kind of claim about the SAME simulator.
+ *
+ * WITHHELD, NOT ANNOTATED. The counts are not returned and do not appear in the verdict string.
+ * `PRE-CHANGE` was a caption beside a real number and the number was quoted for days; a figure that
+ * is still in the sentence has not been withheld, whatever word sits in front of it.
+ *
+ * AND FIXING THE INSTRUMENT DOES NOT CLOSE THIS. The repair makes the roster runnable again; it does
+ * nothing about the next ten days in which somebody forgets to re-run it. This is the half that
+ * prevents the recurrence.
+ *
+ * `inject` drives THE SHIPPING FUNCTION from the selftest, the same injection point
+ * `differentialClause` and `wholeGameClause` already take, so the rule cannot pass by having its
+ * selftest restate it. */
+function rosterStage(stage, inject) {
   const tried = [];
-  for (const f of [`roster.${stage}.json`, 'roster.all.json', 'roster.json']) {
+  const cur = readJson(D('data', 'engine-release.json'));
+  const curId = cur && (cur.id || cur.release || cur.current);
+  const files = inject !== undefined ? [inject.file || '(injected)']
+                                     : [`roster.${stage}.json`, 'roster.all.json', 'roster.json'];
+  for (const f of files) {
     tried.push('data/' + f);
-    const j = readJson(D('data', f));
+    const j = inject !== undefined ? (inject.json || inject) : readJson(D('data', f));
     if (!j) continue;
     /* AN `all` ARTIFACT SATISFIES THE THREE STAGES THE RULE NAMES, AND NOTHING ELSE. Accepting
      * `stage: 'all'` for ANY requested name made this function answer for a stage that does not
@@ -452,6 +480,20 @@ function rosterStage(stage) {
      * is the one case the whole file turns on, so it is scoped to ROSTER_STAGES explicitly rather
      * than to "any truthy stage name". */
     if (j.stage !== stage && !(j.stage === 'all' && ROSTER_STAGES.includes(stage))) continue;
+    /* THE RELEASE GUARD, BEFORE A SINGLE COUNT IS READ — see the header on this function. It sits
+     * here rather than after the arithmetic so that nothing downstream can read a figure the clause
+     * has decided it may not report. An artifact with NO stamp is still allowed to answer, exactly as
+     * `orderProbeClause` and `wholeGameClause` allow one: this refuses a MISMATCH, not an absence. */
+    const ranOn = j.engine_release || j.release || null;
+    if (ranOn && curId && ranOn !== curId) {
+      return { stage, file: 'data/' + f, ok: false, withheld: true, cannot_answer: true,
+        ranOn, staleAgainst: curId, generated: j.generated || null,
+        why: `MEASURED AGAINST A DIFFERENT ENGINE — this artifact ran on release ${ranOn} and the `
+           + `tree is ${curId}. That is not a weaker answer, it is an answer about other bytes. `
+           + `WITHHELD, not annotated: every count in data/${f} describes a simulator that is not `
+           + `this one, and none of them is repeated here. Re-run SHOWDOWN_PATH=... node `
+           + `tests/roster.js --stage ${stage} --write.` };
+    }
     const c = j.counts || {};
     const differ = c['FIRED-AND-BOARDS-DIFFER'] || 0;
     const silent = c['DID-NOT-FIRE'] || 0;
@@ -2309,6 +2351,50 @@ if (require.main === module) {
     /* THE CASE THE WHOLE FILE TURNS ON. A stage with no artifact must FAIL, not pass by absence. */
     const missing = rosterStage('__no_such_stage__');
     ok('a MISSING stage is a FAILING clause, not a passing one', missing.ok === false && missing.missing === true, missing);
+
+    /* -- ROADMAP #316 — THE ROSTER CLAUSE REFUSES AN ARTIFACT CUT AGAINST OTHER BYTES -----------
+     *
+     * Driven through `rosterStage` itself on injected artifacts, so this asserts the shipping rule
+     * rather than a restatement of it. The red case is asserted TWICE — the clause must fail, AND the
+     * counts must be ABSENT from what it returns and from the sentence. A withheld figure that is
+     * still in the string is `PRE-CHANGE` with a new word in front of it.
+     *
+     * THIS WAS THE LIVE DEFECT ON 2026-08-21: three PASSes read out of artifacts generated
+     * 2026-08-11 on release 96361d523e20, while the instrument that writes them had been unable to
+     * run since 2026-08-12. */
+    {
+      const relCur = readJson(D('data', 'engine-release.json'));
+      const relId = relCur && (relCur.id || relCur.release || relCur.current);
+      const ART = (extra) => ({ stage: 'items', generated: 'then',
+        counts: { 'FIRED-AND-BOARDS-DIFFER': 0, 'DID-NOT-FIRE': 0, 'FIRED-AND-BOARDS-MATCH': 136 },
+        scope: { tested: 139, in_scope: 148, unattributable: 0 }, reds: [], results: [], ...extra });
+      if (!relId) {
+        ok('#316 — no engine-release.json on this tree, so the roster clause has no id to disagree '
+          + 'with and is inert BY DESIGN (same as its siblings)',
+          rosterStage('items', { file: 'roster.items.json',
+            json: ART({ engine_release: '__not-this-tree__' }) }).withheld !== true);
+      } else {
+        const stale = rosterStage('items', { file: 'roster.items.json',
+          json: ART({ engine_release: '__not-this-tree__' }) });
+        ok('RED — #316 — a roster artifact stamped to ANOTHER release FAILS its clause',
+          stale.ok === false && stale.withheld === true && stale.cannot_answer === true, stale.why);
+        ok('RED — #316 — and THE COUNTS ARE GONE, not captioned: no differ, no silent, no matched, '
+          + 'no scope, and none of them appears in the verdict string',
+          stale.differ === undefined && stale.silent === undefined && stale.matched === undefined
+          && stale.scope === undefined && !/136|139|148/.test(stale.why), stale);
+        ok('#316 — the withheld verdict names WHICH release it wanted and WHICH it got',
+          stale.ranOn === '__not-this-tree__' && stale.staleAgainst === relId
+          && stale.why.indexOf(relId) >= 0, stale);
+        const fresh = rosterStage('items', { file: 'roster.items.json',
+          json: ART({ engine_release: relId }) });
+        ok('#316 — an artifact stamped to THIS tree is answered normally, so the check refuses a '
+          + 'mismatch and nothing else', fresh.withheld !== true && fresh.ok === true, fresh.why);
+        ok('RED — #316 — a WITHHELD roster verdict exits 2, never 0', clauseExit(stale) === 2);
+      }
+      const unstamped = rosterStage('items', { file: 'roster.items.json', json: ART({}) });
+      ok('#316 — an UNSTAMPED roster artifact is allowed to answer: the clause refuses a MISMATCH, '
+        + 'not an absence', unstamped.withheld !== true && unstamped.ok === true, unstamped.why);
+    }
 
     /* -- ROADMAP #88: THE DIFFERENTIAL CLAUSE, THROUGH THE SHIPPING FUNCTION -------------------
      * Every case below is a WHOLE artifact handed to `differentialClause` itself, so a change to the

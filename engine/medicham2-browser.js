@@ -902,6 +902,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * move from another body and Transform is one. A zero with a Gholdengo on the field is the gate
    * having stopped matching. */
   transformRefusedByAbility: 0,
+  /* 2026-08-21 -- THE PROTOCOL LINE, COUNTED APART FROM THE COPY, because the copy counters could not
+   * see the defect this exists for. `transformedOnEntry` read non-zero for the whole period in which
+   * the entry path emitted no `|-transform|` at all: the copy happened, the announcement did not, and
+   * a counter on the copy is blind to that by construction. Incremented at the single `TR.xform` call
+   * inside `transformOnto` -- once per LINE WRITTEN, so a run with no trace attached correctly reads
+   * zero. tests/test-imposter-transform-line.js asserts it EXACTLY against the number of `-transform`
+   * lines in medicham2's stream AND in the authority's, never `>= 1`. */
+  transformLineEmitted: 0,
   /* ROADMAP #210 -- Future Sight. `delayedHitBooked` is the click that books the slot, `delayedHitLanded`
    * the payout two turns later, `delayedHitWasted` a booking that came due on the user itself or on a
    * corpse. A booked count with a zero landed count, in a game that ran three more turns, means the
@@ -11976,8 +11984,30 @@ function syncFieldTypes(field,bodies){ syncTerrainTypes(field,bodies); syncWeath
  * (sim/pokemon.ts), so the format's own maxpp rule does not apply to a copied slot. Measured on a real
  * Champions battle rather than reasoned about: a Ditto holding `transform:12/12` becomes a Garchomp
  * holding `earthquake:5/5 dragonclaw:5/5 protect:5/5 swordsdance:5/5`. `_ppMax` is the per-body
- * override that makes that expressible, and it is restored with everything else on the way out. */
-function transformOnto(m,t){
+ * override that makes that expressible, and it is restored with everything else on the way out.
+ *
+ * THE `|-transform|` LINE IS EMITTED HERE, INSIDE THE PRIMITIVE, AND UNTIL 2026-08-21 IT WAS EMITTED
+ * AT ONE OF THE TWO CALL SITES ONLY. The `transformsOnEntry` header three screens up carried this as
+ * DECLARED RESIDUE -- *"NO `|-transform|` LINE IS EMITTED. The protocol side is a separate instrument
+ * with its own claimed-event list"* -- and the declaration was written when NEITHER caller emitted
+ * one. The move caller gained the line and the entry caller did not, which is precisely the shape
+ * CLAUDE.md's FACTS-ARE-GLOBAL rule describes: one fact ("a body became another body, and the
+ * protocol has a dedicated event for it") living at a call site, so the second caller could be added
+ * without it and nothing would notice. The authority puts it in the same place -- `transformInto`
+ * emits it itself (sim/pokemon.ts:1350/1352), not in Imposter's handler and not in Transform's.
+ *
+ * MEASURED, NOT ASSUMED: `data/game-differential.json` at release b240433ae8af holds 10 games in
+ * `event missing from medicham2` whose missing line is `|-transform|pXy|pZw|[from]imposter` -- the
+ * largest single family in the 55-game class, and every one of them the ENTRY caller.
+ *
+ * `from` IS THE AUTHORITY'S SECOND ARM. `transformInto(pokemon, effect)` writes
+ * `'[from] ' + effect.fullname` when an EFFECT caused the copy (:1350) and a bare line when nothing
+ * did (:1352). Imposter passes `this.dex.abilities.get('imposter')` (data/abilities.ts:2113), so its
+ * line carries `[from] ability: Imposter`; the MOVE Transform passes no effect at all
+ * (`source.transformInto(target)`, data/moves.ts) and its line is bare. The caller supplies the
+ * string because by the time this function returns the holder is already carrying the COPIED
+ * ability, and the id of the one that CAUSED the copy is no longer readable off the body. */
+function transformOnto(m,t,from){
   const st=Object.assign({},t.st); st.hp=m.st.hp;      // EVERY STAT EXCEPT HP
   /* ROADMAP #139 -- THE BODY IT WAS, KEPT, so the switch-out can put it back. Taken BEFORE a field is
    * written, and only on the transform that actually happens (every refusal has already returned). */
@@ -12006,11 +12036,27 @@ function transformOnto(m,t){
     m._ppMax[_k]=_cap; m._pp[_k]=_cap;
   }
   m._transformed=true;
+  /* `|-transform|USER|TARGET` (sim/pokemon.ts:1352), AFTER the copy and BEFORE the copied ability's
+   * Start handler -- which is the authority's own order: `transformInto` adds the line and only then
+   * calls `setAbility` with the copied body's ability at :1359. Both callers run before the entry
+   * pass, so an Imposter that copies an Intimidate still announces the copy first.
+   *
+   * THE COUNTER COUNTS THE LINE AND NOT THE COPY, deliberately. `transformedOnEntry` and
+   * `transformedByMove` already count copies, and both of them read NON-ZERO through the whole period
+   * in which the entry line was missing -- so a counter on the copy cannot see this defect at all.
+   * `transformLineEmitted` is asserted EXACTLY against the number of `-transform` lines in the two
+   * streams by tests/test-imposter-transform-line.js, never `>= 1`. */
+  if(TR){TR.xform(m,t,from);MEDSEEN.transformLineEmitted++;}
   return true;
 }
 function imposterCopy(m,foes,slot){
   if(!m||m.fainted||m.curHP<=0)return false;
-  const p=TAGS.param('ability',m.ability,'transformsOnEntry');
+  /* HELD IN A LOCAL because the tag lookup and the `[from]` tag on the protocol line want the SAME
+   * id, and it is only readable HERE -- `transformOnto` overwrites the holder's ability with the
+   * copied one. Two separate reads would also be two entries on the raw-read ratchet
+   * (tests/test-effective-identity.js) for one fact. */
+  const _ab=m.ability;
+  const p=TAGS.param('ability',_ab,'transformsOnEntry');
   if(!p)return false;
   if(m._transformed){MEDSEEN.transformRefusedAlready++;return false;}
   const arr=foes||[];
@@ -12020,7 +12066,11 @@ function imposterCopy(m,foes,slot){
    * that is already somebody else, or hiding behind a doll, cannot be copied. */
   if(!t||t.fainted||t.curHP<=0){MEDSEEN.transformRefusedNoBody++;return false;}
   if(t._transformed||t._sub>0){MEDSEEN.transformRefusedAlready++;return false;}
-  transformOnto(m,t);
+  /* THE ID RATHER THAN A DISPLAY NAME is this file's house form for a `[from] ability:` tag (fifteen
+   * other sites write it the same way); `traceCanon` lowercases both sides, so this and the
+   * authority's `[from] ability: Imposter` are the same line to any reader that normalises. Proven
+   * rather than assumed, before any game is played, at the top of tests/test-imposter-transform-line.js. */
+  transformOnto(m,t,'[from] ability: '+_ab);
   MEDSEEN.transformedOnEntry++;
   return true;
 }
@@ -16317,13 +16367,13 @@ function battleTurn(S,rng,actsForA,actsForB){
           MEDSEEN.transformRefusedByAbility++;continue;}
         if(pranksterBlocked(m,_tt,a.mv)){MEDSEEN.transformRefusedByAbility++;continue;}
         if(m._transformed||_tt._transformed||_tt._sub>0){MEDSEEN.transformRefusedAlready++;mvFail(m);continue;}
+        /* NO `from` ARGUMENT, AND THE ABSENCE IS THE RULE. The :1350 arm of `transformInto` is for a
+           copy caused by an EFFECT; the move passes none (`source.transformInto(target)`), so the
+           authority takes the :1352 arm and writes a bare `|-transform|USER|TARGET`. The line itself
+           is emitted by `transformOnto` -- it used to be written here, which is how the ENTRY caller
+           came to have no line at all. */
         transformOnto(m,_tt);
         MEDSEEN.transformedByMove++;
-        /* `|-transform|USER|TARGET` (sim/pokemon.ts:1352) and NOT `-activate`: the protocol has a
-           dedicated event for this and the `-activate|USER|transform` written here before could not
-           align with anything. The `[from]` argument is left off deliberately -- the :1350 arm is for
-           a transform caused by an EFFECT, and this one is caused by the move. */
-        if(TR)TR.xform(m,_tt);
         continue;
       }
       if(a.kind==='phaze'){

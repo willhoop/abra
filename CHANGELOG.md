@@ -10,6 +10,67 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.57.0] — 2026-08-21
+
+### Fixed
+- **THE ENTRY TRANSFORM COPIED A BODY AND NEVER ANNOUNCED IT (ROADMAP #320).** `event missing from
+  medicham2` is **55 of the 147 diverging games** in `data/game-differential.json` at release
+  `b240433ae8af` — the largest whole-game divergence class. Rolled up by
+  `engine/divergence_report.js` and grouped by the SHOWDOWN-side event (the line we do not write), its
+  joint-largest family is **10 games, 10 causes, every one `-transform … [from] ability: Imposter`**,
+  and medicham2 emitted nothing at all.
+- **The engine had DECLARED the silence, and the declaration had stopped being true.** The
+  `transformsOnEntry` header read *"NO `|-transform|` LINE IS EMITTED"* — correct when written,
+  because NEITHER caller emitted one. ROADMAP #210 then gave the MOVE Transform its line **at that
+  call site**, so `transformOnto` — the shared primitive extracted under #210 precisely so the two
+  rules could not diverge — copied a body without announcing it and the ENTRY caller kept the silence.
+  The authority emits inside the primitive (`sim/pokemon.ts:1350/1352`), so both of ITS callers get it
+  free. The emission has moved there; `from` distinguishes the two arms (Imposter passes an effect,
+  `data/abilities.ts:2113`, **not overridden by the Champions mod**; the move passes none, so its line
+  is bare).
+
+### Added
+- **`MEDSEEN.transformLineEmitted`, which counts LINES WRITTEN rather than copies made.**
+  `transformedOnEntry` and `transformedByMove` both read non-zero throughout the period the entry line
+  was missing — the copy was landing perfectly and only the announcement was absent — so a counter on
+  the capability is blind to this defect by construction.
+- **`tests/test-imposter-transform-line.js`** — three arms, both engines playing one script, the
+  expectation taken from Showdown rather than typed: Ditto/**Imposter** arrives (one TAGGED line), the
+  same Ditto with **Limber** arrives (no line on either engine), and Limber Ditto **clicks** Transform
+  (one BARE line, which is also the regression guard for moving the emission into the primitive).
+  36 checks. The counter is asserted for **EQUALITY** against the authority's own line count per arm,
+  never `>= 1`.
+- **Shown RED twice, on disk, and restored byte-identical both times.** Deleting the emission from the
+  primitive reds arms A and C (12 failures) and leaves the NEGATIVE arm green; restoring the emission
+  at the move call site only — the exact pre-fix state — reds **A alone** (6 failures), so the file
+  distinguishes the two callers, which is the specific defect.
+- The test loads `tests/_live_release.js` before the driver and freezes the live tree into a throwaway
+  store under the OS temp dir, so `data/releases/` and `data/engine-release.json` are untouched.
+  **Requiring `engine/game_differential.js` without `--release` CUTS a release into the real store and
+  repoints the pointer, at require time** (`game_differential.js:196`); six were cut during this pass
+  before that was noticed, two of them holding a deliberately broken engine (`bd83aca7a0fc`,
+  `609741ac3c6f`, both identifiable by the string `RED DEMO` in their frozen `medicham2-browser.js`).
+  Neither is the pointer and `b240433ae8af` is untouched.
+
+### Notes
+- **Two ranking traps, recorded because either would have sent this pass elsewhere.** (1) `max_uses`
+  is the maximum over **both** lines of a diverging pair, so the report's own head reads *126,170
+  clicks, Protect* on a cause whose MISSING line is `-start|typechange|[from] protean` — Protect is
+  what we emitted instead. (2) A species carries `uses: null`, which prints as 0, so all ten Morpeko
+  rows and all six `fallen` rows rank at the bottom of a usage-ordered list while sitting on 0.33% and
+  **31.4%** of real games. Exposure in this entry is counted off `brought` in the two human stores.
+- **Filed, not fixed (ROADMAP #321): the `fallen` `-end` line.** `|-end|<body>|fallen<N>|[silent]` on
+  every Supreme Overlord switch-out, 5 games, and Kingambit is brought in **26,113 of 83,125** stored
+  games — the highest-exposure family in the class. medicham2 already holds the state correctly
+  (`_fallenStuck`), so it is pure commentary with no board behind it and was deliberately not taken.
+- `data/mechanics-census.json` was **not** regenerated in this pass, at the requesting agent's
+  instruction; it and the whole-game differential are theirs to re-run. This change adds a protocol
+  line and a counter and gates no mechanic, so no census row can fall.
+- `tests/test-effective-identity.js` is RED at `1561 raw reads vs baseline 1198` and **was red before
+  this change** — the file carries its own dated note saying it has been over the ratchet since it was
+  written. This pass's delta is exactly **zero**, measured against `git show HEAD:` (273 before, 273
+  after).
+
 ## [5.56.1] — 2026-08-21
 
 ### Added

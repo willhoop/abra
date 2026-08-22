@@ -63,9 +63,251 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 273/291 probed, 18 unprobed
 ```
 
-_stamped 2026-08-21 21:57_
+_stamped 2026-08-21 22:28_
 
 <!-- /GENERATED -->
+
+## ROADMAP #316 — THE ROSTER HAD NOT RUN FOR TEN DAYS, THE CONTROL NEVER CHANGED, AND THE COMMAND IN THE BRIEF WAS NOT ONE THE FILE READS. 2026-08-21.
+
+`tests/roster.js` exited 1 on every stage before a game was played, and `engine/quarantine.js`
+printed **PASS, PASS, PASS** for its three clauses off artifacts generated 2026-08-11. Two separate
+defects, both of them the RULER moving under a control that had not changed, plus one measurement
+error in the brief that sent the first diagnosis to the wrong place.
+
+**THE COMMAND WAS THE FIRST BUG AND IT MANUFACTURED THE SECOND.** The brief measured
+`node tests/roster.js --kind items`. This file reads `--stage`. `--kind` is silently ignored, `STAGE`
+falls back to `'spine'`, and the spine is the only stage that runs `selftest()` — so the three
+"stages" that all failed identically were **the same stage three times**, and the earlier learnset
+diagnosis was retracted on the strength of it. The learnset diagnosis was right. Row #316's own
+`VERIFIED BY` cell carried the wrong command and is corrected.
+
+*(A silent default looks exactly like a working feature. An unrecognised argument is a silent default
+wearing a command line.)*
+
+### (1) THE INERTNESS ASSERTION — the control's own two leaves, DERIVED
+
+| when | what grew under the control |
+|---|---|
+| 2026-08-11 `c42b066` | PP became a compared leaf (the roster's own hold was lifted), so EVERY click moves `pp[slot].<move>` |
+| 2026-08-12 `13e94cb` | `board_state.js` began comparing nine per-body volatiles, `focusenergy` among them |
+
+**(a) — a control that moves no leaf at all — does not exist, and that is measured rather than
+preferred.** `pass` is refused for a healthy active body, so a control clicks a move, and a move
+spends PP. So (b), and the exemption is `INERT_SELF`: the control move's own `volatileStatus` and its
+own PP row, read off the format, matched as **anchored whole paths** (`^p[12]\.pp\[\d+\]\.<id>$`,
+`^p[12]\.active\[\d+\]\.vol\.<v>$`) so nothing outside those two leaves can match. The first
+version matched on a SUFFIX, `.pp.focusenergy`, which exists nowhere — it exempted the volatile, left
+all 24 PP leaves in, and the selftest stayed red and said so.
+
+**THE CAP IS WHAT CLOSES THE HAZARD.** Only those two SHAPES are exemptible. A control declaring a
+boost, a status, a heal, a non-self target or any base power is refused by name, so swapping the
+control later cannot silently widen the exclusion. Handlers are deliberately not inspected — catching
+those is the AUDIT's job, and that is the red demonstration:
+
+```
+--selftest --inert substitute    exempts exactly [pp.substitute, vol.substitute] and STILL CATCHES
+                                 the quarter of the user's HP Substitute takes inside onHit —
+                                 48 hp leaves, both engines, exit 1
+--selftest --inert swordsdance   refused by the cap: "declares boosts {"atk":2}" — exit 1
+```
+
+`--inert` is selftest-only and prints a banner saying the run is a demonstration, so the red is a
+command anybody can run instead of a claim in a comment. `INERT_RAISES_CRIT_STAGES` is now DERIVED by
+calling the control's own `onModifyCritRatio(0)` — 2 for Focus Energy — and throws rather than
+defaulting to 0, because a silent 0 there would disarm `critRatioAudit` and `controlQuietAudit` at
+once.
+
+### (2) THE LEARNSET CLAUSE — 292 of 347 species cannot learn the control click
+
+`tests/staged_board.js` gained a `checkCanLearn` clause on 2026-08-12 (`b61230a`) and it shut this
+file down completely: **items 239 refusals, abilities 440, moves 1,290**, almost every one of them
+`<species> can't learn Focus Energy`. Nobody saw it because the roster is not in `tests/run-all.js`.
+
+Derived, not remembered: **55 of this format's 347 legal species can learn Focus Energy.** And there
+is nothing to swap to — the only moves ~every species can learn are Protect, Endure, Rest, Sleep Talk
+and Substitute, and every one of them changes the game.
+
+So `fixtureAudit` takes **one** exempt move id with a **required** written reason, prints every
+exempted pair, and exempts the control click and nothing else. The rest of the clause is REPORT-ONLY
+for this caller, declared with its reason (**ROADMAP #318**): the roster does not build teams, it
+builds boards — `scaffold()` multiplies HP by 4, 6 or 8 — so it was never a validatable team. The two
+knobs are kept apart because they have different futures: the control exemption is permanent, the
+carrier reports are repairable and must reach zero.
+
+### WHAT THE THREE STAGES SAY NOW — release `b240433ae8af`
+
+| stage | DIFFER | DID-NOT-FIRE | MATCH | COULD-NOT-STAGE | other |
+|---|---|---|---|---|---|
+| items | 3 | 0 | 136 | 8 | 1 deferred |
+| abilities | 10 | 1 | 117 | 140 | 48 CONTROL-NOT-QUIET |
+| moves | **157** | 0 | 306 | 11 | 26 deferred |
+
+**The 157 is filed as ROADMAP #319 and is almost certainly ONE family, not 157:** 217 of the 240
+parted leaves are `hp`/`party.hp` off by 1–4, and 97 of the 157 entities come from the single rule
+`move/plain-attack`. It is NOT a regression from this pass and it may NOT be compared with the
+2026-08-11 artifact's `0 DIFFER` — those are different bytes, which is what the next section enforces.
+
+### AND THE HALF THAT STOPS IT RECURRING
+
+`rosterStage()` now WITHHOLDS on a release mismatch, in the whole-game clause's own words — *"that is
+not a weaker answer, it is an answer about other bytes"* — with the counts absent from the returned
+object **and from the sentence**, because `PRE-CHANGE` was a caption beside a real number and the
+number got quoted for days. Six selftest probes drive the SHIPPING function on injected artifacts,
+including the red one and the two negatives (an artifact stamped to THIS tree answers normally; an
+UNSTAMPED one is allowed to answer, because the clause refuses a MISMATCH and not an absence).
+
+Live effect: the gate went from 3 of 8 clauses failing to **6 of 8**, the three new reds being the
+three withholds. Repairing the instrument does not close this — nothing prevents the next ten days in
+which somebody forgets to re-run it, and that is what the withhold is for.
+
+## THE LARGEST WHOLE-GAME DIVERGENCE CLASS, RANKED PROPERLY — ITS BIGGEST FAMILY WAS ONE DECLARED SILENCE. 2026-08-21.
+
+`event missing from medicham2` is **55 of the 147 diverging games** in `data/game-differential.json`
+at release `b240433ae8af` — the largest class by a wide margin, and `first_divergences` shows only a
+30-row SAMPLE of it. The rollup is the artifact's own:
+
+```
+node engine/divergence_report.js --class "event missing from medicham2" --all
+```
+
+**IT DOES NOT COLLAPSE INTO A HANDFUL OF BUGS AND IT DOES NOT SCATTER INTO FIFTY EITHER.** 50 distinct
+causes; grouped by the SHOWDOWN-side event — the line we are missing, which is what the class name
+actually means — they are:
+
+| games | causes | the line the authority writes and we do not | corpus exposure of its subject |
+|---|---|---|---|
+| **10** | 10 | `-transform` … `[from] ability: Imposter` | Ditto brought in **699 of 83,125** stored games (0.84%) |
+| **10** | 10 | `switch` — a switch-in ORDER question, every one naming Morpeko | Morpeko brought in **273** (0.33%) |
+| 7 | 6 | `-fail` | **ROADMAP #241 part (3), already open with a red instrument** |
+| 5 | 5 | `-end\|<body>\|fallen<N>\|[silent]` | Kingambit brought in **26,113** (31.4%) |
+| 5 | 2 | `-weather\|<w>\|[upkeep]` | a weather-setting ability brought in **9,340** (11.2%) |
+| 2 each | | `-heal … [from] drain`, `-damage … [from] item: Life Orb`, `-formechange … forecast`, `-boost\|…\|0` | |
+| 1 each | | Symbiosis, Toxic Debris, Sand Spit, Throat Chop's `-end`, `confusion\|[fatigue]`, Regenerator's heal, Protean's `typechange`, Syrup Bomb's `-end`, `-immune`, `-unboost\|…\|0` | |
+
+**TWO WARNINGS ABOUT THE RANKING, BOTH OF WHICH WOULD HAVE SENT THIS PASS SOMEWHERE ELSE.**
+
+1. **`max_uses` IS THE MAXIMUM OVER *BOTH* LINES OF A PAIR, so the report's own head is misleading for
+   this question.** Its top row reads **126,170 clicks** and names Protect — but the line we are
+   MISSING there is `-start|typechange|[from] protean`, and Protect is what we emitted INSTEAD.
+   Ranking the class by `max_uses` ranks it by whatever the other engine happened to be doing.
+2. **A SPECIES CARRIES `uses: null`, WHICH PRINTS AS 0.** `entityStanding` annotates moves, abilities,
+   items and conditions; `tags.json` holds nothing for a body, and `game_differential.js:415` says so
+   in its own words. So all ten Morpeko rows and all six `fallen` rows rank at the BOTTOM of a
+   usage-ordered list while sitting on 0.33% and **31.4%** of real games respectively. The right-hand
+   column above is counted off `brought` in the two human stores, not read out of the report.
+
+### THE FAMILY TAKEN, AND WHY IT AND NOT THE ONE WITH THE MOST USAGE
+
+`-transform … [from] imposter`. It is the **largest** family that is not #241's, it is the **most
+coherent** — ten causes, one line, one mechanic, so one fix accounts for all ten and a bad result can
+be attributed — and it sits on a mechanic that rewrites an entire body.
+
+**THE `fallen` FAMILY OUTRANKS IT ON USAGE BY FORTY TO ONE AND IS STILL THE WRONG TARGET.** It is
+`-end|p2b: Kingambit|fallenundefined|[silent]` — mainline `data/abilities.ts:4732`, NOT overridden by
+`/data/mods/champions/`, firing on every switch-OUT of a Supreme Overlord carrier, and the literal
+string `fallenundefined` is the authority's own quirk (`onEnd` runs unconditionally while
+`effectState.fallen` is only set when an ally has already died). **medicham2 already holds the state**
+— `_fallenStuck`, stamped at `bringIn` and frozen for the stay, exactly as the handler freezes
+`effectState.fallen` — so the entire family is a `[silent]` announcement with no board behind it.
+Emitting it would clear five games and change nothing about the game being played. Filed, not taken.
+
+### WHAT WAS WRONG — A DECLARED RESIDUE THAT STOPPED BEING TRUE
+
+`medicham2-browser.js` said it, in the `transformsOnEntry` header:
+
+> **NO `|-transform|` LINE IS EMITTED.** The protocol side is a separate instrument with its own
+> claimed-event list … The engine emitted nothing here before this wire and still does, so nothing
+> regresses.
+
+**True when written — NEITHER caller emitted one.** ROADMAP #210 then gave the MOVE Transform its line
+and put the emission **at that call site**, so `transformOnto` — the shared primitive both callers
+reach, extracted under #210 precisely so the two rules could not diverge — copied a body without
+announcing it, and the ENTRY caller kept the silence. The authority does not do it that way:
+`Pokemon#transformInto` emits the line ITSELF (`sim/pokemon.ts:1350/1352`), so both of ITS callers get
+it for free. This is CLAUDE.md's FACTS-ARE-GLOBAL rule broken in its quietest form — one fact living
+at one call site of two, so the second caller could be added without it and nothing noticed.
+
+**AND THE COPY COUNTERS COULD NOT SEE IT.** `transformedOnEntry` and `transformedByMove` both read
+non-zero throughout: the copy was landing perfectly, only the announcement was absent. A counter on
+the capability is blind to a missing line by construction, which is why the new one counts **LINES
+WRITTEN**.
+
+### THE FIX
+
+The emission moved INTO `transformOnto(m, t, from)`, after the copy and before the copied ability's
+Start handler — the authority's own order (`transformInto` adds the line, then calls `setAbility` at
+:1359). `from` is the authority's second arm and is supplied by the caller: Imposter passes
+`this.dex.abilities.get('imposter')` (`data/abilities.ts:2113`, **not overridden by the Champions
+mod** — checked, both ways), so its line is TAGGED; the move passes no effect at all, so its line is
+BARE. `MEDSEEN.transformLineEmitted` is incremented at the single `TR.xform` call.
+
+### THE PROOF
+
+`tests/test-imposter-transform-line.js` — three arms, both engines playing one script, and the
+expectation comes out of SHOWDOWN rather than out of the file.
+
+| arm | staged | authority | this engine, before | after |
+|---|---|---|---|---|
+| **A** POSITIVE | Ditto/**Imposter** leads into a doubles board | `-transform\|p1a: Ditto\|p2b: Snorlax\|[from] ability: Imposter` | **nothing** | the same line |
+| **B** NEGATIVE | the same Ditto with **Limber** | nothing | nothing | nothing |
+| **C** THE MOVE | Limber Ditto **clicks** Transform | `-transform\|p1a: Ditto\|p2b: Snorlax` (BARE) | the bare line | the bare line |
+
+**RED, TWICE, BOTH ON DISK AND BOTH RESTORED BYTE-IDENTICAL.** Deleting the emission from the
+primitive reds arms A and C (12 failures) and leaves B green — which is the negative arm doing its
+job. Restoring the emission **at the move call site only**, the exact pre-fix state, reds **A alone**
+(6 failures) with B and C green: the file distinguishes the two callers, which is the specific defect.
+
+**THE COUNTER IS ASSERTED FOR EQUALITY AGAINST THE AUTHORITY'S OWN LINE COUNT, PER ARM — never
+`>= 1`.** `counter === our lines === showdown's lines`, so 1/1/1 on A, 0/0/0 on B, 1/1/1 on C.
+
+**AND THE FIRST DRAFT OF THE TEST WAS WRONG BEFORE THE ENGINE WAS, for the twenty-somethingth time.**
+It read `counter=0 lines=1` — the line was emitted and the counter did not move — because the driver
+loads medicham2 through the **release loader**, out of a snapshot DIRECTORY, so a plain
+`require('engine/medicham2-browser.js')` returns a SECOND module instance with its own `MEDSEEN`. It
+could not have passed falsely; a wrong instance reads 0 beside a line that exists and goes red.
+
+### TWO THINGS THIS PASS DID TO THE TREE THAT SOMEBODY ELSE HAS TO KNOW ABOUT
+
+- **REQUIRING `engine/game_differential.js` CUTS A RELEASE INTO THE REAL STORE AND REPOINTS
+  `data/engine-release.json`**, at ITS require time, unless `--release` is on `process.argv`
+  (`game_differential.js:196`). Six were cut before this was noticed, **two of them holding a
+  deliberately broken engine** (`bd83aca7a0fc`, `609741ac3c6f` — both identifiable by the string
+  `RED DEMO` in their frozen `medicham2-browser.js`). Neither is the pointer; `b240433ae8af` is
+  untouched. The standing test now loads `tests/_live_release.js` FIRST and freezes into a throwaway
+  store under the OS temp dir, on `test-bracket-regain.js`'s rule, and a run of it was verified to
+  leave `data/engine-release.json` byte-identical.
+- **`tests/test-effective-identity.js` IS RED AND WAS RED BEFORE THIS CHANGE** — `1561 raw reads vs
+  baseline 1198`, and the file carries its own dated note that it has been over the ratchet since the
+  moment it was written (the baseline artifact is dated 2026-08-02). **This pass's delta is exactly
+  ZERO**: the new `_ab` local replaces the read that was already on the `TAGS.param` line, and two
+  comment mentions were reworded because the ratchet's regex is deliberately over-broad and scans
+  prose. Measured against `git show HEAD:` — 273 before, 273 after. Not filed as a known failure; it
+  is somebody's open work and it is named here so the next reader does not attribute it to this.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — it is a test now:**
+- ~~`-transform … [from] imposter` is the largest family of the largest divergence class and nothing
+  probes it~~ — staged and asserted in `tests/test-imposter-transform-line.js` (3 arms,
+  authority-compared, shown red on two different breaks).
+
+**Added, measured this pass and NOT fixed:**
+- **THE `fallen` `-end` LINE — 5 games, and Kingambit is in 31.4% of real games.** Pure `[silent]`
+  commentary over state medicham2 already holds correctly. Cheap; worth doing only as part of a
+  deliberate decision about whether this engine mirrors announcements that carry no board. Filed as
+  ROADMAP #321.
+- **THE MORPEKO SWITCH FAMILY — 10 games, the joint-largest, and it is a switch-in ORDER question**,
+  so it belongs with ROADMAP #290's `ordering` work rather than here. Every one of its ten causes is
+  `switch` against `switch`/`move`/`upkeep` with Morpeko named on the authority's side.
+- **`-weather|<w>|[upkeep]` — 5 games, and 11.2% of real games bring a weather setter.** The obvious
+  hypothesis is WRONG and is recorded so nobody re-spends it: three of the four rain cases diverge at
+  the turn-2 residual after ALL FOUR bodies switched, which reads as *an all-switch turn skips the
+  weather residual* — staged, and **medicham2 emits the line correctly in that exact scenario**, in
+  the all-switch, half-switch and no-switch arms alike. The real cause is upstream of the residual and
+  is not yet known.
+
 
 ## WILL'S QUESTION: CAN A PRIORITY BRACKET COME BACK, OR ONLY GO AWAY? IT COMES BACK, ON BOTH ENGINES. 2026-08-21.
 
