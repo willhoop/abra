@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-22T19:29:03.461Z",
+ "generated": "2026-08-23T06:52:05.527Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1206,8 +1206,8 @@
    "kind": "move",
    "param": "the incoming Pokemon INHERITS something — `mode` is the authority's own switchCause",
    "why": "Baton Pass hands over the stat boosts, Shed Tail hands over a Substitute. Nothing in the model represents a switch that carries state across",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "batonpass",
+   "used": true,
    "n": 2,
    "uses": 351,
    "examples": [
@@ -2105,6 +2105,20 @@
    "uses": 68,
    "examples": [
     "Stockpile"
+   ]
+  },
+  {
+   "tag": "critStageVolatile",
+   "kind": "move",
+   "param": "the volatile this move applies raises the CRITICAL-HIT RATIO, and which other members of that family it refuses to overlap with",
+   "why": "Focus Energy and Dragon Cheer each refuse the other and both are copied wholesale by Psych Up and Transform; the engine had neither rule, so a Dragon Cheer'd ally still took a Focus Energy and a Transform copied no crit stage at all",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 44,
+   "examples": [
+    "Dragon Cheer",
+    "Focus Energy"
    ]
   },
   {
@@ -3906,8 +3920,8 @@
    "kind": "ability",
    "param": "self-destructing moves simply fail while it is on the field",
    "why": "Damp. It reaches across the whole field, not just its own side, so it invalidates an opposing Explosion the bot would otherwise score as a big hit",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "onAnyTryMove",
+   "used": true,
    "n": 1,
    "uses": 791,
    "examples": [
@@ -9562,7 +9576,8 @@
     "neverMisses",
     "statusCategory",
     "formatSecondaryCount",
-    "statusInflict"
+    "statusInflict",
+    "critStageVolatile"
    ],
    "uses": 32,
    "params": {
@@ -9598,6 +9613,13 @@
        "to": "target"
       }
      ]
+    },
+    "critStageVolatile": {
+     "volatile": "dragoncheer",
+     "exclusiveWith": [
+      "focusenergy"
+     ],
+     "from": "DERIVED:condition.onModifyCritRatio + condition.onStart"
     }
    }
   },
@@ -18697,7 +18719,8 @@
     "neverMisses",
     "statusCategory",
     "formatSecondaryCount",
-    "statusInflict"
+    "statusInflict",
+    "critStageVolatile"
    ],
    "uses": 12,
    "params": {
@@ -18730,6 +18753,13 @@
        "to": "user"
       }
      ]
+    },
+    "critStageVolatile": {
+     "volatile": "focusenergy",
+     "exclusiveWith": [
+      "dragoncheer"
+     ],
+     "from": "DERIVED:condition.onModifyCritRatio + condition.onStart"
     }
    }
   },
@@ -25387,7 +25417,13 @@
       "kind": "copy",
       "stats": "all",
       "from": "target",
-      "to": "user"
+      "to": "user",
+      "copiesVolatiles": [
+       "dragoncheer",
+       "focusenergy",
+       "gmaxchistrike",
+       "laserfocus"
+      ]
      }
     },
     "statusCategory": {

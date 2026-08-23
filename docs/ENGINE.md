@@ -86,6 +86,204 @@ _stamped 2026-08-23 02:18_
 
 <!-- /GENERATED -->
 
+## THE SEVEN ROSTER REDS WERE FOUR MECHANISMS, THE CONTROL CLICK WAS THE WITNESS IN THREE OF THEM, AND TWO OF THE THREE GROUPS I WAS HANDED REGROUPED. 2026-08-23.
+
+The brief grouped seven `FIRED-AND-BOARDS-DIFFER` rows (`data/roster.moves.json`, 5 of 500 tested;
+`data/roster.items.json`, 2 of 148 tested; both generated 2026-08-23T06:05-06:06Z against release
+`c36782953dee`) into three causes and said plainly that regrouping was a better answer than making the
+grouping true. **Two of the three regrouped.** All four mechanisms are real engine defects — **none of
+the seven was the instrument**, which is worth saying because the instruction was to suspect the
+instrument first and that instruction has been right five times in two days.
+
+### THE FOCUS-ENERGY GROUP WAS NOT ONE CAUSE. IT WAS TWO, AND ONE OF THEM IS NOT ABOUT FOCUS ENERGY
+
+Four rows — Dragon Cheer, Fake Out, Psych Up, Transform — all differed on `vol.focusenergy` and on
+nothing else, in both directions. The shared leaf is real and it is not a bug in the ruler: the
+roster's CONTROL CLICK is Focus Energy (ROADMAP #316), so every scenario in that file has a body
+carrying that volatile, and any defect that touches it shows up under whatever move happened to be
+staged beside it.
+
+**FAKE OUT WAS PRANKSTER (ROADMAP #9), AND FAKE OUT HAS NOTHING TO DO WITH IT.** The scenario's
+derived user is SABLEYE — Dark/Ghost, Prankster — and on the turn it clicked its own Focus Energy this
+engine emitted `|-immune|p1a: sableye` and refused it. `sim/battle-actions.ts:676-677` is the whole
+clause and the exemption is inside it:
+
+```
+} else if (this.battle.gen >= 7 && move.pranksterBoosted && pokemon.hasAbility('prankster') &&
+    !targets[i].isAlly(pokemon) && !this.dex.getImmunity('prankster', target)) {
+```
+
+`Pokemon#isAlly(p)` is true of the body itself, so a Prankster user's own self- or ally-aimed status
+move can never be refused here. `pranksterBlocked` was asked at **thirteen** call sites and exactly
+one — `tryHitRefusal` — carried the side clause **at the call** as
+`m._sf && t._sf !== m._sf && pranksterBlocked(...)`. That is CLAUDE.md's FACTS-ARE-GLOBAL breach
+exactly: one fact living at a caller, so the other twelve did not have it. The clause moved into the
+function; the call site is now a plain ask.
+
+*(The header of the Good as Gold probe in `tests/test-mechanics.js` asserted in prose that the clause
+was "gated on the target being a FOE **inside** that function". It was not. Corrected where it stands.)*
+
+**THE OTHER THREE ARE THE CRIT-STAGE VOLATILE FAMILY**, which Showdown carries as a hand-written array
+in two files (`data/moves.ts:14229`, `sim/pokemon.ts:1339`). `data/tags.json` now derives it instead:
+`critStageVolatile` matches a legal move whose applied volatile's condition declares
+`onModifyCritRatio`. **Membership printed before it was wired: exactly TWO** — `focusenergy` and
+`dragoncheer`. Laser Focus is a member by ratio and is `isNonstandard: 'Past'`; Gmax Chi Strike does
+not exist here. Three rules over that one set, each cited to its own line:
+
+| row | the authority | this engine, before |
+|---|---|---|
+| Dragon Cheer | `data/moves.ts:5984` / `:4069` — each condition's `onStart` returns false if the OTHER is present | both landed; a body could carry BOTH, which the authority never allows |
+| Psych Up | `data/moves.ts:14232-14239` — remove all four from the SOURCE, then copy the target's | copied the stat stages and nothing else |
+| Transform | `sim/pokemon.ts:1340-1347` — the identical remove-then-copy, gen >= 6 | copied the stat stages and nothing else |
+
+**The exclusion is read per condition, not assumed across the family**, and the difference is
+measurable rather than cautious: Laser Focus is a member and its `onStart` refuses nothing.
+
+### WILL WAS RIGHT ABOUT DRAGON CHEER, AND THE TWO-STAGE CASE IS THE RECIPIENT'S TYPE, NOT THE USER'S
+
+*"dragon cheer boosts crit ratio, and on dragonits it boosts it 2 stages i think."* **CONFIRMED**,
+`data/moves.ts:4081-4083`: `return critRatio + (this.effectState.hasDragonType ? 2 : 1);`, where
+`hasDragonType` is captured at `onStart` as `target.hasType("Dragon")` (:4079) — and `target` is the
+move's target, which is `adjacentAlly` (:4085). So it is the **ALLY WHO RECEIVES IT** that must be a
+Dragon, and the value is frozen at application so a later Tera into Dragon does not change it (the
+authority's own comment cites the mechanics-research thread).
+
+**The competing explanation offered to me — that `focusenergy` carries a magnitude a boolean
+comparator was coercing — is REFUTED.** `focusenergy`'s condition is a flat `critRatio + 2`
+(`data/moves.ts:5993-5995`), no state at all. Only `dragoncheer` carries state, `hasDragonType`, and
+`board_state.js` does not compare `vol.dragoncheer` in either engine. The both-directions pattern was
+two independent defects pointing opposite ways, not one coercion.
+
+### WILL WAS RIGHT ABOUT MATCHA GOTCHA, AND BIG ROOT IS A SECOND, DIFFERENT BUG ON THE SAME LINE
+
+*"matcha gatcha is heal on target 1, then heal on target 2, not one big lump healing i think."*
+**CONFIRMED.** `sim/battle.ts:2167-2170` sits INSIDE `spreadDamage`'s
+`for (const [i, target] of targetArray.entries())` loop, so the authority rounds once per body. That
+is ROADMAP #339 and this closes its **arithmetic** half.
+
+**And the brief's grouping of Big Root with it was right for the wrong reason.** Big Root's roster row
+is a SINGLE-target Bitter Blade, so the per-target loop cannot explain it. It is the order of
+operations, four cited steps where this engine had one expression:
+
+```
+sim/battle.ts:2168   amount = Math.round(targetDamage * drain[0] / drain[1])   -- per target
+sim/battle.ts:2265   if (damage && damage <= 1) damage = 1
+sim/battle.ts:2266   damage = this.trunc(damage)
+sim/battle.ts:2268   runEvent('TryHeal') -> this.modify at battle.ts:932
+                     = tr((tr(v * tr(mult*4096)) + 2047) / 4096);  Big Root's own
+                       chainModify([5324, 4096]) is data/items.ts:492
+```
+
+The line that stood here was `Math.round(dealt * fraction * mult)` — one rounding, over the SUM, with
+the multiplier folded inside it. **Both halves were wrong and both are on that one line, which is why
+they land together.** Measured on a staged board: Bitter Blade dealing 53 with a Big Root up healed
+**34** where the four steps give **35**; Matcha Gotcha into two bodies for 15 and 15 healed **15**
+where per-body rounding gives **16**. `md4096` is already this file's `modify` (WIRE 4) and is called
+rather than re-written.
+
+### PROTEAN IS NOT A MEGA DEFECT. IT NEVER FIRED ON A STATUS MOVE AT ALL
+
+ROADMAP #356 says *"Protean does not fire on a mega forme"*. Measured on a plain Greninja, one click
+each, before anything changed:
+
+| click | before | after |
+|---|---|---|
+| Water Shuriken (Water, damaging) | `Water/Dark -> Water` | unchanged |
+| Focus Energy (Normal, status) | `Water/Dark -> Water/Dark` | `-> Normal` |
+| Protect (Normal, status) | `Water/Dark -> Water/Dark` | `-> Normal` |
+| Taunt (Dark, status) | `Water/Dark -> Water/Dark` | `-> Dark` |
+
+The conversion lived inside the `kind === 'attack'` branch, so **no status move triggered it on any
+body**. The roster caught it on `greninjite` because that scenario clicks the control move — Focus
+Energy, Normal, Status — and Greninja-Mega is this format's only Protean carrier that is a mega.
+`typeBecomesMoveType` has exactly ONE member over the whole ability table (`protean`, 571 uses).
+**The row is mis-scoped and its proposed replacement text is in the report.**
+
+**WILL WAS RIGHT ABOUT ONCE-PER-SWITCH-IN AND THAT HALF WAS ALREADY CORRECT HERE.**
+`data/abilities.ts:3489` is `if (this.effectState.protean) return;`, set true at :3494; `abilityState`
+is rebuilt by `switchIn` (`sim/battle-actions.ts:142`), so the flag dies with the switch and not with
+the turn. Champions overrides neither `protean` nor `libero` — **0 matches** in
+`data/mods/champions/abilities.ts`. This engine already carried `oncePerSwitchIn` on the tag and
+`_proteanUsed` cleared by `switchOut`, and the probe asserts it: Focus Energy then Taunt leaves the
+body **Normal then Normal**, not Normal then Dark. `setAbility` ALSO rebuilds `abilityState`
+(`sim/pokemon.ts:1930`), so a body that megas AFTER converting gets a second conversion in the
+authority and does not here — counted at `MEDFAILS.proteanGuardsUnmodelled`, not silently absent.
+
+### AND MY PROBE WAS WRONG BEFORE THE ENGINE WAS, ON SCHEDULE
+
+Extracting Protean into `proteanConvert()` I passed it `moveFx(mvId)` — the secondary-effects table,
+which carries no type — where `effMoveType` reads `mv.t` off the `data/engine-data.js` move row. Every
+conversion silently became a no-op. **It was caught only because the DAMAGING arm regressed**: the
+staged board that had read `Water/Dark -> Water` read `Water/Dark -> Water/Dark` the moment the block
+became a call. A probe with only the new status arms in it would have gone from red to red and looked
+like the fix simply not working.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — they are probes now:**
+- ~~Fake Out / the Prankster refusal is side-blind~~ — landed (ROADMAP #9); census row
+  `ability/priorityMod — the Prankster refusal is a FOE clause`, red under `MEDI_PRANKSTER_SIDE_BLIND=1`.
+- ~~Dragon Cheer and Focus Energy do not refuse each other~~ — landed; `move/critStageVolatile`.
+- ~~Psych Up copies the stat stages and not the crit-stage volatiles~~ — landed; `move/statChangeInCode`.
+- ~~Transform copies the stat stages and not the crit-stage volatiles~~ — landed; `move/transformsIntoTarget`.
+  All three red under `MEDI_CRIT_VOLATILE_BLIND=1`.
+- ~~a spread drain heals once over the summed damage~~ — the ARITHMETIC half of ROADMAP #339 landed;
+  `move/drain`, red under `MEDI_DRAIN_LUMP_ROUND=1`.
+- ~~Big Root folds its multiplier inside the drain's rounding~~ — landed; `item/healMultBySource`,
+  same knob.
+- ~~Protean does not fire on a mega forme~~ — **rescoped and landed** as *does not fire on a STATUS
+  move*; `ability/typeBecomesMoveType`, red under `MEDI_PROTEAN_ATTACK_ONLY=1`.
+
+**Added, measured this pass and NOT fixed:**
+- **ROADMAP #339's NARRATION half is still open.** The authority emits one
+  `|-heal|...|[from] drain|[of] TARGET` per body, interleaved with each `-damage`; this engine still
+  writes a single lumped line with no `[of]`. Only the arithmetic is closed.
+- **Protean does not ask the authority's other guards** — `move.hasBounced`, `flags['futuremove']`,
+  `sourceEffect === 'snatch'`, `move.callsMove` — and does not re-arm on a mid-game mega
+  (`sim/pokemon.ts:1930`). Equally absent before this pass; now counted at
+  `MEDFAILS.proteanGuardsUnmodelled` rather than unstated.
+- **`tests/test-effective-identity.js` is RED and it is not from this pass.** Its raw-read ratchet
+  reads 1596 against a baseline of 1198, and the per-file delta list names **none** of
+  `medicham2-browser.js`, `tag_dex.js` or `test-mechanics.js` — it is 20 other files, `roster.js`
+  alone moving 247 -> 275. That is ROADMAP #176/#183's registered subject (a stale baseline), reported
+  rather than filed as new and **not** described as a known failure.
+- **`engine/status.js` prints a FEATURE SEMANTICS CHECK failure** on `data/policy-weights.json`
+  (fixture identity + damage table). Pre-existing, MEASURE's, unrelated to anything here.
+
+### OWED, NOT RUN
+
+**Light mode was called mid-pass, so no roster stage, differential or gate was re-run after any of the
+four fixes. THE SEVEN REDS ARE NOT CLAIMED CLEARED.** What IS measured is the census (634 -> 641
+probed, all live, 0 missing / 0 hollow / 0 threw, `directCall` unchanged at 1) and seven staged-board
+probes each shown red under its own named knob. Fake Out alone was re-run through the roster before
+light mode was called and read `FIRED-AND-BOARDS-MATCH`; the other six were not.
+
+```
+node engine/engine_release.js cut "ENGINE 5.90.0 - prankster side clause, crit-stage volatiles, drain rounding, protean on status"
+SHOWDOWN_PATH=... node tests/roster.js --stage moves  --release <that fresh id> --write
+SHOWDOWN_PATH=... node tests/roster.js --stage items  --release <that fresh id> --write
+SHOWDOWN_PATH=... node tests/roster.js --stage abilities --release <that fresh id> --write
+SHOWDOWN_PATH=... node engine/game_differential.js --release <that fresh id> --census data/gate-census.pin.json --team-store data/team-pool-frozen --state
+node tests/run-all.js
+tools\lownode.cmd engine\quarantine.js
+node engine/status.js
+node engine/status.js --write
+```
+
+`--release <a FRESH id>` and `--write` are both required and both have been forgotten today; a roster
+run without `--write` exits 0 having changed no artifact.
+
+**WHICH SCOREBOARD EACH FIX SHOULD MOVE, STATED BEFORE THE RUN.** The Prankster side clause should
+move the **pool** — `prankster` is 12,520 uses in `data/tags.json` and the format's Prankster carriers
+include Dark types, so a Prankster body refusing its own Protect or its own setup is a live-game
+event. The drain per-target rounding should move the **pool** — `matchagotcha` is 8,668 uses. Big Root
+(63 uses), Dragon Cheer (32), Psych Up (94) and Transform (119) should move the **lab** and leave the
+pool flat, and a flat pool reading on those four is the expected result rather than a disappointment.
+Protean is 571 uses and every one of its status clicks was wrong, so the pool may move; it is the one
+of the four I would not predict.
+
 ## THE ANNOUNCE-FAILURE CLASS HAS ONE RULE, IT IS `combineResults`, AND HALF OF THE CLASS WAS NEVER NARRATION. 2026-08-23.
 
 **Will: *"WE MUST ANNOUNCE FAILURES HOW HARD CAN THAT BE. IM TIRED OF THIS."*** The class had been

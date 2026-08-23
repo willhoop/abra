@@ -10,6 +10,144 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.90.0] — 2026-08-23
+
+### Fixed
+- **The Prankster type immunity was side-blind, so a Prankster body refused its OWN status moves
+  (ROADMAP #9).** `sim/battle-actions.ts:676-677` gates the refusal on `!targets[i].isAlly(pokemon)`,
+  and `Pokemon#isAlly` is true of the body itself. `pranksterBlocked` is asked at thirteen call sites
+  in `engine/medicham2-browser.js` and exactly one carried that clause **at the call**; the other
+  twelve refused a Prankster user's own self- and ally-aimed clicks. Measured before the fix: a
+  Sableye clicking its own Focus Energy produced `|-immune|p1a: sableye` and no volatile. The clause
+  now lives inside the function so every site inherits it, and a body whose side cannot be read is
+  counted at `MEDFAILS.pranksterSideUnknown` rather than guessed at.
+- **The crit-stage volatile family had none of its three rules.** `data/tags.json` gains
+  `critStageVolatile`, derived in `engine/tag_dex.js` from `condition.onModifyCritRatio` — membership
+  printed before wiring: exactly two, `focusenergy` and `dragoncheer`. Focus Energy and Dragon Cheer
+  now refuse each other (`data/moves.ts:5984` / `:4069`, read per condition rather than assumed across
+  the family), and Psych Up (`data/moves.ts:14232-14239`) and Transform (`sim/pokemon.ts:1340-1347`)
+  now clear the family from the copier and re-copy the source's, through one shared function.
+- **A drain healed once over the summed damage and folded Big Root inside that rounding — the
+  ARITHMETIC half of ROADMAP #339.** The authority rounds per target inside `spreadDamage`'s own loop
+  (`sim/battle.ts:2168`) and applies the `TryHeal` modifier to the already-rounded amount in fixed
+  point (`sim/battle.ts:2265-2268`, `:932`). Measured on staged boards: Bitter Blade for 53 with a Big
+  Root healed 34 against the authority's 35; Matcha Gotcha into two bodies for 15 and 15 healed 15
+  against 16. `md4096` — this engine's existing `modify` — is called rather than re-implemented.
+- **Protean never fired on a STATUS move, on any body (ROADMAP #356, RESCOPED).** The conversion sat
+  inside the `kind === 'attack'` branch; `data/abilities.ts:3487-3502` hangs it on `onPrepareHit`,
+  which `sim/battle-actions.ts:590-592` fires above the entire step list for every move that reached a
+  target. Measured on a plain Greninja before the fix: Water Shuriken converted, Focus Energy, Protect
+  and Taunt did not. **The register row's "does not fire on a mega forme" scope is wrong** — the roster
+  caught it on `greninjite` only because that scenario clicks Focus Energy and Greninja-Mega is the
+  format's only Protean-carrying mega.
+
+### Added
+- Seven census probes, each shown RED under its own named restore knob before being trusted:
+  `MEDI_PRANKSTER_SIDE_BLIND`, `MEDI_CRIT_VOLATILE_BLIND`, `MEDI_DRAIN_LUMP_ROUND`,
+  `MEDI_PROTEAN_ATTACK_ONLY`. `data/mechanics-census.json` **634 -> 641 probed, 641 live, 0 missing,
+  0 hollow, 0 threw**, `directCall` unchanged at 1.
+- `drainBoard(` declared in `tests/test-mechanics.js`'s `REALTURN` list with its reason, as that
+  file's own rule requires — the direct-call ratchet caught both ROADMAP #339 probes on their first run.
+
+### Notes
+- **THE SEVEN ROSTER REDS ARE NOT CLAIMED CLEARED.** Light mode was called mid-pass, so no roster
+  stage, whole-game differential or gate was re-run after the fixes. Fake Out alone was re-run before
+  that call and read `FIRED-AND-BOARDS-MATCH`. Everything else is on the OWED, NOT RUN list in
+  `docs/ENGINE.md` with its exact arguments.
+- **Two of the three groups in the brief regrouped, and saying so is the result.** Fake Out's
+  focus-energy diff was Prankster and had nothing to do with Focus Energy or with Fake Out; Big Root
+  and Matcha Gotcha are two different defects that happen to share one line of code. Neither
+  regrouping was available from the artifact's `diffs` field alone.
+- **Will's three domain inputs were derived rather than taken on trust, and all three were CONFIRMED**
+  with citations: Dragon Cheer's two stages are the RECIPIENT's Dragon typing frozen at `onStart`
+  (`data/moves.ts:4079-4083`, target `adjacentAlly` at :4085); Matcha Gotcha heals per target
+  (`sim/battle.ts:2167-2170`); Protean is once per switch-in (`data/abilities.ts:3489`, `abilityState`
+  rebuilt at `sim/battle-actions.ts:142`) — and that half was already correct in this engine.
+- **A competing explanation offered mid-pass was REFUTED**: `focusenergy` carries no magnitude for a
+  boolean comparator to coerce — its condition is a flat `critRatio + 2` (`data/moves.ts:5993-5995`).
+  The both-directions pattern was two independent defects, not one representation bug.
+- `tests/test-effective-identity.js` is RED (raw-read ratchet 1596 against a baseline of 1198). Its
+  per-file delta names none of the three files changed here; it is ROADMAP #176/#183's stale baseline
+  across 20 other files. Reported, not filed as new.
+
+---
+
+## [5.89.2] — 2026-08-23
+
+### Fixed
+- **THE RETRACTION IN 5.89.1 WAS ITSELF WRONG ABOUT THE MECHANISM, AND THAT IS THE THIRD LAYER.**
+  5.89.0 published `77 of 961 = 8.0%`. 5.89.1 retracted it, asserting the gate had printed the
+  **bottom-tie-first corner arm** (which does read 77) instead of the primary arm. **That mechanism is
+  refuted.** `engine/quarantine.js:1380` publishes `${undeclared} of ${games}`: the clause reads
+  `j.diverged` at the TOP LEVEL — which IS the middle arm, 82 — and subtracts the **5 declared**
+  divergences. `82 − 5 = 77`. It indexes no arm at all. That the bottom-tie-first arm also happens to
+  read 77 is a **coincidence**, and it is what made the wrong mechanism look proven.
+
+  Demonstrated by driving the shipping function rather than by reading it: perturbing either arm to
+  999 leaves the headline at 77; moving the top-level figure or the declared set moves it.
+
+  **So the three published figures are three different quantities, all correct, none interchangeable:**
+  - **82 of 961 = 8.5%** — raw divergences, primary (`middle`) arm.
+  - **77 of 961 = 8.0%** — *undeclared* divergences, the same arm, minus 5 declared (all five the
+    `Supreme Overlord fallenundefined` typo).
+  - **68 / 77 / 82** — the three arms' raw counts, of which the middle is the default.
+
+  5.89.0's number was therefore **not wrong**, and 5.89.1's retraction of it was **unnecessary**. Both
+  are left standing rather than deleted, because the sequence is the record.
+
+### Notes
+- **THE REAL DEFECT IS THE MISSING LABEL, AND IT IS WORSE THAN THE ONE RETRACTED.** Nothing states
+  which quantity the clause publishes. In August it published RAW; today it publishes UNDECLARED; the
+  headline changed meaning and kept its shape. **So the register's own trend line — 39.6% then, 8.0%
+  now — has been comparing two different measurements.** The two are additionally not comparable on
+  denominator (1,213 games then, 961 now), on release (`5a557b07821c` vs `c36782953dee`), or on sample
+  (the census SELECTS which games play, and the clause's own `baseline_comparable` reads `false`).
+  **No delta is claimed here.** The direction is believable; the subtraction is not defensible.
+- **A CORRECTION CAN BE WRONG TOO — three layers this session, each caught by somebody checking.**
+  The published figure was questioned, the retraction's mechanism was refuted by an agent driving the
+  function, and the refutation was verified at the line before this entry was written. That pattern is
+  already recorded in the start skill's failure shapes; this is a fresh instance and it cost nothing
+  because each layer was checked rather than relayed.
+- The 5.89.1 claim that the run measured **protocol only** (`state_mode: false`) stands and is
+  unaffected: no board-materiality claim is supported by this artifact.
+
+## [5.89.1] — 2026-08-23
+
+### Fixed
+- **RETRACTION — the whole-game divergence rate published in 5.89.0 named the WRONG ARM.** 5.89.0 and
+  its commit message both state **77 of 961 = 8.0%**. The artifact says:
+
+  ```
+  top-level diverged: 82 of 961
+    arm middle            82 of 961    <- the PRIMARY arm, real dice, the default
+    arm top-tie-first     68 of 961
+    arm bottom-tie-first  77 of 961    <- what was published
+  ```
+
+  **The correct figure is 82 of 961 = 8.5%** on the primary arm (the artifact's own computed rate is
+  `0.0834` over 959 usable). The band across arms is 68 / 77 / 82. **8.0% appears nowhere in the
+  artifact.** The retracted figure is left visible in 5.89.0 rather than overwritten, per the standing
+  rule that a prior conclusion is never silently rewritten.
+
+  The direction of the finding is unchanged — the rate fell sharply from the 39.6% the register has
+  carried for three sessions — but the published number was not one the artifact contains.
+
+### Notes
+- **THE ERROR ORIGINATED IN THE GATE, NOT IN THE SUMMARY.** `engine/status.js`'s whole-game clause
+  prints *"77 of 961 = 8.0% DIVERGE"*; the coordinator repeated the gate rather than reading the
+  artifact. So the gate has been under-reporting the divergence rate, and the figure reached a commit
+  message and a changelog entry before anybody opened `data/game-differential.json`. **The arms are not
+  interchangeable**: `middle` is real dice and is the default, and a corner must be asked for by id —
+  asking by omission is what produced 162 false accusations against the simulator when the roster did
+  the same thing. Filed for a register row.
+- **The run itself was correctly pinned** — release `c36782953dee`, `team_store_pinned_to`
+  `data	eam-pool-frozen`, pool digest `0d103fb9fa87`, census digest `8c778268919e` matching live. Only
+  the reported arm was wrong, not the measurement.
+- **The run was PROTOCOL-only** (`state_mode: false`, `end_state: null`), so **nothing in it measured
+  board-materiality.** Any board-material count attributed to this artifact is unsupported. Settling it
+  needs `game_differential.js --games 961 --end-state --release c36782953dee --team-store
+  data/team-pool-frozen --write`.
+
 ## [5.89.0] — 2026-08-23
 
 ### Added
@@ -68,7 +206,8 @@ silently rewritten; what changed and why is stated.
   check. Re-run pinned to `c36782953dee` with the frozen team pool: damage differential **56 of 6000**
   (up from a stale 5, because all 76 megas are now compared for the first time — the instrument
   working, not a regression), roster abilities **clean**, roster items **2**, roster moves **5**,
-  whole-game **77 of 961 = 8.0%**.
+  whole-game **77 of 961 = 8.0%**. **RETRACTED the same session — see 5.89.1 below. The primary arm
+  reads 82 of 961 = 8.5%; 77 is the bottom-tie-first corner, and `status.js` printed the corner.**
 - **The whole-game figure supersedes the 39.6% carried by the open register row**, which has been the
   quoted headline for three sessions. The row is not edited here; it is named so the correction is
   visible rather than silent.

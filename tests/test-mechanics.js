@@ -439,7 +439,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * so an action-reading probe is structurally blind to the defect. Its full reason is written at the
  * helper itself.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bMISSRATE\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\bMISSRATE\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -8211,6 +8211,348 @@ probe('ability', 'priorityMod', 'Prankster into a Dark type announces a BARE |-i
                  + ' ability ' + noPrank.ab };
 });
 
+/* THE PRANKSTER REFUSAL IS SIDE-BLIND, AND A PRANKSTER USER'S OWN DARK BODY WAS REFUSING ITS OWN
+ * CLICKS. 2026-08-23, ROADMAP #9.
+ *
+ * `sim/battle-actions.ts:676-677` is the whole clause and the ally half is IN it:
+ *     } else if (this.battle.gen >= 7 && move.pranksterBoosted && pokemon.hasAbility('prankster') &&
+ *         !targets[i].isAlly(pokemon) && !this.dex.getImmunity('prankster', target)) {
+ * `Pokemon#isAlly` is `this.side === pokemon.side || this.side.allySide === pokemon.side`, so it is
+ * TRUE for the user itself. A Prankster body's own self-aimed status move can therefore never be
+ * refused by this step, whatever its typing.
+ *
+ * `pranksterBlocked(attacker, target, moveId)` in medicham2 asked only "is the target Dark", at
+ * THIRTEEN call sites. Exactly one of them -- `tryHitRefusal`, line 10585 -- carried the side clause
+ * as `m._sf && t._sf !== m._sf && pranksterBlocked(...)`, which is the FACTS-ARE-GLOBAL breach
+ * CLAUDE.md names: one fact, one implementation, and here it lived at a call site so the other twelve
+ * did not have it. (The header of the Good as Gold probe above asserted in prose that the clause was
+ * "gated on the target being a FOE *inside* that function". It was not. That sentence is corrected
+ * where it stands.)
+ *
+ * FOUND BY THE ROSTER, AND NOT BY THE MOVE IT ACCUSED. `data/roster.moves.json` read Fake Out
+ * FIRED-AND-BOARDS-DIFFER on `p2a vol.focusenergy showdown 1 / ours 0` -- a leaf with nothing to do
+ * with Fake Out. The roster's CONTROL CLICK is Focus Energy (ROADMAP #316) and the scenario's derived
+ * user is SABLEYE, which is Dark/Ghost and Prankster: so on the turn it clicked its own Focus Energy
+ * this engine emitted `|-immune|p1a: sableye` and refused it. Measured on a staged board before a
+ * line of this changed.
+ *
+ * THREE ARMS, AND THE FOE ARM IS THE ONE THAT KEEPS THE FIX HONEST. A repair that simply deleted the
+ * refusal would pass both same-side arms; the foe arm must STILL be refused, and it is compared
+ * against the identical click from a body whose only difference is that it has no Prankster. */
+probe('ability', 'priorityMod',
+      'the Prankster refusal is a FOE clause — a Prankster body\'s own self- and ally-aimed status '
+      + 'moves land on a Dark body, and a foe-aimed one is still refused', () => {
+  /* Sableye IS Dark/Ghost and IS a legal Prankster carrier in this format, so the self arm needs no
+   * types written at all -- the body the roster derived is the body that broke. */
+  const self = (ab) => {
+    const B = board('sableye', 'torterra', 'clefable', 'milotic');
+    B.me.ability = ab;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'focusenergy', null, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return (B.me._vol && B.me._vol.focusenergy) ? 1 : 0;
+  };
+  const ally = (ab) => {
+    const B = board('sableye', 'torterra', 'clefable', 'milotic');
+    B.me.ability = ab; B.ally.types = ['Dark'];
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'dragoncheer', B.ally, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return (B.ally._vol && B.ally._vol.dragoncheer) ? 1 : 0;
+  };
+  const foe = (ab) => {
+    const B = board('sableye', 'torterra', 'clefable', 'milotic');
+    B.me.ability = ab; B.f1.types = ['Dark']; B.f1._lastMove = 'tackle';
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'taunt', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return (B.f1._vol && B.f1._vol.taunt) ? 1 : 0;
+  };
+  const P = { self: self('prankster'), ally: ally('prankster'), foe: foe('prankster') };
+  const N = { self: self('honeygather'), ally: ally('honeygather'), foe: foe('honeygather') };
+  return { works: P.self === 1 && P.ally === 1 && P.foe === 0
+                  && N.self === 1 && N.ally === 1 && N.foe === 1,
+           arms: { control: 'Prankster at a Dark FOE: taunt landed ' + P.foe
+                          + ' (no-Prankster control ' + N.foe + ')',
+                   test: 'Prankster at its OWN side: focusenergy on self ' + P.self
+                       + ', dragoncheer on a Dark ally ' + P.ally },
+           detail: 'Prankster  self ' + P.self + ' ally ' + P.ally + ' foe ' + P.foe
+                 + '   (must be 1 / 1 / 0);  no Prankster  self ' + N.self + ' ally ' + N.ally
+                 + ' foe ' + N.foe + '   (must be 1 / 1 / 1)' };
+});
+
+/* ---- THE CRIT-STAGE VOLATILE FAMILY, AND IT IS THREE RULES OVER ONE DERIVED SET. 2026-08-23. -----
+ *
+ * `data/tags.json` now carries `critStageVolatile`, derived from the only thing that makes a volatile
+ * a member -- its condition declares `onModifyCritRatio`. Membership in this regulation, printed
+ * before any of this was wired: exactly TWO, `focusenergy` and `dragoncheer`. (Laser Focus is a
+ * member by ratio and is `isNonstandard: 'Past'`; Gmax Chi Strike does not exist here.)
+ *
+ * Showdown writes the same set out by hand and each writing is one of the probes below:
+ *   data/moves.ts:5984   focusenergy.condition.onStart  if (target.volatiles['dragoncheer']) return false;
+ *   data/moves.ts:4069   dragoncheer.condition.onStart  if (target.volatiles['focusenergy']) return false;
+ *   data/moves.ts:14229  psychup.onHit                  remove all four from the source, then copy the target's
+ *   sim/pokemon.ts:1339  transformInto                  the identical remove-then-copy, gen >= 6
+ *
+ * FOUND BY THE ROSTER AS THREE UNRELATED MOVES DIFFERING ON ONE LEAF. `data/roster.moves.json` read
+ * Dragon Cheer, Psych Up and Transform all FIRED-AND-BOARDS-DIFFER on `vol.focusenergy` and on
+ * nothing else, in BOTH directions -- because the roster's control click is Focus Energy, so every
+ * scenario in that file has a body carrying that volatile. */
+probe('move', 'critStageVolatile',
+      'Focus Energy and Dragon Cheer REFUSE each other - the second one to arrive does not land', () => {
+  /* Both bodies are plain (`ability: none` from `bare`), so nothing but the volatile already standing
+   * can decide the outcome, and the control arm is the SAME script with the first click removed. */
+  const run = (first, second) => {
+    const B = board('raichu', 'incineroar', 'garchomp', 'snorlax');
+    B.me.moves = ['dragoncheer', 'focusenergy']; B.ally.moves = ['focusenergy', 'dragoncheer'];
+    const act = (who, mv, tgt) => (mv ? M.playerAction(who, mv, tgt, B.S.field) : { kind: 'pass' });
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, act(B.me, first === 'dragoncheer' ? 'dragoncheer' : null, B.ally)],
+               [B.ally, act(B.ally, first === 'focusenergy' ? 'focusenergy' : null, null)]]),
+      PASS2(B.f1, B.f2));
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, act(B.me, second === 'dragoncheer' ? 'dragoncheer' : null, B.ally)],
+               [B.ally, act(B.ally, second === 'focusenergy' ? 'focusenergy' : null, null)]]),
+      PASS2(B.f1, B.f2));
+    const v = B.ally._vol || {};
+    return (v.dragoncheer ? 1 : 0) * 2 + (v.focusenergy ? 1 : 0);   // 2 = cheer, 1 = focus, 3 = BOTH
+  };
+  /* The ally is the body every arm reads: Dragon Cheer is `adjacentAlly`, so it lands on Torterra,
+   * and Incineroar is also the body clicking Focus Energy on itself. */
+  const cheerThenFocus = run('dragoncheer', 'focusenergy');   // must stay 2 - the Focus Energy fails
+  const focusThenCheer = run('focusenergy', 'dragoncheer');   // must stay 1 - the Dragon Cheer fails
+  const focusAlone = run(null, 'focusenergy');                // 1 - the control: nothing in the way
+  const cheerAlone = run(null, 'dragoncheer');                // 2 - the same, other member
+  return { works: cheerThenFocus === 2 && focusThenCheer === 1 && focusAlone === 1 && cheerAlone === 2,
+           arms: { control: 'nothing in the way: focus alone ' + focusAlone + ', cheer alone ' + cheerAlone,
+                   test: 'one already standing: cheer-then-focus ' + cheerThenFocus
+                       + ', focus-then-cheer ' + focusThenCheer },
+           detail: '2 = dragoncheer only, 1 = focusenergy only, 3 = BOTH (which the authority never '
+                 + 'allows).  cheer then focus ' + cheerThenFocus + ' (must be 2);  focus then cheer '
+                 + focusThenCheer + ' (must be 1);  controls: focus alone ' + focusAlone
+                 + ' (must be 1), cheer alone ' + cheerAlone + ' (must be 2)' };
+});
+
+probe('move', 'statChangeInCode',
+      'Psych Up copies the crit-stage volatiles as well as the stages, and CLEARS its own when the '
+      + 'target has none', () => {
+  /* `copiesVolatiles` is derived onto the copy op from psychup's own handler array; this reads the
+   * BOARD rather than the tag, so a tag that lists them and an engine that ignores it still fails. */
+  const run = (userFirst, targetFirst) => {
+    const B = board('raichu', 'incineroar', 'garchomp', 'snorlax');
+    B.me.moves = ['psychup', 'focusenergy']; B.f1.moves = ['focusenergy'];
+    const act = (who, on) => (on ? M.playerAction(who, 'focusenergy', null, B.S.field) : { kind: 'pass' });
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, act(B.me, userFirst)], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, act(B.f1, targetFirst)], [B.f2, { kind: 'pass' }]]));
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'psychup', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return (B.me._vol && B.me._vol.focusenergy) ? 1 : 0;
+  };
+  const gains = run(false, true);    // target has it, user does not -> user must GAIN it
+  const loses = run(true, false);    // user has it, target does not -> user must LOSE it
+  const keeps = run(true, true);     // both have it -> user still has it
+  const neither = run(false, false); // neither -> user still has none
+  return { works: gains === 1 && loses === 0 && keeps === 1 && neither === 0,
+           arms: { control: 'no copy to make: neither side has it -> ' + neither
+                          + ', both sides have it -> ' + keeps,
+                   test: 'the copy itself: target only -> user ' + gains + ', user only -> user ' + loses },
+           detail: 'user focusenergy after Psych Up.  target only ' + gains + ' (must be 1);  user only '
+                 + loses + ' (must be 0 - the authority removes all four before copying);  both '
+                 + keeps + ' (must be 1);  neither ' + neither + ' (must be 0)' };
+});
+
+probe('move', 'transformsIntoTarget',
+      'Transform copies the target crit-stage volatiles, and clears the user own when it has none', () => {
+  const run = (userFirst, targetFirst) => {
+    const B = board('raichu', 'incineroar', 'garchomp', 'snorlax');
+    B.me.moves = ['transform', 'focusenergy']; B.f1.moves = ['focusenergy'];
+    const act = (who, on) => (on ? M.playerAction(who, 'focusenergy', null, B.S.field) : { kind: 'pass' });
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, act(B.me, userFirst)], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, act(B.f1, targetFirst)], [B.f2, { kind: 'pass' }]]));
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'transform', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { fe: (B.me._vol && B.me._vol.focusenergy) ? 1 : 0, name: B.me.name };
+  };
+  const gains = run(false, true), loses = run(true, false), neither = run(false, false);
+  return { works: gains.fe === 1 && loses.fe === 0 && neither.fe === 0
+                  && gains.name === loses.name && gains.name !== 'raichu',
+           arms: { control: 'the copy happened with nothing to copy: neither side has it -> '
+                          + neither.fe + ', user only -> ' + loses.fe,
+                   test: 'the target has it -> user ' + gains.fe },
+           detail: 'user focusenergy after Transform into ' + gains.name + '.  target only ' + gains.fe
+                 + ' (must be 1);  user only ' + loses.fe + ' (must be 0 - transformInto removes the '
+                 + 'family before copying);  neither ' + neither.fe + ' (must be 0)' };
+});
+
+/* ---- THE DRAIN HEAL, AND IT IS FOUR AUTHORITY STEPS WHERE THIS ENGINE HAD ONE. ROADMAP #339. -----
+ *
+ * The line these two probes replaced was `Math.round(dealt * fraction * mult)`: ONE rounding, over
+ * the SUM across every target, with Big Root's multiplier folded inside it. The authority:
+ *   sim/battle.ts:2168   `Math.round(targetDamage * drain[0] / drain[1])` INSIDE spreadDamage's
+ *                        `for (const [i, target] of targetArray.entries())` loop -- once PER BODY
+ *   sim/battle.ts:2265   `if (damage && damage <= 1) damage = 1;`
+ *   sim/battle.ts:2266   `damage = this.trunc(damage);`
+ *   sim/battle.ts:2268   `runEvent('TryHeal')`, applied by `this.modify` at battle.ts:932 as
+ *                        `tr((tr(v * tr(mult*4096)) + 2047) / 4096)`; Big Root's own
+ *                        `chainModify([5324, 4096])` is data/items.ts:492.
+ *
+ * THE EXPECTATION IS COMPUTED HERE FROM THE CITED STEPS, NOT READ OFF THE ENGINE. That is deliberate
+ * and it is the only shape that can fail: a probe that asks the engine what it healed and then asks
+ * the engine what it should have healed is asking nothing. `sdHeal` below is the four steps written
+ * out; the DAMAGE it is applied to is measured off the board, so nothing about the roll is assumed. */
+const sdTrunc = (n) => Math.trunc(n) || 0;
+/* Showdown's `modify` (sim/battle.ts:2329-2340), written out ON PURPOSE rather than imported from
+ * medicham2's `md4096`: importing the engine's own arithmetic would make the assertion circular. */
+const sdModify = (v, mult) => sdTrunc((sdTrunc(v * sdTrunc(mult * 4096)) + 2047) / 4096);
+const sdHeal = (targetDamage, fraction, mult) => {
+  let a = Math.round(targetDamage * fraction);
+  if (a && a <= 1) a = 1;
+  a = sdTrunc(a);
+  return mult === 1 ? a : sdModify(a, mult);
+};
+/* One staged board for both probes: a chipped Kangaskhan with an unfaintable pair in front of it, so
+ * the drain can never be clamped at full HP and a KO can never clamp the damage. */
+const drainBoard = (mv, item, foeA, foeB) => {
+  const B = board('kangaskhan', 'torterra', foeA, foeB);
+  B.me.moves = [mv]; B.me.item = item || '';
+  unfaintable(B.f1); unfaintable(B.f2);
+  B.me.st = Object.assign({}, B.me.st, { hp: B.me.st.hp * 8 });
+  B.me.curHP = Math.floor(B.me.st.hp / 2);
+  const pre = { me: B.me.curHP, f1: B.f1.curHP, f2: B.f2.curHP };
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  return { d1: pre.f1 - B.f1.curHP, d2: pre.f2 - B.f2.curHP, gain: B.me.curHP - pre.me };
+};
+
+probe('move', 'drain',
+      'a SPREAD drain rounds once per body, not once over the summed damage', () => {
+  /* Raichu and Kangaskhan both take an ODD number off this Matcha Gotcha, which is the only case in
+   * which the two arithmetics differ at all -- 25.0% of two-target spread drains. Both damages are
+   * asserted odd, so if a future damage change made them even the probe reports itself vacuous
+   * instead of passing for the wrong reason. */
+  const spread = drainBoard('matchagotcha', '', 'raichu', 'kangaskhan');
+  const perBody = sdHeal(spread.d1, 0.5, 1) + sdHeal(spread.d2, 0.5, 1);
+  const lumped = sdHeal(spread.d1 + spread.d2, 0.5, 1);
+  /* THE CONTROL IS A SINGLE-TARGET DRAIN, where one round and one lump are the same number by
+   * construction -- so it proves the fix did not simply add a point to every drain in the game. */
+  const single = drainBoard('bitterblade', '', 'clefable', 'milotic');
+  const singleExp = sdHeal(single.d1, 0.5, 1);
+  const staged = (spread.d1 % 2 === 1) && (spread.d2 % 2 === 1) && perBody !== lumped;
+  return { works: staged && spread.gain === perBody && single.gain === singleExp,
+           arms: { control: 'single target, ' + single.d1 + ' damage -> healed ' + single.gain
+                          + ' (authority ' + singleExp + ')',
+                   test: 'two targets, ' + spread.d1 + ' + ' + spread.d2 + ' damage -> healed '
+                       + spread.gain + ' (authority ' + perBody + ', lumped would be ' + lumped + ')' },
+           detail: (staged ? '' : 'NOT STAGED — the two damages are ' + spread.d1 + ' and ' + spread.d2
+                    + ', and per-body and lumped agree at ' + perBody + ', so this arm cannot fail. ')
+                 + 'Matcha Gotcha into Raichu + Kangaskhan: ' + spread.d1 + ' and ' + spread.d2
+                 + ' damage, healed ' + spread.gain + '; per-body ' + perBody + ', lumped ' + lumped
+                 + '. Control Bitter Blade ' + single.d1 + ' damage, healed ' + single.gain
+                 + ', authority ' + singleExp };
+});
+
+probe('item', 'healMultBySource',
+      'Big Root multiplies the ALREADY-ROUNDED drain, in Showdown fixed point, not the raw fraction', () => {
+  /* The same click twice, the item the only difference. `healMultBySource.mult` is 5324/4096 exactly,
+   * so `sdModify` recovers Showdown's integer modifier without a float creeping in. */
+  const root = drainBoard('bitterblade', 'bigroot', 'clefable', 'milotic');
+  const bare_ = drainBoard('bitterblade', '', 'clefable', 'milotic');
+  const MULT = 5324 / 4096;
+  const rootExp = sdHeal(root.d1, 0.5, MULT), bareExp = sdHeal(bare_.d1, 0.5, 1);
+  /* The old expression, kept as the thing that must NOT be produced: fold the multiplier in and round
+   * once. It is 34 where the authority is 35 on this board, and an engine still doing it passes every
+   * "did Big Root heal more" test ever written. */
+  const folded = Math.round(root.d1 * 0.5 * MULT);
+  return { works: root.gain === rootExp && bare_.gain === bareExp && root.d1 === bare_.d1
+                  && rootExp !== folded,
+           arms: { control: 'no Big Root: ' + bare_.d1 + ' damage -> healed ' + bare_.gain
+                          + ' (authority ' + bareExp + ')',
+                   test: 'Big Root: ' + root.d1 + ' damage -> healed ' + root.gain
+                        + ' (authority ' + rootExp + ')' },
+           detail: 'Bitter Blade, identical damage both arms (' + root.d1 + ' vs ' + bare_.d1
+                 + ').  no item healed ' + bare_.gain + ' (must be ' + bareExp + ');  Big Root healed '
+                 + root.gain + ' (must be ' + rootExp + ' — round first, then modify in 4096ths). '
+                 + 'Folding the multiplier inside the rounding gives ' + folded
+                 + ', which is what this engine did and is the arm that must not pass' };
+});
+
+/* ---- PROTEAN FIRES ON A STATUS MOVE, AND FOR EIGHT MONTHS IT DID NOT. ROADMAP #356, RESCOPED. ----
+ *
+ * The register row said "Protean does not fire on a MEGA FORME". Measured on a plain Greninja, one
+ * click each, before anything changed:
+ *     Water Shuriken (Water, damaging)   Water/Dark -> Water        fired
+ *     Focus Energy   (Normal, status)    Water/Dark -> Water/Dark   DID NOT
+ *     Protect        (Normal, status)    Water/Dark -> Water/Dark   DID NOT
+ *     Taunt          (Dark,   status)    Water/Dark -> Water/Dark   DID NOT
+ * The conversion sat inside the `kind === 'attack'` branch, so no STATUS move triggered it on ANY
+ * body. The mega is incidental: `data/roster.items.json` caught it on `greninjite` because the
+ * roster's mega-stone scenario clicks the control move -- Focus Energy, Normal, Status -- and
+ * Greninja-Mega is this format's only Protean carrier that is a mega. `typeBecomesMoveType` has
+ * exactly ONE member over the whole ability table (protean, 571 uses), printed before this was wired.
+ *
+ * AUTHORITY: `data/abilities.ts:3487-3502`, on `onPrepareHit`, which `sim/battle-actions.ts:590-592`
+ * fires inside `trySpreadMoveHit` above the entire step list for every move that reached a target.
+ * Champions overrides neither protean nor libero (0 matches in data/mods/champions/abilities.ts).
+ *
+ * ONCE PER SWITCH-IN IS ITS OWN ARM, because it is the half that decides whether the ability is worth
+ * anything: `if (this.effectState.protean) return;` at :3489, and `abilityState` is rebuilt by
+ * `switchIn` (sim/battle-actions.ts:142), not by the turn. An engine that converted on EVERY click
+ * would pass a probe that only checked the first one. */
+probe('ability', 'typeBecomesMoveType',
+      'Protean converts on a STATUS move, not only on a damaging one - and still only once per '
+      + 'switch-in', () => {
+  /* Greninja is Water/Dark and is the format's Protean carrier, so nothing has to be written onto the
+   * body: the types under test are the ones the species actually has. */
+  const clicks = (ab, seq) => {
+    const B = board('greninja', 'torterra', 'clefable', 'milotic');
+    B.me.moves = seq.map(x => x[0]); B.me.ability = ab;
+    unfaintable(B.f1);
+    const out = [];
+    for (const [mv, aimAtFoe] of seq) {
+      M.battleTurn(B.S, rng5,
+        new Map([[B.me, M.playerAction(B.me, mv, aimAtFoe ? B.f1 : null, B.S.field)],
+                 [B.ally, { kind: 'pass' }]]),
+        PASS2(B.f1, B.f2));
+      /* SORTED, like board_state.js does it: a pure ordering difference on a dual-typed body is
+       * not a rule disagreement, and asserting the raw order pins whatever this engine happens to
+       * emit rather than what the body IS. */
+      out.push((B.me.types || []).map(t => String(t).toLowerCase()).sort().join('/'));
+    }
+    return out;
+  };
+  const P = {
+    focus: clicks('protean', [['focusenergy', false]])[0],
+    taunt: clicks('protean', [['taunt', true]])[0],
+    shuriken: clicks('protean', [['watershuriken', true]])[0],
+    twice: clicks('protean', [['focusenergy', false], ['taunt', true]]),
+  };
+  const N = {
+    focus: clicks('torrent', [['focusenergy', false]])[0],
+    taunt: clicks('torrent', [['taunt', true]])[0],
+    shuriken: clicks('torrent', [['watershuriken', true]])[0],
+  };
+  const BASE = 'dark/water';
+  return { works: P.focus === 'normal' && P.taunt === 'dark' && P.shuriken === 'water'
+                  && P.twice[0] === 'normal' && P.twice[1] === 'normal'
+                  && N.focus === BASE && N.taunt === BASE && N.shuriken === BASE,
+           arms: { control: 'the same three clicks with Torrent instead: ' + N.focus + ' / ' + N.taunt
+                          + ' / ' + N.shuriken,
+                   test: 'with Protean: ' + P.focus + ' / ' + P.taunt + ' / ' + P.shuriken },
+           detail: 'Greninja, Water/Dark.  Focus Energy (Normal, status) -> ' + P.focus
+                 + ' (must be normal);  Taunt (Dark, status) -> ' + P.taunt + ' (must be dark);  '
+                 + 'Water Shuriken (Water, damaging) -> ' + P.shuriken
+                 + ' (must be water - the half that already worked and must not regress).  '
+                 + 'ONCE PER SWITCH-IN: Focus Energy then Taunt -> ' + P.twice.join(' then ')
+                 + ' (must be normal then normal - the second click must NOT convert).  '
+                 + 'Control, Torrent: ' + N.focus + ' / ' + N.taunt + ' / ' + N.shuriken
+                 + ' (all must be ' + BASE + ')' };
+});
+
 probe('move', 'inflictsToxic', 'Toxic damage grows each turn', () => {
   /* BADLY POISONED IS NOT POISONED. The existing inflictsPoison probe only asks whether the status
    * landed; the whole point of Toxic is that the chip ESCALATES, and an engine that treats it as
@@ -11912,6 +12254,14 @@ probe('ability', 'writesAccuracy', 'No Guard makes an 80% move land on a losing 
  * regression check on THIS seed rather than a claim about randomness; +/- 6 points on 300 games is
  * over two standard deviations at p = 0.4 and a stage table that priced +2 as a stat boost (5/3
  * instead of 3/5 -> 100 x 0.6 the wrong way, or 2/1) would fail it immediately. */
+/* `drainBoard(` is DECLARED IN REALTURN at the top of this file, deliberately and with its reason,
+ * exactly as the paragraph up there requires -- and the ratchet caught both ROADMAP #339 probes as
+ * direct calls on their first run, which is the guard working. It stages a real doubles board through
+ * `board()` -> `battleInit`, spends a real turn through `battleTurn`, and reads the damage EACH foe
+ * took and the HP the user gained. It has to be a real turn: the whole defect is that the drain
+ * payment sits at the end of a hit loop and could not see how the damage was split across bodies, so
+ * a direct call to `dmgRange` -- which is handed one attacker and one defender -- is structurally
+ * blind to it. */
 /* `MISSRATE(` is DECLARED IN REALTURN at the top of this file, deliberately and with its reason,
  * exactly as `hitStream(`, `procStages(` and the rest are. It is a loop over `hitOnRoll`, which is
  * already declared there and which spends a real `battleTurn` on every iteration — so a probe that

@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-23T05:59:54.332Z",
+  "generated": "2026-08-23T07:25:10.536Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 634,
-  "live": 634,
+  "probed": 641,
+  "live": 641,
   "missing": 0,
-  "armed": 634,
+  "armed": 641,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -2342,6 +2342,76 @@
       "directCall": false
     },
     {
+      "kind": "ability",
+      "tag": "priorityMod",
+      "label": "the Prankster refusal is a FOE clause — a Prankster body's own self- and ally-aimed status moves land on a Dark body, and a foe-aimed one is still refused",
+      "live": true,
+      "detail": "Prankster  self 1 ally 1 foe 0   (must be 1 / 1 / 0);  no Prankster  self 1 ally 1 foe 1   (must be 1 / 1 / 1)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "critStageVolatile",
+      "label": "Focus Energy and Dragon Cheer REFUSE each other - the second one to arrive does not land",
+      "live": true,
+      "detail": "2 = dragoncheer only, 1 = focusenergy only, 3 = BOTH (which the authority never allows).  cheer then focus 2 (must be 2);  focus then cheer 1 (must be 1);  controls: focus alone 1 (must be 1), cheer alone 2 (must be 2)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCode",
+      "label": "Psych Up copies the crit-stage volatiles as well as the stages, and CLEARS its own when the target has none",
+      "live": true,
+      "detail": "user focusenergy after Psych Up.  target only 1 (must be 1);  user only 0 (must be 0 - the authority removes all four before copying);  both 1 (must be 1);  neither 0 (must be 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "transformsIntoTarget",
+      "label": "Transform copies the target crit-stage volatiles, and clears the user own when it has none",
+      "live": true,
+      "detail": "user focusenergy after Transform into garchomp.  target only 1 (must be 1);  user only 0 (must be 0 - transformInto removes the family before copying);  neither 0 (must be 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "drain",
+      "label": "a SPREAD drain rounds once per body, not once over the summed damage",
+      "live": true,
+      "detail": "Matcha Gotcha into Raichu + Kangaskhan: 15 and 15 damage, healed 16; per-body 16, lumped 15. Control Bitter Blade 53 damage, healed 27, authority 27",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "healMultBySource",
+      "label": "Big Root multiplies the ALREADY-ROUNDED drain, in Showdown fixed point, not the raw fraction",
+      "live": true,
+      "detail": "Bitter Blade, identical damage both arms (53 vs 53).  no item healed 27 (must be 27);  Big Root healed 35 (must be 35 — round first, then modify in 4096ths). Folding the multiplier inside the rounding gives 34, which is what this engine did and is the arm that must not pass",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "typeBecomesMoveType",
+      "label": "Protean converts on a STATUS move, not only on a damaging one - and still only once per switch-in",
+      "live": true,
+      "detail": "Greninja, Water/Dark.  Focus Energy (Normal, status) -> normal (must be normal);  Taunt (Dark, status) -> dark (must be dark);  Water Shuriken (Water, damaging) -> water (must be water - the half that already worked and must not regress).  ONCE PER SWITCH-IN: Focus Energy then Taunt -> normal then normal (must be normal then normal - the second click must NOT convert).  Control, Torrent: dark/water / dark/water / dark/water (all must be dark/water)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "move",
       "tag": "inflictsToxic",
       "label": "Toxic damage grows each turn",
@@ -3206,7 +3276,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.8% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

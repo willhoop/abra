@@ -1180,6 +1180,25 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   layerSpendNoStack  Spit Up or Swallow clicked with nothing stored, refused. Before this wire
    *                      that click reported SUCCESS and dealt nothing. */
   layerAdded: 0, layerBoostBooked: 0, layerClickAtCap: 0, layerReleased: 0, layerSpendNoStack: 0,
+  /* 2026-08-23 -- THE CRIT-STAGE FAMILY (`critStageVolatile`, derived: focusenergy + dragoncheer).
+   *   critVolCopied           a Psych Up or a Transform moved the family from one body to another.
+   *   critVolOverlapRefused   the second member of the family was refused because the first was up --
+   *                           each condition's own `onStart` (data/moves.ts:5984 / :4069).
+   *   critVolRestartRefused   the SAME member re-clicked onto a body that already has it; no
+   *                           `onRestart` exists on either condition, so addVolatile returns false. */
+  critVolCopied: 0, critVolOverlapRefused: 0, critVolRestartRefused: 0,
+  /* ROADMAP #339 -- one per BODY a drain heal was computed for, which is the authority's own shape
+     (`sim/battle.ts:2168` sits inside spreadDamage's per-target loop). A two-target Matcha Gotcha
+     bumps this twice; the engine used to round once over the sum and this counter could not exist. */
+  drainRoundedPerTarget: 0,
+  /* ROADMAP #356 (RESCOPED) -- Protean's conversion, split by the door it came through.
+       proteanConverted        every conversion, both callers.
+       proteanOnStatusMove     the half that did not exist before 2026-08-23: a STATUS click converted
+                               the user. A zero after real games with a Protean body in them means the
+                               above-dispatch call is not being reached.
+       proteanSkippedNoTarget  a status click by a Protean body that reached NOBODY, so the authority
+                               returns from useMoveInner before PrepareHit and nothing converts. */
+  proteanConverted: 0, proteanOnStatusMove: 0, proteanSkippedNoTarget: 0,
   /* WIRE 143 -- an action REWRITTEN at execution time by an Encore that landed mid-turn (Showdown's
    * `onOverrideAction`). This is the half `sealsMoves` never had: the menu filter in chooseAction and
    * the WIRE 24 rewrite in mk() both answer at SELECTION, and a mid-turn Encore is written after both
@@ -1402,6 +1421,47 @@ const MEDFAILS = { encoreAction: 0,
      `onDragOut` refusal used to leave behind, which the authority holds as `true`. Separate from
      dragAbilityFirstRestored so a red arm names WHICH of the two defects it is about. */
   dragRefusalFailsRestored: 0,
+  /* ROADMAP #9 -- set for the whole run when MEDI_PRANKSTER_SIDE_BLIND=1 puts the side-blind Prankster
+     refusal back on purpose, so a deliberate restore arm and a broken engine can never be read as the
+     same thing. Same shape as dragRefusalFailsRestored. */
+  pranksterSideBlindRestored: 0,
+  /* ROADMAP #9 -- a Prankster refusal asked about two bodies where at least one carries no `_sf`, so
+     the side could not be read and the historic side-blind answer was kept. Never expected from the
+     battle loop, where every body on the field has one; non-zero means an external caller is asking
+     with loose bodies and is getting an answer this engine cannot actually justify. */
+  pranksterSideUnknown: 0, pranksterSideUnknownFirst: '',
+  /* 2026-08-23 -- the `critStageVolatile` table could not be read off the artifact, so the family is
+     EMPTY and the overlap refusal and both copy sites silently do nothing. Never expected: the tag is
+     derived for every legal move that applies a crit-stage volatile. */
+  critVolTableFailed: 0, critVolTableFailedFirst: '',
+  /* 2026-08-23 -- bumped whenever MEDI_CRIT_VOLATILE_BLIND=1 puts the whole crit-stage family back to
+     unwired on purpose, so a deliberate restore arm and a broken table can never be read as the same
+     thing. Same shape as pranksterSideBlindRestored. */
+  critVolatileBlindRestored: 0,
+  /* ROADMAP #339 -- set whenever MEDI_DRAIN_LUMP_ROUND=1 puts the old single-rounding drain back on
+     purpose, so a deliberate restore arm and a broken engine can never be read as the same thing. */
+  drainLumpRoundRestored: 0,
+  /* ROADMAP #339 -- a drain heal reached the payment step with `dealt > 0` and an EMPTY per-target
+     list, so the sum was rounded once as a fallback. Never expected: every damaging row pushes its
+     own number beside `dealt`. Non-zero means a damage path was added that fills one and not the
+     other, and the fallback is a perfectly plausible heal that is short by up to one per target. */
+  drainNoPerTargetRows: 0, drainNoPerTargetRowsFirst: '',
+  /* ROADMAP #356 (RESCOPED) -- one per CONVERSION made without asking the four `onPrepareHit` guards
+     Protean declares (`move.hasBounced`, `move.flags['futuremove']`, `sourceEffect === 'snatch'`,
+     `move.callsMove`, data/abilities.ts:3490); the `setAbility` re-arm a mid-game mega gets
+     (sim/pokemon.ts:1930) is unmodelled on the same ticket. It equals MEDSEEN.proteanConverted today
+     BY CONSTRUCTION and is a separate number so that the day a guard is wired the two part and the
+     remaining gap is readable. All of it was equally absent before the status door was opened, so
+     this counts a KNOWN shortfall and never a regression. */
+  proteanGuardsUnmodelled: 0,
+  /* ROADMAP #356 (RESCOPED) -- a Protean body clicked a move with no row in `data/engine-data.js`, so
+     its type could not be read and nothing converted. Never expected for a legal click; a silent
+     `return false` here is indistinguishable from the ability being unwired, which is exactly the
+     state this row was filed about. */
+  proteanNoMoveRow: 0, proteanNoMoveRowFirst: '',
+  /* ROADMAP #356 (RESCOPED) -- set whenever MEDI_PROTEAN_ATTACK_ONLY=1 shuts the status door on
+     purpose, so a deliberate restore arm and a broken engine can never be read as the same thing. */
+  proteanAttackOnlyRestored: 0,
   /* ROADMAP #304 -- a damaging hit whose sixteen-entry band did NOT arrive, so the loop fell back to
    * the old uniform draw over the span. Never expected: the battle loop asks for `rolls` on every hit
    * context. Non-zero means dmgRange grew a return path that does not fill the out-parameter, and the
@@ -3155,6 +3215,125 @@ function layeredVolatiles(){
     if(!MEDFAILS.layerTableFailedFirst) MEDFAILS.layerTableFailedFirst=String((e&&e.message)||e);
   }
   return _layTab;
+}
+/* 2026-08-23 -- THE CRIT-STAGE VOLATILE FAMILY. ONE DERIVED SET, THREE CONSUMERS.
+ *
+ * `data/tags.json` carries `critStageVolatile` on every legal move whose applied volatile raises the
+ * critical-hit ratio -- derived in engine/tag_dex.js from `condition.onModifyCritRatio`, never from a
+ * list of names. Membership in this regulation, printed by `tag_dex --rules` before a line of this
+ * existed: exactly TWO, `focusenergy` and `dragoncheer`.
+ *
+ * SHOWDOWN CARRIES THE SAME SET AS A HAND-WRITTEN ARRAY IN THREE SEPARATE FILES AND SO WOULD A
+ * SECOND COPY HERE. The table is built the same way `layeredVolatiles()` and `durationVolatiles()`
+ * are built -- read once off the artifact, keyed by the VOLATILE, because every consumer knows the
+ * volatile's name and none of them knows which move applied it. */
+let _critVolTab=null;
+function critStageVolatiles(){
+  if(_critVolTab) return _critVolTab;
+  _critVolTab=new Map();
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','critStageVolatile'):[])){
+      const p=TAGS.param('move',id,'critStageVolatile');
+      if(p&&p.volatile) _critVolTab.set(p.volatile,p);
+    }
+  }catch(e){
+    MEDFAILS.critVolTableFailed++;
+    if(!MEDFAILS.critVolTableFailedFirst) MEDFAILS.critVolTableFailedFirst=String((e&&e.message)||e);
+  }
+  return _critVolTab;
+}
+/* THE COPY, AND IT IS A REPLACE RATHER THAN A MERGE. Both authority sites are the identical shape:
+ *     for (const volatile of volatilesToCopy) this.removeVolatile(volatile);
+ *     for (const volatile of volatilesToCopy) if (pokemon.volatiles[volatile]) this.addVolatile(...)
+ * (`data/moves.ts:14232-14239`, psychup.onHit;  `sim/pokemon.ts:1340-1347`, transformInto.)
+ * THE CLEAR IS THE HALF THAT IS EASY TO MISS AND IT IS HALF THE MECHANIC: a Psych Up at a target with
+ * no Focus Energy STRIPS the user's own, so an engine that only added would leave a crit stage the
+ * authority has taken away. Showdown's own comment says why the clear must come FIRST -- adding one
+ * member onto a body carrying another fails through the overlap rule below and leaves the copy half
+ * done.
+ *
+ * NOTHING IS ANNOUNCED, and that is read rather than assumed: both conditions' `onStart` take the
+ * `['costar','imposter','psychup','transform'].includes(effect.id)` branch and write `[silent]`, and
+ * neither declares an `onEnd` at all, so the authority emits no line on either side of this. */
+function copyCritStageVolatiles(from,to){
+  if(!to)return 0;
+  if(CRIT_VOLATILE_BLIND){MEDFAILS.critVolatileBlindRestored++;return 0;}
+  const fam=critStageVolatiles();
+  if(!fam.size)return 0;
+  let n=0;
+  const dv=(to._vol=to._vol||{});
+  for(const v of fam.keys()) if(dv[v]!=null){delete dv[v];n++;}
+  const sv=(from&&from._vol)||{};
+  for(const v of fam.keys()) if(sv[v]>0){dv[v]=sv[v];n++;}
+  if(n)MEDSEEN.critVolCopied++;
+  return n;
+}
+/* ROADMAP #356 (RESCOPED) -- PROTEAN'S CONVERSION, AS ONE FUNCTION, BECAUSE IT HAS TWO CALLERS AND
+ * FOR EIGHT MONTHS IT HAD ONE. 2026-08-23.
+ *
+ * THE ROW SAID "PROTEAN DOES NOT FIRE ON A MEGA FORME" AND THE MEGA IS INCIDENTAL. Measured on a
+ * staged board, plain Greninja, one click each, before anything here changed:
+ *     protean + Water Shuriken (Water, damaging)   Water/Dark -> Water     fires
+ *     protean + Focus Energy   (Normal, status)    Water/Dark -> Water/Dark  DOES NOT
+ *     protean + Protect        (Normal, status)    Water/Dark -> Water/Dark  DOES NOT
+ *     protean + Taunt          (Dark,   status)    Water/Dark -> Water/Dark  DOES NOT
+ * The conversion lived inside the `kind === 'attack'` branch, so NO STATUS MOVE triggered it on any
+ * body. `data/roster.items.json` caught it on `greninjite` only because the roster's mega-stone
+ * scenario clicks the CONTROL move -- Focus Energy, Normal, Status -- and Greninja-Mega is this
+ * format's only Protean carrier that is a mega (`typeBecomesMoveType` has exactly ONE member over the
+ * whole ability table: protean, 571 uses). This engine's own comment beside the Curse branch had
+ * named the gap and filed it; what nobody had was a probe.
+ *
+ * THE AUTHORITY: `data/abilities.ts:3487-3502` (Champions overrides neither protean nor libero -- 0
+ * matches in data/mods/champions/abilities.ts), hung on `onPrepareHit`, which
+ * `sim/battle-actions.ts:590-592` fires inside `trySpreadMoveHit` ABOVE the whole eight-step list and
+ * for every move that reached a target, status or not.
+ *
+ * ONCE PER SWITCH-IN, AND THAT HALF WAS ALREADY RIGHT. `if (this.effectState.protean) return;` at
+ * :3489, set true at :3494; `abilityState` is rebuilt in `switchIn` (sim/battle-actions.ts:142), so
+ * the flag dies with the switch and not with the turn. `_proteanUsed` is cleared by `switchOut`
+ * beside the other one-shot flags and the tag carries `oncePerSwitchIn: true`.
+ *
+ * WHAT IS STILL NOT ASKED, said rather than left to be found: the authority's other three guards --
+ * `move.hasBounced`, `move.flags['futuremove']`, `move.sourceEffect === 'snatch'`, `move.callsMove`.
+ * None was asked by the attack-branch version either, so this is unchanged rather than newly missing,
+ * and `setAbility` also rebuilds `abilityState` (sim/pokemon.ts:1930), so a body that megas AFTER
+ * converting gets a fresh conversion in the authority and does not here. Both are counted rather than
+ * silently absent -- see MEDFAILS.proteanGuardsUnmodelled. */
+/* THE FOUR TARGET CLASSES THAT NAME A SIDE OR THE FIELD RATHER THAN A BODY, and the list is the
+ * simulator's own `switch` rather than a judgement made here: `Pokemon#getMoveTargets` (sim/pokemon.ts)
+ * opens `case 'all': case 'foeSide': case 'allySide': case 'allyTeam':` and fills its target list from
+ * whoever is standing. A move in that group therefore ALWAYS reaches `PrepareHit`, while
+ * `statusMoveTargets` -- which answers the different question "which BODIES does this land on" --
+ * correctly returns none for it. Read as data, so a fifth class arriving upstream is a one-line edit
+ * here rather than a silently missing case. */
+const PREPAREHIT_FIELD_TARGETS=new Set(['all','foeSide','allySide','allyTeam']);
+function proteanConvert(m,mvId,field){
+  if(!m||m.fainted||!mvId)return false;
+  const _tb=TAGS.param('ability',m.ability,'typeBecomesMoveType');
+  if(!_tb)return false;
+  if(_tb.oncePerSwitchIn&&m._proteanUsed)return false;
+  /* `effMoveType` reads `mv.t` off the ENGINE-DATA move row (`{t, c, bp}`), NOT off `moveFx`, which is
+   * the secondary-effects table and carries no type at all. The first version of this helper passed
+   * `moveFx(mvId)` and every conversion silently became a no-op -- INCLUDING the damaging one that had
+   * worked for months, which is how it was caught: the staged board that had read `Water/Dark ->
+   * Water` read `Water/Dark -> Water/Dark` the moment the block became a call. */
+  const _mvRow=(typeof MC!=='undefined'&&MC&&MC.moves&&MC.moves[mvId])||null;
+  if(!_mvRow){MEDFAILS.proteanNoMoveRow++;
+    if(!MEDFAILS.proteanNoMoveRowFirst)MEDFAILS.proteanNoMoveRowFirst=String(mvId);
+    return false;}
+  const _nt=effMoveType(_mvRow,mvId,field,m);   // WIRE 126 -- the CONVERTED type, one reader
+  if(!_nt)return false;
+  if(m.types.length===1&&m.types[0]===_nt)return false;   // `source.getTypes().join() !== type`
+  m.types=[_nt]; m._proteanUsed=true;
+  MEDSEEN.proteanConverted++;
+  /* EVERY conversion is made without asking the four guards at data/abilities.ts:3490, so this
+   * equals `proteanConverted` today and is deliberately a SEPARATE number: the day one of those
+   * guards is wired, the two counters part and the size of the remaining gap is readable instead
+   * of being a sentence in a comment. */
+  MEDFAILS.proteanGuardsUnmodelled++;
+  if(TR)TR.vstart(m,'typechange',_nt+'|[from] ability: '+m.ability);
+  return true;
 }
 /* PUT ONE LAYER ON, AND BOOK ONLY WHAT IT REALLY GRANTED.
  *
@@ -8583,6 +8762,25 @@ const DRAG_ABILITY_FIRST=(typeof process!=='undefined'&&process.env&&process.env
  * was about, which is the whole reason a restore knob exists. Any run carrying it also carries a
  * non-zero `MEDFAILS.dragRefusalFailsRestored`. */
 const DRAG_REFUSAL_FAILS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DRAG_REFUSAL_FAILS==='1');
+/* 2026-08-23 -- MEDI_CRIT_VOLATILE_BLIND=1 PUTS THE WHOLE CRIT-STAGE FAMILY BACK TO UNWIRED: the
+ * Focus Energy / Dragon Cheer overlap refusal AND the two copy sites (Psych Up, Transform). ONE knob
+ * for three rules because they are one mechanism over one derived set -- a knob per rule could not
+ * tell you anything a knob over the set cannot, and the set is what `critStageVolatile` derives. Any
+ * run carrying it also carries a non-zero `MEDFAILS.critVolatileBlindRestored`. Same shape as
+ * MEDI_DRAG_REFUSAL_FAILS above. */
+const CRIT_VOLATILE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CRIT_VOLATILE_BLIND==='1');
+/* ROADMAP #339, 2026-08-23 -- MEDI_DRAIN_LUMP_ROUND=1 PUTS THE SINGLE `Math.round(dealt * fraction *
+ * mult)` BACK on the drain heal: one rounding over the summed damage, with Big Root folded inside it.
+ * It exists so the two census rows (the per-target rounding and the Big Root order of operations) can
+ * be shown MISSING on demand without swapping a file. ONE knob for both, because both are one
+ * expression and a knob per half could not restore an expression that no longer exists. Any run
+ * carrying it also carries a non-zero `MEDFAILS.drainLumpRoundRestored`. */
+const DRAIN_LUMP_ROUND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DRAIN_LUMP_ROUND==='1');
+/* ROADMAP #356 (RESCOPED), 2026-08-23 -- MEDI_PROTEAN_ATTACK_ONLY=1 SHUTS THE STATUS DOOR AGAIN: the
+ * above-dispatch `PrepareHit` call is skipped and only the attack branch converts, which is what this
+ * engine did until today. It exists so the census row can be shown MISSING on demand without swapping
+ * a file. Any run carrying it also carries a non-zero `MEDFAILS.proteanAttackOnlyRestored`. */
+const PROTEAN_ATTACK_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PROTEAN_ATTACK_ONLY==='1');
 function sleepDurationDraw(){
   const r=medRng();
   const u=(typeof r==='function')?r():0.5;
@@ -10519,11 +10717,49 @@ const invSign=x=>{
   if(_NOT_INVERTERS.has(_ab))return 1;
   return TAGS.param('ability',_ab,'invertsBoosts')?-1:1;
 };
+/* ROADMAP #9 -- THE PRANKSTER REFUSAL IS A *FOE* CLAUSE, AND THIS FUNCTION WAS SIDE-BLIND. 2026-08-23.
+ *
+ * `sim/battle-actions.ts:676-677`, in `hitStepTryImmunity`, is the whole rule and the side clause is
+ * inside it:
+ *     } else if (this.battle.gen >= 7 && move.pranksterBoosted && pokemon.hasAbility('prankster') &&
+ *         !targets[i].isAlly(pokemon) && !this.dex.getImmunity('prankster', target)) {
+ * `Pokemon#isAlly(p)` is `this.side === p.side || this.side.allySide === p.side`, which is TRUE for
+ * the body itself -- so a Prankster user's OWN self-aimed status move can never be refused here, and
+ * neither can one aimed at its partner, whatever either of them is typed.
+ *
+ * THIRTEEN CALL SITES ASKED THIS FUNCTION AND ONE OF THEM CARRIED THE CLAUSE. `tryHitRefusal` wrote
+ * `m._sf && t._sf !== m._sf && pranksterBlocked(...)` at the call, so the other twelve refused a
+ * Prankster body's own side -- exactly the FACTS-ARE-GLOBAL breach CLAUDE.md names, a fact living at
+ * a caller instead of at its owner. The clause moves INTO the function; the call site now just asks.
+ *
+ * THE COST WAS FOUND BY THE ROSTER AND WAS FILED UNDER THE WRONG MOVE. `data/roster.moves.json` read
+ * Fake Out as FIRED-AND-BOARDS-DIFFER on `p2a vol.focusenergy showdown 1 / ours 0`, a leaf with
+ * nothing to do with Fake Out: the scenario's derived user is SABLEYE -- Dark/Ghost, Prankster -- and
+ * the roster's control click is FOCUS ENERGY, so on the turn Sableye clicked its own Focus Energy
+ * this engine emitted `|-immune|p1a: sableye` and refused it. Staged before anything changed:
+ *     |move|p1a: sableye|focusenergy|p1a: sableye   |-immune|p1a: sableye     _vol {}
+ *
+ * THE SIDE IS READ OFF `_sf`, THE SIDE-FIELD OBJECT TEAMMATES SHARE, and a body that carries none is
+ * COUNTED rather than guessed at: `MEDFAILS.pranksterSideUnknown` bumps and the historic side-blind
+ * answer is kept, so an external caller handing in loose bodies gets what it always got AND says so.
+ * `attacker === target` is answered above that, because identity needs no side at all.
+ *
+ * MEDI_PRANKSTER_SIDE_BLIND=1 PUTS THE DEFECT BACK, so the census row can be shown MISSING on demand
+ * without swapping a file; any run carrying it also carries a non-zero
+ * `MEDFAILS.pranksterSideBlindRestored`. Same shape as MEDI_ORB_STALE_RANGE and MEDI_BENCH_APPEND. */
+const PRANKSTER_SIDE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PRANKSTER_SIDE_BLIND==='1');
 function pranksterBlocked(attacker,target,moveId){
   if(!isPrankster(attacker)) return false;
   const fx=moveFx(moveId);
   if(!fx||fx.category!=='Status') return false;
-  return (target.types||[]).includes('Dark');
+  if(!(target&&(target.types||[]).includes('Dark'))) return false;
+  if(PRANKSTER_SIDE_BLIND){ MEDFAILS.pranksterSideBlindRestored++; return true; }
+  if(attacker===target) return false;                     // isAlly() is true of the body itself
+  if(attacker&&target&&attacker._sf&&target._sf) return target._sf!==attacker._sf;
+  MEDFAILS.pranksterSideUnknown++;
+  if(!MEDFAILS.pranksterSideUnknownFirst)
+    MEDFAILS.pranksterSideUnknownFirst=String(moveId)+' -> '+String((target&&target.name)||'?');
+  return true;
 }
 /* ================= ROADMAP #241 -- ONE READER, AND IT ANNOUNCES ===================================
  *
@@ -10581,8 +10817,10 @@ function tryHitRefusal(m,t,mv){
     return {why:'ability',ab:t.ability,attr:_rs.announcesWith||undefined,
             __ally:!!(m&&m._sf&&t._sf===m._sf)};
   }
-  /* the authority's `!targets[i].isAlly(pokemon)` -- see the header */
-  if(m._sf&&t._sf!==m._sf&&pranksterBlocked(m,t,mv)) return {why:'prankster',ab:null,attr:undefined};
+  /* ROADMAP #9 -- the authority's `!targets[i].isAlly(pokemon)` USED TO BE WRITTEN HERE, at this one
+   * call site of thirteen. It now lives inside `pranksterBlocked` where the rest of the rule is, so
+   * every site inherits it; this line is a plain ask. */
+  if(pranksterBlocked(m,t,mv)) return {why:'prankster',ab:null,attr:undefined};
   return null;
 }
 /* The line, and the counter, in one place so no caller can emit half of it. */
@@ -11004,6 +11242,13 @@ function applyStatOp(user,target,op,mvId,rng){
      * the user had -- clicking it after your own Calm Mind THROWS AWAY the Calm Mind. An engine that
      * added the two together would make it strictly better than the move in the game. */
     for(const k of ks){if(src.boosts[k]!=null&&dst.boosts[k]!=null)dst.boosts[k]=src.boosts[k];}
+    /* 2026-08-23 -- AND THE VOLATILES THE SAME HANDLER COPIES. `data/moves.ts:14229-14239` is the
+     * REST of psychup's onHit, below the boost loop this function was written from: it removes every
+     * member of its own `volatilesToCopy` array from the SOURCE and then re-adds the ones the TARGET
+     * carries. Derived onto the op as `copiesVolatiles` from that array literal, so this is gated on
+     * a declared fact rather than on the move's name; `copyCritStageVolatiles` owns the set and the
+     * order, and Transform calls the same function. */
+    if(Array.isArray(op.copiesVolatiles)&&op.copiesVolatiles.length) copyCritStageVolatiles(src,dst);
     MEDSEEN.statOpApplied++;return true;
   }
   if(op.kind==='invert'){
@@ -11809,6 +12054,38 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
      wire found. `applyLayeredVolatile` owns the cap, the boost and the refund book. */
   {const _lay=layeredVolatiles().get(vol);
    if(_lay) return applyLayeredVolatile(who,vol,_lay);}
+  /* 2026-08-23 -- THE CRIT-STAGE FAMILY OVERLAP, AND IT IS THE CONDITION'S OWN `onStart`.
+   *
+   * `data/moves.ts:5984` -- focusenergy: `if (target.volatiles['dragoncheer']) return false;`
+   * `data/moves.ts:4069` -- dragoncheer: `if (target.volatiles['focusenergy']) return false;`
+   * `onStart` returning false makes `addVolatile` false, which makes `moveHit`'s `didAnything` false,
+   * which is an EXPLICIT failure -- so VOLRES.FAIL, exactly like the second-Encore card two blocks
+   * down, and the `-fail` is owed.
+   *
+   * WHICH MEMBERS REFUSE WHICH IS READ OFF `exclusiveWith`, NOT ASSUMED FROM THE FAMILY, and the
+   * difference is measurable rather than cautious: LASER FOCUS is a member by ratio and its `onStart`
+   * refuses nothing at all. It is `isNonstandard: 'Past'` here, so a family-wide rule would agree
+   * with the authority today and be wrong the moment the regulation changed.
+   *
+   * THE SAME-VOLATILE CASE IS THE SAME EVENT AND SITS HERE RATHER THAN IN THE DURATION FAMILY.
+   * `sim/pokemon.ts:1994-1997` returns false for a volatile already present whose condition declares
+   * no `onRestart`, and neither of these does; `durationVolatiles()` is keyed off `sealsMoves`, which
+   * neither carries, so the no-restart rule below could never see them. A re-clicked Focus Energy
+   * moves no board leaf either way -- what it changes is the `-fail` and the move RESULT.
+   *
+   * MEDI_CRIT_VOLATILE_BLIND=1 puts the whole family back to unwired (this refusal AND both copy
+   * sites), so the three census rows can be shown MISSING on demand; any run carrying it also carries
+   * a non-zero `MEDFAILS.critVolatileBlindRestored`. */
+  if(!CRIT_VOLATILE_BLIND){
+    const _cs=critStageVolatiles().get(vol);
+    if(_cs&&who._vol){
+      if(who._vol[vol]>0){ MEDSEEN.critVolRestartRefused++;
+        return volRefuse(opts,VOLRES.FAIL,'alreadyon'); }
+      for(const _o of (_cs.exclusiveWith||[])) if(who._vol[_o]>0){
+        MEDSEEN.critVolOverlapRefused++;
+        return volRefuse(opts,VOLRES.FAIL,'critstageoverlap'); }
+    }
+  } else MEDFAILS.critVolatileBlindRestored++;
   /* ROADMAP #111 -- AND RE-APPLYING ONE THE BODY ALREADY CARRIES FAILS. `Pokemon#addVolatile`
      returns false when the volatile is present and its condition declares no `onRestart`,
      and none of this family does. Writing the counter again REFRESHED it, which is why a
@@ -12832,6 +13109,13 @@ function transformOnto(m,t,from){
   m._bsAtk=t._bsAtk;                                    // WIRE 83, Beat Up reads the species standing
   m.moves=(t.moves||[]).slice();
   m.boosts=Object.assign({},t.boosts);                  // the CURRENT stages, not a clean slate
+  /* 2026-08-23 -- AND THE CRIT-STAGE VOLATILES, WHICH SIT ON THE VERY NEXT LINES OF THE AUTHORITY.
+   * `sim/pokemon.ts:1337-1348`: immediately after the boost loop, `if (this.battle.gen >= 6)` removes
+   * every member of `volatilesToCopy` from the transforming body and re-adds the ones the copied body
+   * carries. Same function as Psych Up's, for the reason CLAUDE.md gives: two copies of "which
+   * volatiles travel with a copy" would disagree the first time one of them was corrected. It is
+   * ABOVE the `|-transform|` line because the authority puts it above its own (:1350). */
+  copyCritStageVolatiles(t,m);
   m.ability=t.ability; m.baseAbility=t.ability;
   /* THE COPIED SLOTS ARE FRESH AND CAPPED. `used: false` on every one of them is what the comparator
    * reads as "nothing spent", and the user's OWN slots are not merely full again -- they are GONE from
@@ -16719,6 +17003,42 @@ function battleTurn(S,rng,actsForA,actsForB){
         mvFail(m);
         continue;
       }
+      /* ROADMAP #356 (RESCOPED), 2026-08-23 -- PROTEAN, FOR EVERY MOVE THAT IS NOT AN ATTACK.
+       *
+       * This is the SAME `PrepareHit` step the block above pays the shield refusal at --
+       * `sim/battle-actions.ts:590-592` runs `singleEvent('Try')`, then `singleEvent('PrepareHit')`,
+       * then `runEvent('PrepareHit')`, and Protean is on the last of those. The attack branch far
+       * below has its own call because it also has the `_hadTargets` answer; a status move never
+       * reaches that branch at all, which is why this engine converted on damaging clicks only.
+       *
+       * THE GATE IS THE AUTHORITY'S "DID THE MOVE REACH ANYBODY". `useMoveInner` writes `-fail` and
+       * returns BEFORE PrepareHit when `getMoveTargets` comes back empty, so a Taunt at a body that
+       * is no longer there converts nothing. `statusMoveTargets` is this engine's one reader of that
+       * question and is the same function the `affect` branch asks.
+       *
+       * THE FOUR SIDE/FIELD TARGET CLASSES ARE EXEMPT FROM THAT GATE AND THE LIST IS THE SIMULATOR'S
+       * OWN. `Pokemon#getMoveTargets` (sim/pokemon.ts) opens `case 'all': case 'foeSide': case
+       * 'allySide': case 'allyTeam':` and fills the target list from the bodies ON THE FIELD, so a
+       * Tailwind or a Light Screen always has targets and always fires PrepareHit -- while
+       * `statusMoveTargets`, which resolves BODIES a status move lands on, correctly returns none for
+       * them. Reading the class off the move's own `targetClass` tag rather than testing for a null
+       * target is what keeps those two questions apart.
+       *
+       * ONLY THE NON-ATTACK KINDS COME THROUGH HERE, so a damaging move cannot convert twice: the
+       * attack branch's call is the one that runs for those, and it is the one that knows whether the
+       * move found a target. `_proteanUsed` would make a double conversion a no-op anyway; the guard
+       * is explicit because "it happens to be idempotent" is not a reason. */
+      if(PROTEAN_ATTACK_ONLY)MEDFAILS.proteanAttackOnlyRestored++;
+      else if(a.kind!=='attack'&&(a.mv||(a.move&&a.move.id))){
+        const _pmv2=a.mv||a.move.id;
+        if(TAGS.param('ability',m.ability,'typeBecomesMoveType')){
+          const _tc2=TAGS.param('move',_pmv2,'targetClass');
+          const _fieldWide=!!(_tc2&&PREPAREHIT_FIELD_TARGETS.has(String(_tc2.target)));
+          const _reach=_fieldWide||statusMoveTargets(m,_pmv2,a.target,it,actA,actB).length>0;
+          if(_reach){ if(proteanConvert(m,_pmv2,field))MEDSEEN.proteanOnStatusMove++; }
+          else MEDSEEN.proteanSkippedNoTarget++;
+        }
+      }
       /* ROADMAP #81 WIRE 12 -- `passstate` PAYS ITS OWN COST, INSIDE ITS OWN BRANCH, and is excluded
          here for the same reason `sub` is: THE ORDER OF THE CHECKS IS PART OF THE MOVE. Shed Tail's
          `onTryHit` asks `canSwitch(source.side)` FIRST and returns NOT_FAIL, so a Shed Tail with an
@@ -20165,14 +20485,11 @@ function battleTurn(S,rng,actsForA,actsForB){
           MEDSEEN.flingThrown++;
         }
       }
-      if(_hadTargets){
-        const _tb=TAGS.param('ability',m.ability,'typeBecomesMoveType');
-        if(_tb&&!m.fainted&&!(_tb.oncePerSwitchIn&&m._proteanUsed)){
-          const _nt=effMoveType(mv,a.move.id,field,m);   // WIRE 126 -- Protean becomes the CONVERTED type
-          if(_nt&&!(m.types.length===1&&m.types[0]===_nt)){m.types=[_nt];m._proteanUsed=true;
-            if(TR)TR.vstart(m,'typechange',_nt+'|[from] ability: '+m.ability);}
-        }
-      }
+      /* ROADMAP #356 (RESCOPED), 2026-08-23 -- the hundred characters that stood here are
+       * `proteanConvert` verbatim; see its header. It is a CALL now because a second caller exists at
+       * the `PrepareHit` position above the kind dispatch, which is where every STATUS move passes and
+       * where this engine converted nothing at all. */
+      if(_hadTargets) proteanConvert(m,a.move.id,field);
       /* spreadAll hits the PARTNER too -- Earthquake beside your own Archaludon costs it the same
        * 0.75x packet the enemies eat. Membership from the artifact; the ally is appended AFTER the
        * Wide Guard check below because Wide Guard protects a SIDE, and the attacker's own side
@@ -20524,6 +20841,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the move into a miss. The whole block below now lives in `_stepAccuracy`, in the step list,
        * with its own comments carried down with it. */
       let dealt=0,connected=false;
+      /* ROADMAP #339 -- THE PER-TARGET DAMAGE LIST, BECAUSE A DRAIN HEALS AND ROUNDS ONCE PER BODY.
+       * `dealt` is the SUM and is the right number for the self-drop, the crash and the recoil; it is
+       * the WRONG one for the drain, because `sim/battle.ts:2167-2170` sits INSIDE `spreadDamage`'s
+       * `for (const [i, target] of targetArray.entries())` loop, so the authority rounds separately
+       * for each body it hit. One entry per `spreadDamage` row, which is also one per HIT of a
+       * multi-hit volley -- the authority calls `spreadDamage` once per hit, so a per-occurrence push
+       * is the same shape whether the move is single, spread or multi-hit. */
+      const _dealtEach=[];
       /* `_selfKOPending` USED TO BE DECLARED HERE and is now declared above the shield, because the
        * `always` site is above the shield. See its declaration for why. */
       /* ROADMAP #72 -- DID A SUBSTITUTE EAT IT. `connected` is deliberately true when a doll absorbed
@@ -21219,6 +21544,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * not be a demonstration of anything. */
         let _koThisHit=false;
         dealt+=Math.min(dmg,tg.curHP);
+        _dealtEach.push(Math.min(dmg,tg.curHP));      /* ROADMAP #339 -- the same number, kept apart */
         /* WIRE 42 -- THE SUBSTITUTE EATS THE HIT, and the whole hit ends here.
            WHAT THAT SKIPS IS STATED RATHER THAN DISCOVERED: no item is knocked off, no resist berry
            is spent, no contact punish is paid and no secondary lands. Three of those four are the
@@ -22995,16 +23321,75 @@ function battleTurn(S,rng,actsForA,actsForB){
              * `Math.round(targetDamage * effect.drain[0] / effect.drain[1])` from gen 5 on (gen <= 4
              * is the floor, and that branch is not this format). Same root as recoil, opposite sign:
              * flooring cost the user half a point of health on average on 8,553 corpus clicks. */
-            /* BIG ROOT, 53 uses — a roster DID-NOT-FIRE row and it had no tag at all until now.
+            /* BIG ROOT, 63 uses — a roster DID-NOT-FIRE row and it had no tag at all until 3.x.
              * `onTryHeal` multiplies a heal by 5324/4096 (x1.2998) but ONLY when the effect that
              * produced it is on its own list — drain, Leech Seed, Ingrain, Aqua Ring, Strength Sap.
              * The SOURCE LIST IS PART OF THE FACT and is carried in the tag: this does not boost
              * Recover, a berry or Leftovers, and an item that boosted all healing would be a
-             * different item. Applied INSIDE the rounding, because Showdown modifies the heal before
-             * it rounds. */
+             * different item. */
+            /* ---- ROADMAP #339, 2026-08-23 -- THE ORDER OF OPERATIONS, AND BOTH HALVES WERE WRONG.
+             *
+             * The line this replaces was `Math.round(dealt * fraction * mult)`: one rounding, over the
+             * SUM of every target, with Big Root's multiplier folded inside it. The authority does
+             * neither of those things, and it is four cited steps rather than one expression:
+             *
+             *   sim/battle.ts:2168   `const amount = Math.round(targetDamage * drain[0] / drain[1]);`
+             *                        INSIDE spreadDamage's per-target loop -- one rounding PER BODY.
+             *   sim/battle.ts:2265   `if (damage && damage <= 1) damage = 1;`
+             *   sim/battle.ts:2266   `damage = this.trunc(damage);`
+             *   sim/battle.ts:2268   `damage = this.runEvent('TryHeal', ...)`, whose accumulated
+             *                        modifier is applied by `this.modify` at battle.ts:932 --
+             *                        `tr((tr(value * tr(mult*4096)) + 2047) / 4096)`. Big Root's
+             *                        `chainModify([5324, 4096])` (data/items.ts:492) is that modifier.
+             *
+             * SO THE MULTIPLIER IS APPLIED TO THE ALREADY-ROUNDED PER-TARGET AMOUNT, and in fixed
+             * point rather than as a float. MEASURED ON A STAGED BOARD, Bitter Blade dealing 53 into
+             * an unfaintable body with a Big Root up: this engine healed 34 and the four steps above
+             * give 35. And Matcha Gotcha into two bodies for 15 and 15: this engine healed 15 where
+             * the authority heals round(15/2) + round(15/2) = 16. The two defects are independent and
+             * both are on this one line, which is why they land together.
+             *
+             * `md4096` IS SHOWDOWN'S `modify` AND IS ALREADY IN THIS FILE (WIRE 4). Writing the
+             * arithmetic out again here would be a second implementation of a multiplier chain --
+             * CLAUDE.md's FACTS ARE GLOBAL -- and it is the same function every damage modifier uses.
+             *
+             * THE CLAMP IS STILL ONE CLAMP, against `_hpPreReact` (WIRE 87). The authority caps each
+             * heal at max HP as it goes; summing first and clamping once reaches the identical final
+             * HP, and the WIRE 87 reason for measuring against the PRE-REACTION HP is untouched.
+             *
+             * WHAT IS *NOT* DONE HERE, said rather than left to be rediscovered: the authority also
+             * emits one `|-heal|...|[from] drain|[of] TARGET` PER BODY and this engine still writes a
+             * single lumped line with no `[of]`. That is the NARRATION half of ROADMAP #339 and it is
+             * still open; only the arithmetic half is closed by this.
+             *
+             * MEDI_DRAIN_LUMP_ROUND=1 puts the old single expression back, so the two census rows can
+             * be shown MISSING on demand; any run carrying it also carries a non-zero
+             * `MEDFAILS.drainLumpRoundRestored`. */
             const _br=TAGS.param('item',m.item,'healMultBySource');
             const _brM=(_br&&_br.mult&&Array.isArray(_br.from)&&_br.from.includes('drain'))?+_br.mult:1;
-            const _gain=Math.min(m.st.hp,_hpPreReact+Math.round(dealt*_dr.fraction*_brM))-_hpPreReact;
+            let _amt;
+            if(DRAIN_LUMP_ROUND){ MEDFAILS.drainLumpRoundRestored++;
+              _amt=Math.round(dealt*_dr.fraction*_brM); }
+            else {
+              /* A move that dealt damage with no per-target list is a path that does not fill
+               * `_dealtEach`; it falls back to the SUM as one round, and says so, because a silent
+               * fallback here reads exactly like the fix working. */
+              let _rows=_dealtEach;
+              if(!_rows.length){ MEDFAILS.drainNoPerTargetRows++;
+                if(!MEDFAILS.drainNoPerTargetRowsFirst)MEDFAILS.drainNoPerTargetRowsFirst=String(a.move.id);
+                _rows=[dealt]; }
+              _amt=0;
+              for(const _td of _rows){
+                if(!(_td>0))continue;
+                let _one=Math.round(_td*_dr.fraction);   // battle.ts:2168, per target
+                if(_one&&_one<=1)_one=1;                 // battle.ts:2265
+                _one=Math.trunc(_one);                   // battle.ts:2266
+                if(_brM!==1)_one=md4096(_one,_brM);      // the TryHeal modifier, battle.ts:932
+                _amt+=_one;
+                MEDSEEN.drainRoundedPerTarget++;
+              }
+            }
+            const _gain=Math.min(m.st.hp,_hpPreReact+_amt)-_hpPreReact;
             if(_gain>0){m.curHP=Math.min(m.st.hp,m.curHP+_gain);if(TR)TR.heal(m,'[from] drain');}
           }
         }

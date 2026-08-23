@@ -3626,6 +3626,28 @@ const MOVE_TAGS = [
       if (dd) p.costFraction = 1 / +dd[1];
       const op = STAT_OP(h);
       if (op && !p.boosts) p.op = op;
+      /* 2026-08-23 -- A COPY OPERATION THAT ALSO CARRIES VOLATILES, AND PSYCH UP IS THE MEMBER.
+       *
+       * `data/moves.ts:14229-14239` is the rest of psychup's onHit: after `source.boosts[i] =
+       * target.boosts[i]` it removes every member of a named array from the SOURCE and then re-adds
+       * the ones the TARGET has. The boost half was already derived above and the volatile half was
+       * not, so a Psych Up in this engine left the user's own Focus Energy standing where the
+       * authority strips it.
+       *
+       * DERIVED FROM THE HANDLER'S OWN ARRAY LITERAL, not from a list typed here -- the same reason
+       * `critStageVolatile` derives membership rather than repeating Showdown's four names. The gate
+       * is both `removeVolatile(` AND `addVolatile(` in the same handler, which is what a COPY looks
+       * like: a handler that only removes (Sparkling Aria, Tidy Up, Beak Blast) is not one, and is
+       * measured to be excluded rather than assumed -- final membership over the whole move table is
+       * printed by `--rules`. */
+      if (p.op && p.op.kind === 'copy'
+          && /\.removeVolatile\(/.test(h) && /\.addVolatile\(/.test(h)) {
+        const arr = h.replace(/\s+/g, ' ').match(/\[\s*((?:['"]\w+['"]\s*,\s*)+['"]\w+['"])\s*\]/);
+        if (arr) {
+          const list = arr[1].split(',').map(s => s.trim().replace(/["']/g, '')).filter(Boolean);
+          if (list.length) p.op.copiesVolatiles = list;
+        }
+      }
       return p;
     } },
   /* ROADMAP #81 WIRE 12 -- CURSE IS TWO MOVES AND NO TAG SAID SO.
@@ -4392,6 +4414,50 @@ const MOVE_TAGS = [
       return { volatile: m.volatileStatus, max: +cap[1], boostsPerLayer: boosts,
                booksGranted: /!==\s*target\.boosts\./.test(start) && /this\.effectState\.\w+--/.test(start),
                refundsOnEnd: /this\.boost\(\s*boosts\b/.test(end) };
+    } },
+  /* 2026-08-23 -- THE CRIT-STAGE VOLATILE FAMILY, DERIVED FROM `onModifyCritRatio` AND NOT FROM A LIST.
+   *
+   * Showdown names this family THREE times as a hand-written array --
+   * `const volatilesToCopy = ['dragoncheer', 'focusenergy', 'gmaxchistrike', 'laserfocus'];` in
+   * `data/moves.ts:14229` (Psych Up's onHit) and `sim/pokemon.ts:1339` (`transformInto`) -- and this
+   * repository has paid three times for a ratchet written as a list of known-bad forms. So membership
+   * is DERIVED from the only thing that actually makes a volatile a member: its condition raises the
+   * critical-hit ratio. A fifth member arriving under any spelling is picked up without editing this
+   * file or the engine.
+   *
+   * WHAT THE FAMILY IS FOR, and both halves are one fact:
+   *   1. THEY OVERLAP, SO THEY REFUSE EACH OTHER. `data/moves.ts:5984` is focusenergy's onStart
+   *      opening `if (target.volatiles['dragoncheer']) return false;` and :4069 is dragoncheer's
+   *      mirror image. Psych Up's own source comment says why -- "copying e.g. dragoncheer onto a mon
+   *      with focusenergy will crash the server (since addVolatile fails due to overlap)".
+   *   2. THEY ARE COPIED AS A SET by Psych Up and by Transform, which is why the set exists at all.
+   * `exclusiveWith` carries the first half; the second is read off the family membership by the two
+   * copy sites in medicham2, each citing its own authority line.
+   *
+   * IT IS NOT "EVERY MEMBER REFUSES EVERY OTHER MEMBER", and the difference is measurable rather than
+   * cautious: LASER FOCUS is a member by ratio (its condition returns a flat 5) and its onStart
+   * refuses NOTHING. It is `isNonstandard: 'Past'` here so it cannot appear, but assuming the family
+   * rule instead of reading each condition would be wrong the moment it did.
+   *
+   * MEMBERSHIP IS PRINTED BY `--rules` BEFORE IT IS BELIEVED, as this file requires everywhere. */
+  { tag: 'critStageVolatile', param: 'the volatile this move applies raises the CRITICAL-HIT RATIO, and which other members of that family it refuses to overlap with',
+    probe: 'critStageVolatile',
+    why: 'Focus Energy and Dragon Cheer each refuse the other and both are copied wholesale by Psych '
+       + 'Up and Transform; the engine had neither rule, so a Dragon Cheer\'d ally still took a Focus '
+       + 'Energy and a Transform copied no crit stage at all',
+    of: m => {
+      const c = m.condition;
+      if (!m.volatileStatus || !c || typeof c.onModifyCritRatio !== 'function') return null;
+      const start = String(c.onStart || '');
+      /* A GUARD, NOT A MENTION. Only a `volatiles['X']` test that is answered with `return false` is
+       * a refusal; focusenergy's onStart also reads `effect.id`, and dragoncheer's reads
+       * `target.hasType`, and neither of those may become an exclusion. The `return false` must be on
+       * the same statement, which is how both members are written. */
+      const excl = [];
+      for (const g of start.matchAll(/\.volatiles\[\s*["'](\w+)["']\s*\][^;{}]*\)?\s*return false/g))
+        if (excl.indexOf(g[1]) < 0) excl.push(g[1]);
+      return { volatile: m.volatileStatus, exclusiveWith: excl,
+               from: 'DERIVED:condition.onModifyCritRatio + condition.onStart' };
     } },
   /* WIRE 152 -- THE MOVE THAT REQUIRES A VOLATILE AND SPENDS IT.
    *

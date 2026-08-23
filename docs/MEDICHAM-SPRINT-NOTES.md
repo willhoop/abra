@@ -21,6 +21,73 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE SEVEN ROSTER REDS — FOUR MECHANISMS, TWO REGROUPINGS, AND THE CONTROL CLICK WAS THE WITNESS IN THREE. 2026-08-23 (ENGINE).
+
+Seven `FIRED-AND-BOARDS-DIFFER` rows (`data/roster.moves.json` 5 of 500 tested, `data/roster.items.json`
+2 of 148, both against release `c36782953dee`) briefed as three causes. **They are four, and none of
+the seven was the instrument.**
+
+**GROUP 1 SPLIT IN TWO AND HALF OF IT IS NOT ABOUT FOCUS ENERGY.** Four rows shared the leaf
+`vol.focusenergy` because the roster's CONTROL CLICK is Focus Energy (ROADMAP #316), so every scenario
+in that file carries the volatile and any defect touching it surfaces under whatever move was staged
+beside it.
+
+- **FAKE OUT WAS PRANKSTER (ROADMAP #9).** `sim/battle-actions.ts:676-677` gates the Prankster type
+  immunity on `!targets[i].isAlly(pokemon)`, and `Pokemon#isAlly` is true of the body itself. The
+  scenario's derived user is SABLEYE — Dark/Ghost, Prankster — so on the turn it clicked its own Focus
+  Energy this engine wrote `|-immune|p1a: sableye` and refused it. `pranksterBlocked` was asked at
+  **thirteen** call sites and exactly one (`tryHitRefusal`) carried the side clause AT THE CALL. The
+  clause moved into the function; an unreadable side is counted, not guessed.
+- **THE OTHER THREE ARE THE CRIT-STAGE VOLATILE FAMILY.** New derived tag `critStageVolatile` in
+  `engine/tag_dex.js` — membership from `condition.onModifyCritRatio`, printed before wiring: exactly
+  TWO, `focusenergy` and `dragoncheer`. Three rules over that set: the mutual refusal
+  (`data/moves.ts:5984` / `:4069`, read PER CONDITION because Laser Focus is a member that refuses
+  nothing), Psych Up's copy (`:14232-14239`) and Transform's (`sim/pokemon.ts:1340-1347`), both through
+  one shared function. Before: a body could carry BOTH, which the authority never allows.
+
+**GROUP 2 IS TWO DEFECTS ON ONE LINE (ROADMAP #339, arithmetic half).** `Math.round(dealt * fraction *
+mult)` was one rounding over the SUM with the multiplier folded inside it. The authority rounds per
+target inside `spreadDamage`'s own loop (`sim/battle.ts:2168`) and applies the `TryHeal` modifier to
+the ALREADY-ROUNDED amount in fixed point (`:2265-2268`, `modify` at `:932`; Big Root's
+`chainModify([5324,4096])` at `data/items.ts:492`). **Big Root's roster row is a SINGLE-target Bitter
+Blade, so the per-target loop cannot explain it** — that half is purely the order of operations.
+Staged: 53 damage with a Big Root healed **34** against **35**; Matcha Gotcha for 15 + 15 healed **15**
+against **16**. `md4096` (WIRE 4) is called, not re-written. **The NARRATION half stays open** — one
+`|-heal|…|[of] TARGET` per body, interleaved.
+
+**GROUP 3 IS MIS-SCOPED (ROADMAP #356).** Protean never fired on a status move on ANY body — the
+conversion sat inside the `kind === 'attack'` branch, a gap this engine's own comment beside the Curse
+branch had named. `data/abilities.ts:3487-3502` hangs it on `onPrepareHit`, which
+`sim/battle-actions.ts:590-592` fires above the whole step list for every move that reached a target.
+Plain Greninja before the fix: Water Shuriken `Water/Dark -> Water`; Focus Energy, Protect and Taunt
+all unchanged. The roster caught it on `greninjite` only because that scenario clicks Focus Energy and
+Greninja-Mega is the format's only Protean-carrying mega. **Once per switch-in was already correct**
+(`effectState.protean` at `:3489`, `abilityState` rebuilt at `sim/battle-actions.ts:142`) and is now
+asserted.
+
+**WILL'S THREE DOMAIN INPUTS WERE DERIVED AND ALL THREE CONFIRMED**: Dragon Cheer's two stages are the
+RECIPIENT's Dragon typing frozen at `onStart` (`data/moves.ts:4079-4083`, target `adjacentAlly` at
+`:4085`); Matcha Gotcha heals per target; Protean is once per switch-in. **One competing explanation
+was REFUTED** — `focusenergy` carries no magnitude to coerce, its condition is a flat `critRatio + 2`
+(`data/moves.ts:5993-5995`); the both-directions pattern was two independent defects.
+
+**AND THE PROBE WAS WRONG BEFORE THE ENGINE WAS.** Extracting `proteanConvert` I passed `moveFx(mvId)`
+where `effMoveType` reads `mv.t` off the `data/engine-data.js` move row; every conversion silently
+became a no-op. Caught ONLY because the probe carried the old, already-working DAMAGING arm, which
+regressed. A probe holding only the new arms would have gone red -> red.
+
+**Census** `data/mechanics-census.json`: **634 -> 641 probed, 641 live, 0 missing, 0 hollow, 0 threw**,
+`directCall` unchanged at 1. Seven probes, each shown RED under its own knob:
+`MEDI_PRANKSTER_SIDE_BLIND`, `MEDI_CRIT_VOLATILE_BLIND`, `MEDI_DRAIN_LUMP_ROUND`,
+`MEDI_PROTEAN_ATTACK_ONLY`.
+
+**NOT CLAIMED: the seven reds cleared.** Light mode was called mid-pass. Fake Out alone was re-run
+(`--only fakeout --release 89fb8a6190f5`) and reads FIRED-AND-BOARDS-MATCH; the other six were not
+re-measured. Full account and the OWED list:
+`docs/_reports/2026-08-23-seven-roster-reds.md`.
+
+---
+
 ## ROADMAP #320 — THE ENTRY TRANSFORM NEVER ANNOUNCED ITSELF, AND THE COPY COUNTERS COULD NOT SEE IT. 2026-08-21 (ENGINE).
 
 **The largest family of the largest whole-game divergence class, closed.** `event missing from
