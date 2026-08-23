@@ -1739,8 +1739,19 @@ const MOVE_TAGS = [
     of: m => {
       const src = String(m.onTry || '') + String(m.basePowerCallback || '') + String(m.onBasePower || '');
       if (!/target\.item|target\.getItem/.test(src)) return null;
+      /* 2026-08-23 (ROADMAP #359) -- AND ONE OF THE TWO SAYS WHAT IT FOUND, BEFORE IT DOES ANYTHING
+       * WITH IT: `onTryHit(target, source, move) { this.add('-activate', target, 'move: Poltergeist',
+       * this.dex.items.get(target.item).name); }` (data/moves.ts:13610, not overridden by Champions).
+       * MEMBERSHIP PRINTED OVER THE WHOLE MOVE TABLE FIRST: exactly ONE legal move announces an item
+       * name out of a handler. The tag alone is NOT the membership -- Knock Off is the other carrier
+       * and announces nothing here, so a rule keyed on `readsTargetItem` would have put a line on
+       * 3,834 clicks that has no business there. `desc` is the effect label the authority passes,
+       * read rather than composed from the move's name. */
+      const hit = String(m.onTryHit || '').replace(/\s+/g, ' ')
+        .match(/this\.add\(\s*["'](-\w+)["']\s*,\s*(\w+)\s*,\s*["']([^"']*)["']\s*,\s*[^,)]*items\.get\([^)]*\)\.name/);
       return { failsIfNone: /onTry/.test(String(m.onTry || '')) ? true : false,
-               mult: /1\.5|hasItem/.test(src) ? 1.5 : null };
+               mult: /1\.5|hasItem/.test(src) ? 1.5 : null,
+               announcesItem: hit ? { event: hit[1], on: hit[2], desc: hit[3] } : null };
     } },
   /* ROADMAP #210 -- A MOVE THAT SPENDS THE USER'S OWN TYPE, and refuses once it has been spent.
    *
@@ -5046,13 +5057,47 @@ const MOVE_TAGS = [
       if (!vols.size) return null;
       /* the WHOLE handler is one unconditional announcement, and nothing else */
       const ONE = /^onStart\s*\(\s*[\w\s,]*\)\s*\{\s*this\.add\(\s*["'](-\w+)["']\s*,\s*[\w.]+\s*,\s*["']([^"']*)["']\s*\)\s*;?\s*\}$/;
+      /* 2026-08-23 -- (3) A GUARDED HANDLER WHOSE EVERY `-start` CARRIES THE SAME RUNTIME ARGUMENT.
+       *
+       * The two shapes above cannot express a line whose FIELD 4 is computed, and two conditions
+       * write one. The rule that separates them is UNCONDITIONALITY, not a name:
+       *
+       *     disable   two `this.add('-start', pokemon, 'Disable', pokemon.lastMove.name …)` calls,
+       *               one per branch, so the field is ALWAYS the sealed move        -> TABLED
+       *     charge    `this.add('-start', pokemon, 'Charge', this.activeMove.name …)` in the ABILITY
+       *               branch and a bare `this.add('-start', pokemon, 'Charge')` in the move's own
+       *               branch, so a table entry would put a move name on a line the authority leaves
+       *               empty                                                          -> REFUSED
+       *
+       * Charge's ability branch is emitted by its own site in medicham2 (the `buffsHolderOnHit`
+       * block) and this rule deliberately does not reach it. The membership was PRINTED over the 57
+       * volatiles a legal move can apply in this format before the rule was written, and it is those
+       * two and nothing else; every other guarded condition keeps the generic `-start|move: <vol>`.
+       *
+       * `arg` names WHICH runtime value, never the value itself — the consumer reads it off the body
+       * it is standing on, so nothing here has to know what a Pokemon last did. */
+      const RUNTIME = { 'pokemon.lastMove.name': 'lastMove', 'this.activeMove.name': 'activeMove' };
+      const START = /this\.add\(\s*["']-start["']\s*,\s*[\w.]+\s*,\s*["']([^"']*)["']\s*(?:,\s*([^,)]+))?/g;
+      const runtimeStart = (h) => {
+        const s = fnsrc(h).replace(/\s+/g, ' ');
+        const ms = [...s.matchAll(START)];
+        if (!ms.length) return null;
+        const args = ms.map(m => RUNTIME[(m[1 + 1] || '').trim()] || null);
+        const descs = new Set(ms.map(m => m[1]));
+        if (descs.size !== 1) return null;
+        if (!args[0] || args.some(a => a !== args[0])) return null;
+        return { event: '-start', desc: [...descs][0], arg: args[0],
+                 why: 'every -start this condition writes carries the same runtime argument' };
+      };
       const byVolatile = {};
       for (const v of [...vols].sort()) {
         const c = dex.conditions.get(v);
         if (!c) continue;
         if (!c.onStart) { byVolatile[v] = { event: null, desc: null, why: 'the condition declares no onStart' }; continue; }
         const hit = fnsrc(c.onStart).match(ONE);
-        if (hit) byVolatile[v] = { event: hit[1], desc: hit[2], why: 'the condition\'s whole onStart is this one add()' };
+        if (hit) { byVolatile[v] = { event: hit[1], desc: hit[2], why: 'the condition\'s whole onStart is this one add()' }; continue; }
+        const rt = runtimeStart(c.onStart);
+        if (rt) byVolatile[v] = rt;
       }
       return Object.keys(byVolatile).length ? { byVolatile } : null;
     } },
@@ -6631,8 +6676,26 @@ const ABILITY_TAGS = [
      *
      * The handler states the number and it is now READ rather than assumed:
      * `pokemon.heal(pokemon.baseMaxhp / 3)`. Membership went 3 -> 1, and the one is Regenerator. */
-    of: a => { const m = String(a.onSwitchOut || '').match(/\.heal\(\s*\w+\.(?:base)?[Mm]axhp\s*\/\s*(\d+)/);
-      return m ? { heal: 1 / (+m[1]) } : null; } },
+    /* 2026-08-23 -- AND IT ANNOUNCES, IN THIS FORMAT ONLY. `data/mods/champions/abilities.ts:77-84`
+     * REPLACES the handler: `if (pokemon.heal(pokemon.baseMaxhp / 3)) { this.add('-heal', pokemon,
+     * pokemon.getHealth, '[from] ability: Regenerator', '[silent]'); }`. Mainline's is one bare
+     * `pokemon.heal(...)` and writes nothing, and reading THAT is what put a paragraph into
+     * medicham2-browser.js (ROADMAP #223) explaining why the line was suppressed on purpose.
+     *
+     * DERIVED OFF THE FORMAT'S OWN HANDLER, so it self-corrects: `Dex.forFormat` serves the merged
+     * ability, and the day Champions drops the override this param goes null and the engine goes
+     * silent again without anybody editing either file. `guarded` is the `if (pokemon.heal(...))`
+     * wrapper -- a body already at full HP gets a delta of 0 from `Pokemon#heal` and NO line -- and
+     * it is carried rather than assumed because the announcement and the guard are one sentence. */
+    of: a => { const src = String(a.onSwitchOut || '');
+      const m = src.match(/\.heal\(\s*\w+\.(?:base)?[Mm]axhp\s*\/\s*(\d+)/);
+      if (!m) return null;
+      const add = src.replace(/\s+/g, ' ').match(/this\.add\(\s*["'](-\w+)["'][^)]*\)/);
+      return { heal: 1 / (+m[1]),
+               announces: add ? { event: add[1],
+                                  attr: (add[0].match(/["'](\[from\][^"']*)["']/) || [])[1] || null,
+                                  silent: /\[silent\]/.test(add[0]) } : null,
+               guarded: /if\s*\(\s*\w+\.heal\(/.test(src.replace(/\s+/g, ' ')) }; } },
   /* THE SWITCH-OUT TRIGGER, AND IT IS A CLASS RATHER THAN THREE ABILITIES.
    *
    * Will, 2026-08-07: *"ALL THE SWITCH OUT ABILITIES ACTIVATE ON SWITCH OUT LIKE REGENERATOR OR
@@ -7158,6 +7221,25 @@ const ABILITY_TAGS = [
                  chance: (rc => rc ? +rc[1] / +rc[2] : 1)(src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/)) } : null
                )(src.match(/addVolatile\(\s*["'](\w+)["']/)),
                boosts,
+               /* 2026-08-23 -- WHETHER THE ATTACKER'S BOOST CARRIES AN `-ability` LINE OF ITS OWN.
+                * `Battle#boost` (sim/battle.ts:2058-2072) NEVER writes `[from] ability:` on a
+                * `-boost`/`-unboost` line; an Ability-caused boost is announced by a separate
+                * `-ability|TARGET|NAME|boost` line emitted ONCE for the whole vector, and that line is
+                * suppressed when `boosted` starts true -- which it does when the handler passes
+                * `isSecondary`. So the 5th positional argument of the handler's own `this.boost(...)`
+                * decides the shape, and this reads it rather than guessing.
+                * MEASURED OVER THE WHOLE TABLE BEFORE IT WAS ADDED: of the twelve punishesAttacker
+                * rows this format carries, exactly ONE calls `this.boost` at all (Gooey, `{ spe: -1 },
+                * source, target, null, true`), so `false` has no legal carrier today. */
+               boostsSecondary: (m => m ? /^\s*true\s*$/.test((m[1].split(',')[4] || '')) : null
+               )(src.match(/this\.boost\(([^;]*?)\)\s*;/)),
+               /* 2026-08-23 -- THE LINE THE HANDLER WRITES ABOUT ITSELF, read off its own `this.add`
+                * by the same `announceIn` the item and priority families already use. Of the twelve
+                * rows above, exactly TWO announce -- Gooey (`-ability|TARGET|Gooey`) and Toxic Debris
+                * (`-activate|TARGET|ability: Toxic Debris`) -- and ten are silent. The other three
+                * announcing members in the dex (Cotton Down, Perish Body, Tangling Hair) have NO LEGAL
+                * CARRIER in this regulation. */
+               announce: announceIn(a.onDamagingHit),
                fraction: (src.match(/baseMaxhp\s*\/\s*(\d+)/) || [])[1] || null,
                hazard,
                maxLayers: hazard ? +((src.match(/layers\s*<\s*(\d+)/) || [])[1] || 0) || null : null,

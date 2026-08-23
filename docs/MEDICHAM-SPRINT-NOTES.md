@@ -21,6 +21,66 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## SIX MECHANICS BY REACH, 29 PLAYED-AND-UNCLEARED DOWN TO 23, AND EVERY ONE OF THE SIX WAS NARRATION. 2026-08-23 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-23-mechanics-by-reach.md`](_reports/2026-08-23-mechanics-by-reach.md).
+Six batches of one, six releases (`bf5a74339a71`, `790c857663c2`, `ea065ec09cdf`, `51eabacfe3ce`,
+`a82b0adf60e4`, `dd3b8bdd482f`), the mechanics artifact re-run in full after each so a bad result
+would stay attributable.
+
+**Mechanics clause 29 → 28 → 27 → 26 → 25 → 24 → 23. Census 646 → 651 live, 0 missing. Damage
+differential 0 of 6000, unchanged. Gate still 5 of 8 PASS — the three roster stages were re-run so
+six releases would not age them out.**
+
+| mechanic | reach | defect | probe | knob |
+|---|---|---|---|---|
+| Cursed Body | 2,177 teams | an `-activate` the authority never writes + a `-start` missing `[from] ability:` / `[of]` | `probe_ability_volatile_line.js` | `MEDI_ABILITY_VOL_LINE_BLIND` |
+| Toxic Debris | 1,840 teams | the handler's own `-activate`; and Gooey's `-ability` + an inline `[from]` on an ability boost line | `probe_punish_announce.js` | `MEDI_PUNISH_ANNOUNCE_BLIND` |
+| Disable | 1,799 clicks | the `-start` did not name the sealed move | `probe_volatile_start_field.js` | `MEDI_VOL_START_ARG_BLIND` |
+| Regenerator | 1,596 teams | the Champions-only `-heal`, suppressed on purpose by #223 reading mainline | `probe_regenerator_line.js` | `MEDI_REGEN_SILENT` |
+| Poltergeist | 1,383 clicks | the item it found was never named (#359) | `probe_poltergeist_item_line.js` | `MEDI_ITEM_READ_SILENT` |
+| Mental Herb | 967 teams | `-end` before the `-enditem` that paid for it | `probe_mental_herb_order.js` | `MEDI_HERB_END_FIRST` |
+
+**EVERY ONE IS NARRATION AND THAT IS MEASURED.** Five read `ANNOUNCEMENT-ONLY` on the board and the
+sixth `SHOWDOWN-ONLY` on a stream, so every probe asserts the board as a CONTROL that must not move.
+That is also why the board-material whole-game count did not fall.
+
+**REGENERATOR IS THE ONE TO READ TWICE.** `data/mods/champions/abilities.ts:77-84` REPLACES the
+handler and adds `this.add('-heal', …, '[from] ability: Regenerator', '[silent]')` behind an
+`if (pokemon.heal(...))` guard. ROADMAP #223 read mainline, reasoned correctly from it, and removed
+the emission ON PURPOSE with a paragraph attached — the citation rule in CLAUDE.md costing a real
+line for eleven days in the most expensive shape it can take. The record is now derived off the
+FORMAT'S OWN merged handler, so it self-corrects.
+
+**FOUR CLASSES PRINTED BEFORE WIRING, TWO OF THEM REFUSING A MEMBER.** Ability-attributed volatile
+starts: 4 of 57, one staged. Punish handlers that announce: 5 in the dex, 3 with no legal carrier, so
+2 of the format's 12 `punishesAttacker` rows, both wired. Runtime field 4 on a `-start`: the rule is
+UNCONDITIONALITY, which admits `disable` and **refuses `charge`**. Moves that announce an item name:
+exactly one — and `readsTargetItem` is NOT the membership, because Knock Off would have gained a line
+on 3,834 clicks.
+
+**THE INSTRUMENT WAS WRONG TWICE AND IT WAS MY PROBE BOTH TIMES.** A normaliser stricter than
+`game_differential.js` reported ten volatile end lines as divergent; measured over all 57, all ten
+differ in the NAMESPACE and nothing else, which is the differ's own `effect-namespace` equivalence.
+The probes now mirror that and `move-target-field`, with the citation.
+
+**WHOLE-GAME, RE-BASELINE NOT DELTA** (release `dd3b8bdd482f`, pool `team-pool-frozen`, census pin
+`9446a684709d`, 961 games): parted 72 / 60 / 74, board-material 30 / 19 / 21, minus instrument
+(Moody 8/0/0, off-field 1/1/2) → **21 / 18 / 19** against a prior 21 / 18 / 18. The cause lists were
+DIFFED rather than the totals: one board-material cause removed (Cursed Body), one revealed behind it
+(a `-miss`), one re-labelled by the Disable fix, **nothing introduced**.
+
+**RED AND NOT FIXED, WITH ITS RECEIPT:** `tests/test-encore-fail-silent.js` fails one counter clause
+(`mvFailSilentNoLine want exactly 1, got 0`) and is red on release `0faabe2a3f1b` too — the release
+cut before anything in this pass. All ten of its staged arms AGREE.
+
+**REGISTER TEXT PROPOSED, `docs/ROADMAP.md` NOT EDITED:** close #359; part-close and NARROW #397
+(the Regenerator member fires and always did — only the line was absent); amend #223 with the
+retraction; three new rows (the refused self-heal's `[still]`, Disable against a zero-PP `lastMove`,
+Cursed Body's three unmodelled exclusion guards).
+
+---
+
 ## THE GATE WENT 6-OF-8 FAILING TO 3-OF-8, AND THREE OF THE FIVE WERE STALENESS RATHER THAN BREAKAGE. 2026-08-23 (MEASURE).
 
 Full account: `docs/_reports/2026-08-23-gate-refresh.md`. One release for the whole refresh —

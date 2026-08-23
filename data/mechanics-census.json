@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-23T11:37:49.820Z",
+  "generated": "2026-08-23T13:03:53.910Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 646,
-  "live": 646,
+  "probed": 651,
+  "live": 651,
   "missing": 0,
-  "armed": 646,
+  "armed": 651,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -1089,6 +1089,16 @@
       "directCall": false
     },
     {
+      "kind": "ability",
+      "tag": "disablesAttacker",
+      "label": "the seal is announced by DISABLE with the ability attributed, and the carrier writes nothing",
+      "live": true,
+      "detail": "Insomnia — start [] activate [] (both must be empty); Cursed Body — start [\"|-start|p2a:garchomp|disable|earthquake|[from]ability:cursedbody|[of]p1a:banette\"] activate [] (exactly one -start naming disable, the ABILITY and the [of] body, and NO -activate at all; sealed=\"earthquake\")",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "item",
       "tag": "restoresStats",
       "label": "White Herb undoes a stat drop",
@@ -1874,6 +1884,16 @@
       "label": "Regenerator heals a third on the way out",
       "live": true,
       "detail": "on the bench, hp change: ability none 0, Regenerator 56 (a third is 56)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "healsOnSwitchOut",
+      "label": "Champions announces the Regenerator heal, and says nothing when there was nothing to heal",
+      "live": true,
+      "detail": "the same Milotic switching out — DAMAGED with Regenerator [\"|-heal|p1a:milotic|112/170|[from]ability:regenerator|[silent]\"] (exactly one line, naming the ability and carrying [silent]); at FULL HP with the SAME ability [] (Pokemon#heal returns 0 and the mod's own `if` swallows the line); DAMAGED with no ability []. Before the fix all three were empty, because ROADMAP #223 read mainline",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2789,6 +2809,16 @@
       "directCall": false
     },
     {
+      "kind": "item",
+      "tag": "curesVolatile",
+      "label": "the herb is SPENT before the volatile it frees, on both members",
+      "live": true,
+      "detail": "event order on the turn the lock lands — ENCORE + herb [\"-enditem\",\"-end\"]; TAUNT + herb [\"-enditem\",\"-end\"] (both must be [\"-enditem\",\"-end\"]: Pokemon#useItem announces the spend and removeVolatile announces the release, in that order). EMPTY HAND, same two clicks: [] and [] — neither line at all, so the order clause cannot pass on a turn that emitted nothing. Before the fix both herb arms read [\"-end\",\"-enditem\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "move",
       "tag": "inflictsConfusion",
       "label": "Confuse Ray sets a clock that COUNTS DOWN and then removes itself",
@@ -3333,7 +3363,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5850,6 +5880,16 @@
     },
     {
       "kind": "move",
+      "tag": "readsTargetItem",
+      "label": "Poltergeist names the item it found, and the other item-reading move names nothing",
+      "live": true,
+      "detail": "POLTERGEIST into a FOCUS SASH [\"|-activate|p2a:garchomp|move:poltergeist|focussash\"] (exactly one line, naming the move AND the item it found); the same click into an EMPTY hand [] (onTry refused it, so onTryHit never runs); KNOCK OFF into the SAME Focus Sash [] — the other carrier of the same tag, which must stay silent, or the wire is keyed on the tag instead of on the move's own onTryHit",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "spendsOwnType",
       "label": "Burn Up burns off its own Fire type, and the next one is refused",
       "live": true,
@@ -6474,6 +6514,16 @@
       "label": "a volatile announces its OWN condition's line — `-singleturn` for Endure, `-activate|trapped` for Block — and a guarded condition still gets the generic one",
       "live": true,
       "detail": "Taunt (guarded onStart, the control) [\"|-start|p2a:snorlax|move:taunt\"]; Endure [\"|-singleturn|p1a:abomasnow|move:endure\"]; Block [\"|-activate|p2a:snorlax|trapped\"]. Before the wire all three read `-start|move:<the move>`, which the authority writes for exactly one of them — and Block's said `block` where the authority says `trapped`",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "volatileAnnounce",
+      "label": "Disable's `-start` names the move it sealed, and a guarded volatile still does not",
+      "live": true,
+      "detail": "the target's last move was \"earthquake\". DISABLE [\"|-start|p2a:garchomp|disable|earthquake\"] — the condition writes a BARE `Disable` label and the sealed move in field 4 (sealed=\"earthquake\"). TAUNT, the control, on the same body after the same turn 1: [\"|-start|p2a:garchomp|move:taunt\"] — guarded onStart, so it keeps the generic `move:` line and must gain NO fourth field. Before the wire Disable read `|-start|p2a:garchomp|move:disable`",
       "hollow": false,
       "armed": true,
       "directCall": false

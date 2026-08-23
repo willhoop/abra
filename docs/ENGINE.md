@@ -57,7 +57,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  646/646 probed mechanics live, 0 missing   (census 2026-08-23 07:37)
+  651/651 probed mechanics live, 0 missing   (census 2026-08-23 09:03)
   0/6000 differential comparisons disagree with Showdown   (2026-08-23 06:53)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -70,15 +70,163 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is c186402bda70 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 100e7ef5b981 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 07:55_
+_stamped 2026-08-23 09:22_
 
 <!-- /GENERATED -->
+
+## SIX MECHANICS BY REACH, EVERY ONE NARRATION, AND THE BIGGEST WAS A PARAGRAPH ARGUING FOR THE WRONG ANSWER FROM THE WRONG FILE. 2026-08-23.
+
+Six defects, six batches of one, each shown RED with its control cleared and its knob wired before
+anything was fixed, each followed by a fresh release and a full re-run of the mechanics artifact.
+Full account:
+[`docs/_reports/2026-08-23-mechanics-by-reach.md`](_reports/2026-08-23-mechanics-by-reach.md).
+
+**Mechanics clause 29 → 28 → 27 → 26 → 25 → 24 → 23 played-and-uncleared divergences. Census
+646 → 651 live, 0 missing. Damage differential 0 of 6000, unchanged.**
+
+### EVERY ONE OF THE SIX IS NARRATION, AND THAT IS MEASURED RATHER THAN ASSUMED
+
+The HP, the volatile, the layer count, the sealed move and the item disposition were already right in
+all six cases — the mechanics artifact called five of them `ANNOUNCEMENT-ONLY` on the board and the
+sixth `SHOWDOWN-ONLY` on a stream. So **every probe asserts the board as a CONTROL that must NOT
+move**, and an arm whose board moves is a red flag rather than a success. It is also why the
+board-material whole-game count did not fall.
+
+| mechanic | reach | what was wrong | probe | knob |
+|---|---|---|---|---|
+| **Cursed Body** | 2,177 teams | an `-activate` on the carrier the authority never writes, and a `-start` on the sealed body missing `[from] ability:` / `[of]` | `probe_ability_volatile_line.js` | `MEDI_ABILITY_VOL_LINE_BLIND` |
+| **Toxic Debris** | 1,840 teams | the handler's own `-activate` absent — and Gooey's `-ability` absent AND its boost line carrying a `[from]` the authority writes on no ability boost anywhere | `probe_punish_announce.js` | `MEDI_PUNISH_ANNOUNCE_BLIND` |
+| **Disable** | 1,799 clicks | the `-start` did not name the move it sealed | `probe_volatile_start_field.js` | `MEDI_VOL_START_ARG_BLIND` |
+| **Regenerator** | 1,596 teams | the Champions-only `-heal` line, suppressed ON PURPOSE by ROADMAP #223 reading mainline | `probe_regenerator_line.js` | `MEDI_REGEN_SILENT` |
+| **Poltergeist** | 1,383 clicks | the item it found was never named (ROADMAP #359) | `probe_poltergeist_item_line.js` | `MEDI_ITEM_READ_SILENT` |
+| **Mental Herb** | 967 teams | `-end` written before the `-enditem` that paid for it | `probe_mental_herb_order.js` | `MEDI_HERB_END_FIRST` |
+
+### REGENERATOR IS THE ONE WORTH READING TWICE: THE LINE WAS REMOVED ON PURPOSE
+
+`engine/medicham2-browser.js` has carried a paragraph since ROADMAP #223 arguing that the authority
+emits no line for the switch-out heal, citing `sim/pokemon.ts:1646` and mainline `data/abilities.ts`.
+Every sentence of it is true of MAINLINE. **`data/mods/champions/abilities.ts:77-84` replaces the
+handler** and adds `this.add('-heal', pokemon, pokemon.getHealth, '[from] ability: Regenerator',
+'[silent]')` behind an `if (pokemon.heal(...))` guard.
+
+That is CLAUDE.md's citation rule costing a real line for eleven days, in the most expensive shape it
+can take: not an omission, a *justified* removal. The `announces` record is now derived off the
+FORMAT'S OWN merged handler, so the day the mod drops the override the param goes null and the engine
+goes silent again with nothing here to edit.
+
+### EVERY CLASS WAS PRINTED BEFORE IT WAS WIRED, AND TWO OF THEM REFUSED A MEMBER
+
+- **volatile start lines that attribute an ability** — 4 of the 57 volatiles a legal move can apply
+  (attract, charge, confusion, disable). ONE staged; the other three named in the probe header so a
+  later pass adds an arm rather than a second emitter. Cute Charm's is unstageable in
+  `game_differential.js` by construction: gender is `N` on both sides.
+- **punish handlers that announce themselves** — 5 in the dex, 3 with NO LEGAL CARRIER here, so **2**
+  of the twelve `punishesAttacker` rows this format carries. Both wired, both staged.
+- **volatile start lines with a runtime field 4** — `disable` (both branches) and `charge` (ONE branch
+  of two). The deriver's rule is UNCONDITIONALITY, so it **admits Disable and refuses Charge**, whose
+  ability line stays with the site that already owns it.
+- **moves that announce an item name** — exactly ONE over the whole legal move table. The tag is NOT
+  the membership: `readsTargetItem`'s other carrier is Knock Off, and a rule keyed on the tag would
+  have put a line on 3,834 corpus clicks. That is the census probe's second control.
+
+### THE INSTRUMENT WAS WRONG TWICE AND IT WAS MY PROBE BOTH TIMES
+
+Neither was the engine. My first normaliser compared `move: encore` against `Encore` and reported ten
+volatile end lines as divergent; measured over all 57 volatiles, **ten differ from this engine's
+generic label and every one of them differs in the NAMESPACE and nothing else** — which is
+`game_differential.js`'s own `effect-namespace` equivalence. The probes now mirror that rule and
+`move-target-field` with the citation. **A probe stricter than the instrument it feeds reports
+defects nothing else in the repository agrees are defects.**
+
+### THE WHOLE-GAME RUN — A RE-BASELINE, SAID FIRST
+
+Release **`dd3b8bdd482f`**, `--team-store data/team-pool-frozen`, census pinned to
+`census-pin-9446a684709d`, `--games 1200 --end-state --write`, **961 games**. Six releases moved under
+this, so it is **not a delta**.
+
+```
+                     middle   top-tie-first   bottom-tie-first
+  parted                72          60              74
+  BOARD-MATERIAL        30          19              21
+  NARRATION-ONLY        42          41              53
+  minus INSTRUMENT      -9          -1              -2     (Moody 8/0/0, off-field body 1/1/2)
+  ------------------------------------------------------
+  ENGINE BOARD-MATERIAL 21          18              19     (prior run: 21 / 18 / 18)
+```
+
+**THE CAUSE LISTS WERE DIFFED, NOT THE TOTALS**, and the diff is four rows in `middle` and nothing in
+either corner: Cursed Body's board-material cause is GONE; `|-fail|p2b <> |-start|p1a|disable` is GONE
+and returns as `|-fail|p2b <> |-start|p1a|disable|protect`, **the same defect wearing Disable's better
+line**; and one game that used to part on the Cursed Body line now parts later on a `-miss`, which is
+what fixing an EARLIER divergence does. **One board-material cause removed, one revealed behind it,
+nothing introduced.**
+
+### THE HAND LIST
+
+**Removed — these are census probes now, so the census carries them:**
+
+- ~~Cursed Body announces itself and does not attribute the seal~~
+- ~~Toxic Debris lays the layer and never says so~~ (and Gooey, the second member)
+- ~~Disable's `-start` does not name the move it sealed~~
+- ~~Regenerator heals silently~~ (ROADMAP #223 read mainline; #397's Regenerator member closes)
+- ~~Poltergeist does not name the item it throws~~ (ROADMAP #359 closes)
+- ~~Mental Herb frees the volatile before it spends the item~~
+
+**Still open, and re-measured on release `dd3b8bdd482f` rather than carried over:**
+
+- **Forecast never fires** — 2 games, board-material in all three arms.
+- **Symbiosis never fires** — 1 game per arm, `|-activate|p2b|symbiosis|lifeorb`.
+- **Zero to Hero is silent**, and at the wrong MOMENT — declared by the run itself.
+- **Throat Chop's `-end` is missing** (2 games, bottom). **Infestation's `-end` is missing** (1, top).
+  **A `-fail` for a poisoned body is missing** (1, bottom).
+- **A drain heal is ordered before the damage it drains from** (1, middle).
+- **A mega `detailschange` is emitted in the wrong ORDER**, and in one game on the wrong SIDE.
+- **Two `-damage` values differ by exactly 1 HP** (hippowdon 35 vs 34, sylveon 95 vs 97).
+- **`switch lookups that MISSED: medicham 6`** (must read 0) and **`forced_switch_unmirrorable 12`**.
+- **`MEDFAILS.traceBodyOffField = 10`**, first `farigiraf` — ROADMAP #224.
+- **The narration gate does not exist.** 42 narration games in `middle` and nothing ratchets them.
+- **NEW: a refused self-heal's `|move|` line.** The authority writes `|move|p2b: X|Recover||[still]`,
+  blanking the target field; this engine writes `|move|p2b: X|recover|p2b: X`. Seen on every arm of
+  the Mental Herb probe including its controls. `game_differential.js` does NOT count it — its
+  `move-target-field` equivalence truncates a `|move|` line at four fields — so it has no instrument.
+- **NEW: Disable is applied against a target whose last move has NO PP.** `disable.onStart` returns
+  false when the matching moveSlot is empty; this engine seals regardless. Board-material, 1 game,
+  and PRE-EXISTING — the same game parted on the same cause in the previous run.
+- **NEW: Cursed Body's three exclusion guards are unmodelled** — `!move.isMax`,
+  `!move.flags['futuremove']`, `move.id !== 'struggle'` (`data/abilities.ts:776`). Struggle is the
+  only reachable member here and nothing stages it.
+
+### OWED, NOT RUN
+
+```
+node tests/run-all.js                                     # RUN
+tools\lownode.cmd engine\quarantine.js                    # RUN — 5 of 8 clauses PASS
+node tests/roster.js --stage {items,abilities,moves} --write  # RUN — 0/0 on all three
+node engine/all_mechanics_fire.js --kind all --release dd3b8bdd482f --write  # RUN
+node engine/game_differential.js ... --games 1200 --end-state --write        # RUN
+node tests/test-mechanics.js                              # RUN — 651/651 live, 0 missing
+node engine/wire_ladder.js                                # NOT run — the ladder stays WITHHELD
+node tests/interaction_matrix.js                          # NOT run
+node engine/argmax_paired.js                              # NOT run — decision-impact.json still absent
+node engine/status.js --write                             # RUN at the end of this pass
+```
+
+- **ONE RED TEST FOUND AND NOT FIXED, WITH ITS RECEIPT.** `tests/test-encore-fail-silent.js` fails on
+  one counter (`mvFailSilentNoLine want exactly 1, got 0`). **It is red on release `0faabe2a3f1b`
+  too** — the release cut before anything in this pass — so it is pre-existing. All ten staged arms
+  AGREE; only the counter clause fails, and the simulator's only `mvFailSilent` call site today sits
+  inside the `MEDI_DRAG_REFUSAL_FAILS` knob branch, which is off. Reported, not filed.
+- **The three roster stages were re-run deliberately.** Six releases would otherwise have aged them
+  out and three PASSING gate clauses would have gone WITHHELD for no reason but the clock.
+- Other reds checked and not this pass's: `gate_fail_and_silent.js` (2 causes, both in the previous
+  run's list), `gate_offfield_target.js` (#224), `em_validation.js` (a stamp against `board.js` and
+  `fit_policy.js`, which ENGINE may not touch), `sanity_check.py`, the self-play validation.
 
 ## THE THIRD CLAUSE WAS A SHARED READER, RAGE FIST WAS THE ROW WE ALREADY HAD, AND STRUGGLE WAS ONE LINE THE FILE'S OWN HEADER HAD ALREADY NAMED. 2026-08-23.
 

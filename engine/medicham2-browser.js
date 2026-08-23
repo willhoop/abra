@@ -152,6 +152,26 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * `disablesAttacker`). Non-zero is correct and expected; a zero over a run holding a Cursed Body
    * means the deferral stopped happening and the disable is being applied twice. */
   inflictsVolatileDeferred: 0,
+  /* 2026-08-23 -- one per punish handler that wrote its OWN line off `punishesAttacker.announce`.
+     Two rows in this format carry one (Gooey, Toxic Debris); a zero over a run holding either means
+     the artifact stopped carrying the record and the line is silently gone again. */
+  punishAnnounced: 0,
+  /* 2026-08-23 -- one per Champions-only `|-heal|…|[from] ability: Regenerator|[silent]` written on a
+     switch-out. A zero over a run holding a Regenerator that actually healed means the artifact
+     stopped carrying `announces` and the line is silently gone again. */
+  switchOutHealAnnounced: 0,
+  /* ROADMAP #359 -- one per `|-activate|TARGET|move: Poltergeist|<item>` written. A zero over a run
+     holding a connected Poltergeist means the artifact stopped carrying `announcesItem`. */
+  targetItemAnnounced: 0,
+  /* 2026-08-23 -- one per item-frees-a-volatile event written in the authority's order (`-enditem`
+     then `-end`). A zero over a run holding a Mental Herb that fired means the two lines are being
+     written somewhere else. */
+  herbSpentBeforeEnd: 0,
+  /* 2026-08-23 -- one per `-ability|TARGET|NAME|boost` line written before a punish boost. `Battle#boost`
+     emits it only when the handler did NOT pass `isSecondary`, and the ONLY legal punishesAttacker
+     carrier with a boost in this format (Gooey) passes `true` -- so this is expected to stay at ZERO
+     and a non-zero means a member arrived whose shape nobody has staged. */
+  punishBoostAbilityLine: 0,
   /* ROADMAP #144 -- PP. Five counters because five different things can be true and only one of them
    * is "PP is working": `ppDeducted` is the base spend, `ppPressureCharged` the extra one an ability
    * takes, `ppRefusedAtSelection` the chooser declining an empty slot, `ppRefusedAtExecution` the
@@ -1500,6 +1520,36 @@ const MEDFAILS = { encoreAction: 0,
      path back on purpose, so a deliberate restore arm and a broken engine can never be read as the
      same thing. Same shape as suckerQueueBlindRestored. */
   dmgOwnTypeBlindRestored: 0,
+  /* 2026-08-23 -- set for the whole run when MEDI_ABILITY_VOL_LINE_BLIND=1 puts the carrier's
+     `-activate` and the un-attributed `-start` back on purpose, so a deliberate restore arm and a
+     broken engine can never be read as the same thing. Same shape as dmgOwnTypeBlindRestored. */
+  abilityVolLineBlindRestored: 0,
+  /* 2026-08-23 -- set for the whole run when MEDI_PUNISH_ANNOUNCE_BLIND=1 puts the silent punish and
+     the inline `[from] ability:` boost line back on purpose. Same shape as the row above. */
+  punishAnnounceBlindRestored: 0,
+  /* 2026-08-23 -- set for the whole run when MEDI_VOL_START_ARG_BLIND=1 puts the generic
+     `-start|move: <vol>` back on the one volatile whose field 4 is computed. */
+  volStartArgBlindRestored: 0,
+  /* 2026-08-23 -- `volatileAnnounce.arg` named a runtime value this engine cannot resolve. Expected
+     to stay at ZERO: the deriver admits exactly one arg name (`lastMove`) and refuses every other
+     shape. Non-zero means tag_dex learned a second one and this reader was not told. */
+  volStartArgUnknown: 0, volStartArgUnknownFirst: '',
+  /* 2026-08-23 -- set for the whole run when MEDI_REGEN_SILENT=1 restores ROADMAP #223's deliberate
+     suppression of the switch-out heal line. */
+  regenSilentRestored: 0,
+  /* ROADMAP #359 -- set for the whole run when MEDI_ITEM_READ_SILENT=1 suppresses the item-read
+     announcement again. */
+  itemReadSilentRestored: 0,
+  /* 2026-08-23 -- set for the whole run when MEDI_HERB_END_FIRST=1 restores the backwards
+     `-end` before `-enditem` order on an item that frees a volatile. */
+  herbEndFirstRestored: 0,
+  /* ROADMAP #359 -- `readsTargetItem.announcesItem` named an event this site does not emit. Expected
+     to stay at ZERO: the one carrier writes `-activate`. */
+  targetItemEventUnknown: 0, targetItemEventUnknownFirst: '',
+  /* 2026-08-23 -- `healsOnSwitchOut.announces` named an event this site does not emit. Expected to
+     stay at ZERO: the one carrier in this format writes `-heal`. Non-zero means the mod changed the
+     shape of the line and the reader was not told. */
+  switchOutHealEventUnknown: 0, switchOutHealEventUnknownFirst: '',
   /* ROADMAP #304 -- a damaging hit whose sixteen-entry band did NOT arrive, so the loop fell back to
    * the old uniform draw over the span. Never expected: the battle loop asks for `rolls` on every hit
    * context. Non-zero means dmgRange grew a return path that does not fill the out-parameter, and the
@@ -2341,7 +2391,11 @@ const TRACE=(function(){
     /* `-sethp` -- a SET rather than a delta, and the authority's only producer is Pain Split. The
      * `[silent]` field is the handler's own on the TARGET's line and absent on the user's. */
     sethp(m,from,silent){ this.push(['-sethp',ident(m),health(m),from,silent?'[silent]':'']); },
-    heal(m,from,of){ this.push(['-heal',ident(m),health(m),from,of?'[of] '+ident(of):'']); },
+    /* 2026-08-23 -- `tag` IS THE AUTHORITY'S OWN FIFTH FIELD on one line and one line only:
+     * Champions' Regenerator writes `this.add('-heal', pokemon, pokemon.getHealth,
+     * '[from] ability: Regenerator', '[silent]')`. push() drops an empty field, so with no `of` the
+     * flag lands where the authority puts it and every existing three-argument caller is unchanged. */
+    heal(m,from,of,tag){ this.push(['-heal',ident(m),health(m),from,of?'[of] '+ident(of):'',tag]); },
     faint(m){ if(m._traceFainted)return; m._traceFainted=true; this.push(['faint',ident(m)]); },
     /* --- stages, status, volatiles --- */
     /* ROADMAP #289 -- A CLAMPED STAT CHANGE IS STILL ANNOUNCED, AND ITS MAGNITUDE IS ZERO.
@@ -2409,7 +2463,14 @@ const TRACE=(function(){
      * `this.add('-curestatus', pokemon, pokemon.status, '[from] ability: Natural Cure', '[silent]')`
      * (data/abilities.ts:2874). Dropping it would part the two streams on a line we do emit. */
     cure(m,s,from,extra){ this.push(['-curestatus',ident(m),s,from,extra]); },
-    vstart(m,eff,extra){ this.push(['-start',ident(m),eff,extra]); },
+    /* 2026-08-23 -- `from` AND `of` ARE THE CONDITION'S OWN FOURTH AND FIFTH FIELDS, and they are the
+     * same pair `sta()` two lines up already carries for a status. Four of the 57 volatiles a legal
+     * move can apply in this regulation branch their `onStart` on the SOURCE EFFECT and write
+     * `'[from] ability: ' + effect.name` with `` `[of] ${source}` `` when it is an ability -- attract
+     * (Cute Charm), charge (Electromorphosis / Wind Power), confusion and disable (Cursed Body). The
+     * membership was printed over the whole move table before this argument existed. Both fields are
+     * optional and `push` drops an empty one, so every existing caller is unchanged. */
+    vstart(m,eff,extra,from,of){ this.push(['-start',ident(m),eff,extra,from,of?'[of] '+ident(of):'']); },
     /* ROADMAP #234 -- `tag` is the partial trap's `[partiallytrapped]`, the authority's own third
      * field on a line whose SECOND field is the source MOVE and not the condition:
      * `add('-end', pokemon, this.effectState.sourceEffect, '[partiallytrapped]')` (data/conditions.ts
@@ -8965,6 +9026,47 @@ const SUCKER_QUEUE_BLIND=(typeof process!=='undefined'&&process.env&&process.env
  * it has honoured the tag since #144 and the defect was that the two disagreed. Any run carrying it
  * also carries a non-zero `MEDFAILS.dmgOwnTypeBlindRestored`. */
 const DMG_OWNTYPE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DMG_OWNTYPE_BLIND==='1');
+/* 2026-08-23 -- MEDI_ABILITY_VOL_LINE_BLIND=1 PUTS BOTH HALVES OF THE ABILITY-APPLIED VOLATILE LINE
+ * BACK: the `-activate` the carrier used to write, and the un-attributed `-start`. ONE knob for the
+ * pair because the authority states them in ONE sentence -- the condition's `onStart` writes the
+ * whole line and the ability writes nothing at all (`data/abilities.ts:774`, nine lines, no
+ * `this.add`) -- so a knob per half would restore a state this engine never had. It exists so
+ * `tests/probe_ability_volatile_line.js` can be shown RED on demand without swapping a file. Any run
+ * carrying it also carries a non-zero `MEDFAILS.abilityVolLineBlindRestored`. Same shape as
+ * MEDI_DMG_OWNTYPE_BLIND above. */
+const ABILITY_VOL_LINE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ABILITY_VOL_LINE_BLIND==='1');
+/* 2026-08-23 -- MEDI_PUNISH_ANNOUNCE_BLIND=1 PUTS THE WHOLE PUNISH-NARRATION SET BACK: the handler's
+ * own `-activate`/`-ability` line goes away again, and the attacker's boost line gets its
+ * `[from] ability:` back. ONE knob for the pair because they are one sentence of `Battle#boost`'s
+ * contract -- an ability boost is announced by a SEPARATE line and never inline -- so a knob that
+ * restored one half would describe a state this engine never had. It exists so
+ * `tests/probe_punish_announce.js` can be shown RED on demand without swapping a file. Any run
+ * carrying it also carries a non-zero `MEDFAILS.punishAnnounceBlindRestored`. Same shape as
+ * MEDI_ABILITY_VOL_LINE_BLIND above. */
+const PUNISH_ANNOUNCE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PUNISH_ANNOUNCE_BLIND==='1');
+/* 2026-08-23 -- MEDI_VOL_START_ARG_BLIND=1 PUTS THE GENERIC VOLATILE START LINE BACK for the one
+ * volatile whose field 4 is computed: `-start|BODY|move: disable` instead of
+ * `-start|BODY|Disable|<the sealed move>`. It exists so `tests/probe_volatile_start_field.js` can be
+ * shown RED on demand without swapping a file. Any run carrying it also carries a non-zero
+ * `MEDFAILS.volStartArgBlindRestored`. Same shape as MEDI_PUNISH_ANNOUNCE_BLIND above. */
+const VOL_START_ARG_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_VOL_START_ARG_BLIND==='1');
+/* 2026-08-23 -- MEDI_REGEN_SILENT=1 PUTS ROADMAP #223's SUPPRESSION BACK: the switch-out heal
+ * happens and says nothing, which is right for MAINLINE and wrong for Champions. It exists so
+ * `tests/probe_regenerator_line.js` can be shown RED on demand without swapping a file. Any run
+ * carrying it also carries a non-zero `MEDFAILS.regenSilentRestored`. Same shape as
+ * MEDI_VOL_START_ARG_BLIND above. */
+const REGEN_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REGEN_SILENT==='1');
+/* ROADMAP #359, 2026-08-23 -- MEDI_ITEM_READ_SILENT=1 PUTS THE MISSING POLTERGEIST LINE BACK: the
+ * move reads the target's item, refuses correctly without one, and says nothing about what it found.
+ * It exists so `tests/probe_poltergeist_item_line.js` can be shown RED on demand without swapping a
+ * file. Any run carrying it also carries a non-zero `MEDFAILS.itemReadSilentRestored`. Same shape as
+ * MEDI_REGEN_SILENT above. */
+const ITEM_READ_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ITEM_READ_SILENT==='1');
+/* 2026-08-23 -- MEDI_HERB_END_FIRST=1 PUTS THE BACKWARDS ORDER BACK: the freed volatile's `-end` is
+ * written before the `-enditem` that paid for it. It exists so `tests/probe_mental_herb_order.js` can
+ * be shown RED on demand without swapping a file. Any run carrying it also carries a non-zero
+ * `MEDFAILS.herbEndFirstRestored`. Same shape as MEDI_ITEM_READ_SILENT above. */
+const HERB_END_FIRST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HERB_END_FIRST==='1');
 function sleepDurationDraw(){
   const r=medRng();
   const u=(typeof r==='function')?r():0.5;
@@ -12018,7 +12120,13 @@ function volAnnounce(mvId,vol){
     return {silent:true};
   }
   MEDSEEN.volAnnounceFromTable++;
-  return {event:_a.event,desc:_a.desc};
+  /* 2026-08-23 -- `arg` NAMES A RUNTIME VALUE, IT IS NOT ONE. `data/tags.json` claims a THIRD shape
+   * now: a guarded `onStart` whose every `-start` carries the same computed field 4. Exactly one
+   * volatile in this format qualifies (`disable`, `pokemon.lastMove.name`); `charge` is refused by
+   * the deriver because only ONE of its two branches carries the argument. Passing the NAME rather
+   * than the value keeps the artifact free of anything that depends on the turn. */
+  if(VOL_START_ARG_BLIND&&_a.arg){MEDFAILS.volStartArgBlindRestored=1;return {event:_a.event,desc:'move: '+vol};}
+  return {event:_a.event,desc:_a.desc,arg:_a.arg||null};
 }
 /* The emitter, beside the reader for the same reason: a caller that had to map an event name onto a
  * TRACE method would be a second place that decides what `-singleturn` means. */
@@ -12026,7 +12134,19 @@ function volAnnounceEmit(who,a){
   if(!TR||!a||a.silent)return;
   if(a.event==='-singleturn')TR.st1(who,a.desc);
   else if(a.event==='-activate')TR.act(who,a.desc);
-  else TR.vstart(who,a.desc);
+  else TR.vstart(who,a.desc,volStartArg(who,a));
+}
+/* The one reader of `volatileAnnounce.arg`. `lastMove` is `pokemon.lastMove.name` read off the body
+ * the volatile is landing on -- the SEALED move, and the same field `_sealed` is about to be set to
+ * three lines below its only caller. `activeMove` has NO member today (charge is refused by the
+ * deriver, see its comment) so it is counted rather than guessed: a silent fallback here would put
+ * a blank field on a line the authority fills, which is the defect this whole wire closes. */
+function volStartArg(who,a){
+  if(!a||!a.arg)return undefined;
+  if(a.arg==='lastMove')return (who&&who._lastMove)||undefined;
+  MEDFAILS.volStartArgUnknown++;
+  if(!MEDFAILS.volStartArgUnknownFirst)MEDFAILS.volStartArgUnknownFirst=String(a.arg)+' -> '+String(a.desc);
+  return undefined;
 }
 /* ROADMAP #308 -- WHICH BODIES A STATUS CLICK REACHES. ONE IMPLEMENTATION.
  *
@@ -12437,7 +12557,26 @@ function mentalHerbCures(who,vol){
   if(vol==='disable')who._sealed=null;
   if(vol==='encore'){who._encoreMove=null;if(who._lockT!==Infinity){who._lock=null;who._lockT=0;}}
   if(vol==='healblock')who._healBlock=0;
-  if(TR){TR.vend(who,'move: '+vol);TR.enditem(who,who.item);}
+  /* 2026-08-23 -- THE ITEM IS SPENT BEFORE THE VOLATILE IT FREES, AND THIS FILE HAD IT BACKWARDS.
+   *
+   *     data/items.ts:3906-3917 (mentalherb.onUpdate), not overridden by Champions:
+   *       if (!pokemon.useItem()) return;                    <-- `Pokemon#useItem` writes |-enditem|
+   *       for (const secondCondition of conditions) pokemon.removeVolatile(secondCondition);
+   *                                                          <-- the CONDITION's onEnd writes |-end|
+   *
+   * The board is identical either way round -- the volatile is gone and so is the item -- which is
+   * why only the protocol stream could see it, and it is the whole of `data/all-mechanics-fire.json`'s
+   * `item:mentalherb` divergence (`ordering :: |-enditem|p1a|mentalherb <> |-end|p1a|encore`).
+   *
+   * NOT FIXED HERE AND SAID SO: the authority's loop removes ALL SIX conditions when it fires and
+   * this removes the one that just landed. On a legal board they agree -- the herb is consumed by the
+   * first of the six to arrive, so a second cannot already be present -- but that is an argument and
+   * not a measurement, and no probe stages it. */
+  if(TR){
+    if(HERB_END_FIRST){MEDFAILS.herbEndFirstRestored=1;
+      TR.vend(who,'move: '+vol);TR.enditem(who,who.item);}
+    else{TR.enditem(who,who.item);TR.vend(who,'move: '+vol);MEDSEEN.herbSpentBeforeEnd++;}
+  }
   who.item='';
   return true;
 }
@@ -13666,7 +13805,15 @@ function imposterRevert(m){
  *
  * Returns true when a layer actually went down, so the caller can decide whether to announce it --
  * Showdown's `onSideRestart` returns false at the cap and emits no `-sidestart`. */
-function layHazard(sf,hz,cap,setter,sideLabel){
+/* 2026-08-23 -- `say` IS CALLED AFTER THE CAP TEST AND BEFORE THE `-sidestart`, WHICH IS THE ONLY
+ * PLACE IT CAN GO. Toxic Debris announces itself INSIDE the guard that also decides whether the layer
+ * goes down (`data/abilities.ts:5100` -- `if (move.category === 'Physical' && (!toxicSpikes ||
+ * toxicSpikes.layers < 2)) { this.add('-activate', ...); side.addSideCondition(...); }`), so a caller
+ * that announced before calling would speak on the turn the cap refuses and a caller that announced
+ * after would speak in the wrong order. It is a CALLBACK rather than a second cap test in the caller
+ * because "how many layers may this hazard have" is a fact, and CLAUDE.md's facts-are-global rule is
+ * exactly about the second copy that drifts. */
+function layHazard(sf,hz,cap,setter,sideLabel,say){
   if(!sf||!hz)return false;
   const bag=(sf.hz=sf.hz||{});
   const before=bag[hz]||0;
@@ -13682,6 +13829,7 @@ function layHazard(sf,hz,cap,setter,sideLabel){
      Showdown's `effectState.source` does. Sticky Web's -1 Speed HAS a source and therefore DOES
      trigger Defiant. Only recorded when a caller names one. */
   if(setter)(sf.hzBy=sf.hzBy||{})[hz]=setter;
+  if(say)say();
   if(TR&&sideLabel)TR.sstartSide(sideLabel,hz);
   return true;
 }
@@ -14345,10 +14493,41 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * TYPES, and this engine emits `-heal` correctly for Leftovers, for drain and for Wish. Suppressing
    * the type would hide three right lines to remove one wrong one; the emission is dropped at the ONE
    * call site whose authority is silent. `undeclared_drops` stays 0. */
+  /* 2026-08-23 -- AND THE PARAGRAPH ABOVE IS RIGHT ABOUT MAINLINE AND WRONG ABOUT THIS FORMAT.
+   *
+   * `data/mods/champions/abilities.ts:77-84` REPLACES the handler and adds the line back:
+   *
+   *     regenerator: { inherit: true,
+   *       onSwitchOut(pokemon) {
+   *         if (pokemon.heal(pokemon.baseMaxhp / 3)) {
+   *           this.add('-heal', pokemon, pokemon.getHealth, '[from] ability: Regenerator', '[silent]');
+   *         } } }
+   *
+   * Champions overrides EIGHT files and `abilities` is one of them, so #223's citation of
+   * `sim/pokemon.ts` and mainline `data/abilities.ts` was reading a different game -- CLAUDE.md's
+   * standing rule, and the most expensive shape it can take, because the emission was removed ON
+   * PURPOSE with an argument attached. The HP was and stays right; only the line was missing.
+   *
+   * THE LINE IS THE ARTIFACT'S, NOT THIS FILE'S. `healsOnSwitchOut.announces` is read off the
+   * FORMAT'S OWN merged handler, so the day Champions drops the override the param goes null and
+   * this goes silent again with nothing here to edit. `guarded` is the `if (pokemon.heal(...))`
+   * wrapper: `Pokemon#heal` returns the DELTA, a body already at full gets 0, and 0 writes nothing.
+   * That is why the delta is computed rather than the fraction being announced blind. */
   {const _hs=TAGS.param('ability',out.ability,'healsOnSwitchOut');
    if(_hs&&_hs.heal&&out.st&&out.curHP>0){
+     const _was=out.curHP;
      out.curHP=Math.min(out.st.hp,out.curHP+Math.floor(out.st.hp*_hs.heal));
-     MEDSEEN.switchOutHealSilent++;}}
+     const _got=out.curHP-_was;
+     MEDSEEN.switchOutHealSilent++;
+     if(REGEN_SILENT){ if(_hs.announces)MEDFAILS.regenSilentRestored=1; }
+     else if(TR&&_hs.announces&&_hs.announces.event==='-heal'&&(_got>0||!_hs.guarded)){
+       TR.heal(out,_hs.announces.attr||undefined,null,_hs.announces.silent?'[silent]':undefined);
+       MEDSEEN.switchOutHealAnnounced++;
+     } else if(_hs.announces&&_hs.announces.event!=='-heal'){
+       MEDFAILS.switchOutHealEventUnknown++;
+       if(!MEDFAILS.switchOutHealEventUnknownFirst)
+         MEDFAILS.switchOutHealEventUnknownFirst=String(out.ability)+' -> '+String(_hs.announces.event);
+     }}}
   /* WIRE 133 -- THE SWITCH-OUT TRIGGER, AND IT IS A CLASS RATHER THAN THREE ABILITIES.
    *
    * Will, 2026-08-07: *"ALL THE SWITCH OUT ABILITIES ACTIVATE ON SWITCH OUT LIKE REGENERATOR OR
@@ -20622,6 +20801,33 @@ function battleTurn(S,rng,actsForA,actsForB){
           MEDSEEN.itemlessTargetRefused++;
           m._lastMove=a.move.id;{if(TR)TR.attrStill();mvFail(m);}continue;
         }
+        /* ROADMAP #359, 2026-08-23 -- AND THE OTHER HALF OF THE SAME HANDLER: THE MOVE SAYS WHAT IT
+         * FOUND BEFORE IT DOES ANYTHING WITH IT.
+         *
+         *     onTryHit(target, source, move) { this.add('-activate', target, 'move: Poltergeist',
+         *                                               this.dex.items.get(target.item).name); }
+         *     -- data/moves.ts:13610, and Champions does not override poltergeist.
+         *
+         * BELOW the refusal because the authority puts it below: `onTryHit` runs only when `onTry`
+         * returned true, so an item-less target gets the `-fail` above and NO line. Because it is the
+         * FIRST thing the move writes, its absence truncated the comparison of every game holding a
+         * Poltergeist -- which is why #359 is an emission defect that still costs the divergence rate.
+         *
+         * THE MEMBERSHIP IS NOT THE TAG. `readsTargetItem` has two carriers and Knock Off announces
+         * nothing here; `announcesItem` is derived from the move's own `onTryHit` and is null on Knock
+         * Off, so a line cannot leak onto its 3,834 clicks. The ITEM ID is this engine's own, never a
+         * Showdown display string -- `traceCanon` folds case and spaces on every field from 2 up. */
+        if(_ri&&_ri.announcesItem&&!ITEM_READ_SILENT&&targets[0]&&targets[0].item){
+          const _ai=_ri.announcesItem;
+          if(_ai.event==='-activate'){
+            if(TR)TR.act(targets[0],_ai.desc,targets[0].item);
+            MEDSEEN.targetItemAnnounced++;
+          } else { MEDFAILS.targetItemEventUnknown++;
+            if(!MEDFAILS.targetItemEventUnknownFirst)
+              MEDFAILS.targetItemEventUnknownFirst=String(a.move.id)+' -> '+String(_ai.event); }
+        } else if(_ri&&_ri.announcesItem&&ITEM_READ_SILENT&&targets[0]&&targets[0].item){
+          MEDFAILS.itemReadSilentRestored=1;
+        }
       }
       /* WIRE 47 -- CRASH ON MISS. High Jump Kick, Axe Kick and Supercell Slam (209 uses) missed
          correctly and cost the user nothing, so a 90%-accurate 130 BP move had no downside at all --
@@ -22357,10 +22563,52 @@ function battleTurn(S,rng,actsForA,actsForB){
               if(TR)TR.dmg(m,'[from] ability: '+tg.ability,tg);
               if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
             }
-            if(_pun.boosts&&m.boosts&&!m.fainted)for(const k in _pun.boosts){
-              const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null){const _b0=m.boosts[_st];
-                m.boosts[_st]=clamp(m.boosts[_st]+_pun.boosts[k],-6,6);
-                if(TR)TR.bst(m,_st,m.boosts[_st]-_b0,'[from] ability: '+tg.ability);}
+            /* 2026-08-23 -- THE HANDLER'S OWN LINE ABOUT ITSELF, off `punishesAttacker.announce`.
+             *
+             * Five abilities in the dex open their `onDamagingHit` with a literal `this.add`; three
+             * of them have NO LEGAL CARRIER in this regulation, and of the twelve punishesAttacker
+             * rows `data/tags.json` actually carries, exactly TWO announce -- Gooey
+             * (`-ability|TARGET|Gooey`, data/abilities.ts:2178) and Toxic Debris
+             * (`-activate|TARGET|ability: Toxic Debris`, data/abilities.ts:5096). Ten are silent, and
+             * that membership was PRINTED before the param was derived.
+             *
+             * It is `TR.announced`, the reader that already serves `survivesFromFull` and
+             * `fractionalPriority`, because "what shape does this handler announce in" is one
+             * question and a second answer to it would drift. Emitted ONCE per punish -- both
+             * carriers write one line -- and gated on the effect the authority gates it on: Gooey
+             * announces inside its contact guard, Toxic Debris inside the guard that ALSO decides
+             * whether the layer goes down, which is why the hazard arm passes it to `layHazard`
+             * rather than saying it here. */
+            let _annSaid=false;
+            const _punSay=()=>{ if(_annSaid||!TR||!_pun.announce)return;
+              if(PUNISH_ANNOUNCE_BLIND){MEDFAILS.punishAnnounceBlindRestored=1;return;}
+              TR.announced(tg,_pun.announce,tg.ability); _annSaid=true;
+              MEDSEEN.punishAnnounced++; };
+            if(_pun.boosts&&m.boosts&&!m.fainted){
+              _punSay();
+              /* AN ABILITY-CAUSED BOOST LINE IS NEVER ATTRIBUTED INLINE. `Battle#boost`
+               * (sim/battle.ts:2058-2072) writes a BARE `-boost`/`-unboost` for an Ability effect and
+               * puts the attribution on a SEPARATE `-ability|TARGET|NAME|boost` line, emitted once for
+               * the whole vector and suppressed when `boosted` starts true -- which it does when the
+               * handler passes `isSecondary`. This engine wrote `[from] ability: X` on the boost line,
+               * which the authority writes on NO ability boost anywhere; `_hpThresholdBoost` four
+               * hundred lines down already states the same rule and the two sites disagreed.
+               * `boostsSecondary` is the handler's own 5th argument. Gooey is the ONLY legal carrier
+               * with a boost and it passes `true`, so the `-ability` branch has no member today and is
+               * written from `Battle#boost` rather than from a case anybody staged -- counted, so the
+               * day a member arrives it is visible instead of assumed. */
+              let _abSaid=PUNISH_ANNOUNCE_BLIND||_pun.boostsSecondary!==false;
+              for(const k in _pun.boosts){
+                const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null){const _b0=m.boosts[_st];
+                  m.boosts[_st]=clamp(m.boosts[_st]+_pun.boosts[k],-6,6);
+                  const _d=m.boosts[_st]-_b0;
+                  /* `boosted` is set INSIDE `if (boostBy)`, so a stat already at the cap neither
+                   * announces nor arms the flag; the zero line itself is `bst`'s own business and is
+                   * unchanged. */
+                  if(TR&&_d&&!_abSaid){TR.ab(m,tg.ability,'boost');_abSaid=true;
+                                       MEDSEEN.punishBoostAbilityLine++;}
+                  if(TR)TR.bst(m,_st,_d,PUNISH_ANNOUNCE_BLIND?'[from] ability: '+tg.ability:undefined);}
+              }
             }
             /* ONE roll against the cumulative, because the artifact's list entries are exclusive
              * branches of one random(100) -- rolling each independently would understate Effect
@@ -22396,7 +22644,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              * `+_pun.maxLayers||1` default is deliberately NOT preserved: an absent cap is now
              * counted in MEDFAILS.hazardCapUnknown instead of quietly becoming 1. */
             if(_pun.hazard&&m._sf)
-              layHazard(m._sf,_pun.hazard,_pun.maxLayers,tg,m._sf.side==='A'?'p1':'p2');
+              layHazard(m._sf,_pun.hazard,_pun.maxLayers,tg,m._sf.side==='A'?'p1':'p2',_punSay);
             /* ROADMAP #197 -- AND `inflictsVolatile`, WHICH THE COMMENT ABOVE SAID HAD NOWHERE TO
              * LAND. Cute Charm read 0 fires in 16,575 constructed trials against a declared 30%.
              * There IS state for it now: `applyAttract` owns the volatile, its gender clause and its
@@ -23333,7 +23581,25 @@ function battleTurn(S,rng,actsForA,actsForB){
              (m._vol=m._vol||{}).disable=volDurationOnApply('disable',false,_dt)||1;
              MEDSEEN.volDurationApplied++;
              m._sealed=a.move.id;
-             if(TR){TR.act(tg,'ability: '+tg.ability);TR.vstart(m,'Disable',a.move.id);}
+             /* 2026-08-23 -- THE CARRIER WRITES NOTHING AND THE CONDITION WRITES EVERYTHING.
+              *
+              * `data/abilities.ts:774-786` is the WHOLE of Cursed Body and it contains no `this.add`
+              * of any kind -- it calls `source.addVolatile('disable', this.effectState.target)` and
+              * stops. The line on the wire is `disable`'s own `onStart` (`data/moves.ts:3686-3690`),
+              * which takes the ability branch because `Pokemon#addVolatile` defaults `sourceEffect`
+              * to `this.battle.effect` -- the ability, inside its own handler:
+              *
+              *   |-start|p2a: Feraligatr|Disable|Aqua Tail|[from] ability: Cursed Body|[of] p1a: Banette
+              *
+              * This engine wrote an `-activate` on the CARRIER that the authority never writes, and a
+              * `-start` on the sealed body with the two attribution fields missing. One sentence in
+              * the authority, so one fix and one knob; `tests/probe_ability_volatile_line.js` shows
+              * both halves red with the ability swapped for Insomnia as the cleared control. */
+             if(TR){
+               if(ABILITY_VOL_LINE_BLIND){ MEDFAILS.abilityVolLineBlindRestored=1;
+                 TR.act(tg,'ability: '+tg.ability); TR.vstart(m,'Disable',a.move.id); }
+               else TR.vstart(m,'Disable',a.move.id,'[from] ability: '+tg.ability,tg);
+             }
            }}
         }
         /* Spicy Spray's burn was an independent hardcode here, gated on PHYSICAL -- the handler

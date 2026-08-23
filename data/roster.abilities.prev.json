@@ -1,15 +1,15 @@
 {
- "generated": "2026-08-23T06:05:56.373Z",
+ "generated": "2026-08-23T11:43:17.436Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "c36782953dee",
+ "engine_release": "0faabe2a3f1b",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 0,
-  "FIRED-AND-BOARDS-MATCH": 129,
-  "CONTROL-NOT-QUIET": 46,
+  "FIRED-AND-BOARDS-MATCH": 130,
+  "CONTROL-NOT-QUIET": 45,
   "COULD-NOT-STAGE": 141
  },
  "arms_played": {
@@ -23,12 +23,12 @@
    "no-legal-carrier": 114
   },
   "in_scope": 202,
-  "tested": 129,
-  "matched": 129,
+  "tested": 130,
+  "matched": 130,
   "differ": 0,
   "silent": 0,
   "deferred": 0,
-  "unattributable": 46,
+  "unattributable": 45,
   "unattributable_ids": [
    "aftermath",
    "analytic",
@@ -47,7 +47,6 @@
    "heavymetal",
    "hydration",
    "illuminate",
-   "imposter",
    "justified",
    "keeneye",
    "klutz",
@@ -77,9 +76,7 @@
    "telepathy",
    "trace"
   ],
-  "declared_untestable": [
-   "imposter"
-  ],
+  "declared_untestable": [],
   "could_not_stage_in_scope": 27,
   "attributed_by_second_control": [
    "adaptability",
@@ -310,7 +307,7 @@
     "a": "imposter",
     "b": "limber",
     "verdicts": [
-     "CONTROL-NOT-QUIET",
+     "FIRED-AND-BOARDS-MATCH",
      "FIRED-AND-BOARDS-MATCH"
     ],
     "leaves": [
@@ -7352,12 +7349,12 @@
    "rule": "ability/entry",
    "reads": "onStart / onSwitchIn, with no onResidual",
    "note": "ALTERNATE carrier Ditto; control = Limber (NOT A QUIET ABILITY — see the caveat on any finding); staged as entry",
-   "verdict": "CONTROL-NOT-QUIET",
-   "why": "THE DELTA IS NOT ATTRIBUTABLE TO THIS ENTITY. the CONTROL is another LIVE ability — Limber — because ditto has no quiet alternative. The measured delta is (subject MINUS that ability) and cannot say which of the two moved the board. MEASURED on this instrument's own artifact: Sand Rush and Fluffy control each other and reported THE SAME TWO NUMBERS SWAPPED, and the 32-HP gap is Fluffy. The subject arm moved and the two engines disagree, which under a quiet control would read FIRED-AND-BOARDS-DIFFER — it is neither.  NO QUIET CONTROL EXISTS FOR THIS ABILITY IN THIS FORMAT, and the pool is printed rather than asserted. Every legal species carrying it, with what else it could be controlled by: Ditto [Limber]. This format has only 8 quiet abilities (Ball Fetch, Battle Armor, Corrosion, Dancer, Early Bird, Honey Gather, Run Away, Shell Armor) and not one of them shares a species with it. A quiet ability CANNOT be lent from another species: engine/game_differential.js buildPair clamps an ability to its species' own list and falls back to slot 0, so an illegal pairing would silently become the subject arm again — the ROADMAP #100 failure. Suppression is the other route and it is MEASURED not to work here (see the Gastro Acid proof). DECLARED UNTESTABLE, not passed and not failed. (the control, Limber, registers 2 handler(s), so it cannot be argued inert either, and its species has no THIRD ability to vary it against.)",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
-   "control_why": "NO QUIET CONTROL EXISTS FOR THIS ABILITY IN THIS FORMAT, and the pool is printed rather than asserted. Every legal species carrying it, with what else it could be controlled by: Ditto [Limber]. This format has only 8 quiet abilities (Ball Fetch, Battle Armor, Corrosion, Dancer, Early Bird, Honey Gather, Run Away, Shell Armor) and not one of them shares a species with it. A quiet ability CANNOT be lent from another species: engine/game_differential.js buildPair clamps an ability to its species' own list and falls back to slot 0, so an illegal pairing would silently become the subject arm again — the ROADMAP #100 failure. Suppression is the other route and it is MEASURED not to work here (see the Gastro Acid proof). DECLARED UNTESTABLE, not passed and not failed. (the control, Limber, registers 2 handler(s), so it cannot be argued inert either, and its species has no THIRD ability to vary it against.)",
+   "control_why": null,
    "out_of_scope": null,
-   "declared_untestable": true,
+   "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
@@ -7572,17 +7569,7 @@
      "without": "limber"
     }
    ],
-   "diffs": [
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "weavile",
-     "field": "vol.focusenergy",
-     "showdown": 1,
-     "ours": 0,
-     "bucket": "off-by-one"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "ability",
@@ -18365,16 +18352,16 @@
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Sableye; control = Prankster (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic",
    "verdict": "CONTROL-NOT-QUIET",
-   "why": "NOTHING SURVIVES BOTH CONTROLS, AND THAT IS NOT THE SAME AS INERT. The delta against Prankster is 17 leaf/leaves and against Keen Eye it is 16, and they share none. Either this entity does nothing here and the leaves are the control's, OR this entity and one of the controls move the same leaves and cancel. TWO ARMS CANNOT SEPARATE THOSE and the species has no third alternative to ask with. Measured, not assumed: THE SECOND CONTROL: the identical scenario played a third time with Keen Eye in the slot instead of Prankster. THE TWO DELTAS DIFFER on 33 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 0 p2.party.sableye.ability with=stall without=prankster; showdown turn 0 p2.active[0].ability with=stall without=prankster; ours turn 0 p2.party.sableye.ability with=stall without=prankster; ours turn 0 p2.active[0].ability with=stall without=prankster, +29 more. 0 of 17 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Prankster registers 1 handler(s), Keen Eye registers 2.)",
+   "why": "NOTHING SURVIVES BOTH CONTROLS, AND THAT IS NOT THE SAME AS INERT. The delta against Prankster is 16 leaf/leaves and against Keen Eye it is 16, and they share none. Either this entity does nothing here and the leaves are the control's, OR this entity and one of the controls move the same leaves and cancel. TWO ARMS CANNOT SEPARATE THOSE and the species has no third alternative to ask with. Measured, not assumed: THE SECOND CONTROL: the identical scenario played a third time with Keen Eye in the slot instead of Prankster. THE TWO DELTAS DIFFER on 32 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 0 p2.party.sableye.ability with=stall without=prankster; showdown turn 0 p2.active[0].ability with=stall without=prankster; ours turn 0 p2.party.sableye.ability with=stall without=prankster; ours turn 0 p2.active[0].ability with=stall without=prankster, +28 more. 0 of 16 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Prankster registers 1 handler(s), Keen Eye registers 2.)",
    "arm": "top-tie-first",
-   "control_why": "THE SECOND CONTROL: the identical scenario played a third time with Keen Eye in the slot instead of Prankster. THE TWO DELTAS DIFFER on 33 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 0 p2.party.sableye.ability with=stall without=prankster; showdown turn 0 p2.active[0].ability with=stall without=prankster; ours turn 0 p2.party.sableye.ability with=stall without=prankster; ours turn 0 p2.active[0].ability with=stall without=prankster, +29 more. 0 of 17 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Prankster registers 1 handler(s), Keen Eye registers 2.)",
+   "control_why": "THE SECOND CONTROL: the identical scenario played a third time with Keen Eye in the slot instead of Prankster. THE TWO DELTAS DIFFER on 32 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 0 p2.party.sableye.ability with=stall without=prankster; showdown turn 0 p2.active[0].ability with=stall without=prankster; ours turn 0 p2.party.sableye.ability with=stall without=prankster; ours turn 0 p2.active[0].ability with=stall without=prankster, +28 more. 0 of 16 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Prankster registers 1 handler(s), Keen Eye registers 2.)",
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": {
     "control": "Keen Eye",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Keen Eye in the slot instead of Prankster. THE TWO DELTAS DIFFER on 33 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 0 p2.party.sableye.ability with=stall without=prankster; showdown turn 0 p2.active[0].ability with=stall without=prankster; ours turn 0 p2.party.sableye.ability with=stall without=prankster; ours turn 0 p2.active[0].ability with=stall without=prankster, +29 more. 0 of 17 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Prankster registers 1 handler(s), Keen Eye registers 2.)",
-    "leaves_first": 17,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Keen Eye in the slot instead of Prankster. THE TWO DELTAS DIFFER on 32 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 0 p2.party.sableye.ability with=stall without=prankster; showdown turn 0 p2.active[0].ability with=stall without=prankster; ours turn 0 p2.party.sableye.ability with=stall without=prankster; ours turn 0 p2.active[0].ability with=stall without=prankster, +28 more. 0 of 16 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Prankster registers 1 handler(s), Keen Eye registers 2.)",
+    "leaves_first": 16,
     "leaves_second": 16,
     "leaves_kept": 0,
     "dropped": [
@@ -18394,7 +18381,6 @@
      "showdown turn 3 p2.active[0].ability with=stall without=prankster",
      "ours turn 3 p2.party.sableye.ability with=stall without=prankster",
      "ours turn 3 p2.active[0].ability with=stall without=prankster",
-     "ours turn 3 p2.active[0].vol.focusenergy with=1 without=0",
      "showdown turn 0 p2.party.sableye.ability with=stall without=keeneye",
      "showdown turn 0 p2.active[0].ability with=stall without=keeneye",
      "ours turn 0 p2.party.sableye.ability with=stall without=keeneye",

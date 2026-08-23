@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-23T10:44:00.008Z",
+ "generated": "2026-08-23T12:45:50.877Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2407,8 +2407,8 @@
    "why": "the engine announced every volatile as `-start|move: <name>`. The authority uses -singleturn for Endure and Electrify, -activate|trapped for Block and Mean Look, -singlemove for Destiny Bond, a BARE label for Aqua Ring and Magnet Rise, and NOTHING at all for Minimize",
    "consumedBy": "volatileAnnounce",
    "used": true,
-   "n": 48,
-   "uses": 224180,
+   "n": 49,
+   "uses": 225304,
    "examples": [
     "Baneful Bunker",
     "Beak Blast",
@@ -15830,7 +15830,8 @@
     "statusCategory",
     "locksTarget",
     "formatSecondaryCount",
-    "statusInflict"
+    "statusInflict",
+    "volatileAnnounce"
    ],
    "uses": 1124,
    "params": {
@@ -15872,6 +15873,16 @@
        "to": "target"
       }
      ]
+    },
+    "volatileAnnounce": {
+     "byVolatile": {
+      "disable": {
+       "event": "-start",
+       "desc": "Disable",
+       "arg": "lastMove",
+       "why": "every -start this condition writes carries the same runtime argument"
+      }
+     }
     }
    }
   },
@@ -21629,7 +21640,8 @@
     },
     "readsTargetItem": {
      "failsIfNone": false,
-     "mult": 1.5
+     "mult": 1.5,
+     "announcesItem": null
     },
     "takesTargetItem": {
      "consumesAndGainsEffect": false,
@@ -24808,7 +24820,12 @@
     },
     "readsTargetItem": {
      "failsIfNone": true,
-     "mult": null
+     "mult": null,
+     "announcesItem": {
+      "event": "-activate",
+      "on": "target",
+      "desc": "move: Poltergeist"
+     }
     },
     "targetClass": {
      "target": "normal",
@@ -36559,7 +36576,13 @@
    "uses": 1855,
    "params": {
     "healsOnSwitchOut": {
-     "heal": 0.3333333333333333
+     "heal": 0.3333333333333333,
+     "announces": {
+      "event": "-heal",
+      "attr": "[from] ability: Regenerator",
+      "silent": true
+     },
+     "guarded": true
     },
     "switchOutTrigger": {
      "does": "heal",
@@ -36587,6 +36610,8 @@
      ],
      "inflictsVolatile": null,
      "boosts": null,
+     "boostsSecondary": null,
+     "announce": null,
      "fraction": null,
      "hazard": null,
      "maxLayers": null,
@@ -36661,6 +36686,8 @@
      "inflicts": null,
      "inflictsVolatile": null,
      "boosts": null,
+     "boostsSecondary": null,
+     "announce": null,
      "fraction": "4",
      "hazard": null,
      "maxLayers": null,
@@ -37068,6 +37095,8 @@
       "chance": 0.3
      },
      "boosts": null,
+     "boostsSecondary": null,
+     "announce": null,
      "fraction": null,
      "hazard": null,
      "maxLayers": null,
@@ -37093,6 +37122,8 @@
       "chance": 0.3
      },
      "boosts": null,
+     "boostsSecondary": null,
+     "announce": null,
      "fraction": null,
      "hazard": null,
      "maxLayers": null,
@@ -37263,6 +37294,8 @@
      ],
      "inflictsVolatile": null,
      "boosts": null,
+     "boostsSecondary": null,
+     "announce": null,
      "fraction": null,
      "hazard": null,
      "maxLayers": null,
@@ -37355,6 +37388,8 @@
      ],
      "inflictsVolatile": null,
      "boosts": null,
+     "boostsSecondary": null,
+     "announce": null,
      "fraction": null,
      "hazard": null,
      "maxLayers": null,
@@ -37632,6 +37667,11 @@
      "inflictsVolatile": null,
      "boosts": {
       "spe": -1
+     },
+     "boostsSecondary": true,
+     "announce": {
+      "event": "-ability",
+      "prefix": null
      },
      "fraction": null,
      "hazard": null,
@@ -38849,6 +38889,8 @@
      ],
      "inflictsVolatile": null,
      "boosts": null,
+     "boostsSecondary": null,
+     "announce": null,
      "fraction": null,
      "hazard": null,
      "maxLayers": null,
@@ -39172,6 +39214,8 @@
      "inflicts": null,
      "inflictsVolatile": null,
      "boosts": null,
+     "boostsSecondary": null,
+     "announce": null,
      "fraction": "8",
      "hazard": null,
      "maxLayers": null,
@@ -39245,6 +39289,8 @@
      "inflicts": null,
      "inflictsVolatile": null,
      "boosts": null,
+     "boostsSecondary": null,
+     "announce": null,
      "fraction": null,
      "hazard": null,
      "maxLayers": null,
@@ -39729,6 +39775,8 @@
      ],
      "inflictsVolatile": null,
      "boosts": null,
+     "boostsSecondary": null,
+     "announce": null,
      "fraction": null,
      "hazard": null,
      "maxLayers": null,
@@ -40162,6 +40210,11 @@
      "inflicts": null,
      "inflictsVolatile": null,
      "boosts": null,
+     "boostsSecondary": null,
+     "announce": {
+      "event": "-activate",
+      "prefix": "ability"
+     },
      "fraction": null,
      "hazard": "toxicspikes",
      "maxLayers": 2,

@@ -10,6 +10,90 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.100.0] — 2026-08-23
+
+### Fixed
+- **SIX MECHANICS TAKEN IN REACH ORDER, ONE BATCH EACH, AND THE MECHANICS GATE CLAUSE WENT 29 → 23
+  PLAYED-AND-UNCLEARED DIVERGENCES.** Each was shown RED with its control cleared and its restore
+  knob wired before anything was fixed; each was followed by a fresh release and a full re-run of
+  `engine/all_mechanics_fire.js --kind all --write`, so a bad result would stay attributable —
+  `bf5a74339a71`, `790c857663c2`, `ea065ec09cdf`, `51eabacfe3ce`, `a82b0adf60e4`, `dd3b8bdd482f`.
+  **Cursed Body** (2,177 teams) wrote an `-activate` the authority writes nowhere and a `-start`
+  missing its `[from] ability:` / `[of]` pair — `data/abilities.ts:774-786` contains no `this.add` at
+  all, and the line is `disable`'s own `onStart`. **Toxic Debris** (1,840) laid the layer, capped it
+  correctly and never said so; staging its class turned up **Gooey** missing its `-ability` AND
+  carrying an inline `[from] ability:` on a boost line, which `sim/battle.ts:2058-2072` writes on no
+  ability boost anywhere. **Disable** (1,799 clicks) did not name the move it sealed. **Poltergeist**
+  (1,383 clicks, ROADMAP #359) never named the item it found. **Mental Herb** (967) freed the
+  volatile before it spent the item, where `Pokemon#useItem` announces first. Full account:
+  `docs/_reports/2026-08-23-mechanics-by-reach.md`.
+- **REGENERATOR'S SWITCH-OUT HEAL HAS BEEN SILENT SINCE ROADMAP #223 BECAUSE #223 READ MAINLINE.**
+  `data/mods/champions/abilities.ts:77-84` REPLACES the handler and adds
+  `this.add('-heal', pokemon, pokemon.getHealth, '[from] ability: Regenerator', '[silent]')` behind an
+  `if (pokemon.heal(...))` guard; mainline's `pokemon.heal(...)` writes nothing, and #223 quoted
+  `sim/pokemon.ts:1646` correctly and removed the emission **on purpose, with a paragraph of
+  justification**. That is the citation rule in CLAUDE.md — *reading `/data/abilities.ts` is reading
+  MAINLINE* — costing a real line for eleven days in the most expensive shape it can take. The
+  announcement is now derived off the FORMAT'S OWN merged handler, so the day the mod drops the
+  override it goes silent again with nothing to edit. **It also narrows ROADMAP #397**: that row files
+  Regenerator among six effects that "do not fire at all", and for this member the effect fires, the
+  HP has been right since WIRE 27, and only the line was absent.
+
+### Added
+- **Six probes, each red-then-green with a named restore knob**, all reading the whole turn's protocol
+  as a SEQUENCE with no typed expectation and all asserting the BOARD as a control that must not move:
+  `tests/probe_ability_volatile_line.js` (`MEDI_ABILITY_VOL_LINE_BLIND`),
+  `tests/probe_punish_announce.js` (`MEDI_PUNISH_ANNOUNCE_BLIND`),
+  `tests/probe_volatile_start_field.js` (`MEDI_VOL_START_ARG_BLIND`),
+  `tests/probe_regenerator_line.js` (`MEDI_REGEN_SILENT`),
+  `tests/probe_poltergeist_item_line.js` (`MEDI_ITEM_READ_SILENT`),
+  `tests/probe_mental_herb_order.js` (`MEDI_HERB_END_FIRST`).
+- **Five census rows, 646 → 651 live, 0 missing**, one per fix plus the Toxic Debris class, so the
+  census carries what the hand list used to.
+- **Four derived tag params, every membership printed before it was wired, and two of the four refuse
+  a member by construction.** `punishesAttacker.announce` and `.boostsSecondary` (2 announcing rows of
+  12 in this format; 3 more members in the dex have no legal carrier here);
+  `volatileAnnounce.byVolatile[…].arg`, whose rule is UNCONDITIONALITY and which therefore admits
+  `disable` and **refuses `charge`**, since only one of Charge's two branches carries the argument;
+  `readsTargetItem.announcesItem`, derived from the move's own `onTryHit` rather than from the tag,
+  because the tag's other carrier is Knock Off and a rule keyed on it would have put a line on 3,834
+  corpus clicks; `healsOnSwitchOut.announces` / `.guarded`.
+
+### Changed
+- **The whole-game differential is a RE-BASELINE and is said so first.** Release `dd3b8bdd482f`,
+  `--team-store data/team-pool-frozen`, census pinned to `census-pin-9446a684709d`, 961 games:
+  parted 72 / 60 / 74, board-material 30 / 19 / 21, minus instrument (Moody 8/0/0, off-field body
+  1/1/2) → **21 / 18 / 19** against a prior 21 / 18 / 18. Six releases moved under it, so subtracting
+  one from the other would invent a trend. **The board-material CAUSE LISTS were diffed rather than
+  the totals**, and the diff is four rows in `middle` and nothing in either corner: Cursed Body's
+  cause GONE, one game now parting later on a `-miss` because the earlier divergence was fixed, and
+  `|-fail|p2b <> |-start|p1a|disable` re-appearing as `…|disable|protect` — the same defect wearing
+  Disable's better line. **One cause removed, one revealed behind it, nothing introduced.**
+- **The three deliberate-roster stages were re-run against the final release** — items 139/148,
+  abilities 130/202, moves 475/500, **0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three** —
+  because six releases would otherwise have aged them out and three PASSING gate clauses would have
+  gone WITHHELD for no reason but the clock. The gate stands at 5 of 8 PASS.
+
+### Notes
+- **THE INSTRUMENT WAS WRONG TWICE AND IT WAS THE PROBE BOTH TIMES.** A normaliser stricter than
+  `game_differential.js` compared `move: encore` against `Encore` and reported ten volatile end lines
+  as divergent; measured over all 57 volatiles a legal move can apply, **all ten differ in the
+  NAMESPACE and in nothing else**, which is the differ's own `effect-namespace` equivalence. The same
+  happened to a refused self-heal's `|move|` line. The probes now mirror both rules with the citation,
+  and the self-heal difference is FILED rather than silently normalised away.
+- **One red test found and NOT fixed, with its receipt.** `tests/test-encore-fail-silent.js` fails one
+  counter clause (`mvFailSilentNoLine want exactly 1, got 0`) and **is red on release `0faabe2a3f1b`
+  too**, the release cut before anything in this pass. All ten of its staged arms AGREE; only the
+  counter fails, and the simulator's only `mvFailSilent` call site sits inside a restore knob that is
+  off. Reported, not filed and not waived.
+- **Register text is proposed and `docs/ROADMAP.md` was not edited:** close #359; part-close and
+  NARROW #397; amend #223 with the retraction; three new rows — a refused self-heal's `[still]`
+  (which `game_differential.js` deliberately does not count), Disable applied against a target whose
+  `lastMove` has no PP (board-material, pre-existing), and Cursed Body's three unmodelled exclusion
+  guards.
+
+---
+
 ## [5.99.0] — 2026-08-23
 
 ### Changed

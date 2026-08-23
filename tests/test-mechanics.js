@@ -4476,6 +4476,57 @@ probe('ability', 'disablesAttacker', 'Cursed Body can disable the move that hit 
                  + `Cursed Body ${on.then} (sealed=${JSON.stringify(on.sealed)})` };
 });
 
+/* 2026-08-23 -- AND THE SEAL IS ANNOUNCED BY *DISABLE*, NOT BY THE ABILITY. The probe above proves
+ * the seal LANDS and says nothing about what is written, which is how this survived: the whole-game
+ * differential's mechanics run had `cursedbody` diverging on turn 1 of every staged game.
+ *
+ *     showdown   |-start|p2a: Feraligatr|Disable|Aqua Tail|[from] ability: Cursed Body|[of] p1a: Banette
+ *     medicham   |-activate|p1a: Banette|ability: cursedbody
+ *                |-start|p2a: Feraligatr|Disable|aquatail
+ *
+ * `data/abilities.ts:774-786` is the WHOLE of Cursed Body and contains no `this.add` of any kind --
+ * it calls `source.addVolatile('disable', this.effectState.target)` and stops. The line on the wire
+ * is `disable`'s own `onStart` (`data/moves.ts:3686-3690`), whose ability branch is taken because
+ * `Pokemon#addVolatile` defaults `sourceEffect` to `this.battle.effect`. Neither is overridden in
+ * `/data/mods/champions/`, checked rather than assumed.
+ *
+ * THE CLASS IS FOUR CONDITIONS, PRINTED OVER THE WHOLE MOVE TABLE BEFORE THIS WAS WIRED: of the 57
+ * volatiles a legal move can apply in this regulation, exactly `attract`, `charge`, `confusion` and
+ * `disable` branch their `onStart` on the source effect and attribute it. This probe stages ONE of
+ * them; the other three are named here so a later pass adds an arm rather than a second emitter.
+ *
+ * THE CONTROL IS THE SAME BODY UNDER INSOMNIA -- one of Banette's own legal abilities -- so the cast,
+ * the click and the dice are identical and the ONLY thing varied is the ability. An engine that wrote
+ * the attributed line unconditionally would fail the control arm. */
+probe('ability', 'disablesAttacker', 'the seal is announced by DISABLE with the ability attributed, and the carrier writes nothing', () => {
+  const run = (ab) => {
+    const me = bare('banette'), ally = bare('milotic');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    me.ability = ab;
+    const rngLow = () => 0.05;            // Cursed Body is randomChance(3, 10)
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    trace.length = 0;
+    M.battleTurn(S, rngLow, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    const lines = trace.map(M.traceCanon);
+    return { start: lines.filter(l => /^\|-start\|/.test(l) && /disable/i.test(l)),
+             act: lines.filter(l => /^\|-activate\|/.test(l) && /cursedbody/i.test(l)),
+             sealed: f1._sealed || null };
+  };
+  const off = run('insomnia'), on = run('cursedbody');
+  const one = on.start.length === 1 ? on.start[0] : '';
+  return { works: off.start.length === 0 && off.act.length === 0
+                  && on.start.length === 1 && on.act.length === 0
+                  && /disable/i.test(one) && /cursedbody/i.test(one) && /banette/i.test(one),
+           arms: { control: off.start.concat(off.act), test: on.start.concat(on.act) },
+           detail: 'Insomnia — start ' + JSON.stringify(off.start) + ' activate '
+                 + JSON.stringify(off.act) + ' (both must be empty); Cursed Body — start '
+                 + JSON.stringify(on.start) + ' activate ' + JSON.stringify(on.act)
+                 + ' (exactly one -start naming disable, the ABILITY and the [of] body, and NO '
+                 + '-activate at all; sealed=' + JSON.stringify(on.sealed) + ')' };
+});
+
 probe('item', 'restoresStats', 'White Herb undoes a stat drop', () => {
   /* ARMED, 2026-08-06. The control is the empty hand: "the stage is back at 0 after a turn" is also
    * what an engine that forgot to PERSIST stat stages across a turn prints, and that engine reads as
@@ -6858,6 +6909,48 @@ probe('ability', 'healsOnSwitchOut', 'Regenerator heals a third on the way out',
   return { works: off.d === 0 && on.d === on.third,
            arms: { control: off.d, test: on.d },
            detail: `on the bench, hp change: ability none ${off.d}, Regenerator ${on.d} (a third is ${on.third})` };
+});
+
+/* 2026-08-23 -- AND IN THIS FORMAT IT ANNOUNCES THE HEAL. The probe above asserts the HP and is
+ * structurally blind to the line, which is how a DELIBERATE suppression survived eleven days.
+ *
+ *     data/abilities.ts:1160          onSwitchOut(pokemon) { pokemon.heal(pokemon.baseMaxhp / 3); }
+ *     data/mods/champions/abilities.ts:77-84
+ *         regenerator: { inherit: true, onSwitchOut(pokemon) {
+ *           if (pokemon.heal(pokemon.baseMaxhp / 3)) {
+ *             this.add('-heal', pokemon, pokemon.getHealth, '[from] ability: Regenerator', '[silent]');
+ *           } } }
+ *
+ * ROADMAP #223 read the MAINLINE handler, reasoned correctly from it that `Pokemon#heal` writes
+ * nothing to the log, and removed the emission on purpose with a paragraph attached. Champions
+ * overrides eight files and `abilities` is one of them.
+ *
+ * TWO NEGATIVES, because either would pass an engine that announces on every switch-out: the same
+ * body at FULL HP (`if (pokemon.heal(...))` gets a delta of 0 and writes nothing) and the same body
+ * under a control ability. The line itself is read off `healsOnSwitchOut.announces`, derived from the
+ * FORMAT's own merged handler, so this probe and the engine cannot disagree about what it says. */
+probe('ability', 'healsOnSwitchOut', 'Champions announces the Regenerator heal, and says nothing when there was nothing to heal', () => {
+  const run = (ab, frac) => {
+    const me = bare('milotic'), ally = bare('corviknight'), bench = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    me.ability = ab;
+    const trace = [];
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true, trace });
+    me.curHP = Math.max(1, Math.floor(me.st.hp * frac));
+    trace.length = 0;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return trace.filter(l => /^\|-heal\|/.test(l)).map(M.traceCanon);
+  };
+  const hurt = run('regenerator', 1 / 3), full = run('regenerator', 1), off = run('none', 1 / 3);
+  const one = hurt.length === 1 ? hurt[0] : '';
+  return { works: hurt.length === 1 && /regenerator/i.test(one) && /\[silent\]/.test(one)
+                  && full.length === 0 && off.length === 0,
+           arms: { control: [].concat(full, off), test: hurt },
+           detail: `the same Milotic switching out — DAMAGED with Regenerator ${JSON.stringify(hurt)} `
+                 + `(exactly one line, naming the ability and carrying [silent]); at FULL HP with the `
+                 + `SAME ability ${JSON.stringify(full)} (Pokemon#heal returns 0 and the mod's own `
+                 + `\`if\` swallows the line); DAMAGED with no ability ${JSON.stringify(off)}. Before `
+                 + `the fix all three were empty, because ROADMAP #223 read mainline` };
 });
 
 probe('ability', 'buffsHolderOnHit', 'Justified raises Attack when hit by a Dark move', () => {
@@ -9768,6 +9861,56 @@ probe('item', 'curesVolatile', 'Mental Herb frees the holder from Taunt', () => 
   const none = run(''), herb = run('mentalherb');
   return { works: none === true && herb === false, arms: { control: none, test: herb },
            detail: 'no item taunted=' + none + ', Mental Herb taunted=' + herb };
+});
+
+/* 2026-08-23 -- AND THE ITEM IS SPENT BEFORE THE VOLATILE IT FREES.
+ *
+ *     data/items.ts:3906-3917 (mentalherb.onUpdate), not overridden by Champions:
+ *       if (!pokemon.useItem()) return;                 <-- `Pokemon#useItem` writes |-enditem|
+ *       for (const secondCondition of conditions) pokemon.removeVolatile(secondCondition);
+ *                                                       <-- the CONDITION's onEnd writes |-end|
+ *
+ * The probe above asserts the volatile is gone and is structurally blind to the ORDER, and the board
+ * is identical either way round -- the volatile is gone and so is the item -- so only a protocol
+ * reading can see this. It was the whole of `item:mentalherb`'s divergence in
+ * `data/all-mechanics-fire.json`.
+ *
+ * TWO MEMBERS, because the two `-end` lines are written by two DIFFERENT conditions: Encore's own
+ * `onEnd` writes a bare `Encore` and Taunt's writes `move: Taunt`. An ordering fix that happened to
+ * work for one label shape is not a fix for the class, and the herb's list is six volatiles.
+ *
+ * THE CONTROL IS THE EMPTY HAND on both members: no `-enditem` and no `-end` at all, which is what
+ * stops "the two lines are in the right order" passing on a turn that emitted neither. */
+probe('item', 'curesVolatile', 'the herb is SPENT before the volatile it frees, on both members', () => {
+  const run = (item, mv) => {
+    const me = bare('alakazam'), ally = bare('clefable');
+    const f1 = bare('corviknight'), f2 = bare('garchomp');
+    f1.item = item;
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    /* Encore has nothing to repeat until the target has moved, so turn 1 gives it a `lastMove`. */
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'irondefense', f1, S.field)], [f2, { kind: 'pass' }]]));
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return trace.map(String).map(l => l.split('|')[1]).filter(e => e === '-end' || e === '-enditem');
+  };
+  const enc = run('mentalherb', 'encore'), tau = run('mentalherb', 'taunt');
+  const encBare = run('', 'encore'), tauBare = run('', 'taunt');
+  const want = ['-enditem', '-end'];
+  return { works: JSON.stringify(enc) === JSON.stringify(want)
+                  && JSON.stringify(tau) === JSON.stringify(want)
+                  && encBare.length === 0 && tauBare.length === 0,
+           arms: { control: [].concat(encBare, tauBare), test: [].concat(enc, tau) },
+           detail: `event order on the turn the lock lands — ENCORE + herb ${JSON.stringify(enc)}; `
+                 + `TAUNT + herb ${JSON.stringify(tau)} (both must be ["-enditem","-end"]: `
+                 + `Pokemon#useItem announces the spend and removeVolatile announces the release, in `
+                 + `that order). EMPTY HAND, same two clicks: ${JSON.stringify(encBare)} and `
+                 + `${JSON.stringify(tauBare)} — neither line at all, so the order clause cannot pass `
+                 + `on a turn that emitted nothing. Before the fix both herb arms read `
+                 + `["-end","-enditem"]` };
 });
 
 /* ================= CONFUSION, ROADMAP #92 =======================================================
@@ -20468,6 +20611,47 @@ probe('move', 'readsTargetItem', 'Poltergeist FAILS against a target holding no 
                  + 'that merely scaled the damage down would pass "held > none"' };
 });
 
+/* ROADMAP #359, 2026-08-23 — AND WHEN IT DOES RESOLVE, IT NAMES WHAT IT FOUND FIRST.
+ *
+ *     onTryHit(target, source, move) { this.add('-activate', target, 'move: Poltergeist',
+ *                                               this.dex.items.get(target.item).name); }
+ *     -- data/moves.ts:13610, and `/data/mods/champions/moves.ts` does not override poltergeist.
+ *
+ * The probe above asserts the REFUSAL and is structurally blind to the line, which is how the
+ * announcement stayed absent while the refusal was wired. `onTryHit` runs only after `onTry` returned
+ * true, so the item-less arm is the negative and must stay silent — an engine that announced
+ * unconditionally passes the held arm and fails there.
+ *
+ * KNOCK OFF IS THE SECOND CONTROL AND IT IS NOT A DUPLICATE OF THE FIRST. It is the other carrier of
+ * `readsTargetItem`, it reads the same item slot, and it announces NOTHING at try time — so a wire
+ * keyed on the tag rather than on the move's own `onTryHit` would put a line on 3,834 corpus clicks.
+ * That is the failure this arm exists to catch, and no other arm here can. */
+probe('move', 'readsTargetItem', 'Poltergeist names the item it found, and the other item-reading move names nothing', () => {
+  const run = (mv, item) => {
+    const me = bare('gengar'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    f1.item = item;
+    unfaintable(f1);
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return trace.filter(l => /^\|-activate\|/.test(l)).map(M.traceCanon);
+  };
+  const held = run('poltergeist', 'focussash'), none = run('poltergeist', '');
+  const knock = run('knockoff', 'focussash');
+  return { works: held.length === 1 && /poltergeist/i.test(held[0]) && /focussash/i.test(held[0])
+                  && none.length === 0 && knock.length === 0,
+           arms: { control: [].concat(none, knock), test: held },
+           detail: `POLTERGEIST into a FOCUS SASH ${JSON.stringify(held)} (exactly one line, naming `
+                 + `the move AND the item it found); the same click into an EMPTY hand `
+                 + `${JSON.stringify(none)} (onTry refused it, so onTryHit never runs); KNOCK OFF `
+                 + `into the SAME Focus Sash ${JSON.stringify(knock)} — the other carrier of the same `
+                 + `tag, which must stay silent, or the wire is keyed on the tag instead of on the `
+                 + `move's own onTryHit` };
+});
+
 /* ROADMAP #210 — BURN UP SPENDS ITS USER'S FIRE TYPE, AND THE SECOND CLICK IS REFUSED.
  *
  * Authority, both halves of one block read to its end (data/moves.ts:2102-2113; the Champions mod
@@ -23108,6 +23292,60 @@ probe('move', 'volatileAnnounce', 'a volatile announces its OWN condition\'s lin
                  + `${JSON.stringify(endure)}; Block ${JSON.stringify(block)}. Before the wire all `
                  + `three read \`-start|move:<the move>\`, which the authority writes for exactly one `
                  + `of them — and Block's said \`block\` where the authority says \`trapped\`` };
+});
+
+/* 2026-08-23 -- AND THE THIRD SHAPE: A `-start` LINE WHOSE FIELD 4 IS COMPUTED AT RUN TIME.
+ *
+ *     disable   this.add('-start', pokemon, 'Disable', pokemon.lastMove.name …)     data/moves.ts:3686
+ *
+ * The table above claims a condition only when its WHOLE `onStart` is one unconditional `add()`, so a
+ * guarded handler that nonetheless always writes the same computed field could not be expressed and
+ * Disable kept the generic `|-start|BODY|move: disable`. Against the authority that is wrong in TWO
+ * fields at once — a `move: ` namespace the condition does not use, and no sealed move at all.
+ *
+ * THE MEMBERSHIP RULE IS UNCONDITIONALITY, NOT A NAME, and it is what keeps this to one member. Over
+ * the 57 volatiles a legal move can apply in this regulation, exactly two conditions write a runtime
+ * field 4: `disable` writes it in BOTH branches of its `onStart`, and `charge` writes it in the
+ * ABILITY branch only — the Charge MOVE's own branch is bare. So the deriver admits Disable and
+ * refuses Charge, and Charge's ability line stays with the site that already owns it.
+ *
+ * TAUNT IS THE CONTROL, for the same reason it is the control one probe up: its handler is guarded
+ * AND its generic line is exactly right, so an engine that put a runtime field on every `-start`
+ * passes the Disable arm and fails here.
+ *
+ * Both arms need the target to have MOVED — `disable.onTryHit` returns false on `!target.lastMove` —
+ * so turn 1 exists to give it a `lastMove` and turn 2 is the arm. */
+probe('move', 'volatileAnnounce', 'Disable\'s `-start` names the move it sealed, and a guarded volatile still does not', () => {
+  const run = (mv) => {
+    const me = bare('alakazam'), ally = bare('clefable');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    /* THE CLICKER MUST SURVIVE TURN 1. Alakazam is frail and the first cut of this probe had it dead
+     * to the Earthquake, so BOTH arms printed no line at all and the probe could not have passed
+     * whatever the engine did. */
+    unfaintable(me);
+    /* turn 1: the target uses a move, so it HAS a lastMove for turn 2 to name */
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { lines: trace.filter(l => /^\|-start\|/.test(l)).map(M.traceCanon),
+             hit: f1._lastMove || null, sealed: f1._sealed || null };
+  };
+  const test = run('disable'), control = run('taunt');
+  return { works: JSON.stringify(test.lines) === JSON.stringify(['|-start|p2a:garchomp|disable|earthquake'])
+                  && JSON.stringify(control.lines) === JSON.stringify(['|-start|p2a:garchomp|move:taunt'])
+                  && test.sealed === 'earthquake',
+           arms: { control: control.lines, test: test.lines },
+           detail: `the target's last move was ${JSON.stringify(test.hit)}. DISABLE `
+                 + `${JSON.stringify(test.lines)} — the condition writes a BARE \`Disable\` label and `
+                 + `the sealed move in field 4 (sealed=${JSON.stringify(test.sealed)}). TAUNT, the `
+                 + `control, on the same body after the same turn 1: ${JSON.stringify(control.lines)} `
+                 + `— guarded onStart, so it keeps the generic \`move:\` line and must gain NO fourth `
+                 + `field. Before the wire Disable read \`|-start|p2a:garchomp|move:disable\`` };
 });
 
 const works = results.filter(r => r.works);
