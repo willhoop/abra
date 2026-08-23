@@ -258,7 +258,7 @@ That is one line in `medicham2-browser.js`, ROADMAP #246, and it is ENGINE's —
 by ENGINE**, so the fallen count is now right from turn one. Four further seeding approximations were
 swept out beside it and were closed in one batch a few hours later; see §3.9.
 
-### 3.9 The seed was wrong at 70.6% of decision points — four rows closed 2026-08-13
+### 3.9 The seed was wrong often enough to close four rows — 2026-08-13; the headline share is withheld
 
 Fourth, fifth, sixth and seventh instances of the same shape as 3.6, 3.7 and 3.8, closed as **one
 batch** because they are one surface: ROADMAP #247, #248, #249, #250. Will's principle is what makes
@@ -274,13 +274,19 @@ actions."* The seed is the only place a correct simulator can still produce a wr
 | Supreme Overlord entered with nobody dead | it walked in over two graves |
 
 Measured over 14,102 open-sheet games / 190,378 decision points
-(`data/rollout-seed-prevalence.json`, a store scan that plays no game): a benched body's declared
-moveset differs from the dataset's four at **55.4%** of decision points, a first-turn-only move was
-offerable and illegal at **17.7%**, a benched body is hurt or statused at **17.1%**, something is up
-on the field at **13.1%**, and a Supreme Overlord snapshot is wrong at **0.061%** — that last one
-correct and very nearly inert, because Kingambit is almost always brought with Defiant. **At least
-one of the five held at 70.6% of decision points.** Each is a ceiling on reach, not a count of
-flipped argmaxes.
+(`data/rollout-seed-prevalence.json`, a store scan that plays no game): a first-turn-only move was
+offerable and illegal at **17.7%** of decision points, a benched body is hurt or statused at
+**17.1%**, something is up on the field at **13.1%**, and a Supreme Overlord snapshot is wrong at
+**0.061%** — that last one correct and very nearly inert, because Kingambit is almost always brought
+with Defiant. Each is a ceiling on reach, not a count of flipped argmaxes.
+
+**THE MOVESET SHARE AND THE "AT LEAST ONE OF THE FIVE" SHARE ARE WITHHELD — ROADMAP #402,
+2026-08-23.** Both were in this paragraph and in this section's headline and both are removed rather
+than footnoted. The generator resolved a species through `norm()`, which strips the hyphen
+`MC.mons` keys every forme with, so **every forme** was handed an empty dataset moveset and scored as
+*"the moves differ"* — inflation only, in one direction, by an amount nobody has published. The
+four figures above are computed independently and are unaffected. The pinned re-run that would
+restore them, and why an unpinned one would not, are in [SEARCH.md](SEARCH.md) R14.
 
 Two details are worth carrying because getting them wrong looks like getting them right. **The board
 quantity Fake Out needs is not `turnsActive`** — that counts turns on the field, so a lead reads 1 on

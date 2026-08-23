@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.93.0] — 2026-08-23
+
+### Fixed
+- **A RED RATCHET WAS GUARDING A LIVE BUG IN A PUBLISHED NUMBER, AND IT HAD BEEN RED SINCE ~2026-08-13.**
+  `tests/test-mc-key.js` was 14 passed / 1 failed. **The red was real, not the ruler.** Of eleven
+  flagged sites: **1 live bug, 2 latent forme-drops, 8 behaviour-identical.** The live one:
+  `engine/rollout_seed_prevalence.js:95` read `MC.mons[base(sp)]`, and `base()` ends in `norm()`, which
+  strips the hyphen `MC.mons` uses to key **every forme**. So every forme got an empty dataset moveset
+  and was scored *"moves differ"* — **one-directional inflation**. Measured: 47 of 256 store species
+  names; **10,980 of 144,260 brought bodies (7.61%)** and 7,177 of 231,924 sheet bodies (3.095%) flip
+  true→false once the row is actually found. Gate now 18 / 0 with the 2026-08-11 baseline untouched.
+- **THE RATCHET WAS ALSO BLIND, WHICH IS WHY THE CLASS ESCAPED A THIRD TIME.** A `globalThis.` prefix
+  walked straight past section 2 in **eight files**. A new section bans every route into the mon table
+  that is not `engine/mc_key.js`, under any identifier, plus `buildMon` handed a flattened name — and
+  it was **demonstrated against a planted fourth instance** spelled a new way, which the old shape
+  list could not catch. Its patterns are asserted against all five historical instances so they cannot
+  be quietly narrowed, and what it still cannot see is named in its own header (key concatenation —
+  `artifact_audit.js`'s job; a flattened species reaching a consumer other than `buildMon`; Python).
+
+### Removed
+- **THE SEED-PREVALENCE FIGURES ARE WITHHELD, NOT ANNOTATED.** `data/rollout-seed-prevalence.json`'s
+  `movesDiffer` (**55.379%**) and `any` (**70.55%**) are inflated by the bug above by an amount nobody
+  has measured. Per the standing rule — *"a caption is not a quarantine… the figure must be WITHHELD,
+  not annotated"* — they are removed from every place a reader would take them as current, replaced by
+  a block carrying only three things: WITHHELD, the mechanism, and the pinned command that would
+  restore them.
+- **Sites cleared:** `docs/SEARCH.md` ×6 including a **section headline**, `docs/ROADMAP.md` #248's
+  closure text, `docs/MILTANK.md` ×3 including **a second headline**, and
+  `docs/MEDICHAM-SPRINT-NOTES.md` ×2 — that last one mattering most, because it is the deferred
+  living-docs SOURCE, so a retracted figure left there is copied into the white paper later.
+- **The rounded forms were found only because they were looked for.** `55.4%` / `70.6%` appear where an
+  exact-digit sweep misses them. One true false positive was correctly left alone:
+  `docs/archive/SESSION-2026-08-02-evening.md:115` is a Protect rate that merely rounds to 70.6% — the
+  inverse hazard is on record here, where a prior retraction matched a rounded value and wrongly
+  accused 52 document lines.
+
+### Notes
+- **THE RETRACTION IS NARROWER THAN THE BRIEF ASSUMED, AND THAT WAS MEASURED RATHER THAN GUESSED.**
+  `datasetMoves` is called at exactly one site and feeds only `movesDiffer`; `pct_any` is an OR
+  containing it. So **2 of the artifact's 6 rates are withheld and 4 stand** (17.655 / 17.053 / 13.089
+  / 0.061). A blanket retraction would have destroyed four sound figures. The neighbouring
+  fallen/item/clock prevalence generators never touch `MC.mons` and are clean.
+- **No closed register row rests on the withheld figure**, checked rather than assumed via
+  `roadmapRowIsClosed` — the four rows closed in that pass rest on `tests/test-rollout-seed.js` shown
+  red first with per-row controls, and on an independent measurement of 61/131 paired argmax flips.
+  Nothing reopened.
+- **No corrected value is estimated.** The direction is known (inflated), the magnitude is not, and a
+  guessed correction is the failure the *"a correction can be wrong too"* rule exists for — one
+  published correction earlier tonight was itself refuted, three layers deep.
+- **A DECISION FOR WILL:** `data/mc-key-door-baseline.json` is a **new hand-written baseline** at 37
+  files / 96 sites of pre-existing debt. Recorded, not defended — his to reject.
+
 ## [5.92.0] — 2026-08-23
 
 ### Fixed

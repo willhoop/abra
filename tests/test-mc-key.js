@@ -1,7 +1,13 @@
 /* test-mc-key.js — there is ONE way to turn a species name into an MC.mons key, and this bans the others.
  *
  *   node tests/test-mc-key.js            check
- *   node tests/test-mc-key.js --update   re-baseline (do this when you REMOVE a hand-rolled lookup)
+ *   node tests/test-mc-key.js --update        re-baseline section 2 (when you REMOVE a hand-rolled lookup)
+ *   node tests/test-mc-key.js --update-door   re-baseline section 3 (when you REMOVE a doorway)
+ *
+ * TWO SECTIONS, TWO BASELINES. Section 2 bans KNOWN-BAD SPELLINGS. Section 3, added 2026-08-23, bans
+ * every route into the mon table that is not engine/mc_key.js, because a list of wrong forms cannot
+ * catch a new wrong form and on 2026-08-23 one got through for the third time. Read section 3's own
+ * comment for exactly what it can and cannot see -- it is not total, and it says where.
  *
  * WHY THIS EXISTS, AND WHY IT IS STRUCTURAL RATHER THAN BEHAVIOURAL
  * ----------------------------------------------------------------
@@ -212,6 +218,134 @@ if (fixed.length) console.log(`  (${fixed.length} baselined file(s) now clean: $
 
 console.log(`\n  hand-rolled lookups remaining: ${Object.keys(found).length} `
   + `(${Object.entries(found).map(([f, n]) => `${f}:${n}`).join(', ') || 'none'})`);
+
+/* ---- 3. THE DOORWAY (added 2026-08-23) --------------------------------------------------------
+ *
+ * WHY A SECOND SECTION RATHER THAN THREE MORE ENTRIES IN `PATTERNS` ABOVE.
+ *
+ * Section 2 is a list of WRONG SPELLINGS, and on 2026-08-23 the class escaped it for the third time:
+ * `tests/test-engine-diff.js` wrote `MEDI.buildMon(s.toLowerCase(), {})`, which never mentions
+ * MC.mons at all, and DROPPED 138 OF 345 SPECIES — the damage differential had never once compared
+ * any of the 76 megas. Section 2 was green throughout. A list of wrong forms cannot catch a new
+ * wrong form; that is not a bug in the regexes, it is the shape of the check.
+ *
+ * So this section inverts the question. It does not ask "does this line look like one of the known
+ * mistakes". It asks "does this line TOUCH the mon table by any route other than mcKey" — the
+ * doorway, stated positively, as engine/mc_key.js's header always claimed it was. Every touch is a
+ * violation: an index with any key that is not a string literal, ANY enumeration, a for..in walk, an
+ * alias of the table into a local, under ANY identifier (`MC.mons`, `globalThis.MC.mons`, `out.mons`,
+ * `prior.mons`). Section 2's `Object.keys(MC.mons)` pattern did not survive a `globalThis.` prefix;
+ * this one does.
+ *
+ * THE ONE PART THAT IS STILL A SHAPE LIST, SAID PLAINLY RATHER THAN GLOSSED.
+ *
+ * `buildMon()` is the OTHER door into the same table — it resolves a species internally — and a
+ * caller that flattens the name before handing it over is the 2026-08-23 bug. Static analysis cannot
+ * see that a string is a species name, so the only thing detectable is the FLATTENING IDIOM in the
+ * argument: `.toLowerCase()`, `.replace(...)`, `norm(`, `nrm(`, `flat(`, or a dex `.id` (dex ids are
+ * flat; MC.mons keys formes with a hyphen). That is a list, and it is an honest one only because the
+ * set of ways to lowercase-and-strip a string in JavaScript is small and closed, where the set of
+ * FUNCTIONS that might consume a species key is open. It is the better axis, not a safe one.
+ *
+ * WHAT THIS SECTION STILL CANNOT SEE, and nothing static can:
+ *   - a key BUILT by concatenation without the hyphen (`base + 'mega'` -> `venusaurmega`). That was
+ *     the ORIGINAL 2026-07-30 bug, 0 of 67 writes matching. engine/artifact_audit.js covers that one
+ *     by comparing a generated artifact against its source, and it is why that file exists.
+ *   - a flattened species reaching any consumer other than buildMon — `bd.setParty('p1', ids)`,
+ *     `bd.switchIn(...)`, a species key put in JSON and read back somewhere else.
+ *   - anything in Python, or in a template string evaluated at run time.
+ * The durable fix for the second bullet is NOT another regex: it is that `buildMon` and the board
+ * setters should THROW `LookupMiss` on an undeclared miss, the way `mcKey` already does, so a
+ * flattened forme crashes on the first one instead of silently dropping 138 of 345. That is an
+ * ENGINE change to engine/medicham2-browser.js and is proposed rather than made here.
+ *
+ * IT IS A RATCHET WITH ITS OWN BASELINE, established 2026-08-23 at the level then measured:
+ * 37 files, 96 sites. That number is PRE-EXISTING DEBT, not a licence — the clause fails on any new
+ * file and on any baselined file that grows. Establishing a new ratchet at today's level is not the
+ * same act as moving an old one to make a red gate pass; the section-2 baseline was NOT touched.
+ * ------------------------------------------------------------------------------------------ */
+
+const DOOR = [
+  { re: /\bObject\.(keys|values|entries)\s*\(\s*[\w$.]*\bmons\s*\)/, why: 'enumerates a mons table outside mcKey.all' },
+  { re: /\b[\w$]+\.mons\s*\[\s*(?!['"`])/, why: 'indexes a mons table with a computed key' },
+  { re: /\bfor\s*\([^)]*\bin\s+[\w$.]*\bmons\b/, why: 'walks a mons table with for..in' },
+  { re: /=\s*(?:globalThis\.)?[\w$]+\.mons\s*;/, why: 'aliases the mons table into a local' },
+  /* `[^;]{0,80}?` rather than "up to the first comma": the first draft used `[^),]*`, which cannot
+   * cross a nested call, and a DELIBERATE BREAK of the form `buildMon(String(sp).toLowerCase(), {})`
+   * walked straight past it and the gate stayed green. Bounded and non-greedy so it stays inside one
+   * statement; over-broad in exchange, which is the trade this whole file makes on purpose. */
+  { re: /\bbuildMon\s*\(\s*[^;]{0,80}?(?:toLowerCase\s*\(|\.replace\s*\(|\bnorm\s*\(|\bnrm\s*\(|\bflat\s*\(|\.id\b)/,
+    why: 'hands buildMon a FLATTENED species name — the 2026-08-23 bug' },
+];
+
+/* THE PATTERNS ARE THEMSELVES ASSERTED, against the five real broken lines this class has produced
+ * and three lines that are CORRECT. Without this a future edit could quietly narrow the regexes and
+ * every clause below would still print ok, which is the failure mode the whole file is about. */
+const HISTORY = [
+  ['board.js, 2026-08-01', 'const row = MC.mons[norm(x)];', true],
+  ['backtest_winrate.js, 2026-08-01', 'const t = names.filter(n => MC.mons[n]);', true],
+  ['forced_switch_audit.js, 2026-08-01', 'return MC.mons[norm(species)] || null;', true],
+  ['test-engine-diff.js, 2026-08-23 — 138 of 345 species dropped', 'const m = MEDI.buildMon(s.toLowerCase(), {});', true],
+  ['the same bug wrapped one call deeper — the line that broke the first draft of this regex',
+   'const m = MEDI.buildMon(String(sp).toLowerCase(), {});', true],
+  ['test-rollout-seed.js carriersOf, 2026-08-23', '.map(s => s.id).filter(id => globalThis.MC.mons[id]);', true],
+  ['CORRECT: a literal index', "const r = MC.mons['rotom-wash'];", false],
+  ['CORRECT: through the door', 'const r = mcKey.row(name, OPTS);', false],
+  ['CORRECT: buildMon of a resolved key', 'const m = MEDI.buildMon(mcKey(name), {});', false],
+];
+const hits = l => DOOR.some(p => p.re.test(l));
+const wrongVerdict = HISTORY.filter(([, line, want]) => hits(line) !== want).map(([n]) => n);
+ok(wrongVerdict.length === 0,
+  `the doorway patterns still catch every historical instance and clear every correct line (${wrongVerdict.join('; ') || `${HISTORY.length} lines, all as expected`})`);
+
+const DOOR_BASELINE_FILE = D('data', 'mc-key-door-baseline.json');
+const doorBase = fs.existsSync(DOOR_BASELINE_FILE)
+  ? JSON.parse(fs.readFileSync(DOOR_BASELINE_FILE, 'utf8'))
+  : { allowed: {}, note: '' };
+
+const doors = {};
+for (const dir of ['engine', 'build', 'tests']) {
+  if (!fs.existsSync(D(dir))) continue;
+  for (const f of fs.readdirSync(D(dir))) {
+    if (!/\.js$/.test(f)) continue;
+    const rel = `${dir}/${f}`;
+    if (OWN.has(rel)) continue;
+    let n = 0;
+    fs.readFileSync(D(dir, f), 'utf8').split('\n').forEach(line => {
+      if (/^\s*(\*|\/\/|\/\*)/.test(line)) return;          // a comment describing the bug is not the bug
+      if (hits(line)) n++;
+    });
+    if (n) doors[rel] = n;
+  }
+}
+
+if (process.argv.includes('--update-door')) {
+  fs.writeFileSync(DOOR_BASELINE_FILE, JSON.stringify({
+    note: 'Files reaching the mon table by a route other than engine/mc_key.js. Established 2026-08-23 '
+        + 'at the level then measured; new entries are a FAILURE and this list may only shrink. '
+        + 'See section 3 of tests/test-mc-key.js for what it can and cannot see.',
+    allowed: doors,
+  }, null, 2) + '\n');
+  console.log(`  re-baselined the DOORWAY: ${Object.keys(doors).length} file(s), `
+    + `${Object.values(doors).reduce((a, b) => a + b, 0)} site(s)`);
+  process.exit(0);
+}
+
+const doorNovel = Object.keys(doors).filter(f => !(f in (doorBase.allowed || {})));
+const doorGrew = Object.keys(doors).filter(f => (doorBase.allowed || {})[f] !== undefined && doors[f] > doorBase.allowed[f]);
+
+ok(doorNovel.length === 0,
+  `no NEW file reaches the mon table except through mcKey (${doorNovel.join(', ') || 'none'})`);
+ok(doorGrew.length === 0,
+  `no baselined file grew more doorways (${doorGrew.map(f => `${f}: ${doorBase.allowed[f]} -> ${doors[f]}`).join(', ') || 'none'})`);
+
+const doorFixed = Object.keys(doorBase.allowed || {}).filter(f => !(f in doors));
+if (doorFixed.length) {
+  console.log(`  (${doorFixed.length} file(s) now reach the table only through mcKey: `
+    + `${doorFixed.join(', ')} — re-baseline with --update-door)`);
+}
+console.log(`\n  doorways outside mcKey: ${Object.values(doors).reduce((a, b) => a + b, 0)} site(s) `
+  + `in ${Object.keys(doors).length} file(s) — pre-existing debt, ratcheted downward only`);
 
 console.log(`\nMC KEY TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

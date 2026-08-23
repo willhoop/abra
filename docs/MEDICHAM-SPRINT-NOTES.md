@@ -785,10 +785,18 @@ board to remember the fallen count at each switch-in"* — is exactly what lande
 already holds the count at the moment of entry.
 
 **Prevalence, `data/rollout-seed-prevalence.json`, 14,102 open-sheet bo3 games / 190,378 decision
-points, a store scan that plays no game and is therefore not quarantined:** #248 moves **55.379%**,
-#250 **17.655%**, #248 state **17.053%**, #249 **13.089%**, #247 **0.061%**, **any of the five
-70.554%**. Ceilings on reach, not counts of flipped argmaxes. #247 is correct and very nearly inert
-and that is stated plainly.
+points, a store scan that plays no game and is therefore not quarantined:** #250 **17.655%**,
+#248 state **17.053%**, #249 **13.089%**, #247 **0.061%**. Ceilings on reach, not counts of flipped
+argmaxes. #247 is correct and very nearly inert and that is stated plainly.
+
+**#248 MOVES AND "ANY OF THE FIVE" ARE WITHHELD — ROADMAP #402, 2026-08-23.** Both numbers stood in
+this paragraph and are REMOVED, not footnoted, so that the living-docs pass this file feeds cannot
+copy a retracted figure forward. The generator resolved a species through `norm()`, which strips the
+hyphen `MC.mons` keys every forme with, so every forme was handed an empty dataset moveset and scored
+as *"the moves differ"* — one-directional inflation of an unpublished size. The four figures above
+are computed independently and stand. Restoring the two needs a **pinned** re-run of
+`engine/rollout_seed_prevalence.js` (the store has grown 14,102 → 19,401 games); the command is in
+`docs/SEARCH.md` R14.
 
 **Opened by the sweep that followed: #267** (a status is seeded and its counter is not),
 **#268** (a permanent hazard is given a one-turn duration and layers are not counted — fit-invalidating),

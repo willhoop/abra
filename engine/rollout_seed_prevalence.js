@@ -58,6 +58,7 @@ const readline = require('readline');
 const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('data', 'engine-data.js'));                    // globalThis.MC — the dataset's movesets
 const TAGS = require('./tags.js');
+const { mcKey } = require('./mc_key.js');                 // the ONE door into MC.mons — see that file
 
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -92,7 +93,19 @@ const CLAY = (() => {
   return null;
 })();
 
-const datasetMoves = sp => ((globalThis.MC.mons[base(sp)] || {}).mv || []).map(norm).sort();
+/* THROUGH THE RESOLVER, FIXED 2026-08-23. This read `globalThis.MC.mons[base(sp)]`, and `base()`
+ * ends in `norm()`, which strips the hyphen MC.mons keys every forme WITH. So `Rotom-Wash` asked for
+ * `rotomwash`, got nothing, and returned an EMPTY dataset moveset — which the caller then compares
+ * against the sheet's declared four and scores as "the moves differ". A miss could therefore only
+ * push `movesDiffer` UP, and it was doing so for **47 of the 256 species names in the bo3 store,
+ * 10,980 of 144,260 brought bodies (7.61%)** — Rotom-Wash, Ninetales-Alola, Arcanine-Hisui,
+ * Floette-Eternal and 43 more. `data/rollout-seed-prevalence.json` (movesDiffer 105,430 of 190,378)
+ * was generated under this and is OWED a re-run.
+ *
+ * `mcKey.row` is the accessor; the miss is DECLARED, because MC.mons genuinely does not cover the
+ * whole format and "no row" is a real answer for a body the dataset has never seen. */
+const NO_ROW = { mayMiss: 'MC.mons does not cover the whole format; a body with no row has no dataset four' };
+const datasetMoves = sp => ((mcKey.row(base(sp), NO_ROW) || {}).mv || []).map(norm).sort();
 
 (async () => {
   const t0 = Date.now();

@@ -453,9 +453,40 @@ if (REDS) {
   }
 }
 
+/* ---- WHAT MAY BE PUBLISHED, AND BY WHICH RUN — 2026-08-23 -------------------------------------
+ * This file used to write data/forme-assert.json and THEN exit 1, so a red run published an artifact
+ * carrying no field at all that said the run had failed. Two different reds were being treated alike,
+ * and only one of them is a finding:
+ *
+ *   `failed`      A FORME DISAGREES WITH THE AUTHORITY. The instrument worked; the disagreement is
+ *                 the measurement, and the rows below are the only record of WHICH forme. This still
+ *                 publishes — suppressing it would delete the finding — but it now stamps a run
+ *                 status, so no consumer can mistake it for a clean run. (engine/provenance.js sweeps
+ *                 data/*.json on freshness and web/quarantine-data.js lists this file by name;
+ *                 neither could previously tell the two apart.)
+ *   `redsMissed`  AN ASSERTION FAILED TO CATCH A PLANT AIMED AT IT. That is the instrument failing
+ *                 the test of its own trustworthiness, exactly like the planted-divergence proof in
+ *                 tests/test-game-diff.js. Nothing it measured means anything, so it publishes
+ *                 NOTHING and the artifact on disk is left alone.
+ *
+ * WRITE-POLICY: findings — a disagreeing row IS the measurement and publishes with `run_ok:false`;
+ * a run whose own plant went uncaught refuses to write at all. */
+if (redsMissed) {
+  say('\n  REFUSED to write data/forme-assert.json — ' + redsMissed + ' plant(s) went uncaught by the '
+    + 'assertion that owns them. An assertion that cannot see a defect planted in it is not evidence '
+    + 'about any forme, so none of the rows above is published. The artifact on disk is left as it was.');
+  say('\nFORME ASSERT: RED');
+  process.exit(1);
+}
+
 const art = { generated: new Date().toISOString(),
   by: 'tests/test-forme-assert.js',
   what: 'the forme absolute-assertion mode — four assertions against the authority, no control arm',
+  write_policy: 'FINDINGS. A disagreement with the authority IS the measurement and is published with '
+      + 'run_ok:false. A run in which a plant went uncaught (--reds) publishes nothing — the '
+      + 'instrument failed its own proof and its rows are not evidence.',
+  run_ok: !failed,
+  failed,
   refuses_copy: REFUSES_COPY,
   forme_abilities: FORME_ABILITIES,
   uncoverable_for_want_of_an_engine_data_row: uncoverable,

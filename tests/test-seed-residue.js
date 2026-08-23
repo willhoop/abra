@@ -61,6 +61,9 @@ const MEDI = require(D('engine', 'medicham2-browser.js'));
 const B = require(D('engine', 'board.js'));
 const RL = require(D('engine', 'rollout_leaf.js'));
 const CS = require(D('engine', 'champions_sim.js'));
+const { mcKey } = require(D('engine', 'mc_key.js'));   // the ONE door into MC.mons — see that file
+/* MC.mons does not cover the whole format, so a body with no row is a real answer, not an error. */
+const NO_ROW = { mayMiss: 'MC.mons does not cover the whole format; a species with no row has no dataset four' };
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 
 let pass = 0, fail = 0;
@@ -107,7 +110,7 @@ const sheetOf = (item, moves) => ({ nature: 'Serious', item: item || '', ability
  * 1. THE FIVE READERS.
  * ------------------------------------------------------------------------------------------ */
 const ATT = MINE[0], DEF = THEIRS[0];
-const HITMV = (globalThis.MC.mons[ATT].mv || []).map(nrm)
+const HITMV = ((mcKey.row(ATT, NO_ROW) || {}).mv || []).map(nrm)
   .find(id => globalThis.MC.moves[id] && (globalThis.MC.moves[id].bp | 0) > 0);
 ok(!!HITMV, 'the attacker has a damaging move in its own dataset row', String(HITMV));
 
@@ -243,7 +246,7 @@ ok(!!SPE_ITEM, 'a speed-changing item is DERIVED from the dex\'s own onModifySpe
   const speVec = (att, def, item, knock) => {
     const bd = new B.Board();
     bd.setParty('p1', [att, MINE[1], MINE[2]]); bd.setParty('p2', [def, THEIRS[1], THEIRS[2]]);
-    const mv = (globalThis.MC.mons[att].mv || []).map(nrm)
+    const mv = ((mcKey.row(att, NO_ROW) || {}).mv || []).map(nrm)
       .find(id => globalThis.MC.moves[id] && (globalThis.MC.moves[id].bp | 0) > 0);
     if (!mv) return null;
     bd.setSheet('p1', att, sheetOf(item, [mv]));

@@ -49,6 +49,9 @@ const B = require(D('engine', 'board.js'));
 const RL = require(D('engine', 'rollout_leaf.js'));
 const TAGS = require(D('engine', 'tags.js'));
 const CS = require(D('engine', 'champions_sim.js'));
+const { mcKey } = require(D('engine', 'mc_key.js'));   // the ONE door into MC.mons — see that file
+/* MC.mons does not cover the whole format, so a body with no row is a real answer, not an error. */
+const NO_ROW = { mayMiss: 'MC.mons does not cover the whole format; a species with no row has no dataset four' };
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 
 let pass = 0, fail = 0;
@@ -88,7 +91,7 @@ ok(BUILDABLE.length >= 12, 'the fixture pool is buildable AND legal in this regu
 const PRIORS = JSON.parse(fs.readFileSync(D('data', 'move-priors.json'), 'utf8')).species || {};
 const observedUsersOf = mv => Object.keys(PRIORS)
   .filter(sp => (PRIORS[sp].moves || []).some(m => m && m.mv === mv && m.p > 0))
-  .map(nrm).filter(sp => BUILDABLE.includes(sp)).sort();
+  .map(sp => mcKey(sp, NO_ROW)).filter(sp => sp && BUILDABLE.includes(sp)).sort();
 /* What a species really clicks, most-often first — used to give a fixture body a moveset that is
  * legal by observation instead of one typed here. */
 const observedMovesOf = sp => ((PRIORS[sp] || {}).moves || [])
@@ -97,7 +100,13 @@ const observedMovesOf = sp => ((PRIORS[sp] || {}).moves || [])
 
 const carriersOf = ability => dex.species.all().filter(legalSpecies)
   .filter(s => Object.values(s.abilities || {}).some(a => nrm(a) === ability))
-  .map(s => s.id).filter(id => globalThis.MC.mons[id]);
+  /* THROUGH THE RESOLVER, 2026-08-23. This was `.map(s => s.id).filter(id => MC.mons[id])`, and a
+   * dex id is FLAT (`rotomwash`) while MC.mons keys formes with a hyphen — so a forme carrier was
+   * dropped SILENTLY and the derived `exactly one carrier` assertion below would still have passed
+   * over the wrong population. Deduped, because the resolver's same-body fallback can legitimately
+   * send a cosmetic forme and its base to the same row. */
+  .map(s => mcKey(s.name, NO_ROW)).filter(Boolean)
+  .filter((k, i, a) => a.indexOf(k) === i);
 
 const FIELD = { weather: null, weatherT: 0, terrain: '', terrainT: 0, twA: 0, twB: 0, tr: 0,
                 gravity: 0, sgA: {}, sgB: {} };
@@ -129,7 +138,7 @@ function baseBoard() {
   /* The benched body under test. Its declared four are ITS OWN observed clicks, rotated so they are
    * not the dataset's list in the dataset's order. */
   const SP = MINE[2];
-  const datasetFour = (globalThis.MC.mons[SP].mv || []).map(nrm);
+  const datasetFour = ((mcKey.row(SP, NO_ROW) || {}).mv || []).map(nrm);
   const observed = observedMovesOf(SP);
   const declared = observed.filter(m => !datasetFour.includes(m)).slice(0, 2)
     .concat(datasetFour.slice(0, 2));
@@ -156,7 +165,7 @@ function baseBoard() {
   /* The control: a benched species with NO sheet keeps the dataset four. The sheet is what wins,
    * and a closed-sheet game must be unchanged by this. */
   const noSheet = A.find(m => m && nrm(m.name) === MINE[3]);
-  const dsFour = (globalThis.MC.mons[MINE[3]].mv || []).map(nrm);
+  const dsFour = ((mcKey.row(MINE[3], NO_ROW) || {}).mv || []).map(nrm);
   ok(!!noSheet && (noSheet.moves || []).map(nrm).join(',') === dsFour.join(','),
     'CONTROL — a benched species with no sheet still gets the dataset four (closed sheets unchanged)',
     noSheet ? (noSheet.moves || []).join(',') : '-');
@@ -407,7 +416,7 @@ function baseBoard() {
   ok(CAR.length === 1, 'the fallen-count ability has exactly one carrier in this regulation, derived',
     CAR.join(','));
   const K = CAR[0];
-  const HIT = (globalThis.MC.mons[K].mv || []).map(nrm)
+  const HIT = ((mcKey.row(K, NO_ROW) || {}).mv || []).map(nrm)
     .find(id => globalThis.MC.moves[id] && (globalThis.MC.moves[id].bp | 0) > 0);
   ok(!!HIT, 'the carrier has a damaging move in its own dataset row', String(HIT));
 

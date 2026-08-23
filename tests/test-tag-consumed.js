@@ -246,11 +246,16 @@ if (staged.length) {
  * Both assertions keep their teeth: a tag outside the ratchet FLOOR fails whatever its label. The
  * label changes the DIAGNOSIS — who broke it and what the fix is — which is the whole complaint.
  *
- * The stamp is now written on EVERY run, which is itself a fix: the old write gate
- * (`dead.length <= prevDead.length`) froze the baseline at 2026-08-10 the moment DEAD grew, so the
- * file could never learn anything new and re-reported the same eight tags every run forever. The
- * FLOOR is what ratchets — it only ever loses members — and it is stored separately from the status
- * census so that refreshing one cannot loosen the other. */
+ * The old write gate (`dead.length <= prevDead.length`) froze the baseline at 2026-08-10 the moment
+ * DEAD grew, so the file could never learn anything new and re-reported the same eight tags every run
+ * forever. The FLOOR is what ratchets — it only ever loses members — and it is stored separately from
+ * the status census so that refreshing one cannot loosen the other.
+ *
+ * THE REPLACEMENT FOR THAT GATE WAS "WRITE ON EVERY RUN", AND THAT WAS ALSO WRONG — 2026-08-23. It
+ * let a RED run rebaseline itself, which destroyed the REGRESSED-versus-ARRIVED diagnosis this whole
+ * section exists to produce. The write is now GREEN-ONLY with an explicit `--accept`; see the block
+ * above the write itself. Neither "never refresh" nor "always refresh" is right — the correct gate is
+ * the run's own verdict. */
 const STAMP = path.join(ROOT, 'data', 'tag-consumption.json');
 let prev = null;
 if (fs.existsSync(STAMP)) {
@@ -301,7 +306,31 @@ if (prevFloor) {
 /* The floor NEVER gains a member — that is the ratchet — and it is recomputed rather than copied so
  * a wired tag leaves it on the run that wires it. */
 const floor = (prevFloor || dead).filter(t => dead.includes(t));
-fs.writeFileSync(STAMP, JSON.stringify({
+
+/* ---- THE WRITE IS GREEN-ONLY. A FAILING RUN MAY NOT REBASELINE ITSELF -------------------------
+ * 2026-08-23. This file READS `data/tag-consumption.json` as `prev` and used to WRITE it
+ * unconditionally, and `prev` is what decides the DIAGNOSIS. A tag that LOST a consumer reads
+ * `REGRESSED (was LIVE)` on the run that catches it; that run then recorded the tag's status as DEAD,
+ * so the NEXT run called the same tag `STILL DEAD` and the `regressed` assertion PASSED.
+ *
+ * The file stayed red on the separate floor check — the floor only ever shrinks — so the failure
+ * survived. What did not survive is the REASON, and the reason is the whole value of ROADMAP #184:
+ * REGRESSED means somebody deleted a read, ARRIVED means nobody ever wrote one. Those are different
+ * jobs for different people. Running a red test a second time destroyed the evidence of which it was.
+ *
+ * So the write is GREEN-ONLY, and only when something actually moved (a green run that found nothing
+ * used to dirty the tree by rewriting `generated`). `--accept` re-baselines on purpose, prints what it
+ * is accepting, and STILL EXITS 1 — accepting a regression is a decision somebody takes, never a side
+ * effect of running the test twice.
+ *
+ * Deliberately NOT `void: true`. That hook in engine/provenance.js is for a run invalidated by
+ * something ELSE that must still publish; a failed check has no such obligation, and writing a void on
+ * every red run would trip provenance's void ratchet — failing a second gate to paper over this one. */
+const ACCEPT = process.argv.includes('--accept');
+const payload = {
+  write_policy: 'GREEN-ONLY. This artifact is this test\'s own baseline, so a red run does not write '
+      + 'it — re-running a failure must not launder the failure. `--accept` re-baselines deliberately '
+      + 'and still exits 1. A green run writes only when the measured set moved.',
   note: 'RATCHET. `dead_floor` may shrink and may never grow. A tag in `dead` is one NO line of '
       + 'engine code looks for — decisive, and independent of how the sweep was staged. `staged` is '
       + 'a property of the sweep and is recorded for information only, never ratcheted.',
@@ -320,7 +349,33 @@ fs.writeFileSync(STAMP, JSON.stringify({
   by_tag: status,
   staged_this_run: staged,
   generated: new Date().toISOString(),
-}, null, 2) + '\n');
+};
+
+/* "Moved" ignores `generated` and `accepted_from_red_run`, which move on every run by construction. */
+const body = o => { const c = { ...o }; delete c.generated; delete c.accepted_from_red_run; return JSON.stringify(c); };
+const moved = !prev || body(prev) !== body(payload);
+
+if (F && !ACCEPT) {
+  console.log('\n  DID NOT WRITE data/tag-consumption.json — this run FAILED, and this artifact is '
+    + 'this test\'s own baseline. Writing it would record the tags it just caught as the accepted '
+    + 'state, and the REGRESSED / ARRIVED diagnosis would be gone on the next run.');
+  console.log('  To accept the current state as the new baseline, on purpose:  node tests/test-tag-consumed.js --accept');
+} else if (ACCEPT && F) {
+  payload.accepted_from_red_run = true;
+  console.log('\n  --accept: re-baselining from a run that FAILED ' + F + ' check(s).');
+  console.log('    dead_floor  ' + (prevFloor ? prevFloor.length : 0) + ' -> ' + floor.length);
+  const newlyDead = Object.keys(status).filter(t => status[t] === 'DEAD'
+    && prevStatus && (t in prevStatus) && prevStatus[t] !== 'DEAD');
+  console.log('    accepting as DEAD, having been consumed at the baseline: '
+    + (newlyDead.length ? newlyDead.map(t => `${t} (was ${prevStatus[t]})`).join(', ') : 'none'));
+  fs.writeFileSync(STAMP, JSON.stringify(payload, null, 2) + '\n');
+  console.log('  wrote data/tag-consumption.json — and this run still exits 1.');
+} else if (!moved) {
+  console.log('\n  unchanged — nothing in the tag census moved; data/tag-consumption.json not rewritten');
+} else {
+  fs.writeFileSync(STAMP, JSON.stringify(payload, null, 2) + '\n');
+  console.log('\n  wrote data/tag-consumption.json');
+}
 
 console.log(`\nTAG CONSUMPTION TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

@@ -14,21 +14,21 @@ mid-run silently invalidates the run, and the run still prints a result.
 SEARCH — does MILTANK choose better than MAG
   R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r1-explore1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 7 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js
   R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 7 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js
   R3 divergence: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 7 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js
   R4 does it win: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 7 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-23 01:45):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-23 05:20):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
     PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
     PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
@@ -36,7 +36,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-08-23 02:18_
+_stamped 2026-08-23 05:27_
 
 <!-- /GENERATED -->
 
@@ -645,13 +645,20 @@ this sits on R3's axis and not on a new one.
 |---|---|---|---|
 | `pre -> r13` | **#244** the fallen count | **8/131 = 6.1%** | 8.75% |
 | `r13 -> h254` | **#254** the side a condition lands on | **0/131 = 0.0%** | (hazards: 60 clicks in 14,288 games) |
-| `h254 -> r14` | **#247 #248 #249 #250** | **61/131 = 46.6%** | 70.55% |
+| `h254 -> r14` | **#247 #248 #249 #250** | **61/131 = 46.6%** | **WITHHELD** |
 | `r14 -> r15` | **#271** a removed item | **0/131 = 0.0%** | 3.62% — **and see below** |
 | `r15 -> head` | **#267 #268 #269 #270** | **13/131 = 9.9%** | 39.72% |
-| **`pre -> head` POOLED** | **all of it** | **62/131 = 47.3%** | 70.55% |
+| **`pre -> head` POOLED** | **all of it** | **62/131 = 47.3%** | **WITHHELD** |
 
 The pooled figure is barely above the R14 row on its own, and that is not an error: later landings
 re-flip decisions the earlier ones already moved, and two of them flip a decision back.
+
+**THE ARGMAX-FLIP COLUMN IS UNAFFECTED; THE REACH COLUMN'S R14 CELLS ARE WITHHELD.** The flip counts
+are this run's own paired measurement and are untouched. The two reach cells came from
+`data/rollout-seed-prevalence.json`, whose `ANY` figure was inflated by a species lookup that dropped
+every forme — mechanism, scope and the pinned re-run command are
+[in R14 below](#seed-prevalence-withheld). The other three reach cells come from different artifacts
+and are unaffected.
 
 ### THE CONTROLS, AND THE ONE THAT MATTERS IS NOT THE ONE YOU EXPECT
 
@@ -1258,7 +1265,7 @@ count came back to 80 rather than being re-baselined.
 **It is kept and finished**, rescoped from all five sweep rows to #271 alone with the other four as
 reported notes. Nothing was deleted.
 
-## R14 — THE SEED WAS WRONG AT 70.6% OF DECISION POINTS. FOUR ROWS CLOSED 2026-08-13; five more filed.
+## R14 — THE SEED WAS WRONG OFTEN ENOUGH TO CLOSE FOUR ROWS; THE HEADLINE SHARE IS WITHHELD. 2026-08-13; five more filed.
 
 ROADMAP **#247, #248, #249 and #250 closed** — one batch, because they are one surface and fixing
 them piecemeal makes each result unattributable. Gate: **`tests/test-rollout-seed.js`** (47
@@ -1269,9 +1276,14 @@ that followed.
 
 ### The verdict in one line
 
-**At 70.55% of open-sheet decision points the seed handed MEDICHAM a position that differs from the
-real one, and it now hands over the truth on all four counts — but #271, found in the same sweep, is
+**The seed handed MEDICHAM a position that differs from the real one often enough to close all four
+rows, and it now hands over the truth on all four counts — but #271, found in the same sweep, is
 bigger than any of them and is not SEARCH's to fix.**
+
+**THE SHARE THAT USED TO BE IN THIS SENTENCE AND IN THIS SECTION'S HEADLINE IS WITHHELD** as of
+2026-08-23: the generator's species lookup dropped every forme, which could only inflate it. The
+mechanism, what it does and does not touch, and the pinned command that would restore it are
+[below](#seed-prevalence-withheld). Four of the six prevalence figures are unaffected and stand.
 
 ### Why these four were one batch
 
@@ -1304,12 +1316,46 @@ are comparable to #244's 8.75% rather than five islands.
 
 | | share of decision points |
 |---|---|
-| **#248** a live benched body's declared moveset differs from the dataset's four | **55.379%** |
+| **#248** a live benched body's declared moveset differs from the dataset's four | **WITHHELD — see below** |
 | **#250** a first-turn-only move was offerable in the seed and the game refuses it | **17.655%** |
 | **#248** a live benched body is hurt or statused | **17.053%** |
 | **#249** a hazard, a screen or Gravity is up | **13.089%** |
 | **#247** a fallen-count carrier entered over graves | **0.061%** |
-| **ANY of the five — the ceiling on this batch's reach** | **70.554%** |
+| **ANY of the five — the ceiling on this batch's reach** | **WITHHELD — see below** |
+
+<a id="seed-prevalence-withheld"></a>
+
+#### TWO OF THESE SIX ARE WITHHELD, 2026-08-23 — ROADMAP #402. THE OTHER FOUR STAND.
+
+**The claim.** The `#248 moveset` row and the `ANY of the five` row are **WITHHELD**. They are not
+annotated, not footnoted and not reproduced anywhere in this file, because a figure printed with a
+caveat gets quoted without it. The four rows left standing are unaffected: `datasetMoves` is called
+at exactly one site in the generator (`engine/rollout_seed_prevalence.js:175`) and feeds only
+`movesDiffer`, and `ANY` is an OR that contains `movesDiffer`.
+
+**The mechanism.** The generator read `MC.mons[base(sp)]`, and `base()` ends in `norm()`, which
+strips the hyphen `MC.mons` keys **every forme** with. So `Rotom-Wash` asked the table for
+`rotomwash`, got nothing, and was handed an **empty** dataset moveset — which the caller then
+compares against the sheet's declared four and scores as *"the moves differ."* A miss can only push
+`movesDiffer` **up**. Measured over `data/games.bo3.jsonl`: **47 of 256 store species names, 10,980
+of 144,260 brought bodies (7.61%)**; at the sheet-body level **7,177 of 231,924 bodies (3.095%) flip
+true → false** once the row is actually found. The lookup is fixed and goes through
+`engine/mc_key.js`; `data/rollout-seed-prevalence.json` was generated before the fix.
+
+**The direction is known and the magnitude is not.** Both figures are biased **upward**. No corrected
+value is stated here, and none should be estimated — the body-level flip rate does not translate
+one-for-one to a decision point, because the decision point ORs over the whole live bench.
+
+**The command that settles it — and the sample must be pinned.**
+
+```bash
+head -n 14102 data/games.bo3.jsonl > data/_seed-prev-pin.jsonl
+node engine/rollout_seed_prevalence.js --store data/_seed-prev-pin.jsonl
+```
+
+The store has grown **14,102 → 19,401 games** since the artifact was written on 2026-08-14, so an
+unpinned re-run answers a different question and is not a before/after. The pin has its own check:
+a correct pin must return `decisionPoints: 190378` exactly, which the bug cannot have touched.
 
 **#247 IS CORRECT AND VERY NEARLY INERT, AND THAT IS STATED RATHER THAN DRESSED UP.** Only 201 of
 190,378 decision points have a Supreme Overlord carrier active at all: Kingambit is real in this

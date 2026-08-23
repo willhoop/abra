@@ -24,6 +24,10 @@ const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('data', 'engine-data.js'));
 const M = require(D('engine', 'medicham2-browser.js'));
 const TAGS = require(D('engine', 'tags.js'));
+const { mcKey } = require(D('engine', 'mc_key.js'));   // the ONE door into MC.mons — see that file
+/* MC.mons does not cover the whole format, so a fixture row that is absent is a real answer: the
+ * demo below says NO FIXTURE rather than throwing. */
+const NO_ROW = { mayMiss: 'a demo fixture row may legitimately be absent; the demo reports NO FIXTURE' };
 
 const bare = (sp) => { const b = M.buildMon(sp, {}); if (!b) throw new Error('no MC row for ' + sp); b.item = ''; b.ability = 'none'; return b; };
 const FIELD = () => ({ weather: '', terrain: '', twA: 0, twB: 0, tr: 0, sgA: {}, sgB: {} });
@@ -2265,8 +2269,8 @@ demoSource('WIRE 132 a mega row with mv:[] inherits the base moveset',
     /* BASE is asserted separately from SUBJECT on purpose: no string surgery gets from the mega key
      * to this base, so "it found the right row" is the claim, not merely "it found some moves". */
     const SUBJECT = 'floette-mega', BASE = 'floette-eternal', CONTROL = 'scizor-mega';
-    const row = MC.mons[SUBJECT], keep = row && row.mv;
-    const baseMoves = (MC.mons[BASE] && MC.mons[BASE].mv) || [];
+    const row = mcKey.row(SUBJECT, NO_ROW), keep = row && row.mv;
+    const baseMoves = ((mcKey.row(BASE, NO_ROW) || {}).mv) || [];
     /* The row must have moves of its own to take away, and the base must have some to give back, or
      * this stages nothing. Said out loud rather than returning a comfortable false. */
     if (!keep || !keep.length || !baseMoves.length) {

@@ -52,6 +52,9 @@ const B = require(D('engine', 'board.js'));
 const RL = require(D('engine', 'rollout_leaf.js'));
 const TAGS = require(D('engine', 'tags.js'));
 const CS = require(D('engine', 'champions_sim.js'));
+const { mcKey } = require(D('engine', 'mc_key.js'));   // the ONE door into MC.mons — see that file
+/* MC.mons does not cover the whole format, so a body with no row is a real answer, not an error. */
+const NO_ROW = { mayMiss: 'MC.mons does not cover the whole format; a species with no row has no dataset four' };
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 
 let pass = 0, fail = 0;
@@ -345,7 +348,7 @@ const seedFrom = (bd, side, f) => {
 
   /* THE BEHAVIOURAL ARM. Reading `_vol` back would only prove the seed wrote what the seed wrote, so
    * the observable is what the body is ALLOWED TO DO: a Taunted body may not select a status move. */
-  const statusMoveFor = sp => (globalThis.MC.mons[sp].mv || []).map(nrm)
+  const statusMoveFor = sp => ((mcKey.row(sp, NO_ROW) || {}).mv || []).map(nrm)
     .find(id => globalThis.MC.moves[id] && !(globalThis.MC.moves[id].bp | 0));
   const TU = MINE.find(sp => statusMoveFor(sp));
   ok(!!TU, 'a body with a status move in its own dataset row is derived', String(TU));
@@ -632,7 +635,7 @@ const seedFrom = (bd, side, f) => {
   if (SNDM) {
     const SNDKEY = nrm(SNDM.name);
     ok(!!JOIN[SNDKEY], 'ROADMAP #277 — and the join holds it under the PROTOCOL\'s word for it', SNDKEY);
-    const soundMovesFor = sp => (globalThis.MC.mons[sp].mv || []).map(nrm)
+    const soundMovesFor = sp => ((mcKey.row(sp, NO_ROW) || {}).mv || []).map(nrm)
       .filter(id => TAGS.has('move', id, 'sound') && globalThis.MC.moves[id]);
     /* THE FIXTURE IS CONSTRUCTED, NOT FOUND. A body handed one sound move may still decline to click
      * it — the picker can prefer a switch, and a status move against a full-health foe is not always
@@ -700,7 +703,7 @@ const seedFrom = (bd, side, f) => {
     CHOICE ? CHOICE.id : 'none in this regulation');
   if (CHOICE) {
     const SP = MINE[0];
-    const MVS = (globalThis.MC.mons[SP].mv || []).map(nrm).filter(id => {
+    const MVS = ((mcKey.row(SP, NO_ROW) || {}).mv || []).map(nrm).filter(id => {
       const m = dex.moves.get(id); return m && m.exists && !m.isNonstandard;
     }).slice(0, 2);
     ok(MVS.length === 2, 'a two-move body is derived, so a lock has something to exclude', MVS.join(','));

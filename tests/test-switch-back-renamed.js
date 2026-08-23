@@ -226,9 +226,28 @@ for (const arm of ARMS) {
 }
 
 if (!part1) failed++;
+/* ---- WHAT MAY BE PUBLISHED, AND BY WHICH RUN — 2026-08-23 -------------------------------------
+ * This file wrote data/switch-back-renamed.json and THEN exited 1, so a red run published an artifact
+ * with nothing in it saying the run had failed. `engine/provenance.js` sweeps data/*.json on
+ * freshness and `web/quarantine-data.js` lists this file by name; neither could tell a red artifact
+ * from a green one.
+ *
+ * The write STAYS, because here the red IS the measurement: an arm that DIFFERS from the authority is
+ * the finding, and `arms` is the only record of which arm and how. Suppressing it would delete the
+ * result rather than protect it. What was missing is the status, so the status is now in the file.
+ *
+ * `part1` is the one exception in spirit — it is the harness proving `_switchKey` is stamped at all —
+ * but it is a precondition of the arms rather than a plant this file failed to catch, and it is
+ * reported per-arm, so it stays inside `run_ok` rather than refusing the write.
+ *
+ * WRITE-POLICY: findings — a DIFFERS arm IS the measurement and publishes with `run_ok:false`. */
 const art = { generated: new Date().toISOString(), by: 'tests/test-switch-back-renamed.js',
   what: 'can a body medicham2 renamed mid-battle be switched back in — subject against a control on '
       + 'the same board and turn',
+  write_policy: 'FINDINGS. A DIFFERS arm is the measurement and is published with run_ok:false, so a '
+      + 'consumer can refuse it. Before 2026-08-23 the artifact carried no run status at all.',
+  run_ok: !failed,
+  failed,
   switchkey_written_by_buildpair: stampedByBuildPair,
   switchkey_on_played_bodies: stampedByFresh,
   arms: results, known_open: declaredCount };

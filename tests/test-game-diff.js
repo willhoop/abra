@@ -53,6 +53,9 @@
  *    run both execute injectedDivergenceProof() BEFORE anything else and REFUSE to report a clean
  *    result if it fails. A silent zero is a broken comparator, not a clean engine, and that is this
  *    project's signature failure.
+ *    *(That sentence was aspirational until 2026-08-23. The run did NOT refuse: it played every game
+ *    and wrote data/game-diff.json, then set process.exitCode. It now exits 1 at the proof, before a
+ *    game is played and before the artifact is touched.)*
  *
  * WHAT IT DOES NOT COMPARE is the honest half; see NOT_COMPARED.
  */
@@ -768,6 +771,26 @@ console.log('    comparator ' + (proof.ok ? 'CAN find a planted divergence, at t
   : 'FAILED ITS OWN PROOF — every result below is worthless'));
 console.log('');
 
+/* AND A FAILED PROOF STOPS THE RUN HERE — 2026-08-23. The header above has always claimed this file
+ * "REFUSES to report a clean result if it fails". It did not. It ran every game, printed every row,
+ * and WROTE data/game-diff.json with a fresh timestamp, setting process.exitCode only afterwards. So
+ * the instrument published a plausible artifact in the one state where it had just proved itself
+ * incapable of finding a divergence — an instrument declaring itself trustworthy immediately after
+ * failing the test of its trustworthiness, which is this project's signature failure with the sign
+ * flipped. Nothing downstream reads `injected_divergence_proof`: engine/provenance.js sweeps
+ * data/*.json on freshness, and web/quarantine-data.js lists the file by name.
+ *
+ * A DIVERGENCE IS STILL A FINDING AND STILL PUBLISHES GREEN. That distinction is the whole design of
+ * this file and is unchanged: the engine parting from Showdown is what the artifact is FOR. What may
+ * not publish is a run in which the COMPARATOR is broken, because then the rows are not measurements
+ * of anything. Same shape as tests/test-rulebook-collision.js, which exits before its write. */
+if (!proof.ok) {
+  console.log('  REFUSED — the comparator could not find a divergence that was PLANTED in it, so no');
+  console.log('  game below would mean anything. data/game-diff.json is NOT written and the artifact');
+  console.log('  on disk is left as it was: a stale honest number beats a fresh fictitious one.');
+  process.exit(1);
+}
+
 const artifact = { generated: new Date().toISOString(), by: 'tests/test-game-diff.js',
   showdown_commit: CS.PINNED_COMMIT, not_compared: NOT_COMPARED.map(x => x[0]),
   injected_divergence_proof: proof.ok, games: [], pairs: null };
@@ -811,13 +834,13 @@ if (doPairs) {
   console.log('');
 }
 
+/* WRITE-POLICY: green-only. Reaching this line means the planted-divergence proof PASSED, which is
+ * the only thing that can make this file exit non-zero (see the refusal above). A divergence is a
+ * FINDING and is reported, exactly like the census reports a MISSING mechanic -- a file that went red
+ * and got ignored would be worthless. A broken comparator is not a finding; it is the instrument
+ * lying, and it no longer reaches this write. */
+artifact.write_policy = 'GREEN-ONLY. Written only after injectedDivergenceProof() passed. A run whose '
+  + 'comparator failed its own planted-divergence proof exits 1 before this file is touched, so a '
+  + 'reader never has to know how to refuse an artifact written by a broken instrument.';
 fs.writeFileSync(D('data', 'game-diff.json'), JSON.stringify(artifact, null, 2) + '\n');
 console.log('  wrote data/game-diff.json');
-
-/* A FAILED PROOF IS THE ONLY THING THAT MAKES THIS FILE EXIT NON-ZERO. A divergence is a FINDING and
- * is reported, exactly like the census reports a MISSING mechanic -- a file that went red and got
- * ignored would be worthless. A broken comparator is not a finding; it is the instrument lying. */
-if (!proof.ok) {
-  console.log('\n  FAILED: the comparator could not find a divergence that was planted in it.');
-  process.exitCode = 1;
-}
