@@ -1,17 +1,18 @@
 {
- "generated": "2026-08-14T05:58:24.040Z",
+ "generated": "2026-08-23T11:04:07.666Z",
  "by": "engine/conformance.js",
- "files": 404,
+ "files": 464,
  "findings": [
   {
    "std": "S12",
    "file": "engine/all_mechanics_fire.js",
-   "what": "names 3 Pokemon thing(s) in code: move:protect, move:detect, item:sitrusberry",
+   "what": "names 4 Pokemon thing(s) in code: move:protect, move:detect, move:tailwind, item:sitrusberry",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
     "item:sitrusberry",
     "move:detect",
-    "move:protect"
+    "move:protect",
+    "move:tailwind"
    ]
   },
   {
@@ -19,6 +20,16 @@
    "file": "engine/analyze.js",
    "what": "header is one line",
    "why": "headers explain the failure the file prevents"
+  },
+  {
+   "std": "S12",
+   "file": "engine/argmax_paired.js",
+   "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:tailwind",
+    "move:trickroom"
+   ]
   },
   {
    "std": "S12",
@@ -59,10 +70,11 @@
   {
    "std": "S12",
    "file": "engine/divergence_shape.js",
-   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "what": "names 2 Pokemon thing(s) in code: move:protect, move:tailwind",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
-    "move:protect"
+    "move:protect",
+    "move:tailwind"
    ]
   },
   {
@@ -228,7 +240,7 @@
   {
    "std": "S12",
    "file": "engine/medicham2-browser.js",
-   "what": "names 16 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:tailwind, move:fakeout, ...",
+   "what": "names 15 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:tailwind, move:fakeout, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
     "ability:intimidate",
@@ -237,7 +249,6 @@
     "ability:prankster",
     "ability:technician",
     "item:leftovers",
-    "item:lifeorb",
     "move:blizzard",
     "move:detect",
     "move:earthquake",
@@ -288,16 +299,6 @@
   },
   {
    "std": "S12",
-   "file": "engine/miltank.js",
-   "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "move:tailwind",
-    "move:trickroom"
-   ]
-  },
-  {
-   "std": "S12",
    "file": "engine/moves-meta.js",
    "what": "names 7 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:protect, move:detect, move:followme, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -309,6 +310,15 @@
     "move:tailwind",
     "move:trickroom",
     "move:uturn"
+   ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/orient.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:protect"
    ]
   },
   {
@@ -350,6 +360,15 @@
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
     "move:protect"
+   ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/quarantine.js",
+   "what": "names 1 Pokemon thing(s) in code: move:tailwind",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:tailwind"
    ]
   },
   {
@@ -511,6 +530,12 @@
   },
   {
    "std": "S12",
+   "file": "build/build_browser_data.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "build/build_mag_data.js",
    "what": "names 2 Pokemon thing(s) in code: move:tailwind, move:protect",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -535,10 +560,34 @@
    ]
   },
   {
+   "std": "S12",
+   "file": "tests/probe_lifeorb_toll.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_red_demo.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_trace_choice.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
    "std": "convention",
    "file": "tests/test-dynamics.js",
    "what": "header is one line",
    "why": "headers explain the failure the file prevents"
+  },
+  {
+   "std": "S12",
+   "file": "tests/test-effect-kind.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
   {
    "std": "S12",
@@ -644,6 +693,15 @@
    "file": "web/tower.html",
    "what": "no opening comment",
    "why": "every file states why it exists"
+  },
+  {
+   "std": "S13",
+   "file": "data/all-mechanics-fire.boardstate.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
   },
   {
    "std": "S13",
@@ -773,6 +831,12 @@
   },
   {
    "std": "S13",
+   "file": "data/mc-key-door-baseline.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
    "file": "data/medicham-bench.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -890,6 +954,12 @@
   },
   {
    "std": "S13",
+   "file": "data/published-samples.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
    "file": "data/raw-log-census.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie",
@@ -995,6 +1065,141 @@
    "file": "data/xatu.js",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/_fire-abil-A.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_fire-abil-B.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_fire-abil-C.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_fire-all-FINAL.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_fire-ironball.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_fire-items-A.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_fire-items-B.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_fire-items-BASE.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_fire-items-C.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_fire-items-D.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_fire-items-E.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_fire-items-F.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_r220-dump-post.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_r220-dump-pre.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_scratch-jobs3.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
   }
  ]
 }

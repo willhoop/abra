@@ -1503,6 +1503,29 @@ const MOVE_TAGS = [
         const L = src.match(/volatiles\[["'](\w+)["']\]\??\.layers\s*\*\s*(\d+)/);
         if (L) return { kind: 'volatileLayers', volatile: L[1], per: +L[2] };
       }
+      /* ROADMAP #357 -- RAGE FIST: THE BASE POWER IS A COUNT OF HITS TAKEN, HELD ON THE USER.
+       *     basePowerCallback(pokemon) { return Math.min(350, 50 + 50 * pokemon.timesAttacked); }
+       * It sat under `{computed:true, note:'idiom not yet derivable'}` — one of the twelve kindless
+       * members — so no branch of the consumer applied and the move was PERMANENTLY 50 base power,
+       * against an authority that reaches 350. 1,042 clicks, and it decided a KO in the whole-game
+       * differential (Annihilape into Avalugg-Hisui, `1/170` against our `57/170`).
+       *
+       * CHAMPIONS OVERRIDES THE ENTRY AND KEEPS THE CALLBACK. `data/mods/champions/moves.ts:787-791`
+       * is `inherit: true` plus a `desc` restating the rule — *"X cannot be greater than 6 and resets
+       * to 0 when the user leaves the field"* — and the reset is implemented in that mod's own
+       * `clearVolatile` (`data/mods/champions/scripts.ts:169`). The cap is NOT a second rule: 6 hits
+       * is exactly the `Math.min(350, ...)` already in the arithmetic, so `cap` is read off the
+       * handler and the sentence in the desc is corroboration rather than a source.
+       *
+       * MEMBERSHIP MEASURED OVER THE WHOLE DEX BEFORE THE PATTERN WAS TYPED, per docs/LESSONS.md 4:
+       * `timesAttacked` appears in exactly ONE `basePowerCallback` in `data/moves.ts` — `ragefist` —
+       * and in NO other move handler of any kind. Avalanche reads `attackedBy`, which is a different
+       * field carrying a different rule (it doubles off THIS turn) and is served by
+       * `needsTargetToAttack {when:'damagedByTargetThisTurn'}`, so the two cannot be conflated. */
+      {
+        const T = src.match(/Math\.min\(\s*(\d+)\s*,\s*(\d+)\s*\+\s*(\d+)\s*\*\s*pokemon\.timesAttacked\s*\)/);
+        if (T) return { kind: 'userTimesHit', cap: +T[1], base: +T[2], per: +T[3] };
+      }
       return src ? { computed: true, note: 'idiom not yet derivable' } : null;
     } },
   /* Will: "darkest lariat we need a tag for things like unaware". Same parameter from both sides --

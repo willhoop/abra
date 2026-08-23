@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-23T08:24:54.944Z",
+ "generated": "2026-08-23T10:44:00.008Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -10780,8 +10780,10 @@
      "needs": "times hit -- NOT TRACKED"
     },
     "variablePower": {
-     "computed": true,
-     "note": "idiom not yet derivable"
+     "kind": "userTimesHit",
+     "cap": 350,
+     "base": 50,
+     "per": 50
     },
     "targetClass": {
      "target": "normal",

@@ -10,6 +10,72 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.98.0] — 2026-08-23
+
+### Fixed
+- **SUCKER PUNCH LANDED ON A TARGET THAT HAD ALREADY MOVED, AND THE FIX IS A SHARED READER RATHER
+  THAN A THIRD CLAUSE.** `data/moves.ts:18399` opens `const action = this.queue.willMove(target)`, and
+  `willMove` (`sim/battle-queue.ts:319-327`) walks `this.list` — the REMAINING queue — so a body that
+  has already spent its action yields `null` and the move fails. `engine/medicham2-browser.js` asked
+  `acts.find(x => x.mon === _tgt)` over the whole turn's action list, which still holds executed
+  actions. `queueWillMove` now mirrors `BattleQueue.willMove` beside `unresolved` in `battleTurn` and
+  **every clause of that `if` reads it** — ROADMAP #60's priority half, #180's `mustrecharge` half and
+  this one. That shape is derived, not preferred: `upperhand`'s `onTry` opens on the same authority
+  call (`data/moves.ts:20190`), and `failsIfTargetNotAttacking`'s own membership rule in
+  `engine/tag_dex.js` is the regex `/willMove\(\s*target\s*\)/`, so a third member printed later reads
+  the queue by construction. Shown RED with a knob-cleared control — Kingambit into Dragonite, the ONLY
+  thing varied being the target's priority: **85 and 85 before, 0 and 85 after**. Restore knob
+  `MEDI_SUCKER_QUEUE_BLIND=1`; counter `MEDSEEN.suckerRefusedAlreadyMovedTarget`.
+- **RAGE FIST WAS PERMANENTLY 50 BASE POWER — ROADMAP #357, and it is that row rather than a second
+  defect.** `variablePower` gained the derived kind `userTimesHit {cap:350, base:50, per:50}`, read off
+  the callback's own arithmetic in `engine/tag_dex.js`; it had sat under `{computed:true, note:'idiom
+  not yet derivable'}` with no `kind`, so no branch of the consumer applied AND the unknown-kind
+  counter (gated on a truthy `kind`) could not report it. `_timesAttacked` is now incremented per
+  ARRIVAL at the one damage site — `hit - 1`, the number `-hitcount` reports — gated on
+  `pokemon !== target`, and CLEARED in `switchOut`, which is the only half the Champions mod wrote
+  itself (`data/mods/champions/scripts.ts:169`; mainline never resets it). Shown RED with three arms —
+  0 hits / 2 hits / 2 hits then a pivot: **51, 51, 51 before; 51, 150, 51 after**. An engine that
+  copied mainline passes the first two arms and fails the pivot. Membership printed before wiring:
+  `timesAttacked` appears in exactly ONE `basePowerCallback` in the whole dex.
+- **STRUGGLE WAS PRICED AT ITS PRINTED TYPE BY THE DAMAGE PATH — ALL SEVEN RESIDUAL DIFFERENTIAL ROWS.**
+  `effMoveType` has honoured `setsOwnTypeAlways` since ROADMAP #144; `dmgRangeOneHit` opened
+  `let mvT = mv.t` and never asked — the duplication `formeMoveType`'s own header already named as the
+  owed consolidation. Two symptoms, one cause: six rows of unearned x1.5 STAB
+  (`ditto struggle -> clawitzer`, Showdown 11-14 against our 16-21) and one Normal→Ghost immunity the
+  authority does not have (`gallade struggle -> gengar`, Showdown 51-60 against our 0-0). Both now
+  match the authority exactly. **`data/engine-data.js` was NOT touched and is not wrong** — `t:"Normal"`
+  is the dex's printed `type`, and the `???` arrives from the move's own `onModifyMove` at use time.
+  Restore knob `MEDI_DMG_OWNTYPE_BLIND=1`; counter `MEDSEEN.ownTypeAlwaysPriced`.
+
+### Added
+- Three census probes, one per defect, each with its control cleared explicitly:
+  `move/failsIfTargetNotAttacking` — *"Sucker Punch ALSO fails into a target that has ALREADY MOVED
+  this turn (the queue clause)"*; `move/variablePower` — *"Rage Fist grows with the hits its user has
+  taken, and resets on a pivot"*; `move/setsOwnTypeAlways` — *"Struggle is typeless — no STAB out of a
+  Normal body, and it lands on a Ghost"*. **Census 643 → 646 live, 0 missing, 0 hollow, 0 unarmed.**
+- `MEDFAILS.timesHitSubstituteUncounted` — the declared remainder of the times-hit counter, counted at
+  the site rather than argued away: a Substitute-absorbed hit counts in the authority and not here.
+
+### Notes
+- **DAMAGE DIFFERENTIAL 7 of 6000 → 0 of 6000** at `--n 6000 --seed 20260804`, midpoint and all
+  sixteen other arms (top, bottom, idx01–idx14).
+- **WHOLE-GAME BOARD-MATERIAL, ENGINE: 21 games.** Release `0faabe2a3f1b` (cut from this tree,
+  `0 of 26 files have moved since`), `--team-store data/team-pool-frozen`, census pinned to
+  `data/verification/census-pin-9446a684709d.json`, 961 games, `--end-state`. Middle arm: **73 parted,
+  30 board-material, 43 narration-only, 0 unknown**; minus 9 measured as the INSTRUMENT (Moody 8,
+  off-field body 1) leaves 21 in 28 causes. Per arm: middle 21, top-tie-first 18, bottom-tie-first 18.
+  **RE-BASELINE, NOT A DELTA against the previous run's 27** — the engine and the release both moved.
+  **Still a LOWER BOUND**: the planted-state proof has not passed, and under-sensitivity can only
+  over-call NARRATION. Sucker Punch, Rage Fist and Struggle appear in ZERO divergence causes in any
+  arm. Full account: `docs/_reports/2026-08-23-suckerpunch-ragefist-struggle.md`.
+- **NOT TOUCHED, and reported instead:** `ragefist` keeps the tag `needsUntrackedState
+  {needs:"times hit -- NOT TRACKED"}`. That param is a claim about `board.js`, which still does not
+  track it — ROADMAP #283 refuses it there by name — and `board.js` is not ENGINE's file.
+- `tests/run-all.js`: **127 passed, 33 failed, 2 skipped.** Two failures were checked rather than
+  waved through and neither is this pass's: `tests/test-engine-diff.js` exit 3 is `publish_guard`'s
+  PUBLISH REFUSED (run-all invokes it at the default `--n 150` against a published 6000), and
+  `engine/validate_damage.js` prints the identical aggregate with both restore knobs set.
+
 ## [5.97.0] — 2026-08-23
 
 ### Added

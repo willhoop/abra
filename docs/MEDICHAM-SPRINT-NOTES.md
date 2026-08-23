@@ -21,6 +21,45 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THREE DEFECTS, AND THE ONE THAT LOOKED NEW WAS A ROW WE ALREADY HAD. 2026-08-23 (ENGINE).
+
+Census **643 → 646 live, 0 missing**. Damage differential `--n 6000 --seed 20260804`: **7 → 0**,
+midpoint and all sixteen other arms. Full account:
+`docs/_reports/2026-08-23-suckerpunch-ragefist-struggle.md`.
+
+**SUCKER PUNCH — fixed as a SHARED READER, not as a third clause.** `data/moves.ts:18399` opens
+`this.queue.willMove(target)`, which walks the REMAINING queue (`sim/battle-queue.ts:319-327`); this
+engine asked `acts.find(...)` over the whole turn's action list. `queueWillMove` now mirrors
+`BattleQueue.willMove` beside `unresolved` in `battleTurn` and **all three clauses of that `if` read
+it** — #60, #180 and this. Justified rather than preferred: `upperhand`'s `onTry` opens on the same
+call (`data/moves.ts:20190`) and the tag's membership rule in `tag_dex.js` IS the regex
+`/willMove\(\s*target\s*\)/`. Red with the knob cleared: **85/85 before, 0/85 after**;
+`MEDI_SUCKER_QUEUE_BLIND=1` restores it. Fake Out deliberately not used as the fast move — it
+flinches, and the probe would have gone green on a broken engine.
+
+**RAGE FIST IS ROADMAP #357, NOT A NEW DEFECT.** The board-materiality report's "NEW" is right about
+the grouping and wrong about the register; #357 should CLOSE. `variablePower` gained the derived kind
+`userTimesHit {cap:350, base:50, per:50}`; `_timesAttacked` is counted per ARRIVAL at the one damage
+site and CLEARED in `switchOut`, which is the only half Champions wrote itself
+(`data/mods/champions/scripts.ts:169`). Three arms — 0 hits / 2 hits / 2 hits then a pivot —
+**51/51/51 before, 51/150/51 after**. An engine copying MAINLINE passes the first two and fails the
+pivot. Membership printed first: `timesAttacked` is in exactly ONE `basePowerCallback` in the whole
+dex.
+
+**STRUGGLE WAS IN SCOPE AND NO GENERATED ARTIFACT NEEDED TOUCHING.** `data/engine-data.js`'s
+`t:"Normal"` is CORRECT — it is the dex's printed type, and the `???` arrives from the move's own
+`onModifyMove` at use time. The defect is one line: `effMoveType` has honoured `setsOwnTypeAlways`
+since #144 and `dmgRangeOneHit` opened `let mvT = mv.t`, which `formeMoveType`'s own header had
+already named as the owed consolidation. That was **all seven** residual differential rows — six
+unearned STAB, one Normal→Ghost immunity — now 11-14 and 51-60, matching the authority exactly.
+`MEDI_DMG_OWNTYPE_BLIND=1` restores both.
+
+**WHOLE-GAME, RE-BASELINE NOT A DELTA** (release `0faabe2a3f1b`, `data/team-pool-frozen`, census pin
+`9446a684709d`, 961 games, `--end-state`): middle **73 parted / 30 board-material / 43 narration**,
+minus 9 instrument (Moody 8, off-field body 1) = **21 ENGINE BOARD-MATERIAL**. Per arm 21 / 18 / 18
+against the prior run's 27 / 23 / 23. Sucker Punch, Rage Fist and Struggle appear in **zero** causes.
+**21 is a lower bound** — the planted-state proof still does not pass, pre-existing and fixture-shaped.
+
 ## THE BAR HAS A DENOMINATOR: BOARD-MATERIAL IS 27, AND SUCKER PUNCH IS FOUR OF IT. 2026-08-23 (ENGINE).
 
 **Nothing in `engine/medicham2-browser.js` changed.** Measurement pass. The run that produced the

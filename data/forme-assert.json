@@ -1,7 +1,10 @@
 {
- "generated": "2026-08-23T07:15:01.226Z",
+ "generated": "2026-08-23T10:57:38.401Z",
  "by": "tests/test-forme-assert.js",
  "what": "the forme absolute-assertion mode — four assertions against the authority, no control arm",
+ "write_policy": "FINDINGS. A disagreement with the authority IS the measurement and is published with run_ok:false. A run in which a plant went uncaught (--reds) publishes nothing — the instrument failed its own proof and its rows are not evidence.",
+ "run_ok": true,
+ "failed": 0,
  "refuses_copy": [
   "disguise",
   "battlebond",

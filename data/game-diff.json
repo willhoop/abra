@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-22T05:07:49.648Z",
+  "generated": "2026-08-23T10:57:42.167Z",
   "by": "tests/test-game-diff.js",
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "not_compared": [
@@ -47,5 +47,6 @@
       "first_divergence": null
     }
   ],
-  "pairs": null
+  "pairs": null,
+  "write_policy": "GREEN-ONLY. Written only after injectedDivergenceProof() passed. A run whose comparator failed its own planted-divergence proof exits 1 before this file is touched, so a reader never has to know how to refuse an artifact written by a broken instrument."
 }

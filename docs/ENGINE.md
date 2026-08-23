@@ -57,16 +57,10 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  643/643 probed mechanics live, 0 missing   (census 2026-08-23 05:53)
-  7/6000 differential comparisons disagree with Showdown   (2026-08-23 05:51)
+  646/646 probed mechanics live, 0 missing   (census 2026-08-23 07:37)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-23 06:53)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
-    ditto struggle -> clawitzer: showdown 11-14, medicham 16-21  (0 uses)
-    ditto struggle -> glaceon: showdown 10-12, medicham 15-18  (0 uses)
-    ditto struggle -> feraligatrmega: showdown 9-11, medicham 13-16  (0 uses)
-    ditto struggle -> hippowdon: showdown 9-11, medicham 13-16  (0 uses)
-    ditto struggle -> raichumegay: showdown 16-19, medicham 24-28  (0 uses)
-    ditto struggle -> furfrou: showdown 8-10, medicham 12-15  (0 uses)
-    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 7/6000,  bottom 7/6000,  idx01 7/6000,  idx02 7/6000,  idx03 7/6000,  idx04 7/6000,  idx05 7/6000,  idx06 7/6000,  idx07 7/6000,  idx08 7/6000,  idx09 7/6000,  idx10 7/6000,  idx11 7/6000,  idx12 7/6000,  idx13 7/6000,  idx14 7/6000
+    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1642/1642 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 18:00)
     2250 of 7103 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 7103
@@ -76,15 +70,160 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 9446a684709d now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is c186402bda70 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 06:30_
+_stamped 2026-08-23 07:38_
 
 <!-- /GENERATED -->
+
+## THE THIRD CLAUSE WAS A SHARED READER, RAGE FIST WAS THE ROW WE ALREADY HAD, AND STRUGGLE WAS ONE LINE THE FILE'S OWN HEADER HAD ALREADY NAMED. 2026-08-23.
+
+Three defects, three batches of one, each shown RED with its control cleared before anything was
+fixed. Full account:
+[`docs/_reports/2026-08-23-suckerpunch-ragefist-struggle.md`](_reports/2026-08-23-suckerpunch-ragefist-struggle.md).
+
+**Census 643 → 646 live, 0 missing. Damage differential 7 of 6000 → 0 of 6000, all seventeen arms.**
+
+### SUCKER PUNCH — AND THE ANSWER TO "REMAINING CLAUSE OR SHARED READER" IS THE READER
+
+`data/moves.ts:18399` opens `const action = this.queue.willMove(target)`, and `willMove`
+(`sim/battle-queue.ts:319-327`) walks **`this.list` — the REMAINING queue**. This engine asked
+`acts.find(x => x.mon === _tgt)` over the whole turn's action list, which still holds actions that
+have executed, so a target that had already moved read as "about to attack".
+
+**It is fixed as `queueWillMove`, one reader beside `unresolved` in `battleTurn`, and all three
+clauses of that `if` call it** — #60's priority half, #180's `mustrecharge` half and this one. Two
+facts made that the right shape rather than a preference: **`upperhand`'s `onTry` opens on the same
+`this.queue.willMove(target)`** (`data/moves.ts:20190`), and the tag's own membership rule in
+`engine/tag_dex.js` is the regex `/willMove\(\s*target\s*\)/` — so a third member printed later reads
+the queue **by construction**. `unresolved` already carries exactly `this.list`'s membership (WIRE
+118); a private set here would have been a fourth answer to one question.
+
+**RED, with the knob cleared.** Kingambit clicks Sucker Punch at Dragonite and the ONLY thing varied
+is Dragonite's priority — the target ATTACKS in both arms, which is why neither existing probe could
+see it. Before: **85 and 85**. After: **0 and 85**. `MEDI_SUCKER_QUEUE_BLIND=1` puts it back.
+**Fake Out was deliberately NOT the fast move**: it flinches, so the probe would have gone green on a
+broken engine. The authority was asked this exact board and prints `|-fail|p1a: Kingambit`.
+
+### RAGE FIST IS ROADMAP #357, NOT A SECOND DEFECT — AND THE PIVOT ARM IS THE CHAMPIONS HALF
+
+The brief asked whether this was the existing row. **It is.** #357 names the same callback, the same
+Champions override and the same board. The board-materiality report's "NEW" is right about the
+GROUPING and wrong as a claim about the register; no duplicate row is proposed and #357 should close.
+
+Three pieces: `engine/tag_dex.js` derives `variablePower {kind:'userTimesHit', cap:350, base:50,
+per:50}` off the callback's arithmetic (it sat under `{computed:true}` with no kind, so no branch
+applied AND the unknown-kind counter, gated on a truthy `kind`, could not report it); `_timesAttacked`
+is incremented per ARRIVAL at the one damage site; and `switchOut` clears it, which is the only part
+of Rage Fist the Champions mod wrote itself (`data/mods/champions/scripts.ts:169`).
+
+**RED, three arms** — 0 hits / 2 hits / 2 hits then a pivot. Before: **51, 51, 51**. After: **51, 150,
+51**. **An engine that copied MAINLINE passes the first two arms and fails the third**, because
+mainline never resets `timesAttacked`. The authority was asked the same three arms and reads
+`timesAttacked` 0 / 2 / 0.
+
+**Membership printed before wiring:** `timesAttacked` appears in exactly ONE `basePowerCallback` in
+the whole dex and in no other move handler of any kind. Exactly one row of `data/tags.json` moved.
+
+### STRUGGLE WAS IN SCOPE, AND NO GENERATED ARTIFACT NEEDED TOUCHING
+
+**`data/engine-data.js` is not wrong.** `t:"Normal"` is the dex's printed `type`; the `???` arrives
+from the move's own `onModifyMove` at use time, and `???` has no chart row — x1 against everything,
+STAB against nothing. The defect is one line in `engine/medicham2-browser.js`, and
+`formeMoveType`'s own header had already named it: *"THE HONEST FIX IS TO MAKE `dmgRangeOneHit` CALL
+`effMoveType`, AND IT IS NOT DONE HERE."* `effMoveType` has honoured `setsOwnTypeAlways` since #144;
+`dmgRangeOneHit` opened `let mvT = mv.t` and never asked.
+
+**One cause, two symptoms, and both were the residual seven:** six unearned x1.5 STAB
+(`ditto struggle -> clawitzer`, Showdown 11-14 against our 16-21) and one Normal→Ghost immunity the
+authority does not have (`gallade struggle -> gengar`, Showdown 51-60 against our 0-0). After:
+**11-14 and 51-60**, matching the authority exactly. `MEDI_DMG_OWNTYPE_BLIND=1` puts both back.
+
+**Class measured over the whole dex:** ten moves assign a literal `move.type`; five are `Past`, and
+four of the five legal ones are CONDITIONAL with their own tags. **Exactly one is unconditional and it
+is Struggle.** The type is read off `setsOwnTypeAlways.type`, never off a name.
+
+### THE WHOLE-GAME RUN — A RE-BASELINE, SAID FIRST
+
+Release **`0faabe2a3f1b`** (cut from this tree, `0 of 26 files have moved since`),
+`--team-store data/team-pool-frozen`, census pinned to
+`data/verification/census-pin-9446a684709d.json`, `--games 1200 --end-state --write`, **961 games**.
+**The engine AND the release both moved, so this is not a delta against 27.**
+
+```
+                     middle   top-tie-first   bottom-tie-first
+  parted                73          61              75
+  BOARD-MATERIAL        30          19              20
+  NARRATION-ONLY        43          42              55
+  minus INSTRUMENT      -9          -1              -2     (Moody 8/0/0, off-field body 1/1/2)
+  ------------------------------------------------------
+  ENGINE BOARD-MATERIAL 21          18              18     (prior run: 27 / 23 / 23)
+```
+
+**Moody is the instrument and the arms say so** — 8 in `middle`, **zero in either corner**, which is
+an unshared `sample()` and not a rule defect. 7 of the 8 are CARDED `[from] ability: moody`; the
+eighth fell outside the 200-game dump and is grouped by shape, which is said rather than hidden.
+
+**Sucker Punch, Rage Fist and Struggle appear in ZERO divergence causes across all three arms.**
+
+**21 is a LOWER BOUND, exactly as 27 was.** The planted-state proof still does not pass — same
+pre-existing, fixture-shaped failure — and under-sensitivity can only over-call NARRATION.
+
+**Scoreboard, stated before the run and held:** Sucker Punch was board-material with KOs and the pool
+moved; Struggle cleared the damage differential and never appears in the pool (it needs a body out of
+PP, which a 12-turn cap rarely produces); Rage Fist is one carrier and 1,042 clicks, and its pivot
+reset is provable only in the lab.
+
+### THE HAND LIST
+
+**Removed — these are census probes now, so the census carries them:**
+
+- ~~Sucker Punch's third clause — the target must still be IN THE QUEUE~~
+- ~~Rage Fist deals a third of the authority's damage~~ (it was ROADMAP #357 all along)
+- ~~the seven residual damage-differential rows: Struggle's STAB and its Ghost immunity~~
+
+**Still open, and re-measured on release `0faabe2a3f1b` rather than carried over:**
+
+- **Forecast never fires** — 2 games, board-material in all three arms, parts at turn 1 on
+  `|-formechange|p2a|castformrainy|[msg]|[from]forecast`.
+- **Symbiosis never fires** — 1 game per arm, `|-activate|p2b|symbiosis|lifeorb`.
+- **Zero to Hero is silent**, and at the wrong MOMENT: the authority transforms on switch-OUT and
+  announces on the way back in; this engine transforms on the RETURN and emits neither line. Declared
+  by the run itself, not assumed.
+- **Throat Chop's `-end` is missing** (2 games, bottom arm). **Infestation's `-end` is missing**
+  (1, top arm). **A `-fail` for a poisoned body is missing** (1, bottom).
+- **A drain heal is ordered before the damage it drains from** (1, middle).
+- **A mega `detailschange` is emitted in the wrong ORDER** and, in one game, on the wrong SIDE
+  (`|detailschange|p1a|mawilemega` against `|detailschange|p2a|mawilemega`).
+- **Two `-damage` values differ by exactly 1 HP** (hippowdon 35 vs 34, sylveon 95 vs 97) — the only
+  magnitude rows left in the pool, and the damage differential is at zero, so these are turn-context.
+- **`switch lookups that MISSED: medicham 6`** (must read 0) and **`forced_switch_unmirrorable 12`**.
+- **`MEDFAILS.traceBodyOffField = 10`**, first `farigiraf` — the `??:` identifier, ROADMAP #224.
+- **The narration gate does not exist.** 43 narration games in `middle` and nothing ratchets them.
+
+### OWED, NOT RUN
+
+```
+tools\lownode.cmd engine\quarantine.js                    # NOT run
+SHOWDOWN_PATH=... node tests/roster.js --stage {items,abilities,moves} --write   # NOT run
+node engine/wire_ladder.js                                # NOT run
+node tests/interaction_matrix.js                          # NOT run
+node tests/test-mechanics.js                              # RUN — 646/646 live, 0 missing
+node tests/run-all.js                                     # RUN — 127 passed, 33 failed, 2 skipped
+node engine/status.js --write                             # RUN at the end of this pass
+```
+
+- **The roster artifacts are three releases stale now** and every roster figure in `status.js` stays
+  WITHHELD. That is the state they were already in, not a new debt.
+- **Two run-all failures were checked rather than waved through.** `test-engine-diff.js` exit 3 is
+  `publish_guard`'s PUBLISH REFUSED at the default `--n 150` against a published 6000 — correct
+  behaviour. `engine/validate_damage.js` prints the IDENTICAL aggregate with both knobs restored, so
+  it is not this pass's. `test-effective-identity.js`'s per-file counts are unchanged against HEAD
+  (281→281, 19→19, 419→419).
 
 ## BOARD-MATERIAL IS 27 GAMES, NOT 78, AND THE SINGLE BIGGEST ONE IS SUCKER PUNCH LANDING ON A BODY THAT HAS ALREADY MOVED. 2026-08-23.
 

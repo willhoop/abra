@@ -1,85 +1,14 @@
 {
-  "generated": "2026-08-23T09:51:28.383Z",
+  "generated": "2026-08-23T10:53:18.456Z",
   "by": "tests/test-engine-diff.js",
   "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
   "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
   "seed": 20260804,
   "requested": 6000,
   "compared": 6000,
-  "agreed": 5993,
-  "disagreed": 7,
-  "worst": [
-    {
-      "att": "ditto",
-      "mv": "struggle",
-      "def": "clawitzer",
-      "showdown": "11-14",
-      "medicham": "16-21",
-      "rel": 0.48,
-      "uses": 0,
-      "suspect": false
-    },
-    {
-      "att": "ditto",
-      "mv": "struggle",
-      "def": "glaceon",
-      "showdown": "10-12",
-      "medicham": "15-18",
-      "rel": 0.5,
-      "uses": 0,
-      "suspect": false
-    },
-    {
-      "att": "ditto",
-      "mv": "struggle",
-      "def": "feraligatrmega",
-      "showdown": "9-11",
-      "medicham": "13-16",
-      "rel": 0.45,
-      "uses": 0,
-      "suspect": false
-    },
-    {
-      "att": "ditto",
-      "mv": "struggle",
-      "def": "hippowdon",
-      "showdown": "9-11",
-      "medicham": "13-16",
-      "rel": 0.45,
-      "uses": 0,
-      "suspect": false
-    },
-    {
-      "att": "ditto",
-      "mv": "struggle",
-      "def": "raichumegay",
-      "showdown": "16-19",
-      "medicham": "24-28",
-      "rel": 0.4857142857142857,
-      "uses": 0,
-      "suspect": false
-    },
-    {
-      "att": "ditto",
-      "mv": "struggle",
-      "def": "furfrou",
-      "showdown": "8-10",
-      "medicham": "12-15",
-      "rel": 0.5,
-      "uses": 0,
-      "suspect": false
-    },
-    {
-      "att": "ditto",
-      "mv": "struggle",
-      "def": "pangoro",
-      "showdown": "12-15",
-      "medicham": "18-22",
-      "rel": 0.48148148148148145,
-      "uses": 0,
-      "suspect": false
-    }
-  ],
+  "agreed": 6000,
+  "disagreed": 0,
+  "worst": [],
   "plant": null,
   "arms": [
     {
@@ -87,1280 +16,144 @@
       "what": "Showdown damage roll index 0 (MAXIMUM) against MEDICHAM's `max`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "12",
-          "medicham": "18",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "11",
-          "medicham": "16",
-          "rel": 0.45454545454545453,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "11",
-          "medicham": "16",
-          "rel": 0.45454545454545453,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "19",
-          "medicham": "28",
-          "rel": 0.47368421052631576,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "15",
-          "medicham": "22",
-          "rel": 0.4666666666666667,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "bottom",
       "what": "Showdown damage roll index 15 (MINIMUM) against MEDICHAM's `min`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "11",
-          "medicham": "16",
-          "rel": 0.45454545454545453,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "16",
-          "medicham": "24",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "8",
-          "medicham": "12",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "12",
-          "medicham": "18",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx01",
       "what": "Showdown damage roll index 1 (roll 99%) against MEDICHAM's own `rolls[1]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "11",
-          "medicham": "16",
-          "rel": 0.45454545454545453,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "18",
-          "medicham": "27",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx02",
       "what": "Showdown damage roll index 2 (roll 98%) against MEDICHAM's own `rolls[2]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "11",
-          "medicham": "16",
-          "rel": 0.45454545454545453,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "18",
-          "medicham": "27",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx03",
       "what": "Showdown damage roll index 3 (roll 97%) against MEDICHAM's own `rolls[3]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "11",
-          "medicham": "16",
-          "rel": 0.45454545454545453,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "18",
-          "medicham": "27",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx04",
       "what": "Showdown damage roll index 4 (roll 96%) against MEDICHAM's own `rolls[4]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "11",
-          "medicham": "16",
-          "rel": 0.45454545454545453,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "18",
-          "medicham": "27",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx05",
       "what": "Showdown damage roll index 5 (roll 95%) against MEDICHAM's own `rolls[5]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "11",
-          "medicham": "16",
-          "rel": 0.45454545454545453,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "18",
-          "medicham": "27",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx06",
       "what": "Showdown damage roll index 6 (roll 94%) against MEDICHAM's own `rolls[6]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "11",
-          "medicham": "16",
-          "rel": 0.45454545454545453,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "17",
-          "medicham": "25",
-          "rel": 0.47058823529411764,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx07",
       "what": "Showdown damage roll index 7 (roll 93%) against MEDICHAM's own `rolls[7]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "11",
-          "medicham": "16",
-          "rel": 0.45454545454545453,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "17",
-          "medicham": "25",
-          "rel": 0.47058823529411764,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx08",
       "what": "Showdown damage roll index 8 (roll 92%) against MEDICHAM's own `rolls[8]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "12",
-          "medicham": "18",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "11",
-          "medicham": "16",
-          "rel": 0.45454545454545453,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "17",
-          "medicham": "25",
-          "rel": 0.47058823529411764,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx09",
       "what": "Showdown damage roll index 9 (roll 91%) against MEDICHAM's own `rolls[9]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "12",
-          "medicham": "18",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "17",
-          "medicham": "25",
-          "rel": 0.47058823529411764,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx10",
       "what": "Showdown damage roll index 10 (roll 90%) against MEDICHAM's own `rolls[10]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "12",
-          "medicham": "18",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "17",
-          "medicham": "25",
-          "rel": 0.47058823529411764,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx11",
       "what": "Showdown damage roll index 11 (roll 89%) against MEDICHAM's own `rolls[11]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "12",
-          "medicham": "18",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "16",
-          "medicham": "24",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "8",
-          "medicham": "12",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx12",
       "what": "Showdown damage roll index 12 (roll 88%) against MEDICHAM's own `rolls[12]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "12",
-          "medicham": "18",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "16",
-          "medicham": "24",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "8",
-          "medicham": "12",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx13",
       "what": "Showdown damage roll index 13 (roll 87%) against MEDICHAM's own `rolls[13]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "12",
-          "medicham": "18",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "16",
-          "medicham": "24",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "8",
-          "medicham": "12",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx14",
       "what": "Showdown damage roll index 14 (roll 86%) against MEDICHAM's own `rolls[14]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5993,
-      "disagreed": 7,
-      "worst": [
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "clawitzer",
-          "showdown": "12",
-          "medicham": "18",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "glaceon",
-          "showdown": "10",
-          "medicham": "15",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "feraligatrmega",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "hippowdon",
-          "showdown": "9",
-          "medicham": "13",
-          "rel": 0.4444444444444444,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "raichumegay",
-          "showdown": "16",
-          "medicham": "24",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "furfrou",
-          "showdown": "8",
-          "medicham": "12",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        },
-        {
-          "att": "ditto",
-          "mv": "struggle",
-          "def": "pangoro",
-          "showdown": "12",
-          "medicham": "18",
-          "rel": 0.5,
-          "uses": 0,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     }
   ],
   "band_missing": 0,

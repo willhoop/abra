@@ -5822,6 +5822,61 @@ probe('move', 'failsIfTargetNotAttacking',
                  + ' — equal arms would mean the recharge clause is unread' };
 });
 
+/* 2026-08-23 -- AND THE FIRST CLAUSE OF THAT SAME `if`, WHICH IS THE ONE NOBODY HAD MODELLED.
+ *
+ *     const action = this.queue.willMove(target);            data/moves.ts:18399
+ *     const move = action?.choice === 'move' ? action.move : null;
+ *     if (!move || ...) return false;                        data/moves.ts:18401
+ *
+ * `willMove` walks `this.queue.list` — THE REMAINING QUEUE (sim/battle-queue.ts:319-327) — so a target
+ * that has already spent its action this turn yields `null` and Sucker Punch fails outright.
+ * medicham2 answered the same question with `acts.find(x => x.mon === _tgt)` over the whole turn's
+ * action list, which still holds executed actions, so the target read as "about to attack" and the
+ * move connected. Four whole-game divergences on release `3d9df7ce4996`, all three arms, two of them
+ * KOs.
+ *
+ * THE KNOB IS PRIORITY AND NOTHING ELSE. Both arms are the same two bodies, the same click, and a
+ * foe that ATTACKS — Dragonite's Extreme Speed is +2 so it resolves ABOVE Sucker Punch's +1, and its
+ * Dragon Claw is +0 so it resolves below. So the two probes above (does the target attack at all;
+ * does it owe a recharge) both read TRUE in both arms here and neither can see this.
+ *
+ * FAKE OUT IS DELIBERATELY NOT THE FAST MOVE, and that is the instrument-before-the-engine trap this
+ * probe was nearly built on: Fake Out flinches, so a flinched Kingambit deals 0 whether or not the
+ * queue is read, and the probe would have gone green on an engine that still had the bug. Extreme
+ * Speed carries no secondary at all.
+ *
+ * THE AUTHORITY WAS ASKED THIS EXACT BOARD rather than quoted. Official simulator, format
+ * gen9championsvgc2026regmb, same four bodies, same clicks:
+ *     Extreme Speed arm:  |move|p2a: Dragonite|Extreme Speed|p1a: Kingambit
+ *                         |move|p1a: Kingambit|Sucker Punch||[still]   |-fail|p1a: Kingambit
+ *     Dragon Claw arm:    |move|p1a: Kingambit|Sucker Punch|p2a: Dragonite
+ *                         |-damage|p2a: Dragonite|139/166                (it lands)
+ *
+ * Both bodies carry the clicks legally: Kingambit learns Sucker Punch, Dragonite learns Extreme Speed
+ * and Dragon Claw (derived from the format's learnsets, not recalled). */
+probe('move', 'failsIfTargetNotAttacking',
+      'Sucker Punch ALSO fails into a target that has ALREADY MOVED this turn (the queue clause)', () => {
+  const run = (foeMove) => {
+    const { me, ally, f1, f2, S } = board('kingambit', 'corviknight', 'dragonite', 'garchomp');
+    /* the USER must survive the +2 hit or the click never happens and the arm is hollow; the TARGET
+     * must not faint or a KO would clamp both arms to the same number. */
+    unfaintable(me); unfaintable(f1);
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'suckerpunch', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, foeMove, me, S.field)], [f2, { kind: 'pass' }]]));
+    return before - f1.curHP;
+  };
+  const already = run('extremespeed');   // +2: the target has already gone -> must FAIL
+  const notYet = run('dragonclaw');      // +0: the target is still queued   -> must LAND
+  return { works: already === 0 && notYet > 0,
+           arms: { control: notYet, test: already },
+           detail: 'the target attacks in BOTH arms; only its priority differs. Foe at +2 (Extreme '
+                 + 'Speed, so it has already moved when Sucker Punch resolves): ' + already
+                 + ' (must be 0, the authority prints |-fail|); foe at +0 (Dragon Claw, still in the '
+                 + 'queue): ' + notYet + ' — equal arms would mean the queue is not being read' };
+});
+
 /* =================================================================================================
  * ROADMAP #162 / #60 -- UPPER HAND AND SUCKER PUNCH SHARED ONE CONDITION AND DO NOT SHARE IT.
  *
@@ -6305,6 +6360,103 @@ probe('move', 'variablePower', 'Triple Axel escalates 20/40/60 across its three 
            detail: `one 20 BP hit ${bp20}, one 40 ${bp40}, one 60 ${bp60} — a FLAT triple is `
                  + `${control} and an ESCALATING one is ${bp20 + bp40 + bp60}; the engine's Triple `
                  + `Axel deals ${test} (Showdown's basePowerCallback is 20 * move.hit)` };
+});
+
+/* ROADMAP #357 -- RAGE FIST'S BASE POWER IS A COUNT OF HITS TAKEN, AND THE COUNT DID NOT EXIST.
+ *
+ *     basePowerCallback(pokemon) { return Math.min(350, 50 + 50 * pokemon.timesAttacked); }
+ *
+ * `data/mods/champions/moves.ts:787-791` inherits that callback and restates the rule in its own
+ * desc — *"X cannot be greater than 6 and resets to 0 when the user leaves the field"* — with the
+ * reset implemented in the mod's own `clearVolatile` (`data/mods/champions/scripts.ts:169`). This
+ * engine had no counter at all, so the move was PERMANENTLY 50 base power: 1,042 corpus clicks, and
+ * on the board that found it (Annihilape into Avalugg-Hisui, whole-game differential, release
+ * `3d9df7ce4996`) the authority left the target on `1/170` where this engine left it on `57/170`.
+ *
+ * THREE ARMS, AND THE THIRD IS THE CHAMPIONS-SPECIFIC HALF. Same two bodies, same click, and the
+ * ONLY thing varied is how many Dragon Claws the user ate first — so an engine reading a flat 50
+ * prints the two damage arms EQUAL, which is exactly what it did before this. The PIVOT arm takes
+ * the same two hits and then walks the user out and back, and must fall the whole way to the 0-hit
+ * number: mainline never resets `timesAttacked`, so an engine that copied mainline would keep the
+ * 150 BP and pass the first two arms.
+ *
+ * THE AUTHORITY WAS ASKED THESE ARMS rather than quoted. Official simulator, same format, Annihilape
+ * versus Garchomp with the setup turns spent on Bulk Up so the counter is the only thing moving:
+ *     0 hits            timesAttacked 0, Rage Fist deals 37
+ *     2 hits            timesAttacked 2, Rage Fist deals 183
+ *     2 hits then pivot timesAttacked 0, Rage Fist deals 36
+ * Annihilape is the format's ONLY Rage Fist carrier (derived from the learnsets), and Garchomp
+ * carries Dragon Claw legally. */
+probe('move', 'variablePower', 'Rage Fist grows with the hits its user has taken, and resets on a pivot', () => {
+  const run = (hits, pivot) => {
+    const me = bare('annihilape'), ally = bare('corviknight'), benched = bare('milotic');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally, benched], [f1, f2], { seeded: true });
+    /* the USER must survive two Dragon Claws or the click never happens; the TARGET must not faint
+     * or a 350 BP arm and a 50 BP arm would both clamp to its max HP and read EQUAL. */
+    unfaintable(me); unfaintable(f1);
+    for (let i = 0; i < hits; i++)
+      M.battleTurn(S, rng5, PASS2(me, ally),
+        new Map([[f1, M.playerAction(f1, 'dragonclaw', me, S.field)], [f2, { kind: 'pass' }]]));
+    if (pivot) {
+      M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: benched }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+      M.battleTurn(S, rng5, new Map([[benched, { kind: 'switch', to: me }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    }
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'ragefist', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { dealt: before - f1.curHP, times: (me._timesAttacked) | 0 };
+  };
+  const none = run(0, false), hit2 = run(2, false), back = run(2, true);
+  return { works: none.dealt > 0 && none.times === 0
+                  && hit2.times === 2 && hit2.dealt > none.dealt
+                  && back.times === 0 && back.dealt === none.dealt,
+           arms: { control: none.dealt, test: hit2.dealt },
+           detail: 'never hit: timesAttacked ' + none.times + ', Rage Fist deals ' + none.dealt
+                 + '; hit twice first: timesAttacked ' + hit2.times + ', the SAME click deals '
+                 + hit2.dealt + ' (equal arms would mean the counter is unread); hit twice then '
+                 + 'pivoted out and back: timesAttacked ' + back.times + ', deals ' + back.dealt
+                 + ' — it must fall all the way back, which is the Champions-only reset' };
+});
+
+/* ROADMAP #144 -- STRUGGLE IS TYPELESS AT USE TIME, AND THE DAMAGE PATH WAS STILL PRICING IT NORMAL.
+ *
+ *     onModifyMove(move, pokemon, target) { move.type = '???'; ... }      data/moves.ts struggle
+ *
+ * `???` has no row in the type chart, so it is x1 against everything and STAB against nothing. The
+ * printed `type: "Normal"` in the dex — and therefore `t:"Normal"` in `data/engine-data.js`, which is
+ * correct and was not touched — is what the sheet says, never what the move does.
+ *
+ * `effMoveType` has honoured `setsOwnTypeAlways` since #144; `dmgRangeOneHit` opened `let mvT = mv.t`
+ * and never asked. That was ALL SEVEN residual rows of `tests/test-engine-diff.js --n 6000 --seed
+ * 20260804`, in two shapes: six STAB (`ditto struggle -> clawitzer`, Showdown 11-14 against our
+ * 16-21) and one IMMUNITY (`gallade struggle -> gengar`, Showdown 51-60 against our 0-0).
+ *
+ * THE CONTROL IS THE SAME MOVE WITH ITS ID CHANGED, which is the Triple Axel pattern above: every tag
+ * lookup misses, so the copy IS the pre-fix engine — same base power, same category, printed type. It
+ * is a stronger control than a different Normal move would be, because nothing but the tag read
+ * differs between the arms.
+ *
+ * TWO BOARDS, BECAUSE THE ONE CAUSE HAS TWO SYMPTOMS AND EITHER COULD BE FIXED ALONE. Into a GHOST
+ * the copy must deal ZERO and the real move must not; out of a NORMAL body the copy must deal MORE
+ * than the real move, and that gap is the x1.5 nobody earned. */
+probe('move', 'setsOwnTypeAlways', 'Struggle is typeless — no STAB out of a Normal body, and it lands on a Ghost', () => {
+  const printed = (id) => Object.assign({}, MC.moves['struggle'], { id });
+  const ghostReal = perHitTurn(['ditto', 'incineroar'], ['gengar', 'torterra'], 'struggle', null, BOTTOM_ROLL)[0];
+  const ghostCopy = perHitTurn(['ditto', 'incineroar'], ['gengar', 'torterra'], '__stg_printed',
+                               printed('__stg_printed'), BOTTOM_ROLL)[0];
+  const flatReal = perHitTurn(['ditto', 'incineroar'], ['torterra', 'goodra'], 'struggle', null, BOTTOM_ROLL)[0];
+  const flatCopy = perHitTurn(['ditto', 'incineroar'], ['torterra', 'goodra'], '__stg_printed',
+                              printed('__stg_printed'), BOTTOM_ROLL)[0];
+  return { works: ghostReal > 0 && ghostCopy === 0 && flatReal > 0 && flatCopy > flatReal,
+           arms: { control: ghostCopy, test: ghostReal },
+           detail: 'into a GHOST — the real move deals ' + ghostReal + ' (must be above 0; a Normal '
+                 + 'move cannot touch a Ghost and this one is not Normal) and the same move under a '
+                 + 'changed id, so the tag misses, deals ' + ghostCopy + ' (must be exactly 0). Out '
+                 + 'of a NORMAL body into a neutral target — real ' + flatReal + ' against the '
+                 + 'printed-type copy ' + flatCopy + ', and the copy must be LARGER: that gap is the '
+                 + 'x1.5 STAB Struggle is not entitled to' };
 });
 
 /* DRAGON DARTS IS TWO DARTS AT TWO BODIES (`smartTarget: true`, data/moves.ts:4129). `getSmartTargets`

@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-23T09:53:56.393Z",
+  "generated": "2026-08-23T11:37:49.820Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 643,
-  "live": 643,
+  "probed": 646,
+  "live": 646,
   "missing": 0,
-  "armed": 643,
+  "armed": 646,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -1550,6 +1550,16 @@
     },
     {
       "kind": "move",
+      "tag": "failsIfTargetNotAttacking",
+      "label": "Sucker Punch ALSO fails into a target that has ALREADY MOVED this turn (the queue clause)",
+      "live": true,
+      "detail": "the target attacks in BOTH arms; only its priority differs. Foe at +2 (Extreme Speed, so it has already moved when Sucker Punch resolves): 0 (must be 0, the authority prints |-fail|); foe at +0 (Dragon Claw, still in the queue): 85 — equal arms would mean the queue is not being read",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "failsIfTargetMoveNotPriority",
       "label": "Upper Hand needs the target on a PRIORITY move, not merely attacking",
       "live": true,
@@ -1684,6 +1694,26 @@
       "label": "Triple Axel escalates 20/40/60 across its three hits",
       "live": true,
       "detail": "one 20 BP hit 120, one 40 232, one 60 336 — a FLAT triple is 360 and an ESCALATING one is 688; the engine's Triple Axel deals 688 (Showdown's basePowerCallback is 20 * move.hit)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "variablePower",
+      "label": "Rage Fist grows with the hits its user has taken, and resets on a pivot",
+      "live": true,
+      "detail": "never hit: timesAttacked 0, Rage Fist deals 51; hit twice first: timesAttacked 2, the SAME click deals 150 (equal arms would mean the counter is unread); hit twice then pivoted out and back: timesAttacked 0, deals 51 — it must fall all the way back, which is the Champions-only reset",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "setsOwnTypeAlways",
+      "label": "Struggle is typeless — no STAB out of a Normal body, and it lands on a Ghost",
+      "live": true,
+      "detail": "into a GHOST — the real move deals 22 (must be above 0; a Normal move cannot touch a Ghost and this one is not Normal) and the same move under a changed id, so the tag misses, deals 0 (must be exactly 0). Out of a NORMAL body into a neutral target — real 15 against the printed-type copy 22, and the copy must be LARGER: that gap is the x1.5 STAB Struggle is not entitled to",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3303,7 +3333,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.9% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

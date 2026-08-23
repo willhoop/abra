@@ -201,6 +201,26 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * that handler have been modelled since #60; this is the one that let a Hyper Beam turn hand out a
    * free 70 BP priority hit. Zero in a game with no recharge move in it is fine. */
   suckerRefusedRechargingTarget: 0,
+  /* 2026-08-23 -- the FIRST clause of that same handler, and the one this engine could not see at all:
+   * `queue.willMove(target)` walks the REMAINING queue, so a target that has already spent its action
+   * this turn returns `null` and the move fails. Bumped once per refusal taken on that ground alone
+   * (the target IS queued with an attack and does NOT owe a recharge -- it has simply already gone).
+   * Zero in a game where nothing ever out-prioritised a Sucker Punch is fine; zero across a corpus that
+   * contains Extreme Speed, Fake Out or a faster +1 move means the queue reader stopped being asked. */
+  suckerRefusedAlreadyMovedTarget: 0,
+  /* ROADMAP #357 -- ARRIVALS added to a body's `_timesAttacked` ledger, which is Rage Fist's whole
+   * base power. Counted in ARRIVALS and not in clicks, so a multi-hit move contributes its landed
+   * packets exactly as `-hitcount` reports them. A zero in a game with any damaging move in it means
+   * the ledger stopped being written and Rage Fist has silently gone back to a flat 50. */
+  timesHitCounted: 0,
+  /* ROADMAP #357 -- Rage Fist's power actually READ off that ledger, at the dispatch. The two are
+   * different questions: the first says the state exists, the second says a move consumed it. */
+  timesHitPowerRead: 0,
+  /* ROADMAP #144 -- a damage roll priced with the move's OWN unconditional type override rather than
+   * with the printed one. Today that is Struggle and nothing else. A zero in a game where a body ran
+   * out of PP means the damage path stopped reading `setsOwnTypeAlways` and the move is Normal again
+   * -- STAB it has not earned, and zero into every Ghost. */
+  ownTypeAlwaysPriced: 0,
   /* ROADMAP #210 -- Poltergeist refused because the body it resolved onto is holding nothing. Zero in
    * a game with no Poltergeist in it is fine; zero in a game WITH one, against a bare target, means
    * the `readsTargetItem {failsIfNone}` param stopped matching and the move is unconditional again. */
@@ -1468,6 +1488,18 @@ const MEDFAILS = { encoreAction: 0,
   /* ROADMAP #356 (RESCOPED) -- set whenever MEDI_PROTEAN_ATTACK_ONLY=1 shuts the status door on
      purpose, so a deliberate restore arm and a broken engine can never be read as the same thing. */
   proteanAttackOnlyRestored: 0,
+  /* 2026-08-23 -- set whenever MEDI_SUCKER_QUEUE_BLIND=1 puts the whole-turn `acts.find` back on
+     purpose, so a deliberate restore arm and a broken engine can never be read as the same thing. */
+  suckerQueueBlindRestored: 0,
+  /* ROADMAP #357 -- an arrival the authority WOULD have added to `timesAttacked` and this engine does
+     not, because a Substitute absorbed it and that road returns before the counter site. Declared at
+     the site rather than hidden; it makes Rage Fist slightly weaker here than in the game and the
+     size of that is this number. */
+  timesHitSubstituteUncounted: 0,
+  /* ROADMAP #144 -- set for the whole run when MEDI_DMG_OWNTYPE_BLIND=1 puts the printed-type damage
+     path back on purpose, so a deliberate restore arm and a broken engine can never be read as the
+     same thing. Same shape as suckerQueueBlindRestored. */
+  dmgOwnTypeBlindRestored: 0,
   /* ROADMAP #304 -- a damaging hit whose sixteen-entry band did NOT arrive, so the loop fell back to
    * the old uniform draw over the span. Never expected: the battle loop asks for `rolls` on every hit
    * context. Non-zero means dmgRange grew a return path that does not fill the out-parameter, and the
@@ -7001,6 +7033,38 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * in one turn, so Solar Beam is (wrongly, pre-existing) never charged anywhere -- stated, not fixed
    * by pretending. Pure: mv is never mutated, the overrides live in locals. */
   let mvT=mv.t,mvBP=mv.bp;
+  /* ROADMAP #144, THE HALF THAT NEVER REACHED THE DAMAGE -- 2026-08-23.
+   *
+   * `effMoveType` has honoured `setsOwnTypeAlways` since #144 and THIS FUNCTION NEVER DID, which is
+   * exactly the duplication `formeMoveType`'s header names two paragraphs above ("dmgRangeOneHit
+   * opens `let mvT = mv.t` and re-does the conversion itself"). The gates moved and the damage did
+   * not, one move over.
+   *
+   * IT IS ONE CAUSE WEARING TWO SYMPTOMS, and both were in the differential's residual 7 of 6000:
+   *   STAB      `ditto struggle -> clawitzer`, Showdown 11-14 against our 16-21. Ditto is NORMAL and
+   *             the artifact's printed type for Struggle is Normal, so `att.types.includes(mvT)` was
+   *             true and the move took x1.5 it is not entitled to. Six of the seven rows are this.
+   *   IMMUNITY  `gallade struggle -> gengar`, Showdown 51-60 against our 0-0. `mcEff('Normal',
+   *             ['Ghost'])` is ZERO, so this engine refused a move the authority lands.
+   *
+   * THE ARTIFACT IS NOT WRONG AND WAS NOT TOUCHED. `data/engine-data.js` carries `t:"Normal"`, which
+   * is the dex's printed `type` (`data/moves.ts` struggle) and is what the sheet says. The `???`
+   * arrives from the move's OWN `onModifyMove` at use time -- `move.type = '???'`, and `???` has no
+   * row in the chart, so it is x1 against everything and STAB against nothing. Champions does not
+   * override the entry.
+   *
+   * ABOVE THE FORME AND -ATE READS, for the reason `effMoveType` states in its own comment: the
+   * move's handler runs before any ability conversion, so a Pixilate Struggle is still typeless.
+   *
+   * CLASS, NOT INSTANCE -- AND THE CLASS IS ONE MEMBER HERE, MEASURED. Over the whole dex, ten moves
+   * assign a literal `move.type` inside `onModifyMove`/`onPrepareHit`/`onModifyType`; five are
+   * `isNonstandard: 'Past'`, and of the five legal ones four are CONDITIONAL (Aura Wheel and Raging
+   * Bull on the forme, Weather Ball and Terrain Pulse on the field) and carry their own tags. Exactly
+   * one is unconditional and it is Struggle. A second unconditional member printed later is picked up
+   * by the tag with no edit here -- the type comes off `setsOwnTypeAlways.type`, never off a name. */
+  {const _sot=mv.id&&TAGS.param('move',mv.id,'setsOwnTypeAlways');
+   if(_sot&&_sot.type&&!DMG_OWNTYPE_BLIND){mvT=_sot.type;MEDSEEN.ownTypeAlwaysPriced++;}
+   else if(_sot&&_sot.type)MEDFAILS.dmgOwnTypeBlindRestored=1;}
   /* the USER'S FORME decides the type for Raging Bull and Aura Wheel, above the -ate conversion for
    * the same reason Struggle's rewrite is above it in effMoveType: the MOVE's own onModifyType runs
    * first in the authority, so a Pixilate body's Raging Bull is Fighting and not Fairy. THIS IS THE
@@ -7231,6 +7295,23 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
     else if(_vp.kind==='volatileLayers'){
       const _ly=(att._vol&&+att._vol[_vp.volatile])||0;
       mvBP=_ly>0?_ly*(+_vp.per||0):0;
+    }
+    /* ROADMAP #357 -- RAGE FIST. `Math.min(350, 50 + 50 * pokemon.timesAttacked)`, and every number
+     * in that expression comes off the tag rather than out of this line: `base`, `per` and `cap` are
+     * read from the handler by tag_dex, so the format changing any of them needs no edit here.
+     *
+     * THE STATE IS `_timesAttacked`, WRITTEN AT THE ONE DAMAGE SITE AND CLEARED IN `switchOut`. It
+     * was the whole of the defect: the tag said `{computed:true, note:"idiom not yet derivable"}`,
+     * the counter did not exist, and the move was PERMANENTLY 50 base power — a third of what the
+     * authority was dealing on the board that found it.
+     *
+     * THE CAP IS `Math.min`, NOT A CLAMP ON THE COUNTER. Showdown lets `timesAttacked` run past 6 and
+     * caps the POWER; a body hit nine times then healed still swings at 350. Capping the counter
+     * instead would be indistinguishable here and wrong the moment the format changes `cap`. */
+    else if(_vp.kind==='userTimesHit'){
+      const _n=(att._timesAttacked)|0;
+      mvBP=Math.min(+_vp.cap||350,(+_vp.base||mvBP)+(+_vp.per||0)*_n);
+      MEDSEEN.timesHitPowerRead++;
     }
     /* ROADMAP #84 -- DOUBLE IF LAST TURN'S MOVE FAILED. Stomping Tantrum (3,545 corpus uses) and
      * Temper Flare (48), and the two are ONE handler written twice:
@@ -8868,6 +8949,22 @@ const PROTEAN_ATTACK_ONLY=(typeof process!=='undefined'&&process.env&&process.en
  * can be shown MISSING on demand without swapping a file. Any run carrying it also carries a non-zero
  * `MEDFAILS.formeOnHitSpeciesBlindRestored`. Same shape as MEDI_PROTEAN_ATTACK_ONLY above. */
 const FORMEONHIT_SPECIES_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FORMEONHIT_SPECIES_BLIND==='1');
+/* 2026-08-23 -- MEDI_SUCKER_QUEUE_BLIND=1 PUTS THE WHOLE-TURN LOOKUP BACK: `queueWillMove` stops asking
+ * whether the target still has an outstanding action and answers from the whole turn's `acts` list, the
+ * way this engine did until today -- so a target that has ALREADY MOVED still reads as "about to
+ * attack" and Sucker Punch lands where the authority fails it. ONE knob for the whole tag class
+ * (`failsIfTargetNotAttacking`: Sucker Punch, Thunderclap, Upper Hand), because it is ONE reader and a
+ * knob per member could not restore a function that no longer exists. Any run carrying it also carries
+ * a non-zero `MEDFAILS.suckerQueueBlindRestored`. Same shape as MEDI_FORMEONHIT_SPECIES_BLIND above. */
+const SUCKER_QUEUE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUCKER_QUEUE_BLIND==='1');
+/* ROADMAP #144, 2026-08-23 -- MEDI_DMG_OWNTYPE_BLIND=1 PUTS THE DAMAGE PATH BACK TO THE PRINTED TYPE:
+ * `dmgRangeOneHit` stops reading `setsOwnTypeAlways`, so Struggle is priced as a NORMAL move again --
+ * x1.5 STAB out of a Normal body and ZERO into a Ghost, which is where the differential's residual
+ * seven rows came from. ONE knob for both symptoms, because they are one line and a knob per symptom
+ * could not restore a read that no longer happens. `effMoveType` is deliberately NOT under the knob:
+ * it has honoured the tag since #144 and the defect was that the two disagreed. Any run carrying it
+ * also carries a non-zero `MEDFAILS.dmgOwnTypeBlindRestored`. */
+const DMG_OWNTYPE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DMG_OWNTYPE_BLIND==='1');
 function sleepDurationDraw(){
   const r=medRng();
   const u=(typeof r==='function')?r():0.5;
@@ -14188,6 +14285,13 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
      `Pokemon.clearVolatile` does (sim/pokemon.ts:1551). Without this a Stomping Tantrum user could
      pivot out, come back three turns later and still be doubling off a flinch it took before it left. */
   out._mvRes=undefined; out._mvResLast=undefined;
+  /* ROADMAP #357 -- AND THE TIMES-HIT LEDGER LEAVES WITH THE BODY, WHICH IS THE CHAMPIONS-SPECIFIC
+   * HALF OF RAGE FIST AND THE ONLY PART OF IT THE MOD WROTE ITSELF. Mainline never resets
+   * `timesAttacked`; `data/mods/champions/scripts.ts:169` adds `this.timesAttacked = 0;` to
+   * `clearVolatile`, and `data/mods/champions/moves.ts:790` says so in the move's own desc —
+   * *"resets to 0 when the user leaves the field"*. Without this line a pivot would be free power
+   * storage and a 350 BP Rage Fist would be one bench trip away from permanent. */
+  out._timesAttacked=0;
   /* ROADMAP #81 WIRE 12 -- THE PERISH CLOCK LEAVES WITH THE BODY, AND THAT IS THE MOVE'S ONLY
    * COUNTER-PLAY. `perishsong` is an ordinary volatile in the authority, so `Pokemon#clearVolatile`
    * takes it on the way out and a body that switches before zero NEVER FAINTS. Staged against the
@@ -15556,6 +15660,45 @@ function battleTurn(S,rng,actsForA,actsForB){
      * in by Roar, or switched in mid-turn) is not in this set either, so it cannot be given a flinch
      * that would then leak into the next turn. */
     const unresolved=new Set(acts.map(it=>it.mon));
+    /* 2026-08-23 -- `BattleQueue.willMove(pokemon)`, ONE READER, BECAUSE THREE CLAUSES OF ONE `if`
+     * WERE EACH DECIDING QUEUE POSITION SEPARATELY AND ONE OF THEM WAS NOT DECIDING IT AT ALL.
+     *
+     * The authority (sim/battle-queue.ts:319-327):
+     *
+     *     willMove(pokemon) {
+     *       if (pokemon.fainted) return null;
+     *       for (const action of this.list)                 // this.list is what REMAINS
+     *         if (action.choice === 'move' && action.pokemon === pokemon) return action;
+     *       return null;
+     *     }
+     *
+     * and BOTH members of `failsIfTargetNotAttacking` open on it — `suckerpunch` at data/moves.ts:18399
+     * and `upperhand` at data/moves.ts:20190 — which is not a coincidence: the tag's own membership
+     * rule in engine/tag_dex.js is the regex `/willMove\(\s*target\s*\)/`, so a third member printed
+     * later reads the queue by construction and gets this reader without an edit here.
+     *
+     * THE HALF THIS ENGINE NEVER HAD IS `this.list`. The Sucker Punch block asked
+     * `acts.find(x => x.mon === _tgt)` over the WHOLE turn's action list, which still holds actions
+     * that have already executed — so a target that moved first (Extreme Speed at +2, Fake Out at +3,
+     * or any faster +1 move) still read as "about to attack" and the move connected where the
+     * authority prints `|-fail|`. Measured in the whole-game differential on release `3d9df7ce4996`:
+     * four games, all three arms, all same-turn, two of them KOs.
+     *
+     * IT IS `unresolved` AND NOT A SECOND SET (CLAUDE.md, facts are global). WIRE 118 already keeps
+     * exactly `this.list`'s membership — every mon with an action still outstanding, deleted at the
+     * top of its own action — and the flinch gate, Zoom Lens and Payback all read it. A private copy
+     * here would be a fourth answer to one question. The `fainted` clause is the authority's own first
+     * line and is kept even though a fainted body is normally unaimable, because it is one line of the
+     * function being mirrored. */
+    const queueWillMove=(who)=>{
+      if(!who) return null;
+      if(who.fainted||who.curHP<=0) return null;
+      if(!SUCKER_QUEUE_BLIND&&!unresolved.has(who)) return null;
+      const e=acts.find(x=>x.mon===who);
+      if(!e||!e.a) return null;
+      return sdChoiceOf(e.a)==='move'?e:null;
+    };
+    if(SUCKER_QUEUE_BLIND)MEDFAILS.suckerQueueBlindRestored=1;
     /* WIRE 82 -- THE PRE-TURN MOVE CLASS. Will: "BEAK BLAST IS LIKE SPICY SPRAY FOCUS PUNCH OR
      * SOMETHING." He is naming a real class: Focus Punch and Beak Blast (and Shell Trap, which this
      * format bans) commit at the START of the turn and then react to what happened while they waited.
@@ -20287,9 +20430,20 @@ function battleTurn(S,rng,actsForA,actsForB){
        * authority's constant is 0.1 rather than 0. */
       if(TAGS.has('move',a.move.id,'failsIfTargetNotAttacking')){
         const _tgt=a.target;
-        const _their=_tgt?acts.find(x=>x.mon===_tgt):null;
+        /* THE FIRST CLAUSE, AND IT IS `queue.willMove` RATHER THAN A LIST WALK. `_their` is now null
+         * for a target that has ALREADY SPENT its action this turn, which is what `this.list` means
+         * and what `acts.find` could not express. See `queueWillMove` above the loop for the citation
+         * and for why it is one reader shared by every clause below. */
+        const _their=queueWillMove(_tgt);
         const _attacking=!!(_their&&_their.a&&_their.a.kind==='attack');
-        if(!_attacking){{if(TR)TR.attrStill();mvFail(m);}continue;}
+        if(!_attacking){
+          /* NAMED, NOT POOLED: a refusal because the target already went is the clause this engine
+           * did not have, and it must be separable from the two it did (an idle target, a Status
+           * click). Both of those leave the target IN the queue, so the discriminator is the queue
+           * membership itself and nothing about the move. */
+          if(_tgt&&!unresolved.has(_tgt)&&acts.some(x=>x.mon===_tgt&&x.a&&x.a.kind==='attack'))
+            MEDSEEN.suckerRefusedAlreadyMovedTarget++;
+          {if(TR)TR.attrStill();mvFail(m);}continue;}
         /* ROADMAP #180 -- THE THIRD CLAUSE OF SUCKER PUNCH'S OWN `if`, AND WE MODELLED TWO.
          *
          *     if (!move || (move.category === 'Status' && move.id !== 'mefirst')
@@ -21680,6 +21834,12 @@ function battleTurn(S,rng,actsForA,actsForB){
            status path, so one substitute cannot mean two things inside one turn. */
         if(subBlocks(m,tg,a.move.id)){const _s0=tg._sub;tg._sub=Math.max(0,tg._sub-dmg);
           _subAte=true;                      // ROADMAP #72 -- see the declaration for why this is not `!connected`
+          /* ROADMAP #357 -- THE DECLARED REMAINDER OF THE TIMES-HIT COUNTER, COUNTED RATHER THAN
+           * ARGUED AWAY. The authority increments `timesAttacked` on `typeof moveDamage[i] ===
+           * 'number'` and a substitute-eaten hit still produces a number, so it counts THERE. This
+           * road returns before the counter site below, so it does not count HERE. Non-zero after a
+           * game with a Substitute and an Annihilape in it is the size of the gap, in arrivals. */
+          if(m!==tg)MEDFAILS.timesHitSubstituteUncounted++;
           if(TR){TR.act(tg,'move: Substitute','[damage]');if(_s0>0&&tg._sub<=0)TR.vend(tg,'Substitute');}
           R.out=true;return;}
         /* THE BERRY IS CONSUMED HERE AND ONLY HERE. dmgRange applied the halve as a pure read --
@@ -21939,8 +22099,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          * `onDamage` does, and the rewrite path below only runs once it has already fired. */
         const _packets=(R.pk&&R.pk.length>1&&dmg===R.dmg)?R.pk:null;
         if(!_packets&&R.pk&&R.pk.length>1)MEDSEEN.multiHitPacketsCollapsed++;
+        /* HOISTED OUT OF THE BRANCH, 2026-08-23: the `timesAttacked` line below is the second reader
+         * of "how many arrivals actually landed" and the authority derives BOTH from one `hit`
+         * counter (`-hitcount` is `hit - 1`, and so is the increment). Two copies of that number is
+         * the facts-are-global breach in miniature. 0 means the single-packet road was taken. */
+        let _landed=0;
         if(_packets){
-          let _landed=0;
           for(let i=0;i<_packets.length;i++){
             if(tg.curHP<=0)break;
             if(TR){TR.eff(tg,R.effShow);if(R.crit)TR.crit(tg);}
@@ -21961,6 +22125,38 @@ function battleTurn(S,rng,actsForA,actsForB){
          * different move and a wrong number. `_hurtThisTurn` is the weaker fact Assurance wants and is
          * kept beside it rather than derived, because "hurt by anything" and "hurt by you" are two
          * questions and collapsing them is how one tag came to describe four mechanics. */
+        /* ROADMAP #357 -- HOW MANY TIMES THIS BODY HAS BEEN HIT, WHICH IS RAGE FIST'S ENTIRE POWER.
+         *
+         *   for (const [i, target] of targetsCopy.entries())
+         *     if (target && pokemon !== target) {
+         *       target.gotAttacked(move, moveDamage[i], pokemon);
+         *       if (typeof moveDamage[i] === 'number')
+         *         target.timesAttacked += move.smartTarget ? 1 : hit - 1;    scripts.ts:563-568
+         *     }
+         *
+         * PER ARRIVAL, NOT PER CLICK. `hit - 1` is the number of arrivals that actually landed, which
+         * is exactly `_landed` above — the same number `-hitcount` reports and the same one that stops
+         * at a KO. A flat +1 would price a Population Bomb like a Tackle.
+         *
+         * `m !== tg` IS THE AUTHORITY'S `pokemon !== target` AND IT IS NOT COSMETIC: a spread move
+         * hits its own user in this engine's target list for some shapes, and self-damage (Struggle
+         * recoil, confusion) must never feed the counter — the Champions desc says so in terms
+         * (*"confusion damage is not counted"*, data/mods/champions/moves.ts:790).
+         *
+         * IT IS NOT INSIDE THE `dmg > 0` GUARD BELOW, and that is the authority's own distinction:
+         * the test there is `typeof moveDamage[i] === 'number'`, so a hit that dealt ZERO still
+         * counts (*"even if the user did not lose HP from the attack"*). `_hitBy` and `_took` are
+         * different questions — Avalanche and Counter both need a real number — so they keep their
+         * own guard rather than sharing this one.
+         *
+         * DECLARED REMAINDER: a hit absorbed by a SUBSTITUTE reaches the authority with a numeric
+         * `moveDamage[i]` and therefore counts there. This engine routes a sub-eaten hit away from
+         * this line entirely, so it does not count here. Not fixed in this pass and not hidden —
+         * `MEDFAILS.timesHitSubstituteUncounted` is bumped where that road is taken. */
+        if(m!==tg&&dmg>=0){
+          const _arrivals=_packets?_landed:1;
+          if(_arrivals>0){tg._timesAttacked=((tg._timesAttacked)|0)+_arrivals;MEDSEEN.timesHitCounted+=_arrivals;}
+        }
         if(dmg>0){(tg._hitBy=tg._hitBy||new Set()).add(m);tg._hurtThisTurn=true;
           /* HOW MUCH, AND OF WHAT CATEGORY — the state the retaliation family needs and the reason
            * `dmgRange`'s own WIRE 21 comment could say Counter and Metal Burst were "one branch away"
