@@ -1,10 +1,10 @@
 {
-  "current": "5e0853311131",
-  "cut": "2026-08-23T02:59:54.239Z",
-  "why": "WIRE 142 - a non-permanent forme reverts on switch-out (Hunger Switch / Morpeko)",
-  "cuts": 4,
-  "latest_cut": "2026-08-23T03:16:04.934Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-23T03:16:04.943Z",
+  "current": "33d871e6db92",
+  "cut": "2026-08-23T03:56:10.651Z",
+  "why": "endure reaches the stall gate; addVolatile('trapped') refuses a repeat; the hard trap leaves with the body",
+  "cuts": 1,
+  "latest_cut": "2026-08-23T03:56:10.651Z",
+  "latest_why": "endure reaches the stall gate; addVolatile('trapped') refuses a repeat; the hard trap leaves with the body",
+  "pointer_written": "2026-08-23T03:56:10.661Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

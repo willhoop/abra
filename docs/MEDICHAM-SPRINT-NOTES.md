@@ -11739,3 +11739,52 @@ One of the four new reds is a REAL MEDICHAM defect: **Disguise fires on the alre
 published 6,000-row artifact and the GENERATED block still print the five aurorus rows until
 `tests/test-engine-diff.js --n 6000 --seed 20260804` runs. And **`test-mc-key.js` did not catch the
 doorway fixed today**, because `buildMon(s.toLowerCase())` is not the shape it scans for.
+
+---
+
+## 2026-08-23 — SESSION CLOSE: WHAT IS LANDED AND WHAT IS NOT (5.86.0)
+
+Endure never reached the stall gate — the gate keyed on the action KIND and `PROTECTMOVES` omitted it,
+so five of six `stallingMove: true` moves got it and Endure never did. Membership now DERIVED from the
+format, so a later member needs no edit.
+
+**IT IS COMMITTED WITHOUT A PAIRED MEASUREMENT AND THAT IS THE POINT OF THIS NOTE.** The agent was
+stopped mid-pass when Will needed the machine — after the fix and probes were written, before either
+ran. **No before/after exists and no number moved because of it.** Landed rather than reverted because
+it is complete and coherent and reverting discards 384 derived lines; **the next measurement pass must
+verify it before publishing any figure that includes it.** The census 630 -> 634 in-tree is from the
+same unmeasured pass and is equally unverified.
+
+### THE SESSION IN ONE LINE
+
+**MEDICHAM was never as broken as the register said; the measuring was.** The headline: 169 roster
+accusations were **7**, because the roster asked for its pinned dice BY OMISSION and had been rolling
+live ones for nine days — **162 of 169 accusations were the ruler.**
+
+### WHAT ACTUALLY MOVED
+
+```
+  whole-game diverged   12.93%  ->  8.76%   (95 of 961 -> 86, one class, eight unchanged)
+  damage                24/6000 ->  5/6000  and those five are FALSE REDS, not defects
+  roster                169 accused -> 7 real; abilities stage CLEAN
+  megas compared        0 of 76 -> 76 of 76
+  drawable species      207 -> 336 of 345
+```
+
+Nine engine defects fixed: Fur Coat, bench order, failed Roost, Suction Cups, Life Orb, the `always`
+self-destruct family, the win rule (a double wipe is not a draw), Hunger Switch's rename surviving a
+switch-out, and Endure.
+
+### THE PATTERN THAT COST THE MOST
+
+**Five separate passes found a probe error before an engine error**, including one that reported RED
+PROVEN off a mechanism it was not staging and one that re-implemented the rule it was checking and
+would have gone green with the engine still wrong. And a **read-only `--list` flag wiped the verdict
+artifact and flipped the gate to OK** — inspecting the register published a green gate.
+
+### THE ONE THAT REPEATED THREE TIMES
+
+The species-key mismatch: found 2026-07-30 and gated; found again in four more files and given a
+canonical resolver plus a ratchet; **found a third time today in the damage harness, invisible to both
+gates** — one watches a named file pair, the other scans for the wrong spellings already known.
+**A gate built from an instance catches that instance, not the class.**

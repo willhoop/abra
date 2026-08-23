@@ -1271,6 +1271,108 @@ probe('move', 'failsIfMovesLast', 'a Wide Guard whose user holds the LAST action
                  + `refused before its onHitSide, so the counter is still unarmed and the shield holds)` };
 });
 
+/* =================================================================================================
+ * 2026-08-23 — THE SIXTH `stallingMove` REACHED NEITHER RULE, BECAUSE THE GATE WAS KEYED ON A KIND.
+ *
+ * MEMBERSHIP DERIVED AND PRINTED BEFORE EITHER PROBE WAS WRITTEN, over the LEGAL move table of
+ * `Dex.forFormat('gen9championsvgc2026regmb')` — every move whose `onPrepareHit`/`onTry` reads
+ * `this.queue.willAct()`:
+ *
+ *     protect  detect  spikyshield  kingsshield  banefulbunker  endure     stallingMove: true
+ *     wideguard  quickguard                                                stallingMove: false
+ *
+ * Seven of the eight already reached a branch: five are `shieldsUser` and `playerAction` dispatches
+ * them as `kind:'protect'`; two are `oneTurnGuard` and dispatch as `kind:'wideguard'`. ENDURE IS
+ * NEITHER, and correctly so — it blocks nothing (#178 took it out of `shieldsUser` for that reason)
+ * and it guards no side — so it resolved as `{kind:'affect'}` and the gate keyed on the ACTION KIND
+ * never saw it, while its `onPrepareHit` is byte-identical to protect's (`data/moves.ts:4816-4818`
+ * against `:13974-13976`; Champions overrides protect and does not override endure).
+ *
+ * SO ENDURE WAS A SHIELD THAT COULD NOT BE REFUSED AND COULD NOT DECAY. Both probes below were
+ * shown RED first and both were red the same way — IDENTICAL ARMS across the varied knob, which is
+ * the unwired-knob signature rather than a small error: 0 against 0 on the first and 1 against 1 on
+ * the second.
+ *
+ * THEY ARE TWO PROBES AND NOT TWO ARMS OF ONE, for the reason the Wide Guard pair above gives: the
+ * `willAct()` gate takes NO die and the counter roll takes one, and a single probe cannot tell a
+ * gate that never fires from a die that never loses. This engine had both at once.
+ *
+ * BOTH ASSERT ON HP, never on `tookProtectTurns` — a probe that reads the counter field proves the
+ * bookkeeping, and the bookkeeping is not what a game plays. */
+probe('move', 'failsIfMovesLast', 'ENDURE faces the same willAct gate as a shield — it never did', () => {
+  /* The knob is the user's Speed and nothing else, exactly as in the Wide Guard probe above. All
+   * four bodies click ENDURE on turn 1, so the bracket is pure Speed (+4 on every action) and the
+   * only thing that moves is whether `me` holds the last action of the turn.
+   *
+   * ASSERTED ON THE NEXT TURN, because a refused Endure and a successful one both blank nothing on
+   * the turn they are clicked: the only observable is that a REFUSED stalling move never reaches its
+   * `onHit`, so it never advances the shared `stall` counter that turn 2's Protect reads. */
+  const run = (meSpe) => {
+    const me = bare('incineroar'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(me); unfaintable(ally);
+    me.st = Object.assign({}, me.st, { sp: meSpe });
+    ally.st = Object.assign({}, ally.st, { sp: 100 });
+    f1.st = Object.assign({}, f1.st, { sp: 100 });
+    f2.st = Object.assign({}, f2.st, { sp: 100 });
+    const E = (b) => M.playerAction(b, 'endure', null, S.field);
+    M.battleTurn(S, rng5, new Map([[me, E(me)], [ally, E(ally)]]), new Map([[f1, E(f1)], [f2, E(f2)]]));
+    /* turn 2 — Protect at a losing roll, with a real attack behind it so THIS shield is not last. */
+    const before = me.curHP;
+    M.battleTurn(S, rngLose,
+      new Map([[me, M.playerAction(me, 'protect', null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    return before - me.curHP;
+  };
+  const control = run(200);   // fastest of the four Endures: three actions are still queued behind it
+  const test = run(1);        // slowest of the four: `me` holds the last action of the turn
+  return { works: control > 0 && test === 0,
+           arms: { control, test },
+           detail: `damage taken on turn 2 behind a Protect at roll 0.99 — turn-1 ENDURE at Speed 200, `
+                 + `three actions queued behind it ${control} (it resolved and advanced the shared `
+                 + `counter, so the 1/3 roll fails and the Protect does not go up); at Speed 1, holding `
+                 + `the last action ${test} (the Endure was refused before its onHit, the counter is `
+                 + `still unarmed and the Protect holds)` };
+});
+
+probe('move', 'stallCounterChecks', 'a SECOND consecutive Endure loses the 1/3 roll, so the lethal hit lands', () => {
+  /* The knob is turn 1's click and nothing else. Both arms then click the SAME Endure into the SAME
+   * lethal Earthquake at the SAME losing roll, so any difference is the counter.
+   *
+   * `me` is left on 5 HP and is NOT made unfaintable, because that is the whole observable: Endure
+   * floors a lethal hit at 1 HP, so surviving on exactly 1 is the shield holding and fainting is the
+   * shield failing. Everything else on the board is unfaintable so the game cannot end early.
+   *
+   * TURN 1'S OTHER THREE BODIES CLICK SWORDS DANCE, not `pass`. Endure is +4 and resolves first, so
+   * three +0 move actions sit behind it and `willAct()` is true — otherwise the test arm would be
+   * refused by the OTHER rule and this probe would be measuring the probe above. */
+  const run = (turn1) => {
+    const me = bare('incineroar'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(ally);
+    me.curHP = 5;
+    const E = (b) => M.playerAction(b, 'endure', null, S.field);
+    const SD = (b) => M.playerAction(b, 'swordsdance', null, S.field);
+    M.battleTurn(S, rng5,
+      new Map([[me, turn1 ? E(me) : { kind: 'pass' }], [ally, SD(ally)]]),
+      new Map([[f1, SD(f1)], [f2, SD(f2)]]));
+    M.battleTurn(S, rngLose,
+      new Map([[me, E(me)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    return me.curHP;
+  };
+  const control = run(false);   // turn 1 is an ordinary click: turn 2's Endure is the FIRST, counter 1
+  const test = run(true);       // turn 1 IS an Endure: turn 2's is the second, counter 3, roll 0.99
+  return { works: control === 1 && test === 0,
+           arms: { control, test },
+           detail: `HP left after a lethal Earthquake into a 5 HP body clicking Endure at roll 0.99 — `
+                 + `turn 1 an ordinary click ${control} (fresh counter, the Endure holds and floors the `
+                 + `hit at 1); turn 1 ALSO an Endure ${test} (counter at 3, the 1/3 roll fails, no `
+                 + `Endure goes up and the hit is lethal)` };
+});
+
 /* ARMS DECLARED, 2026-08-06 (#42/#45 part 3), AND THESE TEN WERE PICKED BY A NUMBER RATHER THAN BY
  * EYE. tests/test-medicham-coverage.js weights every tag by the corpus usage of the entities in
  * the 99% set that carry it, and these are the top of that list -- `statusInflict` 585,893,
@@ -16985,6 +17087,102 @@ probe('move', 'trapsTarget', 'Block holds the target in its slot, and a Shed She
                  + `switch goes through, so the staging can switch at all); with a SHED SHELL on the `
                  + `trapped body, "${shell}" — it leaves. Both halves matter: an over-refusal costs a `
                  + `game exactly as an under-refusal does` };
+});
+
+/* =================================================================================================
+ * 2026-08-23 — `addVolatile` REFUSES A REPEAT, AND THIS ENGINE EXECUTED THE SECOND CLICK.
+ *
+ * DERIVED, NOT RECALLED. `Pokemon#addVolatile` (sim/pokemon.ts) opens with
+ *     if (this.volatiles[status.id]) { if (!status.onRestart) return false; ... }
+ * and `Dex.forFormat('gen9championsvgc2026regmb').conditions.get('trapped')` carries NO `onRestart`
+ * — printed before either probe was written; the whole condition is `noCopy`, an `onTrapPokemon` and
+ * an `onStart` that writes `-activate|TARGET|trapped`. Block and Mean Look are both
+ * `onHit(target, source, move) { return target.addVolatile('trapped', source, move, 'trapper') }`,
+ * so a second click into the same body returns FALSE and the MOVE fails. Neither is overridden by
+ * Champions. Divergence class `unrelated event mismatch`,
+ * `|-fail|SLOT <> |-activate|SLOT|trapped`, 2 games on release c66976713feb.
+ *
+ * BOTH PROBES WERE SHOWN RED FIRST, and the first was red with IDENTICAL ARMS — 100 against 100 —
+ * which is the unwired-knob signature rather than a wrong number.
+ *
+ * THE FIRST ASSERTS ON STOMPING TANTRUM'S BASE POWER and not on a `-fail` line, because the refusal
+ * has to reach the STATE and not only the wire: `moveThisTurnResult === false` is what the callback
+ * reads, and an engine that skipped the effect quietly while reporting success would satisfy a
+ * protocol-only check. The road was calibrated before it was used — the same staging with a GHOST
+ * target, which this engine ALREADY refuses, doubles the Tantrum, so a flat reading below would mean
+ * the observable is dead rather than the mechanic. */
+probe('move', 'trapsTarget', 'a SECOND Mean Look into an already-trapped body FAILS, and feeds Stomping Tantrum', () => {
+  /* The knob is which body the SECOND click names and nothing else: the same trapper, the same move,
+   * the same turn, one already holding the trap and one not. Everything is unfaintable so no body
+   * can leave for a reason this probe did not choose. */
+  const run = (second) => {
+    const me = bare('mudsdale'), ally = bare('incineroar');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(me); unfaintable(ally); unfaintable(f1); unfaintable(f2);
+    const ML = (t) => M.playerAction(me, 'meanlook', t, S.field);
+    M.battleTurn(S, rng5, new Map([[me, ML(f1)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    M.battleTurn(S, rng5,
+      new Map([[me, ML(second === 'same' ? f1 : f2)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    /* turn 3 — Stomping Tantrum into the SAME body in both arms, so the only thing that can move the
+     * number is last turn's move result. */
+    const h = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'stompingtantrum', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return h - f1.curHP;
+  };
+  const control = run('other');   // the second Mean Look names the UNTRAPPED foe: it must succeed
+  const test = run('same');       // the second Mean Look repeats into the trapped foe: it must fail
+  return { works: control > 0 && test >= control * 1.8 && test <= control * 2.2,
+           arms: { control, test },
+           detail: `Stomping Tantrum damage on turn 3 after a second Mean Look — aimed at the OTHER, `
+                 + `untrapped foe ${control} (the trap lands, the move succeeded, 75 BP); aimed AGAIN `
+                 + `at the already-trapped foe ${test} (addVolatile refused the repeat, the move `
+                 + `failed, so the Tantrum doubles)` };
+});
+
+/* AND THE TRAP LEAVES WITH THE BODY, WHICH IS WHAT KEEPS THE REFUSAL ABOVE FROM OVER-FIRING.
+ *
+ * `trapped` is an ordinary volatile and `Pokemon#clearVolatile()` is `this.volatiles = {}`, so a
+ * body that gets off the field is not trapped when it comes back. This engine kept `_trapHard`
+ * forever — the comment at the site that writes it says the trap "travels with the victim", which is
+ * right about the turn and wrong about the switch. On its own that is a wrong switch-BLOCK; under
+ * the repeat refusal above it becomes a wrong REFUSAL of a fresh Mean Look as well, which is why the
+ * two land together. Shown RED under a surgical revert of exactly that one line.
+ *
+ * THE VICTIM LEAVES BY A PIVOT MOVE, because a bare switch is the thing the trap refuses — so the
+ * only way to stage "it left anyway" is the exemption the engine already honours. */
+probe('move', 'trapsTarget', 'a body that PIVOTS out of a Mean Look is not trapped when it returns', () => {
+  const run = (leaves) => {
+    const me = bare('mudsdale'), ally = bare('incineroar');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    S.benchB = [bare('kangaskhan')];
+    unfaintable(me); unfaintable(ally); unfaintable(f1); unfaintable(f2);
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'meanlook', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    /* turn 2 — the varied knob: U-turn out, or stand still. */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, leaves ? M.playerAction(f1, 'uturn', me, S.field) : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    /* turn 3 — whoever holds slot 0 asks to leave. In the pivot arm that is the replacement, which
+     * was never trapped and walks out, bringing the victim BACK. In the control arm it is the
+     * trapped body, and the switch is refused. */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[S.actB[0], { kind: 'switch' }], [f2, { kind: 'pass' }]]));
+    /* turn 4 — and now the victim itself asks to leave. */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[S.actB[0], { kind: 'switch' }], [f2, { kind: 'pass' }]]));
+    return S.actB[0].name || S.actB[0].species;
+  };
+  const control = run(false);   // the victim never left the field: the trap is still on it
+  const test = run(true);       // the victim pivoted out and came back: the trap went with it
+  return { works: control === 'milotic' && test === 'kangaskhan',
+           arms: { control, test },
+           detail: `[who holds the foe's slot 0 after the trapped body asks to switch on turn 4] — the `
+                 + `victim NEVER LEFT "${control}" (still held, the switch is refused); the victim `
+                 + `PIVOTED OUT on turn 2 and walked back in on turn 3 "${test}" (clearVolatile took `
+                 + `the trap with it, so the switch goes through)` };
 });
 
 /* SUCTION CUPS — the MIRROR of Shed Shell: one restores the choice to leave, the other refuses being

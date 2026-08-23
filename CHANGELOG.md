@@ -10,6 +10,47 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.86.0] — 2026-08-23
+
+### Added
+- **ENDURE NEVER REACHED THE STALL GATE — LANDED, AND EXPLICITLY UNMEASURED.** The willAct/stall gate is
+  keyed on the chooser's ACTION KIND, and `PROTECTMOVES` omitted `endure`, so five of the six
+  `stallingMove: true` moves got the gate and Endure never did. Membership is now **derived from the
+  format** (`stallingMove: true` — protect, detect, spikyshield, kingsshield, banefulbunker, endure;
+  `wideguard`/`quickguard` are `false` and dispatch as a different kind), so a later member is picked up
+  with no edit here. Divergence class `unrelated event mismatch`,
+  `|-fail|SLOT <> |-singleturn|SLOT|endure`.
+- **THIS IS COMMITTED WITHOUT A PAIRED MEASUREMENT AND THAT IS STATED RATHER THAN GLOSSED.** The agent
+  that wrote it was stopped mid-pass — Will needed the machine — after the fix and its probes were
+  written but before either was run. **No before/after exists, no number in this repo moved because of
+  it, and none is claimed.** It is landed rather than reverted because it is complete and coherent (the
+  engine loads, the derivation is printed, the probes are written) and reverting would discard 384 lines
+  that would have to be rederived. **The next measurement pass must verify it before any figure that
+  includes it is published.**
+- `data/mechanics-census.json` moves 630 → 634 live in the tree from the same unmeasured pass. **That
+  count is not verified either.**
+
+### Notes
+- **OWED, NOT RUN — as commands, because prose rots:**
+  ```
+  node tests/test-mechanics.js
+  tools\lownode.cmd tests\test-engine-diff.js --n 6000 --seed 20260804
+  node engine\status.js --write
+  tools\lownode.cmd engine\quarantine.js
+  ```
+  The second one matters most: `publish_guard.js` refused tonight's n=300 runs, so
+  **`data/engine-diff.json` and the `GENERATED` block in `docs/ENGINE.md` still print the five aurorus
+  rows** that were proven false reds. The published artifact is behind the finding.
+- **RED AND UNWAIVED, named rather than filed** — none of these was fixed today and none has been waived
+  by Will: `tests/test-no-silent-failure.js` (84 new silent catches since baseline, ROADMAP #258's own
+  instrument); `tests/test-mc-key.js`; `tests/test-end-state-severity.js`; and `tests/staged_board.js`'s
+  three failures, which are one species-name-keyed mirror defect and are **invisible to the runner**
+  until the 19 PENDING-WIRE checks are wired.
+- **NEEDS WILL, NOT A FIX:** ROADMAP #376 — three divergences at exact `speed_gap: 0,
+  same_priority: true`. A tie has no correct answer. Three options are written into the row.
+
+---
+
 ## [5.85.0] — 2026-08-23
 
 ### Fixed

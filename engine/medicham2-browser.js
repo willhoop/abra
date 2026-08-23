@@ -520,6 +520,31 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                              the turn -- `!!this.queue.willAct()`, the gate the shields already
    *                              had and the Guards did not. */
   stallCounterFed: 0, sideGuardRefusedMovesLast: 0,
+  /* 2026-08-23 -- THE SAME TWO RULES ON ENDURE, THE SIXTH `stallingMove`, WHICH REACHED NEITHER.
+   *   stallMoveRefusedMovesLast  a `stallCounterChecks` member that is NOT a shield was refused for
+   *                              holding the last action of the turn. Endure is the whole membership
+   *                              today; `playerAction` gives it `{kind:'affect'}`, so the gate keyed
+   *                              on the action KIND never saw it.
+   *   stallMoveLostItsRoll       and the same member LOST the decaying 1/3, 1/9, 1/27 roll off the
+   *                              shared `stall` counter. Two counters and not one, because a single
+   *                              reading cannot tell a gate that never fires from a die that never
+   *                              loses -- and this engine had both of those at once. A zero in BOTH
+   *                              after real games means no Endure was ever repeated or ever held the
+   *                              last action, not that the branch is absent; `stallCounterFed` next
+   *                              to it is the same shape and the same caveat. */
+  stallMoveRefusedMovesLast: 0, stallMoveLostItsRoll: 0,
+  /* 2026-08-23 -- `addVolatile('trapped')` REFUSING A REPEAT. See `trapAlreadyHeld`.
+   *   trapRefusedRepeat            a Block or Mean Look aimed at a body that already holds the trap.
+   *                                The MOVE fails (`|-fail|MOVER`) and Stomping Tantrum is fed.
+   *   trapRefusedRepeatBySecondary Spirit Shackle's 100% secondary aimed at the same. The move keeps
+   *                                its damage; only the second `-activate` is refused. Two counters
+   *                                because the two consequences differ.
+   *   trapClearedOnSwitch          a hard trap left the field with its victim, which is
+   *                                `clearVolatile()`. A zero here beside a non-zero above means no
+   *                                trapped body ever pivoted out this run, not that the line is
+   *                                absent -- and a zero in ALL THREE means Block, Mean Look and
+   *                                Spirit Shackle were never clicked at all. */
+  trapRefusedRepeat: 0, trapRefusedRepeatBySecondary: 0, trapClearedOnSwitch: 0,
   /* ROADMAP #232 -- WHERE THE `willAct()` GATE IS ASKED, AND WHETHER MOVING IT CHANGED AN ANSWER.
    *   shieldGateAtExecution      a shield's whole `onPrepareHit` gate -- the queue scan AND the stall
    *                              roll behind it -- was resolved at the instant the shield's own action
@@ -8859,6 +8884,32 @@ function mvFailAnnouncedByCaller(mon){ if(mon)mon._mvRes=false; MEDSEEN.mvFailAn
  * `-activate`. The state write is IDENTICAL to `mvFail`'s -- see the call site for why that half is
  * deliberately unchanged. */
 function mvFailSilent(mon){ if(mon)mon._mvRes=false; MEDSEEN.mvFailSilentNoLine++; }
+/* 2026-08-23 -- "IS THIS BODY ALREADY HELD", AND IT IS ONE READER FOR TWO CONSEQUENCES.
+ *
+ * DERIVED, NOT RECALLED. `Pokemon#addVolatile` (sim/pokemon.ts) opens with
+ *
+ *     if (this.volatiles[status.id]) { if (!status.onRestart) return false;
+ *                                      return singleEvent('Restart', ...); }
+ *
+ * and `Dex.forFormat('gen9championsvgc2026regmb').conditions.get('trapped')` carries **no
+ * `onRestart`** -- printed before this was wired; the whole condition is `noCopy`, an `onTrapPokemon`
+ * and an `onStart` that writes `-activate|TARGET|trapped`. So a second `addVolatile('trapped')` on a
+ * body that already has one returns FALSE, and this engine returned success and re-announced.
+ * Divergence class `unrelated event mismatch`, `|-fail|SLOT <> |-activate|SLOT|trapped`, 2 games on
+ * release c66976713feb.
+ *
+ * ONE FUNCTION, TWO CONSEQUENCES, WHICH IS WHY IT IS A FUNCTION AND NOT A LINE AT EACH SITE.
+ * Block and Mean Look are `onHit(target, source, move) { return target.addVolatile('trapped', ...) }`
+ * -- the false IS the move's result, so the authority writes `|-fail|MOVER` and Stomping Tantrum is
+ * fed. Spirit Shackle's is a SECONDARY, whose return value `moveHit` discards, so the same false
+ * means only "no second `-activate`" and the move's damage still counts. Two callers, two outcomes,
+ * one fact. This engine already implements the repeat refusal PER VOLATILE (`applyAttract`,
+ * `failsIfVolatile`, Substitute) and had no member for this one.
+ *
+ * `_trapHard` IS THE MIRROR OF THE VOLATILE and is asked rather than `_trap`: the partial trap
+ * (Bind, Fire Spin) is a DIFFERENT condition with its own `onRestart` question, and folding the two
+ * would refuse a Mean Look into a body that is merely Wrapped. */
+function trapAlreadyHeld(t){ return !!(t&&t._trapHard); }
 function liveFoesOf(me){
   const _s=me&&me._sf, _S=_s&&_s._S;
   if(!_S)return [];
@@ -13482,6 +13533,27 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
      here and NOT resettable for _disguiseBusted two lines down). */
   out._sub=0; out._noSound=0; out._noRepeat=null; out._noRepeatT=0; out._recharge=false;
   out._trap=null; out._proteanUsed=false;
+  /* 2026-08-23 -- AND THE HARD TRAP LEAVES WITH THE BODY, ON THE SAME LINE'S AUTHORITY.
+   *
+   * `trapped` is an ordinary volatile and `Pokemon#clearVolatile()` is `this.volatiles = {}`, so a
+   * body that gets off the field is not trapped when it comes back. This engine kept `_trapHard`
+   * forever: the comment at the site that WRITES it says the trap "outlives its source's turn and
+   * travels with the victim", which is right about the turn and wrong about the switch.
+   *
+   * IT IS IN THIS BATCH BECAUSE THE REPEAT REFUSAL ABOVE NEEDS IT, and that is the honest reason
+   * rather than tidiness. `trapAlreadyHeld` turns a stale `_trapHard` from a wrong switch-block into
+   * a wrong REFUSAL of a fresh Mean Look as well -- an over-refusal, which CLAUDE.md's own note on
+   * this branch says costs a game exactly as an under-refusal does. Shipping the refusal without
+   * this line would have introduced the second defect while fixing the first.
+   *
+   * IT IS NOT CAPTURED BY BATON PASS AND DOES NOT NEED TO BE EXCLUDED: `trapped` declares
+   * `noCopy: true`, and `capturePassedState` above carries `_trap` only.
+   *
+   * WHAT THIS DOES NOT FIX, STATED: Showdown links the victim's `trapped` to the TRAPPER through
+   * `linkedStatus: 'trapper'`, so the trap also dies when the SOURCE leaves. `_trapHard.by` records
+   * the source and nothing reads it at the switch gate. No failing probe on it; open, not silently
+   * half-done. */
+  if(out._trapHard){out._trapHard=null;MEDSEEN.trapClearedOnSwitch++;}
   /* WIRE 144 -- AND THE LOCK-IN LEAVES WITH THE BODY, with NO fatigue. `lockedmove` is an ordinary
    * volatile, so `Pokemon#clearVolatile()` removes it directly rather than through `removeVolatile`,
    * and `onEnd` -- the only writer of the confusion -- never runs. A body that gets off the field
@@ -14930,6 +15002,35 @@ function battleTurn(S,rng,actsForA,actsForB){
          * halves of one rule pulled apart -- which is what the shields and the Guards already were. */
         it._guardPending=true;it._preWillAct=_anyActionAfter(i);
       }
+      /* 2026-08-23 -- THE GATE WAS KEYED ON THE ACTION KIND, AND ENDURE HAS NO KIND OF ITS OWN.
+       *
+       * MEMBERSHIP DERIVED FROM THE FORMAT AND PRINTED BEFORE THIS WAS WIRED, as this file's rule
+       * requires -- every LEGAL move whose `onPrepareHit`/`onTry` reads `this.queue.willAct()`:
+       *
+       *     protect  detect  spikyshield  kingsshield  banefulbunker  endure    stallingMove: true
+       *     wideguard  quickguard                                               stallingMove: false
+       *
+       * Seven of the eight already reach a branch above: five are `shieldsUser` and `playerAction`
+       * dispatches them as `kind:'protect'`, two are `oneTurnGuard` and dispatch as
+       * `kind:'wideguard'`. ENDURE IS NEITHER, and correctly so -- #178 took it out of `shieldsUser`
+       * because it blocks nothing, and it guards no side -- so `playerAction` resolves it to
+       * `{kind:'affect'}` and THIS GATE NEVER SAW IT. Its `onPrepareHit` is byte-identical to
+       * protect's (`data/moves.ts:4816-4818` against `:13974-13976`, and Champions overrides protect
+       * but not endure), so this engine gave Endure a shield that could never be refused for holding
+       * the last action, never lost its own decaying roll, and never fed the counter a following
+       * Protect reads. Divergence class `unrelated event mismatch`, `|-fail|SLOT <> |-singleturn|SLOT|endure`,
+       * 2 games on release c66976713feb.
+       *
+       * THE MEMBERSHIP IS THE TAG, NOT A THIRD KIND. `stallCounterChecks` is the six `stallingMove`
+       * members and the branches above have already taken five of them, so this branch is exactly
+       * Endure today and picks up any later member with no edit here. The `PROTECTMOVES` literal is
+       * NOT consulted: it is a superset carrying three moves this regulation marks `isNonstandard`
+       * (burningbulwark, silktrap, maxguard) and it exists only as the loud name-fallback for shield
+       * DISPATCH -- harmless there, wrong to grow here. */
+      else if(actionMoveId(it.a)&&TAGS.has('move',actionMoveId(it.a),'stallCounterChecks')
+              &&!volatileForbidsMove(it.mon,actionMoveId(it.a))){
+        it._stallPending=true;it._preWillAct=_anyActionAfter(i);
+      }
       else it.mon.tookProtectTurns=0;
     }
     /* WIRE 118 -- "HAS THIS BODY ALREADY ACTED?" IS NOW "HAS IT RESOLVED?", AND THAT IS THE POINT.
@@ -15284,6 +15385,31 @@ function battleTurn(S,rng,actsForA,actsForB){
      * which is indistinguishable from the reset that is written.
      *
      * WHAT IS NOT MOVED: `volatileForbidsMove`, asked in the pre-pass above on WIRE 119's schedule. */
+    /* 2026-08-23 -- THE DIE ITSELF, LIFTED OUT SO THE TWO CALLERS CANNOT COME APART.
+     *
+     * Every line inside is the shield branch's own, MOVED AND NOT REWRITTEN -- the three numbers still
+     * come off `stallCounterChecks` (see the block below), the cap is still derived from them rather
+     * than typed, and the draw is still `_R.stall()` on its own stream. What changes is that Endure
+     * now asks the identical question: Showdown holds ONE `stall` volatile per body and every
+     * `stallingMove` rolls `randomChance(1, counter)` against it, so two copies of this arithmetic in
+     * this file is precisely the shape CLAUDE.md's "FACTS ARE GLOBAL" rule names -- two places that
+     * decide one fact and agree until they do not.
+     *
+     * IT WRITES THE COUNTER AS WELL AS READING IT, deliberately: advancing on a win and deleting on a
+     * loss is `stall.onRestart`'s own `if (!success) delete pokemon.volatiles['stall']`, not the
+     * caller's business, and splitting the read from the write is how the two copies would drift. */
+    const _stallRoll=(it)=>{
+      const _sc=TAGS.param('move',actionMoveId(it.a),'stallCounterChecks');
+      if(!_sc){MEDFAILS.stallCounterUntagged++;
+        if(!MEDFAILS.stallCounterUntaggedFirst)MEDFAILS.stallCounterUntaggedFirst=String(actionMoveId(it.a));}
+      const _f=(_sc&&_sc.firstCounter)||3,_g=(_sc&&_sc.growsBy)||3,_mx=(_sc&&_sc.counterMax)||729;
+      const _n=it.mon.tookProtectTurns;
+      const _cap=1+Math.round(Math.log(_mx/_f)/Math.log(_g));
+      const _ctr=_n===0?1:Math.min(_mx,_f*Math.pow(_g,_n-1));
+      const _ok=(_ctr<=1||_R.stall()<1/_ctr);   // ROADMAP #222 -- its own die
+      it.mon.tookProtectTurns=_ok?Math.min(_cap,_n+1):0;
+      return _ok;
+    };
     const _shieldGate=(it,idx)=>{
       const _will=_anyActionAfter(idx);
       MEDSEEN.shieldGateAtExecution++;
@@ -15304,19 +15430,26 @@ function battleTurn(S,rng,actsForA,actsForB){
          * die in this repository can land in it -- it is a correctness point, not a measured one,
          * and it is stated rather than claimed as a fix. */
         if(!_will){it.mon.protect=false;it.mon.tookProtectTurns=0;}   // willAct() === null
-        else{
-          const _sc=TAGS.param('move',actionMoveId(it.a),'stallCounterChecks');
-          if(!_sc){MEDFAILS.stallCounterUntagged++;
-            if(!MEDFAILS.stallCounterUntaggedFirst)MEDFAILS.stallCounterUntaggedFirst=String(actionMoveId(it.a));}
-          const _f=(_sc&&_sc.firstCounter)||3,_g=(_sc&&_sc.growsBy)||3,_mx=(_sc&&_sc.counterMax)||729;
-          const _n=it.mon.tookProtectTurns;
-          const _cap=1+Math.round(Math.log(_mx/_f)/Math.log(_g));
-          const _ctr=_n===0?1:Math.min(_mx,_f*Math.pow(_g,_n-1));
-          const _ok=(_ctr<=1||_R.stall()<1/_ctr);   // ROADMAP #222 -- its own die
-          it.mon.protect=_ok;
-          it.mon.tookProtectTurns=_ok?Math.min(_cap,_n+1):0;
-        }
+        else it.mon.protect=_stallRoll(it);
         it.mon._lastMove=it.a.mv||'protect';it.mon._protectMove=it.a.mv||null;
+      }
+      /* 2026-08-23 -- ENDURE, THE SIXTH `stallingMove`, THROUGH THE SAME GATE AND THE SAME DIE.
+       *
+       * It sits beside the shield rather than inside it because the CONSEQUENCE differs and only the
+       * consequence differs: a refused shield writes `protect=false` and the announcement falls out
+       * of the `kind:'protect'` branch at the action; a refused Endure has no `protect` flag to
+       * write, so the refusal is carried on the ACTION and spent above the kind dispatch, which is
+       * where Showdown spends it (`sim/battle-actions.ts:594-596` -- `add('-fail', pokemon)` +
+       * `attrLastMove('[still]')`, the branch a false `onPrepareHit` takes).
+       *
+       * BOTH REFUSALS ARE COUNTED SEPARATELY, because they are two different rules wearing one
+       * outcome: `stallMoveRefusedMovesLast` is `!!this.queue.willAct()` and takes no die at all;
+       * `stallMoveLostItsRoll` is the 1/3, 1/9, 1/27 decay off the shared `stall` counter. A single
+       * counter could not tell a gate that never fires from a die that never loses. */
+      else if(it._stallPending){
+        if(!_will){it.mon.tookProtectTurns=0;it._stallRefused=true;MEDSEEN.stallMoveRefusedMovesLast++;}
+        else if(!_stallRoll(it)){it._stallRefused=true;MEDSEEN.stallMoveLostItsRoll++;}
+        it.mon._lastMove=it.a.mv||it.mon._lastMove;
       }else{
         /* ROADMAP #126 -- THE GUARD RAISED IS RECORDED BY ITS MOVE ID, not by a boolean whose name is
          * the mechanic.
@@ -15454,7 +15587,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * folding it in would make a moved differential unattributable. Keeping the raise ahead of them
        * preserves exactly today's behaviour there, so the only thing this batch changes is WHEN the
        * queue is scanned. STATED, not silently left. */
-      if(it._shieldPending||it._guardPending)_shieldGate(it,actIdx);
+      if(it._shieldPending||it._guardPending||it._stallPending)_shieldGate(it,actIdx);
       /* WIRE 144 -- did the Encore override below rewrite this action? The randomTarget re-roll after
        * it must not draw a second time for one rule; see its own comment. */
       let _ovr=false;
@@ -16453,6 +16586,29 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_spv&&_spv.volatile&&_spv.when==='afterMove')m._spendAfter=_spv.volatile;
         }
       }
+      /* 2026-08-23 -- AND THE `onPrepareHit` REFUSAL IS SPENT HERE, ONE STEP BELOW `onTry`.
+       *
+       * `_shieldGate` decided it (see `_stallPending` there); this is only where the decision is
+       * PAID, and the position is the authority's rather than a convenience. Showdown's order inside
+       * `useMove` is: emit `|move|`, `onTry`, then `singleEvent('PrepareHit')` --
+       * `sim/battle-actions.ts:594-596`, the branch that runs `add('-fail', pokemon)` +
+       * `attrLastMove('[still]')` when PrepareHit returns an explicit false. The WIRE 152 block
+       * directly above is the `onTry` step, so this line is exactly one step below it.
+       *
+       * `mvFail`, NOT A SILENT SKIP, and that is the half a `-fail` line does not carry: Showdown's
+       * `moveResult` is a real false here, so `_mvRes === false` and a Stomping Tantrum on the next
+       * turn doubles off a refused Endure exactly as it does off a refused Protect.
+       *
+       * THE SHIELDS DO NOT COME THROUGH THIS LINE AND THAT IS STATED RATHER THAN LEFT TO BE FOUND:
+       * a refused `kind:'protect'` reads `m.protect === false` in its own branch far below and
+       * announces the identical pair there. Two announcement sites for one rule is a thing to fix,
+       * not to leave -- but folding them would move five moves' announcements in a batch measured
+       * for two, so it is named here and left. */
+      if(it._stallPending&&it._stallRefused){
+        if(TR)TR.attrStill();
+        mvFail(m);
+        continue;
+      }
       /* ROADMAP #81 WIRE 12 -- `passstate` PAYS ITS OWN COST, INSIDE ITS OWN BRANCH, and is excluded
          here for the same reason `sub` is: THE ORDER OF THE CHECKS IS PART OF THE MOVE. Shed Tail's
          `onTryHit` asks `canSwitch(source.side)` FIRST and returns NOT_FAIL, so a Shed Tail with an
@@ -17174,6 +17330,16 @@ function battleTurn(S,rng,actsForA,actsForB){
          * ordinary generic-failure path, which names the MOVER. `Dex.getImmunity('trapped', ['Ghost'])`
          * reads false, so the Ghost is the whole knob. Witness from the pinned pool:
          *     Mean Look -> Chandelure    showdown |-fail|p2a: Farigiraf   ours |-immune|p1a: Chandelure */
+        /* 2026-08-23 -- AND `addVolatile` REFUSES A REPEAT BEFORE IT EVER ASKS ABOUT THE GHOST.
+         *
+         * The ORDER is the authority's, read off `Pokemon#addVolatile` rather than chosen: the
+         * `this.volatiles[status.id]` test is the second line of the method and `runStatusImmunity`
+         * -- which is where the Ghost refusal below lives, through `tryTrap` -- is the fourth. It
+         * cannot change an outcome today (a Ghost never acquires the trap, so it can never be the
+         * body that repeats), and it is written in the authority's order anyway so that a later
+         * member with a different immunity does not inherit an invented one. See `trapAlreadyHeld`
+         * for the derivation and for why the same fact means something else at the secondary site. */
+        if(trapAlreadyHeld(t)){MEDSEEN.trapRefusedRepeat++;mvFail(m);continue;}
         if((t.types||[]).includes('Ghost')){MEDSEEN.ghostRefusedTrap++;mvFail(m);continue;}
         t._trapHard={by:m,mv:a.mv};
         /* ROADMAP #143 -- THE LINE BELONGS TO THE VOLATILE, NOT TO THE MOVE THAT APPLIED IT. Both
@@ -22186,7 +22352,13 @@ function battleTurn(S,rng,actsForA,actsForB){
           {const _tt=TAGS.param('move',a.move.id,'trapsTarget');
            if(_tt&&_tt.viaSecondary&&_tt.volatile==='trapped'&&!suppressed
               &&!tg.fainted&&tg.curHP>0&&!m.fainted&&m.curHP>0&&tg!==m){
-             if((tg.types||[]).includes('Ghost'))MEDSEEN.ghostRefusedTrap++;
+             /* 2026-08-23 -- THE SAME REPEAT REFUSAL, AND HERE IT COSTS THE MOVE NOTHING. A
+              * secondary's `onHit` return value is discarded by `moveHit`, so a Spirit Shackle into
+              * an already-trapped body still deals its damage and simply writes no second
+              * `-activate`. Counted apart from the status door because the two answers differ and a
+              * shared counter would hide which one fired. */
+             if(trapAlreadyHeld(tg))MEDSEEN.trapRefusedRepeatBySecondary++;
+             else if((tg.types||[]).includes('Ghost'))MEDSEEN.ghostRefusedTrap++;
              else{
                tg._trapHard={by:m,mv:a.move.id};
                MEDSEEN.moveTrapAppliedBySecondary++;

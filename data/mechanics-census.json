@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-23T02:59:20.862Z",
+  "generated": "2026-08-23T03:52:58.943Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 630,
-  "live": 630,
+  "probed": 634,
+  "live": 634,
   "missing": 0,
-  "armed": 630,
+  "armed": 634,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -227,6 +227,26 @@
       "label": "a Wide Guard whose user holds the LAST action of the turn fails outright",
       "live": true,
       "detail": "damage taken on turn 2 behind a Protect at roll 0.99 — turn-1 Wide Guard at Speed 200, three guards queued behind it 182 (it resolved and fed the counter, so the 1/3 roll fails); at Speed 1, holding the last action 0 (the guard was refused before its onHitSide, so the counter is still unarmed and the shield holds)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "failsIfMovesLast",
+      "label": "ENDURE faces the same willAct gate as a shield — it never did",
+      "live": true,
+      "detail": "damage taken on turn 2 behind a Protect at roll 0.99 — turn-1 ENDURE at Speed 200, three actions queued behind it 182 (it resolved and advanced the shared counter, so the 1/3 roll fails and the Protect does not go up); at Speed 1, holding the last action 0 (the Endure was refused before its onHit, the counter is still unarmed and the Protect holds)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "stallCounterChecks",
+      "label": "a SECOND consecutive Endure loses the 1/3 roll, so the lethal hit lands",
+      "live": true,
+      "detail": "HP left after a lethal Earthquake into a 5 HP body clicking Endure at roll 0.99 — turn 1 an ordinary click 1 (fresh counter, the Endure holds and floors the hit at 1); turn 1 ALSO an Endure 0 (counter at 3, the 1/3 roll fails, no Endure goes up and the hit is lethal)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3186,7 +3206,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.0% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 27.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5027,6 +5047,26 @@
       "label": "Block holds the target in its slot, and a Shed Shell walks out of it",
       "live": true,
       "detail": "[who holds the foe's slot 0 after it asks to switch] — after BLOCK \"milotic\" (refused); after MEAN LOOK \"milotic\"; CONTROL, nothing clicked, \"kangaskhan\" (the switch goes through, so the staging can switch at all); with a SHED SHELL on the trapped body, \"kangaskhan\" — it leaves. Both halves matter: an over-refusal costs a game exactly as an under-refusal does",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "trapsTarget",
+      "label": "a SECOND Mean Look into an already-trapped body FAILS, and feeds Stomping Tantrum",
+      "live": true,
+      "detail": "Stomping Tantrum damage on turn 3 after a second Mean Look — aimed at the OTHER, untrapped foe 100 (the trap lands, the move succeeded, 75 BP); aimed AGAIN at the already-trapped foe 199 (addVolatile refused the repeat, the move failed, so the Tantrum doubles)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "trapsTarget",
+      "label": "a body that PIVOTS out of a Mean Look is not trapped when it returns",
+      "live": true,
+      "detail": "[who holds the foe's slot 0 after the trapped body asks to switch on turn 4] — the victim NEVER LEFT \"milotic\" (still held, the switch is refused); the victim PIVOTED OUT on turn 2 and walked back in on turn 3 \"kangaskhan\" (clearVolatile took the trap with it, so the switch goes through)",
       "hollow": false,
       "armed": true,
       "directCall": false
