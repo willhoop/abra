@@ -71,6 +71,7 @@ const CS = REL.require('engine/champions_sim.js');
 const FP = require('./fit_policy.js');
 const JR = require('./joint_rows.js');
 const B = require('./board.js');
+const { mcKey } = require('./mc_key.js');   // the ONE species -> MC.mons resolver
 const RL = REL.require('engine/rollout_leaf.js');
 
 const { Dex } = CS.sim();
@@ -176,7 +177,7 @@ function materialPy(board, side) {
    * Pokemon — Landorus-Therian, Incineroar — and MC.mons is keyed differently, so nothing resolved,
    * two bodies were built and the check reported 50%. It caught itself, which is the point, but a
    * fixture that hardcodes identifiers is the same second-source-of-truth mistake in miniature. */
-  const pool = Object.keys(globalThis.MC.mons).slice(0, 8);
+  const pool = (mcKey.keys({ mayMiss: 'a smoke pool; an empty table is reported by the caller' }) || []).slice(0, 8);
   const bd = new B.Board();
   for (const side of ['p1', 'p2']) bd.setParty(side, pool.slice(0, 4));
   bd.switchIn('p1', 'a', pool[0]); bd.switchIn('p1', 'b', pool[1]);

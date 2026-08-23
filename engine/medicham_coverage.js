@@ -32,6 +32,7 @@
 const fs = require('fs');
 const path = require('path');
 const CS = require('./champions_sim.js');
+const { mcKey } = require('./mc_key.js');   // the ONE species -> MC.mons resolver
 const FP = require('./fit_policy.js');
 
 const { Dex } = CS.sim();
@@ -70,7 +71,7 @@ const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
  * species they are does not matter: no branch of playerAction depends on the matchup, only on the
  * move. Verified rather than assumed by the self-check below. */
 let MEDI_ME = null, MEDI_TGT = null;
-for (const n of Object.keys(globalThis.MC.mons)) {
+for (const n of mcKey.keys({ mayMiss: 'the table may not be loaded; the self-check below reports it' }) || []) {
   const m = MEDI.buildMon(n, {});
   if (!m) continue;
   if (!MEDI_ME) MEDI_ME = m;

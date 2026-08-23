@@ -2,12 +2,29 @@
  *
  *   node tests/test-mc-key.js            check
  *   node tests/test-mc-key.js --update        re-baseline section 2 (when you REMOVE a hand-rolled lookup)
- *   node tests/test-mc-key.js --update-door   re-baseline section 3 (when you REMOVE a doorway)
  *
- * TWO SECTIONS, TWO BASELINES. Section 2 bans KNOWN-BAD SPELLINGS. Section 3, added 2026-08-23, bans
- * every route into the mon table that is not engine/mc_key.js, because a list of wrong forms cannot
- * catch a new wrong form and on 2026-08-23 one got through for the third time. Read section 3's own
- * comment for exactly what it can and cannot see -- it is not total, and it says where.
+ * FOUR SECTIONS. Section 1 checks the resolver behaves. Section 2 bans KNOWN-BAD SPELLINGS.
+ * Section 3 bans every route into the mon table that is not engine/mc_key.js. Section 4, added
+ * 2026-08-23, asserts the positive form of the same claim: every file that LOADS the table also
+ * loads the door, so the runtime seal is installed in every process rather than in the ones that
+ * happened to require the right file.
+ *
+ * THIS FILE IS NO LONGER THE LOAD-BEARING GUARANTEE, AND SAYING SO IS THE POINT.
+ * Everything here is STATIC: it reads source text and bans shapes. That has now been beaten three
+ * times by shapes nobody had listed -- `buildMon(s.toLowerCase())`, a bare `globalThis.` prefix, a
+ * dot access `MC.mons.mudsdale`. A list cannot catch a form nobody thought of. The guarantee moved
+ * on 2026-08-23 to a RUNTIME seal on the table itself (engine/mc_key.js `seal()`, asserted by
+ * tests/test-mc-seal.js), which no spelling, prefix, alias, template string, concatenation,
+ * destructure or Reflect.get can walk around, because it traps the property access rather than
+ * matching the text. What is left here is defence in depth and a check on the one thing a Proxy
+ * cannot see: whether the Proxy got installed at all. Read section 4 first.
+ *
+ * THE DOORWAY DEBT FILE IS GONE, 2026-08-23. `data/mc-key-door-baseline.json` recorded 96 accepted
+ * doorways in 37 files. Ninety of those are now routed through engine/mc_key.js; the rest are named
+ * in HOLDERS below WITH A WRITTEN REASON, in this file, where a reader of the gate can see them.
+ * A numeric debt file listed how many violations were tolerated and never why -- so it could only
+ * ever be re-baselined, never argued with. (Will, 2026-08-23: "i want no more problems not finding
+ * certain names cause of spelling differences make a bulletproof solution and close it out.")
  *
  * WHY THIS EXISTS, AND WHY IT IS STRUCTURAL RATHER THAN BEHAVIOURAL
  * ----------------------------------------------------------------
@@ -30,10 +47,10 @@
  * writing the same three lines again, so the check has to be about the SHAPE of the code. Same trick
  * as tests/test-drop-guard.js, which asserts `B.featuresFor(` appears exactly once.
  *
- * IT IS A RATCHET. Two hand-rolled lookups are legitimate today and are baselined rather than
- * rewritten: medicham2-browser.js is a BROWSER file that cannot `require`, and
- * merge_mega_into_engine.js builds the table itself, so it cannot ask an index of a table that does
- * not exist yet. New violations fail; the baseline only shrinks.
+ * SECTION 2 IS A RATCHET AND IS NOW EMPTY. Its baseline held five files on 2026-08-23 morning and
+ * holds none by that evening: the legitimate ones (the browser twin, the builders, the spelling
+ * auditor) moved into HOLDERS, where they carry a written reason instead of a count, and the rest
+ * were routed. New violations still fail; the baseline still only shrinks.
  */
 'use strict';
 require('../engine/showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
@@ -160,6 +177,51 @@ ok(mcKey('Gourgeist-Super', PROBE) !== mcKey('Gourgeist', PROBE),
   '...and is still never substituted BY its base, which is the rule that mattered all along');
 ok(mcKey('Slowking-Galar', PROBE) === 'slowking-galar', 'Slowking-Galar keeps its OWN entry, not Slowking');
 
+/* THE HOLDERS — every file allowed to touch a mon table directly, WITH THE REASON, in the gate.
+ *
+ * This replaces `data/mc-key-door-baseline.json`, which held 96 anonymous counts across 37 files.
+ * A count records how much was tolerated and never why, so it can only be re-baselined; a reason can
+ * be argued with. Ninety of the ninety-six are now routed through engine/mc_key.js. These are what
+ * is left, and each is here because routing it would be WRONG, not because it was hard:
+ *
+ * THE THREE-WAY SPLIT MATTERS. Only the first group touches the shared, sealed `globalThis.MC.mons`
+ * at all. The second group parses `data/engine-data.js` as TEXT into a private object — there is no
+ * shared table in those processes to ask, and pointing mcKey at one would read a different table
+ * than the one being written. The regex cannot tell those apart because it matches on the word
+ * `mons`; a reader can, which is the argument for putting the list here. */
+const HOLDERS = {
+  'engine/mc_key.js':      'IS the door.',
+  'tests/test-mc-key.js':  'IS this gate.',
+  'tests/test-mc-seal.js': 'ASSERTS the seal, by executing the raw accesses this file only reads as text.',
+
+  'engine/medicham2-browser.js':
+    'the BROWSER twin of the resolver. It cannot `require` on the live site, so it carries its own '
+    + 'flattened index (monKey/monRow) built by the same rule; both of its raw indexes use a key that '
+    + 'index has already resolved. tests/test-engine-consistency.js holds the two implementations together.',
+  'engine/artifact_audit.js':
+    'AUDITS key spelling. It asks on purpose whether a normalised key resolves and whether two keys '
+    + 'normalise alike — the 2026-07-30 bug — and an auditor that cannot ask about a miss cannot audit '
+    + 'one. It takes the table through mcKey.rawTable(<why>), so the exemption is recorded at run time too.',
+
+  'engine/merge_mega_into_engine.js':
+    'BUILDS the table. It JSON.parses data/engine-data.js as TEXT into a private object and adds, '
+    + 'merges and DELETES rows in it. There is no shared table in that process, and it must be able to '
+    + 'ask "is this key absent" before writing it — absent is the answer it wants, not a crash.',
+  'build/build_engine_data.js':      'WRITES data/engine-data.js from the dex. Its `mons` is the output being constructed.',
+  'build/build_mag_data.js':         'WRITES data/mag.js. Its `mons` is MAG\'s own table, not MC.mons.',
+  'build/medicham-embed.js':         'BUILDS the browser embed. Its `out.mons` is the output being constructed.',
+  'build/rebuild_sets_from_sheets.js':
+    'BUILDS data/engine-data.js from open team sheets, parsing it as TEXT into a private object like '
+    + 'merge_mega_into_engine.js. Routing it through mcKey would read the loaded table instead of the '
+    + 'one being rewritten — a different object, silently.',
+};
+/* A HOLDER MUST STILL EXIST. A stale entry would silently widen the exemption to a file somebody
+ * later creates with that name, which is exactly the shape of hazard this whole file is about. */
+const ghosts = Object.keys(HOLDERS).filter(f => !fs.existsSync(D(f)));
+ok(ghosts.length === 0, `every named holder is a real file (${ghosts.join(', ') || `${Object.keys(HOLDERS).length} of them`})`);
+ok(Object.keys(HOLDERS).length <= 10,
+  `the holder list is short and may only get shorter (${Object.keys(HOLDERS).length} of a ceiling of 10)`);
+
 /* ---- 2. THE BAN ------------------------------------------------------------------------------- */
 
 /* A hand-rolled lookup is: indexing MC.mons (or a `mons` alias) with anything other than a literal,
@@ -172,7 +234,12 @@ const PATTERNS = [
 ];
 
 /* The resolver and its own test are allowed to touch the table directly — that is their job. */
-const OWN = new Set(['engine/mc_key.js', 'tests/test-mc-key.js']);
+/* ONE EXEMPTION LIST FOR BOTH SECTIONS. It used to be two -- section 2 named mc_key.js and this
+ * file, section 3 kept a JSON baseline -- and they disagreed the moment a third resolver-adjacent
+ * file appeared: tests/test-mc-seal.js executes the raw accesses on purpose and section 2 called
+ * it a NEW violation while section 3 called it a holder. Two lists of who is allowed is the same
+ * defect as two implementations of the lookup. */
+const OWN = new Set(Object.keys(HOLDERS));
 
 const BASELINE_FILE = D('data', 'mc-key-baseline.json');
 const baseline = fs.existsSync(BASELINE_FILE)
@@ -237,32 +304,36 @@ console.log(`\n  hand-rolled lookups remaining: ${Object.keys(found).length} `
  * `prior.mons`). Section 2's `Object.keys(MC.mons)` pattern did not survive a `globalThis.` prefix;
  * this one does.
  *
- * THE ONE PART THAT IS STILL A SHAPE LIST, SAID PLAINLY RATHER THAN GLOSSED.
+ * WHAT CHANGED ON 2026-08-23, AND WHY THE `.id` ALTERNATIVE LEFT THE buildMon PATTERN.
  *
- * `buildMon()` is the OTHER door into the same table — it resolves a species internally — and a
- * caller that flattens the name before handing it over is the 2026-08-23 bug. Static analysis cannot
- * see that a string is a species name, so the only thing detectable is the FLATTENING IDIOM in the
- * argument: `.toLowerCase()`, `.replace(...)`, `norm(`, `nrm(`, `flat(`, or a dex `.id` (dex ids are
- * flat; MC.mons keys formes with a hyphen). That is a list, and it is an honest one only because the
- * set of ways to lowercase-and-strip a string in JavaScript is small and closed, where the set of
- * FUNCTIONS that might consume a species key is open. It is the better axis, not a safe one.
+ * `buildMon()` is the OTHER door into the same table. Until 2026-08-23 it matched an EXACT key, so a
+ * caller that flattened the name first dropped every hyphenated forme, and the only thing static
+ * analysis could see was the FLATTENING IDIOM in the argument: `.toLowerCase()`, `.replace(...)`,
+ * `norm(`, `nrm(`, `flat(` — or a dex `.id`, because dex ids are flat and the table hyphenates.
+ *
+ * buildMon is now TOTAL: it resolves through the table's own flattened index, so 'Rotom-Wash',
+ * 'rotom-wash', 'Rotom Wash' and 'rotomwash' all build the same body. `.id` is therefore no longer
+ * evidence of anything — `M.buildMon(sp.id, {})` is CORRECT and was being reported as a violation in
+ * four files. It is removed from the pattern and replaced by something strictly stronger: section 4
+ * of tests/test-mc-seal.js pushes EVERY legal species through buildMon under a flattened name and
+ * asserts none is dropped. That is the outcome the regex was proxying for, measured instead of
+ * guessed. The hand-normalising alternatives STAY, because `norm(x)` before a lookup still says the
+ * author believes spelling decides the answer, and other consumers are not total.
  *
  * WHAT THIS SECTION STILL CANNOT SEE, and nothing static can:
  *   - a key BUILT by concatenation without the hyphen (`base + 'mega'` -> `venusaurmega`). That was
- *     the ORIGINAL 2026-07-30 bug, 0 of 67 writes matching. engine/artifact_audit.js covers that one
- *     by comparing a generated artifact against its source, and it is why that file exists.
- *   - a flattened species reaching any consumer other than buildMon — `bd.setParty('p1', ids)`,
- *     `bd.switchIn(...)`, a species key put in JSON and read back somewhere else.
+ *     the ORIGINAL 2026-07-30 bug, 0 of 67 writes matching. THE SEAL NOW CATCHES THIS AT RUN TIME
+ *     and tests/test-mc-seal.js executes exactly that line; engine/artifact_audit.js still covers
+ *     the artifact-against-source half.
+ *   - a dot access, `MC.mons.mudsdale`, which reads exactly like a field. One was live in
+ *     tests/test-tag-wire.js and no pattern here has ever matched one. The seal catches it.
+ *   - a flattened species reaching any consumer other than buildMon — `bd.setParty('p1', ids)`, a
+ *     species key put in JSON and read back somewhere else.
  *   - anything in Python, or in a template string evaluated at run time.
- * The durable fix for the second bullet is NOT another regex: it is that `buildMon` and the board
- * setters should THROW `LookupMiss` on an undeclared miss, the way `mcKey` already does, so a
- * flattened forme crashes on the first one instead of silently dropping 138 of 345. That is an
- * ENGINE change to engine/medicham2-browser.js and is proposed rather than made here.
+ * The first two are now covered by the RUNTIME seal, which is the answer to all of them: a Proxy
+ * cannot be walked around by a spelling nobody anticipated; a regex always can.
  *
- * IT IS A RATCHET WITH ITS OWN BASELINE, established 2026-08-23 at the level then measured:
- * 37 files, 96 sites. That number is PRE-EXISTING DEBT, not a licence — the clause fails on any new
- * file and on any baselined file that grows. Establishing a new ratchet at today's level is not the
- * same act as moving an old one to make a red gate pass; the section-2 baseline was NOT touched.
+ * IT IS NO LONGER A NUMERIC RATCHET. It is ZERO, plus a named list of HOLDERS with written reasons.
  * ------------------------------------------------------------------------------------------ */
 
 const DOOR = [
@@ -274,34 +345,46 @@ const DOOR = [
    * cross a nested call, and a DELIBERATE BREAK of the form `buildMon(String(sp).toLowerCase(), {})`
    * walked straight past it and the gate stayed green. Bounded and non-greedy so it stays inside one
    * statement; over-broad in exchange, which is the trade this whole file makes on purpose. */
-  { re: /\bbuildMon\s*\(\s*[^;]{0,80}?(?:toLowerCase\s*\(|\.replace\s*\(|\bnorm\s*\(|\bnrm\s*\(|\bflat\s*\(|\.id\b)/,
-    why: 'hands buildMon a FLATTENED species name — the 2026-08-23 bug' },
+  { re: /\bbuildMon\s*\(\s*[^;]{0,80}?(?:toLowerCase\s*\(|\.replace\s*\(|\bnorm\s*\(|\bnrm\s*\(|\bflat\s*\()/,
+    why: 'hand-normalises a species name before handing it to buildMon' },
 ];
 
-/* THE PATTERNS ARE THEMSELVES ASSERTED, against the five real broken lines this class has produced
- * and three lines that are CORRECT. Without this a future edit could quietly narrow the regexes and
- * every clause below would still print ok, which is the failure mode the whole file is about. */
+/* THE PATTERNS ARE THEMSELVES ASSERTED, against every real broken line this class has produced and
+ * four lines that are CORRECT. Without this a future edit could quietly narrow the regexes and every
+ * clause below would still print ok, which is the failure mode the whole file is about.
+ *
+ * ALL FIVE HISTORICAL INSTANCES ARE HERE AND MUST STAY. Two of them — the concatenated key and the
+ * dot access — are NOT caught by any pattern in this file and never were; they are listed with
+ * `false` and a note naming the RUNTIME check that does catch them, so that "the gate is green" can
+ * never be read as "the gate saw it". */
 const HISTORY = [
-  ['board.js, 2026-08-01', 'const row = MC.mons[norm(x)];', true],
-  ['backtest_winrate.js, 2026-08-01', 'const t = names.filter(n => MC.mons[n]);', true],
-  ['forced_switch_audit.js, 2026-08-01', 'return MC.mons[norm(species)] || null;', true],
-  ['test-engine-diff.js, 2026-08-23 — 138 of 345 species dropped', 'const m = MEDI.buildMon(s.toLowerCase(), {});', true],
-  ['the same bug wrapped one call deeper — the line that broke the first draft of this regex',
+  ['1. board.js, 2026-08-01 — 101 of 308 keys unreachable', 'const row = MC.mons[norm(x)];', true],
+  ['2. backtest_winrate.js, 2026-08-01 — dropped every forme team', 'const t = names.filter(n => MC.mons[n]);', true],
+  ['3. forced_switch_audit.js, 2026-08-01 — null for every forme', 'return MC.mons[norm(species)] || null;', true],
+  ['4. test-engine-diff.js, 2026-08-23 — 138 of 345 species dropped', 'const m = MEDI.buildMon(s.toLowerCase(), {});', true],
+  ['4b. the same bug wrapped one call deeper — the line that broke the first draft of this regex',
    'const m = MEDI.buildMon(String(sp).toLowerCase(), {});', true],
-  ['test-rollout-seed.js carriersOf, 2026-08-23', '.map(s => s.id).filter(id => globalThis.MC.mons[id]);', true],
+  ['5. test-rollout-seed.js carriersOf, 2026-08-23 — the bare globalThis. prefix',
+   '.map(s => s.id).filter(id => globalThis.MC.mons[id]);', true],
+  /* NOT CAUGHT HERE, ON PURPOSE, AND NAMED SO NOBODY MISTAKES SILENCE FOR COVERAGE. */
+  /* CAUGHT AS AN ACCESS, AND THAT IS NOT THE SAME AS CAUGHT. No static check can see that `k` holds
+   * 'venusaurmega' where the table says 'venusaur-mega' -- it is a run-time value. The pattern below
+   * would have flagged this LINE, and the 2026-07-30 bug was in a builder whose own output object it
+   * never looked at, so nothing flagged anything for weeks. The SEAL is what makes the wrongness
+   * itself visible, and tests/test-mc-seal.js executes this exact concatenation. */
+  ['0. the 2026-07-30 concatenation, 0 of 67 writes — the ACCESS is caught here, the WRONG SPELLING only by the SEAL',
+   "const k = base + 'mega'; return MC.mons[k];", true],
+  ['0b. the dot access live in test-tag-wire.js — caught by the SEAL, not by this file',
+   'if (MC.mons.mudsdale) run();', false],
   ['CORRECT: a literal index', "const r = MC.mons['rotom-wash'];", false],
   ['CORRECT: through the door', 'const r = mcKey.row(name, OPTS);', false],
   ['CORRECT: buildMon of a resolved key', 'const m = MEDI.buildMon(mcKey(name), {});', false],
+  ['CORRECT since buildMon became total: a dex id needs no normalising', 'const m = M.buildMon(sp.id, {});', false],
 ];
 const hits = l => DOOR.some(p => p.re.test(l));
 const wrongVerdict = HISTORY.filter(([, line, want]) => hits(line) !== want).map(([n]) => n);
 ok(wrongVerdict.length === 0,
-  `the doorway patterns still catch every historical instance and clear every correct line (${wrongVerdict.join('; ') || `${HISTORY.length} lines, all as expected`})`);
-
-const DOOR_BASELINE_FILE = D('data', 'mc-key-door-baseline.json');
-const doorBase = fs.existsSync(DOOR_BASELINE_FILE)
-  ? JSON.parse(fs.readFileSync(DOOR_BASELINE_FILE, 'utf8'))
-  : { allowed: {}, note: '' };
+  `the doorway patterns still catch every instance this file claims to catch, and clear every correct line (${wrongVerdict.join('; ') || `${HISTORY.length} lines, all as expected`})`);
 
 const doors = {};
 for (const dir of ['engine', 'build', 'tests']) {
@@ -309,43 +392,62 @@ for (const dir of ['engine', 'build', 'tests']) {
   for (const f of fs.readdirSync(D(dir))) {
     if (!/\.js$/.test(f)) continue;
     const rel = `${dir}/${f}`;
-    if (OWN.has(rel)) continue;
-    let n = 0;
-    fs.readFileSync(D(dir, f), 'utf8').split('\n').forEach(line => {
+    if (rel in HOLDERS) continue;
+    const lines = [];
+    fs.readFileSync(D(dir, f), 'utf8').split('\n').forEach((line, i) => {
       if (/^\s*(\*|\/\/|\/\*)/.test(line)) return;          // a comment describing the bug is not the bug
-      if (hits(line)) n++;
+      if (hits(line)) lines.push(i + 1);
     });
-    if (n) doors[rel] = n;
+    if (lines.length) doors[rel] = lines;
   }
 }
+const doorList = Object.entries(doors).map(([f, l]) => `${f}:${l.join(',')}`);
+ok(doorList.length === 0,
+  `NO file outside the named holders reaches a mon table except through mcKey (${doorList.join('  ') || 'zero, in engine/ build/ tests/'})`);
 
-if (process.argv.includes('--update-door')) {
-  fs.writeFileSync(DOOR_BASELINE_FILE, JSON.stringify({
-    note: 'Files reaching the mon table by a route other than engine/mc_key.js. Established 2026-08-23 '
-        + 'at the level then measured; new entries are a FAILURE and this list may only shrink. '
-        + 'See section 3 of tests/test-mc-key.js for what it can and cannot see.',
-    allowed: doors,
-  }, null, 2) + '\n');
-  console.log(`  re-baselined the DOORWAY: ${Object.keys(doors).length} file(s), `
-    + `${Object.values(doors).reduce((a, b) => a + b, 0)} site(s)`);
-  process.exit(0);
+console.log(`\n  holders, each with a written reason above — the whole of the exemption:`);
+for (const [f, why] of Object.entries(HOLDERS)) console.log(`    ${f}\n        ${why}`);
+
+/* ---- 4. THE SEAL IS INSTALLED WHEREVER THE TABLE IS (added 2026-08-23) -------------------------
+ *
+ * THIS IS THE ONLY CLAUSE HERE THAT GUARDS THE RUNTIME GUARANTEE, so read it before the rest.
+ *
+ * engine/mc_key.js seals `MC.mons` behind a Proxy that THROWS on a key the table does not have. That
+ * is what makes a new wrong spelling impossible rather than merely detected — but only in a process
+ * where mc_key.js was loaded. A guarantee that depends on load order is a guarantee that is sometimes
+ * absent, and "sometimes absent" is indistinguishable from "working" for exactly as long as it takes
+ * to matter. A Proxy cannot check whether it was installed; only a static clause can.
+ *
+ * So: every file that requires `data/engine-data.js` must also require `engine/mc_key.js` in the SAME
+ * file, or `engine/medicham2-browser.js`, which requires it. Direct, not transitive, deliberately —
+ * a transitive rule needs a module graph, the graph needs to guess at `D(...)` and `REL.require(...)`
+ * call shapes, and a rule that can be wrong about its own scope is worse than a blunt one that cannot.
+ * The cost is one require line per file, which is nothing.
+ *
+ * Zero from the day it was written: eight files were fixed in the same pass. */
+const LOADS_TABLE = /require\s*\(\s*[^)]*engine-data\.js/;
+const LOADS_TABLE_REL = /REL\.require\(\s*['"]data\/engine-data/;
+const LOADS_DOOR = [/require\s*\(\s*[^)]*mc_key\.js/, /REL\.require\(\s*['"]engine\/mc_key/,
+                    /require\s*\(\s*[^)]*medicham2-browser\.js/, /REL\.require\(\s*['"]engine\/medicham2/];
+const unsealed = [];
+for (const dir of ['engine', 'build', 'tests']) {
+  if (!fs.existsSync(D(dir))) continue;
+  for (const f of fs.readdirSync(D(dir))) {
+    if (!/\.js$/.test(f)) continue;
+    const src = fs.readFileSync(D(dir, f), 'utf8');
+    if (!LOADS_TABLE.test(src) && !LOADS_TABLE_REL.test(src)) continue;
+    if (LOADS_DOOR.some(re => re.test(src))) continue;
+    unsealed.push(`${dir}/${f}`);
+  }
 }
+ok(unsealed.length === 0,
+  `every file that LOADS the mon table also loads the door, so the seal is installed (${unsealed.join(', ') || 'no file loads it unsealed'})`);
 
-const doorNovel = Object.keys(doors).filter(f => !(f in (doorBase.allowed || {})));
-const doorGrew = Object.keys(doors).filter(f => (doorBase.allowed || {})[f] !== undefined && doors[f] > doorBase.allowed[f]);
-
-ok(doorNovel.length === 0,
-  `no NEW file reaches the mon table except through mcKey (${doorNovel.join(', ') || 'none'})`);
-ok(doorGrew.length === 0,
-  `no baselined file grew more doorways (${doorGrew.map(f => `${f}: ${doorBase.allowed[f]} -> ${doors[f]}`).join(', ') || 'none'})`);
-
-const doorFixed = Object.keys(doorBase.allowed || {}).filter(f => !(f in doors));
-if (doorFixed.length) {
-  console.log(`  (${doorFixed.length} file(s) now reach the table only through mcKey: `
-    + `${doorFixed.join(', ')} — re-baseline with --update-door)`);
-}
-console.log(`\n  doorways outside mcKey: ${Object.values(doors).reduce((a, b) => a + b, 0)} site(s) `
-  + `in ${Object.keys(doors).length} file(s) — pre-existing debt, ratcheted downward only`);
+/* AND THE SEAL REALLY IS ON, IN THIS PROCESS, RIGHT NOW. The clause above is about source text; this
+ * one is about the object. Both are needed: the first cannot see whether seal() actually ran, and the
+ * second cannot see the other 60 files. */
+ok(typeof mcKey.sealed === 'function' && mcKey.sealed(),
+  'and MC.mons in THIS process is actually sealed — see tests/test-mc-seal.js for what that buys');
 
 console.log(`\nMC KEY TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

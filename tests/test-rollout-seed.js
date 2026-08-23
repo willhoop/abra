@@ -75,7 +75,7 @@ const legalSpecies = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illeg
 /* A body that will not build is REPORTED rather than dropped in silence: a shrinking pool is how a
  * fixture file comes to test three species and still pass. */
 const UNBUILDABLE = [];
-const BUILDABLE = Object.keys(globalThis.MC.mons)
+const BUILDABLE = (mcKey.keys(NO_ROW) || [])
   .filter(id => legalSpecies(dex.species.get(id)))
   .filter(id => {
     try { return !!MEDI.buildMon(id); }

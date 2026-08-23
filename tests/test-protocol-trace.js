@@ -780,7 +780,7 @@ if (!process.env.SHOWDOWN_PATH) {
      * 0-EV neutral; unaligned, the two engines disagree about speed order and about who survives, and
      * both read as rule divergences. Same fix tests/test-game-diff.js makes. */
     for (const side of [b.p1, b.p2]) for (const p of side.pokemon) {
-      const mm = M.buildMon(norm(p.species.id), {}); if (!mm) continue;
+      const mm = M.buildMon(p.species.id, {}); if (!mm) continue;
       p.storedStats.atk = mm.st.at; p.storedStats.def = mm.st.df; p.storedStats.spa = mm.st.sa;
       p.storedStats.spd = mm.st.sd; p.storedStats.spe = mm.st.sp;
       p.baseStoredStats.atk = mm.st.at; p.baseStoredStats.def = mm.st.df; p.baseStoredStats.spa = mm.st.sa;

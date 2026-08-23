@@ -21,6 +21,35 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE SPECIES TABLE IS SEALED, THE LOOKUP IS TOTAL, AND THE 96-SITE DEBT FILE IS DELETED. 2026-08-23 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-23-one-door-species-keys.md`](_reports/2026-08-23-one-door-species-keys.md).
+Will: *"i want no more problems not finding certain names cause of spelling differences make a
+bulletproof solution and close it out."*
+
+Turning a species name into an `MC.mons` key had broken four times, twice after being gated, and every
+fix was a LIST OF WRONG FORMS. The common property is not the spelling, it is the SILENCE — all four
+returned `undefined` and nothing threw. So `engine/mc_key.js` now installs a **Proxy** on `MC.mons`
+that THROWS `LookupMiss` on a key the table does not have, naming the key the caller meant; and
+`engine/medicham2-browser.js` `buildMon` resolves through the table's own flattened index, so a name
+that IS in the table is found however it is spelled.
+
+| what | result |
+|---|---|
+| new instrument | `tests/test-mc-seal.js` — **33 passed, 0 failed** |
+| `tests/test-mc-key.js` | **21 passed, 0 failed**; four sections now, section 4 asserts the seal is INSTALLED wherever the table is loaded |
+| `data/mc-key-door-baseline.json` (96 sites, 37 files) | **DELETED.** ~62 sites routed, 5 cleared as regex over-match, the rest are 10 named HOLDERS with a written reason inside the gate |
+| `data/mc-key-baseline.json` | 5 files -> **`{}`** |
+| shapes that now throw, executed not matched | `globalThis.` prefix, local alias, alias via a function return, run-time concatenation, destructure, template string, `Reflect.get` — **7 of 7** |
+| the 2026-08-23 bug, re-measured | 347 table-backed legal species through a FLATTENED name, **0 dropped** (was 138 of 345) |
+| **live bug found by the routing** | `engine/position_features.js` priced **six megas as their BASE forme** — `charizard-mega-x/y`, `raichu-mega-x/y`, `floette-mega`, `meowstic-m-mega`. Charizard-Mega-Y SpA **232 was being read as 196** |
+| planted breaks | 5 shapes, byte-restored with sha1 verified. 4 RED as intended. The 5th (a string-LITERAL wrong spelling) is GREEN statically **by design** and the SEAL threw on it — that is the demonstration that matters |
+| cost | **+68 ns per table read**, +345 ns per `buildMon`, and **within noise on a real rollout** (2 processes, one variable, `sealed=` printed per arm) |
+| census / damage differential | **651/651/0 unchanged; 0 of 6000 unchanged**, all 16 corners |
+| bulletproof? | **No — much better.** Node only (the ~20 raw sites in `web/` belong to WEB and would break the site); Python is outside it; and the same class on a per-mon FIELD (`position_features.js:249`) is a different object the seal does not cover |
+
+---
+
 ## THE EFFECTIVE-IDENTITY GATE IS A RUNTIME TRIPWIRE, THE COUNT RATCHET IS RETIRED, AND THE FIRST RUN FOUND A DEFECT THE COUNT WAS GREEN ON. 2026-08-23 (MEASURE).
 
 Full account: [`docs/_reports/2026-08-23-identity-gate-permanent.md`](_reports/2026-08-23-identity-gate-permanent.md).

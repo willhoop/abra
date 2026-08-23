@@ -31,6 +31,7 @@ require(D('engine', 'showdown_path.js'));
 require(D('data', 'engine-data.js'));
 const CS = require(D('engine', 'champions_sim.js'));
 const B = require(D('engine', 'board.js'));
+const { mcKey } = require(D('engine', 'mc_key.js'));   // the ONE species -> MC.mons resolver
 const MAG = require(D('engine', 'magnemite.js'));
 /* `data/tags.json` is DELIBERATELY not read here. Every number in this artifact is a statement about
  * the FORMAT and about this repository's own derived tables; pulling in the corpus would make the
@@ -129,7 +130,7 @@ function auditDurations() {
  * board.js, and an auditor that sampled through the code it audits could only ever agree with it. */
 function auditBasePower() {
   const bd = new B.Board();
-  const pool = Object.keys(globalThis.MC.mons).slice(0, 4);
+  const pool = (mcKey.keys({ mayMiss: 'a smoke pool; an empty table is reported by the caller' }) || []).slice(0, 4);
   bd.setParty('p1', pool.slice(0, 2)); bd.setParty('p2', pool.slice(2, 4));
   bd.switchIn('p1', 'a', pool[0]); bd.switchIn('p2', 'a', pool[2]);
   const u = bd.slot('p1', 'a'), t = bd.slot('p2', 'a');

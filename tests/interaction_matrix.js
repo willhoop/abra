@@ -274,7 +274,7 @@ const LINKAGE = Object.assign({}, tags.linkage, SUPP.keys);
 
 /* ---- BODIES, CACHED ---------------------------------------------------------------------------- */
 const SPECIES = dex.species.all().filter(s => s.exists && !s.isNonstandard && !s.forme
-  && !!M.buildMon(norm(s.id), {}));                      /* must exist in BOTH engines' tables */
+  && !!M.buildMon(s.id, {}));                      /* must exist in BOTH engines' tables */
 const learnsetCache = new Map();
 function learns(sp, moveId) {
   let ls = learnsetCache.get(sp.id);

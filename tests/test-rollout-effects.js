@@ -20,6 +20,10 @@
 'use strict';
 const path = require('path');
 require(path.join(__dirname, '..', 'data', 'engine-data.js'));      // sets globalThis.MC
+/* THE ONE DOOR into the species table, engine/mc_key.js. Requiring it also installs the SEAL, so
+ * a raw miss anywhere in this process throws instead of quietly reading undefined. */
+const { mcKey } = require(path.join(__dirname, '..', 'engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const E = require(path.join(__dirname, '..', 'engine', 'medicham2-browser.js'));
 
 let P = 0, F = 0;
@@ -118,8 +122,8 @@ console.log('== 6. end to end: no illegal status appears in real battles ==');
  * the only end-to-end path and would catch a future regression in the wiring, but it should not be
  * cited as evidence that the old engine was broken - sections 1-5 are that evidence. */
 const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
-const pool = Object.keys(MC.mons);
-const typeOf = n => (MC.mons[n] || {}).t || [];
+const pool = mcKey.keys(MONMISS) || [];
+const typeOf = n => (mcKey.row(n, MONMISS) || {}).t || [];
 const fires = pool.filter(n => typeOf(n).includes('Fire')).slice(0, 4);
 const elecs = pool.filter(n => typeOf(n).includes('Electric')).slice(0, 4);
 ok(fires.length > 0 && elecs.length > 0, `found test subjects: ${fires.length} Fire, ${elecs.length} Electric`);

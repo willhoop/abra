@@ -42,6 +42,7 @@ const path = require('path');
 const B = require('./board.js');
 const M = require('./medicham2-browser.js');
 const TAGS = require('./tags.js');
+const { mcKey } = require('./mc_key.js');   // the ONE species -> MC.mons resolver
 
 const POSITION_FEATURES = [
   /* ---- MATERIAL. Kept because it genuinely carries most of the signal, and kept SEPARATE so the
@@ -96,8 +97,16 @@ function monFor(board, side, species, hpFrac, opts) {
    * norm('steelix-mega') is 'steelixmega', which is not a key. Every FORME therefore failed to build
    * and fell through to its base form: a Mega Steelix was priced as a Steelix. Found because a pin
    * check reported no refuge behind a Pokemon that plainly survives the hit. */
+  /* THE `B.norm(name)` RUNG IS GONE, 2026-08-23, and its absence is the fix rather than a tidy-up.
+   * It existed because buildMon matched an EXACT table key, so a hyphenated forme had to be tried a
+   * second way -- and B.norm STRIPS the hyphen, so the second attempt was the 2026-08-01 bug spelled
+   * out: it could only ever succeed for a name that had no punctuation to begin with. buildMon now
+   * resolves through the table's own flattened index (engine/medicham2-browser.js monKey), so the
+   * first rung answers every spelling and the second could only ever have found the same row or
+   * nothing. The BASE-SPECIES rung stays: it is a different question -- "price this as its base if
+   * the forme is not in the table" -- and it is a real fallback, not a spelling retry. */
   const build = (name) => {
-    try { return M.buildMon(name) || M.buildMon(B.norm(name)) || M.buildMon(B.baseSpecies(name)); }
+    try { return M.buildMon(name) || M.buildMon(B.baseSpecies(name)); }
     catch (e) { return null; }
   };
   const e = (board.sheet && board.sheet[side] && board.sheet[side][B.baseSpecies(species)]) || {};
@@ -124,8 +133,12 @@ function monFor(board, side, species, hpFrac, opts) {
     try { mega = B.megaFormeOf(species, declaredItem, dexFor()); } catch (e2) { mega = null; }
     if (mega) {
       const hyphen = B.baseSpecies(species) + '-mega';
-      if (MC.mons[hyphen]) name = hyphen;
-      else if (MC.mons[mega]) name = mega;
+      /* MEMBERSHIP, ASKED OF THE ONE RESOLVER. `MC.mons[hyphen]` is the exact line the seal now
+       * throws on, and rightly: `mega` here comes from B.megaFormeOf and is a DEX id, which is flat,
+       * while the table keys formes with a hyphen -- so the second branch was asking the raw table a
+       * question in the wrong spelling and could only ever answer no. mcKey.has resolves first. */
+      if (mcKey.has(hyphen)) name = hyphen;
+      else if (mcKey.has(mega)) name = mcKey(mega);
     }
   }
   const m = build(name);

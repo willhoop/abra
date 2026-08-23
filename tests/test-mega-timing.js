@@ -24,6 +24,10 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Requiring it also installs the SEAL, so
+ * a raw miss anywhere in this process throws instead of quietly reading undefined. */
+const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const B = require(path.join(ROOT, 'engine', 'board.js'));
 const M = require(path.join(ROOT, 'engine', 'medicham2-browser.js'));
 const P = require(path.join(ROOT, 'engine', 'position_features.js'));
@@ -39,7 +43,7 @@ const ok = (cond, label, detail) => {
 console.log('MEGA EVOLUTION — does the stone reach the stats, and at the right moment?\n');
 
 /* ---- the cast, derived ----------------------------------------------------------------------- */
-const megaKeys = Object.keys(MC.mons).filter(n => n.endsWith('-mega'));
+const megaKeys = (mcKey.keys(MONMISS) || []).filter(n => n.endsWith('-mega'));
 ok(megaKeys.length > 0, 'the table carries mega formes', `${megaKeys.length} of them`);
 
 const stoneFor = (base) => {
@@ -77,7 +81,7 @@ console.log('\n== 2. arriving vs retaliating ==');
    * defensive check, offence for the offensive one. */
   const differs = megaKeys.filter(m => {
     const b = m.replace('-mega', '');
-    const B1 = MC.mons[b], M1 = MC.mons[m];
+    const B1 = mcKey.row(b, MONMISS), M1 = mcKey.row(m, MONMISS);
     if (!B1 || !M1) return false;
     return (M1.st.df + M1.st.sd) !== (B1.st.df + B1.st.sd) || M1.st.at !== B1.st.at || M1.st.sa !== B1.st.sa;
   });
@@ -85,16 +89,17 @@ console.log('\n== 2. arriving vs retaliating ==');
 
   const base = differs[0].replace('-mega', '');
   const stone = stoneFor(base);
-  const bulkBase = MC.mons[base].st.df + MC.mons[base].st.sd;
-  const bulkMega = MC.mons[differs[0]].st.df + MC.mons[differs[0]].st.sd;
+  const ROWB = mcKey.row(base, MONMISS), ROWM = mcKey.row(differs[0], MONMISS);
+  const bulkBase = ROWB.st.df + ROWB.st.sd;
+  const bulkMega = ROWM.st.df + ROWM.st.sd;
   console.log(`        ${base}: base bulk ${bulkBase} -> mega ${bulkMega}, ` +
-              `atk ${MC.mons[base].st.at} -> ${MC.mons[differs[0]].st.at}, ` +
-              `spa ${MC.mons[base].st.sa} -> ${MC.mons[differs[0]].st.sa}`);
+              `atk ${ROWB.st.at} -> ${ROWM.st.at}, ` +
+              `spa ${ROWB.st.sa} -> ${ROWM.st.sa}`);
 
   /* A position where `base` sits on the BENCH holding its stone, so both reads are exercised:
    * benchAnswers asks whether it can remove something (mega), the pin refuge asks whether it
    * survives coming in (base). */
-  const foe = Object.keys(MC.mons).find(n => n !== base && !n.endsWith('-mega'));
+  const foe = (mcKey.keys(MONMISS) || []).find(n => n !== base && !n.endsWith('-mega'));
   const hitters = Object.keys(MC.moves).filter(id => MC.moves[id] && MC.moves[id].bp >= 110);
   const mk = (withStone, foeHp) => {
     const b = new B.Board(); b.turn = 6;
@@ -149,7 +154,7 @@ console.log('\n== 2. arriving vs retaliating ==');
 console.log('\n== 3. the evolved ability equals the dex, over every mega in the format ==');
 {
   const N = require(path.join(ROOT, 'engine', 'names.js'));
-  const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+  /* already required at the top of this file; the door is one module, not one per scope */
   const id = N.id;
   const table = N.megaTable();
   let checked = 0, keptBase = 0;

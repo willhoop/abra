@@ -5500,15 +5500,70 @@ function spreadL50(bs,sp,nature){ return l50(bs,sp||null,nature); }
  * BASELINED as an exception -- it is a browser file and cannot `require('./mc_key.js')` -- but an
  * exception is not a licence to grow, and WIRE 132 needed four more lookups. So every computed index
  * in this file now goes through this one line, which is what the exception was for. */
-function monRow(key){ return (key&&MC.mons[key])||null; }
-function buildMon(name,ov){ const m=monRow(name); if(!m)return null;
+/* THE DOORWAY IS NOW TOTAL, 2026-08-23. It used to be `(key&&MC.mons[key])||null` -- an EXACT key
+ * match, so `buildMon('rotomwash')`, `buildMon('Rotom-Wash')` and `buildMon('venusaurmega')` all
+ * returned null while `buildMon('rotom-wash')` worked. That is the 2026-08-23 defect verbatim:
+ * tests/test-engine-diff.js flattened the name before calling and DROPPED 138 OF 345 SPECIES, so the
+ * damage differential had never once compared any of the 76 megas, and nothing said a word.
+ *
+ * It now resolves through the TABLE'S OWN KEYS, flattened, so spelling stops deciding anything. The
+ * index is built here rather than borrowed from engine/mc_key.js because this file runs in a browser
+ * and cannot `require` -- the same reason it is baselined in tests/test-mc-key.js. It is the identical
+ * RULE (first key wins over the punctuation-stripped form) and tests/test-engine-consistency.js is
+ * where the two are held together; a second copy of the rule is the breach CLAUDE.md names, so if a
+ * third appears, delete it rather than this one.
+ *
+ * STRICTLY WIDENING: every name that resolved before resolves to the same key now, because an exact
+ * key flattens to itself and first-key-wins keeps it. What changes is only that names which used to
+ * return null now return their row -- which is the bug, not a behaviour anybody depended on. */
+let _MONIDX=null,_MONIDXFROM=null;
+function monFlat(s){ return String(s==null?'':s).toLowerCase().replace(/[^a-z0-9]/g,''); }
+function monIndex(){
+  const T=(typeof MC!=='undefined')&&MC&&MC.mons;
+  if(!T)return null;
+  if(_MONIDX&&_MONIDXFROM===T)return _MONIDX;
+  const m=new Map();
+  for(const k of Object.keys(T)){ const f=monFlat(k); if(!m.has(f))m.set(f,k); }
+  _MONIDXFROM=T; _MONIDX=m; return m;
+}
+/* The species name a caller wrote -> the key this table actually uses, or null if the table has
+ * never heard of it. NULL IS STILL A LEGITIMATE ANSWER here and deliberately so: MC.mons does not
+ * cover the whole format, so "not in the damage table" is a fact a caller has to be able to receive.
+ * What is no longer possible is null because of how the name was PUNCTUATED. */
+/* THE ONE PIECE THIS FILE CANNOT DERIVE ALONE IS THE COSMETIC FORME, so it asks the file that can.
+ * Vivillon-Pokeball, Maushold-Four and Sinistcha-Masterpiece are on real open team sheets, are NOT
+ * in this table, and are the same body as their base for every purpose the damage formula has --
+ * identical base stats and identical types, which is a DEX fact and not a string fact, so no amount
+ * of flattening finds it. engine/mc_key.js already derives it from the dex; asking it is the single-
+ * accessor rule working, and re-deriving it here would be the two-files-one-fact breach. */
+const MCK=(function(){
+  try { if (typeof require==='function') return require('./mc_key.js'); } catch(e){}
+  return (root&&root.MCKEY)||null;
+})();
+function monKey(name){
+  const idx=monIndex(); if(!idx)return null;
+  const d=idx.get(monFlat(name)); if(d)return d;
+  if(MCK&&MCK.mcKey){
+    const k=MCK.mcKey(name,{mayMiss:'buildMon resolves names the damage table may not carry'});
+    if(k){ const viaCosmetic=idx.get(monFlat(k)); if(viaCosmetic)return viaCosmetic; }
+  }
+  return null;
+}
+function monRow(key){ const k=monKey(key); return k?MC.mons[k]:null; }
+function buildMon(name,ov){ const key=monKey(name); if(!key)return null; const m=MC.mons[key];
+  /* THE BODY CARRIES THE TABLE'S SPELLING, NOT THE CALLER'S. Added with totality above, because
+   * without it a caller passing 'rotomwash' would build a body whose `name` and `_ident` are
+   * 'rotomwash' -- and identity comparisons elsewhere would then fail on exactly the names this
+   * change was made to rescue, one layer down. `ov` is still read under the caller's own spelling
+   * FIRST, since the override map is the caller's object and keyed however the caller keyed it. */
+  const _callerName=name; name=key;
   /* AN EXPLICIT EMPTY STRING MEANS NO ITEM, and `||` could not express that: buildMon(n,{n:''})
    * fell through to the table item, so an item-less mon was unbuildable. Every with-item/without-item
    * ratio was therefore item vs THE TABLE'S ITEM, not item vs nothing -- it only looked right while
    * the table happened to store something inert. The moment real sheets put Life Orb on Garchomp,
    * tests/test-tag-wire.js measured Life Orb against Life Orb and got x1.000. Caught 2026-07-31 when
    * the sets were rebuilt from open sheets. */
-  const item=(ov&&ov[name]!=null)?ov[name]:(m.item||'');
+  const item=(ov&&ov[_callerName]!=null)?ov[_callerName]:((ov&&ov[name]!=null)?ov[name]:(m.item||''));
   const mf=megaForme(item);
   const types = mf&&mf.t&&mf.t.length ? mf.t.slice() : m.t.slice();
   /* Swap ONLY the base stats, keeping whatever SP investment this dataset already baked into m.st.
@@ -5609,10 +5664,11 @@ function parsePaste(text){
 function pasteKey(name){
   let n=String(name||'').toLowerCase().trim().replace(/[’'.]/g,'').replace(/\s+/g,'-');
   n=n.replace(/-mega(-[xy])?$/,'');
-  if(monRow(n))return n;
-  const flat=n.replace(/-/g,'');
-  for(const k in MC.mons)if(k.replace(/-/g,'')===flat)return k;
-  return null;
+  /* The private `for(const k in MC.mons)` rescan that used to sit here was the SECOND doorway into
+   * the table from this file. monKey() does exactly the same thing -- flatten, first key wins -- so
+   * the rescan was a duplicate of a rule that now lives in one place, and it is deleted rather than
+   * baselined. */
+  return monKey(n);
 }
 function buildMonFromSet(set){
   let key=pasteKey(set.species);

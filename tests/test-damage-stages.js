@@ -153,8 +153,8 @@ function showdownDamage(o) {
 
 /* OURS — all sixteen rolls in one call, through dmgRange's `hit.rolls` out-parameter. */
 function medichamRolls(o) {
-  const a = MEDI.buildMon(o.att.toLowerCase().replace(/[^a-z0-9]/g, ''), {});
-  const d = MEDI.buildMon(o.def.toLowerCase().replace(/[^a-z0-9]/g, ''), {});
+  const a = MEDI.buildMon(o.att, {});
+  const d = MEDI.buildMon(o.def, {});
   if (!a || !d) throw new Error('buildMon failed for ' + o.att + ' / ' + o.def);
   a.st = flatStats(o.att); d.st = Object.assign({}, flatStats(o.def));
   d.st.hp = d.st.hp * 40;

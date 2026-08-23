@@ -11,6 +11,11 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Enumerating and indexing MC.mons by
+ * hand is what made 101 of 308 keys unreachable in four files at once; requiring this file also
+ * installs the SEAL, so a raw miss anywhere in this process throws instead of reading undefined. */
+const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const M = require(path.join(ROOT, 'engine', 'medicham2-browser.js'));
 const X = require(path.join(ROOT, 'engine', 'exposure.js'));
 const TAGS = require(path.join(ROOT, 'engine', 'tags.js'));
@@ -102,7 +107,7 @@ console.log('EXPOSURE — the price of the click, reconstructed by hand\n');
   /* a foe whose speed sits between att's half and full speed — the flip case, found not assumed */
   const half = M.effSpeed(Object.assign({}, att, { status: 'par' }), F, 'A');
   const full = M.effSpeed(att, F, 'A');
-  const between = Object.keys(MC.mons).map(n => mon(n)).find(m0 => {
+  const between = (mcKey.keys(MONMISS) || []).map(n => mon(n)).find(m0 => {
     const s = M.effSpeed(m0, F, 'B'); return s > half && s < full;
   });
   ok(!!between, `found a foe between half and full speed (${between && between.name}) — the flip case exists`);
@@ -111,7 +116,7 @@ console.log('EXPOSURE — the price of the click, reconstructed by hand\n');
     const p = TAGS.param('ability', 'static', 'punishesAttacker').inflicts[0].chance;
     ok(x && Math.abs(x.speedFlipsFrac - p * 1) < 1e-9,
       `losing the order to it prices at chance x 1 flip (${x && x.speedFlipsFrac.toFixed(3)})`);
-    const slower = Object.keys(MC.mons).map(n => mon(n)).find(m0 => M.effSpeed(m0, F, 'B') < half);
+    const slower = (mcKey.keys(MONMISS) || []).map(n => mon(n)).find(m0 => M.effSpeed(m0, F, 'B') < half);
     const x2 = X.punishExposure(att, tgt, 'ironhead', { foes: [slower], field: F });
     ok(x2 && x2.speedFlipsFrac === 0,
       'a foe you outspeed even at half speed prices the half at zero — it flips nothing');

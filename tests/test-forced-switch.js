@@ -26,6 +26,11 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Enumerating and indexing MC.mons by
+ * hand is what made 101 of 308 keys unreachable in four files at once; requiring this file also
+ * installs the SEAL, so a raw miss anywhere in this process throws instead of reading undefined. */
+const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const B = require(path.join(ROOT, 'engine', 'board.js'));
 const CS = require(path.join(ROOT, 'engine', 'champions_sim.js'));
 const { makeScoringPlayer, loadWeights } = require(path.join(ROOT, 'engine', 'magnemite.js'));
@@ -39,14 +44,14 @@ const ok = (cond, label, detail) => {
 };
 
 /* ---- DERIVE THE CAST FROM THE TABLE, do not name it ---------------------------------------- */
-const names = Object.keys(MC.mons);
-const bulkOf = n => { const s = MC.mons[n].st; return s.hp * (s.df + s.sd); };
+const names = mcKey.keys(MONMISS) || [];
+const bulkOf = n => { const s = mcKey.row(n, MONMISS).st; return s.hp * (s.df + s.sd); };
 const sorted = names.slice().sort((a, b) => bulkOf(b) - bulkOf(a));
 const BULKY = sorted[0], FRAIL = sorted[sorted.length - 1];
 /* The attacker: whoever carries the single biggest base power, so the incoming hit is real. */
 let ATT = null, attBP = -1;
 for (const n of names) {
-  for (const id of (MC.mons[n].mv || [])) {
+  for (const id of (mcKey.row(n, MONMISS).mv || [])) {
     const mv = MC.moves[id];
     if (mv && mv.bp > attBP) { attBP = mv.bp; ATT = n; }
   }
@@ -132,7 +137,7 @@ ok(junk.stats.forcedFellBack === 1, 'an attempt that could not decide IS counted
  * So: find a board where the forced and voluntary answers genuinely DIFFER, then assert the picker
  * returns the forced one. Searched, not named, and it fails loudly if no such board exists -- if
  * the flag can never change an answer then it is not worth passing and that is worth knowing. */
-const speOf = n => (MC.mons[n].st || {}).sp || 0;
+const speOf = n => (mcKey.row(n, MONMISS).st || {}).sp || 0;
 const dotW = x => { let s = 0; for (let k = 0; k < w.length; k++) s += w[k] * x[k]; return s; };
 function boardFor(foe, a2, b2) {
   const bd = new B.Board();

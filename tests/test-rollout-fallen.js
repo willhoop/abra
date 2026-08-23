@@ -44,6 +44,10 @@
 const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('data', 'engine-data.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Requiring it also installs the SEAL, so
+ * a raw miss anywhere in this process throws instead of quietly reading undefined. */
+const { mcKey } = require(D('engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const MEDI = require(D('engine', 'medicham2-browser.js'));
 const B = require(D('engine', 'board.js'));
 const RL = require(D('engine', 'rollout_leaf.js'));
@@ -76,7 +80,7 @@ const bpFor = k => PF.base + PF.perFallen * k;
  * Species are taken from the table rather than typed, exactly as tests/test-rollout-switch.js does:
  * a name that does not resolve builds nothing and this whole file would pass having played no game.
  * ------------------------------------------------------------------------------------------ */
-const POOL = Object.keys(globalThis.MC.mons).slice(0, 12);
+const POOL = (mcKey.keys(MONMISS) || []).slice(0, 12);
 const MINE = POOL.slice(0, 6), THEIRS = POOL.slice(6, 12);
 
 function makeBoard(nDead) {

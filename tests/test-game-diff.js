@@ -256,7 +256,7 @@ function sdTeam(sets) {
 }
 function mediTeam(sets) {
   return sets.map(s => {
-    const b = M.buildMon(norm(s.species).replace(/\s/g, ''), {});
+    const b = M.buildMon(s.species, {});
     if (!b) throw new Error('no MC row for ' + s.species);
     b.moves = s.moves.map(norm);
     b.item = norm(s.item);
@@ -626,7 +626,7 @@ function findSpeciesWith(abilityId) {
   for (const sp of dex.species.all()) {
     if (!sp.exists || sp.isNonstandard || sp.forme) continue;
     if (!Object.values(sp.abilities).some(a => norm(a) === abilityId)) continue;
-    if (!M.buildMon(norm(sp.id), {})) continue;      // must exist in MC.mons too
+    if (!M.buildMon(sp.id, {})) continue;      // must exist in MC.mons too
     return sp.name;
   }
   return null;
@@ -635,7 +635,7 @@ function findSpeciesWith(abilityId) {
 function findUserOf(moveId) {
   for (const sp of dex.species.all()) {
     if (!sp.exists || sp.isNonstandard || sp.forme) continue;
-    if (!M.buildMon(norm(sp.id), {})) continue;
+    if (!M.buildMon(sp.id, {})) continue;
     const ls = dex.species.getLearnsetData(sp.id);
     if (ls && ls.learnset && ls.learnset[moveId]) return sp.name;
   }

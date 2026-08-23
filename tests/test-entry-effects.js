@@ -22,6 +22,11 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Enumerating and indexing MC.mons by
+ * hand is what made 101 of 308 keys unreachable in four files at once; requiring this file also
+ * installs the SEAL, so a raw miss anywhere in this process throws instead of reading undefined. */
+const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const B = require(path.join(ROOT, 'engine', 'board.js'));
 const CS = require(path.join(ROOT, 'engine', 'champions_sim.js'));
 const { Dex } = CS.sim();
@@ -122,14 +127,14 @@ function mkBoard(foeSpecies, foeAbility, benchSpecies, benchAbility) {
   b.sides.p2.active = {
     a: { species: foeSpecies, hp: 1, boosts: {}, status: '', fainted: false,
          nature: 'Serious', item: '', ability: foeAbility,
-         moves: ((MC.mons[foeSpecies] || {}).mv || []).slice(0, 4) },
+         moves: ((mcKey.row(foeSpecies, MONMISS) || {}).mv || []).slice(0, 4) },
   };
   b.sides.p1.active = {};
   b.party.p1 = [benchSpecies];
   b.party.p2 = [foeSpecies];
   b.setSheet('p1', benchSpecies, {
     nature: 'Serious', item: '', ability: benchAbility,
-    moves: ((MC.mons[benchSpecies] || {}).mv || []).slice(0, 4),
+    moves: ((mcKey.row(benchSpecies, MONMISS) || {}).mv || []).slice(0, 4),
   });
   return b;
 }
@@ -137,10 +142,10 @@ const featOf = (board, sp) =>
   B.featuresFor({ raw: null, move: null, targetMon: null, switchTo: sp, forced: false },
     null, board, 'p1', dex, B.PRIOR_FLOOR);
 
-const names = Object.keys(MC.mons);
+const names = mcKey.keys(MONMISS) || [];
 /* A physical attacker is required for an Attack change to be visible at all. */
 const physical = names.filter(n => {
-  const m = MC.mons[n] || {};
+  const m = mcKey.row(n, MONMISS) || {};
   return (m.st || {}).at >= 100 && ((m.mv || []).some(id => (MC.moves[id] || {}).c === 'P'));
 });
 

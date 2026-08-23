@@ -15,15 +15,15 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-encore-fail-silent.js`, `tests/probe_drag_body.js`, `tests/probe_lifeorb_toll.js`,
 `tests/test-resolution-order.js`, `tests/probe_selfdestruct_winner.js`, `engine/switchin_order.js`,
 `data/switchin-order.json`, `tests/test-immunity-gate.js`, `tests/test-tag-params-derived.js`,
-`tests/test-roster-arm-pin.js`
+`tests/test-roster-arm-pin.js`, `engine/mc_key.js`, `tests/test-mc-key.js`, `tests/test-mc-seal.js`
 
-**Nineteen instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
+**Twenty instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
 "thirteen" until `test-bracket-regain.js` on 2026-08-21, "fourteen" until
 `test-encore-fail-silent.js` on 2026-08-22, "fifteen" until `test-immunity-gate.js` and
 `test-tag-params-derived.js`, "seventeen" until `test-resolution-order.js` and "eighteen" until
-`test-roster-arm-pin.js`, all on
-2026-08-22, and a number typed in prose beside a table is exactly what
+`test-roster-arm-pin.js`, both on 2026-08-22, and "nineteen" until `test-mc-seal.js` on 2026-08-23.
+A number typed in prose beside a table is exactly what
 CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
@@ -46,6 +46,7 @@ CLAUDE.md records going stale three times over.)*
 | `test-nature-differential.js` | is the two engines' Pokemon the SAME Pokemon — chart, arithmetic, the sheet's declared nature reaching both sides, and the line surviving a mega mid-turn | whether either engine plays the game right; it compares BODIES, not turns. The SPREADS, permanently — an open team sheet does not show them |
 | `test-immunity-gate.js` | does `data/tags.json` carry the move-specific immunity, and does its derived CONDITION predict the authority — membership asserted as an EQUALITY both ways, every row required readable, twelve staged arms in the official simulator with the gate closed AND open, and a `--red` arm that inverts every condition | whether MEDICHAM honours the tag: it loads no part of the simulator and compares an ARTIFACT against the AUTHORITY. And any immunity that is not `onTryImmunity` — type immunity, Prankster and the powder rule live in other arms of the same step and are out of scope by construction |
 | `test-tag-params-derived.js` | is a tag's parameter a NUMBER a consumer can use or a sentence — Life Orb's recoil predicted from `cost.divisor` and read off the battle, a spread drain's per-target schedule proved by the interleaving in the stream AND by a searched-for turn where the merged model is 1 HP wrong, and the `onDragOut` set asserted equal both ways | anything whose param it does not name; it is three blocks, not a sweep. The prose-quantity SWEEP is a separate scan and its four remaining hits are listed below, unfixed |
+| `test-mc-seal.js` | can a species name be LOST or MISREAD because of how it was spelled — `MC.mons` is a Proxy that throws on a key it does not have, `buildMon` resolves any spelling, seven evasion shapes executed rather than pattern-matched, all five historical instances replayed as live code | anything outside `MC.mons`: it is one table, not a type system. The browser (node only by default, and it says so), Python, a species key carried through JSON and compared somewhere else, and the SAME class of bug on a per-mon FIELD rather than a table key |
 | `test-resolution-order.js` | does an event happen WHERE the authority puts it — four orderings, twelve staged arms judged by two protocol streams with no typed expectation, each arm played twice (clean, then under a NAMED surgical revert of exactly one fix), five reds that must part under their own revert and six controls that must NOT, plus seven engine counters at exact equality as per-arm deltas | anything whose consequence the reducer normalises away, and any ordering nobody staged: it is twelve boards, not a sweep. The multi-hit LOOP, by construction — the authority wraps the whole step list once per hit and this engine wraps it once per move, which is staged as a declared KNOWN-OPEN arm and never as a pass |
 
 **Its one number:** mechanics live. **It must never go down.**
@@ -57,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  651/651 probed mechanics live, 0 missing   (census 2026-08-23 09:03)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-23 06:53)
+  651/651 probed mechanics live, 0 missing   (census 2026-08-23 15:40)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-23 15:44)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -70,15 +71,89 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 100e7ef5b981 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is f3786917a675 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 09:22_
+_stamped 2026-08-23 16:01_
 
 <!-- /GENERATED -->
+
+## THE SPECIES TABLE IS SEALED RATHER THAN WATCHED, AND ROUTING THE 96 SITES FOUND SIX MEGAS PRICED AS THEIR BASE. 2026-08-23.
+
+Full account: [`docs/_reports/2026-08-23-one-door-species-keys.md`](_reports/2026-08-23-one-door-species-keys.md).
+Will: *"i want no more problems not finding certain names cause of spelling differences make a
+bulletproof solution and close it out."*
+
+**THE FOUR INCIDENTS HAVE NOTHING TO DO WITH SPELLING. THEY ARE ALL THE SAME SILENCE.** A builder
+keying `venusaurmega` against an artifact keying `venusaur-mega` (0 of 67 writes); `MC.mons[norm(x)]`
+in four files (101 of 308 keys); `buildMon(s.toLowerCase())` in `tests/test-engine-diff.js` (138 of 345
+species, and the damage differential had never compared any of the 76 megas); a bare `globalThis.`
+prefix in eight files. Every one returned `undefined` or `null`, which reads as *"the engine has never
+seen this Pokemon"* — a real and common condition — so every caller carried on. **Two of the four got
+through a static gate that already existed**, and that is not a defect in its regexes: a list of wrong
+forms cannot catch a form nobody thought of.
+
+So the guarantee moved off the text and onto the object.
+
+- **`MC.mons` is a `Proxy`.** Reading a key it does not have THROWS `LookupMiss`, and the message names
+  the key the caller almost certainly meant. There is no prefix, alias, template string, concatenation,
+  destructure or `Reflect.get` that avoids it, because it traps the property access.
+  `tests/test-mc-seal.js` **executes** seven such shapes rather than matching them as text; all seven throw.
+- **`buildMon` is TOTAL.** It resolves through the table's own flattened index, so `Rotom-Wash`,
+  `rotom-wash`, `Rotom Wash` and `rotomwash` build the same body. **347 table-backed legal species
+  survive a fully flattened name, 0 dropped** — that sweep was 138 of 345 dropped the day before.
+- **`tests/test-mc-key.js` gained a fourth, POSITIVE clause**: every file that loads
+  `data/engine-data.js` must load `engine/mc_key.js` in the same file, because a Proxy cannot check
+  whether it was installed. Eight files were fixed; the clause reads zero.
+
+**`data/mc-key-door-baseline.json` — 96 doorways in 37 files — IS DELETED.** ~62 sites routed through
+the door, 5 cleared because the regex was over-matching a shape that totality made correct
+(`buildMon(sp.id)`), and the remainder are **10 named HOLDERS with a written reason inside the gate**:
+three that ARE the door or its gates, the browser twin resolver, the spelling AUDITOR, and five
+BUILDERS that parse `engine-data.js` as text into a private object. A count records how much was
+tolerated and never why; a reason can be argued with. `data/mc-key-baseline.json` is now `{}`.
+
+**THE ROUTING FOUND A LIVE BUG, AND IT IS THE SAME SHAPE ONE LEVEL OVER.**
+`engine/position_features.js` asked the raw table `MC.mons[mega]` where `mega` came from
+`B.megaFormeOf` — a DEX id, which is flat, against a table that hyphenates. The branch could never
+succeed, so every mega whose key is not exactly `<base>-mega` fell through to its BASE forme:
+
+```
+charizard-mega-x, charizard-mega-y, raichu-mega-x, raichu-mega-y, floette-mega, meowstic-m-mega
+```
+
+Measured: **Charizard-Mega-Y's SpA 232 was being priced at 196**; Charizard-Mega-X's Atk 200 at
+Charizard's. A second rung in the same file, `M.buildMon(B.norm(name))`, was a spelling retry that
+STRIPS the hyphen — it could only ever succeed for a name that had no punctuation to start with, and
+is removed.
+
+| what was checked | before | after |
+|---|---|---|
+| census | 651 probed / 651 live / 0 missing | **unchanged** |
+| damage differential, seed 20260804 | 0 of 6000, all 16 corners | **unchanged**, pool 336 of 345 with 76 megas |
+| `test-game-diff.js` artifact | — | differs by TIMESTAMP ONLY |
+| cost of the seal | — | **+68 ns/read, +345 ns/`buildMon`, within noise on a rollout** (two processes, one variable, `sealed=` printed per arm) |
+
+**Planted breaks, byte-restored with sha1 verified.** A computed index of a novel spelling: static RED.
+A file dropping the door require: static RED. The seal disarmed: both gates RED. Totality removed:
+`test-mc-seal.js` RED. And the one that matters — **a string-LITERAL index of a wrong spelling is GREEN
+statically, by design, and the SEAL threw on it**, which is the entire argument for the change.
+
+**IT IS NOT BULLETPROOF AND THE HOLES ARE NAMED.** Node only: `web/` and `app/` index `MC.mons`
+directly in ~20 places expecting a miss, they belong to WEB, and sealing in a page would break the site
+on load. `data/engine-data.js` is off-limits to ENGINE, so the seal rides on `mc_key.js` being loaded —
+which is what clause 4 exists to guarantee. Python is outside all of it. `ABRA_LOOKUP_SOFT=1` downgrades
+the throw while it is set. And the same class on a per-mon FIELD — `position_features.js:249` reading
+`f.mon.ability` off a live stone-holder, found by MEASURE's identity gate the same night — is a
+different object: the technique generalises, this seal does not.
+
+**OWED:** a release cut before the whole-game differential can see any of this (`game_differential.js`
+reads `REL.require`); a provenance and conformance restamp, both of which name the deleted baseline.
+
+---
 
 ## SIX MECHANICS BY REACH, EVERY ONE NARRATION, AND THE BIGGEST WAS A PARAGRAPH ARGUING FOR THE WRONG ANSWER FROM THE WRONG FILE. 2026-08-23.
 

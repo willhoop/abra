@@ -1273,7 +1273,7 @@ const PUBLISHED = GUARD.publish({
    * universe was 207 of 345 species with 76 megas missing and nothing printed it. */
   pool,
   pool_why: 'A species with no MC.mons row can never be drawn, so it is invisible to `compared`. '
-          + 'Resolved through engine/mc_key.js, the one doorway; a raw buildMon(id.toLowerCase()) '
+          + 'Resolved through engine/mc_key.js, the one doorway; a raw flattened lookup '
           + 'dropped every hyphenated forme and all 76 megas in silence.',
   controls: 'both leads are really sent out on the Showdown side, so MEDICHAM is given the same '
           + 'switch-in (Intimidate, weather setters) through the engine\'s own applyEntryEffects/'

@@ -15,6 +15,10 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Requiring it also installs the SEAL, so
+ * a raw miss anywhere in this process throws instead of quietly reading undefined. */
+const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const M = require(path.join(ROOT, 'engine', 'medicham2-browser.js'));
 
 let pass = 0, fail = 0;
@@ -109,7 +113,7 @@ console.log('FUTURE SIGHT — the forecast reads what it claims to read\n');
   ok(mirror && Math.abs(mirror.pWin - 0.5) < 0.15,
     `mirror pWin ${mirror && (100 * mirror.pWin).toFixed(0)}% sits near the coin it must be`);
   const lop = M.futureSight(six, ['pikachu'], { rollouts: 300 });
-  ok(lop === null || lop.pWin > 0.5 || !MC.mons.pikachu,
+  ok(lop === null || lop.pWin > 0.5 || !mcKey.has('pikachu'),
     'a full team into a lone filler does not lose the forecast');
 }
 

@@ -130,7 +130,7 @@ function showdownTurn(moveName, attAbility, defAbility, defItem) {
 }
 
 function medichamTurn(moveId, attAbility, defAbility, defItem) {
-  const a = MEDI.buildMon(ATT.toLowerCase(), {}), d = MEDI.buildMon(DEF.toLowerCase(), {});
+  const a = MEDI.buildMon(ATT, {}), d = MEDI.buildMon(DEF, {});
   const ally = MEDI.buildMon('ditto', {});
   const dally = MEDI.buildMon('sableye', {});
   if (!a || !d || !ally || !dally) return null;

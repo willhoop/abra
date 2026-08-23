@@ -110,6 +110,12 @@ const MEDI_PATH = REL.path('engine/medicham2-browser.js');
 const SHIPPED_SRC = REL.read('engine/medicham2-browser.js');
 const SHIPPED_DB = JSON.parse(REL.read('data/tags.json'));
 require(REL.path('data/engine-data.js'));
+/* THE DOOR IS LOADED BESIDE THE TABLE, ALWAYS. engine/mc_key.js installs the SEAL on MC.mons --
+ * a raw read of a key the table does not have then THROWS instead of returning undefined, which
+ * is how the same species-key bug went unnoticed four separate times. Requiring it here is not
+ * decoration: section 4 of tests/test-mc-key.js FAILS on any file that loads the table without
+ * it, because a seal that depends on load order is a seal that is sometimes absent. */
+require(REL.path('engine/mc_key.js'));
 const TAGS = require(REL.path('engine/tags.js'));
 const MC = (typeof global.MC !== 'undefined') ? global.MC : null;
 if (!MC) throw new Error('the release snapshot did not publish MC — data/engine-data.js did not load');

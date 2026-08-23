@@ -21,6 +21,10 @@ const path = require('path');
 const fs = require('fs');
 const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('data', 'engine-data.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Requiring it also installs the SEAL, so
+ * a raw miss anywhere in this process throws instead of quietly reading undefined. */
+const { mcKey } = require(D('engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const MEDI = require(D('engine', 'medicham2-browser.js'));
 const B = require(D('engine', 'board.js'));
 const RL = require(D('engine', 'rollout_leaf.js'));
@@ -54,7 +58,7 @@ ok(CENSUS.maxTurns >= 8 && CENSUS.maxTurns <= 30,
  * and the whole file would pass having played no game at all (rollout_r1's self-check learned this).
  * ------------------------------------------------------------------------------------------ */
 function makeBoard() {
-  const pool = Object.keys(globalThis.MC.mons).slice(0, 4);
+  const pool = (mcKey.keys(MONMISS) || []).slice(0, 4);
   const bd = new B.Board();
   for (const s of ['p1', 'p2']) bd.setParty(s, pool);
   bd.switchIn('p1', 'a', pool[0]); bd.switchIn('p1', 'b', pool[1]);
@@ -119,7 +123,7 @@ ok(live.d.decisions > 0, 'the denominator was counted rather than guessed', `dec
  *    Asserted directly on the playout: at switchRate 'uniform' both slots switch constantly.
  * ------------------------------------------------------------------------------------------ */
 {
-  const pool = Object.keys(globalThis.MC.mons).slice(0, 4);
+  const pool = (mcKey.keys(MONMISS) || []).slice(0, 4);
   const bd = makeBoard();
   const A = RL.buildSide(bd, 'p1', null, { fainted: 0, unbuildable: 0, threw: 0 });
   const Bt = RL.buildSide(bd, 'p2', null, { fainted: 0, unbuildable: 0, threw: 0 });

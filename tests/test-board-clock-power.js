@@ -41,6 +41,11 @@ const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('data', 'engine-data.js'));
 const MEDI = require(D('engine', 'medicham2-browser.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Enumerating and indexing MC.mons by
+ * hand is what made 101 of 308 keys unreachable in four files at once; requiring this file also
+ * installs the SEAL, so a raw miss anywhere in this process throws instead of reading undefined. */
+const { mcKey } = require(D('engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const B = require(D('engine', 'board.js'));
 const TAGS = require(D('engine', 'tags.js'));
 const CS = require(D('engine', 'champions_sim.js'));
@@ -65,7 +70,7 @@ ok(!!B.damageEngine(), 'the damage engine is available, so the features below ar
 
 /* THE POOL IS THE DAMAGE TABLE'S OWN KEYS, exactly as tests/test-rollout-fallen.js takes it: a name
  * that does not resolve builds nothing and the whole file would pass having scored no candidate. */
-const POOL = Object.keys(globalThis.MC.mons).slice(0, 12);
+const POOL = (mcKey.keys(MONMISS) || []).slice(0, 12);
 
 /* WHO ACTUALLY BRINGS THIS MOVE, read out of the corpus rather than recalled. `data/move-priors.json`
  * is P(move | species) over real open-sheet games, so a carrier taken from it is a body somebody

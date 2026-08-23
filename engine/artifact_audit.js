@@ -64,7 +64,14 @@ const TOTAL_USAGE = Object.values(USAGE).reduce((s, v) => s + (v && v.raw > 0 ? 
  * ------------------------------------------------------------------------------------------- */
 console.log('A. COHORT COMPLETENESS — a field null for one whole cohort and no other is a build gap');
 
-const mons = MC.mons || {};
+/* THE RAW TABLE, DECLARED. This file's SUBJECT is key spelling -- lines below deliberately ask
+ * whether a normalised key resolves, and whether two keys normalise alike, because that is the
+ * 2026-07-30 bug it was built to detect. Under the seal (engine/mc_key.js) a raw miss throws, and
+ * an auditor that cannot ask about a miss cannot audit one. So it takes the unsealed table and
+ * says why, which is greppable through mcKey.rawTable.reasons(). */
+const { mcKey } = require(D('engine', 'mc_key.js'));
+const mons = mcKey.rawTable('artifact_audit AUDITS key spellings -- asking whether a normalised key '
+  + 'resolves, and whether two keys normalise alike, is its entire subject') || {};
 const keys = Object.keys(mons);
 /* The cohort split is read off the KEY SHAPE rather than off a `.mega` flag, because the missing
  * flag is itself one of the symptoms — the builder that sets `mega: true` is the one whose output

@@ -24,6 +24,10 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));          // sets globalThis.MC and mcEff
+/* THE ONE DOOR into the species table, engine/mc_key.js. Requiring it also installs the SEAL, so
+ * a raw miss anywhere in this process throws instead of quietly reading undefined. */
+const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const M = require(path.join(ROOT, 'engine', 'medicham2-browser.js'));
 const TAGS = require(path.join(ROOT, 'engine', 'tags.js'));
 
@@ -198,7 +202,10 @@ console.log('\nwires 4+5 — buffsHolderOnHit / punishesAttacker  (THE BELLIBOLT
    * Mudsdale carries Stamina and is the Pokemon from Will's own losing turn. Play real battles and
    * assert its Defense stage rises at least once -- a boost NOBODY CLICKED, which is precisely what
    * the bot could not previously see. */
-  if (MC.mons.mudsdale && typeof M.battle === 'function') {
+  /* A DOT ACCESS IS A LOOKUP TOO, and no regex in tests/test-mc-key.js has ever matched one --
+   `MC.mons.mudsdale` reads exactly like a field. The seal catches it at run time; asking
+   mcKey.has means the question is answered rather than merely not crashing. */
+  if (mcKey.has('mudsdale') && typeof M.battle === 'function') {
     let sawBoost = false, ran = 0;
     /* 40 SEEDS WAS UNDERPOWERED FOR A RARE EVENT, and the rebuild from real sheets exposed it.
      * Stamina needs Mudsdale to SURVIVE a qualifying hit and still be on the field afterwards. With
@@ -489,7 +496,7 @@ console.log('\nwire 10 — entry effects on faint replacements');
     M.applyEntryEffects(tk, f);
     ok(f.weather === 'sun', 'a Drought entrant OVERRIDES standing rain, as the real setWeather does');
   }
-  const surge = Object.keys(MC.mons).map(n => M.buildMon(n, {})).find(m0 => m0 && /surge$/.test(m0.ability || ''));
+  const surge = (mcKey.keys(MONMISS) || []).map(n => M.buildMon(n, {})).find(m0 => m0 && /surge$/.test(m0.ability || ''));
   if (surge) {
     M.applyEntryEffects(surge, f);
     ok(!!f.terrain && f.terrainT === 5, `${surge.name}'s ${surge.ability} sets ${f.terrain} terrain — terrain now exists on the field`);

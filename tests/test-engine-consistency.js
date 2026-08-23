@@ -24,6 +24,11 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Enumerating and indexing MC.mons by
+ * hand is what made 101 of 308 keys unreachable in four files at once; requiring this file also
+ * installs the SEAL, so a raw miss anywhere in this process throws instead of reading undefined. */
+const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const B = require(path.join(ROOT, 'engine', 'board.js'));
 const M = require(path.join(ROOT, 'engine', 'medicham2-browser.js'));
 const P = require(path.join(ROOT, 'engine', 'position_features.js'));
@@ -36,7 +41,7 @@ const ok = (cond, label, detail) => {
   if (!cond) fails++;
 };
 const NEUTRAL = { weather: '', terrain: '', twA: 0, twB: 0, tr: 0 };
-const names = Object.keys(MC.mons);
+const names = mcKey.keys(MONMISS) || [];
 
 /* A board with one active a side and a bench candidate, sheets declared for both. */
 function mkBoard(mine, theirs, sheetMine, sheetTheirs, foeHp) {
@@ -71,7 +76,7 @@ console.log('ENGINE CONSISTENCY — the facts, across every engine that answers 
 console.log('== 1. the sheet\'s ITEM ==');
 {
   /* A pair where the Scarf decides the speed comparison, so the fact is visible in the answer. */
-  const spe = n => (MC.mons[n].st || {}).sp || 0;
+  const spe = n => (mcKey.row(n, MONMISS).st || {}).sp || 0;
   /* THE PAIR IS VERIFIED AGAINST board.js, NOT ASSUMED FROM THE TABLE. Selecting on MC.mons stat
    * lines and then asserting what board.js computes was a category error: board.js scores EXPECTED
    * speed across unknown spreads, a different quantity from the stored line. It agreed only while
@@ -219,7 +224,7 @@ console.log('\n== 3. the sheet\'s MOVES — the one that bit twice on 2026-07-30
    * survives both — the vector is coarse by design and a test has to respect that. Using the
    * frailest species in the table so the strong move actually removes it and the weak one does not. */
   const frail = names.slice().sort((a, c) => {
-    const st = n => MC.mons[n].st; return st(a).hp * (st(a).df + st(a).sd) - st(c).hp * (st(c).df + st(c).sd);
+    const st = n => mcKey.row(n, MONMISS).st; return st(a).hp * (st(a).df + st(a).sd) - st(c).hp * (st(c).df + st(c).sd);
   })[0];
   /* SEARCH FOR A PAIR THAT CROSSES THE THRESHOLD rather than assuming one does. Measured: Double
    * Edge (120 BP off a 91 Atk) and Acid Spray (40 BP off a 167 SpA) BOTH land between half and all

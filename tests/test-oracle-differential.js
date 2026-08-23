@@ -32,6 +32,10 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Requiring it also installs the SEAL, so
+ * a raw miss anywhere in this process throws instead of quietly reading undefined. */
+const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const CS = require(path.join(ROOT, 'engine', 'champions_sim.js'));
 
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
@@ -105,7 +109,7 @@ console.log('\n2. every species ability is one that species can have');
    * illegal. Fail rather than produce a confident false positive. */
   ok(!megaErr && megaDex, 'the mega forme table loads (mega abilities are legal and must not be flagged)',
     megaErr && megaErr.message);
-  for (const [name, mon] of Object.entries(MC.mons)) {
+  for (const [name, mon] of mcKey.all(MONMISS) || []) {
     const have = norm(mon.ab);
     if (!have) continue;
     const legal = new Set();
@@ -135,7 +139,7 @@ console.log('\n2. every species ability is one that species can have');
 console.log('\n3. every stored move is one that species can learn');
 {
   let checked = 0, bad = [];
-  for (const [name, mon] of Object.entries(MC.mons)) {
+  for (const [name, mon] of mcKey.all(MONMISS) || []) {
     if (!Array.isArray(mon.mv) || !mon.mv.length) continue;
     const sp = dex.species.get(name);
     if (!sp || !sp.exists) continue;
@@ -159,10 +163,10 @@ console.log('\n3. every stored move is one that species can learn');
  * ========================================================================================== */
 console.log('\n4. no stored set exceeds four moves');
 {
-  const over = Object.entries(MC.mons).filter(([, m]) => Array.isArray(m.mv) && m.mv.length > 4);
+  const over = (mcKey.all(MONMISS) || []).filter(([, m]) => Array.isArray(m.mv) && m.mv.length > 4);
   ok(over.length === 0, 'every stored moveset is four moves or fewer',
     over.slice(0, 5).map(([n, m]) => `${n} has ${m.mv.length}`).join('; '));
-  const dup = Object.entries(MC.mons).filter(([, m]) =>
+  const dup = (mcKey.all(MONMISS) || []).filter(([, m]) =>
     Array.isArray(m.mv) && new Set(m.mv.map(norm)).size !== m.mv.length);
   ok(dup.length === 0, 'no stored moveset repeats a move',
     dup.slice(0, 5).map(([n]) => n).join('; '));
@@ -204,7 +208,7 @@ console.log('\n6. base stats match the dex');
 {
   const map = { hp: 'hp', atk: 'atk', def: 'def', spa: 'spa', spd: 'spd', spe: 'spe' };
   let checked = 0, bad = [];
-  for (const [name, mon] of Object.entries(MC.mons)) {
+  for (const [name, mon] of mcKey.all(MONMISS) || []) {
     if (!mon.bs) continue;
     const sp = dex.species.get(name);
     if (!sp || !sp.exists || !sp.baseStats) continue;

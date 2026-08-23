@@ -46,6 +46,12 @@ if (typeof WebSocket !== 'function') {
 }
 
 require(D('data', 'engine-data.js'));
+/* THE DOOR IS LOADED BESIDE THE TABLE, ALWAYS. engine/mc_key.js installs the SEAL on MC.mons --
+ * a raw read of a key the table does not have then THROWS instead of returning undefined, which
+ * is how the same species-key bug went unnoticed four separate times. Requiring it here is not
+ * decoration: section 4 of tests/test-mc-key.js FAILS on any file that loads the table without
+ * it, because a seal that depends on load order is a seal that is sometimes absent. */
+require(D('engine', 'mc_key.js'));
 const { makeScoringPlayer } = require('./magnemite.js');
 
 /* ---- a team, from REAL observed sets ---------------------------------------------------------

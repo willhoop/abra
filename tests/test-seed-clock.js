@@ -70,7 +70,7 @@ const nrm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const probeSkips = [];
 const why = e => (e && e.message) || String(e);
 const legalSpecies = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const BUILDABLE = Object.keys(globalThis.MC.mons)
+const BUILDABLE = (mcKey.keys(NO_ROW) || [])
   .filter(id => legalSpecies(dex.species.get(id)))
   .filter(id => { try { return !!MEDI.buildMon(id); } catch (e) { probeSkips.push('buildMon ' + id + ': ' + why(e)); return false; } });
 ok(BUILDABLE.length >= 12, 'the fixture pool is buildable AND legal in this regulation',

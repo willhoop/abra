@@ -88,7 +88,7 @@ const probeSkips = [];
 const why = e => (e && e.message) || String(e);
 const legalSpecies = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const legalItem = x => x && x.exists && !x.isNonstandard;
-const BUILDABLE = Object.keys(globalThis.MC.mons)
+const BUILDABLE = (mcKey.keys(NO_ROW) || [])
   .filter(id => legalSpecies(dex.species.get(id)))
   .filter(id => { try { return !!MEDI.buildMon(id); } catch (e) { probeSkips.push('buildMon ' + id + ': ' + why(e)); return false; } });
 ok(BUILDABLE.length >= 12, 'the fixture pool is buildable AND legal in this regulation',

@@ -26,6 +26,10 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Requiring it also installs the SEAL, so
+ * a raw miss anywhere in this process throws instead of quietly reading undefined. */
+const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const B = require(path.join(ROOT, 'engine', 'board.js'));
 const CS = require(path.join(ROOT, 'engine', 'champions_sim.js'));
 const { Dex } = CS.sim();
@@ -39,17 +43,18 @@ const ok = (cond, label, detail) => {
 };
 const I = n => B.FEATURE_INDEX[n];
 
-const names = Object.keys(MC.mons).filter(n => (MC.mons[n].mv || []).length >= 4 && !MC.mons[n].mega);
+const ROW = n => mcKey.row(n, MONMISS) || {};
+const names = (mcKey.keys(MONMISS) || []).filter(n => (ROW(n).mv || []).length >= 4 && !ROW(n).mega);
 const mk = s => ({ species: s, hp: 1, boosts: {}, status: '', fainted: false,
-  nature: 'Serious', item: '', ability: '', moves: (MC.mons[s].mv || []), lastMove: '', turnsActive: 2 });
+  nature: 'Serious', item: '', ability: '', moves: (ROW(s).mv || []), lastMove: '', turnsActive: 2 });
 
 function mkBoard(mine, theirs) {
   const b = new B.Board(); b.turn = 3;
   b.sides.p1.active = { a: mk(mine[0]), b: mk(mine[1]) };
   b.sides.p2.active = { a: mk(theirs[0]), b: mk(theirs[1]) };
   b.party.p1 = mine; b.party.p2 = theirs;
-  for (const s of mine) b.setSheet('p1', s, { nature: 'Serious', item: '', ability: '', moves: MC.mons[s].mv });
-  for (const s of theirs) b.setSheet('p2', s, { nature: 'Serious', item: '', ability: '', moves: MC.mons[s].mv });
+  for (const s of mine) b.setSheet('p1', s, { nature: 'Serious', item: '', ability: '', moves: ROW(s).mv });
+  for (const s of theirs) b.setSheet('p2', s, { nature: 'Serious', item: '', ability: '', moves: ROW(s).mv });
   return b;
 }
 const featOf = (b, side, letter) => {

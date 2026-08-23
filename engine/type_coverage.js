@@ -57,7 +57,7 @@ for (const [key, v] of Object.entries(U)) {
    * already spelled the forme exactly the way MC.mons does; a normalised name missed, because
    * MC.mons keys formes with a hyphen and norm() strips it. Those rows fell into `skipped` and
    * quietly left 8% of the metagame out of the coverage picture. See engine/mc_key.js. */
-  const m = MC.mons[mcKey(key)];
+  const m = mcKey.row(key, { mayMiss: 'the coverage sweep asks about names the damage table may not carry' });
   if (!m || !m.t || !m.t.length) { skipped += v.raw; continue; }
   const w = FLAT ? 1 : v.raw;
   defenders.push({ key, name: v.name || key, t: m.t, w, bs: m.bs });

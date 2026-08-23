@@ -17,6 +17,10 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Requiring it also installs the SEAL, so
+ * a raw miss anywhere in this process throws instead of quietly reading undefined. */
+const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const E = require(path.join(ROOT, 'engine', 'medicham2-browser.js'));
 const TAGS = require(path.join(ROOT, 'engine', 'tags.js'));
 /* Cheap: champions_sim loads Showdown lazily, and nothing here calls sim(). */
@@ -84,7 +88,7 @@ function damageTaken(defAbility, terrain) {
    * construct a turn" instead of an answer. Real teams declare their moves on the sheet, which is
    * what this reproduces. It is also why the priority work could never have fired in play until the
    * sheet's moves were actually read (see engine/position_features.js). */
-  const names = Object.keys(MC.mons);
+  const names = mcKey.keys(MONMISS) || [];
   const att = E.buildMon(names[0]);
   const def = E.buildMon(names[1]);
   const a2 = E.buildMon(names[3]), b2 = E.buildMon(names[4]);

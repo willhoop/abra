@@ -45,6 +45,7 @@
   function build() {
     const MC = root.MC;
     if (!MC || !MC.mons) return null;
+    seal();                         /* the table may only have appeared just now; see seal() */
     const m = new Map();
     for (const k of Object.keys(MC.mons)) {
       const f = flat(k);
@@ -56,6 +57,123 @@
     builtFrom = MC.mons;
     return m;
   }
+
+  /* ---- THE SEAL (2026-08-23) --------------------------------------------------------------------
+   *
+   * WHY A PROXY AND NOT ANOTHER PATTERN IN tests/test-mc-key.js.
+   *
+   * Turning a species name into a key of this table has broken FOUR times, twice after it was
+   * "fixed and gated", and every fix so far has been A LIST OF WRONG FORMS:
+   *
+   *   2026-07-30  a builder keyed `venusaurmega`, the artifact keyed `venusaur-mega`  0 of 67 writes
+   *   2026-08-01  MC.mons[norm(x)] in four more files                                 101 of 308 keys
+   *   2026-08-23  buildMon(s.toLowerCase()) in tests/test-engine-diff.js              138 of 345 species
+   *   2026-08-23  a bare `globalThis.` prefix walked past the ratchet in eight files
+   *
+   * A list cannot catch a form nobody thought of. That is not a defect in the regexes; it is the
+   * shape of a static check, and two of the four got through one that was already written.
+   *
+   * WHAT THE FOUR HAVE IN COMMON IS NOT THE SPELLING. IT IS THE SILENCE. Every one of them returned
+   * `undefined` or `null`, which reads as "the engine has never seen this Pokemon" -- a real and
+   * common condition -- so every caller carried on and nothing anywhere complained. The bug was
+   * therefore invisible for weeks at a time, and in one case inflated a published figure for ten
+   * days.
+   *
+   * So the seal does not try to recognise a wrong spelling. It makes the MISS ITSELF impossible to
+   * ignore: reading a key the table does not have THROWS `LookupMiss`, and the message names the key
+   * the caller almost certainly meant. There is no prefix, alias, template string, concatenation,
+   * destructure or `Reflect.get` that avoids it, because the trap is on the OBJECT and every one of
+   * those forms ends in a property access on that object. `tests/test-mc-seal.js` executes all seven
+   * of those shapes rather than matching them as text.
+   *
+   * NODE ONLY BY DEFAULT, AND THE REASON IS NOT TIMIDITY. `web/index.html`, `web/tower.html` and
+   * their `app/` twins index `MC.mons` directly in ~20 places with `MC.mons[n]||{}`, expecting a
+   * miss; they belong to WEB and are not ENGINE's to rewrite. Sealing in a page would break the site
+   * on load. Every one of the four incidents happened under node, which is where every engine, test
+   * and instrument in this project runs. A page may opt in with `MCKEY.mcKey.seal({force:true})`
+   * once those call sites are routed, and `sealed()` reports the truth either way rather than
+   * pretending.
+   *
+   * ESCAPE HATCHES ARE DECLARED, NEVER SILENT. `build/build_engine_data.js` and
+   * `engine/merge_mega_into_engine.js` BUILD this table and must ask "is this key absent" before
+   * writing it, which is a legitimate raw question; they call `mcKey.rawTable('<why>')`, the reason
+   * is greppable, and `mcKey.rawTable.reasons()` lists every one taken in a run. */
+  const SEALED = Symbol.for('abra.mc.sealed');
+  const TARGET = Symbol.for('abra.mc.target');
+
+  /* Reads that are NOT species questions and must not throw. Everything reachable on Object.prototype
+   * (`toString`, `hasOwnProperty`, `constructor`) is handled by the `in` test in the trap, so this
+   * list is only for properties the HOST invents and no object actually carries:
+   *   then      -- `await x` and Promise.resolve(x) probe for it; a throw here is unrecoverable
+   *   toJSON    -- JSON.stringify probes for it before serialising
+   *   inspect / nodeType -- older console.log and DOM duck-typing
+   * No Pokemon is named any of these, and the list is short on purpose: every entry is a hole. */
+  const HOST = new Set(['then', 'toJSON', 'inspect', 'nodeType']);
+
+  const rawReasons = Object.create(null);
+  const isNode = typeof process !== 'undefined' && !!(process.versions && process.versions.node);
+
+  function unwrap(t) { return (t && t[TARGET]) || t; }
+
+  function seal(opts) {
+    const MC = root.MC;
+    if (!MC || !MC.mons) return false;
+    if (MC.mons[SEALED]) return true;
+    if (!isNode && !(opts && opts.force)) return false;
+    if (typeof Proxy !== 'function') return false;
+
+    const target = MC.mons;
+    /* Its own flattened index, built here rather than borrowed from `index`, because the trap must
+     * work before anybody has called mcKey() and must not recurse back into build(). */
+    const flatIdx = new Map();
+    for (const k of Object.keys(target)) if (!flatIdx.has(flat(k))) flatIdx.set(flat(k), k);
+
+    MC.mons = new Proxy(target, {
+      get(t, p, r) {
+        if (p === SEALED) return true;
+        if (p === TARGET) return t;
+        if (typeof p !== 'string') return Reflect.get(t, p, r);
+        if (p in t) return Reflect.get(t, p, r);          /* own key, or Object.prototype */
+        if (HOST.has(p)) return undefined;
+        const meant = flatIdx.get(flat(p));
+        /* `miss` throws for an undeclared miss and there is no way to declare one at a raw property
+         * access, so this always throws -- EXCEPT under ABRA_LOOKUP_SOFT, where it returns null and
+         * counts. Returning undefined there is deliberate: soft mode exists so a long run already in
+         * flight can be finished and its misses read off, and `throw null` would defeat that. */
+        miss(null, p, null,
+          meant
+            ? 'the table keys that species "' + meant + '"; you asked for "' + p + '". '
+              + 'Resolve it with mcKey(name) from engine/mc_key.js -- that is the one door, and it '
+              + 'accepts any spelling.'
+            : 'no key of this table flattens to "' + flat(p) + '" at all. If a miss is legitimate '
+              + 'here, ask through mcKey.row(name, {mayMiss: "<why>"}) instead of indexing the table.');
+        return undefined;
+      },
+      /* Writes, deletes and enumeration pass straight through: the merge script legitimately adds
+       * rows, and Object.keys / for..in / JSON.stringify must keep working exactly as before. */
+      set(t, p, v) { if (typeof p === 'string' && !(p in t)) flatIdx.set(flat(p), p); return Reflect.set(t, p, v); },
+      deleteProperty(t, p) { if (typeof p === 'string') flatIdx.delete(flat(p)); return Reflect.deleteProperty(t, p); },
+    });
+    return true;
+  }
+
+  /* Is the trap actually on? Asked rather than assumed -- a seal that silently failed to install
+   * would look exactly like a seal that works, which is this project's signature failure. */
+  function sealed() { return !!(root.MC && root.MC.mons && root.MC.mons[SEALED]); }
+
+  /* THE RAW TABLE, FOR THE TWO CALLERS THAT LEGITIMATELY NEED IT. A builder that CREATES rows has to
+   * ask whether a key is absent, and "absent" is the answer it wants rather than a crash. The reason
+   * is mandatory and recorded, so the number of places holding this key is a measurable quantity
+   * that can be driven down -- the same argument engine/lookup.js makes about `mayMiss`. */
+  function rawTable(why) {
+    if (!why || typeof why !== 'string') {
+      throw new Error('mcKey.rawTable(why) needs a reason in one phrase. The raw table lets a miss be '
+        + 'silent again, which is the defect the seal exists to end -- say why that is correct here.');
+    }
+    rawReasons[why] = (rawReasons[why] || 0) + 1;
+    return unwrap(root.MC && root.MC.mons) || null;
+  }
+  rawTable.reasons = () => Object.assign(Object.create(null), rawReasons);
 
   /* ---- COSMETIC FORMES ------------------------------------------------------------------------
    *
@@ -155,6 +273,45 @@
 
   /* For tests that swap the table underneath. */
   mcKey.reset = () => { index = null; builtFrom = null; alias = null; };
+
+  /* The seal, exposed on the same object as everything else so a caller has ONE import. */
+  mcKey.seal = seal;
+  mcKey.sealed = sealed;
+  mcKey.rawTable = rawTable;
+
+  /* MEMBERSHIP, WHICH IS A DIFFERENT QUESTION FROM RESOLUTION AND USED TO BE ASKED BY INDEXING.
+   *
+   * `if (MC.mons[n])` was the idiom in a dozen files and it is the exact line the seal now throws on.
+   * The honest replacement is not `{mayMiss}` sprinkled everywhere -- a membership test EXPECTS a
+   * miss by definition, so declaring it every time is ceremony that teaches people to write the
+   * declaration without meaning it. This verb never throws and never returns a row, so it cannot be
+   * mistaken for a lookup, and it accepts any spelling because it resolves first. */
+  mcKey.has = name => {
+    if (!index || builtFrom !== (root.MC && root.MC.mons)) index = build();
+    return !!(index && index.get(flat(name)));
+  };
+
+  /* THE KEY LIST. `mcKey.all()` returns entries, which is right for a caller that wants the rows and
+   * wrong for the commonest case in tests/ -- "give me a pool of species to build bodies from", which
+   * wants names and then calls buildMon. Those callers were writing `Object.keys(MC.mons)`, so the
+   * verb was missing rather than the callers being careless.
+   *
+   * IT KEEPS THE TABLE'S OWN ORDER, AND `all()` DOES NOT. That difference is deliberate and was
+   * MEASURED before it was decided: the first version returned `all()`'s sorted keys, and six test
+   * files went red at once -- every one of them does `.slice(0, 12)` to pick an arbitrary pool, so
+   * re-ordering the table silently replaced the cast of a dozen fixtures. Nothing was wrong with the
+   * new pools; they were simply a different experiment, which is the worst kind of change to make
+   * while re-routing call sites that were supposed to move nothing.
+   *
+   * So the two verbs answer two questions. `all()` is sorted because a DIGEST over it must not depend
+   * on insertion order (engine/feature_fixture.js). `keys()` is the table's order because a POOL is a
+   * choice of subjects and re-ordering it is a change of subject. */
+  mcKey.keys = opts => {
+    if (!index || builtFrom !== (root.MC && root.MC.mons)) index = build();
+    const mons = root.MC && root.MC.mons;
+    if (!index || !mons) return miss(null, '<keys>', opts, 'MC.mons is not loaded at all');
+    return Object.keys(mons);
+  };
 
   /* ---- WHICH BODY IS THIS -------------------------------------------------------------------
    *
@@ -265,6 +422,12 @@
   const api = { mcKey, flat };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) { root.MCKEY = api; root.mcKey = mcKey; }
+
+  /* INSTALL ON LOAD, WITH NO CALL NEEDED. A seal somebody has to remember to switch on is a
+   * preference, and this file's whole history is preferences that were not followed. If MC.mons is
+   * not published yet -- a caller that requires this file first -- build() seals on the first
+   * lookup instead, so load order cannot decide whether the guarantee exists. */
+  seal();
 
   /* A CLI, so a non-JavaScript caller reaches the SAME resolver instead of writing its own.
    *

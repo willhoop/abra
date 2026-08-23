@@ -242,11 +242,11 @@ function runDamage(c) {
   const mv = (globalThis.MC && MC.moves) ? MC.moves[norm(c.carrier.id)] : null;
   if (!mv) { out.failure = 'medicham2 has no MC.moves row for ' + c.carrier.id; return out; }
   const medi = {}, sd = {};
-  const holderBuild = M.buildMon(norm(c.reactor.holder), {});
+  const holderBuild = M.buildMon(c.reactor.holder, {});
   const defMax = (holderBuild ? holderBuild.st.hp : 150) * 8;      /* matches hpBoost below */
   for (const arm of ['test', 'ctl']) {
     /* --- medicham2: dmgRange is pure and needs no battle --- */
-    const att = M.buildMon(norm(c.carrier.user), {}), def = M.buildMon(norm(c.reactor.holder), {});
+    const att = M.buildMon(c.carrier.user, {}), def = M.buildMon(c.reactor.holder, {});
     if (!att || !def) { out.failure = 'buildMon failed'; return out; }
     att.item = ''; def.item = ''; att.ability = 'none'; def.ability = 'none';
     const who = atkSide ? att : def;

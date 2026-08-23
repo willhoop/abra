@@ -29,6 +29,10 @@
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
+/* THE ONE DOOR into the species table, engine/mc_key.js. Requiring it also installs the SEAL, so
+ * a raw miss anywhere in this process throws instead of quietly reading undefined. */
+const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const B = require(path.join(ROOT, 'engine', 'board.js'));
 const CS = require(path.join(ROOT, 'engine', 'champions_sim.js'));
 const { Dex } = CS.sim();
@@ -60,8 +64,8 @@ const featOf = (board, sp, forced) =>
   B.featuresFor({ raw: null, move: null, targetMon: null, switchTo: sp, forced: !!forced },
     null, board, 'p1', dex, B.PRIOR_FLOOR);
 
-const names = Object.keys(MC.mons);
-const spe = n => (MC.mons[n].st || {}).sp || 0;
+const names = mcKey.keys(MONMISS) || [];
+const spe = n => (mcKey.row(n, MONMISS).st || {}).sp || 0;
 console.log('SWITCH-IN FEATURES — SHEET, CONJUNCTION, PER-FOE\n');
 
 /* ---- 1. CHOICE SCARF ON THE INCOMING POKEMON ------------------------------------------------
