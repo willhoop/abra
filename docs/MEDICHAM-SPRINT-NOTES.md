@@ -12022,3 +12022,39 @@ design** — ~70 of ~84 `mvFail` sites never call `attrStill` and nothing counts
 `engine/quarantine.js`, `game_differential.js`, `tests/roster.js`, and `gate_fail_and_silent.js` once
 a fresh artifact exists (it returns CANNOT ANSWER / exit 2 today — the artifact ran on
 `c66976713feb`). **No census count moved because of this pass and none is claimed.**
+
+---
+
+## THE CENSUS RATCHET LAUNDERED ITS OWN REGRESSION — 2026-08-23
+
+**This is a MEASUREMENT-INTEGRITY entry in a sprint log on purpose**, because the artifact it concerns
+is the one that steers the sprint's own instruments. No mechanic was added and no census count moved.
+
+`tests/test-mechanics.js` read `unarmed` / `directCall` out of `data/mechanics-census.json`, failed
+when this run's numbers were larger, and then **wrote this run's numbers**:
+
+```
+before:  run 1 FAILED "direct-call probes 0 -> 1", exit 1, WROTE the census  ->  run 2 exit 0
+after:   run 1 red, census published with run_ok:false, floor untouched      ->  run 2 STILL RED
+```
+
+**Why it mattered more here than in the five sibling instances fixed the same night.** The census
+SELECTS which scenarios `all_mechanics_fire.js` plays, it holds a MEDICHAM gate clause, and the
+whole-game differential pins `steering.input_digest` to it. So a ratchet that accepts its own
+regression on a re-run can quietly widen the gate this sprint exists to close — the failure would
+have appeared as the sprint *finishing*, which is this project's signature shape.
+
+**THE SPLIT: generation is not the ratchet.** The census body is a measurement with five readers and
+still publishes from a red run, stamped `run_ok` / `write_policy` — withholding it would stale the
+steering, and stale steering has cost this repo before. The floors are a separate field written as
+**`min(previous, measured)` — monotone by construction, so no run can raise one.** That is stronger
+than the green-only rule applied to the siblings, and deliberately: `min()` consults no verdict, so it
+cannot be broken by a later edit that adds a check and forgets to gate the write.
+
+**Census unchanged: 643 probed / 643 live / 0 missing.** Shown red on three deliberate breaks.
+Independently confirmed by `tests/test-red-run-writes.js`, which went 9 candidates -> 8 and named this
+file as FIXED — it left the candidate set on its own rather than being excused by name.
+
+**OWED, NOT RUN.** The census digest moved, so `engine/all_mechanics_fire.js` and
+`engine/wire_ladder.js` are owed before anything downstream of the census is quoted, plus
+`engine/status.js --write`.

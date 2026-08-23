@@ -10,6 +10,49 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.94.0] — 2026-08-23
+
+### Fixed
+- **THE CENSUS RATCHET LAUNDERED ITS OWN REGRESSION, AND IT IS THE ARTIFACT THAT STEERS A GATE.**
+  `tests/test-mechanics.js` read `unarmed` / `directCall` out of `data/mechanics-census.json`, failed
+  when this run's numbers were larger, and then **wrote this run's numbers** — so a run that grew the
+  unarmed count failed once and was **green on the re-run**. Demonstrated by staging the on-disk floor
+  below the live count:
+
+  ```
+  before:  run 1 FAILED "direct-call probes 0 -> 1", exit 1, WROTE the census  ->  run 2 exit 0
+  after:   run 1 red, census published with run_ok:false, floor untouched      ->  run 2 STILL RED
+  ```
+
+  This was the worst instance in the tree rather than one of six: the census **selects which scenarios
+  `all_mechanics_fire.js` plays**, holds a MEDICHAM gate clause, and is what the whole-game
+  differential pins its `steering.input_digest` to. A laundering ratchet there can quietly widen the
+  gate that is supposed to be closing.
+
+### Changed
+- **GENERATION AND RATCHET ARE NOW SEPARATE, AND THE SPLIT IS THE POINT.** The census body is a
+  *measurement* with five readers, so it still publishes from a red run — stamped `run_ok` and
+  `write_policy` — because withholding it would stale `all_mechanics_fire.js`'s steering. The ratchet
+  is a *separate* field, `ratchet.unarmed` / `ratchet.directCall`, written as
+  **`min(previous floor, measured)`: monotone by construction, so no run — red, green or interrupted —
+  can raise it.**
+- **That is stronger than the green-only rule used elsewhere tonight, and deliberately so.** `min()`
+  consults no verdict, so it **cannot be broken by a future edit that adds a check and forgets to gate
+  the write** — which is exactly how this class keeps coming back. `--accept` raises a floor
+  deliberately and still exits 1. Only an invalid *instrument* (`MEDFAILS.residualCollapsed`)
+  withholds the artifact entirely.
+
+### Notes
+- Shown red on three deliberate breaks, not one: `--accept` (exit 1, floors 0→1), a planted hollow row
+  (exit 1, published `run_ok:false`, floors untouched), and the clean run green.
+- The general gate confirms it independently: `tests/test-red-run-writes.js` went 9 candidates → 8 and
+  prints `FIXED since the floor was written (1): tests/test-mechanics.js`. **The fixed file dropped out
+  of the candidate set on its own rather than being excused by name** — which is the whole test of
+  whether that gate measures a property or keeps a list.
+- Census unchanged at **643 probed / 643 live / 0 missing**.
+- **OWED:** the census digest moved, so `all_mechanics_fire.js` and `wire_ladder.js` re-runs are owed
+  before anything downstream of the census is quoted.
+
 ## [5.93.0] — 2026-08-23
 
 ### Fixed
