@@ -162,6 +162,15 @@ Read this before believing any number, including your own. Every line is a real 
 - Three probe errors surfaced before one real Life Orb defect. **A corpus sweep found it, not another
   staged board** — the instinct is always to stage one more board.
 
+**A READ-ONLY FLAG THAT WRITES — AND THE WRITE TURNED THE GATE GREEN.** `register_reality.js --list` is
+an ENUMERATION and it rewrote the verdict artifact `openDefectClause` is computed from. Five rows carry
+`green:false`; a wipe drops all five out of the red set and the clause **flips to OK**. So merely
+*inspecting* the register published a gate saying the engine was correct, because the evidence had been
+erased. **Worse half leaves no trace at all**: it also printed *"every marked row agrees with its
+instrument"* three lines under its own *"0 distinct instruments actually run"*. The artifact wipe shows
+in `git diff`. The sentence does not. Fix guards the DATA, never the flag — a mode check is one
+re-derivation away from being wandered around.
+
 **A CHECK THAT CANNOT FAIL.**
 - A regex held two raw `0x08` bytes — `\bFAIL\b` flattened to backspaces — so one alternative could
   never match. **It renders correctly in an editor.**
@@ -184,6 +193,25 @@ which pool it drew from and **nothing reads the field**, so a wrong pin is invis
 **THE TREE MOVES UNDER YOU.** An audit had **four of its six briefed figures superseded within two
 hours**. Every engine fix re-stales every measurement in flight — which is why the pins exist and why
 only one agent may play a game.
+
+**AND SO DO YOUR OWN BRIEFS. TWO ARTIFACTS OF THE SAME INSTRUMENT ARE NOT COMPARABLE UNLESS THE
+REQUESTED SAMPLE SIZE MATCHES.** The coordinator twice handed an agent a class breakdown from a
+777-game run beside a total from a 961-game run, and both times the agent caught it. `--games 1200`
+yields 961 played, `--games 777` yields 777 — so a rate looks like it moved when only the request did.
+**Restate the pins and the game count in every brief, and re-read the artifact rather than quoting
+yourself from earlier in the session.**
+
+**SOME DIVERGENCES HAVE NO CORRECT ANSWER, AND CHASING THEM IS INFINITE.** Three Protect/Detect rows sit
+at `speed_gap: 0, same_priority: true` — an exact tie. Showdown picks one, we pick the other, neither is
+wrong. That is a DECISION for Will, filed `NOT A DEFECT`, not a bug to fix. Before investing in a
+divergence, check it is not a tie.
+
+**A FIX MEASURED AGAINST THE WRONG SCOREBOARD LOOKS LIKE A FAILURE.** Four correct fixes moved the
+whole-game rate **not at all** — the pinned pool holds ZERO Malamar and 0.45% self-destruct games, and
+the win rule decides who WINS, which the differential never compares. The lab (roster + census) saw
+every one of them. **The pool is real games, usage-weighted, and answers *does this matter*. The roster
+and census are one staged scenario per entity and answer *is this correct*.** Say which one a fix should
+move BEFORE running it.
 
 **A CORRECTION CAN BE WRONG TOO.** A published `9.7%` was corrected to `11.69%` with a stated mechanism,
 and the mechanism was then refuted from the record. **Three layers, each caught by someone checking.**
@@ -259,6 +287,18 @@ ours with `where.js`, the authority's by opening the line.
 | `node engine/feature_fixture.js --check <weights>` | the refit signal; `status.js` PARSES its output, so its shape is load-bearing |
 | `node web/build-quarantine.js --check` | whether the site is telling a visitor the simulator is clean |
 | `node engine/explain_divergence.js`, `engine/divergence_cards.js` | render `data/divergence-turns.json` into readable cards — **the highest-yield instrument in the repo** |
+| `engine/mc_key.js` | the ONE species-name → `MC.mons` key resolver. Three separate bugs came from not using it |
+| `engine/artifact_audit.js` | does a generated file actually contain its source's values |
+| `engine/policy.js --promote` | lands `move-priors.observed.json` on the engine and prints the delta — the scheduler no longer writes it |
+
+**TWO DIFFERENTIALS EXIST AND CONFUSING THEM COSTS AN HOUR.** `tests/test-engine-diff.js` is the DAMAGE
+one and owns `data/engine-diff.json`. `engine/game_differential.js` is the WHOLE-GAME one and owns
+`data/game-differential.json`. A defect in one is not owned by the other.
+
+**`engine/publish_guard.js` REFUSES AN UNDER-SIZED RUN** and diverts it to `data/verification/<name>.n<N>.json`
+instead of the published artifact. So a scoped run does NOT update the headline — the published figure
+and the `GENERATED` block keep the old numbers until a full run happens. Say so rather than reporting the
+scoped number as current.
 
 **`roadmapRowIsClosed` is exported from `engine/quarantine.js` on purpose** — so there is ONE
 closed-row detector. A third copy once disagreed with it on 24 of 292 rows in both directions.
@@ -290,6 +330,15 @@ was once closed on exactly that mistake.
 | `sim/battle-actions.ts:1353` `forceSwitch` → `runEvent('DragOut')` | ONE refusal site reached from two doors — `:1104` damaging, `:1260` status |
 | `sim/battle-actions.ts:438` | `onModifyType` runs inside `useMoveInner`, ABOVE the `moveHit` entry point |
 | `sim/battle-queue.ts:270` → `battle.ts:2657` | switch ordering among simultaneous switches |
+| `sim/battle-actions.ts:430` `ModifyType` in `useMoveInner` | where every `-ate` ability fires — **932 lines above** `moveHit`, and it runs BEFORE `hitStepTryHitEvent` |
+| `sim/battle-actions.ts:1370` `moveHit` | the entry point a damage harness reaches for. Call it alone and you lose the retype AND the boost |
+| `sim/pokemon.ts:1564` `clearVolatile` | its closing `setSpecies(baseSpecies)` reverts a NON-permanent forme on switch-out |
+| `data/abilities.ts:1891` | `formeChange` without `isPermanent` — which is why Hunger Switch reverts and Zero to Hero does not |
+
+**AND THE MECHANISM YOU ARE CHECKING MAY NOT BE NAMED IN THE ENGINE AT ALL.** `medicham2-browser.js`
+never says `refrigerate`; it matches the TAG shape `convertsMoveType` + `damageBoost`, so Pixilate,
+Refrigerate and Aerilate are one mechanic and a fourth would be picked up with no code edit. **`grep`
+returning zero is not evidence the mechanic is missing** — check `data/tags.json` before concluding it.
 
 ### Conventions worth knowing before you trip them
 
