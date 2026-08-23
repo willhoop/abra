@@ -10,6 +10,42 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.99.1] — 2026-08-23
+
+### Fixed
+- **RETRACTION — MY OWN CLAIM ABOUT WHERE THE AUTHORITY ANNOUNCES A FAILURE WAS WRONG ON BOTH HALVES.**
+  A commit message earlier today stated: *"The authority writes `|-fail|` at twelve sites in
+  `sim/battle-actions.ts`, every one guarded by a strict `=== false`."* Checked at the lines:
+  - **`:463` and `:512` are not `=== false` guards at all** — they are `if (!target)` and
+    `if (!targets.length)`. `:1203` and `:1213` are also mis-stated.
+  - **There are 10 `-fail` emitters in that file, not 12**, and the real emitter census across the
+    codebase is **67 sites**.
+
+  The retracted sentence is left standing in its original commit rather than rewritten, per the rule
+  that a prior conclusion is never silently changed.
+
+### Notes
+- **THE CONSEQUENCE IS BIGGER THAN THE ERROR: that rule explains ZERO of the remaining narration
+  divergences.** All three surviving `-fail` rows are **board-material**, not narration — so
+  "announce failures" is substantially done, and what is left of Will's request
+  (*"announce failures and generally match the timing of narration of showdown"*) is **entirely
+  timing and ordering**.
+- The 42 narration-only games reduce to **15 mechanisms and 11 implementable rules**, not 42 fixes.
+  Largest three: a `[silent]` `-end` is a real protocol event (8 games, three triggers, one emission
+  rule — and the obvious fix is wrong, because `clearVolatile` does not run `onEnd` at
+  `sim/pokemon.ts:1514`); `|faint|` is never written at the moment of lethal damage (5 games — the
+  line comes from `faintMessages()` at eight step boundaries); and a boost of magnitude **zero** is
+  still announced (5 games, `sim/battle.ts:2072-2077`).
+- **Two rows are excluded as exact ties by DERIVATION rather than measurement** — `effectOrder` is
+  assigned only for SwitchIn and RedirectTarget (`sim/battle.ts:994`), and Showdown's own TODO says
+  so. Up to five more are suspected, with a settling command named.
+- **10 of the 42 certainly write state and 7 more conditionally**, so they are not safe to treat as
+  cosmetic. **Substitute is the dangerous one**: `end_state_not_compared` names Substitute HP, so a
+  persisting substitute is invisible to the board comparator.
+- **A correction owed the other way:** the "exact speed tie, NOT A DEFECT" filing on three
+  Protect/Detect rows rests on a reason that `game_differential.js:1229-1257` retired in 3.74.0. The
+  filing may still be right; it is no longer supported by the reason given.
+
 ## [5.101.0] — 2026-08-23
 
 ### Changed
