@@ -73,6 +73,31 @@ const ACCEPT_FILE = ACCEPT_AT >= 0 ? process.argv[ACCEPT_AT + 1] : null;
 const ACCEPT_WHY = ACCEPT_AT >= 0 ? process.argv[ACCEPT_AT + 2] : null;
 const DIRS = ['engine', 'build', 'tests'];
 
+/* `--only <file>...` — THE SAME RATCHET, NARROWED TO THE FILES OF ONE COMMIT (2026-08-23).
+ *
+ * WHY. This gate detected new silent catches in 0.68s and was wired to NOTHING, so the count went
+ * 67 -> 95 in four days: writing one carried no consequence at the moment it was written. It is now
+ * run by .githooks/pre-commit over `git diff --cached --name-only`.
+ *
+ * The whole-repo run cannot be that hook. 80 pre-existing offenders are REAL DEFECTS, deliberately
+ * not re-baselined, and a hook that failed on them would block every unrelated commit in the
+ * repository — which trains everyone to pass --no-verify, and then nothing is enforced at all.
+ *
+ * So `--only` narrows the VERDICT, not the DETECTION: the scan above is unchanged and repo-wide, and
+ * this filters the result to the named files and judges them against the same baseline, by the same
+ * per-file catch-body-hash counts. A block already in the floor stays in the floor, so touching a
+ * file for an unrelated reason cannot fail. Only a hash the baseline does not cover fails.
+ * There is exactly ONE detector; this flag is a filter on its output, never a second copy of it. */
+const ONLY_AT = process.argv.indexOf('--only');
+const ONLY = ONLY_AT >= 0
+  ? process.argv.slice(ONLY_AT + 1).filter(a => !a.startsWith('--'))
+      .map(a => a.replace(/\\/g, '/').replace(/^\.\//, ''))
+  : null;
+if (ONLY && !ONLY.length) {
+  console.error('  usage: node tests/test-no-silent-failure.js --only engine/a.js tests/b.js');
+  process.exit(2);
+}
+
 /* ---- strip what would confuse a brace scanner ------------------------------------------------
  * Comments, strings, template literals and regex literals are replaced by spaces of the same length
  * so every offset in the stripped text still maps to the original. Written out because a naive
@@ -497,7 +522,58 @@ if (!base) {
   console.error('NO BASELINE. data/silent-catch-baseline.json is absent or unreadable.');
   process.exit(2);
 }
-const known = base.entries;
+let known = base.entries;
+
+/* --only: keep the named files and nothing else, on BOTH sides of the comparison. Filtering the
+ * baseline too is what makes a pre-existing block stay pre-existing — the keys are `file#hash`, so
+ * a per-file subset of the floor gives exactly the verdict the whole-repo run would give for those
+ * files, and none of the verdicts for anyone else's. */
+const noHead = [];
+if (ONLY) {
+  const want = new Set(ONLY);
+  for (let i = silent.length - 1; i >= 0; i--) if (!want.has(silent[i].file)) silent.splice(i, 1);
+  for (let i = unreadable.length - 1; i >= 0; i--) if (!want.has(unreadable[i].split(':')[0])) unreadable.splice(i, 1);
+  known = Object.fromEntries(Object.entries(known).filter(([k]) => want.has(k.slice(0, k.lastIndexOf('#')))));
+
+  /* THE FLOOR IS NOT THE ONLY THING THAT COUNTS AS PRE-EXISTING, AND ASSUMING IT WAS WOULD HAVE MADE
+   * THIS GATE UNUSABLE ON ITS FIRST DAY. The baseline was set on 2026-08-18; 80 silent blocks have
+   * landed since, because nothing was enforcing it. Those are real defects and they stay on the
+   * books — but they are ALREADY IN THE FILE. Judging a commit against the baseline alone would have
+   * refused an unrelated one-line edit to engine/medicham2-browser.js over five blocks the author
+   * never touched, and a gate that does that gets routed around with --no-verify within a day.
+   *
+   * So a block is pre-existing if the baseline covers it OR HEAD's copy of the file already had it.
+   * The question this gate asks is exactly "did THIS commit make it worse", nothing wider. It
+   * launders nothing: data/silent-catch-baseline.json is not written here, and the whole-repo run
+   * still reports every one of the 80.
+   *
+   * HEAD's copy is measured with the SAME detector — catches(), isSilent(), hash() — and not with a
+   * diff of the patch text, because a hunk that merely MOVES a catch block would read as an addition
+   * and a reindent would read as a rewrite. The key is the body hash, so moved code is still the
+   * same block. */
+  const headCount = {};
+  const { execFileSync } = require('child_process');
+  for (const f of ONLY) {
+    let src;
+    try {
+      src = execFileSync('git', ['show', `HEAD:${f}`],
+                         { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 28, stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch (e) {
+      /* NOT SILENT, and it must not be: this file scans itself. A file with no copy in HEAD is
+       * usually a NEW file, where every block in it is genuinely new — which is the strict answer.
+       * If git itself were broken, every file would land here and the gate would get STRICTER, never
+       * weaker. It is recorded and printed either way, so the reason is never merely inferred. */
+      noHead.push(`${f}: ${String(e.message).split('\n')[0]}`);
+      continue;
+    }
+    for (const c of catches(src)) {
+      if (!isSilent(c.bodyStripped, c.binding)) continue;
+      const k = `${f}#${hash(c.bodyRaw)}`;
+      headCount[k] = (headCount[k] || 0) + 1;
+    }
+  }
+  for (const [k, n] of Object.entries(headCount)) if (!(known[k] >= n)) known[k] = n;
+}
 
 const now = {};
 for (const s of silent) { const k = `${s.file}#${s.hash}`; (now[k] = now[k] || []).push(s); }
@@ -512,6 +588,26 @@ const knownTotal = Object.values(known).reduce((a, b) => a + b, 0);
 const gone = Object.entries(known)
   .filter(([k, n]) => (now[k] ? now[k].length : 0) < n)
   .map(([k, n]) => `${k} (${n - (now[k] ? now[k].length : 0)})`);
+
+/* --only prints the FACTS and nothing else — which file, which line, and whether the block hands a
+ * made-up value downstream. The repo-wide header below would be a lie here (`files scanned 333`
+ * against a two-file verdict), and the plain-English "what do I do now" belongs to the caller that
+ * refused the commit, so that there is one wording of it and it lives beside the refusal. */
+if (ONLY) {
+  if (unreadable.length) {
+    console.log('COULD NOT BE READ, so its catch blocks were never examined:');
+    for (const u of unreadable) console.log('  ' + u);
+    process.exit(1);
+  }
+  for (const n of noHead) console.log(`  (no copy in HEAD, so every block in it counts as new) ${n}`);
+  if (!fresh.length) { console.log(`  no new silent catch blocks in ${ONLY.length} file(s).`); process.exit(0); }
+  console.log(`NEW SILENT CATCH BLOCKS — ${fresh.length} in this change\n`);
+  for (const s of fresh) {
+    console.log(`  ${s.file}:${s.line}`);
+    console.log(`      ${s.manufactures ? 'HANDS BACK A MADE-UP VALUE' : 'skips and carries on'}   ${s.body}`);
+  }
+  process.exit(1);
+}
 
 console.log('SILENT FAILURE RATCHET — a catch block may not discard the reason\n');
 console.log(`  files scanned            ${scanned}`);

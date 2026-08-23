@@ -10,6 +10,50 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.104.0] — 2026-08-23
+
+### Added
+- **A NEW SILENT CATCH CAN NO LONGER BE COMMITTED.** Will: *"i dont know im not comp sci guy just fix
+  it so it stops being a problme."* The detector already existed, was already a proper ratchet (keyed
+  by a hash of each catch **body**, so moving code does not fool it), ran in **0.68s** — and **was
+  wired to nothing.** The pre-commit hook ran three other checks. So it reported into the void and the
+  count climbed **67 to 95 in four days**, because writing one had no consequence at the moment you
+  wrote it.
+- `tests/test-no-silent-failure.js` gains **one flag, `--only <file>...`**, which narrows the
+  **verdict**, not the detection — same scan, same detector functions, filtered to the named files.
+  **No second implementation**, because two implementations of one fact is this repo's standing
+  failure mode and the hook and the test would eventually disagree.
+- `.githooks/pre-commit` runs it over the `.js` files **in the commit**, after the rebase check and
+  before the docs scope guard so `build/*.js` cannot slip past.
+
+### Notes
+- **NOTHING WAS LAUNDERED, AND THAT WAS THE WHOLE CONSTRAINT.** The 80 pre-existing offenders are real
+  defects; folding them into an accepted floor is the failure this repo keeps paying for. The baseline
+  file is **never written**, and the whole-repo run still reports all **80** — verified identical
+  before and after.
+- **THE FIRST VERSION WAS WRONG AND THE CORRECTION IS THE DESIGN.** Comparing against the baseline
+  alone **refused the live tree** — 9 blocks in files the author had never touched. So "pre-existing"
+  now means the baseline covers it **or** HEAD's copy of the file already had it. Proven with an
+  unrelated edit inserted at the **top** of a file so every line number shifts: it passes. That is the
+  case that decides whether people start reaching for the bypass flag.
+- **Five demonstrations, all in throwaway scratch repos, never against the shared index** — an agent
+  doing exactly that earlier today is why nothing was corrupted with three agents live. A planted
+  catch is refused and names the planted line rather than the pre-existing one beside it; a new file
+  that is only a silent catch is refused; data-only and mid-rebase are skipped, the latter with a
+  control proving the same change is refused without the rebase.
+- **Cost:** 0.74s for two files, 0.89s for four including the two biggest. The hook goes ~2s to ~2.8s
+  on code commits and is **unchanged on data-only commits**.
+- **The refusal message is written for a non-engineer**: file and line, whether it hands back a
+  made-up value, what a silent catch means in plain words, and three concrete fixes naming
+  `MEDFAILS.*`, the counter the simulator already uses. No bypass hatch is offered or advertised.
+- **What it cannot catch, stated rather than implied:** it reads the working tree, not the staged
+  blob; a rename reads as a new file; only top-level `engine/`, `build/` and `tests/` are scanned, so
+  `web/` and `tools/` are outside it; rebase replays are not checked; and it cannot tell whether a
+  silence is *correct*, only whether the block says something.
+- **It fixes none of the 80.** It stops the number climbing. Those are being read one by one, and the
+  ones that are correct as written will be left alone rather than churned to make a number fall.
+- Deliberately **not** registered in `tests/run-all.js` — that would put a red test in the suite.
+
 ## [5.103.0] — 2026-08-23
 
 ### Fixed

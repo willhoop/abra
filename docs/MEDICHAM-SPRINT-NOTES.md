@@ -12511,3 +12511,27 @@ silently shrinks 22 candidate filters in the mechanics lab and is the sprint's o
 
 **OWED, NOT RUN:** route the thirteen (`tests/roster.js:1990` first); do NOT run `--update`, which
 would now lower the floor off a detector change.
+
+---
+
+## A NEW SILENT CATCH CAN NO LONGER BE COMMITTED — 2026-08-23
+
+Sprint-relevant because the class sits in the sprint's own instruments, not in the simulator: the
+thirteen dangerous blocks closed earlier today were in `tests/roster.js`, `engine/game_differential.js`
+and the census tooling. **A swallowed error in a ruler is worse here than one in the engine** — this
+week produced six of seven damage divergences that were the instrument, a test that made a failing run
+pass by being run twice, and a red gate that hid a live bug for ten days.
+
+The detector already existed and was already a ratchet keyed by catch-body hash. It was wired to
+nothing, so the count climbed **67 to 95 in four days**. `.githooks/pre-commit` now runs it over the
+`.js` files **in the commit**, via a new `--only` flag that narrows the verdict and not the detection.
+
+**Nothing was laundered:** the baseline is never written and the whole-repo run still reports all 80.
+"Pre-existing" means the baseline covers it **or** HEAD's copy of the file already had it — the first
+version compared against the baseline alone and refused the live tree on 9 untouched blocks.
+
+**No census count moved and none is claimed** (658 probed / 658 live / 0 missing). Hook cost ~2s to
+~2.8s on code commits, unchanged on data-only.
+
+**OWED, NOT RUN:** the 80 existing blocks are being read one at a time; `run-all.js` registration
+deliberately skipped while the whole-repo verdict is red.

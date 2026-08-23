@@ -25,6 +25,75 @@ if [ -d "$(git rev-parse --git-dir)/rebase-merge" ] || [ -d "$(git rev-parse --g
   exit 0
 fi
 
+# ── A COMMIT MAY NOT ADD A CATCH BLOCK THAT HIDES THE ERROR — 2026-08-23 ────────────────────────
+#
+# tests/test-no-silent-failure.js found new silent catch blocks in 0.68s, was a proper ratchet, and
+# was WIRED TO NOTHING. It reported into the void and the count went 67 -> 95 in four days. Writing
+# one had no consequence at the moment it was written, which is the only moment that matters.
+#
+# WHY THIS IS SCOPED TO THE COMMIT, AND WHY IT IS NOT A NEW BASELINE. The 80 pre-existing blocks are
+# real defects. Folding them into an "accepted" floor would be laundering — the failure this repo
+# keeps paying for — so they stay on the books. But failing every commit on them would block work
+# that has nothing to do with them, and a gate people route around with --no-verify enforces
+# nothing. So the gate judges ONLY the .js files in THIS commit, against the same baseline, by the
+# same catch-body hashes: a block that was already there stays already-there and cannot block you.
+#
+# It runs BEFORE the documentation scope guard below on purpose. That guard exits 0 for anything
+# outside docs/ engine/ tests/ web/, which would let build/*.js through unexamined, and the ratchet
+# scans build/ too. It stays AFTER the rebase check, so a replay still cannot be blocked.
+#
+# Only the top level of engine/, build/ and tests/ is matched, because that is exactly what the
+# ratchet scans; a pattern wider than the scanner would silently vouch for files nobody looked at.
+STAGED_JS=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^(engine|build|tests)/[^/]+\.js$')
+if [ -n "$STAGED_JS" ]; then
+  # SAY THAT IT RAN. A gate that passes in silence is indistinguishable from a gate that skipped,
+  # and "a capability that cannot prove it ran is assumed broken" is this repository's own rule.
+  echo "pre-commit: silent-catch gate on $(echo "$STAGED_JS" | wc -l | tr -d ' ') staged .js file(s) (~0.7s)"
+  if ! SILENT_OUT=$(node tests/test-no-silent-failure.js --only $STAGED_JS 2>&1); then
+    echo ""
+    echo "  BLOCKED: this commit adds code that hides an error."
+    echo ""
+    echo "$SILENT_OUT" | sed 's/^/    /'
+    cat <<'MSG'
+
+  ------------------------------------------------------------------
+  WHAT THIS MEANS, PLAINLY. A `catch` block that says nothing means:
+  something went wrong, the code carried straight on, and NOTHING will
+  ever tell you. The run finishes. It prints success. It is wrong.
+
+  That is not hypothetical here. One of these made every status
+  duration in this project the fallback 3 for months. Another turned a
+  failed 1.59 GB read into the words "no records read", as though the
+  corpus were empty.
+
+  HOW TO FIX IT — any ONE of these is enough:
+
+    throw it again      catch (e) { throw e; }
+    print it            catch (e) { console.error('reading X:', e.message); }
+    count it            catch (e) { MEDFAILS.somethingFailed++; }
+
+  MEDFAILS is the counter the simulator already uses (engine/
+  medicham2-browser.js). A run prints it, so a swallowed failure still
+  shows up as a number instead of vanishing.
+
+  ONLY THE FILES IN THIS COMMIT ARE CHECKED. Blocks that were already
+  in the file before you touched it are not your problem and did not
+  cause this.
+
+  To see everything in one of your files:
+    node tests/test-no-silent-failure.js --in engine/yourfile.js
+
+  If the silence really is correct, write the reason in a comment on
+  the line, then record it (one file at a time):
+    node tests/test-no-silent-failure.js --accept engine/yourfile.js "why"
+
+  DO NOT PASS --no-verify. If this gate is wrong, fix the gate.
+  ------------------------------------------------------------------
+MSG
+    exit 1
+  fi
+fi
+
 # SCOPE. A pure artifact regeneration is not a documentation event -- data/*.json moves every time a
 # generator runs, and demanding a version bump for that would train everyone to pass --no-verify,
 # which is worse than no hook. Fire only when something a reader could read has changed.
