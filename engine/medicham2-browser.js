@@ -1744,6 +1744,20 @@ const MEDFAILS = { encoreAction: 0,
    * body on the board with the wrong stats, so it is refused and counted. Fixing it means a row in
    * `data/engine-data.js`, which is downstream of this division. */
   formeOnHitNoRow: 0, formeOnHitNoRowFirst: '',
+  /* 2026-08-23 -- set whenever MEDI_FORMEONHIT_SPECIES_BLIND=1 puts the flag-only Disguise gate back on
+     purpose, so a deliberate restore arm and a broken engine can never be read as the same thing. */
+  formeOnHitSpeciesBlindRestored: 0,
+  /* 2026-08-23 -- a `formeOnHit` carrier reached the absorb gate with NO species name on the body, so
+     the gate could not tell an intact Mimikyu from a busted one and refused. Never expected from the
+     battle loop, where every body came out of `buildMon` and carries its table key; non-zero means an
+     external caller is asking with a loose body, and a SILENT refusal there is indistinguishable from
+     the ability being unwired -- which is the exact state this gate was filed about. */
+  formeOnHitNoSpecies: 0, formeOnHitNoSpeciesFirst: '',
+  /* 2026-08-23 -- the `formeOnHit` param carried no `from` species, so there was nothing to compare the
+     body against. Never expected: `tag_dex.js` derives `from` and `becomes` together off the dex's
+     `battleOnly` link and cannot emit one without the other. Non-zero means the tag shape changed
+     upstream and the gate is refusing rather than guessing. */
+  formeOnHitNoFromSpecies: 0, formeOnHitNoFromSpeciesFirst: '',
   /* WIRE 141 -- a `formeCycleResidual` member whose two formes are NOT identical in stats and types
    * AND whose target forme has no row. Zero members today (Hunger Switch is the whole class and its
    * pair is identical), so a non-zero here is a new carrier arriving, not a Morpeko. */
@@ -8652,12 +8666,73 @@ function rollConditionalPower(moveId,rnd){
 
 /* THE FACT, IN ONE PLACE, because two implementations of it is what produced the row above.
  * Returns null when nothing absorbs, else the ability's own params and the chip it costs the holder.
- * `_disguiseBusted` is the state the loop sets; an unbuilt hypothetical body has it undefined, which
- * correctly reads as INTACT. */
+ *
+ * 2026-08-23 -- THE COMMENT THAT STOOD HERE ASSERTED THE OPPOSITE OF WHAT THE CODE DID. It read
+ * "`_disguiseBusted` is the state the loop sets; an unbuilt hypothetical body has it undefined, which
+ * correctly reads as INTACT". That is exactly backwards for the body this engine is most often handed:
+ * `MC.mons` CARRIES A `mimikyu-busted` ROW (`ab: "Disguise"`, `base: "mimikyu"`), so `buildMon(
+ * 'mimikyu-busted')` returns an ALREADY-BUSTED Mimikyu whose `_disguiseBusted` is undefined -- and the
+ * runtime flag alone read that as an intact disguise and ate the hit.
+ *
+ * THE AUTHORITY GATES ON THE SPECIES, NOT ON A FLAG (data/abilities.ts:962-968, INHERITED by
+ * data/mods/champions/abilities.ts:14 which overrides only `onEffectiveness`):
+ *
+ *     onDamage(damage, target, source, effect) {
+ *       if (effect?.effectType === 'Move' && ['mimikyu', 'mimikyutotem'].includes(target.species.id)) {
+ *
+ * `effectState.busted` is bookkeeping for `onUpdate`; what refuses the SECOND hit is that the body is
+ * now `mimikyubusted` and is not on that list. So this asks both: the species must be the one the tag
+ * names as the intact forme, AND the flag must not already be set.
+ *
+ * THE SPECIES COMES OFF THE TAG, NOT OFF A NAME PAIR TYPED HERE. `formeOnHit.from` is derived in
+ * engine/tag_dex.js from the dex's `battleOnly` link -- the busted forme names its base and the base
+ * carries the ability -- so a member added upstream arrives with its own pair and this line needs no
+ * edit. Membership of `formeOnHit` in this regulation is ONE ability, printed before this was wired:
+ * Disguise (Mimikyu -> Mimikyu-Busted). Ice Face is the other member of the mechanic upstream and has
+ * ZERO legal carriers here -- Eiscue is `isNonstandard: 'Past'`, `tier: 'Illegal'` -- which is why
+ * `data/tags.json` has no `iceface` entry at all.
+ *
+ * WHAT THIS DOES NOT COVER, DECLARED RATHER THAN DISCOVERED. The authority's list has TWO ids and the
+ * tag names one, because `mimikyutotem` is `isNonstandard: 'Past'` / `tier: 'Illegal'` in Champions and
+ * has no `MC.mons` row, so no body this engine can build is ever that species. If a totem forme is ever
+ * legalised, the tag derivation returns the FIRST battleOnly match and would name one pair of the two;
+ * that is a tag_dex change, not a change here.
+ *
+ * THE NORMALISATION IS THE FILE'S OWN. `engine/mc_key.js` is the project's one resolver and this file
+ * is BASELINED as an exception to it (see monRow's header) because it is a browser file and cannot
+ * `require`. `pasteKey` is the in-file doorway `formeSwap` already uses for exactly this species pair,
+ * so the break path and this gate cannot disagree about what "Mimikyu-Busted" is called. A name that
+ * resolves to NOTHING is compared flat instead, and a body with no species at all is COUNTED -- a
+ * silent refusal there would look exactly like the ability being unwired, which is the state this
+ * whole block was filed about.
+ *
+ * MEDI_FORMEONHIT_SPECIES_BLIND=1 puts the flag-only gate back, so the census row can be shown MISSING
+ * on demand without swapping a file. Any run carrying it also carries a non-zero
+ * `MEDFAILS.formeOnHitSpeciesBlindRestored`. */
 function formeOnHitAbsorbs(tg){
   if(!tg||tg._disguiseBusted)return null;
   const fh=TAGS.param('ability',tg&&tg.ability,'formeOnHit');
   if(!fh||!fh.becomes)return null;
+  if(FORMEONHIT_SPECIES_BLIND)MEDFAILS.formeOnHitSpeciesBlindRestored++;
+  else{
+    /* BOTH SIDES THROUGH THE SAME TWO STEPS, and that is not tidiness. `pasteKey` returns the table's
+     * HYPHENATED key (`mimikyu-busted`) while a raw tag name is `Mimikyu-Busted`; comparing one of
+     * each would read unequal for a body that IS the named forme. So resolve, then flatten, always. */
+    const spec=s=>normAb(pasteKey(s)||s);
+    const want=fh.from?spec(fh.from):'';
+    const have=tg.name?spec(tg.name):'';
+    if(!have){
+      MEDFAILS.formeOnHitNoSpecies++;
+      if(!MEDFAILS.formeOnHitNoSpeciesFirst)MEDFAILS.formeOnHitNoSpeciesFirst=String(tg.ability||'?');
+      return null;
+    }
+    if(!want){
+      MEDFAILS.formeOnHitNoFromSpecies++;
+      if(!MEDFAILS.formeOnHitNoFromSpeciesFirst)MEDFAILS.formeOnHitNoFromSpeciesFirst=String(tg.ability||'?')+' -> '+String(fh.becomes);
+      return null;
+    }
+    if(have!==want)return null;
+  }
   const max=(tg.st&&tg.st.hp)||0;
   return {fh,chip:Math.floor(max/(+fh.costsMaxHPDiv||8))};
 }
@@ -8787,6 +8862,12 @@ const DRAIN_LUMP_ROUND=(typeof process!=='undefined'&&process.env&&process.env.M
  * engine did until today. It exists so the census row can be shown MISSING on demand without swapping
  * a file. Any run carrying it also carries a non-zero `MEDFAILS.proteanAttackOnlyRestored`. */
 const PROTEAN_ATTACK_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PROTEAN_ATTACK_ONLY==='1');
+/* 2026-08-23 -- MEDI_FORMEONHIT_SPECIES_BLIND=1 PUTS THE FLAG-ONLY DISGUISE GATE BACK: `formeOnHitAbsorbs`
+ * stops asking which SPECIES it is looking at, so a body built straight from the `mimikyu-busted` row
+ * absorbs a hit it must not -- which is what this engine did until today. It exists so the census row
+ * can be shown MISSING on demand without swapping a file. Any run carrying it also carries a non-zero
+ * `MEDFAILS.formeOnHitSpeciesBlindRestored`. Same shape as MEDI_PROTEAN_ATTACK_ONLY above. */
+const FORMEONHIT_SPECIES_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FORMEONHIT_SPECIES_BLIND==='1');
 function sleepDurationDraw(){
   const r=medRng();
   const u=(typeof r==='function')?r():0.5;

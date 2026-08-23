@@ -560,6 +560,47 @@ function figureRules(base, next) {
   }
 }
 
+/* ---- PROVENANCE KEYS vs RATCHET KEYS — 2026-08-23 ----------------------------------------------
+ *
+ * A CHECK MAY ONLY DIRTY THE TREE FOR A FINDING. This file writes its baseline on every green run,
+ * and on 2026-08-23 that produced THREE commits containing nothing but this file — 086dd25, 4383241,
+ * 483f529 — each left behind by the pre-commit hook, behind the commit the hook had just cleared.
+ *
+ * All three diffs were IDENTICAL IN SHAPE and carried no ratchet movement whatsoever: `generated`
+ * moved, and `changelog_top_at_baseline` moved (5.88.0 -> 5.89.0, 5.91.0 -> 5.91.1, 5.91.1 -> 5.91.2).
+ * No list gained or lost an entry, no count moved, no figure changed. 0 of 3 carried information.
+ *
+ * The mechanism is a loop, which is why it fired three times in one night rather than once. The write
+ * already skipped `generated` — but NOT `changelog_top_at_baseline`, which tracks the CHANGELOG top.
+ * The living-docs rule REQUIRES a CHANGELOG bump on exactly the commits that trip this hook. So the
+ * gate rewrote itself on precisely the class of commit it fires on, every single time, forever.
+ *
+ * The cost is not the file. It is that a gate dirtying the tree on every run trains everyone to
+ * ignore a dirty tree, and this repository's start procedure opens with `git status` and reads
+ * anything unexpected as a previous agent having died half-finished. Same shape as normalising a red
+ * test: the signal keeps firing and people stop reading it.
+ *
+ * So the keys are CLASSIFIED. A PROVENANCE key stamps the run; it never justifies a write on its own,
+ * and it is refreshed whenever a real write happens. A RATCHET key is content: it is what the gate
+ * measures, and a change in one is a finding worth a diff.
+ *
+ * READ `changelog_top_at_baseline` ACCORDINGLY, because its meaning changed with this: it is now the
+ * CHANGELOG top at the last time the ratchet CONTENT moved, not at the last time anything ran it.
+ * That is the more useful of the two readings — it dates the measurement rather than the invocation —
+ * but it is a different sentence and it is written down here rather than left to be inferred.
+ *
+ * WHAT THIS DOES NOT DO: it does not make the gate quieter. Every clause still runs, every ratchet
+ * still fails on a new entry, and real movement still writes and still shows up in `git status`.
+ * The hook stages that case rather than abandoning it — see .githooks/pre-commit. */
+const PROVENANCE = {
+  generated: 'wall clock of the run that last moved the ratchet',
+  changelog_top_at_baseline: 'CHANGELOG top when the ratchet content was last measured',
+};
+/* Every other key this file writes. A key that is in NEITHER list fails clause 4 below, so adding a
+ * new derived key forces its author to say which kind it is — which is the whole defect: nobody
+ * classified `changelog_top_at_baseline` when it was added, so it silently became a write trigger. */
+const RATCHET_KEYS = ['by', 'rule', 'version_pins', 'unversioned_exempt', 'archive_grandfathered', 'known'];
+
 /* ---- run -------------------------------------------------------------------------------------- */
 const base = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')) : {};
 const next = {
@@ -578,24 +619,48 @@ archiveRule(base, next);
 archiveIndexRule();
 figureRules(base, next);
 
-/* The baseline tightens on every green run and never loosens itself. If anything failed, the file is
- * left exactly as it was: a run that found a regression must not record the regression as normal.
+/* ---- 4. EVERY KEY THIS FILE WRITES IS CLASSIFIED ----------------------------------------------- */
+console.log('\n== 4. every key written to the baseline is classified provenance or ratchet ==');
+{
+  const unclassified = Object.keys(next).filter(k => !(k in PROVENANCE) && !RATCHET_KEYS.includes(k));
+  ok(unclassified.length === 0,
+    `no unclassified key in the baseline (${Object.keys(PROVENANCE).length} provenance, ${RATCHET_KEYS.length} ratchet)` +
+    (unclassified.length ? ` — UNCLASSIFIED: ${unclassified.join(', ')}` : ''));
+  if (unclassified.length) {
+    console.log('         A key that is neither stops this check being read-only OR stops it recording a');
+    console.log('         finding. Add it to PROVENANCE if it stamps the RUN (it must never trigger a write),');
+    console.log('         or to RATCHET_KEYS if it is CONTENT the gate measures. `changelog_top_at_baseline`');
+    console.log('         was added unclassified and cost three empty commits on 2026-08-23.');
+  }
+}
+
+/* The baseline tightens when the RATCHET MOVED and never loosens itself. If anything failed, the file
+ * is left exactly as it was: a run that found a regression must not record the regression as normal.
  *
  * `|| UPDATE` REMOVED 2026-08-15. It let a RED run write the file, which is the same sentence as "a
  * run that found a regression must not record the regression as normal" with an exception attached.
  * It was not theoretical: the first monotone `--update` of the evening recorded a figure set taken
- * from a failing run. Fail-closed — fix the gate, then let a green run tighten it. */
+ * from a failing run. Fail-closed — fix the gate, then let a green run tighten it.
+ *
+ * THE COMPARISON IS OVER PARSED CONTENT, NOT TEXT — 2026-08-23. It used to compare the two JSON
+ * STRINGS with `"generated"` deleted by regex, which meant any key not named in that one regex was a
+ * write trigger, and re-indentation or key reordering was one too. Comparing the objects with the
+ * PROVENANCE keys dropped says what was actually meant: write iff a measured value changed. */
 if (F === 0) {
   /* base first so hand-written keys — the note_* explanations, any reason a person added — survive a
    * rewrite; next second so every DERIVED key is replaced by what was just measured. A generated file
    * that eats the prose explaining it is how a baseline turns back into an unexplained list. */
   const merged = { ...base, ...next };
-  const before = fs.existsSync(BASELINE) ? fs.readFileSync(BASELINE, 'utf8') : '';
-  const after = JSON.stringify(merged, null, 2) + '\n';
-  const strip = s => s.replace(/"generated":\s*"[^"]*",?\n/, '');
-  if (strip(before) !== strip(after)) {
-    fs.writeFileSync(BASELINE, after);
-    console.log(`\n(baseline tightened: ${path.relative(ROOT, BASELINE)})`);
+  const content = o => JSON.stringify(Object.fromEntries(
+    Object.entries(o).filter(([k]) => !(k in PROVENANCE)).sort(([a], [b]) => (a < b ? -1 : 1))));
+  if (content(base) !== content(merged)) {
+    fs.writeFileSync(BASELINE, JSON.stringify(merged, null, 2) + '\n');
+    console.log(`\n(baseline tightened: ${path.relative(ROOT, BASELINE)} — the RATCHET moved, so this is a`);
+    console.log(' finding and belongs in the same commit. The pre-commit hook stages it for you.)');
+  } else {
+    console.log(`\n(no ratchet movement — ${path.relative(ROOT, BASELINE)} left untouched. It stamps`);
+    console.log(` ${base.generated || 'never'} / CHANGELOG ${base.changelog_top_at_baseline || '?'},`);
+    console.log(' which is when the CONTENT last moved, not when this last ran.)');
   }
 }
 

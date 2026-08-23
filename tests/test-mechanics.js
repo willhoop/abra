@@ -7793,6 +7793,64 @@ probe('ability', 'formeOnHit', 'a busting Disguise writes FOUR lines, and two of
                  + 'lost ' + plain.lost + ', lines "' + plain.lines + '"' };
 });
 
+/* THE DISGUISE IS ALREADY GONE, AND THIS ENGINE GAVE IT BACK TO EVERY BODY IT WAS HANDED.
+ *
+ * The probe above stages an INTACT Mimikyu and busts it inside one turn, so the runtime flag is set by
+ * the very turn being measured and the gate never has to answer the harder question: what about a body
+ * that ARRIVED busted? `formeOnHitAbsorbs` gated on `tg._disguiseBusted` alone, and the authority does
+ * not (data/abilities.ts:962-968, inherited unchanged by data/mods/champions/abilities.ts:14):
+ *
+ *     onDamage(damage, target, source, effect) {
+ *       if (effect?.effectType === 'Move' && ['mimikyu', 'mimikyutotem'].includes(target.species.id)) {
+ *
+ * `effectState.busted` is bookkeeping for `onUpdate`. What refuses the SECOND hit is the SPECIES.
+ *
+ * AND THE BUSTED BODY IS BUILDABLE, WHICH IS WHY THIS IS NOT HYPOTHETICAL. `MC.mons` carries a
+ * `mimikyu-busted` row (`ab: "Disguise"`, `base: "mimikyu"`), so `buildMon('mimikyu-busted')` hands back
+ * a Mimikyu-Busted carrying Disguise with `_disguiseBusted` undefined — which the old gate read as an
+ * intact disguise and let eat a hit. `data/move-priors.json` records 876 acts under `mimikyubusted`
+ * against 485 under `mimikyu`, so the ingest sees the busted forme MORE often than the intact one, and
+ * anything built from observed state inherits the free hit. It is also the differential's
+ * `machamp rockslide -> mimikyubusted: showdown 57-68, medicham 0-0` row.
+ *
+ * THREE ARMS, AND THE THIRD IS WHAT STOPS THIS GOING GREEN ON A DEAD ABILITY. Deleting the absorb
+ * entirely would satisfy "the busted body takes damage"; it would fail the INTACT arm, which must still
+ * lose exactly maxhp/8 and rename itself. And the busted body's loss is asserted EQUAL to the same body
+ * with the ability blanked, so "takes some damage" cannot pass for "takes the damage the move deals".
+ *
+ * MEDI_FORMEONHIT_SPECIES_BLIND=1 puts the flag-only gate back and this row reads MISSING. */
+probe('ability', 'formeOnHit', 'a body that is ALREADY the busted forme absorbs nothing', () => {
+  const run = (species, ability) => {
+    const me = bare('corviknight'), ally = bare('skarmory');
+    const f1 = bare(species), f2 = bare('milotic');
+    f1.ability = ability;
+    /* NOT A CONVENIENCE. Iron Head into a 130 HP Mimikyu-Busted can KO, and a KO clamps the loss at the
+     * body's own maximum — which would make the busted arm and the blanked-ability arm agree for a
+     * reason that has nothing to do with Disguise. The eighth is read off the body AS STAGED for the
+     * same reason the probe above does it. */
+    unfaintable(f1);
+    me.moves = ['ironhead', 'bodyslam', 'bravebird', 'protect'];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'ironhead', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { lost: before - f1.curHP, eighth: Math.floor(f1.st.hp / 8), name: f1.name };
+  };
+  const intact = run('mimikyu', 'disguise');
+  const busted = run('mimikyu-busted', 'disguise');
+  const noAbil = run('mimikyu-busted', 'none');
+  return { works: intact.lost === intact.eighth && intact.name === 'mimikyu-busted'
+                  && busted.name === 'mimikyu-busted'
+                  && busted.lost > intact.lost && busted.lost === noAbil.lost,
+           arms: { control: [intact.lost, intact.name], test: [busted.lost, busted.name] },
+           detail: 'Iron Head, one click, three bodies. INTACT mimikyu + Disguise lost ' + intact.lost
+                 + ' (maxhp/8 = ' + intact.eighth + ') and is now "' + intact.name + '". ALREADY-BUSTED '
+                 + 'mimikyu-busted + Disguise lost ' + busted.lost + '. Same body, ability blanked, lost '
+                 + noAbil.lost + ' — the busted arm must equal THAT, not merely exceed the chip, or '
+                 + '"takes some damage" would pass for "takes the move".' };
+});
+
 /* THE SECOND MEMBER OF THE SAME FAMILY AS IRON BALL, AND THE ONE WITH THE REACH.
  *
  * `runEffectiveness` (sim/pokemon.ts:2214) raises `Effectiveness` once per DEFENDING TYPE. Disguise's

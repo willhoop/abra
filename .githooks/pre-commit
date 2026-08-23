@@ -74,6 +74,33 @@ FAILED=0
 #
 # It is in the same loop as the docs gates and under the same scope guard: it only fires when
 # engine/, tests/ or docs/ move, so a pure artifact regeneration still commits freely.
+
+# THE HOOK MUST NOT LEAVE ITS OWN GATE'S OUTPUT BEHIND THE COMMIT IT JUST CLEARED -- 2026-08-23.
+#
+# tests/test-docs-current.js writes data/docs-currency-baseline.json on a green run when the ratchet
+# has moved. Run from here, that write landed in the working tree AFTER the index was built, so the
+# commit went out without it and the file sat dirty. Three commits on 2026-08-23 -- 086dd25, 4383241,
+# 483f529 -- contained nothing else, each cleaning up after the one before.
+#
+# The bulk of that was the gate rewriting itself for no finding at all, and that is fixed in the gate
+# (PROVENANCE vs RATCHET keys; 0 of the 3 diffs carried information). What remains is the case where
+# the ratchet GENUINELY moved, and for that the file is a FINDING and belongs in this commit. Staging
+# it is safe by construction: that write happens only on a GREEN run and is MONOTONE -- lists may only
+# shrink and counts may only fall -- so it cannot smuggle in a regression.
+#
+# THE LIST IS NAMED, NOT SWEPT, AND THAT IS DELIBERATE. Diffing the whole tree before and after would
+# be self-maintaining and would also stage whatever another agent happened to write during the two
+# seconds the gates were running -- and several agents run against this repository at once. A hook
+# that edits the index may only touch files it can name. The other two gates in the loop above were
+# MEASURED read-only on 2026-08-23: test-roadmap-register.js contains no write at all, and
+# test-artifact-rerunnable.js writes only under --stamp. If either ever writes by default, add it here.
+GATE_ARTIFACTS="data/docs-currency-baseline.json"
+GATE_SNAP="$(git rev-parse --git-dir)/precommit-gate-snap.$$"
+: > "$GATE_SNAP"
+for f in $GATE_ARTIFACTS; do
+  echo "$(git hash-object "$f" 2>/dev/null || echo ABSENT) $f" >> "$GATE_SNAP"
+done
+
 for t in tests/test-docs-current.js tests/test-roadmap-register.js tests/test-artifact-rerunnable.js; do
   [ -f "$t" ] || continue
   if ! OUT=$(node "$t" 2>&1); then
@@ -83,6 +110,23 @@ for t in tests/test-docs-current.js tests/test-roadmap-register.js tests/test-ar
     FAILED=1
   fi
 done
+
+# Only when the gates were GREEN. A red run does not write, and if one ever did, adopting its output
+# is the "a run that found a regression must not record the regression as normal" failure.
+if [ "$FAILED" -eq 0 ]; then
+  while read -r WAS F_PATH; do
+    NOW=$(git hash-object "$F_PATH" 2>/dev/null || echo ABSENT)
+    [ "$NOW" = "$WAS" ] && continue
+    if git add -- "$F_PATH" 2>/dev/null; then
+      echo "  STAGED by the gate: $F_PATH -- the ratchet moved, so it is part of THIS commit."
+      echo "    (it tightened; the write is green-only and monotone. git diff --cached -- $F_PATH)"
+    else
+      echo "  WARNING: $F_PATH was rewritten by the gate and could NOT be staged."
+      echo "    It is a finding. Include it:  git add -- $F_PATH && git commit --amend --no-edit"
+    fi
+  done < "$GATE_SNAP"
+fi
+rm -f "$GATE_SNAP"
 
 if [ "$FAILED" -ne 0 ]; then
   cat <<'MSG'

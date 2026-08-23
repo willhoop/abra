@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-23T06:05:43.466Z",
+  "generated": "2026-08-23T09:07:44.090Z",
   "by": "tests/test-engine-diff.js",
   "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
   "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
   "seed": 20260804,
   "requested": 6000,
   "compared": 6000,
-  "agreed": 5944,
-  "disagreed": 56,
+  "agreed": 5959,
+  "disagreed": 41,
   "worst": [
     {
       "att": "lopunnymega",
@@ -37,16 +37,6 @@
       "medicham": "31-37",
       "rel": 0.23636363636363636,
       "uses": 24726,
-      "suspect": false
-    },
-    {
-      "att": "machamp",
-      "mv": "rockslide",
-      "def": "mimikyubusted",
-      "showdown": "57-68",
-      "medicham": "0-0",
-      "rel": 1,
-      "uses": 22134,
       "suspect": false
     },
     {
@@ -167,36 +157,6 @@
       "medicham": "178-185",
       "rel": 0.2181208053691275,
       "uses": 7830,
-      "suspect": false
-    },
-    {
-      "att": "gyaradosmega",
-      "mv": "hurricane",
-      "def": "mimikyubusted",
-      "showdown": "30-36",
-      "medicham": "0-0",
-      "rel": 1,
-      "uses": 5603,
-      "suspect": false
-    },
-    {
-      "att": "vivillonpolar",
-      "mv": "hurricane",
-      "def": "mimikyubusted",
-      "showdown": "79-94",
-      "medicham": "0-0",
-      "rel": 1,
-      "uses": 5603,
-      "suspect": false
-    },
-    {
-      "att": "machamp",
-      "mv": "knockoff",
-      "def": "mimikyubusted",
-      "showdown": "50-59",
-      "medicham": "0-0",
-      "rel": 1,
-      "uses": 5269,
       "suspect": false
     },
     {
@@ -370,36 +330,6 @@
       "suspect": false
     },
     {
-      "att": "simipour",
-      "mv": "icywind",
-      "def": "mimikyubusted",
-      "showdown": "18-22",
-      "medicham": "0-0",
-      "rel": 1,
-      "uses": 3008,
-      "suspect": false
-    },
-    {
-      "att": "greninjamega",
-      "mv": "icebeam",
-      "def": "mimikyubusted",
-      "showdown": "56-66",
-      "medicham": "0-0",
-      "rel": 1,
-      "uses": 2240,
-      "suspect": false
-    },
-    {
-      "att": "slowbro",
-      "mv": "icebeam",
-      "def": "mimikyubusted",
-      "showdown": "51-61",
-      "medicham": "0-0",
-      "rel": 1,
-      "uses": 2240,
-      "suspect": false
-    },
-    {
       "att": "kangaskhanmega",
       "mv": "drainpunch",
       "def": "cameruptmega",
@@ -407,6 +337,76 @@
       "medicham": "57-69",
       "rel": 0.24752475247524752,
       "uses": 1507,
+      "suspect": false
+    },
+    {
+      "att": "cameruptmega",
+      "mv": "ancientpower",
+      "def": "tyranitar",
+      "showdown": "41-49",
+      "medicham": "53-63",
+      "rel": 0.28888888888888886,
+      "uses": 1449,
+      "suspect": false
+    },
+    {
+      "att": "cameruptmega",
+      "mv": "ancientpower",
+      "def": "kangaskhan",
+      "showdown": "50-59",
+      "medicham": "64-76",
+      "rel": 0.28440366972477066,
+      "uses": 1449,
+      "suspect": false
+    },
+    {
+      "att": "cameruptmega",
+      "mv": "ancientpower",
+      "def": "vanilluxe",
+      "showdown": "86-102",
+      "medicham": "112-132",
+      "rel": 0.2978723404255319,
+      "uses": 1449,
+      "suspect": false
+    },
+    {
+      "att": "cameruptmega",
+      "mv": "flamethrower",
+      "def": "polteageistantique",
+      "showdown": "82-97",
+      "medicham": "106-126",
+      "rel": 0.29608938547486036,
+      "uses": 1304,
+      "suspect": false
+    },
+    {
+      "att": "cameruptmega",
+      "mv": "flamethrower",
+      "def": "venusaurmega",
+      "showdown": "80-96",
+      "medicham": "102-122",
+      "rel": 0.2727272727272727,
+      "uses": 1304,
+      "suspect": false
+    },
+    {
+      "att": "cameruptmega",
+      "mv": "flamethrower",
+      "def": "meowsticf",
+      "showdown": "109-129",
+      "medicham": "142-149",
+      "rel": 0.22268907563025211,
+      "uses": 1304,
+      "suspect": false
+    },
+    {
+      "att": "gyaradosmega",
+      "mv": "crunch",
+      "def": "dragonitemega",
+      "showdown": "38-45",
+      "medicham": "76-91",
+      "rel": 1.0120481927710843,
+      "uses": 650,
       "suspect": false
     }
   ],
@@ -417,8 +417,8 @@
       "what": "Showdown damage roll index 0 (MAXIMUM) against MEDICHAM's `max`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5945,
-      "disagreed": 55,
+      "agreed": 5960,
+      "disagreed": 40,
       "worst": [
         {
           "att": "lopunnymega",
@@ -448,16 +448,6 @@
           "medicham": "37",
           "rel": 0.23333333333333334,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "68",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -578,36 +568,6 @@
           "medicham": "185",
           "rel": 0.1419753086419753,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "36",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "94",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "59",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -781,36 +741,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "22",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "66",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "61",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -818,6 +748,76 @@
           "medicham": "69",
           "rel": 0.2545454545454545,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "49",
+          "medicham": "63",
+          "rel": 0.2857142857142857,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "59",
+          "medicham": "76",
+          "rel": 0.288135593220339,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "102",
+          "medicham": "132",
+          "rel": 0.29411764705882354,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "97",
+          "medicham": "126",
+          "rel": 0.29896907216494845,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "96",
+          "medicham": "122",
+          "rel": 0.2708333333333333,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "129",
+          "medicham": "149",
+          "rel": 0.15503875968992248,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "gyaradosmega",
+          "mv": "crunch",
+          "def": "dragonitemega",
+          "showdown": "45",
+          "medicham": "91",
+          "rel": 1.0222222222222221,
+          "uses": 650,
           "suspect": false
         }
       ]
@@ -827,8 +827,8 @@
       "what": "Showdown damage roll index 15 (MINIMUM) against MEDICHAM's `min`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5942,
-      "disagreed": 58,
+      "agreed": 5957,
+      "disagreed": 43,
       "worst": [
         {
           "att": "lopunnymega",
@@ -858,16 +858,6 @@
           "medicham": "31",
           "rel": 0.24,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "57",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -988,36 +978,6 @@
           "medicham": "178",
           "rel": 0.3088235294117647,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "30",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "79",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "50",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -1191,36 +1151,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "18",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "56",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "51",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -1228,6 +1158,76 @@
           "medicham": "57",
           "rel": 0.2391304347826087,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "kangaskhanmega",
+          "mv": "drainpunch",
+          "def": "ditto",
+          "showdown": "108",
+          "medicham": "123",
+          "rel": 0.1388888888888889,
+          "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "kangaskhanmega",
+          "mv": "drainpunch",
+          "def": "castformsnowy",
+          "showdown": "124",
+          "medicham": "147",
+          "rel": 0.18548387096774194,
+          "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "41",
+          "medicham": "53",
+          "rel": 0.2926829268292683,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "50",
+          "medicham": "64",
+          "rel": 0.28,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "86",
+          "medicham": "112",
+          "rel": 0.3023255813953488,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "82",
+          "medicham": "106",
+          "rel": 0.2926829268292683,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "80",
+          "medicham": "102",
+          "rel": 0.275,
+          "uses": 1304,
           "suspect": false
         }
       ]
@@ -1237,8 +1237,8 @@
       "what": "Showdown damage roll index 1 (roll 99%) against MEDICHAM's own `rolls[1]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5944,
-      "disagreed": 56,
+      "agreed": 5959,
+      "disagreed": 41,
       "worst": [
         {
           "att": "lopunnymega",
@@ -1268,16 +1268,6 @@
           "medicham": "34",
           "rel": 0.21428571428571427,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "67",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -1398,36 +1388,6 @@
           "medicham": "185",
           "rel": 0.16352201257861634,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "35",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "93",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "58",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -1601,36 +1561,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "21",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "65",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "60",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -1638,6 +1568,76 @@
           "medicham": "67",
           "rel": 0.24074074074074073,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "48",
+          "medicham": "62",
+          "rel": 0.2916666666666667,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "58",
+          "medicham": "75",
+          "rel": 0.29310344827586204,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "100",
+          "medicham": "130",
+          "rel": 0.3,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "96",
+          "medicham": "124",
+          "rel": 0.2916666666666667,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "92",
+          "medicham": "120",
+          "rel": 0.30434782608695654,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "127",
+          "medicham": "149",
+          "rel": 0.1732283464566929,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "gyaradosmega",
+          "mv": "crunch",
+          "def": "dragonitemega",
+          "showdown": "45",
+          "medicham": "90",
+          "rel": 1,
+          "uses": 650,
           "suspect": false
         }
       ]
@@ -1647,8 +1647,8 @@
       "what": "Showdown damage roll index 2 (roll 98%) against MEDICHAM's own `rolls[2]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5944,
-      "disagreed": 56,
+      "agreed": 5959,
+      "disagreed": 41,
       "worst": [
         {
           "att": "lopunnymega",
@@ -1678,16 +1678,6 @@
           "medicham": "34",
           "rel": 0.21428571428571427,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "66",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -1808,36 +1798,6 @@
           "medicham": "185",
           "rel": 0.17834394904458598,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "35",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "91",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "57",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -2011,36 +1971,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "21",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "64",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "59",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -2048,6 +1978,76 @@
           "medicham": "66",
           "rel": 0.24528301886792453,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "48",
+          "medicham": "61",
+          "rel": 0.2708333333333333,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "57",
+          "medicham": "74",
+          "rel": 0.2982456140350877,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "98",
+          "medicham": "128",
+          "rel": 0.30612244897959184,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "94",
+          "medicham": "123",
+          "rel": 0.30851063829787234,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "92",
+          "medicham": "120",
+          "rel": 0.30434782608695654,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "126",
+          "medicham": "149",
+          "rel": 0.18253968253968253,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "gyaradosmega",
+          "mv": "crunch",
+          "def": "dragonitemega",
+          "showdown": "44",
+          "medicham": "88",
+          "rel": 1,
+          "uses": 650,
           "suspect": false
         }
       ]
@@ -2057,8 +2057,8 @@
       "what": "Showdown damage roll index 3 (roll 97%) against MEDICHAM's own `rolls[3]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5944,
-      "disagreed": 56,
+      "agreed": 5959,
+      "disagreed": 41,
       "worst": [
         {
           "att": "lopunnymega",
@@ -2088,16 +2088,6 @@
           "medicham": "34",
           "rel": 0.21428571428571427,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "65",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -2218,36 +2208,6 @@
           "medicham": "185",
           "rel": 0.1858974358974359,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "34",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "91",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "57",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -2421,36 +2381,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "21",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "64",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "59",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -2458,6 +2388,76 @@
           "medicham": "66",
           "rel": 0.24528301886792453,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "47",
+          "medicham": "61",
+          "rel": 0.2978723404255319,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "57",
+          "medicham": "73",
+          "rel": 0.2807017543859649,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "98",
+          "medicham": "128",
+          "rel": 0.30612244897959184,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "94",
+          "medicham": "121",
+          "rel": 0.2872340425531915,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "92",
+          "medicham": "116",
+          "rel": 0.2608695652173913,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "124",
+          "medicham": "149",
+          "rel": 0.20161290322580644,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "gyaradosmega",
+          "mv": "crunch",
+          "def": "dragonitemega",
+          "showdown": "44",
+          "medicham": "88",
+          "rel": 1,
+          "uses": 650,
           "suspect": false
         }
       ]
@@ -2467,8 +2467,8 @@
       "what": "Showdown damage roll index 4 (roll 96%) against MEDICHAM's own `rolls[4]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5944,
-      "disagreed": 56,
+      "agreed": 5959,
+      "disagreed": 41,
       "worst": [
         {
           "att": "lopunnymega",
@@ -2498,16 +2498,6 @@
           "medicham": "34",
           "rel": 0.21428571428571427,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "65",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -2628,36 +2618,6 @@
           "medicham": "185",
           "rel": 0.2012987012987013,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "34",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "90",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "56",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -2831,36 +2791,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "21",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "63",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "58",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -2868,6 +2798,76 @@
           "medicham": "65",
           "rel": 0.25,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "47",
+          "medicham": "60",
+          "rel": 0.2765957446808511,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "56",
+          "medicham": "72",
+          "rel": 0.2857142857142857,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "96",
+          "medicham": "126",
+          "rel": 0.3125,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "93",
+          "medicham": "120",
+          "rel": 0.2903225806451613,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "90",
+          "medicham": "116",
+          "rel": 0.28888888888888886,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "123",
+          "medicham": "149",
+          "rel": 0.21138211382113822,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "gyaradosmega",
+          "mv": "crunch",
+          "def": "dragonitemega",
+          "showdown": "43",
+          "medicham": "87",
+          "rel": 1.0232558139534884,
+          "uses": 650,
           "suspect": false
         }
       ]
@@ -2877,8 +2877,8 @@
       "what": "Showdown damage roll index 5 (roll 95%) against MEDICHAM's own `rolls[5]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5944,
-      "disagreed": 56,
+      "agreed": 5959,
+      "disagreed": 41,
       "worst": [
         {
           "att": "lopunnymega",
@@ -2908,16 +2908,6 @@
           "medicham": "34",
           "rel": 0.21428571428571427,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "64",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -3038,36 +3028,6 @@
           "medicham": "185",
           "rel": 0.20915032679738563,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "34",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "88",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "56",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -3241,36 +3201,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "20",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "62",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "57",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -3278,6 +3208,76 @@
           "medicham": "65",
           "rel": 0.25,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "46",
+          "medicham": "59",
+          "rel": 0.2826086956521739,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "56",
+          "medicham": "72",
+          "rel": 0.2857142857142857,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "96",
+          "medicham": "124",
+          "rel": 0.2916666666666667,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "91",
+          "medicham": "118",
+          "rel": 0.2967032967032967,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "90",
+          "medicham": "114",
+          "rel": 0.26666666666666666,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "121",
+          "medicham": "149",
+          "rel": 0.23140495867768596,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "gyaradosmega",
+          "mv": "crunch",
+          "def": "dragonitemega",
+          "showdown": "42",
+          "medicham": "85",
+          "rel": 1.0238095238095237,
+          "uses": 650,
           "suspect": false
         }
       ]
@@ -3287,8 +3287,8 @@
       "what": "Showdown damage roll index 6 (roll 94%) against MEDICHAM's own `rolls[6]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5944,
-      "disagreed": 56,
+      "agreed": 5959,
+      "disagreed": 41,
       "worst": [
         {
           "att": "lopunnymega",
@@ -3318,16 +3318,6 @@
           "medicham": "33",
           "rel": 0.2222222222222222,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "63",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -3448,36 +3438,6 @@
           "medicham": "185",
           "rel": 0.2251655629139073,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "33",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "88",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "55",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -3651,36 +3611,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "20",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "62",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "57",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -3688,6 +3618,76 @@
           "medicham": "64",
           "rel": 0.2549019607843137,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "46",
+          "medicham": "59",
+          "rel": 0.2826086956521739,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "55",
+          "medicham": "71",
+          "rel": 0.2909090909090909,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "94",
+          "medicham": "124",
+          "rel": 0.3191489361702128,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "91",
+          "medicham": "117",
+          "rel": 0.2857142857142857,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "90",
+          "medicham": "114",
+          "rel": 0.26666666666666666,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "120",
+          "medicham": "149",
+          "rel": 0.24166666666666667,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "gyaradosmega",
+          "mv": "crunch",
+          "def": "dragonitemega",
+          "showdown": "42",
+          "medicham": "85",
+          "rel": 1.0238095238095237,
+          "uses": 650,
           "suspect": false
         }
       ]
@@ -3697,8 +3697,8 @@
       "what": "Showdown damage roll index 7 (roll 93%) against MEDICHAM's own `rolls[7]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5944,
-      "disagreed": 56,
+      "agreed": 5959,
+      "disagreed": 41,
       "worst": [
         {
           "att": "lopunnymega",
@@ -3728,16 +3728,6 @@
           "medicham": "33",
           "rel": 0.2222222222222222,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "63",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -3858,36 +3848,6 @@
           "medicham": "185",
           "rel": 0.23333333333333334,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "33",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "87",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "54",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -4061,36 +4021,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "20",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "61",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "56",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -4098,6 +4028,76 @@
           "medicham": "64",
           "rel": 0.2549019607843137,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "45",
+          "medicham": "58",
+          "rel": 0.28888888888888886,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "54",
+          "medicham": "70",
+          "rel": 0.2962962962962963,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "94",
+          "medicham": "122",
+          "rel": 0.2978723404255319,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "90",
+          "medicham": "117",
+          "rel": 0.3,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "86",
+          "medicham": "114",
+          "rel": 0.32558139534883723,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "118",
+          "medicham": "149",
+          "rel": 0.2627118644067797,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "gyaradosmega",
+          "mv": "crunch",
+          "def": "dragonitemega",
+          "showdown": "42",
+          "medicham": "84",
+          "rel": 1,
+          "uses": 650,
           "suspect": false
         }
       ]
@@ -4107,8 +4107,8 @@
       "what": "Showdown damage roll index 8 (roll 92%) against MEDICHAM's own `rolls[8]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5944,
-      "disagreed": 56,
+      "agreed": 5959,
+      "disagreed": 41,
       "worst": [
         {
           "att": "lopunnymega",
@@ -4138,16 +4138,6 @@
           "medicham": "33",
           "rel": 0.2222222222222222,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "62",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -4268,36 +4258,6 @@
           "medicham": "185",
           "rel": 0.25,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "33",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "85",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "54",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -4471,36 +4431,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "20",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "60",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "56",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -4508,6 +4438,76 @@
           "medicham": "62",
           "rel": 0.24,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "45",
+          "medicham": "57",
+          "rel": 0.26666666666666666,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "54",
+          "medicham": "69",
+          "rel": 0.2777777777777778,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "92",
+          "medicham": "120",
+          "rel": 0.30434782608695654,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "88",
+          "medicham": "115",
+          "rel": 0.3068181818181818,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "86",
+          "medicham": "110",
+          "rel": 0.27906976744186046,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "118",
+          "medicham": "149",
+          "rel": 0.2627118644067797,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "gyaradosmega",
+          "mv": "crunch",
+          "def": "dragonitemega",
+          "showdown": "42",
+          "medicham": "84",
+          "rel": 1,
+          "uses": 650,
           "suspect": false
         }
       ]
@@ -4517,8 +4517,8 @@
       "what": "Showdown damage roll index 9 (roll 91%) against MEDICHAM's own `rolls[9]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5944,
-      "disagreed": 56,
+      "agreed": 5959,
+      "disagreed": 41,
       "worst": [
         {
           "att": "lopunnymega",
@@ -4548,16 +4548,6 @@
           "medicham": "33",
           "rel": 0.2222222222222222,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "61",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -4678,36 +4668,6 @@
           "medicham": "185",
           "rel": 0.2585034013605442,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "32",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "85",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "53",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -4881,36 +4841,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "20",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "60",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "55",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -4918,6 +4848,76 @@
           "medicham": "62",
           "rel": 0.24,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "44",
+          "medicham": "57",
+          "rel": 0.29545454545454547,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "53",
+          "medicham": "69",
+          "rel": 0.3018867924528302,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "92",
+          "medicham": "120",
+          "rel": 0.30434782608695654,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "88",
+          "medicham": "114",
+          "rel": 0.29545454545454547,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "86",
+          "medicham": "110",
+          "rel": 0.27906976744186046,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "117",
+          "medicham": "149",
+          "rel": 0.27350427350427353,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "gyaradosmega",
+          "mv": "crunch",
+          "def": "dragonitemega",
+          "showdown": "41",
+          "medicham": "82",
+          "rel": 1,
+          "uses": 650,
           "suspect": false
         }
       ]
@@ -4927,8 +4927,8 @@
       "what": "Showdown damage roll index 10 (roll 90%) against MEDICHAM's own `rolls[10]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5943,
-      "disagreed": 57,
+      "agreed": 5958,
+      "disagreed": 42,
       "worst": [
         {
           "att": "lopunnymega",
@@ -4958,16 +4958,6 @@
           "medicham": "33",
           "rel": 0.2222222222222222,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "61",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -5088,36 +5078,6 @@
           "medicham": "185",
           "rel": 0.27586206896551724,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "32",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "84",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "53",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -5291,36 +5251,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "19",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "59",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "54",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -5328,6 +5258,76 @@
           "medicham": "61",
           "rel": 0.24489795918367346,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "kangaskhanmega",
+          "mv": "drainpunch",
+          "def": "castformsnowy",
+          "showdown": "130",
+          "medicham": "147",
+          "rel": 0.13076923076923078,
+          "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "44",
+          "medicham": "56",
+          "rel": 0.2727272727272727,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "53",
+          "medicham": "68",
+          "rel": 0.2830188679245283,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "90",
+          "medicham": "118",
+          "rel": 0.3111111111111111,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "87",
+          "medicham": "112",
+          "rel": 0.28735632183908044,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "84",
+          "medicham": "108",
+          "rel": 0.2857142857142857,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "115",
+          "medicham": "149",
+          "rel": 0.2956521739130435,
+          "uses": 1304,
           "suspect": false
         }
       ]
@@ -5337,8 +5337,8 @@
       "what": "Showdown damage roll index 11 (roll 89%) against MEDICHAM's own `rolls[11]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5943,
-      "disagreed": 57,
+      "agreed": 5958,
+      "disagreed": 42,
       "worst": [
         {
           "att": "lopunnymega",
@@ -5368,16 +5368,6 @@
           "medicham": "31",
           "rel": 0.24,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "60",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -5498,36 +5488,6 @@
           "medicham": "185",
           "rel": 0.2847222222222222,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "32",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "84",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "52",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -5701,36 +5661,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "19",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "58",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "54",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -5738,6 +5668,76 @@
           "medicham": "60",
           "rel": 0.25,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "kangaskhanmega",
+          "mv": "drainpunch",
+          "def": "castformsnowy",
+          "showdown": "128",
+          "medicham": "147",
+          "rel": 0.1484375,
+          "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "43",
+          "medicham": "56",
+          "rel": 0.3023255813953488,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "52",
+          "medicham": "67",
+          "rel": 0.28846153846153844,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "90",
+          "medicham": "116",
+          "rel": 0.28888888888888886,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "85",
+          "medicham": "111",
+          "rel": 0.3058823529411765,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "84",
+          "medicham": "108",
+          "rel": 0.2857142857142857,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "114",
+          "medicham": "148",
+          "rel": 0.2982456140350877,
+          "uses": 1304,
           "suspect": false
         }
       ]
@@ -5747,8 +5747,8 @@
       "what": "Showdown damage roll index 12 (roll 88%) against MEDICHAM's own `rolls[12]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5943,
-      "disagreed": 57,
+      "agreed": 5958,
+      "disagreed": 42,
       "worst": [
         {
           "att": "lopunnymega",
@@ -5778,16 +5778,6 @@
           "medicham": "31",
           "rel": 0.24,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "59",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -5908,36 +5898,6 @@
           "medicham": "184",
           "rel": 0.29577464788732394,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "31",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "82",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "51",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -6111,36 +6071,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "19",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "58",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "53",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -6148,6 +6078,76 @@
           "medicham": "60",
           "rel": 0.25,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "kangaskhanmega",
+          "mv": "drainpunch",
+          "def": "castformsnowy",
+          "showdown": "128",
+          "medicham": "147",
+          "rel": 0.1484375,
+          "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "43",
+          "medicham": "55",
+          "rel": 0.27906976744186046,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "51",
+          "medicham": "66",
+          "rel": 0.29411764705882354,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "88",
+          "medicham": "116",
+          "rel": 0.3181818181818182,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "85",
+          "medicham": "109",
+          "rel": 0.2823529411764706,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "84",
+          "medicham": "108",
+          "rel": 0.2857142857142857,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "112",
+          "medicham": "147",
+          "rel": 0.3125,
+          "uses": 1304,
           "suspect": false
         }
       ]
@@ -6157,8 +6157,8 @@
       "what": "Showdown damage roll index 13 (roll 87%) against MEDICHAM's own `rolls[13]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5943,
-      "disagreed": 57,
+      "agreed": 5958,
+      "disagreed": 42,
       "worst": [
         {
           "att": "lopunnymega",
@@ -6188,16 +6188,6 @@
           "medicham": "31",
           "rel": 0.24,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "59",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -6318,36 +6308,6 @@
           "medicham": "181",
           "rel": 0.302158273381295,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "31",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "81",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "51",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -6521,36 +6481,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "19",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "57",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "53",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -6558,6 +6488,76 @@
           "medicham": "59",
           "rel": 0.2553191489361702,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "kangaskhanmega",
+          "mv": "drainpunch",
+          "def": "castformsnowy",
+          "showdown": "126",
+          "medicham": "147",
+          "rel": 0.16666666666666666,
+          "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "42",
+          "medicham": "54",
+          "rel": 0.2857142857142857,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "51",
+          "medicham": "66",
+          "rel": 0.29411764705882354,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "88",
+          "medicham": "114",
+          "rel": 0.29545454545454547,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "84",
+          "medicham": "109",
+          "rel": 0.2976190476190476,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "80",
+          "medicham": "104",
+          "rel": 0.3,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "111",
+          "medicham": "145",
+          "rel": 0.3063063063063063,
+          "uses": 1304,
           "suspect": false
         }
       ]
@@ -6567,8 +6567,8 @@
       "what": "Showdown damage roll index 14 (roll 86%) against MEDICHAM's own `rolls[14]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5943,
-      "disagreed": 57,
+      "agreed": 5958,
+      "disagreed": 42,
       "worst": [
         {
           "att": "lopunnymega",
@@ -6598,16 +6598,6 @@
           "medicham": "31",
           "rel": 0.24,
           "uses": 24726,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "rockslide",
-          "def": "mimikyubusted",
-          "showdown": "58",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 22134,
           "suspect": false
         },
         {
@@ -6728,36 +6718,6 @@
           "medicham": "180",
           "rel": 0.30434782608695654,
           "uses": 7830,
-          "suspect": false
-        },
-        {
-          "att": "gyaradosmega",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "30",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "vivillonpolar",
-          "mv": "hurricane",
-          "def": "mimikyubusted",
-          "showdown": "81",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5603,
-          "suspect": false
-        },
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "50",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
           "suspect": false
         },
         {
@@ -6931,36 +6891,6 @@
           "suspect": false
         },
         {
-          "att": "simipour",
-          "mv": "icywind",
-          "def": "mimikyubusted",
-          "showdown": "18",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 3008,
-          "suspect": false
-        },
-        {
-          "att": "greninjamega",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "56",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
-          "att": "slowbro",
-          "mv": "icebeam",
-          "def": "mimikyubusted",
-          "showdown": "52",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 2240,
-          "suspect": false
-        },
-        {
           "att": "kangaskhanmega",
           "mv": "drainpunch",
           "def": "cameruptmega",
@@ -6968,6 +6898,76 @@
           "medicham": "59",
           "rel": 0.2553191489361702,
           "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "kangaskhanmega",
+          "mv": "drainpunch",
+          "def": "castformsnowy",
+          "showdown": "124",
+          "medicham": "147",
+          "rel": 0.18548387096774194,
+          "uses": 1507,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "tyranitar",
+          "showdown": "42",
+          "medicham": "54",
+          "rel": 0.2857142857142857,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "kangaskhan",
+          "showdown": "50",
+          "medicham": "65",
+          "rel": 0.3,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "ancientpower",
+          "def": "vanilluxe",
+          "showdown": "86",
+          "medicham": "112",
+          "rel": 0.3023255813953488,
+          "uses": 1449,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "polteageistantique",
+          "showdown": "82",
+          "medicham": "108",
+          "rel": 0.3170731707317073,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "venusaurmega",
+          "showdown": "80",
+          "medicham": "104",
+          "rel": 0.3,
+          "uses": 1304,
+          "suspect": false
+        },
+        {
+          "att": "cameruptmega",
+          "mv": "flamethrower",
+          "def": "meowsticf",
+          "showdown": "109",
+          "medicham": "144",
+          "rel": 0.3211009174311927,
+          "uses": 1304,
           "suspect": false
         }
       ]

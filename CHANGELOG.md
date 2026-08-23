@@ -10,6 +10,113 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.92.0] — 2026-08-23
+
+### Fixed
+- **AN INSTRUMENT THAT PUBLISHES AFTER FAILING ERASES THE EVIDENCE OF ITS OWN FAILURE, AND
+  `tests/test-unmodelled-clicks.js` WAS DOING EXACTLY THAT.** It wrote `data/unmodelled-clicks.json`
+  unconditionally — and that artifact **is the test's own ratchet baseline**. So a red run wrote the
+  GROWN set as the new baseline and **re-running a failing test made it pass.** Demonstrated with a
+  deliberate break, nothing else changed between runs:
+
+  ```
+  before:  run 1 FAIL (NEW: healbell), exit 1, REWROTE the artifact including healbell  ->  run 2 GREEN
+  after:   run 1 red + DID NOT WRITE, artifact byte-untouched                           ->  run 2 STILL RED
+  ```
+
+  Writes are now green-only and only when the set actually moved; `--accept` re-baselines
+  deliberately, prints what it accepts, and **still exits 1**; the artifact carries a `write_policy`
+  field stating the rule. Deliberately NOT done with `void: true` — that hook is for a run invalidated
+  by something else that must still publish, and using it here would trip provenance's void ratchet on
+  every red run, failing a second gate to paper over this one. Nothing checked was weakened:
+  `count 3 / clicks 44 / moves [roleplay, reflecttype, healbell]` is byte-identical.
+- **THE LIVING-DOCS GATE REWROTE ITS OWN BASELINE ON EXACTLY THE CLASS OF COMMIT IT FIRES ON.** Three
+  commits tonight (`086dd25`, `4383241`, `483f529`) were nothing but that file. The cause was not a
+  timestamp: `generated` was already excluded, and the only key that ever moved was
+  `changelog_top_at_baseline` — which tracks the CHANGELOG top, and the living-docs rule *requires* a
+  CHANGELOG bump on the commits that trip the hook. **A loop, not a coincidence.** All three diffs
+  verified with `git show`: **0 of 3 carried information.** Keys in `tests/test-docs-current.js` are
+  now classified `PROVENANCE` (stamps the run, never triggers a write) versus `RATCHET` (content, a
+  change is a finding), the comparison is over parsed content rather than a text regex, and **a new
+  clause fails by name on any unclassified key** — which is what stops a future decorative key
+  becoming a write trigger the same silent way. Real ratchet movement still writes, and is now staged
+  by `.githooks/pre-commit` on a green run by name rather than left behind its own commit.
+
+### Notes
+- **WHY A GATE THAT DIRTIES THE TREE MATTERS.** The start procedure opens with `git status` and treats
+  anything unexpected as evidence a previous agent died half-finished. A file that is *always* dirty
+  for innocent reasons degrades that check — the same shape as normalising a red test: the signal keeps
+  firing and people stop reading it.
+- **THIS IS A CLASS, NOT TWO FILES, AND THE ENUMERATION HANDED TO THE SECOND AGENT WAS WRONG.** "This
+  one is the outlier" was false. Five more instruments write outside a passing path, verified by
+  reading: `tests/test-tag-consumed.js` (a third self-baselining instance, where the failure survives
+  but the *diagnosis* degrades from `REGRESSED (was LIVE)` to `STILL DEAD`), `test-forme-assert.js`,
+  `test-switch-back-renamed.js`, `test-game-diff.js` — **which publishes after its comparator failed
+  its own planted-divergence proof, an instrument declaring itself trustworthy after failing the test
+  of its trustworthiness** — and `test-mechanics.js`. **No general "a red run writes nothing" gate
+  exists**, while four instruments already carry ad-hoc write-detecting regexes: a pattern
+  re-implemented four times and enforced nowhere. Work in progress.
+- **Consumers that could not tell a red-run artifact from a green one**, because it carried no
+  run-status field at all: the test's own next run, `engine/provenance.js` (it sweeps every
+  `data/*.json`, so a fresh timestamp read as `ok`), and `web/quarantine-data.js`.
+- Correct precedent already in the tree: `tests/test-rulebook-collision.js` exits before its write.
+
+## [5.91.3] — 2026-08-23
+
+### Fixed
+- **Disguise absorbed a hit on the ALREADY-BUSTED forme, because the gate read a runtime flag where the
+  authority reads a species.** `formeOnHitAbsorbs` — the one reader of the `formeOnHit` tag, called by
+  `dmgRange` and by the battle loop's break path — tested `tg._disguiseBusted` only. Showdown's
+  `onDamage` tests `['mimikyu','mimikyutotem'].includes(target.species.id)`
+  (`data/abilities.ts:962-968`, inherited unchanged by the Champions mod, which overrides only
+  `onEffectiveness`); `effectState.busted` is bookkeeping for `onUpdate`. Since `MC.mons` carries a
+  `mimikyu-busted` row with `ab: "Disguise"`, `buildMon('mimikyu-busted')` produced a body with the flag
+  undefined, which read as an intact disguise. The gate now asks the species AND the flag, reading the
+  intact forme off the tag's derived `from` rather than a typed name pair.
+- **The comment above that function asserted the opposite of what the code did** — *"an unbuilt
+  hypothetical body has it undefined, which correctly reads as INTACT"* — and is rewritten quoting the
+  handler it now mirrors.
+
+### Added
+- Census probe `ability / formeOnHit — "a body that is ALREADY the busted forme absorbs nothing"`: one
+  Iron Head through `battleTurn`, three arms. The intact body must still lose exactly maxhp/8 and rename
+  itself (so deleting the absorb cannot pass), the busted body must lose more, and it must lose EXACTLY
+  what the same body with the ability blanked loses (so "takes some damage" cannot pass for "takes the
+  move").
+- `MEDI_FORMEONHIT_SPECIES_BLIND=1` restores the flag-only gate and bumps
+  `MEDFAILS.formeOnHitSpeciesBlindRestored`, so a deliberate red arm and a broken engine are never the
+  same reading.
+- `MEDFAILS.formeOnHitNoSpecies` and `MEDFAILS.formeOnHitNoFromSpecies` — loud rather than a silent
+  refusal. Both read 0 on every run in this pass.
+
+### Notes
+- **Census 642 → 643 probed, 643 live, 0 missing.** Nothing went dark to make room.
+- **`tests/test-engine-diff.js --n 6000 --seed 20260804`: 56 → 41.** Both arms on the same tree with the
+  env knob as the only variable, so the 56 is a measurement and not a recalled baseline. All sixteen
+  corner arms fell by exactly 15; zero `mimikyubusted` rows remain in any arm of the artifact.
+- **The pinned pool did NOT move, as called before the run: 93/777 both arms, `first_divergences`
+  byte-identical.** In a played game the loop that renames the body also sets the flag, and `freshBodies`
+  builds from a sheet that declares `Mimikyu`. The defect is only reachable through a CONSTRUCTED
+  already-busted body. Do not read 93/777 against the published 82/961 — different release, different
+  stopping point.
+- **The live path is reachable and that is why this outranked the differential.** `move-priors.json`
+  records 876 acts under `mimikyubusted` against 485 under `mimikyu`; a busted forme appears in 1,022 of
+  83,892 stored games. Through `board.js`'s exports, `dmgMon('Mimikyu-Busted')` returns a real body
+  (`dmgFailures.unknownSpecies = 0`) and Knock Off priced 0-0 before and 50-59 after — 50-59 being what
+  Showdown reports for that row. Every board feature and rollout leaf for an observed Mimikyu-Busted read
+  zero damage, as a plausible number rather than a counted miss.
+- **Reported, not touched:** `engine/board.js:1449` still names `mimikyubusted` among the formes with "no
+  body to compute with". ROADMAP #204 added the row on 2026-08-22 and the comment did not follow. Comment
+  only; `board.js` is downstream of ENGINE.
+- **Declared limit:** the authority whitelists two species ids and the tag names one, because
+  `mimikyutotem` is `isNonstandard: 'Past'` / `tier: 'Illegal'` with no `MC.mons` row. Teaching
+  `tag_dex.js`'s `formeOnHit` derivation the `[...].includes(target.species.id)` extraction it already
+  uses for `flattensTypeMatchup` is proposed as a register row — it is a tags regeneration and belongs in
+  its own batch.
+- **`tests/test-mc-key.js` is RED and was red before this pass**, proved by stashing the two changed
+  files and re-running: the same five unrelated files are named, and its "no baselined file grew more of
+  them" clause passes. Stated, not filed.
+
 ## [5.91.2] — 2026-08-23
 
 ### Fixed

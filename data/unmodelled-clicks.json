@@ -1,7 +1,8 @@
 {
- "generated": "2026-08-23T06:13:06.058Z",
+ "generated": "2026-08-23T09:15:59.960Z",
  "by": "tests/test-unmodelled-clicks.js",
  "what": "Every move in gen9championsvgc2026regmb whose click resolves to {kind:\"pass\"} — a whole no-op turn. RATCHETED: the set may shrink and may never grow.",
+ "write_policy": "Written ONLY by a run that PASSED (or by an explicit --accept). A failing run leaves the previous baseline untouched, so a regression can never be laundered into the set that defines it. See section 4 of tests/test-unmodelled-clicks.js.",
  "count": 3,
  "clicks": 44,
  "moves": [

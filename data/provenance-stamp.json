@@ -884,7 +884,17 @@
       "files": [
         "move-priors.observed.json"
       ]
+    },
+    {
+      "when": "2026-08-23T09:27:18.527Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 path variable",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 229,
+      "graph_after": 230,
+      "files": [
+        "tag-consumption.json"
+      ]
     }
   ],
-  "generated": "2026-08-23T06:44:46.730Z"
+  "generated": "2026-08-23T09:27:18.527Z"
 }

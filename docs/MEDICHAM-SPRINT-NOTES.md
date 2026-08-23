@@ -21,6 +21,65 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE DISGUISE GATE READ A FLAG WHERE THE AUTHORITY READS A SPECIES. 2026-08-23 (ENGINE).
+
+**The defect.** `formeOnHitAbsorbs` — the ONE reader of the `formeOnHit` tag, called by `dmgRange`
+(every board feature and rollout leaf) and by the battle loop's break path — gated on
+`tg._disguiseBusted` alone. The authority gates on the SPECIES:
+
+```
+onDamage(damage, target, source, effect) {
+  if (effect?.effectType === 'Move' && ['mimikyu', 'mimikyutotem'].includes(target.species.id)) {
+```
+
+`data/abilities.ts:962-968`, INHERITED unchanged by `data/mods/champions/abilities.ts:14`, which
+declares `disguise: { inherit: true, onEffectiveness(...) }` and overrides only the effectiveness
+handler — so mainline is the right file for this one and the mod was checked, not assumed.
+`effectState.busted` is bookkeeping for `onUpdate`; what refuses the SECOND hit is the species.
+
+**Why it bites.** `MC.mons` carries a `mimikyu-busted` row with `ab: "Disguise"`, so
+`buildMon('mimikyu-busted')` returns an already-busted body whose flag is undefined — read as intact,
+and it ate the hit. **The comment directly above the function asserted the opposite of what the code
+did** and is rewritten in the same pass.
+
+**The class is ONE ability.** Derived off `data/tags.json`: `formeOnHit` matches `disguise` and nothing
+else. Ice Face was CHECKED — Eiscue is `isNonstandard: 'Past'` / `tier: 'Illegal'`, so there is no
+`iceface` entry at all. The gate reads the tag's derived `from` (built off the dex's `battleOnly` link),
+never a typed name pair. Declared limit: the authority whitelists two ids and the tag names one, because
+`mimikyutotem` is Past/Illegal with no `MC.mons` row.
+
+**Knob.** `MEDI_FORMEONHIT_SPECIES_BLIND=1` restores the flag-only gate and bumps
+`MEDFAILS.formeOnHitSpeciesBlindRestored`. New loud counters `formeOnHitNoSpecies` and
+`formeOnHitNoFromSpecies`, both 0 on every run in this pass.
+
+**Measured.**
+
+| instrument | before | after |
+|---|---|---|
+| census | 642 / 642 / 0 | **643 / 643 / 0** |
+| `test-engine-diff.js --n 6000 --seed 20260804` (knob arm vs clean, same tree) | **56**/6000 | **41**/6000 |
+| the 16 corner arms | — | every one fell by **exactly 15** |
+| `mimikyubusted` rows in `data/engine-diff.json` | 15 | **0** |
+| pinned pool `--games 961 --team-store data/team-pool-frozen` | 93/777 | **93/777**, first_divergences byte-identical |
+
+**The pool was called to NOT move before the run.** In a played game the loop that renames the body sets
+the flag, and `freshBodies` builds from a sheet declaring `Mimikyu`. Only a CONSTRUCTED already-busted
+body reaches the defect. The pool is not empty of the entity (205 of 34,762 frozen sheet sides carry
+Mimikyu), so the null is informative.
+
+**The live path is reachable.** `move-priors.json` records **876 acts** under `mimikyubusted` against 485
+under `mimikyu`; a busted forme appears in **1,022 of 83,892** stored games. Through `board.js`'s exports:
+`mcKeyFor('Mimikyu-Busted') -> mimikyu-busted`, `dmgMon` returns a real body carrying `disguise`,
+`dmgFailures.unknownSpecies = 0`, Knock Off **0-0 before / 50-59 after** — and 50-59 is what Showdown
+reports for that row.
+
+**Reported, not touched:** `engine/board.js:1449` still names `mimikyubusted` among the formes with "no
+body to compute with". ROADMAP #204 added the row on 2026-08-22 and the comment did not follow.
+
+Full account: `docs/_reports/2026-08-23-disguise-busted-forme.md`.
+
+---
+
 ## A SUBSTITUTE REFUSES AN ENTRY STAT DROP — AND THE CLASS IS A TAG, NOT INTIMIDATE. 2026-08-23 (ENGINE).
 
 **The defect.** `applyEntryDrops` walked the foes unconditionally, so Intimidate (**18,772 uses**) and

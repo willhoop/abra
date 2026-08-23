@@ -49,6 +49,56 @@
  *
  *   node tests/test-effective-identity.js
  *   node tests/test-effective-identity.js --update    (only after FIXING some)
+ *   node tests/test-effective-identity.js --split     (the risk split, per file, changes no verdict)
+ *   node tests/test-effective-identity.js --propose   (PRINTS a candidate baseline; writes nothing)
+ *
+ * THE COUNT IS NOT THE RISK, AND SAYING SO IS THE POINT OF THE SPLIT — MEASURE, 2026-08-23
+ * ---------------------------------------------------------------------------------------
+ * This ratchet has been reported RED, by name, in docs/ENGINE.md at least seven times by seven
+ * different agents, at 869, 1048, 1471, 1561, 1596 and 1597 raw reads. It was restamped WHOLESALE on
+ * 2026-08-11 (ROADMAP #183, 964 reads adopted unreviewed on Will's *"restamp i guess"*) and it was
+ * red again within days. A ratchet a restamp cannot hold for a week is not measuring the thing it
+ * says it measures.
+ *
+ * Measured on 2026-08-23 over all 1,597 matches: **189 are PROSE** (comments and string literals),
+ * **533 are WRITES** (`x.ability = ...`), and 875 are reads. So 45.2% of what this file counts as a
+ * "raw read of a transforming field" is not a read at all — and the over-broad regex has already
+ * DISTORTED ITS OWN SUBJECT twice, on the record:
+ *
+ *   - the `tests/test-tag-signature.js` declaration below is written WITHOUT NAMING THE FIELD, and
+ *     says so: *"the scanner is a grep over source text, so quoting the line here would itself count
+ *     as a raw read and the declaration would inflate the number it declares"*;
+ *   - docs/ENGINE.md records an agent REWORDING TWO COMMENTS to hold this counter still.
+ *
+ * A gate that makes people edit prose to satisfy it is measuring the prose.
+ *
+ * SO EVERY MATCH IS NOW CLASSIFIED — PROSE / WRITE / READ — AND THE SPLIT IS PRINTED BESIDE EVERY
+ * GROWING FILE. **The ratchet arithmetic is deliberately UNCHANGED**: it still compares the raw
+ * TOTAL against the stored baseline, so this classification cannot make a red run green. Narrowing
+ * the counter would lower every file's number against a baseline recorded under the old counter,
+ * which is a restamp wearing a lexer, and ROADMAP #183 is what that costs.
+ *
+ * WHAT THIS CLASSIFIER DOES NOT CATCH, STATED AS A NUMBER RATHER THAN A HEDGE
+ * --------------------------------------------------------------------------
+ * It is a lexer over source text, so it sees `x.ability` and (since 2026-08-23) `x['ability']`. It is
+ * BLIND to every other way of reaching the field, and a NEW wrong shape will most likely arrive as
+ * one of these:
+ *
+ *   `const { ability } = mon`            destructuring        — 0 sites today
+ *   `({ ability }) => ...`               destructured param   — 0 sites today
+ *   `Object.assign({}, sheet)`           a copy, then treated as live — NOT DETECTABLE HERE AT ALL
+ *   `x[k]` where k is a variable         computed key         — NOT DETECTABLE HERE AT ALL
+ *
+ * The first two are counted every run and printed if they ever become non-zero, which is coverage.
+ * The last two are not coverage and must not be read as any. **A structural scan cannot prove the
+ * absence of a stale-identity read; it can only refuse the shapes it knows.** The behavioural pins in
+ * sections 1, 2 and 2b are what actually assert the engine is right, and they are the load-bearing
+ * half of this file.
+ *
+ * A NOTE ON THE BRACKET FORM, because the naive version of it was wrong. Matching `['ability']` with
+ * a plain regex fires on `tests/roster.js:8725`, which is a STRING IN AN ARRAY LITERAL and not a
+ * property access. It is detected through the lexer with a required receiver token instead, and it
+ * fires 0 times today.
  */
 'use strict';
 require('../engine/showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
@@ -314,6 +364,79 @@ const SKIP_DIR = /node_modules|[\\/]graveyard[\\/]|[\\/]archive[\\/]/;
  * how the next one gets through — the same reasoning docs/ARTIFACT-ACCESS-RULES.md 5 gives for the
  * mc_key sweep. */
 const RAW = /\.(ability|baseStats|weighthg|weightkg)\b/g;
+
+/* ---- THE CLASSIFIER (MEASURE, 2026-08-23) ----------------------------------------------------
+ *
+ * `RAW` stays exactly as it is — the superset. This labels what it found so a reader can act on the
+ * number instead of restamping it. See the header for what it cannot see.
+ *
+ * `zones()` walks the source once and marks every character as code, comment or string. It is a
+ * lexer rather than a line test on purpose: `docs/ENGINE.md` records the field name appearing inside
+ * BREAK PATCHES — quoted engine source handed to `String.replace` — and all thirteen of
+ * `tests/staged_board.js`'s matches are that shape. A line-based "does this start with a star" test
+ * calls every one of them code. */
+function zones(src) {
+  const z = new Uint8Array(src.length);   // 0 code, 1 comment, 2 string
+  const BT = String.fromCharCode(96);
+  let i = 0; const n = src.length;
+  const fill = (a, b, v) => { for (let k = a; k < b; k++) z[k] = v; };
+  while (i < n) {
+    const c = src[i], d = src[i + 1];
+    if (c === '/' && d === '/') { let j = i; while (j < n && src[j] !== '\n') j++; fill(i, j, 1); i = j; continue; }
+    if (c === '/' && d === '*') { let j = src.indexOf('*/', i + 2); j = j < 0 ? n : j + 2; fill(i, j, 1); i = j; continue; }
+    if (c === '"' || c === "'" || c === BT) {
+      const q = c; let j = i + 1;
+      while (j < n) {
+        if (src[j] === '\\') { j += 2; continue; }
+        if (src[j] === q) break;
+        if (q !== BT && src[j] === '\n') break;      // an unterminated quote is prose, not a string
+        j++;
+      }
+      fill(i, Math.min(j + 1, n), 2); i = Math.min(j + 1, n); continue;
+    }
+    i++;
+  }
+  return z;
+}
+
+/* PROSE — not executed, so it cannot return a stale identity.
+ * WRITE — `x.ability = v`. A write cannot hand back the sheet's value; eight of the DECLARED entries
+ *         below exist for no other reason than that the regex cannot tell a write from a read, and
+ *         the `engine/tag_dex.js` and `tests/test-speed-tie.js` entries say so in as many words.
+ * READ  — everything else. This is the only class the ratchet's stated risk can live in. */
+function scan(src) {
+  const z = zones(src);
+  const out = { total: 0, prose: 0, write: 0, read: 0, blind: 0 };
+  RAW.lastIndex = 0; let m;
+  while ((m = RAW.exec(src))) {
+    out.total++;
+    const end = m.index + m[0].length;
+    if (z[m.index]) { out.prose++; continue; }
+    /* An assignment, and NOT `==`, `===` or `=>`. `+=`/`||=`/`??=` read before they write, so they
+     * are deliberately left in the READ class rather than flattered into WRITE. */
+    if (/^\s*=(?!=|>)/.test(src.slice(end, end + 8))) out.write++; else out.read++;
+  }
+  /* THE SHAPES THE SUPERSET CANNOT SEE, counted so the header's "0 sites today" is re-derived on
+   * every run instead of being a sentence somebody typed once. A non-zero here is NOT a failure —
+   * it is a signal that the superset regex has stopped covering the repository's idioms and this
+   * whole ratchet is reading a shrinking fraction of the truth. */
+  for (const re of [/(?:const|let|var)\s*\{[^}\n]*\b(?:ability|baseStats|weighthg|weightkg)\b[^}\n]*\}\s*=/g,
+                    /\(\s*\{[^}\n]*\b(?:ability|baseStats|weighthg|weightkg)\b[^}\n]*\}\s*\)\s*=>/g]) {
+    re.lastIndex = 0; let b;
+    while ((b = re.exec(src))) if (!z[b.index]) out.blind++;
+  }
+  /* The bracket form, through the lexer. A naive /\['ability'\]/ fires on tests/roster.js:8725,
+   * which is a string inside an ARRAY LITERAL — so a receiver token is required. */
+  const BR = /\[\s*(['"])(ability|baseStats|weighthg|weightkg)\1\s*\]/g;
+  BR.lastIndex = 0; let b2;
+  while ((b2 = BR.exec(src))) {
+    if (z[b2.index]) continue;
+    const before = src.slice(Math.max(0, b2.index - 60), b2.index);
+    if (!/[\w$)\]]\s*$/.test(before)) continue;      // no receiver -> it is an array literal
+    out.total++; out.read++;
+  }
+  return out;
+}
 
 /* DECLARED EXCEPTIONS — a count with a REASON, which a baseline bump is not.
  *
@@ -652,12 +775,16 @@ const files = [];
 for (const d of ['engine', 'build', 'tests']) if (fs.existsSync(D(d))) walk(D(d), files);
 
 const now = {};
+const KIND = {};                 /* rel -> {total, prose, write, read, blind}. REPORTING ONLY. */
 for (const p of files) {
   const rel = path.relative(ROOT, p).replace(/\\/g, '/');
-  const n = (fs.readFileSync(p, 'utf8').match(RAW) || []).length;
-  if (n) now[rel] = n;
+  const k = scan(fs.readFileSync(p, 'utf8'));
+  if (k.total) { now[rel] = k.total; KIND[rel] = k; }
 }
 const total = Object.values(now).reduce((a, b) => a + b, 0);
+const SUM = { total, prose: 0, write: 0, read: 0, blind: 0 };
+for (const k of Object.values(KIND)) for (const f of ['prose', 'write', 'read', 'blind']) SUM[f] += k[f];
+const split = f => { const k = KIND[f]; return k ? `${k.prose} prose, ${k.write} write, ${k.read} read` : ''; };
 
 if (UPDATE) {
   fs.writeFileSync(BASELINE, JSON.stringify({
@@ -698,14 +825,51 @@ for (const [f, n] of Object.entries(now)) {
 }
 const shrank = Object.entries(allowed).filter(([f, n]) => (now[f] || 0) < n && !DECLARED[f]).length;
 
+/* THE HEADLINE NUMBER IS NOT WHAT FAILS, AND READING IT AS THOUGH IT WERE IS HOW THIS GOT RESTAMPED.
+ * docs/ENGINE.md records this gate red at "1048 total, baseline 234" and again at "869 total" — both
+ * BELOW the baseline of the day. The ratchet is PER FILE; the total is context, not the verdict. */
 ok(grew.length === 0,
-  `no NEW raw read of a transforming field (${total} total, baseline ${base.count})` +
-  (grew.length ? `\n         ` + grew.join('\n         ') : ''));
+  `no NEW raw read of a transforming field (${grew.length} file(s) over their per-file baseline; ` +
+  `${total} matched in total against a baseline total of ${base.count} — the TOTAL is not what fails)` +
+  (grew.length ? `\n         ` + grew.map(g => {
+    const f = g.split(':')[0];
+    return process.env.ABRA_EI_LEGACY_REPORT ? g : `${g}   [${split(f)}]`;
+  }).join('\n         ') : ''));
+if (grew.length && !process.env.ABRA_EI_LEGACY_REPORT) {
+  const gk = grew.map(g => KIND[g.split(':')[0]]).filter(Boolean);
+  const t = k => gk.reduce((a, x) => a + x[k], 0);
+  console.log(`         Across those files: ${t('prose')} prose, ${t('write')} write, ${t('read')} read.`);
+  console.log('         PROSE and WRITE cannot return a stale identity — only READ can. Set');
+  console.log('         ABRA_EI_LEGACY_REPORT=1 for the bare pre-2026-08-23 message.');
+}
 if (grew.length) {
   console.log('         A sheet entry\'s .ability IS the pre-mega one and reading it is correct.');
   console.log('         A LIVE Pokemon\'s is not. Route it through board.js effAbility(mon, dex).');
   console.log('         If it is correct BY CONSTRUCTION, declare it in DECLARED with the reason —');
   console.log('         do not re-baseline, which would launder every other new read beside it.');
+}
+console.log(`\n  CLASSIFIED — ${SUM.total} matches: ${SUM.prose} prose, ${SUM.write} write, ${SUM.read} read.`);
+if (SUM.blind) {
+  console.log(`  ${SUM.blind} DESTRUCTURED read(s) of a transforming field exist and the superset regex`);
+  console.log('  DOES NOT COUNT THEM. That is not a failure here; it means this ratchet now covers');
+  console.log('  less of the repository than it did. See the header.');
+}
+if (process.argv.includes('--split')) {
+  console.log('\n  PER FILE — total (prose/write/read), * = over its per-file baseline, D = declared:');
+  for (const f of Object.keys(now).sort()) {
+    const k = KIND[f], was = allowed[f] || 0;
+    const mark = DECLARED[f] ? 'D' : (k.total > was ? '*' : ' ');
+    console.log(`   ${mark} ${String(k.total).padStart(4)} (${k.prose}/${k.write}/${k.read})  ${f}   baseline ${was}`);
+  }
+}
+if (process.argv.includes('--propose')) {
+  /* PRINTS. WRITES NOTHING. ROADMAP #183 is what happens when this step is automated: 964 reads
+   * adopted in one move and nobody able to say afterwards what went in. A human pastes this, or it
+   * does not happen. */
+  console.log('\n  PROPOSED BASELINE — printed for review, NOT written. Nothing on disk changed.');
+  console.log(JSON.stringify({
+    note: base.note, generated: new Date().toISOString().slice(0, 10), count: total, allowed: now,
+  }, null, 1));
 }
 if (shrank) console.log(`\n  ${shrank} file(s) now read fewer raw fields. Re-run with --update to lock the gain in.`);
 

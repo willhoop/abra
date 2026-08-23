@@ -57,16 +57,16 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  634/634 probed mechanics live, 0 missing   (census 2026-08-23 01:59)
-  56/6000 differential comparisons disagree with Showdown   (2026-08-23 02:05)
+  643/643 probed mechanics live, 0 missing   (census 2026-08-23 05:26)
+  41/6000 differential comparisons disagree with Showdown   (2026-08-23 05:07)
     seed 20260804, requested 6000, 173 not comparable (multihit 136, non-finite 0, threw 37)
     lopunnymega fakeout -> gourgeistsuper: showdown 0-0, medicham 33-40  (24726 uses)
     kangaskhanmega fakeout -> pinsir: showdown 37-45, medicham 44-55  (24726 uses)
     kangaskhanmega fakeout -> chesnaught: showdown 25-30, medicham 31-37  (24726 uses)
-    machamp rockslide -> mimikyubusted: showdown 57-68, medicham 0-0  (22134 uses)
     kangaskhanmega suckerpunch -> sinistchamasterpiece: showdown 62-74, medicham 76-92  (14131 uses)
     kangaskhanmega suckerpunch -> scolipedemega: showdown 31-37, medicham 38-46  (14131 uses)
-    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 55/6000,  bottom 58/6000,  idx01 56/6000,  idx02 56/6000,  idx03 56/6000,  idx04 56/6000,  idx05 56/6000,  idx06 56/6000,  idx07 56/6000,  idx08 56/6000,  idx09 56/6000,  idx10 57/6000,  idx11 57/6000,  idx12 57/6000,  idx13 57/6000,  idx14 57/6000
+    kangaskhanmega suckerpunch -> pyroarmega: showdown 46-55, medicham 57-69  (14131 uses)
+    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 40/6000,  bottom 43/6000,  idx01 41/6000,  idx02 41/6000,  idx03 41/6000,  idx04 41/6000,  idx05 41/6000,  idx06 41/6000,  idx07 41/6000,  idx08 41/6000,  idx09 41/6000,  idx10 42/6000,  idx11 42/6000,  idx12 42/6000,  idx13 42/6000,  idx14 42/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1642/1642 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 18:00)
     2250 of 7103 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 7103
@@ -76,15 +76,72 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 8c778268919e now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 33bfb2333778 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 273/292 probed, 19 unprobed
+  tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 02:18_
+_stamped 2026-08-23 05:27_
 
 <!-- /GENERATED -->
+
+## THE DISGUISE GATE READ A FLAG WHERE THE AUTHORITY READS A SPECIES, AND THE BUSTED BODY IS THE ONE THE INGEST SEES MOST. 2026-08-23.
+
+Full account: [`docs/_reports/2026-08-23-disguise-busted-forme.md`](_reports/2026-08-23-disguise-busted-forme.md).
+
+`formeOnHitAbsorbs` — the ONE reader of the `formeOnHit` tag, called by `dmgRange` and by the battle
+loop's break path — gated on `tg._disguiseBusted` alone. The authority gates on the species id
+(`data/abilities.ts:962-968`, INHERITED unchanged by `data/mods/champions/abilities.ts:14`, which
+overrides only `onEffectiveness`): `['mimikyu','mimikyutotem'].includes(target.species.id)`.
+`effectState.busted` is bookkeeping for `onUpdate`; what refuses the SECOND hit is the species.
+
+**`MC.mons` carries a `mimikyu-busted` row with `ab: "Disguise"`,** so `buildMon('mimikyu-busted')`
+returned an already-busted Mimikyu with the flag undefined — read as intact, and it ate the hit.
+**The comment directly above the function asserted the opposite of what the code did** and is rewritten
+in the same pass, quoting the handler it now mirrors.
+
+**The class is ONE ability.** Derived off `data/tags.json`: `formeOnHit` matches `disguise` and nothing
+else. **Ice Face was CHECKED, not assumed** — Eiscue is `isNonstandard: 'Past'` / `tier: 'Illegal'`, so
+`tag_dex.js`'s legal-carrier filter drops it and there is no `iceface` entry at all. The busted-forme
+relationship is already derived (`from`/`becomes` off the dex's `battleOnly` link), so the gate reads
+`fh.from` rather than a typed name pair.
+
+**Declared limit, not discovered later:** the authority whitelists TWO ids and the tag names one, because
+`mimikyutotem` is Past/Illegal with no `MC.mons` row. Nothing this engine can build is ever that species.
+Teaching `tag_dex.js` the `[...].includes(target.species.id)` extraction it already uses for
+`flattensTypeMatchup` is proposed as a register row, not done here — it is a tags regeneration.
+
+**Knob:** `MEDI_FORMEONHIT_SPECIES_BLIND=1` restores the flag-only gate and bumps
+`MEDFAILS.formeOnHitSpeciesBlindRestored`. Two loud counters replace what would otherwise be a silent
+refusal: `formeOnHitNoSpecies` and `formeOnHitNoFromSpecies`, both 0 on every run in this pass.
+
+| instrument | before | after |
+|---|---|---|
+| census | 642 probed / 642 live / 0 missing | **643 / 643 / 0** |
+| `test-engine-diff.js --n 6000 --seed 20260804`, knob arm vs clean, SAME tree | **56**/6000 | **41**/6000 |
+| every one of the 16 corner arms | — | fell by **exactly 15** (top 55→40, bottom 58→43) |
+| `mimikyubusted` rows anywhere in `data/engine-diff.json` | 15 | **0** |
+| pinned pool, `--games 961 --team-store data/team-pool-frozen`, knob arm vs clean | 93/777 | **93/777**, `first_divergences` byte-identical |
+
+**The pool not moving was CALLED BEFORE THE RUN and then measured.** In a played game the same loop that
+renames the body sets the flag, and `freshBodies` builds from the sheet — which declares `Mimikyu`, never
+`Mimikyu-Busted`. The defect is only reachable through a CONSTRUCTED already-busted body. The pool is not
+empty of the entity (205 of 34,762 frozen sheet sides carry Mimikyu; a busted forme appears in 125 of its
+17,381 games), which is what makes the null informative instead of vacuous.
+
+**THE LIVE PATH IS REACHABLE, AND THAT IS THE REASON THIS MATTERED MORE THAN THE DIFFERENTIAL.**
+`data/move-priors.json` records **876 acts** under `mimikyubusted` against 485 under `mimikyu`; a busted
+forme appears in **1,022 of 83,892** stored games. Through `board.js`'s own exports on an observed-shaped
+body: `mcKeyFor('Mimikyu-Busted') -> mimikyu-busted`, `dmgMon` returns a real body carrying `disguise`,
+`dmgFailures.unknownSpecies = 0`, and Knock Off priced **0-0** before and **50-59** after — 50-59 being
+exactly what Showdown reports for that row. So every board feature and rollout leaf computed for an
+observed Mimikyu-Busted read zero damage, as a plausible number rather than a counted miss.
+
+**REPORTED, NOT TOUCHED:** `engine/board.js:1449` still names `mimikyubusted` among the formes with "no
+body to compute with". ROADMAP #204 added the row on 2026-08-22 and the comment did not follow. It is a
+comment, so nothing computes wrongly from it — but it is the third opposite-of-its-code comment this week.
+`board.js` is downstream of this division.
 
 ## A SUBSTITUTE REFUSES AN ENTRY STAT DROP, AND THE CLASS IS A TAG WITH TWO MEMBERS — NOT INTIMIDATE. 2026-08-23.
 
@@ -827,10 +884,10 @@ denominator is unchanged; the UNIVERSE grew 62%. **That rise is population, not 
 - ~~The differential's silent mega drop~~ — the `POOL` counter reads it out on every run.
 
 **Added, MEASURED this pass and NOT fixed:**
-- **Disguise fires on the ALREADY-BUSTED forme.** Probed directly: `mimikyu-busted` + `disguise`
-  gives `dmgRange 0-0`, `+ none` gives `50-59`; Showdown's handler is gated on the species id and
-  deals the damage. **Real MEDICHAM defect**, visible only because `mimikyu-busted` entered the pool
-  today. Not fixed — the simulator holds ~400 uncommitted, unmeasured lines from a stopped agent.
+- ~~**Disguise fires on the ALREADY-BUSTED forme.**~~ — **FIXED AND PROBED 2026-08-23.** The census
+  carries it now (`ability / formeOnHit — "a body that is ALREADY the busted forme absorbs nothing"`),
+  the knob is `MEDI_FORMEONHIT_SPECIES_BLIND=1`, and the differential fell 56 → 41 at
+  `--n 6000 --seed 20260804`. See the section dated 2026-08-23 at the top of this file.
 - **`castformsnowy blizzard -> primarina`** 12-15 vs 18-22. UNCLASSIFIED. First hypothesis is the
   HARNESS, CONTROL FIX 7 shape: Forecast reverts the forme when the Showdown side's weather is
   cleared and MEDICHAM keeps Castform-Snowy.
