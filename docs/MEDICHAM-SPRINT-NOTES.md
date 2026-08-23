@@ -21,6 +21,54 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## NARRATION TIMING — THREE RULES, EIGHT NARRATION GAMES, BOARD-MATERIAL FLAT. 2026-08-23 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-23-narration-timing.md`](_reports/2026-08-23-narration-timing.md).
+Ledger section: `docs/ENGINE.md`, *"NARRATION TIMING — THREE RULES, EIGHT OF THE 42 CLEARED"*.
+Will: *"i want us to announce failures and generally match the timing of narration of showdown please fix."*
+
+**Whole-game differential, arm `middle`, release `985a28a22653`, 961 games, `team-pool-frozen`,
+census pin `9446a684709d`:**
+
+| quantity | before `dd3b8bdd482f` | after |
+|---|---|---|
+| undeclared (`diverged − declared`), the headline | 67 of 961 = 7.0% | **59 of 961 = 6.1%** |
+| protocol parted (raw) | 72 | **64** |
+| narration-only games | 42 | **34** |
+| **board-material games** | **30** | **30 — did not rise** |
+| census | 651 / 651 / 0 | **654 / 654 / 0** |
+| damage differential | 0 of 6000 | **0 of 6000, all 16 corners** |
+
+**Three rules, each with a census probe that was RED before the fix:**
+
+1. **A move's stat change onto ANOTHER body announces its clamped zero** (5 games). `sim/battle.ts:2076`.
+   The SELF half landed 2026-08-18; every survivor aimed at somebody else. Three sites opt in
+   (`boostsTarget`, `sc.target`, `statChangeInCode.on==='target'`) on a DERIVED predicate — a move
+   whose target table is its `secondaryStatEffect` stays silent. `chance` cannot decide it: 17 members
+   are `secondary: {chance: 100}`. Negative control in the probe: a `self:` rider at the cap must print
+   NOTHING.
+2. **A breaking Substitute writes `-end`, not `-activate|[damage]`** (2 games). `data/moves.ts:18350-18356` —
+   the two lines are the two arms of one `if` and this engine printed both.
+3. **A `[silent]` `-end` is a protocol event, and Syrup Bomb dies with its source** (1 game, and a real
+   board bug). `endsSilently` was read as *emit nothing*; and `onUpdate`'s source-left removal had no
+   reader at all, so the residual took **three** Speed stages from a body the source had abandoned
+   where the authority takes one.
+
+**STATE:** no edit is on a `_mvRes` path — the three boost sites, the Substitute arm and the silent end
+are pure `TR.*` pushes. The one deliberate state change is Syrup Bomb's removal, and the probe asserts
+the Speed STAGE (−1 against −3), not the protocol.
+
+**NOT LANDED, WITH EVIDENCE:** the weather upkeep 5 (still unattributed — four staged arms refute the
+obvious hypotheses), the faint queue 5 (27 inline sites here against 8 step boundaries there), the
+berry-above-recoil 3 (the Update pass runs at the top of the next action, not inside the hit loop),
+Throat Chop 2 (its clock looks one turn long, which is state and must settle first). Tailwind 2
+EXCLUDED as a derived tie.
+
+**Roster and `all_mechanics_fire` re-run only because the release moved; every verdict byte-identical.
+Gate shape unchanged at 3 of 8 clauses failing.**
+
+---
+
 ## THE THIRTEEN SILENT CATCHES ARE CLOSED, AND THE LAB WAS NOT ACTUALLY SHRINKING. 2026-08-23 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-23-thirteen-silent-catches.md`](_reports/2026-08-23-thirteen-silent-catches.md).

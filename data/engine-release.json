@@ -1,10 +1,10 @@
 {
-  "current": "dd3b8bdd482f",
-  "cut": "2026-08-23T12:54:25.321Z",
-  "why": "mental herb: the item is spent before the volatile it frees",
-  "cuts": 32,
-  "latest_cut": "2026-08-23T13:13:48.159Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-23T13:13:48.167Z",
+  "current": "985a28a22653",
+  "cut": "2026-08-23T21:23:41.335Z",
+  "why": "narration timing: clamped zero-boost onto another body, substitute break -end, Syrup Bomb silent -end and source-left removal",
+  "cuts": 1,
+  "latest_cut": "2026-08-23T21:23:41.335Z",
+  "latest_why": "narration timing: clamped zero-boost onto another body, substitute break -end, Syrup Bomb silent -end and source-left removal",
+  "pointer_written": "2026-08-23T21:23:41.345Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

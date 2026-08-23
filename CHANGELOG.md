@@ -10,6 +10,77 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.102.0] — 2026-08-23
+
+### Fixed
+- **NARRATION TIMING — THREE RULES, EIGHT OF THE 42 NARRATION-ONLY GAMES, AND BOARD-MATERIAL DID NOT
+  MOVE.** Will: *"i want us to announce failures and generally match the timing of narration of
+  showdown please fix."* Whole-game differential, arm `middle`, release `985a28a22653`, 961 games,
+  `--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`:
+  **undeclared 67 of 961 = 7.0% → 59 of 961 = 6.1%**, raw parted 72 → 64, distinct causes 66 → 58,
+  **narration-only games 42 → 34**, **board-material games 30 → 30**. Full account:
+  `docs/_reports/2026-08-23-narration-timing.md`.
+  - **A move's stat change onto ANOTHER body announces its clamped zero** (5 games).
+    `sim/battle.ts:2072-2077`'s two `else` arms are exact inverses — a MOVE announces a zero-magnitude
+    boost when it is neither a secondary nor a `self:` rider. The SELF half landed on 2026-08-18, and
+    **every surviving game aimed at a body that is not the user**: three Decorate onto a +6 Attack
+    ally, one Parting Shot and one Tearful Look onto a −6 Attack foe. Three sites opt in
+    (`boostsTarget`, `sc.target`, `statChangeInCode.on === 'target'`), each on a DERIVED predicate:
+    a move whose target table IS its `secondaryStatEffect` stays silent. `chance` cannot decide it —
+    17 members are `secondary: {chance: 100, boosts: …}` and would read as primary. Membership printed
+    before wiring: 63 entries, 23 primary / 40 secondary, and for all 40 the two boost tables are
+    byte-identical. The probe carries the over-fire control the authority names: a `self:` rider at
+    the cap must print NOTHING.
+  - **A breaking Substitute writes `-end`, not `-activate|[damage]`** (2 games).
+    `data/moves.ts:18350-18356` — the two lines are the two arms of one `if`, and `-activate|[damage]`
+    is the ELSE arm, meaning the doll soaked the hit and is STILL UP. This engine printed both, which
+    says the doll survived and then vanished.
+  - **A `[silent]` `-end` is a protocol event, and Syrup Bomb dies with its source** (1 game, plus a
+    real board bug). `[silent]` suppresses the client ANIMATION; the line is in the log. The
+    `endsSilently` tag was read as *emit nothing*. The expensive half is separate: `onUpdate`'s
+    source-left removal (`data/moves.ts:18770-18774`) had **no reader at all**, so the residual went
+    on taking a Speed stage every turn from a body the source had abandoned — measured on a staged
+    board, **−3 where the authority stops at −1**.
+
+### Added
+- **Three census probes, one per rule, each shown RED before its fix.** `data/mechanics-census.json`
+  **651 probed / 651 live / 0 missing → 654 / 654 / 0**; ratchet floors unchanged (0 unarmed, 1
+  direct-call, no `--accept`), 0 hollow.
+- `MEDSEEN.perTurnVolatileSourceLeft` — a per-turn-boost volatile ended because its SOURCE left the
+  field, which is a different exit from the clock running out and had no counter.
+
+### Notes
+- **`board.js`, `magnemite.js` and `engine-data.js` untouched. No fit, no self-play. No new gate and
+  no new test** — Will: *"i dont want unncessary bloat or you adding gates or tests on gates or tests
+  that fail, just simple bulletproof fixes."*
+- **The derivation's rank-1 item is smaller than it reads.** *"A `[silent]` `-end` is a protocol
+  event"* was ranked at 8 games; **five of those are Supreme Overlord `fallenundefined`, already
+  DECLARED NOT-A-DEFECT** (`engine/quarantine.js:1118` — the authority emits the literal string, and
+  reproducing a typo is not correctness). They are excluded from the `undeclared` headline and no fix
+  may claim them.
+- **The one new divergence cause is the same game wearing a different label** — `|-miss|p1a|p2a <>
+  |upkeep` became `|-miss|p1a|p2a <> |-boost|p2a|atk|0`, same seed, same BOARD-MATERIAL verdict, same
+  board-parted turn. It exposes a pre-existing defect that is filed and not fixed: **this engine lands
+  Decorate on a semi-invulnerable body**, where the authority writes `|[miss]`.
+- **Derived and deliberately not landed, with evidence:** the weather upkeep line (5 games, cause
+  STILL UNATTRIBUTED — four staged arms refute the obvious hypotheses, including the suppressor clause
+  the derivation named); the faint queue (5 games — `|faint|` is written inline at **27 sites** here
+  and at **8 step boundaries** in the authority, which is architectural and risks a board); the
+  target's berry above the attacker's recoil (3 games — the Update pass runs at the top of the next
+  action, not inside the hit loop); Throat Chop's `-end` (2 games — its `_noSound = turns + 1` clock
+  looks **one turn long** against the condition's `duration: 2`, which is state and must settle
+  first). Tailwind on both sides (2 games) is EXCLUDED as a derived tie: `effectOrder` is assigned
+  only for `SwitchIn` and `RedirectTarget` and Showdown's own TODO says so.
+- **`tests/roster.js` (all three stages) and `engine/all_mechanics_fire.js --kind all` were re-run
+  because cutting the release makes `status.js` withhold an artifact measured on the previous one.**
+  Every verdict vector is byte-identical to the previous release's. Gate shape unchanged: 3 of 8
+  clauses fail, the same three. **A narrower artifact is not a cleaner one** — the first re-run used
+  the default `--kind moves` and produced an artifact with no ability or item rows.
+- Damage differential unchanged at **0 of 6000** (`--n 6000 --seed 20260804`), midpoint and all 16
+  corners.
+
+---
+
 ## [5.101.1] — 2026-08-23
 
 ### Fixed

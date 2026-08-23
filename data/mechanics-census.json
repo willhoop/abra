@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-23T19:40:22.073Z",
+  "generated": "2026-08-23T21:19:12.505Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 651,
-  "live": 651,
+  "probed": 654,
+  "live": 654,
   "missing": 0,
-  "armed": 651,
+  "armed": 654,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3363,7 +3363,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.7% (format 20, generic 30), control Rock Slide 28.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6524,6 +6524,36 @@
       "label": "Disable's `-start` names the move it sealed, and a guarded volatile still does not",
       "live": true,
       "detail": "the target's last move was \"earthquake\". DISABLE [\"|-start|p2a:garchomp|disable|earthquake\"] — the condition writes a BARE `Disable` label and the sealed move in field 4 (sealed=\"earthquake\"). TAUNT, the control, on the same body after the same turn 1: [\"|-start|p2a:garchomp|move:taunt\"] — guarded onStart, so it keeps the generic `move:` line and must gain NO fourth field. Before the wire Disable read `|-start|p2a:garchomp|move:disable`",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "boostsTarget",
+      "label": "a move's stat change onto ANOTHER body announces its clamped zero",
+      "live": true,
+      "detail": "Decorate onto a +6 Attack ally [\"|-boost|p1b:vaporeon|atk|0\",\"|-boost|p1b:vaporeon|spa|2\"] (control at +4: [\"|-boost|p1b:vaporeon|atk|2\",\"|-boost|p1b:vaporeon|spa|2\"]); Parting Shot onto a -6 Attack foe [\"|-unboost|p2a:garchomp|atk|0\",\"|-unboost|p2a:garchomp|spa|1\"] (control at -4: [\"|-unboost|p2a:garchomp|atk|1\",\"|-unboost|p2a:garchomp|spa|1\"]); Close Combat's `self:` rider at -6 Def/SpD [] — isSelf, so the authority writes NOTHING and neither may we (at 0 it is [\"|-unboost|p1a:scizor|def|1\",\"|-unboost|p1a:scizor|spd|1\"]). Before the wire both capped arms dropped the clamped stat's line entirely",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "substitute",
+      "label": "a substitute that BREAKS writes `-end`, and only one that survives writes `-activate|[damage]`",
+      "live": true,
+      "detail": "the same 58-HP doll on the same Snorlax. BREAKS (Close Combat) [\"|-end|p2a:snorlax|substitute\"], doll left 0; SURVIVES (Bullet Punch) [\"|-activate|p2a:snorlax|move:substitute|[damage]\"], doll left 12. Before the fix the break printed BOTH lines — the `[damage]` report is the authority's ELSE arm and means the doll is still up",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perTurnBoost",
+      "label": "Syrup Bomb ends when its SOURCE leaves the field, and its `[silent]` end is still a line",
+      "live": true,
+      "detail": "the same Hydrapple Syrup Bomb into the same Feraligatr. SOURCE STAYS — Speed dropped on turns [1,2,3], `-end` on turn [4], final Speed stage -3 (the authority's own measured trace: three drops, then a silent end on the fourth). SOURCE PIVOTS OUT ON TURN 2 — drops on turns [1], `-end` on turn [2], final Speed stage -1. Before the wire the leaving arm read -3 like the staying arm and NEITHER printed an end line",
       "hollow": false,
       "armed": true,
       "directCall": false

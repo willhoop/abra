@@ -1162,6 +1162,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                         `showdown=0 ours=4` turn-1 row. */
   volDurationApplied: 0, volDurationTicked: 0, volDurationExpired: 0,
   volDurationFromBoostTag: 0, perTurnVolatileBoost: 0, perTurnVolatileBoostEnded: 0,
+  /* 2026-08-23 -- the volatile ended because its SOURCE LEFT THE FIELD, which is a different exit
+   * from the clock running out and had no reader at all. Zero across a corpus that contains a Syrup
+   * Bomb and a pivot means the `onUpdate` road is unwired again. */
+  perTurnVolatileSourceLeft: 0,
   forcedBerryEaten: 0, forcedBerryEffectUnexpressed: 0, teatimeFieldPass: 0, stuffCheeksNoBerry: 0,
   volRestartRefused: 0, volSealNoLastMove: 0,
   /* ROADMAP #241(3) -- `null` MEANS "HANDLED, SAY NOTHING"; `false` MEANS "FAILED, ANNOUNCE IT", and
@@ -15989,6 +15993,47 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(e.m._flingSpend){const _fi=e.m._flingSpend;e.m._flingSpend=null;e.m.item='';
           if(TR)TR.enditem(e.m,_fi,'[from] move: fling');MEDSEEN.flingSpentAtUpdate++;}
       }
+      /* 2026-08-23 -- A PER-TURN-BOOST VOLATILE DIES WITH ITS SOURCE, AND THAT IS AN `onUpdate`
+       * HANDLER, NOT A RESIDUAL. This engine had no reader for it at all.
+       *
+       *     data/moves.ts:18770-18774   syrupbomb.condition
+       *       onUpdate(pokemon) {
+       *         if (this.effectState.source && !this.effectState.source.isActive) {
+       *           pokemon.removeVolatile('syrupbomb');      // -> onEnd -> -end|BODY|Syrup Bomb|[silent]
+       *         }
+       *       }
+       *
+       * IT IS A STATE DEFECT AND NOT A MISSING LINE, and that is the half worth stating: the residual
+       * below keeps taking a Speed stage every turn from a body that has left the field. Measured on
+       * a staged board before this was written -- Hydrapple Syrup Bombs a Feraligatr on turn 1 and
+       * pivots out on turn 2; this engine went on to -2 on turn 2 and -3 on turn 3, where the
+       * authority stops at -1. Three whole stages of Speed on a body the source abandoned.
+       *
+       * THE SAME PASS AS FLING, AND FOR FLING'S REASON: both are VOLATILE `onUpdate` handlers, so
+       * they run above the item handlers (the berries) on the same body. That position is what puts
+       * the `-end` before the next action's `|switch|` line, which is exactly where the whole-game
+       * differential reads the authority's -- `|-end|p2a: Annihilape|Syrup Bomb|[silent]` sitting
+       * immediately in front of `|switch|p2a: Gengar`.
+       *
+       * MEMBERSHIP IS THE `perTurnBoost` TABLE, NOT A NAME -- one member in this format today
+       * (Syrup Bomb), and a second arriving in a later regulation is read here without an edit.
+       * `_volSrc` is already booked for exactly this family and for no other (see applyMoveVolatile),
+       * so there is no new lifetime to keep in step.
+       *
+       * "STILL ACTIVE" IS MEMBERSHIP OF THE FOUR SLOTS, which is what `Pokemon#isActive` means: a body
+       * that has FAINTED but not yet been replaced is still active in the authority and is still in
+       * these arrays here, so a KO'd source does not end the volatile early in either engine. */
+      for(const e of _all){
+        const _m=e.m; if(!_m._vol||!_m._volSrc)continue;
+        for(const [_v,_r] of perTurnBoostVolatiles()){
+          if(!(_m._vol[_v]>0))continue;
+          const _src=_m._volSrc[_v];
+          if(!_src||actA.indexOf(_src)>=0||actB.indexOf(_src)>=0)continue;
+          delete _m._vol[_v]; delete _m._volSrc[_v];
+          MEDSEEN.perTurnVolatileSourceLeft++;
+          if(TR)TR.vend(_m,_v,_r.pb.endsSilently?'[silent]':undefined);
+        }
+      }
       for(const e of _all){berryCureUpdate(e.m);berryPinchUpdate(e.m,e.s==='A'?actB:actA);berryPPUpdate(e.m,e.s==='A'?actB:actA);}
       /* ROADMAP #81 WIRE 11 -- `onAnyAfterMove` AND `onAnySwitchIn` FOR THE MID-TURN CASES, both of
        * White Herb's remaining triggers, landed on the pass that already runs after every action.
@@ -17868,8 +17913,37 @@ function battleTurn(S,rng,actsForA,actsForB){
            }}
           /* Stat changes. Contrary flips them and Clear Body refuses drops, both already modelled for
            * Intimidate -- asked here the same way so one ability does not behave differently by route. */
+          /* ROADMAP #289, THE TARGET HALF -- IS THIS TABLE THE MOVE'S PRIMARY, OR ITS SECONDARY?
+           *
+           * The authority announces a CLAMPED (zero-magnitude) stat change from a Move only when the
+           * call is neither a secondary nor a `self:` rider -- sim/battle.ts:2076, `else if
+           * (!isSecondary && !isSelf)`. A move's primary table reaches `boost(moveData.boosts, target,
+           * source, move, isSecondary, isSelf)` with both flags FALSE (sim/battle-actions.ts:1198);
+           * `secondaries()` re-enters moveHit with isSecondary TRUE (:1348). So the two cases sitting
+           * in this one loop take OPPOSITE branches and must not share an emission rule.
+           *
+           * DERIVED FROM THE TAG SHAPE, NOT FROM A NAME OR FROM `chance`. `chance` cannot answer it:
+           * Icy Wind, Snarl, Low Sweep and 15 more are `secondary: {chance: 100, boosts: {...}}` --
+           * a secondary that always fires -- and would read as primary. What separates them is that
+           * tag_dex derives `secondaryStatEffect` from `move.secondaries` and `statChange` from the
+           * hit effect, so a move carrying BOTH is one whose target table IS the secondary.
+           *
+           * MEMBERSHIP PRINTED OVER THE WHOLE TABLE BEFORE THIS WAS WIRED, as this file's rule
+           * requires -- 63 `statChange.target` entries over 500 moves, and the split is exact:
+           *   23 with NO secondaryStatEffect -- all status moves (Charm, Tearful Look, Screech,
+           *      Scary Face, Noble Roar, Tickle, Memento, Feather Dance, Baby-Doll Eyes, …) plus
+           *      Parting Shot and Strength Sap, which arrive through statChangeInCode's
+           *      `{boosts, chance:100}` wrapper. These announce.
+           *   40 WITH one, and for all 40 the `statChange.target` boosts are byte-identical to the
+           *      `secondaryStatEffect` boosts (checked, zero mismatches). These stay silent.
+           * All 17 entries whose chance is under 100 are in the second group, so the two predicates
+           * never disagree -- `chance` is kept as the second conjunct only because a table gaining a
+           * sub-100 PRIMARY later would be a new case, and it should read as silent rather than be
+           * announced by an assumption nobody re-checked. */
+          const _scPrim=!TAGS.has('move',a.mv,'secondaryStatEffect');
           for(const _e of ((a.sc&&a.sc.target)||[])){
             if(_e.chance<100&&_R.sec()*100>=_e.chance) continue;   // ROADMAP #222
+            const _zero=_scPrim&&(_e.chance==null||_e.chance>=100);
             const _sg=invSign(_t);         // WIRE 100b
             /* WIRE 3 -- the refusal is ONE gate now, and it is asked per STAT while the ANNOUNCEMENT
              * is once per boost table: Showdown's onTryBoost deletes each blocked key inside a single
@@ -17882,7 +17956,7 @@ function battleTurn(S,rng,actsForA,actsForB){
               if(_d<0){ const _r=statDropRefusal(_t,_s2,a.mv,false,m,Math.abs(_d)); if(_r){ _ref=_ref||_r; continue; } }   // WIRE 157
               const _b0=_t.boosts[_s2];
               _t.boosts[_s2]=clamp(_t.boosts[_s2]+_d,-6,6);
-              if(TR)TR.bst(_t,_s2,_t.boosts[_s2]-_b0);
+              if(TR)TR.bst(_t,_s2,_t.boosts[_s2]-_b0,'',_zero);
                 /* WIRE 138 -- ONCE PER STAT LOWERED. `retaliateWhenLowered` is the shared reader; the
                    attacker is named so an ALLY's drop does not trigger it. */
               if(_d<0&&_t.boosts[_s2]!==_b0)retaliateWhenLowered(_t,m);
@@ -18807,10 +18881,18 @@ function battleTurn(S,rng,actsForA,actsForB){
           _lift=_lift.filter(x=>{const _rf=tryHitRefusal(m,x,a.mv);
             if(_rf){announceTryHitRefusal(_rf,x);return false;} return true;});
         } else _lift=(who&&!_blocked)?[who]:[];
+        /* ROADMAP #289 -- A CLAMPED BOOST FROM THIS BRANCH IS ANNOUNCED AT ZERO. Every member is a
+         * MOVE's primary table (`this.battle.boost(moveData.boosts, target, source, move, false,
+         * false)`, sim/battle-actions.ts:1198), so it takes sim/battle.ts:2076's `!isSecondary &&
+         * !isSelf` arm and the line IS written. Membership printed over the whole format before this
+         * was wired: `boostsTarget` has six members -- Howl, Aromatic Mist, Coaching, Decorate,
+         * Flatter, Swagger -- and NONE carries `secondaryStatEffect`, so there is no secondary in
+         * this branch for the opt-in to over-match. Three Decorate-onto-a-+6-ally games in the
+         * whole-game differential are exactly this line. */
         if(bt.boosts)for(const _w of _lift)for(const k in bt.boosts){
           const kk=BK[k]; if(kk){const _b0=_w.boosts[kk]||0;
             _w.boosts[kk]=clamp((_w.boosts[kk]||0)+bt.boosts[k],-6,6);
-            if(TR)TR.bst(_w,kk,_w.boosts[kk]-_b0);}
+            if(TR)TR.bst(_w,kk,_w.boosts[kk]-_b0,'',true);}
         }
         m._lastMove=a.mv;continue;
       }
@@ -19527,7 +19609,15 @@ function battleTurn(S,rng,actsForA,actsForB){
                         if(_r){ _ref2=_ref2||_r; continue; } }
               const _b0=_pt.boosts[_s];
               _pt.boosts[_s]=clamp(_pt.boosts[_s]+_d,-6,6);
-              if(TR)TR.bst(_pt,_s,_pt.boosts[_s]-_b0);
+              /* ROADMAP #289 -- the clamped line is announced here too. `statChangeInCode.on ===
+               * 'target'` has three members over the whole format -- Defog, Parting Shot, Strength
+               * Sap -- and all three call `this.boost(...)` out of a MOVE's own handler with neither
+               * the secondary nor the self flag, so they take sim/battle.ts:2076. None carries
+               * `secondaryStatEffect`. One Parting-Shot-into-a-(-6)-Attack game in the whole-game
+               * differential is this line. Strength Sap cannot reach it: the branch above already
+               * fails the whole move when the target is at -6 Attack, which is the handler's own
+               * first line. */
+              if(TR)TR.bst(_pt,_s,_pt.boosts[_s]-_b0,'',true);
               /* WIRE 138 -- ONCE PER STAT LOWERED. `retaliateWhenLowered` is the shared reader; the
                  attacker is named so an ALLY's drop does not trigger it. */
               if(_d<0&&_pt.boosts[_s]!==_b0)retaliateWhenLowered(_pt,m);
@@ -22102,7 +22192,36 @@ function battleTurn(S,rng,actsForA,actsForB){
            * road returns before the counter site below, so it does not count HERE. Non-zero after a
            * game with a Substitute and an Annihilape in it is the size of the gap, in arrivals. */
           if(m!==tg)MEDFAILS.timesHitSubstituteUncounted++;
-          if(TR){TR.act(tg,'move: Substitute','[damage]');if(_s0>0&&tg._sub<=0)TR.vend(tg,'Substitute');}
+          /* 2026-08-23 -- A BREAKING SUBSTITUTE WRITES `-end` AND NOT `-activate`. THE TWO LINES ARE
+           * THE TWO ARMS OF ONE `if`, AND THIS ENGINE WROTE BOTH.
+           *
+           *     data/moves.ts:18350-18356   substitute.condition.onTryPrimaryHit
+           *       if (target.volatiles['substitute'].hp <= 0) {
+           *         if (move.ohko) this.add('-ohko');
+           *         target.removeVolatile('substitute');      // -> onEnd -> add('-end', target, 'Substitute')
+           *       } else {
+           *         this.add('-activate', target, 'move: Substitute', '[damage]');
+           *       }
+           *
+           * `-activate|…|[damage]` is the ELSE arm: it is the doll REPORTING that it soaked a hit and
+           * is still standing. The `-end` at data/moves.ts:18367 is the doll breaking. Emitting both
+           * says the doll survived and then vanished, which is two events where the game has one --
+           * and it is two whole-game divergences in `data/game-differential.json`, both read as
+           * `extra event emitted by medicham2` because our `-activate` arrives where the authority's
+           * `-end` does.
+           *
+           * NO STATE MOVES HERE AND THAT IS CHECKABLE RATHER THAN CLAIMED: `tg._sub` is already
+           * clamped to 0 on the line above and `TR.vend` already fired on exactly this condition, so
+           * the only thing this changes is whether the surviving-doll line is ALSO printed. The
+           * substitute's own removal was already correct.
+           *
+           * WHAT THIS DOES NOT TOUCH, STATED: the authority CLAMPS `damage` to the doll's remaining
+           * HP and assigns the clamped value to `source.lastDamage`, which recoil and drain then read
+           * (data/moves.ts:18345-18348). This engine passes the unclamped `dmg` to both. That is a
+           * STATE divergence, it is not narration, and it is left for the road that owns it rather
+           * than folded into a line-ordering fix. */
+          if(TR){ if(_s0>0&&tg._sub<=0)TR.vend(tg,'Substitute');
+                  else TR.act(tg,'move: Substitute','[damage]'); }
           R.out=true;return;}
         /* THE BERRY IS CONSUMED HERE AND ONLY HERE. dmgRange applied the halve as a pure read --
          * it is called dozens of times per turn on hypothetical moves and must never mutate -- so
@@ -25591,7 +25710,23 @@ function battleTurn(S,rng,actsForA,actsForB){
           delete m._vol[_v];
           if(m._volSrc)delete m._volSrc[_v];
           MEDSEEN.perTurnVolatileBoostEnded++;
-          if(TR&&!_r.pb.endsSilently)TR.vend(m,_v);
+          /* 2026-08-23 -- A `[silent]` LINE IS A PROTOCOL EVENT, NOT AN ABSENT ONE, AND THIS READ THE
+           * TAG BACKWARDS. `endsSilently` records that the condition's own `onEnd` passes `[silent]`
+           * (`this.add('-end', pokemon, 'Syrup Bomb', '[silent]')`, data/moves.ts:18779) -- a CLIENT
+           * hint that the animation is suppressed. The line is still in the log, and the whole-game
+           * differential's `display-flags` rule strips the flag before comparing, so the authority's
+           * line reduces to `|-end|p2a|syrupbomb` and ours reduced to nothing at all.
+           *
+           * THE FLAG IS EMITTED RATHER THAN DROPPED, deliberately: the instrument that compares these
+           * two streams is not the only reader of the trace, and an engine that silently omits a field
+           * the authority writes is the same silent default in a smaller place. `TR.vend`'s third
+           * argument is that field and `push()` drops it when it is undefined, so the non-silent
+           * members of the family are byte-identical to before.
+           *
+           * THE CLOCK IS UNCHANGED AND WAS ALREADY MEASURED against the authority (see the six-turn
+           * scripted trace in the comment above): three drops on turns 1-3 and the end on turn 4. Only
+           * the line was missing. */
+          if(TR)TR.vend(m,_v,_r.pb.endsSilently?'[silent]':undefined);
           continue;
         }
         const _src=(m._volSrc&&m._volSrc[_v])||null;

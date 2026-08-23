@@ -23348,6 +23348,191 @@ probe('move', 'volatileAnnounce', 'Disable\'s `-start` names the move it sealed,
                  + `field. Before the wire Disable read \`|-start|p2a:garchomp|move:disable\`` };
 });
 
+/* 2026-08-23 -- A MOVE'S STAT CHANGE AIMED AT ANOTHER BODY IS ANNOUNCED AT THE CAP TOO, AND THE
+ * MAGNITUDE IS ZERO. ROADMAP #289's other two sites.
+ *
+ * The SELF half of this landed on 2026-08-18 (the `setup` branch passes `zero`), and the whole-game
+ * differential still carried five games of it — every one of them aimed at a body that was NOT the
+ * user: three Decorate onto a +6 Attack ally and two Parting Shot / Tearful Look onto a -6 Attack
+ * foe. Two branches, both suppressing the clamped line:
+ *
+ *     `boostsTarget`   Decorate / Coaching / Aromatic Mist / Howl   (the ally-and-foe boost move)
+ *     `sc.target`      Parting Shot / Tearful Look / Charm / …      (a status move's declared drop)
+ *
+ * THE AUTHORITY, sim/battle.ts:2072-2077, and the two arms are exact inverses of each other:
+ *
+ *     } else if (effect?.effectType === 'Ability') {
+ *       if (isSecondary || isSelf) this.add(msg, target, boostName, boostBy);   // boostBy === 0
+ *     } else if (!isSecondary && !isSelf) {
+ *       this.add(msg, target, boostName, boostBy);                              // boostBy === 0
+ *     }
+ *
+ * A move's PRIMARY boost table reaches `this.battle.boost(moveData.boosts, target, source, move,
+ * isSecondary, isSelf)` (sim/battle-actions.ts:1198) with both flags false, so it announces. The word
+ * is chosen at :2040 — `-unboost` when `boost[boostName] < 0 || target.boosts[boostName] === -6` —
+ * and after `getCappedBoost` the clamped delta is 0, so at +6 it is `-boost|stat|0` and at -6 it is
+ * `-unboost|stat|0`. The engine derives the same sign from the body's stage rather than the request.
+ *
+ * THE NEGATIVE CONTROL IS THE HALF THAT MUST STAY SILENT, and it is a separate branch of the same
+ * `if`: a `self:` rider goes through `selfDrops` -> `moveHit(source, source, move, moveData.self,
+ * isSecondary, true)` (sim/battle-actions.ts:1327) with isSelf TRUE, so `!isSecondary && !isSelf` is
+ * false and the authority writes NOTHING at the cap. Close Combat into a body already at -6 Defence
+ * is that case. A blanket "emit whenever the delta is zero" passes the first two arms and fails this
+ * one, which is exactly the over-match this file's header warns about. */
+probe('move', 'boostsTarget', 'a move\'s stat change onto ANOTHER body announces its clamped zero', () => {
+  /* Every arm spends a real turn. The stage is set on the BOARD before the click, so the varied knob
+   * is the recipient's current stage and nothing else. */
+  const run = (mv, aimAlly, stage) => {
+    const me = bare('alcremie'), ally = bare('vaporeon');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    const who = aimAlly ? ally : f1;
+    for (const k of ['at', 'df', 'sd']) who.boosts[k] = stage;
+    unfaintable(me); unfaintable(ally); unfaintable(f1);
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, who, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return trace.filter(l => /^\|-(un)?boost\|/.test(l)).map(M.traceCanon);
+  };
+  /* THE SELF-RIDER ARM. Close Combat's `self: {boosts:{def:-1, spd:-1}}` on a user already at -6 —
+   * isSelf, so the authority is silent and this engine must stay silent too. */
+  const selfRider = (stage) => {
+    const me = bare('scizor'), ally = bare('clefable');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    me.boosts.df = stage; me.boosts.sd = stage;
+    unfaintable(f1);
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'closecombat', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return trace.filter(l => /^\|-(un)?boost\|/.test(l)).map(M.traceCanon);
+  };
+  const decCap  = run('decorate', true, 6);      // ally at +6 Attack
+  const decOpen = run('decorate', true, 4);      // the control: the same click, room to move
+  const psCap   = run('partingshot', false, -6); // foe at -6 Attack
+  const psOpen  = run('partingshot', false, -4);
+  const riderCap = selfRider(-6), riderOpen = selfRider(0);
+  const j = JSON.stringify;
+  const has = (a, s) => a.some(l => l.indexOf(s) >= 0);
+  const works = has(decCap, '|atk|0') && has(decCap, '|spa|2')
+             && has(decOpen, '|atk|2') && !has(decOpen, '|0')
+             && has(psCap, '|atk|0') && has(psCap, '|spa|1')
+             && has(psOpen, '|atk|1') && !has(psOpen, '|0')
+             && decCap[0].indexOf('-boost|') === 1 && psCap[0].indexOf('-unboost|') === 1
+             && riderCap.length === 0 && riderOpen.length === 2;
+  return { works, arms: { control: [].concat(decOpen, psOpen, riderOpen),
+                          test: [].concat(decCap, psCap, riderCap) },
+           detail: `Decorate onto a +6 Attack ally ${j(decCap)} (control at +4: ${j(decOpen)}); `
+                 + `Parting Shot onto a -6 Attack foe ${j(psCap)} (control at -4: ${j(psOpen)}); `
+                 + `Close Combat's \`self:\` rider at -6 Def/SpD ${j(riderCap)} — isSelf, so the `
+                 + `authority writes NOTHING and neither may we (at 0 it is ${j(riderOpen)}). Before `
+                 + `the wire both capped arms dropped the clamped stat's line entirely` };
+});
+
+/* 2026-08-23 -- A BREAKING SUBSTITUTE WRITES `-end`; A SURVIVING ONE WRITES `-activate|[damage]`.
+ * THEY ARE THE TWO ARMS OF ONE `if` AND THIS ENGINE WROTE BOTH ON A BREAK.
+ *
+ *     data/moves.ts:18350-18356   if (target.volatiles['substitute'].hp <= 0) { … removeVolatile }
+ *                                 else { this.add('-activate', target, 'move: Substitute', '[damage]'); }
+ *     data/moves.ts:18367         the condition's own onEnd:  this.add('-end', target, 'Substitute')
+ *
+ * The `[damage]` line is the doll REPORTING that it soaked a hit and is still up. Printing it beside
+ * the `-end` says the doll survived and then vanished. Two whole-game divergences read exactly that
+ * way, both as `extra event emitted by medicham2 :: |-end|…|substitute <> |-activate|…|[damage]`.
+ *
+ * THE ARMS ARE THE SAME DOLL ON THE SAME BODY, so the only varied knob is whether the hit is big
+ * enough to break it — which is what makes the pair a control rather than two unrelated observations.
+ * The two arms must be MUTUALLY EXCLUSIVE in both directions: a break may carry no `-activate` and a
+ * survival may carry no `-end`. Only the first was wrong, and asserting both is what stops a fix that
+ * merely swapped which line is always printed. */
+probe('move', 'substitute', 'a substitute that BREAKS writes `-end`, and only one that survives writes `-activate|[damage]`', () => {
+  const run = (mv) => {
+    const me = bare('scizor'), ally = bare('clefable');
+    const f1 = bare('snorlax'), f2 = bare('garchomp');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    /* turn 1 exists only to put the doll up — both arms get the identical substitute */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'substitute', f1, S.field)], [f2, { kind: 'pass' }]]));
+    const sub0 = f1._sub;
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    /* CANONICALISE FIRST, THEN FILTER. The raw line is `|-end|p2a: Snorlax|Substitute` — a lower-case
+     * match against it finds nothing, and an empty list would have made BOTH arms read as no line at
+     * all, which passes no assertion but reports the mechanic as absent for the wrong reason. */
+    return { sub0, left: f1._sub,
+             lines: trace.map(M.traceCanon).filter(l => /substitute/i.test(l)) };
+  };
+  const brk = run('closecombat'), alive = run('bulletpunch');
+  const j = JSON.stringify;
+  const works = brk.sub0 > 0 && brk.left === 0 && alive.left > 0
+             && j(brk.lines) === j(['|-end|p2a:snorlax|substitute'])
+             && j(alive.lines) === j(['|-activate|p2a:snorlax|move:substitute|[damage]']);
+  return { works, arms: { control: alive.lines, test: brk.lines },
+           detail: `the same ${brk.sub0}-HP doll on the same Snorlax. BREAKS (Close Combat) `
+                 + `${j(brk.lines)}, doll left ${brk.left}; SURVIVES (Bullet Punch) ${j(alive.lines)}, `
+                 + `doll left ${alive.left}. Before the fix the break printed BOTH lines — the `
+                 + `\`[damage]\` report is the authority's ELSE arm and means the doll is still up` };
+});
+
+/* 2026-08-23 -- SYRUP BOMB DIES WITH ITS SOURCE, AND A `[silent]` `-end` IS A LINE THAT EXISTS.
+ *
+ * Two halves of one rule and the first is the expensive one:
+ *
+ *   data/moves.ts:18770-18774   onUpdate(pokemon) { if (source && !source.isActive)
+ *                                 pokemon.removeVolatile('syrupbomb'); }
+ *   data/moves.ts:18778-18780   onEnd(pokemon) { this.add('-end', pokemon, 'Syrup Bomb', '[silent]'); }
+ *
+ * `[silent]` suppresses the CLIENT ANIMATION; the line is in the protocol. This engine read the
+ * `endsSilently` tag as "emit nothing", so the expiry was invisible, and it had no reader at all for
+ * the source leaving — so the residual went on taking a Speed stage every turn from a body that had
+ * left the field.
+ *
+ * THE ARMS ARE THE SAME CLICK ON THE SAME BODY and differ only in whether the SOURCE pivots out on
+ * turn 2, which is the knob. Both the LINE and the STAGE are asserted, because the line alone would
+ * pass an engine that announced the end and kept draining Speed anyway — which is the more expensive
+ * half and the one no protocol comparison can see. */
+probe('move', 'perTurnBoost', 'Syrup Bomb ends when its SOURCE leaves the field, and its `[silent]` end is still a line', () => {
+  const run = (srcLeavesOnTurn) => {
+    const me = bare('hydrapple'), ally = bare('clefable'), bench = bare('snorlax');
+    const f1 = bare('feraligatr'), f2 = bare('garchomp');
+    const trace = [];
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true, trace });
+    const ends = [], drops = [];
+    for (let t = 1; t <= 5; t++) {
+      trace.length = 0;
+      let act = { kind: 'pass' };
+      if (t === 1) act = M.playerAction(me, 'syrupbomb', f1, S.field);
+      else if (t === srcLeavesOnTurn) act = { kind: 'switch', to: bench };
+      M.battleTurn(S, rng5, new Map([[S.actA[0], act], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      const lines = trace.map(M.traceCanon);
+      if (lines.some(l => /^\|-end\|.*syrupbomb/.test(l))) ends.push(t);
+      if (lines.some(l => /^\|-unboost\|p2a:feraligatr\|spe\|/.test(l))) drops.push(t);
+    }
+    return { ends, drops, spe: f1.boosts.sp, still: (f1._vol && f1._vol.syrupbomb) || 0 };
+  };
+  const stays = run(0), leaves = run(2);
+  const j = JSON.stringify;
+  const works = j(stays.ends) === j([4]) && j(stays.drops) === j([1, 2, 3]) && stays.spe === -3
+             && j(leaves.ends) === j([2]) && j(leaves.drops) === j([1]) && leaves.spe === -1
+             && stays.still === 0 && leaves.still === 0;
+  return { works, arms: { control: [stays.ends.join('/'), stays.drops.join('/'), String(stays.spe)],
+                          test:    [leaves.ends.join('/'), leaves.drops.join('/'), String(leaves.spe)] },
+           detail: `the same Hydrapple Syrup Bomb into the same Feraligatr. SOURCE STAYS — Speed `
+                 + `dropped on turns ${j(stays.drops)}, \`-end\` on turn ${j(stays.ends)}, final Speed `
+                 + `stage ${stays.spe} (the authority's own measured trace: three drops, then a silent `
+                 + `end on the fourth). SOURCE PIVOTS OUT ON TURN 2 — drops on turns ${j(leaves.drops)}, `
+                 + `\`-end\` on turn ${j(leaves.ends)}, final Speed stage ${leaves.spe}. Before the wire `
+                 + `the leaving arm read -3 like the staying arm and NEITHER printed an end line` };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');

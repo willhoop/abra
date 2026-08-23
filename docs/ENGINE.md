@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  651/651 probed mechanics live, 0 missing   (census 2026-08-23 15:40)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-23 15:44)
+  654/654 probed mechanics live, 0 missing   (census 2026-08-23 17:19)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-23 17:23)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,231 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is d9c520e0433c now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 44bfdb40c292 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 16:45_
+_stamped 2026-08-23 17:44_
 
 <!-- /GENERATED -->
+
+## NARRATION TIMING — THREE RULES, EIGHT OF THE 42 CLEARED, AND BOARD-MATERIAL DID NOT MOVE. 2026-08-23.
+
+Full account: [`docs/_reports/2026-08-23-narration-timing.md`](_reports/2026-08-23-narration-timing.md).
+Will: *"i want us to announce failures and generally match the timing of narration of showdown please
+fix."*
+
+**THE BRIEF'S RANK-1 ITEM IS SMALLER THAN IT READS, AND THAT IS THE FIRST THING TO RECORD.** The
+derivation ranked *"a `[silent]` `-end` is a protocol event"* at **8 games**. Five of those eight are
+Supreme Overlord `fallenundefined`, which `engine/quarantine.js:1118` has **already DECLARED
+NOT-A-DEFECT** — the authority emits the literal string `fallenundefined` on a line players never see,
+and reproducing a typo is not correctness. They are excluded from the published `undeclared` headline
+and no fix may claim them. The rule's real size is **3**.
+
+| rule landed | narration games | state? |
+|---|---|---|
+| a move's stat change onto ANOTHER body announces its clamped zero | **5** | no |
+| a breaking Substitute writes `-end`, not `-activate\|[damage]` | **2** | no |
+| a `[silent]` `-end` is a line; and Syrup Bomb dies with its source | **1** | **yes — and it was a board bug** |
+
+### THE NUMBERS — A RE-BASELINE, NOT A DELTA
+
+Arm **`middle`** (real dice, the default), release **`985a28a22653`**, 961 played games, turn cap 12,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json` (the
+same pin the standing figure used, so the steering is identical).
+
+| quantity, arm `middle` | before `dd3b8bdd482f` | after `985a28a22653` |
+|---|---|---|
+| protocol parted (raw `diverged`) | 72 | **64** |
+| **undeclared = diverged − declared** (the headline) | 67 of 961 = 7.0% | **59 of 961 = 6.1%** |
+| distinct causes | 66 | **58** |
+| **narration-only games** | 42 | **34** |
+| **board-material games** | **30** | **30** |
+| board-material causes | 28 | **28** |
+
+**Do not subtract the two rates as a trend against the STAMPED baseline** — that one is
+`A/top-tie-first/…` and both figures above are `A/middle/…`. They are comparable to each other and to
+nothing else.
+
+### THE ZERO-MAGNITUDE BOOST WAS HALF-DONE, AND THE MISSING HALF WAS EVERY MOVE AIMED AT SOMEBODY ELSE
+
+`sim/battle.ts:2072-2077`'s two `else` arms are exact inverses: a MOVE announces a clamped zero when
+it is neither a secondary nor a `self:` rider; an ABILITY announces one only when it IS. The `setup`
+branch has opted in since `c6dbf65` (2026-08-18), so a +6 Swords Dance already printed `atk|0` — and
+**all five surviving games aim at a body that is not the user**: three Decorate onto a +6 Attack ally,
+one Parting Shot and one Tearful Look onto a −6 Attack foe. Three sites now opt in.
+
+**`chance` CANNOT DECIDE WHICH TABLE IS A SECONDARY AND THAT IS THE WHOLE DERIVATION.** Icy Wind,
+Snarl, Low Sweep and 14 more are `secondary: {chance: 100, boosts: …}` and would read as primary.
+Membership printed over the whole table before wiring: **63 `statChange.target` entries; the 23 with
+no `secondaryStatEffect` announce, the 40 with one stay silent, and for all 40 the two boost tables
+are byte-identical (zero mismatches).** All 17 sub-100 entries are in the second group, so the two
+predicates never disagree — `chance` is kept only so a sub-100 PRIMARY arriving later reads as silent
+rather than being announced by an assumption nobody re-checked.
+
+**THE NEGATIVE CONTROL IS A DIFFERENT ARM OF THE SAME `if`,** and it is in the probe: a `self:` rider
+goes through `selfDrops` → `moveHit(source, source, move, moveData.self, isSecondary, true)`
+(`sim/battle-actions.ts:1327`) with isSelf TRUE, so Close Combat into a body already at −6 Defence
+prints **nothing**. A blanket "emit whenever the delta is zero" passes both capped arms and fails this
+one.
+
+### SYRUP BOMB WAS TAKING THREE STAGES OF SPEED FROM A BODY THE SOURCE HAD ABANDONED
+
+`[silent]` suppresses the CLIENT ANIMATION; the line is in the protocol. This engine's `endsSilently`
+reader was `if(TR && !endsSilently)` — it read the tag as *emit nothing*. One member in the format,
+printed before the change.
+
+The expensive half is the other one. `data/moves.ts:18770-18774` removes the volatile at `onUpdate`
+when its source is no longer active, and this engine had **no reader for it at all**. Measured on a
+staged board before a line changed — Hydrapple Syrup Bombs a Feraligatr on turn 1 and pivots out on
+turn 2:
+
+```
+before   t1 spe -1   t2 spe -2   t3 spe -3   t4 clock out, no line       final -3
+after    t1 spe -1   t2 |-end|p2a:feraligatr|syrupbomb|[silent]          final -1
+```
+
+The removal sits in `_updateAll` in the same loop position as Fling's spend, for Fling's reason — both
+are VOLATILE `onUpdate` handlers and run above the item handlers on the same body. That position is
+what puts the `-end` in front of the next action's `|switch|` line, which is exactly where the
+differential reads the authority's.
+
+### NO STATE RODE IN, AND THAT IS CHECKED RATHER THAN ASSERTED
+
+`engine/move_result_state.js` exists because `mvFail` writes a line AND `_mvRes`. **No edit in this
+pass is on a result path.** The three boost sites, the Substitute arm and Syrup Bomb's silent end are
+`TR.*` calls, and `TR.bst` / `TR.act` / `TR.vend` are one-line `this.push(...)` emitters
+(`medicham2:2329`, `:2436`, `:2478`) — the stage, the doll's HP and the clock were all already written
+on the line above. The one state change in the batch is Syrup Bomb's source-left removal, it is
+deliberate, it moves TOWARD the authority, and the probe asserts the Speed STAGE (−1 against −3)
+rather than the protocol, because a protocol-only assertion would pass an engine that announced the
+end and kept draining Speed.
+
+### THE ONE NEW CAUSE IS THE SAME GAME WEARING A DIFFERENT LABEL — AND IT NAMES A REAL DEFECT
+
+```
+- event missing from medicham2   :: |-miss|p1a|p2a <> |upkeep
++ unrelated event mismatch       :: |-miss|p1a|p2a <> |-boost|p2a|atk|0
+```
+
+Same seed, same BOARD-MATERIAL verdict, same board-parted turn (11), and the board-material totals are
+28 causes / 30 games on both sides of the change. What it exposes is unrelated to this pass and is
+filed below: the authority writes `|move|p1a: Alcremie|Decorate|p2a: Dragapult|[miss]` into a
+Dragapult that is semi-invulnerable from Phantom Force, and **this engine lands Decorate on a vanished
+body** — `boostsTarget` is not gated on invulnerability.
+
+### WHAT WAS DERIVED AND DELIBERATELY NOT LANDED
+
+- **The weather upkeep line, 5 games — STILL UNATTRIBUTED, and three hypotheses are now dead.** The
+  suppressor clause the derivation named (`medicham2:24881`, `field.weather && !field.wSup`) is a real
+  defect and is **not** this. Staged four ways — rain by MOVE, rain by DRIZZLE at battle start, rain
+  by DRIZZLE switched in mid-turn, and all four slots switching on the same turn (the shape every one
+  of the five cards has) — **the upkeep line fires correctly in every arm.** A replay would settle it;
+  `engine/replay_one.js --release dd3b8bdd482f --games 1200` answered `SEED NOT IN THIS POOL` because
+  the pool is steered by the LIVE census, which this pass moved. Re-run it under the census pin.
+- **`|faint|` at the step boundary, 5 games — NOT ATTEMPTED, and it is a faint QUEUE not a line.**
+  `Pokemon#faint()` queues and writes nothing; the line comes from `faintMessages()` at eight step
+  boundaries. This engine has **27 sites** that write `|faint|` inline at the instant HP reaches zero,
+  each also doing `noteFaint` and the fainted flag. That is an architectural batch with a live risk of
+  moving a board, which was the stop condition.
+- **The target's berry above the attacker's recoil / Life Orb, 3 games — DERIVED, NOT LANDED.**
+  Reproduced on a staged board (`|-damage|…|[from]item:lifeorb` printed above
+  `|-enditem|…|sitrusberry|[eat]`). The fix is to run the Update pass at the authority's position —
+  INSIDE the hit loop (`sim/battle-actions.ts:971`, above `applyRecoilDamage` at `:983`) — and this
+  engine runs it at the top of the NEXT action. `_updateAll` fires Fling, three berry families and the
+  White Herb triggers over all four bodies; calling it mid-move is a broad reordering, not a line move.
+- **Throat Chop, 2 games — DEFERRED WITH A FINDING THAT MATTERS MORE THAN THE LINE.** The `-end` is
+  genuinely missing, and the clock underneath it looks **one turn long**: the authority is
+  `duration: 2` and ends at the second residual, while `_noSound = turns + 1 = 3` leaves the body
+  silenced on a third turn. Emitting the line without settling that would print it in the wrong place.
+  `throatchop@22` is also on this engine's own `residualExpiryDeferred()` list, so its POSITION is
+  separately open.
+- **Tailwind on both sides, 2 games — NOT A DEFECT, DERIVED, EXCLUDED.** `effectOrder` is assigned
+  only for `SwitchIn` and `RedirectTarget` (`sim/battle.ts:994-1000`) and Showdown's own TODO at
+  `:996` says the in-game rule is different. Two Tailwinds tie on all five `comparePriority` keys and
+  go to `prng.shuffle` at `:455`. There is no correct answer to implement.
+- **The suspected ties were not touched, so the owed correction is still owed.** The
+  "exact speed tie, NOT A DEFECT" filing on the three Protect/Detect rows rests on a reason
+  `game_differential.js:1229-1257` retired in 3.74.0. I inherited nothing and settled nothing.
+
+### THE ROSTER AND `all_mechanics_fire` WERE RE-RUN BECAUSE THE RELEASE MOVED, NOT BECAUSE THEY CHANGED
+
+`engine/status.js` WITHHOLDS a roster artifact measured on a different release, so cutting
+`985a28a22653` turned three PASS clauses into three `MEASURED AGAINST A DIFFERENT ENGINE` FAILs. Re-run
+against the new release, all three verdict vectors are **byte-identical** to the previous release's,
+and `data/all-mechanics-fire.json` is identical too (moves 20 / abilities 9 / items 1 diverged).
+**Gate shape unchanged: 3 of 8 clauses fail, the same three.**
+
+**ONE TRAP ON THE WAY, WORTH THE LINE:** the first `all_mechanics_fire` re-run used the default
+`--kind moves` and wrote an artifact with no ability or item rows at all, which made the clause read
+*"THE REACH FILTER CANNOT BE APPLIED"*. **A narrower artifact is not a cleaner one.** Re-run with
+`--kind all`.
+
+### THE NUMBERS, CHECKED RATHER THAN ASSUMED
+
+| | before | after |
+|---|---|---|
+| damage differential, `--n 6000 --seed 20260804` | 0/6000, all 16 corners | **0/6000, all 16 corners** |
+| census | 651 probed / 651 live / 0 missing | **654 / 654 / 0** |
+| census ratchet (`unarmed` / `directCall`) | 0 / 1 | **0 / 1, no `--accept`** |
+| hollow probes | 0 | **0** |
+| roster items | 0 DIFFER, 0 DID-NOT-FIRE, 139 of 148 | **identical** |
+| roster abilities | 0, 0, 130 of 202 | **identical** |
+| roster moves | 0, 0, 475 of 500 | **identical** |
+
+### THE HAND LIST
+
+Three items left it, because the census now carries them:
+
+- ~~a clamped stat change aimed at another body is not announced~~ — probe `move`/`boostsTarget`,
+  *"a move's stat change onto ANOTHER body announces its clamped zero"*.
+- ~~a breaking Substitute prints the surviving-doll line~~ — probe `move`/`substitute`,
+  *"a substitute that BREAKS writes `-end`, and only one that survives writes `-activate|[damage]`"*.
+- ~~a `[silent]` end is dropped, and a per-turn-boost volatile outlives its source~~ — probe
+  `move`/`perTurnBoost`, *"Syrup Bomb ends when its SOURCE leaves the field, and its `[silent]` end is
+  still a line"*.
+
+**PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.**
+
+1. **Decorate lands on a semi-invulnerable body.** `boostsTarget` is not gated on invulnerability; the
+   authority writes `|[miss]` and `|-miss|`. Board-material, 1 whole-game divergence.
+2. **Throat Chop's silence lasts one turn too long** (`_noSound = turns + 1` against the condition's
+   `duration: 2`), and its `-end` is missing at `onResidualOrder: 22`. State + narration, 2 games.
+3. **A broken Substitute's `lastDamage` is the unclamped hit.** The authority clamps damage to the
+   doll's remaining HP before recoil and drain read it (`data/moves.ts:18345-18348`). State.
+4. **The Perish Song death writes a `-damage` line the authority does not write** — `medicham2:25787`
+   calls `damage()` where `sim/pokemon.ts:1587` calls `faint()`, so `hurtThisTurn` and `lastDamage`
+   move here and not there. State, 1 game.
+5. **The weather upkeep line, 5 games, cause unattributed** — four staged arms refute the obvious
+   hypotheses; needs a pinned replay.
+6. **The faint queue.** `|faint|` is written inline at 27 sites here and at 8 step boundaries there.
+   5 games, architectural.
+7. **The Update event runs at the top of the next action, not inside the hit loop.** 3 games, and it
+   is the berry-above-recoil ordering.
+
+### OWED, NOT RUN
+
+```
+node tests/test-mechanics.js                         RUN — 654/654 live, 0 missing
+tests/test-engine-diff.js --n 6000 --seed 20260804   RUN — 0/6000, all 16 corners
+node tests/roster.js --stage {items,abilities,moves} RUN — 0/0 on all three, byte-identical verdicts
+node engine/all_mechanics_fire.js --kind all         RUN — moves 20 / abilities 9 / items 1, identical
+node engine/game_differential.js (the pinned run)    RUN — once, at the end, with all three pins
+node engine/status.js --write                        RUN at the end of this pass
+node engine/replay_one.js (the weather upkeep 5)     NOT RUN — the live census moved under the pool
+node engine/explain_divergence.js --dump-speeds      NOT RUN — no tie row was touched
+node engine/quarantine.js                            NOT RUN — its clauses were run directly, at the pins
+node tests/run-all.js                                NOT RUN — several of its gates predate this pass
+node engine/argmax_paired.js (decision impact)       NOT RUN — data/decision-impact.json still absent
+tests/interaction_matrix.js                          NOT RUN
+```
+
+- **No fit, no self-play, no `mew.js`.** `board.js`, `magnemite.js` and `engine-data.js` untouched.
+- **Two untracked files left alone as instructed:** `data/_pair-pilot.json` and
+  `data/medicham-represented-clicks.json`.
+
 
 ## THE THIRTEEN SILENT CATCHES ARE CLOSED, AND THE WORST OF THEM WAS COSTING NOTHING TODAY. 2026-08-23.
 
