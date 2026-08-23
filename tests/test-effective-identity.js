@@ -42,63 +42,57 @@
  * a caller cannot obtain the mega's ability beside the base forme's types. That mixed state is what
  * made these bugs so hard to see: every individual field looked defensible.
  *
- * THE RATCHET (R5). 145 raw reads exist across the repo and most are legitimate — a SHEET entry's
- * `.ability` genuinely is the pre-mega one, and reading it is right. A test demanding all 145 be
- * cleaned before it can be switched on is a test that gets switched off. So the baseline records
- * what exists and this fails only on what is NEW, and the list may only shrink.
+ * THE GATE IS A RUNTIME TRIPWIRE, NOT A COUNT — MEASURE, 2026-08-23
+ * -----------------------------------------------------------------
+ * (Will: "you do what you think is best just make it a permanent solution".)
+ *
+ * From 2026-08-02 to 2026-08-23 the fitness function above was implemented as a per-file COUNT of the regex
+ * /\.(ability|baseStats|weighthg|weightkg)\b/ against a stored baseline. THAT COUNT IS RETIRED. It
+ * is retired rather than restamped, and `data/effective-identity-baseline.json` still carries the
+ * last numbers it ever asserted, under `last_count_baseline`, with the reason.
+ *
+ * WHY. Seven agents reported it red at six different totals (869, 1048, 1471, 1561, 1596, 1597), TWO
+ * OF THEM BELOW THE BASELINE OF THE DAY — the ratchet was per-file and the headline was a total, so
+ * the headline actively recommended a restamp. One wholesale restamp on 2026-08-11 adopted 964 reads
+ * unreviewed and it was red again inside a week. It made people reword COMMENTS to hold a number
+ * still, twice on the record. And when all 130 of its last red matches were walked on 2026-08-23:
+ * 44 prose, 12 writes, 122 reads of `baseStats` (a field no live body in this repository has), ~27
+ * live-body reads that all deliberately want and receive the effective value — and ZERO stale-identity
+ * reads. 62% of the growth was the calendar. It was measuring the size of the repository.
+ *
+ * AND IT WAS GREEN ON A REAL ONE. `engine/position_features.js` sits exactly at its per-file baseline
+ * of 5 and contains a genuine raw read of a live stone-holder, found by the tripwire on its first run.
+ * No count could ever have found it, because the count only ever asked whether the number went up.
+ *
+ * WHAT REPLACED IT — section 3. Every mon a Board switches in gets a recording accessor on the four
+ * transforming fields; every active on the test board holds a mega stone whose forme ability differs
+ * from every ability its base forme can have, so a raw read is a defect BY CONSTRUCTION; the board is
+ * driven through the live decision path; and exactly one call site — board.js `effective()` — is
+ * allowed to see the raw field. SELF ENCAPSULATE FIELD stated as an executable assertion.
+ *
+ * It fires on the property ACCESS, so destructuring, a destructured parameter, `{...mon}`,
+ * `Object.assign({}, mon)` and `mon[k]` with a computed key are all caught — the last three were
+ * conceded as undetectable by any text scan. `ABRA_EI_PLANT=all` plants all six shapes and the gate
+ * names every one. ITS LIMIT IS EXECUTION COVERAGE, it is stated in section 3's own header, and the
+ * drive list is printed on every run so a reader can check whether their consumer is in it.
  *
  *   node tests/test-effective-identity.js
- *   node tests/test-effective-identity.js --update    (only after FIXING some)
- *   node tests/test-effective-identity.js --split     (the risk split, per file, changes no verdict)
- *   node tests/test-effective-identity.js --propose   (PRINTS a candidate baseline; writes nothing)
+ *   ABRA_EI_PLANT=all node tests/test-effective-identity.js   RED on six planted shapes
+ *   node tests/test-effective-identity.js --split             the retired inventory, per file
+ *   node tests/test-effective-identity.js --update            REFUSED; the count baseline is retired
  *
- * THE COUNT IS NOT THE RISK, AND SAYING SO IS THE POINT OF THE SPLIT — MEASURE, 2026-08-23
- * ---------------------------------------------------------------------------------------
- * This ratchet has been reported RED, by name, in docs/ENGINE.md at least seven times by seven
- * different agents, at 869, 1048, 1471, 1561, 1596 and 1597 raw reads. It was restamped WHOLESALE on
- * 2026-08-11 (ROADMAP #183, 964 reads adopted unreviewed on Will's *"restamp i guess"*) and it was
- * red again within days. A ratchet a restamp cannot hold for a week is not measuring the thing it
- * says it measures.
+ * WHAT SURVIVES FROM THE OLD RATCHET, AND WHY. The scan still runs and still prints a per-file
+ * PROSE / WRITE / READ inventory, and the 32 walked-file notes are kept — each is somebody's line-by-line
+ * account of one file and that is the expensive part. NEITHER ASSERTS ANYTHING NOW. One narrow static
+ * assertion remains, `baseSpecies(...).baseStats` at zero, because it is the single text shape a
+ * whole-repository walk named as dangerous and it covers files the tripwire never executes. It is a
+ * supplement and section 4 says so; it refuses one spelling of one shape and nothing more.
  *
- * Measured on 2026-08-23 over all 1,597 matches: **189 are PROSE** (comments and string literals),
- * **533 are WRITES** (`x.ability = ...`), and 875 are reads. So 45.2% of what this file counts as a
- * "raw read of a transforming field" is not a read at all — and the over-broad regex has already
- * DISTORTED ITS OWN SUBJECT twice, on the record:
- *
- *   - the `tests/test-tag-signature.js` declaration below is written WITHOUT NAMING THE FIELD, and
- *     says so: *"the scanner is a grep over source text, so quoting the line here would itself count
- *     as a raw read and the declaration would inflate the number it declares"*;
- *   - docs/ENGINE.md records an agent REWORDING TWO COMMENTS to hold this counter still.
- *
- * A gate that makes people edit prose to satisfy it is measuring the prose.
- *
- * SO EVERY MATCH IS NOW CLASSIFIED — PROSE / WRITE / READ — AND THE SPLIT IS PRINTED BESIDE EVERY
- * GROWING FILE. **The ratchet arithmetic is deliberately UNCHANGED**: it still compares the raw
- * TOTAL against the stored baseline, so this classification cannot make a red run green. Narrowing
- * the counter would lower every file's number against a baseline recorded under the old counter,
- * which is a restamp wearing a lexer, and ROADMAP #183 is what that costs.
- *
- * WHAT THIS CLASSIFIER DOES NOT CATCH, STATED AS A NUMBER RATHER THAN A HEDGE
- * --------------------------------------------------------------------------
- * It is a lexer over source text, so it sees `x.ability` and (since 2026-08-23) `x['ability']`. It is
- * BLIND to every other way of reaching the field, and a NEW wrong shape will most likely arrive as
- * one of these:
- *
- *   `const { ability } = mon`            destructuring        — 0 sites today
- *   `({ ability }) => ...`               destructured param   — 0 sites today
- *   `Object.assign({}, sheet)`           a copy, then treated as live — NOT DETECTABLE HERE AT ALL
- *   `x[k]` where k is a variable         computed key         — NOT DETECTABLE HERE AT ALL
- *
- * The first two are counted every run and printed if they ever become non-zero, which is coverage.
- * The last two are not coverage and must not be read as any. **A structural scan cannot prove the
- * absence of a stale-identity read; it can only refuse the shapes it knows.** The behavioural pins in
- * sections 1, 2 and 2b are what actually assert the engine is right, and they are the load-bearing
- * half of this file.
- *
- * A NOTE ON THE BRACKET FORM, because the naive version of it was wrong. Matching `['ability']` with
- * a plain regex fires on `tests/roster.js:8725`, which is a STRING IN AN ARRAY LITERAL and not a
- * property access. It is detected through the lexer with a required receiver token instead, and it
- * fires 0 times today.
+ * A NOTE FOR THE NEXT READER: this file's own source now contains the field name many times over, in
+ * this comment and in section 3's declarations. Under the old ratchet that inflated the number it
+ * declared, and the `tests/test-tag-signature.js` note below was written WITHOUT the field name for
+ * exactly that reason. It no longer matters, and that is the clearest single sign that the counter
+ * was measuring its own prose.
  */
 'use strict';
 require('../engine/showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
@@ -357,7 +351,409 @@ if (C) {
     + (unbuildable.length ? ` — ${unbuildable.length} build attempt(s) THREW` : ''));
 }
 
-/* ---- 3. THE RATCHET — no NEW raw read of a transforming field -------------------------------- */
+/* ---- 3. THE TRIPWIRE — WHO ACTUALLY READS A LIVE STONE-HOLDER'S ABILITY ----------------------
+ *
+ * REPLACED THE COUNTER WITH A CHECK (Will, 2026-08-23: "you do what you think is best just make it
+ * a permanent solution"). Everything under section 4 below used to be the gate; it is now an
+ * inventory that fails nothing, and this is the gate.
+ *
+ * WHY A COUNTER COULD NOT BE MADE PERMANENT. The old assertion was "no file's count of a regex may
+ * rise". Seven agents reported it red at six different totals (869, 1048, 1471, 1561, 1596, 1597),
+ * two of them BELOW the baseline of the day; a wholesale restamp on 2026-08-11 adopted 964 reads
+ * unreviewed and it was red again inside a week; and it twice made people reword COMMENTS to hold a
+ * number still. When MEASURE walked the 130 matches that were red on 2026-08-23, ZERO were
+ * stale-identity reads: 44 prose, 12 writes, 122 reads of `baseStats` — a field no live body in this
+ * repository has — and ~27 live-body reads that all deliberately want and receive the effective
+ * value. 62% of the growth was the calendar: 24 of the 30 files did not exist when the baseline was
+ * taken. A number that moves with the SIZE of the repository is not measuring risk.
+ *
+ * WHAT THE RISK ACTUALLY IS, stated so an instrument can be built against it: a consumer holds a
+ * LIVE Pokemon standing on the field with a mega stone, reads the DECLARED ability, and acts on it —
+ * when the thing on the field has the mega's ability instead. Mega Gengar's sheet says Cursed Body;
+ * the thing on the field has Shadow Tag.
+ *
+ * SO THE FIELD IS BOOBY-TRAPPED AND THE ENGINE IS RUN. Every mon a Board switches in gets a
+ * recording accessor on `ability`, `baseStats`, `weighthg` and `weightkg`. Every active on both
+ * sides holds a mega stone whose forme ability differs from every ability its base forme can have,
+ * so on THIS board the declared value is wrong for every single mon and any raw read is a defect by
+ * construction. The board is then driven through the live decision path and every read is recorded
+ * with its stack. Exactly one call site is allowed to see the raw field: board.js `effective()`, the
+ * accessor. That is Fowler's SELF ENCAPSULATE FIELD stated as an executable assertion rather than as
+ * a count, and it is the refactoring this file's own header has cited since 2026-08-02.
+ *
+ * WHAT THIS CATCHES THAT NO TEXT SCAN CAN. The accessor fires on the property access itself, so the
+ * spelling is irrelevant:
+ *
+ *   mon.ability                    the shape the old regex saw
+ *   const { ability } = mon        destructuring        — the old scan counted these separately
+ *   ({ ability }) => ...           destructured param   — same
+ *   Object.assign({}, mon)         a copy, then read    — NAMED AS UNDETECTABLE BY ANY TEXT SCAN
+ *   { ...mon }                     spread               — same
+ *   mon[k], k computed at runtime  computed key         — NAMED AS UNDETECTABLE BY ANY TEXT SCAN
+ *
+ * The last three are the shapes the old header conceded it could never see, and an unanticipated
+ * spelling is how this class of gate actually fails here: 2026-08-22's sibling case was a bare
+ * `globalThis.` prefix walking past a ratchet in eight files. `ABRA_EI_PLANT` plants all six shapes
+ * on demand and this gate names every one of them.
+ *
+ * IT ALSO CATCHES A CONSUMER NOBODY ANTICIPATED, because it enumerates no shapes and no call sites:
+ * the poison is installed on the Board class, so any code reached from the drive list below is
+ * covered the day it is written, with no edit here.
+ *
+ * WHAT IT PROVABLY CANNOT DO, AND THIS IS THE HONEST LIMIT OF THE WHOLE FILE
+ * -------------------------------------------------------------------------
+ * ITS COVERAGE IS EXECUTION COVERAGE. A consumer this file never drives is not checked, and no
+ * amount of prose changes that. The drive list is PRINTED on every run for exactly that reason —
+ * read it, and judge whether your consumer is in it. Driven today:
+ *
+ *   board.js              candidates() + featuresFor()   every candidate for all four actives
+ *   board.js              foeActionDistribution()
+ *   position_features.js  positionFeatures()             both sides
+ *   rollout_leaf.js       rolloutWinProb()               the leaf, on a small n
+ *
+ * That is the MAG feature path and the leaf, which is where a stale identity would reach a decision.
+ * It is NOT: magnemite.js's live loop, the fitters, the differential harnesses, or anything that
+ * builds its own bodies instead of a Board. A raw read inside medicham2-browser.js is a DIFFERENT
+ * and legitimate case — that engine materialises the effective ability into `.ability` — and section
+ * 2b pins it behaviourally rather than counting it.
+ *
+ * IT POISONS BOARD SLOT MONS ONLY. A sheet entry's `.ability` genuinely IS the pre-mega one and
+ * reading it is correct; that was always this ratchet's stated legitimate case, and it is now
+ * excluded BY CONSTRUCTION instead of by 32 hand-written per-file declarations.
+ *
+ * AND IT IS BLIND TO A VALUE COPIED BEFORE THE BOARD EXISTED. If a consumer snapshots the sheet into
+ * its own object and then treats that object as live, the read happens on something this file never
+ * poisoned and nothing here detects it. That is the old scan's `Object.assign` hole MOVED rather
+ * than closed, and it is stated so that a green run is not read as a proof.
+ */
+const vm = require('vm');
+
+const TRIP_FIELDS = ['ability', 'baseStats', 'weighthg', 'weightkg'];
+const TRIP = [];
+let TRIP_ARMED = false;
+const POISONED = new WeakSet();
+
+/* The accessor keeps the value in a closure and hands back exactly what was there, so nothing
+ * downstream behaves differently because it is being watched. `enumerable` mirrors whether the
+ * property existed, so JSON.stringify of a board mon still produces the same JSON — a live body has
+ * no `baseStats`, and inventing one would change what the engine sees. */
+function poison(mon) {
+  if (!mon || typeof mon !== 'object' || POISONED.has(mon)) return;
+  POISONED.add(mon);
+  for (const f of TRIP_FIELDS) {
+    const d = Object.getOwnPropertyDescriptor(mon, f);
+    if (d && !d.configurable) continue;
+    const own = !!d;
+    let v = own ? mon[f] : undefined;
+    Object.defineProperty(mon, f, {
+      configurable: true, enumerable: own,
+      get() { if (TRIP_ARMED) TRIP.push({ field: f, stack: new Error().stack }); return v; },
+      set(x) { v = x; },
+    });
+  }
+}
+
+/* INSTALLED ON THE CLASS, NOT ON FOUR OBJECTS. Poisoning only the mons this file happens to hold
+ * would miss every body a consumer switches in for itself mid-drive, which is precisely the code a
+ * regression would live in. */
+const _origSwitchIn = B.Board.prototype.switchIn;
+B.Board.prototype.switchIn = function (...a) {
+  const r = _origSwitchIn.apply(this, a);
+  for (const s of ['p1', 'p2']) for (const L of ['a', 'b']) { try { poison(this.slot(s, L)); } catch (e) { /* nothing there */ } }
+  return r;
+};
+
+const SELF = __filename.replace(/\\/g, '/').toLowerCase();
+const SRC_CACHE = new Map();
+function srcLine(file, n) {
+  if (!SRC_CACHE.has(file)) {
+    let a = null; try { a = fs.readFileSync(file, 'utf8').split('\n'); } catch (e) { a = null; }
+    SRC_CACHE.set(file, a);
+  }
+  const a = SRC_CACHE.get(file);
+  return a && a[n - 1] != null ? a[n - 1].trim() : '<source unavailable>';
+}
+/* The first frame that is neither the accessor above nor this file. Node's own frames are skipped,
+ * so a read arriving through JSON.stringify is attributed to the caller that asked for it. */
+function siteOf(stack) {
+  for (const ln of String(stack).split('\n').slice(1)) {
+    const m = ln.match(/\(?([^()]+?):(\d+):(\d+)\)?\s*$/);
+    if (!m) continue;
+    /* `at ` survives the capture on a frame with no function name — V8 prints those as
+     * `    at C:\...\file.js:249:38` with no parentheses to bound the path. Stripping it is not
+     * cosmetic: the un-stripped path made path.isAbsolute() false, so the site was reported by its
+     * raw Windows path and never matched a declaration. */
+    const file = m[1].trim().replace(/^at\s+/, '');
+    if (/^node:/.test(file) || file === 'native') continue;
+    if (file.replace(/\\/g, '/').toLowerCase() === SELF) continue;
+    const fn = (ln.match(/at\s+(?:async\s+|new\s+)?([^\s(]+)\s*\(/) || [])[1] || '';
+    let rel = file;
+    if (path.isAbsolute(file)) {
+      const r = path.relative(ROOT, file).replace(/\\/g, '/');
+      if (r && !r.startsWith('..')) rel = r;
+    }
+    return { file, rel, line: +m[2], fn, text: srcLine(file, +m[2]) };
+  }
+  return null;
+}
+
+/* THE ONE ALLOWED READER, AND THE ONE DECLARED GAP.
+ *
+ * This is not the old DECLARED list in a new costume. That one held 32 FILES; this holds CALL SITES,
+ * and a site only reaches it after the tripwire has PROVED the read happens on a live stone-holder
+ * whose sheet is wrong. Two rules, and the second is the one the old mechanism did not have:
+ *
+ *   1. A declaration states a reason about CONSTRUCTION, as before.
+ *   2. A declaration whose safety rests on a FACT ABOUT THE FORMAT carries a guard() that RE-DERIVES
+ *      that fact every run and fails the gate BY NAME when it stops being true. A declaration that
+ *      cannot rot is worth more than one that is merely well argued. */
+const RUNTIME_ALLOWED = [
+  {
+    file: 'engine/board.js', fn: 'effective',
+    why: 'THE ACCESSOR ITSELF. effective() is the one function in this project permitted to read the '
+      + 'raw field: it reads the declaration and then decides, from the species and the stone, whether '
+      + 'that declaration is still true. Routing it through itself is a cycle. Every other read in the '
+      + 'repository is supposed to arrive here.',
+  },
+  {
+    file: 'engine/position_features.js',
+    text: "return { ability: B.norm(f.mon.ability || e.ability || \'\'), fainted: false };",
+    why: 'FOUND BY THIS TRIPWIRE ON ITS FIRST RUN, 2026-08-23. It is a genuine raw read of a live '
+      + 'stone-holder that the old count ratchet was GREEN on and had been since 2026-08-02 — the file '
+      + 'sits exactly at its per-file baseline of 5, so no count could ever have found it. It builds '
+      + 'the defender list for priorityRefusedAbove(). board.js has the SAME function one file over '
+      + 'and that copy DOES resolve (`effAbility(f.mon, dex)`, board.js:3520), so this is one fact with '
+      + 'two implementations — the failure CLAUDE.md names as FEATURES ARE PER-MODEL, FACTS ARE GLOBAL. '
+      + 'DECLARED rather than fixed because MEASURE does not own engine/position_features.js; the fix '
+      + 'is proposed as a roadmap row. EXPOSURE IS ZERO TODAY AND THE GUARD RE-DERIVES IT: the value '
+      + 'is consumed only by the priority bar, and no legal mega gains or loses a blocksMove ability.',
+    guard: () => {
+      /* Nothing named. The bar is read off data/tags.json through the same door the engine uses, and
+       * the megas are swept out of the format. If a future mega gains one of these the gate goes red
+       * on this entry BY NAME rather than on a total. */
+      const bar = new Set();
+      try {
+        const TAGSMOD = require(D('engine', 'tags.js'));
+        for (const id of TAGSMOD.withTag('ability', 'blocksMove')) bar.add(id);
+      } catch (e) { return { ok: false, note: 'the guard could not read the blocksMove tag: ' + e.message }; }
+      if (!bar.size) return { ok: false, note: 'the blocksMove tag set is EMPTY — the guard is asking nothing' };
+      const hit = [];
+      for (const it of dex.items.all()) {
+        if (!it.megaStone) continue;
+        for (const sp of dex.species.all()) {
+          if (!sp.exists || sp.isMega || sp.isNonstandard) continue;
+          const forme = B.megaFormeOf(B.norm(sp.name), B.norm(it.name), dex);
+          if (!forme) continue;
+          const m = dex.species.get(forme);
+          if (!m || !m.exists) continue;
+          const mab = Object.values(m.abilities || {}).map(a => B.norm(a));
+          const bab = Object.values(sp.abilities || {}).map(a => B.norm(a));
+          if (mab.some(a => bar.has(a) && !bab.includes(a)) || bab.some(a => bar.has(a) && !mab.includes(a))) {
+            hit.push(`${sp.name}+${it.name}`);
+          }
+        }
+      }
+      return {
+        ok: hit.length === 0,
+        note: hit.length
+          ? `${hit.length} mega(s) now CHANGE a priority-blocking ability (${hit.slice(0, 4).join(', ')}) — `
+            + 'the declared gap is LIVE and this read must resolve through effAbility()'
+          : `0 of the format's megas change a blocksMove ability (bar: ${[...bar].sort().join(', ')})`,
+      };
+    },
+  },
+];
+
+function allowedFor(site) {
+  return RUNTIME_ALLOWED.find(a => a.file === site.rel
+    && ((a.fn && site.fn === a.fn) || (a.text && site.text === a.text)));
+}
+
+/* ---- THE BOARD: EVERY ACTIVE IS A STONE-HOLDER WHOSE SHEET IS WRONG --------------------------
+ * Swept out of the dex and the damage table. No species, stone or ability is named here, for the
+ * same reason section 1 sweeps for its mega case: a fixture that names things stops exercising the
+ * format the day the format changes. */
+function stoneCases(dex) {
+  B.damageEngine();
+  /* THROUGH mcKey.row(), NOT MC.mons[...]. The table is a guarded proxy: indexing it with a spelling
+   * it does not carry THROWS by design (engine/lookup.js), and "this species has no damage row" is a
+   * legitimate answer to a sweep, so the miss is declared rather than caught. */
+  const { mcKey } = require(D('engine', 'mc_key.js'));
+  const rowFor = n => mcKey.row(n, { mayMiss: 'sweeping the whole dex for a buildable stone-holder; most species have no row' });
+  const out = [];
+  const seen = new Set();
+  for (const it of dex.items.all()) {
+    if (!it.megaStone) continue;
+    const stone = B.norm(it.name);
+    if (/z$/.test(stone)) continue;              /* the Z megas, excluded for the reason section 2b gives */
+    for (const sp of dex.species.all()) {
+      if (!sp.exists || sp.isMega || sp.isNonstandard) continue;
+      const base = B.norm(sp.name);
+      if (seen.has(base)) continue;
+      const row = rowFor(base);
+      if (!row || !Array.isArray(row.mv) || !row.mv.length) continue;   /* no damage row -> the board cannot build it */
+      const forme = B.megaFormeOf(base, stone, dex);
+      if (!forme) continue;
+      const m = dex.species.get(forme);
+      if (!m || !m.exists) continue;
+      const mab = Object.values(m.abilities || {}).map(a => B.norm(a)).filter(Boolean);
+      const bab = Object.values(sp.abilities || {}).map(a => B.norm(a)).filter(Boolean);
+      if (mab.length !== 1 || bab.includes(mab[0])) continue;           /* the sheet must be WRONG, or nothing is proved */
+      seen.add(base);
+      out.push({
+        base, name: sp.name, stone: it.name, want: mab[0], sheetAb: bab[0] || 'none',
+        moves: row.mv.slice(0, 4), nature: row.nature || 'Adamant',
+      });
+    }
+  }
+  return out;
+}
+
+const DRIVEN = [];
+{
+  const cases = stoneCases(dex);
+  ok(cases.length >= 8,
+    `swept ${cases.length} stone-holders whose SHEET ABILITY IS WRONG and which the damage table can build`);
+
+  const PF = require(D('engine', 'position_features.js'));
+  const RL = require(D('engine', 'rollout_leaf.js'));
+  const board = new B.Board();
+  const pick = { p1: cases.slice(0, 2), p2: cases.slice(2, 4) };
+  const bench = { p1: cases.slice(4, 6), p2: cases.slice(6, 8) };
+  for (const side of ['p1', 'p2']) {
+    for (const c of pick[side].concat(bench[side])) {
+      board.setSheet(side, c.name, { nature: c.nature, item: c.stone, ability: c.sheetAb, moves: c.moves });
+    }
+    board.setParty(side, pick[side].concat(bench[side]).map(c => c.name));
+    board.switchIn(side, 'a', pick[side][0].name);
+    board.switchIn(side, 'b', pick[side][1].name);
+  }
+
+  /* THE INSTRUMENT MUST BE SHOWN TO BE MEASURING SOMETHING. If the sheet and the effective ability
+   * ever agreed on this board, every read below would be safe and the gate would pass by asking
+   * nothing — the exact failure docs/LESSONS.md records as a green test that asks nothing. */
+  const wrongOnBoard = [];
+  for (const side of ['p1', 'p2']) for (const L of ['a', 'b']) {
+    const m = board.slot(side, L);
+    if (!m) continue;
+    if (B.effAbility(m, dex) !== m.ability) wrongOnBoard.push(`${m.species}: sheet=${m.ability} effective=${B.effAbility(m, dex)}`);
+  }
+  ok(wrongOnBoard.length === 4,
+    `all 4 actives are mid-transformation — the DECLARED ability is wrong for every one of them (${wrongOnBoard.length}/4)`);
+
+  const drive = (label, fn) => {
+    DRIVEN.push(label);
+    try { fn(); } catch (e) { DRIVEN[DRIVEN.length - 1] = label + ' [THREW: ' + String((e && e.message) || e).slice(0, 60) + ']'; }
+  };
+
+  TRIP_ARMED = true;
+  for (const side of ['p1', 'p2']) for (const L of ['a', 'b']) {
+    const user = board.slot(side, L);
+    if (!user) continue;
+    drive(`board.js candidates()+featuresFor()      ${side}${L}`, () => {
+      const cands = B.candidates(user.moves, user, board, side, dex);
+      cands.forEach((c, i) => B.featuresFor(c, user, board, side, dex, (i + 1) / (cands.length + 1)));
+    });
+    drive(`board.js foeActionDistribution()         ${side}${L}`, () => {
+      B.foeActionDistribution(board, side === 'p1' ? 'p2' : 'p1', user, dex);
+    });
+  }
+  for (const side of ['p1', 'p2']) {
+    drive(`position_features.js positionFeatures()  ${side}`, () => PF.positionFeatures(board, side, dex));
+    drive(`rollout_leaf.js rolloutWinProb(n=2)      ${side}`, () => RL.rolloutWinProb(board, side, { n: 2, dex }));
+  }
+
+  /* ---- THE PLANTED DEFECT, ON DEMAND ---------------------------------------------------------
+   * ABRA_EI_PLANT=dot|destructure|param|spread|assign|computed|all
+   *
+   * Compiled through `vm` rather than written to a file on disk, so these shapes exist ONLY while
+   * the knob is set and no scanner in this repository can ever count them as debt. Each one reads
+   * the booby-trapped field off a live stone-holder, so each one is a real defect; the gate must
+   * name every one, and the three marked NO TEXT SCAN are shapes the old header conceded it could
+   * never see. */
+  const PLANTS = {
+    dot: 'return mon.ability;',
+    destructure: 'const { ability } = mon; return ability;',
+    param: 'return (({ ability }) => ability)(mon);',
+    spread: 'const copy = { ...mon }; return copy.ability;',                  /* NO TEXT SCAN */
+    assign: 'const copy = Object.assign({}, mon); return copy.ability;',      /* NO TEXT SCAN */
+    computed: 'const k = ["abi", "lity"].join(""); return mon[k];',           /* NO TEXT SCAN */
+  };
+  const want = String(process.env.ABRA_EI_PLANT || '').trim();
+  if (want) {
+    const which = want === 'all' ? Object.keys(PLANTS) : want.split(',').map(s => s.trim()).filter(s => PLANTS[s]);
+    if (!which.length) console.log(`  note: ABRA_EI_PLANT='${want}' matches no plant. Known: ${Object.keys(PLANTS).join(', ')}, all`);
+    for (const k of which) {
+      const f = vm.compileFunction(PLANTS[k], ['mon'], { filename: D('engine', `_planted_stale_read_${k}.js`) });
+      drive(`PLANTED DEFECT (${k})`, () => f(board.slot('p1', 'a')));
+    }
+  }
+  TRIP_ARMED = false;
+}
+
+/* ---- THE VERDICT ---------------------------------------------------------------------------- */
+const SITES = new Map();
+let unattributed = 0;
+for (const t of TRIP) {
+  const s = siteOf(t.stack);
+  if (!s) { unattributed++; continue; }
+  const key = `${s.rel}:${s.line}`;
+  const e = SITES.get(key) || { site: s, n: 0, fields: new Set() };
+  e.n++; e.fields.add(t.field);
+  SITES.set(key, e);
+}
+const offenders = [...SITES.values()].filter(e => !allowedFor(e.site));
+
+/* A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN. A tripwire that recorded nothing would
+ * report "no unauthorised reads" while measuring an empty set — the single most likely way this
+ * instrument rots is somebody changing a signature, every drive throwing, and the gate going green
+ * on zero observations. */
+ok(TRIP.length > 0 && SITES.size > 0,
+  `the tripwire FIRED — ${TRIP.length} read(s) of a booby-trapped field across ${SITES.size} call site(s)`);
+
+ok(offenders.length === 0,
+  `every read of a live stone-holder's identity goes through board.js effective() (${offenders.length} site(s) do not)`
+  + (offenders.length ? '\n         ' + offenders.map(e =>
+    `${e.site.rel}:${e.site.line}  x${e.n} [${[...e.fields].join(',')}]\n           ${e.site.text}`).join('\n         ') : ''));
+if (offenders.length) {
+  console.log('         A LIVE Pokemon holding a mega stone does NOT have the ability its sheet declares.');
+  console.log('         Route the read through board.js effAbility(mon, dex) / effective(mon, dex).');
+  console.log('         If it is correct BY CONSTRUCTION, add it to RUNTIME_ALLOWED with the reason — and if');
+  console.log('         the reason is a fact about the format, add the guard() that re-derives that fact.');
+}
+
+/* Every guard, re-derived now. A declaration resting on a fact must fail when the fact moves. */
+const guardFails = [];
+for (const a of RUNTIME_ALLOWED) {
+  if (typeof a.guard !== 'function') continue;
+  let r; try { r = a.guard(); } catch (e) { r = { ok: false, note: 'the guard THREW: ' + e.message }; }
+  if (!r || !r.ok) guardFails.push(`${a.file}: ${(r && r.note) || 'the guard returned false'}`);
+}
+ok(guardFails.length === 0,
+  `every declared exception's guard still holds (${RUNTIME_ALLOWED.filter(a => a.guard).length} re-derived this run)`
+  + (guardFails.length ? '\n         ' + guardFails.join('\n         ') : ''));
+
+console.log('\n  DRIVEN — this gate\'s coverage is EXECUTION coverage, so this list IS the claim:');
+for (const d of DRIVEN) console.log(`    ${d}`);
+console.log('  Anything not on that list is NOT checked here. See the header.');
+console.log(`\n  READ SITES — ${SITES.size} site(s), ${TRIP.length} read(s)${unattributed ? `, ${unattributed} unattributable` : ''}:`);
+for (const e of [...SITES.values()].sort((a, b) => b.n - a.n)) {
+  console.log(`    ${allowedFor(e.site) ? 'ALLOWED ' : 'OFFENDER'} ${String(e.n).padStart(4)}  ${e.site.rel}:${e.site.line}  [${[...e.fields].join(',')}]`);
+}
+console.log('\n  RUNTIME DECLARED EXCEPTIONS — printed every run, because an exemption nobody sees is a mute button:');
+for (const a of RUNTIME_ALLOWED) {
+  console.log(`    ${a.file}${a.fn ? ` ${a.fn}()` : ''}\n        ${a.why}`);
+  if (a.guard) {
+    let r; try { r = a.guard(); } catch (e) { r = { ok: false, note: e.message }; }
+    console.log(`        GUARD (re-derived this run): ${r && r.ok ? 'HOLDS' : 'FAILED'} — ${(r && r.note) || ''}`);
+  }
+}
+if (!process.env.ABRA_EI_PLANT) {
+  console.log('\n  To see this gate RED on a deliberate break, without editing anything:');
+  console.log('    ABRA_EI_PLANT=all node tests/test-effective-identity.js');
+}
+
+/* ---- 4. THE OLD COUNT RATCHET, RETIRED — now an inventory ------------------------------------ */
 
 const SKIP_DIR = /node_modules|[\\/]graveyard[\\/]|[\\/]archive[\\/]/;
 /* Deliberately over-broad, then baselined. A clever regex that decides which reads are "fine" is
@@ -786,104 +1182,104 @@ const SUM = { total, prose: 0, write: 0, read: 0, blind: 0 };
 for (const k of Object.values(KIND)) for (const f of ['prose', 'write', 'read', 'blind']) SUM[f] += k[f];
 const split = f => { const k = KIND[f]; return k ? `${k.prose} prose, ${k.write} write, ${k.read} read` : ''; };
 
-if (UPDATE) {
-  fs.writeFileSync(BASELINE, JSON.stringify({
-    note: 'GENERATED. Raw reads of a field that mega evolution changes. New entries are a FAILURE; '
-      + 'this list may only shrink. Route the read through board.js effective()/effAbility(). '
-      + 'See tests/test-effective-identity.js.',
-    generated: new Date().toISOString().slice(0, 10),
-    count: total, allowed: now,
-  }, null, 1));
-  console.log(`\n  baselined ${total} raw reads across ${Object.keys(now).length} files -> ` +
-    path.relative(ROOT, BASELINE));
-  process.exit(0);
+/* ---- THE COUNT RATCHET IS RETIRED. WHAT FOLLOWS IS AN INVENTORY, AND IT FAILS NOTHING ---------
+ *
+ * RETIRED 2026-08-23 BY MEASURE, on Will's "make it a permanent solution". It is retired, NOT
+ * restamped — `data/effective-identity-baseline.json` still carries the last numbers it ever
+ * asserted (generated 2026-08-11, count 1198, 80 files) under `last_count_baseline`, together with
+ * the reason. A rewritten baseline would have hidden what was adopted; a retired one with a stated
+ * reason cannot.
+ *
+ * WHY. Its assertion was "no file's count of /\.(ability|baseStats|weighthg|weightkg)\b/ may rise".
+ * Measured: 45.2% of what it counted was not a read at all, 62% of its last red was files that did
+ * not exist when the baseline was taken, and a walk of all 130 new matches found ZERO stale-identity
+ * reads. Meanwhile it was GREEN on engine/position_features.js, which section 3 has now proved
+ * contains a real one. It was measuring repository growth and missing the defect.
+ *
+ * WHAT IS KEPT AND WHY. The scan still runs and still prints, because a per-file inventory split
+ * PROSE / WRITE / READ is genuinely useful when someone is auditing this class of bug by hand, and
+ * it costs one pass over the tree. It asserts nothing. The 32 DECLARED entries are kept and printed
+ * for the same reason: each is a walked account of one file, written by somebody who read it, and
+ * deleting them would throw away the only record of that work. They are notes now, not exemptions.
+ *
+ * THE ONE THING STILL ASSERTED STATICALLY IS DELIBERATELY NARROW, and it is narrow because a broad
+ * static number is what just got retired. `baseSpecies(...).baseStats` — reading the PRE-transformation
+ * species' stat table — is the one text shape a walk of the whole repository named as dangerous and
+ * measured at zero occurrences. It is asserted at zero so that a regression in a file section 3 never
+ * executes still fails something. It is a supplement to the tripwire and it must not be mistaken for
+ * a substitute: it refuses one spelling of one shape.
+ */
+
+if (UPDATE || process.argv.includes('--propose')) {
+  console.log('\n  REFUSED. The count ratchet was RETIRED on 2026-08-23 and --update / --propose wrote or');
+  console.log('  proposed its baseline. There is nothing left to restamp: the gate is now the runtime');
+  console.log('  tripwire in section 3, whose allow-list is RUNTIME_ALLOWED in this file and requires a');
+  console.log('  written reason (and a guard, where the reason is a fact about the format).');
+  console.log('  data/effective-identity-baseline.json keeps the last asserted numbers as history.');
+  process.exit(2);
 }
 
 let base = null;
 try {
   base = JSON.parse(fs.readFileSync(BASELINE, 'utf8'));
 } catch (e) {
-  /* A baseline that EXISTS but will not parse is a different fault from one never written, and
-   * treating both as "first run" would silently disarm the ratchet -- which is the exact failure
-   * this repository keeps finding. Every path out of this catch says something. */
-  if (e.code !== 'ENOENT') {
-    console.log(`  FAIL the baseline exists but could not be read: ${e.message}`);
-    process.exit(1);
-  }
-  console.log('  note: no baseline on disk yet — this is a first run, not a pass');
+  /* Not fatal any more — nothing is gated on it. But say which fault it is, because "the inventory
+   * printed no delta" and "the file is corrupt" must not look the same. */
+  console.log(`\n  note: ${path.relative(ROOT, BASELINE)} could not be read (${e.code || e.message}); `
+    + 'the inventory below has no historical delta to print.');
 }
-if (!base) {
-  console.log('\n  NO BASELINE. Run:  node tests/test-effective-identity.js --update');
-  process.exit(1);
-}
-const allowed = base.allowed || {};
-const grew = [];
-for (const [f, n] of Object.entries(now)) {
-  if (DECLARED[f]) continue;                     // declared below, with its reason, and printed
-  const was = allowed[f] || 0;
-  if (n > was) grew.push(`${f}: ${was} -> ${n}`);
-}
-const shrank = Object.entries(allowed).filter(([f, n]) => (now[f] || 0) < n && !DECLARED[f]).length;
+const legacy = (base && base.last_count_baseline) || base || {};
+const allowed = legacy.allowed || {};
 
-/* THE HEADLINE NUMBER IS NOT WHAT FAILS, AND READING IT AS THOUGH IT WERE IS HOW THIS GOT RESTAMPED.
- * docs/ENGINE.md records this gate red at "1048 total, baseline 234" and again at "869 total" — both
- * BELOW the baseline of the day. The ratchet is PER FILE; the total is context, not the verdict. */
-ok(grew.length === 0,
-  `no NEW raw read of a transforming field (${grew.length} file(s) over their per-file baseline; ` +
-  `${total} matched in total against a baseline total of ${base.count} — the TOTAL is not what fails)` +
-  (grew.length ? `\n         ` + grew.map(g => {
-    const f = g.split(':')[0];
-    return process.env.ABRA_EI_LEGACY_REPORT ? g : `${g}   [${split(f)}]`;
-  }).join('\n         ') : ''));
-if (grew.length && !process.env.ABRA_EI_LEGACY_REPORT) {
-  const gk = grew.map(g => KIND[g.split(':')[0]]).filter(Boolean);
-  const t = k => gk.reduce((a, x) => a + x[k], 0);
-  console.log(`         Across those files: ${t('prose')} prose, ${t('write')} write, ${t('read')} read.`);
-  console.log('         PROSE and WRITE cannot return a stale identity — only READ can. Set');
-  console.log('         ABRA_EI_LEGACY_REPORT=1 for the bare pre-2026-08-23 message.');
+console.log(`\n  INVENTORY (asserts nothing) — ${SUM.total} matches of the old superset regex: `
+  + `${SUM.prose} prose, ${SUM.write} write, ${SUM.read} read.`);
+if (legacy.count != null) {
+  const over = Object.entries(now).filter(([f, n]) => !DECLARED[f] && n > (allowed[f] || 0)).length;
+  console.log(`  Against the retired baseline (${legacy.generated || 'undated'}, count ${legacy.count}, `
+    + `${Object.keys(allowed).length} files): ${Object.keys(now).length} files today, ${over} above their old `
+    + 'per-file number. THIS IS CONTEXT, NOT A VERDICT.');
 }
-if (grew.length) {
-  console.log('         A sheet entry\'s .ability IS the pre-mega one and reading it is correct.');
-  console.log('         A LIVE Pokemon\'s is not. Route it through board.js effAbility(mon, dex).');
-  console.log('         If it is correct BY CONSTRUCTION, declare it in DECLARED with the reason —');
-  console.log('         do not re-baseline, which would launder every other new read beside it.');
-}
-console.log(`\n  CLASSIFIED — ${SUM.total} matches: ${SUM.prose} prose, ${SUM.write} write, ${SUM.read} read.`);
 if (SUM.blind) {
-  console.log(`  ${SUM.blind} DESTRUCTURED read(s) of a transforming field exist and the superset regex`);
-  console.log('  DOES NOT COUNT THEM. That is not a failure here; it means this ratchet now covers');
-  console.log('  less of the repository than it did. See the header.');
+  console.log(`  ${SUM.blind} DESTRUCTURED read(s) exist that this superset regex does not count. Under the`);
+  console.log('  old ratchet that was a hole; under section 3 it is not, because the tripwire fires on the');
+  console.log('  property access rather than on the spelling.');
 }
 if (process.argv.includes('--split')) {
-  console.log('\n  PER FILE — total (prose/write/read), * = over its per-file baseline, D = declared:');
+  console.log('\n  PER FILE — total (prose/write/read), * = above its retired per-file number, D = has a walked note:');
   for (const f of Object.keys(now).sort()) {
     const k = KIND[f], was = allowed[f] || 0;
     const mark = DECLARED[f] ? 'D' : (k.total > was ? '*' : ' ');
-    console.log(`   ${mark} ${String(k.total).padStart(4)} (${k.prose}/${k.write}/${k.read})  ${f}   baseline ${was}`);
+    console.log(`   ${mark} ${String(k.total).padStart(4)} (${k.prose}/${k.write}/${k.read})  ${f}   retired baseline ${was}`);
   }
 }
-if (process.argv.includes('--propose')) {
-  /* PRINTS. WRITES NOTHING. ROADMAP #183 is what happens when this step is automated: 964 reads
-   * adopted in one move and nobody able to say afterwards what went in. A human pastes this, or it
-   * does not happen. */
-  console.log('\n  PROPOSED BASELINE — printed for review, NOT written. Nothing on disk changed.');
-  console.log(JSON.stringify({
-    note: base.note, generated: new Date().toISOString().slice(0, 10), count: total, allowed: now,
-  }, null, 1));
-}
-if (shrank) console.log(`\n  ${shrank} file(s) now read fewer raw fields. Re-run with --update to lock the gain in.`);
 
-/* PRINTED EVERY RUN. A declaration nobody sees is an exemption, and this file exists because an
- * exemption nobody saw cost four sessions. A declared file whose count is UNEXPECTEDLY large is
- * still visible here even though it cannot fail the run. */
+/* THE NARROW STATIC ASSERTION. See the block comment above for why it is narrow on purpose. */
+{
+  const DANGEROUS = /\bbaseSpecies\s*(?:\([^()\n]*\))?\s*\.\s*baseStats\b/g;
+  const hits = [];
+  for (const p of files) {
+    const rel = path.relative(ROOT, p).replace(/\\/g, '/');
+    if (rel === 'tests/test-effective-identity.js') continue;      /* this line, and the comment above it */
+    const src = fs.readFileSync(p, 'utf8');
+    const z = zones(src);
+    DANGEROUS.lastIndex = 0; let m;
+    while ((m = DANGEROUS.exec(src))) if (!z[m.index]) hits.push(`${rel}:${src.slice(0, m.index).split('\n').length}`);
+  }
+  ok(hits.length === 0,
+    `nothing reads the PRE-transformation species' stat table (baseSpecies.baseStats: ${hits.length} site(s))`
+    + (hits.length ? ' — ' + hits.slice(0, 6).join(', ') : ''));
+}
+
+/* PRINTED EVERY RUN, AS NOTES. Each of these is a file somebody walked line by line and wrote up.
+ * They no longer exempt anything from anything — section 3 decides that — but the account is the
+ * most expensive part and it is kept. */
 const declaredNow = Object.keys(DECLARED).filter(f => now[f]);
-console.log(`\n  DECLARED EXCEPTIONS — ${declaredNow.length} file(s), `
-  + `${declaredNow.reduce((a, f) => a + now[f], 0)} of the ${total} raw reads:`);
+console.log(`\n  WALKED-FILE NOTES (historical, exempt nothing) — ${declaredNow.length} file(s), `
+  + `${declaredNow.reduce((a, f) => a + now[f], 0)} of the ${total} matches:`);
 for (const f of declaredNow) console.log(`    ${f}  (${now[f]})\n        ${DECLARED[f]}`);
 const stale = Object.keys(DECLARED).filter(f => !now[f]);
-/* A declaration for a file that no longer reads anything is dead prose. Say so; do not fail on it. */
-if (stale.length) console.log(`\n  note: ${stale.length} declaration(s) no longer needed — `
-  + `${stale.join(', ')} has no raw reads left. Delete the entry.`);
+if (stale.length) console.log(`\n  note: ${stale.length} note(s) describe a file with no matches left — `
+  + `${stale.join(', ')}. Delete the entry.`);
 
 console.log(`\nEFFECTIVE IDENTITY TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

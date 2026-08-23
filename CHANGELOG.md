@@ -10,6 +10,65 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.101.0] — 2026-08-23
+
+### Changed
+- **THE EFFECTIVE-IDENTITY GATE MEASURES RISK NOW INSTEAD OF COUNTING TEXT, AND IT FOUND A REAL
+  STALE-IDENTITY READ ON ITS FIRST RUN THAT THE COUNT HAD BEEN GREEN ON SINCE 2026-08-02.** Will:
+  *"you do what you think is best just make it a permanent solution."* `tests/test-effective-identity.js`
+  section 3 is now a RUNTIME tripwire: every mon a `Board` switches in gets a recording accessor on
+  `ability`, `baseStats`, `weighthg` and `weightkg`; every active on the test board holds a mega stone
+  whose forme ability differs from every ability its base forme can have — swept out of the dex and
+  the damage table, nothing named — so on that board the declared ability is wrong for all four
+  actives and a raw read is a defect BY CONSTRUCTION; the board is driven through the live decision
+  path and every read is recorded with its stack; and exactly one call site, `board.js effective()`,
+  may see the raw field. That is SELF ENCAPSULATE FIELD, which the file's header has cited since
+  2026-08-02, stated as an executable assertion rather than as a count. **The defect:**
+  `engine/position_features.js:249` reads `f.mon.ability` off a live stone-holder to build the
+  defender list for `priorityRefusedAbove()`, while `engine/board.js:3520` — the same function one
+  file over — resolves through `effAbility(f.mon, dex)`. One fact, two implementations. It is
+  DECLARED with a `guard()` that RE-DERIVES its own safety condition every run (no legal mega gains or
+  loses a `blocksMove` ability; 0 today, red by name the day that changes) rather than fixed, because
+  MEASURE does not own that file. Full account:
+  `docs/_reports/2026-08-23-identity-gate-permanent.md`.
+- **Shown RED before being trusted, on seven shapes.** `ABRA_EI_PLANT=all` compiles six stale reads
+  through `vm` — so they exist only while the knob is set and no scanner in this repository can ever
+  count them as debt — and the gate named all six and exited 1: `mon.ability`,
+  `const { ability } = mon`, `({ ability }) => ...`, `{ ...mon }`, `Object.assign({}, mon)` and
+  `mon[k]` with a computed key. **The last three were conceded by the old header as undetectable by
+  any text scan.** Separately `engine/board.js:3520` was edited to read raw, the gate named it by file
+  and line with the offending source text, and the file was restored from a byte copy taken first and
+  verified SHA-1 identical — not `git checkout`.
+
+### Removed
+- **THE RAW-COUNT RATCHET IS RETIRED, NOT RESTAMPED, AND NOTHING WAS ADOPTED.**
+  `data/effective-identity-baseline.json` keeps every number it ever asserted under
+  `last_count_baseline` (generated 2026-08-11, count 1198, 80 files) with the reason beside it;
+  `--update` and `--propose` now refuse and exit 2. It was retired because it measured the size of the
+  repository: 45.2% of what it counted was prose or writes rather than reads, a walk of all 130
+  matches in its last red found zero stale-identity reads, 62% of that red was files that did not
+  exist when the baseline was taken, seven agents had reported it red at six different totals — two
+  of them BELOW the baseline of the day, so the headline actively recommended a restamp — the one
+  wholesale restamp (2026-08-11, 234 → 1198, 964 reads adopted unreviewed) did not hold a week, and it
+  twice made people reword COMMENTS to hold a number still. The per-file scan is KEPT as a printed
+  inventory that asserts nothing, and so are the 32 walked-file notes, because each is somebody's
+  line-by-line account of one file.
+
+### Notes
+- **What this gate provably CANNOT do is stated in its own header, with the drive list printed on
+  every run.** Its coverage is EXECUTION coverage: it drives `board.js candidates()+featuresFor()` and
+  `foeActionDistribution()` for all four actives, `position_features.js positionFeatures()` and
+  `rollout_leaf.js rolloutWinProb()` for both sides — the MAG feature path and the leaf. It does not
+  reach `magnemite.js`'s live loop, the fitters or the differential harnesses, and it is blind to a
+  value copied out of the sheet before a `Board` existed and then treated as live. That last one is
+  the old scan's `Object.assign` hole **moved rather than closed**, and it is written down as such.
+  One narrow static assertion survives — `baseSpecies(...).baseStats` at zero — because it is the one
+  text shape a whole-repository walk named as dangerous and it reaches files the tripwire never
+  executes. It is a supplement, and the file says so.
+- The 18 behavioural assertions are untouched, including the three that build a body, mega-evolve it
+  inside a real turn, and assert the effective ability is what gets read. The run is **24 passed, 0
+  failed**, exit 0.
+
 ## [5.100.0] — 2026-08-23
 
 ### Fixed

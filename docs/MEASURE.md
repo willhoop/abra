@@ -53,6 +53,64 @@ restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
 
+### 00000000000000000. THE IDENTITY GATE IS A RUNTIME TRIPWIRE NOW, AND IT FOUND ON ITS FIRST RUN A DEFECT THE COUNT HAD BEEN GREEN ON FOR THREE WEEKS — 2026-08-23
+
+Full account: `docs/_reports/2026-08-23-identity-gate-permanent.md`. Will: *"you do what you think is
+best just make it a permanent solution."*
+
+**What `tests/test-effective-identity.js` asserts now.** Every mon a `Board` switches in gets a
+recording accessor on `ability`, `baseStats`, `weighthg` and `weightkg`. Every active on the test
+board holds a mega stone whose forme ability differs from every ability its base forme can have —
+swept out of the dex and the damage table, nothing named — so on that board **the declared ability is
+wrong for all four actives** and a raw read is a defect by construction. The board is then driven
+through the live decision path and every read is recorded with its stack. **Exactly one call site may
+see the raw field: `board.js effective()`.** That is Fowler's SELF ENCAPSULATE FIELD, which this
+file's header has cited since 2026-08-02, stated as an executable assertion instead of as a count.
+
+**IT FOUND A REAL ONE IMMEDIATELY.** `engine/position_features.js:249` reads `f.mon.ability` off a
+live stone-holder to build the defender list for `priorityRefusedAbove()`. `engine/board.js:3520` is
+the same function one file over and **it resolves** — `effAbility(f.mon, dex)`. One fact, two
+implementations, which is the failure CLAUDE.md names as *FEATURES ARE PER-MODEL, FACTS ARE GLOBAL*.
+**The retired count ratchet was GREEN on that file and had been since 2026-08-02**, because
+`position_features.js` sits exactly at its per-file number of 5 and a count only ever asks whether
+the number went up. Exposure is zero today and the gate **re-derives that on every run** rather than
+asserting it: the value is consumed only by the priority bar, and no legal mega in this format gains
+or loses a `blocksMove` ability. If one ever does, the gate goes red on that entry by name. MEASURE
+does not own `engine/position_features.js`, so it is declared with the guard and proposed as a
+roadmap row rather than edited.
+
+**SHOWN RED ON SIX PLANTED SHAPES AND ON ONE REAL BREAK.** `ABRA_EI_PLANT=all` compiles six stale
+reads through `vm` — so they exist only while the knob is set and no scanner can ever count them as
+debt — and the gate named all six and exited 1: `mon.ability`, `const {ability} = mon`,
+`({ability}) => ...`, `{...mon}`, `Object.assign({}, mon)` and `mon[k]` with a computed key. **The
+last three were conceded by the old header as undetectable by any text scan.** Separately,
+`engine/board.js:3520` was edited to read raw, the gate named `engine/board.js:3520` with the
+offending source line, and the file was restored from a byte copy taken first (SHA-1 verified
+identical, `90ae57fe3bcaf886a29f8affc273bf437dd9d2af`) — not `git checkout`.
+
+**WHAT IT PROVABLY CANNOT DO, and this is stated in the gate's own header rather than here.** Its
+coverage is EXECUTION coverage. It drives `board.js candidates()+featuresFor()` and
+`foeActionDistribution()` for all four actives, `position_features.js positionFeatures()` both sides,
+and `rollout_leaf.js rolloutWinProb()` both sides — the MAG feature path and the leaf. **The drive
+list is printed on every run** so a reader can check whether their consumer is in it. It does not
+cover `magnemite.js`'s live loop, the fitters, or the differential harnesses. It is also blind to a
+value copied out of the sheet before a Board existed and then treated as live: that is the old scan's
+`Object.assign` hole **moved rather than closed**, and it is written down as such.
+
+**THE COUNT RATCHET IS RETIRED, NOT RESTAMPED.** `data/effective-identity-baseline.json` keeps every
+number it ever asserted under `last_count_baseline` (generated 2026-08-11, count 1198, 80 files) with
+the reason beside it; `--update` and `--propose` now refuse and exit 2. **Nothing was adopted.** The
+scan still runs as a printed inventory that asserts nothing, and the 32 walked-file notes are kept
+because each is somebody's line-by-line account of a file and that is the expensive part. One narrow
+static assertion survives — `baseSpecies(...).baseStats` at zero — because it is the one text shape a
+whole-repository walk named as dangerous and it reaches files the tripwire never executes. It is a
+supplement and the file says so.
+
+**The 18 behavioural assertions are untouched**, including the three that build a body, mega-evolve
+it inside a real turn, and assert the effective ability is what gets read. The run is 24 passed,
+0 failed, exit 0.
+
+
 ### 0000000000000000. THREE OF THE FIVE FAILING GATE CLAUSES WERE STALENESS, NOT A BROKEN SIMULATOR — FULL REFRESH 2026-08-23 ON RELEASE `0faabe2a3f1b`
 
 Full account: `docs/_reports/2026-08-23-gate-refresh.md`. The gate went **6 of 8 clauses failing to

@@ -21,6 +21,32 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE EFFECTIVE-IDENTITY GATE IS A RUNTIME TRIPWIRE, THE COUNT RATCHET IS RETIRED, AND THE FIRST RUN FOUND A DEFECT THE COUNT WAS GREEN ON. 2026-08-23 (MEASURE).
+
+Full account: [`docs/_reports/2026-08-23-identity-gate-permanent.md`](_reports/2026-08-23-identity-gate-permanent.md).
+Will: *"you do what you think is best just make it a permanent solution."*
+
+`tests/test-effective-identity.js` no longer counts a regex. Every mon a `Board` switches in gets a
+recording accessor on the four fields mega evolution changes; every active on the test board holds a
+stone whose forme ability differs from its base, swept out of the dex and the damage table with
+nothing named, so a raw read is a defect by construction; the board is driven through the live
+decision path; and exactly one call site — `board.js effective()` — may see the raw field.
+
+| what | result |
+|---|---|
+| assertions | **24 passed, 0 failed**, exit 0 (the 18 behavioural pins untouched, 6 new) |
+| real defect found on the first run | `engine/position_features.js:249` reads `f.mon.ability` off a live stone-holder; `engine/board.js:3520` is the same function and resolves through `effAbility` |
+| what the retired count said about that file | **GREEN, and had been since 2026-08-02** — it sits exactly at its per-file number of 5 |
+| shown RED, planted | `ABRA_EI_PLANT=all` — six shapes, all named, exit 1; three of them (`{...mon}`, `Object.assign`, computed key) were conceded as undetectable by any text scan |
+| shown RED, real file | `engine/board.js:3520` edited to read raw → named by file and line with the offending source; restored from a byte copy, SHA-1 identical |
+| count baseline | **RETIRED, not restamped.** `data/effective-identity-baseline.json` keeps its numbers under `last_count_baseline`; `--update` / `--propose` refuse and exit 2. Nothing adopted. |
+| stated limit | EXECUTION coverage. The drive list prints every run. Blind to a value copied out of the sheet before a Board existed — the old scan's `Object.assign` hole moved, not closed. |
+
+**The `position_features.js` read is DECLARED with a guard, not fixed** — MEASURE does not own that
+file. The guard re-derives, every run, whether any legal mega gains or loses a `blocksMove` ability;
+it is 0 today, and the day it is not the gate goes red on that entry by name. Proposed as a roadmap
+row; the fix is to route the read through `B.effAbility(f.mon, dex)` as `board.js` already does.
+
 ## SIX MECHANICS BY REACH, 29 PLAYED-AND-UNCLEARED DOWN TO 23, AND EVERY ONE OF THE SIX WAS NARRATION. 2026-08-23 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-23-mechanics-by-reach.md`](_reports/2026-08-23-mechanics-by-reach.md).
