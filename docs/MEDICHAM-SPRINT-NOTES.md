@@ -11588,3 +11588,41 @@ It also recommended AGAINST the subject-carrying registry I floated, with number
 accusation and **two true catches**, and reintroduces a hand-typed list. Fix the document, not the gate.
 
 **Its own new guard initially had no case that failed when removed.** It noticed and added one.
+
+---
+
+## 2026-08-23 — A READ-ONLY FLAG TURNED THE GATE GREEN (5.80.0)
+
+engine/register_reality.js --list is an ENUMERATION. It rewrote data/register-reality.json, the
+artifact openDefectClause reads.
+
+Blast radius, measured: five rows carry green:false (#218, #224, #241, #258, #273) and a wipe drops all
+five out of withRed, so **no open, known engine defect FLIPS TO OK**. Anyone merely INSPECTING the
+register silently published a gate reporting the engine correct because the evidence had been erased.
+
+The row understated it. Pre-fix --list also printed *every marked row agrees with its instrument* three
+lines under its own *0 distinct instrument(s) actually run*. **The artifact wipe shows up in git diff.
+The sentence does not.**
+
+### THE GUARD IS ON THE DATA, NOT ON THE FLAG
+
+Three functions where there was one body: enumerate() is pure, measure() is the only place an
+instrument runs and the only producer of a MEASUREMENT carrying a module-private Symbol, publish()
+is the sole write site and THROWS unless handed one. A guard on has(--list) would be one re-derived
+mode check away from being wandered around. NOT RUN is deleted from the verdict vocabulary entirely.
+
+Deliberately NOT made idempotent: the artifact records WHEN a verdict was measured, so rewriting
+identical content would still lie.
+
+### RED ON THE PRE-FIX BYTES, 7 OF 10
+
+The new test spawns the real process with the real flag, compares bytes AND mtime, and restores before
+asserting. Its selftest runs the whole listing path against a booby-trapped fs.writeFileSync — **so the
+path is exercised every run, not only on the day it was fixed.**
+
+### THE STRANDED BASELINE HAS TWO CAUSES AND RE-PINNING FIXES ONE
+
+staged_status_counters BEFORE arm lacks midEventDice/midEventLog; 124 of 342 releases can serve it.
+**Fourth stranding of the same baseline.** Separately its plant anchor patches LIVE_SRC and its literal
+occurs ZERO times in todays engine. **Re-pinning alone yields a file whose only positive control still
+never runs.**

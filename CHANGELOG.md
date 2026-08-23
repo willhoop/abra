@@ -10,6 +10,57 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.80.0] — 2026-08-23
+
+### Fixed
+- **A READ-ONLY FLAG WIPED THE EVIDENCE THE GATE IS COMPUTED FROM, AND THE WIPE TURNED THE CLAUSE GREEN
+  (ROADMAP #369).** `engine/register_reality.js --list` is an enumeration. It rewrote
+  `data/register-reality.json` — the artifact `openDefectClause` reads. **Blast radius, measured: five
+  rows carry `green:false` (#218, #224, #241, #258, #273) and a wipe drops all five out of `withRed`,
+  so `no open, known engine defect` FLIPS TO OK.** Anyone merely *inspecting* the register silently
+  published a gate that reported the engine correct because the evidence had been erased.
+  - **The register row understated it, and the worse half leaves no trace.** Pre-fix `--list` printed
+    *"every marked row agrees with its instrument"* three lines under its own
+    *"0 distinct instrument(s) actually run"*. The artifact wipe at least shows up in `git diff`. **The
+    sentence does not.**
+  - **Digest proof, both directions.** Pre-fix, one `--list` took the artifact from `96741db9a380d5c7…`
+    (15,508 B) to `5d8007aa180dab73…` (22,747 B) — 306 insertions / 144 deletions, with
+    `premature_closes: 2, unrunnable: 1, distinct_commands_run: 22` collapsing to `0, 0, 0`. Post-fix:
+    same command, **sha and mtime identical to the nanosecond**, `git diff` clean.
+  - **The split is on the DATA, not on the flag.** Three functions where there was one body:
+    `enumerate(lines)` is pure — parses the register, starts no instrument, opens no artifact;
+    `measure(en)` is the only place an instrument runs and the only producer of a MEASUREMENT object
+    carrying a module-private `Symbol`; `publish(m, art)` is the sole write site and **throws** unless
+    handed a measurement. **A guard on `has('--list')` would be one re-derived mode check away from
+    being wandered around**; a guard on the data cannot be. `--json` still writes, because it runs every
+    instrument and its timestamp is therefore honest.
+  - **`NOT RUN` is deleted from the verdict vocabulary entirely** — there is no longer a value the
+    artifact can carry that means "never checked". And it was deliberately **not** made idempotent: the
+    artifact records WHEN a verdict was measured, so rewriting identical content would still lie.
+- **`tests/test-register-reality-readonly.js` — new, and RED on the pre-fix bytes: 7 of 10 failed,
+  exit 1.** Green now, 10/10. It spawns the real process with the real flag, compares bytes **and**
+  mtime, restores before asserting, and leaves the artifact exactly as it found it. Confirmed picked up
+  by the runner's own glob, so **no `run-all.js` edit was needed** and it does not collide with tonight's
+  runner pass. The in-file `--selftest` went 25 → 29 cases, the headline one being the entire listing
+  path run against a booby-trapped `fs.writeFileSync` — **so the listing path is exercised on every run,
+  not only on the day it was fixed.**
+
+### Notes
+- **The stranded baseline has two independent causes and re-pinning fixes only one.** Analysis only,
+  nothing re-pinned. `tests/staged_status_counters.js`'s BEFORE arm, release `6155acc0fb26`, **lacks
+  `midEventDice` and `midEventLog`**; **124 of 342** releases can serve the caller, oldest
+  `2d709fd6b7f0`. `engine/tags.js` matches the tree in all 124, so the tags guard would not block. Cost
+  of re-pinning is the 25h28m window — **14 simulator commits move from AFTER to BEFORE**. This is the
+  **fourth** stranding of this same baseline.
+  - Separately, its plant anchor patches `LIVE_SRC` rather than the snapshot, and its literal
+    `if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;` occurs **0 times** in today's engine —
+    restructured to `out.frzTurns=0;out.slpTurns=0;` across four receivers. **Re-pinning alone yields a
+    file whose only positive control still never runs**, which is the `probe_red_demo.js` shape.
+- Owed and named rather than done: `run-all.js`'s PENDING-WIRE note for this file still says *"it WRITES
+  its artifact unconditionally"*, which is now false.
+
+---
+
 ## [5.79.0] — 2026-08-23
 
 ### Changed

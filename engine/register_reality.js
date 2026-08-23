@@ -55,12 +55,13 @@
  * green instrument means THAT instrument sees nothing, not that the row's claim is false. It is
  * nevertheless strictly more than the register had, which was nothing at all.
  *
- *   node engine/register_reality.js            # run every marked row
- *   node engine/register_reality.js --list     # coverage only; runs nothing
+ *   node engine/register_reality.js            # run every marked row, and WRITE the verdicts
+ *   node engine/register_reality.js --list     # coverage only; runs nothing AND writes nothing
  *   node engine/register_reality.js --json
  *   node engine/register_reality.js --selftest # every verdict on synthetic input, red and green
  *
- * Exit 1 on any STALE ROW or PREMATURE CLOSE. Runs no games. Writes one artifact. */
+ * Exit 1 on any STALE ROW or PREMATURE CLOSE. Runs no games. The MEASURING invocations write one
+ * artifact; `--list` writes nothing at all, and that is enforced structurally — see THE SPLIT. */
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -172,6 +173,204 @@ function runUncached(cmd) {
   }
 }
 
+/* ================= THE SPLIT: ENUMERATING IS NOT MEASURING ========================================
+ *
+ * ROADMAP #369. `--list` advertised *"coverage only; runs nothing"*, and that was TRUE of the
+ * INSTRUMENTS and FALSE of the ARTIFACT. Both modes ran down ONE code path, differing only in a
+ * ternary, and fell through together into the write site at the bottom of the file. So a listing —
+ * the thing you do to LOOK at the register without disturbing it — republished it.
+ *
+ * MEASURED ON THIS FILE'S OWN PRE-FIX BYTES, 2026-08-23. One `--list` took the settled
+ * 2026-08-22T01:55:12.569Z artifact from `premature_closes: 2, unrunnable: 1,
+ * distinct_commands_run: 22` to `0, 0, 0` — 306 insertions and 144 deletions against HEAD, every
+ * verdict replaced by `NOT RUN` — and then printed *"REGISTER REALITY: every marked row agrees with
+ * its instrument"*, a verdict sentence about 22 instruments not one of which had been started.
+ * That second half is the worse half: the wipe leaves a trace in git, the false sentence does not.
+ *
+ * THE BLAST RADIUS IS A GATE. `openDefectClause` in engine/quarantine.js sorts each open row by the
+ * `green` tri-state it finds here (quarantine.js:1570-1576): `false` -> withRed, `true` -> staleRows,
+ * anything else -> unrunnable, and `ok` is `withRed.length === 0`. A wiped artifact carries `green:
+ * null` on every row, so the FIVE rows whose instruments were measured RED (#218, #224, #241, #258,
+ * #273) stop holding the clause shut — it reports OK for exactly the reason that should make it
+ * loudest.
+ *
+ * THE FIX IS A SPLIT, NOT A FLAG CHECK BOLTED TO THE WRITE SITE. `if (!has('--list')) write(...)` is
+ * one careless edit away from being wandered around, and it leaves the two behaviours sharing a body
+ * that a reader has to hold two states in their head to follow. Instead:
+ *
+ *   enumerate(lines)   PURE. Parses the register and computes coverage. Starts no instrument, opens
+ *                      no artifact. This is all `--list` gets to call.
+ *   measure(en)        The ONLY thing that runs an instrument, and the ONLY producer of a
+ *                      MEASUREMENT — an object carrying the module-private token below.
+ *   publish(m, art)    THROWS unless it is handed a real measurement. The listing path never
+ *                      constructs one, so it cannot write even if a later edit calls publish from it.
+ *
+ * AND `NOT RUN` IS GONE FROM THE VERDICT VOCABULARY. There is no longer a value this artifact could
+ * carry meaning "this row was never checked", because there is no longer a code path that builds a
+ * row without checking it. `publish` re-asserts that at the write site: a verdict outside VERDICTS
+ * refuses the write rather than recording it.
+ *
+ * NOT MADE IDEMPOTENT, DELIBERATELY. Rewriting the file with identical content would still move its
+ * mtime and its provenance, and the artifact's whole job is to say WHEN a verdict was measured.
+ *
+ * `--json` STILL WRITES, and that is not an inconsistency. `--json` runs every instrument; it is the
+ * measurement wearing a different renderer, so its timestamp is honest. `--list` runs none. */
+const MEASUREMENT_TOKEN = Symbol('register_reality: this came from a real run of the instruments');
+const VERDICTS = new Set(['STALE ROW', 'PREMATURE CLOSE', 'CONFIRMED', 'UNVERIFIABLE',
+  'INSTRUMENT OWED', 'INSTRUMENT UNRUNNABLE']);
+
+/* PURE. Everything `--list` is allowed to touch lives in here. */
+function enumerate(lines) {
+  const rows = parse(lines);
+  const marked = rows.filter(r => r.cmd);
+  const owed = rows.filter(r => !r.cmd && r.owed);
+  const openBroken = rows.filter(r => !r.closed && r.saysBroken);
+  return {
+    rows, marked, owed, openBroken,
+    coverage: {
+      register_rows: rows.length,
+      id_rows: rows.idRows,
+      open_asserting_breakage: openBroken.length,
+      marked: marked.length,
+      open_asserting_breakage_and_marked: openBroken.filter(r => r.cmd).length,
+      instrument_owed: owed.length,
+      open_asserting_breakage_and_owed: openBroken.filter(r => !r.cmd && r.owed).length,
+    },
+    unverifiable_open_defects: openBroken.filter(r => !r.cmd && !r.owed).map(r => ({ n: r.n, title: r.title })),
+  };
+}
+const readRegister = () =>
+  enumerate(fs.readFileSync(path.join(ROOT, 'docs', 'ROADMAP.md'), 'utf8').split(/\r?\n/));
+
+/* THE ONLY PLACE AN INSTRUMENT IS STARTED, AND THE ONLY PLACE A MEASUREMENT IS MINTED. */
+function measure(en) {
+  const results = [];
+  for (const r of en.marked) {
+    const res = run(r.cmd);
+    results.push({ ...r, ...res, verdict: verdict(r, res.green) });
+  }
+  return { token: MEASUREMENT_TOKEN, en, results };
+}
+
+function buildArtifact(m) {
+  if (!m || m.token !== MEASUREMENT_TOKEN)
+    throw new Error('register_reality: buildArtifact() was not handed a measurement. Only measure() '
+      + 'produces one, and only a run of the instruments produces verdicts (ROADMAP #369).');
+  const c = m.en.coverage, results = m.results;
+  return {
+    generated: new Date().toISOString(),
+    by: 'engine/register_reality.js',
+    what: 'Every register row that names the instrument deciding it, run, with its exit code compared '
+        + 'to the row\'s open/closed status.',
+    why: 'docs/ROADMAP.md is read by engine/quarantine.js as a GATE INPUT and nothing checked it against '
+       + 'reality. On 2026-08-14 four rows were stale rather than live and two of them were put in front '
+       + 'of a human as the place to start. A row nobody re-verifies is prose.',
+    weaker_than_it_looks: 'A green instrument means THAT instrument sees nothing. It is not a '
+        + 'derivation of the row\'s claim. It is strictly more than the register had, which was nothing.',
+    counts: {
+      register_rows: c.register_rows,
+      id_rows: c.id_rows,
+      open_asserting_breakage: c.open_asserting_breakage,
+      marked: c.marked,
+      open_asserting_breakage_and_marked: c.open_asserting_breakage_and_marked,
+      stale_rows: results.filter(r => r.verdict === 'STALE ROW').length,
+      premature_closes: results.filter(r => r.verdict === 'PREMATURE CLOSE').length,
+      unrunnable: results.filter(r => r.verdict === 'INSTRUMENT UNRUNNABLE').length,
+      /* KEPT SEPARATE FROM `marked` ON PURPOSE. A row that has DECLARED nothing decides it is better
+       * than a row that says nothing at all, and it is not the same thing as a verified row. Folding
+       * the two into one coverage figure would be the caption-instead-of-a-quarantine move. */
+      instrument_owed: c.instrument_owed,
+      open_asserting_breakage_and_owed: c.open_asserting_breakage_and_owed,
+      distinct_commands_run: RUN_CACHE.size,
+    },
+    instrument_owed: m.en.owed.map(r => ({ n: r.n, owes: r.owed, title: r.title })),
+    /* WRITTEN THROUGH THE READER'S OWN KEY, NEVER SPELLED AGAIN — 2026-08-18.
+     *
+     * This said `results,` and `engine/quarantine.js`'s open-defect clause read `rr.rows`, `v.command`
+     * and `v.exit` against this file's `results`, `cmd` and `green`. THREE key names, none matching, so
+     * the clause saw zero verdicts on every run it has ever made and printed *"no open row names an
+     * instrument that is RED"* — while #258's instrument was exiting 1. Nothing failed; the number was
+     * simply never true. That is the `merge_mega_into_engine.js` failure to the letter: 67 writes, zero
+     * matching keys, and no check comparing the two files.
+     *
+     * The key now comes from the consumer. The selftest above round-trips a built artifact back through
+     * `Q.registerRealityRows`, so a rename on either side is RED rather than silent. */
+    [Q.REGISTER_REALITY.rowsKey]: results,
+    unverifiable_open_defects: m.en.unverifiable_open_defects,
+  };
+}
+
+/* THE WRITE SITE, AND THE ONLY ONE. It refuses on the DATA rather than on the FLAG: a caller that is
+ * not holding a measurement cannot publish, and neither can a measurement carrying a verdict that no
+ * instrument produced. A `has('--list')` check here would be a restatement of the mode, which is what
+ * failed. */
+function publish(m, art) {
+  if (!m || m.token !== MEASUREMENT_TOKEN)
+    throw new Error('register_reality: REFUSING to write data/register-reality.json — publish() was not '
+      + 'handed a measurement. This artifact records WHEN each verdict was measured; writing it from '
+      + 'anything but a run of the instruments makes that timestamp a lie (ROADMAP #369).');
+  for (const r of art[Q.REGISTER_REALITY.rowsKey])
+    if (!VERDICTS.has(r.verdict))
+      throw new Error('register_reality: REFUSING to write data/register-reality.json — row #' + r.n
+        + ' carries verdict ' + JSON.stringify(r.verdict) + ', which no instrument produced.');
+  fs.writeFileSync(OUT, JSON.stringify(art, null, 2) + '\n');
+}
+
+/* ---- rendering, shared by both paths so the coverage block cannot drift between them ------------ */
+function renderCoverage(c) {
+  console.log('  ' + String(c.register_rows).padStart(4) + '  defect-register rows  (of ' + c.id_rows
+    + ' `| #N |` rows in the file; the other ' + (c.id_rows - c.register_rows)
+    + ' are planning tables with no status cell to check an exit code against)');
+  console.log('  ' + String(c.open_asserting_breakage).padStart(4) + '  OPEN and asserting breakage  (the MEDICHAM gate counts these)');
+  console.log('  ' + String(c.open_asserting_breakage_and_marked).padStart(4) + '  of those, naming the instrument that decides them');
+  console.log('  ' + String(c.open_asserting_breakage_and_owed).padStart(4) + '  of those, DECLARING that nothing decides them (a debt, not coverage)');
+  console.log('  ' + String(c.marked).padStart(4) + '  rows carrying a VERIFIED BY marker in total');
+  console.log('  ' + String(c.instrument_owed).padStart(4) + '  rows declaring INSTRUMENT OWED — nothing decides them and they say so');
+}
+function renderOwedAndProse(en) {
+  if (en.owed.length) {
+    console.log('  INSTRUMENT OWED — no gate decides these, and the row now says what would have to be built:');
+    for (const r of en.owed) console.log('      #' + String(r.n).padEnd(5) + String(r.owed).slice(0, 110));
+    console.log('');
+  }
+  if (en.unverifiable_open_defects.length) {
+    console.log('  NO INSTRUMENT NAMED — these rows are still prose, and that is the coverage number:');
+    for (const r of en.unverifiable_open_defects) console.log('      #' + String(r.n).padEnd(5) + r.title);
+    console.log('');
+  }
+  console.log('  Add one to a row with:   VERIFIED BY: `node tests/<the gate that decides it>.js`');
+  console.log('  If nothing decides it:   INSTRUMENT OWED: <the gate that would have to exist>');
+}
+
+/* THE WHOLE LISTING PATH, IN ONE FUNCTION THAT CANNOT WRITE. It does not call process.exit either —
+ * the driver does — so the selftest can run it end to end with fs.writeFileSync booby-trapped and
+ * assert the trap never fires. A claim that a path does not write is worth what its demonstration is
+ * worth; this one is demonstrated on every run of the selftest. */
+function renderListing(en, opts) {
+  if (opts && opts.json) {
+    console.log(JSON.stringify({
+      listing: true,
+      wrote: null,
+      not_a_verdict: 'This is a COVERAGE LISTING. No instrument was run and data/register-reality.json '
+        + 'was neither read nor written. The verdicts in that file are whatever the last real run measured.',
+      coverage: en.coverage,
+      marked: en.marked.map(r => ({ n: r.n, cmd: r.cmd, title: r.title })),
+      instrument_owed: en.owed.map(r => ({ n: r.n, owes: r.owed, title: r.title })),
+      unverifiable_open_defects: en.unverifiable_open_defects,
+    }, null, 2));
+    return;
+  }
+  console.log('\nREGISTER REALITY --list — COVERAGE ONLY. NO INSTRUMENT WAS RUN AND NOTHING WAS WRITTEN.\n');
+  renderCoverage(en.coverage);
+  console.log('');
+  for (const r of en.marked)
+    console.log('  ' + 'NOT RUN'.padEnd(22) + '#' + String(r.n).padEnd(5) + '--list: not run'.padEnd(22) + r.title);
+  console.log('');
+  renderOwedAndProse(en);
+  console.log('\n  THIS IS NOT A VERDICT. data/register-reality.json was NOT written, and no row above was\n'
+    + '  compared to anything. For the verdicts, run:   node engine/register_reality.js\n');
+}
+
 if (has('--selftest')) {
   let ran = 0, bad = 0;
   const ok = (n, c, got) => { ran++; if (!c) bad++; console.log(`  ${c ? 'ok  ' : 'FAIL'} ${n}${c ? '' : '   got ' + JSON.stringify(got)}`); };
@@ -257,95 +456,84 @@ if (has('--selftest')) {
     (Q.registerRealityRows({ [Q.REGISTER_REALITY.rowsKey]: [{ n: 1, command: 'node tests/x.js', exit: 1 }] })
       || [{}])[0].cmd === null);
 
+  /* -- ROADMAP #369: A READ-ONLY FLAG THAT WRITES ---------------------------------------------
+   *
+   * These four are the structural half of the fix. The behavioural half — that the real `--list`
+   * process leaves data/register-reality.json byte-identical — is asserted from OUTSIDE this file,
+   * by tests/test-register-reality-readonly.js, because a claim about a whole process is not one a
+   * function inside that process can make honestly.
+   *
+   * Each was shown RED on the pre-fix bytes before being trusted: `verdict()` had no `NOT RUN` case
+   * because the driver spelled it inline, the driver reached `fs.writeFileSync` unconditionally, and
+   * there was no publish() to refuse anything. */
+  const threw = (f) => { try { f(); return null; } catch (e) { return e; } };
+  ok('RED — `NOT RUN` is not a verdict this file can produce for ANY row, at any tri-state. It was '
+    + 'the value the listing path wrote over 22 measured verdicts with',
+    [true, false, null].every(g => [true, false].every(cl =>
+      [null, 'node tests/x.js'].every(cmd => verdict(R(cl, cmd), g) !== 'NOT RUN'))));
+  ok('RED — buildArtifact REFUSES anything that is not a measurement, so an artifact cannot be '
+    + 'assembled out of rows nothing ran',
+    /REFUS|not handed a measurement/i.test(String(threw(() => buildArtifact({ results: [], en: {} })))));
+  /* THE WRITER IS BOOBY-TRAPPED FOR THE REST OF THIS BLOCK. If any of it reaches the real
+   * fs.writeFileSync the selftest fails LOUDLY instead of quietly republishing the artifact — the
+   * exact accident #369 records, arriving through the check written to prevent it. */
+  const realWrite = fs.writeFileSync, realLog = console.log;
+  const trap = [];
+  fs.writeFileSync = (...a) => { trap.push(String(a[0])); throw new Error('THE WRITER WAS REACHED'); };
+  const EN0 = enumerate(['| #7 | **NO MARKER HERE.** plain prose | open — DEFECT |']);
+  const m0 = measure(EN0);                       /* no row names an instrument, so nothing is run */
+  const notMine = threw(() => publish({ token: {}, results: [] }, { [Q.REGISTER_REALITY.rowsKey]: [] }));
+  const badVerdict = threw(() => publish(m0, { [Q.REGISTER_REALITY.rowsKey]: [{ n: 1, verdict: 'NOT RUN' }] }));
+  let listingErr = null;
+  console.log = () => {};
+  listingErr = threw(() => { renderListing(EN0); renderListing(EN0, { json: true }); });
+  console.log = realLog;
+  fs.writeFileSync = realWrite;
+  ok('RED — publish() REFUSES a caller that is not holding a measurement, and refuses at the WRITE '
+    + 'SITE rather than by re-reading the mode flag',
+    notMine && /REFUSING to write/.test(String(notMine)) && trap.length === 0, String(notMine));
+  ok('RED — publish() REFUSES a row carrying a verdict no instrument produced, even from a real '
+    + 'measurement: the artifact may not record "never checked" as a finding',
+    badVerdict && /REFUSING to write/.test(String(badVerdict)) && /NOT RUN/.test(String(badVerdict)),
+    String(badVerdict));
+  ok('RED — THE WHOLE LISTING PATH RUNS, BOTH RENDERERS, WITH fs.writeFileSync BOOBY-TRAPPED, AND '
+    + 'NEVER TOUCHES IT. This is the assertion #369 is about',
+    listingErr === null && trap.length === 0, { listingErr: listingErr && listingErr.message, trap });
+
   console.log(`\nREGISTER-REALITY SELFTEST: ${ran - bad} passed, ${bad} failed`);
   process.exit(bad ? 1 : 0);
 }
 
-const lines = fs.readFileSync(path.join(ROOT, 'docs', 'ROADMAP.md'), 'utf8').split(/\r?\n/);
-const rows = parse(lines);
-const marked = rows.filter(r => r.cmd);
-const owed = rows.filter(r => !r.cmd && r.owed);
-const openBroken = rows.filter(r => !r.closed && r.saysBroken);
+/* ================= THE DRIVER — THIN, AND THE TWO PATHS DO NOT MEET =============================
+ *
+ * Read this and the read-only claim is checkable by eye: the listing branch calls readRegister() and
+ * renderListing() and exits. It never names measure(), buildArtifact() or publish(), and publish()
+ * would refuse it if it did. Everything below the exit is the MEASUREMENT, and it writes because it
+ * measured. */
+const en = readRegister();
 
-const results = [];
-for (const r of marked) {
-  const res = has('--list') ? { green: null, why: '--list: not run' } : run(r.cmd);
-  results.push({ ...r, ...res, verdict: has('--list') ? 'NOT RUN' : verdict(r, res.green) });
+if (has('--list')) {
+  renderListing(en, { json: has('--json') });
+  process.exit(0);          /* --list is an inventory, not a verdict, and never a publication. */
 }
 
+const m = measure(en);
+const art = buildArtifact(m);
+publish(m, art);
+const results = m.results;
 const failing = results.filter(r => BAD.has(r.verdict));
-const art = {
-  generated: new Date().toISOString(),
-  by: 'engine/register_reality.js',
-  what: 'Every register row that names the instrument deciding it, run, with its exit code compared '
-      + 'to the row\'s open/closed status.',
-  why: 'docs/ROADMAP.md is read by engine/quarantine.js as a GATE INPUT and nothing checked it against '
-     + 'reality. On 2026-08-14 four rows were stale rather than live and two of them were put in front '
-     + 'of a human as the place to start. A row nobody re-verifies is prose.',
-  weaker_than_it_looks: 'A green instrument means THAT instrument sees nothing. It is not a '
-      + 'derivation of the row\'s claim. It is strictly more than the register had, which was nothing.',
-  counts: {
-    register_rows: rows.length,
-    id_rows: rows.idRows,
-    open_asserting_breakage: openBroken.length,
-    marked: marked.length,
-    open_asserting_breakage_and_marked: openBroken.filter(r => r.cmd).length,
-    stale_rows: results.filter(r => r.verdict === 'STALE ROW').length,
-    premature_closes: results.filter(r => r.verdict === 'PREMATURE CLOSE').length,
-    unrunnable: results.filter(r => r.verdict === 'INSTRUMENT UNRUNNABLE').length,
-    /* KEPT SEPARATE FROM `marked` ON PURPOSE. A row that has DECLARED nothing decides it is better
-     * than a row that says nothing at all, and it is not the same thing as a verified row. Folding
-     * the two into one coverage figure would be the caption-instead-of-a-quarantine move. */
-    instrument_owed: owed.length,
-    open_asserting_breakage_and_owed: openBroken.filter(r => !r.cmd && r.owed).length,
-    distinct_commands_run: RUN_CACHE.size,
-  },
-  instrument_owed: owed.map(r => ({ n: r.n, owes: r.owed, title: r.title })),
-  /* WRITTEN THROUGH THE READER'S OWN KEY, NEVER SPELLED AGAIN — 2026-08-18.
-   *
-   * This said `results,` and `engine/quarantine.js`'s open-defect clause read `rr.rows`, `v.command`
-   * and `v.exit` against this file's `results`, `cmd` and `green`. THREE key names, none matching, so
-   * the clause saw zero verdicts on every run it has ever made and printed *"no open row names an
-   * instrument that is RED"* — while #258's instrument was exiting 1. Nothing failed; the number was
-   * simply never true. That is the `merge_mega_into_engine.js` failure to the letter: 67 writes, zero
-   * matching keys, and no check comparing the two files.
-   *
-   * The key now comes from the consumer. The selftest above round-trips a built artifact back through
-   * `Q.registerRealityRows`, so a rename on either side is RED rather than silent. */
-  [Q.REGISTER_REALITY.rowsKey]: results,
-  unverifiable_open_defects: openBroken.filter(r => !r.cmd && !r.owed).map(r => ({ n: r.n, title: r.title })),
-};
-fs.writeFileSync(OUT, JSON.stringify(art, null, 2) + '\n');
 
 if (has('--json')) { console.log(JSON.stringify(art, null, 2)); process.exit(failing.length ? 1 : 0); }
 
 const c = art.counts;
 console.log('\nREGISTER REALITY — the register checked against the instruments, not against itself\n');
-console.log('  ' + String(c.register_rows).padStart(4) + '  defect-register rows  (of ' + c.id_rows
-  + ' `| #N |` rows in the file; the other ' + (c.id_rows - c.register_rows)
-  + ' are planning tables with no status cell to check an exit code against)');
-console.log('  ' + String(c.open_asserting_breakage).padStart(4) + '  OPEN and asserting breakage  (the MEDICHAM gate counts these)');
-console.log('  ' + String(c.open_asserting_breakage_and_marked).padStart(4) + '  of those, naming the instrument that decides them');
-console.log('  ' + String(c.open_asserting_breakage_and_owed).padStart(4) + '  of those, DECLARING that nothing decides them (a debt, not coverage)');
-console.log('  ' + String(c.marked).padStart(4) + '  rows carrying a VERIFIED BY marker in total');
-console.log('  ' + String(c.instrument_owed).padStart(4) + '  rows declaring INSTRUMENT OWED — nothing decides them and they say so');
+renderCoverage(c);
 console.log('  ' + String(c.distinct_commands_run).padStart(4) + '  distinct instrument(s) actually run\n');
 for (const r of results)
   console.log('  ' + r.verdict.padEnd(22) + '#' + String(r.n).padEnd(5)
     + ((r.why || '') + (r.cached ? ' (cached)' : '')).padEnd(22) + r.title);
 console.log('');
-if (owed.length) {
-  console.log('  INSTRUMENT OWED — no gate decides these, and the row now says what would have to be built:');
-  for (const r of owed) console.log('      #' + String(r.n).padEnd(5) + String(r.owed).slice(0, 110));
-  console.log('');
-}
-if (art.unverifiable_open_defects.length) {
-  console.log('  NO INSTRUMENT NAMED — these rows are still prose, and that is the coverage number:');
-  for (const r of art.unverifiable_open_defects) console.log('      #' + String(r.n).padEnd(5) + r.title);
-  console.log('');
-}
-console.log('  Add one to a row with:   VERIFIED BY: `node tests/<the gate that decides it>.js`');
-console.log('  If nothing decides it:   INSTRUMENT OWED: <the gate that would have to exist>');
+renderOwedAndProse(en);
 console.log('  wrote data/register-reality.json\n');
 if (failing.length) {
   console.log('REGISTER REALITY: ' + failing.length + ' row(s) disagree with their own instrument. '
