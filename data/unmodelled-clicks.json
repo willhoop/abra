@@ -1,9 +1,9 @@
 {
- "generated": "2026-08-22T01:55:12.559Z",
+ "generated": "2026-08-23T06:13:06.058Z",
  "by": "tests/test-unmodelled-clicks.js",
  "what": "Every move in gen9championsvgc2026regmb whose click resolves to {kind:\"pass\"} — a whole no-op turn. RATCHETED: the set may shrink and may never grow.",
  "count": 3,
- "clicks": 42,
+ "clicks": 44,
  "moves": [
   "roleplay",
   "reflecttype",
@@ -12,7 +12,7 @@
  "rows": [
   {
    "id": "roleplay",
-   "uses": 38
+   "uses": 40
   },
   {
    "id": "reflecttype",

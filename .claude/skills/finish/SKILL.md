@@ -43,6 +43,13 @@ found cheaply later.
 
 ## 3. Land what is verified, and only what is verified
 
+- **THE COMMIT BODY IS THE HANDOFF, SO WRITE IT LIKE ONE.** `/start` §2 reads full bodies — never
+  `--oneline` — because a subject reads like a complete answer and stopping there cost one session
+  **two wrong statements to Will in a single hour**. The body is already durable, already dated and
+  already read, which makes it the highest-value place a lesson can land: nobody has to remember to
+  look. So each commit body states what was shown RED first, what the control ruled out, what was
+  fixed, **what was deliberately NOT fixed**, and what could not be published and why. A subject
+  alone is a write-only commit.
 - **Stage precisely.** Never `git add -A` while any agent is alive; it sweeps their in-progress files
   into your commit.
 - Each landing needs its CHANGELOG entry, its version bump, and — while the MEDICHAM sprint is active —
@@ -61,6 +68,15 @@ found cheaply later.
 
 Anything measured-but-not-re-run, deferred, or blocked goes into the CHANGELOG as **exact commands**,
 not prose. A light-mode agent's own `OWED, NOT RUN` block is already in this form — carry it verbatim.
+
+**AND IT MUST STAY IN THE AGENT'S `docs/_reports/` FILE UNDER A HEADING CONTAINING THE WORD `OWED`,
+because that is the copy the next session actually reads.** `engine/orient.js` scans every report,
+collects those blocks as COMMANDS, and prints them under IN FLIGHT in `/start` §0 — newest first,
+with the file's age. **That is the join that makes ending a session cheap**, and it is mechanical:
+nobody has to remember to go and look. The generator also prints how many reports carry no OWED
+heading at all, so an agent that skipped one is visible as a number rather than as silence.
+
+The CHANGELOG copy is the durable record; the report copy is what gets picked up. **Write both.**
 
 **A measurement left half-run is worse than one not started**, because the artifact on disk looks
 finished. If a chain was killed mid-way, say which stages wrote and which did not.
@@ -86,8 +102,16 @@ carried under a new label is the normalisation that has cost this project two da
 
 Then put it where it will actually be read:
 
+**THIS TABLE IS THE SHARED CONTRACT BETWEEN THE TWO SKILLS, AND IT LIVES HERE ONLY.** `/finish`
+decides WHERE a lesson goes using it; `/start` §9 states the standard entries are held to and points
+back here rather than repeating the table. Two copies of one rule drift apart — that failure is named
+throughout this repo. **Ranked: prefer a destination `/start` already DERIVES over one it has to
+read.**
+
 | The lesson is about… | It goes in |
 |---|---|
+| **a NUMBER, a count, a current state** | **NOWHERE. It gets PRINTED.** Writing it into a document is the bug — `status.js` and `open_work.js` compute it |
+| **something DERIVABLE from code or the filesystem** | **`engine/orient.js`**, so it updates itself and no session has to maintain it. A new division, a new model, a new play-layer entrypoint — all of these should appear with no edit |
 | a FAILURE SHAPE — an instrument lying, a check that cannot fail, a number that is not what it says | `.claude/skills/start/SKILL.md` §7, one line with its receipt |
 | **a SOURCE you did not know existed** — a command, an artifact field, an authority `file:line`, a convention | **`.claude/skills/start/SKILL.md` §8** |
 | how to RUN or ROUTE the work — pins, batching, concurrency, briefs | `.claude/skills/start/SKILL.md` §5 |

@@ -70,6 +70,23 @@ do not invent a home for it.
 Report back **one answer**, not a transcript. Lead with the verdict. If the news is bad, give it
 plainly — softening a result is the failure this whole structure exists to prevent.
 
+### SHORT AND SWEET. A WALL OF TEXT DOES NOT GET READ, SO IT IS NOT A REPORT.
+
+*(Will, 2026-08-23: **"STOP GIVING ME WALLS OF TEXT JUST SHORT AND SWEET I AINT READING ALL THAT."*)*
+
+**Default: the verdict in a few lines. Nothing else unless he asks.** No recap of what he just said,
+no restating the brief back at him, no listing what you considered and rejected, no closing summary of
+a thing you already said.
+
+This is not a style preference, it is the same failure as the fourteen stale handoffs: **length is how
+a real finding gets skimmed past.** The Aurorus rows and the exit-2 defect were both buried in
+paragraphs that were technically correct and went unread. A finding nobody reads did not land.
+
+- **He asks a question → answer it. Do not brief him on the routing** unless he asks who has it.
+- **Detail lives in `docs/_reports/`.** Give the path, not the contents.
+- **One correction, one line.** Never a paragraph explaining how the error happened.
+- **Longer is allowed only when he asks for it** — "explain", "why", "walk me through".
+
 ## THE COORDINATOR IS THE BOTTLENECK, NOT THE REPOSITORY
 
 *(Will, 2026-08-22: **"this project is huge and it just destroys your context window... can we create a

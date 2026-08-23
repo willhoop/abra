@@ -1,10 +1,10 @@
 {
-  "current": "33d871e6db92",
-  "cut": "2026-08-23T03:56:10.651Z",
-  "why": "endure reaches the stall gate; addVolatile('trapped') refuses a repeat; the hard trap leaves with the body",
-  "cuts": 1,
-  "latest_cut": "2026-08-23T03:56:10.651Z",
-  "latest_why": "endure reaches the stall gate; addVolatile('trapped') refuses a repeat; the hard trap leaves with the body",
-  "pointer_written": "2026-08-23T03:56:10.661Z",
+  "current": "c36782953dee",
+  "cut": "2026-08-23T05:58:15.182Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 9,
+  "latest_cut": "2026-08-23T06:11:14.733Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-23T06:11:14.745Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

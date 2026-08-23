@@ -380,6 +380,29 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * from two places -- `:1104` for a damaging phaze and `:1260` for a status one -- so a non-zero
    * `forcedSwitchRefused` with a ZERO here is exactly the state this row was opened on. */
   forcedSwitchRefusedDamaging: 0,
+  /* 2026-08-23 -- A DAMAGING PHAZE WHOSE TARGET NEVER SURVIVED THE STEP LIST, so there is nobody to
+   * drag. The authority zeroes the target array as it goes (`targets[i] = false` at :1080, `= null`
+   * for a substitute at :1063) and step 6 walks what is left; this engine walked the ORIGINAL list
+   * and dragged a body five different refusals had already removed. Counted rather than merely
+   * skipped, because a guard that fires silently and a guard that was never reached look identical
+   * from outside -- a ZERO here on a run containing an immune or missed Dragon Tail means the
+   * survivor flag stopped being read. */
+  forcedSwitchTargetRemoved: 0,
+  /* 2026-08-23 -- A PHAZE THAT LANDED WITH NOBODY IN THE BACK, counted at the gate that now asks
+   * `canDragIn` BEFORE the DragOut refusals, the way `sim/battle-actions.ts:1353` does. Split by
+   * door because the two doors ANNOUNCE differently and only one of them writes a `|-fail|`
+   * (`combineResults` ranks a number above a boolean, so a damaging phaze that dealt damage stays
+   * silent) -- a single counter could not tell a status refusal from a damaging one, and the whole
+   * point of the gate is that the two are not the same event.
+   *
+   * A ZERO on either while `tests/probe_announce_failure.js` stages an empty bench means the gate
+   * stopped being reached, which from outside is indistinguishable from it being reached and
+   * agreeing. */
+  forcedSwitchNoBenchStatus: 0,
+  forcedSwitchNoBenchDamaging: 0,
+  /* THE STATE-ONLY WRITE at the Suction Cups site, counted apart from `mvFailSilentNoLine` because
+   * it is the OPPOSITE value: measured, the authority holds `moveThisTurnResult === true` there. */
+  mvOkSilentNoLine: 0,
   /* ROADMAP #338 -- a Life Orb toll actually PAID, off the derived `cost`. A zero on a run
    * containing any damaging click by an Orb holder means the gate above it stopped firing, which is
    * the failure a stale `a.move.d.max` produced silently for as long as it existed. */
@@ -1371,6 +1394,14 @@ const MEDFAILS = { encoreAction: 0,
      `a.move.d.max>0` gate back on purpose, so a deliberate restore arm and a broken engine can never
      be read as the same thing. Same shape as benchOrderAppendRestored. */
   orbStaleRangeRestored: 0,
+  /* 2026-08-23 -- bumped on every phaze gate crossed when MEDI_DRAG_ABILITY_FIRST=1 puts the
+     ask-the-ability-before-the-bench ordering back on purpose, so a deliberate restore arm and a
+     broken engine can never be read as the same thing. Same shape as orbStaleRangeRestored. */
+  dragAbilityFirstRestored: 0,
+  /* 2026-08-23 -- bumped when MEDI_DRAG_REFUSAL_FAILS=1 puts back the `_mvRes = false` an
+     `onDragOut` refusal used to leave behind, which the authority holds as `true`. Separate from
+     dragAbilityFirstRestored so a red arm names WHICH of the two defects it is about. */
+  dragRefusalFailsRestored: 0,
   /* ROADMAP #304 -- a damaging hit whose sixteen-entry band did NOT arrive, so the loop fell back to
    * the old uniform draw over the span. Never expected: the battle loop asks for `rolls` on every hit
    * context. Non-zero means dmgRange grew a return path that does not fill the out-parameter, and the
@@ -8535,6 +8566,23 @@ const BENCH_APPEND_RESTORED=(typeof process!=='undefined'&&process.env&&process.
  * with` can be shown MISSING on demand without swapping a file. Any run carrying it also carries a
  * non-zero `MEDFAILS.orbStaleRangeRestored`. Same shape as MEDI_BENCH_APPEND above. */
 const ORB_STALE_RANGE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ORB_STALE_RANGE==='1');
+/* 2026-08-23 -- MEDI_DRAG_ABILITY_FIRST=1 PUTS THE ORDERING DEFECT BACK: it makes both phaze doors
+ * ask the DragOut refusals before asking whether there is anybody in the back, which is what this
+ * engine did until the empty-bench gate below was added. The authority asks the bench FIRST
+ * (`sim/battle-actions.ts:1353`, `canSwitch` is a conjunct ABOVE `runEvent('DragOut', ...)`), so
+ * with an empty bench it never runs the ability and never writes its `-activate`.
+ *
+ * It exists so `tests/probe_announce_failure.js` can be shown RED on demand without swapping a file.
+ * Any run carrying it also carries a non-zero `MEDFAILS.dragAbilityFirstRestored`. Same shape as
+ * MEDI_BENCH_APPEND and MEDI_ORB_STALE_RANGE above. */
+const DRAG_ABILITY_FIRST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DRAG_ABILITY_FIRST==='1');
+/* 2026-08-23 -- MEDI_DRAG_REFUSAL_FAILS=1 PUTS THE STATE DEFECT BACK, and it is a SECOND knob rather
+ * than a second effect of the one above because they are two independent defects that happened to be
+ * found in one pass: the ordering (which line is written) and the move RESULT (`_mvRes`) an
+ * `onDragOut` refusal leaves behind. A knob that restored both could not tell which half a red arm
+ * was about, which is the whole reason a restore knob exists. Any run carrying it also carries a
+ * non-zero `MEDFAILS.dragRefusalFailsRestored`. */
+const DRAG_REFUSAL_FAILS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DRAG_REFUSAL_FAILS==='1');
 function sleepDurationDraw(){
   const r=medRng();
   const u=(typeof r==='function')?r():0.5;
@@ -8884,6 +8932,38 @@ function mvFailAnnouncedByCaller(mon){ if(mon)mon._mvRes=false; MEDSEEN.mvFailAn
  * `-activate`. The state write is IDENTICAL to `mvFail`'s -- see the call site for why that half is
  * deliberately unchanged. */
 function mvFailSilent(mon){ if(mon)mon._mvRes=false; MEDSEEN.mvFailSilentNoLine++; }
+/* 2026-08-23 -- THE FOURTH SHAPE, AND IT IS THE ONE NOTHING COULD SEE UNTIL TODAY: **NO LINE, AND
+ * THE MOVE COUNTED AS A SUCCESS.**
+ *
+ * ============ THIS FUNCTION EXISTS BECAUSE AN INSTRUMENT WAS BUILT, NOT BECAUSE OF A CODE READ ===
+ *
+ * `mvFailSilent`'s own header says the state write is "IDENTICAL to `mvFail`'s -- see the call site
+ * for why that half is deliberately unchanged", and the call site (the Suction Cups gate in the
+ * phaze branch) says `_mvRes` IS LEFT EXACTLY AS IT WAS ... What the authority does to
+ * `moveThisTurnResult` on a `null` drag ... was NOT staged in this pass". THAT DEFERRAL WAS THE
+ * RIGHT CALL AND THE GUESS UNDER IT WAS WRONG. Measured 2026-08-23 by
+ * `engine/move_result_state.js` on a staged Roar into a Suction Cups body with ONE body in the back,
+ * boards identical and narration byte-identical:
+ *
+ *     MOVE RESULT p1a (the MOVER)   sd tyranitar last=true
+ *                                   me tyranitar last=false      <- ours
+ *
+ * ============ THE DERIVATION, WHICH THE MEASUREMENT THEN CONFIRMED ==============================
+ *
+ * Suction Cups' `onDragOut` returns **null**, so at `sim/battle-actions.ts:1353-1363` neither
+ * `if (hitResult)` nor `else if (hitResult === false && Status)` fires and `forceSwitch` leaves the
+ * damage array untouched. `runMoveEffects` then asks its own question at :1260 --
+ * `hitResult = !!this.battle.canSwitch(target.side)` -- which is **true**, because the bench is not
+ * empty; the ability is not consulted there at all. So `didSomething` becomes true, `didAnything`
+ * becomes true, the `-fail` tail at :1303 is skipped and `moveThisTurnResult` is set to `true`.
+ *
+ * ============ WHY IT MATTERS AND WHY IT IS A DIFFERENT FUNCTION =================================
+ *
+ * `moveLastTurnResult === false` is what Stomping Tantrum's doubler reads on the FOLLOWING turn
+ * (`data/moves.ts:18048`), so a wrong `false` here is a doubled base power the authority does not
+ * give. It is a separate function from `mvFailSilent` for the reason that one is separate from
+ * `mvFail`: a call site cannot silently swap "the move failed" for "the move worked". */
+function mvOkSilent(mon){ if(mon)mon._mvRes=true; MEDSEEN.mvOkSilentNoLine++; }
 /* 2026-08-23 -- "IS THIS BODY ALREADY HELD", AND IT IS ONE READER FOR TWO CONSEQUENCES.
  *
  * DERIVED, NOT RECALLED. `Pokemon#addVolatile` (sim/pokemon.ts) opens with
@@ -12292,6 +12372,36 @@ function canMegaNow(S,m){
  * gate tests hold because nothing about a rollout changed. actsForA is a Map(mon -> action) built
  * by playerAction(); absent, side A plays itself exactly as before. */
 const _live=arr=>arr.filter(m=>m&&!m.fainted&&m.curHP>0);
+/* 2026-08-23 -- `Battle#canSwitch`, ONE READER FOR BOTH PHAZE DOORS.
+ *
+ * ============ WHY THIS IS A NAMED FUNCTION AND NOT `_live(bench).length` WRITTEN TWICE ===========
+ *
+ * CLAUDE.md's rule: two implementations of one fact disagree eventually and the disagreement is
+ * invisible because both keep working. The STATUS door and the DAMAGING door are ~5,900 lines apart
+ * in this file and both need the same answer to the same question, so they read the same function.
+ *
+ * ============ THE AUTHORITY, WHOLE BLOCKS, NOT RECALLED ==========================================
+ *
+ *   sim/battle.ts:1563   canSwitch(side) { return this.possibleSwitches(side).length; }
+ *   sim/battle.ts:1571   possibleSwitches walks side.pokemon from index side.active.length upward
+ *                        and skips only the FAINTED -- so it is THE BENCH ONLY. In a doubles format
+ *                        "nothing in the back" means both benched slots fainted while two bodies are
+ *                        still standing, and `side.pokemonLeft` is 2 rather than 0.
+ *
+ * ============ WHERE IT IS ASKED, WHICH IS THE WHOLE DEFECT =======================================
+ *
+ *   sim/battle-actions.ts:1353   `if (target && target.hp > 0 && source.hp > 0 &&
+ *                                     this.battle.canSwitch(target.side)) {
+ *                                   const hitResult = this.battle.runEvent('DragOut', ...); ... }`
+ *
+ * `canSwitch` is a CONJUNCT ABOVE the DragOut event, so an empty bench skips the entire body: no
+ * DragOut runs, and therefore **Suction Cups' `onDragOut` never runs and its `-activate` is never
+ * written**. This engine asked the ability first and wrote the line. One ordering, two symptoms.
+ *
+ * `_live(bench)` is the same set: `bench` here already excludes the actives, and the filter drops
+ * the fainted. Measured against the authority's own count on three bench depths in
+ * `tests/probe_announce_failure.js` (2, 1, 0 on both sides, both doors). */
+function canDragIn(bench){ return _live(bench).length>0; }
 /* WIRE 125 -- THE DEATH COUNTER FORGOT THE DEAD, ONE TURN AFTER THEY DIED.
  *
  * The end-of-turn recount was `[...act,...bench].filter(x=>x.fainted).length`, and bringIn() -- the
@@ -17495,6 +17605,38 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _rf=tryHitRefusal(m,_t,a.mv);
           if(_rf){announceTryHitRefusal(_rf,_t);m._lastMove=a.mv;continue;}
         }
+        /* 2026-08-23 -- THE BENCH IS ASKED BEFORE THE ABILITY IS, WHICH IS THE AUTHORITY'S ORDER AND
+         * WAS NOT OURS. `sim/battle-actions.ts:1353` makes `canSwitch(target.side)` a CONJUNCT ABOVE
+         * `runEvent('DragOut', ...)`, so with an empty back the DragOut event never runs -- no
+         * ability is consulted, no `-activate` is written, and the refusal that reaches
+         * `runMoveEffects` is the bench's, not the ability's:
+         *     :1260  hitResult = !!this.battle.canSwitch(target.side);          -> false
+         *            didSomething = combineResults(undefined, false)            -> false
+         *     :1303  if (!didAnything && didAnything !== 0 ...) if (didAnything === false)
+         *              this.battle.add('-fail', source); this.battle.attrLastMove('[still]');
+         * A STATUS phaze reaches that tail because `getDamage` returns undefined for it; the DAMAGING
+         * door does not, because `combineResults` ranks a number above a boolean and the damage it
+         * already dealt outranks the false. That asymmetry is the general rule of the whole
+         * announce-failure class and it is asserted on the AUTHORITY, both ways, in
+         * tests/probe_announce_failure.js -- an engine that announced on BOTH doors would fail there
+         * exactly as one that announced on neither.
+         *
+         * MEASURED BEFORE A BYTE MOVED (staged Roar, bench 0, boards identical on every arm):
+         *     showdown  ... |move|p1a: Tyranitar|Roar||[still]   |-fail|p1a: Tyranitar
+         *     medicham  ... |move|p1a: Tyranitar|roar|p2a: ...   (and nothing after it)
+         *     move result p1a   sd last=false   me last=TRUE     <- the half nothing could see
+         * and with a Suction Cups body standing there, ours additionally wrote the ability's
+         * `-activate` that the authority never reaches.
+         *
+         * THE `-fail` CANNOT LAND WITHOUT THE STATE, WHICH IS WHY IT NEVER LANDED BEFORE: `mvFail`
+         * writes BOTH, and until `engine/move_result_state.js` existed the second write was
+         * unmeasured. It now is, and this line is judged on both. */
+        if(!DRAG_ABILITY_FIRST&&!canDragIn(_fb)){
+          MEDSEEN.forcedSwitchNoBenchStatus++;
+          if(TR)TR.attrStill();
+          mvFail(m);m._lastMove=a.mv;continue;
+        }
+        if(DRAG_ABILITY_FIRST)MEDFAILS.dragAbilityFirstRestored++;
         const _rfs=TAGS.param('ability',suppressedAbility(m,_t),'refusesForcedSwitch');
         if(_rfs&&_rfs.refuses==='forcedSwitch'){
           MEDSEEN.forcedSwitchRefused++;
@@ -17517,8 +17659,21 @@ function battleTurn(S,rng,actsForA,actsForB){
            * `mvFailSilent` writes the same state `mvFail` did and emits no line, so this change is
            * protocol-only. What the authority does to `moveThisTurnResult` on a `null` drag -- which
            * is what Stomping Tantrum reads next turn -- was NOT staged in this pass, and the 2026-08-12
-           * retraction is what happens when a state change rides in on a narration fix. */
-          mvFailSilent(m);m._lastMove=a.mv;continue;
+           * retraction is what happens when a state change rides in on a narration fix.
+           *
+           * 2026-08-23 -- THAT DEFERRAL IS NOW DISCHARGED AND THE GUESS UNDER IT WAS WRONG. The
+           * instrument it asked for exists (`engine/move_result_state.js`), and on this exact staged
+           * board -- Roar into a Suction Cups body with ONE body in the back, boards identical and
+           * narration byte-identical -- it reads
+           *     sd tyranitar moveLastTurnResult = true      me tyranitar _mvResLast = false
+           * because `runMoveEffects` never consults the ability: it asks `!!canSwitch(target.side)`
+           * at :1260, which is TRUE here, so `didAnything` is true and the move is a success. The
+           * `false` we were writing is what Stomping Tantrum's doubler reads next turn
+           * (`data/moves.ts:18048`), so this was a wrong base power and not bookkeeping.
+           * See `mvOkSilent`'s header for the whole derivation. */
+          if(DRAG_REFUSAL_FAILS){MEDFAILS.dragRefusalFailsRestored++;mvFailSilent(m);}
+          else mvOkSilent(m);
+          m._lastMove=a.mv;continue;
         }
         /* the `refusesStatusMoves` clause that stood in this conjunction is now the WIRE 241 gate
          * above, which announces it; leaving a second copy here would be the private-answer problem
@@ -23365,7 +23520,40 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_fs&&_fs.forceSwitch){
           const _own=it.side==='A'?actA:actB, _foes=it.side==='A'?actB:actA;
           const _fb=it.side==='A'?benchB:benchA, _fsf=it.side==='A'?sfB:sfA;
-          for(const tg of targets){
+          /* 2026-08-23 -- IT WALKS THE SURVIVING SET, NOT THE TARGET LIST, AND THAT IS THE WHOLE
+           * DEFECT. The authority's forceSwitch is step 6 of `spreadMoveHit` and every step before it
+           * has been ZEROING the array as it went:
+           *     :1080  `for (const i of targets.keys()) if (damage[i] === false) targets[i] = false;`
+           *     :1063  a hit a SUBSTITUTE ate becomes `targets[i] = null`
+           *     :1353  `for (const [i, target] of targets.entries()) if (target && target.hp > 0 ...)`
+           * so a body the type chart refused, the die missed, an absorbing ability ate, a move-class
+           * immunity blocked or a doll took is NOT in the array by the time the drag is attempted.
+           *
+           * THIS LOOP READ `targets`, WHICH IS THE LIST AS IT STOOD BEFORE THE STEP LIST RAN -- only
+           * the Protect filter had touched it -- so every one of those five refusals was announced
+           * correctly AND THEN THE BODY WAS DRAGGED OUT ANYWAY. Measured on a staged board before this
+           * line moved, Tyranitar's Dragon Tail into a pure-FAIRY Clefable with a full bench:
+           *     showdown  |move|p1a: Tyranitar|Dragon Tail|p2a: Clefable   |-immune|p2a: Clefable
+           *     medicham  |move|p1a: Tyranitar|dragontail|p2a: Clefable    |-immune|p2a: Clefable
+           *               |drag|p2a: Weavile|weavile, L50|145/145
+           * -- a board-material divergence: a different Pokemon is standing in the slot from that turn
+           * on, and the Clefable's own Calm Mind boosts were wiped by the switch-out on top of it.
+           * The CONTROL is the same click on the same board at a non-immune Ninetales, where both
+           * engines drag; see tests/probe_phaze_empty_bench.js.
+           *
+           * IT IS FIXED AS A CLASS AND NOT AS A LIST OF REFUSALS, deliberately. `R.out` is set at
+           * SIX sites -- type immunity, move-class immunity, invulnerability, an absorbing ability,
+           * the accuracy miss and the substitute -- and a guard written as `if (immune) continue`
+           * would have closed exactly the one that was staged and left the other five open, which is
+           * the ratchet-as-a-list failure this repo has paid for three times. Reading the same
+           * survivor flag the step driver reads (`for(const R of _rows){if(R.out)continue;...}`,
+           * :22919) means a SEVENTH refusal added later is honoured here without this line changing.
+           *
+           * THE STATUS DOOR IS NOT THIS SITE AND IS NOT TOUCHED: Roar never enters the step list at
+           * all, and its own branch carries `tryHitRefusal`, `shieldRefuses` and `moveClassBlocked`. */
+          for(const R of _rows){
+            const tg=R.tg;
+            if(R.out){MEDSEEN.forcedSwitchTargetRemoved++;continue;}
             if(!tg||tg.fainted||tg.curHP<=0)continue;
             const _i=_foes.indexOf(tg); if(_i<0)continue;
             /* ROADMAP #341 -- SUCTION CUPS REFUSES THIS DOOR TOO, and until now it did not.
@@ -23394,6 +23582,23 @@ function battleTurn(S,rng,actsForA,actsForB){
              * Suction Cups returns `null`, not `false`, and Dragon Tail is Physical -- so BOTH
              * clauses fail and the ability's own `-activate` is the whole story. The damage this move
              * already dealt stands; only the drag is refused. */
+            /* 2026-08-23 -- THE SAME `canSwitch`-BEFORE-`DragOut` ORDER AS THE STATUS DOOR, THROUGH
+             * THE SAME READER. `sim/battle-actions.ts:1353` is ONE site serving both halves of
+             * `forcesSwitch`, so a gate honoured in one branch and not the other is this engine
+             * disagreeing with itself. The ANNOUNCEMENT differs and the ORDER does not: a damaging
+             * phaze that dealt damage stays silent here, because `combineResults` (:1561) ranks
+             * `number` above `boolean` and the damage outranks the `false` from the bench --
+             * so there is no `-fail` and `_mvRes` is left exactly as the step driver set it (`true`,
+             * measured). What DOES change is that Suction Cups' `-activate` is no longer written
+             * with an empty back, which is the authority's behaviour and was measured as ours
+             * before this line existed:
+             *     showdown  |-damage|p2a: Malamar|147/161                       (and nothing after)
+             *     medicham  |-damage|p2a: Malamar|147/161  |-activate|p2a: Malamar|ability: Suction Cups
+             * Boards identical on that arm, and the CONTROL (bench 1, where the authority DOES write
+             * the `-activate`) is byte-identical on both engines -- so this is a statement about the
+             * bench and not about the ability. */
+            if(!DRAG_ABILITY_FIRST&&!canDragIn(_fb)){MEDSEEN.forcedSwitchNoBenchDamaging++;continue;}
+            if(DRAG_ABILITY_FIRST)MEDFAILS.dragAbilityFirstRestored++;
             const _rfsd=TAGS.param('ability',suppressedAbility(m,tg),'refusesForcedSwitch');
             if(_rfsd&&_rfsd.refuses==='forcedSwitch'){
               MEDSEEN.forcedSwitchRefused++; MEDSEEN.forcedSwitchRefusedDamaging++;

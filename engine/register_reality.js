@@ -40,6 +40,10 @@
  *   CONFIRMED        open + red, or closed + green. The row and the world agree.
  *   UNVERIFIABLE     no marker. Counted and named, never hidden — the coverage figure IS the honest
  *                    measure of how much of this register is still prose.
+ *   INSTRUMENT       the instrument RAN and declared CANNOT-ANSWER. It is not green and it is not
+ *   CANNOT ANSWER    red; it measured nothing, and the row is neither confirmed nor cleared by it.
+ *   EXIT CODE        the instrument exited with a code outside {0,1} and never said what that code
+ *   UNDECLARED       means. Not read as a verdict. See classifyExit().
  *
  * ================= WHAT IT DELIBERATELY DOES NOT DO ================================================
  *
@@ -135,17 +139,145 @@ function parse(lines) {
 }
 
 /* THE VERDICT TABLE, EXTRACTED SO THE SELFTEST DRIVES THE SHIPPING FUNCTION RATHER THAN A RESTATEMENT
- * OF IT. `green` is a tri-state: true, false, or null when the instrument could not be run at all —
- * and null is NOT green. An instrument that will not start says nothing about the row, and calling
- * that agreement is the "a capability was absent and everything reported success" shape. */
-function verdict(row, green) {
+ * OF IT. `green` is a tri-state: true, false, or null when the instrument said nothing about the row —
+ * and null is NOT green. An instrument that will not start, or that ran and REFUSED TO ANSWER, says
+ * nothing about the row, and calling that agreement is the "a capability was absent and everything
+ * reported success" shape.
+ *
+ * `kind` comes from classifyExit() below and splits the null case three ways, because "I never
+ * started", "I ran and refused" and "I exited with a code I never explained" are three different
+ * facts and one label for all three would be a sentence that is false for two of them. */
+function verdict(row, green, kind) {
   if (!row.cmd) return row.owed ? 'INSTRUMENT OWED' : 'UNVERIFIABLE';
-  if (green === null) return 'INSTRUMENT UNRUNNABLE';
+  if (green === null) {
+    if (kind === KIND.REFUSED || kind === KIND.CONTRADICTION) return 'INSTRUMENT CANNOT ANSWER';
+    if (kind === KIND.UNDECLARED) return 'EXIT CODE UNDECLARED';
+    return 'INSTRUMENT UNRUNNABLE';
+  }
   if (!row.closed && green) return 'STALE ROW';
   if (row.closed && !green) return 'PREMATURE CLOSE';
   return 'CONFIRMED';
 }
-const BAD = new Set(['STALE ROW', 'PREMATURE CLOSE', 'INSTRUMENT UNRUNNABLE']);
+const BAD = new Set(['STALE ROW', 'PREMATURE CLOSE', 'INSTRUMENT UNRUNNABLE',
+  'INSTRUMENT CANNOT ANSWER', 'EXIT CODE UNDECLARED']);
+
+/* ================= WHICH EXIT CODES ARE VERDICTS, AND WHICH ARE REFUSALS ==========================
+ *
+ * THE DEFECT THIS REPLACES. The catch block below read *any* non-zero exit as `green: false`, and
+ * `green: false` is not "the instrument had something to say" — it is a MEASURED RED. `verdict()`
+ * turns it into CONFIRMED ("the row and the world agree") on an open row and PREMATURE CLOSE
+ * (an accusation against whoever closed it) on a closed one, and `openDefectClause` in
+ * engine/quarantine.js turns it into `withRed`, which holds the MEDICHAM gate shut.
+ *
+ * Measured 2026-08-23 on the pre-fix bytes: `engine/gate_offfield_target.js` (row #224) and
+ * `engine/gate_fail_and_silent.js` (row #241) BOTH exit 2 today, both printing `CANNOT ANSWER` —
+ * #224 because every artifact it reads was measured against other bytes, #241 because its artifact
+ * ran on release c66976713feb against a tree of 33d871e6db92. Neither had a finding. Both were being
+ * published as RED evidence of a live engine defect. That is a gate reporting something untrue in the
+ * direction that gets gates ignored (#148), arriving through the ruler rather than the engine.
+ *
+ * ================= WHY THIS IS NOT `if (status === 2)` ============================================
+ *
+ * Exit 2 is the INSTANCE. The question is which codes are VERDICTS and which are REFUSALS, and a
+ * hand-kept list of known refusal codes is the ban-list-of-four shape: it cannot catch a new
+ * instrument that refuses with a code nobody thought of. So the burden is inverted and put on the
+ * instrument:
+ *
+ *   exit 0                       VERDICT-GREEN. The universal convention, and every runner in this
+ *                                repository already relies on it.
+ *   exit 1                       VERDICT-RED. Also the universal convention, and also what node
+ *                                itself exits on an uncaught throw.
+ *   any other non-zero code      NOT A VERDICT unless the instrument says so. It becomes
+ *                                `green: null` — named, counted, and never read as agreement.
+ *
+ * An instrument that wants a code outside {0,1} to carry meaning DECLARES it on the way out, in one
+ * machine-readable line naming the code it is about to exit with:
+ *
+ *     ABRA-EXIT 2 CANNOT-ANSWER
+ *     ABRA-EXIT 3 VERDICT-RED
+ *
+ * The declaration is matched at the START OF A LINE, uppercase and hyphenated, for the same reason
+ * `VERIFIED BY:` is: it must be impossible for ordinary prose to produce. That is not decoration —
+ * `engine/gate_offfield_target.js` prints the legend `exit 2   [0 clean, 1 the placeholder is back,
+ * 2 cannot answer]` on EVERY run including its green ones, so a tolerant search for the words
+ * "cannot answer" would classify every run as a refusal. Only the line matching the code the process
+ * ACTUALLY exited with is read, and the last such line wins.
+ *
+ * ================= WHAT THIS CATCHES, AND THE ONE THING IT CANNOT ================================
+ *
+ * IT CATCHES a new instrument that refuses in a way nobody here anticipated, as long as the refusal
+ * carries a code outside {0,1} — including one that declares nothing at all, which is the case this
+ * fix was written for: neither gate above was edited, and both stop being published as red.
+ *
+ * IT CANNOT CATCH a refusal spelled as exit 1 with no declaration. That is irreducible rather than an
+ * oversight: exit 1 is the universal "I failed", and an instrument that refuses without saying so is
+ * indistinguishable from one that found the defect. The only defence is the instrument declaring
+ * itself, which is why the declaration exists and why `exit_codes_undeclared` is counted and printed
+ * on every run — a coverage figure that can be driven down, not a claim that it is already zero.
+ *
+ * IT ALSO CANNOT CATCH a lying declaration. `ABRA-EXIT 1 VERDICT-GREEN` on a real failure would be
+ * honoured. An instrument that misreports itself is outside what any consumer of its exit code can
+ * detect; the one contradiction that IS detectable — a declaration attached to exit 0 that does not
+ * say VERDICT-GREEN — is refused rather than guessed at.
+ *
+ * THE SAME FACT IS DECIDED IN A SECOND PLACE AND THAT IS FILED, NOT FIXED HERE. `tests/run-all.js`
+ * (its runner loop, at `r.status === 2`) already treats exit 2 as *"I COULD NOT RUN, NOT I FAILED"*
+ * for every script it runs, and says so in those words. Two files deciding one fact will disagree
+ * eventually — they DID disagree, and this file was the one that was wrong — so the durable fix is
+ * one implementation both call. That refactor is not made here: this pass was forbidden to touch
+ * tests/, and doing it blind is how a runner starts skipping real failures. See the register row.
+ *
+ * THE KNOB RESTORES THE DEFECT ON DEMAND. `RR_CANNOT_ANSWER_AS_RED=1` puts every non-zero exit back
+ * to `green: false`, so the selftest can show the old behaviour red instead of describing it. */
+const KIND = {
+  GREEN: 'VERDICT-GREEN',
+  RED: 'VERDICT-RED',
+  REFUSED: 'CANNOT-ANSWER',
+  UNDECLARED: 'UNDECLARED',
+  CONTRADICTION: 'DECLARATION-CONTRADICTS-EXIT',
+  NOT_STARTED: 'NOT-STARTED',
+  LEGACY: 'LEGACY-ANY-NONZERO-IS-RED',
+};
+const DECLARATION = /^ABRA-EXIT[ \t]+(\d+)[ \t]+(VERDICT-GREEN|VERDICT-RED|CANNOT-ANSWER)\b/;
+
+/* The declaration for THIS exit code, or null. Last one wins. Reads whatever the caller captured —
+ * stdout and stderr both, because a gate that refuses may say so on either. */
+function declaredKind(status, text) {
+  let found = null;
+  for (const line of String(text == null ? '' : text).split(/\r?\n/)) {
+    const m = line.match(DECLARATION);
+    if (m && Number(m[1]) === status) found = m[2];
+  }
+  return found;
+}
+
+function classifyExit(status, text) {
+  if (process.env.RR_CANNOT_ANSWER_AS_RED === '1')
+    return status === 0
+      ? { green: true, kind: KIND.LEGACY, why: 'exit 0' }
+      : { green: false, kind: KIND.LEGACY, why: 'exit ' + status + ' (RR_CANNOT_ANSWER_AS_RED=1: the '
+          + 'pre-fix behaviour — every non-zero exit is published as a RED verdict)' };
+  const declared = declaredKind(status, text);
+  if (status === 0) {
+    if (declared && declared !== KIND.GREEN)
+      return { green: null, kind: KIND.CONTRADICTION, declared,
+        why: 'exit 0 with a declaration of ' + declared + ' — the instrument contradicts itself, and a '
+           + 'contradiction is not a verdict' };
+    return { green: true, kind: KIND.GREEN, declared: declared || null, why: 'exit 0' };
+  }
+  if (declared === KIND.REFUSED)
+    return { green: null, kind: KIND.REFUSED, declared,
+      why: 'exit ' + status + ' — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to '
+         + 'report about this row, and a refusal is not evidence in either direction' };
+  if (declared === KIND.RED)
+    return { green: false, kind: KIND.RED, declared, why: 'exit ' + status + ' (declared VERDICT-RED)' };
+  if (declared === KIND.GREEN)
+    return { green: true, kind: KIND.GREEN, declared, why: 'exit ' + status + ' (declared VERDICT-GREEN)' };
+  if (status === 1) return { green: false, kind: KIND.RED, declared: null, why: 'exit 1' };
+  return { green: null, kind: KIND.UNDECLARED, declared: null,
+    why: 'exit ' + status + ' — a code outside {0,1} that the instrument never declared, so it is NOT '
+       + 'read as a verdict. Declare it with a line `ABRA-EXIT ' + status + ' <VERDICT-RED|CANNOT-ANSWER>`' };
+}
 
 /* ONE RUN PER DISTINCT COMMAND. Four rows closed on tests/test-seed-clock.js is the normal shape —
  * a gate is built for a defect and the defect splits — and running it four times costs four times as
@@ -158,18 +290,27 @@ function run(cmd) {
   RUN_CACHE.set(cmd, r);
   return r;
 }
-function runUncached(cmd) {
+/* `exec` is injectable ONLY so the selftest can drive this exact function with a synthetic child
+ * result instead of a restatement of it. Nothing else passes it; the default is the real thing. */
+function runUncached(cmd, exec) {
   const m = cmd.match(SAFE);
-  if (!m) return { green: null, why: 'the marker is not a plain `node <repo script>.js [--flags]` command, so it was NOT run' };
+  if (!m) return { green: null, kind: KIND.NOT_STARTED, why: 'the marker is not a plain `node <repo script>.js [--flags]` command, so it was NOT run' };
   const args = [path.join(ROOT, m[1])].concat((m[2] || '').trim() ? m[2].trim().split(/\s+/) : []);
   const t0 = Date.now();
   try {
-    execFileSync(process.execPath, args, { cwd: ROOT, encoding: 'utf8', stdio: 'pipe', timeout: TIMEOUT_MS });
-    return { green: true, why: 'exit 0', ms: Date.now() - t0 };
+    const out = (exec || execFileSync)(process.execPath, args, { cwd: ROOT, encoding: 'utf8', stdio: 'pipe', timeout: TIMEOUT_MS });
+    return { ...classifyExit(0, out), ms: Date.now() - t0 };
   } catch (e) {
-    if (e && (e.code === 'ENOENT' || e.killed))
-      return { green: null, why: 'the instrument could not be run: ' + String(e.message).split('\n')[0], ms: Date.now() - t0 };
-    return { green: false, why: 'exit ' + (e && e.status), ms: Date.now() - t0 };
+    /* NEVER STARTED, OR KILLED MID-RUN. Distinct from a refusal: this instrument produced no exit
+     * code of its own at all. `e.status` is null when a signal ended it. */
+    if (e && (e.code === 'ENOENT' || e.killed || e.status === null || e.status === undefined))
+      return { green: null, kind: KIND.NOT_STARTED,
+        why: 'the instrument could not be run: ' + String(e.message).split('\n')[0], ms: Date.now() - t0 };
+    /* THE STDIO IS READ, NOT DISCARDED. execFileSync attaches the captured streams to the error on a
+     * non-zero exit (asserted in the selftest against the real child, not assumed), and the
+     * instrument's own declaration of what its exit code MEANS is in there. */
+    return { ...classifyExit(e.status, String(e.stdout || '') + '\n' + String(e.stderr || '')),
+      ms: Date.now() - t0 };
   }
 }
 
@@ -217,7 +358,7 @@ function runUncached(cmd) {
  * measurement wearing a different renderer, so its timestamp is honest. `--list` runs none. */
 const MEASUREMENT_TOKEN = Symbol('register_reality: this came from a real run of the instruments');
 const VERDICTS = new Set(['STALE ROW', 'PREMATURE CLOSE', 'CONFIRMED', 'UNVERIFIABLE',
-  'INSTRUMENT OWED', 'INSTRUMENT UNRUNNABLE']);
+  'INSTRUMENT OWED', 'INSTRUMENT UNRUNNABLE', 'INSTRUMENT CANNOT ANSWER', 'EXIT CODE UNDECLARED']);
 
 /* PURE. Everything `--list` is allowed to touch lives in here. */
 function enumerate(lines) {
@@ -247,7 +388,7 @@ function measure(en) {
   const results = [];
   for (const r of en.marked) {
     const res = run(r.cmd);
-    results.push({ ...r, ...res, verdict: verdict(r, res.green) });
+    results.push({ ...r, ...res, verdict: verdict(r, res.green, res.kind) });
   }
   return { token: MEASUREMENT_TOKEN, en, results };
 }
@@ -276,6 +417,14 @@ function buildArtifact(m) {
       stale_rows: results.filter(r => r.verdict === 'STALE ROW').length,
       premature_closes: results.filter(r => r.verdict === 'PREMATURE CLOSE').length,
       unrunnable: results.filter(r => r.verdict === 'INSTRUMENT UNRUNNABLE').length,
+      /* THE INSTRUMENT RAN AND REFUSED. Kept out of `unrunnable` because "never started" and "ran and
+       * had nothing to say" are different facts, and out of the red counts because a refusal is not a
+       * finding. Both were published as RED until 2026-08-23 — see classifyExit(). */
+      cannot_answer: results.filter(r => r.verdict === 'INSTRUMENT CANNOT ANSWER').length,
+      /* THE COVERAGE FIGURE FOR THE CONVENTION ITSELF, and it is meant to be driven down. Every row
+       * here is an instrument that exited outside {0,1} without declaring what it meant, so this file
+       * had to refuse to read it as a verdict. */
+      exit_codes_undeclared: results.filter(r => r.verdict === 'EXIT CODE UNDECLARED').length,
       /* KEPT SEPARATE FROM `marked` ON PURPOSE. A row that has DECLARED nothing decides it is better
        * than a row that says nothing at all, and it is not the same thing as a verified row. Folding
        * the two into one coverage figure would be the caption-instead-of-a-quarantine move. */
@@ -500,6 +649,123 @@ if (has('--selftest')) {
     + 'NEVER TOUCHES IT. This is the assertion #369 is about',
     listingErr === null && trap.length === 0, { listingErr: listingErr && listingErr.message, trap });
 
+  /* -- A REFUSAL IS NOT A RED VERDICT ----------------------------------------------------------
+   *
+   * Every one of these was RED on the pre-fix bytes, where the catch block read ANY non-zero exit as
+   * `green: false`. They can be shown red again on demand without editing anything:
+   *
+   *     RR_CANNOT_ANSWER_AS_RED=1 node engine/register_reality.js --selftest
+   *
+   * The knob restores the defect exactly — every non-zero exit becomes a published RED verdict — and
+   * the assertions below fail by name. That is the MEDI_* / ROSTER_* discipline: a claim about a fix
+   * is worth what its demonstration is worth, and a demonstration nobody can re-run is prose.
+   *
+   * THE CASE THIS IS ABOUT IS THE UNDECLARED ONE. Neither `engine/gate_offfield_target.js` (#224) nor
+   * `engine/gate_fail_and_silent.js` (#241) was edited to make this fix work: both exit 2, both
+   * declare nothing, and both stop being published as red. That is the difference between a gate that
+   * covers a class and one that covers the two instances somebody happened to name. */
+  const cx = (s, t) => classifyExit(s, t || '');
+  ok('exit 0 is a GREEN verdict — the universal convention, unchanged',
+    cx(0).green === true && cx(0).kind === KIND.GREEN, cx(0));
+  ok('exit 1 is a RED verdict — also the universal convention, and what node exits on an uncaught '
+    + 'throw. A refusal spelled as exit 1 with no declaration is NOT catchable and this file says so',
+    cx(1).green === false && cx(1).kind === KIND.RED, cx(1));
+  ok('RED — an UNDECLARED exit outside {0,1} is NOT a verdict. This is #224 and #241 exactly: both '
+    + 'exit 2 today, neither declares anything, and both were being published as red',
+    cx(2).green === null && cx(2).kind === KIND.UNDECLARED, cx(2));
+  ok('RED — a DECLARED refusal is not a verdict either, and it is labelled as a refusal rather than '
+    + 'as an undeclared code',
+    cx(2, 'ABRA-EXIT 2 CANNOT-ANSWER\nsome other output\n').green === null
+    && cx(2, 'ABRA-EXIT 2 CANNOT-ANSWER\n').kind === KIND.REFUSED, cx(2, 'ABRA-EXIT 2 CANNOT-ANSWER\n'));
+  ok('RED — a declaration is read off stderr as well as stdout: a gate that refuses may say so on '
+    + 'either, and runUncached hands both to this function',
+    cx(2, 'nothing on stdout\nABRA-EXIT 2 CANNOT-ANSWER from stderr\n').kind === KIND.REFUSED);
+  /* THE LEGEND TRAP, IN THE GATE'S OWN WORDS. `engine/gate_offfield_target.js` prints this line on
+   * EVERY run, including its green ones. A tolerant search for "cannot answer" would have called
+   * every clean run a refusal — the same vocabulary-matching that put a metaphor into a gate. */
+  ok('RED — the words "cannot answer" in an instrument PROSE do not make a refusal. The exit-0 legend '
+    + '`[0 clean, 1 the placeholder is back, 2 cannot answer]` prints on every clean run of #224 gate',
+    cx(0, '  exit 0   [0 clean, 1 the placeholder is back, 2 cannot answer]\n').green === true);
+  ok('RED — a declaration naming a DIFFERENT exit code does not apply to this one',
+    cx(3, 'ABRA-EXIT 2 CANNOT-ANSWER\n').kind === KIND.UNDECLARED, cx(3, 'ABRA-EXIT 2 CANNOT-ANSWER\n'));
+  /* WITHOUT THIS ONE THE FIX WOULD WEAKEN A REAL RED. `engine/gate_fail_and_silent.js` uses exit 3 for
+   * REGRESSION — a genuine verdict on a code outside {0,1} — and the undeclared rule would otherwise
+   * turn it into not-evidence. It now declares itself, and this pins that the declaration is honoured. */
+  ok('a DECLARED VERDICT-RED on a code outside {0,1} stays RED — exit 3 REGRESSION must not be '
+    + 'softened into not-evidence by the undeclared rule',
+    cx(3, 'ABRA-EXIT 3 VERDICT-RED\n').green === false, cx(3, 'ABRA-EXIT 3 VERDICT-RED\n'));
+  ok('RED — a declaration that CONTRADICTS a zero exit is refused rather than guessed at',
+    cx(0, 'ABRA-EXIT 0 CANNOT-ANSWER\n').green === null
+    && cx(0, 'ABRA-EXIT 0 CANNOT-ANSWER\n').kind === KIND.CONTRADICTION);
+  ok('the last declaration for the code wins, so a re-print cannot be shadowed by an earlier line',
+    cx(2, 'ABRA-EXIT 2 VERDICT-RED\nABRA-EXIT 2 CANNOT-ANSWER\n').kind === KIND.REFUSED);
+  ok('RED — the marker must be line-anchored: a declaration quoted mid-sentence is prose, not a '
+    + 'declaration, or any file DESCRIBING this convention would refuse every gate that reads it',
+    cx(2, 'the convention is ABRA-EXIT 2 CANNOT-ANSWER, described here\n').kind === KIND.UNDECLARED);
+
+  /* THE VERDICT MAPPING. This is where the defect actually reached the register: an OPEN row read
+   * CONFIRMED ("the row and the world agree") and a CLOSED row read PREMATURE CLOSE — an accusation
+   * against whoever closed it — both off an exit code that said "I could not answer". */
+  ok('RED — an OPEN row whose instrument REFUSED is INSTRUMENT CANNOT ANSWER, never CONFIRMED. '
+    + 'A refusal is not the world agreeing with the row',
+    verdict(R(false, C), null, KIND.REFUSED) === 'INSTRUMENT CANNOT ANSWER',
+    verdict(R(false, C), null, KIND.REFUSED));
+  ok('RED — a CLOSED row whose instrument REFUSED is NOT a PREMATURE CLOSE. Nothing measured it, so '
+    + 'there is no accusation to make',
+    verdict(R(true, C), null, KIND.UNDECLARED) === 'EXIT CODE UNDECLARED',
+    verdict(R(true, C), null, KIND.UNDECLARED));
+  ok('a refusal is still BAD — this file exits 1 on it. Not evidence is not the same as fine, and '
+    + 'the row must not go quiet',
+    BAD.has('INSTRUMENT CANNOT ANSWER') && BAD.has('EXIT CODE UNDECLARED'));
+  ok('a refusal is NOT reported as INSTRUMENT UNRUNNABLE — that sentence would be false: the '
+    + 'instrument ran perfectly well and declined to answer',
+    verdict(R(false, C), null, KIND.REFUSED) !== 'INSTRUMENT UNRUNNABLE'
+    && verdict(R(false, C), null, KIND.NOT_STARTED) === 'INSTRUMENT UNRUNNABLE');
+  ok('RED — EVERY verdict this file can produce, across every tri-state and every kind, is one '
+    + 'publish() will accept. A new label that publish refuses would abort the whole run at the write site',
+    [true, false, null].every(g => [true, false].every(cl =>
+      [null, C].every(cmd => Object.keys(KIND).every(k =>
+        VERDICTS.has(verdict(R(cl, cmd), g, KIND[k])))))));
+
+  /* THE PLUMBING, THROUGH THE SHIPPING runUncached RATHER THAN A RESTATEMENT OF IT. The pre-fix catch
+   * block discarded the child's stdio entirely; if it still did, a declared refusal would be
+   * indistinguishable from an undeclared one and the classifier would never see either. */
+  const fakeExit = (status, stdout, stderr) => () => {
+    const e = new Error('Command failed'); e.status = status; e.stdout = stdout || ''; e.stderr = stderr || ''; throw e;
+  };
+  ok('RED — runUncached READS the failed child stdio and classifies off it, rather than discarding '
+    + 'the reason the way the pre-fix catch block did',
+    runUncached(C, fakeExit(2, 'ABRA-EXIT 2 CANNOT-ANSWER\n')).kind === KIND.REFUSED,
+    runUncached(C, fakeExit(2, 'ABRA-EXIT 2 CANNOT-ANSWER\n')));
+  ok('RED — and an UNDECLARED non-{0,1} exit through the same path is null, not false',
+    runUncached(C, fakeExit(2, 'CANNOT ANSWER — no current artifact\n')).green === null);
+  ok('a signal kill still reads as NOT STARTED, not as a refusal: no exit code of its own was produced',
+    runUncached(C, () => { const e = new Error('killed'); e.status = null; e.killed = true; throw e; }).kind
+      === KIND.NOT_STARTED);
+  /* NODE'S OWN CONTRACT, ASSERTED RATHER THAN ASSUMED. The whole classifier rests on execFileSync
+   * attaching the captured streams to the error object on a non-zero exit. One 40ms child. */
+  const CONTRACT = (() => {
+    try { execFileSync(process.execPath, ['-e', 'console.log("ABRA-EXIT 2 CANNOT-ANSWER");process.exit(2)'],
+      { encoding: 'utf8', stdio: 'pipe' }); return null; } catch (e) { return e; }
+  })();
+  ok('RED — execFileSync attaches the child STDOUT to the error on a non-zero exit. Everything above '
+    + 'rests on this and it is measured here, not assumed',
+    CONTRACT && CONTRACT.status === 2 && /^ABRA-EXIT 2 CANNOT-ANSWER$/m.test(String(CONTRACT.stdout)),
+    CONTRACT && { status: CONTRACT.status, stdout: CONTRACT.stdout });
+
+  /* THE KNOB, BOTH WAYS. It must restore the defect when set and be off when not — a knob that is
+   * silently always on would make the demonstration above meaningless. */
+  const KNOB_WAS = process.env.RR_CANNOT_ANSWER_AS_RED;
+  process.env.RR_CANNOT_ANSWER_AS_RED = '1';
+  const knobbed = classifyExit(2, 'ABRA-EXIT 2 CANNOT-ANSWER\n');
+  if (KNOB_WAS === undefined) delete process.env.RR_CANNOT_ANSWER_AS_RED;
+  else process.env.RR_CANNOT_ANSWER_AS_RED = KNOB_WAS;
+  ok('RR_CANNOT_ANSWER_AS_RED=1 restores the pre-fix defect exactly — a declared refusal is published '
+    + 'as a RED verdict again — so this fix can be shown red on demand',
+    knobbed.green === false && knobbed.kind === KIND.LEGACY, knobbed);
+  ok('and the knob is OFF unless it is set to exactly "1"',
+    (process.env.RR_CANNOT_ANSWER_AS_RED === '1') || classifyExit(2, '').green === null);
+
   console.log(`\nREGISTER-REALITY SELFTEST: ${ran - bad} passed, ${bad} failed`);
   process.exit(bad ? 1 : 0);
 }
@@ -528,7 +794,11 @@ if (has('--json')) { console.log(JSON.stringify(art, null, 2)); process.exit(fai
 const c = art.counts;
 console.log('\nREGISTER REALITY — the register checked against the instruments, not against itself\n');
 renderCoverage(c);
-console.log('  ' + String(c.distinct_commands_run).padStart(4) + '  distinct instrument(s) actually run\n');
+console.log('  ' + String(c.distinct_commands_run).padStart(4) + '  distinct instrument(s) actually run');
+/* PRINTED HERE AND NOT IN renderCoverage(), which --list also calls off a coverage block that has no
+ * such keys — a figure rendered as `undefined` is worse than one not rendered. */
+console.log('  ' + String(c.cannot_answer).padStart(4) + '  instrument(s) that RAN AND DECLARED CANNOT-ANSWER — not evidence, in either direction');
+console.log('  ' + String(c.exit_codes_undeclared).padStart(4) + '  instrument(s) that exited outside {0,1} without declaring what the code means\n');
 for (const r of results)
   console.log('  ' + r.verdict.padEnd(22) + '#' + String(r.n).padEnd(5)
     + ((r.why || '') + (r.cached ? ' (cached)' : '')).padEnd(22) + r.title);

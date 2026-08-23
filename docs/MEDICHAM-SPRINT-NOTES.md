@@ -11788,3 +11788,52 @@ The species-key mismatch: found 2026-07-30 and gated; found again in four more f
 canonical resolver plus a ratchet; **found a third time today in the damage harness, invisible to both
 gates** — one watches a named file pair, the other scans for the wrong spellings already known.
 **A gate built from an instance catches that instance, not the class.**
+
+---
+
+## 2026-08-23 — THE ANNOUNCE-FAILURE CLASS: ONE RULE, ONE INSTRUMENT, AND HALF OF IT WAS NEVER NARRATION (5.88.0)
+
+**ENGINE, light mode.** Will: *"WE MUST ANNOUNCE FAILURES HOW HARD CAN THAT BE. IM TIRED OF THIS."*
+Full account: `docs/_reports/2026-08-23-announce-failure-class.md`.
+
+**THE GENERAL RULE, DERIVED.** `sim/battle-actions.ts` writes a move-phase `|-fail|MOVER` at twelve
+sites (`463, 512, 595, 646, 831, 850, 1048, 1175, 1203, 1213, 1306, 1362`), every one guarded by a
+**strict `=== false`**. `combineResults` (`:1561`) ranks
+`['undefined','string'(NOT_FAIL),'object'(null),'boolean','number']` and **a number outranks a
+boolean**, so: *a move announces `|-fail|` exactly when its combined result is boolean `false`.* That
+is the whole class, not a phaze quirk — it is why Roar into an empty bench speaks and Dragon Tail into
+the same board does not.
+
+**THE BLOCKER, BUILT.** `mvFail(mon)` is `{ mon._mvRes = false; TR.fail(mon); }` — one call, two
+writes, and only the line had an instrument, which is the reason every previous pass deferred.
+`engine/move_result_state.js` compares `moveLastTurnResult` against `_mvResLast` at the same turn
+boundary `board_state.js` uses. **It caught two state defects on its first run, on arms whose boards
+were identical and one of whose protocol was byte-identical:**
+
+```
+Roar / empty bench / plain    sd moveLastTurnResult=false   me _mvResLast=TRUE
+Roar / bench 1 / Suction Cups sd moveLastTurnResult=true    me _mvResLast=FALSE   (narration identical)
+```
+
+Both decide Stomping Tantrum's base power on the following turn (`data/moves.ts:18048`).
+
+**THE FIX — ONE ORDERING, TWO SITES, THREE SYMPTOMS.** `canSwitch(target.side)` is a conjunct ABOVE
+`runEvent('DragOut', ...)` (`:1353`), so an empty back never consults an `onDragOut` ability at all.
+New reader `canDragIn(bench)` serving both phaze doors; `mvFailSilent` becomes `mvOkSilent` at the
+surviving Suction Cups gate. `tests/probe_announce_failure.js`: **5 FAILED (8 arms) -> ALL CLAUSES
+HELD**, with the bench knob asserted at 2/1/0 in the authority's own count and the bench-1 control
+byte-identical. Knobs `MEDI_DRAG_ABILITY_FIRST=1` (-> 5 FAILED) and `MEDI_DRAG_REFUSAL_FAILS=1`
+(-> 1 FAILED), separate so a red arm names which half it is about.
+
+**NOT CLOSED, AND WHAT REMAINS.** #371's board-material sub-causes are already at HEAD ((a) `f36427f`,
+(b) `trapAlreadyHeld`); (c) is #375's instrument limit. Unprobed: #345, #352, #359, #360 — triaged
+board-material vs narration in `docs/ENGINE.md`.
+
+**MEASURED AND NOT FIXED.** `engine/game_differential.js`'s `move-target-field` equivalence truncates
+`|move|` to `f.slice(0,4)`, so a missing `[still]` is **invisible to the whole-game instrument by
+design** — ~70 of ~84 `mvFail` sites never call `attrStill` and nothing counts it.
+
+**OWED, NOT RUN (light mode):** `tests/test-mechanics.js`, `engine/status.js --write`,
+`engine/quarantine.js`, `game_differential.js`, `tests/roster.js`, and `gate_fail_and_silent.js` once
+a fresh artifact exists (it returns CANNOT ANSWER / exit 2 today — the artifact ran on
+`c66976713feb`). **No census count moved because of this pass and none is claimed.**

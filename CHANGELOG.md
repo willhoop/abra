@@ -10,6 +10,218 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.89.0] — 2026-08-23
+
+### Added
+- **`engine/orient.js` — THE ORIENTATION MAP, DERIVED AT RUN TIME.** Will, 2026-08-23: *"MAKE IT
+  DYNAMIC SO IT AUTO UPDATES AS THE PROJECT PROGRESSES. I WANT THIS BULLETPROOF AND NOT JUST A
+  SNAPSHOT."* The `/start` skill's orientation section was first written as prose and that was the
+  wrong shape — a written map of this repository is wrong within a day, which is the same failure as
+  the fourteen `docs/HANDOFF-*.md` files and the ban list of four. Eight sections, all derived in
+  ~0.2s: divisions from `.claude/agents/`, **the invalidation graph computed from real `require()`
+  edges** through `quarantine.js`'s own `requiresOf` (84 of 217 modules downstream of the simulator),
+  the entrypoints that PLAY A GAME (the "only one at a time" rule, derived rather than remembered),
+  models from `docs/MODELS.md`, the frozen set from `SOURCES`, and the `OWED, NOT RUN` blocks
+  collected across `docs/_reports/` **as commands only, never findings**. No hand-typed list anywhere.
+- **`tests/test-orient.js`** — five arms, shown RED on deliberate breaks before being trusted:
+  loosening the command filter reports *"18 lines in IN FLIGHT are not commands — findings are
+  leaking"*, and claiming nine sections while printing eight reports *"one was DROPPED SILENTLY"*.
+  Six `ORIENT_BREAK` knobs each exit 1 naming their section. A section that cannot derive **fails
+  loudly and exits non-zero** rather than printing a blank — a map that quietly drops ENGINE reads as
+  though there are four divisions, which is exactly what happened in prose for nineteen days.
+
+### Changed
+- **`/start` and `/finish` are one loop rather than two documents.** Three joins were broken: `/start`
+  §2 reads full commit BODIES but `/finish` never required the body to carry the lesson (the
+  highest-value join, missing entirely); `/finish` sent OWED only to the CHANGELOG, which nothing reads
+  on startup; and the routing table had no row for *a number* or for *something derivable*. `/start`
+  also gained a framing block stating what the document is — an operating manual, not a status report —
+  and the test for whether a line may be written in it at all: **would it be wrong in a week?**
+- **`git log --oneline` replaced with full bodies in `/start` §2.** Will: *"READ THE WHOLE RECORD EVERY
+  TIME."* Reading subjects cost this session two wrong statements — reporting the `-ate` entry-point
+  fix as unlanded when it had shipped the night before, and reporting five stale `aurorus` rows as a
+  live finding when the body said `publish_guard` had refused to republish the artifact. A brief was
+  written and dispatched to redo finished work before the body was read.
+- **`docs/DIVISIONS.md` no longer states a division count.** It read *"Four divisions"* from
+  2026-08-04, when WEB was added, until today. The count is cosmetic; what it cost was not — the
+  living-docs rule named four ledgers, so a WEB change carried no documented obligation to record
+  itself anywhere. The list is now the table plus `node engine/orient.js`, and the line says not to
+  type a count there again.
+- **Brevity is now a stated rule in `CLAUDE.md` and `/start` §6.** Will, 2026-08-23: *"STOP GIVING ME
+  WALLS OF TEXT JUST SHORT AND SWEET I AINT READING ALL THAT."* Not a style preference — length is how
+  a real finding gets skimmed past, and two genuine findings this session were buried in
+  correct-but-unread paragraphs. Detail belongs in `docs/_reports/`; the reply carries the verdict.
+
+### Fixed
+- **`engine/all_mechanics_fire.js` was run twice by the coordinator with no effect, and the artifact
+  stamp is what caught it.** The first call omitted `--release`, so the run measured a snapshot that
+  was not the tree; the second omitted `--write`, so it computed a full 587-game result and discarded
+  it while exiting 0. Both times `generated` did not move. This is the documented *"your own commands
+  can succeed having done nothing"* shape, and the only reason it was caught is that the stamp was
+  checked before the number was read. Recorded rather than quietly corrected.
+
+### Notes
+- **THE FULL RE-RUN CHAIN RAN AGAINST THE CURRENT ENGINE, AND THE GATE MEANS SOMETHING AGAIN.** Every
+  instrument had been measured against release `c66976713feb` while the tree was elsewhere, so seven of
+  eight clauses were failing as STALENESS rather than as evidence — including the one clause printing a
+  number, because `data/engine-diff.json` carries no release stamp and its clause performs no release
+  check. Re-run pinned to `c36782953dee` with the frozen team pool: damage differential **56 of 6000**
+  (up from a stale 5, because all 76 megas are now compared for the first time — the instrument
+  working, not a regression), roster abilities **clean**, roster items **2**, roster moves **5**,
+  whole-game **77 of 961 = 8.0%**.
+- **The whole-game figure supersedes the 39.6% carried by the open register row**, which has been the
+  quoted headline for three sessions. The row is not edited here; it is named so the correction is
+  visible rather than silent.
+- The mechanics clause moved from *measured against a different engine* to *the reach filter cannot be
+  applied* — a different failure, now against the current engine, and unresolved.
+- The census was regenerated before the chain (634 probed, 634 live, 0 missing) and the gate census pin
+  was a day older, so **this is a re-baseline, not a before/after**, and no mechanics count is compared
+  across it.
+
+## [5.88.0] — 2026-08-23
+
+### Added
+- **`engine/move_result_state.js` — THE INSTRUMENT EVERY DEFERRAL OF THE ANNOUNCE-FAILURE CLASS ASKED
+  FOR.** `mvFail(mon)` is `{ mon._mvRes = false; TR.fail(mon); }` — one call, **two** writes, and only
+  the protocol line had an instrument. So every time this class was picked up it stalled on the same
+  sentence, most recently in `engine/medicham2-browser.js:17525` (*"what the authority does to
+  `moveThisTurnResult` on a `null` drag ... was NOT staged"*) and in
+  `docs/_reports/2026-08-23-phaze-empty-bench.md` (*"the boards agreeing does not prove `_mvRes`
+  agrees"*). The reasoning was sound: the 2026-08-12 retraction is what happens when a state change
+  rides in on a narration fix. This file reads `moveLastTurnResult` off the authority and `_mvResLast`
+  off medicham2 **at the same turn boundary `engine/board_state.js` already uses** — both engines roll
+  at that instant (`sim/battle.ts:1671-1672`, `engine/medicham2-browser.js:24630`) — and compares them.
+  All four values are kept apart and never collapsed (`true` / `false` / `null` / `undefined`): three of
+  the field's four consumers test `=== false` only, but `data/abilities.ts:5176` tests `!== undefined`,
+  so a null/undefined collapse would silence exactly that one. 18-clause `--selftest`, every claim
+  driven through the shipping functions rather than a restatement of them.
+- **`tests/probe_announce_failure.js`** — 8 arms, each reporting **three verdicts kept apart**: BOARD
+  (`board_state.js`), RESULT (the new instrument) and NARRATION, plus a `|-fail|`-multiset clause
+  spelled without naming a move, an ability or a failure reason.
+- Restore knobs `MEDI_DRAG_ABILITY_FIRST=1` (the ordering) and `MEDI_DRAG_REFUSAL_FAILS=1` (the state
+  write), **two knobs rather than one**, because a knob that restored both could not say which half a
+  red arm was about. Counters `MEDFAILS.dragAbilityFirstRestored` and `MEDFAILS.dragRefusalFailsRestored`.
+
+### Fixed
+- **A PHAZE ASKED THE ABILITY BEFORE IT ASKED WHETHER THERE WAS ANYBODY IN THE BACK — ONE ORDERING,
+  TWO SITES, THREE SYMPTOMS.** `sim/battle-actions.ts:1353` makes `this.battle.canSwitch(target.side)`
+  a **conjunct above** `runEvent('DragOut', ...)`, so an empty bench skips the whole body: no DragOut
+  event runs, and therefore an `onDragOut` ability is never consulted and its `-activate` is never
+  written. This engine asked the ability first, in both doors. New reader `canDragIn(bench)` — one
+  function serving both branches, which sit ~5,900 lines apart, per CLAUDE.md's rule that two
+  implementations of one fact disagree eventually. Symptoms closed: a Roar into an empty bench now
+  writes `|-fail|MOVER` with `[still]`; Suction Cups no longer announces itself with an empty back on
+  either door.
+- **THE MOVE RESULT AFTER A LEGAL `onDragOut` REFUSAL WAS `false` AND THE AUTHORITY HOLDS `true` —
+  BOARD-MATERIAL ON THE FOLLOWING TURN, AND NOTHING IN THIS REPOSITORY COULD SEE IT.** Found by the new
+  instrument on an arm whose board was identical and whose protocol was **byte-identical**: Roar into a
+  Suction Cups body with one body in the back reads `sd moveLastTurnResult = true` against
+  `me _mvResLast = false`. Derivation: Suction Cups' `onDragOut` returns `null`, so neither arm of
+  `:1353-1363` fires; `runMoveEffects` then asks its own `hitResult = !!this.battle.canSwitch(...)` at
+  `:1260`, which is **true**, and the move is recorded a success. `moveLastTurnResult === false` is what
+  Stomping Tantrum's doubler reads (`data/moves.ts:18048`), so this was a doubled base power the
+  authority does not give. New writer `mvOkSilent` — a separate function from `mvFailSilent` for the
+  same reason that one is separate from `mvFail`: a call site must not be able to silently swap "the
+  move failed" for "the move worked".
+- The matching defect in the other direction — a Roar into an **empty** bench left `_mvRes` as `true`
+  where the authority holds `false` — is closed by the same gate, which now routes through `mvFail`.
+
+### Notes
+- **THE GENERAL RULE OF THE CLASS, DERIVED AND NOT INFERRED FROM THE CASES WE HAD NOTICED.**
+  `sim/battle-actions.ts` writes a move-phase `|-fail|MOVER` at **twelve** sites (`463, 512, 595, 646,
+  831, 850, 1048, 1175, 1203, 1213, 1306, 1362`) and every one is guarded by a **strict `=== false`**,
+  never a falsy test; ten pair it with `attrLastMove('[still]')` and two with `[notarget]`. What decides
+  which value arrives is `combineResults` (`:1561`), whose priority list is
+  `['undefined', 'string'(NOT_FAIL), 'object'(null), 'boolean', 'number']` — **a number outranks a
+  boolean**. So: *a move announces `|-fail|` exactly when its combined result is boolean `false`.* That
+  is why a Roar into an empty bench speaks and a Dragon Tail into the same board does not, and the probe
+  asserts **both directions on the authority itself**, so an engine that announced always would fail
+  exactly as one that announced never.
+- **A MISSING `[still]` IS INVISIBLE TO THE WHOLE-GAME DIFFERENTIAL BY DESIGN.**
+  `engine/game_differential.js`'s `move-target-field` equivalence is
+  `f => (f[1] === 'move' ? f.slice(0, 4) : f)`, which drops field 4 and everything after it. About 70 of
+  this engine's ~84 `mvFail` call sites never call `TR.attrStill()` where the authority pairs the two at
+  every site — a real asymmetry that nothing counts and that has no known cost. Recorded so the next
+  session does not spend an evening on it.
+- **BOARD-MATERIAL vs NARRATION, TRIAGED FOR THE WHOLE CLASS.** ROADMAP #371's two board-material
+  sub-causes are already at HEAD ((a) Endure, commit `f36427f`, explicitly unmeasured; (b) the repeated
+  trapping move, `trapAlreadyHeld`), and (c) is unattributable by construction (#375 owns it), so #371
+  does **not** block this class. Remaining and unprobed: #345 (board-material only if the expiry turn is
+  off by one), #352 (the `wSup` gate is narration, the leading alternative is board-material), #359
+  (narration), #360 (narration). **The class is NOT closed** — one mechanism of it is, and it is proven.
+- **WHICH SCOREBOARD, SAID BEFORE THE RUN: THE LAB.** An empty bench needs three of a side's four bodies
+  dead with two standing, and Malamar is the format's only legal Suction Cups carrier. The pinned pool
+  is **not** expected to move and no claim that it does is made. The BOARD is identical on every arm
+  before and after; that is the expected shape of this fix.
+- **LIGHT MODE, and the omissions are stated rather than left as absences.** `tests/test-mechanics.js`,
+  `engine/status.js`, `engine/quarantine.js`, `engine/game_differential.js` and `tests/roster.js` were
+  **not** run — Will was gaming and the brief forbade them. **No census count moved because of this pass
+  and none is claimed.** `engine/gate_fail_and_silent.js` WAS run and returns **CANNOT ANSWER (exit 2)**:
+  the published artifact ran on release `c66976713feb` and the tree is elsewhere. That is the refusal
+  working. The full OWED list, with exact arguments, is at the foot of the new `docs/ENGINE.md` section.
+- Regression-checked on the live tree: `tests/probe_drag_body.js` (every clause) and
+  `tests/probe_phaze_empty_bench.js` (every clause, **including the four Suction Cups arms its own
+  report had red this morning**) and `tests/probe_fail_and_silent.js` (6 staged, 0 parted).
+
+---
+
+## [5.87.0] — 2026-08-23
+
+### Fixed
+- **A DAMAGING PHAZE DRAGGED BODIES THAT FIVE DIFFERENT REFUSALS HAD ALREADY REMOVED — BOARD-MATERIAL,
+  LANDED.** The `forcesSwitch` damaging branch in `engine/medicham2-browser.js` walked `targets` as it
+  stood **before** the hit-step list, with only the Protect filter applied. The authority zeroes its
+  target array as it descends — `targets[i] = null` for a Substitute (`sim/battle-actions.ts:1063`),
+  `targets[i] = false` for anything whose damage came back false (`:1080`) — and step 6's
+  `forceSwitch` (`:1353`) walks what is left. Measured before a byte moved: Tyranitar's Dragon Tail
+  into a pure-Fairy Clefable printed `|-immune|` on both engines and then **only ours emitted
+  `|drag|`**, so a different Pokemon stood in the slot from that turn on and the refused body's own
+  Calm Mind boosts were wiped by a switch-out that never happened. **Fixed as a CLASS**: the loop now
+  reads the same `R.out` survivor flag the step driver reads, which covers all six refusal sites at
+  once (type immunity, move-class immunity, invulnerability, an absorbing ability, the accuracy miss,
+  the substitute) and picks up a seventh added later with no edit. A guard written as
+  `if (immune) continue` would have closed exactly the one case that was staged. New counter
+  `MEDSEEN.forcedSwitchTargetRemoved`. **RED then GREEN on a staged board with the control cleared
+  explicitly** — the same click on the same board at a non-immune target, which both engines still
+  drag — and `tests/probe_drag_body.js` green afterwards on the live tree.
+
+### Added
+- **`tests/probe_phaze_empty_bench.js` — the phaze/empty-bench differential.** Three bench depths
+  (2 / 1 / 0) x two doors (Roar, Dragon Tail), one varied click, the bench emptied the way a real
+  game empties it (the two front bodies Memento themselves and their replacements come up). The
+  authority's own bench count is asserted at `2, 1, 0` so an unwired knob cannot read as agreement.
+  Plus a type-immunity arm and a Suction Cups arm, each with its own control.
+
+### Notes
+- **THE ANSWER TO "WHAT HAPPENS WITH NOTHING IN THE BACK": the BOARD agrees, both doors, all three
+  depths.** The authority's own behaviour is asymmetric and derived rather than recalled — a STATUS
+  phaze into an empty bench writes `|-fail|` on the MOVER plus `[still]` (`didAnything` collapses to
+  `false` at `:1260`/`:1303`), a DAMAGING one writes **nothing** (a number outranks a boolean in
+  `combineResults`). We match the damaging door exactly and are **silent where the status door should
+  announce**. Two open narration items are recorded in `docs/ENGINE.md`'s hand list rather than fixed,
+  because `mvFail` also writes `m._mvRes` (`moveThisTurnResult`, which Stomping Tantrum reads) and no
+  instrument compares it — a state change riding in on a narration fix is what cost the 2026-08-12
+  retraction.
+- **The 2026-08-22 hand-list item "the Suction Cups refusal announces itself with an EMPTY bench, in
+  BOTH doors" is now MEASURED with a cleared control** — byte-identical at bench 1, divergent at
+  bench 0 on both doors — and is still unfixed. Same root: the authority asks `canSwitch` first, this
+  engine asks the ability first. **The two checks do not share a site**, so it is one ordering problem
+  in two branches, not one predicate.
+- Roar and Dragon Tail were staged. **Whirlwind and Circle Throw were not** — same tag, same branches,
+  but that is an argument and not a measurement. All four are `isNonstandard: null` in Reg M-B and
+  Champions overrides none of them, read from the running format.
+- **OWED, NOT RUN — light mode, Will was at the keyboard:**
+  ```
+  node tests/test-mechanics.js
+  node engine\status.js --write
+  SHOWDOWN_PATH=... node engine\game_differential.js --release <fresh id> --team-store data/team-pool-frozen --state
+  ```
+  The census was **not** regenerated, so its live count is unverified against this change. By
+  inspection none of the six existing `forcesSwitch` / `refusesForcedSwitch` / `phazeDragIsADie` /
+  `soundSealBlocksEveryKind` probes stages an immune, missed or substituted target — **inspection is
+  not a run.** No pool figure is claimed; the expectation stated before the fact is that the lab moves
+  and the pinned pool may not.
+
 ## [5.86.0] — 2026-08-23
 
 ### Added

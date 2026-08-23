@@ -179,9 +179,10 @@
   "void_files": [
     "exploitability.json"
   ],
-  "verified": 2,
+  "verified": 3,
   "graph_files": [
     "_dmg-inverted.json",
+    "_pair-pilot.json",
     "_r220-census-pin.json",
     "_r220-gd-post.json",
     "_r220-gd-pre.json",
@@ -885,5 +886,5 @@
       ]
     }
   ],
-  "generated": "2026-08-23T03:53:52.559Z"
+  "generated": "2026-08-23T06:18:43.332Z"
 }

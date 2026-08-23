@@ -10,6 +10,66 @@ writes, and step 5 must precede any real work because the coordinator's job is t
 
 ---
 
+## WHAT THIS DOCUMENT IS — AN OPERATING MANUAL, NOT A STATUS REPORT
+
+*(Will, 2026-08-23: **"BECAUSE APPARENTLY LONG RUNNING SESSIONS JUST DESTROY MY MEMORY AND YOUR
+PERFORMANCE"** and **"I WANT A NEW SESSION TO BE CAUGHT UP TO SPEED ON EVERYTHING."**)*
+
+**A long session is a liability.** It eats his machine's RAM and it degrades the coordinator, so
+ending one early has to be CHEAP — and this file is what makes it cheap. The measure of success is
+that a brand-new session runs `/start`, reads the print, and is as capable as one that has been
+running for hours. **If a fresh session cannot pick up the work, this document has failed, and the
+fix belongs here rather than in a longer session.**
+
+So it says how to start, what to run, what to distrust, and how to route. **It does not say where the
+project stands** — that is PRINTED, by §0's map and §2's state commands.
+
+**It holds exactly two kinds of content, and mixing them is the failure it guards against:**
+
+| | |
+|---|---|
+| **Commands that derive current state** | self-correcting, cannot rot |
+| **Judgement that cannot be derived** | a failure shape and what it cost, a decision Will made, a convention that will trip you — dated, with a receipt |
+
+Anything that is neither — a count, a status, a "currently N of M" — **does not belong in this file at
+all**, because it will be wrong within a day and it will be believed. That is the fourteen-handoffs
+failure, and §7 is a list of times it has already happened here.
+
+**The test for whether a line may be written here: WOULD IT BE WRONG IN A WEEK?** If yes, it must be
+derived by `engine/orient.js`, or not written. Adding to this file is governed by §9.
+
+## 0. GET ORIENTED — RUN THE MAP. DO NOT READ A DESCRIPTION OF THE PROJECT.
+
+*(Will, 2026-08-23: **"MAKE IT DYNAMIC SO IT AUTO UPDATES AS THE PROJECT PROGRESSES. I WANT THIS
+BULLETPROOF AND NOT JUST A SNAPSHOT."**)*
+
+```bash
+node engine/orient.js          # ~0.2s. Reads no store and plays no game — safe in light mode.
+node engine/orient.js --owed-all
+```
+
+Derived at run time, in eight sections: what ABRA is and how CHOMP consumes it; **which divisions
+exist and what each owns**; the **invalidation graph computed from real `require()` edges**, and how
+many modules sit downstream of the simulator — which is what quarantine means and why it is one-way;
+**which entrypoints PLAY A GAME**, so only one may run at a time; the question each model answers;
+what a measurement must pin; **what the last session left `OWED, NOT RUN`, as commands**; and who may
+write.
+
+**This section is short because the map is a COMMAND.** It was going to be a written orientation
+section and that was the bug — a written list of divisions is wrong the day a sixth is added, which
+has already happened once: `docs/DIVISIONS.md` still reads "Four divisions" in two places. Divisions
+come from `.claude/agents/`, the graph from require edges, the models from `docs/MODELS.md`, the OWED
+commands from `docs/_reports/`. **Nothing in it is typed, so nothing in it can go stale.**
+
+**A `CANNOT DERIVE` line exits non-zero and is a job for THIS session** — a file was renamed or a
+heading moved. Never carry it: a map that quietly drops a section reads as though the section does not
+exist. `node tests/test-orient.js` (~1s) proves every failure path still fires, and both it and the
+generator were shown red on deliberate breaks before being trusted.
+
+**It answers WHAT and WHERE, never HOW MUCH.** Its counts are counts of the map — how many divisions,
+how many modules downstream — printed so a silent drop shows up as a number moving. **None of them is
+a project result and none is a gate.** The gate is §2 and §3.
+
 ## 1. Check the tree FIRST, because step 2 writes to it
 
 ```bash
@@ -38,7 +98,7 @@ agent is running, read the diff before running anything.
 ```bash
 node engine/status.js
 node engine/open_work.js
-git log --oneline -8
+git log -8                     # FULL BODIES. NOT --oneline. See below.
 ls docs/_reports/ | tail -5
 ```
 
@@ -48,8 +108,44 @@ every figure WITHHELD because the artifact under it is stale or downstream of a 
 prints **UNREGISTERED**. **Every number in both is read out of an artifact.** `NOT DERIVED` means no
 artifact says it.
 
-The commit subjects here are full sentences stating a finding. Eight of them are the last sessions'
-conclusions and are worth more than any document.
+### READ THE WHOLE RECORD EVERY TIME. `--oneline` IS A TABLE OF CONTENTS, NOT THE RECORD.
+
+*(Will, 2026-08-23: **"READ THE WHOLE RECORD EVERY TIME."**)*
+
+The commit subjects are full sentences stating a finding, and that is exactly what makes them
+dangerous: a subject reads like a complete answer, so you stop. **The BODY is where the session put
+what it learned** — what was shown red first, what the control ruled out, what it fixed, what it
+deliberately did NOT fix, and what it could not publish.
+
+Measured on the session that wrote this rule. `git log --oneline -8` produced *"The damage
+differential had never compared a single mega, and now compares all 76"*. Its body carried all of:
+
+- the `-ate` entry-point fix, **already landed** — the coordinator read the harness, saw
+  `battle.actions.moveHit` still being called, and reported the fix as NOT MADE. It had been made;
+  the authority's two lines were added ABOVE that call. **A brief was written and dispatched to redo
+  finished work**, and it was luck that it got killed for an unrelated reason;
+- why the published artifact still prints five stale `aurorus` rows — `publish_guard` REFUSED both
+  n=300 runs, so `data/engine-diff.json` was never rewritten. Without that sentence the coordinator
+  reported those rows to Will as a live finding;
+- one real, unfixed defect (**Disguise fires on the already-busted forme**), a legal species with no
+  `MC.mons` row (`florgeswhite`), and a counter that was wrong in its first version and says so.
+
+**Two wrong statements to Will in one session, both from reading subjects.** Read the bodies. If eight
+is too many to read, read fewer commits — never fewer lines of them.
+
+### A GATE EXISTING IS NOT EVIDENCE IT FIRES, AND THE MEGAS ARE THE PROOF
+
+*(Will, 2026-08-23: **"WE HAD GATES FOR THE MEGAS BEFORE THEY JUST FAILED."**)*
+
+He is right, and it is the whole reason §7's species-key entry is three items long. When the print
+says a class is gated, that is a claim by the gate about itself. `engine/artifact_audit.js` was BUILT
+for this class and watches one named file pair. `tests/test-mc-key.js` is the ratchet whose own header
+says there is ONE way to turn a species name into an `MC.mons` key — and it **did not catch** the
+doorway fixed on 2026-08-23, because `buildMon(s.toLowerCase())` is not a shape on its list. The
+damage differential had been silently dropping every mega for weeks with both gates green.
+
+**So never report "that class is covered" from the existence of a gate.** Ask what shape the gate
+matches and whether a second instance spelled differently would walk past it.
 
 **This is the entire budget for finding out where you are.** Do not go reading engine files or
 artifacts to enrich the picture — that is the coordinator doing a division's job. If a
@@ -89,6 +185,24 @@ And a passing clause says nothing about what it does not sample: the damage diff
 It had cut a release, pinned a census and checked the frozen pool inline, and was one command from
 running a five-stage measurement chain itself.)*
 
+*(Will, 2026-08-23, putting it as a standing arrangement rather than a nudge: **"YOU ARE THE CEO AND
+YOU DELEGATE TASKS TO SUBAGENTS SO YOUR CONTEXT DOESNT GET DESTROYED."**)*
+
+**YOUR JOB IS TO ROUTE, VERIFY AND DECIDE. IT IS NOT TO DERIVE.** A grep across the engine, "what
+does Champions do with X", a look at the shape of an artifact — every one of those belongs to a
+division. A hundred-token answer costs the coordinator well over a thousand tokens to produce by
+hand, and that context is gone for the rest of the session. **Delegate every derivation.**
+
+**THE ONE THING THAT MAY NOT BE COMPRESSED IS THE VERIFICATION.** Checking a returned claim is
+usually one command; producing it is not. Relaying an agent's number unchecked is how a wrong figure
+enters the record wearing a receipt. It is the report that gets skipped, never the check.
+
+**AND THE SHORTCUT IS WHERE THE ERROR LIVES.** On 2026-08-23 the coordinator delegated its
+measurement questions and got two correct, verified findings back. The single derivation it did
+inline — grepping `tests/test-engine-diff.js` for `moveHit` — was the **only** thing it got wrong,
+and it dispatched a brief to redo finished work off the back of it (the full receipt is in §2).
+**The cheapest-looking step was the one that was wrong.**
+
 **Everything after the state print is a brief, not a task.** One question routes it: *which artifact
 does fixing this invalidate?* Table in CLAUDE.md, map in `docs/DIVISIONS.md`.
 
@@ -103,7 +217,12 @@ node engine/where.js <thing>        # which file owns this fact, which test woul
 **Every brief must carry:**
 
 - **The report contract.** Write the full account to `docs/_reports/<YYYY-MM-DD>-<topic>.md`, return a
-  verdict of a few lines plus that path.
+  verdict of a few lines plus that path. **The report MUST end with an `## OWED, NOT RUN` heading
+  holding exact commands — mandatory in light mode, and not a courtesy: IT IS THE HANDOFF.**
+  `engine/orient.js` collects those blocks across `docs/_reports/` and prints them to the next
+  session (§0), so an agent that ends without one has broken the chain that lets a session be cheap
+  to end. Heading must contain the word OWED; the collector keys on that and prints how many reports
+  carry none.
 - **The wrapper, at BelowNormal, repo-relative, FROM POWERSHELL.**
   `cmd /c tools\lownode.cmd engine\quarantine.js`
   From Git Bash, `cmd /c "the whole thing quoted"` starts cmd with NO arguments and **exits 0 having
@@ -144,6 +263,12 @@ gate is open, because that has not been true yet.
 4. **What you deliberately did NOT dispatch, and why.**
 
 If the news is bad, give it plainly.
+
+**AND KEEP IT SHORT. FOUR ITEMS, A FEW LINES EACH, AND STOP.** *(Will, 2026-08-23: "STOP GIVING ME
+WALLS OF TEXT JUST SHORT AND SWEET I AINT READING ALL THAT.")* The state print is long because it is
+GENERATED and he does not read it — your summary of it is the thing he reads, and a summary nobody
+finishes is worth less than four lines somebody does. Detail goes in `docs/_reports/`; give the path.
+No preamble, no recap of his own request, no closing paragraph restating what you just said.
 
 ---
 
@@ -356,3 +481,37 @@ returning zero is not evidence the mechanic is missing** — check `data/tags.js
 - `docs/CARD-REVIEW-2026-08-22.md` — Will read 40 divergence cards by hand and found ~20 root causes
   where the automated rollup found none. **The method is grouping by MECHANISM, not by comparator
   class**, and it is still the highest-yield thing anyone has done here.
+
+---
+
+## 9. THIS FILE IS WRITTEN BY THE SESSIONS THAT PAY FOR IT
+
+*(Will, 2026-08-23: **"WE ALSO HAVE THE /FINISH COMMAND THAT SHOULD AUTO ADD TO THE START COMMAND SO
+MAKE SURE IT FLOWS."**)*
+
+`/finish` is the WRITE end of this loop and `/start` is the READ end. **Every session that learns
+something the expensive way writes it back before it ends** — that is an obligation, not an
+encouragement, and it is the only reason §§7-8 are worth their tokens.
+
+**The routing table — which lesson goes where — lives in `/finish` §6 and is not repeated here.**
+Two copies of one rule drift apart, which is the failure this repo names against itself repeatedly.
+Read it there; this section states the standard the entries are held to.
+
+**Prefer MECHANICAL over REMEMBERED**, in this order:
+
+1. **Best — nothing to remember.** The information already lives somewhere `/start` derives: the
+   commit BODY (§2), the register, the tree (§1), the `OWED, NOT RUN` blocks `orient.js` collects
+   (§0). `/finish`'s job is then only to make sure it was written *there*.
+2. **Acceptable — append to a durable section here:** a failure shape into §7, a command or an
+   authority `file:line` into §8, a routing or concurrency rule into §5.
+3. **Banned — a handoff document.** CLAUDE.md forbids writing one and §4 forbids reading one.
+
+**THE STANDARD: EVERY ENTRY IS A REAL EVENT WITH A RECEIPT.** Never a hypothetical, never a rule
+someone thought sounded wise. **An entry that cannot name what it cost is a preference — and
+preferences are precisely what this project has repeatedly discovered were never being followed.**
+A confirmed expectation teaches nothing and dilutes the section; only what SURPRISED you belongs.
+
+**And never add project STATE.** No counts, no gate clauses, no "the census is at N". Those rot
+exactly like the fourteen handoffs. If it is derivable, it goes in `engine/orient.js` so it updates
+itself; if it is measured, `status.js` prints it. **The test is the one at the top of this file:
+would it be wrong in a week?**

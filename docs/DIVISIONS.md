@@ -1,6 +1,12 @@
 # DIVISIONS — where a piece of work belongs
 
-Four divisions. The cut is on the **invalidation graph**, not on subject matter, because what makes
+The divisions are the table below, and `node engine/orient.js` derives the live list from
+`.claude/agents/` — **do not type a count here.** This line read *"Four divisions"* from 2026-08-04,
+when WEB was added, until 2026-08-23, and CLAUDE.md said "four" in three places over the same period.
+The count is cosmetic; what it cost was not — the living-docs rule named four ledgers, so a WEB change
+carried no documented obligation to record itself anywhere.
+
+The cut is on the **invalidation graph**, not on subject matter, because what makes
 a handoff expensive here is not how much there is to say — it is that any change might invalidate
 anything else, so the whole project has to be described every time.
 

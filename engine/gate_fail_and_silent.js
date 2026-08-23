@@ -138,6 +138,27 @@ function verdict(c, sameSample) {
   return { code: 1, tag: 'LIVE' };
 }
 
+/* THE EXIT CODE SAYS WHAT IT MEANS, IN ONE MACHINE-READABLE LINE — 2026-08-23, MEASURE.
+ *
+ * A CONSUMER OF AN EXIT CODE CANNOT TELL A VERDICT FROM A REFUSAL, AND ONE OF THEM GUESSED WRONG.
+ * `engine/register_reality.js` read every non-zero exit as a RED verdict, so this gate's exit 2 —
+ * CANNOT ANSWER, the artifact was measured against other bytes — was published as evidence that
+ * ROADMAP #241 is a live, measured defect, and `openDefectClause` held the MEDICHAM gate shut on it.
+ * That is a gate reporting something untrue in the direction that gets gates ignored.
+ *
+ * The classification now belongs to THIS file, because this file is the only one that knows. It is
+ * DERIVED from the tag above rather than restated as a second table — CLAUDE.md's rule is that two
+ * implementations of one fact disagree eventually and the disagreement is invisible because both keep
+ * working. It matters most for exit 3: REGRESSION is a genuine RED on a code outside {0,1}, and a
+ * consumer that refuses to guess would otherwise be right to call it not-evidence.
+ *
+ * See `classifyExit` in engine/register_reality.js for the convention. Printed on stderr so it cannot
+ * land inside the `--json` document on stdout. */
+function declareExit(v) {
+  console.error('ABRA-EXIT ' + v.code + ' '
+    + (v.tag === 'CANNOT ANSWER' ? 'CANNOT-ANSWER' : v.code === 0 ? 'VERDICT-GREEN' : 'VERDICT-RED'));
+}
+
 if (has('--selftest')) {
   let ran = 0, bad = 0;
   const ok = (n, c, got) => { ran++; if (!c) bad++; console.log(`  ${c ? 'ok  ' : 'FAIL'} ${n}${c ? '' : '   got ' + JSON.stringify(got)}`); };
@@ -200,6 +221,23 @@ if (has('--selftest')) {
     && sampleMatches({ census: 'xxxxxxxxxxxx', pool: SAMPLE.pool, games: SAMPLE.games }) === false
     && sampleMatches({ census: SAMPLE.census, pool: SAMPLE.pool, games: SAMPLE.games + 1 }) === false);
 
+  /* -- THE EXIT CODE DECLARES ITS OWN MEANING (2026-08-23) --------------------------------------
+   * The consumer cannot tell a refusal from a finding, so this gate says which it is. Driven through
+   * the SHIPPING declareExit with console.error captured, never through a restatement of the mapping. */
+  const said = [];
+  const realErr = console.error;
+  console.error = (s) => said.push(String(s));
+  for (const c of [null, { causes: 0 }, { causes: 1 }, { causes: PIN + 1 }])
+    declareExit(verdict(c, true));
+  console.error = realErr;
+  ok('RED — CANNOT ANSWER declares itself CANNOT-ANSWER, so a consumer stops publishing exit 2 as a '
+    + 'red verdict about ROADMAP #241', said[0] === 'ABRA-EXIT 2 CANNOT-ANSWER', said);
+  ok('CLEAN declares VERDICT-GREEN', said[1] === 'ABRA-EXIT 0 VERDICT-GREEN', said);
+  ok('LIVE declares VERDICT-RED', said[2] === 'ABRA-EXIT 1 VERDICT-RED', said);
+  ok('RED — REGRESSION declares VERDICT-RED on exit 3. Without this the undeclared-code rule in '
+    + 'register_reality would soften a real regression into not-evidence',
+    said[3] === 'ABRA-EXIT 3 VERDICT-RED', said);
+
   console.log(`\nFAIL-AND-SILENT GATE SELFTEST: ${ran - bad} passed, ${bad} failed`);
   process.exit(bad ? 1 : 0);
 }
@@ -256,7 +294,7 @@ const out = {
   causes_seen: c ? c.hits : [],
 };
 
-if (has('--json')) { console.log(JSON.stringify(out, null, 2)); process.exit(v.code); }
+if (has('--json')) { console.log(JSON.stringify(out, null, 2)); declareExit(v); process.exit(v.code); }
 
 console.log('');
 console.log('ROADMAP #241(3) — a `-fail` the authority emits and this engine does not');
@@ -273,4 +311,5 @@ for (const h of out.causes_seen) console.log('      ' + String(h.games).padStart
 console.log('');
 console.log('  exit ' + v.code + '   [0 clean, 1 live at or under the pin, 2 cannot answer, 3 REGRESSION]');
 console.log('');
+declareExit(v);
 process.exit(v.code);
