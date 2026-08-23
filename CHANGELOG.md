@@ -10,6 +10,30 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.91.2] — 2026-08-23
+
+### Fixed
+- **THE SUBSTITUTE / ENTRY-DROP FIX IS NOW PROVEN, AND 5.91.1'S "LANDED AND UNPROVEN" IS DISCHARGED.**
+  Census re-run: **642 probed, 642 live, 0 missing** — the probe that was the single missing row is
+  live, armed and not hollow. What it measured, on one board with two identical Garchomp and only one
+  behind a doll:
+
+  ```
+  intimidate[true]        subbed {"at":0 ...}   open {"at":-1 ...}   imm[|-immune|p2a:garchomp]
+  supersweetsyrup[true]   subbed {"at":0 ...}   open {"at":-1 ...}
+  ```
+
+  The body behind the substitute is untouched, the body beside it takes the drop, and the `|-immune|`
+  line is emitted. Both members read `[true]`, meaning `blockedBySubstitute` came out of
+  `data/tags.json` rather than the code bridge.
+
+### Notes
+- **The earlier `subbed {"at":-1}` was the probe unable to assert, not the guard failing.** 5.91.1
+  recorded that the artifact alone could not distinguish those two, and named the derivation as the
+  thing that would settle it. It did. Recorded here rather than quietly resolved, because the ambiguity
+  was published and the resolution belongs beside it.
+- The census grew 641 → 642 probed and every row is live, so nothing else went dark to make room.
+
 ## [5.91.1] — 2026-08-23
 
 ### Changed

@@ -1,10 +1,10 @@
 {
-  "generated": "2026-08-23T08:22:14.276Z",
+  "generated": "2026-08-23T08:27:11.285Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
   "probed": 642,
-  "live": 641,
-  "missing": 1,
+  "live": 642,
+  "missing": 0,
   "armed": 642,
   "unarmed": 0,
   "directCall": 1,
@@ -425,8 +425,8 @@
       "kind": "ability",
       "tag": "onSwitchInDrop",
       "label": "a SUBSTITUTE refuses an entry stat drop and answers |-immune| — every member of the onSwitchInDrop tag, read from the artifact, not just Intimidate",
-      "live": false,
-      "detail": "one board, two identical Garchomp, only f1 behind a doll; the tag's membership comes out of data/tags.json (intimidate, supersweetsyrup). intimidate[blockedBySubstitute ABSENT — bridged] doll 1 arrived true subbed {\"at\":-1,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":0} open {\"at\":-1,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":0} imm[-] || supersweetsyrup[blockedBySubstitute ABSENT — bridged] doll 1 arrived true subbed {\"at\":0,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":-1} open {\"at\":0,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":-1} imm[-]; CONTROL doll 1 arrived true subbed {\"at\":0,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":0} open {\"at\":0,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":0} imm[-]. FAILED: intimidate doll 1 arrived true subbed {\"at\":-1,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":0} open {\"at\":-1,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":0} imm[-] ; supersweetsyrup doll 1 arrived true subbed {\"at\":0,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":-1} open {\"at\":0,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":-1} imm[-]",
+      "live": true,
+      "detail": "one board, two identical Garchomp, only f1 behind a doll; the tag's membership comes out of data/tags.json (intimidate, supersweetsyrup). intimidate[true] doll 1 arrived true subbed {\"at\":0,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":0} open {\"at\":-1,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":0} imm[|-immune|p2a:garchomp] || supersweetsyrup[true] doll 1 arrived true subbed {\"at\":0,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":0} open {\"at\":0,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":-1} imm[|-immune|p2a:garchomp]; CONTROL doll 1 arrived true subbed {\"at\":0,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":0} open {\"at\":0,\"df\":0,\"sa\":0,\"sd\":0,\"sp\":0,\"acc\":0,\"eva\":0} imm[-]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3286,7 +3286,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
