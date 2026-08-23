@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-22T06:22:10.641Z",
+ "generated": "2026-08-23T03:16:05.584Z",
  "by": "tests/test-switch-back-renamed.js",
  "what": "can a body medicham2 renamed mid-battle be switched back in — subject against a control on the same board and turn",
  "switchkey_written_by_buildpair": [
@@ -22,7 +22,7 @@
    "err": null,
    "observed": {
     "after_the_ask": [
-     "espathra",
+     "morpeko-hangry",
      "dragonite"
     ],
     "authority": [
@@ -30,7 +30,7 @@
      "dragonite"
     ],
     "bench_while_away": [
-     "morpeko-hangry",
+     "morpeko",
      "dragonite"
     ],
     "bench_while_away_authority": [
@@ -39,15 +39,9 @@
     ]
    },
    "control_returned": true,
-   "known_open": {
-    "measured": [
-     "medicham2 did not bring the subject back: active [espathra,dragonite], the authority [morpekohangry,dragonite]",
-     "the bench body kept its flipped name: ours morpeko-hangry, the authority morpeko"
-    ],
-    "owed": "TWO fixes, EITHER of which closes the switch. (C1, engine/medicham2-browser.js) revert a NON-PERMANENT forme change when the body leaves the field — Hunger Switch passes no isPermanent, so Showdown reverts and this engine does not. (C2, engine/game_differential.js freshBodies, :2362) carry the `_switchKey` stamp buildPair writes at :2213; PART 2 of this file proves it is sufficient on its own."
-   },
+   "known_open": null,
    "problems": [],
-   "verdict": "KNOWN-OPEN"
+   "verdict": "AGREES"
   },
   {
    "id": "hungerswitch-restamped",
@@ -56,7 +50,7 @@
    "err": null,
    "observed": {
     "after_the_ask": [
-     "morpeko",
+     "morpeko-hangry",
      "dragonite"
     ],
     "authority": [
@@ -64,7 +58,7 @@
      "dragonite"
     ],
     "bench_while_away": [
-     "morpeko-hangry",
+     "morpeko",
      "dragonite"
     ],
     "bench_while_away_authority": [
@@ -73,14 +67,9 @@
     ]
    },
    "control_returned": true,
-   "known_open": {
-    "measured": [
-     "the bench body kept its flipped name: ours morpeko-hangry, the authority morpeko"
-    ],
-    "owed": "C1 only — engine/medicham2-browser.js must revert a non-permanent forme change on the way out. The switch itself is already closed on this arm, which is what makes C2 sufficient for the divergence card and C1 a separate, still-open engine defect."
-   },
+   "known_open": null,
    "problems": [],
-   "verdict": "KNOWN-OPEN"
+   "verdict": "AGREES"
   },
   {
    "id": "mega-base-key",
@@ -111,8 +100,8 @@
      "dragonite"
     ],
     "bench_while_away": [
-     "dragonite",
-     "abomasnow-mega"
+     "abomasnow-mega",
+     "dragonite"
     ],
     "bench_while_away_authority": [
      "abomasnowmega",
@@ -125,5 +114,5 @@
    "verdict": "AGREES"
   }
  ],
- "known_open": 3
+ "known_open": 1
 }

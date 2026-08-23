@@ -1035,6 +1035,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * IS the mechanic on a body holding its own mega stone -- a fail that could not be told from a
    * mechanic that never fired is exactly the silent default this project keeps meeting. */
   formeCycled: 0, flingThrown: 0, flingRefused: 0, flingSpentAtUpdate: 0, flungBerryEaten: 0,
+  /* WIRE 142 -- a NON-PERMANENT forme put back when the body left the field, which is
+   * `Pokemon#clearVolatile`'s closing line `this.setSpecies(this.baseSpecies)`. A zero after games
+   * carrying a Morpeko that pivots means the revert never reached the body and every such body is
+   * still sitting on the bench under a name nothing can ask for. `formeTempStamped` is the other
+   * half and is counted APART: a stamp with no revert says the flip happened and the body never
+   * left, which is a different reading from "the flip never happened at all". */
+  formeTempReverted: 0, formeTempStamped: 0,
   preTurnShieldAnnounced: 0, preTurnShieldRefused: 0, sleepMoveUsedAsleep: 0, callMoveOwnRandom: 0,
   /* ROADMAP #322 -- THE THREE THAT CAN SEE A POSITION, which `preTurnShieldAnnounced` cannot: it
    * counts LINES WRITTEN and read non-zero for the whole period the line was written at order 0
@@ -13733,6 +13740,38 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * undefined on every row in MC.mons -- so the restore was a no-op that incremented nothing and
    * looked exactly like the mechanic working. It was caught only because the counter stayed 0 on a
    * staging that had just been shown to need it. */
+  /* WIRE 142 -- A NON-PERMANENT FORME DOES NOT SURVIVE THE SWITCH, AND UNTIL NOW IT DID.
+   *
+   * `clearVolatile`'s closing line is `this.setSpecies(this.baseSpecies)` (sim/pokemon.ts:1564), and
+   * `baseSpecies` only moves when `formeChange` is called with `isPermanent`. Hunger Switch calls
+   * `pokemon.formeChange(targetForme)` with no flag at all (data/abilities.ts:1891), so the
+   * authority puts Morpeko-Hangry back to Morpeko on the way out. This engine kept the flip, and a
+   * benched body under a name its species is not is a body that CANNOT BE SWITCHED BACK IN: the
+   * game differential's largest single mechanism inside `event missing from medicham2` is nine
+   * causes that are each one absent `|switch|Morpeko` line.
+   *
+   * IT SITS IMMEDIATELY ABOVE THE TYPE RESTORE BECAUSE THAT IS ONE OPERATION UPSTREAM, NOT TWO.
+   * `setSpecies` IS `this.setType(species.types, true)`, so the authority reverts the species and
+   * reads the types off the reverted row in the same call. Below the restore, a member whose two
+   * formes differ in type would be handed the OLD forme's chart; the block below reads
+   * `monRow(out.name)`, which is why the order is load-bearing rather than tidy. It is INERT for
+   * Morpeko (Electric/Dark on both sides) and it is the general case that has to be right.
+   *
+   * A PERMANENT FORME IS NOT TOUCHED, and that is enforced by WHO STAMPS rather than by a list here:
+   * only the `formeCycleResidual` block writes `_formeTempBase`. A mega, Disguise's busted forme and
+   * Zero to Hero all pass `isPermanent: true` upstream and all rewrite `baseSpecies`, so the
+   * authority does not revert them either -- and the Zero to Hero swap ran a few blocks above this
+   * one, so a revert that over-matched would undo it in the same function that performed it.
+   *
+   * IT EMITS NOTHING, AND THAT IS DERIVED. `clearVolatile` calls `setSpecies` directly; only
+   * `formeChange` reaches `this.battle.add('-formechange', ...)`. A `TR.formechange` here would put a
+   * line in our stream that the authority never writes -- trading nine `event missing` causes for
+   * however many `extra event emitted by medicham2` ones, which is not a fix. */
+  if(out._formeTempBase!=null&&out.name!==out._formeTempBase){
+    if(out._formeTempHow==='swap')formeSwap(out,out._formeTempBaseName||out._formeTempBase,'switchOutFormeRevert');
+    else out.name=out._formeTempBase;
+    MEDSEEN.formeTempReverted++;
+  }
   {const _row=monRow(out.name);
    if(_row&&Array.isArray(_row.t)&&out.types&&out.types.join('/')!==_row.t.join('/')){
      out.types=_row.t.slice(); MEDSEEN.typesRestoredOnSwitchOut++;
@@ -23594,6 +23633,31 @@ function battleTurn(S,rng,actsForA,actsForB){
           * nothing to flip and nothing went wrong. */
          if(_at>=0){
            const _to=_keys[1-_at], _toName=_fc.alternates[1-_at];
+           /* WIRE 142 -- THE BODY RECORDS WHAT IT WAS BEFORE THE FIRST FLIP, AND THAT IS THE WHOLE
+            * OF THE REVERT. `Pokemon#formeChange` takes an `isPermanent` flag; Hunger Switch passes
+            * NOTHING (data/abilities.ts:1891 `pokemon.formeChange(targetForme)`), so `baseSpecies` is
+            * untouched and `clearVolatile`'s closing `this.setSpecies(this.baseSpecies)`
+            * (sim/pokemon.ts:1564) puts Morpeko-Hangry back to Morpeko the moment it leaves the
+            * field. This engine kept the flipped name on the bench, and the cost was not cosmetic:
+            * a benched body named `morpeko-hangry` is a body NOTHING CAN ASK FOR BY ITS SPECIES,
+            * which is why nine of the game differential's `event missing from medicham2` causes are
+            * one missing `|switch|` line each. See tests/test-switch-back-renamed.js, arm
+            * `hungerswitch`.
+            *
+            * STAMPED ONCE, WITH THE NAME AS IT STANDS BEFORE THE FIRST FLIP -- `_keys[_at]` IS
+            * `m.name`. Stamping on every flip would record `morpeko-hangry` as the base on the
+            * return leg and revert the body to the wrong half of the pair from turn 2 onward, which
+            * is exactly the mistake WIRE 141's own header warns about for the flip itself.
+            *
+            * THE METHOD IS RECORDED WITH IT rather than re-derived at the exit. The revert has to
+            * undo whichever branch below actually ran, and by then the ability may have been Skill
+            * Swapped away -- reading `TAGS.param` again at switch-out would silently decline to
+            * revert a body that was genuinely flipped. */
+           if(m._formeTempBase==null){
+             m._formeTempBase=_keys[_at]; m._formeTempBaseName=_fc.alternates[_at];
+             m._formeTempHow=(_fc.sameStats&&_fc.sameTypes)?'rename':'swap';
+             MEDSEEN.formeTempStamped++;
+           }
            /* THE RENAME IS TRIED FIRST, AND THAT ORDER IS THE CARE IN THIS BLOCK RATHER THAN AN
             * OVERSIGHT. `formeSwap` REBUILDS the body from the mon table, which replaces whatever stat
             * line this body is carrying with the dataset's own -- correct for Palafin (two different

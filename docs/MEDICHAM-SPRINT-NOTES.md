@@ -11626,3 +11626,56 @@ staged_status_counters BEFORE arm lacks midEventDice/midEventLog; 124 of 342 rel
 **Fourth stranding of the same baseline.** Separately its plant anchor patches LIVE_SRC and its literal
 occurs ZERO times in todays engine. **Re-pinning alone yields a file whose only positive control still
 never runs.**
+
+---
+
+## 2026-08-23 — NINE GAMES, ONE CLASS, EIGHT UNCHANGED (5.82.0)
+
+The `event missing from medicham2` class — the largest — is **seventeen mechanisms, not 33 findings**
+(34 causes across 42 games on the settled 961-game sample).
+
+**WIRE 142.** `pokemon.formeChange(targetForme)` passes no `isPermanent` (`data/abilities.ts:1891`, not
+overridden in the Champions mod), so `clearVolatile`'s closing `this.setSpecies(this.baseSpecies)`
+(`sim/pokemon.ts:1564`) reverts Morpeko-Hangry on the way out. **We kept the flip** — so a benched body
+named `morpeko-hangry` is a body nothing can ask for by species, the switch never happened, and the
+`|switch|` line was never emitted. The revert sits one line ABOVE the type restore, because
+`setSpecies` **is** `setType`.
+
+### THE PAIRING IS THE POINT
+
+```
+  releases        c66976713feb -> 5e0853311131   26 frozen files, EXACTLY ONE digest moved
+  census pin      80e648f34d56  (same)
+  pool            0d103fb9fa87 / 1,968 picked  (same)
+  request         --games 1200 -> 961 games  (same)
+
+  event missing        42 -> 33 games
+  whole-game diverged  95 -> 86
+  usable               93 of 959 -> 84 of 959      9.7% -> 8.76%
+  cause-level          9 gone, 0 new, 0 changed
+  other eight classes  byte-identical
+```
+
+**Every one of the nine games came out of the class that was targeted and nothing else moved.** That is
+what a one-file pairing buys, and it is why the release was cut before the fix rather than after.
+
+### THE USAGE TRAP, AVOIDED IN PRACTICE
+
+Morpeko is **0.48% of corpus teams but 26% of this class**, because the census steers the sample. And
+every Morpeko cause carries `max_uses: null`, **which prints as 0** — so a usage-ordered head puts the
+largest mechanism in the class at the very bottom. The wire-queue report names this trap; this is the
+first pass to have avoided it deliberately.
+
+### AND A STALE NUMBER IN MY OWN BRIEF
+
+The coordinator briefed "33 event missing", taken from the **777-game** artifact, while the settled
+961-game run reads **42**. A class breakdown from one sample was quoted beside a total from another.
+The agent caught it and re-derived. **Two artifacts of the same instrument are not comparable unless
+the requested game count matches** — the same lesson as 9.7% vs 11.69%, arriving from a different door.
+
+### WHAT WAS DELIBERATELY NOT DONE
+
+`data/game-differential.json` was **not** overwritten — two agents were live and the torn-read rule
+applies. The after-run lives in the session scratchpad and is reproducible from the pinned command.
+`engine/game_differential.js` was not edited despite holding two of the class's causes, because it is
+read live and moving it would have destroyed the pairing.

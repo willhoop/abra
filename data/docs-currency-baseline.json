@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-23T02:21:31.615Z",
+  "generated": "2026-08-23T03:11:14.560Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.78.0",
+  "changelog_top_at_baseline": "5.82.0",
   "version_pins": {
     "docs/ABRA-deck-plain-english.md": {
       "version": "3.98.0",
@@ -192,7 +192,6 @@
   ],
   "known": {
     "retraction_violations": [
-      "docs/BACKLOG.md|48%|47.5%",
       "docs/DEFENSE.md|63%|63.2%",
       "docs/POKER-TO-POKEMON.md|63%|63.2%",
       "docs/ROADMAP.md|63.2%|63.2%",
@@ -200,8 +199,7 @@
       "docs/SESSION-REVIEW-2026-07-28.md|63%|63.2%",
       "docs/THE-PLAN.md|63%|63.2%",
       "docs/THESIS-DEFENCE-REVIEW-2026-07-28.md|47.5%|47.5%",
-      "docs/THESIS-DEFENCE-REVIEW-2026-07-28.md|63.2%|63.2%",
-      "docs/archive/SESSION-2026-08-02.md|48%|47.5%"
+      "docs/THESIS-DEFENCE-REVIEW-2026-07-28.md|63.2%|63.2%"
     ],
     "citation_mismatches": [
       "docs/ABRA-whitepaper.md|0.073|data/slowking-eval.json,data/slowking-playstyle-eval.json",

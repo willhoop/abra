@@ -57,7 +57,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  630/630 probed mechanics live, 0 missing   (census 2026-08-22 20:43)
+  630/630 probed mechanics live, 0 missing   (census 2026-08-22 22:59)
   5/6000 differential comparisons disagree with Showdown   (2026-08-22 16:08)
     seed 20260804, requested 6000, 212 not comparable (multihit 154, non-finite 0, threw 58)
     aurorus hypervoice -> aggron: showdown 18-21, medicham 64-76  (8106 uses)
@@ -75,15 +75,112 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is aafa30963eb9 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is f09c864e61ef now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 273/292 probed, 19 unprobed
 ```
 
-_stamped 2026-08-22 20:45_
+_stamped 2026-08-22 23:12_
 
 <!-- /GENERATED -->
+
+## THE LARGEST ANNOUNCE-FAILURE MECHANISM WAS A BENCHED BODY UNDER A NAME NOTHING COULD ASK FOR. 2026-08-23.
+
+**`event missing from medicham2` 42 games -> 33; whole-game diverged 95 of 961 -> 86; usable rate
+9.7% -> 8.76%.** Paired arm, one file different: release `c66976713feb` -> `5e0853311131`, census pin
+`80e648f34d56` on both, pool `0d103fb9fa87` / 1,968 picked on both, `--games 1200` on both, mode
+`A/middle/pins:1fd77b835ee2/credit:observed-effect/v1/nature:real` on both. Cause-level diff:
+**nine causes gone, zero new, zero changed** — every other class identical to the game.
+Full account: `docs/_reports/2026-08-23-announce-failure.md`.
+
+**GROUPED BY MECHANISM BEFORE ANYTHING WAS TOUCHED, BECAUSE THE CLASS NAME DESCRIBES THE COMPARATOR.**
+The 34 causes in that class are **seventeen** mechanisms, not 34 findings — **fourteen** if the four
+unrelated `-fail` lines are read as one family, which they are not. The head:
+
+| mechanism | causes | corpus |
+|---|---|---|
+| **Hunger Switch's rename survives the switch-out** | **9** | Morpeko 0.48% of teams |
+| Supreme Overlord's `-end \|fallenN\|[silent]` on the way out | 5 | Kingambit 23.4% of teams |
+| a `-heal ... [from] drain` we do not write | 5 | Sinistcha 17.3% |
+| the `-weather ... [upkeep]` line stops early | 5 | Pelipper 11.4% |
+| `-boost \|atk\|0` / `-unboost \|atk\|0` — a zero-stage announcement | 4 | mixed |
+| a `-fail` we do not write (psn, Night Slash, Role Play, Curse) | 4 | four different mechanisms |
+
+**THE POOL CAN SEE ALL SIX, AND THAT WAS CHECKED RATHER THAN ASSUMED** — every one of them is a
+cause the frozen pool ALREADY produced, which is the opposite of the four fixes before this one
+(zero Malamar in the pool, 0.45% self-destruct). Morpeko is 0.48% of corpus teams and 26% of this
+class, because the census STEERS the sample toward rows nothing has exercised.
+
+WIRE 142. `Pokemon#formeChange` takes an `isPermanent` flag; **Hunger Switch passes nothing**
+(`data/abilities.ts:1891` `pokemon.formeChange(targetForme)`), so `baseSpecies` never moves and
+`clearVolatile`'s closing line `this.setSpecies(this.baseSpecies)` (`sim/pokemon.ts:1564`) puts
+Morpeko-Hangry back to Morpeko the instant the body leaves. This engine kept the flip. **The cost was
+not cosmetic**: a benched body named `morpeko-hangry` is a body nothing can ask for by its species, so
+the driver's `switch morpeko` resolved to nothing and the game simply never emitted that `|switch|`
+line — which is why nine causes read as a MISSING EVENT and one of them reads `<> |upkeep`.
+
+**IT SITS ONE LINE ABOVE THE TYPE RESTORE AND THAT ORDER IS LOAD-BEARING.** `setSpecies` IS
+`this.setType(species.types, true)`, so the authority reverts the species and reads the chart off the
+reverted row in one call; the block below reads `monRow(out.name)`. Inert for Morpeko (Electric/Dark
+both sides) and the general case has to be right.
+
+**IT EMITS NOTHING, DERIVED.** `clearVolatile` calls `setSpecies` directly and only `formeChange`
+reaches `battle.add('-formechange', ...)`. A `TR.formechange` here would have traded nine
+`event missing` causes for some number of `extra event emitted by medicham2` ones, which is not a fix
+— and `extra event` reads 5 before and 5 after.
+
+**A PERMANENT FORME IS NOT TOUCHED, AND THAT IS ENFORCED BY WHO STAMPS.** Only the
+`formeCycleResidual` block writes `_formeTempBase`; mega, Disguise's busted forme and Zero to Hero all
+pass `isPermanent: true` upstream and the authority does not revert them either. Zero to Hero's swap
+runs a few blocks ABOVE this one in the same function, so an over-matching revert would have undone it
+where it was performed.
+
+**THE PROBE EXISTED AND WAS SHOWN RED FIRST, WITH ITS IDS KEPT.**
+`tests/test-switch-back-renamed.js`: `hungerswitch` and `hungerswitch-restamped` were both
+DECLARED KNOWN-OPEN and are now **AGREES** — bench reads `morpeko` on both engines, the ask resolves,
+and the declaration no longer matches so neither arm can be swallowed. `mega-base-key` is still
+KNOWN-OPEN and is NOT mine (C3, the instrument). Counters: `formeTempStamped 1, formeTempReverted 1`
+on the staged board — read out of `require.cache`, because the driver plays the release SNAPSHOT and
+`require(<live path>)` is a different object whose counters never move.
+
+**THE RIPPLE, DERIVED BY ASKING WHAT READS `m.name` BETWEEN THE FLIP AND THE RETURN.** The type
+restore (ordered above), `monRow`/`pasteKey` lookups (a `morpeko-hangry` row now exists, so both
+spellings resolve), and Aura Wheel's typing, which reads the name and is correct on either half of the
+pair. `tests/test-mechanics.js` **630 live / 0 missing before and after, 0 rows flipped**, so the
+census cannot have moved on this. `tests/test-forme-assert.js` unchanged (5 of 6 AGREE, `forecast`
+KNOWN-OPEN) — it reads the body while it is ON the field, where nothing changed.
+
+**CUTTING THE RELEASE IS WHAT PUT THE ROSTER AND THE WHOLE-GAME ARTIFACTS BACK INTO `WITHHELD`.**
+`data/engine-release.json` is `5e0853311131` and `data/roster.*.json` plus
+`data/game-differential.json` all describe `c66976713feb`. That is correct behaviour, it is the
+photograph rule working, and it is not a new defect.
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~A non-permanent forme change is not reverted on switch-out (C1)~~ — CLOSED by WIRE 142.
+  `tests/test-switch-back-renamed.js` arms `hungerswitch` and `hungerswitch-restamped`, both shown
+  RED first with their ids kept, both now AGREES.
+
+**Added, MEASURED this pass and NOT fixed — the announce-failure family's next five:**
+- **Supreme Overlord announces its volatile ending and we stay silent** — `|-end|pXb: Kingambit|`
+  `fallenundefined|[silent]` as the body leaves. Five causes. `undefined` is the AUTHORITY'S own text
+  (`effectState.fallen` is gone by `onEnd`), not a normaliser artefact — do not "fix" it to a number.
+- **a drain `-heal` we do not write** — `|-heal|pXa|H/H|[from]drain`, five games across two causes,
+  first seen on Sinistcha's Matcha Gotcha (a SPREAD drain move, which is the thing to check first).
+- **the `-weather ... [upkeep]` line stops before the authority's does** — four rain, one sand. We
+  emit the event elsewhere, so this is a DURATION question and not a missing emission.
+- **`-boost|atk|0` and `-unboost|atk|0`** — the authority announces a zero-stage change and we do not.
+  Four causes, and they are probably not all one mechanism.
+- **four unrelated `-fail` lines** — after `psn`, before Night Slash, before Role Play, before Curse.
+  Four causes, four mechanisms; ranked last on purpose.
+
+**Not mine, and named so nobody re-derives them:** C2 (`freshBodies` drops the `_switchKey` stamp) and
+C3 (the Showdown branch cannot resolve a permanently renamed body) both live in
+`engine/game_differential.js`. **Deliberately not edited** — it is not in `SOURCES`, so it is read LIVE
+by every run, and moving it between the two arms of this measurement would have destroyed the pairing
+that makes "nine causes gone, zero new" attributable at all.
 
 ## WILL WAS RIGHT ABOUT PERISH SONG, AND THE DRAW THAT HID IT ALSO HID THE PREVIOUS PASS'S OWN RESULT. 2026-08-23.
 
@@ -1097,7 +1194,10 @@ byte-identical, so the forme rows are not the cause. `tests/test-switch-back-ren
 **Added, measured this pass and NOT fixed:**
 - **Forecast does not move the species label** (`syncWeatherFormes` retypes and counts
   `formeWeatherNameUnchanged`). Declared KNOWN-OPEN on `test-forme-assert.js` row `forecast`, A1.
-- **A non-permanent forme change is not reverted on switch-out** (C1 above). `medicham2-browser.js`.
+- ~~**A non-permanent forme change is not reverted on switch-out** (C1 above).
+  `medicham2-browser.js`.~~ — **CLOSED 2026-08-23 by WIRE 142**, at the top of this file. Struck rather
+  than deleted: this pass was right that it was open and right about the mechanism, and the record of
+  having found it is worth more than a tidy list.
 - **`freshBodies` drops the `_switchKey` stamp** and **the Showdown branch cannot resolve a permanently
   renamed body** (C2, C3). `engine/game_differential.js` — NOT edited, because that file is not in
   `SOURCES` and is therefore read LIVE by every run, so touching it moves a file under a measuring

@@ -1,10 +1,10 @@
 {
-  "current": "c66976713feb",
-  "cut": "2026-08-23T01:59:33.986Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 5,
-  "latest_cut": "2026-08-23T02:22:36.381Z",
-  "latest_why": "settled tree: Fur Coat, bench order, -fail, Suction Cups, Life Orb, self-destruct and the win rule all landed",
-  "pointer_written": "2026-08-23T02:22:36.436Z",
+  "current": "5e0853311131",
+  "cut": "2026-08-23T02:59:54.239Z",
+  "why": "WIRE 142 - a non-permanent forme reverts on switch-out (Hunger Switch / Morpeko)",
+  "cuts": 4,
+  "latest_cut": "2026-08-23T03:16:04.934Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-23T03:16:04.943Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

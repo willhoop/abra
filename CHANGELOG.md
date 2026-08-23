@@ -10,6 +10,48 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.82.0] — 2026-08-23
+
+### Fixed
+- **WIRE 142 — a NON-PERMANENT forme change now reverts when the body leaves the field**
+  (`engine/medicham2-browser.js`). `Pokemon#formeChange` takes an `isPermanent` flag and Hunger Switch
+  passes nothing (`data/abilities.ts:1891`), so the authority's `clearVolatile` closes with
+  `this.setSpecies(this.baseSpecies)` (`sim/pokemon.ts:1564`) and Morpeko-Hangry goes back to Morpeko on
+  the way out. This engine kept the flipped name, and a benched body named `morpeko-hangry` is a body
+  **nothing can ask for by its species** — so the switch was never performed and the `|switch|` line was
+  never emitted. The revert sits one line ABOVE the type restore because `setSpecies` IS
+  `setType(species.types, true)`; it emits no protocol line, because `clearVolatile` calls `setSpecies`
+  directly and only `formeChange` reaches `-formechange`. A permanent forme (mega, Disguise, Zero to
+  Hero) is untouched, enforced by only `formeCycleResidual` writing the stamp.
+
+### Changed
+- `docs/ENGINE.md` — new lead section and hand list; the ROADMAP #328 hand-list line for C1 struck in
+  place with a forward pointer rather than deleted.
+
+### Notes
+- **MEASURED, PAIRED, ONE FILE DIFFERENT.** Releases `c66976713feb` -> `5e0853311131` (26 frozen files,
+  exactly one digest moved). Same census pin `80e648f34d56`, same frozen pool `0d103fb9fa87` / 1,968
+  picked, same `--games 1200` yielding 961 games, same arm. **`event missing from medicham2` 42 games ->
+  33; whole-game diverged 95 of 961 -> 86; 93 of 959 usable -> 84, i.e. 9.7% -> 8.76%.** The cause-level
+  diff is **nine causes gone, zero new, zero changed n** anywhere in the artifact.
+- **THE 33 REMAINING ARE SIXTEEN MECHANISMS, NOT 33 FINDINGS** (thirteen if the four unrelated
+  `-fail` lines are read as one family, which they are not), and the next five are named in
+  `docs/ENGINE.md`: Supreme Overlord's `-end |fallenN|[silent]` (5), a drain `-heal` (5), the
+  `-weather ... [upkeep]` line stopping early (5), `-boost|atk|0` (4), four unrelated `-fail` lines (4).
+- **THE POOL CAN SEE THEM** — unlike the four fixes before this one, every mechanism above is one the
+  frozen pool ALREADY produced. Checked before investing, because the previous pass moved the whole-game
+  rate not at all.
+- **Census unchanged: 630 live / 0 missing, 0 rows flipped.** `tests/test-mechanics.js` calls neither the
+  switch-out path nor `battle()` for this row family.
+- **The after-run was NOT published over `data/game-differential.json`**, which still describes
+  `c66976713feb`, because two other agents were live and a torn read of that file is a plausible,
+  well-formed, fictitious answer. Cutting the release is what returned the roster and whole-game clauses
+  to `WITHHELD` in `engine/status.js`; that is the photograph rule working, not a new defect.
+- **Still open and NOT mine:** `freshBodies` drops the `_switchKey` stamp, and the Showdown branch cannot
+  resolve a permanently renamed body — both in `engine/game_differential.js`, deliberately not edited
+  because it is read LIVE by every run and moving it between the two arms would have destroyed the
+  pairing.
+
 ## [5.81.0] — 2026-08-23
 
 ### Notes
