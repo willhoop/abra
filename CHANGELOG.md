@@ -14,36 +14,42 @@ silently rewritten; what changed and why is stated.
 
 ### Notes
 - **ROADMAP #364 IS MUCH SMALLER THAN ITS ROW SAYS, AND A BIGGER DEFECT SITS NEXT TO IT.** Read-only
-  derivation, no game played and no release cut. 25 legal moves carry ; 3 are Status (Baton Pass,
-  Shed Tail, Roost) and 22 are damaging. They split into four  SHAPES — 10  (30,180
-  clicks), 6  (4,193), 5 / (142), 1  (49). **Three of the
-  four already carry the failed-hit gate. Only 5 of the 22 are reachable at all.**
-- **The doors are ONE, not five.** Every member funnels through ’ ; the six hit-steps are entrances that empty , not separate doors. Two things that
-  could have been guessed wrong were checked instead: **a Substitute is not a refusal** ( is
-  , and ), and the per-target/ split is **unobservable here because
+  derivation — no game played, no release cut, and the three in-flight artifacts deliberately not read.
+  25 legal moves carry `self`; 3 are Status (Baton Pass, Shed Tail, Roost) and 22 are damaging. They
+  split into four `self` SHAPES — 10 `self.boosts` (30,180 clicks), 6 `mustrecharge` (4,193), 5
+  `lockedmove`/`uproar` (142), 1 `self.onHit` (49). **Three of the four already carry the failed-hit
+  gate. Only 5 of the 22 are reachable at all.**
+- **The doors are ONE, not five.** Every member funnels through `selfDrops`' `if (target === false)
+  continue`; the six hit-steps are entrances that empty `targets`, not separate doors. Two things that
+  could have been guessed wrong were checked instead: **a Substitute is not a refusal** (`targets[i]` is
+  `null`, and `null !== false`), and the per-target/`selfDropped` split is **unobservable here, because
   no member of the 22 is multihit**.
-- **The defect is WIRE 144 (), and its neighbour twenty-five lines up
-  gets it right.** WIRE 144 arms  on  alone; WIRE 43 at  tests
-  . **WIRE 144’s own comment claims it sits below every  that
-  means the move did not happen — which is true only for Protect**, and this engine exits Protect above
-  the step list. A miss, a type immunity, an absorbing ability or a semi-invulnerable target leaves
-   at 0 and falls straight through. Outrage into a Fairy (34 legal species), Thrash or Uproar
-  into a Ghost (40), Petal Dance into Sap Sipper, Raging Fury into Flash Fire. 
+- **The defect is WIRE 144 (`engine/medicham2-browser.js:23293`), and its neighbour twenty-five lines up
+  gets it right.** WIRE 144 arms `_mtLock` on `!m.fainted` alone; WIRE 43 at `:23268` tests
+  `!m.fainted && _reached>0`. **WIRE 144's own comment claims it sits below every `continue` that means
+  the move did not happen — which is true only for Protect**, and this engine exits Protect above the
+  step list. A miss, a type immunity, an absorbing ability or a semi-invulnerable target leaves
+  `_reached` at 0 and falls straight through. Outrage into a Fairy (34 legal species), Thrash or Uproar
+  into a Ghost (40), Petal Dance into Sap Sipper, Raging Fury into Flash Fire. `locksIntoMove`
   membership was printed before proposing the wire: **exactly five, no over-match.**
-- **The ripple I named was vacuous; the real one is one step out.** Nothing between WIRE 144 and the end
-  of the branch reads . But the same block **also** calls  synchronously and
-  runs the  sweep — so **a FAILED Uproar currently wakes every sleeper on both sides and
-  refuses a Spore thrown later in the same turn**, on top of 2–3 turns of forced click, free PP and a
-  refused switch.
-- **Sized honestly, and downward: the one real defect is a 142-click tail, 0.02%.** #364’s 7.6%
-  belongs almost entirely to the boost family, which is already correct. The other 17 are **predicted
-  correct and unprobed** — the census holds ten relevant rows and all ten stage a hit that lands.
-- **AND THE BIGGER DEFECT IS NOT ENGINE’S TO FIX.**  over-matches into , there
-  is a **THIRD** authority site at  — outside  and **below
-  ** — and  merges it into . So **Clanging Scales (1,162
-  clicks) and Scale Shot (258) pay their stat drop one faint too early.** That is ten times the usage of
-  the defect this row is about. Reported, not attempted: it needs , which the
-  deriving division may not edit.
+- **The ripple named in the brief was vacuous; the real one is one step out.** Nothing between WIRE 144
+  and the end of the branch reads `_mtLock`. But the same block **also** calls `refreshSleepBlock`
+  synchronously and runs the `wakesSleepers` sweep — so **a FAILED Uproar currently wakes every sleeper
+  on both sides and refuses a Spore thrown later in the same turn**, on top of 2–3 turns of forced
+  click, free PP and a refused switch.
+- **Sized honestly, and downward: the one real defect is a 142-click tail, 0.02%.** #364's 7.6% belongs
+  almost entirely to the boost family, which is already correct. The other 17 are **predicted correct
+  and unprobed** — the census holds ten relevant rows and all ten stage a hit that lands.
+- **AND THE BIGGER DEFECT IS NOT THE DERIVING DIVISION'S TO FIX.** `lowersUser` over-matches into
+  `selfBoost`, there is a **THIRD** authority site at `sim/battle-actions.ts:520` — outside
+  `trySpreadMoveHit` and **below `faintMessages`** — and `data/engine-data.js` merges it into `mv.self`.
+  So **Clanging Scales (1,162 clicks) and Scale Shot (258) pay their stat drop one faint too early.**
+  That is roughly ten times the usage of the defect this row is actually about. Reported, not attempted:
+  it needs `data/engine-data.js`, which ENGINE may not edit.
+- **Bookkeeping:** this entry was first written through an inline shell string and every backticked
+  identifier was command-substituted out of it, leaving sentences with holes. Rewritten from a file.
+  **That is the third time backticks in a double-quoted shell string have damaged prose today** — the
+  `/finish` skill now says to write CHANGELOG entries from a script file, never inline.
 
 ---
 
