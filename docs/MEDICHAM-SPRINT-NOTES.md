@@ -21,6 +21,53 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE LAST 41 DAMAGE ROWS WERE THE RULER SIX TIMES, AND THE FIX UNCOVERED A DEFECT THAT HAD BEEN SCORING AS AGREEMENT. 2026-08-23 (ENGINE).
+
+**Nothing in `engine/medicham2-browser.js` changed.** `tests/test-engine-diff.js` at
+`--n 6000 --seed 20260804`: **41 disagreements → 7.** Full account:
+`docs/_reports/2026-08-23-harness-modifymove-castform.md`.
+
+**CONTROL FIX 14 — `ModifyMove`, and `setActiveMove`.** The harness enters the authority at
+`battle.actions.moveHit`, 932 lines below `useMoveInner`; `eb49918` moved `ModifyType` up and left
+`ModifyMove` owed. `sim/battle-actions.ts:426-441` now copied in the authority's own order. Sheer
+Force 11, Mold Breaker 3, Mega Sol 2 (the `setActiveMove` half — `effectiveWeather` needs
+`battle.activePokemon`), Scrappy 1 → all zero. Prediction stated before the run and falsifiable:
+Showdown's column rises to MEDICHAM's as-built column and MEDICHAM's does not move. Held to the unit
+at both corners on all ten named rows; six controls unmoved, including `camerupt flashcannon ->
+gengar` and `kangaskhan fakeout -> pinsir`, the BASE formes of rows that DO move.
+
+**CONTROL FIX 8b — and it exists because CONTROL FIX 14 broke CONTROL FIX 8.** Nine new `aegislash`
+rows at ~2.5x. Measured: marking the reference's stats 999/111 returns `Aegislash-Blade` at 160/160,
+because Stance Change's `onModifyMove` calls `formeChange` → `setSpecies` → recomputed `storedStats`.
+Knob cleared with King's Shield (stats intact). Alignment re-applied after the events; over-correction
+control `aegislashblade darkpulse -> aurorus` still reads 44-52 on both sides.
+
+**SKIP FIX 15 — Parental Bond, and this is a SCOPE DECLARATION, not a fix.** Not a `ModifyMove`
+handler: `onPrepareHit` sets `move.multihit = 2`, read only by `hitStepMoveHitLoop`, one level above
+the entry point again. MEDICHAM sums both packets — the same quantity it returns for Rock Blast,
+which this file already skips for the identical reason. 17 rows skipped, counted, named, in the
+artifact. Cost: `tests/test-mechanics.js` is now the only guard on the mechanic.
+
+**CONTROL FIX 16 — Castform, and the open question is closed by EXECUTION.** MEDICHAM's `battleInit`
+gives a Castform-Snowy body `["Normal"]` in an empty sky, `["Ice"]` behind an Abomasnow, `["Fire"]`
+behind a Torkoal — varied output across a varied sky, **the engine is right**. Showdown reverts all
+three weather formes at switch-in. Only the harness skipped it. Resolved in `mediBody`, the one
+doorway, on the species key via the ability's own `revertsTo`; over-correction control `castform
+blizzard -> primarina` reads 12-15 on both sides.
+
+**THE ROW THAT GOT WORSE, AND IT IS THE IMPORTANT ONE.** `ditto struggle` x7, a real MEDICHAM defect
+that was scoring AGREE because both engines were wrong the same way. The authority's
+`struggle.onModifyMove` sets `move.type = "???"`; `MC.moves.struggle` carries `t: "Normal"`. Two
+defects, separated with a control: a 1.5x STAB (`ditto struggle -> glaceon` 15-18 vs 10-12) and — the
+larger — a Normal→Ghost immunity the authority does not have (`gallade struggle -> gengar`, 0-0 vs
+51-60, a non-Normal attacker so STAB cannot confound it). **NOT FIXED**; the type lives in
+`data/engine-data.js`, which is MEASURE's. Register row proposed in `docs/ENGINE.md`.
+
+**OWED:** `tests/run-all.js`, `engine/quarantine.js` (its clause requires `disagreed === 0` and the
+artifact reads 7, so it stays RED for one named engine defect instead of six harness ones), the
+whole-game differential, and the census — none run, because two MEASURE agents held
+`data/mechanics-census.json` and its test.
+
 ## THE DISGUISE GATE READ A FLAG WHERE THE AUTHORITY READS A SPECIES. 2026-08-23 (ENGINE).
 
 **The defect.** `formeOnHitAbsorbs` — the ONE reader of the `formeOnHit` tag, called by `dmgRange`

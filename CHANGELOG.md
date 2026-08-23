@@ -10,6 +10,77 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.95.0] — 2026-08-23
+
+### Fixed
+- **THE LAST 41 DAMAGE DIVERGENCES WERE THE RULER SIX TIMES OVER. 41 → 7 at `--n 6000 --seed
+  20260804`, and nothing in `engine/medicham2-browser.js` changed.** `tests/test-engine-diff.js`
+  enters the authority at `battle.actions.moveHit`, 932 lines below `useMoveInner`. Commit `eb49918`
+  moved `ModifyType` up and recorded `ModifyMove` as owed; **CONTROL FIX 14** is that batch —
+  `sim/battle-actions.ts:426-441` copied in the authority's own order, `setActiveMove` included.
+
+  | family | before | after |
+  |---|---|---|
+  | Sheer Force / Camerupt-Mega | 11 | 0 |
+  | Mold Breaker / Gyarados-Mega | 3 | 0 |
+  | Mega Sol / Meganium-Mega | 2 | 0 |
+  | Scrappy / Lopunny-Mega | 1 | 0 |
+  | Parental Bond / Kangaskhan-Mega | 8 | 0 (SKIPPED — a scope declaration) |
+  | Forecast / Castform-Snowy | 16 | 0 |
+  | **Struggle / Ditto** | **0** | **7 — NEW, a real engine defect** |
+
+  The prediction was stated before the run and is falsifiable: **Showdown's column rises to
+  MEDICHAM's as-built column and MEDICHAM's does not move.** It held to the unit at both corners on
+  all ten named rows, against six controls that did not move — including `camerupt flashcannon ->
+  gengar` and `kangaskhan fakeout -> pinsir`, the BASE formes of rows that do move, so the knob is
+  the ability and not the body.
+- **CONTROL FIX 8b — a forme change under `ModifyMove` was silently overwriting the stat alignment.**
+  CONTROL FIX 14 produced nine new red `aegislash` rows at ~2.5x. Measured, not inferred: marking the
+  reference's stats 999/111 and running the new lines returns `Aegislash-Blade` at 160/160, because
+  Stance Change's `onModifyMove` calls `formeChange` → `setSpecies` → recomputed `storedStats`. The
+  same body clicking King's Shield keeps 999/111, so the knob is cleared. The alignment is now
+  re-applied after the events; `aegislashblade darkpulse -> aurorus` still reads 44-52 on both sides,
+  which is the over-correction control.
+- **CONTROL FIX 16 — a battle-only weather forme was being compared against a sky it cannot stand
+  in.** The instrument-or-engine question on Castform was open on a source read and is now closed by
+  execution with the knob cleared: MEDICHAM's `battleInit` gives a Castform-Snowy body `["Normal"]`
+  in an empty sky, `["Ice"]` behind an Abomasnow, `["Fire"]` behind a Torkoal — **the engine is
+  right**. Showdown reverts all three weather formes to base `Castform` at switch-in. Only the
+  harness skipped it, calling `buildMon` and `dmgRange` with no field between them. Resolved in
+  `mediBody`, the one doorway, on the species key via the ability's own `revertsTo`.
+
+### Changed
+- **SKIP FIX 15 — Parental Bond leaves the damage differential's surface, and this is a SCOPE
+  DECLARATION rather than a fix.** It is not a `ModifyMove` handler: `onPrepareHit` sets
+  `move.multihit = 2`, which only `hitStepMoveHitLoop` reads — one level above the entry point again.
+  MEDICHAM's `dmgRange` sums both packets, the same quantity it returns for Rock Blast, which this
+  file already skips for the identical reason. 17 rows skipped, counted, named and carried into the
+  artifact. **Cost, stated: `tests/test-mechanics.js` is now the only guard on the mechanic.**
+
+### Notes
+- **The one thing that got WORSE is the most important line here. `ditto struggle` x7 is a real
+  MEDICHAM defect that was scoring as AGREEMENT because both engines were wrong the same way.** The
+  authority's `struggle.onModifyMove` sets `move.type = "???"`; `MC.moves.struggle` carries
+  `t: "Normal"`. Two defects, separated with a control: a 1.5x STAB a Normal attacker should not have
+  (`ditto struggle -> glaceon` 15-18 vs 10-12), and — larger — a Normal→Ghost immunity the authority
+  does not have (`gallade struggle -> gengar`, MEDICHAM 0-0 vs 51-60, a non-Normal attacker so STAB
+  cannot confound it). **NOT FIXED:** the value lives in `data/engine-data.js`, which is MEASURE's.
+  `tags.moves.struggle.uses` is 0.
+- **Which scoreboard, declared before the run:** an instrument fix, so the lab moves and the pinned
+  pool must not. It did not — zero engine bytes changed and `engine/game_differential.js` has no code
+  dependency on `data/engine-diff.json`. The whole-game run was deliberately not launched beside two
+  live MEASURE agents, and the census was not regenerated for the same reason.
+- **Still skipped by this harness, enumerated rather than left for a future session to rediscover:**
+  `ModifyTarget` (redirection), `getMoveTargets` / `move.spreadHit` (**a spread move is priced
+  single-target on BOTH sides and nothing prints**), `Try` / `PrepareHit` (**Protean and Libero, where
+  both engines miss it and the rows are green while asking nothing**), the five hit steps below
+  `hitStepMoveHitLoop`, and everything after the hit. The right long-term shape is probably
+  `hitStepMoveHitLoop` itself; it is a much larger change and gets its own batch.
+- `engine/quarantine.js` requires `disagreed === 0` and the artifact reads 7, so the gate stays RED —
+  for one named engine defect instead of six harness ones. **OWED:** `tests/run-all.js`,
+  `quarantine.js`, the whole-game differential and `status.js --write`.
+- Full account: `docs/_reports/2026-08-23-harness-modifymove-castform.md`.
+
 ## [5.94.0] — 2026-08-23
 
 ### Fixed

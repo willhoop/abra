@@ -57,16 +57,16 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  643/643 probed mechanics live, 0 missing   (census 2026-08-23 05:26)
-  41/6000 differential comparisons disagree with Showdown   (2026-08-23 05:07)
-    seed 20260804, requested 6000, 173 not comparable (multihit 136, non-finite 0, threw 37)
-    lopunnymega fakeout -> gourgeistsuper: showdown 0-0, medicham 33-40  (24726 uses)
-    kangaskhanmega fakeout -> pinsir: showdown 37-45, medicham 44-55  (24726 uses)
-    kangaskhanmega fakeout -> chesnaught: showdown 25-30, medicham 31-37  (24726 uses)
-    kangaskhanmega suckerpunch -> sinistchamasterpiece: showdown 62-74, medicham 76-92  (14131 uses)
-    kangaskhanmega suckerpunch -> scolipedemega: showdown 31-37, medicham 38-46  (14131 uses)
-    kangaskhanmega suckerpunch -> pyroarmega: showdown 46-55, medicham 57-69  (14131 uses)
-    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 40/6000,  bottom 43/6000,  idx01 41/6000,  idx02 41/6000,  idx03 41/6000,  idx04 41/6000,  idx05 41/6000,  idx06 41/6000,  idx07 41/6000,  idx08 41/6000,  idx09 41/6000,  idx10 42/6000,  idx11 42/6000,  idx12 42/6000,  idx13 42/6000,  idx14 42/6000
+  643/643 probed mechanics live, 0 missing   (census 2026-08-23 05:53)
+  7/6000 differential comparisons disagree with Showdown   (2026-08-23 05:51)
+    seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
+    ditto struggle -> clawitzer: showdown 11-14, medicham 16-21  (0 uses)
+    ditto struggle -> glaceon: showdown 10-12, medicham 15-18  (0 uses)
+    ditto struggle -> feraligatrmega: showdown 9-11, medicham 13-16  (0 uses)
+    ditto struggle -> hippowdon: showdown 9-11, medicham 13-16  (0 uses)
+    ditto struggle -> raichumegay: showdown 16-19, medicham 24-28  (0 uses)
+    ditto struggle -> furfrou: showdown 8-10, medicham 12-15  (0 uses)
+    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 7/6000,  bottom 7/6000,  idx01 7/6000,  idx02 7/6000,  idx03 7/6000,  idx04 7/6000,  idx05 7/6000,  idx06 7/6000,  idx07 7/6000,  idx08 7/6000,  idx09 7/6000,  idx10 7/6000,  idx11 7/6000,  idx12 7/6000,  idx13 7/6000,  idx14 7/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: 1642/1642 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 18:00)
     2250 of 7103 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 7103
@@ -76,15 +76,155 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 33bfb2333778 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 9446a684709d now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 05:27_
+_stamped 2026-08-23 06:01_
 
 <!-- /GENERATED -->
+
+## THE LAST 41 DAMAGE ROWS WERE THE RULER SIX TIMES OVER, AND FIXING IT UNCOVERED A REAL DEFECT THAT HAD BEEN SCORING AS AGREEMENT. 2026-08-23.
+
+**Nothing in `engine/medicham2-browser.js` changed. One file did: `tests/test-engine-diff.js`.**
+Full account: [`docs/_reports/2026-08-23-harness-modifymove-castform.md`](_reports/2026-08-23-harness-modifymove-castform.md).
+
+`data/engine-diff.json`, `--n 6000 --seed 20260804`, same seed and size before and after:
+**41 disagreements → 7.** Both corner arms and all fourteen interior indices read 7.
+
+| family | before | after | what left |
+|---|---|---|---|
+| Sheer Force / Camerupt-Mega | 11 | 0 | CONTROL FIX 14 |
+| Mold Breaker / Gyarados-Mega | 3 | 0 | CONTROL FIX 14 |
+| Mega Sol / Meganium-Mega | 2 | 0 | CONTROL FIX 14, the `setActiveMove` half |
+| Scrappy / Lopunny-Mega | 1 | 0 | CONTROL FIX 14 |
+| Parental Bond / Kangaskhan-Mega | 8 | 0 | SKIP FIX 15 — **a scope declaration, not a fix** |
+| Forecast / Castform-Snowy | 16 | 0 | CONTROL FIX 16 |
+| **Struggle / Ditto** | **0** | **7** | **NEW — a real MEDICHAM defect, previously a FALSE AGREEMENT** |
+
+**CONTROL FIX 14** copies `sim/battle-actions.ts:426-441` in the authority's own order —
+`setActiveMove`, `singleEvent ModifyType`, `singleEvent ModifyMove`, `runEvent ModifyType`,
+`runEvent ModifyMove`. `eb49918` ran only `ModifyType` and recorded the rest as owed; this is that
+batch. The prediction was made before the run and is falsifiable: **Showdown's column rises to
+MEDICHAM's as-built column and MEDICHAM's does not move.** It held to the unit at both corners on all
+ten named rows — `cameruptmega flashcannon -> gengar` 69-82 → **90-106/90-106**, `gyaradosmega
+earthquake -> rotomwash` 0-0 → **125-125/125-125**, `meganiummega weatherball -> torterra` 39-46 →
+**170-170/170-170**, `lopunnymega fakeout -> gourgeistsuper` 0-0 → **33-40/33-40**.
+
+**Blast radius DERIVED against the format, not recalled:** 19 legal abilities carry `onModifyMove`,
+8 of the 76 legal megas carry one in slot 0. **Mega Sol is not one of them** — it is the
+`setActiveMove` half (`Pokemon#effectiveWeather` needs `battle.activePokemon`), recorded separately
+so a reader does not count five abilities and find four handlers.
+
+**CONTROL FIX 14 BROKE CONTROL FIX 8 AND THE BREAK ARRIVED AS NINE NEW RED ROWS.** `aegislash
+darkpulse` x5 and `nightdaze` x4 turned up reading ~2.5x. Measured, not inferred: marking the
+reference Aegislash's stats 999/111 and running the four new lines returns `Aegislash-Blade` at
+**160/160** — Stance Change's `onModifyMove` calls `formeChange`, which recomputes `storedStats` and
+throws the stat alignment away. Knob cleared: the same body clicking **King's Shield** keeps
+`Aegislash` and 999/111. **CONTROL FIX 8b** re-applies the alignment after the events (144 reference
+bodies changed forme on the 6,000-row run, all Aegislash, counted in the artifact). Over-correction
+control: `aegislashblade darkpulse -> aurorus` still reads **44-52 on both sides** — Blade was not
+flattened into Shield.
+
+**SKIP FIX 15 IS A SCOPE DECLARATION AND IT REMOVES ROWS FROM THE RESIDUAL. SAID FIRST, NOT LAST.**
+Parental Bond is **not** a `ModifyMove` handler and running `ModifyMove` does nothing for it: it
+hangs off `onPrepareHit` (`battle-actions.ts:591-592`) and sets `move.multihit = 2`, which is read by
+`hitStepMoveHitLoop` (`:857`) — one level above the harness's entry point again. MEDICHAM's
+`dmgRange` sums both packets, the same quantity it returns for Rock Blast, **which this file already
+skips for this identical reason**. 17 rows skipped on the run (8 that disagreed, 9 that agreed).
+Membership is the `hitsTwice` tag (one member, printed before use) and the **authority's own
+handler, run on a throwaway `getActiveMove` copy**, decides per move. Cost, stated:
+`tests/test-mechanics.js` is now the ONLY guard on Parental Bond.
+
+**CONTROL FIX 16 CLOSES THE CASTFORM QUESTION BY EXECUTION, and the answer is INSTRUMENT.** The
+prior report could only read the source. Run with the knob cleared: MEDICHAM's `battleInit` gives a
+Castform-Snowy body `["Normal"]` in an empty sky, `["Ice"]` behind an Abomasnow, `["Fire"]` behind a
+Torkoal. **Varied output across a varied sky — the engine is right.** Showdown's half measured the
+same way: `Castform-Snowy`, `-Sunny` and `-Rainy` all return species `Castform`, types `["Normal"]`
+at switch-in with no weather; `Aegislash` on the same probe is untouched. **The harness alone skipped
+it**, because it calls `buildMon` and `dmgRange` with no field between them. Resolved in `mediBody`
+— the ONE doorway — on the species key, via the ability's own `revertsTo`; `syncFieldTypes` is not
+exported and ENGINE may not add an export to satisfy an instrument. Derived set printed before use,
+three members, exactly the Castform weather formes. Over-correction control: `castform blizzard ->
+primarina`, the base forme, reads 12-15 on both sides, identical to the resolved Snowy row.
+
+**AND THE ROW THAT GOT WORSE IS THE MOST IMPORTANT LINE HERE.** `ditto struggle` x7. The authority's
+`struggle.onModifyMove` sets `move.type = "???"`; `MC.moves.struggle` carries `t: "Normal"`. **Before
+CONTROL FIX 14 both engines were wrong the same way and the rows scored AGREE** — the false agreement
+CONTROL FIX 10's note calls the expensive kind. It is two defects and the second is the larger:
+`ditto struggle -> glaceon` 15-18 against 10-12 is a 1.5x **STAB** we should not have, and `gallade
+struggle -> gengar` — a non-Normal attacker, so STAB cannot confound it — is **0-0 against 51-60**,
+a Normal→Ghost **immunity** the authority does not have. Not fixed: this pass may not touch
+`medicham2-browser.js`, and the type lives in `data/engine-data.js`, which is MEASURE's.
+
+### THE HAND LIST
+
+**Removed — they are measured now:**
+- ~~**`ModifyMove` is still not run at this entry point.**~~ — CONTROL FIX 14. Ten named rows, each
+  landing on MEDICHAM's as-built number to the unit at both corners, against six unmoved controls.
+- ~~**`castformsnowy blizzard -> primarina` UNCLASSIFIED**~~ — CONTROL FIX 16, and the
+  instrument-or-engine question is settled by an executed knob-cleared probe rather than a source
+  read. All 16 rows, both directions.
+- ~~**`kangaskhanmega doubleedge -> malamarmega` UNCLASSIFIED**~~ — classified: Parental Bond against
+  a harness that calls `moveHit` once by construction. **Skipped, not fixed** (SKIP FIX 15).
+
+**Added, MEASURED this pass and NOT fixed:**
+- **Struggle is typeless and this engine types it Normal.** Two consequences, separated with a
+  control — a 1.5x STAB for a Normal attacker, and a Normal→Ghost immunity the authority does not
+  have. 7 of 6,000 rows; `tags.moves.struggle.uses` is **0**. The value lives in
+  `data/engine-data.js`, so the fix is MEASURE's file even though the defect is ENGINE's.
+- **A SPREAD MOVE IS PRICED SINGLE-TARGET ON BOTH SIDES OF THIS HARNESS.** `getMoveTargets` is never
+  called, so `move.spreadHit` is never set and the 0.75 reduction is applied by neither engine. Those
+  rows agree for the wrong reason and nothing prints.
+- **The differential is still structurally blind to Protean and Libero.** `runEvent('PrepareHit')` is
+  not run, MEDICHAM applies the retype in its turn loop rather than in `dmgRange`, and both sides
+  therefore miss it. A green row that asks nothing.
+- **The right long-term shape is probably `hitStepMoveHitLoop`, one level up.** It would fix the
+  multi-hit family — both the move half (134 skipped rows) and the ability half (17) — in one move
+  instead of three skips. It is a much bigger change than it looks: it sums over hits, breaks on
+  faint, and runs `PrepareHit`, so Protean rows would go red against an engine that applies Protean a
+  level above `dmgRange`. Its own batch, with its own before/after row set.
+
+### OWED, NOT RUN
+
+**Nothing below was run.** The GENERATED block above is stamped 2026-08-23 05:27 and predates this
+pass; `status.js --write` is in the list.
+
+```
+node tests/test-mechanics.js       # NOT run — another agent held the census and its test this session
+node tests/run-all.js
+tools\lownode.cmd engine\quarantine.js
+SHOWDOWN_PATH=... node engine/game_differential.js --release <fresh id> --team-store data/team-pool-frozen --state
+node engine/status.js --write
+```
+
+**`engine/quarantine.js`'s differential clause requires `disagreed === 0` and the artifact reads 7,
+so the gate stays RED** — for one named engine defect instead of six harness ones.
+
+**`tests/test-no-silent-failure.js` is RED and was red before this pass**, 95 NEW since its baseline
+and none of them in `tests/test-engine-diff.js`. Verified by stashing this pass's change and
+re-running: 877 catch blocks before, 878 after, and the file appears nowhere in the report. Stated
+rather than filed.
+
+**WHICH SCOREBOARD THIS SHOULD MOVE, STATED BEFORE THE RUN.** This is an instrument fix, so the lab
+moves and **the pinned pool must not**. It did not, and the proof is structural rather than a re-run:
+zero engine bytes changed, and `engine/game_differential.js` mentions `engine-diff` only in two
+comments — there is no code dependency. The whole-game run was deliberately NOT launched beside two
+live MEASURE agents. **The census cannot have moved either** and was not regenerated, for the same
+two reasons.
+
+**PROPOSED REGISTER ROW** (not written — `docs/ROADMAP.md` is not this division's to edit):
+*"Struggle is typeless and this engine types it Normal. `data/moves.ts` `struggle.onModifyMove` sets
+`move.type = '???'`; `MC.moves.struggle` carries `t: 'Normal'`. Two consequences, separated with a
+control: a Normal attacker gets a 1.5x STAB it should not have (`ditto struggle -> glaceon` 15-18
+against the authority's 10-12), and — the larger half — the Normal→Ghost immunity is applied where
+the authority has none (`gallade struggle -> gengar`, MEDICHAM 0-0 against 51-60, a non-Normal
+attacker so STAB cannot confound it). Surfaced by CONTROL FIX 14 in `tests/test-engine-diff.js`;
+before it, both engines were wrong the same way and the rows scored AGREE. 7 of 6,000 rows at seed
+20260804. `tags.moves.struggle.uses` is 0 — expect the lab to move and the pinned pool to sit still.
+The type lives in `data/engine-data.js`, which is MEASURE's."*
 
 ## THE DISGUISE GATE READ A FLAG WHERE THE AUTHORITY READS A SPECIES, AND THE BUSTED BODY IS THE ONE THE INGEST SEES MOST. 2026-08-23.
 

@@ -169,10 +169,62 @@ const logDroppedRow = (where, e) => {
 const { mcKey } = require(D('engine', 'mc_key.js'));
 const MAY_MISS = { mayMiss: 'a priors species with no MC.mons row is reportable, not a crash' };
 const pool = { priors: 0, drawable: 0, dropped: 0, droppedNames: [], megas: 0 };
+/* CONTROL FIX 16 -- A BODY WHOSE FORME IS A FUNCTION OF THE SKY MAY NOT BE DRAWN AGAINST A SKY THAT
+ * CONTRADICTS IT. 2026-08-23.
+ *
+ * THIS FILE'S FIELD IS ALWAYS AN EMPTY SKY. `dmgRange` is called with
+ * `{ weather: '', terrain: '', ... }` and CONTROL FIX 7 clears the reference's weather and terrain
+ * outright, which is the whole point -- an uncontrolled sky is an uncontrolled input. In an empty
+ * sky Castform-Snowy CANNOT STAND ON THE FIELD: Forecast reverts it the instant it arrives.
+ *
+ * THE TWO ENGINES WERE THEREFORE BEING ASKED ABOUT DIFFERENT BODIES, and the reference was right.
+ * Measured, both halves, with the knob cleared explicitly:
+ *   SHOWDOWN   sending in `Castform-Snowy` with no weather returns species `Castform`, types
+ *              `["Normal"]`. So do Sunny and Rainy. `Aegislash` on the same probe is untouched.
+ *   MEDICHAM   `battleInit` runs `syncFieldTypes` over both sides' actives at :14650, and a
+ *              Castform-Snowy body comes out `["Normal"]` under an empty sky, `["Ice"]` behind an
+ *              Abomasnow, `["Fire"]` behind a Torkoal. Varied output across a varied sky, so the
+ *              engine's knob is WIRED and this is not an engine defect. That question was open on
+ *              a source-read in docs/_reports/2026-08-23-damage-56-grouped.md and is now closed by
+ *              execution.
+ *   THE HARNESS is the only one of the three that skips it: it calls `buildMon` and then `dmgRange`
+ *              directly, and `MEDI.buildMon('castform-snowy')` hands back `["Ice"]` with no field
+ *              anywhere in the call. 16 of the 41 residual rows were this, in both directions --
+ *              Castform attacking (Blizzard and Icy Wind at 1.5x for a STAB it does not have, Weather
+ *              Ball at 1/1.5 for a STAB it does) and Castform defending (Iron Head at 2x into an Ice
+ *              type that is really Normal, Last Respects at 0 into a Ghost immunity that is really a
+ *              neutral hit).
+ *
+ * RESOLVED HERE, IN `mediBody`, BECAUSE IT IS THE ONE DOORWAY. Putting it in compareRow would let
+ * the pool filter and the comparison disagree about which species exist, which is the exact defect
+ * the POOL block above was written to close. `syncFieldTypes` is not exported by the engine and
+ * ENGINE may not add an export to satisfy an instrument, so the resolution is done on the SPECIES
+ * KEY -- the ability's own `revertsTo`, one field out of the artifact, not a re-implementation of
+ * the type map. Base stats are identical across all four Castform rows (`sameStats: true`, asserted
+ * by the tag and checked in MC.mons: 147 hp / 81 spa on all four), so a key swap is numerically
+ * complete.
+ *
+ * PRINTED BEFORE IT IS USED, per docs/LESSONS.md 4, because every derived set in this project
+ * over-matched on its first try. Today it holds exactly the three Castform weather formes. */
+const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const WEATHER_FORME = new Map();
+for (const a of Object.keys(tags.abilities || {})) {
+  const p = (tags.abilities[a].params || {}).formeFollowsWeather;
+  if (!p || !p.revertsTo || !Array.isArray(p.formes)) continue;
+  for (const f of p.formes) WEATHER_FORME.set(norm(f), { to: norm(p.revertsTo), ability: a });
+}
+const weatherForme = { n: 0, by: {} };
 /* THE ONE TRANSLATION FROM A PRIORS KEY TO A MEDICHAM BODY. Every caller goes through here, so the
  * pool filter and compareRow cannot disagree about which species exist. */
 function mediBody(id) {
-  const k = mcKey(id, MAY_MISS);
+  let key = id;
+  const wf = WEATHER_FORME.get(norm(id));
+  if (wf) {
+    key = wf.to; weatherForme.n++;
+    const k2 = norm(id) + ' -> ' + wf.to + '  (' + wf.ability + ', empty sky)';
+    weatherForme.by[k2] = (weatherForme.by[k2] || 0) + 1;
+  }
+  const k = mcKey(key, MAY_MISS);
   if (!k) return null;
   return MEDI.buildMon(k, {});
 }
@@ -260,7 +312,24 @@ const mkSet = (name, moveName) => ({
 
 /* A distinct value, so a skip can never be confused with a legitimate null or a legitimate 0. */
 const NOT_FINITE = Symbol('showdown damage was not a finite number');
+/* SKIP FIX 15's sentinel -- see the block in showdownDamage. Distinct from NOT_FINITE, from null and
+ * from 0, so a skip can never be read as a legitimate answer. */
+const ABILITY_MULTIHIT = Symbol('the attacker\'s ability turns this into a multi-hit move');
 const skipped = { n: 0, moves: {} };
+/* CONTROL FIX 8b's counter. A reference body that CHANGES FORME under the move-modification events
+ * has had CONTROL FIX 8's stat alignment silently overwritten by `formeChange`, so the row would be
+ * comparing two different stat lines and calling it a damage disagreement. Counted and printed
+ * rather than trusted, per docs/LESSONS.md 1 -- if this reads 0 on a run, CONTROL FIX 8b did nothing
+ * on that run and should be read as untested, not as safe. */
+const refForme = { n: 0, by: {}, first: '' };
+const skippedBond = { n: 0, moves: {}, abilities: {} };
+/* SKIP FIX 15's membership, DERIVED FROM THE ARTIFACT AND NEVER TYPED, and printed below before it
+ * is used because every derived set in this project over-matched on its first try. Our tag says
+ * WHICH CLASS of ability turns a click into two packets; the AUTHORITY'S OWN handler is then asked
+ * whether it applies to this particular move, so the per-move exceptions (charge moves,
+ * `noparentalbond`, spread hits, an already-multi-hit move) are never restated here. */
+const HITSTWICE = new Set(Object.keys(tags.abilities || {}).filter(a =>
+  (tags.abilities[a].tags || []).indexOf('hitsTwice') >= 0));
 const skippedMulti = { n: 0, moves: {} };
 /* DERIVED, not a list of names, and printed below before it is used. */
 const MULTIHIT = new Set(Object.keys(tags.moves || {}).filter(id =>
@@ -325,14 +394,18 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId, cond
    * was the EV spread, and any agreement was luck. Foul Play is on the ENGINE hand list as a real
    * bug (dmgRange reads the `statSwap` tag, which Foul Play does not carry) and the harness could
    * not confirm it. */
-  if (stats) {
+  /* EXTRACTED SO IT CAN BE APPLIED TWICE -- see CONTROL FIX 8b below. Identical body, no behaviour
+   * change on the first call. */
+  const alignStats = () => {
+    if (!stats) return;
     src.storedStats.atk = stats.at;  src.storedStats.spa = stats.sa;
     src.storedStats.def = stats.adf; src.storedStats.spd = stats.asd;
     tgt.storedStats.atk = stats.dat; tgt.storedStats.spa = stats.dsa;
     tgt.storedStats.def = stats.df;  tgt.storedStats.spd = stats.sd;
     src.maxhp = stats.ahp; src.hp = stats.ahp;
     tgt.maxhp = stats.hp;  tgt.hp = stats.hp;
-  }
+  };
+  alignStats();
   /* CONTROL FIX 7 -- CLEAR THE SWITCH-IN, DO NOT TRY TO MIRROR IT.
    *
    * showdownDamage answers team preview, so both leads are really sent out and every entry ability
@@ -422,11 +495,132 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId, cond
    * `aurorus ancientpower -> gallade` (a non-Normal move from the SAME Aurorus body) both read
    * identically before and after.
    *
-   * ONLY `ModifyType`. `useMoveInner` runs `ModifyMove` on the next line and this does NOT, because
-   * that is a separate and much wider question and a red row must stay attributable. Recorded as
-   * owed rather than smuggled in here. */
+   * ONLY `ModifyType` WHEN THIS WAS WRITTEN. `useMoveInner` runs `ModifyMove` on the next line and
+   * that was deliberately left owed, because it is a separate and much wider question and a red row
+   * must stay attributable. CONTROL FIX 14 below is that owed batch; the two are landed apart, and
+   * measured apart, for exactly the reason stated here. */
+  /* CONTROL FIX 14 -- RUN `ModifyMove` TOO, AND SET THE ACTIVE MOVE, BECAUSE THE AUTHORITY DOES BOTH
+   * BEFORE IT REACHES THIS ENTRY POINT. 2026-08-23.
+   *
+   * THE FOUR LINES BELOW ARE `sim/battle-actions.ts:426-441` COPIED IN THE AUTHORITY'S OWN ORDER --
+   * setActiveMove, singleEvent ModifyType, singleEvent ModifyMove, runEvent ModifyType, runEvent
+   * ModifyMove. The order is not cosmetic: an ability that retypes in ModifyType and then reads the
+   * new type in ModifyMove (Weather Ball under a private sun is exactly this) answers differently if
+   * the two run in the other order. Written as the authority writes them rather than as they read
+   * best, so a diff against the source is the review.
+   *
+   * WHAT IT FIXES, AND THE PREDICTION THAT WAS MADE BEFORE THE RUN: 17 rows in which SHOWDOWN was
+   * pricing an attacker whose ability had never been consulted. Every one was proven first by
+   * clearing MEDICHAM's attacker ability to `none` and watching MEDICHAM land exactly on the
+   * reference's number -- so the reference was not merely different, it was computing the
+   * no-ability answer. The falsifiable direction is therefore that SHOWDOWN'S column rises to
+   * MEDICHAM'S as-built column and MEDICHAM'S column does not move at all.
+   *
+   *   sheerforce   x11   Camerupt-Mega. `onModifyMove` sets `hasSheerForce`; `onBasePower` reads it.
+   *   moldbreaker  x3    Gyarados-Mega. `onModifyMove` sets `ignoreAbility`, which is what lets the
+   *                      reference through Levitate, Fur Coat and Multiscale as MEDICHAM already did.
+   *   megasol      x2    Meganium-Mega. NOT a ModifyMove handler at all -- it is the `setActiveMove`
+   *                      half. `Pokemon#effectiveWeather` (sim/pokemon.ts) returns the private sun
+   *                      only when `this.battle.activePokemon` is set, and ONLY `runMove` and
+   *                      `tryMoveHit` set it. Recorded separately because a reader will otherwise
+   *                      count five abilities and find four handlers.
+   *   scrappy      x1    Lopunny-Mega. `onModifyMove` sets `ignoreImmunity`, so Normal reaches Ghost.
+   *
+   * WHAT IT DELIBERATELY DOES NOT FIX -- PARENTAL BOND. Kangaskhan-Mega's 8 rows are a THIRD
+   * omission and not this one: `onPrepareHit` is run at sim/battle-actions.ts:591-592, inside
+   * `trySpreadMoveHit` and ABOVE this entry point, and it sets `move.multihit = 2` -- which only
+   * means anything to `hitStepMoveHitLoop`, one level further up still. Adding PrepareHit here would
+   * set the field and change no number. They are handled by SKIP FIX 15 below instead, which is a
+   * SCOPE DECLARATION and not a fix -- said plainly, because it removes rows from the residual.
+   *
+   * BLAST RADIUS, DERIVED not assumed -- `D.abilities.all().filter(legal)` against the format, never
+   * a recalled list: 19 legal abilities carry an `onModifyMove` handler (battlebond gorillatactics
+   * illuminate infiltrator keeneye longreach mindseye moldbreaker myceliummight propellertail
+   * scrappy serenegrace sheerforce skilllink stalwart stancechange stench teravolt turboblaze) and
+   * 8 of the 76 legal megas carry one in slot 0 -- Gyarados/Ampharos/Emboar (Mold Breaker),
+   * Heracross (Skill Link), Skarmory (Stalwart), Camerupt (Sheer Force), Lopunny (Scrappy),
+   * Chandelure (Infiltrator). Everything else has no handler on this event and cannot move.
+   * `onPrepareHit` is a different and much smaller set -- libero, parentalbond, protean -- which is
+   * why the Kangaskhan rows below are not this fix. THE CONTROLS THAT PROVE IT, all four unmoved to the unit across this change:
+   * `tauros bodyslam -> gallade` 94-112 (no handler either side), `aurorus ancientpower -> gallade`
+   * 21-26 (CONTROL FIX 13's own control, kept), `camerupt flashcannon -> gengar` 62-73 (the BASE
+   * forme of a row that does move, so the knob is the ability and not the body) and
+   * `gyarados earthquake -> rotomwash` 0-0 (the base forme, whose Levitate must still hold). */
+  const formeBefore = src.species.name + '|' + tgt.species.name;
+  battle.setActiveMove(move, src, tgt);
   battle.singleEvent('ModifyType', move, null, src, tgt, move, move);
+  battle.singleEvent('ModifyMove', move, null, src, tgt, move, move);
   move = battle.runEvent('ModifyType', src, tgt, move, move);
+  move = battle.runEvent('ModifyMove', src, tgt, move, move);
+  /* CONTROL FIX 8b -- RE-APPLY THE STAT ALIGNMENT, BECAUSE `ModifyMove` CAN CHANGE FORME AND A
+   * FORME CHANGE REWRITES `storedStats`. 2026-08-23, landed in the same pass as CONTROL FIX 14
+   * because CONTROL FIX 14 is what made it possible.
+   *
+   * MEASURED, NOT INFERRED. Marking the reference Aegislash's stats with 999/111 and running the
+   * four lines above returns species `Aegislash-Blade` and stats 160/160 -- STANCE CHANGE's
+   * `onModifyMove` calls `formeChange`, which calls `setSpecies`, which recomputes `storedStats`
+   * from the new base stats and throws CONTROL FIX 8's alignment away. The knob is cleared
+   * explicitly: the same body clicking King's Shield stays `Aegislash` with 999/111 intact, and
+   * Camerupt-Mega, Ditto and Tauros are untouched on the same probe.
+   *
+   * WHAT IT COST WHEN IT WAS NOT HERE: nine rows (`aegislash darkpulse` x5, `aegislash nightdaze`
+   * x4) arrived in the residual reading ~2.5x, which is Blade's 140 special attack against Shield's
+   * 50 and NOT a damage-math disagreement at all. That is exactly the failure CONTROL FIX 8 exists
+   * to stop, arriving through a door it could not see.
+   *
+   * RE-APPLYING IS THE RIGHT REPAIR RATHER THAN SKIPPING THE ROW, because this file's declared
+   * scope is the damage MATH with every other input held equal -- "any disagreement on them was the
+   * EV spread, and any agreement was luck". Whether MEDICHAM's `dmgRange` should price an Aegislash
+   * as Blade is a real question and it is NOT this file's: MEDICHAM applies its forme swaps in the
+   * battle loop, `aegislashblade` is a drawable species in its own right in this pool (116 draws,
+   * zero divergences), and tests/test-mechanics.js is the guard on the mechanic.
+   *
+   * UNCONDITIONAL, per CONTROL FIX 7's rule that clearing is complete where mirroring is a list. The
+   * counter beside it only reports; it does not gate. */
+  if (formeBefore !== src.species.name + '|' + tgt.species.name) {
+    refForme.n++;
+    const k = formeBefore + ' -> ' + src.species.name + '|' + tgt.species.name;
+    refForme.by[k] = (refForme.by[k] || 0) + 1;
+    if (!refForme.first) refForme.first = attName + ' ' + moveName + ' -> ' + defName + '   ' + k;
+  }
+  alignStats();
+  /* SKIP FIX 15 -- AN ABILITY THAT TURNS ONE CLICK INTO TWO PACKETS IS NOT COMPARABLE THROUGH THIS
+   * ENTRY POINT, EXACTLY AS A MULTI-HIT MOVE IS NOT. 2026-08-23.
+   *
+   * THIS IS NOT CONTROL FIX 14 AND IT IS NOT A SECOND HALF OF IT. Parental Bond hangs off
+   * `onPrepareHit`, which the authority runs at sim/battle-actions.ts:591-592 -- inside
+   * `trySpreadMoveHit`, ABOVE this entry point -- and all it does is set `move.multihit = 2`. That
+   * field is read by `hitStepMoveHitLoop` (sim/battle-actions.ts:857), one level higher again.
+   * `moveHit` calls `spreadMoveHit` ONCE and returns; running PrepareHit here would set the field
+   * and change no number at all. So this cannot be repaired by moving the reference up two lines,
+   * only by moving it up two LEVELS, and the two levels above this one also roll accuracy.
+   *
+   * MEDICHAM PRICES THE WHOLE CLICK. `mediHitPlan` returns `{n:2, bondPlan:true,
+   * perHit:{bondMult}}` and `dmgRange` sums both packets, which is the same quantity it returns for
+   * Rock Blast -- and the file already skips Rock Blast, for this identical reason, with the reason
+   * written out at MULTIHIT. Measured: `kangaskhanmega fakeout -> pinsir` reads 37-45 from one
+   * reference packet against MEDICHAM's 44-55 for one-plus-a-quarter. Neither engine is wrong; the
+   * comparison is putting two different quantities side by side.
+   *
+   * WHAT THIS COSTS, STATED RATHER THAN BURIED: Parental Bond leaves this file's surface entirely,
+   * and tests/test-mechanics.js is then the ONLY guard on the mechanic -- said out loud so nobody
+   * deletes it believing the differential covers it. The rows are COUNTED, NAMED and CARRIED INTO
+   * THE ARTIFACT, never silently dropped; a skip that exists only in a console line is a silent
+   * default one terminal-clear later.
+   *
+   * THE PROBE RUNS ON A THROWAWAY COPY. `getActiveMove` hands back a fresh object, so asking the
+   * authority's own handler whether IT would bond this move cannot perturb the move that is about
+   * to be compared. Membership is the `hitsTwice` tag (one member today, printed before use); the
+   * per-move exceptions are the authority's to answer and are not restated here. */
+  if (src.ability && HITSTWICE.has(src.ability)) {
+    const ab = battle.dex.abilities.get(src.ability);
+    if (ab && ab.exists && typeof ab.onPrepareHit === 'function') {
+      const probe = battle.dex.getActiveMove(moveName);
+      try { battle.singleEvent('PrepareHit', ab, src.abilityState, tgt, src, probe); }
+      catch (e) { logDroppedRow('showdown bond probe ' + attName + ' ' + moveName, e); }
+      if (probe.multihit && !battle.dex.moves.get(moveName).multihit) return ABILITY_MULTIHIT;
+    }
+  }
   /* Ask the defender's ability its OWN TryHit question, which moveHit below will not. Only for the
    * abilities the artifact says answer it -- everything else pays nothing. A null or false from the
    * handler is the ability saying "this move does not happen to me", which is zero damage. */
@@ -537,6 +731,22 @@ console.log('  ' + [...ONTRYHIT_IMMUNE].sort().map(a =>
     + (hitReaders.join(' ') || 'none'));
   console.log('DERIVED — corpus multi-hit moves, SKIPPED because MEDICHAM prices an expectation and '
     + 'one moveHit call is one sample:\n  ' + [...MULTIHIT].sort().join(' '));
+  /* CONTROL FIX 16's map, printed before it is used. A member here silently REPLACES the body a row
+   * was drawn for, so an over-match would be invisible in the residual and visible only here. */
+  console.log('DERIVED — battle-only weather formes, RESOLVED to the ability\'s own revertsTo because '
+    + 'this file\'s\n  sky is always empty and such a body cannot stand in one:\n  '
+    + ([...WEATHER_FORME.entries()].map(([k, v]) => k + ' -> ' + v.to + ' (' + v.ability + ')').join('\n  ')
+       || 'none'));
+  /* SKIP FIX 15's membership, printed before it is used and with its carriers named, because a set
+   * that quietly grew a member would quietly remove rows from the residual. */
+  console.log('DERIVED — abilities that make ONE click TWO packets (hitsTwice), whose rows are '
+    + 'SKIPPED for the same reason:\n  ' + ([...HITSTWICE].sort().map(a => {
+        const carriers = species.filter(s => {
+          const sp = dex.species.get(s);
+          return sp.exists && String(sp.abilities['0'] || '').toLowerCase().replace(/[^a-z0-9]/g, '') === a;
+        });
+        return a + ' (carried by ' + (carriers.join(' ') || 'no drawable attacker') + ')';
+      }).join('\n  ') || 'none'));
   /* CONTROL FIX 12's set, printed before it is used, with its probability and multiplier, so that an
    * over-match is readable by eye rather than trusted. A member here costs two extra Showdown battles
    * per row and is compared on BOTH faces of its die. */
@@ -651,6 +861,15 @@ function compareRow(attId, mvId, defId) {
       skipped.moves[mvId] = (skipped.moves[mvId] || 0) + 1;
       return null;
     }
+    /* SKIP FIX 15 -- counted under its OWN name, never pooled with the non-finite skip above. "The
+     * reference produced a nonsense number" and "the two engines are pricing different numbers of
+     * packets" are different conditions and a single counter would describe neither. */
+    if (hi === ABILITY_MULTIHIT || lo === ABILITY_MULTIHIT) {
+      skippedBond.n++;
+      skippedBond.moves[mvId] = (skippedBond.moves[mvId] || 0) + 1;
+      skippedBond.abilities[A.ability] = (skippedBond.abilities[A.ability] || 0) + 1;
+      return null;
+    }
     if (hi == null || lo == null) return null;
     /* THE PLANT, APPLIED TO MEDICHAM'S RANGE AND NOTHING ELSE. Symmetric by construction, so
      * `(min+max)/2` is untouched to the floating-point bit and the midpoint arm cannot see it. */
@@ -761,8 +980,19 @@ const caseArg = process.argv[process.argv.indexOf('--case') + 1];
 if (process.argv.includes('--case') && caseArg) {
   for (const one of caseArg.split(';')) {
     const [a, mv, d] = one.split(',').map(s => s.trim());
+    /* SAY WHICH KIND OF "no answer" THIS IS. One message for four different conditions is the shape
+     * this file keeps being burned by: a row skipped BY DESIGN read identically to a row whose
+     * species does not exist, and `--case` is the mode a fix gets checked in. The counters are the
+     * same ones the run prints, read either side of the call so nothing new has to be trusted. */
+    const b0 = skippedBond.n, m0 = skippedMulti.n, s0 = skipped.n;
     const r = compareRow(a, mv, d);
-    if (!r) { console.log(`  ${one}  -> NOT COMPARABLE (unknown id, no base power, or buildMon refused)`); continue; }
+    if (!r) {
+      const why = skippedBond.n > b0 ? 'SKIPPED — the attacker\'s ability makes this two packets (SKIP FIX 15)'
+                : skippedMulti.n > m0 ? 'SKIPPED — multi-hit move, one moveHit call is one sample'
+                : skipped.n > s0 ? 'SKIPPED — Showdown returned a non-finite damage'
+                : 'NOT COMPARABLE (unknown id, no base power, or buildMon refused)';
+      console.log(`  ${one}  -> ${why}`); continue;
+    }
     console.log(`  ${a.padEnd(14)}${mv.padEnd(16)}-> ${d.padEnd(14)}` +
       ` showdown ${r.showdown.padStart(9)}   medicham ${r.medicham.padStart(9)}` +
       `   rel ${(100 * r.rel).toFixed(1)}%   ${r.rel <= 0.12 ? 'AGREE' : 'DISAGREE'}` +
@@ -901,6 +1131,27 @@ console.log(`  comparisons whose move has a basePowerCallback: ${touched.bpCallb
 console.log(`  rows skipped as MULTI-HIT (not comparable through moveHit): ${skippedMulti.n}`
   + (skippedMulti.n ? '   ' + Object.entries(skippedMulti.moves).sort((a, b) => b[1] - a[1])
       .map(([id, n]) => id + ' x' + n).join(' ') : ''));
+/* SKIP FIX 15, PRINTED UNCONDITIONALLY INCLUDING THE ZERO, for the same reason as CONTROL FIX 8b's
+ * line: a zero means no bonded row was drawn on this run, which is not the same claim as "the skip
+ * is unnecessary". These rows LEAVE the residual, so they must be the loudest thing on the page. */
+console.log(`  rows skipped because the ATTACKER'S ABILITY makes the click two packets: ${skippedBond.n}`
+  + (skippedBond.n ? '   ' + Object.entries(skippedBond.abilities).map(([a, n]) => a + ' x' + n).join(' ')
+      + '\n    moves: ' + Object.entries(skippedBond.moves).sort((a, b) => b[1] - a[1])
+        .map(([id, n]) => id + ' x' + n).join(' ')
+      + '\n    MEDICHAM prices both packets and one moveHit call is one packet. Same reason the'
+      + '\n    multi-hit MOVES above are skipped. tests/test-mechanics.js is now the ONLY guard.' : ''));
+/* CONTROL FIX 16, PRINTED UNCONDITIONALLY INCLUDING THE ZERO. This counts `mediBody` CALLS, not
+ * rows -- the pool filter builds every species once and a compared row builds two -- so it is a
+ * usage signal, not a row count. A zero means no weather forme was drawn and the fix is untested by
+ * this run. */
+console.log(`  MEDICHAM bodies resolved out of a battle-only WEATHER FORME (mediBody calls): ${weatherForme.n}`
+  + (weatherForme.n ? '\n' + Object.entries(weatherForme.by).sort((a, b) => b[1] - a[1])
+      .map(([k, n]) => '    x' + String(n).padEnd(5) + k).join('\n') : ''));
+/* CONTROL FIX 8b, PRINTED UNCONDITIONALLY INCLUDING THE ZERO. A zero means the re-alignment did
+ * nothing on this run and is UNTESTED by it, which is a different claim from "it is not needed". */
+console.log(`  reference bodies that CHANGED FORME under ModifyMove (stat alignment re-applied): ${refForme.n}`
+  + (refForme.n ? '\n' + Object.entries(refForme.by).sort((a, b) => b[1] - a[1])
+      .map(([k, n]) => '    x' + String(n).padEnd(5) + k).join('\n') : ''));
 /* ROWS DROPPED BECAUSE SOMETHING THREW. Printed unconditionally, including the zero: "0 rows were
  * dropped by an exception" is a claim worth being able to read, and a line that only appears when
  * it is non-zero cannot be distinguished from a line nobody wrote. */
@@ -991,6 +1242,29 @@ const PUBLISHED = GUARD.publish({
    * silent default one terminal-clear later. */
   skipped_non_finite: skipped.n, skipped_moves: skipped.moves,
   skipped_multihit: skippedMulti.n, skipped_multihit_moves: skippedMulti.moves,
+  /* CONTROL FIX 16 -- MEDICHAM bodies resolved out of a battle-only weather forme. Carried so a
+   * reader can see that a `castformsnowy` row was really compared as a base Castform, which is what
+   * BOTH engines do the moment such a body stands in an empty sky. */
+  weather_forme_resolved: weatherForme.n, weather_forme_by: weatherForme.by,
+  weather_forme_why: 'This file\'s field is an empty sky by construction, and a Forecast body cannot '
+          + 'stand in one -- Showdown reverts Castform-Snowy to Castform at switch-in and MEDICHAM\'s '
+          + 'battleInit runs the same reconciliation (Normal in no sky, Ice behind an Abomasnow, Fire '
+          + 'behind a Torkoal). The harness alone skipped it, because it calls buildMon and dmgRange '
+          + 'with no field between them. Resolved on the SPECIES KEY via the ability\'s own revertsTo; '
+          + 'the type map is never restated here.',
+  /* CONTROL FIX 8b -- rows where the REFERENCE changed forme under ModifyMove and had CONTROL FIX
+   * 8's stat alignment re-applied. Carried so the repair is auditable from the artifact alone. */
+  ref_forme_changed: refForme.n, ref_forme_by: refForme.by, ref_forme_first: refForme.first || null,
+  /* SKIP FIX 15 -- rows the ATTACKER'S ABILITY turns into two packets. They leave the residual, so
+   * the artifact carries the count, the abilities and the moves rather than only a console line. */
+  skipped_ability_multihit: skippedBond.n, skipped_ability_multihit_abilities: skippedBond.abilities,
+  skipped_ability_multihit_moves: skippedBond.moves,
+  skipped_ability_multihit_why: 'MEDICHAM\'s dmgRange prices the WHOLE click (both Parental Bond '
+          + 'packets, summed) and one battle.actions.moveHit call is ONE packet. That is the same '
+          + 'mismatch the multi-hit MOVES are skipped for, arriving through the attacker\'s ability '
+          + 'instead of the move. Membership is DERIVED from the hitsTwice tag and the authority\'s '
+          + 'own onPrepareHit handler decides per move. tests/test-mechanics.js is the only '
+          + 'remaining guard on the mechanic.',
   /* Five catch blocks used to drop a row and say nothing, which shrank the DENOMINATOR of the
    * headline residual without shrinking the claim built on it. */
   dropped_by_exception: errs.n, dropped_where: errs.where,
