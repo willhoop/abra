@@ -311,6 +311,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * absorbed it. Reads zero on any board without one, and a rise is a fact about the doll, not an
    * error. */
   selfKOLineFromBackstop: 0,
+  /* ROADMAP #331, THE `always` HALF -- USERS KILLED AT sim/battle-actions.ts:500, WHICH IS ABOVE THE
+   * WHOLE HIT AND THEREFORE ABOVE THE SHIELD. THE NOUN: it counts USERS spent by their own
+   * `selfdestruct: 'always'` move at that site, once per action -- never targets, never `|faint|`
+   * lines. It is a DIFFERENT site from `selfKOAtDamageCallback` (which is Final Gambit's
+   * `damageCallback`, inside the damage step) and the two can never both rise on one action.
+   * It rises for a move that is BLOCKED and for a move that is IMMUNE -- that is the whole point of
+   * the site -- and reads ZERO when Damp refused the move above it, because Damp's `onAnyTryMove`
+   * returns before :500. */
+  selfKOAlwaysAboveTheHit: 0,
+  /* ROADMAP #331 -- the subset of those whose `|faint|` line was written on the FULLY-SHIELDED early
+   * exit, where no target survived the shield loop so the step list never ran and WIRE 46's backstop
+   * is never reached either. Reads zero on any board where at least one body was still standing after
+   * the shields; a rise is a fact about the shield, not an error. */
+  selfKOLineFromShieldExit: 0,
   /* 2026-08-22 -- ENTRY-ORDER PAIRS SEPARATED BY PRIORITY RATHER THAN BY SPEED. THE NOUN: it counts
    * COMPARISONS in which the two bodies carried DIFFERENT `onSwitchInPriority` values, so the sort
    * returned on the priority key and never consulted speed. Not entrants, not turns, and not "a
@@ -19942,6 +19956,80 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(TR)TR.dmg(m,'[from] '+a.move.id);
         if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
       };
+      /* ROADMAP #331 -- THE USER'S OWN FAINT IS QUEUED DURING THE MOVE AND ANNOUNCED AFTER IT, and
+       * holding those two apart is the whole fix. `Pokemon#faint()` (sim/pokemon.ts:1587-1598) sets
+       * hp to 0 and PUSHES onto `faintQueue`; it writes nothing. The `|faint|` lines are written
+       * later, by `faintMessages()`, in queue order. So a self-KO that happens early does NOT print
+       * early -- it prints FIRST, after the target's `|-damage|`. Measured, both halves, on
+       * `tests/test-resolution-order.js a3-gambit-red`: emitting the line at the callback put it one
+       * line ABOVE the authority's `|-damage|p2a: Weavile|0 fnt`, which is the same defect mirrored.
+       * `true` means "the user is dead and its line is still owed".
+       *
+       * DECLARED HERE, ABOVE THE SHIELD, BECAUSE THE `always` SITE BELOW IS ABOVE THE SHIELD. It used
+       * to be declared beside `dealt`, several hundred lines down, which was low enough for the
+       * `ifHit` site inside `_stepApply` and is not low enough for this one. */
+      let _selfKOPending=false;
+      /* ================= ROADMAP #331, THE `always` HALF -- THE USER DIES ABOVE THE WHOLE HIT ======
+       *
+       * THE AUTHORITY'S SITE, READ RATHER THAN RECALLED (sim/battle-actions.ts:500-502, inside
+       * `useMoveInner`, and the surrounding lines are what make the position load-bearing):
+       *
+       *     :485  let tryMoveResult = singleEvent('TryMove', ...); ... if (!tryMoveResult) return;   <- DAMP
+       *     :493  singleEvent('UseMoveMessage', ...)
+       *     :500  if (this.battle.gen !== 4 && move.selfdestruct === 'always')
+       *     :501      this.battle.faint(pokemon, pokemon, move);
+       *     :510  if (!targets.length) { add('-fail', pokemon); return false; }
+       *     :516  moveResult = this.trySpreadMoveHit(targets, pokemon, move);                        <- THE HIT
+       *
+       * So the user is spent ABOVE `trySpreadMoveHit`, which means above the Protect step, above type
+       * immunity, above the accuracy roll and above the no-legal-target return. A blocked Explosion
+       * still costs its user; an Explosion into a Ghost still costs its user; and Damp -- which is
+       * `onAnyTryMove` and answers at :485 -- is the ONE thing that stops it, which is why WIRE 46's
+       * Damp block several hundred lines above this one has to keep its `continue`.
+       *
+       * MEASURED RED FIRST, `tests/test-resolution-order.js a3-boom-probe`, Metagross booming into a
+       * Weavile with its own partner behind a Protect:
+       *     showdown  |faint|p1a: Metagross   |faint|p2a: Weavile
+       *     medicham  |faint|p2a: Weavile     |faint|p1a: Metagross
+       * two adjacent lines in the opposite order, on 43 + 16 + 6 corpus uses.
+       *
+       * `m.fainted` IS THIS ENGINE'S SPELLING OF `pokemon.hp === 0`, AND THAT IS THE WHOLE RIPPLE.
+       * The authority leaves `fainted` false and `isActive` true until `faintMessages()` drains the
+       * queue, so between :500 and the end of the hit the user is a body at ZERO HP that is still on
+       * the field. Every authority guard that could act on it in that window tests the HP and not the
+       * flag -- `Battle#spreadDamage` opens `if (!target || !target.hp) { retVals[i] = 0; continue; }`,
+       * `Battle#heal` opens `if (!target?.hp) return false;`, `Battle#boost` opens
+       * `if (!target?.hp) return 0;` -- so a 0-HP user takes no toll, heals nothing and boosts
+       * nothing. medicham2 has no "0 HP but active" state and does not need one: `!m.fainted` is the
+       * gate on every one of those blocks already, so setting the flag here reproduces all three
+       * guards at once. The two that were NOT gated are fixed in this same pass and named below.
+       *
+       * WHAT ACTUALLY CHANGES, DERIVED FROM THE THREE MOVES' OWN DATA RATHER THAN IMAGINED:
+       *   - `flags.contact` is ABSENT on all three (explosion, selfdestruct, mistyexplosion), so the
+       *     Spiky Shield toll and the Baneful Bunker poison -- both `if
+       *     (this.checkMoveMakesContact(...))` in their own conditions -- cannot fire for this family
+       *     at all. The `!m.fainted` guard added to the shield's punish below is the authority's
+       *     `spreadDamage` guard written down; it is UNOBSERVABLE for these three and it is there so
+       *     that a contact member arriving later does not toll a corpse.
+       *   - `boostsOnKO` (Moxie's family) was ALREADY gated on `!m.fainted` in `_stepFaint`, which is
+       *     `Battle#boost`'s `!target?.hp` and is now load-bearing rather than incidental.
+       *   - THE LIFE ORB TOLL WAS NOT GATED AND IS THE ONE REAL RIPPLE. It sat below the hit with no
+       *     HP test, so an exploding Life Orb holder paid a tenth of its maximum AFTER the authority
+       *     had already put it on zero -- a `-damage ... [from] item: Life Orb` line the authority
+       *     does not write, plus a second `|faint|`. Gated below, and staged as its own arm.
+       *   - NOTHING ELSE IN THIS FAMILY'S PROFILE IS REACHABLE: none of the three carries recoil,
+       *     drain, a self-drop, a recharge, a lock-in, a pivot or a secondary.
+       *
+       * THE `|faint|` LINE IS STILL OWED RATHER THAN WRITTEN, exactly as the `ifHit` site owes it --
+       * `battle.faint()` emits nothing and `faintMessages()` writes the line later. Three drains, and
+       * they are mutually exclusive: `_stepFaint` (the ordinary path), the fully-shielded early exit
+       * below (no row survives the shield, so no step ever runs), and WIRE 46's backstop (a
+       * Substitute ate the hit and `_stepApply` returned above the faint step). */
+      {
+        const _ufA=TAGS.param('move',a.move.id,'userFaints');
+        if(_ufA&&_ufA.faints==='always'&&!m.fainted){
+          m.curHP=0;m.fainted=true;_selfKOPending=true;MEDSEEN.selfKOAlwaysAboveTheHit++;}
+      }
       /* ROADMAP #81 WIRE 1 -- STEP 1: THE SHIELD, HOISTED OUT OF THE DAMAGE LOOP AND ABOVE THE ROLL.
        *
        * A PROTECT BLOCK AND A TYPE IMMUNITY ARE DIFFERENT STATES and this engine could not tell them
@@ -19976,7 +20064,16 @@ function battleTurn(S,rng,actsForA,actsForB){
            * Protect-family move sets it. Contact is asked of the same helper Rough Skin uses. */
           if(TR)TR.act(tg,'move: Protect');
           const _pc=TAGS.param('move',tg._protectMove,'punishesContact');
-          if(_pc&&_pc.onContact&&mvMakesContact(a.move.id,m)){
+          /* ROADMAP #331 -- `!m.fainted` IS `spreadDamage`'s OWN `if (!target || !target.hp)`, AND IT
+           * IS HERE FOR A CASE THIS FAMILY CANNOT REACH. The `selfdestruct: 'always'` site above puts
+           * the user on zero BEFORE the shield answers, so a shield that tolled would be tolling a
+           * corpse -- but all three members (explosion, selfdestruct, mistyexplosion) carry NO
+           * `flags.contact`, derived from the move table and not recalled, and both punishes are
+           * `if (this.checkMoveMakesContact(...))`. So this guard changes no board today and is
+           * DECLARED unobservable rather than claimed as a fix; it exists so the first contact member
+           * of the family does not write a `-damage` and a second `|faint|` the authority never
+           * writes. The status and boost punishes one line down already carried it. */
+          if(_pc&&_pc.onContact&&mvMakesContact(a.move.id,m)&&!m.fainted){
             if(_pc.fraction){m.curHP-=Math.floor(m.st.hp/(+_pc.fraction));
               if(TR)TR.dmg(m,'[from] move: '+tg._protectMove,tg);
               if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
@@ -19997,7 +20094,16 @@ function battleTurn(S,rng,actsForA,actsForB){
          `false`, so `atLeastOneFailure` stays false and battle-actions.ts:616 writes null. A Stomping
          Tantrum thrown into a Protect therefore does NOT double next turn, while one that MISSED
          does. Read off the source rather than reasoned about, because every intuition here is wrong. */
-      if(_hadTargets&&!targets.length){m._mvRes=null;_crashOnFail();continue;}
+      /* ROADMAP #331 -- AND THE FULLY-SHIELDED EXIT OWES THE `always` FAMILY ITS `|faint|` LINE.
+       * This `continue` leaves several hundred lines above both `_stepFaint` and WIRE 46's backstop,
+       * so an Explosion every adjacent body shielded would set the state and print nothing at all --
+       * a body silently missing from the board, which is worse than the ordering defect being fixed.
+       * The authority reaches it through `faintMessages()` in `runAction`'s tail, after
+       * `trySpreadMoveHit` has returned false. Counted separately from the backstop because "no target
+       * survived the shield" and "a Substitute ate the hit" are different facts. */
+      if(_hadTargets&&!targets.length){
+        if(_selfKOPending){_selfKOPending=false;MEDSEEN.selfKOLineFromShieldExit++;if(TR)TR.faint(m);}
+        m._mvRes=null;_crashOnFail();continue;}
       /* ROADMAP #81 WIRE 10 -- THE ACCURACY ROLL IS STEP 4, AND IT USED TO SIT HERE, AT STEP 0.
        *
        * Showdown's `moveSteps` (sim/battle-actions.ts:555-577) runs invulnerability, TryHit, type
@@ -20007,15 +20113,8 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the move into a miss. The whole block below now lives in `_stepAccuracy`, in the step list,
        * with its own comments carried down with it. */
       let dealt=0,connected=false;
-      /* ROADMAP #331 -- THE USER'S OWN FAINT IS QUEUED DURING THE MOVE AND ANNOUNCED AFTER IT, and
-       * holding those two apart is the whole fix. `Pokemon#faint()` (sim/pokemon.ts:1587-1598) sets
-       * hp to 0 and PUSHES onto `faintQueue`; it writes nothing. The `|faint|` lines are written
-       * later, by `faintMessages()`, in queue order. So a self-KO that happens early does NOT print
-       * early -- it prints FIRST, after the target's `|-damage|`. Measured, both halves, on
-       * `tests/test-resolution-order.js a3-gambit-red`: emitting the line at the callback put it one
-       * line ABOVE the authority's `|-damage|p2a: Weavile|0 fnt`, which is the same defect mirrored.
-       * `true` means "the user is dead and its line is still owed". */
-      let _selfKOPending=false;
+      /* `_selfKOPending` USED TO BE DECLARED HERE and is now declared above the shield, because the
+       * `always` site is above the shield. See its declaration for why. */
       /* ROADMAP #72 -- DID A SUBSTITUTE EAT IT. `connected` is deliberately true when a doll absorbed
        * the hit (it is set above the substitute's early return), which is right for every consumer it
        * already has -- but "the move connected" and "the move reached the BODY" are two different
@@ -22886,7 +22985,18 @@ function battleTurn(S,rng,actsForA,actsForB){
        * MEDI_MULTIHIT_ONE_INDEX and MEDI_SLEEP_WAKE_COIN. It announces itself in MEDFAILS so a run
        * carrying the old behaviour can never be mistaken for a run carrying the fix. */
       if(ORB_STALE_RANGE)MEDFAILS.orbStaleRangeRestored=1;
-      if(_loC&&_reached>0&&!TAGS.has('move',a.move.id,'statusCategory')
+      /* ROADMAP #331 -- `!m.fainted` IS THE AUTHORITY'S `spreadDamage` GUARD AND IT WAS THE ONE
+       * MISSING GATE ON THIS BLOCK. The toll is `this.damage(source.baseMaxhp / 10, source, source,
+       * item)` (data/items.ts lifeorb `onAfterMoveSecondarySelf`), and `Battle#spreadDamage` opens
+       * `if (!target || !target.hp) { retVals[i] = 0; continue; }` -- so a user already on zero pays
+       * NOTHING and no `-damage` line is written. Two ways to reach zero here: the
+       * `selfdestruct: 'always'` site above the hit (Explosion, Self-Destruct, Misty Explosion --
+       * 21,257 Life Orb sheets, so the pairing is not hypothetical), and an ordinary recoil that
+       * killed the user twenty lines up, which this block would then have tolled a second time and
+       * announced a SECOND `|faint|` for. Both were wrong before this line and neither had a probe;
+       * `tests/test-resolution-order.js a3-boom-lifeorb-red` is the arm, with a non-selfdestructing
+       * Life Orb click on the same board as the over-fire control. */
+      if(_loC&&_reached>0&&!m.fainted&&!TAGS.has('move',a.move.id,'statusCategory')
          &&!(ORB_STALE_RANGE&&!(a.move.d&&a.move.d.max>0))){
         const _ros2=TAGS.param('ability',m.ability,'removesOwnSecondaries');
         const _sfB=_ros2&&(()=>{const f=moveFx(a.move.id);return !!(f&&f.secondary&&f.secondary.length);})();
@@ -23041,7 +23151,16 @@ function battleTurn(S,rng,actsForA,actsForB){
          is Explosion, Self-Destruct and Misty Explosion; `faints:'ifHit'` is Final Gambit, Memento and
          Healing Wish, which only pay if the move connected. The split is the artifact's.
          Placed AFTER recoil, drain and Life Orb so the whole turn resolves off a living body first --
-         a Final Gambit that drains would otherwise heal a corpse. */
+         a Final Gambit that drains would otherwise heal a corpse.
+
+         ROADMAP #331 -- THE `always` CLAUSE BELOW NO LONGER FIRES AND IS KEPT AS A GUARD RATHER THAN
+         AS A PATH. Explosion, Self-Destruct and Misty Explosion are spent at the authority's own site,
+         several hundred lines up and ABOVE the whole hit (see `selfKOAlwaysAboveTheHit`), so `m.fainted`
+         is already true by the time control reaches here and the `!m.fainted` test refuses it. Deleting
+         the clause would leave `faints:'always'` with no reader at all in this branch if that site is
+         ever moved or broken; leaving it means a regression there degrades to the OLD position instead
+         of to no faint at all. It is stated here because a clause that never fires and a clause that
+         fires are indistinguishable from the outside, which is this project's signature failure. */
       {
         const _uf=TAGS.param('move',a.move.id,'userFaints');
         /* `|faint|` ALONE -- see the twin site in the `affect` branch. `battle.faint()` reaches

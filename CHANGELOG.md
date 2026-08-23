@@ -10,6 +10,59 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.76.0] — 2026-08-22
+
+### Fixed
+- **THE `always` SELF-DESTRUCT FAMILY — Explosion (43 uses), Self-Destruct (16), Misty Explosion (6).**
+  The authority faints the user at `sim/battle-actions.ts:499`, **above the whole hit and therefore above
+  the Protect step**, so the user is at 0 HP for the entire resolution. We wrote the user's faint after
+  the target's. `a3-boom-probe` is **green and RED PROVEN — it kept its id and its board** and parts
+  again under a surgical revert of exactly this fix; it was not relabelled or deleted.
+  `tests/test-resolution-order.js`: **15 arms / 2 KNOWN-OPEN → 26 arms / 1 KNOWN-OPEN / 0 failing.**
+  Census **629 live / 0 missing → 630 / 0**, the new row being `move/userFaints`, written as the
+  deliberate twin of the Final Gambit row: its control asserts the **opposite** outcome, because an
+  `ifHit` move behind a Protect costs its user nothing while an `always` move behind a Protect kills it
+  anyway.
+- **THE TWO RIPPLES NAMED IN THE BRIEF WERE BOTH VACUOUS, AND THAT WAS DERIVED RATHER THAN ASSUMED.**
+  `boostsOnKO` was already gated on `!m.fainted`. Spiky Shield's toll and Baneful Bunker's poison
+  **cannot** fire here at all: none of the three moves carries the `contact` flag and both punishes are
+  `if (this.checkMoveMakesContact(...))`. **The real ripple was somewhere neither of us named** — the
+  **Life Orb toll had no HP gate**, so an exploding holder paid a tenth of its maximum *after* the
+  authority had already put it on zero, and emitted a second `|faint|`. `orbTollPaid` reads 0 clean and
+  1 under the break, with 1/1 on the over-fire control. On the fully-shielded board the defect was worse
+  than the ordering bug it was found beside: **the user did not faint at all.**
+
+### Changed
+- **`CLAUDE.md`'s claim that "Damp fires in Showdown and not here" is STALE and is annotated rather than
+  edited out.** Damp is implemented at WIRE 46 and **both engines refuse the move identically**,
+  asserted at exact zero, with a knob-cleared control — the same Swampert carrying Torrent instead of
+  Damp — moving the counter 0 → 1, so the instrument demonstrably could have seen a difference. The
+  paragraph is dated 2026-08-08 evidence and a dated claim is not rewritten in place; the other three
+  items in that sentence were **not** re-checked and are not claimed fixed.
+
+### Notes
+- **THE SHARPEST RESULT IN THE PASS IS NOT THIS FIX, AND IT CAME OUT OF WILL'S OWN SCENARIO LIST.** He
+  asked for "KOs everything on the field with no Pokémon in the back". Showdown's
+  `checkWin` (`sim/battle.ts:2603`) reads
+  `this.win(faintData && this.gen > 4 ? faintData.target.side : null)` — **a Gen-5+ simultaneous double
+  wipe is NOT a draw; the side whose body fainted LAST wins.** medicham2's `battleResult` scores 0-vs-0
+  as **0.5**. Verified in the checkout. This is a WINNER-deciding disagreement, not a line-order one.
+  - **It is NOT this fix and is not being fixed here:** the disagreement is byte-identical clean and
+    under the break, so it belongs to `battleResult`, not to the self-KO position. Declared as
+    KNOWN-OPEN board `w3-simultaneous`; it needs its own batch and its own register row.
+- **Four probe errors were caught before they became engine verdicts** — two BREAK-SILENT arms staging
+  no faint at all; **both Ghost arms accidentally fully shielded, one of which reported RED PROVEN off a
+  mechanism it was not staging**; and `battle.winner` read as a side id, which scored two of three
+  boards WINNER DIFFERS on a run where both engines had emptied the same side. That is the fourth pass
+  tonight in which the instrument was wrong before the engine was.
+- **The whole-game differential is a NULL RESULT and its reason is printed rather than left implicit:**
+  same pinned pool `6630c23f39e3`, same pinned census, only `--release` varied — 176 games / 40 diverged
+  on both arms, **byte-identical**. Only **79 of the 17,381 frozen-pool games mention the family at all
+  (0.45%)**, so a 176-game sample containing none of it is the expected outcome, not evidence of
+  nothing having changed.
+
+---
+
 ## [5.75.0] — 2026-08-22
 
 ### Fixed

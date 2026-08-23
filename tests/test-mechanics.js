@@ -10478,6 +10478,66 @@ probe('move', 'userFaints', 'Final Gambit writes the USER\'s faint before the TA
                  + 'nothing, so an engine that fainted the user unconditionally fails here' };
 });
 
+/* ROADMAP #331, THE `always` HALF — THE TWIN OF THE PROBE ABOVE, AT A DIFFERENT AUTHORITY SITE.
+ *
+ * Final Gambit is `selfdestruct: 'ifHit'` and is spent by its own `damageCallback`, INSIDE the damage
+ * step. Explosion, Self-Destruct and Misty Explosion are `'always'` and are spent at
+ *     if (this.battle.gen !== 4 && move.selfdestruct === 'always') this.battle.faint(pokemon, ...);
+ *     sim/battle-actions.ts:500-502, inside useMoveInner
+ * which is ABOVE `trySpreadMoveHit` — above the Protect step, above type immunity, above the accuracy
+ * roll and above the no-legal-target return at :510. So the user is on `faintQueue` before any target
+ * is touched, exactly as Final Gambit is, but for a different reason and through a different door.
+ *
+ * MEASURED RED on 2026-08-22 through tests/test-resolution-order.js `a3-boom-probe`, which plays the
+ * same shape on the official simulator and compares two protocol streams with nothing typed:
+ *     showdown  |faint|p1a: Metagross   |faint|p2a: Weavile
+ *     medicham  |faint|p2a: Weavile     |faint|p1a: Metagross
+ * 43 + 16 + 6 corpus uses. This probe is the single-engine half of that arm.
+ *
+ * THE CONTROL IS THE OPPOSITE OF THE ONE ABOVE, AND THAT IS THE WHOLE POINT OF HAVING BOTH. Final
+ * Gambit behind a Protect costs its user NOTHING, because `ifHit` is spent below every refusal.
+ * Explosion behind a Protect STILL KILLS ITS USER, because `always` is spent above every refusal. So
+ * the two probes assert opposite outcomes on the same-shaped board, and an engine that collapsed the
+ * two `faints` values into one rule fails exactly one of them whichever way it collapsed.
+ *
+ * THE ALLY AND THE SECOND FOE ARE MADE UNFAINTABLE, because `allAdjacent` reaches three bodies and a
+ * count of `|faint|` lines is only readable if the fixture decides who may die. Weavile is the only
+ * body left able to fall, so `2` means "the user and the one it killed" and nothing else. */
+probe('move', 'userFaints', 'Explosion writes the USER\'s faint first, and pays it even into a Protect', () => {
+  const run = (shield) => {
+    const { me, ally, f1, f2, S } = board('metagross', 'incineroar', 'weavile', 'corviknight');
+    unfaintable(ally); unfaintable(f2);
+    const trace = []; S._trace = trace;
+    const before = M.seen.selfKOAlwaysAboveTheHit;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'explosion', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, shield ? M.playerAction(f1, 'protect', f1, S.field) : { kind: 'pass' }],
+               [f2, { kind: 'pass' }]]));
+    const faints = trace.filter(l => /^\|faint\|/.test(l));
+    return { faints, userHP: me.curHP, foeHP: f1.curHP, foeFull: f1.st.hp,
+             spent: M.seen.selfKOAlwaysAboveTheHit - before };
+  };
+  const control = run(true), test = run(false);
+  return { works: test.faints.length === 2
+                  && /^\|faint\|p1a:/.test(test.faints[0])      /* the USER, and it is first */
+                  && /^\|faint\|p2a:/.test(test.faints[1])      /* the target it just killed */
+                  && test.userHP === 0 && test.foeHP === 0 && test.spent === 1
+                  /* BEHIND A PROTECT the user dies ANYWAY and the target is untouched */
+                  && control.faints.length === 1
+                  && /^\|faint\|p1a:/.test(control.faints[0])
+                  && control.userHP === 0 && control.foeHP === control.foeFull
+                  && control.spent === 1,
+           arms: { control: control.faints.length + ' faint / foe ' + control.foeHP + '/' + control.foeFull,
+                   test: test.faints.length + ' faints / foe ' + test.foeHP + '/' + test.foeFull },
+           detail: 'Metagross Explosion into a Weavile, ally and second foe made unfaintable. OPEN — ['
+                 + test.faints.join('  ') + '], so the USER comes out of the queue ahead of the body it '
+                 + 'killed. BEHIND A PROTECT — [' + control.faints.join('  ') + '] and the foe is on '
+                 + control.foeHP + '/' + control.foeFull + ': `always` is spent above the shield, so a '
+                 + 'blocked boom still costs its user — the exact opposite of the Final Gambit control, '
+                 + 'which must show NO faint at all. Users spent at the :500 site — open ' + test.spent
+                 + ', blocked ' + control.spent };
+});
+
 /* WIRE 87. Order, not magnitude: Showdown drains INSIDE the move and pays the contact toll after, so
  * a full-HP drain move into Rough Skin gains nothing and still pays. medicham2 tolled first and then
  * healed the toll straight back. Only visible from FULL HP, which is why a matrix found it. */

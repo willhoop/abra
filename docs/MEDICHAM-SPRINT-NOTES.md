@@ -11382,3 +11382,56 @@ hazard CLAUDE.md already records** — a leftover scratchpad script that ran and
 "execute nothing in the scratchpad you did not write this session" did not cover it, because the script
 WAS written this session. The missing property is idempotence: this note's script refuses if its own
 heading is already present.
+
+---
+
+## 2026-08-22 — A SIMULTANEOUS DOUBLE WIPE IS NOT A DRAW (5.76.0)
+
+Explosion / Self-Destruct / Misty Explosion now write the USER's faint first, and pay it even into a
+Protect — the authority faints at `battle-actions.ts:499`, above the whole hit and therefore above the
+Protect step. `a3-boom-probe` green and **RED PROVEN with its id and board kept**, not relabelled.
+`test-resolution-order.js` 15 arms / 2 KNOWN-OPEN -> **26 arms / 1 KNOWN-OPEN / 0 failing**. Census
+629 -> **630 live / 0 missing**.
+
+### BOTH RIPPLES I NAMED WERE VACUOUS, AND THE REAL ONE WAS SOMEWHERE ELSE
+
+`boostsOnKO` was already gated on `!m.fainted`. Spiky Shield and Baneful Bunker **cannot** fire — none
+of the three moves carries the `contact` flag and both punishes test `checkMoveMakesContact`. Derived,
+not assumed.
+
+The real ripple: **the Life Orb toll had no HP gate**, so an exploding holder paid a tenth of its
+maximum AFTER the authority had zeroed it, and emitted a second `|faint|`. On the fully-shielded board
+it was worse than the ordering bug it was found beside — **the user did not faint at all.**
+
+**A coordinator naming two consequences is not the list.** Both of mine were empty; the one that
+mattered was found by deriving what reads the user's HP between the faint site and the end of the hit.
+
+### THE SHARPEST RESULT CAME OUT OF WILL'S SCENARIO LIST AND IS NOT THIS FIX
+
+He asked for "KOs everything on the field with no Pokemon in the back". Showdown:
+
+```
+  checkWin (sim/battle.ts:2603)
+    this.win(faintData && this.gen > 4 ? faintData.target.side : null)
+```
+
+**A Gen-5+ simultaneous double wipe is NOT a draw — the side whose body fainted LAST wins.** medicham2's
+`battleResult` scores 0-vs-0 as **0.5**. Verified in the checkout. That is a WINNER-deciding
+disagreement, not a line-order one, and it would have been invisible to every protocol comparison we
+run.
+
+It is **not** this fix — byte-identical clean and under the break, so it lives in `battleResult`.
+Declared KNOWN-OPEN as `w3-simultaneous`; own batch, own row.
+
+### THE INSTRUMENT WAS WRONG BEFORE THE ENGINE WAS, FOR THE FOURTH TIME TONIGHT
+
+Four probe errors caught before they became verdicts: two BREAK-SILENT arms staging no faint; **both
+Ghost arms accidentally fully shielded, one of which reported RED PROVEN off a mechanism it was not
+staging**; and `battle.winner` read as a side id, scoring two of three boards WINNER DIFFERS on a run
+where both engines had emptied the same side.
+
+### A NULL RESULT WITH ITS REASON PRINTED
+
+Whole-game differential: same pinned pool, same pinned census, only `--release` varied — 176 games / 40
+diverged on both arms, byte-identical. **79 of the 17,381 frozen-pool games mention this family at all
+(0.45%)**, so a 176-game sample containing none is the expected outcome, not evidence of no change.

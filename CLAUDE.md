@@ -562,6 +562,14 @@ uses, Sand Rush and Damp fire in Showdown and not here, Solar Beam never charges
 reverts. So every figure to the right of that arrow was measured under an engine that does not play
 this game, and **may not be quoted, compared against, or reasoned from.**
 
+*(The DAMP half of that sentence is STALE as of 2026-08-22 and is left standing rather than edited out,
+because the paragraph is dated evidence from 2026-08-08 and a dated claim is not rewritten in place.
+Damp is implemented at WIRE 46 and **both engines refuse the move identically** — asserted at exact
+zero by `selfKOAlwaysAboveTheHit`, with a knob-cleared control (the same Swampert carrying Torrent
+instead of Damp) moving the counter 0 → 1, so the instrument could have seen a difference. The other
+three items in the sentence were not re-checked in that pass and are NOT claimed fixed here. **Read the
+gate, not this paragraph** — `node engine/status.js` computes what is actually broken today.)*
+
 QUARANTINED — do not cite until MEDICHAM passes its gate and the run is repeated:
 R1 leaf accuracy, R2 leaf cost, R3 divergence, R4 head-to-head, leaf calibration, the
 engine-correctness→leaf comparison, `data/policy-weights.json` and the joint weights, and every

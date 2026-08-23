@@ -13,7 +13,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-middle-stall-address.js`, `tests/test-middle-draw-scope.js`,
 `tests/test-middle-damage-roll.js`, `tests/test-damage-roll-support.js`, `tests/test-bracket-regain.js`,
 `tests/test-encore-fail-silent.js`, `tests/probe_drag_body.js`, `tests/probe_lifeorb_toll.js`,
-`tests/test-resolution-order.js`, `engine/switchin_order.js`,
+`tests/test-resolution-order.js`, `tests/probe_selfdestruct_winner.js`, `engine/switchin_order.js`,
 `data/switchin-order.json`, `tests/test-immunity-gate.js`, `tests/test-tag-params-derived.js`,
 `tests/test-roster-arm-pin.js`
 
@@ -57,7 +57,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  629/629 probed mechanics live, 0 missing   (census 2026-08-22 18:40)
+  630/630 probed mechanics live, 0 missing   (census 2026-08-22 20:43)
   5/6000 differential comparisons disagree with Showdown   (2026-08-22 16:08)
     seed 20260804, requested 6000, 212 not comparable (multihit 154, non-finite 0, threw 58)
     aurorus hypervoice -> aggron: showdown 18-21, medicham 64-76  (8106 uses)
@@ -75,15 +75,111 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is ecdf0eed7771 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is aafa30963eb9 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 273/292 probed, 19 unprobed
 ```
 
-_stamped 2026-08-22 18:58_
+_stamped 2026-08-22 20:45_
 
 <!-- /GENERATED -->
+
+## THE `always` HALF LANDED, THE RIPPLE WAS ONE MECHANIC AND NOT THE TWO WE GUESSED, AND A SIMULTANEOUS DOUBLE WIPE IS NOT A DRAW. 2026-08-22.
+
+**Census 629 live / 0 missing -> 630 live / 0 missing.** The new row is `move/userFaints` *"Explosion
+writes the USER's faint first, and pays it even into a Protect"* — the deliberate twin of the Final
+Gambit row landed earlier today, and its CONTROL asserts the OPPOSITE outcome: `ifHit` behind a Protect
+costs its user nothing, `always` behind a Protect kills it anyway. An engine that collapsed the two
+`faints` values into one rule fails exactly one of the two probes whichever way it collapsed.
+`tests/test-resolution-order.js`: **15 arms, 2 KNOWN-OPEN, 0 failing -> 26 arms, 1 KNOWN-OPEN, 0
+failing.** `a3-boom-probe` is **RED PROVEN**.
+Releases: `59bb68aa89a9` (before), `7da11c1d4d10` (after). Full account:
+`docs/_reports/2026-08-22-selfdestruct-always.md`.
+
+Explosion (43 corpus uses), Self-Destruct (16) and Misty Explosion (6) faint their user at
+`sim/battle-actions.ts:500` — **the brief said :499 and the current tree says :500** — which is above
+`trySpreadMoveHit` and therefore above the Protect step, above type immunity, above the accuracy roll
+and above the no-legal-target return. This engine spent them at WIRE 46, below the whole step list.
+
+**THE RIPPLE, MEASURED RATHER THAN ASSUMED, AND THE BRIEF'S TWO EXAMPLES WERE BOTH VACUOUS.**
+`Pokemon#faint()` sets **hp to 0** and leaves `fainted` false, so the window between `:500` and the end
+of the hit is governed by HP tests — `spreadDamage`'s `if (!target || !target.hp)`, `heal`'s
+`if (!target?.hp)`, `boost`'s `if (!target?.hp)`. `!m.fainted` is this engine's spelling of all three.
+- **`boostsOnKO` (Moxie's family) was already gated.** Nothing to do.
+- **A Spiky Shield toll and a Baneful Bunker poison CANNOT FIRE for this family**, and the reason is
+  the `contact` flag rather than the HP: all three moves carry `{protect, mirror, metronome}` and no
+  `contact`, and both punishes are `if (this.checkMoveMakesContact(...))`. The `!m.fainted` guard added
+  beside the shield's toll is `spreadDamage`'s guard written down and is **declared unobservable**, not
+  claimed as a fix. `a5-shadowpunch-spikyshield` is the over-fire control that shows the harness can
+  see a toll at all.
+- **THE LIFE ORB TOLL WAS THE ONE REAL RIPPLE** and it is now closed. It had no HP gate, so an
+  exploding Orb holder paid a tenth of its maximum after the authority had already put it on zero — a
+  `-damage ... [from] item: Life Orb` the authority never writes plus a SECOND `|faint|`. Same gate
+  also stops a user killed by its own recoil being tolled twice. `orbTollPaid` reads **0 clean, 1 under
+  the break** on the boom and **1 on both** for an ordinary click.
+- **Nothing else is reachable**: none of the three carries recoil, drain, a self-drop, a recharge, a
+  lock-in, a pivot or a secondary, and no legal Normal/Fairy damage modifier reads the attacker's HP.
+
+**THE FULLY-SHIELDED BOARD WAS WORSE THAN THE ORDERING DEFECT AND NOBODY HAD STAGED IT.** With every
+adjacent body behind a Protect the engine left through `if(_hadTargets&&!targets.length){...continue;}`
+hundreds of lines above WIRE 46, so **the user did not faint at all** — a body silently still on the
+board. `a5-boom-protect-full` is that arm and `selfKOLineFromShieldExit` reads 1 there and nowhere
+else.
+
+**DAMP HOLDS, AND THE CLAUDE.md NOTE THAT "DAMP FIRES IN SHOWDOWN AND NOT HERE" IS STALE.** Damp is
+`onAnyTryMove` and the authority returns at `:489`, fifteen lines above the site; WIRE 46 of
+`medicham2-browser.js` already `continue`s on `blocksExplosion`. `a5-boom-damp` holds with
+`selfKOAlwaysAboveTheHit` asserted at EXACT ZERO, and `a5-boom-damp-cleared` is the same board and the
+same Swampert with ONE FIELD changed — ability `Torrent` instead of `Damp` — where it reads 1.
+
+**THE GHOST PAIR IS ONE INSTRUMENT.** Explosion is Normal into three Ghosts (all immune, nobody dies,
+counter still 1 — the site is above the immunity step); Misty Explosion is Fairy into the IDENTICAL
+three (Spiritomb is Ghost/Dark, takes 2x, dies, and the order is visible again). Together they separate
+*the user dies because the hit resolved* from *the user dies regardless*.
+
+### AND THE WINNER QUESTION FOUND SOMETHING THAT IS NOT THIS FIX
+
+`tests/probe_selfdestruct_winner.js` (new, end-state mode, three boards each played clean and under the
+revert). Two boards **WINNER AGREES** with the protocol identical. The third does not, and the reason is
+that I was wrong about the rule:
+
+```js
+checkWin(faintData?) {                                              // sim/battle.ts:2603
+  if (this.sides.every(side => !side.pokemonLeft)) {
+    this.win(faintData && this.gen > 4 ? faintData.target.side : null);
+```
+
+`faintData` is the LAST entry `faintMessages()` shifted off the queue, so **a Gen-5+ simultaneous
+double wipe is not a draw — the side whose body fainted LAST wins.** The faint ORDER is load-bearing
+for the RESULT. medicham2's `battleResult` resolves an equal live count by HP fraction and calls 0
+against 0 a `0.5`. **Not fixed here, and the reason is measured: the disagreement is IDENTICAL clean
+and under the break**, so it is `battleResult` and not the self-KO position. It needs a new field
+written at every faint site and `battleResult` is what every rollout and every H2H reads — its own
+batch, its own row. Declared as the KNOWN-OPEN board `w3-simultaneous`.
+
+### WHOLE-GAME DIFFERENTIAL: A NULL RESULT WITH ITS REASON PRINTED
+
+Same pinned pool `6630c23f39e3`, same pinned census, only `--release` varied: **176 games, 40 diverged
+on both**, all three arms byte-identical. That is the shape of an unwired knob, so it was checked:
+**79 of the 17,381 games in the frozen pool mention the family at all (0.45%)** and the three moves are
+65 corpus uses between them. A 176-game sample containing none is the expected outcome. The twelve
+staged arms are what carry this fix; the differential neither confirms nor refutes it.
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~the Life Orb toll is paid on a body the authority has already fainted~~ — CLOSED. Arms
+  `a5-boom-lifeorb-red` (RED PROVEN, `orbTollPaid` 0 clean / 1 broken) and `a5-lifeorb-control`
+  (CONTROL HELD, `orbTollPaid` 1 / 1). The recoil half is closed by the same guard and is stated, not
+  separately staged.
+
+**Added, measured this pass and NOT fixed:**
+- **`battleResult` has no last-fainted tie-break.** Section above. `w3-simultaneous`.
+- **a move with NO legal target writes `|-fail|`** on the authority (`battle-actions.ts:510`) and this
+  engine writes nothing — seen as `sd |-fail|p2a: Forretress` against `me |faint|p2a: Forretress` in an
+  earlier draft of the `w3` fixture. **OBSERVED, NOT PROBED**, and the fixture that showed it no longer
+  exists. It is above the site this pass touched. Route it; do not quote it as measured.
 
 ## THE REFUSAL HAD TWO DOORS AND ONE READ THE TAG; THE LIFE ORB TOLL ASKED A QUESTION THE AUTHORITY DOES NOT ASK. 2026-08-22.
 

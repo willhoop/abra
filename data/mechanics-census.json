@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-22T22:40:30.216Z",
+  "generated": "2026-08-23T00:43:38.766Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 629,
-  "live": 629,
+  "probed": 630,
+  "live": 630,
   "missing": 0,
-  "armed": 629,
+  "armed": 630,
   "unarmed": 0,
   "directCall": 1,
   "threw": 0,
@@ -3153,6 +3153,16 @@
     },
     {
       "kind": "move",
+      "tag": "userFaints",
+      "label": "Explosion writes the USER's faint first, and pays it even into a Protect",
+      "live": true,
+      "detail": "Metagross Explosion into a Weavile, ally and second foe made unfaintable. OPEN — [|faint|p1a: metagross  |faint|p2a: weavile], so the USER comes out of the queue ahead of the body it killed. BEHIND A PROTECT — [|faint|p1a: metagross] and the foe is on 145/145: `always` is spent above the shield, so a blocked boom still costs its user — the exact opposite of the Final Gambit control, which must show NO faint at all. Users spent at the :500 site — open 1, blocked 1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "drainThenPunishOrder",
       "label": "a full-HP drain move into Rough Skin still pays the toll",
       "live": true,
@@ -3176,7 +3186,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.0% (format 20, generic 30), control Rock Slide 25.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
