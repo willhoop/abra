@@ -5,1252 +5,1260 @@
   "source": "data/games.ladder.jsonl",
   "filter": "data/quality-filter.json",
   "filtered": true,
-  "collected": 66184,
-  "usable": 18605,
+  "collected": 66519,
+  "usable": 18840,
   "funnel": {
-   "collected": 66184,
-   "after_bot_filter": 31092,
-   "after_behavioural_bots": 27456,
-   "after_forfeit_filter": 27347,
-   "after_min_turns": 25732,
-   "after_full_bring": 18605,
-   "clean": 18605
+   "collected": 66519,
+   "after_bot_filter": 31427,
+   "after_behavioural_bots": 27785,
+   "after_forfeit_filter": 27675,
+   "after_min_turns": 26048,
+   "after_full_bring": 18840,
+   "clean": 18840
   },
   "caveat": "Bot detection is name-based plus a team-invariance rule. Accounts that play few games or vary their team can still escape it. Describe this set as \"no bot detected\", not as human."
  },
- "sampledTeams": 37210,
+ "sampledTeams": 37680,
  "threats": [
   {
    "sp": "kingambit",
-   "teamRate": 0.235,
+   "teamRate": 0.2344,
    "bringRate": 0.625,
-   "leadRate": 0.21,
-   "winRate": 0.494,
-   "n": 8745
+   "leadRate": 0.211,
+   "winRate": 0.493,
+   "n": 8832
   },
   {
    "sp": "garchomp",
-   "teamRate": 0.2296,
+   "teamRate": 0.2289,
    "bringRate": 0.721,
-   "leadRate": 0.28,
+   "leadRate": 0.281,
    "winRate": 0.477,
-   "n": 8543
+   "n": 8626
   },
   {
    "sp": "incineroar",
    "teamRate": 0.2245,
    "bringRate": 0.696,
-   "leadRate": 0.396,
-   "winRate": 0.517,
-   "n": 8353
+   "leadRate": 0.395,
+   "winRate": 0.516,
+   "n": 8461
   },
   {
    "sp": "whimsicott",
-   "teamRate": 0.1902,
+   "teamRate": 0.1893,
    "bringRate": 0.71,
    "leadRate": 0.53,
-   "winRate": 0.469,
-   "n": 7076
+   "winRate": 0.47,
+   "n": 7134
   },
   {
    "sp": "basculegion",
-   "teamRate": 0.1834,
-   "bringRate": 0.718,
-   "leadRate": 0.2,
-   "winRate": 0.503,
-   "n": 6826
+   "teamRate": 0.1827,
+   "bringRate": 0.719,
+   "leadRate": 0.199,
+   "winRate": 0.502,
+   "n": 6886
   },
   {
    "sp": "farigiraf",
-   "teamRate": 0.1739,
+   "teamRate": 0.1741,
    "bringRate": 0.705,
-   "leadRate": 0.47,
+   "leadRate": 0.468,
    "winRate": 0.496,
-   "n": 6470
+   "n": 6561
   },
   {
    "sp": "sinistcha",
-   "teamRate": 0.1723,
-   "bringRate": 0.609,
-   "leadRate": 0.123,
-   "winRate": 0.519,
-   "n": 6413
+   "teamRate": 0.1725,
+   "bringRate": 0.611,
+   "leadRate": 0.124,
+   "winRate": 0.52,
+   "n": 6498
   },
   {
    "sp": "sneasler",
-   "teamRate": 0.1703,
+   "teamRate": 0.1702,
    "bringRate": 0.737,
-   "leadRate": 0.473,
-   "winRate": 0.494,
-   "n": 6338
+   "leadRate": 0.472,
+   "winRate": 0.495,
+   "n": 6415
   },
   {
    "sp": "charizard",
-   "teamRate": 0.1431,
+   "teamRate": 0.1429,
    "bringRate": 0.687,
-   "leadRate": 0.368,
-   "winRate": 0.472,
-   "n": 5324
+   "leadRate": 0.367,
+   "winRate": 0.473,
+   "n": 5383
   },
   {
    "sp": "staraptor",
    "teamRate": 0.1419,
-   "bringRate": 0.624,
+   "bringRate": 0.622,
    "leadRate": 0.374,
-   "winRate": 0.479,
-   "n": 5281
+   "winRate": 0.481,
+   "n": 5347
   },
   {
    "sp": "raichu",
-   "teamRate": 0.1146,
+   "teamRate": 0.1145,
    "bringRate": 0.669,
-   "leadRate": 0.463,
-   "winRate": 0.493,
-   "n": 4265
+   "leadRate": 0.462,
+   "winRate": 0.494,
+   "n": 4315
   },
   {
    "sp": "pelipper",
-   "teamRate": 0.1139,
-   "bringRate": 0.786,
-   "leadRate": 0.269,
+   "teamRate": 0.1134,
+   "bringRate": 0.787,
+   "leadRate": 0.27,
    "winRate": 0.506,
-   "n": 4237
+   "n": 4274
   },
   {
    "sp": "archaludon",
-   "teamRate": 0.1055,
-   "bringRate": 0.753,
+   "teamRate": 0.1052,
+   "bringRate": 0.754,
    "leadRate": 0.251,
    "winRate": 0.536,
-   "n": 3924
+   "n": 3964
   },
   {
    "sp": "sylveon",
-   "teamRate": 0.1033,
-   "bringRate": 0.644,
+   "teamRate": 0.1032,
+   "bringRate": 0.645,
    "leadRate": 0.237,
    "winRate": 0.463,
-   "n": 3845
+   "n": 3890
   },
   {
    "sp": "tyranitar",
    "teamRate": 0.1025,
-   "bringRate": 0.789,
-   "leadRate": 0.287,
-   "winRate": 0.512,
-   "n": 3815
+   "bringRate": 0.79,
+   "leadRate": 0.288,
+   "winRate": 0.513,
+   "n": 3863
   },
   {
    "sp": "gholdengo",
    "teamRate": 0.0936,
-   "bringRate": 0.622,
+   "bringRate": 0.625,
    "leadRate": 0.31,
-   "winRate": 0.498,
-   "n": 3482
+   "winRate": 0.501,
+   "n": 3528
   },
   {
    "sp": "floetteeternal",
-   "teamRate": 0.0859,
-   "bringRate": 0.567,
+   "teamRate": 0.0858,
+   "bringRate": 0.566,
    "leadRate": 0.28,
-   "winRate": 0.518,
-   "n": 3198
+   "winRate": 0.517,
+   "n": 3234
   },
   {
    "sp": "grimmsnarl",
-   "teamRate": 0.085,
-   "bringRate": 0.695,
-   "leadRate": 0.555,
-   "winRate": 0.513,
-   "n": 3164
+   "teamRate": 0.0851,
+   "bringRate": 0.694,
+   "leadRate": 0.554,
+   "winRate": 0.511,
+   "n": 3205
   },
   {
    "sp": "aerodactyl",
    "teamRate": 0.0838,
    "bringRate": 0.582,
-   "leadRate": 0.432,
-   "winRate": 0.477,
-   "n": 3119
+   "leadRate": 0.431,
+   "winRate": 0.478,
+   "n": 3156
   },
   {
    "sp": "milotic",
    "teamRate": 0.0837,
-   "bringRate": 0.645,
-   "leadRate": 0.359,
+   "bringRate": 0.644,
+   "leadRate": 0.358,
    "winRate": 0.5,
-   "n": 3115
+   "n": 3154
   },
   {
    "sp": "venusaur",
    "teamRate": 0.0836,
    "bringRate": 0.589,
-   "leadRate": 0.28,
-   "winRate": 0.511,
-   "n": 3109
+   "leadRate": 0.278,
+   "winRate": 0.512,
+   "n": 3149
   },
   {
    "sp": "swampert",
    "teamRate": 0.0798,
-   "bringRate": 0.637,
+   "bringRate": 0.639,
    "leadRate": 0.33,
-   "winRate": 0.513,
-   "n": 2971
+   "winRate": 0.514,
+   "n": 3005
   },
   {
    "sp": "delphox",
-   "teamRate": 0.0733,
+   "teamRate": 0.0731,
    "bringRate": 0.549,
-   "leadRate": 0.323,
-   "winRate": 0.518,
-   "n": 2727
+   "leadRate": 0.324,
+   "winRate": 0.519,
+   "n": 2754
   },
   {
    "sp": "gengar",
-   "teamRate": 0.0674,
+   "teamRate": 0.0672,
    "bringRate": 0.696,
-   "leadRate": 0.525,
-   "winRate": 0.499,
-   "n": 2507
+   "leadRate": 0.524,
+   "winRate": 0.5,
+   "n": 2532
   },
   {
    "sp": "sableye",
-   "teamRate": 0.0647,
+   "teamRate": 0.0649,
    "bringRate": 0.71,
-   "leadRate": 0.498,
-   "winRate": 0.516,
-   "n": 2406
+   "leadRate": 0.5,
+   "winRate": 0.514,
+   "n": 2447
   },
   {
    "sp": "ninetalesalola",
-   "teamRate": 0.0637,
-   "bringRate": 0.653,
-   "leadRate": 0.25,
-   "winRate": 0.504,
-   "n": 2369
+   "teamRate": 0.0639,
+   "bringRate": 0.65,
+   "leadRate": 0.249,
+   "winRate": 0.506,
+   "n": 2407
   },
   {
    "sp": "excadrill",
-   "teamRate": 0.062,
-   "bringRate": 0.666,
+   "teamRate": 0.0619,
+   "bringRate": 0.667,
    "leadRate": 0.282,
-   "winRate": 0.51,
-   "n": 2307
+   "winRate": 0.511,
+   "n": 2334
   },
   {
    "sp": "dragonite",
-   "teamRate": 0.061,
+   "teamRate": 0.0612,
    "bringRate": 0.587,
    "leadRate": 0.288,
-   "winRate": 0.459,
-   "n": 2271
+   "winRate": 0.46,
+   "n": 2306
   },
   {
    "sp": "blastoise",
-   "teamRate": 0.061,
-   "bringRate": 0.671,
-   "leadRate": 0.466,
-   "winRate": 0.501,
-   "n": 2270
+   "teamRate": 0.0611,
+   "bringRate": 0.67,
+   "leadRate": 0.463,
+   "winRate": 0.5,
+   "n": 2302
   },
   {
    "sp": "metagross",
    "teamRate": 0.0589,
-   "bringRate": 0.552,
-   "leadRate": 0.259,
-   "winRate": 0.49,
-   "n": 2192
+   "bringRate": 0.554,
+   "leadRate": 0.261,
+   "winRate": 0.489,
+   "n": 2218
   },
   {
    "sp": "torkoal",
    "teamRate": 0.0561,
-   "bringRate": 0.719,
-   "leadRate": 0.166,
-   "winRate": 0.519,
-   "n": 2088
+   "bringRate": 0.721,
+   "leadRate": 0.168,
+   "winRate": 0.521,
+   "n": 2115
   },
   {
    "sp": "froslass",
-   "teamRate": 0.0561,
+   "teamRate": 0.0559,
    "bringRate": 0.631,
    "leadRate": 0.396,
-   "winRate": 0.493,
-   "n": 2087
+   "winRate": 0.491,
+   "n": 2108
   },
   {
    "sp": "glimmora",
    "teamRate": 0.0517,
    "bringRate": 0.685,
-   "leadRate": 0.398,
-   "winRate": 0.483,
-   "n": 1923
+   "leadRate": 0.399,
+   "winRate": 0.481,
+   "n": 1949
   },
   {
    "sp": "talonflame",
-   "teamRate": 0.0514,
-   "bringRate": 0.692,
+   "teamRate": 0.0511,
+   "bringRate": 0.691,
    "leadRate": 0.536,
    "winRate": 0.485,
-   "n": 1913
+   "n": 1926
   },
   {
    "sp": "rotomwash",
-   "teamRate": 0.0476,
-   "bringRate": 0.681,
+   "teamRate": 0.0479,
+   "bringRate": 0.682,
    "leadRate": 0.351,
-   "winRate": 0.501,
-   "n": 1773
+   "winRate": 0.504,
+   "n": 1803
   },
   {
    "sp": "sinistchamasterpiece",
-   "teamRate": 0.0474,
-   "bringRate": 0.611,
+   "teamRate": 0.0476,
+   "bringRate": 0.609,
    "leadRate": 0.125,
-   "winRate": 0.523,
-   "n": 1765
+   "winRate": 0.52,
+   "n": 1795
   },
   {
    "sp": "politoed",
    "teamRate": 0.043,
    "bringRate": 0.772,
-   "leadRate": 0.155,
+   "leadRate": 0.156,
    "winRate": 0.586,
-   "n": 1599
+   "n": 1619
   },
   {
    "sp": "mawile",
-   "teamRate": 0.0419,
-   "bringRate": 0.617,
-   "leadRate": 0.158,
-   "winRate": 0.466,
-   "n": 1560
+   "teamRate": 0.0421,
+   "bringRate": 0.618,
+   "leadRate": 0.159,
+   "winRate": 0.462,
+   "n": 1587
   },
   {
    "sp": "scovillain",
-   "teamRate": 0.0401,
-   "bringRate": 0.593,
-   "leadRate": 0.419,
-   "winRate": 0.537,
-   "n": 1493
+   "teamRate": 0.04,
+   "bringRate": 0.592,
+   "leadRate": 0.418,
+   "winRate": 0.535,
+   "n": 1506
   },
   {
    "sp": "tsareena",
-   "teamRate": 0.0393,
-   "bringRate": 0.644,
+   "teamRate": 0.0391,
+   "bringRate": 0.643,
    "leadRate": 0.256,
-   "winRate": 0.533,
-   "n": 1462
+   "winRate": 0.534,
+   "n": 1475
   },
   {
    "sp": "primarina",
-   "teamRate": 0.0384,
-   "bringRate": 0.732,
-   "leadRate": 0.269,
-   "winRate": 0.529,
-   "n": 1428
+   "teamRate": 0.0383,
+   "bringRate": 0.733,
+   "leadRate": 0.27,
+   "winRate": 0.53,
+   "n": 1443
   },
   {
    "sp": "corviknight",
-   "teamRate": 0.0378,
-   "bringRate": 0.602,
-   "leadRate": 0.325,
+   "teamRate": 0.0379,
+   "bringRate": 0.601,
+   "leadRate": 0.323,
    "winRate": 0.494,
-   "n": 1405
+   "n": 1429
   },
   {
    "sp": "arcaninehisui",
-   "teamRate": 0.0375,
-   "bringRate": 0.687,
+   "teamRate": 0.0377,
+   "bringRate": 0.685,
    "leadRate": 0.306,
-   "winRate": 0.5,
-   "n": 1394
-  },
-  {
-   "sp": "gardevoir",
-   "teamRate": 0.0355,
-   "bringRate": 0.683,
-   "leadRate": 0.329,
    "winRate": 0.502,
-   "n": 1321
+   "n": 1420
   },
   {
    "sp": "toxapex",
-   "teamRate": 0.0352,
+   "teamRate": 0.0354,
    "bringRate": 0.64,
-   "leadRate": 0.264,
-   "winRate": 0.495,
-   "n": 1310
+   "leadRate": 0.267,
+   "winRate": 0.494,
+   "n": 1333
   },
   {
-   "sp": "blaziken",
+   "sp": "gardevoir",
+   "teamRate": 0.0353,
+   "bringRate": 0.68,
+   "leadRate": 0.328,
+   "winRate": 0.501,
+   "n": 1331
+  },
+  {
+   "sp": "scizor",
    "teamRate": 0.0352,
-   "bringRate": 0.682,
-   "leadRate": 0.352,
-   "winRate": 0.451,
-   "n": 1310
+   "bringRate": 0.553,
+   "leadRate": 0.245,
+   "winRate": 0.486,
+   "n": 1328
   },
   {
    "sp": "annihilape",
    "teamRate": 0.0352,
    "bringRate": 0.689,
    "leadRate": 0.368,
-   "winRate": 0.502,
-   "n": 1310
+   "winRate": 0.501,
+   "n": 1326
+  },
+  {
+   "sp": "blaziken",
+   "teamRate": 0.0352,
+   "bringRate": 0.683,
+   "leadRate": 0.352,
+   "winRate": 0.45,
+   "n": 1325
   },
   {
    "sp": "kommoo",
-   "teamRate": 0.0351,
-   "bringRate": 0.623,
-   "leadRate": 0.27,
-   "winRate": 0.517,
-   "n": 1305
-  },
-  {
-   "sp": "scizor",
    "teamRate": 0.035,
-   "bringRate": 0.551,
-   "leadRate": 0.242,
-   "winRate": 0.485,
-   "n": 1304
-  },
-  {
-   "sp": "kangaskhan",
-   "teamRate": 0.0346,
-   "bringRate": 0.75,
-   "leadRate": 0.57,
-   "winRate": 0.494,
-   "n": 1289
+   "bringRate": 0.622,
+   "leadRate": 0.271,
+   "winRate": 0.516,
+   "n": 1318
   },
   {
    "sp": "hydreigon",
-   "teamRate": 0.0343,
-   "bringRate": 0.69,
-   "leadRate": 0.325,
-   "winRate": 0.519,
-   "n": 1278
+   "teamRate": 0.0344,
+   "bringRate": 0.692,
+   "leadRate": 0.326,
+   "winRate": 0.521,
+   "n": 1297
+  },
+  {
+   "sp": "kangaskhan",
+   "teamRate": 0.0344,
+   "bringRate": 0.75,
+   "leadRate": 0.571,
+   "winRate": 0.495,
+   "n": 1295
   },
   {
    "sp": "maushold",
    "teamRate": 0.0329,
-   "bringRate": 0.667,
-   "leadRate": 0.396,
-   "winRate": 0.529,
-   "n": 1224
+   "bringRate": 0.662,
+   "leadRate": 0.392,
+   "winRate": 0.53,
+   "n": 1241
   },
   {
    "sp": "ceruledge",
-   "teamRate": 0.0325,
-   "bringRate": 0.636,
+   "teamRate": 0.0327,
+   "bringRate": 0.634,
    "leadRate": 0.188,
-   "winRate": 0.517,
-   "n": 1208
+   "winRate": 0.52,
+   "n": 1231
   },
   {
    "sp": "scrafty",
-   "teamRate": 0.032,
+   "teamRate": 0.0322,
    "bringRate": 0.695,
-   "leadRate": 0.376,
-   "winRate": 0.493,
-   "n": 1192
+   "leadRate": 0.375,
+   "winRate": 0.492,
+   "n": 1215
   },
   {
    "sp": "mausholdfour",
-   "teamRate": 0.0298,
-   "bringRate": 0.658,
+   "teamRate": 0.03,
+   "bringRate": 0.655,
    "leadRate": 0.383,
-   "winRate": 0.508,
-   "n": 1109
+   "winRate": 0.509,
+   "n": 1132
   },
   {
    "sp": "clefable",
-   "teamRate": 0.029,
+   "teamRate": 0.0291,
    "bringRate": 0.619,
-   "leadRate": 0.269,
-   "winRate": 0.475,
-   "n": 1079
+   "leadRate": 0.267,
+   "winRate": 0.472,
+   "n": 1095
   },
   {
    "sp": "mamoswine",
-   "teamRate": 0.0286,
-   "bringRate": 0.703,
+   "teamRate": 0.0287,
+   "bringRate": 0.699,
    "leadRate": 0.278,
-   "winRate": 0.539,
-   "n": 1066
+   "winRate": 0.54,
+   "n": 1083
   },
   {
    "sp": "camerupt",
    "teamRate": 0.0278,
-   "bringRate": 0.689,
+   "bringRate": 0.688,
    "leadRate": 0.111,
-   "winRate": 0.569,
-   "n": 1033
+   "winRate": 0.567,
+   "n": 1047
   },
   {
    "sp": "gallade",
-   "teamRate": 0.0239,
-   "bringRate": 0.674,
-   "leadRate": 0.299,
-   "winRate": 0.526,
-   "n": 889
+   "teamRate": 0.0242,
+   "bringRate": 0.676,
+   "leadRate": 0.302,
+   "winRate": 0.519,
+   "n": 913
   },
   {
    "sp": "meowstic",
-   "teamRate": 0.0231,
+   "teamRate": 0.0232,
    "bringRate": 0.677,
    "leadRate": 0.526,
-   "winRate": 0.495,
-   "n": 860
+   "winRate": 0.493,
+   "n": 874
   },
   {
    "sp": "volcarona",
-   "teamRate": 0.0228,
+   "teamRate": 0.023,
    "bringRate": 0.577,
-   "leadRate": 0.291,
-   "winRate": 0.497,
-   "n": 848
+   "leadRate": 0.288,
+   "winRate": 0.491,
+   "n": 865
   },
   {
    "sp": "meowscarada",
-   "teamRate": 0.0225,
-   "bringRate": 0.673,
-   "leadRate": 0.324,
-   "winRate": 0.423,
-   "n": 839
+   "teamRate": 0.0226,
+   "bringRate": 0.675,
+   "leadRate": 0.325,
+   "winRate": 0.427,
+   "n": 853
   },
   {
    "sp": "zoroarkhisui",
-   "teamRate": 0.0223,
-   "bringRate": 0.685,
+   "teamRate": 0.0226,
+   "bringRate": 0.69,
    "leadRate": 0,
-   "winRate": 0.534,
-   "n": 828
+   "winRate": 0.535,
+   "n": 851
   },
   {
    "sp": "tinkaton",
    "teamRate": 0.0218,
-   "bringRate": 0.658,
-   "leadRate": 0.443,
-   "winRate": 0.533,
-   "n": 813
+   "bringRate": 0.656,
+   "leadRate": 0.44,
+   "winRate": 0.535,
+   "n": 820
   },
   {
    "sp": "weavile",
    "teamRate": 0.0203,
-   "bringRate": 0.776,
-   "leadRate": 0.537,
-   "winRate": 0.53,
-   "n": 756
+   "bringRate": 0.775,
+   "leadRate": 0.535,
+   "winRate": 0.529,
+   "n": 764
   },
   {
    "sp": "dragapult",
    "teamRate": 0.0199,
-   "bringRate": 0.698,
-   "leadRate": 0.363,
-   "winRate": 0.473,
-   "n": 742
+   "bringRate": 0.699,
+   "leadRate": 0.365,
+   "winRate": 0.47,
+   "n": 751
   },
   {
    "sp": "meganium",
-   "teamRate": 0.0193,
-   "bringRate": 0.579,
-   "leadRate": 0.209,
-   "winRate": 0.525,
-   "n": 717
+   "teamRate": 0.0195,
+   "bringRate": 0.574,
+   "leadRate": 0.207,
+   "winRate": 0.53,
+   "n": 733
   },
   {
-   "sp": "gyarados",
+   "sp": "lycanrocdusk",
    "teamRate": 0.0188,
-   "bringRate": 0.655,
-   "leadRate": 0.256,
-   "winRate": 0.492,
-   "n": 698
+   "bringRate": 0.579,
+   "leadRate": 0.269,
+   "winRate": 0.501,
+   "n": 710
   },
   {
    "sp": "eelektross",
    "teamRate": 0.0187,
-   "bringRate": 0.689,
-   "leadRate": 0.297,
-   "winRate": 0.496,
-   "n": 697
+   "bringRate": 0.688,
+   "leadRate": 0.296,
+   "winRate": 0.494,
+   "n": 703
   },
   {
-   "sp": "lycanrocdusk",
+   "sp": "gyarados",
    "teamRate": 0.0186,
-   "bringRate": 0.577,
-   "leadRate": 0.272,
-   "winRate": 0.491,
-   "n": 691
+   "bringRate": 0.655,
+   "leadRate": 0.256,
+   "winRate": 0.493,
+   "n": 699
+  },
+  {
+   "sp": "araquanid",
+   "teamRate": 0.0185,
+   "bringRate": 0.672,
+   "leadRate": 0.249,
+   "winRate": 0.513,
+   "n": 696
   },
   {
    "sp": "chandelure",
    "teamRate": 0.0184,
-   "bringRate": 0.631,
-   "leadRate": 0.35,
-   "winRate": 0.515,
-   "n": 683
-  },
-  {
-   "sp": "araquanid",
-   "teamRate": 0.0182,
-   "bringRate": 0.675,
-   "leadRate": 0.249,
-   "winRate": 0.515,
-   "n": 679
+   "bringRate": 0.635,
+   "leadRate": 0.347,
+   "winRate": 0.519,
+   "n": 695
   },
   {
    "sp": "aegislash",
-   "teamRate": 0.0181,
+   "teamRate": 0.018,
    "bringRate": 0.605,
-   "leadRate": 0.193,
-   "winRate": 0.483,
-   "n": 674
+   "leadRate": 0.191,
+   "winRate": 0.487,
+   "n": 679
   },
   {
    "sp": "rotomheat",
    "teamRate": 0.0179,
-   "bringRate": 0.685,
-   "leadRate": 0.388,
-   "winRate": 0.512,
-   "n": 667
+   "bringRate": 0.686,
+   "leadRate": 0.391,
+   "winRate": 0.511,
+   "n": 676
+  },
+  {
+   "sp": "lucario",
+   "teamRate": 0.0173,
+   "bringRate": 0.624,
+   "leadRate": 0.303,
+   "winRate": 0.498,
+   "n": 651
   },
   {
    "sp": "sceptile",
    "teamRate": 0.0173,
    "bringRate": 0.604,
-   "leadRate": 0.345,
-   "winRate": 0.468,
-   "n": 644
+   "leadRate": 0.344,
+   "winRate": 0.471,
+   "n": 651
   },
   {
-   "sp": "lucario",
-   "teamRate": 0.0172,
-   "bringRate": 0.621,
-   "leadRate": 0.304,
-   "winRate": 0.501,
-   "n": 639
+   "sp": "palafin",
+   "teamRate": 0.017,
+   "bringRate": 0.659,
+   "leadRate": 0.525,
+   "winRate": 0.492,
+   "n": 642
   },
   {
    "sp": "hatterene",
    "teamRate": 0.017,
-   "bringRate": 0.564,
-   "leadRate": 0.334,
-   "winRate": 0.433,
-   "n": 631
-  },
-  {
-   "sp": "palafin",
-   "teamRate": 0.0169,
-   "bringRate": 0.66,
-   "leadRate": 0.524,
-   "winRate": 0.493,
-   "n": 630
+   "bringRate": 0.567,
+   "leadRate": 0.336,
+   "winRate": 0.437,
+   "n": 642
   },
   {
    "sp": "mimikyu",
-   "teamRate": 0.0168,
+   "teamRate": 0.0169,
    "bringRate": 0.718,
    "leadRate": 0.485,
-   "winRate": 0.555,
-   "n": 625
+   "winRate": 0.557,
+   "n": 635
   },
   {
    "sp": "oranguru",
    "teamRate": 0.0168,
-   "bringRate": 0.697,
-   "leadRate": 0.521,
+   "bringRate": 0.696,
+   "leadRate": 0.522,
    "winRate": 0.494,
-   "n": 624
+   "n": 634
   },
   {
    "sp": "vivillon",
-   "teamRate": 0.0164,
+   "teamRate": 0.0162,
    "bringRate": 0.645,
-   "leadRate": 0.504,
-   "winRate": 0.542,
-   "n": 609
+   "leadRate": 0.502,
+   "winRate": 0.541,
+   "n": 611
   },
   {
    "sp": "altaria",
-   "teamRate": 0.016,
-   "bringRate": 0.604,
-   "leadRate": 0.274,
-   "winRate": 0.529,
-   "n": 594
+   "teamRate": 0.0159,
+   "bringRate": 0.605,
+   "leadRate": 0.273,
+   "winRate": 0.526,
+   "n": 600
   },
   {
    "sp": "samurotthisui",
    "teamRate": 0.0154,
    "bringRate": 0.729,
-   "leadRate": 0.325,
-   "winRate": 0.513,
-   "n": 572
+   "leadRate": 0.326,
+   "winRate": 0.508,
+   "n": 580
   },
   {
    "sp": "greninja",
-   "teamRate": 0.0152,
-   "bringRate": 0.685,
-   "leadRate": 0.354,
-   "winRate": 0.494,
-   "n": 565
+   "teamRate": 0.0151,
+   "bringRate": 0.686,
+   "leadRate": 0.358,
+   "winRate": 0.491,
+   "n": 570
   },
   {
    "sp": "drampa",
-   "teamRate": 0.015,
-   "bringRate": 0.618,
-   "leadRate": 0.138,
-   "winRate": 0.528,
-   "n": 558
+   "teamRate": 0.0149,
+   "bringRate": 0.621,
+   "leadRate": 0.139,
+   "winRate": 0.521,
+   "n": 562
   },
   {
    "sp": "heliolisk",
    "teamRate": 0.0148,
-   "bringRate": 0.641,
-   "leadRate": 0.33,
-   "winRate": 0.593,
-   "n": 552
+   "bringRate": 0.64,
+   "leadRate": 0.329,
+   "winRate": 0.589,
+   "n": 559
   },
   {
    "sp": "malamar",
-   "teamRate": 0.0141,
-   "bringRate": 0.782,
-   "leadRate": 0.555,
-   "winRate": 0.459,
-   "n": 524
+   "teamRate": 0.014,
+   "bringRate": 0.783,
+   "leadRate": 0.552,
+   "winRate": 0.457,
+   "n": 529
   },
   {
    "sp": "starmie",
    "teamRate": 0.014,
-   "bringRate": 0.613,
+   "bringRate": 0.612,
    "leadRate": 0.322,
-   "winRate": 0.537,
-   "n": 522
+   "winRate": 0.539,
+   "n": 528
   },
   {
    "sp": "lopunny",
-   "teamRate": 0.0137,
-   "bringRate": 0.727,
-   "leadRate": 0.571,
-   "winRate": 0.563,
-   "n": 510
+   "teamRate": 0.0138,
+   "bringRate": 0.726,
+   "leadRate": 0.57,
+   "winRate": 0.568,
+   "n": 519
   },
   {
    "sp": "vanilluxe",
-   "teamRate": 0.0137,
-   "bringRate": 0.731,
+   "teamRate": 0.0136,
+   "bringRate": 0.732,
    "leadRate": 0.171,
-   "winRate": 0.532,
-   "n": 509
+   "winRate": 0.527,
+   "n": 514
   },
   {
    "sp": "armarouge",
    "teamRate": 0.0136,
-   "bringRate": 0.685,
-   "leadRate": 0.309,
-   "winRate": 0.468,
-   "n": 505
+   "bringRate": 0.684,
+   "leadRate": 0.306,
+   "winRate": 0.464,
+   "n": 513
   },
   {
    "sp": "klefki",
-   "teamRate": 0.0135,
-   "bringRate": 0.623,
-   "leadRate": 0.413,
-   "winRate": 0.465,
-   "n": 501
+   "teamRate": 0.0136,
+   "bringRate": 0.632,
+   "leadRate": 0.423,
+   "winRate": 0.469,
+   "n": 513
   },
   {
    "sp": "overqwil",
    "teamRate": 0.0132,
-   "bringRate": 0.739,
-   "leadRate": 0.397,
-   "winRate": 0.504,
-   "n": 491
+   "bringRate": 0.74,
+   "leadRate": 0.401,
+   "winRate": 0.501,
+   "n": 496
   },
   {
    "sp": "pyroar",
    "teamRate": 0.0131,
-   "bringRate": 0.684,
-   "leadRate": 0.352,
-   "winRate": 0.557,
-   "n": 488
-  },
-  {
-   "sp": "typhlosionhisui",
-   "teamRate": 0.0125,
-   "bringRate": 0.713,
-   "leadRate": 0.394,
-   "winRate": 0.495,
-   "n": 464
+   "bringRate": 0.686,
+   "leadRate": 0.353,
+   "winRate": 0.559,
+   "n": 493
   },
   {
    "sp": "vileplume",
-   "teamRate": 0.0124,
-   "bringRate": 0.479,
-   "leadRate": 0.244,
-   "winRate": 0.482,
-   "n": 463
+   "teamRate": 0.0125,
+   "bringRate": 0.474,
+   "leadRate": 0.24,
+   "winRate": 0.48,
+   "n": 470
+  },
+  {
+   "sp": "typhlosionhisui",
+   "teamRate": 0.0123,
+   "bringRate": 0.714,
+   "leadRate": 0.394,
+   "winRate": 0.497,
+   "n": 465
   },
   {
    "sp": "espathra",
-   "teamRate": 0.0123,
-   "bringRate": 0.683,
-   "leadRate": 0.548,
-   "winRate": 0.498,
-   "n": 458
+   "teamRate": 0.0122,
+   "bringRate": 0.684,
+   "leadRate": 0.549,
+   "winRate": 0.497,
+   "n": 459
   },
   {
    "sp": "slowkinggalar",
    "teamRate": 0.0117,
-   "bringRate": 0.668,
-   "leadRate": 0.474,
-   "winRate": 0.51,
-   "n": 437
+   "bringRate": 0.67,
+   "leadRate": 0.473,
+   "winRate": 0.514,
+   "n": 442
   },
   {
    "sp": "krookodile",
    "teamRate": 0.0117,
    "bringRate": 0.685,
-   "leadRate": 0.287,
-   "winRate": 0.554,
-   "n": 435
+   "leadRate": 0.293,
+   "winRate": 0.556,
+   "n": 441
   },
   {
    "sp": "gliscor",
-   "teamRate": 0.0116,
-   "bringRate": 0.639,
-   "leadRate": 0.315,
-   "winRate": 0.446,
-   "n": 432
+   "teamRate": 0.0117,
+   "bringRate": 0.638,
+   "leadRate": 0.319,
+   "winRate": 0.443,
+   "n": 439
   },
   {
    "sp": "ditto",
-   "teamRate": 0.0112,
-   "bringRate": 0.66,
-   "leadRate": 0.096,
-   "winRate": 0.5,
-   "n": 418
+   "teamRate": 0.0113,
+   "bringRate": 0.665,
+   "leadRate": 0.094,
+   "winRate": 0.504,
+   "n": 424
   },
   {
    "sp": "houndstone",
    "teamRate": 0.011,
-   "bringRate": 0.696,
-   "leadRate": 0.148,
-   "winRate": 0.556,
-   "n": 411
-  },
-  {
-   "sp": "noivern",
-   "teamRate": 0.0109,
-   "bringRate": 0.609,
-   "leadRate": 0.421,
-   "winRate": 0.496,
-   "n": 404
+   "bringRate": 0.699,
+   "leadRate": 0.152,
+   "winRate": 0.559,
+   "n": 415
   },
   {
    "sp": "skarmory",
-   "teamRate": 0.0106,
-   "bringRate": 0.626,
-   "leadRate": 0.354,
-   "winRate": 0.411,
-   "n": 396
+   "teamRate": 0.0108,
+   "bringRate": 0.628,
+   "leadRate": 0.352,
+   "winRate": 0.416,
+   "n": 406
   },
   {
    "sp": "liepard",
+   "teamRate": 0.0108,
+   "bringRate": 0.717,
+   "leadRate": 0.579,
+   "winRate": 0.512,
+   "n": 406
+  },
+  {
+   "sp": "noivern",
+   "teamRate": 0.0108,
+   "bringRate": 0.608,
+   "leadRate": 0.419,
+   "winRate": 0.494,
+   "n": 406
+  },
+  {
+   "sp": "jolteon",
    "teamRate": 0.0105,
-   "bringRate": 0.714,
-   "leadRate": 0.577,
-   "winRate": 0.514,
-   "n": 392
+   "bringRate": 0.654,
+   "leadRate": 0.399,
+   "winRate": 0.517,
+   "n": 396
   },
   {
    "sp": "goodrahisui",
    "teamRate": 0.0105,
-   "bringRate": 0.607,
-   "leadRate": 0.212,
-   "winRate": 0.445,
-   "n": 392
+   "bringRate": 0.609,
+   "leadRate": 0.21,
+   "winRate": 0.444,
+   "n": 396
   },
   {
-   "sp": "jolteon",
-   "teamRate": 0.0103,
-   "bringRate": 0.648,
-   "leadRate": 0.388,
-   "winRate": 0.526,
+   "sp": "golurk",
+   "teamRate": 0.0102,
+   "bringRate": 0.638,
+   "leadRate": 0.174,
+   "winRate": 0.506,
    "n": 384
+  },
+  {
+   "sp": "cofagrigus",
+   "teamRate": 0.01,
+   "bringRate": 0.721,
+   "leadRate": 0.519,
+   "winRate": 0.572,
+   "n": 376
+  },
+  {
+   "sp": "mudsdale",
+   "teamRate": 0.01,
+   "bringRate": 0.587,
+   "leadRate": 0.197,
+   "winRate": 0.5,
+   "n": 375
   },
   {
    "sp": "decidueyehisui",
    "teamRate": 0.01,
-   "bringRate": 0.63,
-   "leadRate": 0.225,
-   "winRate": 0.438,
-   "n": 373
-  },
-  {
-   "sp": "golurk",
-   "teamRate": 0.01,
-   "bringRate": 0.637,
-   "leadRate": 0.177,
-   "winRate": 0.502,
-   "n": 372
+   "bringRate": 0.629,
+   "leadRate": 0.227,
+   "winRate": 0.441,
+   "n": 375
   },
   {
    "sp": "dragalge",
    "teamRate": 0.0099,
-   "bringRate": 0.643,
+   "bringRate": 0.641,
    "leadRate": 0.292,
-   "winRate": 0.458,
-   "n": 370
-  },
-  {
-   "sp": "cofagrigus",
-   "teamRate": 0.0099,
-   "bringRate": 0.715,
-   "leadRate": 0.514,
-   "winRate": 0.578,
-   "n": 368
-  },
-  {
-   "sp": "mudsdale",
-   "teamRate": 0.0099,
-   "bringRate": 0.587,
-   "leadRate": 0.198,
-   "winRate": 0.495,
-   "n": 368
-  },
-  {
-   "sp": "kleavor",
-   "teamRate": 0.0098,
-   "bringRate": 0.667,
-   "leadRate": 0.463,
-   "winRate": 0.5,
-   "n": 363
+   "winRate": 0.456,
+   "n": 373
   },
   {
    "sp": "ninetales",
-   "teamRate": 0.0096,
-   "bringRate": 0.727,
-   "leadRate": 0.273,
-   "winRate": 0.46,
-   "n": 359
+   "teamRate": 0.0097,
+   "bringRate": 0.722,
+   "leadRate": 0.27,
+   "winRate": 0.464,
+   "n": 367
+  },
+  {
+   "sp": "kleavor",
+   "teamRate": 0.0097,
+   "bringRate": 0.669,
+   "leadRate": 0.462,
+   "winRate": 0.498,
+   "n": 366
   },
   {
    "sp": "empoleon",
-   "teamRate": 0.0096,
-   "bringRate": 0.624,
-   "leadRate": 0.306,
-   "winRate": 0.541,
-   "n": 356
-  },
-  {
-   "sp": "feraligatr",
-   "teamRate": 0.0094,
-   "bringRate": 0.692,
-   "leadRate": 0.251,
-   "winRate": 0.473,
-   "n": 351
+   "teamRate": 0.0095,
+   "bringRate": 0.626,
+   "leadRate": 0.304,
+   "winRate": 0.54,
+   "n": 358
   },
   {
    "sp": "snorlax",
    "teamRate": 0.0094,
-   "bringRate": 0.663,
-   "leadRate": 0.32,
-   "winRate": 0.496,
-   "n": 350
+   "bringRate": 0.666,
+   "leadRate": 0.323,
+   "winRate": 0.498,
+   "n": 353
+  },
+  {
+   "sp": "feraligatr",
+   "teamRate": 0.0094,
+   "bringRate": 0.694,
+   "leadRate": 0.252,
+   "winRate": 0.473,
+   "n": 353
   },
   {
    "sp": "crabominable",
    "teamRate": 0.0092,
-   "bringRate": 0.653,
-   "leadRate": 0.14,
-   "winRate": 0.513,
-   "n": 343
+   "bringRate": 0.652,
+   "leadRate": 0.139,
+   "winRate": 0.516,
+   "n": 345
   },
   {
    "sp": "wyrdeer",
    "teamRate": 0.009,
    "bringRate": 0.665,
    "leadRate": 0.497,
-   "winRate": 0.509,
-   "n": 334
-  },
-  {
-   "sp": "azumarill",
-   "teamRate": 0.0087,
-   "bringRate": 0.685,
-   "leadRate": 0.358,
-   "winRate": 0.505,
-   "n": 324
+   "winRate": 0.504,
+   "n": 340
   },
   {
    "sp": "chesnaught",
    "teamRate": 0.0087,
-   "bringRate": 0.578,
-   "leadRate": 0.267,
-   "winRate": 0.586,
-   "n": 322
+   "bringRate": 0.571,
+   "leadRate": 0.261,
+   "winRate": 0.585,
+   "n": 329
+  },
+  {
+   "sp": "azumarill",
+   "teamRate": 0.0087,
+   "bringRate": 0.688,
+   "leadRate": 0.361,
+   "winRate": 0.502,
+   "n": 327
+  },
+  {
+   "sp": "orthworm",
+   "teamRate": 0.0086,
+   "bringRate": 0.575,
+   "leadRate": 0.36,
+   "winRate": 0.487,
+   "n": 325
   },
   {
    "sp": "basculegionf",
-   "teamRate": 0.0085,
-   "bringRate": 0.717,
-   "leadRate": 0.277,
-   "winRate": 0.487,
-   "n": 318
+   "teamRate": 0.0086,
+   "bringRate": 0.718,
+   "leadRate": 0.282,
+   "winRate": 0.478,
+   "n": 323
   },
   {
    "sp": "ampharos",
    "teamRate": 0.0085,
-   "bringRate": 0.657,
-   "leadRate": 0.164,
-   "winRate": 0.474,
-   "n": 318
-  },
-  {
-   "sp": "orthworm",
-   "teamRate": 0.0085,
-   "bringRate": 0.575,
-   "leadRate": 0.362,
-   "winRate": 0.481,
-   "n": 318
+   "bringRate": 0.66,
+   "leadRate": 0.165,
+   "winRate": 0.472,
+   "n": 321
   },
   {
    "sp": "hawlucha",
    "teamRate": 0.0085,
-   "bringRate": 0.615,
-   "leadRate": 0.356,
-   "winRate": 0.472,
-   "n": 317
+   "bringRate": 0.618,
+   "leadRate": 0.354,
+   "winRate": 0.467,
+   "n": 319
   },
   {
    "sp": "toxicroak",
-   "teamRate": 0.0084,
-   "bringRate": 0.665,
-   "leadRate": 0.438,
-   "winRate": 0.519,
-   "n": 313
-  },
-  {
-   "sp": "audino",
-   "teamRate": 0.0084,
-   "bringRate": 0.686,
-   "leadRate": 0.513,
-   "winRate": 0.481,
-   "n": 312
+   "teamRate": 0.0085,
+   "bringRate": 0.655,
+   "leadRate": 0.433,
+   "winRate": 0.517,
+   "n": 319
   },
   {
    "sp": "bellibolt",
+   "teamRate": 0.0084,
+   "bringRate": 0.73,
+   "leadRate": 0.298,
+   "winRate": 0.465,
+   "n": 315
+  },
+  {
+   "sp": "audino",
    "teamRate": 0.0083,
-   "bringRate": 0.732,
-   "leadRate": 0.294,
-   "winRate": 0.467,
-   "n": 310
+   "bringRate": 0.687,
+   "leadRate": 0.514,
+   "winRate": 0.479,
+   "n": 313
+  },
+  {
+   "sp": "aggron",
+   "teamRate": 0.0083,
+   "bringRate": 0.665,
+   "leadRate": 0.304,
+   "winRate": 0.361,
+   "n": 313
   },
   {
    "sp": "alakazam",
    "teamRate": 0.0083,
-   "bringRate": 0.606,
-   "leadRate": 0.365,
-   "winRate": 0.419,
-   "n": 307
-  },
-  {
-   "sp": "aggron",
-   "teamRate": 0.0082,
-   "bringRate": 0.67,
-   "leadRate": 0.307,
-   "winRate": 0.361,
-   "n": 306
+   "bringRate": 0.608,
+   "leadRate": 0.37,
+   "winRate": 0.423,
+   "n": 311
   },
   {
    "sp": "steelix",
-   "teamRate": 0.0081,
-   "bringRate": 0.62,
+   "teamRate": 0.0082,
+   "bringRate": 0.615,
    "leadRate": 0.172,
-   "winRate": 0.468,
-   "n": 303
-  },
-  {
-   "sp": "hippowdon",
-   "teamRate": 0.0081,
-   "bringRate": 0.675,
-   "leadRate": 0.205,
-   "winRate": 0.417,
-   "n": 302
+   "winRate": 0.463,
+   "n": 309
   },
   {
    "sp": "abomasnow",
    "teamRate": 0.0081,
-   "bringRate": 0.648,
-   "leadRate": 0.226,
+   "bringRate": 0.65,
+   "leadRate": 0.225,
    "winRate": 0.523,
-   "n": 301
+   "n": 306
+  },
+  {
+   "sp": "hippowdon",
+   "teamRate": 0.0081,
+   "bringRate": 0.678,
+   "leadRate": 0.204,
+   "winRate": 0.422,
+   "n": 304
+  },
+  {
+   "sp": "umbreon",
+   "teamRate": 0.008,
+   "bringRate": 0.672,
+   "leadRate": 0.384,
+   "winRate": 0.606,
+   "n": 302
   },
   {
    "sp": "ariados",
    "teamRate": 0.008,
-   "bringRate": 0.508,
-   "leadRate": 0.291,
+   "bringRate": 0.505,
+   "leadRate": 0.289,
    "winRate": 0.487,
-   "n": 299
+   "n": 301
   },
   {
    "sp": "arcanine",
    "teamRate": 0.008,
-   "bringRate": 0.655,
-   "leadRate": 0.291,
-   "winRate": 0.521,
-   "n": 296
-  },
-  {
-   "sp": "umbreon",
-   "teamRate": 0.0079,
-   "bringRate": 0.668,
-   "leadRate": 0.38,
-   "winRate": 0.604,
-   "n": 295
+   "bringRate": 0.657,
+   "leadRate": 0.29,
+   "winRate": 0.528,
+   "n": 300
   },
   {
    "sp": "taurospaldeaaqua",
    "teamRate": 0.0076,
-   "bringRate": 0.655,
+   "bringRate": 0.653,
    "leadRate": 0.271,
-   "winRate": 0.5,
-   "n": 284
+   "winRate": 0.495,
+   "n": 288
   },
   {
    "sp": "mrrime",
    "teamRate": 0.0076,
    "bringRate": 0.611,
-   "leadRate": 0.452,
-   "winRate": 0.474,
-   "n": 283
+   "leadRate": 0.453,
+   "winRate": 0.477,
+   "n": 285
+  },
+  {
+   "sp": "slowbro",
+   "teamRate": 0.0074,
+   "bringRate": 0.679,
+   "leadRate": 0.354,
+   "winRate": 0.526,
+   "n": 280
+  },
+  {
+   "sp": "scolipede",
+   "teamRate": 0.0074,
+   "bringRate": 0.568,
+   "leadRate": 0.331,
+   "winRate": 0.525,
+   "n": 278
   },
   {
    "sp": "conkeldurr",
-   "teamRate": 0.0074,
+   "teamRate": 0.0073,
    "bringRate": 0.641,
    "leadRate": 0.225,
    "winRate": 0.469,
    "n": 276
   },
   {
-   "sp": "slowbro",
-   "teamRate": 0.0074,
-   "bringRate": 0.672,
-   "leadRate": 0.358,
-   "winRate": 0.516,
-   "n": 274
-  },
-  {
-   "sp": "scolipede",
-   "teamRate": 0.0073,
-   "bringRate": 0.579,
-   "leadRate": 0.337,
-   "winRate": 0.525,
-   "n": 273
-  },
-  {
    "sp": "skeledirge",
-   "teamRate": 0.0067,
-   "bringRate": 0.528,
-   "leadRate": 0.188,
-   "winRate": 0.439,
-   "n": 250
-  },
-  {
-   "sp": "rotommow",
-   "teamRate": 0.0067,
-   "bringRate": 0.508,
-   "leadRate": 0.23,
-   "winRate": 0.492,
-   "n": 248
+   "teamRate": 0.0068,
+   "bringRate": 0.525,
+   "leadRate": 0.192,
+   "winRate": 0.448,
+   "n": 255
   },
   {
    "sp": "vaporeon",
    "teamRate": 0.0066,
-   "bringRate": 0.675,
-   "leadRate": 0.333,
+   "bringRate": 0.672,
+   "leadRate": 0.328,
    "winRate": 0.446,
-   "n": 246
-  },
-  {
-   "sp": "serperior",
-   "teamRate": 0.0066,
-   "bringRate": 0.598,
-   "leadRate": 0.325,
-   "winRate": 0.503,
-   "n": 246
+   "n": 250
   },
   {
    "sp": "infernape",
    "teamRate": 0.0066,
-   "bringRate": 0.711,
-   "leadRate": 0.459,
-   "winRate": 0.497,
-   "n": 246
+   "bringRate": 0.712,
+   "leadRate": 0.456,
+   "winRate": 0.494,
+   "n": 250
+  },
+  {
+   "sp": "rotommow",
+   "teamRate": 0.0066,
+   "bringRate": 0.51,
+   "leadRate": 0.229,
+   "winRate": 0.488,
+   "n": 249
+  },
+  {
+   "sp": "serperior",
+   "teamRate": 0.0066,
+   "bringRate": 0.601,
+   "leadRate": 0.323,
+   "winRate": 0.503,
+   "n": 248
   },
   {
    "sp": "rotomfrost",
    "teamRate": 0.0066,
-   "bringRate": 0.722,
-   "leadRate": 0.302,
-   "winRate": 0.616,
-   "n": 245
+   "bringRate": 0.725,
+   "leadRate": 0.308,
+   "winRate": 0.609,
+   "n": 247
   },
   {
    "sp": "houndoom",
    "teamRate": 0.0065,
-   "bringRate": 0.719,
-   "leadRate": 0.326,
-   "winRate": 0.5,
-   "n": 242
+   "bringRate": 0.722,
+   "leadRate": 0.331,
+   "winRate": 0.503,
+   "n": 245
+  },
+  {
+   "sp": "hydrapple",
+   "teamRate": 0.0064,
+   "bringRate": 0.568,
+   "leadRate": 0.183,
+   "winRate": 0.474,
+   "n": 241
   },
   {
    "sp": "rhyperior",
    "teamRate": 0.0064,
-   "bringRate": 0.59,
-   "leadRate": 0.18,
-   "winRate": 0.376,
-   "n": 239
-  },
-  {
-   "sp": "hydrapple",
-   "teamRate": 0.0063,
-   "bringRate": 0.576,
-   "leadRate": 0.186,
-   "winRate": 0.478,
-   "n": 236
+   "bringRate": 0.592,
+   "leadRate": 0.179,
+   "winRate": 0.373,
+   "n": 240
   },
   {
    "sp": "medicham",
    "teamRate": 0.0063,
    "bringRate": 0.708,
-   "leadRate": 0.459,
-   "winRate": 0.406,
-   "n": 233
+   "leadRate": 0.458,
+   "winRate": 0.407,
+   "n": 236
   },
   {
    "sp": "spiritomb",
    "teamRate": 0.0062,
-   "bringRate": 0.735,
-   "leadRate": 0.557,
-   "winRate": 0.456,
-   "n": 230
+   "bringRate": 0.734,
+   "leadRate": 0.549,
+   "winRate": 0.45,
+   "n": 233
   },
   {
    "sp": "manectric",
    "teamRate": 0.0061,
-   "bringRate": 0.667,
-   "leadRate": 0.338,
-   "winRate": 0.434,
-   "n": 228
+   "bringRate": 0.671,
+   "leadRate": 0.342,
+   "winRate": 0.432,
+   "n": 231
   },
   {
    "sp": "banette",
-   "teamRate": 0.006,
-   "bringRate": 0.594,
-   "leadRate": 0.42,
-   "winRate": 0.406,
-   "n": 224
+   "teamRate": 0.0061,
+   "bringRate": 0.584,
+   "leadRate": 0.416,
+   "winRate": 0.4,
+   "n": 231
+  },
+  {
+   "sp": "heracross",
+   "teamRate": 0.0057,
+   "bringRate": 0.638,
+   "leadRate": 0.225,
+   "winRate": 0.478,
+   "n": 213
   },
   {
    "sp": "clawitzer",
@@ -1261,80 +1269,80 @@
    "n": 210
   },
   {
-   "sp": "heracross",
-   "teamRate": 0.0056,
-   "bringRate": 0.632,
-   "leadRate": 0.215,
-   "winRate": 0.462,
-   "n": 209
+   "sp": "garganacl",
+   "teamRate": 0.0055,
+   "bringRate": 0.548,
+   "leadRate": 0.236,
+   "winRate": 0.579,
+   "n": 208
   },
   {
    "sp": "runerigus",
-   "teamRate": 0.0056,
+   "teamRate": 0.0055,
    "bringRate": 0.697,
    "leadRate": 0.505,
    "winRate": 0.566,
    "n": 208
   },
   {
-   "sp": "garganacl",
+   "sp": "chimecho",
    "teamRate": 0.0054,
-   "bringRate": 0.535,
-   "leadRate": 0.233,
-   "winRate": 0.593,
+   "bringRate": 0.599,
+   "leadRate": 0.396,
+   "winRate": 0.537,
    "n": 202
   },
   {
    "sp": "taurospaldeablaze",
-   "teamRate": 0.0054,
-   "bringRate": 0.66,
-   "leadRate": 0.3,
-   "winRate": 0.477,
-   "n": 200
-  },
-  {
-   "sp": "chimecho",
    "teamRate": 0.0053,
-   "bringRate": 0.608,
-   "leadRate": 0.402,
-   "winRate": 0.537,
-   "n": 199
+   "bringRate": 0.657,
+   "leadRate": 0.299,
+   "winRate": 0.477,
+   "n": 201
   },
   {
    "sp": "victreebel",
-   "teamRate": 0.0052,
+   "teamRate": 0.0053,
    "bringRate": 0.697,
-   "leadRate": 0.446,
-   "winRate": 0.566,
-   "n": 195
+   "leadRate": 0.439,
+   "winRate": 0.565,
+   "n": 198
   },
   {
    "sp": "glaceon",
    "teamRate": 0.005,
-   "bringRate": 0.535,
-   "leadRate": 0.241,
-   "winRate": 0.48,
-   "n": 187
-  },
-  {
-   "sp": "falinks",
-   "teamRate": 0.0048,
-   "bringRate": 0.654,
-   "leadRate": 0.413,
-   "winRate": 0.547,
-   "n": 179
+   "bringRate": 0.532,
+   "leadRate": 0.242,
+   "winRate": 0.475,
+   "n": 190
   },
   {
    "sp": "morpeko",
    "teamRate": 0.0048,
-   "bringRate": 0.672,
-   "leadRate": 0.429,
-   "winRate": 0.403,
-   "n": 177
+   "bringRate": 0.663,
+   "leadRate": 0.425,
+   "winRate": 0.408,
+   "n": 181
+  },
+  {
+   "sp": "falinks",
+   "teamRate": 0.0048,
+   "bringRate": 0.656,
+   "leadRate": 0.411,
+   "winRate": 0.551,
+   "n": 180
+  },
+  {
+   "sp": "salazzle",
+   "teamRate": 0.0045,
+   "bringRate": 0.713,
+   "leadRate": 0.456,
+   "winRate": 0.549,
+   "n": 171
   },
   {
    "sp": "reuniclus",
-   "teamRate": 0.0046,
+   "teamRate": 0.0045,
    "bringRate": 0.632,
    "leadRate": 0.409,
    "winRate": 0.435,
@@ -1343,50 +1351,50 @@
   {
    "sp": "pikachu",
    "teamRate": 0.0045,
-   "bringRate": 0.601,
-   "leadRate": 0.417,
-   "winRate": 0.495,
-   "n": 168
-  },
-  {
-   "sp": "salazzle",
-   "teamRate": 0.0045,
-   "bringRate": 0.713,
-   "leadRate": 0.455,
-   "winRate": 0.555,
-   "n": 167
+   "bringRate": 0.606,
+   "leadRate": 0.418,
+   "winRate": 0.485,
+   "n": 170
   },
   {
    "sp": "torterra",
-   "teamRate": 0.0044,
-   "bringRate": 0.611,
-   "leadRate": 0.284,
-   "winRate": 0.485,
-   "n": 162
+   "teamRate": 0.0045,
+   "bringRate": 0.627,
+   "leadRate": 0.296,
+   "winRate": 0.491,
+   "n": 169
   },
   {
    "sp": "vivillonfancy",
-   "teamRate": 0.0043,
-   "bringRate": 0.671,
-   "leadRate": 0.491,
-   "winRate": 0.37,
-   "n": 161
+   "teamRate": 0.0044,
+   "bringRate": 0.665,
+   "leadRate": 0.482,
+   "winRate": 0.376,
+   "n": 164
   },
   {
    "sp": "pangoro",
    "teamRate": 0.0041,
-   "bringRate": 0.727,
-   "leadRate": 0.351,
-   "winRate": 0.545,
-   "n": 154
+   "bringRate": 0.731,
+   "leadRate": 0.353,
+   "winRate": 0.535,
+   "n": 156
+  },
+  {
+   "sp": "pidgeot",
+   "teamRate": 0.0041,
+   "bringRate": 0.66,
+   "leadRate": 0.372,
+   "winRate": 0.583,
+   "n": 156
   },
   {
    "sp": "alcremie",
    "teamRate": 0.0041,
-   "bringRate": 0.599,
-   "leadRate": 0.263,
-   "winRate": 0.615,
-   "n": 152
+   "bringRate": 0.601,
+   "leadRate": 0.268,
+   "winRate": 0.62,
+   "n": 153
   },
   {
    "sp": "aromatisse",
@@ -1394,6 +1402,14 @@
    "bringRate": 0.587,
    "leadRate": 0.307,
    "winRate": 0.523,
+   "n": 150
+  },
+  {
+   "sp": "trevenant",
+   "teamRate": 0.004,
+   "bringRate": 0.593,
+   "leadRate": 0.32,
+   "winRate": 0.438,
    "n": 150
   },
   {
@@ -1405,48 +1421,32 @@
    "n": 149
   },
   {
-   "sp": "pidgeot",
-   "teamRate": 0.004,
-   "bringRate": 0.655,
-   "leadRate": 0.351,
-   "winRate": 0.588,
-   "n": 148
-  },
-  {
    "sp": "sharpedo",
    "teamRate": 0.0039,
-   "bringRate": 0.607,
-   "leadRate": 0.338,
-   "winRate": 0.534,
-   "n": 145
+   "bringRate": 0.608,
+   "leadRate": 0.345,
+   "winRate": 0.533,
+   "n": 148
   },
   {
    "sp": "aurorus",
    "teamRate": 0.0039,
-   "bringRate": 0.552,
-   "leadRate": 0.214,
-   "winRate": 0.45,
-   "n": 145
-  },
-  {
-   "sp": "trevenant",
-   "teamRate": 0.0039,
-   "bringRate": 0.597,
-   "leadRate": 0.319,
-   "winRate": 0.43,
-   "n": 144
+   "bringRate": 0.555,
+   "leadRate": 0.219,
+   "winRate": 0.444,
+   "n": 146
   },
   {
    "sp": "diggersby",
    "teamRate": 0.0038,
-   "bringRate": 0.693,
-   "leadRate": 0.293,
-   "winRate": 0.588,
-   "n": 140
+   "bringRate": 0.692,
+   "leadRate": 0.294,
+   "winRate": 0.586,
+   "n": 143
   },
   {
    "sp": "beartic",
-   "teamRate": 0.0037,
+   "teamRate": 0.0036,
    "bringRate": 0.613,
    "leadRate": 0.226,
    "winRate": 0.679,
@@ -1454,19 +1454,19 @@
   },
   {
    "sp": "quaquaval",
-   "teamRate": 0.0035,
-   "bringRate": 0.689,
-   "leadRate": 0.295,
-   "winRate": 0.505,
-   "n": 132
+   "teamRate": 0.0036,
+   "bringRate": 0.687,
+   "leadRate": 0.291,
+   "winRate": 0.511,
+   "n": 134
   },
   {
    "sp": "vivillonpokeball",
    "teamRate": 0.0035,
-   "bringRate": 0.615,
-   "leadRate": 0.469,
-   "winRate": 0.5,
-   "n": 130
+   "bringRate": 0.618,
+   "leadRate": 0.473,
+   "winRate": 0.494,
+   "n": 131
   },
   {
    "sp": "rotomfan",
@@ -1479,10 +1479,10 @@
   {
    "sp": "lycanroc",
    "teamRate": 0.0034,
-   "bringRate": 0.608,
-   "leadRate": 0.288,
-   "winRate": 0.461,
-   "n": 125
+   "bringRate": 0.614,
+   "leadRate": 0.299,
+   "winRate": 0.474,
+   "n": 127
   },
   {
    "sp": "slowbrogalar",
@@ -1501,12 +1501,36 @@
    "n": 123
   },
   {
+   "sp": "rampardos",
+   "teamRate": 0.0033,
+   "bringRate": 0.577,
+   "leadRate": 0.154,
+   "winRate": 0.31,
+   "n": 123
+  },
+  {
+   "sp": "pinsir",
+   "teamRate": 0.0033,
+   "bringRate": 0.675,
+   "leadRate": 0.301,
+   "winRate": 0.482,
+   "n": 123
+  },
+  {
    "sp": "simipour",
    "teamRate": 0.0032,
-   "bringRate": 0.575,
-   "leadRate": 0.383,
-   "winRate": 0.565,
-   "n": 120
+   "bringRate": 0.582,
+   "leadRate": 0.393,
+   "winRate": 0.549,
+   "n": 122
+  },
+  {
+   "sp": "slowking",
+   "teamRate": 0.0032,
+   "bringRate": 0.653,
+   "leadRate": 0.471,
+   "winRate": 0.43,
+   "n": 121
   },
   {
    "sp": "espeon",
@@ -1517,44 +1541,20 @@
    "n": 120
   },
   {
-   "sp": "rampardos",
-   "teamRate": 0.0032,
-   "bringRate": 0.583,
-   "leadRate": 0.15,
-   "winRate": 0.314,
-   "n": 120
-  },
-  {
-   "sp": "pinsir",
-   "teamRate": 0.0032,
-   "bringRate": 0.683,
-   "leadRate": 0.3,
-   "winRate": 0.488,
-   "n": 120
-  },
-  {
-   "sp": "slowking",
-   "teamRate": 0.0032,
-   "bringRate": 0.644,
-   "leadRate": 0.466,
-   "winRate": 0.421,
-   "n": 118
-  },
-  {
    "sp": "toucannon",
-   "teamRate": 0.003,
-   "bringRate": 0.681,
-   "leadRate": 0.425,
-   "winRate": 0.597,
-   "n": 113
+   "teamRate": 0.0031,
+   "bringRate": 0.678,
+   "leadRate": 0.426,
+   "winRate": 0.603,
+   "n": 115
   },
   {
    "sp": "emboar",
-   "teamRate": 0.003,
-   "bringRate": 0.782,
-   "leadRate": 0.245,
-   "winRate": 0.488,
-   "n": 110
+   "teamRate": 0.0029,
+   "bringRate": 0.784,
+   "leadRate": 0.252,
+   "winRate": 0.483,
+   "n": 111
   },
   {
    "sp": "musharna",
@@ -1591,10 +1591,10 @@
   {
    "sp": "tyrantrum",
    "teamRate": 0.0027,
-   "bringRate": 0.686,
-   "leadRate": 0.373,
+   "bringRate": 0.68,
+   "leadRate": 0.369,
    "winRate": 0.514,
-   "n": 102
+   "n": 103
   },
   {
    "sp": "absol",
@@ -1607,14 +1607,14 @@
   {
    "sp": "zoroark",
    "teamRate": 0.0027,
-   "bringRate": 0.677,
+   "bringRate": 0.68,
    "leadRate": 0,
-   "winRate": 0.313,
-   "n": 99
+   "winRate": 0.309,
+   "n": 100
   },
   {
    "sp": "goodra",
-   "teamRate": 0.0026,
+   "teamRate": 0.0025,
    "bringRate": 0.667,
    "leadRate": 0.281,
    "winRate": 0.484,
@@ -1622,18 +1622,26 @@
   },
   {
    "sp": "typhlosion",
-   "teamRate": 0.0026,
-   "bringRate": 0.6,
-   "leadRate": 0.253,
+   "teamRate": 0.0025,
+   "bringRate": 0.594,
+   "leadRate": 0.25,
    "winRate": 0.509,
-   "n": 95
+   "n": 96
   },
   {
    "sp": "leafeon",
-   "teamRate": 0.0024,
-   "bringRate": 0.527,
-   "leadRate": 0.242,
+   "teamRate": 0.0025,
+   "bringRate": 0.516,
+   "leadRate": 0.237,
    "winRate": 0.521,
+   "n": 93
+  },
+  {
+   "sp": "passimian",
+   "teamRate": 0.0024,
+   "bringRate": 0.659,
+   "leadRate": 0.407,
+   "winRate": 0.483,
    "n": 91
   },
   {
@@ -1645,24 +1653,16 @@
    "n": 90
   },
   {
-   "sp": "passimian",
-   "teamRate": 0.0024,
-   "bringRate": 0.663,
-   "leadRate": 0.416,
-   "winRate": 0.492,
-   "n": 89
-  },
-  {
    "sp": "glalie",
    "teamRate": 0.0023,
-   "bringRate": 0.593,
-   "leadRate": 0.372,
-   "winRate": 0.373,
-   "n": 86
+   "bringRate": 0.598,
+   "leadRate": 0.368,
+   "winRate": 0.385,
+   "n": 87
   },
   {
    "sp": "flapple",
-   "teamRate": 0.0023,
+   "teamRate": 0.0022,
    "bringRate": 0.571,
    "leadRate": 0.179,
    "winRate": 0.438,
@@ -1670,7 +1670,7 @@
   },
   {
    "sp": "gourgeistsuper",
-   "teamRate": 0.0023,
+   "teamRate": 0.0022,
    "bringRate": 0.679,
    "leadRate": 0.44,
    "winRate": 0.526,
@@ -1687,34 +1687,34 @@
   {
    "sp": "avalugghisui",
    "teamRate": 0.0021,
-   "bringRate": 0.658,
-   "leadRate": 0.203,
+   "bringRate": 0.65,
+   "leadRate": 0.2,
    "winRate": 0.385,
-   "n": 79
-  },
-  {
-   "sp": "roserade",
-   "teamRate": 0.002,
-   "bringRate": 0.684,
-   "leadRate": 0.395,
-   "winRate": 0.538,
-   "n": 76
+   "n": 80
   },
   {
    "sp": "sandaconda",
    "teamRate": 0.002,
-   "bringRate": 0.581,
-   "leadRate": 0.432,
-   "winRate": 0.674,
-   "n": 74
+   "bringRate": 0.597,
+   "leadRate": 0.442,
+   "winRate": 0.63,
+   "n": 77
   },
   {
    "sp": "simisear",
    "teamRate": 0.002,
-   "bringRate": 0.743,
-   "leadRate": 0.514,
-   "winRate": 0.418,
-   "n": 74
+   "bringRate": 0.727,
+   "leadRate": 0.494,
+   "winRate": 0.411,
+   "n": 77
+  },
+  {
+   "sp": "roserade",
+   "teamRate": 0.002,
+   "bringRate": 0.688,
+   "leadRate": 0.39,
+   "winRate": 0.528,
+   "n": 77
   },
   {
    "sp": "meowsticf",
@@ -1726,7 +1726,7 @@
   },
   {
    "sp": "emolga",
-   "teamRate": 0.002,
+   "teamRate": 0.0019,
    "bringRate": 0.562,
    "leadRate": 0.342,
    "winRate": 0.415,
@@ -1758,7 +1758,7 @@
   },
   {
    "sp": "arbok",
-   "teamRate": 0.0017,
+   "teamRate": 0.0016,
    "bringRate": 0.597,
    "leadRate": 0.306,
    "winRate": 0.595,
@@ -1781,6 +1781,14 @@
    "n": 57
   },
   {
+   "sp": "florges",
+   "teamRate": 0.0015,
+   "bringRate": 0.655,
+   "leadRate": 0.345,
+   "winRate": 0.583,
+   "n": 55
+  },
+  {
    "sp": "decidueye",
    "teamRate": 0.0015,
    "bringRate": 0.509,
@@ -1789,11 +1797,19 @@
    "n": 55
   },
   {
-   "sp": "florges",
-   "teamRate": 0.0015,
-   "bringRate": 0.648,
-   "leadRate": 0.352,
-   "winRate": 0.571,
+   "sp": "appletun",
+   "teamRate": 0.0014,
+   "bringRate": 0.574,
+   "leadRate": 0.074,
+   "winRate": 0.484,
+   "n": 54
+  },
+  {
+   "sp": "dedenne",
+   "teamRate": 0.0014,
+   "bringRate": 0.426,
+   "leadRate": 0.296,
+   "winRate": 0.478,
    "n": 54
   },
   {
@@ -1805,14 +1821,6 @@
    "n": 52
   },
   {
-   "sp": "appletun",
-   "teamRate": 0.0014,
-   "bringRate": 0.569,
-   "leadRate": 0.078,
-   "winRate": 0.483,
-   "n": 51
-  },
-  {
    "sp": "taurospaldeacombat",
    "teamRate": 0.0013,
    "bringRate": 0.7,
@@ -1821,20 +1829,12 @@
    "n": 50
   },
   {
-   "sp": "dedenne",
-   "teamRate": 0.0013,
-   "bringRate": 0.449,
-   "leadRate": 0.306,
-   "winRate": 0.5,
-   "n": 49
-  },
-  {
    "sp": "simisage",
    "teamRate": 0.0012,
-   "bringRate": 0.5,
-   "leadRate": 0.326,
+   "bringRate": 0.489,
+   "leadRate": 0.319,
    "winRate": 0.435,
-   "n": 46
+   "n": 47
   },
   {
    "sp": "gourgeistsmall",
@@ -1877,28 +1877,28 @@
    "n": 34
   },
   {
+   "sp": "castform",
+   "teamRate": 0.0009,
+   "bringRate": 0.576,
+   "leadRate": 0.364,
+   "winRate": 0.474,
+   "n": 33
+  },
+  {
+   "sp": "vivillonmonsoon",
+   "teamRate": 0.0008,
+   "bringRate": 0.688,
+   "leadRate": 0.531,
+   "winRate": 0.727,
+   "n": 32
+  },
+  {
    "sp": "avalugg",
    "teamRate": 0.0008,
    "bringRate": 0.742,
    "leadRate": 0.355,
    "winRate": 0.348,
    "n": 31
-  },
-  {
-   "sp": "castform",
-   "teamRate": 0.0008,
-   "bringRate": 0.533,
-   "leadRate": 0.333,
-   "winRate": 0.438,
-   "n": 30
-  },
-  {
-   "sp": "vivillonmonsoon",
-   "teamRate": 0.0008,
-   "bringRate": 0.69,
-   "leadRate": 0.517,
-   "winRate": 0.7,
-   "n": 29
   },
   {
    "sp": "samurott",
@@ -1909,20 +1909,20 @@
    "n": 26
   },
   {
+   "sp": "alcremierainbowswirl",
+   "teamRate": 0.0006,
+   "bringRate": 0.708,
+   "leadRate": 0.542,
+   "winRate": 0.353,
+   "n": 24
+  },
+  {
    "sp": "vivillonpolar",
    "teamRate": 0.0006,
    "bringRate": 0.522,
    "leadRate": 0.391,
    "winRate": 0.583,
    "n": 23
-  },
-  {
-   "sp": "alcremierainbowswirl",
-   "teamRate": 0.0006,
-   "bringRate": 0.773,
-   "leadRate": 0.591,
-   "winRate": 0.353,
-   "n": 22
   },
   {
    "sp": "polteageistantique",
@@ -1990,11 +1990,11 @@
   },
   {
    "sp": "florgeswhite",
-   "teamRate": 0.0004,
-   "bringRate": 0.813,
-   "leadRate": 0.25,
+   "teamRate": 0.0005,
+   "bringRate": 0.765,
+   "leadRate": 0.235,
    "winRate": 0.385,
-   "n": 16
+   "n": 17
   },
   {
    "sp": "vivillonsavanna",
@@ -2010,6 +2010,14 @@
    "bringRate": 0.583,
    "leadRate": 0.083,
    "winRate": 0.571,
+   "n": 12
+  },
+  {
+   "sp": "revavroom",
+   "teamRate": 0.0003,
+   "bringRate": 0.5,
+   "leadRate": 0.25,
+   "winRate": 0.5,
    "n": 12
   },
   {
@@ -2053,14 +2061,6 @@
    "n": 9
   },
   {
-   "sp": "revavroom",
-   "teamRate": 0.0002,
-   "bringRate": 0.556,
-   "leadRate": 0.222,
-   "winRate": 0.6,
-   "n": 9
-  },
-  {
    "sp": "alcremiesaltedcream",
    "teamRate": 0.0002,
    "bringRate": 0.75,
@@ -2079,1239 +2079,1247 @@
  ],
  "views": {
   "competitive": {
-   "sampledTeams": 37210,
+   "sampledTeams": 37680,
    "threats": [
     {
      "sp": "kingambit",
-     "teamRate": 0.235,
+     "teamRate": 0.2344,
      "bringRate": 0.625,
-     "leadRate": 0.21,
-     "winRate": 0.494,
-     "n": 8745
+     "leadRate": 0.211,
+     "winRate": 0.493,
+     "n": 8832
     },
     {
      "sp": "garchomp",
-     "teamRate": 0.2296,
+     "teamRate": 0.2289,
      "bringRate": 0.721,
-     "leadRate": 0.28,
+     "leadRate": 0.281,
      "winRate": 0.477,
-     "n": 8543
+     "n": 8626
     },
     {
      "sp": "incineroar",
      "teamRate": 0.2245,
      "bringRate": 0.696,
-     "leadRate": 0.396,
-     "winRate": 0.517,
-     "n": 8353
+     "leadRate": 0.395,
+     "winRate": 0.516,
+     "n": 8461
     },
     {
      "sp": "whimsicott",
-     "teamRate": 0.1902,
+     "teamRate": 0.1893,
      "bringRate": 0.71,
      "leadRate": 0.53,
-     "winRate": 0.469,
-     "n": 7076
+     "winRate": 0.47,
+     "n": 7134
     },
     {
      "sp": "basculegion",
-     "teamRate": 0.1834,
-     "bringRate": 0.718,
-     "leadRate": 0.2,
-     "winRate": 0.503,
-     "n": 6826
+     "teamRate": 0.1827,
+     "bringRate": 0.719,
+     "leadRate": 0.199,
+     "winRate": 0.502,
+     "n": 6886
     },
     {
      "sp": "farigiraf",
-     "teamRate": 0.1739,
+     "teamRate": 0.1741,
      "bringRate": 0.705,
-     "leadRate": 0.47,
+     "leadRate": 0.468,
      "winRate": 0.496,
-     "n": 6470
+     "n": 6561
     },
     {
      "sp": "sinistcha",
-     "teamRate": 0.1723,
-     "bringRate": 0.609,
-     "leadRate": 0.123,
-     "winRate": 0.519,
-     "n": 6413
+     "teamRate": 0.1725,
+     "bringRate": 0.611,
+     "leadRate": 0.124,
+     "winRate": 0.52,
+     "n": 6498
     },
     {
      "sp": "sneasler",
-     "teamRate": 0.1703,
+     "teamRate": 0.1702,
      "bringRate": 0.737,
-     "leadRate": 0.473,
-     "winRate": 0.494,
-     "n": 6338
+     "leadRate": 0.472,
+     "winRate": 0.495,
+     "n": 6415
     },
     {
      "sp": "charizard",
-     "teamRate": 0.1431,
+     "teamRate": 0.1429,
      "bringRate": 0.687,
-     "leadRate": 0.368,
-     "winRate": 0.472,
-     "n": 5324
+     "leadRate": 0.367,
+     "winRate": 0.473,
+     "n": 5383
     },
     {
      "sp": "staraptor",
      "teamRate": 0.1419,
-     "bringRate": 0.624,
+     "bringRate": 0.622,
      "leadRate": 0.374,
-     "winRate": 0.479,
-     "n": 5281
+     "winRate": 0.481,
+     "n": 5347
     },
     {
      "sp": "raichu",
-     "teamRate": 0.1146,
+     "teamRate": 0.1145,
      "bringRate": 0.669,
-     "leadRate": 0.463,
-     "winRate": 0.493,
-     "n": 4265
+     "leadRate": 0.462,
+     "winRate": 0.494,
+     "n": 4315
     },
     {
      "sp": "pelipper",
-     "teamRate": 0.1139,
-     "bringRate": 0.786,
-     "leadRate": 0.269,
+     "teamRate": 0.1134,
+     "bringRate": 0.787,
+     "leadRate": 0.27,
      "winRate": 0.506,
-     "n": 4237
+     "n": 4274
     },
     {
      "sp": "archaludon",
-     "teamRate": 0.1055,
-     "bringRate": 0.753,
+     "teamRate": 0.1052,
+     "bringRate": 0.754,
      "leadRate": 0.251,
      "winRate": 0.536,
-     "n": 3924
+     "n": 3964
     },
     {
      "sp": "sylveon",
-     "teamRate": 0.1033,
-     "bringRate": 0.644,
+     "teamRate": 0.1032,
+     "bringRate": 0.645,
      "leadRate": 0.237,
      "winRate": 0.463,
-     "n": 3845
+     "n": 3890
     },
     {
      "sp": "tyranitar",
      "teamRate": 0.1025,
-     "bringRate": 0.789,
-     "leadRate": 0.287,
-     "winRate": 0.512,
-     "n": 3815
+     "bringRate": 0.79,
+     "leadRate": 0.288,
+     "winRate": 0.513,
+     "n": 3863
     },
     {
      "sp": "gholdengo",
      "teamRate": 0.0936,
-     "bringRate": 0.622,
+     "bringRate": 0.625,
      "leadRate": 0.31,
-     "winRate": 0.498,
-     "n": 3482
+     "winRate": 0.501,
+     "n": 3528
     },
     {
      "sp": "floetteeternal",
-     "teamRate": 0.0859,
-     "bringRate": 0.567,
+     "teamRate": 0.0858,
+     "bringRate": 0.566,
      "leadRate": 0.28,
-     "winRate": 0.518,
-     "n": 3198
+     "winRate": 0.517,
+     "n": 3234
     },
     {
      "sp": "grimmsnarl",
-     "teamRate": 0.085,
-     "bringRate": 0.695,
-     "leadRate": 0.555,
-     "winRate": 0.513,
-     "n": 3164
+     "teamRate": 0.0851,
+     "bringRate": 0.694,
+     "leadRate": 0.554,
+     "winRate": 0.511,
+     "n": 3205
     },
     {
      "sp": "aerodactyl",
      "teamRate": 0.0838,
      "bringRate": 0.582,
-     "leadRate": 0.432,
-     "winRate": 0.477,
-     "n": 3119
+     "leadRate": 0.431,
+     "winRate": 0.478,
+     "n": 3156
     },
     {
      "sp": "milotic",
      "teamRate": 0.0837,
-     "bringRate": 0.645,
-     "leadRate": 0.359,
+     "bringRate": 0.644,
+     "leadRate": 0.358,
      "winRate": 0.5,
-     "n": 3115
+     "n": 3154
     },
     {
      "sp": "venusaur",
      "teamRate": 0.0836,
      "bringRate": 0.589,
-     "leadRate": 0.28,
-     "winRate": 0.511,
-     "n": 3109
+     "leadRate": 0.278,
+     "winRate": 0.512,
+     "n": 3149
     },
     {
      "sp": "swampert",
      "teamRate": 0.0798,
-     "bringRate": 0.637,
+     "bringRate": 0.639,
      "leadRate": 0.33,
-     "winRate": 0.513,
-     "n": 2971
+     "winRate": 0.514,
+     "n": 3005
     },
     {
      "sp": "delphox",
-     "teamRate": 0.0733,
+     "teamRate": 0.0731,
      "bringRate": 0.549,
-     "leadRate": 0.323,
-     "winRate": 0.518,
-     "n": 2727
+     "leadRate": 0.324,
+     "winRate": 0.519,
+     "n": 2754
     },
     {
      "sp": "gengar",
-     "teamRate": 0.0674,
+     "teamRate": 0.0672,
      "bringRate": 0.696,
-     "leadRate": 0.525,
-     "winRate": 0.499,
-     "n": 2507
+     "leadRate": 0.524,
+     "winRate": 0.5,
+     "n": 2532
     },
     {
      "sp": "sableye",
-     "teamRate": 0.0647,
+     "teamRate": 0.0649,
      "bringRate": 0.71,
-     "leadRate": 0.498,
-     "winRate": 0.516,
-     "n": 2406
+     "leadRate": 0.5,
+     "winRate": 0.514,
+     "n": 2447
     },
     {
      "sp": "ninetalesalola",
-     "teamRate": 0.0637,
-     "bringRate": 0.653,
-     "leadRate": 0.25,
-     "winRate": 0.504,
-     "n": 2369
+     "teamRate": 0.0639,
+     "bringRate": 0.65,
+     "leadRate": 0.249,
+     "winRate": 0.506,
+     "n": 2407
     },
     {
      "sp": "excadrill",
-     "teamRate": 0.062,
-     "bringRate": 0.666,
+     "teamRate": 0.0619,
+     "bringRate": 0.667,
      "leadRate": 0.282,
-     "winRate": 0.51,
-     "n": 2307
+     "winRate": 0.511,
+     "n": 2334
     },
     {
      "sp": "dragonite",
-     "teamRate": 0.061,
+     "teamRate": 0.0612,
      "bringRate": 0.587,
      "leadRate": 0.288,
-     "winRate": 0.459,
-     "n": 2271
+     "winRate": 0.46,
+     "n": 2306
     },
     {
      "sp": "blastoise",
-     "teamRate": 0.061,
-     "bringRate": 0.671,
-     "leadRate": 0.466,
-     "winRate": 0.501,
-     "n": 2270
+     "teamRate": 0.0611,
+     "bringRate": 0.67,
+     "leadRate": 0.463,
+     "winRate": 0.5,
+     "n": 2302
     },
     {
      "sp": "metagross",
      "teamRate": 0.0589,
-     "bringRate": 0.552,
-     "leadRate": 0.259,
-     "winRate": 0.49,
-     "n": 2192
+     "bringRate": 0.554,
+     "leadRate": 0.261,
+     "winRate": 0.489,
+     "n": 2218
     },
     {
      "sp": "torkoal",
      "teamRate": 0.0561,
-     "bringRate": 0.719,
-     "leadRate": 0.166,
-     "winRate": 0.519,
-     "n": 2088
+     "bringRate": 0.721,
+     "leadRate": 0.168,
+     "winRate": 0.521,
+     "n": 2115
     },
     {
      "sp": "froslass",
-     "teamRate": 0.0561,
+     "teamRate": 0.0559,
      "bringRate": 0.631,
      "leadRate": 0.396,
-     "winRate": 0.493,
-     "n": 2087
+     "winRate": 0.491,
+     "n": 2108
     },
     {
      "sp": "glimmora",
      "teamRate": 0.0517,
      "bringRate": 0.685,
-     "leadRate": 0.398,
-     "winRate": 0.483,
-     "n": 1923
+     "leadRate": 0.399,
+     "winRate": 0.481,
+     "n": 1949
     },
     {
      "sp": "talonflame",
-     "teamRate": 0.0514,
-     "bringRate": 0.692,
+     "teamRate": 0.0511,
+     "bringRate": 0.691,
      "leadRate": 0.536,
      "winRate": 0.485,
-     "n": 1913
+     "n": 1926
     },
     {
      "sp": "rotomwash",
-     "teamRate": 0.0476,
-     "bringRate": 0.681,
+     "teamRate": 0.0479,
+     "bringRate": 0.682,
      "leadRate": 0.351,
-     "winRate": 0.501,
-     "n": 1773
+     "winRate": 0.504,
+     "n": 1803
     },
     {
      "sp": "sinistchamasterpiece",
-     "teamRate": 0.0474,
-     "bringRate": 0.611,
+     "teamRate": 0.0476,
+     "bringRate": 0.609,
      "leadRate": 0.125,
-     "winRate": 0.523,
-     "n": 1765
+     "winRate": 0.52,
+     "n": 1795
     },
     {
      "sp": "politoed",
      "teamRate": 0.043,
      "bringRate": 0.772,
-     "leadRate": 0.155,
+     "leadRate": 0.156,
      "winRate": 0.586,
-     "n": 1599
+     "n": 1619
     },
     {
      "sp": "mawile",
-     "teamRate": 0.0419,
-     "bringRate": 0.617,
-     "leadRate": 0.158,
-     "winRate": 0.466,
-     "n": 1560
+     "teamRate": 0.0421,
+     "bringRate": 0.618,
+     "leadRate": 0.159,
+     "winRate": 0.462,
+     "n": 1587
     },
     {
      "sp": "scovillain",
-     "teamRate": 0.0401,
-     "bringRate": 0.593,
-     "leadRate": 0.419,
-     "winRate": 0.537,
-     "n": 1493
+     "teamRate": 0.04,
+     "bringRate": 0.592,
+     "leadRate": 0.418,
+     "winRate": 0.535,
+     "n": 1506
     },
     {
      "sp": "tsareena",
-     "teamRate": 0.0393,
-     "bringRate": 0.644,
+     "teamRate": 0.0391,
+     "bringRate": 0.643,
      "leadRate": 0.256,
-     "winRate": 0.533,
-     "n": 1462
+     "winRate": 0.534,
+     "n": 1475
     },
     {
      "sp": "primarina",
-     "teamRate": 0.0384,
-     "bringRate": 0.732,
-     "leadRate": 0.269,
-     "winRate": 0.529,
-     "n": 1428
+     "teamRate": 0.0383,
+     "bringRate": 0.733,
+     "leadRate": 0.27,
+     "winRate": 0.53,
+     "n": 1443
     },
     {
      "sp": "corviknight",
-     "teamRate": 0.0378,
-     "bringRate": 0.602,
-     "leadRate": 0.325,
+     "teamRate": 0.0379,
+     "bringRate": 0.601,
+     "leadRate": 0.323,
      "winRate": 0.494,
-     "n": 1405
+     "n": 1429
     },
     {
      "sp": "arcaninehisui",
-     "teamRate": 0.0375,
-     "bringRate": 0.687,
+     "teamRate": 0.0377,
+     "bringRate": 0.685,
      "leadRate": 0.306,
-     "winRate": 0.5,
-     "n": 1394
-    },
-    {
-     "sp": "gardevoir",
-     "teamRate": 0.0355,
-     "bringRate": 0.683,
-     "leadRate": 0.329,
      "winRate": 0.502,
-     "n": 1321
+     "n": 1420
     },
     {
      "sp": "toxapex",
-     "teamRate": 0.0352,
+     "teamRate": 0.0354,
      "bringRate": 0.64,
-     "leadRate": 0.264,
-     "winRate": 0.495,
-     "n": 1310
+     "leadRate": 0.267,
+     "winRate": 0.494,
+     "n": 1333
     },
     {
-     "sp": "blaziken",
+     "sp": "gardevoir",
+     "teamRate": 0.0353,
+     "bringRate": 0.68,
+     "leadRate": 0.328,
+     "winRate": 0.501,
+     "n": 1331
+    },
+    {
+     "sp": "scizor",
      "teamRate": 0.0352,
-     "bringRate": 0.682,
-     "leadRate": 0.352,
-     "winRate": 0.451,
-     "n": 1310
+     "bringRate": 0.553,
+     "leadRate": 0.245,
+     "winRate": 0.486,
+     "n": 1328
     },
     {
      "sp": "annihilape",
      "teamRate": 0.0352,
      "bringRate": 0.689,
      "leadRate": 0.368,
-     "winRate": 0.502,
-     "n": 1310
+     "winRate": 0.501,
+     "n": 1326
+    },
+    {
+     "sp": "blaziken",
+     "teamRate": 0.0352,
+     "bringRate": 0.683,
+     "leadRate": 0.352,
+     "winRate": 0.45,
+     "n": 1325
     },
     {
      "sp": "kommoo",
-     "teamRate": 0.0351,
-     "bringRate": 0.623,
-     "leadRate": 0.27,
-     "winRate": 0.517,
-     "n": 1305
-    },
-    {
-     "sp": "scizor",
      "teamRate": 0.035,
-     "bringRate": 0.551,
-     "leadRate": 0.242,
-     "winRate": 0.485,
-     "n": 1304
-    },
-    {
-     "sp": "kangaskhan",
-     "teamRate": 0.0346,
-     "bringRate": 0.75,
-     "leadRate": 0.57,
-     "winRate": 0.494,
-     "n": 1289
+     "bringRate": 0.622,
+     "leadRate": 0.271,
+     "winRate": 0.516,
+     "n": 1318
     },
     {
      "sp": "hydreigon",
-     "teamRate": 0.0343,
-     "bringRate": 0.69,
-     "leadRate": 0.325,
-     "winRate": 0.519,
-     "n": 1278
+     "teamRate": 0.0344,
+     "bringRate": 0.692,
+     "leadRate": 0.326,
+     "winRate": 0.521,
+     "n": 1297
+    },
+    {
+     "sp": "kangaskhan",
+     "teamRate": 0.0344,
+     "bringRate": 0.75,
+     "leadRate": 0.571,
+     "winRate": 0.495,
+     "n": 1295
     },
     {
      "sp": "maushold",
      "teamRate": 0.0329,
-     "bringRate": 0.667,
-     "leadRate": 0.396,
-     "winRate": 0.529,
-     "n": 1224
+     "bringRate": 0.662,
+     "leadRate": 0.392,
+     "winRate": 0.53,
+     "n": 1241
     },
     {
      "sp": "ceruledge",
-     "teamRate": 0.0325,
-     "bringRate": 0.636,
+     "teamRate": 0.0327,
+     "bringRate": 0.634,
      "leadRate": 0.188,
-     "winRate": 0.517,
-     "n": 1208
+     "winRate": 0.52,
+     "n": 1231
     },
     {
      "sp": "scrafty",
-     "teamRate": 0.032,
+     "teamRate": 0.0322,
      "bringRate": 0.695,
-     "leadRate": 0.376,
-     "winRate": 0.493,
-     "n": 1192
+     "leadRate": 0.375,
+     "winRate": 0.492,
+     "n": 1215
     },
     {
      "sp": "mausholdfour",
-     "teamRate": 0.0298,
-     "bringRate": 0.658,
+     "teamRate": 0.03,
+     "bringRate": 0.655,
      "leadRate": 0.383,
-     "winRate": 0.508,
-     "n": 1109
+     "winRate": 0.509,
+     "n": 1132
     },
     {
      "sp": "clefable",
-     "teamRate": 0.029,
+     "teamRate": 0.0291,
      "bringRate": 0.619,
-     "leadRate": 0.269,
-     "winRate": 0.475,
-     "n": 1079
+     "leadRate": 0.267,
+     "winRate": 0.472,
+     "n": 1095
     },
     {
      "sp": "mamoswine",
-     "teamRate": 0.0286,
-     "bringRate": 0.703,
+     "teamRate": 0.0287,
+     "bringRate": 0.699,
      "leadRate": 0.278,
-     "winRate": 0.539,
-     "n": 1066
+     "winRate": 0.54,
+     "n": 1083
     },
     {
      "sp": "camerupt",
      "teamRate": 0.0278,
-     "bringRate": 0.689,
+     "bringRate": 0.688,
      "leadRate": 0.111,
-     "winRate": 0.569,
-     "n": 1033
+     "winRate": 0.567,
+     "n": 1047
     },
     {
      "sp": "gallade",
-     "teamRate": 0.0239,
-     "bringRate": 0.674,
-     "leadRate": 0.299,
-     "winRate": 0.526,
-     "n": 889
+     "teamRate": 0.0242,
+     "bringRate": 0.676,
+     "leadRate": 0.302,
+     "winRate": 0.519,
+     "n": 913
     },
     {
      "sp": "meowstic",
-     "teamRate": 0.0231,
+     "teamRate": 0.0232,
      "bringRate": 0.677,
      "leadRate": 0.526,
-     "winRate": 0.495,
-     "n": 860
+     "winRate": 0.493,
+     "n": 874
     },
     {
      "sp": "volcarona",
-     "teamRate": 0.0228,
+     "teamRate": 0.023,
      "bringRate": 0.577,
-     "leadRate": 0.291,
-     "winRate": 0.497,
-     "n": 848
+     "leadRate": 0.288,
+     "winRate": 0.491,
+     "n": 865
     },
     {
      "sp": "meowscarada",
-     "teamRate": 0.0225,
-     "bringRate": 0.673,
-     "leadRate": 0.324,
-     "winRate": 0.423,
-     "n": 839
+     "teamRate": 0.0226,
+     "bringRate": 0.675,
+     "leadRate": 0.325,
+     "winRate": 0.427,
+     "n": 853
     },
     {
      "sp": "zoroarkhisui",
-     "teamRate": 0.0223,
-     "bringRate": 0.685,
+     "teamRate": 0.0226,
+     "bringRate": 0.69,
      "leadRate": 0,
-     "winRate": 0.534,
-     "n": 828
+     "winRate": 0.535,
+     "n": 851
     },
     {
      "sp": "tinkaton",
      "teamRate": 0.0218,
-     "bringRate": 0.658,
-     "leadRate": 0.443,
-     "winRate": 0.533,
-     "n": 813
+     "bringRate": 0.656,
+     "leadRate": 0.44,
+     "winRate": 0.535,
+     "n": 820
     },
     {
      "sp": "weavile",
      "teamRate": 0.0203,
-     "bringRate": 0.776,
-     "leadRate": 0.537,
-     "winRate": 0.53,
-     "n": 756
+     "bringRate": 0.775,
+     "leadRate": 0.535,
+     "winRate": 0.529,
+     "n": 764
     },
     {
      "sp": "dragapult",
      "teamRate": 0.0199,
-     "bringRate": 0.698,
-     "leadRate": 0.363,
-     "winRate": 0.473,
-     "n": 742
+     "bringRate": 0.699,
+     "leadRate": 0.365,
+     "winRate": 0.47,
+     "n": 751
     },
     {
      "sp": "meganium",
-     "teamRate": 0.0193,
-     "bringRate": 0.579,
-     "leadRate": 0.209,
-     "winRate": 0.525,
-     "n": 717
+     "teamRate": 0.0195,
+     "bringRate": 0.574,
+     "leadRate": 0.207,
+     "winRate": 0.53,
+     "n": 733
     },
     {
-     "sp": "gyarados",
+     "sp": "lycanrocdusk",
      "teamRate": 0.0188,
-     "bringRate": 0.655,
-     "leadRate": 0.256,
-     "winRate": 0.492,
-     "n": 698
+     "bringRate": 0.579,
+     "leadRate": 0.269,
+     "winRate": 0.501,
+     "n": 710
     },
     {
      "sp": "eelektross",
      "teamRate": 0.0187,
-     "bringRate": 0.689,
-     "leadRate": 0.297,
-     "winRate": 0.496,
-     "n": 697
+     "bringRate": 0.688,
+     "leadRate": 0.296,
+     "winRate": 0.494,
+     "n": 703
     },
     {
-     "sp": "lycanrocdusk",
+     "sp": "gyarados",
      "teamRate": 0.0186,
-     "bringRate": 0.577,
-     "leadRate": 0.272,
-     "winRate": 0.491,
-     "n": 691
+     "bringRate": 0.655,
+     "leadRate": 0.256,
+     "winRate": 0.493,
+     "n": 699
+    },
+    {
+     "sp": "araquanid",
+     "teamRate": 0.0185,
+     "bringRate": 0.672,
+     "leadRate": 0.249,
+     "winRate": 0.513,
+     "n": 696
     },
     {
      "sp": "chandelure",
      "teamRate": 0.0184,
-     "bringRate": 0.631,
-     "leadRate": 0.35,
-     "winRate": 0.515,
-     "n": 683
-    },
-    {
-     "sp": "araquanid",
-     "teamRate": 0.0182,
-     "bringRate": 0.675,
-     "leadRate": 0.249,
-     "winRate": 0.515,
-     "n": 679
+     "bringRate": 0.635,
+     "leadRate": 0.347,
+     "winRate": 0.519,
+     "n": 695
     },
     {
      "sp": "aegislash",
-     "teamRate": 0.0181,
+     "teamRate": 0.018,
      "bringRate": 0.605,
-     "leadRate": 0.193,
-     "winRate": 0.483,
-     "n": 674
+     "leadRate": 0.191,
+     "winRate": 0.487,
+     "n": 679
     },
     {
      "sp": "rotomheat",
      "teamRate": 0.0179,
-     "bringRate": 0.685,
-     "leadRate": 0.388,
-     "winRate": 0.512,
-     "n": 667
+     "bringRate": 0.686,
+     "leadRate": 0.391,
+     "winRate": 0.511,
+     "n": 676
+    },
+    {
+     "sp": "lucario",
+     "teamRate": 0.0173,
+     "bringRate": 0.624,
+     "leadRate": 0.303,
+     "winRate": 0.498,
+     "n": 651
     },
     {
      "sp": "sceptile",
      "teamRate": 0.0173,
      "bringRate": 0.604,
-     "leadRate": 0.345,
-     "winRate": 0.468,
-     "n": 644
+     "leadRate": 0.344,
+     "winRate": 0.471,
+     "n": 651
     },
     {
-     "sp": "lucario",
-     "teamRate": 0.0172,
-     "bringRate": 0.621,
-     "leadRate": 0.304,
-     "winRate": 0.501,
-     "n": 639
+     "sp": "palafin",
+     "teamRate": 0.017,
+     "bringRate": 0.659,
+     "leadRate": 0.525,
+     "winRate": 0.492,
+     "n": 642
     },
     {
      "sp": "hatterene",
      "teamRate": 0.017,
-     "bringRate": 0.564,
-     "leadRate": 0.334,
-     "winRate": 0.433,
-     "n": 631
-    },
-    {
-     "sp": "palafin",
-     "teamRate": 0.0169,
-     "bringRate": 0.66,
-     "leadRate": 0.524,
-     "winRate": 0.493,
-     "n": 630
+     "bringRate": 0.567,
+     "leadRate": 0.336,
+     "winRate": 0.437,
+     "n": 642
     },
     {
      "sp": "mimikyu",
-     "teamRate": 0.0168,
+     "teamRate": 0.0169,
      "bringRate": 0.718,
      "leadRate": 0.485,
-     "winRate": 0.555,
-     "n": 625
+     "winRate": 0.557,
+     "n": 635
     },
     {
      "sp": "oranguru",
      "teamRate": 0.0168,
-     "bringRate": 0.697,
-     "leadRate": 0.521,
+     "bringRate": 0.696,
+     "leadRate": 0.522,
      "winRate": 0.494,
-     "n": 624
+     "n": 634
     },
     {
      "sp": "vivillon",
-     "teamRate": 0.0164,
+     "teamRate": 0.0162,
      "bringRate": 0.645,
-     "leadRate": 0.504,
-     "winRate": 0.542,
-     "n": 609
+     "leadRate": 0.502,
+     "winRate": 0.541,
+     "n": 611
     },
     {
      "sp": "altaria",
-     "teamRate": 0.016,
-     "bringRate": 0.604,
-     "leadRate": 0.274,
-     "winRate": 0.529,
-     "n": 594
+     "teamRate": 0.0159,
+     "bringRate": 0.605,
+     "leadRate": 0.273,
+     "winRate": 0.526,
+     "n": 600
     },
     {
      "sp": "samurotthisui",
      "teamRate": 0.0154,
      "bringRate": 0.729,
-     "leadRate": 0.325,
-     "winRate": 0.513,
-     "n": 572
+     "leadRate": 0.326,
+     "winRate": 0.508,
+     "n": 580
     },
     {
      "sp": "greninja",
-     "teamRate": 0.0152,
-     "bringRate": 0.685,
-     "leadRate": 0.354,
-     "winRate": 0.494,
-     "n": 565
+     "teamRate": 0.0151,
+     "bringRate": 0.686,
+     "leadRate": 0.358,
+     "winRate": 0.491,
+     "n": 570
     },
     {
      "sp": "drampa",
-     "teamRate": 0.015,
-     "bringRate": 0.618,
-     "leadRate": 0.138,
-     "winRate": 0.528,
-     "n": 558
+     "teamRate": 0.0149,
+     "bringRate": 0.621,
+     "leadRate": 0.139,
+     "winRate": 0.521,
+     "n": 562
     },
     {
      "sp": "heliolisk",
      "teamRate": 0.0148,
-     "bringRate": 0.641,
-     "leadRate": 0.33,
-     "winRate": 0.593,
-     "n": 552
+     "bringRate": 0.64,
+     "leadRate": 0.329,
+     "winRate": 0.589,
+     "n": 559
     },
     {
      "sp": "malamar",
-     "teamRate": 0.0141,
-     "bringRate": 0.782,
-     "leadRate": 0.555,
-     "winRate": 0.459,
-     "n": 524
+     "teamRate": 0.014,
+     "bringRate": 0.783,
+     "leadRate": 0.552,
+     "winRate": 0.457,
+     "n": 529
     },
     {
      "sp": "starmie",
      "teamRate": 0.014,
-     "bringRate": 0.613,
+     "bringRate": 0.612,
      "leadRate": 0.322,
-     "winRate": 0.537,
-     "n": 522
+     "winRate": 0.539,
+     "n": 528
     },
     {
      "sp": "lopunny",
-     "teamRate": 0.0137,
-     "bringRate": 0.727,
-     "leadRate": 0.571,
-     "winRate": 0.563,
-     "n": 510
+     "teamRate": 0.0138,
+     "bringRate": 0.726,
+     "leadRate": 0.57,
+     "winRate": 0.568,
+     "n": 519
     },
     {
      "sp": "vanilluxe",
-     "teamRate": 0.0137,
-     "bringRate": 0.731,
+     "teamRate": 0.0136,
+     "bringRate": 0.732,
      "leadRate": 0.171,
-     "winRate": 0.532,
-     "n": 509
+     "winRate": 0.527,
+     "n": 514
     },
     {
      "sp": "armarouge",
      "teamRate": 0.0136,
-     "bringRate": 0.685,
-     "leadRate": 0.309,
-     "winRate": 0.468,
-     "n": 505
+     "bringRate": 0.684,
+     "leadRate": 0.306,
+     "winRate": 0.464,
+     "n": 513
     },
     {
      "sp": "klefki",
-     "teamRate": 0.0135,
-     "bringRate": 0.623,
-     "leadRate": 0.413,
-     "winRate": 0.465,
-     "n": 501
+     "teamRate": 0.0136,
+     "bringRate": 0.632,
+     "leadRate": 0.423,
+     "winRate": 0.469,
+     "n": 513
     },
     {
      "sp": "overqwil",
      "teamRate": 0.0132,
-     "bringRate": 0.739,
-     "leadRate": 0.397,
-     "winRate": 0.504,
-     "n": 491
+     "bringRate": 0.74,
+     "leadRate": 0.401,
+     "winRate": 0.501,
+     "n": 496
     },
     {
      "sp": "pyroar",
      "teamRate": 0.0131,
-     "bringRate": 0.684,
-     "leadRate": 0.352,
-     "winRate": 0.557,
-     "n": 488
-    },
-    {
-     "sp": "typhlosionhisui",
-     "teamRate": 0.0125,
-     "bringRate": 0.713,
-     "leadRate": 0.394,
-     "winRate": 0.495,
-     "n": 464
+     "bringRate": 0.686,
+     "leadRate": 0.353,
+     "winRate": 0.559,
+     "n": 493
     },
     {
      "sp": "vileplume",
-     "teamRate": 0.0124,
-     "bringRate": 0.479,
-     "leadRate": 0.244,
-     "winRate": 0.482,
-     "n": 463
+     "teamRate": 0.0125,
+     "bringRate": 0.474,
+     "leadRate": 0.24,
+     "winRate": 0.48,
+     "n": 470
+    },
+    {
+     "sp": "typhlosionhisui",
+     "teamRate": 0.0123,
+     "bringRate": 0.714,
+     "leadRate": 0.394,
+     "winRate": 0.497,
+     "n": 465
     },
     {
      "sp": "espathra",
-     "teamRate": 0.0123,
-     "bringRate": 0.683,
-     "leadRate": 0.548,
-     "winRate": 0.498,
-     "n": 458
+     "teamRate": 0.0122,
+     "bringRate": 0.684,
+     "leadRate": 0.549,
+     "winRate": 0.497,
+     "n": 459
     },
     {
      "sp": "slowkinggalar",
      "teamRate": 0.0117,
-     "bringRate": 0.668,
-     "leadRate": 0.474,
-     "winRate": 0.51,
-     "n": 437
+     "bringRate": 0.67,
+     "leadRate": 0.473,
+     "winRate": 0.514,
+     "n": 442
     },
     {
      "sp": "krookodile",
      "teamRate": 0.0117,
      "bringRate": 0.685,
-     "leadRate": 0.287,
-     "winRate": 0.554,
-     "n": 435
+     "leadRate": 0.293,
+     "winRate": 0.556,
+     "n": 441
     },
     {
      "sp": "gliscor",
-     "teamRate": 0.0116,
-     "bringRate": 0.639,
-     "leadRate": 0.315,
-     "winRate": 0.446,
-     "n": 432
+     "teamRate": 0.0117,
+     "bringRate": 0.638,
+     "leadRate": 0.319,
+     "winRate": 0.443,
+     "n": 439
     },
     {
      "sp": "ditto",
-     "teamRate": 0.0112,
-     "bringRate": 0.66,
-     "leadRate": 0.096,
-     "winRate": 0.5,
-     "n": 418
+     "teamRate": 0.0113,
+     "bringRate": 0.665,
+     "leadRate": 0.094,
+     "winRate": 0.504,
+     "n": 424
     },
     {
      "sp": "houndstone",
      "teamRate": 0.011,
-     "bringRate": 0.696,
-     "leadRate": 0.148,
-     "winRate": 0.556,
-     "n": 411
-    },
-    {
-     "sp": "noivern",
-     "teamRate": 0.0109,
-     "bringRate": 0.609,
-     "leadRate": 0.421,
-     "winRate": 0.496,
-     "n": 404
+     "bringRate": 0.699,
+     "leadRate": 0.152,
+     "winRate": 0.559,
+     "n": 415
     },
     {
      "sp": "skarmory",
-     "teamRate": 0.0106,
-     "bringRate": 0.626,
-     "leadRate": 0.354,
-     "winRate": 0.411,
-     "n": 396
+     "teamRate": 0.0108,
+     "bringRate": 0.628,
+     "leadRate": 0.352,
+     "winRate": 0.416,
+     "n": 406
     },
     {
      "sp": "liepard",
+     "teamRate": 0.0108,
+     "bringRate": 0.717,
+     "leadRate": 0.579,
+     "winRate": 0.512,
+     "n": 406
+    },
+    {
+     "sp": "noivern",
+     "teamRate": 0.0108,
+     "bringRate": 0.608,
+     "leadRate": 0.419,
+     "winRate": 0.494,
+     "n": 406
+    },
+    {
+     "sp": "jolteon",
      "teamRate": 0.0105,
-     "bringRate": 0.714,
-     "leadRate": 0.577,
-     "winRate": 0.514,
-     "n": 392
+     "bringRate": 0.654,
+     "leadRate": 0.399,
+     "winRate": 0.517,
+     "n": 396
     },
     {
      "sp": "goodrahisui",
      "teamRate": 0.0105,
-     "bringRate": 0.607,
-     "leadRate": 0.212,
-     "winRate": 0.445,
-     "n": 392
+     "bringRate": 0.609,
+     "leadRate": 0.21,
+     "winRate": 0.444,
+     "n": 396
     },
     {
-     "sp": "jolteon",
-     "teamRate": 0.0103,
-     "bringRate": 0.648,
-     "leadRate": 0.388,
-     "winRate": 0.526,
+     "sp": "golurk",
+     "teamRate": 0.0102,
+     "bringRate": 0.638,
+     "leadRate": 0.174,
+     "winRate": 0.506,
      "n": 384
+    },
+    {
+     "sp": "cofagrigus",
+     "teamRate": 0.01,
+     "bringRate": 0.721,
+     "leadRate": 0.519,
+     "winRate": 0.572,
+     "n": 376
+    },
+    {
+     "sp": "mudsdale",
+     "teamRate": 0.01,
+     "bringRate": 0.587,
+     "leadRate": 0.197,
+     "winRate": 0.5,
+     "n": 375
     },
     {
      "sp": "decidueyehisui",
      "teamRate": 0.01,
-     "bringRate": 0.63,
-     "leadRate": 0.225,
-     "winRate": 0.438,
-     "n": 373
-    },
-    {
-     "sp": "golurk",
-     "teamRate": 0.01,
-     "bringRate": 0.637,
-     "leadRate": 0.177,
-     "winRate": 0.502,
-     "n": 372
+     "bringRate": 0.629,
+     "leadRate": 0.227,
+     "winRate": 0.441,
+     "n": 375
     },
     {
      "sp": "dragalge",
      "teamRate": 0.0099,
-     "bringRate": 0.643,
+     "bringRate": 0.641,
      "leadRate": 0.292,
-     "winRate": 0.458,
-     "n": 370
-    },
-    {
-     "sp": "cofagrigus",
-     "teamRate": 0.0099,
-     "bringRate": 0.715,
-     "leadRate": 0.514,
-     "winRate": 0.578,
-     "n": 368
-    },
-    {
-     "sp": "mudsdale",
-     "teamRate": 0.0099,
-     "bringRate": 0.587,
-     "leadRate": 0.198,
-     "winRate": 0.495,
-     "n": 368
-    },
-    {
-     "sp": "kleavor",
-     "teamRate": 0.0098,
-     "bringRate": 0.667,
-     "leadRate": 0.463,
-     "winRate": 0.5,
-     "n": 363
+     "winRate": 0.456,
+     "n": 373
     },
     {
      "sp": "ninetales",
-     "teamRate": 0.0096,
-     "bringRate": 0.727,
-     "leadRate": 0.273,
-     "winRate": 0.46,
-     "n": 359
+     "teamRate": 0.0097,
+     "bringRate": 0.722,
+     "leadRate": 0.27,
+     "winRate": 0.464,
+     "n": 367
+    },
+    {
+     "sp": "kleavor",
+     "teamRate": 0.0097,
+     "bringRate": 0.669,
+     "leadRate": 0.462,
+     "winRate": 0.498,
+     "n": 366
     },
     {
      "sp": "empoleon",
-     "teamRate": 0.0096,
-     "bringRate": 0.624,
-     "leadRate": 0.306,
-     "winRate": 0.541,
-     "n": 356
-    },
-    {
-     "sp": "feraligatr",
-     "teamRate": 0.0094,
-     "bringRate": 0.692,
-     "leadRate": 0.251,
-     "winRate": 0.473,
-     "n": 351
+     "teamRate": 0.0095,
+     "bringRate": 0.626,
+     "leadRate": 0.304,
+     "winRate": 0.54,
+     "n": 358
     },
     {
      "sp": "snorlax",
      "teamRate": 0.0094,
-     "bringRate": 0.663,
-     "leadRate": 0.32,
-     "winRate": 0.496,
-     "n": 350
+     "bringRate": 0.666,
+     "leadRate": 0.323,
+     "winRate": 0.498,
+     "n": 353
+    },
+    {
+     "sp": "feraligatr",
+     "teamRate": 0.0094,
+     "bringRate": 0.694,
+     "leadRate": 0.252,
+     "winRate": 0.473,
+     "n": 353
     },
     {
      "sp": "crabominable",
      "teamRate": 0.0092,
-     "bringRate": 0.653,
-     "leadRate": 0.14,
-     "winRate": 0.513,
-     "n": 343
+     "bringRate": 0.652,
+     "leadRate": 0.139,
+     "winRate": 0.516,
+     "n": 345
     },
     {
      "sp": "wyrdeer",
      "teamRate": 0.009,
      "bringRate": 0.665,
      "leadRate": 0.497,
-     "winRate": 0.509,
-     "n": 334
-    },
-    {
-     "sp": "azumarill",
-     "teamRate": 0.0087,
-     "bringRate": 0.685,
-     "leadRate": 0.358,
-     "winRate": 0.505,
-     "n": 324
+     "winRate": 0.504,
+     "n": 340
     },
     {
      "sp": "chesnaught",
      "teamRate": 0.0087,
-     "bringRate": 0.578,
-     "leadRate": 0.267,
-     "winRate": 0.586,
-     "n": 322
+     "bringRate": 0.571,
+     "leadRate": 0.261,
+     "winRate": 0.585,
+     "n": 329
+    },
+    {
+     "sp": "azumarill",
+     "teamRate": 0.0087,
+     "bringRate": 0.688,
+     "leadRate": 0.361,
+     "winRate": 0.502,
+     "n": 327
+    },
+    {
+     "sp": "orthworm",
+     "teamRate": 0.0086,
+     "bringRate": 0.575,
+     "leadRate": 0.36,
+     "winRate": 0.487,
+     "n": 325
     },
     {
      "sp": "basculegionf",
-     "teamRate": 0.0085,
-     "bringRate": 0.717,
-     "leadRate": 0.277,
-     "winRate": 0.487,
-     "n": 318
+     "teamRate": 0.0086,
+     "bringRate": 0.718,
+     "leadRate": 0.282,
+     "winRate": 0.478,
+     "n": 323
     },
     {
      "sp": "ampharos",
      "teamRate": 0.0085,
-     "bringRate": 0.657,
-     "leadRate": 0.164,
-     "winRate": 0.474,
-     "n": 318
-    },
-    {
-     "sp": "orthworm",
-     "teamRate": 0.0085,
-     "bringRate": 0.575,
-     "leadRate": 0.362,
-     "winRate": 0.481,
-     "n": 318
+     "bringRate": 0.66,
+     "leadRate": 0.165,
+     "winRate": 0.472,
+     "n": 321
     },
     {
      "sp": "hawlucha",
      "teamRate": 0.0085,
-     "bringRate": 0.615,
-     "leadRate": 0.356,
-     "winRate": 0.472,
-     "n": 317
+     "bringRate": 0.618,
+     "leadRate": 0.354,
+     "winRate": 0.467,
+     "n": 319
     },
     {
      "sp": "toxicroak",
-     "teamRate": 0.0084,
-     "bringRate": 0.665,
-     "leadRate": 0.438,
-     "winRate": 0.519,
-     "n": 313
-    },
-    {
-     "sp": "audino",
-     "teamRate": 0.0084,
-     "bringRate": 0.686,
-     "leadRate": 0.513,
-     "winRate": 0.481,
-     "n": 312
+     "teamRate": 0.0085,
+     "bringRate": 0.655,
+     "leadRate": 0.433,
+     "winRate": 0.517,
+     "n": 319
     },
     {
      "sp": "bellibolt",
+     "teamRate": 0.0084,
+     "bringRate": 0.73,
+     "leadRate": 0.298,
+     "winRate": 0.465,
+     "n": 315
+    },
+    {
+     "sp": "audino",
      "teamRate": 0.0083,
-     "bringRate": 0.732,
-     "leadRate": 0.294,
-     "winRate": 0.467,
-     "n": 310
+     "bringRate": 0.687,
+     "leadRate": 0.514,
+     "winRate": 0.479,
+     "n": 313
+    },
+    {
+     "sp": "aggron",
+     "teamRate": 0.0083,
+     "bringRate": 0.665,
+     "leadRate": 0.304,
+     "winRate": 0.361,
+     "n": 313
     },
     {
      "sp": "alakazam",
      "teamRate": 0.0083,
-     "bringRate": 0.606,
-     "leadRate": 0.365,
-     "winRate": 0.419,
-     "n": 307
-    },
-    {
-     "sp": "aggron",
-     "teamRate": 0.0082,
-     "bringRate": 0.67,
-     "leadRate": 0.307,
-     "winRate": 0.361,
-     "n": 306
+     "bringRate": 0.608,
+     "leadRate": 0.37,
+     "winRate": 0.423,
+     "n": 311
     },
     {
      "sp": "steelix",
-     "teamRate": 0.0081,
-     "bringRate": 0.62,
+     "teamRate": 0.0082,
+     "bringRate": 0.615,
      "leadRate": 0.172,
-     "winRate": 0.468,
-     "n": 303
-    },
-    {
-     "sp": "hippowdon",
-     "teamRate": 0.0081,
-     "bringRate": 0.675,
-     "leadRate": 0.205,
-     "winRate": 0.417,
-     "n": 302
+     "winRate": 0.463,
+     "n": 309
     },
     {
      "sp": "abomasnow",
      "teamRate": 0.0081,
-     "bringRate": 0.648,
-     "leadRate": 0.226,
+     "bringRate": 0.65,
+     "leadRate": 0.225,
      "winRate": 0.523,
-     "n": 301
+     "n": 306
+    },
+    {
+     "sp": "hippowdon",
+     "teamRate": 0.0081,
+     "bringRate": 0.678,
+     "leadRate": 0.204,
+     "winRate": 0.422,
+     "n": 304
+    },
+    {
+     "sp": "umbreon",
+     "teamRate": 0.008,
+     "bringRate": 0.672,
+     "leadRate": 0.384,
+     "winRate": 0.606,
+     "n": 302
     },
     {
      "sp": "ariados",
      "teamRate": 0.008,
-     "bringRate": 0.508,
-     "leadRate": 0.291,
+     "bringRate": 0.505,
+     "leadRate": 0.289,
      "winRate": 0.487,
-     "n": 299
+     "n": 301
     },
     {
      "sp": "arcanine",
      "teamRate": 0.008,
-     "bringRate": 0.655,
-     "leadRate": 0.291,
-     "winRate": 0.521,
-     "n": 296
-    },
-    {
-     "sp": "umbreon",
-     "teamRate": 0.0079,
-     "bringRate": 0.668,
-     "leadRate": 0.38,
-     "winRate": 0.604,
-     "n": 295
+     "bringRate": 0.657,
+     "leadRate": 0.29,
+     "winRate": 0.528,
+     "n": 300
     },
     {
      "sp": "taurospaldeaaqua",
      "teamRate": 0.0076,
-     "bringRate": 0.655,
+     "bringRate": 0.653,
      "leadRate": 0.271,
-     "winRate": 0.5,
-     "n": 284
+     "winRate": 0.495,
+     "n": 288
     },
     {
      "sp": "mrrime",
      "teamRate": 0.0076,
      "bringRate": 0.611,
-     "leadRate": 0.452,
-     "winRate": 0.474,
-     "n": 283
+     "leadRate": 0.453,
+     "winRate": 0.477,
+     "n": 285
+    },
+    {
+     "sp": "slowbro",
+     "teamRate": 0.0074,
+     "bringRate": 0.679,
+     "leadRate": 0.354,
+     "winRate": 0.526,
+     "n": 280
+    },
+    {
+     "sp": "scolipede",
+     "teamRate": 0.0074,
+     "bringRate": 0.568,
+     "leadRate": 0.331,
+     "winRate": 0.525,
+     "n": 278
     },
     {
      "sp": "conkeldurr",
-     "teamRate": 0.0074,
+     "teamRate": 0.0073,
      "bringRate": 0.641,
      "leadRate": 0.225,
      "winRate": 0.469,
      "n": 276
     },
     {
-     "sp": "slowbro",
-     "teamRate": 0.0074,
-     "bringRate": 0.672,
-     "leadRate": 0.358,
-     "winRate": 0.516,
-     "n": 274
-    },
-    {
-     "sp": "scolipede",
-     "teamRate": 0.0073,
-     "bringRate": 0.579,
-     "leadRate": 0.337,
-     "winRate": 0.525,
-     "n": 273
-    },
-    {
      "sp": "skeledirge",
-     "teamRate": 0.0067,
-     "bringRate": 0.528,
-     "leadRate": 0.188,
-     "winRate": 0.439,
-     "n": 250
-    },
-    {
-     "sp": "rotommow",
-     "teamRate": 0.0067,
-     "bringRate": 0.508,
-     "leadRate": 0.23,
-     "winRate": 0.492,
-     "n": 248
+     "teamRate": 0.0068,
+     "bringRate": 0.525,
+     "leadRate": 0.192,
+     "winRate": 0.448,
+     "n": 255
     },
     {
      "sp": "vaporeon",
      "teamRate": 0.0066,
-     "bringRate": 0.675,
-     "leadRate": 0.333,
+     "bringRate": 0.672,
+     "leadRate": 0.328,
      "winRate": 0.446,
-     "n": 246
-    },
-    {
-     "sp": "serperior",
-     "teamRate": 0.0066,
-     "bringRate": 0.598,
-     "leadRate": 0.325,
-     "winRate": 0.503,
-     "n": 246
+     "n": 250
     },
     {
      "sp": "infernape",
      "teamRate": 0.0066,
-     "bringRate": 0.711,
-     "leadRate": 0.459,
-     "winRate": 0.497,
-     "n": 246
+     "bringRate": 0.712,
+     "leadRate": 0.456,
+     "winRate": 0.494,
+     "n": 250
+    },
+    {
+     "sp": "rotommow",
+     "teamRate": 0.0066,
+     "bringRate": 0.51,
+     "leadRate": 0.229,
+     "winRate": 0.488,
+     "n": 249
+    },
+    {
+     "sp": "serperior",
+     "teamRate": 0.0066,
+     "bringRate": 0.601,
+     "leadRate": 0.323,
+     "winRate": 0.503,
+     "n": 248
     },
     {
      "sp": "rotomfrost",
      "teamRate": 0.0066,
-     "bringRate": 0.722,
-     "leadRate": 0.302,
-     "winRate": 0.616,
-     "n": 245
+     "bringRate": 0.725,
+     "leadRate": 0.308,
+     "winRate": 0.609,
+     "n": 247
     },
     {
      "sp": "houndoom",
      "teamRate": 0.0065,
-     "bringRate": 0.719,
-     "leadRate": 0.326,
-     "winRate": 0.5,
-     "n": 242
+     "bringRate": 0.722,
+     "leadRate": 0.331,
+     "winRate": 0.503,
+     "n": 245
+    },
+    {
+     "sp": "hydrapple",
+     "teamRate": 0.0064,
+     "bringRate": 0.568,
+     "leadRate": 0.183,
+     "winRate": 0.474,
+     "n": 241
     },
     {
      "sp": "rhyperior",
      "teamRate": 0.0064,
-     "bringRate": 0.59,
-     "leadRate": 0.18,
-     "winRate": 0.376,
-     "n": 239
-    },
-    {
-     "sp": "hydrapple",
-     "teamRate": 0.0063,
-     "bringRate": 0.576,
-     "leadRate": 0.186,
-     "winRate": 0.478,
-     "n": 236
+     "bringRate": 0.592,
+     "leadRate": 0.179,
+     "winRate": 0.373,
+     "n": 240
     },
     {
      "sp": "medicham",
      "teamRate": 0.0063,
      "bringRate": 0.708,
-     "leadRate": 0.459,
-     "winRate": 0.406,
-     "n": 233
+     "leadRate": 0.458,
+     "winRate": 0.407,
+     "n": 236
     },
     {
      "sp": "spiritomb",
      "teamRate": 0.0062,
-     "bringRate": 0.735,
-     "leadRate": 0.557,
-     "winRate": 0.456,
-     "n": 230
+     "bringRate": 0.734,
+     "leadRate": 0.549,
+     "winRate": 0.45,
+     "n": 233
     },
     {
      "sp": "manectric",
      "teamRate": 0.0061,
-     "bringRate": 0.667,
-     "leadRate": 0.338,
-     "winRate": 0.434,
-     "n": 228
+     "bringRate": 0.671,
+     "leadRate": 0.342,
+     "winRate": 0.432,
+     "n": 231
     },
     {
      "sp": "banette",
-     "teamRate": 0.006,
-     "bringRate": 0.594,
-     "leadRate": 0.42,
-     "winRate": 0.406,
-     "n": 224
+     "teamRate": 0.0061,
+     "bringRate": 0.584,
+     "leadRate": 0.416,
+     "winRate": 0.4,
+     "n": 231
+    },
+    {
+     "sp": "heracross",
+     "teamRate": 0.0057,
+     "bringRate": 0.638,
+     "leadRate": 0.225,
+     "winRate": 0.478,
+     "n": 213
     },
     {
      "sp": "clawitzer",
@@ -3322,80 +3330,80 @@
      "n": 210
     },
     {
-     "sp": "heracross",
-     "teamRate": 0.0056,
-     "bringRate": 0.632,
-     "leadRate": 0.215,
-     "winRate": 0.462,
-     "n": 209
+     "sp": "garganacl",
+     "teamRate": 0.0055,
+     "bringRate": 0.548,
+     "leadRate": 0.236,
+     "winRate": 0.579,
+     "n": 208
     },
     {
      "sp": "runerigus",
-     "teamRate": 0.0056,
+     "teamRate": 0.0055,
      "bringRate": 0.697,
      "leadRate": 0.505,
      "winRate": 0.566,
      "n": 208
     },
     {
-     "sp": "garganacl",
+     "sp": "chimecho",
      "teamRate": 0.0054,
-     "bringRate": 0.535,
-     "leadRate": 0.233,
-     "winRate": 0.593,
+     "bringRate": 0.599,
+     "leadRate": 0.396,
+     "winRate": 0.537,
      "n": 202
     },
     {
      "sp": "taurospaldeablaze",
-     "teamRate": 0.0054,
-     "bringRate": 0.66,
-     "leadRate": 0.3,
-     "winRate": 0.477,
-     "n": 200
-    },
-    {
-     "sp": "chimecho",
      "teamRate": 0.0053,
-     "bringRate": 0.608,
-     "leadRate": 0.402,
-     "winRate": 0.537,
-     "n": 199
+     "bringRate": 0.657,
+     "leadRate": 0.299,
+     "winRate": 0.477,
+     "n": 201
     },
     {
      "sp": "victreebel",
-     "teamRate": 0.0052,
+     "teamRate": 0.0053,
      "bringRate": 0.697,
-     "leadRate": 0.446,
-     "winRate": 0.566,
-     "n": 195
+     "leadRate": 0.439,
+     "winRate": 0.565,
+     "n": 198
     },
     {
      "sp": "glaceon",
      "teamRate": 0.005,
-     "bringRate": 0.535,
-     "leadRate": 0.241,
-     "winRate": 0.48,
-     "n": 187
-    },
-    {
-     "sp": "falinks",
-     "teamRate": 0.0048,
-     "bringRate": 0.654,
-     "leadRate": 0.413,
-     "winRate": 0.547,
-     "n": 179
+     "bringRate": 0.532,
+     "leadRate": 0.242,
+     "winRate": 0.475,
+     "n": 190
     },
     {
      "sp": "morpeko",
      "teamRate": 0.0048,
-     "bringRate": 0.672,
-     "leadRate": 0.429,
-     "winRate": 0.403,
-     "n": 177
+     "bringRate": 0.663,
+     "leadRate": 0.425,
+     "winRate": 0.408,
+     "n": 181
+    },
+    {
+     "sp": "falinks",
+     "teamRate": 0.0048,
+     "bringRate": 0.656,
+     "leadRate": 0.411,
+     "winRate": 0.551,
+     "n": 180
+    },
+    {
+     "sp": "salazzle",
+     "teamRate": 0.0045,
+     "bringRate": 0.713,
+     "leadRate": 0.456,
+     "winRate": 0.549,
+     "n": 171
     },
     {
      "sp": "reuniclus",
-     "teamRate": 0.0046,
+     "teamRate": 0.0045,
      "bringRate": 0.632,
      "leadRate": 0.409,
      "winRate": 0.435,
@@ -3404,50 +3412,50 @@
     {
      "sp": "pikachu",
      "teamRate": 0.0045,
-     "bringRate": 0.601,
-     "leadRate": 0.417,
-     "winRate": 0.495,
-     "n": 168
-    },
-    {
-     "sp": "salazzle",
-     "teamRate": 0.0045,
-     "bringRate": 0.713,
-     "leadRate": 0.455,
-     "winRate": 0.555,
-     "n": 167
+     "bringRate": 0.606,
+     "leadRate": 0.418,
+     "winRate": 0.485,
+     "n": 170
     },
     {
      "sp": "torterra",
-     "teamRate": 0.0044,
-     "bringRate": 0.611,
-     "leadRate": 0.284,
-     "winRate": 0.485,
-     "n": 162
+     "teamRate": 0.0045,
+     "bringRate": 0.627,
+     "leadRate": 0.296,
+     "winRate": 0.491,
+     "n": 169
     },
     {
      "sp": "vivillonfancy",
-     "teamRate": 0.0043,
-     "bringRate": 0.671,
-     "leadRate": 0.491,
-     "winRate": 0.37,
-     "n": 161
+     "teamRate": 0.0044,
+     "bringRate": 0.665,
+     "leadRate": 0.482,
+     "winRate": 0.376,
+     "n": 164
     },
     {
      "sp": "pangoro",
      "teamRate": 0.0041,
-     "bringRate": 0.727,
-     "leadRate": 0.351,
-     "winRate": 0.545,
-     "n": 154
+     "bringRate": 0.731,
+     "leadRate": 0.353,
+     "winRate": 0.535,
+     "n": 156
+    },
+    {
+     "sp": "pidgeot",
+     "teamRate": 0.0041,
+     "bringRate": 0.66,
+     "leadRate": 0.372,
+     "winRate": 0.583,
+     "n": 156
     },
     {
      "sp": "alcremie",
      "teamRate": 0.0041,
-     "bringRate": 0.599,
-     "leadRate": 0.263,
-     "winRate": 0.615,
-     "n": 152
+     "bringRate": 0.601,
+     "leadRate": 0.268,
+     "winRate": 0.62,
+     "n": 153
     },
     {
      "sp": "aromatisse",
@@ -3455,6 +3463,14 @@
      "bringRate": 0.587,
      "leadRate": 0.307,
      "winRate": 0.523,
+     "n": 150
+    },
+    {
+     "sp": "trevenant",
+     "teamRate": 0.004,
+     "bringRate": 0.593,
+     "leadRate": 0.32,
+     "winRate": 0.438,
      "n": 150
     },
     {
@@ -3466,48 +3482,32 @@
      "n": 149
     },
     {
-     "sp": "pidgeot",
-     "teamRate": 0.004,
-     "bringRate": 0.655,
-     "leadRate": 0.351,
-     "winRate": 0.588,
-     "n": 148
-    },
-    {
      "sp": "sharpedo",
      "teamRate": 0.0039,
-     "bringRate": 0.607,
-     "leadRate": 0.338,
-     "winRate": 0.534,
-     "n": 145
+     "bringRate": 0.608,
+     "leadRate": 0.345,
+     "winRate": 0.533,
+     "n": 148
     },
     {
      "sp": "aurorus",
      "teamRate": 0.0039,
-     "bringRate": 0.552,
-     "leadRate": 0.214,
-     "winRate": 0.45,
-     "n": 145
-    },
-    {
-     "sp": "trevenant",
-     "teamRate": 0.0039,
-     "bringRate": 0.597,
-     "leadRate": 0.319,
-     "winRate": 0.43,
-     "n": 144
+     "bringRate": 0.555,
+     "leadRate": 0.219,
+     "winRate": 0.444,
+     "n": 146
     },
     {
      "sp": "diggersby",
      "teamRate": 0.0038,
-     "bringRate": 0.693,
-     "leadRate": 0.293,
-     "winRate": 0.588,
-     "n": 140
+     "bringRate": 0.692,
+     "leadRate": 0.294,
+     "winRate": 0.586,
+     "n": 143
     },
     {
      "sp": "beartic",
-     "teamRate": 0.0037,
+     "teamRate": 0.0036,
      "bringRate": 0.613,
      "leadRate": 0.226,
      "winRate": 0.679,
@@ -3515,19 +3515,19 @@
     },
     {
      "sp": "quaquaval",
-     "teamRate": 0.0035,
-     "bringRate": 0.689,
-     "leadRate": 0.295,
-     "winRate": 0.505,
-     "n": 132
+     "teamRate": 0.0036,
+     "bringRate": 0.687,
+     "leadRate": 0.291,
+     "winRate": 0.511,
+     "n": 134
     },
     {
      "sp": "vivillonpokeball",
      "teamRate": 0.0035,
-     "bringRate": 0.615,
-     "leadRate": 0.469,
-     "winRate": 0.5,
-     "n": 130
+     "bringRate": 0.618,
+     "leadRate": 0.473,
+     "winRate": 0.494,
+     "n": 131
     },
     {
      "sp": "rotomfan",
@@ -3540,10 +3540,10 @@
     {
      "sp": "lycanroc",
      "teamRate": 0.0034,
-     "bringRate": 0.608,
-     "leadRate": 0.288,
-     "winRate": 0.461,
-     "n": 125
+     "bringRate": 0.614,
+     "leadRate": 0.299,
+     "winRate": 0.474,
+     "n": 127
     },
     {
      "sp": "slowbrogalar",
@@ -3562,12 +3562,36 @@
      "n": 123
     },
     {
+     "sp": "rampardos",
+     "teamRate": 0.0033,
+     "bringRate": 0.577,
+     "leadRate": 0.154,
+     "winRate": 0.31,
+     "n": 123
+    },
+    {
+     "sp": "pinsir",
+     "teamRate": 0.0033,
+     "bringRate": 0.675,
+     "leadRate": 0.301,
+     "winRate": 0.482,
+     "n": 123
+    },
+    {
      "sp": "simipour",
      "teamRate": 0.0032,
-     "bringRate": 0.575,
-     "leadRate": 0.383,
-     "winRate": 0.565,
-     "n": 120
+     "bringRate": 0.582,
+     "leadRate": 0.393,
+     "winRate": 0.549,
+     "n": 122
+    },
+    {
+     "sp": "slowking",
+     "teamRate": 0.0032,
+     "bringRate": 0.653,
+     "leadRate": 0.471,
+     "winRate": 0.43,
+     "n": 121
     },
     {
      "sp": "espeon",
@@ -3578,44 +3602,20 @@
      "n": 120
     },
     {
-     "sp": "rampardos",
-     "teamRate": 0.0032,
-     "bringRate": 0.583,
-     "leadRate": 0.15,
-     "winRate": 0.314,
-     "n": 120
-    },
-    {
-     "sp": "pinsir",
-     "teamRate": 0.0032,
-     "bringRate": 0.683,
-     "leadRate": 0.3,
-     "winRate": 0.488,
-     "n": 120
-    },
-    {
-     "sp": "slowking",
-     "teamRate": 0.0032,
-     "bringRate": 0.644,
-     "leadRate": 0.466,
-     "winRate": 0.421,
-     "n": 118
-    },
-    {
      "sp": "toucannon",
-     "teamRate": 0.003,
-     "bringRate": 0.681,
-     "leadRate": 0.425,
-     "winRate": 0.597,
-     "n": 113
+     "teamRate": 0.0031,
+     "bringRate": 0.678,
+     "leadRate": 0.426,
+     "winRate": 0.603,
+     "n": 115
     },
     {
      "sp": "emboar",
-     "teamRate": 0.003,
-     "bringRate": 0.782,
-     "leadRate": 0.245,
-     "winRate": 0.488,
-     "n": 110
+     "teamRate": 0.0029,
+     "bringRate": 0.784,
+     "leadRate": 0.252,
+     "winRate": 0.483,
+     "n": 111
     },
     {
      "sp": "musharna",
@@ -3652,10 +3652,10 @@
     {
      "sp": "tyrantrum",
      "teamRate": 0.0027,
-     "bringRate": 0.686,
-     "leadRate": 0.373,
+     "bringRate": 0.68,
+     "leadRate": 0.369,
      "winRate": 0.514,
-     "n": 102
+     "n": 103
     },
     {
      "sp": "absol",
@@ -3668,14 +3668,14 @@
     {
      "sp": "zoroark",
      "teamRate": 0.0027,
-     "bringRate": 0.677,
+     "bringRate": 0.68,
      "leadRate": 0,
-     "winRate": 0.313,
-     "n": 99
+     "winRate": 0.309,
+     "n": 100
     },
     {
      "sp": "goodra",
-     "teamRate": 0.0026,
+     "teamRate": 0.0025,
      "bringRate": 0.667,
      "leadRate": 0.281,
      "winRate": 0.484,
@@ -3683,18 +3683,26 @@
     },
     {
      "sp": "typhlosion",
-     "teamRate": 0.0026,
-     "bringRate": 0.6,
-     "leadRate": 0.253,
+     "teamRate": 0.0025,
+     "bringRate": 0.594,
+     "leadRate": 0.25,
      "winRate": 0.509,
-     "n": 95
+     "n": 96
     },
     {
      "sp": "leafeon",
-     "teamRate": 0.0024,
-     "bringRate": 0.527,
-     "leadRate": 0.242,
+     "teamRate": 0.0025,
+     "bringRate": 0.516,
+     "leadRate": 0.237,
      "winRate": 0.521,
+     "n": 93
+    },
+    {
+     "sp": "passimian",
+     "teamRate": 0.0024,
+     "bringRate": 0.659,
+     "leadRate": 0.407,
+     "winRate": 0.483,
      "n": 91
     },
     {
@@ -3706,24 +3714,16 @@
      "n": 90
     },
     {
-     "sp": "passimian",
-     "teamRate": 0.0024,
-     "bringRate": 0.663,
-     "leadRate": 0.416,
-     "winRate": 0.492,
-     "n": 89
-    },
-    {
      "sp": "glalie",
      "teamRate": 0.0023,
-     "bringRate": 0.593,
-     "leadRate": 0.372,
-     "winRate": 0.373,
-     "n": 86
+     "bringRate": 0.598,
+     "leadRate": 0.368,
+     "winRate": 0.385,
+     "n": 87
     },
     {
      "sp": "flapple",
-     "teamRate": 0.0023,
+     "teamRate": 0.0022,
      "bringRate": 0.571,
      "leadRate": 0.179,
      "winRate": 0.438,
@@ -3731,7 +3731,7 @@
     },
     {
      "sp": "gourgeistsuper",
-     "teamRate": 0.0023,
+     "teamRate": 0.0022,
      "bringRate": 0.679,
      "leadRate": 0.44,
      "winRate": 0.526,
@@ -3748,34 +3748,34 @@
     {
      "sp": "avalugghisui",
      "teamRate": 0.0021,
-     "bringRate": 0.658,
-     "leadRate": 0.203,
+     "bringRate": 0.65,
+     "leadRate": 0.2,
      "winRate": 0.385,
-     "n": 79
-    },
-    {
-     "sp": "roserade",
-     "teamRate": 0.002,
-     "bringRate": 0.684,
-     "leadRate": 0.395,
-     "winRate": 0.538,
-     "n": 76
+     "n": 80
     },
     {
      "sp": "sandaconda",
      "teamRate": 0.002,
-     "bringRate": 0.581,
-     "leadRate": 0.432,
-     "winRate": 0.674,
-     "n": 74
+     "bringRate": 0.597,
+     "leadRate": 0.442,
+     "winRate": 0.63,
+     "n": 77
     },
     {
      "sp": "simisear",
      "teamRate": 0.002,
-     "bringRate": 0.743,
-     "leadRate": 0.514,
-     "winRate": 0.418,
-     "n": 74
+     "bringRate": 0.727,
+     "leadRate": 0.494,
+     "winRate": 0.411,
+     "n": 77
+    },
+    {
+     "sp": "roserade",
+     "teamRate": 0.002,
+     "bringRate": 0.688,
+     "leadRate": 0.39,
+     "winRate": 0.528,
+     "n": 77
     },
     {
      "sp": "meowsticf",
@@ -3787,7 +3787,7 @@
     },
     {
      "sp": "emolga",
-     "teamRate": 0.002,
+     "teamRate": 0.0019,
      "bringRate": 0.562,
      "leadRate": 0.342,
      "winRate": 0.415,
@@ -3819,7 +3819,7 @@
     },
     {
      "sp": "arbok",
-     "teamRate": 0.0017,
+     "teamRate": 0.0016,
      "bringRate": 0.597,
      "leadRate": 0.306,
      "winRate": 0.595,
@@ -3842,6 +3842,14 @@
      "n": 57
     },
     {
+     "sp": "florges",
+     "teamRate": 0.0015,
+     "bringRate": 0.655,
+     "leadRate": 0.345,
+     "winRate": 0.583,
+     "n": 55
+    },
+    {
      "sp": "decidueye",
      "teamRate": 0.0015,
      "bringRate": 0.509,
@@ -3850,11 +3858,19 @@
      "n": 55
     },
     {
-     "sp": "florges",
-     "teamRate": 0.0015,
-     "bringRate": 0.648,
-     "leadRate": 0.352,
-     "winRate": 0.571,
+     "sp": "appletun",
+     "teamRate": 0.0014,
+     "bringRate": 0.574,
+     "leadRate": 0.074,
+     "winRate": 0.484,
+     "n": 54
+    },
+    {
+     "sp": "dedenne",
+     "teamRate": 0.0014,
+     "bringRate": 0.426,
+     "leadRate": 0.296,
+     "winRate": 0.478,
      "n": 54
     },
     {
@@ -3866,14 +3882,6 @@
      "n": 52
     },
     {
-     "sp": "appletun",
-     "teamRate": 0.0014,
-     "bringRate": 0.569,
-     "leadRate": 0.078,
-     "winRate": 0.483,
-     "n": 51
-    },
-    {
      "sp": "taurospaldeacombat",
      "teamRate": 0.0013,
      "bringRate": 0.7,
@@ -3882,20 +3890,12 @@
      "n": 50
     },
     {
-     "sp": "dedenne",
-     "teamRate": 0.0013,
-     "bringRate": 0.449,
-     "leadRate": 0.306,
-     "winRate": 0.5,
-     "n": 49
-    },
-    {
      "sp": "simisage",
      "teamRate": 0.0012,
-     "bringRate": 0.5,
-     "leadRate": 0.326,
+     "bringRate": 0.489,
+     "leadRate": 0.319,
      "winRate": 0.435,
-     "n": 46
+     "n": 47
     },
     {
      "sp": "gourgeistsmall",
@@ -3938,28 +3938,28 @@
      "n": 34
     },
     {
+     "sp": "castform",
+     "teamRate": 0.0009,
+     "bringRate": 0.576,
+     "leadRate": 0.364,
+     "winRate": 0.474,
+     "n": 33
+    },
+    {
+     "sp": "vivillonmonsoon",
+     "teamRate": 0.0008,
+     "bringRate": 0.688,
+     "leadRate": 0.531,
+     "winRate": 0.727,
+     "n": 32
+    },
+    {
      "sp": "avalugg",
      "teamRate": 0.0008,
      "bringRate": 0.742,
      "leadRate": 0.355,
      "winRate": 0.348,
      "n": 31
-    },
-    {
-     "sp": "castform",
-     "teamRate": 0.0008,
-     "bringRate": 0.533,
-     "leadRate": 0.333,
-     "winRate": 0.438,
-     "n": 30
-    },
-    {
-     "sp": "vivillonmonsoon",
-     "teamRate": 0.0008,
-     "bringRate": 0.69,
-     "leadRate": 0.517,
-     "winRate": 0.7,
-     "n": 29
     },
     {
      "sp": "samurott",
@@ -3970,20 +3970,20 @@
      "n": 26
     },
     {
+     "sp": "alcremierainbowswirl",
+     "teamRate": 0.0006,
+     "bringRate": 0.708,
+     "leadRate": 0.542,
+     "winRate": 0.353,
+     "n": 24
+    },
+    {
      "sp": "vivillonpolar",
      "teamRate": 0.0006,
      "bringRate": 0.522,
      "leadRate": 0.391,
      "winRate": 0.583,
      "n": 23
-    },
-    {
-     "sp": "alcremierainbowswirl",
-     "teamRate": 0.0006,
-     "bringRate": 0.773,
-     "leadRate": 0.591,
-     "winRate": 0.353,
-     "n": 22
     },
     {
      "sp": "polteageistantique",
@@ -4051,11 +4051,11 @@
     },
     {
      "sp": "florgeswhite",
-     "teamRate": 0.0004,
-     "bringRate": 0.813,
-     "leadRate": 0.25,
+     "teamRate": 0.0005,
+     "bringRate": 0.765,
+     "leadRate": 0.235,
      "winRate": 0.385,
-     "n": 16
+     "n": 17
     },
     {
      "sp": "vivillonsavanna",
@@ -4071,6 +4071,14 @@
      "bringRate": 0.583,
      "leadRate": 0.083,
      "winRate": 0.571,
+     "n": 12
+    },
+    {
+     "sp": "revavroom",
+     "teamRate": 0.0003,
+     "bringRate": 0.5,
+     "leadRate": 0.25,
+     "winRate": 0.5,
      "n": 12
     },
     {
@@ -4114,14 +4122,6 @@
      "n": 9
     },
     {
-     "sp": "revavroom",
-     "teamRate": 0.0002,
-     "bringRate": 0.556,
-     "leadRate": 0.222,
-     "winRate": 0.6,
-     "n": 9
-    },
-    {
      "sp": "alcremiesaltedcream",
      "teamRate": 0.0002,
      "bringRate": 0.75,
@@ -4140,682 +4140,682 @@
    ],
    "population": "quality-filtered — no bot detected",
    "use": "tournament preparation; claims about the game; anything an agent should imitate",
-   "games": 18605
+   "games": 18840
   },
   "ladder": {
-   "sampledTeams": 97122,
+   "sampledTeams": 97792,
    "threats": [
     {
      "sp": "garchomp",
-     "teamRate": 0.2593,
-     "bringRate": 0.602,
+     "teamRate": 0.2588,
+     "bringRate": 0.603,
      "leadRate": 0.249,
      "winRate": 0.515,
-     "n": 25182
+     "n": 25306
     },
     {
      "sp": "kingambit",
-     "teamRate": 0.2507,
-     "bringRate": 0.504,
+     "teamRate": 0.2503,
+     "bringRate": 0.505,
      "leadRate": 0.181,
      "winRate": 0.517,
-     "n": 24345
+     "n": 24481
     },
     {
      "sp": "whimsicott",
-     "teamRate": 0.2295,
+     "teamRate": 0.2288,
      "bringRate": 0.693,
      "leadRate": 0.506,
      "winRate": 0.509,
-     "n": 22285
+     "n": 22379
     },
     {
      "sp": "incineroar",
-     "teamRate": 0.2263,
+     "teamRate": 0.2262,
      "bringRate": 0.649,
-     "leadRate": 0.395,
+     "leadRate": 0.394,
      "winRate": 0.519,
-     "n": 21978
+     "n": 22122
     },
     {
      "sp": "basculegion",
-     "teamRate": 0.2008,
+     "teamRate": 0.2003,
      "bringRate": 0.646,
      "leadRate": 0.168,
-     "winRate": 0.506,
-     "n": 19500
+     "winRate": 0.505,
+     "n": 19590
     },
     {
      "sp": "sinistcha",
      "teamRate": 0.1824,
      "bringRate": 0.522,
-     "leadRate": 0.115,
-     "winRate": 0.498,
-     "n": 17713
+     "leadRate": 0.116,
+     "winRate": 0.499,
+     "n": 17842
     },
     {
      "sp": "farigiraf",
-     "teamRate": 0.1754,
+     "teamRate": 0.1755,
      "bringRate": 0.66,
-     "leadRate": 0.466,
+     "leadRate": 0.465,
      "winRate": 0.528,
-     "n": 17037
+     "n": 17160
     },
     {
      "sp": "sneasler",
-     "teamRate": 0.1651,
-     "bringRate": 0.685,
+     "teamRate": 0.1652,
+     "bringRate": 0.684,
      "leadRate": 0.456,
      "winRate": 0.515,
-     "n": 16031
+     "n": 16157
     },
     {
      "sp": "charizard",
-     "teamRate": 0.1651,
-     "bringRate": 0.717,
-     "leadRate": 0.469,
+     "teamRate": 0.1648,
+     "bringRate": 0.716,
+     "leadRate": 0.468,
      "winRate": 0.517,
-     "n": 16030
+     "n": 16117
     },
     {
      "sp": "staraptor",
-     "teamRate": 0.1346,
-     "bringRate": 0.612,
+     "teamRate": 0.1347,
+     "bringRate": 0.61,
      "leadRate": 0.395,
      "winRate": 0.553,
-     "n": 13075
+     "n": 13173
     },
     {
      "sp": "sylveon",
-     "teamRate": 0.1288,
+     "teamRate": 0.1285,
      "bringRate": 0.594,
      "leadRate": 0.269,
      "winRate": 0.502,
-     "n": 12508
+     "n": 12571
     },
     {
      "sp": "pelipper",
-     "teamRate": 0.1152,
+     "teamRate": 0.1149,
      "bringRate": 0.731,
-     "leadRate": 0.265,
-     "winRate": 0.531,
-     "n": 11188
+     "leadRate": 0.266,
+     "winRate": 0.53,
+     "n": 11241
     },
     {
      "sp": "raichu",
-     "teamRate": 0.1103,
+     "teamRate": 0.1102,
      "bringRate": 0.65,
      "leadRate": 0.465,
-     "winRate": 0.497,
-     "n": 10708
+     "winRate": 0.498,
+     "n": 10775
     },
     {
      "sp": "archaludon",
-     "teamRate": 0.1007,
+     "teamRate": 0.1006,
      "bringRate": 0.657,
      "leadRate": 0.252,
      "winRate": 0.546,
-     "n": 9782
+     "n": 9837
     },
     {
      "sp": "tyranitar",
-     "teamRate": 0.0991,
-     "bringRate": 0.739,
+     "teamRate": 0.0992,
+     "bringRate": 0.74,
      "leadRate": 0.308,
-     "winRate": 0.537,
-     "n": 9628
+     "winRate": 0.538,
+     "n": 9699
     },
     {
      "sp": "gholdengo",
      "teamRate": 0.0904,
-     "bringRate": 0.536,
+     "bringRate": 0.537,
      "leadRate": 0.264,
-     "winRate": 0.502,
-     "n": 8778
+     "winRate": 0.504,
+     "n": 8841
     },
     {
      "sp": "milotic",
      "teamRate": 0.0867,
-     "bringRate": 0.599,
-     "leadRate": 0.356,
+     "bringRate": 0.597,
+     "leadRate": 0.355,
      "winRate": 0.537,
-     "n": 8420
+     "n": 8479
     },
     {
      "sp": "grimmsnarl",
      "teamRate": 0.0826,
      "bringRate": 0.653,
      "leadRate": 0.522,
-     "winRate": 0.505,
-     "n": 8023
+     "winRate": 0.504,
+     "n": 8074
     },
     {
      "sp": "aerodactyl",
-     "teamRate": 0.0815,
+     "teamRate": 0.0814,
      "bringRate": 0.591,
      "leadRate": 0.446,
      "winRate": 0.52,
-     "n": 7918
+     "n": 7965
     },
     {
      "sp": "venusaur",
-     "teamRate": 0.0747,
+     "teamRate": 0.0748,
      "bringRate": 0.545,
-     "leadRate": 0.284,
+     "leadRate": 0.283,
      "winRate": 0.532,
-     "n": 7258
+     "n": 7311
     },
     {
      "sp": "floetteeternal",
      "teamRate": 0.0723,
-     "bringRate": 0.517,
+     "bringRate": 0.516,
      "leadRate": 0.27,
-     "winRate": 0.537,
-     "n": 7021
+     "winRate": 0.536,
+     "n": 7071
     },
     {
      "sp": "swampert",
      "teamRate": 0.0698,
-     "bringRate": 0.611,
-     "leadRate": 0.319,
-     "winRate": 0.53,
-     "n": 6783
+     "bringRate": 0.612,
+     "leadRate": 0.32,
+     "winRate": 0.529,
+     "n": 6830
     },
     {
      "sp": "delphox",
-     "teamRate": 0.0682,
+     "teamRate": 0.0681,
      "bringRate": 0.509,
-     "leadRate": 0.315,
+     "leadRate": 0.316,
      "winRate": 0.529,
-     "n": 6621
+     "n": 6664
     },
     {
      "sp": "sableye",
-     "teamRate": 0.0664,
+     "teamRate": 0.0665,
      "bringRate": 0.68,
      "leadRate": 0.508,
-     "winRate": 0.479,
-     "n": 6447
+     "winRate": 0.478,
+     "n": 6507
     },
     {
      "sp": "ninetalesalola",
-     "teamRate": 0.06,
-     "bringRate": 0.61,
+     "teamRate": 0.0601,
+     "bringRate": 0.609,
      "leadRate": 0.235,
      "winRate": 0.514,
-     "n": 5829
+     "n": 5879
     },
     {
      "sp": "gengar",
-     "teamRate": 0.0594,
+     "teamRate": 0.0593,
      "bringRate": 0.665,
      "leadRate": 0.495,
      "winRate": 0.478,
-     "n": 5768
+     "n": 5799
     },
     {
      "sp": "metagross",
-     "teamRate": 0.0593,
+     "teamRate": 0.0592,
      "bringRate": 0.533,
-     "leadRate": 0.294,
+     "leadRate": 0.295,
      "winRate": 0.456,
-     "n": 5757
+     "n": 5792
     },
     {
      "sp": "torkoal",
      "teamRate": 0.0581,
-     "bringRate": 0.62,
+     "bringRate": 0.621,
      "leadRate": 0.164,
-     "winRate": 0.558,
-     "n": 5644
+     "winRate": 0.559,
+     "n": 5684
     },
     {
      "sp": "blastoise",
-     "teamRate": 0.0563,
-     "bringRate": 0.657,
-     "leadRate": 0.47,
-     "winRate": 0.544,
-     "n": 5467
+     "teamRate": 0.0564,
+     "bringRate": 0.656,
+     "leadRate": 0.469,
+     "winRate": 0.543,
+     "n": 5517
     },
     {
      "sp": "excadrill",
      "teamRate": 0.0561,
-     "bringRate": 0.608,
+     "bringRate": 0.609,
      "leadRate": 0.276,
-     "winRate": 0.537,
-     "n": 5445
+     "winRate": 0.538,
+     "n": 5487
     },
     {
      "sp": "sinistchamasterpiece",
-     "teamRate": 0.055,
-     "bringRate": 0.528,
+     "teamRate": 0.0551,
+     "bringRate": 0.527,
      "leadRate": 0.125,
-     "winRate": 0.493,
-     "n": 5345
+     "winRate": 0.492,
+     "n": 5391
     },
     {
      "sp": "talonflame",
-     "teamRate": 0.0538,
+     "teamRate": 0.0537,
      "bringRate": 0.671,
      "leadRate": 0.531,
      "winRate": 0.517,
-     "n": 5225
+     "n": 5252
     },
     {
      "sp": "dragonite",
-     "teamRate": 0.0535,
-     "bringRate": 0.543,
-     "leadRate": 0.288,
+     "teamRate": 0.0536,
+     "bringRate": 0.544,
+     "leadRate": 0.289,
      "winRate": 0.491,
-     "n": 5197
+     "n": 5240
     },
     {
      "sp": "glimmora",
      "teamRate": 0.0513,
      "bringRate": 0.647,
      "leadRate": 0.4,
-     "winRate": 0.51,
-     "n": 4987
+     "winRate": 0.509,
+     "n": 5021
     },
     {
      "sp": "froslass",
      "teamRate": 0.0499,
-     "bringRate": 0.61,
+     "bringRate": 0.609,
      "leadRate": 0.384,
-     "winRate": 0.523,
-     "n": 4843
+     "winRate": 0.521,
+     "n": 4877
     },
     {
      "sp": "rotomwash",
-     "teamRate": 0.0472,
+     "teamRate": 0.0473,
      "bringRate": 0.638,
      "leadRate": 0.356,
-     "winRate": 0.504,
-     "n": 4581
+     "winRate": 0.505,
+     "n": 4628
     },
     {
      "sp": "mawile",
      "teamRate": 0.0425,
-     "bringRate": 0.548,
-     "leadRate": 0.166,
-     "winRate": 0.496,
-     "n": 4128
+     "bringRate": 0.549,
+     "leadRate": 0.167,
+     "winRate": 0.494,
+     "n": 4160
     },
     {
      "sp": "annihilape",
-     "teamRate": 0.0388,
-     "bringRate": 0.637,
+     "teamRate": 0.0387,
+     "bringRate": 0.638,
      "leadRate": 0.382,
-     "winRate": 0.52,
-     "n": 3765
+     "winRate": 0.519,
+     "n": 3789
     },
     {
      "sp": "tsareena",
      "teamRate": 0.038,
-     "bringRate": 0.569,
+     "bringRate": 0.568,
      "leadRate": 0.241,
      "winRate": 0.51,
-     "n": 3693
+     "n": 3712
     },
     {
      "sp": "politoed",
      "teamRate": 0.0361,
-     "bringRate": 0.696,
-     "leadRate": 0.161,
+     "bringRate": 0.697,
+     "leadRate": 0.162,
      "winRate": 0.568,
-     "n": 3504
+     "n": 3531
+    },
+    {
+     "sp": "corviknight",
+     "teamRate": 0.0359,
+     "bringRate": 0.549,
+     "leadRate": 0.314,
+     "winRate": 0.513,
+     "n": 3507
     },
     {
      "sp": "primarina",
      "teamRate": 0.0359,
      "bringRate": 0.642,
-     "leadRate": 0.258,
-     "winRate": 0.519,
-     "n": 3484
-    },
-    {
-     "sp": "corviknight",
-     "teamRate": 0.0358,
-     "bringRate": 0.55,
-     "leadRate": 0.315,
-     "winRate": 0.514,
-     "n": 3476
+     "leadRate": 0.259,
+     "winRate": 0.52,
+     "n": 3506
     },
     {
      "sp": "blaziken",
      "teamRate": 0.0356,
-     "bringRate": 0.64,
-     "leadRate": 0.351,
-     "winRate": 0.455,
-     "n": 3456
+     "bringRate": 0.641,
+     "leadRate": 0.353,
+     "winRate": 0.454,
+     "n": 3482
     },
     {
      "sp": "toxapex",
-     "teamRate": 0.0343,
+     "teamRate": 0.0344,
      "bringRate": 0.596,
-     "leadRate": 0.266,
-     "winRate": 0.488,
-     "n": 3335
+     "leadRate": 0.267,
+     "winRate": 0.487,
+     "n": 3364
     },
     {
      "sp": "hydreigon",
      "teamRate": 0.0343,
-     "bringRate": 0.622,
-     "leadRate": 0.308,
+     "bringRate": 0.623,
+     "leadRate": 0.309,
      "winRate": 0.531,
-     "n": 3333
+     "n": 3356
     },
     {
      "sp": "scizor",
      "teamRate": 0.0338,
-     "bringRate": 0.499,
-     "leadRate": 0.241,
-     "winRate": 0.477,
-     "n": 3281
+     "bringRate": 0.5,
+     "leadRate": 0.242,
+     "winRate": 0.478,
+     "n": 3309
     },
     {
      "sp": "ceruledge",
      "teamRate": 0.0332,
-     "bringRate": 0.584,
+     "bringRate": 0.583,
      "leadRate": 0.193,
-     "winRate": 0.536,
-     "n": 3222
+     "winRate": 0.537,
+     "n": 3248
+    },
+    {
+     "sp": "mausholdfour",
+     "teamRate": 0.0329,
+     "bringRate": 0.605,
+     "leadRate": 0.374,
+     "winRate": 0.503,
+     "n": 3218
     },
     {
      "sp": "scovillain",
      "teamRate": 0.0329,
      "bringRate": 0.559,
      "leadRate": 0.39,
-     "winRate": 0.533,
-     "n": 3199
-    },
-    {
-     "sp": "mausholdfour",
-     "teamRate": 0.0328,
-     "bringRate": 0.607,
-     "leadRate": 0.375,
-     "winRate": 0.504,
-     "n": 3181
+     "winRate": 0.532,
+     "n": 3218
     },
     {
      "sp": "maushold",
      "teamRate": 0.0324,
-     "bringRate": 0.631,
-     "leadRate": 0.397,
+     "bringRate": 0.63,
+     "leadRate": 0.396,
      "winRate": 0.517,
-     "n": 3146
-    },
-    {
-     "sp": "kangaskhan",
-     "teamRate": 0.0321,
-     "bringRate": 0.7,
-     "leadRate": 0.538,
-     "winRate": 0.541,
-     "n": 3113
+     "n": 3167
     },
     {
      "sp": "arcaninehisui",
-     "teamRate": 0.032,
-     "bringRate": 0.613,
+     "teamRate": 0.0322,
+     "bringRate": 0.612,
      "leadRate": 0.305,
-     "winRate": 0.508,
-     "n": 3112
+     "winRate": 0.509,
+     "n": 3147
+    },
+    {
+     "sp": "kangaskhan",
+     "teamRate": 0.0319,
+     "bringRate": 0.7,
+     "leadRate": 0.538,
+     "winRate": 0.541,
+     "n": 3121
     },
     {
      "sp": "gardevoir",
-     "teamRate": 0.0318,
-     "bringRate": 0.645,
-     "leadRate": 0.321,
-     "winRate": 0.515,
-     "n": 3084
+     "teamRate": 0.0317,
+     "bringRate": 0.643,
+     "leadRate": 0.32,
+     "winRate": 0.514,
+     "n": 3100
     },
     {
      "sp": "clefable",
      "teamRate": 0.0301,
      "bringRate": 0.552,
-     "leadRate": 0.274,
+     "leadRate": 0.272,
      "winRate": 0.426,
-     "n": 2923
+     "n": 2944
     },
     {
      "sp": "kommoo",
      "teamRate": 0.0296,
      "bringRate": 0.554,
-     "leadRate": 0.262,
-     "winRate": 0.504,
-     "n": 2877
+     "leadRate": 0.263,
+     "winRate": 0.503,
+     "n": 2894
     },
     {
      "sp": "scrafty",
-     "teamRate": 0.0281,
+     "teamRate": 0.0282,
      "bringRate": 0.637,
-     "leadRate": 0.364,
-     "winRate": 0.494,
-     "n": 2726
+     "leadRate": 0.363,
+     "winRate": 0.493,
+     "n": 2757
     },
     {
      "sp": "camerupt",
      "teamRate": 0.0275,
      "bringRate": 0.613,
      "leadRate": 0.14,
-     "winRate": 0.585,
-     "n": 2674
+     "winRate": 0.583,
+     "n": 2693
     },
     {
      "sp": "mamoswine",
-     "teamRate": 0.0263,
-     "bringRate": 0.652,
-     "leadRate": 0.295,
-     "winRate": 0.523,
-     "n": 2552
+     "teamRate": 0.0264,
+     "bringRate": 0.651,
+     "leadRate": 0.296,
+     "winRate": 0.524,
+     "n": 2577
     },
     {
      "sp": "meowscarada",
      "teamRate": 0.0233,
-     "bringRate": 0.609,
-     "leadRate": 0.298,
-     "winRate": 0.443,
-     "n": 2265
+     "bringRate": 0.61,
+     "leadRate": 0.299,
+     "winRate": 0.444,
+     "n": 2283
     },
     {
      "sp": "zoroarkhisui",
-     "teamRate": 0.0231,
-     "bringRate": 0.578,
+     "teamRate": 0.0233,
+     "bringRate": 0.58,
      "leadRate": 0,
-     "winRate": 0.469,
-     "n": 2242
+     "winRate": 0.47,
+     "n": 2281
     },
     {
      "sp": "gallade",
-     "teamRate": 0.0231,
-     "bringRate": 0.615,
-     "leadRate": 0.31,
-     "winRate": 0.504,
-     "n": 2240
+     "teamRate": 0.0232,
+     "bringRate": 0.616,
+     "leadRate": 0.311,
+     "winRate": 0.501,
+     "n": 2269
     },
     {
      "sp": "volcarona",
-     "teamRate": 0.0218,
-     "bringRate": 0.556,
-     "leadRate": 0.297,
-     "winRate": 0.484,
-     "n": 2116
+     "teamRate": 0.0219,
+     "bringRate": 0.557,
+     "leadRate": 0.295,
+     "winRate": 0.482,
+     "n": 2140
     },
     {
      "sp": "sceptile",
-     "teamRate": 0.0217,
-     "bringRate": 0.594,
-     "leadRate": 0.375,
+     "teamRate": 0.0216,
+     "bringRate": 0.593,
+     "leadRate": 0.374,
      "winRate": 0.506,
-     "n": 2104
+     "n": 2113
     },
     {
      "sp": "meowstic",
      "teamRate": 0.0213,
-     "bringRate": 0.697,
+     "bringRate": 0.696,
      "leadRate": 0.564,
-     "winRate": 0.485,
-     "n": 2067
+     "winRate": 0.484,
+     "n": 2085
     },
     {
      "sp": "dragapult",
      "teamRate": 0.0207,
-     "bringRate": 0.638,
-     "leadRate": 0.373,
-     "winRate": 0.452,
-     "n": 2006
+     "bringRate": 0.639,
+     "leadRate": 0.374,
+     "winRate": 0.451,
+     "n": 2023
     },
     {
      "sp": "eelektross",
      "teamRate": 0.0203,
      "bringRate": 0.662,
      "leadRate": 0.323,
-     "winRate": 0.508,
-     "n": 1974
+     "winRate": 0.507,
+     "n": 1982
     },
     {
      "sp": "meganium",
-     "teamRate": 0.0201,
-     "bringRate": 0.515,
-     "leadRate": 0.217,
-     "winRate": 0.533,
-     "n": 1956
-    },
-    {
-     "sp": "tinkaton",
-     "teamRate": 0.0196,
-     "bringRate": 0.596,
-     "leadRate": 0.405,
-     "winRate": 0.5,
-     "n": 1908
+     "teamRate": 0.0202,
+     "bringRate": 0.514,
+     "leadRate": 0.216,
+     "winRate": 0.535,
+     "n": 1976
     },
     {
      "sp": "oranguru",
      "teamRate": 0.0196,
-     "bringRate": 0.716,
+     "bringRate": 0.715,
      "leadRate": 0.56,
      "winRate": 0.516,
-     "n": 1906
+     "n": 1921
+    },
+    {
+     "sp": "tinkaton",
+     "teamRate": 0.0196,
+     "bringRate": 0.595,
+     "leadRate": 0.404,
+     "winRate": 0.501,
+     "n": 1917
     },
     {
      "sp": "chandelure",
-     "teamRate": 0.0193,
-     "bringRate": 0.611,
-     "leadRate": 0.346,
-     "winRate": 0.55,
-     "n": 1877
+     "teamRate": 0.0194,
+     "bringRate": 0.613,
+     "leadRate": 0.345,
+     "winRate": 0.551,
+     "n": 1894
     },
     {
      "sp": "lucario",
      "teamRate": 0.0192,
-     "bringRate": 0.576,
+     "bringRate": 0.577,
      "leadRate": 0.305,
      "winRate": 0.444,
-     "n": 1860
+     "n": 1875
     },
     {
      "sp": "araquanid",
-     "teamRate": 0.0189,
+     "teamRate": 0.019,
      "bringRate": 0.6,
-     "leadRate": 0.269,
+     "leadRate": 0.268,
      "winRate": 0.478,
-     "n": 1836
+     "n": 1860
     },
     {
      "sp": "aegislash",
-     "teamRate": 0.018,
+     "teamRate": 0.0179,
      "bringRate": 0.504,
-     "leadRate": 0.178,
-     "winRate": 0.456,
-     "n": 1745
+     "leadRate": 0.177,
+     "winRate": 0.458,
+     "n": 1755
     },
     {
      "sp": "weavile",
      "teamRate": 0.0176,
      "bringRate": 0.723,
      "leadRate": 0.53,
-     "winRate": 0.517,
-     "n": 1710
+     "winRate": 0.518,
+     "n": 1726
     },
     {
      "sp": "gyarados",
-     "teamRate": 0.0176,
-     "bringRate": 0.625,
-     "leadRate": 0.279,
+     "teamRate": 0.0175,
+     "bringRate": 0.624,
+     "leadRate": 0.278,
      "winRate": 0.499,
-     "n": 1710
+     "n": 1715
     },
     {
-     "sp": "malamar",
-     "teamRate": 0.0171,
-     "bringRate": 0.739,
-     "leadRate": 0.539,
-     "winRate": 0.438,
-     "n": 1661
+     "sp": "lycanrocdusk",
+     "teamRate": 0.0172,
+     "bringRate": 0.548,
+     "leadRate": 0.277,
+     "winRate": 0.505,
+     "n": 1680
     },
     {
      "sp": "hatterene",
      "teamRate": 0.0171,
-     "bringRate": 0.562,
-     "leadRate": 0.348,
-     "winRate": 0.469,
-     "n": 1659
+     "bringRate": 0.563,
+     "leadRate": 0.35,
+     "winRate": 0.47,
+     "n": 1674
     },
     {
-     "sp": "lycanrocdusk",
+     "sp": "malamar",
      "teamRate": 0.0171,
-     "bringRate": 0.546,
-     "leadRate": 0.278,
-     "winRate": 0.501,
-     "n": 1656
+     "bringRate": 0.74,
+     "leadRate": 0.538,
+     "winRate": 0.437,
+     "n": 1668
     },
     {
      "sp": "palafin",
-     "teamRate": 0.0167,
+     "teamRate": 0.0168,
      "bringRate": 0.627,
      "leadRate": 0.498,
      "winRate": 0.46,
-     "n": 1626
+     "n": 1639
     },
     {
      "sp": "rotomheat",
      "teamRate": 0.0165,
      "bringRate": 0.686,
-     "leadRate": 0.422,
-     "winRate": 0.536,
-     "n": 1601
+     "leadRate": 0.423,
+     "winRate": 0.537,
+     "n": 1614
     },
     {
      "sp": "drampa",
-     "teamRate": 0.0164,
-     "bringRate": 0.558,
+     "teamRate": 0.0163,
+     "bringRate": 0.559,
      "leadRate": 0.172,
-     "winRate": 0.533,
-     "n": 1590
+     "winRate": 0.53,
+     "n": 1597
     },
     {
      "sp": "greninja",
      "teamRate": 0.0162,
      "bringRate": 0.662,
-     "leadRate": 0.368,
-     "winRate": 0.463,
-     "n": 1575
+     "leadRate": 0.369,
+     "winRate": 0.462,
+     "n": 1583
     },
     {
      "sp": "heliolisk",
      "teamRate": 0.0153,
      "bringRate": 0.612,
      "leadRate": 0.336,
-     "winRate": 0.539,
-     "n": 1490
+     "winRate": 0.538,
+     "n": 1501
     },
     {
      "sp": "altaria",
      "teamRate": 0.0153,
      "bringRate": 0.587,
      "leadRate": 0.26,
-     "winRate": 0.522,
-     "n": 1485
+     "winRate": 0.521,
+     "n": 1493
     },
     {
      "sp": "mimikyu",
@@ -4823,286 +4823,302 @@
      "bringRate": 0.678,
      "leadRate": 0.479,
      "winRate": 0.526,
-     "n": 1473
+     "n": 1486
     },
     {
      "sp": "vanilluxe",
-     "teamRate": 0.0149,
-     "bringRate": 0.637,
+     "teamRate": 0.0148,
+     "bringRate": 0.638,
      "leadRate": 0.18,
-     "winRate": 0.525,
-     "n": 1447
+     "winRate": 0.523,
+     "n": 1452
     },
     {
      "sp": "starmie",
      "teamRate": 0.0145,
-     "bringRate": 0.617,
-     "leadRate": 0.349,
+     "bringRate": 0.616,
+     "leadRate": 0.348,
      "winRate": 0.454,
-     "n": 1407
+     "n": 1415
     },
     {
      "sp": "overqwil",
      "teamRate": 0.0142,
      "bringRate": 0.698,
      "leadRate": 0.421,
-     "winRate": 0.452,
-     "n": 1377
+     "winRate": 0.449,
+     "n": 1388
     },
     {
      "sp": "vivillon",
      "teamRate": 0.0141,
      "bringRate": 0.626,
-     "leadRate": 0.484,
-     "winRate": 0.545,
-     "n": 1373
+     "leadRate": 0.483,
+     "winRate": 0.543,
+     "n": 1380
     },
     {
      "sp": "lopunny",
      "teamRate": 0.014,
-     "bringRate": 0.694,
-     "leadRate": 0.561,
-     "winRate": 0.569,
-     "n": 1361
+     "bringRate": 0.692,
+     "leadRate": 0.56,
+     "winRate": 0.571,
+     "n": 1372
     },
     {
      "sp": "armarouge",
-     "teamRate": 0.0131,
-     "bringRate": 0.618,
-     "leadRate": 0.303,
+     "teamRate": 0.0132,
+     "bringRate": 0.617,
+     "leadRate": 0.301,
      "winRate": 0.486,
-     "n": 1276
+     "n": 1288
     },
     {
      "sp": "samurotthisui",
      "teamRate": 0.013,
      "bringRate": 0.668,
      "leadRate": 0.322,
-     "winRate": 0.488,
-     "n": 1263
+     "winRate": 0.486,
+     "n": 1272
     },
     {
      "sp": "typhlosionhisui",
-     "teamRate": 0.0129,
-     "bringRate": 0.638,
+     "teamRate": 0.0128,
+     "bringRate": 0.639,
      "leadRate": 0.379,
-     "winRate": 0.504,
-     "n": 1253
+     "winRate": 0.506,
+     "n": 1256
     },
     {
      "sp": "pyroar",
      "teamRate": 0.0123,
-     "bringRate": 0.63,
-     "leadRate": 0.357,
-     "winRate": 0.531,
-     "n": 1192
+     "bringRate": 0.631,
+     "leadRate": 0.358,
+     "winRate": 0.532,
+     "n": 1200
     },
     {
      "sp": "espathra",
      "teamRate": 0.0121,
      "bringRate": 0.692,
      "leadRate": 0.556,
-     "winRate": 0.47,
-     "n": 1177
+     "winRate": 0.469,
+     "n": 1180
+    },
+    {
+     "sp": "klefki",
+     "teamRate": 0.012,
+     "bringRate": 0.611,
+     "leadRate": 0.41,
+     "winRate": 0.436,
+     "n": 1169
     },
     {
      "sp": "vileplume",
      "teamRate": 0.0119,
-     "bringRate": 0.459,
-     "leadRate": 0.25,
-     "winRate": 0.494,
-     "n": 1154
-    },
-    {
-     "sp": "klefki",
-     "teamRate": 0.0119,
-     "bringRate": 0.607,
-     "leadRate": 0.405,
-     "winRate": 0.432,
-     "n": 1151
+     "bringRate": 0.457,
+     "leadRate": 0.248,
+     "winRate": 0.492,
+     "n": 1163
     },
     {
      "sp": "dragalge",
-     "teamRate": 0.0118,
-     "bringRate": 0.609,
+     "teamRate": 0.0117,
+     "bringRate": 0.608,
      "leadRate": 0.309,
-     "winRate": 0.39,
-     "n": 1142
+     "winRate": 0.389,
+     "n": 1146
     },
     {
      "sp": "ditto",
      "teamRate": 0.0111,
-     "bringRate": 0.592,
+     "bringRate": 0.593,
      "leadRate": 0.098,
-     "winRate": 0.498,
-     "n": 1079
+     "winRate": 0.499,
+     "n": 1087
+    },
+    {
+     "sp": "jolteon",
+     "teamRate": 0.0109,
+     "bringRate": 0.627,
+     "leadRate": 0.395,
+     "winRate": 0.507,
+     "n": 1069
+    },
+    {
+     "sp": "gliscor",
+     "teamRate": 0.0109,
+     "bringRate": 0.601,
+     "leadRate": 0.322,
+     "winRate": 0.487,
+     "n": 1063
     },
     {
      "sp": "crabominable",
      "teamRate": 0.0109,
      "bringRate": 0.583,
      "leadRate": 0.162,
-     "winRate": 0.474,
-     "n": 1060
+     "winRate": 0.475,
+     "n": 1062
     },
     {
-     "sp": "gliscor",
-     "teamRate": 0.0109,
-     "bringRate": 0.601,
-     "leadRate": 0.32,
-     "winRate": 0.488,
-     "n": 1056
-    },
-    {
-     "sp": "jolteon",
-     "teamRate": 0.0109,
-     "bringRate": 0.625,
-     "leadRate": 0.391,
-     "winRate": 0.51,
-     "n": 1054
+     "sp": "golurk",
+     "teamRate": 0.0108,
+     "bringRate": 0.586,
+     "leadRate": 0.185,
+     "winRate": 0.478,
+     "n": 1053
     },
     {
      "sp": "slowkinggalar",
      "teamRate": 0.0107,
      "bringRate": 0.653,
      "leadRate": 0.466,
-     "winRate": 0.454,
-     "n": 1043
-    },
-    {
-     "sp": "golurk",
-     "teamRate": 0.0107,
-     "bringRate": 0.584,
-     "leadRate": 0.187,
-     "winRate": 0.474,
-     "n": 1037
+     "winRate": 0.455,
+     "n": 1050
     },
     {
      "sp": "houndstone",
      "teamRate": 0.0106,
-     "bringRate": 0.579,
-     "leadRate": 0.136,
-     "winRate": 0.524,
-     "n": 1034
+     "bringRate": 0.58,
+     "leadRate": 0.138,
+     "winRate": 0.526,
+     "n": 1039
     },
     {
      "sp": "snorlax",
      "teamRate": 0.0104,
-     "bringRate": 0.62,
-     "leadRate": 0.345,
-     "winRate": 0.482,
-     "n": 1011
+     "bringRate": 0.621,
+     "leadRate": 0.346,
+     "winRate": 0.483,
+     "n": 1014
     },
     {
      "sp": "alakazam",
      "teamRate": 0.0102,
-     "bringRate": 0.6,
-     "leadRate": 0.389,
-     "winRate": 0.438,
-     "n": 987
+     "bringRate": 0.601,
+     "leadRate": 0.392,
+     "winRate": 0.437,
+     "n": 993
     },
     {
      "sp": "aggron",
-     "teamRate": 0.01,
-     "bringRate": 0.618,
-     "leadRate": 0.314,
-     "winRate": 0.406,
-     "n": 976
+     "teamRate": 0.0101,
+     "bringRate": 0.616,
+     "leadRate": 0.313,
+     "winRate": 0.407,
+     "n": 985
     },
     {
      "sp": "decidueyehisui",
      "teamRate": 0.0099,
-     "bringRate": 0.607,
+     "bringRate": 0.606,
      "leadRate": 0.255,
-     "winRate": 0.441,
-     "n": 961
+     "winRate": 0.442,
+     "n": 964
     },
     {
      "sp": "kleavor",
      "teamRate": 0.0096,
-     "bringRate": 0.643,
-     "leadRate": 0.469,
-     "winRate": 0.515,
-     "n": 930
-    },
-    {
-     "sp": "audino",
-     "teamRate": 0.0092,
-     "bringRate": 0.704,
-     "leadRate": 0.563,
-     "winRate": 0.437,
-     "n": 891
+     "bringRate": 0.646,
+     "leadRate": 0.47,
+     "winRate": 0.514,
+     "n": 937
     },
     {
      "sp": "ninetales",
+     "teamRate": 0.0092,
+     "bringRate": 0.631,
+     "leadRate": 0.249,
+     "winRate": 0.48,
+     "n": 898
+    },
+    {
+     "sp": "audino",
      "teamRate": 0.0091,
-     "bringRate": 0.634,
-     "leadRate": 0.25,
-     "winRate": 0.478,
-     "n": 885
+     "bringRate": 0.704,
+     "leadRate": 0.564,
+     "winRate": 0.436,
+     "n": 893
     },
     {
      "sp": "cofagrigus",
      "teamRate": 0.0091,
-     "bringRate": 0.692,
-     "leadRate": 0.524,
-     "winRate": 0.543,
-     "n": 883
+     "bringRate": 0.695,
+     "leadRate": 0.527,
+     "winRate": 0.54,
+     "n": 892
     },
     {
      "sp": "mudsdale",
      "teamRate": 0.0091,
-     "bringRate": 0.601,
-     "leadRate": 0.262,
-     "winRate": 0.508,
-     "n": 879
+     "bringRate": 0.6,
+     "leadRate": 0.261,
+     "winRate": 0.509,
+     "n": 886
     },
     {
      "sp": "krookodile",
      "teamRate": 0.009,
      "bringRate": 0.645,
-     "leadRate": 0.293,
-     "winRate": 0.508,
-     "n": 873
+     "leadRate": 0.297,
+     "winRate": 0.509,
+     "n": 880
     },
     {
      "sp": "empoleon",
-     "teamRate": 0.009,
+     "teamRate": 0.0089,
      "bringRate": 0.586,
-     "leadRate": 0.326,
+     "leadRate": 0.325,
      "winRate": 0.535,
-     "n": 871
+     "n": 874
     },
     {
      "sp": "hawlucha",
-     "teamRate": 0.0089,
-     "bringRate": 0.65,
-     "leadRate": 0.429,
-     "winRate": 0.446,
-     "n": 863
+     "teamRate": 0.0088,
+     "bringRate": 0.651,
+     "leadRate": 0.428,
+     "winRate": 0.444,
+     "n": 865
     },
     {
      "sp": "goodrahisui",
      "teamRate": 0.0088,
-     "bringRate": 0.572,
-     "leadRate": 0.218,
-     "winRate": 0.428,
-     "n": 850
-    },
-    {
-     "sp": "feraligatr",
-     "teamRate": 0.0087,
-     "bringRate": 0.652,
-     "leadRate": 0.298,
-     "winRate": 0.481,
-     "n": 845
+     "bringRate": 0.573,
+     "leadRate": 0.219,
+     "winRate": 0.431,
+     "n": 859
     },
     {
      "sp": "chesnaught",
      "teamRate": 0.0087,
-     "bringRate": 0.562,
-     "leadRate": 0.273,
+     "bringRate": 0.559,
+     "leadRate": 0.27,
      "winRate": 0.511,
+     "n": 851
+    },
+    {
+     "sp": "feraligatr",
+     "teamRate": 0.0087,
+     "bringRate": 0.654,
+     "leadRate": 0.301,
+     "winRate": 0.48,
+     "n": 850
+    },
+    {
+     "sp": "skarmory",
+     "teamRate": 0.0087,
+     "bringRate": 0.573,
+     "leadRate": 0.341,
+     "winRate": 0.424,
+     "n": 848
+    },
+    {
+     "sp": "liepard",
+     "teamRate": 0.0086,
+     "bringRate": 0.668,
+     "leadRate": 0.547,
+     "winRate": 0.495,
      "n": 844
     },
     {
@@ -5111,439 +5127,431 @@
      "bringRate": 0.632,
      "leadRate": 0.472,
      "winRate": 0.411,
-     "n": 835
-    },
-    {
-     "sp": "skarmory",
-     "teamRate": 0.0085,
-     "bringRate": 0.572,
-     "leadRate": 0.341,
-     "winRate": 0.42,
-     "n": 829
-    },
-    {
-     "sp": "liepard",
-     "teamRate": 0.0085,
-     "bringRate": 0.667,
-     "leadRate": 0.546,
-     "winRate": 0.495,
-     "n": 826
+     "n": 839
     },
     {
      "sp": "noivern",
      "teamRate": 0.0085,
-     "bringRate": 0.609,
-     "leadRate": 0.438,
+     "bringRate": 0.608,
+     "leadRate": 0.437,
      "winRate": 0.446,
-     "n": 824
+     "n": 829
     },
     {
      "sp": "steelix",
-     "teamRate": 0.0084,
-     "bringRate": 0.583,
-     "leadRate": 0.189,
-     "winRate": 0.472,
-     "n": 818
-    },
-    {
-     "sp": "ampharos",
-     "teamRate": 0.0083,
-     "bringRate": 0.603,
-     "leadRate": 0.18,
-     "winRate": 0.526,
-     "n": 807
+     "teamRate": 0.0085,
+     "bringRate": 0.581,
+     "leadRate": 0.19,
+     "winRate": 0.468,
+     "n": 828
     },
     {
      "sp": "bellibolt",
      "teamRate": 0.0083,
      "bringRate": 0.662,
-     "leadRate": 0.301,
-     "winRate": 0.481,
-     "n": 807
+     "leadRate": 0.303,
+     "winRate": 0.479,
+     "n": 814
+    },
+    {
+     "sp": "ampharos",
+     "teamRate": 0.0083,
+     "bringRate": 0.605,
+     "leadRate": 0.181,
+     "winRate": 0.523,
+     "n": 811
     },
     {
      "sp": "abomasnow",
      "teamRate": 0.0081,
-     "bringRate": 0.574,
+     "bringRate": 0.576,
      "leadRate": 0.237,
-     "winRate": 0.5,
-     "n": 788
+     "winRate": 0.499,
+     "n": 794
     },
     {
      "sp": "scolipede",
      "teamRate": 0.008,
-     "bringRate": 0.552,
-     "leadRate": 0.337,
+     "bringRate": 0.548,
+     "leadRate": 0.335,
      "winRate": 0.455,
-     "n": 777
+     "n": 783
     },
     {
      "sp": "umbreon",
      "teamRate": 0.0079,
-     "bringRate": 0.602,
-     "leadRate": 0.344,
-     "winRate": 0.515,
-     "n": 767
+     "bringRate": 0.604,
+     "leadRate": 0.346,
+     "winRate": 0.517,
+     "n": 775
+    },
+    {
+     "sp": "orthworm",
+     "teamRate": 0.0079,
+     "bringRate": 0.611,
+     "leadRate": 0.41,
+     "winRate": 0.463,
+     "n": 768
     },
     {
      "sp": "azumarill",
      "teamRate": 0.0078,
-     "bringRate": 0.668,
-     "leadRate": 0.367,
-     "winRate": 0.506,
-     "n": 760
-    },
-    {
-     "sp": "orthworm",
-     "teamRate": 0.0078,
-     "bringRate": 0.611,
-     "leadRate": 0.412,
-     "winRate": 0.462,
-     "n": 758
+     "bringRate": 0.669,
+     "leadRate": 0.368,
+     "winRate": 0.505,
+     "n": 764
     },
     {
      "sp": "conkeldurr",
-     "teamRate": 0.0074,
-     "bringRate": 0.591,
-     "leadRate": 0.214,
-     "winRate": 0.478,
-     "n": 716
-    },
-    {
-     "sp": "serperior",
      "teamRate": 0.0073,
-     "bringRate": 0.532,
-     "leadRate": 0.29,
-     "winRate": 0.471,
-     "n": 711
+     "bringRate": 0.591,
+     "leadRate": 0.213,
+     "winRate": 0.476,
+     "n": 718
     },
     {
      "sp": "wyrdeer",
      "teamRate": 0.0073,
-     "bringRate": 0.651,
+     "bringRate": 0.652,
      "leadRate": 0.487,
-     "winRate": 0.503,
-     "n": 711
+     "winRate": 0.5,
+     "n": 718
+    },
+    {
+     "sp": "serperior",
+     "teamRate": 0.0073,
+     "bringRate": 0.534,
+     "leadRate": 0.29,
+     "winRate": 0.47,
+     "n": 714
     },
     {
      "sp": "slowbro",
      "teamRate": 0.0073,
-     "bringRate": 0.645,
-     "leadRate": 0.34,
-     "winRate": 0.407,
-     "n": 705
+     "bringRate": 0.649,
+     "leadRate": 0.338,
+     "winRate": 0.411,
+     "n": 712
     },
     {
      "sp": "medicham",
      "teamRate": 0.007,
      "bringRate": 0.704,
-     "leadRate": 0.497,
+     "leadRate": 0.496,
      "winRate": 0.417,
-     "n": 682
+     "n": 685
     },
     {
      "sp": "hippowdon",
      "teamRate": 0.0069,
-     "bringRate": 0.666,
+     "bringRate": 0.667,
      "leadRate": 0.216,
-     "winRate": 0.428,
-     "n": 667
+     "winRate": 0.431,
+     "n": 672
     },
     {
      "sp": "arcanine",
      "teamRate": 0.0068,
-     "bringRate": 0.579,
+     "bringRate": 0.58,
      "leadRate": 0.264,
-     "winRate": 0.52,
-     "n": 662
+     "winRate": 0.523,
+     "n": 666
     },
     {
      "sp": "houndoom",
      "teamRate": 0.0068,
-     "bringRate": 0.662,
-     "leadRate": 0.285,
-     "winRate": 0.479,
-     "n": 659
+     "bringRate": 0.664,
+     "leadRate": 0.286,
+     "winRate": 0.483,
+     "n": 664
     },
     {
      "sp": "toxicroak",
      "teamRate": 0.0067,
-     "bringRate": 0.655,
-     "leadRate": 0.41,
+     "bringRate": 0.65,
+     "leadRate": 0.408,
      "winRate": 0.447,
-     "n": 646
+     "n": 654
     },
     {
      "sp": "banette",
      "teamRate": 0.0065,
-     "bringRate": 0.598,
-     "leadRate": 0.41,
-     "winRate": 0.415,
-     "n": 629
+     "bringRate": 0.592,
+     "leadRate": 0.408,
+     "winRate": 0.413,
+     "n": 638
     },
     {
      "sp": "heracross",
      "teamRate": 0.0064,
-     "bringRate": 0.633,
-     "leadRate": 0.272,
-     "winRate": 0.456,
-     "n": 624
+     "bringRate": 0.635,
+     "leadRate": 0.275,
+     "winRate": 0.461,
+     "n": 628
     },
     {
      "sp": "taurospaldeaaqua",
      "teamRate": 0.0064,
-     "bringRate": 0.626,
+     "bringRate": 0.625,
      "leadRate": 0.256,
-     "winRate": 0.457,
-     "n": 618
+     "winRate": 0.455,
+     "n": 622
     },
     {
      "sp": "manectric",
      "teamRate": 0.0063,
-     "bringRate": 0.629,
-     "leadRate": 0.327,
-     "winRate": 0.462,
-     "n": 609
+     "bringRate": 0.63,
+     "leadRate": 0.328,
+     "winRate": 0.461,
+     "n": 613
     },
     {
      "sp": "falinks",
      "teamRate": 0.0061,
      "bringRate": 0.668,
-     "leadRate": 0.457,
-     "winRate": 0.473,
-     "n": 591
-    },
-    {
-     "sp": "hydrapple",
-     "teamRate": 0.006,
-     "bringRate": 0.529,
-     "leadRate": 0.167,
-     "winRate": 0.423,
-     "n": 580
+     "leadRate": 0.455,
+     "winRate": 0.475,
+     "n": 593
     },
     {
      "sp": "basculegionf",
      "teamRate": 0.006,
-     "bringRate": 0.649,
-     "leadRate": 0.252,
-     "winRate": 0.473,
-     "n": 579
+     "bringRate": 0.65,
+     "leadRate": 0.254,
+     "winRate": 0.467,
+     "n": 586
     },
     {
-     "sp": "beedrill",
-     "teamRate": 0.0058,
-     "bringRate": 0.676,
-     "leadRate": 0.406,
-     "winRate": 0.386,
-     "n": 559
+     "sp": "hydrapple",
+     "teamRate": 0.006,
+     "bringRate": 0.526,
+     "leadRate": 0.166,
+     "winRate": 0.422,
+     "n": 585
     },
     {
      "sp": "chimecho",
      "teamRate": 0.0058,
-     "bringRate": 0.54,
-     "leadRate": 0.354,
+     "bringRate": 0.535,
+     "leadRate": 0.351,
      "winRate": 0.493,
-     "n": 559
-    },
-    {
-     "sp": "rhyperior",
-     "teamRate": 0.0057,
-     "bringRate": 0.595,
-     "leadRate": 0.203,
-     "winRate": 0.443,
-     "n": 558
+     "n": 564
     },
     {
      "sp": "skeledirge",
      "teamRate": 0.0057,
-     "bringRate": 0.498,
-     "leadRate": 0.176,
-     "winRate": 0.473,
-     "n": 556
+     "bringRate": 0.496,
+     "leadRate": 0.178,
+     "winRate": 0.477,
+     "n": 562
+    },
+    {
+     "sp": "beedrill",
+     "teamRate": 0.0057,
+     "bringRate": 0.675,
+     "leadRate": 0.405,
+     "winRate": 0.386,
+     "n": 560
+    },
+    {
+     "sp": "rhyperior",
+     "teamRate": 0.0057,
+     "bringRate": 0.596,
+     "leadRate": 0.202,
+     "winRate": 0.441,
+     "n": 559
     },
     {
      "sp": "clawitzer",
      "teamRate": 0.0057,
-     "bringRate": 0.661,
-     "leadRate": 0.216,
-     "winRate": 0.466,
-     "n": 555
+     "bringRate": 0.659,
+     "leadRate": 0.217,
+     "winRate": 0.465,
+     "n": 558
     },
     {
      "sp": "ariados",
      "teamRate": 0.0057,
-     "bringRate": 0.508,
-     "leadRate": 0.27,
+     "bringRate": 0.506,
+     "leadRate": 0.269,
      "winRate": 0.422,
-     "n": 555
+     "n": 557
     },
     {
      "sp": "rotommow",
-     "teamRate": 0.0055,
-     "bringRate": 0.48,
+     "teamRate": 0.0054,
+     "bringRate": 0.481,
      "leadRate": 0.25,
-     "winRate": 0.455,
-     "n": 531
+     "winRate": 0.453,
+     "n": 532
     },
     {
      "sp": "infernape",
      "teamRate": 0.0054,
-     "bringRate": 0.675,
-     "leadRate": 0.434,
-     "winRate": 0.476,
-     "n": 523
+     "bringRate": 0.677,
+     "leadRate": 0.436,
+     "winRate": 0.474,
+     "n": 530
     },
     {
      "sp": "vaporeon",
      "teamRate": 0.0053,
-     "bringRate": 0.669,
-     "leadRate": 0.331,
+     "bringRate": 0.668,
+     "leadRate": 0.328,
      "winRate": 0.517,
-     "n": 517
+     "n": 521
     },
     {
      "sp": "rotomfrost",
      "teamRate": 0.0053,
-     "bringRate": 0.616,
-     "leadRate": 0.282,
-     "winRate": 0.543,
-     "n": 515
+     "bringRate": 0.617,
+     "leadRate": 0.283,
+     "winRate": 0.537,
+     "n": 519
     },
     {
      "sp": "alcremie",
      "teamRate": 0.0053,
-     "bringRate": 0.589,
-     "leadRate": 0.325,
-     "winRate": 0.459,
-     "n": 514
+     "bringRate": 0.59,
+     "leadRate": 0.326,
+     "winRate": 0.461,
+     "n": 515
     },
     {
      "sp": "garganacl",
      "teamRate": 0.0052,
-     "bringRate": 0.547,
-     "leadRate": 0.263,
-     "winRate": 0.482,
-     "n": 501
+     "bringRate": 0.552,
+     "leadRate": 0.264,
+     "winRate": 0.479,
+     "n": 507
     },
     {
      "sp": "spiritomb",
      "teamRate": 0.005,
      "bringRate": 0.71,
-     "leadRate": 0.553,
-     "winRate": 0.47,
-     "n": 486
+     "leadRate": 0.551,
+     "winRate": 0.468,
+     "n": 490
     },
     {
      "sp": "runerigus",
      "teamRate": 0.0047,
-     "bringRate": 0.673,
-     "leadRate": 0.504,
-     "winRate": 0.567,
-     "n": 456
+     "bringRate": 0.674,
+     "leadRate": 0.505,
+     "winRate": 0.565,
+     "n": 457
     },
     {
-     "sp": "reuniclus",
-     "teamRate": 0.0045,
-     "bringRate": 0.602,
-     "leadRate": 0.403,
-     "winRate": 0.445,
-     "n": 437
+     "sp": "pidgeot",
+     "teamRate": 0.0046,
+     "bringRate": 0.628,
+     "leadRate": 0.383,
+     "winRate": 0.55,
+     "n": 446
     },
     {
      "sp": "glaceon",
      "teamRate": 0.0045,
      "bringRate": 0.5,
-     "leadRate": 0.213,
-     "winRate": 0.45,
-     "n": 436
-    },
-    {
-     "sp": "pidgeot",
-     "teamRate": 0.0045,
-     "bringRate": 0.624,
-     "leadRate": 0.376,
-     "winRate": 0.55,
-     "n": 434
+     "leadRate": 0.215,
+     "winRate": 0.448,
+     "n": 442
     },
     {
      "sp": "salazzle",
      "teamRate": 0.0045,
-     "bringRate": 0.671,
-     "leadRate": 0.454,
-     "winRate": 0.467,
-     "n": 434
+     "bringRate": 0.67,
+     "leadRate": 0.453,
+     "winRate": 0.466,
+     "n": 439
+    },
+    {
+     "sp": "reuniclus",
+     "teamRate": 0.0045,
+     "bringRate": 0.6,
+     "leadRate": 0.402,
+     "winRate": 0.445,
+     "n": 438
     },
     {
      "sp": "aurorus",
      "teamRate": 0.0044,
-     "bringRate": 0.587,
-     "leadRate": 0.226,
-     "winRate": 0.377,
-     "n": 429
+     "bringRate": 0.588,
+     "leadRate": 0.228,
+     "winRate": 0.375,
+     "n": 430
     },
     {
      "sp": "taurospaldeablaze",
      "teamRate": 0.0042,
-     "bringRate": 0.608,
-     "leadRate": 0.275,
-     "winRate": 0.46,
-     "n": 408
+     "bringRate": 0.607,
+     "leadRate": 0.276,
+     "winRate": 0.458,
+     "n": 410
     },
     {
      "sp": "pikachu",
      "teamRate": 0.0041,
-     "bringRate": 0.59,
+     "bringRate": 0.594,
      "leadRate": 0.392,
-     "winRate": 0.426,
-     "n": 398
+     "winRate": 0.42,
+     "n": 401
     },
     {
      "sp": "victreebel",
      "teamRate": 0.0041,
-     "bringRate": 0.668,
-     "leadRate": 0.459,
-     "winRate": 0.483,
-     "n": 394
+     "bringRate": 0.669,
+     "leadRate": 0.456,
+     "winRate": 0.487,
+     "n": 399
     },
     {
      "sp": "vivillonfancy",
      "teamRate": 0.0039,
-     "bringRate": 0.647,
-     "leadRate": 0.487,
-     "winRate": 0.451,
-     "n": 380
-    },
-    {
-     "sp": "sharpedo",
-     "teamRate": 0.0038,
-     "bringRate": 0.627,
-     "leadRate": 0.381,
-     "winRate": 0.513,
-     "n": 373
+     "bringRate": 0.644,
+     "leadRate": 0.483,
+     "winRate": 0.452,
+     "n": 385
     },
     {
      "sp": "morpeko",
-     "teamRate": 0.0038,
-     "bringRate": 0.69,
-     "leadRate": 0.52,
-     "winRate": 0.418,
-     "n": 371
+     "teamRate": 0.0039,
+     "bringRate": 0.683,
+     "leadRate": 0.516,
+     "winRate": 0.419,
+     "n": 378
+    },
+    {
+     "sp": "sharpedo",
+     "teamRate": 0.0039,
+     "bringRate": 0.626,
+     "leadRate": 0.382,
+     "winRate": 0.513,
+     "n": 377
     },
     {
      "sp": "pinsir",
      "teamRate": 0.0038,
-     "bringRate": 0.664,
-     "leadRate": 0.333,
-     "winRate": 0.453,
-     "n": 366
+     "bringRate": 0.659,
+     "leadRate": 0.332,
+     "winRate": 0.451,
+     "n": 370
+    },
+    {
+     "sp": "torterra",
+     "teamRate": 0.0038,
+     "bringRate": 0.584,
+     "leadRate": 0.268,
+     "winRate": 0.449,
+     "n": 370
     },
     {
      "sp": "quaquaval",
      "teamRate": 0.0038,
-     "bringRate": 0.628,
-     "leadRate": 0.265,
-     "winRate": 0.396,
-     "n": 366
+     "bringRate": 0.626,
+     "leadRate": 0.263,
+     "winRate": 0.398,
+     "n": 369
     },
     {
      "sp": "aromatisse",
@@ -5556,26 +5564,18 @@
     {
      "sp": "rampardos",
      "teamRate": 0.0037,
-     "bringRate": 0.649,
-     "leadRate": 0.247,
-     "winRate": 0.398,
-     "n": 356
-    },
-    {
-     "sp": "torterra",
-     "teamRate": 0.0037,
-     "bringRate": 0.575,
-     "leadRate": 0.256,
-     "winRate": 0.451,
-     "n": 355
+     "bringRate": 0.648,
+     "leadRate": 0.249,
+     "winRate": 0.397,
+     "n": 361
     },
     {
      "sp": "vivillonpokeball",
      "teamRate": 0.0036,
-     "bringRate": 0.616,
-     "leadRate": 0.477,
-     "winRate": 0.477,
-     "n": 354
+     "bringRate": 0.618,
+     "leadRate": 0.478,
+     "winRate": 0.473,
+     "n": 356
     },
     {
      "sp": "beartic",
@@ -5588,10 +5588,10 @@
     {
      "sp": "trevenant",
      "teamRate": 0.0034,
-     "bringRate": 0.546,
+     "bringRate": 0.545,
      "leadRate": 0.322,
-     "winRate": 0.472,
-     "n": 326
+     "winRate": 0.475,
+     "n": 332
     },
     {
      "sp": "barbaracle",
@@ -5612,26 +5612,26 @@
     {
      "sp": "slowking",
      "teamRate": 0.0032,
-     "bringRate": 0.599,
-     "leadRate": 0.446,
-     "winRate": 0.463,
-     "n": 314
+     "bringRate": 0.603,
+     "leadRate": 0.448,
+     "winRate": 0.466,
+     "n": 317
     },
     {
      "sp": "pangoro",
      "teamRate": 0.0032,
-     "bringRate": 0.654,
-     "leadRate": 0.33,
-     "winRate": 0.515,
-     "n": 309
+     "bringRate": 0.656,
+     "leadRate": 0.331,
+     "winRate": 0.51,
+     "n": 311
     },
     {
      "sp": "slowbrogalar",
      "teamRate": 0.0031,
-     "bringRate": 0.593,
-     "leadRate": 0.305,
+     "bringRate": 0.59,
+     "leadRate": 0.303,
      "winRate": 0.392,
-     "n": 305
+     "n": 307
     },
     {
      "sp": "machamp",
@@ -5643,27 +5643,27 @@
     },
     {
      "sp": "espeon",
-     "teamRate": 0.0031,
+     "teamRate": 0.003,
      "bringRate": 0.577,
      "leadRate": 0.349,
      "winRate": 0.442,
      "n": 298
     },
     {
-     "sp": "emboar",
-     "teamRate": 0.003,
-     "bringRate": 0.639,
-     "leadRate": 0.248,
-     "winRate": 0.473,
-     "n": 294
-    },
-    {
      "sp": "diggersby",
      "teamRate": 0.003,
-     "bringRate": 0.685,
-     "leadRate": 0.318,
-     "winRate": 0.575,
-     "n": 292
+     "bringRate": 0.684,
+     "leadRate": 0.32,
+     "winRate": 0.576,
+     "n": 297
+    },
+    {
+     "sp": "emboar",
+     "teamRate": 0.003,
+     "bringRate": 0.642,
+     "leadRate": 0.253,
+     "winRate": 0.468,
+     "n": 296
     },
     {
      "sp": "musharna",
@@ -5676,10 +5676,10 @@
     {
      "sp": "toucannon",
      "teamRate": 0.0028,
-     "bringRate": 0.639,
+     "bringRate": 0.638,
      "leadRate": 0.387,
-     "winRate": 0.523,
-     "n": 269
+     "winRate": 0.526,
+     "n": 271
     },
     {
      "sp": "raichualola",
@@ -5692,14 +5692,14 @@
     {
      "sp": "lycanroc",
      "teamRate": 0.0027,
-     "bringRate": 0.531,
-     "leadRate": 0.26,
-     "winRate": 0.446,
-     "n": 262
+     "bringRate": 0.538,
+     "leadRate": 0.271,
+     "winRate": 0.462,
+     "n": 266
     },
     {
      "sp": "flapple",
-     "teamRate": 0.0027,
+     "teamRate": 0.0026,
      "bringRate": 0.57,
      "leadRate": 0.221,
      "winRate": 0.306,
@@ -5707,43 +5707,43 @@
     },
     {
      "sp": "leafeon",
-     "teamRate": 0.0025,
-     "bringRate": 0.47,
+     "teamRate": 0.0026,
+     "bringRate": 0.466,
      "leadRate": 0.231,
-     "winRate": 0.431,
-     "n": 247
+     "winRate": 0.427,
+     "n": 251
     },
     {
      "sp": "glalie",
      "teamRate": 0.0025,
-     "bringRate": 0.634,
-     "leadRate": 0.407,
-     "winRate": 0.346,
-     "n": 246
+     "bringRate": 0.635,
+     "leadRate": 0.402,
+     "winRate": 0.348,
+     "n": 249
     },
     {
      "sp": "tyrantrum",
      "teamRate": 0.0025,
-     "bringRate": 0.638,
-     "leadRate": 0.325,
+     "bringRate": 0.635,
+     "leadRate": 0.324,
      "winRate": 0.4,
-     "n": 243
+     "n": 244
     },
     {
      "sp": "simipour",
      "teamRate": 0.0025,
-     "bringRate": 0.586,
-     "leadRate": 0.389,
-     "winRate": 0.514,
-     "n": 239
+     "bringRate": 0.589,
+     "leadRate": 0.394,
+     "winRate": 0.507,
+     "n": 241
     },
     {
      "sp": "typhlosion",
-     "teamRate": 0.0025,
-     "bringRate": 0.609,
-     "leadRate": 0.261,
+     "teamRate": 0.0024,
+     "bringRate": 0.607,
+     "leadRate": 0.259,
      "winRate": 0.531,
-     "n": 238
+     "n": 239
     },
     {
      "sp": "goodra",
@@ -5754,19 +5754,19 @@
      "n": 225
     },
     {
+     "sp": "zoroark",
+     "teamRate": 0.0022,
+     "bringRate": 0.593,
+     "leadRate": 0,
+     "winRate": 0.281,
+     "n": 216
+    },
+    {
      "sp": "gourgeistsuper",
      "teamRate": 0.0022,
      "bringRate": 0.614,
      "leadRate": 0.447,
      "winRate": 0.477,
-     "n": 215
-    },
-    {
-     "sp": "zoroark",
-     "teamRate": 0.0022,
-     "bringRate": 0.591,
-     "leadRate": 0,
-     "winRate": 0.283,
      "n": 215
     },
     {
@@ -5780,26 +5780,26 @@
     {
      "sp": "sandaconda",
      "teamRate": 0.0022,
-     "bringRate": 0.656,
-     "leadRate": 0.469,
-     "winRate": 0.504,
-     "n": 209
+     "bringRate": 0.66,
+     "leadRate": 0.472,
+     "winRate": 0.493,
+     "n": 212
     },
     {
      "sp": "avalugghisui",
      "teamRate": 0.0021,
-     "bringRate": 0.604,
-     "leadRate": 0.208,
+     "bringRate": 0.601,
+     "leadRate": 0.207,
      "winRate": 0.48,
-     "n": 207
+     "n": 208
     },
     {
      "sp": "bastiodon",
-     "teamRate": 0.002,
-     "bringRate": 0.538,
-     "leadRate": 0.231,
-     "winRate": 0.458,
-     "n": 199
+     "teamRate": 0.0021,
+     "bringRate": 0.537,
+     "leadRate": 0.234,
+     "winRate": 0.463,
+     "n": 201
     },
     {
      "sp": "rotomfan",
@@ -5828,18 +5828,18 @@
     {
      "sp": "roserade",
      "teamRate": 0.0019,
-     "bringRate": 0.557,
-     "leadRate": 0.335,
-     "winRate": 0.456,
-     "n": 185
+     "bringRate": 0.553,
+     "leadRate": 0.33,
+     "winRate": 0.452,
+     "n": 188
     },
     {
      "sp": "passimian",
      "teamRate": 0.0019,
-     "bringRate": 0.663,
-     "leadRate": 0.418,
-     "winRate": 0.492,
-     "n": 184
+     "bringRate": 0.661,
+     "leadRate": 0.414,
+     "winRate": 0.488,
+     "n": 186
     },
     {
      "sp": "qwilfish",
@@ -5859,7 +5859,7 @@
     },
     {
      "sp": "lycanrocmidnight",
-     "teamRate": 0.0015,
+     "teamRate": 0.0014,
      "bringRate": 0.525,
      "leadRate": 0.241,
      "winRate": 0.5,
@@ -5874,6 +5874,14 @@
      "n": 139
     },
     {
+     "sp": "appletun",
+     "teamRate": 0.0013,
+     "bringRate": 0.492,
+     "leadRate": 0.098,
+     "winRate": 0.446,
+     "n": 132
+    },
+    {
      "sp": "flareon",
      "teamRate": 0.0013,
      "bringRate": 0.531,
@@ -5882,28 +5890,20 @@
      "n": 130
     },
     {
-     "sp": "appletun",
+     "sp": "simisear",
      "teamRate": 0.0013,
-     "bringRate": 0.488,
-     "leadRate": 0.101,
-     "winRate": 0.444,
+     "bringRate": 0.612,
+     "leadRate": 0.411,
+     "winRate": 0.418,
      "n": 129
     },
     {
      "sp": "stunfisk",
      "teamRate": 0.0013,
-     "bringRate": 0.722,
-     "leadRate": 0.349,
-     "winRate": 0.648,
-     "n": 126
-    },
-    {
-     "sp": "simisear",
-     "teamRate": 0.0013,
-     "bringRate": 0.616,
-     "leadRate": 0.424,
-     "winRate": 0.429,
-     "n": 125
+     "bringRate": 0.724,
+     "leadRate": 0.346,
+     "winRate": 0.652,
+     "n": 127
     },
     {
      "sp": "tauros",
@@ -5915,11 +5915,19 @@
     },
     {
      "sp": "forretress",
-     "teamRate": 0.0013,
+     "teamRate": 0.0012,
      "bringRate": 0.59,
      "leadRate": 0.287,
      "winRate": 0.306,
      "n": 122
+    },
+    {
+     "sp": "dedenne",
+     "teamRate": 0.0012,
+     "bringRate": 0.5,
+     "leadRate": 0.347,
+     "winRate": 0.475,
+     "n": 118
     },
     {
      "sp": "arbok",
@@ -5930,28 +5938,20 @@
      "n": 115
     },
     {
-     "sp": "dedenne",
-     "teamRate": 0.0012,
-     "bringRate": 0.513,
-     "leadRate": 0.354,
-     "winRate": 0.483,
-     "n": 113
-    },
-    {
      "sp": "florges",
      "teamRate": 0.0011,
-     "bringRate": 0.585,
-     "leadRate": 0.302,
-     "winRate": 0.484,
-     "n": 106
+     "bringRate": 0.589,
+     "leadRate": 0.299,
+     "winRate": 0.492,
+     "n": 107
     },
     {
      "sp": "simisage",
      "teamRate": 0.0011,
-     "bringRate": 0.462,
-     "leadRate": 0.317,
+     "bringRate": 0.457,
+     "leadRate": 0.314,
      "winRate": 0.438,
-     "n": 104
+     "n": 105
     },
     {
      "sp": "polteageist",
@@ -5962,6 +5962,14 @@
      "n": 97
     },
     {
+     "sp": "castform",
+     "teamRate": 0.001,
+     "bringRate": 0.635,
+     "leadRate": 0.313,
+     "winRate": 0.311,
+     "n": 96
+    },
+    {
      "sp": "rotom",
      "teamRate": 0.001,
      "bringRate": 0.653,
@@ -5970,12 +5978,12 @@
      "n": 95
     },
     {
-     "sp": "castform",
-     "teamRate": 0.001,
-     "bringRate": 0.624,
-     "leadRate": 0.301,
-     "winRate": 0.293,
-     "n": 93
+     "sp": "alcremierainbowswirl",
+     "teamRate": 0.0009,
+     "bringRate": 0.697,
+     "leadRate": 0.472,
+     "winRate": 0.355,
+     "n": 89
     },
     {
      "sp": "avalugg",
@@ -5986,12 +5994,12 @@
      "n": 88
     },
     {
-     "sp": "alcremierainbowswirl",
+     "sp": "vivillonicysnow",
      "teamRate": 0.0009,
-     "bringRate": 0.713,
-     "leadRate": 0.483,
-     "winRate": 0.355,
-     "n": 87
+     "bringRate": 0.447,
+     "leadRate": 0.235,
+     "winRate": 0.474,
+     "n": 85
     },
     {
      "sp": "vivillonelegant",
@@ -6002,16 +6010,8 @@
      "n": 84
     },
     {
-     "sp": "vivillonicysnow",
-     "teamRate": 0.0009,
-     "bringRate": 0.44,
-     "leadRate": 0.226,
-     "winRate": 0.486,
-     "n": 84
-    },
-    {
      "sp": "taurospaldeacombat",
-     "teamRate": 0.0009,
+     "teamRate": 0.0008,
      "bringRate": 0.687,
      "leadRate": 0.361,
      "winRate": 0.439,
@@ -6028,10 +6028,10 @@
     {
      "sp": "vivillonmonsoon",
      "teamRate": 0.0007,
-     "bringRate": 0.656,
-     "leadRate": 0.531,
-     "winRate": 0.667,
-     "n": 64
+     "bringRate": 0.657,
+     "leadRate": 0.537,
+     "winRate": 0.682,
+     "n": 67
     },
     {
      "sp": "garbodor",
@@ -6060,10 +6060,10 @@
     {
      "sp": "stunfiskgalar",
      "teamRate": 0.0005,
-     "bringRate": 0.627,
-     "leadRate": 0.353,
-     "winRate": 0.219,
-     "n": 51
+     "bringRate": 0.635,
+     "leadRate": 0.346,
+     "winRate": 0.212,
+     "n": 52
     },
     {
      "sp": "slurpuff",
@@ -6114,20 +6114,20 @@
      "n": 40
     },
     {
+     "sp": "alcremierubyswirl",
+     "teamRate": 0.0003,
+     "bringRate": 0.688,
+     "leadRate": 0.438,
+     "winRate": 0.5,
+     "n": 32
+    },
+    {
      "sp": "vivillonsun",
      "teamRate": 0.0003,
      "bringRate": 0.688,
      "leadRate": 0.594,
      "winRate": 0.682,
      "n": 32
-    },
-    {
-     "sp": "alcremierubyswirl",
-     "teamRate": 0.0003,
-     "bringRate": 0.677,
-     "leadRate": 0.419,
-     "winRate": 0.524,
-     "n": 31
     },
     {
      "sp": "gourgeist",
@@ -6154,6 +6154,14 @@
      "n": 28
     },
     {
+     "sp": "florgeswhite",
+     "teamRate": 0.0003,
+     "bringRate": 0.741,
+     "leadRate": 0.296,
+     "winRate": 0.5,
+     "n": 27
+    },
+    {
      "sp": "alcremiecaramelswirl",
      "teamRate": 0.0003,
      "bringRate": 0.48,
@@ -6168,14 +6176,6 @@
      "leadRate": 0.4,
      "winRate": 0.385,
      "n": 25
-    },
-    {
-     "sp": "florgeswhite",
-     "teamRate": 0.0002,
-     "bringRate": 0.833,
-     "leadRate": 0.333,
-     "winRate": 0.5,
-     "n": 24
     },
     {
      "sp": "vivillonsavanna",
@@ -6234,6 +6234,22 @@
      "n": 15
     },
     {
+     "sp": "revavroom",
+     "teamRate": 0.0002,
+     "bringRate": 0.467,
+     "leadRate": 0.267,
+     "winRate": 0.571,
+     "n": 15
+    },
+    {
+     "sp": "amoonguss",
+     "teamRate": 0.0001,
+     "bringRate": 0.643,
+     "leadRate": 0.214,
+     "winRate": 0.444,
+     "n": 14
+    },
+    {
      "sp": "vivillonsandstorm",
      "teamRate": 0.0001,
      "bringRate": 0.692,
@@ -6250,22 +6266,6 @@
      "n": 13
     },
     {
-     "sp": "revavroom",
-     "teamRate": 0.0001,
-     "bringRate": 0.5,
-     "leadRate": 0.25,
-     "winRate": 0.667,
-     "n": 12
-    },
-    {
-     "sp": "amoonguss",
-     "teamRate": 0.0001,
-     "bringRate": 0.667,
-     "leadRate": 0.167,
-     "winRate": 0.5,
-     "n": 12
-    },
-    {
      "sp": "florgesblue",
      "teamRate": 0.0001,
      "bringRate": 0.364,
@@ -6280,6 +6280,14 @@
      "leadRate": 0.364,
      "winRate": 0.625,
      "n": 11
+    },
+    {
+     "sp": "inteleon",
+     "teamRate": 0.0001,
+     "bringRate": 0.8,
+     "leadRate": 0.4,
+     "winRate": 0.625,
+     "n": 10
     },
     {
      "sp": "furfroudandy",
@@ -6300,7 +6308,7 @@
    ],
    "population": "every stored game, bots included",
    "use": "what you will actually face while laddering",
-   "games": 66184,
+   "games": 66519,
    "note": "Bots are the MOST predictable opponent here — one account played 459 games with a single team. For a climbing tool that is free information, not contamination."
   }
  },
