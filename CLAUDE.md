@@ -609,6 +609,37 @@ Two things this does NOT license, both of which the project has already paid for
 - **The narration gate is a GATE, not a backlog.** It gets a clause and a count like every other, so
   that "we'll do narration later" cannot become the fourteen stale handoffs in a new costume.
 
+**RANK BY THE PINNED POOL. THE ROSTER AND THE CENSUS CARRY THE OBSCURE TAIL — WILL'S CALL, 2026-08-23.**
+*"we should focus on the pinned pool though, the census and roster can have the obscure things that we
+would like to fix but arent a high priority."*
+
+**These are two instruments answering two questions and they are not interchangeable.** The pinned pool
+(`data/team-pool-frozen`) is a frozen snapshot of REAL LADDER GAMES — it contains what people actually
+brought, so it is usage-weighted by construction and answers *does this matter*. The roster and the
+census are a LAB: one deliberately staged scenario per entity, 500 moves / 202 abilities / 148 items /
+630 mechanics, regardless of usage, answering *is this correct*. A mechanic missing from the pool is not
+a hole in the pool; it is a fact about the metagame.
+
+**Why the ranking is right, measured 2026-08-23:** four correct fixes — Suction Cups, Life Orb, the
+`always` self-destruct family and the win rule — moved the whole-game rate **not at all**, 95 of 961
+before and after, because the pool holds **zero** Malamar, the self-destruct family is **0.45%** of its
+games, and the win rule decides who WINS, which the differential never compares. The lab saw every one
+of them (census 628 → 630, the Suction Cups probe red → green, the ability stage clean). **Nothing was
+wrong except which scoreboard was being quoted.**
+
+Two things this does NOT license:
+- **The obscure tail is deprioritised, not dropped.** The gate still requires the roster at zero across
+  items, abilities and moves — it is currently 2 and 5, so the tail is nearly finished and costs little
+  to carry.
+- **"The pool did not move" is not zero information — it means ONE instrument confirmed the fix.** The
+  roster stages a mechanic alone; the pool is the only place it is exercised inside a live game. That
+  matters here because the roster itself was lying for nine days (162 of 169 accusations were the
+  ruler), so a fix only the roster can see rests on the instrument with the worst record.
+
+**SO: BEFORE STARTING A MECHANIC, SAY WHICH SCOREBOARD IT SHOULD MOVE, AND CHECK THAT ONE.** Common
+mechanic — expect both. Rare mechanic — expect the lab to move and the pool to sit still, and say so
+before the run rather than explaining it afterwards.
+
 **Re-running is not optional once it lifts.** A quarantined number does not become true when MEDICHAM
 becomes correct; it becomes re-runnable. The re-run list is ROADMAP #57.
 
