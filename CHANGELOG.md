@@ -10,6 +10,54 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.84.0] — 2026-08-23
+
+### Added
+- **Six register rows, #371–#376, closing five of the six gaps the triage found.** 15 of the triage's
+  16 mechanisms now carry a row. **Four carry NO VERDICT by design** (#372, #373, #374, #376), plus a
+  no-verdict sub-cause inside #371 whose other half is a confirmed defect — which is what keeps the
+  open-defect clause honest.
+  - **#371 — the refusal family, 8 of 47, one row with three sub-causes rather than three rows.**
+    (a) Endure never reaches the stall gate, source-cited on both sides; the row records that an
+    **uncommitted, unmeasured fix is already sitting in the tree** and tells the reader to grep the
+    symbols rather than trust the line numbers, because that file is under live edit. (b) a trapping
+    move re-applied to an already-trapped body. (c) four refusals recorded as **unattributable BY
+    CONSTRUCTION**, pointing at #375 — not as unknown-cause, which would have been a guess dressed as a
+    finding.
+  - **#372 — the target's berry against the attacker's Life Orb / recoil.** Sitrus 21,927 + Life Orb
+    21,257, the highest real usage in scope. States why it is **not #338, not #167, and not #332** —
+    that third exclusion was added by the filer, because #332 was the nearest row and would have
+    swallowed it.
+  - **#373 — mega-evolution order**, corroborated by the artifact's own
+    `first_divergence_is_a_detailschange_line: 2` with mega counts agreeing 521 = 521. Cites #115 as the
+    narrowing fact: **our mega step already sorts, so this is which KEY, not a missing sort.**
+  - **#374** — the two group-K members #360 does not cover, zero board impact, with the
+    engine-versus-normaliser choice recorded as undecided rather than picked.
+  - **#375 — the dump cap, as an INSTRUMENT row.** 60 of 95 games sampled, 22 of 47 causes carried,
+    **25 carrying nothing at all.** Will's card-review quote is in the row: *"the cost of a card is a few
+    hundred bytes; the cost of a missed root cause is an evening."*
+- **Two extensions rather than fresh rows**, with neither headline rewritten: #363 (the `-boost` class
+  is **6 of 47** on the settled artifact, not 9 of 96; the `-unboost` half is back; **Acupressure bounded
+  to at most 1 team of 8,778 by the pinned pool**) and #353 (`|switch|` order is **5**, not 3).
+
+### Notes
+- **#376 NEEDS A DECISION FROM WILL, NOT A FIX, AND IS FILED THAT WAY.** Three divergences are exact
+  `speed_gap: 0, same_priority: true` Protect/Detect ties — **a tie has no correct answer.** Its status
+  cell carries `NOT A DEFECT` in the exact spelling `quarantine.js` checks *before* the `DEFECT` token,
+  so it cannot inflate the open-defect count while the scoring rule is unchosen. Three options are
+  written into the row so it can be answered in one line: align the tie devices; declare tied groups
+  unscoreable and publish the count; or keep counting and accept an agreement floor.
+  - It is a new row on **#290's own instruction** — *"the remaining 29 … want their own row rather than
+    this one being widened"* — and it records that **#290 found 9 of 25 pairs NOT tied while all three
+    here are.** Opposite readings of two samples, both true.
+- **Still unfiled and reported rather than filed:** group P (1 of 47, a `gravity` row after a
+  `[from] lockedmove` Phantom Force) is now the **only** one of the 47 with no row anywhere; and group
+  J's announce-order half, where whether it extends #339 or is a sibling needs a call.
+- Owed: `node engine/status.js --write` — deliberately not run, it is a two-minute job and the machine
+  was in use.
+
+---
+
 ## [5.83.0] — 2026-08-23
 
 ### Notes
