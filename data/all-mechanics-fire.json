@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-22T19:15:36.689Z",
- "release": "13ba05093aa3",
+ "generated": "2026-08-23T02:40:41.988Z",
+ "release": "c66976713feb",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -53532,7 +53532,7 @@
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 14,
    "cannot_fire_in_this_fixture": 1,
-   "seconds": 5.9
+   "seconds": 5.2
   },
   "abilities": {
    "exist": 316,
@@ -53549,7 +53549,7 @@
    "diverged_including_shelved": 13,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 10.9
+   "seconds": 11
   },
   "then_what": {
    "rows": 62,
@@ -53575,7 +53575,7 @@
    "shelved_by_owner_diverging": 1,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 5.3
+   "seconds": 5.1
   },
   "board_state": {
    "rows": 15,
@@ -53929,9 +53929,9 @@
   "moves": {
    "available": true,
    "file": "data/roster.moves.json",
-   "roster_fired": 474,
+   "roster_fired": 475,
    "here_fired": 495,
-   "both": 470,
+   "both": 471,
    "only_here": [
     "aurawheel",
     "axekick",
@@ -53943,7 +53943,6 @@
     "extremespeed",
     "firespin",
     "focusenergy",
-    "healingwish",
     "iceshard",
     "imprison",
     "infestation",
@@ -54337,8 +54336,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "13ba05093aa3",
-    "roster_generated": "2026-08-22T19:07:58.401Z",
+    "roster_release": "c66976713feb",
+    "roster_generated": "2026-08-23T02:35:39.570Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

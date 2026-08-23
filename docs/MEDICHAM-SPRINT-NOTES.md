@@ -11539,3 +11539,52 @@ still turns both rows red; `probe_red_demo.js`'s FROM anchor resolves exactly on
 Batch 2 — grouping the 33 announce-failure divergences — was **not started**: it needs the 1,200-game
 differential and heavy runs were banned while the machine was in use. Nothing about that class is
 claimed. The OWED-NOT-RUN list is carried as commands in CHANGELOG 5.78.0, not as prose.
+
+---
+
+## 2026-08-23 — THE POOL CANNOT SEE THE FIXES (5.79.0)
+
+First settled-tree measurement of the session: all five instruments on release `c66976713feb`, census
+and frozen pool pinned. Every earlier figure tonight sat on a different engine.
+
+```
+  roster items       2 DIFFER, 0 DID-NOT-FIRE
+  roster abilities   0 DIFFER, 0 DID-NOT-FIRE      PASS
+  roster moves       5 DIFFER, 0 DID-NOT-FIRE
+  damage             5 of 6000 at the midpoint
+  whole-game        95 of 961 raw, 90 = 9.4% after 5 declared
+  gate               2 of 8 PASS, and all six failures are real numbers
+```
+
+### THE WHOLE-GAME RATE DID NOT MOVE, AND THE REASON IS MEASURED
+
+Same request size, before Suction Cups / Life Orb / self-destruct / the win rule: **95 of 961, 93 of
+959 usable, 9.7%**. After all four: **identical**.
+
+`data/team-pool-frozen` holds **zero Malamar**; the `always` self-destruct family is **0.45%** of its
+games; and the win rule decides who WINS, which the differential never compares. **The pool is not a
+sensitive instrument for low-frequency mechanics.** That is a fact about the measurement, not about the
+fixes — and it is the argument for asking what this pool CAN detect before spending a night on
+mechanics it cannot.
+
+### AND IT SETTLES THE 9.7% / 11.69% ARGUMENT INDEPENDENTLY
+
+Both were the frozen pool. The only difference was the requested game count: `--games 1200` yields 961
+and `--games 777` yields 777, exactly as `per = floor(max(GAMES*2,18)/9)` predicts. **CHANGELOG
+5.74.0's stated mechanism was wrong on both counts** and this run reproduces 961 with the flag present.
+ROADMAP #367 was right. The correction stands; its explanation does not.
+
+### THE RETRACTION REGISTRY FOUND ITS OWN BOUNDARY
+
+Given three cases to satisfy, the fix did not tune to them — it found where the conventions part:
+**accept a shortened figure only where truncating and rounding give the same digits.** `63.2 -> 63`
+agree; `47.5 -> 48` and `9.7 -> 10` disagree, so both shortenings are refused. No threshold, no knob.
+
+**A fix that passed all three cases was measured to make the corpus WORSE, 17 -> 19, and was discarded**
+with the reason written beside the code. Passing the stated cases is not the same as being right — and
+a three-case spec is exactly the kind of thing that can be gamed.
+
+It also recommended AGAINST the subject-carrying registry I floated, with numbers: it removes one false
+accusation and **two true catches**, and reintroduces a hand-typed list. Fix the document, not the gate.
+
+**Its own new guard initially had no case that failed when removed.** It noticed and added one.

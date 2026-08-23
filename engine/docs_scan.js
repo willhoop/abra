@@ -306,9 +306,33 @@ function citationsIn(block) {
  * cell reading 17. A registry that fires on every occurrence of a small integer is worse than no
  * registry, because it is the thing people switch off. A figure qualifies only if it carries a unit
  * (a percent) or is large enough that a collision is not chance. */
-const isDistinctive = f => f.pct || f.value >= 1000;
+/* AND A PERCENT WRITTEN TO TWO SIGNIFICANT FIGURES IS THAT SMALL INTEGER WEARING A UNIT — 2026-08-23.
+ *
+ * The paragraph above argued exactly this and then exempted every percent from it. `9.7%` is two
+ * digits; so is `10%`, `25%`, `90%`. This repository's prose is DENSE with them — a burn chance, a
+ * usage share, a bucket label — so a registry entry at that precision accuses on coincidence. Two
+ * live consequences, both measured: a literal `9.7%` in the Bright Powder accuracy table at
+ * docs/ENGINE.md would be read forever as a claim about a divergence rate, and one such entry
+ * produced 56 violations of which 52 were a bare `10%`.
+ *
+ * The floor is PRECISION, not magnitude, because that is what makes a collision unlikely: at two
+ * significant figures there are ~90 values a writer could reach and the round ones dominate; at
+ * three there are ~900 and the collision stops being chance. It is the same floor as `value >= 1000`
+ * for a bare count, stated in the only units a percent has.
+ *
+ * IT IS OPT-IN, WHICH IS WHY IT IS SAFE TO SET. Trailing zeros COUNT, so an author retracting a
+ * two-figure percent writes `44.0%` rather than `44%` and the entry registers — the precision is
+ * asserted rather than assumed. A retraction that cannot be bothered to state its own precision is
+ * exactly the one that should not be able to accuse a table cell. */
+const PCT_SIGFIG_FLOOR = 3;
+/** Digits a reader would have to reproduce by coincidence: separators, sign and unit removed. */
+function sigFigs(raw) {
+  const d = String(raw).replace(/[^0-9.]/g, '').replace('.', '').replace(/^0+/, '');
+  return d.length || 1;
+}
+const isDistinctive = f => (f.pct ? sigFigs(f.raw) >= PCT_SIGFIG_FLOOR : f.value >= 1000);
 
-function retractionRegistry(docs) {
+function retractionRegistry(docs, { read = readDoc } = {}) {
   const reg = new Map();   // value -> {value, pct, sources:[], strength}
   const add = (f, src, strength) => {
     if (isUniversal(f) || !isDistinctive(f)) return;
@@ -319,7 +343,7 @@ function retractionRegistry(docs) {
     if (strength === 'strong') e.strength = 'strong';
   };
   for (const rel of docs) {
-    const lines = readDoc(rel).split('\n');
+    const lines = read(rel).split('\n');
     for (let i = 0; i < lines.length; i++) {
       const L = lines[i];
       /* 1. STRIKETHROUGH. ~~63.2% [56.6, 69.3], mirror 47.5%~~ — an author-placed marker, and the
@@ -351,18 +375,78 @@ function retractionRegistry(docs) {
  * — the same lesson tests/test-docs-current.js records for the quoted-claim case. */
 const QUALIFIED = /retract|withdraw|superseded|void|not (?:a )?(?:true|valid|current)|no longer|stale|historic|was measured|obsolete|corrected|prior|former|previously|invalid|does not hold|~~/i;
 
+/* ---- WHICH WRITTEN FIGURE IS THE RETRACTED ONE, RESTATED ---------------------------------------
+ *
+ * THIS COMPARED ROUNDED VALUES AND THE ROUNDING HAD NO BOUND — ROADMAP #370, measured 2026-08-23.
+ * The test was `Number(e.value.toFixed(f.dp)) === f.value`, so `(9.7).toFixed(0)` is `"10"` and a
+ * retracted `9.7%` accused every bare `10%` in the repository: 56 violations from one entry, 52 of
+ * them a `10%` about a burn chance, a usage share or a bucket label. At baseline, 12 of 17 surviving
+ * violations were collisions of this shape rather than exact matches.
+ *
+ * THE THREE CASES THAT DECIDE THE RULE, and they are the whole specification:
+ *   a retracted 63.2% MUST match a document writing 63%      — genuine shortening of the same claim
+ *   a retracted  9.7% MUST NOT match a bare 10%
+ *   a retracted 47.5% MUST NOT match a Sucker Punch 48%
+ *
+ * PROXIMITY CANNOT SEPARATE THEM — 9.7 and 10 are closer than 47.5 and 48 — AND NEITHER CAN
+ * "CORRECT ROUNDING", WHICH IS THE WHOLE DIFFICULTY: 63.2 -> 63 and 47.5 -> 48 are BOTH correctly
+ * rounded, so any rule phrased as "the document rounded it" must accept case 3 and is dead on
+ * arrival.
+ *
+ * A DIGIT-PREFIX RULE ALONE IS ALSO WRONG, AND IT WAS TRIED FIRST — measured, on this corpus, before
+ * being discarded. "The written figure is the retracted one TRUNCATED" satisfies all three spec
+ * cases and then swaps one collision family for another: `trunc(47.5, 0)` is `47`, so four fresh
+ * accusations appeared (`docs/ENGINE.md`'s `7 — 47%` ordering cell, `docs/PUBLICATION.md`'s
+ * *"Tailwind wins"? 47%*) in place of the two `48%` ones it removed. 17 violations became 19. A rule
+ * that satisfies the specification and still fires on a table cell has not understood the defect.
+ *
+ * THE RULE IS THAT SHORTENING MUST NOT BE A JUDGEMENT CALL. A restatement is accepted only where
+ * TRUNCATING and ROUNDING give the SAME digits — where every reader shortening that figure would
+ * have written what the document wrote:
+ *
+ *     63.2 -> 63   truncate 63, round 63   AGREE      the same claim, written shorter
+ *     47.5 -> 48   truncate 47, round 48   DISAGREE   a decision was taken; refuse both 47 and 48
+ *      9.7 -> 10   truncate  9, round 10   DISAGREE   refuse
+ *
+ * Equivalently: the retracted value must sit in the LOWER HALF of the bucket the document's digits
+ * name, `w <= v < w + 0.5 * 10^-dp`. It needs no threshold and no tuning — the boundary is where the
+ * two conventions part, which is a property of the decimal system rather than of this corpus.
+ *
+ * THE COST, STATED RATHER THAN HIDDEN. A document that shortens a retracted figure UPWARD — 63.7% as
+ * `64%` — is no longer caught, and neither is a retracted 47.5% restated as `47%`. Case 3 forbids
+ * catching the first; the second is indistinguishable from the ordering cell above, and an
+ * accusation that cannot tell them apart is the one people learn to ignore (#148). */
+
+/** The retracted value written to `dp` decimals by dropping digits, never by re-rounding. */
+function truncateTo(value, dp) {
+  const p = Math.pow(10, dp);
+  /* toFixed(6) first: 4.35 * 100 is 434.99999999999994 in binary, and a bare floor would eat a digit
+   * that IS present in the decimal the author wrote. */
+  const scaled = Math.floor(Number((Math.abs(value) * p).toFixed(6)));
+  return (value < 0 ? -1 : 1) * scaled / p;
+}
+
+/** Is the figure `f`, as written, the retracted figure `e` restated? */
+function restatesFigure(e, f) {
+  if (f.pct !== e.pct) return false;
+  if (f.value === e.value) return true;              // written exactly as it was retracted
+  if (!(f.dp < e.dp)) return false;                  // only a SHORTER form can be the same claim
+  if (truncateTo(e.value, f.dp) !== f.value) return false;         // its own leading digits, and
+  return Number(e.value.toFixed(f.dp)) === f.value;                // shortening was not a choice
+}
+
 /** Where a retracted figure is restated as fact. */
-function retractionViolations(docs, reg, { strongOnly = true } = {}) {
+function retractionViolations(docs, reg, { strongOnly = true, read = readDoc } = {}) {
   const hits = [];
   for (const rel of docs) {
-    const lines = readDoc(rel).split('\n');
+    const lines = read(rel).split('\n');
     for (let i = 0; i < lines.length; i++) {
       const figs = figuresIn(lines[i]);
       if (!figs.length) continue;
       for (const [, e] of reg) {
         if (strongOnly && e.strength !== 'strong') continue;
         if (e.sources.some(s => s.startsWith(rel + ':'))) continue;   // the document doing the retracting
-        const match = figs.find(f => f.pct === e.pct && (f.value === e.value || Number(e.value.toFixed(f.dp)) === f.value));
+        const match = figs.find(f => restatesFigure(e, f));
         if (!match) continue;
         const ctx = lines.slice(Math.max(0, i - 4), i + 4).join(' ');
         if (QUALIFIED.test(ctx)) continue;
@@ -372,6 +456,89 @@ function retractionViolations(docs, reg, { strongOnly = true } = {}) {
     }
   }
   return hits;
+}
+
+/* ---- THE RED DEMONSTRATION, ONE PAIR PER MATCHING RULE ------------------------------------------
+ *
+ * Same discipline as `EQUIV_PROOF` in engine/game_differential.js: a rule that decides two things
+ * are the same claim carries a case it MUST catch and a case it MUST NOT, and both run before the
+ * rule is used on a real document. A matching rule with no case it refuses is a SILENCER.
+ *
+ * These are SYNTHETIC DOCUMENTS, not asserted values, and they go through the real registry and the
+ * real violation scan — so the proof covers the extraction, the distinctiveness floor and the match
+ * together. Nothing is written to disk; `read` is injected. The three cases marked SPEC are the
+ * specification of ROADMAP #370 and the rule is not done if any of them moves. */
+const RETRACTION_CASES = [
+  { id: 'spec-1-shortened-restatement',
+    why: 'SPEC. A document writing the retracted figure to fewer decimals IS restating it. This is '
+       + 'the case the whole clause exists for — the deck\'s 63% against the white paper\'s 63.2%.',
+    retracts: 'The prior 63.2% exploitability figure is retracted.',
+    states:   'A bot built only to counter MAG beats it 63% of the time.',
+    caught: true },
+
+  { id: 'spec-2-carry-across-the-leading-digit',
+    why: 'SPEC. `(9.7).toFixed(0)` is `"10"`, and that one equality produced 56 violations of which '
+       + '52 were an unrelated bare 10%. Two guards refuse it: 9.7% is two significant figures and '
+       + 'does not register at all, and 10 is not a digit prefix of 9.7.',
+    retracts: 'The prior 9.7% divergence figure is retracted.',
+    states:   'Flare Blitz carries a 10% burn chance on contact.',
+    caught: false },
+
+  { id: 'spec-3-carry-up-is-not-a-restatement',
+    why: 'SPEC. 47.5% registers (three significant figures), so this isolates the MATCH rule from '
+       + 'the distinctiveness floor. 48 is correctly rounded from 47.5 and is still a different '
+       + 'number — which is why "the document rounded it" cannot be the rule.',
+    retracts: 'The prior 47.5% mirror figure is retracted.',
+    states:   'Sucker Punch fails 48% of the time against a faster board.',
+    caught: false },
+
+  { id: 'two-significant-figures-do-not-register-at-all',
+    why: 'THE CASE THAT PROVES THE PRECISION FLOOR, and it is the only one that does — the match '
+       + 'rule refuses 9.7 -> 10 on its own, so without this case removing the floor changes '
+       + 'nothing and the floor would be a guard nobody had shown red. Here the document states the '
+       + 'figure EXACTLY, in a Bright Powder accuracy cell that is live in docs/ENGINE.md and is an '
+       + 'ACCURACY rather than any rate. No match rule can separate those; only refusing to register '
+       + 'a two-figure percent can.',
+    retracts: 'The prior 9.7% divergence figure is retracted.',
+    states:   '| into a Bright Powder holder (100 x 0.9 = 90) | 10.3% | 9.7% |',
+    caught: false },
+
+  { id: 'a-tie-is-a-judgement-call-in-both-directions',
+    why: 'The regression a digit-prefix rule caused, pinned so it cannot come back: truncating 47.5 '
+       + 'gives 47, which accused an ORDERING table cell and a "Tailwind wins? 47%" line. Where '
+       + 'truncating and rounding disagree, BOTH shortenings are refused, not just the upward one.',
+    retracts: 'The prior 47.5% mirror figure is retracted.',
+    states:   'Under this ordering the second column reads 47% across fifteen scenarios.',
+    caught: false },
+
+  { id: 'floor-is-opt-in-and-the-match-still-refuses',
+    why: 'An author who states the precision — `9.70%` — DOES register, and the bare 10% is still '
+       + 'refused. Without this case the floor could be hiding a broken match rule.',
+    retracts: 'The prior 9.70% divergence figure is retracted.',
+    states:   'Flare Blitz carries a 10% burn chance on contact.',
+    caught: false },
+
+  { id: 'exact-restatement-still-caught',
+    why: 'The fix must not buy quiet by weakening the exact case, which is the majority of real '
+       + 'hits. A document writing the retracted figure verbatim is always a violation.',
+    retracts: 'The prior 63.2% exploitability figure is retracted.',
+    states:   'The win-optimised vector beat MAG 63.2% of the time.',
+    caught: true },
+];
+
+const PROOF_RETRACTOR = 'docs/_proof-retractor.md';
+const PROOF_STATEMENT = 'docs/_proof-statement.md';
+
+/** Runs every case through the real derivation. `holds` false means the rule changed meaning. */
+function retractionProof() {
+  return RETRACTION_CASES.map(c => {
+    const read = rel => '# proof\n\n' + (rel === PROOF_RETRACTOR ? c.retracts : c.states) + '\n';
+    const reg = retractionRegistry([PROOF_RETRACTOR, PROOF_STATEMENT], { read });
+    const hits = retractionViolations([PROOF_STATEMENT], reg, { read });
+    return { id: c.id, why: c.why, retracts: c.retracts, states: c.states,
+             registered: [...reg.keys()], expected: c.caught,
+             caught: hits.length > 0, holds: (hits.length > 0) === c.caught };
+  });
 }
 
 /* ---- rule 3, part d: a cited artifact must actually contain the figure ------------------------ */
@@ -551,6 +718,7 @@ module.exports = {
   D, liveDocs, livingDocs, archiveDocs, readDoc, versionHeader, changelogTop,
   figuresIn, isUniversal, artifactNumbers, artifactHas, paragraphs, citationsIn,
   retractionRegistry, retractionViolations, citationMismatches, untraceableCensus,
+  isDistinctive, sigFigs, truncateTo, restatesFigure, retractionProof, RETRACTION_CASES,
   archiveState, supersededHeader, QUALIFIED,
 };
 
@@ -567,6 +735,7 @@ if (require.main === module) {
     versioned: versioned.map(x => ({ doc: x.doc, version: x.v.version })),
     unversioned: docs.filter(d => !versionHeader(readDoc(d))),
     archive: archiveState(),
+    retraction_proof: retractionProof(),
     retraction_registry: [...reg.values()].map(e => ({ value: e.value + (e.pct ? '%' : ''), strength: e.strength, sources: e.sources })),
     retraction_violations: retractionViolations(living, reg),
     citation_mismatches: citationMismatches(living),
@@ -575,6 +744,13 @@ if (require.main === module) {
   if (process.argv.includes('--json')) { console.log(JSON.stringify(report, null, 2)); process.exit(0); }
   console.log(`CHANGELOG top: ${report.changelog_top}`);
   console.log(`docs scanned: ${report.docs_scanned}  versioned: ${report.versioned.length}  unversioned: ${report.unversioned.length}`);
+  const broken = report.retraction_proof.filter(p => !p.holds);
+  console.log(`\nretraction match proof: ${report.retraction_proof.length - broken.length}/${report.retraction_proof.length} hold`
+    + (broken.length ? '  *** ' + broken.map(p => p.id).join(', ') + ' ***' : ''));
+  for (const p of report.retraction_proof) {
+    console.log(`  ${p.holds ? 'ok  ' : 'FAIL'} ${p.id.padEnd(42)} ${p.expected ? 'must catch' : 'must refuse'}`
+      + `  registered=[${p.registered.join(',')}]`);
+  }
   console.log(`\nretraction registry (derived from the documents): ${report.retraction_registry.length}`);
   for (const e of report.retraction_registry) console.log(`  ${e.strength.padEnd(6)} ${String(e.value).padEnd(10)} ${e.sources.join(' ')}`);
   console.log(`\nretracted figures restated as fact: ${report.retraction_violations.length}`);

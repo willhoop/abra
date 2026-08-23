@@ -461,6 +461,21 @@ function figureRules(base, next) {
   const known = base.known || {};
 
   console.log('\n== 3b(a). a figure another document retracts is not restated as fact ==');
+  /* THE MATCHING RULE CARRIES ITS OWN RED DEMONSTRATION — ROADMAP #370. This clause decides that two
+   * differently-written numbers are the same claim, and it got that wrong for every rounded value:
+   * `(9.7).toFixed(0)` is `"10"`, so one retracted 9.7% produced 56 violations of which 52 were an
+   * unrelated bare 10%. The cases live in engine/docs_scan.js beside the rule and run on synthetic
+   * documents through the real derivation, so a rule that quietly stops refusing a case FAILS BY
+   * NAME rather than showing up as a ratchet that went quiet. Same discipline as the `equal` /
+   * `distinct` pairs on game_differential's normaliser: a matcher with no case it refuses is a
+   * silencer. */
+  const proof = S.retractionProof();
+  const brokenProof = proof.filter(p => !p.holds);
+  ok(brokenProof.length === 0,
+    `the retraction matcher refuses what it must (${proof.length - brokenProof.length}/${proof.length} demonstration cases hold)` +
+    (brokenProof.length ? '\n         BROKEN:\n         ' + brokenProof.map(p =>
+      `${p.id}: retracting "${p.retracts}" and stating "${p.states}" must ${p.expected ? 'CATCH' : 'REFUSE'}` +
+      ` and did ${p.caught ? 'catch' : 'not'}\n           ${p.why}`).join('\n         ') : ''));
   const reg = S.retractionRegistry(scannedDocs());
   const viol = S.retractionViolations(scannedDocs(), reg);
   console.log(`         derived registry: ${[...reg.values()].filter(e => e.strength === 'strong').length} figures ` +

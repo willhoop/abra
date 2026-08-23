@@ -10,6 +10,78 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.79.0] — 2026-08-23
+
+### Changed
+- **THE SETTLED-TREE MEASUREMENT: all five instruments on ONE release for the first time today.**
+  Release `c66976713feb`, census pinned to `data/gate-census.pin.json`, team store pinned to
+  `data/team-pool-frozen`. Every figure tonight had been spread across four or five different engines,
+  which is why clauses kept reading *MEASURED AGAINST A DIFFERENT ENGINE* even when the numbers under
+  them were sound.
+
+  ```
+  roster items       2 FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE   (139 of 148 tested)
+  roster abilities   0 DIFFER, 0 DID-NOT-FIRE                    PASS  (129 of 202 tested)
+  roster moves       5 DIFFER, 0 DID-NOT-FIRE                    (475 of 500 tested)
+  damage             5 of 6000 at the midpoint
+  whole-game         95 of 961 raw; 90 of 961 = 9.4% after 5 declared; 93 of 959 usable
+  mechanics          1,281 games, 29 of 36 diverging mechanics played and compared
+  gate               2 of 8 clauses PASS — and all six failures are real numbers
+  ```
+
+- **THE WHOLE-GAME RATE DID NOT MOVE, AND THAT IS THE RESULT RATHER THAN A DISAPPOINTMENT.** Same
+  request size, before Suction Cups / Life Orb / self-destruct / the win rule:
+  **`95 of 961, 93 of 959 usable, 9.7%`** (release `39631097fcc7`, commit `b26c2d4`). After all four:
+  **identical**. The reason is measured, not assumed — **the pinned pool barely contains these
+  mechanics**: `data/team-pool-frozen` holds **zero** Malamar, the `always` self-destruct family is
+  **0.45%** of its games, and the win rule decides who WINS, which the differential does not compare at
+  all. **This pool is not a sensitive instrument for low-frequency mechanics.** That is a fact about the
+  measurement, and it is the argument for the sensitivity question rather than for doubting the fixes.
+
+- **THE 9.7% / 11.69% QUESTION IS SETTLED INDEPENDENTLY, AND ROADMAP #367 WAS RIGHT.** Both figures were
+  measured on the **frozen pool**; the only difference was the requested game count. `--games 1200`
+  yields 961 games and `--games 777` yields 777, exactly as `per = floor(max(GAMES*2,18)/9)` predicts.
+  **CHANGELOG 5.74.0's stated mechanism — that `--team-store` "did not take" and that the artifact
+  records no team-store field — was wrong on both counts**, and this run reproduces 961 with the flag
+  present. The correction stands as a correction; its explanation does not.
+
+### Fixed
+- **The retraction registry no longer matches on a rounded value (ROADMAP #370).** The comparison was
+  `Number(e.value.toFixed(f.dp)) === f.value`, so `(9.7).toFixed(0) === "10"` and **one retraction
+  produced 56 violations, 52 of them a bare `10%`** — accusing *"Flare Blitz's 10% burn"*,
+  *"top 10% in singles"* and a `0-10%` bucket label of restating a divergence rate.
+  - **The rule found the actual boundary rather than tuning to the three cases it was given: a shortened
+    figure is accepted only where truncating and rounding give the SAME digits.** `63.2 → 63` agree, so
+    it is the same claim written shorter; `47.5 → 48` and `9.7 → 10` disagree, so a decision was taken
+    and both shortenings are refused. No threshold, no knob.
+  - Second guard: `isDistinctive` now carries a **precision floor** for percents (`sigFigs >= 3`), so
+    `9.7%` never enters the registry and a literal Bright Powder accuracy cell is safe. Opt-in — write
+    `44.0%` and it registers.
+  - **A fix that satisfied all three specified cases was measured to make the corpus WORSE — 17 → 19 —
+    and was discarded, with the reason recorded next to the code.** Truncating 47.5 to 47 accused a
+    fresh set of unrelated cells. Passing the stated cases is not the same as being right.
+  - Raw violations **17 → 15**; ratchet keys and registry entries **10 → 8**; **0 new, 2 retired**, and
+    **both retirements were false positives** — no correctly-flagged figure was lost. The classes now
+    unreachable are named in the code, including one real loss (a tie shortened downward).
+  - **Correction to #370's own text:** it says 12 of 17 were rounding collisions. Twelve MATCHED by
+    rounding, but only **three were false**; nine are genuine restatements of `63.2%` as `63%`. The
+    false-positive rate was 3 in 17 and is now **1 in 15**.
+  - **The subject-carrying registry was considered and is recommended AGAINST, with numbers.** It would
+    remove the one surviving false accusation and **also remove two true catches**, at the price of a
+    hand-written token list — reintroducing the hand-typed registry this derivation replaced. The
+    recommendation is to fix the document instead.
+  - Both guards shown RED by deliberate break, by name. **The precision floor initially had no case that
+    failed when it was removed**, and one was added for exactly that reason.
+
+### Notes
+- `no open, known engine defect` now names **four** rows with a RED instrument, not three: #218, #224,
+  #241 and #258. #224 is the off-field slot placeholder, reopened yesterday as a regression of a closed
+  row. Three further open rows declare `NOT A DEFECT` and are excused from the clause, which is the
+  mechanism working as designed.
+- `tests/test-docs-current.js` 22/22, `tests/test-roadmap-register.js` 3/3.
+
+---
+
 ## [5.78.0] — 2026-08-23
 
 ### Fixed
