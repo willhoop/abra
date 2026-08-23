@@ -10,6 +10,43 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.81.0] — 2026-08-23
+
+### Notes
+- **ROADMAP #364 IS MUCH SMALLER THAN ITS ROW SAYS, AND A BIGGER DEFECT SITS NEXT TO IT.** Read-only
+  derivation, no game played and no release cut. 25 legal moves carry ; 3 are Status (Baton Pass,
+  Shed Tail, Roost) and 22 are damaging. They split into four  SHAPES — 10  (30,180
+  clicks), 6  (4,193), 5 / (142), 1  (49). **Three of the
+  four already carry the failed-hit gate. Only 5 of the 22 are reachable at all.**
+- **The doors are ONE, not five.** Every member funnels through ’ ; the six hit-steps are entrances that empty , not separate doors. Two things that
+  could have been guessed wrong were checked instead: **a Substitute is not a refusal** ( is
+  , and ), and the per-target/ split is **unobservable here because
+  no member of the 22 is multihit**.
+- **The defect is WIRE 144 (), and its neighbour twenty-five lines up
+  gets it right.** WIRE 144 arms  on  alone; WIRE 43 at  tests
+  . **WIRE 144’s own comment claims it sits below every  that
+  means the move did not happen — which is true only for Protect**, and this engine exits Protect above
+  the step list. A miss, a type immunity, an absorbing ability or a semi-invulnerable target leaves
+   at 0 and falls straight through. Outrage into a Fairy (34 legal species), Thrash or Uproar
+  into a Ghost (40), Petal Dance into Sap Sipper, Raging Fury into Flash Fire. 
+  membership was printed before proposing the wire: **exactly five, no over-match.**
+- **The ripple I named was vacuous; the real one is one step out.** Nothing between WIRE 144 and the end
+  of the branch reads . But the same block **also** calls  synchronously and
+  runs the  sweep — so **a FAILED Uproar currently wakes every sleeper on both sides and
+  refuses a Spore thrown later in the same turn**, on top of 2–3 turns of forced click, free PP and a
+  refused switch.
+- **Sized honestly, and downward: the one real defect is a 142-click tail, 0.02%.** #364’s 7.6%
+  belongs almost entirely to the boost family, which is already correct. The other 17 are **predicted
+  correct and unprobed** — the census holds ten relevant rows and all ten stage a hit that lands.
+- **AND THE BIGGER DEFECT IS NOT ENGINE’S TO FIX.**  over-matches into , there
+  is a **THIRD** authority site at  — outside  and **below
+  ** — and  merges it into . So **Clanging Scales (1,162
+  clicks) and Scale Shot (258) pay their stat drop one faint too early.** That is ten times the usage of
+  the defect this row is about. Reported, not attempted: it needs , which the
+  deriving division may not edit.
+
+---
+
 ## [5.80.0] — 2026-08-23
 
 ### Fixed
