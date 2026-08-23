@@ -10,6 +10,54 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.83.0] — 2026-08-23
+
+### Notes
+- **THE REMAINING NON-`event-missing` DIVERGENCES ARE 47, NOT 56, AND THE COORDINATOR'S BRIEF WAS WRONG
+  AGAIN FOR THE SAME REASON.** The class counts handed to the triage (22/18/9/7) came from commit
+  `22e3578` — a **777-game** run on release `59bb68aa89a9`. The settled artifact (`192d917`, release
+  `c66976713feb`, 961 games) has a different composition: ordering **23**, unrelated **13**,
+  `-boost field 3` **6**, extra **5** = **47**. **Second time in one evening a class breakdown from one
+  sample was quoted beside a total from another.** Two artifacts of the same instrument are not
+  comparable unless the requested game count matches.
+- **The 47 reduce to 16 mechanisms** (14 if the refusal family is read as one). Top five by cost:
+  1. **Showdown REFUSES a move and we execute it — 8 of 47, every member board-material, NO REGISTER
+     ROW.** Two are Endure: the willAct/stall gate is keyed on the chooser's action kind
+     (`medicham2-browser.js:14901`, `it.a.kind==='protect'`) and **`PROTECTMOVES` (`:3891`) omits
+     `endure`** — verified — so 5 of #232's 6 stalling moves get the gate and Endure never does. Two
+     more are a trapping move re-applied to an already-trapped body. **Four cannot be attributed at
+     all** — `mentions: []`, `max_uses: undefined`, no context.
+  2. **The faint announcement is not batched — 6 of 47** (#331, open/unprobed), including a perish-song
+     KO emitted as `-damage|0 fnt`. It fires on every KO and every instance truncates the comparison.
+     Its `max_uses` names Stealth Rock, Iron Ball, Sandstorm and Sitrus — **none of which is the
+     mechanism**, which is the ranking trap arriving yet again.
+  3. **`|switch|` order not keyed on the DEPARTING body's speed — 5 of 47** (#353, filed at 3). Four of
+     five carry `uses: null`. The artifact refutes the "incoming speed" reading from inside itself:
+     Showdown moved a 60-speed body before a 104.
+  4. **The target's berry against the attacker's Life Orb / recoil — 2 of 47, NO ROW, and the highest
+     real usage in scope** (Sitrus 21,927 + Life Orb 21,257). Not #338, not #167.
+  5. Switch-in effect order — 2 of 47 (#330).
+- **11 of the 16 already have a row; five are gaps** — the whole refusal family, the berry/recoil pair,
+  mega-evolution order (corroborated by the artifact's own
+  `mega.first_divergence_is_a_detailschange_line: 2`), and two `-activate` members.
+- **10 of the 47 — 21% — will not move by editing the engine, because they are the INSTRUMENT.** The six
+  `-boost` rows (Moody's `this.sample` executes in none of the three wrapped methods, and the artifact's
+  own `mid_void` shows 117+82 unpaired `any -` draws); three Protect/Detect orderings where the
+  artifact's `order_probe` already reports `speed_gap: 0, same_priority: true` — **a tie has no correct
+  answer**; and the `??:farigiraf` Roar, which is `declared_gaps.trace_body_off_field: 6` (#224).
+- **#363 EXTENDED AND BOUNDED FROM THE POOL.** The `-boost` class is **6 here, not 9**; a `-unboost` row
+  is back, which #363 recorded as absent; attribution is recoverable for **1 of 6 and no more** — the
+  whole artifact contains `moody` once and `acupressure` zero times. And the candidate split can now be
+  bounded rather than argued: **`data/team-pool-frozen` holds Acupressure in 1 team of 8,778 against
+  Moody in 813+204 sheet lines**, so Moody explains essentially all six.
+- **THE HIGHEST-LEVERAGE INSTRUMENT CHANGE IS A CAP, AND IT IS WILL'S OWN CARD-REVIEW ACTION ITEM.**
+  `first_divergences` samples **60 of 95 games and holds only 22 of these 47**, so four refusals and five
+  `-boost` rows are unattributable **by construction** rather than by anything about the engine. Will
+  wrote it in the card review: *"THE ACTION: dump far more cards… the cost of a card is a few hundred
+  bytes; the cost of a missed root cause is an evening."*
+
+---
+
 ## [5.82.0] — 2026-08-23
 
 ### Fixed
