@@ -1,5 +1,6 @@
 /* probe_selfdestruct_winner.js — DOES MOVING THE SELF-DESTRUCT FAINT ABOVE THE HIT EVER CHANGE WHO
- * WON THE GAME? 2026-08-22.
+ * WON THE GAME? 2026-08-22. And, since 2026-08-23, the instrument for WIRE 160: WHO WINS WHEN BOTH
+ * SIDES EMPTY AT ONCE.
  *
  *   SHOWDOWN_PATH=... node tests/probe_selfdestruct_winner.js
  *   SHOWDOWN_PATH=... node tests/probe_selfdestruct_winner.js --release <id>
@@ -40,26 +41,54 @@
  * RESULT. medicham2's `battleResult` has no such rule (equal live counts fall through to total HP
  * fraction, and 0 against 0 is a 0.5), so it answers `draw` where the authority answers a winner.
  *
- * THAT IS NOT THIS PASS'S DEFECT AND THE FILE PROVES IT RATHER THAN ASSERTING IT: the disagreement is
- * IDENTICAL clean and under the revert, so it is not the self-KO position — `w3-simultaneous` is a
- * declared KNOWN-OPEN row and is reported, not swept in. medicham2 asks `sideWiped(S)` at the TOP of
- * the next action and once below the action loop, never between the self-KO site and WIRE 46, so both
- * of this engine's faint positions are inside the same window and neither can move a `sideWiped`.
+ * ON 2026-08-22 THAT WAS NOT THAT PASS'S DEFECT, and the file proved it rather than asserting it: the
+ * disagreement was IDENTICAL clean and under the self-KO revert, so it was not the self-KO position.
+ * `w3-simultaneous` was declared KNOWN-OPEN and reported.
  *
- * Each board is played TWICE — once against the tree as it stands and once under the same surgical
- * revert `test-resolution-order.js` uses — so every claim here is a reading off a run rather than a
- * claim about a control-flow graph. The first draft of this file made the control-flow claim and it
- * was the run that corrected it.
+ * ================= CLOSED 2026-08-23 — WIRE 160, AND WILL'S CASE IS THE BETTER FIXTURE ==========
+ *
+ * `battleResult` now stamps a monotone faint SEQUENCE at all 26 of this engine's faint sites and
+ * awards two emptied sides to the one owning the LAST of them. `w3-simultaneous` KEEPS ITS ID and is
+ * an ordinary arm; two Perish Song boards join it.
+ *
+ * WILL: *"similar to perish song where all mons on the field faint on the same turn with nothing in
+ * the back, the slowest mon wins."* DERIVED, not taken: Perish Song's condition is
+ * `duration: 4, onResidualOrder: 24, onEnd(t){ t.faint() }`; `fieldEvent('Residual')` speed-sorts its
+ * handlers (`comparePriority`, sim/battle.ts:404 — order ASC, priority DESC, SPEED DESC) before
+ * decrementing durations, so the FASTEST body's counter expires first and the SLOWEST body's last,
+ * they enter `faintQueue` in that order, and `checkWin` hands the game to the last of them. THE CLAIM
+ * HOLDS, in the authority and now in this engine: `w4` reads `gengar#5 politoed#6 primarina#7
+ * azumarill#8` — exact speed order — and the winner is Azumarill's side.
+ *
+ * AND THE 2026-08-22 ATTRIBUTION IS NOW READABLE FROM THE OTHER SIDE. With the win rule wired, `w3`
+ * reports the winner comparison as DIFFERENT under the self-KO revert. That is not a contradiction of
+ * last pass's measurement — it is what last pass could not see: while the engine answered `draw` both
+ * ways, the self-KO position could not show up in a winner comparison at all. The `always` fix has a
+ * WINNER-level consequence, and only a working win rule can demonstrate it.
+ *
+ * Each board is played THREE TIMES — clean, under the self-KO revert `test-resolution-order.js` uses,
+ * and under WIRE 160's own revert — so every claim here is a reading off a run rather than a claim
+ * about a control-flow graph. The first draft of this file made the control-flow claim and it was the
+ * run that corrected it.
  *
  * ================= WHAT WOULD COUNT AS A FAILURE ================================================
  *
  * A KNOWN-OPEN board is neither. It is declared, it runs every time, and it is printed with its own
- * verdict word so it cannot be read as green and cannot be read as a regression.
+ * verdict word so it cannot be read as green and cannot be read as a regression. There are none left
+ * in this file; the machinery stays because the next one will want it.
+ *
+ * A TIED BOARD MUST GO RED UNDER WIRE 160's REVERT AND AN UNTIED ONE MUST NOT. `tied` is declared per
+ * board and CHECKED against the authority's own `pokemonLeft`, so a fixture that quietly stopped
+ * emptying both sides fails loudly instead of passing while measuring nothing — which is the failure
+ * `w3`'s own text records from its first draft.
  *
  * Three things, and they are reported apart because they are different facts:
- *   WINNER      the authority's `battle.winner` against medicham2's live-body verdict. A difference
- *               here is not a narration difference and would be the most consequential result in the
- *               file.
+ *   WINNER      the authority's `battle.winner` against `M.battleResult(S)` — THE ENGINE'S OWN
+ *               FUNCTION, not a rule this file reimplements. A difference here is not a narration
+ *               difference and would be the most consequential result in the file.
+ *   FAINT ORDER the sequence medicham2 stamped, printed per side. The verdict alone cannot separate
+ *               "the rule read the right body" from "the rule guessed the right side", and on a
+ *               two-sided question a guess is right half the time.
  *   ROSTER      per side, bodies alive at the end. The authority is additionally asked `pokemonLeft`,
  *               which is the number `checkWin` actually reads.
  *   PROTOCOL    the first line the two streams part on, if any. Recorded, NOT the bar: in end-state
@@ -69,8 +98,11 @@
  *
  * Every species, move and ability is legal in `gen9championsvgc2026regmb` and every move is on its
  * user's own learnset, both derived from `Dex.forFormat` below. Spreads and items are the harness's.
- * The Ghost walls are the load-bearing part of two of the three boards: Explosion is NORMAL, so a
- * Ghost takes nothing from it, which is what lets one side be emptied while the other is untouched.
+ * The Ghost walls are the load-bearing part of the two untied boards: Explosion is NORMAL, so a Ghost
+ * takes nothing from it, which is what lets one side be emptied while the other is untouched. On the
+ * two Perish Song boards the opening Explosion is SCAFFOLDING and nothing else — the driver sends
+ * `team 1234`, and the rule needs nothing in the back, so one boom empties both benches onto the
+ * field and the quartet that then sings is the whole of both teams.
  */
 'use strict';
 const path = require('path');
@@ -113,19 +145,37 @@ const GD_PATH = D('engine', 'game_differential.js');
 const BREAK_FROM = `{
         const _ufA=TAGS.param('move',a.move.id,'userFaints');
         if(_ufA&&_ufA.faints==='always'&&!m.fainted){
-          m.curHP=0;m.fainted=true;_selfKOPending=true;MEDSEEN.selfKOAlwaysAboveTheHit++;}
+          m.curHP=0;m.fainted=true,noteFaint(m);_selfKOPending=true;MEDSEEN.selfKOAlwaysAboveTheHit++;}
       }`;
+/* THE SECOND REVERT, AND IT IS THE ONE THIS FILE NOW TURNS ON ITS OWN RESULT (WIRE 160, 2026-08-23).
+ * `battleResult`'s last-fainted tie-break, deleted — which restores the engine EXACTLY as it stood
+ * when `w3-simultaneous` was declared KNOWN-OPEN: two emptied sides fall through to the HP fraction,
+ * 0 against 0, and the answer is 0.5. It is kept apart from `BREAK_FROM` because the two ask opposite
+ * questions of the same board. Reverting the self-KO POSITION must NOT move the winner (that is the
+ * measurement that made this a `battleResult` defect rather than a resolution-order one, and it stays
+ * in the file as the over-fire control); reverting the WIN RULE must move it on every tied board and
+ * on none of the untied ones. A fix that scored every board the same way passes neither test. */
+const BREAK_WINRULE_FROM = `if(aA===0&&bA===0){
+    const la=lastFaintSeq([...S.actA,...S.benchA]),lb=lastFaintSeq([...S.actB,...S.benchB]);
+    if(la!==lb){MEDSEEN.doubleWipeDecidedByLastFaint++;return la>lb?1:0;}
+    MEDFAILS.doubleWipeNoFaintOrder++;return 0.5;
+  }`;
 const eol = t => String(t).replace(/\r\n/g, '\n');
-function broken() {
-  const src = eol(CLEAN_SRC), from = eol(BREAK_FROM);
-  const n = src.split(from).length - 1;
+function plant(from) {
+  const src = eol(CLEAN_SRC), f = eol(from);
+  const n = src.split(f).length - 1;
   if (n !== 1) return { err: 'anchor matched ' + n + ' times (must be exactly 1)' };
-  return { src: src.replace(from, ';') };
+  return { src: src.replace(f, ';') };
 }
+const broken = () => plant(BREAK_FROM);
+const brokenWinRule = () => plant(BREAK_WINRULE_FROM);
 
 let _cur = null, _G = null;
-function harness(src) {
-  const key = src == null ? '' : 'patched:' + src.length;
+/* THE CACHE KEY IS THE PATCH'S NAME, NOT ITS LENGTH. Two surgical reverts now exist and both delete a
+ * block down to a single `;`; keying on `src.length` would let two DIFFERENT patched engines collide
+ * on one cache entry and the second arm would silently play the first arm's bytes. */
+function harness(src, tag) {
+  const key = src == null ? '' : 'patched:' + (tag || ('len' + src.length));
   if (_G && _cur === key) return _G;
   const mres = require.resolve(MEDI_PATH);
   delete require.cache[mres];
@@ -157,7 +207,7 @@ const BOOM = { m: 'explosion' };
  * would empty no side and the arm would report a clean winner while staging nothing at all. An
  * `allAdjacent` boom beside a second exploder empties a slot whichever of the two moves first. */
 const CASES = [
-  { id: 'w1-user-side-empties-first',
+  { id: 'w1-user-side-empties-first', tied: false,
     what: 'THE USER\'S OWN SIDE IS WIPED AND THE OPPONENT IS UNTOUCHED. All four of p1 click Explosion, '
         + 'so every p1 body either spends itself or is a non-Ghost standing in an ally\'s blast; all '
         + 'four of p2 are GHOSTS and a NORMAL boom cannot touch them. Two turns empties p1 completely '
@@ -174,7 +224,7 @@ const CASES = [
     script: [T([BOOM, BOOM], [{ m: 'nastyplot' }, { m: 'nastyplot' }]),
              T([BOOM, BOOM], [{ m: 'nastyplot' }, { m: 'nastyplot' }])] },
 
-  { id: 'w2-foe-side-empties-first',
+  { id: 'w2-foe-side-empties-first', tied: false,
     what: 'THE MIRROR, AND IT IS A SEPARATE ARM BECAUSE "the side that exploded lost" and "the side '
         + 'that exploded won" are different questions — a win check reading the wrong side would pass '
         + 'one of them. p1 keeps a GHOST in slot b, so its exploder dies and its partner does not; '
@@ -191,8 +241,13 @@ const CASES = [
     script: [T([BOOM, { m: 'nastyplot' }], [BOOM, BOOM]),
              T([BOOM, { m: 'nastyplot' }], [BOOM, BOOM])] },
 
-  { id: 'w3-simultaneous', kind: 'known-open',
-    what: 'A DECLARED, MEASURED, UNFIXED ROW — and it is the arm that found something. BOTH SIDES '
+  { id: 'w3-simultaneous', tied: true,
+    what: 'CLOSED 2026-08-23 BY WIRE 160, AND THE ID IS KEPT SO THE HISTORY IS READABLE — this row '
+        + 'was declared KNOWN-OPEN on 2026-08-22 and is now an ordinary arm that must AGREE. What '
+        + 'changed is the engine: `battleResult` stamps a monotone faint SEQUENCE at all 26 faint '
+        + 'sites and awards two emptied sides to the one that owns the LAST of them. Its own revert '
+        + '(the NOWIN arm below) puts the 0.5 back, so this arm is red on demand rather than on trust. '
+        + 'The original text follows, unedited, because it is the derivation. --- BOTH SIDES '
         + 'EMPTY IN THE SAME ACTION: one boom on turn two takes the last four bodies off the board at '
         + 'once, its user, its partner and both foes. '
         + 'I EXPECTED A DRAW AND THE AUTHORITY DOES NOT GIVE ONE. `checkWin` (sim/battle.ts:2603) is '
@@ -226,6 +281,72 @@ const CASES = [
         ['houndoom', '', 'Unnerve', ['Nasty Plot', 'Protect']]],
     script: [T([BOOM, { m: 'nastyplot' }], [{ m: 'nastyplot' }, { m: 'nastyplot' }]),
              T([{ m: 'nastyplot' }, BOOM], [{ m: 'nastyplot' }, { m: 'nastyplot' }])] },
+
+  /* ---- WILL'S OWN CASE, AND IT IS THE BETTER FIXTURE (2026-08-23) -------------------------------
+   * *"similar to perish song where all mons on the field faint on the same turn with nothing in the
+   * back, the slowest mon wins."*
+   *
+   * DERIVED BEFORE IT WAS STAGED, because a premise taken on trust is the thing this file exists to
+   * refuse. Perish Song's condition, off `Dex.forFormat('gen9championsvgc2026regmb')`, is
+   * `duration: 4, onResidualOrder: 24, onEnd(t){ add('-start',t,'perish0'); t.faint(); }`.
+   * `fieldEvent('Residual')` collects the four handlers and `speedSort`s them with `comparePriority`
+   * (sim/battle.ts:404 — order ASC, priority DESC, **SPEED DESC**), then decrements each duration and
+   * calls `end` on the one that reaches zero. So the FASTEST body's counter expires first and the
+   * SLOWEST body's last; all four land in `faintQueue` in that order; `faintMessages` shifts them in
+   * that order; and `checkWin` hands the game to `faintData.target.side` — the SLOWEST. Staged in the
+   * raw official simulator, Gengar 130 / Politoed 90 / Primarina 80 / Azumarill 70 faint in exactly
+   * that sequence and the winner is Azumarill's side. **THE CLAIM HOLDS.**
+   *
+   * WHY IT IS BETTER THAN EXPLOSION'S: nothing here depends on a damage roll deciding which bodies
+   * die. Perish Song reads no HP and takes no accuracy check, so the wipe is not a fixture that might
+   * come apart — the only thing selecting the winner is the speed order, which is the mechanic.
+   *
+   * WHY THE BOARD STILL OPENS WITH A BOOM: the driver sends `team 1234` and four bodies a side, and
+   * the rule needs NOTHING IN THE BACK. One Explosion on turn one empties both benches onto the
+   * field; the quartet that then sings is the whole of both teams. That first turn is scaffolding and
+   * is deliberately identical to `w3`'s, which is already proven to wipe all four actives.
+   *
+   * AND IT IS A PAIR, NOT A BOARD. `w5` is the same eight bodies with the two SIDES exchanged, so the
+   * authority's answer flips. An engine that had learned to answer "p1" — or that read the FIRST
+   * faint instead of the last — passes exactly one of them. */
+  { id: 'w4-perish-slowest-on-p1', tied: true,
+    what: "WILL'S CASE. Turn 1 is scaffolding: a Metagross Explosion empties both sides' active slots, "
+        + 'so the four bodies that walk in are the last four in the game. Turn 2 Gengar sings; the '
+        + 'counters expire together at the end of turn 5. Speed order is Gengar 110 > Politoed 70 > '
+        + 'Primarina 60 > Azumarill 50, so AZUMARILL faints LAST and the winner is p1 — decided by a '
+        + 'body that is on the field only because it is the slowest thing there.',
+    A: [['metagross', '', 'Clear Body', ['Explosion', 'Protect']],
+        ['pikachu', '', 'Static', ['Nasty Plot', 'Protect']],
+        ['gengar', '', 'Cursed Body', ['Perish Song', 'Protect']],
+        ['azumarill', '', 'Thick Fat', ['Perish Song', 'Protect']]],
+    B: [['weavile', '', 'Pressure', ['Nasty Plot', 'Protect']],
+        ['salazzle', '', 'Oblivious', ['Nasty Plot', 'Protect']],
+        ['politoed', '', 'Water Absorb', ['Perish Song', 'Protect']],
+        ['primarina', '', 'Torrent', ['Perish Song', 'Protect']]],
+    script: [T([BOOM, { m: 'nastyplot' }], [{ m: 'nastyplot' }, { m: 'nastyplot' }]),
+             T([{ m: 'perishsong' }, PROT], [PROT, PROT]),
+             T([PROT, PROT], [PROT, PROT]),
+             T([PROT, PROT], [PROT, PROT]),
+             T([PROT, PROT], [PROT, PROT])] },
+
+  { id: 'w5-perish-slowest-on-p2', tied: true,
+    what: 'THE MIRROR OF w4 — THE SAME EIGHT BODIES, THE SIDES EXCHANGED. Azumarill is now on p2, so '
+        + 'the authority answers p2 where w4 answered p1. This is the varied knob: identical results '
+        + 'across the pair would mean the tie-break is not reading the faint order at all, and an '
+        + 'engine that awarded a double wipe to a fixed side would pass w4 and fail here.',
+    A: [['weavile', '', 'Pressure', ['Nasty Plot', 'Protect']],
+        ['salazzle', '', 'Oblivious', ['Nasty Plot', 'Protect']],
+        ['politoed', '', 'Water Absorb', ['Perish Song', 'Protect']],
+        ['primarina', '', 'Torrent', ['Perish Song', 'Protect']]],
+    B: [['metagross', '', 'Clear Body', ['Explosion', 'Protect']],
+        ['pikachu', '', 'Static', ['Nasty Plot', 'Protect']],
+        ['gengar', '', 'Cursed Body', ['Perish Song', 'Protect']],
+        ['azumarill', '', 'Thick Fat', ['Perish Song', 'Protect']]],
+    script: [T([{ m: 'nastyplot' }, { m: 'nastyplot' }], [BOOM, { m: 'nastyplot' }]),
+             T([PROT, PROT], [{ m: 'perishsong' }, PROT]),
+             T([PROT, PROT], [PROT, PROT]),
+             T([PROT, PROT], [PROT, PROT]),
+             T([PROT, PROT], [PROT, PROT])] },
 ];
 
 /* ---- LEGALITY, DERIVED. Nothing above is typed from memory. ------------------------------------- */
@@ -267,28 +388,61 @@ const ARM_ID = 'bottom-tie-first';
 function play(G, c) {
   const arm = G.ARM_BY_ID.get(ARM_ID);
   if (!arm) { console.log('NOT RUN — the driver has no arm named ' + ARM_ID); process.exit(2); }
-  const before = Object.assign({}, globalThis.MEDSEEN || {});
+  /* BOTH COUNTER BANKS. The first version of this read `MEDSEEN` alone, and the loud-fallback check
+   * below reads `MEDFAILS.doubleWipeNoFaintOrder` — so it compared `undefined` against 0, passed
+   * every time, and asserted nothing. That is the silent default in its usual costume: a green check
+   * that was never able to be red. The two banks are merged and a key collision THROWS, because a
+   * collision would silently pick one of two different facts. */
+  const banks = () => {
+    const out = {};
+    for (const [bank, name] of [[globalThis.MEDSEEN, 'MEDSEEN'], [globalThis.MEDFAILS, 'MEDFAILS']])
+      for (const k of Object.keys(bank || {})) {
+        if (k in out) throw new Error('counter name ' + k + ' exists in both MEDSEEN and ' + name);
+        if (typeof bank[k] === 'number') out[k] = bank[k];
+      }
+    return out;
+  };
+  const before = banks();
   G.resetScriptCounters();
   const a = G.buildPair(stage(c.A)), b = G.buildPair(stage(c.B));
   if (!a || !b) return { notStaged: true };
   const r = G.playGame(a, b, 'directed', 'probe-selfdestruct-winner :: ' + c.id, { script: c.script, arm });
-  const after = globalThis.MEDSEEN || {};
+  const after = banks();
   const delta = {};
-  for (const k of Object.keys(after)) if (typeof after[k] === 'number') delta[k] = after[k] - (before[k] || 0);
+  for (const k of Object.keys(after)) delta[k] = after[k] - (before[k] || 0);
+  /* NAMED, NOT DEFAULTED. A counter this file asserts on must EXIST; reading a missing one as 0 is
+   * how the check above came to be vacuous in the first place. */
+  for (const k of ['doubleWipeDecidedByLastFaint', 'doubleWipeNoFaintOrder',
+                   'selfKOAlwaysAboveTheHit', 'selfKOLineFromShieldExit'])
+    if (!(k in delta)) throw new Error('the engine has no counter named ' + k);
   return { r, delta, sc: G.scriptCounters() };
 }
 
-/* medicham2's winner, computed the way `battleResult` computes it — MORE LIVE BODIES WINS, and an
- * equal count falls through to total HP fraction, which for two emptied sides is 0 against 0 and is
- * therefore a draw. Written here rather than imported because `battleResult` is not exported and a
- * probe that reached into the module would be reading a different function from the one the callers
- * use; the rule is quoted from its source and the roster it reads is the driver's own snapshot. */
+/* medicham2's winner, ASKED OF `battleResult` ITSELF (2026-08-23) — the driver now calls it at the
+ * moment it takes the final roster and carries the answer as `mediResult`.
+ *
+ * THE EARLIER VERSION OF THIS FUNCTION RE-IMPLEMENTED THE RULE HERE, and its header said that was
+ * because `battleResult` is not exported. THAT WAS FALSE — it is on `module.exports` and on `root` —
+ * and the cost of the false claim was not academic: a probe that recomputes "who won" scores a rule
+ * of its own, so it would have gone green the moment I taught the PROBE about the last faint while
+ * leaving the ENGINE answering 0.5 to every rollout and every H2H that reads it. The re-implementation
+ * is kept BESIDE the real answer as `bodies`, purely so a disagreement between the two is visible.
+ * 1 = side A, 0 = side B, 0.5 = neither. */
 function mediVerdict(fr) {
-  if (!fr || !fr.medicham) return { who: 'UNREADABLE', a: null, b: null };
+  if (!fr || !fr.medicham) return { who: 'UNREADABLE', a: null, b: null, bodies: null };
   const liveA = fr.medicham.p1.filter(x => !x.fainted && x.hp > 0).length;
   const liveB = fr.medicham.p2.filter(x => !x.fainted && x.hp > 0).length;
-  return { who: liveA > liveB ? 'p1' : (liveB > liveA ? 'p2' : 'draw-on-bodies'), a: liveA, b: liveB };
+  const bodies = liveA > liveB ? 'p1' : (liveB > liveA ? 'p2' : 'draw');
+  const r = fr.mediResult;
+  const who = r == null ? 'UNREADABLE' : (r === 1 ? 'p1' : (r === 0 ? 'p2' : 'draw'));
+  return { who, a: liveA, b: liveB, result: r, bodies };
 }
+/* THE FAINT ORDER THE ENGINE ACTUALLY RECORDED, printed on every arm. The verdict alone cannot
+ * distinguish "the rule read the right body" from "the rule guessed the right side", and on a
+ * two-sided question a guess is right half the time. */
+const seqLine = (fr, side) => (fr && fr.medicham && fr.medicham[side] || [])
+  .filter(x => x.faintSeq != null).sort((p, q) => p.faintSeq - q.faintSeq)
+  .map(x => x.name + '#' + x.faintSeq).join(' ');
 /* `battle.winner` IS A PLAYER NAME, NOT A SIDE ID, AND THE FIRST DRAFT OF THIS FILE READ IT AS ONE.
  * The driver names its two players `A` and `B` (see game_differential.js's battle options), so the
  * authority answers 'A', 'B', the empty string for a draw, or undefined while unresolved — and
@@ -317,8 +471,7 @@ function sdVerdict(fr) {
 function agree(sd, me) {
   if (sd.who === 'unresolved' || sd.who === 'UNREADABLE' || me.who === 'UNREADABLE') return null;
   if (String(sd.who).startsWith('UNMAPPED')) return false;
-  const meName = me.who === 'draw-on-bodies' ? 'draw' : me.who;
-  return sd.who === meName;
+  return sd.who === me.who;
 }
 
 let bad = 0, ran = 0, knownOpen = 0;
@@ -330,16 +483,20 @@ for (const c of CASES) {
   if (clean.r.err) { console.log('THREW       ' + c.id + '   ' + clean.r.err); bad++; continue; }
   const p = broken();
   if (p.err) { console.log('PLANT FAILED  ' + c.id + '   ' + p.err); bad++; continue; }
-  const brk = play(harness(p.src), c);
+  const brk = play(harness(p.src, 'selfko'), c);
+  const w = brokenWinRule();
+  if (w.err) { console.log('PLANT FAILED (winrule)  ' + c.id + '   ' + w.err); bad++; continue; }
+  const wrk = play(harness(w.src, 'winrule'), c);
   harness(null);
   ran++;
-  rows.push({ c, clean, brk });
+  rows.push({ c, clean, brk, wrk });
 }
 
-for (const { c, clean, brk } of rows) {
+for (const { c, clean, brk, wrk } of rows) {
   const sdC = sdVerdict(clean.r.finalRoster), meC = mediVerdict(clean.r.finalRoster);
   const sdB = sdVerdict(brk.r.finalRoster), meB = mediVerdict(brk.r.finalRoster);
-  const okC = agree(sdC, meC), okB = agree(sdB, meB);
+  const sdW = sdVerdict(wrk.r.finalRoster), meW = mediVerdict(wrk.r.finalRoster);
+  const okC = agree(sdC, meC), okB = agree(sdB, meB), okW = agree(sdW, meW);
   /* A KNOWN-OPEN ROW IS NEITHER A PASS NOR A FAILURE, and it gets its own verdict word for exactly
    * the reason `a1-multihit-frequency` has one in test-resolution-order.js: a declared, measured,
    * deliberately unfixed defect must not be readable as green and must not be readable as a
@@ -351,22 +508,67 @@ for (const { c, clean, brk } of rows) {
   if (open) knownOpen++;
   console.log(NL + verdict + '  ' + c.id + '   ' + clean.r.turns + '/' + c.script.length + ' turns');
   console.log('    ' + c.what);
+  const DELTA = new Map([[clean.r, clean.delta], [brk.r, brk.delta], [wrk.r, wrk.delta]]);
   const line = (tag, sd, me, r) => {
+    const d = DELTA.get(r);
     console.log('    ' + tag.padEnd(7)
       + 'showdown winner=' + JSON.stringify(sd.winner) + ' pokemonLeft p1=' + sd.a + ' p2=' + sd.b
-      + '   |   medicham live p1=' + me.a + ' p2=' + me.b + ' -> ' + me.who);
+      + '   |   medicham battleResult=' + JSON.stringify(me.result) + ' -> ' + me.who
+      + '   (live bodies p1=' + me.a + ' p2=' + me.b + ')');
     console.log('           first parted line: '
       + (r.div ? ('#' + r.div.index + '  sd `' + r.div.sdRaw + '`  me `' + r.div.meRaw + '`') : 'none'));
     console.log('           alive at the end: p1 [' + names(r.finalRoster, 'p1') + ']  p2 [' + names(r.finalRoster, 'p2') + ']');
-    console.log('           selfKOAlwaysAboveTheHit=' + (r === clean.r ? clean.delta : brk.delta).selfKOAlwaysAboveTheHit
-      + '  selfKOLineFromShieldExit=' + (r === clean.r ? clean.delta : brk.delta).selfKOLineFromShieldExit);
+    /* THE ORDER, NOT THE VERDICT. On a two-sided question a wrong rule is right half the time; this
+     * is the line that says which BODY the tie-break read. */
+    console.log('           faint order  : p1 [' + seqLine(r.finalRoster, 'p1') + ']  p2 [' + seqLine(r.finalRoster, 'p2') + ']');
+    console.log('           selfKOAlwaysAboveTheHit=' + d.selfKOAlwaysAboveTheHit
+      + '  selfKOLineFromShieldExit=' + d.selfKOLineFromShieldExit
+      + '  doubleWipeDecidedByLastFaint=' + d.doubleWipeDecidedByLastFaint
+      + '  doubleWipeNoFaintOrder=' + d.doubleWipeNoFaintOrder);
   };
   line('CLEAN', sdC, meC, clean.r);
   line('BROKEN', sdB, meB, brk.r);
+  line('NOWIN', sdW, meW, wrk.r);
   console.log('    CLEAN vs BROKEN, the attribution: the winner comparison is '
     + (okB === okC ? 'THE SAME under the revert, so the self-KO POSITION is not what decides it'
                    : 'DIFFERENT under the revert, so the self-KO POSITION is what decides it')
     + '.');
+
+  /* ---- THE WIN RULE'S OWN RED ARM, AND ITS OVER-FIRE CONTROL ------------------------------------
+   * `tied` is DECLARED on the board and CHECKED against the run, because the whole arm rests on both
+   * sides really emptying and a fixture that quietly stopped doing so would take the demonstration
+   * with it — that is the failure w3's own header records from its first draft. */
+  const reallyTied = sdC.a === 0 && sdC.b === 0;
+  if (!!c.tied !== reallyTied) {
+    console.log('    FIXTURE BROKEN — declared tied=' + !!c.tied + ' but the authority ended with '
+      + 'pokemonLeft p1=' + sdC.a + ' p2=' + sdC.b + '. The win-rule arm below is measuring nothing.');
+    bad++;
+  } else if (c.tied) {
+    const moved = meW.who !== meC.who;
+    console.log('    WIN RULE, RED ON DEMAND: deleting the last-fainted tie-break moves this board '
+      + 'from ' + meC.who + ' to ' + meW.who + ' — ' + (moved ? 'RED PROVEN' : 'IT DID NOT MOVE, so the '
+      + 'tie-break is NOT what decides this board and the arm proves nothing') + '.');
+    if (!moved) bad++;
+    if ((clean.delta.doubleWipeDecidedByLastFaint || 0) !== 1) {
+      console.log('    COUNTER — doubleWipeDecidedByLastFaint=' + clean.delta.doubleWipeDecidedByLastFaint
+        + ' on the clean run; a tied board must decide exactly once.');
+      bad++;
+    }
+  } else {
+    const moved = meW.who !== meC.who;
+    console.log('    WIN RULE, OVER-FIRE CONTROL: an UNTIED board must be untouched by the tie-break — '
+      + (moved ? 'IT MOVED, from ' + meC.who + ' to ' + meW.who + ', so the new rule is reaching boards '
+        + 'it has no business on' : 'unchanged at ' + meC.who) + '.');
+    if (moved) bad++;
+    if ((clean.delta.doubleWipeDecidedByLastFaint || 0) !== 0) {
+      console.log('    COUNTER — doubleWipeDecidedByLastFaint fired on an untied board.'); bad++;
+    }
+  }
+  if ((clean.delta.doubleWipeNoFaintOrder || 0) !== 0) {
+    console.log('    LOUD FALLBACK FIRED — battleResult found two emptied sides with no comparable '
+      + 'faint order and answered 0.5. The stamp did not reach every faint site.'); bad++;
+  }
+
   const refused = clean.sc.moveNotOnRequest;
   if (refused) { console.log('    FIXTURE BROKEN — ' + refused + ' scripted click(s) were not on the '
     + "authority's request and became a silent `pass` on both engines. First: " + clean.sc.firstMissing);
@@ -376,8 +578,8 @@ for (const { c, clean, brk } of rows) {
 console.log(NL + ran + ' boards staged, ' + knownOpen + ' of them KNOWN-OPEN (declared, not counted), '
   + bad + ' failing');
 console.log(bad ? 'FAIL' : 'PASS — on every staged wipe this file counts, the two engines name the same '
-  + 'winner, clean and under the revert. The one board they do NOT agree on is declared: a Gen-5+ '
-  + 'simultaneous double wipe is decided by WHO FAINTED LAST and medicham2 calls it a draw, which is '
-  + 'the same disagreement with the fix and without it and is therefore a battleResult defect rather '
-  + 'than a resolution-order one');
+  + 'winner: the two untied boards, the simultaneous Explosion, and Perish Song with the slowest body '
+  + 'on each side in turn. Every tied board parts from the authority under its own revert and every '
+  + 'untied one does not, so the last-fainted rule is what is deciding them and it is not reaching '
+  + 'anything else');
 process.exit(bad ? 1 : 0);

@@ -11483,3 +11483,59 @@ unaccounted check printed, exit 0.
 
 **No claim is made about the suite's overall colour.** It was not run: the simulator was being edited
 concurrently, and a suite verdict against a moving engine is worth nothing.
+
+---
+
+## 2026-08-23 — THE SLOWEST MON WINS (5.78.0)
+
+Showdown `checkWin` (`sim/battle.ts:2603`):
+
+```
+  this.win(faintData && this.gen > 4 ? faintData.target.side : null)
+```
+
+**A Gen-5+ simultaneous double wipe is not a draw — the side whose body fainted LAST wins.**
+medicham2's `battleResult` scored 0-vs-0 as `0.5`. WIRE 160: `noteFaint` at all 26 faint sites plus a
+last-fainted tie-break. Releases `7da11c1d4d10` -> `c66976713feb`.
+
+### WILL WAS RIGHT ABOUT PERISH SONG, AND IT WAS DERIVED RATHER THAN TAKEN
+
+His words: *"similar to perish song where all mons on the field faint on the same turn with nothing in
+the back, the slowest mon wins."*
+
+`perishsong.condition` is `duration: 4`, `onResidualOrder: 24`, `onEnd(t){ t.faint() }`, and
+`fieldEvent("Residual")` speed-sorts its handlers (`comparePriority`, `sim/battle.ts:404` — order ASC,
+priority DESC, **SPEED DESC**) **before** decrementing durations. So the fastest counter expires first,
+the slowest last, and `checkWin` hands the game to the last faint. Staged raw in the official
+simulator: **Gengar 130 -> Politoed 90 -> Primarina 80 -> Azumarill 70**, winner Azumarill's side; swap
+the sides and the answer flips.
+
+**It is the better fixture and now carries the fix.** No damage roll can quietly turn a Perish Song
+wipe into a sequential one, which is exactly what an Explosion board can do to you.
+
+### TWO PROBE ERRORS CAME FIRST AND THE FIRST WOULD HAVE SHIPPED A GREEN LIE
+
+`mediVerdict` **re-implemented the win rule itself**, on a false claim in its own header that
+`battleResult` is not exported — so it would have gone GREEN while the engine went on answering 0.5 to
+every rollout. The second read a `MEDFAILS` counter out of a `MEDSEEN`-only delta, comparing
+`undefined` against 0, so it could never be red.
+
+Fifth pass in two days where the instrument was wrong before the engine was.
+
+### A DEFECT CAN HIDE THE EVIDENCE FOR THE FIX BEFORE IT
+
+With a working win rule, `w3` now reports the winner as DIFFERENT under the 2026-08-22 self-KO revert.
+**That fix had a winner-level consequence all along, invisible while every tie scored 0.5.**
+
+### RIPPLE, FOUND BY DERIVATION
+
+Stamping `noteFaint` broke the surgical-revert anchor in four other files. All four updated and re-run:
+`test-resolution-order.js` 26 arms / 1 KNOWN-OPEN / 0 failing; `test-perish-song.js --break-the-faint`
+still turns both rows red; `probe_red_demo.js`'s FROM anchor resolves exactly once; `test-battle-api.js`
+8/8.
+
+### NOT DONE, AND SAID SO
+
+Batch 2 — grouping the 33 announce-failure divergences — was **not started**: it needs the 1,200-game
+differential and heavy runs were banned while the machine was in use. Nothing about that class is
+claimed. The OWED-NOT-RUN list is carried as commands in CHANGELOG 5.78.0, not as prose.

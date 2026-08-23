@@ -3565,12 +3565,23 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
   const rosterSnapshot = () => {
     const mediSide = (acts, bench) => [...acts, ...bench].filter(Boolean).map(m =>
       ({ name: id(m.name), key: m._switchKey || null, hp: m.curHP, fainted: !!m.fainted,
+         /* WIRE 160 — the ORDER, not just the fact. medicham2 stamps a monotone sequence at every
+          * faint site because sim/battle.ts:2603 decides a mutual wipe by which body fainted LAST.
+          * `null` on a live body is expected; `null` on a DEAD one means the stamp never ran. */
+         faintSeq: (m._faintSeq == null ? null : m._faintSeq),
          where: acts.indexOf(m) >= 0 ? 'active' : 'bench' }));
     const sdSide = side => ({ pokemonLeft: side.pokemonLeft, teamSize: side.pokemon.length,
       mons: side.pokemon.map(p => ({ name: id(p.species.id), hp: p.hp, fainted: !!p.fainted,
                                      where: p.isActive ? 'active' : 'bench' })) });
     try {
-      return { medicham: { p1: mediSide(S.actA, S.benchA), p2: mediSide(S.actB, S.benchB) },
+      /* WIRE 160 — `battleResult` ITSELF, asked here rather than re-derived by the reader. Every
+       * rollout and every H2H reads that one function, so a probe that recomputed "who won" off the
+       * roster would be scoring a rule the engine does not actually use — which is exactly how a
+       * mutual wipe scoring 0.5 stayed invisible. 1 = A, 0 = B, 0.5 = neither. */
+      let mediResult = null;
+      try { mediResult = M.battleResult(S); } catch (e) { mediResult = null; }
+      return { mediResult,
+               medicham: { p1: mediSide(S.actA, S.benchA), p2: mediSide(S.actB, S.benchB) },
                showdown: { p1: sdSide(battle.p1), p2: sdSide(battle.p2),
                            winner: battle.winner == null ? null : String(battle.winner) } };
     } catch (e) { return { failed: String((e && e.message) || e).slice(0, 120) }; }

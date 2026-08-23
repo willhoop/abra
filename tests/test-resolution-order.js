@@ -199,7 +199,7 @@ const BREAKS = {
     edits: [[`{const _ufd=TAGS.param('move',a.move.id,'userFaints');
          const _fdc=TAGS.param('move',a.move.id,'fixedDamage');
          if(_ufd&&_ufd.faints==='ifHit'&&_fdc&&_fdc.source==='myRemainingHP'&&!m.fainted){
-           m.curHP=0;m.fainted=true;_selfKOPending=true;MEDSEEN.selfKOAtDamageCallback++;}}`, ';']] },
+           m.curHP=0;m.fainted=true,noteFaint(m);_selfKOPending=true;MEDSEEN.selfKOAtDamageCallback++;}}`, ';']] },
 
   /* ROADMAP #331, THE `always` HALF (2026-08-22). The twin of `selfko-below-the-target`, at a
    * DIFFERENT authority site: `damageCallback` is inside the damage step, `:500` is above the whole
@@ -217,7 +217,7 @@ const BREAKS = {
     edits: [[`{
         const _ufA=TAGS.param('move',a.move.id,'userFaints');
         if(_ufA&&_ufA.faints==='always'&&!m.fainted){
-          m.curHP=0;m.fainted=true;_selfKOPending=true;MEDSEEN.selfKOAlwaysAboveTheHit++;}
+          m.curHP=0;m.fainted=true,noteFaint(m);_selfKOPending=true;MEDSEEN.selfKOAlwaysAboveTheHit++;}
       }`, ';']] },
 
   'berry-at-every-group': {

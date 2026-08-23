@@ -83,8 +83,8 @@ const BREAK = process.argv.includes('--break-the-faint');
 if (BREAK) {
   if (WHICH !== 'live') { console.log('--break-the-faint needs the live tree'); process.exit(1); }
   const before = SRC;
-  SRC = SRC.replace('if(x._perish<=0){x.fainted=true;x.curHP=0;MEDSEEN.perishKO++;',
-                    'if(false){x.fainted=true;x.curHP=0;MEDSEEN.perishKO++;');
+  SRC = SRC.replace('if(x._perish<=0){x.fainted=true,noteFaint(x);x.curHP=0;MEDSEEN.perishKO++;',
+                    'if(false){x.fainted=true,noteFaint(x);x.curHP=0;MEDSEEN.perishKO++;');
   if (SRC === before) {
     console.log('THE MUTATION DID NOT APPLY — medicham2-browser.js:14898 has moved. A demonstration '
               + 'that silently patched nothing is worse than none: fix the anchor, do not delete it.');

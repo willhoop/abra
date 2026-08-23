@@ -684,6 +684,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   perHitDamageLoop: 0, perHitBasePower: 0, smartTargetSplit: 0,
   conditionalPowerRolled: 0, conditionalPowerPriced: 0,
   perishTicked: 0, perishKO: 0, perishClearedOnSwitch: 0,
+  /* WIRE 160 -- a finished game in which BOTH sides emptied and the winner was decided by which
+     body fainted last (sim/battle.ts:2603). Zero on a run with no mutual wipe in it is the
+     expected reading; zero on the boards staged for it means the rule never fired. */
+  doubleWipeDecidedByLastFaint: 0,
   /* 2026-08-12 -- WHAT A BODY LEFT BEHIND WHEN IT LEFT THE FIELD, and what its badly-poison ramp did
    * when it came back. Will: *"does toxic and sleep turns carry over when a mon is switched out and
    * are we tracking relevant things like that"*.
@@ -1294,6 +1298,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* WIRE 160 -- both sides empty and no comparable faint order survives, so the result falls back
+     to the 0.5 this wire exists to remove. LOUD on purpose: the fallback and the fix return the
+     same number and only this counter tells them apart. */
+  doubleWipeNoFaintOrder: 0,
   /* ROADMAP #322 -- a body that clicked a charging move and was no longer on the field, or was
      fainted, when the charge phase reached it. The authority's own guard (sim/battle.ts:2737-2738),
      kept LOUD: nothing between the top of the turn and order 107 can currently faint a body that
@@ -11885,7 +11893,7 @@ function confusionBeforeMove(m,rng){
   const d=confusionSelfDamage(m,rng);
   m.curHP-=d;MEDSEEN.confusionSelfHit++;
   if(TR)TR.dmg(m,'[from] confusion');
-  if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
+  if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
   return true;
 }
 
@@ -13337,7 +13345,7 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
          the pre-wire behaviour and is counted in MEDSEEN.retaliateSourceUnknown. */
       applyStatDrop(nx,'sp',1,'Sticky Web',(sf.hzBy&&sf.hzBy.stickyweb)||undefined);MEDSEEN.hazardResolvedOnEntry++;
     }
-    if(nx.curHP<=0){nx.curHP=0;nx.fainted=true;if(nx._sf)nx._sf.fainted++;if(TR)TR.faint(nx);}
+    if(nx.curHP<=0){nx.curHP=0;nx.fainted=true,noteFaint(nx);if(nx._sf)nx._sf.fainted++;if(TR)TR.faint(nx);}
   }
   /* WIRE 141 -- BEFORE the entry-effect pass, because the transform REPLACES the ability and the
    * replacement's own Start handler is what that pass runs. Doing it afterwards would fire Imposter's
@@ -13815,7 +13823,50 @@ function oneMegaPerSide(team){
   }
   return team;
 }
+/* ---- WIRE 160 -- WHO DIED LAST. A SIMULTANEOUS DOUBLE WIPE IS NOT A DRAW. 2026-08-23 -----------
+ *
+ *   checkWin(faintData?) {                                                     sim/battle.ts:2603
+ *     if (this.sides.every(side => !side.pokemonLeft)) {
+ *       this.win(faintData && this.gen > 4 ? faintData.target.side : null);
+ *
+ * `faintData` is the LAST entry `faintMessages()` shifted off `faintQueue` (sim/battle.ts:2546), so
+ * from Gen 5 on a board where BOTH sides empty inside one drain is not a draw at all: it is awarded
+ * to the side that owns the body which fainted LAST. `battleResult` had no notion of a faint ORDER
+ * -- it resolved an equal live count by total HP fraction and answered 0-against-0 with 0.5 -- so
+ * every mutual wipe scored a draw, and `battleResult` is what every rollout and every H2H reads.
+ *
+ * DERIVED, NOT RECALLED, AND PERISH SONG IS THE CASE THAT MAKES IT VISIBLE. The condition is
+ * `duration: 4, onResidualOrder: 24, onEnd(t){ this.add('-start',t,'perish0'); t.faint(); }`, read
+ * off `Dex.forFormat('gen9championsvgc2026regmb')`; `fieldEvent('Residual')` speed-sorts its
+ * handlers (`comparePriority`, sim/battle.ts:404 -- order ASC, priority DESC, SPEED DESC) and calls
+ * `end` on the handler whose duration reached zero, so the FASTEST body dies first and the SLOWEST
+ * dies LAST. Staged in the official simulator with nothing in the back, Gengar 130 / Politoed 90 /
+ * Primarina 80 / Azumarill 70 faint in exactly that order and the winner is AZUMARILL'S side;
+ * swapping the two sides swaps the answer, which is what rules out a side bias in the FIXTURE
+ * rather than in the rule.
+ *
+ * A SEQUENCE, NOT A FLAG, because the question is an ORDER and this engine has 26 faint sites.
+ * `noteFaint` is called at every one of them:
+ *   - it stamps a counter that is NEVER reset, so a body carrying a number from an earlier battle
+ *     is strictly BELOW anything stamped in this one;
+ *   - `_fEpoch` is bumped once per `battleInit`, so a site that re-enters an already-dead body
+ *     cannot move its position later than the truth, and a body fainted before a rollout's
+ *     synthesised position was built is excluded from that rollout's answer rather than silently
+ *     included;
+ *   - it is stamped on the STATE TRANSITION and never on the announcement, because two sites (the
+ *     self-KO above the hit at WIRE 46, and the fixed-damage callback) put a body on zero many
+ *     lines before anything says so, and `faintQueue` order is the order of the KILL.
+ *
+ * THE ONE FALLBACK IS LOUD. Two emptied sides with no comparable order left is
+ * `MEDFAILS.doubleWipeNoFaintOrder` and still returns 0.5 -- a silent 0.5 here is
+ * indistinguishable from the bug this wire removed. */
+let _FAINT_SEQ=0, _FAINT_EPOCH=0;
+function noteFaint(m){ if(!m)return; if(m._fEpoch!==_FAINT_EPOCH){m._fEpoch=_FAINT_EPOCH;m._faintSeq=++_FAINT_SEQ;} }
+function lastFaintSeq(arr){ let n=-1;
+  for(const m of arr) if(m&&m.fainted&&m._fEpoch===_FAINT_EPOCH&&m._faintSeq>n)n=m._faintSeq;
+  return n; }
 function battleInit(teamA,teamB,opts){
+  _FAINT_EPOCH++;
   oneMegaPerSide(teamA); oneMegaPerSide(teamB);
   /* ROADMAP #126 -- `wgA:false,wgB:false` STOOD HERE, a boolean pair whose NAME was the only record
    * of what it guarded against. `sgA`/`sgB` are maps of `guard move id -> true`, one entry per guard
@@ -16415,7 +16466,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           grantSubstitute(m,a.mv||a.move.id);
           m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);
           if(TR)TR.dmg(m);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true;m._sub=0;if(TR)TR.faint(m);continue;}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);continue;}
         }
       }
       /* WIRE 157 -- A NON-ATTACKING ELECTRIC CLICK SPENDS A BANKED CHARGE. Thunder Wave, Eerie Impulse
@@ -16823,7 +16874,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              so in as many words and this one contradicted it. tests/test-mechanics.js
              `userFaintsSilent` holds both halves, with a body that faints the ORDINARY way as the
              control, because "never announce damage before a faint" is the wrong fix. */
-          if(_landed&&_ufa&&_ufa.faints&&!m.fainted){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
+          if(_landed&&_ufa&&_ufa.faints&&!m.fainted){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
         }
         /* 2026-08-12 -- AND THE MOVE SAYS SO WHEN THE SEALER WAS THE WHOLE MOVE AND IT REFUSED.
          *
@@ -16953,8 +17004,8 @@ function battleTurn(S,rng,actsForA,actsForB){
           * not-emitted list with the reason *"Pain Split is not modelled"*, which stopped being true
           * when the move was wired; see engine/derive_protocol_events.js. */
          if(TR){TR.sethp(t,'[from] move: '+a.mv,true);TR.sethp(m,'[from] move: '+a.mv,false);}
-         if(t.curHP<=0){t.curHP=0;t.fainted=true;if(TR)TR.faint(t);}
-         if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
+         if(t.curHP<=0){t.curHP=0;t.fainted=true,noteFaint(t);if(TR)TR.faint(t);}
+         if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}
         continue;
       }
       /* ROADMAP #139 -- COPYCAT. It does not have an effect of its own; it RE-USES the last move
@@ -17333,7 +17384,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* Showdown emits `|-start|X|Substitute` BEFORE the `|-damage|` that pays for it -- read off
            * a real battle.log -- which is why grantSubstitute() emits and this line follows it. */
           if(TR)TR.dmg(m);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true;m._sub=0;if(TR)TR.faint(m);}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);}
         } else mvFail(m);
         m._lastMove=a.mv;continue;
       }
@@ -17992,7 +18043,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             const dmg=Math.max(1,Math.floor(t.curHP/2));
             t.curHP=Math.max(0,t.curHP-dmg);
             if(TR)TR.dmg(t);
-            if(t.curHP<=0){t.fainted=true;if(t._sf)t._sf.fainted++;if(TR)TR.faint(t);}
+            if(t.curHP<=0){t.fainted=true,noteFaint(t);if(t._sf)t._sf.fainted++;if(TR)TR.faint(t);}
           } else if(TR)TR.imm(t);
         }
         m._lastMove=a.mv;continue;
@@ -18463,7 +18514,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              `clampIntRange` TRUNCS, so a 135 HP Gengar pays 67 and not 68. */
           m.curHP-=Math.max(1,Math.trunc(m.st.hp*+_ts.hasTypeCostFraction));
           if(TR)TR.dmg(m);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true;m._sub=0;if(TR)TR.faint(m);}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);}
         }
         MEDSEEN.curseGhost++;
         continue;
@@ -18511,7 +18562,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           grantSubstitute(m,a.mv);
           m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);
           if(TR)TR.dmg(m);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true;m._sub=0;if(TR)TR.faint(m);continue;}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);continue;}
         }
         const idx=own.indexOf(m);
         if(idx<0){mvFail(m);continue;}
@@ -19007,7 +19058,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            NO `-damage` BEFORE THE FAINT, unlike the `affect` branch's Memento site: the staged game
            reads `|move|p1a: Clefable|Healing Wish|p1a: Clefable` then `|faint|p1a: Clefable` with
            nothing between them. */
-        if(_hd.userFaints){m.curHP=0;m.fainted=true;MEDSEEN.healDescriptorFaint++;
+        if(_hd.userFaints){m.curHP=0;m.fainted=true,noteFaint(m);MEDSEEN.healDescriptorFaint++;
           if(TR)TR.faint(m);}
         continue;
       }
@@ -19954,7 +20005,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(refusesIndirect(m))return;
         m.curHP-=Math.floor(m.st.hp*+_cm.fraction);
         if(TR)TR.dmg(m,'[from] '+a.move.id);
-        if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
+        if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
       };
       /* ROADMAP #331 -- THE USER'S OWN FAINT IS QUEUED DURING THE MOVE AND ANNOUNCED AFTER IT, and
        * holding those two apart is the whole fix. `Pokemon#faint()` (sim/pokemon.ts:1587-1598) sets
@@ -20028,7 +20079,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       {
         const _ufA=TAGS.param('move',a.move.id,'userFaints');
         if(_ufA&&_ufA.faints==='always'&&!m.fainted){
-          m.curHP=0;m.fainted=true;_selfKOPending=true;MEDSEEN.selfKOAlwaysAboveTheHit++;}
+          m.curHP=0;m.fainted=true,noteFaint(m);_selfKOPending=true;MEDSEEN.selfKOAlwaysAboveTheHit++;}
       }
       /* ROADMAP #81 WIRE 1 -- STEP 1: THE SHIELD, HOISTED OUT OF THE DAMAGE LOOP AND ABOVE THE ROLL.
        *
@@ -20076,7 +20127,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_pc&&_pc.onContact&&mvMakesContact(a.move.id,m)&&!m.fainted){
             if(_pc.fraction){m.curHP-=Math.floor(m.st.hp/(+_pc.fraction));
               if(TR)TR.dmg(m,'[from] move: '+tg._protectMove,tg);
-              if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
+              if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}
             if(_pc.inflicts&&!m.fainted)applyStatus(m,CODE_OF_STATUS[_pc.inflicts]||_pc.inflicts);
             if(_pc.boosts&&m.boosts&&!m.fainted)for(const k in _pc.boosts){
               const _s=SD2ENG[k];if(_s&&m.boosts[_s]!=null){const _b0=m.boosts[_s];
@@ -20800,7 +20851,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         {const _ufd=TAGS.param('move',a.move.id,'userFaints');
          const _fdc=TAGS.param('move',a.move.id,'fixedDamage');
          if(_ufd&&_ufd.faints==='ifHit'&&_fdc&&_fdc.source==='myRemainingHP'&&!m.fainted){
-           m.curHP=0;m.fainted=true;_selfKOPending=true;MEDSEEN.selfKOAtDamageCallback++;}}
+           m.curHP=0;m.fainted=true,noteFaint(m);_selfKOPending=true;MEDSEEN.selfKOAtDamageCallback++;}}
         /* ROADMAP #81 WIRE 11 -- assigned after the HP moves, read by the `onFaintOnly` gate inside
          * `_damagingHit`. A `let` rather than a `const` at the assignment because the revert in
          * `tests/probe_red_demo.js` sets it to the OLD reading (`dmg >= tg.curHP`, taken before the
@@ -21301,7 +21352,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(_pun.fraction&&!m.fainted){
               m.curHP-=Math.floor(m.st.hp/(+_pun.fraction));
               if(TR)TR.dmg(m,'[from] ability: '+tg.ability,tg);
-              if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
+              if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
             }
             if(_pun.boosts&&m.boosts&&!m.fainted)for(const k in _pun.boosts){
               const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null){const _b0=m.boosts[_st];
@@ -21538,7 +21589,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * (battle-actions.ts:972). So a spread move that kills its first target still writes the
          * second target's `-damage` before the first one's `|faint|`. The STATE moves now, exactly as
          * it always did; only the announcement waits. */
-        if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;R.fainted=true;}
+        if(tg.curHP<=0){tg.curHP=0;tg.fainted=true,noteFaint(tg);R.fainted=true;}
         else R.hit=true;
       };
       /* STEP 7c -- runMoveEffects / selfDrops / secondaries (battle-actions.ts:1086-1101): everything
@@ -22783,7 +22834,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * 'Recoil' and not 'recoil'. Struggle's is a different string for a different reason; see the
          * maxhp block below. Routed through the one derivation rather than spelled here. */
         if(TR)TR.dmg(m,ATTR.from(ATTR.cond('Recoil')));
-        if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
+        if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}
       /* ROADMAP #139 -- THE OTHER RECOIL, AND IT IS A DIFFERENT CURRENCY. The block above reads
        * `mv.rc`, a share of the DAMAGE DEALT. Steel Beam and Struggle pay a share of the USER'S OWN
        * MAXIMUM instead, and the move table carries no `rc` for either -- so Steel Beam, a 140 base
@@ -22836,7 +22887,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           * {fraction, of:'maxhp'}` is identical on both rows -- and the authority separates them with
           * a switch on the id, so this does the same rather than inventing a third rule. */
          if(TR)TR.dmg(m,ATTR.from(ATTR.cond(a.move.id==='struggle'?'recoil':a.move.id)));
-         if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}}
+         if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}}
       /* WIRE 19 -- DRAIN, the exact mirror of the recoil line above and absent entirely. 8,553 corpus
        * clicks: Matcha Gotcha 4,957, Giga Drain 1,255, Drain Punch 916, Draining Kiss 814. The damage
        * landed and the heal was simply never applied -- `dealt 51 to the foe; user 85 -> 85 hp` -- so
@@ -23020,7 +23071,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           let _loName=(_loRec&&_loRec.name)||'';
           if(!_loName){ MEDFAILS.orbLabelNoName++; _loName=String(m.item); }
           if(TR)TR.dmg(m,'[from] item: '+_loName);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}
       }
       /* ROADMAP #175 -- MAGICIAN. The `takesFrom:'target'` HALF of `stealsItem`.
        *
@@ -23166,7 +23217,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* `|faint|` ALONE -- see the twin site in the `affect` branch. `battle.faint()` reaches
            `sim/pokemon.ts:1587`, which sets hp to 0 and emits nothing; `faintMessages` writes the one
            line. A `-damage` here parted the two streams on all five members of the family. */
-        if(_uf&&_uf.faints&&(_uf.faints==='always'||dealt>0)&&!m.fainted){m.curHP=0;m.fainted=true;
+        if(_uf&&_uf.faints&&(_uf.faints==='always'||dealt>0)&&!m.fainted){m.curHP=0;m.fainted=true,noteFaint(m);
           if(TR)TR.faint(m);}
         /* ROADMAP #331 -- THE BACKSTOP, AND IT IS NOT DEAD CODE. `_stepFaint` drains the pending
          * self-KO line, and a hit a SUBSTITUTE ate returns out of `_stepApply` before it, so the
@@ -23648,7 +23699,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            m.curHP-=Math.floor(m.st.hp/_dn);
            MEDSEEN.weatherAbilityChip++;
            if(TR)TR.dmg(m,'[from] ability: '+m.ability);
-           if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
+           if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
          }
        }}
       /* WIRE 154 -- WISH PAYS OUT HERE, AND THE POSITION IN THE RESIDUAL IS THE AUTHORITY'S.
@@ -23692,7 +23743,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              m.curHP=Math.max(0,m.curHP-_dm);
              MEDSEEN.delayedHitLanded++;
              if(TR)TR.dmg(m);
-             if(m.curHP<=0){m.fainted=true;if(TR)TR.faint(m);}
+             if(m.curHP<=0){m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
            }
          } else MEDSEEN.delayedHitWasted++;
        }}
@@ -23958,7 +24009,7 @@ function battleTurn(S,rng,actsForA,actsForB){
               TR.dmg(m,_ta,null,'[partiallytrapped]');}}
           if(--m._trap.turns<=0){const _tmv=m._trap.mv;m._trap=null;
             if(TR)TR.vend(m,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');}
-          if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
         }
       }
       /* ROADMAP #175 -- A REFUSED SEED PAYS THE SEEDER NOTHING, and that is the half a careless gate
@@ -24117,7 +24168,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the old call site) waited a full turn to eat. `residualBerryAteOffOldSlot` counts exactly that
        * case -- a berry eaten in a group other than the one the old fixed call sat in -- so the change
        * proves it fired instead of being asserted. */
-      if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);}
+      if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
     }
     /* 2026-08-22 -- `eachEvent('Update')` HAS EXACTLY TWO POSITIONS IN THE AUTHORITY'S TURN END, AND
      * "AFTER EVERY GROUP" IS NEITHER OF THEM. See `residualUpdatePass` for the derivation; this is
@@ -24223,7 +24274,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          means no clock ever ran, `perishKO` at zero with `perishTicked` non-zero means the clock ran
          and nothing ever died at the end of it. Both are in tests/test-wiring.js. */
       if(x._perish!=null){x._perish--;MEDSEEN.perishTicked++;if(TR)TR.vstart(x,'perish'+x._perish);
-        if(x._perish<=0){x.fainted=true;x.curHP=0;MEDSEEN.perishKO++;if(TR){TR.dmg(x);TR.faint(x);}}}
+        if(x._perish<=0){x.fainted=true,noteFaint(x);x.curHP=0;MEDSEEN.perishKO++;if(TR){TR.dmg(x);TR.faint(x);}}}
       if(x._yawn!=null){x._yawn--;if(x._yawn<=0){x._yawn=null;if(TR)TR.vend(x,'move: Yawn');if(!x.status)applyStatus(x,'slp');}}
       /* Heal Block ticks with the other clocks. It is applied as `turns + 1` because this tick fires
        * on the application turn too — the same convention as Encore's lock two blocks down. */
@@ -24478,6 +24529,15 @@ function battleTurn(S,rng,actsForA,actsForB){
 function battleResult(S){
   const aA=_live(S.actA).length+_live(S.benchA).length,bA=_live(S.actB).length+_live(S.benchB).length;
   if(aA!==bA)return aA>bA?1:0;
+  /* WIRE 160 -- BOTH SIDES EMPTY IS NOT A TIE. sim/battle.ts:2603 awards it to the side of the body
+     that fainted LAST, which is why every faint site stamps a sequence -- see `noteFaint` above
+     battleInit. The HP fraction below is the HORIZON rule and is deliberately untouched: it answers
+     a TRUNCATED rollout in which both sides still have bodies, which is a different question. */
+  if(aA===0&&bA===0){
+    const la=lastFaintSeq([...S.actA,...S.benchA]),lb=lastFaintSeq([...S.actB,...S.benchB]);
+    if(la!==lb){MEDSEEN.doubleWipeDecidedByLastFaint++;return la>lb?1:0;}
+    MEDFAILS.doubleWipeNoFaintOrder++;return 0.5;
+  }
   const hp=(a,b)=>[...a,...b].reduce((s,m)=>s+(m?Math.max(0,m.curHP)/m.st.hp:0),0);
   const ha=hp(S.actA,S.benchA),hb=hp(S.actB,S.benchB);return ha>hb?1:(ha<hb?0:0.5);
 }

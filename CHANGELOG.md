@@ -10,6 +10,63 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.78.0] — 2026-08-23
+
+### Fixed
+- **THE WIN RULE — a simultaneous double wipe is not a draw.** Showdown's `checkWin`
+  (`sim/battle.ts:2603`) reads `this.win(faintData && this.gen > 4 ? faintData.target.side : null)`:
+  in Gen 5+ **the side whose body fainted LAST wins.** medicham2's `battleResult` scored 0-vs-0 as
+  `0.5`. Landed as WIRE 160 — `noteFaint` at all 26 faint sites plus a last-fainted tie-break in
+  `battleResult`. Releases `7da11c1d4d10` → **`c66976713feb`**.
+  - **`w3-simultaneous` now reads WINNER AGREES, with its id kept and no longer KNOWN-OPEN.**
+    `tests/probe_selfdestruct_winner.js`: **3 boards / 1 KNOWN-OPEN / 0 failing → 5 boards / 0
+    KNOWN-OPEN / 0 failing.** All three tied boards are RED PROVEN under WIRE 160's own surgical
+    revert — they fall back to `draw` — and `w1`/`w2` are UNTIED over-fire controls that do not move
+    under that same revert.
+- **WILL'S PERISH SONG CLAIM HOLDS, AND IT WAS DERIVED RATHER THAN TAKEN.** His words: *"similar to
+  perish song where all mons on the field faint on the same turn with nothing in the back, the slowest
+  mon wins."* `perishsong.condition` is `duration: 4`, `onResidualOrder: 24`, `onEnd(t){ t.faint() }`;
+  `fieldEvent('Residual')` speed-sorts its handlers (`comparePriority`, `sim/battle.ts:404` — order
+  ASC, priority DESC, **SPEED DESC**) **before** decrementing durations, so the fastest counter expires
+  first and the slowest last, and `checkWin` awards the win to the last faint. Staged raw in the
+  official simulator: **Gengar 130 → Politoed 90 → Primarina 80 → Azumarill 70**, winner Azumarill's
+  side; the same eight bodies with sides exchanged flips the answer.
+  - **It is the better fixture, which is why it now carries the fix.** No damage roll can quietly turn
+    a Perish Song wipe into a sequential one, so `w4-perish-slowest-on-p1` and `w5-perish-slowest-on-p2`
+    are a varied-knob pair that cannot degrade into a different scenario the way an Explosion board can.
+
+### Notes
+- **TWO PROBE ERRORS PRECEDED THE ENGINE ERROR, AND THE FIRST WOULD HAVE SHIPPED A GREEN LIE.**
+  `mediVerdict` re-implemented the win rule itself, on a false claim in its own header that
+  `battleResult` is not exported — so **it would have gone GREEN while the engine went on answering 0.5
+  to every rollout.** The second: the loud-fallback check read a `MEDFAILS` counter out of a
+  `MEDSEEN`-only delta, comparing `undefined` against 0, so it could never go red. That is the fifth
+  pass in two days where the instrument was wrong before the engine was.
+- **THE 0.5 WAS HIDING THE PREVIOUS PASS'S RESULT.** With a working win rule, `w3` now reports the
+  winner as DIFFERENT under the 2026-08-22 self-KO revert — meaning that fix has a **winner-level**
+  consequence which was invisible while every tie scored 0.5. A defect can conceal the evidence for the
+  fix that preceded it.
+- **Ripple, found by derivation rather than from a named list:** stamping `noteFaint` broke the
+  surgical-revert anchor in four other files. All four updated and re-run —
+  `tests/test-resolution-order.js` 26 arms / 1 KNOWN-OPEN / 0 failing,
+  `tests/test-perish-song.js --break-the-faint` still turns both rows red, `probe_red_demo.js`'s FROM
+  anchor resolves exactly once, `tests/test-battle-api.js` 8/8.
+- **Census is 630 live / 0 missing, UNCHANGED — and that is asserted, not assumed:**
+  `tests/test-mechanics.js` calls neither `battleResult` nor `battle()`, so it cannot move on this
+  change. It has **not** been regenerated, because that run is heavy and the machine was in use.
+- **Batch 2 — grouping the 33 announce-failure divergences — was NOT started**, because it needs the
+  1,200-game differential and heavy runs were banned while Will was using the machine. Nothing about
+  that class is claimed here.
+- **OWED, NOT RUN**, and deliberately listed as commands rather than described:
+  `node tests/test-mechanics.js`; `node engine/status.js`; `node tests/run-all.js`;
+  `node engine/status.js --write`; then, pinned three ways or it is not a comparison,
+  `node engine/game_differential.js --games 777 --release c66976713feb --census data/gate-census.pin.json --team-store data/team-pool-frozen`
+  followed by `node engine/gate_fail_and_silent.js`.
+- Bookkeeping: `docs/ENGINE.md`'s WIRE 160 section landed in the preceding commit alongside the runner
+  fix rather than with this one. Recorded rather than rewritten.
+
+---
+
 ## [5.77.0] — 2026-08-23
 
 ### Fixed

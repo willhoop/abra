@@ -2968,8 +2968,8 @@ demoSource('ROADMAP #81 WIRE 12  the substitute doll is a rounded-DOWN quarter',
 demoSource('ROADMAP #81 WIRE 7  the Substitute -start precedes the -damage that pays for it',
   /* ROADMAP #81 WIRE 12 -- the reversal text follows the cost line's rounding, which is now read
      from `costsUserHP.rounds` rather than hard-floored. Nothing about the ORDER claim changed. */
-  [['grantSubstitute(m,a.mv||a.move.id);\n          m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n          if(TR)TR.dmg(m);\n          if(m.curHP<=0){m.curHP=0;m.fainted=true;m._sub=0;if(TR)TR.faint(m);continue;}',
-    'm.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n          if(TR)TR.dmg(m);\n          if(m.curHP<=0){m.curHP=0;m.fainted=true;if(TR)TR.faint(m);continue;}\n          grantSubstitute(m,a.mv||a.move.id);']],
+  [['grantSubstitute(m,a.mv||a.move.id);\n          m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n          if(TR)TR.dmg(m);\n          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);continue;}',
+    'm.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n          if(TR)TR.dmg(m);\n          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);continue;}\n          grantSubstitute(m,a.mv||a.move.id);']],
   (E) => {
     const { me, ally, f1, f2, S } = W7.board(E, 'garchomp', 'incineroar', 'garchomp', 'garchomp');
     const trace = []; S._trace = trace;

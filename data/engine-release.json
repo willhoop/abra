@@ -1,10 +1,10 @@
 {
-  "current": "7da11c1d4d10",
-  "cut": "2026-08-23T00:31:27.771Z",
+  "current": "c66976713feb",
+  "cut": "2026-08-23T01:59:33.986Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 2,
-  "latest_cut": "2026-08-23T00:32:11.034Z",
-  "latest_why": "ENGINE: selfdestruct always faints above the hit (ROADMAP #331 second half)",
-  "pointer_written": "2026-08-23T00:32:11.046Z",
+  "cuts": 4,
+  "latest_cut": "2026-08-23T02:03:27.699Z",
+  "latest_why": "\"WIRE",
+  "pointer_written": "2026-08-23T02:03:27.717Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
