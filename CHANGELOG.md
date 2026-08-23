@@ -10,6 +10,41 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.97.0] — 2026-08-23
+
+### Added
+- **THE QUARANTINE BAR NOW HAS A DENOMINATOR.** Will's bar for MEDICHAM is board-material zero, and the
+  run that produced the standing 82 whole-game divergences was **protocol-only** (`state_mode: false`,
+  `end_state: null`) — it compared no boards at all. `engine/game_differential.js`'s
+  `endStateSummary()` now emits **`by_cause`**: one row per divergence cause carrying `board_parted`
+  (a compared board leaf differed at some turn boundary), `narration_games` (every boundary agreed AND
+  the last boards agree) and `unknown_games` (ended apart / no comparable board / threw — counted in
+  neither half), plus how tight the attribution is (`board_parted_same_turn` / `later` / `earlier`).
+  Both inputs already existed on the row; this is a JOIN, not a new measurement, and
+  `by_cause_reconciles` asserts the three columns sum to the parted population exactly.
+
+### Notes
+- **BOARD-MATERIAL, ENGINE: 27 games.** Release `3d9df7ce4996`, team store `data/team-pool-frozen`,
+  census pinned to `data/verification/census-pin-9446a684709d.json` (`pinned: true`, 643 rows), 961
+  games. Middle arm: **78 parted, 36 board-material, 42 narration-only, 0 unknown**; minus 9 measured
+  as the INSTRUMENT (Moody 8, `??:farigiraf` 1) leaves **27 in 25 causes and 20 mechanisms**. Same
+  figure per arm: middle 27, top-tie-first 23, bottom-tie-first 23. Full account:
+  `docs/_reports/2026-08-23-board-materiality.md`.
+- **RE-BASELINE, NOT A BEFORE/AFTER.** The engine, the census (634 → 643 rows, and the census SELECTS
+  the sample) and the stop rule all moved. 78 is not 82 minus 4.
+- **SUCKER PUNCH LANDS ON A TARGET THAT HAS ALREADY MOVED** — 4 games, all three arms, all attributed
+  same-turn, and two of them KO the target. The authority's `onTry` opens
+  `this.queue.willMove(target)` (`data/moves.ts:18399-18404`), which walks the REMAINING queue
+  (`sim/battle-queue.ts:319-327`); `engine/medicham2-browser.js:20289` searches the whole turn's action
+  list instead. **Measured and deliberately NOT fixed** — a fix landing mid-measurement is what voided
+  a 7,100-game run once. Second new defect: **Rage Fist deals a third of the authority's damage**.
+- **Moody is the instrument, and the ARMS prove it**: 8 games in `middle`, zero in either corner. A rule
+  defect appears in all three arms; an unshared `sample()` appears only where the dice are real.
+- **27 is a LOWER BOUND.** The run's planted-state proof did not pass (7 volatile plants applied and not
+  caught, 6 bench plants not applied), it is pre-existing and fixture-shaped, and the direction is
+  one-way: under-sensitivity can only over-call NARRATION. No verdict here rests on an unproven leaf.
+- **The narration gate does not exist yet**, and this run produces the number it would ratchet.
+
 ## [5.96.0] — 2026-08-23
 
 ### Fixed

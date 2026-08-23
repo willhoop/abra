@@ -82,9 +82,152 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 06:01_
+_stamped 2026-08-23 06:30_
 
 <!-- /GENERATED -->
+
+## BOARD-MATERIAL IS 27 GAMES, NOT 78, AND THE SINGLE BIGGEST ONE IS SUCKER PUNCH LANDING ON A BODY THAT HAS ALREADY MOVED. 2026-08-23.
+
+**Nothing in `engine/medicham2-browser.js` changed.** This is a MEASUREMENT pass: the quarantine bar is
+board-material zero and **the run that produced the standing 82 compared no boards at all**
+(`state_mode: false`, `end_state: null`), so the bar had no denominator. It has one now. Full account:
+`docs/_reports/2026-08-23-board-materiality.md`.
+
+**THE PINS, all three, read back out of the artifact.** Release `3d9df7ce4996` (cut from this tree),
+`steering.team_store_pinned_to = data/team-pool-frozen` (pool `0d103fb9fa87`), census
+`data/verification/census-pin-9446a684709d.json` digest `9446a684709d` with **`pinned: true`**, 643 rows.
+`--games 1200` yields **961** — the frozen pool's size, stated by the run.
+
+**RE-BASELINE, NOT A BEFORE/AFTER, AND IT IS SAID FIRST RATHER THAN CAVEATED LAST.** The engine moved
+(the damage-harness pass), the census moved (634 to 643 rows, and the census SELECTS the sample), and the
+stop rule moved (`--end-state` plays past the first divergence, so coverage credit accrues differently
+and later clicks differ). **The middle arm reads 78 parted of 961. Do not subtract it from 82.**
+
+**THE INSTRUMENT GAINED A JOIN, NOT A MEASUREMENT.** `end_state.by_shape` cross-tabs five shapes and the
+question is asked of ~30 mechanisms, which is why the prior grouping had to mark 20 of 31 UNKNOWN:
+nothing put a CAUSE and a BOARD VERDICT on the same row. `endStateSummary()` now emits `by_cause` —
+`board_parted` (`stateDiv !== null`) is BOARD-MATERIAL, no boundary ever differing **and** identical last
+boards is NARRATION-ONLY, and ENDED-APART / NO-COMPARABLE-BOARD / THREW stays UNKNOWN and enters neither
+half. Both inputs already existed on the row. `by_cause_reconciles` asserts the three columns sum to the
+parted population and reads `true`.
+
+**THE ANSWER (middle arm, raw parted, never `diverged − declared`):**
+
+```
+  78 parted     36 BOARD-MATERIAL     42 NARRATION-ONLY     0 UNKNOWN
+  minus 9 INSTRUMENT (Moody 8, ??:farigiraf 1)
+  ---------------------------------------------------------------
+  ENGINE BOARD-MATERIAL = 27 games, 25 causes, 20 mechanisms
+```
+
+Per arm, never pooled: **middle 27, top-tie-first 23, bottom-tie-first 23.**
+
+**MOODY IS THE INSTRUMENT AND THE ARMS PROVE IT RATHER THAN THE ARGUMENT.** 8 games in `middle` and
+**zero in either corner** — a rule defect shows in all three arms, an unshared `sample()` shows only
+where the dice are real. All 8 are CARDED with `[from] ability: moody` on the medicham line; nothing is
+inferred from shape, unlike the two rows the prior grouping had to mark inferred.
+
+**SUCKER PUNCH IS THE FINDING. FOUR GAMES, ALL SAME-TURN, ALL THREE ARMS, AND TWO OF THEM KILL SOMETHING.**
+The authority's `onTry` opens `const action = this.queue.willMove(target)`
+(`data/moves.ts:18399-18404`), and `willMove` walks `this.queue.list` — the REMAINING queue
+(`sim/battle-queue.ts:319-327`) — so a target that has **already moved this turn** returns `null` and the
+move fails. `engine/medicham2-browser.js:20289` answers the same question with
+`acts.find(x => x.mon === _tgt)` over the whole turn's action list, which still holds actions that have
+executed. ROADMAP #60 and #180 closed the other two clauses of that same `if`; this is the clause on the
+line above them. Champions does not override `suckerpunch`. Two of the four cards read
+`|-fail|<mover>` against our `-damage|...|0 fnt`.
+
+**A SILENT BOARD DIVERGENCE WITH NO PROTOCOL DIVERGENCE AT ALL, AND IT IS OURS.** One game parts on
+`p2.party.garchomp.{hp,maxhp,item,boosts}` with `protocol_diverged_at_turn: null`. The run reports
+`reader_failures = { duplicate_species_in_party: 40, first: "garchomp" }` and the party projection is
+keyed by species. Excluded from the 27 and named here, because a board divergence the protocol cannot see
+is the shape this whole instrument exists to catch.
+
+**NINE GAMES PART ON A BOARD AND RECONVERGE BY THE LAST BOUNDARY** — 36 board-material against 27
+DIFFERENT-END-STATE. The boundary test is the stricter one and is the one the count above uses, which is
+the right direction for a bar of zero.
+
+**A FREE DETERMINISM CONTROL.** The run was executed twice on identical pins. 961/961 games, 78/78
+parted, 36/36 board-material, 42/42 narration, and the two per-cause tables are **string-identical**.
+
+### THE HAND LIST
+
+**Added, MEASURED this pass and NOT fixed** (scope was measure-and-report; a fix landing mid-measurement
+is what voided a 7,100-game run once):
+
+- **Sucker Punch's third clause — the target must still be IN THE QUEUE.** 4 games, all three arms, 2
+  KOs. Site and citation above. Highest-value single fix in the table.
+- **Rage Fist deals a third of the authority's damage.** Annihilape into Avalugg-Hisui: `1/170` against
+  our `57/170`. **NEW — not among the 31 mechanisms of the prior grouping.**
+- **Forecast never fires** (2 games; the forme carries a different TYPE, so `active[].species` and
+  `active[].types` both part at turn 1). **Symbiosis never fires** (1; two `party.item` leaves).
+- **Future Sight's delayed damage is off by 1-2 HP** (2, both same-turn).
+- Six more one-game board-material rows with cards: Disable applied where the authority fails it, a
+  sleeping body waking early, a flinch that fires only here, a screen ending through a type immunity, a
+  spurious second `-activate item: sitrusberry`, a switch against a recharge refusal.
+- **Four board-material causes have no card** (a wrong body damaged, a spread order, a mega
+  `detailschange` order, one switch order). `--dump-games` was 200 and they fell outside it.
+
+**Measured as NOT the engine, and left alone:** Moody (8, instrument), `??:farigiraf` (1, the run's own
+declared `trace_body_off_field = 10`), the duplicate-species reader failure (1), and the three exact
+speed ties — which are **narration-only on the board as well**, 0 of 3 board-material.
+
+### OWED, NOT RUN
+
+**Nothing below was run in this pass.**
+
+```
+node tests/test-mechanics.js       # NOT run — the census was PINNED for this measurement and
+                                   #   regenerating it mid-run is the hazard the pin exists for.
+                                   #   Census unchanged: 643/643 live, 0 missing, digest 9446a684709d
+node tests/run-all.js              # NOT run
+tools\lownode.cmd engine\quarantine.js   # NOT run
+node engine/status.js --write      # run at the end of this pass
+```
+
+- **THE NARRATION GATE DOES NOT EXIST YET.** Will's call is board-material now, narration as its own gate
+  afterwards. This run produces the narration count (42 games / 38 causes, middle arm) and **nothing
+  ratchets it**, so it can grow silently. A gate, not a backlog line.
+- **The run's planted-state proof did not pass and the driver exits 1.** 6 bench plants NOT APPLIED
+  (fixture) and **7 applied-and-not-caught** (taunt, encore, perish, magnet rise, focus energy, salt
+  cure, syrup bomb, all side B). It is pre-existing and fixture-shaped — three earlier end-state
+  artifacts fail the same proof with *different* sets, one of them the exact complement — and the
+  direction is one-way: an uncaught plant is UNDER-sensitivity, which can only over-call NARRATION.
+  **So 27 is a lower bound.** No verdict here rests on an unproven leaf: every leaf that decided a board
+  divergence in this run (hp, item, boosts, status, species, types, ability, screens, pp, `vol.charging`,
+  `vol.trapped`, `vol.disable`) had its plant CAUGHT+LOCALISED in this same run.
+- **NARRATION-ONLY is bounded by `end_state_not_compared`** (8 entries, published with the artifact) and
+  by the 12-turn cap. It directly touches the two Substitute rows and the Syrup Bomb row.
+- **A NARRATION LABEL IS ABOUT THE GAMES PLAYED, NOT THE MECHANIC.** Regenerator's `[silent]` heal reads
+  narration here because the card shows the body at `170/170` — the heal healed nothing. On a damaged
+  body it would part the board.
+- **`switch lookups that MISSED: medicham 16`** (must read 0) and `forced_switch_unmirrorable 12`, both
+  arising after two boards have parted. They do not touch the boundary verdict; they do shape the
+  end-state column.
+
+**PROPOSED REGISTER ROW** (not written — `docs/ROADMAP.md` is not this division's to edit):
+*"SUCKER PUNCH LANDS ON A TARGET THAT HAS ALREADY MOVED. `data/moves.ts:18399-18404` opens
+`const action = this.queue.willMove(target)`, and `sim/battle-queue.ts:319-327` walks the REMAINING
+queue — so a target that has already acted this turn yields `null` and the move fails.
+`engine/medicham2-browser.js:20289` asks `acts.find(x => x.mon === _tgt)` over the whole turn's action
+list, which still contains executed actions, so the condition passes and the move connects. Four
+whole-game divergences on release `3d9df7ce4996`, in ALL THREE arms, all attributed same-turn, and TWO OF
+THEM KO the target (`|-fail|<mover>` against our `-damage|...|0 fnt`). ROADMAP #60 and #180 closed the
+priority and `mustrecharge` clauses of this same `if`; this is the line above them and it is unmodelled.
+Champions does not override `suckerpunch`. Expect BOTH scoreboards to move — Sucker Punch is 6,802 corpus
+uses and this is the pinned pool, not the lab."*
+
+**PROPOSED UPDATES TO TWO EXISTING ROWS, since both say in terms that the board-material split is
+unmeasured:** **#396** — *"ANSWERED 2026-08-23 by ENGINE on release `3d9df7ce4996` with all three pins
+and `--end-state`: the split is 36 board-material / 42 narration-only / 0 unknown of 78 parted, and 27
+after the instrument is removed. It is a RE-BASELINE and not a delta against the 82."* **#398** — *"THE
+ZERO-MAGNITUDE BOOST FAMILY IS NARRATION-ONLY, MEASURED: 5 games, no board boundary differs and the last
+boards agree. The row's own request for a verdict is satisfied; the emission is still owed."*
+
+**A SECOND PROPOSED ROW:** *"RAGE FIST DEALS A THIRD OF THE AUTHORITY'S DAMAGE. Annihilape into
+Avalugg-Hisui, whole-game differential release `3d9df7ce4996`: `|-damage|p2a: Avalugg|1/170` against our
+`57/170` — 84 versus 28 — attributed same-turn, board-material. Not among the 31 mechanisms of the
+2026-08-23 grouping; found by the first run that compared boards."*
 
 ## THE LAST 41 DAMAGE ROWS WERE THE RULER SIX TIMES OVER, AND FIXING IT UNCOVERED A REAL DEFECT THAT HAD BEEN SCORING AS AGREEMENT. 2026-08-23.
 

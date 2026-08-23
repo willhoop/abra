@@ -5420,6 +5420,71 @@ function endStateSummary(rows, opts) {
     if (x.v !== 'DIFFERENT-END-STATE') continue;
     for (const f of new Set((x.r.finalBoard.diffs || []).map(d => BS.family(d.path)))) fam.set(f, (fam.get(f) || 0) + 1);
   }
+  /* ---- BOARD-MATERIALITY PER CAUSE (2026-08-23, ENGINE) -----------------------------------------
+   *
+   * THE CROSS-TAB ABOVE IS PER SHAPE AND THE SHAPES ARE FIVE. The question Will's quarantine bar is
+   * defined on — "how many divergences change a BOARD" — is asked of a MECHANISM, and the 82 whole-game
+   * divergences of 2026-08-23 collapsed to 31 of them. Five buckets cannot carry 31 answers, so
+   * `docs/_reports/2026-08-23-wholegame-77-grouped.md` had to mark 20 of 31 UNKNOWN: the artifact
+   * simply had no place where a CAUSE and a BOARD VERDICT sat on the same row.
+   *
+   * THE VERDICT IS THE BOARD COMPARATOR'S, NEVER A JUDGEMENT ABOUT THE LINE. Three columns, and the
+   * middle one is the load-bearing one:
+   *
+   *   board_parted            r.stateDiv !== null — a leaf board_state.js compares differed at some
+   *                           turn boundary. BOARD-MATERIAL, measured.
+   *   board_never_parted      + SAME-END-STATE: every compared boundary agreed AND the last boards
+   *                           agree. NARRATION-ONLY, measured — and bounded by BS.NOT_COMPARED, which
+   *                           ships with this artifact, and by the turn cap.
+   *   anything else           ENDED-APART / NO-COMPARABLE-BOARD / THREW: no comparison was made.
+   *                           UNKNOWN, and it must stay UNKNOWN rather than fall into either half.
+   *
+   * IT IS NOT A NEW MEASUREMENT. Both fields already existed on the row (`stateDiv` from the state
+   * differential, the verdict from `endStateVerdict`); this only puts them next to the cause string so
+   * the join stops being a hand-classification. `by_cause_reconciles` asserts the tally covers exactly
+   * the parted population — a grouping that silently drops rows is how a cause list flatters itself. */
+  const byCause = new Map();
+  for (const x of parted) {
+    const cause = x.cls ? x.cls.cause : '(unclassified)';
+    const e = byCause.get(cause) || { cause, games: 0,
+      board_parted: 0, board_never_parted: 0,
+      verdicts: Object.fromEntries(END_STATE_VERDICTS.map(v => [v, 0])),
+      narration_games: 0, unknown_games: 0,
+      /* HOW TIGHT THE ATTRIBUTION IS, AND IT IS NOT THE SAME CLAIM IN EACH COLUMN. This table joins a
+       * CAUSE to a BOARD at GAME level: it says the game whose narration first parted here also parted
+       * on a board. Same turn is the tight case. LATER is weaker — after two battles part they take
+       * different actions, so a board that moves five turns on is not proven to be this cause's doing.
+       * EARLIER means the board was already wrong before the narration said anything, so the named
+       * cause is a symptom and not the earliest evidence. Printed per cause rather than pooled,
+       * because a reader deciding what to fix needs to know which of the three he is looking at. */
+      board_parted_same_turn: 0, board_parted_later: 0, board_parted_earlier: 0,
+      materiality: null, first_board_divergence_turns: [] };
+    e.games++;
+    e.verdicts[x.v]++;
+    if (x.r.stateDiv) { e.board_parted++; e.first_board_divergence_turns.push(x.r.stateDiv.turn);
+      const dt = x.r.divTurn;
+      if (dt == null || x.r.stateDiv.turn === dt) e.board_parted_same_turn++;
+      else if (x.r.stateDiv.turn > dt) e.board_parted_later++;
+      else e.board_parted_earlier++; }
+    else {
+      e.board_never_parted++;
+      /* THE PER-GAME LABEL, DECIDED ON THE GAME AND NOT ON THE ROW'S TOTALS. A cause whose games split
+       * three ways cannot be labelled by arithmetic over aggregates — that was this block's first
+       * version and it would have called a mixed row narration whenever the counts happened to line
+       * up. Every board boundary agreed AND the two last boards agree, or it is UNKNOWN. */
+      if (x.v === 'SAME-END-STATE') e.narration_games++; else e.unknown_games++;
+    }
+    byCause.set(cause, e);
+  }
+  for (const e of byCause.values()) {
+    /* A CAUSE IS ONE ROW AND ITS GAMES NEED NOT AGREE. The label is the STRONGEST thing measured on
+     * it: one board-material game makes the cause board-material, because the mechanic demonstrably
+     * can move a board. NARRATION-ONLY needs every game to have been compared and to have agreed. */
+    e.materiality = e.board_parted ? 'BOARD-MATERIAL'
+      : (e.narration_games === e.games ? 'NARRATION-ONLY' : 'UNKNOWN');
+    e.first_board_divergence_turns = e.first_board_divergence_turns.sort((a, b) => a - b).slice(0, 6);
+  }
+  const byCauseRows = [...byCause.values()].sort((a, b) => b.games - a.games);
   const endReasons = new Map();
   for (const x of rowsWith) endReasons.set(x.r.endReason || '(none)', (endReasons.get(x.r.endReason || '(none)') || 0) + 1);
   const pctOf = (n, d) => (d ? +(n / d).toFixed(4) : null);
@@ -5522,6 +5587,28 @@ function endStateSummary(rows, opts) {
     wording_rate_of_parted_games_with_a_comparable_end: pctOf(tally(parted)['SAME-END-STATE'], comparable.length),
     parted_games_with_a_comparable_end: comparable.length,
     by_shape: [...byShape.values()].sort((a, b) => b.games - a.games),
+    /* ---- THE BOARD-MATERIALITY TABLE, PER CAUSE. See the block that builds it. ------------------ */
+    by_cause: byCauseRows,
+    by_cause_totals: {
+      causes: byCauseRows.length,
+      games: byCauseRows.reduce((a, e) => a + e.games, 0),
+      BOARD_MATERIAL: byCauseRows.filter(e => e.materiality === 'BOARD-MATERIAL').length,
+      NARRATION_ONLY: byCauseRows.filter(e => e.materiality === 'NARRATION-ONLY').length,
+      UNKNOWN: byCauseRows.filter(e => e.materiality === 'UNKNOWN').length,
+      games_board_material: byCauseRows.reduce((a, e) => a + e.board_parted, 0),
+      games_board_material_same_turn: byCauseRows.reduce((a, e) => a + e.board_parted_same_turn, 0),
+      games_board_material_board_parted_later: byCauseRows.reduce((a, e) => a + e.board_parted_later, 0),
+      games_board_material_board_parted_earlier: byCauseRows.reduce((a, e) => a + e.board_parted_earlier, 0),
+      games_narration_only: byCauseRows.reduce((a, e) => a + e.narration_games, 0),
+      games_unknown: byCauseRows.reduce((a, e) => a + e.unknown_games, 0),
+      /* THE RECEIPT. The three game columns must add to the parted population exactly; a grouping
+       * that drops a row is a cause list flattering itself, and it would do it silently. */
+      by_cause_reconciles: byCauseRows.reduce((a, e) => a + e.games, 0) === parted.length
+        && byCauseRows.reduce((a, e) => a + e.board_parted + e.narration_games + e.unknown_games, 0) === parted.length,
+      bounded_by: 'NARRATION-ONLY is bounded by board_state.js NOT_COMPARED (published in this '
+                + 'artifact as end_state_not_compared) and by the turn cap: a board that would part '
+                + 'after the cap reads as narration here.',
+    },
     end_state_families: [...fam.entries()].sort((a, b) => b[1] - a[1]).map(([family, games]) => ({ family, games })),
     end_reasons: [...endReasons.entries()].sort((a, b) => b[1] - a[1]).map(([reason, games]) => ({ reason, games })),
     /* ---- THE SEVERITY LADDER, over the DIFFERENT-END-STATE games only ---------------------------- */
@@ -6169,6 +6256,32 @@ if (END_STATE) {
       + String(b.verdicts['ENDED-APART']).padStart(14) + String(b.verdicts['THREW']).padStart(8)
       + '   ' + pcs(b.verdicts['SAME-END-STATE'], b.games) + ' wording');
     console.log('');
+    /* ---- BOARD-MATERIALITY PER CAUSE — the number the quarantine bar is defined on --------------- */
+    if (s.by_cause_totals) {
+      const T = s.by_cause_totals;
+      console.log('      BOARD-MATERIAL OR NARRATION, PER CAUSE — the quarantine bar is board-material');
+      console.log('      ZERO, so this is the table it is read off. A verdict here is the BOARD');
+      console.log('      COMPARATOR\'s, never a judgement that a line looks cosmetic.');
+      console.log('        BOARD-MATERIAL ' + String(T.BOARD_MATERIAL).padStart(4) + ' causes, '
+        + T.games_board_material + ' games   (a compared board leaf differed at some turn boundary)');
+      console.log('        NARRATION-ONLY ' + String(T.NARRATION_ONLY).padStart(4) + ' causes, '
+        + T.games_narration_only + ' games   (every boundary agreed AND the last boards agree)');
+      console.log('        UNKNOWN        ' + String(T.UNKNOWN).padStart(4) + ' causes, '
+        + T.games_unknown + ' games   (ended apart / no comparable board / threw — NOT counted either way)');
+      console.log('        reconciles with the parted population: ' + (T.by_cause_reconciles ? 'yes' : 'NO — THE TABLE DROPPED ROWS'));
+      const mat = s.by_cause.filter(c => c.materiality === 'BOARD-MATERIAL');
+      if (mat.length) {
+        console.log('        of those games the board parted on the SAME turn as the narration in '
+          + T.games_board_material_same_turn + ', LATER in ' + T.games_board_material_board_parted_later
+          + ' (weaker — two parted battles take different actions), EARLIER in '
+          + T.games_board_material_board_parted_earlier + ' (the named cause is a symptom, not the first evidence)');
+        console.log('        every BOARD-MATERIAL cause, in full — this is the worklist:');
+        for (const c of mat) console.log('          ' + String(c.games).padStart(3) + ' games  board parted at turn '
+          + (c.first_board_divergence_turns.join('/') || '?') + ' [same ' + c.board_parted_same_turn
+          + ' later ' + c.board_parted_later + ' earlier ' + c.board_parted_earlier + ']   ' + c.cause.slice(0, 150));
+      }
+      console.log('');
+    }
     if (s.end_state_families.length) {
       console.log('      WHAT STILL DIFFERS AT THE END — the worklist, because a defect that survives to');
       console.log('      the last board is one a search would plan from:');

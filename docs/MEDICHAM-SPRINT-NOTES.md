@@ -21,6 +21,32 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE BAR HAS A DENOMINATOR: BOARD-MATERIAL IS 27, AND SUCKER PUNCH IS FOUR OF IT. 2026-08-23 (ENGINE).
+
+**Nothing in `engine/medicham2-browser.js` changed.** Measurement pass. The run that produced the
+standing 82 was **protocol-only** (`state_mode: false`), so "board-material zero" had no denominator.
+`endStateSummary()` now emits `by_cause` — a JOIN of the cause string to the board verdict, reconciled
+against the parted population. Full account: `docs/_reports/2026-08-23-board-materiality.md`.
+
+Pins: release `3d9df7ce4996`, `--team-store data/team-pool-frozen`, census pinned to
+`data/verification/census-pin-9446a684709d.json` (`pinned: true`, 643 rows), 961 games, `--end-state`.
+**Re-baseline, not a before/after** — engine, census and stop rule all moved.
+
+**Middle arm: 78 parted, 36 BOARD-MATERIAL, 42 NARRATION-ONLY, 0 UNKNOWN. Minus 9 measured as the
+INSTRUMENT (Moody 8, `??:farigiraf` 1) = ENGINE BOARD-MATERIAL 27**, in 25 causes and 20 mechanisms.
+Per arm: middle 27, top-tie-first 23, bottom-tie-first 23. Run twice on identical pins; the per-cause
+tables are string-identical.
+
+**Sucker Punch lands on a target that has already moved** — 4 games, all three arms, all same-turn, two
+KOs. `data/moves.ts:18399-18404` opens `this.queue.willMove(target)`, which walks the REMAINING queue
+(`sim/battle-queue.ts:319-327`); `medicham2-browser.js:20289` searches the whole turn's action list.
+**Rage Fist deals a third of the authority's damage** — new, not among the prior 31. Both measured and
+NOT fixed, per scope.
+
+**27 is a lower bound**: the planted-state proof did not pass (7 volatile plants applied-and-not-caught,
+6 bench plants not applied), it is pre-existing and fixture-shaped, and under-sensitivity can only
+over-call NARRATION. No verdict rests on an unproven leaf.
+
 ## THE LAST 41 DAMAGE ROWS WERE THE RULER SIX TIMES, AND THE FIX UNCOVERED A DEFECT THAT HAD BEEN SCORING AS AGREEMENT. 2026-08-23 (ENGINE).
 
 **Nothing in `engine/medicham2-browser.js` changed.** `tests/test-engine-diff.js` at
