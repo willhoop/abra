@@ -120,6 +120,32 @@ function blank(src) {
   return out.join('');
 }
 
+/* ---- the body the CLASSIFIER reads, which is not the body the detector reads -------------------
+ *
+ * FOUND 2026-08-23, AND IT WAS A HOLE IN THE RULER ITSELF, in the direction that hides danger.
+ * `blank()` replaces a string, template or regex with spaces of the same length so that offsets still
+ * map. That is right for the brace scanner and right for `isSilent`. It is WRONG for `manufactures`,
+ * because `return 'NO SUCH FILE';` strips to `return              ;` — and `/\breturn\b(?!\s*;)/`
+ * then sees a bare `return;` and calls the block a harmless skip.
+ *
+ * So a catch that hands a MADE-UP STRING to its caller — the exact shape this gate names as the
+ * dangerous one — was being filed under "merely skip/continue, usually legitimate". Measured on the
+ * run that found it: `engine/orient.js:99  return 'NO SUCH FILE'` and `engine/million_run.js:1843
+ * return 'N'` were both in the safe column. A ruler that miscounts toward SAFE is worse than one
+ * that miscounts toward alarm, which is why this is a fix and not a note.
+ *
+ * `declank` rebuilds the body with every blanked-out region as `0` instead of a space. Literals
+ * become visible to the classifier; comments become runs of zeros, so a comment that says the word
+ * "return" still cannot fool it — strictly better than testing the raw body. It is used ONLY by
+ * `manufactures()`. `isSilent` keeps reading the stripped body, so this change CANNOT move a block
+ * from silent to speaking or the reverse, and therefore cannot change whether this gate passes. It
+ * only moves blocks between the two priority columns, toward the one that gets fixed first. */
+function declank(raw, stripped) {
+  const out = stripped.split('');
+  for (let i = 0; i < out.length; i++) if (out[i] === ' ' && !/\s/.test(raw[i])) out[i] = '0';
+  return out.join('');
+}
+
 /* ---- find every catch body -------------------------------------------------------------------- */
 function catches(src) {
   const b = blank(src);
@@ -129,7 +155,16 @@ function catches(src) {
   while ((m = re.exec(b))) {
     let i = m.index + 5;
     while (i < b.length && /\s/.test(b[i])) i++;
-    if (b[i] === '(') { let depth = 0; for (; i < b.length; i++) { if (b[i] === '(') depth++; else if (b[i] === ')') { depth--; if (!depth) { i++; break; } } } }
+    /* THE CAUGHT BINDING'S NAME, kept rather than skipped past. A body that hands the binding itself
+     * back to its caller is REPORTING (see the `carried out` clause in SPEAKS below), and that cannot
+     * be decided without knowing what the binding is called. `catch {}` with no clause yields null. */
+    let binding = null;
+    if (b[i] === '(') {
+      let depth = 0; const open = i;
+      for (; i < b.length; i++) { if (b[i] === '(') depth++; else if (b[i] === ')') { depth--; if (!depth) { i++; break; } } }
+      const inner = src.slice(open + 1, i - 1).trim();
+      if (/^[A-Za-z_$][\w$]*$/.test(inner)) binding = inner;   // a plain identifier only, never a pattern
+    }
     while (i < b.length && /\s/.test(b[i])) i++;
     if (b[i] !== '{') continue;                       // not a catch clause we understand
     const start = i;
@@ -140,7 +175,8 @@ function catches(src) {
     }
     if (end < 0) continue;
     const line = src.slice(0, m.index).split('\n').length;
-    found.push({ line, bodyRaw: src.slice(start + 1, end), bodyStripped: b.slice(start + 1, end) });
+    const bodyRaw = src.slice(start + 1, end), bodyStripped = b.slice(start + 1, end);
+    found.push({ line, binding, bodyRaw, bodyStripped, bodyClass: declank(bodyRaw, bodyStripped) });
   }
   return found;
 }
@@ -209,7 +245,50 @@ const SPEAKS = [
    * alternative is telling four honest catches they are silent, and a wrongly-red ratchet is how a
    * ratchet gets ignored, which this file has already been corrected for twice. */
 ];
-const isSilent = (body) => !SPEAKS.some(re => re.test(body));
+
+/* HANDING THE CAUGHT BINDING ITSELF BACK IS REPORTING, AND IT IS THE LOUDEST FORM OF ALL — the
+ * caller receives the Error object, not a story about it. The `.message` clause above already
+ * accepts exactly this act for ONE spelling of it; this is the same argument for the others, and it
+ * is the FIFTH correction of this kind (after `fail(`, `process.stderr.write`, `.message` and the
+ * `(x||0)+1` counter). Same justification as all four: it can only SHRINK the silent set, which is
+ * the one direction a detector change here is allowed to move it.
+ *
+ *   engine/register_reality.js:618,749   `catch (e) { return e; }` — the error IS the value under
+ *                                        test; the next line asserts `CONTRACT.status === 2`.
+ *   tests/test-orient.js:51              returns `{ code: e.status, out: e.stdout + e.stderr }`,
+ *                                        which is the only correct way to wrap execFileSync, since
+ *                                        node throws on a non-zero exit and the code is the answer.
+ *   tests/test-lownode.js:49             `sawFailure = true; code = e.status;`
+ *
+ * It requires a PLAIN identifier binding (`catch (e)`, never a destructuring pattern) and one of:
+ * the binding returned, the binding assigned, or a property of it read.
+ *
+ * WHAT IT DELIBERATELY DOES NOT CATCH, STATED HERE SO THE COVERAGE IS NOT MISTAKEN FOR MORE THAN IT
+ * IS. This clause is a CLASS test over one catch body. It says nothing about the far commoner shape
+ * in this repo — the catch assigns a SENTINEL and the NEXT LINES test that sentinel and shout:
+ *
+ *   let rows = null;
+ *   try { rows = require('../data/switchin-order.json').rows; } catch (e) { rows = null; }
+ *   if (!rows) { MEDFAILS.switchInPriorityTableMissing = 1; ... }     <- loud, one line later
+ *
+ * Every such block is still reported as silent by this gate, and on 2026-08-23 that was 15 of the
+ * 95 new ones. They are NOT false alarms in the sense of being harmless — each still discards WHY —
+ * but they are not the failure this file was built for either. Deciding them needs look-ahead into
+ * the enclosing scope, which this file does not do and which is not a regex. Until something
+ * measures it, a `loud caller` is a judgement made by a person reading the block, never by this
+ * gate, and the count above must be read with that in mind. */
+SPEAKS.push({
+  test: (body, binding) => {
+    if (!binding) return false;
+    const b = binding.replace(/[$]/g, '\\$');
+    return new RegExp(`\\breturn\\s+${b}\\b`).test(body)
+        || new RegExp(`=\\s*${b}\\s*[;,)\\]}]`).test(body)
+        || new RegExp(`\\b${b}\\s*\\.\\s*\\w`).test(body);
+  },
+});
+
+const isSilent = (body, binding) =>
+  !SPEAKS.some(re => re instanceof RegExp ? re.test(body) : re.test(body, binding));
 
 /* ---- NOT ALL SILENCE IS EQUAL, and treating it as such is how a guard becomes noise ------------
  *
@@ -259,9 +338,9 @@ for (const dir of DIRS) {
     scanned++;
     for (const c of catches(src)) {
       total++;
-      if (!isSilent(c.bodyStripped)) continue;
+      if (!isSilent(c.bodyStripped, c.binding)) continue;
       silent.push({ file: rel, line: c.line, hash: hash(c.bodyRaw),
-                    manufactures: manufactures(c.bodyStripped),
+                    manufactures: manufactures(c.bodyClass),
                     body: c.bodyRaw.replace(/\s+/g, ' ').trim().slice(0, 70) });
     }
   }

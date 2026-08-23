@@ -12105,3 +12105,25 @@ file as FIXED — it left the candidate set on its own rather than being excused
 **OWED, NOT RUN.** The census digest moved, so `engine/all_mechanics_fire.js` and
 `engine/wire_ladder.js` are owed before anything downstream of the census is quoted, plus
 `engine/status.js --write`.
+
+---
+
+## A SILENT-FAILURE GATE THAT HID A GENDERLESS FIXTURE — 2026-08-23
+
+Sprint-relevant because the block it hid sits in the RATE RUNNER, not in a report script.
+`engine/million_run.js:1843` catches and returns `'N'` for `speciesGender`, so **every staged body is
+genderless** and any gender-reading mechanic reads ABSENT rather than failing. Safe-column since
+2026-08-11. This is the same shape as register #205 (every fixture in the repo declares `gender:'N'`
+and one ability needs gender to exist) reaching the instrument that is supposed to prove coverage.
+
+The gate could not see it: `manufactures()` read the space-blanked body, so `return '<literal>'`
+classified identically to a bare `return;`. Fixed; **95 → 91 and still RED**, so the correction cannot
+be read as laundering.
+
+**Not a mechanic change. No census count moved and none is claimed** (643 probed / 643 live /
+0 missing). **None of the thirteen dangerous blocks is in the play layer** — `board.js` flags zero and
+both `medicham2-browser.js` blocks are loud `MEDFAILS` receipts. The worst, `tests/roster.js:1990`,
+silently shrinks 22 candidate filters in the mechanics lab and is the sprint's own instrument.
+
+**OWED, NOT RUN:** route the thirteen (`tests/roster.js:1990` first); do NOT run `--update`, which
+would now lower the floor off a detector change.

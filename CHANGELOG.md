@@ -10,6 +10,42 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.96.0] — 2026-08-23
+
+### Fixed
+- **THE SILENT-FAILURE GATE HAD A HOLE THAT HID EXACTLY THE THING IT EXISTS TO FIND.** `manufactures()`
+  read the space-blanked body of a catch block, so **`return '<string literal>'` classified identically
+  to a bare `return;`** and was filed as "usually legitimate". That is where
+  `engine/million_run.js:1843` was hiding: a `speciesGender → 'N'` fallback that makes **every staged
+  body genderless**, so gender-reading mechanics in the rate runner read as ABSENT rather than failing.
+  In the safe column since **2026-08-11**. The gate also now understands that
+  `catch (e) { return e; }` is the loudest report available.
+- **The detector change moved 95 → 91 and the gate stayed RED**, which is the point: neither
+  correction can be read as laundering. Both were demonstrated against 16 constructed cases with
+  negative controls.
+
+### Notes
+- **THIS GATE HAS REGRESSED, NOT MERELY STAYED RED.** The register recorded **67 NEW / 24
+  manufacturing** on 2026-08-19. The same instrument today reads **95 / 42** — **+28 new and +18
+  manufacturing in four days.** The floor was set 2026-07-31, `--update` has only ever lowered it, and
+  `accepted` is still `{}`, so nothing absorbs new offenders and the count is a true running total.
+- **Risk split — all 40 manufacturing blocks read rather than counted:** **13 dangerous** (manufacture
+  a value a consumer trusts, with a plausible failure), **16 loud caller** (a sentinel tested and
+  reported one line down, which the gate structurally cannot see), **11 cannot fail or correct
+  silence**.
+- **None is in the play layer**, which is the good news and was checked rather than assumed: `board.js`
+  flags zero, and both `medicham2-browser.js` blocks are loud `MEDFAILS` receipts. The thirteen are in
+  the **rulers and tooling** — which this week has repeatedly shown is where the damage actually comes
+  from. Worst is `tests/roster.js:1990`: `buildableSpecies` returns `false` when `mcKey` throws,
+  **silently shrinking 22 candidate filters in the mechanics lab**, since 2026-08-08.
+- Tonight's work contributed **10 of the 91** and **2 of the 13 dangerous**; ENGINE's working tree
+  contributes none, confirmed independently of its own stash test.
+- **THREE THINGS FOR WILL.** (1) **Do not re-baseline** — `--update` would now drop the floor 201 → 197
+  off a *detector change*, which is a restamp wearing a lexer; left unrun. (2) Route the thirteen,
+  `tests/roster.js:1990` first. (3) `--accept` takes a FILE while the judgement is per BLOCK — in
+  `engine/orient.js` five loud-caller and two real blocks are inseparable — so after nine days it has
+  **zero uses**: the door is the wrong shape.
+
 ## [5.95.0] — 2026-08-23
 
 ### Fixed
