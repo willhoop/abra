@@ -214,6 +214,31 @@ register citation — **the first repair reintroduced it by quoting the token in
 declared pause at 3.98.0 and a session dispatched at them anyway. MAG, MILTANK and the quarantined
 re-runs are his. **Check before dispatching at anything he owns.**
 
+**A GATE BUILT FROM AN INSTANCE CATCHES THAT INSTANCE, NOT THE CLASS — AND THIS PROJECT HAS PAID FOR IT
+THREE TIMES WITH THE SAME BUG.** Will, 2026-08-23: *"why tf this wasnt caught before. im sure it was it
+just wasnt reported or corrected so it slipped through the cracks."* He was right, and it is worse than
+that — it WAS reported, fixed, and gated. Twice. The species-key mismatch, in order:
+
+1. **2026-07-30** — `merge_mega_into_engine.js` keyed `venusaurmega`, the artifact keyed
+   `venusaur-mega`, **zero of 67 writes matched**, every mega carried `ab: null` / `mv: []`. Fixed, and
+   `engine/artifact_audit.js` was built and registered as a gate.
+2. **Later** — the same class found in FOUR more files (`board.js` 101 of 308 keys unreachable,
+   `backtest_winrate.js` silently dropping every forme team, `forced_switch_audit.js` null for every
+   forme). A canonical resolver `engine/mc_key.js` was written, plus a ratchet `tests/test-mc-key.js`
+   whose header says *"there is ONE way to turn a species name into an MC.mons key, and this bans the
+   others."*
+3. **2026-08-23** — the identical mismatch in `tests/test-engine-diff.js`. **138 of 345 species
+   dropped, and the damage differential had never compared a single one of the 76 megas.**
+
+**Neither gate could see it.** `artifact_audit.js` watches ONE named file pair. `test-mc-key.js` scans
+for the KNOWN-BAD SHAPES — and this file used `buildMon(s.toLowerCase())`, a spelling not on the list.
+**A ratchet written as a list of wrong forms cannot catch a new wrong form.** The durable fix is to make
+the resolver the only door and check that every caller goes through it, not to enumerate the ways in.
+
+**So when you fix a defect, ask what CLASS it belongs to and whether the gate you are about to write
+would catch a second instance spelled differently.** If it would not, say so in the gate's own header —
+that is the difference between coverage and the appearance of it.
+
 ---
 
 ## 8. SOURCES THAT EXIST AND ARE NOT OBVIOUS
