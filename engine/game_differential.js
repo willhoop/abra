@@ -3579,7 +3579,17 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
        * roster would be scoring a rule the engine does not actually use — which is exactly how a
        * mutual wipe scoring 0.5 stayed invisible. 1 = A, 0 = B, 0.5 = neither. */
       let mediResult = null;
-      try { mediResult = M.battleResult(S); } catch (e) { mediResult = null; }
+      /* A THROW HERE IS NOT "NEITHER SIDE WON". `null` is a real verdict this field carries, so a
+       * swallowed throw is indistinguishable from a game the engine genuinely could not call — and
+       * `final_roster` is the debugging field the unreadable classes are read out of. Counted on the
+       * same shelf as `battle_over_threw` one block up, which is where a reader already looks. */
+      try { mediResult = M.battleResult(S); }
+      catch (e) {
+        mediResult = null;
+        STATE_FAILS.battle_result_threw = (STATE_FAILS.battle_result_threw || 0) + 1;
+        if (!STATE_FAILS.battle_result_threw_why)
+          STATE_FAILS.battle_result_threw_why = String((e && e.message) || e).slice(0, 160);
+      }
       return { mediResult,
                medicham: { p1: mediSide(S.actA, S.benchA), p2: mediSide(S.actB, S.benchB) },
                showdown: { p1: sdSide(battle.p1), p2: sdSide(battle.p2),

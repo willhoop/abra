@@ -91,8 +91,13 @@ ok(rows.length > 0 && rows.every(r => !!MC.moves[r.id]),
 
 /* ---- 3. THE RATCHET ----------------------------------------------------------------------------- */
 const OUT = D('data', 'unmodelled-clicks.json');
-let prev = null;
-try { prev = JSON.parse(fs.readFileSync(OUT, 'utf8')); } catch (e) { prev = null; }
+let prev = null, prevErr = null;
+/* AN ABSENT BASELINE AND AN UNREADABLE ONE ARE DIFFERENT ANSWERS. Both used to land in `prev = null`,
+ * which skips the did-not-GROW comparison and lets the run pass — a ratchet that stops ratcheting
+ * without a word, which is section 4's own failure arriving through the read instead of the write.
+ * ENOENT is the honest first run; anything else is a fault and is reported below. */
+try { prev = JSON.parse(fs.readFileSync(OUT, 'utf8')); }
+catch (e) { prev = null; if (e.code !== 'ENOENT') prevErr = e; }
 let moved = false;                                   /* did the ratchet actually TIGHTEN this run? */
 if (prev && Array.isArray(prev.moves)) {
   const grew = rows.map(r => r.id).filter(id => prev.moves.indexOf(id) < 0);
@@ -108,6 +113,11 @@ if (prev && Array.isArray(prev.moves)) {
    * first draft of this line compared a string id against a row OBJECT, which is unequal every time and
    * would have made `moved` permanently true, quietly restoring the churn it exists to stop. */
   moved = prev.moves.join('|') !== rows.map(r => r.id).join('|');
+} else if (prevErr) {
+  ok(false, 'the baseline on disk is READABLE — an unreadable one silently skips the did-not-GROW '
+     + 'comparison and passes the run',
+     OUT + ': ' + (prevErr.code || '') + ' ' + ((prevErr && prevErr.message) || prevErr));
+  moved = false;                                     /* and it is NOT overwritten while unreadable */
 } else {
   console.log('  note  no baseline on disk — this run writes the first one.');
   moved = true;

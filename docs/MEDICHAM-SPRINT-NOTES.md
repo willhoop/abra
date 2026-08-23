@@ -21,6 +21,48 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE THIRTEEN SILENT CATCHES ARE CLOSED, AND THE LAB WAS NOT ACTUALLY SHRINKING. 2026-08-23 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-23-thirteen-silent-catches.md`](_reports/2026-08-23-thirteen-silent-catches.md).
+Will: *"lets fix them all, but i dont want unncessary bloat or you adding gates or tests on gates or
+tests that fail, just simple bulletproof fixes."*
+
+**`tests/test-no-silent-failure.js`: 94 NEW / 41 MANUFACTURING → 80 NEW / 28 MANUFACTURING.**
+`41 − 28 = 13`, exactly the thirteen the previous pass identified — the check that nothing was
+renamed into silence or laundered out of the column. No new gate, no new test, the floor not
+re-stamped. Eleven blocks the brief listed were read and **left**: loud callers whose sentinel is
+tested one line down (both `medicham2-browser.js` blocks are `MEDFAILS` receipts) and blocks that
+cannot fail.
+
+Sprint-relevant because three of the thirteen sit in **the sprint's own rulers**: `tests/roster.js`
+(the deliberate roster), `engine/million_run.js` (the rate runner, whose `speciesGender` returned
+`'N'` on a throw and made every staged body genderless) and `engine/game_differential.js` (a
+throwing `battleResult` reading as *neither side won*, which is a real verdict this field carries).
+
+| what | result |
+|---|---|
+| damage differential, `--n 6000 --seed 20260804` | **0 of 6000**, all sixteen corners — unchanged |
+| census | **651 probed / 651 live / 0 missing** — unchanged |
+| roster items / abilities / moves | **139 of 148, 130 of 202, 475 of 500**, each at 0 DIFFER and 0 DID-NOT-FIRE — unchanged |
+
+**THE WORST BLOCK WAS NOT COSTING ANYTHING TODAY, AND THAT IS MEASURED RATHER THAN ASSUMED.**
+`buildableSpecies` catching a throwing `mcKey` was expected to be shrinking 22 candidate pools. Over
+all **347** legal species `mcKey(id)` throws **zero** times — the cosmetic-forme fallback resolves
+every one — so no body was ever dropped and no roster verdict ever moved. It was dangerous by
+CONSTRUCTION: `mcKey` returns a truthy key or throws, so `false` was only ever manufactured, and a
+failed `MC.mons` load would have emptied every pool while every stage reported clean. `monsReady()`
+now throws instead.
+
+**AND THE FIRST FIX WAS WRONG, ON SCHEDULE.** `mcKey.has(id)` is the purpose-built membership verb
+and **disagrees with `mcKey` on 29 of 347 species** — every Vivillon pattern — because it skips the
+cosmetic-forme fallback. It would have removed 29 buildable bodies from every pool: the exact defect
+being fixed, arriving through the fix. Landed as a declared `{mayMiss}` instead.
+
+**Not a mechanic change and none is claimed.** No census count moved.
+
+**OWED, NOT RUN:** `--update` (would lower the floor 201 → 197 off a detector change — Will's call);
+`--accept` granularity, which takes a FILE where the judgement is per BLOCK.
+
 ## THE SPECIES TABLE IS SEALED, THE LOOKUP IS TOTAL, AND THE 96-SITE DEBT FILE IS DELETED. 2026-08-23 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-23-one-door-species-keys.md`](_reports/2026-08-23-one-door-species-keys.md).

@@ -1702,11 +1702,22 @@ function runEntry(e) {
   if (e.precondition) {
     for (const pc of (Array.isArray(e.precondition) ? e.precondition : [e.precondition])) {
       const pb = subject.boards.find(x => x.turn === pc.turn);
-      let ok = false;
-      try { ok = !!(pb && pc.ok(pb, subject.boards)); } catch (err) { ok = false; }
+      let ok = false, threw = null;
+      /* A CLAUSE THAT THREW IS NOT A FIXTURE THAT DID NOT LAND, and reporting it as one is the exact
+       * conflation "a COULD-NOT-STAGE verdict is a claim about the fixture, never about the mechanic"
+       * warns against. The conservative verdict is kept — a clause that cannot be evaluated has not
+       * proved the setup — but it carries the throw in its `why` and says so on the console, so a
+       * broken clause can never read as a fixture the format refused. */
+      try { ok = !!(pb && pc.ok(pb, subject.boards)); } catch (err) { ok = false; threw = err; }
+      if (threw) console.error('  !! PRECONDITION CLAUSE THREW  ' + (e.id || e.entity || '?')
+        + '  boundary ' + pc.turn + ': ' + ((threw && threw.message) || threw));
       if (!ok) return { ...e, verdict: 'COULD-NOT-STAGE', boards: subject.boards,
-        why: 'THE PRECONDITION DID NOT LAND, so nothing downstream of it was tested and an inert board '
-           + 'here would mean only that the setup failed. Wanted, by boundary ' + pc.turn
+        why: (threw
+          ? 'THE PRECONDITION CLAUSE ITSELF THREW (' + String((threw && threw.message) || threw).slice(0, 160)
+            + '), so nothing was read off any board and this says NOTHING about the fixture or the '
+            + 'mechanic — it is a fault in the rule. Wanted, by boundary '
+          : 'THE PRECONDITION DID NOT LAND, so nothing downstream of it was tested and an inert board '
+            + 'here would mean only that the setup failed. Wanted, by boundary ') + pc.turn
            + ': ' + pc.why + '. Read off SHOWDOWN\'s own board, not ours.' };
     }
   }
@@ -1984,10 +1995,36 @@ let _monsLoaded = false;
 function monsReady() {
   if (_monsLoaded) return;
   /* the SNAPSHOT's table, not the live one — `data/engine-data.js` is one of the frozen files */
-  try { REL.require('data/engine-data.js'); } catch (e) { /* the driver loads it too; either is fine */ }
+  let relErr = null;
+  try { REL.require('data/engine-data.js'); } catch (e) { relErr = e; }
+  /* NO TABLE IS A HARD STOP, NOT A POOL OF ZERO. `buildableSpecies` filters 22 candidate pools; with
+   * MC.mons absent every one of them empties and every stage reports the handful it could still
+   * stage as clean. That is this project's signature failure — a capability going absent while
+   * everything reports success — so it throws rather than shrinking the lab in silence. */
+  if (!(globalThis.MC && globalThis.MC.mons)) {
+    throw new Error('the roster cannot ask whether a body is buildable: MC.mons is not loaded'
+      + (relErr ? ', and the release copy of data/engine-data.js would not load either ('
+                  + ((relErr && relErr.message) || relErr) + ')' : '')
+      + '. Every species would read UNBUILDABLE and every candidate pool would silently empty.');
+  }
+  /* The driver loads the LIVE table too, so a failed release load is survivable — but it means the
+   * stage is measuring today's bytes rather than the snapshot's, which must never be silent. */
+  if (relErr) console.error('  !! roster: the release copy of data/engine-data.js would not load ('
+    + ((relErr && relErr.message) || relErr) + '); the LIVE MC.mons is in play, not release ' + REL.id + '\'s.');
   _monsLoaded = true;
 }
-function buildableSpecies(id) { monsReady(); try { return !!mcKey(id); } catch (e) { return false; } }
+/* THE MISS IS DECLARED, NOT CAUGHT. `mcKey` throws on an UNDECLARED miss by design (mc_key.js's
+ * seal), and a `catch` here turned every throw — including "the table never loaded" — into a plain
+ * `false`. `{mayMiss}` gives the same answer for the case that is legitimately a miss (this format
+ * has bodies medicham2 has no row for, and COULD-NOT-STAGE is the right verdict for them) and counts
+ * it in `engine/lookup.js`'s misses instead of discarding it.
+ * NOT `mcKey.has`, which was measured first: it skips the cosmetic-forme fallback and would have
+ * dropped 29 buildable bodies — every Vivillon pattern — out of the pools. */
+function buildableSpecies(id) {
+  monsReady();
+  return !!mcKey(id, { mayMiss: 'the roster asks whether medicham2 can build this body at all; a '
+    + 'species with no MC.mons row is a COULD-NOT-STAGE fixture, not a failure' });
+}
 
 /* ---- WHICH BODY MAY CARRY A MOVE EXPERIMENT, AND WHY IT IS NOT `carrierAbility` -----------------
  *
@@ -8570,8 +8607,14 @@ function healStagingWorks() {
   const rows = [];
   for (const m of dex.moves.all()) {
     if (!m.exists || m.isNonstandard || !healsAnotherBody(m)) continue;
-    let st = null;
-    try { st = rule.match(m); } catch (err) { st = null; }
+    let st = null, matchThrew = null;
+    try { st = rule.match(m); } catch (err) { st = null; matchThrew = err; }
+    /* A THROWN `match` IS A FAULT IN THE RULE, NOT A MOVE THE RULE DECLINED. Folding it into "not
+     * staged by the rule" is the same conflation as the precondition arm above, and it would let the
+     * proof quietly narrow the set of moves it speaks for. */
+    if (matchThrew) { rows.push(m.name + ': THE RULE\'S match() THREW — '
+      + String((matchThrew && matchThrew.message) || matchThrew).slice(0, 120)
+      + ' (a fault in the rule, not a move it declined)'); continue; }
     if (!st || st.cannot || !st.scenario) { rows.push(m.name + ': not staged by the rule'); continue; }
     const sc = { ...st.scenario, id: 'selftest/heal-staging/' + m.id };
     const a = play(sc, null, st.arm), b = play(sc, broken, st.arm);

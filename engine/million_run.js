@@ -1832,15 +1832,18 @@ function stagedMon(speciesKey, ability, item, moves, opts) {
  * fixed ones ('N' for genderless, 'M'/'F' for the single-sex species). Ties break to 'F' so the value
  * is deterministic across runs — a fixture that changed sex between runs would put a wobble into
  * every gender-reading rate at once. */
+/* NO catch. It used to return 'N' on a throw, which makes every staged body GENDERLESS — so a
+ * gender-reading mechanic never fires and the instrument reports the mechanic ABSENT, which is the
+ * failure the paragraph above exists to prevent, wearing a receipt. `FMT.D` is built at load and
+ * `species.get` does not realistically throw; if it ever does, the run stops rather than sampling a
+ * format nobody is playing. */
 function speciesGender(speciesKey) {
-  try {
-    const sp = FMT.D.species.get(speciesKey);
-    if (!sp || !sp.exists) return 'N';
-    if (sp.gender) return sp.gender;                        /* 'N', 'M' or 'F', declared outright */
-    const r = sp.genderRatio;
-    if (!r) return 'F';                                     /* the 50/50 default carries no ratio */
-    return (r.M > r.F) ? 'M' : 'F';
-  } catch (e) { return 'N'; }
+  const sp = FMT.D.species.get(speciesKey);
+  if (!sp || !sp.exists) return 'N';
+  if (sp.gender) return sp.gender;                          /* 'N', 'M' or 'F', declared outright */
+  const r = sp.genderRatio;
+  if (!r) return 'F';                                       /* the 50/50 default carries no ratio */
+  return (r.M > r.F) ? 'M' : 'F';
 }
 
 /* ---- ONE TRIAL ---------------------------------------------------------------------------------- */

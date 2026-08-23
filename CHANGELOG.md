@@ -10,6 +10,60 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.101.1] — 2026-08-23
+
+### Fixed
+- **THE THIRTEEN DANGEROUS SILENT CATCH BLOCKS, EVERY ONE OF THEM.** A catch that swallows an error
+  and hands back a manufactured value is this project's founding failure in source form — something
+  breaks, a number comes back, and the number is invented. `tests/test-no-silent-failure.js` reads
+  **94 NEW / 41 MANUFACTURING → 80 NEW / 28 MANUFACTURING**, and `41 − 28 = 13` exactly, which is
+  the check that no block was renamed into silence or laundered out of the column.
+  - `tests/roster.js` — `buildableSpecies` was `catch → false`. `mcKey` returns a truthy key or
+    THROWS, so `false` was **only ever manufactured**. Now a declared `{mayMiss}` with no catch, and
+    `monsReady()` **throws** if `MC.mons` is absent at all: without that, every one of the 22
+    candidate filters empties and every stage reports the handful it could still stage as clean.
+  - `tests/roster.js` — a precondition clause that THREW was reported as `COULD-NOT-STAGE`, i.e. as
+    a fixture that did not land. The conservative verdict is kept and the `why` now says the clause
+    itself threw. Same conflation fixed in the heal-staging selftest's `rule.match()`.
+  - `engine/million_run.js` — `speciesGender` returned `'N'` on a throw, making **every staged body
+    genderless** so a gender-reading mechanic reads ABSENT. The catch is deleted outright.
+  - `engine/game_differential.js` — a throwing `battleResult` read as `null`, which is a REAL
+    verdict ("neither side won"). Now counted on `STATE_FAILS.battle_result_threw` with its reason.
+  - `engine/where.js` (4) and `engine/orient.js` (2) — an unreadable file rendered as *nothing
+    found* in the two tools whose whole job is telling you where a fact lives; `sources()` reported
+    the frozen set as EMPTY. All now speak, and an unlistable `docs/_inbox/` is `fail()`, not `0`.
+  - `tests/test-unmodelled-clicks.js` — an unreadable baseline skipped the did-not-GROW comparison
+    and the ratchet PASSED. ENOENT is the honest first run; anything else now fails and does not
+    overwrite the baseline it could not read.
+  - `tests/test-web-quarantine-loaders.js` — a bundle that would not evaluate gave `models = []`, so
+    three clauses passed over nothing at all.
+
+### Notes
+- **NO NUMBER MOVED, AND BOTH WERE CHECKED RATHER THAN ASSUMED.** Damage differential **0 of 6000**
+  at `--n 6000 --seed 20260804` across all sixteen corners; census **651 probed / 651 live / 0
+  missing**. All three roster stages identical — items 139/148, abilities 130/202, moves 475/500,
+  each at **0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE**.
+- **THE LAB WAS NOT ACTUALLY SHRINKING, AND THAT IS MEASURED.** Over all **347** legal species,
+  `mcKey(id)` threw **zero** times — the cosmetic-forme fallback resolves every one. The block was
+  dangerous by construction (a failed table load would have emptied every pool in silence), not in
+  effect.
+- **THE FIRST FIX WAS WRONG AND THE MEASUREMENT CAUGHT IT.** `mcKey.has(id)` looks like the
+  purpose-built membership verb and **disagrees with `mcKey` on 29 of 347 species** — every Vivillon
+  pattern — because it skips the cosmetic-forme fallback. It would have removed 29 buildable bodies
+  from every pool: the exact defect being fixed, arriving through the fix.
+- **NOT A SEAL ARTEFACT.** `engine/mc_key.js` has thrown on an undeclared miss since 2026-08-02;
+  `buildableSpecies` was written against an already-throwing `mcKey` on 2026-08-08.
+- **NO NEW GATE AND NO NEW TEST**, by instruction. The existing ratchet's count falls on its own.
+  **Eleven blocks the brief listed were read and LEFT** — loud callers whose sentinel is tested one
+  line down (both `medicham2-browser.js` blocks are `MEDFAILS` receipts) and blocks that cannot
+  fail. Fixing a block that was already right is bloat too. Account:
+  `docs/_reports/2026-08-23-thirteen-silent-catches.md`.
+- **NOT RE-BASELINED.** `--update` would drop the floor 201 → 197 on the strength of a detector
+  change rather than a code fix; that is still Will's call.
+- **PRE-EXISTING RED, REPORTED NOT FILED.** `tests/test-web-quarantine-loaders.js` exits 1 on two
+  WEB rebuild failures (`node web/build-quarantine.js`). Confirmed identical at HEAD by stashing the
+  change and re-running.
+
 ## [5.99.1] — 2026-08-23
 
 ### Fixed

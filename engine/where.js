@@ -31,9 +31,20 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
-const rd = f => { try { return fs.readFileSync(f, 'utf8'); } catch (e) { return null; } };
-const rj = f => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { return null; } };
-const ls = d => { try { return fs.readdirSync(D(d)).filter(f => f.endsWith('.js')); } catch (e) { return []; } };
+/* ---- AN UNREADABLE INPUT IS SAID OUT LOUD, NOT RENDERED AS "NOTHING FOUND" ----------------------
+ * This tool's whole answer is "which file owns this fact", and every one of these helpers hands its
+ * caller an EMPTY answer on failure — which is a real and common result here. So a file that could
+ * not be read, or a JSON that would not parse, is indistinguishable from a question with no answer,
+ * in the one tool built so nobody has to guess. It is stderr rather than a counter: this is a CLI a
+ * person reads, and there is nothing downstream to hand a receipt to.
+ * Measured before it was wired: a normal run (`protect`, `--gates`, `--artifacts`) trips none of
+ * these, so the line only ever appears when something is actually wrong. */
+const unread = (what, f, e) => '  !! where: could not read ' + what + ' ' + f + ' ('
+  + (e.code || e.message) + ') — it is reported below as NOTHING FOUND, which is not the same as '
+  + 'nothing being there';
+const rd = f => { try { return fs.readFileSync(f, 'utf8'); } catch (e) { console.error(unread('file', f, e)); return null; } };
+const rj = f => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { console.error(unread('json', f, e)); return null; } };
+const ls = d => { try { return fs.readdirSync(D(d)).filter(f => f.endsWith('.js')); } catch (e) { console.error(unread('dir', d, e)); return []; } };
 
 const argv = process.argv.slice(2);
 const has = f => argv.includes(f);
@@ -42,7 +53,15 @@ const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
 /* ---- THE FROZEN SET, read from the module rather than from any sentence about it ---------------- */
 function sources() {
-  try { return require('./engine_release.js').SOURCES || []; } catch (e) { return []; }
+  /* `[]` here reads as "the frozen set is EMPTY", which is a claim about the release machinery and
+   * not about a failed require. CLAUDE.md's own "twenty-three files are frozen" going stale three
+   * times is exactly why this number is derived; a silent zero would be worse than the sentence. */
+  try { return require('./engine_release.js').SOURCES || []; }
+  catch (e) {
+    console.error('  !! where: engine/engine_release.js would not load (' + ((e && e.message) || e)
+      + ') — THE FROZEN SET IS UNKNOWN, and it is printed below as empty');
+    return [];
+  }
 }
 
 /* ---- EVERY GATE AND THE ROW IT DECIDES ----------------------------------------------------------

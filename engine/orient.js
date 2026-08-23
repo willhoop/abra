@@ -91,7 +91,13 @@ const OWED_ALL = argv.includes('--owed-all');
 const BREAK = (process.env.ORIENT_BREAK || '').toLowerCase();
 const broken = s => BREAK === s;
 
-const rd = f => { try { return fs.readFileSync(f, 'utf8'); } catch (e) { return null; } };
+/* AN UNREADABLE FILE IS SAID OUT LOUD. Every consumer here spells `rd(x) || ''`, so a silent null
+ * renders as an EMPTY ledger — a map that reads "nothing to report" because it could not read. */
+const rd = f => {
+  try { return fs.readFileSync(f, 'utf8'); }
+  catch (e) { console.error('  !! orient: could not read ' + f + ' (' + e.code + ') — anything derived '
+    + 'from it below reads as EMPTY rather than as absent'); return null; }
+};
 const ageOf = f => {
   try {
     const h = (Date.now() - fs.statSync(f).mtimeMs) / 36e5;
@@ -390,9 +396,13 @@ head(8, 'WHO MAY WRITE  [source: filesystem]');
               ', Claude Code writes docs/_outbox/' + (hasOut ? '' : '  <-- MISSING'));
   if (!hasIn || !hasOut) fail('WHO MAY WRITE', 'the inbox/outbox pair does not exist on disk');
   else {
-    let pending = 0;
-    try { pending = fs.readdirSync(inbox).filter(f => f.endsWith('.md')).length; } catch (e) { pending = 0; }
-    console.log('  docs/_inbox/ holds ' + pending + ' draft(s) waiting on "apply inbox".');
+    /* AN UNLISTABLE INBOX IS NOT AN EMPTY ONE. Printing `0 draft(s)` for a directory that could not
+     * be read tells a reader there is no work waiting, which is the opposite of what is known. */
+    let pending = null;
+    try { pending = fs.readdirSync(inbox).filter(f => f.endsWith('.md')).length; }
+    catch (e) { fail('WHO MAY WRITE', 'docs/_inbox/ exists but could not be listed (' + e.code
+      + '), so how many drafts are waiting on "apply inbox" is UNKNOWN, not zero'); }
+    if (pending != null) console.log('  docs/_inbox/ holds ' + pending + ' draft(s) waiting on "apply inbox".');
   }
   console.log('  NEVER run two writing agents against this repo at once — they cannot see each other\'s');
   console.log('  edits and the later write silently wins.');

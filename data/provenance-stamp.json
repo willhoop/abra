@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 173,
+  "mtime_only": 171,
   "mtime_only_files": [
     "_r220-census-pin.json",
     "ab-batch-effect.json",
@@ -33,7 +33,6 @@
     "docs-currency-baseline.json",
     "double-protect.json",
     "dynamics.json",
-    "effective-identity-baseline.json",
     "engine-data.js",
     "engine-diff-PLANTED-band.json",
     "engine-diff-PLANTED-spread.json",
@@ -63,7 +62,6 @@
     "lookahead-cost.json",
     "mag.js",
     "mc-key-baseline.json",
-    "mc-key-door-baseline.json",
     "mechanics-census.json",
     "mechanics-rank.json",
     "mechanics-surface.json",
@@ -232,7 +230,6 @@
     "double-protect.json",
     "dusk-size-gate.json",
     "dynamics.json",
-    "effective-identity-baseline.json",
     "engine-data.js",
     "engine-diff-PLANTED-band.json",
     "engine-diff-PLANTED-spread.json",
@@ -274,12 +271,12 @@
     "lookahead-cost.json",
     "mag.js",
     "mc-key-baseline.json",
-    "mc-key-door-baseline.json",
     "mechanics-census.json",
     "mechanics-rank.json",
     "mechanics-surface.json",
     "medicham-bench.json",
     "medicham-coverage.json",
+    "medicham-represented-clicks.json",
     "mega-decision.json",
     "mega-dex-official.json",
     "mega-dex.json",
@@ -435,6 +432,7 @@
     "battle-formes.json",
     "conditional-audit.json",
     "divergence-middle.json",
+    "effective-identity-baseline.json",
     "exploitability-holdout.json",
     "fixture-learnset-baseline.json",
     "fixture-legality-baseline.json",
@@ -908,5 +906,5 @@
       ]
     }
   ],
-  "generated": "2026-08-23T13:25:51.408Z"
+  "generated": "2026-08-23T20:45:34.827Z"
 }

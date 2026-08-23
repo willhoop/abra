@@ -287,7 +287,15 @@ if (!CLOSED.ok && srcLeaks.length) {
     console.log('  note  data/status.js is not on disk — nothing to check in this direction');
   } else {
     const w = {};
-    try { new Function('window', fs.readFileSync(bundle, 'utf8'))(w); } catch (e) { w.ABRA_STATUS = null; }
+    /* A BUNDLE THAT WILL NOT EVALUATE IS NOT A BUNDLE WITH NO ROWS. `models = []` makes every check
+       below pass over an empty set — the evidence-leak clause, the reader clause and the render-site
+       clause all report `ok` on nothing at all. So the throw is the finding, not a starting value. */
+    let bundleErr = null;
+    try { new Function('window', fs.readFileSync(bundle, 'utf8'))(w); }
+    catch (e) { w.ABRA_STATUS = null; bundleErr = e; }
+    if (bundleErr) fail('data/status.js is on disk but would not evaluate ('
+      + String((bundleErr && bundleErr.message) || bundleErr).slice(0, 160) + '), so this direction '
+      + 'checked ZERO rows. That is not a clean bundle — it is no bundle.');
     const models = (w.ABRA_STATUS && w.ABRA_STATUS.models) || [];
     const stateOf = f => {
       if (wClosed(f)) return 'held';

@@ -71,15 +71,108 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is f3786917a675 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is d9c520e0433c now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 16:01_
+_stamped 2026-08-23 16:45_
 
 <!-- /GENERATED -->
+
+## THE THIRTEEN SILENT CATCHES ARE CLOSED, AND THE WORST OF THEM WAS COSTING NOTHING TODAY. 2026-08-23.
+
+Full account: [`docs/_reports/2026-08-23-thirteen-silent-catches.md`](_reports/2026-08-23-thirteen-silent-catches.md).
+Will: *"lets fix them all, but i dont want unncessary bloat or you adding gates or tests on gates or
+tests that fail, just simple bulletproof fixes."*
+
+A catch that swallows an error and hands back a manufactured value is this project's founding failure
+in source form: something breaks, a number comes back, and the number is invented.
+
+**`tests/test-no-silent-failure.js`: 94 NEW / 41 MANUFACTURING → 80 NEW / 28 MANUFACTURING.** `41 − 28
+= 13`, exactly the thirteen the previous pass read out — the check that nothing was renamed into
+silence or laundered out of the column. **No new gate, no new test, the floor not re-stamped**, and
+the ratchet is still RED at 80, which is correct: the remaining 28 are the loud-caller and
+cannot-fail blocks.
+
+### WHAT WAS ACTUALLY WRONG, AND WHAT WAS ONLY WRONG IN PRINCIPLE
+
+| block | manufactured | now |
+|---|---|---|
+| `tests/roster.js` `buildableSpecies` | `false` on a throwing `mcKey` | declared `{mayMiss}`, no catch; `monsReady()` **throws** when `MC.mons` is absent |
+| `tests/roster.js` precondition / heal-staging | a THROWN clause read as `COULD-NOT-STAGE` / "not staged by the rule" | conservative verdict kept, the throw named in the `why` and on stderr |
+| `engine/million_run.js` `speciesGender` | `'N'` — **every staged body genderless** | the catch is deleted; a broken dex stops the run |
+| `engine/game_differential.js` `battleResult` | `null` — which is a REAL verdict, "neither side won" | `STATE_FAILS.battle_result_threw` + `_why` |
+| `engine/where.js` (4), `engine/orient.js` (2) | an unreadable file rendered as *nothing found*; `sources()` reported the frozen set EMPTY | each speaks; an unlistable `docs/_inbox/` is `fail()`, not `0` |
+| `tests/test-unmodelled-clicks.js` | an unreadable baseline skipped the did-not-GROW clause and the ratchet PASSED | ENOENT is the first run; anything else fails and does not overwrite |
+| `tests/test-web-quarantine-loaders.js` | `models = []`, so three clauses passed over nothing | the throw is reported as the failure |
+
+**THE LAB WAS NOT SHRINKING, AND THAT IS MEASURED RATHER THAN ASSUMED.** `buildableSpecies` was
+expected to be quietly removing bodies from 22 candidate pools. Over all **347** legal species,
+`mcKey(id)` throws **zero** times — the cosmetic-forme fallback resolves every one — so no body was
+ever dropped and no roster verdict ever moved. It was dangerous by CONSTRUCTION: `mcKey` returns a
+truthy key or throws, so `false` was *only ever manufactured*, and a failed `MC.mons` load would have
+emptied every pool while every stage reported the handful it could still stage as clean.
+
+**AND MY FIRST FIX WAS WRONG BEFORE THE ENGINE WAS, ON SCHEDULE.** `mcKey.has(id)` is the
+purpose-built membership verb, it never throws, and it **disagrees with `mcKey` on 29 of 347
+species** — every Vivillon pattern — because it consults the direct index and skips the
+cosmetic-forme fallback. Wiring it would have removed 29 buildable bodies from every pool: the exact
+defect being fixed, arriving through the fix. Printed before it was wired, which is the only reason
+this paragraph exists rather than a silently smaller lab.
+
+**NOT A SEAL ARTEFACT.** `engine/mc_key.js` has thrown on an undeclared miss since `ebe91bf`
+(2026-08-02); `buildableSpecies` was written against an already-throwing `mcKey` on 2026-08-08.
+
+**ELEVEN BLOCKS THE BRIEF LISTED WERE READ AND LEFT.** Loud callers whose sentinel is tested one line
+down — including **both** `medicham2-browser.js` blocks, which are `MEDFAILS.residualUnplaced` and
+`MEDFAILS.switchInPriorityTableMissing` receipts — and blocks that cannot fail (`dex.*.get()`
+wrappers), plus `tests/test-forme-assert.js:113`, checked because it was edited hours earlier:
+`buildMon` resolves through a DECLARED `{mayMiss}` and cannot throw there at all, and `false` is
+already reported as `UNCOVERABLE`. Fixing a block that was already right is bloat too.
+
+### THE NUMBERS, CHECKED RATHER THAN ASSUMED
+
+| | before | after |
+|---|---|---|
+| damage differential, `--n 6000 --seed 20260804` | 0/6000, all 16 corners | **0/6000, all 16 corners** |
+| census | 651 probed / 651 live / 0 missing | **651 / 651 / 0** |
+| roster items | 0 DIFFER, 0 DID-NOT-FIRE, 139 of 148 | **identical** |
+| roster abilities | 0, 0, 130 of 202 | **identical** |
+| roster moves | 0, 0, 475 of 500 | **identical** |
+
+### THE HAND LIST
+
+**Unchanged by this pass — no mechanic was touched and no census probe was written.** The open items
+are those under the 2026-08-23 sections below.
+
+### OWED, NOT RUN
+
+```
+node tests/test-no-silent-failure.js            RUN — 94/41 -> 80/28, still RED by design
+tests/test-engine-diff.js --n 6000 --seed 20260804  RUN — 0/6000, all 16 corners
+node tests/test-mechanics.js                    RUN — 651/651 live, 0 missing
+node tests/roster.js --stage {items,abilities,moves}  RUN — 0/0 on all three, unchanged
+node tests/test-orient.js                       RUN — GREEN
+node tests/test-mc-key.js / test-mc-seal.js     RUN — 21/0 and 33/0
+node tests/test-roster-arm-pin.js               RUN — all clauses pass
+node engine/million_run.js                      SMOKE ONLY (--trials 5); artifact reverted
+node engine/game_differential.js                SMOKE ONLY (--games 20); no --write
+node tests/run-all.js                           NOT run — several of its gates predate this pass
+node engine/quarantine.js                       NOT run — its roster and differential clauses were run directly
+node tests/test-no-silent-failure.js --update   NOT run — would drop the floor 201 -> 197 off a detector change
+node engine/status.js --write                   RUN at the end of this pass
+```
+
+- **ONE RED TEST FOUND AND NOT MINE, WITH ITS RECEIPT.** `tests/test-web-quarantine-loaders.js` exits
+  1 on two WEB rebuild failures (`node web/build-quarantine.js`). **Confirmed identical at HEAD** by
+  stashing the change and re-running: 2 failures before, 2 after, and neither is the clause added
+  here — the bundle evaluates fine. Reported, not filed.
+- **Two silences found and deliberately not fixed, both outside a catch block:**
+  `engine/million_run.js`'s `speciesGender` still returns `'N'` for a species the dex does not
+  contain, and `tests/test-unmodelled-clicks.js` treats a baseline that parses but carries no `moves`
+  array as "no baseline on disk". Named rather than widened past the brief.
 
 ## THE SPECIES TABLE IS SEALED RATHER THAN WATCHED, AND ROUTING THE 96 SITES FOUND SIX MEGAS PRICED AS THEIR BASE. 2026-08-23.
 
