@@ -86,6 +86,160 @@ _stamped 2026-08-23 02:18_
 
 <!-- /GENERATED -->
 
+## A SUBSTITUTE REFUSES AN ENTRY STAT DROP, AND THE CLASS IS A TAG WITH TWO MEMBERS — NOT INTIMIDATE. 2026-08-23.
+
+Full account: [`docs/_reports/2026-08-23-substitute-blocks-intimidate.md`](_reports/2026-08-23-substitute-blocks-intimidate.md).
+
+**LIGHT MODE. The census was NOT regenerated, `data/tags.json` was NOT regenerated, `status.js` was
+NOT run, and no roster, differential or gate ran. No count in this document moved because of this pass
+and none is claimed.** What was measured is one staged board, three arms, run red under a named knob
+and green without it.
+
+**THE PREMISE WAS RELAYED AND IT HELD, CHECKED BEFORE ANYTHING WAS TRUSTED.** `data/abilities.ts:2191`
+carries the clause, `/data/mods/champions/abilities.ts` overrides THIRTEEN abilities and `intimidate`
+is not one of them, so mainline's handler is the Champions handler:
+
+```
+if (target.volatiles['substitute']) { this.add('-immune', target); }
+else { this.boost({ atk: -1 }, target, pokemon, null, true); }
+```
+
+**A PREVIOUS AGENT WAS KILLED MID-FIX AND ITS WORK WAS FINISHED, NOT REDONE.** The working tree held a
+complete guard in `applyEntryDrops`, a `MEDI_ENTRYDROP_SUB_BLIND` knob, two counters and a started
+`tag_dex.js` derivation. Every part of it was re-derived from the authority before being kept; nothing
+was taken on the strength of its own comment.
+
+### THE CLASS IS FOUR ABILITIES ON TWO HOOKS, AND ONLY TWO OF THEM ARE THIS RULE
+
+Walked over every LEGAL ability in the regulation (`abilities.all()` filtered `!isNonstandard`,
+CLAUDE.md's dex-walk rule), asking for a `volatiles['substitute']` test on ANY handler. **Printed
+before anything was wired**, which is the rule that caught `refusesStatusMoves` and `speedOnItemLoss`:
+
+| ability | hook | is it this rule? |
+|---|---|---|
+| `disguise` | `onCriticalHit` / `onEffectiveness` | **no** — "the doll ate the hit, so Disguise does not". Consults `bypasssub` and `infiltrates`, which the entry drop never does. Mimikyu is queued separately and was NOT touched |
+| `iceface` | the same pair | **no**, and it has **zero legal carriers** — `abilityCarriers('iceface')` is empty, Eiscue is `isNonstandard: 'Past'` |
+| `intimidate` | `onStart` | **yes** — 18,772 uses |
+| `supersweetsyrup` | `onStart` | **yes**, character for character — 22 uses |
+
+Those last two are **exactly** the membership of the `onSwitchInDrop` tag, printed from
+`data/tags.json` rather than assumed. So the guard went on the tag's ONE consumer — `applyEntryDrops`,
+reached from all three of its call sites — and not on a name. A third member inherits it.
+
+**IT IS A BARE `_sub>0` AND DELIBERATELY NOT THE ENGINE'S `subBlocks` HELPER.** The general substitute
+rule consults `bypasssub` and Infiltrator; neither can apply here, because there is no move to carry a
+flag and `infiltrator.onModifyMove` only ever writes onto a MOVE. Routing this through the shared
+helper would have let an Infiltrator body Intimidate through a doll, which the authority does not do —
+LESSONS §4's over-match arriving as a shared helper instead of as a name.
+
+### THE AUTHORITY WAS ASKED THIS EXACT BOARD RATHER THAN QUOTED
+
+Official Champions simulator, one battle, dex only. Scizor U-turns an Incineroar in against a Snorlax
+behind a Substitute, with a Corviknight beside it that has no doll:
+
+```
+|-ability|p1a: Incineroar|Intimidate|boost
+|-immune|p2a: Snorlax
+|-unboost|p2b: Corviknight|atk|1
+```
+
+Snorlax `atk 0`, Corviknight `atk -1`, one **bare** `-immune` with no `[from]` and no ability
+attribution — which is why `TR.imm(f)` is called with no attribute. The `-ability` line lands before
+any substitute test in the handler, so it is announced even when every adjacent foe is behind a doll;
+this engine's `foes.some(f => f && !f.fainted)` guard already matches that.
+
+### THE PROBE TAKES ITS MEMBERSHIP AND ITS EXPECTATION OUT OF THE ARTIFACT
+
+`tests/test-mechanics.js`, `ability/onSwitchInDrop` — *"a SUBSTITUTE refuses an entry stat drop and
+answers `|-immune|` — every member of the onSwitchInDrop tag, read from the artifact, not just
+Intimidate"*. One board, two identical Garchomp, only the first behind a doll, the ability assigned
+onto the **same Incineroar** in every arm including the control:
+
+- the subbed foe's **whole seven-slot boost table** must be untouched — not a stat this file picked,
+  so a member dropping something else is judged correctly with no case added;
+- the foe beside it must be dropped, in the same turn;
+- exactly one bare `-immune`, aimed at the **subbed slot** and only that slot;
+- the same board with the ability removed drops neither foe and announces nothing.
+
+**RED, WITH THE CONTROL CLEARED:** under `MEDI_ENTRYDROP_SUB_BLIND=1` both members read
+`subbed {"at":-1,...}` / `open {"at":-1,...}` / `imm[-]` and the row is MISSING, while the control
+stays flat at zero — so the knob is the GUARD and not the drop machinery. **GREEN** without it:
+`subbed` all-zero, `open` dropped, `imm[|-immune|p2a:garchomp]`, for both members.
+
+### DERIVED, NOT BRIDGED — BUT THE ARTIFACT CANNOT BE REGENERATED IN LIGHT MODE
+
+The previous agent's instinct was right and its derivation is correct. `tag_dex.js` now reads
+`blockedBySubstitute` off the handler's own source, so a future member that does NOT gate on a
+substitute comes back `false` and the consumer stops guarding it — the direction a hand-written rule
+gets wrong. **Verified without regenerating anything**, by replicating the extractor over every legal
+ability: **2 members, both `true`, no over-match, and no ability whose `onStart` mentions a substitute
+without being tagged.**
+
+`node engine/tag_dex.js` reads the whole corpus (`fit_policy.loadCorpus({scope:'all'})`) and rewrites
+every usage count in `data/tags.json`, so it is not a light run and it is not a change that should
+ride along with a one-mechanic fix. **Until it is re-run the key is absent and both the engine and the
+probe take a LOUD bridge**: `MEDSEEN.entryDropSubBridge` counts every fall-through and the probe's own
+arms string prints `blockedBySubstitute ABSENT — bridged`. After the regeneration that counter must
+read **zero**; a non-zero after that is a member whose handler the derivation could not read.
+
+### THE HAND LIST
+
+**Leaving it:** everything on the previous lists that is not named below.
+
+**Removed — it is a probe now:**
+- ~~a Substitute does not block Intimidate~~ — landed as the whole `onSwitchInDrop` tag; census row
+  `ability/onSwitchInDrop — a SUBSTITUTE refuses an entry stat drop…`, red under
+  `MEDI_ENTRYDROP_SUB_BLIND=1`.
+
+**Added, measured this pass and NOT fixed:**
+- **THIS DOES NOT CLOSE THE `omit-weather` TURN-0 ROW** filed earlier in this ledger — *"a leads-time
+  Intimidate Showdown refused and we applied"*. A substitute cannot exist at boundary 0, so that
+  refusal is a different mechanism (Clear Amulet, Clear Body, an ally guard) and remains open. Nothing
+  here may be credited with it.
+- **SUPERSWEET SYRUP'S ANNOUNCEMENT IS NARRATED WRONG, and it predates this pass.** The authority
+  emits a bare `|-ability|p1a: X|Supersweet Syrup` unconditionally (`data/abilities.ts:4708`, no
+  `activated` flag and no third argument); this engine emits it with the protocol's `boost` marker and
+  only when a live foe exists. 22 uses, narration-only, not fixed here because batches of one is the
+  rule.
+- **The probe's `blockedBySubstitute: false` arm has no subject and has never run.** Both members carry
+  `true`. The arm is written and waiting; it is exercised by the first member that does not gate.
+
+### OWED, NOT RUN
+
+**Nothing below was run. The census count in the GENERATED block above is from 2026-08-23 01:59 and
+does not include this probe.**
+
+```
+node tests/test-mechanics.js
+node engine/tag_dex.js
+node engine/engine_release.js cut "ENGINE 5.91.0 - a substitute refuses an entry stat drop"
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node tests/roster.js --stage abilities --release <that fresh id> --write
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node engine/game_differential.js --release <that fresh id> --census data/gate-census.pin.json --team-store data/team-pool-frozen --state
+node tests/run-all.js
+tools\lownode.cmd engine\quarantine.js
+node engine/status.js --write
+git add engine/medicham2-browser.js engine/tag_dex.js tests/test-mechanics.js docs/ENGINE.md docs/MEDICHAM-SPRINT-NOTES.md docs/_reports/2026-08-23-substitute-blocks-intimidate.md CHANGELOG.md data/docs-currency-baseline.json data/mechanics-census.json data/tags.json
+```
+
+`--release <a FRESH id>` and `--write` are both required and both have been forgotten today; a roster
+run without `--write` exits 0 having changed no artifact.
+
+**WHICH SCOREBOARD THIS SHOULD MOVE, STATED BEFORE THE RUN.** Intimidate is **18,772 uses**, the
+largest entry effect in the format, and Substitute is a move real ladder teams click — so this should
+move the **pinned pool** as well as the lab. That is a prediction and not a result: it cannot be
+measured in light mode, and if the pool does not move, the honest reading is that subbed-into-entry is
+rarer inside the frozen sample than usage suggests, not that the fix did nothing. Supersweet Syrup (22
+uses) rides the same code path and should move the **lab only**.
+
+**PROPOSED REGISTER ROW** (not written — `docs/ROADMAP.md` is not this division's to edit):
+*"A Substitute refuses an on-entry stat drop. `data/abilities.ts:2191` and `:4710` gate the drop
+behind `target.volatiles['substitute']` and answer a bare `-immune`; `applyEntryDrops` walked the foes
+unconditionally. Fixed at the tag's one consumer for the whole `onSwitchInDrop` membership
+(intimidate 18,772 uses, supersweetsyrup 22), not per ability. Probe: census
+`ability/onSwitchInDrop — a SUBSTITUTE refuses an entry stat drop`, red under
+`MEDI_ENTRYDROP_SUB_BLIND=1`. OWED: `tag_dex.js` regeneration so `blockedBySubstitute` stops being
+bridged."*
+
 ## THE SEVEN ROSTER REDS WERE FOUR MECHANISMS, THE CONTROL CLICK WAS THE WITNESS IN THREE OF THEM, AND TWO OF THE THREE GROUPS I WAS HANDED REGROUPED. 2026-08-23.
 
 The brief grouped seven `FIRED-AND-BOARDS-DIFFER` rows (`data/roster.moves.json`, 5 of 500 tested;

@@ -21,6 +21,57 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A SUBSTITUTE REFUSES AN ENTRY STAT DROP — AND THE CLASS IS A TAG, NOT INTIMIDATE. 2026-08-23 (ENGINE).
+
+**The defect.** `applyEntryDrops` walked the foes unconditionally, so Intimidate (**18,772 uses**) and
+Supersweet Syrup (22) dropped a stat straight through a Substitute in every game this engine has ever
+played, and announced nothing.
+
+**The authority**, checked in `/data/mods/champions/` FIRST as CLAUDE.md requires — the mod overrides
+thirteen abilities and neither of these two, so `data/abilities.ts:2191` and `:4710` are the Champions
+handler and they are the same six lines:
+
+```
+if (target.volatiles['substitute']) { this.add('-immune', target); }
+else { this.boost({...}, target, pokemon, null, true); }
+```
+
+**The class was derived before anything was wired.** Every LEGAL ability in the regulation, walked for
+a `volatiles['substitute']` test on ANY handler: **four abilities on two hooks.** `disguise` and
+`iceface` are the `onCriticalHit`/`onEffectiveness` rule — a different rule, consulting `bypasssub` and
+`infiltrates` — and `iceface` has zero legal carriers (Eiscue is `isNonstandard: 'Past'`). The other
+two are `intimidate` and `supersweetsyrup`, which are **exactly** the `onSwitchInDrop` membership. So
+the guard went on the tag's ONE consumer, not on a name, and a third member inherits it. Mimikyu is
+queued separately and was NOT touched.
+
+**Not routed through the engine's `subBlocks` helper, deliberately** — that consults `bypasssub` and
+Infiltrator, neither of which can apply to an ability entry drop (there is no move to carry a flag),
+and doing so would have let an Infiltrator body Intimidate through a doll. LESSONS §4's over-match
+arriving as a shared helper rather than as a name.
+
+**The authority was asked this exact board rather than quoted.** Official Champions simulator: Scizor
+U-turns an Incineroar in against a Snorlax behind a Substitute →
+`|-ability|p1a: Incineroar|Intimidate|boost`, `|-immune|p2a: Snorlax`,
+`|-unboost|p2b: Corviknight|atk|1`. Bare `-immune`, no `[from]`.
+
+**Probe.** Census `ability/onSwitchInDrop — a SUBSTITUTE refuses an entry stat drop and answers
+|-immune|`, which reads the tag's MEMBERSHIP and its `blockedBySubstitute` expectation out of
+`data/tags.json` instead of naming an ability, and compares the whole seven-slot boost table. RED under
+`MEDI_ENTRYDROP_SUB_BLIND=1` with the control cleared; GREEN without.
+
+**Owed, and loud in the meantime.** `engine/tag_dex.js` now derives `blockedBySubstitute` from the
+handler source (verified over every legal ability without regenerating: 2 members, both `true`, no
+over-match), but `data/tags.json` was NOT regenerated — that reads the whole corpus and is not a light
+run. Until it is, engine and probe both take a bridge default and `MEDSEEN.entryDropSubBridge` counts
+it; after it, that counter must read zero.
+
+**Two things this does NOT close.** The `omit-weather` turn-0 Intimidate refusal (no substitute can
+exist at boundary 0 — different mechanism), and Supersweet Syrup's `|-ability|` narration, which the
+authority emits bare and unconditionally (`data/abilities.ts:4708`) where this engine adds the `boost`
+marker and requires a live foe.
+
+---
+
 ## THE SEVEN ROSTER REDS — FOUR MECHANISMS, TWO REGROUPINGS, AND THE CONTROL CLICK WAS THE WITNESS IN THREE. 2026-08-23 (ENGINE).
 
 Seven `FIRED-AND-BOARDS-DIFFER` rows (`data/roster.moves.json` 5 of 500 tested, `data/roster.items.json`

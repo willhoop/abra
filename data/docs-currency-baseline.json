@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-23T07:19:39.684Z",
+  "generated": "2026-08-23T08:16:04.406Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.90.0",
+  "changelog_top_at_baseline": "5.91.0",
   "version_pins": {
     "docs/ABRA-deck-plain-english.md": {
       "version": "3.98.0",

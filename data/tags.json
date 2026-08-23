@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-23T06:52:05.527Z",
+ "generated": "2026-08-23T08:24:54.944Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2112,8 +2112,8 @@
    "kind": "move",
    "param": "the volatile this move applies raises the CRITICAL-HIT RATIO, and which other members of that family it refuses to overlap with",
    "why": "Focus Energy and Dragon Cheer each refuse the other and both are copied wholesale by Psych Up and Transform; the engine had neither rule, so a Dragon Cheer'd ally still took a Focus Energy and a Transform copied no crit stage at all",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "critStageVolatile",
+   "used": true,
    "n": 2,
    "uses": 44,
    "examples": [
@@ -2772,8 +2772,8 @@
    "kind": "item",
    "param": "P(crit) raised",
    "why": "Scope Lens (Will spotted this one missing). Rare at 0.11% of items, but it sets a parameter the distribution already needs for Flower Trick, so it costs nothing to support. NOTE the ratio is a STAGE feeding P(crit); the crit damage multiplier is always x1.5 and nothing here changes it -- do not read critRatio: 2 as double damage",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "onModifyCritRatio",
+   "used": true,
    "n": 1,
    "uses": 196,
    "examples": [
@@ -2951,8 +2951,8 @@
    "kind": "ability",
    "param": "P(crit) raised — by a STAGE, or SET to a ratio when a condition holds",
    "why": "Super Luck and Merciless, and they are not the same mechanic: one is +1 stage always, the other is a GUARANTEED crit into a poisoned target (a returned 5 clamps to 4, and critMult[4] is 1). One constant param could not tell them apart, so the engine refused both",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "onModifyCritRatio",
+   "used": true,
    "n": 2,
    "uses": 36,
    "examples": [
@@ -38062,7 +38062,8 @@
      "boosts": {
       "atk": -1
      },
-     "oncePerBattle": null
+     "oncePerBattle": null,
+     "blockedBySubstitute": true
     }
    }
   },
@@ -39873,7 +39874,8 @@
      "boosts": {
       "evasion": -1
      },
-     "oncePerBattle": "syrupTriggered"
+     "oncePerBattle": "syrupTriggered",
+     "blockedBySubstitute": true
     }
    }
   },

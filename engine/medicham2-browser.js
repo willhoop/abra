@@ -467,6 +467,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   statDropReflected: 0, reflectSourceUnknown: 0,
   /* WIRE 157 -- an entry drop that spent its ONE firing for the battle (Supersweet Syrup). */
   entryDropOncePerBattle: 0,
+  /* 2026-08-23 -- an entry stat drop refused by the target's SUBSTITUTE, and the number of times the
+   * consumer had to fall back on the bridge because `data/tags.json` does not yet carry
+   * `blockedBySubstitute`. The second number is expected to be non-zero until tag_dex is regenerated;
+   * once it lands it must go to ZERO, and a non-zero after that means a member arrived whose handler
+   * the derivation could not read. */
+  entryDropRefusedBySub: 0, entryDropSubBridge: 0,
   /* WIRE 154 -- the five capabilities the heal descriptor armed, each with its own name, because a
    * ZERO on any one of them is the finding (CLAUDE.md: a capability that cannot prove it ran is
    * assumed broken) and one merged counter could not say WHICH of the four moves never fired.
@@ -11297,6 +11303,11 @@ function applyStatOp(user,target,op,mvId,rng){
   if(!MEDFAILS.statOpUnknownKindFirst)MEDFAILS.statOpUnknownKindFirst=String(mvId)+'/'+String(op.kind);
   return false;
 }
+/* 2026-08-23 -- MEDI_ENTRYDROP_SUB_BLIND=1 PUTS THE UNGUARDED ENTRY-DROP LOOP BACK: Intimidate and
+ * Supersweet Syrup drop straight through a substitute again, exactly as this engine did for every game
+ * it has ever played. Same shape as MEDI_PRANKSTER_SIDE_BLIND and MEDI_ORB_STALE_RANGE -- it exists so
+ * the census row can be shown MISSING on demand without swapping a file. */
+const ENTRYDROP_SUB_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ENTRYDROP_SUB_BLIND==='1');
 /* WIRE 100a -- every entry drop reads `onSwitchInDrop` membership from the artifact. The params
  * carry no stat table yet ({drop:true} -- and Download is an over-match in the current artifact,
  * which is exactly why the amounts are NOT taken from it), so Intimidate's -1 Atk is typed beside
@@ -11337,8 +11348,37 @@ function applyEntryDrops(m,foes){
    * read off a real Champions battle.log. The `boost` third argument is the protocol's marker for
    * "this ability announcement is about a stat change". */
   if(TR&&foes.some(f=>f&&!f.fainted))TR.ab(m,m.ability,'boost');
+  /* 2026-08-23 -- A SUBSTITUTE REFUSES THE DROP, AND IT IS THE TAG'S RULE RATHER THAN INTIMIDATE'S.
+   *
+   * `data/abilities.ts:2191` (intimidate) and `:4710` (supersweetsyrup) are the same six lines:
+   *     if (target.volatiles['substitute']) { this.add('-immune', target); }
+   *     else { this.boost({...}, target, pokemon, null, true); }
+   * `/data/mods/champions/abilities.ts` overrides NEITHER, so that is the Champions handler. Those two
+   * are the entire `onSwitchInDrop` membership -- printed, not assumed -- so the guard belongs here,
+   * at the tag's one consumer, and a third member inherits it.
+   *
+   * IT IS A BARE `_sub>0` AND DELIBERATELY NOT `subBlocks`. The general substitute rule consults
+   * `bypasssub` and Infiltrator; NEITHER applies to an ability's entry drop, because there is no move
+   * to carry a flag and `infiltrator.onModifyMove` only ever writes onto a MOVE. Routing this through
+   * subBlocks would have let an Infiltrator body Intimidate through a doll, which the authority does
+   * not do -- the over-match LESSONS 4 warns about, arriving as a shared helper instead of a name.
+   *
+   * NOT the once-per-battle flag's problem: the authority sets `syrupTriggered` BEFORE the loop, so a
+   * Supersweet Syrup that is refused by two dolls has still spent its one firing. That ordering is
+   * already above this line and is left alone.
+   *
+   * MEDI_ENTRYDROP_SUB_BLIND=1 puts the unguarded loop back, so the census row can be shown MISSING. */
+  const _sb=(_osd.blockedBySubstitute!=null)?!!_osd.blockedBySubstitute
+           :(MEDSEEN.entryDropSubBridge++,true);   // bridge until tag_dex's derivation is regenerated
   for(const f of foes){
     if(!f||f.fainted)continue;
+    if(_sb&&!ENTRYDROP_SUB_BLIND&&f._sub>0){
+      /* The authority's line is a BARE `this.add('-immune', target)` -- no `[from]`, no ability
+       * attribution -- which is why TR.imm is called with no attribute. */
+      if(TR)TR.imm(f);
+      MEDSEEN.entryDropRefusedBySub++;
+      continue;
+    }
     /* WIRE 138 -- the ENTRY-DROP source is the body that just arrived, and it is named now so the
        retaliation can apply the authority's ally guard instead of assuming a foe. */
     for(const k in _bo){const _s=SD2ENG[k];if(_s&&_bo[k]<0)applyStatDrop(f,_s,-_bo[k],m.ability,m);}

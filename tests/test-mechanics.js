@@ -2138,6 +2138,131 @@ probe('ability', 'onSwitchInDrop', 'Supersweet Syrup drops evasion ONCE PER BATT
                  + `${none.line}` };
 });
 
+/* A SUBSTITUTE REFUSES AN ENTRY STAT DROP, AND THE CLASS IS THE WHOLE `onSwitchInDrop` TAG. 2026-08-23.
+ *
+ * THE CLASS WAS DERIVED BEFORE ANYTHING WAS WIRED, because "a substitute blocks Intimidate" is the
+ * kind of sentence that gets fixed for one ability and stays broken for the rest. Every legal ability
+ * in the regulation was walked (`Dex.forFormat(...).abilities.all()`, filtered `!isNonstandard`) for a
+ * `volatiles['substitute']` test on ANY handler. FOUR abilities carry one, on TWO different hooks:
+ *
+ *     disguise         onCriticalHit / onEffectiveness   a DIFFERENT rule -- "the doll ate the hit, so
+ *                                                        Disguise does not" -- and it consults
+ *                                                        `bypasssub` and `infiltrates`, which the
+ *                                                        entry drop does not. Mimikyu is queued
+ *                                                        separately and is NOT touched here.
+ *     iceface          the same pair -- and it has ZERO legal carriers in this regulation
+ *                      (`abilityCarriers('iceface')` is empty; Eiscue is `isNonstandard: 'Past'`)
+ *     intimidate       onStart -- the entry drop
+ *     supersweetsyrup  onStart -- the entry drop, character for character:
+ *         if (target.volatiles['substitute']) { this.add('-immune', target); }
+ *         else { this.boost({...}, target, pokemon, null, true); }
+ *
+ * `/data/mods/champions/abilities.ts` overrides THIRTEEN abilities; `disguise` is one of them (and
+ * keeps its substitute clause) and NEITHER entry-drop ability is, so mainline's handler is the
+ * Champions handler for both. Read from `/data/mods/champions/` first, per CLAUDE.md.
+ *
+ * SO THE ENTRY-DROP HALF IS EXACTLY THE `onSwitchInDrop` TAG, and this probe takes its membership OUT
+ * OF `data/tags.json` rather than naming an ability. That is the point: the guard landed on the tag's
+ * one consumer (`applyEntryDrops`), so a THIRD member arriving under any spelling is covered by the
+ * engine and is covered here, with no edit to either. Today the artifact answers `intimidate,
+ * supersweetsyrup`; the arms string prints whatever it answers on the day it runs.
+ *
+ * THE EXPECTATION IS NOT TYPED PER ABILITY EITHER. Each member's row carries `blockedBySubstitute`,
+ * derived by `tag_dex.js` from the handler's own source, and this probe branches on it -- so a member
+ * whose handler does NOT gate on a substitute is required to drop THROUGH the doll. Until the artifact
+ * is regenerated the key is absent and both the engine and this probe fall back on "blocked", which
+ * the arms string says out loud rather than hiding.
+ *
+ * WHAT IS COMPARED IS THE WHOLE BOOST TABLE, not a stat this file picked. The subbed foe must be
+ * untouched on all seven slots and the foe beside it must not be -- so a member dropping some other
+ * stat is judged correctly without anybody adding a case.
+ *
+ * FOUR THINGS ON ONE BOARD, so a fix that simply stopped dropping cannot pass:
+ *   - the SUBBED foe keeps an all-zero boost table               (the defect)
+ *   - the foe BESIDE it, same species, no doll, is dropped        (the cleared control, same turn)
+ *   - the authority's bare `|-immune|` is on the wire, aimed at the SUBBED slot and only that slot
+ *   - the same board with the ability removed drops NEITHER foe and announces nothing (the knob)
+ *
+ * THE AUTHORITY WAS ASKED THIS EXACT BOARD rather than quoted from the handler. Official Champions
+ * simulator, Scizor U-turns Incineroar in against a Snorlax behind a Substitute:
+ *     |-ability|p1a: Incineroar|Intimidate|boost
+ *     |-immune|p2a: Snorlax
+ *     |-unboost|p2b: Corviknight|atk|1
+ * Snorlax atk 0, Corviknight atk -1, one bare `-immune` with no `[from]`.
+ *
+ * SHOWN RED ON DEMAND: MEDI_ENTRYDROP_SUB_BLIND=1 restores the old unguarded loop and this row reads
+ * MISSING -- both members drop THROUGH the doll and no `-immune` is announced, while the control stays
+ * at zero, so the knob is the guard and not the drop machinery.
+ *
+ * WHAT THIS PROBE CANNOT SEE, SAID HERE RATHER THAN DISCOVERED LATER:
+ *   - THE `blockedBySubstitute: false` BRANCH IS UNEXERCISED. Both members of the tag carry `true`,
+ *     so the arm that requires a member to drop THROUGH a doll has no subject and has never run. It
+ *     is written and waiting; the first member that does not gate on a substitute exercises it.
+ *   - `data/tags.json` DOES NOT YET CARRY THE KEY AT ALL (it was generated 2026-08-23T06:52Z, before
+ *     tag_dex derived it), so today every member reads ABSENT and both the engine and this probe take
+ *     the bridge default. The arms string prints `blockedBySubstitute ABSENT -- bridged` for exactly
+ *     as long as that is true, and `MEDSEEN.entryDropSubBridge` counts it. AFTER `node engine/tag_dex.js`
+ *     is re-run that counter must read ZERO; a non-zero after that is a member whose handler the
+ *     derivation could not read, which is a finding and not a shrug.
+ *   - IT IS ONE BOARD. It says nothing about an entry drop into a doll that a Clear Amulet, a White
+ *     Herb, Defiant or Contrary would also touch. */
+probe('ability', 'onSwitchInDrop',
+      'a SUBSTITUTE refuses an entry stat drop and answers |-immune| — every member of the '
+      + 'onSwitchInDrop tag, read from the artifact, not just Intimidate', () => {
+  const T = require(D('data', 'tags.json'));
+  const MEMBERS = Object.entries(T.abilities || {})
+    .filter(([, r]) => (r.tags || []).includes('onSwitchInDrop'))
+    .map(([id, r]) => ({ id, sub: ((r.params || {}).onSwitchInDrop || {}).blockedBySubstitute }));
+  if (!MEMBERS.length) return { works: false, detail: 'data/tags.json carries NO onSwitchInDrop '
+    + 'member — the probe cannot stage the mechanic, which is a finding about the artifact' };
+  const ZERO = (b) => Object.keys(b).every(k => b[k] === 0);
+  /* ONE BODY FOR EVERY ARM, INCLUDING THE CONTROL: the ability is assigned onto the same Incineroar
+   * in every run, so nothing about a carrier's own species can be mistaken for the mechanic. */
+  const run = (ab) => {
+    const me = bare('corviknight'), ally = bare('milotic'), bench = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');   // SAME SPECIES both slots: only the doll differs
+    bench.ability = ab;
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    /* Turn 1: f1 alone puts a doll up. Nothing on our side moves, so the only difference between the
+     * two foes on turn 2 is the substitute. */
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'substitute', null, S.field)], [f2, { kind: 'pass' }]]));
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { doll: f1._sub > 0 ? 1 : 0, arrived: S.actA[0] === bench,
+             subbedZero: ZERO(f1.boosts), openZero: ZERO(f2.boosts),
+             subbed: JSON.stringify(f1.boosts), open: JSON.stringify(f2.boosts),
+             imm: trace.filter(l => /^\|-immune\|/.test(l)).map(M.traceCanon) };
+  };
+  const IMM_SUBBED = M.traceCanon('|-immune|p2a: garchomp');   // f1, the body behind the doll
+  const N = run('none');                                       // the ability really is the knob
+  const fmt = (r) => `doll ${r.doll} arrived ${r.arrived} subbed ${r.subbed} open ${r.open} `
+                   + `imm[${r.imm.join(' ') || '-'}]`;
+  const bad = [];
+  if (!(N.doll === 1 && N.arrived && N.subbedZero && N.openZero && N.imm.length === 0)) {
+    bad.push('CONTROL (ability none) ' + fmt(N) + ' — both foes must sit at zero and nothing may be '
+           + 'announced; if this fails the staging is broken and no arm below means anything');
+  }
+  const seen = [];
+  for (const m of MEMBERS) {
+    const r = run(m.id);
+    const blocked = (m.sub == null) ? true : !!m.sub;     // absent => the engine's loud bridge default
+    const okStage = blocked ? (r.subbedZero && !r.openZero) : (!r.subbedZero && !r.openZero);
+    const okImm = blocked ? (r.imm.length === 1 && r.imm[0] === IMM_SUBBED) : (r.imm.length === 0);
+    if (!(r.doll === 1 && r.arrived && okStage && okImm)) bad.push(m.id + ' ' + fmt(r));
+    seen.push(m.id + (m.sub == null ? '[blockedBySubstitute ABSENT — bridged]' : '[' + m.sub + ']')
+      + ' ' + fmt(r));
+  }
+  return { works: bad.length === 0,
+           arms: { control: 'ability none, same board: ' + fmt(N),
+                   test: seen.join(' || ') },
+           detail: 'one board, two identical Garchomp, only f1 behind a doll; the tag\'s membership '
+                 + 'comes out of data/tags.json (' + MEMBERS.map(m => m.id).join(', ') + '). '
+                 + seen.join(' || ') + '; CONTROL ' + fmt(N)
+                 + (bad.length ? '. FAILED: ' + bad.join(' ; ') : '') };
+});
+
 /* THIS PROBE WAS HOLLOW — `/isPrankster/.test(src)` — LIVE by SOURCE GREP, not by behaviour. It would
  * have returned LIVE for a call that was commented out, renamed, or applied to the wrong body, and it
  * occupied a slot in a number that may never fall. Same shape as `healsAllyOnSwitchIn` before it.

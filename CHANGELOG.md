@@ -10,6 +10,73 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.91.1] — 2026-08-23
+
+### Changed
+- **`data/tags.json` regenerated so the entry-drop substitute rule is DERIVED rather than bridged.**
+  5.91.0 landed the guard but left `blockedBySubstitute` absent from the artifact, bridged in code and
+  announced through `MEDSEEN.entryDropSubBridge`. `engine/tag_dex.js` now derives it:
+  `abilities.intimidate.params.onSwitchInDrop.blockedBySubstitute` and the same on `supersweetsyrup`.
+
+### Notes
+- **THE FIX IS LANDED AND ITS PROVING PROBE IS NOT YET CONFIRMED — STATED RATHER THAN ASSUMED.** The
+  census run at 5.91.0 read **642 probed / 641 live / 1 missing**, and the missing one is the new probe
+  itself: *"a SUBSTITUTE refuses an entry stat drop and answers `|-immune|`"*. Its own detail records
+  why — `intimidate[blockedBySubstitute ABSENT — bridged]` — the probe reads the tag's membership and
+  its expectation out of `data/tags.json`, and the key was not there to read. **The same detail line
+  shows the subbed body at `at:-1`, i.e. the drop landing through the doll**, which is either the probe
+  unable to assert or the guard not applying, and the artifact alone cannot tell those apart.
+- The derivation above should settle it, but **the census was not re-run** (light mode — Will is
+  gaming), so **no claim is made here that the probe is live or green.** `node tests/test-mechanics.js`
+  is OWED and must read **642 live, 0 missing**, with `MEDSEEN.entryDropSubBridge` at zero. Until it
+  does, treat the Intimidate fix as landed-and-unproven.
+- The agent reported this fix as proved red-then-green on a staged board. That is not contradicted —
+  a staged board and the census are different instruments — but **the census is the one that is
+  currently dark, and a capability that cannot prove it ran is assumed broken.**
+
+## [5.91.0] — 2026-08-23
+
+### Fixed
+- **A Substitute did not refuse an on-entry stat drop, and the class is a TAG rather than
+  Intimidate.** `data/abilities.ts:2191` (intimidate) and `:4710` (supersweetsyrup) are the same six
+  lines — `if (target.volatiles['substitute']) { this.add('-immune', target); } else { this.boost(...) }`
+  — and `/data/mods/champions/abilities.ts` overrides neither, so mainline's handler is the Champions
+  handler. `applyEntryDrops` in `engine/medicham2-browser.js` walked the foes unconditionally, so every
+  game this engine has ever played dropped Attack through a doll. The guard lands on the tag's ONE
+  consumer, covering the whole `onSwitchInDrop` membership (intimidate **18,772 uses**, supersweetsyrup
+  22) and any member added later, and answers the authority's bare `|-immune|` with no attribution.
+  Asked of the official Champions simulator on the same board rather than quoted: `|-immune|p2a: Snorlax`
+  for the subbed foe, `|-unboost|p2b: Corviknight|atk|1` for the one beside it.
+
+### Added
+- One census probe, `ability/onSwitchInDrop — a SUBSTITUTE refuses an entry stat drop and answers
+  |-immune|`, which reads the tag's MEMBERSHIP and its `blockedBySubstitute` expectation out of
+  `data/tags.json` instead of naming an ability, and compares the whole seven-slot boost table rather
+  than a stat the probe picked. Shown RED under the new `MEDI_ENTRYDROP_SUB_BLIND=1` restore knob with
+  the control cleared (ability removed, same board, both foes flat at zero).
+- `engine/tag_dex.js` derives `blockedBySubstitute` for `onSwitchInDrop` from the handler's own source,
+  so a member that does NOT gate on a substitute comes back `false` and the consumer stops guarding it.
+  Verified over every legal ability in the regulation without regenerating the artifact: 2 members,
+  both `true`, no over-match.
+- `MEDSEEN.entryDropRefusedBySub` and `MEDSEEN.entryDropSubBridge`.
+
+### Notes
+- **`data/tags.json` WAS NOT REGENERATED and the derived key is therefore BRIDGED, loudly.**
+  `node engine/tag_dex.js` reads the whole corpus and rewrites every usage count in the artifact, which
+  is not a light run. Until it is re-run the engine and the probe both fall back on "blocked" and
+  `MEDSEEN.entryDropSubBridge` counts every fall-through; after it, that counter must read zero.
+- **LIGHT MODE: the census was NOT regenerated, `status.js` was NOT run, and no roster, differential or
+  gate ran. No count moved and none is claimed.** The OWED, NOT RUN list with exact arguments —
+  including `--release <a fresh id>` and `--write` — is in `docs/ENGINE.md`.
+- **This does NOT close the `omit-weather` turn-0 row** filed in `docs/ENGINE.md` (*"a leads-time
+  Intimidate Showdown refused and we applied"*). A substitute cannot exist at boundary 0, so that
+  refusal is a different mechanism and stays open.
+- Two narration divergences found and deliberately NOT fixed, because batches of one is the rule:
+  Supersweet Syrup's `|-ability|` line is emitted with the protocol's `boost` marker and only when a
+  live foe exists, where `data/abilities.ts:4708` emits it bare and unconditionally.
+
+---
+
 ## [5.90.0] — 2026-08-23
 
 ### Fixed

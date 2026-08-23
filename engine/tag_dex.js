@@ -7661,7 +7661,22 @@ const ABILITY_TAGS = [
        * a fourth member arrives with its own bookkeeping key rather than sharing Syrup's. */
       const g = src.replace(/\s+/g, ' ')
         .match(/if\s*\(\s*\w+\.(\w+)\s*\)\s*return\s*;\s*\w+\.\1\s*=\s*true/);
-      return { drop: true, boosts: drops, oncePerBattle: g ? g[1] : null };
+      /* 2026-08-23 -- A SUBSTITUTE REFUSES THE DROP, AND THE HANDLER SAYS SO ITSELF.
+       *
+       *     if (target.volatiles['substitute']) { this.add('-immune', target); }
+       *     else { this.boost({ atk: -1 }, target, pokemon, null, true); }
+       *
+       * is character-for-character the same in `data/abilities.ts:2191` (intimidate) and `:4710`
+       * (supersweetsyrup), and `/data/mods/champions/abilities.ts` overrides neither. Read off the
+       * handler rather than typed, so a third member that does NOT carry the clause gets `false` and
+       * the consumer stops guarding it -- which is the direction a hand-written rule would get wrong.
+       *
+       * DELIBERATELY NARROW: it does NOT look for `bypasssub` or `infiltrates`, because these two
+       * handlers do not consult either. Disguise and Ice Face DO (`data/abilities.ts:974,986,1979,1987`)
+       * and are a different rule on a different hook; neither carries this tag, and Eiscue is
+       * `isNonstandard: 'Past'` in this regulation anyway. */
+      const sub = /volatiles\[\s*["']substitute["']\s*\]/.test(src);
+      return { drop: true, boosts: drops, oncePerBattle: g ? g[1] : null, blockedBySubstitute: sub };
     } },
   /* WIRE 157 -- AN ENTRY ABILITY THAT REACHES THE BODY BESIDE IT, WHICH `onSwitchInDrop` ABOVE
    * STRUCTURALLY CANNOT EXPRESS: that tag reads a handler aimed at `foe`/`adjacentFoes`, and this one
