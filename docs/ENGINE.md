@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  654/654 probed mechanics live, 0 missing   (census 2026-08-23 17:19)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-23 17:23)
+  658/658 probed mechanics live, 0 missing   (census 2026-08-23 18:47)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-23 18:55)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,168 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 44bfdb40c292 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 301f0f75cd13 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 17:44_
+_stamped 2026-08-23 19:03_
 
 <!-- /GENERATED -->
+
+## THE BOARD-MATERIAL REMAINDER — FIVE MECHANISMS, 21 → 15, AND ONE "INSTRUMENT" FAMILY WAS THE ENGINE. 2026-08-23.
+
+Full account: [`docs/_reports/2026-08-23-board-material-remainder.md`](_reports/2026-08-23-board-material-remainder.md).
+
+**THE BRIEF HANDED OVER NINE GAMES AS THE INSTRUMENT AND BOTH OF THEM STILL HOLD** — Moody's stat pick
+(8 games in `middle`, **zero in each corner**, re-computed off this run's artifact rather than
+inherited) and one off-field `??:farigiraf` body. **What did NOT hold was the assumption that the other
+corner-zero family was instrument too.** Future Sight's two damage rows read zero in both corners and
+are a **REAL ENGINE DEFECT**: this engine's own ROADMAP #304 comment says why an index and a span
+coincide at exactly the two points a corner compares — `band[0]` IS `d.max` and `band[15]` IS `d.min`.
+
+| mechanism landed | board-material games | state? |
+|---|---|---|
+| a field-driven forme follows a sky that was ALREADY THERE when the body arrived (Forecast, Mimicry) | **2** | yes — `types` |
+| the delayed hit SELECTS out of the sixteen-roll band instead of interpolating a span | **2** | yes — HP |
+| a STATUS move misses a semi-invulnerable body (~40 action kinds, ONE gate) | **1** | yes — the whole effect |
+| Symbiosis answers a WHITE HERB spend, not only a berry | **1** | yes — two `party.item` leaves |
+| the delayed hit writes its `-supereffective` / `-resisted` line | 0 — narration, and it is the follow-on the band fix EXPOSED | no |
+
+### THE NUMBERS — A RE-BASELINE, NOT A DELTA
+
+Arm **`middle`** (real dice, the default), release **`3e00ea2575a9`**, 961 played games, turn cap 12,
+`--end-state`, `--team-store data/team-pool-frozen`,
+`--census data/verification/census-pin-9446a684709d.json` (the same 643-row pin, so the steering is
+identical and the sample is the same 961 games).
+
+| quantity, arm `middle` | before `985a28a22653` | after `3e00ea2575a9` |
+|---|---|---|
+| protocol parted (raw `diverged`) | 64 | **58** |
+| **undeclared = diverged − declared** (the published headline) | 59 of 961 = 6.1% | **53 of 961 = 5.5%** |
+| distinct causes | 58 | **53** |
+| board-material games (all) | 30 | **24** |
+| of those, THE INSTRUMENT (Moody 8 + off-field 1) | 9 | **9** |
+| **ENGINE board-material — THE GATE NUMBER** | **21** | **15** |
+| narration-only games | 34 | **34 — it did not rise** |
+
+Per arm, never pooled: `middle` 58 parted / 24 board-material / **15 engine** / 34 narration;
+`top-tie-first` 53 / 16 / 16 / 37; `bottom-tie-first` 61 / 17 / 17 / 44.
+
+**THE CAUSE DIFF IS THE EVIDENCE, NOT THE TOTAL.** Joining the two artifacts' `by_cause` tables, the
+five causes that vanished are exactly the five that were fixed (6 games), one new narration cause
+appeared and was then closed (below), and **not one other row moved by a single game.**
+
+### THE FIX EXPOSED A THIRD FUTURE SIGHT GAME, AND NARRATION WENT TO 35 BEFORE IT CAME BACK TO 34
+
+The first re-run read narration **35**, which is the brief's stop condition. The one new cause was
+`|-supereffective|p2a|1 <> |-damage|p2a|H/H` — **not the Decorate game wearing a new label**, checked
+against the dump: a different seed, a third game whose course changed because the delayed damage
+changed. The payout block wrote the `-end` and then the `-damage` with nothing between them. Fixed
+under the same `damageIsComputed` guard the attack branch uses, asserted on three arms (super-effective,
+resisted, and a NEUTRAL arm that must carry neither line). Narration is **34 — flat**.
+
+### THE ONE GATE THAT COVERS FORTY BRANCHES, AND WHY IT IS NOT IN FORTY BRANCHES
+
+`hitStepInvulnerabilityEvent` is step **ZERO** of `trySpreadMoveHit` (`sim/battle-actions.ts:556, 621`)
+and that step list is not per-category. This engine had it inside the ATTACK branch only. Staged before
+a line changed, against a Dragapult mid-Phantom-Force, **Decorate, Charm, Will-O-Wisp and Taunt were
+BYTE-IDENTICAL with and without the charge** — which is what an unwired gate looks like.
+
+The gate is placed at the common commit site where the `|move|` line is written and the aimed body is
+resolved for every kind. **`a.kind === 'attack'` is skipped deliberately**: the attack branch walks
+multiple targets with per-target pierce lists, a `smartTarget` rule and a `spreadHit` rule that
+suppresses the `[miss]` attribute, none of which a single resolved target can express — so nothing
+about the damaging path moves. The three exemptions are the authority's own (`helpinghand`, a
+Poison-type's `toxic`, and Lock-On through the shared `guaranteedAgainst` predicate) and all three are
+probe arms, because a blanket rule is wrong in all three directions.
+
+### THE MUST-NOT-MOVE LIST, CHECKED
+
+| | required | measured |
+|---|---|---|
+| damage differential, `--n 6000 --seed 20260804` | 0/6000, all 16 corners | **0/6000, all 16 corners — run twice** |
+| census | 654 / 654 / 0 | **658 / 658 / 0** |
+| census ratchet (`unarmed` / `directCall`) | may not rise | **0 / 1, no `--accept` needed** |
+| hollow probes / probes that THREW | 0 / 0 | **0 / 0** |
+| narration-only games | must not rise from 34 | **34** |
+| roster items / abilities / moves | 0 DIFFER, 0 DID-NOT-FIRE | **identical, re-run on the FINAL release** |
+| `all_mechanics_fire --kind all` | moves 20 / abilities 9 / items 1 | **identical** |
+
+Gate shape unchanged: **3 of 8 clauses fail — the whole-game differential, the staged-mechanics
+comparison, and the open-defect register clause — the same three as before this pass.** The three
+roster clauses PASS.
+
+**ONE INSTRUMENT INCONSISTENCY WORTH KNOWING BEFORE ANYBODY QUOTES A ROSTER NUMBER.**
+`tests/roster.js --stage all` reports **2 FIRED-AND-BOARDS-DIFFER** (`axekick`, `electrify`) where the
+three per-stage runs report **0**; both rows are `DEFERRED-BY-OWNER` in the per-stage artifact, so the
+`all` stage applies the usage shelf differently. It is **not a regression from this pass** — the
+2026-08-11 `all` artifact read 4 DIFFER / 4 DID-NOT-FIRE, so `all` improved to 2 / 0. Named, not
+investigated.
+
+### THE HAND LIST
+
+Four items left it, because the census now carries them:
+
+- ~~Decorate lands on a semi-invulnerable body~~ — and it was never about Decorate. Probe
+  `move`/`semiInvulnerable`, *"a STATUS move misses a semi-invulnerable body — and Helping Hand and a
+  Poison-type's Toxic still reach it"*.
+- ~~Forecast never fires~~ — probe `ability`/`formeFollowsWeather`, *"Forecast fires the moment Castform
+  ARRIVES under a standing sky, not a turn later"*. Mimicry is the second member and is on the same board.
+- ~~Symbiosis never fires~~ — probe `ability`/`passesItemToAlly`, *"Symbiosis answers a WHITE HERB spend,
+  not only a berry, and names the item it hands over"*.
+- ~~Future Sight's delayed damage is off by 1-2 HP~~ — probe `move`/`delayedHit`, *"the delayed hit
+  SELECTS out of the sixteen-roll band, and does not interpolate a span"*.
+
+**PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.**
+
+1. **A screen-breaking move clears screens through a type immunity, a Protect and a miss.**
+   `psychicfangs.onTryHit` runs at `sim/battle-actions.ts:1044`, INSIDE `moveHit` — after all five
+   gates. This engine clears once per use before target resolution (`medicham2:21309`). Board-material,
+   1 game. **ARCHITECTURAL: the clear belongs in the per-target hit loop, and a narrow gate on type
+   immunity alone would be a silent partial.**
+2. **The delayed hit takes no crit draw at all**, so `condition:futuremove`'s payout can never crit and
+   can never emit `-crit`. The authority gives it the full step list. State + narration.
+3. **`tests/roster.js --stage all` disagrees with the three per-stage runs on `axekick` and
+   `electrify`.** An instrument inconsistency, not an engine defect.
+4. **Stance Change's `-formechange` may be missing `[from] ability: Stance Change`.** Left
+   byte-identical on purpose and named at the site; settle with a measurement, not a code read.
+5. **The three "the authority `-fail`s and we apply" rows are NOT one mechanism** — Disable, Role Play
+   and Curse are three preconditions and two of the three are `earlier` attribution.
+6. **The sleep row and the flinch row have the MOODY SHAPE** — one game each, `middle`-only, and both
+   ride a die (`random(2,5)`, a secondary roll). Check the corner arms before touching either.
+
+Carried forward unchanged from the previous pass and NOT touched here: the faint queue (27 inline sites
+against 8 step boundaries), the Update pass inside the hit loop, Throat Chop's one-turn-long `_noSound`,
+the broken Substitute's unclamped `lastDamage`, the Perish Song `-damage`, the weather-upkeep 5, and
+Growl doing nothing.
+
+### OWED, NOT RUN
+
+```
+node tests/test-mechanics.js                          RUN — 658/658 live, 0 missing, 0 hollow, 0 threw
+tests/test-engine-diff.js --n 6000 --seed 20260804    RUN — 0/6000, all 16 corners, twice
+node tests/roster.js --stage {items,abilities,moves}  RUN — on the FINAL release, 0/0 on all three
+node engine/all_mechanics_fire.js --kind all          RUN — moves 20 / abilities 9 / items 1, identical
+node engine/game_differential.js (the pinned run)     RUN — twice: once after four fixes, once final
+node engine/status.js --write                         RUN at the end of this pass
+node tests/roster.js --stage all                      RUN once — and it DISAGREES with the per-stage runs
+node engine/replay_one.js (the weather upkeep 5)      NOT RUN — still owed from the previous pass
+node engine/explain_divergence.js --dump-speeds       NOT RUN — no tie row was touched
+node engine/quarantine.js                             NOT RUN — its clauses were run directly, at the pins
+node tests/run-all.js                                 NOT RUN — several of its gates predate this pass
+node engine/argmax_paired.js (decision impact)        NOT RUN — data/decision-impact.json still absent
+tests/interaction_matrix.js                           NOT RUN
+node engine/million_run.js                            NOT RUN
+```
+
+- **No fit, no self-play, no `mew.js`.** `board.js`, `magnemite.js` and `engine-data.js` untouched.
+- **Two untracked files left alone as instructed:** `data/_pair-pilot.json` and
+  `data/medicham-represented-clicks.json`.
+- **`data/roster.all.json` / `.prev.json` were rewritten** by the one `--stage all` run; the previous
+  bytes (2026-08-11, release `a63f0f139f37`) are now in `data/roster.all.prev.json`.
+
 
 ## NARRATION TIMING — THREE RULES, EIGHT OF THE 42 CLEARED, AND BOARD-MATERIAL DID NOT MOVE. 2026-08-23.
 

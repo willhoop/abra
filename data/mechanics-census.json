@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-23T21:19:12.505Z",
+  "generated": "2026-08-23T22:47:34.614Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 654,
-  "live": 654,
+  "probed": 658,
+  "live": 658,
   "missing": 0,
-  "armed": 654,
+  "armed": 658,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3363,7 +3363,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6554,6 +6554,46 @@
       "label": "Syrup Bomb ends when its SOURCE leaves the field, and its `[silent]` end is still a line",
       "live": true,
       "detail": "the same Hydrapple Syrup Bomb into the same Feraligatr. SOURCE STAYS — Speed dropped on turns [1,2,3], `-end` on turn [4], final Speed stage -3 (the authority's own measured trace: three drops, then a silent end on the fourth). SOURCE PIVOTS OUT ON TURN 2 — drops on turns [1], `-end` on turn [2], final Speed stage -1. Before the wire the leaving arm read -3 like the staying arm and NEITHER printed an end line",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "formeFollowsWeather",
+      "label": "Forecast fires the moment Castform ARRIVES under a standing sky, not a turn later",
+      "live": true,
+      "detail": "Castform switching in ON THE TURN, read at the end of that same turn — into RAIN with Forecast Water [\"|-formechange|p2a:castform|castformrainy|[msg]|[from]ability:forecast\"]; control, the same body into a CLEAR sky Normal []; control, the same RAIN with no ability Normal []. Mimicry, the terrain member of the same sync, arriving under Electric Terrain Electric (control, no ability: Ground/Steel). Before the wire BOTH arrived unchanged and retyped a turn late",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "passesItemToAlly",
+      "label": "Symbiosis answers a WHITE HERB spend, not only a berry, and names the item it hands over",
+      "live": true,
+      "detail": "a Torkoal at -1 Attack pops its White Herb beside an Oranguru holding a Life Orb — SYMBIOSIS: the Torkoal ends holding \"lifeorb\", the Oranguru \"\", lines [\"|-enditem|p2a:torkoal|whiteherb\",\"|-clearnegativeboost|p2a:torkoal|[silent]\",\"|-activate|p2b:oranguru|ability:symbiosis|lifeorb|[of]p2a:torkoal\"]; CONTROL, the identical board with the ability blanked: \"\" / \"lifeorb\", lines [\"|-enditem|p2a:torkoal|whiteherb\",\"|-clearnegativeboost|p2a:torkoal|[silent]\"]. Before the wire the two arms were byte-identical — the herb spend called nobody",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "delayedHit",
+      "label": "the delayed hit SELECTS out of the sixteen-roll band, and does not interpolate a span",
+      "live": true,
+      "detail": "Future Sight, Oranguru into an unfaintable Hippowdon, spent at the centre of each of the sixteen buckets — got [118,118,120,121,123,124,126,127,129,130,132,133,135,136,138,139]; the authority's band, read back out of dmgRange and reversed into u order, is [118,118,120,121,123,124,126,127,129,130,132,133,135,136,138,139]. The two ENDS agree on either implementation (118 / 139), which is exactly why every corner arm of the damage differential read 0 while the interior was wrong. THE EFFECTIVENESS LINE, three arms: super-effective [\"|-end|p2a:venusaur|move:futuresight\",\"|-supereffective|p2a:venusaur|1\",\"|-damage|p2a:venusaur|1042/1240\"]; resisted [\"|-end|p2a:scizor|move:futuresight\",\"|-resisted|p2a:scizor|1\",\"|-damage|p2a:scizor|1101/1160\"]; neutral [\"|-end|p2a:snorlax|move:futuresight\",\"|-damage|p2a:snorlax|1789/1880\"] (which must carry NEITHER line)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "semiInvulnerable",
+      "label": "a STATUS move misses a semi-invulnerable body — and Helping Hand and a Poison-type's Toxic still reach it",
+      "live": true,
+      "detail": "a Dragapult charging Phantom Force, hit with a status move on the SAME turn — Decorate missed=true `[miss]` on the move line=true landed=false; CONTROL, the identical click with no charge: missed=false landed=true. Charm missed=true, Will-O-Wisp missed=true. THE TWO EXEMPTIONS: Helping Hand onto a charging PARTNER missed=false (must be false), a Poison-type Gengar's Toxic missed=false (must be false). Before the wire every status move landed on a body that was not on the field",
       "hollow": false,
       "armed": true,
       "directCall": false

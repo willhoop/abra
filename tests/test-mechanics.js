@@ -23533,6 +23533,315 @@ probe('move', 'perTurnBoost', 'Syrup Bomb ends when its SOURCE leaves the field,
                  + `the leaving arm read -3 like the staying arm and NEITHER printed an end line` };
 });
 
+/* 2026-08-23 -- A FIELD-DRIVEN FORME FOLLOWS THE SKY THAT WAS ALREADY THERE WHEN THE BODY ARRIVED.
+ *
+ * `forecast` is `onSwitchInPriority: -2` with `onStart(pokemon) { this.singleEvent('WeatherChange',
+ * …) }` (data/abilities.ts:1460-1464), so a Castform walking into standing rain retypes AT ITS OWN
+ * ENTRY. This engine synced the field-driven formes at exactly two moments -- the whole-lead pass in
+ * `battleInit` and once at the top of every turn -- and at NEITHER of the two does a mid-turn switch
+ * live. The forme therefore arrived a WHOLE TURN LATE: `|switch|p2a: Castform|` with no line after
+ * it, and the retype appearing at the head of the next turn instead.
+ *
+ * Two whole-game divergences read exactly that, and they are BOARD-MATERIAL -- the board parts on
+ * `active[].types` on the turn of the switch, which is a real difference in what a Water move does to
+ * the body for the rest of that turn.
+ *
+ * THE LINE IS THE OTHER HALF AND IT MATTERS AS MUCH. `formeChange` with a falsy `isPermanent` and an
+ * ABILITY source is `sim/pokemon.ts:1487`:
+ *
+ *     this.battle.add('-formechange', this, species.name, message, `[from] ability: ${source.name}`);
+ *
+ * with `message` = `'[msg]'` from Forecast's own call. Firing the sync without those two fields would
+ * have moved the divergence from BOARD-MATERIAL to NARRATION rather than closing it.
+ *
+ * THE CLASS IS THE SYNC, NOT FORECAST. `syncFieldTypes` is terrain AND weather, so Mimicry --
+ * `onStart` firing `TerrainChange`, the identical shape -- is the second member and is asserted here
+ * on the same board. The two controls are the two halves of the condition: the same body arriving
+ * under a CLEAR sky, and a body with no ability at all arriving under the same rain. */
+probe('ability', 'formeFollowsWeather', 'Forecast fires the moment Castform ARRIVES under a standing sky, not a turn later', () => {
+  const run = (ab, wx) => {
+    const me = bare('froslass'), ally = bare('whimsicott');
+    const cast = bare('castform'); cast.ability = ab;
+    const f1 = bare('pelipper'), f2 = bare('swampert');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2, cast], { seeded: true, trace });
+    S.field.weather = wx; S.field.weatherT = wx ? 5 : 0;
+    trace.length = 0;
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, { kind: 'switch', to: cast }], [f2, { kind: 'pass' }]]));
+    return { onArrival: (cast.types || []).join('/'),
+             lines: trace.map(M.traceCanon).filter(l => /^\|-formechange\|/.test(l)) };
+  };
+  /* MIMICRY IS THE SECOND MEMBER OF THE SAME SYNC and it retypes with no line of its own
+   * (data/abilities.ts:2592 assigns to a local rather than calling formeChange), so only the TYPE is
+   * asserted for it -- which is what the class fix has to deliver. */
+  const runTerrain = (ab, tr) => {
+    const me = bare('froslass'), ally = bare('whimsicott');
+    const st = bare('stunfisk-galar'); st.ability = ab;
+    const f1 = bare('pelipper'), f2 = bare('swampert');
+    const S = M.battleInit([me, ally], [f1, f2, st], { seeded: true });
+    S.field.terrain = tr; S.field.terrainT = tr ? 5 : 0;
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, { kind: 'switch', to: st }], [f2, { kind: 'pass' }]]));
+    return (st.types || []).join('/');
+  };
+  const rainOn = run('forecast', 'rain');
+  const clearOn = run('forecast', '');        // control: the same body, no sky to follow
+  const rainOff = run('none', 'rain');        // control: the same sky, no ability to follow it
+  const terrOn = runTerrain('mimicry', 'electric');
+  const terrOff = runTerrain('none', 'electric');
+  const j = JSON.stringify;
+  const works = rainOn.onArrival === 'Water'
+             && j(rainOn.lines) === j(['|-formechange|p2a:castform|castformrainy|[msg]|[from]ability:forecast'])
+             && clearOn.onArrival === 'Normal' && clearOn.lines.length === 0
+             && rainOff.onArrival === 'Normal' && rainOff.lines.length === 0
+             && terrOn === 'Electric' && terrOff === 'Ground/Steel';
+  return { works, arms: { control: [clearOn.onArrival, rainOff.onArrival, terrOff],
+                          test:    [rainOn.onArrival, rainOn.onArrival, terrOn] },
+           detail: `Castform switching in ON THE TURN, read at the end of that same turn — into RAIN `
+                 + `with Forecast ${rainOn.onArrival} ${j(rainOn.lines)}; control, the same body into `
+                 + `a CLEAR sky ${clearOn.onArrival} ${j(clearOn.lines)}; control, the same RAIN with `
+                 + `no ability ${rainOff.onArrival} ${j(rainOff.lines)}. Mimicry, the terrain member `
+                 + `of the same sync, arriving under Electric Terrain ${terrOn} (control, no ability: `
+                 + `${terrOff}). Before the wire BOTH arrived unchanged and retyped a turn late` };
+});
+
+/* 2026-08-23 -- SYMBIOSIS ANSWERS A HERB, NOT ONLY A BERRY, AND THE LINE CARRIES THE ITEM.
+ *
+ * The handler is `onAllyAfterUseItem` (data/abilities.ts), and `Pokemon#useItem` is what raises
+ * `AfterUseItem` -- so EVERY item spend is a trigger, not just an eaten berry. This engine hung
+ * Symbiosis on `consumeBerry`, its one berry door, and declared the shortfall in
+ * `MEDFAILS.symbiosisNonBerrySites`: the herb family spends at its own `-enditem` site and nothing
+ * called the partner. One whole-game divergence is exactly that -- a Torkoal pops its White Herb
+ * against an Intimidate, the authority hands it the Oranguru's Life Orb, and this engine did not.
+ * It is BOARD-MATERIAL: the board parts on two `party.item` leaves and the Life Orb then prices
+ * every attack for the rest of the game.
+ *
+ * WHITE HERB IS THE MEMBER WORTH WIRING AND THE REST ARE NAMED. `restoresStats` is White Herb and
+ * nothing else (docs/LESSONS.md §4), it is the second most-held item in this format, and it has ONE
+ * spend site (`restoreStatsUpdate`). Mental Herb spends at `freeVolatileByItem` and Power Herb is
+ * `isNonstandard: 'Past'` in Champions, so neither is reachable in the same way or at the same
+ * weight; the counter keeps naming them.
+ *
+ * AND THE LINE HAD THREE FIELDS WHERE THE AUTHORITY WRITES FOUR --
+ *     |-activate|p2a: Oranguru|ability: Symbiosis|Life Orb|[of] p2b: Torkoal
+ * the ITEM sits between the effect and the `[of]`, and `MEDFAILS.symbiosisLineShort` had been
+ * counting its absence. Firing the herb trigger without it would have turned a BOARD-MATERIAL
+ * divergence into a NARRATION one rather than closing it.
+ *
+ * THE CONTROL IS THE ABILITY, ON AN OTHERWISE IDENTICAL BOARD -- the same Torkoal, the same herb, the
+ * same negative stage, the same Life Orb in the partner's hand. Before the wire the two arms were
+ * BYTE-IDENTICAL, which is what an unwired knob looks like. */
+probe('ability', 'passesItemToAlly', 'Symbiosis answers a WHITE HERB spend, not only a berry, and names the item it hands over', () => {
+  const run = (giverAb) => {
+    const me = bare('froslass'), ally = bare('whimsicott');
+    const tork = bare('torkoal'); tork.item = 'whiteherb';
+    const oran = bare('oranguru'); oran.ability = giverAb; oran.item = 'lifeorb';
+    const trace = [];
+    const S = M.battleInit([me, ally], [tork, oran], { seeded: true, trace });
+    tork.boosts.at = -1;                 // the herb's own trigger, set on the board before the turn
+    trace.length = 0;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(tork, oran));
+    return { lines: trace.map(M.traceCanon).filter(l => /-enditem|-clearnegativeboost|-activate/.test(l)),
+             spender: tork.item, giver: oran.item, at: tork.boosts.at };
+  };
+  const on = run('symbiosis'), off = run('none');
+  const j = JSON.stringify;
+  const works = on.spender === 'lifeorb' && on.giver === '' && on.at === 0
+             && on.lines.length === 3
+             /* THE SLOTS ARE THE BOARD'S, NOT THE CARD'S. Torkoal is p2a here and the Oranguru p2b;
+              * the divergence card has them the other way round. The line's SHAPE is what is being
+              * asserted -- giver, effect, ITEM, `[of]` spender -- and writing the card's idents
+              * verbatim made this probe red against a working engine on its first run. */
+             && on.lines[2] === '|-activate|p2b:oranguru|ability:symbiosis|lifeorb|[of]p2a:torkoal'
+             && off.spender === '' && off.giver === 'lifeorb' && off.at === 0
+             && off.lines.length === 2;
+  return { works, arms: { control: [off.spender, off.giver, String(off.lines.length)],
+                          test:    [on.spender, on.giver, String(on.lines.length)] },
+           detail: `a Torkoal at -1 Attack pops its White Herb beside an Oranguru holding a Life Orb `
+                 + `— SYMBIOSIS: the Torkoal ends holding "${on.spender}", the Oranguru "${on.giver}", `
+                 + `lines ${j(on.lines)}; CONTROL, the identical board with the ability blanked: `
+                 + `"${off.spender}" / "${off.giver}", lines ${j(off.lines)}. Before the wire the two `
+                 + `arms were byte-identical — the herb spend called nobody` };
+});
+
+/* 2026-08-23 -- THE DELAYED HIT DREW A POSITION IN A SPAN WHERE EVERY OTHER HIT DRAWS AN INDEX INTO
+ * SIXTEEN, AND IT IS THE ROADMAP #304 DEFECT SURVIVING IN THE ONE PATH THAT WAS NOT CONVERTED.
+ *
+ *     sim/battle.ts:2390   randomizer(d) { return tr(tr(d * (100 - this.random(16))) / 100); }
+ *
+ * `random(16)` picks one of SIXTEEN percentages and everything after it is applied to an
+ * already-truncated integer, so the authority's support has REPEATS and HOLES and is never more than
+ * sixteen values. The main damage path asks `dmgRange` for the whole band and SELECTS out of it
+ * (`_band[damageRollIndex(_u)]`). `condition:futuremove`'s payout still read
+ * `d.min + floor(u * (d.max - d.min + 1))` -- every integer between the two ends.
+ *
+ * MEASURED, Oranguru's Future Sight into an unfaintable Hippowdon: the authority's band is
+ * [139,138,136,135,133,132,130,129,127,126,124,123,121,120,118,118] and this engine's sixteen buckets
+ * produced 118,120,121,122,124,125,126,128,129,131,132,133,135,136,137,139 -- FIVE of them (122, 125,
+ * 128, 131, 137) are numbers the authority cannot produce at all.
+ *
+ * NO CORNER INSTRUMENT COULD SEE IT, which is why `tests/test-engine-diff.js` reads 0 of 6000 at all
+ * sixteen corners while two whole-game divergences sat in the `middle` arm: `band[0]` IS `d.max` and
+ * `band[15]` IS `d.min`, so the two conventions agree at exactly the two points a corner compares.
+ * Both divergences are BOARD-MATERIAL -- `|-damage|p1a: Hippowdon|35/183` against our `34/183`, and
+ * `|-damage|p2a: Sylveon|95/170` against our `97/170`.
+ *
+ * THE ASSERTION IS THE SUPPORT, NOT ONE NUMBER. Sixteen buckets are spent and the sixteen answers must
+ * be the band READ BACK OUT OF `dmgRange`, in the declared order (u ~ 0 is the minimum and Showdown's
+ * index 15). Asserting a single roll would pass an engine that still interpolated and happened to
+ * agree at that one point -- which at the ends it always does. */
+probe('move', 'delayedHit', 'the delayed hit SELECTS out of the sixteen-roll band, and does not interpolate a span', () => {
+  const mk = () => {
+    const me = bare('oranguru'), ally = bare('whimsicott');
+    const f1 = bare('hippowdon'), f2 = bare('garchomp');
+    unfaintable(f1);
+    return { me, ally, f1, f2 };
+  };
+  /* THE BAND IS THE ENGINE'S OWN, asked of `dmgRange` through its ROADMAP #92 out-parameter — the
+   * same call the main damage path makes — so this compares two paths of one engine rather than
+   * comparing the engine against a number typed here. */
+  const B0 = mk();
+  const ctx = { rolls: [] };
+  const d = M.dmgRange(B0.me, B0.f1, MC.moves['futuresight'], fresh(), false, false, ctx);
+  const band = ctx.rolls.slice();
+  const land = (u) => {
+    const B = mk();
+    const rng = () => u;
+    const S = M.battleInit([B.me, B.ally], [B.f1, B.f2], { seeded: true });
+    M.battleTurn(S, rng, new Map([[B.me, M.playerAction(B.me, 'futuresight', B.f1, S.field)],
+                                  [B.ally, { kind: 'pass' }]]), PASS2(B.f1, B.f2));
+    let hurt = 0, was = B.f1.curHP;
+    for (let t = 0; t < 2; t++) {
+      M.battleTurn(S, rng, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+      if (was - B.f1.curHP > hurt) hurt = was - B.f1.curHP;
+      was = B.f1.curHP;
+    }
+    return hurt;
+  };
+  const got = [], want = [];
+  for (let i = 0; i < 16; i++) { got.push(land((i + 0.5) / 16)); want.push(band[15 - i]); }
+  /* AND THE EFFECTIVENESS LINE, WHICH THE PAYOUT DID NOT WRITE AT ALL. The delayed hit goes through
+   * `trySpreadMoveHit` like every other hit, so `-supereffective` / `-resisted` are printed above the
+   * `-damage` exactly as they are for a direct click. Found by the whole-game differential the moment
+   * the band fix changed this game's course:
+   *     |-end|p2a: Venusaur|move: futuresight   |-supereffective|p2a: Venusaur|1   |-damage|…
+   * against this engine's `-end` followed straight by `-damage`. THREE ARMS, because an engine that
+   * printed one line unconditionally would pass a single-arm check: Psychic is SUPER-EFFECTIVE into a
+   * Poison Venusaur, RESISTED by a Steel Scizor, and NEUTRAL into a Normal Snorlax — and the neutral
+   * arm must print NEITHER line. */
+  const lines = (tgtSp) => {
+    const me = bare('oranguru'), ally = bare('whimsicott');
+    const f1 = bare(tgtSp), f2 = bare('garchomp');
+    unfaintable(f1);
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'futuresight', f1, S.field)],
+                                    [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    let out = [];
+    for (let t = 0; t < 2; t++) {
+      trace.length = 0;
+      M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+      const L = trace.map(M.traceCanon).filter(l => /futuresight|-damage|-supereffective|-resisted/.test(l));
+      if (L.length) out = L;
+    }
+    return out;
+  };
+  const se = lines('venusaur'), rz = lines('scizor'), nt = lines('snorlax');
+  const shape = (L, mid) => L.length === (mid ? 3 : 2)
+    && /^\|-end\|.*futuresight$/.test(L[0])
+    && (!mid || L[1].indexOf(mid) === 1)
+    && /^\|-damage\|/.test(L[L.length - 1]);
+  const effOk = shape(se, '-supereffective') && shape(rz, '-resisted') && shape(nt, null);
+  const j = JSON.stringify;
+  /* THE CONTROL IS THE PAIR OF ENDS. They agreed before the fix and must still agree after it — if
+   * they ever stopped, the band and the span would have been measured on different boards and the
+   * interior comparison would mean nothing. */
+  const endsAgree = got[0] === band[15] && got[15] === band[0];
+  const works = band.length === 16 && d.max > d.min && endsAgree && j(got) === j(want) && effOk;
+  return { works, arms: { control: [String(got[0]), String(got[15]), String(band.length)],
+                          test: got.map(String) },
+           detail: `Future Sight, Oranguru into an unfaintable Hippowdon, spent at the centre of each `
+                 + `of the sixteen buckets — got ${j(got)}; the authority's band, read back out of `
+                 + `dmgRange and reversed into u order, is ${j(want)}. The two ENDS agree on either `
+                 + `implementation (${got[0]} / ${got[15]}), which is exactly why every corner arm of `
+                 + `the damage differential read 0 while the interior was wrong. THE EFFECTIVENESS `
+                 + `LINE, three arms: super-effective ${j(se)}; resisted ${j(rz)}; neutral ${j(nt)} `
+                 + `(which must carry NEITHER line)` };
+});
+
+/* 2026-08-23 -- A STATUS MOVE MISSES A SEMI-INVULNERABLE BODY TOO, AND THIS ENGINE LANDED ALL OF THEM.
+ *
+ * `hitStepInvulnerabilityEvent` is step ZERO of `trySpreadMoveHit` (sim/battle-actions.ts:556, 621)
+ * and `trySpreadMoveHit` is the path EVERY move takes -- the step list is not per-category. This
+ * engine implements it as `_stepInvuln` inside the ATTACK branch only, and roughly forty non-attack
+ * kinds resolve in branches below that, so Decorate, Charm, Will-O-Wisp and Taunt all landed on a
+ * Dragapult that was mid-Phantom-Force. One whole-game divergence is exactly that:
+ *     |move|p1a: Alcremie|Decorate|p2a: Dragapult|[miss]   |-miss|p1a: Alcremie|p2a: Dragapult
+ * against this engine's `|-boost|p2a: Dragapult|atk|…`. Board-material: it is two free stat stages.
+ *
+ * THE LINE IS TWO EVENTS AND BOTH ARE ASSERTED. `attrLastMove('[miss]')` APPENDS to the `|move|` line
+ * already in the log and `add('-miss', pokemon, target)` writes a new one, so an engine that emitted
+ * only the second would trade a board divergence for a narration one.
+ *
+ * THE TWO EXEMPTIONS ARE THE AUTHORITY'S OWN AND BOTH ARE ARMS HERE, because a blanket "no move
+ * touches an invulnerable body" is wrong twice:
+ *     if (move.id === 'helpinghand') return new Array(targets.length).fill(true);
+ *     else if (gen >= 8 && move.id === 'toxic' && pokemon.hasType('Poison')) hitResults[i] = true;
+ * -- Helping Hand reaches a charging PARTNER, and a Poison-type's Toxic reaches a charging foe.
+ *
+ * THE CONTROL IS THE SAME CLICK WITH NO CHARGE, on the same board, at the same speeds. Before the wire
+ * the charging arm and the control arm were byte-identical on every one of the four status members,
+ * which is what an unwired gate looks like. */
+probe('move', 'semiInvulnerable', 'a STATUS move misses a semi-invulnerable body — and Helping Hand and a Poison-type\'s Toxic still reach it', () => {
+  /* The Dragapult is faster, so on a shared turn it charges FIRST and the click below resolves into a
+   * body that is already off the field. That ordering is the fixture, and it is why the charge and the
+   * click are the same turn rather than consecutive ones. */
+  const run = (userSp, mv, charge, aimAlly) => {
+    const me = bare(userSp), ally = bare('dragapult');
+    const f1 = bare('dragapult'), f2 = bare('garchomp');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    const tgt = aimAlly ? ally : f1;
+    trace.length = 0;
+    const allyAct = (aimAlly && charge) ? M.playerAction(ally, 'phantomforce', f1, S.field) : { kind: 'pass' };
+    const foeAct = (!aimAlly && charge) ? M.playerAction(f1, 'phantomforce', ally, S.field) : { kind: 'pass' };
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, tgt, S.field)], [ally, allyAct]]),
+      new Map([[f1, foeAct], [f2, { kind: 'pass' }]]));
+    const lines = trace.map(M.traceCanon);
+    return { lines, missed: lines.some(l => /^\|-miss\|/.test(l)),
+             attr: lines.some(l => /^\|move\|.*\|\[miss\]$/.test(l)),
+             landed: lines.some(l => /^\|-(boost|unboost|status|start)\|p[12][ab]:dragapult/.test(l)) };
+  };
+  const decCharge = run('alcremie', 'decorate', true, false);
+  const decPlain  = run('alcremie', 'decorate', false, false);   // control: no charge, same click
+  const chmCharge = run('alcremie', 'charm', true, false);
+  const wowCharge = run('alcremie', 'willowisp', true, false);
+  /* THE TWO EXEMPTIONS. Helping Hand writes no `-miss` at all; a Poison-type's Toxic lands its status. */
+  const hhCharge  = run('alcremie', 'helpinghand', true, true);
+  const toxCharge = run('gengar', 'toxic', true, false);         // Gengar is Poison — the authority's own arm
+  const j = JSON.stringify;
+  const works = decCharge.missed && decCharge.attr && !decCharge.landed
+             && !decPlain.missed && decPlain.landed
+             && chmCharge.missed && !chmCharge.landed
+             && wowCharge.missed && !wowCharge.landed
+             && !hhCharge.missed
+             && !toxCharge.missed;
+  return { works, arms: { control: [String(decPlain.missed), String(decPlain.landed),
+                                    String(hhCharge.missed), String(toxCharge.missed)],
+                          test:    [String(decCharge.missed), String(decCharge.landed),
+                                    String(chmCharge.missed), String(wowCharge.missed)] },
+           detail: `a Dragapult charging Phantom Force, hit with a status move on the SAME turn — `
+                 + `Decorate missed=${decCharge.missed} \`[miss]\` on the move line=${decCharge.attr} `
+                 + `landed=${decCharge.landed}; CONTROL, the identical click with no charge: `
+                 + `missed=${decPlain.missed} landed=${decPlain.landed}. Charm missed=${chmCharge.missed}, `
+                 + `Will-O-Wisp missed=${wowCharge.missed}. THE TWO EXEMPTIONS: Helping Hand onto a `
+                 + `charging PARTNER missed=${hhCharge.missed} (must be false), a Poison-type Gengar's `
+                 + `Toxic missed=${toxCharge.missed} (must be false). Before the wire every status `
+                 + `move landed on a body that was not on the field` };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');

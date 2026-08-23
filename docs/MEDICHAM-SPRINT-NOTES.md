@@ -21,6 +21,69 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE BOARD-MATERIAL REMAINDER — FIVE MECHANISMS, ENGINE BOARD-MATERIAL 21 → 15. 2026-08-23 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-23-board-material-remainder.md`](_reports/2026-08-23-board-material-remainder.md).
+Ledger section: `docs/ENGINE.md`, *"THE BOARD-MATERIAL REMAINDER — FIVE MECHANISMS, 21 → 15"*.
+
+**Whole-game differential, arm `middle`, release `3e00ea2575a9`, 961 games, `team-pool-frozen`,
+census pin `9446a684709d`, `--end-state`:**
+
+| quantity | before `985a28a22653` | after |
+|---|---|---|
+| undeclared (`diverged − declared`), the headline | 59 of 961 = 6.1% | **53 of 961 = 5.5%** |
+| protocol parted (raw) | 64 | **58** |
+| board-material games (all) | 30 | **24** |
+| of those, THE INSTRUMENT (Moody 8 + one off-field body) | 9 | **9 — re-checked, still 8/0/0 by arm** |
+| **ENGINE board-material — the gate number** | **21** | **15** |
+| narration-only games | 34 | **34 — did not rise** |
+| census | 654 / 654 / 0 | **658 / 658 / 0** |
+| damage differential | 0 of 6000 | **0 of 6000, all 16 corners, twice** |
+| roster items / abilities / moves | 0 DIFFER, 0 DID-NOT-FIRE | **identical, re-run on the FINAL release** |
+| `all_mechanics_fire --kind all` | moves 20 / abilities 9 / items 1 | **identical** |
+
+**Five mechanisms, each with a census probe shown RED first against a cleared control:**
+
+1. **A field-driven forme follows a sky that was already there when the body arrived** — 2 games.
+   `forecast` is `onSwitchInPriority: -2` with `onStart` firing `WeatherChange`
+   (`data/abilities.ts:1461-1464`); this engine synced only at the whole-lead pass and once a turn, and
+   a mid-turn switch is at neither. Fixed at the end of `runEntryPass`, over ALL FOUR ACTIVES because
+   the arriving body may be the weather setter. **Mimicry is the second member of the same sync** and
+   is asserted on the same board. The line grew `[msg]` and `[from] ability:` (`sim/pokemon.ts:1487`) —
+   without them the fix would have moved a board divergence onto the narration gate.
+   Probe `ability`/`formeFollowsWeather`. Knob `MEDI_NO_ENTRY_FIELD_SYNC=1`.
+2. **The delayed hit SELECTS out of the sixteen-roll band** — 2 games. ROADMAP #304 surviving in the one
+   path that was not converted: `condition:futuremove`'s payout read
+   `d.min + floor(u * (d.max - d.min + 1))` and spent the GENERIC stream instead of `_R.dmg()`.
+   Measured, sixteen buckets: five of this engine's values are numbers the authority cannot produce.
+   **Corner-zero here is a CONSEQUENCE of the defect, not evidence of an unshared die** — `band[0]` IS
+   `d.max` and `band[15]` IS `d.min`. Probe `move`/`delayedHit`, asserting the SUPPORT and not one roll.
+3. **A STATUS move misses a semi-invulnerable body** — 1 game, ~40 action kinds, ONE gate.
+   `hitStepInvulnerabilityEvent` is step ZERO for every move and this engine had it inside the ATTACK
+   branch only; Decorate, Charm, Will-O-Wisp and Taunt were byte-identical with and without the charge.
+   Placed at the common commit site, `attack` skipped deliberately, the authority's three exemptions
+   (Helping Hand, a Poison-type's Toxic, Lock-On) all probe arms. Probe `move`/`semiInvulnerable`.
+4. **Symbiosis answers a WHITE HERB spend, not only a berry** — 1 game. `onAllyAfterUseItem` is raised
+   by `Pokemon#useItem`, so every spend is a trigger; this engine hung it on its one berry door and
+   declared the shortfall in `MEDFAILS.symbiosisNonBerrySites`. The `-activate` line also grew the ITEM
+   token that `MEDFAILS.symbiosisLineShort` had been counting. Probe `ability`/`passesItemToAlly`.
+5. **The delayed hit writes its `-supereffective` / `-resisted` line** — narration, and it is the
+   follow-on that fix 2 EXPOSED. The first re-run read narration 35; the one new cause was a THIRD
+   Future Sight game (checked against the dump — different seed, not the Decorate game relabelled).
+   Closed under the same `damageIsComputed` guard the attack branch uses, three arms including a
+   NEUTRAL one that must carry neither line. Narration back to 34.
+
+**Gate shape unchanged: 3 of 8 clauses fail — the whole-game differential, the staged-mechanics
+comparison, and the open-defect register clause.** The three roster clauses PASS.
+
+**Filed, not fixed:** a screen-breaking move clears screens through a type immunity / Protect / a miss
+(ARCHITECTURAL — the clear belongs in the per-target hit loop); the delayed hit takes no crit draw at
+all; `roster.js --stage all` disagrees with the per-stage runs on `axekick` and `electrify`; Stance
+Change's `-formechange` may owe a `[from] ability:` field; the Disable/Role Play/Curse rows are three
+mechanisms and not one; the sleep and flinch rows have the Moody shape and were not touched.
+
+---
+
 ## NARRATION TIMING — THREE RULES, EIGHT NARRATION GAMES, BOARD-MATERIAL FLAT. 2026-08-23 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-23-narration-timing.md`](_reports/2026-08-23-narration-timing.md).

@@ -1123,6 +1123,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * corpse. A booked count with a zero landed count, in a game that ran three more turns, means the
    * residual payout is unreachable and the move has become a wasted turn instead of a delayed one. */
   delayedHitBooked: 0, delayedHitLanded: 0, delayedHitWasted: 0, delayedHitNoSlot: 0,
+  /* ROADMAP #304, 2026-08-23 -- the payout that SELECTED out of the sixteen-roll band rather than
+   * interpolating the span. Expected to equal `delayedHitLanded`; a gap means dmgRange took a path
+   * that does not fill the out-parameter and `MEDFAILS.delayedHitBandMissing` names the move. */
+  delayedHitBandSelected: 0,
   /* WIRE 141 -- a forme that flipped on the CLOCK (Hunger Switch). A zero after real games with a
    * Morpeko in them means the residual block never reached the ability.
    * flingThrown / flingRefused are the two halves of Fling and are counted APART because the refusal
@@ -1326,6 +1330,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                   and Thousand Arrows pierce Fly for NORMAL damage. Equal counts over a varied
    *                   sample is the signature of "pierces => doubles", which is the wrong rule. */
   invulnPierced: 0, invulnDoubled: 0,
+  /* 2026-08-23 -- a NON-ATTACK click refused because the body it aimed at was semi-invulnerable.
+   * `hitStepInvulnerabilityEvent` is step ZERO for every move and this engine ran it in the attack
+   * branch only, so roughly forty status kinds landed on a body that was not on the field. Zero over
+   * a sample that contains a charge turn and a status click on the same turn means the gate is dead
+   * again; the three exemptions (Helping Hand, a Poison-type's Toxic, Lock-On) never reach it. */
+  statusMissedInvuln: 0,
   /* ROADMAP #272 -- THE SHIELD BREAK, BOTH ARMS, because either one going quiet is a different bug.
    *   protectBroken               a Feint / Phantom Force actually took a shield or a side guard down.
    *                               Zero means step 5 is unwired again and the partner is being refused.
@@ -1373,6 +1383,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * snow give-back, which is owned by `formeOnHit`) and is a receipt that the refusal is deliberate
    * rather than a member that fell through a gap. */
   weatherRetyped: 0, formeWeatherRestoreOnly: 0,
+  /* 2026-08-23 -- THE ENTRY SYNC. `forecast` and `mimicry` both fire their field event from `onStart`,
+   * so ARRIVING is one of the moments a field-driven forme follows. Counts entry passes that ran the
+   * sync, not retypes -- `weatherRetyped`/`terrainRetyped` above are the ones that moved a body, and a
+   * large gap between them is the expected reading rather than a fault. */
+  entryFieldSync: 0,
   /* ROADMAP #175 -- SYMBIOSIS. One counter, because the mechanic is one event: an item MOVED from
    * the ally to the body that just spent one. Zero means the partner never hands anything over and
    * every Florges in every rollout is a body holding a berry nobody can use. */
@@ -1559,6 +1574,10 @@ const MEDFAILS = { encoreAction: 0,
    * context. Non-zero means dmgRange grew a return path that does not fill the out-parameter, and the
    * fallback would otherwise hide it behind a perfectly plausible number. */
   damageBandMissing: 0, damageBandMissingFirst: '',
+  /* ROADMAP #304, 2026-08-23 -- the same reading for `condition:futuremove`'s payout, kept apart from
+   * the main path's so a regression in one cannot be masked by the other. Non-zero means the delayed
+   * hit fell back to the SPAN interpolation, which is the defect this counter was added to close. */
+  delayedHitBandMissing: 0, delayedHitBandMissingFirst: '',
   /* ROADMAP #304 -- set to 1 for the whole run when MEDI_DAMAGE_SPAN_DRAW=1 puts the defect back on
    * purpose. Counted apart from `damageBandMissing` so a deliberate restore arm and a broken engine
    * can never be read as the same thing. */
@@ -1892,10 +1911,14 @@ const MEDFAILS = { encoreAction: 0,
    * division may not add one, so the TYPE follows the sky and the species LABEL does not. */
   formeWeatherNoTypeMap: 0, formeWeatherNoTypeMapFirst: '', formeWeatherStatsMove: 0,
   formeWeatherStatsMoveFirst: '', formeWeatherNoRevert: 0, formeWeatherNameUnchanged: 0,
-  /* ROADMAP #175 -- SYMBIOSIS's two declared shortfalls. `symbiosisLineShort` is the `-activate`
-   * line that carries the two bodies and the effect but not the ITEM token; `symbiosisNonBerrySites`
-   * is set once at load and names the spends this wire does NOT reach, so the gap is a number
-   * somebody can read rather than a paragraph somebody has to find. */
+  /* ROADMAP #175 -- SYMBIOSIS's declared shortfalls, and 2026-08-23 CLOSED BOTH OF THE BIG ONES.
+   * `symbiosisLineShort` counted the `-activate` line that named the two bodies and the effect but
+   * not the ITEM; the item token is now emitted and the counter MUST stay at zero, so a non-zero
+   * reading means a caller found the short form again. `symbiosisNonBerrySites` is set once at load
+   * and names the spends this wire does NOT reach: White Herb -- the second most-held item in the
+   * format and the one with corpus weight -- is now wired at `restoreStatsUpdate`, so what is left
+   * is Mental Herb (its own site at `freeVolatileByItem`) and Power Herb (`isNonstandard: 'Past'`,
+   * unreachable in Champions). The string is kept because the gap is real and smaller, not gone. */
   /* ROADMAP #175 -- the inherited ability's `Start` event, which this engine does not fire. Expected
    * to equal `MEDSEEN.abilityInherited` exactly; it is a receipt for a declared shortfall, not a bug
    * report, and if it ever falls BELOW that count something started firing it by accident. */
@@ -1909,7 +1932,7 @@ const MEDFAILS = { encoreAction: 0,
    * to the `boosts: null` state this wire had to correct. */
   abilityBoostUnusable: 0,
   inheritedAbilityStartNotFired: 0,
-  symbiosisLineShort: 0, symbiosisNonBerrySites: 'the herb family (Mental, White, Power) spend their\n item at their own -enditem sites and there is no single AfterUseItem funnel to hang Symbiosis on',
+  symbiosisLineShort: 0, symbiosisNonBerrySites: 'Mental Herb spends at freeVolatileByItem and Power\n Herb is isNonstandard Past in Champions; neither calls the partner. White Herb DOES, from 2026-08-23',
   /* ROADMAP #139 -- a `callsAnotherMove` click this engine could not resolve. Two reasons, kept
    * apart: `SourceUnmodelled` is Sleep Talk's own-moveslot draw, which is declared and not built;
    * `Unresolvable` is a copied move `playerAction` itself has no branch for. Both FAIL the click
@@ -2348,7 +2371,11 @@ const TRACE=(function(){
       else{ MEDFAILS.announceEventUnknown++;
             if(!MEDFAILS.announceEventUnknownFirst)MEDFAILS.announceEventUnknownFirst=String(rec.event); }
     },
-    actOf(m,eff,of){ this.push(['-activate',ident(m),eff,of?'[of] '+ident(of):'']); },
+    /* 2026-08-23 -- `mid` IS THE FIELD BETWEEN THE EFFECT AND THE `[of]`, and Symbiosis is what
+     * needs it: `|-activate|GIVER|ability: Symbiosis|Life Orb|[of] SPENDER` carries the ITEM there.
+     * `push()` drops an empty field wherever it sits, so every existing three-argument caller emits
+     * exactly the line it emitted before. */
+    actOf(m,eff,of,mid){ this.push(['-activate',ident(m),eff,mid||'',of?'[of] '+ident(of):'']); },
     /* WIRE 133 -- `of` is Instruct's `[of] SOURCE`: `this.add('-singleturn', target, 'move: Instruct',
      * '[of] ' + source)` (data/moves.ts:9665). The instructed body is the SUBJECT and the instructor
      * is the attribution, which is the opposite way round from most `[of]` lines and is why it is
@@ -2384,7 +2411,17 @@ const TRACE=(function(){
      * other emitter here and wrong for this one, because a differ aligning two streams field by field
      * would then see a three-field line against the authority's four. So the line is built rather
      * than assembled, and the trailing pipe is deliberate. */
-    formechange(m,species){ this.out.push('|-formechange|'+ident(m)+'|'+species+'|'); },
+    /* 2026-08-23 -- AND THE TWO FIELDS THAT SIT IN AND AFTER THAT SLOT WHEN THE SOURCE IS AN ABILITY.
+     * `sim/pokemon.ts:1487` is the else-of-the-else:
+     *     this.battle.add('-formechange', this, species.name, message, `[from] ability: ${source.name}`);
+     * Forecast passes `'[msg]'` as `message` (data/abilities.ts:1486), so its line is FIVE fields and
+     * the trailing separator above is that same `message` slot standing empty. Both arguments are
+     * optional and every existing caller passes neither, so those lines are byte-identical to before. */
+    formechange(m,species,msg,fromAbility){
+      let s='|-formechange|'+ident(m)+'|'+species+'|'+(msg||'');
+      if(fromAbility)s+='|[from] ability: '+fromAbility;
+      this.out.push(s);
+    },
     imm(m,from){ this.push(['-immune',ident(m),from]); },
     /* ROADMAP #234 -- `tag` is a FIFTH field that is not `[of]`. The authority's partial-trap chip is
      * `add('-damage', target, health, '[from] ' + sourceEffect.fullname, '[partiallytrapped]')`
@@ -6243,12 +6280,12 @@ function passItemFromAlly(spender){
   const _it=giver.item;
   giver.item=''; spender.item=_it;
   MEDSEEN.itemPassedToAlly++;
-  /* `|-activate|GIVER|ability: Symbiosis|ITEM|[of] RECEIVER`. This emitter carries three tokens and
-   * the authority's line has four -- the ITEM sits between the effect and the `[of]`. The two bodies
-   * and the effect are right and the item token is missing; counted rather than papered over, exactly
-   * as the Curious Medicine block does for a line it cannot emit at all. */
-  if(TR)TR.actOf(giver,'ability: '+giver.ability,spender);
-  MEDFAILS.symbiosisLineShort++;
+  /* `|-activate|GIVER|ability: Symbiosis|ITEM|[of] RECEIVER`, read verbatim off the authority's log:
+   *     |-activate|p2a: Oranguru|ability: Symbiosis|Life Orb|[of] p2b: Torkoal
+   * 2026-08-23 -- THE ITEM TOKEN IS NOW EMITTED. It sits between the effect and the `[of]` and this
+   * emitter used to stop at the effect, which `MEDFAILS.symbiosisLineShort` counted. It is the item
+   * that was HANDED OVER, so it is read before the slots are swapped above and not after. */
+  if(TR)TR.actOf(giver,'ability: '+giver.ability,spender,_it);
   return true;
 }
 function consumeBerry(m,itemId){
@@ -9127,6 +9164,12 @@ const ITEM_READ_SILENT=(typeof process!=='undefined'&&process.env&&process.env.M
  * be shown RED on demand without swapping a file. Any run carrying it also carries a non-zero
  * `MEDFAILS.herbEndFirstRestored`. Same shape as MEDI_ITEM_READ_SILENT above. */
 const HERB_END_FIRST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HERB_END_FIRST==='1');
+/* 2026-08-23 -- MEDI_NO_ENTRY_FIELD_SYNC=1 PUTS THE LATE FORME BACK: a body whose forme follows the
+ * field arrives, nothing syncs it, and the retype turns up at the head of the NEXT turn. It exists so
+ * `tests/test-mechanics.js ability/formeFollowsWeather` ("…the moment Castform ARRIVES…") can be shown
+ * RED on demand without swapping a file. Any run carrying it also carries a non-zero
+ * `MEDFAILS.entryFieldSyncSkipped`. Same shape as MEDI_HERB_END_FIRST above. */
+const NO_ENTRY_FIELD_SYNC=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_ENTRY_FIELD_SYNC==='1');
 function sleepDurationDraw(){
   const r=medRng();
   const u=(typeof r==='function')?r():0.5;
@@ -11765,6 +11808,18 @@ function restoreStatsUpdate(m){
   for(const k in m.boosts)if(m.boosts[k]<0)m.boosts[k]=0;
   if(TR)TR.clearNeg(m);
   MEDSEEN.statsRestoredByItem++;
+  /* 2026-08-23 -- AND THE PARTNER'S SYMBIOSIS ANSWERS, LAST, exactly as it does at the bottom of
+   * `consumeBerry`. The trigger is `onAllyAfterUseItem`, raised by `Pokemon#useItem` -- which is
+   * EVERY spend and not only an eaten berry -- and this engine reached it from its berry door alone.
+   * A Torkoal popping this herb against an Intimidate and being handed the ally's Life Orb is one
+   * whole-game divergence, and it parts the board on two `party.item` leaves.
+   *
+   * AFTER the `-clearnegativeboost`, which is the authority's own order: `useItem` writes `-enditem`,
+   * the handler's `onUse` writes the clear, and `AfterUseItem` runs after both. Read off the log:
+   *     |-enditem|p2b: Torkoal|White Herb
+   *     |-clearnegativeboost|p2b: Torkoal|[silent]
+   *     |-activate|p2a: Oranguru|ability: Symbiosis|Life Orb|[of] p2b: Torkoal */
+  passItemFromAlly(m);
   return true;
 }
 function restoreStatsAll(a,b){
@@ -13406,12 +13461,19 @@ function syncWeatherFormes(field,bodies){
     m.types=want.slice();
     MEDSEEN.weatherRetyped++;
     MEDFAILS.formeWeatherNameUnchanged++;
-    /* `|-formechange|IDENT|Castform-Sunny|` -- the authority's own event for a NON-permanent
-     * formeChange (`sim/pokemon.ts` else-branch), and the forme NAME comes from the artifact rather
-     * than from the mon table, which is why the line can be right while the body's own label is not.
-     * Showdown appends `[msg]` here and this emitter carries no message field; the shortfall is one
-     * token on one line and is stated rather than papered over. */
-    if(TR&&forme)TR.formechange(m,forme);
+    /* `|-formechange|IDENT|Castform-Sunny|[msg]|[from] ability: forecast` -- the authority's own event
+     * for a NON-permanent formeChange whose source is an ABILITY (`sim/pokemon.ts:1487`), and the
+     * forme NAME comes from the artifact rather than from the mon table, which is why the line can be
+     * right while the body's own label is not.
+     *
+     * 2026-08-23 -- THE LAST TWO FIELDS WERE MISSING AND THAT WAS NOT COSMETIC. Forecast passes
+     * `'[msg]'` as `message` (data/abilities.ts:1486) and the ability source supplies the `[from]`,
+     * so the authority's line is FIVE fields against this engine's three. Landing the entry sync
+     * (runEntryPass) without them would have moved two BOARD-MATERIAL divergences onto the NARRATION
+     * gate instead of closing them. The `[msg]` is the message slot the trailing separator already
+     * stood in for; the ability is spelled as its id, which is what every other `[from] ability:` in
+     * this emitter does. */
+    if(TR&&forme)TR.formechange(m,forme,'[msg]',m.ability);
   }
 }
 /* BOTH FIELD-DRIVEN BODY SYNCS, THROUGH ONE DOOR. Every call site below cares about the same event --
@@ -14257,6 +14319,23 @@ function runEntryPass(nx,foes,act,i,field){
   traceCopy(nx,_live(foes));
   applyEntryEffects(nx,field,act[1-i]);
   applyEntryDrops(nx,_live(foes));   // WIRE 100a -- membership from `onSwitchInDrop`, not a name
+  /* 2026-08-23 -- AND THE FIELD-DRIVEN FORMES, BECAUSE ARRIVING IS ONE OF THE MOMENTS THEY FOLLOW.
+   *
+   * `forecast` is `onSwitchInPriority: -2` with `onStart(pokemon) { this.singleEvent('WeatherChange',
+   * …) }` (data/abilities.ts:1461-1464) and `mimicry` is the identical shape on TerrainChange, so a
+   * body walking into a sky or a terrain that is ALREADY THERE retypes at its own entry. This engine
+   * synced at two moments only -- the whole-lead pass in `battleInit` and once at the top of every
+   * turn -- and a mid-turn switch is at neither, so the forme arrived a whole turn late. Two
+   * whole-game divergences were exactly that, and they parted the BOARD on `active[].types`.
+   *
+   * OVER ALL FOUR ACTIVES, NOT JUST THE ARRIVAL, and that is the second half of the same event: the
+   * body that just landed may be the WEATHER SETTER (`applyEntryEffects` above sets the field off
+   * `weatherSetter`/`terrainSetter`), and the authority's `setWeather` runs WeatherChange on every
+   * active -- so a Castform already standing there follows the new sky on the same instant. The sync
+   * is idempotent: it returns without a line when the types already match, so a pass that changes
+   * nothing emits nothing. */
+  if(NO_ENTRY_FIELD_SYNC)MEDFAILS.entryFieldSyncSkipped=(MEDFAILS.entryFieldSyncSkipped||0)+1;
+  else {MEDSEEN.entryFieldSync++;syncFieldTypes(field,[...(act||[]),...(foes||[])]);}
 }
 /* ---- ROADMAP #81 WIRE 12 -- WHAT A BATON PASS ACTUALLY HANDS OVER --------------------------------
  *
@@ -17262,7 +17341,16 @@ function battleTurn(S,rng,actsForA,actsForB){
               const _prevTR=TR;TR=null;                 // formeSwap's `detailschange` is the wrong line here
               const _got=formeSwap(m,_want,'stanceChange');
               TR=_prevTR;
-              if(_got){MEDSEEN.stanceChanged++;if(TR)TR.formechange(m,_want,m.ability);}
+              /* THE ABILITY IS DELIBERATELY NOT PASSED, and it used to be handed to a two-parameter
+               * emitter that dropped it. `TR.formechange` grew a `[from] ability:` field on
+               * 2026-08-23 for Forecast; wiring it here as well would CHANGE a line this engine has
+               * been emitting unchallenged, so the call is written in its two-argument form to say
+               * that the omission is a decision. Whether the authority writes `[from] ability: Stance
+               * Change` here is an open question -- `attacker.formeChange(targetForme)` takes
+               * `this.battle.effect` as its source, which during `onModifyMove` is the ability, but
+               * the comment above records a REAL battle log without the field. Settle it with a
+               * measurement, not with this edit. */
+              if(_got){MEDSEEN.stanceChanged++;if(TR)TR.formechange(m,_want);}
             }
           }
         }
@@ -17302,6 +17390,59 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_mid){ const _mt=midEventSlot(reaimToSlot(a.target,it,actA,actB,_mid,true)||m);
                   if(_mid!==MID_MOVE||_mt!==MID_TGT)MEDSEEN.midAddrMovedAtAnnounce++;
                   MID_MOVE=_mid; MID_TGT=_mt; }
+        /* 2026-08-23 -- STEP 0 FOR EVERY KIND THAT IS NOT AN ATTACK: A SEMI-INVULNERABLE BODY IS NOT
+         * THERE TO BE AIMED AT, WHATEVER THE MOVE IS.
+         *
+         * `hitStepInvulnerabilityEvent` is step ZERO of `trySpreadMoveHit` (sim/battle-actions.ts:556,
+         * 621) and `trySpreadMoveHit` is the path EVERY move takes -- the step list is not per-category.
+         * This engine had it as `_stepInvuln` inside the ATTACK branch only, and roughly forty
+         * non-attack kinds resolve in branches below that, so Decorate, Charm, Will-O-Wisp and Taunt
+         * all landed on a Dragapult that was mid-Phantom-Force. One whole-game divergence is exactly
+         * that, and it is board-material -- two free stat stages.
+         *
+         * HERE RATHER THAN IN FORTY BRANCHES, and here rather than in the attack branch's step list,
+         * because this is the one place the aimed body is resolved for every kind. The attack branch
+         * keeps its own step: it walks MULTIPLE targets with per-target pierce lists, a `smartTarget`
+         * rule and a `spreadHit` rule that suppresses the `[miss]` attribute, none of which a single
+         * `_tt` can express. `a.kind==='attack'` is therefore skipped here and nothing about the
+         * damaging path moves.
+         *
+         * THE TWO EXEMPTIONS ARE THE AUTHORITY'S OWN, read off the same function:
+         *     if (move.id === 'helpinghand') return new Array(targets.length).fill(true);
+         *     else if (gen >= 8 && move.id === 'toxic' && pokemon.hasType('Poison')) hitResults[i] = true;
+         * A blanket rule is wrong in both of those directions. `guaranteedAgainst` (Lock-On) is the
+         * third and is the shared predicate the attack step already calls, so it cannot drift.
+         *
+         * SELF AND FIELD MOVES FALL OUT FOR FREE: `_tt` falls back to the USER when the action carries
+         * no target, and the user is the body taking this action, so it is never charging. Nothing is
+         * special-cased for them. */
+        if(_mid&&a.kind!=='attack'){
+          const _iv=reaimToSlot(a.target,it,actA,actB,_mid,true);
+          if(_iv&&_iv!==m&&_iv._invuln&&!guaranteedAgainst(m,_iv)
+             &&_mid!=='helpinghand'
+             &&!(_mid==='toxic'&&(m.types||[]).indexOf('Poison')>=0)){
+            const _ivP=_iv._charging?TAGS.param('move',_iv._charging,'semiInvulnerable'):null;
+            const _ivPierce=(_ivP&&Array.isArray(_ivP.pierces))?_ivP.pierces:[];
+            if(_ivPierce.indexOf(_mid)<0){
+              MEDSEEN.statusMissedInvuln++;
+              /* BOTH EVENTS. `attrLastMove('[miss]')` APPENDS to the `|move|` line already in the log
+               * and `add('-miss', pokemon, target)` writes a new one; emitting only the second would
+               * trade a board divergence for a narration one. `!move.spreadHit` gates the attribute in
+               * the authority and a single-target status click is never a spread hit. */
+              if(TR){TR.attr('[miss]');TR.miss(m,_iv);}
+              /* THE STATE WRITE IS THE ATTACK BRANCH'S OWN EXPRESSION, NOT `mvFail`. `mvFail` also
+               * emits `|-fail|<mover>` and the authority writes no such line for a miss -- the whole
+               * announcement is the `[miss]` attribute and the `-miss` event above. The attack branch
+               * reaches the identical value through `m._mvRes=_reached?true:(_explicitFail?false:null)`
+               * with `_explicitFail` set by its own invulnerability step, and this is that same case:
+               * every target returned literal false, so `useMoveInner` returns false and `useMove`
+               * writes `moveThisTurnResult = false` (sim/battle-actions.ts:374). Checked with
+               * `engine/move_result_state.js` rather than argued. */
+              m._mvRes=false;
+              continue;
+            }
+          }
+        }
         /* ROADMAP #84 -- THE MOVE WAS USED, SO THE DEFAULT RESULT IS SUCCESS, and it is set exactly
          * here for the same reason the announcement is: everything ABOVE this line is a BeforeMove
          * refusal that has already written its own false-or-null and `continue`d, and everything
@@ -25318,14 +25459,62 @@ function battleTurn(S,rng,actsForA,actsForB){
          delete _scF[_siF];
          const _src=_rF.src, _row=MC.moves[_rF.mv];
          if(_src&&_row&&m!==_src&&!m.fainted&&m.curHP>0){
-           const _d=dmgRange(_src,m,_row,field,false);
-           const _dm=Math.max(1,_d.min+Math.floor(rng()*(_d.max-_d.min+1)));
+           /* ROADMAP #304, 2026-08-23 -- THE PAYOUT SELECTS OUT OF THE SIXTEEN-ROLL BAND LIKE EVERY
+            * OTHER HIT IN THIS ENGINE, AND IT USED TO INTERPOLATE A SPAN.
+            *
+            *     sim/battle.ts:2390   randomizer(d) { return tr(tr(d * (100 - this.random(16))) / 100); }
+            *
+            * The main damage path was converted when #304 landed; this one was not, so the delayed hit
+            * went on drawing `d.min + floor(u * (d.max - d.min + 1))` -- every integer between the two
+            * ends, including five per staged fixture that the authority CANNOT PRODUCE. Two whole-game
+            * divergences were exactly that and both are board-material.
+            *
+            * AND THE DIE IS `dmg`, NOT THE GENERIC STREAM. `rng` here is `_R.any`; every other damage
+            * roll spends `_R.dmg()` (ROADMAP #222). The authority derives the category from the method
+            * executing -- `getDamage` -- and a delayed payout goes through `trySpreadMoveHit` like any
+            * other hit, so it is a `dmg` draw on that side. Two engines that name one event differently
+            * can never agree about it, which is the ROADMAP #262 address rule.
+            *
+            * THE ADDRESS'S MOVE AND SLOTS ARE SET AROUND THE DRAW for the same reason: at the residual
+            * they still hold whatever the last ACTION left, and the authority's are the booked move,
+            * the booked SOURCE and the collecting body. Restored immediately afterwards so nothing
+            * downstream inherits them.
+            *
+            * THE FALLBACK IS LOUD. A band that did not arrive means dmgRange took a path that does not
+            * fill the out-parameter; the old interpolation is kept for that case and counted, rather
+            * than a plausible number appearing with nothing to read. */
+           const _fsCtx={rolls:[]};
+           const _d=dmgRange(_src,m,_row,field,false,false,_fsCtx);
+           const _mv0=MID_MOVE,_at0=MID_ATT,_tg0=MID_TGT;
+           MID_MOVE=String(_rF.mv||'-');MID_ATT=midEventSlot(_src);MID_TGT=midEventSlot(m);
+           const _fu=(_R&&_R.dmg)?_R.dmg():rng();
+           MID_MOVE=_mv0;MID_ATT=_at0;MID_TGT=_tg0;
+           const _fsBand=(_fsCtx.rolls&&_fsCtx.rolls.length===DAMAGE_ROLL_SIDES)?_fsCtx.rolls:null;
+           if(!_fsBand){MEDFAILS.delayedHitBandMissing++;
+             if(!MEDFAILS.delayedHitBandMissingFirst)MEDFAILS.delayedHitBandMissingFirst=String(_rF.mv||'?');}
+           else MEDSEEN.delayedHitBandSelected++;
+           const _dm=Math.max(1,_fsBand?_fsBand[damageRollIndex(_fu)]
+                                       :_d.min+Math.floor(_fu*(_d.max-_d.min+1)));
            if(_d.max>0){
              /* `|-end|TARGET|move: NAME` before the damage -- the condition announces its own expiry
               * on the body that collects, which is the one line the authority writes here. */
              if(TR)TR.vend(m,'move: '+_rF.mv);
              m.curHP=Math.max(0,m.curHP-_dm);
              MEDSEEN.delayedHitLanded++;
+             /* 2026-08-23 -- AND THE EFFECTIVENESS LINE, ABOVE THE DAMAGE, because the payout goes
+              * through `trySpreadMoveHit` like every other hit and `modifyDamage` is where
+              * `-supereffective` / `-resisted` are written (data/mods/champions/scripts.ts). This
+              * block wrote the `-end` and then the `-damage` with nothing between them. Read off the
+              * authority's log for a Psychic payout into a Poison Venusaur:
+              *     |-end|p2a: Venusaur|move: futuresight
+              *     |-supereffective|p2a: Venusaur|1
+              *     |-damage|p2a: Venusaur|…
+              * `damageIsComputed` is the same predicate the attack branch uses, so the fixed-damage
+              * family announces neither line here for the reason it announces neither there.
+              *
+              * NO CRIT LINE, AND THAT IS STATED RATHER THAN MISSED: this payout takes no crit draw at
+              * all, so emitting `-crit` would require inventing one. It is a separate gap. */
+             if(TR&&damageIsComputed(_rF.mv))TR.eff(m,_d.eff);
              if(TR)TR.dmg(m);
              if(m.curHP<=0){m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
            }

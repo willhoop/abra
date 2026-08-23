@@ -10,6 +10,100 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.103.0] — 2026-08-23
+
+### Fixed
+- **THE BOARD-MATERIAL REMAINDER — FIVE MECHANISMS, ENGINE BOARD-MATERIAL 21 → 15 GAMES, AND
+  NARRATION DID NOT RISE.** Whole-game differential, arm `middle`, release `3e00ea2575a9`, 961 games,
+  `--end-state`, `--team-store data/team-pool-frozen`,
+  `--census data/verification/census-pin-9446a684709d.json`: **undeclared 59 of 961 = 6.1% → 53 of
+  961 = 5.5%**, raw parted 64 → 58, distinct causes 58 → 53, board-material games 30 → 24 of which
+  **nine remain THE INSTRUMENT** (Moody's stat pick, re-checked at 8 in `middle` and 0 in each corner,
+  plus one off-field `??:farigiraf` body), **so the ENGINE board-material figure the quarantine gate
+  reads is 21 → 15**. Narration-only games 34 → 34. Full account:
+  `docs/_reports/2026-08-23-board-material-remainder.md`.
+  - **A field-driven forme follows a sky that was ALREADY THERE when the body arrived** (2 games).
+    `forecast` is `onSwitchInPriority: -2` with `onStart(pokemon) { this.singleEvent('WeatherChange',
+    …) }` (`data/abilities.ts:1461-1464`) and `mimicry` is the identical shape on `TerrainChange`, so a
+    body walking into standing rain or standing terrain retypes AT ITS OWN ENTRY. This engine synced
+    the field-driven formes at exactly two moments — the whole-lead pass in `battleInit` and once at
+    the top of every turn — and **a mid-turn switch is at neither**, so the forme arrived a whole turn
+    late and the board parted on `active[].types`. The sync now runs at the end of `runEntryPass`
+    **over all four actives**, because the body that just landed may itself be the weather setter and
+    the authority's `setWeather` runs `WeatherChange` on every active. **The LINE was the other half:**
+    `sim/pokemon.ts:1487` writes `add('-formechange', this, species.name, message, '[from] ability: …')`
+    with `message = '[msg]'`, and firing the sync without those two fields would have moved a
+    BOARD-MATERIAL divergence onto the NARRATION gate instead of closing it. `TR.formechange` grew two
+    OPTIONAL parameters and `push()` drops an empty field, so every existing caller emits byte-identical
+    lines; the Stance Change call site was rewritten in its two-argument form so that dropping the
+    ability there stays a decision rather than an accident. Probe `ability`/`formeFollowsWeather`,
+    *"Forecast fires the moment Castform ARRIVES under a standing sky, not a turn later"*, with two
+    controls killing the two halves of the condition and **Mimicry asserted on the same board as the
+    second member of the same sync**. Revert knob `MEDI_NO_ENTRY_FIELD_SYNC=1`.
+  - **The delayed hit SELECTS out of the sixteen-roll band instead of interpolating a span** (2 games).
+    ROADMAP #304 surviving in the one path that was never converted: `condition:futuremove`'s payout
+    read `d.min + floor(u * (d.max - d.min + 1))` where `sim/battle.ts:2390` is
+    `randomizer(d) { return tr(tr(d * (100 - this.random(16))) / 100); }`. Measured over sixteen buckets
+    on a staged Future Sight, **five of this engine's values are numbers the authority cannot produce at
+    all**. It also spent the GENERIC die where every other damage roll spends `_R.dmg()` (ROADMAP #222),
+    and the ROADMAP #262 address's move and slots are now set around the draw and restored after it.
+    **The corner-zero signature here is a CONSEQUENCE of the defect and not evidence of an unshared
+    die** — `band[0]` IS `d.max` and `band[15]` IS `d.min`, so an index and a span coincide at exactly
+    the two points a corner compares. Probe `move`/`delayedHit`, asserting the SUPPORT over sixteen
+    buckets rather than one roll, with the two ends as the control.
+  - **A STATUS move misses a semi-invulnerable body** (1 game, and it reaches ~40 action kinds).
+    `hitStepInvulnerabilityEvent` is step ZERO of `trySpreadMoveHit` (`sim/battle-actions.ts:556, 621`)
+    and that step list is not per-category; this engine implemented it inside the ATTACK branch only.
+    Staged against a Dragapult mid-Phantom-Force, **Decorate, Charm, Will-O-Wisp and Taunt were
+    byte-identical with and without the charge** — an unwired gate. One gate at the common commit site
+    where the aimed body is resolved for every kind, with `a.kind === 'attack'` skipped deliberately so
+    that nothing about the damaging path (per-target pierce lists, `smartTarget`, `spreadHit`) moves.
+    **Both events are emitted** — `attrLastMove('[miss]')` appends to the `|move|` line and
+    `add('-miss', pokemon, target)` writes a new one — and the state write is the attack branch's own
+    `false` rather than `mvFail`, which would have added a `|-fail|` the authority does not write. The
+    authority's three exemptions (Helping Hand, a Poison-type's Toxic, and Lock-On through the shared
+    `guaranteedAgainst` predicate) are all probe arms, because a blanket rule is wrong in all three
+    directions. Probe `move`/`semiInvulnerable`.
+  - **Symbiosis answers a WHITE HERB spend, not only a berry** (1 game). The handler is
+    `onAllyAfterUseItem` and `Pokemon#useItem` raises `AfterUseItem` on EVERY spend; this engine hung
+    Symbiosis on `consumeBerry`, its one berry door, and had declared the shortfall by name in
+    `MEDFAILS.symbiosisNonBerrySites`. `passItemFromAlly` now runs at the bottom of
+    `restoreStatsUpdate`, after the `-clearnegativeboost`, which is the authority's own order. The
+    `-activate` line also grew the ITEM token that `MEDFAILS.symbiosisLineShort` had been counting —
+    without it the fix would have turned a board divergence into a narration one. Probe
+    `ability`/`passesItemToAlly`.
+  - **The delayed hit writes its `-supereffective` / `-resisted` line.** Narration, and it is the
+    follow-on the band fix EXPOSED: the first re-run read narration 35, and the one new cause was a
+    THIRD Future Sight game — verified against the dump as a different seed rather than the Decorate
+    game relabelled. Emitted above the damage under the same `damageIsComputed` guard the attack branch
+    uses, asserted on three arms including a NEUTRAL one that must carry neither line.
+
+### Notes
+- **The must-not-move list, checked:** damage differential **0 of 6000 at the midpoint and all 16
+  corners** (run twice, once mid-batch and once on the final engine); census **658 probed / 658 live /
+  0 missing**, up from 654 with four probes added and none missing; census ratchet unchanged at 0
+  unarmed / 1 direct-call with no `--accept`; **0 hollow probes and 0 that threw**; roster items,
+  abilities and moves all 0 DIFFER / 0 DID-NOT-FIRE, re-run on the FINAL release so the clauses are not
+  withheld for staleness; `all_mechanics_fire --kind all` identical at moves 20 / abilities 9 / items 1.
+- **Gate shape unchanged: 3 of 8 clauses fail** — the whole-game differential, the staged-mechanics
+  comparison, and the open-defect register clause. The three roster clauses PASS.
+- **One instrument inconsistency, named and not investigated.** `tests/roster.js --stage all` reports
+  2 `FIRED-AND-BOARDS-DIFFER` (`axekick`, `electrify`) where the three per-stage runs report 0; both
+  rows are `DEFERRED-BY-OWNER` per-stage, so the `all` stage applies the usage shelf differently. Not a
+  regression — the 2026-08-11 `all` artifact read 4 DIFFER / 4 DID-NOT-FIRE.
+- **Filed for the register, not fixed:** a screen-breaking move clears screens through a type immunity,
+  a Protect and a miss (`psychicfangs.onTryHit` runs INSIDE `moveHit`, after all five gates —
+  ARCHITECTURAL, the clear belongs in the per-target hit loop and a narrow gate would be a silent
+  partial); the delayed hit takes no crit draw at all; the Disable / Role Play / Curse rows are three
+  preconditions and not one mechanism; the sleep and flinch rows have the Moody shape and were
+  deliberately not touched; Stance Change's `-formechange` may owe a `[from] ability:` field.
+- **Living-docs deferral applies** — `docs/MEDICHAM-SPRINT-NOTES.md` carries the row for the sprint, per
+  the standing arrangement recorded in that file. `docs/ROADMAP.md` was not edited; register row text is
+  proposed in `docs/ENGINE.md`. `board.js`, `magnemite.js` and `engine-data.js` were not touched, and no
+  fit or self-play was run.
+
+---
+
 ## [5.102.0] — 2026-08-23
 
 ### Fixed
