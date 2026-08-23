@@ -330,7 +330,7 @@ const AMBIGUOUS_TARGETS = { n: 0, games: 0 };
 /* The roll-identification reading against the DEFAULT baked body — the direct answer to the question
  * that was asked, kept separate from the verdict because it confounds the damage chain with the
  * dataset's baked spread. */
-const ROLLID = { unique: 0, ambiguous: 0, none: 0 };
+const ROLLID = { unique: 0, ambiguous: 0, none: 0, threw: 0, threwFirst: '' };
 /* Every span we computed, so the artifact can state how WIDE the interval was rather than letting
  * "in-span" read as "exact". */
 const SPAN_WIDTH = [];
@@ -1311,7 +1311,13 @@ const fx = (() => { try { return M.moveFx(id(e.mv)); }
           const pct = rolls.map(r => Math.round(r / def.st.hp * 100));
           const n = pct.filter(x => x === e.dmg).length;
           if (n === 1) ROLLID.unique++; else if (n > 1) ROLLID.ambiguous++; else ROLLID.none++;
-        } catch (x) { /* already counted by the verdict path */ }
+        } catch (x) {
+          /* THE VERDICT PATH COUNTS A DIFFERENT THING. A throw here used to increment none of
+           * unique/ambiguous/none, and those three are PUBLISHED — so the distribution quietly lost
+           * its denominator. Counted, so the three add up to the hits that were actually read. */
+          ROLLID.threw++;
+          if (!ROLLID.threwFirst) ROLLID.threwFirst = String((x && x.message) || x).split('\n')[0];
+        }
       }
       stepEvent(run, e, amb);
     }
@@ -1993,7 +1999,7 @@ function readGames(file, n, skip) {
   SKIP_REASON.clear(); SPECIES_FALLBACK.clear(); SPAN_WIDTH.length = 0; FREEZES.length = 0;
   for (const k of Object.keys(C)) C[k] = 0;
   for (const k of Object.keys(ORDER)) ORDER[k] = 0;
-  for (const k of Object.keys(ROLLID)) ROLLID[k] = 0;
+  for (const k of Object.keys(ROLLID)) ROLLID[k] = (typeof ROLLID[k] === 'number') ? 0 : '';
   AMBIGUOUS_TARGETS.n = 0; AMBIGUOUS_TARGETS.games = 0;
   BUDGET.corners = 0; BUDGET.clamped_corners = 0; BUDGET.max_sp_spent_at_one_corner = 0;
   for (const k of Object.keys(SPLIT)) { SPLIT[k].games = 0; SPLIT[k].turns = 0; SPLIT[k].diverged = 0; }
@@ -2186,6 +2192,7 @@ function readGames(file, n, skip) {
     P('            median attainable span: ' + median + ' points of max HP  -> one roll step is '
       + artifact.spread_envelope.one_roll_step_pct + ' points');
     P('  ROLL ID   unique ' + ROLLID.unique + '   ambiguous ' + ROLLID.ambiguous + '   none ' + ROLLID.none
+      + (ROLLID.threw ? '   THREW AND WERE NOT READ ' + ROLLID.threw + ' (' + ROLLID.threwFirst + ')' : '')
       + '   (against the DEFAULT baked body — not a verdict on the engine)');
     P('  ORDER     forced-and-agree ' + ORDER.agree + '   DIFFER ' + ORDER.differ
       + '   inside the spread envelope (refused) ' + ORDER.spread

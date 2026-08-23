@@ -110,15 +110,41 @@ const TAGS = require('./tags.js');
 /* HOW FAR TO AGE THE BOARDS: past the LONGEST weather this format can set, so no fixture weather can
  * still be up. Derived by asking the engine about every legal weather-setting move and every legal
  * item, exactly as tests/test-board-clock-power.js does. */
+/* A THROW HERE USED TO BE SKIPPED INSIDE THE `Math.max`, and that is the worst shape this file can
+ * have: if every call throws, `n` stays 0, `AGE` becomes 1, and the boards are "aged past the
+ * weather" WITH THE WEATHER STILL UP — so the instrument compares two identical situations and
+ * reports NO FEATURE SHIFT while measuring nothing. The throws are now counted; a total loss
+ * REFUSES, and a partial loss says so, because the longest weather may be one of the ones that
+ * threw. `engine/board.js` counts the same call the same way (`weatherCounters.noEngine`). Measured
+ * 2026-08-23: 745 calls, 0 throws, n = 8, so a healthy run prints nothing. */
 const AGE = (() => {
-  let n = 0;
+  let n = 0, threw = 0, first = '';
+  const ask = (weather, item) => {
+    try { n = Math.max(n, MEDI.weatherTurns(weather, item, TAGS) | 0); }
+    catch (e) {
+      threw++;
+      if (!first) first = weather + ' + ' + (item || '(no item)') + ': ' + String((e && e.message) || e).split('\n')[0];
+    }
+  };
   for (const m of dex.moves.all()) {
     if (!m.exists || m.isNonstandard || m.tier === 'Illegal' || !m.weather) continue;
     for (const it of dex.items.all()) {
       if (!it || !it.exists || it.isNonstandard) continue;
-      try { n = Math.max(n, MEDI.weatherTurns(m.weather, it.id, TAGS) | 0); } catch (e) { /* not a rock */ }
+      ask(m.weather, it.id);
     }
-    try { n = Math.max(n, MEDI.weatherTurns(m.weather, '', TAGS) | 0); } catch (e) { /* no length */ }
+    ask(m.weather, '');
+  }
+  if (n === 0) {
+    throw new Error('feature_shift: MEDI.weatherTurns answered for NO legal weather/item pair ('
+      + threw + ' threw, first: ' + (first || '(none)') + '). The ageing horizon would collapse to 1 '
+      + 'turn, the boards would be compared with the fixture weather STILL UP, and this run would '
+      + 'report "no feature shift" for a change it never exposed. REFUSING rather than measuring '
+      + 'nothing.');
+  }
+  if (threw) {
+    console.error('feature_shift: WARNING — MEDI.weatherTurns threw on ' + threw + ' legal '
+      + 'weather/item pair(s); first: ' + first + '. The horizon below (' + (n + 1) + ' turns) is a '
+      + 'LOWER BOUND, so a longer weather may still be up when the boards are compared.');
   }
   return n + 1;
 })();

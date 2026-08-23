@@ -83,7 +83,11 @@ async function collect(opts) {
 
   const counts = new Map();             // formeId -> Map(setKey -> {n, moves})
   const stats = { files: [], games: 0, sheetGames: 0, entries: 0, stoneEntries: 0,
-                  stoneNoForme: 0, stoneNoFormeFirst: '' };
+                  stoneNoForme: 0, stoneNoFormeFirst: '',
+                  /* A torn store line used to be dropped without a receipt, so `games` — the
+                     denominator every figure printed below rests on — could shrink with nothing
+                     saying it had. */
+                  unparsed: 0, unparsedFirst: '' };
 
   for (const f of STORES) {
     const p = D('data', f);
@@ -92,7 +96,13 @@ async function collect(opts) {
     const rl = readline.createInterface({ input: fs.createReadStream(p), crlfDelay: Infinity });
     for await (const line of rl) {
       if (!line) continue;
-      let g; try { g = JSON.parse(line); } catch (e) { continue; }
+      let g;
+      try { g = JSON.parse(line); }
+      catch (e) {
+        stats.unparsed++;
+        if (!stats.unparsedFirst) stats.unparsedFirst = f + ': ' + String((e && e.message) || e).split('\n')[0];
+        continue;
+      }
       n++;
       const S = g.sheets;
       if (!S || (!S.p1 && !S.p2)) continue;
@@ -165,6 +175,8 @@ if (require.main === module) {
     for (const f of stats.files) console.log('  ' + f);
     console.log('  ' + stats.games + ' games scanned, ' + stats.sheetGames + ' carried a sheet, '
       + stats.entries + ' sheet entries, ' + stats.stoneEntries + ' of them holding a mega stone');
+    if (stats.unparsed) console.log('  ' + stats.unparsed + ' store line(s) DID NOT PARSE and are '
+      + 'excluded from every count above (first: ' + stats.unparsedFirst + ')');
     if (stats.stoneNoForme) console.log('  ' + stats.stoneNoForme + ' entr(ies) held a stone that '
       + 'resolves to no forme for that body (first: ' + stats.stoneNoFormeFirst + ') — the store and '
       + 'the dex disagree about a name, or the player brought a stone the body cannot use');

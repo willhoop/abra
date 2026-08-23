@@ -10,6 +10,61 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.105.0] — 2026-08-23
+
+### Fixed
+- **THE EIGHTEEN REAL SILENT CATCHES ARE CLOSED — `tests/test-no-silent-failure.js` reads 80 NEW ->
+  62 NEW.** MEASURE read all eighty in source context and found **62 correct as written and 18 real
+  (17 edits)**; the 62 were left alone, because changing a correct error path is how a working run
+  breaks. Full account: `docs/_reports/2026-08-23-eighteen-real-fixed.md`.
+- `engine/gate_fail_and_silent.js` — an unreadable `data/engine-release.json` stopped the "measured
+  against a different engine" clause from firing, so a count that must be **WITHHELD got PRINTED**.
+  It now withholds. The only one of the eighteen that published a bad number rather than corrupting
+  one.
+- `engine/medicham2-browser.js` — the only one in the play layer. A failed `require('./mc_key.js')`
+  silently cost `monKey` its cosmetic-forme fallback, so legal bodies such as Vivillon-Pokeball
+  stopped building. Now `MEDFAILS.mcKeyModuleUnloadable`, declared in the counter literal.
+- `engine/feature_shift.js` — a throwing `weatherTurns` collapsed the board-ageing horizon from ~8
+  turns to **1**, so the instrument compared boards **with the weather still up** and reported no
+  feature shift while measuring nothing. Total loss now REFUSES; a partial loss says the horizon is a
+  lower bound. Healthy run measured: 745 calls, 0 throws, horizon 9.
+- Fourteen more, each named in the report: `engine/mega_census.js`, `engine/mega_sets_from_sheets.js`,
+  `engine/replay_differential.js`, `engine/fixture_preflight.js`, `engine/fixture_legality.js`,
+  `engine/explain_divergence.js`, `engine/engine_release.js`, `engine/tag_dex.js`,
+  `tests/test-artifact-rerunnable.js` (three blocks), `tests/test-effective-identity.js`,
+  `tests/test-web-quarantine.js`, `tests/test-rollout-switch.js`.
+- **`engine/tag_dex.js:8623` was fixed WITH its identical twin `:8709`.** The two catch bodies hashed
+  alike, `:8623` is the main tag-derivation loop that writes `data/tags.json`, and it sat inside the
+  **baselined floor of 201** — so fixing the flagged one alone would have lowered the gate's count and
+  left the dangerous one exactly as it was.
+
+### Notes
+- **NOTHING WAS LAUNDERED.** The baseline was not written, `--update` was not run (it would have
+  dropped the floor 201 -> 197 off a detector change made the same day), `--accept` was not used, and
+  `accepted` is still `{}`. **The gate is green only at zero, so it stays RED at 62** — that is the
+  correct reading, not a failure. Closing it needs the `--accept` granularity decision (its unit is a
+  FILE, judgement is per BLOCK, and three files mix a real block with correct ones), which is Will's.
+- **ONE PROPERTY OF THE DETECTOR, FOUND BY GETTING IT WRONG FIRST.** A helper that records the failure
+  — `noteThrow(kind, tag, o, e)` — does **not** satisfy the SPEAKS list, because a bare caught binding
+  passed as an argument matches none of its clauses. The first `tag_dex` fix therefore read **64 NEW
+  with MANUFACTURE up one**, since the two blocks stopped hashing alike. Passing `(e && e.message) || e`
+  puts the reason in a shape the detector already recognises. **The call site was changed and the
+  detector was not**: a change there may only ever SHRINK the silent set, and that file is not ENGINE's.
+- **No mechanic changed and none is claimed.** Census **658 probed / 658 live / 0 missing**; damage
+  differential **0 of 6000** at `--n 6000 --seed 20260804`, and 0 at each of the 16 corners. Both
+  re-measured after the edits, both unmoved — so nothing swallowed in the eighteen was load-bearing.
+- `data/provenance-stamp.json` reads `verified` **4 -> 3**: `data/game-differential.json` stamps a
+  `medicham2-browser.js` digest that moved when the counter was added, which is provenance doing its
+  job on any engine edit. **The ratchet did not move** — `mtime_only` is 171 either side with no file
+  added or removed.
+- **A 50-game smoke run of `engine/replay_differential.js` CUT AN ENGINE RELEASE** (it does that when
+  `--release` is omitted) and overwrote `data/replay-differential-freezes.json` with a 50-game sample.
+  Both tracked files were restored, the pointer reads `3e00ea2575a9` again and
+  `tests/test-engine-release.js` is 66/0. Recorded because a release cut is a division-level event
+  that a smoke test should not be able to trigger by accident.
+
+---
+
 ## [5.104.0] — 2026-08-23
 
 ### Added

@@ -829,6 +829,11 @@ function surface(id, rel, opts) {
 function callerNeeds(dir) {
   const from = dir || path.join(ROOT, 'engine');
   const out = [];
+  /* A FILE THAT WOULD NOT READ USED TO DROP OUT OF THE REQUIREMENT TABLE IN SILENCE, so a release
+     could report "it can still serve this caller" on a scan that never saw the caller. The
+     DIRECTORY failure two lines down is already reported; this is the same failure per file, and it
+     joins the same `error` field rather than inventing a second channel. */
+  const unread = [];
   let files;
   try { files = fs.readdirSync(from).filter(f => f.endsWith('.js')); }
   catch (e) { return { rows: out, error: 'cannot scan ' + from + ': ' + e.message }; }
@@ -839,7 +844,8 @@ function callerNeeds(dir) {
      * Comments are stripped, and the file that DEFINES the mechanism is skipped outright. */
     if (f === 'engine_release.js') continue;
     let src;
-    try { src = fs.readFileSync(path.join(from, f), 'utf8'); } catch (e) { continue; }
+    try { src = fs.readFileSync(path.join(from, f), 'utf8'); }
+    catch (e) { unread.push('engine/' + f + ' (' + String((e && e.message) || e).split('\n')[0] + ')'); continue; }
     src = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
     const re = /REL\.require\(\s*['"]([^'"]+)['"]\s*(?:,\s*\{([\s\S]{0,400}?)\}\s*)?\)/g;
     let m;
@@ -856,7 +862,11 @@ function callerNeeds(dir) {
       out.push({ caller: 'engine/' + f, file: m[1], need });
     }
   }
-  return { rows: out, error: null };
+  return { rows: out, error: unread.length
+    ? unread.length + ' caller file(s) in ' + from + ' COULD NOT BE READ, so their REL.require needs '
+      + 'are missing from this table and any release judged on it may read as able to serve a caller '
+      + 'it was never checked against: ' + unread.join('; ')
+    : null };
 }
 
 /* ---- THE WHOLE-STORE CENSUS — ROADMAP #109 ----------------------------------------------------

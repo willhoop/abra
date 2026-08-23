@@ -250,11 +250,19 @@ catch (e) { readWhy = String((e && e.message) || e).split('\n')[0]; }
 
 let relWhy = null;
 if (art) {
-  let cur = null;
-  try { cur = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'engine-release.json'), 'utf8')); } catch (e) { /* none */ }
+  let cur = null, curWhy = null;
+  try { cur = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'engine-release.json'), 'utf8')); }
+  catch (e) { curWhy = String((e && e.message) || e).split('\n')[0]; }
   const curId = cur && (cur.id || cur.release || cur.current);
   const ranOn = art.engine_release || art.release || null;
-  if (ranOn && curId && ranOn !== curId) {
+  if (!curId) {
+    /* Without the tree's release id the "different engine" clause below CANNOT FIRE, so a stale
+       count would be PRINTED rather than withheld. A caption is not a quarantine — withhold it. */
+    relWhy = 'THE CURRENT RELEASE ID COULD NOT BE READ — data/engine-release.json '
+      + (curWhy ? '(' + curWhy + ')' : 'carries no id')
+      + ', so this run cannot tell whether the artifact was measured against this engine. '
+      + 'The count is WITHHELD rather than printed unchecked.';
+  } else if (ranOn && ranOn !== curId) {
     relWhy = 'MEASURED AGAINST A DIFFERENT ENGINE — the artifact ran on release ' + ranOn
       + ' and the tree is ' + curId + '. The count is WITHHELD rather than printed with a caveat.';
   }

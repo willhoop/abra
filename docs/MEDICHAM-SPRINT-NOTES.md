@@ -12535,3 +12535,33 @@ version compared against the baseline alone and refused the live tree on 9 untou
 
 **OWED, NOT RUN:** the 80 existing blocks are being read one at a time; `run-all.js` registration
 deliberately skipped while the whole-repo verdict is red.
+
+---
+
+## THE EIGHTEEN REAL SILENT CATCHES ARE CLOSED — 80 -> 62 — 2026-08-23
+
+Full account: [`docs/_reports/2026-08-23-eighteen-real-fixed.md`](_reports/2026-08-23-eighteen-real-fixed.md).
+
+MEASURE read all eighty in source context: **62 correct as written, 18 real (17 edits).** All eighteen
+are fixed and the 62 are untouched, because changing a correct error path is how a working run breaks.
+**No new test, no new gate, the floor untouched at 201, `--update` deliberately not run.** The ratchet
+is **still RED at 62** — it is green only at zero, and getting there needs the `--accept` granularity
+decision (its unit is a FILE; judgement is per BLOCK), not more code.
+
+Sprint-relevant for the same reason as the last pass: **the class lives in the rulers.** Only one of the
+eighteen is in the play layer — a swallowed `mc_key.js` load failure that cost `buildMon` its
+cosmetic-forme fallback, now `MEDFAILS.mcKeyModuleUnloadable`, which is exactly the case today's sealed
+species table was built to make loud. The other two at the top were a gate that PUBLISHED a count it
+should have WITHHELD, and a board-ageing horizon that silently collapsed to one turn so an instrument
+compared boards with the weather still up.
+
+**`engine/tag_dex.js:8623` went with `:8709`** — identical catch bodies, the first inside the baselined
+floor and writing `data/tags.json` for every mechanic the engine reads. Fixing the flagged one alone
+would have lowered the count and left the dangerous one in place. Both now name a throwing predicate;
+control fired, clean build silent at 0 throws, `data/tags.json` not regenerated.
+
+**No census count moved and none is claimed** (658 probed / 658 live / 0 missing), and the damage
+differential is **0 of 6000** at seed 20260804 either side — so nothing swallowed here was load-bearing.
+
+**OWED, NOT RUN:** `engine/mega_census.js` and the full-store `replay_differential.js` (the latter cuts
+a release when `--release` is omitted); the `--accept` decision, which is Will's.

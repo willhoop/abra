@@ -167,11 +167,17 @@ ok(live.d.decisions > 0, 'the denominator was counted rather than guessed', `dec
  * ------------------------------------------------------------------------------------------ */
 {
   const nFeat = (B.FEATURES || []).length;
-  let nWeights = null;
+  let nWeights = null, wWhy = null;
+  /* ABSENT IS GENUINELY NOT THIS FILE'S BUSINESS. UNPARSEABLE IS: `nWeights === null` is the skip
+   * arm of the assertion below, so a CORRUPT weight file used to make the dimensionality check pass
+   * while comparing nothing. ENOENT still skips; anything else is named and fails. */
   try { const w = JSON.parse(fs.readFileSync(D('data', 'policy-weights.json'), 'utf8'));
-        nWeights = (w.weights || []).length; } catch (e) { /* absent is not this file's business */ }
-  ok(nWeights === null || nFeat === nWeights,
-    'board.js FEATURES still matches the fitted weight vector', `${nFeat} features, ${nWeights} weights`);
+        nWeights = (w.weights || []).length; }
+  catch (e) { if (!(e && e.code === 'ENOENT')) wWhy = String((e && e.message) || e).split('\n')[0]; }
+  ok((nWeights === null && !wWhy) || nFeat === nWeights,
+    'board.js FEATURES still matches the fitted weight vector',
+    wWhy ? 'THE WEIGHT FILE DID NOT PARSE (' + wWhy + '), so this check compared NOTHING'
+         : `${nFeat} features, ${nWeights} weights`);
 }
 
 console.log(`\n  ${pass} passed, ${fail} failed\n`);

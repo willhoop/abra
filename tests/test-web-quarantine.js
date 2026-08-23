@@ -138,10 +138,15 @@ const heldSlots = b => slots(b).filter(s => RULE.isHeld(s.o.state));
  * text a reader would quote, so if it is anywhere in the payload — a figure, a note, a caveat, or the
  * embedded raw status.js output — the number was published. This is what found the original five. */
 const probes = [];
+/* AN ARTIFACT THAT WOULD NOT READ USED TO DROP OUT OF THE PROBE SET IN SILENCE, so a leak of THAT
+ * artifact's verdict onto the web board became invisible while this file stayed green. The guard
+ * below only catches the case where the set is entirely empty. The skipped ones are named. */
+const unprobed = [];
 for (const r of ROWS.values()) {
   if (!r.quarantined) continue;
   let j = null;
-  try { j = JSON.parse(fs.readFileSync(D('data', r.file), 'utf8')); } catch (e) { continue; }
+  try { j = JSON.parse(fs.readFileSync(D('data', r.file), 'utf8')); }
+  catch (e) { unprobed.push(r.file + ' (' + String((e && e.message) || e).split('\n')[0] + ')'); continue; }
   for (const k of ['verdict', 'headline', 'summary']) {
     const v = j[k];
     if (typeof v === 'string' && v.length >= 30) probes.push({ file: r.file, key: k, probe: v.slice(0, 50) });
@@ -154,6 +159,10 @@ if (!probes.length) {
 } else {
   pass(probes.length + ' verdict string(s) collected from the downstream set, to be checked against '
     + 'whole payloads including the embedded engine/status.js output');
+}
+if (unprobed.length) {
+  console.log('  note  ' + unprobed.length + ' quarantined artifact(s) COULD NOT BE READ and are NOT in '
+    + 'the probe set, so nothing below says whether their verdict leaked: ' + unprobed.join('; '));
 }
 
 /* ================================================================================================

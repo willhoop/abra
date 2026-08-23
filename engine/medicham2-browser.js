@@ -2237,7 +2237,14 @@ const MEDFAILS = { encoreAction: 0,
   /* WIRE 146 -- a rider's effect is directed at a TARGET and no live body sits in the aimed slot, so
    * there is nowhere to put it. It is dropped, and counted rather than dropped silently: every
    * member of the rider set today is user-directed, so a non-zero here is a new shape arriving. */
-  composedRiderNoTarget: 0, composedRiderNoTargetFirst: '' };
+  composedRiderNoTarget: 0, composedRiderNoTargetFirst: '',
+  /* engine/mc_key.js would not LOAD, so `monKey` lost its cosmetic-forme fallback and every body the
+   * damage table spells under its base name -- Vivillon-Pokeball, Maushold-Four, Sinistcha-Masterpiece
+   * -- started returning null from `buildMon`. That reads as "not in the format" for a mon that is on
+   * real open team sheets, so the load failure is NAMED rather than swallowed. Empty is the only
+   * healthy value; in a browser, where `require` does not exist, nothing is attempted and nothing is
+   * recorded. */
+  mcKeyModuleUnloadable: '' };
 
 /* ================= THE SHOWDOWN-SHAPED PROTOCOL TRACE — ROADMAP #68, step one ====================
  *
@@ -5578,7 +5585,8 @@ function monIndex(){
  * of flattening finds it. engine/mc_key.js already derives it from the dex; asking it is the single-
  * accessor rule working, and re-deriving it here would be the two-files-one-fact breach. */
 const MCK=(function(){
-  try { if (typeof require==='function') return require('./mc_key.js'); } catch(e){}
+  try { if (typeof require==='function') return require('./mc_key.js'); }
+  catch(e){ MEDFAILS.mcKeyModuleUnloadable=String((e&&e.message)||e).split('\n')[0]; }
   return (root&&root.MCKEY)||null;
 })();
 function monKey(name){

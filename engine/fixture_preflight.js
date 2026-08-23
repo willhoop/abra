@@ -1027,9 +1027,11 @@ function srcCorpus() {
   if (SRC_CACHE) return SRC_CACHE;
   const fs = require('fs'), path = require('path');
   SRC_CACHE = [];
+  const missing = [];
   for (const rel of SRC_FILES) {
     const p = path.join(SD, rel);
-    let txt; try { txt = fs.readFileSync(p, 'utf8'); } catch (e) { continue; }
+    let txt; try { txt = fs.readFileSync(p, 'utf8'); }
+    catch (e) { missing.push(rel + ' (' + String((e && e.message) || e).split('\n')[0] + ')'); continue; }
     SRC_CACHE.push({ rel, lines: txt.split(/\r?\n/) });
   }
   /* LOUD, NOT SILENT. A corpus that failed to load would report "nothing reads this item" for every
@@ -1037,6 +1039,13 @@ function srcCorpus() {
    * named after. */
   if (!SRC_CACHE.length) throw new Error('fixture_preflight: could not read ANY authority source under '
     + SD + ' — the reverse item scan would silently report "read by nobody" for every row');
+  /* AND A PARTIAL LOAD IS THE SAME CLAIM, NARROWED. Only the all-empty case used to refuse: load 5 of
+   * 15 and every row whose reader lives in the 10 that did not load reads "read by nobody", which is
+   * a statement about this machine's checkout wearing the costume of a statement about Showdown.
+   * Measured 2026-08-23: all 15 present, so a healthy run never reaches this. */
+  if (missing.length) throw new Error('fixture_preflight: ' + missing.length + ' of ' + SRC_FILES.length
+    + ' authority sources under ' + SD + ' could not be read, so the reverse scan would report "read by '
+    + 'nobody" for every row whose reader lives in them. REFUSING. Missing: ' + missing.join('; '));
   return SRC_CACHE;
 }
 /** readByOthers(id, kind) -> [{file,line,text,fn}] — who else's code reads this item or ability.

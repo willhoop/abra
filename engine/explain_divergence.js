@@ -67,9 +67,19 @@ function liveMode(n) {
   console.log('because none was measured, and a guessed board would make a correct engine look wrong.');
   console.log('');
   let shown = 0;
+  /* A PAIR WHOSE GAME THROWS IS THE MOST INTERESTING DIVERGENCE THERE IS, and it used to be skipped
+     in silence by the tool whose whole job is explaining divergences — an engine crash simply never
+     appeared. Counted, and named in the footer. */
+  let threw = 0, threwFirst = '';
   for (const p of pairs) {
     if (shown >= n) break;
-    let r; try { r = G.playGame(p.a, p.b, 'baseline', p.tag, {}); } catch (e) { continue; }
+    let r;
+    try { r = G.playGame(p.a, p.b, 'baseline', p.tag, {}); }
+    catch (e) {
+      threw++;
+      if (!threwFirst) threwFirst = String((e && e.message) || e).split('\n')[0];
+      continue;
+    }
     if (!r || !r.div) continue;
     const d = r.div;
     console.log('='.repeat(94));
@@ -105,6 +115,10 @@ function liveMode(n) {
     console.log('');
   }
   console.log('='.repeat(94));
+  if (threw) {
+    console.log('THREW AND WERE NOT SHOWN: ' + threw + ' pair(s) CRASHED before a split could be read '
+      + '(first: ' + threwFirst + '). A crash is a divergence, not a skip.');
+  }
 }
 
 if (process.argv.includes('--live')) { liveMode(+arg('--n', 12)); return; }

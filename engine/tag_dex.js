@@ -8611,6 +8611,18 @@ try {
     }
 } catch (e) { /* corpus unavailable -- fall back to usage-only, same as before */ }
 
+/* A TAG PREDICATE THAT THROWS USED TO BE INDISTINGUISHABLE FROM ONE THAT SAID NO, in both places
+   that run one. That is the exact confusion this file refuses everywhere else: "an inapplicable fact
+   and a broken predicate must not look alike". The throws are collected here and printed together
+   below; the value handed back is still null, so nothing on the success path moves.
+   The total-loss case (a tag that matched NOTHING) is already caught by the emptyTags check; this is
+   the PARTIAL case — one entity quietly losing one tag — which nothing saw. */
+const PREDICATE_THREW = [];
+function noteThrow(kind, tag, o, why) {
+  PREDICATE_THREW.push({ kind, tag, entity: (o && (o.name || o.id)) || '?',
+                         why: String(why).split('\n')[0] });
+}
+
 function collect(kind, all, tags, usageMap) {
   const entries = {}, index = {};
   for (const t of tags) index[t.tag] = { tag: t.tag, kind, param: t.param, why: t.why,
@@ -8620,7 +8632,8 @@ function collect(kind, all, tags, usageMap) {
     const id = norm(o.id || o.name);
     const hit = [], params = {};
     for (const t of tags) {
-      let v = null; try { v = t.of(o); } catch (e) { v = null; }
+      let v = null;
+      try { v = t.of(o); } catch (e) { v = null; noteThrow(kind, t.tag, o, (e && e.message) || e); }
       if (!v) continue;
       hit.push(t.tag); params[t.tag] = v;
       const ix = index[t.tag];
@@ -8706,7 +8719,12 @@ console.log(`  abilities: ${LEGAL_CARRIED.size} of ${dex.abilities.all().length}
     if (!a || !a.exists || a.isNonstandard) continue;
     if (LEGAL_CARRIED.has(norm(a.id || a.name))) continue;
     const would = [];
-    for (const t of ABILITY_TAGS) { let v = null; try { v = t.of(a); } catch (e) { v = null; } if (v) would.push(t.tag); }
+    for (const t of ABILITY_TAGS) {
+      let v = null;
+      try { v = t.of(a); }
+      catch (e) { v = null; noteThrow('ability (no legal carrier)', t.tag, a, (e && e.message) || e); }
+      if (v) would.push(t.tag);
+    }
     if (would.length) dropped.push([a.name, would]);
   }
   console.log(`  ${dropped.length} ability/ies WOULD have carried a tag and have NO legal carrier, so no row `
@@ -8999,6 +9017,16 @@ const NG = Math.max(1, U.entries);
 nUntagged += flagUntagged('move(s)',     moves.entries, U.move,    NG);
 nUntagged += flagUntagged('ability/ies', abils.entries, U.ability, NG);
 nUntagged += flagUntagged('item(s)',     items.entries, U.item,    NG);
+
+if (PREDICATE_THREW.length) {
+  console.error('');
+  console.error('  ' + PREDICATE_THREW.length + ' TAG PREDICATE(S) THREW and the entity was recorded as '
+    + 'carrying NOTHING for that tag. A dropped fact and an absent fact look identical in '
+    + 'data/tags.json, so they are named here:');
+  for (const r of PREDICATE_THREW.slice(0, 40))
+    console.error('    ' + r.kind + '  ' + r.tag + '  on ' + r.entity + '  -- ' + r.why);
+  if (PREDICATE_THREW.length > 40) console.error('    ... and ' + (PREDICATE_THREW.length - 40) + ' more');
+}
 
 const emptyTags = all.filter(r => r.n === 0 && !EXPECTED_EMPTY.has(r.tag));
 if (emptyTags.length) {

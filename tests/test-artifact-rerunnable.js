@@ -151,9 +151,14 @@ function producerOf(j) {
 /* ---- 3. EVERY ARTIFACT THAT NAMES A RELEASE ----------------------------------------------------- */
 const SCRATCH = /^_scratch-/;                       /* not artifacts; see the report at the bottom */
 function stampedArtifacts() {
-  const out = [], prose = [], scratch = [];
+  const out = [], prose = [], scratch = [], unreadable = [];
   for (const f of fs.readdirSync(D('data')).filter(x => /\.json$/.test(x))) {
-    let j; try { j = JSON.parse(fs.readFileSync(D('data', f), 'utf8')); } catch { continue; }
+    /* AN UNREADABLE ARTIFACT USED TO DROP OUT OF THIS SCAN ENTIRELY, so a corrupt file that names a
+       stranded release escaped the check while the run stayed green. It is bucketed and named, next
+       to `prose` and `scratch`, because a scanner that could not read a file may not report that
+       file clean. */
+    let j; try { j = JSON.parse(fs.readFileSync(D('data', f), 'utf8')); }
+    catch (e) { unreadable.push({ file: f, why: oneLine(String((e && e.message) || e)).slice(0, 90) }); continue; }
     const cand = [j.release, j.engine_release, j.engine_release_cut && j.engine_release_cut.id];
     /* A RELEASE ID IS 12 HEX CHARACTERS. Some artifacts put PROSE in `release` explaining why they are
      * not stamped — `dusk-size-gate.json` says "none — this is pure store analysis and loads no engine
@@ -174,7 +179,7 @@ function stampedArtifacts() {
     if (SCRATCH.test(f)) scratch.push(row); else out.push(row);
   }
   out.sort((a, b) => String(a.when).localeCompare(String(b.when)) || a.file.localeCompare(b.file));
-  return { out, prose, scratch };
+  return { out, prose, scratch, unreadable };
 }
 
 /* ---- 4. THE RELEASE SIDE, THROUGH THE CANONICAL CALLS ONLY -------------------------------------- */
@@ -232,7 +237,7 @@ for (const [caller, files] of [...byCaller].sort()) {
   console.log('        ' + caller.padEnd(38) + parts.join('  |  '));
 }
 
-const { out: arts, prose, scratch } = stampedArtifacts();
+const { out: arts, prose, scratch, unreadable } = stampedArtifacts();
 const rows = arts.map(a => ({ ...a, ...judge(a, byCaller) }));
 
 console.log('');
@@ -255,6 +260,11 @@ if (prose.length) {
   console.log('\n  DECLARED NOT STAMPED — a prose `release` field is a legitimate declaration, not a broken id:');
   for (const p of prose) console.log('    ' + p.file.padEnd(34) + '"' + p.said + '"');
 }
+if (unreadable.length) {
+  console.log('\n  DID NOT PARSE — these data/*.json files were NOT scanned for a stranded release, so');
+  console.log('  nothing above says anything about them either way:');
+  for (const u of unreadable) console.log('    ' + u.file.padEnd(34) + u.why);
+}
 if (scratch.length) {
   console.log('\n  SKIPPED as scratch (`_scratch-*.json`, matched by name, untracked temp dumps in data/):');
   for (const s of scratch) console.log('    ' + s.file.padEnd(34) + s.id + '  ' + (s.producer || '(no by)'));
@@ -274,8 +284,17 @@ if (scratch.length) {
  * stop it. */
 const MEDI = 'engine/medicham2-browser.js';
 let audited = 0; const legacy = [], broken = [];
+/* A MANIFEST THAT WILL NOT READ USED TO BE SKIPPED IN SILENCE, which shrinks `audited` with no
+   receipt — the same "audited ZERO manifests and printed a green tick" failure the comment above
+   describes, arriving one line lower. Counted and named. */
+const unreadableManifests = [];
 for (const id of ER.list()) {
-  let man; try { man = JSON.parse(fs.readFileSync(D('data', 'releases', id, 'release.json'), 'utf8')); } catch { continue; }
+  let man;
+  try { man = JSON.parse(fs.readFileSync(D('data', 'releases', id, 'release.json'), 'utf8')); }
+  catch (e) {
+    if (!(e && e.code === 'ENOENT')) unreadableManifests.push(id + ' (' + oneLine(String(e.message || e)).slice(0, 70) + ')');
+    continue;
+  }
   if (!Array.isArray(man.provides)) continue;
   const s = surfaceOf(id, MEDI);
   if (s.status !== 'ok') continue;
@@ -292,6 +311,11 @@ ok(broken.length === 0,
    'every `provides` written by the CURRENT recorder agrees with the loader',
    broken.length ? broken.join(' ;; ') : audited + ' manifest(s) audited against surface(), '
      + legacy.length + ' of them legacy');
+if (unreadableManifests.length) {
+  console.log('\n  RELEASE MANIFESTS THAT DID NOT PARSE — excluded from the ' + audited + ' audited above,');
+  console.log('  so no `provides` claim was checked for them:');
+  for (const m of unreadableManifests) console.log('    ' + m);
+}
 if (legacy.length) {
   console.log('\n  LEGACY `provides` — recorded before 2026-08-12 by a parser that had not stripped comments,');
   console.log('  so it lost the first key after every comment and read four symbols out of prose. Reported,');
@@ -318,10 +342,28 @@ if (legacy.length) {
 
 /* ---- 6. THE RATCHET ----------------------------------------------------------------------------- */
 const BASE = D('data', 'artifact-rerunnable-baseline.json');
-let base = null;
-try { base = JSON.parse(fs.readFileSync(BASE, 'utf8')); } catch { /* first run */ }
+let base = null, baseWhy = null;
+/* AN ABSENT BASELINE IS A FIRST RUN. AN UNREADABLE ONE IS NOT, AND READING THEM ALIKE IS HOW A
+   RATCHET STOPS RATCHETING WITHOUT SAYING SO: a corrupt file used to fall through to "NO BASELINE —
+   run with --stamp", which invites the operator to re-stamp the floor straight over the record of
+   what was already stranded. ENOENT is the only forgiven error; anything else is named and refuses
+   the overwrite. */
+try { base = JSON.parse(fs.readFileSync(BASE, 'utf8')); }
+catch (e) {
+  baseWhy = (e && e.code === 'ENOENT') ? null : String((e && e.message) || e).split('\n')[0];
+}
+if (baseWhy) {
+  ok(false, 'the ratchet baseline is readable',
+     'data/artifact-rerunnable-baseline.json EXISTS AND DID NOT PARSE (' + baseWhy + '). It is NOT a '
+     + 'first run: the stranded-release ratchet has no floor to hold this run against.');
+}
 
 if (process.argv.includes('--stamp')) {
+  if (baseWhy) {
+    console.error('\n  REFUSING TO --stamp over an UNREADABLE baseline (' + baseWhy + '). Stamping now '
+      + 'would write a fresh floor over a record nobody has read. Repair or delete the file first.');
+    process.exit(2);
+  }
   fs.writeFileSync(BASE, JSON.stringify({
     stamped: new Date().toISOString(),
     by: 'tests/test-artifact-rerunnable.js --stamp',
@@ -339,7 +381,9 @@ if (process.argv.includes('--stamp')) {
 }
 
 if (!base) {
-  ok(false, 'a ratchet exists', 'NO BASELINE — run with --stamp to accept the current count deliberately');
+  ok(false, 'a ratchet exists', baseWhy
+    ? 'THE BASELINE DID NOT PARSE (' + baseWhy + ') — this is not a first run and not a pass'
+    : 'NO BASELINE — run with --stamp to accept the current count deliberately');
 } else {
   const known = new Set(base.files || []);
   const fresh = bad.filter(r => !known.has(r.file));

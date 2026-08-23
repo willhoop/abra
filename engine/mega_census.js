@@ -87,12 +87,15 @@ function run() {
     const otherForme = Object.create(null); // every NON-mega forme change wearing the t:"mega" label
     let games = 0, gamesWithMega = 0, events = 0, megaEvents = 0, sides = 0, bodies = 0;
     let twoOnOneSide = 0, megaTurn1 = 0, megaLater = 0;
+    /* A torn store line used to be dropped without a receipt, so the denominator every percentage
+       below divides by could shrink with nothing saying it had. Counted and printed instead. */
+    let badLines = 0;
 
     const rl = readline.createInterface({ input: fs.createReadStream(STORE), crlfDelay: Infinity });
     rl.on('line', (line) => {
       if (!line.trim()) return;
       let g;
-      try { g = JSON.parse(line); } catch (e) { return; }
+      try { g = JSON.parse(line); } catch (e) { badLines++; return; }
       games++;
       for (const s of ['p1', 'p2']) {
         sides++;
@@ -141,7 +144,7 @@ function run() {
       for (const b of basesThisGame) base[b].games++;
     });
     rl.on('close', () => resolve({ forme, base, otherForme, games, gamesWithMega, events, megaEvents,
-                                   sides, bodies, twoOnOneSide, megaTurn1, megaLater }));
+                                   sides, bodies, twoOnOneSide, megaTurn1, megaLater, badLines }));
     rl.on('error', reject);
   });
 }
@@ -166,6 +169,9 @@ async function main() {
       + 'ZERO. That is deliberate: classifying nothing is honest, classifying everything as a mega is '
       + 'what the first version of this file did.',
     store_games: r.games,
+    store_lines_that_did_not_parse: r.badLines,
+    store_lines_note: 'a torn line is dropped and NOT counted in store_games, so it is named here — '
+                    + 'every percentage in this artifact divides by a denominator that excludes it',
     games_with_a_mega: r.gamesWithMega,
     games_with_a_mega_pct: +(100 * r.gamesWithMega / (r.games || 1)).toFixed(2),
     forme_change_events_total: r.events,
@@ -188,6 +194,8 @@ async function main() {
     by_base: r.base,
   };
   fs.writeFileSync(OUT, JSON.stringify(art, null, 2) + '\n');
+  if (r.badLines) console.log('  ' + r.badLines.toLocaleString() + ' store line(s) DID NOT PARSE and '
+    + 'are excluded from every count below');
   console.log('  ' + r.games.toLocaleString() + ' games   ' + r.gamesWithMega.toLocaleString()
             + ' with a mega (' + art.games_with_a_mega_pct + '%)   '
             + sorted.length + ' distinct formes   ' + r.events.toLocaleString() + ' events');

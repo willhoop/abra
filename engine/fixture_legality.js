@@ -165,9 +165,18 @@ function scan(dex) {
   const roleOf = makeRoleOf(dex);
   const files = walk(ROOT, []);
   const sets = [], unpaired = [];
+  /* A FIXTURE FILE THAT WOULD NOT READ USED TO BE SKIPPED IN SILENCE, AND SILENCE HERE READS AS
+     CLEAN — the scan says nothing illegal is declared in a file it never opened. Named. */
+  const unread = [];
 
   for (const f of files) {
-    let raw; try { raw = fs.readFileSync(f, 'utf8'); } catch (e) { continue; }
+    let raw;
+    try { raw = fs.readFileSync(f, 'utf8'); }
+    catch (e) {
+      unread.push(path.relative(ROOT, f).split(path.sep).join('/')
+        + ' (' + String((e && e.message) || e).split('\n')[0] + ')');
+      continue;
+    }
     const src = stripComments(raw);
     const rel = path.relative(ROOT, f).replace(/\\/g, '/');
     if (rel === 'engine/fixture_legality.js') continue;   /* the scanner's own prose and regexes */
@@ -285,7 +294,7 @@ function scan(dex) {
                   item: it ? it[2] : '', ability: ab ? ab[2] : '', moves: mvs, unknown: [] });
     }
   }
-  return { files: files.length, sets, unpaired };
+  return { files: files.length, sets, unpaired, unread };
 }
 
 /* ---- the sweep --------------------------------------------------------------------------------- */
@@ -298,7 +307,11 @@ const keyOf = p => String(p).toLowerCase().replace(/\s+/g, ' ').trim();
 
 function sweep() {
   const dex = CS.sim().Dex.forFormat(CS.FORMAT);
-  const { files, sets, unpaired } = scan(dex);
+  const { files, sets, unpaired, unread } = scan(dex);
+  if (unread && unread.length) {
+    console.error('  fixture_legality: ' + unread.length + ' FIXTURE FILE(S) COULD NOT BE READ and were '
+      + 'NOT scanned, so nothing below says they are legal: ' + unread.join('; '));
+  }
 
   /* one verdict per distinct set; every site that declares it is carried */
   const seen = new Map();

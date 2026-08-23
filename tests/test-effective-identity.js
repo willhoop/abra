@@ -459,7 +459,17 @@ function poison(mon) {
 const _origSwitchIn = B.Board.prototype.switchIn;
 B.Board.prototype.switchIn = function (...a) {
   const r = _origSwitchIn.apply(this, a);
-  for (const s of ['p1', 'p2']) for (const L of ['a', 'b']) { try { poison(this.slot(s, L)); } catch (e) { /* nothing there */ } }
+  /* AN EMPTY SLOT IS ALREADY HANDLED — `slot()` returns null and `poison()` returns on a non-object.
+   * So a throw here is NOT "nothing there": it is the trap FAILING TO ARM on a live body, and the
+   * old catch left this gate green while it watched nothing on that slot. It speaks by name. */
+  for (const s of ['p1', 'p2']) for (const L of ['a', 'b']) {
+    try { poison(this.slot(s, L)); }
+    catch (e) {
+      throw new Error('test-effective-identity: the read-trap could not be installed on ' + s + L
+        + ' (' + String((e && e.message) || e).split('\n')[0] + '). Every assertion below about that '
+        + 'slot would pass while observing nothing, so this run REFUSES rather than reporting green.');
+    }
+  }
   return r;
 };
 

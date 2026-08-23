@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  658/658 probed mechanics live, 0 missing   (census 2026-08-23 18:47)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-23 18:55)
+  658/658 probed mechanics live, 0 missing   (census 2026-08-23 19:29)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-23 19:29)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,60 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 301f0f75cd13 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is fd9b4f0b936a now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 19:03_
+_stamped 2026-08-23 19:40_
 
 <!-- /GENERATED -->
+
+## THE EIGHTEEN REAL SILENT CATCHES ARE CLOSED, 80 -> 62, AND THE ONE HIDING IN THE FLOOR WENT WITH THEM. 2026-08-23.
+
+Full account: [`docs/_reports/2026-08-23-eighteen-real-fixed.md`](_reports/2026-08-23-eighteen-real-fixed.md).
+Input: MEASURE's read-only triage, which read all eighty in source context and found **62 correct as
+written and 18 real**. Will: *"just simple bulletproof fixes."*
+
+**`tests/test-no-silent-failure.js`: 80 NEW -> 62 NEW.** That was the projection and it is what landed.
+The floor stays at 201, `accepted` stays `{}`, no `--update` was run. **The gate is green only at zero,
+so it is STILL RED, and that is correct** rather than a failure: the remaining 62 are blocks somebody
+read and found right.
+
+**Nineteen blocks, seventeen edits.** Ranked by consequence, the top three were: a reporting gate that
+PUBLISHED a count it should have WITHHELD when it could not read the release id
+(`engine/gate_fail_and_silent.js`); the only one in the play layer, a swallowed `mc_key.js` load failure
+that quietly cost `buildMon` its cosmetic-forme fallback (`engine/medicham2-browser.js`, now
+`MEDFAILS.mcKeyModuleUnloadable`); and a board-ageing horizon that collapsed from ~8 turns to 1 on a
+throw, so `engine/feature_shift.js` compared boards **with the weather still up** and reported no shift
+while measuring nothing. Each was shown doing the wrong thing first — the gate printed `CANNOT ANSWER`
+with the release file moved aside, the counter carried the message with that one `require` intercepted,
+and `feature_shift` refused outright with `weatherTurns` stubbed to throw.
+
+**`engine/tag_dex.js:8623` and `:8709` were fixed TOGETHER.** They hashed identically, `:8623` is the
+main tag-derivation loop that writes `data/tags.json`, and it sat inside the baselined floor — so
+fixing `:8709` alone would have lowered the count and left the dangerous one exactly as it was. A
+control (one dex row wrapped in a Proxy so its predicate input throws) makes the build name the dropped
+tag; a clean build prints nothing, measured at **0 throws**, and `data/tags.json` was not regenerated.
+
+**One thing the triage could not have known.** `noteThrow(kind, tag, o, e)` — a helper that pushes the
+failure onto a printed list — does **not** satisfy the detector's SPEAKS list, because a bare caught
+binding passed as an argument matches none of its clauses. The first version of that fix therefore read
+**64 NEW with MANUFACTURE up one**. Passing `(e && e.message) || e` puts the reason in a shape the
+detector already recognises. The call site was changed and the detector was not: a change there may
+only ever SHRINK the silent set, and that file is not ENGINE's.
+
+**Not a mechanic change and none is claimed.** Census **658 probed / 658 live / 0 missing** and the
+damage differential **0 of 6000** at `--n 6000 --seed 20260804`, both re-measured after the edits and
+both unmoved — so nothing swallowed here was load-bearing. `data/provenance-stamp.json` reads
+`verified` 4 -> 3, which is provenance correctly noticing that `data/game-differential.json` stamps a
+`medicham2-browser.js` digest that has now moved; the RATCHET (`mtime_only`) is 171 either side.
+
+**OWED, NOT RUN:** `engine/mega_census.js` (it rewrites a 13-day-old artifact off a store that has
+grown); the full-store `replay_differential.js` (it CUTS a release when `--release` is omitted — a
+50-game smoke run of it did exactly that here and both tracked files were restored); the `--accept`
+granularity decision, which is Will's and is what closing this gate actually needs.
 
 ## THE BOARD-MATERIAL REMAINDER — FIVE MECHANISMS, 21 → 15, AND ONE "INSTRUMENT" FAMILY WAS THE ENGINE. 2026-08-23.
 
