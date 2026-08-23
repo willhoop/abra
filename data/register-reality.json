@@ -1,23 +1,23 @@
 {
-  "generated": "2026-08-23T06:13:06.068Z",
+  "generated": "2026-08-23T11:48:06.048Z",
   "by": "engine/register_reality.js",
   "what": "Every register row that names the instrument deciding it, run, with its exit code compared to the row's open/closed status.",
   "why": "docs/ROADMAP.md is read by engine/quarantine.js as a GATE INPUT and nothing checked it against reality. On 2026-08-14 four rows were stale rather than live and two of them were put in front of a human as the place to start. A row nobody re-verifies is prose.",
   "weaker_than_it_looks": "A green instrument means THAT instrument sees nothing. It is not a derivation of the row's claim. It is strictly more than the register had, which was nothing.",
   "counts": {
-    "register_rows": 295,
-    "id_rows": 340,
-    "open_asserting_breakage": 49,
-    "marked": 35,
-    "open_asserting_breakage_and_marked": 6,
-    "stale_rows": 0,
-    "premature_closes": 1,
+    "register_rows": 321,
+    "id_rows": 366,
+    "open_asserting_breakage": 60,
+    "marked": 39,
+    "open_asserting_breakage_and_marked": 7,
+    "stale_rows": 1,
+    "premature_closes": 0,
     "unrunnable": 5,
     "cannot_answer": 0,
     "exit_codes_undeclared": 0,
-    "instrument_owed": 13,
-    "open_asserting_breakage_and_owed": 8,
-    "distinct_commands_run": 25
+    "instrument_owed": 29,
+    "open_asserting_breakage_and_owed": 15,
+    "distinct_commands_run": 28
   },
   "instrument_owed": [
     {
@@ -84,6 +84,86 @@
       "n": 375,
       "owes": "per-cause context in `data/game-differential.json` rather than a 60-game sample.",
       "title": "`first_divergences` SAMPLES 60 OF 95 GAMES AND CARRIES 22 OF THE 47 CAUSES, SO A QUARTER O"
+    },
+    {
+      "n": 377,
+      "owes": "`tests/probe_announce_failure.js` needs `SHOWDOWN_PATH` and `-r ./tests/_live_release.js`, so no runnable `VERIFIED BY` can be written for it until #381 is answered; until then the census and the whole-game differential are what decide this row",
+      "title": "AN EMPTY BENCH WAS CONSULTED BELOW THE ABILITY INSTEAD OF ABOVE IT, SO A PHAZE INTO NO BEN"
+    },
+    {
+      "n": 381,
+      "owes": "a runner that can launch an instrument needing `SHOWDOWN_PATH`, and a coverage figure — marked rows over open-asserting-breakage rows — printed on every register-reality run so it can be ratcheted upward rather than rediscovered",
+      "title": "THE REGISTER’S EVIDENCE BASE, MEASURED: FIVE ROWS CARRY A `VERIFIED BY` NO RUNNER CAN LAUN"
+    },
+    {
+      "n": 382,
+      "owes": "either the field promoted into `engine/board_state.js`, or a declared `NOT_COMPARED` entry there naming this row as its reason, plus a re-baselined whole-game count measured under the promotion rather than compared across it. Account: `docs/_reports/2026-08-23-announce-failure-class.md` §3",
+      "title": "`engine/move_result_state.js` COMPARES THE ONE PIECE OF STATE THAT DECIDED TWO SILENT DEFE"
+    },
+    {
+      "n": 386,
+      "owes": "those four sources wired into `open_work.js`’s measured half, and a refusal — not a zero — when every source it reads is older than the engine",
+      "title": "THE ONE TOOL BUILT TO PRINT WHAT THE REGISTER CANNOT SEE ABOUT ITSELF IS FED BY A SINGLE A"
+    },
+    {
+      "n": 387,
+      "owes": "an assertion that the published headline string names its quantity and its arm, in the style of the composition-vs-headline check #292 already added to this clause",
+      "title": "THE WHOLE-GAME HEADLINE SILENTLY CHANGED QUANTITY IN AUGUST AND NOTHING LABELS WHICH ONE I"
+    },
+    {
+      "n": 388,
+      "owes": "an exit code that reddens when this probe stops being live. ALSO OWED AND NOT RUN: the pool reading — this is rank 1 of the whole-game 82 and no differential has been run since the fix",
+      "title": "A SUBSTITUTE REFUSES AN ON-ENTRY STAT DROP, AND EVERY GAME THIS ENGINE HAS EVER PLAYED DRO"
+    },
+    {
+      "n": 389,
+      "owes": "the two-run demonstration above, re-run against the fix, with the artifact hash shown identical across the red run **THE CLASS IS WIDER THAN THIS FILE, AND A GATE FOR IT WAS BUILT THE SAME NIGHT.** `tests/test-red-run-writes.js` (another agent, 2026-08-23) asserts the PROPERTY structurally rather than enumerating known-bad files — three bugs in this repository have come from a ratchet whose detector was a list — and its own header reports **five more instances found by reading**, one of which is `tests/test-game-diff.js` publishing its artifact **after its comparator had FAILED ITS OWN PLANTED-DIVERGENCE PROOF**: an instrument declaring itself trustworthy immediately after failing the test of its trustworthiness. It also records that four instruments already carried an ad-hoc write-detecting regex (`test-rollout-gates`, `test-site-data-fresh`, `test-publish-guard`, `test-register-reality-readonly`) — **the machinery was present four times and enforced nowhere**. **NO `VERIFIED BY` MARKER IS PLACED YET:** that file is untracked at filing time and MEASURE has not run it; the marker belongs on this row the moment it is committed and has been run once.",
+      "title": "A RATCHET THAT REPUBLISHES ITS OWN ARTIFACT ON A RED RUN LAUNDERS THE REGRESSION IT JUST C"
+    },
+    {
+      "n": 393,
+      "owes": "run `ModifyMove` in the harness (or exclude these carriers from the comparison and say so in the artifact), then re-measure at seed 20260804",
+      "title": "THE DAMAGE DIFFERENTIAL'S REFERENCE ENTERS AT `moveHit` AND NEVER RUNS `ModifyMove`, SO FI"
+    },
+    {
+      "n": 394,
+      "owes": "the init probe above",
+      "title": "A CASTFORM-SNOWY BODY IS NEVER RECONCILED TO AN EMPTY SKY, AND WHETHER THAT IS THE HARNESS"
+    },
+    {
+      "n": 395,
+      "owes": "the cap raised, or a per-family count written into the artifact",
+      "title": "THE DAMAGE DIFFERENTIAL PUBLISHES 40 ROWS OF HOWEVER MANY IT FOUND, SO A TAIL OF 16 HAD TO"
+    },
+    {
+      "n": 396,
+      "owes": "the `--end-state` run above, before any fixing effort is ranked",
+      "title": "THE WHOLE-GAME 82 GROUP INTO 31 MECHANISMS, AND NO MEASUREMENT IN THAT RUN SAYS WHETHER AN"
+    },
+    {
+      "n": 397,
+      "owes": "a census probe per member, each red before the wire, each with the control arm named",
+      "title": "SIX SWITCH-IN / ON-HIT EFFECTS DO NOT FIRE AT ALL IN A REAL GAME, EVERY ONE BOARD-MATERIAL"
+    },
+    {
+      "n": 398,
+      "owes": "a staged probe on the MOVE path — Parting Shot into a -6 Attack, control the same move into a 0 Attack",
+      "title": "A CLOSED ROW SITS OVER A LIVE FIVE-GAME FAMILY: #289 FIXED THE ZERO-MAGNITUDE EMITTER AND "
+    },
+    {
+      "n": 399,
+      "owes": "that release comparison, at the top of the page and in the exit code",
+      "title": "THE ONE TOOL THAT RENDERS DIVERGENCE CARDS FOR A HUMAN READS A TWO-DAY-OLD DUMP AND SAYS S"
+    },
+    {
+      "n": 400,
+      "owes": "a staged pair — Decorate into a body in the Phantom Force turn (control: the same Decorate into the same body out of it), and a two-turn Phantom Force asserting damage on turn 2",
+      "title": "A SEMI-INVULNERABLE BODY IS HIT ANYWAY, AND A CLOSED ROW SITS OVER IT — 2 OF THE WHOLE-GAM"
+    },
+    {
+      "n": 401,
+      "owes": "a staged two-turn Future Sight with the attacker's Special Attack changed between click and arrival, asserting the arrival is priced off the CLICK-time snapshot, control being the same pair with nothing changed",
+      "title": "FUTURE SIGHT'S DELAYED DAMAGE IS OFF BY 1-2 HP AND THE HP NUMBER ITSELF DIFFERS, SO IT IS "
     }
   ],
   "results": [
@@ -98,7 +178,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1390,
+      "ms": 1131,
       "verdict": "CONFIRMED"
     },
     {
@@ -112,7 +192,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2606,
+      "ms": 2059,
       "verdict": "CONFIRMED"
     },
     {
@@ -126,7 +206,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1542,
+      "ms": 1239,
       "verdict": "CONFIRMED"
     },
     {
@@ -140,7 +220,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 66,
+      "ms": 59,
       "verdict": "CONFIRMED"
     },
     {
@@ -154,7 +234,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 62,
+      "ms": 56,
       "verdict": "CONFIRMED"
     },
     {
@@ -168,7 +248,7 @@
       "kind": "VERDICT-RED",
       "declared": "VERDICT-RED",
       "why": "exit 1 (declared VERDICT-RED)",
-      "ms": 61,
+      "ms": 53,
       "verdict": "CONFIRMED"
     },
     {
@@ -182,7 +262,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 669,
+      "ms": 534,
       "verdict": "CONFIRMED"
     },
     {
@@ -196,7 +276,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 198,
+      "ms": 160,
       "verdict": "CONFIRMED"
     },
     {
@@ -210,7 +290,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 198,
+      "ms": 160,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -225,7 +305,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 198,
+      "ms": 160,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -240,7 +320,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1847,
+      "ms": 562,
       "verdict": "CONFIRMED"
     },
     {
@@ -254,7 +334,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1847,
+      "ms": 562,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -269,7 +349,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1847,
+      "ms": 562,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -284,7 +364,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 5442,
+      "ms": 564,
       "verdict": "CONFIRMED"
     },
     {
@@ -298,7 +378,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6629,
+      "ms": 615,
       "verdict": "CONFIRMED"
     },
     {
@@ -312,7 +392,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6629,
+      "ms": 615,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -327,7 +407,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6629,
+      "ms": 615,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -342,7 +422,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6629,
+      "ms": 615,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -357,22 +437,22 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5664,
+      "ms": 540,
       "verdict": "CONFIRMED"
     },
     {
       "n": 273,
       "title": "`tests/probe_red_demo.js` IS RED WITH 31 STALE REVERSALS, AND A STALE REVERSAL IS A DEMONS",
-      "closed": true,
-      "saysBroken": false,
+      "closed": false,
+      "saysBroken": true,
       "cmd": "node tests/probe_red_demo.js",
       "owed": null,
       "green": false,
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 55280,
-      "verdict": "PREMATURE CLOSE"
+      "ms": 4980,
+      "verdict": "CONFIRMED"
     },
     {
       "n": 276,
@@ -385,7 +465,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 13197,
+      "ms": 1008,
       "verdict": "CONFIRMED"
     },
     {
@@ -399,7 +479,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 521,
+      "ms": 53,
       "verdict": "CONFIRMED"
     },
     {
@@ -413,7 +493,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 13197,
+      "ms": 1008,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -428,7 +508,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 10268,
+      "ms": 844,
       "verdict": "CONFIRMED"
     },
     {
@@ -442,7 +522,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 8900,
+      "ms": 687,
       "verdict": "CONFIRMED"
     },
     {
@@ -456,7 +536,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 595,
+      "ms": 56,
       "verdict": "CONFIRMED"
     },
     {
@@ -470,7 +550,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 852,
+      "ms": 193,
       "verdict": "CONFIRMED"
     },
     {
@@ -484,7 +564,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 117,
+      "ms": 114,
       "verdict": "CONFIRMED"
     },
     {
@@ -498,7 +578,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 117,
+      "ms": 114,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -562,6 +642,63 @@
       "kind": "NOT-STARTED",
       "why": "the marker is not a plain `node <repo script>.js [--flags]` command, so it was NOT run",
       "verdict": "INSTRUMENT UNRUNNABLE"
+    },
+    {
+      "n": 379,
+      "title": "A GATE THAT COULD NOT ANSWER WAS PUBLISHED AS A GATE THAT FOUND A DEFECT — FOUND AND FIXED",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node engine/register_reality.js --selftest",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 193,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 390,
+      "title": "THE LIVING-DOCS GATE REWROTE ITS OWN BASELINE ON EXACTLY THE CLASS OF COMMIT IT FIRES ON, ",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-docs-current.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 2347,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 391,
+      "title": "DECISION NEEDED FROM WILL — `tests/test-effective-identity` IS RED, THE RED IS THE RULER R",
+      "closed": false,
+      "saysBroken": false,
+      "cmd": "node tests/test-effective-identity.js",
+      "owed": null,
+      "green": false,
+      "kind": "VERDICT-RED",
+      "declared": null,
+      "why": "exit 1",
+      "ms": 806,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 402,
+      "title": "TWO PUBLISHED SEED-PREVALENCE FIGURES ARE WITHHELD — THE GENERATOR'S SPECIES LOOKUP DROPPE",
+      "closed": false,
+      "saysBroken": false,
+      "cmd": "node tests/test-mc-key.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 724,
+      "verdict": "STALE ROW"
     },
     {
       "n": 125,
@@ -718,6 +855,18 @@
     {
       "n": 371,
       "title": "SHOWDOWN REFUSES A MOVE AND WE EXECUTE IT — 8 OF THE 47 NON-`event-missing` DIVERGENCES, E"
+    },
+    {
+      "n": 380,
+      "title": "\"WHAT DOES THIS EXIT CODE MEAN\" IS DECIDED IN TWO FILES, AND THE OPEN-DEFECT CLAUSE NOW SA"
+    },
+    {
+      "n": 384,
+      "title": "THE `vol.focusenergy` LEAF PARTS FROM THE AUTHORITY ON FOUR MOVES AT ONCE AND IN BOTH DIRE"
+    },
+    {
+      "n": 385,
+      "title": "BIG ROOT’S DRAIN MULTIPLIER ROUNDS DIFFERENTLY FROM THE AUTHORITY AND THE ERROR COMPOUNDS "
     }
   ]
 }

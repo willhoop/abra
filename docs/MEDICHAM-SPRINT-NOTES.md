@@ -21,6 +21,57 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE GATE WENT 6-OF-8 FAILING TO 3-OF-8, AND THREE OF THE FIVE WERE STALENESS RATHER THAN BREAKAGE. 2026-08-23 (MEASURE).
+
+Full account: `docs/_reports/2026-08-23-gate-refresh.md`. One release for the whole refresh —
+`0faabe2a3f1b`, cut "gate refresh 2026-08-23"; the tree had not moved since the whole-game run, so
+the cut returned the same id and appended a cut event rather than rewriting the first freeze.
+
+**THE THREE ROSTER CLAUSES ARE CLEAN, AND THEY WERE NEVER REPORTING A BROKEN SIMULATOR.** Each had
+been measured against release `c36782953dee` and was withheld as *an answer about other bytes*.
+Re-run on `0faabe2a3f1b`: **items 0 DIFFER / 0 DID-NOT-FIRE (139 of 148 tested), abilities 0 / 0
+(130 of 202 in scope), moves 0 / 0 (475 of 500).** What had been red on the stale artifacts and is
+now clean, named because a row number is not a finding: **Big Root** and **Greninjite** (items);
+**Dragon Cheer**, **Fake Out**, **Matcha Gotcha**, **Psych Up**, **Transform** (moves). Abilities was
+0 on both sides. Still shelved by the owner and counted in neither column: Metronome, Axe Kick,
+Copycat, Electrify.
+
+**THE MECHANICS CLAUSE'S "REACH FILTER CANNOT BE APPLIED" WAS NEVER STALENESS — IT WAS THE DEFAULT
+FLAG.** `engine/all_mechanics_fire.js` defaults to `--kind moves`, so the published artifact carried
+`rows.moves` and nothing else; `quarantine.js:718` needs per-entity rows for all three populations
+and counts every divergence unfiltered when any is missing. Re-run `--kind all` and the clause
+answers: **29 of 36 diverging mechanics are played and uncleared** (moves 22, abilities 12, items 2;
+7 below the reach shelf). Worst by reach: **Cursed Body** 2,177 teams, **Toxic Debris** 1,840,
+**Disable** 1,799 clicks, **Regenerator** 1,596, **Poltergeist** 1,383, **Mental Herb** 967.
+Board-material (STATE) is 11 of those: Axe Kick, Clear Smog, Heal Bell, Reflect Type, Role Play,
+Shell Side Arm, Hustle, Klutz, Magic Bounce, Sand Force, Metronome. **22 → 29 is a RE-BASELINE, not a
+regression** — different population, different filter, same release.
+
+**WHOLE-GAME UNCHANGED AND NOT RE-RUN** — `data/game-differential.json` is already stamped
+`0faabe2a3f1b`. 961 games, `middle` arm, frozen pool, census pin `9446a684709d`: 73 parted, less 5
+declared = **68 undeclared = 7.1%**, of which the end-state comparison says **21 DIFFERENT-END-STATE
+and 52 wording-only**. Direction of travel stays WITHHELD by the instrument (baseline stamped under
+`top-tie-first`, this run `middle`); `--stamp-whole-game` NOT run, because choosing a pin is a
+decision and not a measurement.
+
+**NOTHING GOT WORSE. ONE THING TURNED OUT TO BE BLOCKED RATHER THAN OWED:** `engine/wire_ladder.js`
+exits 4 and writes nothing, because **all fifteen arms pin releases frozen before
+`medicham2-browser.js` exported `natureL50`, `rngStreams`, `spreadL50`** — all fourteen distinct ids,
+not one. `compat` says 168 of 351 releases predate an export. LESSONS §12 at ladder scale:
+`data/wire-ladder.json` is withheld and must be re-measured, never resurrected, and the unit of work
+is re-pinning the arms rather than a re-run.
+
+**OWED, NOT RUN.** `engine/argmax_paired.js` → `data/decision-impact.json` is ABSENT, so both the
+whole-game and mechanics clauses excuse nothing on decision impact — the cheapest thing that could
+move either number honestly. Also owed: re-pinning the wire ladder; the refit, whose
+`feature_fixture --check` still fires BOTH gates (fixture identity and a regenerated damage table,
+318→322 species) and where a restamp would silence the table gate — so the table verdict is settled
+first or the evidence is written over. Register: one STALE ROW (#402, open with a green instrument),
+zero premature closes, five instruments unrunnable (#316, #318, #319, #320, #322). `--list` was never
+used. No fix was made during the measurement.
+
+---
+
 ## THREE DEFECTS, AND THE ONE THAT LOOKED NEW WAS A ROW WE ALREADY HAD. 2026-08-23 (ENGINE).
 
 Census **643 → 646 live, 0 missing**. Damage differential `--n 6000 --seed 20260804`: **7 → 0**,

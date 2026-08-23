@@ -10,6 +10,62 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.99.0] — 2026-08-23
+
+### Changed
+- **THE MEDICHAM GATE WENT FROM 6 OF 8 CLAUSES FAILING TO 3 OF 8, AND NO ENGINE CODE WAS TOUCHED.**
+  Three of the five failures were staleness, not breakage: the deliberate roster's items, abilities
+  and moves stages had been measured against release `c36782953dee` while the tree was
+  `0faabe2a3f1b`, and `engine/quarantine.js` was correctly withholding them as *an answer about other
+  bytes* rather than annotating them. Re-run through `tools\lownode.cmd` against one fresh release
+  (`0faabe2a3f1b`, cut "gate refresh 2026-08-23" — the tree had not moved, so the cut returned the
+  same id and appended a cut event rather than rewriting the first freeze): **items 0
+  FIRED-AND-BOARDS-DIFFER / 0 DID-NOT-FIRE (139 of 148 tested), abilities 0 / 0 (130 of 202 in
+  scope), moves 0 / 0 (475 of 500).** The entities that were red on the stale artifacts are named
+  because a row number is not a finding — *Big Root* and *Greninjite* (items); *Dragon Cheer*, *Fake
+  Out*, *Matcha Gotcha*, *Psych Up*, *Transform* (moves) — and all seven now match. Abilities was
+  zero on both sides. Full account: `docs/_reports/2026-08-23-gate-refresh.md`.
+- **THE MECHANICS CLAUSE CAN ANSWER FOR THE FIRST TIME, AND WHAT BLINDED IT WAS A DEFAULT FLAG
+  RATHER THAN A STALE ARTIFACT.** `engine/all_mechanics_fire.js` defaults to `--kind moves`, so the
+  published `data/all-mechanics-fire.json` carried `rows.moves` and nothing else;
+  `engine/quarantine.js:718` walks `['moves','abilities','items']` and refuses to apply the reach
+  shelf or the decision-impact filter unless every population has per-entity rows, printing *"THE
+  REACH FILTER CANNOT BE APPLIED"* and counting every divergence unfiltered. Re-run with `--kind
+  all`: **29 of 36 diverging mechanics are played and uncleared** (moves 22, abilities 12, items 2;
+  7 below the one-anchor reach shelf). Worst by reach: *Cursed Body* 2,177 teams, *Toxic Debris*
+  1,840, *Disable* 1,799 clicks, *Regenerator* 1,596, *Poltergeist* 1,383, *Mental Herb* 967. The
+  board-material (STATE) subset is 11: *Axe Kick*, *Clear Smog*, *Heal Bell*, *Reflect Type*, *Role
+  Play*, *Shell Side Arm*, *Hustle*, *Klutz*, *Magic Bounce*, *Sand Force*, *Metronome*. **22 → 29
+  is a RE-BASELINE, not a regression** — a different population with a filter that could not
+  previously run, and subtracting the two invents a trend.
+
+### Notes
+- **`engine/wire_ladder.js` IS BLOCKED, NOT OWED, AND `data/wire-ladder.json` IS WITHHELD UNTIL ITS
+  ARMS ARE RE-PINNED.** It exits 4 having written nothing, which is correct. All fifteen arms pin
+  releases frozen before `engine/medicham2-browser.js` exported `natureL50`, `rngStreams` and
+  `spreadL50` — all fourteen distinct ids, verified one by one with `engine_release.js compat`, which
+  reports 168 of 351 releases predate an export. This is LESSONS §12 at ladder scale: a stranded
+  artifact is a figure to withhold and re-measure, never to resurrect, so the unit of work is
+  re-pinning the arms rather than a re-run.
+- **The two remaining real failures.** Whole-game differential, not re-run because
+  `data/game-differential.json` is already stamped `0faabe2a3f1b`: 961 games on the `middle` arm
+  (real dice, the default), frozen pool, census pin `9446a684709d` — 73 parted less 5 declared
+  (Supreme Overlord `fallenundefined`) = **68 undeclared = 7.1%**, of which the end-state comparison
+  says **21 DIFFERENT-END-STATE and 52 wording-only**. Direction of travel remains WITHHELD by the
+  instrument: the stored baseline is stamped `A/top-tie-first/pins:ef342837b791` and this run is
+  `A/middle/pins:1fd77b835ee2`, and `--stamp-whole-game` was deliberately not run because choosing a
+  pin is a decision, not a measurement. And the register clause: five open rows name a RED
+  instrument (#218, #224, #241, #258, #273), unchanged.
+- **Register reality re-run twice** — once in the briefed order and once more after the `--kind all`
+  mechanics artifact landed, so it cannot republish a verdict computed against an artifact that moved
+  under it. One STALE ROW (#402 — open with a green instrument), **zero** premature closes (down
+  from one), five instruments unrunnable because their markers are not plain node commands (#316,
+  #318, #319, #320, #322). `register_reality.js --list` was never used.
+- **Nothing was fixed during the measurement, deliberately** — a fix landing mid-run is what voided a
+  7,100-game run once. Nothing got worse. `engine/publish_guard.js` diverted nothing, so every figure
+  above comes from the published artifact rather than a scoped one, and every artifact's `generated`
+  stamp was checked against the clock after each step.
+
 ## [5.98.0] — 2026-08-23
 
 ### Fixed

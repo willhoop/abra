@@ -15,16 +15,16 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 23 unsafe, 1 void (declared), 117 possibly stale, 90 ok, 0 missing
+  provenance: 23 unsafe, 1 void (declared), 116 possibly stale, 91 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
@@ -35,7 +35,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-22 15:37
 ```
 
-_stamped 2026-08-23 07:38_
+_stamped 2026-08-23 07:55_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,48 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 0000000000000000. THREE OF THE FIVE FAILING GATE CLAUSES WERE STALENESS, NOT A BROKEN SIMULATOR — FULL REFRESH 2026-08-23 ON RELEASE `0faabe2a3f1b`
+
+Full account: `docs/_reports/2026-08-23-gate-refresh.md`. The gate went **6 of 8 clauses failing to
+3 of 8** without a single line of engine code being touched, because the three roster clauses had
+been measured against release `c36782953dee` and were correctly withheld as *an answer about other
+bytes*. Re-run on one fresh release: **items 0 DIFFER / 0 DID-NOT-FIRE, abilities 0 / 0, moves 0 /
+0.** Named, because a row number is not a finding — the previously red entities *Big Root*,
+*Greninjite*, *Dragon Cheer*, *Fake Out*, *Matcha Gotcha*, *Psych Up* and *Transform* all now match.
+
+**THIS IS THE CASE THE PASS / FAIL-BECAUSE-BROKEN / FAIL-BECAUSE-UNMEASURED SPLIT EXISTS FOR.** Five
+clauses read red this morning and three of them carried no information about the engine at all. A
+gate that cannot tell those apart trains people to read *closed* as *broken*, which is the same
+normalisation failure as "one of the two known failures".
+
+**AND ONE CLAUSE WAS BLIND FOR A THIRD REASON THAT LOOKED LIKE THE OTHER TWO.** *"THE REACH FILTER
+CANNOT BE APPLIED"* was neither staleness nor breakage: `engine/all_mechanics_fire.js` defaults to
+`--kind moves`, so the published `data/all-mechanics-fire.json` held `rows.moves` and nothing else,
+and `quarantine.js:718` refuses to filter unless all three populations have per-entity rows — falling
+back to counting every divergence unfiltered. Re-run `--kind all` and the clause answers for the
+first time: **29 of 36 diverging mechanics played and uncleared** (moves 22, abilities 12, items 2;
+7 below the reach shelf), worst by reach *Cursed Body* 2,177 teams, *Toxic Debris* 1,840, *Disable*
+1,799 clicks, *Regenerator* 1,596, *Poltergeist* 1,383, *Mental Herb* 967. **22 → 29 is a
+RE-BASELINE, not a delta** — different population and a filter that could not previously run.
+
+**The remaining two failures are real.** Whole-game: 961 games on the `middle` arm, 73 parted less 5
+declared = **68 undeclared (7.1%)**, of which the end-state comparison says **21 DIFFERENT-END-STATE
+and 52 wording-only**; direction of travel stays WITHHELD because the stored baseline is stamped
+under `top-tie-first` and this run is `middle` — one pin is one corner, and `--stamp-whole-game` was
+deliberately not run. Register: five open rows name a RED instrument (#218, #224, #241, #258, #273).
+
+**BLOCKED, NOT OWED: `engine/wire_ladder.js` CANNOT RUN AT ALL.** It exits 4 and writes nothing —
+correctly. All **fifteen** arms pin releases frozen before `engine/medicham2-browser.js` exported
+`natureL50`, `rngStreams`, `spreadL50`; that is all fourteen distinct ids, and `compat` reports 168
+of 351 releases predate an export. LESSONS §12 at ladder scale — `data/wire-ladder.json` stays
+UNSAFE, the release-ladder figure stays WITHHELD, and the unit of work is re-pinning the arms, never
+a re-run.
+
+**And leaf calibration — this division's one number — is still QUARANTINED and still withheld.** A
+reliability curve measured through an engine that parts from the authority on 21 of 961 games is a
+claim about the wrong engine, and publishing it with a caveat is the bug. It becomes re-runnable when
+the gate opens, not true.
 
 ### 000000000000000. THE MUTATION ARTIFACT WAS SIXTEEN DAYS STALE, AND WHAT IT WAS HOLDING WAS NOT WHAT IT SAID — RE-RUN 2026-08-22 ON RELEASE `6fb9ebd3b704`
 
