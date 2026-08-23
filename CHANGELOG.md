@@ -10,6 +10,63 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.85.0] — 2026-08-23
+
+### Fixed
+- **THE DAMAGE HARNESS ASKED THE AUTHORITY AT A POINT WHERE TYPE-CHANGING ABILITIES HAVE NOT FIRED
+  (CONTROL FIX 13).** `tests/test-engine-diff.js`'s `showdownDamage` called `battle.actions.moveHit`
+  directly; every `-ate` ability fires from `onModifyType`, which the authority runs in `useMoveInner`
+  **932 lines above**. So the reference arrived with the move still Normal and `typeChangerBoosted`
+  undefined, losing the retype **and** the ×1.2. It now runs the authority's own two lines first, and
+  **placed before the `onTryHit` block on purpose** — the authority runs `ModifyType` before
+  `hitStepTryHitEvent`, so a Galvanize Body Slam must already be Electric when Volt Absorb is asked.
+  - Shown RED first with `--case`: **5 DISAGREE at rel 78–259%**. After: **all five AGREE at rel 0.0%**.
+  - **THE FIVE CLEARED AS FALSE REDS, NOT AS FIXES, AND THE DISTINCTION IS THE POINT.** MEDICHAM's
+    column did not move by a single point on any row or either corner (64–76, 76–91, 115–136, 94–112,
+    137). **Only the reference moved** — onto the value a real turn of the authority already gives.
+  - Over-correction controls, all unmoved: `tauros bodyslam → gallade` 94–112,
+    `aurorus ancientpower → gallade` 21–26 (non-Normal, **same body**), `garchomp earthquake` 133–143,
+    and two immunity controls still 0–0. Blast radius derived before wiring: **7 legal abilities, 4
+    legal moves, 0 items.** `ModifyMove` deliberately still not run — its own batch.
+- **THE DAMAGE DIFFERENTIAL HAD NEVER COMPARED A SINGLE MEGA. IT NOW COMPARES ALL 76.** The pool keyed
+  `gardevoirmega` while `buildMon` wanted `gardevoir-mega` and **returned null without throwing**, so
+  nothing counted the loss. Routed through `engine/mc_key.js` — the one resolver — via a single
+  `mediBody()` that both the pool filter and `compareRow` call.
+  **Drawable species 207 → 336 of 345; megas 0 of 76 → 76 of 76**; 53 non-mega formes also gained.
+- **The drop is LOUD now**, printed every run and carried into the artifact as `pool`, ending with the
+  sentence that matters: *"A DROP HERE IS A SPECIES THE DAMAGE DIFFERENTIAL HAS NEVER COMPARED. It is
+  not a pass."* **The counter was wrong on its first version** — `/-mega$/` read 72, missing the X/Y
+  suffixes — and that is recorded in the code rather than quietly corrected.
+
+### Notes
+- **MEGAS ARE COMPARED UNDER THEIR MEGA ABILITY, PROVED BY OUTCOME RATHER THAN ASSUMED.** Will:
+  *"testing megas are a must and their new abilities (in most cases)"* — **59 of 76 carry an ability
+  their base form does not have.** All 76 have exactly ONE ability slot, so the harness's
+  `abilities['0']` pin *is* the mega ability; the Sylveon slot-H problem does not reach them and remains
+  open for non-megas. The harness now prints `[pixilate …]`, `[aerilate …]`, `[drought …]`,
+  `[toughclaws …]`, `[thickfat …]`. **Four of the ten mega rows checked are `-ate` carriers — through
+  the old entry point every one would have been a FALSE RED**, which is exactly why the order was
+  entry-point-first.
+- **Populations, not rates: 300/300 agreed before the pool fix, 296/300 after — and the universe grew
+  62%.** That is not a regression, and the row denominator did not change. **One of the four new reds is
+  a real MEDICHAM defect**: Disguise fires on the already-busted forme (`mimikyu-busted` + disguise →
+  0–0, against `+none` → 50–59). Reported, not fixed — the simulator carries uncommitted lines from a
+  stopped agent.
+- **Of the 9 species still dropped, 8 are `isNonstandard: 'Past'`** — corpus contamination, correctly
+  absent. **`florgeswhite` is LEGAL and has no `MC.mons` row**: a real `data/engine-data.js` gap, filed
+  rather than touched.
+- **`data/engine-diff.json` was NOT republished.** `publish_guard.js` refused both n=300 runs and wrote
+  `data/verification/engine-diff.n300.json` instead — so **the published 6,000-row artifact and the
+  GENERATED block in `docs/ENGINE.md` still print the five aurorus rows** until the full run happens.
+  OWED: `tools\lownode.cmd tests\test-engine-diff.js --n 6000 --seed 20260804`, then
+  `node engine\status.js --write`.
+- **Two ratchets are RED and neither belongs to this pass** — `tests/test-mc-key.js` and
+  `tests/test-no-silent-failure.js` (84 new since baseline), both red beforehand. Worth recording:
+  **`test-mc-key.js` did not catch the doorway fixed today**, because `buildMon(s.toLowerCase())` is not
+  the `MC.mons[norm(x)]` shape it scans for.
+
+---
+
 ## [5.84.0] — 2026-08-23
 
 ### Added

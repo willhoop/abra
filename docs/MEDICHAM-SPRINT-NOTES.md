@@ -11679,3 +11679,63 @@ the requested game count matches** — the same lesson as 9.7% vs 11.69%, arrivi
 applies. The after-run lives in the session scratchpad and is reproducible from the pinned command.
 `engine/game_differential.js` was not edited despite holding two of the class's causes, because it is
 read live and moving it would have destroyed the pairing.
+
+---
+
+## 2026-08-23 — NEVER COMPARED A SINGLE MEGA (5.85.0)
+
+Will, looking at Aurorus in HoopaDex: *"aurorus gets the refrigerate ability, sorta like pixilate are
+we calcing that"*. We were. The harness was not.
+
+### THE ENTRY POINT (CONTROL FIX 13)
+
+`showdownDamage` called `battle.actions.moveHit` directly. Every `-ate` ability fires from
+`onModifyType`, which the authority runs in `useMoveInner` **932 lines above** — so the reference
+arrived with the move still Normal and `typeChangerBoosted` undefined, losing **both** the retype and
+the x1.2. Now runs the authority's own two lines first, **before the `onTryHit` block on purpose**: the
+authority runs ModifyType before `hitStepTryHitEvent`, so a Galvanize Body Slam must already be
+Electric when Volt Absorb is asked.
+
+RED first: 5 DISAGREE at rel 78-259%. After: all five AGREE at 0.0%.
+
+**THEY CLEARED AS FALSE REDS, NOT AS FIXES.** MEDICHAM's column did not move by one point on any row
+or either corner. Only the reference moved — onto the value a real turn already gives. The
+over-correction control that seals it is `aurorus ancientpower` on the SAME body, unmoved at 21-26.
+
+### THE POOL
+
+It keyed `gardevoirmega`; `buildMon` wanted `gardevoir-mega` and **returned null without throwing**, so
+nothing counted the loss.
+
+```
+  drawable species   207 -> 336 of 345
+  megas                0 -> 76 of 76
+  non-mega formes    +53
+```
+
+The drop is LOUD now and carried into the artifact: *"A DROP HERE IS A SPECIES THE DAMAGE DIFFERENTIAL
+HAS NEVER COMPARED. It is not a pass."* **The counter was wrong on its first version** — `/-mega$/`
+read 72, missing the X/Y suffixes — and that is recorded in the code rather than quietly corrected.
+
+### WHY THE ORDER MATTERED, MEASURED
+
+**59 of 76 megas carry an ability their base form does not have** — Charizard-Mega-Y is Drought,
+Venusaur-Mega is Thick Fat, Pidgeot-Mega is No Guard. **Four of the ten mega rows checked are `-ate`
+carriers.** Through the old entry point every one of them would have been a FALSE RED. Fixing the pool
+first would have manufactured false failures at scale.
+
+Megas are compared under their MEGA ability, proved by outcome: all 76 have exactly one ability slot,
+so the `abilities[0]` pin IS the mega ability. The slot-H problem stays open for non-megas.
+
+### POPULATIONS, NOT RATES
+
+300/300 agreed before the pool fix, **296/300 after — and the universe grew 62%.** Not a regression.
+One of the four new reds is a REAL MEDICHAM defect: **Disguise fires on the already-busted forme**
+(`mimikyu-busted` + disguise -> 0-0 against `+none` -> 50-59). Reported, not fixed.
+
+### OWED
+
+`data/engine-diff.json` was NOT republished — `publish_guard.js` refused both n=300 runs — so the
+published 6,000-row artifact and the GENERATED block still print the five aurorus rows until
+`tests/test-engine-diff.js --n 6000 --seed 20260804` runs. And **`test-mc-key.js` did not catch the
+doorway fixed today**, because `buildMon(s.toLowerCase())` is not the shape it scans for.

@@ -144,8 +144,55 @@ const logDroppedRow = (where, e) => {
   errs.where[k] = (errs.where[k] || 0) + 1;
 };
 
+/* ---- THE POOL, AND THE 138 SPECIES IT DROPPED WITHOUT SAYING SO -------------------------------
+ *
+ * `MEDI.buildMon(s.toLowerCase())` was a FIFTH HAND-ROLLED DOORWAY into MC.mons, and it had the
+ * same defect the other four had: `move-priors.json` keys a forme the way Showdown does
+ * (`gardevoirmega`, `rotomwash`) and MC.mons keys it WITH A HYPHEN (`gardevoir-mega`,
+ * `rotom-wash`). `buildMon` returns null rather than throwing on a key it has never seen, so the
+ * filter read that null as "not comparable" and the run reported nothing at all.
+ *
+ * MEASURED BEFORE THE FIX: 345 species in the priors, 207 drawable, **138 dropped in silence** --
+ * 76 of them megas, so the damage differential had NEVER COMPARED A MEGA, and megas are 26.0% of
+ * this format's usage. The other 53 are the forme hole `engine/mc_key.js` was written for
+ * (rotom-wash, slowking-galar, tauros-paldea-*, the Vivillon patterns). AFTER: 336 drawable.
+ *
+ * THE RESOLVER IS `mcKey`, not a sixth copy of these three lines -- that is what
+ * tests/test-mc-key.js exists to forbid. `mayMiss` is required by engine/lookup.js: without it a
+ * miss THROWS, which is the loudness we want everywhere except here, where a species genuinely
+ * absent from MC.mons is a real and reportable condition rather than a crash.
+ *
+ * AND THE DROP IS NOW COUNTED AND NAMED. "A capability was absent and everything reported success"
+ * is the failure this project is named after; a pool that silently loses 40% of its species is that
+ * failure sitting inside the instrument that is supposed to catch it. `pool` is printed on every run
+ * and written into the artifact, so a future drop shows up as a number that moved. */
+const { mcKey } = require(D('engine', 'mc_key.js'));
+const MAY_MISS = { mayMiss: 'a priors species with no MC.mons row is reportable, not a crash' };
+const pool = { priors: 0, drawable: 0, dropped: 0, droppedNames: [], megas: 0 };
+/* THE ONE TRANSLATION FROM A PRIORS KEY TO A MEDICHAM BODY. Every caller goes through here, so the
+ * pool filter and compareRow cannot disagree about which species exist. */
+function mediBody(id) {
+  const k = mcKey(id, MAY_MISS);
+  if (!k) return null;
+  return MEDI.buildMon(k, {});
+}
 const species = Object.keys(movePriors.species || {})
-  .filter(s => { try { return !!MEDI.buildMon(s.toLowerCase(), {}); } catch (e) { logDroppedRow('buildMon(' + s + ')', e); return false; } });
+  .filter(s => {
+    pool.priors++;
+    let body = null;
+    try { body = mediBody(s); } catch (e) { logDroppedRow('buildMon(' + s + ')', e); }
+    /* `-mega(-|$)`, NOT `-mega$`: Charizard-Mega-X/Y and Mewtwo-Mega-X/Y carry a suffix after the
+     * forme, and the first version of this counter read 72 where the truth is 76. A counter that is
+     * four short is the same class of error as the drop it was written to expose. */
+    if (body) { pool.drawable++; if (/-mega(-|$)/.test(mcKey(s, MAY_MISS) || '')) pool.megas++; return true; }
+    pool.dropped++; pool.droppedNames.push(s);
+    return false;
+  });
+console.log('POOL — species this differential can draw at all, counted rather than assumed:\n'
+  + '  move-priors species ' + pool.priors + '   DRAWABLE ' + pool.drawable
+  + '   (' + pool.megas + ' of them megas)   DROPPED ' + pool.dropped
+  + (pool.dropped ? ':\n    ' + pool.droppedNames.join(' ') : '')
+  + '\n  A DROP HERE IS A SPECIES THE DAMAGE DIFFERENTIAL HAS NEVER COMPARED. It is not a pass.\n');
 
 /* CONTROL FIX 5 -- SHOWDOWN'S OWN moveHit SKIPS THE ABILITY'S onTryHit, so the REFERENCE was wrong.
  *
@@ -312,7 +359,7 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId, cond
    * row draws the identical stream it drew before this fix. The header above says why it cannot ride
    * the `battle.random` override on the line above. */
   if (condPin != null) battle.randomChance = () => !!condPin;
-  const move = battle.dex.getActiveMove(moveName);
+  let move = battle.dex.getActiveMove(moveName);
   /* CONTROL FIX 11 -- PIN THE CRIT OFF FOR MOVES WHOSE CRIT IS RANDOM, AND ONLY THOSE. 2026-08-04.
    *
    * This read a flat `move.willCrit = false`, which is right for the reason it was written -- a random
@@ -347,6 +394,39 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId, cond
    * -- Rock Blast is one 25-BP hit in dmgRange -- and this harness cannot see that, because
    * single-call moveHit hits once too. That is on the ENGINE list as its own item. */
   move.hit = 1;
+  /* CONTROL FIX 13 -- RUN `ModifyType` BEFORE THE MOVE, BECAUSE THE AUTHORITY DOES AND THIS ENTRY
+   * POINT IS 932 LINES BELOW WHERE IT HAPPENS. 2026-08-23.
+   *
+   * `battle.actions.moveHit` is sim/battle-actions.ts:1370. Every `-ate` ability fires from
+   * `onModifyType`, which the authority runs in `useMoveInner` at sim/battle-actions.ts:430 (the
+   * move's own handler, via singleEvent) and :438 (the pokemon's, via runEvent) -- both far above
+   * this entry point. So the reference priced a plain Normal move: after the moveHit call
+   * `move.type === 'Normal'` and `move.typeChangerBoosted === undefined`.
+   *
+   * IT LOSES BOTH HALVES, not one. Refrigerate (data/abilities.ts:3804-3817) sets `move.type='Ice'`
+   * AND `move.typeChangerBoosted = this.effect`, and its `onBasePower` returns chainModify only
+   * `if (move.typeChangerBoosted === this.effect)` -- so skipping ModifyType drops the retype, the
+   * new STAB, the type chart AND the 1.2x. Measured on aurorus hypervoice -> aggron: reference
+   * 18-21, authority's own real turn 64-76, MEDICHAM 64-76 at BOTH corners. The five
+   * `aurorus hypervoice` rows this file was reporting were FALSE REDS -- the engine was right and
+   * the instrument was asking at the wrong point. Same family as CONTROL FIX 5 and CONTROL FIX 10.
+   *
+   * PLACED BEFORE THE onTryHit BLOCK ON PURPOSE. The authority runs ModifyType before
+   * `hitStepTryHitEvent`, so a Galvanize Body Slam is already ELECTRIC when Volt Absorb is asked
+   * whether it takes it. Asking in the other order would answer about Normal.
+   *
+   * BLAST RADIUS, DERIVED not assumed -- 7 legal abilities (dragonize aerilate galvanize liquidvoice
+   * normalize pixilate refrigerate) and 4 legal moves (aurawheel ragingbull terrainpulse
+   * weatherball). Everything else has no ModifyType handler and cannot move. The controls that prove
+   * it: `tauros bodyslam -> gallade` (a Normal move from a body with no -ate ability) and
+   * `aurorus ancientpower -> gallade` (a non-Normal move from the SAME Aurorus body) both read
+   * identically before and after.
+   *
+   * ONLY `ModifyType`. `useMoveInner` runs `ModifyMove` on the next line and this does NOT, because
+   * that is a separate and much wider question and a red row must stay attributable. Recorded as
+   * owed rather than smuggled in here. */
+  battle.singleEvent('ModifyType', move, null, src, tgt, move, move);
+  move = battle.runEvent('ModifyType', src, tgt, move, move);
   /* Ask the defender's ability its OWN TryHit question, which moveHit below will not. Only for the
    * abilities the artifact says answer it -- everything else pays nothing. A null or false from the
    * handler is the ability saying "this move does not happen to me", which is zero damage. */
@@ -494,7 +574,9 @@ function compareRow(attId, mvId, defId) {
   /* MEDICHAM FIRST, because its stats are what Showdown must be aligned to. */
   let A, B;
   try {
-    A = MEDI.buildMon(attId, {}); B = MEDI.buildMon(defId, {});
+    /* THROUGH `mediBody`, THE ONE RESOLVER — see the POOL block. A raw `buildMon(attId)` here would
+     * reinstate the silent mega drop for `--case`, which is the mode a fix gets checked in. */
+    A = mediBody(attId); B = mediBody(defId);
     A.item = ''; B.item = '';
     /* THE SAME ABILITY ON BOTH SIDES. Stripping MEDICHAM's to 'none' while handing Showdown the
      * species' real slot-0 ability made the harness report immunities as bugs: Hydreigon's LEVITATE
@@ -912,6 +994,13 @@ const PUBLISHED = GUARD.publish({
   /* Five catch blocks used to drop a row and say nothing, which shrank the DENOMINATOR of the
    * headline residual without shrinking the claim built on it. */
   dropped_by_exception: errs.n, dropped_where: errs.where,
+  /* THE POOL, CARRIED SO THE COVERAGE CLAIM IS AUDITABLE FROM THE ARTIFACT ALONE. `compared` says
+   * how many rows were drawn; it cannot say from how small a universe. Before 2026-08-23 that
+   * universe was 207 of 345 species with 76 megas missing and nothing printed it. */
+  pool,
+  pool_why: 'A species with no MC.mons row can never be drawn, so it is invisible to `compared`. '
+          + 'Resolved through engine/mc_key.js, the one doorway; a raw buildMon(id.toLowerCase()) '
+          + 'dropped every hyphenated forme and all 76 megas in silence.',
   controls: 'both leads are really sent out on the Showdown side, so MEDICHAM is given the same '
           + 'switch-in (Intimidate, weather setters) through the engine\'s own applyEntryEffects/'
           + 'applyIntimidate; and the defender ability\'s onTryHit is asked directly, because '

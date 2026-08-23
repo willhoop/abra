@@ -85,6 +85,107 @@ _stamped 2026-08-22 23:12_
 
 <!-- /GENERATED -->
 
+## THE FIVE REDS WERE THE INSTRUMENT ASKING 932 LINES TOO LATE, AND ITS SPECIES POOL WAS 40% EMPTY WITH ZERO MEGAS IN IT. 2026-08-23.
+
+**Nothing in `engine/medicham2-browser.js` changed. One file did: `tests/test-engine-diff.js`.**
+Full account: [`docs/_reports/2026-08-23-damage-entry-point.md`](_reports/2026-08-23-damage-entry-point.md).
+
+### BATCH 1 — CONTROL FIX 13. THE FIVE ROWS CLEARED AS FALSE REDS, NOT AS FIXES
+
+`showdownDamage` called `battle.actions.moveHit` (`sim/battle-actions.ts:1370`). Every `-ate`
+ability fires from `onModifyType`, which the authority runs inside `useMoveInner` at `:430` and
+`:438` — **932 lines above**. So the reference priced a plain Normal move, and it lost **both**
+halves: Refrigerate's `onBasePower` is gated on `move.typeChangerBoosted === this.effect`, which
+`onModifyType` is what sets. Two lines now run before `moveHit`, exactly the authority's:
+
+```js
+battle.singleEvent('ModifyType', move, null, src, tgt, move, move);
+move = battle.runEvent('ModifyType', src, tgt, move, move);
+```
+
+Placed **before** the `onTryHit` block, because the authority runs `ModifyType` before
+`hitStepTryHitEvent` — a Galvanize Body Slam must already be Electric when Volt Absorb is asked.
+
+| | before | after | MEDICHAM |
+|---|---|---|---|
+| `aurorus hypervoice -> aggron` | 18-21 | **64-76** | 64-76, unmoved |
+| `-> gallade` | 43-51 | **76-91** | 76-91, unmoved |
+| `-> tauros` | 64-76 | **115-136** | 115-136, unmoved |
+| `-> swampert` | 52-62 | **94-112** | 94-112, unmoved |
+| `-> roserade` | 46-55 | **137-137** | 137-137, unmoved |
+
+**`5 -> 0` ON THAT FAMILY IS AN INSTRUMENT CORRECTION AND MUST NOT BE READ AS AN ENGINE GAIN.**
+MEDICHAM's column did not move by one point on any row or either corner; only the reference did,
+onto the value a REAL turn of the authority already produced. Over-correction controls, all
+unmoved: `tauros bodyslam -> gallade` 94-112, `aurorus ancientpower -> gallade` 21-26 (non-Normal,
+SAME body), `garchomp earthquake -> gallade` 133-143, plus two immunity controls still 0-0.
+
+Blast radius DERIVED before wiring, not assumed: **7 legal abilities** (dragonize aerilate galvanize
+liquidvoice normalize pixilate refrigerate) and **4 legal moves** (aurawheel ragingbull terrainpulse
+weatherball). Zero items. Nothing else in the format has a handler, so nothing else can move.
+
+`ModifyMove` — the authority's very next line — is **still not run**, deliberately: a far wider
+question that needs its own red demonstration, and folding it in would make a red row unattributable.
+
+### BATCH 2 — 207 -> 336 DRAWABLE, AND THE DAMAGE DIFFERENTIAL HAS NOW COMPARED A MEGA
+
+`move-priors.json` keys `gardevoirmega`; `MC.mons` keys `gardevoir-mega`. The pool filter was
+`MEDI.buildMon(s.toLowerCase())` — a **sixth hand-rolled doorway** — and `buildMon` returns null
+instead of throwing, so `logDroppedRow` never fired. Now routed through `engine/mc_key.js`, the one
+resolver, via a single `mediBody()` that BOTH the pool filter and `compareRow` call.
+
+| | before | after |
+|---|---|---|
+| DRAWABLE species (of 345) | **207** | **336** |
+| dropped SILENTLY | **138** | 0 |
+| dropped, NAMED and counted | 0 | **9** |
+| megas drawable | **0 of 76** | **76 of 76** |
+
+The drop is LOUD: a `POOL —` block prints the count and every dropped name on every run, and `pool`
+is carried into the artifact. **The counter was wrong on its first version and that is recorded**:
+`/-mega$/` read 72, because Charizard-Mega-X/Y and Mewtwo-Mega-X/Y suffix the forme.
+
+**A MEGA IS COMPARED UNDER ITS MEGA ABILITY, PROVED BY OUTCOME.** All 76 have exactly ONE ability
+slot, so the harness's `abilities['0']` pin IS the mega ability — the Sylveon slot-H problem does not
+reach them. 59 of 76 carry an ability the base form does not have. The harness prints it:
+`[pixilate vs …]`, `[aerilate …]`, `[drought …]`, `[toughclaws …]`, `[thickfat …]`.
+
+**ORDER WAS LOAD-BEARING AND IT WAS NOT HYPOTHETICAL.** Four of the ten mega rows checked are `-ate`
+carriers. Through the old entry point they would have been filed as engine bugs at scale.
+
+`--n 300 --seed 20260804`, one file different: **300/300 agreed before, 296/300 after.** The row
+denominator is unchanged; the UNIVERSE grew 62%. **That rise is population, not regression.**
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~The five `aurorus hypervoice` differential rows~~ — CONTROL FIX 13. They were the harness.
+- ~~The differential's silent mega drop~~ — the `POOL` counter reads it out on every run.
+
+**Added, MEASURED this pass and NOT fixed:**
+- **Disguise fires on the ALREADY-BUSTED forme.** Probed directly: `mimikyu-busted` + `disguise`
+  gives `dmgRange 0-0`, `+ none` gives `50-59`; Showdown's handler is gated on the species id and
+  deals the damage. **Real MEDICHAM defect**, visible only because `mimikyu-busted` entered the pool
+  today. Not fixed — the simulator holds ~400 uncommitted, unmeasured lines from a stopped agent.
+- **`castformsnowy blizzard -> primarina`** 12-15 vs 18-22. UNCLASSIFIED. First hypothesis is the
+  HARNESS, CONTROL FIX 7 shape: Forecast reverts the forme when the Showdown side's weather is
+  cleared and MEDICHAM keeps Castform-Snowy.
+- **`kangaskhanmega doubleedge -> malamarmega`** 121-144 vs 151-161. UNCLASSIFIED. Parental Bond,
+  against a harness that calls `moveHit` once by construction.
+- **`ModifyMove` is still not run at this entry point.** Its own batch.
+- **The slot-0 pin still hides Sylveon's Pixilate and Primarina's Liquid Voice** (both slot H, both
+  on Hyper Voice). Not a mega problem; the coverage claim should read "slot-0 abilities only".
+
+**Not mine, named so nobody re-derives them:** `florgeswhite` is LEGAL (`isNonstandard: null`) and
+has no `MC.mons` row — `data/engine-data.js`, so MEASURE. The other 8 dropped species are
+`isNonstandard: 'Past'` and correctly absent. And `tests/test-mc-key.js` **did not catch the doorway
+fixed today** — `buildMon(s.toLowerCase())` is not the `MC.mons[norm(x)]` shape it scans for, so the
+largest instance of the bug it exists to prevent sat inside a file it reported clean.
+
+**`data/engine-diff.json` was NOT republished.** `publish_guard.js` refused both n=300 runs and wrote
+`data/verification/engine-diff.n300.json`. The published 6,000-row artifact and the GENERATED block
+above still print the five aurorus rows; they clear on the full re-run, which is OWED, not run.
+
 ## THE LARGEST ANNOUNCE-FAILURE MECHANISM WAS A BENCHED BODY UNDER A NAME NOTHING COULD ASK FOR. 2026-08-23.
 
 **`event missing from medicham2` 42 games -> 33; whole-game diverged 95 of 961 -> 86; usable rate
