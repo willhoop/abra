@@ -34,14 +34,24 @@ const D = (...p) => path.join(ROOT, ...p);
  * rewrote from one that was already stale when it started. See the env note further down. */
 const SUITE_STARTED_AT = Date.now();
 const LIST_ONLY = process.argv.includes('--list');
+/* --coverage computes the COVERAGE VERDICT ALONE and runs no child at all. It exists so the
+ * assertion below can be demonstrated red on a deliberate break without spending a suite run — and
+ * so it can be armed at all during another division's pass, when running the engine would be
+ * measuring a moving target. It exits on the coverage verdict only; it is not a substitute for the
+ * suite and says so on the tin. */
+const COVERAGE_ONLY = process.argv.includes('--coverage');
 
 /* ---- discovery ------------------------------------------------------------------------------- */
 
-/* Everything in tests/ that is a test. Discovered, so a new file is covered the moment it lands. */
+/* Every path in this file is written with FORWARD SLASHES, including on Windows, because these
+ * strings are compared against each other (GATES vs the exemption lists vs discovery) as well as
+ * handed to D(). path.join() yields a backslash on win32, so a `tests\x.js` from discovery would
+ * never equal a `tests/x.js` in a list — an exemption that silently fails to match is exactly the
+ * class of defect this file is about. D() accepts either. */
 const testFiles = fs.readdirSync(D('tests'))
   .filter(f => /^test-.*\.(js|py)$/.test(f))
   .sort()
-  .map(f => path.join('tests', f));
+  .map(f => 'tests/' + f);
 
 /* The engine-side gates. These live in engine/ because other tooling imports them, so they cannot be
  * found by globbing tests/. The coverage assertion below is what stops this short list from becoming
@@ -147,32 +157,246 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * satisfy a gate it may not edit, which is how a red check becomes "one of the known failures". Those
    * are listed every run and RATCHETED in data/quarantine-stamp.json instead: the list may shrink and
    * may never grow while the gate is closed. */
-  'engine/quarantine.js'];
+  'engine/quarantine.js',
 
-/* COVERAGE ASSERTION. Any file in engine/ that reports its own pass/fail summary is a check, and a
- * check that nothing runs is worse than no check — it reads as coverage in a review. If one turns up
- * that is neither a listed gate nor in tests/, this runner fails rather than quietly ignoring it. */
+  /* ================ WIRED IN 2026-08-23, WHEN THE COVERAGE ASSERTION WAS ARMED ==================
+   * Five files the assertion below had been naming as unrun for as long as it has existed, buried in
+   * a 27-name WARNING that could not fail the build. Each was run individually first and its exit
+   * code recorded — none of them plays a game (no medicham2-browser.js, no game_differential.js) and
+   * none of them writes an artifact, so their verdicts do not depend on a simulator that another
+   * division was editing at the time. That is why these five and not the other nineteen. */
+
+  /* engine/gate_fail_and_silent.js — ROADMAP #241(3)'s own `INSTRUMENT OWED`: the authority announces
+   * a failure and this engine says nothing. Measured 2026-08-23: exit 2, CANNOT ANSWER — the artifact
+   * ran on release 59bb68aa89a9 and the tree is 7da11c1d4d10, so the count is WITHHELD rather than
+   * printed with a caveat. Exit 2 is SKIP here, which is the validate_selfplay precedent: a gate that
+   * cannot answer stays VISIBLE every run instead of being one nobody remembers. It turns 0 or 3 the
+   * moment its artifact is re-measured, which is the point of listing it. */
+  'engine/gate_fail_and_silent.js',
+  /* engine/gate_offfield_target.js — ROADMAP #224's re-taking gate: the `??:` slot placeholder
+   * reaching the protocol stream. Measured 2026-08-23: exit 2, NO CURRENT ARTIFACT (both artifacts it
+   * reads were measured against other bytes). Same reasoning as above — it is listed so that the
+   * re-run it is asking for is asked for on every run. */
+  'engine/gate_offfield_target.js',
+  /* engine/gate_seed_source_audit.js — ROADMAP #287's `INSTRUMENT OWED`: data/seed-source-audit.json
+   * named a class by substring-matching a hand-typed list of fifteen field names. Measured
+   * 2026-08-23: exit 0, CLEAN (4 derived, 4 claimed). */
+  'engine/gate_seed_source_audit.js',
+  /* engine/gate_weather_guard.js — ROADMAP #286's FUNCTIONAL arm: `weatherSetupHelpsPartner` guarded
+   * itself on a field nothing ever writes. Measured 2026-08-23: exit 0, CLEAN. */
+  'engine/gate_weather_guard.js',
+  /* engine/divergence_shape.js --selftest-by-default — the shared "same event, different slot means
+   * ORDERING" classifier, extracted out of divergence_report.js the moment game_differential.js
+   * became a second reader, precisely so there would not be two implementations of one fact. A shared
+   * fact with no standing check is how the two copies drift back apart. Measured 2026-08-23: exit 0.
+   * It loads no simulator and writes nothing. */
+  'engine/divergence_shape.js'];
+
+/* COVERAGE ASSERTION. Any file in tests/ or engine/ that reports its own pass/fail verdict is a
+ * check, and a check that nothing runs is worse than no check — it reads as coverage in a review. If
+ * one turns up that is neither a listed gate, nor discovered in tests/, nor named below with a
+ * reason, this runner FAILS rather than quietly ignoring it.
+ *
+ * THAT SENTENCE WAS FALSE FOR AS LONG AS IT HAD BEEN WRITTEN, AND IT WAS THIS FILE'S OWN COMMENT.
+ * `unrun` was printed as a WARNING block and the exit expression read `process.exit(fail.length ? 1
+ * : 0)` — `unrun.length` was not in it. So the meta-check built to stop unrun checks was itself a
+ * warning nobody ever had to act on, carrying 27 names of which roughly eighteen were not checks at
+ * all, with the six genuine unrun gates buried in the noise. A comment claiming the opposite of its
+ * code is the same defect as a caption used as a quarantine: the words are read, the behaviour is
+ * not. Armed 2026-08-23; the exemption lists below came FIRST, because arming it against 27 unsorted
+ * names would have shipped a red runner, which is how a gate gets ignored. */
 /* WIDENED 2026-07-31. This detected a check purely by its reporting idiom, so a file that gates by
  * exit code without printing "N passed, N failed" was invisible — which is exactly how
  * validate_damage.js, the damage golden master, sat outside the suite unnoticed. A check is now also
  * anything that calls process.exit with a non-zero literal, which is what a gate DOES rather than
  * what it PRINTS. Behaviour is the honest signal; formatting is not. */
+/* AND THAT WIDENING WAS SILENTLY HALF-DEAD. Its announce clause read
+ * `/REGRESSION|FAIL:|<0x08>FAIL<0x08>/` — two RAW BACKSPACE BYTES where `\bFAIL\b` was written, the
+ * escapes flattened by some tool between the keyboard and the disk. A raw 0x08 outside a character
+ * class matches a literal backspace, so the third alternative could never fire and the clause was
+ * really `/REGRESSION|FAIL:/`. A regex that READS correctly and does not RUN is this repository's
+ * signature failure, and this one had been sitting inside the meta-check itself.
+ *
+ * FIXED 2026-08-23 AS `/REGRESSION|FAIL/`, DELIBERATELY NOT AS THE `\bFAIL\b` THAT WAS WRITTEN.
+ * Restoring the literal intent would have NARROWED the detector, and that was measured rather than
+ * argued: on this tree `\bFAIL\b` flags 28 engine files where the plain substring flags 45, because
+ * the boundary rejects FAILED, FAILURE and `\nFAIL` — the last being how engine/validate_damage_sim.js
+ * announces itself. Three of the files the boundary drops are genuine checks, one of them
+ * engine/feature_fixture.js, THE REFIT GATE. Dropping a real gate to honour an escape sequence is
+ * fixing a red by narrowing the detector, which is the single move this section forbids. The noise
+ * the boundary was guarding against is answered BY NAME below instead, which is the sanctioned
+ * mechanism. Every variant was counted on this tree before this paragraph was written. */
+/* WIDENED AGAIN 2026-08-23, and the previous widening had a hole of exactly the shape it was written
+ * to close. A gate that ends `process.exit(bad ? 1 : 0)` matched neither clause: not the reporting
+ * idiom, and not `process.exit(1)` as a bare literal. `tests/staged_board.js` ends that way and was
+ * invisible; so do all four ROADMAP `gate_*.js` files. A COMPUTED non-zero exit is a VERDICT by
+ * construction — a file does not compute a status code out of its own findings by accident — which is
+ * why this clause, unlike the bare-literal one, does NOT also require the file to print the word
+ * FAIL. The bare `process.exit(1)` clause keeps its announce requirement because 36 engine files
+ * exit(1) on ordinary error handling; the two clauses have different false-positive profiles and are
+ * argued separately rather than merged.
+ *
+ * The body is `[^;\n]*` and not `[^)]*` deliberately: `tests/staged_status_counters.js` ends
+ * `process.exit(main() ? 1 : 0)`, and a predicate that cannot contain a call would miss it.
+ *
+ * SHOWN RED FIRST, on this tree, before being trusted — the tests/test-lownode.js discipline. The old
+ * predicate does NOT flag tests/staged_board.js; this one does. */
+const COMPUTED_EXIT = /process\.exit\(\s*[^;\n]*\?\s*1\s*:\s*0\s*\)/;
 const looksLikeACheck = src => /\d+ passed, \$\{?F?\}? ?failed|passed, .*failed/.test(src) ||
   /console\.log\('  ok   '/.test(src) ||
   /* A GATE, detected by what it DOES rather than how it prints: it exits non-zero AND announces a
    * regression. `process.exit(1)` alone is far too broad -- 36 engine files exit(1) on ordinary
    * error handling, and widening to that made this assertion cry wolf, which is the same defect it
    * exists to prevent. Both clauses are required. */
-  (/process\.exit\(\s*1\s*\)/.test(src) && /REGRESSION|FAIL:|FAIL/.test(src));
-const unrun = fs.readdirSync(D('engine'))
+  (/process\.exit\(\s*1\s*\)/.test(src) && /REGRESSION|FAIL/.test(src)) ||
+  COMPUTED_EXIT.test(src);
+
+/* ===================== THE TWO BY-NAME LISTS ====================================================
+ *
+ * THE RULE THAT GOVERNS BOTH: DO NOT FIX A RED BY NARROWING THE DETECTOR. If a file trips
+ * looksLikeACheck and genuinely is not a check, it is named HERE with its reason. The predicate is
+ * never loosened until the noise stops — an over-firing gate is the one people learn to ignore
+ * (ROADMAP #148), and a quietly narrowed one is worse, because it looks like coverage.
+ *
+ * A reason is not decoration. Every entry below was classified by READING that file's own header in
+ * the pass that added it, never from memory, and every claim of the form "already exercised by X" was
+ * checked by grepping for a real `require(` edge — a filename mentioned in a comment is not coverage,
+ * and tests/test-mechanics.js mentions almost everything.
+ *
+ * NOT_A_CHECK — a model, a bot, a fit, a generator, a rebuild tool or a measurement driver. It
+ * reports a NUMBER or produces an ARTIFACT; it asserts no contract, so there is nothing for a suite
+ * to be green or red about. These are settled, not owed. */
+const NOT_A_CHECK = {
+  'engine/argmax_paired.js':          'MEASUREMENT — a paired A/B of what MILTANK actually clicks. Reports a difference; asserts no contract.',
+  'engine/conditional_audit.js':      'MEASUREMENT — how often a move whose payoff depends on the opponent\'s simultaneous choice whiffs, per decision rule. A rate.',
+  'engine/ditto.js':                  'MODEL — DITTO, the double-oracle team optimiser. It produces teams.',
+  'engine/fit_policy.js':             'FIT — writes data/policy-weights.json and needs --max-old-space-size=4096. A fit is not a gate; what it fits is guarded by engine/feature_fixture.js, which is in PENDING_WIRE below.',
+  'engine/game_differential.js':      'INSTRUMENT / DRIVER — the two-engine comparison driver. Its verdict is already gated by engine/quarantine.js --check and by tests/test-game-diff.js, both listed. Running it here would put a multi-hundred-game run inside the suite AND rewrite data/game-differential.json, which other readers hold.',
+  'engine/ladder.js':                 'TRAINING LOOP — improves the policy by winning, against an opponent that improves with it. It produces weights.',
+  'engine/leaf_position_contrast.js': 'MEASUREMENT — reconciles two leaf measurements that disagree. Downstream of MEDICHAM and QUARANTINED.',
+  'engine/lookahead_cost.js':         'MEASUREMENT — GATE 2 of docs/LOOKAHEAD-design.md: an affordability budget answered once, not a standing contract.',
+  'engine/mag_bot.js':                'BOT — puts MAG on a running Showdown server so a human can challenge it. It cannot run unattended.',
+  'engine/medicham_coverage.js':      'MEASUREMENT — what fraction of real clicks MEDICHAM can represent. Its contract is gated by tests/test-medicham-coverage.js, which IS discovered.',
+  'engine/mew.js':                    'DATA ENGINE — MEW, the self-play generator. It produces games.',
+  'engine/million_run.js':            'RATE RUNNER — plays MEDICHAM at volume against data/million-targets.json. Hours. The PROVENANCE of every target it checks is gated by tests/test-target-provenance.js, which IS discovered.',
+  'engine/opponent_calibration.js':   'MEASUREMENT — is MAG a usable sampler of the opponent. Writes data/opponent-calibration.json.',
+  'engine/rebuild_records.js':        'REBUILD TOOL — regenerates store records from the raw protocol logs. It WRITES the store.',
+  'engine/redirect_audit.js':         'MEASUREMENT — how much of the joint fit\'s drop rate is redirection. Writes data/redirect-audit.json.',
+  'engine/replay_differential.js':    'MEASUREMENT DRIVER — replays real stored games through the engine and counts divergences against what actually happened.',
+  'engine/reprocess.js':              'REBUILD TOOL — rebuilds a game store from the raw logs. It WRITES the store, and declares RAW-STORE-OK for reading dirty records.',
+  'engine/rollout_r1.js':             'MEASUREMENT — gate R1 of docs/ROLLOUT-design.md, a design question answered once. Its figure is QUARANTINED downstream of MEDICHAM.',
+  'engine/rollout_r3.js':             'MEASUREMENT — gate R3 of docs/ROLLOUT-design.md, likewise. QUARANTINED.',
+  'engine/sheet_usage.js':            'COUNT — ability and item usage tallied from declared open sheets. A report.',
+  'engine/showdown_bot.js':           'BOT — plays MAG in the real Showdown client. Needs a live server.',
+  'engine/surprise.js':               'REPORT — ranks where MAG\'s expectations disagreed with what the game did.',
+  'engine/tag_dex.js':                'GENERATOR — writes data/tags.json. Its OUTPUT is gated by the discovered test-tag-*.js family (consumed, params-derived, signature, wire). Having the suite regenerate the tags would have the suite rewrite its own input.',
+};
+
+/* PENDING_WIRE — this IS a check, it is NOT wired in, and this is exactly what has to happen before
+ * it can be. This list is the honest half, and it is NOT a quieter word for "known failure":
+ * CLAUDE.md allows a red exactly two states, fixed in the session that saw it or waived by Will by
+ * name, and nothing here is being carried as a red. Each is carried as NOT YET IN, with the blocker
+ * named and, where it is somebody's, the owner named.
+ *
+ * It may shrink by wiring a file in. Growing it means editing this file and writing down a reason —
+ * a person deciding once, in writing, which is the standard an artifact meets when it declares
+ * `"rerun": false`. A silence does not meet it.
+ *
+ * THE SIXTEEN tests/ ENTRIES SHARE ONE CONDITION, AND IT IS NOT A JUDGEMENT ABOUT THEM. Every one
+ * loads engine/medicham2-browser.js, engine/champions_sim.js or engine/game_differential.js — every
+ * one PLAYS A GAME. The pass that armed this assertion ran beside an ENGINE agent landing simulator
+ * fixes, so a green taken from any of them would have been a photograph of a moving subject
+ * (CLAUDE.md: nothing in frame may move). Nine were measured green on 2026-08-22; that is recorded
+ * below as EVIDENCE, not as a certificate. */
+const PENDING_WIRE = {
+  'tests/interaction_matrix.js': 'LIBRARY + self-audit. Its module contract is exercised by tests/test-interaction-matrix.js (a real require, discovered). Its require.main block audits the generated cross-product and measured exit 0 on 2026-08-22. Not certified since: it loads medicham2-browser.js at module scope.',
+  'tests/mutation_harness.js': 'RED, and not MEASURE\'s. Triage calibration ran 3 MATCH / 1 WRONG on damageMultAll/lifeorb (docs/_reports/2026-08-22-runner-blind-spot.md) — measured on the exact bytes an ENGINE agent was rewriting, so it may already have cleared. A full sweep also WRITES data/mutation-coverage.json, so it would have to be wired as --gate-only --no-write. Re-measure on a settled tree first. Consumed by tests/test-mutation-coverage.js.',
+  'tests/probe_bracket_counters.js': 'Measured exit 0 on 2026-08-22 (bracketRederived 1988, moved 6). Plays medicham2-browser.js; not re-certified against a moving simulator.',
+  'tests/probe_drag_body.js': 'REFUSES to run without --release <id> (exit 2), because requiring the driver bare would cut a junk release. That is correct behaviour. Wiring it needs a RELEASE PIN in the EXTRA table, and choosing that pin belongs to whoever owns the baseline, not to the runner.',
+  'tests/probe_fail_and_silent.js': 'Measured exit 0 on 2026-08-22 (6 staged, 0 parted). Plays the game_differential driver; not re-certified.',
+  'tests/probe_lifeorb_toll.js': 'Same --release refusal as probe_drag_body.js. It landed with the Life Orb work in 186cb65 and has never been run by anything except its author.',
+  'tests/probe_mega_damage_abilities.js': 'Measured exit 0 on 2026-08-22 (11 arms played, 0 RED). Plays medicham2-browser.js; not re-certified.',
+  'tests/probe_mega_priority.js': 'Measured exit 0 on 2026-08-22 ("all arms clear"). Plays the game_differential driver; not re-certified.',
+  'tests/probe_pair.js': 'LIBRARY — the two-engine body builder that REFUSES an illegal pairing, consumed by tests/test-pinch-family.js (a real require, discovered). Its require.main selftest builds bodies in BOTH engines and measured exit 0 on 2026-08-22. Not re-certified.',
+  'tests/probe_red_demo.js': 'RED, and the redness is a STALE-PATCH backlog rather than an engine defect: 10 of 200 demonstrations failed and EIGHT are stale reversals whose patch text no longer matches the engine, so those eight have not run at all — a "shown red" claim that is currently false for eight wires. Each must be re-aimed at what the engine says today. Owner: whoever owns the wires.',
+  'tests/probe_selfdestruct_winner.js': 'NEW — landed today in 186cb65 and has never been measured by anyone but its author. It is the file that proves this assertion was needed: under the old predicate a brand-new check could land in tests/ and nothing anywhere would say so.',
+  'tests/probe_trace_choice.js': 'Measured exit 0 on 2026-08-22 (12 staged, 0 not matching). Plays the game_differential driver; not re-certified.',
+  'tests/probe_turn_order.js': 'Measured exit 0 on 2026-08-22 (12 staged, 0 not matching). Plays the game_differential driver; not re-certified.',
+  'tests/roster.js': 'THE DELIBERATE ROSTER. Consumed by tests/test-closet-scope.js and engine/all_mechanics_fire.js, and its ARTIFACTS are already gated by engine/quarantine.js --check, which is listed and which FAILS when a roster artifact is missing or stage-mismatched. Standalone it is a named heavy run taking --stage, minutes per stage, and the pass that armed this assertion was forbidden to run it — so its exit code is genuinely UNKNOWN and is not being guessed at.',
+  'tests/staged_board.js': 'RED, and it is ONE defect rather than three: imposter-copies-the-body-opposite, hungerswitch-flips-every-turn and roar-drags-whoever-is-standing-there all fall out of a species-NAME-keyed Showdown mirror in engine/game_differential.js; 22 of 25 scenarios are clean. ENGINE owns that file. This is the highest-leverage entry in the list — SB.runOne is required by seven discovered tests, so the fix pays out well past this line.',
+  'tests/staged_status_counters.js': 'RED for a reason no engine fix can reach. Its BEFORE arm is release 6155acc0fb26, which is STRANDED: the snapshot will not load ("M.midEventDice is not a function") on all 11 scenarios, so every scenario reads "release THREW / live IDENTICAL => FIXED" while its own two controls print "SO THE RED ABOVE IS NOT EVIDENCE". LESSONS §12 — a stranded baseline is a figure to WITHHOLD and re-measure, never to resurrect. It needs re-pinning to a release that `engine_release.js compat` says can still serve it, and its plant anchor re-aimed (it reports the anchor matched 0 times).',
+
+  'engine/feature_fixture.js': 'THE REFIT GATE — it compares a weight file\'s feature hashes against the code, which is the one thing standing between a moved damage table and a silently invalid MAG. It is RED TODAY BY DESIGN: docs/MEASURE.md records `feature_fixture --check` FAILING on fixture identity AND on the damage table, i.e. REFIT OWED, and the refit is gated behind MEDICHAM rather than behind compute. Wiring it now ships a red. Wire it in the same pass the refit lands — and heed the file\'s own warning that a RESTAMP answers the fixture gate while SILENCING the table gate, so the table verdict has to be settled first or the evidence is written over.',
+  'engine/format_audit.js': 'A REAL CONFORMANCE CHECK — does every constant in our generated move tables equal the format\'s? Two blockers. It WRITES data/format-audit.json on every run, so wiring it makes the suite rewrite an artifact its own children may be reading; and its verdict was not measured when it was found, because a MEASURE agent may not write into data/ beside a live ENGINE agent. Settle the write question, measure it on a settled tree, then wire.',
+  'engine/register_reality.js': 'A REAL CHECK — the register is an artifact and this is the only thing that compares it to reality. Same two blockers: it WRITES its artifact unconditionally, and the pass that found it was instructed not to touch docs/ROADMAP.md, which it reads. Unmeasured, deliberately.',
+};
+
+/* ---- the coverage scan, over BOTH directories ------------------------------------------------ */
+
+/* SCOPE FIX 2026-08-23. This scanned engine/ ONLY. The detector whose entire purpose is catching a
+ * check that nothing runs never looked in the directory named tests/ — where sixteen of them were
+ * sitting, including a staged-scenario driver that seven discovered tests already depend on and a
+ * probe that had landed the same day. */
+const scanDir = dir => fs.readdirSync(D(dir))
   .filter(f => f.endsWith('.js'))
-  .filter(f => !GATES.includes('engine/' + f))
-  .filter(f => {
-    let src = ''; try { src = fs.readFileSync(D('engine', f), 'utf8'); } catch (e) { return false; }
+  .map(f => dir + '/' + f)
+  .filter(rel => rel !== 'tests/run-all.js')          /* the runner is not one of its own children */
+  .filter(rel => !GATES.includes(rel))
+  .filter(rel => !testFiles.includes(rel))
+  .filter(rel => {
+    let src = ''; try { src = fs.readFileSync(D(rel), 'utf8'); } catch (e) { return false; }
     return looksLikeACheck(src);
   });
+const discovered = [...scanDir('tests'), ...scanDir('engine')].sort();
+
+/* A check that is neither run nor named. THIS IS THE FATAL ONE. */
+const unrun = discovered.filter(rel => !NOT_A_CHECK[rel] && !PENDING_WIRE[rel]);
+const pending = discovered.filter(rel => PENDING_WIRE[rel]);
+
+/* AND THE LISTS MUST AUDIT THEMSELVES, or they become the hand-maintained ban list of four. An
+ * exemption naming a file that no longer exists, or that no longer trips the detector, is a stale
+ * claim sitting in the tree looking exactly as authoritative as a live one — the fourteen handoffs
+ * again. It fails BY NAME, so it is removed in the pass that made it stale instead of accumulating. */
+const staleExemption = [...Object.keys(NOT_A_CHECK), ...Object.keys(PENDING_WIRE)]
+  .filter(rel => !discovered.includes(rel))
+  .map(rel => [rel, fs.existsSync(D(rel)) ? 'the file still exists but no longer trips the detector'
+                                          : 'the file is gone']);
 
 const all = [...testFiles, ...GATES];
+
+/* ---- the coverage verdict, computed once and printed the same way everywhere ------------------ */
+
+function reportCoverage() {
+  console.log(`\n  COVERAGE — ${discovered.length} file(s) outside the run list report their own verdict.`);
+  console.log(`    ${Object.keys(NOT_A_CHECK).length} named NOT A CHECK, ${pending.length} named ` +
+              `PENDING-WIRE, ${unrun.length} unaccounted for.`);
+  if (pending.length) {
+    console.log(`\n  PENDING-WIRE — a real check, not wired in, blocker named. Not a "known failure":`);
+    for (const rel of pending) console.log(`    ${rel}\n        ${PENDING_WIRE[rel]}`);
+  }
+  if (unrun.length) {
+    console.log(`\n  FAIL — UNACCOUNTED-FOR CHECK. ${unrun.length} file(s) report a pass/fail verdict but`);
+    console.log(`  are neither a listed gate, nor discovered in tests/ as test-*.js, nor named in`);
+    console.log(`  NOT_A_CHECK / PENDING_WIRE in tests/run-all.js. A check nothing runs reads as`);
+    console.log(`  coverage in a review. Wire it in, or name it with its reason — never widen past it:`);
+    for (const rel of unrun) console.log(`    ${rel}`);
+  }
+  if (staleExemption.length) {
+    console.log(`\n  FAIL — STALE EXEMPTION. ${staleExemption.length} name(s) in NOT_A_CHECK /`);
+    console.log(`  PENDING_WIRE no longer describe anything. Remove them:`);
+    for (const [rel, why] of staleExemption) console.log(`    ${rel}  — ${why}`);
+  }
+  return unrun.length + staleExemption.length;
+}
+
+/* --coverage answers the coverage question ALONE and runs no child at all. It exists so this
+ * assertion can be shown RED on a deliberate break without spending a suite run, and so it can be
+ * checked at all during another division's pass, when running the engine would be photographing a
+ * moving subject. It is not a substitute for the suite and says so on the tin. */
+if (COVERAGE_ONLY) {
+  console.log('RUN-ALL --coverage — the coverage assertion ONLY. No check was run; this is NOT a suite result.');
+  process.exit(reportCoverage() ? 1 : 0);
+}
 
 /* ---- how to run each one --------------------------------------------------------------------- */
 
@@ -226,8 +450,8 @@ if (LIST_ONLY) {
     const p = plan(rel);
     console.log(`  ${p.skip ? 'SKIP' : 'RUN '}  ${rel}${p.skip ? '   — ' + p.skip : ''}`);
   }
-  if (unrun.length) console.log(`\n  UNRUN CHECKS IN engine/: ${unrun.join(', ')}`);
-  process.exit(0);
+  reportCoverage();
+  process.exit(0);   /* --list is an inventory, not a verdict. --coverage is the verdict. */
 }
 
 /* ---- run ------------------------------------------------------------------------------------- */
@@ -281,11 +505,7 @@ for (const rel of all) {
 console.log(`\n${'-'.repeat(78)}`);
 console.log(`  ${pass.length} passed, ${fail.length} failed, ${skip.length} skipped`);
 
-if (unrun.length) {
-  console.log(`\n  WARNING — engine/ contains ${unrun.length} file(s) that report their own pass/fail`);
-  console.log(`  summary but are neither a listed gate nor in tests/, so nothing runs them:`);
-  for (const f of unrun) console.log(`    engine/${f}`);
-}
+const coverageFailures = reportCoverage();
 
 if (skip.length) {
   console.log(`\n  SKIPPED (not passed — a skip is not a result):`);
@@ -300,4 +520,10 @@ if (fail.length) {
   }
 }
 
-process.exit(fail.length ? 1 : 0);
+/* THE COVERAGE ASSERTION IS IN THE EXIT EXPRESSION. It was not, for as long as the comment two
+ * hundred lines up claimed it was — `unrun` printed a warning and the runner exited on `fail.length`
+ * alone, so the meta-check written to stop unrun checks could not stop anything. An unaccounted-for
+ * check, or a stale name in either exemption list, is a FAILURE of this suite, exactly like a red
+ * child. Anything else makes the sentence a caption, and CLAUDE.md has already paid twice for the
+ * difference between a caption and a gate. */
+process.exit(fail.length || coverageFailures ? 1 : 0);

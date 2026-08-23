@@ -85,6 +85,88 @@ _stamped 2026-08-22 20:45_
 
 <!-- /GENERATED -->
 
+## WILL WAS RIGHT ABOUT PERISH SONG, AND THE DRAW THAT HID IT ALSO HID THE PREVIOUS PASS'S OWN RESULT. 2026-08-23.
+
+**`w3-simultaneous` is GREEN with its id kept**, and two Perish Song boards join it.
+`tests/probe_selfdestruct_winner.js`: **3 boards, 1 KNOWN-OPEN, 0 failing -> 5 boards, 0 KNOWN-OPEN,
+0 failing.** Releases: `7da11c1d4d10` (before, 1 of 26 files moved since), `c66976713feb` (after,
+medicham2 `c1a3ee451268`). Full account: `docs/_reports/2026-08-23-winrule-and-announce.md`.
+
+WIRE 160. `checkWin` (sim/battle.ts:2603) is
+`this.win(faintData && this.gen > 4 ? faintData.target.side : null)`,
+and `faintData` is the LAST entry `faintMessages()` shifted off
+`faintQueue` (:2546) — so from Gen 5 on a **simultaneous double wipe is not a draw: the side owning
+the body that fainted LAST wins.** `battleResult` had no notion of a faint ORDER, resolved an equal
+live count by HP fraction, and answered 0-against-0 with **0.5**. It is what every rollout and every
+H2H reads. All 26 faint sites now stamp a monotone sequence (`noteFaint`), and two emptied sides are
+awarded to the largest of them.
+
+**WILL'S CLAIM HOLDS AND IT WAS DERIVED, NOT TAKEN.** *"similar to perish song where all mons on the
+field faint on the same turn with nothing in the back, the slowest mon wins."* Perish Song's
+condition is `duration: 4, onResidualOrder: 24, onEnd(t){ t.faint() }`, read off
+`Dex.forFormat('gen9championsvgc2026regmb')`; `fieldEvent('Residual')` speed-sorts its handlers
+(`comparePriority`, sim/battle.ts:404 — order ASC, priority DESC, **SPEED DESC**) *before*
+decrementing durations, so the fastest counter expires first and the slowest last. Staged in the raw
+official simulator: **Gengar 130 -> Politoed 90 -> Primarina 80 -> Azumarill 70**, winner Azumarill's
+side; the same eight bodies with the sides exchanged flips the answer. medicham2 now reads the same
+order back — `gengar[slot 5] politoed[slot 6] primarina[slot 7] azumarill[slot 8]`.
+
+*(Written `[slot N]` rather than the hash form. Writing a party slot as name-hash-number made
+`tests/test-roadmap-register.js` read two of the four slot numbers as REGISTER CITATIONS and fail with
+"2 items a ledger schedules and the register does not name". The other two passed only because rows
+with those numbers happen to exist — the kind of accident that makes a gate look arbitrary when it is
+not. The gate is right to be strict about a ledger citing a row that does not exist; the notation was
+the defect. **Noted because the first repair reintroduced the bug**: the explanation quoted the two
+offending tokens verbatim, and the parser read the explanation. Do not name them here.)*
+
+**IT IS THE BETTER FIXTURE AND THAT IS WHY IT IS THE PAIR THAT CARRIES THE FIX.** Perish Song reads no
+HP and takes no accuracy check, so nothing about the wipe depends on a damage roll — Explosion's
+board needs frail bodies and can silently turn back into a sequential wipe. `w4` answers p1 and `w5`
+answers p2 on the same eight bodies, which is the varied knob: an engine awarding a double wipe to a
+fixed side, or reading the FIRST faint, passes exactly one of them.
+
+**AND THE 0.5 WAS HIDING LAST PASS'S OWN RESULT.** On 2026-08-22 `w3` reported the self-KO revert as
+making no difference to the winner, which is what routed the defect to `battleResult` rather than to
+resolution order. That measurement was right and it was also blind: while the engine answered `draw`
+either way, no self-KO position could show up in a winner comparison. With WIRE 160 wired, `w3` now
+reports **DIFFERENT under the self-KO revert** — the `always` fix landed on 2026-08-22 has a
+winner-level consequence, and only a working win rule could demonstrate it.
+
+**THE PROBE WAS WRONG BEFORE THE ENGINE WAS, TWICE.** `mediVerdict` re-implemented `battleResult`'s
+rule inside the probe, on a header claim that `battleResult` is not exported — **it is**, on both
+`module.exports` and `root`. Left alone it would have gone green the moment the PROBE learned about
+the last faint, with the ENGINE still answering 0.5 to every rollout. And the loud-fallback check
+read `MEDFAILS.doubleWipeNoFaintOrder` out of a delta built from `MEDSEEN` alone, so it compared
+`undefined` against 0 and could never be red. Both fixed; the probe now asks `M.battleResult(S)`
+itself and THROWS on a counter it asserts on but cannot find.
+
+**THE RIPPLE, DERIVED BY ASKING WHAT READS THE BYTES.** Stamping `noteFaint` changed the exact text
+four other files use as a surgical-revert anchor — `tests/test-resolution-order.js` (two),
+`tests/probe_selfdestruct_winner.js`, `tests/test-perish-song.js` and `tests/probe_red_demo.js`. All
+four updated; `test-resolution-order.js` re-runs at **26 arms, 1 KNOWN-OPEN, 0 failing** and
+`test-perish-song.js --break-the-faint` still turns both its rows red, so no anchor is silently
+patching nothing. No consumer enumerates a mon's keys, and `tests/test-mechanics.js` calls neither
+`battleResult` nor `battle()`, so the census cannot move on this change.
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~`battleResult` has no last-fainted tie-break~~ — CLOSED. `w3-simultaneous` (kept id),
+  `w4-perish-slowest-on-p1` and `w5-perish-slowest-on-p2`, each RED PROVEN under WIRE 160's own
+  revert, with `w1`/`w2` as the untied over-fire controls that must NOT move under it.
+
+**Added, OBSERVED this pass and NOT fixed:**
+- **the perish-0 death is narrated as damage.** On `w4` the first parted line is
+  `sd |-start|p2a: Politoed|perish0` against `me |-damage|p1b: Gengar|0 fnt`: the authority writes
+  `-start ... perish0` and calls `faint()`, which emits no damage line, and this engine writes a
+  `-damage` instead. Both engines kill the same four bodies in the same order — the boards agree and
+  the winner agrees — so this is narration, and it belongs to the announce-failure family
+  (ROADMAP #241) rather than to this wire. OBSERVED on one board, not probed.
+- **`tests/test-perish-song.js` still rides `SB.runOne` with no `arm`**, so its dice are whatever
+  the runner defaults to. Both its rows pass and its `--break-the-faint` demo still goes red, so the
+  MECHANIC is not in doubt; the ARM is, and it is one of the 26 callers `tests/test-roster-arm-pin.js`
+  names as being in the position the roster was in. Not touched here.
+
 ## THE `always` HALF LANDED, THE RIPPLE WAS ONE MECHANIC AND NOT THE TWO WE GUESSED, AND A SIMULTANEOUS DOUBLE WIPE IS NOT A DRAW. 2026-08-22.
 
 **Census 629 live / 0 missing -> 630 live / 0 missing.** The new row is `move/userFaints` *"Explosion
@@ -175,7 +257,7 @@ staged arms are what carry this fix; the differential neither confirms nor refut
   separately staged.
 
 **Added, measured this pass and NOT fixed:**
-- **`battleResult` has no last-fainted tie-break.** Section above. `w3-simultaneous`.
+- ~~**`battleResult` has no last-fainted tie-break.** Section above. `w3-simultaneous`.~~ — CLOSED 2026-08-23 by WIRE 160; see the section above this one.
 - **a move with NO legal target writes `|-fail|`** on the authority (`battle-actions.ts:510`) and this
   engine writes nothing — seen as `sd |-fail|p2a: Forretress` against `me |faint|p2a: Forretress` in an
   earlier draft of the `w3` fixture. **OBSERVED, NOT PROBED**, and the fixture that showed it no longer

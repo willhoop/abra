@@ -10,6 +10,61 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.77.0] — 2026-08-23
+
+### Fixed
+- **THE COVERAGE ASSERTION NOW ASSERTS.** `tests/run-all.js:152` had stated in writing that a check
+  which is neither a listed gate nor in `tests/` makes *"this runner fail rather than quietly ignore
+  it"*, while the code printed a WARNING and exited on `fail.length` alone. The exit expression is now
+  `process.exit(fail.length || coverageFailures ? 1 : 0)` with
+  `coverageFailures = unrun.length + staleExemption.length`. `node tests/run-all.js --coverage` exits 0
+  with **42 files accounted for by name — 23 NOT_A_CHECK, 19 PENDING-WIRE, 0 unaccounted, 0 stale.**
+- **The detector now looks where the checks are.** `looksLikeACheck` scans `tests/` as well as
+  `engine/` through one `scanDir()`, and recognises `process.exit(<expr> ? 1 : 0)` — the form
+  `tests/staged_board.js` ends with, which a correctly-scoped detector would still have missed.
+  **Proven red first:** the old predicate returns `false` on that file and the new one `true`.
+- **A REGEX THAT READ CORRECTLY AND COULD NOT RUN — the fourth defect in this one file, and the worst.**
+  The announce clause held **two raw `0x08` BACKSPACE BYTES**: `/REGRESSION|FAIL:|<BS>FAIL<BS>/`, where
+  somebody wrote `\bFAIL\b` and the escapes flattened into control characters. **It renders as
+  `\bFAIL\b` in an editor**, so the third alternative could never fire and the clause was really
+  `/REGRESSION|FAIL:/`. Confirmed byte-for-byte with `cat -v`.
+  - **Fixed as `/REGRESSION|FAIL/`, deliberately NOT as the `\bFAIL\b` that was intended.** Measured:
+    the word boundary flags 28 engine files against 45 and **drops three genuine checks, including
+    `engine/feature_fixture.js`.** Restoring the "correct" regex would have been fixing a red by
+    narrowing the detector — the one move this task was told never to make.
+
+### Added
+- **42 exemptions, each named with its reason recorded in the file**, classified by reading that file's
+  own header this pass rather than by pattern. Where an exemption claimed "already exercised by X",
+  that claim was checked for a real `require(` edge — **which changed answers: only 5 of 16 candidates
+  had one.**
+- **5 checks wired in** — `gate_seed_source_audit` (exit 0 CLEAN), `gate_weather_guard` (0 CLEAN),
+  `divergence_shape` (0), `gate_fail_and_silent` (2, a loud SKIP reading CANNOT ANSWER) and
+  `gate_offfield_target` (2, loud SKIP). **None of the five plays a game or writes an artifact**, which
+  is precisely why these five and not others; measured twice and stable across an ENGINE edit that
+  landed mid-pass.
+- **19 PENDING-WIRE with their blockers named**, and **nothing red was wired in or relabelled.** The
+  highest-leverage entry is `staged_board.js`: its three failures are **one** defect — a
+  species-name-keyed Showdown mirror in `engine/game_differential.js` — and `SB.runOne` is required by
+  seven discovered tests, so that fix pays out well past its own line. Others: `staged_status_counters`
+  (stranded release `6155acc0fb26`, LESSONS §12 — withhold and re-pin, never resurrect),
+  `probe_red_demo` (8 stale reversals), `mutation_harness` (red and writes), `feature_fixture`
+  (**red by design — REFIT OWED**), and 8 probes measured green on 2026-08-22 but not re-certified
+  because every `tests/` candidate plays a game and the simulator moved during the pass.
+
+### Notes
+- **Shown red on four deliberate breaks, on a copy outside the repo:** an unnamed check → exit 1; a
+  stale exemption name → exit 1; a new unaccounted check → exit 1; and BREAK 4, removing the coverage
+  term, **reproduces the original defect exactly** — prints one unaccounted check and exits 0.
+- **No claim is made about the full suite's colour.** It was not run: the simulator was being edited
+  concurrently, and a suite verdict taken against a moving engine is worth nothing. Yesterday's report
+  has it red on `tests/test-end-state-severity.js`, unchecked today. Adding five gates does not change
+  an existing red.
+- `tests/roster.js`'s standalone exit code is recorded as genuinely **UNKNOWN** rather than guessed —
+  the pass was forbidden to run it, and its artifacts are already gated elsewhere.
+
+---
+
 ## [5.76.0] — 2026-08-22
 
 ### Fixed

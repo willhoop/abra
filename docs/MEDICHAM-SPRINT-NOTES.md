@@ -11435,3 +11435,51 @@ where both engines had emptied the same side.
 Whole-game differential: same pinned pool, same pinned census, only `--release` varied — 176 games / 40
 diverged on both arms, byte-identical. **79 of the 17,381 frozen-pool games mention this family at all
 (0.45%)**, so a 176-game sample containing none is the expected outcome, not evidence of no change.
+
+---
+
+## 2026-08-23 — A REGEX THAT READ CORRECTLY AND COULD NOT RUN (5.77.0)
+
+`tests/run-all.js` is the file whose whole job is catching a check nobody runs. It missed four ways.
+
+1. It discovered only `/^test-.*\.(js|py)$/`, so `staged_board.js` and ten `probe_*.js` were invisible.
+2. Its `looksLikeACheck` detector — built for exactly this hazard — scanned `engine/` only.
+3. Its comment said an unrun check makes the runner FAIL. `unrun.length` was not in the exit
+   expression. **A comment claiming the opposite of its code, the second found in two days.**
+4. **The announce clause held two raw `0x08` BACKSPACE BYTES.** Someone wrote `\bFAIL\b`; the escapes
+   flattened into control characters, so the alternative could never fire and the clause was really
+   `/REGRESSION|FAIL:/`. **It renders as `\bFAIL\b` in an editor.** Confirmed with `cat -v`.
+
+All four fixed. `--coverage` exits 0: **42 files accounted for by name, 0 unaccounted, 0 stale.**
+
+### THE FIX THAT WAS REFUSED IS THE INSTRUCTIVE PART
+
+The obvious repair for #4 is to write the `\bFAIL\b` that was intended. **Measured, that flags 28
+engine files against 45 and drops three genuine checks, including `feature_fixture.js`.** So the
+"correct" regex would have been *fixing a red by narrowing the detector* — the single move the brief
+forbade. Landed as `/REGRESSION|FAIL/` instead, with the measurement recorded next to it.
+
+### WHAT WAS NOT WIRED IN, AND WHY THAT IS THE RESULT
+
+5 wired (none plays a game or writes an artifact). **19 PENDING-WIRE with named blockers, and nothing
+red wired in or relabelled** — CLAUDE.md permits fixed-or-waived, and a red carried under a new label
+is the normalisation this project has already paid for twice.
+
+Highest leverage in that list: `staged_board.js`'s three failures are ONE defect — a species-name-keyed
+Showdown mirror in `engine/game_differential.js` — and `SB.runOne` is required by seven discovered
+tests, so that one fix pays out well past its own line.
+
+### EXEMPTIONS WERE READ, NOT PATTERN-MATCHED
+
+42 exemptions, each with its reason taken from that file's own header this pass. Where one claimed
+"already exercised by X", the claim was checked for a real `require(` edge — **only 5 of 16 candidates
+had one**, so eleven "covered" files were not covered.
+
+### SHOWN RED FOUR WAYS
+
+On a copy outside the repo: unnamed check → exit 1; stale exemption → exit 1; new unaccounted check →
+exit 1; and BREAK 4, removing the coverage term, **reproduces the original defect exactly** — one
+unaccounted check printed, exit 0.
+
+**No claim is made about the suite's overall colour.** It was not run: the simulator was being edited
+concurrently, and a suite verdict against a moving engine is worth nothing.
