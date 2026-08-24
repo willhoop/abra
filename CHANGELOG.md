@@ -10,6 +10,46 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.118.0] — 2026-08-24
+
+### Fixed
+- **A ROW SAYING WE DO NOT MODEL SWITCH-IN PRIORITY WAS TWO DAYS STALE ON THE DAY IT WAS FILED, AND IT
+  WAS HOLDING THE ENGINE GATE SHUT FOR NOTHING.** We have modelled it since 2026-08-22. Closed, with
+  the derivation written into the row so nobody re-opens it from the same note. **The coordinator
+  briefed that same stale finding to an agent tonight**; the only reason it did not become invented
+  work is that the agent re-derived instead of trusting the brief.
+- Register catch-up over four batches: **4 rows closed** that were open this morning, **13 filed
+  already-closed** (tonight's landed work), **5 filed open**, **8 re-scoped**. 389 → 407 rows. **Nothing
+  was closed to make a gate pass** — the engine gate still fails.
+- Closed on instruments rather than on say-so: **Throat Chop silencing for three turns where the
+  authority gives two** (5,071 uses), **Perish Song's phantom damage line**, and the off-field-body
+  placeholder — that last by running its own gate, which now exits clean.
+
+### Notes
+- **REFUSED TO CLOSE, AND ONE OF THEM NEEDS A WORD FROM WILL.** The two remaining wrong speed sorts —
+  the **mega half landed tonight**, the **residual half did not**, so the row was narrowed rather than
+  closed. The three tied Protect orderings (Will's ruling settles how the sample is built, not whether
+  they are a defect). And **the two Tailwinds: the claim checks out** — the authority genuinely flips a
+  coin there and it genuinely is only a message — **but an agent may not declare it, because declaring
+  SUBTRACTS it from the gate.** That is one word from Will, and correctly not taken by a subagent.
+- **Will's two rulings are recorded in the rows they decide:** the harness spread ladder stays as-is,
+  and rollouts get no coin but must **recognise** a tie and plan both branches — the ENGINE half live
+  (make the tie visible where it resolves), the MILTANK half filed and paused.
+- **The click-coverage artifact is a FULL run, not a scoped one** — 12,806 clean games, 298,910 real
+  clicks, 99.99% representable. **But it stamps itself to a build six releases old**, and one of
+  tonight's fixes (Role Play) accounts for **19 of the 22 clicks it still calls unrepresentable**. Not
+  a headline until re-run; left untracked and uncommitted.
+- **THE SHARED-SCRATCHPAD HAZARD RECURRED.** A script the agent tried to write was blocked, so the name
+  it chose already belonged to **an old session's script sitting in the shared scratchpad — and that one
+  ran instead**, inserting 12 duplicate rows into the register. It was caught from the script's own
+  output, undone, and the file verified against the committed version before any real work began. The
+  row count (389 → 407) confirms the undo held. This is the documented *"a scratchpad script re-run is
+  not a no-op"* failure arriving again, through a slightly different door.
+- **Still owed:** leaf calibration remains quarantined and stale — nothing tonight moved it;
+  `register_reality.js`; `status.js --write`; the interaction matrix; the wire ladder; and **the refit
+  question — `feature_fixture.js --check` fails on the policy weights and nobody should restamp before
+  that is settled, because a restamp writes over the evidence.**
+
 ## [5.112.0] — 2026-08-24
 
 ### Fixed
