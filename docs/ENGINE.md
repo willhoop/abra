@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  662/662 probed mechanics live, 0 missing   (census 2026-08-23 22:32)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-23 22:39)
+  664/664 probed mechanics live, 0 missing   (census 2026-08-23 22:59)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-23 23:02)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,139 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is f0766c5e24d1 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is d461c22ec2e5 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 22:43_
+_stamped 2026-08-23 23:16_
 
 <!-- /GENERATED -->
+
+## CLOUD NINE — THE UPKEEP LINE IS EXEMPT FROM SUPPRESSION AND THE FLAG IS LIVE. #352 CLOSES; NARRATION 29 → 24, BOARD-MATERIAL UNMOVED AT 24. 2026-08-23.
+
+Full account: [`docs/_reports/2026-08-23-cloud-nine.md`](_reports/2026-08-23-cloud-nine.md).
+Probes: `tests/test-mechanics.js` **`condition/weatherUpkeepUnderSuppression`** (knob
+`MEDI_WEATHER_UPKEEP_GATED=1`) and **`condition/weatherSuppressionIsLive`** (knob `MEDI_WSUP_STALE=1`).
+
+**TWO DEFECTS IN ONE NEIGHBOURHOOD, LANDED SEPARATELY, ONE KNOB EACH.** One is a line, one is HP. A
+knob restoring both could not tell which half a red arm was about.
+
+### DEFECT 1 — we gated the upkeep LINE on the suppression flag; the authority never does
+
+`sim/battle.ts:615-621` suppresses a `Weather`-effect handler **unless** the event is `FieldStart`,
+`FieldResidual` or `FieldEnd`, and `fieldEvent` renames the weather's own residual to `FieldResidual`
+(`:558-563`) — so the announcement is exempt. The chip on the handler's **next** line is not:
+`eachEvent('Weather')` is suppressed at `:888-894`, and sandstorm's `isWeather()` guard reads
+`effectiveWeather()`, which is `''` under suppression (`sim/field.ts:101-115`). Champions overrides
+neither file.
+
+**MEASURED IN THE OFFICIAL SIMULATOR, not read** — Altaria + Milotic against a Sand Stream Tyranitar +
+Incineroar, everybody clicking Protect:
+
+```
+Cloud Nine     |-weather|Sandstorm|[upkeep]   and ZERO `[from] Sandstorm` damage lines
+Natural Cure   |-weather|Sandstorm|[upkeep]   and THREE of them
+```
+
+**THE ARMS OF THE PROBE ARE THE CHIP, NOT THE LINE, AND THAT IS THE POINT.** The line is identical on
+both arms by construction — that is the finding — so a probe whose arms were the line would have been
+hollow the day it went green, and a "print the line anyway" fix that also un-suppressed the damage
+would have passed it. The chip is asserted at **exactly 0** on the suppressed arm and `> 0` on the
+cleared one. A third arm uses **rain**, which has no residual damage at all, so "only sandstorm
+announces" cannot pass either. The suppressing class is derived from
+`TAGS.withTag('ability','weatherSuppression')` and **printed on every run** — it is exactly
+`["cloudnine"]`; Air Lock has no legal carrier here.
+
+**The restore counter sits OUTSIDE the `if(TR)` block, deliberately.** A run with no trace writes no
+upkeep line either way, so a receipt that only appeared when somebody was listening would be the
+silent default this ledger is full of warnings about.
+
+### DEFECT 2 — the flag was computed once a turn, and this one is board-material
+
+`Field#suppressingWeather()` holds **no cache**: it walks `battle.sides[].active` on every call and
+skips a fainted body. This engine computed `field.wSup` once at the top of the turn and resynced it
+only on a mega — under a comment that already said *"a switch or a faint changes it"*.
+
+**MEASURED — the departure knob moves the authority by 10 HP a body and moved us by nothing:**
+
+| arm | authority, turn 2 | before | after |
+|---|---|---|---|
+| Cloud Nine, the suppressor **LEAVES** | Milotic 160/170, Gallade 135/143, Incineroar 160/170 | **no chip** | identical to the authority |
+| Cloud Nine, the suppressor **STAYS** (knob cleared) | no chip | no chip | no chip |
+| Natural Cure, LEAVES (ability control) | chips both turns | chips both turns | chips both turns |
+
+Two arms reading 0 and 0 across a knob that moves the authority is an **unwired knob**, not a mechanic
+that does not matter.
+
+**ONE FUNCTION, FOUR CALLERS.** `recomputeWeatherSuppression(field, bodies)` — the expression had
+already been written out twice, and two copies of "who suppresses the weather" is the
+FACTS-ARE-GLOBAL breach CLAUDE.md names. Top of turn and the mega path are the existing sites,
+unchanged in behaviour. The two new ones are `runEntryPass` (a switch, in **both** directions) and
+`_updateAll` (the settle at the top of every action and after the last one).
+
+**`_updateAll` IS THE HALF `runEntryPass` CANNOT SEE: A FAINT.** A suppressor that faints mid-turn is
+not replaced until after the residual in doubles — it just stands there fainted — so nothing else in
+the turn would notice, and the authority's walk skips it.
+
+**The `runEntryPass` call runs ABOVE `syncFieldTypes`, and that ordering is load-bearing.**
+`syncWeatherFormes` asks `effWeatherOf`, whose first clause is `field.wSup`; a Castform walking in
+beside a suppressor that just left would otherwise retype off the stale flag. `MEDSEEN.wSupResynced`
+counts the flag **MOVING**, never the recomputation — a counter that rose on every call would say
+nothing about whether the live evaluation matters.
+
+### THE FIVE GAMES CLEARED, AND THE ATTRIBUTION IS A FULL CAUSE DIFF RATHER THAN A NET
+
+Whole-game, arm **middle**, 961 games, `data/team-pool-frozen`, census pin `9446a684709d`,
+`--end-state`, release `c30534af567b` → `a7839b20e7d5`. **A re-baseline, not a delta.**
+
+```
+raw parted                        53  ->  48
+undeclared (less 5 Supreme Overlord) 48 of 961 = 5.0%  ->  43 of 961 = 4.5%
+board-material causes / games     23 / 24  ->  23 / 24     UNMOVED
+narration-only causes / games     24 / 29  ->  22 / 24     fell by 5
+DIFFERENT-END-STATE among parted  17  ->  17              UNMOVED
+```
+
+Diffing `summary.by_cause` between the two artifacts: **exactly two causes disappear** —
+`|-weather|raindance|[upkeep] <> |upkeep` (4 games) and `|-weather|sandstorm|[upkeep] <> |upkeep`
+(1 game) — and **nothing appears and nothing else changes.** The one weather cause that remains,
+`ordering :: |-unboost|p1a|atk|1 <> |-weather|raindance|[from]drizzle`, is the simultaneous-switch
+question and belongs to #353.
+
+**Which scoreboard, said before the run.** Defect 1: both, and the pool moved. Defect 2 needs a
+suppressor to LEAVE mid-turn, which is rarer — **it is not separately attributed inside the whole-game
+number and no claim is made that it moved one.** Its evidence is the staged board against the
+authority.
+
+### WHAT ELSE WAS RUN
+
+Census **662 → 664 live, 0 missing**, ratchets held (`unarmed` 0, `directCall` 1, hollow 0, threw 0) —
+no `--accept` needed. Damage differential **0 of 6000 on all 16 corners**, run after each defect
+separately. All three roster stages re-run against the new release: **0 FIRED-AND-BOARDS-DIFFER and 0
+DID-NOT-FIRE across items, abilities and moves**, with verdict distributions identical to the previous
+release's. `test-protocol-trace`, `test-resolution-order`, `test-engine-consistency` and
+`test-volatile-duration` all green.
+
+`engine/move_result_state.js --selftest` — 18 passed, 0 failed. **Stated plainly: that instrument
+compares `moveThisTurnResult`, which this change does not touch.** It is a receipt that the
+move-result comparator is intact, not evidence about weather suppression.
+
+`all_mechanics_fire` re-run reads moves 20 / abilities 8 / items 1 against a previous 20 / 9 / 1.
+**That is NOT a before/after** — the instrument is steered by the census and the census gained two
+rows, so it played a different set of games.
+
+### NOT CLAIMED
+
+Two families the live re-derivation does not cover, stated rather than missed: an ability REMOVED
+mid-turn by Gastro Acid or Neutralizing Gas, and a suppressor whose ability is swapped away by Skill
+Swap / Worry Seed / Entrainment. Both settle at the next `_updateAll` — correct for the residual, one
+action late for a damage read inside the same action. Unstaged, unmeasured, and deliberately **not**
+given a register row: a row asserting breakage with no instrument that decides it is debt, and the
+register already carries 53 of those.
+
+---
 
 ## THE TWO WIRE 4 DAMAGE FAILURES WERE THE HARNESS, NOT THE ENGINE — AND ALL FOUR CONSTANTS ARE THE PRE-#304 SPAN DRAW. 2026-08-23.
 
@@ -848,6 +972,11 @@ body** — `boostsTarget` is not gated on invulnerability.
   of the five cards has) — **the upkeep line fires correctly in every arm.** A replay would settle it;
   `engine/replay_one.js --release dd3b8bdd482f --games 1200` answered `SEED NOT IN THIS POOL` because
   the pool is steered by the LIVE census, which this pass moved. Re-run it under the census pin.
+  *(**RETRACTED 2026-08-23, and left standing because a dated claim is not rewritten in place.** The
+  suppressor clause WAS it. All four arms above had no suppressor on the field at all, so `field.wSup`
+  was never set and the gate was never exercised — the arms varied the SETTER where the defect is in
+  the READER. The five games are attributed and gone; see the Cloud Nine section at the top of this
+  file.)*
 - **`|faint|` at the step boundary, 5 games — NOT ATTEMPTED, and it is a faint QUEUE not a line.**
   `Pokemon#faint()` queues and writes nothing; the line comes from `faintMessages()` at eight step
   boundaries. This engine has **27 sites** that write `|faint|` inline at the instant HP reaches zero,
@@ -2217,7 +2346,7 @@ and after — that is the expected shape of this fix, not a weak result.
 | Suction Cups `-activate` with an empty back | narration | **landed this pass** |
 | `_mvRes` after a legal `onDragOut` refusal | **STATE** | **landed this pass** (found by the new instrument) |
 | **#345** volatile counter expiry | board-material **if** the turn is off by one, narration if not | unprobed |
-| **#352** `-weather [upkeep]` | the `wSup` gate is narration; the leading alternative is board-material | unprobed |
+| **#352** `-weather [upkeep]` | **both**: the `wSup` gate on the LINE is narration, and the once-a-turn CACHE behind it is board-material | ~~unprobed~~ — **CLOSED 2026-08-23**, two probes, see the Cloud Nine section at the top |
 | **#359** Poltergeist names the item | narration (emission only) | unprobed |
 | **#360** Telepathy `-activate` vs our `-immune` | narration (right board, wrong line type) | unprobed |
 
@@ -2253,7 +2382,10 @@ release `c66976713feb` and the tree is elsewhere. That is the refusal working, n
 - **About 70 of ~84 `mvFail` call sites never call `TR.attrStill()`**, where the authority pairs the
   two at every site. Invisible to the differential (`move-target-field` truncates the line), so it is a
   real asymmetry with no instrument that counts it and no known cost.
-- **#345, #352, #359 and #360 are unprobed** and are triaged in the table above.
+- **#345, ~~#352,~~ #359 and #360 are unprobed** and are triaged in the table above. **#352 came off
+  this list on 2026-08-23** — it is two census probes now (`condition/weatherUpkeepUnderSuppression`
+  and `condition/weatherSuppressionIsLive`), and its second clause turned out to be board-material
+  rather than narration.
 
 ### OWED, NOT RUN
 

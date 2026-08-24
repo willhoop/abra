@@ -1,10 +1,10 @@
 {
-  "current": "c30534af567b",
-  "cut": "2026-08-24T01:54:55.533Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 10,
-  "latest_cut": "2026-08-24T02:25:10.881Z",
+  "current": "a7839b20e7d5",
+  "cut": "2026-08-24T03:03:03.094Z",
+  "why": "ROADMAP #352 both clauses: the upkeep line is exempt from weather suppression, and wSup is re-derived live",
+  "cuts": 2,
+  "latest_cut": "2026-08-24T03:12:41.548Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-24T02:25:10.893Z",
+  "pointer_written": "2026-08-24T03:12:41.558Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

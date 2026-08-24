@@ -10939,6 +10939,130 @@ probe('ability', 'weatherSuppression', 'Cloud Nine stops the sun boosting Fire',
                  + `the same click in CLEAR skies ${clear} (the suppressed arm must equal it exactly)` };
 });
 
+/* ROADMAP #352 — THE UPKEEP LINE IS EXEMPT FROM SUPPRESSION AND THE CHIP IS NOT, AND THE CHIP IS THE
+ * CONTROL THAT MAKES THIS PROBE MEAN ANYTHING.
+ *
+ * The engine used to gate the whole `|-weather|W|[upkeep]` line on `field.wSup`, so a Cloud Nine body
+ * standing on the field deleted the announcement as well as the damage. The authority carves the
+ * exemption out by name — `sim/battle.ts:615-621` lets `FieldStart`, `FieldResidual` and `FieldEnd`
+ * through `singleEvent` while `suppressingWeather()` is true — and the weather's own handler then
+ * calls `eachEvent('Weather')` on its NEXT line, which is suppressed at `sim/battle.ts:888-894` and
+ * again by `isWeather()` reading `effectiveWeather()` (`sim/field.ts:101-115`). Champions overrides
+ * neither: `data/mods/champions/conditions.ts` carries no weather condition and `scripts.ts` no
+ * dispatcher.
+ *
+ * MEASURED IN THE OFFICIAL SIMULATOR on this exact board (Altaria + Milotic against Tyranitar with
+ * Sand Stream + Incineroar, everybody clicking Protect): under Cloud Nine the stream carries
+ * `|-weather|Sandstorm|[upkeep]` and ZERO `[from] Sandstorm` damage lines; under Natural Cure it
+ * carries the same upkeep line and THREE of them.
+ *
+ * SO THE ARMS ARE THE CHIP, NOT THE LINE. The line is the same on both sides by construction — that
+ * is the whole finding — so a probe whose arms were the line would be HOLLOW the day it went green,
+ * and a "print the line anyway" fix that also un-suppressed the damage would pass it. The chip is
+ * what varies across the suppressor, and it must go to exactly ZERO while the line stays.
+ *
+ * THE SUPPRESSOR IS DERIVED FROM THE TAG, not typed: `withTag('ability','weatherSuppression')` is
+ * walked and every member is played, so an ability added to the class later is covered without
+ * editing this file. Printed rather than assumed — the members are in the detail. Air Lock has no
+ * legal carrier in Reg M-B, so the class is Cloud Nine alone today.
+ *
+ * RAIN IS THE THIRD ARM: a sky with no residual damage at all must still print its upkeep line, so
+ * "only sandstorm announces" cannot pass. */
+probe('condition', 'weatherUpkeepUnderSuppression',
+      'the |-weather|[upkeep] line still prints under Cloud Nine — and the chip still does not', () => {
+  const TAGS = require(D('engine', 'tags.js'));
+  const supp = TAGS.withTag('ability', 'weatherSuppression').slice().sort();
+  if (!supp.length) return { works: false, detail: 'no ability carries weatherSuppression' };
+  const run = (ab, wx) => {
+    const me = bare('milotic'), ally = bare('incineroar');
+    const f1 = bare('altaria'), f2 = bare('gallade');
+    f1.ability = ab;
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    S.field.weather = wx; S.field.weatherT = 5;
+    trace.length = 0;
+    const hp0 = me.curHP;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    return { line: trace.filter(l => /^\|-weather\|/.test(l)).map(M.traceCanon).join(';'),
+             chip: hp0 - me.curHP };
+  };
+  const UP = (w) => '|-weather|' + w + '|[upkeep]';
+  const control = run('none', 'sand');
+  /* every member of the class, so the probe is over the TAG and not over one name */
+  const each = supp.map(ab => [ab, run(ab, 'sand')]);
+  const test = each[0][1];
+  const rainPlain = run('none', 'rain'), rainSupp = run(supp[0], 'rain');
+  return { works: control.line === UP('sandstorm') && control.chip > 0
+                  && each.every(([, r]) => r.line === UP('sandstorm') && r.chip === 0)
+                  && rainPlain.line === UP('raindance') && rainSupp.line === UP('raindance')
+                  && rainSupp.chip === 0,
+           arms: { control, test },
+           detail: `weatherSuppression carriers ${JSON.stringify(supp)}; sand + no suppressor `
+                 + `line "${control.line}" chip ${control.chip}; `
+                 + each.map(([ab, r]) => `sand + ${ab} line "${r.line}" chip ${r.chip}`).join('; ')
+                 + ` (the line must be IDENTICAL and the chip must be exactly 0); rain + no `
+                 + `suppressor "${rainPlain.line}", rain + ${supp[0]} "${rainSupp.line}" chip `
+                 + `${rainSupp.chip}` };
+});
+
+/* ROADMAP #352 (SECOND CLAUSE) — SUPPRESSION IS EVALUATED LIVE, SO A SUPPRESSOR THAT LEAVES MID-TURN
+ * STOPS SUPPRESSING ON THAT TURN'S RESIDUAL. THIS ONE IS HP.
+ *
+ * The engine cached `field.wSup` once at the top of the turn and resynced it only on a mega, so a
+ * Cloud Nine body that switched out went on suppressing for the rest of the turn. The authority holds
+ * no cache: `Field#suppressingWeather()` (`sim/field.ts:106-115`) walks `battle.sides[].active` on
+ * every read and skips a fainted body, and `effectiveWeather()` is that walk.
+ *
+ * MEASURED IN THE OFFICIAL SIMULATOR on this exact board — Altaria + Milotic against a Sand Stream
+ * Tyranitar + Incineroar, Altaria switching to Gallade on turn 2, everybody else clicking Protect:
+ *     Cloud Nine, Altaria LEAVES   turn 2 chips: Milotic 160/170, Gallade 135/143, Incineroar 160/170
+ *     Cloud Nine, Altaria STAYS    turn 2 chips: none
+ *     Natural Cure, LEAVES         chips on BOTH turns
+ * This engine read ZERO on the first two, i.e. the departure knob moved the authority by 10 HP a body
+ * and moved us by nothing — an unwired knob, not a mechanic that does not matter.
+ *
+ * THE ARMS ARE THE DEPARTURE, AND THAT IS THE POINT. `control` is the identical board where the
+ * suppressor STAYS, so the two differ by exactly the switch and nothing else; the suppressor, the
+ * weather setter and the bodies being chipped are the same objects in both. A probe whose arms were
+ * "Cloud Nine vs no ability" would already have been green on the broken engine.
+ *
+ * THE TURN-1 READING IS ASSERTED TOO, so "the fix un-suppressed everything" cannot pass: on turn 1
+ * the suppressor is standing there for the whole turn and the chip must be exactly 0. */
+probe('condition', 'weatherSuppressionIsLive',
+      'a weather suppressor that LEAVES mid-turn stops suppressing that turn\'s residual', () => {
+  const TAGS = require(D('engine', 'tags.js'));
+  const supp = TAGS.withTag('ability', 'weatherSuppression').slice().sort();
+  if (!supp.length) return { works: false, detail: 'no ability carries weatherSuppression' };
+  /* two real turns: the sky goes up on turn 1 off Sand Stream, and the suppressor leaves on turn 2 */
+  const run = (ab, leave) => {
+    const alt = bare('altaria'), milo = bare('milotic'), gal = bare('gallade');
+    const f1 = bare('tyranitar'), f2 = bare('incineroar');
+    alt.ability = ab; f1.ability = 'sandstream';
+    const S = M.battleInit([alt, milo, gal], [f1, f2], {});
+    const hp0 = milo.curHP;
+    M.battleTurn(S, rng5, PASS2(alt, milo), PASS2(f1, f2));
+    const t1 = hp0 - milo.curHP;
+    const hp1 = milo.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[alt, leave ? { kind: 'switch', to: gal } : { kind: 'pass' }], [milo, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { sky: S.field.weather || 'CLEAR', t1chip: t1, t2chip: hp1 - milo.curHP };
+  };
+  const control = run(supp[0], false);            // the suppressor STAYS — the knob cleared
+  const test = run(supp[0], true);                // the suppressor LEAVES — the subject
+  const noSupp = run('none', true);               // no suppressor at all — the ability control
+  return { works: control.sky === 'sand' && control.t1chip === 0 && control.t2chip === 0
+                  && test.t1chip === 0 && test.t2chip > 0
+                  && noSupp.t1chip > 0 && noSupp.t2chip > 0
+                  && test.t2chip === noSupp.t2chip,
+           arms: { control, test },
+           detail: `weatherSuppression carriers ${JSON.stringify(supp)}; sand up from Sand Stream `
+                 + `(${control.sky}). ${supp[0]} STAYS turn1 ${control.t1chip} turn2 ${control.t2chip} `
+                 + `(both must be 0); ${supp[0]} LEAVES on turn 2 turn1 ${test.t1chip} (must still be `
+                 + `0) turn2 ${test.t2chip} (must be > 0 and equal the no-suppressor price); no `
+                 + `suppressor at all turn1 ${noSupp.t1chip} turn2 ${noSupp.t2chip}` };
+});
+
 /* ---- BATCH 9 — WHAT THE GENERATED INTERACTION MATRIX FOUND, 2026-08-04 --------------------------
  *
  * `tests/interaction_matrix.js` enumerates the cross product of every carrier tag against every

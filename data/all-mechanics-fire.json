@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-24T02:06:10.511Z",
- "release": "c30534af567b",
+ "generated": "2026-08-24T03:11:17.757Z",
+ "release": "a7839b20e7d5",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -30147,31 +30147,18 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 13,
-     "cls": "event missing from medicham2",
-     "detail": "-weather",
-     "cause": "event missing from medicham2 :: |-weather|sunnyday|[upkeep] <> |upkeep",
-     "showdown": "|-weather|SunnyDay|[upkeep]",
-     "medicham": "|upkeep",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 5,
      "boundaries_agreed": 5,
      "last_boundary_turn": 4,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 4,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -53454,7 +53441,7 @@
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 14,
    "cannot_fire_in_this_fixture": 1,
-   "seconds": 5.9
+   "seconds": 5.3
   },
   "abilities": {
    "exist": 316,
@@ -53467,11 +53454,11 @@
    "control_not_quiet": 108,
    "cannot_fire_in_this_fixture": 38,
    "did_not_fire_unexplained": 20,
-   "diverged": 9,
-   "diverged_including_shelved": 10,
+   "diverged": 8,
+   "diverged_including_shelved": 9,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 10.7
+   "seconds": 10.3
   },
   "then_what": {
    "rows": 62,
@@ -53497,7 +53484,7 @@
    "shelved_by_owner_diverging": 1,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 5
+   "seconds": 5.1
   },
   "board_state": {
    "rows": 15,
@@ -53789,8 +53776,8 @@
    },
    "abilities": {
     "tally": {
-     "NO-DIVERGENCE": 159,
-     "ANNOUNCEMENT-ONLY": 7,
+     "NO-DIVERGENCE": 160,
+     "ANNOUNCEMENT-ONLY": 6,
      "STATE": 4
     },
     "rows": 170,
@@ -54257,8 +54244,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "3929459bb195",
-    "roster_generated": "2026-08-24T00:50:10.864Z",
+    "roster_release": "a7839b20e7d5",
+    "roster_generated": "2026-08-24T03:10:05.013Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

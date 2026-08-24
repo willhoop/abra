@@ -21,6 +21,52 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## CLOUD NINE — #352 CLOSES ON BOTH CLAUSES. CENSUS 662 → 664, NARRATION 29 → 24, BOARD-MATERIAL UNMOVED AT 24. 2026-08-23 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-23-cloud-nine.md`](_reports/2026-08-23-cloud-nine.md).
+Ledger section: `docs/ENGINE.md`, *"CLOUD NINE — THE UPKEEP LINE IS EXEMPT FROM SUPPRESSION"*.
+
+**VERDICT: TWO DEFECTS, ONE NEIGHBOURHOOD, ONE KNOB EACH.** (1) `|-weather|W|[upkeep]` was gated on
+`field.wSup`; the authority exempts `FieldStart`, `FieldResidual` and `FieldEnd` by name
+(`sim/battle.ts:615-621`) and suppresses only the chip on the next line. (2) `field.wSup` was cached
+once a turn where `sim/field.ts:106-115` walks the actives live, so a suppressor that left mid-turn
+kept suppressing and the residual did not chip — **that one is HP, not narration.**
+
+**THE CHIP IS THE CONTROL ON DEFECT 1.** The upkeep line is identical on both arms by construction, so
+the probe's arms are the CHIP: exactly 0 under Cloud Nine, `> 0` with the ability cleared. Measured in
+the official simulator first — Cloud Nine gives the upkeep line and zero `[from] Sandstorm` damage;
+Natural Cure gives the same line and three of them.
+
+**DEFECT 2'S KNOB WAS UNWIRED, WHICH IS THE FINDING.** Suppressor STAYS and suppressor LEAVES both read
+chip 0 here while the authority reads 0 and 10. Fixed with **one** function and four callers — top of
+turn, the mega path, `runEntryPass` (a switch) and `_updateAll` (the settle, which is the only one that
+can see a FAINT: a fainted suppressor is not replaced until after the residual in doubles).
+
+```
+census                            662/662/0  ->  664/664/0        ratchets held, no --accept
+damage differential               0 of 6000, all 16 corners, unmoved (run after each defect)
+whole-game, arm middle, 961, team-pool-frozen, census pin 9446a684709d, --end-state
+  release                         c30534af567b  ->  a7839b20e7d5
+  raw parted                      53  ->  48
+  undeclared (less 5 declared)    48 of 961 = 5.0%  ->  43 of 961 = 4.5%
+  board-material causes / games   23 / 24  ->  23 / 24     UNMOVED
+  narration-only causes / games   24 / 29  ->  22 / 24     fell by exactly 5
+  DIFFERENT-END-STATE among parted 17 -> 17               UNMOVED
+roster items/abilities/moves      0 FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE, re-run on the new release
+```
+
+**THE FIVE GAMES ARE ATTRIBUTED BY A FULL CAUSE DIFF, NOT BY A NET.** `summary.by_cause` loses exactly
+`|-weather|raindance|[upkeep] <> |upkeep` (4 games) and `|-weather|sandstorm|[upkeep] <> |upkeep`
+(1 game); **nothing appears and nothing else changes.**
+
+**Knobs:** `MEDI_WEATHER_UPKEEP_GATED=1` and `MEDI_WSUP_STALE=1`, each turning exactly one census row
+red. **Probes:** `condition/weatherUpkeepUnderSuppression`, `condition/weatherSuppressionIsLive`.
+
+**NOT CLAIMED:** defect 2 is not separately attributed inside the whole-game number; an ability removed
+by Gastro Acid / Neutralizing Gas or swapped away mid-action settles one action late and is unstaged.
+
+---
+
 ## THE TWO WIRE 4 DAMAGE FAILURES WERE THE HARNESS — NO ENGINE DEFECT, CENSUS 662/662/0 UNCHANGED. 2026-08-23 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-23-spread-rounding-life-orb.md`](_reports/2026-08-23-spread-rounding-life-orb.md).

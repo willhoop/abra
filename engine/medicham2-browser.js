@@ -1426,6 +1426,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * sync, not retypes -- `weatherRetyped`/`terrainRetyped` above are the ones that moved a body, and a
    * large gap between them is the expected reading rather than a fault. */
   entryFieldSync: 0,
+  /* ROADMAP #352 -- every time a re-computation of `field.wSup` actually CHANGED the answer, i.e. a
+   * weather suppressor arrived or left. Counts the flag MOVING, never the recomputation, because a
+   * counter that rose on every call would say nothing about whether the live evaluation matters. It
+   * is the receipt that the mid-turn resyncs are reachable at all: zero across a corpus means every
+   * suppressor in it stood still for whole turns and the wire is unexercised, not that it is right. */
+  wSupResynced: 0,
   /* ROADMAP #175 -- SYMBIOSIS. One counter, because the mechanic is one event: an item MOVED from
    * the ally to the body that just spent one. Zero means the partner never hands anything over and
    * every Florges in every rollout is a body holding a berry nobody can use. */
@@ -1615,6 +1621,13 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-08-23 -- set for the whole run when MEDI_HERB_END_FIRST=1 restores the backwards
      `-end` before `-enditem` order on an item that frees a volatile. */
   herbEndFirstRestored: 0,
+  /* ROADMAP #352 -- set for the whole run when MEDI_WEATHER_UPKEEP_GATED=1 puts the suppression gate
+     back on the `|-weather|W|[upkeep]` LINE, which the authority exempts. The chip is never under
+     this knob; only the announcement is. */
+  weatherUpkeepGatedRestored: 0,
+  /* ROADMAP #352 -- set for the whole run when MEDI_WSUP_STALE=1 puts the once-a-turn `field.wSup`
+     cache back, so a suppressor that leaves mid-turn goes on suppressing until the next turn. */
+  wSupStaleRestored: 0,
   /* ROADMAP #359 -- `readsTargetItem.announcesItem` named an event this site does not emit. Expected
      to stay at ZERO: the one carrier writes `-activate`. */
   targetItemEventUnknown: 0, targetItemEventUnknownFirst: '',
@@ -7113,6 +7126,37 @@ function hasPower(mv){
  * Rayquaza and Rayquaza is not in this format, so Air Lock is ZERO. Cloud Nine has two carriers that
  * are (Altaria, Drampa) and 18 declared sheets across 40,595 stored games. */
 function suppressesWeather(m){ return !!(m&&TAGS.param('ability',m.ability,'weatherSuppression')); }
+/* ROADMAP #352 (SECOND CLAUSE) -- THE ONE PLACE `field.wSup` IS COMPUTED, AND IT IS RE-COMPUTED
+ * WHENEVER THE SET OF BODIES STANDING THERE CHANGES.
+ *
+ * The authority holds NO cache at all: `Field#suppressingWeather()` (sim/field.ts:106-115) walks
+ * `battle.sides[].active` every single time it is asked, and `effectiveWeather()` (:101-104) is that
+ * walk. So a Cloud Nine body that switches out or faints stops suppressing AT THAT INSTANT.
+ *
+ * This engine cached the answer once at the top of the turn, with a comment that already said "a
+ * switch or a faint changes it" -- and only the MEGA path ever resynced it. So a suppressor that left
+ * mid-turn went on suppressing for the rest of the turn, and that is HP rather than narration: the
+ * sandstorm residual at the bottom of that same turn did not chip.
+ *
+ * MEASURED IN THE OFFICIAL SIMULATOR, Altaria + Milotic against a Sand Stream Tyranitar + Incineroar,
+ * Altaria switching to Gallade on turn 2 and everybody else clicking Protect:
+ *     Cloud Nine, Altaria LEAVES  turn 1 upkeep and no chip; turn 2 upkeep AND three `[from]
+ *                                 Sandstorm` damage lines -- the chip lands on the turn it left
+ *     Cloud Nine, Altaria STAYS   two upkeeps, zero chips        (the knob-cleared control)
+ *     Natural Cure, LEAVES        chips on BOTH turns            (the ability control)
+ * This engine read chip 0 on the first TWO of those, i.e. the departure knob moved the authority and
+ * did not move us at all, which is an unwired knob rather than a mechanic that does not matter.
+ *
+ * ONE FUNCTION, FOUR CALLERS (top of turn, mega, entry pass, residual), because two copies of "who
+ * suppresses the weather" is the FACTS-ARE-GLOBAL breach CLAUDE.md names -- and the expression was
+ * already written out twice before this existed. */
+function recomputeWeatherSuppression(field,bodies){
+  if(!field)return false;
+  const was=field.wSup;
+  field.wSup=(bodies||[]).some(x=>x&&!x.fainted&&x.curHP>0&&suppressesWeather(x));
+  if(was!==undefined&&was!==field.wSup)MEDSEEN.wSupResynced++;
+  return field.wSup;
+}
 /* The weather a FORMULA should read. `field.wSup` is the battle loop's answer over all four actives;
  * the two-body test is what a pure call to dmgRange can see on its own, and it is stated rather than
  * silently equivalent: a pure dmgRange handed an Air Lock ALLY cannot know, and the battle loop is
@@ -9246,6 +9290,24 @@ const HERB_END_FIRST=(typeof process!=='undefined'&&process.env&&process.env.MED
  * RED on demand without swapping a file. Any run carrying it also carries a non-zero
  * `MEDFAILS.entryFieldSyncSkipped`. Same shape as MEDI_HERB_END_FIRST above. */
 const NO_ENTRY_FIELD_SYNC=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_ENTRY_FIELD_SYNC==='1');
+/* ROADMAP #352, 2026-08-23 -- MEDI_WEATHER_UPKEEP_GATED=1 PUTS THE SUPPRESSION GATE BACK ON THE
+ * UPKEEP LINE, i.e. `|-weather|W|[upkeep]` goes silent again while a Cloud Nine body is standing
+ * there. It exists so `tests/test-mechanics.js condition/weatherUpkeepUnderSuppression` can be shown
+ * MISSING on demand without swapping a file. It does NOT touch the CHIP, which stays suppressed on
+ * both arms -- a knob that moved both could not tell an announcement defect from an HP one, and
+ * un-suppressing the chip would be a far worse bug than the one being closed. Any run carrying it
+ * also carries a non-zero `MEDFAILS.weatherUpkeepGatedRestored`. Same shape as
+ * MEDI_NO_ENTRY_FIELD_SYNC above. */
+const WEATHER_UPKEEP_GATED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_WEATHER_UPKEEP_GATED==='1');
+/* ROADMAP #352 (SECOND CLAUSE), 2026-08-23 -- MEDI_WSUP_STALE=1 PUTS THE ONCE-A-TURN CACHE BACK: the
+ * two mid-turn re-computations of `field.wSup` (the entry pass and the residual) are skipped, so a
+ * suppressor that leaves or faints during a turn keeps suppressing until the next turn starts, which
+ * is what this engine did until today. The top-of-turn and mega sites are NOT under the knob -- they
+ * are the behaviour being restored, not the defect. It is a SECOND knob rather than a clause of
+ * MEDI_WEATHER_UPKEEP_GATED because they are two independent defects in one neighbourhood: one is a
+ * line and one is HP, and a knob that restored both could not tell which half a red arm was about.
+ * Any run carrying it also carries a non-zero `MEDFAILS.wSupStaleRestored`. */
+const WSUP_STALE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_WSUP_STALE==='1');
 function sleepDurationDraw(){
   const r=medRng();
   const u=(typeof r==='function')?r():0.5;
@@ -13171,7 +13233,7 @@ function megaEvolveNow(S,m,auto){
    * event over, and a mega really can bring Cloud Nine or a Sweet Veil onto the field. Fixing only the
    * one that was measured would leave two of its neighbours wrong for the same reason. */
   S.field.aura=auraStateOf([...S.actA,...S.actB]);
-  S.field.wSup=[...S.actA,...S.actB].some(x=>x&&!x.fainted&&x.curHP>0&&suppressesWeather(x));
+  recomputeWeatherSuppression(S.field,[...S.actA,...S.actB]);
   refreshSleepBlock(S.actA,S.actB,S.sfA,S.sfB);
   MEDSEEN.fieldFactsResyncedOnMega++;
   sf.megaUsed=true;
@@ -14410,6 +14472,17 @@ function runEntryPass(nx,foes,act,i,field){
    * active -- so a Castform already standing there follows the new sky on the same instant. The sync
    * is idempotent: it returns without a line when the types already match, so a pass that changes
    * nothing emits nothing. */
+  /* ROADMAP #352 (SECOND CLAUSE) -- AND THE WEATHER SUPPRESSION FLAG, ON THE SAME EVENT AND FOR THE
+   * SAME REASON THE RETYPE ABOVE IS HERE: `Field#suppressingWeather()` is a live walk of the four
+   * actives, and a switch is the commonest way that set changes mid-turn. Both DIRECTIONS matter --
+   * a Cloud Nine body leaving un-suppresses the sky, and one arriving suppresses it.
+   *
+   * IT RUNS BEFORE `syncFieldTypes`, DELIBERATELY, and that ordering is load-bearing rather than
+   * tidy: `syncWeatherFormes` asks `effWeatherOf`, whose first clause is `field.wSup`. A Castform
+   * walking in beside a Cloud Nine body that just left would otherwise retype off the stale flag and
+   * read a clear sky. */
+  if(WSUP_STALE)MEDFAILS.wSupStaleRestored=1;
+  else recomputeWeatherSuppression(field,[...(act||[]),...(foes||[])]);
   if(NO_ENTRY_FIELD_SYNC)MEDFAILS.entryFieldSyncSkipped=(MEDFAILS.entryFieldSyncSkipped||0)+1;
   else {MEDSEEN.entryFieldSync++;syncFieldTypes(field,[...(act||[]),...(foes||[])]);}
 }
@@ -15669,7 +15742,7 @@ function battleTurn(S,rng,actsForA,actsForB){
     /* WIRE 78 -- AIR LOCK / CLOUD NINE. Recomputed at the top of every turn from whoever is standing
        there, because it is a property of the FIELD for as long as a carrier is on it, and a switch or
        a faint changes it. Stored on the field so every reader asks one place. */
-    field.wSup=[...actA,...actB].some(x=>x&&!x.fainted&&x.curHP>0&&suppressesWeather(x));
+    recomputeWeatherSuppression(field,[...actA,...actB]);
     /* ROADMAP #81 WIRE 12 -- THE AURAS, recomputed on the same line and for the same reason as Air
        Lock above: an `onAny` handler is a property of the FIELD for as long as a carrier is standing
        on it, on EITHER side, and a switch or a faint changes it. Stored on the field so `dmgRange`
@@ -16307,7 +16380,25 @@ function battleTurn(S,rng,actsForA,actsForB){
        * 2026-08-23 -- AND IT IS NOW OUTSIDE `_updateEvent` ENTIRELY, one function up, for exactly the
        * reason this paragraph already gave. See the header on `_updateEvent`. */
     };
-    const _updateAll=()=>{ _updateEvent(); restoreStatsAll(actA,actB); };
+    /* ROADMAP #352 (SECOND CLAUSE) -- `field.wSup` IS RE-DERIVED HERE, AT THE SETTLE.
+     *
+     * `_updateAll` is what this engine runs at the top of every action and once more after the last
+     * one, i.e. exactly the moments the board has stopped moving. That is the cheapest honest stand-in
+     * for the authority's `Field#suppressingWeather()`, which holds no cache and walks
+     * `battle.sides[].active` on every read (sim/field.ts:106-115).
+     *
+     * IT CATCHES THE HALF `runEntryPass` CANNOT: A FAINT. A suppressor that switches out is picked up
+     * by the entry pass its replacement runs, but a suppressor that FAINTS mid-turn is not replaced
+     * until after the residual in doubles -- it just stands there fainted -- so nothing else in the
+     * turn would notice. The authority's walk skips a fainted body, so its sandstorm chips that same
+     * turn, and this engine's cached flag said otherwise until here.
+     *
+     * IT CANNOT OVER-FIRE. It is the SAME expression the top-of-turn site runs, over whoever is
+     * standing there now; running it more often can only move the answer toward the live one. The
+     * counter it stamps rises only when the answer actually CHANGED. */
+    const _updateAll=()=>{ _updateEvent(); restoreStatsAll(actA,actB);
+      if(WSUP_STALE)MEDFAILS.wSupStaleRestored=1;
+      else recomputeWeatherSuppression(field,[...actA,...actB]); };
     /* ===== ROADMAP #240 -- THE RE-SORT, AND THE TRIGGER IS THE MECHANIC ==========================
      *
      * ONE PLACE. Every caller that wants the remaining queue re-derived comes through here, so the
@@ -25440,7 +25531,49 @@ function battleTurn(S,rng,actsForA,actsForB){
     const _wx0=field.weather;
     if(field.weatherT>0&&--field.weatherT<=0){field.weather=null;
       syncFieldTypes(field,[...actA,...actB]);}   // ROADMAP #175 -- a lapsed sky gives the type back
-    if(TR){if(field.weather&&!field.wSup)TR.wx(field.weather,null,null,true);else if(_wx0&&!field.weather)TR.wxNone();}
+    /* ROADMAP #352 -- THE UPKEEP LINE IS EXEMPT FROM WEATHER SUPPRESSION. THE CHIP IS NOT.
+     *
+     * This line used to read `if(field.weather && !field.wSup)`, so a Cloud Nine body on the field
+     * silenced the announcement as well as the damage. The authority carves the exemption out BY
+     * NAME and the three exempt events are exactly the three field events:
+     *
+     *   sim/battle.ts:615-621 (singleEvent)
+     *     if (effect.effectType === 'Weather' && eventid !== 'FieldStart' &&
+     *         eventid !== 'FieldResidual' && eventid !== 'FieldEnd' &&
+     *         this.field.suppressingWeather()) { ...; return relayVar; }
+     *
+     * `fieldEvent('Residual')` dispatches the weather's own handler as `FieldResidual`
+     * (sim/battle.ts:558-563 rewrites the eventid when the holder is the Field), so it is exempt.
+     * What is NOT exempt is what the handler does on its next line:
+     *
+     *   data/conditions.ts:505-508 (rain; 653-656 sandstorm, snowscape likewise)
+     *     onFieldResidual() { this.add('-weather','Sandstorm','[upkeep]');
+     *                         if (this.field.isWeather('sandstorm')) this.eachEvent('Weather'); }
+     *
+     * `eachEvent('Weather')` runs `runEvent('Weather', ...)`, whose handler loop suppresses on
+     * `eventid === 'Weather'` (sim/battle.ts:888-894), and `isWeather` reads `effectiveWeather()`
+     * which is '' under suppression (sim/field.ts:101-115). So the sand is doubly refused. Champions
+     * overrides neither file -- `data/mods/champions/conditions.ts` carries no weather condition and
+     * `scripts.ts` no event dispatcher.
+     *
+     * MEASURED, NOT READ, in the official simulator on the board this probe stages -- Altaria beside
+     * Milotic against Tyranitar (Sand Stream) and Incineroar, everybody clicking Protect:
+     *   ability Cloud Nine   -> `|-weather|Sandstorm|[upkeep]` and ZERO `[from] Sandstorm` damage
+     *   ability Natural Cure -> `|-weather|Sandstorm|[upkeep]` and THREE of them
+     * The line is in both streams; only the damage moves across the knob.
+     *
+     * THE CHIP GATE IS NOT UNDER THIS KNOB and must not move: it is the `!field.wSup` at
+     * `residualUpdatePass`'s call below and inside the sand step, and it is correct. */
+    /* THE COUNTER IS OUTSIDE THE `if(TR)`, DELIBERATELY. A run with no trace attached writes no
+     * upkeep line either way, so the gate is invisible there -- and a restore knob whose receipt only
+     * appears when somebody happened to be listening is exactly the silent default this file is full
+     * of warnings about. This fires whenever the knob reached a suppressed sky. */
+    if(WEATHER_UPKEEP_GATED&&field.wSup&&field.weather)MEDFAILS.weatherUpkeepGatedRestored=1;
+    if(TR){
+      const _upkeepSilenced=WEATHER_UPKEEP_GATED&&field.wSup;
+      if(field.weather&&!_upkeepSilenced)TR.wx(field.weather,null,null,true);
+      else if(_wx0&&!field.weather)TR.wxNone();
+    }
     /* ROADMAP #242 -- EVERY OTHER FIELD AND SIDE CLOCK USED TO BE SPENT HERE, ABOVE THE WALK.
      *
      * Tailwind, the three screens, Safeguard, the three rooms, Gravity and the terrain all ticked in
