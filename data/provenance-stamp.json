@@ -178,7 +178,7 @@
   "void_files": [
     "exploitability.json"
   ],
-  "verified": 4,
+  "verified": 3,
   "graph_files": [
     "_dmg-inverted.json",
     "_pair-pilot.json",
@@ -906,5 +906,5 @@
       ]
     }
   ],
-  "generated": "2026-08-24T03:16:45.162Z"
+  "generated": "2026-08-24T04:08:29.274Z"
 }

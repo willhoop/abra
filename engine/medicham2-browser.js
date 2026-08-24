@@ -1209,6 +1209,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * unreachable and one of the two is silently not running. */
   afterHitFieldFlushed: 0, inMoveUpdateFlushed: 0,
   forcedBerryEaten: 0, forcedBerryEffectUnexpressed: 0, teatimeFieldPass: 0, stuffCheeksNoBerry: 0,
+  /* 2026-08-23 -- a berry REFUSED because an Unnerve body was standing opposite. It counts the
+     REFUSAL and not the walk, so it cannot rise merely because the reader was called; a zero on a
+     corpus with an Unnerve carrier and a berry holder in it means the gate is unreachable. It rises
+     on `dmgRange`'s pure read as well as on the consumption sites, so it is NOT a count of berries
+     saved -- see berryRefusedByFoe's header. */
+  berryRefusedByUnnerve: 0,
   volRestartRefused: 0, volSealNoLastMove: 0,
   /* ROADMAP #241(3) -- `null` MEANS "HANDLED, SAY NOTHING"; `false` MEANS "FAILED, ANNOUNCE IT", and
    * this engine had no way to hold the difference. See `VOLRES` beside applyMoveVolatile for the
@@ -1628,6 +1634,10 @@ const MEDFAILS = { encoreAction: 0,
   /* ROADMAP #352 -- set for the whole run when MEDI_WSUP_STALE=1 puts the once-a-turn `field.wSup`
      cache back, so a suppressor that leaves mid-turn goes on suppressing until the next turn. */
   wSupStaleRestored: 0,
+  /* 2026-08-23 -- set for the whole run when MEDI_UNNERVE_PARTIAL=1 puts Unnerve back on two of the
+     five berry sites, so the cure berry, the instantaneous confusion cure and the resist berry are
+     eaten under an Unnerve body again. */
+  unnervePartialRestored: 0,
   /* ROADMAP #359 -- `readsTargetItem.announcesItem` named an event this site does not emit. Expected
      to stay at ZERO: the one carrier writes `-activate`. */
   targetItemEventUnknown: 0, targetItemEventUnknownFirst: '',
@@ -6470,8 +6480,15 @@ function eatHeldBerry(m){
   MEDSEEN.forcedBerryEaten++;
   return true;
 }
-function berryCureUpdate(m){
+function berryCureUpdate(m,foes){
   if(!m||m.fainted||m.curHP<=0)return;
+  /* 2026-08-23 -- UNNERVE, AND IT WAS ABSENT FROM THIS FUNCTION ENTIRELY. Lum, Chesto, Cheri, Pecha,
+   * Rawst, Aspear and Persim are all `onUpdate` -> `eatItem()` in the authority, i.e. the identical
+   * road the pinch berry takes, and this engine cured through all four arms of the departure knob.
+   * The gate wraps the WHOLE function for the pinch berry's own reason: an unnerved berry is not
+   * consumed and is still there afterwards, so the status comes back off the moment Unnerve leaves.
+   * `foes` is optional here because the residual pre-walk calls this with the body alone. */
+  if(berryRefusedByFoeNew(m,foes))return;
   /* ROADMAP #92 -- A BERRY CAN BE SPENT ON A VOLATILE, NOT ONLY ON A STATUS. Lum's `onUpdate` fires on
    * `pokemon.status || pokemon.volatiles['confusion']` and Persim's fires on the volatile ALONE -- it
    * has no status handler at all, which is why the derivation gave it no cure tag until `curesVolatile`
@@ -6485,6 +6502,66 @@ function berryCureUpdate(m){
   m.status='';m.toxTurns=0;
   consumeBerry(m,m.item);        // ROADMAP #128 -- the one consumption site
 }
+/* ===== 2026-08-23 -- UNNERVE IS ONE READER, AND IT REACHED TWO OF THE FIVE PLACES A BERRY IS EATEN =
+ *
+ * THE AUTHORITY RAISES `TryEatItem` IN EXACTLY ONE PLACE: `Pokemon#eatItem`, sim/pokemon.ts:1785-1787
+ *
+ *     if (this.battle.runEvent('UseItem', this, null, null, item) &&
+ *         (force || this.battle.runEvent('TryEatItem', this, null, null, item))) { ... }
+ *
+ * and Unnerve's whole implementation is `onFoeTryEatItem() { return !this.effectState.unnerved; }`
+ * (data/abilities.ts:5260-5262, which data/mods/champions/abilities.ts does not override -- grep for
+ * `unnerve` there returns nothing). So EVERY un-forced `eatItem()` in the game is refused while an
+ * Unnerve body is standing opposite, not merely the pinch berry.
+ *
+ * THIS ENGINE HAD THE GATE WRITTEN OUT TWICE, ON THE TWO `onUpdate` BERRIES, AND NOWHERE ELSE. Two
+ * copies of one fact is the FACTS-ARE-GLOBAL breach CLAUDE.md names, and the missing three were the
+ * expensive half. Measured against the official simulator before this was written, one board each:
+ *
+ *   RESIST BERRY   Gallade Close Combat into a Chople Berry Tyranitar, an Unnerve body opposite.
+ *                  Authority: no `-enditem`, no halving, `|-damage|p2a: Tyranitar|0 fnt`.
+ *                  This engine: berry eaten, damage halved, SURVIVES AT 19/175. A KO either way is
+ *                  what makes this board-material rather than narration.
+ *   CURE BERRY     a paralysed Lum Berry holder with an Unnerve body opposite. Authority holds the
+ *                  `par` for as long as Unnerve stands and cures it the moment Unnerve leaves; this
+ *                  engine cured it immediately on all four arms -- an unwired knob.
+ *   CONFUSION      the same berry taken by `applyConfusion`'s own instantaneous read.
+ *
+ * WHAT IS DELIBERATELY *NOT* UNDER THIS GATE, derived rather than assumed. `eatItem(TRUE)` skips the
+ * event, and the two callers in this format are STUFF CHEEKS (data/moves.ts:18263) and TEATIME
+ * (:19054); CUD CHEW never calls `eatItem` at all (data/abilities.ts:743-752 raises `Eat` directly)
+ * and HARVEST only calls `setItem`. `eatHeldBerry` is this engine's forced path and serves exactly
+ * those, so it stays ungated -- gating it would be a NEW wrong answer bought with a right one.
+ *
+ * MENTAL HERB IS THE OVER-MATCH THIS GUARDS AGAINST AND IT WAS CHECKED FIRST. It carries
+ * `curesVolatile` like Lum does and is NOT a berry (`data/tags.json` items.mentalherb has no
+ * `isBerry` tag, and its handler is `useItem`, not `eatItem`), so the `isBerry` clause below is
+ * load-bearing rather than tidy. Membership is the artifact's: `blocksBerries` resolves to exactly
+ * `["unnerve"]` today and a member added later is honoured with no edit here.
+ *
+ * `foes` IS OPTIONAL AND THE FALLBACK IS NOT SILENT-BY-DESIGN: `liveFoesOf` answers from the body's
+ * own side object, which battleInit stamps on every party member, and it reads `S.actA`/`S.actB` --
+ * the SAME arrays the turn loop holds by reference. A body with no battle behind it has no foes and
+ * no berry to refuse, which is the correct answer rather than a default. */
+function berryRefusedByFoe(m,foes){
+  if(!m||!m.item)return false;
+  if(!TAGS.has('item',m.item,'isBerry'))return false;
+  const _f=(foes&&foes.length!=null)?foes:liveFoesOf(m);
+  if(!_f||!_f.length)return false;
+  for(const x of _f){
+    if(!x||x.fainted||!(x.curHP>0))continue;
+    if(TAGS.param('ability',x.ability,'blocksBerries')){MEDSEEN.berryRefusedByUnnerve++;return true;}
+  }
+  return false;
+}
+/* The three sites that landed 2026-08-23 come through here so MEDI_UNNERVE_PARTIAL=1 can put the
+ * engine back to gating only the two `onUpdate` berries. The two OLD sites call `berryRefusedByFoe`
+ * directly -- they are the behaviour being restored, not the defect, exactly as the top-of-turn
+ * `wSup` site is not under MEDI_WSUP_STALE. */
+function berryRefusedByFoeNew(m,foes){
+  if(UNNERVE_PARTIAL){MEDFAILS.unnervePartialRestored=1;return false;}
+  return berryRefusedByFoe(m,foes);
+}
 function berryPinchUpdate(m,foes){
   if(!m||m.fainted||m.curHP<=0)return;
   const _ht=TAGS.param('item',m.item,'healsAtThreshold');
@@ -6497,7 +6574,7 @@ function berryPinchUpdate(m,foes){
   if(healBlocked(m))return;
   /* UNNERVE stops the OTHER SIDE eating at all -- the berry is not consumed and is still there
    * afterwards, which is why the gate wraps the whole block and not only the HP line. */
-  if(foes&&foes.some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksBerries')))return;
+  if(berryRefusedByFoe(m,foes))return;
   const _fr=s=>{const p=String(s).match(/(\d+)\s*\/\s*(\d+)/);return p?+p[1]/+p[2]:0;};
   /* ROADMAP #128 -- GLUTTONY MOVES THE LINE, AND THE NUMBER IS THE BERRY'S. The ability only ARMS it
    * (`lowersBerryThreshold`); the fraction lives in each pinch berry's own `onUpdate`, which is one
@@ -6548,7 +6625,7 @@ function berryPPUpdate(m,foes){
   if(!_rp||!(+_rp.amount>0))return;
   const mv=(m.moves||[]);
   if(!mv.length)return;
-  if(foes&&foes.some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksBerries')))return;
+  if(berryRefusedByFoe(m,foes))return;
   /* THE TRIGGER IS AN EMPTY SLOT, and it is read off the tag (`eatsWhenASlotEmpties`) rather than
    * assumed -- a berry that ate whenever ANY slot was below max would be gone on turn two. */
   let pick=null;
@@ -8577,8 +8654,17 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    *
    * Chilan is the exception the tag already separates: it halves Normal with no effectiveness
    * requirement, so the condition comes from requiresSuperEffective rather than being assumed. */
+  /* 2026-08-23 -- AND UNNERVE REFUSES THE WHOLE BERRY, SO THE HALVE NEVER HAPPENS. Every member of
+   * the family is `onSourceModifyDamage { if (target.eatItem()) { ... return this.chainModify(0.5) } }`
+   * -- the halve is INSIDE the `eatItem()`, so a refused berry weakens nothing. Measured on the
+   * authority before this was written: Close Combat into a Chople Berry Tyranitar reads
+   * `|-damage|p2a: Tyranitar|0 fnt` with an Unnerve body opposite and `19/175` with an Intimidate one.
+   * ASKED ONLY AFTER THE BERRY HAS ALREADY MATCHED, because this function is a hot pure read called
+   * dozens of times a turn and the foe walk must not be on its default path. A body with no battle
+   * behind it (the damage differential builds exactly those) has no foes and no refusal, which is the
+   * right answer and leaves that instrument untouched. */
   const _rb=TAGS.param('item',def.item,'resistBerry');
-  if(_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1))MODMUL((_rb.mult||0.5));
+  if(_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1)&&!berryRefusedByFoeNew(def))MODMUL((_rb.mult||0.5));
   /* ROADMAP #123 -- EARTHQUAKE INTO A DIGGING BODY IS DOUBLE, and this is the stage it happens at:
    * Dig, Dive and Fly all declare `onSourceModifyDamage`, which is the chain `mod` is spent on. Bounce
    * declares the SAME pair of moves under `onSourceBasePower` and is applied in the base-power relay
@@ -9308,6 +9394,16 @@ const WEATHER_UPKEEP_GATED=(typeof process!=='undefined'&&process.env&&process.e
  * line and one is HP, and a knob that restored both could not tell which half a red arm was about.
  * Any run carrying it also carries a non-zero `MEDFAILS.wSupStaleRestored`. */
 const WSUP_STALE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_WSUP_STALE==='1');
+/* 2026-08-23 -- MEDI_UNNERVE_PARTIAL=1 PUTS UNNERVE BACK ON TWO OF THE FIVE BERRY SITES, i.e. the
+ * pinch berry and Leppa keep their refusal and the cure berry, the instantaneous confusion cure and
+ * the resist berry go back to being eaten under Unnerve. It exists so
+ * `tests/test-mechanics.js item/berryRefusedByUnnerve` and `item/resistBerryRefusedByUnnerve` can be
+ * shown MISSING on demand without swapping a file. The two OLD sites are deliberately NOT under it --
+ * they are the behaviour being restored, not the defect, the same way the top-of-turn `wSup` site is
+ * not under MEDI_WSUP_STALE. Any run carrying it also carries a non-zero
+ * `MEDFAILS.unnervePartialRestored`, and that flag is set on the KNOB rather than on a refusal that
+ * actually changed an answer, so a run with no Unnerve body in it still says the knob was on. */
+const UNNERVE_PARTIAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_UNNERVE_PARTIAL==='1');
 function sleepDurationDraw(){
   const r=medRng();
   const u=(typeof r==='function')?r():0.5;
@@ -12254,8 +12350,14 @@ function applyConfusion(t,src,field,viaSecondary){
   /* THE BERRY IS AN `onUpdate` AND FIRES BEFORE THE BODY EVER ACTS, which is why it is here and not
    * only in the update pass: a Lum holder confused by a move it was aimed at must lose the volatile
    * inside the same turn, not at the next boundary. The update pass calls the same reader, so a
-   * confusion arriving by any other route is caught there. */
-  itemCuresVolatile(t,'confusion');
+   * confusion arriving by any other route is caught there.
+   *
+   * 2026-08-23 -- AND UNNERVE REFUSES IT HERE TOO. This is the same `eatItem()` the update pass makes
+   * and it took no gate at all, so a Lum holder confused while an Unnerve body stood opposite lost
+   * the volatile instantly and the update pass -- now gated -- never saw the berry. The foes are read
+   * off the body rather than threaded through five `applyConfusion` call sites; see
+   * berryRefusedByFoe's header for why that read is exact and not a fallback. */
+  if(!berryRefusedByFoeNew(t))itemCuresVolatile(t,'confusion');
   return true;
 }
 /* WIRE 146 -- APPLYING A MOVE'S VOLATILE IS ONE IMPLEMENTATION, AND UNTIL NOW IT WAS ONE *SITE*.
@@ -16350,7 +16452,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(TR)TR.vend(_m,_v,_r.pb.endsSilently?'[silent]':undefined);
         }
       }
-      for(const e of _all){berryCureUpdate(e.m);berryPinchUpdate(e.m,e.s==='A'?actB:actA);berryPPUpdate(e.m,e.s==='A'?actB:actA);}
+      for(const e of _all){berryCureUpdate(e.m,e.s==='A'?actB:actA);berryPinchUpdate(e.m,e.s==='A'?actB:actA);berryPPUpdate(e.m,e.s==='A'?actB:actA);}
       /* ROADMAP #81 WIRE 11 -- `onAnyAfterMove` AND `onAnySwitchIn` FOR THE MID-TURN CASES, both of
        * White Herb's remaining triggers, landed on the pass that already runs after every action.
        * This is where the Unburden half becomes real: `_updateAll` runs BEFORE each action and the
@@ -22637,8 +22739,11 @@ function battleTurn(S,rng,actsForA,actsForB){
          * HERE, before `tg.curHP -= dmg`; Showdown strips from `onAfterHit`, which is exactly what its
          * name says -- after. `_takeItem` below is that call site, and this comment is left at the old
          * one because the ORDER is the whole wire. */
+        /* 2026-08-23 -- THE SAME UNNERVE REFUSAL THE HALVE ABOVE TAKES. The two must be asked with one
+         * reader or a run can halve the damage and keep the berry, or spend a berry that weakened
+         * nothing. See berryRefusedByFoe's header. */
         const _rbHit=TAGS.param('item',tg.item,'resistBerry');
-        if(_rbHit&&_rbHit.onType===mv.t&&(!_rbHit.requiresSuperEffective||d.eff>1)){
+        if(_rbHit&&_rbHit.onType===mv.t&&(!_rbHit.requiresSuperEffective||d.eff>1)&&!berryRefusedByFoeNew(tg)){
           /* ROADMAP #81 WIRE 7 -- A RESIST BERRY WRITES TWO LINES, NOT ONE. Every member of the family
            * has the same body: `if (target.eatItem()) { this.add('-enditem', target, this.effect,
            * '[weaken]'); return this.chainModify(0.5); }` -- so `eatItem()` writes the `[eat]` and the

@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  664/664 probed mechanics live, 0 missing   (census 2026-08-23 22:59)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-23 23:02)
+  666/666 probed mechanics live, 0 missing   (census 2026-08-23 23:43)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-23 23:55)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,101 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is d461c22ec2e5 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 62e4fdfab727 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 23:16_
+_stamped 2026-08-24 00:08_
 
 <!-- /GENERATED -->
+
+## UNNERVE REACHED TWO OF THE FIVE PLACES A BERRY IS EATEN — CENSUS 664 → 666, BOARD-MATERIAL UNMOVED AT 24. 2026-08-23.
+
+Full account: [`docs/_reports/2026-08-23-suppression-ends.md`](_reports/2026-08-23-suppression-ends.md).
+Probes: `tests/test-mechanics.js` **`item/curesStatus`** and **`item/resistBerry`**, both under knob
+**`MEDI_UNNERVE_PARTIAL=1`**.
+
+**WILL'S RULE HOLDS AND NO PART OF IT IS REFUTED.** *"When an ability that suppresses things like Cloud
+Nine switches out, there is a moment when whatever it suppressed ends... also applies if the relevant
+mon dies."* Derived from the format rather than taken: the class is **TWO members with legal carriers**
+— `suppressWeather` → **Cloud Nine** (2 carriers, landed the same day) and `onFoeTryEatItem` →
+**Unnerve** (6 carriers: Arbok, Aerodactyl, Houndoom, Tyranitar, Pyroar, Corviknight).
+
+**FILTER BY CARRIER, NOT BY ENTITY.** **Neutralizing Gas reads `isNonstandard: null` — a LEGAL ability
+— and has ZERO legal carriers**, so it cannot occur in this regulation. Air Lock and the two As One
+formes are the same. An `isNonstandard` check alone would have sent this pass to implement a mechanic
+that cannot happen. Recorded here so an entity sweep does not re-add it.
+
+**THE DEFECT WAS BIGGER THAN THE RESUMPTION HALF, AND THAT IS THE FINDING.** The authority raises
+`TryEatItem` in exactly one place — `Pokemon#eatItem`, `sim/pokemon.ts:1785-1787` — so **every**
+un-forced berry consumption is refused while an Unnerve body stands opposite. This engine had the
+refusal written out **twice, as an inline expression, on the two `onUpdate` berries and nowhere else**.
+The CURE berry, the instantaneous confusion cure and the RESIST berry were all eaten under Unnerve, so
+nothing was ever held back and nothing could resume. Two copies of one fact is the FACTS-ARE-GLOBAL
+breach CLAUDE.md names; the missing three were the expensive half.
+
+**THREE KNOBS THAT MOVED THE AUTHORITY AND MOVED US BY ZERO**, each staged in the official simulator
+before anything was written:
+
+```
+CURE BERRY   a paralysed Lum holder, Unnerve opposite
+  authority  STAYS  t1 par/lumberry  t2 par/lumberry
+             LEAVES t1 par/lumberry  t2 |switch| |-enditem|Lum Berry|[eat] |-curestatus|par
+  ours       cured on ALL FOUR ARMS
+CONFUSION    Confuse Ray at a Lum holder, Unnerve opposite
+  authority  |-start|confusion  |-activate|confusion   (berry NOT spent)
+  ours       the Lum was spent on BOTH arms
+RESIST BERRY Close Combat into a Chople Berry Tyranitar
+  authority  Unnerve -> |-damage|p2a: Tyranitar|0 fnt   control -> |-enditem|[eat] [weaken] 19/175
+  ours       halved and survived on BOTH arms
+```
+
+**The resist berry is board-material: it is a KO either way.**
+
+**IT FIRES AT THAT MOMENT, NOT AT THE NEXT BOUNDARY — AND THAT HALF WAS ALREADY RIGHT HERE.** The
+authority writes the eat immediately below the `|switch|` line (`runAction`'s tail Update,
+`sim/battle.ts:2842`) and, on a faint, ABOVE the `|faint|` line (`battle-actions.ts:967`, the in-move
+Update this engine landed two batches ago). Both are reproduced exactly, and the consequence is
+visible: with the suppressor STAYING the berry holder dies to the next action of the same turn; with it
+LEAVING the berry is spent in front of that hit and the body lives at 28/170.
+
+**ONE READER, AND `isBerry` IS LOAD-BEARING RATHER THAN TIDY.** Mental Herb carries `curesVolatile`
+exactly as Lum does and is **not** a berry — its handler is `useItem`, not `eatItem` — so a gate keyed
+on the cure tag would have blocked it under Unnerve. Membership is `blocksBerries`, which resolves to
+exactly `["unnerve"]` today and is **printed in both probes' detail on every run**.
+`eatHeldBerry` stays deliberately UNGATED: Teatime and Stuff Cheeks pass `force` (`data/moves.ts:19054`
+and `:18263`) and Cud Chew and Harvest never call `eatItem` at all.
+
+### THE NUMBERS
+
+```
+census                        664 -> 666 live, 666 probed, 0 missing, 0 hollow, 0 threw
+                              under MEDI_UNNERVE_PARTIAL=1: 664 live, 2 missing (the knob is surgical)
+damage differential           0 of 6000 at all 16 corners, exit 0
+whole-game, arm middle        raw parted 48 -> 48;  undeclared 43/961 = 4.5% -> 4.5%
+                              BOARD-MATERIAL 23 causes / 24 games -> UNMOVED
+                              NARRATION-ONLY 22 / 24 -> unmoved;  void 2 -> 2
+                              per-seed: 0 gained, 0 stopped, 0 changed cause
+```
+
+**Which scoreboard, SAID BEFORE THE RUN.** Joint sheet exposure in `data/team-pool-frozen` (13,214
+games, derived, not quoted): **8.37%** Unnerve-vs-a-resist-berry, **0.24%** Unnerve-vs-a-cure-berry. So
+the LAB was expected to move and the POOL was expected to sit still or move slightly. It moved zero,
+and the load-bearing claim is that **board-material did not RISE**.
+
+### THE HAND LIST
+
+Nothing left it and nothing joined it — this pass closed a defect that was never on it, found by
+deriving the class rather than by reading the list.
+
+**NOT CLAIMED, and named rather than missed:** **Gastro Acid** is legal AND reachable (5 legal direct
+learners) and is the same class through a different door — suppression REMOVED mid-action rather than
+walking away. Unstaged, unmeasured, no register row. Same for Skill Swap / Worry Seed / Entrainment
+taking a suppressor's ability, and for **Magic Room**, which suppresses items on a timer. And
+`residualUpdatePass` does not call `berryCureUpdate`, so a status applied BY the residual (Yawn) would
+be cured a boundary late — noticed while reading, **not measured**, deliberately not touched.
 
 ## CLOUD NINE — THE UPKEEP LINE IS EXEMPT FROM SUPPRESSION AND THE FLAG IS LIVE. #352 CLOSES; NARRATION 29 → 24, BOARD-MATERIAL UNMOVED AT 24. 2026-08-23.
 

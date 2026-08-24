@@ -21,6 +21,50 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## UNNERVE REACHED TWO OF THE FIVE PLACES A BERRY IS EATEN. CENSUS 664 → 666, BOARD-MATERIAL UNMOVED AT 24. 2026-08-23 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-23-suppression-ends.md`](_reports/2026-08-23-suppression-ends.md).
+Ledger section: `docs/ENGINE.md`, *"UNNERVE REACHED TWO OF THE FIVE PLACES A BERRY IS EATEN"*.
+
+**VERDICT: WILL'S SUPPRESSION RULE HOLDS IN FULL AND THE CLASS IS TWO MEMBERS.** Derived and
+**carrier-filtered**: `suppressWeather` → Cloud Nine (2 legal carriers, landed earlier the same day),
+`onFoeTryEatItem` → **Unnerve** (6). **Neutralizing Gas is a LEGAL ability with ZERO legal carriers** —
+`isNonstandard` alone would have sent this pass to implement a mechanic that cannot occur.
+
+**THE DEFECT WAS BIGGER THAN THE RESUMPTION HALF.** The authority raises `TryEatItem` in exactly one
+place (`sim/pokemon.ts:1785-1787`), so every un-forced `eatItem()` is refused under Unnerve. This engine
+had the refusal written out **twice, inline, on the two `onUpdate` berries and nowhere else** — so the
+cure berry, the instantaneous confusion cure and the **resist berry** were eaten under Unnerve and
+nothing was ever held back to resume. **The resist berry is board-material: Close Combat into a Chople
+Berry Tyranitar reads `0 fnt` on the authority and `19/175` here.**
+
+**AND THE "AT THAT MOMENT" HALF WAS ALREADY RIGHT**, on both departure paths — the eat sits below the
+`|switch|` line and above the `|faint|` line in both engines, which is the in-move Update landed two
+batches ago. Staged consequence: suppressor STAYS → the berry holder dies to the next action of the
+same turn; suppressor LEAVES → it lives at 28/170.
+
+**One reader (`berryRefusedByFoe`), keyed on `isBerry` + `blocksBerries`.** `isBerry` is load-bearing:
+Mental Herb carries `curesVolatile` like Lum and is not a berry. `eatHeldBerry` stays UNGATED because
+Teatime and Stuff Cheeks pass `force` and Cud Chew and Harvest never call `eatItem`.
+
+**Probes:** `item/curesStatus` and `item/resistBerry`, knob `MEDI_UNNERVE_PARTIAL=1`, shown RED first
+(664 live / 2 missing under the knob, and the other 664 stay live — surgical).
+
+**Numbers:** census **664 → 666** live / 666 probed / 0 missing / 0 hollow / 0 threw, ratchets held.
+Damage differential **0 of 6000 on all 16 corners**. Whole-game arm `middle`, release `6875293c5159`,
+961 games: raw parted **48 → 48**, undeclared **43/961 = 4.5%**, **board-material 23 causes / 24 games
+UNMOVED**, narration 22 / 24 unmoved, per-seed 0 gained / 0 stopped / 0 changed. **Said before the run:**
+joint sheet exposure in the frozen pool is 8.37% (resist berry) and 0.24% (cure berry), so the lab was
+the instrument expected to see this. Roster all three stages 0 DIFFER / 0 DID-NOT-FIRE, distributions
+identical.
+
+**OWED, NOT RUN:** Gastro Acid (legal, 5 legal learners — the same class through a different door),
+Skill Swap / Worry Seed / Entrainment on a suppressor, Magic Room, and `residualUpdatePass` not calling
+`berryCureUpdate` (a Yawn-applied status would cure a boundary late — noticed, not measured).
+`quarantine.js` and `interaction_matrix.js` not run.
+
+---
+
 ## CLOUD NINE — #352 CLOSES ON BOTH CLAUSES. CENSUS 662 → 664, NARRATION 29 → 24, BOARD-MATERIAL UNMOVED AT 24. 2026-08-23 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-23-cloud-nine.md`](_reports/2026-08-23-cloud-nine.md).

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-24T03:04:50.311Z",
+  "generated": "2026-08-24T04:02:15.151Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:6a6b87eafc6a/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -113,7 +113,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 93.8,
+  "elapsed_s": 219.7,
   "planted_divergence_proof": [
     {
       "what": "a wrong FIELD on the last agreeing line",
@@ -917,7 +917,7 @@
           "case": {
             "seed": "gen9championsvgc2026regmbbo3-2661597319 vs gen9championsvgc2026regmbbo3-2661573110",
             "config": "omit-protect",
-            "engine_release": "a7839b20e7d5",
+            "engine_release": "6875293c5159",
             "team_pool_digest": "0d103fb9fa87",
             "turn": 1,
             "leads": {
@@ -957,7 +957,7 @@
           "case": {
             "seed": "gen9championsvgc2026regmbbo3-2659015200 vs gen9championsvgc2026regmbbo3-2659004938",
             "config": "omit-spread",
-            "engine_release": "a7839b20e7d5",
+            "engine_release": "6875293c5159",
             "team_pool_digest": "0d103fb9fa87",
             "turn": 1,
             "leads": {
@@ -1027,7 +1027,7 @@
           "case": {
             "seed": "gen9championsvgc2026regmbbo3-2656847681 vs gen9championsvgc2026regmbbo3-2656808520",
             "config": "pair-redirect-priority",
-            "engine_release": "a7839b20e7d5",
+            "engine_release": "6875293c5159",
             "team_pool_digest": "0d103fb9fa87",
             "turn": 1,
             "leads": {
@@ -16501,7 +16501,7 @@
     "input_digest": "9446a684709d",
     "input_rows": 643,
     "input_generated": "2026-08-23T09:53:56.393Z",
-    "input_live_digest": "d461c22ec2e5",
+    "input_live_digest": "62e4fdfab727",
     "pinned": true,
     "matches_live": false,
     "selects_from": 580,
@@ -16513,12 +16513,12 @@
     "team_store_pinned_to": "data\\team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "a7839b20e7d5",
-  "engine_release_cut": "2026-08-24T03:03:03.094Z",
-  "engine_release_cuts": 1,
+  "engine_release": "6875293c5159",
+  "engine_release_cut": "2026-08-24T03:57:55.480Z",
+  "engine_release_cuts": 2,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "3d0e205eac7e",
+    "engine/medicham2-browser.js": "8eceddc301f4",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "a9de35b3808d",
     "engine/position_features.js": "4850adf1a2ab",

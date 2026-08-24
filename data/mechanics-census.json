@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-24T02:59:58.729Z",
+  "generated": "2026-08-24T03:43:40.107Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 664,
-  "live": 664,
+  "probed": 666,
+  "live": 666,
   "missing": 0,
-  "armed": 664,
+  "armed": 666,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3393,7 +3393,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6654,6 +6654,26 @@
       "label": "a hazard laid or swept by a hit is announced ABOVE the |faint| of the body that hit killed",
       "live": true,
       "detail": "STONE AXE into a 1 HP body: [\"|-sidestart|p2:|move:stealthrock\",\"|faint|p2a:snorlax\"] — the -sidestart is at 0 and the |faint| at 1 (must be 0 then 1). RAPID SPIN with Stealth Rock on its OWN side: [\"|-sideend|p1:|move:stealthrock\",\"|faint|p2a:snorlax\"] — -sideend at 0, |faint| at 1. CONTROL, X-Scissor off the same Kleavor onto the same body: [\"|faint|p2a:snorlax\"] — side line index -1 (must be -1), |faint| at 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "curesStatus",
+      "label": "Unnerve holds a CURE berry back, and it is eaten the moment the Unnerve body leaves",
+      "live": true,
+      "detail": "blocksBerries carriers [\"unnerve\"]; a PARALYSED Lum Berry holder. unnerve STAYS t1 par/lumberry t2 par/lumberry (both must be par/lumberry); unnerve LEAVES on turn 2 t1 par/lumberry (must still be held) t2 /- (must be cured and spent); no suppressor at all t1 /- t2 /-",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "resistBerry",
+      "label": "Unnerve refuses a RESIST berry, so the halve never happens and the hit kills",
+      "live": true,
+      "detail": "Brick Break into a Chople Berry Tyranitar. No berry: 175 HP. Berry, no suppressor: 156 HP, item - (must be less, and spent). Berry with unnerve opposite: 175 HP, item chopleberry (must equal the no-berry price, and the berry must still be there)",
       "hollow": false,
       "armed": true,
       "directCall": false

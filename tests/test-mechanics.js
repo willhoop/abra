@@ -24280,6 +24280,99 @@ probe('move', 'hazardOnHit',
                  + ' (must be -1), |faint| at ' + none.fnt };
 });
 
+/* ---- 2026-08-23 — WHEN A SUPPRESSOR LEAVES, WHAT IT SUPPRESSED RESUMES AT THAT MOMENT ------------
+ *
+ * Will's rule, and it is the SECOND member of a class whose first member (Cloud Nine and the weather)
+ * landed the same day. The class was derived from the format and filtered BY CARRIER, not by entity:
+ * `suppressWeather` -> Cloud Nine (2 legal carriers, Altaria and Drampa) and Air Lock (ZERO);
+ * `suppressAbilities` -> Neutralizing Gas, a legal ability with ZERO legal carriers, which is why it
+ * is not staged here and must not be re-added off an entity sweep; `onFoeTryEatItem` -> UNNERVE, six
+ * legal carriers (Arbok, Aerodactyl, Houndoom, Tyranitar, Pyroar, Corviknight). Shadow Tag, Armor
+ * Tail and Queenly Majesty suppress something with nothing pending behind it.
+ *
+ * BOTH HALVES OF THE RULE ARE ASSERTED SEPARATELY, because they are two different defects wearing one
+ * sentence: does the suppression HOLD while the carrier stands, and does the held-back effect FIRE
+ * when it goes. An engine that never suppressed at all would satisfy the second half trivially, which
+ * is exactly the state this engine was in for the cure berry.
+ *
+ * THE DEPARTURE IS THE KNOB, NOT THE ABILITY. A "Unnerve vs no ability" pair would have been green on
+ * the broken engine for the pinch berry and red for the wrong reason on the cure berry. The control is
+ * the IDENTICAL board on which the carrier STAYS, so the two arms differ by exactly the switch.
+ *
+ * MEASURED IN THE OFFICIAL SIMULATOR FIRST, both arms, before either probe was written:
+ *   Lum:   Unnerve standing -> `par` held on turns 1 AND 2, item `lumberry`; Unnerve switches out on
+ *          turn 2 -> `|-enditem|p2a: Milotic|Lum Berry|[eat]` immediately BELOW the `|switch|` line
+ *          and above every other action of that turn. Control (Sand Stream) cures on turn 1.
+ *   Chople: Close Combat into a Chople Tyranitar reads `|-damage|p2a: Tyranitar|0 fnt` with an Unnerve
+ *          body opposite and `19/175` with an Intimidate one. */
+probe('item', 'curesStatus',
+      'Unnerve holds a CURE berry back, and it is eaten the moment the Unnerve body leaves', () => {
+  const TAGS = require(D('engine', 'tags.js'));
+  const blockers = TAGS.withTag('ability', 'blocksBerries').slice().sort();
+  if (!blockers.length) return { works: false, detail: 'no ability carries blocksBerries' };
+  const run = (ab, leave) => {
+    const tt = bare('tyranitar'), inc = bare('incineroar'), gal = bare('gallade');
+    const milo = bare('milotic'), chomp = bare('garchomp');
+    tt.ability = ab; milo.item = 'lumberry';
+    const S = M.battleInit([tt, inc, gal], [milo, chomp], { seeded: true });
+    milo.status = 'par';                       // set AFTER the entry pass, so nothing eats it early
+    M.battleTurn(S, rng5, PASS2(tt, inc), PASS2(milo, chomp));
+    const t1 = milo.status + '/' + (milo.item || '-');
+    M.battleTurn(S, rng5,
+      new Map([[tt, leave ? { kind: 'switch', to: gal } : { kind: 'pass' }], [inc, { kind: 'pass' }]]),
+      PASS2(milo, chomp));
+    return { t1, t2: milo.status + '/' + (milo.item || '-') };
+  };
+  const control = run(blockers[0], false);     // the carrier STAYS — the knob cleared
+  const test = run(blockers[0], true);         // the carrier LEAVES — the subject
+  const noBlock = run('none', true);           // no suppressor at all — the ability control
+  return { works: control.t1 === 'par/lumberry' && control.t2 === 'par/lumberry'
+                  && test.t1 === 'par/lumberry' && test.t2 === '/-'
+                  && noBlock.t1 === '/-' && noBlock.t2 === '/-',
+           arms: { control, test },
+           detail: `blocksBerries carriers ${JSON.stringify(blockers)}; a PARALYSED Lum Berry holder. `
+                 + `${blockers[0]} STAYS t1 ${control.t1} t2 ${control.t2} (both must be par/lumberry); `
+                 + `${blockers[0]} LEAVES on turn 2 t1 ${test.t1} (must still be held) t2 ${test.t2} `
+                 + `(must be cured and spent); no suppressor at all t1 ${noBlock.t1} t2 ${noBlock.t2}` };
+});
+
+/* THE SECOND HALF IS A KO, WHICH IS WHY IT IS A SEPARATE ROW. `resistBerry` is 18,000-odd sheet
+ * entries against the cure family's ~410, and every member's handler is
+ * `onSourceModifyDamage { if (target.eatItem()) { ...; return this.chainModify(0.5); } }` — the halve
+ * is INSIDE the eat, so a refused berry weakens nothing and the body dies.
+ *
+ * THE ARMS ARE THE HP, NOT THE ITEM. A probe that only read `item` would pass an engine that kept the
+ * berry and halved the damage anyway, which is the one wrong answer this fix could have produced:
+ * `dmgRange` applies the halve as a pure read and the consumption happens 14,000 lines away. Both are
+ * asserted, and the no-berry arm pins the unhalved number so "halved" is measured and not assumed. */
+probe('item', 'resistBerry',
+      'Unnerve refuses a RESIST berry, so the halve never happens and the hit kills', () => {
+  const TAGS = require(D('engine', 'tags.js'));
+  const blockers = TAGS.withTag('ability', 'blocksBerries').slice().sort();
+  if (!blockers.length) return { works: false, detail: 'no ability carries blocksBerries' };
+  const run = (ab, item) => {
+    const tt = bare('tyranitar'), gal = bare('gallade');
+    const vic = bare('tyranitar'), chomp = bare('garchomp');
+    tt.ability = ab; vic.item = item;
+    const S = M.battleInit([tt, gal], [vic, chomp], { seeded: true });
+    const hp0 = vic.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[tt, { kind: 'pass' }], [gal, M.playerAction(gal, 'brickbreak', vic, S.field)]]),
+      PASS2(vic, chomp));
+    return { lost: hp0 - vic.curHP, item: vic.item || '-' };
+  };
+  const bare0 = run('none', '');                 // no berry at all — the unhalved price
+  const control = run('none', 'chopleberry');    // berry, no suppressor — it must halve and be spent
+  const test = run(blockers[0], 'chopleberry');  // berry, suppressor opposite — refused
+  return { works: control.lost < bare0.lost && control.item === '-'
+                  && test.lost === bare0.lost && test.item === 'chopleberry',
+           arms: { control, test },
+           detail: `Brick Break into a Chople Berry Tyranitar. No berry: ${bare0.lost} HP. Berry, no `
+                 + `suppressor: ${control.lost} HP, item ${control.item} (must be less, and spent). `
+                 + `Berry with ${blockers[0]} opposite: ${test.lost} HP, item ${test.item} (must equal `
+                 + `the no-berry price, and the berry must still be there)` };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');
