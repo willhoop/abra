@@ -12,6 +12,39 @@ silently rewritten; what changed and why is stated.
 
 ## [5.105.0] — 2026-08-23
 
+### Changed
+- **THE REVIEWED-AND-FINE MARK IS NOW PER BLOCK, NOT PER FILE, AND THE SILENT-CATCH GATE IS GREEN.**
+  Will chose this deliberately. `--accept <file> <hash> "reason"` takes **one catch block per run**,
+  keyed by the ratchet's **existing body hash** — no new id, no new test, no new gate. A file-level
+  mark could not be used at all: three files mix a reviewed-fine block with others, so accepting a
+  whole file would have blanket-excused code nobody read.
+- **62 blocks accepted under 58 body keys, every one carrying a reason a person wrote after reading
+  the block** — 38 *already reports it*, 14 *cannot fail*, 10 *correct silence*, each copied from the
+  triage that read all 80 in source context. Verified independently: **zero entries with a thin or
+  missing reason.**
+
+### Notes
+- **WHY THIS IS A REVIEW RECORD AND NOT AN OFF SWITCH.** Keying on the catch **body** means an accepted
+  block that is later *edited* fails again — the acceptance covers the code that was judged, not the
+  location. **Demonstrated in four steps:** red at 62 → per-block accepts applied → green at 0 → **a
+  comment edited inside one accepted block turned it red again**, named by file, line and new hash,
+  then reverted back to green. That last step is the whole proof.
+- Refused with exit 2 and no write: a missing reason, a too-short reason, `"pre-existing"`, and an
+  unknown hash. There is **no bulk-accept mode**, and adding one would be the tell that this had
+  become laundering.
+- **The floor is untouched at 201 and `--update` was not run** — it would drop it to 197 off a detector
+  change made today. The output prints `baselined 201` and `accepted after review 62` on separate
+  lines, so the size of the allowance is visible rather than absorbed.
+- **One honest limitation, pre-existing and not introduced here:** byte-identical bodies in one file
+  share a key, so 5 keys cover more than one block each. Every such reason names each line it covers.
+  It is the same hazard the triage flagged at `engine/tag_dex.js:8623` — reported, untouched.
+- The gate reports `6 baselined blocks now speak` — a real improvement available via `--update`, left
+  unrun because the same command would lower the floor.
+- `.githooks/pre-commit` printed the old two-argument `--accept` form, which this change made wrong;
+  the message was corrected, no logic touched.
+
+## [5.105.0] — 2026-08-23
+
 ### Fixed
 - **THE EIGHTEEN REAL SILENT CATCHES ARE CLOSED — `tests/test-no-silent-failure.js` reads 80 NEW ->
   62 NEW.** MEASURE read all eighty in source context and found **62 correct as written and 18 real

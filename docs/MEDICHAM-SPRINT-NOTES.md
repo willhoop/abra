@@ -12565,3 +12565,25 @@ differential is **0 of 6000** at seed 20260804 either side — so nothing swallo
 
 **OWED, NOT RUN:** `engine/mega_census.js` and the full-store `replay_differential.js` (the latter cuts
 a release when `--release` is omitted); the `--accept` decision, which is Will's.
+
+---
+
+## THE SILENT-CATCH GATE IS GREEN, ON CODE SOMEBODY READ — 2026-08-23
+
+Sprint-relevant because the class lives in the sprint's own instruments. The eighteen REAL blocks were
+fixed earlier today (80 to 62); the remaining 62 were each read in source context and are correct as
+written, so fixing them would be churn and the gate could never reach zero on its own.
+
+`--accept` now takes **one catch block**, keyed by the ratchet's existing **body hash**, instead of a
+whole file — three files mix a reviewed-fine block with others, so a file-level mark would have
+blanket-excused code nobody read. 62 blocks accepted under 58 keys, each with a written reason
+(38 already-reports-it, 14 cannot-fail, 10 correct-silence). Zero thin or missing reasons, checked.
+
+**It is a review record, not an off switch:** because the key is the BODY, an accepted block that is
+later edited fails again. Shown red-green-red-green, with a comment edit inside an accepted block
+turning it red and naming the new hash.
+
+Floor untouched at 201; `--update` deliberately not run (it would drop it to 197 off a detector change
+made today). **No census count moved and none is claimed** (658 probed / 658 live / 0 missing).
+
+**OWED, NOT RUN:** `--update` to lock in the 6 baselined blocks that now speak; two register rows.

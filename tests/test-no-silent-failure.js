@@ -39,7 +39,7 @@
  *   node tests/test-no-silent-failure.js --dangerous         the MANUFACTURE subset, by file
  *   node tests/test-no-silent-failure.js --in <file>...     every silent catch in the files YOU own
  *   node tests/test-no-silent-failure.js --update            lock in FIXES (the floor may only fall)
- *   node tests/test-no-silent-failure.js --accept <file> "reason"    accept ONE file's new silence
+ *   node tests/test-no-silent-failure.js --accept <file> <hash> "reason"   accept ONE block
  *
  * THE RATCHET HAD ONE CONTROL AND IT WAS ALL-OR-NOTHING — ROADMAP #258, 2026-08-14
  * -------------------------------------------------------------------------------
@@ -52,10 +52,36 @@
  *
  * A ratchet with a laundering button is not a ratchet. So `--update` is now MONOTONE: for every key
  * it writes min(baseline, current), which removes what was fixed and can never add what is new. The
- * only way into the floor is `--accept <file> "reason"`, one file at a time, with the reason recorded
- * in the artifact beside the keys — a person deciding, once, in writing, exactly like `"rerun": false`
- * in engine/engine_release.js. Shown RED before it was trusted: with the old behaviour, `--update`
- * over a fresh silent catch made the gate green; with this one it stays red and names the file.
+ * only way into the floor is `--accept`, with the reason recorded in the artifact beside the key —
+ * a person deciding, once, in writing, exactly like `"rerun": false` in engine/engine_release.js.
+ * Shown RED before it was trusted: with the old behaviour, `--update` over a fresh silent catch made
+ * the gate green; with this one it stays red and names the file.
+ *
+ * THE ACCEPT UNIT IS A BLOCK, NOT A FILE — 2026-08-23
+ * ---------------------------------------------------
+ * `--accept` took a FILE and swept every new block in it into the floor under one reason. The
+ * judgement is not made per file, though: `docs/_reports/2026-08-23-eighty-silent-catches-triage.md`
+ * read all 80 new blocks one at a time and found 62 correct as written and 18 real. THREE files —
+ * engine/tag_dex.js, engine/medicham2-browser.js, tests/test-web-quarantine.js — held both kinds at
+ * once, so accepting by file would have blanket-excused blocks nobody judged. `accepted` sat `{}` for
+ * ten days: the door was the wrong shape, not unwanted.
+ *
+ * So the unit is the key the detector ALREADY uses — `<file>#<sha1 of the catch body>` — rather than
+ * a new id, and that buys the property that makes this a review record instead of an off switch:
+ * **an accepted block that is EDITED gets a different hash and fails again.** The acceptance covers
+ * the code that was read, not the place it sits in. Demonstrated before it was trusted (§ the report
+ * at docs/_reports/2026-08-23-accept-per-block.md): red at 62 -> 62 per-block accepts -> green ->
+ * one accepted body edited -> red again by name.
+ *
+ * Three limits, stated rather than discovered later:
+ *   - ONE key per invocation and a reason is required. There is deliberately no "accept everything
+ *     currently failing" mode, and adding one would undo this whole file.
+ *   - The key is per FILE plus BODY TEXT, so N byte-identical bodies in one file are ONE key. Where
+ *     that happens the acceptance covers all N, and the reason must name each line and say why each
+ *     one is right — engine/medicham2-browser.js's two empty `catch(e){}` bodies are exactly this.
+ *   - Accepted counts live in `accepted`, NOT in `entries`. The ratchet floor stays the number it
+ *     was, and the accepted total is printed on its own line so that "62 accepted" is a figure
+ *     somebody can be uncomfortable about rather than an invisible allowance.
  */
 'use strict';
 const fs = require('fs');
@@ -65,12 +91,13 @@ const crypto = require('crypto');
 const ROOT = path.join(__dirname, '..');
 const BASELINE = path.join(ROOT, 'data', 'silent-catch-baseline.json');
 const UPDATE = process.argv.includes('--update');
-/* `--accept <file> "reason"` — the ONLY door into the floor, and it takes one file at a time because
- * the unit of work in ROADMAP #258 is a file, owned by the division that owns it. Both arguments are
+/* `--accept <file> <hash> "reason"` — the ONLY door into the floor, and it takes ONE BLOCK at a
+ * time, named by the body hash the detector already prints beside it. All three arguments are
  * required: an acceptance with no reason is the silence this whole file is about, one level up. */
 const ACCEPT_AT = process.argv.indexOf('--accept');
 const ACCEPT_FILE = ACCEPT_AT >= 0 ? process.argv[ACCEPT_AT + 1] : null;
-const ACCEPT_WHY = ACCEPT_AT >= 0 ? process.argv[ACCEPT_AT + 2] : null;
+const ACCEPT_HASH = ACCEPT_AT >= 0 ? process.argv[ACCEPT_AT + 2] : null;
+const ACCEPT_WHY = ACCEPT_AT >= 0 ? process.argv[ACCEPT_AT + 3] : null;
 const DIRS = ['engine', 'build', 'tests'];
 
 /* `--only <file>...` — THE SAME RATCHET, NARROWED TO THE FILES OF ONE COMMIT (2026-08-23).
@@ -405,13 +432,15 @@ function writeBaseline(entries, accepted, how) {
   fs.writeFileSync(BASELINE, JSON.stringify({
     generated: new Date().toISOString().slice(0, 10),
     by: 'tests/test-no-silent-failure.js ' + how,
-    note: 'GENERATED. Silent catch blocks that existed when the ratchet was set. Never hand-edit. '
-        + '`--update` is MONOTONE — it writes min(baseline, current) per key, so it locks in FIXES '
-        + 'and structurally cannot launder a new offender into the floor (ROADMAP #258). The only '
-        + 'way in is `--accept <file> "reason"`, one file at a time, and the reason is recorded in '
-        + '`accepted` beside the keys it let through.',
+    note: 'GENERATED. Never hand-edit. `entries` is the ratchet floor: the silent catch blocks that '
+        + 'existed when it was set. `--update` is MONOTONE — it writes min(baseline, current) per '
+        + 'key, so it locks in FIXES and structurally cannot launder a new offender into the floor '
+        + '(ROADMAP #258). `accepted` is separate and is the ONLY door in: one block at a time, named '
+        + 'by <file>#<hash of the catch body>, each carrying the reason a person wrote after reading '
+        + 'that block. An accepted block that is EDITED hashes differently and fails again.',
     count: Object.values(sorted).reduce((a, b) => a + b, 0),
     entries: sorted,
+    acceptedCount: Object.values(accepted).reduce((a, x) => a + (Number(x.count) || 0), 0),
     accepted,
   }, null, 1) + '\n');
 }
@@ -436,39 +465,86 @@ if (UPDATE) {
   for (const l of lockedIn) console.log('    fixed  ' + l);
   if (wouldLaunder.length) {
     console.log(`\n  ${wouldLaunder.length} key(s) are NEW and were NOT added. --update can only lower`);
-    console.log('  the floor; a new silent catch is fixed, or accepted one file at a time with a reason:');
-    console.log('    node tests/test-no-silent-failure.js --accept <file> "why this silence is right"');
+    console.log('  the floor; a new silent catch is fixed, or accepted one BLOCK at a time with a reason:');
+    console.log('    node tests/test-no-silent-failure.js --accept <file> <hash> "why this silence is right"');
   }
   process.exit(0);
 }
 
-/* ---- --accept: the only door into the floor, one file and one reason at a time -------------------- */
+/* ---- --accept: the only door in, ONE BLOCK and one reason at a time ------------------------------
+ *
+ * The block is named `<file> <hash>`, the key the detector already prints beside it, so there is no
+ * second id to keep in step with anything. It writes to `accepted`, never to `entries`: the ratchet
+ * floor is a measurement of what existed on 2026-08-18 and an acceptance is a person's signature.
+ * Mixing them would make the floor unreadable and would let `--update` quietly relitigate a review.
+ *
+ * There is no way to accept more than one key per run, ON PURPOSE. */
+const EMPTY_REASONS = /^(accept(ed)?|pre[- ]?existing|known|wontfix|as[- ]is|ok|fine|n\/a|legacy|\d{4}-\d\d-\d\d)\.?$/i;
 if (ACCEPT_AT >= 0) {
-  if (!ACCEPT_FILE || !ACCEPT_WHY || ACCEPT_WHY.startsWith('--')) {
-    console.error('  usage: node tests/test-no-silent-failure.js --accept <engine/foo.js> "the reason"');
-    console.error('  Both are required. An acceptance with no reason is the silence this gate is about.');
+  if (!ACCEPT_FILE || !ACCEPT_HASH || !ACCEPT_WHY || ACCEPT_WHY.startsWith('--')) {
+    console.error('  usage: node tests/test-no-silent-failure.js --accept <engine/foo.js> <hash> "the reason"');
+    console.error('  All three are required. The hash is printed beside the block by a plain run.');
+    console.error('  An acceptance with no reason is the silence this gate is about, one level up.');
+    process.exit(2);
+  }
+  if (!/^[0-9a-f]{12}$/.test(ACCEPT_HASH)) {
+    console.error(`  "${ACCEPT_HASH}" is not a body hash. A plain run prints one beside every new block.`);
+    process.exit(2);
+  }
+  /* A REASON MUST SAY SOMETHING. "pre-existing" is the word that did the work the banned phrase
+   * "known failure" used to do (see the header), so it is refused by name rather than by taste. */
+  if (EMPTY_REASONS.test(ACCEPT_WHY.trim()) || ACCEPT_WHY.trim().length < 20) {
+    console.error(`  "${ACCEPT_WHY}" is not a reason — it is a label.`);
+    console.error('  Say what the block does with the failure and why that is right. A person has to');
+    console.error('  have read the block; this is the record that they did.');
     process.exit(2);
   }
   const b = readBaseline();
   if (!b) { console.error('NO BASELINE — nothing to accept into.'); process.exit(2); }
   const target = ACCEPT_FILE.replace(/\\/g, '/').replace(/^\.\//, '');
-  const mine = Object.entries(CURRENT).filter(([k]) => k.split('#')[0] === target);
-  if (!mine.length) { console.error(`  no silent catch blocks found in ${target} — nothing to accept.`); process.exit(2); }
-  const next = Object.assign({}, b.entries);
-  const accepted = Object.assign({}, b.accepted);
-  const added = [];
-  for (const [k, n] of mine) {
-    const was = next[k] || 0;
-    if (n <= was) continue;
-    next[k] = n;
-    accepted[k] = { at: new Date().toISOString().slice(0, 10), why: ACCEPT_WHY, count: n - was };
-    added.push(`${k}  +${n - was}`);
+  const key = `${target}#${ACCEPT_HASH}`;
+  const cur = CURRENT[key] || 0;
+  if (!cur) {
+    console.error(`  no silent catch block in ${target} has body hash ${ACCEPT_HASH}.`);
+    const near = Object.keys(CURRENT).filter(k => k.startsWith(target + '#'));
+    if (near.length) { console.error(`  ${target} does hold ${near.length} silent block(s): `);
+      for (const k of near) console.error('    ' + k.split('#')[1]); }
+    else console.error('  (that file has no silent catch blocks at all)');
+    process.exit(2);
   }
-  if (!added.length) { console.log(`  ${target} has no NEW silent catch blocks. Baseline unchanged.`); process.exit(0); }
-  writeBaseline(next, accepted, `--accept ${target}`);
-  console.log(`  accepted ${added.length} key(s) from ${target} into the floor, with the reason recorded:`);
-  console.log(`    "${ACCEPT_WHY}"`);
-  for (const a of added) console.log('    ' + a);
+  const entries = Object.assign({}, b.entries);
+  const accepted = Object.assign({}, b.accepted);
+  const floor = entries[key] || 0;
+  const had = Number((accepted[key] || {}).count) || 0;
+  if (cur <= floor + had) {
+    /* A REASON MAY BE CORRECTED IN PLACE, and it must be possible without hand-editing the artifact,
+     * because the note on the artifact says never to hand-edit it. This path CANNOT change a count
+     * and CANNOT let a block through — it only rewrites the words beside a key already accepted. */
+    if (had && accepted[key] && accepted[key].why !== ACCEPT_WHY) {
+      const wasWhy = accepted[key].why;
+      accepted[key] = Object.assign({}, accepted[key], { why: ACCEPT_WHY, at: new Date().toISOString().slice(0, 10) });
+      writeBaseline(entries, accepted, `--accept ${key} (reason corrected)`);
+      console.log(`  REASON CORRECTED for ${key}. The count is unchanged at ${had}.`);
+      console.log(`    was  "${wasWhy}"`);
+      console.log(`    now  "${ACCEPT_WHY}"`);
+      process.exit(0);
+    }
+    console.log(`  ${key} is already covered (${cur} block(s), ${floor} baselined + ${had} accepted).`);
+    console.log('  Nothing changed.');
+    process.exit(0);
+  }
+  const lines = silent.filter(s => `${s.file}#${s.hash}` === key).map(s => s.line);
+  const body = (silent.find(s => `${s.file}#${s.hash}` === key) || {}).body;
+  accepted[key] = { at: new Date().toISOString().slice(0, 10), why: ACCEPT_WHY,
+                    count: cur - floor, lines, body };
+  writeBaseline(entries, accepted, `--accept ${key}`);
+  console.log(`  ACCEPTED ${key}`);
+  console.log(`    body      ${body}`);
+  console.log(`    covers    ${cur - floor} block(s) at line(s) ${lines.join(', ')}`
+    + (floor ? `  (${floor} more of this body are in the baseline floor)` : ''));
+  if (lines.length > 1) console.log('    NOTE      byte-identical bodies share one key. This reason must cover every line above.');
+  console.log(`    reason    "${ACCEPT_WHY}"`);
+  console.log('  Edit any of those bodies and this acceptance stops applying — that is the point.');
   process.exit(0);
 }
 
@@ -501,6 +577,7 @@ if (process.argv.includes('--in')) {
   if (!want.length) { console.error('  usage: node tests/test-no-silent-failure.js --in engine/a.js tests/b.js'); process.exit(2); }
   const b = readBaseline();
   const floor = (b && b.entries) || {};
+  const acc = (b && b.accepted) || {};
   const seen = {};
   const mine = silent.filter(s => want.includes(s.file));
   console.log(`SILENT CATCHES IN ${want.length} NAMED FILE(S) — ${mine.length} found\n`);
@@ -510,8 +587,12 @@ if (process.argv.includes('--in')) {
     for (const s of list) {
       const k = `${s.file}#${s.hash}`;
       seen[k] = (seen[k] || 0) + 1;
-      const state = seen[k] <= (floor[k] || 0) ? 'BASELINED' : 'NEW      ';
-      console.log(`      :${String(s.line).padEnd(6)} ${state} ${s.manufactures ? 'MANUFACTURES' : 'skips       '}  ${s.body}`);
+      const nAcc = Number((acc[k] || {}).count) || 0;
+      const state = seen[k] <= (floor[k] || 0) ? 'BASELINED'
+                  : seen[k] <= (floor[k] || 0) + nAcc ? 'ACCEPTED '
+                  : 'NEW      ';
+      console.log(`      :${String(s.line).padEnd(6)} ${s.hash} ${state} ${s.manufactures ? 'MANUFACTURES' : 'skips       '}  ${s.body}`);
+      if (state === 'ACCEPTED ' && acc[k]) console.log(`               reviewed ${acc[k].at}: ${acc[k].why}`);
     }
   }
   process.exit(0);
@@ -522,7 +603,15 @@ if (!base) {
   console.error('NO BASELINE. data/silent-catch-baseline.json is absent or unreadable.');
   process.exit(2);
 }
-let known = base.entries;
+/* WHAT THE GATE ALLOWS = the ratchet floor PLUS the reviewed-and-accepted blocks. Two maps, summed
+ * here and nowhere else, so that the floor keeps meaning "what existed on 2026-08-18" and the
+ * accepted total stays a separate, printable number instead of vanishing into it. */
+const ACCEPTED = base.accepted || {};
+let known = {};
+for (const [k, n] of Object.entries(base.entries)) known[k] = n;
+for (const [k, a] of Object.entries(ACCEPTED)) known[k] = (known[k] || 0) + (Number(a.count) || 0);
+const floorTotal = Object.values(base.entries).reduce((a, b) => a + b, 0);
+const acceptedTotal = Object.values(ACCEPTED).reduce((a, x) => a + (Number(x.count) || 0), 0);
 
 /* --only: keep the named files and nothing else, on BOTH sides of the comparison. Filtering the
  * baseline too is what makes a pre-existing block stay pre-existing — the keys are `file#hash`, so
@@ -584,7 +673,6 @@ for (const [k, list] of Object.entries(now)) {
   const allowed = known[k] || 0;
   if (list.length > allowed) fresh.push(...list.slice(allowed));
 }
-const knownTotal = Object.values(known).reduce((a, b) => a + b, 0);
 const gone = Object.entries(known)
   .filter(([k, n]) => (now[k] ? now[k].length : 0) < n)
   .map(([k, n]) => `${k} (${n - (now[k] ? now[k].length : 0)})`);
@@ -617,7 +705,12 @@ const danger = silent.filter(s => s.manufactures);
 console.log(`  silent (say nothing)     ${silent.length}   of ${total}  (${(100 * silent.length / Math.max(1, total)).toFixed(0)}%)`);
 console.log(`    of those, MANUFACTURE  ${danger.length}   <- these hand a made-up value downstream`);
 console.log(`    merely skip/continue   ${silent.length - danger.length}   <- usually legitimate`);
-console.log(`  baselined                ${knownTotal}`);
+console.log(`  baselined                ${floorTotal}   <- the ratchet floor, set 2026-08-18`);
+/* PRINTED ON ITS OWN LINE, ALWAYS, EVEN AT ZERO. An allowance nobody can see is an allowance nobody
+ * argues with, and this one is a person saying "I read these and they are right". It should be a
+ * number somebody can be uncomfortable about. */
+console.log(`  accepted after review    ${acceptedTotal}   <- block(s) a person read and signed off, under ${Object.keys(ACCEPTED).length} body key(s),`);
+console.log('                                 each with a written reason in data/silent-catch-baseline.json');
 console.log(`  FIXED since the baseline ${gone.length}`);
 console.log(`  NEW since the baseline   ${fresh.length}`);
 
@@ -638,9 +731,12 @@ if (fresh.length) {
   const ALL = process.argv.includes('--all');
   console.log(`\n  NEW, AND THEY MANUFACTURE A VALUE — ${mfg.length}. Fix these first: each hands a`);
   console.log('  made-up answer to whatever reads it, and reports success doing it.');
+  /* THE HASH IS PRINTED BESIDE THE BLOCK because it is the name of the block: it is the ratchet's
+   * key and it is the argument `--accept` takes. A key you have to derive by hand is a key nobody
+   * uses, which is how `accepted` stayed `{}` for ten days. */
   for (const [f, list] of group(mfg)) {
     console.log(`    ${f}  (${list.length})`);
-    for (const s of list) console.log(`      :${String(s.line).padEnd(6)} ${s.body}`);
+    for (const s of list) console.log(`      :${String(s.line).padEnd(6)} ${s.hash}  ${s.body}`);
   }
   console.log(`\n  NEW, AND THEY ONLY SKIP OR CONTINUE — ${skip.length}. Lower priority: usually correct`);
   console.log('  silence over ragged input, but each still discards the reason.');
@@ -650,13 +746,14 @@ if (fresh.length) {
   for (const [f, list] of group(skip)) {
     console.log(`    ${f}  (${list.length})`
       + (ALL ? '' : list.length > 3 ? '   [--all for every line]' : ''));
-    for (const s of (ALL ? list : list.slice(0, 3))) console.log(`      :${String(s.line).padEnd(6)} ${s.body}`);
+    for (const s of (ALL ? list : list.slice(0, 3))) console.log(`      :${String(s.line).padEnd(6)} ${s.hash}  ${s.body}`);
   }
   console.log('\n  Make it speak: rethrow, console.error it, count it, or record it somewhere a later');
   console.log('  assertion can see.');
   console.log('  `--update` locks in FIXES and can no longer launder these into the floor (#258).');
-  console.log('  If a silence here is genuinely right, say why in the code and then, one file at a time:');
-  console.log('    node tests/test-no-silent-failure.js --accept <file> "the reason"');
+  console.log('  If a silence here is genuinely right, READ THE BLOCK, say why in the code, and then');
+  console.log('  accept it ONE BLOCK at a time — the hash above names the block:');
+  console.log('    node tests/test-no-silent-failure.js --accept <file> <hash> "the reason you read it"');
   process.exit(1);
 }
 if (gone.length) console.log(`\n  ${gone.length} baselined block(s) now speak. Re-run with --update to lock the gain in.`);

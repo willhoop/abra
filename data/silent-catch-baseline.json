@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-18",
- "by": "tests/test-no-silent-failure.js --update",
- "note": "GENERATED. Silent catch blocks that existed when the ratchet was set. Never hand-edit. `--update` is MONOTONE — it writes min(baseline, current) per key, so it locks in FIXES and structurally cannot launder a new offender into the floor (ROADMAP #258). The only way in is `--accept <file> \"reason\"`, one file at a time, and the reason is recorded in `accepted` beside the keys it let through.",
+ "generated": "2026-08-24",
+ "by": "tests/test-no-silent-failure.js --accept engine/champions_sim.js#b958762b3701 (reason corrected)",
+ "note": "GENERATED. Never hand-edit. `entries` is the ratchet floor: the silent catch blocks that existed when it was set. `--update` is MONOTONE — it writes min(baseline, current) per key, so it locks in FIXES and structurally cannot launder a new offender into the floor (ROADMAP #258). `accepted` is separate and is the ONLY door in: one block at a time, named by <file>#<hash of the catch body>, each carrying the reason a person wrote after reading that block. An accepted block that is EDITED hashes differently and fails again.",
  "count": 201,
  "entries": {
   "build/build_ability_blocks.js#8ed85277ffd4": 1,
@@ -171,5 +171,536 @@
   "tests/test-tag-wire.js#db2eeaf2f910": 1,
   "tests/test-wiring.js#da39a3ee5e6b": 1
  },
- "accepted": {}
+ "acceptedCount": 62,
+ "accepted": {
+  "engine/orient.js#604a40a7c4d6": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:105): the manufactured string IS the report — 'NO SUCH FILE' is printed verbatim as the file's age, so a reader sees the failure.",
+   "count": 1,
+   "lines": [
+    105
+   ],
+   "body": "return 'NO SUCH FILE';"
+  },
+  "engine/orient.js#175d73c8747c": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:158): fail('THE DIVISIONS', ...) runs on the next line, so an empty file list is refused rather than carried.",
+   "count": 1,
+   "lines": [
+    158
+   ],
+   "body": "files = [];"
+  },
+  "engine/orient.js#174717bd0038": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:192): fail('THE INVALIDATION GRAPH', ...) two lines down refuses on the null; the reason reaches the reader.",
+   "count": 1,
+   "lines": [
+    192
+   ],
+   "body": "Q = null;"
+  },
+  "engine/orient.js#f643d149df5f": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:306): if (!n) fail('WHAT A MEASUREMENT MUST PIN', ...) immediately below turns the zero into a printed refusal.",
+   "count": 1,
+   "lines": [
+    306
+   ],
+   "body": "n = 0;"
+  },
+  "engine/orient.js#4e49f20cabea": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:329): if (files === null) fail('IN FLIGHT', ...) below reports it; null is the sentinel that refusal reads.",
+   "count": 1,
+   "lines": [
+    329
+   ],
+   "body": "files = null;"
+  },
+  "tests/roster.js#6defa2da0fb3": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:231): the next line throws a paragraph about the control click's crit ratio, so the NaN never leaves this scope.",
+   "count": 1,
+   "lines": [
+    231
+   ],
+   "body": "n = NaN;"
+  },
+  "tests/roster.js#58ab8bfd0ce1": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:9305): it prints '(unreadable — its bytes are kept anyway)', naming the failure it just caught.",
+   "count": 1,
+   "lines": [
+    9305
+   ],
+   "body": "old = null;"
+  },
+  "tests/roster.js#dcfcbec1f1f5": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:9323): it prints 'still holds stage \"unreadable\"', naming the failure it just caught.",
+   "count": 1,
+   "lines": [
+    9323
+   ],
+   "body": "cur = null;"
+  },
+  "engine/game_differential.js#9afc9fbac096": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL (:457): it wraps dex.species.get(), which returns a non-existent object rather than throwing.",
+   "count": 1,
+   "lines": [
+    457
+   ],
+   "body": "base = null;"
+  },
+  "engine/game_differential.js#bde7724054b6": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:2342): console.error then process.exit(2) on the next two lines.",
+   "count": 1,
+   "lines": [
+    2342
+   ],
+   "body": "rt = null;"
+  },
+  "engine/medicham2-browser.js#a4956e4a5354": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY, BOTH LINES: :5205 falls through to MEDFAILS.residualUnplaced naming every unplaced step; :5287 falls through to MEDFAILS.switchInPriorityTableMissing plus a worded ...Why carrying the regeneration command.",
+   "count": 2,
+   "lines": [
+    5205,
+    5287
+   ],
+   "body": "rows = null;"
+  },
+  "engine/tag_dex.js#97676330579b": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL (:749): it wraps dex.conditions.get(), which returns a non-existent object rather than throwing, and the null it hands back is this file's declared refusal, not a guess.",
+   "count": 1,
+   "lines": [
+    749
+   ],
+   "body": "return _ptShape;"
+  },
+  "engine/tag_dex.js#afcc77770f0d": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL (:915): same dex.conditions.get() call; null is the declared 'cap unknown' sentinel a consumer must be able to tell from a cap of 1.",
+   "count": 1,
+   "lines": [
+    915
+   ],
+   "body": "return null;"
+  },
+  "engine/policy.js#afcc77770f0d": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:81): the caller prints 'tags.json unreadable, so the stalling family could not be DERIVED; not guessed'.",
+   "count": 1,
+   "lines": [
+    81
+   ],
+   "body": "return null;"
+  },
+  "engine/switchin_order.js#8b7246779e35": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL (:77): the file exits earlier without SHOWDOWN_PATH, and the artifact records null honestly rather than false.",
+   "count": 1,
+   "lines": [
+    77
+   ],
+   "body": "modSrc = null;"
+  },
+  "tests/probe_endstate_by_cause.js#c40334e4f95a": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:118): the else branch prints 'NO ARTIFACT TO COMPARE AGAINST … the replay stands alone'.",
+   "count": 1,
+   "lines": [
+    118
+   ],
+   "body": "A = null;"
+  },
+  "tests/probe_phaze_empty_bench.js#4db012614150": {
+   "at": "2026-08-23",
+   "why": "CORRECT SILENCE (:194): it falls back to the RAW diff, which is then printed — a less readable answer, not an absent one.",
+   "count": 1,
+   "lines": [
+    194
+   ],
+   "body": "return JSON.stringify(d);"
+  },
+  "tests/probe_volatile_leaves.js#7ebe1eb15ea0": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL (:86): dex.species.getLearnsetData(); the format's learnset table is loaded when the dex is built.",
+   "count": 1,
+   "lines": [
+    86
+   ],
+   "body": "pl = null;"
+  },
+  "tests/staged_board.js#96947880adf0": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL AND FAILS SAFE (:1007): an unreadable learnset baseline makes the check STRICTER — known pairs stop being forgiven, so it errs toward red.",
+   "count": 1,
+   "lines": [
+    1007
+   ],
+   "body": "return [];"
+  },
+  "tests/test-effective-identity.js#3c7b0b990a8a": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:480): it prints '<source unavailable>' in place of the source line it could not read.",
+   "count": 1,
+   "lines": [
+    480
+   ],
+   "body": "a = null;"
+  },
+  "tests/test-farm-ram-guard.js#c495d0a8f20b": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL — THE CATCH IS THE ASSERTION (:67): threw = true is exactly what ok() tests on the next line.",
+   "count": 1,
+   "lines": [
+    67
+   ],
+   "body": "threw = true;"
+  },
+  "tests/test-forme-assert.js#3fa97fd8f89f": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL (:113): buildMon reaches mcKey only with {mayMiss}, so it returns null rather than throwing; false is then reported as UNCOVERABLE.",
+   "count": 1,
+   "lines": [
+    113
+   ],
+   "body": "return false;"
+  },
+  "tests/test-roadmap-register.js#6e2e5cbca478": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:179): it prints 'skip … (not a pass: nothing was checked)'.",
+   "count": 1,
+   "lines": [
+    179
+   ],
+   "body": "log = null;"
+  },
+  "tests/test-state-differential.js#61249c4323fd": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:456): note('… the live half of PART 6 did not run. That is not a pass for it').",
+   "count": 1,
+   "lines": [
+    456
+   ],
+   "body": "art = null;"
+  },
+  "tests/test-switch-carry.js#c597d435e512": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL (:83): dex.species.getLearnsetData(), whose table is loaded when the dex is built.",
+   "count": 1,
+   "lines": [
+    83
+   ],
+   "body": "l = null;"
+  },
+  "tests/test-web-quarantine.js#74b922ccea92": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:468): it prints '(mtime unreadable)' in place of the age, so the reader sees the gap.",
+   "count": 1,
+   "lines": [
+    468
+   ],
+   "body": "age = ' (mtime unreadable)';"
+  },
+  "tests/test-lownode.js#5b7b73f59fc8": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:42): the body IS bad(...). NOTED AT REVIEW: it discards e.message, so a missing cmd.exe would misreport as 'a PASSING script was reported as failure'.",
+   "count": 1,
+   "lines": [
+    42
+   ],
+   "body": "bad('a PASSING script was reported as failure — every green test would"
+  },
+  "tests/test-lownode.js#1638ebe27c58": {
+   "at": "2026-08-23",
+   "why": "CORRECT SILENCE (:72): a polling loop that expects to miss the window; if (!seen) bad('the arm proves nothing, treat as red') closes it.",
+   "count": 1,
+   "lines": [
+    72
+   ],
+   "body": "/* the window can be missed; loop */"
+  },
+  "tests/test-lownode.js#da39a3ee5e6b": {
+   "at": "2026-08-23",
+   "why": "CORRECT SILENCE, BOTH LINES: :74 and :80 are child-process cleanup, run after the measurement has already been taken.",
+   "count": 2,
+   "lines": [
+    74,
+    80
+   ],
+   "body": ""
+  },
+  "tests/test-policy-promote.js#4195e0455a85": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:50): the next lines FAIL and exit 1.",
+   "count": 1,
+   "lines": [
+    50
+   ],
+   "body": "/* reported below */"
+  },
+  "tests/test-policy-promote.js#da39a3ee5e6b": {
+   "at": "2026-08-23",
+   "why": "CORRECT SILENCE, BOTH LINES: :251 and :296 are temp-directory teardown, run after the assertions.",
+   "count": 2,
+   "lines": [
+    251,
+    296
+   ],
+   "body": ""
+  },
+  "engine/champions_sim.js#b958762b3701": {
+   "at": "2026-08-24",
+   "why": "CANNOT FAIL (:587): dex.species.getLearnsetData(); the format's learnset table is loaded when the dex is built. One byte-identical body at :344 is already in the baseline floor and is NOT what this accepts — it is the same call in the empty-moveset last resort.",
+   "count": 1,
+   "lines": [
+    344,
+    587
+   ],
+   "body": "/* none */"
+  },
+  "engine/champions_sim.js#a702ba25b96b": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL (:511): dex.species.getLearnsetData(); the learnset table is loaded when the dex is built.",
+   "count": 1,
+   "lines": [
+    511
+   ],
+   "body": "/* no learnset */"
+  },
+  "engine/medicham2-browser.js#da39a3ee5e6b": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY, BOTH LINES: :6737 leaves _m == null and the next line records MEDFAILS.accModNoTagValue++; :10567 falls straight into a THROW of 'MOVE_EFFECTS not loaded'. Two byte-identical empty bodies elsewhere in this file (at review: :2836 and :3325) are already in the baseline floor and are NOT what this accepts.",
+   "count": 2,
+   "lines": [
+    2836,
+    3325,
+    6737,
+    10567
+   ],
+   "body": ""
+  },
+  "tests/test-closet-scope.js#e6c0e3f35f2c": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:61): it prints 'SKIP … NOT a pass' and increments bad.",
+   "count": 1,
+   "lines": [
+    61
+   ],
+   "body": "/* needs SHOWDOWN_PATH */"
+  },
+  "tests/test-closet-scope.js#095096ba15fc": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:75): it prints 'FAIL data/all-mechanics-fire.json is absent — a claim that cannot be computed FAILS'.",
+   "count": 1,
+   "lines": [
+    75
+   ],
+   "body": "/* absent */"
+  },
+  "tests/test-web-quarantine.js#2f7c0fa2b10f": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:305): the next line pushes notRestored with the reason.",
+   "count": 1,
+   "lines": [
+    305
+   ],
+   "body": "/* below */"
+  },
+  "tests/test-web-quarantine.js#503a4b877850": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:407): fail('web/status-data.js did not load — build it: node web/build-status.js').",
+   "count": 1,
+   "lines": [
+    407
+   ],
+   "body": "/* handled below */"
+  },
+  "engine/miltank.js#56b1e190480f": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:479): console.error naming the 60-turn fallback and the command that fixes it.",
+   "count": 1,
+   "lines": [
+    479
+   ],
+   "body": "/* fall through to the announced default */"
+  },
+  "engine/policy.js#c3c327d22723": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:231): the body IS refuse(…e.message…, 2) — it reports the reason and exits 2.",
+   "count": 1,
+   "lines": [
+    231
+   ],
+   "body": "refuse(`${from} is not valid JSON: ${e.message}`, 2);"
+  },
+  "engine/replay_differential.js#03a7eaec5de2": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:1924): the body IS bump(EXCEPTIONS, 'store line did not parse'), a counted and printed exception.",
+   "count": 1,
+   "lines": [
+    1924
+   ],
+   "body": "bump(EXCEPTIONS, 'store line did not parse'); return;"
+  },
+  "engine/speed_vs_pokeenv.js#b1488cdebcb6": {
+   "at": "2026-08-23",
+   "why": "CORRECT SILENCE (:235): a failing git status outside a checkout suppresses an advisory NOTE only, and the body says so.",
+   "count": 1,
+   "lines": [
+    235
+   ],
+   "body": "/* not fatal: a benchmark outside a checkout is still a benchmark */"
+  },
+  "engine/tag_dex.js#b0125770890b": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:5762): it falls through to note: 'the multiplier is UNKNOWN, not 1'.",
+   "count": 1,
+   "lines": [
+    5762
+   ],
+   "body": "/* falls through to the loud absence below */"
+  },
+  "tests/bench-medicham.js#da39a3ee5e6b": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:121): if (!base) prints 'NO BASELINE STORED'. NOTED AT REVIEW: under --record a CORRUPT baseline also skips the busy-machine REFUSAL.",
+   "count": 1,
+   "lines": [
+    121
+   ],
+   "body": ""
+  },
+  "tests/probe_bracket_counters.js#3694d6315b2e": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:59): CAST.length < 8 gives 'NOT RUN … a fixture failure, not a pass', exit 2, and the missing names are printed.",
+   "count": 1,
+   "lines": [
+    59
+   ],
+   "body": "/* skip */"
+  },
+  "tests/probe_lifeorb_toll.js#8adf98dba67d": {
+   "at": "2026-08-23",
+   "why": "CORRECT SILENCE (:245): a torn line in the PINNED team-pool-frozen store, read by a printed probe that publishes no denominator.",
+   "count": 1,
+   "lines": [
+    245
+   ],
+   "body": "continue;"
+  },
+  "tests/probe_red_demo.js#8adf98dba67d": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:2788): if (!found.length) throw — the demonstration retires rather than passing.",
+   "count": 1,
+   "lines": [
+    2788
+   ],
+   "body": "continue;"
+  },
+  "tests/probe_volatile_leaves.js#8adf98dba67d": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL (:80): dex.species.getLearnsetData(), loaded when the dex is built.",
+   "count": 1,
+   "lines": [
+    80
+   ],
+   "body": "continue;"
+  },
+  "tests/test-board-clock-power.js#bb4e55cc747f": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:209): if (!ROCK) note('no legal item extends this weather …').",
+   "count": 1,
+   "lines": [
+    209
+   ],
+   "body": "/* not a rock */"
+  },
+  "tests/test-coverage-stop.js#aa3440ce8c17": {
+   "at": "2026-08-23",
+   "why": "CORRECT SILENCE (:133): unlinking a scratch artifact — leaving it behind is harmless, and the body says so.",
+   "count": 1,
+   "lines": [
+    133
+   ],
+   "body": "/* the artifact is scratch; leaving it is harmless */"
+  },
+  "tests/test-divergence-composition.js#b958762b3701": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:128): it prints 'SKIP … cannot test the pin guard' and increments bad.",
+   "count": 1,
+   "lines": [
+    128
+   ],
+   "body": "/* none */"
+  },
+  "tests/test-effect-kind.js#543a54553d82": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:38): the refusal below prints 'NOT RUN … This is not a pass' and exits 2.",
+   "count": 1,
+   "lines": [
+    38
+   ],
+   "body": "/* leave the refusal below to speak */"
+  },
+  "tests/test-multihit-damage-game.js#b958762b3701": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL (:88): dex.species.getLearnsetData(), loaded when the dex is built.",
+   "count": 1,
+   "lines": [
+    88
+   ],
+   "body": "/* none */"
+  },
+  "tests/test-publish-guard.js#4195e0455a85": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:167): ok(false, 'the artifact carries no readable ' + v.key).",
+   "count": 1,
+   "lines": [
+    167
+   ],
+   "body": "/* reported below */"
+  },
+  "tests/test-red-run-writes.js#8adf98dba67d": {
+   "at": "2026-08-23",
+   "why": "CANNOT FAIL (:298): statSync on a path readdirSync returned one line earlier; the sibling error paths at :294 and :300 are both handled properly.",
+   "count": 1,
+   "lines": [
+    298
+   ],
+   "body": "continue;"
+  },
+  "tests/test-residual-order-population.js#2f7c0fa2b10f": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:70): ok(!!art, 'data/residual-order.json exists') on the next line.",
+   "count": 1,
+   "lines": [
+    70
+   ],
+   "body": "/* below */"
+  },
+  "tests/test-tag-params-derived.js#8adf98dba67d": {
+   "at": "2026-08-23",
+   "why": "LOUD ALREADY (:232): if (!checked) FAIL('no two-target turn could be staged — this is a claim about the fixture, not a pass').",
+   "count": 1,
+   "lines": [
+    232
+   ],
+   "body": "continue;"
+  },
+  "tests/test-unmodelled-clicks.js#2b3a57e47011": {
+   "at": "2026-08-23",
+   "why": "CORRECT SILENCE, DELIBERATE AND DOCUMENTED (:56): the real assertion is the MEDFAILS.unmodelledClick counter below.",
+   "count": 1,
+   "lines": [
+    56
+   ],
+   "body": "/* a throw is a different defect */"
+  }
+ }
 }
