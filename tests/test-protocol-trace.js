@@ -388,6 +388,31 @@ const SCENARIOS = [
            mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
     [{ a: [{ m: 'transform', t: 0 }, { m: 'moonblast', t: 1 }], b: [{ m: 'dragonclaw', t: 1 }, { m: 'scald', t: 1 }] },
      { a: null, b: null }, { a: null, b: null }]],
+
+  /* `-setboost`: THE ONE EVENT A `-boost` CANNOT STAND IN FOR — added 2026-08-24 with the emitter.
+   *
+   * `Battle#boost` writes `-setboost` for exactly two effect ids, `bellydrum` and `angerpoint`
+   * (dist/sim/battle.js:1674-1679), and no scenario above brings either to a click: scenario 1's
+   * Azumarill does carry Belly Drum, and it sits on the BENCH for all seven of that script's turns.
+   * A claimed event nothing can produce is exactly the shape PART 1 exists to refuse, so the event
+   * gets a board of its own rather than a caveat.
+   *
+   * BELLY DRUM AND NOT ANGER POINT, deliberately: Anger Point needs a critical hit, which is a die,
+   * and a scenario whose event depends on a roll is one seed away from being a coverage gap wearing a
+   * pass's clothes. Belly Drum is `accuracy: true` and `target: self` — nothing can block it, nothing
+   * has to be aimed, and the only precondition is that the user is above half HP, which it is on
+   * turn 1. The set is scenario 1's own Azumarill, already validated for this regulation.
+   *
+   * THE FOE CLICKS INTO THE OTHER SLOT so the drummer is not knocked below half before it acts. */
+  ['Belly Drum: the one click that SETS a stage instead of stepping it',
+    () => [mon('azumarill', ['bellydrum', 'aquajet', 'protect', 'playrough'], 'hugepower', ''),
+           mon('clefable', ['moonblast', 'protect', 'followme', 'helpinghand'], 'unaware', ''),
+           mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
+    () => [mon('garchomp', ['earthquake', 'dragonclaw', 'protect', 'rockslide'], 'roughskin', ''),
+           mon('milotic', ['scald', 'recover', 'protect', 'icywind'], 'marvelscale', ''),
+           mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
+    [{ a: [{ m: 'bellydrum' }, { m: 'moonblast', t: 1 }], b: [{ m: 'dragonclaw', t: 1 }, { m: 'protect' }] },
+     { a: null, b: null }]],
 ];
 
 const seen = {};

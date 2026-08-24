@@ -221,8 +221,16 @@ const NOT_EMITTED = {
     + 'is probed; `setBoost` emits no line in this engine, and `-swapboost` is not claimed in '
     + 'TRACE_EVENTS. Heart Swap is isNonstandard Past and unplayable here. The STATE is right and the '
     + 'ANNOUNCEMENT is owed.',
-  '-setboost': 'no move in this engine SETS a stage; Belly Drum adds +12 half-stages through '
-    + 'statChangeInCode and is emitted as `-boost`, which is what Showdown\'s gen-9 bellydrum does too.',
+  /* '-setboost' HAS MOVED INTO TRACE_EVENTS AND ITS REASON IS DELETED RATHER THAN REWORDED,
+   * 2026-08-24 -- the same call the '-sethp' and '-hitcount' entries above record. It read "no move in
+   * this engine SETS a stage; Belly Drum ... is emitted as `-boost`, which is what Showdown's gen-9
+   * bellydrum does too." THE LAST CLAUSE WAS FALSE AND HAD BEEN ALL ALONG: `Battle#boost` switches on
+   * `effect.id` for `bellydrum` and `angerpoint` and writes `-setboost` carrying the resulting STAGE
+   * and a `[from]` (dist/sim/battle.js:1674-1679), which a real authority log confirms as
+   * `|-setboost|p1a: Azumarill|atk|6|[from] move: Belly Drum`. A declared not-emitted reason that
+   * asserts something about the AUTHORITY is exactly as dangerous as a stale handoff, so it goes
+   * rather than gets reworded.
+   */
   '-clearpositiveboost': 'Spectral Thief is not modelled.',
   '-cureteam': 'Heal Bell / Aromatherapy are not modelled.',
   /* '-sethp' HAS MOVED INTO TRACE_EVENTS AND ITS REASON IS DELETED RATHER THAN EDITED, 2026-08-12.

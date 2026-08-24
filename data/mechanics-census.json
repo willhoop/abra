@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-24T08:20:25.886Z",
+  "generated": "2026-08-24T09:33:14.027Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 668,
-  "live": 668,
+  "probed": 674,
+  "live": 674,
   "missing": 0,
-  "armed": 668,
+  "armed": 674,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3413,7 +3413,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6694,6 +6694,66 @@
       "label": "Unnerve refuses a RESIST berry, so the halve never happens and the hit kills",
       "live": true,
       "detail": "Brick Break into a Chople Berry Tyranitar. No berry: 175 HP. Berry, no suppressor: 156 HP, item - (must be less, and spent). Berry with unnerve opposite: 175 HP, item chopleberry (must equal the no-berry price, and the berry must still be there)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "costsUserHP",
+      "label": "the stages Clangorous Soul buys land BEFORE the HP it pays — and Belly Drum pays first",
+      "live": true,
+      "detail": "[the order of the stage lines and the self-damage line, one real turn each] — Clangorous Soul off a Kommo-o [\"boost\",\"damage\"], which the authority pays in onHit AFTER onTryHit has boosted; CONTROL Belly Drum off an Azumarill [\"damage\",\"boost\"], whose directDamage and boost sit in ONE onHit in that order. An engine with one shared cost site cannot satisfy both",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCode",
+      "label": "Belly Drum announces the stage it SET, naming itself — and Tidy Up still announces a step",
+      "live": true,
+      "detail": "[every stage line the acting body emitted, one real turn each] — Belly Drum off a 175 HP Azumarill [\"|-setboost|p1a:azumarill|atk|6|[from]move:bellydrum\"]; CONTROL Tidy Up off a Maushold, the other on-user statChangeInCode boost, [\"|-boost|p1a:maushold|atk|1\",\"|-boost|p1a:maushold|spe|1\"]. The authority puts field 4 at the stage the body NOW SITS ON (6), where a step would read 12",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "buffsHolderOnHit",
+      "label": "Anger Point announces the stage it SET and does it once — and Stamina still steps every hit",
+      "live": true,
+      "detail": "[every stage line the struck body emitted across TWO guaranteed crits] — Anger Point on a Camerupt [\"|-setboost|p2a:camerupt|atk|6|[from]ability:angerpoint\"]; CONTROL Stamina on an Archaludon, the other buffsHolderOnHit boost, taking the identical two Storm Throws, [\"|-boost|p2a:archaludon|def|1|[from]ability:stamina\",\"|-boost|p2a:archaludon|def|1|[from]ability:stamina\"]. One line against two is the cap: at +6 the authority's boostBy is 0 and it writes nothing at all",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "typeImmunity",
+      "label": "an absorbing ability announces `-immune` only when its gift had nowhere to land",
+      "live": true,
+      "detail": "[the lines the ABSORBING body emitted] — Sap Sipper with headroom [\"|-boost|p2a:azumarill|atk|1|[from]ability:sapsipper\"]; the same Trailblaze into the same Azumarill ALREADY AT +6 Attack [\"|-immune|p2a:azumarill|[from]ability:sapsipper\"]. Volt Absorb on half HP [\"|-heal|p2a:jolteon|105/140|[from]ability:voltabsorb\"]; the same Thunderbolt into the same Jolteon at FULL HP [\"|-immune|p2a:jolteon|[from]ability:voltabsorb\"]. The authority writes the -immune inside `if (!this.boost(...))` / `if (!this.heal(...))`, so it is the gift's else and never its companion",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "reflectsStatusMoves",
+      "label": "a bounced move is USED by the bouncer and writes its own `|move|` line",
+      "live": true,
+      "detail": "[the move and activate lines of one real turn] — a Feraligatr Blocks an Espeon. MAGIC BOUNCE [\"|move|p2a:feraligatr|block|p1a:espeon\",\"|move|p1a:espeon|block|p2a:feraligatr|[from]ability:magicbounce\",\"|-activate|p2a:feraligatr|trapped\"]; CONTROL, the same click into the same Espeon carrying SYNCHRONIZE (its other legal ability) [\"|move|p2a:feraligatr|block|p1a:espeon\",\"|-activate|p1a:espeon|trapped\"]. The bounce arm must carry TWO move lines and trap the Blocker; the control arm one line and the Espeon",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "buffsHolderOnHit",
+      "label": "a second hit RE-ANNOUNCES the Charge it re-banks, naming the move that landed it",
+      "live": true,
+      "detail": "[the Charge lines across TWO hits on the same Bellibolt] — Electromorphosis [\"|-start|p1a:bellibolt|charge|heavyslam|[from]ability:electromorphosis\",\"|-start|p1a:bellibolt|charge|bodyslam|[from]ability:electromorphosis\"]; CONTROL, the identical two hits with the ability blanked, []. The second line must name BODY SLAM: field 4 is the authority's `this.activeMove.name`, so a duplicated first line would say heavyslam twice",
       "hollow": false,
       "armed": true,
       "directCall": false

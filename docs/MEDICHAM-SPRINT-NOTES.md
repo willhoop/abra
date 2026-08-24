@@ -12945,3 +12945,76 @@ release); `interaction_matrix.js`; and the **mega-phase and residual sorts**, wh
 `Array.prototype.sort` where the authority uses the tie-resolving one — that is card 3 of
 [`docs/_reports/2026-08-24-ordering-cards.md`](_reports/2026-08-24-ordering-cards.md) and it is **Will's
 call**, along with the other three cards, which are not answered here.
+
+---
+
+## SIX DIVERGING MECHANICS BY REACH — 31 → 25 UNCLEARED, CENSUS 668 → 674, BOARD-MATERIAL UNMOVED AT 24. 2026-08-24 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-24-mechanics-by-reach.md`](_reports/2026-08-24-mechanics-by-reach.md).
+Ledger section: `docs/ENGINE.md`, *"SIX DIVERGING MECHANICS BY REACH"*.
+
+**WHAT LANDED, RANKED BY THE CORPUS USAGE IT COVERS** — 1,146 clicks/holdings in total, each written
+as a failing probe first with a control that was already green, each confirmed gone from
+`data/all-mechanics-fire.json` by a re-run:
+
+| mechanic | uses | what was wrong |
+|---|---|---|
+| Clangorous Soul | 513 | the HP was paid ABOVE the kind dispatch, so `-damage` came before the five stages. The authority boosts in `onTryHit` and pays in `onHit` |
+| Magic Bounce | 286 | the bounce retargeted correctly and never said so. The authority calls `useMove` on the bouncer and writes a second `|move|` line |
+| Electromorphosis | 127 | the SECOND bank was silent. The `charge` condition carries `onStart` AND `onRestart`, and the engine's own comment already said so |
+| Belly Drum | 124 | `-boost|atk|6` where the authority writes `-setboost|atk|6|[from] move: Belly Drum` |
+| Sap Sipper | 76 | announced `-immune` AND the gift. The `-immune` is the gift's ELSE — one shape across all eight absorbers |
+| Anger Point | 20 | the same `-setboost` rule as Belly Drum, other call site |
+
+**THE PREDICATE FOR `-setboost` WAS PRINTED BEFORE IT WAS WIRED.** The engine asks whether the
+requested boost is BEYOND THE CAP (`{atk: 12}`), never the effect's name. Swept over every `boosts`
+table under every tag of every move, ability and item in `data/abra-tags.js`: **exactly two rows**
+carry a magnitude above 6, and they are the two the authority hard-codes at
+`dist/sim/battle.js:1674-1679`.
+
+**A STALE `notEmitted` REASON WAS DELETED RATHER THAN REWORDED.** `-setboost` joined `TRACE_EVENTS`,
+and its reason in `engine/derive_protocol_events.js` had said *"…is emitted as `-boost`, which is what
+Showdown's gen-9 bellydrum does too"* — the last clause was FALSE and had been all along. A declared
+not-emitted reason that asserts something about the AUTHORITY is as dangerous as a stale handoff.
+`tests/test-protocol-trace.js` PART 1 then required the new event to FIRE and no scenario reached one,
+so Belly Drum got a small board of its own — and Belly Drum rather than Anger Point deliberately,
+because Anger Point needs a crit and an event that depends on a roll is one seed from being a coverage
+gap wearing a pass's clothes.
+
+**SAID BEFORE THE RUN, PER THE RANKING RULE: ALL SIX ARE LAB MECHANICS.** The pinned pool holds no
+Clangorous Soul click, no Belly Drum, no Anger Point crit, no absorbed Grass move and no bounced
+reflectable status move — so the lab was expected to move and the pool to sit still, and it did,
+byte for byte.
+
+**THE NUMBERS.** Damage differential **0 of 6000** at all 16 corners, seed 20260804. Census **668 →
+674 live, 674 probed, 0 missing, 0 threw**. Mechanics artifact `--kind all`, release
+**`264f6d13d1e4`**, arm `bottom-tie-first`: **uncleared diverging 31 → 25** (moves 22 → 20, abilities
+8 → 4, items 1 → 1; the six removed are exactly the six above and nothing was added). Whole game, arm
+**middle**, release **`264f6d13d1e4`**, `--team-store data/team-pool-frozen`, census pinned to
+`census-pin-9446a684709d.json`, 961 pairs: **raw parted 46 → 46**, **BOARD-MATERIAL 23 causes / 24
+games → UNMOVED**, **narration 20 causes / 22 games → unmoved**, **declared 13 → 13**. A re-baseline,
+not a delta.
+
+**THE DELIBERATE ROSTER WAS RE-RUN, ALL THREE STAGES**, because moving the engine turned three PASSING
+gate clauses into `MEASURED AGAINST A DIFFERENT ENGINE`. At release `264f6d13d1e4`: items **0 DIFFER /
+0 DID-NOT-FIRE** (139 of 148 tested), abilities **0 / 0** (130 of 202), moves **0 / 0** (475 of 500).
+Gate back to **5 of 8 clauses passing**, the same three failing.
+
+**OBSERVED, NOT CAUSED — both fail identically on HEAD's engine bytes:**
+`tests/test-mutation-coverage.js` is RED on one clause (*"the planted-stub gate catches both stubs
+(0/2 caught)"*), already declared in `tests/run-all.js`; `tests/staged_board.js` parts on 3 of 25
+scenarios (imposter, hunger switch, roar-drags).
+
+**A SEPARATE DEFECT SURFACED CLEANLY AND IS NOT FIXED HERE**, and it was already in the published
+artifact as `verdict: STATE`, so it is not a regression: the Magic Bounce scenario parts on the BOARD
+at turn 4 with both protocol streams in agreement — `p2a feraligatr vol.trapped  showdown 0  we 1`. A
+move trap outliving the authority's. No register row names it; proposed text is in the report.
+
+**OWED, NOT RUN:** `tests/interaction_matrix.js` (last run 2026-08-11); `tests/mutation_harness.js`
+(its artifact measured release `6fb9ebd3b704`, and it writes, so it needs `--gate-only --no-write`
+wiring first); `scaleshot` (258) and `berserk` (47), which share ONE mechanism — the self-effect must
+land after the whole volley's `-hitcount` — and that is the multi-hit LOOP granularity
+`tests/test-resolution-order.js` already stages as a declared KNOWN-OPEN arm, a restructure rather
+than an ordering fix; the `-damage field 3` trio (`hustle`, `sandforce`, `shellsidearm`); and the
+**four judgement cards** in `docs/_reports/2026-08-24-ordering-cards.md`, which are Will's, together
+with the mega-phase and residual sorts they cover. Untouched.

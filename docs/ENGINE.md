@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  668/668 probed mechanics live, 0 missing   (census 2026-08-24 04:20)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-24 04:23)
+  674/674 probed mechanics live, 0 missing   (census 2026-08-24 05:33)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-24 05:35)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,134 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is a2fa98a9bc73 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 0695cc7b183b now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-24 04:40_
+_stamped 2026-08-24 05:51_
 
 <!-- /GENERATED -->
+
+## SIX DIVERGING MECHANICS BY REACH — 31 → 25 UNCLEARED, CENSUS 668 → 674, BOARD-MATERIAL UNMOVED AT 24. 2026-08-24.
+
+Full account: [`docs/_reports/2026-08-24-mechanics-by-reach.md`](_reports/2026-08-24-mechanics-by-reach.md).
+Probes: `tests/test-mechanics.js` **`move/costsUserHP`** (Clangorous Soul's stages land before the HP,
+control **Belly Drum**, which the authority orders the other way), **`move/statChangeInCode`** and
+**`ability/buffsHolderOnHit`** (the `-setboost` pair, controls **Tidy Up** and **Stamina**),
+**`ability/typeImmunity`** (an absorber's `-immune` is the gift's ELSE), **`ability/reflectsStatusMoves`**
+(a bounced move writes its own `|move|` line, control **Synchronize**) and a second
+**`ability/buffsHolderOnHit`** (a re-banked Charge re-announces).
+
+**RANKED BY REACH AND LANDED ONE AT A TIME**, 1,146 corpus clicks/holdings in total. Every one was a
+FAILING probe before it was a fix, and in all six the CONTROL ARM WAS ALREADY GREEN — so the probe
+isolated the defect rather than describing the engine:
+
+| mechanic | uses | what was wrong |
+|---|---|---|
+| Clangorous Soul | 513 | the HP was paid ABOVE the kind dispatch, so `-damage` preceded the five stages |
+| Magic Bounce | 286 | the bounce retargeted correctly and never said so |
+| Electromorphosis | 127 | the SECOND bank was silent |
+| Belly Drum | 124 | `-boost` where the authority writes `-setboost` with the resulting STAGE and a `[from]` |
+| Sap Sipper | 76 | announced `-immune` AND the gift |
+| Anger Point | 20 | the same `-setboost` rule, other call site |
+
+**CLANGOROUS SOUL IS AN ORDER THE AUTHORITY SPLITS ACROSS TWO HANDLERS.** `onTryHit` runs
+`this.boost(move.boosts)` and `onHit` runs `this.directDamage(maxhp * 33/100)` (dist/data/moves.js), so
+the stages are on the board before the HP comes off. **It is not a blanket reorder, and the control is
+the authority's own other answer:** Belly Drum does both halves inside ONE `onHit` — `directDamage`
+then `boost({atk:12})` — so its HP still comes off first. The engine defers only when the move carries
+a DECLARED boost table (`boostsUser`), which is the table `onTryHit` is handed; Belly Drum carries
+`statChangeInCode`, because its boost is procedural. **The deferral is ROUTED, not dropped into the
+dark:** it is taken only when the dispatch will reach the `setup` branch, the one place it is picked up
+again, and any other landing site pays at the old position and increments
+`MEDFAILS.hpCostBoostFirstUnrouted` (0 today).
+
+**THE `-setboost` PREDICATE WAS PRINTED BEFORE IT WAS WIRED, AND IT MATCHES THE AUTHORITY'S OWN LIST.**
+`Battle#boost` hard-codes two effect ids (`dist/sim/battle.js:1674-1679`); the engine instead asks
+whether the requested boost is BEYOND THE CAP — `{atk: 12}`, the game's spelling of "set to max".
+Swept over every `boosts` table under every tag of every move, ability and item in
+`data/abra-tags.js`: **exactly two rows** carry a magnitude above 6, and they are
+`moves.bellydrum.statChangeInCode` and `abilities.angerpoint.buffsHolderOnHit`. One function
+(`announcesSetBoost`), two call sites, so they cannot come to disagree.
+
+**AND A STALE `notEmitted` REASON WENT RATHER THAN GOT REWORDED.** `-setboost` joined `TRACE_EVENTS`,
+and its entry in `engine/derive_protocol_events.js` read *"…is emitted as `-boost`, which is what
+Showdown's gen-9 bellydrum does too"* — the last clause was FALSE and had been all along, contradicted
+by a real authority log (`|-setboost|p1a: Azumarill|atk|6|[from] move: Belly Drum`). A declared
+not-emitted reason that asserts something about the AUTHORITY is exactly as dangerous as a stale
+handoff. `tests/test-protocol-trace.js` PART 1 then required the new event to FIRE and no scenario
+reached one — scenario 1's Azumarill carries Belly Drum and sits on the BENCH for all seven of its
+turns — so the event got a board of its own. **Belly Drum and not Anger Point, deliberately:** Anger
+Point needs a crit, and a scenario whose event depends on a roll is one seed away from being a coverage
+gap wearing a pass's clothes.
+
+**THE ABSORBER RULE IS ONE SHAPE EIGHT TIMES, READ MEMBER BY MEMBER.** `sapsipper`, `lightningrod`,
+`motordrive`, `voltabsorb`, `waterabsorb`, `dryskin`, `eartheater` and `flashfire` all guard the line
+the same way in `data/abilities.ts` — the `-immune` sits inside `if (!<the gift>)` — with no Champions
+override on any of them. `boost` returns false when no stage moved, `heal` false at full HP,
+`addVolatile` false when it is already up, so the line means *absorbed, and there was nothing in it for
+me*, and announcing it beside the gift says the opposite. Nothing is named in the engine: the gift
+comes off the tag's own `gain`. **The probe's control is the authority's own other branch** — a capped
+Sap Sipper and a full-HP Volt Absorb must STILL write the bare `-immune`, so a fix that merely deleted
+the line fails there. **STATED, NOT FIXED:** Flash Fire's gift is a VOLATILE this engine does not grant
+(the WIRE 11 header has said so since it was written), so it keeps announcing `-immune` on every Fire
+hit where the authority announces it only on the second. `MEDFAILS.absorbGiftUnmodelled` counts it;
+behaviour is unchanged and now loud.
+
+**THE MAGIC BOUNCE ANNOUNCEMENT IS OPT-IN AND THE DEFAULT IS SILENT.** `bounceOff` is asked six times
+and one caller is not a resolution at all — `statusMoveTargets` is consulted by the Protean pre-check
+above the kind dispatch purely to ask *does this click reach anybody*. Announcing there would put a
+second `|move|` line into the stream of every Protean body that throws a reflectable status move at a
+bouncer, so the four dispatch sites and the two real `statusMoveTargets` callers opt in and the
+pre-check does not.
+
+**SAID BEFORE THE RUN, PER THE RANKING RULE: ALL SIX ARE LAB MECHANICS.** The pinned pool holds no
+Clangorous Soul click, no Belly Drum, no Anger Point crit, no absorbed Grass move and no bounced
+reflectable status move. The lab was expected to move and the pool to sit still, and the pool sat still
+byte for byte — raw parted 46, board-material 23 causes / 24 games, narration 20 causes / 22 games, all
+identical either side.
+
+**THE DELIBERATE ROSTER WAS RE-RUN, ALL THREE STAGES.** Moving the engine turned three PASSING gate
+clauses into `MEASURED AGAINST A DIFFERENT ENGINE`, which is the release rule working. At release
+`264f6d13d1e4`: items **0 DIFFER / 0 DID-NOT-FIRE** (139 of 148 tested), abilities **0 / 0** (130 of
+202), moves **0 / 0** (475 of 500).
+
+**A SEPARATE DEFECT SURFACED CLEANLY AND IS NOT FIXED HERE.** It was already in the published artifact
+as `verdict: STATE`, so it is not a regression: the Magic Bounce scenario parts on the BOARD at turn 4
+with both protocol streams in agreement — `p2a feraligatr vol.trapped  showdown 0  we 1`, a move trap
+outliving the authority's. No register row names it.
+
+### THE HAND LIST
+
+Leaves it, each now carried by a census probe: **Clangorous Soul's boost/cost order**, **the
+`-setboost` pair (Belly Drum and Anger Point)**, **the absorbing abilities' spurious `-immune`**, **the
+missing bounced `|move|` line**, and **the silent Charge re-bank**.
+
+Joins it, named rather than missed: **a move trap survives on our board after the authority has
+released it** (Magic Bounce scenario, `vol.trapped` showdown 0 / us 1 at turn 4, both streams agreeing)
+— a STATE defect the protocol arm structurally cannot see, and it has no register row.
+
+### OWED, NOT RUN
+
+- `tests/interaction_matrix.js`, last run 2026-08-11;
+- `tests/mutation_harness.js` — its coverage artifact measured release `6fb9ebd3b704` and it WRITES,
+  so it needs `--gate-only --no-write` wiring before it can be a gate;
+- `scaleshot` (258) and `berserk` (47), which share ONE mechanism — the self-effect must land after the
+  whole volley's `-hitcount`. That is the multi-hit LOOP granularity `tests/test-resolution-order.js`
+  already stages as a declared KNOWN-OPEN arm: a restructure, not an ordering fix;
+- the `-damage field 3` trio (`hustle` 29, `sandforce` 25, `shellsidearm` 17) — a damage magnitude
+  INSIDE a game, which the 0/6000 single-hit differential structurally cannot see;
+- the four judgement cards in `docs/_reports/2026-08-24-ordering-cards.md`, which are Will's, and the
+  mega-phase and residual sorts they cover.
+
+**OBSERVED, NOT CAUSED.** Both were re-run against HEAD's engine bytes and fail identically there.
+`tests/test-mutation-coverage.js` is RED on one clause of six — *"the planted-stub gate catches both
+stubs (0/2 caught)"* — and `tests/run-all.js` already carries `mutation_harness.js` as declared RED and
+not MEASURE's. `tests/staged_board.js` parts on 3 of 25 scenarios (`imposter-copies-the-body-opposite`,
+`hungerswitch-flips-every-turn`, `roar-drags-whoever-is-standing-there`), with byte-identical field
+lists on both engines.
 
 ## THE ENTRY ORDER IS A RANKING OVER ALL FOUR BODIES — CENSUS 667 → 668, BOARD-MATERIAL UNMOVED AT 24. 2026-08-24.
 
@@ -5768,11 +5887,13 @@ reason written at the plant.
   for. The PP half of that same guard IS fixed; this half is not.
 - **UPROAR'S SLEEP BREAK EMITS `-end`.** `lockedmove.onResidual` DELETES the volatile when the holder
   falls asleep, so `onEnd` never runs and the authority is silent. Pre-existing; unchanged.
-- **A BOUNCED MOVE IS NOT NARRATED.** The authority re-issues the reflected move as a real `|move|`
-  line off the bouncer; this engine emits only the consequence. `magicbounce` is still STATE for a
-  SECOND reason as well: at turn 4 the authority has released the trap and this engine still holds it,
-  which is `endsWithSource` under a source that is the trapped body itself. Both measured this pass,
-  neither fixed — the row went from "trapped the wrong body" to "traps the right one, releases late".
+- ~~**A BOUNCED MOVE IS NOT NARRATED.**~~ **CLOSED 2026-08-24** — `bounceOff` now writes the
+  authority's second `|move|` line, opted into at the four dispatch sites and the two real
+  `statusMoveTargets` callers, with a census probe (`ability/reflectsStatusMoves`, control
+  Synchronize). The SECOND reason below is UNCHANGED and still open: at turn 4 the authority has
+  released the trap and this engine still holds it, which is `endsWithSource` under a source that is
+  the trapped body itself. `magicbounce` therefore still reads STATE, and it no longer reads
+  `diverged`.
 
 ## THE EFFECTIVENESS EVENT IS PER DEFENDING TYPE, AND TWO HANDLERS IGNORE THE TYPE. `staged_board.js` HAS BEEN DARK FOR A WEEK AND RUNS. 2026-08-19.
 
@@ -9986,7 +10107,8 @@ fired. **It draws no die and cannot need to**: the aimed foe is dead, so at most
   `pp, clearsScreens, targetClass, contact, formatSecondaryCount` and there is no forme-typed-move row
   at all. So this is a `tag_dex` derivation plus a consumer, not a line in the engine, and `aurawheel`
   is its twin.
-- **Not started:** Clangorous Soul's boost-before-cost ordering; Gravity's x1.67 accuracy and the
+- **Not started:** ~~Clangorous Soul's boost-before-cost ordering~~ (**CLOSED 2026-08-24**, census
+  probe `move/costsUserHP` with Belly Drum as the opposite-order control); Gravity's x1.67 accuracy and the
   derived `ACCMOD` sweep; the spread-move faint path; Frisk's second side; the volatile-expiry rule;
   Yawn's `-fail`; residual damage attribution; the Illusion exclusion.
   *(The residual-order restructure left this list on 2026-08-12 — ROADMAP #221, four probes, the

@@ -88,6 +88,22 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* 2026-08-24 -- a costsUserHP click whose declared boost table landed BEFORE the payment, which is
+   * where the authority puts Clangorous Soul's `onHit`. A capability that cannot prove it ran is
+   * assumed broken; the sibling MEDFAILS.hpCostBoostFirstUnrouted counts the other side of the same
+   * routing decision. */
+  hpCostAfterBoosts: 0,
+  /* 2026-08-24 -- a boost the authority announces as `-setboost` rather than `-boost` (Belly Drum,
+   * Anger Point). Zero would mean the emitter is unreachable, which is what it looked like before. */
+  setBoostAnnounced: 0,
+  /* 2026-08-24 -- the two arms of an absorbing ability's announcement. `absorbGiftLanded` is a heal or
+   * a stage that actually moved (the authority stays silent); `absorbImmuneAnnounced` is the gift
+   * having nowhere to land (the authority writes the `-immune`). Both non-zero means the branch is
+   * really a branch; either at zero would mean the knob is unwired. */
+  absorbGiftLanded: 0, absorbImmuneAnnounced: 0,
+  /* 2026-08-24 -- a bounced status move that wrote the authority's second `|move|` line. Zero would
+   * mean the announcement never reaches a real resolution, which is what it looked like before. */
+  bounceAnnounced: 0,
   /* ROADMAP #290 -- a Speed multiplier that is NOT an exact multiple of 1/4096, so the ORDER of the
    * chain starts to matter. Zero across this format today (x1.5 is 6144, x2 is 8192), and the whole
    * point of the counter is that a future one arrives loudly instead of as a rounding drift. */
@@ -1492,6 +1508,22 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* 2026-08-24 -- a move carrying BOTH costsUserHP and a declared boost table that did NOT dispatch to
+     the `setup` branch, so the deferred payment would have had nowhere to land and it paid at the old
+     (authority-wrong) position instead. Zero across this format today -- clangoroussoul is the only
+     member and it is `setup` -- and the counter is here so a new one arrives loudly rather than as a
+     silently mis-ordered line. */
+  hpCostBoostFirstUnrouted: 0,
+  /* 2026-08-24 -- a `-setboost` that could not be attributed because the artifact carries no display
+     name for the effect, so the plain `-boost` was written instead. Zero across this format. */
+  setBoostNoName: 0,
+  /* 2026-08-24 -- an absorb whose gain is a VOLATILE this engine does not grant (Flash Fire). The
+     `-immune` is announced unconditionally for those, which is right only on the second Fire hit.
+     Named and counted rather than papered over; the volatile is a separate mechanic. */
+  absorbGiftUnmodelled: 0, absorbGiftUnmodelledFirst: '',
+  /* 2026-08-24 -- a bounce whose ability the artifact carries no display name for, so the second
+     `|move|` line went out with no attribution. Zero across this format. */
+  bounceNoName: 0,
   /* WIRE 160 -- both sides empty and no comparable faint order survives, so the result falls back
      to the 0.5 this wire exists to remove. LOUD on purpose: the fallback and the fix return the
      same number and only this counter tells them apart. */
@@ -2592,6 +2624,21 @@ const TRACE=(function(){
         return;
       }
       this.push([d>0?'-boost':'-unboost',ident(m),sdStat(eng),Math.abs(d),from]); },
+    /* 2026-08-24 -- `-setboost`: THE STAGE THE BODY NOW SITS ON, NOT THE STEP IT TOOK.
+     *
+     *     switch (effect?.id) {
+     *       case "bellydrum": case "angerpoint":
+     *         this.add("-setboost", target, "atk", target.boosts["atk"], "[from] " + effect.fullname);
+     *                                                              dist/sim/battle.js:1674-1679
+     *
+     * Field 4 is read off the body AFTER the change, which is what separates this from `bst` above --
+     * that one writes `Math.abs(d)`, the step. Belly Drum's `{atk:12}` steps six and sets six, so the
+     * two happen to agree there; Anger Point on a body already at +2 sets 6 and steps 4, and they do
+     * not. `from` is the effect's own `fullname` and is composed by the caller, exactly as `bst`'s is.
+     *
+     * THE CALLERS GATE ON THE STEP, not on this emitter: the authority's whole switch sits inside
+     * `if (boostBy)`, so a body already at the cap gets no line at all. */
+    setbst(m,eng,from){ this.push(['-setboost',ident(m),sdStat(eng),(m&&m.boosts)?m.boosts[eng]:0,from]); },
     clearAll(){ this.push(['-clearallboost']); },
     /* ROADMAP #81 WIRE 11 -- `[silent]` is the item handler's own third field:
      * `this.add('-clearnegativeboost', pokemon, '[silent]')` (data/items.ts, whiteherb onUse). This
@@ -2789,7 +2836,7 @@ const ATTR=(function(){
  * `tests/test-protocol-trace.js` plays real games and FAILS if any name here NEVER fires. A trace
  * that claims an event and cannot produce one is CLAUDE.md's "capability that cannot prove it ran". */
 const TRACE_EVENTS=['turn','upkeep','move','cant','switch','drag','faint','detailschange','-mega','-sethp',
-  '-damage','-heal','-status','-curestatus','-boost','-unboost','-clearallboost','-clearnegativeboost',
+  '-damage','-heal','-status','-curestatus','-boost','-unboost','-setboost','-clearallboost','-clearnegativeboost',
   '-ability','-item','-enditem','-weather','-fieldstart','-fieldend','-fieldactivate',
   '-sidestart','-sideend','-start','-end','-activate','-singleturn','-fail','-miss',
   '-crit','-supereffective','-resisted','-immune','-prepare','-mustrecharge','-hitcount','-formechange',
@@ -2826,6 +2873,22 @@ function traceRelease(prev){ TR=prev; if(!prev){TRACE.out=null;TRACE.S=null;} }
  *
  * FIELDS 0 AND 1 ARE STRUCTURE, NOT NAMES, and are left alone. Stripping `-` from field 1 would turn
  * `-damage` into `damage` and quietly rename half the protocol. */
+/* 2026-08-24 -- WHICH BOOSTS ANNOUNCE THEMSELVES AS A `-setboost`. ONE FACT, TWO CALLERS.
+ *
+ * The authority hard-codes two effect ids (`bellydrum`, `angerpoint`) inside `Battle#boost`
+ * (dist/sim/battle.js:1674-1679). What both have in common is the SHAPE of the request: `{atk: 12}`,
+ * which is the game's own spelling of "set this stat to its maximum" -- twelve half-stages cannot be
+ * a step, because the scale stops at six.
+ *
+ * SO THE ENGINE ASKS THE SHAPE, NOT THE NAME, and the shape was swept before it was wired: over every
+ * `boosts` table under every tag of every move, ability and item in `data/abra-tags.js`, EXACTLY TWO
+ * rows carry a magnitude above 6 -- `moves.bellydrum.statChangeInCode` and
+ * `abilities.angerpoint.buffsHolderOnHit`. That is the authority's list, derived rather than typed,
+ * and a third member arriving in a later regulation is picked up with no edit here.
+ *
+ * ONE FUNCTION, TWO CALL SITES (CLAUDE.md's FACTS ARE GLOBAL): the `statcode` move branch and the
+ * `buffsHolderOnHit` ability step both ask this, so the two can never come to disagree about it. */
+function announcesSetBoost(amount){ return Math.abs(+amount||0) > 6; }
 function traceCanon(line){
   return String(line).split('|').map((f,i)=>{
     let v=f.toLowerCase().replace(/\s+/g,'');
@@ -4539,13 +4602,38 @@ function terrainId(t){
  * hazards, and a move aimed at the partner is aimed at a different body, so only the holder's own
  * bounce is here. A bounce cannot bounce again -- returning the user means the recursion cannot
  * happen, because a user never reflects its own move. */
-function bounceOff(user,target,moveId){
+/* 2026-08-24 -- AND THE BOUNCE SAYS SO. `announce` is EXPLICIT AND DEFAULTS TO SILENT, deliberately.
+ *
+ * The authority does not merely re-aim: `magicbounce.onTryHit` builds a fresh active move and calls
+ * `this.actions.useMove(newMove, target, {target: source})` (data/abilities.ts), and a use writes a
+ * `|move|` line like any other. Read off the authority on a Feraligatr Blocking an Espeon:
+ *     |move|p2a: Feraligatr|Block|p1a: Espeon
+ *     |move|p1a: Espeon|Block|p2a: Feraligatr|[from] ability: Magic Bounce
+ *     |-activate|p2a: Feraligatr|trapped
+ * The third line was already right (ROADMAP #241 fixed WHO gets trapped); the second was absent, on
+ * all 286 corpus uses.
+ *
+ * WHY THE FLAG RATHER THAN EMITTING FROM HERE UNCONDITIONALLY: this function is asked SIX times, and
+ * one of the callers is not a resolution at all -- `statusMoveTargets` is consulted by the Protean
+ * pre-check above the kind dispatch purely to ask "does this click reach anybody". A bounce announced
+ * there would put a second `|move|` line into the stream of every Protean body that throws a
+ * reflectable status move at a bouncer. So the announcement is opted into at the sites that are
+ * really resolving the move, and a caller that forgets stays exactly as silent as it is today. */
+function bounceOff(user,target,moveId,announce){
   if(!target||target===user||!moveId) return target;
   const r=TAGS.param('ability',target.ability,'reflectsStatusMoves');
   if(!r) return target;
   const c=TAGS.param('move',moveId,'moveClass');
   const flag=r.requiresFlag||'reflectable';
   if(!(c&&c.classes&&c.classes.indexOf(flag)>=0)) return target;
+  if(announce&&TR){
+    /* The label is the ARTIFACT's display name, which is what `Effect#fullname` prints; a record with
+       no name is COUNTED and the line goes out bare, because a silent default would look exactly like
+       the emitter working. */
+    const _rec=TAGS.tagsFor?TAGS.tagsFor('ability',target.ability):null;
+    if(_rec&&_rec.name){MEDSEEN.bounceAnnounced++;TR.mv(target,moveId,user,'[from] ability: '+_rec.name);}
+    else {MEDFAILS.bounceNoName++;TR.mv(target,moveId,user);}
+  }
   return user;
 }
 const boostMul=s=>{s=clamp(s||0,-6,6);return s>=0?(2+s)/2:2/(2-s);};
@@ -12649,7 +12737,7 @@ function volStartArg(who,a){
  * `aTarget`; every gate, every counter and the order of the three arms are as they were. The comments
  * inside are the originals and are the record of how each arm was measured.
  */
-function statusMoveTargets(m,mvId,aTarget,it,actA,actB){
+function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce){
   let _tl;
         const _spF=TAGS.param('move',mvId,'spreadFoes'), _spA=TAGS.param('move',mvId,'spreadAll');
         /* WIRE 153 -- A SELF-TARGETING STATUS MOVE CLICKED WITH NO TARGET FAILED OUTRIGHT. 2026-08-10.
@@ -12706,7 +12794,7 @@ function statusMoveTargets(m,mvId,aTarget,it,actA,actB){
           /* Magic Bounce is asked of each body separately, exactly as it is on the single-target
              path below, and the result is de-duplicated by identity: two bouncers on one side would
              otherwise send the same move back at its user twice. */
-          _tl=_tl.map(x=>bounceOff(m,x,mvId)).filter((x,i,arr)=>x&&arr.indexOf(x)===i);
+          _tl=_tl.map(x=>bounceOff(m,x,mvId,announce)).filter((x,i,arr)=>x&&arr.indexOf(x)===i);
           if(_tl.length>1)MEDSEEN.spreadStatusTargets++;
         } else {
         /* WIRE 139 -- THE SLOT, BEFORE ANYTHING ELSE LOOKS AT THE BODY. This branch is where Charm,
@@ -12717,7 +12805,7 @@ function statusMoveTargets(m,mvId,aTarget,it,actA,actB){
          * dropped a body sitting on the BENCH. */
           let _t0=reaimToSlot(aTarget,it,actA,actB,mvId);
           _t0=_t0&&!_t0.fainted&&_t0.curHP>0?_t0:null;
-          _t0=bounceOff(m,_t0,mvId);
+          _t0=bounceOff(m,_t0,mvId,announce);
           _tl=_t0?[_t0]:[];
         }
   return _tl;
@@ -18284,10 +18372,37 @@ function battleTurn(S,rng,actsForA,actsForB){
              and every Shed Tail (64) in the corpus. The `kind==='sub'` branch further down already
              had the right order and is DEAD: playerAction classifies both moves as `affect`, because
              both carry a `statusInflict` volatile, so control has never reached it. */
-          grantSubstitute(m,a.mv||a.move.id);
-          m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);
-          if(TR)TR.dmg(m);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);continue;}
+          /* 2026-08-24 -- A MOVE WHOSE EFFECT IS A DECLARED BOOST TABLE PAYS *AFTER* THE STAGES LAND.
+             The authority splits Clangorous Soul across two handlers and the order is the split:
+             `onTryHit` runs `this.boost(move.boosts)` and `onHit` runs `this.directDamage(...)`, so
+             the five stages are on the board before the HP comes off (dist/data/moves.js
+             clangoroussoul). This block sits ABOVE the kind dispatch, so paying here put the
+             `|-damage|` first on all 513 corpus clicks -- `data/all-mechanics-fire.json`'s largest
+             single diverging row, `[ordering] |-boost|atk|1 <> |-damage|603/900`.
+             IT IS NOT A BLANKET REORDER, and the control is the authority's own other answer: Belly
+             Drum does BOTH halves inside one `onHit` -- `directDamage` then `boost({atk:12})` -- so
+             its HP must still come off first. That move reaches the `statcode` branch and pays there,
+             untouched by this.
+             THE PREDICATE IS THE ARTIFACT'S, NOT A NAME: `boostsUser` is read off the move's own
+             declared boost table (`m.self.boosts` / `m.boosts`), which is exactly the table the
+             authority hands to `onTryHit`. Belly Drum carries `statChangeInCode` instead, because its
+             boost is procedural. One member today (clangoroussoul is the only move in this format
+             carrying both `costsUserHP` and `boostsUser`) and that is stated rather than dressed up.
+             ROUTED, NOT DEFERRED INTO THE DARK: the deferral is taken only when the dispatch is going
+             to reach the `setup` branch, which is the one place the payment is picked up again. A
+             boost-first cost move landing anywhere else pays here, at the old position, and SAYS SO. */
+          if(TAGS.has('move',a.mv||a.move.id,'boostsUser')&&!TAGS.has('move',a.mv||a.move.id,'statChangeInCode')){
+            if(a.kind==='setup'){
+              a._hpCostAfterBoosts=_rnd(m.st.hp*+_cu.costsFraction);
+              MEDSEEN.hpCostAfterBoosts++;
+            } else MEDFAILS.hpCostBoostFirstUnrouted++;
+          }
+          if(a._hpCostAfterBoosts==null){
+            grantSubstitute(m,a.mv||a.move.id);
+            m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);
+            if(TR)TR.dmg(m);
+            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);continue;}
+          }
         }
       }
       /* WIRE 157 -- A NON-ATTACKING ELECTRIC CLICK SPENDS A BANKED CHARGE. Thunder Wave, Eerie Impulse
@@ -18446,6 +18561,16 @@ function battleTurn(S,rng,actsForA,actsForB){
            all three. Nothing else reaches this line -- `also` is attached to five moves in the whole
            format and the other two are not `setup`. */
         if(a.also&&a.also.length)for(const _r of a.also)if(_r.fx==='si')_siRider(_r);
+        /* 2026-08-24 -- AND *NOW* THE HP. See the deferral in the costsUserHP block above the dispatch:
+           Clangorous Soul's `onHit` runs after its `onTryHit`, so the `|-damage|` follows the stages.
+           The threshold refusal already happened up there, at the authority's `onTry` position, so a
+           click that reaches this line has been checked against `failsBelow` and cannot faint on the
+           payment -- the faint arm is kept anyway because "it cannot happen" is not a reason. */
+        if(a._hpCostAfterBoosts!=null){
+          m.curHP-=a._hpCostAfterBoosts;
+          if(TR)TR.dmg(m);
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);}
+        }
         continue;
       }
       /* THE GENERIC EFFECT APPLIER. Everything it does comes from the artifact, so a move added to
@@ -18488,7 +18613,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * WHAT STAYS ONCE PER MOVE: `m._lastMove` (set above), the `mvFail` for a move that found
          * nobody at all, a user-directed `si` effect (Showdown carries `move.selfDropped` for exactly
          * that), and `userFaints` -- Memento's user dies once, and only if the move reached somebody. */
-        const _tl=statusMoveTargets(m,a.mv,a.target,it,actA,actB);
+        const _tl=statusMoveTargets(m,a.mv,a.target,it,actA,actB,true);
         if(!_tl.length){mvFail(m);continue;}
         /* How many bodies the move actually LANDED on. Read by `userFaints` below, and by the
            user-directed `si` guard inside the loop. A refusal `continue`s without touching it, so a
@@ -18831,7 +18956,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * and a Substitute does not absorb that because it is not damage -- it is `sethp`. */
       if(a.kind==='sharehp'){
         m._lastMove=a.mv;
-        let t=bounceOff(m,a.target,a.mv);
+        let t=bounceOff(m,a.target,a.mv,true);
         t=reaimToSlot(t,it,actA,actB,a.mv);
         if(!t||t.fainted||t===m){mvFail(m);continue;}
         if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
@@ -18961,7 +19086,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * this engine trapping the ESPEON (`p1a` trapped 1) -- the two engines trapped opposite
          * bodies, and nothing could see it while the leaf was unread. */
         const _t0=reaimToSlot(a.target,it,actA,actB,a.mv);
-        const t=bounceOff(m,_t0,a.mv);
+        const t=bounceOff(m,_t0,a.mv,true);
         /* AND `t === m` IS ONLY A FAILURE WHEN NOTHING BOUNCED IT THERE. Magic Bounce sends a
          * reflectable status move BACK AT ITS USER, so after the bounce the legitimate target IS the
          * mover -- and this guard, written for "a caller aimed this at itself", refused exactly that
@@ -19331,7 +19456,18 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _b0=m.boosts[_s];
           m.boosts[_s]=clamp(m.boosts[_s]+_sc4.boosts[k]*_sg,-6,6);
           if(m.boosts[_s]!==_b0)_moved=true;
-          if(TR)TR.bst(m,_s,m.boosts[_s]-_b0);
+          /* 2026-08-24 -- BELLY DRUM ANNOUNCES A `-setboost`, NAMING ITSELF. See announcesSetBoost:
+             the predicate is the request's own magnitude, not the move's id, and it matches exactly
+             this move across the whole artifact. `_lbl` is the artifact's own display name so the
+             `[from]` reads `move: Belly Drum` the way `Effect#fullname` does; a record with no name
+             is COUNTED and falls back to the plain step, because a silent default here would look
+             exactly like the emitter working. */
+          if(TR&&m.boosts[_s]!==_b0&&announcesSetBoost(_sc4.boosts[k])){
+            const _rec=TAGS.tagsFor?TAGS.tagsFor('move',a.mv):null;
+            if(_rec&&_rec.name){MEDSEEN.setBoostAnnounced++;TR.setbst(m,_s,'[from] move: '+_rec.name);}
+            else {MEDFAILS.setBoostNoName++;TR.bst(m,_s,m.boosts[_s]-_b0);}
+          }
+          else if(TR)TR.bst(m,_s,m.boosts[_s]-_b0);
         }
         /* ROADMAP #72, THE OTHER HALF -- TIDY UP. It reaches this branch on its +1 Atk / +1 Spe, and
          * the sweep is the rest of the same `onHit`. No landing gate here and that is the authority
@@ -19658,7 +19794,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(a.kind==='trickitem'){
         m._lastMove=a.mv;
         const _ti=TAGS.param('move',a.mv,'takesTargetItem')||{};
-        const _tl=statusMoveTargets(m,a.mv,a.target,it,actA,actB);
+        const _tl=statusMoveTargets(m,a.mv,a.target,it,actA,actB,true);
         for(const t of _tl){
           if(!t||t.fainted||t.curHP<=0)continue;
           /* WIRE 241 -- a Trick into a Good as Gold kept both items and said nothing at all. */
@@ -20416,7 +20552,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         /* The TYPED branch. The target is an ordinary foe, so the ordinary refusals apply -- and
            Curse carries `ignoresProtect`, which bounceOff/the shield gate below already read. */
-        const t=bounceOff(m,a.target,a.mv);
+        const t=bounceOff(m,a.target,a.mv,true);
         if(!t||t.fainted||t===m){mvFail(m);continue;}
         if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
@@ -20987,7 +21123,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * to read `applyStatus(t, ['brn','par','slp'][rng()*3|0])` - a uniformly random pick, so Thunder
        * Wave burned a third of the time. The status and the accuracy now come from the rulebook. */
       if(a.kind==='status'){
-        let t=bounceOff(m,a.target,a.mv);
+        let t=bounceOff(m,a.target,a.mv,true);
         /* WIRE 137 -- A MOVE TARGETS A SLOT, AND THIS BRANCH WAS STILL TARGETING A BODY.
          *
          * The attack branch has resolved its aim to "whoever is in that slot NOW" since voluntary
@@ -22279,17 +22415,45 @@ function battleTurn(S,rng,actsForA,actsForB){
          * Breaker Tinkaton's Earthquake into a Levitate body was priced 60 and dealt 0. */
         const _ab=absorbedBy(m,tg,effMoveType(mv,a.move.id,field,m),(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status');
         if(_ab){
-          if(TR)TR.imm(tg,'[from] ability: '+tg.ability);
+          /* 2026-08-24 -- THE `-immune` IS THE GIFT'S *ELSE*, NEVER ITS COMPANION. This block
+             announced BOTH on every absorb, so Sap Sipper read `|-immune| |-boost|atk|1` against the
+             authority's `|-boost|atk|1` alone (`data/all-mechanics-fire.json`, extra event emitted by
+             medicham2).
+             THE AUTHORITY IS ONE SHAPE ACROSS THE WHOLE FAMILY, and it was read on all eight members
+             of `typeImmunity` before this was written (data/abilities.ts; no Champions override on
+             any of them):
+                 if (!this.boost({atk: 1}))   this.add('-immune', target, '[from] ability: Sap Sipper');
+                 if (!this.heal(baseMaxhp/4)) this.add('-immune', target, '[from] ability: Volt Absorb');
+                 if (!target.addVolatile('flashfire')) this.add('-immune', ... 'Flash Fire');
+             `boost` returns false when no stage moved, `heal` false at full HP, `addVolatile` false
+             when it is already up -- so the line means "absorbed, and there was nothing in it for me".
+             NOTHING IS NAMED HERE: the gift comes off the tag's own `gain`, so the rule is the same
+             one for all eight and a ninth arrives working. */
+          let _gift=false;
           if(_ab.gain&&!tg.fainted){
             const _h=_ab.gain.heal&&String(_ab.gain.heal).match(/1\/(\d+)/);
             if(_h){const _p0=tg.curHP;tg.curHP=Math.min(tg.st.hp,tg.curHP+Math.floor(tg.st.hp/(+_h[1])));
-              if(TR&&tg.curHP>_p0)TR.heal(tg,'[from] ability: '+tg.ability);}
+              if(tg.curHP>_p0){_gift=true;if(TR)TR.heal(tg,'[from] ability: '+tg.ability);}}
             if(_ab.gain.boosts&&tg.boosts)for(const k in _ab.gain.boosts){
               const _s=SD2ENG[k];if(_s&&tg.boosts[_s]!=null){const _b0=tg.boosts[_s];
                 tg.boosts[_s]=clamp(tg.boosts[_s]+_ab.gain.boosts[k],-6,6);
+                if(tg.boosts[_s]!==_b0)_gift=true;
                 if(TR)TR.bst(tg,_s,tg.boosts[_s]-_b0,'[from] ability: '+tg.ability);}
             }
+            /* FLASH FIRE'S GIFT IS A VOLATILE AND THIS ENGINE DOES NOT GRANT IT -- see the WIRE 11
+               header above, which has said so since it was written. That is UNCHANGED here and it is
+               COUNTED rather than covered up: with no volatile there is nothing for the `else` to
+               test, so the absorb keeps announcing `-immune` on every Fire hit where the authority
+               announces it only on the second. Wiring the volatile is a separate mechanic; claiming
+               the gift landed when nothing was granted would be a silent default. */
+            if(!_h&&!_ab.gain.boosts&&_ab.gain.volatile){
+              MEDFAILS.absorbGiftUnmodelled++;
+              if(!MEDFAILS.absorbGiftUnmodelledFirst)
+                MEDFAILS.absorbGiftUnmodelledFirst=String(tg.ability)+'/'+String(_ab.gain.volatile);
+            }
           }
+          if(_gift)MEDSEEN.absorbGiftLanded++;
+          else{MEDSEEN.absorbImmuneAnnounced++;if(TR)TR.imm(tg,'[from] ability: '+tg.ability);}
           R.out=true;return;
         }
       };
@@ -24744,7 +24908,17 @@ function battleTurn(S,rng,actsForA,actsForB){
               const st=SD2ENG[k]; if(!st||tg.boosts[st]==null)continue;
               const _b0=tg.boosts[st];
               tg.boosts[st]=clamp(tg.boosts[st]+_buff.boosts[k],-6,6);
-              if(TR)TR.bst(tg,st,tg.boosts[st]-_b0,'[from] ability: '+tg.ability);
+              /* 2026-08-24 -- ANGER POINT ANNOUNCES A `-setboost`, THE SAME ONE BELLY DRUM DOES. Same
+                 predicate, same authority switch (dist/sim/battle.js:1674), other call site -- and the
+                 gate is the STEP, so a body already at +6 gets no line at all, exactly as the
+                 authority's `if (boostBy)` decides. `[from]` is the display name from the artifact,
+                 which is `Effect#fullname`'s `ability: Anger Point`; no name is counted, not guessed. */
+              if(TR&&tg.boosts[st]!==_b0&&announcesSetBoost(_buff.boosts[k])){
+                const _arec=TAGS.tagsFor?TAGS.tagsFor('ability',tg.ability):null;
+                if(_arec&&_arec.name){MEDSEEN.setBoostAnnounced++;TR.setbst(tg,st,'[from] ability: '+_arec.name);}
+                else {MEDFAILS.setBoostNoName++;TR.bst(tg,st,tg.boosts[st]-_b0,'[from] ability: '+tg.ability);}
+              }
+              else if(TR)TR.bst(tg,st,tg.boosts[st]-_b0,'[from] ability: '+tg.ability);
             }
           }
         }

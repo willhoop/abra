@@ -1,9 +1,9 @@
 {
-  "generated": "2026-08-18 04:57:07",
+  "generated": "2026-08-24 09:15:15",
   "source": "engine/derive_protocol_events.js",
   "source_digests": {
-    "engine/derive_protocol_events.js": "87374017707a",
-    "engine/medicham2-browser.js": "3896526e716d"
+    "engine/derive_protocol_events.js": "1ee3421c6c67",
+    "engine/medicham2-browser.js": "9342df51e757"
   },
   "showdown_pinned_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "derivedFrom": {
@@ -30,7 +30,7 @@
     "note": "the champions mod OVERRIDES two of the core emits (-supereffective, -resisted); its arity wins."
   },
   "showdownEvents": 91,
-  "emittedCount": 42,
+  "emittedCount": 43,
   "emitted": [
     "-ability",
     "-activate",
@@ -56,6 +56,7 @@
     "-mustrecharge",
     "-prepare",
     "-resisted",
+    "-setboost",
     "-sethp",
     "-sideend",
     "-sidestart",
@@ -75,7 +76,7 @@
     "turn",
     "upkeep"
   ],
-  "notEmittedCount": 52,
+  "notEmittedCount": 51,
   "notEmitted": [
     {
       "event": "-anim",
@@ -156,10 +157,6 @@
     {
       "event": "-primal",
       "reason": "Primal Reversion does not exist in this format."
-    },
-    {
-      "event": "-setboost",
-      "reason": "no move in this engine SETS a stage; Belly Drum adds +12 half-stages through statChangeInCode and is emitted as `-boost`, which is what Showdown's gen-9 bellydrum does too."
     },
     {
       "event": "-singlemove",
@@ -972,7 +969,7 @@
         "SIM-PROTOCOL.md"
       ],
       "champions": false,
-      "medicham": "declared"
+      "medicham": "emitted"
     },
     {
       "name": "-sethp",

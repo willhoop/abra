@@ -24494,6 +24494,249 @@ probe('item', 'resistBerry',
                  + `the no-berry price, and the berry must still be there)` };
 });
 
+/* ================= 2026-08-24 — THE HP COST AND THE EFFECT IT PAYS FOR ============================
+ *
+ * `data/all-mechanics-fire.json` reads Clangorous Soul (513 corpus uses, the largest single diverging
+ * row in the artifact) as `[ordering] showdown |-boost|p1a: Kommo-o|atk|1  <>  medicham |-damage|p1a:
+ * Kommo-o|603/900`. The two engines agree about every number and disagree about which comes first.
+ *
+ * THE AUTHORITY, READ WHOLE (dist/data/moves.js `clangoroussoul`):
+ *     onTry(source)        { if (source.hp <= source.maxhp * 33 / 100 ...) return false; }
+ *     onTryHit(pokemon, target, move) { if (!this.boost(move.boosts)) return null; delete move.boosts; }
+ *     onHit(pokemon)       { this.directDamage(pokemon.maxhp * 33 / 100); }
+ * `onTryHit` runs before `onHit`, so the five stages are on the board BEFORE the HP is paid.
+ *
+ * AND THE CONTROL IS THE MOVE THE AUTHORITY ORDERS THE OTHER WAY, which is why this cannot be passed
+ * by an engine that simply always boosts first. Belly Drum (dist/data/moves.js `bellydrum`) does the
+ * whole job inside ONE handler:
+ *     onHit(target) { ...; this.directDamage(target.maxhp / 2); this.boost({ atk: 12 }, target); }
+ * so its HP comes off FIRST. Two moves, same tag family, opposite orders, both read off the authority.
+ *
+ * THE EVENT NAMES ARE COLLAPSED TO `boost` / `damage` ON PURPOSE: what is being asserted is the ORDER,
+ * and Belly Drum's line is a `-setboost` rather than a `-boost` (dist/sim/battle.js:1674). A probe
+ * that pinned the spelling would go red on a fix that has nothing to do with this ordering. */
+probe('move', 'costsUserHP', 'the stages Clangorous Soul buys land BEFORE the HP it pays — and Belly Drum pays first', () => {
+  const order = (sp, mv) => attrRun([sp, 'clefable', 'snorlax', 'milotic'], null, { mv, self: true }, null)
+    .map(M.traceCanon)
+    .filter(l => /^\|-(boost|unboost|setboost|damage)\|p1a:/.test(l))
+    .map(l => l.split('|')[1] === '-damage' ? 'damage' : 'boost')
+    .filter((v, i, a) => v !== a[i - 1]);        // five consecutive stage lines are one event here
+  const test = order('kommoo', 'clangoroussoul');
+  const control = order('azumarill', 'bellydrum');
+  return { works: JSON.stringify(test) === '["boost","damage"]'
+                  && JSON.stringify(control) === '["damage","boost"]',
+           arms: { control, test },
+           detail: `[the order of the stage lines and the self-damage line, one real turn each] — `
+                 + `Clangorous Soul off a Kommo-o ${JSON.stringify(test)}, which the authority pays in `
+                 + `onHit AFTER onTryHit has boosted; CONTROL Belly Drum off an Azumarill `
+                 + `${JSON.stringify(control)}, whose directDamage and boost sit in ONE onHit in that `
+                 + `order. An engine with one shared cost site cannot satisfy both` };
+});
+
+/* ================= 2026-08-24 — `-setboost`: THE TWO EFFECTS THAT ANNOUNCE A STAGE, NOT A STEP ====
+ *
+ * `data/all-mechanics-fire.json` carried two separate rows, Belly Drum (124 corpus uses) and Anger
+ * Point (20), and they are ONE fact living in the authority's own boost emitter:
+ *
+ *     switch (effect?.id) {
+ *       case "bellydrum":
+ *       case "angerpoint":
+ *         this.add("-setboost", target, "atk", target.boosts["atk"], "[from] " + effect.fullname);
+ *                                                            dist/sim/battle.js:1674-1679
+ *
+ * Three things differ from an ordinary `|-boost|`, and this engine had all three wrong: the EVENT
+ * NAME, the fourth field (the stage the body now SITS ON, not the step it took), and a `[from]`
+ * naming the effect — `move: Belly Drum` / `ability: Anger Point`, both read off `Effect#fullname`.
+ * Confirmed in a real authority log: `|-setboost|p1a: Azumarill|atk|6|[from] move: Belly Drum`.
+ *
+ * THE PREDICATE IS DERIVED AND IT WAS PRINTED BEFORE IT WAS WIRED. The engine does not name these
+ * two: it asks whether the requested boost is BEYOND THE CAP, which is the authority's own "set to
+ * max" spelling (`{atk: 12}` in both handlers). Swept over the whole of `data/abra-tags.js` — every
+ * `boosts` table under every tag of every move, ability and item — exactly two rows carry a magnitude
+ * above 6, and they are `moves.bellydrum` and `abilities.angerpoint`. Nothing else in the format is
+ * caught, which is what makes this a shape rather than a name list.
+ *
+ * EACH PROBE'S CONTROL IS A SIBLING ON THE SAME CODE PATH, so "it emits -setboost" cannot be reached
+ * by an engine that renamed the event everywhere: Tidy Up is the other on-user `statChangeInCode`
+ * boost, and Stamina is the other `buffsHolderOnHit` boost. Both must still write a plain `|-boost|`
+ * carrying a STEP. */
+probe('move', 'statChangeInCode', 'Belly Drum announces the stage it SET, naming itself — and Tidy Up still announces a step', () => {
+  const stages = (sp, mv) => attrRun([sp, 'clefable', 'snorlax', 'milotic'], null, { mv, self: true }, null)
+    .map(M.traceCanon).filter(l => /^\|-(setboost|boost|unboost)\|p1a:/.test(l));
+  const test = stages('azumarill', 'bellydrum');
+  const control = stages('maushold', 'tidyup');
+  return { works: JSON.stringify(test) === '["|-setboost|p1a:azumarill|atk|6|[from]move:bellydrum"]'
+                  && JSON.stringify(control)
+                     === '["|-boost|p1a:maushold|atk|1","|-boost|p1a:maushold|spe|1"]',
+           arms: { control, test },
+           detail: `[every stage line the acting body emitted, one real turn each] — Belly Drum off a `
+                 + `175 HP Azumarill ${JSON.stringify(test)}; CONTROL Tidy Up off a Maushold, the `
+                 + `other on-user statChangeInCode boost, ${JSON.stringify(control)}. The authority `
+                 + `puts field 4 at the stage the body NOW SITS ON (6), where a step would read 12` };
+});
+
+probe('ability', 'buffsHolderOnHit', 'Anger Point announces the stage it SET and does it once — and Stamina still steps every hit', () => {
+  const big = (B) => { B.f1.st = Object.assign({}, B.f1.st, { hp: B.f1.st.hp * 8 }); B.f1.curHP = B.f1.st.hp; };
+  /* STORM THROW, so the crit is the MOVE'S OWN and no probe has to bend the die: Anger Point's
+   * `when` is `{cond:'crit'}` and Machamp learns it (TeamValidator, gen9championsvgc2026regmb).
+   * TWO turns, deliberately — the second crit is where the two answers separate hardest: Anger Point
+   * is already at the cap so `boostBy` is 0 and the authority writes NOTHING, while Stamina steps
+   * again and its line must carry the step (1) and not the total (2). */
+  const react = (sp, ab) => attrRun([ 'machamp', 'clefable', sp, 'milotic' ],
+      (B) => { big(B); B.f1.ability = ab; }, [{ mv: 'stormthrow' }, { mv: 'stormthrow' }], null, 2)
+    .map(M.traceCanon).filter(l => /^\|-(setboost|boost|unboost)\|p2a:/.test(l));
+  const test = react('camerupt', 'angerpoint');
+  const control = react('archaludon', 'stamina');
+  return { works: JSON.stringify(test) === '["|-setboost|p2a:camerupt|atk|6|[from]ability:angerpoint"]'
+                  && JSON.stringify(control) === '["|-boost|p2a:archaludon|def|1|[from]ability:stamina",'
+                                              + '"|-boost|p2a:archaludon|def|1|[from]ability:stamina"]',
+           arms: { control, test },
+           detail: `[every stage line the struck body emitted across TWO guaranteed crits] — Anger `
+                 + `Point on a Camerupt ${JSON.stringify(test)}; CONTROL Stamina on an Archaludon, `
+                 + `the other buffsHolderOnHit boost, taking the identical two Storm Throws, `
+                 + `${JSON.stringify(control)}. One line against two is the cap: at +6 the authority's `
+                 + `boostBy is 0 and it writes nothing at all` };
+});
+
+/* ================= 2026-08-24 — AN ABSORBER SAYS `-immune` ONLY WHEN THE GIFT FAILED ==============
+ *
+ * `data/all-mechanics-fire.json` read Sap Sipper (76 corpus uses) as `[extra event emitted by
+ * medicham2] showdown |-boost|p1a: Azumarill|atk|1 <> medicham |-immune|p1a: Azumarill|[from] ability:
+ * sapsipper`. This engine announced BOTH, on every absorb.
+ *
+ * THE AUTHORITY, AND IT IS THE SAME SEVEN LINES SEVEN TIMES (data/abilities.ts, no Champions
+ * override on any of them — checked file by file):
+ *
+ *     sapsipper     if (!this.boost({atk: 1}))          this.add('-immune', target, '[from] ability: Sap Sipper');
+ *     lightningrod  if (!this.boost({spa: 1}))          ... Lightning Rod
+ *     motordrive    if (!this.boost({spe: 1}))          ... Motor Drive
+ *     voltabsorb    if (!this.heal(baseMaxhp / 4))      ... Volt Absorb
+ *     waterabsorb   if (!this.heal(baseMaxhp / 4))      ... Water Absorb
+ *     dryskin       if (!this.heal(baseMaxhp / 4))      ... Dry Skin
+ *     eartheater    if (!this.heal(baseMaxhp / 4))      ... Earth Eater
+ *     flashfire     if (!target.addVolatile('flashfire')) ... Flash Fire
+ *
+ * The `-immune` is the ELSE of the gift, never a companion to it. `boost` returns false when no stage
+ * moved, `heal` returns false at full HP, `addVolatile` returns false when the volatile is up — so the
+ * line means "absorbed, and there was nothing in it for me", which is exactly the case a player needs
+ * to be told about. Announcing it alongside the gift says the opposite.
+ *
+ * THE CONTROL IS THE AUTHORITY'S OWN OTHER BRANCH, and it is the same ability and the same click with
+ * ONE thing varied — whether the gift has anywhere to land. A capped Sap Sipper and a full-HP Volt
+ * Absorb must STILL write the bare `-immune`, so a fix that simply deleted the line fails here.
+ * TWO MEMBERS, one of each gift shape (a boost and a heal), because the engine reads this off the
+ * tag's `gain` and a single member could not tell a rule from a name. */
+probe('ability', 'typeImmunity', 'an absorbing ability announces `-immune` only when its gift had nowhere to land', () => {
+  const lines = (sps, stage, mv) => attrRun(sps, stage, { mv }, null)
+    .map(M.traceCanon).filter(l => /^\|-(immune|boost|heal)\|p2a:/.test(l));
+  const SIP = ['sceptile', 'clefable', 'azumarill', 'milotic'];
+  const VOLT = ['raichu', 'clefable', 'jolteon', 'milotic'];
+  const sipGift = lines(SIP, (B) => { B.f1.ability = 'sapsipper'; }, 'trailblaze');
+  const sipFull = lines(SIP, (B) => { B.f1.ability = 'sapsipper'; B.f1.boosts.at = 6; }, 'trailblaze');
+  const voltGift = lines(VOLT, (B) => { B.f1.ability = 'voltabsorb'; B.f1.curHP = Math.floor(B.f1.st.hp / 2); }, 'thunderbolt');
+  const voltFull = lines(VOLT, (B) => { B.f1.ability = 'voltabsorb'; }, 'thunderbolt');
+  const shape = (a) => a.map(l => l.split('|')[1]);
+  const test = [shape(sipGift), shape(voltGift)];
+  const control = [shape(sipFull), shape(voltFull)];
+  return { works: JSON.stringify(test) === '[["-boost"],["-heal"]]'
+                  && JSON.stringify(control) === '[["-immune"],["-immune"]]',
+           arms: { control, test },
+           detail: `[the lines the ABSORBING body emitted] — Sap Sipper with headroom `
+                 + `${JSON.stringify(sipGift)}; the same Trailblaze into the same Azumarill ALREADY AT `
+                 + `+6 Attack ${JSON.stringify(sipFull)}. Volt Absorb on half HP `
+                 + `${JSON.stringify(voltGift)}; the same Thunderbolt into the same Jolteon at FULL HP `
+                 + `${JSON.stringify(voltFull)}. The authority writes the `
+                 + `-immune inside `+'`if (!this.boost(...))`'+` / `+'`if (!this.heal(...))`'+`, so it is `
+                 + `the gift's else and never its companion` };
+});
+
+/* ================= 2026-08-24 — A BOUNCED MOVE IS *USED* BY THE BOUNCER, AND SAYS SO =============
+ *
+ * `data/all-mechanics-fire.json` read Magic Bounce (286 corpus uses, the second-largest diverging
+ * row) as `[event missing from medicham2] showdown |move|p1a: Espeon|Block|p2a: Feraligatr|[from]
+ * ability: Magic Bounce  <>  medicham |-activate|p2a: Feraligatr|trapped`.
+ *
+ * THE STATE WAS ALREADY RIGHT AND THE ACCOUNT OF IT WAS MISSING. `bounceOff` retargets, and
+ * ROADMAP #241 had already fixed the trap branch so the BLOCK'S USER is the body that ends up
+ * trapped — which both engines agree on. What this engine never said is that a second move happened:
+ *
+ *     onTryHit(target, source, move) {
+ *       if (target === source || move.hasBounced || !move.flags['reflectable']) return;
+ *       const newMove = this.dex.getActiveMove(move.id);
+ *       newMove.hasBounced = true;
+ *       this.actions.useMove(newMove, target, {target: source});   <- A REAL USE, WITH A REAL LINE
+ *       return null;
+ *     }                                                       data/abilities.ts magicbounce
+ *
+ * `useMove` writes a `|move|` line like any other, attributed to the ability. Read off the authority
+ * rather than reasoned: `|move|p2a: Feraligatr|Block|p1a: Espeon` then
+ * `|move|p1a: Espeon|Block|p2a: Feraligatr|[from] ability: Magic Bounce` then the `|-activate|trapped`.
+ *
+ * THE CONTROL IS ESPEON'S OTHER LEGAL ABILITY. `Dex.forFormat(...).species.get('espeon').abilities`
+ * is `{0: Synchronize, H: Magic Bounce}`, so the control arm is the same body, the same click and the
+ * same board with the one ability swapped — and it must emit ONE move line and trap the ESPEON. An
+ * engine that emitted a second line unconditionally fails there. */
+probe('ability', 'reflectsStatusMoves', 'a bounced move is USED by the bouncer and writes its own `|move|` line', () => {
+  const run = (ab) => attrRun(['espeon', 'clefable', 'feraligatr', 'milotic'],
+      (B) => { B.me.ability = ab; }, null, { mv: 'block' })
+    .map(M.traceCanon).filter(l => /^\|(move|-activate)\|/.test(l));
+  const test = run('magicbounce');
+  const control = run('synchronize');
+  return { works: JSON.stringify(test) === '["|move|p2a:feraligatr|block|p1a:espeon",'
+                                         + '"|move|p1a:espeon|block|p2a:feraligatr|[from]ability:magicbounce",'
+                                         + '"|-activate|p2a:feraligatr|trapped"]'
+                  && JSON.stringify(control) === '["|move|p2a:feraligatr|block|p1a:espeon",'
+                                               + '"|-activate|p1a:espeon|trapped"]',
+           arms: { control, test },
+           detail: `[the move and activate lines of one real turn] — a Feraligatr Blocks an Espeon. `
+                 + `MAGIC BOUNCE ${JSON.stringify(test)}; CONTROL, the same click into the same `
+                 + `Espeon carrying SYNCHRONIZE (its other legal ability) ${JSON.stringify(control)}. `
+                 + `The bounce arm must carry TWO move lines and trap the Blocker; the control arm one `
+                 + `line and the Espeon` };
+});
+
+/* ================= 2026-08-24 — A CHARGE RE-BANKED IS A CHARGE RE-ANNOUNCED ======================
+ *
+ * `data/all-mechanics-fire.json` read Electromorphosis (127 corpus uses) as `[event missing from
+ * medicham2] showdown |-start|p1a: Bellibolt|Charge|Hydro Pump|[from] ability: Electromorphosis  <>
+ * medicham |upkeep`. The FIRST bank was already right — the probe above proves it — and the SECOND
+ * was silent.
+ *
+ * THE AUTHORITY HAS TWO IDENTICAL HANDLERS AND THIS ENGINE HAD ONE (data/moves.ts, the `charge`
+ * condition, read whole):
+ *
+ *     onStart(pokemon, source, effect)   { if (effect && ['Electromorphosis','Wind Power'].includes(effect.name))
+ *                                            this.add('-start', pokemon, 'Charge', this.activeMove.name,
+ *                                                     '[from] ability: ' + effect.name);
+ *                                          else this.add('-start', pokemon, 'Charge'); }
+ *     onRestart(pokemon, source, effect) { ...the same six lines again... }
+ *
+ * The engine's own comment at the bank site already said "`onRestart` re-announces and does NOT
+ * stack", and the line under it read `if (TR && !_had)` — the comment was right and the code
+ * disagreed with it.
+ *
+ * THE TWO HITS USE DIFFERENT MOVES, DELIBERATELY. Field 4 is `this.activeMove.name`, so a genuine
+ * re-announcement NAMES THE SECOND MOVE. An engine that merely duplicated the first line would print
+ * `heavyslam` twice and fail here, which is the one wrong way to make this go green. */
+probe('ability', 'buffsHolderOnHit', 'a second hit RE-ANNOUNCES the Charge it re-banks, naming the move that landed it', () => {
+  const run = (ab) => attrRun(['bellibolt', 'clefable', 'snorlax', 'milotic'],
+      (B) => { B.me.ability = ab; B.me.st = Object.assign({}, B.me.st, { hp: B.me.st.hp * 8 }); B.me.curHP = B.me.st.hp; },
+      null, [{ mv: 'heavyslam' }, { mv: 'bodyslam' }], 2)
+    .map(M.traceCanon).filter(l => /^\|-start\|p1a:/.test(l));
+  const test = run('electromorphosis');
+  const control = run('none');
+  return { works: JSON.stringify(test)
+                    === '["|-start|p1a:bellibolt|charge|heavyslam|[from]ability:electromorphosis",'
+                      + '"|-start|p1a:bellibolt|charge|bodyslam|[from]ability:electromorphosis"]'
+                  && JSON.stringify(control) === '[]',
+           arms: { control, test },
+           detail: `[the Charge lines across TWO hits on the same Bellibolt] — Electromorphosis `
+                 + `${JSON.stringify(test)}; CONTROL, the identical two hits with the ability blanked, `
+                 + `${JSON.stringify(control)}. The second line must name BODY SLAM: field 4 is the `
+                 + `authority's `+'`this.activeMove.name`'+`, so a duplicated first line would say `
+                 + `heavyslam twice` };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');
