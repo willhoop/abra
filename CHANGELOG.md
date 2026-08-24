@@ -10,6 +10,41 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.112.0] — 2026-08-24
+
+### Fixed
+- **A LIVE TURN-ORDER DEFECT WAS BEING SUBTRACTED FROM THE GATE BY A PHRASE IN A REGISTER CELL.** The
+  speed-tie row read *"NOT A DEFECT — an exact tie has no correct answer."* That is **not decoration**:
+  `engine/quarantine.js:1040` tests `/NOT A DEFECT/i` against the status cell and treats it as an
+  **explicit ruling that overrides the derived verdict**. So three real turn-order divergences were
+  excused and printed as such. **Both tie-breaking coins are already pinned in this harness**, so a tie
+  must come out the same on both sides — and three do not. The row now names the gate that decides it.
+- **It was recorded wrongly in a second place**: the index row carried the same *"not a defect"* note
+  inline, which is what anyone skimming would have read. Corrected there too. Every other row
+  mentioning a tie was checked; none records one as declared or unfixable.
+- **Two further register claims were wrong and are corrected.** The Substitute row asserted a board
+  difference — measured, it is narration only, and the real state bug behind it is now its own row. The
+  Future Sight row proposed the wrong cause; the actual cause was the damage-roll conversion. A third
+  claim — that a step list needed restructuring after the faint work — was withdrawn as false the same
+  night and is recorded so nobody repeats the work.
+
+### Notes
+- **This exemption predates the coordinator's speed-tie analysis, and that analysis would have hardened
+  it rather than caught it.** I told Will the authority coin-flips ties and the die is unshared; both
+  are false, the `tie` stream has been shared since 2026-08-20, and an agent refused the declaration on
+  those grounds. Had it been declared, this cell would have looked confirmed rather than wrong.
+- Register: **nine rows closed** that were open this morning, **nine filed already closed** (landed and
+  probed today), **fourteen filed open**, **eleven re-scoped**. **The gate did not move and nothing here
+  could have moved it** — same four red rows, and nothing was closed to make a clause pass.
+- **Refused to close:** the red-run-write gate (built and committed but not yet run, and one instrument
+  still sits in its own floor); three of the six switch-in effects; half of the semi-invulnerability
+  row; and the two withheld seed-prevalence figures — that row's green check answers a *different*
+  question from the one holding it open, so the row was narrowed to say so rather than closed on it.
+- **The biggest remaining gap:** `data/register-reality.json` is still stamped 07:48 and names a row
+  now closed. The four red rows the gate reports rest on that stale file, and refreshing it launches
+  instruments this pass was barred from running.
+- Will's four judgement cards are attached to the rows they decide, **marked and not answered**.
+
 ## [5.111.0] — 2026-08-24
 
 ### Fixed
